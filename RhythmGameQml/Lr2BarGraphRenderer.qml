@@ -71,6 +71,10 @@ Item {
             anchors.fill: parent
             source: root.resolvedSource
             fillMode: Image.Stretch
+            asynchronous: root.srcData
+                && (root.srcData.specialType === 1
+                    || root.srcData.specialType === 3
+                    || root.srcData.specialType === 4)
             sourceClipRect: {
                 if (!root.srcData) return Qt.rect(0, 0, 0, 0);
                 let sx = Math.max(0, root.srcData.x || 0);

@@ -130,7 +130,7 @@ Lr2FontCache::load(const QString& path)
     std::lock_guard<std::mutex> lock(m_mutex);
 
     if (const auto it = m_cache.find(path); it != m_cache.end()) {
-        return &it.value();
+        return it.value().get();
     }
 
     const auto fontData = loadFontData(path);
@@ -208,8 +208,9 @@ Lr2FontCache::load(const QString& path)
         }
     }
 
-    auto iterator = m_cache.insert(path, std::move(dict));
-    return &iterator.value();
+    auto iterator =
+      m_cache.insert(path, std::make_shared<Lr2FontDict>(std::move(dict)));
+    return iterator.value().get();
 }
 
 } // namespace resource_managers

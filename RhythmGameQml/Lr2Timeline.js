@@ -50,6 +50,7 @@ function copyDstAsState(dst) {
         a: dst.a, r: dst.r, g: dst.g, b: dst.b,
         angle: dst.angle || 0,
         center: dst.center || 0,
+        sortId: dst.sortId || 0,
         blend: dst.blend || 0,
         filter: dst.filter || 0
     };
@@ -137,6 +138,7 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
         b: mix(d1.b, d2.b),
         angle: mix(d1.angle || 0, d2.angle || 0),
         center: d1.center || 0,
+        sortId: mix(d1.sortId || 0, d2.sortId || 0),
         blend: d1.blend || 0,
         filter: d1.filter || 0
     };

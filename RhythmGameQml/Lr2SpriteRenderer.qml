@@ -43,6 +43,17 @@ Item {
         if (raw === 3 || raw === 4 || raw === 9 || raw === 11) return 1;
         return raw;
     }
+    function colorComponent(value) {
+        if (value === undefined || value === null) return 1.0;
+        return Math.max(0, Math.min(255, value)) / 255.0;
+    }
+    readonly property real tintR: root.currentState ? root.colorComponent(root.currentState.r) : 1.0
+    readonly property real tintG: root.currentState ? root.colorComponent(root.currentState.g) : 1.0
+    readonly property real tintB: root.currentState ? root.colorComponent(root.currentState.b) : 1.0
+    readonly property bool hasColorTint: Math.abs(root.tintR - 1.0) > 0.001
+        || Math.abs(root.tintG - 1.0) > 0.001
+        || Math.abs(root.tintB - 1.0) > 0.001
+    readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
     readonly property var anchor: Lr2Timeline.centerAnchor(currentState ? currentState.center : 4)
     readonly property bool isSolidFill: srcData && srcData.specialType === 2
     readonly property bool hasWholeTextureSource: srcData && !root.isSolidFill
@@ -116,6 +127,10 @@ Item {
             source: root.hasDrawableTexture ? root.resolvedSource : ""
             fillMode: Image.Stretch
             cache: true
+            asynchronous: root.srcData
+                && (root.srcData.specialType === 1
+                    || root.srcData.specialType === 3
+                    || root.srcData.specialType === 4)
             // For special blend modes, sibling effects sample this Image via
             // ShaderEffectSource and draw the final composite.
             // Keep the source item renderable for ShaderEffectSource. The
@@ -144,6 +159,20 @@ Item {
 
                 return Qt.rect(sx + col * cellW, sy + row * cellH, cellW, cellH);
             }
+        }
+
+        ShaderEffect {
+            anchors.fill: parent
+            visible: root.hasDrawableTexture && root.blendMode === 1 && root.hasColorTint
+            blending: true
+            property color tint: root.tintColor
+            property variant source: ShaderEffectSource {
+                hideSource: root.blendMode === 1 && root.hasColorTint
+                sourceItem: spriteImg
+                live: true
+                sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
+            }
+            fragmentShader: "qrc:/Lr2Tint.frag.qsb"
         }
 
         // Blend mode 0: TRANSCOLOR (black -> transparent), then alpha blend.

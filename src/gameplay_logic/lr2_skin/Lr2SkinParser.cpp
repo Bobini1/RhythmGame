@@ -63,6 +63,7 @@ struct ParseState
     int sceneTime = 0;
     int fadeOut = 0;
     int skip = 0;
+    int sortId = 0;
 };
 
 auto
@@ -131,9 +132,10 @@ decodeSkinText(const QByteArray& data) -> QString
 }
 
 auto
-parseDstValue(const QStringList& tokens) -> Lr2Dst
+parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
 {
     Lr2Dst dst;
+    dst.sortId = sortId;
     if (tokens.size() > 2 && !tokens[2].isEmpty())
         dst.time = tokens[2].toInt();
     if (tokens.size() > 3 && !tokens[3].isEmpty())
@@ -178,9 +180,9 @@ parseDstValue(const QStringList& tokens) -> Lr2Dst
 }
 
 void
-parseDst(const QStringList& tokens, Lr2Element& element)
+parseDst(const QStringList& tokens, ParseState& state, Lr2Element& element)
 {
-    const auto dst = parseDstValue(tokens);
+    const auto dst = parseDstValue(tokens, state.sortId);
     element.dsts.append(QVariant::fromValue(dst));
 }
 
@@ -357,6 +359,7 @@ parseIfBlock(const std::vector<QStringList>& lines,
         }
 
         ++index;
+        ++state.sortId;
         if (executeBranch) {
             parseLines(lines, index, state, currentDir, true);
             branchMatched = true;
@@ -372,6 +375,7 @@ parseIfBlock(const std::vector<QStringList>& lines,
           lines[index].isEmpty() ? QString{} : lines[index][0].toUpper();
         if (nextCommand == "#ENDIF") {
             ++index;
+            ++state.sortId;
             return;
         }
         if (nextCommand != "#ELSE" && nextCommand != "#ELSEIF") {
@@ -441,6 +445,8 @@ parseImageSource(const QStringList& tokens,
         src.op2 = tokens[grIndex + 10].toInt();
     if (tokens.size() > grIndex + 11 && !tokens[grIndex + 11].isEmpty())
         src.op3 = tokens[grIndex + 11].toInt();
+    if (tokens.size() > grIndex + 12 && !tokens[grIndex + 12].isEmpty())
+        src.op4 = tokens[grIndex + 12].toInt();
 
     const auto [specialType, source] =
       sourceForGr(src.gr, src.w, src.h, state);
@@ -628,7 +634,7 @@ appendBarImageDst(ParseState& state,
         state.hasCurrentElement = true;
     }
 
-    const auto dst = parseDstValue(tokens);
+    const auto dst = parseDstValue(tokens, state.sortId);
     state.currentElement.dsts.append(QVariant::fromValue(dst));
     if (kind == Lr2SrcBarImage::BodyOff) {
         state.barBodyOffDsts[row].append(QVariant::fromValue(dst));
@@ -661,7 +667,7 @@ appendBarTextDst(ParseState& state, const QStringList& tokens, const int titleTy
           QVariant::fromValue(state.barTitleSources.value(titleType));
         state.hasCurrentElement = true;
     }
-    parseDst(tokens, state.currentElement);
+    parseDst(tokens, state, state.currentElement);
 }
 
 auto
@@ -691,7 +697,7 @@ appendBarNumberDst(ParseState& state, const QStringList& tokens, const int varia
         state.currentElement.src = QVariant::fromValue(src);
         state.hasCurrentElement = true;
     }
-    parseDst(tokens, state.currentElement);
+    parseDst(tokens, state, state.currentElement);
 }
 
 void
@@ -827,9 +833,9 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseImageSource(tokens, state));
     } else if (command == "#DST_IMAGE") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {
-            parseDst(tokens, state.currentElement);
+            parseDst(tokens, state, state.currentElement);
         }
-    } else if (command == "#SRC_BUTTON" || command == "#SRC_SLIDER") {
+    } else if (command == "#SRC_BUTTON") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
         state.currentElement.type = 0;
@@ -839,13 +845,23 @@ processCommand(const QStringList& tokens,
         src.buttonId = src.op1;
         src.buttonClick = src.op2;
         src.buttonPanel = src.op3;
-        if (tokens.size() > 14 && !tokens[14].isEmpty()) {
-            src.buttonPlusOnly = tokens[14].toInt();
-        }
+        src.buttonPlusOnly = src.op4;
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#SRC_SLIDER") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 0;
+        state.hasCurrentElement = true;
+        auto src = parseImageSource(tokens, state);
+        src.slider = true;
+        src.sliderDirection = src.op1;
+        src.sliderRange = src.op2;
+        src.sliderType = src.op3;
+        src.sliderDisabled = src.op4;
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#DST_BUTTON" || command == "#DST_SLIDER") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {
-            parseDst(tokens, state.currentElement);
+            parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_NUMBER") {
         flushCurrentElement(state);
@@ -857,7 +873,7 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseNumberSource(tokens, state));
     } else if (command == "#DST_NUMBER") {
         if (state.hasCurrentElement && state.currentElement.type == 1) {
-            parseDst(tokens, state.currentElement);
+            parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_BARGRAPH") {
         flushCurrentElement(state);
@@ -868,7 +884,7 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseBarGraphSource(tokens, state));
     } else if (command == "#DST_BARGRAPH") {
         if (state.hasCurrentElement && state.currentElement.type == 6) {
-            parseDst(tokens, state.currentElement);
+            parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_TEXT") {
         flushCurrentElement(state);
@@ -880,7 +896,7 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseTextSource(tokens, state));
     } else if (command == "#DST_TEXT") {
         if (state.hasCurrentElement && state.currentElement.type == 2) {
-            parseDst(tokens, state.currentElement);
+            parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#BAR_CENTER") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
@@ -1084,6 +1100,7 @@ parseLines(const std::vector<QStringList>& lines,
 
         processCommand(tokens, state, currentDir);
         ++index;
+        ++state.sortId;
     }
 }
 

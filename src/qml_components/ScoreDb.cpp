@@ -16,6 +16,21 @@
 namespace qml_components {
 
 constexpr int maxVariables = 999;
+namespace {
+struct ScoreStatsRow
+{
+    qint64 playCount{};
+    qint64 clearCount{};
+    qint64 failCount{};
+    qint64 perfectCount{};
+    qint64 greatCount{};
+    qint64 goodCount{};
+    qint64 badCount{};
+    qint64 poorCount{};
+    qint64 maxCombo{};
+};
+}
+
 auto
 ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
 {
@@ -422,6 +437,62 @@ ScoreDb::getScores(const resource_managers::Level& level) const
         md5s.append(entry.md5);
     }
     return getScoresForMd5(md5s);
+}
+auto
+ScoreDb::getTotalStats() const -> QIfPendingReply<ScoreStatsResult>
+{
+    auto reply = QIfPendingReply<ScoreStatsResult>{};
+    auto token = stopSource.get_token();
+    threadPool.start([reply, token, this] {
+        try {
+            auto statement = scoreDb->createStatement(
+              "SELECT "
+              "COUNT(*), "
+              "COALESCE(SUM(CASE WHEN clear_type NOT IN ('FAILED', 'NOPLAY') "
+              "THEN 1 ELSE 0 END), 0), "
+              "COALESCE(SUM(CASE WHEN clear_type = 'FAILED' THEN 1 ELSE 0 "
+              "END), 0), "
+              "COALESCE(SUM(perfect), 0), "
+              "COALESCE(SUM(great), 0), "
+              "COALESCE(SUM(good), 0), "
+              "COALESCE(SUM(bad), 0), "
+              "COALESCE(SUM(poor + empty_poor), 0), "
+              "COALESCE(MAX(max_combo), 0) "
+              "FROM score");
+            auto row = statement.executeAndGet<ScoreStatsRow>().value_or(
+              ScoreStatsRow{});
+
+            QMetaObject::invokeMethod(
+              QCoreApplication::instance(),
+              [reply, token, row]() mutable {
+                  if (token.stop_requested()) {
+                      reply.setFailed();
+                      return;
+                  }
+                  ScoreStatsResult result;
+                  result.playCount = row.playCount;
+                  result.clearCount = row.clearCount;
+                  result.failCount = row.failCount;
+                  result.perfectCount = row.perfectCount;
+                  result.greatCount = row.greatCount;
+                  result.goodCount = row.goodCount;
+                  result.badCount = row.badCount;
+                  result.poorCount = row.poorCount;
+                  result.maxCombo = row.maxCombo;
+                  reply.setSuccess(result);
+              },
+              Qt::QueuedConnection);
+        } catch (std::exception& e) {
+            QMetaObject::invokeMethod(
+              QCoreApplication::instance(),
+              [reply, e]() mutable {
+                  spdlog::error("Error in getTotalStats: {}", e.what());
+                  reply.setFailed();
+              },
+              Qt::QueuedConnection);
+        }
+    });
+    return reply;
 }
 void
 ScoreDb::cancelPending()

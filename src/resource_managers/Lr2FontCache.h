@@ -5,6 +5,7 @@
 #include <QList>
 #include <QRect>
 #include <QString>
+#include <memory>
 #include <mutex>
 
 namespace resource_managers {
@@ -23,9 +24,8 @@ struct Lr2FontDict
     int height = 0;
 };
 
-// Process-wide cache of parsed .lr2font files. Shared by
-// Lr2FontImageProvider (which serves atlas textures) and Lr2FontCatalog
-// (which exposes glyph metrics to QML).
+// Process-wide cache of parsed .lr2font files. Returned pointers stay valid
+// for the lifetime of the process, including when providers load off-thread.
 class Lr2FontCache
 {
   public:
@@ -42,7 +42,7 @@ class Lr2FontCache
     Lr2FontCache() = default;
 
     std::mutex m_mutex;
-    QHash<QString, Lr2FontDict> m_cache;
+    QHash<QString, std::shared_ptr<Lr2FontDict>> m_cache;
 };
 
 } // namespace resource_managers

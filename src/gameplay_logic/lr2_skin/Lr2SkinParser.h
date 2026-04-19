@@ -25,6 +25,7 @@ struct Lr2Dst
     Q_PROPERTY(int filter MEMBER filter)
     Q_PROPERTY(int angle MEMBER angle)
     Q_PROPERTY(int center MEMBER center)
+    Q_PROPERTY(int sortId MEMBER sortId)
     Q_PROPERTY(int loop MEMBER loop)
     Q_PROPERTY(int timer MEMBER timer)
     Q_PROPERTY(int op1 MEMBER op1)
@@ -46,6 +47,7 @@ struct Lr2Dst
     int filter = 0;
     int angle = 0;
     int center = 0;
+    int sortId = 0;
     int loop = 0;
     int timer = 0;
     int op1 = 0;
@@ -69,11 +71,17 @@ struct Lr2SrcImage
     Q_PROPERTY(int op1 MEMBER op1)
     Q_PROPERTY(int op2 MEMBER op2)
     Q_PROPERTY(int op3 MEMBER op3)
+    Q_PROPERTY(int op4 MEMBER op4)
     Q_PROPERTY(bool button MEMBER button)
     Q_PROPERTY(int buttonId MEMBER buttonId)
     Q_PROPERTY(int buttonClick MEMBER buttonClick)
     Q_PROPERTY(int buttonPanel MEMBER buttonPanel)
     Q_PROPERTY(int buttonPlusOnly MEMBER buttonPlusOnly)
+    Q_PROPERTY(bool slider MEMBER slider)
+    Q_PROPERTY(int sliderDirection MEMBER sliderDirection)
+    Q_PROPERTY(int sliderRange MEMBER sliderRange)
+    Q_PROPERTY(int sliderType MEMBER sliderType)
+    Q_PROPERTY(int sliderDisabled MEMBER sliderDisabled)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(QString source MEMBER source)
   public:
@@ -99,11 +107,17 @@ struct Lr2SrcImage
     int op1 = 0;
     int op2 = 0;
     int op3 = 0;
+    int op4 = 0;
     bool button = false;
     int buttonId = 0;
     int buttonClick = 0;
     int buttonPanel = 0;
     int buttonPlusOnly = 0;
+    bool slider = false;
+    int sliderDirection = 0;
+    int sliderRange = 0;
+    int sliderType = 0;
+    int sliderDisabled = 0;
     int specialType = None;
     QString source;
 };

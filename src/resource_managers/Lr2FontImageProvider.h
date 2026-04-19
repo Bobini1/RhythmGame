@@ -6,15 +6,9 @@ namespace resource_managers {
 
 // URL formats served:
 //
-//   image://lr2font/<absolute-font-path>?atlas=<N>&x=<X>&y=<Y>&w=<W>&h=<H>
-//     Returns one glyph cropped from the Nth texture atlas. Invalid crops
-//     return transparent pixels rather than exposing the full atlas.
-//
 //   image://lr2font/<absolute-font-path>?text=<urlencoded-string>
-//     Legacy: composes the entire string into a single QImage. Kept so
-//     that any callers that haven't been migrated to the atlas API still
-//     work, but prefer the atlas form — it caches per-atlas instead of
-//     per-string.
+//     Composes the entire bitmap-font string into one cached image. Qt Quick
+//     then moves/scales it as a normal texture instead of building glyph items.
 class Lr2FontImageProvider : public QQuickImageProvider
 {
   public:

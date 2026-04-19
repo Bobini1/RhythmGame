@@ -277,8 +277,6 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/Lr2FontImageProvider.h
         src/resource_managers/Lr2FontCache.cpp
         src/resource_managers/Lr2FontCache.h
-        src/resource_managers/Lr2FontCatalog.cpp
-        src/resource_managers/Lr2FontCatalog.h
         src/gameplay_logic/lr2_skin/Lr2SkinParser.h
         src/gameplay_logic/lr2_skin/Lr2SkinParser.cpp
         src/gameplay_logic/lr2_skin/Lr2SkinModel.h

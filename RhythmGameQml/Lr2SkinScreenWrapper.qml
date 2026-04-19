@@ -24,11 +24,12 @@ Item {
         if (root.effectiveScreenKey === "select" && selectContext.historyStack.length === 0) {
             selectContext.openRoot();
         }
+        root.scheduleSelectSideEffects();
         root.forceActiveFocus();
     }
 
     Shortcut {
-        enabled: root.enabled
+        enabled: root.enabled && !root.selectSearchHasFocus()
         sequence: "Esc"
 
         onActivated: {
@@ -55,28 +56,292 @@ Item {
     property int selectPanelElapsed: 0
     readonly property int selectPanelHoldTime: 250
 
-    property int lr2Gauge1: 0
-    property int lr2Gauge2: 0
-    property int lr2Random1: 0
-    property int lr2Random2: 0
-    property int lr2Assist1: 0
-    property int lr2Assist2: 0
-    property int lr2HidSud1: 0
-    property int lr2HidSud2: 0
-    property int lr2Battle: 0
-    property int lr2Flip: 0
-    property int lr2HsFix: 0
-    property int lr2ScoreGraph: 0
-    property int lr2Ghost: 0
-    property int lr2LaneCover: 0
-    property int lr2Bga: 0
-    property int lr2BgaSize: 0
-    property int lr2AutoJudge: 0
-    property int lr2ScreenMode: 0
-    property int lr2HighColor: 1
-    property int lr2Vsync: 0
-    property int lr2Replay: 0
-    property int lr2TargetPercent: 80
+    onSelectPanelChanged: {
+        if (root.selectPanel > 0) {
+            root.clearSelectSearchFocus();
+        }
+    }
+
+    readonly property var lr2GaugeLabels: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+    readonly property var lr2GaugeValues: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+    readonly property var lr2RandomLabels: ["OFF", "MIRROR", "RANDOM", "S-RANDOM", "R-RANDOM", "RANDOM+", "S-RANDOM+"]
+    readonly property var lr2RandomValues: [
+        NoteOrderAlgorithm.Normal,
+        NoteOrderAlgorithm.Mirror,
+        NoteOrderAlgorithm.Random,
+        NoteOrderAlgorithm.SRandom,
+        NoteOrderAlgorithm.RRandom,
+        NoteOrderAlgorithm.RandomPlus,
+        NoteOrderAlgorithm.SRandomPlus
+    ]
+    readonly property var lr2HiSpeedFixLabels: ["OFF", "MAIN", "START", "MAXBPM", "MINBPM", "AVERAGE"]
+    readonly property var lr2HiSpeedFixValues: [
+        HiSpeedFix.Off,
+        HiSpeedFix.Main,
+        HiSpeedFix.Start,
+        HiSpeedFix.Max,
+        HiSpeedFix.Min,
+        HiSpeedFix.Avg
+    ]
+    readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
+    readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE", "LAST SCORE"]
+    readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
+    readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
+    readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
+    readonly property string lr2SearchPlaceholderText: "検索語を入力"
+    property int lr2ReplayType: 0
+
+    function mainGeneralVars() {
+        return Rg.profileList && Rg.profileList.mainProfile
+            ? Rg.profileList.mainProfile.vars.generalVars
+            : null;
+    }
+
+    function profileForSide(side) {
+        if (side === 2 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player2Profile) {
+            return Rg.profileList.battleProfiles.player2Profile;
+        }
+        if (side === 1 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player1Profile) {
+            return Rg.profileList.battleProfiles.player1Profile;
+        }
+        return Rg.profileList.mainProfile;
+    }
+
+    function generalVarsForSide(side) {
+        let profile = root.profileForSide(side);
+        return profile ? profile.vars.generalVars : null;
+    }
+
+    function indexOfValue(values, value) {
+        for (let i = 0; i < values.length; ++i) {
+            if (values[i] === value) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    function cycleArrayIndex(index, count, delta) {
+        return root.wrapValue(index + delta, count);
+    }
+
+    function gaugeIndex(side) {
+        let vars = root.generalVarsForSide(side);
+        return vars ? root.indexOfValue(root.lr2GaugeValues, vars.gaugeType) : 0;
+    }
+
+    function setGaugeIndex(side, index) {
+        let vars = root.generalVarsForSide(side);
+        if (vars) {
+            vars.gaugeType = root.lr2GaugeValues[root.wrapValue(index, root.lr2GaugeValues.length)];
+        }
+    }
+
+    function randomIndex(side) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return 0;
+        }
+        let value = side === 2 && !Rg.profileList.battleActive
+            ? vars.noteOrderAlgorithmP2
+            : vars.noteOrderAlgorithm;
+        return root.indexOfValue(root.lr2RandomValues, value);
+    }
+
+    function setRandomIndex(side, index) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let value = root.lr2RandomValues[root.wrapValue(index, root.lr2RandomValues.length)];
+        if (side === 2 && !Rg.profileList.battleActive) {
+            vars.noteOrderAlgorithmP2 = value;
+        } else {
+            vars.noteOrderAlgorithm = value;
+        }
+    }
+
+    function hidSudIndex(side) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return 0;
+        }
+        return (vars.hiddenOn ? 1 : 0) + (vars.laneCoverOn ? 2 : 0);
+    }
+
+    function setHidSudIndex(side, index) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let normalized = root.wrapValue(index, root.lr2HidSudLabels.length);
+        vars.hiddenOn = (normalized & 1) !== 0;
+        vars.laneCoverOn = (normalized & 2) !== 0;
+    }
+
+    function hiSpeedFixIndex() {
+        let vars = root.mainGeneralVars();
+        return vars ? root.indexOfValue(root.lr2HiSpeedFixValues, vars.hiSpeedFix) : 0;
+    }
+
+    function setHiSpeedFixIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.hiSpeedFix = root.lr2HiSpeedFixValues[root.wrapValue(index, root.lr2HiSpeedFixValues.length)];
+        }
+    }
+
+    function battleIndex() {
+        let vars = root.mainGeneralVars();
+        if (Rg.profileList.battleActive) {
+            return 1;
+        }
+        if (vars && vars.dpOptions === DpOptions.Battle) {
+            return 2;
+        }
+        return 0;
+    }
+
+    function ensureBattleProfiles() {
+        let list = Rg.profileList;
+        let p1 = list.battleProfiles.player1Profile || list.mainProfile;
+        let p2 = list.battleProfiles.player2Profile;
+        if (!p2 || p2 === p1) {
+            p2 = null;
+            for (let i = 0; list.profiles && i < list.profiles.length; ++i) {
+                let candidate = list.at(i);
+                if (candidate && candidate !== p1) {
+                    p2 = candidate;
+                    break;
+                }
+            }
+        }
+        if (!p2) {
+            p2 = list.createProfile();
+            if (p2 && p2.vars && p2.vars.generalVars) {
+                p2.vars.generalVars.name = "Battle 2P";
+            }
+        }
+        if (!p1 || !p2 || p1 === p2) {
+            return false;
+        }
+        list.battleProfiles.player1Profile = p1;
+        list.battleProfiles.player2Profile = p2;
+        return true;
+    }
+
+    function setBattleIndex(index) {
+        let vars = root.mainGeneralVars();
+        let normalized = root.wrapValue(index, root.lr2BattleLabels.length);
+        if (!vars) {
+            return;
+        }
+        if (normalized === 1) {
+            vars.dpOptions = DpOptions.Off;
+            if (root.ensureBattleProfiles()) {
+                Rg.profileList.battleActive = true;
+            }
+            return;
+        }
+        Rg.profileList.battleActive = false;
+        vars.dpOptions = normalized === 2 ? DpOptions.Battle : DpOptions.Off;
+    }
+
+    function flipIndex() {
+        let vars = root.mainGeneralVars();
+        return vars && vars.dpOptions === DpOptions.Flip ? 1 : 0;
+    }
+
+    function setFlipIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return;
+        }
+        if (root.wrapValue(index, 2) === 1) {
+            Rg.profileList.battleActive = false;
+            vars.dpOptions = DpOptions.Flip;
+        } else if (vars.dpOptions === DpOptions.Flip) {
+            vars.dpOptions = DpOptions.Off;
+        }
+    }
+
+    function laneCoverIndex() {
+        let vars = root.mainGeneralVars();
+        return vars && vars.laneCoverOn ? 1 : 0;
+    }
+
+    function setLaneCoverIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.laneCoverOn = root.wrapValue(index, 2) === 1;
+        }
+    }
+
+    function bgaIndex() {
+        let vars = root.mainGeneralVars();
+        return vars && !vars.bgaOn ? 1 : 0;
+    }
+
+    function setBgaIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.bgaOn = root.wrapValue(index, 2) === 0;
+        }
+    }
+
+    function scoreTargetIndex() {
+        let vars = root.mainGeneralVars();
+        return vars ? root.indexOfValue(root.lr2TargetValues, vars.scoreTarget) : 0;
+    }
+
+    function setScoreTargetIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.scoreTarget = root.lr2TargetValues[root.wrapValue(index, root.lr2TargetValues.length)];
+        }
+    }
+
+    function targetPercent() {
+        let vars = root.mainGeneralVars();
+        return vars ? Math.round((vars.targetScoreFraction || 0) * 100) : 80;
+    }
+
+    function setTargetPercent(percent) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.targetScoreFraction = Math.max(0, Math.min(1, percent / 100));
+        }
+    }
+
+    function hiSpeedNumber(side) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars || vars.noteScreenTimeMillis <= 0) {
+            return 100;
+        }
+        return Math.max(1, Math.min(999, Math.round(100000 / vars.noteScreenTimeMillis)));
+    }
+
+    function setHiSpeedNumber(side, value) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let clamped = Math.max(1, Math.min(999, value));
+        vars.noteScreenTimeMillis = 100000 / clamped;
+    }
+
+    function adjustOffset(delta) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.offset = Math.max(-99, Math.min(99, (vars.offset || 0) + delta));
+        }
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        color: "black"
+        z: -1000000
+    }
 
     function inferScreenKey(path) {
         let normalized = (path || "").replace(/\\/g, "/").toLowerCase();
@@ -92,14 +357,118 @@ Item {
         return "";
     }
 
-    function elementZ(type, index) {
-        // LR2 renders the song bar list through select-scene drawing code,
-        // not as ordinary static CSV sprites. Keep those generated bar items
-        // above later decorative images so the wheel is not buried.
-        if (root.effectiveScreenKey === "select" && type >= 3 && type <= 5) {
-            return 40000 + index;
+    function isSelectScrollSlider(src) {
+        return root.effectiveScreenKey === "select"
+            && src
+            && src.slider
+            && src.sliderType === 1
+            && src.sliderRange > 0
+            && src.sliderDisabled === 0;
+    }
+
+    function panelMatches(panel) {
+        if (panel > 0) {
+            return root.selectPanel === panel;
         }
-        return index;
+        if (panel < 0) {
+            return root.selectPanel === 0;
+        }
+        return true;
+    }
+
+    function isSelectSearchText(src) {
+        return root.effectiveScreenKey === "select"
+            && root.acceptsInput
+            && src
+            && src.st === 30
+            && src.edit !== 0
+            && root.panelMatches(src.panel || 0);
+    }
+
+    function selectSearchTextState(src, dsts) {
+        if (!root.isSelectSearchText(src)) {
+            return null;
+        }
+        return Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+    }
+
+    function selectSearchHasFocus() {
+        return selectSearchInput.activeFocus;
+    }
+
+    function selectNavigationReady() {
+        return root.effectiveScreenKey === "select"
+            && root.acceptsInput
+            && !root.selectSearchHasFocus();
+    }
+
+    function focusSelectSearch() {
+        if (root.effectiveScreenKey !== "select" || !root.acceptsInput || root.selectPanel > 0) {
+            return;
+        }
+        if (selectSearchInput.text !== selectContext.searchText) {
+            selectSearchInput.text = selectContext.searchText;
+        }
+        selectSearchInput.cursorPosition = selectSearchInput.text.length;
+        selectSearchInput.forceActiveFocus();
+    }
+
+    function clearSelectSearchFocus() {
+        if (selectSearchInput.activeFocus) {
+            root.forceActiveFocus();
+        }
+    }
+
+    function resetSelectSearch() {
+        if (selectContext.searchText.length > 0) {
+            selectContext.searchText = "";
+            selectContext.touch();
+        }
+        if (selectSearchInput.text.length > 0) {
+            selectSearchInput.text = "";
+        }
+        root.clearSelectSearchFocus();
+    }
+
+    function fallbackSortId(dsts) {
+        if (!dsts || dsts.length === 0 || !dsts[0]) {
+            return 0;
+        }
+        return dsts[0].sortId || 0;
+    }
+
+    function timelineSortId(dsts, skinTime, activeOptions) {
+        let state = Lr2Timeline.getCurrentState(
+            dsts,
+            skinTime,
+            root.timers,
+            activeOptions || root.runtimeActiveOptions);
+        if (state && state.sortId !== undefined) {
+            return state.sortId;
+        }
+        return root.fallbackSortId(dsts);
+    }
+
+    function elementZ(type, index, src, dsts) {
+        // OpenLR2 stamps every DST keyframe with the skin command counter and
+        // globally sorts DrawingBuf by that value before drawing.
+        if (root.effectiveScreenKey === "select"
+            && type === 3
+            && src
+            && src.kind === 0
+            && src.row > 0) {
+            let bodyState = root.barBaseState(src.row);
+            if (bodyState && bodyState.sortId !== undefined) {
+                return bodyState.sortId + index * 0.000001;
+            }
+        }
+        let skinTime = root.effectiveScreenKey === "select" && type >= 3 && type <= 5
+            ? root.barSkinTime
+            : root.renderSkinTime;
+        let activeOptions = root.effectiveScreenKey === "select" && type >= 3 && type <= 5
+            ? root.barActiveOptions
+            : root.runtimeActiveOptions;
+        return root.timelineSortId(dsts, skinTime, activeOptions) + index * 0.000001;
     }
 
     function addOption(options, option) {
@@ -112,11 +481,30 @@ Item {
         if (!chartData) {
             addOption(options, 190);
             addOption(options, 192);
+            addOption(options, 194);
+            addOption(options, 170);
+            addOption(options, 172);
+            addOption(options, 174);
+            addOption(options, 176);
+            addOption(options, 178);
+            addOption(options, 182);
+            addOption(options, 185);
+            addOption(options, 196);
             return;
         }
         addOption(options, chartData.stageFile ? 191 : 190);
         addOption(options, chartData.banner ? 193 : 192);
         addOption(options, chartData.backBmp ? 195 : 194);
+        addOption(options, selectContext.hasBga(chartData) ? 171 : 170);
+        addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
+        // Readtext is not implemented yet, so LR2's readtext button must stay
+        // in the disabled option state even when the song folder has .txt files.
+        addOption(options, 174);
+        addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
+        addOption(options, chartData.isRandom ? 179 : 178);
+        addOption(options, selectContext.judgeOption(chartData));
+        addOption(options, selectContext.highLevelOption(chartData));
+        addOption(options, selectContext.hasReplay(chartData) ? 197 : 196);
 
         let difficulty = chartData.difficulty || 0;
         if (difficulty >= 1 && difficulty <= 5) {
@@ -128,12 +516,10 @@ Item {
         else if (keymode === 5) addOption(options, 161);
         else if (keymode === 14) addOption(options, 162);
         else if (keymode === 10) addOption(options, 163);
-        else if (keymode === 9) addOption(options, 164);
     }
 
-    readonly property var runtimeActiveOptions: {
+    readonly property var baseActiveOptions: {
         let result = [];
-        let revision = selectContext.revision;
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
             ? skinModel.effectiveActiveOptions
             : root.parseActiveOptions;
@@ -154,6 +540,15 @@ Item {
             root.addOption(result, 20 + root.selectPanel);
         }
 
+        return result;
+    }
+
+    readonly property var barActiveOptions: root.baseActiveOptions
+
+    readonly property var runtimeActiveOptions: {
+        let result = root.baseActiveOptions.slice();
+        let revision = selectContext.selectionRevision + selectContext.scoreRevision;
+
         if (root.effectiveScreenKey === "select") {
             let item = selectContext.current;
             if (selectContext.isChart(item) || selectContext.isEntry(item)) {
@@ -165,6 +560,16 @@ Item {
                 root.addOption(result, 290);
             } else {
                 root.addOption(result, 1);
+            }
+
+            let selectedChart = selectContext.selectedChartData();
+            let selectedKeymode = selectedChart ? (selectedChart.keymode || 0) : 0;
+            if (Rg.profileList.battleActive) {
+                root.addOption(result, 11);
+                root.addOption(result, 12);
+            } else if (selectedKeymode === 10 || selectedKeymode === 14
+                       || (root.mainGeneralVars() && root.mainGeneralVars().dpOptions === DpOptions.Battle)) {
+                root.addOption(result, 12);
             }
             let lamp = selectContext.entryLamp(item);
             if (lamp === 0) root.addOption(result, 100);
@@ -190,8 +595,18 @@ Item {
                 } else {
                     root.addOption(result, 499 + diff);
                 }
+                let diffCount = selectContext.difficultyCount(diff);
+                if (diffCount === 1) {
+                    root.addOption(result, 509 + diff);
+                } else if (diffCount > 1) {
+                    root.addOption(result, 514 + diff);
+                }
+                root.addOption(result, 510 + diff * 10 + selectContext.difficultyLamp(diff));
             }
             root.appendChartOptions(result, selectContext.selectedChartData());
+            for (let optionId of selectContext.scoreOptionIds(item)) {
+                root.addOption(result, optionId);
+            }
         } else {
             root.appendChartOptions(result, root.chart && root.chart.chartData ? root.chart.chartData : null);
         }
@@ -199,10 +614,57 @@ Item {
         return result;
     }
 
-    readonly property int selectRevision: selectContext.revision
+    readonly property int selectRevision: selectContext.selectionRevision + selectContext.scoreRevision
+    property var deferredSelectChart: null
+    property string activePreviewSource: ""
+    property int pendingPreviewRevision: -1
+    property bool selectSideEffectsReady: false
     readonly property var renderChart: root.effectiveScreenKey === "select"
-        ? (root.selectRevision, selectContext.selectedChartWrapper())
+        ? root.deferredSelectChart
         : root.chart
+
+    onSelectRevisionChanged: root.scheduleSelectSideEffects()
+    onEffectiveScreenKeyChanged: root.scheduleSelectSideEffects()
+    onChartChanged: {
+        if (root.effectiveScreenKey !== "select") {
+            root.deferredSelectChart = root.chart;
+        }
+    }
+
+    function refreshDeferredSelectChart() {
+        if (root.effectiveScreenKey === "select") {
+            root.deferredSelectChart = selectContext.selectedChartWrapper();
+        } else {
+            root.deferredSelectChart = root.chart;
+        }
+    }
+
+    function scheduleSelectSideEffects() {
+        if (!root.selectSideEffectsReady) {
+            return;
+        }
+
+        if (root.effectiveScreenKey !== "select") {
+            selectChartSettleTimer.stop();
+            previewDelayTimer.stop();
+            root.activePreviewSource = "";
+            root.pendingPreviewRevision = -1;
+            root.refreshDeferredSelectChart();
+            playMusic.stop();
+            return;
+        }
+
+        if (!root.deferredSelectChart) {
+            root.refreshDeferredSelectChart();
+        } else {
+            selectChartSettleTimer.restart();
+        }
+
+        root.pendingPreviewRevision = root.selectRevision;
+        root.activePreviewSource = "";
+        playMusic.stop();
+        previewDelayTimer.restart();
+    }
     readonly property bool acceptsInput: root.effectiveScreenKey !== "select"
         || root.globalSkinTime >= skinModel.startInput
 
@@ -213,51 +675,51 @@ Item {
     function lr2SelectOptionText(st) {
         switch (st) {
         case 63:
-            return root.optionText(["OFF", "MIRROR", "RANDOM", "S-RANDOM", "H-RANDOM", "ALL-SCR"], root.lr2Random1);
+            return root.optionText(root.lr2RandomLabels, root.randomIndex(1));
         case 64:
-            return root.optionText(["OFF", "MIRROR", "RANDOM", "S-RANDOM", "H-RANDOM", "ALL-SCR"], root.lr2Random2);
+            return root.optionText(root.lr2RandomLabels, root.randomIndex(2));
         case 65:
-            return root.optionText(["GROOVE", "SURVIVAL", "DEATH", "EASY", "P-ATTACK", "G-ATTACK"], root.lr2Gauge1);
+            return root.optionText(root.lr2GaugeLabels, root.gaugeIndex(1));
         case 66:
-            return root.optionText(["GROOVE", "SURVIVAL", "DEATH", "EASY", "P-ATTACK", "G-ATTACK"], root.lr2Gauge2);
+            return root.optionText(root.lr2GaugeLabels, root.gaugeIndex(2));
         case 67:
-            return root.optionText(["OFF", "AUTOSCR", "LEGACY", "ASSIST"], root.lr2Assist1);
+            return "OFF";
         case 68:
-            return root.optionText(["OFF", "AUTOSCR", "LEGACY", "ASSIST"], root.lr2Assist2);
+            return "OFF";
         case 69:
-            return root.optionText(["OFF", "BATTLE", "DBATTLE", "SP TO DP", "G-BATTLE", "DP", "POP'N", "DBATTLE DP", "DBATTLE 9"], root.lr2Battle);
+            return root.optionText(root.lr2BattleLabels, root.battleIndex());
         case 70:
-            return root.optionText(["OFF", "FLIP"], root.lr2Flip);
+            return root.optionText(["OFF", "FLIP"], root.flipIndex());
         case 71:
-            return root.optionText(["OFF", "ON"], root.lr2ScoreGraph);
+            return "OFF";
         case 72:
-            return root.optionText(["OFF", "TYPE-A", "TYPE-B", "TYPE-C"], root.lr2Ghost);
+            return "OFF";
         case 73:
-            return root.optionText(["OFF", "ON", "SUDDEN", "HIDDEN"], root.lr2LaneCover);
+            return root.optionText(["OFF", "ON"], root.laneCoverIndex());
         case 74:
-            return root.optionText(["OFF", "MAXBPM", "MINBPM", "AVERAGE", "CONSTANT"], root.lr2HsFix);
+            return root.optionText(root.lr2HiSpeedFixLabels, root.hiSpeedFixIndex());
         case 75:
-            return root.optionText(["NORMAL", "EXTEND"], root.lr2BgaSize);
+            return "NORMAL";
         case 76:
-            return root.optionText(["ON", "OFF", "AUTO"], root.lr2Bga);
+            return root.optionText(["ON", "OFF"], root.bgaIndex());
         case 77:
-            return root.optionText(["16BIT", "32BIT"], root.lr2HighColor);
+            return "32BIT";
         case 78:
-            return root.optionText(["OFF", "ON"], root.lr2Vsync);
+            return "OFF";
         case 79:
-            return root.optionText(["WINDOW", "FULL"], root.lr2ScreenMode);
+            return globalRoot.isFullScreen() ? "FULLSCREEN" : "WINDOW";
         case 80:
-            return root.optionText(["OFF", "ON", "ALWAYS"], root.lr2AutoJudge);
+            return "OFF";
         case 81:
-            return root.optionText(["OFF", "ON", "BEST", "ALL", "AUTO"], root.lr2Replay);
+            return root.optionText(root.lr2ReplayLabels, root.lr2ReplayType);
         case 82:
             return "MISSION COMPLETED";
         case 83:
             return "";
         case 84:
-            return root.optionText(["OFF", "HIDDEN", "SUDDEN", "HID+SUD"], root.lr2HidSud1);
+            return root.optionText(root.lr2HidSudLabels, root.hidSudIndex(1));
         case 85:
-            return root.optionText(["OFF", "HIDDEN", "SUDDEN", "HID+SUD"], root.lr2HidSud2);
+            return root.optionText(root.lr2HidSudLabels, root.hidSudIndex(2));
         case 190:
             return "OFF";
         case 191:
@@ -277,14 +739,16 @@ Item {
     }
 
     function resolveText(st) {
-        let revision = root.effectiveScreenKey === "select" ? selectContext.revision : 0;
+        let revision = root.effectiveScreenKey === "select"
+            ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision
+            : 0;
         let chartData = root.effectiveScreenKey === "select"
             ? selectContext.selectedChartData()
             : (root.chart ? root.chart.chartData : null);
         let currentEntry = root.effectiveScreenKey === "select" ? selectContext.current : null;
         switch (st) {
         case 1:
-            return "NO TARGET";
+            return root.optionText(root.lr2TargetLabels, root.scoreTargetIndex());
         case 2:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 10:
@@ -310,17 +774,30 @@ Item {
         case 18:
             return chartData ? String(chartData.difficulty || "") : "";
         case 20:
+            return root.effectiveScreenKey === "select" ? selectContext.entryMainTitle(currentEntry) : "";
         case 21:
+            return root.effectiveScreenKey === "select" ? selectContext.entrySubtitle(currentEntry) : "";
         case 23:
+            return root.effectiveScreenKey === "select" ? selectContext.entryGenre(currentEntry) : "";
         case 24:
+            return root.effectiveScreenKey === "select" ? selectContext.entryArtist(currentEntry) : "";
         case 25:
+            return root.effectiveScreenKey === "select" ? selectContext.entrySubartist(currentEntry) : "";
         case 26:
-        case 27:
-        case 28:
-        case 29:
-            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(currentEntry, true) : "";
-        case 30:
             return "";
+        case 27:
+            return chartData ? String(chartData.playLevel || "") : "";
+        case 28:
+            return chartData ? String(chartData.difficulty || "") : "";
+        case 29:
+            return chartData ? String(chartData.rank || "") : "";
+        case 30:
+            if (root.effectiveScreenKey !== "select") {
+                return "";
+            }
+            return selectContext.searchText.length > 0
+                ? selectContext.searchText
+                : root.lr2SearchPlaceholderText;
         case 60:
             return root.effectiveScreenKey === "select" ? selectContext.keyFilterLabel() : "ALL";
         case 61:
@@ -334,8 +811,14 @@ Item {
 
     function resolveNumber(num) {
         if (root.effectiveScreenKey === "select") {
+            if (num === 10) {
+                return root.hiSpeedNumber(1);
+            }
+            if (num === 11) {
+                return root.hiSpeedNumber(2);
+            }
             if (num === 13) {
-                return root.lr2TargetPercent;
+                return root.targetPercent();
             }
             return selectContext.numberValue(num);
         }
@@ -368,52 +851,57 @@ Item {
         case 10:
             return selectContext.difficultyFilter;
         case 11:
-            return selectContext.keyFilter;
+            return Math.min(selectContext.keyFilter, 6);
         case 12:
             return selectContext.sortMode;
         case 40:
-            return root.lr2Gauge1;
+            return root.gaugeIndex(1);
         case 41:
-            return root.lr2Gauge2;
+            return root.gaugeIndex(2);
         case 42:
-            return root.lr2Random1;
+            return root.randomIndex(1);
         case 43:
-            return root.lr2Random2;
+            return root.randomIndex(2);
         case 44:
-            return root.lr2Assist1;
+            return 0;
         case 45:
-            return root.lr2Assist2;
+            return 0;
         case 46:
-            return root.lr2LaneCover;
+            return root.laneCoverIndex();
         case 50:
-            return root.lr2HidSud1;
+            return root.hidSudIndex(1);
         case 51:
-            return root.lr2HidSud2;
+            return root.hidSudIndex(2);
         case 54:
-            return root.lr2Flip;
+            return root.flipIndex();
         case 55:
-            return root.lr2HsFix;
+            return root.hiSpeedFixIndex();
         case 56:
-            return root.lr2Battle;
+            return root.battleIndex();
         case 70:
-            return root.lr2ScoreGraph;
+            return 0;
         case 71:
-            return root.lr2Ghost;
+            return 0;
         case 72:
-            return root.lr2Bga;
+            return root.bgaIndex();
         case 73:
-            return root.lr2BgaSize;
+            return 0;
         case 75:
-            return root.lr2AutoJudge;
+            return 0;
         case 80:
-            return root.lr2ScreenMode;
+            return 0;
         case 81:
-            return root.lr2HighColor;
+            return 0;
         case 82:
-            return root.lr2Vsync;
+            return 0;
         case 83:
-            return root.lr2Replay;
+            return 0;
         default:
+            if ((src.buttonId >= 13 && src.buttonId <= 14)
+                    || (src.buttonId >= 18 && src.buttonId <= 33)
+                    || (src.buttonId >= 230 && src.buttonId <= 268)) {
+                return 0;
+            }
             return -1;
         }
     }
@@ -440,18 +928,15 @@ Item {
         if (!src || !src.button) {
             return false;
         }
-        let panel = src.buttonPanel || 0;
-        if (panel > 0) {
-            return root.selectPanel === panel;
-        }
-        if (panel < 0) {
-            return root.selectPanel === 0;
-        }
-        return true;
+        return root.panelMatches(src.buttonPanel || 0);
     }
 
     function handleLr2Button(buttonId, delta, panel) {
         if (root.effectiveScreenKey !== "select" || !root.acceptsInput) {
+            return;
+        }
+        root.resetSelectSearch();
+        if (!root.selectNavigationReady()) {
             return;
         }
         if (buttonId >= 1 && buttonId <= 9) {
@@ -472,7 +957,7 @@ Item {
             selectContext.sortOrFilterChanged();
             break;
         case 11:
-            selectContext.keyFilter = root.wrapValue(selectContext.keyFilter + delta, 8);
+            selectContext.keyFilter = root.wrapValue(selectContext.keyFilter + delta, 7);
             selectContext.sortOrFilterChanged();
             break;
         case 12:
@@ -485,81 +970,94 @@ Item {
         case 16:
             selectContext.goForward(selectContext.current, true);
             break;
-        case 19:
-            selectContext.goForward(selectContext.current);
+        case 19: {
+            let replayScore = selectContext.replayScoreForType(selectContext.current, root.lr2ReplayType);
+            if (replayScore) {
+                selectContext.goForward(selectContext.current, false, true, replayScore);
+            }
+            break;
+        }
+        case 57:
+            root.setHiSpeedNumber(1, root.hiSpeedNumber(1) + delta);
+            break;
+        case 58:
+            root.setHiSpeedNumber(2, root.hiSpeedNumber(2) + delta);
             break;
         case 40:
-            root.lr2Gauge1 = root.wrapValue(root.lr2Gauge1 + delta, 6);
+            root.setGaugeIndex(1, root.gaugeIndex(1) + delta);
             break;
         case 41:
-            root.lr2Gauge2 = root.wrapValue(root.lr2Gauge2 + delta, 6);
+            root.setGaugeIndex(2, root.gaugeIndex(2) + delta);
             break;
         case 42:
-            root.lr2Random1 = root.wrapValue(root.lr2Random1 + delta, 6);
+            root.setRandomIndex(1, root.randomIndex(1) + delta);
             break;
         case 43:
-            root.lr2Random2 = root.wrapValue(root.lr2Random2 + delta, 6);
+            root.setRandomIndex(2, root.randomIndex(2) + delta);
             break;
         case 44:
-            root.lr2Assist1 = root.wrapValue(root.lr2Assist1 + delta, 4);
-            break;
         case 45:
-            root.lr2Assist2 = root.wrapValue(root.lr2Assist2 + delta, 4);
+            // Assist options are intentionally unsupported; keep LR2 menus at OFF.
             break;
         case 46:
-            root.lr2LaneCover = root.wrapValue(root.lr2LaneCover + delta, 2);
+            root.setLaneCoverIndex(root.laneCoverIndex() + delta);
             break;
         case 50:
-            root.lr2HidSud1 = root.wrapValue(root.lr2HidSud1 + delta, 4);
+            root.setHidSudIndex(1, root.hidSudIndex(1) + delta);
             break;
         case 51:
-            root.lr2HidSud2 = root.wrapValue(root.lr2HidSud2 + delta, 4);
+            root.setHidSudIndex(2, root.hidSudIndex(2) + delta);
             break;
         case 54:
-            root.lr2Flip = root.wrapValue(root.lr2Flip + delta, 2);
+            root.setFlipIndex(root.flipIndex() + delta);
             break;
         case 55:
-            root.lr2HsFix = root.wrapValue(root.lr2HsFix + delta, 5);
+            root.setHiSpeedFixIndex(root.hiSpeedFixIndex() + delta);
             break;
         case 56:
-            root.lr2Battle = root.wrapValue(root.lr2Battle + delta, 9);
+            root.setBattleIndex(root.battleIndex() + delta);
             break;
         case 70:
-            root.lr2ScoreGraph = root.wrapValue(root.lr2ScoreGraph + delta, 2);
-            break;
         case 71:
-            root.lr2Ghost = root.wrapValue(root.lr2Ghost + delta, 4);
+            // Score graph and ghost options are not backed yet.
             break;
         case 72:
-            root.lr2Bga = root.wrapValue(root.lr2Bga + delta, 3);
+            root.setBgaIndex(root.bgaIndex() + delta);
             break;
         case 73:
-            root.lr2BgaSize = root.wrapValue(root.lr2BgaSize + delta, 2);
-            break;
         case 75:
-            root.lr2AutoJudge = root.wrapValue(root.lr2AutoJudge + delta, 3);
+            // BGA size and judge auto-adjust are not selectable from LR2 skins yet.
+            break;
+        case 74:
+            root.adjustOffset(delta);
             break;
         case 76:
-            root.lr2TargetPercent = Math.max(50, Math.min(100, root.lr2TargetPercent + delta));
+            root.setTargetPercent(root.targetPercent() + delta);
             break;
         case 77:
+            root.setScoreTargetIndex(root.scoreTargetIndex() + delta);
             break;
         case 80:
-            root.lr2ScreenMode = root.wrapValue(root.lr2ScreenMode + delta, 2);
+            globalRoot.toggleFullScreen();
             break;
         case 81:
-            root.lr2HighColor = root.wrapValue(root.lr2HighColor + delta, 2);
-            break;
         case 82:
-            root.lr2Vsync = root.wrapValue(root.lr2Vsync + delta, 2);
+            // Color depth and vsync settings are not mutable from the LR2 skin.
             break;
         case 83:
-            root.lr2Replay = root.wrapValue(root.lr2Replay + delta, 5);
+            root.lr2ReplayType = root.wrapValue(root.lr2ReplayType + delta, root.lr2ReplayLabels.length);
             break;
         default:
             if (buttonId >= 91 && buttonId <= 96) {
                 selectContext.difficultyFilter = buttonId - 91;
                 selectContext.sortOrFilterChanged();
+                break;
+            }
+            if ((buttonId >= 13 && buttonId <= 14)
+                    || (buttonId >= 18 && buttonId <= 33)
+                    || (buttonId >= 230 && buttonId <= 268)) {
+                // These LR2 controls cover skin/key config, audio EQ/FX, and
+                // tag-editor actions that do not have safe backing state here.
                 break;
             }
             console.info("LR2 select button " + buttonId + " is not implemented yet");
@@ -588,18 +1086,205 @@ Item {
         wheel.accepted = true;
     }
 
-    function barBaseState(row) {
+    function selectScrollSliderState(src, dsts) {
+        if (!root.isSelectScrollSlider(src)) {
+            return null;
+        }
+
+        let base = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        if (!base) {
+            return null;
+        }
+
+        let logicalCount = Math.max(1, selectContext.logicalCount);
+        let maxFixed = Math.max(1, logicalCount * 1000 - 1);
+        let fixedValue = Math.max(0, Math.min(maxFixed, selectContext.normalizedVisualIndex * 1000));
+        let position = logicalCount > 1
+            ? fixedValue / maxFixed
+            : 0;
+        let sliderOffset = position * Math.max(1, src.sliderRange || 0);
+        let offsetX = 0;
+        let offsetY = 0;
+        switch (src.sliderDirection) {
+        case 0:
+            offsetY = -sliderOffset;
+            break;
+        case 1:
+            offsetX = sliderOffset;
+            break;
+        case 2:
+            offsetY = sliderOffset;
+            break;
+        case 3:
+            offsetX = -sliderOffset;
+            break;
+        default:
+            return null;
+        }
+
+        let state = {
+            x: base.x + offsetX,
+            y: base.y + offsetY,
+            w: base.w,
+            h: base.h,
+            a: base.a,
+            r: base.r,
+            g: base.g,
+            b: base.b,
+            angle: base.angle || 0,
+            center: base.center || 0,
+            blend: base.blend || 0,
+            filter: base.filter || 0
+        };
+        return state;
+    }
+
+    function selectScrollSliderTrackState(src, dsts) {
+        if (!root.isSelectScrollSlider(src)) {
+            return null;
+        }
+        let base = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        if (!base) {
+            return null;
+        }
+
+        let track = {
+            x: base.x,
+            y: base.y,
+            w: base.w,
+            h: base.h
+        };
+        let range = Math.max(1, src.sliderRange || 0);
+        switch (src.sliderDirection) {
+        case 0:
+            track.y -= range;
+            track.h += range;
+            break;
+        case 1:
+            track.w += range;
+            break;
+        case 2:
+            track.h += range;
+            break;
+        case 3:
+            track.x -= range;
+            track.w += range;
+            break;
+        default:
+            return null;
+        }
+        return track;
+    }
+
+    function setSelectScrollFromSliderPointer(src, dsts, pointerX, pointerY) {
+        if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0) {
+            return;
+        }
+        let track = root.selectScrollSliderTrackState(src, dsts);
+        if (!track) {
+            return;
+        }
+
+        let range = Math.max(1, src.sliderRange || 0);
+        let moveX = (track.w - range) / 2;
+        let moveY = (track.h - range) / 2;
+        let position = 0;
+        switch (src.sliderDirection) {
+        case 0: {
+            let start = track.y + moveY;
+            let end = track.y + track.h - moveY;
+            position = end !== start ? (end - pointerY) / (end - start) : 0;
+            break;
+        }
+        case 1: {
+            let start = track.x + moveX;
+            let end = track.x + track.w - moveX;
+            position = end !== start ? (pointerX - start) / (end - start) : 0;
+            break;
+        }
+        case 2: {
+            let start = track.y + moveY;
+            let end = track.y + track.h - moveY;
+            position = end !== start ? (pointerY - start) / (end - start) : 0;
+            break;
+        }
+        case 3: {
+            let start = track.x + moveX;
+            let end = track.x + track.w - moveX;
+            position = end !== start ? (end - pointerX) / (end - start) : 0;
+            break;
+        }
+        default:
+            return;
+        }
+        position = Math.max(0, Math.min(1, position));
+        let maxFixed = Math.max(0, selectContext.logicalCount * 1000 - 1);
+        selectContext.setScrollFixedPoint(position * maxFixed, 100, false);
+    }
+
+    function computeBarBaseState(row, selectedRow) {
         let rows = skinModel.barRows;
         if (!rows || row < 0 || row >= rows.length) {
             return null;
         }
         let data = rows[row];
-        let useOn = row === root.selectedBarRow() && data.onDsts && data.onDsts.length > 0;
+        let useOn = row === selectedRow && data.onDsts && data.onDsts.length > 0;
         let dstList = useOn ? data.onDsts : data.offDsts;
         if (!dstList || dstList.length === 0) {
             dstList = data.onDsts || [];
         }
-        return Lr2Timeline.getCurrentState(dstList, root.barSkinTime, root.timers, root.runtimeActiveOptions);
+        return Lr2Timeline.getCurrentState(dstList, root.barSkinTime, root.timers, root.barActiveOptions);
+    }
+
+    function interpolateBarState(fromState, toState, progress) {
+        if (!fromState || !toState) {
+            return fromState;
+        }
+        let inv = 1.0 - progress;
+        return {
+            x: fromState.x * inv + toState.x * progress,
+            y: fromState.y * inv + toState.y * progress,
+            w: fromState.w * inv + toState.w * progress,
+            h: fromState.h * inv + toState.h * progress,
+            a: fromState.a * inv + toState.a * progress,
+            r: fromState.r * inv + toState.r * progress,
+            g: fromState.g * inv + toState.g * progress,
+            b: fromState.b * inv + toState.b * progress,
+            blend: fromState.blend,
+            filter: fromState.filter,
+            angle: fromState.angle * inv + toState.angle * progress,
+            center: fromState.center,
+            sortId: (fromState.sortId || 0) * inv + (toState.sortId || 0) * progress
+        };
+    }
+
+    readonly property var cachedBarBaseStates: {
+        let rows = skinModel.barRows || [];
+        let selected = root.selectedBarRow();
+        let result = [];
+        for (let row = 0; row < rows.length; ++row) {
+            result.push(root.computeBarBaseState(row, selected));
+        }
+        return result;
+    }
+
+    function barBaseState(row) {
+        return root.cachedBarBaseStates && row >= 0 && row < root.cachedBarBaseStates.length
+            ? root.cachedBarBaseStates[row]
+            : null;
+    }
+
+    function barDrawState(row) {
+        let fromState = root.barBaseState(row);
+        let offset = selectContext.scrollOffset;
+        if (!fromState || offset <= 0.001) {
+            return fromState;
+        }
+
+        let toState = row > 0 ? root.barBaseState(row - 1) : null;
+        return fromState && toState
+            ? root.interpolateBarState(fromState, toState, offset)
+            : fromState;
     }
 
     function selectedBarRow() {
@@ -635,6 +1320,7 @@ Item {
     }
 
     function handleBarRowClick(row, mouse) {
+        root.resetSelectSearch();
         if (mouse.button === Qt.RightButton) {
             selectContext.goBack();
             return;
@@ -717,6 +1403,11 @@ Item {
     // matching panel is open without unfreezing the whole select skin clock.
     readonly property var timers: {
         let result = { "0": 0 };
+        if (root.effectiveScreenKey === "select") {
+            // LR2 restarts timer 11 for the selected song information. We keep
+            // it fired so the title/BPM/difficulty detail layer is visible.
+            result[11] = 0;
+        }
         if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
             result[20 + root.selectPanel] = root.renderSkinTime - root.selectPanelElapsed;
         }
@@ -748,32 +1439,86 @@ Item {
     onScreenKeyChanged: Qt.callLater(root.openSelectIfNeeded)
 
     Component.onCompleted: {
+        root.selectSideEffectsReady = true;
         Qt.callLater(root.restartSkinClock);
         Qt.callLater(root.openSelectIfNeeded);
+        Qt.callLater(root.scheduleSelectSideEffects);
+    }
+
+    TextInput {
+        id: selectSearchInput
+        x: -1
+        y: -1
+        width: 1
+        height: 1
+        opacity: 0
+        activeFocusOnTab: false
+        inputMethodHints: Qt.ImhNoPredictiveText
+
+        onTextEdited: {
+            if (selectContext.searchText !== text) {
+                selectContext.searchText = text;
+                selectContext.touch();
+            }
+        }
+
+        Keys.onReturnPressed: (event) => {
+            event.accepted = true;
+            root.submitSelectSearch();
+            root.clearSelectSearchFocus();
+        }
+
+        Keys.onEnterPressed: (event) => {
+            event.accepted = true;
+            root.submitSelectSearch();
+            root.clearSelectSearchFocus();
+        }
+
+        Keys.onEscapePressed: (event) => {
+            event.accepted = true;
+            root.resetSelectSearch();
+        }
+
+        Connections {
+            target: selectContext
+            function onSearchTextChanged() {
+                if (selectSearchInput.text !== selectContext.searchText) {
+                    selectSearchInput.text = selectContext.searchText;
+                    selectSearchInput.cursorPosition = selectSearchInput.text.length;
+                }
+            }
+        }
+    }
+
+    function submitSelectSearch() {
+        let query = selectContext.searchText.trim();
+        if (query.length > 0) {
+            selectContext.search(query);
+        }
     }
 
     Keys.onUpPressed: (event) => {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) return;
+        if (!root.selectNavigationReady()) return;
         event.accepted = true;
         selectContext.decrementViewIndex(event.isAutoRepeat);
     }
     Keys.onDownPressed: (event) => {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) return;
+        if (!root.selectNavigationReady()) return;
         event.accepted = true;
         selectContext.incrementViewIndex(event.isAutoRepeat);
     }
     Keys.onLeftPressed: (event) => {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) return;
+        if (!root.selectNavigationReady()) return;
         event.accepted = true;
         selectContext.goBack();
     }
     Keys.onRightPressed: (event) => {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) return;
+        if (!root.selectNavigationReady()) return;
         event.accepted = true;
         selectContext.goForward(selectContext.current);
     }
     Keys.onReturnPressed: (event) => {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) return;
+        if (!root.selectNavigationReady()) return;
         event.accepted = true;
         selectContext.goForward(selectContext.current);
     }
@@ -781,7 +1526,7 @@ Item {
     property var lastNavigateKey: []
 
     function navigate(number, type, up, key) {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
+        if (!root.selectNavigationReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
             return;
         }
         let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
@@ -798,20 +1543,20 @@ Item {
     Input.onCol1sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col1sUp)
     Input.onCol2sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col2sDown)
     Input.onCol2sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col2sUp)
-    Input.onCol1sDownPressed: if (root.effectiveScreenKey === "select") root.lastNavigateKey.push(BmsKey.Col1sDown)
-    Input.onCol1sUpPressed: if (root.effectiveScreenKey === "select") root.lastNavigateKey.push(BmsKey.Col1sUp)
-    Input.onCol2sDownPressed: if (root.effectiveScreenKey === "select") root.lastNavigateKey.push(BmsKey.Col2sDown)
-    Input.onCol2sUpPressed: if (root.effectiveScreenKey === "select") root.lastNavigateKey.push(BmsKey.Col2sUp)
+    Input.onCol1sDownPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col1sDown)
+    Input.onCol1sUpPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col1sUp)
+    Input.onCol2sDownPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col2sDown)
+    Input.onCol2sUpPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col2sUp)
     Input.onCol1sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown)
     Input.onCol1sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp)
     Input.onCol2sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown)
     Input.onCol2sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp)
-    Input.onCol11Pressed: if (root.effectiveScreenKey === "select" && root.acceptsInput) selectContext.goForward(selectContext.current)
-    Input.onCol17Pressed: if (root.effectiveScreenKey === "select" && root.acceptsInput) selectContext.goForward(selectContext.current)
-    Input.onCol21Pressed: if (root.effectiveScreenKey === "select" && root.acceptsInput) selectContext.goForward(selectContext.current)
-    Input.onCol27Pressed: if (root.effectiveScreenKey === "select" && root.acceptsInput) selectContext.goForward(selectContext.current)
+    Input.onCol11Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
+    Input.onCol17Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
+    Input.onCol21Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
+    Input.onCol27Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
     Input.onButtonPressed: (key) => {
-        if (root.effectiveScreenKey === "select" && root.acceptsInput && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
+        if (root.selectNavigationReady() && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
             selectContext.goBack();
         }
     }
@@ -820,15 +1565,17 @@ Item {
         id: playMusic
         looping: true
         fadeInMillis: 1000
-        source: root.effectiveScreenKey === "select" ? selectContext.selectedPreviewSource() : ""
+        source: root.effectiveScreenKey === "select" ? root.activePreviewSource : ""
         onSourceChanged: {
             stop();
-            if (source) {
-                previewDelayTimer.restart();
-            } else {
-                previewDelayTimer.stop();
-            }
         }
+    }
+
+    Timer {
+        id: selectChartSettleTimer
+        interval: 120
+        repeat: false
+        onTriggered: root.refreshDeferredSelectChart()
     }
 
     Timer {
@@ -836,8 +1583,23 @@ Item {
         interval: 1000
         repeat: false
         onTriggered: {
-            if (root.enabled && root.effectiveScreenKey === "select" && playMusic.source) {
-                playMusic.play();
+            if (!root.enabled
+                || root.effectiveScreenKey !== "select"
+                || root.pendingPreviewRevision !== root.selectRevision) {
+                return;
+            }
+
+            let source = selectContext.selectedPreviewSource();
+            root.activePreviewSource = source || "";
+            if (source) {
+                Qt.callLater(() => {
+                    if (root.enabled
+                        && root.effectiveScreenKey === "select"
+                        && root.activePreviewSource === source
+                        && root.pendingPreviewRevision === root.selectRevision) {
+                        playMusic.play();
+                    }
+                });
             }
         }
     }
@@ -860,6 +1622,14 @@ Item {
             width: skinW * skinScale
             height: skinH * skinScale
 
+            MouseArea {
+                anchors.fill: parent
+                enabled: root.effectiveScreenKey === "select" && root.acceptsInput
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                z: -100000
+                onClicked: root.resetSelectSearch()
+            }
+
             Repeater {
                 id: skinRepeater
                 model: skinModel
@@ -871,7 +1641,7 @@ Item {
                     height: skinH * skinScale
                     // Match LR2/Vibes drawQueue order: earlier CSV elements
                     // are further back, later elements are painted on top.
-                    z: root.elementZ(model.type, index)
+                    z: root.elementZ(model.type, index, model.src, model.dsts)
 
                     sourceComponent: {
                         if (model.type === 0) {
@@ -908,6 +1678,7 @@ Item {
                                 chart: root.renderChart
                                 scaleOverride: skinScale
                                 frameOverride: root.buttonFrame(model.src)
+                                stateOverride: root.selectScrollSliderState(model.src, model.dsts)
                             }
 
                             readonly property var buttonState: model.src && model.src.button
@@ -950,15 +1721,36 @@ Item {
 
                     Component {
                         id: textComponent
-                        Lr2TextRenderer {
-                            dsts: model.dsts
-                            srcData: model.src
-                            skinTime: root.renderSkinTime
-                            activeOptions: root.runtimeActiveOptions
-                            timers: root.timers
-                            chart: root.renderChart
-                            scaleOverride: skinScale
-                            resolvedText: root.resolveText(model.src ? model.src.st : -1)
+                        Item {
+                            width: skinW * skinScale
+                            height: skinH * skinScale
+
+                            Lr2TextRenderer {
+                                anchors.fill: parent
+                                dsts: model.dsts
+                                srcData: model.src
+                                skinTime: root.renderSkinTime
+                                activeOptions: root.runtimeActiveOptions
+                                timers: root.timers
+                                chart: root.renderChart
+                                scaleOverride: skinScale
+                                resolvedText: root.resolveText(model.src ? model.src.st : -1)
+                            }
+
+                            readonly property var searchTextState: root.selectSearchTextState(model.src, model.dsts)
+
+                            MouseArea {
+                                enabled: !!parent.searchTextState
+                                acceptedButtons: Qt.LeftButton
+                                x: parent.searchTextState ? Math.min(parent.searchTextState.x, parent.searchTextState.x + parent.searchTextState.w) * skinScale : 0
+                                y: parent.searchTextState ? Math.min(parent.searchTextState.y, parent.searchTextState.y + parent.searchTextState.h) * skinScale : 0
+                                width: parent.searchTextState ? Math.abs(parent.searchTextState.w) * skinScale : 0
+                                height: parent.searchTextState ? Math.abs(parent.searchTextState.h) * skinScale : 0
+                                onClicked: (mouse) => {
+                                    mouse.accepted = true;
+                                    root.focusSelectSearch();
+                                }
+                            }
                         }
                     }
 
@@ -968,12 +1760,14 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
-                            activeOptions: root.runtimeActiveOptions
+                            activeOptions: root.barActiveOptions
                             timers: root.timers
                             chart: root.renderChart
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
+                            barBaseStates: root.cachedBarBaseStates
+                            barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                         }
                     }
@@ -984,11 +1778,13 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
-                            activeOptions: root.runtimeActiveOptions
+                            activeOptions: root.barActiveOptions
                             timers: root.timers
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
+                            barBaseStates: root.cachedBarBaseStates
+                            barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                         }
                     }
@@ -999,11 +1795,13 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
-                            activeOptions: root.runtimeActiveOptions
+                            activeOptions: root.barActiveOptions
                             timers: root.timers
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
+                            barBaseStates: root.cachedBarBaseStates
+                            barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                         }
                     }
@@ -1044,6 +1842,44 @@ Item {
                             selectContext.selectVisibleRow(index, skinModel.barCenter);
                             selectContext.goForward(selectContext.current);
                         }
+                    }
+                    onWheel: (wheel) => root.handleSelectWheel(wheel)
+                }
+            }
+
+            Repeater {
+                model: skinModel
+
+                MouseArea {
+                    readonly property var trackState: root.selectScrollSliderTrackState(model.src, model.dsts)
+                    enabled: root.acceptsInput && !!trackState
+                    acceptedButtons: Qt.LeftButton
+                    preventStealing: true
+                    x: trackState ? Math.min(trackState.x, trackState.x + trackState.w) * skinScale : 0
+                    y: trackState ? Math.min(trackState.y, trackState.y + trackState.h) * skinScale : 0
+                    width: trackState ? Math.abs(trackState.w) * skinScale : 0
+                    height: trackState ? Math.abs(trackState.h) * skinScale : 0
+                    z: 100300 + index
+                    onPressed: (mouse) => {
+                        root.setSelectScrollFromSliderPointer(model.src,
+                                                              model.dsts,
+                                                              (x + mouse.x) / skinScale,
+                                                              (y + mouse.y) / skinScale);
+                        mouse.accepted = true;
+                    }
+                    onPositionChanged: (mouse) => {
+                        if (pressed) {
+                            root.setSelectScrollFromSliderPointer(model.src,
+                                                                  model.dsts,
+                                                                  (x + mouse.x) / skinScale,
+                                                                  (y + mouse.y) / skinScale);
+                        }
+                    }
+                    onReleased: {
+                        selectContext.finishScrollFixedPoint(100);
+                    }
+                    onCanceled: {
+                        selectContext.finishScrollFixedPoint(100);
                     }
                     onWheel: (wheel) => root.handleSelectWheel(wheel)
                 }

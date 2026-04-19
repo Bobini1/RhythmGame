@@ -1,5 +1,4 @@
 import QtQuick
-import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
     id: root
@@ -13,25 +12,23 @@ Item {
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
+    property var barBaseStates: []
+    property real barScrollOffset: 0
     property int barCenter: 0
-    readonly property int contextRevision: selectContext ? selectContext.revision : 0
+    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision : 0
     readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
-    readonly property real scrollOffset: selectContext ? selectContext.scrollOffset : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
 
     readonly property var bodyRows: {
-        if (!srcData || !selectContext || srcData.kind !== 0 || srcData.row !== 0) {
+        if (!srcData || !selectContext || srcData.kind !== 0) {
             return [];
         }
-
-        let rows = [];
         let total = barRows ? barRows.length : 0;
-        for (let row = 1; row < total; ++row) {
-            if (rowData(row) && rowData(row - 1)) {
-                rows.push(row);
-            }
+        let row = srcData.row;
+        if (row <= 0 || row >= total || !rowData(row) || !rowData(row - 1)) {
+            return [];
         }
-        return rows;
+        return [row];
     }
 
     readonly property var overlayRows: {
@@ -39,9 +36,9 @@ Item {
             return [];
         }
 
-        // These LR2 overlay kinds are not supported yet and would otherwise
-        // create hidden delegates for every bar row.
-        if (srcData.kind === 4 || srcData.kind === 5 || srcData.kind === 7) {
+        // OpenLR2 only draws BAR_RANK for IR/rival ranking rows. We do not
+        // support that mode yet, so keep normal song rows free of grades.
+        if (srcData.kind === 4 || srcData.kind === 5 || srcData.kind === 6 || srcData.kind === 7) {
             return [];
         }
 
@@ -61,55 +58,50 @@ Item {
         return barRows && row >= 0 && row < barRows.length ? barRows[row] : null;
     }
 
-    function baseState(row) {
-        if (srcData && srcData.kind === 2) {
-            return rawBaseState(row, true);
-        }
-        return rowDrawState(row);
+    function visibilityState(row) {
+        return cachedBaseState(row);
     }
 
     function rowDrawState(row) {
-        let fromState = rawBaseState(row, row === selectedRow);
-        if (scrollOffset <= 0.001 || !fromState) {
+        if (srcData && srcData.kind === 2) {
+            return cachedBaseState(row);
+        }
+        return interpolatedState(row);
+    }
+
+    function cachedBaseState(row) {
+        return barBaseStates && row >= 0 && row < barBaseStates.length
+            ? barBaseStates[row]
+            : null;
+    }
+
+    function interpolatedState(row) {
+        let fromState = cachedBaseState(row);
+        let offset = barScrollOffset || 0;
+        if (!fromState || offset <= 0.001) {
             return fromState;
         }
-        return interpolateState(fromState,
-                                rawBaseState(row - 1, row - 1 === selectedRow),
-                                scrollOffset);
-    }
 
-    function rawBaseState(row, useOn) {
-        let data = rowData(row);
-        if (!data) {
-            return null;
-        }
-        let dstList = useOn && data.onDsts && data.onDsts.length > 0
-            ? data.onDsts
-            : data.offDsts;
-        if (!dstList || dstList.length === 0) {
-            dstList = data.onDsts || [];
-        }
-        return Lr2Timeline.getCurrentState(dstList, skinTime, timers, activeOptions);
-    }
-
-    function interpolateState(fromState, toState, progress) {
+        let toState = row > 0 ? cachedBaseState(row - 1) : null;
         if (!toState) {
             return fromState;
         }
-        let inv = 1.0 - progress;
+
+        let inv = 1.0 - offset;
         return {
-            x: fromState.x * inv + toState.x * progress,
-            y: fromState.y * inv + toState.y * progress,
-            w: fromState.w * inv + toState.w * progress,
-            h: fromState.h * inv + toState.h * progress,
-            a: fromState.a * inv + toState.a * progress,
-            r: fromState.r * inv + toState.r * progress,
-            g: fromState.g * inv + toState.g * progress,
-            b: fromState.b * inv + toState.b * progress,
+            x: fromState.x * inv + toState.x * offset,
+            y: fromState.y * inv + toState.y * offset,
+            w: fromState.w * inv + toState.w * offset,
+            h: fromState.h * inv + toState.h * offset,
+            a: fromState.a * inv + toState.a * offset,
+            r: fromState.r * inv + toState.r * offset,
+            g: fromState.g * inv + toState.g * offset,
+            b: fromState.b * inv + toState.b * offset,
             blend: fromState.blend,
             filter: fromState.filter,
-            angle: fromState.angle * inv + toState.angle * progress,
-            center: fromState.center
+            angle: fromState.angle * inv + toState.angle * offset,
+            center: fromState.center,
+            sortId: fromState.sortId || 0
         };
     }
 
@@ -143,8 +135,6 @@ Item {
         switch (srcData.kind) {
         case 3:
             return selectContext.entryLamp(entry) === srcData.variant;
-        case 6:
-            return selectContext.entryRank(entry) === srcData.variant;
         default:
             return false;
         }
@@ -185,13 +175,15 @@ Item {
 
         Lr2SpriteRenderer {
             readonly property int row: modelData
-            readonly property var base: root.baseState(row)
+            readonly property var drawBase: root.rowDrawState(row)
+            readonly property var visibleBase: root.visibilityState(row)
             readonly property var entry: {
                 let revision = root.contextRevision;
                 let baseIndex = root.visualBaseIndex;
                 return root.selectContext ? root.selectContext.barEntry(row, root.barCenter) : null;
             }
-            visible: !!base && root.overlayVisibleFor(entry)
+            readonly property bool contentVisible: !!visibleBase && root.overlayVisibleFor(entry)
+            visible: contentVisible && !!drawBase
             dsts: root.dsts
             srcData: root.srcData ? root.srcData.source : null
             skinTime: root.skinTime
@@ -199,8 +191,8 @@ Item {
             timers: root.timers
             chart: root.chart
             scaleOverride: root.scaleOverride
-            offsetX: base ? base.x : 0
-            offsetY: base ? base.y : 0
+            offsetX: drawBase ? drawBase.x : 0
+            offsetY: drawBase ? drawBase.y : 0
         }
     }
 }

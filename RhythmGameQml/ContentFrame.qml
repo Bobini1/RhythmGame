@@ -2,6 +2,7 @@ import QtQuick
 import QtQml
 import RhythmGameQml
 import QtQuick.Controls
+import QtQuick.Window
 import QtCore
 
 ApplicationWindow {
@@ -38,11 +39,7 @@ ApplicationWindow {
         sequence: "F11"
 
         onActivated: {
-            if (contentContainer.visibility === Window.FullScreen) {
-                contentContainer.visibility = Window.Windowed;
-            } else {
-                contentContainer.visibility = Window.FullScreen;
-            }
+            globalRoot.toggleFullScreen();
         }
     }
 
@@ -61,6 +58,18 @@ ApplicationWindow {
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
+
+        function isFullScreen() {
+            return contentContainer.visibility === Window.FullScreen;
+        }
+
+        function setFullScreen(enabled) {
+            contentContainer.visibility = enabled ? Window.FullScreen : Window.Windowed;
+        }
+
+        function toggleFullScreen() {
+            setFullScreen(!isFullScreen());
+        }
 
         function currentLr2Settings(screenKey) {
             let themeName = mainProfile.themeConfig[screenKey];

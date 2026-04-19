@@ -47,7 +47,6 @@
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
 #include "resource_managers/DxaImageProvider.h"
-#include "resource_managers/Lr2FontCatalog.h"
 #include "resource_managers/Lr2FontImageProvider.h"
 #include "support/QStringToPath.h"
 #include "qml_components/OnlineScores.h"
@@ -525,14 +524,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "lr2Element", "Q_GADGET");
         qmlRegisterType<gameplay_logic::lr2_skin::Lr2SkinModel>(
           "RhythmGameQml", 1, 0, "Lr2SkinModel");
-        qmlRegisterSingletonType<resource_managers::Lr2FontCatalog>(
-          "RhythmGameQml",
-          1,
-          0,
-          "Lr2FontCatalog",
-          [](QQmlEngine*, QJSEngine*) -> QObject* {
-              return new resource_managers::Lr2FontCatalog{};
-          });
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =

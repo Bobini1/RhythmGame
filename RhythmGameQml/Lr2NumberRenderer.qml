@@ -66,6 +66,8 @@ Item {
         y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
         width: root.textW
         height: root.digitH
+        layer.enabled: true
+        layer.smooth: false
         visible: root.currentState && root.currentState.a > 0 && root.digitW > 0 && root.digitH > 0 && root.resolvedSource !== ""
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 

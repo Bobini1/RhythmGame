@@ -54,6 +54,8 @@ Item {
         y: 0
         width: Math.max(1, root.sourceWidth)
         height: Math.max(1, fillText.implicitHeight)
+        layer.enabled: true
+        layer.smooth: false
         transform: Scale {
             origin.x: 0
             origin.y: 0

@@ -10,6 +10,19 @@ Item {
     property var folderContents: []
     property var historyStack: []
     property var scores: ({})
+    property var chartGroupCache: ({})
+    property var levelBarCache: [0, 0, 0, 0, 0, 0]
+    property var playerStats: ({
+        playCount: 0,
+        clearCount: 0,
+        failCount: 0,
+        perfectCount: 0,
+        greatCount: 0,
+        goodCount: 0,
+        badCount: 0,
+        poorCount: 0,
+        maxCombo: 0
+    })
     property var previewFiles: ({})
     property int currentIndex: 0
     property int targetIndex: currentIndex
@@ -20,11 +33,16 @@ Item {
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
     property int revision: 0
+    property int listRevision: 0
+    property int selectionRevision: 0
     property int scoreRevision: 0
     property bool scrollingText: false
+    property string searchText: ""
+    property var attachedTextCache: ({})
     property int difficultyFilter: 0
     property int keyFilter: 0
     property int sortMode: 0
+    property int realItemCount: 0
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
@@ -32,7 +50,8 @@ Item {
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: items.length
-    readonly property var current: count > 0 ? items[currentIndex] : null
+    readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
+    readonly property var current: logicalCount > 0 ? items[currentIndex] : null
     readonly property int visualDirection: targetVisualIndex > visualIndex + 0.001 ? 1 : (targetVisualIndex < visualIndex - 0.001 ? -1 : 0)
     readonly property bool visualMoveActive: Math.abs(targetVisualIndex - visualIndex) > 0.001
     readonly property real normalizedVisualIndex: normalizedVisualIndexFor(visualIndex)
@@ -45,7 +64,24 @@ Item {
         revision += 1;
     }
 
+    function touchList() {
+        listRevision += 1;
+        touch();
+    }
+
+    function touchSelection() {
+        selectionRevision += 1;
+        touch();
+    }
+
+    function stopVisualAnimation() {
+        if (visualScrollAnimation.running) {
+            visualScrollAnimation.stop();
+        }
+    }
+
     function setVisualIndexImmediate(index) {
+        stopVisualAnimation();
         visualIndex = index;
         targetVisualIndex = index;
         animationStartVisualIndex = index;
@@ -58,29 +94,41 @@ Item {
             now = Date.now();
             updateVisualIndex(now);
         }
+        stopVisualAnimation();
         animationStartVisualIndex = visualIndex;
         barMoveStartMs = now;
         barMoveEndMs = now + Math.max(1, durationMs);
+        if (Math.abs(targetVisualIndex - visualIndex) <= 0.001) {
+            visualIndex = targetVisualIndex;
+            syncCurrentToVisual();
+            return;
+        }
+        visualScrollAnimation.from = visualIndex;
+        visualScrollAnimation.to = targetVisualIndex;
+        visualScrollAnimation.duration = Math.max(1, durationMs);
+        visualScrollAnimation.restart();
     }
 
-    Timer {
-        id: visualScrollTimer
-        interval: 1
-        repeat: true
-        running: root.visualMoveActive
+    NumberAnimation {
+        id: visualScrollAnimation
+        target: root
+        property: "visualIndex"
+        easing.type: Easing.Linear
 
-        onTriggered: root.advanceVisualIndex()
+        onStopped: root.syncCurrentToVisual()
     }
 
-    function advanceVisualIndex() {
-        updateVisualIndex(Date.now());
-    }
+    onVisualIndexChanged: syncCurrentToVisual()
 
     function normalizedVisualIndexFor(index) {
-        if (count === 0) {
+        return normalizedVisualIndexForCount(index, logicalCount);
+    }
+
+    function normalizedVisualIndexForCount(index, itemCount) {
+        if (itemCount <= 0) {
             return 0;
         }
-        return ((index % count) + count) % count;
+        return ((index % itemCount) + itemCount) % itemCount;
     }
 
     function baseIndexForVisual(index) {
@@ -105,7 +153,7 @@ Item {
     }
 
     function syncCurrentToVisual() {
-        if (count === 0) {
+        if (logicalCount === 0) {
             return;
         }
         let nextIndex = normalizeIndex(cursorBaseIndexForVisual(visualIndex) + selectedOffset);
@@ -116,10 +164,15 @@ Item {
         targetIndex = nextIndex;
         scrollingText = false;
         scrollingTextTimer.restart();
-        touch();
+        touchSelection();
     }
 
     function updateVisualIndex(now) {
+        if (visualScrollAnimation.running) {
+            syncCurrentToVisual();
+            return;
+        }
+
         let distance = targetVisualIndex - visualIndex;
         if (Math.abs(distance) <= 0.001) {
             visualIndex = targetVisualIndex;
@@ -139,15 +192,15 @@ Item {
     }
 
     function nearestVisualIndex(index, anchor) {
-        if (count === 0) {
+        if (logicalCount === 0) {
             return 0;
         }
         let target = index;
-        while (target - anchor > count / 2) {
-            target -= count;
+        while (target - anchor > logicalCount / 2) {
+            target -= logicalCount;
         }
-        while (target - anchor < -count / 2) {
-            target += count;
+        while (target - anchor < -logicalCount / 2) {
+            target += logicalCount;
         }
         return target;
     }
@@ -203,7 +256,7 @@ Item {
         let keymode = item.keymode || 0;
         switch (keyFilter) {
         case 1:
-            return keymode === 5 || keymode === 7 || keymode === 9;
+            return keymode === 5 || keymode === 7;
         case 2:
             return keymode === 7;
         case 3:
@@ -214,8 +267,6 @@ Item {
             return keymode === 14;
         case 6:
             return keymode === 10;
-        case 7:
-            return keymode === 9;
         default:
             return true;
         }
@@ -229,32 +280,47 @@ Item {
         return keyFilterMatches(item) && difficultyFilterMatches(item);
     }
 
+    function compareByTitle(a, b) {
+        let titleDiff = entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
+        if (titleDiff !== 0) {
+            return titleDiff;
+        }
+        return compareByDifficulty(a, b);
+    }
+
+    function compareByDifficulty(a, b) {
+        let levelDiff = entryPlayLevel(a) - entryPlayLevel(b);
+        if (levelDiff !== 0) {
+            return levelDiff;
+        }
+        return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
+    }
+
+    function compareByClear(a, b) {
+        let lampDiff = entryLamp(b) - entryLamp(a);
+        if (lampDiff !== 0) {
+            return lampDiff;
+        }
+        return compareByDifficulty(a, b);
+    }
+
+    function compareByScore(a, b) {
+        return entryScoreRate(a) - entryScoreRate(b);
+    }
+
     function compareCharts(a, b) {
-        if (sortMode === 1) {
-            return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
+        switch (sortMode) {
+        case 1:
+            return compareByDifficulty(a, b);
+        case 2:
+            return compareByTitle(a, b);
+        case 3:
+            return compareByClear(a, b);
+        case 4:
+            return compareByScore(a, b);
+        default:
+            return 0;
         }
-        if (sortMode === 2) {
-            let levelDiff = entryPlayLevel(a) - entryPlayLevel(b);
-            if (levelDiff !== 0) {
-                return levelDiff;
-            }
-            return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
-        }
-        if (sortMode === 3) {
-            let lampDiff = entryLamp(a) - entryLamp(b);
-            if (lampDiff !== 0) {
-                return lampDiff;
-            }
-            return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
-        }
-        if (sortMode === 4) {
-            let rankDiff = entryRank(b) - entryRank(a);
-            if (rankDiff !== 0) {
-                return rankDiff;
-            }
-            return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
-        }
-        return 0;
     }
 
     function sortFilter(input) {
@@ -286,6 +352,7 @@ Item {
         }
         let old = current;
         let sortedFiltered = sortFilter(folderContents);
+        realItemCount = sortedFiltered.length;
         addToMinimumCount(sortedFiltered);
         items = sortedFiltered;
         let currentIdx = sortedFiltered.findIndex((item) => sameEntry(item, old));
@@ -295,7 +362,8 @@ Item {
         setVisualIndexImmediate(currentIndex);
         scrollingText = false;
         scrollingTextTimer.restart();
-        touch();
+        touchList();
+        touchSelection();
     }
 
     function refreshPreviewFiles() {
@@ -342,6 +410,17 @@ Item {
         refreshPreviewFiles();
     }
 
+    function refreshPlayerStats() {
+        let db = Rg.profileList?.mainProfile?.scoreDb;
+        if (!db) {
+            return;
+        }
+        db.getTotalStats().then((result) => {
+            playerStats = result || playerStats;
+            touch();
+        });
+    }
+
     function open(item) {
         let folder;
         if (isTable(item)) {
@@ -366,7 +445,9 @@ Item {
         }
 
         folderContents = [...folder];
+        rebuildFolderCaches(folderContents);
         folder = sortFilter(folder);
+        realItemCount = folder.length;
         addToMinimumCount(folder);
         items = folder;
         currentIndex = 0;
@@ -374,8 +455,10 @@ Item {
         selectedOffset = 0;
         setVisualIndexImmediate(0);
         refreshScores();
+        refreshPlayerStats();
         openedFolder();
-        touch();
+        touchList();
+        touchSelection();
         return folder;
     }
 
@@ -386,7 +469,9 @@ Item {
             return;
         }
         folderContents = [...results];
+        rebuildFolderCaches(folderContents);
         results = sortFilter(results);
+        realItemCount = results.length;
         addToMinimumCount(results);
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
             historyStack.push("SEARCH");
@@ -397,8 +482,10 @@ Item {
         selectedOffset = 0;
         setVisualIndexImmediate(0);
         refreshScores();
+        refreshPlayerStats();
         openedFolder();
-        touch();
+        touchList();
+        touchSelection();
     }
 
     function openRoot() {
@@ -407,19 +494,19 @@ Item {
     }
 
     function normalizeIndex(index) {
-        if (count === 0) {
+        if (logicalCount === 0) {
             return 0;
         }
-        return ((index % count) + count) % count;
+        return ((index % logicalCount) + logicalCount) % logicalCount;
     }
 
     function setCurrentIndex(index) {
-        if (count === 0) {
+        if (logicalCount === 0) {
             currentIndex = 0;
             targetIndex = 0;
             selectedOffset = 0;
             setVisualIndexImmediate(0);
-            touch();
+            touchSelection();
             return;
         }
         let normalized = normalizeIndex(index);
@@ -435,11 +522,102 @@ Item {
         beginVisualMove(lr2ClickDuration, now);
         scrollingText = false;
         scrollingTextTimer.restart();
-        touch();
+        touchSelection();
+    }
+
+    function setScrollIndexImmediate(index) {
+        if (logicalCount === 0) {
+            return;
+        }
+        let normalized = normalizeIndex(Math.round(index));
+        selectedOffset = 0;
+        currentIndex = normalized;
+        targetIndex = normalized;
+        setVisualIndexImmediate(normalized);
+        scrollingText = false;
+        scrollingTextTimer.restart();
+        touchSelection();
+    }
+
+    function setScrollFixedPoint(fixedValue, durationMs, snapToEntry) {
+        if (logicalCount === 0) {
+            return;
+        }
+
+        let maxFixed = Math.max(0, logicalCount * 1000 - 1);
+        let clamped = Math.max(0, Math.min(maxFixed, Math.round(fixedValue)));
+        let rounded = Math.floor(clamped / 1000);
+        if (clamped % 1000 > 499) {
+            rounded += 1;
+        }
+
+        let now = Date.now();
+        let exactVisual = clamped / 1000;
+        let shouldSnap = snapToEntry === undefined ? true : !!snapToEntry;
+        let targetVisual = shouldSnap
+            ? nearestVisualIndex(rounded, exactVisual)
+            : exactVisual;
+        let oldIndex = currentIndex;
+        let oldOffset = selectedOffset;
+        stopVisualAnimation();
+        selectedOffset = 0;
+        visualIndex = exactVisual;
+        targetVisualIndex = targetVisual;
+        animationStartVisualIndex = visualIndex;
+        barMoveStartMs = now;
+        barMoveEndMs = shouldSnap
+            ? now + Math.max(1, durationMs !== undefined ? durationMs : 100)
+            : now;
+        currentIndex = normalizeIndex(rounded);
+        targetIndex = currentIndex;
+        if (shouldSnap && Math.abs(targetVisualIndex - visualIndex) > 0.001) {
+            visualScrollAnimation.from = visualIndex;
+            visualScrollAnimation.to = targetVisualIndex;
+            visualScrollAnimation.duration = Math.max(1, durationMs !== undefined ? durationMs : 100);
+            visualScrollAnimation.restart();
+        }
+        if (oldIndex !== currentIndex || oldOffset !== selectedOffset) {
+            scrollingText = false;
+            scrollingTextTimer.restart();
+            touchSelection();
+        }
+    }
+
+    function finishScrollFixedPoint(durationMs) {
+        if (logicalCount === 0) {
+            return;
+        }
+
+        let now = Date.now();
+        updateVisualIndex(now);
+
+        let rounded = Math.round(normalizedVisualIndex);
+        let targetVisual = nearestVisualIndex(rounded, visualIndex);
+        let oldIndex = currentIndex;
+        let oldOffset = selectedOffset;
+        stopVisualAnimation();
+        selectedOffset = 0;
+        targetVisualIndex = targetVisual;
+        animationStartVisualIndex = visualIndex;
+        barMoveStartMs = now;
+        barMoveEndMs = now + Math.max(1, durationMs !== undefined ? durationMs : 100);
+        currentIndex = normalizeIndex(rounded);
+        targetIndex = currentIndex;
+        if (Math.abs(targetVisualIndex - visualIndex) > 0.001) {
+            visualScrollAnimation.from = visualIndex;
+            visualScrollAnimation.to = targetVisualIndex;
+            visualScrollAnimation.duration = Math.max(1, durationMs !== undefined ? durationMs : 100);
+            visualScrollAnimation.restart();
+        }
+        if (oldIndex !== currentIndex || oldOffset !== selectedOffset) {
+            scrollingText = false;
+            scrollingTextTimer.restart();
+            touchSelection();
+        }
     }
 
     function scrollBy(entries, durationMs) {
-        if (count === 0 || entries === 0) {
+        if (logicalCount === 0 || entries === 0) {
             return;
         }
         let now = Date.now();
@@ -452,7 +630,7 @@ Item {
     }
 
     function scrollByKey(entries, repeated) {
-        if (count === 0 || entries === 0) {
+        if (logicalCount === 0 || entries === 0) {
             return;
         }
         let now = Date.now();
@@ -470,7 +648,7 @@ Item {
     }
 
     function selectVisibleRow(row, barCenter) {
-        if (count === 0) {
+        if (logicalCount === 0) {
             return;
         }
         selectedOffset = row - barCenter;
@@ -478,7 +656,7 @@ Item {
         targetIndex = currentIndex;
         scrollingText = false;
         scrollingTextTimer.restart();
-        touch();
+        touchSelection();
     }
 
     function selectedRow(barCenter) {
@@ -490,15 +668,15 @@ Item {
     }
 
     function visualRowForIndex(index, barCenter) {
-        if (count === 0) {
+        if (logicalCount === 0) {
             return barCenter;
         }
         let offset = normalizeIndex(index) - normalizeIndex(visualBaseIndex);
-        if (offset > count / 2) {
-            offset -= count;
+        if (offset > logicalCount / 2) {
+            offset -= logicalCount;
         }
-        if (offset < -count / 2) {
-            offset += count;
+        if (offset < -logicalCount / 2) {
+            offset += logicalCount;
         }
         return barCenter + offset;
     }
@@ -527,20 +705,22 @@ Item {
         }
     }
 
-    function goForward(item, autoplay) {
+    function goForward(item, autoplay, replay, replayScore) {
         if (isChart(item)) {
+            let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, false, null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
             } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, !!autoplay, false, null, null, false, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
             }
             return;
         }
         if (isCourse(item)) {
+            let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, false, null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
+                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
             } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, !!autoplay, false, null, null, false, false, null);
+                globalRoot.openCourse(item, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
             }
             return;
         }
@@ -571,7 +751,7 @@ Item {
     }
 
     function barEntry(row, barCenter) {
-        if (count === 0) {
+        if (logicalCount === 0) {
             return null;
         }
         return items[normalizeIndex(visualBaseIndex + row - barCenter)];
@@ -653,17 +833,16 @@ Item {
         case 4: return "DOUBLE";
         case 5: return "14KEYS";
         case 6: return "10KEYS";
-        case 7: return "9KEYS";
         default: return "ALL";
         }
     }
 
     function sortLabel() {
         switch (sortMode) {
-        case 1: return "TITLE";
-        case 2: return "LEVEL";
+        case 1: return "LEVEL";
+        case 2: return "TITLE";
         case 3: return "CLEAR";
-        case 4: return "RANK";
+        case 4: return "SCORE";
         default: return "DIRECTORY";
         }
     }
@@ -710,10 +889,30 @@ Item {
         return id ? (scores[id] || []) : [];
     }
 
+    function clearTypeOf(score) {
+        return score?.result?.clearType || "NOPLAY";
+    }
+
+    function isClearedScore(score) {
+        let clearType = clearTypeOf(score);
+        return clearType !== "FAILED" && clearType !== "NOPLAY";
+    }
+
+    function scoreListByNewest(scoreList) {
+        let result = [];
+        for (let score of scoreList) {
+            if (score && score.result) {
+                result.push(score);
+            }
+        }
+        result.sort((a, b) => (b.result.unixTimestamp || 0) - (a.result.unixTimestamp || 0));
+        return result;
+    }
+
     function getClearType(scoreList) {
         let clearType = "NOPLAY";
         for (let score of scoreList) {
-            let next = score?.result?.clearType || "NOPLAY";
+            let next = clearTypeOf(score);
             if (clearTypePriorities.indexOf(next) > clearTypePriorities.indexOf(clearType)) {
                 clearType = next;
             }
@@ -738,23 +937,180 @@ Item {
         return best;
     }
 
-    function bestStats(scoreList) {
-        let score = bestScoreByPoints(scoreList);
+    function scoreWithBestClear(scoreList) {
+        let bestClearType = getClearType(scoreList);
+        let best = null;
+        for (let score of scoreListByNewest(scoreList)) {
+            if (clearTypeOf(score) === bestClearType) {
+                best = score;
+                break;
+            }
+        }
+        return best;
+    }
+
+    function scoreWithBestCombo(scoreList) {
+        let best = null;
+        let bestCombo = -1;
+        for (let score of scoreList) {
+            let combo = score?.result?.maxCombo || 0;
+            if (combo > bestCombo) {
+                bestCombo = combo;
+                best = score;
+            }
+        }
+        return best;
+    }
+
+    function replayScoreForType(item, replayType) {
+        let scoreList = entryScores(item);
+        switch (replayType) {
+        case 0:
+            return scoreListByNewest(scoreList)[0] || null;
+        case 1:
+            return bestScoreByPoints(scoreList);
+        case 2:
+            return scoreWithBestClear(scoreList);
+        case 3:
+            return scoreWithBestCombo(scoreList);
+        default:
+            return null;
+        }
+    }
+
+    function judgementCount(counts, judgement) {
+        return judgement >= 0 && judgement < counts.length ? (counts[judgement] || 0) : 0;
+    }
+
+    function statsForScore(score) {
         if (!score || !score.result) {
             return null;
         }
         let counts = score.result.judgementCounts || [];
+        let pg = judgementCount(counts, Judgement.Perfect);
+        let gr = judgementCount(counts, Judgement.Great);
+        let gd = judgementCount(counts, Judgement.Good);
+        let bd = judgementCount(counts, Judgement.Bad);
+        let pr = judgementCount(counts, Judgement.Poor) + judgementCount(counts, Judgement.EmptyPoor);
         return {
-            pg: counts[Judgement.Perfect] || 0,
-            gr: counts[Judgement.Great] || 0,
-            gd: counts[Judgement.Good] || 0,
-            bd: counts[Judgement.Bad] || 0,
-            pr: (counts[Judgement.Poor] || 0) + (counts[Judgement.EmptyPoor] || 0),
+            pg: pg,
+            gr: gr,
+            gd: gd,
+            bd: bd,
+            pr: pr,
+            totalJudgements: Math.max(1, pg + gr + gd + bd + pr),
+            badPoor: bd + pr,
             maxCombo: score.result.maxCombo || 0,
             score: score.result.points || 0,
             exscore: score.result.points || 0,
             maxPoints: score.result.maxPoints || 0
         };
+    }
+
+    function bestStats(scoreList) {
+        return statsForScore(bestScoreByPoints(scoreList));
+    }
+
+    function scoreCounts(scoreList) {
+        let counts = {
+            play: 0,
+            clear: 0,
+            fail: 0,
+            easy: 0,
+            normal: 0,
+            hard: 0,
+            fc: 0,
+            minBadPoor: 0
+        };
+        let minBadPoor = -1;
+        for (let score of scoreList) {
+            if (!score || !score.result) {
+                continue;
+            }
+            ++counts.play;
+            if (isClearedScore(score)) {
+                ++counts.clear;
+            }
+            let clearType = clearTypeOf(score);
+            if (clearType === "FAILED") {
+                ++counts.fail;
+            } else if (clearType === "AEASY" || clearType === "EASY") {
+                ++counts.easy;
+            } else if (clearType === "NORMAL") {
+                ++counts.normal;
+            } else if (clearType === "HARD" || clearType === "EXHARD") {
+                ++counts.hard;
+            } else if (clearType === "FC" || clearType === "PERFECT" || clearType === "MAX") {
+                ++counts.fc;
+            }
+            let stats = statsForScore(score);
+            if (stats) {
+                minBadPoor = minBadPoor < 0 ? stats.badPoor : Math.min(minBadPoor, stats.badPoor);
+            }
+        }
+        counts.minBadPoor = Math.max(0, minBadPoor);
+        return counts;
+    }
+
+    function appendScoreOptionIds(score, ids) {
+        if (!score || !score.result) {
+            return;
+        }
+        switch (clearTypeOf(score)) {
+        case "AEASY":
+        case "EASY":
+            ids.push(121);
+            break;
+        case "NORMAL":
+            ids.push(118);
+            break;
+        case "HARD":
+        case "EXHARD":
+            ids.push(119);
+            break;
+        case "FC":
+            ids.push(120);
+            break;
+        case "PERFECT":
+        case "MAX":
+            ids.push(122);
+            break;
+        }
+
+        switch (score.result.noteOrderAlgorithm) {
+        case NoteOrderAlgorithm.Mirror:
+            ids.push(127);
+            break;
+        case NoteOrderAlgorithm.Random:
+        case NoteOrderAlgorithm.RandomPlus:
+            ids.push(128);
+            break;
+        case NoteOrderAlgorithm.SRandom:
+        case NoteOrderAlgorithm.SRandomPlus:
+            ids.push(129);
+            break;
+        case NoteOrderAlgorithm.RRandom:
+            ids.push(130);
+            break;
+        default:
+            ids.push(126);
+            break;
+        }
+
+        if (score.result.dpOptions === DpOptions.Battle) {
+            let keymode = score.result.keymode || 0;
+            ids.push(keymode === 5 || keymode === 7 ? 145 : 144);
+        }
+    }
+
+    function scoreOptionIds(item) {
+        let ids = [];
+        for (let score of entryScores(item)) {
+            appendScoreOptionIds(score, ids);
+        }
+        ids = [...new Set(ids)];
+        ids.sort((a, b) => a - b);
+        return ids;
     }
 
     function entryLamp(item) {
@@ -796,8 +1152,163 @@ Item {
         return rate > 0 ? 1 : 0;
     }
 
+    function entryScoreRate(item) {
+        let best = bestScoreByPoints(entryScores(item));
+        if (!best || !best.result || best.result.maxPoints <= 0) {
+            return 0;
+        }
+        return best.result.points / best.result.maxPoints;
+    }
+
     function selectedChartData() {
         return isChart(current) ? current : null;
+    }
+
+    function chartGroupKey(chart) {
+        if (!chart) {
+            return "";
+        }
+        // LR2 groups difficulty buttons by the song folder, not by the
+        // currently selected chart row.
+        return chart.chartDirectory || chart.directory || "";
+    }
+
+    function rebuildFolderCaches(sourceItems) {
+        let groups = {};
+        let counts = [0, 0, 0, 0, 0, 0];
+
+        for (let item of sourceItems) {
+            if (!isChart(item)) {
+                continue;
+            }
+
+            let groupKey = chartGroupKey(item);
+            if (!groups[groupKey]) {
+                groups[groupKey] = [];
+            }
+            groups[groupKey].push(item);
+
+            let difficulty = Math.max(0, Math.min(5, item.difficulty || 0));
+            counts[difficulty] += 1;
+        }
+
+        let maxCount = Math.max(1, counts[1], counts[2], counts[3], counts[4], counts[5]);
+        chartGroupCache = groups;
+        levelBarCache = [
+            counts[0] / maxCount,
+            counts[1] / maxCount,
+            counts[2] / maxCount,
+            counts[3] / maxCount,
+            counts[4] / maxCount,
+            counts[5] / maxCount
+        ];
+    }
+
+    function chartsForCurrentSong() {
+        let chart = selectedChartData();
+        if (!chart) {
+            return [];
+        }
+
+        let groupKey = chartGroupKey(chart);
+        let result = chartGroupCache[groupKey] || [];
+        if (result.length === 0) {
+            result.push(chart);
+        }
+        return result;
+    }
+
+    function chartForDifficulty(diff) {
+        let currentChart = selectedChartData();
+        let charts = chartsForCurrentSong();
+        let fallback = null;
+        for (let chart of charts) {
+            if ((chart.difficulty || 0) !== diff) {
+                continue;
+            }
+            if (!fallback) {
+                fallback = chart;
+            }
+            if (currentChart && chart.keymode === currentChart.keymode) {
+                return chart;
+            }
+        }
+        return fallback;
+    }
+
+    function difficultyCount(diff) {
+        let count = 0;
+        for (let chart of chartsForCurrentSong()) {
+            if ((chart.difficulty || 0) === diff) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    function difficultyPlayLevel(diff) {
+        let chart = chartForDifficulty(diff);
+        return chart ? (chart.playLevel || 0) : 0;
+    }
+
+    function difficultyLamp(diff) {
+        let chart = chartForDifficulty(diff);
+        return chart ? entryLamp(chart) : 0;
+    }
+
+    function hasAttachedText(chart) {
+        if (!chart || !chart.chartDirectory) {
+            return false;
+        }
+
+        let dir = chart.chartDirectory;
+        let cached = attachedTextCache[dir];
+        if (cached !== undefined) {
+            return cached;
+        }
+
+        let found = false;
+        let files = Rg.fileQuery.getSelectableFilesForDirectory(dir);
+        for (let file of files) {
+            if (String(file).toLowerCase().endsWith(".txt")) {
+                found = true;
+                break;
+            }
+        }
+        attachedTextCache[dir] = found;
+        return found;
+    }
+
+    function hasReplay(chart) {
+        return entryScores(chart).length > 0;
+    }
+
+    function hasBga(chart) {
+        return !!chart && (!!chart.stageFile || !!chart.banner || !!chart.backBmp);
+    }
+
+    function hasLongNote(chart) {
+        return !!chart && ((chart.lnCount || 0) + (chart.bssCount || 0)) > 0;
+    }
+
+    function judgeOption(chart) {
+        let rank = chart ? (chart.rank || 75) : 75;
+        if (rank <= 25) return 180;
+        if (rank <= 50) return 181;
+        if (rank <= 75) return 182;
+        return 183;
+    }
+
+    function highLevelOption(chart) {
+        if (!chart) {
+            return 185;
+        }
+        let keymode = chart.keymode || 0;
+        let threshold = 10;
+        if (keymode === 7 || keymode === 14) {
+            threshold = 13;
+        }
+        return (chart.playLevel || 0) >= threshold ? 186 : 185;
     }
 
     function selectedChartWrapper() {
@@ -810,10 +1321,37 @@ Item {
         return chartData ? previewFiles[chartData.chartDirectory] : "";
     }
 
+    readonly property var selectedScoreList: entryScores(current)
+    readonly property var selectedBestStats: bestStats(selectedScoreList)
+    readonly property var selectedScoreCounts: scoreCounts(selectedScoreList)
+
     function numberValue(num) {
         let chart = selectedChartData();
-        let stats = bestStats(entryScores(current));
+        let stats = selectedBestStats;
+        let counts = selectedScoreCounts;
         switch (num) {
+        case 30:
+            return playerStats.playCount || 0;
+        case 31:
+            return playerStats.clearCount || 0;
+        case 32:
+            return playerStats.failCount || 0;
+        case 33:
+            return playerStats.perfectCount || 0;
+        case 34:
+            return playerStats.greatCount || 0;
+        case 35:
+            return playerStats.goodCount || 0;
+        case 36:
+            return playerStats.badCount || 0;
+        case 37:
+            return playerStats.poorCount || 0;
+        case 38:
+            return 0;
+        case 39:
+            return playerStats.maxCombo || 0;
+        case 40:
+            return 0;
         case 10:
             return 100;
         case 11:
@@ -827,7 +1365,7 @@ Item {
         case 47:
         case 48:
         case 49:
-            return chart && chart.difficulty === num - 44 ? chart.playLevel : 0;
+            return difficultyPlayLevel(num - 44);
         case 57:
             return 100;
         case 58:
@@ -845,47 +1383,66 @@ Item {
         case 74:
             return chart ? chart.normalNoteCount + chart.scratchCount + chart.lnCount + chart.bssCount : 0;
         case 75:
-            return stats ? stats.pg : 0;
+            return stats ? stats.maxCombo : 0;
         case 76:
-            return stats ? stats.gr : 0;
+            return counts.minBadPoor;
         case 77:
-            return stats ? stats.gd : 0;
+            return counts.play;
         case 78:
-            return stats ? stats.bd : 0;
+            return counts.clear;
         case 79:
+            return counts.fail;
+        case 80:
+            return stats ? stats.pg : 0;
+        case 81:
+            return stats ? stats.gr : 0;
+        case 82:
+            return stats ? stats.gd : 0;
+        case 83:
+            return stats ? stats.bd : 0;
+        case 84:
             return stats ? stats.pr : 0;
+        case 85:
+            return stats ? Math.round(stats.pg * 100 / stats.totalJudgements) : 0;
+        case 86:
+            return stats ? Math.round(stats.gr * 100 / stats.totalJudgements) : 0;
+        case 87:
+            return stats ? Math.round(stats.gd * 100 / stats.totalJudgements) : 0;
+        case 88:
+            return stats ? Math.round(stats.bd * 100 / stats.totalJudgements) : 0;
+        case 89:
+            return stats ? Math.round(stats.pr * 100 / stats.totalJudgements) : 0;
+        case 200:
+            return counts.play;
+        case 210:
+            return counts.fail;
+        case 212:
+            return counts.easy;
+        case 214:
+            return counts.normal;
+        case 216:
+            return counts.hard;
+        case 218:
+            return counts.fc;
         case 90:
-            return chart ? Math.round(chart.maxBpm || chart.mainBpm || 0) : 0;
-        case 91:
             return chart ? Math.round(chart.minBpm || chart.mainBpm || 0) : 0;
+        case 91:
+            return chart ? Math.round(chart.maxBpm || chart.mainBpm || 0) : 0;
         default:
             return 0;
         }
     }
 
     function levelBarValue(diff) {
-        let counts = [0, 0, 0, 0, 0, 0];
-        for (let item of folderContents) {
-            if (isChart(item)) {
-                let difficulty = Math.max(0, Math.min(5, item.difficulty || 0));
-                counts[difficulty] += 1;
-            }
-        }
-        let maxCount = Math.max(1, counts[1], counts[2], counts[3], counts[4], counts[5]);
-        return counts[diff] / maxCount;
+        return levelBarCache[diff] || 0;
     }
 
     function hasDifficulty(diff) {
-        for (let item of folderContents) {
-            if (isChart(item) && item.difficulty === diff) {
-                return true;
-            }
-        }
-        return selectedChartData() ? selectedChartData().difficulty === diff : false;
+        return !!chartForDifficulty(diff);
     }
 
     function barGraphValue(type) {
-        let stats = bestStats(entryScores(current));
+        let stats = selectedBestStats;
         switch (type) {
         case 5:
         case 6:
@@ -894,15 +1451,15 @@ Item {
         case 9:
             return levelBarValue(type - 4);
         case 40:
-            return stats && stats.maxPoints > 0 ? stats.pg / stats.maxPoints : 0;
+            return stats ? stats.pg / stats.totalJudgements : 0;
         case 41:
-            return stats && stats.maxPoints > 0 ? stats.gr / stats.maxPoints : 0;
+            return stats ? stats.gr / stats.totalJudgements : 0;
         case 42:
-            return stats && stats.maxPoints > 0 ? stats.gd / stats.maxPoints : 0;
+            return stats ? stats.gd / stats.totalJudgements : 0;
         case 43:
-            return stats && stats.maxPoints > 0 ? stats.bd / stats.maxPoints : 0;
+            return stats ? stats.bd / stats.totalJudgements : 0;
         case 44:
-            return stats && stats.maxPoints > 0 ? stats.pr / stats.maxPoints : 0;
+            return stats ? stats.pr / stats.totalJudgements : 0;
         case 45:
             return stats && selectedChartData() ? stats.maxCombo / Math.max(1, selectedChartData().normalNoteCount + selectedChartData().scratchCount + selectedChartData().lnCount + selectedChartData().bssCount) : 0;
         case 46:

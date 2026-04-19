@@ -29,6 +29,29 @@ class TableQueryResult
     ScoreQueryResult courseScores;
     ScoreQueryResult scores;
 };
+class ScoreStatsResult
+{
+    Q_GADGET
+    Q_PROPERTY(qint64 playCount MEMBER playCount CONSTANT)
+    Q_PROPERTY(qint64 clearCount MEMBER clearCount CONSTANT)
+    Q_PROPERTY(qint64 failCount MEMBER failCount CONSTANT)
+    Q_PROPERTY(qint64 perfectCount MEMBER perfectCount CONSTANT)
+    Q_PROPERTY(qint64 greatCount MEMBER greatCount CONSTANT)
+    Q_PROPERTY(qint64 goodCount MEMBER goodCount CONSTANT)
+    Q_PROPERTY(qint64 badCount MEMBER badCount CONSTANT)
+    Q_PROPERTY(qint64 poorCount MEMBER poorCount CONSTANT)
+    Q_PROPERTY(qint64 maxCombo MEMBER maxCombo CONSTANT)
+  public:
+    qint64 playCount{};
+    qint64 clearCount{};
+    qint64 failCount{};
+    qint64 perfectCount{};
+    qint64 greatCount{};
+    qint64 goodCount{};
+    qint64 badCount{};
+    qint64 poorCount{};
+    qint64 maxCombo{};
+};
 
 /**
  * @brief Provides access to the score database of a profile.
@@ -59,6 +82,7 @@ class ScoreDb final : public QObject
       const resource_managers::Table& table) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScores(
       const resource_managers::Level& level) const;
+    Q_INVOKABLE QIfPendingReply<ScoreStatsResult> getTotalStats() const;
     /**
      * @brief Stop all pending queries and fail them.
      * @details This is useful when quickly browsing directories (faster than

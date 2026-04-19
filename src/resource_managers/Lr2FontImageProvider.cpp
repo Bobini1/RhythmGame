@@ -2,13 +2,26 @@
 
 #include "Lr2FontCache.h"
 
+#include <QCache>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QPainter>
 #include <QUrl>
 #include <QUrlQuery>
+#include <algorithm>
+#include <climits>
+#include <cmath>
 #include <utility>
 
 namespace resource_managers {
 namespace {
+
+struct GlyphDraw
+{
+    const QImage* texture = nullptr;
+    QRect sourceRect;
+    qreal sourceX = 0.0;
+};
 
 auto
 splitProviderId(const QString& id) -> std::pair<QString, QUrlQuery>
@@ -22,26 +35,123 @@ splitProviderId(const QString& id) -> std::pair<QString, QUrlQuery>
         path.remove(0, 1);
     }
 
-    return {path, QUrlQuery(rawQuery)};
+    return { path, QUrlQuery(rawQuery) };
 }
 
 auto
-transparentImage(const QSize& imageSize) -> QImage
+fallbackAdvance(int lineHeight) -> qreal
 {
-    QImage image(qMax(1, imageSize.width()),
-                 qMax(1, imageSize.height()),
+    return lineHeight > 0 ? lineHeight / 2.0 : 0.0;
+}
+
+auto
+validGlyph(const Lr2FontDict& dict, const Lr2FontGlyph& glyph) -> bool
+{
+    return glyph.imgIdx >= 0 && glyph.imgIdx < dict.textures.size() &&
+           !dict.textures[glyph.imgIdx].isNull() && glyph.rect.width() > 0 &&
+           glyph.rect.height() > 0 &&
+           dict.textures[glyph.imgIdx].rect().contains(glyph.rect);
+}
+
+auto
+textImageCache() -> QCache<QString, QImage>&
+{
+    static QCache<QString, QImage> cache;
+    static const bool initialized = [] {
+        cache.setMaxCost(64 * 1024 * 1024);
+        return true;
+    }();
+    Q_UNUSED(initialized);
+    return cache;
+}
+
+auto
+textImageCacheMutex() -> QMutex&
+{
+    static QMutex mutex;
+    return mutex;
+}
+
+auto
+cacheKey(const QString& fontPath, const QString& text) -> QString
+{
+    auto key = fontPath;
+    key.append(QChar(0x1f));
+    key.append(text);
+    return key;
+}
+
+auto
+cachedTextImage(const QString& fontPath, const QString& text) -> QImage
+{
+    const auto key = cacheKey(fontPath, text);
+    {
+        QMutexLocker lock(&textImageCacheMutex());
+        if (const auto* cached = textImageCache().object(key)) {
+            return *cached;
+        }
+    }
+
+    const auto* dict = Lr2FontCache::instance().load(fontPath);
+    if (!dict || dict->height <= 0 || text.isEmpty()) {
+        return {};
+    }
+
+    QList<GlyphDraw> glyphs;
+    glyphs.reserve(text.size());
+
+    qreal sourceTotalWidth = 0.0;
+    for (const auto codepoint : text.toUcs4()) {
+        const auto it = dict->glyphs.find(static_cast<char32_t>(codepoint));
+        if (it == dict->glyphs.end()) {
+            sourceTotalWidth += fallbackAdvance(dict->height);
+            continue;
+        }
+
+        const auto& glyph = it.value();
+        const qreal advance = glyph.rect.width() > 0
+                                ? glyph.rect.width()
+                                : fallbackAdvance(dict->height);
+
+        if (validGlyph(*dict, glyph)) {
+            glyphs.append({ &dict->textures[glyph.imgIdx],
+                            glyph.rect,
+                            sourceTotalWidth });
+        }
+
+        sourceTotalWidth += advance;
+    }
+
+    if (sourceTotalWidth <= 0.0) {
+        return {};
+    }
+
+    QImage image(std::max(1, static_cast<int>(std::ceil(sourceTotalWidth))),
+                 dict->height,
                  QImage::Format_ARGB32);
     image.fill(Qt::transparent);
-    return image;
-}
 
-auto
-transparentGlyph(QSize* size, const QSize& imageSize) -> QImage
-{
-    auto image = transparentImage(imageSize);
-    if (size) {
-        *size = image.size();
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, false);
+    for (const auto& glyph : glyphs) {
+        const QRectF target(glyph.sourceX,
+                            0.0,
+                            glyph.sourceRect.width(),
+                            dict->height);
+        painter.drawImage(target, *glyph.texture, glyph.sourceRect);
     }
+    painter.end();
+
+    const auto imageCost = std::max<qsizetype>(1, image.sizeInBytes());
+    {
+        QMutexLocker lock(&textImageCacheMutex());
+        textImageCache().insert(
+          key,
+          new QImage(image),
+          static_cast<int>(std::min<qsizetype>(imageCost, INT_MAX)));
+    }
+
     return image;
 }
 
@@ -58,112 +168,11 @@ Lr2FontImageProvider::requestImage(const QString& id,
                                    const QSize& /*requestedSize*/)
 {
     const auto [path, query] = splitProviderId(id);
-
-    const auto* dict = Lr2FontCache::instance().load(path);
-    if (!dict) {
-        if (size) {
-            *size = QSize(0, 0);
-        }
-        return {};
-    }
-
-    // Atlas form: return texture N directly. Qt caches the resulting QImage
-    // by URL, so all glyphs clipping from the same atlas share one texture.
-    if (query.hasQueryItem("atlas")) {
-        bool atlasOk = false;
-        const int atlasIdx = query.queryItemValue("atlas").toInt(&atlasOk);
-        if (atlasIdx < 0 || atlasIdx >= dict->textures.size()) {
-            if (size) {
-                *size = QSize(0, 0);
-            }
-            return {};
-        }
-        const auto& atlas = dict->textures[atlasIdx];
-        if (!atlasOk || atlas.isNull() || !query.hasQueryItem("x") ||
-            !query.hasQueryItem("y") || !query.hasQueryItem("w") ||
-            !query.hasQueryItem("h")) {
-            return transparentGlyph(size, QSize(1, 1));
-        }
-
-        bool xOk = false;
-        bool yOk = false;
-        bool wOk = false;
-        bool hOk = false;
-        const QRect glyphRect(query.queryItemValue("x").toInt(&xOk),
-                              query.queryItemValue("y").toInt(&yOk),
-                              query.queryItemValue("w").toInt(&wOk),
-                              query.queryItemValue("h").toInt(&hOk));
-        const QSize requestedGlyphSize(qMax(1, glyphRect.width()),
-                                       qMax(1, glyphRect.height()));
-        if (!xOk || !yOk || !wOk || !hOk || glyphRect.width() <= 0 ||
-            glyphRect.height() <= 0 || !atlas.rect().contains(glyphRect)) {
-            return transparentGlyph(size, requestedGlyphSize);
-        }
-
-        const auto glyph = atlas.copy(glyphRect);
-        if (size) {
-            *size = glyph.size();
-        }
-        return glyph;
-    }
-
-    // Legacy form: compose the full string into one image.
-    const auto text = query.queryItemValue("text");
-    int totalW = 0;
-    int maxH = dict->height;
-
-    struct DrawCmd
-    {
-        const QImage* src;
-        QRect rect;
-        int dx;
-    };
-    QList<DrawCmd> cmds;
-    cmds.reserve(text.size());
-
-    for (const auto codepoint : text.toUcs4()) {
-        const char32_t c32 = static_cast<char32_t>(codepoint);
-        if (const auto it = dict->glyphs.find(c32); it != dict->glyphs.end()) {
-            const auto& g = it.value();
-            if (g.imgIdx >= 0 && g.imgIdx < dict->textures.size() &&
-                !dict->textures[g.imgIdx].isNull() && g.rect.width() > 0 &&
-                g.rect.height() > 0 &&
-                dict->textures[g.imgIdx].rect().contains(g.rect)) {
-                cmds.append({&dict->textures[g.imgIdx], g.rect, totalW});
-                totalW += g.rect.width();
-                maxH = qMax(maxH, g.rect.height());
-            } else {
-                totalW += g.rect.width() > 0 ? g.rect.width() : maxH / 2;
-            }
-        } else if (c32 == U' ') {
-            totalW += maxH / 2;
-        }
-    }
-
-    if (totalW <= 0) {
-        totalW = 1;
-    }
-    if (maxH <= 0) {
-        maxH = 1;
-    }
-
-    QImage result(totalW, maxH, QImage::Format_ARGB32);
-    result.fill(Qt::transparent);
-    QPainter painter(&result);
-    for (const auto& cmd : cmds) {
-        painter.drawImage(cmd.dx,
-                          0,
-                          *cmd.src,
-                          cmd.rect.x(),
-                          cmd.rect.y(),
-                          cmd.rect.width(),
-                          cmd.rect.height());
-    }
-
+    const auto image = cachedTextImage(path, query.queryItemValue("text"));
     if (size) {
-        *size = result.size();
+        *size = image.size();
     }
-    return result;
+    return image;
 }
 
 } // namespace resource_managers
