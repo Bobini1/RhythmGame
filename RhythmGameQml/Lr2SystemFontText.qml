@@ -26,8 +26,8 @@ Item {
     readonly property real scaleX: scaleY * fitScaleX
     readonly property real drawnWidth: sourceWidth * scaleX
     readonly property real alignedX: {
-        if (alignment === 1) return -drawnWidth * 0.5;
-        if (alignment === 2) return -drawnWidth;
+        if (alignment === 1) return (width - drawnWidth) * 0.5;
+        if (alignment === 2) return width - drawnWidth;
         return 0;
     }
     readonly property var edgeOffsets: {

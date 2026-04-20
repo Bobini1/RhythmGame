@@ -143,6 +143,12 @@ Item {
     property int lr2ReadmeMode: 0 // 0=hidden, 1=open, 2=closing
     property double lr2ReadmeStartMs: 0
     property int lr2ReadmeElapsed: 0
+    property real lr2ReadmeOffsetX: 0
+    property real lr2ReadmeOffsetY: 0
+    property int lr2ReadmeLineSpacing: 18
+    property bool lr2ReadmeMouseHeld: false
+    property real lr2ReadmeMouseX: 0
+    property real lr2ReadmeMouseY: 0
     property real selectMouseX: -100000
     property real selectMouseY: -100000
     property bool selectScratchSoundReady: false
@@ -228,6 +234,10 @@ Item {
         root.lr2ReadmeMode = 1;
         root.lr2ReadmeStartMs = Date.now();
         root.lr2ReadmeElapsed = 0;
+        root.lr2ReadmeOffsetX = 0;
+        root.lr2ReadmeOffsetY = 0;
+        root.lr2ReadmeLineSpacing = 18;
+        root.lr2ReadmeMouseHeld = false;
         readmeCloseTimer.stop();
         readmeStopwatch.restart();
         root.clearSelectSearchFocus();
@@ -251,6 +261,7 @@ Item {
         root.lr2ReadmeMode = 2;
         root.lr2ReadmeStartMs = Date.now();
         root.lr2ReadmeElapsed = 0;
+        root.lr2ReadmeMouseHeld = false;
         readmeStopwatch.restart();
         readmeCloseTimer.restart();
     }
@@ -264,6 +275,26 @@ Item {
             return root.lr2ReadmeLines;
         }
         return [];
+    }
+
+    function readmeContentHeight() {
+        return root.lr2ReadmeLines.length * Math.max(1, root.lr2ReadmeLineSpacing);
+    }
+
+    function clampReadmeOffsets() {
+        const minY = Math.min(0, root.skinH - root.readmeContentHeight());
+        root.lr2ReadmeOffsetX = Math.min(0, root.lr2ReadmeOffsetX);
+        root.lr2ReadmeOffsetY = Math.max(minY, Math.min(0, root.lr2ReadmeOffsetY));
+    }
+
+    function scrollReadmeBy(dx, dy) {
+        if (root.lr2ReadmeMode !== 1) {
+            return false;
+        }
+        root.lr2ReadmeOffsetX += dx;
+        root.lr2ReadmeOffsetY += dy;
+        root.clampReadmeOffsets();
+        return true;
     }
 
     function mainGeneralVars() {
@@ -1909,6 +1940,14 @@ Item {
     property real selectWheelRemainder: 0
 
     function handleSelectWheel(wheel) {
+        if (root.lr2ReadmeMode === 1) {
+            let readmeDelta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
+            if (readmeDelta !== 0) {
+                root.scrollReadmeBy(0, readmeDelta / 120.0 * Math.max(1, root.lr2ReadmeLineSpacing));
+            }
+            wheel.accepted = true;
+            return;
+        }
         if (!root.selectScrollReady()) {
             return;
         }
@@ -2334,6 +2373,36 @@ Item {
             root.lr2ReadmeMode = 0;
             root.lr2ReadmeText = "";
             root.lr2ReadmeLines = [];
+            root.lr2ReadmeOffsetX = 0;
+            root.lr2ReadmeOffsetY = 0;
+            root.lr2ReadmeMouseHeld = false;
+        }
+    }
+
+    Timer {
+        id: readmeEdgeScrollTimer
+        interval: 16
+        running: root.effectiveScreenKey === "select"
+            && root.lr2ReadmeMode === 1
+            && root.lr2ReadmeMouseHeld
+        repeat: true
+        onTriggered: {
+            const amount = interval * 600.0 / 1000.0;
+            let dx = 0;
+            let dy = 0;
+            if (root.lr2ReadmeMouseX < 200) {
+                dx += amount;
+            } else if (root.lr2ReadmeMouseX > 440) {
+                dx -= amount;
+            }
+            if (root.lr2ReadmeMouseY < 150) {
+                dy += amount;
+            } else if (root.lr2ReadmeMouseY > 330) {
+                dy -= amount;
+            }
+            if (dx !== 0 || dy !== 0) {
+                root.scrollReadmeBy(dx, dy);
+            }
         }
     }
 
@@ -2447,11 +2516,21 @@ Item {
     }
 
     Keys.onUpPressed: (event) => {
+        if (root.lr2ReadmeMode === 1) {
+            event.accepted = true;
+            root.scrollReadmeBy(0, Math.max(1, root.lr2ReadmeLineSpacing));
+            return;
+        }
         if (!root.selectScrollReady()) return;
         event.accepted = true;
         selectContext.decrementViewIndex(event.isAutoRepeat);
     }
     Keys.onDownPressed: (event) => {
+        if (root.lr2ReadmeMode === 1) {
+            event.accepted = true;
+            root.scrollReadmeBy(0, -Math.max(1, root.lr2ReadmeLineSpacing));
+            return;
+        }
         if (!root.selectScrollReady()) return;
         event.accepted = true;
         selectContext.incrementViewIndex(event.isAutoRepeat);
@@ -2467,6 +2546,11 @@ Item {
         root.selectGoForward(selectContext.current);
     }
     Keys.onReturnPressed: (event) => {
+        if (root.lr2ReadmeMode > 0) {
+            event.accepted = true;
+            root.closeReadme();
+            return;
+        }
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
         root.selectGoForward(selectContext.current);
@@ -3115,8 +3199,16 @@ Item {
                             id: readmeTextDelegateRoot
                             width: skinW * skinScale
                             height: skinH * skinScale
+                            clip: true
                             readonly property var readmeSrc: model.src
                             readonly property var readmeDsts: model.dsts
+
+                            Component.onCompleted: {
+                                if (readmeSrc && readmeSrc.readme && readmeSrc.readmeId === 0) {
+                                    root.lr2ReadmeLineSpacing = Math.max(1, readmeSrc.readmeLineSpacing || 18);
+                                    root.clampReadmeOffsets();
+                                }
+                            }
 
                             Repeater {
                                 model: root.readmeLinesForSource(readmeTextDelegateRoot.readmeSrc)
@@ -3130,7 +3222,11 @@ Item {
                                     timers: root.timers
                                     chart: root.renderChart
                                     scaleOverride: skinScale
-                                    offsetY: index * (readmeTextDelegateRoot.readmeSrc ? readmeTextDelegateRoot.readmeSrc.readmeLineSpacing : 18)
+                                    offsetX: root.lr2ReadmeOffsetX
+                                    offsetY: root.lr2ReadmeOffsetY
+                                        + index * (readmeTextDelegateRoot.readmeSrc
+                                            ? readmeTextDelegateRoot.readmeSrc.readmeLineSpacing
+                                            : root.lr2ReadmeLineSpacing)
                                     resolvedText: modelData
                                 }
                             }
@@ -3391,9 +3487,46 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
-                enabled: root.selectScrollReady()
+                enabled: root.effectiveScreenKey === "select"
                 acceptedButtons: Qt.NoButton
                 z: 100200
+                onWheel: (wheel) => root.handleSelectWheel(wheel)
+            }
+
+            MouseArea {
+                id: readmeMouseArea
+                anchors.fill: parent
+                enabled: root.effectiveScreenKey === "select" && root.lr2ReadmeMode === 1
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                hoverEnabled: true
+                z: 100250
+
+                function updateReadmeMouse(mouse) {
+                    root.updateSelectMouseFromArea(readmeMouseArea, mouse);
+                    const point = readmeMouseArea.mapToItem(skinContainer, mouse.x, mouse.y);
+                    root.lr2ReadmeMouseX = point.x / skinScale;
+                    root.lr2ReadmeMouseY = point.y / skinScale;
+                }
+
+                onPressed: (mouse) => {
+                    updateReadmeMouse(mouse);
+                    if (mouse.button === Qt.RightButton) {
+                        root.closeReadme();
+                    } else {
+                        root.lr2ReadmeMouseHeld = true;
+                    }
+                    mouse.accepted = true;
+                }
+                onPositionChanged: (mouse) => {
+                    updateReadmeMouse(mouse);
+                    mouse.accepted = true;
+                }
+                onReleased: (mouse) => {
+                    updateReadmeMouse(mouse);
+                    root.lr2ReadmeMouseHeld = false;
+                    mouse.accepted = true;
+                }
+                onCanceled: root.lr2ReadmeMouseHeld = false
                 onWheel: (wheel) => root.handleSelectWheel(wheel)
             }
         }

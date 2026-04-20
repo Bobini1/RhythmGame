@@ -39,15 +39,24 @@ decodeTextFile(const QByteArray& data) -> QString
         return QString::fromUtf8(data.sliced(3));
     }
 
+    // LR2-era text files are commonly saved as Japanese Windows text without
+    // a BOM. Prefer that family for no-BOM files; ASCII survives unchanged.
+    for (const auto* encoding :
+         { "CP932", "windows-31j", "Shift-JIS" }) {
+        QStringDecoder decoder(encoding);
+        if (!decoder.isValid()) {
+            continue;
+        }
+        const auto decoded = decoder.decode(data);
+        if (!decoder.hasError()) {
+            return decoded;
+        }
+    }
+
     QStringDecoder utf8Decoder(QStringConverter::Utf8);
     const auto utf8 = utf8Decoder.decode(data);
     if (!utf8Decoder.hasError()) {
         return utf8;
-    }
-
-    QStringDecoder shiftJisDecoder("Shift-JIS");
-    if (shiftJisDecoder.isValid()) {
-        return shiftJisDecoder.decode(data);
     }
 
     return QString::fromLatin1(data);

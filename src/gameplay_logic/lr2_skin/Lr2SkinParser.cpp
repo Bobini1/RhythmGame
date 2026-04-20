@@ -80,9 +80,8 @@ makeSafeId(QString text, const QString& fallback) -> QString
 auto
 lr2ConfiguredFontFamily() -> QString
 {
-    // LR2 ignores the family tokens in #FONT and uses config.skin.fontname.
-    // The stock config default is "Ariel" (sic); Qt resolves "Arial" more reliably.
-    return QStringLiteral("Arial");
+    // The stock LR2 skin relies on MS PGothic for Japanese system-font text.
+    return QStringLiteral("MS PGothic");
 }
 
 auto

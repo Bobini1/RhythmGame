@@ -16,15 +16,16 @@ Item {
         ? width / naturalWidth
         : 1
     readonly property real drawnWidth: naturalWidth * scaleY * fitScaleX
+    readonly property real alignedX: root.alignment === 1
+        ? (root.width - root.drawnWidth) / 2
+        : root.alignment === 2
+            ? root.width - root.drawnWidth
+            : 0
 
     Image {
         id: textImage
 
-        x: root.alignment === 1
-            ? -root.drawnWidth / 2
-            : root.alignment === 2
-                ? -root.drawnWidth
-                : 0
+        x: root.alignedX
         width: root.drawnWidth
         height: root.height
         visible: root.fontPath.length > 0 && root.text.length > 0

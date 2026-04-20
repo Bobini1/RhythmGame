@@ -46,10 +46,15 @@ Item {
     // the rendered item size; the value is still far wider than the viewport.
     readonly property real renderWidth: Math.min(Math.abs(dstWidth), maxLayerSize)
     readonly property real renderHeight: Math.min(Math.abs(dstHeight), maxLayerSize)
+    readonly property real anchorOffsetX: {
+        if (root.textAlignment === 1) return -root.renderWidth * 0.5;
+        if (root.textAlignment === 2) return -root.renderWidth;
+        return 0;
+    }
 
     Item {
         id: textBox
-        x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride : 0
+        x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride + root.anchorOffsetX : 0
         y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
         width: root.renderWidth
         height: root.renderHeight
