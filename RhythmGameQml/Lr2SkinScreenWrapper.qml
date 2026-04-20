@@ -67,6 +67,9 @@ Item {
     property int selectPanelHeldByStart: 0
     property double selectPanelStartMs: 0
     property int selectPanelElapsed: 0
+    property int selectPanelClosing: 0
+    property double selectPanelCloseStartMs: 0
+    property int selectPanelCloseElapsed: 0
     readonly property int selectPanelHoldTime: 250
     property int selectHeldButtonSkinTime: 0
     property var selectHeldButtonTimerStarts: ({})
@@ -234,7 +237,10 @@ Item {
         if (!path) {
             return false;
         }
-        root.openReadmeText(Rg.fileQuery.readTextFile(path));
+        const text = Rg.fileQuery.readTextFile(path) || "";
+        root.openReadmeText(text.length > 0
+            ? text
+            : "HELP FILE NOT FOUND\n\n" + path);
         return true;
     }
 
@@ -949,6 +955,8 @@ Item {
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
             root.selectPanelElapsed = 0;
+            root.selectPanelClosing = 0;
+            root.selectPanelCloseElapsed = 0;
             root.lr2ReadmeMode = 0;
         }
         root.restartSelectInfoTimer();
@@ -1409,11 +1417,21 @@ Item {
     function closeSelectPanel() {
         if (root.selectPanel > 0) {
             root.playOneShot(optionCloseSound);
+            root.startSelectPanelCloseTimer(root.selectPanel);
         }
         root.selectPanel = 0;
         root.selectPanelHeldByStart = 0;
         root.selectPanelElapsed = 0;
         root.selectHeldButtonTimerStarts = ({});
+    }
+
+    function startSelectPanelCloseTimer(panel) {
+        if (panel <= 0) {
+            return;
+        }
+        root.selectPanelClosing = panel;
+        root.selectPanelCloseStartMs = Date.now();
+        root.selectPanelCloseElapsed = 0;
     }
 
     function openSelectPanel(panel, heldByStart) {
@@ -1422,6 +1440,9 @@ Item {
         }
         if (root.selectPanel !== panel) {
             root.playOneShot(optionOpenSound);
+            if (root.selectPanel > 0) {
+                root.startSelectPanelCloseTimer(root.selectPanel);
+            }
             root.selectPanel = panel;
             root.selectPanelStartMs = Date.now();
             root.selectPanelElapsed = 0;
@@ -2224,6 +2245,8 @@ Item {
         root.globalSkinTime = 0;
         root.selectHeldButtonSkinTime = 0;
         root.selectHeldButtonTimerStarts = ({});
+        root.selectPanelClosing = 0;
+        root.selectPanelCloseElapsed = 0;
         root.restartSelectInfoTimer();
         if (root.shouldAutoAdvance) {
             sceneEndTimer.restart();
@@ -2257,6 +2280,19 @@ Item {
         repeat: true
         onTriggered: {
             root.selectPanelElapsed = Math.min(root.selectPanelHoldTime, Date.now() - root.selectPanelStartMs);
+        }
+    }
+
+    Timer {
+        id: selectPanelCloseStopwatch
+        interval: 16
+        running: root.effectiveScreenKey === "select" && root.selectPanelClosing > 0
+        repeat: true
+        onTriggered: {
+            root.selectPanelCloseElapsed = Math.min(root.selectPanelHoldTime, Date.now() - root.selectPanelCloseStartMs);
+            if (root.selectPanelCloseElapsed >= root.selectPanelHoldTime) {
+                root.selectPanelClosing = 0;
+            }
         }
     }
 
@@ -2313,18 +2349,21 @@ Item {
     }
 
     // Timer fire times (ms since scene start). LR2 select panels use timers
-    // 21..26 for their side-drawer animations, so synthesize those while the
-    // matching panel is open without unfreezing the whole select skin clock.
+    // 21..26 for side-drawer opening and 31..36 for closing, so synthesize
+    // those without unfreezing the whole select skin clock.
     readonly property var timers: {
         let result = { "0": 0 };
         if (root.effectiveScreenKey === "select") {
-            // LR2 restarts timer 11 for the selected song information. The
-            // select skin clock is intentionally capped after the intro, so
-            // synthesize timer 11 from its own small stopwatch.
+            // LR2 restarts the selected-song information timers on item
+            // changes. The select skin clock is intentionally capped after the
+            // intro, so synthesize those timers from their own small stopwatch.
             result[11] = root.renderSkinTime - root.selectInfoElapsed;
         }
         if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
             result[20 + root.selectPanel] = root.renderSkinTime - root.selectPanelElapsed;
+        }
+        if (root.effectiveScreenKey === "select" && root.selectPanelClosing > 0) {
+            result[30 + root.selectPanelClosing] = root.renderSkinTime - root.selectPanelCloseElapsed;
         }
         if (root.effectiveScreenKey === "select" && root.lr2ReadmeMode === 1) {
             result[15] = root.renderSkinTime - root.lr2ReadmeElapsed;
@@ -3162,6 +3201,10 @@ Item {
                             chart: root.renderChart
                             scaleOverride: skinScale
                             value: root.resolveBarGraph(model.src ? model.src.graphType : 0)
+                            animateValue: root.effectiveScreenKey === "select"
+                                && model.src
+                                && model.src.graphType >= 5
+                                && model.src.graphType <= 9
                         }
                     }
                 }
