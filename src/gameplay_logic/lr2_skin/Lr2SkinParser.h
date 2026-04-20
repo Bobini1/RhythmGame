@@ -182,6 +182,9 @@ struct Lr2SrcText
     Q_PROPERTY(int fontThickness MEMBER fontThickness)
     Q_PROPERTY(int fontType MEMBER fontType)
     Q_PROPERTY(bool bitmapFont MEMBER bitmapFont)
+    Q_PROPERTY(bool readme MEMBER readme)
+    Q_PROPERTY(int readmeId MEMBER readmeId)
+    Q_PROPERTY(int readmeLineSpacing MEMBER readmeLineSpacing)
   public:
     int font = 0;
     int st = 0;
@@ -194,6 +197,9 @@ struct Lr2SrcText
     int fontThickness = 0;
     int fontType = 0;
     bool bitmapFont = false;
+    bool readme = false;
+    int readmeId = 0;
+    int readmeLineSpacing = 18;
 };
 
 struct Lr2SrcBarImage
@@ -321,6 +327,9 @@ struct Lr2SkinData
     QList<Lr2Element> elements;
     QVariantList activeOptions;
     QVariantList barRows;
+    QVariantList helpFiles;
+    QString transColor = "#000000";
+    bool reloadBanner = false;
     int startInput = 0;
     int sceneTime = 0;
     int fadeOut = 0;

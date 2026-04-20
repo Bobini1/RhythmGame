@@ -52,6 +52,9 @@ struct ParseState
     bool hasBarFlashSource = false;
     QMap<int, QVariantList> barBodyOffDsts;
     QMap<int, QVariantList> barBodyOnDsts;
+    QVariantList helpFiles;
+    QString transColor = "#000000";
+    bool reloadBanner = false;
     int barCenter = 0;
     int barAvailableStart = 0;
     int barAvailableEnd = -1;
@@ -80,6 +83,15 @@ lr2ConfiguredFontFamily() -> QString
     // LR2 ignores the family tokens in #FONT and uses config.skin.fontname.
     // The stock config default is "Ariel" (sic); Qt resolves "Arial" more reliably.
     return QStringLiteral("Arial");
+}
+
+auto
+colorKeyString(int r, int g, int b) -> QString
+{
+    return QString("#%1%2%3")
+      .arg(std::clamp(r, 0, 255), 2, 16, QLatin1Char('0'))
+      .arg(std::clamp(g, 0, 255), 2, 16, QLatin1Char('0'))
+      .arg(std::clamp(b, 0, 255), 2, 16, QLatin1Char('0'));
 }
 
 void
@@ -796,6 +808,22 @@ processCommand(const QStringList& tokens,
         if (!includePath.isEmpty()) {
             parseFileIntoState(support::qStringToPath(includePath), state);
         }
+    } else if (command == "#HELPFILE") {
+        if (tokens.size() < 2 || tokens[1].trimmed().isEmpty()) {
+            return;
+        }
+        const auto helpPath = resolvePath(currentDir, tokens[1].trimmed(), state);
+        if (!helpPath.isEmpty()) {
+            state.helpFiles.append(helpPath);
+        }
+    } else if (command == "#RELOADBANNER") {
+        state.reloadBanner = true;
+    } else if (command == "#TRANSCOLOR") {
+        if (tokens.size() > 3) {
+            state.transColor = colorKeyString(tokens[1].trimmed().toInt(),
+                                              tokens[2].trimmed().toInt(),
+                                              tokens[3].trimmed().toInt());
+        }
     } else if (command == "#IMAGE") {
         state.images.append(
           resolvePath(currentDir,
@@ -939,6 +967,29 @@ processCommand(const QStringList& tokens,
         state.currentElement.src =
           QVariant::fromValue(parseTextSource(tokens, state));
     } else if (command == "#DST_TEXT") {
+        if (state.hasCurrentElement && state.currentElement.type == 2) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_README") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 2;
+        state.hasCurrentElement = true;
+
+        Lr2SrcText src;
+        src.readme = true;
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            src.readmeId = tokens[1].toInt();
+        }
+        if (tokens.size() > 2 && !tokens[2].isEmpty()) {
+            src.font = tokens[2].toInt();
+        }
+        if (tokens.size() > 5 && !tokens[5].isEmpty()) {
+            src.readmeLineSpacing = tokens[5].toInt();
+        }
+        applyFont(src, state);
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#DST_README") {
         if (state.hasCurrentElement && state.currentElement.type == 2) {
             parseDst(tokens, state, state.currentElement);
         }
@@ -1222,6 +1273,9 @@ parseFile(const std::filesystem::path& filePath,
       .elements = state.elements,
       .activeOptions = activeOptions,
       .barRows = barRows,
+      .helpFiles = state.helpFiles,
+      .transColor = state.transColor,
+      .reloadBanner = state.reloadBanner,
       .startInput = state.startInput,
       .sceneTime = state.sceneTime,
       .fadeOut = state.fadeOut,

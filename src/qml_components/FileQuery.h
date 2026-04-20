@@ -14,6 +14,7 @@ class FileQuery final : public QObject
 
   public:
     Q_INVOKABLE bool exists(const QString& path);
+    Q_INVOKABLE QString readTextFile(const QString& path) const;
     /**
      * @brief Get a list of all files in a directory EXCLUDING ini files.
      * @param directory The directory to search.

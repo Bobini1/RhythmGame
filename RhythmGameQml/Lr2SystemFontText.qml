@@ -16,6 +16,7 @@ Item {
     readonly property int basePixelSize: Math.max(1, Math.round(fontSize > 0 ? fontSize : height))
     readonly property int edgeWidth: hasEdge ? 1 : 0
     readonly property color edgeColor: Qt.rgba(0.03, 0.02, 0.05, 1.0)
+    readonly property real maxLayerSize: 32760
     readonly property int resolvedFontWeight: fontThickness >= 6
         ? Font.Bold
         : (fontThickness >= 4 ? Font.DemiBold : Font.Normal)
@@ -52,8 +53,8 @@ Item {
 
         x: root.alignedX
         y: 0
-        width: Math.max(1, root.sourceWidth)
-        height: Math.max(1, fillText.implicitHeight)
+        width: Math.max(1, Math.min(root.sourceWidth, root.maxLayerSize))
+        height: Math.max(1, Math.min(fillText.implicitHeight, root.maxLayerSize))
         layer.enabled: true
         layer.smooth: false
         transform: Scale {

@@ -1457,9 +1457,9 @@ Item {
         return chart ? entryLamp(chart) : 0;
     }
 
-    function hasAttachedText(chart) {
+    function attachedTextFile(chart) {
         if (!chart || !chart.chartDirectory) {
-            return false;
+            return "";
         }
 
         let dir = chart.chartDirectory;
@@ -1468,16 +1468,21 @@ Item {
             return cached;
         }
 
-        let found = false;
+        let found = "";
         let files = Rg.fileQuery.getSelectableFilesForDirectory(dir);
         for (let file of files) {
             if (String(file).toLowerCase().endsWith(".txt")) {
-                found = true;
+                let separator = dir.endsWith("/") || dir.endsWith("\\") ? "" : "/";
+                found = dir + separator + file;
                 break;
             }
         }
         attachedTextCache[dir] = found;
         return found;
+    }
+
+    function hasAttachedText(chart) {
+        return attachedTextFile(chart).length > 0;
     }
 
     function hasReplay(chart) {

@@ -6,6 +6,8 @@
 
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
+#include <QFileInfo>
+#include <QStringDecoder>
 #include <spdlog/spdlog.h>
 namespace {
 
@@ -29,15 +31,56 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
     }
     return files;
 }
+
+auto
+decodeTextFile(const QByteArray& data) -> QString
+{
+    if (data.startsWith("\xEF\xBB\xBF")) {
+        return QString::fromUtf8(data.sliced(3));
+    }
+
+    QStringDecoder utf8Decoder(QStringConverter::Utf8);
+    const auto utf8 = utf8Decoder.decode(data);
+    if (!utf8Decoder.hasError()) {
+        return utf8;
+    }
+
+    QStringDecoder shiftJisDecoder("Shift-JIS");
+    if (shiftJisDecoder.isValid()) {
+        return shiftJisDecoder.decode(data);
+    }
+
+    return QString::fromLatin1(data);
+}
+
+auto
+localPathFromUserPath(const QString& path) -> QString
+{
+    const auto url = QUrl(path);
+    if (url.isLocalFile()) {
+        return url.toLocalFile();
+    }
+    return path;
+}
 } // namespace
 
 namespace qml_components {
 auto
 FileQuery::exists(const QString& path) -> bool
 {
-    const auto url = QUrl(path);
-    return url.isLocalFile() && QFile::exists(url.toLocalFile()) &&
-           !url.fileName().isEmpty();
+    const QFileInfo info(localPathFromUserPath(path));
+    return info.exists() && info.isFile() && !info.fileName().isEmpty();
+}
+
+auto
+FileQuery::readTextFile(const QString& path) const -> QString
+{
+    QFile file(localPathFromUserPath(path));
+    if (!file.open(QIODevice::ReadOnly)) {
+        spdlog::warn("Failed to read text file {}", path.toStdString());
+        return {};
+    }
+    return decodeTextFile(file.readAll());
 }
 
 auto

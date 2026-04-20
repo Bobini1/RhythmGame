@@ -38,13 +38,21 @@ Item {
     readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
     readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
     readonly property int textFontType: root.srcData ? root.srcData.fontType : 0
+    readonly property real maxLayerSize: 32760
+    readonly property real dstWidth: root.currentState ? root.currentState.w * root.scaleOverride : 0
+    readonly property real dstHeight: root.currentState ? root.currentState.h * root.scaleOverride : 0
+    // LR2 skins use huge DST widths such as 99999 as "unclipped text". Qt
+    // would turn that into an impossible layer/source texture, so cap only
+    // the rendered item size; the value is still far wider than the viewport.
+    readonly property real renderWidth: Math.min(Math.abs(dstWidth), maxLayerSize)
+    readonly property real renderHeight: Math.min(Math.abs(dstHeight), maxLayerSize)
 
     Item {
         id: textBox
         x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride : 0
         y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
-        width: root.currentState ? root.currentState.w * root.scaleOverride : 0
-        height: root.currentState ? root.currentState.h * root.scaleOverride : 0
+        width: root.renderWidth
+        height: root.renderHeight
         visible: root.currentState && root.currentState.a > 0 && width > 0 && height > 0
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 

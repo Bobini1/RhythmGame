@@ -15,6 +15,7 @@ Item {
     property var barBaseStates: []
     property real barScrollOffset: 0
     property int barCenter: 0
+    property color transColor: "black"
     readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision : 0
     readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -166,6 +167,7 @@ Item {
             timers: root.timers
             chart: root.chart
             scaleOverride: root.scaleOverride
+            transColor: root.transColor
             colorKeyEnabled: false
         }
     }
@@ -191,6 +193,7 @@ Item {
             timers: root.timers
             chart: root.chart
             scaleOverride: root.scaleOverride
+            transColor: root.transColor
             offsetX: drawBase ? drawBase.x : 0
             offsetY: drawBase ? drawBase.y : 0
         }

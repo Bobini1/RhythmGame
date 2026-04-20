@@ -19,6 +19,7 @@ Item {
     property real offsetX: 0
     property real offsetY: 0
     property bool colorKeyEnabled: true
+    property color transColor: "black"
     property int frameOverride: -1
     property var stateOverride: null
     property bool forceHidden: false
@@ -180,7 +181,7 @@ Item {
         ColorChanger {
             anchors.fill: parent
             visible: root.hasDrawableTexture && root.blendMode === 0
-            from: "black"
+            from: root.transColor
             to: "transparent"
             source: ShaderEffectSource {
                 hideSource: root.blendMode === 0

@@ -24,6 +24,7 @@
 #include "qml_components/ProfileList.h"
 #include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/FileQuery.h"
+#include "qml_components/Lr2NativeCursor.h"
 #include "qml_components/InputAttached.h"
 #include "../RhythmGameQml/Rg.h"
 #include "gameplay_logic/BmsScoreCourse.h"
@@ -492,6 +493,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
+        qmlRegisterType<qml_components::Lr2NativeCursor>(
+          "RhythmGameQml", 1, 0, "Lr2NativeCursor");
         qml_components::OnlineRankingModel::networkManager = &networkManager;
         qml_components::OnlineRankingModel::profileList = &profileList;
         qml_components::OnlineRankingModel::onlineScores = &onlineScores;

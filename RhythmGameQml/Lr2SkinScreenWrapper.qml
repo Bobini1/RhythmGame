@@ -39,6 +39,10 @@ Item {
         sequence: "Esc"
 
         onActivated: {
+            if (root.effectiveScreenKey === "select" && root.lr2ReadmeMode > 0) {
+                root.closeReadme();
+                return;
+            }
             if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
                 root.closeSelectPanel();
                 return;
@@ -118,9 +122,143 @@ Item {
     readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
     readonly property string lr2SearchPlaceholderText: "検索語を入力"
     property int lr2ReplayType: 0
+    property var lr2SliderValues: ({
+        "8": 0,
+        "10": 50, "11": 50, "12": 50, "13": 50, "14": 50, "15": 50, "16": 50,
+        "17": 100, "18": 100, "19": 100,
+        "20": 50, "21": 50, "22": 50, "23": 50, "24": 50, "25": 50,
+        "26": 50
+    })
+    property bool lr2EqOn: false
+    property bool lr2PitchOn: false
+    property int lr2PitchType: 0
+    property var lr2FxType: [0, 0, 0]
+    property var lr2FxOn: [false, false, false]
+    property var lr2FxTarget: [0, 0, 0]
+    property string lr2ReadmeText: ""
+    property var lr2ReadmeLines: []
+    property int lr2ReadmeMode: 0 // 0=hidden, 1=open, 2=closing
+    property double lr2ReadmeStartMs: 0
+    property int lr2ReadmeElapsed: 0
     property real selectMouseX: -100000
     property real selectMouseY: -100000
     property bool selectScratchSoundReady: false
+
+    function updateSelectMousePosition(x, y) {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
+        root.selectMouseX = x;
+        root.selectMouseY = y;
+    }
+
+    function hideSelectMouse() {
+        root.selectMouseX = -100000;
+        root.selectMouseY = -100000;
+    }
+
+    function updateSelectMouseFromArea(area, mouse) {
+        if (root.effectiveScreenKey !== "select" || !area || !mouse) {
+            return;
+        }
+        const point = area.mapToItem(skinContainer, mouse.x, mouse.y);
+        root.updateSelectMousePosition(point.x, point.y);
+    }
+
+    function copyObject(object) {
+        let result = {};
+        for (let key in object) {
+            result[key] = object[key];
+        }
+        return result;
+    }
+
+    function setArrayValue(array, index, value) {
+        let copy = array.slice();
+        copy[index] = value;
+        return copy;
+    }
+
+    function sliderInitialValue(type) {
+        if (type === 17 || type === 18 || type === 19) {
+            return 100;
+        }
+        if (type === 8) {
+            return 0;
+        }
+        return 50;
+    }
+
+    function sliderRawValue(type) {
+        let key = String(type);
+        let value = root.lr2SliderValues[key];
+        return value === undefined ? root.sliderInitialValue(type) : value;
+    }
+
+    function setSliderRawValue(type, value) {
+        let copy = root.copyObject(root.lr2SliderValues);
+        copy[String(type)] = Math.max(0, Math.min(100, Math.round(value)));
+        root.lr2SliderValues = copy;
+    }
+
+    function lr2SliderNumber(num) {
+        if (num >= 50 && num <= 56) {
+            return root.sliderRawValue(10 + num - 50);
+        }
+        if (num >= 57 && num <= 59) {
+            return root.sliderRawValue(17 + num - 57);
+        }
+        if (num >= 60 && num <= 65) {
+            return root.sliderRawValue(20 + num - 60);
+        }
+        if (num === 66) {
+            return root.sliderRawValue(26);
+        }
+        return 0;
+    }
+
+    function openReadmeText(text) {
+        root.lr2ReadmeText = text || "";
+        root.lr2ReadmeLines = root.lr2ReadmeText.length > 0
+            ? root.lr2ReadmeText.split(/\r\n|\n|\r/)
+            : [""];
+        root.lr2ReadmeMode = 1;
+        root.lr2ReadmeStartMs = Date.now();
+        root.lr2ReadmeElapsed = 0;
+        readmeCloseTimer.stop();
+        readmeStopwatch.restart();
+        root.clearSelectSearchFocus();
+    }
+
+    function openReadmePath(path) {
+        if (!path) {
+            return false;
+        }
+        root.openReadmeText(Rg.fileQuery.readTextFile(path));
+        return true;
+    }
+
+    function closeReadme() {
+        if (root.lr2ReadmeMode === 0) {
+            return;
+        }
+        root.lr2ReadmeMode = 2;
+        root.lr2ReadmeStartMs = Date.now();
+        root.lr2ReadmeElapsed = 0;
+        readmeStopwatch.restart();
+        readmeCloseTimer.restart();
+    }
+
+    function readmeLinesForSource(src) {
+        if (!src || !src.readme || root.lr2ReadmeMode === 0) {
+            return [];
+        }
+        if ((root.lr2ReadmeMode === 1 && src.readmeId === 0)
+                || (root.lr2ReadmeMode === 2 && src.readmeId === 1)) {
+            return root.lr2ReadmeLines;
+        }
+        return [];
+    }
 
     function mainGeneralVars() {
         return Rg.profileList && Rg.profileList.mainProfile
@@ -426,11 +564,93 @@ Item {
 
     function isSelectScrollSlider(src) {
         return root.effectiveScreenKey === "select"
-            && src
-            && src.slider
+            && !!src
+            && !!src.slider
             && src.sliderType === 1
             && src.sliderRange > 0
             && src.sliderDisabled === 0;
+    }
+
+    function isLr2GenericSlider(src) {
+        return root.effectiveScreenKey === "select"
+            && !!src
+            && !!src.slider
+            && !root.isSelectScrollSlider(src)
+            && src.sliderRange > 0
+            && src.sliderDisabled === 0;
+    }
+
+    function sliderTrackState(src, dsts) {
+        if (!src || !src.slider) {
+            return null;
+        }
+        let base = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        if (!base) {
+            return null;
+        }
+
+        let track = {
+            x: base.x,
+            y: base.y,
+            w: base.w,
+            h: base.h
+        };
+        let range = Math.max(1, src.sliderRange || 0);
+        switch (src.sliderDirection) {
+        case 0:
+            track.y -= range;
+            track.h += range;
+            break;
+        case 1:
+            track.w += range;
+            break;
+        case 2:
+            track.h += range;
+            break;
+        case 3:
+            track.x -= range;
+            track.w += range;
+            break;
+        default:
+            return null;
+        }
+        return track;
+    }
+
+    function sliderPositionFromPointer(src, track, pointerX, pointerY) {
+        let range = Math.max(1, src.sliderRange || 0);
+        let moveX = (track.w - range) / 2;
+        let moveY = (track.h - range) / 2;
+        let position = 0;
+        switch (src.sliderDirection) {
+        case 0: {
+            let start = track.y + moveY;
+            let end = track.y + track.h - moveY;
+            position = end !== start ? (end - pointerY) / (end - start) : 0;
+            break;
+        }
+        case 1: {
+            let start = track.x + moveX;
+            let end = track.x + track.w - moveX;
+            position = end !== start ? (pointerX - start) / (end - start) : 0;
+            break;
+        }
+        case 2: {
+            let start = track.y + moveY;
+            let end = track.y + track.h - moveY;
+            position = end !== start ? (pointerY - start) / (end - start) : 0;
+            break;
+        }
+        case 3: {
+            let start = track.x + moveX;
+            let end = track.x + track.w - moveX;
+            position = end !== start ? (end - pointerX) / (end - start) : 0;
+            break;
+        }
+        default:
+            return 0;
+        }
+        return Math.max(0, Math.min(1, position));
     }
 
     function panelMatches(panel) {
@@ -478,11 +698,12 @@ Item {
     }
 
     function selectScrollReady() {
-        return root.selectInputReady();
+        return root.selectInputReady() && root.lr2ReadmeMode === 0;
     }
 
     function selectNavigationReady() {
         return root.selectInputReady()
+            && root.lr2ReadmeMode === 0
             && root.selectPanel === 0;
     }
 
@@ -535,21 +756,8 @@ Item {
     }
 
     function elementZ(type, index, src, dsts) {
-        if (src && src.mouseCursor) {
-            return 1000000 + index * 0.000001;
-        }
         // OpenLR2 stamps every DST keyframe with the skin command counter and
         // globally sorts DrawingBuf by that value before drawing.
-        if (root.effectiveScreenKey === "select"
-            && type === 3
-            && src
-            && src.kind === 0
-            && src.row > 0) {
-            let bodyState = root.barBaseState(src.row);
-            if (bodyState && bodyState.sortId !== undefined) {
-                return bodyState.sortId + index * 0.000001;
-            }
-        }
         let skinTime = root.effectiveScreenKey === "select" && type >= 3 && type <= 5
             ? root.barSkinTime
             : root.renderSkinTime;
@@ -591,9 +799,7 @@ Item {
         addOption(options, chartData.backBmp ? 195 : 194);
         addOption(options, selectContext.hasBga(chartData) ? 171 : 170);
         addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
-        // Readtext is not implemented yet, so LR2's readtext button must stay
-        // in the disabled option state even when the song folder has .txt files.
-        addOption(options, 174);
+        addOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
         addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
         addOption(options, chartData.isRandom ? 179 : 178);
         addOption(options, selectContext.judgeOption(chartData));
@@ -721,6 +927,14 @@ Item {
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.deferredSelectChart
         : root.chart
+    readonly property var selectedCourseStages: {
+        let revision = root.effectiveScreenKey === "select" ? selectContext.selectionRevision : 0;
+        let item = root.effectiveScreenKey === "select" ? selectContext.current : null;
+        if (!item || !selectContext.isCourse(item) || !item.loadCharts) {
+            return [];
+        }
+        return item.loadCharts();
+    }
 
     onSelectRevisionChanged: root.scheduleSelectSideEffects()
     Connections {
@@ -735,6 +949,7 @@ Item {
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
             root.selectPanelElapsed = 0;
+            root.lr2ReadmeMode = 0;
         }
         root.restartSelectInfoTimer();
         root.scheduleSelectSideEffects();
@@ -771,7 +986,7 @@ Item {
             return;
         }
 
-        if (!root.deferredSelectChart) {
+        if (!root.deferredSelectChart || skinModel.reloadBanner) {
             root.refreshDeferredSelectChart();
         } else {
             selectChartSettleTimer.restart();
@@ -807,6 +1022,37 @@ Item {
 
     function optionText(labels, index) {
         return index >= 0 && index < labels.length ? labels[index] : "";
+    }
+
+    function clearLabelForLamp(lamp) {
+        switch (lamp) {
+        case 1:
+            return "FAILED";
+        case 2:
+            return "EASY";
+        case 3:
+            return "NORMAL";
+        case 4:
+            return "HARD";
+        case 5:
+            return "FULLCOMBO";
+        default:
+            return "NO PLAY";
+        }
+    }
+
+    function courseStage(index) {
+        return index >= 0 && index < root.selectedCourseStages.length
+            ? root.selectedCourseStages[index]
+            : null;
+    }
+
+    function chartTitle(chart) {
+        return chart ? (chart.title || "") : "";
+    }
+
+    function chartSubtitle(chart) {
+        return chart ? (chart.subtitle || "") : "";
     }
 
     function lr2SelectOptionText(st) {
@@ -857,6 +1103,44 @@ Item {
             return root.optionText(root.lr2HidSudLabels, root.hidSudIndex(1));
         case 85:
             return root.optionText(root.lr2HidSudLabels, root.hidSudIndex(2));
+        case 120:
+            return Rg.profileList.mainProfile.vars.generalVars.name || "";
+        case 121:
+        case 122:
+        case 123:
+        case 124:
+            return "";
+        case 130:
+            return root.clearLabelForLamp(selectContext.entryLamp(selectContext.current));
+        case 131:
+        case 132:
+        case 133:
+        case 134:
+            return "";
+        case 150:
+        case 151:
+        case 152:
+        case 153:
+        case 154:
+            return root.chartTitle(root.courseStage(st - 150));
+        case 160:
+        case 161:
+        case 162:
+        case 163:
+        case 164:
+            return root.chartSubtitle(root.courseStage(st - 160));
+        case 170:
+            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.current, true) : "";
+        case 171:
+            return "TITLE";
+        case 172:
+            return "ARTIST";
+        case 173:
+            return "GENRE";
+        case 174:
+            return "TAG";
+        case 183:
+            return "";
         case 190:
             return "OFF";
         case 191:
@@ -962,6 +1246,19 @@ Item {
             if (num === 13) {
                 return root.targetPercent();
             }
+            if ((num >= 50 && num <= 66) || num === 8) {
+                return root.lr2SliderNumber(num);
+            }
+            if (num >= 250 && num <= 254) {
+                let stage = root.courseStage(num - 250);
+                return stage ? (stage.playLevel || 0) : 0;
+            }
+            if ((num >= 300 && num <= 382) || (num >= 92 && num <= 95)
+                    || num === 220 || num === 271 || num === 272
+                    || num === 274 || num === 275 || num === 276
+                    || num === 292 || num === 293) {
+                return 0;
+            }
             return selectContext.numberValue(num);
         }
         return 0;
@@ -990,6 +1287,13 @@ Item {
         case 10:
         case 11:
         case 12:
+        case 20:
+        case 21:
+        case 22:
+        case 26:
+        case 27:
+        case 28:
+        case 33:
         case 40:
         case 41:
         case 42:
@@ -1044,6 +1348,24 @@ Item {
             return 0;
         case 45:
             return 0;
+        case 20:
+        case 21:
+        case 22:
+            return root.lr2FxType[src.buttonId - 20] || 0;
+        case 23:
+        case 24:
+        case 25:
+            return root.lr2FxOn[src.buttonId - 23] ? 1 : 0;
+        case 26:
+        case 27:
+        case 28:
+            return root.lr2FxTarget[src.buttonId - 26] || 0;
+        case 29:
+            return root.lr2EqOn ? 1 : 0;
+        case 32:
+            return root.lr2PitchOn ? 1 : 0;
+        case 33:
+            return root.lr2PitchType;
         case 46:
             return root.laneCoverIndex();
         case 50:
@@ -1076,7 +1398,7 @@ Item {
             return 0;
         default:
             if ((src.buttonId >= 13 && src.buttonId <= 14)
-                    || (src.buttonId >= 18 && src.buttonId <= 33)
+                    || src.buttonId === 18
                     || (src.buttonId >= 230 && src.buttonId <= 268)) {
                 return 0;
             }
@@ -1266,12 +1588,27 @@ Item {
             root.toggleSelectPanel(buttonId);
             return;
         }
+        if (buttonId === 17) {
+            let path = selectContext.attachedTextFile(selectContext.selectedChartData());
+            if (path) {
+                root.openReadmePath(path);
+            }
+            return;
+        }
+        if (buttonId === 200 && root.lr2ReadmeMode > 0) {
+            root.closeReadme();
+            return;
+        }
         if (buttonId === 200 && panel > 0) {
             root.closeSelectPanel();
             return;
         }
         if (buttonId >= 201 && buttonId <= 206 && panel > 0) {
-            root.toggleSelectPanel(panel);
+            let helpFiles = skinModel.helpFiles || [];
+            let helpIndex = buttonId - 200;
+            if (helpIndex >= 0 && helpIndex < helpFiles.length) {
+                root.openReadmePath(helpFiles[helpIndex]);
+            }
             return;
         }
         let optionChanged = false;
@@ -1331,6 +1668,45 @@ Item {
         case 44:
         case 45:
             // Assist options are intentionally unsupported; keep LR2 menus at OFF.
+            break;
+        case 18:
+            optionChanged = true;
+            break;
+        case 20:
+        case 21:
+        case 22: {
+            let slot = buttonId - 20;
+            root.lr2FxType = root.setArrayValue(root.lr2FxType, slot, root.wrapValue((root.lr2FxType[slot] || 0) + delta, 8));
+            optionChanged = true;
+            break;
+        }
+        case 23:
+        case 24:
+        case 25: {
+            let slot = buttonId - 23;
+            root.lr2FxOn = root.setArrayValue(root.lr2FxOn, slot, !root.lr2FxOn[slot]);
+            optionChanged = true;
+            break;
+        }
+        case 26:
+        case 27:
+        case 28: {
+            let slot = buttonId - 26;
+            root.lr2FxTarget = root.setArrayValue(root.lr2FxTarget, slot, root.wrapValue((root.lr2FxTarget[slot] || 0) + delta, 3));
+            optionChanged = true;
+            break;
+        }
+        case 29:
+            root.lr2EqOn = !root.lr2EqOn;
+            optionChanged = true;
+            break;
+        case 32:
+            root.lr2PitchOn = !root.lr2PitchOn;
+            optionChanged = true;
+            break;
+        case 33:
+            root.lr2PitchType = root.wrapValue(root.lr2PitchType + delta, 3);
+            optionChanged = true;
             break;
         case 46:
             root.setLaneCoverIndex(root.laneCoverIndex() + delta);
@@ -1398,10 +1774,9 @@ Item {
                 break;
             }
             if ((buttonId >= 13 && buttonId <= 14)
-                    || (buttonId >= 18 && buttonId <= 33)
                     || (buttonId >= 230 && buttonId <= 268)) {
-                // These LR2 controls cover skin/key config, audio EQ/FX, and
-                // tag-editor actions that do not have safe backing state here.
+                // These LR2 controls cover skin/key config, IR, and tag-editor
+                // actions that do not have safe backing state here.
                 break;
             }
             console.info("LR2 select button " + buttonId + " is not implemented yet");
@@ -1553,37 +1928,12 @@ Item {
             : null;
     }
 
-    function mouseCursorState(src, dsts) {
-        if (!src || !src.mouseCursor) {
-            return null;
-        }
-        let state = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
-        if (!state) {
-            return null;
-        }
-        return {
-            x: root.selectMouseX / skinScale,
-            y: root.selectMouseY / skinScale,
-            w: state.w,
-            h: state.h,
-            a: state.a,
-            r: state.r,
-            g: state.g,
-            b: state.b,
-            angle: state.angle || 0,
-            center: state.center || 0,
-            blend: state.blend || 0,
-            filter: state.filter || 0,
-            sortId: state.sortId || 0
-        };
-    }
-
     function spriteStateOverride(src, dsts) {
-        if (src && src.mouseCursor) {
-            return root.mouseCursorState(src, dsts);
-        }
         if (root.isSelectScrollSlider(src)) {
             return root.selectScrollSliderState(src, dsts);
+        }
+        if (root.isLr2GenericSlider(src)) {
+            return root.lr2GenericSliderState(src, dsts);
         }
         return null;
     }
@@ -1591,9 +1941,6 @@ Item {
     function spriteForceHidden(src, dsts) {
         if (src && src.onMouse) {
             return root.onMouseSpriteState(src, dsts) === null;
-        }
-        if (src && src.mouseCursor) {
-            return root.selectMouseX < -9999 || root.selectMouseY < -9999;
         }
         return false;
     }
@@ -1651,41 +1998,65 @@ Item {
         return state;
     }
 
-    function selectScrollSliderTrackState(src, dsts) {
-        if (!root.isSelectScrollSlider(src)) {
+    function lr2GenericSliderState(src, dsts) {
+        if (!root.isLr2GenericSlider(src)) {
             return null;
         }
+
         let base = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
         if (!base) {
             return null;
         }
 
-        let track = {
-            x: base.x,
-            y: base.y,
-            w: base.w,
-            h: base.h
-        };
-        let range = Math.max(1, src.sliderRange || 0);
+        let position = root.sliderRawValue(src.sliderType) / 100;
+        let sliderOffset = position * Math.max(1, src.sliderRange || 0);
+        let offsetX = 0;
+        let offsetY = 0;
         switch (src.sliderDirection) {
         case 0:
-            track.y -= range;
-            track.h += range;
+            offsetY = -sliderOffset;
             break;
         case 1:
-            track.w += range;
+            offsetX = sliderOffset;
             break;
         case 2:
-            track.h += range;
+            offsetY = sliderOffset;
             break;
         case 3:
-            track.x -= range;
-            track.w += range;
+            offsetX = -sliderOffset;
             break;
         default:
             return null;
         }
-        return track;
+
+        return {
+            x: base.x + offsetX,
+            y: base.y + offsetY,
+            w: base.w,
+            h: base.h,
+            a: base.a,
+            r: base.r,
+            g: base.g,
+            b: base.b,
+            angle: base.angle || 0,
+            center: base.center || 0,
+            blend: base.blend || 0,
+            filter: base.filter || 0
+        };
+    }
+
+    function selectScrollSliderTrackState(src, dsts) {
+        if (!root.isSelectScrollSlider(src)) {
+            return null;
+        }
+        return root.sliderTrackState(src, dsts);
+    }
+
+    function lr2GenericSliderTrackState(src, dsts) {
+        if (!root.isLr2GenericSlider(src)) {
+            return null;
+        }
+        return root.sliderTrackState(src, dsts);
     }
 
     function setSelectScrollFromSliderPointer(src, dsts, pointerX, pointerY) {
@@ -1697,41 +2068,17 @@ Item {
             return;
         }
 
-        let range = Math.max(1, src.sliderRange || 0);
-        let moveX = (track.w - range) / 2;
-        let moveY = (track.h - range) / 2;
-        let position = 0;
-        switch (src.sliderDirection) {
-        case 0: {
-            let start = track.y + moveY;
-            let end = track.y + track.h - moveY;
-            position = end !== start ? (end - pointerY) / (end - start) : 0;
-            break;
-        }
-        case 1: {
-            let start = track.x + moveX;
-            let end = track.x + track.w - moveX;
-            position = end !== start ? (pointerX - start) / (end - start) : 0;
-            break;
-        }
-        case 2: {
-            let start = track.y + moveY;
-            let end = track.y + track.h - moveY;
-            position = end !== start ? (pointerY - start) / (end - start) : 0;
-            break;
-        }
-        case 3: {
-            let start = track.x + moveX;
-            let end = track.x + track.w - moveX;
-            position = end !== start ? (end - pointerX) / (end - start) : 0;
-            break;
-        }
-        default:
-            return;
-        }
-        position = Math.max(0, Math.min(1, position));
+        let position = root.sliderPositionFromPointer(src, track, pointerX, pointerY);
         let maxFixed = Math.max(0, selectContext.logicalCount * 1000 - 1);
         selectContext.setScrollFixedPoint(position * maxFixed, 100, false);
+    }
+
+    function setLr2GenericSliderFromPointer(src, dsts, pointerX, pointerY) {
+        let track = root.lr2GenericSliderTrackState(src, dsts);
+        if (!track) {
+            return;
+        }
+        root.setSliderRawValue(src.sliderType, root.sliderPositionFromPointer(src, track, pointerX, pointerY) * 100);
     }
 
     function computeBarBaseState(row, selectedRow) {
@@ -1934,6 +2281,27 @@ Item {
     }
 
     Timer {
+        id: readmeStopwatch
+        interval: 16
+        running: root.effectiveScreenKey === "select" && root.lr2ReadmeMode > 0 && root.lr2ReadmeElapsed < 500
+        repeat: true
+        onTriggered: {
+            root.lr2ReadmeElapsed = Math.min(500, Date.now() - root.lr2ReadmeStartMs);
+        }
+    }
+
+    Timer {
+        id: readmeCloseTimer
+        interval: 500
+        repeat: false
+        onTriggered: {
+            root.lr2ReadmeMode = 0;
+            root.lr2ReadmeText = "";
+            root.lr2ReadmeLines = [];
+        }
+    }
+
+    Timer {
         id: sceneEndTimer
         interval: Math.max(1, skinModel.sceneTime)
         repeat: false
@@ -1957,6 +2325,11 @@ Item {
         }
         if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
             result[20 + root.selectPanel] = root.renderSkinTime - root.selectPanelElapsed;
+        }
+        if (root.effectiveScreenKey === "select" && root.lr2ReadmeMode === 1) {
+            result[15] = root.renderSkinTime - root.lr2ReadmeElapsed;
+        } else if (root.effectiveScreenKey === "select" && root.lr2ReadmeMode === 2) {
+            result[16] = root.renderSkinTime - root.lr2ReadmeElapsed;
         }
         root.addHeldButtonTimers(result);
         return result;
@@ -2220,11 +2593,21 @@ Item {
             height: skinH * skinScale
 
             MouseArea {
+                id: selectBlankMouseArea
                 anchors.fill: parent
                 enabled: root.selectNavigationReady()
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 z: -100000
-                onClicked: root.resetSelectSearch()
+                onPressed: (mouse) => root.updateSelectMouseFromArea(selectBlankMouseArea, mouse)
+                onPositionChanged: (mouse) => {
+                    if (pressed) {
+                        root.updateSelectMouseFromArea(selectBlankMouseArea, mouse);
+                    }
+                }
+                onClicked: (mouse) => {
+                    root.updateSelectMouseFromArea(selectBlankMouseArea, mouse);
+                    root.resetSelectSearch();
+                }
             }
 
             MouseArea {
@@ -2232,16 +2615,11 @@ Item {
                 enabled: root.effectiveScreenKey === "select"
                 hoverEnabled: true
                 acceptedButtons: Qt.NoButton
-                cursorShape: Qt.BlankCursor
                 z: 900000
                 onPositionChanged: (mouse) => {
-                    root.selectMouseX = mouse.x;
-                    root.selectMouseY = mouse.y;
+                    root.updateSelectMousePosition(mouse.x, mouse.y);
                 }
-                onExited: {
-                    root.selectMouseX = -100000;
-                    root.selectMouseY = -100000;
-                }
+                onExited: root.hideSelectMouse()
             }
 
             Repeater {
@@ -2259,11 +2637,11 @@ Item {
 
                     sourceComponent: {
                         if (model.type === 0) {
-                            return imageComponent;
+                            return model.src && model.src.mouseCursor ? undefined : imageComponent;
                         } else if (model.type === 1) {
                             return numberComponent;
                         } else if (model.type === 2) {
-                            return textComponent;
+                            return model.src && model.src.readme ? readmeTextComponent : textComponent;
                         } else if (model.type === 3) {
                             return barImageComponent;
                         } else if (model.type === 4) {
@@ -2292,6 +2670,7 @@ Item {
                                 timers: root.timers
                                 chart: root.renderChart
                                 scaleOverride: skinScale
+                                transColor: skinModel.transColor
                                 frameOverride: root.buttonFrame(model.src)
                                 stateOverride: root.spriteStateOverride(model.src, model.dsts)
                                 forceHidden: root.spriteForceHidden(model.src, model.dsts)
@@ -2302,6 +2681,7 @@ Item {
                                 : null
 
                             MouseArea {
+                                id: lr2ButtonMouseArea
                                 enabled: root.effectiveScreenKey === "select"
                                     && root.acceptsInput
                                     && model.src
@@ -2315,7 +2695,14 @@ Item {
                                 y: parent.buttonState ? Math.min(parent.buttonState.y, parent.buttonState.y + parent.buttonState.h) * skinScale : 0
                                 width: parent.buttonState ? Math.abs(parent.buttonState.w) * skinScale : 0
                                 height: parent.buttonState ? Math.abs(parent.buttonState.h) * skinScale : 0
+                                onPressed: (mouse) => root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse)
+                                onPositionChanged: (mouse) => {
+                                    if (pressed) {
+                                        root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse);
+                                    }
+                                }
                                 onClicked: (mouse) => {
+                                    root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse);
                                     let delta = root.buttonMouseDelta(model.src, mouse.x, width);
                                     root.handleLr2Button(model.src.buttonId, delta, model.src.buttonPanel);
                                 }
@@ -2658,6 +3045,7 @@ Item {
                             }
 
                             MouseArea {
+                                id: searchEditMouseArea
                                 z: 6
                                 enabled: !!parent.searchTextState
                                 acceptedButtons: Qt.LeftButton
@@ -2667,14 +3055,44 @@ Item {
                                 width: parent.searchTextState ? Math.abs(parent.searchTextState.w) * skinScale : 0
                                 height: parent.searchTextState ? Math.abs(parent.searchTextState.h) * skinScale : 0
                                 onPressed: (mouse) => {
+                                    root.updateSelectMouseFromArea(searchEditMouseArea, mouse);
                                     mouse.accepted = true;
                                     parent.moveSearchCursorTo(x + mouse.x, false);
                                 }
                                 onPositionChanged: (mouse) => {
                                     if (pressed) {
+                                        root.updateSelectMouseFromArea(searchEditMouseArea, mouse);
                                         mouse.accepted = true;
                                         parent.moveSearchCursorTo(x + mouse.x, true);
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    Component {
+                        id: readmeTextComponent
+                        Item {
+                            id: readmeTextDelegateRoot
+                            width: skinW * skinScale
+                            height: skinH * skinScale
+                            readonly property var readmeSrc: model.src
+                            readonly property var readmeDsts: model.dsts
+
+                            Repeater {
+                                model: root.readmeLinesForSource(readmeTextDelegateRoot.readmeSrc)
+
+                                Lr2TextRenderer {
+                                    anchors.fill: parent
+                                    dsts: readmeTextDelegateRoot.readmeDsts
+                                    srcData: readmeTextDelegateRoot.readmeSrc
+                                    skinTime: root.renderSkinTime
+                                    activeOptions: root.runtimeActiveOptions
+                                    timers: root.timers
+                                    chart: root.renderChart
+                                    scaleOverride: skinScale
+                                    offsetY: index * (readmeTextDelegateRoot.readmeSrc ? readmeTextDelegateRoot.readmeSrc.readmeLineSpacing : 18)
+                                    resolvedText: modelData
                                 }
                             }
                         }
@@ -2695,6 +3113,7 @@ Item {
                             barBaseStates: root.cachedBarBaseStates
                             barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
+                            transColor: skinModel.transColor
                         }
                     }
 
@@ -2765,6 +3184,7 @@ Item {
                 model: root.effectiveScreenKey === "select" && skinModel.barRows ? skinModel.barRows.length : 0
 
                 MouseArea {
+                    id: barRowMouseArea
                     readonly property var rowState: root.barBaseState(index)
                     enabled: root.selectNavigationReady() && root.barRowCanClick(index) && !!rowState
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
@@ -2773,10 +3193,18 @@ Item {
                     width: rowState ? Math.abs(rowState.w) * skinScale : 0
                     height: rowState ? Math.abs(rowState.h) * skinScale : 0
                     z: 100000 + index
+                    onPressed: (mouse) => root.updateSelectMouseFromArea(barRowMouseArea, mouse)
+                    onPositionChanged: (mouse) => {
+                        if (pressed) {
+                            root.updateSelectMouseFromArea(barRowMouseArea, mouse);
+                        }
+                    }
                     onClicked: (mouse) => {
+                        root.updateSelectMouseFromArea(barRowMouseArea, mouse);
                         root.handleBarRowClick(index, mouse);
                     }
                     onDoubleClicked: (mouse) => {
+                        root.updateSelectMouseFromArea(barRowMouseArea, mouse);
                         if (mouse.button === Qt.LeftButton) {
                             selectContext.selectVisibleRow(index, skinModel.barCenter);
                             root.selectGoForward(selectContext.current);
@@ -2790,7 +3218,12 @@ Item {
                 model: skinModel
 
                 MouseArea {
-                    readonly property var trackState: root.selectScrollSliderTrackState(model.src, model.dsts)
+                    id: sliderMouseArea
+                    readonly property bool selectScroll: root.isSelectScrollSlider(model.src)
+                    readonly property bool genericSlider: root.isLr2GenericSlider(model.src)
+                    readonly property var trackState: selectScroll
+                        ? root.selectScrollSliderTrackState(model.src, model.dsts)
+                        : root.lr2GenericSliderTrackState(model.src, model.dsts)
                     enabled: root.selectScrollReady() && !!trackState
                     acceptedButtons: Qt.LeftButton
                     preventStealing: true
@@ -2799,29 +3232,118 @@ Item {
                     width: trackState ? Math.abs(trackState.w) * skinScale : 0
                     height: trackState ? Math.abs(trackState.h) * skinScale : 0
                     z: 100300 + index
-                    onPressed: (mouse) => {
-                        root.setSelectScrollFromSliderPointer(model.src,
-                                                              model.dsts,
-                                                              (x + mouse.x) / skinScale,
-                                                              (y + mouse.y) / skinScale);
-                        mouse.accepted = true;
-                    }
-                    onPositionChanged: (mouse) => {
-                        if (pressed) {
+                    function updateSlider(mouse) {
+                        if (selectScroll) {
                             root.setSelectScrollFromSliderPointer(model.src,
                                                                   model.dsts,
                                                                   (x + mouse.x) / skinScale,
                                                                   (y + mouse.y) / skinScale);
+                        } else if (genericSlider) {
+                            root.setLr2GenericSliderFromPointer(model.src,
+                                                                model.dsts,
+                                                                (x + mouse.x) / skinScale,
+                                                                (y + mouse.y) / skinScale);
+                        }
+                    }
+                    onPressed: (mouse) => {
+                        root.updateSelectMouseFromArea(sliderMouseArea, mouse);
+                        updateSlider(mouse);
+                        mouse.accepted = true;
+                    }
+                    onPositionChanged: (mouse) => {
+                        if (pressed) {
+                            root.updateSelectMouseFromArea(sliderMouseArea, mouse);
+                            updateSlider(mouse);
                         }
                     }
                     onReleased: {
-                        selectContext.finishScrollFixedPoint(100);
+                        if (selectScroll) {
+                            selectContext.finishScrollFixedPoint(100);
+                        }
                     }
                     onCanceled: {
-                        selectContext.finishScrollFixedPoint(100);
+                        if (selectScroll) {
+                            selectContext.finishScrollFixedPoint(100);
+                        }
                     }
                     onWheel: (wheel) => root.handleSelectWheel(wheel)
                 }
+            }
+
+            Lr2NativeCursor {
+                id: nativeCursor
+                anchors.fill: parent
+
+                readonly property var cursorSrcData: skinModel.mouseCursor && skinModel.mouseCursor.src
+                    ? skinModel.mouseCursor.src
+                    : null
+                readonly property var cursorDsts: skinModel.mouseCursor && skinModel.mouseCursor.dsts
+                    ? skinModel.mouseCursor.dsts
+                    : []
+                readonly property var cursorState: cursorSrcData
+                    ? Lr2Timeline.getCurrentState(cursorDsts,
+                                                  root.renderSkinTime,
+                                                  root.timers,
+                                                  root.runtimeActiveOptions)
+                    : null
+                readonly property bool wholeTextureSource: cursorSrcData
+                    && (cursorSrcData.x < 0 || cursorSrcData.y < 0
+                        || cursorSrcData.w < 0 || cursorSrcData.h < 0)
+                readonly property bool croppedTextureSource: cursorSrcData
+                    && cursorSrcData.w > 0 && cursorSrcData.h > 0
+                readonly property string resolvedSource: {
+                    if (!cursorSrcData || !cursorSrcData.source) {
+                        return "";
+                    }
+                    let absPath = cursorSrcData.source.replace(/\\/g, "/");
+                    if (/^[A-Za-z]:\//.test(absPath)) {
+                        return "file:///" + absPath;
+                    }
+                    if (absPath.startsWith("/")) {
+                        return "file://" + absPath;
+                    }
+                    return absPath;
+                }
+                readonly property int frameIndex: {
+                    if (!cursorSrcData) {
+                        return 0;
+                    }
+                    let timerIdx = cursorSrcData.timer || 0;
+                    let fire = root.timers && root.timers[timerIdx] !== undefined
+                        ? root.timers[timerIdx]
+                        : -1;
+                    return Lr2Timeline.getAnimationFrame(cursorSrcData,
+                                                         root.renderSkinTime,
+                                                         fire);
+                }
+                readonly property rect clipRect: {
+                    if (!cursorSrcData || wholeTextureSource || !croppedTextureSource) {
+                        return Qt.rect(0, 0, 0, 0);
+                    }
+
+                    let sx = Math.max(0, cursorSrcData.x || 0);
+                    let sy = Math.max(0, cursorSrcData.y || 0);
+                    let sw = cursorSrcData.w;
+                    let sh = cursorSrcData.h;
+                    let divX = Math.max(1, cursorSrcData.div_x || 1);
+                    let divY = Math.max(1, cursorSrcData.div_y || 1);
+                    let cellW = sw / divX;
+                    let cellH = sh / divY;
+                    let col = frameIndex % divX;
+                    let row = Math.floor(frameIndex / divX) % divY;
+
+                    return Qt.rect(sx + col * cellW, sy + row * cellH, cellW, cellH);
+                }
+
+                active: root.effectiveScreenKey === "select"
+                    && root.selectMouseX > -9999
+                    && root.selectMouseY > -9999
+                    && resolvedSource !== ""
+                source: resolvedSource
+                sourceRect: clipRect
+                targetSize: cursorState
+                    ? Qt.size(cursorState.w * skinScale, cursorState.h * skinScale)
+                    : Qt.size(0, 0)
             }
 
             MouseArea {

@@ -2,6 +2,30 @@
 
 namespace gameplay_logic::lr2_skin {
 
+namespace {
+
+QVariantMap findMouseCursorElement(const QList<Lr2Element>& elements) {
+    for (const auto& element : elements) {
+        if (element.type != 0 || !element.src.canConvert<Lr2SrcImage>()) {
+            continue;
+        }
+
+        const auto src = element.src.value<Lr2SrcImage>();
+        if (!src.mouseCursor) {
+            continue;
+        }
+
+        return {
+            {"src", QVariant::fromValue(src)},
+            {"dsts", element.dsts}
+        };
+    }
+
+    return {};
+}
+
+}
+
 Lr2SkinModel::Lr2SkinModel(QObject* parent) : QAbstractListModel(parent) {}
 
 int Lr2SkinModel::rowCount(const QModelIndex& parent) const {
@@ -65,6 +89,22 @@ QVariantList Lr2SkinModel::barRows() const {
     return m_barRows;
 }
 
+QVariantList Lr2SkinModel::helpFiles() const {
+    return m_helpFiles;
+}
+
+QVariantMap Lr2SkinModel::mouseCursor() const {
+    return m_mouseCursor;
+}
+
+QString Lr2SkinModel::transColor() const {
+    return m_transColor;
+}
+
+bool Lr2SkinModel::reloadBanner() const {
+    return m_reloadBanner;
+}
+
 int Lr2SkinModel::barCenter() const {
     return m_barCenter;
 }
@@ -108,11 +148,19 @@ void Lr2SkinModel::loadSkin() {
                                      m_sceneTime != 0 ||
                                      m_fadeOut != 0 ||
                                      m_skip != 0 ||
+                                     !m_helpFiles.isEmpty() ||
+                                     !m_mouseCursor.isEmpty() ||
+                                     m_transColor != "#000000" ||
+                                     m_reloadBanner ||
                                      m_barCenter != 0 ||
                                      m_barAvailableStart != 0 ||
                                      m_barAvailableEnd != -1;
         m_effectiveActiveOptions.clear();
         m_barRows.clear();
+        m_helpFiles.clear();
+        m_mouseCursor.clear();
+        m_transColor = "#000000";
+        m_reloadBanner = false;
         m_startInput = 0;
         m_sceneTime = 0;
         m_fadeOut = 0;
@@ -130,12 +178,17 @@ void Lr2SkinModel::loadSkin() {
     beginResetModel();
     const auto skinData = Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
     m_elements = skinData.elements;
+    const auto mouseCursor = findMouseCursorElement(m_elements);
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
                                  m_fadeOut != skinData.fadeOut ||
                                  m_skip != skinData.skip ||
                                  m_effectiveActiveOptions != skinData.activeOptions ||
                                  m_barRows != skinData.barRows ||
+                                 m_helpFiles != skinData.helpFiles ||
+                                 m_mouseCursor != mouseCursor ||
+                                 m_transColor != skinData.transColor ||
+                                 m_reloadBanner != skinData.reloadBanner ||
                                  m_barCenter != skinData.barCenter ||
                                  m_barAvailableStart != skinData.barAvailableStart ||
                                  m_barAvailableEnd != skinData.barAvailableEnd;
@@ -145,6 +198,10 @@ void Lr2SkinModel::loadSkin() {
     m_skip = skinData.skip;
     m_effectiveActiveOptions = skinData.activeOptions;
     m_barRows = skinData.barRows;
+    m_helpFiles = skinData.helpFiles;
+    m_mouseCursor = mouseCursor;
+    m_transColor = skinData.transColor;
+    m_reloadBanner = skinData.reloadBanner;
     m_barCenter = skinData.barCenter;
     m_barAvailableStart = skinData.barAvailableStart;
     m_barAvailableEnd = skinData.barAvailableEnd;
