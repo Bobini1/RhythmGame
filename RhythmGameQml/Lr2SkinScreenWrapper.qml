@@ -25,6 +25,12 @@ Item {
             selectContext.openRoot();
         }
         root.scheduleSelectSideEffects();
+        if (root.effectiveScreenKey === "select"
+                && root.acceptsInput
+                && root.anyStartHeld
+                && !root.startHoldSuppressed) {
+            root.holdSelectPanel(1);
+        }
         root.forceActiveFocus();
     }
 
@@ -52,13 +58,33 @@ Item {
         return options;
     }
     property int selectPanel: 0
+    property int selectPanelHeldByStart: 0
     property double selectPanelStartMs: 0
     property int selectPanelElapsed: 0
     readonly property int selectPanelHoldTime: 250
+    property int selectHeldButtonSkinTime: 0
+    property var selectHeldButtonTimerStarts: ({})
+    readonly property bool hasSelectHeldButtonTimers: Object.keys(root.selectHeldButtonTimerStarts).length > 0
+    property bool anyStartHeld: Input.start1 || Input.start2
+    property bool startHoldSuppressed: false
 
     onSelectPanelChanged: {
         if (root.selectPanel > 0) {
             root.clearSelectSearchFocus();
+        }
+    }
+
+    onAnyStartHeldChanged: {
+        if (root.anyStartHeld) {
+            if (root.selectPanel > 0 && root.selectPanelHeldByStart === 0) {
+                root.startHoldSuppressed = true;
+                root.closeSelectPanel();
+                return;
+            }
+            root.holdSelectPanel(1);
+        } else {
+            root.startHoldSuppressed = false;
+            root.releaseHeldSelectPanel(1);
         }
     }
 
@@ -90,6 +116,9 @@ Item {
     readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
     readonly property string lr2SearchPlaceholderText: "検索語を入力"
     property int lr2ReplayType: 0
+    property real selectMouseX: -100000
+    property real selectMouseY: -100000
+    property bool selectScratchSoundReady: false
 
     function mainGeneralVars() {
         return Rg.profileList && Rg.profileList.mainProfile
@@ -337,6 +366,42 @@ Item {
         }
     }
 
+    function isLoggedIn() {
+        let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
+        return !!profile
+            && profile.loginState === Profile.LoggedIn
+            && !!profile.onlineUserData;
+    }
+
+    function clearStatusOption() {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return 62;
+        }
+        if (vars.gaugeMode === GaugeMode.Best) {
+            return 0;
+        }
+        let gauge = String(vars.gaugeType || "").toUpperCase();
+        if (gauge === "AEASY" || gauge === "EASY") {
+            return 63;
+        }
+        if (gauge === "NORMAL") {
+            return 64;
+        }
+        if (gauge === "HARD" || gauge === "EXHARD") {
+            return 65;
+        }
+        if (gauge === "FC" || gauge === "PERFECT" || gauge === "MAX") {
+            return 66;
+        }
+        return 62;
+    }
+
+    function clearStatusIsBest() {
+        let vars = root.mainGeneralVars();
+        return !!vars && vars.gaugeMode === GaugeMode.Best;
+    }
+
     Rectangle {
         anchors.fill: parent
         color: "black"
@@ -392,29 +457,47 @@ Item {
         return Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
     }
 
-    function selectSearchHasFocus() {
-        return selectSearchInput.activeFocus;
+    function textPrefix(text, position) {
+        const source = text || "";
+        const clamped = Math.max(0, Math.min(position || 0, source.length));
+        return source.substring(0, clamped);
     }
 
-    function selectNavigationReady() {
+    property var selectSearchInputItem: null
+
+    function selectSearchHasFocus() {
+        return root.selectSearchInputItem && root.selectSearchInputItem.activeFocus;
+    }
+
+    function selectInputReady() {
         return root.effectiveScreenKey === "select"
             && root.acceptsInput
             && !root.selectSearchHasFocus();
+    }
+
+    function selectScrollReady() {
+        return root.selectInputReady();
+    }
+
+    function selectNavigationReady() {
+        return root.selectInputReady()
+            && root.selectPanel === 0;
     }
 
     function focusSelectSearch() {
         if (root.effectiveScreenKey !== "select" || !root.acceptsInput || root.selectPanel > 0) {
             return;
         }
-        if (selectSearchInput.text !== selectContext.searchText) {
-            selectSearchInput.text = selectContext.searchText;
+        if (!root.selectSearchInputItem) {
+            return;
         }
-        selectSearchInput.cursorPosition = selectSearchInput.text.length;
-        selectSearchInput.forceActiveFocus();
+        root.selectSearchInputItem.syncFromContext();
+        root.selectSearchInputItem.cursorPosition = root.selectSearchInputItem.text.length;
+        root.selectSearchInputItem.forceActiveFocus();
     }
 
     function clearSelectSearchFocus() {
-        if (selectSearchInput.activeFocus) {
+        if (root.selectSearchHasFocus()) {
             root.forceActiveFocus();
         }
     }
@@ -424,8 +507,8 @@ Item {
             selectContext.searchText = "";
             selectContext.touch();
         }
-        if (selectSearchInput.text.length > 0) {
-            selectSearchInput.text = "";
+        if (root.selectSearchInputItem && root.selectSearchInputItem.text.length > 0) {
+            root.selectSearchInputItem.text = "";
         }
         root.clearSelectSearchFocus();
     }
@@ -450,6 +533,9 @@ Item {
     }
 
     function elementZ(type, index, src, dsts) {
+        if (src && src.mouseCursor) {
+            return 1000000 + index * 0.000001;
+        }
         // OpenLR2 stamps every DST keyframe with the skin command counter and
         // globally sorts DrawingBuf by that value before drawing.
         if (root.effectiveScreenKey === "select"
@@ -475,6 +561,12 @@ Item {
         if (option && options.indexOf(option) === -1) {
             options.push(option);
         }
+    }
+
+    function appendSelectStatusOptions(options) {
+        root.addOption(options, root.isLoggedIn() ? 51 : 50);
+        root.addOption(options, 61);
+        root.addOption(options, root.clearStatusOption());
     }
 
     function appendChartOptions(options, chartData) {
@@ -528,7 +620,6 @@ Item {
         }
 
         root.addOption(result, 46);  // difficulty filter enabled
-        root.addOption(result, 50);  // offline
         root.addOption(result, 52);  // non-extra mode
         root.addOption(result, 572); // not course-select mode
         root.addOption(result, 600); // not IR target
@@ -550,6 +641,7 @@ Item {
         let revision = selectContext.selectionRevision + selectContext.scoreRevision;
 
         if (root.effectiveScreenKey === "select") {
+            root.appendSelectStatusOptions(result);
             let item = selectContext.current;
             if (selectContext.isChart(item) || selectContext.isEntry(item)) {
                 root.addOption(result, 2);
@@ -618,13 +710,30 @@ Item {
     property var deferredSelectChart: null
     property string activePreviewSource: ""
     property int pendingPreviewRevision: -1
+    property int pendingPreviewRequest: 0
+    property string pendingPreviewSource: ""
     property bool selectSideEffectsReady: false
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.deferredSelectChart
         : root.chart
 
     onSelectRevisionChanged: root.scheduleSelectSideEffects()
-    onEffectiveScreenKeyChanged: root.scheduleSelectSideEffects()
+    Connections {
+        target: selectContext
+        function onSelectionRevisionChanged() {
+            root.restartSelectInfoTimer();
+            root.playSelectScratch();
+        }
+    }
+    onEffectiveScreenKeyChanged: {
+        if (root.effectiveScreenKey !== "select") {
+            root.selectPanel = 0;
+            root.selectPanelHeldByStart = 0;
+            root.selectPanelElapsed = 0;
+        }
+        root.restartSelectInfoTimer();
+        root.scheduleSelectSideEffects();
+    }
     onChartChanged: {
         if (root.effectiveScreenKey !== "select") {
             root.deferredSelectChart = root.chart;
@@ -649,8 +758,11 @@ Item {
             previewDelayTimer.stop();
             root.activePreviewSource = "";
             root.pendingPreviewRevision = -1;
+            root.pendingPreviewRequest += 1;
+            root.pendingPreviewSource = "";
             root.refreshDeferredSelectChart();
             playMusic.stop();
+            selectBgm.stop();
             return;
         }
 
@@ -660,13 +772,33 @@ Item {
             selectChartSettleTimer.restart();
         }
 
+        let nextPreviewSource = selectContext.selectedPreviewSource() || "";
         root.pendingPreviewRevision = root.selectRevision;
+        if (nextPreviewSource === root.pendingPreviewSource) {
+            if (nextPreviewSource !== ""
+                    && root.activePreviewSource !== nextPreviewSource
+                    && !previewDelayTimer.running) {
+                previewDelayTimer.restart();
+            }
+            return;
+        }
+
+        previewDelayTimer.stop();
+        root.pendingPreviewRequest += 1;
+        root.pendingPreviewSource = nextPreviewSource;
         root.activePreviewSource = "";
         playMusic.stop();
-        previewDelayTimer.restart();
+        if (nextPreviewSource !== "") {
+            previewDelayTimer.restart();
+        }
     }
     readonly property bool acceptsInput: root.effectiveScreenKey !== "select"
         || root.globalSkinTime >= skinModel.startInput
+    onAcceptsInputChanged: {
+        if (root.acceptsInput && root.anyStartHeld && !root.startHoldSuppressed) {
+            root.holdSelectPanel(1);
+        }
+    }
 
     function optionText(labels, index) {
         return index >= 0 && index < labels.length ? labels[index] : "";
@@ -795,9 +927,14 @@ Item {
             if (root.effectiveScreenKey !== "select") {
                 return "";
             }
-            return selectContext.searchText.length > 0
-                ? selectContext.searchText
-                : root.lr2SearchPlaceholderText;
+            if (selectContext.searchText.length > 0) {
+                return selectContext.searchText;
+            }
+            if (root.selectSearchHasFocus()) {
+                return "";
+            }
+            let folderName = selectContext.currentFolderDisplayName();
+            return folderName.length > 0 ? folderName : root.lr2SearchPlaceholderText;
         case 60:
             return root.effectiveScreenKey === "select" ? selectContext.keyFilterLabel() : "ALL";
         case 61:
@@ -841,6 +978,42 @@ Item {
             return src.buttonPlusOnly;
         }
         return 1;
+    }
+
+    function buttonUsesSplitArrows(buttonId) {
+        switch (buttonId) {
+        case 10:
+        case 11:
+        case 12:
+        case 40:
+        case 41:
+        case 42:
+        case 43:
+        case 46:
+        case 50:
+        case 51:
+        case 54:
+        case 55:
+        case 56:
+        case 57:
+        case 58:
+        case 72:
+        case 74:
+        case 76:
+        case 77:
+        case 83:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function buttonMouseDelta(src, mouseX, width) {
+        let delta = root.buttonDelta(src);
+        if (src && root.buttonUsesSplitArrows(src.buttonId)) {
+            return mouseX < width / 2 ? -delta : delta;
+        }
+        return delta;
     }
 
     function buttonFrame(src) {
@@ -907,8 +1080,26 @@ Item {
     }
 
     function closeSelectPanel() {
+        if (root.selectPanel > 0) {
+            root.playOneShot(optionCloseSound);
+        }
         root.selectPanel = 0;
+        root.selectPanelHeldByStart = 0;
         root.selectPanelElapsed = 0;
+        root.selectHeldButtonTimerStarts = ({});
+    }
+
+    function openSelectPanel(panel, heldByStart) {
+        if (panel <= 0) {
+            return;
+        }
+        if (root.selectPanel !== panel) {
+            root.playOneShot(optionOpenSound);
+            root.selectPanel = panel;
+            root.selectPanelStartMs = Date.now();
+            root.selectPanelElapsed = 0;
+        }
+        root.selectPanelHeldByStart = heldByStart ? panel : 0;
     }
 
     function toggleSelectPanel(panel) {
@@ -919,9 +1110,139 @@ Item {
             root.closeSelectPanel();
             return;
         }
-        root.selectPanel = panel;
-        root.selectPanelStartMs = Date.now();
-        root.selectPanelElapsed = 0;
+        root.openSelectPanel(panel, false);
+    }
+
+    function holdSelectPanel(panel) {
+        if (!root.selectInputReady()) {
+            return;
+        }
+        if (root.selectPanel === panel && root.selectPanelHeldByStart !== panel) {
+            return;
+        }
+        root.openSelectPanel(panel, true);
+    }
+
+    function releaseHeldSelectPanel(panel) {
+        if (root.selectPanelHeldByStart === panel) {
+            root.closeSelectPanel();
+        }
+    }
+
+    function currentSelectHeldButtonSkinTime() {
+        if (root.effectiveScreenKey !== "select") {
+            return root.renderSkinTime;
+        }
+        return Math.max(root.renderSkinTime, Date.now() - root.sceneStartMs);
+    }
+
+    function selectHeldButtonTimerForKey(key) {
+        switch (key) {
+        case BmsKey.Col11:
+            return 101;
+        case BmsKey.Col12:
+            return 102;
+        case BmsKey.Col13:
+            return 103;
+        case BmsKey.Col14:
+            return 104;
+        case BmsKey.Col15:
+            return 105;
+        case BmsKey.Col16:
+            return 106;
+        case BmsKey.Col17:
+            return 107;
+        case BmsKey.Col21:
+            return 111;
+        case BmsKey.Col22:
+            return 112;
+        case BmsKey.Col23:
+            return 113;
+        case BmsKey.Col24:
+            return 114;
+        case BmsKey.Col25:
+            return 115;
+        case BmsKey.Col26:
+            return 116;
+        case BmsKey.Col27:
+            return 117;
+        default:
+            return 0;
+        }
+    }
+
+    function isSelectHeldButtonTimer(timer) {
+        return (timer >= 101 && timer <= 107) || (timer >= 111 && timer <= 117);
+    }
+
+    function pressSelectHeldButtonTimer(key) {
+        if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
+            return;
+        }
+        let timer = root.selectHeldButtonTimerForKey(key);
+        if (!timer) {
+            return;
+        }
+        let starts = root.selectHeldButtonTimerStarts;
+        if (starts[timer] !== undefined) {
+            return;
+        }
+        let copy = {};
+        for (let keyName in starts) {
+            copy[keyName] = starts[keyName];
+        }
+        root.selectHeldButtonSkinTime = root.currentSelectHeldButtonSkinTime();
+        copy[timer] = root.selectHeldButtonSkinTime;
+        root.selectHeldButtonTimerStarts = copy;
+    }
+
+    function releaseSelectHeldButtonTimer(key) {
+        let timer = root.selectHeldButtonTimerForKey(key);
+        if (!timer || root.selectHeldButtonTimerStarts[timer] === undefined) {
+            return;
+        }
+        let copy = {};
+        for (let keyName in root.selectHeldButtonTimerStarts) {
+            if (Number(keyName) !== timer) {
+                copy[keyName] = root.selectHeldButtonTimerStarts[keyName];
+            }
+        }
+        root.selectHeldButtonTimerStarts = copy;
+    }
+
+    function addHeldButtonTimer(result, timer, held) {
+        if (!held) {
+            return;
+        }
+        let start = root.selectHeldButtonTimerStarts[timer];
+        result[timer] = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
+    }
+
+    function addHeldButtonTimers(result) {
+        if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
+            return;
+        }
+        root.addHeldButtonTimer(result, 101, Input.col11);
+        root.addHeldButtonTimer(result, 102, Input.col12);
+        root.addHeldButtonTimer(result, 103, Input.col13);
+        root.addHeldButtonTimer(result, 104, Input.col14);
+        root.addHeldButtonTimer(result, 105, Input.col15);
+        root.addHeldButtonTimer(result, 106, Input.col16);
+        root.addHeldButtonTimer(result, 107, Input.col17);
+        root.addHeldButtonTimer(result, 111, Input.col21);
+        root.addHeldButtonTimer(result, 112, Input.col22);
+        root.addHeldButtonTimer(result, 113, Input.col23);
+        root.addHeldButtonTimer(result, 114, Input.col24);
+        root.addHeldButtonTimer(result, 115, Input.col25);
+        root.addHeldButtonTimer(result, 116, Input.col26);
+        root.addHeldButtonTimer(result, 117, Input.col27);
+    }
+
+    function spriteSkinTime(dsts) {
+        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        return root.isSelectHeldButtonTimer(timer)
+            ? (root.hasSelectHeldButtonTimers ? root.selectHeldButtonSkinTime : root.currentSelectHeldButtonSkinTime())
+            : root.renderSkinTime;
     }
 
     function buttonPanelMatches(src) {
@@ -932,13 +1253,10 @@ Item {
     }
 
     function handleLr2Button(buttonId, delta, panel) {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) {
+        if (!root.selectInputReady()) {
             return;
         }
         root.resetSelectSearch();
-        if (!root.selectNavigationReady()) {
-            return;
-        }
         if (buttonId >= 1 && buttonId <= 9) {
             root.toggleSelectPanel(buttonId);
             return;
@@ -951,49 +1269,59 @@ Item {
             root.toggleSelectPanel(panel);
             return;
         }
+        let optionChanged = false;
         switch (buttonId) {
         case 10:
             selectContext.difficultyFilter = root.wrapValue(selectContext.difficultyFilter + delta, 6);
             selectContext.sortOrFilterChanged();
+            optionChanged = true;
             break;
         case 11:
             selectContext.keyFilter = root.wrapValue(selectContext.keyFilter + delta, 7);
             selectContext.sortOrFilterChanged();
+            optionChanged = true;
             break;
         case 12:
             selectContext.sortMode = root.wrapValue(selectContext.sortMode + delta, 5);
             selectContext.sortOrFilterChanged();
+            optionChanged = true;
             break;
         case 15:
-            selectContext.goForward(selectContext.current);
+            root.selectGoForward(selectContext.current);
             break;
         case 16:
-            selectContext.goForward(selectContext.current, true);
+            root.selectGoForward(selectContext.current, true);
             break;
         case 19: {
             let replayScore = selectContext.replayScoreForType(selectContext.current, root.lr2ReplayType);
             if (replayScore) {
-                selectContext.goForward(selectContext.current, false, true, replayScore);
+                root.selectGoForward(selectContext.current, false, true, replayScore);
             }
             break;
         }
         case 57:
-            root.setHiSpeedNumber(1, root.hiSpeedNumber(1) + delta);
+            root.setHiSpeedNumber(1, root.hiSpeedNumber(1) + delta * 10);
+            optionChanged = true;
             break;
         case 58:
-            root.setHiSpeedNumber(2, root.hiSpeedNumber(2) + delta);
+            root.setHiSpeedNumber(2, root.hiSpeedNumber(2) + delta * 10);
+            optionChanged = true;
             break;
         case 40:
             root.setGaugeIndex(1, root.gaugeIndex(1) + delta);
+            optionChanged = true;
             break;
         case 41:
             root.setGaugeIndex(2, root.gaugeIndex(2) + delta);
+            optionChanged = true;
             break;
         case 42:
             root.setRandomIndex(1, root.randomIndex(1) + delta);
+            optionChanged = true;
             break;
         case 43:
             root.setRandomIndex(2, root.randomIndex(2) + delta);
+            optionChanged = true;
             break;
         case 44:
         case 45:
@@ -1001,21 +1329,27 @@ Item {
             break;
         case 46:
             root.setLaneCoverIndex(root.laneCoverIndex() + delta);
+            optionChanged = true;
             break;
         case 50:
             root.setHidSudIndex(1, root.hidSudIndex(1) + delta);
+            optionChanged = true;
             break;
         case 51:
             root.setHidSudIndex(2, root.hidSudIndex(2) + delta);
+            optionChanged = true;
             break;
         case 54:
             root.setFlipIndex(root.flipIndex() + delta);
+            optionChanged = true;
             break;
         case 55:
             root.setHiSpeedFixIndex(root.hiSpeedFixIndex() + delta);
+            optionChanged = true;
             break;
         case 56:
             root.setBattleIndex(root.battleIndex() + delta);
+            optionChanged = true;
             break;
         case 70:
         case 71:
@@ -1023,6 +1357,7 @@ Item {
             break;
         case 72:
             root.setBgaIndex(root.bgaIndex() + delta);
+            optionChanged = true;
             break;
         case 73:
         case 75:
@@ -1030,12 +1365,15 @@ Item {
             break;
         case 74:
             root.adjustOffset(delta);
+            optionChanged = true;
             break;
         case 76:
             root.setTargetPercent(root.targetPercent() + delta);
+            optionChanged = true;
             break;
         case 77:
             root.setScoreTargetIndex(root.scoreTargetIndex() + delta);
+            optionChanged = true;
             break;
         case 80:
             globalRoot.toggleFullScreen();
@@ -1046,6 +1384,7 @@ Item {
             break;
         case 83:
             root.lr2ReplayType = root.wrapValue(root.lr2ReplayType + delta, root.lr2ReplayLabels.length);
+            optionChanged = true;
             break;
         default:
             if (buttonId >= 91 && buttonId <= 96) {
@@ -1063,12 +1402,113 @@ Item {
             console.info("LR2 select button " + buttonId + " is not implemented yet");
             break;
         }
+        if (optionChanged) {
+            root.playOneShot(optionChangeSound);
+        }
+    }
+
+    function triggerSelectPanelButton(buttonId, delta) {
+        root.handleLr2Button(buttonId, delta === undefined ? 1 : delta, root.selectPanel);
+        return true;
+    }
+
+    function triggerPanelButtonForKey(p1ButtonId, p2ButtonId, key, delta) {
+        let buttonId = p1ButtonId;
+        if (p2ButtonId !== undefined) {
+            switch (key) {
+            case BmsKey.Col21:
+            case BmsKey.Col22:
+            case BmsKey.Col23:
+            case BmsKey.Col24:
+            case BmsKey.Col25:
+            case BmsKey.Col26:
+            case BmsKey.Col27:
+            case BmsKey.Col2sUp:
+            case BmsKey.Col2sDown:
+            case BmsKey.Select2:
+                buttonId = p2ButtonId;
+                break;
+            default:
+                break;
+            }
+        }
+        return root.triggerSelectPanelButton(buttonId, delta === undefined ? 1 : delta);
+    }
+
+    function handleSelectPanelKey(key) {
+        if (!root.selectInputReady() || root.selectPanel <= 0) {
+            return false;
+        }
+
+        if (root.selectPanel === 1) {
+            switch (key) {
+            case BmsKey.Col11:
+            case BmsKey.Col21:
+                return root.triggerPanelButtonForKey(11, 11, key);
+            case BmsKey.Col12:
+            case BmsKey.Col22:
+                return root.triggerPanelButtonForKey(42, 43, key);
+            case BmsKey.Col13:
+            case BmsKey.Col23:
+                return root.triggerPanelButtonForKey(56, 56, key);
+            case BmsKey.Col14:
+            case BmsKey.Col24:
+                return root.triggerPanelButtonForKey(40, 41, key);
+            case BmsKey.Col15:
+            case BmsKey.Col25:
+                return root.triggerPanelButtonForKey(54, 54, key);
+            case BmsKey.Col16:
+            case BmsKey.Col26:
+                return root.triggerPanelButtonForKey(44, 45, key);
+            case BmsKey.Col17:
+            case BmsKey.Col27:
+                return root.triggerPanelButtonForKey(50, 51, key);
+            case BmsKey.Select1:
+            case BmsKey.Select2:
+                return root.triggerPanelButtonForKey(77, 77, key);
+            default:
+                return false;
+            }
+        }
+
+        if (root.selectPanel === 2) {
+            switch (key) {
+            case BmsKey.Col11:
+            case BmsKey.Col21:
+                return root.triggerSelectPanelButton(71);
+            case BmsKey.Col12:
+            case BmsKey.Col22:
+                return root.triggerSelectPanelButton(70);
+            case BmsKey.Col13:
+            case BmsKey.Col23:
+                return root.triggerSelectPanelButton(76);
+            case BmsKey.Col14:
+            case BmsKey.Col24:
+                return root.triggerSelectPanelButton(72);
+            case BmsKey.Col15:
+            case BmsKey.Col25:
+                return root.triggerSelectPanelButton(73);
+            case BmsKey.Col16:
+            case BmsKey.Col26:
+                return root.triggerSelectPanelButton(74);
+            case BmsKey.Col17:
+            case BmsKey.Col27:
+                return root.triggerSelectPanelButton(75);
+            case BmsKey.Select1:
+            case BmsKey.Select2:
+                return root.triggerSelectPanelButton(83);
+            default:
+                return false;
+            }
+        }
+
+        return false;
     }
 
     property real selectWheelRemainder: 0
 
     function handleSelectWheel(wheel) {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput) {
+        if (!root.selectScrollReady()) {
             return;
         }
         let delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
@@ -1084,6 +1524,73 @@ Item {
             selectContext.scrollBy(-steps, selectContext.lr2WheelDuration);
         }
         wheel.accepted = true;
+    }
+
+    function onMouseSpriteState(src, dsts) {
+        if (!src || !src.onMouse || !root.panelMatches(src.hoverPanel || 0)) {
+            return null;
+        }
+        let state = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        if (!state) {
+            return null;
+        }
+        // LR2 tests mouse hitboxes in integer 640x480 skin pixels. Without
+        // snapping the scaled QML position back to that grid, adjacent
+        // ONMOUSE regions can leave a tiny dead strip between arrow halves.
+        let mx = Math.floor(root.selectMouseX / skinScale);
+        let my = Math.floor(root.selectMouseY / skinScale);
+        let hoverX = state.x + (src.hoverX || 0);
+        let hoverY = state.y + (src.hoverY || 0);
+        let hoverW = src.hoverW || state.w;
+        let hoverH = src.hoverH || state.h;
+        return mx >= hoverX && mx <= hoverX + hoverW && my >= hoverY && my <= hoverY + hoverH
+            ? state
+            : null;
+    }
+
+    function mouseCursorState(src, dsts) {
+        if (!src || !src.mouseCursor) {
+            return null;
+        }
+        let state = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        if (!state) {
+            return null;
+        }
+        return {
+            x: root.selectMouseX / skinScale,
+            y: root.selectMouseY / skinScale,
+            w: state.w,
+            h: state.h,
+            a: state.a,
+            r: state.r,
+            g: state.g,
+            b: state.b,
+            angle: state.angle || 0,
+            center: state.center || 0,
+            blend: state.blend || 0,
+            filter: state.filter || 0,
+            sortId: state.sortId || 0
+        };
+    }
+
+    function spriteStateOverride(src, dsts) {
+        if (src && src.mouseCursor) {
+            return root.mouseCursorState(src, dsts);
+        }
+        if (root.isSelectScrollSlider(src)) {
+            return root.selectScrollSliderState(src, dsts);
+        }
+        return null;
+    }
+
+    function spriteForceHidden(src, dsts) {
+        if (src && src.onMouse) {
+            return root.onMouseSpriteState(src, dsts) === null;
+        }
+        if (src && src.mouseCursor) {
+            return root.selectMouseX < -9999 || root.selectMouseY < -9999;
+        }
+        return false;
     }
 
     function selectScrollSliderState(src, dsts) {
@@ -1322,7 +1829,7 @@ Item {
     function handleBarRowClick(row, mouse) {
         root.resetSelectSearch();
         if (mouse.button === Qt.RightButton) {
-            selectContext.goBack();
+            root.selectGoBack();
             return;
         }
 
@@ -1335,7 +1842,7 @@ Item {
         }
 
         if (row === root.selectedBarRow()) {
-            selectContext.goForward(selectContext.current);
+            root.selectGoForward(selectContext.current);
             return;
         }
 
@@ -1346,7 +1853,10 @@ Item {
     // loading does not eat the first second or two of LR2's decide animation.
     property double sceneStartMs: Date.now()
     property int globalSkinTime: 0
+    property double selectInfoStartMs: Date.now()
+    property int selectInfoElapsed: 0
     readonly property int selectAnimationLimit: Math.max(3200, skinModel.startInput)
+    readonly property int selectInfoAnimationLimit: 1000
     readonly property int renderSkinTime: root.effectiveScreenKey === "select"
         ? Math.min(root.globalSkinTime, root.selectAnimationLimit)
         : root.globalSkinTime
@@ -1360,10 +1870,21 @@ Item {
     function restartSkinClock() {
         root.sceneStartMs = Date.now();
         root.globalSkinTime = 0;
+        root.selectHeldButtonSkinTime = 0;
+        root.selectHeldButtonTimerStarts = ({});
+        root.restartSelectInfoTimer();
         if (root.shouldAutoAdvance) {
             sceneEndTimer.restart();
         } else {
             sceneEndTimer.stop();
+        }
+    }
+
+    function restartSelectInfoTimer() {
+        root.selectInfoStartMs = Date.now();
+        root.selectInfoElapsed = 0;
+        if (root.effectiveScreenKey === "select") {
+            selectInfoStopwatch.restart();
         }
     }
 
@@ -1388,6 +1909,26 @@ Item {
     }
 
     Timer {
+        id: selectHeldButtonStopwatch
+        interval: 16
+        running: root.effectiveScreenKey === "select" && root.hasSelectHeldButtonTimers
+        repeat: true
+        onTriggered: {
+            root.selectHeldButtonSkinTime = root.currentSelectHeldButtonSkinTime();
+        }
+    }
+
+    Timer {
+        id: selectInfoStopwatch
+        interval: 16
+        running: root.effectiveScreenKey === "select" && root.selectInfoElapsed < root.selectInfoAnimationLimit
+        repeat: true
+        onTriggered: {
+            root.selectInfoElapsed = Math.min(root.selectInfoAnimationLimit, Date.now() - root.selectInfoStartMs);
+        }
+    }
+
+    Timer {
         id: sceneEndTimer
         interval: Math.max(1, skinModel.sceneTime)
         repeat: false
@@ -1404,13 +1945,15 @@ Item {
     readonly property var timers: {
         let result = { "0": 0 };
         if (root.effectiveScreenKey === "select") {
-            // LR2 restarts timer 11 for the selected song information. We keep
-            // it fired so the title/BPM/difficulty detail layer is visible.
-            result[11] = 0;
+            // LR2 restarts timer 11 for the selected song information. The
+            // select skin clock is intentionally capped after the intro, so
+            // synthesize timer 11 from its own small stopwatch.
+            result[11] = root.renderSkinTime - root.selectInfoElapsed;
         }
         if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
             result[20 + root.selectPanel] = root.renderSkinTime - root.selectPanelElapsed;
         }
+        root.addHeldButtonTimers(result);
         return result;
     }
 
@@ -1440,54 +1983,43 @@ Item {
 
     Component.onCompleted: {
         root.selectSideEffectsReady = true;
+        Qt.callLater(() => root.selectScratchSoundReady = true);
         Qt.callLater(root.restartSkinClock);
         Qt.callLater(root.openSelectIfNeeded);
         Qt.callLater(root.scheduleSelectSideEffects);
     }
 
-    TextInput {
-        id: selectSearchInput
-        x: -1
-        y: -1
-        width: 1
-        height: 1
-        opacity: 0
-        activeFocusOnTab: false
-        inputMethodHints: Qt.ImhNoPredictiveText
-
-        onTextEdited: {
-            if (selectContext.searchText !== text) {
-                selectContext.searchText = text;
-                selectContext.touch();
-            }
+    function playOneShot(player) {
+        if (!player || !player.source) {
+            return;
         }
+        player.stop();
+        player.play();
+    }
 
-        Keys.onReturnPressed: (event) => {
-            event.accepted = true;
-            root.submitSelectSearch();
-            root.clearSelectSearchFocus();
+    function selectGoBack() {
+        let before = selectContext.historyStack.length;
+        selectContext.goBack();
+        if (selectContext.historyStack.length < before) {
+            root.playOneShot(closeFolderSound);
         }
+    }
 
-        Keys.onEnterPressed: (event) => {
-            event.accepted = true;
-            root.submitSelectSearch();
-            root.clearSelectSearchFocus();
+    function selectGoForward(item, autoplay, replay, replayScore) {
+        let before = selectContext.historyStack.length;
+        selectContext.goForward(item, autoplay, replay, replayScore);
+        if (selectContext.historyStack.length > before) {
+            root.playOneShot(openFolderSound);
         }
+    }
 
-        Keys.onEscapePressed: (event) => {
-            event.accepted = true;
-            root.resetSelectSearch();
+    function playSelectScratch() {
+        if (!root.enabled
+            || root.effectiveScreenKey !== "select"
+            || !root.selectScratchSoundReady) {
+            return;
         }
-
-        Connections {
-            target: selectContext
-            function onSearchTextChanged() {
-                if (selectSearchInput.text !== selectContext.searchText) {
-                    selectSearchInput.text = selectContext.searchText;
-                    selectSearchInput.cursorPosition = selectSearchInput.text.length;
-                }
-            }
-        }
+        root.playOneShot(scratchSound);
     }
 
     function submitSelectSearch() {
@@ -1498,35 +2030,35 @@ Item {
     }
 
     Keys.onUpPressed: (event) => {
-        if (!root.selectNavigationReady()) return;
+        if (!root.selectScrollReady()) return;
         event.accepted = true;
         selectContext.decrementViewIndex(event.isAutoRepeat);
     }
     Keys.onDownPressed: (event) => {
-        if (!root.selectNavigationReady()) return;
+        if (!root.selectScrollReady()) return;
         event.accepted = true;
         selectContext.incrementViewIndex(event.isAutoRepeat);
     }
     Keys.onLeftPressed: (event) => {
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
-        selectContext.goBack();
+        root.selectGoBack();
     }
     Keys.onRightPressed: (event) => {
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
-        selectContext.goForward(selectContext.current);
+        root.selectGoForward(selectContext.current);
     }
     Keys.onReturnPressed: (event) => {
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
-        selectContext.goForward(selectContext.current);
+        root.selectGoForward(selectContext.current);
     }
 
     property var lastNavigateKey: []
 
     function navigate(number, type, up, key) {
-        if (!root.selectNavigationReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
+        if (!root.selectScrollReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
             return;
         }
         let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
@@ -1543,23 +2075,28 @@ Item {
     Input.onCol1sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col1sUp)
     Input.onCol2sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col2sDown)
     Input.onCol2sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col2sUp)
-    Input.onCol1sDownPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col1sDown)
-    Input.onCol1sUpPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col1sUp)
-    Input.onCol2sDownPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col2sDown)
-    Input.onCol2sUpPressed: if (root.selectNavigationReady()) root.lastNavigateKey.push(BmsKey.Col2sUp)
+    Input.onCol1sDownPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col1sDown)
+    Input.onCol1sUpPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col1sUp)
+    Input.onCol2sDownPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col2sDown)
+    Input.onCol2sUpPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col2sUp)
     Input.onCol1sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown)
     Input.onCol1sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp)
     Input.onCol2sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown)
     Input.onCol2sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp)
-    Input.onCol11Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
-    Input.onCol17Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
-    Input.onCol21Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
-    Input.onCol27Pressed: if (root.selectNavigationReady()) selectContext.goForward(selectContext.current)
+    Input.onCol11Pressed: if (root.selectNavigationReady()) root.selectGoForward(selectContext.current)
+    Input.onCol17Pressed: if (root.selectNavigationReady()) root.selectGoForward(selectContext.current)
+    Input.onCol21Pressed: if (root.selectNavigationReady()) root.selectGoForward(selectContext.current)
+    Input.onCol27Pressed: if (root.selectNavigationReady()) root.selectGoForward(selectContext.current)
     Input.onButtonPressed: (key) => {
+        root.pressSelectHeldButtonTimer(key);
+        if (root.handleSelectPanelKey(key)) {
+            return;
+        }
         if (root.selectNavigationReady() && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
-            selectContext.goBack();
+            root.selectGoBack();
         }
     }
+    Input.onButtonReleased: (key) => root.releaseSelectHeldButtonTimer(key)
 
     AudioPlayer {
         id: playMusic
@@ -1569,6 +2106,59 @@ Item {
         onSourceChanged: {
             stop();
         }
+    }
+
+    AudioPlayer {
+        id: selectBgm
+        looping: true
+        fadeInMillis: 1000
+        source: root.mainGeneralVars() ? root.mainGeneralVars().bgmPath + "select" : ""
+        property bool canPlay: root.enabled
+            && root.effectiveScreenKey === "select"
+            && (!playMusic.playing || playMusic.source === "")
+        onCanPlayChanged: {
+            if (!canPlay) {
+                stop();
+            }
+        }
+    }
+
+    Timer {
+        id: selectBgmDelayTimer
+        interval: 500
+        running: selectBgm.canPlay
+        repeat: false
+        onTriggered: selectBgm.play()
+    }
+
+    AudioPlayer {
+        id: openFolderSound
+        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "f-open" : ""
+    }
+
+    AudioPlayer {
+        id: closeFolderSound
+        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "f-close" : ""
+    }
+
+    AudioPlayer {
+        id: scratchSound
+        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "scratch" : ""
+    }
+
+    AudioPlayer {
+        id: optionOpenSound
+        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-open" : ""
+    }
+
+    AudioPlayer {
+        id: optionCloseSound
+        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-close" : ""
+    }
+
+    AudioPlayer {
+        id: optionChangeSound
+        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-change" : ""
     }
 
     Timer {
@@ -1589,14 +2179,16 @@ Item {
                 return;
             }
 
-            let source = selectContext.selectedPreviewSource();
+            let source = root.pendingPreviewSource;
+            let request = root.pendingPreviewRequest;
             root.activePreviewSource = source || "";
             if (source) {
                 Qt.callLater(() => {
                     if (root.enabled
                         && root.effectiveScreenKey === "select"
                         && root.activePreviewSource === source
-                        && root.pendingPreviewRevision === root.selectRevision) {
+                        && root.pendingPreviewRevision === root.selectRevision
+                        && root.pendingPreviewRequest === request) {
                         playMusic.play();
                     }
                 });
@@ -1624,10 +2216,27 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
-                enabled: root.effectiveScreenKey === "select" && root.acceptsInput
+                enabled: root.selectNavigationReady()
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 z: -100000
                 onClicked: root.resetSelectSearch()
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                enabled: root.effectiveScreenKey === "select"
+                hoverEnabled: true
+                acceptedButtons: Qt.NoButton
+                cursorShape: Qt.BlankCursor
+                z: 900000
+                onPositionChanged: (mouse) => {
+                    root.selectMouseX = mouse.x;
+                    root.selectMouseY = mouse.y;
+                }
+                onExited: {
+                    root.selectMouseX = -100000;
+                    root.selectMouseY = -100000;
+                }
             }
 
             Repeater {
@@ -1667,18 +2276,20 @@ Item {
                         Item {
                             width: skinW * skinScale
                             height: skinH * skinScale
+                            readonly property int spriteSkinClock: root.spriteSkinTime(model.dsts)
 
                             Lr2SpriteRenderer {
                                 anchors.fill: parent
                                 dsts: model.dsts
                                 srcData: model.src
-                                skinTime: root.renderSkinTime
+                                skinTime: parent.spriteSkinClock
                                 activeOptions: root.runtimeActiveOptions
                                 timers: root.timers
                                 chart: root.renderChart
                                 scaleOverride: skinScale
                                 frameOverride: root.buttonFrame(model.src)
-                                stateOverride: root.selectScrollSliderState(model.src, model.dsts)
+                                stateOverride: root.spriteStateOverride(model.src, model.dsts)
+                                forceHidden: root.spriteForceHidden(model.src, model.dsts)
                             }
 
                             readonly property var buttonState: model.src && model.src.button
@@ -1694,12 +2305,13 @@ Item {
                                     && root.buttonPanelMatches(model.src)
                                     && !!parent.buttonState
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                hoverEnabled: true
                                 x: parent.buttonState ? Math.min(parent.buttonState.x, parent.buttonState.x + parent.buttonState.w) * skinScale : 0
                                 y: parent.buttonState ? Math.min(parent.buttonState.y, parent.buttonState.y + parent.buttonState.h) * skinScale : 0
                                 width: parent.buttonState ? Math.abs(parent.buttonState.w) * skinScale : 0
                                 height: parent.buttonState ? Math.abs(parent.buttonState.h) * skinScale : 0
                                 onClicked: (mouse) => {
-                                    let delta = mouse.button === Qt.RightButton ? -root.buttonDelta(model.src) : root.buttonDelta(model.src);
+                                    let delta = root.buttonMouseDelta(model.src, mouse.x, width);
                                     root.handleLr2Button(model.src.buttonId, delta, model.src.buttonPanel);
                                 }
                             }
@@ -1722,10 +2334,199 @@ Item {
                     Component {
                         id: textComponent
                         Item {
+                            id: textDelegateRoot
+
                             width: skinW * skinScale
                             height: skinH * skinScale
+                            readonly property string resolvedText: root.resolveText(model.src ? model.src.st : -1)
+                            readonly property var searchTextState: root.selectSearchTextState(model.src, model.dsts)
+                            readonly property bool isSearchText: root.isSelectSearchText(model.src)
+                            readonly property string searchFontPath: model.src ? model.src.fontPath : ""
+                            readonly property int searchAlignment: model.src ? model.src.align : 0
+                            readonly property bool searchTextEditing: isSearchText
+                                && searchInputLoader.item
+                                && searchInputLoader.item.activeFocus
+                            readonly property string searchEditingText: searchInputLoader.item
+                                ? searchInputLoader.item.text
+                                : selectContext.searchText
+                            readonly property int searchCursorPosition: searchInputLoader.item
+                                ? searchInputLoader.item.cursorPosition
+                                : 0
+                            readonly property int searchSelectionStart: searchInputLoader.item
+                                ? Math.min(searchInputLoader.item.selectionStart, searchInputLoader.item.selectionEnd)
+                                : 0
+                            readonly property int searchSelectionEnd: searchInputLoader.item
+                                ? Math.max(searchInputLoader.item.selectionStart, searchInputLoader.item.selectionEnd)
+                                : 0
+                            readonly property bool searchHasSelection: searchTextEditing
+                                && searchSelectionStart !== searchSelectionEnd
+                            readonly property bool searchCursorVisible: searchTextEditing
+                                && !searchHasSelection
+                                && searchCursorOn
+                            property bool searchCursorOn: true
+
+                            function restartSearchCursorBlink() {
+                                searchCursorOn = true;
+                                searchCursorBlinkTimer.restart();
+                            }
+
+                            Timer {
+                                id: searchCursorBlinkTimer
+                                interval: 500
+                                repeat: true
+                                running: parent.searchTextEditing
+                                onTriggered: parent.searchCursorOn = !parent.searchCursorOn
+                            }
+
+                            onSearchTextEditingChanged: restartSearchCursorBlink()
+                            onSearchCursorPositionChanged: restartSearchCursorBlink()
+                            onSearchSelectionStartChanged: restartSearchCursorBlink()
+                            onSearchSelectionEndChanged: restartSearchCursorBlink()
+
+                            Lr2BitmapFontText {
+                                id: searchFullMeasure
+                                x: -10000
+                                y: -10000
+                                width: searchInputLoader.item ? searchInputLoader.item.width : 1
+                                height: searchInputLoader.item ? searchInputLoader.item.height : 1
+                                opacity: 0
+                                fontPath: textDelegateRoot.searchFontPath
+                                text: searchInputLoader.parent.searchEditingText
+                            }
+
+                            Lr2BitmapFontText {
+                                id: searchCursorMeasure
+                                x: -10000
+                                y: -10000
+                                width: 1
+                                height: searchInputLoader.item ? searchInputLoader.item.height : 1
+                                opacity: 0
+                                fontPath: textDelegateRoot.searchFontPath
+                                text: root.textPrefix(
+                                    searchInputLoader.parent.searchEditingText,
+                                    searchInputLoader.parent.searchCursorPosition)
+                            }
+
+                            Lr2BitmapFontText {
+                                id: searchSelectionStartMeasure
+                                x: -10000
+                                y: -10000
+                                width: 1
+                                height: searchInputLoader.item ? searchInputLoader.item.height : 1
+                                opacity: 0
+                                fontPath: textDelegateRoot.searchFontPath
+                                text: root.textPrefix(
+                                    searchInputLoader.parent.searchEditingText,
+                                    searchInputLoader.parent.searchSelectionStart)
+                            }
+
+                            Lr2BitmapFontText {
+                                id: searchSelectionEndMeasure
+                                x: -10000
+                                y: -10000
+                                width: 1
+                                height: searchInputLoader.item ? searchInputLoader.item.height : 1
+                                opacity: 0
+                                fontPath: textDelegateRoot.searchFontPath
+                                text: root.textPrefix(
+                                    searchInputLoader.parent.searchEditingText,
+                                    searchInputLoader.parent.searchSelectionEnd)
+                            }
+
+                            readonly property real searchTextScaleY: searchFullMeasure.naturalHeight > 0 && searchInputLoader.item
+                                ? searchInputLoader.item.height / searchFullMeasure.naturalHeight
+                                : 1
+                            readonly property real searchTextFitScaleX: searchFullMeasure.naturalWidth > 0 && searchInputLoader.item
+                                && searchFullMeasure.naturalWidth > searchInputLoader.item.width
+                                ? searchInputLoader.item.width / searchFullMeasure.naturalWidth
+                                : 1
+                            readonly property real searchTextScaleX: searchTextScaleY * searchTextFitScaleX
+                            readonly property real searchDrawnWidth: searchFullMeasure.naturalWidth * searchTextScaleX
+                            readonly property real searchTextOriginX: searchInputLoader.item
+                                ? searchInputLoader.item.x + (
+                                    searchAlignment === 1
+                                        ? -searchDrawnWidth / 2
+                                        : (searchAlignment === 2 ? -searchDrawnWidth : 0))
+                                : 0
+                            readonly property real searchTextOriginY: searchInputLoader.item
+                                ? searchInputLoader.item.y
+                                : 0
+                            property int searchDragAnchor: 0
+
+                            function searchCursorPositionAt(parentX) {
+                                const text = searchEditingText || "";
+                                if (text.length <= 0 || searchTextScaleX <= 0) {
+                                    return 0;
+                                }
+
+                                const sourceX = Math.max(
+                                    0,
+                                    (parentX - searchTextOriginX) / searchTextScaleX);
+                                let previousWidth = 0;
+                                for (let i = 1; i <= text.length; ++i) {
+                                    const item = searchPrefixMeasureRepeater.itemAt(i);
+                                    const width = item ? item.naturalWidth : previousWidth;
+                                    if (sourceX < previousWidth + (width - previousWidth) / 2) {
+                                        return i - 1;
+                                    }
+                                    previousWidth = width;
+                                }
+                                return text.length;
+                            }
+
+                            function moveSearchCursorTo(parentX, selecting) {
+                                if (!searchInputLoader.item) {
+                                    return;
+                                }
+                                const position = searchCursorPositionAt(parentX);
+                                searchInputLoader.item.syncFromContext();
+                                searchInputLoader.item.forceActiveFocus();
+                                if (selecting) {
+                                    searchInputLoader.item.select(searchDragAnchor, position);
+                                } else {
+                                    searchDragAnchor = position;
+                                    searchInputLoader.item.cursorPosition = position;
+                                    searchInputLoader.item.deselect();
+                                }
+                                restartSearchCursorBlink();
+                            }
+
+                            Repeater {
+                                id: searchPrefixMeasureRepeater
+                                model: searchInputLoader.parent.isSearchText
+                                    ? searchInputLoader.parent.searchEditingText.length + 1
+                                    : 0
+
+                                Lr2BitmapFontText {
+                                    x: -10000
+                                    y: -10000
+                                    width: 1
+                                    height: searchInputLoader.item ? searchInputLoader.item.height : 1
+                                    opacity: 0
+                                    fontPath: textDelegateRoot.searchFontPath
+                                    text: root.textPrefix(
+                                        textDelegateRoot.searchEditingText,
+                                        index)
+                                }
+                            }
+
+                            Rectangle {
+                                z: 1
+                                visible: parent.searchHasSelection && searchInputLoader.item
+                                x: parent.searchTextOriginX
+                                    + searchSelectionStartMeasure.naturalWidth * parent.searchTextScaleX
+                                y: parent.searchTextOriginY
+                                width: Math.max(
+                                    skinScale,
+                                    (searchSelectionEndMeasure.naturalWidth
+                                        - searchSelectionStartMeasure.naturalWidth)
+                                        * parent.searchTextScaleX)
+                                height: searchInputLoader.item ? searchInputLoader.item.height : 0
+                                color: Qt.rgba(0.45, 0.72, 1.0, 0.45)
+                            }
 
                             Lr2TextRenderer {
+                                z: 2
                                 anchors.fill: parent
                                 dsts: model.dsts
                                 srcData: model.src
@@ -1734,21 +2535,141 @@ Item {
                                 timers: root.timers
                                 chart: root.renderChart
                                 scaleOverride: skinScale
-                                resolvedText: root.resolveText(model.src ? model.src.st : -1)
+                                resolvedText: parent.resolvedText
                             }
 
-                            readonly property var searchTextState: root.selectSearchTextState(model.src, model.dsts)
+                            Loader {
+                                id: searchInputLoader
+                                z: 4
+                                active: parent.isSearchText
+                                sourceComponent: TextInput {
+                                    id: searchInput
+
+                                    property bool syncing: false
+                                    readonly property var textState: searchInputLoader.parent.searchTextState
+
+                                    function syncFromContext() {
+                                        if (text === selectContext.searchText) {
+                                            return;
+                                        }
+                                        syncing = true;
+                                        text = selectContext.searchText;
+                                        syncing = false;
+                                    }
+
+                                    x: textState ? Math.min(textState.x, textState.x + textState.w) * skinScale : 0
+                                    y: textState ? Math.min(textState.y, textState.y + textState.h) * skinScale : 0
+                                    width: textState ? Math.abs(textState.w) * skinScale : 0
+                                    height: textState ? Math.abs(textState.h) * skinScale : 0
+                                    visible: !!textState
+                                    enabled: !!textState
+                                    opacity: textState ? textState.a / 255.0 : 0
+                                    clip: true
+                                    activeFocusOnTab: false
+                                    inputMethodHints: Qt.ImhNoPredictiveText
+
+                                    color: "transparent"
+                                    cursorVisible: false
+                                    selectionColor: "transparent"
+                                    selectedTextColor: "transparent"
+
+                                    Component.onCompleted: {
+                                        root.selectSearchInputItem = searchInput;
+                                        syncFromContext();
+                                    }
+
+                                    Component.onDestruction: {
+                                        if (root.selectSearchInputItem === searchInput) {
+                                            root.selectSearchInputItem = null;
+                                        }
+                                    }
+
+                                    onActiveFocusChanged: {
+                                        if (activeFocus) {
+                                            syncFromContext();
+                                            cursorPosition = text.length;
+                                        }
+                                        searchInputLoader.parent.restartSearchCursorBlink();
+                                    }
+
+                                    onCursorPositionChanged: {
+                                        searchInputLoader.parent.restartSearchCursorBlink();
+                                    }
+
+                                    onSelectionStartChanged: {
+                                        searchInputLoader.parent.restartSearchCursorBlink();
+                                    }
+
+                                    onSelectionEndChanged: {
+                                        searchInputLoader.parent.restartSearchCursorBlink();
+                                    }
+
+                                    onTextEdited: {
+                                        if (!syncing && selectContext.searchText !== text) {
+                                            selectContext.searchText = text;
+                                            selectContext.touch();
+                                        }
+                                    }
+
+                                    Keys.onReturnPressed: (event) => {
+                                        event.accepted = true;
+                                        root.submitSelectSearch();
+                                        root.clearSelectSearchFocus();
+                                    }
+
+                                    Keys.onEnterPressed: (event) => {
+                                        event.accepted = true;
+                                        root.submitSelectSearch();
+                                        root.clearSelectSearchFocus();
+                                    }
+
+                                    Keys.onEscapePressed: (event) => {
+                                        event.accepted = true;
+                                        root.resetSelectSearch();
+                                    }
+
+                                    Connections {
+                                        target: selectContext
+                                        function onSearchTextChanged() {
+                                            const oldPosition = searchInput.cursorPosition;
+                                            searchInput.syncFromContext();
+                                            searchInput.cursorPosition = Math.min(
+                                                oldPosition,
+                                                searchInput.text.length);
+                                        }
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                z: 5
+                                visible: parent.searchCursorVisible && searchInputLoader.item
+                                x: parent.searchTextOriginX
+                                    + searchCursorMeasure.naturalWidth * parent.searchTextScaleX
+                                y: parent.searchTextOriginY
+                                width: Math.max(1, skinScale)
+                                height: searchInputLoader.item ? searchInputLoader.item.height : 0
+                                color: "white"
+                            }
 
                             MouseArea {
+                                z: 6
                                 enabled: !!parent.searchTextState
                                 acceptedButtons: Qt.LeftButton
+                                preventStealing: true
                                 x: parent.searchTextState ? Math.min(parent.searchTextState.x, parent.searchTextState.x + parent.searchTextState.w) * skinScale : 0
                                 y: parent.searchTextState ? Math.min(parent.searchTextState.y, parent.searchTextState.y + parent.searchTextState.h) * skinScale : 0
                                 width: parent.searchTextState ? Math.abs(parent.searchTextState.w) * skinScale : 0
                                 height: parent.searchTextState ? Math.abs(parent.searchTextState.h) * skinScale : 0
-                                onClicked: (mouse) => {
+                                onPressed: (mouse) => {
                                     mouse.accepted = true;
-                                    root.focusSelectSearch();
+                                    parent.moveSearchCursorTo(x + mouse.x, false);
+                                }
+                                onPositionChanged: (mouse) => {
+                                    if (pressed) {
+                                        mouse.accepted = true;
+                                        parent.moveSearchCursorTo(x + mouse.x, true);
+                                    }
                                 }
                             }
                         }
@@ -1822,12 +2743,25 @@ Item {
                 }
             }
 
+            Text {
+                visible: root.effectiveScreenKey === "select" && root.clearStatusIsBest()
+                text: "BEST"
+                x: 80 * skinScale
+                y: 459 * skinScale
+                z: 100200
+                color: "white"
+                font.family: "Arial"
+                font.pixelSize: 6 * skinScale
+                font.bold: true
+                renderType: Text.NativeRendering
+            }
+
             Repeater {
                 model: root.effectiveScreenKey === "select" && skinModel.barRows ? skinModel.barRows.length : 0
 
                 MouseArea {
                     readonly property var rowState: root.barBaseState(index)
-                    enabled: root.acceptsInput && root.barRowCanClick(index) && !!rowState
+                    enabled: root.selectNavigationReady() && root.barRowCanClick(index) && !!rowState
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     x: rowState ? Math.min(rowState.x, rowState.x + rowState.w) * skinScale : 0
                     y: rowState ? Math.min(rowState.y, rowState.y + rowState.h) * skinScale : 0
@@ -1840,7 +2774,7 @@ Item {
                     onDoubleClicked: (mouse) => {
                         if (mouse.button === Qt.LeftButton) {
                             selectContext.selectVisibleRow(index, skinModel.barCenter);
-                            selectContext.goForward(selectContext.current);
+                            root.selectGoForward(selectContext.current);
                         }
                     }
                     onWheel: (wheel) => root.handleSelectWheel(wheel)
@@ -1852,7 +2786,7 @@ Item {
 
                 MouseArea {
                     readonly property var trackState: root.selectScrollSliderTrackState(model.src, model.dsts)
-                    enabled: root.acceptsInput && !!trackState
+                    enabled: root.selectScrollReady() && !!trackState
                     acceptedButtons: Qt.LeftButton
                     preventStealing: true
                     x: trackState ? Math.min(trackState.x, trackState.x + trackState.w) * skinScale : 0
@@ -1887,7 +2821,7 @@ Item {
 
             MouseArea {
                 anchors.fill: parent
-                enabled: root.effectiveScreenKey === "select" && root.acceptsInput
+                enabled: root.selectScrollReady()
                 acceptedButtons: Qt.NoButton
                 z: 100200
                 onWheel: (wheel) => root.handleSelectWheel(wheel)

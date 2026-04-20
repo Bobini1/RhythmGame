@@ -77,6 +77,13 @@ struct Lr2SrcImage
     Q_PROPERTY(int buttonClick MEMBER buttonClick)
     Q_PROPERTY(int buttonPanel MEMBER buttonPanel)
     Q_PROPERTY(int buttonPlusOnly MEMBER buttonPlusOnly)
+    Q_PROPERTY(bool onMouse MEMBER onMouse)
+    Q_PROPERTY(int hoverPanel MEMBER hoverPanel)
+    Q_PROPERTY(int hoverX MEMBER hoverX)
+    Q_PROPERTY(int hoverY MEMBER hoverY)
+    Q_PROPERTY(int hoverW MEMBER hoverW)
+    Q_PROPERTY(int hoverH MEMBER hoverH)
+    Q_PROPERTY(bool mouseCursor MEMBER mouseCursor)
     Q_PROPERTY(bool slider MEMBER slider)
     Q_PROPERTY(int sliderDirection MEMBER sliderDirection)
     Q_PROPERTY(int sliderRange MEMBER sliderRange)
@@ -113,6 +120,13 @@ struct Lr2SrcImage
     int buttonClick = 0;
     int buttonPanel = 0;
     int buttonPlusOnly = 0;
+    bool onMouse = false;
+    int hoverPanel = 0;
+    int hoverX = 0;
+    int hoverY = 0;
+    int hoverW = 0;
+    int hoverH = 0;
+    bool mouseCursor = false;
     bool slider = false;
     int sliderDirection = 0;
     int sliderRange = 0;

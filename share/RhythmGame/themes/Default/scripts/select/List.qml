@@ -86,6 +86,10 @@ PathView {
     property bool movingManually: movingTimer.running
     property bool scrollingText: false
     property var sort: null
+    readonly property int lr2SpeedFirst: 300
+    readonly property int lr2SpeedNext: 70
+    readonly property int lr2WheelDuration: 200
+    property double moveEndMs: 0
 
     property var historyStack: []
 
@@ -102,32 +106,41 @@ PathView {
 
     property int targetIndex: 0
 
-    function decrementViewIndex() {
-        if (count === 0) return;
-        targetIndex = (targetIndex - 1 + count) % count;
-        movingTimer.restart();
-        if (!navigationTimer.running) {
-            applyNavigation();
-        }
-    }
-
-    function incrementViewIndex() {
-        if (count === 0) return;
-        targetIndex = (targetIndex + 1) % count;
-        movingTimer.restart();
-        if (!navigationTimer.running) {
-            applyNavigation();
-        }
-    }
-
-    function applyNavigation() {
-        if (currentIndex === targetIndex) return;
+    function scrollBy(entries, durationMs) {
+        if (count === 0 || entries === 0) return;
+        let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
+        highlightMoveDuration = duration;
+        targetIndex = (currentIndex + entries + count) % count;
         currentIndex = targetIndex;
-        navigationTimer.restart();
+        moveEndMs = Date.now() + duration;
+        movingTimer.restart();
+        scrollingText = false;
+        scrollingTextTimer.restart();
+    }
+
+    function scrollByKey(entries, repeated) {
+        if (count === 0 || entries === 0) return;
+        let now = Date.now();
+        if (repeated) {
+            if (now <= moveEndMs - 20) return;
+            scrollBy(entries, lr2SpeedNext);
+            return;
+        }
+        if (now <= moveEndMs) return;
+        scrollBy(entries, lr2SpeedFirst);
+    }
+
+    function decrementViewIndex(repeated) {
+        scrollByKey(-1, !!repeated);
+    }
+
+    function incrementViewIndex(repeated) {
+        scrollByKey(1, !!repeated);
     }
 
     function resetNavigation() {
-        navigationTimer.stop();
+        movingTimer.stop();
+        moveEndMs = 0;
         targetIndex = currentIndex;
     }
 
@@ -290,7 +303,7 @@ PathView {
     }
 
     dragMargin: 200
-    highlightMoveDuration: 100
+    highlightMoveDuration: lr2SpeedFirst
     highlightRangeMode: PathView.StrictlyEnforceRange
     pathItemCount: 16
     preferredHighlightBegin: 0.5
@@ -398,12 +411,12 @@ PathView {
         let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
         if (type === InputTranslator.ButtonTick) {
             if (number === 0 || number >= 10) {
-                func();
+                func(number > 0);
             }
         } else if (type === InputTranslator.ClassicScratchTick) {
-            func();
+            func(false);
         } else {
-            func();
+            func(!!number);
         }
     }
     Input.onCol1sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col1sDown)
@@ -529,16 +542,6 @@ PathView {
 
         interval: pathView.highlightMoveDuration
     }
-    Timer {
-        id: navigationTimer
-
-        interval: 16
-        repeat: false
-
-        onTriggered: {
-            pathView.applyNavigation();
-        }
-    }
     MouseArea {
         id: mouse
 
@@ -546,9 +549,9 @@ PathView {
 
         onWheel: wheel => {
             if (wheel.angleDelta.y > 0)
-                pathView.decrementViewIndex();
+                pathView.scrollBy(-1, pathView.lr2WheelDuration);
             else
-                pathView.incrementViewIndex();
+                pathView.scrollBy(1, pathView.lr2WheelDuration);
         }
     }
 }

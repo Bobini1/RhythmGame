@@ -21,8 +21,9 @@ Item {
     property bool colorKeyEnabled: true
     property int frameOverride: -1
     property var stateOverride: null
+    property bool forceHidden: false
 
-    readonly property var currentState: stateOverride || Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions)
+    readonly property var currentState: forceHidden ? null : (stateOverride || Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions))
     // LR2 blend modes we can express via Qt Quick primitives:
     //   0 = TRANSCOLOR alpha (black -> transparent, then alpha)
     //   1 = plain alpha

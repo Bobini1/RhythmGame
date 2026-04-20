@@ -421,7 +421,7 @@ Item {
         });
     }
 
-    function open(item) {
+    function open(item, initialItem) {
         let folder;
         if (isTable(item)) {
             let courses = item.courses;
@@ -450,10 +450,13 @@ Item {
         realItemCount = folder.length;
         addToMinimumCount(folder);
         items = folder;
-        currentIndex = 0;
-        targetIndex = 0;
+        let initialIndex = initialItem === undefined
+            ? 0
+            : folder.findIndex((folderItem) => sameEntry(folderItem, initialItem));
+        currentIndex = initialIndex >= 0 ? initialIndex : 0;
+        targetIndex = currentIndex;
         selectedOffset = 0;
-        setVisualIndexImmediate(0);
+        setVisualIndexImmediate(currentIndex);
         refreshScores();
         refreshPlayerStats();
         openedFolder();
@@ -698,11 +701,7 @@ Item {
             return;
         }
         let last = historyStack.pop();
-        let folder = open(historyStack[historyStack.length - 1]);
-        let idx = folder.findIndex((folderItem) => sameEntry(folderItem, last));
-        if (idx >= 0) {
-            setCurrentIndex(idx);
-        }
+        open(historyStack[historyStack.length - 1], last);
     }
 
     function goForward(item, autoplay, replay, replayScore) {
@@ -785,6 +784,19 @@ Item {
     function entryMainTitle(item) {
         if (isChart(item) || isEntry(item)) {
             return item.title || "";
+        }
+        return entryDisplayName(item, false);
+    }
+
+    function currentFolderDisplayName() {
+        let item = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
+        if (!item || item === "SEARCH") {
+            return "";
+        }
+        if (isLevel(item)) {
+            let parent = historyStack.length > 1 ? historyStack[historyStack.length - 2] : null;
+            let symbol = isTable(parent) ? (parent.symbol || "") : "";
+            return symbol + (item.name || "");
         }
         return entryDisplayName(item, false);
     }

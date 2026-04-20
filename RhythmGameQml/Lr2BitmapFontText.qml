@@ -9,8 +9,6 @@ Item {
     // 0 = left (default), 1 = center, 2 = right. Matches LR2's #SRC_TEXT align.
     property int alignment: 0
 
-    clip: true
-
     readonly property real naturalWidth: textImage.implicitWidth
     readonly property real naturalHeight: textImage.implicitHeight
     readonly property real scaleY: naturalHeight > 0 ? height / naturalHeight : 1

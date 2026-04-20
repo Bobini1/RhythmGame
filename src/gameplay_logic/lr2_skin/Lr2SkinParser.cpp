@@ -835,6 +835,50 @@ processCommand(const QStringList& tokens,
         if (state.hasCurrentElement && state.currentElement.type == 0) {
             parseDst(tokens, state, state.currentElement);
         }
+    } else if (command == "#SRC_ONMOUSE") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 0;
+        state.hasCurrentElement = true;
+        auto src = parseImageSource(tokens, state);
+        src.onMouse = true;
+        src.hoverPanel = src.op1;
+        src.hoverX = src.op2;
+        src.hoverY = src.op3;
+        src.hoverW = src.op4;
+        if (tokens.size() > 15 && !tokens[15].isEmpty()) {
+            src.hoverH = tokens[15].toInt();
+        }
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#DST_ONMOUSE") {
+        if (state.hasCurrentElement && state.currentElement.type == 0) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_MOUSECURSOR") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 0;
+        state.hasCurrentElement = true;
+        auto src = parseImageSource(tokens, state);
+        src.mouseCursor = true;
+        auto source = src.source;
+        source.replace('\\', '/');
+        if (!source.contains("/Mouse/", Qt::CaseInsensitive)) {
+            for (const auto& image : state.images) {
+                auto normalized = image;
+                normalized.replace('\\', '/');
+                if (normalized.contains("/Mouse/", Qt::CaseInsensitive)) {
+                    src.source = image;
+                    src.specialType = Lr2SrcImage::None;
+                    break;
+                }
+            }
+        }
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#DST_MOUSECURSOR") {
+        if (state.hasCurrentElement && state.currentElement.type == 0) {
+            parseDst(tokens, state, state.currentElement);
+        }
     } else if (command == "#SRC_BUTTON") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};

@@ -82,6 +82,16 @@ cacheKey(const QString& fontPath, const QString& text) -> QString
 }
 
 auto
+providerQueryValue(const QUrlQuery& query, const QString& key) -> QString
+{
+    // QML constructs the provider URL with encodeURIComponent(), and Qt Quick
+    // preserves that escaped query through the image-provider request id. Decode
+    // the query item explicitly so visible text does not leak "%5B"/"%5D".
+    return QUrl::fromPercentEncoding(
+      query.queryItemValue(key, QUrl::FullyDecoded).toUtf8());
+}
+
+auto
 cachedTextImage(const QString& fontPath, const QString& text) -> QImage
 {
     const auto key = cacheKey(fontPath, text);
@@ -168,7 +178,7 @@ Lr2FontImageProvider::requestImage(const QString& id,
                                    const QSize& /*requestedSize*/)
 {
     const auto [path, query] = splitProviderId(id);
-    const auto image = cachedTextImage(path, query.queryItemValue("text"));
+    const auto image = cachedTextImage(path, providerQueryValue(query, "text"));
     if (size) {
         *size = image.size();
     }
