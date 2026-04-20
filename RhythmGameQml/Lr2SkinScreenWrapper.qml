@@ -51,7 +51,9 @@ Item {
     readonly property var parseActiveOptions: {
         let options = [52]; // non-extra mode
         if (root.effectiveScreenKey === "select") {
-            options.push(900, 905, 910, 915); // stock LR2 select defaults
+            // Option 46 gates the difficulty-bar blocks structurally (#IF),
+            // so it must be present before parsing, not only at render time.
+            options.push(46, 900, 905, 910, 915); // stock LR2 select defaults
         } else if (root.effectiveScreenKey === "decide") {
             options.push(900); // stock LR2 decide default: show stagefile
         }
@@ -598,7 +600,7 @@ Item {
         addOption(options, selectContext.highLevelOption(chartData));
         addOption(options, selectContext.hasReplay(chartData) ? 197 : 196);
 
-        let difficulty = chartData.difficulty || 0;
+        let difficulty = selectContext.entryDifficulty(chartData);
         if (difficulty >= 1 && difficulty <= 5) {
             addOption(options, 150 + difficulty);
         }
@@ -681,19 +683,22 @@ Item {
             else if (rank === 2) root.addOption(result, 116);
             else if (rank === 1) root.addOption(result, 117);
 
-            for (let diff = 1; diff <= 5; ++diff) {
-                if (selectContext.hasDifficulty(diff)) {
-                    root.addOption(result, 504 + diff);
-                } else {
-                    root.addOption(result, 499 + diff);
+            if (selectedChart) {
+                for (let diff = 1; diff <= 5; ++diff) {
+                    if (selectContext.hasDifficulty(diff)) {
+                        root.addOption(result, 504 + diff);
+                        root.addOption(result, selectContext.difficultyLevelBarOption(diff));
+                    } else {
+                        root.addOption(result, 499 + diff);
+                    }
+                    let diffCount = selectContext.difficultyCount(diff);
+                    if (diffCount === 1) {
+                        root.addOption(result, 509 + diff);
+                    } else if (diffCount > 1) {
+                        root.addOption(result, 514 + diff);
+                    }
+                    root.addOption(result, 510 + diff * 10 + selectContext.difficultyLamp(diff));
                 }
-                let diffCount = selectContext.difficultyCount(diff);
-                if (diffCount === 1) {
-                    root.addOption(result, 509 + diff);
-                } else if (diffCount > 1) {
-                    root.addOption(result, 514 + diff);
-                }
-                root.addOption(result, 510 + diff * 10 + selectContext.difficultyLamp(diff));
             }
             root.appendChartOptions(result, selectContext.selectedChartData());
             for (let optionId of selectContext.scoreOptionIds(item)) {
@@ -904,7 +909,7 @@ Item {
         case 17:
             return chartData ? String(chartData.playLevel || "") : "";
         case 18:
-            return chartData ? String(chartData.difficulty || "") : "";
+            return chartData ? String(selectContext.entryDifficulty(chartData) || "") : "";
         case 20:
             return root.effectiveScreenKey === "select" ? selectContext.entryMainTitle(currentEntry) : "";
         case 21:
@@ -920,7 +925,7 @@ Item {
         case 27:
             return chartData ? String(chartData.playLevel || "") : "";
         case 28:
-            return chartData ? String(chartData.difficulty || "") : "";
+            return chartData ? String(selectContext.entryDifficulty(chartData) || "") : "";
         case 29:
             return chartData ? String(chartData.rank || "") : "";
         case 30:
@@ -1388,8 +1393,8 @@ Item {
             break;
         default:
             if (buttonId >= 91 && buttonId <= 96) {
-                selectContext.difficultyFilter = buttonId - 91;
-                selectContext.sortOrFilterChanged();
+                selectContext.clickDifficulty(buttonId - 91);
+                optionChanged = true;
                 break;
             }
             if ((buttonId >= 13 && buttonId <= 14)

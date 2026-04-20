@@ -11,7 +11,7 @@ Item {
     property var historyStack: []
     property var scores: ({})
     property var chartGroupCache: ({})
-    property var levelBarCache: [0, 0, 0, 0, 0, 0]
+    property var chartDifficultyCache: ({})
     property var playerStats: ({
         playCount: 0,
         clearCount: 0,
@@ -272,12 +272,52 @@ Item {
         }
     }
 
-    function difficultyFilterMatches(item) {
-        return !isChart(item) || difficultyFilter === 0 || item.difficulty === difficultyFilter;
+    function chartFilterMatches(item) {
+        return keyFilterMatches(item);
     }
 
-    function chartFilterMatches(item) {
-        return keyFilterMatches(item) && difficultyFilterMatches(item);
+    function difficultyFilteredCharts(input) {
+        if (difficultyFilter === 0) {
+            return input;
+        }
+
+        let groupOrder = [];
+        let groups = {};
+        let passthrough = [];
+        for (let item of input) {
+            if (!isChart(item)) {
+                passthrough.push(item);
+                continue;
+            }
+
+            let groupKey = chartDifficultyGroupKey(item);
+            if (!groups[groupKey]) {
+                groups[groupKey] = [];
+                groupOrder.push(groupKey);
+            }
+            groups[groupKey].push(item);
+        }
+
+        let result = passthrough.slice();
+        for (let groupKey of groupOrder) {
+            let group = groups[groupKey].slice();
+            group.sort((a, b) => entryDifficulty(a) - entryDifficulty(b));
+            let selected = [];
+            let selectedDifficulty = -1;
+            for (let chart of group) {
+                let difficulty = entryDifficulty(chart);
+                if (selected.length === 0
+                    || (selectedDifficulty < difficulty
+                        && difficulty <= difficultyFilter)) {
+                    selected = [chart];
+                    selectedDifficulty = difficulty;
+                } else if (difficulty === selectedDifficulty) {
+                    selected.push(chart);
+                }
+            }
+            result.push(...selected);
+        }
+        return result;
     }
 
     function compareByTitle(a, b) {
@@ -336,6 +376,7 @@ Item {
                 folders.push(item);
             }
         }
+        charts = difficultyFilteredCharts(charts);
         if (sortMode !== 0) {
             charts.sort(compareCharts);
         }
@@ -346,11 +387,11 @@ Item {
         return result;
     }
 
-    function sortOrFilterChanged() {
+    function sortOrFilterChanged(preferredItem) {
         if (!folderContents.length) {
             return;
         }
-        let old = current;
+        let old = preferredItem === undefined ? current : preferredItem;
         let sortedFiltered = sortFilter(folderContents);
         realItemCount = sortedFiltered.length;
         addToMinimumCount(sortedFiltered);
@@ -870,10 +911,6 @@ Item {
         }
     }
 
-    function entryDifficulty(item) {
-        return isChart(item) ? Math.max(0, item.difficulty || 0) : 0;
-    }
-
     function entryPlayLevel(item) {
         if (isChart(item)) {
             return item.playLevel || 0;
@@ -883,6 +920,32 @@ Item {
             return isNaN(parsed) ? 0 : parsed;
         }
         return 0;
+    }
+
+    function rawChartDifficulty(item) {
+        return isChart(item) ? (item.difficulty || 0) : 0;
+    }
+
+    function entryDifficulty(item) {
+        if (!isChart(item)) {
+            return 0;
+        }
+        let cached = chartDifficultyCache[item.path || ""];
+        if (cached !== undefined) {
+            return cached;
+        }
+        return Math.max(0, rawChartDifficulty(item));
+    }
+
+    function chartNoteCount(item) {
+        if (!isChart(item)) {
+            return 0;
+        }
+        return (item.normalNoteCount || 0)
+            + (item.scratchCount || 0)
+            + (item.lnCount || 0)
+            + (item.bssCount || 0)
+            + (item.mineCount || 0);
     }
 
     function entryIdentifier(item) {
@@ -1185,35 +1248,102 @@ Item {
         return chart.chartDirectory || chart.directory || "";
     }
 
+    function chartDifficultyGroupKey(chart) {
+        if (!chart) {
+            return "";
+        }
+        // OpenLR2 computes the side difficulty bars per song folder and
+        // keymode. Mixing 5K/7K variants here makes the bars drift out of sync.
+        return chartGroupKey(chart) + "\n" + (chart.keymode || 0);
+    }
+
+    function difficultyHint(chart) {
+        let text = ((chart.title || "") + " " + (chart.subtitle || "")).toLowerCase();
+        if (/\binsane\b/.test(text)) return 5;
+        if (/\banother\b/.test(text)) return 4;
+        if (/\bhyper\b/.test(text)) return 3;
+        if (/\bnormal\b/.test(text)) return 2;
+        if (/\bbeginner\b|\bbgn\b/.test(text)) return 1;
+        if (entryPlayLevel(chart) <= 1) return 1;
+        return 0;
+    }
+
+    function inferGroupDifficulties(group) {
+        let result = {};
+        let hasInvalid = false;
+        let allBeginner = group.length > 1;
+        let hasNonTrivialLevel = false;
+        for (let chart of group) {
+            let raw = rawChartDifficulty(chart);
+            hasInvalid = hasInvalid || raw < 1 || raw > 5;
+            allBeginner = allBeginner && raw === 1;
+            hasNonTrivialLevel = hasNonTrivialLevel || entryPlayLevel(chart) > 1;
+        }
+
+        // New scans keep missing #DIFFICULTY as invalid. Older scans used to
+        // coerce it to BEGINNER; infer those only when the whole group has that
+        // shape, so explicit beginner singles stay untouched.
+        if (!hasInvalid && !(allBeginner && hasNonTrivialLevel)) {
+            for (let chart of group) {
+                result[chart.path || ""] = Math.max(0, rawChartDifficulty(chart));
+            }
+            return result;
+        }
+
+        let sorted = group.slice();
+        sorted.sort((a, b) => {
+            let noteDiff = chartNoteCount(a) - chartNoteCount(b);
+            if (noteDiff !== 0) {
+                return noteDiff;
+            }
+            return (a.path || "").localeCompare(b.path || "");
+        });
+
+        let inferred = 1;
+        for (let chart of sorted) {
+            let raw = rawChartDifficulty(chart);
+            let hint = allBeginner ? difficultyHint(chart) : 0;
+            if (raw >= 1 && raw <= 5 && !allBeginner) {
+                inferred = raw;
+            } else if (hint > 0) {
+                inferred = hint;
+            } else {
+                inferred += 1;
+                if (inferred === 5) {
+                    inferred = 4;
+                } else if (inferred < 1) {
+                    inferred = 2;
+                } else if (inferred > 5) {
+                    inferred = 5;
+                }
+            }
+            result[chart.path || ""] = inferred;
+        }
+        return result;
+    }
+
     function rebuildFolderCaches(sourceItems) {
         let groups = {};
-        let counts = [0, 0, 0, 0, 0, 0];
+        let difficulties = {};
 
         for (let item of sourceItems) {
             if (!isChart(item)) {
                 continue;
             }
 
-            let groupKey = chartGroupKey(item);
+            let groupKey = chartDifficultyGroupKey(item);
             if (!groups[groupKey]) {
                 groups[groupKey] = [];
             }
             groups[groupKey].push(item);
-
-            let difficulty = Math.max(0, Math.min(5, item.difficulty || 0));
-            counts[difficulty] += 1;
         }
 
-        let maxCount = Math.max(1, counts[1], counts[2], counts[3], counts[4], counts[5]);
+        for (let group of Object.values(groups)) {
+            Object.assign(difficulties, inferGroupDifficulties(group));
+        }
+
         chartGroupCache = groups;
-        levelBarCache = [
-            counts[0] / maxCount,
-            counts[1] / maxCount,
-            counts[2] / maxCount,
-            counts[3] / maxCount,
-            counts[4] / maxCount,
-            counts[5] / maxCount
-        ];
+        chartDifficultyCache = difficulties;
     }
 
     function chartsForCurrentSong() {
@@ -1222,7 +1352,7 @@ Item {
             return [];
         }
 
-        let groupKey = chartGroupKey(chart);
+        let groupKey = chartDifficultyGroupKey(chart);
         let result = chartGroupCache[groupKey] || [];
         if (result.length === 0) {
             result.push(chart);
@@ -1235,23 +1365,57 @@ Item {
         let charts = chartsForCurrentSong();
         let fallback = null;
         for (let chart of charts) {
-            if ((chart.difficulty || 0) !== diff) {
+            if (entryDifficulty(chart) !== diff) {
                 continue;
+            }
+            if (currentChart && sameEntry(chart, currentChart)) {
+                return chart;
             }
             if (!fallback) {
                 fallback = chart;
-            }
-            if (currentChart && chart.keymode === currentChart.keymode) {
-                return chart;
             }
         }
         return fallback;
     }
 
+    function nextChartForDifficulty(diff) {
+        let currentChart = selectedChartData();
+        let candidates = [];
+        for (let chart of chartsForCurrentSong()) {
+            if (entryDifficulty(chart) === diff) {
+                candidates.push(chart);
+            }
+        }
+        if (candidates.length === 0) {
+            return null;
+        }
+        if (!currentChart) {
+            return candidates[0];
+        }
+        let currentIdx = candidates.findIndex((chart) => sameEntry(chart, currentChart));
+        return candidates[(currentIdx + 1) % candidates.length];
+    }
+
+    function clickDifficulty(diff) {
+        diff = Math.max(0, Math.min(5, diff || 0));
+        if (diff === 0) {
+            difficultyFilter = 0;
+            sortOrFilterChanged();
+            return;
+        }
+
+        let currentChart = selectedChartData();
+        let target = currentChart && entryDifficulty(currentChart) === diff
+            ? nextChartForDifficulty(diff)
+            : chartForDifficulty(diff);
+        difficultyFilter = diff;
+        sortOrFilterChanged(target || currentChart);
+    }
+
     function difficultyCount(diff) {
         let count = 0;
         for (let chart of chartsForCurrentSong()) {
-            if ((chart.difficulty || 0) === diff) {
+            if (entryDifficulty(chart) === diff) {
                 ++count;
             }
         }
@@ -1261,6 +1425,31 @@ Item {
     function difficultyPlayLevel(diff) {
         let chart = chartForDifficulty(diff);
         return chart ? (chart.playLevel || 0) : 0;
+    }
+
+    function levelBarFlashThreshold() {
+        let chart = selectedChartData();
+        let keymode = chart ? (chart.keymode || 0) : 0;
+        if (keymode === 5 || keymode === 10) {
+            return 9;
+        }
+        if (keymode === 7 || keymode === 14) {
+            return 12;
+        }
+        return 12;
+    }
+
+    function difficultyLevelBarOption(diff) {
+        let level = difficultyPlayLevel(diff);
+        return level > levelBarFlashThreshold() ? 74 + diff : 69 + diff;
+    }
+
+    function difficultyGraphValue(diff) {
+        let level = difficultyPlayLevel(diff);
+        if (level <= 0) {
+            return 0;
+        }
+        return level / Math.max(1, levelBarFlashThreshold());
     }
 
     function difficultyLamp(diff) {
@@ -1445,10 +1634,6 @@ Item {
         }
     }
 
-    function levelBarValue(diff) {
-        return levelBarCache[diff] || 0;
-    }
-
     function hasDifficulty(diff) {
         return !!chartForDifficulty(diff);
     }
@@ -1461,7 +1646,7 @@ Item {
         case 7:
         case 8:
         case 9:
-            return levelBarValue(type - 4);
+            return difficultyGraphValue(type - 4);
         case 40:
             return stats ? stats.pg / stats.totalJudgements : 0;
         case 41:
