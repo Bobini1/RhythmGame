@@ -602,9 +602,7 @@ Item {
     property bool lr2InternetRankingOpenWhenReady: false
 
     function commitLr2RankingRequest() {
-        if (root.lr2RankingRequestMd5 !== root.lr2RankingMd5) {
-            root.lr2RankingRequestMd5 = root.lr2RankingMd5;
-        }
+        root.lr2RankingRequestMd5 = root.lr2RankingMd5;
     }
 
     function lr2RankingProviderEnum() {
@@ -3257,9 +3255,6 @@ Item {
                     x: 0; y: 0
                     width: skinW * skinScale
                     height: skinH * skinScale
-                    // Match LR2/Vibes drawQueue order: earlier CSV elements
-                    // are further back, later elements are painted on top.
-                    z: root.elementZ(model.type, index, model.src, model.dsts)
 
                     sourceComponent: {
                         if (model.type === 0) {

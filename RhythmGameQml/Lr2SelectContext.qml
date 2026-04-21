@@ -668,15 +668,9 @@ Item {
         // still update the active row, but not through the full committed
         // selection path on every mouse move.
         deferVisualSelectionSync = true;
-        if (selectedOffset !== 0) {
-            selectedOffset = 0;
-        }
-        if (visualIndex !== exactVisual) {
-            visualIndex = exactVisual;
-        }
-        if (targetVisualIndex !== exactVisual) {
-            targetVisualIndex = exactVisual;
-        }
+        selectedOffset = 0;
+        visualIndex = exactVisual;
+        targetVisualIndex = exactVisual;
         animationStartVisualIndex = exactVisual;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
@@ -1456,21 +1450,11 @@ Item {
         let nextBestStats = bestStats(scoreList);
         let nextScoreCounts = scoreCounts(scoreList);
         let nextScoreOptionIds = scoreOptionIdsFromList(scoreList);
-        if (cachedSelectedChartData !== nextChartData) {
-            cachedSelectedChartData = nextChartData;
-        }
-        if (selectedScoreList !== scoreList) {
-            selectedScoreList = scoreList;
-        }
-        if (selectedBestStats !== nextBestStats) {
-            selectedBestStats = nextBestStats;
-        }
-        if (selectedScoreCounts !== nextScoreCounts) {
-            selectedScoreCounts = nextScoreCounts;
-        }
-        if (selectedScoreOptionIds !== nextScoreOptionIds) {
-            selectedScoreOptionIds = nextScoreOptionIds;
-        }
+        cachedSelectedChartData = nextChartData;
+        selectedScoreList = scoreList;
+        selectedBestStats = nextBestStats;
+        selectedScoreCounts = nextScoreCounts;
+        selectedScoreOptionIds = nextScoreOptionIds;
     }
 
     function rankingClearCountValue() {
