@@ -17,6 +17,8 @@ Item {
         }
         if (enabled) {
             Qt.callLater(root.openSelectIfNeeded);
+        } else {
+            root.stopSelectAudio();
         }
     }
 
@@ -153,6 +155,13 @@ Item {
     property real selectMouseY: -100000
     property int selectSliderFixedPoint: -1
     property bool selectScratchSoundReady: false
+    readonly property bool selectAudioActive: root.enabled && root.effectiveScreenKey === "select"
+
+    onSelectAudioActiveChanged: {
+        if (!root.selectAudioActive) {
+            root.stopSelectAudio();
+        }
+    }
 
     function updateSelectMousePosition(x, y) {
         if (root.effectiveScreenKey !== "select") {
@@ -1113,7 +1122,8 @@ Item {
     }
 
     function selectInputReady() {
-        return root.effectiveScreenKey === "select"
+        return root.enabled
+            && root.effectiveScreenKey === "select"
             && root.acceptsInput
             && !root.selectSearchHasFocus();
     }
@@ -1465,16 +1475,9 @@ Item {
             return;
         }
 
-        if (root.effectiveScreenKey !== "select") {
-            selectChartSettleTimer.stop();
-            previewDelayTimer.stop();
-            root.activePreviewSource = "";
-            root.pendingPreviewRevision = -1;
-            root.pendingPreviewRequest += 1;
-            root.pendingPreviewSource = "";
+        if (!root.selectAudioActive) {
+            root.stopSelectAudio();
             root.updateDisplayedSelectChart();
-            playMusic.stop();
-            selectBgm.stop();
             return;
         }
 
@@ -2965,8 +2968,26 @@ Item {
         Qt.callLater(root.updateSelectSideEffects);
     }
 
+    function stopSelectAudio() {
+        selectChartSettleTimer.stop();
+        previewDelayTimer.stop();
+        selectBgmDelayTimer.stop();
+        root.activePreviewSource = "";
+        root.pendingPreviewRevision = -1;
+        root.pendingPreviewSource = "";
+        root.pendingPreviewRequest += 1;
+        playMusic.stop();
+        selectBgm.stop();
+        openFolderSound.stop();
+        closeFolderSound.stop();
+        scratchSound.stop();
+        optionOpenSound.stop();
+        optionCloseSound.stop();
+        optionChangeSound.stop();
+    }
+
     function playOneShot(player) {
-        if (!player || !player.source) {
+        if (!root.enabled || !player || !player.source) {
             return;
         }
         player.stop();
@@ -3104,7 +3125,7 @@ Item {
         id: playMusic
         looping: true
         fadeInMillis: 1000
-        source: root.effectiveScreenKey === "select" ? root.activePreviewSource : ""
+        source: root.selectAudioActive ? root.activePreviewSource : ""
         onSourceChanged: {
             stop();
         }
@@ -3115,8 +3136,7 @@ Item {
         looping: true
         fadeInMillis: 1000
         source: root.mainGeneralVars() ? root.mainGeneralVars().bgmPath + "select" : ""
-        property bool canPlay: root.enabled
-            && root.effectiveScreenKey === "select"
+        property bool canPlay: root.selectAudioActive
             && (!playMusic.playing || playMusic.source === "")
         onCanPlayChanged: {
             if (!canPlay) {
@@ -3175,8 +3195,7 @@ Item {
         interval: 1000
         repeat: false
         onTriggered: {
-            if (!root.enabled
-                || root.effectiveScreenKey !== "select"
+            if (!root.selectAudioActive
                 || root.pendingPreviewRevision !== root.selectRevision) {
                 return;
             }
@@ -3186,8 +3205,7 @@ Item {
             root.activePreviewSource = source || "";
             if (source) {
                 Qt.callLater(() => {
-                    if (root.enabled
-                        && root.effectiveScreenKey === "select"
+                    if (root.selectAudioActive
                         && root.activePreviewSource === source
                         && root.pendingPreviewRevision === root.selectRevision
                         && root.pendingPreviewRequest === request) {
