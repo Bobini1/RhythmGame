@@ -1373,6 +1373,18 @@ Item {
         }
     }
 
+    function refreshTransientActiveOptions() {
+        let baseOptions = root.baseActiveOptions && root.baseActiveOptions.length
+            ? root.baseActiveOptions
+            : root.buildBaseActiveOptions();
+        let nextRuntime = root.buildRuntimeActiveOptions(baseOptions);
+        let nextRuntimeKey = root.activeOptionsKey(nextRuntime);
+        if (nextRuntimeKey !== root.runtimeActiveOptionsKey) {
+            root.runtimeActiveOptionsKey = nextRuntimeKey;
+            root.runtimeActiveOptions = nextRuntime;
+        }
+    }
+
     readonly property int selectRevision: selectContext.selectionRevision + selectContext.scoreRevision
     property var deferredSelectChart: null
     property string activePreviewSource: ""
@@ -1408,6 +1420,7 @@ Item {
         function onTransientSelectionChanged() {
             root.restartSelectInfoTimer();
             root.refreshLr2RankingChart(false);
+            root.refreshTransientActiveOptions();
             root.refreshDeferredSelectChart();
         }
     }
