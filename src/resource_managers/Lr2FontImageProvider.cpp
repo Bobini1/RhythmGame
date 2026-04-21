@@ -173,12 +173,18 @@ Lr2FontImageProvider::Lr2FontImageProvider()
 }
 
 QImage
+Lr2FontImageProvider::textImage(const QString& fontPath, const QString& text)
+{
+    return cachedTextImage(fontPath, text);
+}
+
+QImage
 Lr2FontImageProvider::requestImage(const QString& id,
                                    QSize* size,
                                    const QSize& /*requestedSize*/)
 {
     const auto [path, query] = splitProviderId(id);
-    const auto image = cachedTextImage(path, providerQueryValue(query, "text"));
+    const auto image = textImage(path, providerQueryValue(query, "text"));
     if (size) {
         *size = image.size();
     }

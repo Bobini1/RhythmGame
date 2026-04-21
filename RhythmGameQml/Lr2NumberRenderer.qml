@@ -66,10 +66,15 @@ Item {
         y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
         width: root.textW
         height: root.digitH
-        layer.enabled: true
-        layer.smooth: false
         visible: root.currentState && root.currentState.a > 0 && root.digitW > 0 && root.digitH > 0 && root.resolvedSource !== ""
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
+
+        Image {
+            id: digitAtlas
+            source: root.resolvedSource
+            cache: true
+            visible: false
+        }
 
         Repeater {
             model: root.displayText.length
@@ -86,22 +91,28 @@ Item {
                     return isNaN(parsed) ? 0 : parsed;
                 }
 
-                Image {
-                    id: digitImage
+                ShaderEffect {
                     anchors.fill: parent
-                    source: root.resolvedSource
-                    fillMode: Image.Stretch
-                    smooth: false
-                    mipmap: false
-                    visible: root.blendMode !== 0 && root.blendMode !== 2
-                    sourceClipRect: {
-                        if (!root.srcData) return Qt.rect(0, 0, 0, 0);
+                    visible: digitAtlas.status === Image.Ready
+                    blending: true
+                    property variant source: digitAtlas
+                    property color tint: "white"
+                    property color transColor: "black"
+                    property real blendMode: root.blendMode
+                    property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
+                    property real tolerance: 0.03125
+                    property vector4d sourceRect: {
+                        if (!root.srcData
+                            || digitAtlas.implicitWidth <= 0
+                            || digitAtlas.implicitHeight <= 0) {
+                            return Qt.vector4d(0, 0, 1, 1);
+                        }
                         let sx = Math.max(0, root.srcData.x || 0);
                         let sy = Math.max(0, root.srcData.y || 0);
                         let sw = root.srcData.w || 0;
                         let sh = root.srcData.h || 0;
                         if (sw <= 0 || sh <= 0) {
-                            return Qt.rect(0, 0, 0, 0);
+                            return Qt.vector4d(0, 0, 1, 1);
                         }
                         let divX = Math.max(1, root.srcData.div_x || 1);
                         let divY = Math.max(1, root.srcData.div_y || 1);
@@ -110,34 +121,15 @@ Item {
                         let frame = digitRoot.digit % (divX * divY);
                         let col = frame % divX;
                         let row = Math.floor(frame / divX) % divY;
-                        return Qt.rect(sx + col * cellW, sy + row * cellH, cellW, cellH);
+                        let atlasW = Math.max(1, digitAtlas.implicitWidth);
+                        let atlasH = Math.max(1, digitAtlas.implicitHeight);
+                        return Qt.vector4d(
+                            (sx + col * cellW) / atlasW,
+                            (sy + row * cellH) / atlasH,
+                            cellW / atlasW,
+                            cellH / atlasH);
                     }
-                }
-
-                ColorChanger {
-                    anchors.fill: parent
-                    visible: root.blendMode === 0
-                    from: "black"
-                    to: "transparent"
-                    source: ShaderEffectSource {
-                        hideSource: false
-                        sourceItem: digitImage
-                        live: true
-                        sourceRect: Qt.rect(0, 0, digitImage.width, digitImage.height)
-                    }
-                }
-
-                ShaderEffect {
-                    anchors.fill: parent
-                    visible: root.blendMode === 2
-                    blending: true
-                    property variant source: ShaderEffectSource {
-                        hideSource: false
-                        sourceItem: digitImage
-                        live: true
-                        sourceRect: Qt.rect(0, 0, digitImage.width, digitImage.height)
-                    }
-                    fragmentShader: "qrc:/Lr2AddBlend.frag.qsb"
+                    fragmentShader: "qrc:/Lr2SpriteAtlas.frag.qsb"
                 }
             }
         }

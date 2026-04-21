@@ -15,6 +15,7 @@
 #include "support/Exception.h"
 
 #include <chrono>
+#include <cstring>
 #include <qcolor.h>
 #include <qdir.h>
 #include <utility>
@@ -520,6 +521,41 @@ resource_managers::GeneralVars::resetWebsiteBaseUrl()
 {
     setWebsiteBaseUrl("https://rhythmgame.eu");
 }
+
+auto
+resource_managers::GeneralVars::getLr2RankingProvider() const
+  -> qml_components::OnlineRankingModel::Provider
+{
+    return lr2RankingProvider;
+}
+
+void
+resource_managers::GeneralVars::setLr2RankingProvider(
+  qml_components::OnlineRankingModel::Provider value)
+{
+    switch (value) {
+        case qml_components::OnlineRankingModel::Provider::RhythmGame:
+        case qml_components::OnlineRankingModel::Provider::Tachi:
+        case qml_components::OnlineRankingModel::Provider::LR2IR:
+            break;
+        default:
+            value = qml_components::OnlineRankingModel::Provider::RhythmGame;
+            break;
+    }
+    if (lr2RankingProvider == value) {
+        return;
+    }
+    lr2RankingProvider = value;
+    emit lr2RankingProviderChanged();
+}
+
+void
+resource_managers::GeneralVars::resetLr2RankingProvider()
+{
+    setLr2RankingProvider(
+      qml_components::OnlineRankingModel::Provider::RhythmGame);
+}
+
 auto
 resource_managers::GeneralVars::getBgm() const -> QString
 {

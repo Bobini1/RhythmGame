@@ -124,102 +124,56 @@ Item {
         }
 
         Image {
-            id: spriteImg
-            anchors.fill: parent
+            id: atlasImage
             source: root.hasDrawableTexture ? root.resolvedSource : ""
-            fillMode: Image.Stretch
             cache: true
             asynchronous: root.srcData
                 && (root.srcData.specialType === 1
                     || root.srcData.specialType === 3
                     || root.srcData.specialType === 4)
-            // For special blend modes, sibling effects sample this Image via
-            // ShaderEffectSource and draw the final composite.
-            // Keep the source item renderable for ShaderEffectSource. The
-            // active effect hides it via hideSource; setting visible=false
-            // prevents some blend-0 LR2 sprites (notably select bars) from
-            // being sampled at all.
-            visible: root.hasDrawableTexture
+            visible: false
+        }
 
-            sourceClipRect: {
-                if (!srcData || !root.hasDrawableTexture || root.hasWholeTextureSource) {
-                    return Qt.rect(0, 0, 0, 0);
+        ShaderEffect {
+            anchors.fill: parent
+            visible: root.hasDrawableTexture && atlasImage.status === Image.Ready
+            blending: true
+            property variant source: atlasImage
+            property color tint: root.tintColor
+            property color transColor: root.transColor
+            property real blendMode: root.blendMode
+            property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
+            property real tolerance: 0.03125
+            property vector4d sourceRect: {
+                if (!root.srcData || !root.hasDrawableTexture
+                    || atlasImage.implicitWidth <= 0
+                    || atlasImage.implicitHeight <= 0
+                    || root.hasWholeTextureSource) {
+                    return Qt.vector4d(0, 0, 1, 1);
                 }
 
-                let sx = Math.max(0, srcData.x || 0);
-                let sy = Math.max(0, srcData.y || 0);
-                let sw = srcData.w;
-                let sh = srcData.h;
+                let sx = Math.max(0, root.srcData.x || 0);
+                let sy = Math.max(0, root.srcData.y || 0);
+                let sw = root.srcData.w;
+                let sh = root.srcData.h;
 
-                let divX = Math.max(1, srcData.div_x || 1);
-                let divY = Math.max(1, srcData.div_y || 1);
+                let divX = Math.max(1, root.srcData.div_x || 1);
+                let divY = Math.max(1, root.srcData.div_y || 1);
                 let cellW = sw / divX;
                 let cellH = sh / divY;
 
                 let col = root.frameIndex % divX;
                 let row = Math.floor(root.frameIndex / divX) % divY;
 
-                return Qt.rect(sx + col * cellW, sy + row * cellH, cellW, cellH);
+                let atlasW = Math.max(1, atlasImage.implicitWidth);
+                let atlasH = Math.max(1, atlasImage.implicitHeight);
+                return Qt.vector4d(
+                    (sx + col * cellW) / atlasW,
+                    (sy + row * cellH) / atlasH,
+                    cellW / atlasW,
+                    cellH / atlasH);
             }
-        }
-
-        ShaderEffect {
-            anchors.fill: parent
-            visible: root.hasDrawableTexture && root.blendMode === 1 && root.hasColorTint
-            blending: true
-            property color tint: root.tintColor
-            property variant source: ShaderEffectSource {
-                hideSource: root.blendMode === 1 && root.hasColorTint
-                sourceItem: spriteImg
-                live: true
-                sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
-            }
-            fragmentShader: "qrc:/Lr2Tint.frag.qsb"
-        }
-
-        // Blend mode 0: TRANSCOLOR (black -> transparent), then alpha blend.
-        ColorChanger {
-            anchors.fill: parent
-            visible: root.hasDrawableTexture && root.blendMode === 0
-            from: root.transColor
-            to: "transparent"
-            source: ShaderEffectSource {
-                hideSource: root.blendMode === 0
-                sourceItem: spriteImg
-                live: true
-                sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
-            }
-        }
-
-        // Blend mode 2: ADD. fragColor = vec4(rgb*a, 0) collapses Qt's premult
-        // blend (out = src + dst*(1-src.a)) to pure additive.
-        // TODO: blend modes 3 (SUB), 4 (MULT), 9/11 fall through to plain
-        // alpha until we wire up custom GL blend functions.
-        ShaderEffect {
-            anchors.fill: parent
-            visible: root.hasDrawableTexture && root.blendMode === 2
-            blending: true
-            property variant source: ShaderEffectSource {
-                hideSource: root.blendMode === 2
-                sourceItem: spriteImg
-                live: true
-                sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
-            }
-            fragmentShader: "qrc:/Lr2AddBlend.frag.qsb"
-        }
-
-        // Blend mode 10: INVSRC / ANTI_COLOR.
-        ShaderEffect {
-            anchors.fill: parent
-            visible: root.hasDrawableTexture && root.blendMode === 10
-            blending: true
-            property variant source: ShaderEffectSource {
-                hideSource: root.blendMode === 10
-                sourceItem: spriteImg
-                live: true
-                sourceRect: Qt.rect(0, 0, spriteImg.width, spriteImg.height)
-            }
-            fragmentShader: "qrc:/Lr2InvertBlend.frag.qsb"
+            fragmentShader: "qrc:/Lr2SpriteAtlas.frag.qsb"
         }
 
         Rectangle {

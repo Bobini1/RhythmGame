@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QImage>
 #include <QQuickImageProvider>
 
 namespace resource_managers {
@@ -13,6 +14,8 @@ class Lr2FontImageProvider : public QQuickImageProvider
 {
   public:
     Lr2FontImageProvider();
+
+    static QImage textImage(const QString& fontPath, const QString& text);
 
     QImage requestImage(const QString& id,
                         QSize* size,

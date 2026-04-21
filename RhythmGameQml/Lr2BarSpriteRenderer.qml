@@ -37,9 +37,12 @@ Item {
             return [];
         }
 
-        // OpenLR2 only draws BAR_RANK for IR/rival ranking rows. We do not
-        // support that mode yet, so keep normal song rows free of grades.
-        if (srcData.kind === 4 || srcData.kind === 5 || srcData.kind === 6 || srcData.kind === 7) {
+        if (srcData.kind === 4 || srcData.kind === 5 || srcData.kind === 7) {
+            return [];
+        }
+
+        // OpenLR2 draws BAR_RANK only while the IR ranking list is active.
+        if (srcData.kind === 6 && !selectContext.rankingMode) {
             return [];
         }
 
@@ -136,6 +139,9 @@ Item {
         switch (srcData.kind) {
         case 3:
             return selectContext.entryLamp(entry) === srcData.variant;
+        case 6:
+            return selectContext.isRankingEntry(entry)
+                && selectContext.entryRank(entry) === srcData.variant;
         default:
             return false;
         }

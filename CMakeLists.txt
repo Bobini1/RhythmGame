@@ -197,6 +197,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/OnlineRankingModel.h
         src/qml_components/FileQuery.cpp
         src/qml_components/FileQuery.h
+        src/qml_components/Lr2NativeBarRenderer.cpp
+        src/qml_components/Lr2NativeBarRenderer.h
         src/qml_components/Lr2NativeCursor.cpp
         src/qml_components/Lr2NativeCursor.h
         src/qml_components/Bga.cpp
@@ -382,6 +384,7 @@ else ()
     )
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
+target_compile_definitions(RhythmGame_exe PRIVATE QT_QML_DEBUG)
 
 qt_add_resources(
         RhythmGame_exe

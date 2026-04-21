@@ -81,21 +81,38 @@ Item {
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 
         Image {
-            anchors.fill: parent
+            id: graphAtlas
             source: root.resolvedSource
-            fillMode: Image.Stretch
             asynchronous: root.srcData
                 && (root.srcData.specialType === 1
                     || root.srcData.specialType === 3
                     || root.srcData.specialType === 4)
-            sourceClipRect: {
-                if (!root.srcData) return Qt.rect(0, 0, 0, 0);
+            cache: true
+            visible: false
+        }
+
+        ShaderEffect {
+            anchors.fill: parent
+            visible: graphAtlas.status === Image.Ready
+            blending: true
+            property variant source: graphAtlas
+            property color tint: "white"
+            property color transColor: "black"
+            property real blendMode: 1.0
+            property real colorKeyEnabled: 0.0
+            property real tolerance: 0.03125
+            property vector4d sourceRect: {
+                if (!root.srcData
+                    || graphAtlas.implicitWidth <= 0
+                    || graphAtlas.implicitHeight <= 0) {
+                    return Qt.vector4d(0, 0, 1, 1);
+                }
                 let sx = Math.max(0, root.srcData.x || 0);
                 let sy = Math.max(0, root.srcData.y || 0);
                 let sw = root.srcData.w || 0;
                 let sh = root.srcData.h || 0;
                 if (sw <= 0 || sh <= 0) {
-                    return Qt.rect(0, 0, 0, 0);
+                    return Qt.vector4d(0, 0, 1, 1);
                 }
                 let divX = Math.max(1, root.srcData.div_x || 1);
                 let divY = Math.max(1, root.srcData.div_y || 1);
@@ -103,8 +120,15 @@ Item {
                 let cellH = sh / divY;
                 let col = root.frameIndex % divX;
                 let row = Math.floor(root.frameIndex / divX) % divY;
-                return Qt.rect(sx + col * cellW, sy + row * cellH, cellW, cellH);
+                let atlasW = Math.max(1, graphAtlas.implicitWidth);
+                let atlasH = Math.max(1, graphAtlas.implicitHeight);
+                return Qt.vector4d(
+                    (sx + col * cellW) / atlasW,
+                    (sy + row * cellH) / atlasH,
+                    cellW / atlasW,
+                    cellH / atlasH);
             }
+            fragmentShader: "qrc:/Lr2SpriteAtlas.frag.qsb"
         }
     }
 }

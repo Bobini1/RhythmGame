@@ -78,6 +78,7 @@ Item {
     property bool startHoldSuppressed: false
 
     onSelectPanelChanged: {
+        root.refreshActiveOptions();
         if (root.selectPanel > 0) {
             root.clearSelectSearchFocus();
         }
@@ -550,6 +551,341 @@ Item {
             && !!profile.onlineUserData;
     }
 
+    function currentLr2RankingChart() {
+        if (root.effectiveScreenKey !== "select") {
+            return null;
+        }
+        if (selectContext.cachedSelectedChartData) {
+            return selectContext.cachedSelectedChartData;
+        }
+        if (selectContext.rankingMode && selectContext.rankingBaseItem) {
+            return selectContext.rankingBaseItem;
+        }
+
+        let item = selectContext.current;
+        return selectContext.isChart(item) || selectContext.isEntry(item) ? item : null;
+    }
+
+    readonly property var lr2RankingChart: root.currentLr2RankingChart()
+    property bool lr2RankingOpenWhenReady: false
+    property bool lr2InternetRankingOpenWhenReady: false
+
+    function lr2RankingProviderEnum() {
+        let vars = root.mainGeneralVars();
+        return vars ? vars.lr2RankingProvider : OnlineRankingModel.RhythmGame;
+    }
+
+    function lr2RankingMatchesCurrentChart() {
+        let chart = root.lr2RankingChart;
+        let targetMd5 = chart && chart.md5 ? String(chart.md5).toLowerCase() : "";
+        let loadedMd5 = lr2OnlineRanking.md5 ? String(lr2OnlineRanking.md5).toLowerCase() : "";
+        return targetMd5.length > 0 && targetMd5 === loadedMd5;
+    }
+
+    function lr2LocalRankingEntry() {
+        let chart = root.lr2RankingChart;
+        let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
+        if (!chart || !profile) {
+            return null;
+        }
+
+        let scoreList = selectContext.entryScores(chart);
+        let bestPointsScore = selectContext.bestScoreByPoints(scoreList);
+        let bestClearScore = selectContext.scoreWithBestClear(scoreList);
+        if (!bestPointsScore || !bestPointsScore.result || !bestClearScore || !bestClearScore.result) {
+            return null;
+        }
+
+        let stats = selectContext.statsForScore(bestPointsScore);
+        return {
+            __lr2Local: true,
+            userId: profile.onlineUserData ? profile.onlineUserData.userId : 0,
+            userName: profile.vars.generalVars.name,
+            bestClearType: bestClearScore.result.clearType || "NOPLAY",
+            bestPoints: bestPointsScore.result.points || 0,
+            maxPoints: bestPointsScore.result.maxPoints || 0,
+            bestCombo: bestPointsScore.result.maxCombo || 0,
+            bestComboBreaks: stats ? stats.badPoor : 0,
+            scoreCount: scoreList.length
+        };
+    }
+
+    function lr2RankingEntries() {
+        if (!root.lr2RankingMatchesCurrentChart()) {
+            return [];
+        }
+
+        let source = lr2OnlineRanking.rankingEntries || [];
+        let entries = [];
+        for (let i = 0; i < source.length; ++i) {
+            entries.push(source[i]);
+        }
+
+        if (root.lr2RankingProviderEnum() !== OnlineRankingModel.LR2IR) {
+            return entries;
+        }
+
+        let localEntry = root.lr2LocalRankingEntry();
+        if (!localEntry) {
+            return entries;
+        }
+
+        let result = [];
+        let inserted = false;
+        for (let entry of entries) {
+            if (!inserted && localEntry.bestPoints > (entry.bestPoints || 0)) {
+                result.push(localEntry);
+                inserted = true;
+            }
+            result.push(entry);
+        }
+        if (!inserted) {
+            result.push(localEntry);
+        }
+        return result;
+    }
+
+    function lr2RankingClearCounts(entries) {
+        let counts = {};
+        for (let entry of entries || []) {
+            let clearType = entry.bestClearType || "NOPLAY";
+            counts[clearType] = (counts[clearType] || 0) + 1;
+        }
+        return counts;
+    }
+
+    function lr2RankingPlayerCount(entries) {
+        if (!root.lr2RankingMatchesCurrentChart()) {
+            return 0;
+        }
+        let count = Number(lr2OnlineRanking.playerCount || 0);
+        if (entries && entries.length > 0) {
+            return Math.max(count, entries.length);
+        }
+        if (count <= 0) {
+            let source = lr2OnlineRanking.rankingEntries || [];
+            count = source.length || 0;
+        }
+        if (root.lr2RankingProviderEnum() === OnlineRankingModel.LR2IR && root.lr2LocalRankingEntry()) {
+            count += 1;
+        }
+        return count;
+    }
+
+    function lr2RankingTotalPlayCount(entries) {
+        let modelCount = lr2OnlineRanking.scoreCount || 0;
+        let total = 0;
+        for (let entry of entries || []) {
+            total += entry.scoreCount || 0;
+        }
+        return Math.max(modelCount, total);
+    }
+
+    function lr2RankingPlayerRank(entries) {
+        let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
+        let userId = profile && profile.onlineUserData ? Number(profile.onlineUserData.userId || 0) : 0;
+        for (let i = 0; i < (entries || []).length; ++i) {
+            let entry = entries[i];
+            if (entry.__lr2Local || (userId > 0 && Number(entry.userId || 0) === userId)) {
+                return i + 1;
+            }
+        }
+        return 0;
+    }
+
+    function lr2RankingSnapshot() {
+        let entries = root.lr2RankingEntries();
+        return {
+            entries: entries,
+            clearCounts: root.lr2RankingClearCounts(entries),
+            playerCount: root.lr2RankingPlayerCount(entries),
+            totalPlayCount: root.lr2RankingTotalPlayCount(entries),
+            playerRank: root.lr2RankingPlayerRank(entries)
+        };
+    }
+
+    function syncLr2RankingStats() {
+        let chart = root.lr2RankingChart;
+        if (!chart || !chart.md5 || !root.lr2RankingMatchesCurrentChart() || lr2OnlineRanking.loading) {
+            return;
+        }
+        let snapshot = root.lr2RankingSnapshot();
+        selectContext.setRankingStats(
+            chart.md5,
+            snapshot.clearCounts,
+            snapshot.playerCount,
+            snapshot.totalPlayCount,
+            snapshot.playerRank);
+    }
+
+    function lr2RankingStatusOption() {
+        let chart = root.lr2RankingChart;
+        if (!chart || !chart.md5) {
+            return 600;
+        }
+        if (!root.lr2RankingMatchesCurrentChart()) {
+            return lr2OnlineRanking.loading ? 601 : 600;
+        }
+        if (lr2OnlineRanking.loading) {
+            return 601;
+        }
+        return root.lr2RankingPlayerCount() > 0 ? 602 : 603;
+    }
+
+    function requestLr2RankingFetch(chart) {
+        let md5 = chart && chart.md5 ? String(chart.md5) : "";
+        if (md5.length === 0) {
+            return false;
+        }
+
+        root.lr2RankingOpenWhenReady = true;
+        if (!lr2OnlineRanking.loading) {
+            lr2OnlineRanking.refresh();
+        }
+        return false;
+    }
+
+    function lr2TachiKeymode(chart) {
+        switch (chart ? (chart.keymode || 0) : 0) {
+        case 5:
+        case 7:
+            return "7K";
+        case 10:
+        case 14:
+            return "14K";
+        default:
+            return "";
+        }
+    }
+
+    function lr2InternetRankingUrl(chart) {
+        let md5 = chart && chart.md5 ? String(chart.md5) : "";
+        if (md5.length === 0) {
+            return "";
+        }
+
+        switch (root.lr2RankingProviderEnum()) {
+        case OnlineRankingModel.RhythmGame: {
+            let vars = root.mainGeneralVars();
+            let baseUrl = vars && vars.websiteBaseUrl
+                ? String(vars.websiteBaseUrl)
+                : "https://rhythmgame.eu";
+            while (baseUrl.length > 0 && baseUrl.charAt(baseUrl.length - 1) === "/") {
+                baseUrl = baseUrl.substring(0, baseUrl.length - 1);
+            }
+            return baseUrl + "/charts/" + md5;
+        }
+        case OnlineRankingModel.Tachi: {
+            if (!root.lr2RankingMatchesCurrentChart() || !lr2OnlineRanking.chartId) {
+                return "";
+            }
+            let keymode = root.lr2TachiKeymode(chart);
+            return keymode.length > 0
+                ? "https://boku.tachi.ac/games/bms/" + keymode + "/charts/" + lr2OnlineRanking.chartId
+                : "";
+        }
+        case OnlineRankingModel.LR2IR:
+        default:
+            return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5="
+                + md5 + "#status";
+        }
+    }
+
+    function finishOpenLr2InternetRanking() {
+        let chart = root.lr2RankingChart;
+        let url = root.lr2InternetRankingUrl(chart);
+        if (url.length === 0) {
+            return false;
+        }
+        root.lr2InternetRankingOpenWhenReady = false;
+        let opened = Qt.openUrlExternally(url);
+        if (opened === false) {
+            console.warn("[LR2] Failed to open internet ranking URL: " + url);
+        }
+        return opened !== false;
+    }
+
+    function openLr2InternetRanking() {
+        root.refreshDeferredSelectChart();
+        let chart = root.lr2RankingChart;
+        if (!chart || !chart.md5) {
+            return false;
+        }
+
+        if (root.lr2RankingProviderEnum() === OnlineRankingModel.Tachi
+                && (!root.lr2RankingMatchesCurrentChart()
+                    || !lr2OnlineRanking.chartId
+                    || lr2OnlineRanking.loading)) {
+            root.lr2InternetRankingOpenWhenReady = true;
+            if (!lr2OnlineRanking.loading) {
+                lr2OnlineRanking.refresh();
+            }
+            return true;
+        }
+
+        return root.finishOpenLr2InternetRanking();
+    }
+
+    function finishOpenLr2Ranking() {
+        if (!root.lr2RankingMatchesCurrentChart() || lr2OnlineRanking.loading) {
+            return false;
+        }
+        let snapshot = root.lr2RankingSnapshot();
+        if (snapshot.entries.length === 0) {
+            root.lr2RankingOpenWhenReady = false;
+            let chart = root.lr2RankingChart;
+            if (chart && chart.md5) {
+                selectContext.setRankingStats(chart.md5, {}, 0, 0, 0);
+            }
+            return false;
+        }
+        let opened = selectContext.showRanking(
+            snapshot.entries,
+            snapshot.clearCounts,
+            snapshot.playerCount,
+            snapshot.totalPlayCount,
+            snapshot.playerRank);
+        if (opened) {
+            root.lr2RankingOpenWhenReady = false;
+            root.playOneShot(optionOpenSound);
+        }
+        return opened;
+    }
+
+    function openLr2Ranking() {
+        if (!root.selectNavigationReady() || root.selectPanel === 1) {
+            return false;
+        }
+
+        root.refreshDeferredSelectChart();
+        let chart = root.lr2RankingChart;
+        if (!chart || !chart.md5) {
+            return false;
+        }
+        if (!root.lr2RankingMatchesCurrentChart()
+            || lr2OnlineRanking.loading
+            || root.lr2RankingPlayerCount() === 0) {
+            return root.requestLr2RankingFetch(chart);
+        }
+        return root.finishOpenLr2Ranking();
+    }
+
+    function closeLr2Ranking() {
+        root.lr2RankingOpenWhenReady = false;
+        if (!selectContext.rankingMode) {
+            return false;
+        }
+        if (selectContext.hideRanking()) {
+            root.playOneShot(optionCloseSound);
+            return true;
+        }
+        return false;
+    }
+
+    function isLr2RankingKey(key) {
+        return key === BmsKey.Col15 || key === BmsKey.Col25;
+    }
+
     function clearStatusOption() {
         let vars = root.mainGeneralVars();
         if (!vars) {
@@ -855,7 +1191,17 @@ Item {
         else if (keymode === 10) addOption(options, 163);
     }
 
-    readonly property var baseActiveOptions: {
+    property var baseActiveOptions: []
+    property var barActiveOptions: []
+    property var runtimeActiveOptions: []
+    property string baseActiveOptionsKey: ""
+    property string runtimeActiveOptionsKey: ""
+
+    function activeOptionsKey(options) {
+        return options.join(",");
+    }
+
+    function buildBaseActiveOptions() {
         let result = [];
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
             ? skinModel.effectiveActiveOptions
@@ -867,8 +1213,17 @@ Item {
         root.addOption(result, 46);  // difficulty filter enabled
         root.addOption(result, 52);  // non-extra mode
         root.addOption(result, 572); // not course-select mode
-        root.addOption(result, 600); // not IR target
-        root.addOption(result, 620); // not ranking display
+        root.addOption(result, root.lr2RankingStatusOption());
+        let rankingCount = root.lr2RankingPlayerCount();
+        if (rankingCount === 0) {
+            root.addOption(result, 610);
+        }
+        for (let threshold = 1; threshold <= 6; ++threshold) {
+            if (rankingCount > threshold - 1) {
+                root.addOption(result, 610 + threshold);
+            }
+        }
+        root.addOption(result, selectContext.rankingMode ? 621 : 620);
         root.addOption(result, 622); // not ghost battle
         root.addOption(result, 624); // not rival compare
         if (root.selectPanel > 0) {
@@ -879,16 +1234,12 @@ Item {
         return result;
     }
 
-    readonly property var barActiveOptions: root.baseActiveOptions
-
-    readonly property var runtimeActiveOptions: {
-        let result = root.baseActiveOptions.slice();
-        let revision = selectContext.selectionRevision + selectContext.scoreRevision;
-
+    function buildRuntimeActiveOptions(baseOptions) {
+        let result = baseOptions.slice();
         if (root.effectiveScreenKey === "select") {
             root.appendSelectStatusOptions(result);
             let item = selectContext.current;
-            if (selectContext.isChart(item) || selectContext.isEntry(item)) {
+            if (selectContext.isChart(item) || selectContext.isEntry(item) || selectContext.isRankingEntry(item)) {
                 root.addOption(result, 2);
                 root.addOption(result, 5);
             } else if (selectContext.isCourse(item)) {
@@ -954,6 +1305,25 @@ Item {
         return result;
     }
 
+    function refreshActiveOptions() {
+        let nextBase = root.buildBaseActiveOptions();
+        let nextBaseKey = root.activeOptionsKey(nextBase);
+        if (nextBaseKey !== root.baseActiveOptionsKey) {
+            root.baseActiveOptionsKey = nextBaseKey;
+            root.baseActiveOptions = nextBase;
+            root.barActiveOptions = nextBase;
+        } else {
+            nextBase = root.baseActiveOptions;
+        }
+
+        let nextRuntime = root.buildRuntimeActiveOptions(nextBase);
+        let nextRuntimeKey = root.activeOptionsKey(nextRuntime);
+        if (nextRuntimeKey !== root.runtimeActiveOptionsKey) {
+            root.runtimeActiveOptionsKey = nextRuntimeKey;
+            root.runtimeActiveOptions = nextRuntime;
+        }
+    }
+
     readonly property int selectRevision: selectContext.selectionRevision + selectContext.scoreRevision
     property var deferredSelectChart: null
     property string activePreviewSource: ""
@@ -973,7 +1343,11 @@ Item {
         return item.loadCharts();
     }
 
-    onSelectRevisionChanged: root.scheduleSelectSideEffects()
+    onSelectRevisionChanged: {
+        root.refreshActiveOptions();
+        root.syncLr2RankingStats();
+        root.scheduleSelectSideEffects();
+    }
     Connections {
         target: selectContext
         function onSelectionRevisionChanged() {
@@ -990,12 +1364,14 @@ Item {
             root.selectPanelCloseElapsed = 0;
             root.lr2ReadmeMode = 0;
         }
+        root.refreshActiveOptions();
         root.restartSelectInfoTimer();
         root.scheduleSelectSideEffects();
     }
     onChartChanged: {
         if (root.effectiveScreenKey !== "select") {
             root.deferredSelectChart = root.chart;
+            root.refreshActiveOptions();
         }
     }
 
@@ -1292,7 +1668,7 @@ Item {
                 let stage = root.courseStage(num - 250);
                 return stage ? (stage.playLevel || 0) : 0;
             }
-            if ((num >= 300 && num <= 382) || (num >= 92 && num <= 95)
+            if ((num >= 300 && num <= 382)
                     || num === 220 || num === 271 || num === 272
                     || num === 274 || num === 275 || num === 276
                     || num === 292 || num === 293) {
@@ -1434,6 +1810,8 @@ Item {
         case 82:
             return 0;
         case 83:
+            return 0;
+        case 210:
             return 0;
         default:
             if ((src.buttonId >= 13 && src.buttonId <= 14)
@@ -1663,6 +2041,10 @@ Item {
             }
             return;
         }
+        if (buttonId === 210) {
+            root.openLr2InternetRanking();
+            return;
+        }
         let optionChanged = false;
         switch (buttonId) {
         case 10:
@@ -1835,6 +2217,7 @@ Item {
             break;
         }
         if (optionChanged) {
+            root.refreshActiveOptions();
             root.playOneShot(optionChangeSound);
         }
     }
@@ -2124,6 +2507,13 @@ Item {
             return;
         }
         let track = root.selectScrollSliderTrackState(src, dsts);
+        root.setSelectScrollFromSliderTrack(src, track, pointerX, pointerY);
+    }
+
+    function setSelectScrollFromSliderTrack(src, track, pointerX, pointerY) {
+        if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0) {
+            return;
+        }
         if (!track) {
             return;
         }
@@ -2135,6 +2525,10 @@ Item {
 
     function setLr2GenericSliderFromPointer(src, dsts, pointerX, pointerY) {
         let track = root.lr2GenericSliderTrackState(src, dsts);
+        root.setLr2GenericSliderFromTrack(src, track, pointerX, pointerY);
+    }
+
+    function setLr2GenericSliderFromTrack(src, track, pointerX, pointerY) {
         if (!track) {
             return;
         }
@@ -2452,6 +2846,74 @@ Item {
         }
     }
 
+    OnlineRankingModel {
+        id: lr2OnlineRanking
+        md5: root.lr2RankingChart && root.lr2RankingChart.md5
+            ? String(root.lr2RankingChart.md5)
+            : ""
+        limit: 999
+        sortBy: OnlineRankingModel.ScorePct
+        sortDir: OnlineRankingModel.Desc
+        provider: root.lr2RankingProviderEnum()
+        webApiUrl: root.mainGeneralVars() ? root.mainGeneralVars().webApiUrl : ""
+
+        onMd5Changed: {
+            root.syncLr2RankingStats();
+            root.refreshActiveOptions();
+        }
+    }
+
+    Connections {
+        target: lr2OnlineRanking
+
+        function onLoadingChanged() {
+            root.syncLr2RankingStats();
+            root.refreshActiveOptions();
+            if (root.lr2RankingOpenWhenReady && !lr2OnlineRanking.loading) {
+                Qt.callLater(root.finishOpenLr2Ranking);
+            }
+            if (root.lr2InternetRankingOpenWhenReady && !lr2OnlineRanking.loading) {
+                Qt.callLater(() => {
+                    if (!root.finishOpenLr2InternetRanking()) {
+                        root.lr2InternetRankingOpenWhenReady = false;
+                    }
+                });
+            }
+        }
+
+        function onRankingEntriesChanged() {
+            root.syncLr2RankingStats();
+            root.refreshActiveOptions();
+            if (root.lr2RankingOpenWhenReady && !lr2OnlineRanking.loading) {
+                Qt.callLater(root.finishOpenLr2Ranking);
+            }
+        }
+
+        function onPlayerCountChanged() {
+            root.syncLr2RankingStats();
+            root.refreshActiveOptions();
+        }
+
+        function onScoreCountChanged() {
+            root.syncLr2RankingStats();
+            root.refreshActiveOptions();
+        }
+
+        function onClearCountsChanged() {
+            root.syncLr2RankingStats();
+            root.refreshActiveOptions();
+            if (root.lr2RankingOpenWhenReady && !lr2OnlineRanking.loading) {
+                Qt.callLater(root.finishOpenLr2Ranking);
+            }
+        }
+
+        function onChartIdChanged() {
+            if (root.lr2InternetRankingOpenWhenReady && !lr2OnlineRanking.loading) {
+                Qt.callLater(root.finishOpenLr2InternetRanking);
+            }
+        }
+    }
+
     Lr2SkinModel {
         id: skinModel
         csvPath: root.csvPath
@@ -2459,6 +2921,7 @@ Item {
         activeOptions: root.parseActiveOptions
 
         onSkinLoaded: {
+            root.refreshActiveOptions();
             Qt.callLater(root.restartSkinClock);
             Qt.callLater(root.openSelectIfNeeded);
         }
@@ -2469,6 +2932,7 @@ Item {
 
     Component.onCompleted: {
         root.selectSideEffectsReady = true;
+        root.refreshActiveOptions();
         Qt.callLater(() => root.selectScratchSoundReady = true);
         Qt.callLater(root.restartSkinClock);
         Qt.callLater(root.openSelectIfNeeded);
@@ -2484,6 +2948,9 @@ Item {
     }
 
     function selectGoBack() {
+        if (root.closeLr2Ranking()) {
+            return;
+        }
         let before = selectContext.historyStack.length;
         selectContext.goBack();
         if (selectContext.historyStack.length < before) {
@@ -2593,11 +3060,19 @@ Item {
         if (root.handleSelectPanelKey(key)) {
             return;
         }
+        if (root.isLr2RankingKey(key) && root.openLr2Ranking()) {
+            return;
+        }
         if (root.selectNavigationReady() && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
             root.selectGoBack();
         }
     }
-    Input.onButtonReleased: (key) => root.releaseSelectHeldButtonTimer(key)
+    Input.onButtonReleased: (key) => {
+        root.releaseSelectHeldButtonTimer(key);
+        if (root.isLr2RankingKey(key)) {
+            root.closeLr2Ranking();
+        }
+    }
 
     AudioPlayer {
         id: playMusic
@@ -3325,7 +3800,7 @@ Item {
                 MouseArea {
                     id: barRowMouseArea
                     readonly property var rowState: root.barBaseState(index)
-                    enabled: root.selectNavigationReady() && root.barRowCanClick(index) && !!rowState
+                    enabled: root.selectScrollReady() && root.barRowCanClick(index) && !!rowState
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     x: rowState ? Math.min(rowState.x, rowState.x + rowState.w) * skinScale : 0
                     y: rowState ? Math.min(rowState.y, rowState.y + rowState.h) * skinScale : 0
@@ -3372,16 +3847,18 @@ Item {
                     height: trackState ? Math.abs(trackState.h) * skinScale : 0
                     z: 100300 + index
                     function updateSlider(mouse) {
+                        let pointerX = (x + mouse.x) / skinScale;
+                        let pointerY = (y + mouse.y) / skinScale;
                         if (selectScroll) {
-                            root.setSelectScrollFromSliderPointer(model.src,
-                                                                  model.dsts,
-                                                                  (x + mouse.x) / skinScale,
-                                                                  (y + mouse.y) / skinScale);
+                            root.setSelectScrollFromSliderTrack(model.src,
+                                                                trackState,
+                                                                pointerX,
+                                                                pointerY);
                         } else if (genericSlider) {
-                            root.setLr2GenericSliderFromPointer(model.src,
-                                                                model.dsts,
-                                                                (x + mouse.x) / skinScale,
-                                                                (y + mouse.y) / skinScale);
+                            root.setLr2GenericSliderFromTrack(model.src,
+                                                              trackState,
+                                                              pointerX,
+                                                              pointerY);
                         }
                     }
                     onPressed: (mouse) => {

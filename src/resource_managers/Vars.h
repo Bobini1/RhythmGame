@@ -5,6 +5,7 @@
 #ifndef RHYTHMGAME_VARS_H
 #define RHYTHMGAME_VARS_H
 
+#include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ThemeFamily.h"
 
 #include <QObject>
@@ -316,6 +317,12 @@ class GeneralVars final : public QObject
      */
     Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
                  NOTIFY tableListUrlChanged RESET resetTableListUrl)
+    /**
+     * @brief Online ranking provider used by LR2 select skins.
+     */
+    Q_PROPERTY(qml_components::OnlineRankingModel::Provider lr2RankingProvider
+                 READ getLr2RankingProvider WRITE setLr2RankingProvider NOTIFY
+                   lr2RankingProviderChanged RESET resetLr2RankingProvider)
 
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
@@ -352,6 +359,8 @@ class GeneralVars final : public QObject
       "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
       "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
     QString tableListUrl = defaultTableListUrl;
+    qml_components::OnlineRankingModel::Provider lr2RankingProvider =
+      qml_components::OnlineRankingModel::Provider::RhythmGame;
 
     QList<QString> assetsPaths;
 
@@ -437,6 +446,10 @@ class GeneralVars final : public QObject
     auto getTableListUrl() const -> QString;
     void setTableListUrl(const QString& value);
     void resetTableListUrl();
+    auto getLr2RankingProvider() const
+      -> qml_components::OnlineRankingModel::Provider;
+    void setLr2RankingProvider(qml_components::OnlineRankingModel::Provider value);
+    void resetLr2RankingProvider();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -466,6 +479,7 @@ class GeneralVars final : public QObject
     void soundsetChanged();
     void soundsetPathChanged();
     void tableListUrlChanged();
+    void lr2RankingProviderChanged();
 };
 
 class Vars final : public QObject

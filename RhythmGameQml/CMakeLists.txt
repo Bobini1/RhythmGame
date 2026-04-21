@@ -11,6 +11,7 @@ qt6_add_shaders(RhythmGame_qml "shaders"
         FILES
         "ColorChanger.frag"
         "Lr2AddBlend.frag"
+        "Lr2SpriteAtlas.frag"
         "Lr2InvertBlend.frag"
         "Lr2Tint.frag"
 )

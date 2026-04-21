@@ -67,6 +67,9 @@ Item {
         if (selectContext.entryPlayLevel(entry) <= 0) {
             return false;
         }
+        if (selectContext.isRankingEntry(entry)) {
+            return srcData.variant === 6;
+        }
         let difficulty = selectContext.entryDifficulty(entry);
         if (difficulty <= 0) {
             return srcData.variant === 0;
