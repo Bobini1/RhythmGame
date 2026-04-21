@@ -220,6 +220,21 @@ Item {
                 }
                 Separator {
                 }
+                Choice {
+                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    id_: "lr2RankingProvider"
+                    choices: [OnlineRankingModel.RhythmGame, OnlineRankingModel.LR2IR, OnlineRankingModel.Tachi]
+                    displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
+                    name: qsTr("LR2 Ranking Provider")
+                    default_: OnlineRankingModel.RhythmGame
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
 
                 Choice {
                     destination: Rg.profileList.mainProfile.vars.generalVars
