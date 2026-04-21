@@ -152,6 +152,7 @@ Item {
     property real lr2ReadmeMouseY: 0
     property real selectMouseX: -100000
     property real selectMouseY: -100000
+    property int selectSliderFixedPoint: -1
     property bool selectScratchSoundReady: false
 
     function updateSelectMousePosition(x, y) {
@@ -169,6 +170,10 @@ Item {
 
     function updateSelectMouseFromArea(area, mouse) {
         if (root.effectiveScreenKey !== "select" || !area || !mouse) {
+            return;
+        }
+        if (area.parent === skinContainer) {
+            root.updateSelectMousePosition(area.x + mouse.x, area.y + mouse.y);
             return;
         }
         const point = area.mapToItem(skinContainer, mouse.x, mouse.y);
@@ -206,8 +211,13 @@ Item {
     }
 
     function setSliderRawValue(type, value) {
+        let key = String(type);
+        let rounded = Math.max(0, Math.min(100, Math.round(value)));
+        if (root.sliderRawValue(type) === rounded && root.lr2SliderValues[key] !== undefined) {
+            return;
+        }
         let copy = root.copyObject(root.lr2SliderValues);
-        copy[String(type)] = Math.max(0, Math.min(100, Math.round(value)));
+        copy[key] = rounded;
         root.lr2SliderValues = copy;
     }
 
@@ -566,9 +576,28 @@ Item {
         return selectContext.isChart(item) || selectContext.isEntry(item) ? item : null;
     }
 
-    readonly property var lr2RankingChart: root.currentLr2RankingChart()
+    property var lr2RankingChart: null
+    property string lr2RankingMd5: ""
+    property string lr2RankingRequestMd5: ""
     property bool lr2RankingOpenWhenReady: false
     property bool lr2InternetRankingOpenWhenReady: false
+
+    function refreshLr2RankingChart(commitRequest) {
+        if (commitRequest === undefined) {
+            commitRequest = true;
+        }
+        let nextChart = root.currentLr2RankingChart();
+        if (root.lr2RankingChart !== nextChart) {
+            root.lr2RankingChart = nextChart;
+        }
+        let nextMd5 = nextChart && nextChart.md5 ? String(nextChart.md5) : "";
+        if (root.lr2RankingMd5 !== nextMd5) {
+            root.lr2RankingMd5 = nextMd5;
+        }
+        if (commitRequest && root.lr2RankingRequestMd5 !== nextMd5) {
+            root.lr2RankingRequestMd5 = nextMd5;
+        }
+    }
 
     function lr2RankingProviderEnum() {
         let vars = root.mainGeneralVars();
@@ -576,8 +605,7 @@ Item {
     }
 
     function lr2RankingMatchesCurrentChart() {
-        let chart = root.lr2RankingChart;
-        let targetMd5 = chart && chart.md5 ? String(chart.md5).toLowerCase() : "";
+        let targetMd5 = root.lr2RankingMd5.length > 0 ? root.lr2RankingMd5.toLowerCase() : "";
         let loadedMd5 = lr2OnlineRanking.md5 ? String(lr2OnlineRanking.md5).toLowerCase() : "";
         return targetMd5.length > 0 && targetMd5 === loadedMd5;
     }
@@ -1116,11 +1144,11 @@ Item {
         return dsts[0].sortId || 0;
     }
 
-    function timelineSortId(dsts, skinTime, activeOptions) {
+    function timelineSortId(dsts, skinTime, activeOptions, timers) {
         let state = Lr2Timeline.getCurrentState(
             dsts,
             skinTime,
-            root.timers,
+            timers || root.timers,
             activeOptions || root.runtimeActiveOptions);
         if (state && state.sortId !== undefined) {
             return state.sortId;
@@ -1137,7 +1165,10 @@ Item {
         let activeOptions = root.effectiveScreenKey === "select" && type >= 3 && type <= 5
             ? root.barActiveOptions
             : root.runtimeActiveOptions;
-        return root.timelineSortId(dsts, skinTime, activeOptions) + index * 0.000001;
+        let timers = root.effectiveScreenKey === "select" && type >= 3 && type <= 5
+            ? root.barTimers
+            : root.timers;
+        return root.timelineSortId(dsts, skinTime, activeOptions, timers) + index * 0.000001;
     }
 
     function addOption(options, option) {
@@ -1194,6 +1225,8 @@ Item {
     property var baseActiveOptions: []
     property var barActiveOptions: []
     property var runtimeActiveOptions: []
+    readonly property var barTimers: ({ "0": 0 })
+    property string barActiveOptionsKey: ""
     property string baseActiveOptionsKey: ""
     property string runtimeActiveOptionsKey: ""
 
@@ -1201,8 +1234,7 @@ Item {
         return options.join(",");
     }
 
-    function buildBaseActiveOptions() {
-        let result = [];
+    function appendStaticSelectOptions(result) {
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
             ? skinModel.effectiveActiveOptions
             : root.parseActiveOptions;
@@ -1213,6 +1245,17 @@ Item {
         root.addOption(result, 46);  // difficulty filter enabled
         root.addOption(result, 52);  // non-extra mode
         root.addOption(result, 572); // not course-select mode
+    }
+
+    function buildBarActiveOptions() {
+        let result = [];
+        root.appendStaticSelectOptions(result);
+        return result;
+    }
+
+    function buildBaseActiveOptions() {
+        let result = root.buildBarActiveOptions();
+        result = result.slice();
         root.addOption(result, root.lr2RankingStatusOption());
         let rankingCount = root.lr2RankingPlayerCount();
         if (rankingCount === 0) {
@@ -1306,12 +1349,18 @@ Item {
     }
 
     function refreshActiveOptions() {
+        let nextBar = root.buildBarActiveOptions();
+        let nextBarKey = root.activeOptionsKey(nextBar);
+        if (nextBarKey !== root.barActiveOptionsKey) {
+            root.barActiveOptionsKey = nextBarKey;
+            root.barActiveOptions = nextBar;
+        }
+
         let nextBase = root.buildBaseActiveOptions();
         let nextBaseKey = root.activeOptionsKey(nextBase);
         if (nextBaseKey !== root.baseActiveOptionsKey) {
             root.baseActiveOptionsKey = nextBaseKey;
             root.baseActiveOptions = nextBase;
-            root.barActiveOptions = nextBase;
         } else {
             nextBase = root.baseActiveOptions;
         }
@@ -1344,6 +1393,7 @@ Item {
     }
 
     onSelectRevisionChanged: {
+        root.refreshLr2RankingChart(true);
         root.refreshActiveOptions();
         root.syncLr2RankingStats();
         root.scheduleSelectSideEffects();
@@ -1353,6 +1403,12 @@ Item {
         function onSelectionRevisionChanged() {
             root.restartSelectInfoTimer();
             root.playSelectScratch();
+        }
+
+        function onTransientSelectionChanged() {
+            root.restartSelectInfoTimer();
+            root.refreshLr2RankingChart(false);
+            root.refreshDeferredSelectChart();
         }
     }
     onEffectiveScreenKeyChanged: {
@@ -1364,6 +1420,7 @@ Item {
             root.selectPanelCloseElapsed = 0;
             root.lr2ReadmeMode = 0;
         }
+        root.refreshLr2RankingChart(true);
         root.refreshActiveOptions();
         root.restartSelectInfoTimer();
         root.scheduleSelectSideEffects();
@@ -1371,6 +1428,7 @@ Item {
     onChartChanged: {
         if (root.effectiveScreenKey !== "select") {
             root.deferredSelectChart = root.chart;
+            root.refreshLr2RankingChart(true);
             root.refreshActiveOptions();
         }
     }
@@ -1385,6 +1443,11 @@ Item {
 
     function scheduleSelectSideEffects() {
         if (!root.selectSideEffectsReady) {
+            return;
+        }
+
+        if (selectContext.scrollFixedPointDragging) {
+            root.refreshDeferredSelectChart();
             return;
         }
 
@@ -2520,7 +2583,12 @@ Item {
 
         let position = root.sliderPositionFromPointer(src, track, pointerX, pointerY);
         let maxFixed = Math.max(0, selectContext.logicalCount * 1000 - 1);
-        selectContext.setScrollFixedPoint(position * maxFixed, 100, false);
+        let fixedPoint = Math.max(0, Math.min(maxFixed, Math.round(position * maxFixed)));
+        if (fixedPoint === root.selectSliderFixedPoint) {
+            return;
+        }
+        root.selectSliderFixedPoint = fixedPoint;
+        selectContext.dragScrollFixedPoint(fixedPoint);
     }
 
     function setLr2GenericSliderFromPointer(src, dsts, pointerX, pointerY) {
@@ -2546,7 +2614,7 @@ Item {
         if (!dstList || dstList.length === 0) {
             dstList = data.onDsts || [];
         }
-        return Lr2Timeline.getCurrentState(dstList, root.barSkinTime, root.timers, root.barActiveOptions);
+        return Lr2Timeline.getCurrentState(dstList, root.barSkinTime, root.barTimers, root.barActiveOptions);
     }
 
     function interpolateBarState(fromState, toState, progress) {
@@ -2661,19 +2729,27 @@ Item {
     property int globalSkinTime: 0
     property double selectInfoStartMs: Date.now()
     property int selectInfoElapsed: 0
-    readonly property int selectAnimationLimit: Math.max(3200, skinModel.startInput)
+    property int selectAnimationLimit: 3200
+    property int barAnimationLimit: 2200
     readonly property int selectInfoAnimationLimit: 1000
     readonly property int renderSkinTime: root.effectiveScreenKey === "select"
         ? Math.min(root.globalSkinTime, root.selectAnimationLimit)
         : root.globalSkinTime
     readonly property int barSkinTime: root.effectiveScreenKey === "select"
-        ? Math.min(root.globalSkinTime, Math.max(2200, skinModel.startInput))
+        ? Math.min(root.globalSkinTime, root.barAnimationLimit)
         : root.renderSkinTime
     readonly property bool shouldAutoAdvance: root.effectiveScreenKey === "decide"
         && !!root.chart
         && skinModel.sceneTime > 0
 
+    function refreshSelectAnimationLimits() {
+        let startInput = skinModel.startInput || 0;
+        root.selectAnimationLimit = Math.max(3200, startInput);
+        root.barAnimationLimit = Math.max(2200, startInput);
+    }
+
     function restartSkinClock() {
+        root.refreshSelectAnimationLimits();
         root.sceneStartMs = Date.now();
         root.globalSkinTime = 0;
         root.selectHeldButtonSkinTime = 0;
@@ -2848,9 +2924,7 @@ Item {
 
     OnlineRankingModel {
         id: lr2OnlineRanking
-        md5: root.lr2RankingChart && root.lr2RankingChart.md5
-            ? String(root.lr2RankingChart.md5)
-            : ""
+        md5: root.lr2RankingRequestMd5
         limit: 999
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
@@ -2862,7 +2936,6 @@ Item {
             root.refreshActiveOptions();
         }
     }
-
     Connections {
         target: lr2OnlineRanking
 
@@ -2932,6 +3005,7 @@ Item {
 
     Component.onCompleted: {
         root.selectSideEffectsReady = true;
+        root.refreshLr2RankingChart(true);
         root.refreshActiveOptions();
         Qt.callLater(() => root.selectScratchSoundReady = true);
         Qt.callLater(root.restartSkinClock);
@@ -3715,7 +3789,7 @@ Item {
                             srcData: model.src
                             skinTime: root.barSkinTime
                             activeOptions: root.barActiveOptions
-                            timers: root.timers
+                            timers: root.barTimers
                             chart: root.renderChart
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
@@ -3734,7 +3808,7 @@ Item {
                             srcData: model.src
                             skinTime: root.barSkinTime
                             activeOptions: root.barActiveOptions
-                            timers: root.timers
+                            timers: root.barTimers
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
@@ -3751,7 +3825,7 @@ Item {
                             srcData: model.src
                             skinTime: root.barSkinTime
                             activeOptions: root.barActiveOptions
-                            timers: root.timers
+                            timers: root.barTimers
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
@@ -3794,38 +3868,73 @@ Item {
                 renderType: Text.NativeRendering
             }
 
-            Repeater {
-                model: root.effectiveScreenKey === "select" && skinModel.barRows ? skinModel.barRows.length : 0
+            MouseArea {
+                id: barRowsMouseArea
+                anchors.fill: parent
+                enabled: root.effectiveScreenKey === "select"
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                propagateComposedEvents: true
+                z: 100000
+                property int pressedRow: -1
 
-                MouseArea {
-                    id: barRowMouseArea
-                    readonly property var rowState: root.barBaseState(index)
-                    enabled: root.selectScrollReady() && root.barRowCanClick(index) && !!rowState
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton
-                    x: rowState ? Math.min(rowState.x, rowState.x + rowState.w) * skinScale : 0
-                    y: rowState ? Math.min(rowState.y, rowState.y + rowState.h) * skinScale : 0
-                    width: rowState ? Math.abs(rowState.w) * skinScale : 0
-                    height: rowState ? Math.abs(rowState.h) * skinScale : 0
-                    z: 100000 + index
-                    onPressed: (mouse) => root.updateSelectMouseFromArea(barRowMouseArea, mouse)
-                    onPositionChanged: (mouse) => {
-                        if (pressed) {
-                            root.updateSelectMouseFromArea(barRowMouseArea, mouse);
+                function rowAt(mouse) {
+                    if (!root.selectScrollReady()) {
+                        return -1;
+                    }
+                    let states = root.cachedBarBaseStates || [];
+                    let px = mouse.x / skinScale;
+                    let py = mouse.y / skinScale;
+                    for (let row = root.barClickEnd(); row >= root.barClickStart(); --row) {
+                        let state = row >= 0 && row < states.length ? states[row] : null;
+                        if (!state) {
+                            continue;
+                        }
+                        let left = Math.min(state.x, state.x + state.w);
+                        let right = Math.max(state.x, state.x + state.w);
+                        let top = Math.min(state.y, state.y + state.h);
+                        let bottom = Math.max(state.y, state.y + state.h);
+                        if (px >= left && px <= right && py >= top && py <= bottom) {
+                            return row;
                         }
                     }
-                    onClicked: (mouse) => {
-                        root.updateSelectMouseFromArea(barRowMouseArea, mouse);
-                        root.handleBarRowClick(index, mouse);
-                    }
-                    onDoubleClicked: (mouse) => {
-                        root.updateSelectMouseFromArea(barRowMouseArea, mouse);
-                        if (mouse.button === Qt.LeftButton) {
-                            selectContext.selectVisibleRow(index, skinModel.barCenter);
-                            root.selectGoForward(selectContext.current);
-                        }
-                    }
-                    onWheel: (wheel) => root.handleSelectWheel(wheel)
+                    return -1;
                 }
+
+                onPressed: (mouse) => {
+                    root.updateSelectMouseFromArea(barRowsMouseArea, mouse);
+                    pressedRow = rowAt(mouse);
+                    if (pressedRow < 0) {
+                        mouse.accepted = false;
+                    }
+                }
+                onPositionChanged: (mouse) => {
+                    if (pressedRow >= 0 && pressed) {
+                        root.updateSelectMouseFromArea(barRowsMouseArea, mouse);
+                    }
+                }
+                onClicked: (mouse) => {
+                    let row = pressedRow >= 0 ? pressedRow : rowAt(mouse);
+                    pressedRow = -1;
+                    if (row < 0) {
+                        mouse.accepted = false;
+                        return;
+                    }
+                    root.updateSelectMouseFromArea(barRowsMouseArea, mouse);
+                    root.handleBarRowClick(row, mouse);
+                }
+                onDoubleClicked: (mouse) => {
+                    let row = pressedRow >= 0 ? pressedRow : rowAt(mouse);
+                    pressedRow = -1;
+                    if (row < 0 || mouse.button !== Qt.LeftButton) {
+                        mouse.accepted = false;
+                        return;
+                    }
+                    root.updateSelectMouseFromArea(barRowsMouseArea, mouse);
+                    selectContext.selectVisibleRow(row, skinModel.barCenter);
+                    root.selectGoForward(selectContext.current);
+                }
+                onCanceled: pressedRow = -1
+                onWheel: (wheel) => root.handleSelectWheel(wheel)
             }
 
             Repeater {
@@ -3863,6 +3972,10 @@ Item {
                     }
                     onPressed: (mouse) => {
                         root.updateSelectMouseFromArea(sliderMouseArea, mouse);
+                        root.selectSliderFixedPoint = -1;
+                        if (selectScroll) {
+                            selectContext.beginScrollFixedPointDrag();
+                        }
                         updateSlider(mouse);
                         mouse.accepted = true;
                     }
@@ -3875,11 +3988,13 @@ Item {
                     onReleased: {
                         if (selectScroll) {
                             selectContext.finishScrollFixedPoint(100);
+                            root.selectSliderFixedPoint = -1;
                         }
                     }
                     onCanceled: {
                         if (selectScroll) {
                             selectContext.finishScrollFixedPoint(100);
+                            root.selectSliderFixedPoint = -1;
                         }
                     }
                     onWheel: (wheel) => root.handleSelectWheel(wheel)

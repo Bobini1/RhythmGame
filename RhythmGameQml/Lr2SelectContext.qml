@@ -37,6 +37,7 @@ Item {
     property int listRevision: 0
     property int selectionRevision: 0
     property int scoreRevision: 0
+    property bool scrollFixedPointDragging: false
     property bool scrollingText: false
     property string searchText: ""
     property var attachedTextCache: ({})
@@ -99,6 +100,7 @@ Item {
     readonly property real scrollOffset: normalizedVisualIndex - visualBaseIndex
 
     signal openedFolder()
+    signal transientSelectionChanged()
 
     function touch() {
         revision += 1;
@@ -113,6 +115,11 @@ Item {
         refreshSelectedScoreState();
         selectionRevision += 1;
         touch();
+    }
+
+    function touchTransientSelection() {
+        refreshSelectedScoreState();
+        transientSelectionChanged();
     }
 
     function stopVisualAnimation() {
@@ -640,6 +647,50 @@ Item {
         touchSelection();
     }
 
+    function beginScrollFixedPointDrag() {
+        scrollFixedPointDragging = true;
+    }
+
+    function dragScrollFixedPoint(fixedValue) {
+        if (logicalCount === 0) {
+            return;
+        }
+
+        let maxFixed = Math.max(0, logicalCount * 1000 - 1);
+        let clamped = Math.max(0, Math.min(maxFixed, Math.round(fixedValue)));
+        let exactVisual = clamped / 1000;
+
+        if (visualScrollAnimation.running) {
+            visualScrollAnimation.stop();
+        }
+
+        // Avoid the normal visual-index sync here. During scrollbar dragging we
+        // still update the active row, but not through the full committed
+        // selection path on every mouse move.
+        deferVisualSelectionSync = true;
+        if (selectedOffset !== 0) {
+            selectedOffset = 0;
+        }
+        if (visualIndex !== exactVisual) {
+            visualIndex = exactVisual;
+        }
+        if (targetVisualIndex !== exactVisual) {
+            targetVisualIndex = exactVisual;
+        }
+        animationStartVisualIndex = exactVisual;
+        barMoveStartMs = 0;
+        barMoveEndMs = 0;
+        deferVisualSelectionSync = false;
+
+        let nextIndex = normalizeIndex(Math.floor(clamped / 1000));
+        if (currentIndex !== nextIndex) {
+            currentIndex = nextIndex;
+            targetIndex = nextIndex;
+            scrollingText = false;
+            touchTransientSelection();
+        }
+    }
+
     function setScrollFixedPoint(fixedValue, durationMs, snapToEntry) {
         if (logicalCount === 0) {
             return;
@@ -663,15 +714,24 @@ Item {
         stopVisualAnimation();
         selectedOffset = 0;
         if (!shouldSnap) {
-            // While dragging the LR2 scrollbar, only move the visual list.
-            // Committing currentIndex here cascades into score/ranking/timer
-            // bindings on every mouse move, which is the profiler hot path.
+            // LR2 updates the active song while the scrollbar is dragged, but
+            // keeps the list under the pointer instead of snapping until release.
             deferVisualSelectionSync = true;
-            visualIndex = exactVisual;
             targetVisualIndex = exactVisual;
+            visualIndex = exactVisual;
             animationStartVisualIndex = visualIndex;
             barMoveStartMs = now;
             barMoveEndMs = now;
+            deferVisualSelectionSync = false;
+
+            let nextIndex = normalizeIndex(cursorBaseIndexForVisual(visualIndex));
+            if (oldIndex !== nextIndex || oldOffset !== selectedOffset) {
+                currentIndex = nextIndex;
+                targetIndex = nextIndex;
+                scrollingText = false;
+                scrollingTextTimer.restart();
+                touchTransientSelection();
+            }
             return;
         }
         deferVisualSelectionSync = false;
@@ -699,11 +759,14 @@ Item {
 
     function finishScrollFixedPoint(durationMs) {
         if (logicalCount === 0) {
+            scrollFixedPointDragging = false;
             return;
         }
 
         let now = Date.now();
         let wasDeferred = deferVisualSelectionSync;
+        let wasDragging = scrollFixedPointDragging;
+        scrollFixedPointDragging = false;
         deferVisualSelectionSync = false;
         if (!wasDeferred) {
             updateVisualIndex(now);
@@ -727,7 +790,7 @@ Item {
             visualScrollAnimation.duration = Math.max(1, durationMs !== undefined ? durationMs : 100);
             visualScrollAnimation.restart();
         }
-        if (oldIndex !== currentIndex || oldOffset !== selectedOffset) {
+        if (wasDragging || oldIndex !== currentIndex || oldOffset !== selectedOffset) {
             scrollingText = false;
             scrollingTextTimer.restart();
             touchSelection();
