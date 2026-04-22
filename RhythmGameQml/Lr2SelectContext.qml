@@ -33,6 +33,7 @@ Item {
     property real animationStartVisualIndex: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
+    property int scrollDirection: 0
     property int revision: 0
     property int listRevision: 0
     property int selectionRevision: 0
@@ -136,6 +137,7 @@ Item {
         animationStartVisualIndex = index;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
+        scrollDirection = 0;
     }
 
     function beginVisualMove(durationMs, now) {
@@ -287,6 +289,26 @@ Item {
         return !!item && item.__lr2RankingEntry === true;
     }
 
+    function classCoursesForTable(tableItem) {
+        let result = [];
+        let courseLists = tableItem && tableItem.courses ? [...tableItem.courses] : [];
+        for (let i = 0; i < courseLists.length; ++i) {
+            let courseList = courseLists[i];
+            if (isCourse(courseList)) {
+                result.push(courseList);
+                continue;
+            }
+            let courses = courseList ? [...courseList] : [];
+            for (let j = 0; j < courses.length; ++j) {
+                let courseItem = courses[j];
+                if (isCourse(courseItem)) {
+                    result.push(courseItem);
+                }
+            }
+        }
+        return result;
+    }
+
     Component.onDestruction: {
         Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
     }
@@ -358,22 +380,43 @@ Item {
 
         let result = passthrough.slice();
         for (let groupKey of groupOrder) {
-            let group = groups[groupKey].slice();
-            group.sort((a, b) => entryDifficulty(a) - entryDifficulty(b));
-            let selected = [];
-            let selectedDifficulty = -1;
-            for (let chart of group) {
+            let exact = [];
+            let lower = [];
+            let higher = [];
+            let unknown = [];
+            let lowerDifficulty = 0;
+            let higherDifficulty = 0;
+            for (let chart of groups[groupKey]) {
                 let difficulty = entryDifficulty(chart);
-                if (selected.length === 0
-                    || (selectedDifficulty < difficulty
-                        && difficulty <= difficultyFilter)) {
-                    selected = [chart];
-                    selectedDifficulty = difficulty;
-                } else if (difficulty === selectedDifficulty) {
-                    selected.push(chart);
+                if (difficulty === difficultyFilter) {
+                    exact.push(chart);
+                } else if (difficulty > 0 && difficulty < difficultyFilter) {
+                    if (difficulty > lowerDifficulty) {
+                        lower = [chart];
+                        lowerDifficulty = difficulty;
+                    } else if (difficulty === lowerDifficulty) {
+                        lower.push(chart);
+                    }
+                } else if (difficulty > difficultyFilter) {
+                    if (higherDifficulty === 0 || difficulty < higherDifficulty) {
+                        higher = [chart];
+                        higherDifficulty = difficulty;
+                    } else if (difficulty === higherDifficulty) {
+                        higher.push(chart);
+                    }
+                } else {
+                    unknown.push(chart);
                 }
             }
-            result.push(...selected);
+            if (exact.length > 0) {
+                result.push(...exact);
+            } else if (lower.length > 0) {
+                result.push(...lower);
+            } else if (higher.length > 0) {
+                result.push(...higher);
+            } else {
+                result.push(...unknown);
+            }
         }
         return result;
     }
@@ -528,8 +571,7 @@ Item {
     function open(item, initialItem) {
         let folder;
         if (isTable(item)) {
-            let courses = item.courses;
-            folder = [...item.levels, ...courses];
+            folder = [...item.levels, ...classCoursesForTable(item)];
         } else if (isLevel(item)) {
             folder = item.loadCharts();
         } else if (typeof item === "string") {
@@ -597,8 +639,8 @@ Item {
 
     function openRoot() {
         hideRanking();
-        historyStack = [];
-        goForward("", true);
+        historyStack = [""];
+        open("");
     }
 
     function normalizeIndex(index) {
@@ -648,6 +690,7 @@ Item {
     }
 
     function beginScrollFixedPointDrag() {
+        scrollDirection = 0;
         scrollFixedPointDragging = true;
     }
 
@@ -659,6 +702,7 @@ Item {
         let maxFixed = Math.max(0, logicalCount * 1000 - 1);
         let clamped = Math.max(0, Math.min(maxFixed, Math.round(fixedValue)));
         let exactVisual = clamped / 1000;
+        scrollDirection = exactVisual < visualIndex ? -1 : (exactVisual > visualIndex ? 1 : scrollDirection);
 
         if (visualScrollAnimation.running) {
             visualScrollAnimation.stop();
@@ -703,6 +747,7 @@ Item {
         let targetVisual = shouldSnap
             ? nearestVisualIndex(rounded, exactVisual)
             : exactVisual;
+        scrollDirection = targetVisual < visualIndex ? -1 : (targetVisual > visualIndex ? 1 : scrollDirection);
         let oldIndex = currentIndex;
         let oldOffset = selectedOffset;
         stopVisualAnimation();
@@ -768,6 +813,7 @@ Item {
 
         let rounded = Math.round(normalizedVisualIndex);
         let targetVisual = nearestVisualIndex(rounded, visualIndex);
+        scrollDirection = targetVisual < visualIndex ? -1 : (targetVisual > visualIndex ? 1 : scrollDirection);
         let oldIndex = currentIndex;
         let oldOffset = selectedOffset;
         stopVisualAnimation();
@@ -798,6 +844,7 @@ Item {
         let now = Date.now();
         let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
         updateVisualIndex(now);
+        scrollDirection = entries < 0 ? -1 : 1;
         targetVisualIndex += entries;
         let centerTarget = Math.round(targetVisualIndex);
         targetIndex = normalizeIndex(centerTarget + selectedOffset);
@@ -832,6 +879,14 @@ Item {
         scrollingText = false;
         scrollingTextTimer.restart();
         touchSelection();
+    }
+
+    function activationItem() {
+        if (logicalCount === 0) {
+            return null;
+        }
+        let index = normalizeIndex(Math.round(targetVisualIndex) + selectedOffset);
+        return items[index] || current;
     }
 
     function selectedRow(barCenter) {
@@ -1916,6 +1971,9 @@ Item {
             return Rg.profileList.mainProfile.vars.generalVars.offset || 0;
         case 13:
             return 0;
+        case 42:
+        case 96:
+            return chart ? (chart.playLevel || 0) : 0;
         case 45:
         case 46:
         case 47:
@@ -2001,9 +2059,15 @@ Item {
         case 219:
             return hasRankingStats ? rankingClearPercent("FC", "PERFECT", "MAX") : (counts.play > 0 ? Math.round(counts.fc * 100 / counts.play) : 0);
         case 90:
-            return chart ? Math.round(chart.minBpm || chart.mainBpm || 0) : 0;
+        case 290:
+            return chart && (chart.maxBpm || chart.mainBpm)
+                ? Math.round(chart.maxBpm || chart.mainBpm)
+                : -1;
         case 91:
-            return chart ? Math.round(chart.maxBpm || chart.mainBpm || 0) : 0;
+        case 291:
+            return chart && (chart.minBpm || chart.mainBpm)
+                ? Math.round(chart.minBpm || chart.mainBpm)
+                : -1;
         default:
             return 0;
         }

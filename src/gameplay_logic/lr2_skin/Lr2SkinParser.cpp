@@ -1288,7 +1288,7 @@ parseFile(const std::filesystem::path& filePath,
 auto
 parseOptions(const QVariantList& activeOptions) -> std::set<int>
 {
-    std::set<int> options;
+    std::set<int> options{0};
     for (const auto& optionValue : activeOptions) {
         bool ok = false;
         const int option = optionValue.toInt(&ok);

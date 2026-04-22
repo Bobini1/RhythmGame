@@ -34,31 +34,48 @@ Item {
         return absPath;
     }
 
-    function textForValue() {
-        let text = Math.round(root.value).toString();
-        let keta = root.srcData ? root.srcData.keta || 0 : 0;
-        if (keta > 0 && root.srcData && root.srcData.align === 2) {
-            while (text.length < keta) {
-                text = "0" + text;
-            }
+    function digitCount(value) {
+        return Math.abs(Math.round(value)).toString().length;
+    }
+
+    function leftPad(text, width) {
+        let result = text;
+        while (result.length < width) {
+            result = " " + result;
         }
-        return text;
+        return result.slice(result.length - width);
+    }
+
+    function rightPad(text, width) {
+        let result = text;
+        while (result.length < width) {
+            result += " ";
+        }
+        return result.slice(0, width);
+    }
+
+    function textForValue() {
+        let text = Math.abs(Math.round(root.value)).toString();
+        let keta = root.srcData ? root.srcData.keta || 0 : 0;
+        if (keta <= 0) {
+            return text;
+        }
+
+        // LR2 align=0 is right-aligned in a fixed keta-width digit field.
+        if (root.srcData && root.srcData.align === 0) {
+            return leftPad(text, keta);
+        }
+        return rightPad(text, keta);
     }
 
     readonly property string displayText: textForValue()
     readonly property real digitW: root.currentState ? root.currentState.w * root.scaleOverride : 0
     readonly property real digitH: root.currentState ? root.currentState.h * root.scaleOverride : 0
     readonly property real textW: displayText.length * digitW
-    readonly property real alignOffset: {
-        if (!currentState || !srcData) return 0;
-        if (srcData.align === 1) {
-            return Math.max(0, currentState.w * scaleOverride - textW);
-        }
-        if (srcData.align === 2) {
-            return Math.max(0, (currentState.w * scaleOverride - textW) / 2);
-        }
-        return 0;
-    }
+    readonly property int centeredMissingDigits: srcData && srcData.align === 2 && srcData.keta > 0
+        ? Math.max(0, srcData.keta - digitCount(root.value))
+        : 0
+    readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
 
     Item {
         id: numberBox
@@ -87,13 +104,16 @@ Item {
 
                 readonly property string ch: root.displayText.charAt(index)
                 readonly property int digit: {
-                    let parsed = parseInt(ch);
-                    return isNaN(parsed) ? 0 : parsed;
+                    if (ch.length <= 0) {
+                        return -1;
+                    }
+                    let code = ch.charCodeAt(0);
+                    return code >= 48 && code <= 57 ? code - 48 : -1;
                 }
 
                 ShaderEffect {
                     anchors.fill: parent
-                    visible: digitAtlas.status === Image.Ready
+                    visible: digitAtlas.status === Image.Ready && digitRoot.digit >= 0
                     blending: true
                     property variant source: digitAtlas
                     property color tint: "white"
@@ -103,6 +123,7 @@ Item {
                     property real tolerance: 0.03125
                     property vector4d sourceRect: {
                         if (!root.srcData
+                            || digitRoot.digit < 0
                             || digitAtlas.implicitWidth <= 0
                             || digitAtlas.implicitHeight <= 0) {
                             return Qt.vector4d(0, 0, 1, 1);
