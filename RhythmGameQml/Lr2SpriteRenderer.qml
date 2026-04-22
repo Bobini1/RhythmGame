@@ -1,4 +1,5 @@
 import QtQuick
+import QtMultimedia
 
 import "Lr2Timeline.js" as Lr2Timeline
 
@@ -23,6 +24,7 @@ Item {
     property int frameOverride: -1
     property var stateOverride: null
     property bool forceHidden: false
+    property bool mediaActive: true
 
     readonly property var currentState: forceHidden ? null : (stateOverride || Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions))
     // LR2 blend modes we can express via Qt Quick primitives:
@@ -61,8 +63,32 @@ Item {
     readonly property bool hasWholeTextureSource: srcData && !root.isSolidFill
         && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
     readonly property bool hasCroppedTextureSource: srcData && !root.isSolidFill && srcData.w > 0 && srcData.h > 0
-    readonly property bool hasDrawableTexture: root.resolvedSource !== ""
+    readonly property bool isVideoSource: /\.(mpg|mpeg|mp4|avi|wmv|mov|mkv)$/i.test(root.resolvedSource)
+    readonly property bool hasDrawableVideo: root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
+    readonly property bool hasDrawableTexture: !root.isVideoSource && root.resolvedSource !== ""
+        && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
+    readonly property bool shouldPlayVideo: root.mediaActive
+        && root.hasDrawableVideo
+        && root.currentState
+        && root.currentState.a > 0
+        && root.currentState.w > 0
+        && root.currentState.h > 0
+
+    function syncVideoPlayback() {
+        if (root.shouldPlayVideo) {
+            if (videoPlayer.playbackState !== MediaPlayer.PlayingState) {
+                videoPlayer.play();
+            }
+        } else {
+            videoPlayer.stop();
+        }
+    }
+
+    onShouldPlayVideoChanged: syncVideoPlayback()
+    onResolvedSourceChanged: syncVideoPlayback()
+    Component.onCompleted: syncVideoPlayback()
+    Component.onDestruction: videoPlayer.stop()
 
     readonly property string resolvedSource: {
         if (!srcData) return "";
@@ -121,6 +147,27 @@ Item {
             origin.x: sprite.width * root.anchor.x
             origin.y: sprite.height * root.anchor.y
             angle: root.currentState ? root.currentState.angle : 0
+        }
+
+        VideoOutput {
+            id: videoOutput
+            anchors.fill: parent
+            visible: root.hasDrawableVideo
+            fillMode: VideoOutput.Stretch
+        }
+
+        AudioOutput {
+            id: videoAudio
+            muted: true
+            volume: 0
+        }
+
+        MediaPlayer {
+            id: videoPlayer
+            source: root.hasDrawableVideo ? root.resolvedSource : ""
+            videoOutput: videoOutput
+            audioOutput: videoAudio
+            loops: MediaPlayer.Infinite
         }
 
         Image {

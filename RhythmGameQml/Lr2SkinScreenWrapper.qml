@@ -3736,6 +3736,7 @@ Item {
                                 timers: root.timers
                                 chart: root.renderChart
                                 scaleOverride: skinScale
+                                mediaActive: root.enabled
                                 transColor: skinModel.transColor
                                 frameOverride: root.buttonFrame(model.src)
                                 stateOverride: root.spriteStateOverride(model.src, model.dsts)
