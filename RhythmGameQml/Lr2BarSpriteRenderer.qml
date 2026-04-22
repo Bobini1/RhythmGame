@@ -16,7 +16,7 @@ Item {
     property real barScrollOffset: 0
     property int barCenter: 0
     property color transColor: "black"
-    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision : 0
+    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision + selectContext.folderLampRevision : 0
     readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
 

@@ -1473,17 +1473,22 @@ Item {
     }
 
     function appendEntryStatusOptions(options, item, selectedChart) {
+        let folderLike = selectContext.isFolderLikeForLamp(item);
         if (!selectContext.isChart(item)
                 && !selectContext.isEntry(item)
-                && !selectContext.isRankingEntry(item)) {
+                && !selectContext.isRankingEntry(item)
+                && !folderLike) {
             return;
         }
-        if (root.chartKeymodeForStatus(item, selectedChart) <= 0) {
+        if (!folderLike && root.chartKeymodeForStatus(item, selectedChart) <= 0) {
             return;
         }
         let lamp = selectContext.entryLamp(item);
         if (lamp >= 0 && lamp <= 5) {
             root.addOption(options, 100 + lamp);
+        }
+        if (folderLike) {
+            return;
         }
 
         let rank = selectContext.entryRank(item);

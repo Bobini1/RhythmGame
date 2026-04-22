@@ -10,6 +10,7 @@ Item {
     property var folderContents: []
     property var historyStack: []
     property var scores: ({})
+    property var folderLampByKey: ({})
     property var chartGroupCache: ({})
     property var chartDifficultyCache: ({})
     property var playerStats: ({
@@ -43,6 +44,8 @@ Item {
     property int listRevision: 0
     property int selectionRevision: 0
     property int scoreRevision: 0
+    property int folderLampRevision: 0
+    property int folderLampRequestRevision: 0
     property bool scrollFixedPointDragging: false
     property bool scrollingText: false
     property string searchText: ""
@@ -305,6 +308,81 @@ Item {
         return result;
     }
 
+    function isFolderLikeForLamp(item) {
+        return typeof item === "string" || isTable(item) || isLevel(item);
+    }
+
+    function folderLampKey(item) {
+        if (typeof item === "string") {
+            return "folder:" + item;
+        }
+        if (isTable(item)) {
+            return "table:" + (item.url || item.name || "");
+        }
+        if (isLevel(item)) {
+            let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
+            let parentKey = isTable(parent) ? (parent.url || parent.name || "") : "";
+            return "level:" + parentKey + ":" + (item.name || "");
+        }
+        return "";
+    }
+
+    function folderLampFromScores(result) {
+        if (!result) {
+            return 0;
+        }
+        if (result instanceof tableQueryResult) {
+            result = result.scores;
+        }
+
+        let lamp = 5;
+        let seen = false;
+        if ((result.unplayed || 0) > 0) {
+            return 0;
+        }
+
+        for (let scoreList of Object.values(result.scores || {})) {
+            seen = true;
+            lamp = Math.min(lamp, clearTypeLamp(getClearType(scoreList)));
+        }
+        return seen ? lamp : 0;
+    }
+
+    function refreshFolderLamps() {
+        let db = Rg.profileList?.mainProfile?.scoreDb;
+        if (!db) {
+            folderLampByKey = ({});
+            folderLampRevision += 1;
+            return;
+        }
+
+        let request = ++folderLampRequestRevision;
+        folderLampByKey = ({});
+        folderLampRevision += 1;
+
+        for (let item of folderContents) {
+            if (!isFolderLikeForLamp(item)) {
+                continue;
+            }
+
+            let key = folderLampKey(item);
+            if (!key) {
+                continue;
+            }
+
+            db.getScores(item).then((result) => {
+                if (request !== folderLampRequestRevision) {
+                    return;
+                }
+                let next = Object.assign({}, folderLampByKey);
+                next[key] = folderLampFromScores(result);
+                folderLampByKey = next;
+                folderLampRevision += 1;
+                touch();
+            });
+        }
+    }
+
     Component.onDestruction: {
         Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
     }
@@ -534,6 +612,7 @@ Item {
                 touch();
             });
             refreshPreviewFiles();
+            refreshFolderLamps();
             return;
         }
         Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
@@ -551,6 +630,7 @@ Item {
             touch();
         });
         refreshPreviewFiles();
+        refreshFolderLamps();
     }
 
     function refreshPlayerStats() {
@@ -1401,6 +1481,11 @@ Item {
     function entryLamp(item) {
         if (isRankingEntry(item)) {
             return clearTypeLamp(item.bestClearType);
+        }
+        if (isFolderLikeForLamp(item)) {
+            let revisionMarker = folderLampRevision;
+            let key = folderLampKey(item);
+            return key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
         }
         let clear = getClearType(cachedEntryScores(item));
         return clearTypeLamp(clear);
