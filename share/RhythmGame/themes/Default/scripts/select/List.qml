@@ -83,13 +83,23 @@ PathView {
     }
 
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
-    property bool movingManually: movingTimer.running
+    readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0
     property bool scrollingText: false
     property var sort: null
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
-    property double moveEndMs: 0
+    readonly property int lr2ScrollUp: 1
+    readonly property int lr2ScrollDown: 2
+    property int listTopbarFixed: 0
+    property int listCalculatedBarFixed: 0
+    property int oldBarFixed: 0
+    property int nowBarFixed: 0
+    property int pendingWheelSteps: 0
+    property int scrollDirection: 0
+    property double barMoveStartMs: 0
+    property double barMoveEndMs: 0
+    readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
     property var historyStack: []
 
@@ -104,29 +114,107 @@ PathView {
         }
     }
 
-    property int targetIndex: 0
+    function wrapBarFixed(value) {
+        let span = count * 1000;
+        if (span <= 0) {
+            return 0;
+        }
+        return ((value % span) + span) % span;
+    }
+
+    function lr2ChangeValueByTime(from, to, start, end, now) {
+        if (end <= start || now >= end) {
+            return to;
+        }
+        if (now <= start) {
+            return from;
+        }
+        return Math.trunc(from + (to - from) * ((now - start) / (end - start)));
+    }
+
+    function cursorIndexForFixed(fixed) {
+        let normalized = wrapBarFixed(fixed);
+        let base = Math.floor(normalized / 1000);
+        if (normalized % 1000 !== 0 && scrollDirection === lr2ScrollDown) {
+            base += 1;
+        }
+        return count > 0 ? ((base % count) + count) % count : 0;
+    }
+
+    function publishBarState() {
+        listCalculatedBarFixed = wrapBarFixed(listTopbarFixed);
+        if (count <= 0) {
+            return;
+        }
+        let nextIndex = cursorIndexForFixed(listCalculatedBarFixed);
+        if (currentIndex !== nextIndex) {
+            currentIndex = nextIndex;
+            scrollingText = false;
+            scrollingTextTimer.restart();
+        }
+    }
+
+    function setNavigationImmediate(index) {
+        let normalized = count > 0 ? ((index % count) + count) % count : 0;
+        currentIndex = normalized;
+        let fixed = normalized * 1000;
+        listTopbarFixed = fixed;
+        listCalculatedBarFixed = fixed;
+        oldBarFixed = fixed;
+        nowBarFixed = fixed;
+        pendingWheelSteps = 0;
+        scrollDirection = 0;
+        barMoveStartMs = 0;
+        barMoveEndMs = 0;
+        scrollingText = false;
+        scrollingTextTimer.restart();
+    }
+
+    function updateVisualIndex(now) {
+        if (pendingWheelSteps !== 0) {
+            let steps = pendingWheelSteps;
+            pendingWheelSteps = 0;
+            applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
+        }
+        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        publishBarState();
+    }
+
+    function applyLr2ScrollDelta(entries, durationMs, now) {
+        if (count === 0 || entries === 0) {
+            return;
+        }
+        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        oldBarFixed = listTopbarFixed;
+        nowBarFixed += Math.round(entries * 1000);
+        scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
+        barMoveStartMs = now;
+        barMoveEndMs = now + Math.max(1, durationMs);
+        highlightMoveDuration = Math.max(1, durationMs);
+        publishBarState();
+    }
+
+    function queueWheelSteps(steps) {
+        pendingWheelSteps += steps;
+    }
 
     function scrollBy(entries, durationMs) {
         if (count === 0 || entries === 0) return;
+        let now = Date.now();
         let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
-        highlightMoveDuration = duration;
-        targetIndex = (currentIndex + entries + count) % count;
-        currentIndex = targetIndex;
-        moveEndMs = Date.now() + duration;
-        movingTimer.restart();
-        scrollingText = false;
-        scrollingTextTimer.restart();
+        updateVisualIndex(now);
+        applyLr2ScrollDelta(entries, duration, now);
     }
 
     function scrollByKey(entries, repeated) {
         if (count === 0 || entries === 0) return;
         let now = Date.now();
         if (repeated) {
-            if (now <= moveEndMs - 20) return;
+            if (now <= barMoveEndMs - 20) return;
             scrollBy(entries, lr2SpeedNext);
             return;
         }
-        if (now <= moveEndMs) return;
+        if (now <= barMoveEndMs) return;
         scrollBy(entries, lr2SpeedFirst);
     }
 
@@ -139,9 +227,7 @@ PathView {
     }
 
     function resetNavigation() {
-        movingTimer.stop();
-        moveEndMs = 0;
-        targetIndex = currentIndex;
+        setNavigationImmediate(currentIndex);
     }
 
     AudioPlayer {
@@ -538,20 +624,28 @@ PathView {
         }
     }
     Timer {
-        id: movingTimer
+        id: movementTick
 
-        interval: pathView.highlightMoveDuration
+        interval: 16
+        repeat: true
+        running: pathView.visualMoveActive || pathView.pendingWheelSteps !== 0
+        onTriggered: pathView.updateVisualIndex(Date.now())
     }
     MouseArea {
         id: mouse
 
         anchors.fill: parent
+        property real wheelRemainder: 0
 
         onWheel: wheel => {
-            if (wheel.angleDelta.y > 0)
-                pathView.scrollBy(-1, pathView.lr2WheelDuration);
-            else
-                pathView.scrollBy(1, pathView.lr2WheelDuration);
+            let rawSteps = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y / 120 : wheel.pixelDelta.y / 120;
+            wheelRemainder += rawSteps;
+            let steps = wheelRemainder > 0 ? Math.floor(wheelRemainder) : Math.ceil(wheelRemainder);
+            if (steps !== 0) {
+                wheelRemainder -= steps;
+                pathView.queueWheelSteps(steps);
+            }
+            wheel.accepted = true;
         }
     }
 }

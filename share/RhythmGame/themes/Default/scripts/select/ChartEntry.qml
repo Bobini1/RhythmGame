@@ -77,8 +77,8 @@ Image {
         anchors.fill: parent
 
         onClicked: {
+            pathView.setNavigationImmediate(index);
             pathView.goForward(modelData);
-            pathView.positionViewAtIndex(index, PathView.Center);
         }
     }
 }
