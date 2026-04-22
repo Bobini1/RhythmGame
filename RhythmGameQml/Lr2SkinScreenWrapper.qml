@@ -1701,10 +1701,6 @@ Item {
             root.restartSelectInfoTimer();
             root.playSelectScratch();
         }
-
-        function onTransientSelectionChanged() {
-            root.handleTransientSelectState();
-        }
     }
     onEffectiveScreenKeyChanged: {
         if (root.effectiveScreenKey !== "select") {
@@ -1728,11 +1724,6 @@ Item {
         root.commitLr2RankingRequest();
         root.applyRankingStatsToSelectContext();
         root.updateSelectSideEffects();
-    }
-
-    function handleTransientSelectState() {
-        root.restartSelectInfoTimer();
-        root.updateDisplayedSelectChart();
     }
 
     function handleScreenContextChanged() {
@@ -2771,7 +2762,7 @@ Item {
             : Math.ceil(root.selectWheelRemainder);
         if (steps !== 0) {
             root.selectWheelRemainder -= steps;
-            selectContext.scrollBy(-steps, selectContext.lr2WheelDuration);
+            selectContext.queueWheelSteps(steps);
         }
         wheel.accepted = true;
     }
@@ -3124,7 +3115,9 @@ Item {
         running: root.effectiveScreenKey === "select"
         repeat: true
         onTriggered: {
-            root.selectSourceSkinTime = Date.now() - root.sceneStartMs;
+            let now = Date.now();
+            root.selectSourceSkinTime = now - root.sceneStartMs;
+            selectContext.updateVisualIndex(now);
         }
     }
 
@@ -3265,9 +3258,9 @@ Item {
             result[11] = root.renderSkinTime - root.selectInfoElapsed;
             if (selectContext.visualMoveActive || selectContext.scrollFixedPointDragging) {
                 result[10] = root.selectScrollStartSkinTime;
-                if (selectContext.scrollDirection < 0) {
+                if (selectContext.scrollDirection === selectContext.lr2ScrollUp) {
                     result[12] = root.selectScrollStartSkinTime;
-                } else if (selectContext.scrollDirection > 0) {
+                } else if (selectContext.scrollDirection === selectContext.lr2ScrollDown) {
                     result[13] = root.selectScrollStartSkinTime;
                 }
             } else if (root.acceptsInput) {

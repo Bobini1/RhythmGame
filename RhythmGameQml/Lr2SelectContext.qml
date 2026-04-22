@@ -28,6 +28,11 @@ Item {
     property int targetIndex: currentIndex
     property real visualIndex: 0
     property real targetVisualIndex: 0
+    property int listTopbarFixed: 0
+    property int listCalculatedBarFixed: 0
+    property int oldBarFixed: 0
+    property int nowBarFixed: 0
+    property int pendingWheelSteps: 0
     property int selectedOffset: 0
     property bool deferVisualSelectionSync: false
     property real animationStartVisualIndex: 0
@@ -89,20 +94,20 @@ Item {
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
     readonly property int lr2ClickDuration: 200
+    readonly property int lr2ScrollUp: 1
+    readonly property int lr2ScrollDown: 2
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: items.length
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
     readonly property var current: logicalCount > 0 ? items[currentIndex] : null
-    readonly property int visualDirection: targetVisualIndex > visualIndex + 0.001 ? 1 : (targetVisualIndex < visualIndex - 0.001 ? -1 : 0)
-    readonly property bool visualMoveActive: Math.abs(targetVisualIndex - visualIndex) > 0.001
+    readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
+    readonly property bool visualMoveActive: Math.abs(nowBarFixed - listTopbarFixed) > 0
     readonly property real normalizedVisualIndex: normalizedVisualIndexFor(visualIndex)
     readonly property int visualBaseIndex: Math.floor(normalizedVisualIndex)
     readonly property real scrollOffset: normalizedVisualIndex - visualBaseIndex
 
     signal openedFolder()
-    signal transientSelectionChanged()
-
     function touch() {
         revision += 1;
     }
@@ -118,62 +123,57 @@ Item {
         touch();
     }
 
-    function touchTransientSelection() {
-        refreshSelectedScoreState();
-        transientSelectionChanged();
+    function wrapBarFixed(value) {
+        let span = logicalCount * 1000;
+        if (span <= 0) {
+            return 0;
+        }
+        return ((value % span) + span) % span;
     }
 
-    function stopVisualAnimation() {
-        if (visualScrollAnimation.running) {
-            visualScrollAnimation.stop();
+    function clampBarFixed(value) {
+        let maxFixed = Math.max(0, logicalCount * 1000 - 1);
+        return Math.max(0, Math.min(maxFixed, Math.round(value)));
+    }
+
+    function lr2ChangeValueByTime(from, to, start, end, now) {
+        if (end <= start || now >= end) {
+            return to;
         }
+        if (now <= start) {
+            return from;
+        }
+        return Math.trunc(from + (to - from) * ((now - start) / (end - start)));
+    }
+
+    function publishBarState() {
+        listCalculatedBarFixed = wrapBarFixed(listTopbarFixed);
+        deferVisualSelectionSync = true;
+        visualIndex = listCalculatedBarFixed / 1000.0;
+        targetVisualIndex = nowBarFixed / 1000.0;
+        animationStartVisualIndex = oldBarFixed / 1000.0;
+        deferVisualSelectionSync = false;
+        return syncCurrentToVisual();
     }
 
     function setVisualIndexImmediate(index) {
-        stopVisualAnimation();
-        deferVisualSelectionSync = false;
-        visualIndex = index;
-        targetVisualIndex = index;
-        animationStartVisualIndex = index;
+        let fixed = Math.round(index * 1000);
+        listTopbarFixed = fixed;
+        oldBarFixed = fixed;
+        nowBarFixed = fixed;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
         scrollDirection = 0;
+        publishBarState();
     }
 
     function beginVisualMove(durationMs, now) {
         if (now === undefined) {
             now = Date.now();
-            updateVisualIndex(now);
         }
-        stopVisualAnimation();
-        deferVisualSelectionSync = false;
-        animationStartVisualIndex = visualIndex;
         barMoveStartMs = now;
         barMoveEndMs = now + Math.max(1, durationMs);
-        if (Math.abs(targetVisualIndex - visualIndex) <= 0.001) {
-            visualIndex = targetVisualIndex;
-            syncCurrentToVisual();
-            return;
-        }
-        visualScrollAnimation.from = visualIndex;
-        visualScrollAnimation.to = targetVisualIndex;
-        visualScrollAnimation.duration = Math.max(1, durationMs);
-        visualScrollAnimation.restart();
-    }
-
-    NumberAnimation {
-        id: visualScrollAnimation
-        target: root
-        property: "visualIndex"
-        easing.type: Easing.Linear
-
-        onStopped: root.syncCurrentToVisual()
-    }
-
-    onVisualIndexChanged: {
-        if (!deferVisualSelectionSync) {
-            syncCurrentToVisual();
-        }
+        publishBarState();
     }
 
     function normalizedVisualIndexFor(index) {
@@ -197,12 +197,17 @@ Item {
     }
 
     function cursorBaseIndexForVisual(index) {
-        let base = baseIndexForVisual(index);
+        return cursorBaseIndexForFixed(Math.floor(normalizedVisualIndexFor(index) * 1000));
+    }
+
+    function cursorBaseIndexForFixed(fixed) {
+        let normalized = wrapBarFixed(fixed);
+        let base = Math.floor(normalized / 1000);
         // OpenLR2 renders with floor(listCalculatedBar), but GetSongCursor()
         // advances by one while scrolling down and the fixed-point remainder is
         // non-zero. This keeps the selected item identity in lockstep with LR2
         // without changing the stationary glow row.
-        if (visualRemainderFor(index) > 0.001 && targetVisualIndex > index + 0.001) {
+        if (normalized % 1000 !== 0 && scrollDirection === lr2ScrollDown) {
             base += 1;
         }
         return base;
@@ -210,41 +215,32 @@ Item {
 
     function syncCurrentToVisual() {
         if (logicalCount === 0) {
-            return;
+            return false;
         }
-        let nextIndex = normalizeIndex(cursorBaseIndexForVisual(visualIndex) + selectedOffset);
+        let nextIndex = normalizeIndex(cursorBaseIndexForFixed(listCalculatedBarFixed) + selectedOffset);
         if (currentIndex === nextIndex) {
-            return;
+            return false;
         }
         currentIndex = nextIndex;
         targetIndex = nextIndex;
         scrollingText = false;
         scrollingTextTimer.restart();
         touchSelection();
+        return true;
     }
 
     function updateVisualIndex(now) {
-        if (visualScrollAnimation.running) {
-            syncCurrentToVisual();
-            return;
+        if (pendingWheelSteps !== 0) {
+            let steps = pendingWheelSteps;
+            pendingWheelSteps = 0;
+            applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
         }
+        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        publishBarState();
+    }
 
-        let distance = targetVisualIndex - visualIndex;
-        if (Math.abs(distance) <= 0.001) {
-            visualIndex = targetVisualIndex;
-            syncCurrentToVisual();
-            return;
-        }
-
-        if (barMoveEndMs <= barMoveStartMs || now >= barMoveEndMs) {
-            visualIndex = targetVisualIndex;
-            syncCurrentToVisual();
-            return;
-        }
-
-        let progress = Math.max(0, Math.min(1, (now - barMoveStartMs) / (barMoveEndMs - barMoveStartMs)));
-        visualIndex = animationStartVisualIndex + (targetVisualIndex - animationStartVisualIndex) * progress;
-        syncCurrentToVisual();
+    function queueWheelSteps(steps) {
+        pendingWheelSteps += steps;
     }
 
     function nearestVisualIndex(index, anchor) {
@@ -666,9 +662,10 @@ Item {
         let now = Date.now();
         updateVisualIndex(now);
         selectedOffset = 0;
-        currentIndex = normalized;
-        targetIndex = normalized;
-        targetVisualIndex = nearestVisualIndex(normalized, targetVisualIndex);
+        let targetVisual = nearestVisualIndex(normalized, listTopbarFixed / 1000.0);
+        oldBarFixed = listTopbarFixed;
+        nowBarFixed = Math.round(targetVisual * 1000);
+        scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp : lr2ScrollDown;
         beginVisualMove(lr2ClickDuration, now);
         scrollingText = false;
         scrollingTextTimer.restart();
@@ -694,39 +691,26 @@ Item {
         scrollFixedPointDragging = true;
     }
 
+    function setBarFixedImmediate(fixedValue) {
+        let clamped = clampBarFixed(fixedValue);
+        listTopbarFixed = clamped;
+        oldBarFixed = clamped;
+        nowBarFixed = clamped;
+        barMoveStartMs = 0;
+        barMoveEndMs = 0;
+        return publishBarState();
+    }
+
     function dragScrollFixedPoint(fixedValue) {
         if (logicalCount === 0) {
             return;
         }
 
-        let maxFixed = Math.max(0, logicalCount * 1000 - 1);
-        let clamped = Math.max(0, Math.min(maxFixed, Math.round(fixedValue)));
-        let exactVisual = clamped / 1000;
-        scrollDirection = exactVisual < visualIndex ? -1 : (exactVisual > visualIndex ? 1 : scrollDirection);
-
-        if (visualScrollAnimation.running) {
-            visualScrollAnimation.stop();
-        }
-
-        // Avoid the normal visual-index sync here. During scrollbar dragging we
-        // still update the active row, but not through the full committed
-        // selection path on every mouse move.
-        deferVisualSelectionSync = true;
+        let clamped = clampBarFixed(fixedValue);
+        scrollDirection = clamped < listCalculatedBarFixed ? lr2ScrollUp
+            : (clamped > listCalculatedBarFixed ? lr2ScrollDown : scrollDirection);
         selectedOffset = 0;
-        visualIndex = exactVisual;
-        targetVisualIndex = exactVisual;
-        animationStartVisualIndex = exactVisual;
-        barMoveStartMs = 0;
-        barMoveEndMs = 0;
-        deferVisualSelectionSync = false;
-
-        let nextIndex = normalizeIndex(Math.floor(clamped / 1000));
-        if (currentIndex !== nextIndex) {
-            currentIndex = nextIndex;
-            targetIndex = nextIndex;
-            scrollingText = false;
-            touchTransientSelection();
-        }
+        setBarFixedImmediate(clamped);
     }
 
     function setScrollFixedPoint(fixedValue, durationMs, snapToEntry) {
@@ -734,62 +718,30 @@ Item {
             return;
         }
 
-        let maxFixed = Math.max(0, logicalCount * 1000 - 1);
-        let clamped = Math.max(0, Math.min(maxFixed, Math.round(fixedValue)));
+        let clamped = clampBarFixed(fixedValue);
         let rounded = Math.floor(clamped / 1000);
         if (clamped % 1000 > 499) {
             rounded += 1;
         }
 
         let now = Date.now();
-        let exactVisual = clamped / 1000;
         let shouldSnap = snapToEntry === undefined ? true : !!snapToEntry;
-        let targetVisual = shouldSnap
-            ? nearestVisualIndex(rounded, exactVisual)
-            : exactVisual;
-        scrollDirection = targetVisual < visualIndex ? -1 : (targetVisual > visualIndex ? 1 : scrollDirection);
-        let oldIndex = currentIndex;
         let oldOffset = selectedOffset;
-        stopVisualAnimation();
         selectedOffset = 0;
         if (!shouldSnap) {
-            // LR2 updates the active song while the scrollbar is dragged, but
-            // keeps the list under the pointer instead of snapping until release.
-            deferVisualSelectionSync = true;
-            targetVisualIndex = exactVisual;
-            visualIndex = exactVisual;
-            animationStartVisualIndex = visualIndex;
-            barMoveStartMs = now;
-            barMoveEndMs = now;
-            deferVisualSelectionSync = false;
-
-            let nextIndex = normalizeIndex(cursorBaseIndexForVisual(visualIndex));
-            if (oldIndex !== nextIndex || oldOffset !== selectedOffset) {
-                currentIndex = nextIndex;
-                targetIndex = nextIndex;
-                scrollingText = false;
-                scrollingTextTimer.restart();
-                touchTransientSelection();
-            }
+            setBarFixedImmediate(clamped);
             return;
         }
-        deferVisualSelectionSync = false;
-        visualIndex = exactVisual;
-        targetVisualIndex = targetVisual;
-        animationStartVisualIndex = visualIndex;
+        setBarFixedImmediate(clamped);
+        oldBarFixed = listTopbarFixed;
+        nowBarFixed = Math.round(nearestVisualIndex(rounded, clamped / 1000.0) * 1000);
+        scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
+            : (nowBarFixed > listTopbarFixed ? lr2ScrollDown : scrollDirection);
         barMoveStartMs = now;
-        barMoveEndMs = shouldSnap
-            ? now + Math.max(1, durationMs !== undefined ? durationMs : 100)
-            : now;
-        currentIndex = normalizeIndex(rounded);
-        targetIndex = currentIndex;
-        if (shouldSnap && Math.abs(targetVisualIndex - visualIndex) > 0.001) {
-            visualScrollAnimation.from = visualIndex;
-            visualScrollAnimation.to = targetVisualIndex;
-            visualScrollAnimation.duration = Math.max(1, durationMs !== undefined ? durationMs : 100);
-            visualScrollAnimation.restart();
-        }
-        if (oldIndex !== currentIndex || oldOffset !== selectedOffset) {
+        barMoveEndMs = now + Math.max(1, durationMs !== undefined ? durationMs : 100);
+        targetIndex = normalizeIndex(rounded);
+        let selectionTouched = publishBarState();
+        if (!selectionTouched && oldOffset !== selectedOffset) {
             scrollingText = false;
             scrollingTextTimer.restart();
             touchSelection();
@@ -811,30 +763,37 @@ Item {
             updateVisualIndex(now);
         }
 
-        let rounded = Math.round(normalizedVisualIndex);
-        let targetVisual = nearestVisualIndex(rounded, visualIndex);
-        scrollDirection = targetVisual < visualIndex ? -1 : (targetVisual > visualIndex ? 1 : scrollDirection);
-        let oldIndex = currentIndex;
+        let rounded = Math.floor(listCalculatedBarFixed / 1000);
+        if (listCalculatedBarFixed % 1000 > 499) {
+            rounded += 1;
+        }
         let oldOffset = selectedOffset;
-        stopVisualAnimation();
         selectedOffset = 0;
-        targetVisualIndex = targetVisual;
-        animationStartVisualIndex = visualIndex;
+        oldBarFixed = listTopbarFixed;
+        nowBarFixed = Math.round(nearestVisualIndex(rounded, listTopbarFixed / 1000.0) * 1000);
+        scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
+            : (nowBarFixed > listTopbarFixed ? lr2ScrollDown : scrollDirection);
         barMoveStartMs = now;
         barMoveEndMs = now + Math.max(1, durationMs !== undefined ? durationMs : 100);
-        currentIndex = normalizeIndex(rounded);
-        targetIndex = currentIndex;
-        if (Math.abs(targetVisualIndex - visualIndex) > 0.001) {
-            visualScrollAnimation.from = visualIndex;
-            visualScrollAnimation.to = targetVisualIndex;
-            visualScrollAnimation.duration = Math.max(1, durationMs !== undefined ? durationMs : 100);
-            visualScrollAnimation.restart();
-        }
-        if (wasDragging || oldIndex !== currentIndex || oldOffset !== selectedOffset) {
+        targetIndex = normalizeIndex(rounded);
+        let selectionTouched = publishBarState();
+        if (!selectionTouched && (wasDragging || oldOffset !== selectedOffset)) {
             scrollingText = false;
             scrollingTextTimer.restart();
             touchSelection();
         }
+    }
+
+    function applyLr2ScrollDelta(entries, durationMs, now) {
+        if (logicalCount === 0 || entries === 0) {
+            return;
+        }
+        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        oldBarFixed = listTopbarFixed;
+        nowBarFixed += Math.round(entries * 1000);
+        scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
+        targetIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
+        beginVisualMove(durationMs, now);
     }
 
     function scrollBy(entries, durationMs) {
@@ -844,11 +803,7 @@ Item {
         let now = Date.now();
         let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
         updateVisualIndex(now);
-        scrollDirection = entries < 0 ? -1 : 1;
-        targetVisualIndex += entries;
-        let centerTarget = Math.round(targetVisualIndex);
-        targetIndex = normalizeIndex(centerTarget + selectedOffset);
-        beginVisualMove(duration, now);
+        applyLr2ScrollDelta(entries, duration, now);
     }
 
     function scrollByKey(entries, repeated) {
@@ -885,8 +840,7 @@ Item {
         if (logicalCount === 0) {
             return null;
         }
-        let index = normalizeIndex(Math.round(targetVisualIndex) + selectedOffset);
-        return items[index] || current;
+        return current;
     }
 
     function selectedRow(barCenter) {
