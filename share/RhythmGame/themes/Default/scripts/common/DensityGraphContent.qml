@@ -27,18 +27,22 @@ Item {
     property real positionRatio: -1
     property real positionLineOpacity: 1.0
 
-    readonly property var  normalNotes: histogramData[0]
-    readonly property var  scratches:   histogramData[1]
-    readonly property var  lns:         histogramData[2]
-    readonly property var  bss:         histogramData[3]
+    readonly property var  normalNotes: histogramData && histogramData[0] ? histogramData[0] : []
+    readonly property var  scratches:   histogramData && histogramData[1] ? histogramData[1] : []
+    readonly property var  lns:         histogramData && histogramData[2] ? histogramData[2] : []
+    readonly property var  bss:         histogramData && histogramData[3] ? histogramData[3] : []
+    readonly property int  bucketCount: Math.max(normalNotes.length, scratches.length, lns.length, bss.length)
     readonly property real maxDensity: {
         let max = null;
-        for (let i = 0; i < normalNotes.length; i++) {
-            let total = normalNotes[i] + scratches[i] + lns[i] + bss[i];
+        for (let i = 0; i < bucketCount; i++) {
+            let total = densityAt(normalNotes, i) + densityAt(scratches, i) + densityAt(lns, i) + densityAt(bss, i);
             if (max === null || total > max)
                 max = total;
         }
         return Math.max(max || 1, 15);
+    }
+    function densityAt(series, index) {
+        return series && index < series.length ? (Number(series[index]) || 0) : 0;
     }
 
     Item {
@@ -75,7 +79,7 @@ Item {
             z: -1
 
             Repeater {
-                model: root.normalNotes.length
+            model: root.bucketCount
 
                 ColumnLayout {
                     spacing: 0
@@ -84,30 +88,30 @@ Item {
                     Layout.alignment: Qt.AlignTop
 
                     Rectangle {
-                        Layout.preferredHeight: inner.height * (root.bss[index] / root.maxDensity)
+                        Layout.preferredHeight: inner.height * (root.densityAt(root.bss, index) / root.maxDensity)
                         Layout.fillWidth: true
                         color: "#3BDC3B"
                     }
                     Rectangle {
-                        Layout.preferredHeight: inner.height * (root.scratches[index] / root.maxDensity)
+                        Layout.preferredHeight: inner.height * (root.densityAt(root.scratches, index) / root.maxDensity)
                         Layout.fillWidth: true
                         color: "#FF4444"
                     }
                     Rectangle {
-                        Layout.preferredHeight: inner.height * (root.lns[index] / root.maxDensity)
+                        Layout.preferredHeight: inner.height * (root.densityAt(root.lns, index) / root.maxDensity)
                         Layout.fillWidth: true
                         color: "#4444FF"
                     }
                     Rectangle {
-                        Layout.preferredHeight: inner.height * (root.normalNotes[index] / root.maxDensity)
+                        Layout.preferredHeight: inner.height * (root.densityAt(root.normalNotes, index) / root.maxDensity)
                         Layout.fillWidth: true
                         color: "#CCCCCC"
                     }
                     // Transparent spacer so bars grow from the bottom
                     Rectangle {
                         Layout.preferredHeight: inner.height * (
-                            (root.maxDensity - root.bss[index] - root.scratches[index]
-                             - root.lns[index] - root.normalNotes[index]) / root.maxDensity)
+                            (root.maxDensity - root.densityAt(root.bss, index) - root.densityAt(root.scratches, index)
+                             - root.densityAt(root.lns, index) - root.densityAt(root.normalNotes, index)) / root.maxDensity)
                         Layout.fillWidth: true
                         color: "transparent"
                     }
