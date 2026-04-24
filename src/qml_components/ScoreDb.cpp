@@ -19,15 +19,15 @@ constexpr int maxVariables = 999;
 namespace {
 struct ScoreStatsRow
 {
-    qint64 playCount{};
-    qint64 clearCount{};
-    qint64 failCount{};
-    qint64 perfectCount{};
-    qint64 greatCount{};
-    qint64 goodCount{};
-    qint64 badCount{};
-    qint64 poorCount{};
-    qint64 maxCombo{};
+    int64_t playCount{};
+    int64_t clearCount{};
+    int64_t failCount{};
+    int64_t perfectCount{};
+    int64_t greatCount{};
+    int64_t goodCount{};
+    int64_t badCount{};
+    int64_t poorCount{};
+    int64_t maxCombo{};
 };
 }
 
