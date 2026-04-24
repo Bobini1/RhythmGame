@@ -179,10 +179,11 @@ Item {
         let options = [
             0,  // DEFAULT is always true for #IF.
             20, // no select side panel active.
-            30, // BGA size NORMAL.
+            30, // stock LR2 parse-time default: BGA normal.
             autoplayOn ? 33 : 32,
-            34, // ghost off.
-            38, // scoregraph off.
+            34, // stock LR2 parse-time default: ghost off.
+            39, // stock LR2 parse-time default: score graph on.
+            41, // stock LR2 parse-time default: BGA on.
             46, // difficulty filter enabled.
             52, // non-extra mode.
             54, // 1P autoscratch/assist off.
@@ -264,6 +265,8 @@ Item {
     readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
     readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE", "LAST SCORE"]
     readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
+    readonly property var lr2BgaSizeLabels: ["NORMAL", "EXTEND"]
+    readonly property var lr2GhostLabels: ["OFF", "TYPE A", "TYPE B", "TYPE C"]
     readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
     readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
     readonly property string lr2SearchPlaceholderText: "検索語を入力"
@@ -668,6 +671,47 @@ Item {
         }
     }
 
+    readonly property int lr2BgaSizeIndex: {
+        let vars = root.mainGeneralVars();
+        return vars ? Math.max(0, Math.min(1, vars.bgaSize || 0)) : 0;
+    }
+
+    function setBgaSizeIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.bgaSize = root.wrapValue(index, root.lr2BgaSizeLabels.length);
+        }
+    }
+
+    readonly property int lr2ScoreGraphIndex: {
+        let vars = root.mainGeneralVars();
+        return vars && vars.scoreGraphEnabled === false ? 0 : 1;
+    }
+
+    function setScoreGraphIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.scoreGraphEnabled = root.wrapValue(index, 2) === 1;
+        }
+    }
+
+    readonly property int lr2GhostIndex: {
+        let vars = root.mainGeneralVars();
+        return vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
+    }
+
+    function setGhostIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (vars) {
+            vars.ghostPosition = root.wrapValue(index, root.lr2GhostLabels.length);
+        }
+    }
+
+    function lr2BgaEnabled() {
+        let vars = root.mainGeneralVars();
+        return !vars || vars.bgaOn !== false;
+    }
+
     readonly property int lr2ScoreTargetIndex: {
         let vars = root.mainGeneralVars();
         return vars ? root.indexOfValue(root.lr2TargetValues, vars.scoreTarget) : 0;
@@ -682,13 +726,13 @@ Item {
 
     readonly property int lr2TargetPercent: {
         let vars = root.mainGeneralVars();
-        return vars ? Math.round((vars.targetScoreFraction || 0) * 100) : 80;
+        return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
     }
 
     function setTargetPercent(percent) {
         let vars = root.mainGeneralVars();
         if (vars) {
-            vars.targetScoreFraction = Math.max(0, Math.min(1, percent / 100));
+            vars.targetScoreFraction = Math.max(0, Math.min(1, Math.floor(percent) / 100));
         }
     }
 
@@ -760,9 +804,9 @@ Item {
         root.lr2RankingRequestMd5 = root.lr2RankingMd5;
     }
 
-    function lr2RankingProviderEnum() {
+    function rankingProviderEnum() {
         let vars = root.mainGeneralVars();
-        return vars ? vars.lr2RankingProvider : OnlineRankingModel.RhythmGame;
+        return vars ? vars.rankingProvider : OnlineRankingModel.RhythmGame;
     }
 
     function lr2RankingMatchesCurrentChart() {
@@ -810,7 +854,7 @@ Item {
             entries.push(source[i]);
         }
 
-        if (root.lr2RankingProviderEnum() !== OnlineRankingModel.LR2IR) {
+        if (root.rankingProviderEnum() !== OnlineRankingModel.LR2IR) {
             return entries;
         }
 
@@ -855,7 +899,7 @@ Item {
             let source = lr2OnlineRanking.rankingEntries || [];
             count = source.length || 0;
         }
-        if (root.lr2RankingProviderEnum() === OnlineRankingModel.LR2IR && root.lr2LocalRankingEntry()) {
+        if (root.rankingProviderEnum() === OnlineRankingModel.LR2IR && root.lr2LocalRankingEntry()) {
             count += 1;
         }
         return count;
@@ -875,7 +919,7 @@ Item {
         if (!profile) {
             return 0;
         }
-        if (root.lr2RankingProviderEnum() === OnlineRankingModel.Tachi) {
+        if (root.rankingProviderEnum() === OnlineRankingModel.Tachi) {
             return profile.tachiData ? Number(profile.tachiData.userId || 0) : 0;
         }
         return profile.onlineUserData ? Number(profile.onlineUserData.userId || 0) : 0;
@@ -1050,7 +1094,7 @@ Item {
             return "";
         }
 
-        switch (root.lr2RankingProviderEnum()) {
+        switch (root.rankingProviderEnum()) {
         case OnlineRankingModel.RhythmGame: {
             let vars = root.mainGeneralVars();
             let baseUrl = vars && vars.websiteBaseUrl
@@ -1098,7 +1142,7 @@ Item {
             return false;
         }
 
-        if (root.lr2RankingProviderEnum() === OnlineRankingModel.Tachi
+        if (root.rankingProviderEnum() === OnlineRankingModel.Tachi
                 && (!root.lr2RankingMatchesCurrentChart()
                     || !lr2OnlineRanking.chartId
                     || lr2OnlineRanking.loading)) {
@@ -1476,6 +1520,18 @@ Item {
                 || (src.resultChartType || 0) > 0));
     }
 
+    function elementUsesLiveSelectClock(src, dsts) {
+        return root.effectiveScreenKey === "select"
+            && (Lr2Timeline.dstsLoopContinuously(dsts)
+                || Lr2Timeline.srcCyclesContinuously(src));
+    }
+
+    function skinTimeForElement(src, dsts) {
+        return root.elementUsesLiveSelectClock(src, dsts)
+            ? root.globalSkinTime
+            : root.renderSkinTime;
+    }
+
     function dstCollectionUsesActiveOptions(collection) {
         if (!collection) {
             return false;
@@ -1583,9 +1639,9 @@ Item {
         }
     }
 
-    function appendCommonRuntimeOptions(options, scoreGraphOn) {
+    function appendCommonRuntimeOptions(options) {
         let vars = root.mainGeneralVars();
-        root.addOption(options, 30); // BGA size NORMAL; LR2 EXTEND is not exposed here yet.
+        root.addOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
         if (root.isGameplayScreen()) {
             root.addOption(options, root.gameplayAutoplayActive() ? 33 : 32);
         } else {
@@ -1594,8 +1650,9 @@ Item {
         if (root.effectiveScreenKey === "decide") {
             root.addOption(options, 33); // LR2 decide reports both autoplay states true.
         }
-        root.addOption(options, 34); // ghost off; ghost play is not exposed from select.
-        root.addOption(options, scoreGraphOn ? 39 : 38);
+        let ghostPosition = vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
+        root.addOption(options, 34 + ghostPosition);
+        root.addOption(options, vars && vars.scoreGraphEnabled === false ? 38 : 39);
         root.addOption(options, vars && vars.bgaOn === false ? 40 : 41);
         root.addOption(options, root.gaugeColorOption(1));
         root.addOption(options, root.gaugeColorOption(2));
@@ -3467,14 +3524,41 @@ Item {
         : root.buildRuntimeActiveOptions(root.baseActiveOptions)
     readonly property var barTimers: ({ "0": 0 })
 
+    function runtimeOwnsOptionPair(option) {
+        switch (option) {
+        case 30:
+        case 31:
+        case 32:
+        case 33:
+        case 34:
+        case 35:
+        case 36:
+        case 37:
+        case 38:
+        case 39:
+        case 40:
+        case 41:
+        case 42:
+        case 43:
+        case 44:
+        case 45:
+        case 50:
+        case 51:
+        case 80:
+        case 81:
+            return true;
+        default:
+            return false;
+        }
+    }
+
     function appendParserActiveOptions(result) {
         root.addOption(result, 0);
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
             ? skinModel.effectiveActiveOptions
             : root.parseActiveOptions;
         for (let option of staticOptions) {
-            if (root.isGameplayScreen()
-                    && (option === 32 || option === 33 || option === 80 || option === 81)) {
+            if (root.runtimeOwnsOptionPair(option)) {
                 continue;
             }
             root.addOption(result, option);
@@ -3540,10 +3624,10 @@ Item {
             root.appendCommonRuntimeOptions(result);
             root.appendDecideOptions(result);
         } else if (root.isGameplayScreen()) {
-            root.appendCommonRuntimeOptions(result, true);
+            root.appendCommonRuntimeOptions(result);
             root.appendGameplayRuntimeOptions(result);
         } else if (root.isResultScreen()) {
-            root.appendCommonRuntimeOptions(result, true);
+            root.appendCommonRuntimeOptions(result);
             root.appendResultRuntimeOptions(result);
         } else {
             root.appendChartOptions(result, root.chart && root.chart.chartData ? root.chart.chartData : null);
@@ -3880,15 +3964,15 @@ Item {
         case 70:
             return root.optionText(["OFF", "FLIP"], root.lr2FlipIndex);
         case 71:
-            return "OFF";
+            return root.optionText(["OFF", "ON"], root.lr2ScoreGraphIndex);
         case 72:
-            return "OFF";
+            return root.optionText(root.lr2GhostLabels, root.lr2GhostIndex);
         case 73:
             return root.optionText(["OFF", "ON"], root.lr2LaneCoverIndex);
         case 74:
             return root.optionText(root.lr2HiSpeedFixLabels, root.lr2HiSpeedFixIndex);
         case 75:
-            return "NORMAL";
+            return root.optionText(root.lr2BgaSizeLabels, root.lr2BgaSizeIndex);
         case 76:
             return root.optionText(["ON", "OFF"], root.lr2BgaIndex);
         case 77:
@@ -4552,13 +4636,13 @@ Item {
         case 56:
             return root.lr2BattleIndex;
         case 70:
-            return 0;
+            return root.lr2ScoreGraphIndex;
         case 71:
-            return 0;
+            return root.lr2GhostIndex;
         case 72:
             return root.lr2BgaIndex;
         case 73:
-            return 0;
+            return root.lr2BgaSizeIndex;
         case 75:
             return 0;
         case 80:
@@ -4753,11 +4837,11 @@ Item {
         root.addHeldButtonTimer(result, 117, Input.col27);
     }
 
-    function spriteSkinTime(dsts) {
+    function spriteSkinTime(src, dsts) {
         let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
         return root.isSelectHeldButtonTimer(timer)
             ? (root.hasSelectHeldButtonTimers ? root.selectHeldButtonSkinTime : root.currentSelectHeldButtonSkinTime())
-            : root.renderSkinTime;
+            : root.skinTimeForElement(src, dsts);
     }
 
     function buttonPanelMatches(src) {
@@ -4925,16 +5009,23 @@ Item {
             optionChanged = true;
             break;
         case 70:
+            root.setScoreGraphIndex(root.lr2ScoreGraphIndex + delta);
+            optionChanged = true;
+            break;
         case 71:
-            // Score graph and ghost options are not backed yet.
+            root.setGhostIndex(root.lr2GhostIndex + delta);
+            optionChanged = true;
             break;
         case 72:
             root.setBgaIndex(root.lr2BgaIndex + delta);
             optionChanged = true;
             break;
         case 73:
+            root.setBgaSizeIndex(root.lr2BgaSizeIndex + delta);
+            optionChanged = true;
+            break;
         case 75:
-            // BGA size and judge auto-adjust are not selectable from LR2 skins yet.
+            // Judge auto-adjust is unsupported, so LR2 menus stay at OFF.
             break;
         case 74:
             root.adjustOffset(delta);
@@ -5804,7 +5895,7 @@ Item {
         limit: 999
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
-        provider: root.lr2RankingProviderEnum()
+        provider: root.rankingProviderEnum()
         webApiUrl: root.mainGeneralVars() ? root.mainGeneralVars().webApiUrl : ""
 
         onMd5Changed: {
@@ -6234,7 +6325,9 @@ Item {
                     readonly property var elementTimers: usesTimers
                         ? root.timers
                         : root.zeroTimers
-                    readonly property int elementSkinTime: usesSkinTime ? root.renderSkinTime : 0
+                    readonly property int elementSkinTime: usesSkinTime
+                        ? root.skinTimeForElement(model.src, model.dsts)
+                        : 0
 
                     sourceComponent: {
                         if (model.type === 0) {
@@ -6269,7 +6362,7 @@ Item {
                             width: skinW * skinScale
                             height: skinH * skinScale
                             readonly property int spriteSkinClock: elemLoader.usesSkinTime
-                                ? root.spriteSkinTime(model.dsts)
+                                ? root.spriteSkinTime(model.src, model.dsts)
                                 : 0
 
                             Lr2SpriteRenderer {
@@ -6337,7 +6430,7 @@ Item {
                             timers: elemLoader.elementTimers
                             chart: root.chart
                             scaleOverride: skinScale
-                            mediaActive: root.enabled && root.isGameplayScreen()
+                            mediaActive: root.enabled && root.isGameplayScreen() && root.lr2BgaEnabled()
                             poorVisible: root.gameplayPoorBgaVisible()
                         }
                     }

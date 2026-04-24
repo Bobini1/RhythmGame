@@ -99,6 +99,7 @@ PathView {
     property int scrollDirection: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
+    property real wheelRemainder: 0
     readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
     property var historyStack: []
@@ -196,6 +197,17 @@ PathView {
 
     function queueWheelSteps(steps) {
         pendingWheelSteps += steps;
+    }
+
+    function handleWheel(wheel) {
+        let rawSteps = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y / 120 : wheel.pixelDelta.y / 120;
+        wheelRemainder += rawSteps;
+        let steps = wheelRemainder > 0 ? Math.floor(wheelRemainder) : Math.ceil(wheelRemainder);
+        if (steps !== 0) {
+            wheelRemainder -= steps;
+            queueWheelSteps(steps);
+        }
+        wheel.accepted = true;
     }
 
     function scrollBy(entries, durationMs) {
@@ -635,17 +647,10 @@ PathView {
         id: mouse
 
         anchors.fill: parent
-        property real wheelRemainder: 0
+        acceptedButtons: Qt.NoButton
 
         onWheel: wheel => {
-            let rawSteps = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y / 120 : wheel.pixelDelta.y / 120;
-            wheelRemainder += rawSteps;
-            let steps = wheelRemainder > 0 ? Math.floor(wheelRemainder) : Math.ceil(wheelRemainder);
-            if (steps !== 0) {
-                wheelRemainder -= steps;
-                pathView.queueWheelSteps(steps);
-            }
-            wheel.accepted = true;
+            pathView.handleWheel(wheel);
         }
     }
 }

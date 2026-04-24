@@ -145,19 +145,6 @@
           }
         },
         {
-          "id": "scoreGraphEnabled",
-          "name": {
-            "en": "Show Score Graph",
-            "pl": "Pokaż wykres wyników"
-          },
-          "type": "boolean",
-          "default": true,
-          "description": {
-            "en": "Show the score graph.",
-            "pl": "Pokaż wykres wyników."
-          }
-        },
-        {
           "name": {
             "en": "Density Graph",
             "pl": "Wykres gęstości"

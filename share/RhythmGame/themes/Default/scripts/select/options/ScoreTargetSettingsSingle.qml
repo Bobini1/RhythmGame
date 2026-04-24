@@ -83,7 +83,7 @@ Rectangle {
         strings: {
             let base = qsTr("MAX;MAX-;AAA;AAA-;AA;AA-;A;A-;B;C;D;E;F").split(";");
             if (base.length < scoreTarget.model.length) {
-                base.unshift((Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100).toLocaleString(Qt.locale(Rg.languages.selectedLanguage)) + "%");
+                base.unshift(Math.floor(Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100).toLocaleString(Qt.locale(Rg.languages.selectedLanguage)) + "%");
             }
             return base;
         }

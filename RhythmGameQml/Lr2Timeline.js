@@ -89,6 +89,25 @@ function srcUsesDynamicTimer(src) {
     return (src.timer || 0) !== 0 && (src.cycle || 0) > 0;
 }
 
+function dstsLoopContinuously(dsts) {
+    if (!dsts || dsts.length < 2 || !dsts[0]) return false;
+    var last = dsts[dsts.length - 1];
+    if (!last) return false;
+    var endTime = last.time || 0;
+    var loopTo = dsts[0].loop;
+    return loopTo !== undefined
+        && loopTo !== null
+        && loopTo >= 0
+        && loopTo < endTime;
+}
+
+function srcCyclesContinuously(src) {
+    if (!src || !src.cycle || src.cycle <= 0) return false;
+    var divX = Math.max(1, src.div_x || 1);
+    var divY = Math.max(1, src.div_y || 1);
+    return divX * divY > 1;
+}
+
 // Map a timer index to the time it fired (ms since app start / some global clock).
 // `timers` is expected to be an object like { 0: 0 } meaning "timer 0 fired at t=0".
 // Returns -1 if the timer has not fired.

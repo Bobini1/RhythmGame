@@ -162,6 +162,25 @@ class GeneralVars final : public QObject
     Q_PROPERTY(bool bgaOn READ getBgaOn WRITE setBgaOn NOTIFY bgaOnChanged RESET
                  resetBgaOn)
     /**
+     * @brief LR2-style BGA size option.
+     * @details 0 is NORMAL, 1 is EXTEND. Default skins may use their own
+     * theme variables for BGA geometry and ignore this.
+     */
+    Q_PROPERTY(int bgaSize READ getBgaSize WRITE setBgaSize NOTIFY
+                 bgaSizeChanged RESET resetBgaSize)
+    /**
+     * @brief Whether gameplay score graphs are enabled.
+     */
+    Q_PROPERTY(bool scoreGraphEnabled READ getScoreGraphEnabled WRITE
+                 setScoreGraphEnabled NOTIFY scoreGraphEnabledChanged RESET
+                   resetScoreGraphEnabled)
+    /**
+     * @brief LR2-style ghost position option.
+     * @details 0 is OFF, 1-3 are LR2 ghost types A-C.
+     */
+    Q_PROPERTY(int ghostPosition READ getGhostPosition WRITE setGhostPosition
+                 NOTIFY ghostPositionChanged RESET resetGhostPosition)
+    /**
      * @brief The note order algorithm used for reordering notes in charts.
      */
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
@@ -318,11 +337,11 @@ class GeneralVars final : public QObject
     Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
                  NOTIFY tableListUrlChanged RESET resetTableListUrl)
     /**
-     * @brief Online ranking provider used by LR2 select skins.
+     * @brief Preferred online ranking provider.
      */
-    Q_PROPERTY(qml_components::OnlineRankingModel::Provider lr2RankingProvider
-                 READ getLr2RankingProvider WRITE setLr2RankingProvider NOTIFY
-                   lr2RankingProviderChanged RESET resetLr2RankingProvider)
+    Q_PROPERTY(qml_components::OnlineRankingModel::Provider rankingProvider READ
+                 getRankingProvider WRITE setRankingProvider NOTIFY
+                   rankingProviderChanged RESET resetRankingProvider)
 
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
@@ -333,6 +352,9 @@ class GeneralVars final : public QObject
     bool hiddenOn = false;
     double hiddenRatio = 0.1;
     bool bgaOn = true;
+    int bgaSize = 0;
+    bool scoreGraphEnabled = true;
+    int ghostPosition = 0;
     NoteOrderAlgorithm noteOrderAlgorithm = NoteOrderAlgorithm::Normal;
     NoteOrderAlgorithm noteOrderAlgorithmP2 = NoteOrderAlgorithm::Normal;
     HiSpeedFix hiSpeedFix = HiSpeedFix::Main;
@@ -359,7 +381,7 @@ class GeneralVars final : public QObject
       "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
       "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
     QString tableListUrl = defaultTableListUrl;
-    qml_components::OnlineRankingModel::Provider lr2RankingProvider =
+    qml_components::OnlineRankingModel::Provider rankingProvider =
       qml_components::OnlineRankingModel::Provider::RhythmGame;
 
     QList<QString> assetsPaths;
@@ -390,6 +412,15 @@ class GeneralVars final : public QObject
     auto getBgaOn() const -> bool;
     void setBgaOn(bool value);
     void resetBgaOn();
+    auto getBgaSize() const -> int;
+    void setBgaSize(int value);
+    void resetBgaSize();
+    auto getScoreGraphEnabled() const -> bool;
+    void setScoreGraphEnabled(bool value);
+    void resetScoreGraphEnabled();
+    auto getGhostPosition() const -> int;
+    void setGhostPosition(int value);
+    void resetGhostPosition();
     auto getNoteOrderAlgorithm() const -> NoteOrderAlgorithm;
     void setNoteOrderAlgorithm(NoteOrderAlgorithm value);
     void resetNoteOrderAlgorithm();
@@ -446,10 +477,10 @@ class GeneralVars final : public QObject
     auto getTableListUrl() const -> QString;
     void setTableListUrl(const QString& value);
     void resetTableListUrl();
-    auto getLr2RankingProvider() const
+    auto getRankingProvider() const
       -> qml_components::OnlineRankingModel::Provider;
-    void setLr2RankingProvider(qml_components::OnlineRankingModel::Provider value);
-    void resetLr2RankingProvider();
+    void setRankingProvider(qml_components::OnlineRankingModel::Provider value);
+    void resetRankingProvider();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -460,6 +491,9 @@ class GeneralVars final : public QObject
     void hiddenOnChanged();
     void hiddenRatioChanged();
     void bgaOnChanged();
+    void bgaSizeChanged();
+    void scoreGraphEnabledChanged();
+    void ghostPositionChanged();
     void noteOrderAlgorithmChanged();
     void noteOrderAlgorithmP2Changed();
     void hiSpeedFixChanged();
@@ -479,7 +513,7 @@ class GeneralVars final : public QObject
     void soundsetChanged();
     void soundsetPathChanged();
     void tableListUrlChanged();
-    void lr2RankingProviderChanged();
+    void rankingProviderChanged();
 };
 
 class Vars final : public QObject

@@ -191,6 +191,68 @@ resource_managers::GeneralVars::resetBgaOn()
 }
 
 auto
+resource_managers::GeneralVars::getBgaSize() const -> int
+{
+    return bgaSize;
+}
+void
+resource_managers::GeneralVars::setBgaSize(int value)
+{
+    value = std::clamp(value, 0, 1);
+    if (bgaSize == value) {
+        return;
+    }
+    bgaSize = value;
+    emit bgaSizeChanged();
+}
+void
+resource_managers::GeneralVars::resetBgaSize()
+{
+    setBgaSize(0);
+}
+
+auto
+resource_managers::GeneralVars::getScoreGraphEnabled() const -> bool
+{
+    return scoreGraphEnabled;
+}
+void
+resource_managers::GeneralVars::setScoreGraphEnabled(bool value)
+{
+    if (scoreGraphEnabled == value) {
+        return;
+    }
+    scoreGraphEnabled = value;
+    emit scoreGraphEnabledChanged();
+}
+void
+resource_managers::GeneralVars::resetScoreGraphEnabled()
+{
+    setScoreGraphEnabled(true);
+}
+
+auto
+resource_managers::GeneralVars::getGhostPosition() const -> int
+{
+    return ghostPosition;
+}
+void
+resource_managers::GeneralVars::setGhostPosition(int value)
+{
+    value = std::clamp(value, 0, 3);
+    if (ghostPosition == value) {
+        return;
+    }
+    ghostPosition = value;
+    emit ghostPositionChanged();
+}
+void
+resource_managers::GeneralVars::resetGhostPosition()
+{
+    setGhostPosition(0);
+}
+
+auto
 resource_managers::GeneralVars::getNoteOrderAlgorithm() const
   -> NoteOrderAlgorithm
 {
@@ -523,14 +585,14 @@ resource_managers::GeneralVars::resetWebsiteBaseUrl()
 }
 
 auto
-resource_managers::GeneralVars::getLr2RankingProvider() const
+resource_managers::GeneralVars::getRankingProvider() const
   -> qml_components::OnlineRankingModel::Provider
 {
-    return lr2RankingProvider;
+    return rankingProvider;
 }
 
 void
-resource_managers::GeneralVars::setLr2RankingProvider(
+resource_managers::GeneralVars::setRankingProvider(
   qml_components::OnlineRankingModel::Provider value)
 {
     switch (value) {
@@ -542,17 +604,17 @@ resource_managers::GeneralVars::setLr2RankingProvider(
             value = qml_components::OnlineRankingModel::Provider::RhythmGame;
             break;
     }
-    if (lr2RankingProvider == value) {
+    if (rankingProvider == value) {
         return;
     }
-    lr2RankingProvider = value;
-    emit lr2RankingProviderChanged();
+    rankingProvider = value;
+    emit rankingProviderChanged();
 }
 
 void
-resource_managers::GeneralVars::resetLr2RankingProvider()
+resource_managers::GeneralVars::resetRankingProvider()
 {
-    setLr2RankingProvider(
+    setRankingProvider(
       qml_components::OnlineRankingModel::Provider::RhythmGame);
 }
 

@@ -6,6 +6,10 @@ import QtQuick.Layouts
 import RhythmGameQml
 
 Item {
+    id: root
+
+    readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+
     ScrollView {
         id: scrollView
         anchors {
@@ -23,8 +27,18 @@ Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 spacing: 5
+
+                Label {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: implicitHeight + 12
+                    verticalAlignment: Text.AlignBottom
+                    text: qsTr("System Settings")
+                    font.pixelSize: 20
+                    font.bold: true
+                }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    destination: root.generalVars
                     id_: "language"
                     choices: Rg.languages.languages
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
@@ -49,183 +63,12 @@ Item {
                         right: parent.right
                     }
                 }
-                Range {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "noteScreenTimeMillis"
-                    name: qsTr("Note Screen Time (ms)")
-                    min: 0
-                    default_: 1000
-                    sliderMax: 1500
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Range {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "offset"
-                    name: qsTr("Offset (ms)")
-                    default_: 0
-                    sliderMin: -15
-                    sliderMax: 15
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Range {
-                    destination: Rg.inputTranslator
-                    id_: "debounceMs"
-                    name: qsTr("Debounce (ms)")
-                    default_: 5
-                    min: 0
-                    sliderMax: 150
-                    decimals: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Boolean {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "laneCoverOn"
-                    name: qsTr("Lane Cover")
-                    default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Range {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "laneCoverRatio"
-                    name: qsTr("Lane Cover Ratio")
-                    default_: 0.1
-                    min: 0
-                    max: 1
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Boolean {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "liftOn"
-                    name: qsTr("Lift")
-                    default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Range {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "liftRatio"
-                    name: qsTr("Lift Ratio")
-                    default_: 0.1
-                    min: 0
-                    max: 1
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Boolean {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "hiddenOn"
-                    name: qsTr("Hidden")
-                    default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Range {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "hiddenRatio"
-                    name: qsTr("Hidden Ratio")
-                    default_: 0.1
-                    min: 0
-                    max: 1
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Boolean {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "bgaOn"
-                    name: qsTr("BGA On")
-                    default_: true
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "scoreTarget"
-                    choices: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
-                    displayStrings: qsTr("Percentage;Best Score;Last Score").split(";")
-                    name: qsTr("Score Target Type")
-                    default_: ScoreTarget.BestScore
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Range {
-                    id: targetScoreFractionRange
-                    destination: this
-                    property var value: Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100
-                    onValueChanged: {
-                        Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction = value / 100;
-                    }
-                    Binding {
-                        delayed: true
-                        targetScoreFractionRange.value: Rg.profileList.mainProfile.vars.generalVars.targetScoreFraction * 100
-                    }
-                    id_: "value"
-                    name: qsTr("Target Score Percentage")
-                    min: 0
-                    max: 100
-                    default_: 8 / 9 * 100
-                    increment: 1
-                    decimals: 6
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "lr2RankingProvider"
+                    destination: root.generalVars
+                    id_: "rankingProvider"
                     choices: [OnlineRankingModel.RhythmGame, OnlineRankingModel.LR2IR, OnlineRankingModel.Tachi]
                     displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
-                    name: qsTr("LR2 Ranking Provider")
+                    name: qsTr("Ranking Provider")
                     default_: OnlineRankingModel.RhythmGame
 
                     anchors {
@@ -233,124 +76,11 @@ Item {
                         right: parent.right
                     }
                 }
-                Separator {
-                }
-
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "noteOrderAlgorithm"
-                    choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
-                    displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
-                    name: qsTr("Note Order Algorithm")
-                    assignIndex: true
-                    default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "noteOrderAlgorithmP2"
-                    choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
-                    displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
-                    name: qsTr("Note Order Algorithm P2")
-                    assignIndex: true
-                    default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "hiSpeedFix"
-                    choices: ["Off", "Main", "Start", "Min", "Max"]
-                    displayStrings: qsTr("Off;Main;Start;Min;Max").split(";")
-                    name: qsTr("Hi-Speed Fix")
-                    assignIndex: true
-                    default_: 1
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "dpOptions"
-                    choices: ["Off", "Flip", "Battle"]
-                    displayStrings: qsTr("Off;Flip;Battle").split(";")
-                    name: qsTr("DP Options")
-                    assignIndex: true
-                    default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "gaugeType"
-                    choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
-                    name: qsTr("Gauge Type")
-                    default_: "EXHARD"
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "gaugeMode"
-                    choices: ["Exclusive", "Best", "Select to Under"]
-                    displayStrings: qsTr("Exclusive;Best;Select to Under").split(";")
-                    name: qsTr("Gauge Mode")
-                    assignIndex: true
-                    default_: 1
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
-                    id_: "bottomShiftableGauge"
-                    name: qsTr("Bottom Shiftable Gauge")
-                    choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
-                    default_: "EASY"
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
-                Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    destination: root.generalVars
                     id_: "bgm"
                     name: qsTr("BGM")
-                    choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableBgms()
+                    choices: root.generalVars.getAvailableBgms()
                     default_: "Trance"
 
                     anchors {
@@ -359,18 +89,16 @@ Item {
                     }
                 }
                 Choice {
-                    destination: Rg.profileList.mainProfile.vars.generalVars
+                    destination: root.generalVars
                     id_: "soundset"
                     name: qsTr("Soundset")
-                    choices: Rg.profileList.mainProfile.vars.generalVars.getAvailableSoundsets()
+                    choices: root.generalVars.getAvailableSoundsets()
                     default_: "Brook"
 
                     anchors {
                         left: parent.left
                         right: parent.right
                     }
-                }
-                Separator {
                 }
                 Choice {
                     destination: Rg.audioEngine
@@ -400,6 +128,326 @@ Item {
                         return choices;
                     }
                     default_: ""
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+
+                Separator {
+                }
+                Label {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: implicitHeight + 12
+                    verticalAlignment: Text.AlignBottom
+                    text: qsTr("Gameplay Settings")
+                    font.pixelSize: 20
+                    font.bold: true
+                }
+                Range {
+                    destination: root.generalVars
+                    id_: "noteScreenTimeMillis"
+                    name: qsTr("Note Screen Time (ms)")
+                    min: 0
+                    default_: 1000
+                    sliderMax: 1500
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    destination: root.generalVars
+                    id_: "offset"
+                    name: qsTr("Offset (ms)")
+                    default_: 0
+                    sliderMin: -15
+                    sliderMax: 15
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    destination: Rg.inputTranslator
+                    id_: "debounceMs"
+                    name: qsTr("Debounce (ms)")
+                    default_: 5
+                    min: 0
+                    sliderMax: 150
+                    decimals: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Boolean {
+                    destination: root.generalVars
+                    id_: "laneCoverOn"
+                    name: qsTr("Lane Cover")
+                    default_: false
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    destination: root.generalVars
+                    id_: "laneCoverRatio"
+                    name: qsTr("Lane Cover Ratio")
+                    default_: 0.1
+                    min: 0
+                    max: 1
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Boolean {
+                    destination: root.generalVars
+                    id_: "liftOn"
+                    name: qsTr("Lift")
+                    default_: false
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    destination: root.generalVars
+                    id_: "liftRatio"
+                    name: qsTr("Lift Ratio")
+                    default_: 0.1
+                    min: 0
+                    max: 1
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Boolean {
+                    destination: root.generalVars
+                    id_: "hiddenOn"
+                    name: qsTr("Hidden")
+                    default_: false
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    destination: root.generalVars
+                    id_: "hiddenRatio"
+                    name: qsTr("Hidden Ratio")
+                    default_: 0.1
+                    min: 0
+                    max: 1
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Boolean {
+                    destination: root.generalVars
+                    id_: "bgaOn"
+                    name: qsTr("BGA On")
+                    default_: true
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "bgaSize"
+                    choices: [0, 1]
+                    displayStrings: qsTr("Normal;Extend").split(";")
+                    name: qsTr("LR2 BGA Size")
+                    default_: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Boolean {
+                    destination: root.generalVars
+                    id_: "scoreGraphEnabled"
+                    name: qsTr("Score Graph")
+                    default_: true
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "ghostPosition"
+                    choices: [0, 1, 2, 3]
+                    displayStrings: qsTr("Off;Type A;Type B;Type C").split(";")
+                    name: qsTr("Ghost Position")
+                    default_: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "scoreTarget"
+                    choices: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
+                    displayStrings: qsTr("Percentage;Best Score;Last Score").split(";")
+                    name: qsTr("Score Target Type")
+                    default_: ScoreTarget.BestScore
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Range {
+                    id: targetScoreFractionRange
+                    destination: this
+                    property var value: root.generalVars.targetScoreFraction * 100
+                    onValueChanged: {
+                        root.generalVars.targetScoreFraction = value / 100;
+                    }
+                    Binding {
+                        delayed: true
+                        targetScoreFractionRange.value: root.generalVars.targetScoreFraction * 100
+                    }
+                    id_: "value"
+                    name: qsTr("Target Score Percentage")
+                    min: 0
+                    max: 100
+                    default_: 8 / 9 * 100
+                    increment: 1
+                    decimals: 6
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "noteOrderAlgorithm"
+                    choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                    displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
+                    name: qsTr("Note Order Algorithm")
+                    assignIndex: true
+                    default_: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "noteOrderAlgorithmP2"
+                    choices: ["Normal", "Mirror", "Random", "S-Random", "R-Random", "Random+", "S-Random+"]
+                    displayStrings: qsTr("Normal;Mirror;Random;S-Random;R-Random;Random+;S-Random+").split(";")
+                    name: qsTr("Note Order Algorithm P2")
+                    assignIndex: true
+                    default_: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "hiSpeedFix"
+                    choices: ["Off", "Main", "Start", "Min", "Max", "Avg"]
+                    displayStrings: qsTr("Off;Main;Start;Min;Max;Average").split(";")
+                    name: qsTr("Hi-Speed Fix")
+                    assignIndex: true
+                    default_: 1
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "dpOptions"
+                    choices: ["Off", "Flip", "Battle"]
+                    displayStrings: qsTr("Off;Flip;Battle").split(";")
+                    name: qsTr("DP Options")
+                    assignIndex: true
+                    default_: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Separator {
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "gaugeType"
+                    choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+                    name: qsTr("Gauge Type")
+                    default_: "FC"
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "gaugeMode"
+                    choices: ["Exclusive", "Best", "Select to Under"]
+                    displayStrings: qsTr("Exclusive;Best;Select to Under").split(";")
+                    name: qsTr("Gauge Mode")
+                    assignIndex: true
+                    default_: 2
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
+                Choice {
+                    destination: root.generalVars
+                    id_: "bottomShiftableGauge"
+                    name: qsTr("Bottom Shiftable Gauge")
+                    choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+                    displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+                    default_: "AEASY"
 
                     anchors {
                         left: parent.left

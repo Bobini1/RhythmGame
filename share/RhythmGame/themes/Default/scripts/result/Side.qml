@@ -129,67 +129,49 @@ Column {
                 }
             }
 
-            property var rankingProvider: {
-                let choice = profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider
-                switch (choice) {
-                    case "rhythmgame":
-                        return OnlineRankingModel.RhythmGame;
-                    case "lr2ir":
-                        return OnlineRankingModel.LR2IR;
-                    case "bokutachi":
-                        return OnlineRankingModel.Tachi;
-                    default:
-                        return OnlineRankingModel.RhythmGame;
-                }
+            readonly property var generalVars: side.profile.vars.generalVars
+            property var rankingProvider: OnlineRankingModel.RhythmGame
+
+            function syncRankingProviderFromGeneralVars() {
+                scoreColumn.rankingProvider = scoreColumn.generalVars
+                    ? scoreColumn.generalVars.rankingProvider
+                    : OnlineRankingModel.RhythmGame;
             }
-            Binding {
-                delayed: true
-                scoreColumn.rankingProvider: {
-                    switch (side.profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider) {
-                        case "rhythmgame":
-                            return OnlineRankingModel.RhythmGame;
-                        case "lr2ir":
-                            return OnlineRankingModel.LR2IR;
-                        case "bokutachi":
-                            return OnlineRankingModel.Tachi;
-                        default:
-                            return OnlineRankingModel.RhythmGame;
-                    }
+
+            function setRankingProvider(providerValue) {
+                if (scoreColumn.generalVars) {
+                    scoreColumn.generalVars.rankingProvider = providerValue;
                 }
+                scoreColumn.rankingProvider = providerValue;
             }
-            Binding {
-                delayed: true
-                target: side.profile.vars.themeVars.select[QmlUtils.themeName]
-                property: "rankingProvider"
-                value: {
-                    switch (scoreColumn.rankingProvider) {
-                        case OnlineRankingModel.RhythmGame:
-                            return "rhythmgame";
-                        case OnlineRankingModel.LR2IR:
-                            return "lr2ir";
-                        case OnlineRankingModel.Tachi:
-                            return "bokutachi";
-                    }
+
+            Component.onCompleted: syncRankingProviderFromGeneralVars()
+
+            Connections {
+                target: scoreColumn.generalVars
+
+                function onRankingProviderChanged() {
+                    scoreColumn.syncRankingProviderFromGeneralVars();
                 }
             }
 
             onLeftClicked: {
                 if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.Tachi);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.LR2IR);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.RhythmGame);
                 }
             }
 
             onRightClicked: {
                 if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.LR2IR);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.Tachi);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.RhythmGame);
                 }
             }
 

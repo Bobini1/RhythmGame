@@ -264,7 +264,7 @@ Item {
             xScale: side.mirrored ? -1 : 1; origin.x: sideScoreGraph.width / 2
         }
 
-        contentVisible: side.profileVars.scoreGraphEnabled
+        contentVisible: side.profile.vars.generalVars.scoreGraphEnabled
         graphBackground: side.profileVars.scoregraph || ""
         barWidthRatio: side.profileVars.scoreGraphBarWidth
 

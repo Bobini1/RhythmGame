@@ -276,6 +276,7 @@ Rectangle {
     ScoreGraphPopup {
         id: scoreGraphPopup
         readonly property Profile profile: chart.player1.profile
+        generalVars: profile.vars.generalVars
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: {
             root.popup = null;
@@ -284,6 +285,7 @@ Rectangle {
     ScoreGraphPopup {
         id: scoreGraphPopupP2
         readonly property Profile profile: (chart.player2 || chart.player1).profile
+        generalVars: profile.vars.generalVars
         themeVars: profile.vars.themeVars[root.screen][root.themeName]
         onClosed: {
             root.popup = null;

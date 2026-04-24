@@ -59,6 +59,10 @@ FocusScope {
             func(path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
         }
 
+        function focusSongList() {
+            songList.forceActiveFocus();
+        }
+
         fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + "bg.png"
@@ -84,6 +88,25 @@ FocusScope {
             clip: true
 
             enabled: !options.visible
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                gesturePolicy: TapHandler.WithinBounds
+
+                onTapped: (eventPoint, button) => {
+                    if (!searchEdit.activeFocus) {
+                        return;
+                    }
+                    let searchPoint = search.mapFromItem(search.parent,
+                                                         eventPoint.position.x,
+                                                         eventPoint.position.y);
+                    if (searchPoint.x >= 0 && searchPoint.x <= search.width
+                            && searchPoint.y >= 0 && searchPoint.y <= search.height) {
+                        return;
+                    }
+                    root.focusSongList();
+                }
+            }
 
             StageFile {
                 id: stageFile
@@ -403,11 +426,42 @@ FocusScope {
                     font.pixelSize: 20
                     height: 25
                     width: 540
+                    wrapMode: TextEdit.NoWrap
 
-                    Keys.onReturnPressed: {
-                        songList.search(searchEdit.text);
-                        searchEdit.text = "";
-                        songList.focus = true;
+                    function submitOrOpenCurrent() {
+                        let query = searchEdit.text.trim();
+                        if (query.length > 0) {
+                            songList.search(query);
+                            searchEdit.text = "";
+                        } else {
+                            songList.goForward(songList.current);
+                        }
+                        root.focusSongList();
+                    }
+
+                    Keys.onReturnPressed: event => {
+                        submitOrOpenCurrent();
+                        event.accepted = true;
+                    }
+                    Keys.onEnterPressed: event => {
+                        submitOrOpenCurrent();
+                        event.accepted = true;
+                    }
+                    Keys.onUpPressed: event => {
+                        songList.decrementViewIndex(event.isAutoRepeat);
+                        event.accepted = true;
+                    }
+                    Keys.onDownPressed: event => {
+                        songList.incrementViewIndex(event.isAutoRepeat);
+                        event.accepted = true;
+                    }
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton
+
+                    onWheel: wheel => {
+                        songList.handleWheel(wheel);
                     }
                 }
             }
@@ -444,7 +498,7 @@ FocusScope {
                 z: -1
 
                 onClicked: {
-                    songList.focus = true;
+                    root.focusSongList();
                 }
             }
         }
