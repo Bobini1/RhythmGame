@@ -1509,8 +1509,18 @@ Item {
             && !root.selectSearchHasFocus();
     }
 
+    function selectMouseInputReady() {
+        return root.enabled
+            && root.effectiveScreenKey === "select"
+            && root.acceptsInput;
+    }
+
     function selectScrollReady() {
         return root.selectInputReady() && root.lr2ReadmeMode === 0;
+    }
+
+    function selectMouseScrollReady() {
+        return root.selectMouseInputReady() && root.lr2ReadmeMode === 0;
     }
 
     function selectNavigationReady() {
@@ -5404,7 +5414,7 @@ Item {
             wheel.accepted = true;
             return;
         }
-        if (!root.selectScrollReady()) {
+        if (!root.selectMouseScrollReady()) {
             return;
         }
         let delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
@@ -5733,7 +5743,7 @@ Item {
     }
 
     function handleBarRowClick(row, mouse) {
-        root.resetSelectSearch();
+        root.clearSelectSearchFocus();
         if (mouse.button === Qt.RightButton) {
             root.selectGoBack();
             return;
@@ -6554,7 +6564,7 @@ Item {
             MouseArea {
                 id: selectBlankMouseArea
                 anchors.fill: parent
-                enabled: root.selectNavigationReady()
+                enabled: root.selectMouseInputReady()
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 z: -100000
                 onPressed: (mouse) => root.updateSelectMouseFromArea(selectBlankMouseArea, mouse)
@@ -6565,7 +6575,7 @@ Item {
                 }
                 onClicked: (mouse) => {
                     root.updateSelectMouseFromArea(selectBlankMouseArea, mouse);
-                    root.resetSelectSearch();
+                    root.clearSelectSearchFocus();
                 }
             }
 
@@ -7257,7 +7267,7 @@ Item {
                 property int pressedRow: -1
 
                 function rowAt(mouse) {
-                    if (!root.selectScrollReady()) {
+                    if (!root.selectMouseScrollReady()) {
                         return -1;
                     }
                     let states = root.cachedBarBaseStates || [];
@@ -7326,7 +7336,7 @@ Item {
                     readonly property var trackState: selectScroll
                         ? root.selectScrollSliderTrackState(model.src, model.dsts)
                         : root.lr2GenericSliderTrackState(model.src, model.dsts)
-                    enabled: root.selectScrollReady() && !!trackState
+                    enabled: root.selectMouseScrollReady() && !!trackState
                     acceptedButtons: Qt.LeftButton
                     preventStealing: true
                     x: trackState ? Math.min(trackState.x, trackState.x + trackState.w) * skinScale : 0
