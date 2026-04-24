@@ -13,6 +13,7 @@ Item {
     property real scaleOverride: 1.0
     property bool mediaActive: true
     property color transColor: "black"
+    property int trembleRoll: 0
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -37,15 +38,35 @@ Item {
             || gauge === "MAX";
     }
 
-    function segmentFrame(segment) {
+    function segmentFrame(segment, hp, trembleRoll, survival) {
         let oneBased = segment + 1;
-        if (survivalGauge) {
-            return oneBased <= hpSegments ? 0 : 2;
+        let tremble = hp - trembleRoll;
+        if (!survival) {
+            if (oneBased < 40) {
+                return ((oneBased < tremble || hp <= oneBased || oneBased === 1) && oneBased <= hp)
+                    ? 1
+                    : 3;
+            }
+            if ((tremble <= oneBased && oneBased < hp && oneBased !== 1) || hp < oneBased) {
+                return 2;
+            }
+            return 0;
         }
-        if (oneBased < 40) {
-            return oneBased <= hpSegments ? 1 : 3;
+
+        if (oneBased < tremble || hp <= oneBased || oneBased === 1) {
+            return hp < oneBased ? 2 : 0;
         }
-        return oneBased <= hpSegments ? 0 : 2;
+        return 2;
+    }
+
+    Timer {
+        interval: 16
+        repeat: true
+        running: root.mediaActive && root.currentState && root.srcData
+        onTriggered: {
+            // DXLib GetRand(2) returns an integer in the inclusive 0..2 range.
+            root.trembleRoll = Math.floor(Math.random() * 3);
+        }
     }
 
     function segmentState(segment) {
@@ -78,7 +99,8 @@ Item {
             skinTime: root.skinTime
             timers: root.timers
             scaleOverride: root.scaleOverride
-            frameOverride: root.segmentFrame(index)
+            frameOverride: root.segmentFrame(
+                index, root.hpSegments, root.trembleRoll, root.survivalGauge)
         }
     }
 }

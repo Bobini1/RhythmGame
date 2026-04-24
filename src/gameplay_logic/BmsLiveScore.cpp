@@ -81,16 +81,6 @@ BmsLiveScore::getMaxPointsNow() const -> double
     return maxPointsNow;
 }
 auto
-BmsLiveScore::getLastJudgement() const -> int
-{
-    return lastJudgement;
-}
-auto
-BmsLiveScore::getLastMissTimestampMs() const -> qint64
-{
-    return lastMissTimestampMs;
-}
-auto
 BmsLiveScore::getJudgementCounts() -> JudgementCounts*
 {
     return &judgementCounts;
@@ -197,15 +187,6 @@ BmsLiveScore::addHit(const HitEvent& tap)
         }
     }
     const auto points = tap.getPointsOptional();
-    const auto judgementIndex = magic_enum::enum_integer(points->getJudgement());
-    if (points->getJudgement() <= Judgement::Perfect) {
-        lastJudgement = judgementIndex;
-        emit lastJudgementChanged();
-    }
-    if (points->getJudgement() <= Judgement::Bad) {
-        lastMissTimestampMs = QDateTime::currentMSecsSinceEpoch();
-        emit lastMissTimestampMsChanged();
-    }
     judgementCounts.addJudgement(points->getJudgement());
     switch (points->getJudgement()) {
         case Judgement::Poor:

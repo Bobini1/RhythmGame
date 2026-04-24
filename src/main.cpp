@@ -38,6 +38,7 @@
 #include "resource_managers/Tables.h"
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
+#include "gameplay_logic/ChartRunner.h"
 #include "gameplay_logic/CourseRunner.h"
 #include "qml_components/OnlineProfileInfo.h"
 #include "qml_components/OnlineRankingModel.h"
@@ -398,6 +399,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "Profile");
         qmlRegisterType<gameplay_logic::Player>(
           "RhythmGameQml", 1, 0, "Player");
+        qmlRegisterUncreatableType<gameplay_logic::AutoPlayer>(
+          "RhythmGameQml",
+          1,
+          0,
+          "AutoPlayer",
+          "AutoPlayer is created by ChartLoader");
         qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
           "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
         qmlRegisterType<gameplay_logic::BmsLiveScore>(

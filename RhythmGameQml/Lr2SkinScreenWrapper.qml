@@ -10,6 +10,11 @@ Item {
     property string csvPath
     property string screenKey: ""
     property var chart
+    property var scores: []
+    property var profiles: []
+    property var chartData: null
+    property var chartDatas: []
+    property var course: null
     property var skinSettings
     property var selectContextRef: null
     readonly property var emptyActiveOptions: []
@@ -29,10 +34,28 @@ Item {
     property int gameplayGaugeDownSkinTime2: -1
     property int gameplayJudgeSkinTime1: -1
     property int gameplayJudgeSkinTime2: -1
+    property int gameplayLastJudgement1: -1
+    property int gameplayLastJudgement2: -1
+    property int gameplayJudgeCombo1: 0
+    property int gameplayJudgeCombo2: 0
+    property int gameplayJudgeRevision1: 0
+    property int gameplayJudgeRevision2: 0
+    property int gameplayLastMissSkinTime1: -1
+    property int gameplayLastMissSkinTime2: -1
     property int gameplayFullComboSkinTime1: -1
     property int gameplayFullComboSkinTime2: -1
     property int gameplayPreviousGauge1: -1
     property int gameplayPreviousGauge2: -1
+    property int gameplayPreviousCombo1: 0
+    property int gameplayPreviousCombo2: 0
+    property int gameplayScorePrintStart1: 0
+    property int gameplayScorePrintStart2: 0
+    property int gameplayScorePrintTarget1: 0
+    property int gameplayScorePrintTarget2: 0
+    property int gameplayScorePrintStartSkinTime1: 0
+    property int gameplayScorePrintStartSkinTime2: 0
+    property int gameplayScorePrintEndSkinTime1: 0
+    property int gameplayScorePrintEndSkinTime2: 0
     property var gameplayScores1: []
     property int gameplayScoresRevision: 0
     property int gameplayScoreRequest: 0
@@ -46,6 +69,14 @@ Item {
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
+    property var resultOldScores1: []
+    property var resultOldScores2: []
+    property int resultOldScoresRevision: 0
+    property int resultOldScoresRequest: 0
+    property int resultTimer151SkinTime: -1
+    property int resultTimer152SkinTime: -1
+    property int resultGraphStartSkinTime: 500
+    property int resultGraphEndSkinTime: 2000
     readonly property var gameplayKeyTimers: [
         100, 101, 102, 103, 104, 105, 106, 107,
         110, 111, 112, 113, 114, 115, 116, 117
@@ -132,12 +163,24 @@ Item {
     }
     
     readonly property string effectiveScreenKey: root.screenKey || root.inferScreenKey(root.csvPath)
+    function playerIsAutoPlayer(player) {
+        return !!player && player instanceof AutoPlayer;
+    }
+
+    function gameplayAutoplayActive() {
+        return root.isGameplayScreen()
+            && !!root.chart
+            && root.playerIsAutoPlayer(root.chart.player1)
+            && (!root.chart.player2 || root.playerIsAutoPlayer(root.chart.player2));
+    }
+
     readonly property var parseActiveOptions: {
+        let autoplayOn = root.gameplayAutoplayActive();
         let options = [
             0,  // DEFAULT is always true for #IF.
             20, // no select side panel active.
             30, // BGA size NORMAL.
-            32, // autoplay off.
+            autoplayOn ? 33 : 32,
             34, // ghost off.
             38, // scoregraph off.
             46, // difficulty filter enabled.
@@ -157,6 +200,9 @@ Item {
             options.push(900, 905, 910, 915); // stock LR2 select defaults
         } else if (root.effectiveScreenKey === "decide") {
             options.push(900); // stock LR2 decide default: show stagefile
+            options.push(33); // LR2 decide reports both autoplay states true.
+        } else if (root.isResultScreen()) {
+            options.push(root.resultClearOption(), 350);
         }
         return options;
     }
@@ -1165,6 +1211,9 @@ Item {
         if (normalized.indexOf("/decide/") !== -1 || normalized.endsWith("decide.lr2skin") || normalized.endsWith("decide.csv")) {
             return "decide";
         }
+        if (normalized.indexOf("/courseresult/") !== -1 || normalized.endsWith("courseresult.lr2skin") || normalized.endsWith("courseresult.csv")) {
+            return "courseResult";
+        }
         if (normalized.indexOf("/result/") !== -1 || normalized.endsWith("result.lr2skin") || normalized.endsWith("result.csv")) {
             return "result";
         }
@@ -1187,6 +1236,14 @@ Item {
             && !root.isSelectScrollSlider(src)
             && src.sliderRange > 0
             && src.sliderDisabled === 0;
+    }
+
+    function isGameplayProgressSlider(src) {
+        return root.isGameplayScreen()
+            && !!src
+            && !!src.slider
+            && src.sliderType === 6
+            && src.sliderRange > 0;
     }
 
     function sliderTrackState(src, dsts) {
@@ -1415,7 +1472,8 @@ Item {
 
     function elementUsesSkinTime(src, dsts) {
         return !Lr2Timeline.canUseStaticState(dsts)
-            || (!!src && (src.cycle || 0) > 0);
+            || (!!src && ((src.cycle || 0) > 0
+                || (src.resultChartType || 0) > 0));
     }
 
     function dstCollectionUsesActiveOptions(collection) {
@@ -1528,7 +1586,11 @@ Item {
     function appendCommonRuntimeOptions(options, scoreGraphOn) {
         let vars = root.mainGeneralVars();
         root.addOption(options, 30); // BGA size NORMAL; LR2 EXTEND is not exposed here yet.
-        root.addOption(options, 32); // autoplay off unless a launch button explicitly requests it.
+        if (root.isGameplayScreen()) {
+            root.addOption(options, root.gameplayAutoplayActive() ? 33 : 32);
+        } else {
+            root.addOption(options, 32); // autoplay off unless a launch button explicitly requests it.
+        }
         if (root.effectiveScreenKey === "decide") {
             root.addOption(options, 33); // LR2 decide reports both autoplay states true.
         }
@@ -1978,6 +2040,315 @@ Item {
         return null;
     }
 
+    function isResultScreen() {
+        return root.effectiveScreenKey === "result"
+            || root.effectiveScreenKey === "courseResult";
+    }
+
+    function resultScore(side) {
+        return root.scores && root.scores.length >= side ? root.scores[side - 1] : null;
+    }
+
+    function resultData(side) {
+        let score = root.resultScore(side);
+        return score && score.result ? score.result : null;
+    }
+
+    function resultProfile(side) {
+        return root.profiles && root.profiles.length >= side
+            ? root.profiles[side - 1]
+            : (Rg.profileList ? Rg.profileList.mainProfile : null);
+    }
+
+    function resultChartData() {
+        if (root.effectiveScreenKey === "courseResult") {
+            return null;
+        }
+        if (root.chartData) {
+            return root.chartData;
+        }
+        return root.chartDatas && root.chartDatas.length > 0 ? root.chartDatas[0] : null;
+    }
+
+    function displayChartData() {
+        if (root.isResultScreen()) {
+            return root.resultChartData();
+        }
+        if (root.effectiveScreenKey === "select") {
+            return selectContext.selectedChartData();
+        }
+        if (root.isGameplayScreen()) {
+            return root.gameplayChartData();
+        }
+        return root.chart && root.chart.chartData ? root.chart.chartData : null;
+    }
+
+    function resultClearOption() {
+        let result = root.resultData(1);
+        let clearType = result ? String(result.clearType || "FAILED") : "FAILED";
+        return clearType !== "FAILED" && clearType !== "NOPLAY" ? 90 : 91;
+    }
+
+    function resultTotalNotes(result) {
+        if (!result) {
+            return 0;
+        }
+        let maxPoints = Math.floor(result.maxPoints || 0);
+        return maxPoints > 0 ? Math.floor(maxPoints / 2) : Math.max(0, result.maxHits || 0);
+    }
+
+    function resultJudgementCount(result, judgement) {
+        let counts = result && result.judgementCounts ? result.judgementCounts : [];
+        return judgement >= 0 && judgement < counts.length ? (counts[judgement] || 0) : 0;
+    }
+
+    function resultPoorCount(result) {
+        return root.resultJudgementCount(result, Judgement.Poor)
+            + root.resultJudgementCount(result, Judgement.EmptyPoor);
+    }
+
+    function resultBadPoor(result) {
+        return root.resultJudgementCount(result, Judgement.Bad) + root.resultPoorCount(result);
+    }
+
+    function resultExScore(result) {
+        return result ? Math.floor(result.points || 0) : 0;
+    }
+
+    function resultLr2Score(result) {
+        let totalNotes = root.resultTotalNotes(result);
+        if (totalNotes <= 0) {
+            return 0;
+        }
+        let pgreat = root.resultJudgementCount(result, Judgement.Perfect);
+        let great = root.resultJudgementCount(result, Judgement.Great);
+        let good = root.resultJudgementCount(result, Judgement.Good);
+        return Math.floor((good + (great + pgreat * 2) * 2) * 50000 / totalNotes);
+    }
+
+    function resultScorePrint(result) {
+        let value = root.resultLr2Score(result);
+        let chartData = root.resultChartData();
+        let keymode = chartData ? chartData.keymode : (result ? result.keymode : 0);
+        return keymode === 7 || keymode === 14 ? value : Math.floor(value / 20) * 10;
+    }
+
+    function resultRateInteger(result) {
+        let denominator = root.resultTotalNotes(result) * 2;
+        return denominator > 0 ? Math.floor(root.resultExScore(result) * 100 / denominator) : 0;
+    }
+
+    function resultRateDecimal(result) {
+        let denominator = root.resultTotalNotes(result) * 2;
+        return denominator > 0 ? Math.floor(root.resultExScore(result) * 10000 / denominator) % 100 : 0;
+    }
+
+    function resultScoreRateInteger(points, result) {
+        let denominator = root.resultTotalNotes(result) * 2;
+        return denominator > 0 ? Math.floor(points * 100 / denominator) : 0;
+    }
+
+    function resultScoreRateDecimal(points, result) {
+        let denominator = root.resultTotalNotes(result) * 2;
+        return denominator > 0 ? Math.floor(points * 10000 / denominator) % 100 : 0;
+    }
+
+    function resultRawRank(result) {
+        let denominator = root.resultTotalNotes(result) * 2;
+        if (!result || denominator <= 0 || root.resultExScore(result) <= 0) {
+            return -1;
+        }
+        return Math.floor(root.resultExScore(result) * 9 / denominator);
+    }
+
+    function resultRankDelta(result) {
+        let totalNotes = root.resultTotalNotes(result);
+        let perfectScore = totalNotes * 2;
+        let exScore = root.resultExScore(result);
+        if (totalNotes <= 0 || exScore === perfectScore) {
+            return 0;
+        }
+        let rank = Math.floor(exScore * 9 / perfectScore);
+        rank = Math.max(1, Math.min(8, rank));
+        return exScore - Math.floor(perfectScore * (rank + 1) / 9);
+    }
+
+    function resultRankOptionForResult(result, baseOption) {
+        let rank = root.resultRawRank(result);
+        if (rank < 0) {
+            return baseOption + 8;
+        }
+        if (rank >= 8) {
+            return baseOption;
+        }
+        if (rank <= 1) {
+            return baseOption + 7;
+        }
+        return baseOption + (8 - rank);
+    }
+
+    function resultOldScores(side) {
+        root.resultOldScoresRevision;
+        return side === 2 ? root.resultOldScores2 : root.resultOldScores1;
+    }
+
+    function resultBestScoreByPoints(scores) {
+        let best = null;
+        let bestRate = -1;
+        for (let score of scores || []) {
+            let result = score && score.result ? score.result : null;
+            let maxPoints = result ? (result.maxPoints || 0) : 0;
+            if (maxPoints <= 0) {
+                continue;
+            }
+            let rate = (result.points || 0) / maxPoints;
+            if (rate > bestRate) {
+                best = score;
+                bestRate = rate;
+            }
+        }
+        return best;
+    }
+
+    function resultOldBestScore(side) {
+        return root.resultBestScoreByPoints(root.resultOldScores(side));
+    }
+
+    function resultLastOldScore(side) {
+        root.resultOldScoresRevision;
+        let scores = root.resultOldScores(side) || [];
+        return scores.length > 0 ? scores[0] : null;
+    }
+
+    function resultTargetSavedScore(side) {
+        let profile = root.resultProfile(side);
+        let vars = profile && profile.vars ? profile.vars.generalVars : null;
+        switch (vars ? vars.scoreTarget : ScoreTarget.BestScore) {
+        case ScoreTarget.LastScore:
+            return root.resultLastOldScore(side);
+        case ScoreTarget.BestScore:
+            return root.resultOldBestScore(side);
+        default:
+            return null;
+        }
+    }
+
+    function resultTargetFraction(side) {
+        let profile = root.resultProfile(side);
+        let vars = profile && profile.vars ? profile.vars.generalVars : null;
+        return vars ? (vars.targetScoreFraction || 0) : 0;
+    }
+
+    function resultTargetPoints(side) {
+        let targetScore = root.resultTargetSavedScore(side);
+        if (targetScore && targetScore.result) {
+            return root.resultExScore(targetScore.result);
+        }
+        let current = root.resultData(side);
+        return current ? Math.floor((current.maxPoints || 0) * root.resultTargetFraction(side)) : 0;
+    }
+
+    function resultHighScorePoints(side) {
+        return root.resultExScore(root.resultOldBestResult(side));
+    }
+
+    function resultTargetMaxPoints(side) {
+        let current = root.resultData(side);
+        return current ? Math.max(1, current.maxPoints || 1) : 1;
+    }
+
+    function resultOldBestResult(side) {
+        let score = root.resultOldBestScore(side);
+        return score && score.result ? score.result : null;
+    }
+
+    function resultUpdatedBestResult(side) {
+        let current = root.resultData(side);
+        let old = root.resultOldBestResult(side);
+        if (!current) {
+            return old;
+        }
+        if (!old || (current.maxPoints || 0) <= 0 || (old.maxPoints || 0) <= 0) {
+            return current;
+        }
+        return current.points / current.maxPoints >= old.points / old.maxPoints ? current : old;
+    }
+
+    function resultScoreImproved(side) {
+        let current = root.resultData(side);
+        let old = root.resultOldBestResult(side);
+        return !!current && (!old || root.resultExScore(current) > root.resultExScore(old));
+    }
+
+    function resultComboImproved(side) {
+        let current = root.resultData(side);
+        let old = root.resultOldBestResult(side);
+        return !!current && (!old || (current.maxCombo || 0) > (old.maxCombo || 0));
+    }
+
+    function resultBadPoorImproved(side) {
+        let current = root.resultData(side);
+        let old = root.resultOldBestResult(side);
+        return !!current && (!old || root.resultBadPoor(current) < root.resultBadPoor(old));
+    }
+
+    function updateResultOldScores() {
+        if (!root.isResultScreen()) {
+            return;
+        }
+        let request = ++root.resultOldScoresRequest;
+        root.resultOldScores1 = [];
+        root.resultOldScores2 = [];
+        root.resultOldScoresRevision++;
+
+        for (let side = 1; side <= 2; ++side) {
+            let score = root.resultScore(side);
+            let profile = root.resultProfile(side);
+            let scoreDb = profile ? profile.scoreDb : null;
+            if (!score || !score.result || !scoreDb) {
+                continue;
+            }
+            let currentGuid = score.result.guid || "";
+            if (root.course && root.course.identifier) {
+                let courseId = root.course.identifier;
+                scoreDb.getScoresForCourseId([courseId]).then(result => {
+                    if (request !== root.resultOldScoresRequest) {
+                        return;
+                    }
+                    let list = result && result.scores ? (result.scores[courseId] || []) : [];
+                    let filtered = list.filter(oldScore => oldScore && oldScore.result && oldScore.result.guid !== currentGuid);
+                    if (side === 2) {
+                        root.resultOldScores2 = filtered;
+                    } else {
+                        root.resultOldScores1 = filtered;
+                    }
+                    root.resultOldScoresRevision++;
+                });
+            } else {
+                let chartData = root.resultChartData();
+                let md5 = chartData && chartData.md5 ? String(chartData.md5).toUpperCase() : "";
+                if (md5.length === 0) {
+                    continue;
+                }
+                scoreDb.getScoresForMd5([md5]).then(result => {
+                    if (request !== root.resultOldScoresRequest) {
+                        return;
+                    }
+                    let list = result && result.scores
+                        ? (result.scores[md5] || result.scores[md5.toLowerCase()] || [])
+                        : [];
+                    let filtered = list.filter(oldScore => oldScore && oldScore.result && oldScore.result.guid !== currentGuid);
+                    if (side === 2) {
+                        root.resultOldScores2 = filtered;
+                    } else {
+                        root.resultOldScores1 = filtered;
+                    }
+                    root.resultOldScoresRevision++;
+                });
+            }
+        }
+    }
+
     function gameplayPlayer(side) {
         if (!root.chart) {
             return null;
@@ -2223,6 +2594,70 @@ Item {
         return keymode === 7 || keymode === 14 ? value : Math.floor(value / 20) * 10;
     }
 
+    function lr2LinearValueByTime(from, to, start, end, now) {
+        if (from === to) {
+            return from;
+        }
+        if (now <= end && start <= now && start < end) {
+            let ratio = (now - start) / (end - start);
+            return (1.0 - ratio) * from + ratio * to;
+        }
+        return start < now ? to : from;
+    }
+
+    function gameplayScorePrintTargetValue(side) {
+        return root.gameplayScorePrint(root.gameplayScore(side), root.gameplayChartData());
+    }
+
+    function gameplayDisplayedScorePrint(side) {
+        let startName = side === 2 ? "gameplayScorePrintStart2" : "gameplayScorePrintStart1";
+        let targetName = side === 2 ? "gameplayScorePrintTarget2" : "gameplayScorePrintTarget1";
+        let startTimeName = side === 2 ? "gameplayScorePrintStartSkinTime2" : "gameplayScorePrintStartSkinTime1";
+        let endTimeName = side === 2 ? "gameplayScorePrintEndSkinTime2" : "gameplayScorePrintEndSkinTime1";
+        let start = root[startName];
+        let target = root[targetName];
+        if (start === target) {
+            return target;
+        }
+        let now = root.renderSkinTime;
+        return Math.floor(root.lr2LinearValueByTime(
+            start, target, root[startTimeName], root[endTimeName], now));
+    }
+
+    function resetGameplayScorePrint() {
+        let value1 = root.gameplayScorePrintTargetValue(1);
+        let value2 = root.gameplayScorePrintTargetValue(2);
+        root.gameplayScorePrintStart1 = value1;
+        root.gameplayScorePrintTarget1 = value1;
+        root.gameplayScorePrintStartSkinTime1 = root.renderSkinTime;
+        root.gameplayScorePrintEndSkinTime1 = root.renderSkinTime;
+        root.gameplayScorePrintStart2 = value2;
+        root.gameplayScorePrintTarget2 = value2;
+        root.gameplayScorePrintStartSkinTime2 = root.renderSkinTime;
+        root.gameplayScorePrintEndSkinTime2 = root.renderSkinTime;
+    }
+
+    function updateGameplayScorePrintTarget(side) {
+        let targetName = side === 2 ? "gameplayScorePrintTarget2" : "gameplayScorePrintTarget1";
+        let newTarget = root.gameplayScorePrintTargetValue(side);
+        if (newTarget === root[targetName]) {
+            return;
+        }
+
+        let now = root.renderSkinTime;
+        if (side === 2) {
+            root.gameplayScorePrintStart2 = root.gameplayDisplayedScorePrint(2);
+            root.gameplayScorePrintTarget2 = newTarget;
+            root.gameplayScorePrintStartSkinTime2 = now;
+            root.gameplayScorePrintEndSkinTime2 = now + 500;
+        } else {
+            root.gameplayScorePrintStart1 = root.gameplayDisplayedScorePrint(1);
+            root.gameplayScorePrintTarget1 = newTarget;
+            root.gameplayScorePrintStartSkinTime1 = now;
+            root.gameplayScorePrintEndSkinTime1 = now + 500;
+        }
+    }
+
     function gameplayCombo(side, maxCombo) {
         let coursePlayer = root.gameplayCoursePlayer(side);
         if (coursePlayer) {
@@ -2394,19 +2829,19 @@ Item {
         return 134;
     }
 
-    function gameplayJudgementOption(score, baseOption) {
-        let judgement = score && score.lastJudgement !== undefined ? score.lastJudgement : -1;
+    function gameplayJudgementOption(side, baseOption) {
+        let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
     }
 
-    function gameplayPoorBgaOption(score, baseOption) {
-        let timestamp = score && score.lastMissTimestampMs ? score.lastMissTimestampMs : 0;
-        return timestamp > 0 && Date.now() - timestamp < 1000 ? baseOption + 1 : baseOption;
+    function gameplayPoorBgaOption(side, baseOption) {
+        let skinTime = side === 2 ? root.gameplayLastMissSkinTime2 : root.gameplayLastMissSkinTime1;
+        return skinTime >= 0 && root.renderSkinTime - skinTime < 1000 ? baseOption + 1 : baseOption;
     }
 
     function gameplayPoorBgaVisible() {
         root.gameplayRevision;
-        return root.gameplayPoorBgaOption(root.gameplayScore(1), 247) === 248;
+        return root.gameplayPoorBgaOption(1, 247) === 248;
     }
 
     function gameplaySudChanging(side) {
@@ -2441,11 +2876,11 @@ Item {
             root.addOption(options, root.gameplayExactRankOption(score, 310));
         }
         root.addGameplayGaugeRangeOption(options, score, side === 2 ? 250 : 230);
-        let judgementOption = root.gameplayJudgementOption(score, side === 2 ? 261 : 241);
+        let judgementOption = root.gameplayJudgementOption(side, side === 2 ? 261 : 241);
         if (judgementOption >= 0) {
             root.addOption(options, judgementOption);
         }
-        root.addOption(options, root.gameplayPoorBgaOption(score, side === 2 ? 267 : 247));
+        root.addOption(options, root.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
     }
 
     function appendGameplayRuntimeOptions(options) {
@@ -2481,6 +2916,44 @@ Item {
             } else if (count > 0) {
                 root.addOption(options, 280 + Math.min(stage, 8));
             }
+        }
+    }
+
+    function appendResultRuntimeOptions(options) {
+        root.resultOldScoresRevision;
+        let chartData = root.resultChartData();
+        root.appendSelectedChartModeOptions(options, chartData);
+        root.appendChartOptions(options, chartData);
+        root.addOption(options, root.resultClearOption());
+        if (options.indexOf(351) === -1) {
+            root.addOption(options, 350);
+        }
+
+        let current1 = root.resultData(1);
+        let current2 = root.resultData(2);
+        root.addOption(options, root.resultRankOptionForResult(current1, 300));
+        if (current2) {
+            root.addOption(options, root.resultRankOptionForResult(current2, 310));
+        }
+        root.addOption(options, root.resultRankOptionForResult(root.resultOldBestResult(1), 320));
+        root.addOption(options, root.resultRankOptionForResult(root.resultUpdatedBestResult(1), 340));
+
+        if (root.resultScoreImproved(1)) {
+            root.addOption(options, 330);
+            if (root.resultRawRank(current1) > root.resultRawRank(root.resultOldBestResult(1))) {
+                root.addOption(options, 335);
+            }
+        }
+        if (root.resultComboImproved(1)) {
+            root.addOption(options, 331);
+        }
+        if (root.resultBadPoorImproved(1)) {
+            root.addOption(options, 332);
+        }
+
+        if (current1 && current2) {
+            let diff = root.resultExScore(current1) - root.resultExScore(current2);
+            root.addOption(options, diff > 0 ? 352 : (diff < 0 ? 353 : 354));
         }
     }
 
@@ -2552,10 +3025,21 @@ Item {
         root.gameplayGaugeDownSkinTime2 = -1;
         root.gameplayJudgeSkinTime1 = -1;
         root.gameplayJudgeSkinTime2 = -1;
+        root.gameplayLastJudgement1 = -1;
+        root.gameplayLastJudgement2 = -1;
+        root.gameplayJudgeCombo1 = 0;
+        root.gameplayJudgeCombo2 = 0;
+        root.gameplayJudgeRevision1 = 0;
+        root.gameplayJudgeRevision2 = 0;
+        root.gameplayLastMissSkinTime1 = -1;
+        root.gameplayLastMissSkinTime2 = -1;
         root.gameplayFullComboSkinTime1 = -1;
         root.gameplayFullComboSkinTime2 = -1;
         root.gameplayPreviousGauge1 = Math.floor(root.gameplayGaugeValue(root.gameplayScore(1)));
         root.gameplayPreviousGauge2 = Math.floor(root.gameplayGaugeValue(root.gameplayScore(2)));
+        root.gameplayPreviousCombo1 = root.gameplayScore(1) ? (root.gameplayScore(1).combo || 0) : 0;
+        root.gameplayPreviousCombo2 = root.gameplayScore(2) ? (root.gameplayScore(2).combo || 0) : 0;
+        root.resetGameplayScorePrint();
         root.gameplayHeldButtonTimerStarts = ({});
         root.gameplayOffButtonTimerStarts = root.initialGameplayOffButtonTimers();
         root.gameplayPreviousPressedTimers = ({});
@@ -2652,12 +3136,25 @@ Item {
         }
     }
 
+    function gameplayJudgementFromHit(hit) {
+        return hit && hit.points && hit.points.judgement !== undefined
+            ? hit.points.judgement
+            : -1;
+    }
+
+    function gameplayJudgeComboForHit(side, judgement) {
+        return judgement >= Judgement.Good && judgement <= Judgement.Perfect
+            ? root.gameplayCombo(side, false)
+            : 0;
+    }
+
     function updateGameplayHitTimers(side, hit) {
         let score = root.gameplayScore(side);
         if (!score) {
             return;
         }
         root.updateGameplayHitEffectTimers(side, hit);
+        let judgement = root.gameplayJudgementFromHit(hit);
 
         let currentGauge = Math.floor(root.gameplayGaugeValue(score));
         let previousGaugeName = side === 2 ? "gameplayPreviousGauge2" : "gameplayPreviousGauge1";
@@ -2681,18 +3178,39 @@ Item {
         }
         root[previousGaugeName] = currentGauge;
 
-        if (score.lastJudgement >= 0 && score.lastJudgement <= 5) {
+        if (judgement >= 0 && judgement <= Judgement.Perfect) {
+            let displayCombo = root.gameplayJudgeComboForHit(side, judgement);
             if (side === 2) {
                 root.gameplayJudgeSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(47, root.gameplayJudgeSkinTime2);
+                root.gameplayLastJudgement2 = judgement;
+                root.gameplayJudgeCombo2 = displayCombo;
+                root.gameplayJudgeRevision2++;
             } else {
                 root.gameplayJudgeSkinTime1 = root.renderSkinTime;
                 root.setGameplayTimerValue(46, root.gameplayJudgeSkinTime1);
+                root.gameplayLastJudgement1 = judgement;
+                root.gameplayJudgeCombo1 = displayCombo;
+                root.gameplayJudgeRevision1++;
             }
         }
+        if (judgement >= 0 && judgement <= Judgement.Bad) {
+            if (side === 2) {
+                root.gameplayLastMissSkinTime2 = root.renderSkinTime;
+            } else {
+                root.gameplayLastMissSkinTime1 = root.renderSkinTime;
+            }
+            gameplayPoorBgaOptionTimer.restart();
+        }
 
-        if (root.gameplayTotalNotes(score) > 0
-                && root.gameplayCombo(side, false) >= root.gameplayTotalNotes(score)) {
+        let totalNotes = root.gameplayTotalNotes(score);
+        let currentChartCombo = score ? (score.combo || 0) : 0;
+        let previousComboName = side === 2 ? "gameplayPreviousCombo2" : "gameplayPreviousCombo1";
+        let previousChartCombo = root[previousComboName] || 0;
+        if (hit && hit.noteRemoved
+                && totalNotes > 0
+                && currentChartCombo >= totalNotes
+                && previousChartCombo < totalNotes) {
             if (side === 2) {
                 root.gameplayFullComboSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(49, root.gameplayFullComboSkinTime2);
@@ -2701,6 +3219,7 @@ Item {
                 root.setGameplayTimerValue(48, root.gameplayFullComboSkinTime1);
             }
         }
+        root[previousComboName] = currentChartCombo;
     }
 
     function addGameplayTimer(result, timer, skinTime) {
@@ -2954,7 +3473,8 @@ Item {
             ? skinModel.effectiveActiveOptions
             : root.parseActiveOptions;
         for (let option of staticOptions) {
-            if (root.isGameplayScreen() && (option === 80 || option === 81)) {
+            if (root.isGameplayScreen()
+                    && (option === 32 || option === 33 || option === 80 || option === 81)) {
                 continue;
             }
             root.addOption(result, option);
@@ -3022,6 +3542,9 @@ Item {
         } else if (root.isGameplayScreen()) {
             root.appendCommonRuntimeOptions(result, true);
             root.appendGameplayRuntimeOptions(result);
+        } else if (root.isResultScreen()) {
+            root.appendCommonRuntimeOptions(result, true);
+            root.appendResultRuntimeOptions(result);
         } else {
             root.appendChartOptions(result, root.chart && root.chart.chartData ? root.chart.chartData : null);
         }
@@ -3061,9 +3584,17 @@ Item {
     property bool selectSideEffectsReady: false
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.deferredSelectChart
-        : root.chart
+        : (root.chart || root.resultChartData())
     readonly property var selectedCourseStages: {
         let revision = root.effectiveScreenKey === "select" ? selectContext.selectionRevision : 0;
+        if (root.effectiveScreenKey === "courseResult") {
+            if (root.chartDatas && root.chartDatas.length > 0) {
+                return root.chartDatas;
+            }
+            if (root.course && root.course.loadCharts) {
+                return root.course.loadCharts();
+            }
+        }
         let item = root.effectiveScreenKey === "select" ? selectContext.current : null;
         if (!item || !selectContext.isCourse(item) || !item.loadCharts) {
             return [];
@@ -3101,6 +3632,11 @@ Item {
             Qt.callLater(root.updateGameplayStatusTimers);
             Qt.callLater(root.activateGameplayIfNeeded);
         }
+        if (root.isResultScreen()) {
+            root.resultTimer151SkinTime = -1;
+            root.resultTimer152SkinTime = -1;
+            Qt.callLater(root.updateResultOldScores);
+        }
         Qt.callLater(root.updateGameplaySavedScores);
         root.handleScreenContextChanged();
     }
@@ -3120,6 +3656,11 @@ Item {
             root.handleExternalChartChanged();
         }
     }
+    onScoresChanged: Qt.callLater(root.updateResultOldScores)
+    onProfilesChanged: Qt.callLater(root.updateResultOldScores)
+    onChartDataChanged: Qt.callLater(root.updateResultOldScores)
+    onChartDatasChanged: Qt.callLater(root.updateResultOldScores)
+    onCourseChanged: Qt.callLater(root.updateResultOldScores)
     Connections {
         target: root.isGameplayScreen() ? root.chart : null
         ignoreUnknownSignals: true
@@ -3147,13 +3688,13 @@ Item {
             root.notifyGameplayReplayHit(hit);
             root.queueGameplayRevision();
             root.scheduleGameplayRuntimeActiveOptionsRefresh();
-            gameplayPoorBgaOptionTimer.restart();
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
             root.updateGameplayHitTimers(1, hit);
         }
         function onPointsChanged() {
+            root.updateGameplayScorePrintTarget(1);
             root.queueGameplayRevision();
             root.scheduleGameplayRuntimeActiveOptionsRefresh();
         }
@@ -3176,13 +3717,13 @@ Item {
         function onHit(hit) {
             root.queueGameplayRevision();
             root.scheduleGameplayRuntimeActiveOptionsRefresh();
-            gameplayPoorBgaOptionTimer.restart();
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
             root.updateGameplayHitTimers(2, hit);
         }
         function onPointsChanged() {
+            root.updateGameplayScorePrintTarget(2);
             root.queueGameplayRevision();
             root.scheduleGameplayRuntimeActiveOptionsRefresh();
         }
@@ -3427,10 +3968,8 @@ Item {
     function resolveText(st) {
         let revision = root.effectiveScreenKey === "select"
             ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision
-            : root.gameplayRevision;
-        let chartData = root.effectiveScreenKey === "select"
-            ? selectContext.selectedChartData()
-            : (root.isGameplayScreen() ? root.gameplayChartData() : (root.chart ? root.chart.chartData : null));
+            : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision);
+        let chartData = root.displayChartData();
         let currentEntry = root.effectiveScreenKey === "select" ? selectContext.current : null;
         switch (st) {
         case 1:
@@ -3444,7 +3983,7 @@ Item {
             if (root.effectiveScreenKey === "select") {
                 return selectContext.entryMainTitle(currentEntry);
             }
-            return root.chart && root.chart.course ? root.chart.course.name : "";
+            return root.course ? (root.course.name || "") : (root.chart && root.chart.course ? root.chart.course.name : "");
         case 11:
             return chartData ? (chartData.subtitle || "") : "";
         case 12:
@@ -3460,7 +3999,10 @@ Item {
         case 18:
             return chartData ? String(selectContext.entryDifficulty(chartData) || "") : "";
         case 20:
-            return root.effectiveScreenKey === "select" ? selectContext.entryMainTitle(currentEntry) : "";
+            if (root.effectiveScreenKey === "select") {
+                return selectContext.entryMainTitle(currentEntry);
+            }
+            return root.isResultScreen() ? "" : "";
         case 21:
             return root.effectiveScreenKey === "select" ? selectContext.entrySubtitle(currentEntry) : "";
         case 23:
@@ -3508,8 +4050,22 @@ Item {
         let s2 = root.gameplayScore(2);
 
         switch (num) {
+        case 10:
+            return root.lr2HiSpeedP1;
+        case 11:
+            return root.lr2HiSpeedP2;
+        case 12: {
+            let vars = root.mainGeneralVars();
+            return vars ? Math.round(vars.offset || 0) : 0;
+        }
+        case 13:
+            return root.lr2TargetPercent;
+        case 14:
+            return root.laneCoverNumber(1);
+        case 15:
+            return root.laneCoverNumber(2);
         case 100:
-            return root.gameplayScorePrint(s1, chartData);
+            return root.gameplayDisplayedScorePrint(1);
         case 101:
             return root.gameplayExScore(s1);
         case 102:
@@ -3543,7 +4099,7 @@ Item {
         case 116:
             return root.gameplayRateDecimal(s1, false);
         case 120:
-            return root.gameplayScorePrint(s2, chartData);
+            return root.gameplayDisplayedScorePrint(2);
         case 121:
             return root.gameplayExScore(s2);
         case 122:
@@ -3624,7 +4180,151 @@ Item {
         }
     }
 
+    function resultCompareResult() {
+        return root.resultData(2) || root.resultOldBestResult(1);
+    }
+
+    function resolveResultSideNumber(num, result) {
+        switch (num) {
+        case 0:
+            return root.resultScorePrint(result);
+        case 1:
+            return root.resultExScore(result);
+        case 2:
+            return root.resultRateInteger(result);
+        case 3:
+            return root.resultRateDecimal(result);
+        case 5:
+            return result ? (result.maxCombo || 0) : 0;
+        case 6:
+            return root.resultTotalNotes(result);
+        case 10:
+            return root.resultJudgementCount(result, Judgement.Perfect);
+        case 11:
+            return root.resultJudgementCount(result, Judgement.Great);
+        case 12:
+            return root.resultJudgementCount(result, Judgement.Good);
+        case 13:
+            return root.resultJudgementCount(result, Judgement.Bad);
+        case 14:
+            return root.resultPoorCount(result);
+        default:
+            return 0;
+        }
+    }
+
+    function resolveResultTargetSideNumber(num, side) {
+        let targetScore = root.resultTargetSavedScore(side);
+        let targetResult = targetScore && targetScore.result ? targetScore.result : null;
+        if (targetResult) {
+            return root.resolveResultSideNumber(num, targetResult);
+        }
+
+        let points = root.resultTargetPoints(side);
+        let maxPoints = root.resultTargetMaxPoints(side);
+        let totalNotes = Math.floor(maxPoints / 2);
+        switch (num) {
+        case 0:
+            return Math.floor(points * 100000 / maxPoints);
+        case 1:
+            return points;
+        case 2:
+            return Math.floor(points * 100 / maxPoints);
+        case 3:
+            return Math.floor(points * 10000 / maxPoints) % 100;
+        case 6:
+            return totalNotes;
+        default:
+            return 0;
+        }
+    }
+
+    function resolveResultNumber(num) {
+        root.resultOldScoresRevision;
+        let current = root.resultData(1);
+        let old = root.resultOldBestResult(1);
+
+        if (num >= 100 && num <= 116) {
+            return root.resolveResultSideNumber(num - 100, current);
+        }
+        if (num >= 120 && num <= 136) {
+            return root.resolveResultTargetSideNumber(num - 120, 1);
+        }
+
+        switch (num) {
+        case 42:
+        case 96: {
+            let chartData = root.resultChartData();
+            return chartData ? (chartData.playLevel || 0) : 0;
+        }
+        case 90:
+        case 290: {
+            let chartData = root.resultChartData();
+            return chartData && (chartData.maxBpm || chartData.mainBpm)
+                ? Math.round(chartData.maxBpm || chartData.mainBpm)
+                : -1;
+        }
+        case 91:
+        case 291: {
+            let chartData = root.resultChartData();
+            return chartData && (chartData.minBpm || chartData.mainBpm)
+                ? Math.round(chartData.minBpm || chartData.mainBpm)
+                : -1;
+        }
+        case 150:
+            return root.resultHighScorePoints(1);
+        case 151:
+            return root.resultTargetPoints(1);
+        case 152:
+            return root.resultExScore(current) - root.resultHighScorePoints(1);
+        case 153:
+            return root.resultExScore(current) - root.resultTargetPoints(1);
+        case 154:
+            return root.resultRankDelta(current);
+        case 155:
+            return root.resultScoreRateInteger(root.resultHighScorePoints(1), current);
+        case 156:
+            return root.resultScoreRateDecimal(root.resultHighScorePoints(1), current);
+        case 157:
+            return root.resultScoreRateInteger(root.resultTargetPoints(1), current);
+        case 158:
+            return root.resultScoreRateDecimal(root.resultTargetPoints(1), current);
+        case 170:
+            return root.resultExScore(old);
+        case 171:
+            return root.resultExScore(current);
+        case 172:
+            return root.resultExScore(current) - root.resultExScore(old);
+        case 173:
+            return old ? (old.maxCombo || 0) : 0;
+        case 174:
+            return current ? (current.maxCombo || 0) : 0;
+        case 175:
+            return (current ? (current.maxCombo || 0) : 0) - (old ? (old.maxCombo || 0) : 0);
+        case 176:
+            return root.resultBadPoor(old);
+        case 177:
+            return root.resultBadPoor(current);
+        case 178:
+            return root.resultBadPoor(current) - root.resultBadPoor(old);
+        case 179:
+        case 180:
+        case 181:
+        case 182:
+            return 0;
+        case 183:
+            return root.resultRateInteger(old);
+        case 184:
+            return root.resultRateDecimal(old);
+        default:
+            return 0;
+        }
+    }
+
     function resolveNumber(num) {
+        if (root.isResultScreen()) {
+            return root.resolveResultNumber(num);
+        }
         if (root.isGameplayScreen()) {
             return root.resolveGameplayNumber(num);
         }
@@ -3693,6 +4393,35 @@ Item {
             }
         }
         return 0;
+    }
+
+    function numberValue(src) {
+        if (src && src.nowCombo) {
+            return (src.side || (src.timer === 47 ? 2 : 1)) === 2
+                ? root.gameplayJudgeCombo2
+                : root.gameplayJudgeCombo1;
+        }
+        return root.resolveNumber(src ? src.num : 0);
+    }
+
+    function numberForceHidden(src) {
+        if (!src || !src.nowCombo || !root.isGameplayScreen()) {
+            return false;
+        }
+        let side = src.side || (src.timer === 47 ? 2 : 1);
+        let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
+        let combo = side === 2 ? root.gameplayJudgeCombo2 : root.gameplayJudgeCombo1;
+        return combo <= 0
+            || (src.judgementIndex >= 0 && judgement !== src.judgementIndex);
+    }
+
+    function numberAnimationRevision(src) {
+        if (!src || !src.nowCombo || !root.isGameplayScreen()) {
+            return 0;
+        }
+        return (src.side || (src.timer === 47 ? 2 : 1)) === 2
+            ? root.gameplayJudgeRevision2
+            : root.gameplayJudgeRevision1;
     }
 
     function resolveBarGraph(type) {
@@ -4412,7 +5141,7 @@ Item {
         if (!src) {
             return 0;
         }
-        return root.gameplayCombo(src.timer === 47 ? 2 : 1, false);
+        return src.timer === 47 ? root.gameplayJudgeCombo2 : root.gameplayJudgeCombo1;
     }
 
     function nowJudgeState(src, dsts) {
@@ -4442,6 +5171,9 @@ Item {
         }
         if (root.isSelectScrollSlider(src)) {
             return root.selectScrollSliderState(src, dsts);
+        }
+        if (root.isGameplayProgressSlider(src)) {
+            return root.gameplayProgressSliderState(src, dsts);
         }
         if (root.isLr2GenericSlider(src)) {
             return root.lr2GenericSliderState(src, dsts);
@@ -4521,6 +5253,18 @@ Item {
             return null;
         }
         return root.translatedSliderState(src, dsts, root.sliderRawValue(src.sliderType) / 100);
+    }
+
+    function gameplayProgressSliderState(src, dsts) {
+        if (!root.isGameplayProgressSlider(src)) {
+            return null;
+        }
+        root.globalSkinTime;
+        let player = root.gameplayPlayer(1);
+        let elapsed = player ? Math.max(0, player.elapsed || 0) : 0;
+        let length = player ? Math.max(0, player.chartLength || 0) : 0;
+        let position = length > 0 ? Math.max(0, Math.min(1, elapsed / length)) : 0;
+        return root.translatedSliderState(src, dsts, position);
     }
 
     function selectScrollSliderTrackState(src, dsts) {
@@ -4936,6 +5680,24 @@ Item {
             root.gameplayTimerRevision;
             return root.gameplayTimerValues;
         }
+        if (root.isResultScreen()) {
+            let resultTimers = { "0": 0 };
+            if (root.acceptsInput) {
+                resultTimers[1] = Math.min(root.renderSkinTime, skinModel.startInput || 0);
+            }
+            if (root.renderSkinTime >= root.resultGraphStartSkinTime) {
+                resultTimers[150] = root.resultGraphStartSkinTime;
+            }
+            if (root.resultTimer151SkinTime >= 0) {
+                resultTimers[151] = root.resultTimer151SkinTime;
+            } else if (root.renderSkinTime >= root.resultGraphEndSkinTime) {
+                resultTimers[151] = root.resultGraphEndSkinTime;
+            }
+            if (root.resultTimer152SkinTime >= 0) {
+                resultTimers[152] = root.resultTimer152SkinTime;
+            }
+            return resultTimers;
+        }
         if (root.effectiveScreenKey !== "select") {
             return root.zeroTimers;
         }
@@ -5090,6 +5852,7 @@ Item {
             Qt.callLater(root.openSelectIfNeeded);
             Qt.callLater(root.activateGameplayIfNeeded);
             Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
+            Qt.callLater(root.updateResultOldScores);
         }
     }
 
@@ -5167,6 +5930,22 @@ Item {
         root.playOneShot(scratchSound);
     }
 
+    function resultInputReady() {
+        return root.enabled && root.isResultScreen() && root.acceptsInput;
+    }
+
+    function closeResultScreen() {
+        if (!root.resultInputReady()) {
+            return false;
+        }
+        if (root.resultTimer151SkinTime < 0 && root.renderSkinTime < root.resultGraphEndSkinTime) {
+            root.resultTimer151SkinTime = root.renderSkinTime;
+            return true;
+        }
+        sceneStack.pop();
+        return true;
+    }
+
     function submitSelectSearch() {
         let query = selectContext.searchText.trim();
         if (query.length > 0) {
@@ -5210,6 +5989,10 @@ Item {
             root.closeReadme();
             return;
         }
+        if (root.closeResultScreen()) {
+            event.accepted = true;
+            return;
+        }
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
         root.selectGoForward();
@@ -5248,6 +6031,9 @@ Item {
     Input.onCol21Pressed: if (root.selectNavigationReady()) root.selectGoForward()
     Input.onCol27Pressed: if (root.selectNavigationReady()) root.selectGoForward()
     Input.onButtonPressed: (key) => {
+        if (root.closeResultScreen()) {
+            return;
+        }
         root.pressSelectHeldButtonTimer(key);
         if (root.handleSelectPanelKey(key)) {
             return;
@@ -5471,6 +6257,8 @@ Item {
                             return playNotesComponent;
                         } else if (model.type === 9) {
                             return grooveGaugeComponent;
+                        } else if (model.type === 10) {
+                            return resultChartComponent;
                         }
                         return undefined;
                     }
@@ -5578,13 +6366,27 @@ Item {
                         Lr2GrooveGaugeRenderer {
                             dsts: model.dsts
                             srcData: model.src
-                            skinTime: elemLoader.elementSkinTime
+                            skinTime: root.renderSkinTime
                             activeOptions: elemLoader.elementActiveOptions
                             timers: elemLoader.elementTimers
                             screenRoot: root
                             scaleOverride: skinScale
                             mediaActive: root.enabled && root.isGameplayScreen()
                             transColor: root.skinModelRef ? root.skinModelRef.transColor : "black"
+                        }
+                    }
+
+                    Component {
+                        id: resultChartComponent
+                        Lr2ResultChartRenderer {
+                            anchors.fill: parent
+                            dsts: model.dsts
+                            srcData: model.src
+                            skinTime: elemLoader.elementSkinTime
+                            activeOptions: elemLoader.elementActiveOptions
+                            timers: elemLoader.elementTimers
+                            scaleOverride: skinScale
+                            screenRoot: root
                         }
                     }
 
@@ -5597,7 +6399,9 @@ Item {
                             activeOptions: elemLoader.elementActiveOptions
                             timers: elemLoader.elementTimers
                             scaleOverride: skinScale
-                            value: root.resolveNumber(model.src ? model.src.num : 0)
+                            value: root.numberValue(model.src)
+                            forceHidden: root.numberForceHidden(model.src)
+                            animationRevision: root.numberAnimationRevision(model.src)
                         }
                     }
 

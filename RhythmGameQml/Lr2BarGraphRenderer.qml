@@ -35,7 +35,7 @@ Item {
     readonly property string resolvedSource: {
         if (!srcData) return "";
         if (srcData.specialType === 1 || srcData.specialType === 3 || srcData.specialType === 4) {
-            let chartData = root.chart ? root.chart.chartData : null;
+            let chartData = root.chart ? (root.chart.chartData || root.chart) : null;
             let fileName = "";
             if (srcData.specialType === 1) {
                 fileName = chartData ? chartData.stageFile : "";
@@ -105,6 +105,8 @@ Item {
                     || root.srcData.specialType === 3
                     || root.srcData.specialType === 4)
             cache: true
+            smooth: false
+            mipmap: false
             visible: false
         }
 
@@ -118,6 +120,10 @@ Item {
             property real blendMode: 1.0
             property real colorKeyEnabled: 0.0
             property real tolerance: 0.03125
+            property real nearestMode: root.currentState && (root.currentState.filter || 0) === 0 ? 1.0 : 0.0
+            property vector2d sourceSize: Qt.vector2d(
+                Math.max(1, graphAtlas.implicitWidth),
+                Math.max(1, graphAtlas.implicitHeight))
             property vector4d sourceRect: {
                 if (!root.srcData
                     || graphAtlas.implicitWidth <= 0

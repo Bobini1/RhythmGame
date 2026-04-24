@@ -12,12 +12,24 @@ layout (std140, binding = 0) uniform buf {
     float blendMode;
     float colorKeyEnabled;
     float tolerance;
+    float nearestMode;
+    vec2 sourceSize;
 } ubuf;
 
 layout (binding = 1) uniform sampler2D source;
 
 void main(void) {
     vec2 uv = ubuf.sourceRect.xy + qt_TexCoord0 * ubuf.sourceRect.zw;
+    if (ubuf.nearestMode > 0.5) {
+        vec2 textureSizePx = max(ubuf.sourceSize, vec2(1.0));
+        vec2 sourceStartPx = ubuf.sourceRect.xy * textureSizePx;
+        vec2 sourceSizePx = ubuf.sourceRect.zw * textureSizePx;
+        vec2 minPx = min(sourceStartPx, sourceStartPx + sourceSizePx);
+        vec2 maxPx = max(sourceStartPx, sourceStartPx + sourceSizePx) - vec2(1.0);
+        vec2 samplePx = sourceStartPx + qt_TexCoord0 * sourceSizePx;
+        samplePx = clamp(floor(samplePx), minPx, maxPx) + vec2(0.5);
+        uv = samplePx / textureSizePx;
+    }
     vec4 tex = texture(source, uv);
 
     if (ubuf.colorKeyEnabled > 0.5 && abs(tex.r - ubuf.transColor.r) < ubuf.tolerance

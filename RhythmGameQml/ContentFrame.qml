@@ -47,6 +47,22 @@ ApplicationWindow {
         id: globalRoot
 
         readonly property Profile mainProfile: Rg.profileList.mainProfile
+        function configuredScreen(screenKey, fallbackKey) {
+            let themeName = mainProfile.themeConfig[screenKey];
+            let family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
+            if (family && family.screens && family.screens[screenKey]) {
+                return family.screens[screenKey];
+            }
+            if (fallbackKey) {
+                themeName = mainProfile.themeConfig[fallbackKey];
+                family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
+                if (family && family.screens && family.screens[fallbackKey]) {
+                    return family.screens[fallbackKey];
+                }
+            }
+            return null;
+        }
+
         readonly property Component k7Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7].screens.k7.script)
         readonly property Component k7battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k7battle].screens.k7battle.script)
         readonly property Component k14Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k14].screens.k14.script)
@@ -54,7 +70,8 @@ ApplicationWindow {
         readonly property Component k5battleComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k5battle].screens.k5battle.script)
         readonly property Component k10Component: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.k10].screens.k10.script)
         readonly property Component mainComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
-        readonly property Component resultComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.result].screens.result.script)
+        readonly property Component resultComponent: Qt.createComponent(configuredScreen("result").script)
+        readonly property Component courseResultComponent: Qt.createComponent(configuredScreen("courseResult", "result").script)
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
@@ -145,20 +162,36 @@ ApplicationWindow {
         }
 
         function openResult(scores, profiles, chartData) {
-            sceneStack.pushItem(resultComponent, {
+            let resultScreen = configuredScreen("result");
+            let props = {
                 "scores": scores,
                 "profiles": profiles,
                 "chartData": chartData
-            });
+            };
+            if (resultScreen && resultScreen.csvPath) {
+                props["csvPath"] = resultScreen.csvPath;
+                props["skinSettings"] = currentLr2Settings("result");
+                props["screenKey"] = "result";
+            }
+            sceneStack.pushItem(resultComponent, props);
         }
 
         function openCourseResult(scores, profiles, chartDatas, course) {
-            sceneStack.pushItem(resultComponent, {
+            let hasCourseResultScreen = configuredScreen("courseResult") !== null;
+            let courseResultScreen = configuredScreen("courseResult", "result");
+            let props = {
                 "scores": scores,
                 "profiles": profiles,
                 "chartDatas": chartDatas,
                 "course": course
-            });
+            };
+            if (courseResultScreen && courseResultScreen.csvPath) {
+                let settingsKey = hasCourseResultScreen ? "courseResult" : "result";
+                props["csvPath"] = courseResultScreen.csvPath;
+                props["skinSettings"] = currentLr2Settings(settingsKey);
+                props["screenKey"] = settingsKey;
+            }
+            sceneStack.pushItem(courseResultComponent, props);
         }
 
         anchors.fill: parent

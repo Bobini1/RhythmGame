@@ -97,6 +97,30 @@ makeSafeId(QString text, const QString& fallback) -> QString
 }
 
 auto
+normalizeCommand(QString token) -> QString
+{
+    auto command = token.trimmed().toUpper();
+    if (!command.isEmpty() && !command.startsWith(QLatin1Char('#')) &&
+        command.at(0).isLetter()) {
+        static const QSet<QString> hashOptionalCommands = {
+            QStringLiteral("IF"),
+            QStringLiteral("ELSE"),
+            QStringLiteral("ELSEIF"),
+            QStringLiteral("ENDIF"),
+            QStringLiteral("CUSTOMOPTION"),
+            QStringLiteral("CUSTOMFILE"),
+            QStringLiteral("DISABLEFLIP"),
+            QStringLiteral("FLIPRESULT"),
+        };
+        if (!hashOptionalCommands.contains(command)) {
+            return command;
+        }
+        command.prepend(QLatin1Char('#'));
+    }
+    return command;
+}
+
+auto
 lr2ConfiguredFontFamily() -> QString
 {
     // The stock LR2 skin relies on MS PGothic for Japanese system-font text.
@@ -461,7 +485,7 @@ skipConditionalBranch(const std::vector<QStringList>& lines, int& index)
             continue;
         }
 
-        const auto command = tokens[0].toUpper();
+        const auto command = normalizeCommand(tokens[0]);
         if (command == "#IF") {
             ++depth;
         } else if (command == "#ENDIF") {
@@ -496,7 +520,7 @@ parseIfBlock(const std::vector<QStringList>& lines,
 
     while (index < static_cast<int>(lines.size())) {
         const auto tokens = lines[index];
-        const auto command = tokens[0].toUpper();
+        const auto command = normalizeCommand(tokens[0]);
 
         bool executeBranch = false;
         if (command == "#IF" || command == "#ELSEIF") {
@@ -521,7 +545,7 @@ parseIfBlock(const std::vector<QStringList>& lines,
         }
 
         const auto nextCommand =
-          lines[index].isEmpty() ? QString{} : lines[index][0].toUpper();
+          lines[index].isEmpty() ? QString{} : normalizeCommand(lines[index][0]);
         if (nextCommand == "#ENDIF") {
             ++index;
             ++state.sortId;
@@ -650,6 +674,25 @@ parseNowComboSource(const QStringList& tokens,
 {
     auto src = parseNumberSource(tokens, state);
     src.num = side == 2 ? 124 : 104;
+    src.nowCombo = true;
+    src.side = side;
+    src.judgementIndex =
+      tokens.size() > 1 && !tokens[1].isEmpty() ? tokens[1].toInt() : -1;
+    return src;
+}
+
+auto
+parseResultChartSource(const QStringList& tokens,
+                       const ParseState& state,
+                       const int chartType,
+                       const int side) -> Lr2SrcImage
+{
+    auto src = parseImageSource(tokens, state);
+    src.resultChartType = chartType;
+    src.side = side;
+    if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+        src.resultChartIndex = tokens[1].toInt();
+    }
     return src;
 }
 
@@ -896,7 +939,7 @@ processCommand(const QStringList& tokens,
         return;
     }
 
-    const auto command = tokens[0].toUpper();
+    const auto command = normalizeCommand(tokens[0]);
     if (command == "#STARTINPUT") {
         if (tokens.size() > 1) {
             state.startInput = tokens[1].trimmed().toInt();
@@ -983,6 +1026,12 @@ processCommand(const QStringList& tokens,
         } else {
             state.activeOptions.erase(option);
         }
+    } else if (command == "#DISABLEFLIP") {
+        state.activeOptions.erase(351);
+        state.activeOptions.insert(350);
+    } else if (command == "#FLIPRESULT") {
+        state.activeOptions.erase(350);
+        state.activeOptions.insert(351);
     } else if (command == "#INCLUDE") {
         if (tokens.size() < 2 || tokens[1].trimmed().isEmpty()) {
             return;
@@ -1214,6 +1263,33 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseBarGraphSource(tokens, state));
     } else if (command == "#DST_BARGRAPH") {
         if (state.hasCurrentElement && state.currentElement.type == 6) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_GAUGECHART_1P" ||
+               command == "#SRC_GAUGECHART_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 10;
+        state.hasCurrentElement = true;
+        state.currentElement.src = QVariant::fromValue(parseResultChartSource(
+          tokens,
+          state,
+          1,
+          command.endsWith(QStringLiteral("_2P")) ? 2 : 1));
+    } else if (command == "#DST_GAUGECHART_1P" ||
+               command == "#DST_GAUGECHART_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 10) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_SCORECHART") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 10;
+        state.hasCurrentElement = true;
+        state.currentElement.src =
+          QVariant::fromValue(parseResultChartSource(tokens, state, 2, 1));
+    } else if (command == "#DST_SCORECHART") {
+        if (state.hasCurrentElement && state.currentElement.type == 10) {
             parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_TEXT") {
@@ -1510,7 +1586,7 @@ parseLines(const std::vector<QStringList>& lines,
             continue;
         }
 
-        const auto command = tokens[0].toUpper();
+        const auto command = normalizeCommand(tokens[0]);
         if (stopAtConditionalBoundary &&
             (command == "#ELSE" || command == "#ELSEIF" ||
              command == "#ENDIF")) {

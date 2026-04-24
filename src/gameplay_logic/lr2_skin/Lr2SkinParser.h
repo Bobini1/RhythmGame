@@ -72,6 +72,8 @@ struct Lr2SrcImage
     Q_PROPERTY(int op2 MEMBER op2)
     Q_PROPERTY(int op3 MEMBER op3)
     Q_PROPERTY(int op4 MEMBER op4)
+    Q_PROPERTY(int resultChartType MEMBER resultChartType)
+    Q_PROPERTY(int resultChartIndex MEMBER resultChartIndex)
     Q_PROPERTY(bool button MEMBER button)
     Q_PROPERTY(int buttonId MEMBER buttonId)
     Q_PROPERTY(int buttonClick MEMBER buttonClick)
@@ -116,6 +118,8 @@ struct Lr2SrcImage
     int op2 = 0;
     int op3 = 0;
     int op4 = 0;
+    int resultChartType = 0;
+    int resultChartIndex = 0;
     bool button = false;
     int buttonId = 0;
     int buttonClick = 0;
@@ -153,6 +157,9 @@ struct Lr2SrcNumber
     Q_PROPERTY(int num MEMBER num)
     Q_PROPERTY(int align MEMBER align)
     Q_PROPERTY(int keta MEMBER keta)
+    Q_PROPERTY(bool nowCombo MEMBER nowCombo)
+    Q_PROPERTY(int side MEMBER side)
+    Q_PROPERTY(int judgementIndex MEMBER judgementIndex)
     Q_PROPERTY(QString source MEMBER source)
   public:
     int gr = 0;
@@ -167,6 +174,9 @@ struct Lr2SrcNumber
     int num = 0;
     int align = 0;
     int keta = 0;
+    bool nowCombo = false;
+    int side = 0;
+    int judgementIndex = -1;
     QString source;
 };
 
@@ -319,7 +329,8 @@ struct Lr2Element
     Q_PROPERTY(QVariantList dsts MEMBER dsts)
   public:
     // 0=image, 1=number, 2=text, 3=bar image, 4=bar text,
-    // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge
+    // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge,
+    // 10=result gauge/score chart
     int type = -1;
     QVariant src;
     QVariantList dsts;

@@ -13,6 +13,8 @@ Item {
     property real offsetX: 0
     property real offsetY: 0
     property int value: 0
+    property bool forceHidden: false
+    property int animationRevision: 0
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -20,8 +22,9 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
-    readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
+    readonly property var currentState: root.forceHidden
+        ? null
+        : (staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
     readonly property int blendMode: {
         let raw = currentState ? currentState.blend : 1;
         if (raw === 5 || raw === 6) return 2;
@@ -61,16 +64,33 @@ Item {
         return result.slice(0, width);
     }
 
-    function numberAnimationBaseFrame() {
+    function numberFrameGroupSize() {
         if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0) {
+            let divX = root.srcData ? Math.max(1, root.srcData.div_x || 1) : 1;
+            let divY = root.srcData ? Math.max(1, root.srcData.div_y || 1) : 1;
+            let frames = divX * divY;
+            if (frames % 24 === 0) return 24;
+            if (frames % 11 === 0) return 11;
+            if (frames % 10 === 0) return 10;
             return 0;
         }
         let divX = Math.max(1, root.srcData.div_x || 1);
         let divY = Math.max(1, root.srcData.div_y || 1);
         let frames = divX * divY;
-        if (frames <= 10 || frames % 10 !== 0) {
+        if (frames % 24 === 0) return 24;
+        if (frames % 11 === 0) return 11;
+        if (frames % 10 === 0) return 10;
+        return 0;
+    }
+
+    function numberAnimationBaseFrame() {
+        let groupSize = root.numberFrameGroupSize();
+        if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0 || groupSize <= 0) {
             return 0;
         }
+        let divX = Math.max(1, root.srcData.div_x || 1);
+        let divY = Math.max(1, root.srcData.div_y || 1);
+        let frames = divX * divY;
         let timerIdx = root.srcData.timer || 0;
         let fire = (root.timers && root.timers[timerIdx] !== undefined)
             ? root.timers[timerIdx]
@@ -82,8 +102,8 @@ Item {
         if (elapsed < 0) {
             return 0;
         }
-        let rows = frames / 10;
-        return Math.floor((elapsed % root.srcData.cycle) * rows / root.srcData.cycle) * 10;
+        let rows = frames / groupSize;
+        return Math.floor((elapsed % root.srcData.cycle) * rows / root.srcData.cycle) * groupSize;
     }
 
     function textForValue() {
@@ -104,12 +124,21 @@ Item {
     readonly property real digitW: root.currentState ? root.currentState.w * root.scaleOverride : 0
     readonly property real digitH: root.currentState ? root.currentState.h * root.scaleOverride : 0
     readonly property real textW: displayText.length * digitW
+    function colorComponent(value) {
+        if (value === undefined || value === null) return 1.0;
+        return Math.max(0, Math.min(255, value)) / 255.0;
+    }
+    readonly property real tintR: root.currentState ? root.colorComponent(root.currentState.r) : 1.0
+    readonly property real tintG: root.currentState ? root.colorComponent(root.currentState.g) : 1.0
+    readonly property real tintB: root.currentState ? root.colorComponent(root.currentState.b) : 1.0
+    readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
     readonly property int centeredMissingDigits: srcData && srcData.align === 2 && srcData.keta > 0
         ? Math.max(0, srcData.keta - digitCount(root.value))
         : 0
     readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
     readonly property bool isNowCombo: srcData
-        && (srcData.num === 104 || srcData.num === 124)
+        && (srcData.nowCombo
+            || (srcData.num === 104 || srcData.num === 124))
         && (srcData.timer === 46 || srcData.timer === 47)
     readonly property real nowComboOffset: isNowCombo ? -digitCount(root.value) * digitW * 0.5 : 0
 
@@ -139,27 +168,35 @@ Item {
                 height: root.digitH
 
                 readonly property string ch: root.displayText.charAt(index)
-                readonly property int digit: {
+                readonly property int frameIndex: {
                     if (ch.length <= 0) {
                         return -1;
                     }
                     let code = ch.charCodeAt(0);
-                    return code >= 48 && code <= 57 ? code - 48 : -1;
+                    if (code >= 48 && code <= 57) {
+                        return code - 48;
+                    }
+                    let groupSize = root.numberFrameGroupSize();
+                    return ch === " " && (groupSize === 11 || groupSize === 24) ? 10 : -1;
                 }
 
                 ShaderEffect {
                     anchors.fill: parent
-                    visible: digitAtlas.status === Image.Ready && digitRoot.digit >= 0
+                    visible: digitAtlas.status === Image.Ready && digitRoot.frameIndex >= 0
                     blending: true
                     property variant source: digitAtlas
-                    property color tint: "white"
+                    property color tint: root.tintColor
                     property color transColor: "black"
                     property real blendMode: root.blendMode
                     property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
                     property real tolerance: 0.03125
+                    property real nearestMode: 0.0
+                    property vector2d sourceSize: Qt.vector2d(
+                        Math.max(1, digitAtlas.implicitWidth),
+                        Math.max(1, digitAtlas.implicitHeight))
                     property vector4d sourceRect: {
                         if (!root.srcData
-                            || digitRoot.digit < 0
+                            || digitRoot.frameIndex < 0
                             || digitAtlas.implicitWidth <= 0
                             || digitAtlas.implicitHeight <= 0) {
                             return Qt.vector4d(0, 0, 1, 1);
@@ -175,7 +212,8 @@ Item {
                         let divY = Math.max(1, root.srcData.div_y || 1);
                         let cellW = sw / divX;
                         let cellH = sh / divY;
-                        let frame = (root.numberAnimationBaseFrame() + digitRoot.digit) % (divX * divY);
+                        root.animationRevision;
+                        let frame = (root.numberAnimationBaseFrame() + digitRoot.frameIndex) % (divX * divY);
                         let col = frame % divX;
                         let row = Math.floor(frame / divX) % divY;
                         let atlasW = Math.max(1, digitAtlas.implicitWidth);

@@ -129,7 +129,7 @@ Item {
     readonly property string resolvedSource: {
         if (!srcData) return "";
         if (srcData.specialType === 1 || srcData.specialType === 3 || srcData.specialType === 4) {
-            let chartData = root.chart ? root.chart.chartData : null;
+            let chartData = root.chart ? (root.chart.chartData || root.chart) : null;
             let fileName = "";
             if (srcData.specialType === 1) {
                 fileName = chartData ? chartData.stageFile : "";
@@ -227,6 +227,10 @@ Item {
             property real blendMode: root.blendMode
             property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
             property real tolerance: 0.03125
+            property real nearestMode: 0.0
+            property vector2d sourceSize: Qt.vector2d(
+                Math.max(1, atlasImage.implicitWidth),
+                Math.max(1, atlasImage.implicitHeight))
             property vector4d sourceRect: {
                 if (!root.srcData || !root.hasDrawableTexture
                     || atlasImage.implicitWidth <= 0
