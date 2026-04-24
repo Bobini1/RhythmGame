@@ -137,14 +137,29 @@ Item {
         }
     }
 
-    function heightMultiplier(player, dst) {
+    function dstTravelHeight(dst) {
+        return Math.max(1, Math.abs(dst && dst.y ? dst.y : 480));
+    }
+
+    function sideSpeedHeight(side, fallbackDst) {
+        let start = side === 2 ? 10 : 0;
+        let end = side === 2 ? 20 : 10;
+        for (let i = start; i < end; ++i) {
+            let state = noteDstState(i);
+            if (state) {
+                return dstTravelHeight(state);
+            }
+        }
+        return dstTravelHeight(fallbackDst);
+    }
+
+    function heightMultiplier(player, visibleHeight) {
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
             : null;
         if (!vars) {
             return 1;
         }
-        let visibleHeight = Math.max(1, Math.abs(dst && dst.y ? dst.y : 480));
         let bpm = Math.max(1, bpmFor(player));
         let baseSpeed = ((1 / (vars.noteScreenTimeMillis || 1)) || 0)
             * 60000 * visibleHeight / bpm;
@@ -215,6 +230,7 @@ Item {
 
             property int lineIndex: modelData
             property var dstState: root.lineDstState(lineIndex)
+            property int side: lineIndex === 1 ? 2 : 1
             property var player: lineIndex === 1
                 ? root.playerForLr2Index(10)
                 : root.playerForLr2Index(0)
@@ -222,8 +238,10 @@ Item {
                 ? player.state.barLinesState
                 : null
             property var lineSource: root.lineSourceFor(lineIndex)
-            property real travelHeight: Math.max(1, Math.abs(dstState ? dstState.y || 0 : 0))
-            property real multiplier: root.heightMultiplier(player, dstState)
+            property real travelHeight: root.dstTravelHeight(dstState)
+            property real multiplier: root.heightMultiplier(
+                player,
+                root.sideSpeedHeight(side, dstState))
             property real playerPosition: {
                 root.framePulse;
                 return player ? player.position || 0 : 0;
@@ -319,8 +337,10 @@ Item {
                 || root.sourceAt(skinModel ? skinModel.autoLnEndSources : [], lr2Index)
             property var lnBodySource: root.sourceAt(skinModel ? skinModel.lnBodySources : [], lr2Index)
                 || root.sourceAt(skinModel ? skinModel.autoLnBodySources : [], lr2Index)
-            property real travelHeight: Math.max(1, Math.abs(dstState ? dstState.y || 0 : 0))
-            property real multiplier: root.heightMultiplier(player, dstState)
+            property real travelHeight: root.dstTravelHeight(dstState)
+            property real multiplier: root.heightMultiplier(
+                player,
+                root.sideSpeedHeight(side, dstState))
             property real playerPosition: {
                 root.framePulse;
                 return player ? player.position || 0 : 0;
