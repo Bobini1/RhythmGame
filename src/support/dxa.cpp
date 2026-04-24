@@ -2,6 +2,7 @@
 
 #include "PathToUtfString.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -498,8 +499,8 @@ DirectoryDecode(u8* NameP,
                     }
                 }
 
-                output[support::pathToUtfString(weakly_canonical(
-                  DirPath / GetOriginalFileName(NameP + File->NameAddress)))] =
+                output[support::normalizeDxaPath(
+                  DirPath / GetOriginalFileName(NameP + File->NameAddress))] =
                   DestP;
             }
         }
@@ -749,6 +750,23 @@ DecodeArchive(const std::filesystem::path& path,
 } // namespace dxa
 
 namespace support {
+auto
+normalizeDxaPath(const std::filesystem::path& path) -> std::string
+{
+    auto normalized = support::pathToUtfString(path);
+    std::replace(normalized.begin(), normalized.end(), '\\', '/');
+    normalized = std::filesystem::path(normalized).lexically_normal().generic_string();
+
+    while (normalized.starts_with("./")) {
+        normalized.erase(0, 2);
+    }
+    if (normalized == ".") {
+        normalized.clear();
+    }
+
+    return normalized;
+}
+
 DXArchive
 extractDxaToMem(const std::filesystem::path& path)
 {

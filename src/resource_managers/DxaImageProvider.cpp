@@ -65,7 +65,7 @@ DxaImageProvider::requestPixmap(const QString& id,
     const auto& archive = archiveIt->second;
 
     // Look up file in archive
-    auto it = archive.find(weakly_canonical(filePath).string());
+    auto it = archive.find(support::normalizeDxaPath(filePath));
     if (it == archive.end()) {
         return {};
     }

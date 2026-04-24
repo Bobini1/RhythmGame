@@ -17,6 +17,8 @@ struct DXArchiveSegment
 using DXArchive = std::map<std::string, DXArchiveSegment>;
 
 auto
+normalizeDxaPath(const std::filesystem::path& path) -> std::string;
+auto
 extractDxaToMem(const std::filesystem::path& path) -> DXArchive;
 auto
 extractDxaToFile(const std::filesystem::path& path) -> int;
