@@ -7290,6 +7290,7 @@ Item {
                 }
 
                 onPressed: (mouse) => {
+                    root.clearSelectSearchFocus();
                     root.updateSelectMouseFromArea(barRowsMouseArea, mouse);
                     pressedRow = rowAt(mouse);
                     if (pressedRow < 0) {
@@ -7360,6 +7361,7 @@ Item {
                         }
                     }
                     onPressed: (mouse) => {
+                        root.clearSelectSearchFocus();
                         root.updateSelectMouseFromArea(sliderMouseArea, mouse);
                         root.selectSliderFixedPoint = -1;
                         if (selectScroll) {
