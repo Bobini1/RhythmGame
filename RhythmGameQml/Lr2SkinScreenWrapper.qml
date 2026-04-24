@@ -158,6 +158,36 @@ Item {
         }
     }
 
+    Shortcut {
+        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        sequence: "F1"
+        onActivated: root.toggleMainHelp()
+    }
+
+    Shortcut {
+        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        sequence: "F2"
+        onActivated: root.toggleSelectedReadme()
+    }
+
+    Shortcut {
+        enabled: root.enabled && root.effectiveScreenKey === "select"
+        sequence: "F4"
+        onActivated: globalRoot.toggleFullScreen()
+    }
+
+    Shortcut {
+        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        sequence: "F5"
+        onActivated: root.openLr2InternetRanking()
+    }
+
+    Shortcut {
+        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        sequence: "F8"
+        onActivated: root.reloadCurrentSelectFolder()
+    }
+
     StackView.onActivated: {
         Qt.callLater(root.activateGameplayIfNeeded);
     }
@@ -415,6 +445,37 @@ Item {
             ? text
             : "HELP FILE NOT FOUND\n\n" + path);
         return true;
+    }
+
+    function toggleSelectedReadme() {
+        if (root.lr2ReadmeMode > 0) {
+            root.closeReadme();
+            return true;
+        }
+        if (root.effectiveScreenKey !== "select") {
+            return false;
+        }
+        return root.openReadmePath(
+            selectContext.attachedTextFile(selectContext.selectedChartData()));
+    }
+
+    function openHelpFile(index) {
+        let helpFiles = skinModel.helpFiles || [];
+        if (index < 0 || index >= helpFiles.length) {
+            return false;
+        }
+        return root.openReadmePath(helpFiles[index]);
+    }
+
+    function toggleMainHelp() {
+        if (root.lr2ReadmeMode > 0) {
+            root.closeReadme();
+            return true;
+        }
+        if (root.effectiveScreenKey !== "select") {
+            return false;
+        }
+        return root.openHelpFile(0);
     }
 
     function closeReadme() {
@@ -756,6 +817,46 @@ Item {
         }
         let clamped = Math.max(1, Math.min(999, value));
         vars.noteScreenTimeMillis = 100000 / clamped;
+    }
+
+    function nextLr2HiSpeedNumber(current, steps) {
+        if (steps === 0) {
+            return current;
+        }
+        let value = isFinite(current) ? current : 100;
+        let direction = steps < 0 ? -1 : 1;
+        let count = Math.max(1, Math.abs(steps || 1));
+        for (let i = 0; i < count; ++i) {
+            if (direction > 0) {
+                value = value % 10 === 0
+                    ? value + 10
+                    : Math.ceil(value / 10) * 10;
+                if (value > 900) {
+                    value = 10;
+                }
+            } else {
+                value = value % 10 === 0
+                    ? value - 10
+                    : Math.floor(value / 10) * 10;
+                if (value < 10) {
+                    value = 900;
+                }
+            }
+        }
+        return value;
+    }
+
+    function adjustHiSpeedNumber(side, steps) {
+        let current = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
+        root.setHiSpeedNumber(side, root.nextLr2HiSpeedNumber(current, steps));
+    }
+
+    function adjustLaneCoverRatio(side, steps) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        vars.laneCoverRatio = Math.max(0, Math.min(1, (vars.laneCoverRatio || 0) + steps * 0.005));
     }
 
     function adjustOffset(delta) {
@@ -1209,7 +1310,7 @@ Item {
     }
 
     function isLr2RankingKey(key) {
-        return key === BmsKey.Col15 || key === BmsKey.Col25;
+        return key === BmsKey.Col14 || key === BmsKey.Col24;
     }
 
     function clearStatusOption() {
@@ -3572,7 +3673,6 @@ Item {
         root.addOption(result, 46);  // difficulty filter enabled
         root.addOption(result, 52);  // non-extra mode
         root.addOption(result, 572); // not course-select mode
-        root.addOption(result, 620); // internet ranking panel closed
         root.addOption(result, 622); // no ghost battle
         root.addOption(result, 624); // no rival score
     }
@@ -3580,6 +3680,7 @@ Item {
     function buildBarActiveOptions() {
         let result = [];
         root.appendStaticSelectOptions(result);
+        root.addOption(result, selectContext.rankingMode ? 621 : 620);
         return result;
     }
 
@@ -3605,7 +3706,6 @@ Item {
                 root.addOption(result, 610 + threshold);
             }
         }
-        root.addOption(result, selectContext.rankingMode ? 621 : 620);
         root.addOption(result, 622); // not ghost battle
         root.addOption(result, 624); // not rival compare
         root.appendPanelOptions(result);
@@ -4852,7 +4952,7 @@ Item {
     }
 
     function handleLr2Button(buttonId, delta, panel) {
-        if (!root.selectInputReady()) {
+        if (!root.enabled || root.effectiveScreenKey !== "select" || !root.acceptsInput) {
             return;
         }
         root.resetSelectSearch();
@@ -4875,12 +4975,12 @@ Item {
             root.closeSelectPanel();
             return;
         }
+        if (buttonId === 200) {
+            root.openHelpFile(0);
+            return;
+        }
         if (buttonId >= 201 && buttonId <= 206 && panel > 0) {
-            let helpFiles = skinModel.helpFiles || [];
-            let helpIndex = buttonId - 200;
-            if (helpIndex >= 0 && helpIndex < helpFiles.length) {
-                root.openReadmePath(helpFiles[helpIndex]);
-            }
+            root.openHelpFile(buttonId - 200);
             return;
         }
         if (buttonId === 210) {
@@ -4918,11 +5018,11 @@ Item {
             break;
         }
         case 57:
-            root.setHiSpeedNumber(1, root.lr2HiSpeedP1 + delta * 10);
+            root.adjustHiSpeedNumber(1, delta);
             optionChanged = true;
             break;
         case 58:
-            root.setHiSpeedNumber(2, root.lr2HiSpeedP2 + delta * 10);
+            root.adjustHiSpeedNumber(2, delta);
             optionChanged = true;
             break;
         case 40:
@@ -5098,12 +5198,137 @@ Item {
         return root.triggerSelectPanelButton(buttonId, delta === undefined ? 1 : delta);
     }
 
+    function keyUsesPlayer2(key) {
+        switch (key) {
+        case BmsKey.Col21:
+        case BmsKey.Col22:
+        case BmsKey.Col23:
+        case BmsKey.Col24:
+        case BmsKey.Col25:
+        case BmsKey.Col26:
+        case BmsKey.Col27:
+        case BmsKey.Col2sUp:
+        case BmsKey.Col2sDown:
+        case BmsKey.Start2:
+        case BmsKey.Select2:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function gameplayOptionSideForKey(key) {
+        return root.keyUsesPlayer2(key) && root.battleModeActive() ? 2 : 1;
+    }
+
+    function gameplayOptionModifierHeldForKey(key) {
+        if (root.keyUsesPlayer2(key) && root.battleModeActive()) {
+            return Input.start2 || Input.select2;
+        }
+        return Input.start1 || Input.select1
+            || (!root.battleModeActive() && (Input.start2 || Input.select2));
+    }
+
+    function handleLr2GameplayOptionKey(key) {
+        if (!root.isGameplayScreen() || !root.gameplayOptionModifierHeldForKey(key)) {
+            return false;
+        }
+
+        let side = root.gameplayOptionSideForKey(key);
+        switch (key) {
+        case BmsKey.Col11:
+        case BmsKey.Col13:
+        case BmsKey.Col15:
+        case BmsKey.Col21:
+        case BmsKey.Col23:
+        case BmsKey.Col25:
+            root.adjustHiSpeedNumber(side, -1);
+            return true;
+        case BmsKey.Col12:
+        case BmsKey.Col14:
+        case BmsKey.Col22:
+        case BmsKey.Col24:
+            root.adjustHiSpeedNumber(side, 1);
+            return true;
+        case BmsKey.Col16:
+        case BmsKey.Col26: {
+            let vars = root.generalVarsForSide(side);
+            if (vars && vars.laneCoverOn) {
+                root.adjustLaneCoverRatio(side, -1);
+            } else {
+                root.adjustHiSpeedNumber(side, 1);
+            }
+            return true;
+        }
+        case BmsKey.Col17:
+        case BmsKey.Col27: {
+            let vars = root.generalVarsForSide(side);
+            if (vars && vars.laneCoverOn) {
+                root.adjustLaneCoverRatio(side, 1);
+            } else {
+                root.adjustHiSpeedNumber(side, -1);
+            }
+            return true;
+        }
+        default:
+            return false;
+        }
+    }
+
+    function handleLr2GameplayScratchTick(side, up) {
+        if (!root.isGameplayScreen()) {
+            return false;
+        }
+        let key = side === 2 ? BmsKey.Col2sUp : BmsKey.Col1sUp;
+        if (!root.gameplayOptionModifierHeldForKey(key)) {
+            return false;
+        }
+        root.adjustHiSpeedNumber(root.gameplayOptionSideForKey(key), up ? 1 : -1);
+        return true;
+    }
+
+    function handleLr2GameplayArrow(key) {
+        if (!root.isGameplayScreen()) {
+            return false;
+        }
+        switch (key) {
+        case Qt.Key_Up:
+            root.adjustHiSpeedNumber(1, 1);
+            return true;
+        case Qt.Key_Down:
+            root.adjustHiSpeedNumber(1, -1);
+            return true;
+        case Qt.Key_Left:
+            root.adjustLaneCoverRatio(1, 1);
+            return true;
+        case Qt.Key_Right:
+            root.adjustLaneCoverRatio(1, -1);
+            return true;
+        default:
+            return false;
+        }
+    }
+
     function handleSelectPanelKey(key) {
         if (!root.selectInputReady() || root.selectPanel <= 0) {
             return false;
         }
 
         if (root.selectPanel === 1) {
+            if ((key === BmsKey.Col16 && Input.col17)
+                    || (key === BmsKey.Col17 && Input.col16)) {
+                return root.triggerSelectPanelButton(50, -1);
+            }
+            if ((key === BmsKey.Col26 && Input.col27)
+                    || (key === BmsKey.Col27 && Input.col26)) {
+                return root.triggerPanelButtonForKey(50, 51, key, 1);
+            }
+            if ((key === BmsKey.Col15 && Input.col17)
+                    || (key === BmsKey.Col17 && Input.col15)
+                    || (key === BmsKey.Col25 && Input.col27)
+                    || (key === BmsKey.Col27 && Input.col25)) {
+                return root.triggerSelectPanelButton(55, 1);
+            }
             switch (key) {
             case BmsKey.Col11:
             case BmsKey.Col21:
@@ -5119,13 +5344,13 @@ Item {
                 return root.triggerPanelButtonForKey(40, 41, key);
             case BmsKey.Col15:
             case BmsKey.Col25:
-                return root.triggerPanelButtonForKey(54, 54, key);
+                return root.triggerPanelButtonForKey(57, 58, key, -1);
             case BmsKey.Col16:
             case BmsKey.Col26:
                 return root.triggerPanelButtonForKey(44, 45, key);
             case BmsKey.Col17:
             case BmsKey.Col27:
-                return root.triggerPanelButtonForKey(50, 51, key);
+                return root.triggerPanelButtonForKey(57, 58, key, 1);
             case BmsKey.Select1:
             case BmsKey.Select2:
                 return root.triggerPanelButtonForKey(77, 77, key);
@@ -5992,6 +6217,15 @@ Item {
         player.play();
     }
 
+    function reloadCurrentSelectFolder() {
+        if (root.effectiveScreenKey !== "select" || selectContext.historyStack.length === 0) {
+            return false;
+        }
+        let currentFolder = selectContext.historyStack[selectContext.historyStack.length - 1];
+        selectContext.open(currentFolder, selectContext.current);
+        return true;
+    }
+
     function selectGoBack() {
         if (root.closeLr2Ranking()) {
             return;
@@ -6050,6 +6284,10 @@ Item {
             root.scrollReadmeBy(0, Math.max(1, root.lr2ReadmeLineSpacing));
             return;
         }
+        if (root.handleLr2GameplayArrow(Qt.Key_Up)) {
+            event.accepted = true;
+            return;
+        }
         if (!root.selectScrollReady()) return;
         event.accepted = true;
         selectContext.decrementViewIndex(event.isAutoRepeat);
@@ -6060,16 +6298,28 @@ Item {
             root.scrollReadmeBy(0, -Math.max(1, root.lr2ReadmeLineSpacing));
             return;
         }
+        if (root.handleLr2GameplayArrow(Qt.Key_Down)) {
+            event.accepted = true;
+            return;
+        }
         if (!root.selectScrollReady()) return;
         event.accepted = true;
         selectContext.incrementViewIndex(event.isAutoRepeat);
     }
     Keys.onLeftPressed: (event) => {
+        if (root.handleLr2GameplayArrow(Qt.Key_Left)) {
+            event.accepted = true;
+            return;
+        }
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
         root.selectGoBack();
     }
     Keys.onRightPressed: (event) => {
+        if (root.handleLr2GameplayArrow(Qt.Key_Right)) {
+            event.accepted = true;
+            return;
+        }
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
         root.selectGoForward();
@@ -6105,10 +6355,26 @@ Item {
         }
     }
 
-    Input.onCol1sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col1sDown)
-    Input.onCol1sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col1sUp)
-    Input.onCol2sDownTicked: (number, type) => root.navigate(number, type, false, BmsKey.Col2sDown)
-    Input.onCol2sUpTicked: (number, type) => root.navigate(number, type, true, BmsKey.Col2sUp)
+    Input.onCol1sDownTicked: (number, type) => {
+        if (!root.handleLr2GameplayScratchTick(1, false)) {
+            root.navigate(number, type, false, BmsKey.Col1sDown);
+        }
+    }
+    Input.onCol1sUpTicked: (number, type) => {
+        if (!root.handleLr2GameplayScratchTick(1, true)) {
+            root.navigate(number, type, true, BmsKey.Col1sUp);
+        }
+    }
+    Input.onCol2sDownTicked: (number, type) => {
+        if (!root.handleLr2GameplayScratchTick(2, false)) {
+            root.navigate(number, type, false, BmsKey.Col2sDown);
+        }
+    }
+    Input.onCol2sUpTicked: (number, type) => {
+        if (!root.handleLr2GameplayScratchTick(2, true)) {
+            root.navigate(number, type, true, BmsKey.Col2sUp);
+        }
+    }
     Input.onCol1sDownPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col1sDown)
     Input.onCol1sUpPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col1sUp)
     Input.onCol2sDownPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col2sDown)
@@ -6117,11 +6383,14 @@ Item {
     Input.onCol1sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp)
     Input.onCol2sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown)
     Input.onCol2sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp)
-    Input.onCol11Pressed: if (root.selectNavigationReady()) root.selectGoForward()
-    Input.onCol17Pressed: if (root.selectNavigationReady()) root.selectGoForward()
-    Input.onCol21Pressed: if (root.selectNavigationReady()) root.selectGoForward()
-    Input.onCol27Pressed: if (root.selectNavigationReady()) root.selectGoForward()
+    Input.onCol11Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
+    Input.onCol17Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
+    Input.onCol21Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
+    Input.onCol27Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onButtonPressed: (key) => {
+        if (root.handleLr2GameplayOptionKey(key)) {
+            return;
+        }
         if (root.closeResultScreen()) {
             return;
         }
@@ -6130,6 +6399,12 @@ Item {
             return;
         }
         if (root.isLr2RankingKey(key) && root.openLr2Ranking()) {
+            return;
+        }
+        if (root.selectNavigationReady()
+                && root.selectPanel <= 0
+                && (key === BmsKey.Col16 || key === BmsKey.Col26)) {
+            root.selectGoForward(undefined, true);
             return;
         }
         if (root.selectNavigationReady() && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
