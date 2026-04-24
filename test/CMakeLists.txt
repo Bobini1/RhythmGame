@@ -11,7 +11,15 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test charts/BmsChartReader.test.cpp db/SqliteCppDb.test.cpp sounds/OpenAlSound.test.cpp findTestAssetsFolder.h charts/BmsChart.test.cpp resource_managers/loadBmsSounds.test.cpp)
+add_executable(RhythmGame_test
+        charts/BmsChartReader.test.cpp
+        db/SqliteCppDb.test.cpp
+        sounds/OpenAlSound.test.cpp
+        findTestAssetsFolder.h
+        charts/BmsChart.test.cpp
+        resource_managers/loadBmsSounds.test.cpp
+        resource_managers/Lr2FontCache.test.cpp
+)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib

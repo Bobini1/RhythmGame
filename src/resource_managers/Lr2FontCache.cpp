@@ -10,9 +10,12 @@
 #include <QImageReader>
 #include <QStringDecoder>
 #include <QStringList>
+#include <iconv.h>
+#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <spdlog/spdlog.h>
+#include <vector>
 
 namespace resource_managers {
 namespace {
@@ -119,6 +122,157 @@ readFontImage(const FontData& data, const QString& imagePath) -> QImage
     return QImage(data.filesystemDir.absoluteFilePath(imagePath));
 }
 
+auto
+invalidIconv() -> iconv_t
+{
+    return reinterpret_cast<iconv_t>(static_cast<std::intptr_t>(-1));
+}
+
+auto
+openCp932Iconv() -> iconv_t
+{
+    for (const auto* encoding : { "CP932", "Windows-31J", "SHIFT_JIS" }) {
+        iconv_t cd = iconv_open("UTF-8", encoding);
+        if (cd != invalidIconv()) {
+            return cd;
+        }
+    }
+    return invalidIconv();
+}
+
+auto
+decodeWithIconv(iconv_t cd, const QByteArray& data) -> std::optional<QString>
+{
+    if (cd == invalidIconv()) {
+        return std::nullopt;
+    }
+
+    iconv(cd, nullptr, nullptr, nullptr, nullptr);
+
+    auto* srcPtr = const_cast<char*>(data.constData());
+    auto srcLeft = static_cast<size_t>(data.size());
+    const auto dstSize = static_cast<size_t>(data.size()) * 4 + 4;
+    std::vector<char> dstBuf(dstSize);
+    auto* dstPtr = dstBuf.data();
+    auto dstLeft = dstSize;
+
+    const auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
+
+    if (result == static_cast<size_t>(-1)) {
+        return std::nullopt;
+    }
+
+    return QString::fromUtf8(dstBuf.data(),
+                             static_cast<qsizetype>(dstSize - dstLeft));
+}
+
+auto
+decodeWithQt(const char* encoding, const QByteArray& data)
+  -> std::optional<QString>
+{
+    QStringDecoder decoder(encoding);
+    if (!decoder.isValid()) {
+        return std::nullopt;
+    }
+
+    const auto decoded = decoder.decode(data);
+    if (decoder.hasError()) {
+        return std::nullopt;
+    }
+
+    return decoded;
+}
+
+auto
+decodeWithQtCp932(const QByteArray& data) -> std::optional<QString>
+{
+    for (const auto* encoding : { "CP932", "windows-31j", "Shift-JIS" }) {
+        if (auto decoded = decodeWithQt(encoding, data)) {
+            return decoded;
+        }
+    }
+
+    return std::nullopt;
+}
+
+class Cp932Decoder
+{
+  public:
+    Cp932Decoder()
+      : m_iconv(openCp932Iconv())
+    {
+    }
+
+    ~Cp932Decoder()
+    {
+        if (m_iconv != invalidIconv()) {
+            iconv_close(m_iconv);
+        }
+    }
+
+    Cp932Decoder(const Cp932Decoder&) = delete;
+    Cp932Decoder& operator=(const Cp932Decoder&) = delete;
+
+    auto decode(const QByteArray& data) -> std::optional<QString>
+    {
+        if (m_iconv != invalidIconv()) {
+            return decodeWithIconv(m_iconv, data);
+        }
+
+        return decodeWithQtCp932(data);
+    }
+
+  private:
+    iconv_t m_iconv = invalidIconv();
+};
+
+auto
+firstCodepoint(const QString& text) -> char32_t
+{
+    const auto codepoints = text.toUcs4();
+    if (codepoints.isEmpty()) {
+        return 0;
+    }
+    return static_cast<char32_t>(codepoints.front());
+}
+
+auto
+decodeCp932Codepoint(Cp932Decoder& decoder, const QByteArray& bytes) -> char32_t
+{
+    const auto decoded = decoder.decode(bytes);
+    if (!decoded) {
+        return 0;
+    }
+    return firstCodepoint(*decoded);
+}
+
+auto
+decodeLr2FontCharId(Cp932Decoder& decoder, const int chrId) -> char32_t
+{
+    if (chrId >= 0 && chrId <= 255) {
+        QByteArray cp932Char;
+        cp932Char.append(static_cast<char>(chrId));
+        return decodeCp932Codepoint(decoder, cp932Char);
+    }
+
+    auto decodeTwoByteShiftJis = [&decoder](const int sjis) {
+        QByteArray cp932Chars;
+        cp932Chars.append(static_cast<char>((sjis >> 8) & 0xFF));
+        cp932Chars.append(static_cast<char>(sjis & 0xFF));
+        return decodeCp932Codepoint(decoder, cp932Chars);
+    };
+
+    if (chrId >= 256 && chrId <= 8126) {
+        return decodeTwoByteShiftJis(chrId + 32832);
+    }
+
+    if (chrId >= 8127 && chrId <= 15306) {
+        return decodeTwoByteShiftJis(chrId + 49281);
+    }
+
+    return 0;
+}
+
 } // namespace
 
 Lr2FontCache&
@@ -143,11 +297,9 @@ Lr2FontCache::load(const QString& path)
         return nullptr;
     }
 
-    QStringDecoder decoder("Shift-JIS");
-    if (!decoder.isValid()) {
-        decoder = QStringDecoder(QStringConverter::Latin1);
-    }
-    const QString textData = decoder(fontData.data);
+    Cp932Decoder cp932Decoder;
+    const QString textData = cp932Decoder.decode(fontData.data)
+                               .value_or(QString::fromLatin1(fontData.data));
 
     Lr2FontDict dict;
 
@@ -166,7 +318,7 @@ Lr2FontCache::load(const QString& path)
             const int mapId = tokens[1].toInt();
             const auto imgPath = tokens[2].trimmed();
             QImage img = readFontImage(fontData, imgPath);
-            dict.imgMap[mapId] = dict.textures.size();
+            dict.imgMap[mapId] = static_cast<int>(dict.textures.size());
             dict.textures.append(std::move(img));
         } else if (cmd == "#R" && tokens.size() > 6) {
             const int chrId = tokens[1].toInt();
@@ -176,30 +328,7 @@ Lr2FontCache::load(const QString& path)
                           tokens[5].toInt(),
                           tokens[6].toInt());
 
-            char32_t charCode = 0;
-            if (chrId >= 0 && chrId <= 255) {
-                charCode = static_cast<char32_t>(chrId);
-            } else if (chrId >= 256 && chrId <= 8126) {
-                const int i = chrId + 32832;
-                QByteArray sjisChars;
-                sjisChars.append(static_cast<char>((i >> 8) & 0xFF));
-                sjisChars.append(static_cast<char>(i & 0xFF));
-                QStringDecoder sjisDecoder("Shift-JIS");
-                const auto decoded = QString(sjisDecoder(sjisChars));
-                if (!decoded.isEmpty()) {
-                    charCode = decoded.at(0).unicode();
-                }
-            } else if (chrId >= 8127 && chrId <= 15306) {
-                const int i = chrId + 49281;
-                QByteArray sjisChars;
-                sjisChars.append(static_cast<char>((i >> 8) & 0xFF));
-                sjisChars.append(static_cast<char>(i & 0xFF));
-                QStringDecoder sjisDecoder2("Shift-JIS");
-                const auto decoded = QString(sjisDecoder2(sjisChars));
-                if (!decoded.isEmpty()) {
-                    charCode = decoded.at(0).unicode();
-                }
-            }
+            const auto charCode = decodeLr2FontCharId(cp932Decoder, chrId);
 
             if (charCode != 0) {
                 Lr2FontGlyph g;
