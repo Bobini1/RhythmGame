@@ -25,8 +25,40 @@ Item {
     property var stateOverride: null
     property bool forceHidden: false
     property bool mediaActive: true
+    property real scratchAngle1: 0
+    property real scratchAngle2: 0
 
-    readonly property var currentState: forceHidden ? null : (stateOverride || Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions))
+    readonly property bool hasStaticTimelineState: !stateOverride
+        && !forceHidden
+        && Lr2Timeline.canUseStaticState(dsts)
+    readonly property var staticTimelineState: hasStaticTimelineState
+        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        : null
+    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
+    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var currentState: forceHidden
+        ? null
+        : (stateOverride || staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
+    readonly property real stateX: root.currentState ? (root.currentState.x || 0) : 0
+    readonly property real stateY: root.currentState ? (root.currentState.y || 0) : 0
+    readonly property real stateW: root.currentState ? (root.currentState.w || 0) : 0
+    readonly property real stateH: root.currentState ? (root.currentState.h || 0) : 0
+    readonly property real drawX: root.stateX + (root.stateW < 0 ? root.stateW : 0) + root.offsetX
+    readonly property real drawY: root.stateY + (root.stateH < 0 ? root.stateH : 0) + root.offsetY
+    readonly property real drawW: Math.abs(root.stateW)
+    readonly property real drawH: Math.abs(root.stateH)
+    readonly property real effectiveAngle: {
+        if (!currentState) {
+            return 0;
+        }
+        if ((currentState.op4 || 0) === 1) {
+            return scratchAngle1;
+        }
+        if ((currentState.op4 || 0) === 2) {
+            return scratchAngle2;
+        }
+        return currentState.angle || 0;
+    }
     // LR2 blend modes we can express via Qt Quick primitives:
     //   0 = TRANSCOLOR alpha (black -> transparent, then alpha)
     //   1 = plain alpha
@@ -58,7 +90,11 @@ Item {
         || Math.abs(root.tintG - 1.0) > 0.001
         || Math.abs(root.tintB - 1.0) > 0.001
     readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
-    readonly property var anchor: Lr2Timeline.centerAnchor(currentState ? currentState.center : 4)
+    readonly property bool usesScratchRotation: currentState
+        && ((currentState.op4 || 0) === 1 || (currentState.op4 || 0) === 2)
+    readonly property var anchor: root.usesScratchRotation
+        ? ({ x: 0.5, y: 0.5 })
+        : Lr2Timeline.centerAnchor(currentState ? currentState.center : 0)
     readonly property bool isSolidFill: srcData && srcData.specialType === 2
     readonly property bool hasWholeTextureSource: srcData && !root.isSolidFill
         && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
@@ -72,8 +108,8 @@ Item {
         && root.hasDrawableVideo
         && root.currentState
         && root.currentState.a > 0
-        && root.currentState.w > 0
-        && root.currentState.h > 0
+        && root.drawW > 0
+        && root.drawH > 0
 
     function syncVideoPlayback() {
         if (root.shouldPlayVideo) {
@@ -136,17 +172,17 @@ Item {
 
     Item {
         id: sprite
-        x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride : 0
-        y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
-        width: root.currentState ? root.currentState.w * root.scaleOverride : 0
-        height: root.currentState ? root.currentState.h * root.scaleOverride : 0
+        x: root.currentState ? root.drawX * root.scaleOverride : 0
+        y: root.currentState ? root.drawY * root.scaleOverride : 0
+        width: root.currentState ? root.drawW * root.scaleOverride : 0
+        height: root.currentState ? root.drawH * root.scaleOverride : 0
         visible: root.currentState && root.currentState.a > 0 && width > 0 && height > 0
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 
         transform: Rotation {
             origin.x: sprite.width * root.anchor.x
             origin.y: sprite.height * root.anchor.y
-            angle: root.currentState ? root.currentState.angle : 0
+            angle: root.effectiveAngle
         }
 
         VideoOutput {

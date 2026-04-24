@@ -73,6 +73,18 @@ int Lr2SkinModel::sceneTime() const {
     return m_sceneTime;
 }
 
+int Lr2SkinModel::loadStart() const {
+    return m_loadStart;
+}
+
+int Lr2SkinModel::loadEnd() const {
+    return m_loadEnd;
+}
+
+int Lr2SkinModel::playStart() const {
+    return m_playStart;
+}
+
 int Lr2SkinModel::fadeOut() const {
     return m_fadeOut;
 }
@@ -117,6 +129,58 @@ int Lr2SkinModel::barAvailableEnd() const {
     return m_barAvailableEnd;
 }
 
+QVariantList Lr2SkinModel::noteSources() const {
+    return m_noteSources;
+}
+
+QVariantList Lr2SkinModel::mineSources() const {
+    return m_mineSources;
+}
+
+QVariantList Lr2SkinModel::lnStartSources() const {
+    return m_lnStartSources;
+}
+
+QVariantList Lr2SkinModel::lnEndSources() const {
+    return m_lnEndSources;
+}
+
+QVariantList Lr2SkinModel::lnBodySources() const {
+    return m_lnBodySources;
+}
+
+QVariantList Lr2SkinModel::autoNoteSources() const {
+    return m_autoNoteSources;
+}
+
+QVariantList Lr2SkinModel::autoMineSources() const {
+    return m_autoMineSources;
+}
+
+QVariantList Lr2SkinModel::autoLnStartSources() const {
+    return m_autoLnStartSources;
+}
+
+QVariantList Lr2SkinModel::autoLnEndSources() const {
+    return m_autoLnEndSources;
+}
+
+QVariantList Lr2SkinModel::autoLnBodySources() const {
+    return m_autoLnBodySources;
+}
+
+QVariantList Lr2SkinModel::noteDsts() const {
+    return m_noteDsts;
+}
+
+QVariantList Lr2SkinModel::lineSources() const {
+    return m_lineSources;
+}
+
+QVariantList Lr2SkinModel::lineDsts() const {
+    return m_lineDsts;
+}
+
 void Lr2SkinModel::setCsvPath(const QString& path) {
     if (m_csvPath == path) return;
     m_csvPath = path;
@@ -146,6 +210,9 @@ void Lr2SkinModel::loadSkin() {
                                      !m_barRows.isEmpty() ||
                                      m_startInput != 0 ||
                                      m_sceneTime != 0 ||
+                                     m_loadStart != 0 ||
+                                     m_loadEnd != 0 ||
+                                     m_playStart != 2000 ||
                                      m_fadeOut != 0 ||
                                      m_skip != 0 ||
                                      !m_helpFiles.isEmpty() ||
@@ -154,7 +221,20 @@ void Lr2SkinModel::loadSkin() {
                                      m_reloadBanner ||
                                      m_barCenter != 0 ||
                                      m_barAvailableStart != 0 ||
-                                     m_barAvailableEnd != -1;
+                                     m_barAvailableEnd != -1 ||
+                                     !m_noteSources.isEmpty() ||
+                                     !m_mineSources.isEmpty() ||
+                                     !m_lnStartSources.isEmpty() ||
+                                     !m_lnEndSources.isEmpty() ||
+                                     !m_lnBodySources.isEmpty() ||
+                                     !m_autoNoteSources.isEmpty() ||
+                                     !m_autoMineSources.isEmpty() ||
+                                     !m_autoLnStartSources.isEmpty() ||
+                                     !m_autoLnEndSources.isEmpty() ||
+                                     !m_autoLnBodySources.isEmpty() ||
+                                     !m_noteDsts.isEmpty() ||
+                                     !m_lineSources.isEmpty() ||
+                                     !m_lineDsts.isEmpty();
         m_effectiveActiveOptions.clear();
         m_barRows.clear();
         m_helpFiles.clear();
@@ -163,11 +243,27 @@ void Lr2SkinModel::loadSkin() {
         m_reloadBanner = false;
         m_startInput = 0;
         m_sceneTime = 0;
+        m_loadStart = 0;
+        m_loadEnd = 0;
+        m_playStart = 2000;
         m_fadeOut = 0;
         m_skip = 0;
         m_barCenter = 0;
         m_barAvailableStart = 0;
         m_barAvailableEnd = -1;
+        m_noteSources.clear();
+        m_mineSources.clear();
+        m_lnStartSources.clear();
+        m_lnEndSources.clear();
+        m_lnBodySources.clear();
+        m_autoNoteSources.clear();
+        m_autoMineSources.clear();
+        m_autoLnStartSources.clear();
+        m_autoLnEndSources.clear();
+        m_autoLnBodySources.clear();
+        m_noteDsts.clear();
+        m_lineSources.clear();
+        m_lineDsts.clear();
         endResetModel();
         if (metadataChanged) {
             emit skinMetadataChanged();
@@ -181,6 +277,9 @@ void Lr2SkinModel::loadSkin() {
     const auto mouseCursor = findMouseCursorElement(m_elements);
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
+                                 m_loadStart != skinData.loadStart ||
+                                 m_loadEnd != skinData.loadEnd ||
+                                 m_playStart != skinData.playStart ||
                                  m_fadeOut != skinData.fadeOut ||
                                  m_skip != skinData.skip ||
                                  m_effectiveActiveOptions != skinData.activeOptions ||
@@ -191,9 +290,25 @@ void Lr2SkinModel::loadSkin() {
                                  m_reloadBanner != skinData.reloadBanner ||
                                  m_barCenter != skinData.barCenter ||
                                  m_barAvailableStart != skinData.barAvailableStart ||
-                                 m_barAvailableEnd != skinData.barAvailableEnd;
+                                 m_barAvailableEnd != skinData.barAvailableEnd ||
+                                 m_noteSources != skinData.noteSources ||
+                                 m_mineSources != skinData.mineSources ||
+                                 m_lnStartSources != skinData.lnStartSources ||
+                                 m_lnEndSources != skinData.lnEndSources ||
+                                 m_lnBodySources != skinData.lnBodySources ||
+                                 m_autoNoteSources != skinData.autoNoteSources ||
+                                 m_autoMineSources != skinData.autoMineSources ||
+                                 m_autoLnStartSources != skinData.autoLnStartSources ||
+                                 m_autoLnEndSources != skinData.autoLnEndSources ||
+                                 m_autoLnBodySources != skinData.autoLnBodySources ||
+                                 m_noteDsts != skinData.noteDsts ||
+                                 m_lineSources != skinData.lineSources ||
+                                 m_lineDsts != skinData.lineDsts;
     m_startInput = skinData.startInput;
     m_sceneTime = skinData.sceneTime;
+    m_loadStart = skinData.loadStart;
+    m_loadEnd = skinData.loadEnd;
+    m_playStart = skinData.playStart;
     m_fadeOut = skinData.fadeOut;
     m_skip = skinData.skip;
     m_effectiveActiveOptions = skinData.activeOptions;
@@ -205,6 +320,19 @@ void Lr2SkinModel::loadSkin() {
     m_barCenter = skinData.barCenter;
     m_barAvailableStart = skinData.barAvailableStart;
     m_barAvailableEnd = skinData.barAvailableEnd;
+    m_noteSources = skinData.noteSources;
+    m_mineSources = skinData.mineSources;
+    m_lnStartSources = skinData.lnStartSources;
+    m_lnEndSources = skinData.lnEndSources;
+    m_lnBodySources = skinData.lnBodySources;
+    m_autoNoteSources = skinData.autoNoteSources;
+    m_autoMineSources = skinData.autoMineSources;
+    m_autoLnStartSources = skinData.autoLnStartSources;
+    m_autoLnEndSources = skinData.autoLnEndSources;
+    m_autoLnBodySources = skinData.autoLnBodySources;
+    m_noteDsts = skinData.noteDsts;
+    m_lineSources = skinData.lineSources;
+    m_lineDsts = skinData.lineDsts;
     endResetModel();
     if (metadataChanged) {
         emit skinMetadataChanged();

@@ -90,6 +90,7 @@ struct Lr2SrcImage
     Q_PROPERTY(int sliderType MEMBER sliderType)
     Q_PROPERTY(int sliderDisabled MEMBER sliderDisabled)
     Q_PROPERTY(int specialType MEMBER specialType)
+    Q_PROPERTY(int side MEMBER side)
     Q_PROPERTY(QString source MEMBER source)
   public:
     enum SpecialType
@@ -133,6 +134,7 @@ struct Lr2SrcImage
     int sliderType = 0;
     int sliderDisabled = 0;
     int specialType = None;
+    int side = 0;
     QString source;
 };
 
@@ -316,7 +318,8 @@ struct Lr2Element
     Q_PROPERTY(QVariant src MEMBER src)
     Q_PROPERTY(QVariantList dsts MEMBER dsts)
   public:
-    // 0=image, 1=number, 2=text, 3=bar image, 4=bar text, 5=bar number, 6=bargraph
+    // 0=image, 1=number, 2=text, 3=bar image, 4=bar text,
+    // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge
     int type = -1;
     QVariant src;
     QVariantList dsts;
@@ -332,11 +335,27 @@ struct Lr2SkinData
     bool reloadBanner = false;
     int startInput = 0;
     int sceneTime = 0;
+    int loadStart = 0;
+    int loadEnd = 0;
+    int playStart = 2000;
     int fadeOut = 0;
     int skip = 0;
     int barCenter = 0;
     int barAvailableStart = 0;
     int barAvailableEnd = -1;
+    QVariantList noteSources;
+    QVariantList mineSources;
+    QVariantList lnStartSources;
+    QVariantList lnEndSources;
+    QVariantList lnBodySources;
+    QVariantList autoNoteSources;
+    QVariantList autoMineSources;
+    QVariantList autoLnStartSources;
+    QVariantList autoLnEndSources;
+    QVariantList autoLnBodySources;
+    QVariantList noteDsts;
+    QVariantList lineSources;
+    QVariantList lineDsts;
 };
 
 class Lr2SkinParser

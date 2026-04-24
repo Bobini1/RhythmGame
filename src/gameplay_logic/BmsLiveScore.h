@@ -67,6 +67,10 @@ class BmsLiveScore final : public QObject
      */
     Q_PROPERTY(
       double maxPointsNow READ getMaxPointsNow NOTIFY maxPointsNowChanged)
+    Q_PROPERTY(int lastJudgement READ getLastJudgement NOTIFY lastJudgementChanged)
+    Q_PROPERTY(
+      qint64 lastMissTimestampMs READ getLastMissTimestampMs NOTIFY
+        lastMissTimestampMsChanged)
     /**
      * @brief The number of normal notes in the chart.
      * @details Normal means not long notes, not mines, not invisible notes, not
@@ -217,6 +221,8 @@ class BmsLiveScore final : public QObject
     int combo = 0;
     int maxCombo = 0;
     int mineHits = 0;
+    int lastJudgement = -1;
+    qint64 lastMissTimestampMs = 0;
     uint64_t randomSeed;
     int64_t length;
     int64_t savedTimestamp;
@@ -260,8 +266,11 @@ class BmsLiveScore final : public QObject
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
     auto getMaxPointsNow() const -> double;
+    auto getLastJudgement() const -> int;
+    auto getLastMissTimestampMs() const -> qint64;
     auto getJudgementCounts() -> JudgementCounts*;
     auto getJudgementCounts() const -> const JudgementCounts*;
+    Q_INVOKABLE int judgementCount(int judgement) const;
     void sendVisualOnlyTap(HitEvent tap);
     void sendVisualOnlyRelease(const HitEvent& release);
     auto getCombo() const -> int;
@@ -289,6 +298,8 @@ class BmsLiveScore final : public QObject
     void maxComboChanged();
     void mineHitsChanged();
     void maxPointsNowChanged();
+    void lastJudgementChanged();
+    void lastMissTimestampMsChanged();
 
     void hit(HitEvent hit);
 };

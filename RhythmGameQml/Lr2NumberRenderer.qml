@@ -14,7 +14,14 @@ Item {
     property real offsetY: 0
     property int value: 0
 
-    readonly property var currentState: Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions)
+    readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
+    readonly property var staticTimelineState: hasStaticTimelineState
+        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        : null
+    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
+    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var currentState: staticTimelineState
+        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
     readonly property int blendMode: {
         let raw = currentState ? currentState.blend : 1;
         if (raw === 5 || raw === 6) return 2;
@@ -54,6 +61,31 @@ Item {
         return result.slice(0, width);
     }
 
+    function numberAnimationBaseFrame() {
+        if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0) {
+            return 0;
+        }
+        let divX = Math.max(1, root.srcData.div_x || 1);
+        let divY = Math.max(1, root.srcData.div_y || 1);
+        let frames = divX * divY;
+        if (frames <= 10 || frames % 10 !== 0) {
+            return 0;
+        }
+        let timerIdx = root.srcData.timer || 0;
+        let fire = (root.timers && root.timers[timerIdx] !== undefined)
+            ? root.timers[timerIdx]
+            : -1;
+        if (fire < 0) {
+            return 0;
+        }
+        let elapsed = root.skinTime - fire;
+        if (elapsed < 0) {
+            return 0;
+        }
+        let rows = frames / 10;
+        return Math.floor((elapsed % root.srcData.cycle) * rows / root.srcData.cycle) * 10;
+    }
+
     function textForValue() {
         let text = Math.abs(Math.round(root.value)).toString();
         let keta = root.srcData ? root.srcData.keta || 0 : 0;
@@ -76,10 +108,14 @@ Item {
         ? Math.max(0, srcData.keta - digitCount(root.value))
         : 0
     readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
+    readonly property bool isNowCombo: srcData
+        && (srcData.num === 104 || srcData.num === 124)
+        && (srcData.timer === 46 || srcData.timer === 47)
+    readonly property real nowComboOffset: isNowCombo ? -digitCount(root.value) * digitW * 0.5 : 0
 
     Item {
         id: numberBox
-        x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride + root.alignOffset : 0
+        x: root.currentState ? (root.currentState.x + root.offsetX) * root.scaleOverride + root.alignOffset + root.nowComboOffset : 0
         y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
         width: root.textW
         height: root.digitH
@@ -139,7 +175,7 @@ Item {
                         let divY = Math.max(1, root.srcData.div_y || 1);
                         let cellW = sw / divX;
                         let cellH = sh / divY;
-                        let frame = digitRoot.digit % (divX * divY);
+                        let frame = (root.numberAnimationBaseFrame() + digitRoot.digit) % (divX * divY);
                         let col = frame % divX;
                         let row = Math.floor(frame / divX) % divY;
                         let atlasW = Math.max(1, digitAtlas.implicitWidth);

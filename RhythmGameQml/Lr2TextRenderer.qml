@@ -20,7 +20,14 @@ Item {
     // Bound externally by the screen wrapper with the actual text for this st index
     property string resolvedText: ""
 
-    readonly property var currentState: Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions)
+    readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
+    readonly property var staticTimelineState: hasStaticTimelineState
+        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        : null
+    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
+    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var currentState: staticTimelineState
+        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
     readonly property bool isLr2Font: srcData
         && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
     readonly property int blendMode: {

@@ -16,7 +16,14 @@ Item {
     property bool animateValue: false
     property int valueAnimationDuration: 100
 
-    readonly property var currentState: Lr2Timeline.getCurrentState(dsts, skinTime, timers, activeOptions)
+    readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
+    readonly property var staticTimelineState: hasStaticTimelineState
+        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        : null
+    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
+    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var currentState: staticTimelineState
+        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
     readonly property real clampedValue: Math.max(0, Math.min(1, value))
     property real displayedValue: clampedValue
     readonly property int frameIndex: {
@@ -69,15 +76,24 @@ Item {
 
     Item {
         id: graph
-        readonly property real fullW: root.currentState ? root.currentState.w * root.scaleOverride : 0
-        readonly property real fullH: root.currentState ? root.currentState.h * root.scaleOverride : 0
-        readonly property bool horizontal: root.srcData ? (root.srcData.direction === 0 || root.srcData.direction === 2) : true
-        readonly property bool reverse: root.srcData ? (root.srcData.direction === 2 || root.srcData.direction === 3) : false
+        readonly property real signedW: root.currentState ? root.currentState.w * root.scaleOverride : 0
+        readonly property real signedH: root.currentState ? root.currentState.h * root.scaleOverride : 0
+        readonly property real fullW: Math.abs(signedW)
+        readonly property real fullH: Math.abs(signedH)
+        readonly property bool horizontal: root.srcData ? root.srcData.direction === 0 : true
+        readonly property real drawnW: horizontal ? fullW * root.displayedValue : fullW
+        readonly property real drawnH: horizontal ? fullH : fullH * root.displayedValue
 
-        x: root.currentState ? root.currentState.x * root.scaleOverride + (horizontal && reverse ? fullW * (1 - root.displayedValue) : 0) : 0
-        y: root.currentState ? root.currentState.y * root.scaleOverride + (!horizontal && reverse ? fullH * (1 - root.displayedValue) : 0) : 0
-        width: horizontal ? fullW * root.displayedValue : fullW
-        height: horizontal ? fullH : fullH * root.displayedValue
+        x: root.currentState
+            ? root.currentState.x * root.scaleOverride
+                + (horizontal && signedW < 0 ? signedW * root.displayedValue : 0)
+            : 0
+        y: root.currentState
+            ? root.currentState.y * root.scaleOverride
+                + (!horizontal && signedH < 0 ? signedH * root.displayedValue : 0)
+            : 0
+        width: drawnW
+        height: drawnH
         visible: root.currentState && root.currentState.a > 0 && width > 0 && height > 0 && root.resolvedSource !== ""
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 

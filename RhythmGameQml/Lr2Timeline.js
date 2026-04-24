@@ -12,8 +12,9 @@
 //       loop <  0           -> play once, then disappear
 //       loop >= endTime     -> play once, freeze at last frame
 //       0 <= loop < endTime -> play once, then loop the [loop, endTime] segment
-//   * `op1..op4` gate the entire sprite's visibility. op=0 means no condition.
-//     Negative op means "option must NOT be active".
+//   * `op1..op3` gate the entire sprite's visibility. op=0 means no condition.
+//     Negative op means "option must NOT be active". OpenLR2 leaves op4 out
+//     of the gate check for images and uses it for scratch-disc rotation.
 //   * Before first keyframe: not drawn.
 //   * Interpolation uses acc from the *earlier* keyframe of the pair.
 
@@ -29,8 +30,7 @@ function allOpsMatch(firstDst, activeOptions) {
     if (!firstDst) return false;
     return checkSingleOp(firstDst.op1, activeOptions)
         && checkSingleOp(firstDst.op2, activeOptions)
-        && checkSingleOp(firstDst.op3, activeOptions)
-        && checkSingleOp(firstDst.op4, activeOptions);
+        && checkSingleOp(firstDst.op3, activeOptions);
 }
 
 function applyAccel(progress, accType) {
@@ -44,7 +44,8 @@ function applyAccel(progress, accType) {
     return progress;
 }
 
-function copyDstAsState(dst) {
+function copyDstAsState(dst, controlDst) {
+    var control = controlDst || dst;
     return {
         x: dst.x, y: dst.y, w: dst.w, h: dst.h,
         a: dst.a, r: dst.r, g: dst.g, b: dst.b,
@@ -52,8 +53,40 @@ function copyDstAsState(dst) {
         center: dst.center || 0,
         sortId: dst.sortId || 0,
         blend: dst.blend || 0,
-        filter: dst.filter || 0
+        filter: dst.filter || 0,
+        op1: control.op1 || 0,
+        op2: control.op2 || 0,
+        op3: control.op3 || 0,
+        op4: control.op4 || 0
     };
+}
+
+function canUseStaticState(dsts) {
+    if (!dsts || dsts.length !== 1 || !dsts[0]) return false;
+    var first = dsts[0];
+    return (first.time || 0) <= 0
+        && (first.timer || 0) === 0
+        && (first.op1 || 0) === 0
+        && (first.op2 || 0) === 0
+        && (first.op3 || 0) === 0;
+}
+
+function dstsUseActiveOptions(dsts) {
+    if (!dsts || dsts.length === 0 || !dsts[0]) return false;
+    var first = dsts[0];
+    return (first.op1 || 0) !== 0
+        || (first.op2 || 0) !== 0
+        || (first.op3 || 0) !== 0;
+}
+
+function dstsUseDynamicTimer(dsts) {
+    if (!dsts || dsts.length === 0 || !dsts[0]) return false;
+    return (dsts[0].timer || 0) !== 0;
+}
+
+function srcUsesDynamicTimer(src) {
+    if (!src) return false;
+    return (src.timer || 0) !== 0 && (src.cycle || 0) > 0;
 }
 
 // Map a timer index to the time it fired (ms since app start / some global clock).
@@ -94,7 +127,7 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
 
     if (dsts.length === 1) {
         // Single keyframe: hold it forever (loop<0 would hide, but that's degenerate here).
-        return copyDstAsState(first);
+        return copyDstAsState(first, first);
     }
 
     if (time >= endTime) {
@@ -108,7 +141,7 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
     }
 
     if (time >= endTime) {
-        return copyDstAsState(last);
+        return copyDstAsState(last, first);
     }
 
     // Find the surrounding keyframe pair.
@@ -122,7 +155,7 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
     }
 
     var segment = d2.time - d1.time;
-    if (segment <= 0) return copyDstAsState(d1);
+    if (segment <= 0) return copyDstAsState(d1, first);
 
     var progress = applyAccel((time - d1.time) / segment, d1.acc || 0);
     function mix(a, b) { return a + (b - a) * progress; }
@@ -140,7 +173,11 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
         center: d1.center || 0,
         sortId: mix(d1.sortId || 0, d2.sortId || 0),
         blend: d1.blend || 0,
-        filter: d1.filter || 0
+        filter: d1.filter || 0,
+        op1: first.op1 || 0,
+        op2: first.op2 || 0,
+        op3: first.op3 || 0,
+        op4: first.op4 || 0
     };
 }
 
@@ -161,16 +198,20 @@ function getAnimationFrame(src, globalTime, srcTimerFire) {
 }
 
 // LR2 center index -> (anchorX, anchorY) in [0,1] within the sprite's own rect.
-// Index layout (LR2):
-//   0 = top-left,   1 = top-center,   2 = top-right
-//   3 = middle-left 4 = middle-center 5 = middle-right
-//   6 = bottom-left 7 = bottom-center 8 = bottom-right
-// Anything out of range defaults to center.
+// OpenLR2/DxLib uses bottom-row first, and treats 0, 5, and out-of-range as center.
+//   1 = bottom-left, 2 = bottom-center, 3 = bottom-right
+//   4 = middle-left, default/0/5 = middle-center, 6 = middle-right
+//   7 = top-left, 8 = top-center, 9 = top-right
 function centerAnchor(idx) {
-    var col = idx % 3; // 0=left, 1=center, 2=right
-    var row = Math.floor(idx / 3); // 0=top, 1=middle, 2=bottom
-    if (idx < 0 || idx > 8) { col = 1; row = 1; }
-    var ax = col === 0 ? 0.0 : col === 1 ? 0.5 : 1.0;
-    var ay = row === 0 ? 0.0 : row === 1 ? 0.5 : 1.0;
-    return { x: ax, y: ay };
+    switch (idx) {
+    case 1: return { x: 0.0, y: 1.0 };
+    case 2: return { x: 0.5, y: 1.0 };
+    case 3: return { x: 1.0, y: 1.0 };
+    case 4: return { x: 0.0, y: 0.5 };
+    case 6: return { x: 1.0, y: 0.5 };
+    case 7: return { x: 0.0, y: 0.0 };
+    case 8: return { x: 0.5, y: 0.0 };
+    case 9: return { x: 1.0, y: 0.0 };
+    default: return { x: 0.5, y: 0.5 };
+    }
 }

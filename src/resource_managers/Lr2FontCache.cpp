@@ -44,11 +44,15 @@ auto
 findDxaBackedPath(const std::filesystem::path& path)
   -> std::optional<std::pair<std::filesystem::path, std::filesystem::path>>
 {
-    for (auto parent = path.parent_path(); !parent.empty();
-         parent = parent.parent_path()) {
+    for (auto parent = path.parent_path(); !parent.empty();) {
         auto archivePath = parent;
         archivePath += ".dxa";
         if (!std::filesystem::is_regular_file(archivePath)) {
+            const auto nextParent = parent.parent_path();
+            if (nextParent == parent) {
+                break;
+            }
+            parent = nextParent;
             continue;
         }
 

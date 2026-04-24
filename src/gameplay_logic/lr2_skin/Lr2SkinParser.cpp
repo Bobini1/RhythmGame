@@ -52,6 +52,22 @@ struct ParseState
     bool hasBarFlashSource = false;
     QMap<int, QVariantList> barBodyOffDsts;
     QMap<int, QVariantList> barBodyOnDsts;
+    QMap<int, Lr2SrcImage> noteSources;
+    QMap<int, Lr2SrcImage> mineSources;
+    QMap<int, Lr2SrcImage> lnStartSources;
+    QMap<int, Lr2SrcImage> lnEndSources;
+    QMap<int, Lr2SrcImage> lnBodySources;
+    QMap<int, Lr2SrcImage> autoNoteSources;
+    QMap<int, Lr2SrcImage> autoMineSources;
+    QMap<int, Lr2SrcImage> autoLnStartSources;
+    QMap<int, Lr2SrcImage> autoLnEndSources;
+    QMap<int, Lr2SrcImage> autoLnBodySources;
+    QMap<int, QVariantList> noteDsts;
+    QMap<int, Lr2SrcImage> lineSources;
+    QMap<int, QVariantList> lineDsts;
+    QMap<int, QList<Lr2Dst>> nowJudgeDsts;
+    QMap<int, int> nowComboDstCounts;
+    bool hasNoteElement = false;
     QVariantList helpFiles;
     QString transColor = "#000000";
     bool reloadBanner = false;
@@ -64,6 +80,9 @@ struct ParseState
     QVariantMap settingValues;
     int startInput = 0;
     int sceneTime = 0;
+    int loadStart = 0;
+    int loadEnd = 0;
+    int playStart = 2000;
     int fadeOut = 0;
     int skip = 0;
     int sortId = 0;
@@ -197,6 +216,66 @@ parseDst(const QStringList& tokens, ParseState& state, Lr2Element& element)
     element.dsts.append(QVariant::fromValue(dst));
 }
 
+void
+addDstOptionGate(Lr2Dst& dst, const int option)
+{
+    if (option == 0) {
+        return;
+    }
+    if (dst.op1 == 0) {
+        dst.op1 = option;
+    } else if (dst.op2 == 0) {
+        dst.op2 = option;
+    } else if (dst.op3 == 0) {
+        dst.op3 = option;
+    }
+}
+
+void
+parseDstWithOptionGate(const QStringList& tokens,
+                       ParseState& state,
+                       Lr2Element& element,
+                       const int option)
+{
+    auto dst = parseDstValue(tokens, state.sortId);
+    addDstOptionGate(dst, option);
+    element.dsts.append(QVariant::fromValue(dst));
+}
+
+auto
+lr2NowJudgementOption(const QString& command, const int judgementIndex) -> int
+{
+    if (judgementIndex < 0 || judgementIndex > 5) {
+        return 0;
+    }
+    const int baseOption = command.endsWith(QStringLiteral("_2P")) ? 261 : 241;
+    return baseOption + (5 - judgementIndex);
+}
+
+auto
+lr2NowCommandIndex(const QStringList& tokens) -> int
+{
+    return tokens.size() > 1 && !tokens[1].isEmpty() ? tokens[1].toInt() : -1;
+}
+
+auto
+lr2NowDisplayTimer(const QString& command) -> int
+{
+    return command.endsWith(QStringLiteral("_2P")) ? 47 : 46;
+}
+
+auto
+lr2NowSide(const QString& command) -> int
+{
+    return command.endsWith(QStringLiteral("_2P")) ? 2 : 1;
+}
+
+auto
+lr2NowStateKey(const int side, const int index) -> int
+{
+    return side * 10 + index;
+}
+
 auto
 globToRegex(const QString& wildcard) -> QRegularExpression
 {
@@ -255,27 +334,86 @@ resolveWildcardPath(const std::filesystem::path& absolutePattern,
 }
 
 auto
+findLr2filesRoot(const std::filesystem::path& currentDir)
+  -> std::filesystem::path
+{
+    for (auto dir = currentDir; !dir.empty();) {
+        const auto name =
+          QString::fromStdString(dir.filename().generic_string());
+        if (name.compare("themes", Qt::CaseInsensitive) == 0 &&
+            !dir.parent_path().empty()) {
+            return dir.parent_path();
+        }
+
+        std::error_code ec;
+        if (std::filesystem::is_directory(dir / "themes", ec)) {
+            return dir;
+        }
+
+        const auto parent = dir.parent_path();
+        if (parent == dir) {
+            break;
+        }
+        dir = parent;
+    }
+
+    return currentDir.parent_path().parent_path().parent_path();
+}
+
+auto
+resolveRawPath(const std::filesystem::path& currentDir, const QString& token)
+  -> std::filesystem::path
+{
+    const auto trimmed = token.trimmed();
+    if (trimmed.isEmpty() ||
+        trimmed.compare("CONTINUE", Qt::CaseInsensitive) == 0) {
+        return {};
+    }
+
+    auto lr2filesPath = trimmed;
+    lr2filesPath.replace('\\', '/');
+    while (lr2filesPath.startsWith(QStringLiteral("./"))) {
+        lr2filesPath.remove(0, 2);
+    }
+
+    const auto lr2filesPrefix = QStringLiteral("LR2files");
+    if (lr2filesPath.compare(lr2filesPrefix, Qt::CaseInsensitive) == 0 ||
+        lr2filesPath.startsWith(lr2filesPrefix + '/',
+                                Qt::CaseInsensitive)) {
+        lr2filesPath.remove(0, lr2filesPrefix.size());
+        if (lr2filesPath.startsWith('/')) {
+            lr2filesPath.remove(0, 1);
+        }
+
+        // LR2's "LR2files\Theme" maps to RhythmGame's "themes" folder.
+        lr2filesPath.replace(
+          QRegularExpression("^Theme(?=/|$)",
+                             QRegularExpression::CaseInsensitiveOption),
+          "themes");
+        return std::filesystem::absolute(
+                 findLr2filesRoot(currentDir) /
+                 support::qStringToPath(lr2filesPath))
+          .lexically_normal();
+    }
+
+    auto path = support::qStringToPath(trimmed);
+    if (path.is_relative()) {
+        path = currentDir / path;
+    }
+
+    return std::filesystem::absolute(path).lexically_normal();
+}
+
+auto
 resolvePath(const std::filesystem::path& currentDir,
             const QString& token,
             const ParseState& state) -> QString
 {
-    if (token.isEmpty() ||
-        token.compare("CONTINUE", Qt::CaseInsensitive) == 0) {
+    const auto abs = resolveRawPath(currentDir, token);
+    if (abs.empty()) {
         return {};
     }
 
-    auto normalized = support::pathToQString(
-      relative(support::qStringToPath(token), "LR2files/"));
-    // replace "Theme" (case insensitive) with "themes"
-    normalized.replace(
-      QRegularExpression("^Theme", QRegularExpression::CaseInsensitiveOption),
-      "themes");
-    auto path = support::qStringToPath(normalized);
-    if (path.is_relative()) {
-        path = currentDir.parent_path().parent_path().parent_path() / path;
-    }
-
-    const auto abs = std::filesystem::absolute(path);
     const auto normalizedString = support::pathToQString(abs);
     if (normalizedString.contains('*')) {
         return resolveWildcardPath(abs, state);
@@ -506,6 +644,16 @@ parseNumberSource(const QStringList& tokens,
 }
 
 auto
+parseNowComboSource(const QStringList& tokens,
+                    const ParseState& state,
+                    const int side) -> Lr2SrcNumber
+{
+    auto src = parseNumberSource(tokens, state);
+    src.num = side == 2 ? 124 : 104;
+    return src;
+}
+
+auto
 parseBarGraphSource(const QStringList& tokens,
                     const ParseState& state,
                     const int grIndex = 2) -> Lr2SrcBarGraph
@@ -593,6 +741,34 @@ toVariantList(const QMap<int, Lr2SrcImage>& sources) -> QVariantList
         result.append(QVariant::fromValue(sources.value(i)));
     }
     return result;
+}
+
+auto
+toVariantList(const QMap<int, QVariantList>& destinations) -> QVariantList
+{
+    QVariantList result;
+    if (destinations.isEmpty()) {
+        return result;
+    }
+    const int maxKey = destinations.lastKey();
+    for (int i = 0; i <= maxKey; ++i) {
+        result.append(QVariant::fromValue(destinations.value(i)));
+    }
+    return result;
+}
+
+void
+ensureNoteElement(ParseState& state)
+{
+    if (state.hasNoteElement) {
+        return;
+    }
+
+    flushCurrentElement(state);
+    Lr2Element element;
+    element.type = 8;
+    state.elements.append(element);
+    state.hasNoteElement = true;
 }
 
 auto
@@ -729,6 +905,18 @@ processCommand(const QStringList& tokens,
         if (tokens.size() > 1) {
             state.sceneTime = tokens[1].trimmed().toInt();
         }
+    } else if (command == "#LOADSTART") {
+        if (tokens.size() > 1) {
+            state.loadStart = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#LOADEND") {
+        if (tokens.size() > 1) {
+            state.loadEnd = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#PLAYSTART") {
+        if (tokens.size() > 1) {
+            state.playStart = tokens[1].trimmed().toInt();
+        }
     } else if (command == "#FADEOUT") {
         if (tokens.size() > 1) {
             state.fadeOut = tokens[1].trimmed().toInt();
@@ -776,10 +964,7 @@ processCommand(const QStringList& tokens,
         if (tokens.size() < 3) {
             return;
         }
-        auto patternPath = support::qStringToPath(tokens[2].trimmed());
-        if (patternPath.is_relative()) {
-            patternPath = currentDir / patternPath;
-        }
+        const auto patternPath = resolveRawPath(currentDir, tokens[2].trimmed());
         state.customFiles.append(CustomFile{
           .settingId = makeSafeId(tokens[1].trimmed(), "file"),
           .directory = std::filesystem::absolute(patternPath.parent_path())
@@ -850,7 +1035,7 @@ processCommand(const QStringList& tokens,
                       tokens.size() > 1 ? tokens[1].trimmed() : QString{},
                       state);
         state.imageFonts.append(font);
-    } else if (command == "#SRC_IMAGE") {
+    } else if (command == "#SRC_IMAGE" || command == "#SRC_JUDGELINE") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
         state.currentElement.type = 0;
@@ -858,8 +1043,30 @@ processCommand(const QStringList& tokens,
 
         state.currentElement.src =
           QVariant::fromValue(parseImageSource(tokens, state));
-    } else if (command == "#DST_IMAGE") {
+    } else if (command == "#DST_IMAGE" || command == "#DST_JUDGELINE") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_LINE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.lineSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#DST_LINE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.lineDsts[tokens[1].toInt()].append(
+              QVariant::fromValue(parseDstValue(tokens, state.sortId)));
+        }
+    } else if (command == "#SRC_BGA") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 7;
+        state.hasCurrentElement = true;
+
+        state.currentElement.src =
+          QVariant::fromValue(parseImageSource(tokens, state));
+    } else if (command == "#DST_BGA") {
+        if (state.hasCurrentElement && state.currentElement.type == 7) {
             parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_ONMOUSE") {
@@ -946,6 +1153,58 @@ processCommand(const QStringList& tokens,
         if (state.hasCurrentElement && state.currentElement.type == 1) {
             parseDst(tokens, state, state.currentElement);
         }
+    } else if (command == "#SRC_NOWJUDGE_1P" ||
+               command == "#SRC_NOWJUDGE_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 0;
+        state.hasCurrentElement = true;
+
+        auto src = parseImageSource(tokens, state);
+        src.timer = lr2NowDisplayTimer(command);
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#DST_NOWJUDGE_1P" ||
+               command == "#DST_NOWJUDGE_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 0) {
+            auto dst = parseDstValue(tokens, state.sortId);
+            const int side = lr2NowSide(command);
+            const int index = lr2NowCommandIndex(tokens);
+            state.nowJudgeDsts[lr2NowStateKey(side, index)].append(dst);
+            dst.timer = lr2NowDisplayTimer(command);
+            addDstOptionGate(dst, lr2NowJudgementOption(command, index));
+            state.currentElement.dsts.append(QVariant::fromValue(dst));
+        }
+    } else if (command == "#SRC_NOWCOMBO_1P" ||
+               command == "#SRC_NOWCOMBO_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 1;
+        state.hasCurrentElement = true;
+
+        auto src = parseNowComboSource(
+          tokens, state, command.endsWith(QStringLiteral("_2P")) ? 2 : 1);
+        src.timer = lr2NowDisplayTimer(command);
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#DST_NOWCOMBO_1P" ||
+               command == "#DST_NOWCOMBO_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 1) {
+            auto dst = parseDstValue(tokens, state.sortId);
+            const int side = lr2NowSide(command);
+            const int index = lr2NowCommandIndex(tokens);
+            const int key = lr2NowStateKey(side, index);
+            const int dstIndex = state.nowComboDstCounts.value(key, 0);
+            state.nowComboDstCounts[key] = dstIndex + 1;
+            const auto judgeDsts = state.nowJudgeDsts.value(key);
+            if (!judgeDsts.isEmpty()) {
+                const auto& judgeDst =
+                  judgeDsts.at(qMin(dstIndex, judgeDsts.size() - 1));
+                dst.x += judgeDst.x;
+                dst.y += judgeDst.y;
+            }
+            dst.timer = lr2NowDisplayTimer(command);
+            addDstOptionGate(dst, lr2NowJudgementOption(command, index));
+            state.currentElement.dsts.append(QVariant::fromValue(dst));
+        }
     } else if (command == "#SRC_BARGRAPH") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
@@ -990,6 +1249,77 @@ processCommand(const QStringList& tokens,
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#DST_README") {
         if (state.hasCurrentElement && state.currentElement.type == 2) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_NOTE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.noteSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_MINE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.mineSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_LN_START") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.lnStartSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_LN_END") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.lnEndSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_LN_BODY") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.lnBodySources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_NOTE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoNoteSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_MINE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoMineSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_LN_START") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoLnStartSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_LN_END") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoLnEndSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_LN_BODY") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoLnBodySources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#DST_NOTE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            ensureNoteElement(state);
+            state.noteDsts[tokens[1].toInt()].append(
+              QVariant::fromValue(parseDstValue(tokens, state.sortId)));
+        }
+    } else if (command == "#SRC_GROOVEGAUGE") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 9;
+        state.hasCurrentElement = true;
+
+        auto src = parseImageSource(tokens, state);
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            src.side = tokens[1].toInt() + 1;
+        }
+        state.currentElement.src = QVariant::fromValue(src);
+    } else if (command == "#DST_GROOVEGAUGE") {
+        if (state.hasCurrentElement && state.currentElement.type == 9) {
             parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#BAR_CENTER") {
@@ -1277,11 +1607,27 @@ parseFile(const std::filesystem::path& filePath,
       .reloadBanner = state.reloadBanner,
       .startInput = state.startInput,
       .sceneTime = state.sceneTime,
+      .loadStart = state.loadStart,
+      .loadEnd = state.loadEnd,
+      .playStart = state.playStart,
       .fadeOut = state.fadeOut,
       .skip = state.skip,
       .barCenter = state.barCenter,
       .barAvailableStart = state.barAvailableStart,
       .barAvailableEnd = state.barAvailableEnd,
+      .noteSources = toVariantList(state.noteSources),
+      .mineSources = toVariantList(state.mineSources),
+      .lnStartSources = toVariantList(state.lnStartSources),
+      .lnEndSources = toVariantList(state.lnEndSources),
+      .lnBodySources = toVariantList(state.lnBodySources),
+      .autoNoteSources = toVariantList(state.autoNoteSources),
+      .autoMineSources = toVariantList(state.autoMineSources),
+      .autoLnStartSources = toVariantList(state.autoLnStartSources),
+      .autoLnEndSources = toVariantList(state.autoLnEndSources),
+      .autoLnBodySources = toVariantList(state.autoLnBodySources),
+      .noteDsts = toVariantList(state.noteDsts),
+      .lineSources = toVariantList(state.lineSources),
+      .lineDsts = toVariantList(state.lineDsts),
     };
 }
 

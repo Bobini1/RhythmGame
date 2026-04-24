@@ -199,11 +199,15 @@ BarlineFilter::setTopPosition(double value)
         setBottomPosition(value);
     }
 
-    // compute newTopRow as first barline with position > value
     const auto& barlines =
       static_cast<BarLinesState*>(sourceModel())->getBarlines();
-    const auto upper = std::ranges::find_if(
-      barlines, [value](const auto& bl) { return bl.time.position > value; });
+    const auto upper =
+      std::upper_bound(barlines.begin(),
+                       barlines.end(),
+                       value,
+                       [](const double value, const auto& barline) {
+                           return value < barline.time.position;
+                       });
     const auto newTopRow =
       static_cast<int>(std::distance(barlines.begin(), upper));
     const auto oldTopRow = topRow;
@@ -332,9 +336,12 @@ Filter::setTopPosition(double value)
         setBottomPosition(value);
     }
     const auto upper =
-      std::ranges::find_if(columnState->getNotes(), [value](const auto& note) {
-          return note.note.time.position > value;
-      });
+      std::upper_bound(columnState->getNotes().begin(),
+                       columnState->getNotes().end(),
+                       value,
+                       [](const double value, const auto& note) {
+                           return value < note.note.time.position;
+                       });
     const auto newTopRow =
       static_cast<int>(std::distance(columnState->getNotes().begin(), upper));
     const auto oldTopRow = topRow;
