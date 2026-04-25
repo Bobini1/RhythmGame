@@ -339,6 +339,8 @@ struct Lr2Element
 struct Lr2SkinData
 {
     QList<Lr2Element> elements;
+    int skinWidth = 640;
+    int skinHeight = 480;
     QVariantList activeOptions;
     QVariantList barRows;
     QVariantList helpFiles;

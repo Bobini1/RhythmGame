@@ -3057,7 +3057,7 @@ Item {
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendChartOptions(options, chartData);
         root.appendGameplaySideOptions(options, 1);
-        if (root.gameplayPlayer(2)) {
+        if (root.gameplayLanePlayer(2)) {
             root.appendGameplaySideOptions(options, 2);
         }
         if (root.gameplaySudChanging(1)) {
@@ -3250,6 +3250,12 @@ Item {
             return -1;
         }
         let column = hit.column;
+        if (side === 2 && root.gameplayPlayer(2)) {
+            if (column === 7) {
+                return 10;
+            }
+            return column >= 0 && column <= 6 ? column + 11 : -1;
+        }
         let rightSide = side === 2 || (!root.gameplayPlayer(2) && column >= 8);
         if (rightSide) {
             if (column === 15) {
@@ -3261,6 +3267,13 @@ Item {
             return 0;
         }
         return column >= 0 && column <= 6 ? column + 1 : -1;
+    }
+
+    function gameplayHitDisplaySide(scoreSide, hit) {
+        if (scoreSide === 2) {
+            return 2;
+        }
+        return root.gameplayLr2LaneForHit(scoreSide, hit) >= 10 ? 2 : 1;
     }
 
     function gameplayNoteForHit(side, hit) {
@@ -3310,25 +3323,26 @@ Item {
             : -1;
     }
 
-    function gameplayJudgeComboForHit(side, judgement) {
+    function gameplayJudgeComboForHit(scoreSide, judgement) {
         return judgement >= Judgement.Good && judgement <= Judgement.Perfect
-            ? root.gameplayCombo(side, false)
+            ? root.gameplayCombo(scoreSide, false)
             : 0;
     }
 
-    function updateGameplayHitTimers(side, hit) {
-        let score = root.gameplayScore(side);
+    function updateGameplayHitTimers(displaySide, hit, scoreSide) {
+        scoreSide = scoreSide || displaySide;
+        let score = root.gameplayScore(scoreSide);
         if (!score) {
             return;
         }
-        root.updateGameplayHitEffectTimers(side, hit);
+        root.updateGameplayHitEffectTimers(displaySide, hit);
         let judgement = root.gameplayJudgementFromHit(hit);
 
         let currentGauge = Math.floor(root.gameplayGaugeValue(score));
-        let previousGaugeName = side === 2 ? "gameplayPreviousGauge2" : "gameplayPreviousGauge1";
+        let previousGaugeName = scoreSide === 2 ? "gameplayPreviousGauge2" : "gameplayPreviousGauge1";
         let previousGauge = root[previousGaugeName];
         if (previousGauge >= 0 && currentGauge > previousGauge) {
-            if (side === 2) {
+            if (scoreSide === 2) {
                 root.gameplayGaugeUpSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(43, root.gameplayGaugeUpSkinTime2);
             } else {
@@ -3336,7 +3350,7 @@ Item {
                 root.setGameplayTimerValue(42, root.gameplayGaugeUpSkinTime1);
             }
         } else if (previousGauge >= 0 && currentGauge < previousGauge) {
-            if (side === 2) {
+            if (scoreSide === 2) {
                 root.gameplayGaugeDownSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(45, root.gameplayGaugeDownSkinTime2);
             } else {
@@ -3347,8 +3361,8 @@ Item {
         root[previousGaugeName] = currentGauge;
 
         if (judgement >= 0 && judgement <= Judgement.Perfect) {
-            let displayCombo = root.gameplayJudgeComboForHit(side, judgement);
-            if (side === 2) {
+            let displayCombo = root.gameplayJudgeComboForHit(scoreSide, judgement);
+            if (displaySide === 2) {
                 root.gameplayJudgeSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(47, root.gameplayJudgeSkinTime2);
                 root.gameplayLastJudgement2 = judgement;
@@ -3363,7 +3377,7 @@ Item {
             }
         }
         if (judgement >= 0 && judgement <= Judgement.Bad) {
-            if (side === 2) {
+            if (displaySide === 2) {
                 root.gameplayLastMissSkinTime2 = root.renderSkinTime;
             } else {
                 root.gameplayLastMissSkinTime1 = root.renderSkinTime;
@@ -3373,13 +3387,13 @@ Item {
 
         let totalNotes = root.gameplayTotalNotes(score);
         let currentChartCombo = score ? (score.combo || 0) : 0;
-        let previousComboName = side === 2 ? "gameplayPreviousCombo2" : "gameplayPreviousCombo1";
+        let previousComboName = scoreSide === 2 ? "gameplayPreviousCombo2" : "gameplayPreviousCombo1";
         let previousChartCombo = root[previousComboName] || 0;
         if (hit && hit.noteRemoved
                 && totalNotes > 0
                 && currentChartCombo >= totalNotes
                 && previousChartCombo < totalNotes) {
-            if (side === 2) {
+            if (scoreSide === 2) {
                 root.gameplayFullComboSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(49, root.gameplayFullComboSkinTime2);
             } else {
@@ -3885,7 +3899,7 @@ Item {
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
-            root.updateGameplayHitTimers(1, hit);
+            root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
         }
         function onPointsChanged() {
             root.updateGameplayScorePrintTarget(1);
@@ -3914,7 +3928,7 @@ Item {
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
-            root.updateGameplayHitTimers(2, hit);
+            root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
         }
         function onPointsChanged() {
             root.updateGameplayScorePrintTarget(2);
@@ -6543,23 +6557,29 @@ Item {
         }
     }
 
-    readonly property real skinW: 640
-    readonly property real skinH: 480
+    readonly property real skinW: Math.max(1, skinModel.skinWidth || 640)
+    readonly property real skinH: Math.max(1, skinModel.skinHeight || 480)
+    readonly property real skinVisualScaleX: root.width > 0 ? Math.max(0.0001, root.width / skinW) : 1.0
+    readonly property real skinVisualScaleY: root.height > 0 ? Math.max(0.0001, root.height / skinH) : 1.0
     readonly property real skinScale: 1.0
 
-    // Outer container: visual size after scaling, centered in the screen
+    // LR2 stretches its authored canvas to the actual screen aspect.
     Item {
         id: skinViewport
-        width: skinW * skinScale
-        height: skinH * skinScale
-        anchors.centerIn: parent
+        anchors.fill: parent
 
-        // Inner canvas: exact viewport size - DST coords in 640x480 space
-        // are scaled up to this larger size uniformly
+        // Children stay in skin coordinates; this transform performs the same
+        // global non-uniform stretch LR2 applies at presentation time.
         Item {
             id: skinContainer
-            width: skinW * skinScale
-            height: skinH * skinScale
+            width: skinW
+            height: skinH
+            transform: Scale {
+                origin.x: 0
+                origin.y: 0
+                xScale: root.skinVisualScaleX
+                yScale: root.skinVisualScaleY
+            }
 
             MouseArea {
                 id: selectBlankMouseArea
@@ -7465,7 +7485,7 @@ Item {
                 source: resolvedSource
                 sourceRect: clipRect
                 targetSize: cursorState
-                    ? Qt.size(cursorState.w * skinScale, cursorState.h * skinScale)
+                    ? Qt.size(cursorState.w * root.skinVisualScaleX, cursorState.h * root.skinVisualScaleY)
                     : Qt.size(0, 0)
             }
 

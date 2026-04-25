@@ -13,12 +13,41 @@
 #include <QJsonObject>
 #include <QVariant>
 #include <QJsonValue>
+#include <QFile>
 #include <QRegularExpression>
+#include <QStringDecoder>
 #include <spdlog/spdlog.h>
-#include <fstream>
 #include <QHash>
 
 namespace {
+auto
+decodeSkinText(const QByteArray& data) -> QString
+{
+    if (data.startsWith("\xEF\xBB\xBF")) {
+        return QString::fromUtf8(data.sliced(3));
+    }
+
+    QStringDecoder utf8Decoder(QStringConverter::Utf8);
+    const QString utf8 = utf8Decoder.decode(data);
+    if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
+        return utf8;
+    }
+
+    for (const auto* encoding :
+         { "CP932", "windows-31j", "Shift-JIS" }) {
+        QStringDecoder decoder(encoding);
+        if (!decoder.isValid()) {
+            continue;
+        }
+        const auto decoded = decoder.decode(data);
+        if (!decoder.hasError()) {
+            return decoded;
+        }
+    }
+
+    return QString::fromLatin1(data);
+}
+
 auto
 makeSafeId(QString text, const QString& fallback) -> QString
 {
@@ -28,27 +57,161 @@ makeSafeId(QString text, const QString& fallback) -> QString
 }
 
 auto
+findLr2filesRoot(const std::filesystem::path& currentDir)
+  -> std::filesystem::path
+{
+    for (auto dir = currentDir; !dir.empty();) {
+        const auto name =
+          QString::fromStdString(dir.filename().generic_string());
+        if (name.compare("themes", Qt::CaseInsensitive) == 0 &&
+            !dir.parent_path().empty()) {
+            return dir.parent_path();
+        }
+
+        std::error_code ec;
+        if (std::filesystem::is_directory(dir / "themes", ec)) {
+            return dir;
+        }
+
+        const auto parent = dir.parent_path();
+        if (parent == dir) {
+            break;
+        }
+        dir = parent;
+    }
+
+    return currentDir.parent_path().parent_path().parent_path();
+}
+
+auto
+currentThemeRoot(const std::filesystem::path& currentDir,
+                 const std::filesystem::path& lr2filesRoot)
+  -> std::filesystem::path
+{
+    const auto themesRoot = (lr2filesRoot / "themes").lexically_normal();
+    for (auto dir = std::filesystem::absolute(currentDir).lexically_normal();
+         !dir.empty();) {
+        if (dir.parent_path().lexically_normal() == themesRoot) {
+            return dir;
+        }
+
+        const auto parent = dir.parent_path();
+        if (parent == dir) {
+            break;
+        }
+        dir = parent;
+    }
+    return {};
+}
+
+auto
+pathOrWildcardParentExists(const std::filesystem::path& path) -> bool
+{
+    const auto pathText = support::pathToQString(path);
+    const auto probe = pathText.contains('*') ? path.parent_path() : path;
+    std::error_code ec;
+    return !probe.empty() && std::filesystem::exists(probe, ec);
+}
+
+auto
+fallbackToCurrentTheme(const std::filesystem::path& currentDir,
+                       const std::filesystem::path& lr2filesRoot,
+                       const std::filesystem::path& lr2filesRelative)
+  -> std::filesystem::path
+{
+    auto it = lr2filesRelative.begin();
+    if (it == lr2filesRelative.end() ||
+        QString::fromStdString(it->generic_string())
+            .compare("themes", Qt::CaseInsensitive) != 0) {
+        return {};
+    }
+    ++it;
+    if (it == lr2filesRelative.end()) {
+        return {};
+    }
+    ++it;
+
+    auto tail = std::filesystem::path{};
+    for (; it != lr2filesRelative.end(); ++it) {
+        tail /= *it;
+    }
+    if (tail.empty()) {
+        return {};
+    }
+
+    const auto themeRoot = currentThemeRoot(currentDir, lr2filesRoot);
+    return themeRoot.empty()
+             ? std::filesystem::path{}
+             : std::filesystem::absolute(themeRoot / tail).lexically_normal();
+}
+
+auto
+resolveLr2RawPath(const std::filesystem::path& currentDir, const QString& token)
+  -> std::filesystem::path
+{
+    auto lr2filesPath = token.trimmed();
+    lr2filesPath.replace('\\', '/');
+    while (lr2filesPath.startsWith(QStringLiteral("./"))) {
+        lr2filesPath.remove(0, 2);
+    }
+
+    const auto lr2filesPrefix = QStringLiteral("LR2files");
+    if (lr2filesPath.compare(lr2filesPrefix, Qt::CaseInsensitive) == 0 ||
+        lr2filesPath.startsWith(lr2filesPrefix + '/',
+                                Qt::CaseInsensitive)) {
+        lr2filesPath.remove(0, lr2filesPrefix.size());
+        if (lr2filesPath.startsWith('/')) {
+            lr2filesPath.remove(0, 1);
+        }
+        lr2filesPath.replace(
+          QRegularExpression("^Theme(?=/|$)",
+                             QRegularExpression::CaseInsensitiveOption),
+          "themes");
+
+        const auto lr2filesRoot = findLr2filesRoot(currentDir);
+        const auto relativePath = support::qStringToPath(lr2filesPath);
+        const auto resolved =
+          std::filesystem::absolute(lr2filesRoot / relativePath)
+            .lexically_normal();
+        if (pathOrWildcardParentExists(resolved)) {
+            return resolved;
+        }
+
+        const auto fallback =
+          fallbackToCurrentTheme(currentDir, lr2filesRoot, relativePath);
+        if (!fallback.empty() && pathOrWildcardParentExists(fallback)) {
+            return fallback;
+        }
+        return resolved;
+    }
+
+    auto path = support::qStringToPath(lr2filesPath);
+    if (path.is_relative()) {
+        path = currentDir / path;
+    }
+    return std::filesystem::absolute(path).lexically_normal();
+}
+
+auto
 buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
                      int& typeId,
                      QString& title,
                      QString& maker) -> QString
 {
-    std::ifstream ifs(lr2SkinPath);
-    if (!ifs.is_open()) {
+    QFile file(support::pathToQString(lr2SkinPath));
+    if (!file.open(QIODevice::ReadOnly)) {
         return {};
     }
 
     QJsonArray itemsArray;
-    std::string line;
-    while (std::getline(ifs, line)) {
-        while (!line.empty() && (line.back() == '\r' || line.back() == '\n')) {
-            line.pop_back();
-        }
-        if (line.empty() || line.starts_with("//")) {
+    const auto lines = decodeSkinText(file.readAll()).split('\n');
+    for (auto line : lines) {
+        line = line.trimmed();
+        if (line.isEmpty() || line.startsWith("//")) {
             continue;
         }
 
-        const auto parts = QString::fromStdString(line).split(',');
+        const auto parts = line.split(',');
         if (parts.isEmpty()) {
             continue;
         }
@@ -103,14 +266,14 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             }
 
             const auto name = parts[1].trimmed();
-            const auto rawPattern = support::qStringToPath(parts[2].trimmed());
-            auto parent = rawPattern.parent_path();
+            const auto absolutePattern =
+              resolveLr2RawPath(lr2SkinPath.parent_path(), parts[2].trimmed());
+            const auto absoluteDir = absolutePattern.parent_path();
             auto rel = support::pathToQString(
-              relative(parent.empty() ? std::filesystem::path(".") : parent,
-                       "LR2files/"));
-            rel.replace(QRegularExpression(
-                          "^Theme", QRegularExpression::CaseInsensitiveOption),
-                        "themes");
+              relative(absoluteDir, lr2SkinPath.parent_path()));
+            if (rel == ".") {
+                rel.clear();
+            }
 
             QJsonObject item;
             item["type"] = "file";
@@ -119,16 +282,11 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             QJsonObject nameObj;
             nameObj["en"] = name;
             item["name"] = nameObj;
-            item["path"] = "../../../" + rel;
+            item["path"] = rel;
 
             if (parts.size() >= 4) {
                 const auto defaultStem = parts[3].trimmed();
                 if (!defaultStem.isEmpty()) {
-                    const auto absoluteDir = lr2SkinPath.parent_path()
-                                               .parent_path()
-                                               .parent_path()
-                                               .parent_path() /
-                                             support::qStringToPath(rel);
                     std::error_code ec;
                     if (std::filesystem::exists(absoluteDir, ec)) {
                         for (const auto& fileEntry :
@@ -270,7 +428,9 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
         }
         auto file = QFile(configPath);
         try {
-            file.open(QIODevice::ReadOnly);
+            if (!file.open(QIODevice::ReadOnly)) {
+                continue;
+            }
             const auto config = QJsonDocument::fromJson(file.readAll());
             const auto& scripts = config["scripts"];
             if (!scripts.isObject() || scripts.toObject().isEmpty()) {

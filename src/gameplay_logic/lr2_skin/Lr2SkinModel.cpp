@@ -93,6 +93,14 @@ int Lr2SkinModel::skip() const {
     return m_skip;
 }
 
+int Lr2SkinModel::skinWidth() const {
+    return m_skinWidth;
+}
+
+int Lr2SkinModel::skinHeight() const {
+    return m_skinHeight;
+}
+
 QVariantList Lr2SkinModel::effectiveActiveOptions() const {
     return m_effectiveActiveOptions;
 }
@@ -215,6 +223,8 @@ void Lr2SkinModel::loadSkin() {
                                      m_playStart != 2000 ||
                                      m_fadeOut != 0 ||
                                      m_skip != 0 ||
+                                     m_skinWidth != 640 ||
+                                     m_skinHeight != 480 ||
                                      !m_helpFiles.isEmpty() ||
                                      !m_mouseCursor.isEmpty() ||
                                      m_transColor != "#000000" ||
@@ -248,6 +258,8 @@ void Lr2SkinModel::loadSkin() {
         m_playStart = 2000;
         m_fadeOut = 0;
         m_skip = 0;
+        m_skinWidth = 640;
+        m_skinHeight = 480;
         m_barCenter = 0;
         m_barAvailableStart = 0;
         m_barAvailableEnd = -1;
@@ -282,6 +294,8 @@ void Lr2SkinModel::loadSkin() {
                                  m_playStart != skinData.playStart ||
                                  m_fadeOut != skinData.fadeOut ||
                                  m_skip != skinData.skip ||
+                                 m_skinWidth != skinData.skinWidth ||
+                                 m_skinHeight != skinData.skinHeight ||
                                  m_effectiveActiveOptions != skinData.activeOptions ||
                                  m_barRows != skinData.barRows ||
                                  m_helpFiles != skinData.helpFiles ||
@@ -311,6 +325,8 @@ void Lr2SkinModel::loadSkin() {
     m_playStart = skinData.playStart;
     m_fadeOut = skinData.fadeOut;
     m_skip = skinData.skip;
+    m_skinWidth = skinData.skinWidth;
+    m_skinHeight = skinData.skinHeight;
     m_effectiveActiveOptions = skinData.activeOptions;
     m_barRows = skinData.barRows;
     m_helpFiles = skinData.helpFiles;

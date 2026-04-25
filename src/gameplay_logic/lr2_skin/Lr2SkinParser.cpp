@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <set>
+#include <utility>
 #include <vector>
 #include <spdlog/spdlog.h>
 
@@ -85,6 +86,9 @@ struct ParseState
     int playStart = 2000;
     int fadeOut = 0;
     int skip = 0;
+    int skinWidth = 640;
+    int skinHeight = 480;
+    bool hasSkinResolution = false;
     int sortId = 0;
 };
 
@@ -172,8 +176,8 @@ decodeSkinText(const QByteArray& data) -> QString
     }
 
     QStringDecoder utf8Decoder(QStringConverter::Utf8);
-    const auto utf8 = utf8Decoder.decode(data);
-    if (!utf8Decoder.hasError()) {
+    const QString utf8 = utf8Decoder.decode(data);
+    if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
         return utf8;
     }
 
@@ -385,6 +389,69 @@ findLr2filesRoot(const std::filesystem::path& currentDir)
 }
 
 auto
+currentThemeRoot(const std::filesystem::path& currentDir,
+                 const std::filesystem::path& lr2filesRoot)
+  -> std::filesystem::path
+{
+    const auto themesRoot = (lr2filesRoot / "themes").lexically_normal();
+    for (auto dir = std::filesystem::absolute(currentDir).lexically_normal();
+         !dir.empty();) {
+        if (dir.parent_path().lexically_normal() == themesRoot) {
+            return dir;
+        }
+
+        const auto parent = dir.parent_path();
+        if (parent == dir) {
+            break;
+        }
+        dir = parent;
+    }
+    return {};
+}
+
+auto
+pathOrWildcardParentExists(const std::filesystem::path& path) -> bool
+{
+    const auto pathText = support::pathToQString(path);
+    const auto probe =
+      pathText.contains('*') ? path.parent_path() : path;
+    std::error_code ec;
+    return !probe.empty() && std::filesystem::exists(probe, ec);
+}
+
+auto
+fallbackToCurrentTheme(const std::filesystem::path& currentDir,
+                       const std::filesystem::path& lr2filesRoot,
+                       const std::filesystem::path& lr2filesRelative)
+  -> std::filesystem::path
+{
+    auto it = lr2filesRelative.begin();
+    if (it == lr2filesRelative.end() ||
+        QString::fromStdString(it->generic_string())
+            .compare("themes", Qt::CaseInsensitive) != 0) {
+        return {};
+    }
+    ++it;
+    if (it == lr2filesRelative.end()) {
+        return {};
+    }
+    ++it;
+
+    auto tail = std::filesystem::path{};
+    for (; it != lr2filesRelative.end(); ++it) {
+        tail /= *it;
+    }
+    if (tail.empty()) {
+        return {};
+    }
+
+    const auto themeRoot = currentThemeRoot(currentDir, lr2filesRoot);
+    return themeRoot.empty()
+             ? std::filesystem::path{}
+             : std::filesystem::absolute(themeRoot / tail).lexically_normal();
+}
+
+auto
 resolveRawPath(const std::filesystem::path& currentDir, const QString& token)
   -> std::filesystem::path
 {
@@ -414,10 +481,21 @@ resolveRawPath(const std::filesystem::path& currentDir, const QString& token)
           QRegularExpression("^Theme(?=/|$)",
                              QRegularExpression::CaseInsensitiveOption),
           "themes");
-        return std::filesystem::absolute(
-                 findLr2filesRoot(currentDir) /
-                 support::qStringToPath(lr2filesPath))
-          .lexically_normal();
+        const auto lr2filesRoot = findLr2filesRoot(currentDir);
+        const auto relativePath = support::qStringToPath(lr2filesPath);
+        const auto resolved =
+          std::filesystem::absolute(lr2filesRoot / relativePath)
+            .lexically_normal();
+        if (pathOrWildcardParentExists(resolved)) {
+            return resolved;
+        }
+
+        const auto fallback =
+          fallbackToCurrentTheme(currentDir, lr2filesRoot, relativePath);
+        if (!fallback.empty() && pathOrWildcardParentExists(fallback)) {
+            return fallback;
+        }
+        return resolved;
     }
 
     auto path = support::qStringToPath(trimmed);
@@ -509,6 +587,68 @@ parseLines(const std::vector<QStringList>& lines,
 
 void
 parseFileIntoState(const std::filesystem::path& filePath, ParseState& state);
+
+void
+setSkinResolution(ParseState& state, const int resolution)
+{
+    struct SkinResolution
+    {
+        int width;
+        int height;
+    };
+    static constexpr SkinResolution resolutions[] = {
+        { 640, 480 },
+        { 1280, 720 },
+        { 1920, 1080 },
+        { 3840, 2160 },
+    };
+
+    if (resolution < 0 ||
+        resolution >= static_cast<int>(
+          sizeof(resolutions) / sizeof(resolutions[0]))) {
+        return;
+    }
+
+    state.skinWidth = resolutions[resolution].width;
+    state.skinHeight = resolutions[resolution].height;
+    state.hasSkinResolution = true;
+}
+
+void
+considerSkinCanvasDst(const Lr2Dst& dst, int& bestWidth, int& bestHeight)
+{
+    const int w = dst.w < 0 ? -dst.w : dst.w;
+    const int h = dst.h < 0 ? -dst.h : dst.h;
+    if (dst.x != 0 || dst.y != 0 || w < 320 || h < 240) {
+        return;
+    }
+
+    const double aspect = static_cast<double>(w) / static_cast<double>(h);
+    if (aspect < 1.2 || aspect > 2.1) {
+        return;
+    }
+
+    if (w * h > bestWidth * bestHeight) {
+        bestWidth = w;
+        bestHeight = h;
+    }
+}
+
+auto
+inferSkinCanvas(const QList<Lr2Element>& elements) -> std::pair<int, int>
+{
+    int bestWidth = 640;
+    int bestHeight = 480;
+    for (const auto& element : elements) {
+        for (const auto& dstValue : element.dsts) {
+            if (dstValue.canConvert<Lr2Dst>()) {
+                considerSkinCanvasDst(
+                  dstValue.value<Lr2Dst>(), bestWidth, bestHeight);
+            }
+        }
+    }
+    return { bestWidth, bestHeight };
+}
 
 void
 parseIfBlock(const std::vector<QStringList>& lines,
@@ -967,6 +1107,10 @@ processCommand(const QStringList& tokens,
     } else if (command == "#SKIP") {
         if (tokens.size() > 1) {
             state.skip = tokens[1].trimmed().toInt();
+        }
+    } else if (command == "#RESOLUTION") {
+        if (tokens.size() > 1) {
+            setSkinResolution(state, tokens[1].trimmed().toInt());
         }
     } else if (command == "#CUSTOMOPTION") {
         if (tokens.size() < 4) {
@@ -1644,6 +1788,11 @@ parseFile(const std::filesystem::path& filePath,
     state.activeOptions = initialOptions;
     parseFileIntoState(filePath, state);
     flushCurrentElement(state);
+    if (!state.hasSkinResolution) {
+        const auto [skinWidth, skinHeight] = inferSkinCanvas(state.elements);
+        state.skinWidth = skinWidth;
+        state.skinHeight = skinHeight;
+    }
 
     QVariantList activeOptions;
     for (const int option : state.activeOptions) {
@@ -1676,6 +1825,8 @@ parseFile(const std::filesystem::path& filePath,
 
     return Lr2SkinData{
       .elements = state.elements,
+      .skinWidth = state.skinWidth,
+      .skinHeight = state.skinHeight,
       .activeOptions = activeOptions,
       .barRows = barRows,
       .helpFiles = state.helpFiles,

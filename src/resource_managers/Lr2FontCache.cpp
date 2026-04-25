@@ -32,7 +32,7 @@ auto
 readDxaSegment(const support::DXArchive& archive,
                const std::filesystem::path& innerPath) -> QByteArray
 {
-    const auto key = std::filesystem::weakly_canonical(innerPath).string();
+    const auto key = support::normalizeDxaPath(innerPath);
     const auto it = archive.find(key);
     if (it == archive.end()) {
         return {};
@@ -92,6 +92,11 @@ loadFontData(const QString& path) -> FontData
     }
 
     data.data = readDxaSegment(archive, dxaPath->second);
+    if (data.data.isEmpty()) {
+        spdlog::warn("Could not find LR2FONT segment '{}' in DXA '{}'",
+                     support::normalizeDxaPath(dxaPath->second),
+                     dxaPath->first.string());
+    }
     data.innerDir = dxaPath->second.parent_path();
     data.archive = std::move(archive);
     return data;

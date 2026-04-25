@@ -16,7 +16,15 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
   -> QList<QString>
 {
     auto files = QList<QString>{};
-    for (const auto& file : std::filesystem::directory_iterator(path)) {
+    std::error_code ec;
+    if (!std::filesystem::is_directory(path, ec)) {
+        return files;
+    }
+
+    for (const auto& file : std::filesystem::directory_iterator(path, ec)) {
+        if (ec) {
+            break;
+        }
         if (!file.is_regular_file() && !file.is_directory()) {
             continue;
         }

@@ -16,6 +16,24 @@ Item {
     property int barCenter: 0
     readonly property int contextRevision: selectContext ? selectContext.listRevision : 0
     readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
+    readonly property var timelineDsts: {
+        if (!dsts || dsts.length === 0 || !dsts[0]) {
+            return dsts;
+        }
+
+        // OpenLR2's select bar title path applies the type-0/type-1 source
+        // choice itself and does not gate #DST_BAR_TITLE by opt1/opt2/opt3.
+        let result = dsts.slice();
+        let first = {};
+        for (let key in dsts[0]) {
+            first[key] = dsts[0][key];
+        }
+        first.op1 = 0;
+        first.op2 = 0;
+        first.op3 = 0;
+        result[0] = first;
+        return result;
+    }
 
     readonly property var textRows: {
         if (!barRows || !selectContext || !srcData) {
@@ -69,6 +87,8 @@ Item {
         model: root.textRows
 
         Lr2TextRenderer {
+            id: barTextDelegate
+
             readonly property int row: modelData
             readonly property var entry: {
                 let revision = root.contextRevision;
@@ -78,7 +98,7 @@ Item {
             readonly property var visibleBase: root.visibilityState(row)
             readonly property bool contentVisible: !!visibleBase && root.visibleFor(entry)
             visible: contentVisible
-            dsts: root.dsts
+            dsts: root.timelineDsts
             srcData: root.srcData
             skinTime: root.skinTime
             activeOptions: root.activeOptions
