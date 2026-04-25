@@ -7624,6 +7624,9 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
+                            sourceSkinTime: root.effectiveScreenKey === "select"
+                                ? root.selectSourceSkinTime
+                                : root.renderSkinTime
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
                             chart: root.renderChart

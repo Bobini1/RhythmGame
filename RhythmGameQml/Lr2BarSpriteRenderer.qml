@@ -1,4 +1,5 @@
 import QtQuick
+import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
     id: root
@@ -6,6 +7,7 @@ Item {
     property var dsts: []
     property var srcData
     property int skinTime: 0
+    property int sourceSkinTime: skinTime
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property var chart
@@ -147,6 +149,12 @@ Item {
         }
     }
 
+    function spriteSourceSkinTime(source) {
+        return Lr2Timeline.srcCyclesContinuously(source)
+            ? root.sourceSkinTime
+            : root.skinTime;
+    }
+
     Repeater {
         model: root.bodyRows
 
@@ -169,6 +177,7 @@ Item {
             srcData: bodySource
             stateOverride: bodyState
             skinTime: root.skinTime
+            sourceSkinTime: root.spriteSourceSkinTime(bodySource)
             activeOptions: root.activeOptions
             timers: root.timers
             chart: root.chart
@@ -195,6 +204,7 @@ Item {
             dsts: root.dsts
             srcData: root.srcData ? root.srcData.source : null
             skinTime: root.skinTime
+            sourceSkinTime: root.spriteSourceSkinTime(srcData)
             activeOptions: root.activeOptions
             timers: root.timers
             chart: root.chart

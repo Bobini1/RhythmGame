@@ -13,6 +13,7 @@ Item {
     property var dsts: []
     property var srcData
     property int skinTime: 0
+    property int sourceSkinTime: skinTime
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property var chart
@@ -167,7 +168,7 @@ Item {
         }
         let timerIdx = srcData.timer || 0;
         let fire = (timers && timers[timerIdx] !== undefined) ? timers[timerIdx] : -1;
-        return Lr2Timeline.getAnimationFrame(srcData, skinTime, fire);
+        return Lr2Timeline.getAnimationFrame(srcData, sourceSkinTime, fire);
     }
 
     Item {
