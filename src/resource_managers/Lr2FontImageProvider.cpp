@@ -148,7 +148,7 @@ cachedTextImage(const QString& fontPath, const QString& text) -> QImage
         const QRectF target(glyph.sourceX,
                             0.0,
                             glyph.sourceRect.width(),
-                            dict->height);
+                            glyph.sourceRect.height());
         painter.drawImage(target, *glyph.texture, glyph.sourceRect);
     }
     painter.end();

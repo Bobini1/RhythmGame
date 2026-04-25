@@ -227,7 +227,7 @@ Item {
             property real blendMode: root.blendMode
             property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
             property real tolerance: 0.03125
-            property real nearestMode: 0.0
+            property real nearestMode: root.currentState && (root.currentState.filter || 0) === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
