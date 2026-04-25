@@ -8,7 +8,8 @@
 QImageIOPlugin::Capabilities
 TgaPlugin::capabilities(QIODevice* device, const QByteArray& format) const
 {
-    if (format == "tga") {
+    const auto lowerFormat = format.toLower();
+    if (lowerFormat == "tga") {
         return CanRead;
     }
     if (!format.isEmpty()) {

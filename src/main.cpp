@@ -57,6 +57,7 @@
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
+Q_IMPORT_PLUGIN(CimPlugin)
 
 void
 qtLogHandler(QtMsgType type,

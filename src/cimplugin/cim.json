@@ -1,10 +1,9 @@
 {
   "Keys": [
-    "tga"
+    "cim"
   ],
   "MimeTypes": [
-    "image/x-tga",
-    "image/x-targa"
+    "image/x-cim"
   ],
   "Priority": 1000000
 }

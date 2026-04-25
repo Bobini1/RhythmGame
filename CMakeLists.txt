@@ -407,8 +407,9 @@ qt_import_qml_plugins(RhythmGame_exe)
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
 add_subdirectory(src/tgaplugin)
+add_subdirectory(src/cimplugin)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin tga)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin tga cim)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
