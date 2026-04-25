@@ -2018,7 +2018,7 @@ Item {
         case 47:
         case 48:
         case 49:
-            return difficultyPlayLevel(num - 44);
+            return hasDifficulty(num - 44) ? difficultyPlayLevel(num - 44) : -1;
         case 57:
             return 100;
         case 58:

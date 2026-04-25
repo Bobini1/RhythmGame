@@ -64,10 +64,11 @@ Item {
         if (!entry || !srcData || !selectContext) {
             return false;
         }
-        if (selectContext.entryPlayLevel(entry) <= 0) {
+        let ranking = selectContext.isRankingEntry(entry);
+        if (!ranking && !selectContext.isChart(entry) && !selectContext.isEntry(entry)) {
             return false;
         }
-        if (selectContext.isRankingEntry(entry)) {
+        if (ranking) {
             return srcData.variant === 6;
         }
         let difficulty = selectContext.entryDifficulty(entry);

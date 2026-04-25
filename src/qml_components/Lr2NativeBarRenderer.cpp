@@ -781,8 +781,10 @@ Lr2NativeBarNumber::paint(QPainter* painter)
 
     const auto divX = std::max(1, numberSrc.div_x);
     const auto divY = std::max(1, numberSrc.div_y);
-    const auto cellW = numberSrc.w / static_cast<qreal>(divX);
-    const auto cellH = numberSrc.h / static_cast<qreal>(divY);
+    const auto cellW =
+      std::floor(numberSrc.w / static_cast<qreal>(divX));
+    const auto cellH =
+      std::floor(numberSrc.h / static_cast<qreal>(divY));
     if (cellW <= 0.0 || cellH <= 0.0 || dst.w <= 0.0 || dst.h <= 0.0) {
         return;
     }
@@ -798,14 +800,17 @@ Lr2NativeBarNumber::paint(QPainter* painter)
             continue;
         }
 
-        const auto playLevel =
-          invoke(m_selectContext, "entryPlayLevel", entry).toInt();
-        if (playLevel <= 0) {
+        const auto ranking =
+          invoke(m_selectContext, "isRankingEntry", entry).toBool();
+        const auto chart = invoke(m_selectContext, "isChart", entry).toBool();
+        const auto entryLike =
+          invoke(m_selectContext, "isEntry", entry).toBool();
+        if (!ranking && !chart && !entryLike) {
             continue;
         }
 
-        const auto ranking =
-          invoke(m_selectContext, "isRankingEntry", entry).toBool();
+        const auto playLevel =
+          invoke(m_selectContext, "entryPlayLevel", entry).toInt();
         const auto difficulty =
           invoke(m_selectContext, "entryDifficulty", entry).toInt();
         const auto variant =

@@ -106,18 +106,25 @@ Item {
         return Math.floor((elapsed % root.srcData.cycle) * rows / root.srcData.cycle) * groupSize;
     }
 
+    readonly property int frameGroupSize: root.numberFrameGroupSize()
+    readonly property bool hasSignedFrames: frameGroupSize === 24
+    readonly property bool negativeUnsupported: root.value < 0 && frameGroupSize !== 24
+    readonly property bool isNegativeValue: root.value < 0
+
     function textForValue() {
         let text = Math.abs(Math.round(root.value)).toString();
         let keta = root.srcData ? root.srcData.keta || 0 : 0;
         if (keta <= 0) {
-            return text;
+            return root.hasSignedFrames ? (root.isNegativeValue ? "-" : "+") + text : text;
         }
 
-        // LR2 align=0 is right-aligned in a fixed keta-width digit field.
+        // LR2 align=0 is "%10d" followed by lastCut(keta).
         if (root.srcData && root.srcData.align === 0) {
-            return leftPad(text, keta);
+            text = leftPad(text, keta);
+        } else {
+            text = rightPad(text, keta);
         }
-        return rightPad(text, keta);
+        return root.hasSignedFrames ? (root.isNegativeValue ? "-" : "+") + text : text;
     }
 
     readonly property string displayText: textForValue()
@@ -148,7 +155,13 @@ Item {
         y: root.currentState ? (root.currentState.y + root.offsetY) * root.scaleOverride : 0
         width: root.textW
         height: root.digitH
-        visible: root.currentState && root.currentState.a > 0 && root.digitW > 0 && root.digitH > 0 && root.resolvedSource !== ""
+        visible: root.currentState
+            && !root.negativeUnsupported
+            && root.frameGroupSize > 0
+            && root.currentState.a > 0
+            && root.digitW > 0
+            && root.digitH > 0
+            && root.resolvedSource !== ""
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 
         Image {
@@ -176,9 +189,20 @@ Item {
                     if (code >= 48 && code <= 57) {
                         return code - 48;
                     }
-                    let groupSize = root.numberFrameGroupSize();
-                    return ch === " " && (groupSize === 11 || groupSize === 24) ? 10 : -1;
+                    let groupSize = root.frameGroupSize;
+                    if (groupSize === 24) {
+                        if (ch === "+") return 11;
+                        if (ch === "-") return 23;
+                        if (ch === " ") return root.isNegativeValue ? 22 : 10;
+                    }
+                    return ch === " " && groupSize === 11 ? 10 : -1;
                 }
+                readonly property int signedFrameOffset: root.frameGroupSize === 24
+                    && root.isNegativeValue
+                    && digitRoot.ch >= "0"
+                    && digitRoot.ch <= "9"
+                    ? 12
+                    : 0
 
                 ShaderEffect {
                     anchors.fill: parent
@@ -190,7 +214,7 @@ Item {
                     property real blendMode: root.blendMode
                     property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
                     property real tolerance: 0.03125
-                    property real nearestMode: 0.0
+                    property real nearestMode: root.currentState && (root.currentState.filter || 0) === 0 ? 1.0 : 0.0
                     property vector2d sourceSize: Qt.vector2d(
                         Math.max(1, digitAtlas.implicitWidth),
                         Math.max(1, digitAtlas.implicitHeight))
@@ -210,10 +234,12 @@ Item {
                         }
                         let divX = Math.max(1, root.srcData.div_x || 1);
                         let divY = Math.max(1, root.srcData.div_y || 1);
-                        let cellW = sw / divX;
-                        let cellH = sh / divY;
+                        let cellW = Math.max(1, Math.floor(sw / divX));
+                        let cellH = Math.max(1, Math.floor(sh / divY));
                         root.animationRevision;
-                        let frame = (root.numberAnimationBaseFrame() + digitRoot.frameIndex) % (divX * divY);
+                        let frame = (root.numberAnimationBaseFrame()
+                                     + digitRoot.frameIndex
+                                     + digitRoot.signedFrameOffset) % (divX * divY);
                         let col = frame % divX;
                         let row = Math.floor(frame / divX) % divY;
                         let atlasW = Math.max(1, digitAtlas.implicitWidth);
