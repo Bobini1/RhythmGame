@@ -1762,11 +1762,14 @@ Item {
             && src.sliderRange > 0;
     }
 
-    function sliderTrackState(src, dsts) {
+    function sliderTrackState(src, dsts, skinTime) {
         if (!src || !src.slider) {
             return null;
         }
-        let base = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        let clock = skinTime === undefined
+            ? root.skinTimeForElement(src, dsts)
+            : skinTime;
+        let base = Lr2Timeline.getCurrentState(dsts, clock, root.timers, root.runtimeActiveOptions);
         if (!base) {
             return null;
         }
@@ -5914,18 +5917,18 @@ Item {
         return shifted;
     }
 
-    function spriteStateOverride(src, dsts) {
+    function spriteStateOverride(src, dsts, skinTime) {
         if (root.isNowJudgeSprite(src)) {
             return root.nowJudgeState(src, dsts);
         }
         if (root.isSelectScrollSlider(src)) {
-            return root.selectScrollSliderState(src, dsts);
+            return root.selectScrollSliderState(src, dsts, skinTime);
         }
         if (root.isGameplayProgressSlider(src)) {
-            return root.gameplayProgressSliderState(src, dsts);
+            return root.gameplayProgressSliderState(src, dsts, skinTime);
         }
         if (root.isLr2GenericSlider(src)) {
-            return root.lr2GenericSliderState(src, dsts);
+            return root.lr2GenericSliderState(src, dsts, skinTime);
         }
         return null;
     }
@@ -5937,8 +5940,11 @@ Item {
         return false;
     }
 
-    function translatedSliderState(src, dsts, position) {
-        let base = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+    function translatedSliderState(src, dsts, position, skinTime) {
+        let clock = skinTime === undefined
+            ? root.skinTimeForElement(src, dsts)
+            : skinTime;
+        let base = Lr2Timeline.getCurrentState(dsts, clock, root.timers, root.runtimeActiveOptions);
         if (!base) {
             return null;
         }
@@ -5983,7 +5989,7 @@ Item {
         };
     }
 
-    function selectScrollSliderState(src, dsts) {
+    function selectScrollSliderState(src, dsts, skinTime) {
         if (!root.isSelectScrollSlider(src)) {
             return null;
         }
@@ -5994,20 +6000,20 @@ Item {
         let position = logicalCount > 1
             ? fixedValue / maxFixed
             : 0;
-        return root.translatedSliderState(src, dsts, position);
+        return root.translatedSliderState(src, dsts, position, skinTime);
     }
 
-    function lr2GenericSliderState(src, dsts) {
+    function lr2GenericSliderState(src, dsts, skinTime) {
         if (!root.isLr2GenericSlider(src)) {
             return null;
         }
         let position = src.sliderType === 7
             ? root.lr2SkinCustomPosition()
             : root.sliderRawValue(src.sliderType) / 100;
-        return root.translatedSliderState(src, dsts, position);
+        return root.translatedSliderState(src, dsts, position, skinTime);
     }
 
-    function gameplayProgressSliderState(src, dsts) {
+    function gameplayProgressSliderState(src, dsts, skinTime) {
         if (!root.isGameplayProgressSlider(src)) {
             return null;
         }
@@ -6016,21 +6022,21 @@ Item {
         let elapsed = player ? Math.max(0, player.elapsed || 0) : 0;
         let length = player ? Math.max(0, player.chartLength || 0) : 0;
         let position = length > 0 ? Math.max(0, Math.min(1, elapsed / length)) : 0;
-        return root.translatedSliderState(src, dsts, position);
+        return root.translatedSliderState(src, dsts, position, skinTime);
     }
 
-    function selectScrollSliderTrackState(src, dsts) {
+    function selectScrollSliderTrackState(src, dsts, skinTime) {
         if (!root.isSelectScrollSlider(src)) {
             return null;
         }
-        return root.sliderTrackState(src, dsts);
+        return root.sliderTrackState(src, dsts, skinTime);
     }
 
-    function lr2GenericSliderTrackState(src, dsts) {
+    function lr2GenericSliderTrackState(src, dsts, skinTime) {
         if (!root.isLr2GenericSlider(src)) {
             return null;
         }
-        return root.sliderTrackState(src, dsts);
+        return root.sliderTrackState(src, dsts, skinTime);
     }
 
     function setSelectScrollFromSliderPointer(src, dsts, pointerX, pointerY) {
@@ -7105,7 +7111,7 @@ Item {
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
                                 frameOverride: root.buttonFrame(model.src)
-                                stateOverride: root.spriteStateOverride(model.src, model.dsts)
+                                stateOverride: root.spriteStateOverride(model.src, model.dsts, parent.spriteSkinClock)
                                 forceHidden: root.spriteForceHidden(model.src, model.dsts)
                                 scratchAngle1: playContext.scratchAngle1
                                 scratchAngle2: playContext.scratchAngle2
@@ -7785,9 +7791,10 @@ Item {
                     id: sliderMouseArea
                     readonly property bool selectScroll: root.isSelectScrollSlider(model.src)
                     readonly property bool genericSlider: root.isLr2GenericSlider(model.src)
+                    readonly property int sliderSkinClock: root.skinTimeForElement(model.src, model.dsts)
                     readonly property var trackState: selectScroll
-                        ? root.selectScrollSliderTrackState(model.src, model.dsts)
-                        : root.lr2GenericSliderTrackState(model.src, model.dsts)
+                        ? root.selectScrollSliderTrackState(model.src, model.dsts, sliderSkinClock)
+                        : root.lr2GenericSliderTrackState(model.src, model.dsts, sliderSkinClock)
                     enabled: root.selectMouseScrollReady() && !!trackState
                     acceptedButtons: Qt.LeftButton
                     preventStealing: true
