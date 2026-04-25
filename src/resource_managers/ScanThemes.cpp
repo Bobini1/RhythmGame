@@ -312,11 +312,10 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
         }
     }
 
-    if (itemsArray.isEmpty()) {
-        return {};
-    }
-
     QJsonObject rootObj;
+    rootObj["title"] = title;
+    rootObj["maker"] = maker;
+    rootObj["type"] = typeId;
     rootObj["items"] = itemsArray;
     return QString::fromUtf8(
       QJsonDocument(rootObj).toJson(QJsonDocument::Compact));

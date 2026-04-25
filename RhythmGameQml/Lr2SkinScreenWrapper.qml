@@ -325,6 +325,12 @@ Item {
     property bool lr2ReadmeMouseHeld: false
     property real lr2ReadmeMouseX: 0
     property real lr2ReadmeMouseY: 0
+    property string lr2SkinPreviewScreenKey: ""
+    property int lr2SkinCustomOffset: 0
+    property int lr2SkinSettingsRevision: 0
+    property var lr2SkinSettingMetadata: ({})
+    property var lr2SkinSettingItems: []
+    property bool suppressNextSkinClockRestart: false
     property real selectMouseX: -100000
     property real selectMouseY: -100000
     property int selectSliderFixedPoint: -1
@@ -364,10 +370,375 @@ Item {
 
     function copyObject(object) {
         let result = {};
-        for (let key in object) {
+        if (!object) {
+            return result;
+        }
+        let keys = object.keys ? object.keys() : Object.keys(object);
+        for (let key of keys) {
             result[key] = object[key];
         }
         return result;
+    }
+
+    function localizedName(value) {
+        if (value === undefined || value === null) {
+            return "";
+        }
+        if (typeof value === "string") {
+            return value;
+        }
+        return value.en || value.ja || value[Qt.locale().name] || "";
+    }
+
+    function lr2SkinTypeScreenKey(type) {
+        switch (type) {
+        case 0:
+            return "k7";
+        case 1:
+            return "k5";
+        case 2:
+            return "k14";
+        case 3:
+            return "k10";
+        case 5:
+            return "select";
+        case 6:
+            return "decide";
+        case 7:
+            return "result";
+        case 10:
+            return "soundset";
+        case 12:
+            return "k7battle";
+        case 13:
+            return "k5battle";
+        case 14:
+            return "k14battle";
+        case 15:
+            return "courseResult";
+        default:
+            return "";
+        }
+    }
+
+    function profileRoot() {
+        return Rg.profileList ? Rg.profileList.mainProfile : null;
+    }
+
+    function lr2ConfiguredThemeName(screen) {
+        let profile = root.profileRoot();
+        return profile && profile.themeConfig ? (profile.themeConfig[screen] || "") : "";
+    }
+
+    function lr2ThemeFamilyForScreen(screen) {
+        let themeName = root.lr2ConfiguredThemeName(screen);
+        return themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
+    }
+
+    function lr2ScreenObject(screen) {
+        let family = root.lr2ThemeFamilyForScreen(screen);
+        return family && family.screens ? family.screens[screen] : null;
+    }
+
+    function lr2AvailableThemeNamesForScreen(screen) {
+        let result = [];
+        let families = Rg.themes.availableThemeFamilies || {};
+        for (let [name, family] of Object.entries(families)) {
+            if (family && family.screens && family.screens[screen]) {
+                result.push(name);
+            }
+        }
+        return result;
+    }
+
+    function lr2SettingDestinationForScreen(screen) {
+        let profile = root.profileRoot();
+        let themeName = root.lr2ConfiguredThemeName(screen);
+        if (!profile || !profile.vars || !profile.vars.themeVars || !themeName) {
+            return null;
+        }
+        let screenVars = profile.vars.themeVars[screen];
+        return screenVars ? screenVars[themeName] : null;
+    }
+
+    function currentLr2SkinPreviewScreen() {
+        return root.lr2SkinPreviewScreenKey.length > 0
+            ? root.lr2SkinPreviewScreenKey
+            : root.defaultLr2SkinPreviewScreen();
+    }
+
+    function defaultLr2SkinPreviewScreen() {
+        if (root.effectiveScreenKey === "select" && root.lr2ScreenObject("k7")) {
+            return "k7";
+        }
+        return root.effectiveScreenKey || "select";
+    }
+
+    function setLr2SkinPreviewScreen(screen) {
+        if (screen.length === 0) {
+            return false;
+        }
+        if (screen !== "soundset" && !root.lr2ScreenObject(screen)) {
+            return false;
+        }
+        if (root.lr2SkinPreviewScreenKey === screen) {
+            return true;
+        }
+        root.lr2SkinPreviewScreenKey = screen;
+        root.lr2SkinCustomOffset = 0;
+        root.refreshLr2SkinSettingItems();
+        return true;
+    }
+
+    function lr2SkinPreviewTitle() {
+        let screen = root.currentLr2SkinPreviewScreen();
+        if (screen === "soundset") {
+            let vars = root.mainGeneralVars();
+            return vars ? (vars.soundset || "") : "";
+        }
+        let themeName = root.lr2ConfiguredThemeName(screen);
+        let metadata = root.lr2SkinSettingMetadata || {};
+        if (metadata.title) {
+            return metadata.title;
+        }
+        return themeName.length > 0 ? themeName : screen.toUpperCase();
+    }
+
+    function lr2SkinPreviewMaker() {
+        let metadata = root.lr2SkinSettingMetadata || {};
+        return metadata.maker || "";
+    }
+
+    function normalizeLr2SkinSetting(item, family) {
+        if (!item || !item.id) {
+            return null;
+        }
+
+        let result = {
+            id: item.id,
+            type: item.type || "",
+            name: root.localizedName(item.name) || item.id,
+            choices: [],
+            labels: [],
+            defaultValue: item.default || ""
+        };
+
+        if (result.type === "choice") {
+            let choices = item.choices || [];
+            for (let i = 0; i < choices.length; ++i) {
+                let choice = choices[i];
+                let value = choice.value !== undefined ? choice.value : choice;
+                let label = root.localizedName(choice.name) || String(value);
+                result.choices.push(String(value));
+                result.labels.push(label);
+            }
+        } else if (result.type === "file") {
+            let directory = family && item.path !== undefined
+                ? family.path + "/" + item.path
+                : "";
+            if (directory.length > 0) {
+                let files = Rg.fileQuery.getSelectableFilesForDirectory(directory) || [];
+                for (let j = 0; j < files.length; ++j) {
+                    result.choices.push(String(files[j]));
+                    result.labels.push(String(files[j]));
+                }
+            }
+        }
+
+        if (result.defaultValue === "" && result.choices.length > 0) {
+            result.defaultValue = result.choices[0];
+        }
+        if (result.defaultValue !== "" && result.choices.indexOf(result.defaultValue) < 0) {
+            result.choices.unshift(result.defaultValue);
+            result.labels.unshift(result.defaultValue);
+        }
+        return result;
+    }
+
+    function buildLr2SkinSettingItems() {
+        let screen = root.currentLr2SkinPreviewScreen();
+        if (screen === "soundset") {
+            return [];
+        }
+        let screenObject = root.lr2ScreenObject(screen);
+        if (!screenObject || !screenObject.settingsData || screenObject.settingsData.length === 0) {
+            return [];
+        }
+
+        let parsed = null;
+        try {
+            parsed = JSON.parse(screenObject.settingsData);
+        } catch (error) {
+            console.warn("Failed to parse LR2 settings data for " + screen + ": " + error);
+            return [];
+        }
+        root.lr2SkinSettingMetadata = parsed || {};
+
+        let family = root.lr2ThemeFamilyForScreen(screen);
+        let sourceItems = parsed.items || [];
+        let result = [];
+        for (let i = 0; i < sourceItems.length; ++i) {
+            let normalized = root.normalizeLr2SkinSetting(sourceItems[i], family);
+            if (normalized) {
+                result.push(normalized);
+            }
+        }
+        return result;
+    }
+
+    function refreshLr2SkinSettingItems() {
+        root.lr2SkinSettingMetadata = ({});
+        root.lr2SkinSettingItems = root.buildLr2SkinSettingItems();
+        let maxOffset = root.lr2SkinCustomMaxOffset();
+        root.lr2SkinCustomOffset = Math.max(0, Math.min(maxOffset, root.lr2SkinCustomOffset));
+        ++root.lr2SkinSettingsRevision;
+    }
+
+    function lr2SkinCustomMaxOffset() {
+        return Math.max(0, root.lr2SkinSettingItems.length - 5);
+    }
+
+    function lr2SkinCustomPosition() {
+        let maxOffset = root.lr2SkinCustomMaxOffset();
+        return maxOffset > 0 ? root.lr2SkinCustomOffset / maxOffset : 0;
+    }
+
+    function setLr2SkinCustomPosition(position) {
+        let maxOffset = root.lr2SkinCustomMaxOffset();
+        let next = Math.max(0, Math.min(maxOffset, Math.round(position * maxOffset)));
+        if (next === root.lr2SkinCustomOffset) {
+            return false;
+        }
+        root.lr2SkinCustomOffset = next;
+        ++root.lr2SkinSettingsRevision;
+        return true;
+    }
+
+    function lr2SkinSettingAtVisibleRow(row) {
+        let index = root.lr2SkinCustomOffset + row;
+        return index >= 0 && index < root.lr2SkinSettingItems.length
+            ? root.lr2SkinSettingItems[index]
+            : null;
+    }
+
+    function lr2SkinSettingCurrentValue(item) {
+        let destination = root.lr2SettingDestinationForScreen(root.currentLr2SkinPreviewScreen());
+        let value = destination && destination[item.id] !== undefined ? destination[item.id] : undefined;
+        if ((value === undefined || value === null || value === "") && root.skinSettings) {
+            value = root.skinSettings[item.id];
+        }
+        if (value === undefined || value === null || value === "") {
+            value = item.defaultValue;
+        }
+        return value === undefined || value === null ? "" : String(value);
+    }
+
+    function lr2SkinSettingName(row) {
+        let item = root.lr2SkinSettingAtVisibleRow(row);
+        return item ? item.name : "";
+    }
+
+    function lr2SkinSettingValueText(row) {
+        let item = root.lr2SkinSettingAtVisibleRow(row);
+        if (!item) {
+            return "";
+        }
+        let value = root.lr2SkinSettingCurrentValue(item);
+        let index = item.choices.indexOf(value);
+        return index >= 0 && index < item.labels.length ? item.labels[index] : value;
+    }
+
+    function changeLr2SkinSetting(row, delta) {
+        let item = root.lr2SkinSettingAtVisibleRow(row);
+        if (!item || item.choices.length <= 0) {
+            return false;
+        }
+
+        let current = root.lr2SkinSettingCurrentValue(item);
+        let index = item.choices.indexOf(current);
+        if (index < 0) {
+            index = 0;
+        }
+        let nextValue = item.choices[root.wrapValue(index + delta, item.choices.length)];
+        if (nextValue === current) {
+            return false;
+        }
+
+        let screen = root.currentLr2SkinPreviewScreen();
+        let destination = root.lr2SettingDestinationForScreen(screen);
+        if (destination) {
+            destination[item.id] = nextValue;
+        }
+        if (screen === root.effectiveScreenKey || screen === root.screenKey) {
+            let refreshed = root.copyObject(destination || root.skinSettings);
+            refreshed[item.id] = nextValue;
+            root.suppressNextSkinClockRestart = true;
+            root.skinSettings = refreshed;
+        }
+        ++root.lr2SkinSettingsRevision;
+        return true;
+    }
+
+    function changeLr2Soundset(delta) {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return false;
+        }
+        let choices = vars.getAvailableSoundsets ? vars.getAvailableSoundsets() : [];
+        if (!choices || choices.length <= 0) {
+            return false;
+        }
+        let current = vars.soundset || "";
+        let index = choices.indexOf(current);
+        if (index < 0) {
+            index = 0;
+        }
+        let next = choices[((index + delta) % choices.length + choices.length) % choices.length];
+        if (next === current) {
+            return false;
+        }
+        vars.soundset = next;
+        root.refreshLr2SkinSettingItems();
+        return true;
+    }
+
+    function changeLr2SelectedTheme(delta) {
+        let screen = root.currentLr2SkinPreviewScreen();
+        if (screen === "soundset") {
+            return root.changeLr2Soundset(delta);
+        }
+
+        let profile = root.profileRoot();
+        if (!profile || !profile.themeConfig) {
+            return false;
+        }
+        let choices = root.lr2AvailableThemeNamesForScreen(screen);
+        if (choices.length <= 0) {
+            return false;
+        }
+
+        let current = root.lr2ConfiguredThemeName(screen);
+        let index = choices.indexOf(current);
+        if (index < 0) {
+            index = 0;
+        }
+        let next = choices[((index + delta) % choices.length + choices.length) % choices.length];
+        if (next === current) {
+            return false;
+        }
+
+        profile.themeConfig[screen] = next;
+        root.lr2SkinCustomOffset = 0;
+        root.refreshLr2SkinSettingItems();
+        return true;
+    }
+
+    function queueSkinClockRestartAfterLoad() {
+        if (root.suppressNextSkinClockRestart) {
+            root.suppressNextSkinClockRestart = false;
+            return;
+        }
+        Qt.callLater(root.restartSkinClock);
     }
 
     function setArrayValue(array, index, value) {
@@ -1639,7 +2010,7 @@ Item {
 
     function skinTimeForElement(src, dsts) {
         return root.elementUsesLiveSelectClock(src, dsts)
-            ? root.globalSkinTime
+            ? root.selectSourceSkinTime
             : root.renderSkinTime;
     }
 
@@ -4071,6 +4442,10 @@ Item {
 
     function lr2SelectOptionText(st) {
         switch (st) {
+        case 50:
+            return root.lr2SkinPreviewTitle();
+        case 51:
+            return root.lr2SkinPreviewMaker();
         case 63:
             return root.optionText(root.lr2RandomLabels, root.lr2RandomIndexP1);
         case 64:
@@ -4169,13 +4544,19 @@ Item {
         case 199:
             return "GROOVE";
         default:
+            if (st >= 100 && st < 110) {
+                return root.lr2SkinSettingName(st - 100);
+            }
+            if (st >= 110 && st < 120) {
+                return root.lr2SkinSettingValueText(st - 110);
+            }
             return "";
         }
     }
 
     function resolveText(st) {
         let revision = root.effectiveScreenKey === "select"
-            ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision
+            ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision + root.lr2SkinSettingsRevision
             : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision);
         let chartData = root.displayChartData();
         let currentEntry = root.effectiveScreenKey === "select" ? selectContext.current : null;
@@ -4687,8 +5068,12 @@ Item {
         case 76:
         case 77:
         case 83:
+        case 190:
             return true;
         default:
+            if (buttonId >= 220 && buttonId <= 229) {
+                return true;
+            }
             return false;
         }
     }
@@ -4780,6 +5165,13 @@ Item {
         case 210:
             return 0;
         default:
+            if (src.buttonId >= 170 && src.buttonId <= 188) {
+                let screen = root.lr2SkinTypeScreenKey(src.buttonId - 170);
+                return screen.length > 0 && screen === root.currentLr2SkinPreviewScreen() ? 1 : 0;
+            }
+            if (src.buttonId === 190 || (src.buttonId >= 220 && src.buttonId <= 229)) {
+                return 0;
+            }
             if ((src.buttonId >= 13 && src.buttonId <= 14)
                     || src.buttonId === 18
                     || (src.buttonId >= 230 && src.buttonId <= 268)) {
@@ -5028,6 +5420,11 @@ Item {
             selectContext.sortOrFilterChanged();
             optionChanged = true;
             break;
+        case 13:
+            break;
+        case 14:
+            root.openSelectPanel(2, false);
+            break;
         case 15:
             root.selectGoForward();
             break;
@@ -5180,8 +5577,20 @@ Item {
                 optionChanged = true;
                 break;
             }
-            if ((buttonId >= 13 && buttonId <= 14)
-                    || (buttonId >= 230 && buttonId <= 268)) {
+            if (buttonId >= 170 && buttonId <= 188) {
+                let screen = root.lr2SkinTypeScreenKey(buttonId - 170);
+                optionChanged = root.setLr2SkinPreviewScreen(screen);
+                break;
+            }
+            if (buttonId === 190) {
+                optionChanged = root.changeLr2SelectedTheme(delta);
+                break;
+            }
+            if (buttonId >= 220 && buttonId <= 229) {
+                optionChanged = root.changeLr2SkinSetting(buttonId - 220, delta);
+                break;
+            }
+            if (buttonId >= 230 && buttonId <= 268) {
                 // These LR2 controls cover skin/key config, IR, and tag-editor
                 // actions that do not have safe backing state here.
                 break;
@@ -5592,7 +6001,10 @@ Item {
         if (!root.isLr2GenericSlider(src)) {
             return null;
         }
-        return root.translatedSliderState(src, dsts, root.sliderRawValue(src.sliderType) / 100);
+        let position = src.sliderType === 7
+            ? root.lr2SkinCustomPosition()
+            : root.sliderRawValue(src.sliderType) / 100;
+        return root.translatedSliderState(src, dsts, position);
     }
 
     function gameplayProgressSliderState(src, dsts) {
@@ -5656,7 +6068,14 @@ Item {
         if (!track) {
             return;
         }
-        root.setSliderRawValue(src.sliderType, root.sliderPositionFromPointer(src, track, pointerX, pointerY) * 100);
+        let position = root.sliderPositionFromPointer(src, track, pointerX, pointerY);
+        if (src.sliderType === 7) {
+            if (root.setLr2SkinCustomPosition(position)) {
+                root.playOneShot(optionChangeSound);
+            }
+            return;
+        }
+        root.setSliderRawValue(src.sliderType, position * 100);
     }
 
     function computeBarBaseState(row, selectedRow) {
@@ -6188,9 +6607,10 @@ Item {
         activeOptions: root.parseActiveOptions
 
         onSkinLoaded: {
-            Qt.callLater(root.restartSkinClock);
+            root.queueSkinClockRestartAfterLoad();
             Qt.callLater(root.openSelectIfNeeded);
             Qt.callLater(root.activateGameplayIfNeeded);
+            Qt.callLater(root.refreshLr2SkinSettingItems);
             Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
             Qt.callLater(root.updateResultOldScores);
         }
@@ -6199,9 +6619,11 @@ Item {
     readonly property var skinModelRef: skinModel
 
     onCsvPathChanged: Qt.callLater(root.openSelectIfNeeded)
+    onSkinSettingsChanged: Qt.callLater(root.refreshLr2SkinSettingItems)
     onScreenKeyChanged: {
         Qt.callLater(root.openSelectIfNeeded);
         Qt.callLater(root.activateGameplayIfNeeded);
+        Qt.callLater(root.refreshLr2SkinSettingItems);
     }
 
     Component.onCompleted: {
@@ -6212,6 +6634,7 @@ Item {
         Qt.callLater(root.activateGameplayIfNeeded);
         Qt.callLater(root.updateSelectSideEffects);
         Qt.callLater(root.updateGameplaySavedScores);
+        Qt.callLater(root.refreshLr2SkinSettingItems);
         Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
     }
 
@@ -6706,12 +7129,16 @@ Item {
                                     && root.buttonPanelMatches(model.src)
                                     && !!parent.buttonState
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                preventStealing: true
                                 hoverEnabled: true
                                 x: parent.buttonState ? Math.min(parent.buttonState.x, parent.buttonState.x + parent.buttonState.w) * skinScale : 0
                                 y: parent.buttonState ? Math.min(parent.buttonState.y, parent.buttonState.y + parent.buttonState.h) * skinScale : 0
                                 width: parent.buttonState ? Math.abs(parent.buttonState.w) * skinScale : 0
                                 height: parent.buttonState ? Math.abs(parent.buttonState.h) * skinScale : 0
-                                onPressed: (mouse) => root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse)
+                                onPressed: (mouse) => {
+                                    root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse);
+                                    mouse.accepted = true;
+                                }
                                 onPositionChanged: (mouse) => {
                                     if (pressed) {
                                         root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse);
@@ -6721,6 +7148,7 @@ Item {
                                     root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse);
                                     let delta = root.buttonMouseDelta(model.src, mouse.x, width);
                                     root.handleLr2Button(model.src.buttonId, delta, model.src.buttonPanel);
+                                    mouse.accepted = true;
                                 }
                             }
                         }
@@ -7283,7 +7711,7 @@ Item {
                 enabled: root.effectiveScreenKey === "select"
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 propagateComposedEvents: true
-                z: 100000
+                z: -90000
                 property int pressedRow: -1
 
                 function rowAt(mouse) {
