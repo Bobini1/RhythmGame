@@ -40,6 +40,14 @@ Item {
     property int gameplayJudgeCombo2: 0
     property int gameplayJudgeRevision1: 0
     property int gameplayJudgeRevision2: 0
+    property var gameplayJudgeTimingCounts1: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
+    property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
+    property int gameplayLastJudgeTiming1: 0
+    property int gameplayLastJudgeTiming2: 0
+    property var gameplayJudgeLaneValues1: []
+    property var gameplayJudgeLaneValues2: []
+    property int gameplayJudgeNowValue1: 0
+    property int gameplayJudgeNowValue2: 0
     property int gameplayLastMissSkinTime1: -1
     property int gameplayLastMissSkinTime2: -1
     property int gameplayFullComboSkinTime1: -1
@@ -69,6 +77,7 @@ Item {
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
+    readonly property int lr2CurrentFps: Math.round(lr2FpsAnimation.fps)
     property var resultOldScores1: []
     property var resultOldScores2: []
     property int resultOldScoresRevision: 0
@@ -77,6 +86,8 @@ Item {
     property int resultTimer152SkinTime: -1
     property int resultGraphStartSkinTime: 500
     property int resultGraphEndSkinTime: 2000
+    property var resultTimingStatsCache: ({})
+    property var resultJudgeTimingCountsCache: ({})
     readonly property var gameplayKeyTimers: [
         100, 101, 102, 103, 104, 105, 106, 107,
         110, 111, 112, 113, 114, 115, 116, 117
@@ -118,6 +129,12 @@ Item {
                 }
             }
         }
+    }
+
+    FrameAnimation {
+        id: lr2FpsAnimation
+        running: root.enabled
+        property real fps: smoothFrameTime > 0 ? (1.0 / smoothFrameTime) : 0
     }
 
     function openSelectIfNeeded() {
@@ -202,6 +219,15 @@ Item {
             && !!root.chart
             && root.playerIsAutoPlayer(root.chart.player1)
             && (!root.chart.player2 || root.playerIsAutoPlayer(root.chart.player2));
+    }
+
+    function gameplayReplayActive() {
+        if (!root.isGameplayScreen() || !root.chart) {
+            return false;
+        }
+        let p1 = root.gameplayPlayer(1);
+        let p2 = root.gameplayPlayer(2);
+        return !!((p1 && p1.replayedScore) || (p2 && p2.replayedScore));
     }
 
     readonly property var parseActiveOptions: {
@@ -1245,6 +1271,9 @@ Item {
     }
 
     function currentLr2RankingChart() {
+        if (root.isResultScreen()) {
+            return root.resultChartData();
+        }
         if (root.effectiveScreenKey !== "select") {
             return null;
         }
@@ -1419,9 +1448,60 @@ Item {
         };
     }
 
+    function lr2RankingEntryAt(index) {
+        let entries = root.lr2RankingEntries();
+        return index >= 0 && index < entries.length ? entries[index] : null;
+    }
+
+    function lr2RankingEntryName(index) {
+        let entry = root.lr2RankingEntryAt(index);
+        if (!entry) {
+            return "";
+        }
+        let name = entry.userName || entry.owner || entry.player || "";
+        return name.length > 0 ? name : "YOU";
+    }
+
+    function lr2RankingEntryClearValue(index) {
+        let entry = root.lr2RankingEntryAt(index);
+        return entry ? root.clearTypeValue(entry.bestClearType || "NOPLAY") : 0;
+    }
+
+    function lr2RankingEntryExScore(index) {
+        let entry = root.lr2RankingEntryAt(index);
+        return entry ? Math.floor(entry.bestPoints || 0) : 0;
+    }
+
+    function lr2RankingClearCount() {
+        let entries = root.lr2RankingEntries();
+        let counts = root.lr2RankingClearCounts(entries);
+        let total = 0;
+        for (let i = 0; i < arguments.length; ++i) {
+            total += counts[arguments[i]] || 0;
+        }
+        return total;
+    }
+
+    function lr2RankingClearPercentValue(afterDot) {
+        let playerCount = root.lr2RankingPlayerCount();
+        if (playerCount <= 0) {
+            return 0;
+        }
+        let count = 0;
+        for (let i = 1; i < arguments.length; ++i) {
+            count += root.lr2RankingClearCount(arguments[i]);
+        }
+        return afterDot
+            ? Math.floor(count * 1000 / playerCount) % 10
+            : Math.floor(count * 100 / playerCount);
+    }
+
     function applyRankingStatsToSelectContext() {
         let chart = root.lr2RankingChart;
-        if (!chart || !chart.md5 || !root.lr2RankingMatchesCurrentChart() || lr2OnlineRanking.loading) {
+        if (root.effectiveScreenKey !== "select"
+                || !chart || !chart.md5
+                || !root.lr2RankingMatchesCurrentChart()
+                || lr2OnlineRanking.loading) {
             return;
         }
         let snapshot = root.lr2RankingSnapshot();
@@ -1762,6 +1842,14 @@ Item {
             && src.sliderRange > 0;
     }
 
+    function isGameplayLaneCoverSlider(src) {
+        return root.isGameplayScreen()
+            && !!src
+            && !!src.slider
+            && (src.sliderType === 4 || src.sliderType === 5)
+            && src.sliderRange > 0;
+    }
+
     function sliderTrackState(src, dsts, skinTime) {
         if (!src || !src.slider) {
             return null;
@@ -2080,12 +2168,35 @@ Item {
         }
     }
 
+    function skinUsesOption(option) {
+        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
+        return used.indexOf(option) !== -1;
+    }
+
     function gaugeColorOption(side) {
         let vars = root.generalVarsForSide(side);
         let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
         let red = gauge === "HARD" || gauge === "EXHARD"
             || gauge === "FC" || gauge === "PERFECT" || gauge === "MAX";
         return side === 2 ? (red ? 45 : 44) : (red ? 43 : 42);
+    }
+
+    function gameplayGaugeTrophyOption(side) {
+        let vars = root.generalVarsForSide(side);
+        let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
+        if (gauge === "AEASY") {
+            return 124;
+        }
+        if (gauge === "EASY") {
+            return 121;
+        }
+        if (gauge === "EXHARD" || gauge === "EXDAN" || gauge === "EXHARDDAN") {
+            return 125;
+        }
+        if (gauge === "HARD" || gauge === "DAN" || gauge === "HARD_DAN") {
+            return 119;
+        }
+        return 118;
     }
 
     function battleModeActive() {
@@ -2104,9 +2215,123 @@ Item {
             : 0;
     }
 
+    function liftNumber(side) {
+        let vars = root.generalVarsForSide(side);
+        return vars && vars.liftOn ? Math.round((vars.liftRatio || 0) * 1000) : 0;
+    }
+
+    function hiddenNumber(side) {
+        let vars = root.generalVarsForSide(side);
+        return vars && vars.hiddenOn ? Math.round((vars.hiddenRatio || 0) * 1000) : 0;
+    }
+
+    function hiSpeedInteger(side) {
+        let value = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
+        return Math.floor(value / 100);
+    }
+
+    function hiSpeedAfterDot(side) {
+        let value = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
+        return Math.floor(value) % 100;
+    }
+
+    function durationNumber(side, green) {
+        let vars = root.generalVarsForSide(side);
+        let duration = vars && vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
+        return Math.round(duration * (green ? 1.0 : 0.6));
+    }
+
+    function durationNumberForBpm(side, bpm, green, cover) {
+        let safeBpm = Math.max(1, bpm || 0);
+        let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
+        let vars = root.generalVarsForSide(side);
+        let visible = cover && vars && vars.laneCoverOn ? 1 - (vars.laneCoverRatio || 0) : 1;
+        return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 1.0 : 0.6));
+    }
+
+    function bpmDurationNumber(num, chartData) {
+        let green = (num - 1312) % 2 === 1;
+        let cover = (num - 1312) % 4 < 2;
+        let mode = Math.floor((num - 1312) / 4);
+        let bpm = 0;
+        if (mode === 1) {
+            bpm = chartData ? (chartData.mainBpm || chartData.initialBpm || chartData.maxBpm || 0) : 0;
+        } else if (mode === 2) {
+            bpm = chartData ? (chartData.minBpm || chartData.mainBpm || 0) : 0;
+        } else if (mode === 3) {
+            bpm = chartData ? (chartData.maxBpm || chartData.mainBpm || 0) : 0;
+        } else {
+            let player = root.gameplayPlayer(1);
+            bpm = player && (player.bpm || 0) > 0
+                ? player.bpm
+                : (chartData ? (chartData.mainBpm || chartData.initialBpm || 0) : 0);
+        }
+        return root.durationNumberForBpm(1, bpm, green, cover);
+    }
+
+    function chartLengthSeconds(chartData) {
+        return chartData ? Math.floor(Math.max(0, chartData.length || 0) / 1000000000) : -1;
+    }
+
+    function chartPlayableNoteCount(chartData) {
+        if (!chartData) {
+            return 0;
+        }
+        return (chartData.normalNoteCount || 0)
+            + (chartData.scratchCount || 0)
+            + (chartData.lnCount || 0)
+            + (chartData.bssCount || 0);
+    }
+
+    function chartDensityNumber(chartData, propertyName, afterDot) {
+        if (!chartData) {
+            return -1;
+        }
+        let value = Math.max(0, chartData[propertyName] || 0);
+        return afterDot ? Math.floor(value * 100) % 100 : Math.floor(value);
+    }
+
+    function chartHasBpmStop(chartData) {
+        let changes = chartData && chartData.bpmChanges ? chartData.bpmChanges : [];
+        for (let i = 0; i < changes.length; ++i) {
+            if ((changes[i].bpm || 0) === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function clearTypeValue(clearType) {
+        switch (String(clearType || "NOPLAY")) {
+        case "FAILED":
+            return 1;
+        case "AEASY":
+            return 2;
+        case "EASY":
+            return 4;
+        case "NORMAL":
+            return 5;
+        case "HARD":
+            return 6;
+        case "EXHARD":
+            return 7;
+        case "FC":
+            return 8;
+        case "PERFECT":
+            return 9;
+        case "MAX":
+            return 10;
+        default:
+            return 0;
+        }
+    }
+
     function dateTimeNumber(num) {
         let now = new Date();
+        let uptimeSeconds = Math.floor(Math.max(0, root.globalSkinTime || 0) / 1000);
         switch (num) {
+        case 20:
+            return root.lr2CurrentFps;
         case 21:
             return now.getFullYear();
         case 22:
@@ -2119,6 +2344,12 @@ Item {
             return now.getMinutes();
         case 26:
             return now.getSeconds();
+        case 27:
+            return Math.floor(uptimeSeconds / 3600);
+        case 28:
+            return Math.floor(uptimeSeconds / 60) % 60;
+        case 29:
+            return uptimeSeconds % 60;
         default:
             return 0;
         }
@@ -2141,6 +2372,8 @@ Item {
         root.addOption(options, vars && vars.bgaOn === false ? 40 : 41);
         root.addOption(options, root.gaugeColorOption(1));
         root.addOption(options, root.gaugeColorOption(2));
+        root.addOption(options, root.gameplayGaugeTrophyOption(1));
+        root.addOption(options, root.gameplayGaugeTrophyOption(2));
         root.addOption(options, 46); // difficulty filter enabled.
         root.addOption(options, root.isLoggedIn() ? 51 : 50);
         root.addOption(options, 52); // extra mode off.
@@ -2155,7 +2388,7 @@ Item {
         } else {
             root.addOption(options, 80); // select/decide are already loaded when the skin is shown.
         }
-        root.addOption(options, 82); // no replay playback in select/decide UI.
+        root.addOption(options, root.gameplayReplayActive() ? 84 : 82);
         root.addOption(options, 572); // course editor/making mode is not supported here.
         root.addOption(options, 622); // ghost battle is not supported from select.
         root.addOption(options, 624); // rival compare is not supported from select.
@@ -2182,7 +2415,7 @@ Item {
             addOption(options, 174);
             addOption(options, 176);
             addOption(options, 178);
-            addOption(options, 196);
+            root.appendReplayOptions(options, null);
             addOption(options, 150);
             return;
         }
@@ -2195,10 +2428,13 @@ Item {
         addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
         addOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
         addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
+        if (root.chartHasBpmStop(chartData)) {
+            addOption(options, 1177);
+        }
         addOption(options, chartData.isRandom ? 179 : 178);
         addOption(options, selectContext.judgeOption(chartData));
         addOption(options, selectContext.highLevelOption(chartData));
-        addOption(options, selectContext.hasReplay(chartData) ? 197 : 196);
+        root.appendReplayOptions(options, chartData);
 
         let difficulty = selectContext.entryDifficulty(chartData);
         if (difficulty >= 1 && difficulty <= 5) {
@@ -2210,6 +2446,44 @@ Item {
         let keymode = chartData.keymode || 0;
         root.appendKeymodeOption(options, keymode, 160);
         root.appendKeymodeOption(options, root.keymodeAfterOptions(keymode), 165);
+    }
+
+    function replayOptionForSlot(slot, available) {
+        if (slot === 0) {
+            return available ? 197 : 196;
+        }
+        if (slot === 1) {
+            return available ? 1197 : 1196;
+        }
+        if (slot === 2) {
+            return available ? 1200 : 1199;
+        }
+        return available ? 1203 : 1202;
+    }
+
+    function selectedReplayOptionForSlot(slot) {
+        return 1205 + Math.max(0, Math.min(3, slot));
+    }
+
+    function replaySlotAvailable(chartData, slot) {
+        if (!chartData || root.effectiveScreenKey !== "select") {
+            return !!chartData && slot === 0 && selectContext.hasReplay(chartData);
+        }
+        return !!selectContext.replayScoreForType(chartData, slot);
+    }
+
+    function appendReplayOptions(options, chartData) {
+        let selectedReplayAvailable = false;
+        for (let slot = 0; slot < 4; ++slot) {
+            let available = root.replaySlotAvailable(chartData, slot);
+            root.addOption(options, root.replayOptionForSlot(slot, available));
+            if (slot === root.lr2ReplayType && available) {
+                selectedReplayAvailable = true;
+            }
+        }
+        if (selectedReplayAvailable) {
+            root.addOption(options, root.selectedReplayOptionForSlot(root.lr2ReplayType));
+        }
     }
 
     function appendKeymodeOption(options, keymode, baseOption) {
@@ -2225,6 +2499,15 @@ Item {
             break;
         case 10:
             root.addOption(options, baseOption + 3);
+            break;
+        case 24:
+            root.addOption(options, 1160);
+            break;
+        case 48:
+            root.addOption(options, 1161);
+            break;
+        case 9:
+            root.addOption(options, 164);
             break;
         }
     }
@@ -2263,13 +2546,16 @@ Item {
         if (!folderLike && root.chartKeymodeForStatus(item, selectedChart) <= 0) {
             return;
         }
+        let clearOption = selectContext.beatorajaClearOption(item);
+        let hasExactBeatorajaLamp = clearOption >= 1100 && root.skinUsesOption(clearOption);
         let lamp = selectContext.entryLamp(item);
-        if (lamp >= 0 && lamp <= 5) {
+        if (!hasExactBeatorajaLamp && lamp >= 0 && lamp <= 5) {
             root.addOption(options, 100 + lamp);
         }
         if (folderLike) {
             return;
         }
+        root.addOption(options, clearOption);
 
         let rank = selectContext.entryRank(item);
         if (lamp > 0 && rank >= 1) {
@@ -2651,6 +2937,339 @@ Item {
 
     function resultBadPoor(result) {
         return root.resultJudgementCount(result, Judgement.Bad) + root.resultPoorCount(result);
+    }
+
+    function emptyJudgeTimingCounts() {
+        return {
+            early: [0, 0, 0, 0, 0, 0],
+            late: [0, 0, 0, 0, 0, 0]
+        };
+    }
+
+    function judgementTimingBucket(judgement) {
+        switch (judgement) {
+        case Judgement.Perfect:
+            return 0;
+        case Judgement.Great:
+            return 1;
+        case Judgement.Good:
+            return 2;
+        case Judgement.Bad:
+            return 3;
+        case Judgement.Poor:
+            return 4;
+        case Judgement.EmptyPoor:
+            return 5;
+        default:
+            return -1;
+        }
+    }
+
+    function hitDeviationNanos(hit) {
+        if (!hit) {
+            return 0;
+        }
+        if (hit.points && hit.points.deviation !== undefined) {
+            return Number(hit.points.deviation || 0);
+        }
+        if (hit.hitOffset !== undefined) {
+            return Number(hit.hitOffset || 0);
+        }
+        return 0;
+    }
+
+    function hitDeviationMillis(hit) {
+        return Math.round(root.hitDeviationNanos(hit) / 1000000);
+    }
+
+    function cloneJudgeTimingCounts(counts) {
+        if (!counts || !counts.early || !counts.late) {
+            return root.emptyJudgeTimingCounts();
+        }
+        return {
+            early: counts.early.slice(),
+            late: counts.late.slice()
+        };
+    }
+
+    function emptyJudgeLaneValues() {
+        return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    }
+
+    function nowJudgeValue(judgement) {
+        switch (judgement) {
+        case Judgement.Perfect:
+            return 1;
+        case Judgement.Great:
+            return 2;
+        case Judgement.Good:
+            return 3;
+        case Judgement.Bad:
+            return 4;
+        case Judgement.Poor:
+            return 5;
+        case Judgement.EmptyPoor:
+            return 6;
+        default:
+            return 0;
+        }
+    }
+
+    function laneJudgeValue(judgement, timing) {
+        switch (judgement) {
+        case Judgement.Perfect:
+            return 1;
+        case Judgement.Great:
+            return timing > 0 ? 2 : 3;
+        case Judgement.Good:
+            return timing > 0 ? 4 : 5;
+        case Judgement.Bad:
+            return timing > 0 ? 6 : 7;
+        default:
+            return 0;
+        }
+    }
+
+    function setGameplayJudgeLaneValue(scoreSide, hit, value) {
+        let lane = root.gameplayLr2LaneForHit(scoreSide, hit);
+        if (lane < 0) {
+            return;
+        }
+        let valuesName = scoreSide === 2 ? "gameplayJudgeLaneValues2" : "gameplayJudgeLaneValues1";
+        let values = (root[valuesName] && root[valuesName].length)
+            ? root[valuesName].slice()
+            : root.emptyJudgeLaneValues();
+        if (lane >= values.length) {
+            values.length = lane + 1;
+            for (let i = 0; i < values.length; ++i) {
+                values[i] = values[i] || 0;
+            }
+        }
+        values[lane] = value;
+        root[valuesName] = values;
+    }
+
+    function gameplayJudgeValueForId(num) {
+        if (num === 520 || num === 522) {
+            return root.gameplayJudgeNowValue1;
+        }
+        if (num === 521) {
+            return root.gameplayJudgeNowValue2;
+        }
+        let side = 1;
+        let offset = -1;
+        if (num >= 500 && num <= 519) {
+            side = Math.floor((num - 500) / 10) + 1;
+            offset = (num - 500) % 10;
+        } else if (num >= 1510 && num <= 1599) {
+            side = 1;
+            offset = (num - 1510) + 10;
+        } else if (num >= 1610 && num <= 1699) {
+            side = 2;
+            offset = (num - 1610) + 10;
+        } else {
+            return 0;
+        }
+        let values = side === 2 ? root.gameplayJudgeLaneValues2 : root.gameplayJudgeLaneValues1;
+        return values && offset >= 0 && offset < values.length ? (values[offset] || 0) : 0;
+    }
+
+    function recordGameplayJudgeTiming(scoreSide, hit) {
+        let judgement = root.gameplayJudgementFromHit(hit);
+        let bucket = root.judgementTimingBucket(judgement);
+        if (bucket < 0) {
+            return;
+        }
+
+        let countsName = scoreSide === 2 ? "gameplayJudgeTimingCounts2" : "gameplayJudgeTimingCounts1";
+        let counts = root.cloneJudgeTimingCounts(root[countsName]);
+        let side = root.hitDeviationNanos(hit) < 0 ? counts.early : counts.late;
+        side[bucket] = (side[bucket] || 0) + 1;
+        root[countsName] = counts;
+
+        let timingName = scoreSide === 2 ? "gameplayLastJudgeTiming2" : "gameplayLastJudgeTiming1";
+        let timing = root.hitDeviationMillis(hit);
+        root[timingName] = timing;
+
+        if (scoreSide === 2) {
+            root.gameplayJudgeNowValue2 = root.nowJudgeValue(judgement);
+        } else {
+            root.gameplayJudgeNowValue1 = root.nowJudgeValue(judgement);
+        }
+        let laneValue = root.laneJudgeValue(judgement, timing);
+        if (laneValue > 0) {
+            root.setGameplayJudgeLaneValue(scoreSide, hit, laneValue);
+        }
+    }
+
+    function judgeTimingCount(counts, bucket, early) {
+        if (bucket < 0 || !counts) {
+            return 0;
+        }
+        let source = early ? counts.early : counts.late;
+        return source && bucket < source.length ? (source[bucket] || 0) : 0;
+    }
+
+    function judgeTimingNumberFromCounts(num, counts) {
+        if (num >= 410 && num <= 419) {
+            let bucket = Math.floor((num - 410) / 2);
+            let early = (num - 410) % 2 === 0;
+            return root.judgeTimingCount(counts, bucket, early);
+        }
+        switch (num) {
+        case 421:
+            return root.judgeTimingCount(counts, 5, true);
+        case 422:
+            return root.judgeTimingCount(counts, 5, false);
+        case 423: {
+            let total = 0;
+            for (let i = 1; i <= 5; ++i) {
+                total += root.judgeTimingCount(counts, i, true);
+            }
+            return total;
+        }
+        case 424: {
+            let total = 0;
+            for (let i = 1; i <= 5; ++i) {
+                total += root.judgeTimingCount(counts, i, false);
+            }
+            return total;
+        }
+        default:
+            return 0;
+        }
+    }
+
+    function resultCacheKey(score) {
+        if (!score) {
+            return "";
+        }
+        let replay = score.replayData || null;
+        let events = replay && replay.hitEvents ? replay.hitEvents : [];
+        let result = score.result || null;
+        let guid = replay && replay.guid ? replay.guid : (result && result.guid ? result.guid : "");
+        return String(guid) + ":" + events.length;
+    }
+
+    function resultJudgeTimingCounts(side) {
+        let score = root.resultScore(side);
+        let key = root.resultCacheKey(score);
+        if (key.length === 0) {
+            return root.emptyJudgeTimingCounts();
+        }
+
+        let cache = root.resultJudgeTimingCountsCache || {};
+        if (cache[key]) {
+            return cache[key];
+        }
+
+        let counts = root.emptyJudgeTimingCounts();
+        let events = score && score.replayData && score.replayData.hitEvents
+            ? score.replayData.hitEvents
+            : [];
+        for (let hit of events || []) {
+            let judgement = root.gameplayJudgementFromHit(hit);
+            let bucket = root.judgementTimingBucket(judgement);
+            if (bucket < 0) {
+                continue;
+            }
+            let sideCounts = root.hitDeviationNanos(hit) < 0 ? counts.early : counts.late;
+            sideCounts[bucket] = (sideCounts[bucket] || 0) + 1;
+        }
+
+        let next = Object.assign({}, cache);
+        next[key] = counts;
+        root.resultJudgeTimingCountsCache = next;
+        return counts;
+    }
+
+    function resultTimingStats(side) {
+        let score = root.resultScore(side);
+        let key = root.resultCacheKey(score);
+        if (key.length === 0) {
+            return { averageDuration: 0, average: 0, stddev: 0 };
+        }
+
+        let cache = root.resultTimingStatsCache || {};
+        if (cache[key]) {
+            return cache[key];
+        }
+
+        let events = score && score.replayData && score.replayData.hitEvents
+            ? score.replayData.hitEvents
+            : [];
+        let count = 0;
+        let absSum = 0;
+        let sum = 0;
+        let sumSq = 0;
+        for (let hit of events || []) {
+            let judgement = root.gameplayJudgementFromHit(hit);
+            if (judgement < Judgement.Bad || judgement > Judgement.Perfect) {
+                continue;
+            }
+            let ms = root.hitDeviationMillis(hit);
+            if (ms < -150 || ms > 150) {
+                continue;
+            }
+            ++count;
+            absSum += Math.abs(ms);
+            sum += ms;
+            sumSq += ms * ms;
+        }
+
+        let stats = { averageDuration: 0, average: 0, stddev: 0 };
+        if (count > 0) {
+            let average = sum / count;
+            stats = {
+                averageDuration: absSum / count,
+                average: average,
+                stddev: Math.sqrt(Math.max(0, sumSq / count - average * average))
+            };
+        }
+
+        let next = Object.assign({}, cache);
+        next[key] = stats;
+        root.resultTimingStatsCache = next;
+        return stats;
+    }
+
+    function signedAfterDot(value) {
+        let scaled = Math.floor(Math.abs(value || 0) * 100) % 100;
+        return value < 0 ? -scaled : scaled;
+    }
+
+    function resultGaugeInfo(side) {
+        let score = root.resultScore(side);
+        let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
+        if (!infos || infos.length === 0) {
+            return null;
+        }
+
+        let best = null;
+        let fallback = infos[infos.length - 1];
+        for (let i = 0; i < infos.length; ++i) {
+            let info = infos[i];
+            let history = info && info.gaugeHistory ? info.gaugeHistory : [];
+            let last = history && history.length > 0 ? history[history.length - 1].gauge : 0;
+            if (!best && last > (info.threshold || 0)) {
+                best = info;
+            }
+            if (info && !info.courseGauge) {
+                fallback = info;
+            }
+        }
+        return best || fallback;
+    }
+
+    function resultGaugeValue(side) {
+        let info = root.resultGaugeInfo(side);
+        let history = info && info.gaugeHistory ? info.gaugeHistory : [];
+        return history && history.length > 0 ? (history[history.length - 1].gauge || 0) : 0;
+    }
+
+    function gaugeAfterDot(value) {
+        let scaled = Math.max(0, value || 0) * 10;
+        return scaled > 0 && scaled < 1 ? 1 : Math.floor(scaled) % 10;
     }
 
     function resultExScore(result) {
@@ -3320,6 +3939,19 @@ Item {
         root.addOption(options, baseOption + bucket);
     }
 
+    function gameplayGaugeQualified(score) {
+        if (!score || !score.gauges || score.gauges.length === 0) {
+            return false;
+        }
+        for (let gauge of score.gauges) {
+            if (gauge.gauge > gauge.threshold) {
+                return (gauge.gauge || 0) >= (gauge.threshold || 0);
+            }
+        }
+        let fallback = score.gauges[score.gauges.length - 1];
+        return fallback ? (fallback.gauge || 0) >= (fallback.threshold || 0) : false;
+    }
+
     function gameplayGaugeOption(side) {
         let vars = root.generalVarsForSide(side);
         let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
@@ -3371,6 +4003,19 @@ Item {
         return 134;
     }
 
+    function appendGameplayLaneCoverOptions(options, side) {
+        let vars = root.generalVarsForSide(side);
+        if (vars && vars.laneCoverOn) {
+            root.addOption(options, 271);
+        }
+        if (vars && vars.liftOn) {
+            root.addOption(options, 272);
+        }
+        if (vars && vars.hiddenOn) {
+            root.addOption(options, 273);
+        }
+    }
+
     function gameplayJudgementOption(side, baseOption) {
         let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
@@ -3384,6 +4029,37 @@ Item {
     function gameplayPoorBgaVisible() {
         root.gameplayRevision;
         return root.gameplayPoorBgaOption(1, 247) === 248;
+    }
+
+    function judgementCountForExist(resultOrScore, judgement) {
+        if (!resultOrScore) {
+            return 0;
+        }
+        if (resultOrScore.judgementCount) {
+            return resultOrScore.judgementCount(judgement);
+        }
+        return root.resultJudgementCount(resultOrScore, judgement);
+    }
+
+    function appendJudgementExistOptions(options, resultOrScore) {
+        if (root.judgementCountForExist(resultOrScore, Judgement.Perfect) > 0) {
+            root.addOption(options, 2241);
+        }
+        if (root.judgementCountForExist(resultOrScore, Judgement.Great) > 0) {
+            root.addOption(options, 2242);
+        }
+        if (root.judgementCountForExist(resultOrScore, Judgement.Good) > 0) {
+            root.addOption(options, 2243);
+        }
+        if (root.judgementCountForExist(resultOrScore, Judgement.Bad) > 0) {
+            root.addOption(options, 2244);
+        }
+        if (root.judgementCountForExist(resultOrScore, Judgement.Poor) > 0) {
+            root.addOption(options, 2245);
+        }
+        if (root.judgementCountForExist(resultOrScore, Judgement.EmptyPoor) > 0) {
+            root.addOption(options, 2246);
+        }
     }
 
     function gameplaySudChanging(side) {
@@ -3403,6 +4079,7 @@ Item {
         root.addOption(options, root.gameplayGaugeOption(side));
         root.addOption(options, root.gameplayLaneOption(score));
         root.addOption(options, root.gameplayLaneCoverOption(side));
+        root.appendGameplayLaneCoverOptions(options, side);
 
         let currentRank = root.gameplayRankOption(score, side === 2 ? 210 : 200, true);
         if (currentRank >= 0) {
@@ -3418,9 +4095,16 @@ Item {
             root.addOption(options, root.gameplayExactRankOption(score, 310));
         }
         root.addGameplayGaugeRangeOption(options, score, side === 2 ? 250 : 230);
+        if (side === 1 && root.gameplayGaugeQualified(score)) {
+            root.addOption(options, 1240);
+        }
         let judgementOption = root.gameplayJudgementOption(side, side === 2 ? 261 : 241);
         if (judgementOption >= 0) {
             root.addOption(options, judgementOption);
+        }
+        let timing = side === 2 ? root.gameplayLastJudgeTiming2 : root.gameplayLastJudgeTiming1;
+        if (timing !== 0 && judgementOption >= 0 && judgementOption !== (side === 2 ? 261 : 241)) {
+            root.addOption(options, timing > 0 ? (side === 2 ? 1262 : 1242) : (side === 2 ? 1263 : 1243));
         }
         root.addOption(options, root.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
     }
@@ -3434,6 +4118,7 @@ Item {
         if (root.gameplayLanePlayer(2)) {
             root.appendGameplaySideOptions(options, 2);
         }
+        root.appendJudgementExistOptions(options, root.gameplayScore(1));
         if (root.gameplaySudChanging(1)) {
             root.addOption(options, 270);
         }
@@ -3485,18 +4170,35 @@ Item {
             if (root.resultRawRank(current1) > root.resultRawRank(root.resultOldBestResult(1))) {
                 root.addOption(options, 335);
             }
+        } else {
+            root.addOption(options, 1330);
+            if (root.resultRawRank(current1) === root.resultRawRank(root.resultOldBestResult(1))) {
+                root.addOption(options, 1335);
+            }
         }
         if (root.resultComboImproved(1)) {
             root.addOption(options, 331);
+        } else {
+            root.addOption(options, 1331);
         }
         if (root.resultBadPoorImproved(1)) {
             root.addOption(options, 332);
+        } else {
+            root.addOption(options, 1332);
+        }
+        let targetDiff = root.resultExScore(current1) - root.resultTargetPoints(1);
+        if (targetDiff > 0) {
+            root.addOption(options, 336);
+        } else if (targetDiff === 0) {
+            root.addOption(options, 1336);
         }
 
         if (current1 && current2) {
             let diff = root.resultExScore(current1) - root.resultExScore(current2);
             root.addOption(options, diff > 0 ? 352 : (diff < 0 ? 353 : 354));
         }
+
+        root.appendJudgementExistOptions(options, current1);
     }
 
     function queueGameplayRevision() {
@@ -3573,6 +4275,14 @@ Item {
         root.gameplayJudgeCombo2 = 0;
         root.gameplayJudgeRevision1 = 0;
         root.gameplayJudgeRevision2 = 0;
+        root.gameplayJudgeTimingCounts1 = root.emptyJudgeTimingCounts();
+        root.gameplayJudgeTimingCounts2 = root.emptyJudgeTimingCounts();
+        root.gameplayLastJudgeTiming1 = 0;
+        root.gameplayLastJudgeTiming2 = 0;
+        root.gameplayJudgeLaneValues1 = root.emptyJudgeLaneValues();
+        root.gameplayJudgeLaneValues2 = root.emptyJudgeLaneValues();
+        root.gameplayJudgeNowValue1 = 0;
+        root.gameplayJudgeNowValue2 = 0;
         root.gameplayLastMissSkinTime1 = -1;
         root.gameplayLastMissSkinTime2 = -1;
         root.gameplayFullComboSkinTime1 = -1;
@@ -3711,6 +4421,7 @@ Item {
         }
         root.updateGameplayHitEffectTimers(displaySide, hit);
         let judgement = root.gameplayJudgementFromHit(hit);
+        root.recordGameplayJudgeTiming(scoreSide, hit);
 
         let currentGauge = Math.floor(root.gameplayGaugeValue(score));
         let previousGaugeName = scoreSide === 2 ? "gameplayPreviousGauge2" : "gameplayPreviousGauge1";
@@ -3739,12 +4450,18 @@ Item {
             if (displaySide === 2) {
                 root.gameplayJudgeSkinTime2 = root.renderSkinTime;
                 root.setGameplayTimerValue(47, root.gameplayJudgeSkinTime2);
+                if (displayCombo > 0) {
+                    root.setGameplayTimerValue(447, root.gameplayJudgeSkinTime2);
+                }
                 root.gameplayLastJudgement2 = judgement;
                 root.gameplayJudgeCombo2 = displayCombo;
                 root.gameplayJudgeRevision2++;
             } else {
                 root.gameplayJudgeSkinTime1 = root.renderSkinTime;
                 root.setGameplayTimerValue(46, root.gameplayJudgeSkinTime1);
+                if (displayCombo > 0) {
+                    root.setGameplayTimerValue(446, root.gameplayJudgeSkinTime1);
+                }
                 root.gameplayLastJudgement1 = judgement;
                 root.gameplayJudgeCombo1 = displayCombo;
                 root.gameplayJudgeRevision1++;
@@ -3797,6 +4514,12 @@ Item {
         root.addGameplayTimer(result, 45, root.gameplayGaugeDownSkinTime2);
         root.addGameplayTimer(result, 46, root.gameplayJudgeSkinTime1);
         root.addGameplayTimer(result, 47, root.gameplayJudgeSkinTime2);
+        if (root.gameplayJudgeCombo1 > 0) {
+            root.addGameplayTimer(result, 446, root.gameplayJudgeSkinTime1);
+        }
+        if (root.gameplayJudgeCombo2 > 0) {
+            root.addGameplayTimer(result, 447, root.gameplayJudgeSkinTime2);
+        }
         root.addGameplayTimer(result, 48, root.gameplayFullComboSkinTime1);
         root.addGameplayTimer(result, 49, root.gameplayFullComboSkinTime2);
         root.addGameplayKeyTimers(result);
@@ -4514,6 +5237,11 @@ Item {
         case 152:
         case 153:
         case 154:
+        case 155:
+        case 156:
+        case 157:
+        case 158:
+        case 159:
             return root.chartTitle(root.courseStage(st - 150));
         case 160:
         case 161:
@@ -4586,6 +5314,12 @@ Item {
             return chartData ? (chartData.artist || "") : "";
         case 15:
             return chartData ? (chartData.subartist || "") : "";
+        case 16:
+            if (!chartData) {
+                return "";
+            }
+            return (chartData.artist || "")
+                + (chartData.subartist ? " " + chartData.subartist : "");
         case 17:
             return chartData ? String(chartData.playLevel || "") : "";
         case 18:
@@ -4629,6 +5363,27 @@ Item {
             return root.effectiveScreenKey === "select" ? selectContext.sortLabel() : "DIRECTORY";
         case 62:
             return root.effectiveScreenKey === "select" ? selectContext.difficultyFilterLabel() : "ALL";
+        case 120:
+        case 121:
+        case 122:
+        case 123:
+        case 124:
+        case 125:
+        case 126:
+        case 127:
+        case 128:
+        case 129: {
+            let rankingName = root.lr2RankingEntryName(st - 120);
+            return rankingName.length > 0 ? rankingName : root.lr2SelectOptionText(st);
+        }
+        case 1000:
+            return root.effectiveScreenKey === "select" ? selectContext.currentFolderDisplayName() : "";
+        case 1001:
+            return root.effectiveScreenKey === "select" ? selectContext.currentTableName() : "";
+        case 1002:
+            return root.effectiveScreenKey === "select" ? selectContext.currentTableLevelName() : "";
+        case 1003:
+            return root.effectiveScreenKey === "select" ? selectContext.currentTableFullName() : "";
         default:
             return root.effectiveScreenKey === "select" ? root.lr2SelectOptionText(st) : "";
         }
@@ -4641,11 +5396,49 @@ Item {
         let s1 = root.gameplayScore(1);
         let s2 = root.gameplayScore(2);
 
+        if ((num >= 1510 && num <= 1599) || (num >= 1610 && num <= 1699)) {
+            return root.gameplayJudgeValueForId(num);
+        }
+        if (num >= 271 && num <= 289) {
+            return 0;
+        }
+
         switch (num) {
+        case 20:
+            return root.lr2CurrentFps;
         case 10:
             return root.lr2HiSpeedP1;
         case 11:
             return root.lr2HiSpeedP2;
+        case 310:
+            return root.hiSpeedInteger(1);
+        case 311:
+            return root.hiSpeedAfterDot(1);
+        case 312:
+            return root.durationNumber(1, false);
+        case 313:
+            return root.durationNumber(1, true);
+        case 314:
+            return root.liftNumber(1);
+        case 315:
+            return root.hiddenNumber(1);
+        case 1312:
+        case 1313:
+        case 1314:
+        case 1315:
+        case 1316:
+        case 1317:
+        case 1318:
+        case 1319:
+        case 1320:
+        case 1321:
+        case 1322:
+        case 1323:
+        case 1324:
+        case 1325:
+        case 1326:
+        case 1327:
+            return root.bpmDurationNumber(num, chartData);
         case 12: {
             let vars = root.mainGeneralVars();
             return vars ? Math.round(vars.offset || 0) : 0;
@@ -4672,6 +5465,8 @@ Item {
             return root.gameplayTotalNotes(s1);
         case 107:
             return Math.floor(root.gameplayGaugeValue(s1) / 2) * 2;
+        case 407:
+            return root.gaugeAfterDot(root.gameplayGaugeValue(s1));
         case 108:
             return root.gameplayExScore(s1) - root.gameplayExScore(s2);
         case 109:
@@ -4690,6 +5485,62 @@ Item {
             return root.gameplayRateInteger(s1, false);
         case 116:
             return root.gameplayRateDecimal(s1, false);
+        case 410:
+        case 411:
+        case 412:
+        case 413:
+        case 414:
+        case 415:
+        case 416:
+        case 417:
+        case 418:
+        case 419:
+            return root.judgeTimingNumberFromCounts(num, root.gameplayJudgeTimingCounts1);
+        case 420:
+            return root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
+        case 421:
+        case 422:
+        case 423:
+        case 424:
+            return root.judgeTimingNumberFromCounts(num, root.gameplayJudgeTimingCounts1);
+        case 425:
+            return root.gameplayJudgementCount(s1, Judgement.Bad)
+                + root.gameplayJudgementCount(s1, Judgement.Poor)
+                + root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
+        case 426:
+            return root.gameplayPoorCount(s1);
+        case 427:
+            return root.gameplayJudgementCount(s1, Judgement.Bad) + root.gameplayPoorCount(s1);
+        case 525:
+            return root.gameplayLastJudgeTiming1;
+        case 526:
+            return root.gameplayLastJudgeTiming2;
+        case 527:
+            return root.gameplayLastJudgeTiming1;
+        case 500:
+        case 501:
+        case 502:
+        case 503:
+        case 504:
+        case 505:
+        case 506:
+        case 507:
+        case 508:
+        case 509:
+        case 510:
+        case 511:
+        case 512:
+        case 513:
+        case 514:
+        case 515:
+        case 516:
+        case 517:
+        case 518:
+        case 519:
+        case 520:
+        case 521:
+        case 522:
+            return root.gameplayJudgeValueForId(num);
         case 120:
             return root.gameplayDisplayedScorePrint(2);
         case 121:
@@ -4752,8 +5603,40 @@ Item {
             return Math.floor(root.gameplayTimeSeconds(1, true) / 60);
         case 164:
             return root.gameplayTimeSeconds(1, true) % 60;
+        case 1163: {
+            let seconds = root.chartLengthSeconds(chartData);
+            return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;
+        }
+        case 1164: {
+            let seconds = root.chartLengthSeconds(chartData);
+            return seconds >= 0 ? seconds % 60 : -1;
+        }
         case 165:
             return root.chart && root.chart.status !== undefined ? 100 : 0;
+        case 350:
+            return chartData ? (chartData.normalNoteCount || 0) : -1;
+        case 351:
+            return chartData ? (chartData.lnCount || 0) : -1;
+        case 352:
+            return chartData ? (chartData.scratchCount || 0) : -1;
+        case 353:
+            return chartData ? (chartData.bssCount || 0) : -1;
+        case 354:
+            return chartData ? (chartData.mineCount || 0) : -1;
+        case 360:
+            return root.chartDensityNumber(chartData, "peakDensity", false);
+        case 361:
+            return root.chartDensityNumber(chartData, "peakDensity", true);
+        case 362:
+            return root.chartDensityNumber(chartData, "endDensity", false);
+        case 363:
+            return root.chartDensityNumber(chartData, "endDensity", true);
+        case 364:
+            return root.chartDensityNumber(chartData, "avgDensity", false);
+        case 365:
+            return root.chartDensityNumber(chartData, "avgDensity", true);
+        case 368:
+            return chartData ? Math.floor(chartData.total || 0) : -1;
         case 42:
         case 96:
             return chartData ? (chartData.playLevel || 0) : 0;
@@ -4767,6 +5650,8 @@ Item {
             return chartData && (chartData.minBpm || chartData.mainBpm)
                 ? Math.round(chartData.minBpm || chartData.mainBpm)
                 : -1;
+        case 92:
+            return chartData && chartData.mainBpm ? Math.round(chartData.mainBpm) : -1;
         default:
             return 0;
         }
@@ -4790,6 +5675,10 @@ Item {
             return result ? (result.maxCombo || 0) : 0;
         case 6:
             return root.resultTotalNotes(result);
+        case 7:
+            return result === root.resultData(2)
+                ? Math.floor(root.resultGaugeValue(2))
+                : Math.floor(root.resultGaugeValue(1));
         case 10:
             return root.resultJudgementCount(result, Judgement.Perfect);
         case 11:
@@ -4835,6 +5724,11 @@ Item {
         root.resultOldScoresRevision;
         let current = root.resultData(1);
         let old = root.resultOldBestResult(1);
+        let chartData = root.resultChartData();
+
+        if (num >= 271 && num <= 289) {
+            return 0;
+        }
 
         if (num >= 100 && num <= 116) {
             return root.resolveResultSideNumber(num - 100, current);
@@ -4844,24 +5738,142 @@ Item {
         }
 
         switch (num) {
+        case 20:
+            return root.lr2CurrentFps;
+        case 310:
+            return root.hiSpeedInteger(1);
+        case 311:
+            return root.hiSpeedAfterDot(1);
+        case 312:
+            return root.durationNumber(1, false);
+        case 313:
+            return root.durationNumber(1, true);
+        case 314:
+            return root.liftNumber(1);
+        case 315:
+            return root.hiddenNumber(1);
+        case 1312:
+        case 1313:
+        case 1314:
+        case 1315:
+        case 1316:
+        case 1317:
+        case 1318:
+        case 1319:
+        case 1320:
+        case 1321:
+        case 1322:
+        case 1323:
+        case 1324:
+        case 1325:
+        case 1326:
+        case 1327:
+            return root.bpmDurationNumber(num, chartData);
         case 42:
         case 96: {
-            let chartData = root.resultChartData();
             return chartData ? (chartData.playLevel || 0) : 0;
         }
         case 90:
         case 290: {
-            let chartData = root.resultChartData();
             return chartData && (chartData.maxBpm || chartData.mainBpm)
                 ? Math.round(chartData.maxBpm || chartData.mainBpm)
                 : -1;
         }
         case 91:
         case 291: {
-            let chartData = root.resultChartData();
             return chartData && (chartData.minBpm || chartData.mainBpm)
                 ? Math.round(chartData.minBpm || chartData.mainBpm)
                 : -1;
+        }
+        case 92:
+            return chartData && chartData.mainBpm ? Math.round(chartData.mainBpm) : -1;
+        case 350:
+            return current ? (current.normalNoteCount || 0) : (chartData ? (chartData.normalNoteCount || 0) : -1);
+        case 351:
+            return current ? (current.lnCount || 0) : (chartData ? (chartData.lnCount || 0) : -1);
+        case 352:
+            return current ? (current.scratchCount || 0) : (chartData ? (chartData.scratchCount || 0) : -1);
+        case 353:
+            return current ? (current.bssCount || 0) : (chartData ? (chartData.bssCount || 0) : -1);
+        case 354:
+            return current ? (current.mineCount || 0) : (chartData ? (chartData.mineCount || 0) : -1);
+        case 360:
+            return root.chartDensityNumber(chartData, "peakDensity", false);
+        case 361:
+            return root.chartDensityNumber(chartData, "peakDensity", true);
+        case 362:
+            return root.chartDensityNumber(chartData, "endDensity", false);
+        case 363:
+            return root.chartDensityNumber(chartData, "endDensity", true);
+        case 364:
+            return root.chartDensityNumber(chartData, "avgDensity", false);
+        case 365:
+            return root.chartDensityNumber(chartData, "avgDensity", true);
+        case 368:
+            return chartData ? Math.floor(chartData.total || 0) : -1;
+        case 370:
+            return root.clearTypeValue(current ? current.clearType : "NOPLAY");
+        case 371:
+            return root.clearTypeValue(old ? old.clearType : "NOPLAY");
+        case 372: {
+            let stats = root.resultTimingStats(1);
+            return Math.floor(stats.averageDuration || 0);
+        }
+        case 373: {
+            let stats = root.resultTimingStats(1);
+            return Math.floor((stats.averageDuration || 0) * 100) % 100;
+        }
+        case 374: {
+            let stats = root.resultTimingStats(1);
+            return Math.floor(stats.average || 0);
+        }
+        case 375: {
+            let stats = root.resultTimingStats(1);
+            return root.signedAfterDot(stats.average || 0);
+        }
+        case 376: {
+            let stats = root.resultTimingStats(1);
+            return Math.floor(stats.stddev || 0);
+        }
+        case 377: {
+            let stats = root.resultTimingStats(1);
+            return Math.floor((stats.stddev || 0) * 100) % 100;
+        }
+        case 407:
+            return root.gaugeAfterDot(root.resultGaugeValue(1));
+        case 410:
+        case 411:
+        case 412:
+        case 413:
+        case 414:
+        case 415:
+        case 416:
+        case 417:
+        case 418:
+        case 419:
+            return root.judgeTimingNumberFromCounts(num, root.resultJudgeTimingCounts(1));
+        case 420:
+            return root.resultJudgementCount(current, Judgement.EmptyPoor);
+        case 421:
+        case 422:
+        case 423:
+        case 424:
+            return root.judgeTimingNumberFromCounts(num, root.resultJudgeTimingCounts(1));
+        case 425:
+            return root.resultJudgementCount(current, Judgement.Bad)
+                + root.resultJudgementCount(current, Judgement.Poor)
+                + root.resultJudgementCount(current, Judgement.EmptyPoor);
+        case 426:
+            return root.resultPoorCount(current);
+        case 427:
+            return root.resultJudgementCount(current, Judgement.Bad) + root.resultPoorCount(current);
+        case 1163: {
+            let seconds = root.chartLengthSeconds(chartData || current);
+            return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;
+        }
+        case 1164: {
+            let seconds = root.chartLengthSeconds(chartData || current);
+            return seconds >= 0 ? seconds % 60 : -1;
         }
         case 150:
             return root.resultHighScorePoints(1);
@@ -4900,8 +5912,11 @@ Item {
         case 178:
             return root.resultBadPoor(current) - root.resultBadPoor(old);
         case 179:
+            return root.lr2RankingPlayerRank();
         case 180:
+            return root.lr2RankingPlayerCount();
         case 181:
+            return root.lr2RankingClearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
         case 182:
             return 0;
         case 183:
@@ -4909,6 +5924,102 @@ Item {
         case 184:
             return root.resultRateDecimal(old);
         default:
+            if (num === 200) {
+                return root.lr2RankingPlayerCount();
+            }
+            if (num === 201) {
+                return root.lr2RankingTotalPlayCount(root.lr2RankingEntries());
+            }
+            if (num >= 202 && num <= 242) {
+                switch (num) {
+                case 202:
+                    return root.lr2RankingClearCount("NOPLAY");
+                case 203:
+                    return root.lr2RankingClearPercentValue(false, "NOPLAY");
+                case 204:
+                    return root.lr2RankingClearCount("AEASY");
+                case 205:
+                    return root.lr2RankingClearPercentValue(false, "AEASY");
+                case 206:
+                    return root.lr2RankingClearCount("LIGHTASSIST");
+                case 207:
+                    return root.lr2RankingClearPercentValue(false, "LIGHTASSIST");
+                case 208:
+                    return root.lr2RankingClearCount("EXHARD");
+                case 209:
+                    return root.lr2RankingClearPercentValue(false, "EXHARD");
+                case 210:
+                    return root.lr2RankingClearCount("FAILED");
+                case 211:
+                    return root.lr2RankingClearPercentValue(false, "FAILED");
+                case 212:
+                    return root.lr2RankingClearCount("EASY");
+                case 213:
+                    return root.lr2RankingClearPercentValue(false, "EASY");
+                case 214:
+                    return root.lr2RankingClearCount("NORMAL");
+                case 215:
+                    return root.lr2RankingClearPercentValue(false, "NORMAL");
+                case 216:
+                    return root.lr2RankingClearCount("HARD");
+                case 217:
+                    return root.lr2RankingClearPercentValue(false, "HARD");
+                case 218:
+                    return root.lr2RankingClearCount("FC");
+                case 219:
+                    return root.lr2RankingClearPercentValue(false, "FC");
+                case 222:
+                    return root.lr2RankingClearCount("PERFECT");
+                case 223:
+                    return root.lr2RankingClearPercentValue(false, "PERFECT");
+                case 224:
+                    return root.lr2RankingClearCount("MAX");
+                case 225:
+                    return root.lr2RankingClearPercentValue(false, "MAX");
+                case 226:
+                    return root.lr2RankingClearCount("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+                case 227:
+                    return root.lr2RankingClearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+                case 228:
+                    return root.lr2RankingClearCount("FC", "PERFECT", "MAX");
+                case 229:
+                    return root.lr2RankingClearPercentValue(false, "FC", "PERFECT", "MAX");
+                case 230:
+                    return root.lr2RankingClearPercentValue(true, "NOPLAY");
+                case 231:
+                    return root.lr2RankingClearPercentValue(true, "AEASY");
+                case 232:
+                    return root.lr2RankingClearPercentValue(true, "LIGHTASSIST");
+                case 233:
+                    return root.lr2RankingClearPercentValue(true, "EXHARD");
+                case 234:
+                    return root.lr2RankingClearPercentValue(true, "FAILED");
+                case 235:
+                    return root.lr2RankingClearPercentValue(true, "EASY");
+                case 236:
+                    return root.lr2RankingClearPercentValue(true, "NORMAL");
+                case 237:
+                    return root.lr2RankingClearPercentValue(true, "HARD");
+                case 238:
+                    return root.lr2RankingClearPercentValue(true, "FC");
+                case 239:
+                    return root.lr2RankingClearPercentValue(true, "PERFECT");
+                case 240:
+                    return root.lr2RankingClearPercentValue(true, "MAX");
+                case 241:
+                    return root.lr2RankingClearPercentValue(true, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+                case 242:
+                    return root.lr2RankingClearPercentValue(true, "FC", "PERFECT", "MAX");
+                default:
+                    return 0;
+                }
+            }
+            if (num >= 380 && num <= 389) {
+                return root.lr2RankingEntryExScore(num - 380);
+            }
+            if (num >= 390 && num <= 399) {
+                return root.lr2RankingEntryClearValue(num - 390);
+            }
             return 0;
         }
     }
@@ -4943,7 +6054,39 @@ Item {
             case 24:
             case 25:
             case 26:
+            case 27:
+            case 28:
+            case 29:
                 return root.dateTimeNumber(num);
+            case 310:
+                return root.hiSpeedInteger(1);
+            case 311:
+                return root.hiSpeedAfterDot(1);
+            case 312:
+                return root.durationNumber(1, false);
+            case 313:
+                return root.durationNumber(1, true);
+            case 314:
+                return root.liftNumber(1);
+            case 315:
+                return root.hiddenNumber(1);
+            case 1312:
+            case 1313:
+            case 1314:
+            case 1315:
+            case 1316:
+            case 1317:
+            case 1318:
+            case 1319:
+            case 1320:
+            case 1321:
+            case 1322:
+            case 1323:
+            case 1324:
+            case 1325:
+            case 1326:
+            case 1327:
+                return root.bpmDurationNumber(num, selectContext.selectedChartData());
             }
             if ((num >= 50 && num <= 66) || num === 8) {
                 return root.lr2SliderNumber(num);
@@ -4955,9 +6098,13 @@ Item {
             if (num === 220) {
                 return -1;
             }
-            if ((num >= 300 && num <= 382)
-                    || num === 271 || num === 272
-                    || num === 274 || num === 275 || num === 276
+            if (num >= 380 && num <= 389) {
+                return root.lr2RankingEntryExScore(num - 380);
+            }
+            if (num >= 390 && num <= 399) {
+                return root.lr2RankingEntryClearValue(num - 390);
+            }
+            if ((num >= 271 && num <= 289)
                     || num === 292 || num === 293) {
                 return 0;
             }
@@ -5023,7 +6170,55 @@ Item {
         if (root.isGameplayScreen()) {
             return playContext.barGraphValue(type);
         }
+        if (root.isResultScreen()) {
+            return root.resultBarGraphValue(type);
+        }
         return 0;
+    }
+
+    function normalizedBarValue(value, maximum) {
+        return maximum > 0 ? Math.max(0, Math.min(1, value / maximum)) : 0;
+    }
+
+    function resultBarGraphValue(type) {
+        let current = root.resultData(1);
+        let old = root.resultOldBestResult(1);
+        let maxPoints = current ? Math.max(0, current.maxPoints || 0) : 0;
+        let totalNotes = root.resultTotalNotes(current);
+        switch (type) {
+        case 101:
+        case 102:
+            return 1;
+        case 110:
+        case 111:
+            return root.normalizedBarValue(root.resultExScore(current), maxPoints);
+        case 112:
+        case 113:
+            return root.normalizedBarValue(root.resultExScore(old),
+                                           maxPoints || (old ? (old.maxPoints || 0) : 0));
+        case 114:
+        case 115:
+            return root.normalizedBarValue(root.resultTargetPoints(1), maxPoints);
+        case 140:
+            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Perfect), totalNotes);
+        case 141:
+            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Great), totalNotes);
+        case 142:
+            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Good), totalNotes);
+        case 143:
+            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Bad), totalNotes);
+        case 144:
+            return root.normalizedBarValue(root.resultPoorCount(current), totalNotes);
+        case 145:
+            return root.normalizedBarValue(current ? (current.maxCombo || 0) : 0, totalNotes);
+        case 146:
+            return root.normalizedBarValue(root.resultScorePrint(current),
+                                           (current && (current.keymode === 7 || current.keymode === 14)) ? 20000 : 10000);
+        case 147:
+            return root.normalizedBarValue(root.resultExScore(current), maxPoints);
+        default:
+            return 0;
+        }
     }
 
     function barGraphHasSourceAnimation(src) {
@@ -5436,6 +6631,16 @@ Item {
             break;
         case 19: {
             let replayScore = selectContext.replayScoreForType(selectContext.current, root.lr2ReplayType);
+            if (replayScore) {
+                root.selectGoForward(selectContext.current, false, true, replayScore);
+            }
+            break;
+        }
+        case 316:
+        case 317:
+        case 318: {
+            let replayType = buttonId - 315;
+            let replayScore = selectContext.replayScoreForType(selectContext.current, replayType);
             if (replayScore) {
                 root.selectGoForward(selectContext.current, false, true, replayScore);
             }
@@ -5927,6 +7132,9 @@ Item {
         if (root.isGameplayProgressSlider(src)) {
             return root.gameplayProgressSliderState(src, dsts, skinTime);
         }
+        if (root.isGameplayLaneCoverSlider(src)) {
+            return root.gameplayLaneCoverSliderState(src, dsts, skinTime);
+        }
         if (root.isLr2GenericSlider(src)) {
             return root.lr2GenericSliderState(src, dsts, skinTime);
         }
@@ -6022,6 +7230,16 @@ Item {
         let elapsed = player ? Math.max(0, player.elapsed || 0) : 0;
         let length = player ? Math.max(0, player.chartLength || 0) : 0;
         let position = length > 0 ? Math.max(0, Math.min(1, elapsed / length)) : 0;
+        return root.translatedSliderState(src, dsts, position, skinTime);
+    }
+
+    function gameplayLaneCoverSliderState(src, dsts, skinTime) {
+        if (!root.isGameplayLaneCoverSlider(src)) {
+            return null;
+        }
+        root.globalSkinTime;
+        let side = src.sliderType === 5 ? 2 : 1;
+        let position = Math.max(0, Math.min(1, root.laneCoverNumber(side) / 1000));
         return root.translatedSliderState(src, dsts, position, skinTime);
     }
 
@@ -7110,6 +8328,7 @@ Item {
                                 scaleOverride: skinScale
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
+                                colorKeyEnabled: skinModel.hasTransColor
                                 frameOverride: root.buttonFrame(model.src)
                                 stateOverride: root.spriteStateOverride(model.src, model.dsts, parent.spriteSkinClock)
                                 forceHidden: root.spriteForceHidden(model.src, model.dsts)
@@ -7234,6 +8453,8 @@ Item {
                             value: root.numberValue(model.src)
                             forceHidden: root.numberForceHidden(model.src)
                             animationRevision: root.numberAnimationRevision(model.src)
+                            colorKeyEnabled: skinModel.hasTransColor
+                            transColor: skinModel.transColor
                         }
                     }
 
@@ -7639,10 +8860,12 @@ Item {
                             scaleOverride: skinScale
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
+                            barLampVariants: skinModel.barLampVariants
                             barBaseStates: root.cachedBarBaseStates
                             barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                             transColor: skinModel.transColor
+                            colorKeyEnabled: skinModel.hasTransColor
                         }
                     }
 
@@ -7677,6 +8900,8 @@ Item {
                             barBaseStates: root.cachedBarBaseStates
                             barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
+                            colorKeyEnabled: skinModel.hasTransColor
+                            transColor: skinModel.transColor
                         }
                     }
 

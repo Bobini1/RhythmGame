@@ -17,7 +17,9 @@ Item {
     property var barBaseStates: []
     property real barScrollOffset: 0
     property int barCenter: 0
+    property var barLampVariants: []
     property color transColor: "black"
+    property bool colorKeyEnabled: false
     readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision + selectContext.folderLampRevision : 0
     readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -140,7 +142,7 @@ Item {
         }
         switch (srcData.kind) {
         case 3:
-            return selectContext.entryLamp(entry) === srcData.variant;
+            return selectContext.entryBarLamp(entry, root.barLampVariants) === srcData.variant;
         case 6:
             return selectContext.isRankingEntry(entry)
                 && selectContext.entryRank(entry) === srcData.variant;
@@ -210,6 +212,7 @@ Item {
             chart: root.chart
             scaleOverride: root.scaleOverride
             transColor: root.transColor
+            colorKeyEnabled: root.colorKeyEnabled
             offsetX: drawBase ? drawBase.x : 0
             offsetY: drawBase ? drawBase.y : 0
         }

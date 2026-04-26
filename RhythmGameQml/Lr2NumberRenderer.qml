@@ -15,6 +15,8 @@ Item {
     property int value: 0
     property bool forceHidden: false
     property int animationRevision: 0
+    property bool colorKeyEnabled: false
+    property color transColor: "black"
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -27,6 +29,7 @@ Item {
         : (staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
     readonly property int blendMode: {
         let raw = currentState ? currentState.blend : 1;
+        if (raw === 0 && !root.colorKeyEnabled) return 1;
         if (raw === 5 || raw === 6) return 2;
         if (raw === 3 || raw === 4 || raw === 9 || raw === 10 || raw === 11) return 1;
         return raw;
@@ -210,7 +213,7 @@ Item {
                     blending: true
                     property variant source: digitAtlas
                     property color tint: root.tintColor
-                    property color transColor: "black"
+                    property color transColor: root.transColor
                     property real blendMode: root.blendMode
                     property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
                     property real tolerance: 0.03125

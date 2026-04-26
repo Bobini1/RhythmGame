@@ -14,6 +14,8 @@ Item {
     property var barBaseStates: []
     property real barScrollOffset: 0
     property int barCenter: 0
+    property bool colorKeyEnabled: false
+    property color transColor: "black"
     readonly property int contextRevision: selectContext ? selectContext.listRevision : 0
     readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
 
@@ -97,6 +99,8 @@ Item {
             activeOptions: root.activeOptions
             timers: root.timers
             scaleOverride: root.scaleOverride
+            colorKeyEnabled: root.colorKeyEnabled
+            transColor: root.transColor
             offsetX: root.drawOffset(row, 0)
             offsetY: root.drawOffset(row, 1)
             value: root.selectContext ? root.selectContext.entryPlayLevel(entry) : 0

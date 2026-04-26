@@ -11,6 +11,7 @@ Item {
     property var historyStack: []
     property var scores: ({})
     property var folderLampByKey: ({})
+    property var folderScoreCountsByKey: ({})
     property var chartGroupCache: ({})
     property var chartDifficultyCache: ({})
     property var playerStats: ({
@@ -74,11 +75,33 @@ Item {
         play: 0,
         clear: 0,
         fail: 0,
+        noplay: 0,
+        assist: 0,
+        lightAssist: 0,
         easy: 0,
         normal: 0,
         hard: 0,
+        exhard: 0,
         fc: 0,
+        perfect: 0,
+        max: 0,
         minBadPoor: 0
+    })
+    readonly property var emptyFolderScoreCounts: ({
+        total: 0,
+        play: 0,
+        clear: 0,
+        fail: 0,
+        noplay: 0,
+        assist: 0,
+        lightAssist: 0,
+        easy: 0,
+        normal: 0,
+        hard: 0,
+        exhard: 0,
+        fc: 0,
+        perfect: 0,
+        max: 0
     })
     property var selectedScoreList: []
     property var selectedBestStats: null
@@ -86,10 +109,16 @@ Item {
         play: 0,
         clear: 0,
         fail: 0,
+        noplay: 0,
+        assist: 0,
+        lightAssist: 0,
         easy: 0,
         normal: 0,
         hard: 0,
+        exhard: 0,
         fc: 0,
+        perfect: 0,
+        max: 0,
         minBadPoor: 0
     })
     property var selectedScoreOptionIds: []
@@ -348,16 +377,89 @@ Item {
         return seen ? lamp : 0;
     }
 
+    function folderScoreCountsFromScores(result) {
+        if (!result) {
+            return emptyFolderScoreCounts;
+        }
+        if (result instanceof tableQueryResult) {
+            result = result.scores;
+        }
+
+        let counts = {
+            total: Math.max(0, result.unplayed || 0),
+            play: 0,
+            clear: 0,
+            fail: 0,
+            noplay: Math.max(0, result.unplayed || 0),
+            assist: 0,
+            lightAssist: 0,
+            easy: 0,
+            normal: 0,
+            hard: 0,
+            exhard: 0,
+            fc: 0,
+            perfect: 0,
+            max: 0
+        };
+        for (let scoreList of Object.values(result.scores || {})) {
+            ++counts.total;
+            if (!scoreList || scoreList.length === 0) {
+                ++counts.noplay;
+                continue;
+            }
+            ++counts.play;
+            let clearType = getClearType(scoreList);
+            if (clearType !== "FAILED" && clearType !== "NOPLAY") {
+                ++counts.clear;
+            }
+            switch (clearType) {
+            case "FAILED":
+                ++counts.fail;
+                break;
+            case "AEASY":
+                ++counts.assist;
+                break;
+            case "EASY":
+                ++counts.easy;
+                break;
+            case "NORMAL":
+                ++counts.normal;
+                break;
+            case "HARD":
+                ++counts.hard;
+                break;
+            case "EXHARD":
+                ++counts.exhard;
+                break;
+            case "FC":
+                ++counts.fc;
+                break;
+            case "PERFECT":
+                ++counts.perfect;
+                break;
+            case "MAX":
+                ++counts.max;
+                break;
+            default:
+                ++counts.noplay;
+                break;
+            }
+        }
+        return counts;
+    }
+
     function refreshFolderLamps() {
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
             folderLampByKey = ({});
+            folderScoreCountsByKey = ({});
             folderLampRevision += 1;
             return;
         }
 
         let request = ++folderLampRequestRevision;
         folderLampByKey = ({});
+        folderScoreCountsByKey = ({});
         folderLampRevision += 1;
 
         for (let item of folderContents) {
@@ -374,9 +476,12 @@ Item {
                 if (request !== folderLampRequestRevision) {
                     return;
                 }
-                let next = Object.assign({}, folderLampByKey);
-                next[key] = folderLampFromScores(result);
-                folderLampByKey = next;
+                let nextLamps = Object.assign({}, folderLampByKey);
+                nextLamps[key] = folderLampFromScores(result);
+                folderLampByKey = nextLamps;
+                let nextCounts = Object.assign({}, folderScoreCountsByKey);
+                nextCounts[key] = folderScoreCountsFromScores(result);
+                folderScoreCountsByKey = nextCounts;
                 folderLampRevision += 1;
                 touch();
             });
@@ -1080,6 +1185,37 @@ Item {
         return entryDisplayName(item, false);
     }
 
+    function currentTableItem() {
+        for (let i = historyStack.length - 1; i >= 0; --i) {
+            if (isTable(historyStack[i])) {
+                return historyStack[i];
+            }
+        }
+        return isTable(current) ? current : null;
+    }
+
+    function currentTableName() {
+        let tableItem = currentTableItem();
+        return tableItem ? (tableItem.name || "") : "";
+    }
+
+    function currentTableLevelName() {
+        let item = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
+        if (isLevel(item)) {
+            return item.name || "";
+        }
+        return isLevel(current) ? (current.name || "") : "";
+    }
+
+    function currentTableFullName() {
+        let tableName = currentTableName();
+        let levelName = currentTableLevelName();
+        if (tableName.length > 0 && levelName.length > 0) {
+            return tableName + " " + levelName;
+        }
+        return tableName.length > 0 ? tableName : levelName;
+    }
+
     function entrySubtitle(item) {
         return isChart(item) || isEntry(item) ? (item.subtitle || "") : "";
     }
@@ -1192,6 +1328,36 @@ Item {
             + (item.mineCount || 0);
     }
 
+    function chartPlayableNoteCount(item) {
+        if (!isChart(item)) {
+            return 0;
+        }
+        return (item.normalNoteCount || 0)
+            + (item.scratchCount || 0)
+            + (item.lnCount || 0)
+            + (item.bssCount || 0);
+    }
+
+    function chartLengthSeconds(item) {
+        return isChart(item) ? Math.floor(Math.max(0, item.length || 0) / 1000000000) : -1;
+    }
+
+    function chartDensityValue(item, propertyName, afterDot) {
+        if (!isChart(item)) {
+            return -1;
+        }
+        let density = Math.max(0, item[propertyName] || 0);
+        return afterDot ? Math.floor(density * 100) % 100 : Math.floor(density);
+    }
+
+    function chartDensityWhole(item) {
+        return chartDensityValue(item, "avgDensity", false);
+    }
+
+    function chartDensityAfterDot(item) {
+        return chartDensityValue(item, "avgDensity", true);
+    }
+
     function entryIdentifier(item) {
         if (isRankingEntry(item)) {
             return "";
@@ -1240,6 +1406,58 @@ Item {
         default:
             return 0;
         }
+    }
+
+    function hasBarLampVariant(variants, variant) {
+        return variants && variants.indexOf(variant) !== -1;
+    }
+
+    function usesExtendedBarLampVariants(variants) {
+        if (!variants) {
+            return false;
+        }
+        for (let i = 0; i < variants.length; ++i) {
+            if (variants[i] > 5) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function clearTypeBarLamp(clear, variants) {
+        if (!usesExtendedBarLampVariants(variants)) {
+            return clearTypeLamp(clear);
+        }
+
+        switch (clear || "NOPLAY") {
+        case "FAILED":
+            return 1;
+        case "AEASY":
+            return hasBarLampVariant(variants, 9) ? 9 : 2;
+        case "EASY":
+            return 2;
+        case "NORMAL":
+            return 3;
+        case "HARD":
+            return 4;
+        case "EXHARD":
+            return hasBarLampVariant(variants, 5) ? 5 : 4;
+        case "FC":
+            return 6;
+        case "PERFECT":
+            return hasBarLampVariant(variants, 7) ? 7 : 6;
+        case "MAX":
+            return hasBarLampVariant(variants, 8) ? 8 : 6;
+        default:
+            return 0;
+        }
+    }
+
+    function entryBarLamp(item, variants) {
+        if (isFolderLikeForLamp(item)) {
+            return entryLamp(item);
+        }
+        return clearTypeBarLamp(entryClearType(item), variants);
     }
 
     function isClearedScore(score) {
@@ -1371,10 +1589,16 @@ Item {
             play: 0,
             clear: 0,
             fail: 0,
+            noplay: 0,
+            assist: 0,
+            lightAssist: 0,
             easy: 0,
             normal: 0,
             hard: 0,
+            exhard: 0,
             fc: 0,
+            perfect: 0,
+            max: 0,
             minBadPoor: 0
         };
         let minBadPoor = -1;
@@ -1389,14 +1613,24 @@ Item {
             let clearType = clearTypeOf(score);
             if (clearType === "FAILED") {
                 ++counts.fail;
-            } else if (clearType === "AEASY" || clearType === "EASY") {
+            } else if (clearType === "AEASY") {
+                ++counts.assist;
+            } else if (clearType === "EASY") {
                 ++counts.easy;
             } else if (clearType === "NORMAL") {
                 ++counts.normal;
-            } else if (clearType === "HARD" || clearType === "EXHARD") {
+            } else if (clearType === "HARD") {
                 ++counts.hard;
-            } else if (clearType === "FC" || clearType === "PERFECT" || clearType === "MAX") {
+            } else if (clearType === "EXHARD") {
+                ++counts.exhard;
+            } else if (clearType === "FC") {
                 ++counts.fc;
+            } else if (clearType === "PERFECT") {
+                ++counts.perfect;
+            } else if (clearType === "MAX") {
+                ++counts.max;
+            } else {
+                ++counts.noplay;
             }
             let stats = statsForScore(score);
             if (stats) {
@@ -1407,12 +1641,32 @@ Item {
         return counts;
     }
 
+    function percentInteger(value, total) {
+        return total > 0 ? Math.floor(Math.max(0, value || 0) * 100 / total) : 0;
+    }
+
+    function percentAfterDot(value, total) {
+        return total > 0 ? Math.floor(Math.max(0, value || 0) * 10000 / total) % 100 : 0;
+    }
+
+    function currentFolderScoreCounts() {
+        let revisionMarker = folderLampRevision;
+        let key = folderLampKey(current);
+        return key && folderScoreCountsByKey[key] !== undefined
+            ? folderScoreCountsByKey[key]
+            : emptyFolderScoreCounts;
+    }
+
     function appendScoreOptionIds(score, ids) {
         if (!score || !score.result) {
             return;
         }
         switch (clearTypeOf(score)) {
         case "AEASY":
+            ids.push(124);
+            ids.push(1100);
+            ids.push(121);
+            break;
         case "EASY":
             ids.push(121);
             break;
@@ -1420,15 +1674,24 @@ Item {
             ids.push(118);
             break;
         case "HARD":
+            ids.push(119);
+            break;
         case "EXHARD":
             ids.push(119);
+            ids.push(125);
+            ids.push(1102);
             break;
         case "FC":
             ids.push(120);
+            ids.push(105);
             break;
         case "PERFECT":
+            ids.push(122);
+            ids.push(1103);
+            break;
         case "MAX":
             ids.push(122);
+            ids.push(1104);
             break;
         }
 
@@ -1445,6 +1708,7 @@ Item {
             ids.push(129);
             break;
         case NoteOrderAlgorithm.RRandom:
+            ids.push(1128);
             ids.push(130);
             break;
         default:
@@ -1489,6 +1753,41 @@ Item {
         }
         let clear = getClearType(cachedEntryScores(item));
         return clearTypeLamp(clear);
+    }
+
+    function entryClearType(item) {
+        if (isRankingEntry(item)) {
+            return item.bestClearType || "NOPLAY";
+        }
+        if (isFolderLikeForLamp(item)) {
+            return "NOPLAY";
+        }
+        return getClearType(cachedEntryScores(item));
+    }
+
+    function beatorajaClearOption(item) {
+        switch (entryClearType(item)) {
+        case "FAILED":
+            return 101;
+        case "AEASY":
+            return 1100;
+        case "EASY":
+            return 102;
+        case "NORMAL":
+            return 103;
+        case "HARD":
+            return 104;
+        case "EXHARD":
+            return 1102;
+        case "FC":
+            return 105;
+        case "PERFECT":
+            return 1103;
+        case "MAX":
+            return 1104;
+        default:
+            return 100;
+        }
     }
 
     function entryRank(item) {
@@ -1576,7 +1875,21 @@ Item {
                 ? rankingClearCounts[clearType]
                 : 0;
         }
-        return Math.round(total * 100 / rankingPlayerCount);
+        return Math.floor(total * 100 / rankingPlayerCount);
+    }
+
+    function rankingClearPercentAfterDot() {
+        if (!rankingStatsAvailable() || rankingPlayerCount <= 0) {
+            return 0;
+        }
+        let total = 0;
+        for (let i = 0; i < arguments.length; ++i) {
+            let clearType = arguments[i];
+            total += rankingClearCounts && rankingClearCounts[clearType]
+                ? rankingClearCounts[clearType]
+                : 0;
+        }
+        return Math.floor(total * 1000 / rankingPlayerCount) % 10;
     }
 
     function normalizedMd5(value) {
@@ -1978,6 +2291,7 @@ Item {
         let rankingEntry = isRankingEntry(current) ? current : null;
         let stats = selectedBestStats;
         let counts = selectedScoreCounts;
+        let folderCounts = currentFolderScoreCounts();
         let hasRankingStats = rankingStatsAvailable();
         switch (num) {
         case 30:
@@ -1996,6 +2310,11 @@ Item {
             return playerStats.badCount || 0;
         case 37:
             return playerStats.poorCount || 0;
+        case 333:
+            return (playerStats.perfectCount || 0)
+                + (playerStats.greatCount || 0)
+                + (playerStats.goodCount || 0)
+                + (playerStats.badCount || 0);
         case 38:
             return 0;
         case 39:
@@ -2036,7 +2355,7 @@ Item {
                 ? Math.round(rankingEntry.bestPoints * 100 / rankingEntry.maxPoints)
                 : (stats && stats.maxPoints > 0 ? Math.round(stats.score * 100 / stats.maxPoints) : 0);
         case 74:
-            return rankingEntry ? Math.round(rankingEntry.maxPoints / 2) : (chart ? chart.normalNoteCount + chart.scratchCount + chart.lnCount + chart.bssCount : 0);
+            return rankingEntry ? Math.round(rankingEntry.maxPoints / 2) : chartPlayableNoteCount(chart);
         case 75:
             return rankingEntry ? rankingEntry.bestCombo : (stats ? stats.maxCombo : 0);
         case 76:
@@ -2058,45 +2377,113 @@ Item {
         case 84:
             return stats ? stats.pr : 0;
         case 85:
-            return stats ? Math.round(stats.pg * 100 / stats.totalJudgements) : 0;
+            return stats ? percentInteger(stats.pg, stats.totalJudgements) : 0;
         case 86:
-            return stats ? Math.round(stats.gr * 100 / stats.totalJudgements) : 0;
+            return stats ? percentInteger(stats.gr, stats.totalJudgements) : 0;
         case 87:
-            return stats ? Math.round(stats.gd * 100 / stats.totalJudgements) : 0;
+            return stats ? percentInteger(stats.gd, stats.totalJudgements) : 0;
         case 88:
-            return stats ? Math.round(stats.bd * 100 / stats.totalJudgements) : 0;
+            return stats ? percentInteger(stats.bd, stats.totalJudgements) : 0;
         case 89:
-            return stats ? Math.round(stats.pr * 100 / stats.totalJudgements) : 0;
+            return stats ? percentInteger(stats.pr, stats.totalJudgements) : 0;
         case 92:
-            return hasRankingStats ? rankingPlayerRank : 0;
+            return hasRankingStats
+                ? rankingPlayerRank
+                : (chart && chart.mainBpm ? Math.round(chart.mainBpm) : -1);
         case 93:
             return hasRankingStats ? rankingPlayerCount : 0;
         case 94:
             return hasRankingStats ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
+        case 179:
+            return hasRankingStats ? rankingPlayerRank : 0;
+        case 180:
+            return hasRankingStats ? rankingPlayerCount : 0;
+        case 181:
+            return hasRankingStats ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
+        case 182:
+            return 0;
         case 200:
             return hasRankingStats ? rankingPlayerCount : counts.play;
         case 201:
             return hasRankingStats ? rankingTotalPlayCount : counts.play;
+        case 202:
+            return hasRankingStats ? rankingClearCountValue("NOPLAY") : counts.noplay;
+        case 203:
+            return hasRankingStats ? rankingClearPercent("NOPLAY") : percentInteger(counts.noplay, counts.play + counts.noplay);
+        case 204:
+            return hasRankingStats ? rankingClearCountValue("AEASY") : counts.assist;
+        case 205:
+            return hasRankingStats ? rankingClearPercent("AEASY") : percentInteger(counts.assist, counts.play);
+        case 206:
+            return hasRankingStats ? rankingClearCountValue("LIGHTASSIST") : counts.lightAssist;
+        case 207:
+            return hasRankingStats ? rankingClearPercent("LIGHTASSIST") : percentInteger(counts.lightAssist, counts.play);
+        case 208:
+            return hasRankingStats ? rankingClearCountValue("EXHARD") : counts.exhard;
+        case 209:
+            return hasRankingStats ? rankingClearPercent("EXHARD") : percentInteger(counts.exhard, counts.play);
         case 210:
             return hasRankingStats ? rankingClearCountValue("FAILED") : counts.fail;
         case 211:
-            return hasRankingStats ? rankingClearPercent("FAILED") : (counts.play > 0 ? Math.round(counts.fail * 100 / counts.play) : 0);
+            return hasRankingStats ? rankingClearPercent("FAILED") : percentInteger(counts.fail, counts.play);
         case 212:
-            return hasRankingStats ? rankingClearCountValue("AEASY", "EASY") : counts.easy;
+            return hasRankingStats ? rankingClearCountValue("EASY") : counts.easy;
         case 213:
-            return hasRankingStats ? rankingClearPercent("AEASY", "EASY") : (counts.play > 0 ? Math.round(counts.easy * 100 / counts.play) : 0);
+            return hasRankingStats ? rankingClearPercent("EASY") : percentInteger(counts.easy, counts.play);
         case 214:
             return hasRankingStats ? rankingClearCountValue("NORMAL") : counts.normal;
         case 215:
-            return hasRankingStats ? rankingClearPercent("NORMAL") : (counts.play > 0 ? Math.round(counts.normal * 100 / counts.play) : 0);
+            return hasRankingStats ? rankingClearPercent("NORMAL") : percentInteger(counts.normal, counts.play);
         case 216:
-            return hasRankingStats ? rankingClearCountValue("HARD", "EXHARD") : counts.hard;
+            return hasRankingStats ? rankingClearCountValue("HARD") : counts.hard;
         case 217:
-            return hasRankingStats ? rankingClearPercent("HARD", "EXHARD") : (counts.play > 0 ? Math.round(counts.hard * 100 / counts.play) : 0);
+            return hasRankingStats ? rankingClearPercent("HARD") : percentInteger(counts.hard, counts.play);
         case 218:
-            return hasRankingStats ? rankingClearCountValue("FC", "PERFECT", "MAX") : counts.fc;
+            return hasRankingStats ? rankingClearCountValue("FC") : counts.fc;
         case 219:
-            return hasRankingStats ? rankingClearPercent("FC", "PERFECT", "MAX") : (counts.play > 0 ? Math.round(counts.fc * 100 / counts.play) : 0);
+            return hasRankingStats ? rankingClearPercent("FC") : percentInteger(counts.fc, counts.play);
+        case 222:
+            return hasRankingStats ? rankingClearCountValue("PERFECT") : counts.perfect;
+        case 223:
+            return hasRankingStats ? rankingClearPercent("PERFECT") : percentInteger(counts.perfect, counts.play);
+        case 224:
+            return hasRankingStats ? rankingClearCountValue("MAX") : counts.max;
+        case 225:
+            return hasRankingStats ? rankingClearPercent("MAX") : percentInteger(counts.max, counts.play);
+        case 226:
+            return hasRankingStats ? rankingClearCountValue("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : counts.clear;
+        case 227:
+            return hasRankingStats ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentInteger(counts.clear, counts.play);
+        case 228:
+            return hasRankingStats ? rankingClearCountValue("FC", "PERFECT", "MAX") : counts.fc + counts.perfect + counts.max;
+        case 229:
+            return hasRankingStats ? rankingClearPercent("FC", "PERFECT", "MAX") : percentInteger(counts.fc + counts.perfect + counts.max, counts.play);
+        case 230:
+            return hasRankingStats ? rankingClearPercentAfterDot("NOPLAY") : percentAfterDot(counts.noplay, counts.play + counts.noplay);
+        case 231:
+            return hasRankingStats ? rankingClearPercentAfterDot("AEASY") : percentAfterDot(counts.assist, counts.play);
+        case 232:
+            return hasRankingStats ? rankingClearPercentAfterDot("LIGHTASSIST") : percentAfterDot(counts.lightAssist, counts.play);
+        case 233:
+            return hasRankingStats ? rankingClearPercentAfterDot("EXHARD") : percentAfterDot(counts.exhard, counts.play);
+        case 234:
+            return hasRankingStats ? rankingClearPercentAfterDot("FAILED") : percentAfterDot(counts.fail, counts.play);
+        case 235:
+            return hasRankingStats ? rankingClearPercentAfterDot("EASY") : percentAfterDot(counts.easy, counts.play);
+        case 236:
+            return hasRankingStats ? rankingClearPercentAfterDot("NORMAL") : percentAfterDot(counts.normal, counts.play);
+        case 237:
+            return hasRankingStats ? rankingClearPercentAfterDot("HARD") : percentAfterDot(counts.hard, counts.play);
+        case 238:
+            return hasRankingStats ? rankingClearPercentAfterDot("FC") : percentAfterDot(counts.fc, counts.play);
+        case 239:
+            return hasRankingStats ? rankingClearPercentAfterDot("PERFECT") : percentAfterDot(counts.perfect, counts.play);
+        case 240:
+            return hasRankingStats ? rankingClearPercentAfterDot("MAX") : percentAfterDot(counts.max, counts.play);
+        case 241:
+            return hasRankingStats ? rankingClearPercentAfterDot("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentAfterDot(counts.clear, counts.play);
+        case 242:
+            return hasRankingStats ? rankingClearPercentAfterDot("FC", "PERFECT", "MAX") : percentAfterDot(counts.fc + counts.perfect + counts.max, counts.play);
         case 90:
         case 290:
             return chart && (chart.maxBpm || chart.mainBpm)
@@ -2107,6 +2494,62 @@ Item {
             return chart && (chart.minBpm || chart.mainBpm)
                 ? Math.round(chart.minBpm || chart.mainBpm)
                 : -1;
+        case 300:
+            return folderCounts.total;
+        case 320:
+            return folderCounts.noplay;
+        case 321:
+            return folderCounts.fail;
+        case 322:
+            return folderCounts.assist;
+        case 323:
+            return folderCounts.lightAssist;
+        case 324:
+            return folderCounts.easy;
+        case 325:
+            return folderCounts.normal;
+        case 326:
+            return folderCounts.hard;
+        case 327:
+            return folderCounts.exhard;
+        case 328:
+            return folderCounts.fc;
+        case 329:
+            return folderCounts.perfect;
+        case 330:
+            return folderCounts.max;
+        case 350:
+            return chart ? (chart.normalNoteCount || 0) : -1;
+        case 351:
+            return chart ? (chart.lnCount || 0) : -1;
+        case 352:
+            return chart ? (chart.scratchCount || 0) : -1;
+        case 353:
+            return chart ? (chart.bssCount || 0) : -1;
+        case 354:
+            return chart ? (chart.mineCount || 0) : -1;
+        case 360:
+            return chartDensityValue(chart, "peakDensity", false);
+        case 361:
+            return chartDensityValue(chart, "peakDensity", true);
+        case 362:
+            return chartDensityValue(chart, "endDensity", false);
+        case 363:
+            return chartDensityValue(chart, "endDensity", true);
+        case 364:
+            return chartDensityWhole(chart);
+        case 365:
+            return chartDensityAfterDot(chart);
+        case 368:
+            return chart ? Math.floor(chart.total || 0) : -1;
+        case 1163: {
+            let seconds = chartLengthSeconds(chart);
+            return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;
+        }
+        case 1164: {
+            let seconds = chartLengthSeconds(chart);
+            return seconds >= 0 ? seconds % 60 : -1;
+        }
         default:
             return 0;
         }
@@ -2119,6 +2562,39 @@ Item {
     function barGraphValue(type) {
         let stats = selectedBestStats;
         switch (type) {
+        case 101:
+            return logicalCount > 1 ? Math.max(0, Math.min(1, normalizedVisualIndex / Math.max(1, logicalCount - 1))) : 0;
+        case 102:
+            return 1;
+        case 110:
+        case 111:
+            return stats && stats.maxPoints > 0 ? stats.exscore / stats.maxPoints : 0;
+        case 112:
+        case 113:
+            return stats && stats.maxPoints > 0 ? stats.exscore / stats.maxPoints : 0;
+        case 114:
+        case 115:
+            return 0;
+        case 103: {
+            let chart = selectedChartData();
+            let level = chart ? (chart.playLevel || 0) : 0;
+            return level > 0 ? level / Math.max(1, levelBarFlashThreshold()) : 0;
+        }
+        case 105:
+        case 106:
+        case 107:
+        case 108:
+        case 109:
+            return difficultyGraphValue(type - 104);
+        case 140:
+        case 141:
+        case 142:
+        case 143:
+        case 144:
+        case 145:
+        case 146:
+        case 147:
+            return barGraphValue(type - 100);
         case 5:
         case 6:
         case 7:

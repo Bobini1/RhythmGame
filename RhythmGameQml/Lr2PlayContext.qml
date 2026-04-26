@@ -164,14 +164,20 @@ Item {
         if (!screenRoot || !screenRoot.isGameplayScreen()) {
             return 0;
         }
-        if (type === 1) {
+        if (type === 1 || type === 101) {
             let player = screenRoot.gameplayPlayer(1);
             let elapsed = player ? Math.max(0, player.elapsed || 0) : 0;
             let length = player ? Math.max(0, player.chartLength || 0) : 0;
             return normalized(elapsed, length);
         }
-        if (type === 2) {
+        if (type === 2 || type === 102) {
             return screenRoot.chart && screenRoot.chart.status !== undefined ? 1 : 0;
+        }
+        if (type >= 110 && type <= 115) {
+            return scoreGraphValue(type - 100);
+        }
+        if (type >= 140 && type <= 147) {
+            return playerStatGraphValue(type - 120, 1);
         }
         if (type >= 10 && type <= 15) {
             return scoreGraphValue(type);

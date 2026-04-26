@@ -342,9 +342,12 @@ struct Lr2SkinData
     int skinWidth = 640;
     int skinHeight = 480;
     QVariantList activeOptions;
+    QVariantList usedOptions;
+    QVariantList barLampVariants;
     QVariantList barRows;
     QVariantList helpFiles;
     QString transColor = "#000000";
+    bool hasTransColor = false;
     bool reloadBanner = false;
     int startInput = 0;
     int sceneTime = 0;

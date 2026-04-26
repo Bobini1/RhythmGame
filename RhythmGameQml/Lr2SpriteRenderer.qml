@@ -20,7 +20,7 @@ Item {
     property real scaleOverride: 1.0
     property real offsetX: 0
     property real offsetY: 0
-    property bool colorKeyEnabled: true
+    property bool colorKeyEnabled: false
     property color transColor: "black"
     property int frameOverride: -1
     property var stateOverride: null

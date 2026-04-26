@@ -71,11 +71,13 @@ struct ParseState
     bool hasNoteElement = false;
     QVariantList helpFiles;
     QString transColor = "#000000";
+    bool hasTransColor = false;
     bool reloadBanner = false;
     int barCenter = 0;
     int barAvailableStart = 0;
     int barAvailableEnd = -1;
     std::set<int> activeOptions;
+    std::set<int> usedOptions;
     Lr2Element currentElement;
     bool hasCurrentElement = false;
     QVariantMap settingValues;
@@ -190,6 +192,28 @@ decodeSkinText(const QByteArray& data) -> QString
 }
 
 auto
+parseDstOptionToken(QString token) -> int
+{
+    token = token.trimmed();
+    if (token.isEmpty()) {
+        return 0;
+    }
+
+    const bool negated = token.startsWith(QLatin1Char('!'));
+    if (negated) {
+        token.remove(0, 1);
+    }
+
+    bool ok = false;
+    const int option = token.toInt(&ok);
+    if (!ok || option == 0) {
+        return 0;
+    }
+
+    return negated ? -option : option;
+}
+
+auto
 parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
 {
     Lr2Dst dst;
@@ -227,20 +251,38 @@ parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
     if (tokens.size() > 17 && !tokens[17].isEmpty())
         dst.timer = tokens[17].toInt();
     if (tokens.size() > 18 && !tokens[18].isEmpty())
-        dst.op1 = tokens[18].toInt();
+        dst.op1 = parseDstOptionToken(tokens[18]);
     if (tokens.size() > 19 && !tokens[19].isEmpty())
-        dst.op2 = tokens[19].toInt();
+        dst.op2 = parseDstOptionToken(tokens[19]);
     if (tokens.size() > 20 && !tokens[20].isEmpty())
-        dst.op3 = tokens[20].toInt();
+        dst.op3 = parseDstOptionToken(tokens[20]);
     if (tokens.size() > 21 && !tokens[21].isEmpty())
         dst.op4 = tokens[21].toInt();
     return dst;
 }
 
 void
+recordDstOption(ParseState& state, const int option)
+{
+    if (option == 0) {
+        return;
+    }
+    state.usedOptions.insert(option < 0 ? -option : option);
+}
+
+void
+recordDstOptions(ParseState& state, const Lr2Dst& dst)
+{
+    recordDstOption(state, dst.op1);
+    recordDstOption(state, dst.op2);
+    recordDstOption(state, dst.op3);
+}
+
+void
 parseDst(const QStringList& tokens, ParseState& state, Lr2Element& element)
 {
     const auto dst = parseDstValue(tokens, state.sortId);
+    recordDstOptions(state, dst);
     element.dsts.append(QVariant::fromValue(dst));
 }
 
@@ -267,6 +309,7 @@ parseDstWithOptionGate(const QStringList& tokens,
 {
     auto dst = parseDstValue(tokens, state.sortId);
     addDstOptionGate(dst, option);
+    recordDstOptions(state, dst);
     element.dsts.append(QVariant::fromValue(dst));
 }
 
@@ -1200,6 +1243,7 @@ processCommand(const QStringList& tokens,
             state.transColor = colorKeyString(tokens[1].trimmed().toInt(),
                                               tokens[2].trimmed().toInt(),
                                               tokens[3].trimmed().toInt());
+            state.hasTransColor = true;
         }
     } else if (command == "#IMAGE") {
         state.images.append(
@@ -1491,10 +1535,18 @@ processCommand(const QStringList& tokens,
             state.lnEndSources[tokens[1].toInt()] =
               parseImageSource(tokens, state);
         }
-    } else if (command == "#SRC_LN_BODY") {
+    } else if (command == "#SRC_LN_BODY" ||
+               command == "#SRC_LN_BODY_INACTIVE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
             state.lnBodySources[tokens[1].toInt()] =
               parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_LN_BODY_ACTIVE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            const int index = tokens[1].toInt();
+            if (!state.lnBodySources.contains(index)) {
+                state.lnBodySources[index] = parseImageSource(tokens, state);
+            }
         }
     } else if (command == "#SRC_AUTO_NOTE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
@@ -1516,10 +1568,19 @@ processCommand(const QStringList& tokens,
             state.autoLnEndSources[tokens[1].toInt()] =
               parseImageSource(tokens, state);
         }
-    } else if (command == "#SRC_AUTO_LN_BODY") {
+    } else if (command == "#SRC_AUTO_LN_BODY" ||
+               command == "#SRC_AUTO_LN_BODY_INACTIVE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
             state.autoLnBodySources[tokens[1].toInt()] =
               parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_LN_BODY_ACTIVE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            const int index = tokens[1].toInt();
+            if (!state.autoLnBodySources.contains(index)) {
+                state.autoLnBodySources[index] =
+                  parseImageSource(tokens, state);
+            }
         }
     } else if (command == "#DST_NOTE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
@@ -1798,6 +1859,17 @@ parseFile(const std::filesystem::path& filePath,
     for (const int option : state.activeOptions) {
         activeOptions.append(option);
     }
+    QVariantList usedOptions;
+    for (const int option : state.usedOptions) {
+        usedOptions.append(option);
+    }
+
+    QVariantList barLampVariants;
+    for (auto it = state.barLampSources.cbegin();
+         it != state.barLampSources.cend();
+         ++it) {
+        barLampVariants.append(it.key());
+    }
 
     QVariantList barRows;
     auto rows = QSet<int>{};
@@ -1828,9 +1900,12 @@ parseFile(const std::filesystem::path& filePath,
       .skinWidth = state.skinWidth,
       .skinHeight = state.skinHeight,
       .activeOptions = activeOptions,
+      .usedOptions = usedOptions,
+      .barLampVariants = barLampVariants,
       .barRows = barRows,
       .helpFiles = state.helpFiles,
       .transColor = state.transColor,
+      .hasTransColor = state.hasTransColor,
       .reloadBanner = state.reloadBanner,
       .startInput = state.startInput,
       .sceneTime = state.sceneTime,

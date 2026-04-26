@@ -21,10 +21,13 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(int skinWidth READ skinWidth NOTIFY skinMetadataChanged)
     Q_PROPERTY(int skinHeight READ skinHeight NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList effectiveActiveOptions READ effectiveActiveOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList usedOptions READ usedOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barLampVariants READ barLampVariants NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList helpFiles READ helpFiles NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantMap mouseCursor READ mouseCursor NOTIFY skinMetadataChanged)
     Q_PROPERTY(QString transColor READ transColor NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool hasTransColor READ hasTransColor NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool reloadBanner READ reloadBanner NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barCenter READ barCenter NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barAvailableStart READ barAvailableStart NOTIFY skinMetadataChanged)
@@ -72,10 +75,13 @@ public:
     int skinWidth() const;
     int skinHeight() const;
     QVariantList effectiveActiveOptions() const;
+    QVariantList usedOptions() const;
+    QVariantList barLampVariants() const;
     QVariantList barRows() const;
     QVariantList helpFiles() const;
     QVariantMap mouseCursor() const;
     QString transColor() const;
+    bool hasTransColor() const;
     bool reloadBanner() const;
     int barCenter() const;
     int barAvailableStart() const;
@@ -108,10 +114,13 @@ private:
     QVariantMap m_settingValues;
     QVariantList m_activeOptions;
     QVariantList m_effectiveActiveOptions;
+    QVariantList m_usedOptions;
+    QVariantList m_barLampVariants;
     QVariantList m_barRows;
     QVariantList m_helpFiles;
     QVariantMap m_mouseCursor;
     QString m_transColor = "#000000";
+    bool m_hasTransColor = false;
     bool m_reloadBanner = false;
     int m_startInput = 0;
     int m_sceneTime = 0;
