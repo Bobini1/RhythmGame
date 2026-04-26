@@ -92,6 +92,10 @@ Item {
         100, 101, 102, 103, 104, 105, 106, 107,
         110, 111, 112, 113, 114, 115, 116, 117
     ]
+    readonly property var gameplayLongNoteTimers: [
+        70, 71, 72, 73, 74, 75, 76, 77,
+        80, 81, 82, 83, 84, 85, 86, 87
+    ]
 
     onEnabledChanged: {
         if (root.effectiveScreenKey === "decide" && enabled) {
@@ -126,6 +130,31 @@ Item {
                 target: columnState
                 function onPressedChanged() {
                     root.syncGameplayKeyTimerFromColumnState(timerId, columnState);
+                }
+            }
+        }
+    }
+
+    Repeater {
+        model: root.isGameplayScreen() && root.chart ? root.gameplayLongNoteTimers : []
+
+        delegate: Item {
+            required property int modelData
+
+            readonly property int timerId: modelData
+            readonly property var columnState: root.gameplayColumnStateForLongNoteTimer(timerId)
+
+            width: 0
+            height: 0
+            visible: false
+
+            onColumnStateChanged: root.syncGameplayLongNoteTimerFromColumnState(timerId, columnState)
+            Component.onCompleted: root.syncGameplayLongNoteTimerFromColumnState(timerId, columnState)
+
+            Connections {
+                target: columnState
+                function onHoldingLongNoteChanged() {
+                    root.syncGameplayLongNoteTimerFromColumnState(timerId, columnState);
                 }
             }
         }
@@ -3571,6 +3600,22 @@ Item {
         return -1;
     }
 
+    function gameplayLr2LaneForLongNoteTimer(timer) {
+        if (timer === 70) {
+            return 0;
+        }
+        if (timer >= 71 && timer <= 77) {
+            return timer - 70;
+        }
+        if (timer === 80) {
+            return 10;
+        }
+        if (timer >= 81 && timer <= 87) {
+            return timer - 70;
+        }
+        return -1;
+    }
+
     function gameplayCoursePlayer(side) {
         if (!root.chart) {
             return null;
@@ -4680,8 +4725,30 @@ Item {
         root.setGameplayKeyTimerPressed(timer, !!columnState && !!columnState.pressed);
     }
 
-    function gameplayColumnStateForKeyTimer(timer) {
-        let lane = root.gameplayLr2LaneForKeyTimer(timer);
+    function setGameplayLongNoteTimerHeld(timer, held) {
+        if (!root.isGameplayScreen() || !root.chart) {
+            return;
+        }
+
+        let wasHeld = root.gameplayLongNoteTimerStarts[timer] !== undefined;
+        if (held === wasHeld) {
+            return;
+        }
+
+        if (held) {
+            root.gameplayLongNoteTimerStarts[timer] = root.renderSkinTime;
+            root.setGameplayTimerValue(timer, root.renderSkinTime);
+        } else {
+            delete root.gameplayLongNoteTimerStarts[timer];
+            root.clearGameplayTimerValue(timer);
+        }
+    }
+
+    function syncGameplayLongNoteTimerFromColumnState(timer, columnState) {
+        root.setGameplayLongNoteTimerHeld(timer, !!columnState && !!columnState.holdingLongNote);
+    }
+
+    function gameplayColumnStateForLr2Lane(lane) {
         if (lane < 0) {
             return null;
         }
@@ -4697,6 +4764,14 @@ Item {
                 : null;
     }
 
+    function gameplayColumnStateForKeyTimer(timer) {
+        return root.gameplayColumnStateForLr2Lane(root.gameplayLr2LaneForKeyTimer(timer));
+    }
+
+    function gameplayColumnStateForLongNoteTimer(timer) {
+        return root.gameplayColumnStateForLr2Lane(root.gameplayLr2LaneForLongNoteTimer(timer));
+    }
+
     function syncGameplayKeyTimersFromColumns() {
         if (!root.isGameplayScreen() || !root.chart) {
             return;
@@ -4704,6 +4779,18 @@ Item {
 
         for (let timer of root.gameplayKeyTimers) {
             root.syncGameplayKeyTimerFromColumnState(timer, root.gameplayColumnStateForKeyTimer(timer));
+        }
+    }
+
+    function syncGameplayLongNoteTimersFromColumns() {
+        if (!root.isGameplayScreen() || !root.chart) {
+            return;
+        }
+
+        for (let timer of root.gameplayLongNoteTimers) {
+            root.syncGameplayLongNoteTimerFromColumnState(
+                timer,
+                root.gameplayColumnStateForLongNoteTimer(timer));
         }
     }
 

@@ -14,6 +14,15 @@ ColumnState::setPressed(bool pressed)
     this->pressed = pressed;
     emit pressedChanged();
 }
+void
+ColumnState::setHoldingLongNote(bool holdingLongNote)
+{
+    if (this->holdingLongNote == holdingLongNote) {
+        return;
+    }
+    this->holdingLongNote = holdingLongNote;
+    emit holdingLongNoteChanged();
+}
 ColumnState::ColumnState(QList<NoteState> notes, QObject* parent)
   : QAbstractListModel(parent)
   , notes(std::move(notes))
@@ -73,6 +82,7 @@ ColumnState::onHitEvent(HitEvent hit)
         setPressed(true);
     } else if (hit.getAction() == HitEvent::Action::Release) {
         setPressed(false);
+        setHoldingLongNote(false);
     }
     if (hit.getNoteIndex() == -1 ||
         hit.getPointsOptional()->getJudgement() == Judgement::EmptyPoor) {
@@ -83,11 +93,15 @@ ColumnState::onHitEvent(HitEvent hit)
     const auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex());
     emit dataChanged(index(changedIndex), index(changedIndex));
     if (note.note.type == Note::Type::LongNoteBegin) {
+        if (hit.getAction() == HitEvent::Action::Press && hit.getNoteRemoved()) {
+            setHoldingLongNote(true);
+        }
         auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() + 1);
         auto& nextNote = notes[changedIndex];
         nextNote.otherEndHitData = note.hitData;
         emit dataChanged(index(changedIndex), index(changedIndex));
     } else if (note.note.type == Note::Type::LongNoteEnd) {
+        setHoldingLongNote(false);
         auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() - 1);
         auto& prevNote = notes[changedIndex];
         prevNote.otherEndHitData = note.hitData;
@@ -98,6 +112,11 @@ auto
 ColumnState::isPressed() const -> bool
 {
     return pressed;
+}
+auto
+ColumnState::isHoldingLongNote() const -> bool
+{
+    return holdingLongNote;
 }
 auto
 ColumnState::mapTimeIndexToPositionIndex(int64_t timeIndex) const -> int
@@ -142,6 +161,15 @@ Filter::setPressed(bool pressed)
     this->pressed = pressed;
     emit pressedChanged();
 }
+void
+Filter::setHoldingLongNote(bool holdingLongNote)
+{
+    if (this->holdingLongNote == holdingLongNote) {
+        return;
+    }
+    this->holdingLongNote = holdingLongNote;
+    emit holdingLongNoteChanged();
+}
 std::optional<int>
 ColumnState::getLnBottomPositionIndex(double position) const
 {
@@ -156,10 +184,18 @@ Filter::Filter(ColumnState* columnState, QObject* parent)
   , columnState(columnState)
 {
     setSourceModel(columnState);
+    setPressed(columnState->isPressed());
+    setHoldingLongNote(columnState->isHoldingLongNote());
     connect(columnState,
             &ColumnState::pressedChanged,
             this,
             [this, columnState]() { setPressed(columnState->isPressed()); });
+    connect(columnState,
+            &ColumnState::holdingLongNoteChanged,
+            this,
+            [this, columnState]() {
+                setHoldingLongNote(columnState->isHoldingLongNote());
+            });
     connect(columnState,
             &ColumnState::dataChanged,
             this,
