@@ -37,11 +37,13 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QVariantList lnStartSources READ lnStartSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lnEndSources READ lnEndSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lnBodySources READ lnBodySources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lnBodyActiveSources READ lnBodyActiveSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoNoteSources READ autoNoteSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoMineSources READ autoMineSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnStartSources READ autoLnStartSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnEndSources READ autoLnEndSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnBodySources READ autoLnBodySources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoLnBodyActiveSources READ autoLnBodyActiveSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList noteDsts READ noteDsts NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lineSources READ lineSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lineDsts READ lineDsts NOTIFY skinMetadataChanged)
@@ -91,11 +93,13 @@ public:
     QVariantList lnStartSources() const;
     QVariantList lnEndSources() const;
     QVariantList lnBodySources() const;
+    QVariantList lnBodyActiveSources() const;
     QVariantList autoNoteSources() const;
     QVariantList autoMineSources() const;
     QVariantList autoLnStartSources() const;
     QVariantList autoLnEndSources() const;
     QVariantList autoLnBodySources() const;
+    QVariantList autoLnBodyActiveSources() const;
     QVariantList noteDsts() const;
     QVariantList lineSources() const;
     QVariantList lineDsts() const;
@@ -139,11 +143,13 @@ private:
     QVariantList m_lnStartSources;
     QVariantList m_lnEndSources;
     QVariantList m_lnBodySources;
+    QVariantList m_lnBodyActiveSources;
     QVariantList m_autoNoteSources;
     QVariantList m_autoMineSources;
     QVariantList m_autoLnStartSources;
     QVariantList m_autoLnEndSources;
     QVariantList m_autoLnBodySources;
+    QVariantList m_autoLnBodyActiveSources;
     QVariantList m_noteDsts;
     QVariantList m_lineSources;
     QVariantList m_lineDsts;

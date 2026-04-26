@@ -2159,6 +2159,8 @@ Item {
             || root.sourceCollectionUsesTimers(skinModel.autoLnEndSources)
             || root.sourceCollectionUsesTimers(skinModel.lnBodySources)
             || root.sourceCollectionUsesTimers(skinModel.autoLnBodySources)
+            || root.sourceCollectionUsesTimers(skinModel.lnBodyActiveSources)
+            || root.sourceCollectionUsesTimers(skinModel.autoLnBodyActiveSources)
             || root.sourceCollectionUsesTimers(skinModel.lineSources);
     }
 
@@ -2979,7 +2981,11 @@ Item {
     }
 
     function hitDeviationMillis(hit) {
-        return Math.round(root.hitDeviationNanos(hit) / 1000000);
+        return Math.round(-root.hitDeviationNanos(hit) / 1000000);
+    }
+
+    function judgementUpdatesJudgeTimingValue(judgement) {
+        return judgement >= Judgement.Bad && judgement <= Judgement.Perfect;
     }
 
     function cloneJudgeTimingCounts(counts) {
@@ -3087,9 +3093,11 @@ Item {
         side[bucket] = (side[bucket] || 0) + 1;
         root[countsName] = counts;
 
-        let timingName = scoreSide === 2 ? "gameplayLastJudgeTiming2" : "gameplayLastJudgeTiming1";
         let timing = root.hitDeviationMillis(hit);
-        root[timingName] = timing;
+        if (root.judgementUpdatesJudgeTimingValue(judgement)) {
+            let timingName = scoreSide === 2 ? "gameplayLastJudgeTiming2" : "gameplayLastJudgeTiming1";
+            root[timingName] = timing;
+        }
 
         if (scoreSide === 2) {
             root.gameplayJudgeNowValue2 = root.nowJudgeValue(judgement);
@@ -4373,7 +4381,23 @@ Item {
     }
 
     function updateGameplayHitEffectTimers(side, hit) {
-        if (!hit || !hit.noteRemoved) {
+        if (!hit) {
+            return;
+        }
+        let hitNote = root.gameplayNoteForHit(side, hit);
+        let judgement = root.gameplayJudgementFromHit(hit);
+        let startsLongNote = hit.action === hitEvent.Press
+            && hitNote
+            && hitNote.type === note.Type.LongNoteBegin;
+        let endsLongNote = hit.action === hitEvent.Release
+            && hitNote
+            && hitNote.type === note.Type.LongNoteEnd;
+        let judgedTap = hit.action === hitEvent.Press
+            && !!hitNote
+            && hit.noteRemoved
+            && judgement >= Judgement.Bad
+            && judgement <= Judgement.Perfect;
+        if (!startsLongNote && !endsLongNote && !judgedTap) {
             return;
         }
         let lane = root.gameplayLr2LaneForHit(side, hit);
@@ -4383,7 +4407,6 @@ Item {
 
         let hitTimer = 50 + lane;
         let longNoteTimer = 70 + lane;
-        let hitNote = root.gameplayNoteForHit(side, hit);
 
         if (hit.action === hitEvent.Press) {
             if (hitNote && hitNote.type === note.Type.LongNoteBegin) {
@@ -4501,6 +4524,23 @@ Item {
         }
     }
 
+    function gameplayRhythmTimerSkinTime() {
+        let player = root.gameplayPlayer(1) || root.gameplayPlayer(2);
+        if (!player) {
+            return -1;
+        }
+        let beatPosition = Number(player.beatPosition || 0);
+        if (beatPosition > 0) {
+            let rhythm = (beatPosition - Math.floor(beatPosition)) * 1000;
+            return Math.max(0, Math.round(root.renderSkinTime - rhythm));
+        }
+        let bpm = Math.max(1, Number(player.bpm || 0));
+        let elapsedMs = Math.max(0, Number(player.elapsed || 0)) / 1000000;
+        let beatMs = 60000 / bpm;
+        let rhythm = beatMs > 0 ? (elapsedMs % beatMs) * 1000 / beatMs : 0;
+        return Math.max(0, Math.round(root.renderSkinTime - rhythm));
+    }
+
     function addGameplayTimers(result) {
         if (!root.isGameplayScreen()) {
             return;
@@ -4522,6 +4562,7 @@ Item {
         }
         root.addGameplayTimer(result, 48, root.gameplayFullComboSkinTime1);
         root.addGameplayTimer(result, 49, root.gameplayFullComboSkinTime2);
+        root.addGameplayTimer(result, 140, root.gameplayRhythmTimerSkinTime());
         root.addGameplayKeyTimers(result);
         root.addGameplayEffectTimers(result);
     }
@@ -6141,6 +6182,51 @@ Item {
                 : root.gameplayJudgeCombo1;
         }
         return root.resolveNumber(src ? src.num : 0);
+    }
+
+    function imageSetSourceFor(src) {
+        if (!src || !src.imageSet || !src.imageSetSources || src.imageSetSources.length <= 0) {
+            return src;
+        }
+        let value = Math.floor(root.resolveNumber(src.imageSetRef || 0));
+        if (!isFinite(value) || value < 0 || value >= src.imageSetSources.length) {
+            value = 0;
+        }
+        let selected = src.imageSetSources[value] || src.imageSetSources[0];
+        if (!selected) {
+            return src;
+        }
+        let source = selected.source !== undefined ? selected.source : src.source;
+        let specialType = selected.specialType !== undefined ? selected.specialType : src.specialType;
+        if (!source && !specialType) {
+            source = src.source || "";
+            specialType = src.specialType || 0;
+        }
+        return {
+            gr: selected.gr !== undefined ? selected.gr : (src.gr || 0),
+            x: selected.x !== undefined ? selected.x : (src.x || 0),
+            y: selected.y !== undefined ? selected.y : (src.y || 0),
+            w: selected.w !== undefined ? selected.w : (src.w || 0),
+            h: selected.h !== undefined ? selected.h : (src.h || 0),
+            div_x: Math.max(1, selected.div_x || 1),
+            div_y: Math.max(1, selected.div_y || 1),
+            cycle: src.cycle || 0,
+            timer: src.timer || 0,
+            zeropadding: src.zeropadding !== undefined ? src.zeropadding : -1,
+            op1: src.op1 || 0,
+            op2: src.op2 || 0,
+            op3: src.op3 || 0,
+            op4: src.op4 || 0,
+            resultChartType: selected.resultChartType || 0,
+            resultChartIndex: selected.resultChartIndex || 0,
+            button: false,
+            onMouse: false,
+            mouseCursor: false,
+            slider: false,
+            specialType: specialType || 0,
+            side: selected.side || 0,
+            source: source || ""
+        };
     }
 
     function numberForceHidden(src) {
@@ -8320,7 +8406,7 @@ Item {
                             Lr2SpriteRenderer {
                                 anchors.fill: parent
                                 dsts: model.dsts
-                                srcData: model.src
+                                srcData: root.imageSetSourceFor(model.src)
                                 skinTime: parent.spriteSkinClock
                                 activeOptions: elemLoader.elementActiveOptions
                                 timers: elemLoader.elementTimers

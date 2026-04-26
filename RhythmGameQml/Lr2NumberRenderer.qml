@@ -67,6 +67,14 @@ Item {
         return result.slice(0, width);
     }
 
+    function leadingPad(text, width, ch) {
+        let result = text;
+        while (result.length < width) {
+            result = ch + result;
+        }
+        return result.slice(result.length - width);
+    }
+
     function numberFrameGroupSize() {
         if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0) {
             let divX = root.srcData ? Math.max(1, root.srcData.div_x || 1) : 1;
@@ -113,12 +121,54 @@ Item {
     readonly property bool hasSignedFrames: frameGroupSize === 24
     readonly property bool negativeUnsupported: root.value < 0 && frameGroupSize !== 24
     readonly property bool isNegativeValue: root.value < 0
+    readonly property int zeroPaddingMode: {
+        if (!root.srcData || root.srcData.zeropadding === undefined || root.srcData.zeropadding < 0) {
+            return root.hasSignedFrames ? 2 : 0;
+        }
+        return root.srcData.zeropadding;
+    }
+    readonly property bool usesFixedPadding: root.zeroPaddingMode > 0
+    readonly property bool usesSignedFixedSlots: root.hasSignedFrames
+        && root.usesFixedPadding
+        && root.srcData
+        && root.srcData.keta > 0
+
+    function signedFixedFrameIndex(slot) {
+        let keta = root.srcData ? root.srcData.keta || 0 : 0;
+        let totalSlots = keta + 1;
+        if (slot < 0 || slot >= totalSlots) {
+            return -1;
+        }
+        if (slot === 0) {
+            return root.isNegativeValue ? 23 : 11;
+        }
+
+        let value = Math.abs(Math.round(root.value));
+        let digitSlot = totalSlots - 1;
+        while (digitSlot > slot) {
+            value = Math.floor(value / 10);
+            --digitSlot;
+        }
+
+        if (value > 0 || slot === totalSlots - 1) {
+            return (value % 10) + (root.isNegativeValue ? 12 : 0);
+        }
+        if (root.zeroPaddingMode === 2) {
+            return root.isNegativeValue ? 22 : 10;
+        }
+        return root.isNegativeValue ? 12 : 0;
+    }
 
     function textForValue() {
         let text = Math.abs(Math.round(root.value)).toString();
         let keta = root.srcData ? root.srcData.keta || 0 : 0;
         if (keta <= 0) {
             return root.hasSignedFrames ? (root.isNegativeValue ? "-" : "+") + text : text;
+        }
+
+        if (root.usesSignedFixedSlots) {
+            let padChar = root.zeroPaddingMode === 1 ? "0" : " ";
+            return (root.isNegativeValue ? "-" : "+") + leadingPad(text, keta, padChar);
         }
 
         // LR2 align=0 is "%10d" followed by lastCut(keta).
@@ -143,6 +193,7 @@ Item {
     readonly property real tintB: root.currentState ? root.colorComponent(root.currentState.b) : 1.0
     readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
     readonly property int centeredMissingDigits: srcData && srcData.align === 2 && srcData.keta > 0
+        && !(root.hasSignedFrames && root.usesFixedPadding)
         ? Math.max(0, srcData.keta - digitCount(root.value))
         : 0
     readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
@@ -185,6 +236,9 @@ Item {
 
                 readonly property string ch: root.displayText.charAt(index)
                 readonly property int frameIndex: {
+                    if (root.usesSignedFixedSlots) {
+                        return root.signedFixedFrameIndex(index);
+                    }
                     if (ch.length <= 0) {
                         return -1;
                     }
@@ -202,6 +256,7 @@ Item {
                 }
                 readonly property int signedFrameOffset: root.frameGroupSize === 24
                     && root.isNegativeValue
+                    && !root.usesSignedFixedSlots
                     && digitRoot.ch >= "0"
                     && digitRoot.ch <= "9"
                     ? 12

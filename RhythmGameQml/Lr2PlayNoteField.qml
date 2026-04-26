@@ -250,7 +250,7 @@ Item {
 
             width: parent.width
             height: parent.height
-            z: -1000
+            z: -1
 
             function syncBarLineWindow() {
                 if (!lineArea.barLinesState || !lineArea.dstState || lineArea.multiplier <= 0) {
@@ -335,8 +335,10 @@ Item {
             property var lnEndSource: root.sourceAt(skinModel ? skinModel.lnEndSources : [], lr2Index)
                 || normalSource
                 || root.sourceAt(skinModel ? skinModel.autoLnEndSources : [], lr2Index)
-            property var lnBodySource: root.sourceAt(skinModel ? skinModel.lnBodySources : [], lr2Index)
+            property var lnBodyInactiveSource: root.sourceAt(skinModel ? skinModel.lnBodySources : [], lr2Index)
                 || root.sourceAt(skinModel ? skinModel.autoLnBodySources : [], lr2Index)
+            property var lnBodyActiveSource: root.sourceAt(skinModel ? skinModel.lnBodyActiveSources : [], lr2Index)
+                || root.sourceAt(skinModel ? skinModel.autoLnBodyActiveSources : [], lr2Index)
             property real travelHeight: root.dstTravelHeight(dstState)
             property real multiplier: root.heightMultiplier(
                 player,
@@ -420,6 +422,9 @@ Item {
                             ? -lane.playerPosition
                             : -root.notePosition(display)) * lane.multiplier
                         readonly property var noteSource: lane.sourceForDisplay(display)
+                        readonly property var lnBodySource: heldLongNote
+                            ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
+                            : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
                         readonly property var noteState: root.spriteState(
                             lane.dstState,
                             localY,
@@ -435,12 +440,12 @@ Item {
 
                             active: noteItem.visible
                                 && display.note.type === note.Type.LongNoteBegin
-                                && !!lane.lnBodySource
+                                && !!noteItem.lnBodySource
                                 && root.nextNotePosition(display, lane.notes) < Infinity
 
                             sourceComponent: Component {
                                 Lr2FastSprite {
-                                    srcData: lane.lnBodySource
+                                    srcData: noteItem.lnBodySource
                                     skinTime: root.renderSkinTime
                                     timers: root.timers
                                     scaleOverride: root.skinScale

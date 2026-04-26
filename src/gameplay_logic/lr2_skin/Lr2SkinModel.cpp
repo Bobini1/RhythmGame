@@ -169,6 +169,10 @@ QVariantList Lr2SkinModel::lnBodySources() const {
     return m_lnBodySources;
 }
 
+QVariantList Lr2SkinModel::lnBodyActiveSources() const {
+    return m_lnBodyActiveSources;
+}
+
 QVariantList Lr2SkinModel::autoNoteSources() const {
     return m_autoNoteSources;
 }
@@ -187,6 +191,10 @@ QVariantList Lr2SkinModel::autoLnEndSources() const {
 
 QVariantList Lr2SkinModel::autoLnBodySources() const {
     return m_autoLnBodySources;
+}
+
+QVariantList Lr2SkinModel::autoLnBodyActiveSources() const {
+    return m_autoLnBodyActiveSources;
 }
 
 QVariantList Lr2SkinModel::noteDsts() const {
@@ -252,11 +260,13 @@ void Lr2SkinModel::loadSkin() {
                                      !m_lnStartSources.isEmpty() ||
                                      !m_lnEndSources.isEmpty() ||
                                      !m_lnBodySources.isEmpty() ||
+                                     !m_lnBodyActiveSources.isEmpty() ||
                                      !m_autoNoteSources.isEmpty() ||
                                      !m_autoMineSources.isEmpty() ||
                                      !m_autoLnStartSources.isEmpty() ||
                                      !m_autoLnEndSources.isEmpty() ||
                                      !m_autoLnBodySources.isEmpty() ||
+                                     !m_autoLnBodyActiveSources.isEmpty() ||
                                      !m_noteDsts.isEmpty() ||
                                      !m_lineSources.isEmpty() ||
                                      !m_lineDsts.isEmpty();
@@ -286,11 +296,13 @@ void Lr2SkinModel::loadSkin() {
         m_lnStartSources.clear();
         m_lnEndSources.clear();
         m_lnBodySources.clear();
+        m_lnBodyActiveSources.clear();
         m_autoNoteSources.clear();
         m_autoMineSources.clear();
         m_autoLnStartSources.clear();
         m_autoLnEndSources.clear();
         m_autoLnBodySources.clear();
+        m_autoLnBodyActiveSources.clear();
         m_noteDsts.clear();
         m_lineSources.clear();
         m_lineDsts.clear();
@@ -331,11 +343,15 @@ void Lr2SkinModel::loadSkin() {
                                  m_lnStartSources != skinData.lnStartSources ||
                                  m_lnEndSources != skinData.lnEndSources ||
                                  m_lnBodySources != skinData.lnBodySources ||
+                                 m_lnBodyActiveSources !=
+                                   skinData.lnBodyActiveSources ||
                                  m_autoNoteSources != skinData.autoNoteSources ||
                                  m_autoMineSources != skinData.autoMineSources ||
                                  m_autoLnStartSources != skinData.autoLnStartSources ||
                                  m_autoLnEndSources != skinData.autoLnEndSources ||
                                  m_autoLnBodySources != skinData.autoLnBodySources ||
+                                 m_autoLnBodyActiveSources !=
+                                   skinData.autoLnBodyActiveSources ||
                                  m_noteDsts != skinData.noteDsts ||
                                  m_lineSources != skinData.lineSources ||
                                  m_lineDsts != skinData.lineDsts;
@@ -365,11 +381,13 @@ void Lr2SkinModel::loadSkin() {
     m_lnStartSources = skinData.lnStartSources;
     m_lnEndSources = skinData.lnEndSources;
     m_lnBodySources = skinData.lnBodySources;
+    m_lnBodyActiveSources = skinData.lnBodyActiveSources;
     m_autoNoteSources = skinData.autoNoteSources;
     m_autoMineSources = skinData.autoMineSources;
     m_autoLnStartSources = skinData.autoLnStartSources;
     m_autoLnEndSources = skinData.autoLnEndSources;
     m_autoLnBodySources = skinData.autoLnBodySources;
+    m_autoLnBodyActiveSources = skinData.autoLnBodyActiveSources;
     m_noteDsts = skinData.noteDsts;
     m_lineSources = skinData.lineSources;
     m_lineDsts = skinData.lineDsts;

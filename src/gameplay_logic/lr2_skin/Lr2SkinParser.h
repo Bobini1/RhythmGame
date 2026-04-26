@@ -91,6 +91,9 @@ struct Lr2SrcImage
     Q_PROPERTY(int sliderRange MEMBER sliderRange)
     Q_PROPERTY(int sliderType MEMBER sliderType)
     Q_PROPERTY(int sliderDisabled MEMBER sliderDisabled)
+    Q_PROPERTY(bool imageSet MEMBER imageSet)
+    Q_PROPERTY(int imageSetRef MEMBER imageSetRef)
+    Q_PROPERTY(QVariantList imageSetSources MEMBER imageSetSources)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(int side MEMBER side)
     Q_PROPERTY(QString source MEMBER source)
@@ -137,6 +140,9 @@ struct Lr2SrcImage
     int sliderRange = 0;
     int sliderType = 0;
     int sliderDisabled = 0;
+    bool imageSet = false;
+    int imageSetRef = 0;
+    QVariantList imageSetSources;
     int specialType = None;
     int side = 0;
     QString source;
@@ -157,6 +163,7 @@ struct Lr2SrcNumber
     Q_PROPERTY(int num MEMBER num)
     Q_PROPERTY(int align MEMBER align)
     Q_PROPERTY(int keta MEMBER keta)
+    Q_PROPERTY(int zeropadding MEMBER zeropadding)
     Q_PROPERTY(bool nowCombo MEMBER nowCombo)
     Q_PROPERTY(int side MEMBER side)
     Q_PROPERTY(int judgementIndex MEMBER judgementIndex)
@@ -174,6 +181,7 @@ struct Lr2SrcNumber
     int num = 0;
     int align = 0;
     int keta = 0;
+    int zeropadding = -1;
     bool nowCombo = false;
     int side = 0;
     int judgementIndex = -1;
@@ -364,11 +372,13 @@ struct Lr2SkinData
     QVariantList lnStartSources;
     QVariantList lnEndSources;
     QVariantList lnBodySources;
+    QVariantList lnBodyActiveSources;
     QVariantList autoNoteSources;
     QVariantList autoMineSources;
     QVariantList autoLnStartSources;
     QVariantList autoLnEndSources;
     QVariantList autoLnBodySources;
+    QVariantList autoLnBodyActiveSources;
     QVariantList noteDsts;
     QVariantList lineSources;
     QVariantList lineDsts;

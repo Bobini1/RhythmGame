@@ -22,6 +22,7 @@ struct CustomFile
     QString settingId;
     std::filesystem::path directory;
     QString wildcard;
+    QString defaultSelection;
 };
 
 struct FontDefinition
@@ -38,6 +39,7 @@ struct ParseState
 {
     QList<Lr2Element> elements;
     QList<QString> images;
+    QList<Lr2SrcImage> imageSets;
     QList<FontDefinition> systemFonts;
     QList<FontDefinition> imageFonts;
     QList<CustomFile> customFiles;
@@ -58,11 +60,13 @@ struct ParseState
     QMap<int, Lr2SrcImage> lnStartSources;
     QMap<int, Lr2SrcImage> lnEndSources;
     QMap<int, Lr2SrcImage> lnBodySources;
+    QMap<int, Lr2SrcImage> lnBodyActiveSources;
     QMap<int, Lr2SrcImage> autoNoteSources;
     QMap<int, Lr2SrcImage> autoMineSources;
     QMap<int, Lr2SrcImage> autoLnStartSources;
     QMap<int, Lr2SrcImage> autoLnEndSources;
     QMap<int, Lr2SrcImage> autoLnBodySources;
+    QMap<int, Lr2SrcImage> autoLnBodyActiveSources;
     QMap<int, QVariantList> noteDsts;
     QMap<int, Lr2SrcImage> lineSources;
     QMap<int, QVariantList> lineDsts;
@@ -355,27 +359,104 @@ globToRegex(const QString& wildcard) -> QRegularExpression
 }
 
 auto
+stripLr2WildcardMarkers(QString wildcard) -> QString
+{
+    // LR2/beatoraja custom-file patterns sometimes contain selectors such as
+    // *|1P|.png. The |...| chunk is metadata for the selector, not part of the
+    // filename on disk.
+    wildcard.remove(QRegularExpression(QStringLiteral("\\|[^|]*\\|")));
+    return wildcard;
+}
+
+auto
+wildcardSuffixForSelection(const QString& wildcard) -> QString
+{
+    const auto normalized = stripLr2WildcardMarkers(wildcard);
+    const auto star = normalized.lastIndexOf(QLatin1Char('*'));
+    return star >= 0 ? normalized.mid(star + 1) : QString{};
+}
+
+auto
+selectedCustomFilePath(const std::filesystem::path& directory,
+                       const QString& wildcard,
+                       const QString& selected) -> std::filesystem::path
+{
+    const auto trimmed = selected.trimmed();
+    if (trimmed.isEmpty() || trimmed.compare(QStringLiteral("Random"),
+                                             Qt::CaseInsensitive) == 0 ||
+        trimmed == QLatin1String("-")) {
+        return {};
+    }
+
+    const auto selectedPath = directory / support::qStringToPath(trimmed);
+    if (std::filesystem::is_regular_file(selectedPath)) {
+        return selectedPath;
+    }
+
+    const auto suffix = wildcardSuffixForSelection(wildcard);
+    if (!suffix.isEmpty() && !trimmed.endsWith(suffix, Qt::CaseInsensitive)) {
+        const auto withSuffix =
+          directory / support::qStringToPath(trimmed + suffix);
+        if (std::filesystem::is_regular_file(withSuffix)) {
+            return withSuffix;
+        }
+    }
+
+    return {};
+}
+
+auto
+customOptionChoiceMatches(const QString& choice, const QString& selected)
+  -> bool
+{
+    const auto trimmedChoice = choice.trimmed();
+    const auto trimmedSelected = selected.trimmed();
+    if (trimmedChoice.compare(trimmedSelected, Qt::CaseInsensitive) == 0) {
+        return true;
+    }
+
+    auto parenMatch =
+      QRegularExpression(QStringLiteral("\\(([^)]*)\\)")).globalMatch(
+        trimmedChoice);
+    while (parenMatch.hasNext()) {
+        if (parenMatch.next()
+              .captured(1)
+              .trimmed()
+              .compare(trimmedSelected, Qt::CaseInsensitive) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+auto
 resolveWildcardPath(const std::filesystem::path& absolutePattern,
                     const ParseState& state) -> QString
 {
     const auto directory = absolutePattern.parent_path();
-    const auto wildcard =
+    const auto rawWildcard =
       QString::fromStdString(absolutePattern.filename().generic_string());
+    const auto wildcard = stripLr2WildcardMarkers(rawWildcard);
     const auto normalizedDirectory =
       std::filesystem::absolute(directory).lexically_normal();
 
     for (const auto& customFile : state.customFiles) {
+        const auto customWildcard =
+          stripLr2WildcardMarkers(customFile.wildcard);
         if (customFile.directory.lexically_normal() == normalizedDirectory &&
-            customFile.wildcard.compare(wildcard, Qt::CaseInsensitive) == 0) {
-            const auto selected =
+            customWildcard.compare(wildcard, Qt::CaseInsensitive) == 0) {
+            auto selected =
               state.settingValues.value(customFile.settingId).toString();
-            if (!selected.isEmpty()) {
-                const auto selectedPath =
-                  directory / support::qStringToPath(selected);
-                if (std::filesystem::is_regular_file(selectedPath)) {
-                    return support::pathToQString(
-                      std::filesystem::absolute(selectedPath));
-                }
+            if (selected.trimmed().isEmpty()) {
+                selected = customFile.defaultSelection;
+            }
+
+            const auto selectedPath =
+              selectedCustomFilePath(directory, rawWildcard, selected);
+            if (!selectedPath.empty()) {
+                return support::pathToQString(
+                  std::filesystem::absolute(selectedPath));
             }
             break;
         }
@@ -812,6 +893,49 @@ parseImageSource(const QStringList& tokens,
 }
 
 auto
+parseImageSetSource(const QStringList& tokens,
+                    const ParseState& state) -> Lr2SrcImage
+{
+    Lr2SrcImage src;
+    src.imageSet = true;
+    if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+        src.cycle = tokens[1].toInt();
+    }
+    if (tokens.size() > 2 && !tokens[2].isEmpty()) {
+        src.timer = tokens[2].toInt();
+    }
+    if (tokens.size() > 3 && !tokens[3].isEmpty()) {
+        src.imageSetRef = tokens[3].toInt();
+    }
+    const int sourceCount =
+      tokens.size() > 4 && !tokens[4].isEmpty() ? tokens[4].toInt() : 0;
+    bool copiedFallbackSource = false;
+    for (int i = 0; i < sourceCount && 5 + i < tokens.size(); ++i) {
+        if (tokens[5 + i].isEmpty()) {
+            continue;
+        }
+        const int imageSetIndex = tokens[5 + i].toInt();
+        if (imageSetIndex >= 0 && imageSetIndex < state.imageSets.size()) {
+            const auto source = state.imageSets[imageSetIndex];
+            src.imageSetSources.append(QVariant::fromValue(source));
+            if (!copiedFallbackSource) {
+                src.gr = source.gr;
+                src.x = source.x;
+                src.y = source.y;
+                src.w = source.w;
+                src.h = source.h;
+                src.div_x = source.div_x;
+                src.div_y = source.div_y;
+                src.specialType = source.specialType;
+                src.source = source.source;
+                copiedFallbackSource = true;
+            }
+        }
+    }
+    return src;
+}
+
+auto
 parseNumberSource(const QStringList& tokens,
                   const ParseState& state,
                   const int grIndex = 2) -> Lr2SrcNumber
@@ -841,6 +965,8 @@ parseNumberSource(const QStringList& tokens,
         src.align = tokens[grIndex + 10].toInt();
     if (tokens.size() > grIndex + 11 && !tokens[grIndex + 11].isEmpty())
         src.keta = tokens[grIndex + 11].toInt();
+    if (tokens.size() > grIndex + 12 && !tokens[grIndex + 12].isEmpty())
+        src.zeropadding = tokens[grIndex + 12].toInt();
 
     const auto [specialType, source] =
       sourceForGr(src.gr, src.w, src.h, state);
@@ -1166,6 +1292,7 @@ processCommand(const QStringList& tokens,
         if (selected.isEmpty()) {
             selected = tokens[3].trimmed();
         }
+        int defaultOffset = -1;
 
         // A #CUSTOMOPTION is an exclusive choice range: base, base + 1, ...
         // Clear any seeded fallback from the wrapper before applying the skin
@@ -1175,20 +1302,30 @@ processCommand(const QStringList& tokens,
             if (tokens[i].trimmed().isEmpty()) {
                 continue;
             }
+            if (defaultOffset < 0) {
+                defaultOffset = optionOffset;
+            }
             state.activeOptions.erase(baseOption + optionOffset);
             ++optionOffset;
         }
 
+        int selectedOffset = -1;
         optionOffset = 0;
         for (int i = 3; i < tokens.size(); ++i) {
             if (tokens[i].trimmed().isEmpty()) {
                 continue;
             }
-            if (tokens[i].trimmed() == selected) {
-                state.activeOptions.insert(baseOption + optionOffset);
+            if (customOptionChoiceMatches(tokens[i], selected)) {
+                selectedOffset = optionOffset;
                 break;
             }
             ++optionOffset;
+        }
+        if (selectedOffset < 0) {
+            selectedOffset = defaultOffset;
+        }
+        if (selectedOffset >= 0) {
+            state.activeOptions.insert(baseOption + selectedOffset);
         }
     } else if (command == "#CUSTOMFILE") {
         if (tokens.size() < 3) {
@@ -1201,6 +1338,8 @@ processCommand(const QStringList& tokens,
                          .lexically_normal(),
           .wildcard =
             QString::fromStdString(patternPath.filename().generic_string()),
+          .defaultSelection =
+            tokens.size() > 3 ? tokens[3].trimmed() : QString{},
         });
     } else if (command == "#SETOPTION") {
         if (tokens.size() < 3) {
@@ -1250,6 +1389,10 @@ processCommand(const QStringList& tokens,
           resolvePath(currentDir,
                       tokens.size() > 1 ? tokens[1].trimmed() : QString{},
                       state));
+    } else if (command == "#IMAGESET") {
+        if (tokens.size() > 2 && !tokens[2].trimmed().isEmpty()) {
+            state.imageSets.append(parseImageSource(tokens, state));
+        }
     } else if (command == "#FONT") {
         FontDefinition font;
         if (tokens.size() > 1 && !tokens[1].trimmed().isEmpty()) {
@@ -1280,6 +1423,14 @@ processCommand(const QStringList& tokens,
 
         state.currentElement.src =
           QVariant::fromValue(parseImageSource(tokens, state));
+    } else if (command == "#SRC_IMAGESET") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 0;
+        state.hasCurrentElement = true;
+
+        state.currentElement.src =
+          QVariant::fromValue(parseImageSetSource(tokens, state));
     } else if (command == "#DST_IMAGE" || command == "#DST_JUDGELINE") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {
             parseDst(tokens, state, state.currentElement);
@@ -1543,10 +1694,8 @@ processCommand(const QStringList& tokens,
         }
     } else if (command == "#SRC_LN_BODY_ACTIVE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
-            const int index = tokens[1].toInt();
-            if (!state.lnBodySources.contains(index)) {
-                state.lnBodySources[index] = parseImageSource(tokens, state);
-            }
+            state.lnBodyActiveSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
         }
     } else if (command == "#SRC_AUTO_NOTE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
@@ -1576,11 +1725,8 @@ processCommand(const QStringList& tokens,
         }
     } else if (command == "#SRC_AUTO_LN_BODY_ACTIVE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
-            const int index = tokens[1].toInt();
-            if (!state.autoLnBodySources.contains(index)) {
-                state.autoLnBodySources[index] =
-                  parseImageSource(tokens, state);
-            }
+            state.autoLnBodyActiveSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
         }
     } else if (command == "#DST_NOTE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
@@ -1922,11 +2068,14 @@ parseFile(const std::filesystem::path& filePath,
       .lnStartSources = toVariantList(state.lnStartSources),
       .lnEndSources = toVariantList(state.lnEndSources),
       .lnBodySources = toVariantList(state.lnBodySources),
+      .lnBodyActiveSources = toVariantList(state.lnBodyActiveSources),
       .autoNoteSources = toVariantList(state.autoNoteSources),
       .autoMineSources = toVariantList(state.autoMineSources),
       .autoLnStartSources = toVariantList(state.autoLnStartSources),
       .autoLnEndSources = toVariantList(state.autoLnEndSources),
       .autoLnBodySources = toVariantList(state.autoLnBodySources),
+      .autoLnBodyActiveSources =
+        toVariantList(state.autoLnBodyActiveSources),
       .noteDsts = toVariantList(state.noteDsts),
       .lineSources = toVariantList(state.lineSources),
       .lineDsts = toVariantList(state.lineDsts),

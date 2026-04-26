@@ -145,14 +145,16 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
     var loopTo = first.loop;
 
     if (dsts.length === 1) {
-        // Single keyframe: hold it forever (loop<0 would hide, but that's degenerate here).
+        if (loopTo < 0 && time > endTime) return null;
         return copyDstAsState(first, first);
     }
 
-    if (time >= endTime) {
+    if (time > endTime) {
         if (loopTo < 0) return null;
-        if (loopTo >= endTime) {
+        if (loopTo === endTime) {
             time = endTime;
+        } else if (loopTo > endTime) {
+            time = 0;
         } else {
             var period = endTime - loopTo;
             time = loopTo + ((time - loopTo) % period);
