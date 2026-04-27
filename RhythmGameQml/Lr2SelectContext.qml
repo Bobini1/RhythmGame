@@ -56,6 +56,18 @@ Item {
     property int sortMode: 0
     property int sortSourceFrameCount: 5
     property int realItemCount: 0
+    property int barRowCount: 0
+    property int barCenter: 0
+    property int barEntriesRevision: 0
+    property int barTextCellsRevision: 0
+    property var visibleBarEntries: []
+    property var visibleBarTextCells: []
+    property var selectedScoreStateCache: ({})
+    property int selectedScoreStateCacheRevision: -1
+    property int cachedVisibleBarBaseIndex: -1
+    property int cachedVisibleBarListRevision: -1
+    property int cachedVisibleBarRowCount: -1
+    property int cachedVisibleBarCenter: -1
     property bool rankingMode: false
     property var rankingBaseItem: null
     property string rankingStatsMd5: ""
@@ -137,18 +149,23 @@ Item {
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
     readonly property var current: logicalCount > 0 ? items[currentIndex] : null
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
-    readonly property bool visualMoveActive: Math.abs(nowBarFixed - listTopbarFixed) > 0
-    readonly property real normalizedVisualIndex: normalizedVisualIndexFor(visualIndex)
-    readonly property int visualBaseIndex: Math.floor(normalizedVisualIndex)
-    readonly property real scrollOffset: normalizedVisualIndex - visualBaseIndex
+    property bool visualMoveActive: false
+    property real normalizedVisualIndex: 0
+    property int visualBaseIndex: 0
+    property real scrollOffset: 0
 
     signal openedFolder()
+    signal barTextCellsInvalidated()
+    onBarRowCountChanged: refreshVisibleBarEntries(true)
+    onBarCenterChanged: refreshVisibleBarEntries(true)
+
     function touch() {
         revision += 1;
     }
 
     function touchList() {
         listRevision += 1;
+        refreshVisibleBarEntries(true);
         touch();
     }
 
@@ -182,11 +199,37 @@ Item {
     }
 
     function publishBarState() {
-        listCalculatedBarFixed = wrapBarFixed(listTopbarFixed);
+        let calculatedFixed = wrapBarFixed(listTopbarFixed);
+        if (listCalculatedBarFixed !== calculatedFixed) {
+            listCalculatedBarFixed = calculatedFixed;
+        }
+
+        let normalized = logicalCount > 0 ? calculatedFixed / 1000.0 : 0;
+        let baseIndex = Math.floor(normalized);
+        let offset = normalized - baseIndex;
+        let baseChanged = visualBaseIndex !== baseIndex;
+
         deferVisualSelectionSync = true;
-        visualIndex = listCalculatedBarFixed / 1000.0;
-        targetVisualIndex = nowBarFixed / 1000.0;
-        animationStartVisualIndex = oldBarFixed / 1000.0;
+        if (normalizedVisualIndex !== normalized) {
+            normalizedVisualIndex = normalized;
+        }
+        if (baseChanged) {
+            visualBaseIndex = baseIndex;
+        }
+        if (scrollOffset !== offset) {
+            scrollOffset = offset;
+        }
+        let moving = Math.abs(nowBarFixed - listTopbarFixed) > 0;
+        if (visualMoveActive !== moving) {
+            visualMoveActive = moving;
+        }
+        if (baseChanged
+                || cachedVisibleBarBaseIndex < 0
+                || cachedVisibleBarListRevision !== listRevision
+                || cachedVisibleBarRowCount !== barRowCount
+                || cachedVisibleBarCenter !== barCenter) {
+            refreshVisibleBarEntries(false);
+        }
         deferVisualSelectionSync = false;
         return syncCurrentToVisual();
     }
@@ -196,6 +239,9 @@ Item {
         listTopbarFixed = fixed;
         oldBarFixed = fixed;
         nowBarFixed = fixed;
+        visualIndex = index;
+        targetVisualIndex = index;
+        animationStartVisualIndex = index;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
         scrollDirection = 0;
@@ -208,6 +254,9 @@ Item {
         }
         barMoveStartMs = now;
         barMoveEndMs = now + Math.max(1, durationMs);
+        visualIndex = listTopbarFixed / 1000.0;
+        targetVisualIndex = nowBarFixed / 1000.0;
+        animationStartVisualIndex = oldBarFixed / 1000.0;
         publishBarState();
     }
 
@@ -269,8 +318,14 @@ Item {
             let steps = pendingWheelSteps;
             pendingWheelSteps = 0;
             applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
+            return;
         }
-        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        let nextTopbarFixed = animatedTopbarFixed(now);
+        let moving = Math.abs(nowBarFixed - nextTopbarFixed) > 0;
+        if (listTopbarFixed === nextTopbarFixed && visualMoveActive === moving) {
+            return;
+        }
+        listTopbarFixed = nextTopbarFixed;
         publishBarState();
     }
 
@@ -1175,11 +1230,15 @@ Item {
         }
     }
 
-    function applyLr2ScrollDelta(entries, durationMs, now) {
+    function animatedTopbarFixed(now) {
+        return lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+    }
+
+    function applyLr2ScrollDelta(entries, durationMs, now, currentFixed) {
         if (logicalCount === 0 || entries === 0) {
             return;
         }
-        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        listTopbarFixed = currentFixed !== undefined ? currentFixed : animatedTopbarFixed(now);
         oldBarFixed = listTopbarFixed;
         nowBarFixed += Math.round(entries * 1000);
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
@@ -1193,8 +1252,7 @@ Item {
         }
         let now = Date.now();
         let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
-        updateVisualIndex(now);
-        applyLr2ScrollDelta(entries, duration, now);
+        applyLr2ScrollDelta(entries, duration, now, animatedTopbarFixed(now));
     }
 
     function scrollByKey(entries, repeated) {
@@ -1338,6 +1396,169 @@ Item {
             return null;
         }
         return items[normalizeIndex(visualBaseIndex + row - barCenter)];
+    }
+
+    function refreshVisibleBarEntries(force) {
+        let rowCount = Math.max(0, barRowCount || 0);
+        if (logicalCount === 0 || rowCount === 0) {
+            if (force || visibleBarEntries.length !== 0 || visibleBarTextCells.length !== 0) {
+                visibleBarEntries = [];
+                visibleBarTextCells = [];
+                cachedVisibleBarBaseIndex = -1;
+                cachedVisibleBarListRevision = listRevision;
+                cachedVisibleBarRowCount = rowCount;
+                cachedVisibleBarCenter = barCenter;
+                barEntriesRevision += 1;
+                barTextCellsRevision += 1;
+                barTextCellsInvalidated();
+            }
+            return;
+        }
+
+        if (!force
+                && cachedVisibleBarBaseIndex >= 0
+                && cachedVisibleBarListRevision === listRevision
+                && cachedVisibleBarRowCount === rowCount
+                && cachedVisibleBarCenter === barCenter
+                && visibleBarEntries.length === rowCount
+                && visibleBarTextCells.length === rowCount) {
+            let forward = (visualBaseIndex - cachedVisibleBarBaseIndex + logicalCount) % logicalCount;
+            let backward = (cachedVisibleBarBaseIndex - visualBaseIndex + logicalCount) % logicalCount;
+            let delta = forward <= backward ? forward : -backward;
+            if (delta !== 0 && Math.abs(delta) <= Math.min(rowCount, 4)) {
+                let entries = visibleBarEntries;
+                let textCells = visibleBarTextCells;
+                shiftBarTextCellRows(textCells, -delta);
+                while (delta > 0) {
+                    let entry = items[normalizeIndex(visualBaseIndex + rowCount - delta - barCenter)];
+                    entries.shift();
+                    entries.push(entry);
+                    let row = rowCount - delta;
+                    updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                    delta -= 1;
+                }
+                while (delta < 0) {
+                    let entry = items[normalizeIndex(visualBaseIndex - delta - 1 - barCenter)];
+                    entries.pop();
+                    entries.unshift(entry);
+                    let row = -delta - 1;
+                    updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                    delta += 1;
+                }
+                visibleBarTextCells = textCells.slice();
+                cachedVisibleBarBaseIndex = visualBaseIndex;
+                barEntriesRevision += 1;
+                barTextCellsRevision += 1;
+                barTextCellsInvalidated();
+                return;
+            }
+        }
+
+        if (!force
+                && cachedVisibleBarBaseIndex === visualBaseIndex
+                && cachedVisibleBarListRevision === listRevision
+                && cachedVisibleBarRowCount === rowCount
+                && cachedVisibleBarCenter === barCenter) {
+            return;
+        }
+
+        let entries = [];
+        let textCells = [];
+        for (let row = 0; row < rowCount; ++row) {
+            let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+            entries.push(entry);
+            textCells.push(barTextCellForRow(row));
+        }
+        visibleBarEntries = entries;
+        visibleBarTextCells = textCells;
+        cachedVisibleBarBaseIndex = visualBaseIndex;
+        cachedVisibleBarListRevision = listRevision;
+        cachedVisibleBarRowCount = rowCount;
+        cachedVisibleBarCenter = barCenter;
+        barEntriesRevision += 1;
+        barTextCellsRevision += 1;
+        barTextCellsInvalidated();
+    }
+
+    function shiftBarTextCellRows(cells, delta) {
+        for (let i = 0; i < cells.length; ++i) {
+            let cell = cells[i];
+            if (cell) {
+                cell.row += delta;
+            }
+        }
+    }
+
+    function updateOutOfRangeBarTextCell(cells, row, rowCount) {
+        for (let i = 0; i < cells.length; ++i) {
+            let cell = cells[i];
+            if (cell && (cell.row < 0 || cell.row >= rowCount)) {
+                updateBarTextCellForRow(cell, row);
+                return;
+            }
+        }
+    }
+
+    function visibleBarEntry(row, fallbackBarCenter) {
+        if (row >= 0 && row < visibleBarEntries.length) {
+            return visibleBarEntries[row];
+        }
+        return barEntry(row, fallbackBarCenter);
+    }
+
+    function barTextCellForRow(row) {
+        let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+        return {
+            row: row,
+            entry: entry,
+            text: entryDisplayName(entry, true),
+            titleType: entryTitleType(entry),
+            bodyType: entryBodyType(entry),
+            playLevel: entryPlayLevel(entry),
+            difficulty: entryDifficulty(entry),
+            keymode: entry ? (entry.keymode || 0) : 0,
+            ranking: isRankingEntry(entry),
+            chartLike: isChart(entry),
+            entryLike: isEntry(entry),
+            folderLike: isFolderLikeForLamp(entry),
+            lamp: entryLamp(entry),
+            clearType: entryClearType(entry),
+            rank: entryRank(entry)
+        };
+    }
+
+    function updateBarTextCellForRow(cell, row) {
+        let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+        cell.row = row;
+        cell.entry = entry;
+        cell.text = entryDisplayName(entry, true);
+        cell.titleType = entryTitleType(entry);
+        cell.bodyType = entryBodyType(entry);
+        cell.playLevel = entryPlayLevel(entry);
+        cell.difficulty = entryDifficulty(entry);
+        cell.keymode = entry ? (entry.keymode || 0) : 0;
+        cell.ranking = isRankingEntry(entry);
+        cell.chartLike = isChart(entry);
+        cell.entryLike = isEntry(entry);
+        cell.folderLike = isFolderLikeForLamp(entry);
+        cell.lamp = entryLamp(entry);
+        cell.clearType = entryClearType(entry);
+        cell.rank = entryRank(entry);
+    }
+
+    function visibleBarTextCell(slot) {
+        if (slot >= 0 && slot < visibleBarTextCells.length) {
+            return visibleBarTextCells[slot];
+        }
+        return barTextCellForRow(slot);
+    }
+
+    function visibleBarDisplayName(row, fallbackBarCenter) {
+        let cell = visibleBarTextCell(row);
+        if (cell && cell.row === row) {
+            return cell.text || "";
+        }
+        return entryDisplayName(visibleBarEntry(row, fallbackBarCenter), true);
     }
 
     function entryDisplayName(item, includeSubtitle) {
@@ -1872,7 +2093,23 @@ Item {
         if (!scoreList || scoreList.length === 0) {
             return null;
         }
-        return statsForScore(bestScoreByPoints(scoreList), true);
+        return statsForScore(bestScoreByPoints(scoreList), false);
+    }
+
+    function ensureStatsTiming(stats, score) {
+        if (!stats || stats.early || !score) {
+            return stats;
+        }
+        let timingCounts = judgeTimingCountsForScore(score);
+        stats.early = timingCounts.early;
+        stats.late = timingCounts.late;
+        stats.totalEarly = totalTimingCount(timingCounts, true);
+        stats.totalLate = totalTimingCount(timingCounts, false);
+        return stats;
+    }
+
+    function ensureSelectedBestStatsTiming() {
+        return ensureStatsTiming(selectedBestStats, bestScoreByPoints(selectedScoreList));
     }
 
     function scoreCounts(scoreList) {
@@ -1976,12 +2213,16 @@ Item {
                            + 400000 * stats.gd) / totalNotes);
     }
 
-    function currentFolderScoreCounts() {
+    function currentFolderScoreCountsOrNull() {
         let revisionMarker = folderLampRevision;
         let key = folderLampKey(current);
         return key && folderScoreCountsByKey[key] !== undefined
             ? folderScoreCountsByKey[key]
-            : emptyFolderScoreCounts;
+            : null;
+    }
+
+    function currentFolderScoreCounts() {
+        return currentFolderScoreCountsOrNull() || emptyFolderScoreCounts;
     }
 
     function appendScoreClearOptionIds(clearType, ids) {
@@ -2165,10 +2406,31 @@ Item {
     }
 
     function refreshSelectedScoreState() {
+        if (selectedScoreStateCacheRevision !== scoreRevision) {
+            selectedScoreStateCache = {};
+            selectedScoreStateCacheRevision = scoreRevision;
+        }
         let item = current;
         let nextChartData = rankingMode && rankingBaseItem
             ? rankingBaseItem
             : ((isChart(item) || isEntry(item)) ? item : null);
+        let stateKey = "";
+        if (nextChartData) {
+            stateKey = "chart:" + entryIdentifier(nextChartData);
+        } else if (isRankingEntry(item)) {
+            stateKey = "ranking:" + (item.sourceMd5 || "") + ":" + (item.rankingIndex || 0);
+        } else {
+            stateKey = "item:" + entryIdentifier(item);
+        }
+        let cached = stateKey ? selectedScoreStateCache[stateKey] : null;
+        if (cached) {
+            cachedSelectedChartData = cached.chartData;
+            selectedScoreList = cached.scoreList;
+            selectedBestStats = cached.bestStats;
+            selectedScoreCounts = cached.scoreCounts;
+            selectedScoreOptionIds = cached.scoreOptionIds;
+            return;
+        }
         let scoreList = entryScores(nextChartData || item);
         let nextBestStats = bestStats(scoreList);
         let nextScoreCounts = scoreCounts(scoreList);
@@ -2178,6 +2440,15 @@ Item {
         selectedBestStats = nextBestStats;
         selectedScoreCounts = nextScoreCounts;
         selectedScoreOptionIds = nextScoreOptionIds;
+        if (stateKey) {
+            selectedScoreStateCache[stateKey] = {
+                chartData: nextChartData,
+                scoreList: scoreList,
+                bestStats: nextBestStats,
+                scoreCounts: nextScoreCounts,
+                scoreOptionIds: nextScoreOptionIds
+            };
+        }
     }
 
     function rankingClearCountValue() {
@@ -2278,7 +2549,7 @@ Item {
         rankingSavedFolderContents = folderContents.slice();
         rankingSavedRealItemCount = realItemCount;
         rankingSavedCurrentIndex = currentIndex;
-        rankingSavedVisualIndex = visualIndex;
+        rankingSavedVisualIndex = normalizedVisualIndex;
         rankingSavedSelectedOffset = selectedOffset;
         rankingBaseItem = chart;
 
@@ -2621,8 +2892,12 @@ Item {
         let rankingEntry = isRankingEntry(current) ? current : null;
         let stats = selectedBestStats;
         let counts = selectedScoreCounts;
-        let folderCounts = currentFolderScoreCounts();
+        let currentFolderCounts = currentFolderScoreCountsOrNull();
+        let folderCounts = currentFolderCounts || emptyFolderScoreCounts;
         let hasRankingStats = rankingStatsAvailable();
+        if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
+            stats = ensureSelectedBestStatsTiming();
+        }
         switch (num) {
         case 30:
             return playerStats.playCount || 0;
@@ -2910,29 +3185,29 @@ Item {
                 ? Math.round(chart.minBpm || chart.mainBpm)
                 : -1;
         case 300:
-            return folderCounts.total;
+            return currentFolderCounts ? folderCounts.total : -1;
         case 320:
-            return folderCounts.noplay;
+            return currentFolderCounts ? folderCounts.noplay : -1;
         case 321:
-            return folderCounts.fail;
+            return currentFolderCounts ? folderCounts.fail : -1;
         case 322:
-            return folderCounts.assist;
+            return currentFolderCounts ? folderCounts.assist : -1;
         case 323:
-            return folderCounts.lightAssist;
+            return currentFolderCounts ? folderCounts.lightAssist : -1;
         case 324:
-            return folderCounts.easy;
+            return currentFolderCounts ? folderCounts.easy : -1;
         case 325:
-            return folderCounts.normal;
+            return currentFolderCounts ? folderCounts.normal : -1;
         case 326:
-            return folderCounts.hard;
+            return currentFolderCounts ? folderCounts.hard : -1;
         case 327:
-            return folderCounts.exhard;
+            return currentFolderCounts ? folderCounts.exhard : -1;
         case 328:
-            return folderCounts.fc;
+            return currentFolderCounts ? folderCounts.fc : -1;
         case 329:
-            return folderCounts.perfect;
+            return currentFolderCounts ? folderCounts.perfect : -1;
         case 330:
-            return folderCounts.max;
+            return currentFolderCounts ? folderCounts.max : -1;
         case 350:
             return chart ? (chart.normalNoteCount || 0) : -1;
         case 351:

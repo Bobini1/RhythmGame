@@ -14,8 +14,6 @@ Item {
     property var barBaseStates: []
     property real barScrollOffset: 0
     property int barCenter: 0
-    readonly property int contextRevision: selectContext ? selectContext.listRevision : 0
-    readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
     readonly property var timelineDsts: {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return dsts;
@@ -35,21 +33,13 @@ Item {
         return result;
     }
 
-    readonly property var textRows: {
-        if (!barRows || !selectContext || !srcData) {
-            return [];
-        }
+    readonly property int textSlotCount: barRows && selectContext && srcData
+        ? Math.max(0, barRows.length)
+        : 0
 
-        let rows = [];
-        for (let row = 1; row < barRows.length; ++row) {
-            rows.push(row);
-        }
-        return rows;
-    }
-
-    function visibleFor(entry) {
-        return !!entry && !!srcData && !!selectContext
-            && selectContext.entryTitleType(entry) === srcData.titleType;
+    function visibleFor(cellEntry, cellTitleType) {
+        return !!cellEntry && !!srcData && !!selectContext
+            && cellTitleType === srcData.titleType;
     }
 
     function baseState(row) {
@@ -84,19 +74,58 @@ Item {
     }
 
     Repeater {
-        model: root.textRows
+        model: root.textSlotCount
 
         Lr2TextRenderer {
             id: barTextDelegate
 
-            readonly property int row: modelData
-            readonly property var entry: {
-                let revision = root.contextRevision;
-                let base = root.visualBaseIndex;
-                return root.selectContext ? root.selectContext.barEntry(row, root.barCenter) : null;
+            readonly property int slot: modelData
+            property var cellEntry: null
+            property int cellTitleType: -1
+            property int displayRow: -1
+            property string cellText: ""
+            readonly property var visibleBase: root.visibilityState(displayRow)
+            readonly property bool contentVisible: displayRow > 0
+                && !!visibleBase
+                && root.visibleFor(cellEntry, cellTitleType)
+
+            function refreshCell() {
+                let cell = root.selectContext ? root.selectContext.visibleBarTextCell(slot) : null;
+                let nextRow = cell ? cell.row : -1;
+                let nextEntry = cell ? cell.entry : null;
+                let nextTitleType = cell ? cell.titleType : -1;
+                let nextText = cell ? (cell.text || "") : "";
+                if (displayRow !== nextRow) {
+                    displayRow = nextRow;
+                }
+                if (cellEntry !== nextEntry) {
+                    cellEntry = nextEntry;
+                }
+                if (cellTitleType !== nextTitleType) {
+                    cellTitleType = nextTitleType;
+                }
+                if (cellText !== nextText) {
+                    cellText = nextText;
+                }
             }
-            readonly property var visibleBase: root.visibilityState(row)
-            readonly property bool contentVisible: !!visibleBase && root.visibleFor(entry)
+
+            Component.onCompleted: refreshCell()
+            onSlotChanged: refreshCell()
+
+            Connections {
+                target: root.selectContext
+                function onBarTextCellsInvalidated() {
+                    barTextDelegate.refreshCell();
+                }
+            }
+
+            Connections {
+                target: root
+                function onSelectContextChanged() {
+                    barTextDelegate.refreshCell();
+                }
+            }
+
             visible: contentVisible
             dsts: root.timelineDsts
             srcData: root.srcData
@@ -104,9 +133,9 @@ Item {
             activeOptions: root.activeOptions
             timers: root.timers
             scaleOverride: root.scaleOverride
-            offsetX: root.drawOffset(row, 0)
-            offsetY: root.drawOffset(row, 1)
-            resolvedText: root.selectContext ? root.selectContext.entryDisplayName(entry, true) : ""
+            offsetX: root.drawOffset(displayRow, 0)
+            offsetY: root.drawOffset(displayRow, 1)
+            resolvedText: cellText
         }
     }
 }

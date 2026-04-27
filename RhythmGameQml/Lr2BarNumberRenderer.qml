@@ -16,8 +16,7 @@ Item {
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
-    readonly property int contextRevision: selectContext ? selectContext.listRevision : 0
-    readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
+    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.barEntriesRevision : 0
 
     readonly property var numberRows: {
         if (!barRows || !selectContext || !srcData) {
@@ -73,6 +72,9 @@ Item {
         if (ranking) {
             return srcData.variant === 6;
         }
+        if ((entry.keymode || 0) <= 0 || selectContext.entryPlayLevel(entry) <= 0) {
+            return false;
+        }
         let difficulty = selectContext.entryDifficulty(entry);
         if (difficulty <= 0) {
             return srcData.variant === 0;
@@ -87,8 +89,7 @@ Item {
             readonly property int row: modelData
             readonly property var entry: {
                 let revision = root.contextRevision;
-                let base = root.visualBaseIndex;
-                return root.selectContext ? root.selectContext.barEntry(row, root.barCenter) : null;
+                return root.selectContext ? root.selectContext.visibleBarEntry(row, root.barCenter) : null;
             }
             readonly property var visibleBase: root.visibilityState(row)
             readonly property bool contentVisible: !!visibleBase && root.visibleFor(entry)

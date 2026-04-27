@@ -22,7 +22,10 @@ function checkSingleOp(op, activeOptions) {
     if (!op || op === 0) return true;
     var negate = op < 0;
     var idx = Math.abs(op);
-    var present = activeOptions && activeOptions.indexOf(idx) !== -1;
+    var lookup = activeOptions ? activeOptions.__lookup : null;
+    var present = lookup
+        ? lookup[idx] === true
+        : activeOptions && activeOptions.indexOf(idx) !== -1;
     return negate ? !present : present;
 }
 

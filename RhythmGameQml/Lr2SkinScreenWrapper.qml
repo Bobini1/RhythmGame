@@ -19,6 +19,14 @@ Item {
     property var selectContextRef: null
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
+    readonly property var usedOptionLookup: {
+        let result = {};
+        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
+        for (let option of used) {
+            result[Math.abs(option)] = true;
+        }
+        return result;
+    }
     property int gameplayRevision: 0
     property bool gameplayRevisionQueued: false
     property int gameplayTimerRevision: 0
@@ -26,6 +34,9 @@ Item {
     property var gameplayTimerValues: ({ "0": 0 })
     property var gameplayRuntimeActiveOptions: []
     property bool gameplayRuntimeActiveOptionsRefreshQueued: false
+    property var selectRuntimeActiveOptions: []
+    property bool selectRuntimeActiveOptionsRefreshQueued: false
+    property bool committedSelectStateQueued: false
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
@@ -266,6 +277,26 @@ Item {
         return !!((p1 && p1.replayedScore) || (p2 && p2.replayedScore));
     }
 
+    function optionLookupFor(options) {
+        if (!options) {
+            return {};
+        }
+        if (options.__lookup) {
+            return options.__lookup;
+        }
+        let lookup = {};
+        for (let i = 0; i < options.length; ++i) {
+            lookup[options[i]] = true;
+        }
+        options.__lookup = lookup;
+        return lookup;
+    }
+
+    function finalizeOptionList(options) {
+        root.optionLookupFor(options);
+        return options;
+    }
+
     readonly property var parseActiveOptions: {
         let autoplayOn = root.gameplayAutoplayActive();
         let options = [
@@ -297,7 +328,7 @@ Item {
         } else if (root.isResultScreen()) {
             options.push(root.resultClearOption(), 350);
         }
-        return options;
+        return root.finalizeOptionList(options);
     }
     property int selectPanel: 0
     property int selectPanelHeldByStart: 0
@@ -2370,14 +2401,24 @@ Item {
     }
 
     function addOption(options, option) {
-        if (option !== undefined && option !== null && options.indexOf(option) === -1) {
-            options.push(option);
+        if (option === undefined || option === null) {
+            return;
         }
+        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
+        if (used.length > 0 && !root.usedOptionLookup[Math.abs(option)]) {
+            return;
+        }
+        let lookup = root.optionLookupFor(options);
+        if (lookup[option] === true) {
+            return;
+        }
+        options.push(option);
+        lookup[option] = true;
     }
 
     function skinUsesOption(option) {
         let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
-        return used.indexOf(option) !== -1;
+        return used.length === 0 || !!root.usedOptionLookup[Math.abs(option)];
     }
 
     function configuredGaugeName(side) {
@@ -5125,8 +5166,49 @@ Item {
     readonly property var baseActiveOptions: root.buildBaseActiveOptions(root.barActiveOptions)
     readonly property var runtimeActiveOptions: root.isGameplayScreen()
         ? root.gameplayRuntimeActiveOptions
-        : root.buildRuntimeActiveOptions(root.baseActiveOptions)
+        : (root.effectiveScreenKey === "select"
+            ? root.selectRuntimeActiveOptions
+            : root.buildRuntimeActiveOptions(root.baseActiveOptions))
     readonly property var barTimers: ({ "0": 0 })
+
+    function sameNumberArray(a, b) {
+        if (a === b) {
+            return true;
+        }
+        if (!a || !b || a.length !== b.length) {
+            return false;
+        }
+        for (let i = 0; i < a.length; ++i) {
+            if (a[i] !== b[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function refreshSelectRuntimeActiveOptions() {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
+        let next = root.buildRuntimeActiveOptions(root.baseActiveOptions);
+        if (!root.sameNumberArray(root.selectRuntimeActiveOptions, next)) {
+            root.selectRuntimeActiveOptions = next;
+        }
+    }
+
+    function scheduleSelectRuntimeActiveOptionsRefresh() {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
+        if (root.selectRuntimeActiveOptionsRefreshQueued) {
+            return;
+        }
+        root.selectRuntimeActiveOptionsRefreshQueued = true;
+        Qt.callLater(function() {
+            root.selectRuntimeActiveOptionsRefreshQueued = false;
+            root.refreshSelectRuntimeActiveOptions();
+        });
+    }
 
     function runtimeOwnsOptionPair(option) {
         switch (option) {
@@ -5183,7 +5265,7 @@ Item {
     }
 
     function buildBarActiveOptions() {
-        let result = [];
+        let result = root.finalizeOptionList([]);
         root.appendStaticSelectOptions(result);
         root.addOption(result, selectContext.rankingMode ? 621 : 620);
         return result;
@@ -5191,8 +5273,8 @@ Item {
 
     function buildBaseActiveOptions(barOptions) {
         let result = root.effectiveScreenKey === "select"
-            ? (barOptions || root.barActiveOptions).slice()
-            : [];
+            ? root.finalizeOptionList((barOptions || root.barActiveOptions).slice())
+            : root.finalizeOptionList([]);
         if (root.effectiveScreenKey !== "select") {
             root.appendParserActiveOptions(result);
         }
@@ -5219,7 +5301,7 @@ Item {
     }
 
     function buildRuntimeActiveOptions(baseOptions) {
-        let result = baseOptions.slice();
+        let result = root.finalizeOptionList(baseOptions.slice());
         if (root.effectiveScreenKey === "select") {
             root.appendCommonRuntimeOptions(result);
             let item = selectContext.current;
@@ -5241,7 +5323,10 @@ Item {
         return result;
     }
 
-    onBaseActiveOptionsChanged: root.scheduleGameplayRuntimeActiveOptionsRefresh()
+    onBaseActiveOptionsChanged: {
+        root.scheduleGameplayRuntimeActiveOptionsRefresh();
+        root.scheduleSelectRuntimeActiveOptionsRefresh();
+    }
 
     function refreshGameplayRuntimeActiveOptions() {
         if (!root.isGameplayScreen()) {
@@ -5295,7 +5380,8 @@ Item {
     }
 
     onSelectRevisionChanged: {
-        root.handleCommittedSelectState();
+        root.scheduleSelectRuntimeActiveOptionsRefresh();
+        root.queueCommittedSelectState();
     }
     Connections {
         target: selectContext
@@ -5306,6 +5392,9 @@ Item {
     }
     onEffectiveScreenKeyChanged: {
         if (root.effectiveScreenKey !== "select") {
+            selectCommittedStateTimer.stop();
+            root.committedSelectStateQueued = false;
+            root.selectRuntimeActiveOptionsRefreshQueued = false;
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
             root.selectPanelElapsed = 0;
@@ -5439,8 +5528,27 @@ Item {
         root.updateSelectSideEffects();
     }
 
+    function queueCommittedSelectState() {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
+        if (selectContext.visualMoveActive || selectContext.pendingWheelSteps !== 0) {
+            selectCommittedStateTimer.restart();
+            return;
+        }
+        if (root.committedSelectStateQueued) {
+            return;
+        }
+        root.committedSelectStateQueued = true;
+        Qt.callLater(function() {
+            root.committedSelectStateQueued = false;
+            root.handleCommittedSelectState();
+        });
+    }
+
     function handleScreenContextChanged() {
         root.commitLr2RankingRequest();
+        root.refreshSelectRuntimeActiveOptions();
         root.restartSelectInfoTimer();
         root.updateSelectSideEffects();
     }
@@ -8096,6 +8204,13 @@ Item {
     }
 
     Timer {
+        id: selectCommittedStateTimer
+        interval: 90
+        repeat: false
+        onTriggered: root.handleCommittedSelectState()
+    }
+
+    Timer {
         id: selectPanelStopwatch
         interval: 16
         running: root.effectiveScreenKey === "select" && root.selectPanel > 0 && root.selectPanelElapsed < root.selectPanelHoldTime
@@ -8312,6 +8427,8 @@ Item {
     Lr2SelectContext {
         id: selectContext
         enabled: root.effectiveScreenKey === "select"
+        barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
+        barCenter: skinModel.barCenter
 
         Component.onCompleted: {
             root.selectContextRef = selectContext;
@@ -8433,11 +8550,15 @@ Item {
     readonly property var skinModelRef: skinModel
 
     onCsvPathChanged: Qt.callLater(root.openSelectIfNeeded)
-    onSkinSettingsChanged: Qt.callLater(root.refreshLr2SkinSettingItems)
+    onSkinSettingsChanged: {
+        Qt.callLater(root.refreshLr2SkinSettingItems);
+        Qt.callLater(root.refreshSelectRuntimeActiveOptions);
+    }
     onScreenKeyChanged: {
         Qt.callLater(root.openSelectIfNeeded);
         Qt.callLater(root.activateGameplayIfNeeded);
         Qt.callLater(root.refreshLr2SkinSettingItems);
+        Qt.callLater(root.refreshSelectRuntimeActiveOptions);
     }
 
     Component.onCompleted: {
@@ -8449,6 +8570,7 @@ Item {
         Qt.callLater(root.updateSelectSideEffects);
         Qt.callLater(root.updateGameplaySavedScores);
         Qt.callLater(root.refreshLr2SkinSettingItems);
+        Qt.callLater(root.refreshSelectRuntimeActiveOptions);
         Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
     }
 

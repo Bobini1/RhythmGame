@@ -20,8 +20,7 @@ Item {
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
-    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision + selectContext.folderLampRevision : 0
-    readonly property int visualBaseIndex: selectContext ? selectContext.visualBaseIndex : 0
+    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision + selectContext.folderLampRevision + selectContext.barEntriesRevision : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
 
     readonly property var bodyRows: {
@@ -125,7 +124,7 @@ Item {
         if (!selectContext || !srcData || !srcData.sources) {
             return srcData && srcData.source ? srcData.source : null;
         }
-        let entry = selectContext.barEntry(row, barCenter);
+        let entry = selectContext.visibleBarEntry(row, barCenter);
         let bodyType = selectContext.entryBodyType(entry);
         return srcData.sources[bodyType] || srcData.sources[0] || srcData.source || null;
     }
@@ -164,12 +163,10 @@ Item {
             readonly property int row: modelData
             readonly property var entry: {
                 let revision = root.contextRevision;
-                let base = root.visualBaseIndex;
-                return root.selectContext ? root.selectContext.barEntry(row, root.barCenter) : null;
+                return root.selectContext ? root.selectContext.visibleBarEntry(row, root.barCenter) : null;
             }
             readonly property var bodySource: {
                 let revision = root.contextRevision;
-                let base = root.visualBaseIndex;
                 return root.sourceForBody(row);
             }
             readonly property var bodyState: root.rowDrawState(row)
@@ -198,8 +195,7 @@ Item {
             readonly property var visibleBase: root.visibilityState(row)
             readonly property var entry: {
                 let revision = root.contextRevision;
-                let baseIndex = root.visualBaseIndex;
-                return root.selectContext ? root.selectContext.barEntry(row, root.barCenter) : null;
+                return root.selectContext ? root.selectContext.visibleBarEntry(row, root.barCenter) : null;
             }
             readonly property bool contentVisible: !!visibleBase && root.overlayVisibleFor(entry)
             visible: contentVisible && !!drawBase

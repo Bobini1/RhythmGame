@@ -197,8 +197,6 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/OnlineRankingModel.h
         src/qml_components/FileQuery.cpp
         src/qml_components/FileQuery.h
-        src/qml_components/Lr2NativeBarRenderer.cpp
-        src/qml_components/Lr2NativeBarRenderer.h
         src/qml_components/Lr2NativeCursor.cpp
         src/qml_components/Lr2NativeCursor.h
         src/qml_components/Bga.cpp
