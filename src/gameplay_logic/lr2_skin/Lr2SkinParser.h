@@ -331,6 +331,56 @@ struct Lr2SrcBarGraph
     QString source;
 };
 
+struct Lr2SrcNoteChart
+{
+    Q_GADGET
+    Q_PROPERTY(int chartType MEMBER chartType)
+    Q_PROPERTY(int fieldW MEMBER fieldW)
+    Q_PROPERTY(int fieldH MEMBER fieldH)
+    Q_PROPERTY(int start MEMBER start)
+    Q_PROPERTY(int end MEMBER end)
+    Q_PROPERTY(int delay MEMBER delay)
+    Q_PROPERTY(int backTexOff MEMBER backTexOff)
+    Q_PROPERTY(int orderReverse MEMBER orderReverse)
+    Q_PROPERTY(int noGap MEMBER noGap)
+  public:
+    int chartType = 0;
+    int fieldW = 1;
+    int fieldH = 1;
+    int start = 0;
+    int end = 0;
+    int delay = 500;
+    int backTexOff = 0;
+    int orderReverse = 0;
+    int noGap = 0;
+};
+
+struct Lr2SrcBpmChart
+{
+    Q_GADGET
+    Q_PROPERTY(int fieldW MEMBER fieldW)
+    Q_PROPERTY(int fieldH MEMBER fieldH)
+    Q_PROPERTY(int delay MEMBER delay)
+    Q_PROPERTY(int lineWidth MEMBER lineWidth)
+    Q_PROPERTY(QString mainBpmColor MEMBER mainBpmColor)
+    Q_PROPERTY(QString minBpmColor MEMBER minBpmColor)
+    Q_PROPERTY(QString maxBpmColor MEMBER maxBpmColor)
+    Q_PROPERTY(QString otherBpmColor MEMBER otherBpmColor)
+    Q_PROPERTY(QString stopLineColor MEMBER stopLineColor)
+    Q_PROPERTY(QString transitionLineColor MEMBER transitionLineColor)
+  public:
+    int fieldW = 1;
+    int fieldH = 1;
+    int delay = 0;
+    int lineWidth = 2;
+    QString mainBpmColor = QStringLiteral("00ff00");
+    QString minBpmColor = QStringLiteral("0000ff");
+    QString maxBpmColor = QStringLiteral("ff0000");
+    QString otherBpmColor = QStringLiteral("ffff00");
+    QString stopLineColor = QStringLiteral("ff00ff");
+    QString transitionLineColor = QStringLiteral("7f7f7f");
+};
+
 struct Lr2Element
 {
     Q_GADGET
@@ -340,7 +390,7 @@ struct Lr2Element
   public:
     // 0=image, 1=number, 2=text, 3=bar image, 4=bar text,
     // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge,
-    // 10=result gauge/score chart
+    // 10=result gauge/score chart, 11=note chart, 12=BPM chart
     int type = -1;
     QVariant src;
     QVariantList dsts;

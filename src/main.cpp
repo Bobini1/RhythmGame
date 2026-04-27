@@ -536,6 +536,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "lr2SrcBarNumber", "Q_GADGET");
         qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBarGraph>(
           "RhythmGameQml", 1, 0, "lr2SrcBarGraph", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcNoteChart>(
+          "RhythmGameQml", 1, 0, "lr2SrcNoteChart", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBpmChart>(
+          "RhythmGameQml", 1, 0, "lr2SrcBpmChart", "Q_GADGET");
         qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Element>(
           "RhythmGameQml", 1, 0, "lr2Element", "Q_GADGET");
         qmlRegisterType<gameplay_logic::lr2_skin::Lr2SkinModel>(

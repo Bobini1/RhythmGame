@@ -54,6 +54,7 @@ Item {
     property int difficultyFilter: 0
     property int keyFilter: 0
     property int sortMode: 0
+    property int sortSourceFrameCount: 5
     property int realItemCount: 0
     property bool rankingMode: false
     property var rankingBaseItem: null
@@ -128,6 +129,8 @@ Item {
     readonly property int lr2ClickDuration: 200
     readonly property int lr2ScrollUp: 1
     readonly property int lr2ScrollDown: 2
+    readonly property var lr2SortOrder: [0, 1, 2, 3, 4]
+    readonly property var beatorajaSortOrder: [2, 5, 6, 7, 1, 3, 4, 8]
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: items.length
@@ -601,23 +604,119 @@ Item {
     }
 
     function compareByTitle(a, b) {
-        let titleDiff = entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
+        let titleDiff = compareByNameOnly(a, b);
         if (titleDiff !== 0) {
             return titleDiff;
+        }
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return 0;
         }
         return compareByDifficulty(a, b);
     }
 
+    function compareByArtist(a, b) {
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let artistDiff = entryArtist(a).localeCompare(entryArtist(b));
+        if (artistDiff !== 0) {
+            return artistDiff;
+        }
+        return compareByTitle(a, b);
+    }
+
+    function compareNumberWithMissing(aValue, bValue) {
+        let aMissing = aValue === null || aValue === undefined || !isFinite(aValue);
+        let bMissing = bValue === null || bValue === undefined || !isFinite(bValue);
+        if (aMissing && bMissing) {
+            return 0;
+        }
+        if (aMissing) {
+            return 1;
+        }
+        if (bMissing) {
+            return -1;
+        }
+        return aValue - bValue;
+    }
+
+    function entryMaxBpmForSort(item) {
+        if (!isChart(item) && !isEntry(item)) {
+            return null;
+        }
+        let bpm = item.maxBpm || item.mainBpm || item.minBpm || 0;
+        return bpm > 0 ? bpm : null;
+    }
+
+    function entryLengthForSort(item) {
+        if (!isChart(item) && !isEntry(item)) {
+            return null;
+        }
+        return (item.length || 0) > 0 ? item.length : null;
+    }
+
+    function entryScoreRateForSort(item) {
+        let best = bestScoreByPoints(cachedEntryScores(item));
+        if (!best || !best.result || best.result.maxPoints <= 0) {
+            return null;
+        }
+        return best.result.points / best.result.maxPoints;
+    }
+
+    function entryMissCountForSort(item) {
+        let scoreList = cachedEntryScores(item);
+        if (!scoreList || scoreList.length === 0) {
+            return null;
+        }
+        let counts = scoreCounts(scoreList);
+        return counts.minBadPoor >= 0 ? counts.minBadPoor : null;
+    }
+
+    function compareByBpm(a, b) {
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let diff = compareNumberWithMissing(entryMaxBpmForSort(a), entryMaxBpmForSort(b));
+        if (diff !== 0) {
+            return diff;
+        }
+        return compareByTitle(a, b);
+    }
+
+    function compareByLength(a, b) {
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let diff = compareNumberWithMissing(entryLengthForSort(a), entryLengthForSort(b));
+        if (diff !== 0) {
+            return diff;
+        }
+        return compareByTitle(a, b);
+    }
+
     function compareByDifficulty(a, b) {
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
         let levelDiff = entryPlayLevel(a) - entryPlayLevel(b);
         if (levelDiff !== 0) {
             return levelDiff;
         }
-        return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
+        return compareByNameOnly(a, b);
     }
 
     function compareByClear(a, b) {
-        let lampDiff = entryLamp(b) - entryLamp(a);
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let aScores = cachedEntryScores(a);
+        let bScores = cachedEntryScores(b);
+        let aMissing = !aScores || aScores.length === 0;
+        let bMissing = !bScores || bScores.length === 0;
+        if (aMissing !== bMissing) {
+            return aMissing ? 1 : -1;
+        }
+        let lampDiff = entryLamp(a) - entryLamp(b);
         if (lampDiff !== 0) {
             return lampDiff;
         }
@@ -625,11 +724,41 @@ Item {
     }
 
     function compareByScore(a, b) {
-        return entryScoreRate(a) - entryScoreRate(b);
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let diff = compareNumberWithMissing(entryScoreRateForSort(a), entryScoreRateForSort(b));
+        if (diff !== 0) {
+            return diff;
+        }
+        return compareByDifficulty(a, b);
+    }
+
+    function compareByMissCount(a, b) {
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let diff = compareNumberWithMissing(entryMissCountForSort(a), entryMissCountForSort(b));
+        if (diff !== 0) {
+            return diff;
+        }
+        return compareByDifficulty(a, b);
+    }
+
+    function isSongLikeForSort(item) {
+        return isRankingEntry(item) || isChart(item) || isEntry(item);
+    }
+
+    function compareByNameOnly(a, b) {
+        return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
+    }
+
+    function activeSortMode() {
+        return sortSourceFrameCount >= 8 && sortMode === 0 ? 2 : sortMode;
     }
 
     function compareCharts(a, b) {
-        switch (sortMode) {
+        switch (activeSortMode()) {
         case 1:
             return compareByDifficulty(a, b);
         case 2:
@@ -638,29 +767,110 @@ Item {
             return compareByClear(a, b);
         case 4:
             return compareByScore(a, b);
+        case 5:
+            return compareByArtist(a, b);
+        case 6:
+            return compareByBpm(a, b);
+        case 7:
+            return compareByLength(a, b);
+        case 8:
+            return compareByMissCount(a, b);
         default:
             return 0;
         }
     }
 
+    function activeSortUsesScores() {
+        switch (activeSortMode()) {
+        case 3: // clear lamp
+        case 4: // score rate
+        case 8: // miss count
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function scoreLoadPreferredItem() {
+        if (currentIndex !== 0
+                || targetIndex !== 0
+                || selectedOffset !== 0
+                || pendingWheelSteps !== 0
+                || visualMoveActive) {
+            return current;
+        }
+        return null;
+    }
+
+    function handleScoresLoaded() {
+        refreshSelectedScoreState();
+        scoreRevision += 1;
+        if (activeSortUsesScores()) {
+            sortOrFilterChanged(scoreLoadPreferredItem());
+        }
+        touch();
+    }
+
+    function sortOrderForSourceCount(sourceCount) {
+        return sourceCount >= 8 ? beatorajaSortOrder : lr2SortOrder;
+    }
+
+    function resetSortSourceFrameCount() {
+        setSortSourceFrameCount(5);
+    }
+
+    function setSortSourceFrameCount(sourceCount) {
+        let normalized = sourceCount >= 8 ? 8 : 5;
+        if (sortSourceFrameCount === normalized) {
+            return;
+        }
+        sortSourceFrameCount = normalized;
+        if (folderContents.length > 0) {
+            sortOrFilterChanged();
+        }
+    }
+
+    function observeSortSourceFrameCount(sourceCount) {
+        if (sourceCount >= 8 && sortSourceFrameCount < 8) {
+            setSortSourceFrameCount(sourceCount);
+        }
+    }
+
+    function sortFrameForSourceCount(sourceCount) {
+        let order = sortOrderForSourceCount(sourceCount);
+        let frame = order.indexOf(sortMode);
+        if (frame >= 0) {
+            return frame;
+        }
+        return sourceCount >= 8 ? 0 : 0;
+    }
+
+    function adjustSortMode(delta, sourceCount) {
+        setSortSourceFrameCount(sourceCount);
+        let order = sortOrderForSourceCount(sourceCount);
+        let frame = order.indexOf(sortMode);
+        if (frame < 0) {
+            frame = 0;
+        }
+        frame = ((frame + delta) % order.length + order.length) % order.length;
+        sortMode = order[frame];
+    }
+
     function sortFilter(input) {
-        let folders = [];
-        let charts = [];
+        let entries = [];
         for (let item of input) {
             if (isChart(item) || isEntry(item)) {
                 if (!chartFilterMatches(item)) {
                     continue;
                 }
-                charts.push(item);
-            } else {
-                folders.push(item);
             }
+            entries.push(item);
         }
-        charts = difficultyFilteredCharts(charts);
-        if (sortMode !== 0) {
-            charts.sort(compareCharts);
+        entries = difficultyFilteredCharts(entries);
+        if (activeSortMode() !== 0) {
+            entries.sort(compareCharts);
         }
-        let result = folders.concat(charts);
+        let result = entries;
         if (result.length === 0) {
             result.push(null);
         }
@@ -712,9 +922,7 @@ Item {
             }
             Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((result) => {
                 scores = result.scores;
-                refreshSelectedScoreState();
-                scoreRevision += 1;
-                touch();
+                handleScoresLoaded();
             });
             refreshPreviewFiles();
             refreshFolderLamps();
@@ -730,9 +938,7 @@ Item {
             } else {
                 scores = result.scores;
             }
-            refreshSelectedScoreState();
-            scoreRevision += 1;
-            touch();
+            handleScoresLoaded();
         });
         refreshPreviewFiles();
         refreshFolderLamps();
@@ -1268,11 +1474,15 @@ Item {
     }
 
     function sortLabel() {
-        switch (sortMode) {
+        switch (activeSortMode()) {
         case 1: return "LEVEL";
         case 2: return "TITLE";
-        case 3: return "CLEAR";
-        case 4: return "SCORE";
+        case 3: return "CLEAR LAMP";
+        case 4: return "SCORE RATE";
+        case 5: return "ARTIST";
+        case 6: return "BPM";
+        case 7: return "LENGTH";
+        case 8: return "MISS COUNT";
         default: return "DIRECTORY";
         }
     }
@@ -1549,7 +1759,81 @@ Item {
         return judgement >= 0 && judgement < counts.length ? (counts[judgement] || 0) : 0;
     }
 
-    function statsForScore(score) {
+    function emptyJudgeTimingCounts() {
+        return {
+            early: [0, 0, 0, 0, 0, 0],
+            late: [0, 0, 0, 0, 0, 0]
+        };
+    }
+
+    function timingBucketForJudgement(judgement) {
+        switch (judgement) {
+        case Judgement.Perfect:
+            return 0;
+        case Judgement.Great:
+            return 1;
+        case Judgement.Good:
+            return 2;
+        case Judgement.Bad:
+            return 3;
+        case Judgement.Poor:
+            return 4;
+        case Judgement.EmptyPoor:
+            return 5;
+        default:
+            return -1;
+        }
+    }
+
+    function hitDeviationNanos(hit) {
+        if (!hit) {
+            return 0;
+        }
+        if (hit.points && hit.points.deviation !== undefined) {
+            return Number(hit.points.deviation || 0);
+        }
+        if (hit.hitOffset !== undefined) {
+            return Number(hit.hitOffset || 0);
+        }
+        return 0;
+    }
+
+    function judgeTimingCountsForScore(score) {
+        let counts = emptyJudgeTimingCounts();
+        let events = score && score.replayData && score.replayData.hitEvents
+            ? score.replayData.hitEvents
+            : [];
+        for (let hit of events || []) {
+            let judgement = hit && hit.points && hit.points.judgement !== undefined
+                ? hit.points.judgement
+                : -1;
+            let bucket = timingBucketForJudgement(judgement);
+            if (bucket < 0) {
+                continue;
+            }
+            let side = hitDeviationNanos(hit) < 0 ? counts.early : counts.late;
+            side[bucket] = (side[bucket] || 0) + 1;
+        }
+        return counts;
+    }
+
+    function timingCount(counts, bucket, early) {
+        if (bucket < 0 || !counts) {
+            return 0;
+        }
+        let source = early ? counts.early : counts.late;
+        return source && bucket < source.length ? (source[bucket] || 0) : 0;
+    }
+
+    function totalTimingCount(counts, early) {
+        let total = 0;
+        for (let bucket = 1; bucket <= 5; ++bucket) {
+            total += timingCount(counts, bucket, early);
+        }
+        return total;
+    }
+
+    function statsForScore(score, includeTiming) {
         if (!score || !score.result) {
             return null;
         }
@@ -1558,19 +1842,29 @@ Item {
         let gr = judgementCount(counts, Judgement.Great);
         let gd = judgementCount(counts, Judgement.Good);
         let bd = judgementCount(counts, Judgement.Bad);
-        let pr = judgementCount(counts, Judgement.Poor) + judgementCount(counts, Judgement.EmptyPoor);
+        let poor = judgementCount(counts, Judgement.Poor);
+        let miss = judgementCount(counts, Judgement.EmptyPoor);
+        let pr = poor + miss;
+        let timingCounts = includeTiming ? judgeTimingCountsForScore(score) : null;
         return {
             pg: pg,
             gr: gr,
             gd: gd,
             bd: bd,
+            poor: poor,
+            miss: miss,
             pr: pr,
             totalJudgements: Math.max(1, pg + gr + gd + bd + pr),
+            comboBreak: bd + poor,
             badPoor: bd + pr,
             maxCombo: score.result.maxCombo || 0,
             score: score.result.points || 0,
             exscore: score.result.points || 0,
-            maxPoints: score.result.maxPoints || 0
+            maxPoints: score.result.maxPoints || 0,
+            early: timingCounts ? timingCounts.early : null,
+            late: timingCounts ? timingCounts.late : null,
+            totalEarly: timingCounts ? totalTimingCount(timingCounts, true) : 0,
+            totalLate: timingCounts ? totalTimingCount(timingCounts, false) : 0
         };
     }
 
@@ -1578,7 +1872,7 @@ Item {
         if (!scoreList || scoreList.length === 0) {
             return null;
         }
-        return statsForScore(bestScoreByPoints(scoreList));
+        return statsForScore(bestScoreByPoints(scoreList), true);
     }
 
     function scoreCounts(scoreList) {
@@ -1632,7 +1926,7 @@ Item {
             } else {
                 ++counts.noplay;
             }
-            let stats = statsForScore(score);
+                let stats = statsForScore(score, false);
             if (stats) {
                 minBadPoor = minBadPoor < 0 ? stats.badPoor : Math.min(minBadPoor, stats.badPoor);
             }
@@ -1649,6 +1943,39 @@ Item {
         return total > 0 ? Math.floor(Math.max(0, value || 0) * 10000 / total) % 100 : 0;
     }
 
+    function scorePrintValue(stats, chart) {
+        if (!stats) {
+            return 0;
+        }
+        let totalNotes = chartPlayableNoteCount(chart);
+        if (totalNotes <= 0) {
+            totalNotes = Math.floor((stats.maxPoints || 0) / 2);
+        }
+        if (totalNotes <= 0) {
+            return 0;
+        }
+        let keymode = chart ? (chart.keymode || 0) : 0;
+        if (keymode === 5 || keymode === 10) {
+            return Math.floor((100000 * stats.pg
+                               + 100000 * stats.gr
+                               + 50000 * stats.gd) / totalNotes);
+        }
+        if (keymode === 7 || keymode === 14) {
+            return Math.floor((150000 * stats.pg
+                               + 100000 * stats.gr
+                               + 20000 * stats.gd) / totalNotes)
+                + Math.floor(50000 * (stats.maxCombo || 0) / totalNotes);
+        }
+        if (keymode === 9) {
+            return Math.floor((100000 * stats.pg
+                               + 70000 * stats.gr
+                               + 40000 * stats.gd) / totalNotes);
+        }
+        return Math.floor((1000000 * stats.pg
+                           + 700000 * stats.gr
+                           + 400000 * stats.gd) / totalNotes);
+    }
+
     function currentFolderScoreCounts() {
         let revisionMarker = folderLampRevision;
         let key = folderLampKey(current);
@@ -1657,11 +1984,8 @@ Item {
             : emptyFolderScoreCounts;
     }
 
-    function appendScoreOptionIds(score, ids) {
-        if (!score || !score.result) {
-            return;
-        }
-        switch (clearTypeOf(score)) {
+    function appendScoreClearOptionIds(clearType, ids) {
+        switch (clearType || "NOPLAY") {
         case "AEASY":
             ids.push(124);
             ids.push(1100);
@@ -1682,7 +2006,6 @@ Item {
             ids.push(1102);
             break;
         case "FC":
-            ids.push(120);
             ids.push(105);
             break;
         case "PERFECT":
@@ -1693,6 +2016,12 @@ Item {
             ids.push(122);
             ids.push(1104);
             break;
+        }
+    }
+
+    function appendScoreOptionIds(score, ids) {
+        if (!score || !score.result) {
+            return;
         }
 
         switch (score.result.noteOrderAlgorithm) {
@@ -1734,6 +2063,7 @@ Item {
             return emptyScoreOptionIds;
         }
         let ids = [];
+        appendScoreClearOptionIds(getClearType(scoreList), ids);
         for (let score of scoreList) {
             appendScoreOptionIds(score, ids);
         }
@@ -2366,6 +2696,26 @@ Item {
             return counts.clear;
         case 79:
             return counts.fail;
+        case 100:
+            return scorePrintValue(stats, chart);
+        case 101:
+            return stats ? Math.round(stats.exscore) : 0;
+        case 102:
+            return stats ? percentInteger(stats.exscore, stats.maxPoints) : 0;
+        case 103:
+            return stats ? percentAfterDot(stats.exscore, stats.maxPoints) : 0;
+        case 104:
+        case 105:
+            return stats ? stats.maxCombo : 0;
+        case 106:
+            return chartPlayableNoteCount(chart);
+        case 107:
+            return 0;
+        case 108:
+        case 128:
+            return stats ? Math.round(stats.exscore) : 0;
+        case 109:
+            return 0;
         case 80:
             return stats ? stats.pg : 0;
         case 81:
@@ -2375,7 +2725,7 @@ Item {
         case 83:
             return stats ? stats.bd : 0;
         case 84:
-            return stats ? stats.pr : 0;
+            return stats ? stats.poor : 0;
         case 85:
             return stats ? percentInteger(stats.pg, stats.totalJudgements) : 0;
         case 86:
@@ -2385,7 +2735,72 @@ Item {
         case 88:
             return stats ? percentInteger(stats.bd, stats.totalJudgements) : 0;
         case 89:
-            return stats ? percentInteger(stats.pr, stats.totalJudgements) : 0;
+            return stats ? percentInteger(stats.poor, stats.totalJudgements) : 0;
+        case 110:
+            return stats ? stats.pg : 0;
+        case 111:
+            return stats ? stats.gr : 0;
+        case 112:
+            return stats ? stats.gd : 0;
+        case 113:
+            return stats ? stats.bd : 0;
+        case 114:
+            return stats ? stats.poor : 0;
+        case 115:
+            return stats ? percentInteger(stats.exscore, stats.maxPoints) : 0;
+        case 116:
+            return stats ? percentAfterDot(stats.exscore, stats.maxPoints) : 0;
+        case 410:
+            return stats ? timingCount(stats, 0, true) : 0;
+        case 411:
+            return stats ? timingCount(stats, 0, false) : 0;
+        case 412:
+            return stats ? timingCount(stats, 1, true) : 0;
+        case 413:
+            return stats ? timingCount(stats, 1, false) : 0;
+        case 414:
+            return stats ? timingCount(stats, 2, true) : 0;
+        case 415:
+            return stats ? timingCount(stats, 2, false) : 0;
+        case 416:
+            return stats ? timingCount(stats, 3, true) : 0;
+        case 417:
+            return stats ? timingCount(stats, 3, false) : 0;
+        case 418:
+            return stats ? timingCount(stats, 4, true) : 0;
+        case 419:
+            return stats ? timingCount(stats, 4, false) : 0;
+        case 121:
+        case 151:
+            return 0;
+        case 122:
+        case 135:
+            return 0;
+        case 123:
+        case 136:
+            return 0;
+        case 150:
+            return stats ? Math.round(stats.exscore) : 0;
+        case 152:
+            return stats ? Math.round(stats.exscore) : 0;
+        case 154:
+            return 0;
+        case 420:
+            return stats ? stats.miss : 0;
+        case 421:
+            return stats ? timingCount(stats, 5, true) : 0;
+        case 422:
+            return stats ? timingCount(stats, 5, false) : 0;
+        case 423:
+            return stats ? stats.totalEarly : 0;
+        case 424:
+            return stats ? stats.totalLate : 0;
+        case 425:
+            return stats ? stats.comboBreak : 0;
+        case 426:
+            return stats ? stats.pr : 0;
+        case 427:
+            return stats ? stats.badPoor : 0;
         case 92:
             return hasRankingStats
                 ? rankingPlayerRank

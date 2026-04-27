@@ -2834,6 +2834,7 @@ Item {
 
         let rank = selectContext.entryRank(item);
         if (lamp > 0 && rank >= 1) {
+            root.addOption(options, 208 - Math.min(rank, 8));
             root.addOption(options, 118 - Math.min(rank, 8));
         }
     }
@@ -6504,6 +6505,10 @@ Item {
     function imageSetValue(imageSetRef, sourceCount) {
         let id = Math.floor(imageSetRef || 0);
         switch (id) {
+        case 12:
+            return root.effectiveScreenKey === "select" && sourceCount >= 5
+                ? selectContext.sortFrameForSourceCount(sourceCount)
+                : root.resolveNumber(id);
         case 40:
             return root.lr2GaugeIndexP1;
         case 41:
@@ -6675,6 +6680,22 @@ Item {
         return ((value % count) + count) % count;
     }
 
+    function elementSourceFrameCount(src) {
+        if (!src) {
+            return 0;
+        }
+        if (src.imageSet) {
+            return src.imageSetSources ? src.imageSetSources.length : 0;
+        }
+        return Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1);
+    }
+
+    function observeSelectSortButton(src) {
+        if (root.effectiveScreenKey === "select" && root.elementButtonId(src) === 12) {
+            selectContext.observeSortSourceFrameCount(root.elementSourceFrameCount(src));
+        }
+    }
+
     function buttonUsesSplitArrows(buttonId) {
         switch (buttonId) {
         case 10:
@@ -6722,6 +6743,8 @@ Item {
         }
         let id = Math.floor(src.imageSetRef || 0);
         switch (id) {
+        case 12:
+            return root.elementSourceFrameCount(src) >= 5 ? id : 0;
         case 40:
         case 41:
         case 42:
@@ -6799,7 +6822,7 @@ Item {
         case 11:
             return Math.min(selectContext.keyFilter, 6);
         case 12:
-            return selectContext.sortMode;
+            return selectContext.sortFrameForSourceCount(root.elementSourceFrameCount(src));
         case 40:
             return root.lr2GaugeIndexP1;
         case 41:
@@ -7080,7 +7103,7 @@ Item {
         return root.panelMatches(src.buttonPanel || 0);
     }
 
-    function handleLr2Button(buttonId, delta, panel, soundPlayer) {
+    function handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount) {
         if (!root.enabled || root.effectiveScreenKey !== "select" || !root.acceptsInput) {
             return;
         }
@@ -7129,7 +7152,7 @@ Item {
             optionChanged = true;
             break;
         case 12:
-            selectContext.sortMode = root.wrapValue(selectContext.sortMode + delta, 5);
+            selectContext.adjustSortMode(delta, sourceCount || 5);
             selectContext.sortOrFilterChanged();
             optionChanged = true;
             break;
@@ -8343,6 +8366,9 @@ Item {
         activeOptions: root.parseActiveOptions
 
         onSkinLoaded: {
+            if (root.effectiveScreenKey === "select") {
+                selectContext.resetSortSourceFrameCount();
+            }
             root.queueSkinClockRestartAfterLoad();
             Qt.callLater(root.openSelectIfNeeded);
             Qt.callLater(root.activateGameplayIfNeeded);
@@ -8866,6 +8892,10 @@ Item {
                             return grooveGaugeComponent;
                         } else if (model.type === 10) {
                             return resultChartComponent;
+                        } else if (model.type === 11) {
+                            return noteChartComponent;
+                        } else if (model.type === 12) {
+                            return bpmChartComponent;
                         }
                         return undefined;
                     }
@@ -8878,6 +8908,8 @@ Item {
                             readonly property int spriteSkinClock: elemLoader.usesSkinTime
                                 ? root.spriteSkinTime(model.src, model.dsts)
                                 : 0
+
+                            Component.onCompleted: root.observeSelectSortButton(model.src)
 
                             Lr2SpriteRenderer {
                                 anchors.fill: parent
@@ -8938,7 +8970,9 @@ Item {
                                     root.handleLr2Button(
                                         parent.effectiveButtonId,
                                         delta,
-                                        root.elementButtonPanel(model.src));
+                                        root.elementButtonPanel(model.src),
+                                        undefined,
+                                        root.elementSourceFrameCount(model.src));
                                     mouse.accepted = true;
                                 }
                             }
@@ -9004,6 +9038,34 @@ Item {
                             timers: elemLoader.elementTimers
                             scaleOverride: skinScale
                             screenRoot: root
+                        }
+                    }
+
+                    Component {
+                        id: noteChartComponent
+                        Lr2NoteChartRenderer {
+                            anchors.fill: parent
+                            dsts: model.dsts
+                            srcData: model.src
+                            skinTime: elemLoader.elementSkinTime
+                            activeOptions: elemLoader.elementActiveOptions
+                            timers: elemLoader.elementTimers
+                            scaleOverride: skinScale
+                            chart: root.renderChart
+                        }
+                    }
+
+                    Component {
+                        id: bpmChartComponent
+                        Lr2BpmChartRenderer {
+                            anchors.fill: parent
+                            dsts: model.dsts
+                            srcData: model.src
+                            skinTime: elemLoader.elementSkinTime
+                            activeOptions: elemLoader.elementActiveOptions
+                            timers: elemLoader.elementTimers
+                            scaleOverride: skinScale
+                            chart: root.renderChart
                         }
                     }
 

@@ -1041,6 +1041,67 @@ parseBarGraphSource(const QStringList& tokens,
     return src;
 }
 
+auto
+parseNoteChartSource(const QStringList& tokens) -> Lr2SrcNoteChart
+{
+    Lr2SrcNoteChart src;
+    if (tokens.size() > 1 && !tokens[1].isEmpty())
+        src.chartType = tokens[1].toInt();
+    if (tokens.size() > 11 && !tokens[11].isEmpty())
+        src.fieldW = qMax(1, tokens[11].toInt());
+    if (tokens.size() > 12 && !tokens[12].isEmpty())
+        src.fieldH = qMax(1, tokens[12].toInt());
+    if (tokens.size() > 13 && !tokens[13].isEmpty())
+        src.start = tokens[13].toInt();
+    if (tokens.size() > 14 && !tokens[14].isEmpty())
+        src.end = tokens[14].toInt();
+    if (tokens.size() > 15 && !tokens[15].isEmpty())
+        src.delay = tokens[15].toInt();
+    if (tokens.size() > 16 && !tokens[16].isEmpty())
+        src.backTexOff = tokens[16].toInt();
+    if (tokens.size() > 17 && !tokens[17].isEmpty())
+        src.orderReverse = tokens[17].toInt();
+    if (tokens.size() > 18 && !tokens[18].isEmpty())
+        src.noGap = tokens[18].toInt();
+    return src;
+}
+
+auto
+parseChartColor(const QStringList& tokens,
+                const int index,
+                const QString& fallback) -> QString
+{
+    if (tokens.size() <= index || tokens[index].isEmpty()) {
+        return fallback;
+    }
+    return tokens[index].trimmed();
+}
+
+auto
+parseBpmChartSource(const QStringList& tokens) -> Lr2SrcBpmChart
+{
+    Lr2SrcBpmChart src;
+    if (tokens.size() > 1 && !tokens[1].isEmpty())
+        src.fieldW = qMax(1, tokens[1].toInt());
+    if (tokens.size() > 2 && !tokens[2].isEmpty())
+        src.fieldH = qMax(1, tokens[2].toInt());
+    if (tokens.size() > 3 && !tokens[3].isEmpty())
+        src.delay = tokens[3].toInt();
+    if (tokens.size() > 4 && !tokens[4].isEmpty())
+        src.lineWidth = qMax(1, tokens[4].toInt());
+    src.mainBpmColor =
+      parseChartColor(tokens, 5, QStringLiteral("00ff00"));
+    src.minBpmColor = parseChartColor(tokens, 6, QStringLiteral("0000ff"));
+    src.maxBpmColor = parseChartColor(tokens, 7, QStringLiteral("ff0000"));
+    src.otherBpmColor =
+      parseChartColor(tokens, 8, QStringLiteral("ffff00"));
+    src.stopLineColor =
+      parseChartColor(tokens, 9, QStringLiteral("ff00ff"));
+    src.transitionLineColor =
+      parseChartColor(tokens, 10, QStringLiteral("7f7f7f"));
+    return src;
+}
+
 void
 applyFont(Lr2SrcText& src, const ParseState& state)
 {
@@ -1629,6 +1690,36 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseResultChartSource(tokens, state, 2, 1));
     } else if (command == "#DST_SCORECHART") {
         if (state.hasCurrentElement && state.currentElement.type == 10) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_NOTECHART" ||
+               command == "#SRC_NOTECHART_1P" ||
+               command == "#SRC_NOTECHART_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 11;
+        state.hasCurrentElement = true;
+        state.currentElement.src =
+          QVariant::fromValue(parseNoteChartSource(tokens));
+    } else if (command == "#DST_NOTECHART" ||
+               command == "#DST_NOTECHART_1P" ||
+               command == "#DST_NOTECHART_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 11) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_BPMCHART" ||
+               command == "#SRC_BPMCHART_1P" ||
+               command == "#SRC_BPMCHART_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 12;
+        state.hasCurrentElement = true;
+        state.currentElement.src =
+          QVariant::fromValue(parseBpmChartSource(tokens));
+    } else if (command == "#DST_BPMCHART" ||
+               command == "#DST_BPMCHART_1P" ||
+               command == "#DST_BPMCHART_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 12) {
             parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_TEXT") {
