@@ -94,6 +94,7 @@ struct Lr2SrcImage
     Q_PROPERTY(bool imageSet MEMBER imageSet)
     Q_PROPERTY(int imageSetRef MEMBER imageSetRef)
     Q_PROPERTY(QVariantList imageSetSources MEMBER imageSetSources)
+    Q_PROPERTY(bool grooveGaugeEx MEMBER grooveGaugeEx)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(int side MEMBER side)
     Q_PROPERTY(QString source MEMBER source)
@@ -143,6 +144,7 @@ struct Lr2SrcImage
     bool imageSet = false;
     int imageSetRef = 0;
     QVariantList imageSetSources;
+    bool grooveGaugeEx = false;
     int specialType = None;
     int side = 0;
     QString source;

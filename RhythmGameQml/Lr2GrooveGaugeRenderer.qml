@@ -28,15 +28,16 @@ Item {
     readonly property var score: player ? player.score : null
     readonly property real gaugeValue: screenRoot && score ? screenRoot.gameplayGaugeValue(score) : 0
     readonly property int hpSegments: Math.max(0, Math.min(50, Math.floor(gaugeValue / 2)))
-    readonly property bool survivalGauge: {
-        let vars = player && player.profile && player.profile.vars
-            ? player.profile.vars.generalVars
-            : null;
-        let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
-        return gauge === "HARD" || gauge === "EXHARD" || gauge === "EXDAN"
-            || gauge === "EXHARDDAN" || gauge === "FC" || gauge === "PERFECT"
-            || gauge === "MAX";
-    }
+    readonly property string activeGaugeName: screenRoot ? screenRoot.activeGaugeNameForSide(side) : ""
+    readonly property bool survivalGauge: screenRoot
+        ? screenRoot.gaugeNameIsSurvival(activeGaugeName)
+        : false
+    readonly property int exGaugeFrameOffset: srcData
+        && srcData.grooveGaugeEx
+        && screenRoot
+        && screenRoot.gaugeNameUsesExGaugeSprites(activeGaugeName)
+        ? 4
+        : 0
 
     function segmentFrame(segment, hp, trembleRoll, survival) {
         let oneBased = segment + 1;
@@ -101,6 +102,7 @@ Item {
             scaleOverride: root.scaleOverride
             frameOverride: root.segmentFrame(
                 index, root.hpSegments, root.trembleRoll, root.survivalGauge)
+                + root.exGaugeFrameOffset
         }
     }
 }

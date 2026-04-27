@@ -2204,17 +2204,99 @@ Item {
         return used.indexOf(option) !== -1;
     }
 
-    function gaugeColorOption(side) {
+    function configuredGaugeName(side) {
         let vars = root.generalVarsForSide(side);
-        let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
-        let red = gauge === "HARD" || gauge === "EXHARD"
-            || gauge === "FC" || gauge === "PERFECT" || gauge === "MAX";
+        return String(vars ? vars.gaugeType : "").toUpperCase();
+    }
+
+    function gameplayActiveGauge(score) {
+        if (!score || !score.gauges || score.gauges.length === 0) {
+            return null;
+        }
+        let gauges = score.gauges;
+        for (let gauge of gauges) {
+            if (gauge && (gauge.gauge || 0) > (gauge.threshold || 0)) {
+                return gauge;
+            }
+        }
+        return gauges[gauges.length - 1] || null;
+    }
+
+    function gameplayActiveGaugeName(score) {
+        let gauge = root.gameplayActiveGauge(score);
+        return String(gauge && gauge.name ? gauge.name : "").toUpperCase();
+    }
+
+    function activeGaugeNameForSide(side) {
+        if (root.isGameplayScreen()) {
+            let activeName = root.gameplayActiveGaugeName(root.gameplayScore(side));
+            if (activeName.length > 0) {
+                return activeName;
+            }
+        }
+        return root.configuredGaugeName(side);
+    }
+
+    function gaugeNameIsSurvival(name) {
+        switch (String(name || "").toUpperCase()) {
+        case "HARD":
+        case "EXHARD":
+        case "FC":
+        case "PERFECT":
+        case "MAX":
+        case "DAN":
+        case "EXDAN":
+        case "EXHARDDAN":
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function gaugeNameUsesBeatorajaExOption(name) {
+        switch (String(name || "").toUpperCase()) {
+        case "AEASY":
+        case "EASY":
+        case "EXHARD":
+        case "FC":
+        case "PERFECT":
+        case "MAX":
+        case "EXDAN":
+        case "EXHARDDAN":
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function gaugeNameUsesExGaugeSprites(name) {
+        switch (String(name || "").toUpperCase()) {
+        case "EXHARD":
+        case "FC":
+        case "PERFECT":
+        case "MAX":
+        case "EXDAN":
+        case "EXHARDDAN":
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function addGaugeExOption(options, side) {
+        let gauge = root.activeGaugeNameForSide(side);
+        if (root.gaugeNameUsesBeatorajaExOption(gauge)) {
+            root.addOption(options, side === 2 ? 1047 : 1046);
+        }
+    }
+
+    function gaugeColorOption(side) {
+        let red = root.gaugeNameIsSurvival(root.activeGaugeNameForSide(side));
         return side === 2 ? (red ? 45 : 44) : (red ? 43 : 42);
     }
 
     function gameplayGaugeTrophyOption(side) {
-        let vars = root.generalVarsForSide(side);
-        let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
+        let gauge = root.activeGaugeNameForSide(side);
         if (gauge === "AEASY") {
             return 124;
         }
@@ -2403,6 +2485,8 @@ Item {
         root.addOption(options, vars && vars.bgaOn === false ? 40 : 41);
         root.addOption(options, root.gaugeColorOption(1));
         root.addOption(options, root.gaugeColorOption(2));
+        root.addGaugeExOption(options, 1);
+        root.addGaugeExOption(options, 2);
         root.addOption(options, root.gameplayGaugeTrophyOption(1));
         root.addOption(options, root.gameplayGaugeTrophyOption(2));
         root.addOption(options, 46); // difficulty filter enabled.
@@ -3882,16 +3966,8 @@ Item {
     }
 
     function gameplayGaugeValue(score) {
-        if (!score || !score.gauges || score.gauges.length === 0) {
-            return 0;
-        }
-        let gauges = score.gauges;
-        for (let gauge of gauges) {
-            if (gauge.gauge > gauge.threshold) {
-                return gauge.gauge;
-            }
-        }
-        return gauges[gauges.length - 1].gauge || 0;
+        let gauge = root.gameplayActiveGauge(score);
+        return gauge ? (gauge.gauge || 0) : 0;
     }
 
     function gameplayRateInteger(score, currentOnly) {
@@ -3993,22 +4069,14 @@ Item {
     }
 
     function gameplayGaugeQualified(score) {
-        if (!score || !score.gauges || score.gauges.length === 0) {
-            return false;
-        }
-        for (let gauge of score.gauges) {
-            if (gauge.gauge > gauge.threshold) {
-                return (gauge.gauge || 0) >= (gauge.threshold || 0);
-            }
-        }
-        let fallback = score.gauges[score.gauges.length - 1];
-        return fallback ? (fallback.gauge || 0) >= (fallback.threshold || 0) : false;
+        let gauge = root.gameplayActiveGauge(score);
+        return gauge ? (gauge.gauge || 0) > (gauge.threshold || 0) : false;
     }
 
     function gameplayGaugeOption(side) {
-        let vars = root.generalVarsForSide(side);
-        let gauge = String(vars ? vars.gaugeType : "").toUpperCase();
-        if (gauge === "HARD" || gauge === "EXHARD" || gauge === "EXDAN" || gauge === "EXHARDDAN") {
+        let gauge = root.activeGaugeNameForSide(side);
+        if (gauge === "HARD" || gauge === "EXHARD" || gauge === "DAN"
+            || gauge === "EXDAN" || gauge === "EXHARDDAN") {
             return 119;
         }
         if (gauge === "EASY" || gauge === "AEASY") {
@@ -4892,6 +4960,8 @@ Item {
         case 43:
         case 44:
         case 45:
+        case 1046:
+        case 1047:
         case 50:
         case 51:
         case 80:

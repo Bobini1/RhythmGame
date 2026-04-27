@@ -1734,13 +1734,15 @@ processCommand(const QStringList& tokens,
             state.noteDsts[tokens[1].toInt()].append(
               QVariant::fromValue(parseDstValue(tokens, state.sortId)));
         }
-    } else if (command == "#SRC_GROOVEGAUGE") {
+    } else if (command == "#SRC_GROOVEGAUGE" ||
+               command == "#SRC_GROOVEGAUGE_EX") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
         state.currentElement.type = 9;
         state.hasCurrentElement = true;
 
         auto src = parseImageSource(tokens, state);
+        src.grooveGaugeEx = command == "#SRC_GROOVEGAUGE_EX";
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
             src.side = tokens[1].toInt() + 1;
         }
