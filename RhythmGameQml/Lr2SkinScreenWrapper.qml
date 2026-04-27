@@ -5249,6 +5249,9 @@ Item {
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.deferredSelectChart
         : (root.chart || root.resultChartData())
+    readonly property var visualSelectChart: root.effectiveScreenKey === "select"
+        ? selectContext.selectedChartWrapper()
+        : root.renderChart
     readonly property var selectedCourseStages: {
         let revision = root.effectiveScreenKey === "select" ? selectContext.selectionRevision : 0;
         if (root.effectiveScreenKey === "courseResult") {
@@ -6664,16 +6667,10 @@ Item {
         }
     }
 
-    function barGraphHasSourceAnimation(src) {
+    function sourceHasFrameAnimation(src) {
         return src
             && (src.cycle || 0) > 0
             && Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1) > 1;
-    }
-
-    function barGraphSourceSkinTime(src) {
-        return root.effectiveScreenKey === "select" && root.barGraphHasSourceAnimation(src)
-            ? root.selectSourceSkinTime
-            : root.renderSkinTime;
     }
 
     function wrapValue(value, count) {
@@ -8039,7 +8036,9 @@ Item {
         onTriggered: {
             let now = Date.now();
             root.selectSourceSkinTime = now - root.sceneStartMs;
-            selectContext.updateVisualIndex(now);
+            if (selectContext.visualMoveActive || selectContext.pendingWheelSteps !== 0) {
+                selectContext.updateVisualIndex(now);
+            }
         }
     }
 
@@ -8859,14 +8858,26 @@ Item {
                     readonly property bool usesActiveOptions: root.dstsUseActiveOptions(model.dsts)
                     readonly property bool usesTimers: root.elementUsesTimers(model.src, model.dsts)
                     readonly property bool usesSkinTime: root.elementUsesSkinTime(model.src, model.dsts)
+                    readonly property int dstTimer: model.dsts && model.dsts.length > 0
+                        ? (model.dsts[0].timer || 0)
+                        : 0
+                    readonly property bool usesSelectHeldButtonTimer: root.isSelectHeldButtonTimer(dstTimer)
+                    readonly property bool usesLiveSelectClock: root.elementUsesLiveSelectClock(model.src, model.dsts)
                     readonly property var elementActiveOptions: usesActiveOptions
                         ? root.runtimeActiveOptions
                         : root.emptyActiveOptions
                     readonly property var elementTimers: usesTimers
                         ? root.timers
                         : root.zeroTimers
-                    readonly property int elementSkinTime: usesSkinTime
-                        ? root.skinTimeForElement(model.src, model.dsts)
+                    readonly property bool usesElementSkinTime: usesSkinTime
+                        && model.type !== 0
+                        && model.type !== 3
+                        && model.type !== 4
+                        && model.type !== 5
+                        && model.type !== 8
+                        && model.type !== 9
+                    readonly property int elementSkinTime: usesElementSkinTime
+                        ? (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime)
                         : 0
 
                     sourceComponent: {
@@ -8906,7 +8917,13 @@ Item {
                             width: skinW * skinScale
                             height: skinH * skinScale
                             readonly property int spriteSkinClock: elemLoader.usesSkinTime
-                                ? root.spriteSkinTime(model.src, model.dsts)
+                                ? (elemLoader.usesSelectHeldButtonTimer
+                                    ? (root.hasSelectHeldButtonTimers
+                                        ? root.selectHeldButtonSkinTime
+                                        : root.currentSelectHeldButtonSkinTime())
+                                    : (elemLoader.usesLiveSelectClock
+                                        ? root.selectSourceSkinTime
+                                        : root.renderSkinTime))
                                 : 0
 
                             Component.onCompleted: root.observeSelectSortButton(model.src)
@@ -9051,7 +9068,7 @@ Item {
                             activeOptions: elemLoader.elementActiveOptions
                             timers: elemLoader.elementTimers
                             scaleOverride: skinScale
-                            chart: root.renderChart
+                            chart: root.visualSelectChart
                         }
                     }
 
@@ -9065,7 +9082,7 @@ Item {
                             activeOptions: elemLoader.elementActiveOptions
                             timers: elemLoader.elementTimers
                             scaleOverride: skinScale
-                            chart: root.renderChart
+                            chart: root.visualSelectChart
                         }
                     }
 
@@ -9476,11 +9493,12 @@ Item {
                     Component {
                         id: barImageComponent
                         Lr2BarSpriteRenderer {
+                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
                             sourceSkinTime: root.effectiveScreenKey === "select"
-                                ? root.selectSourceSkinTime
+                                ? (sourceAnimates ? root.selectSourceSkinTime : root.renderSkinTime)
                                 : root.renderSkinTime
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
@@ -9536,10 +9554,13 @@ Item {
                     Component {
                         id: barGraphComponent
                         Lr2BarGraphRenderer {
+                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
-                            sourceSkinTime: root.barGraphSourceSkinTime(model.src)
+                            sourceSkinTime: root.effectiveScreenKey === "select" && sourceAnimates
+                                ? root.selectSourceSkinTime
+                                : root.renderSkinTime
                             activeOptions: elemLoader.elementActiveOptions
                             timers: elemLoader.elementTimers
                             chart: root.renderChart
@@ -9644,10 +9665,17 @@ Item {
                     id: sliderMouseArea
                     readonly property bool selectScroll: root.isSelectScrollSlider(model.src)
                     readonly property bool genericSlider: root.isLr2GenericSlider(model.src)
-                    readonly property int sliderSkinClock: root.skinTimeForElement(model.src, model.dsts)
-                    readonly property var trackState: selectScroll
-                        ? root.selectScrollSliderTrackState(model.src, model.dsts, sliderSkinClock)
-                        : root.lr2GenericSliderTrackState(model.src, model.dsts, sliderSkinClock)
+                    readonly property bool sliderActive: selectScroll || genericSlider
+                    readonly property bool usesLiveSelectClock: sliderActive
+                        && root.elementUsesLiveSelectClock(model.src, model.dsts)
+                    readonly property int sliderSkinClock: sliderActive
+                        ? (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime)
+                        : 0
+                    readonly property var trackState: !sliderActive
+                        ? null
+                        : (selectScroll
+                            ? root.selectScrollSliderTrackState(model.src, model.dsts, sliderSkinClock)
+                            : root.lr2GenericSliderTrackState(model.src, model.dsts, sliderSkinClock))
                     enabled: root.selectMouseScrollReady() && !!trackState
                     acceptedButtons: Qt.LeftButton
                     preventStealing: true
