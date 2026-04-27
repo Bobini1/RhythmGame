@@ -15,6 +15,8 @@ Item {
     property real value: 0
     property bool animateValue: false
     property int valueAnimationDuration: 100
+    property bool colorKeyEnabled: false
+    property color transColor: "black"
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -26,6 +28,21 @@ Item {
         || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
     readonly property real clampedValue: Math.max(0, Math.min(1, value))
     property real displayedValue: clampedValue
+    readonly property int blendMode: {
+        let raw = currentState ? currentState.blend : 1;
+        if (raw === 0 && !root.colorKeyEnabled) return 1;
+        if (raw === 5 || raw === 6) return 2;
+        if (raw === 3 || raw === 4 || raw === 9 || raw === 11) return 1;
+        return raw;
+    }
+    function colorComponent(value) {
+        if (value === undefined || value === null) return 1.0;
+        return Math.max(0, Math.min(255, value)) / 255.0;
+    }
+    readonly property real tintR: root.currentState ? root.colorComponent(root.currentState.r) : 1.0
+    readonly property real tintG: root.currentState ? root.colorComponent(root.currentState.g) : 1.0
+    readonly property real tintB: root.currentState ? root.colorComponent(root.currentState.b) : 1.0
+    readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
     readonly property int frameIndex: {
         if (!srcData) return 0;
         let timerIdx = srcData.timer || 0;
@@ -115,10 +132,10 @@ Item {
             visible: graphAtlas.status === Image.Ready
             blending: true
             property variant source: graphAtlas
-            property color tint: "white"
-            property color transColor: "black"
-            property real blendMode: 1.0
-            property real colorKeyEnabled: 0.0
+            property color tint: root.tintColor
+            property color transColor: root.transColor
+            property real blendMode: root.blendMode
+            property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
             property real tolerance: 0.03125
             property real nearestMode: root.currentState && (root.currentState.filter || 0) === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(

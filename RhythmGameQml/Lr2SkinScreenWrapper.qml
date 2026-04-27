@@ -78,6 +78,13 @@ Item {
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
     readonly property int lr2CurrentFps: Math.round(lr2FpsAnimation.fps)
+    property int lr2ClockYear: 0
+    property int lr2ClockMonth: 0
+    property int lr2ClockDay: 0
+    property int lr2ClockHour: 0
+    property int lr2ClockMinute: 0
+    property int lr2ClockSecond: 0
+    property int lr2SceneUptimeSeconds: 0
     property var resultOldScores1: []
     property var resultOldScores2: []
     property int resultOldScoresRevision: 0
@@ -2278,14 +2285,23 @@ Item {
 
     function elementUsesSkinTime(src, dsts) {
         return !Lr2Timeline.canUseStaticState(dsts)
-            || (!!src && ((src.cycle || 0) > 0
+            || (!!src && (Lr2Timeline.srcCyclesContinuously(src)
                 || (src.resultChartType || 0) > 0));
     }
 
-    function elementUsesLiveSelectClock(src, dsts) {
+    function elementUsesLiveDstClock(dsts) {
         return root.effectiveScreenKey === "select"
-            && (Lr2Timeline.dstsLoopContinuously(dsts)
-                || Lr2Timeline.srcCyclesContinuously(src));
+            && Lr2Timeline.dstsLoopContinuously(dsts);
+    }
+
+    function elementUsesLiveSourceClock(src) {
+        return root.effectiveScreenKey === "select"
+            && Lr2Timeline.srcCyclesContinuously(src);
+    }
+
+    function elementUsesLiveSelectClock(src, dsts) {
+        return root.elementUsesLiveDstClock(dsts)
+            || root.elementUsesLiveSourceClock(src);
     }
 
     function skinTimeForElement(src, dsts) {
@@ -2600,32 +2616,41 @@ Item {
     }
 
     function dateTimeNumber(num) {
-        let now = new Date();
-        let uptimeSeconds = Math.floor(Math.max(0, root.globalSkinTime || 0) / 1000);
         switch (num) {
         case 20:
             return root.lr2CurrentFps;
         case 21:
-            return now.getFullYear();
+            return root.lr2ClockYear;
         case 22:
-            return now.getMonth() + 1;
+            return root.lr2ClockMonth;
         case 23:
-            return now.getDate();
+            return root.lr2ClockDay;
         case 24:
-            return now.getHours();
+            return root.lr2ClockHour;
         case 25:
-            return now.getMinutes();
+            return root.lr2ClockMinute;
         case 26:
-            return now.getSeconds();
+            return root.lr2ClockSecond;
         case 27:
-            return Math.floor(uptimeSeconds / 3600);
+            return Math.floor(root.lr2SceneUptimeSeconds / 3600);
         case 28:
-            return Math.floor(uptimeSeconds / 60) % 60;
+            return Math.floor(root.lr2SceneUptimeSeconds / 60) % 60;
         case 29:
-            return uptimeSeconds % 60;
+            return root.lr2SceneUptimeSeconds % 60;
         default:
             return 0;
         }
+    }
+
+    function updateLr2DateTimeNumbers() {
+        let now = new Date();
+        root.lr2ClockYear = now.getFullYear();
+        root.lr2ClockMonth = now.getMonth() + 1;
+        root.lr2ClockDay = now.getDate();
+        root.lr2ClockHour = now.getHours();
+        root.lr2ClockMinute = now.getMinutes();
+        root.lr2ClockSecond = now.getSeconds();
+        root.lr2SceneUptimeSeconds = Math.floor(Math.max(0, Date.now() - root.sceneStartMs) / 1000);
     }
 
     function appendCommonRuntimeOptions(options) {
@@ -7673,11 +7698,29 @@ Item {
         return null;
     }
 
+    function elementUsesSpriteStateOverride(src) {
+        return root.isNowJudgeSprite(src)
+            || root.isSelectScrollSlider(src)
+            || root.isGameplayProgressSlider(src)
+            || root.isGameplayLaneCoverSlider(src)
+            || root.isLr2GenericSlider(src);
+    }
+
     function spriteForceHidden(src, dsts) {
         if (src && src.onMouse) {
             return root.onMouseSpriteState(src, dsts) === null;
         }
         return false;
+    }
+
+    function elementUsesSpriteForceHidden(src) {
+        return !!(src && src.onMouse);
+    }
+
+    function elementUsesButtonFrameOverride(src) {
+        return root.effectiveScreenKey === "select"
+            && !!src
+            && !!src.button;
     }
 
     function translatedSliderState(src, dsts, position, skinTime) {
@@ -7996,6 +8039,7 @@ Item {
         root.selectPanelClosing = 0;
         root.selectPanelCloseElapsed = 0;
         root.selectScratchSoundReady = false;
+        root.updateLr2DateTimeNumbers();
         root.restartSelectInfoTimer();
         if (root.shouldAutoAdvance) {
             sceneEndTimer.restart();
@@ -8026,6 +8070,15 @@ Item {
                 root.startGameplayWhenReady();
             }
         }
+    }
+
+    Timer {
+        id: lr2DateTimeStopwatch
+        interval: 1000
+        running: root.enabled
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: root.updateLr2DateTimeNumbers()
     }
 
     Timer {
@@ -8862,7 +8915,12 @@ Item {
                         ? (model.dsts[0].timer || 0)
                         : 0
                     readonly property bool usesSelectHeldButtonTimer: root.isSelectHeldButtonTimer(dstTimer)
-                    readonly property bool usesLiveSelectClock: root.elementUsesLiveSelectClock(model.src, model.dsts)
+                    readonly property bool usesLiveDstClock: root.elementUsesLiveDstClock(model.dsts)
+                    readonly property bool usesLiveSourceClock: root.elementUsesLiveSourceClock(model.src)
+                    readonly property bool usesLiveSelectClock: usesLiveDstClock || usesLiveSourceClock
+                    readonly property bool usesSpriteStateOverride: root.elementUsesSpriteStateOverride(model.src)
+                    readonly property bool usesSpriteForceHidden: root.elementUsesSpriteForceHidden(model.src)
+                    readonly property bool usesButtonFrameOverride: root.elementUsesButtonFrameOverride(model.src)
                     readonly property var elementActiveOptions: usesActiveOptions
                         ? root.runtimeActiveOptions
                         : root.emptyActiveOptions
@@ -8916,14 +8974,24 @@ Item {
                         Item {
                             width: skinW * skinScale
                             height: skinH * skinScale
+                            readonly property int selectHeldSkinClock: elemLoader.usesSelectHeldButtonTimer
+                                ? (root.hasSelectHeldButtonTimers
+                                    ? root.selectHeldButtonSkinTime
+                                    : root.currentSelectHeldButtonSkinTime())
+                                : 0
                             readonly property int spriteSkinClock: elemLoader.usesSkinTime
                                 ? (elemLoader.usesSelectHeldButtonTimer
-                                    ? (root.hasSelectHeldButtonTimers
-                                        ? root.selectHeldButtonSkinTime
-                                        : root.currentSelectHeldButtonSkinTime())
-                                    : (elemLoader.usesLiveSelectClock
+                                    ? selectHeldSkinClock
+                                    : (elemLoader.usesLiveDstClock
                                         ? root.selectSourceSkinTime
                                         : root.renderSkinTime))
+                                : 0
+                            readonly property int spriteSourceSkinClock: elemLoader.usesSkinTime
+                                ? (elemLoader.usesSelectHeldButtonTimer
+                                    ? selectHeldSkinClock
+                                    : (elemLoader.usesLiveSourceClock
+                                        ? root.selectSourceSkinTime
+                                        : spriteSkinClock))
                                 : 0
 
                             Component.onCompleted: root.observeSelectSortButton(model.src)
@@ -8933,6 +9001,7 @@ Item {
                                 dsts: model.dsts
                                 srcData: root.imageSetSourceFor(model.src)
                                 skinTime: parent.spriteSkinClock
+                                sourceSkinTime: parent.spriteSourceSkinClock
                                 activeOptions: elemLoader.elementActiveOptions
                                 timers: elemLoader.elementTimers
                                 chart: root.renderChart
@@ -8940,9 +9009,13 @@ Item {
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
                                 colorKeyEnabled: skinModel.hasTransColor
-                                frameOverride: root.buttonFrame(model.src)
-                                stateOverride: root.spriteStateOverride(model.src, model.dsts, parent.spriteSkinClock)
-                                forceHidden: root.spriteForceHidden(model.src, model.dsts)
+                                frameOverride: elemLoader.usesButtonFrameOverride ? root.buttonFrame(model.src) : -1
+                                stateOverride: elemLoader.usesSpriteStateOverride
+                                    ? root.spriteStateOverride(model.src, model.dsts, parent.spriteSkinClock)
+                                    : null
+                                forceHidden: elemLoader.usesSpriteForceHidden
+                                    ? root.spriteForceHidden(model.src, model.dsts)
+                                    : false
                                 scratchAngle1: playContext.scratchAngle1
                                 scratchAngle2: playContext.scratchAngle2
                             }
@@ -9565,6 +9638,8 @@ Item {
                             timers: elemLoader.elementTimers
                             chart: root.renderChart
                             scaleOverride: skinScale
+                            colorKeyEnabled: skinModel.hasTransColor
+                            transColor: skinModel.transColor
                             value: root.resolveBarGraph(model.src ? model.src.graphType : 0)
                             animateValue: root.effectiveScreenKey === "select"
                                 && model.src
