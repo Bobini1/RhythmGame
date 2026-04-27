@@ -303,12 +303,18 @@ Item {
     property int selectHeldButtonSkinTime: 0
     property var selectHeldButtonTimerStarts: ({})
     readonly property bool hasSelectHeldButtonTimers: Object.keys(root.selectHeldButtonTimerStarts).length > 0
+    readonly property int selectTargetScratchInitialRepeatMillis: 300
+    readonly property int selectTargetScratchRepeatMillis: 50
+    property int selectTargetScratchDirection: 0
+    property real selectTargetScratchNextMs: 0
     property bool anyStartHeld: Input.start1 || Input.start2
     property bool startHoldSuppressed: false
 
     onSelectPanelChanged: {
         if (root.selectPanel > 0) {
             root.clearSelectSearchFocus();
+        } else {
+            root.resetLr2SelectScratchRepeat();
         }
     }
 
@@ -326,30 +332,51 @@ Item {
         }
     }
 
-    readonly property var lr2GaugeLabels: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+    readonly property var lr2GaugeLabels: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EX HARD", "HAZARD"]
     readonly property var lr2GaugeValues: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-    readonly property var lr2RandomLabels: ["OFF", "MIRROR", "RANDOM", "S-RANDOM", "R-RANDOM", "RANDOM+", "S-RANDOM+"]
+    readonly property var lr2RandomLabels: ["OFF", "MIRROR", "RANDOM", "R-RANDOM", "S-RANDOM", "SPIRAL", "H-RANDOM", "ALL-SCR", "RANDOM+", "S-RAN+"]
     readonly property var lr2RandomValues: [
         NoteOrderAlgorithm.Normal,
         NoteOrderAlgorithm.Mirror,
         NoteOrderAlgorithm.Random,
-        NoteOrderAlgorithm.SRandom,
         NoteOrderAlgorithm.RRandom,
+        NoteOrderAlgorithm.SRandom,
+        null,
+        null,
+        null,
         NoteOrderAlgorithm.RandomPlus,
         NoteOrderAlgorithm.SRandomPlus
     ]
-    readonly property var lr2HiSpeedFixLabels: ["OFF", "MAIN", "START", "MAXBPM", "MINBPM", "AVERAGE"]
+    readonly property var lr2RandomSupportedIndexes: [0, 1, 2, 3, 4, 8, 9]
+    readonly property var lr2HiSpeedFixLabels: ["OFF", "START BPM", "MAX BPM", "MAIN BPM", "MIN BPM"]
     readonly property var lr2HiSpeedFixValues: [
         HiSpeedFix.Off,
-        HiSpeedFix.Main,
         HiSpeedFix.Start,
         HiSpeedFix.Max,
-        HiSpeedFix.Min,
-        HiSpeedFix.Avg
+        HiSpeedFix.Main,
+        HiSpeedFix.Min
     ]
+    readonly property var lr2DpOptionLabels: ["OFF", "FLIP", "BATTLE", "BATTLE AS"]
+    readonly property var lr2DpOptionSupportedIndexes: [0, 1, 2]
+    readonly property var lr2GaugeAutoShiftLabels: ["OFF", "CONTINUE", "SURVIVAL->GROOVE", "BEST CLEAR", "SELECT->UNDER"]
+    readonly property var lr2GaugeAutoShiftSupportedIndexes: [0, 3, 4]
     readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
     readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE", "LAST SCORE"]
     readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
+    readonly property var lr2BeatorajaTargetLabels: [
+        "PACEMAKER A-",
+        "PACEMAKER A",
+        "PACEMAKER A+",
+        "PACEMAKER AA-",
+        "PACEMAKER AA",
+        "PACEMAKER AA+",
+        "PACEMAKER AAA-",
+        "PACEMAKER AAA",
+        "PACEMAKER AAA+",
+        "PACEMAKER MAX",
+        "PACEMAKER NEXT"
+    ]
+    readonly property var lr2BeatorajaTargetFractions: [0.666, 0.703, 0.740, 0.777, 0.814, 0.851, 0.888, 0.925, 0.962, 1.0]
     readonly property var lr2BgaSizeLabels: ["NORMAL", "EXTEND"]
     readonly property var lr2GhostLabels: ["OFF", "TYPE A", "TYPE B", "TYPE C"]
     readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
@@ -985,6 +1012,36 @@ Item {
         return values[root.wrapValue(index, values.length)];
     }
 
+    function arrayContains(values, value) {
+        for (let i = 0; i < values.length; ++i) {
+            if (values[i] === value) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function cycleSupportedIndex(current, delta, supportedIndexes, count) {
+        if (!supportedIndexes || supportedIndexes.length <= 0 || count <= 0) {
+            return 0;
+        }
+        let currentIndex = root.arrayContains(supportedIndexes, current)
+            ? current
+            : supportedIndexes[0];
+        if (!delta) {
+            return currentIndex;
+        }
+        let direction = delta < 0 ? -1 : 1;
+        let candidate = root.wrapValue(current + direction, count);
+        for (let guard = 0; guard < count; ++guard) {
+            if (root.arrayContains(supportedIndexes, candidate)) {
+                return candidate;
+            }
+            candidate = root.wrapValue(candidate + direction, count);
+        }
+        return currentIndex;
+    }
+
     readonly property int lr2GaugeIndexP1: {
         let vars = root.generalVarsForSide(1);
         return vars ? root.indexOfValue(root.lr2GaugeValues, vars.gaugeType) : 0;
@@ -1019,7 +1076,13 @@ Item {
         if (!vars) {
             return;
         }
-        let value = root.wrappedListValue(root.lr2RandomValues, index);
+        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let normalized = root.cycleSupportedIndex(
+            current,
+            index - current,
+            root.lr2RandomSupportedIndexes,
+            root.lr2RandomValues.length);
+        let value = root.lr2RandomValues[normalized] || NoteOrderAlgorithm.Normal;
         if (side === 2 && !Rg.profileList.battleActive) {
             vars.noteOrderAlgorithmP2 = value;
         } else {
@@ -1116,6 +1179,37 @@ Item {
         vars.dpOptions = normalized === 2 ? DpOptions.Battle : DpOptions.Off;
     }
 
+    readonly property int lr2DpOptionIndex: {
+        let vars = root.mainGeneralVars();
+        if (Rg.profileList.battleActive || (vars && vars.dpOptions === DpOptions.Battle)) {
+            return 2;
+        }
+        if (vars && vars.dpOptions === DpOptions.Flip) {
+            return 1;
+        }
+        return 0;
+    }
+
+    function setDpOptionIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return;
+        }
+        let normalized = root.cycleSupportedIndex(
+            root.lr2DpOptionIndex,
+            index - root.lr2DpOptionIndex,
+            root.lr2DpOptionSupportedIndexes,
+            root.lr2DpOptionLabels.length);
+        Rg.profileList.battleActive = false;
+        if (normalized === 1) {
+            vars.dpOptions = DpOptions.Flip;
+        } else if (normalized === 2) {
+            vars.dpOptions = DpOptions.Battle;
+        } else {
+            vars.dpOptions = DpOptions.Off;
+        }
+    }
+
     readonly property int lr2FlipIndex: {
         let vars = root.mainGeneralVars();
         return vars && vars.dpOptions === DpOptions.Flip ? 1 : 0;
@@ -1151,6 +1245,11 @@ Item {
         return vars && !vars.bgaOn ? 1 : 0;
     }
 
+    readonly property int lr2BeatorajaBgaIndex: {
+        let vars = root.mainGeneralVars();
+        return vars && !vars.bgaOn ? 2 : 0;
+    }
+
     function setBgaIndex(index) {
         let vars = root.mainGeneralVars();
         if (vars) {
@@ -1167,6 +1266,39 @@ Item {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.bgaSize = root.wrapValue(index, root.lr2BgaSizeLabels.length);
+        }
+    }
+
+    readonly property int lr2GaugeAutoShiftIndex: {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return 0;
+        }
+        if (vars.gaugeMode === GaugeMode.Best) {
+            return 3;
+        }
+        if (vars.gaugeMode === GaugeMode.SelectToUnder) {
+            return 4;
+        }
+        return 0;
+    }
+
+    function setGaugeAutoShiftIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return;
+        }
+        let normalized = root.cycleSupportedIndex(
+            root.lr2GaugeAutoShiftIndex,
+            index - root.lr2GaugeAutoShiftIndex,
+            root.lr2GaugeAutoShiftSupportedIndexes,
+            root.lr2GaugeAutoShiftLabels.length);
+        if (normalized === 3) {
+            vars.gaugeMode = GaugeMode.Best;
+        } else if (normalized === 4) {
+            vars.gaugeMode = GaugeMode.SelectToUnder;
+        } else {
+            vars.gaugeMode = GaugeMode.Exclusive;
         }
     }
 
@@ -1209,6 +1341,34 @@ Item {
         if (vars) {
             vars.scoreTarget = root.wrappedListValue(root.lr2TargetValues, index);
         }
+    }
+
+    readonly property int lr2BeatorajaTargetIndex: {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return 6;
+        }
+        let fraction = vars.targetScoreFraction || 0;
+        let bestIndex = 0;
+        let bestDistance = Number.MAX_VALUE;
+        for (let i = 0; i < root.lr2BeatorajaTargetFractions.length; ++i) {
+            let distance = Math.abs(fraction - root.lr2BeatorajaTargetFractions[i]);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                bestIndex = i;
+            }
+        }
+        return bestIndex;
+    }
+
+    function setBeatorajaTargetIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return;
+        }
+        let normalized = root.wrapValue(index, root.lr2BeatorajaTargetFractions.length);
+        vars.scoreTarget = ScoreTarget.Fraction;
+        vars.targetScoreFraction = root.lr2BeatorajaTargetFractions[normalized];
     }
 
     readonly property int lr2TargetPercent: {
@@ -5383,7 +5543,7 @@ Item {
         case 68:
             return "OFF";
         case 69:
-            return root.optionText(root.lr2BattleLabels, root.lr2BattleIndex);
+            return root.optionText(root.lr2DpOptionLabels, root.lr2DpOptionIndex);
         case 70:
             return root.optionText(["OFF", "FLIP"], root.lr2FlipIndex);
         case 71:
@@ -6341,11 +6501,46 @@ Item {
         return root.resolveNumber(src ? src.num : 0);
     }
 
+    function imageSetValue(imageSetRef, sourceCount) {
+        let id = Math.floor(imageSetRef || 0);
+        switch (id) {
+        case 40:
+            return root.lr2GaugeIndexP1;
+        case 41:
+            return root.lr2GaugeIndexP2;
+        case 42:
+            return root.lr2RandomIndexP1;
+        case 43:
+            return root.lr2RandomIndexP2;
+        case 54:
+            return root.lr2DpOptionIndex;
+        case 55:
+            return root.lr2HiSpeedFixIndex;
+        case 72:
+            return sourceCount >= 3 ? root.lr2BeatorajaBgaIndex : root.lr2BgaIndex;
+        case 77:
+            return root.lr2BeatorajaTargetIndex;
+        case 78:
+            return root.lr2GaugeAutoShiftIndex;
+        case 301:
+        case 302:
+        case 303:
+        case 304:
+        case 305:
+        case 306:
+        case 307:
+        case 308:
+            return 0;
+        default:
+            return root.resolveNumber(id);
+        }
+    }
+
     function imageSetSourceFor(src) {
         if (!src || !src.imageSet || !src.imageSetSources || src.imageSetSources.length <= 0) {
             return src;
         }
-        let value = Math.floor(root.resolveNumber(src.imageSetRef || 0));
+        let value = Math.floor(root.imageSetValue(src.imageSetRef || 0, src.imageSetSources.length));
         if (!isFinite(value) || value < 0 || value >= src.imageSetSources.length) {
             value = 0;
         }
@@ -6508,7 +6703,9 @@ Item {
         case 74:
         case 76:
         case 77:
+        case 78:
         case 83:
+        case 308:
         case 190:
             return true;
         default:
@@ -6519,6 +6716,66 @@ Item {
         }
     }
 
+    function imageSetButtonId(src) {
+        if (!src || !src.imageSet) {
+            return 0;
+        }
+        let id = Math.floor(src.imageSetRef || 0);
+        switch (id) {
+        case 40:
+        case 41:
+        case 42:
+        case 43:
+        case 54:
+        case 55:
+        case 72:
+        case 74:
+        case 77:
+        case 78:
+        case 301:
+        case 302:
+        case 303:
+        case 304:
+        case 305:
+        case 306:
+        case 307:
+        case 308:
+            return id;
+        default:
+            return 0;
+        }
+    }
+
+    function elementButtonId(src) {
+        if (!src) {
+            return 0;
+        }
+        if (src.button) {
+            return src.buttonId || 0;
+        }
+        return root.imageSetButtonId(src);
+    }
+
+    function elementButtonPanel(src) {
+        return src && src.button ? (src.buttonPanel || 0) : root.selectPanel;
+    }
+
+    function elementButtonClickEnabled(src) {
+        if (!src) {
+            return false;
+        }
+        return src.button
+            ? src.buttonClick !== 0
+            : root.selectPanel > 0 && root.imageSetButtonId(src) > 0;
+    }
+
+    function elementButtonPanelMatches(src) {
+        if (!src) {
+            return false;
+        }
+        return src.button ? root.buttonPanelMatches(src) : root.selectPanel > 0;
+    }
+
     function buttonMouseDelta(src, mouseX, width) {
         if (src && src.buttonPlusOnly === 1) {
             return 1;
@@ -6526,7 +6783,7 @@ Item {
         if (src && src.buttonPlusOnly === 2) {
             return -1;
         }
-        if (src && root.buttonUsesSplitArrows(src.buttonId)) {
+        if (src && root.buttonUsesSplitArrows(root.elementButtonId(src))) {
             return mouseX < width / 2 ? -1 : 1;
         }
         return 1;
@@ -6580,7 +6837,7 @@ Item {
         case 51:
             return root.lr2HidSudIndexP2;
         case 54:
-            return root.lr2FlipIndex;
+            return root.lr2DpOptionIndex;
         case 55:
             return root.lr2HiSpeedFixIndex;
         case 56:
@@ -6591,9 +6848,24 @@ Item {
             return root.lr2GhostIndex;
         case 72:
             return root.lr2BgaIndex;
+        case 74:
+            return 0;
         case 73:
             return root.lr2BgaSizeIndex;
         case 75:
+            return 0;
+        case 77:
+            return root.lr2BeatorajaTargetIndex;
+        case 78:
+            return root.lr2GaugeAutoShiftIndex;
+        case 301:
+        case 302:
+        case 303:
+        case 304:
+        case 305:
+        case 306:
+        case 307:
+        case 308:
             return 0;
         case 80:
             return 0;
@@ -6808,7 +7080,7 @@ Item {
         return root.panelMatches(src.buttonPanel || 0);
     }
 
-    function handleLr2Button(buttonId, delta, panel) {
+    function handleLr2Button(buttonId, delta, panel, soundPlayer) {
         if (!root.enabled || root.effectiveScreenKey !== "select" || !root.acceptsInput) {
             return;
         }
@@ -6969,7 +7241,7 @@ Item {
             optionChanged = true;
             break;
         case 54:
-            root.setFlipIndex(root.lr2FlipIndex + delta);
+            root.setDpOptionIndex(root.lr2DpOptionIndex + delta);
             optionChanged = true;
             break;
         case 55:
@@ -7008,8 +7280,22 @@ Item {
             optionChanged = true;
             break;
         case 77:
-            root.setScoreTargetIndex(root.lr2ScoreTargetIndex + delta);
+            root.setBeatorajaTargetIndex(root.lr2BeatorajaTargetIndex + delta);
             optionChanged = true;
+            break;
+        case 78:
+            root.setGaugeAutoShiftIndex(root.lr2GaugeAutoShiftIndex + delta);
+            optionChanged = true;
+            break;
+        case 301:
+        case 302:
+        case 303:
+        case 304:
+        case 305:
+        case 306:
+        case 307:
+        case 308:
+            // Beatoraja-only options that do not have backing gameplay support yet.
             break;
         case 80:
             globalRoot.toggleFullScreen();
@@ -7050,7 +7336,7 @@ Item {
             break;
         }
         if (optionChanged) {
-            root.playOneShot(optionChangeSound);
+            root.playOneShot(soundPlayer || optionChangeSound);
         }
     }
 
@@ -7199,45 +7485,28 @@ Item {
         }
 
         if (root.selectPanel === 1) {
-            if ((key === BmsKey.Col16 && Input.col17)
-                    || (key === BmsKey.Col17 && Input.col16)) {
-                return root.triggerSelectPanelButton(50, -1);
-            }
-            if ((key === BmsKey.Col26 && Input.col27)
-                    || (key === BmsKey.Col27 && Input.col26)) {
-                return root.triggerPanelButtonForKey(50, 51, key, 1);
-            }
-            if ((key === BmsKey.Col15 && Input.col17)
-                    || (key === BmsKey.Col17 && Input.col15)
-                    || (key === BmsKey.Col25 && Input.col27)
-                    || (key === BmsKey.Col27 && Input.col25)) {
-                return root.triggerSelectPanelButton(55, 1);
-            }
             switch (key) {
             case BmsKey.Col11:
             case BmsKey.Col21:
-                return root.triggerPanelButtonForKey(11, 11, key);
+                return root.triggerSelectPanelButton(42, 1);
             case BmsKey.Col12:
             case BmsKey.Col22:
-                return root.triggerPanelButtonForKey(42, 43, key);
+                return root.triggerSelectPanelButton(42, -1);
             case BmsKey.Col13:
             case BmsKey.Col23:
-                return root.triggerPanelButtonForKey(56, 56, key);
+                return root.triggerSelectPanelButton(40, 1);
             case BmsKey.Col14:
             case BmsKey.Col24:
-                return root.triggerPanelButtonForKey(40, 41, key);
+                return root.triggerSelectPanelButton(54, 1);
             case BmsKey.Col15:
             case BmsKey.Col25:
-                return root.triggerPanelButtonForKey(57, 58, key, -1);
+                return root.triggerSelectPanelButton(55, 1);
             case BmsKey.Col16:
             case BmsKey.Col26:
-                return root.triggerPanelButtonForKey(44, 45, key);
+                return root.triggerSelectPanelButton(43, -1);
             case BmsKey.Col17:
             case BmsKey.Col27:
-                return root.triggerPanelButtonForKey(57, 58, key, 1);
-            case BmsKey.Select1:
-            case BmsKey.Select2:
-                return root.triggerPanelButtonForKey(77, 77, key);
+                return root.triggerSelectPanelButton(43, 1);
             default:
                 return false;
             }
@@ -8269,34 +8538,84 @@ Item {
         }
     }
 
+    function resetLr2SelectScratchRepeat() {
+        root.selectTargetScratchDirection = 0;
+        root.selectTargetScratchNextMs = 0;
+    }
+
+    function releaseLr2SelectScratchRepeat(up) {
+        let sameDirectionStillHeld = up
+            ? (Input.col1sUp || Input.col2sUp)
+            : (Input.col1sDown || Input.col2sDown);
+        if (!sameDirectionStillHeld
+                && root.selectTargetScratchDirection === (up ? 1 : -1)) {
+            root.resetLr2SelectScratchRepeat();
+        }
+    }
+
+    function handleLr2SelectScratchTick(side, up, number, type) {
+        if (!root.selectInputReady() || root.selectPanel !== 1) {
+            return false;
+        }
+        let direction = up ? 1 : -1;
+        let now = Date.now();
+        let firstTick = number === 0 || root.selectTargetScratchDirection !== direction;
+        if (!firstTick && now < root.selectTargetScratchNextMs) {
+            return true;
+        }
+        root.selectTargetScratchDirection = direction;
+        root.selectTargetScratchNextMs = now
+            + (firstTick
+                ? root.selectTargetScratchInitialRepeatMillis
+                : root.selectTargetScratchRepeatMillis);
+        root.handleLr2Button(77, up ? 1 : -1, root.selectPanel, scratchSound);
+        return true;
+    }
+
     Input.onCol1sDownTicked: (number, type) => {
-        if (!root.handleLr2GameplayScratchTick(1, false)) {
+        if (!root.handleLr2SelectScratchTick(1, false, number, type)
+                && !root.handleLr2GameplayScratchTick(1, false)) {
             root.navigate(number, type, false, BmsKey.Col1sDown);
         }
     }
     Input.onCol1sUpTicked: (number, type) => {
-        if (!root.handleLr2GameplayScratchTick(1, true)) {
+        if (!root.handleLr2SelectScratchTick(1, true, number, type)
+                && !root.handleLr2GameplayScratchTick(1, true)) {
             root.navigate(number, type, true, BmsKey.Col1sUp);
         }
     }
     Input.onCol2sDownTicked: (number, type) => {
-        if (!root.handleLr2GameplayScratchTick(2, false)) {
+        if (!root.handleLr2SelectScratchTick(2, false, number, type)
+                && !root.handleLr2GameplayScratchTick(2, false)) {
             root.navigate(number, type, false, BmsKey.Col2sDown);
         }
     }
     Input.onCol2sUpTicked: (number, type) => {
-        if (!root.handleLr2GameplayScratchTick(2, true)) {
+        if (!root.handleLr2SelectScratchTick(2, true, number, type)
+                && !root.handleLr2GameplayScratchTick(2, true)) {
             root.navigate(number, type, true, BmsKey.Col2sUp);
         }
     }
-    Input.onCol1sDownPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col1sDown)
-    Input.onCol1sUpPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col1sUp)
-    Input.onCol2sDownPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col2sDown)
-    Input.onCol2sUpPressed: if (root.selectScrollReady()) root.lastNavigateKey.push(BmsKey.Col2sUp)
-    Input.onCol1sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown)
-    Input.onCol1sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp)
-    Input.onCol2sDownReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown)
-    Input.onCol2sUpReleased: root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp)
+    Input.onCol1sDownPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col1sDown)
+    Input.onCol1sUpPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col1sUp)
+    Input.onCol2sDownPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col2sDown)
+    Input.onCol2sUpPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col2sUp)
+    Input.onCol1sDownReleased: {
+        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown);
+        root.releaseLr2SelectScratchRepeat(false);
+    }
+    Input.onCol1sUpReleased: {
+        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp);
+        root.releaseLr2SelectScratchRepeat(true);
+    }
+    Input.onCol2sDownReleased: {
+        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown);
+        root.releaseLr2SelectScratchRepeat(false);
+    }
+    Input.onCol2sUpReleased: {
+        root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp);
+        root.releaseLr2SelectScratchRepeat(true);
+    }
     Input.onCol11Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol17Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol21Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
@@ -8579,7 +8898,8 @@ Item {
                                 scratchAngle2: playContext.scratchAngle2
                             }
 
-                            readonly property var buttonState: model.src && model.src.button
+                            readonly property int effectiveButtonId: root.elementButtonId(model.src)
+                            readonly property var buttonState: effectiveButtonId > 0
                                 ? Lr2Timeline.getCurrentState(
                                     model.dsts,
                                     root.renderSkinTime,
@@ -8592,9 +8912,9 @@ Item {
                                 enabled: root.effectiveScreenKey === "select"
                                     && root.acceptsInput
                                     && model.src
-                                    && model.src.button
-                                    && model.src.buttonClick !== 0
-                                    && root.buttonPanelMatches(model.src)
+                                    && parent.effectiveButtonId > 0
+                                    && root.elementButtonClickEnabled(model.src)
+                                    && root.elementButtonPanelMatches(model.src)
                                     && !!parent.buttonState
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                                 preventStealing: true
@@ -8615,7 +8935,10 @@ Item {
                                 onClicked: (mouse) => {
                                     root.updateSelectMouseFromArea(lr2ButtonMouseArea, mouse);
                                     let delta = root.buttonMouseDelta(model.src, mouse.x, width);
-                                    root.handleLr2Button(model.src.buttonId, delta, model.src.buttonPanel);
+                                    root.handleLr2Button(
+                                        parent.effectiveButtonId,
+                                        delta,
+                                        root.elementButtonPanel(model.src));
                                     mouse.accepted = true;
                                 }
                             }
