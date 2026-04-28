@@ -79,7 +79,7 @@ Image {
     }
     fillMode: tileVertically ? Image.TileVertically : Image.Stretch
     cache: true
-    asynchronous: false
+    asynchronous: true
     smooth: false
     mipmap: false
 }

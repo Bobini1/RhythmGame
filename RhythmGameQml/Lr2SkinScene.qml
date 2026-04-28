@@ -16,9 +16,237 @@ Item {
     readonly property real skinW: root.skinW
     readonly property real skinH: root.skinH
     readonly property real skinScale: root.skinScale
+    property var selectPointerElements: ({})
 
     function hoverPointInSkinCoordinates() {
-        return selectHoverHandler.hovered ? selectHoverHandler.point.position : null;
+        return root.selectHoverHasPoint
+            ? Qt.point(root.selectHoverSkinX * skinScale, root.selectHoverSkinY * skinScale)
+            : null;
+    }
+
+    function copyObject(object) {
+        let result = {};
+        const keys = Object.keys(object || {});
+        for (let i = 0; i < keys.length; ++i) {
+            result[keys[i]] = object[keys[i]];
+        }
+        return result;
+    }
+
+    function registerSelectPointerElement(elementIndex, type, src, dsts, z) {
+        if (type !== 0 || !src) {
+            return;
+        }
+
+        const buttonId = root.elementButtonId(src);
+        const selectScroll = root.isSelectScrollSlider(src);
+        const genericSlider = root.isLr2GenericSlider(src);
+        if (buttonId <= 0 && !selectScroll && !genericSlider) {
+            return;
+        }
+
+        let elements = sceneRoot.copyObject(sceneRoot.selectPointerElements);
+        elements[String(elementIndex)] = {
+            index: elementIndex,
+            src: src,
+            dsts: dsts,
+            z: z || 0,
+            buttonId: buttonId,
+            sourceCount: root.elementSourceFrameCount(src),
+            selectScroll: selectScroll,
+            genericSlider: genericSlider,
+            staticState: Lr2Timeline.canUseStaticState(dsts)
+                ? Lr2Timeline.getCurrentState(dsts, 0, root.zeroTimers, root.emptyActiveOptions)
+                : null
+        };
+        sceneRoot.selectPointerElements = elements;
+    }
+
+    function unregisterSelectPointerElement(elementIndex) {
+        const key = String(elementIndex);
+        if (sceneRoot.selectPointerElements[key] === undefined) {
+            return;
+        }
+        let elements = sceneRoot.copyObject(sceneRoot.selectPointerElements);
+        delete elements[key];
+        sceneRoot.selectPointerElements = elements;
+    }
+
+    function elementState(element) {
+        if (!element) {
+            return null;
+        }
+        if (element.staticState) {
+            return element.staticState;
+        }
+        return Lr2Timeline.getCurrentState(
+            element.dsts,
+            root.renderSkinTime,
+            root.elementUsesTimers(element.src, element.dsts) ? root.timers : root.zeroTimers,
+            root.dstsUseActiveOptions(element.dsts) ? root.runtimeActiveOptions : root.emptyActiveOptions);
+    }
+
+    function rectContains(state, skinX, skinY) {
+        if (!state) {
+            return false;
+        }
+        const left = Math.min(state.x, state.x + state.w);
+        const right = Math.max(state.x, state.x + state.w);
+        const top = Math.min(state.y, state.y + state.h);
+        const bottom = Math.max(state.y, state.y + state.h);
+        return skinX >= left && skinX <= right && skinY >= top && skinY <= bottom;
+    }
+
+    function sliderTrackState(element) {
+        if (!element || (!element.selectScroll && !element.genericSlider)) {
+            return null;
+        }
+        const sliderSkinClock = root.elementUsesLiveSelectClock(element.src, element.dsts)
+            ? root.selectSourceSkinTime
+            : root.renderSkinTime;
+        return element.selectScroll
+            ? root.selectScrollSliderTrackState(element.src, element.dsts, sliderSkinClock)
+            : root.lr2GenericSliderTrackState(element.src, element.dsts, sliderSkinClock);
+    }
+
+    function hitSlider(skinX, skinY) {
+        if (!root.selectPointerScrollReady()) {
+            return null;
+        }
+        let best = null;
+        const keys = Object.keys(sceneRoot.selectPointerElements);
+        for (let i = 0; i < keys.length; ++i) {
+            const element = sceneRoot.selectPointerElements[keys[i]];
+            if (!element || (!element.selectScroll && !element.genericSlider)) {
+                continue;
+            }
+            const trackState = sceneRoot.sliderTrackState(element);
+            if (!sceneRoot.rectContains(trackState, skinX, skinY)) {
+                continue;
+            }
+            const z = 100300 + element.index;
+            if (!best || z > best.z) {
+                best = { kind: "slider", element: element, state: trackState, z: z };
+            }
+        }
+        return best;
+    }
+
+    function hitButton(skinX, skinY) {
+        if (!root.selectPointerInputReady()) {
+            return null;
+        }
+        let best = null;
+        const keys = Object.keys(sceneRoot.selectPointerElements);
+        for (let i = 0; i < keys.length; ++i) {
+            const element = sceneRoot.selectPointerElements[keys[i]];
+            if (!element || element.buttonId <= 0) {
+                continue;
+            }
+            if (!root.elementButtonClickEnabled(element.src)
+                    || !root.elementButtonPanelMatches(element.src)) {
+                continue;
+            }
+            const state = sceneRoot.elementState(element);
+            if (!sceneRoot.rectContains(state, skinX, skinY)) {
+                continue;
+            }
+            if (!best || element.z > best.z) {
+                best = { kind: "button", element: element, state: state, z: element.z };
+            }
+        }
+        return best;
+    }
+
+    function rowAt(skinX, skinY) {
+        if (!root.selectPointerScrollReady()) {
+            return -1;
+        }
+        let states = root.cachedBarBaseStates || [];
+        for (let row = root.barClickEnd(); row >= root.barClickStart(); --row) {
+            let state = row >= 0 && row < states.length ? states[row] : null;
+            if (sceneRoot.rectContains(state, skinX, skinY)) {
+                return row;
+            }
+        }
+        return -1;
+    }
+
+    function pointerTargetAt(x, y, button) {
+        const skinX = x / skinScale;
+        const skinY = y / skinScale;
+        const slider = button === Qt.LeftButton ? sceneRoot.hitSlider(skinX, skinY) : null;
+        if (slider) {
+            slider.skinX = skinX;
+            slider.skinY = skinY;
+            return slider;
+        }
+
+        const buttonTarget = sceneRoot.hitButton(skinX, skinY);
+        if (buttonTarget) {
+            buttonTarget.skinX = skinX;
+            buttonTarget.skinY = skinY;
+            return buttonTarget;
+        }
+
+        const row = sceneRoot.rowAt(skinX, skinY);
+        return row >= 0
+            ? { kind: "bar", row: row, skinX: skinX, skinY: skinY }
+            : { kind: "blank", skinX: skinX, skinY: skinY };
+    }
+
+    function updateSlider(target, x, y) {
+        if (!target || target.kind !== "slider") {
+            return;
+        }
+        const skinX = x / skinScale;
+        const skinY = y / skinScale;
+        if (target.element.selectScroll) {
+            root.setSelectScrollFromSliderTrack(target.element.src, target.state, skinX, skinY);
+        } else if (target.element.genericSlider) {
+            root.setLr2GenericSliderFromTrack(target.element.src, target.state, skinX, skinY);
+        }
+    }
+
+    function finishSlider(target) {
+        if (!target || target.kind !== "slider" || !target.element.selectScroll) {
+            return;
+        }
+        selectContext.finishScrollFixedPoint(100);
+        root.selectSliderFixedPoint = -1;
+    }
+
+    function clickButton(target, mouse) {
+        const state = target.state || sceneRoot.elementState(target.element);
+        if (!state) {
+            return;
+        }
+        const left = Math.min(state.x, state.x + state.w);
+        const width = Math.abs(state.w);
+        const delta = root.buttonMouseDelta(
+            target.element.src,
+            target.skinX - left,
+            width);
+        root.handleLr2Button(
+            target.element.buttonId,
+            delta,
+            root.elementButtonPanel(target.element.src),
+            undefined,
+            target.element.sourceCount);
+        mouse.accepted = true;
+    }
+
+    function samePointerTarget(a, b) {
+        if (!a || !b || a.kind !== b.kind) {
+            return false;
+        }
+        if (a.kind === "button" || a.kind === "slider") {
+            return a.element && b.element && a.element.index === b.element.index;
+        }
+        if (a.kind === "bar") {
+            return a.row === b.row;
+        }
+        return a.kind === "blank";
     }
 
     Item {
@@ -39,31 +267,111 @@ Item {
             }
 
             MouseArea {
-                id: selectBlankMouseArea
+                id: selectPointerMouseArea
                 anchors.fill: parent
-                enabled: root.selectPointerInputReady()
+                enabled: root.effectiveScreenKey === "select"
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
-                z: -100000
-                onClicked: {
-                    root.clearSelectSearchFocus();
+                preventStealing: true
+                z: -90000
+                property var pressedTarget: ({ kind: "none" })
+
+                onPressed: (mouse) => {
+                    pressedTarget = sceneRoot.pointerTargetAt(mouse.x, mouse.y, mouse.button);
+                    if (pressedTarget.kind === "slider") {
+                        root.clearSelectSearchFocus();
+                        root.selectSliderFixedPoint = -1;
+                        if (pressedTarget.element.selectScroll) {
+                            root.selectScrollStartSkinTime = root.renderSkinTime;
+                            selectContext.beginScrollFixedPointDrag();
+                        }
+                        sceneRoot.updateSlider(pressedTarget, mouse.x, mouse.y);
+                        mouse.accepted = true;
+                    } else if (pressedTarget.kind === "bar" || pressedTarget.kind === "blank") {
+                        root.clearSelectSearchFocus();
+                        mouse.accepted = pressedTarget.kind === "bar";
+                    } else if (pressedTarget.kind === "button") {
+                        mouse.accepted = true;
+                    } else {
+                        mouse.accepted = false;
+                    }
                 }
+                onPositionChanged: (mouse) => {
+                    if (pressedTarget.kind === "slider") {
+                        sceneRoot.updateSlider(pressedTarget, mouse.x, mouse.y);
+                        mouse.accepted = true;
+                    }
+                }
+                onClicked: (mouse) => {
+                    const releasedTarget = sceneRoot.pointerTargetAt(mouse.x, mouse.y, mouse.button);
+                    const target = pressedTarget.kind !== "none"
+                        ? pressedTarget
+                        : releasedTarget;
+                    pressedTarget = { kind: "none" };
+                    if (target.kind === "button") {
+                        if (!sceneRoot.samePointerTarget(target, releasedTarget)) {
+                            mouse.accepted = false;
+                            return;
+                        }
+                        sceneRoot.clickButton(target, mouse);
+                        return;
+                    }
+                    if (target.kind === "bar") {
+                        root.handleBarRowClick(target.row, mouse);
+                        mouse.accepted = true;
+                        return;
+                    }
+                    if (target.kind === "blank") {
+                        root.clearSelectSearchFocus();
+                    }
+                }
+                onDoubleClicked: (mouse) => {
+                    const target = sceneRoot.pointerTargetAt(mouse.x, mouse.y, mouse.button);
+                    pressedTarget = { kind: "none" };
+                    if (target.kind !== "bar" || mouse.button !== Qt.LeftButton) {
+                        mouse.accepted = false;
+                        return;
+                    }
+                    selectContext.selectVisibleRow(target.row, skinModel.barCenter);
+                    root.selectGoForward(selectContext.current);
+                    mouse.accepted = true;
+                }
+                onReleased: {
+                    sceneRoot.finishSlider(pressedTarget);
+                    pressedTarget = { kind: "none" };
+                }
+                onCanceled: {
+                    sceneRoot.finishSlider(pressedTarget);
+                    pressedTarget = { kind: "none" };
+                }
+                onWheel: (wheel) => root.handleSelectWheel(wheel)
             }
 
             HoverHandler {
                 id: selectHoverHandler
                 enabled: root.selectHoverTracking && root.selectHoverElementCount > 0
-                target: null
-                onHoveredChanged: root.scheduleSelectHoverRefresh()
+                target: skinContainer
+                onHoveredChanged: {
+                    if (hovered) {
+                        if (root.updateSelectHoverPoint(point.position.x, point.position.y)) {
+                            root.runSelectHoverRefresh();
+                        }
+                    } else {
+                        root.clearSelectHoverPoint();
+                    }
+                }
             }
 
             Timer {
-                id: selectHoverSampler
-                interval: 8
+                id: selectHoverPointSampler
+                interval: 16
                 repeat: true
-                running: root.selectHoverTracking
-                    && root.selectHoverElementCount > 0
-                    && selectHoverHandler.hovered
-                onTriggered: root.refreshSelectHoverCache()
+                running: selectHoverHandler.enabled && selectHoverHandler.hovered
+                onTriggered: {
+                    if (root.updateSelectHoverPoint(selectHoverHandler.point.position.x,
+                                                    selectHoverHandler.point.position.y)) {
+                        root.runSelectHoverRefresh();
+                    }
+                }
             }
 
             Repeater {
@@ -108,9 +416,11 @@ Item {
 
                     Component.onCompleted: {
                         root.registerSelectHoverElement(index, model.src, model.dsts, usesSpriteForceHidden);
+                        sceneRoot.registerSelectPointerElement(index, model.type, model.src, model.dsts, z);
                     }
                     Component.onDestruction: {
                         root.unregisterSelectHoverElement(index);
+                        sceneRoot.unregisterSelectPointerElement(index);
                     }
 
                     sourceComponent: {
@@ -193,45 +503,6 @@ Item {
                                     : false
                                 scratchAngle1: playContext.scratchAngle1
                                 scratchAngle2: playContext.scratchAngle2
-                            }
-
-                            readonly property int effectiveButtonId: root.elementButtonId(model.src)
-                            readonly property var buttonState: effectiveButtonId > 0
-                                ? Lr2Timeline.getCurrentState(
-                                    model.dsts,
-                                    root.renderSkinTime,
-                                    elemLoader.elementTimers,
-                                    elemLoader.elementActiveOptions)
-                                : null
-
-                            MouseArea {
-                                id: lr2ButtonMouseArea
-                                enabled: root.effectiveScreenKey === "select"
-                                    && root.acceptsInput
-                                    && model.src
-                                    && parent.effectiveButtonId > 0
-                                    && root.elementButtonClickEnabled(model.src)
-                                    && root.elementButtonPanelMatches(model.src)
-                                    && !!parent.buttonState
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                preventStealing: true
-                                x: parent.buttonState ? Math.min(parent.buttonState.x, parent.buttonState.x + parent.buttonState.w) * skinScale : 0
-                                y: parent.buttonState ? Math.min(parent.buttonState.y, parent.buttonState.y + parent.buttonState.h) * skinScale : 0
-                                width: parent.buttonState ? Math.abs(parent.buttonState.w) * skinScale : 0
-                                height: parent.buttonState ? Math.abs(parent.buttonState.h) * skinScale : 0
-                                onPressed: (mouse) => {
-                                    mouse.accepted = true;
-                                }
-                                onClicked: (mouse) => {
-                                    let delta = root.buttonMouseDelta(model.src, mouse.x, width);
-                                    root.handleLr2Button(
-                                        parent.effectiveButtonId,
-                                        delta,
-                                        root.elementButtonPanel(model.src),
-                                        undefined,
-                                        root.elementSourceFrameCount(model.src));
-                                    mouse.accepted = true;
-                                }
                             }
                         }
                     }
@@ -850,140 +1121,6 @@ Item {
                 renderType: Text.NativeRendering
             }
 
-            MouseArea {
-                id: barRowsMouseArea
-                anchors.fill: parent
-                enabled: root.effectiveScreenKey === "select"
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                propagateComposedEvents: true
-                z: -90000
-                property int pressedRow: -1
-
-                function rowAt(mouse) {
-                    if (!root.selectPointerScrollReady()) {
-                        return -1;
-                    }
-                    let states = root.cachedBarBaseStates || [];
-                    let px = mouse.x / skinScale;
-                    let py = mouse.y / skinScale;
-                    for (let row = root.barClickEnd(); row >= root.barClickStart(); --row) {
-                        let state = row >= 0 && row < states.length ? states[row] : null;
-                        if (!state) {
-                            continue;
-                        }
-                        let left = Math.min(state.x, state.x + state.w);
-                        let right = Math.max(state.x, state.x + state.w);
-                        let top = Math.min(state.y, state.y + state.h);
-                        let bottom = Math.max(state.y, state.y + state.h);
-                        if (px >= left && px <= right && py >= top && py <= bottom) {
-                            return row;
-                        }
-                    }
-                    return -1;
-                }
-
-                onPressed: (mouse) => {
-                    root.clearSelectSearchFocus();
-                    pressedRow = rowAt(mouse);
-                    if (pressedRow < 0) {
-                        mouse.accepted = false;
-                    }
-                }
-                onClicked: (mouse) => {
-                    let row = pressedRow >= 0 ? pressedRow : rowAt(mouse);
-                    pressedRow = -1;
-                    if (row < 0) {
-                        mouse.accepted = false;
-                        return;
-                    }
-                    root.handleBarRowClick(row, mouse);
-                }
-                onDoubleClicked: (mouse) => {
-                    let row = pressedRow >= 0 ? pressedRow : rowAt(mouse);
-                    pressedRow = -1;
-                    if (row < 0 || mouse.button !== Qt.LeftButton) {
-                        mouse.accepted = false;
-                        return;
-                    }
-                    selectContext.selectVisibleRow(row, skinModel.barCenter);
-                    root.selectGoForward(selectContext.current);
-                }
-                onCanceled: pressedRow = -1
-                onWheel: (wheel) => root.handleSelectWheel(wheel)
-            }
-
-            Repeater {
-                model: skinModel
-
-                MouseArea {
-                    id: sliderMouseArea
-                    readonly property bool selectScroll: root.isSelectScrollSlider(model.src)
-                    readonly property bool genericSlider: root.isLr2GenericSlider(model.src)
-                    readonly property bool sliderActive: selectScroll || genericSlider
-                    readonly property bool usesLiveSelectClock: sliderActive
-                        && root.elementUsesLiveSelectClock(model.src, model.dsts)
-                    readonly property int sliderSkinClock: sliderActive
-                        ? (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime)
-                        : 0
-                    readonly property var trackState: !sliderActive
-                        ? null
-                        : (selectScroll
-                            ? root.selectScrollSliderTrackState(model.src, model.dsts, sliderSkinClock)
-                            : root.lr2GenericSliderTrackState(model.src, model.dsts, sliderSkinClock))
-                    enabled: root.selectPointerScrollReady() && !!trackState
-                    acceptedButtons: Qt.LeftButton
-                    preventStealing: true
-                    x: trackState ? Math.min(trackState.x, trackState.x + trackState.w) * skinScale : 0
-                    y: trackState ? Math.min(trackState.y, trackState.y + trackState.h) * skinScale : 0
-                    width: trackState ? Math.abs(trackState.w) * skinScale : 0
-                    height: trackState ? Math.abs(trackState.h) * skinScale : 0
-                    z: 100300 + index
-                    function updateSlider(mouse) {
-                        let pointerX = (x + mouse.x) / skinScale;
-                        let pointerY = (y + mouse.y) / skinScale;
-                        if (selectScroll) {
-                            root.setSelectScrollFromSliderTrack(model.src,
-                                                                trackState,
-                                                                pointerX,
-                                                                pointerY);
-                        } else if (genericSlider) {
-                            root.setLr2GenericSliderFromTrack(model.src,
-                                                              trackState,
-                                                              pointerX,
-                                                              pointerY);
-                        }
-                    }
-                    onPressed: (mouse) => {
-                        root.clearSelectSearchFocus();
-                        root.selectSliderFixedPoint = -1;
-                        if (selectScroll) {
-                            root.selectScrollStartSkinTime = root.renderSkinTime;
-                            selectContext.beginScrollFixedPointDrag();
-                        }
-                        updateSlider(mouse);
-                        mouse.accepted = true;
-                    }
-                    onPositionChanged: (mouse) => {
-                        if (pressed) {
-                            updateSlider(mouse);
-                        }
-                    }
-                    onReleased: {
-                        if (selectScroll) {
-                            selectContext.finishScrollFixedPoint(100);
-                            root.selectSliderFixedPoint = -1;
-                        }
-                    }
-                    onCanceled: {
-                        if (selectScroll) {
-                            selectContext.finishScrollFixedPoint(100);
-                            root.selectSliderFixedPoint = -1;
-                        }
-                    }
-                    onWheel: (wheel) => root.handleSelectWheel(wheel)
-                }
-            }
-
             Lr2NativeCursor {
                 id: nativeCursor
                 anchors.fill: parent
@@ -1056,14 +1193,6 @@ Item {
                 targetSize: cursorState
                     ? Qt.size(cursorState.w * root.skinVisualScaleX, cursorState.h * root.skinVisualScaleY)
                     : Qt.size(0, 0)
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                enabled: root.effectiveScreenKey === "select"
-                acceptedButtons: Qt.NoButton
-                z: 100200
-                onWheel: (wheel) => root.handleSelectWheel(wheel)
             }
 
             MouseArea {

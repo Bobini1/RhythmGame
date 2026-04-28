@@ -370,6 +370,18 @@ Item {
         }
     }
 
+    onSelectPanelElapsedChanged: {
+        if (root.selectHoverHasPoint && root.selectPanel > 0) {
+            root.scheduleSelectHoverRefresh();
+        }
+    }
+
+    onSelectPanelCloseElapsedChanged: {
+        if (root.selectHoverHasPoint && root.selectPanelClosing > 0) {
+            root.scheduleSelectHoverRefresh();
+        }
+    }
+
     onAnyStartHeldChanged: {
         if (root.anyStartHeld) {
             if (root.selectPanel > 0 && root.selectPanelHeldByStart === 0) {
@@ -474,10 +486,26 @@ Item {
         && skinModel.hasMouseHover
     property var selectHoverElements: ({})
     readonly property int selectHoverElementCount: Object.keys(root.selectHoverElements).length
+    readonly property var selectHoverCandidateKeys: {
+        root.selectPanel;
+        let result = [];
+        const keys = Object.keys(root.selectHoverElements);
+        for (let i = 0; i < keys.length; ++i) {
+            const key = keys[i];
+            const element = root.selectHoverElements[key];
+            if (element && element.src && root.panelMatches(element.src.hoverPanel || 0)) {
+                result.push(key);
+            }
+        }
+        return result;
+    }
     property var selectHoverVisibleByIndex: ({})
     readonly property string selectHoverVisibleSignature: Object.keys(root.selectHoverVisibleByIndex).join(",")
     property int selectHoverRevision: 0
     property bool selectHoverRefreshQueued: false
+    property int selectHoverSkinX: -1
+    property int selectHoverSkinY: -1
+    readonly property bool selectHoverHasPoint: root.selectHoverSkinX >= 0 && root.selectHoverSkinY >= 0
     property int selectSliderFixedPoint: -1
     property bool selectScratchSoundReady: false
     readonly property bool selectAudioActive: root.enabled && root.effectiveScreenKey === "select"
@@ -488,11 +516,51 @@ Item {
         }
     }
 
-    function selectHoverPointInSkinCoordinates() {
+    onSelectHoverTrackingChanged: {
         if (!root.selectHoverTracking) {
+            root.clearSelectHoverPoint();
+        }
+    }
+
+    onSelectHoverElementCountChanged: {
+        if (root.selectHoverElementCount <= 0) {
+            root.clearSelectHoverPoint();
+        }
+    }
+
+    onSelectHoverCandidateKeysChanged: root.scheduleSelectHoverRefresh()
+
+    function selectHoverPointInSkinCoordinates() {
+        if (!root.selectHoverTracking || !root.selectHoverHasPoint) {
             return null;
         }
-        return skinScene.hoverPointInSkinCoordinates();
+        return Qt.point(root.selectHoverSkinX * skinScale, root.selectHoverSkinY * skinScale);
+    }
+
+    function updateSelectHoverPoint(x, y) {
+        if (!root.selectHoverTracking) {
+            root.clearSelectHoverPoint();
+            return false;
+        }
+        const mx = Math.floor(x / skinScale);
+        const my = Math.floor(y / skinScale);
+        if (mx === root.selectHoverSkinX && my === root.selectHoverSkinY) {
+            return false;
+        }
+        root.selectHoverSkinX = mx;
+        root.selectHoverSkinY = my;
+        root.scheduleSelectHoverRefresh();
+        return true;
+    }
+
+    function clearSelectHoverPoint() {
+        if (!root.selectHoverHasPoint) {
+            root.clearSelectHoverCache();
+            return;
+        }
+        root.selectHoverSkinX = -1;
+        root.selectHoverSkinY = -1;
+        root.clearSelectHoverCache();
     }
 
     function registerSelectHoverElement(elementIndex, src, dsts, enabled) {
@@ -509,7 +577,13 @@ Item {
         }
 
         let elements = root.copyObject(root.selectHoverElements);
-        elements[key] = { "src": src, "dsts": dsts };
+        elements[key] = {
+            "src": src,
+            "dsts": dsts,
+            "staticState": Lr2Timeline.canUseStaticState(dsts)
+                ? Lr2Timeline.getCurrentState(dsts, 0, root.zeroTimers, root.emptyActiveOptions)
+                : null
+        };
         root.selectHoverElements = elements;
         root.scheduleSelectHoverRefresh();
     }
@@ -526,14 +600,18 @@ Item {
     }
 
     function scheduleSelectHoverRefresh() {
-        if (root.selectHoverRefreshQueued) {
+        if (root.selectHoverRefreshQueued || selectHoverRefreshTimer.running) {
             return;
         }
         root.selectHoverRefreshQueued = true;
-        Qt.callLater(function() {
+        selectHoverRefreshTimer.restart();
+    }
+
+    function runSelectHoverRefresh() {
+        if (root.selectHoverRefreshQueued) {
             root.selectHoverRefreshQueued = false;
             root.refreshSelectHoverCache();
-        });
+        }
     }
 
     function clearSelectHoverCache() {
@@ -545,29 +623,20 @@ Item {
     }
 
     function refreshSelectHoverCache() {
-        if (!root.selectHoverTracking || root.selectHoverElementCount <= 0) {
+        if (!root.selectHoverTracking || root.selectHoverCandidateKeys.length <= 0 || !root.selectHoverHasPoint) {
             root.clearSelectHoverCache();
             return;
         }
 
-        const hoverPoint = root.selectHoverPointInSkinCoordinates();
-        if (!hoverPoint) {
-            root.clearSelectHoverCache();
-            return;
-        }
-
-        const mx = Math.floor(hoverPoint.x / skinScale);
-        const my = Math.floor(hoverPoint.y / skinScale);
+        const mx = root.selectHoverSkinX;
+        const my = root.selectHoverSkinY;
         let visible = {};
         let visibleKeys = [];
-        const keys = Object.keys(root.selectHoverElements);
+        const keys = root.selectHoverCandidateKeys;
         for (let i = 0; i < keys.length; ++i) {
             const key = keys[i];
             const element = root.selectHoverElements[key];
-            if (!element) {
-                continue;
-            }
-            if (root.onMouseSpriteStateAt(element.src, element.dsts, mx, my) !== null) {
+            if (root.onMouseElementStateAt(element, mx, my) !== null) {
                 visible[key] = true;
                 visibleKeys.push(key);
             }
@@ -5943,21 +6012,36 @@ Item {
     function handleSelectWheel(wheel) {
         return selectPanelController.handleSelectWheel(wheel);
     }
+
+    function onMouseStateContainsPoint(src, state, mx, my) {
+        if (!src || !state) {
+            return null;
+        }
+        const hoverX = state.x + (src.hoverX || 0);
+        const hoverY = state.y + (src.hoverY || 0);
+        const hoverW = src.hoverW || state.w;
+        const hoverH = src.hoverH || state.h;
+        return mx >= hoverX && mx <= hoverX + hoverW && my >= hoverY && my <= hoverY + hoverH
+            ? state
+            : null;
+    }
+
+    function onMouseElementStateAt(element, mx, my) {
+        if (!element || !element.src || !element.src.onMouse || !root.panelMatches(element.src.hoverPanel || 0)) {
+            return null;
+        }
+        if (element.staticState) {
+            return root.onMouseStateContainsPoint(element.src, element.staticState, mx, my);
+        }
+        return root.onMouseSpriteStateAt(element.src, element.dsts, mx, my);
+    }
+
     function onMouseSpriteStateAt(src, dsts, mx, my) {
         if (!src || !src.onMouse || !root.panelMatches(src.hoverPanel || 0)) {
             return null;
         }
-        let state = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
-        if (!state) {
-            return null;
-        }
-        let hoverX = state.x + (src.hoverX || 0);
-        let hoverY = state.y + (src.hoverY || 0);
-        let hoverW = src.hoverW || state.w;
-        let hoverH = src.hoverH || state.h;
-        return mx >= hoverX && mx <= hoverX + hoverW && my >= hoverY && my <= hoverY + hoverH
-            ? state
-            : null;
+        const state = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        return root.onMouseStateContainsPoint(src, state, mx, my);
     }
 
     function isNowJudgeSprite(src) {
@@ -6276,6 +6360,14 @@ Item {
         && !!root.chart
         && skinModel.sceneTime > 0
 
+    onRenderSkinTimeChanged: {
+        if (root.effectiveScreenKey === "select"
+                && root.selectHoverHasPoint
+                && root.globalSkinTime < root.selectAnimationLimit) {
+            root.scheduleSelectHoverRefresh();
+        }
+    }
+
     function updateSelectAnimationLimits() {
         let startInput = skinModel.startInput || 0;
         root.selectAnimationLimit = Math.max(3200, startInput);
@@ -6340,6 +6432,13 @@ Item {
         interval: 90
         repeat: false
         onTriggered: root.handleCommittedSelectState()
+    }
+
+    Timer {
+        id: selectHoverRefreshTimer
+        interval: 16
+        repeat: false
+        onTriggered: root.runSelectHoverRefresh()
     }
 
     Timer {

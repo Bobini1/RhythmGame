@@ -36,7 +36,6 @@ Item {
     property int nowBarFixed: 0
     property int pendingWheelSteps: 0
     property int selectedOffset: 0
-    property bool deferVisualSelectionSync: false
     property real animationStartVisualIndex: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
@@ -62,6 +61,7 @@ Item {
     property int barTextCellsRevision: 0
     property var visibleBarEntries: []
     property var visibleBarTextCells: []
+    property var visibleBarRowCells: []
     property var selectedScoreStateCache: ({})
     property int selectedScoreStateCacheRevision: -1
     property int cachedVisibleBarBaseIndex: -1
@@ -211,7 +211,6 @@ Item {
         let offset = normalized - baseIndex;
         let baseChanged = visualBaseIndex !== baseIndex;
 
-        deferVisualSelectionSync = true;
         if (baseChanged) {
             visualBaseIndex = baseIndex;
         }
@@ -229,7 +228,6 @@ Item {
                 || cachedVisibleBarCenter !== barCenter) {
             refreshVisibleBarEntries(false);
         }
-        deferVisualSelectionSync = false;
         let cursorBaseIndex = cursorBaseIndexForFixed(calculatedFixed);
         if (cachedSyncedCursorBaseIndex !== cursorBaseIndex) {
             cachedSyncedCursorBaseIndex = cursorBaseIndex;
@@ -974,6 +972,34 @@ Item {
         previewFiles = Rg.previewFilePathFetcher.getPreviewFilePaths(dirs);
     }
 
+    function scanAttachedTextFileForDirectory(dir) {
+        if (!dir) {
+            return "";
+        }
+
+        let files = Rg.fileQuery.getSelectableFilesForDirectory(dir);
+        for (let file of files) {
+            if (String(file).toLowerCase().endsWith(".txt")) {
+                let separator = dir.endsWith("/") || dir.endsWith("\\") ? "" : "/";
+                return dir + separator + file;
+            }
+        }
+        return "";
+    }
+
+    function refreshAttachedTextCache(input) {
+        let cache = {};
+        let seen = {};
+        for (let item of input || []) {
+            if (!item || !item.chartDirectory || seen[item.chartDirectory]) {
+                continue;
+            }
+            seen[item.chartDirectory] = true;
+            cache[item.chartDirectory] = scanAttachedTextFileForDirectory(item.chartDirectory);
+        }
+        attachedTextCache = cache;
+    }
+
     function refreshScores() {
         Rg.profileList.mainProfile.scoreDb.cancelPending();
         let folder = historyStack.length > 0 ? historyStack[historyStack.length - 1] : "";
@@ -1043,6 +1069,7 @@ Item {
 
         folderContents = [...folder];
         rebuildFolderCaches(folderContents);
+        refreshAttachedTextCache(folderContents);
         folder = sortFilter(folder);
         realItemCount = folder.length;
         addToMinimumCount(folder);
@@ -1071,6 +1098,7 @@ Item {
         }
         folderContents = [...results];
         rebuildFolderCaches(folderContents);
+        refreshAttachedTextCache(folderContents);
         results = sortFilter(results);
         realItemCount = results.length;
         addToMinimumCount(results);
@@ -1217,13 +1245,9 @@ Item {
         }
 
         let now = Date.now();
-        let wasDeferred = deferVisualSelectionSync;
         let wasDragging = scrollFixedPointDragging;
         scrollFixedPointDragging = false;
-        deferVisualSelectionSync = false;
-        if (!wasDeferred) {
-            updateVisualIndex(now);
-        }
+        updateVisualIndex(now);
 
         let rounded = Math.floor(listCalculatedBarFixed / 1000);
         if (listCalculatedBarFixed % 1000 > 499) {
@@ -1419,9 +1443,13 @@ Item {
     function refreshVisibleBarEntries(force) {
         let rowCount = Math.max(0, barRowCount || 0);
         if (logicalCount === 0 || rowCount === 0) {
-            if (force || visibleBarEntries.length !== 0 || visibleBarTextCells.length !== 0) {
+            if (force
+                    || visibleBarEntries.length !== 0
+                    || visibleBarTextCells.length !== 0
+                    || visibleBarRowCells.length !== 0) {
                 visibleBarEntries = [];
                 visibleBarTextCells = [];
+                visibleBarRowCells = [];
                 cachedVisibleBarBaseIndex = -1;
                 cachedVisibleBarListRevision = listRevision;
                 cachedVisibleBarRowCount = rowCount;
@@ -1439,36 +1467,47 @@ Item {
                 && cachedVisibleBarRowCount === rowCount
                 && cachedVisibleBarCenter === barCenter
                 && visibleBarEntries.length === rowCount
-                && visibleBarTextCells.length === rowCount) {
+                && visibleBarTextCells.length === rowCount
+                && visibleBarRowCells.length === rowCount) {
             let forward = (visualBaseIndex - cachedVisibleBarBaseIndex + logicalCount) % logicalCount;
             let backward = (cachedVisibleBarBaseIndex - visualBaseIndex + logicalCount) % logicalCount;
             let delta = forward <= backward ? forward : -backward;
             if (delta !== 0 && Math.abs(delta) <= Math.min(rowCount, 4)) {
                 let entries = visibleBarEntries;
                 let textCells = visibleBarTextCells;
+                let rowCells = visibleBarRowCells;
                 let changedTextSlots = [];
-                shiftBarTextCellRows(textCells, -delta);
-                while (delta > 0) {
-                    let entry = items[normalizeIndex(visualBaseIndex + rowCount - delta - barCenter)];
-                    entries.shift();
-                    entries.push(entry);
-                    let row = rowCount - delta;
-                    let changedSlot = updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                let steps = Math.abs(delta);
+                for (let step = 0; step < steps; ++step) {
+                    let row = delta > 0 ? rowCount - steps + step : steps - step - 1;
+                    let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+                    let cell = delta > 0 ? rowCells.shift() : rowCells.pop();
+                    if (!cell) {
+                        cell = barTextCellForRow(row);
+                    } else {
+                        updateBarTextCellForRow(cell, row);
+                    }
+                    let changedSlot = textCells.indexOf(cell);
                     if (changedSlot >= 0) {
                         changedTextSlots.push(changedSlot);
                     }
-                    delta -= 1;
+                    if (delta > 0) {
+                        rowCells.push(cell);
+                    } else {
+                        rowCells.unshift(cell);
+                    }
+                    if (delta > 0) {
+                        entries.shift();
+                        entries.push(entry);
+                    } else {
+                        entries.pop();
+                        entries.unshift(entry);
+                    }
                 }
-                while (delta < 0) {
-                    let entry = items[normalizeIndex(visualBaseIndex - delta - 1 - barCenter)];
-                    entries.pop();
-                    entries.unshift(entry);
-                    let row = -delta - 1;
-                    let changedSlot = updateOutOfRangeBarTextCell(textCells, row, rowCount);
-                    if (changedSlot >= 0) {
-                        changedTextSlots.push(changedSlot);
+                for (let row = 0; row < rowCells.length; ++row) {
+                    if (rowCells[row]) {
+                        rowCells[row].row = row;
                     }
-                    delta += 1;
                 }
                 cachedVisibleBarBaseIndex = visualBaseIndex;
                 barEntriesRevision += 1;
@@ -1491,13 +1530,17 @@ Item {
 
         let entries = [];
         let textCells = [];
+        let rowCells = [];
         for (let row = 0; row < rowCount; ++row) {
             let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+            let cell = barTextCellForRow(row);
             entries.push(entry);
-            textCells.push(barTextCellForRow(row));
+            textCells.push(cell);
+            rowCells.push(cell);
         }
         visibleBarEntries = entries;
         visibleBarTextCells = textCells;
+        visibleBarRowCells = rowCells;
         cachedVisibleBarBaseIndex = visualBaseIndex;
         cachedVisibleBarListRevision = listRevision;
         cachedVisibleBarRowCount = rowCount;
@@ -2860,15 +2903,7 @@ Item {
             return cached;
         }
 
-        let found = "";
-        let files = Rg.fileQuery.getSelectableFilesForDirectory(dir);
-        for (let file of files) {
-            if (String(file).toLowerCase().endsWith(".txt")) {
-                let separator = dir.endsWith("/") || dir.endsWith("\\") ? "" : "/";
-                found = dir + separator + file;
-                break;
-            }
-        }
+        let found = scanAttachedTextFileForDirectory(dir);
         attachedTextCache[dir] = found;
         return found;
     }

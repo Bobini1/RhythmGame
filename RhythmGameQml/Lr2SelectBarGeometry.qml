@@ -69,34 +69,31 @@ QtObject {
         return result;
     }
 
-    readonly property var cachedBarDrawStates: {
+    readonly property var cachedBarDrawCoordinates: {
         let baseStates = geometry.cachedBarBaseStates || [];
-        let result = [];
+        let xs = [];
+        let ys = [];
+        let progress = geometry.scrollOffset || 0;
+        let shouldInterpolate = progress > 0.001;
+        let inv = 1.0 - progress;
         for (let row = 0; row < baseStates.length; ++row) {
             let fromState = baseStates[row];
             let toState = row > 0 ? baseStates[row - 1] : null;
-            result.push(fromState && toState && geometry.scrollOffset > 0.001
-                ? geometry.interpolateBarState(fromState, toState, geometry.scrollOffset)
-                : fromState);
-        }
-        return result;
-    }
-
-    readonly property var cachedBarDrawXs: geometry.cachedBarDrawStates.map(state => state ? state.x : 0)
-    readonly property var cachedBarDrawYs: geometry.cachedBarDrawStates.map(state => state ? state.y : 0)
-
-    readonly property var cachedBarRowCells: {
-        selectContext.barTextCellsRevision;
-        let cells = selectContext.visibleBarTextCells || [];
-        let result = [];
-        for (let i = 0; i < cells.length; ++i) {
-            let cell = cells[i];
-            if (cell && cell.row >= 0) {
-                result[cell.row] = cell;
+            if (fromState && toState && shouldInterpolate) {
+                xs.push(fromState.x * inv + toState.x * progress);
+                ys.push(fromState.y * inv + toState.y * progress);
+            } else {
+                xs.push(fromState ? fromState.x : 0);
+                ys.push(fromState ? fromState.y : 0);
             }
         }
-        return result;
+        return { xs: xs, ys: ys };
     }
+
+    readonly property var cachedBarDrawXs: geometry.cachedBarDrawCoordinates.xs
+    readonly property var cachedBarDrawYs: geometry.cachedBarDrawCoordinates.ys
+
+    readonly property var cachedBarRowCells: selectContext.visibleBarRowCells || []
 
     function barBaseState(row) {
         return geometry.cachedBarBaseStates && row >= 0 && row < geometry.cachedBarBaseStates.length
@@ -105,9 +102,11 @@ QtObject {
     }
 
     function barDrawState(row) {
-        return geometry.cachedBarDrawStates && row >= 0 && row < geometry.cachedBarDrawStates.length
-            ? geometry.cachedBarDrawStates[row]
-            : null;
+        let fromState = geometry.barBaseState(row);
+        let toState = row > 0 ? geometry.barBaseState(row - 1) : null;
+        return fromState && toState && geometry.scrollOffset > 0.001
+            ? geometry.interpolateBarState(fromState, toState, geometry.scrollOffset)
+            : fromState;
     }
 
     function barSpriteScrollOffset(src) {
