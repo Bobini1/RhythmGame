@@ -15,13 +15,20 @@ Item {
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
-    property var barDrawStates: []
+    property var barDrawXs: []
+    property var barDrawYs: []
     property var barCells: []
     property real barScrollOffset: 0
+    property bool fastBarScrollActive: false
+    property real fastBarScrollX: 0
+    property real fastBarScrollY: 0
     property int barCenter: 0
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
+    readonly property bool applyFastBarScroll: fastBarScrollActive && (!srcData || srcData.kind !== 2)
+    x: applyFastBarScroll ? fastBarScrollX * scaleOverride : 0
+    y: applyFastBarScroll ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
     readonly property bool hasOverlayTimelineState: srcData && srcData.kind >= 2
     readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
@@ -82,13 +89,61 @@ Item {
         return cachedBaseState(row);
     }
 
+    function interpolateRowState(fromState, toState, progress) {
+        if (!fromState || !toState) {
+            return fromState;
+        }
+        let inv = 1.0 - progress;
+        return {
+            x: fromState.x * inv + toState.x * progress,
+            y: fromState.y * inv + toState.y * progress,
+            w: fromState.w * inv + toState.w * progress,
+            h: fromState.h * inv + toState.h * progress,
+            a: fromState.a * inv + toState.a * progress,
+            r: fromState.r * inv + toState.r * progress,
+            g: fromState.g * inv + toState.g * progress,
+            b: fromState.b * inv + toState.b * progress,
+            blend: fromState.blend,
+            filter: fromState.filter,
+            angle: fromState.angle * inv + toState.angle * progress,
+            center: fromState.center,
+            sortId: (fromState.sortId || 0) * inv + (toState.sortId || 0) * progress
+        };
+    }
+
     function rowDrawState(row) {
         if (srcData && srcData.kind === 2) {
             return cachedBaseState(row);
         }
-        return barDrawStates && row >= 0 && row < barDrawStates.length
-            ? barDrawStates[row]
-            : cachedBaseState(row);
+        let fromState = cachedBaseState(row);
+        let offset = barScrollOffset || 0;
+        if (!fromState || offset <= 0.001 || applyFastBarScroll) {
+            return fromState;
+        }
+        let toState = row > 0 ? cachedBaseState(row - 1) : null;
+        return fromState && toState
+            ? interpolateRowState(fromState, toState, offset)
+            : fromState;
+    }
+
+    function rowDrawX(row) {
+        if (srcData && srcData.kind === 2) {
+            let state = cachedBaseState(row);
+            return state ? state.x : 0;
+        }
+        return barDrawXs && row >= 0 && row < barDrawXs.length
+            ? barDrawXs[row]
+            : (cachedBaseState(row) ? cachedBaseState(row).x : 0);
+    }
+
+    function rowDrawY(row) {
+        if (srcData && srcData.kind === 2) {
+            let state = cachedBaseState(row);
+            return state ? state.y : 0;
+        }
+        return barDrawYs && row >= 0 && row < barDrawYs.length
+            ? barDrawYs[row]
+            : (cachedBaseState(row) ? cachedBaseState(row).y : 0);
     }
 
     function cachedBaseState(row) {
@@ -172,15 +227,16 @@ Item {
 
         Item {
             readonly property int row: modelData
-            readonly property var drawBase: root.rowDrawState(row)
+            readonly property real drawX: root.rowDrawX(row)
+            readonly property real drawY: root.rowDrawY(row)
             readonly property var visibleBase: root.visibilityState(row)
             readonly property var cell: root.cellData(row)
             readonly property bool contentVisible: !!visibleBase && root.overlayVisibleFor(cell)
-            x: drawBase ? drawBase.x * root.scaleOverride : 0
-            y: drawBase ? drawBase.y * root.scaleOverride : 0
+            x: drawX * root.scaleOverride
+            y: drawY * root.scaleOverride
             width: root.width
             height: root.height
-            visible: contentVisible && !!drawBase
+            visible: contentVisible
 
             Lr2SpriteRenderer {
                 anchors.fill: parent

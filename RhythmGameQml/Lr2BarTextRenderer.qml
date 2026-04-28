@@ -14,10 +14,16 @@ Item {
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
-    property var barDrawStates: []
+    property var barDrawXs: []
+    property var barDrawYs: []
     property var barCells: []
     property real barScrollOffset: 0
+    property bool fastBarScrollActive: false
+    property real fastBarScrollX: 0
+    property real fastBarScrollY: 0
     property int barCenter: 0
+    x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
+    y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property var timelineDsts: {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return dsts;
@@ -75,23 +81,38 @@ Item {
             property int cellTitleType: -1
             property int displayRow: -1
             property string cellText: ""
-            readonly property var drawState: root.barDrawStates && displayRow >= 0 && displayRow < root.barDrawStates.length
-                ? root.barDrawStates[displayRow]
-                : root.baseState(displayRow)
+            readonly property real drawX: root.barDrawXs && displayRow >= 0 && displayRow < root.barDrawXs.length
+                ? root.barDrawXs[displayRow]
+                : (visibleBase ? visibleBase.x : 0)
+            readonly property real drawY: root.barDrawYs && displayRow >= 0 && displayRow < root.barDrawYs.length
+                ? root.barDrawYs[displayRow]
+                : (visibleBase ? visibleBase.y : 0)
             readonly property var visibleBase: root.visibilityState(displayRow)
             readonly property bool contentVisible: displayRow > 0
                 && !!visibleBase
                 && root.visibleFor(cellEntry, cellTitleType)
-            x: drawState ? drawState.x * root.scaleOverride : 0
-            y: drawState ? drawState.y * root.scaleOverride : 0
+            x: drawX * root.scaleOverride
+            y: drawY * root.scaleOverride
             width: root.width
             height: root.height
             visible: contentVisible
 
-            function refreshCell() {
-                let cell = root.barCells && slot >= 0 && slot < root.barCells.length
+            function cellAtSlot() {
+                return root.barCells && slot >= 0 && slot < root.barCells.length
                     ? root.barCells[slot]
                     : null;
+            }
+
+            function refreshRowOnly() {
+                let cell = cellAtSlot();
+                let nextRow = cell ? cell.row : -1;
+                if (displayRow !== nextRow) {
+                    displayRow = nextRow;
+                }
+            }
+
+            function refreshCell() {
+                let cell = cellAtSlot();
                 let nextRow = cell ? cell.row : -1;
                 let nextEntry = cell ? cell.entry : null;
                 let nextTitleType = cell ? cell.titleType : -1;
@@ -117,6 +138,16 @@ Item {
                 target: root.selectContext
                 function onBarTextCellsInvalidated() {
                     barTextDelegate.refreshCell();
+                }
+
+                function onBarTextCellsRowsShifted() {
+                    barTextDelegate.refreshRowOnly();
+                }
+
+                function onBarTextCellChanged(slot) {
+                    if (slot === barTextDelegate.slot) {
+                        barTextDelegate.refreshCell();
+                    }
                 }
             }
 

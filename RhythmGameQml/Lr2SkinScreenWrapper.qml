@@ -8021,6 +8021,45 @@ Item {
         };
     }
 
+    function computeBarFastScroll(baseStates) {
+        if (!baseStates || baseStates.length < 2) {
+            return { active: false, dx: 0, dy: 0 };
+        }
+
+        let foundStep = false;
+        let stepX = 0;
+        let stepY = 0;
+        for (let row = 1; row < baseStates.length; ++row) {
+            let fromState = baseStates[row];
+            let toState = baseStates[row - 1];
+            if (!fromState || !toState) {
+                continue;
+            }
+
+            let dx = toState.x - fromState.x;
+            let dy = toState.y - fromState.y;
+            if (!Number.isFinite(dx) || !Number.isFinite(dy)) {
+                return { active: false, dx: 0, dy: 0 };
+            }
+
+            if (!foundStep) {
+                stepX = dx;
+                stepY = dy;
+                foundStep = true;
+                continue;
+            }
+
+            if (Math.abs(dx - stepX) > 0.01 || Math.abs(dy - stepY) > 0.01) {
+                return { active: false, dx: 0, dy: 0 };
+            }
+        }
+
+        if (!foundStep || (Math.abs(stepX) <= 0.001 && Math.abs(stepY) <= 0.001)) {
+            return { active: false, dx: 0, dy: 0 };
+        }
+        return { active: true, dx: stepX, dy: stepY };
+    }
+
     readonly property var cachedBarBaseStates: {
         let rows = skinModel.barRows || [];
         let selected = root.selectedBarRow();
@@ -8031,20 +8070,75 @@ Item {
         return result;
     }
 
-    readonly property var cachedBarDrawStates: {
+    readonly property var cachedBarBaseXs: {
+        let baseStates = root.cachedBarBaseStates || [];
+        let result = [];
+        for (let row = 0; row < baseStates.length; ++row) {
+            let state = baseStates[row];
+            result.push(state ? state.x : 0);
+        }
+        return result;
+    }
+
+    readonly property var cachedBarBaseYs: {
+        let baseStates = root.cachedBarBaseStates || [];
+        let result = [];
+        for (let row = 0; row < baseStates.length; ++row) {
+            let state = baseStates[row];
+            result.push(state ? state.y : 0);
+        }
+        return result;
+    }
+
+    readonly property var cachedBarFastScroll: root.computeBarFastScroll(root.cachedBarBaseStates)
+    readonly property bool fastBarScrollActive: root.cachedBarFastScroll && root.cachedBarFastScroll.active
+    readonly property real fastBarScrollX: root.fastBarScrollActive
+        ? root.cachedBarFastScroll.dx * (selectContext.scrollOffset || 0)
+        : 0
+    readonly property real fastBarScrollY: root.fastBarScrollActive
+        ? root.cachedBarFastScroll.dy * (selectContext.scrollOffset || 0)
+        : 0
+
+    readonly property var cachedBarDrawXs: {
+        if (root.fastBarScrollActive) {
+            return root.cachedBarBaseXs;
+        }
         let baseStates = root.cachedBarBaseStates || [];
         let offset = selectContext.scrollOffset || 0;
         if (offset <= 0.001) {
-            return baseStates;
+            return root.cachedBarBaseXs;
         }
 
+        let inv = 1.0 - offset;
         let result = [];
         for (let row = 0; row < baseStates.length; ++row) {
             let fromState = baseStates[row];
             let toState = row > 0 ? baseStates[row - 1] : null;
             result.push(fromState && toState
-                ? root.interpolateBarState(fromState, toState, offset)
-                : fromState);
+                ? fromState.x * inv + toState.x * offset
+                : (fromState ? fromState.x : 0));
+        }
+        return result;
+    }
+
+    readonly property var cachedBarDrawYs: {
+        if (root.fastBarScrollActive) {
+            return root.cachedBarBaseYs;
+        }
+        let baseStates = root.cachedBarBaseStates || [];
+        let offset = selectContext.scrollOffset || 0;
+        if (offset <= 0.001) {
+            return root.cachedBarBaseYs;
+        }
+
+        let inv = 1.0 - offset;
+        let result = [];
+        for (let row = 0; row < baseStates.length; ++row) {
+            let fromState = baseStates[row];
+            let toState = row > 0 ? baseStates[row - 1] : null;
+            result.push(fromState && toState
+                ? fromState.y * inv + toState.y * offset
+                : (fromState ? fromState.y : 0));
         }
         return result;
     }
@@ -8071,7 +8165,7 @@ Item {
     function barDrawState(row) {
         let fromState = root.barBaseState(row);
         let offset = selectContext.scrollOffset;
-        if (!fromState || offset <= 0.001) {
+        if (!fromState || offset <= 0.001 || root.fastBarScrollActive) {
             return fromState;
         }
 
@@ -9734,9 +9828,13 @@ Item {
                             barRows: skinModel.barRows
                             barLampVariants: skinModel.barLampVariants
                             barBaseStates: root.cachedBarBaseStates
-                            barDrawStates: root.cachedBarDrawStates
+                            barDrawXs: root.cachedBarDrawXs
+                            barDrawYs: root.cachedBarDrawYs
                             barCells: root.cachedBarRowCells
-                            barScrollOffset: selectContext.scrollOffset
+                            barScrollOffset: root.fastBarScrollActive ? 0 : selectContext.scrollOffset
+                            fastBarScrollActive: root.fastBarScrollActive
+                            fastBarScrollX: root.fastBarScrollX
+                            fastBarScrollY: root.fastBarScrollY
                             barCenter: skinModel.barCenter
                             transColor: skinModel.transColor
                             colorKeyEnabled: skinModel.hasTransColor
@@ -9755,9 +9853,12 @@ Item {
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
                             barBaseStates: root.cachedBarBaseStates
-                            barDrawStates: root.cachedBarDrawStates
+                            barDrawXs: root.cachedBarDrawXs
+                            barDrawYs: root.cachedBarDrawYs
                             barCells: selectContext.visibleBarTextCells
-                            barScrollOffset: selectContext.scrollOffset
+                            fastBarScrollActive: root.fastBarScrollActive
+                            fastBarScrollX: root.fastBarScrollX
+                            fastBarScrollY: root.fastBarScrollY
                             barCenter: skinModel.barCenter
                         }
                     }
@@ -9774,9 +9875,12 @@ Item {
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
                             barBaseStates: root.cachedBarBaseStates
-                            barDrawStates: root.cachedBarDrawStates
+                            barDrawXs: root.cachedBarDrawXs
+                            barDrawYs: root.cachedBarDrawYs
                             barCells: root.cachedBarRowCells
-                            barScrollOffset: selectContext.scrollOffset
+                            fastBarScrollActive: root.fastBarScrollActive
+                            fastBarScrollX: root.fastBarScrollX
+                            fastBarScrollY: root.fastBarScrollY
                             barCenter: skinModel.barCenter
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor

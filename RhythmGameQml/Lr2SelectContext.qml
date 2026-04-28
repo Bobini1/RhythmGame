@@ -156,6 +156,8 @@ Item {
 
     signal openedFolder()
     signal barTextCellsInvalidated()
+    signal barTextCellsRowsShifted()
+    signal barTextCellChanged(int slot)
     onBarRowCountChanged: refreshVisibleBarEntries(true)
     onBarCenterChanged: refreshVisibleBarEntries(true)
 
@@ -1444,13 +1446,17 @@ Item {
             if (delta !== 0 && Math.abs(delta) <= Math.min(rowCount, 4)) {
                 let entries = visibleBarEntries;
                 let textCells = visibleBarTextCells;
+                let changedTextSlots = [];
                 shiftBarTextCellRows(textCells, -delta);
                 while (delta > 0) {
                     let entry = items[normalizeIndex(visualBaseIndex + rowCount - delta - barCenter)];
                     entries.shift();
                     entries.push(entry);
                     let row = rowCount - delta;
-                    updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                    let changedSlot = updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                    if (changedSlot >= 0) {
+                        changedTextSlots.push(changedSlot);
+                    }
                     delta -= 1;
                 }
                 while (delta < 0) {
@@ -1458,13 +1464,19 @@ Item {
                     entries.pop();
                     entries.unshift(entry);
                     let row = -delta - 1;
-                    updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                    let changedSlot = updateOutOfRangeBarTextCell(textCells, row, rowCount);
+                    if (changedSlot >= 0) {
+                        changedTextSlots.push(changedSlot);
+                    }
                     delta += 1;
                 }
                 cachedVisibleBarBaseIndex = visualBaseIndex;
                 barEntriesRevision += 1;
                 barTextCellsRevision += 1;
-                barTextCellsInvalidated();
+                barTextCellsRowsShifted();
+                for (let i = 0; i < changedTextSlots.length; ++i) {
+                    barTextCellChanged(changedTextSlots[i]);
+                }
                 return;
             }
         }
@@ -1509,9 +1521,10 @@ Item {
             let cell = cells[i];
             if (cell && (cell.row < 0 || cell.row >= rowCount)) {
                 updateBarTextCellForRow(cell, row);
-                return;
+                return i;
             }
         }
+        return -1;
     }
 
     function visibleBarEntry(row, fallbackBarCenter) {

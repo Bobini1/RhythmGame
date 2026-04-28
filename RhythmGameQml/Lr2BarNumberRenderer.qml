@@ -14,12 +14,18 @@ Item {
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
-    property var barDrawStates: []
+    property var barDrawXs: []
+    property var barDrawYs: []
     property var barCells: []
     property real barScrollOffset: 0
+    property bool fastBarScrollActive: false
+    property real fastBarScrollX: 0
+    property real fastBarScrollY: 0
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
+    y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
 
     readonly property int numberSlotCount: barRows && selectContext && srcData
         ? Math.max(0, barRows.length)
@@ -74,15 +80,18 @@ Item {
         Item {
             readonly property int row: modelData
             readonly property var cell: root.cellData(row)
-            readonly property var drawState: root.barDrawStates && row >= 0 && row < root.barDrawStates.length
-                ? root.barDrawStates[row]
-                : root.baseState(row)
             readonly property var visibleBase: root.visibilityState(row)
+            readonly property real drawX: root.barDrawXs && row >= 0 && row < root.barDrawXs.length
+                ? root.barDrawXs[row]
+                : (visibleBase ? visibleBase.x : 0)
+            readonly property real drawY: root.barDrawYs && row >= 0 && row < root.barDrawYs.length
+                ? root.barDrawYs[row]
+                : (visibleBase ? visibleBase.y : 0)
             readonly property bool contentVisible: row > 0
                 && !!visibleBase
                 && root.visibleForCell(cell)
-            x: drawState ? drawState.x * root.scaleOverride : 0
-            y: drawState ? drawState.y * root.scaleOverride : 0
+            x: drawX * root.scaleOverride
+            y: drawY * root.scaleOverride
             width: root.width
             height: root.height
             visible: contentVisible
