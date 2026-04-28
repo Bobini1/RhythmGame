@@ -24,6 +24,21 @@ QVariantMap findMouseCursorElement(const QList<Lr2Element>& elements) {
     return {};
 }
 
+bool hasMouseHoverElement(const QList<Lr2Element>& elements) {
+    for (const auto& element : elements) {
+        if (element.type != 0 || !element.src.canConvert<Lr2SrcImage>()) {
+            continue;
+        }
+
+        const auto src = element.src.value<Lr2SrcImage>();
+        if (src.onMouse) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 }
 
 Lr2SkinModel::Lr2SkinModel(QObject* parent) : QAbstractListModel(parent) {}
@@ -123,6 +138,10 @@ QVariantList Lr2SkinModel::helpFiles() const {
 
 QVariantMap Lr2SkinModel::mouseCursor() const {
     return m_mouseCursor;
+}
+
+bool Lr2SkinModel::hasMouseHover() const {
+    return m_hasMouseHover;
 }
 
 QString Lr2SkinModel::transColor() const {
@@ -249,6 +268,7 @@ void Lr2SkinModel::loadSkin() {
                                      m_skinHeight != 480 ||
                                      !m_helpFiles.isEmpty() ||
                                      !m_mouseCursor.isEmpty() ||
+                                     m_hasMouseHover ||
                                      m_transColor != "#000000" ||
                                      m_hasTransColor ||
                                      m_reloadBanner ||
@@ -276,6 +296,7 @@ void Lr2SkinModel::loadSkin() {
         m_barRows.clear();
         m_helpFiles.clear();
         m_mouseCursor.clear();
+        m_hasMouseHover = false;
         m_transColor = "#000000";
         m_hasTransColor = false;
         m_reloadBanner = false;
@@ -317,6 +338,7 @@ void Lr2SkinModel::loadSkin() {
     const auto skinData = Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
     m_elements = skinData.elements;
     const auto mouseCursor = findMouseCursorElement(m_elements);
+    const bool hasMouseHover = hasMouseHoverElement(m_elements);
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
                                  m_loadStart != skinData.loadStart ||
@@ -332,6 +354,7 @@ void Lr2SkinModel::loadSkin() {
                                  m_barRows != skinData.barRows ||
                                  m_helpFiles != skinData.helpFiles ||
                                  m_mouseCursor != mouseCursor ||
+                                 m_hasMouseHover != hasMouseHover ||
                                  m_transColor != skinData.transColor ||
                                  m_hasTransColor != skinData.hasTransColor ||
                                  m_reloadBanner != skinData.reloadBanner ||
@@ -370,6 +393,7 @@ void Lr2SkinModel::loadSkin() {
     m_barRows = skinData.barRows;
     m_helpFiles = skinData.helpFiles;
     m_mouseCursor = mouseCursor;
+    m_hasMouseHover = hasMouseHover;
     m_transColor = skinData.transColor;
     m_hasTransColor = skinData.hasTransColor;
     m_reloadBanner = skinData.reloadBanner;

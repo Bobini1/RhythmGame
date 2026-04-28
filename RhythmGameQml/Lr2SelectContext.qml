@@ -2049,9 +2049,13 @@ Item {
 
     function judgeTimingCountsForScore(score) {
         let counts = emptyJudgeTimingCounts();
-        let events = score && score.replayData && score.replayData.hitEvents
-            ? score.replayData.hitEvents
-            : [];
+        let replay = score && score.replayData ? score.replayData : null;
+        if (replay && replay.earlyTimingCounts && replay.lateTimingCounts) {
+            counts.early = replay.earlyTimingCounts;
+            counts.late = replay.lateTimingCounts;
+            return counts;
+        }
+        let events = replay && replay.hitEvents ? replay.hitEvents : [];
         for (let hit of events || []) {
             let judgement = hit && hit.points && hit.points.judgement !== undefined
                 ? hit.points.judgement

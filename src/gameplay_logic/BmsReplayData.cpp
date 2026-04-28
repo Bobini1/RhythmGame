@@ -19,6 +19,7 @@ namespace {
 
 constexpr quint32 replayBlobMagic = 0x52475032; // "RGP2"
 constexpr quint8 replayBlobVersion = 1;
+constexpr qsizetype timingBucketCount = 6;
 
 struct LegacyHitEvent
 {
@@ -114,6 +115,37 @@ inferLegacyKey(int column) -> std::optional<input::BmsKey>
 }
 
 auto
+timingBucketForJudgement(Judgement judgement) -> int
+{
+    switch (judgement) {
+    case Judgement::Perfect:
+        return 0;
+    case Judgement::Great:
+        return 1;
+    case Judgement::Good:
+        return 2;
+    case Judgement::Bad:
+        return 3;
+    case Judgement::Poor:
+        return 4;
+    case Judgement::EmptyPoor:
+        return 5;
+    default:
+        return -1;
+    }
+}
+
+auto
+totalTimingCount(const QList<int>& counts) -> int
+{
+    auto total = 0;
+    for (auto bucket = 1; bucket < counts.size(); ++bucket) {
+        total += counts[bucket];
+    }
+    return total;
+}
+
+auto
 serializeReplayData(const QList<HitEvent>& hitEvents) -> QByteArray
 {
     auto raw = QByteArray{};
@@ -166,11 +198,33 @@ BmsReplayData::BmsReplayData(QList<HitEvent> hitEvents,
   , hitEvents(std::move(hitEvents))
   , guid(std::move(guid))
 {
+    updateTimingCounts();
 }
+
 auto
 BmsReplayData::getHitEvents() const -> const QList<HitEvent>&
 {
     return hitEvents;
+}
+auto
+BmsReplayData::getEarlyTimingCounts() const -> QList<int>
+{
+    return earlyTimingCounts;
+}
+auto
+BmsReplayData::getLateTimingCounts() const -> QList<int>
+{
+    return lateTimingCounts;
+}
+auto
+BmsReplayData::getTotalEarly() const -> int
+{
+    return totalEarly;
+}
+auto
+BmsReplayData::getTotalLate() const -> int
+{
+    return totalLate;
 }
 auto
 BmsReplayData::getGuid() const -> QString
@@ -194,10 +248,9 @@ BmsReplayData::save(db::SqliteCppDb& db) const
 auto
 BmsReplayData::load(const DTO& dto) -> std::unique_ptr<BmsReplayData>
 {
-    const auto data = QByteArray::fromStdString(dto.hitEvents);
-    auto hitEvents = deserializeReplayData(data);
-    return std::make_unique<BmsReplayData>(std::move(hitEvents),
-                                           QString::fromStdString(dto.guid));
+    auto data = QByteArray::fromStdString(dto.hitEvents);
+    return std::make_unique<BmsReplayData>(
+      deserializeReplayData(data), QString::fromStdString(dto.guid));
 }
 
 void
@@ -230,7 +283,7 @@ auto
 BmsReplayData::toJsonArray() const -> QJsonArray
 {
     QJsonArray arr;
-    for (const auto& e : hitEvents) {
+    for (const auto& e : getHitEvents()) {
         QJsonObject o;
         o["offsetFromStart"] = static_cast<qint64>(e.getOffsetFromStart());
         auto pts = e.getPointsOptional();
@@ -289,5 +342,27 @@ BmsReplayData::fromJsonArray(const QJsonArray& array) -> QList<HitEvent>
           noteRemoved));
     }
     return ret;
+}
+
+void
+BmsReplayData::updateTimingCounts()
+{
+    earlyTimingCounts = QList<int>(timingBucketCount);
+    lateTimingCounts = QList<int>(timingBucketCount);
+    for (const auto& hit : hitEvents) {
+        const auto points = hit.getPointsOptional();
+        if (!points.has_value()) {
+            continue;
+        }
+        const auto bucket = timingBucketForJudgement(points->getJudgement());
+        if (bucket < 0) {
+            continue;
+        }
+        auto& counts =
+          points->getDeviation() < 0 ? earlyTimingCounts : lateTimingCounts;
+        counts[bucket] = counts[bucket] + 1;
+    }
+    totalEarly = totalTimingCount(earlyTimingCounts);
+    totalLate = totalTimingCount(lateTimingCounts);
 }
 } // namespace gameplay_logic

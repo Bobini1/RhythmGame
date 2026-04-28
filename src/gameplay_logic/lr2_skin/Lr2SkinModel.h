@@ -26,6 +26,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList helpFiles READ helpFiles NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantMap mouseCursor READ mouseCursor NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool hasMouseHover READ hasMouseHover NOTIFY skinMetadataChanged)
     Q_PROPERTY(QString transColor READ transColor NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool hasTransColor READ hasTransColor NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool reloadBanner READ reloadBanner NOTIFY skinMetadataChanged)
@@ -82,6 +83,7 @@ public:
     QVariantList barRows() const;
     QVariantList helpFiles() const;
     QVariantMap mouseCursor() const;
+    bool hasMouseHover() const;
     QString transColor() const;
     bool hasTransColor() const;
     bool reloadBanner() const;
@@ -123,6 +125,7 @@ private:
     QVariantList m_barRows;
     QVariantList m_helpFiles;
     QVariantMap m_mouseCursor;
+    bool m_hasMouseHover = false;
     QString m_transColor = "#000000";
     bool m_hasTransColor = false;
     bool m_reloadBanner = false;

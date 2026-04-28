@@ -49,8 +49,8 @@ BmsGaugeHistory::save(db::SqliteCppDb& db) const
 auto
 BmsGaugeHistory::load(const DTO& dto) -> std::unique_ptr<BmsGaugeHistory>
 {
-    const auto infoBuffer = QByteArray::fromStdString(dto.gaugeInfo);
-    decltype(gaugeInfo) gaugeInfo;
+    auto infoBuffer = QByteArray::fromStdString(dto.gaugeInfo);
+    auto gaugeInfo = QList<BmsGaugeInfo>{};
     support::decompress(infoBuffer, gaugeInfo);
     return std::make_unique<BmsGaugeHistory>(
       std::move(gaugeInfo), QString::fromStdString(dto.scoreGuid));
@@ -69,7 +69,7 @@ auto
 BmsGaugeHistory::toJsonArray() const -> QJsonArray
 {
     QJsonArray arr;
-    for (const auto& gi : gaugeInfo) {
+    for (const auto& gi : getGaugeInfo()) {
         QJsonObject o;
         o["name"] = gi.name;
         o["maxGauge"] = gi.maxGauge;

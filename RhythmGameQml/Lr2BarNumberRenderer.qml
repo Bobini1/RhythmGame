@@ -21,11 +21,14 @@ Item {
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
     property real fastBarScrollY: 0
+    property real selectedFastBarDrawX: 0
+    property real selectedFastBarDrawY: 0
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
+    readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
 
     readonly property int numberSlotCount: barRows && selectContext && srcData
         ? Math.max(0, barRows.length)
@@ -81,17 +84,22 @@ Item {
             readonly property int row: modelData
             readonly property var cell: root.cellData(row)
             readonly property var visibleBase: root.visibilityState(row)
-            readonly property real drawX: root.barDrawXs && row >= 0 && row < root.barDrawXs.length
-                ? root.barDrawXs[row]
-                : (visibleBase ? visibleBase.x : 0)
-            readonly property real drawY: root.barDrawYs && row >= 0 && row < root.barDrawYs.length
-                ? root.barDrawYs[row]
-                : (visibleBase ? visibleBase.y : 0)
+            readonly property bool selectedRowContent: row === root.selectedRow
+            readonly property real drawX: root.fastBarScrollActive && selectedRowContent
+                ? root.selectedFastBarDrawX
+                : (root.barDrawXs && row >= 0 && row < root.barDrawXs.length
+                   ? root.barDrawXs[row]
+                   : (visibleBase ? visibleBase.x : 0))
+            readonly property real drawY: root.fastBarScrollActive && selectedRowContent
+                ? root.selectedFastBarDrawY
+                : (root.barDrawYs && row >= 0 && row < root.barDrawYs.length
+                   ? root.barDrawYs[row]
+                   : (visibleBase ? visibleBase.y : 0))
             readonly property bool contentVisible: row > 0
                 && !!visibleBase
                 && root.visibleForCell(cell)
-            x: drawX * root.scaleOverride
-            y: drawY * root.scaleOverride
+            x: (drawX - (root.fastBarScrollActive && selectedRowContent ? root.fastBarScrollX : 0)) * root.scaleOverride
+            y: (drawY - (root.fastBarScrollActive && selectedRowContent ? root.fastBarScrollY : 0)) * root.scaleOverride
             width: root.width
             height: root.height
             visible: contentVisible

@@ -22,11 +22,18 @@ Item {
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
     property real fastBarScrollY: 0
+    property real selectedFastBarDrawX: 0
+    property real selectedFastBarDrawY: 0
     property int barCenter: 0
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
-    readonly property bool applyFastBarScroll: fastBarScrollActive && (!srcData || srcData.kind !== 2)
+    readonly property bool selectedBodySource: !!srcData
+        && srcData.kind === 0
+        && srcData.row === selectedRow
+    readonly property bool applyFastBarScroll: fastBarScrollActive
+        && !selectedBodySource
+        && (!srcData || srcData.kind !== 2)
     x: applyFastBarScroll ? fastBarScrollX * scaleOverride : 0
     y: applyFastBarScroll ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -116,8 +123,11 @@ Item {
             return cachedBaseState(row);
         }
         let fromState = cachedBaseState(row);
+        if (!fromState || applyFastBarScroll) {
+            return fromState;
+        }
         let offset = barScrollOffset || 0;
-        if (!fromState || offset <= 0.001 || applyFastBarScroll) {
+        if (offset <= 0.001) {
             return fromState;
         }
         let toState = row > 0 ? cachedBaseState(row - 1) : null;
@@ -131,6 +141,9 @@ Item {
             let state = cachedBaseState(row);
             return state ? state.x : 0;
         }
+        if (fastBarScrollActive && row === selectedRow) {
+            return selectedFastBarDrawX;
+        }
         return barDrawXs && row >= 0 && row < barDrawXs.length
             ? barDrawXs[row]
             : (cachedBaseState(row) ? cachedBaseState(row).x : 0);
@@ -140,6 +153,9 @@ Item {
         if (srcData && srcData.kind === 2) {
             let state = cachedBaseState(row);
             return state ? state.y : 0;
+        }
+        if (fastBarScrollActive && row === selectedRow) {
+            return selectedFastBarDrawY;
         }
         return barDrawYs && row >= 0 && row < barDrawYs.length
             ? barDrawYs[row]

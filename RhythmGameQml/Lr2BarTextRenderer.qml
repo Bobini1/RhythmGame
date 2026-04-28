@@ -21,9 +21,12 @@ Item {
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
     property real fastBarScrollY: 0
+    property real selectedFastBarDrawX: 0
+    property real selectedFastBarDrawY: 0
     property int barCenter: 0
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
+    readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
     readonly property var timelineDsts: {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return dsts;
@@ -81,18 +84,23 @@ Item {
             property int cellTitleType: -1
             property int displayRow: -1
             property string cellText: ""
-            readonly property real drawX: root.barDrawXs && displayRow >= 0 && displayRow < root.barDrawXs.length
-                ? root.barDrawXs[displayRow]
-                : (visibleBase ? visibleBase.x : 0)
-            readonly property real drawY: root.barDrawYs && displayRow >= 0 && displayRow < root.barDrawYs.length
-                ? root.barDrawYs[displayRow]
-                : (visibleBase ? visibleBase.y : 0)
+            readonly property bool selectedRowContent: displayRow === root.selectedRow
+            readonly property real drawX: root.fastBarScrollActive && selectedRowContent
+                ? root.selectedFastBarDrawX
+                : (root.barDrawXs && displayRow >= 0 && displayRow < root.barDrawXs.length
+                   ? root.barDrawXs[displayRow]
+                   : (visibleBase ? visibleBase.x : 0))
+            readonly property real drawY: root.fastBarScrollActive && selectedRowContent
+                ? root.selectedFastBarDrawY
+                : (root.barDrawYs && displayRow >= 0 && displayRow < root.barDrawYs.length
+                   ? root.barDrawYs[displayRow]
+                   : (visibleBase ? visibleBase.y : 0))
             readonly property var visibleBase: root.visibilityState(displayRow)
             readonly property bool contentVisible: displayRow > 0
                 && !!visibleBase
                 && root.visibleFor(cellEntry, cellTitleType)
-            x: drawX * root.scaleOverride
-            y: drawY * root.scaleOverride
+            x: (drawX - (root.fastBarScrollActive && selectedRowContent ? root.fastBarScrollX : 0)) * root.scaleOverride
+            y: (drawY - (root.fastBarScrollActive && selectedRowContent ? root.fastBarScrollY : 0)) * root.scaleOverride
             width: root.width
             height: root.height
             visible: contentVisible

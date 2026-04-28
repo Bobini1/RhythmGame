@@ -175,7 +175,7 @@ Item {
         height: Math.max(1, root.drawH * root.scaleOverride)
         visible: root.visible
         opacity: root.currentState ? Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0)) : 0
-        renderTarget: Canvas.Image
+        renderStrategy: Canvas.Threaded
         antialiasing: false
 
         onPaint: {
