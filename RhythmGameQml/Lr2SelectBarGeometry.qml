@@ -53,37 +53,40 @@ QtObject {
     readonly property real fastBarScrollY: 0
     readonly property real selectedFastBarDrawX: 0
     readonly property real selectedFastBarDrawY: 0
+    readonly property int selectedRow: skinModel.barCenter + selectContext.selectedOffset
+    readonly property int clickStartRow: Math.max(0, skinModel.barAvailableStart - 3)
+    readonly property int clickEndRow: Math.min(
+        (skinModel.barRows ? skinModel.barRows.length : 0) - 1,
+        skinModel.barAvailableEnd + 3)
+    readonly property real scrollOffset: selectContext.scrollOffset || 0
 
     readonly property var cachedBarBaseStates: {
         let rows = skinModel.barRows || [];
-        let selected = geometry.selectedBarRow();
         let result = [];
         for (let row = 0; row < rows.length; ++row) {
-            result.push(geometry.computeBarBaseState(row, selected));
+            result.push(geometry.computeBarBaseState(row, geometry.selectedRow));
         }
         return result;
     }
 
-    readonly property var cachedBarDrawXs: geometry.barDrawAxisValues("x")
-    readonly property var cachedBarDrawYs: geometry.barDrawAxisValues("y")
-
-    function barDrawAxisValues(axis) {
+    readonly property var cachedBarDrawStates: {
         let baseStates = geometry.cachedBarBaseStates || [];
-        let offset = selectContext.scrollOffset || 0;
-        let inv = 1.0 - offset;
         let result = [];
         for (let row = 0; row < baseStates.length; ++row) {
             let fromState = baseStates[row];
             let toState = row > 0 ? baseStates[row - 1] : null;
-            result.push(fromState && toState && offset > 0.001
-                ? fromState[axis] * inv + toState[axis] * offset
-                : (fromState ? fromState[axis] : 0));
+            result.push(fromState && toState && geometry.scrollOffset > 0.001
+                ? geometry.interpolateBarState(fromState, toState, geometry.scrollOffset)
+                : fromState);
         }
         return result;
     }
 
+    readonly property var cachedBarDrawXs: geometry.cachedBarDrawStates.map(state => state ? state.x : 0)
+    readonly property var cachedBarDrawYs: geometry.cachedBarDrawStates.map(state => state ? state.y : 0)
+
     readonly property var cachedBarRowCells: {
-        let revision = selectContext.barTextCellsRevision;
+        selectContext.barTextCellsRevision;
         let cells = selectContext.visibleBarTextCells || [];
         let result = [];
         for (let i = 0; i < cells.length; ++i) {
@@ -102,40 +105,32 @@ QtObject {
     }
 
     function barDrawState(row) {
-        let fromState = geometry.barBaseState(row);
-        let offset = selectContext.scrollOffset;
-        if (!fromState || offset <= 0.001) {
-            return fromState;
-        }
-
-        let toState = row > 0 ? geometry.barBaseState(row - 1) : null;
-        return fromState && toState
-            ? geometry.interpolateBarState(fromState, toState, offset)
-            : fromState;
+        return geometry.cachedBarDrawStates && row >= 0 && row < geometry.cachedBarDrawStates.length
+            ? geometry.cachedBarDrawStates[row]
+            : null;
     }
 
     function barSpriteScrollOffset(src) {
-        return selectContext.scrollOffset || 0;
+        return geometry.scrollOffset;
     }
 
     function selectedBarRow() {
-        return skinModel.barCenter + selectContext.selectedOffset;
+        return geometry.selectedRow;
     }
 
     function barClickStart() {
-        return Math.max(0, skinModel.barAvailableStart - 3);
+        return geometry.clickStartRow;
     }
 
     function barClickEnd() {
-        let rows = skinModel.barRows ? skinModel.barRows.length : 0;
-        return Math.min(rows - 1, skinModel.barAvailableEnd + 3);
+        return geometry.clickEndRow;
     }
 
     function barRowCanClick(row) {
         if (skinModel.barAvailableEnd < skinModel.barAvailableStart) {
             return false;
         }
-        return row >= geometry.barClickStart() && row <= geometry.barClickEnd();
+        return row >= geometry.clickStartRow && row <= geometry.clickEndRow;
     }
 
     function barRowScrollDelta(row) {
@@ -165,7 +160,7 @@ QtObject {
             return;
         }
 
-        if (row === geometry.selectedBarRow()) {
+        if (row === geometry.selectedRow) {
             root.selectGoForward();
             return;
         }

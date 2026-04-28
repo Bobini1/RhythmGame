@@ -85,6 +85,169 @@ QtObject {
         "77": () => root.lr2BeatorajaTargetIndex,
         "78": () => root.lr2GaugeAutoShiftIndex
     })
+    readonly property var selectButtonActions: ({
+        "10": delta => {
+            selectContext.difficultyFilter = root.wrapValue(selectContext.difficultyFilter + delta, 6);
+            selectContext.sortOrFilterChanged();
+            return true;
+        },
+        "11": delta => {
+            selectContext.keyFilter = root.wrapValue(selectContext.keyFilter + delta, 7);
+            selectContext.sortOrFilterChanged();
+            return true;
+        },
+        "12": (delta, sourceCount) => {
+            selectContext.adjustSortMode(delta, sourceCount || 5);
+            selectContext.sortOrFilterChanged();
+            return true;
+        },
+        "13": () => false,
+        "14": () => {
+            root.openSelectPanel(2, false);
+            return false;
+        },
+        "15": () => {
+            root.selectGoForward();
+            return false;
+        },
+        "16": () => {
+            root.selectGoForward(undefined, true);
+            return false;
+        },
+        "18": () => true,
+        "19": () => {
+            let replayScore = selectContext.replayScoreForType(selectContext.current, root.lr2ReplayType);
+            if (replayScore) {
+                root.selectGoForward(selectContext.current, false, true, replayScore);
+            }
+            return false;
+        },
+        "20": delta => controller.setFxType(0, delta),
+        "21": delta => controller.setFxType(1, delta),
+        "22": delta => controller.setFxType(2, delta),
+        "23": () => controller.toggleFx(0),
+        "24": () => controller.toggleFx(1),
+        "25": () => controller.toggleFx(2),
+        "26": delta => controller.setFxTarget(0, delta),
+        "27": delta => controller.setFxTarget(1, delta),
+        "28": delta => controller.setFxTarget(2, delta),
+        "29": () => {
+            root.lr2EqOn = !root.lr2EqOn;
+            return true;
+        },
+        "32": () => {
+            root.lr2PitchOn = !root.lr2PitchOn;
+            return true;
+        },
+        "33": delta => {
+            root.lr2PitchType = root.wrapValue(root.lr2PitchType + delta, 3);
+            return true;
+        },
+        "40": delta => {
+            root.setGaugeIndex(1, root.lr2GaugeIndexP1 + delta);
+            return true;
+        },
+        "41": delta => {
+            root.setGaugeIndex(2, root.lr2GaugeIndexP2 + delta);
+            return true;
+        },
+        "42": delta => {
+            root.setRandomIndex(1, root.lr2RandomIndexP1 + delta);
+            return true;
+        },
+        "43": delta => {
+            root.setRandomIndex(2, root.lr2RandomIndexP2 + delta);
+            return true;
+        },
+        "44": () => false,
+        "45": () => false,
+        "46": delta => {
+            root.setLaneCoverIndex(root.lr2LaneCoverIndex + delta);
+            return true;
+        },
+        "50": delta => {
+            root.setHidSudIndex(1, root.lr2HidSudIndexP1 + delta);
+            return true;
+        },
+        "51": delta => {
+            root.setHidSudIndex(2, root.lr2HidSudIndexP2 + delta);
+            return true;
+        },
+        "54": delta => {
+            root.setDpOptionIndex(root.lr2DpOptionIndex + delta);
+            return true;
+        },
+        "55": delta => {
+            root.setHiSpeedFixIndex(root.lr2HiSpeedFixIndex + delta);
+            return true;
+        },
+        "56": delta => {
+            root.setBattleIndex(root.lr2BattleIndex + delta);
+            return true;
+        },
+        "57": delta => {
+            root.adjustHiSpeedNumber(1, delta);
+            return true;
+        },
+        "58": delta => {
+            root.adjustHiSpeedNumber(2, delta);
+            return true;
+        },
+        "70": delta => {
+            root.setScoreGraphIndex(root.lr2ScoreGraphIndex + delta);
+            return true;
+        },
+        "71": delta => {
+            root.setGhostIndex(root.lr2GhostIndex + delta);
+            return true;
+        },
+        "72": delta => {
+            root.setBgaIndex(root.lr2BgaIndex + delta);
+            return true;
+        },
+        "73": delta => {
+            root.setBgaSizeIndex(root.lr2BgaSizeIndex + delta);
+            return true;
+        },
+        "74": delta => {
+            root.adjustOffset(delta);
+            return true;
+        },
+        "75": () => false,
+        "76": delta => {
+            root.setTargetPercent(root.lr2TargetPercent + delta);
+            return true;
+        },
+        "77": delta => {
+            root.setBeatorajaTargetIndex(root.lr2BeatorajaTargetIndex + delta);
+            return true;
+        },
+        "78": delta => {
+            root.setGaugeAutoShiftIndex(root.lr2GaugeAutoShiftIndex + delta);
+            return true;
+        },
+        "80": () => {
+            globalRoot.toggleFullScreen();
+            return false;
+        },
+        "81": () => false,
+        "82": () => false,
+        "83": delta => {
+            root.lr2ReplayType = root.wrapValue(root.lr2ReplayType + delta, root.lr2ReplayLabels.length);
+            return true;
+        },
+        "301": () => false,
+        "302": () => false,
+        "303": () => false,
+        "304": () => false,
+        "305": () => false,
+        "306": () => false,
+        "307": () => false,
+        "308": () => false,
+        "316": () => controller.playReplaySlot(1),
+        "317": () => controller.playReplaySlot(2),
+        "318": () => controller.playReplaySlot(3)
+    })
 
     function lookup(values) {
         let result = {};
@@ -202,7 +365,6 @@ QtObject {
         }
         root.selectPanel = 0;
         root.selectPanelHeldByStart = 0;
-        root.selectPanelElapsed = 0;
         root.selectHeldButtonTimerStarts = ({});
     }
 
@@ -210,9 +372,8 @@ QtObject {
         if (panel <= 0) {
             return;
         }
+        root.selectPanelCloseStartSkinTime = root.selectLiveSkinTime;
         root.selectPanelClosing = panel;
-        root.selectPanelCloseStartMs = Date.now();
-        root.selectPanelCloseElapsed = 0;
     }
 
     function openSelectPanel(panel, heldByStart) {
@@ -224,9 +385,8 @@ QtObject {
             if (root.selectPanel > 0) {
                 root.startSelectPanelCloseTimer(root.selectPanel);
             }
+            root.selectPanelStartSkinTime = root.selectLiveSkinTime;
             root.selectPanel = panel;
-            root.selectPanelStartMs = Date.now();
-            root.selectPanelElapsed = 0;
         }
         root.selectPanelHeldByStart = heldByStart ? panel : 0;
     }
@@ -262,7 +422,7 @@ QtObject {
         if (root.effectiveScreenKey !== "select") {
             return root.renderSkinTime;
         }
-        return Math.max(root.renderSkinTime, Date.now() - root.sceneStartMs);
+        return root.selectLiveSkinTime;
     }
 
     function selectHeldButtonTimerForKey(key) {
@@ -320,7 +480,6 @@ QtObject {
         for (let keyName in starts) {
             copy[keyName] = starts[keyName];
         }
-        root.selectHeldButtonSkinTime = root.currentSelectHeldButtonSkinTime();
         copy[timer] = root.selectHeldButtonSkinTime;
         root.selectHeldButtonTimerStarts = copy;
     }
@@ -381,6 +540,35 @@ QtObject {
         return root.panelMatches(src.buttonPanel || 0);
     }
 
+    function setFxType(slot, delta) {
+        root.lr2FxType = root.setArrayValue(
+            root.lr2FxType,
+            slot,
+            root.wrapValue((root.lr2FxType[slot] || 0) + delta, 8));
+        return true;
+    }
+
+    function toggleFx(slot) {
+        root.lr2FxOn = root.setArrayValue(root.lr2FxOn, slot, !root.lr2FxOn[slot]);
+        return true;
+    }
+
+    function setFxTarget(slot, delta) {
+        root.lr2FxTarget = root.setArrayValue(
+            root.lr2FxTarget,
+            slot,
+            root.wrapValue((root.lr2FxTarget[slot] || 0) + delta, 3));
+        return true;
+    }
+
+    function playReplaySlot(replayType) {
+        let replayScore = selectContext.replayScoreForType(selectContext.current, replayType);
+        if (replayScore) {
+            root.selectGoForward(selectContext.current, false, true, replayScore);
+        }
+        return false;
+    }
+
     function handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount) {
         if (!root.enabled || root.effectiveScreenKey !== "select" || !root.acceptsInput) {
             return;
@@ -417,224 +605,25 @@ QtObject {
             root.openLr2InternetRanking();
             return;
         }
-        let optionChanged = false;
-        switch (buttonId) {
-        case 10:
-            selectContext.difficultyFilter = root.wrapValue(selectContext.difficultyFilter + delta, 6);
-            selectContext.sortOrFilterChanged();
-            optionChanged = true;
-            break;
-        case 11:
-            selectContext.keyFilter = root.wrapValue(selectContext.keyFilter + delta, 7);
-            selectContext.sortOrFilterChanged();
-            optionChanged = true;
-            break;
-        case 12:
-            selectContext.adjustSortMode(delta, sourceCount || 5);
-            selectContext.sortOrFilterChanged();
-            optionChanged = true;
-            break;
-        case 13:
-            break;
-        case 14:
-            root.openSelectPanel(2, false);
-            break;
-        case 15:
-            root.selectGoForward();
-            break;
-        case 16:
-            root.selectGoForward(undefined, true);
-            break;
-        case 19: {
-            let replayScore = selectContext.replayScoreForType(selectContext.current, root.lr2ReplayType);
-            if (replayScore) {
-                root.selectGoForward(selectContext.current, false, true, replayScore);
-            }
-            break;
-        }
-        case 316:
-        case 317:
-        case 318: {
-            let replayType = buttonId - 315;
-            let replayScore = selectContext.replayScoreForType(selectContext.current, replayType);
-            if (replayScore) {
-                root.selectGoForward(selectContext.current, false, true, replayScore);
-            }
-            break;
-        }
-        case 57:
-            root.adjustHiSpeedNumber(1, delta);
-            optionChanged = true;
-            break;
-        case 58:
-            root.adjustHiSpeedNumber(2, delta);
-            optionChanged = true;
-            break;
-        case 40:
-            root.setGaugeIndex(1, root.lr2GaugeIndexP1 + delta);
-            optionChanged = true;
-            break;
-        case 41:
-            root.setGaugeIndex(2, root.lr2GaugeIndexP2 + delta);
-            optionChanged = true;
-            break;
-        case 42:
-            root.setRandomIndex(1, root.lr2RandomIndexP1 + delta);
-            optionChanged = true;
-            break;
-        case 43:
-            root.setRandomIndex(2, root.lr2RandomIndexP2 + delta);
-            optionChanged = true;
-            break;
-        case 44:
-        case 45:
-            // Assist options are intentionally unsupported; keep LR2 menus at OFF.
-            break;
-        case 18:
-            optionChanged = true;
-            break;
-        case 20:
-        case 21:
-        case 22: {
-            let slot = buttonId - 20;
-            root.lr2FxType = root.setArrayValue(root.lr2FxType, slot, root.wrapValue((root.lr2FxType[slot] || 0) + delta, 8));
-            optionChanged = true;
-            break;
-        }
-        case 23:
-        case 24:
-        case 25: {
-            let slot = buttonId - 23;
-            root.lr2FxOn = root.setArrayValue(root.lr2FxOn, slot, !root.lr2FxOn[slot]);
-            optionChanged = true;
-            break;
-        }
-        case 26:
-        case 27:
-        case 28: {
-            let slot = buttonId - 26;
-            root.lr2FxTarget = root.setArrayValue(root.lr2FxTarget, slot, root.wrapValue((root.lr2FxTarget[slot] || 0) + delta, 3));
-            optionChanged = true;
-            break;
-        }
-        case 29:
-            root.lr2EqOn = !root.lr2EqOn;
-            optionChanged = true;
-            break;
-        case 32:
-            root.lr2PitchOn = !root.lr2PitchOn;
-            optionChanged = true;
-            break;
-        case 33:
-            root.lr2PitchType = root.wrapValue(root.lr2PitchType + delta, 3);
-            optionChanged = true;
-            break;
-        case 46:
-            root.setLaneCoverIndex(root.lr2LaneCoverIndex + delta);
-            optionChanged = true;
-            break;
-        case 50:
-            root.setHidSudIndex(1, root.lr2HidSudIndexP1 + delta);
-            optionChanged = true;
-            break;
-        case 51:
-            root.setHidSudIndex(2, root.lr2HidSudIndexP2 + delta);
-            optionChanged = true;
-            break;
-        case 54:
-            root.setDpOptionIndex(root.lr2DpOptionIndex + delta);
-            optionChanged = true;
-            break;
-        case 55:
-            root.setHiSpeedFixIndex(root.lr2HiSpeedFixIndex + delta);
-            optionChanged = true;
-            break;
-        case 56:
-            root.setBattleIndex(root.lr2BattleIndex + delta);
-            optionChanged = true;
-            break;
-        case 70:
-            root.setScoreGraphIndex(root.lr2ScoreGraphIndex + delta);
-            optionChanged = true;
-            break;
-        case 71:
-            root.setGhostIndex(root.lr2GhostIndex + delta);
-            optionChanged = true;
-            break;
-        case 72:
-            root.setBgaIndex(root.lr2BgaIndex + delta);
-            optionChanged = true;
-            break;
-        case 73:
-            root.setBgaSizeIndex(root.lr2BgaSizeIndex + delta);
-            optionChanged = true;
-            break;
-        case 75:
-            // Judge auto-adjust is unsupported, so LR2 menus stay at OFF.
-            break;
-        case 74:
-            root.adjustOffset(delta);
-            optionChanged = true;
-            break;
-        case 76:
-            root.setTargetPercent(root.lr2TargetPercent + delta);
-            optionChanged = true;
-            break;
-        case 77:
-            root.setBeatorajaTargetIndex(root.lr2BeatorajaTargetIndex + delta);
-            optionChanged = true;
-            break;
-        case 78:
-            root.setGaugeAutoShiftIndex(root.lr2GaugeAutoShiftIndex + delta);
-            optionChanged = true;
-            break;
-        case 301:
-        case 302:
-        case 303:
-        case 304:
-        case 305:
-        case 306:
-        case 307:
-        case 308:
-            // Beatoraja-only options that do not have backing gameplay support yet.
-            break;
-        case 80:
-            globalRoot.toggleFullScreen();
-            break;
-        case 81:
-        case 82:
-            // Color depth and vsync settings are not mutable from the LR2 skin.
-            break;
-        case 83:
-            root.lr2ReplayType = root.wrapValue(root.lr2ReplayType + delta, root.lr2ReplayLabels.length);
-            optionChanged = true;
-            break;
-        default:
+        let action = controller.selectButtonActions[String(buttonId)];
+        let optionChanged = action ? action(delta, sourceCount) === true : false;
+        if (!action) {
             if (buttonId >= 91 && buttonId <= 96) {
                 selectContext.clickDifficulty(buttonId - 91);
                 optionChanged = true;
-                break;
-            }
-            if (buttonId >= 170 && buttonId <= 188) {
+            } else if (buttonId >= 170 && buttonId <= 188) {
                 let screen = root.lr2SkinTypeScreenKey(buttonId - 170);
                 optionChanged = root.setLr2SkinPreviewScreen(screen);
-                break;
-            }
-            if (buttonId === 190) {
+            } else if (buttonId === 190) {
                 optionChanged = root.changeLr2SelectedTheme(delta);
-                break;
-            }
-            if (buttonId >= 220 && buttonId <= 229) {
+            } else if (buttonId >= 220 && buttonId <= 229) {
                 optionChanged = root.changeLr2SkinSetting(buttonId - 220, delta);
-                break;
-            }
-            if (buttonId >= 230 && buttonId <= 268) {
+            } else if (buttonId >= 230 && buttonId <= 268) {
                 // These LR2 controls cover skin/key config, IR, and tag-editor
                 // actions that do not have safe backing state here.
-                break;
+            } else {
+                console.info("LR2 select button " + buttonId + " is not implemented yet");
             }
-            console.info("LR2 select button " + buttonId + " is not implemented yet");
-            break;
         }
         if (optionChanged) {
             root.playOneShot(soundPlayer || optionChangeSound);
@@ -648,23 +637,8 @@ QtObject {
 
     function triggerPanelButtonForKey(p1ButtonId, p2ButtonId, key, delta) {
         let buttonId = p1ButtonId;
-        if (p2ButtonId !== undefined) {
-            switch (key) {
-            case BmsKey.Col21:
-            case BmsKey.Col22:
-            case BmsKey.Col23:
-            case BmsKey.Col24:
-            case BmsKey.Col25:
-            case BmsKey.Col26:
-            case BmsKey.Col27:
-            case BmsKey.Col2sUp:
-            case BmsKey.Col2sDown:
-            case BmsKey.Select2:
-                buttonId = p2ButtonId;
-                break;
-            default:
-                break;
-            }
+        if (p2ButtonId !== undefined && root.keyUsesPlayer2(key)) {
+            buttonId = p2ButtonId;
         }
         return root.triggerSelectPanelButton(buttonId, delta === undefined ? 1 : delta);
     }

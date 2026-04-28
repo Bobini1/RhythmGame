@@ -89,13 +89,15 @@ Item {
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
     readonly property int lr2CurrentFps: Math.round(lr2FpsAnimation.fps)
-    property int lr2ClockYear: 0
-    property int lr2ClockMonth: 0
-    property int lr2ClockDay: 0
-    property int lr2ClockHour: 0
-    property int lr2ClockMinute: 0
-    property int lr2ClockSecond: 0
-    property int lr2SceneUptimeSeconds: 0
+    property double lr2ClockNowMs: Date.now()
+    readonly property var lr2ClockNow: new Date(root.lr2ClockNowMs)
+    readonly property int lr2ClockYear: root.lr2ClockNow.getFullYear()
+    readonly property int lr2ClockMonth: root.lr2ClockNow.getMonth() + 1
+    readonly property int lr2ClockDay: root.lr2ClockNow.getDate()
+    readonly property int lr2ClockHour: root.lr2ClockNow.getHours()
+    readonly property int lr2ClockMinute: root.lr2ClockNow.getMinutes()
+    readonly property int lr2ClockSecond: root.lr2ClockNow.getSeconds()
+    readonly property int lr2SceneUptimeSeconds: Math.floor(Math.max(0, root.lr2ClockNowMs - root.sceneStartMs) / 1000)
     property var resultOldScores1: []
     property var resultOldScores2: []
     property int resultOldScoresRevision: 0
@@ -332,13 +334,19 @@ Item {
     }
     property int selectPanel: 0
     property int selectPanelHeldByStart: 0
-    property double selectPanelStartMs: 0
-    property int selectPanelElapsed: 0
+    property int selectPanelStartSkinTime: 0
     property int selectPanelClosing: 0
-    property double selectPanelCloseStartMs: 0
-    property int selectPanelCloseElapsed: 0
+    property int selectPanelCloseStartSkinTime: 0
     readonly property int selectPanelHoldTime: 250
-    property int selectHeldButtonSkinTime: 0
+    readonly property int selectPanelElapsed: root.selectPanel > 0
+        ? Math.max(0, Math.min(root.selectPanelHoldTime, root.selectLiveSkinTime - root.selectPanelStartSkinTime))
+        : 0
+    readonly property int selectPanelCloseElapsed: root.selectPanelClosing > 0
+        ? Math.max(0, Math.min(root.selectPanelHoldTime, root.selectLiveSkinTime - root.selectPanelCloseStartSkinTime))
+        : 0
+    readonly property bool selectPanelCloseFinished: root.selectPanelClosing > 0
+        && root.selectPanelCloseElapsed >= root.selectPanelHoldTime
+    readonly property int selectHeldButtonSkinTime: root.currentSelectHeldButtonSkinTime()
     property var selectHeldButtonTimerStarts: ({})
     readonly property bool hasSelectHeldButtonTimers: Object.keys(root.selectHeldButtonTimerStarts).length > 0
     readonly property int selectTargetScratchInitialRepeatMillis: 300
@@ -353,6 +361,12 @@ Item {
             root.clearSelectSearchFocus();
         } else {
             root.resetLr2SelectScratchRepeat();
+        }
+    }
+
+    onSelectPanelCloseFinishedChanged: {
+        if (root.selectPanelCloseFinished) {
+            root.selectPanelClosing = 0;
         }
     }
 
@@ -435,10 +449,14 @@ Item {
     property var lr2FxOn: [false, false, false]
     property var lr2FxTarget: [0, 0, 0]
     property string lr2ReadmeText: ""
-    property var lr2ReadmeLines: []
+    readonly property var lr2ReadmeLines: root.lr2ReadmeText.length > 0
+        ? root.lr2ReadmeText.split(/\r\n|\n|\r/)
+        : [""]
     property int lr2ReadmeMode: 0 // 0=hidden, 1=open, 2=closing
-    property double lr2ReadmeStartMs: 0
-    property int lr2ReadmeElapsed: 0
+    property int lr2ReadmeStartSkinTime: 0
+    readonly property int lr2ReadmeElapsed: root.lr2ReadmeMode > 0
+        ? Math.max(0, Math.min(500, root.selectLiveSkinTime - root.lr2ReadmeStartSkinTime))
+        : 0
     property real lr2ReadmeOffsetX: 0
     property real lr2ReadmeOffsetY: 0
     property int lr2ReadmeLineSpacing: 18
@@ -455,9 +473,9 @@ Item {
         && !!skinModel
         && skinModel.hasMouseHover
     property var selectHoverElements: ({})
-    property int selectHoverElementCount: 0
+    readonly property int selectHoverElementCount: Object.keys(root.selectHoverElements).length
     property var selectHoverVisibleByIndex: ({})
-    property string selectHoverVisibleSignature: ""
+    readonly property string selectHoverVisibleSignature: Object.keys(root.selectHoverVisibleByIndex).join(",")
     property int selectHoverRevision: 0
     property bool selectHoverRefreshQueued: false
     property int selectSliderFixedPoint: -1
@@ -482,17 +500,17 @@ Item {
         const hadElement = root.selectHoverElements[key] !== undefined;
         if (!enabled || !src || !src.onMouse) {
             if (hadElement) {
-                delete root.selectHoverElements[key];
-                root.selectHoverElementCount = Math.max(0, root.selectHoverElementCount - 1);
+                let elements = root.copyObject(root.selectHoverElements);
+                delete elements[key];
+                root.selectHoverElements = elements;
                 root.scheduleSelectHoverRefresh();
             }
             return;
         }
 
-        root.selectHoverElements[key] = { "src": src, "dsts": dsts };
-        if (!hadElement) {
-            root.selectHoverElementCount += 1;
-        }
+        let elements = root.copyObject(root.selectHoverElements);
+        elements[key] = { "src": src, "dsts": dsts };
+        root.selectHoverElements = elements;
         root.scheduleSelectHoverRefresh();
     }
 
@@ -501,8 +519,9 @@ Item {
         if (root.selectHoverElements[key] === undefined) {
             return;
         }
-        delete root.selectHoverElements[key];
-        root.selectHoverElementCount = Math.max(0, root.selectHoverElementCount - 1);
+        let elements = root.copyObject(root.selectHoverElements);
+        delete elements[key];
+        root.selectHoverElements = elements;
         root.scheduleSelectHoverRefresh();
     }
 
@@ -518,11 +537,10 @@ Item {
     }
 
     function clearSelectHoverCache() {
-        if (root.selectHoverVisibleSignature === "" && Object.keys(root.selectHoverVisibleByIndex).length === 0) {
+        if (Object.keys(root.selectHoverVisibleByIndex).length === 0) {
             return;
         }
         root.selectHoverVisibleByIndex = {};
-        root.selectHoverVisibleSignature = "";
         root.selectHoverRevision += 1;
     }
 
@@ -560,7 +578,6 @@ Item {
             return;
         }
         root.selectHoverVisibleByIndex = visible;
-        root.selectHoverVisibleSignature = signature;
         root.selectHoverRevision += 1;
     }
 
@@ -988,18 +1005,13 @@ Item {
 
     function openReadmeText(text) {
         root.lr2ReadmeText = text || "";
-        root.lr2ReadmeLines = root.lr2ReadmeText.length > 0
-            ? root.lr2ReadmeText.split(/\r\n|\n|\r/)
-            : [""];
+        root.lr2ReadmeStartSkinTime = root.selectLiveSkinTime;
         root.lr2ReadmeMode = 1;
-        root.lr2ReadmeStartMs = Date.now();
-        root.lr2ReadmeElapsed = 0;
         root.lr2ReadmeOffsetX = 0;
         root.lr2ReadmeOffsetY = 0;
         root.lr2ReadmeLineSpacing = 18;
         root.lr2ReadmeMouseHeld = false;
         readmeCloseTimer.stop();
-        readmeStopwatch.restart();
         root.clearSelectSearchFocus();
     }
 
@@ -1049,11 +1061,9 @@ Item {
         if (root.lr2ReadmeMode === 0) {
             return;
         }
+        root.lr2ReadmeStartSkinTime = root.selectLiveSkinTime;
         root.lr2ReadmeMode = 2;
-        root.lr2ReadmeStartMs = Date.now();
-        root.lr2ReadmeElapsed = 0;
         root.lr2ReadmeMouseHeld = false;
-        readmeStopwatch.restart();
         readmeCloseTimer.restart();
     }
 
@@ -1600,9 +1610,12 @@ Item {
     property bool lr2InternetRankingOpenWhenReady: false
     property int lr2RankingTransitionPhase: 0 // 175 before list swap, 176 after list swap.
     property string lr2RankingTransitionAction: ""
-    property double lr2RankingTransitionStartMs: 0
-    property int lr2RankingTransitionElapsed: 0
+    property int lr2RankingTransitionStartSkinTime: 0
     readonly property int lr2RankingTransitionDuration: 120
+    readonly property int lr2RankingTransitionElapsed: root.lr2RankingTransitionPhase !== 0
+        ? Math.max(0, Math.min(root.lr2RankingTransitionDuration,
+            root.selectLiveSkinTime - root.lr2RankingTransitionStartSkinTime))
+        : 0
 
     function commitLr2RankingRequest() {
         root.lr2RankingRequestMd5 = root.lr2RankingMd5;
@@ -1849,22 +1862,22 @@ Item {
             return false;
         }
         root.lr2RankingTransitionAction = action;
+        root.lr2RankingTransitionStartSkinTime = root.selectLiveSkinTime;
         root.lr2RankingTransitionPhase = 175;
-        root.lr2RankingTransitionStartMs = Date.now();
-        root.lr2RankingTransitionElapsed = 0;
+        lr2RankingTransitionTimer.restart();
         return true;
     }
 
     function clearLr2RankingTransition() {
         root.lr2RankingTransitionPhase = 0;
         root.lr2RankingTransitionAction = "";
-        root.lr2RankingTransitionElapsed = 0;
+        lr2RankingTransitionTimer.stop();
     }
 
     function enterLr2RankingPostSwapTimer() {
+        root.lr2RankingTransitionStartSkinTime = root.selectLiveSkinTime;
         root.lr2RankingTransitionPhase = 176;
-        root.lr2RankingTransitionStartMs = Date.now();
-        root.lr2RankingTransitionElapsed = 0;
+        lr2RankingTransitionTimer.restart();
     }
 
     function performLr2RankingOpen() {
@@ -2760,14 +2773,7 @@ Item {
     }
 
     function updateLr2DateTimeNumbers() {
-        let now = new Date();
-        root.lr2ClockYear = now.getFullYear();
-        root.lr2ClockMonth = now.getMonth() + 1;
-        root.lr2ClockDay = now.getDate();
-        root.lr2ClockHour = now.getHours();
-        root.lr2ClockMinute = now.getMinutes();
-        root.lr2ClockSecond = now.getSeconds();
-        root.lr2SceneUptimeSeconds = Math.floor(Math.max(0, Date.now() - root.sceneStartMs) / 1000);
+        root.lr2ClockNowMs = Date.now();
     }
 
     function appendCommonRuntimeOptions(options) {
@@ -5473,9 +5479,7 @@ Item {
             root.selectRuntimeActiveOptionsRefreshQueued = false;
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
-            root.selectPanelElapsed = 0;
             root.selectPanelClosing = 0;
-            root.selectPanelCloseElapsed = 0;
             root.lr2ReadmeMode = 0;
             root.clearLr2RankingTransition();
         }
@@ -6246,16 +6250,22 @@ Item {
         return selectBarGeometry.handleBarRowClick(row, mouse);
     }
     property double sceneStartMs: Date.now()
-    property int globalSkinTime: 0
-    property double selectInfoStartMs: Date.now()
-    property int selectInfoElapsed: 0
+    property double skinClockNowMs: Date.now()
+    readonly property int globalSkinTime: Math.max(0, Math.floor(root.skinClockNowMs - root.sceneStartMs))
+    readonly property int selectLiveSkinTime: root.effectiveScreenKey === "select"
+        ? Math.max(root.renderSkinTime, root.selectSourceSkinTime)
+        : root.renderSkinTime
+    property int selectInfoStartSkinTime: 0
     property int selectScrollStartSkinTime: 0
     property int selectNoScrollStartSkinTime: 0
     property int selectDatabaseLoadedSkinTime: 0
-    property int selectSourceSkinTime: 0
+    readonly property int selectSourceSkinTime: root.globalSkinTime
     property int selectAnimationLimit: 3200
     property int barAnimationLimit: 2200
     readonly property int selectInfoAnimationLimit: 1000
+    readonly property int selectInfoElapsed: Math.max(
+        0,
+        Math.min(root.selectInfoAnimationLimit, root.selectLiveSkinTime - root.selectInfoStartSkinTime))
     readonly property int renderSkinTime: root.effectiveScreenKey === "select"
         ? Math.min(root.globalSkinTime, root.selectAnimationLimit)
         : root.globalSkinTime
@@ -6275,15 +6285,12 @@ Item {
     function restartSkinClock() {
         root.updateSelectAnimationLimits();
         root.sceneStartMs = Date.now();
-        root.globalSkinTime = 0;
-        root.selectSourceSkinTime = 0;
+        root.skinClockNowMs = root.sceneStartMs;
         root.selectScrollStartSkinTime = 0;
         root.selectNoScrollStartSkinTime = 0;
         root.selectDatabaseLoadedSkinTime = 0;
-        root.selectHeldButtonSkinTime = 0;
         root.selectHeldButtonTimerStarts = ({});
         root.selectPanelClosing = 0;
-        root.selectPanelCloseElapsed = 0;
         root.selectScratchSoundReady = false;
         root.updateLr2DateTimeNumbers();
         root.restartSelectInfoTimer();
@@ -6295,20 +6302,21 @@ Item {
     }
 
     function restartSelectInfoTimer() {
-        root.selectInfoStartMs = Date.now();
-        root.selectInfoElapsed = 0;
-        if (root.effectiveScreenKey === "select") {
-            selectInfoStopwatch.restart();
-        }
+        root.selectInfoStartSkinTime = root.selectLiveSkinTime;
     }
 
     Timer {
         id: skinStopwatch
         interval: 16
-        running: root.effectiveScreenKey !== "select" || root.globalSkinTime < root.selectAnimationLimit
+        running: root.enabled
         repeat: true
         onTriggered: {
-            root.globalSkinTime = Date.now() - root.sceneStartMs;
+            let now = Date.now();
+            root.skinClockNowMs = now;
+            if (root.effectiveScreenKey === "select"
+                    && (selectContext.visualMoveActive || selectContext.pendingWheelSteps !== 0)) {
+                selectContext.updateVisualIndex(now);
+            }
             if (root.isGameplayScreen()
                     && root.chart
                     && (root.gameplayReadySkinTime < 0 || root.gameplayStartSkinTime < 0)) {
@@ -6328,77 +6336,10 @@ Item {
     }
 
     Timer {
-        id: selectSourceSkinStopwatch
-        interval: 16
-        running: root.effectiveScreenKey === "select"
-        repeat: true
-        onTriggered: {
-            let now = Date.now();
-            root.selectSourceSkinTime = now - root.sceneStartMs;
-            if (selectContext.visualMoveActive || selectContext.pendingWheelSteps !== 0) {
-                selectContext.updateVisualIndex(now);
-            }
-        }
-    }
-
-    Timer {
         id: selectCommittedStateTimer
         interval: 90
         repeat: false
         onTriggered: root.handleCommittedSelectState()
-    }
-
-    Timer {
-        id: selectPanelStopwatch
-        interval: 16
-        running: root.effectiveScreenKey === "select" && root.selectPanel > 0 && root.selectPanelElapsed < root.selectPanelHoldTime
-        repeat: true
-        onTriggered: {
-            root.selectPanelElapsed = Math.min(root.selectPanelHoldTime, Date.now() - root.selectPanelStartMs);
-        }
-    }
-
-    Timer {
-        id: selectPanelCloseStopwatch
-        interval: 16
-        running: root.effectiveScreenKey === "select" && root.selectPanelClosing > 0
-        repeat: true
-        onTriggered: {
-            root.selectPanelCloseElapsed = Math.min(root.selectPanelHoldTime, Date.now() - root.selectPanelCloseStartMs);
-            if (root.selectPanelCloseElapsed >= root.selectPanelHoldTime) {
-                root.selectPanelClosing = 0;
-            }
-        }
-    }
-
-    Timer {
-        id: selectHeldButtonStopwatch
-        interval: 16
-        running: root.effectiveScreenKey === "select" && root.hasSelectHeldButtonTimers
-        repeat: true
-        onTriggered: {
-            root.selectHeldButtonSkinTime = root.currentSelectHeldButtonSkinTime();
-        }
-    }
-
-    Timer {
-        id: selectInfoStopwatch
-        interval: 16
-        running: root.effectiveScreenKey === "select" && root.selectInfoElapsed < root.selectInfoAnimationLimit
-        repeat: true
-        onTriggered: {
-            root.selectInfoElapsed = Math.min(root.selectInfoAnimationLimit, Date.now() - root.selectInfoStartMs);
-        }
-    }
-
-    Timer {
-        id: readmeStopwatch
-        interval: 16
-        running: root.effectiveScreenKey === "select" && root.lr2ReadmeMode > 0 && root.lr2ReadmeElapsed < 500
-        repeat: true
-        onTriggered: {
-            root.lr2ReadmeElapsed = Math.min(500, Date.now() - root.lr2ReadmeStartMs);
-        }
     }
 
     Timer {
@@ -6408,7 +6349,6 @@ Item {
         onTriggered: {
             root.lr2ReadmeMode = 0;
             root.lr2ReadmeText = "";
-            root.lr2ReadmeLines = [];
             root.lr2ReadmeOffsetX = 0;
             root.lr2ReadmeOffsetY = 0;
             root.lr2ReadmeMouseHeld = false;
@@ -6444,18 +6384,9 @@ Item {
 
     Timer {
         id: lr2RankingTransitionTimer
-        interval: 16
-        repeat: true
-        running: root.effectiveScreenKey === "select"
-            && root.lr2RankingTransitionPhase !== 0
-        onTriggered: {
-            root.lr2RankingTransitionElapsed = Math.min(
-                root.lr2RankingTransitionDuration,
-                Date.now() - root.lr2RankingTransitionStartMs);
-            if (root.lr2RankingTransitionElapsed >= root.lr2RankingTransitionDuration) {
-                root.advanceLr2RankingTransition();
-            }
-        }
+        interval: root.lr2RankingTransitionDuration
+        repeat: false
+        onTriggered: root.advanceLr2RankingTransition()
     }
 
     Timer {
