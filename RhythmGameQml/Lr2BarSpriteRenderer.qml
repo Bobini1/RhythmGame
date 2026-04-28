@@ -15,13 +15,26 @@ Item {
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
+    property var barDrawStates: []
+    property var barCells: []
     property real barScrollOffset: 0
     property int barCenter: 0
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
-    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.scoreRevision + selectContext.folderLampRevision + selectContext.barEntriesRevision : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
+    readonly property bool hasOverlayTimelineState: srcData && srcData.kind >= 2
+    readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
+    readonly property bool overlayHasStaticTimelineState: Lr2Timeline.canUseStaticState(overlayDsts)
+    readonly property var overlayStaticTimelineState: overlayHasStaticTimelineState
+        ? Lr2Timeline.copyDstAsState(overlayDsts[0], overlayDsts[0])
+        : null
+    readonly property var overlayTimelineTimers: Lr2Timeline.dstsUseDynamicTimer(overlayDsts) ? timers : null
+    readonly property var overlayTimelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(overlayDsts) ? activeOptions : []
+    readonly property var overlayTimelineState: hasOverlayTimelineState
+        ? (overlayStaticTimelineState
+           || Lr2Timeline.getCurrentState(overlayDsts, skinTime, overlayTimelineTimers, overlayTimelineActiveOptions))
+        : null
 
     readonly property var bodyRows: {
         if (!srcData || !selectContext || srcData.kind !== 0) {
@@ -73,7 +86,9 @@ Item {
         if (srcData && srcData.kind === 2) {
             return cachedBaseState(row);
         }
-        return interpolatedState(row);
+        return barDrawStates && row >= 0 && row < barDrawStates.length
+            ? barDrawStates[row]
+            : cachedBaseState(row);
     }
 
     function cachedBaseState(row) {
@@ -82,34 +97,8 @@ Item {
             : null;
     }
 
-    function interpolatedState(row) {
-        let fromState = cachedBaseState(row);
-        let offset = barScrollOffset || 0;
-        if (!fromState || offset <= 0.001) {
-            return fromState;
-        }
-
-        let toState = row > 0 ? cachedBaseState(row - 1) : null;
-        if (!toState) {
-            return fromState;
-        }
-
-        let inv = 1.0 - offset;
-        return {
-            x: fromState.x * inv + toState.x * offset,
-            y: fromState.y * inv + toState.y * offset,
-            w: fromState.w * inv + toState.w * offset,
-            h: fromState.h * inv + toState.h * offset,
-            a: fromState.a * inv + toState.a * offset,
-            r: fromState.r * inv + toState.r * offset,
-            g: fromState.g * inv + toState.g * offset,
-            b: fromState.b * inv + toState.b * offset,
-            blend: fromState.blend,
-            filter: fromState.filter,
-            angle: fromState.angle * inv + toState.angle * offset,
-            center: fromState.center,
-            sortId: fromState.sortId || 0
-        };
+    function cellData(row) {
+        return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
     }
 
     function bodyDsts(row) {
@@ -124,27 +113,26 @@ Item {
         if (!selectContext || !srcData || !srcData.sources) {
             return srcData && srcData.source ? srcData.source : null;
         }
-        let entry = selectContext.visibleBarEntry(row, barCenter);
-        let bodyType = selectContext.entryBodyType(entry);
+        let cell = cellData(row);
+        let bodyType = cell ? (cell.bodyType || 0) : 0;
         return srcData.sources[bodyType] || srcData.sources[0] || srcData.source || null;
     }
 
-    function overlayVisibleFor(entry) {
+    function overlayVisibleFor(cell) {
         if (!selectContext || !srcData) {
             return false;
         }
         if (srcData.kind === 2) {
             return true;
         }
-        if (!entry) {
+        if (!cell) {
             return false;
         }
         switch (srcData.kind) {
         case 3:
-            return selectContext.entryBarLamp(entry, root.barLampVariants) === srcData.variant;
+            return (cell.lamp || 0) === srcData.variant;
         case 6:
-            return selectContext.isRankingEntry(entry)
-                && selectContext.entryRank(entry) === srcData.variant;
+            return !!cell.ranking && (cell.rank || 0) === srcData.variant;
         default:
             return false;
         }
@@ -161,14 +149,7 @@ Item {
 
         Lr2SpriteRenderer {
             readonly property int row: modelData
-            readonly property var entry: {
-                let revision = root.contextRevision;
-                return root.selectContext ? root.selectContext.visibleBarEntry(row, root.barCenter) : null;
-            }
-            readonly property var bodySource: {
-                let revision = root.contextRevision;
-                return root.sourceForBody(row);
-            }
+            readonly property var bodySource: root.sourceForBody(row)
             readonly property var bodyState: root.rowDrawState(row)
             visible: !!bodyState
             anchors.fill: parent
@@ -189,28 +170,32 @@ Item {
     Repeater {
         model: root.overlayRows
 
-        Lr2SpriteRenderer {
+        Item {
             readonly property int row: modelData
             readonly property var drawBase: root.rowDrawState(row)
             readonly property var visibleBase: root.visibilityState(row)
-            readonly property var entry: {
-                let revision = root.contextRevision;
-                return root.selectContext ? root.selectContext.visibleBarEntry(row, root.barCenter) : null;
-            }
-            readonly property bool contentVisible: !!visibleBase && root.overlayVisibleFor(entry)
+            readonly property var cell: root.cellData(row)
+            readonly property bool contentVisible: !!visibleBase && root.overlayVisibleFor(cell)
+            x: drawBase ? drawBase.x * root.scaleOverride : 0
+            y: drawBase ? drawBase.y * root.scaleOverride : 0
+            width: root.width
+            height: root.height
             visible: contentVisible && !!drawBase
-            dsts: root.dsts
-            srcData: root.srcData ? root.srcData.source : null
-            skinTime: root.skinTime
-            sourceSkinTime: root.spriteSourceSkinTime(srcData)
-            activeOptions: root.activeOptions
-            timers: root.timers
-            chart: root.chart
-            scaleOverride: root.scaleOverride
-            transColor: root.transColor
-            colorKeyEnabled: root.colorKeyEnabled
-            offsetX: drawBase ? drawBase.x : 0
-            offsetY: drawBase ? drawBase.y : 0
+
+            Lr2SpriteRenderer {
+                anchors.fill: parent
+                dsts: root.dsts
+                srcData: root.srcData ? root.srcData.source : null
+                skinTime: root.skinTime
+                sourceSkinTime: root.spriteSourceSkinTime(srcData)
+                activeOptions: root.activeOptions
+                timers: root.timers
+                chart: root.chart
+                scaleOverride: root.scaleOverride
+                transColor: root.transColor
+                colorKeyEnabled: root.colorKeyEnabled
+                stateOverride: root.overlayTimelineState
+            }
         }
     }
 }

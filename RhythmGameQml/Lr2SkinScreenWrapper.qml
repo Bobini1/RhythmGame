@@ -7887,7 +7887,7 @@ Item {
 
         let logicalCount = Math.max(1, selectContext.logicalCount);
         let maxFixed = Math.max(1, logicalCount * 1000 - 1);
-        let fixedValue = Math.max(0, Math.min(maxFixed, selectContext.normalizedVisualIndex * 1000));
+        let fixedValue = Math.max(0, Math.min(maxFixed, selectContext.listCalculatedBarFixed));
         let position = logicalCount > 1
             ? fixedValue / maxFixed
             : 0;
@@ -8027,6 +8027,37 @@ Item {
         let result = [];
         for (let row = 0; row < rows.length; ++row) {
             result.push(root.computeBarBaseState(row, selected));
+        }
+        return result;
+    }
+
+    readonly property var cachedBarDrawStates: {
+        let baseStates = root.cachedBarBaseStates || [];
+        let offset = selectContext.scrollOffset || 0;
+        if (offset <= 0.001) {
+            return baseStates;
+        }
+
+        let result = [];
+        for (let row = 0; row < baseStates.length; ++row) {
+            let fromState = baseStates[row];
+            let toState = row > 0 ? baseStates[row - 1] : null;
+            result.push(fromState && toState
+                ? root.interpolateBarState(fromState, toState, offset)
+                : fromState);
+        }
+        return result;
+    }
+
+    readonly property var cachedBarRowCells: {
+        let revision = selectContext.barTextCellsRevision;
+        let cells = selectContext.visibleBarTextCells || [];
+        let result = [];
+        for (let i = 0; i < cells.length; ++i) {
+            let cell = cells[i];
+            if (cell && cell.row >= 0) {
+                result[cell.row] = cell;
+            }
         }
         return result;
     }
@@ -9703,6 +9734,8 @@ Item {
                             barRows: skinModel.barRows
                             barLampVariants: skinModel.barLampVariants
                             barBaseStates: root.cachedBarBaseStates
+                            barDrawStates: root.cachedBarDrawStates
+                            barCells: root.cachedBarRowCells
                             barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                             transColor: skinModel.transColor
@@ -9722,6 +9755,8 @@ Item {
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
                             barBaseStates: root.cachedBarBaseStates
+                            barDrawStates: root.cachedBarDrawStates
+                            barCells: selectContext.visibleBarTextCells
                             barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                         }
@@ -9739,6 +9774,8 @@ Item {
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
                             barBaseStates: root.cachedBarBaseStates
+                            barDrawStates: root.cachedBarDrawStates
+                            barCells: root.cachedBarRowCells
                             barScrollOffset: selectContext.scrollOffset
                             barCenter: skinModel.barCenter
                             colorKeyEnabled: skinModel.hasTransColor

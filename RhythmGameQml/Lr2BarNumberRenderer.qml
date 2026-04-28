@@ -1,5 +1,7 @@
 import QtQuick
 
+import "Lr2Timeline.js" as Lr2Timeline
+
 Item {
     id: root
 
@@ -12,23 +14,25 @@ Item {
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
+    property var barDrawStates: []
+    property var barCells: []
     property real barScrollOffset: 0
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
-    readonly property int contextRevision: selectContext ? selectContext.listRevision + selectContext.barEntriesRevision : 0
 
-    readonly property var numberRows: {
-        if (!barRows || !selectContext || !srcData) {
-            return [];
-        }
-
-        let rows = [];
-        for (let row = 1; row < barRows.length; ++row) {
-            rows.push(row);
-        }
-        return rows;
-    }
+    readonly property int numberSlotCount: barRows && selectContext && srcData
+        ? Math.max(0, barRows.length)
+        : 0
+    readonly property var numberDsts: srcData && srcData.source ? dsts : []
+    readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(numberDsts)
+    readonly property var staticTimelineState: hasStaticTimelineState
+        ? Lr2Timeline.copyDstAsState(numberDsts[0], numberDsts[0])
+        : null
+    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(numberDsts) ? timers : null
+    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(numberDsts) ? activeOptions : []
+    readonly property var numberTimelineState: staticTimelineState
+        || Lr2Timeline.getCurrentState(numberDsts, skinTime, timelineTimers, timelineActiveOptions)
 
     function baseState(row) {
         return barBaseStates && row >= 0 && row < barBaseStates.length
@@ -40,42 +44,24 @@ Item {
         return baseState(row);
     }
 
-    function drawOffset(row, axis) {
-        let fromState = baseState(row);
-        if (!fromState) {
-            return 0;
-        }
-
-        let offset = barScrollOffset || 0;
-        if (offset <= 0.001 || row <= 0) {
-            return axis === 0 ? fromState.x : fromState.y;
-        }
-
-        let toState = baseState(row - 1);
-        if (!toState) {
-            return axis === 0 ? fromState.x : fromState.y;
-        }
-
-        let fromValue = axis === 0 ? fromState.x : fromState.y;
-        let toValue = axis === 0 ? toState.x : toState.y;
-        return fromValue + (toValue - fromValue) * offset;
+    function cellData(row) {
+        return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
     }
 
-    function visibleFor(entry) {
-        if (!entry || !srcData || !selectContext) {
+    function visibleForCell(cell) {
+        if (!cell || !srcData || !selectContext) {
             return false;
         }
-        let ranking = selectContext.isRankingEntry(entry);
-        if (!ranking && !selectContext.isChart(entry) && !selectContext.isEntry(entry)) {
+        if (!cell.ranking && !cell.chartLike && !cell.entryLike) {
             return false;
         }
-        if (ranking) {
+        if (cell.ranking) {
             return srcData.variant === 6;
         }
-        if ((entry.keymode || 0) <= 0 || selectContext.entryPlayLevel(entry) <= 0) {
+        if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) <= 0) {
             return false;
         }
-        let difficulty = selectContext.entryDifficulty(entry);
+        let difficulty = cell.difficulty || 0;
         if (difficulty <= 0) {
             return srcData.variant === 0;
         }
@@ -83,28 +69,37 @@ Item {
     }
 
     Repeater {
-        model: root.numberRows
+        model: root.numberSlotCount
 
-        Lr2NumberRenderer {
+        Item {
             readonly property int row: modelData
-            readonly property var entry: {
-                let revision = root.contextRevision;
-                return root.selectContext ? root.selectContext.visibleBarEntry(row, root.barCenter) : null;
-            }
+            readonly property var cell: root.cellData(row)
+            readonly property var drawState: root.barDrawStates && row >= 0 && row < root.barDrawStates.length
+                ? root.barDrawStates[row]
+                : root.baseState(row)
             readonly property var visibleBase: root.visibilityState(row)
-            readonly property bool contentVisible: !!visibleBase && root.visibleFor(entry)
+            readonly property bool contentVisible: row > 0
+                && !!visibleBase
+                && root.visibleForCell(cell)
+            x: drawState ? drawState.x * root.scaleOverride : 0
+            y: drawState ? drawState.y * root.scaleOverride : 0
+            width: root.width
+            height: root.height
             visible: contentVisible
-            dsts: root.dsts
-            srcData: root.srcData ? root.srcData.source : null
-            skinTime: root.skinTime
-            activeOptions: root.activeOptions
-            timers: root.timers
-            scaleOverride: root.scaleOverride
-            colorKeyEnabled: root.colorKeyEnabled
-            transColor: root.transColor
-            offsetX: root.drawOffset(row, 0)
-            offsetY: root.drawOffset(row, 1)
-            value: root.selectContext ? root.selectContext.entryPlayLevel(entry) : 0
+
+            Lr2NumberRenderer {
+                anchors.fill: parent
+                dsts: root.dsts
+                srcData: root.srcData ? root.srcData.source : null
+                skinTime: root.skinTime
+                activeOptions: root.activeOptions
+                timers: root.timers
+                scaleOverride: root.scaleOverride
+                colorKeyEnabled: root.colorKeyEnabled
+                transColor: root.transColor
+                stateOverride: root.numberTimelineState
+                value: parent.cell ? (parent.cell.playLevel || 0) : 0
+            }
         }
     }
 }

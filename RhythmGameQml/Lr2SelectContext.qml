@@ -68,6 +68,7 @@ Item {
     property int cachedVisibleBarListRevision: -1
     property int cachedVisibleBarRowCount: -1
     property int cachedVisibleBarCenter: -1
+    property int cachedSyncedCursorBaseIndex: -1
     property bool rankingMode: false
     property var rankingBaseItem: null
     property string rankingStatsMd5: ""
@@ -150,7 +151,6 @@ Item {
     readonly property var current: logicalCount > 0 ? items[currentIndex] : null
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
     property bool visualMoveActive: false
-    property real normalizedVisualIndex: 0
     property int visualBaseIndex: 0
     property real scrollOffset: 0
 
@@ -210,9 +210,6 @@ Item {
         let baseChanged = visualBaseIndex !== baseIndex;
 
         deferVisualSelectionSync = true;
-        if (normalizedVisualIndex !== normalized) {
-            normalizedVisualIndex = normalized;
-        }
         if (baseChanged) {
             visualBaseIndex = baseIndex;
         }
@@ -231,7 +228,16 @@ Item {
             refreshVisibleBarEntries(false);
         }
         deferVisualSelectionSync = false;
-        return syncCurrentToVisual();
+        let cursorBaseIndex = cursorBaseIndexForFixed(calculatedFixed);
+        if (cachedSyncedCursorBaseIndex !== cursorBaseIndex) {
+            cachedSyncedCursorBaseIndex = cursorBaseIndex;
+            return syncCurrentToVisual();
+        }
+        return false;
+    }
+
+    function currentNormalizedVisualIndex() {
+        return logicalCount > 0 ? listCalculatedBarFixed / 1000.0 : 0;
     }
 
     function setVisualIndexImmediate(index) {
@@ -948,6 +954,7 @@ Item {
         currentIndex = currentIdx >= 0 ? currentIdx : 0;
         targetIndex = currentIndex;
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         setVisualIndexImmediate(currentIndex);
         scrollingText = false;
         scrollingTextTimer.restart();
@@ -1044,6 +1051,7 @@ Item {
         currentIndex = initialIndex >= 0 ? initialIndex : 0;
         targetIndex = currentIndex;
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         setVisualIndexImmediate(currentIndex);
         refreshScores();
         refreshPlayerStats();
@@ -1071,6 +1079,7 @@ Item {
         currentIndex = 0;
         targetIndex = 0;
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         setVisualIndexImmediate(0);
         refreshScores();
         refreshPlayerStats();
@@ -1097,6 +1106,7 @@ Item {
             currentIndex = 0;
             targetIndex = 0;
             selectedOffset = 0;
+            cachedSyncedCursorBaseIndex = -1;
             setVisualIndexImmediate(0);
             touchSelection();
             return;
@@ -1108,6 +1118,7 @@ Item {
         let now = Date.now();
         updateVisualIndex(now);
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         let targetVisual = nearestVisualIndex(normalized, listTopbarFixed / 1000.0);
         oldBarFixed = listTopbarFixed;
         nowBarFixed = Math.round(targetVisual * 1000);
@@ -1124,6 +1135,7 @@ Item {
         }
         let normalized = normalizeIndex(Math.round(index));
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         currentIndex = normalized;
         targetIndex = normalized;
         setVisualIndexImmediate(normalized);
@@ -1156,6 +1168,7 @@ Item {
         scrollDirection = clamped < listCalculatedBarFixed ? lr2ScrollUp
             : (clamped > listCalculatedBarFixed ? lr2ScrollDown : scrollDirection);
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         setBarFixedImmediate(clamped);
     }
 
@@ -1174,6 +1187,7 @@ Item {
         let shouldSnap = snapToEntry === undefined ? true : !!snapToEntry;
         let oldOffset = selectedOffset;
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         if (!shouldSnap) {
             setBarFixedImmediate(clamped);
             return;
@@ -1215,6 +1229,7 @@ Item {
         }
         let oldOffset = selectedOffset;
         selectedOffset = 0;
+        cachedSyncedCursorBaseIndex = -1;
         oldBarFixed = listTopbarFixed;
         nowBarFixed = Math.round(nearestVisualIndex(rounded, listTopbarFixed / 1000.0) * 1000);
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
@@ -1278,6 +1293,7 @@ Item {
             return;
         }
         selectedOffset = row - barCenter;
+        cachedSyncedCursorBaseIndex = -1;
         currentIndex = normalizeIndex(visualBaseIndex + selectedOffset);
         targetIndex = currentIndex;
         scrollingText = false;
@@ -1445,7 +1461,6 @@ Item {
                     updateOutOfRangeBarTextCell(textCells, row, rowCount);
                     delta += 1;
                 }
-                visibleBarTextCells = textCells.slice();
                 cachedVisibleBarBaseIndex = visualBaseIndex;
                 barEntriesRevision += 1;
                 barTextCellsRevision += 1;
@@ -2549,7 +2564,7 @@ Item {
         rankingSavedFolderContents = folderContents.slice();
         rankingSavedRealItemCount = realItemCount;
         rankingSavedCurrentIndex = currentIndex;
-        rankingSavedVisualIndex = normalizedVisualIndex;
+        rankingSavedVisualIndex = currentNormalizedVisualIndex();
         rankingSavedSelectedOffset = selectedOffset;
         rankingBaseItem = chart;
 
@@ -3253,7 +3268,7 @@ Item {
         let stats = selectedBestStats;
         switch (type) {
         case 101:
-            return logicalCount > 1 ? Math.max(0, Math.min(1, normalizedVisualIndex / Math.max(1, logicalCount - 1))) : 0;
+            return logicalCount > 1 ? Math.max(0, Math.min(1, currentNormalizedVisualIndex() / Math.max(1, logicalCount - 1))) : 0;
         case 102:
             return 1;
         case 110:

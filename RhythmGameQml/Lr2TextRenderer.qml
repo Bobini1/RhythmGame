@@ -17,6 +17,7 @@ Item {
     property real scaleOverride: 1.0
     property real offsetX: 0
     property real offsetY: 0
+    property var stateOverride: null
     // Bound externally by the screen wrapper with the actual text for this st index
     property string resolvedText: ""
 
@@ -26,7 +27,7 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
-    readonly property var currentState: staticTimelineState
+    readonly property var currentState: stateOverride || staticTimelineState
         || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
     readonly property bool isLr2Font: srcData
         && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))

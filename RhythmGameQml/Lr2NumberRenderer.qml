@@ -17,6 +17,7 @@ Item {
     property int animationRevision: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    property var stateOverride: null
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -26,7 +27,7 @@ Item {
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: root.forceHidden
         ? null
-        : (staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
+        : (stateOverride || staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
     readonly property int blendMode: {
         let raw = currentState ? currentState.blend : 1;
         if (raw === 0 && !root.colorKeyEnabled) return 1;
