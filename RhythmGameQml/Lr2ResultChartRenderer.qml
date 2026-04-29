@@ -9,6 +9,8 @@ Item {
     property int skinTime: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
+    property int sourceTimerFire: -2147483648
     property real scaleOverride: 1.0
     property var screenRoot
     property var valueCache: []
@@ -27,7 +29,8 @@ Item {
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
+        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
     readonly property string resolvedSource: {
         if (!srcData || !srcData.source) return "";
         let absPath = srcData.source.replace(/\\/g, "/");
@@ -42,7 +45,9 @@ Item {
     readonly property int sourceFrameIndex: {
         if (!srcData) return 0;
         let timerIdx = srcData.timer || 0;
-        let fire = timers && timers[timerIdx] !== undefined ? timers[timerIdx] : -1;
+        let fire = root.sourceTimerFire > -2147483648
+            ? root.sourceTimerFire
+            : (timers && timers[timerIdx] !== undefined ? timers[timerIdx] : -1);
         return Lr2Timeline.getAnimationFrame(srcData, skinTime, fire);
     }
     readonly property int resultRevision: screenRoot ? screenRoot.resultOldScoresRevision : 0

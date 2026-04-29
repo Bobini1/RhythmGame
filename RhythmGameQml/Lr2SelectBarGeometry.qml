@@ -26,28 +26,6 @@ QtObject {
         return Lr2Timeline.getCurrentState(dstList, root.barSkinTime, root.barTimers, root.barActiveOptions);
     }
 
-    function interpolateBarState(fromState, toState, progress) {
-        if (!fromState || !toState) {
-            return fromState;
-        }
-        let inv = 1.0 - progress;
-        return {
-            x: fromState.x * inv + toState.x * progress,
-            y: fromState.y * inv + toState.y * progress,
-            w: fromState.w * inv + toState.w * progress,
-            h: fromState.h * inv + toState.h * progress,
-            a: fromState.a * inv + toState.a * progress,
-            r: fromState.r * inv + toState.r * progress,
-            g: fromState.g * inv + toState.g * progress,
-            b: fromState.b * inv + toState.b * progress,
-            blend: fromState.blend,
-            filter: fromState.filter,
-            angle: fromState.angle * inv + toState.angle * progress,
-            center: fromState.center,
-            sortId: (fromState.sortId || 0) * inv + (toState.sortId || 0) * progress
-        };
-    }
-
     readonly property bool fastBarScrollActive: false
     readonly property real fastBarScrollX: 0
     readonly property real fastBarScrollY: 0
@@ -58,8 +36,6 @@ QtObject {
     readonly property int clickEndRow: Math.min(
         (skinModel.barRows ? skinModel.barRows.length : 0) - 1,
         skinModel.barAvailableEnd + 3)
-    readonly property real scrollOffset: selectContext.scrollOffset || 0
-
     readonly property var cachedBarBaseStates: {
         let rows = skinModel.barRows || [];
         let result = [];
@@ -69,48 +45,9 @@ QtObject {
         return result;
     }
 
-    readonly property var cachedBarDrawCoordinates: {
-        let baseStates = geometry.cachedBarBaseStates || [];
-        let xs = [];
-        let ys = [];
-        let progress = geometry.scrollOffset || 0;
-        let shouldInterpolate = progress > 0.001;
-        let inv = 1.0 - progress;
-        for (let row = 0; row < baseStates.length; ++row) {
-            let fromState = baseStates[row];
-            let toState = row > 0 ? baseStates[row - 1] : null;
-            if (fromState && toState && shouldInterpolate) {
-                xs.push(fromState.x * inv + toState.x * progress);
-                ys.push(fromState.y * inv + toState.y * progress);
-            } else {
-                xs.push(fromState ? fromState.x : 0);
-                ys.push(fromState ? fromState.y : 0);
-            }
-        }
-        return { xs: xs, ys: ys };
-    }
-
-    readonly property var cachedBarDrawXs: geometry.cachedBarDrawCoordinates.xs
-    readonly property var cachedBarDrawYs: geometry.cachedBarDrawCoordinates.ys
-
-    readonly property var cachedBarRowCells: selectContext.visibleBarRowCells || []
-
-    function barBaseState(row) {
-        return geometry.cachedBarBaseStates && row >= 0 && row < geometry.cachedBarBaseStates.length
-            ? geometry.cachedBarBaseStates[row]
-            : null;
-    }
-
-    function barDrawState(row) {
-        let fromState = geometry.barBaseState(row);
-        let toState = row > 0 ? geometry.barBaseState(row - 1) : null;
-        return fromState && toState && geometry.scrollOffset > 0.001
-            ? geometry.interpolateBarState(fromState, toState, geometry.scrollOffset)
-            : fromState;
-    }
-
-    function barSpriteScrollOffset(src) {
-        return geometry.scrollOffset;
+    property Lr2BarPositionCache barPositionCache: Lr2BarPositionCache {
+        baseStates: geometry.cachedBarBaseStates
+        visualState: geometry.selectContext ? geometry.selectContext.visualStateObject : null
     }
 
     function selectedBarRow() {

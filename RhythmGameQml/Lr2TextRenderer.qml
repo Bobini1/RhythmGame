@@ -13,6 +13,7 @@ Item {
     property int skinTime: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
     property real offsetX: 0
@@ -28,7 +29,8 @@ Item {
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: stateOverride || staticTimelineState
-        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
+        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
     readonly property bool isLr2Font: srcData
         && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
     readonly property int blendMode: {

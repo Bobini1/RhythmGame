@@ -9,6 +9,7 @@ Item {
     property int skinTime: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
     property var screenRoot
     property real scaleOverride: 1.0
     property bool mediaActive: true
@@ -22,7 +23,8 @@ Item {
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
+        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
     readonly property int side: srcData && srcData.side > 0 ? srcData.side : 1
     readonly property var player: screenRoot ? screenRoot.gameplayPlayer(side) : null
     readonly property var score: player ? player.score : null
@@ -60,9 +62,7 @@ Item {
         return 2;
     }
 
-    Timer {
-        interval: 16
-        repeat: true
+    FrameAnimation {
         running: root.mediaActive && root.currentState && root.srcData
         onTriggered: {
             // DXLib GetRand(2) returns an integer in the inclusive 0..2 range.

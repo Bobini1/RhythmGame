@@ -1,4 +1,5 @@
 import QtQuick
+import RhythmGameQml 1.0
 import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
@@ -10,15 +11,16 @@ Item {
     property int sourceSkinTime: skinTime
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
+    property int sourceTimerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
-    property var barDrawXs: []
-    property var barDrawYs: []
+    property var barPositionCache
     property var barCells: []
-    property real barScrollOffset: 0
+    property var barTextCells: []
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
     property real fastBarScrollY: 0
@@ -37,6 +39,10 @@ Item {
     x: applyFastBarScroll ? fastBarScrollX * scaleOverride : 0
     y: applyFastBarScroll ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
+    readonly property int barCellCount: barTextCells && barTextCells.length > 0
+        ? barTextCells.length
+        : (barCells ? barCells.length : 0)
+    readonly property int barCellSlotOffset: selectContext ? selectContext.visibleBarSlotOffset : 0
     readonly property bool hasOverlayTimelineState: srcData && srcData.kind >= 2
     readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
     readonly property bool overlayHasStaticTimelineState: Lr2Timeline.canUseStaticState(overlayDsts)
@@ -47,7 +53,8 @@ Item {
     readonly property var overlayTimelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(overlayDsts) ? activeOptions : []
     readonly property var overlayTimelineState: hasOverlayTimelineState
         ? (overlayStaticTimelineState
-           || Lr2Timeline.getCurrentState(overlayDsts, skinTime, overlayTimelineTimers, overlayTimelineActiveOptions))
+           || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+               overlayDsts, skinTime, overlayTimelineTimers, timerFire, overlayTimelineActiveOptions))
         : null
 
     readonly property var bodyRows: {
@@ -61,31 +68,25 @@ Item {
         }
         return [row];
     }
-
-    readonly property var overlayRows: {
+    readonly property int overlaySlotCount: {
         if (!srcData || !selectContext || srcData.kind < 2) {
-            return [];
+            return 0;
         }
 
         if (srcData.kind === 4 || srcData.kind === 5 || srcData.kind === 7) {
-            return [];
+            return 0;
         }
 
         // OpenLR2 draws BAR_RANK only while the IR ranking list is active.
         if (srcData.kind === 6 && !selectContext.rankingMode) {
-            return [];
+            return 0;
         }
 
         let total = barRows ? barRows.length : 0;
         if (srcData.kind === 2) {
-            return selectedRow > 0 && selectedRow < total ? [selectedRow] : [];
+            return selectedRow > 0 && selectedRow < total ? 1 : 0;
         }
-
-        let rows = [];
-        for (let row = 1; row < total; ++row) {
-            rows.push(row);
-        }
-        return rows;
+        return total;
     }
 
     function rowData(row) {
@@ -96,70 +97,65 @@ Item {
         return cachedBaseState(row);
     }
 
-    function interpolateRowState(fromState, toState, progress) {
-        if (!fromState || !toState) {
-            return fromState;
+    function stateField(state, name, fallback) {
+        if (!state) {
+            return fallback;
         }
-        let inv = 1.0 - progress;
-        return {
-            x: fromState.x * inv + toState.x * progress,
-            y: fromState.y * inv + toState.y * progress,
-            w: fromState.w * inv + toState.w * progress,
-            h: fromState.h * inv + toState.h * progress,
-            a: fromState.a * inv + toState.a * progress,
-            r: fromState.r * inv + toState.r * progress,
-            g: fromState.g * inv + toState.g * progress,
-            b: fromState.b * inv + toState.b * progress,
-            blend: fromState.blend,
-            filter: fromState.filter,
-            angle: fromState.angle * inv + toState.angle * progress,
-            center: fromState.center,
-            sortId: (fromState.sortId || 0) * inv + (toState.sortId || 0) * progress
-        };
+        let value = state[name];
+        return value === undefined || value === null ? fallback : value;
     }
 
-    function rowDrawState(row) {
-        if (srcData && srcData.kind === 2) {
-            return cachedBaseState(row);
+    function sameStateField(a, b, name, fallback) {
+        return Math.abs(stateField(a, name, fallback) - stateField(b, name, fallback)) <= 0.001;
+    }
+
+    function bodyNeedsStateInterpolation(row) {
+        if (applyFastBarScroll) {
+            return false;
         }
+
         let fromState = cachedBaseState(row);
-        if (!fromState || applyFastBarScroll) {
-            return fromState;
-        }
-        let offset = barScrollOffset || 0;
-        if (offset <= 0.001) {
-            return fromState;
-        }
         let toState = row > 0 ? cachedBaseState(row - 1) : null;
-        return fromState && toState
-            ? interpolateRowState(fromState, toState, offset)
-            : fromState;
+        if (!fromState || !toState) {
+            return false;
+        }
+
+        return !sameStateField(fromState, toState, "w", 0)
+            || !sameStateField(fromState, toState, "h", 0)
+            || !sameStateField(fromState, toState, "a", 255)
+            || !sameStateField(fromState, toState, "r", 255)
+            || !sameStateField(fromState, toState, "g", 255)
+            || !sameStateField(fromState, toState, "b", 255)
+            || !sameStateField(fromState, toState, "angle", 0)
+            || !sameStateField(fromState, toState, "center", 0)
+            || !sameStateField(fromState, toState, "blend", 0)
+            || !sameStateField(fromState, toState, "filter", 0)
+            || !sameStateField(fromState, toState, "op4", 0);
     }
 
-    function rowDrawX(row) {
-        if (srcData && srcData.kind === 2) {
-            let state = cachedBaseState(row);
-            return state ? state.x : 0;
+    function positionlessState(state) {
+        if (!state) {
+            return null;
         }
-        if (fastBarScrollActive && row === selectedRow) {
-            return selectedFastBarDrawX;
-        }
-        return barDrawXs && row >= 0 && row < barDrawXs.length
-            ? barDrawXs[row]
-            : (cachedBaseState(row) ? cachedBaseState(row).x : 0);
-    }
-
-    function rowDrawY(row) {
-        if (srcData && srcData.kind === 2) {
-            let state = cachedBaseState(row);
-            return state ? state.y : 0;
-        }
-        if (fastBarScrollActive && row === selectedRow) {
-            return selectedFastBarDrawY;
-        }
-        return barDrawYs && row >= 0 && row < barDrawYs.length
-            ? barDrawYs[row]
-            : (cachedBaseState(row) ? cachedBaseState(row).y : 0);
+        return {
+            x: 0,
+            y: 0,
+            w: state.w,
+            h: state.h,
+            a: state.a,
+            r: state.r,
+            g: state.g,
+            b: state.b,
+            blend: state.blend,
+            filter: state.filter,
+            angle: state.angle,
+            center: state.center,
+            sortId: state.sortId,
+            op1: state.op1,
+            op2: state.op2,
+            op3: state.op3,
+            op4: state.op4
+        };
     }
 
     function cachedBaseState(row) {
@@ -168,8 +164,26 @@ Item {
             : null;
     }
 
+    function displayRowForSlot(slot) {
+        let count = root.barCellCount;
+        return count > 0 ? ((slot - root.barCellSlotOffset) % count + count) % count : -1;
+    }
+
+    function slotForDisplayRow(row) {
+        let count = root.barCellCount;
+        return count > 0 && row >= 0 && row < count
+            ? (row + root.barCellSlotOffset) % count
+            : -1;
+    }
+
     function cellData(row) {
-        return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
+        let cells = barTextCells && barTextCells.length > 0 ? barTextCells : barCells;
+        let slot = slotForDisplayRow(row);
+        return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
+    }
+
+    function textCellData(slot) {
+        return barTextCells && slot >= 0 && slot < barTextCells.length ? barTextCells[slot] : null;
     }
 
     function bodyDsts(row) {
@@ -212,62 +226,174 @@ Item {
     function spriteSourceSkinTime(source) {
         return Lr2Timeline.srcCyclesContinuously(source)
             ? root.sourceSkinTime
-            : root.skinTime;
+            : 0;
+    }
+
+    function spriteSourceTimerFire(source) {
+        return Lr2Timeline.srcCyclesContinuously(source)
+            ? root.sourceTimerFire
+            : -2147483648;
+    }
+
+    function refreshOverlayCells(force) {
+        for (let i = 0; i < overlayRepeater.count; ++i) {
+            let item = overlayRepeater.itemAt(i);
+            if (item) {
+                item.refreshCell(force);
+            }
+        }
+    }
+
+    function refreshOverlayCell(slot, force) {
+        let item = overlayRepeater.itemAt(slot);
+        if (item) {
+            item.refreshCell(force);
+        }
+    }
+
+    function refreshOverlayCellRange(firstSlot, changedCount, force) {
+        let count = overlayRepeater.count;
+        if (count <= 0 || changedCount <= 0) {
+            return;
+        }
+        if (count !== root.barCellCount || changedCount >= count) {
+            root.refreshOverlayCells(force);
+            return;
+        }
+        for (let i = 0; i < changedCount; ++i) {
+            root.refreshOverlayCell((firstSlot + i) % count, force);
+        }
     }
 
     Repeater {
         model: root.bodyRows
 
-        Lr2SpriteRenderer {
-            readonly property int row: modelData
-            readonly property var bodySource: root.sourceForBody(row)
-            readonly property var bodyState: root.rowDrawState(row)
-            visible: !!bodyState
-            anchors.fill: parent
-            dsts: root.bodyDsts(row)
-            srcData: bodySource
-            stateOverride: bodyState
-            skinTime: root.skinTime
-            sourceSkinTime: root.spriteSourceSkinTime(bodySource)
-            activeOptions: root.activeOptions
-            timers: root.timers
-            chart: root.chart
+        Lr2BarPositionedItem {
+            id: bodyDelegate
+
+            readonly property int bodyRow: modelData
+            readonly property var baseState: root.cachedBaseState(bodyRow)
+            readonly property bool needsStateInterpolation: root.bodyNeedsStateInterpolation(bodyRow)
+            readonly property var bodySource: root.sourceForBody(bodyRow)
+            readonly property var staticBodyState: root.positionlessState(baseState)
+            readonly property var effectiveBodyState: needsStateInterpolation ? bodyInterpolatedState : staticBodyState
+            positionCache: root.barPositionCache
+            row: bodyDelegate.bodyRow
             scaleOverride: root.scaleOverride
-            transColor: root.transColor
-            colorKeyEnabled: false
+            usePositionCache: !needsStateInterpolation && !root.applyFastBarScroll
+            fallbackX: !needsStateInterpolation && baseState ? baseState.x : 0
+            fallbackY: !needsStateInterpolation && baseState ? baseState.y : 0
+            visible: !!effectiveBodyState
+            width: root.width
+            height: root.height
+
+            Lr2BarInterpolatedState {
+                id: bodyInterpolatedState
+                enabled: bodyDelegate.needsStateInterpolation
+                positionCache: root.barPositionCache
+                baseStates: root.barBaseStates
+                row: bodyDelegate.bodyRow
+            }
+
+            Lr2SpriteRenderer {
+                anchors.fill: parent
+                dsts: root.bodyDsts(bodyDelegate.bodyRow)
+                srcData: bodyDelegate.bodySource
+                stateOverride: bodyDelegate.effectiveBodyState
+                skinTime: 0
+                sourceSkinTime: root.spriteSourceSkinTime(bodyDelegate.bodySource)
+                activeOptions: root.activeOptions
+                timers: root.timers
+                timerFire: -2147483648
+                sourceTimerFire: root.spriteSourceTimerFire(bodyDelegate.bodySource)
+                chart: root.chart
+                scaleOverride: root.scaleOverride
+                transColor: root.transColor
+                colorKeyEnabled: false
+            }
         }
     }
 
     Repeater {
-        model: root.overlayRows
+        id: overlayRepeater
 
-        Item {
-            readonly property int row: modelData
-            readonly property real drawX: root.rowDrawX(row)
-            readonly property real drawY: root.rowDrawY(row)
-            readonly property var visibleBase: root.visibilityState(row)
-            readonly property var cell: root.cellData(row)
-            readonly property bool contentVisible: !!visibleBase && root.overlayVisibleFor(cell)
-            x: drawX * root.scaleOverride
-            y: drawY * root.scaleOverride
+        model: root.overlaySlotCount
+
+        Lr2BarPositionedItem {
+            id: overlayDelegate
+
+            readonly property bool selectedOverlaySource: root.srcData && root.srcData.kind === 2
+            readonly property bool usesRowPositionCache: !selectedOverlaySource
+            readonly property int slot: selectedOverlaySource ? root.selectedRow : modelData
+            readonly property int displayRow: selectedOverlaySource
+                ? slot
+                : root.displayRowForSlot(slot)
+            readonly property var visibleBase: root.visibilityState(displayRow)
+            readonly property bool selectedRowContent: displayRow === root.selectedRow
+            property var cell: null
+            readonly property bool contentVisible: displayRow > 0
+                && !!visibleBase
+                && root.overlayVisibleFor(cell)
+            positionCache: root.barPositionCache
+            row: displayRow
+            scaleOverride: root.scaleOverride
+            usePositionCache: usesRowPositionCache
+            hasOverride: usesRowPositionCache && root.fastBarScrollActive && selectedRowContent
+            overrideX: root.selectedFastBarDrawX
+            overrideY: root.selectedFastBarDrawY
+            fallbackX: visibleBase ? visibleBase.x : 0
+            fallbackY: visibleBase ? visibleBase.y : 0
             width: root.width
             height: root.height
             visible: contentVisible
+
+            function refreshCell(force) {
+                let next = selectedOverlaySource ? null : root.textCellData(slot);
+                if (force && cell === next) {
+                    cell = null;
+                }
+                if (cell !== next) {
+                    cell = next;
+                }
+            }
+
+            Component.onCompleted: {
+                refreshCell(false);
+            }
+            onSlotChanged: {
+                refreshCell(false);
+            }
 
             Lr2SpriteRenderer {
                 anchors.fill: parent
                 dsts: root.dsts
                 srcData: root.srcData ? root.srcData.source : null
-                skinTime: root.skinTime
+                skinTime: 0
                 sourceSkinTime: root.spriteSourceSkinTime(srcData)
                 activeOptions: root.activeOptions
                 timers: root.timers
+                timerFire: -2147483648
+                sourceTimerFire: root.spriteSourceTimerFire(srcData)
                 chart: root.chart
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: root.colorKeyEnabled
                 stateOverride: root.overlayTimelineState
             }
+        }
+    }
+
+    onBarTextCellsChanged: {
+        refreshOverlayCells(false);
+    }
+
+    Connections {
+        target: root.selectContext
+        function onBarTextCellsInvalidated() {
+            root.refreshOverlayCells(false);
+        }
+        function onBarTextCellRangeChanged(firstSlot, count) {
+            root.refreshOverlayCellRange(firstSlot, count, true);
         }
     }
 }

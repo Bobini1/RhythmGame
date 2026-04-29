@@ -28,7 +28,7 @@ Item {
     property var previewFiles: ({})
     property int currentIndex: 0
     property int targetIndex: currentIndex
-    property real visualIndex: 0
+    property alias visualIndex: visualState.visualIndex
     property real targetVisualIndex: 0
     property int listTopbarFixed: 0
     property int listCalculatedBarFixed: 0
@@ -39,6 +39,9 @@ Item {
     property real animationStartVisualIndex: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
+    property int visualMoveDurationMs: 0
+    property bool visualIndexAnimationEnabled: true
+    property bool suppressVisualIndexPublish: false
     property int scrollDirection: 0
     property int revision: 0
     property int listRevision: 0
@@ -57,13 +60,20 @@ Item {
     property int realItemCount: 0
     property int barRowCount: 0
     property int barCenter: 0
-    property int barEntriesRevision: 0
-    property int barTextCellsRevision: 0
+    property int visibleBarSlotOffset: 0
     property var visibleBarEntries: []
     property var visibleBarTextCells: []
-    property var visibleBarRowCells: []
+    property var barCellCoreCache: ({})
+    property int barCellCoreCacheScoreRevision: -1
+    property int barCellCoreCacheFolderLampRevision: -1
+    property int barCellCoreCacheListRevision: -1
     property var selectedScoreStateCache: ({})
     property int selectedScoreStateCacheRevision: -1
+    property string selectedScoreStateKey: ""
+    property var selectedDifficultyCharts: []
+    property var selectedDifficultyCounts: [0, 0, 0, 0, 0, 0]
+    property var selectedDifficultyLevels: [0, 0, 0, 0, 0, 0]
+    property var selectedDifficultyLamps: [0, 0, 0, 0, 0, 0]
     property int cachedVisibleBarBaseIndex: -1
     property int cachedVisibleBarListRevision: -1
     property int cachedVisibleBarRowCount: -1
@@ -136,6 +146,7 @@ Item {
         minBadPoor: 0
     })
     property var selectedScoreOptionIds: []
+    property string selectedScoreOptionIdsKey: ""
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
@@ -152,14 +163,45 @@ Item {
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
     property bool visualMoveActive: false
     property int visualBaseIndex: 0
-    property real scrollOffset: 0
+    property alias visualStateObject: visualState
+
+    Lr2SelectVisualState {
+        id: visualState
+        logicalCount: root.logicalCount
+        scrollDirection: root.scrollDirection
+        scrollDownDirection: root.lr2ScrollDown
+    }
+
+    Behavior on visualIndex {
+        enabled: root.visualIndexAnimationEnabled
+        NumberAnimation {
+            id: visualIndexAnimation
+            duration: root.visualMoveDurationMs
+            easing.type: Easing.Linear
+            onRunningChanged: {
+                if (!running) {
+                    root.publishVisualIndex(true);
+                }
+            }
+        }
+    }
 
     signal openedFolder()
     signal barTextCellsInvalidated()
-    signal barTextCellsRowsShifted()
-    signal barTextCellChanged(int slot)
+    signal barTextCellRangeChanged(int firstSlot, int count)
     onBarRowCountChanged: refreshVisibleBarEntries(true)
     onBarCenterChanged: refreshVisibleBarEntries(true)
+
+    Connections {
+        target: visualState
+        function onBaseIndexChanged() {
+            root.publishBaseIndex(false);
+        }
+
+        function onCursorBaseIndexChanged() {
+            root.publishCursorBaseIndex(false);
+        }
+    }
 
     function touch() {
         revision += 1;
@@ -200,44 +242,95 @@ Item {
         return Math.trunc(from + (to - from) * ((now - start) / (end - start)));
     }
 
-    function publishBarState() {
-        let calculatedFixed = wrapBarFixed(listTopbarFixed);
+    function publishVisualFrame(force) {
+        if (suppressVisualIndexPublish) {
+            return false;
+        }
+
+        let rawFixed = visualState.rawFixed;
+        let calculatedFixed = visualState.fixed;
+        let moving = Math.abs(nowBarFixed - rawFixed) > 0;
+        if (!force
+                && listTopbarFixed === rawFixed
+                && listCalculatedBarFixed === calculatedFixed
+                && visualMoveActive === moving) {
+            return false;
+        }
+
+        if (listTopbarFixed !== rawFixed) {
+            listTopbarFixed = rawFixed;
+        }
         if (listCalculatedBarFixed !== calculatedFixed) {
             listCalculatedBarFixed = calculatedFixed;
         }
-
-        let normalized = logicalCount > 0 ? calculatedFixed / 1000.0 : 0;
-        let baseIndex = Math.floor(normalized);
-        let offset = normalized - baseIndex;
-        let baseChanged = visualBaseIndex !== baseIndex;
-
-        if (baseChanged) {
-            visualBaseIndex = baseIndex;
-        }
-        if (scrollOffset !== offset) {
-            scrollOffset = offset;
-        }
-        let moving = Math.abs(nowBarFixed - listTopbarFixed) > 0;
         if (visualMoveActive !== moving) {
             visualMoveActive = moving;
         }
-        if (baseChanged
-                || cachedVisibleBarBaseIndex < 0
-                || cachedVisibleBarListRevision !== listRevision
-                || cachedVisibleBarRowCount !== barRowCount
-                || cachedVisibleBarCenter !== barCenter) {
-            refreshVisibleBarEntries(false);
+        return true;
+    }
+
+    function publishBarState(force) {
+        if (suppressVisualIndexPublish) {
+            return false;
         }
-        let cursorBaseIndex = cursorBaseIndexForFixed(calculatedFixed);
-        if (cachedSyncedCursorBaseIndex !== cursorBaseIndex) {
+
+        publishVisualFrame(force);
+        publishBaseIndex(force);
+        return publishCursorBaseIndex(force);
+    }
+
+    function publishBaseIndex(force) {
+        if (suppressVisualIndexPublish) {
+            return false;
+        }
+        let baseIndex = visualState.baseIndex;
+        let baseChanged = visualBaseIndex !== baseIndex;
+        if (baseChanged) {
+            visualBaseIndex = baseIndex;
+        }
+
+        let rowsChanged = force
+            || baseChanged
+            || cachedVisibleBarBaseIndex < 0
+            || cachedVisibleBarListRevision !== listRevision
+            || cachedVisibleBarRowCount !== barRowCount
+            || cachedVisibleBarCenter !== barCenter;
+        if (rowsChanged) {
+            refreshVisibleBarEntries(!!force);
+        }
+        return rowsChanged;
+    }
+
+    function publishCursorBaseIndex(force) {
+        if (suppressVisualIndexPublish) {
+            return false;
+        }
+        let cursorBaseIndex = visualState.cursorBaseIndex;
+        if (force || cachedSyncedCursorBaseIndex !== cursorBaseIndex) {
             cachedSyncedCursorBaseIndex = cursorBaseIndex;
-            return syncCurrentToVisual();
+            return syncCurrentToVisual(cursorBaseIndex);
         }
         return false;
     }
 
+    function publishVisualIndex(force) {
+        let changed = publishVisualFrame(force);
+        if (force) {
+            publishBarState(false);
+        }
+        return changed;
+    }
+
+    function setVisualIndexRaw(index) {
+        suppressVisualIndexPublish = true;
+        visualIndexAnimationEnabled = false;
+        visualIndex = index;
+        visualIndexAnimationEnabled = true;
+        suppressVisualIndexPublish = false;
+    }
+
     function currentNormalizedVisualIndex() {
-        return logicalCount > 0 ? listCalculatedBarFixed / 1000.0 : 0;
+        return logicalCount > 0 ? visualState.fixed / 1000.0 : 0;
     }
 
     function setVisualIndexImmediate(index) {
@@ -245,9 +338,10 @@ Item {
         listTopbarFixed = fixed;
         oldBarFixed = fixed;
         nowBarFixed = fixed;
-        visualIndex = index;
+        setVisualIndexRaw(index);
         targetVisualIndex = index;
         animationStartVisualIndex = index;
+        visualMoveDurationMs = 0;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
         scrollDirection = 0;
@@ -260,10 +354,12 @@ Item {
         }
         barMoveStartMs = now;
         barMoveEndMs = now + Math.max(1, durationMs);
-        visualIndex = listTopbarFixed / 1000.0;
+        setVisualIndexRaw(listTopbarFixed / 1000.0);
         targetVisualIndex = nowBarFixed / 1000.0;
         animationStartVisualIndex = oldBarFixed / 1000.0;
-        publishBarState();
+        visualMoveDurationMs = Math.max(1, durationMs);
+        visualIndex = targetVisualIndex;
+        return publishBarState();
     }
 
     function normalizedVisualIndexFor(index) {
@@ -303,11 +399,11 @@ Item {
         return base;
     }
 
-    function syncCurrentToVisual() {
+    function syncCurrentToVisual(cursorBaseIndex) {
         if (logicalCount === 0) {
             return false;
         }
-        let nextIndex = normalizeIndex(cursorBaseIndexForFixed(listCalculatedBarFixed) + selectedOffset);
+        let nextIndex = normalizeIndex((cursorBaseIndex === undefined ? visualState.cursorBaseIndex : cursorBaseIndex) + selectedOffset);
         if (currentIndex === nextIndex) {
             return false;
         }
@@ -326,17 +422,19 @@ Item {
             applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
             return;
         }
-        let nextTopbarFixed = animatedTopbarFixed(now);
-        let moving = Math.abs(nowBarFixed - nextTopbarFixed) > 0;
-        if (listTopbarFixed === nextTopbarFixed && visualMoveActive === moving) {
-            return;
-        }
-        listTopbarFixed = nextTopbarFixed;
-        publishBarState();
+        publishVisualIndex();
     }
 
     function queueWheelSteps(steps) {
         pendingWheelSteps += steps;
+        pendingWheelStepTimer.restart();
+    }
+
+    Timer {
+        id: pendingWheelStepTimer
+        interval: 0
+        repeat: false
+        onTriggered: root.updateVisualIndex(Date.now())
     }
 
     function nearestVisualIndex(index, anchor) {
@@ -1184,8 +1282,10 @@ Item {
         listTopbarFixed = clamped;
         oldBarFixed = clamped;
         nowBarFixed = clamped;
+        setVisualIndexRaw(clamped / 1000.0);
         barMoveStartMs = 0;
         barMoveEndMs = 0;
+        visualMoveDurationMs = 0;
         return publishBarState();
     }
 
@@ -1227,10 +1327,8 @@ Item {
         nowBarFixed = Math.round(nearestVisualIndex(rounded, clamped / 1000.0) * 1000);
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
             : (nowBarFixed > listTopbarFixed ? lr2ScrollDown : scrollDirection);
-        barMoveStartMs = now;
-        barMoveEndMs = now + Math.max(1, durationMs !== undefined ? durationMs : 100);
         targetIndex = normalizeIndex(rounded);
-        let selectionTouched = publishBarState();
+        let selectionTouched = beginVisualMove(durationMs !== undefined ? durationMs : 100, now);
         if (!selectionTouched && oldOffset !== selectedOffset) {
             scrollingText = false;
             scrollingTextTimer.restart();
@@ -1260,10 +1358,8 @@ Item {
         nowBarFixed = Math.round(nearestVisualIndex(rounded, listTopbarFixed / 1000.0) * 1000);
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
             : (nowBarFixed > listTopbarFixed ? lr2ScrollDown : scrollDirection);
-        barMoveStartMs = now;
-        barMoveEndMs = now + Math.max(1, durationMs !== undefined ? durationMs : 100);
         targetIndex = normalizeIndex(rounded);
-        let selectionTouched = publishBarState();
+        let selectionTouched = beginVisualMove(durationMs !== undefined ? durationMs : 100, now);
         if (!selectionTouched && (wasDragging || oldOffset !== selectedOffset)) {
             scrollingText = false;
             scrollingTextTimer.restart();
@@ -1272,7 +1368,7 @@ Item {
     }
 
     function animatedTopbarFixed(now) {
-        return lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        return visualState.rawFixed;
     }
 
     function applyLr2ScrollDelta(entries, durationMs, now, currentFixed) {
@@ -1445,17 +1541,14 @@ Item {
         if (logicalCount === 0 || rowCount === 0) {
             if (force
                     || visibleBarEntries.length !== 0
-                    || visibleBarTextCells.length !== 0
-                    || visibleBarRowCells.length !== 0) {
+                    || visibleBarTextCells.length !== 0) {
                 visibleBarEntries = [];
                 visibleBarTextCells = [];
-                visibleBarRowCells = [];
+                visibleBarSlotOffset = 0;
                 cachedVisibleBarBaseIndex = -1;
                 cachedVisibleBarListRevision = listRevision;
                 cachedVisibleBarRowCount = rowCount;
                 cachedVisibleBarCenter = barCenter;
-                barEntriesRevision += 1;
-                barTextCellsRevision += 1;
                 barTextCellsInvalidated();
             }
             return;
@@ -1467,55 +1560,35 @@ Item {
                 && cachedVisibleBarRowCount === rowCount
                 && cachedVisibleBarCenter === barCenter
                 && visibleBarEntries.length === rowCount
-                && visibleBarTextCells.length === rowCount
-                && visibleBarRowCells.length === rowCount) {
+                && visibleBarTextCells.length === rowCount) {
             let forward = (visualBaseIndex - cachedVisibleBarBaseIndex + logicalCount) % logicalCount;
             let backward = (cachedVisibleBarBaseIndex - visualBaseIndex + logicalCount) % logicalCount;
             let delta = forward <= backward ? forward : -backward;
             if (delta !== 0 && Math.abs(delta) <= Math.min(rowCount, 4)) {
-                let entries = visibleBarEntries;
                 let textCells = visibleBarTextCells;
-                let rowCells = visibleBarRowCells;
-                let changedTextSlots = [];
+                let entries = visibleBarEntries;
+                let finalSlotOffset = ((visibleBarSlotOffset + delta) % rowCount + rowCount) % rowCount;
                 let steps = Math.abs(delta);
+                let firstChangedSlot = -1;
                 for (let step = 0; step < steps; ++step) {
-                    let row = delta > 0 ? rowCount - steps + step : steps - step - 1;
+                    let row = delta > 0 ? rowCount - steps + step : step;
+                    let slot = (row + finalSlotOffset) % rowCount;
+                    if (firstChangedSlot < 0) {
+                        firstChangedSlot = slot;
+                    }
                     let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
-                    let cell = delta > 0 ? rowCells.shift() : rowCells.pop();
+                    entries[slot] = entry;
+                    let cell = textCells[slot];
                     if (!cell) {
                         cell = barTextCellForRow(row);
+                        textCells[slot] = cell;
                     } else {
                         updateBarTextCellForRow(cell, row);
                     }
-                    let changedSlot = textCells.indexOf(cell);
-                    if (changedSlot >= 0) {
-                        changedTextSlots.push(changedSlot);
-                    }
-                    if (delta > 0) {
-                        rowCells.push(cell);
-                    } else {
-                        rowCells.unshift(cell);
-                    }
-                    if (delta > 0) {
-                        entries.shift();
-                        entries.push(entry);
-                    } else {
-                        entries.pop();
-                        entries.unshift(entry);
-                    }
                 }
-                for (let row = 0; row < rowCells.length; ++row) {
-                    if (rowCells[row]) {
-                        rowCells[row].row = row;
-                    }
-                }
+                visibleBarSlotOffset = finalSlotOffset;
                 cachedVisibleBarBaseIndex = visualBaseIndex;
-                barEntriesRevision += 1;
-                barTextCellsRevision += 1;
-                barTextCellsRowsShifted();
-                for (let i = 0; i < changedTextSlots.length; ++i) {
-                    barTextCellChanged(changedTextSlots[i]);
-                }
+                barTextCellRangeChanged(firstChangedSlot, steps);
                 return;
             }
         }
@@ -1530,91 +1603,181 @@ Item {
 
         let entries = [];
         let textCells = [];
-        let rowCells = [];
         for (let row = 0; row < rowCount; ++row) {
             let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
             let cell = barTextCellForRow(row);
             entries.push(entry);
             textCells.push(cell);
-            rowCells.push(cell);
         }
         visibleBarEntries = entries;
         visibleBarTextCells = textCells;
-        visibleBarRowCells = rowCells;
+        visibleBarSlotOffset = 0;
         cachedVisibleBarBaseIndex = visualBaseIndex;
         cachedVisibleBarListRevision = listRevision;
         cachedVisibleBarRowCount = rowCount;
         cachedVisibleBarCenter = barCenter;
-        barEntriesRevision += 1;
-        barTextCellsRevision += 1;
         barTextCellsInvalidated();
     }
 
-    function shiftBarTextCellRows(cells, delta) {
-        for (let i = 0; i < cells.length; ++i) {
-            let cell = cells[i];
-            if (cell) {
-                cell.row += delta;
-            }
+    function visibleBarSlotForRow(row) {
+        let rowCount = visibleBarTextCells.length;
+        if (rowCount <= 0 || row < 0 || row >= rowCount) {
+            return -1;
         }
-    }
-
-    function updateOutOfRangeBarTextCell(cells, row, rowCount) {
-        for (let i = 0; i < cells.length; ++i) {
-            let cell = cells[i];
-            if (cell && (cell.row < 0 || cell.row >= rowCount)) {
-                updateBarTextCellForRow(cell, row);
-                return i;
-            }
-        }
-        return -1;
+        return (row + visibleBarSlotOffset) % rowCount;
     }
 
     function visibleBarEntry(row, fallbackBarCenter) {
-        if (row >= 0 && row < visibleBarEntries.length) {
-            return visibleBarEntries[row];
+        let slot = visibleBarSlotForRow(row);
+        if (slot >= 0 && slot < visibleBarEntries.length) {
+            return visibleBarEntries[slot];
         }
         return barEntry(row, fallbackBarCenter);
     }
 
-    function barTextCellForRow(row) {
-        let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+    function ensureBarCellCoreCacheCurrent() {
+        if (barCellCoreCacheScoreRevision === scoreRevision
+                && barCellCoreCacheFolderLampRevision === folderLampRevision
+                && barCellCoreCacheListRevision === listRevision) {
+            return;
+        }
+        barCellCoreCache = {};
+        barCellCoreCacheScoreRevision = scoreRevision;
+        barCellCoreCacheFolderLampRevision = folderLampRevision;
+        barCellCoreCacheListRevision = listRevision;
+    }
+
+    function barCellCoreCacheKey(entry) {
+        if (!entry) {
+            return "empty";
+        }
+        if (isRankingEntry(entry)) {
+            return "ranking:" + (entry.sourceMd5 || "") + ":" + (entry.rankingIndex || 0);
+        }
+        if (isChart(entry)) {
+            return "chart:" + (entry.md5 || entry.path || entry.title || "");
+        }
+        if (isEntry(entry)) {
+            return "entry:" + (entry.md5 || entry.path || entry.title || entry.level || "");
+        }
+        if (isCourse(entry)) {
+            return "course:" + (entry.identifier || entry.name || "");
+        }
+        if (isTable(entry)) {
+            return "table:" + (entry.url || entry.name || "");
+        }
+        if (isLevel(entry)) {
+            return "level:" + folderLampKey(entry);
+        }
+        if (typeof entry === "string") {
+            return "folder:" + entry;
+        }
+        return "item:" + entryDisplayName(entry, true);
+    }
+
+    function rankingEntryRank(entry) {
+        let points = Number(entry.bestPoints || 0);
+        let maxPoints = Number(entry.maxPoints || 0);
+        if (maxPoints <= 0) {
+            return 0;
+        }
+        let rank = Math.floor(points * 9 / maxPoints);
+        if (rank > 7) {
+            rank = 8;
+        }
+        if (rank < 2 && points > 0) {
+            rank = 1;
+        }
+        return rank;
+    }
+
+    function buildBarCellCore(entry) {
+        let ranking = isRankingEntry(entry);
+        let chartLike = isChart(entry);
+        let entryLike = isEntry(entry);
+        let folderLike = isFolderLikeForLamp(entry);
+        let lamp = 0;
+        let rank = 0;
+
+        if (ranking) {
+            lamp = clearTypeLamp(entry.bestClearType);
+            rank = rankingEntryRank(entry);
+        } else if (folderLike) {
+            let key = folderLampKey(entry);
+            lamp = key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
+        } else {
+            lamp = clearTypeLamp(getClearType(entryScores(entry)));
+        }
+
         return {
-            row: row,
-            entry: entry,
             text: entryDisplayName(entry, true),
             titleType: entryTitleType(entry),
             bodyType: entryBodyType(entry),
             playLevel: entryPlayLevel(entry),
             difficulty: entryDifficulty(entry),
             keymode: entry ? (entry.keymode || 0) : 0,
-            ranking: isRankingEntry(entry),
-            chartLike: isChart(entry),
-            entryLike: isEntry(entry),
-            folderLike: isFolderLikeForLamp(entry),
-            lamp: entryLamp(entry),
-            clearType: entryClearType(entry),
-            rank: entryRank(entry)
+            ranking: ranking,
+            chartLike: chartLike,
+            entryLike: entryLike,
+            folderLike: folderLike,
+            lamp: lamp,
+            rank: rank
+        };
+    }
+
+    function barCellCore(entry) {
+        ensureBarCellCoreCacheCurrent();
+        let key = barCellCoreCacheKey(entry);
+        let cached = barCellCoreCache[key];
+        if (cached !== undefined) {
+            return cached;
+        }
+        cached = buildBarCellCore(entry);
+        barCellCoreCache[key] = cached;
+        return cached;
+    }
+
+    function assignBarCellCore(cell, row, entry, core) {
+        cell.row = row;
+        cell.entry = entry;
+        cell.text = core.text;
+        cell.titleType = core.titleType;
+        cell.bodyType = core.bodyType;
+        cell.playLevel = core.playLevel;
+        cell.difficulty = core.difficulty;
+        cell.keymode = core.keymode;
+        cell.ranking = core.ranking;
+        cell.chartLike = core.chartLike;
+        cell.entryLike = core.entryLike;
+        cell.folderLike = core.folderLike;
+        cell.lamp = core.lamp;
+        cell.rank = core.rank;
+    }
+
+    function barTextCellForRow(row) {
+        let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
+        let core = barCellCore(entry);
+        return {
+            row: row,
+            entry: entry,
+            text: core.text,
+            titleType: core.titleType,
+            bodyType: core.bodyType,
+            playLevel: core.playLevel,
+            difficulty: core.difficulty,
+            keymode: core.keymode,
+            ranking: core.ranking,
+            chartLike: core.chartLike,
+            entryLike: core.entryLike,
+            folderLike: core.folderLike,
+            lamp: core.lamp,
+            rank: core.rank
         };
     }
 
     function updateBarTextCellForRow(cell, row) {
         let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
-        cell.row = row;
-        cell.entry = entry;
-        cell.text = entryDisplayName(entry, true);
-        cell.titleType = entryTitleType(entry);
-        cell.bodyType = entryBodyType(entry);
-        cell.playLevel = entryPlayLevel(entry);
-        cell.difficulty = entryDifficulty(entry);
-        cell.keymode = entry ? (entry.keymode || 0) : 0;
-        cell.ranking = isRankingEntry(entry);
-        cell.chartLike = isChart(entry);
-        cell.entryLike = isEntry(entry);
-        cell.folderLike = isFolderLikeForLamp(entry);
-        cell.lamp = entryLamp(entry);
-        cell.clearType = entryClearType(entry);
-        cell.rank = entryRank(entry);
+        assignBarCellCore(cell, row, entry, barCellCore(entry));
     }
 
     function visibleBarTextCell(slot) {
@@ -1625,7 +1788,8 @@ Item {
     }
 
     function visibleBarDisplayName(row, fallbackBarCenter) {
-        let cell = visibleBarTextCell(row);
+        let slot = visibleBarSlotForRow(row);
+        let cell = slot >= 0 ? visibleBarTextCell(slot) : null;
         if (cell && cell.row === row) {
             return cell.text || "";
         }
@@ -2369,6 +2533,15 @@ Item {
 
     function scoreOptionIds(item) {
         if (item === current || item === cachedSelectedChartData) {
+            let key = selectedScoreStateKey || "__selected";
+            if (selectedScoreOptionIdsKey !== key) {
+                selectedScoreOptionIds = scoreOptionIdsFromList(selectedScoreList);
+                selectedScoreOptionIdsKey = key;
+                let cached = selectedScoreStateKey ? selectedScoreStateCache[selectedScoreStateKey] : null;
+                if (cached) {
+                    cached.scoreOptionIds = selectedScoreOptionIds;
+                }
+            }
             return selectedScoreOptionIds;
         }
         return scoreOptionIdsFromList(entryScores(item));
@@ -2484,6 +2657,8 @@ Item {
         if (selectedScoreStateCacheRevision !== scoreRevision) {
             selectedScoreStateCache = {};
             selectedScoreStateCacheRevision = scoreRevision;
+            selectedScoreStateKey = "";
+            selectedScoreOptionIdsKey = "";
         }
         let item = current;
         let nextChartData = rankingMode && rankingBaseItem
@@ -2497,31 +2672,43 @@ Item {
         } else {
             stateKey = "item:" + entryIdentifier(item);
         }
+        if (stateKey && stateKey === selectedScoreStateKey) {
+            return;
+        }
         let cached = stateKey ? selectedScoreStateCache[stateKey] : null;
         if (cached) {
             cachedSelectedChartData = cached.chartData;
             selectedScoreList = cached.scoreList;
             selectedBestStats = cached.bestStats;
             selectedScoreCounts = cached.scoreCounts;
-            selectedScoreOptionIds = cached.scoreOptionIds;
+            selectedScoreStateKey = stateKey;
+            if (cached.scoreOptionIds) {
+                selectedScoreOptionIds = cached.scoreOptionIds;
+                selectedScoreOptionIdsKey = stateKey;
+            } else {
+                selectedScoreOptionIds = emptyScoreOptionIds;
+                selectedScoreOptionIdsKey = "";
+            }
+            refreshSelectedDifficultyState(cached.chartData);
             return;
         }
         let scoreList = entryScores(nextChartData || item);
         let nextBestStats = bestStats(scoreList);
         let nextScoreCounts = scoreCounts(scoreList);
-        let nextScoreOptionIds = scoreOptionIdsFromList(scoreList);
         cachedSelectedChartData = nextChartData;
         selectedScoreList = scoreList;
         selectedBestStats = nextBestStats;
         selectedScoreCounts = nextScoreCounts;
-        selectedScoreOptionIds = nextScoreOptionIds;
+        selectedScoreStateKey = stateKey;
+        selectedScoreOptionIds = emptyScoreOptionIds;
+        selectedScoreOptionIdsKey = "";
+        refreshSelectedDifficultyState(nextChartData);
         if (stateKey) {
             selectedScoreStateCache[stateKey] = {
                 chartData: nextChartData,
                 scoreList: scoreList,
                 bestStats: nextBestStats,
-                scoreCounts: nextScoreCounts,
-                scoreOptionIds: nextScoreOptionIds
+                scoreCounts: nextScoreCounts
             };
         }
     }
@@ -2779,10 +2966,15 @@ Item {
 
         chartGroupCache = groups;
         chartDifficultyCache = difficulties;
+        selectedScoreStateKey = "";
+        selectedScoreOptionIdsKey = "";
     }
 
     function chartsForCurrentSong() {
-        let chart = selectedChartData();
+        return chartsForSong(selectedChartData());
+    }
+
+    function chartsForSong(chart) {
         if (!chart) {
             return [];
         }
@@ -2795,22 +2987,38 @@ Item {
         return result;
     }
 
-    function chartForDifficulty(diff) {
-        let currentChart = selectedChartData();
-        let charts = chartsForCurrentSong();
-        let fallback = null;
-        for (let chart of charts) {
-            if (entryDifficulty(chart) !== diff) {
+    function refreshSelectedDifficultyState(chart) {
+        let charts = chartsForSong(chart);
+        let byDiff = [null, null, null, null, null, null];
+        let counts = [0, 0, 0, 0, 0, 0];
+        let levels = [0, 0, 0, 0, 0, 0];
+        let lamps = [0, 0, 0, 0, 0, 0];
+        for (let candidate of charts) {
+            let diff = entryDifficulty(candidate);
+            if (diff < 1 || diff > 5) {
                 continue;
             }
-            if (currentChart && sameEntry(chart, currentChart)) {
-                return chart;
-            }
-            if (!fallback) {
-                fallback = chart;
+            counts[diff] += 1;
+            if (!byDiff[diff] || (chart && sameEntry(candidate, chart))) {
+                byDiff[diff] = candidate;
             }
         }
-        return fallback;
+        for (let diff = 1; diff <= 5; ++diff) {
+            let candidate = byDiff[diff];
+            if (!candidate) {
+                continue;
+            }
+            levels[diff] = candidate.playLevel || 0;
+            lamps[diff] = entryLamp(candidate);
+        }
+        selectedDifficultyCharts = byDiff;
+        selectedDifficultyCounts = counts;
+        selectedDifficultyLevels = levels;
+        selectedDifficultyLamps = lamps;
+    }
+
+    function chartForDifficulty(diff) {
+        return diff >= 1 && diff <= 5 ? selectedDifficultyCharts[diff] : null;
     }
 
     function nextChartForDifficulty(diff) {
@@ -2848,18 +3056,11 @@ Item {
     }
 
     function difficultyCount(diff) {
-        let count = 0;
-        for (let chart of chartsForCurrentSong()) {
-            if (entryDifficulty(chart) === diff) {
-                ++count;
-            }
-        }
-        return count;
+        return diff >= 1 && diff <= 5 ? selectedDifficultyCounts[diff] || 0 : 0;
     }
 
     function difficultyPlayLevel(diff) {
-        let chart = chartForDifficulty(diff);
-        return chart ? (chart.playLevel || 0) : 0;
+        return diff >= 1 && diff <= 5 ? selectedDifficultyLevels[diff] || 0 : 0;
     }
 
     function levelBarFlashThreshold() {
@@ -2888,8 +3089,7 @@ Item {
     }
 
     function difficultyLamp(diff) {
-        let chart = chartForDifficulty(diff);
-        return chart ? entryLamp(chart) : 0;
+        return diff >= 1 && diff <= 5 ? selectedDifficultyLamps[diff] || 0 : 0;
     }
 
     function attachedTextFile(chart) {

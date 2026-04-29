@@ -89,15 +89,15 @@ Item {
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
     readonly property int lr2CurrentFps: Math.round(lr2FpsAnimation.fps)
-    property double lr2ClockNowMs: Date.now()
-    readonly property var lr2ClockNow: new Date(root.lr2ClockNowMs)
-    readonly property int lr2ClockYear: root.lr2ClockNow.getFullYear()
-    readonly property int lr2ClockMonth: root.lr2ClockNow.getMonth() + 1
-    readonly property int lr2ClockDay: root.lr2ClockNow.getDate()
-    readonly property int lr2ClockHour: root.lr2ClockNow.getHours()
-    readonly property int lr2ClockMinute: root.lr2ClockNow.getMinutes()
-    readonly property int lr2ClockSecond: root.lr2ClockNow.getSeconds()
-    readonly property int lr2SceneUptimeSeconds: Math.floor(Math.max(0, root.lr2ClockNowMs - root.sceneStartMs) / 1000)
+    readonly property var lr2InitialClockNow: new Date()
+    property double lr2ClockNowMs: root.lr2InitialClockNow.getTime()
+    property int lr2ClockYear: root.lr2InitialClockNow.getFullYear()
+    property int lr2ClockMonth: root.lr2InitialClockNow.getMonth() + 1
+    property int lr2ClockDay: root.lr2InitialClockNow.getDate()
+    property int lr2ClockHour: root.lr2InitialClockNow.getHours()
+    property int lr2ClockMinute: root.lr2InitialClockNow.getMinutes()
+    property int lr2ClockSecond: root.lr2InitialClockNow.getSeconds()
+    property int lr2SceneUptimeSeconds: 0
     property var resultOldScores1: []
     property var resultOldScores2: []
     property int resultOldScoresRevision: 0
@@ -2242,7 +2242,12 @@ Item {
         let clock = skinTime === undefined
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
-        let base = Lr2Timeline.getCurrentState(dsts, clock, root.timers, root.runtimeActiveOptions);
+        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let base = Lr2Timeline.getCurrentStateFromTimerFire(
+            dsts,
+            clock,
+            root.skinTimerFireTime(timer),
+            root.runtimeActiveOptions);
         if (!base) {
             return null;
         }
@@ -2334,7 +2339,12 @@ Item {
         if (!root.isSelectSearchText(src)) {
             return null;
         }
-        return Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        return Lr2Timeline.getCurrentStateFromTimerFire(
+            dsts,
+            root.renderSkinTime,
+            root.skinTimerFireTime(timer),
+            root.runtimeActiveOptions);
     }
 
     function textPrefix(text, position) {
@@ -2577,6 +2587,32 @@ Item {
     function skinUsesOption(option) {
         let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
         return used.length === 0 || !!root.usedOptionLookup[Math.abs(option)];
+    }
+
+    function skinUsesAnyOption(options) {
+        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
+        if (used.length === 0) {
+            return true;
+        }
+        for (let i = 0; i < options.length; ++i) {
+            if (root.usedOptionLookup[Math.abs(options[i])]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function skinUsesOptionRange(first, last) {
+        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
+        if (used.length === 0) {
+            return true;
+        }
+        for (let option = first; option <= last; ++option) {
+            if (root.usedOptionLookup[option]) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function configuredGaugeName(side) {
@@ -2842,7 +2878,25 @@ Item {
     }
 
     function updateLr2DateTimeNumbers() {
-        root.lr2ClockNowMs = Date.now();
+        let nowMs = Date.now();
+        let now = new Date(nowMs);
+        let uptimeSeconds = Math.floor(Math.max(0, nowMs - root.sceneStartMs) / 1000);
+        if (root.lr2ClockNowMs !== nowMs)
+            root.lr2ClockNowMs = nowMs;
+        if (root.lr2ClockYear !== now.getFullYear())
+            root.lr2ClockYear = now.getFullYear();
+        if (root.lr2ClockMonth !== now.getMonth() + 1)
+            root.lr2ClockMonth = now.getMonth() + 1;
+        if (root.lr2ClockDay !== now.getDate())
+            root.lr2ClockDay = now.getDate();
+        if (root.lr2ClockHour !== now.getHours())
+            root.lr2ClockHour = now.getHours();
+        if (root.lr2ClockMinute !== now.getMinutes())
+            root.lr2ClockMinute = now.getMinutes();
+        if (root.lr2ClockSecond !== now.getSeconds())
+            root.lr2ClockSecond = now.getSeconds();
+        if (root.lr2SceneUptimeSeconds !== uptimeSeconds)
+            root.lr2SceneUptimeSeconds = uptimeSeconds;
     }
 
     function appendCommonRuntimeOptions(options) {
@@ -2920,7 +2974,7 @@ Item {
         addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
         addOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
         addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
-        if (root.chartHasBpmStop(chartData)) {
+        if (root.skinUsesOption(1177) && root.chartHasBpmStop(chartData)) {
             addOption(options, 1177);
         }
         addOption(options, chartData.isRandom ? 179 : 178);
@@ -2965,6 +3019,9 @@ Item {
     }
 
     function appendReplayOptions(options, chartData) {
+        if (!root.selectUsesReplayOptions()) {
+            return;
+        }
         let selectedReplayAvailable = false;
         for (let slot = 0; slot < 4; ++slot) {
             let available = root.replaySlotAvailable(chartData, slot);
@@ -3028,6 +3085,9 @@ Item {
     }
 
     function appendEntryStatusOptions(options, item, selectedChart) {
+        if (!root.selectUsesEntryStatusOptions()) {
+            return;
+        }
         let folderLike = selectContext.isFolderLikeForLamp(item);
         if (!selectContext.isChart(item)
                 && !selectContext.isEntry(item)
@@ -3060,6 +3120,9 @@ Item {
         if (!selectContext.isCourse(item)) {
             return;
         }
+        if (!root.selectUsesCourseDetailOptions()) {
+            return;
+        }
         root.addOption(options, 290);
         root.addOption(options, 293); // rank certification / class
         if (!item.loadCharts) {
@@ -3077,6 +3140,9 @@ Item {
     }
 
     function appendDifficultyBarOptions(options) {
+        if (!root.selectUsesDifficultyBarOptions()) {
+            return;
+        }
         for (let diff = 1; diff <= 5; ++diff) {
             if (selectContext.hasDifficulty(diff)) {
                 root.addOption(options, 504 + diff);
@@ -5294,8 +5360,10 @@ Item {
         }
 
         root.appendChartOptions(options, selectedChart);
-        for (let optionId of selectContext.scoreOptionIds(item)) {
-            root.addOption(options, optionId);
+        if (root.selectUsesScoreOptionIds()) {
+            for (let optionId of selectContext.scoreOptionIds(item)) {
+                root.addOption(options, optionId);
+            }
         }
     }
 
@@ -5307,8 +5375,10 @@ Item {
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendEntryStatusOptions(options, chartData, chartData);
         root.appendChartOptions(options, chartData);
-        for (let optionId of selectContext.scoreOptionIds(chartData)) {
-            root.addOption(options, optionId);
+        if (root.selectUsesScoreOptionIds()) {
+            for (let optionId of selectContext.scoreOptionIds(chartData)) {
+                root.addOption(options, optionId);
+            }
         }
     }
 
@@ -5961,6 +6031,10 @@ Item {
         return selectPanelController.addHeldButtonTimers(result);
     }
 
+    function selectHeldButtonTimerFireTime(timer) {
+        return selectPanelController.selectHeldButtonTimerFireTime(timer);
+    }
+
     function spriteSkinTime(src, dsts) {
         return selectPanelController.spriteSkinTime(src, dsts);
     }
@@ -6040,7 +6114,12 @@ Item {
         if (!src || !src.onMouse || !root.panelMatches(src.hoverPanel || 0)) {
             return null;
         }
-        const state = Lr2Timeline.getCurrentState(dsts, root.renderSkinTime, root.timers, root.runtimeActiveOptions);
+        const timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        const state = Lr2Timeline.getCurrentStateFromTimerFire(
+            dsts,
+            root.renderSkinTime,
+            root.skinTimerFireTime(timer),
+            root.runtimeActiveOptions);
         return root.onMouseStateContainsPoint(src, state, mx, my);
     }
 
@@ -6064,10 +6143,11 @@ Item {
         if (!root.isNowJudgeSprite(src)) {
             return null;
         }
-        let base = Lr2Timeline.getCurrentState(
+        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let base = Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
             root.renderSkinTime,
-            root.elementUsesTimers(src, dsts) ? root.timers : root.zeroTimers,
+            root.skinTimerFireTime(timer),
             root.dstsUseActiveOptions(dsts) ? root.runtimeActiveOptions : root.emptyActiveOptions);
         let combo = root.nowJudgeComboValue(src);
         if (!base || combo <= 0) {
@@ -6130,7 +6210,12 @@ Item {
         let clock = skinTime === undefined
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
-        let base = Lr2Timeline.getCurrentState(dsts, clock, root.timers, root.runtimeActiveOptions);
+        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let base = Lr2Timeline.getCurrentStateFromTimerFire(
+            dsts,
+            clock,
+            root.skinTimerFireTime(timer),
+            root.runtimeActiveOptions);
         if (!base) {
             return null;
         }
@@ -6281,34 +6366,12 @@ Item {
     }
 
     readonly property var cachedBarBaseStates: selectBarGeometry.cachedBarBaseStates
-    readonly property var cachedBarDrawXs: selectBarGeometry.cachedBarDrawXs
-    readonly property var cachedBarDrawYs: selectBarGeometry.cachedBarDrawYs
-    readonly property var cachedBarRowCells: selectBarGeometry.cachedBarRowCells
+    readonly property var cachedBarPositionCache: selectBarGeometry.barPositionCache
     readonly property bool fastBarScrollActive: selectBarGeometry.fastBarScrollActive
     readonly property real fastBarScrollX: selectBarGeometry.fastBarScrollX
     readonly property real fastBarScrollY: selectBarGeometry.fastBarScrollY
     readonly property real selectedFastBarDrawX: selectBarGeometry.selectedFastBarDrawX
     readonly property real selectedFastBarDrawY: selectBarGeometry.selectedFastBarDrawY
-
-    function computeBarBaseState(row, selectedRow) {
-        return selectBarGeometry.computeBarBaseState(row, selectedRow);
-    }
-
-    function interpolateBarState(fromState, toState, progress) {
-        return selectBarGeometry.interpolateBarState(fromState, toState, progress);
-    }
-
-    function barBaseState(row) {
-        return selectBarGeometry.barBaseState(row);
-    }
-
-    function barDrawState(row) {
-        return selectBarGeometry.barDrawState(row);
-    }
-
-    function barSpriteScrollOffset(src) {
-        return selectBarGeometry.barSpriteScrollOffset(src);
-    }
 
     function selectedBarRow() {
         return selectBarGeometry.selectedBarRow();
@@ -6333,29 +6396,33 @@ Item {
     function handleBarRowClick(row, mouse) {
         return selectBarGeometry.handleBarRowClick(row, mouse);
     }
-    property double sceneStartMs: Date.now()
-    property double skinClockNowMs: Date.now()
-    readonly property int globalSkinTime: Math.max(0, Math.floor(root.skinClockNowMs - root.sceneStartMs))
-    readonly property int selectLiveSkinTime: root.effectiveScreenKey === "select"
-        ? Math.max(root.renderSkinTime, root.selectSourceSkinTime)
-        : root.renderSkinTime
+    readonly property int skinClockResolutionMs: 10
     property int selectInfoStartSkinTime: 0
     property int selectScrollStartSkinTime: 0
     property int selectNoScrollStartSkinTime: 0
     property int selectDatabaseLoadedSkinTime: 0
-    readonly property int selectSourceSkinTime: root.globalSkinTime
     property int selectAnimationLimit: 3200
     property int barAnimationLimit: 2200
     readonly property int selectInfoAnimationLimit: 1000
-    readonly property int selectInfoElapsed: Math.max(
-        0,
-        Math.min(root.selectInfoAnimationLimit, root.selectLiveSkinTime - root.selectInfoStartSkinTime))
-    readonly property int renderSkinTime: root.effectiveScreenKey === "select"
-        ? Math.min(root.globalSkinTime, root.selectAnimationLimit)
-        : root.globalSkinTime
-    readonly property int barSkinTime: root.effectiveScreenKey === "select"
-        ? Math.min(root.globalSkinTime, root.barAnimationLimit)
-        : root.renderSkinTime
+
+    Lr2SkinClock {
+        id: skinClock
+        resolutionMs: root.skinClockResolutionMs
+        screenKey: root.effectiveScreenKey
+        selectAnimationLimit: root.selectAnimationLimit
+        barAnimationLimit: root.barAnimationLimit
+        selectInfoAnimationLimit: root.selectInfoAnimationLimit
+        selectInfoStartSkinTime: root.selectInfoStartSkinTime
+    }
+
+    property alias sceneStartMs: skinClock.sceneStartMs
+    property alias skinClockNowMs: skinClock.nowMs
+    property alias globalSkinTime: skinClock.globalSkinTime
+    property alias selectLiveSkinTime: skinClock.selectLiveSkinTime
+    property alias selectSourceSkinTime: skinClock.selectSourceSkinTime
+    property alias selectInfoElapsed: skinClock.selectInfoElapsed
+    property alias renderSkinTime: skinClock.renderSkinTime
+    property alias barSkinTime: skinClock.barSkinTime
     readonly property bool shouldAutoAdvance: root.effectiveScreenKey === "decide"
         && !!root.chart
         && skinModel.sceneTime > 0
@@ -6368,6 +6435,35 @@ Item {
         }
     }
 
+    function selectUsesReplayOptions() {
+        return root.skinUsesAnyOption([
+            196, 197, 1196, 1197, 1199, 1200,
+            1202, 1203, 1205, 1206, 1207, 1208
+        ]);
+    }
+
+    function selectUsesScoreOptionIds() {
+        return root.skinUsesOptionRange(105, 130)
+            || root.skinUsesAnyOption([144, 145, 1100, 1102, 1103, 1104, 1128]);
+    }
+
+    function selectUsesEntryStatusOptions() {
+        return root.skinUsesOptionRange(100, 130)
+            || root.skinUsesOptionRange(200, 207)
+            || root.skinUsesAnyOption([1100, 1102, 1103, 1104]);
+    }
+
+    function selectUsesDifficultyBarOptions() {
+        return root.skinUsesOptionRange(70, 79)
+            || root.skinUsesOptionRange(500, 565);
+    }
+
+    function selectUsesCourseDetailOptions() {
+        return root.skinUsesAnyOption([290, 293])
+            || root.skinUsesOptionRange(580, 589)
+            || root.skinUsesOptionRange(700, 755);
+    }
+
     function updateSelectAnimationLimits() {
         let startInput = skinModel.startInput || 0;
         root.selectAnimationLimit = Math.max(3200, startInput);
@@ -6376,8 +6472,8 @@ Item {
 
     function restartSkinClock() {
         root.updateSelectAnimationLimits();
-        root.sceneStartMs = Date.now();
-        root.skinClockNowMs = root.sceneStartMs;
+        let now = Date.now();
+        skinClock.restart(now);
         root.selectScrollStartSkinTime = 0;
         root.selectNoScrollStartSkinTime = 0;
         root.selectDatabaseLoadedSkinTime = 0;
@@ -6397,18 +6493,15 @@ Item {
         root.selectInfoStartSkinTime = root.selectLiveSkinTime;
     }
 
-    Timer {
+    function quantizedSkinClock(now) {
+        return skinClock.quantize(now);
+    }
+
+    FrameAnimation {
         id: skinStopwatch
-        interval: 16
         running: root.enabled
-        repeat: true
         onTriggered: {
-            let now = Date.now();
-            root.skinClockNowMs = now;
-            if (root.effectiveScreenKey === "select"
-                    && (selectContext.visualMoveActive || selectContext.pendingWheelSteps !== 0)) {
-                selectContext.updateVisualIndex(now);
-            }
+            skinClock.advance(Date.now());
             if (root.isGameplayScreen()
                     && root.chart
                     && (root.gameplayReadySkinTime < 0 || root.gameplayStartSkinTime < 0)) {
@@ -6434,11 +6527,26 @@ Item {
         onTriggered: root.handleCommittedSelectState()
     }
 
-    Timer {
+    FrameAnimation {
         id: selectHoverRefreshTimer
-        interval: 16
-        repeat: false
-        onTriggered: root.runSelectHoverRefresh()
+        running: false
+        property bool queued: false
+        function restart() {
+            if (queued) {
+                return;
+            }
+            queued = true;
+            running = true;
+        }
+        function stop() {
+            queued = false;
+            running = false;
+        }
+        onTriggered: {
+            queued = false;
+            running = false;
+            root.runSelectHoverRefresh();
+        }
     }
 
     Timer {
@@ -6454,15 +6562,13 @@ Item {
         }
     }
 
-    Timer {
+    FrameAnimation {
         id: readmeEdgeScrollTimer
-        interval: 16
         running: root.effectiveScreenKey === "select"
             && root.lr2ReadmeMode === 1
             && root.lr2ReadmeMouseHeld
-        repeat: true
         onTriggered: {
-            const amount = interval * 600.0 / 1000.0;
+            const amount = frameTime * 600.0;
             let dx = 0;
             let dy = 0;
             if (root.lr2ReadmeMouseX < 200) {
@@ -6523,6 +6629,99 @@ Item {
             root.queueGameplayRevision();
             root.scheduleGameplayRuntimeActiveOptionsRefresh();
         }
+    }
+
+    function gameplayTimerFireTime(timer) {
+        root.gameplayTimerRevision;
+        let value = root.gameplayTimerValues ? root.gameplayTimerValues[timer] : undefined;
+        return value === undefined || value === null ? -1 : value;
+    }
+
+    function resultTimerFireTime(timer) {
+        if (timer === 0) {
+            return 0;
+        }
+        if (timer === 1) {
+            return root.acceptsInput ? Math.min(root.renderSkinTime, skinModel.startInput || 0) : -1;
+        }
+        if (timer === 150) {
+            return root.renderSkinTime >= root.resultGraphStartSkinTime
+                ? root.resultGraphStartSkinTime
+                : -1;
+        }
+        if (timer === 151) {
+            if (root.resultTimer151SkinTime >= 0) {
+                return root.resultTimer151SkinTime;
+            }
+            return root.renderSkinTime >= root.resultGraphEndSkinTime
+                ? root.resultGraphEndSkinTime
+                : -1;
+        }
+        if (timer === 152) {
+            return root.resultTimer152SkinTime >= 0 ? root.resultTimer152SkinTime : -1;
+        }
+        return -1;
+    }
+
+    function selectTimerFireTime(timer) {
+        if (timer === 0) {
+            return 0;
+        }
+        if (timer === 1) {
+            return root.acceptsInput ? Math.min(root.renderSkinTime, skinModel.startInput || 0) : -1;
+        }
+        if (timer === 171) {
+            return root.selectDatabaseLoadedSkinTime;
+        }
+        if (timer === 11) {
+            return root.renderSkinTime - root.selectInfoElapsed;
+        }
+        if (selectContext.visualMoveActive || selectContext.scrollFixedPointDragging) {
+            if (timer === 10) {
+                return root.selectScrollStartSkinTime;
+            }
+            if (timer === 12 && selectContext.scrollDirection === selectContext.lr2ScrollUp) {
+                return root.selectScrollStartSkinTime;
+            }
+            if (timer === 13 && selectContext.scrollDirection === selectContext.lr2ScrollDown) {
+                return root.selectScrollStartSkinTime;
+            }
+        } else if (timer === 14 && root.acceptsInput) {
+            return root.selectNoScrollStartSkinTime;
+        }
+        if (root.selectPanel > 0 && timer === 20 + root.selectPanel) {
+            return root.renderSkinTime - root.selectPanelElapsed;
+        }
+        if (root.selectPanelClosing > 0 && timer === 30 + root.selectPanelClosing) {
+            return root.renderSkinTime - root.selectPanelCloseElapsed;
+        }
+        if (timer === 15 && root.lr2ReadmeMode === 1) {
+            return root.renderSkinTime - root.lr2ReadmeElapsed;
+        }
+        if (timer === 16 && root.lr2ReadmeMode === 2) {
+            return root.renderSkinTime - root.lr2ReadmeElapsed;
+        }
+        if (root.lr2RankingTransitionPhase !== 0 && timer === root.lr2RankingTransitionPhase) {
+            return root.renderSkinTime - root.lr2RankingTransitionElapsed;
+        }
+        return root.selectHeldButtonTimerFireTime(timer);
+    }
+
+    function skinTimerFireTime(timer) {
+        let idx = Number(timer || 0);
+        if (idx === 0) {
+            return 0;
+        }
+        if (root.isGameplayScreen()) {
+            return root.gameplayTimerFireTime(idx);
+        }
+        if (root.isResultScreen()) {
+            return root.resultTimerFireTime(idx);
+        }
+        if (root.effectiveScreenKey === "select") {
+            return root.selectTimerFireTime(idx);
+        }
+        return -1;
     }
 
     // Timer fire times (ms since scene start). LR2 select panels use timers

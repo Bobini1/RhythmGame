@@ -9,6 +9,7 @@ Image {
     property var stateData
     property int skinTime: 0
     property var timers: ({ 0: 0 })
+    property int sourceTimerFire: -2147483648
     property real scaleOverride: 1.0
     property bool tileVertically: false
     property int frameOverride: -1
@@ -41,7 +42,9 @@ Image {
             return Math.max(0, Math.min(divX * divY - 1, root.frameOverride));
         }
         let timerIdx = srcData.timer || 0;
-        let fire = timers && timers[timerIdx] !== undefined ? timers[timerIdx] : -1;
+        let fire = root.sourceTimerFire > -2147483648
+            ? root.sourceTimerFire
+            : (timers && timers[timerIdx] !== undefined ? timers[timerIdx] : -1);
         return Lr2Timeline.getAnimationFrame(srcData, skinTime, fire);
     }
     readonly property real stateX: stateData ? stateData.x || 0 : 0

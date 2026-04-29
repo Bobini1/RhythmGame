@@ -16,6 +16,8 @@ Item {
     property int sourceSkinTime: skinTime
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
+    property int sourceTimerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
     property real offsetX: 0
@@ -29,6 +31,9 @@ Item {
     property real scratchAngle1: 0
     property real scratchAngle2: 0
 
+    readonly property bool hasFrameAnimation: srcData
+        && (srcData.cycle || 0) > 0
+        && Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1) > 1
     readonly property bool hasStaticTimelineState: !stateOverride
         && !forceHidden
         && Lr2Timeline.canUseStaticState(dsts)
@@ -39,7 +44,9 @@ Item {
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: forceHidden
         ? null
-        : (stateOverride || staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
+        : (stateOverride || staticTimelineState
+           || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+               dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions))
     readonly property real stateX: root.currentState ? (root.currentState.x || 0) : 0
     readonly property real stateY: root.currentState ? (root.currentState.y || 0) : 0
     readonly property real stateW: root.currentState ? (root.currentState.w || 0) : 0
@@ -160,14 +167,16 @@ Item {
     }
 
     readonly property int frameIndex: {
-        if (!srcData) return 0;
+        if (!root.hasFrameAnimation) return 0;
         if (root.frameOverride >= 0) {
             let divX = Math.max(1, srcData.div_x || 1);
             let divY = Math.max(1, srcData.div_y || 1);
             return Math.max(0, Math.min(divX * divY - 1, root.frameOverride));
         }
         let timerIdx = srcData.timer || 0;
-        let fire = (timers && timers[timerIdx] !== undefined) ? timers[timerIdx] : -1;
+        let fire = root.sourceTimerFire > -2147483648
+            ? root.sourceTimerFire
+            : ((timers && timers[timerIdx] !== undefined) ? timers[timerIdx] : -1);
         return Lr2Timeline.getAnimationFrame(srcData, sourceSkinTime, fire);
     }
 

@@ -506,6 +506,66 @@ QtObject {
         result[timer] = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
     }
 
+    function selectHeldButtonTimerFireTime(timer) {
+        if (root.effectiveScreenKey !== "select"
+                || root.selectPanel !== 1
+                || !root.isSelectHeldButtonTimer(timer)) {
+            return -1;
+        }
+
+        let held = false;
+        switch (timer) {
+        case 101:
+            held = Input.col11;
+            break;
+        case 102:
+            held = Input.col12;
+            break;
+        case 103:
+            held = Input.col13;
+            break;
+        case 104:
+            held = Input.col14;
+            break;
+        case 105:
+            held = Input.col15;
+            break;
+        case 106:
+            held = Input.col16;
+            break;
+        case 107:
+            held = Input.col17;
+            break;
+        case 111:
+            held = Input.col21;
+            break;
+        case 112:
+            held = Input.col22;
+            break;
+        case 113:
+            held = Input.col23;
+            break;
+        case 114:
+            held = Input.col24;
+            break;
+        case 115:
+            held = Input.col25;
+            break;
+        case 116:
+            held = Input.col26;
+            break;
+        case 117:
+            held = Input.col27;
+            break;
+        }
+        if (!held) {
+            return -1;
+        }
+
+        let start = root.selectHeldButtonTimerStarts[timer];
+        return start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
+    }
+
     function addHeldButtonTimers(result) {
         if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
             return;

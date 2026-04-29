@@ -79,10 +79,11 @@ Item {
         if (element.staticState) {
             return element.staticState;
         }
-        return Lr2Timeline.getCurrentState(
+        let dstTimer = element.dsts && element.dsts.length > 0 ? (element.dsts[0].timer || 0) : 0;
+        return Lr2Timeline.getCurrentStateFromTimerFire(
             element.dsts,
             root.renderSkinTime,
-            root.elementUsesTimers(element.src, element.dsts) ? root.timers : root.zeroTimers,
+            root.skinTimerFireTime(dstTimer),
             root.dstsUseActiveOptions(element.dsts) ? root.runtimeActiveOptions : root.emptyActiveOptions);
     }
 
@@ -361,10 +362,8 @@ Item {
                 }
             }
 
-            Timer {
+            FrameAnimation {
                 id: selectHoverPointSampler
-                interval: 16
-                repeat: true
                 running: selectHoverHandler.enabled && selectHoverHandler.hovered
                 onTriggered: {
                     if (root.updateSelectHoverPoint(selectHoverHandler.point.position.x,
@@ -385,11 +384,11 @@ Item {
                     height: skinH * skinScale
                     z: root.elementZ(model.type, index, model.src, model.dsts)
                     readonly property bool usesActiveOptions: root.dstsUseActiveOptions(model.dsts)
-                    readonly property bool usesTimers: root.elementUsesTimers(model.src, model.dsts)
                     readonly property bool usesSkinTime: root.elementUsesSkinTime(model.src, model.dsts)
                     readonly property int dstTimer: model.dsts && model.dsts.length > 0
                         ? (model.dsts[0].timer || 0)
                         : 0
+                    readonly property int srcTimer: model.src ? (model.src.timer || 0) : 0
                     readonly property bool usesSelectHeldButtonTimer: root.isSelectHeldButtonTimer(dstTimer)
                     readonly property bool usesLiveDstClock: root.elementUsesLiveDstClock(model.dsts)
                     readonly property bool usesLiveSourceClock: root.elementUsesLiveSourceClock(model.src)
@@ -400,9 +399,12 @@ Item {
                     readonly property var elementActiveOptions: usesActiveOptions
                         ? root.runtimeActiveOptions
                         : root.emptyActiveOptions
-                    readonly property var elementTimers: usesTimers
-                        ? root.timers
-                        : root.zeroTimers
+                    readonly property int dstTimerFire: dstTimer !== 0
+                        ? root.skinTimerFireTime(dstTimer)
+                        : 0
+                    readonly property int srcTimerFire: srcTimer !== 0
+                        ? root.skinTimerFireTime(srcTimer)
+                        : 0
                     readonly property bool usesElementSkinTime: usesSkinTime
                         && model.type !== 0
                         && model.type !== 3
@@ -488,7 +490,8 @@ Item {
                                 skinTime: parent.spriteSkinClock
                                 sourceSkinTime: parent.spriteSourceSkinClock
                                 activeOptions: elemLoader.elementActiveOptions
-                                timers: elemLoader.elementTimers
+                                timerFire: elemLoader.dstTimerFire
+                                sourceTimerFire: elemLoader.srcTimerFire
                                 chart: root.renderChart
                                 scaleOverride: skinScale
                                 mediaActive: root.enabled
@@ -513,7 +516,7 @@ Item {
                             dsts: model.dsts
                             skinTime: elemLoader.elementSkinTime
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
                             chart: root.chart
                             scaleOverride: skinScale
                             mediaActive: root.enabled && root.isGameplayScreen() && root.lr2BgaEnabled()
@@ -547,7 +550,7 @@ Item {
                             srcData: model.src
                             skinTime: root.renderSkinTime
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
                             screenRoot: root
                             scaleOverride: skinScale
                             mediaActive: root.enabled && root.isGameplayScreen()
@@ -563,7 +566,8 @@ Item {
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
+                            sourceTimerFire: elemLoader.srcTimerFire
                             scaleOverride: skinScale
                             screenRoot: root
                         }
@@ -577,7 +581,7 @@ Item {
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
                             scaleOverride: skinScale
                             chart: root.visualSelectChart
                         }
@@ -591,7 +595,7 @@ Item {
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
                             scaleOverride: skinScale
                             chart: root.visualSelectChart
                         }
@@ -604,7 +608,8 @@ Item {
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
+                            sourceTimerFire: elemLoader.srcTimerFire
                             scaleOverride: skinScale
                             value: root.numberValue(model.src)
                             forceHidden: root.numberForceHidden(model.src)
@@ -815,7 +820,7 @@ Item {
                                 srcData: model.src
                                 skinTime: elemLoader.elementSkinTime
                                 activeOptions: elemLoader.elementActiveOptions
-                                timers: elemLoader.elementTimers
+                                timerFire: elemLoader.dstTimerFire
                                 chart: root.renderChart
                                 scaleOverride: skinScale
                                 resolvedText: parent.resolvedText
@@ -985,7 +990,7 @@ Item {
                                     srcData: readmeTextDelegateRoot.readmeSrc
                                     skinTime: root.renderSkinTime
                                     activeOptions: elemLoader.elementActiveOptions
-                                    timers: elemLoader.elementTimers
+                                    timerFire: elemLoader.dstTimerFire
                                     chart: root.renderChart
                                     scaleOverride: skinScale
                                     offsetX: root.lr2ReadmeOffsetX
@@ -1007,8 +1012,8 @@ Item {
                             srcData: model.src
                             skinTime: root.barSkinTime
                             sourceSkinTime: root.effectiveScreenKey === "select"
-                                ? (sourceAnimates ? root.selectSourceSkinTime : root.renderSkinTime)
-                                : root.renderSkinTime
+                                ? (sourceAnimates ? root.selectSourceSkinTime : 0)
+                                : (sourceAnimates ? root.renderSkinTime : 0)
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
                             chart: root.renderChart
@@ -1017,10 +1022,9 @@ Item {
                             barRows: skinModel.barRows
                             barLampVariants: skinModel.barLampVariants
                             barBaseStates: root.cachedBarBaseStates
-                            barDrawXs: root.cachedBarDrawXs
-                            barDrawYs: root.cachedBarDrawYs
-                            barCells: root.cachedBarRowCells
-                            barScrollOffset: root.barSpriteScrollOffset(model.src)
+                            barPositionCache: root.cachedBarPositionCache
+                            barCells: selectContext.visibleBarTextCells
+                            barTextCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
                             fastBarScrollX: root.fastBarScrollX
                             fastBarScrollY: root.fastBarScrollY
@@ -1044,8 +1048,7 @@ Item {
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
                             barBaseStates: root.cachedBarBaseStates
-                            barDrawXs: root.cachedBarDrawXs
-                            barDrawYs: root.cachedBarDrawYs
+                            barPositionCache: root.cachedBarPositionCache
                             barCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
                             fastBarScrollX: root.fastBarScrollX
@@ -1068,9 +1071,8 @@ Item {
                             selectContext: root.selectContextRef
                             barRows: skinModel.barRows
                             barBaseStates: root.cachedBarBaseStates
-                            barDrawXs: root.cachedBarDrawXs
-                            barDrawYs: root.cachedBarDrawYs
-                            barCells: root.cachedBarRowCells
+                            barPositionCache: root.cachedBarPositionCache
+                            barCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
                             fastBarScrollX: root.fastBarScrollX
                             fastBarScrollY: root.fastBarScrollY
@@ -1091,9 +1093,10 @@ Item {
                             skinTime: elemLoader.elementSkinTime
                             sourceSkinTime: root.effectiveScreenKey === "select" && sourceAnimates
                                 ? root.selectSourceSkinTime
-                                : root.renderSkinTime
+                                : (sourceAnimates ? root.renderSkinTime : 0)
                             activeOptions: elemLoader.elementActiveOptions
-                            timers: elemLoader.elementTimers
+                            timerFire: elemLoader.dstTimerFire
+                            sourceTimerFire: elemLoader.srcTimerFire
                             chart: root.renderChart
                             scaleOverride: skinScale
                             colorKeyEnabled: skinModel.hasTransColor
@@ -1131,11 +1134,16 @@ Item {
                 readonly property var cursorDsts: skinModel.mouseCursor && skinModel.mouseCursor.dsts
                     ? skinModel.mouseCursor.dsts
                     : []
+                readonly property int cursorDstTimer: cursorDsts && cursorDsts.length > 0
+                    ? (cursorDsts[0].timer || 0)
+                    : 0
+                readonly property int cursorSrcTimer: cursorSrcData ? (cursorSrcData.timer || 0) : 0
                 readonly property var cursorState: cursorSrcData
-                    ? Lr2Timeline.getCurrentState(cursorDsts,
-                                                  root.renderSkinTime,
-                                                  root.timers,
-                                                  root.runtimeActiveOptions)
+                    ? Lr2Timeline.getCurrentStateFromTimerFire(
+                        cursorDsts,
+                        root.renderSkinTime,
+                        root.skinTimerFireTime(cursorDstTimer),
+                        root.runtimeActiveOptions)
                     : null
                 readonly property bool wholeTextureSource: cursorSrcData
                     && (cursorSrcData.x < 0 || cursorSrcData.y < 0
@@ -1159,13 +1167,9 @@ Item {
                     if (!cursorSrcData) {
                         return 0;
                     }
-                    let timerIdx = cursorSrcData.timer || 0;
-                    let fire = root.timers && root.timers[timerIdx] !== undefined
-                        ? root.timers[timerIdx]
-                        : -1;
                     return Lr2Timeline.getAnimationFrame(cursorSrcData,
                                                          root.renderSkinTime,
-                                                         fire);
+                                                         root.skinTimerFireTime(cursorSrcTimer));
                 }
                 readonly property rect clipRect: {
                     if (!cursorSrcData || wholeTextureSource || !croppedTextureSource) {

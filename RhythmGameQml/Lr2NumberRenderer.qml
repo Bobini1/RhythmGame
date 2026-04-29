@@ -9,6 +9,8 @@ Item {
     property int skinTime: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
+    property int sourceTimerFire: -2147483648
     property real scaleOverride: 1.0
     property real offsetX: 0
     property real offsetY: 0
@@ -27,7 +29,9 @@ Item {
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: root.forceHidden
         ? null
-        : (stateOverride || staticTimelineState || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions))
+        : (stateOverride || staticTimelineState
+           || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+               dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions))
     readonly property int blendMode: {
         let raw = currentState ? currentState.blend : 1;
         if (raw === 0 && !root.colorKeyEnabled) return 1;
@@ -104,9 +108,11 @@ Item {
         let divY = Math.max(1, root.srcData.div_y || 1);
         let frames = divX * divY;
         let timerIdx = root.srcData.timer || 0;
-        let fire = (root.timers && root.timers[timerIdx] !== undefined)
-            ? root.timers[timerIdx]
-            : -1;
+        let fire = root.sourceTimerFire > -2147483648
+            ? root.sourceTimerFire
+            : ((root.timers && root.timers[timerIdx] !== undefined)
+                ? root.timers[timerIdx]
+                : -1);
         if (fire < 0) {
             return 0;
         }

@@ -9,6 +9,7 @@ Item {
     property int skinTime: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
 
@@ -19,7 +20,8 @@ Item {
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
+        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
     readonly property int fieldW: Math.max(1, srcData ? (srcData.fieldW || 1) : 1)
     readonly property int fieldH: Math.max(1, srcData ? (srcData.fieldH || 1) : 1)
     readonly property real stateW: currentState ? (currentState.w || 0) : 0

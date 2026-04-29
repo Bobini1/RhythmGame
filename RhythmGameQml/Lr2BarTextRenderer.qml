@@ -1,4 +1,5 @@
 import QtQuick
+import RhythmGameQml 1.0
 
 import "Lr2Timeline.js" as Lr2Timeline
 
@@ -10,14 +11,13 @@ Item {
     property int skinTime: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
     property var barBaseStates: []
-    property var barDrawXs: []
-    property var barDrawYs: []
+    property var barPositionCache
     property var barCells: []
-    property real barScrollOffset: 0
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
     property real fastBarScrollY: 0
@@ -27,6 +27,8 @@ Item {
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
+    readonly property int barCellCount: barCells ? barCells.length : 0
+    readonly property int barCellSlotOffset: selectContext ? selectContext.visibleBarSlotOffset : 0
     readonly property var timelineDsts: {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return dsts;
@@ -56,7 +58,8 @@ Item {
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(timelineDsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(timelineDsts) ? activeOptions : []
     readonly property var textTimelineState: staticTimelineState
-        || Lr2Timeline.getCurrentState(timelineDsts, skinTime, timelineTimers, timelineActiveOptions)
+        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+            timelineDsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
 
     function visibleFor(cellEntry, cellTitleType) {
         return !!cellEntry && !!srcData && !!selectContext
@@ -73,34 +76,67 @@ Item {
         return baseState(row);
     }
 
+    function displayRowForSlot(slot) {
+        let count = root.barCellCount;
+        return count > 0 ? ((slot - root.barCellSlotOffset) % count + count) % count : -1;
+    }
+
+    function refreshTextCell(slot) {
+        let item = textRepeater.itemAt(slot);
+        if (item) {
+            item.refreshCell();
+        }
+    }
+
+    function refreshTextCells() {
+        for (let slot = 0; slot < textRepeater.count; ++slot) {
+            refreshTextCell(slot);
+        }
+    }
+
+    function refreshTextCellRange(firstSlot, changedCount) {
+        let count = textRepeater.count;
+        if (count <= 0 || changedCount <= 0) {
+            return;
+        }
+        if (count !== root.barCellCount || changedCount >= count) {
+            root.refreshTextCells();
+            return;
+        }
+        for (let i = 0; i < changedCount; ++i) {
+            root.refreshTextCell((firstSlot + i) % count);
+        }
+    }
+
     Repeater {
+        id: textRepeater
+
         model: root.textSlotCount
 
-        Item {
+        Lr2BarPositionedItem {
             id: barTextDelegate
 
             readonly property int slot: modelData
             property var cellEntry: null
             property int cellTitleType: -1
-            property int displayRow: -1
+            readonly property int displayRow: root.displayRowForSlot(slot)
             property string cellText: ""
             readonly property bool selectedRowContent: displayRow === root.selectedRow
-            readonly property real drawX: root.fastBarScrollActive && selectedRowContent
-                ? root.selectedFastBarDrawX
-                : (root.barDrawXs && displayRow >= 0 && displayRow < root.barDrawXs.length
-                   ? root.barDrawXs[displayRow]
-                   : (visibleBase ? visibleBase.x : 0))
-            readonly property real drawY: root.fastBarScrollActive && selectedRowContent
-                ? root.selectedFastBarDrawY
-                : (root.barDrawYs && displayRow >= 0 && displayRow < root.barDrawYs.length
-                   ? root.barDrawYs[displayRow]
-                   : (visibleBase ? visibleBase.y : 0))
             readonly property var visibleBase: root.visibilityState(displayRow)
             readonly property bool contentVisible: displayRow > 0
                 && !!visibleBase
                 && root.visibleFor(cellEntry, cellTitleType)
-            x: (drawX - (root.fastBarScrollActive && selectedRowContent ? root.fastBarScrollX : 0)) * root.scaleOverride
-            y: (drawY - (root.fastBarScrollActive && selectedRowContent ? root.fastBarScrollY : 0)) * root.scaleOverride
+            positionCache: root.barPositionCache
+            row: displayRow
+            scaleOverride: root.scaleOverride
+            usePositionCache: true
+            hasOverride: root.fastBarScrollActive && selectedRowContent
+            overrideX: root.selectedFastBarDrawX
+            overrideY: root.selectedFastBarDrawY
+            adjustX: hasOverride ? root.fastBarScrollX : 0
+            adjustY: hasOverride ? root.fastBarScrollY : 0
+            fallbackX: visibleBase ? visibleBase.x : 0
+            fallbackY: visibleBase ? visibleBase.y : 0
             width: root.width
             height: root.height
             visible: contentVisible
@@ -111,23 +147,11 @@ Item {
                     : null;
             }
 
-            function refreshRowOnly() {
-                let cell = cellAtSlot();
-                let nextRow = cell ? cell.row : -1;
-                if (displayRow !== nextRow) {
-                    displayRow = nextRow;
-                }
-            }
-
             function refreshCell() {
                 let cell = cellAtSlot();
-                let nextRow = cell ? cell.row : -1;
                 let nextEntry = cell ? cell.entry : null;
                 let nextTitleType = cell ? cell.titleType : -1;
                 let nextText = cell ? (cell.text || "") : "";
-                if (displayRow !== nextRow) {
-                    displayRow = nextRow;
-                }
                 if (cellEntry !== nextEntry) {
                     cellEntry = nextEntry;
                 }
@@ -139,24 +163,11 @@ Item {
                 }
             }
 
-            Component.onCompleted: refreshCell()
-            onSlotChanged: refreshCell()
-
-            Connections {
-                target: root.selectContext
-                function onBarTextCellsInvalidated() {
-                    barTextDelegate.refreshCell();
-                }
-
-                function onBarTextCellsRowsShifted() {
-                    barTextDelegate.refreshRowOnly();
-                }
-
-                function onBarTextCellChanged(slot) {
-                    if (slot === barTextDelegate.slot) {
-                        barTextDelegate.refreshCell();
-                    }
-                }
+            Component.onCompleted: {
+                refreshCell();
+            }
+            onSlotChanged: {
+                refreshCell();
             }
 
             Connections {
@@ -170,13 +181,26 @@ Item {
                 anchors.fill: parent
                 dsts: root.timelineDsts
                 srcData: root.srcData
-                skinTime: root.skinTime
+                skinTime: 0
                 activeOptions: root.activeOptions
                 timers: root.timers
+                timerFire: -2147483648
                 scaleOverride: root.scaleOverride
                 stateOverride: root.textTimelineState
                 resolvedText: barTextDelegate.cellText
             }
+        }
+    }
+
+    onBarCellsChanged: refreshTextCells()
+
+    Connections {
+        target: root.selectContext
+        function onBarTextCellsInvalidated() {
+            root.refreshTextCells();
+        }
+        function onBarTextCellRangeChanged(firstSlot, count) {
+            root.refreshTextCellRange(firstSlot, count);
         }
     }
 }

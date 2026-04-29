@@ -10,6 +10,8 @@ Item {
     property int sourceSkinTime: skinTime
     property var activeOptions: []
     property var timers: ({ 0: 0 })
+    property int timerFire: -2147483648
+    property int sourceTimerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
     property real value: 0
@@ -25,7 +27,8 @@ Item {
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentState(dsts, skinTime, timelineTimers, timelineActiveOptions)
+        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
+            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
     readonly property real clampedValue: Math.max(0, Math.min(1, value))
     property real displayedValue: clampedValue
     readonly property int blendMode: {
@@ -43,10 +46,15 @@ Item {
     readonly property real tintG: root.currentState ? root.colorComponent(root.currentState.g) : 1.0
     readonly property real tintB: root.currentState ? root.colorComponent(root.currentState.b) : 1.0
     readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
+    readonly property bool hasFrameAnimation: srcData
+        && (srcData.cycle || 0) > 0
+        && Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1) > 1
     readonly property int frameIndex: {
-        if (!srcData) return 0;
+        if (!root.hasFrameAnimation) return 0;
         let timerIdx = srcData.timer || 0;
-        let fire = (timers && timers[timerIdx] !== undefined) ? timers[timerIdx] : -1;
+        let fire = root.sourceTimerFire > -2147483648
+            ? root.sourceTimerFire
+            : ((timers && timers[timerIdx] !== undefined) ? timers[timerIdx] : -1);
         return Lr2Timeline.getAnimationFrame(srcData, sourceSkinTime, fire);
     }
     readonly property string resolvedSource: {

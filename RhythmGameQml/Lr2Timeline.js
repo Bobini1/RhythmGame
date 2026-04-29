@@ -124,18 +124,13 @@ function getTimerFire(timers, timerIdx) {
     return t;
 }
 
-// Returns an object describing the sprite's current visual state, or null if invisible.
-// `globalTime` is the monotonic skin clock (ms).
-// `timers` is a map of { timerIdx: fireTimeMs }.
-// `activeOptions` is an array of active LR2 option IDs.
-function getCurrentState(dsts, globalTime, timers, activeOptions) {
+function getCurrentStateFromTimerFire(dsts, globalTime, timerFire, activeOptions) {
     if (!dsts || dsts.length === 0) return null;
     var first = dsts[0];
     if (!first) return null;
 
     if (!allOpsMatch(first, activeOptions)) return null;
 
-    var timerFire = getTimerFire(timers, first.timer || 0);
     if (timerFire < 0) return null;
 
     var time = globalTime - timerFire;
@@ -203,6 +198,26 @@ function getCurrentState(dsts, globalTime, timers, activeOptions) {
         op3: first.op3 || 0,
         op4: first.op4 || 0
     };
+}
+
+// Returns an object describing the sprite's current visual state, or null if invisible.
+// `globalTime` is the monotonic skin clock (ms).
+// `timers` is a map of { timerIdx: fireTimeMs }.
+// `activeOptions` is an array of active LR2 option IDs.
+function getCurrentState(dsts, globalTime, timers, activeOptions) {
+    if (!dsts || dsts.length === 0 || !dsts[0]) return null;
+    return getCurrentStateFromTimerFire(
+        dsts,
+        globalTime,
+        getTimerFire(timers, dsts[0].timer || 0),
+        activeOptions);
+}
+
+function getCurrentStateWithOptionalTimerFire(dsts, globalTime, timers, timerFire, activeOptions) {
+    if (timerFire !== undefined && timerFire !== null && timerFire > -2147483648) {
+        return getCurrentStateFromTimerFire(dsts, globalTime, timerFire, activeOptions);
+    }
+    return getCurrentState(dsts, globalTime, timers, activeOptions);
 }
 
 // Computes the current animation frame index for a sprite sheet (div_x * div_y cells cycling over `cycle` ms).
