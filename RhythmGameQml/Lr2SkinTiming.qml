@@ -19,6 +19,9 @@ QtObject {
     property int selectDatabaseLoadedSkinTime: 0
     property int selectAnimationLimit: 3200
     property int barAnimationLimit: 2200
+    property int currentFps: 0
+    property real lastFpsSampleMs: 0
+    property int fpsSampleIntervalMs: 250
     readonly property int selectInfoAnimationLimit: 1000
     readonly property var zeroTimers: ({ "0": 0 })
     readonly property bool shouldAutoAdvance: root.host
@@ -48,12 +51,20 @@ QtObject {
     property alias barSkinTime: skinClock.barSkinTime
 
     property FrameAnimation skinStopwatch: FrameAnimation {
+        id: skinStopwatch
         running: root.host && root.host.screenUpdatesActive
         onTriggered: {
             if (!root.host) {
                 return;
             }
-            root.clock.advance(Date.now());
+            const now = Date.now();
+            if (now - root.lastFpsSampleMs >= root.fpsSampleIntervalMs) {
+                root.lastFpsSampleMs = now;
+                root.currentFps = skinStopwatch.smoothFrameTime > 0
+                    ? Math.round(1.0 / skinStopwatch.smoothFrameTime)
+                    : 0;
+            }
+            root.clock.advanceFrame(now);
             if (root.host.isGameplayScreen()
                     && root.host.chart
                     && (root.host.gameplayReadySkinTime < 0 || root.host.gameplayStartSkinTime < 0)) {

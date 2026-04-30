@@ -122,13 +122,16 @@ Item {
     }
 
     function numberAnimationBaseFrame() {
-        let groupSize = root.numberFrameGroupSize();
+        let groupSize = root.frameGroupSize;
         if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0 || groupSize <= 0) {
             return 0;
         }
         let divX = Math.max(1, root.srcData.div_x || 1);
         let divY = Math.max(1, root.srcData.div_y || 1);
         let frames = divX * divY;
+        if (frames <= groupSize) {
+            return 0;
+        }
         let timerIdx = root.srcData.timer || 0;
         let fire = root.sourceTimerFire > -2147483648
             ? root.sourceTimerFire
@@ -147,6 +150,45 @@ Item {
     }
 
     readonly property int frameGroupSize: root.numberFrameGroupSize()
+    readonly property int animationBaseFrame: root.numberAnimationBaseFrame()
+    readonly property int sourceX: root.srcData ? Math.max(0, root.srcData.x || 0) : 0
+    readonly property int sourceY: root.srcData ? Math.max(0, root.srcData.y || 0) : 0
+    readonly property int sourceW: root.srcData ? root.srcData.w || 0 : 0
+    readonly property int sourceH: root.srcData ? root.srcData.h || 0 : 0
+    readonly property int sourceDivX: root.srcData ? Math.max(1, root.srcData.div_x || 1) : 1
+    readonly property int sourceDivY: root.srcData ? Math.max(1, root.srcData.div_y || 1) : 1
+    readonly property int sourceFrameCount: sourceDivX * sourceDivY
+    readonly property bool sourceAnimates: !!root.srcData
+        && (root.srcData.cycle || 0) > 0
+        && root.frameGroupSize > 0
+        && root.sourceFrameCount > root.frameGroupSize
+    readonly property int atlasW: Math.max(1, digitAtlas.implicitWidth)
+    readonly property int atlasH: Math.max(1, digitAtlas.implicitHeight)
+    readonly property bool hasAtlasSourceRects: !!root.srcData
+        && digitAtlas.implicitWidth > 0
+        && digitAtlas.implicitHeight > 0
+        && root.sourceW > 0
+        && root.sourceH > 0
+    readonly property vector4d fullSourceRect: Qt.vector4d(0, 0, 1, 1)
+    readonly property var atlasSourceRects: {
+        if (!root.hasAtlasSourceRects) {
+            return [];
+        }
+
+        const cellW = Math.max(1, Math.floor(root.sourceW / root.sourceDivX));
+        const cellH = Math.max(1, Math.floor(root.sourceH / root.sourceDivY));
+        const rects = [];
+        for (let frame = 0; frame < root.sourceFrameCount; ++frame) {
+            const col = frame % root.sourceDivX;
+            const row = Math.floor(frame / root.sourceDivX) % root.sourceDivY;
+            rects.push(Qt.vector4d(
+                (root.sourceX + col * cellW) / root.atlasW,
+                (root.sourceY + row * cellH) / root.atlasH,
+                cellW / root.atlasW,
+                cellH / root.atlasH));
+        }
+        return rects;
+    }
     readonly property bool hasSignedFrames: frameGroupSize === 24
     readonly property bool negativeUnsupported: root.value < 0 && frameGroupSize !== 24
     readonly property bool isNegativeValue: root.value < 0
@@ -302,40 +344,18 @@ Item {
                     property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
                     property real tolerance: 0.03125
                     property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 1.0 : 0.0
-                    property vector2d sourceSize: Qt.vector2d(
-                        Math.max(1, digitAtlas.implicitWidth),
-                        Math.max(1, digitAtlas.implicitHeight))
+                    property vector2d sourceSize: Qt.vector2d(root.atlasW, root.atlasH)
                     property vector4d sourceRect: {
-                        if (!root.srcData
-                            || digitRoot.frameIndex < 0
-                            || digitAtlas.implicitWidth <= 0
-                            || digitAtlas.implicitHeight <= 0) {
-                            return Qt.vector4d(0, 0, 1, 1);
+                        if (digitRoot.frameIndex < 0 || root.atlasSourceRects.length <= 0) {
+                            return root.fullSourceRect;
                         }
-                        let sx = Math.max(0, root.srcData.x || 0);
-                        let sy = Math.max(0, root.srcData.y || 0);
-                        let sw = root.srcData.w || 0;
-                        let sh = root.srcData.h || 0;
-                        if (sw <= 0 || sh <= 0) {
-                            return Qt.vector4d(0, 0, 1, 1);
+                        if (root.sourceAnimates) {
+                            root.animationRevision;
                         }
-                        let divX = Math.max(1, root.srcData.div_x || 1);
-                        let divY = Math.max(1, root.srcData.div_y || 1);
-                        let cellW = Math.max(1, Math.floor(sw / divX));
-                        let cellH = Math.max(1, Math.floor(sh / divY));
-                        root.animationRevision;
-                        let frame = (root.numberAnimationBaseFrame()
-                                     + digitRoot.frameIndex
-                                     + digitRoot.signedFrameOffset) % (divX * divY);
-                        let col = frame % divX;
-                        let row = Math.floor(frame / divX) % divY;
-                        let atlasW = Math.max(1, digitAtlas.implicitWidth);
-                        let atlasH = Math.max(1, digitAtlas.implicitHeight);
-                        return Qt.vector4d(
-                            (sx + col * cellW) / atlasW,
-                            (sy + row * cellH) / atlasH,
-                            cellW / atlasW,
-                            cellH / atlasH);
+                        const frame = (root.animationBaseFrame
+                            + digitRoot.frameIndex
+                            + digitRoot.signedFrameOffset) % root.sourceFrameCount;
+                        return root.atlasSourceRects[frame] || root.fullSourceRect;
                     }
                     fragmentShader: "qrc:/Lr2SpriteAtlas.frag.qsb"
                 }

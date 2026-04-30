@@ -91,7 +91,7 @@ Item {
     property bool gameplayStartArmed: false
     readonly property bool stackScreenActive: screenState.stackActive
     readonly property bool screenUpdatesActive: screenState.updatesActive
-    readonly property int lr2CurrentFps: Math.round(lr2FpsAnimation.fps)
+    readonly property int lr2CurrentFps: skinTiming.currentFps
     readonly property var lr2InitialClockNow: wallClockState.initialNow
     property alias lr2ClockNowMs: wallClockState.nowMs
     property alias lr2ClockYear: wallClockState.year
@@ -196,12 +196,6 @@ Item {
                 }
             }
         }
-    }
-
-    FrameAnimation {
-        id: lr2FpsAnimation
-        running: root.screenUpdatesActive
-        property real fps: smoothFrameTime > 0 ? (1.0 / smoothFrameTime) : 0
     }
 
     function openSelectIfNeeded() {

@@ -143,7 +143,11 @@ qreal Lr2SkinClock::quantize(qreal now) const {
 }
 
 void Lr2SkinClock::advance(qreal now) {
-    setNowMs(quantize(now));
+    advanceTo(quantize(now), true);
+}
+
+void Lr2SkinClock::advanceFrame(qreal now) {
+    advanceTo(quantize(now), false);
 }
 
 void Lr2SkinClock::restart(qreal now) {
@@ -163,6 +167,18 @@ void Lr2SkinClock::restart(qreal now) {
     if (nowChanged || sceneStartChanged) {
         recompute();
     }
+}
+
+void Lr2SkinClock::advanceTo(qreal now, bool notifyNow) {
+    if (sameReal(m_nowMs, now)) {
+        return;
+    }
+
+    m_nowMs = now;
+    if (notifyNow) {
+        emit nowMsChanged();
+    }
+    recompute();
 }
 
 void Lr2SkinClock::recompute() {

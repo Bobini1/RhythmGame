@@ -58,6 +58,7 @@ public:
 
     Q_INVOKABLE qreal quantize(qreal now) const;
     Q_INVOKABLE void advance(qreal now);
+    Q_INVOKABLE void advanceFrame(qreal now);
     Q_INVOKABLE void restart(qreal now);
 
 signals:
@@ -78,6 +79,7 @@ signals:
 
 private:
     void recompute();
+    void advanceTo(qreal now, bool notifyNow);
     static bool sameReal(qreal lhs, qreal rhs);
 
     qreal m_nowMs = 0.0;
