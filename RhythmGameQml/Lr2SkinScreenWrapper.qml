@@ -17,6 +17,7 @@ Item {
     property var course: null
     property var skinSettings
     property var selectContextRef: null
+    property bool componentReady: false
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
     readonly property var usedOptionLookup: {
@@ -88,26 +89,28 @@ Item {
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
+    readonly property bool stackScreenActive: screenState.stackActive
+    readonly property bool screenUpdatesActive: screenState.updatesActive
     readonly property int lr2CurrentFps: Math.round(lr2FpsAnimation.fps)
-    readonly property var lr2InitialClockNow: new Date()
-    property double lr2ClockNowMs: root.lr2InitialClockNow.getTime()
-    property int lr2ClockYear: root.lr2InitialClockNow.getFullYear()
-    property int lr2ClockMonth: root.lr2InitialClockNow.getMonth() + 1
-    property int lr2ClockDay: root.lr2InitialClockNow.getDate()
-    property int lr2ClockHour: root.lr2InitialClockNow.getHours()
-    property int lr2ClockMinute: root.lr2InitialClockNow.getMinutes()
-    property int lr2ClockSecond: root.lr2InitialClockNow.getSeconds()
-    property int lr2SceneUptimeSeconds: 0
-    property var resultOldScores1: []
-    property var resultOldScores2: []
-    property int resultOldScoresRevision: 0
-    property int resultOldScoresRequest: 0
-    property int resultTimer151SkinTime: -1
-    property int resultTimer152SkinTime: -1
-    property int resultGraphStartSkinTime: 500
-    property int resultGraphEndSkinTime: 2000
-    property var resultTimingStatsCache: ({})
-    property var resultJudgeTimingCountsCache: ({})
+    readonly property var lr2InitialClockNow: wallClockState.initialNow
+    property alias lr2ClockNowMs: wallClockState.nowMs
+    property alias lr2ClockYear: wallClockState.year
+    property alias lr2ClockMonth: wallClockState.month
+    property alias lr2ClockDay: wallClockState.day
+    property alias lr2ClockHour: wallClockState.hour
+    property alias lr2ClockMinute: wallClockState.minute
+    property alias lr2ClockSecond: wallClockState.second
+    property alias lr2SceneUptimeSeconds: wallClockState.uptimeSeconds
+    property alias resultOldScores1: resultState.resultOldScores1
+    property alias resultOldScores2: resultState.resultOldScores2
+    property alias resultOldScoresRevision: resultState.resultOldScoresRevision
+    property alias resultOldScoresRequest: resultState.resultOldScoresRequest
+    property alias resultTimer151SkinTime: resultState.resultTimer151SkinTime
+    property alias resultTimer152SkinTime: resultState.resultTimer152SkinTime
+    property alias resultGraphStartSkinTime: resultState.resultGraphStartSkinTime
+    property alias resultGraphEndSkinTime: resultState.resultGraphEndSkinTime
+    property alias resultTimingStatsCache: resultState.resultTimingStatsCache
+    property alias resultJudgeTimingCountsCache: resultState.resultJudgeTimingCountsCache
     readonly property var gameplayKeyTimers: [
         100, 101, 102, 103, 104, 105, 106, 107,
         110, 111, 112, 113, 114, 115, 116, 117
@@ -127,6 +130,21 @@ Item {
         } else {
             root.stopSelectAudio();
             root.stopGameplayLifecycle();
+        }
+    }
+
+    onScreenUpdatesActiveChanged: {
+        if (!root.componentReady) {
+            return;
+        }
+        if (screenUpdatesActive) {
+            root.updateLr2DateTimeNumbers();
+            Qt.callLater(root.openSelectIfNeeded);
+            Qt.callLater(root.activateGameplayIfNeeded);
+            Qt.callLater(root.refreshSelectRuntimeActiveOptions);
+            Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
+        } else {
+            root.pauseScreenActivity();
         }
     }
 
@@ -182,11 +200,14 @@ Item {
 
     FrameAnimation {
         id: lr2FpsAnimation
-        running: root.enabled
+        running: root.screenUpdatesActive
         property real fps: smoothFrameTime > 0 ? (1.0 / smoothFrameTime) : 0
     }
 
     function openSelectIfNeeded() {
+        if (root.effectiveScreenKey === "select" && !root.screenUpdatesActive) {
+            return;
+        }
         if (root.effectiveScreenKey === "select" && selectContext.historyStack.length === 0) {
             root.selectScratchSoundReady = false;
             selectContext.openRoot();
@@ -205,7 +226,7 @@ Item {
     }
 
     Shortcut {
-        enabled: root.enabled && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && !root.selectSearchHasFocus()
         sequence: "Esc"
 
         onActivated: {
@@ -225,31 +246,31 @@ Item {
     }
 
     Shortcut {
-        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
         sequence: "F1"
         onActivated: root.toggleMainHelp()
     }
 
     Shortcut {
-        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
         sequence: "F2"
         onActivated: root.toggleSelectedReadme()
     }
 
     Shortcut {
-        enabled: root.enabled && root.effectiveScreenKey === "select"
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select"
         sequence: "F4"
         onActivated: globalRoot.toggleFullScreen()
     }
 
     Shortcut {
-        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
         sequence: "F5"
         onActivated: root.openLr2InternetRanking()
     }
 
     Shortcut {
-        enabled: root.enabled && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
         sequence: "F8"
         onActivated: root.reloadCurrentSelectFolder()
     }
@@ -258,7 +279,7 @@ Item {
         Qt.callLater(root.activateGameplayIfNeeded);
     }
     
-    readonly property string effectiveScreenKey: root.screenKey || root.inferScreenKey(root.csvPath)
+    readonly property string effectiveScreenKey: screenState.effectiveKey
     function playerIsAutoPlayer(player) {
         return !!player && player instanceof AutoPlayer;
     }
@@ -332,183 +353,121 @@ Item {
         }
         return root.finalizeOptionList(options);
     }
-    property int selectPanel: 0
-    property int selectPanelHeldByStart: 0
-    property int selectPanelStartSkinTime: 0
-    property int selectPanelClosing: 0
-    property int selectPanelCloseStartSkinTime: 0
-    readonly property int selectPanelHoldTime: 250
-    readonly property int selectPanelElapsed: root.selectPanel > 0
-        ? Math.max(0, Math.min(root.selectPanelHoldTime, root.selectLiveSkinTime - root.selectPanelStartSkinTime))
-        : 0
-    readonly property int selectPanelCloseElapsed: root.selectPanelClosing > 0
-        ? Math.max(0, Math.min(root.selectPanelHoldTime, root.selectLiveSkinTime - root.selectPanelCloseStartSkinTime))
-        : 0
-    readonly property bool selectPanelCloseFinished: root.selectPanelClosing > 0
-        && root.selectPanelCloseElapsed >= root.selectPanelHoldTime
-    readonly property int selectHeldButtonSkinTime: root.currentSelectHeldButtonSkinTime()
-    property var selectHeldButtonTimerStarts: ({})
-    readonly property bool hasSelectHeldButtonTimers: Object.keys(root.selectHeldButtonTimerStarts).length > 0
-    readonly property int selectTargetScratchInitialRepeatMillis: 300
-    readonly property int selectTargetScratchRepeatMillis: 50
-    property int selectTargetScratchDirection: 0
-    property real selectTargetScratchNextMs: 0
-    property bool anyStartHeld: Input.start1 || Input.start2
-    property bool startHoldSuppressed: false
+    property alias selectPanel: selectPanelController.selectPanel
+    property alias selectPanelHeldByStart: selectPanelController.selectPanelHeldByStart
+    property alias selectPanelStartSkinTime: selectPanelController.selectPanelStartSkinTime
+    property alias selectPanelClosing: selectPanelController.selectPanelClosing
+    property alias selectPanelCloseStartSkinTime: selectPanelController.selectPanelCloseStartSkinTime
+    readonly property int selectPanelHoldTime: selectPanelController.selectPanelHoldTime
+    readonly property int selectPanelElapsed: selectPanelController.selectPanelElapsed
+    readonly property int selectPanelCloseElapsed: selectPanelController.selectPanelCloseElapsed
+    readonly property bool selectPanelCloseFinished: selectPanelController.selectPanelCloseFinished
+    readonly property int selectHeldButtonSkinTime: selectPanelController.selectHeldButtonSkinTime
+    property alias selectHeldButtonTimerStarts: selectPanelController.selectHeldButtonTimerStarts
+    readonly property bool hasSelectHeldButtonTimers: selectPanelController.hasSelectHeldButtonTimers
+    readonly property int selectTargetScratchInitialRepeatMillis: selectPanelController.selectTargetScratchInitialRepeatMillis
+    readonly property int selectTargetScratchRepeatMillis: selectPanelController.selectTargetScratchRepeatMillis
+    property alias selectTargetScratchDirection: selectPanelController.selectTargetScratchDirection
+    property alias selectTargetScratchNextMs: selectPanelController.selectTargetScratchNextMs
+    readonly property bool anyStartHeld: selectPanelController.anyStartHeld
+    property alias startHoldSuppressed: selectPanelController.startHoldSuppressed
 
-    onSelectPanelChanged: {
-        if (root.selectPanel > 0) {
-            root.clearSelectSearchFocus();
-        } else {
-            root.resetLr2SelectScratchRepeat();
-        }
+    Lr2OptionState {
+        id: optionState
+        host: root
     }
 
-    onSelectPanelCloseFinishedChanged: {
-        if (root.selectPanelCloseFinished) {
-            root.selectPanelClosing = 0;
-        }
+    readonly property var lr2GaugeLabels: optionState.lr2GaugeLabels
+    readonly property var lr2GaugeValues: optionState.lr2GaugeValues
+    readonly property var lr2RandomLabels: optionState.lr2RandomLabels
+    readonly property var lr2RandomValues: optionState.lr2RandomValues
+    readonly property var lr2RandomSupportedIndexes: optionState.lr2RandomSupportedIndexes
+    readonly property var lr2HiSpeedFixLabels: optionState.lr2HiSpeedFixLabels
+    readonly property var lr2HiSpeedFixValues: optionState.lr2HiSpeedFixValues
+    readonly property var lr2DpOptionLabels: optionState.lr2DpOptionLabels
+    readonly property var lr2DpOptionSupportedIndexes: optionState.lr2DpOptionSupportedIndexes
+    readonly property var lr2GaugeAutoShiftLabels: optionState.lr2GaugeAutoShiftLabels
+    readonly property var lr2GaugeAutoShiftSupportedIndexes: optionState.lr2GaugeAutoShiftSupportedIndexes
+    readonly property var lr2BattleLabels: optionState.lr2BattleLabels
+    readonly property var lr2TargetLabels: optionState.lr2TargetLabels
+    readonly property var lr2TargetValues: optionState.lr2TargetValues
+    readonly property var lr2BeatorajaTargetLabels: optionState.lr2BeatorajaTargetLabels
+    readonly property var lr2BeatorajaTargetFractions: optionState.lr2BeatorajaTargetFractions
+    readonly property var lr2BgaSizeLabels: optionState.lr2BgaSizeLabels
+    readonly property var lr2GhostLabels: optionState.lr2GhostLabels
+    readonly property var lr2HidSudLabels: optionState.lr2HidSudLabels
+    readonly property var lr2ReplayLabels: optionState.lr2ReplayLabels
+    readonly property string lr2SearchPlaceholderText: optionState.lr2SearchPlaceholderText
+    property alias lr2ReplayType: optionState.lr2ReplayType
+    property alias lr2SliderValues: optionState.lr2SliderValues
+    property alias lr2EqOn: optionState.lr2EqOn
+    property alias lr2PitchOn: optionState.lr2PitchOn
+    property alias lr2PitchType: optionState.lr2PitchType
+    property alias lr2FxType: optionState.lr2FxType
+    property alias lr2FxOn: optionState.lr2FxOn
+    property alias lr2FxTarget: optionState.lr2FxTarget
+    property alias lr2ReadmeText: readmeState.text
+    readonly property var lr2ReadmeLines: readmeState.lines
+    property alias lr2ReadmeMode: readmeState.mode
+    property alias lr2ReadmeStartSkinTime: readmeState.startSkinTime
+    readonly property int lr2ReadmeElapsed: readmeState.elapsed
+    property alias lr2ReadmeOffsetX: readmeState.offsetX
+    property alias lr2ReadmeOffsetY: readmeState.offsetY
+    property alias lr2ReadmeLineSpacing: readmeState.lineSpacing
+    property alias lr2ReadmeMouseHeld: readmeState.mouseHeld
+    property alias lr2ReadmeMouseX: readmeState.mouseX
+    property alias lr2ReadmeMouseY: readmeState.mouseY
+    Lr2ReadmeState {
+        id: readmeState
+        host: root
+        updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
+        skinHeight: root.skinH
+        skinTime: root.selectLiveSkinTime
+    }
+    property alias lr2SkinPreviewScreenKey: skinSettingsState.previewScreenKey
+    property alias lr2SkinCustomOffset: skinSettingsState.customOffset
+    property alias lr2SkinSettingsRevision: skinSettingsState.revision
+    property alias lr2SkinSettingMetadata: skinSettingsState.metadata
+    property alias lr2SkinSettingItems: skinSettingsState.items
+    property alias suppressNextSkinClockRestart: skinSettingsState.suppressNextClockRestart
+
+    Lr2SkinSettingsState {
+        id: skinSettingsState
+        host: root
     }
 
-    onSelectPanelElapsedChanged: {
-        if (root.selectHoverHasPoint && root.selectPanel > 0) {
-            root.scheduleSelectHoverRefresh();
-        }
+    Lr2ResultState {
+        id: resultState
+        host: root
+        selectContext: selectContext
     }
 
-    onSelectPanelCloseElapsedChanged: {
-        if (root.selectHoverHasPoint && root.selectPanelClosing > 0) {
-            root.scheduleSelectHoverRefresh();
-        }
-    }
-
-    onAnyStartHeldChanged: {
-        if (root.anyStartHeld) {
-            if (root.selectPanel > 0 && root.selectPanelHeldByStart === 0) {
-                root.startHoldSuppressed = true;
-                root.closeSelectPanel();
-                return;
-            }
-            root.holdSelectPanel(1);
-        } else {
-            root.startHoldSuppressed = false;
-            root.releaseHeldSelectPanel(1);
-        }
-    }
-
-    readonly property var lr2GaugeLabels: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EX HARD", "HAZARD"]
-    readonly property var lr2GaugeValues: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-    readonly property var lr2RandomLabels: ["OFF", "MIRROR", "RANDOM", "R-RANDOM", "S-RANDOM", "SPIRAL", "H-RANDOM", "ALL-SCR", "RANDOM+", "S-RAN+"]
-    readonly property var lr2RandomValues: [
-        NoteOrderAlgorithm.Normal,
-        NoteOrderAlgorithm.Mirror,
-        NoteOrderAlgorithm.Random,
-        NoteOrderAlgorithm.RRandom,
-        NoteOrderAlgorithm.SRandom,
-        null,
-        null,
-        null,
-        NoteOrderAlgorithm.RandomPlus,
-        NoteOrderAlgorithm.SRandomPlus
-    ]
-    readonly property var lr2RandomSupportedIndexes: [0, 1, 2, 3, 4, 8, 9]
-    readonly property var lr2HiSpeedFixLabels: ["OFF", "START BPM", "MAX BPM", "MAIN BPM", "MIN BPM"]
-    readonly property var lr2HiSpeedFixValues: [
-        HiSpeedFix.Off,
-        HiSpeedFix.Start,
-        HiSpeedFix.Max,
-        HiSpeedFix.Main,
-        HiSpeedFix.Min
-    ]
-    readonly property var lr2DpOptionLabels: ["OFF", "FLIP", "BATTLE", "BATTLE AS"]
-    readonly property var lr2DpOptionSupportedIndexes: [0, 1, 2]
-    readonly property var lr2GaugeAutoShiftLabels: ["OFF", "CONTINUE", "SURVIVAL->GROOVE", "BEST CLEAR", "SELECT->UNDER"]
-    readonly property var lr2GaugeAutoShiftSupportedIndexes: [0, 3, 4]
-    readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
-    readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE", "LAST SCORE"]
-    readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
-    readonly property var lr2BeatorajaTargetLabels: [
-        "PACEMAKER A-",
-        "PACEMAKER A",
-        "PACEMAKER A+",
-        "PACEMAKER AA-",
-        "PACEMAKER AA",
-        "PACEMAKER AA+",
-        "PACEMAKER AAA-",
-        "PACEMAKER AAA",
-        "PACEMAKER AAA+",
-        "PACEMAKER MAX",
-        "PACEMAKER NEXT"
-    ]
-    readonly property var lr2BeatorajaTargetFractions: [0.666, 0.703, 0.740, 0.777, 0.814, 0.851, 0.888, 0.925, 0.962, 1.0]
-    readonly property var lr2BgaSizeLabels: ["NORMAL", "EXTEND"]
-    readonly property var lr2GhostLabels: ["OFF", "TYPE A", "TYPE B", "TYPE C"]
-    readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
-    readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
-    readonly property string lr2SearchPlaceholderText: "検索語を入力"
-    property int lr2ReplayType: 0
-    property var lr2SliderValues: ({
-        "8": 0,
-        "10": 50, "11": 50, "12": 50, "13": 50, "14": 50, "15": 50, "16": 50,
-        "17": 100, "18": 100, "19": 100,
-        "20": 50, "21": 50, "22": 50, "23": 50, "24": 50, "25": 50,
-        "26": 50
-    })
-    property bool lr2EqOn: false
-    property bool lr2PitchOn: false
-    property int lr2PitchType: 0
-    property var lr2FxType: [0, 0, 0]
-    property var lr2FxOn: [false, false, false]
-    property var lr2FxTarget: [0, 0, 0]
-    property string lr2ReadmeText: ""
-    readonly property var lr2ReadmeLines: root.lr2ReadmeText.length > 0
-        ? root.lr2ReadmeText.split(/\r\n|\n|\r/)
-        : [""]
-    property int lr2ReadmeMode: 0 // 0=hidden, 1=open, 2=closing
-    property int lr2ReadmeStartSkinTime: 0
-    readonly property int lr2ReadmeElapsed: root.lr2ReadmeMode > 0
-        ? Math.max(0, Math.min(500, root.selectLiveSkinTime - root.lr2ReadmeStartSkinTime))
-        : 0
-    property real lr2ReadmeOffsetX: 0
-    property real lr2ReadmeOffsetY: 0
-    property int lr2ReadmeLineSpacing: 18
-    property bool lr2ReadmeMouseHeld: false
-    property real lr2ReadmeMouseX: 0
-    property real lr2ReadmeMouseY: 0
-    property string lr2SkinPreviewScreenKey: ""
-    property int lr2SkinCustomOffset: 0
-    property int lr2SkinSettingsRevision: 0
-    property var lr2SkinSettingMetadata: ({})
-    property var lr2SkinSettingItems: []
-    property bool suppressNextSkinClockRestart: false
-    readonly property bool selectHoverTracking: root.effectiveScreenKey === "select"
+    readonly property bool selectHoverTracking: root.screenUpdatesActive
+        && root.effectiveScreenKey === "select"
         && !!skinModel
         && skinModel.hasMouseHover
-    property var selectHoverElements: ({})
-    readonly property int selectHoverElementCount: Object.keys(root.selectHoverElements).length
-    readonly property var selectHoverCandidateKeys: {
-        root.selectPanel;
-        let result = [];
-        const keys = Object.keys(root.selectHoverElements);
-        for (let i = 0; i < keys.length; ++i) {
-            const key = keys[i];
-            const element = root.selectHoverElements[key];
-            if (element && element.src && root.panelMatches(element.src.hoverPanel || 0)) {
-                result.push(key);
-            }
-        }
-        return result;
+    Lr2SelectHoverState {
+        id: selectHoverState
+        host: root
+        tracking: root.selectHoverTracking
+        skinScale: root.skinScale
+        zeroTimers: root.zeroTimers
+        emptyActiveOptions: root.emptyActiveOptions
     }
-    property var selectHoverVisibleByIndex: ({})
-    readonly property string selectHoverVisibleSignature: Object.keys(root.selectHoverVisibleByIndex).join(",")
-    property int selectHoverRevision: 0
-    property bool selectHoverRefreshQueued: false
-    property int selectHoverSkinX: -1
-    property int selectHoverSkinY: -1
-    readonly property bool selectHoverHasPoint: root.selectHoverSkinX >= 0 && root.selectHoverSkinY >= 0
-    property int selectSliderFixedPoint: -1
-    property bool selectScratchSoundReady: false
-    readonly property bool selectAudioActive: root.enabled && root.effectiveScreenKey === "select"
+    property alias selectHoverElements: selectHoverState.elements
+    readonly property int selectHoverElementCount: selectHoverState.elementCount
+    readonly property var selectHoverCandidateKeys: selectHoverState.candidateKeys
+    property alias selectHoverVisibleByIndex: selectHoverState.visibleByIndex
+    readonly property string selectHoverVisibleSignature: selectHoverState.visibleSignature
+    property alias selectHoverRevision: selectHoverState.revision
+    property alias selectHoverRefreshQueued: selectHoverState.refreshQueued
+    property alias selectHoverSkinX: selectHoverState.skinX
+    property alias selectHoverSkinY: selectHoverState.skinY
+    readonly property bool selectHoverHasPoint: selectHoverState.hasPoint
+    property alias selectSliderFixedPoint: skinSliderState.selectSliderFixedPoint
+    property alias selectScratchSoundReady: selectSideEffects.scratchSoundReady
+    readonly property bool selectAudioActive: root.screenUpdatesActive
+        && root.effectiveScreenKey === "select"
 
     onSelectAudioActiveChanged: {
         if (!root.selectAudioActive) {
@@ -516,138 +475,40 @@ Item {
         }
     }
 
-    onSelectHoverTrackingChanged: {
-        if (!root.selectHoverTracking) {
-            root.clearSelectHoverPoint();
-        }
-    }
-
-    onSelectHoverElementCountChanged: {
-        if (root.selectHoverElementCount <= 0) {
-            root.clearSelectHoverPoint();
-        }
-    }
-
-    onSelectHoverCandidateKeysChanged: root.scheduleSelectHoverRefresh()
-
     function selectHoverPointInSkinCoordinates() {
-        if (!root.selectHoverTracking || !root.selectHoverHasPoint) {
-            return null;
-        }
-        return Qt.point(root.selectHoverSkinX * skinScale, root.selectHoverSkinY * skinScale);
+        return selectHoverState.pointInSkinCoordinates();
     }
 
     function updateSelectHoverPoint(x, y) {
-        if (!root.selectHoverTracking) {
-            root.clearSelectHoverPoint();
-            return false;
-        }
-        const mx = Math.floor(x / skinScale);
-        const my = Math.floor(y / skinScale);
-        if (mx === root.selectHoverSkinX && my === root.selectHoverSkinY) {
-            return false;
-        }
-        root.selectHoverSkinX = mx;
-        root.selectHoverSkinY = my;
-        root.scheduleSelectHoverRefresh();
-        return true;
+        return selectHoverState.updatePoint(x, y);
     }
 
     function clearSelectHoverPoint() {
-        if (!root.selectHoverHasPoint) {
-            root.clearSelectHoverCache();
-            return;
-        }
-        root.selectHoverSkinX = -1;
-        root.selectHoverSkinY = -1;
-        root.clearSelectHoverCache();
+        selectHoverState.clearPoint();
     }
 
     function registerSelectHoverElement(elementIndex, src, dsts, enabled) {
-        const key = String(elementIndex);
-        const hadElement = root.selectHoverElements[key] !== undefined;
-        if (!enabled || !src || !src.onMouse) {
-            if (hadElement) {
-                let elements = root.copyObject(root.selectHoverElements);
-                delete elements[key];
-                root.selectHoverElements = elements;
-                root.scheduleSelectHoverRefresh();
-            }
-            return;
-        }
-
-        let elements = root.copyObject(root.selectHoverElements);
-        elements[key] = {
-            "src": src,
-            "dsts": dsts,
-            "staticState": Lr2Timeline.canUseStaticState(dsts)
-                ? Lr2Timeline.getCurrentState(dsts, 0, root.zeroTimers, root.emptyActiveOptions)
-                : null
-        };
-        root.selectHoverElements = elements;
-        root.scheduleSelectHoverRefresh();
+        selectHoverState.registerElement(elementIndex, src, dsts, enabled);
     }
 
     function unregisterSelectHoverElement(elementIndex) {
-        const key = String(elementIndex);
-        if (root.selectHoverElements[key] === undefined) {
-            return;
-        }
-        let elements = root.copyObject(root.selectHoverElements);
-        delete elements[key];
-        root.selectHoverElements = elements;
-        root.scheduleSelectHoverRefresh();
+        selectHoverState.unregisterElement(elementIndex);
     }
 
     function scheduleSelectHoverRefresh() {
-        if (root.selectHoverRefreshQueued || selectHoverRefreshTimer.running) {
-            return;
-        }
-        root.selectHoverRefreshQueued = true;
-        selectHoverRefreshTimer.restart();
+        selectHoverState.scheduleRefresh();
     }
 
     function runSelectHoverRefresh() {
-        if (root.selectHoverRefreshQueued) {
-            root.selectHoverRefreshQueued = false;
-            root.refreshSelectHoverCache();
-        }
+        selectHoverState.runRefresh();
     }
 
     function clearSelectHoverCache() {
-        if (Object.keys(root.selectHoverVisibleByIndex).length === 0) {
-            return;
-        }
-        root.selectHoverVisibleByIndex = {};
-        root.selectHoverRevision += 1;
+        selectHoverState.clearCache();
     }
 
     function refreshSelectHoverCache() {
-        if (!root.selectHoverTracking || root.selectHoverCandidateKeys.length <= 0 || !root.selectHoverHasPoint) {
-            root.clearSelectHoverCache();
-            return;
-        }
-
-        const mx = root.selectHoverSkinX;
-        const my = root.selectHoverSkinY;
-        let visible = {};
-        let visibleKeys = [];
-        const keys = root.selectHoverCandidateKeys;
-        for (let i = 0; i < keys.length; ++i) {
-            const key = keys[i];
-            const element = root.selectHoverElements[key];
-            if (root.onMouseElementStateAt(element, mx, my) !== null) {
-                visible[key] = true;
-                visibleKeys.push(key);
-            }
-        }
-
-        const signature = visibleKeys.join(",");
-        if (signature === root.selectHoverVisibleSignature) {
-            return;
-        }
-        root.selectHoverVisibleByIndex = visible;
-        root.selectHoverRevision += 1;
+        selectHoverState.refreshCache();
     }
 
     function copyObject(object) {
@@ -662,437 +523,46 @@ Item {
         return result;
     }
 
-    function localizedName(value) {
-        if (value === undefined || value === null) {
-            return "";
-        }
-        if (typeof value === "string") {
-            return value;
-        }
-        return value.en || value.ja || value[Qt.locale().name] || "";
-    }
+    function localizedName(value) { return skinSettingsState.localizedName(value); }
+    function lr2SkinTypeScreenKey(type) { return skinSettingsState.skinTypeScreenKey(type); }
+    function profileRoot() { return skinSettingsState.profileRoot(); }
+    function lr2ConfiguredThemeName(screen) { return skinSettingsState.configuredThemeName(screen); }
+    function lr2ThemeFamilyForScreen(screen) { return skinSettingsState.themeFamilyForScreen(screen); }
+    function lr2ScreenObject(screen) { return skinSettingsState.screenObject(screen); }
+    function lr2AvailableThemeNamesForScreen(screen) { return skinSettingsState.availableThemeNamesForScreen(screen); }
+    function lr2SettingDestinationForScreen(screen) { return skinSettingsState.settingDestinationForScreen(screen); }
+    function currentLr2SkinPreviewScreen() { return skinSettingsState.currentPreviewScreen(); }
+    function defaultLr2SkinPreviewScreen() { return skinSettingsState.defaultPreviewScreen(); }
+    function setLr2SkinPreviewScreen(screen) { return skinSettingsState.setPreviewScreen(screen); }
+    function lr2SkinPreviewTitle() { return skinSettingsState.previewTitle(); }
+    function lr2SkinPreviewMaker() { return skinSettingsState.previewMaker(); }
+    function normalizeLr2SkinSetting(item, family) { return skinSettingsState.normalizeSetting(item, family); }
+    function buildLr2SkinSettingItems() { return skinSettingsState.buildItems(); }
+    function refreshLr2SkinSettingItems() { skinSettingsState.refreshItems(); }
+    function lr2SkinCustomMaxOffset() { return skinSettingsState.maxOffset(); }
+    function lr2SkinCustomPosition() { return skinSettingsState.position(); }
+    function setLr2SkinCustomPosition(position) { return skinSettingsState.setPosition(position); }
+    function lr2SkinSettingAtVisibleRow(row) { return skinSettingsState.settingAtVisibleRow(row); }
+    function lr2SkinSettingCurrentValue(item) { return skinSettingsState.currentValue(item); }
+    function lr2SkinSettingName(row) { return skinSettingsState.settingName(row); }
+    function lr2SkinSettingValueText(row) { return skinSettingsState.settingValueText(row); }
+    function changeLr2SkinSetting(row, delta) { return skinSettingsState.changeSetting(row, delta); }
+    function changeLr2Soundset(delta) { return skinSettingsState.changeSoundset(delta); }
+    function changeLr2SelectedTheme(delta) { return skinSettingsState.changeSelectedTheme(delta); }
+    function queueSkinClockRestartAfterLoad() { skinSettingsState.queueSkinClockRestartAfterLoad(); }
 
-    function lr2SkinTypeScreenKey(type) {
-        switch (type) {
-        case 0:
-            return "k7";
-        case 1:
-            return "k5";
-        case 2:
-            return "k14";
-        case 3:
-            return "k10";
-        case 5:
-            return "select";
-        case 6:
-            return "decide";
-        case 7:
-            return "result";
-        case 10:
-            return "soundset";
-        case 12:
-            return "k7battle";
-        case 13:
-            return "k5battle";
-        case 14:
-            return "k14battle";
-        case 15:
-            return "courseResult";
-        default:
-            return "";
-        }
-    }
-
-    function profileRoot() {
-        return Rg.profileList ? Rg.profileList.mainProfile : null;
-    }
-
-    function lr2ConfiguredThemeName(screen) {
-        let profile = root.profileRoot();
-        return profile && profile.themeConfig ? (profile.themeConfig[screen] || "") : "";
-    }
-
-    function lr2ThemeFamilyForScreen(screen) {
-        let themeName = root.lr2ConfiguredThemeName(screen);
-        return themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
-    }
-
-    function lr2ScreenObject(screen) {
-        let family = root.lr2ThemeFamilyForScreen(screen);
-        return family && family.screens ? family.screens[screen] : null;
-    }
-
-    function lr2AvailableThemeNamesForScreen(screen) {
-        let result = [];
-        let families = Rg.themes.availableThemeFamilies || {};
-        for (let [name, family] of Object.entries(families)) {
-            if (family && family.screens && family.screens[screen]) {
-                result.push(name);
-            }
-        }
-        return result;
-    }
-
-    function lr2SettingDestinationForScreen(screen) {
-        let profile = root.profileRoot();
-        let themeName = root.lr2ConfiguredThemeName(screen);
-        if (!profile || !profile.vars || !profile.vars.themeVars || !themeName) {
-            return null;
-        }
-        let screenVars = profile.vars.themeVars[screen];
-        return screenVars ? screenVars[themeName] : null;
-    }
-
-    function currentLr2SkinPreviewScreen() {
-        return root.lr2SkinPreviewScreenKey.length > 0
-            ? root.lr2SkinPreviewScreenKey
-            : root.defaultLr2SkinPreviewScreen();
-    }
-
-    function defaultLr2SkinPreviewScreen() {
-        if (root.effectiveScreenKey === "select" && root.lr2ScreenObject("k7")) {
-            return "k7";
-        }
-        return root.effectiveScreenKey || "select";
-    }
-
-    function setLr2SkinPreviewScreen(screen) {
-        if (screen.length === 0) {
-            return false;
-        }
-        if (screen !== "soundset" && !root.lr2ScreenObject(screen)) {
-            return false;
-        }
-        if (root.lr2SkinPreviewScreenKey === screen) {
-            return true;
-        }
-        root.lr2SkinPreviewScreenKey = screen;
-        root.lr2SkinCustomOffset = 0;
-        root.refreshLr2SkinSettingItems();
-        return true;
-    }
-
-    function lr2SkinPreviewTitle() {
-        let screen = root.currentLr2SkinPreviewScreen();
-        if (screen === "soundset") {
-            let vars = root.mainGeneralVars();
-            return vars ? (vars.soundset || "") : "";
-        }
-        let themeName = root.lr2ConfiguredThemeName(screen);
-        let metadata = root.lr2SkinSettingMetadata || {};
-        if (metadata.title) {
-            return metadata.title;
-        }
-        return themeName.length > 0 ? themeName : screen.toUpperCase();
-    }
-
-    function lr2SkinPreviewMaker() {
-        let metadata = root.lr2SkinSettingMetadata || {};
-        return metadata.maker || "";
-    }
-
-    function normalizeLr2SkinSetting(item, family) {
-        if (!item || !item.id) {
-            return null;
-        }
-
-        let result = {
-            id: item.id,
-            type: item.type || "",
-            name: root.localizedName(item.name) || item.id,
-            choices: [],
-            labels: [],
-            defaultValue: item.default || ""
-        };
-
-        if (result.type === "choice") {
-            let choices = item.choices || [];
-            for (let i = 0; i < choices.length; ++i) {
-                let choice = choices[i];
-                let value = choice.value !== undefined ? choice.value : choice;
-                let label = root.localizedName(choice.name) || String(value);
-                result.choices.push(String(value));
-                result.labels.push(label);
-            }
-        } else if (result.type === "file") {
-            let directory = family && item.path !== undefined
-                ? family.path + "/" + item.path
-                : "";
-            if (directory.length > 0) {
-                let files = Rg.fileQuery.getSelectableFilesForDirectory(directory) || [];
-                for (let j = 0; j < files.length; ++j) {
-                    result.choices.push(String(files[j]));
-                    result.labels.push(String(files[j]));
-                }
-            }
-        }
-
-        if (result.defaultValue === "" && result.choices.length > 0) {
-            result.defaultValue = result.choices[0];
-        }
-        if (result.defaultValue !== "" && result.choices.indexOf(result.defaultValue) < 0) {
-            result.choices.unshift(result.defaultValue);
-            result.labels.unshift(result.defaultValue);
-        }
-        return result;
-    }
-
-    function buildLr2SkinSettingItems() {
-        let screen = root.currentLr2SkinPreviewScreen();
-        if (screen === "soundset") {
-            return [];
-        }
-        let screenObject = root.lr2ScreenObject(screen);
-        if (!screenObject || !screenObject.settingsData || screenObject.settingsData.length === 0) {
-            return [];
-        }
-
-        let parsed = null;
-        try {
-            parsed = JSON.parse(screenObject.settingsData);
-        } catch (error) {
-            console.warn("Failed to parse LR2 settings data for " + screen + ": " + error);
-            return [];
-        }
-        root.lr2SkinSettingMetadata = parsed || {};
-
-        let family = root.lr2ThemeFamilyForScreen(screen);
-        let sourceItems = parsed.items || [];
-        let result = [];
-        for (let i = 0; i < sourceItems.length; ++i) {
-            let normalized = root.normalizeLr2SkinSetting(sourceItems[i], family);
-            if (normalized) {
-                result.push(normalized);
-            }
-        }
-        return result;
-    }
-
-    function refreshLr2SkinSettingItems() {
-        root.lr2SkinSettingMetadata = ({});
-        root.lr2SkinSettingItems = root.buildLr2SkinSettingItems();
-        let maxOffset = root.lr2SkinCustomMaxOffset();
-        root.lr2SkinCustomOffset = Math.max(0, Math.min(maxOffset, root.lr2SkinCustomOffset));
-        ++root.lr2SkinSettingsRevision;
-    }
-
-    function lr2SkinCustomMaxOffset() {
-        return Math.max(0, root.lr2SkinSettingItems.length - 5);
-    }
-
-    function lr2SkinCustomPosition() {
-        let maxOffset = root.lr2SkinCustomMaxOffset();
-        return maxOffset > 0 ? root.lr2SkinCustomOffset / maxOffset : 0;
-    }
-
-    function setLr2SkinCustomPosition(position) {
-        let maxOffset = root.lr2SkinCustomMaxOffset();
-        let next = Math.max(0, Math.min(maxOffset, Math.round(position * maxOffset)));
-        if (next === root.lr2SkinCustomOffset) {
-            return false;
-        }
-        root.lr2SkinCustomOffset = next;
-        ++root.lr2SkinSettingsRevision;
-        return true;
-    }
-
-    function lr2SkinSettingAtVisibleRow(row) {
-        let index = root.lr2SkinCustomOffset + row;
-        return index >= 0 && index < root.lr2SkinSettingItems.length
-            ? root.lr2SkinSettingItems[index]
-            : null;
-    }
-
-    function lr2SkinSettingCurrentValue(item) {
-        let destination = root.lr2SettingDestinationForScreen(root.currentLr2SkinPreviewScreen());
-        let value = destination && destination[item.id] !== undefined ? destination[item.id] : undefined;
-        if ((value === undefined || value === null || value === "") && root.skinSettings) {
-            value = root.skinSettings[item.id];
-        }
-        if (value === undefined || value === null || value === "") {
-            value = item.defaultValue;
-        }
-        return value === undefined || value === null ? "" : String(value);
-    }
-
-    function lr2SkinSettingName(row) {
-        let item = root.lr2SkinSettingAtVisibleRow(row);
-        return item ? item.name : "";
-    }
-
-    function lr2SkinSettingValueText(row) {
-        let item = root.lr2SkinSettingAtVisibleRow(row);
-        if (!item) {
-            return "";
-        }
-        let value = root.lr2SkinSettingCurrentValue(item);
-        let index = item.choices.indexOf(value);
-        return index >= 0 && index < item.labels.length ? item.labels[index] : value;
-    }
-
-    function changeLr2SkinSetting(row, delta) {
-        let item = root.lr2SkinSettingAtVisibleRow(row);
-        if (!item || item.choices.length <= 0) {
-            return false;
-        }
-
-        let current = root.lr2SkinSettingCurrentValue(item);
-        let index = item.choices.indexOf(current);
-        if (index < 0) {
-            index = 0;
-        }
-        let nextValue = item.choices[root.wrapValue(index + delta, item.choices.length)];
-        if (nextValue === current) {
-            return false;
-        }
-
-        let screen = root.currentLr2SkinPreviewScreen();
-        let destination = root.lr2SettingDestinationForScreen(screen);
-        if (destination) {
-            destination[item.id] = nextValue;
-        }
-        if (screen === root.effectiveScreenKey || screen === root.screenKey) {
-            let refreshed = root.copyObject(destination || root.skinSettings);
-            refreshed[item.id] = nextValue;
-            root.suppressNextSkinClockRestart = true;
-            root.skinSettings = refreshed;
-        }
-        ++root.lr2SkinSettingsRevision;
-        return true;
-    }
-
-    function changeLr2Soundset(delta) {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return false;
-        }
-        let choices = vars.getAvailableSoundsets ? vars.getAvailableSoundsets() : [];
-        if (!choices || choices.length <= 0) {
-            return false;
-        }
-        let current = vars.soundset || "";
-        let index = choices.indexOf(current);
-        if (index < 0) {
-            index = 0;
-        }
-        let next = choices[((index + delta) % choices.length + choices.length) % choices.length];
-        if (next === current) {
-            return false;
-        }
-        vars.soundset = next;
-        root.refreshLr2SkinSettingItems();
-        return true;
-    }
-
-    function changeLr2SelectedTheme(delta) {
-        let screen = root.currentLr2SkinPreviewScreen();
-        if (screen === "soundset") {
-            return root.changeLr2Soundset(delta);
-        }
-
-        let profile = root.profileRoot();
-        if (!profile || !profile.themeConfig) {
-            return false;
-        }
-        let choices = root.lr2AvailableThemeNamesForScreen(screen);
-        if (choices.length <= 0) {
-            return false;
-        }
-
-        let current = root.lr2ConfiguredThemeName(screen);
-        let index = choices.indexOf(current);
-        if (index < 0) {
-            index = 0;
-        }
-        let next = choices[((index + delta) % choices.length + choices.length) % choices.length];
-        if (next === current) {
-            return false;
-        }
-
-        profile.themeConfig[screen] = next;
-        root.lr2SkinCustomOffset = 0;
-        root.refreshLr2SkinSettingItems();
-        return true;
-    }
-
-    function queueSkinClockRestartAfterLoad() {
-        if (root.suppressNextSkinClockRestart) {
-            root.suppressNextSkinClockRestart = false;
-            return;
-        }
-        Qt.callLater(root.restartSkinClock);
-    }
-
-    function setArrayValue(array, index, value) {
-        let copy = array.slice();
-        copy[index] = value;
-        return copy;
-    }
-
-    function sliderInitialValue(type) {
-        if (type === 17 || type === 18 || type === 19) {
-            return 100;
-        }
-        if (type === 8) {
-            return 0;
-        }
-        return 50;
-    }
-
-    function sliderRawValue(type) {
-        let key = String(type);
-        let value = root.lr2SliderValues[key];
-        return value === undefined ? root.sliderInitialValue(type) : value;
-    }
-
-    function setSliderRawValue(type, value) {
-        let key = String(type);
-        let rounded = Math.max(0, Math.min(100, Math.round(value)));
-        if (root.sliderRawValue(type) === rounded && root.lr2SliderValues[key] !== undefined) {
-            return;
-        }
-        let copy = root.copyObject(root.lr2SliderValues);
-        copy[key] = rounded;
-        root.lr2SliderValues = copy;
-    }
-
-    function lr2SliderNumber(num) {
-        if (num >= 50 && num <= 56) {
-            return root.sliderRawValue(10 + num - 50);
-        }
-        if (num >= 57 && num <= 59) {
-            return root.sliderRawValue(17 + num - 57);
-        }
-        if (num >= 60 && num <= 65) {
-            return root.sliderRawValue(20 + num - 60);
-        }
-        if (num === 66) {
-            return root.sliderRawValue(26);
-        }
-        return 0;
-    }
+    function setArrayValue(array, index, value) { return optionState.setArrayValue(array, index, value); }
+    function sliderInitialValue(type) { return optionState.sliderInitialValue(type); }
+    function sliderRawValue(type) { return optionState.sliderRawValue(type); }
+    function setSliderRawValue(type, value) { optionState.setSliderRawValue(type, value); }
+    function lr2SliderNumber(num) { return optionState.lr2SliderNumber(num); }
 
     function openReadmeText(text) {
-        root.lr2ReadmeText = text || "";
-        root.lr2ReadmeStartSkinTime = root.selectLiveSkinTime;
-        root.lr2ReadmeMode = 1;
-        root.lr2ReadmeOffsetX = 0;
-        root.lr2ReadmeOffsetY = 0;
-        root.lr2ReadmeLineSpacing = 18;
-        root.lr2ReadmeMouseHeld = false;
-        readmeCloseTimer.stop();
-        root.clearSelectSearchFocus();
+        readmeState.openText(text);
     }
 
     function openReadmePath(path) {
-        if (!path) {
-            return false;
-        }
-        const text = Rg.fileQuery.readTextFile(path) || "";
-        root.openReadmeText(text.length > 0
-            ? text
-            : "HELP FILE NOT FOUND\n\n" + path);
-        return true;
+        return readmeState.openPath(path);
     }
 
     function toggleSelectedReadme() {
@@ -1127,1056 +597,151 @@ Item {
     }
 
     function closeReadme() {
-        if (root.lr2ReadmeMode === 0) {
-            return;
-        }
-        root.lr2ReadmeStartSkinTime = root.selectLiveSkinTime;
-        root.lr2ReadmeMode = 2;
-        root.lr2ReadmeMouseHeld = false;
-        readmeCloseTimer.restart();
+        readmeState.close();
     }
 
     function readmeLinesForSource(src) {
-        if (!src || !src.readme || root.lr2ReadmeMode === 0) {
-            return [];
-        }
-        if ((root.lr2ReadmeMode === 1 && src.readmeId === 0)
-                || (root.lr2ReadmeMode === 2 && src.readmeId === 1)) {
-            return root.lr2ReadmeLines;
-        }
-        return [];
+        return readmeState.linesForSource(src);
     }
 
     function readmeContentHeight() {
-        return root.lr2ReadmeLines.length * Math.max(1, root.lr2ReadmeLineSpacing);
+        return readmeState.contentHeight();
     }
 
     function clampReadmeOffsets() {
-        const minY = Math.min(0, root.skinH - root.readmeContentHeight());
-        root.lr2ReadmeOffsetX = Math.min(0, root.lr2ReadmeOffsetX);
-        root.lr2ReadmeOffsetY = Math.max(minY, Math.min(0, root.lr2ReadmeOffsetY));
+        readmeState.clampOffsets();
     }
 
     function scrollReadmeBy(dx, dy) {
-        if (root.lr2ReadmeMode !== 1) {
-            return false;
-        }
-        root.lr2ReadmeOffsetX += dx;
-        root.lr2ReadmeOffsetY += dy;
-        root.clampReadmeOffsets();
-        return true;
-    }
-
-    function mainGeneralVars() {
-        return Rg.profileList && Rg.profileList.mainProfile
-            ? Rg.profileList.mainProfile.vars.generalVars
-            : null;
-    }
-
-    function profileForSide(side) {
-        if (side === 2 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player2Profile) {
-            return Rg.profileList.battleProfiles.player2Profile;
-        }
-        if (side === 1 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player1Profile) {
-            return Rg.profileList.battleProfiles.player1Profile;
-        }
-        return Rg.profileList.mainProfile;
-    }
-
-    function generalVarsForSide(side) {
-        let profile = root.profileForSide(side);
-        return profile ? profile.vars.generalVars : null;
-    }
-
-    function indexOfValue(values, value) {
-        for (let i = 0; i < values.length; ++i) {
-            if (values[i] === value) {
-                return i;
-            }
-        }
-        return 0;
-    }
-
-    function cycleArrayIndex(index, count, delta) {
-        return root.wrapValue(index + delta, count);
-    }
-
-    function wrappedListValue(values, index) {
-        return values[root.wrapValue(index, values.length)];
-    }
-
-    function arrayContains(values, value) {
-        for (let i = 0; i < values.length; ++i) {
-            if (values[i] === value) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function cycleSupportedIndex(current, delta, supportedIndexes, count) {
-        if (!supportedIndexes || supportedIndexes.length <= 0 || count <= 0) {
-            return 0;
-        }
-        let currentIndex = root.arrayContains(supportedIndexes, current)
-            ? current
-            : supportedIndexes[0];
-        if (!delta) {
-            return currentIndex;
-        }
-        let direction = delta < 0 ? -1 : 1;
-        let candidate = root.wrapValue(current + direction, count);
-        for (let guard = 0; guard < count; ++guard) {
-            if (root.arrayContains(supportedIndexes, candidate)) {
-                return candidate;
-            }
-            candidate = root.wrapValue(candidate + direction, count);
-        }
-        return currentIndex;
-    }
-
-    readonly property int lr2GaugeIndexP1: {
-        let vars = root.generalVarsForSide(1);
-        return vars ? root.indexOfValue(root.lr2GaugeValues, vars.gaugeType) : 0;
-    }
-    readonly property int lr2GaugeIndexP2: {
-        let vars = root.generalVarsForSide(2);
-        return vars ? root.indexOfValue(root.lr2GaugeValues, vars.gaugeType) : 0;
-    }
-
-    function setGaugeIndex(side, index) {
-        let vars = root.generalVarsForSide(side);
-        if (vars) {
-            vars.gaugeType = root.wrappedListValue(root.lr2GaugeValues, index);
-        }
-    }
-
-    readonly property int lr2RandomIndexP1: {
-        let vars = root.generalVarsForSide(1);
-        return vars ? root.indexOfValue(root.lr2RandomValues, vars.noteOrderAlgorithm) : 0;
-    }
-    readonly property int lr2RandomIndexP2: {
-        let vars = root.generalVarsForSide(2);
-        if (!vars) return 0;
-        let value = !Rg.profileList.battleActive
-            ? vars.noteOrderAlgorithmP2
-            : vars.noteOrderAlgorithm;
-        return root.indexOfValue(root.lr2RandomValues, value);
-    }
-
-    function setRandomIndex(side, index) {
-        let vars = root.generalVarsForSide(side);
-        if (!vars) {
-            return;
-        }
-        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
-        let normalized = root.cycleSupportedIndex(
-            current,
-            index - current,
-            root.lr2RandomSupportedIndexes,
-            root.lr2RandomValues.length);
-        let value = root.lr2RandomValues[normalized] || NoteOrderAlgorithm.Normal;
-        if (side === 2 && !Rg.profileList.battleActive) {
-            vars.noteOrderAlgorithmP2 = value;
-        } else {
-            vars.noteOrderAlgorithm = value;
-        }
-    }
-
-    readonly property int lr2HidSudIndexP1: {
-        let vars = root.generalVarsForSide(1);
-        if (!vars) return 0;
-        return (vars.hiddenOn ? 1 : 0) + (vars.laneCoverOn ? 2 : 0);
-    }
-    readonly property int lr2HidSudIndexP2: {
-        let vars = root.generalVarsForSide(2);
-        if (!vars) return 0;
-        return (vars.hiddenOn ? 1 : 0) + (vars.laneCoverOn ? 2 : 0);
-    }
-
-    function setHidSudIndex(side, index) {
-        let vars = root.generalVarsForSide(side);
-        if (!vars) {
-            return;
-        }
-        let normalized = root.wrapValue(index, root.lr2HidSudLabels.length);
-        vars.hiddenOn = (normalized & 1) !== 0;
-        vars.laneCoverOn = (normalized & 2) !== 0;
-    }
-
-    readonly property int lr2HiSpeedFixIndex: {
-        let vars = root.mainGeneralVars();
-        return vars ? root.indexOfValue(root.lr2HiSpeedFixValues, vars.hiSpeedFix) : 0;
-    }
-
-    function setHiSpeedFixIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.hiSpeedFix = root.wrappedListValue(root.lr2HiSpeedFixValues, index);
-        }
-    }
-
-    readonly property int lr2BattleIndex: {
-        let vars = root.mainGeneralVars();
-        if (Rg.profileList.battleActive) {
-            return 1;
-        }
-        if (vars && vars.dpOptions === DpOptions.Battle) {
-            return 2;
-        }
-        return 0;
-    }
-
-    function ensureBattleProfiles() {
-        let list = Rg.profileList;
-        let p1 = list.battleProfiles.player1Profile || list.mainProfile;
-        let p2 = list.battleProfiles.player2Profile;
-        if (!p2 || p2 === p1) {
-            p2 = null;
-            for (let i = 0; list.profiles && i < list.profiles.length; ++i) {
-                let candidate = list.at(i);
-                if (candidate && candidate !== p1) {
-                    p2 = candidate;
-                    break;
-                }
-            }
-        }
-        if (!p2) {
-            p2 = list.createProfile();
-            if (p2 && p2.vars && p2.vars.generalVars) {
-                p2.vars.generalVars.name = "Battle 2P";
-            }
-        }
-        if (!p1 || !p2 || p1 === p2) {
-            return false;
-        }
-        list.battleProfiles.player1Profile = p1;
-        list.battleProfiles.player2Profile = p2;
-        return true;
-    }
-
-    function setBattleIndex(index) {
-        let vars = root.mainGeneralVars();
-        let normalized = root.wrapValue(index, root.lr2BattleLabels.length);
-        if (!vars) {
-            return;
-        }
-        if (normalized === 1) {
-            vars.dpOptions = DpOptions.Off;
-            if (root.ensureBattleProfiles()) {
-                Rg.profileList.battleActive = true;
-            }
-            return;
-        }
-        Rg.profileList.battleActive = false;
-        vars.dpOptions = normalized === 2 ? DpOptions.Battle : DpOptions.Off;
-    }
-
-    readonly property int lr2DpOptionIndex: {
-        let vars = root.mainGeneralVars();
-        if (Rg.profileList.battleActive || (vars && vars.dpOptions === DpOptions.Battle)) {
-            return 2;
-        }
-        if (vars && vars.dpOptions === DpOptions.Flip) {
-            return 1;
-        }
-        return 0;
-    }
-
-    function setDpOptionIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return;
-        }
-        let normalized = root.cycleSupportedIndex(
-            root.lr2DpOptionIndex,
-            index - root.lr2DpOptionIndex,
-            root.lr2DpOptionSupportedIndexes,
-            root.lr2DpOptionLabels.length);
-        Rg.profileList.battleActive = false;
-        if (normalized === 1) {
-            vars.dpOptions = DpOptions.Flip;
-        } else if (normalized === 2) {
-            vars.dpOptions = DpOptions.Battle;
-        } else {
-            vars.dpOptions = DpOptions.Off;
-        }
-    }
-
-    readonly property int lr2FlipIndex: {
-        let vars = root.mainGeneralVars();
-        return vars && vars.dpOptions === DpOptions.Flip ? 1 : 0;
-    }
-
-    function setFlipIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return;
-        }
-        if (root.wrapValue(index, 2) === 1) {
-            Rg.profileList.battleActive = false;
-            vars.dpOptions = DpOptions.Flip;
-        } else if (vars.dpOptions === DpOptions.Flip) {
-            vars.dpOptions = DpOptions.Off;
-        }
-    }
-
-    readonly property int lr2LaneCoverIndex: {
-        let vars = root.mainGeneralVars();
-        return vars && vars.laneCoverOn ? 1 : 0;
-    }
-
-    function setLaneCoverIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.laneCoverOn = root.wrapValue(index, 2) === 1;
-        }
-    }
-
-    readonly property int lr2BgaIndex: {
-        let vars = root.mainGeneralVars();
-        return vars && !vars.bgaOn ? 1 : 0;
-    }
-
-    readonly property int lr2BeatorajaBgaIndex: {
-        let vars = root.mainGeneralVars();
-        return vars && !vars.bgaOn ? 2 : 0;
-    }
-
-    function setBgaIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.bgaOn = root.wrapValue(index, 2) === 0;
-        }
-    }
-
-    readonly property int lr2BgaSizeIndex: {
-        let vars = root.mainGeneralVars();
-        return vars ? Math.max(0, Math.min(1, vars.bgaSize || 0)) : 0;
-    }
-
-    function setBgaSizeIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.bgaSize = root.wrapValue(index, root.lr2BgaSizeLabels.length);
-        }
-    }
-
-    readonly property int lr2GaugeAutoShiftIndex: {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return 0;
-        }
-        if (vars.gaugeMode === GaugeMode.Best) {
-            return 3;
-        }
-        if (vars.gaugeMode === GaugeMode.SelectToUnder) {
-            return 4;
-        }
-        return 0;
-    }
-
-    function setGaugeAutoShiftIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return;
-        }
-        let normalized = root.cycleSupportedIndex(
-            root.lr2GaugeAutoShiftIndex,
-            index - root.lr2GaugeAutoShiftIndex,
-            root.lr2GaugeAutoShiftSupportedIndexes,
-            root.lr2GaugeAutoShiftLabels.length);
-        if (normalized === 3) {
-            vars.gaugeMode = GaugeMode.Best;
-        } else if (normalized === 4) {
-            vars.gaugeMode = GaugeMode.SelectToUnder;
-        } else {
-            vars.gaugeMode = GaugeMode.Exclusive;
-        }
-    }
-
-    readonly property int lr2ScoreGraphIndex: {
-        let vars = root.mainGeneralVars();
-        return vars && vars.scoreGraphEnabled === false ? 0 : 1;
-    }
-
-    function setScoreGraphIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.scoreGraphEnabled = root.wrapValue(index, 2) === 1;
-        }
-    }
-
-    readonly property int lr2GhostIndex: {
-        let vars = root.mainGeneralVars();
-        return vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
-    }
-
-    function setGhostIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.ghostPosition = root.wrapValue(index, root.lr2GhostLabels.length);
-        }
-    }
-
-    function lr2BgaEnabled() {
-        let vars = root.mainGeneralVars();
-        return !vars || vars.bgaOn !== false;
-    }
-
-    readonly property int lr2ScoreTargetIndex: {
-        let vars = root.mainGeneralVars();
-        return vars ? root.indexOfValue(root.lr2TargetValues, vars.scoreTarget) : 0;
-    }
-
-    function setScoreTargetIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.scoreTarget = root.wrappedListValue(root.lr2TargetValues, index);
-        }
-    }
-
-    readonly property int lr2BeatorajaTargetIndex: {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return 6;
-        }
-        let fraction = vars.targetScoreFraction || 0;
-        let bestIndex = 0;
-        let bestDistance = Number.MAX_VALUE;
-        for (let i = 0; i < root.lr2BeatorajaTargetFractions.length; ++i) {
-            let distance = Math.abs(fraction - root.lr2BeatorajaTargetFractions[i]);
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                bestIndex = i;
-            }
-        }
-        return bestIndex;
-    }
-
-    function setBeatorajaTargetIndex(index) {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return;
-        }
-        let normalized = root.wrapValue(index, root.lr2BeatorajaTargetFractions.length);
-        vars.scoreTarget = ScoreTarget.Fraction;
-        vars.targetScoreFraction = root.lr2BeatorajaTargetFractions[normalized];
-    }
-
-    readonly property int lr2TargetPercent: {
-        let vars = root.mainGeneralVars();
-        return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
-    }
-
-    function setTargetPercent(percent) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.targetScoreFraction = Math.max(0, Math.min(1, Math.floor(percent) / 100));
-        }
-    }
-
-    readonly property int lr2HiSpeedP1: {
-        let vars = root.generalVarsForSide(1);
-        return !vars || vars.noteScreenTimeMillis <= 0
-            ? 100
-            : Math.max(1, Math.min(999, Math.round(100000 / vars.noteScreenTimeMillis)));
-    }
-    readonly property int lr2HiSpeedP2: {
-        let vars = root.generalVarsForSide(2);
-        return !vars || vars.noteScreenTimeMillis <= 0
-            ? 100
-            : Math.max(1, Math.min(999, Math.round(100000 / vars.noteScreenTimeMillis)));
-    }
-
-    function setHiSpeedNumber(side, value) {
-        let vars = root.generalVarsForSide(side);
-        if (!vars) {
-            return;
-        }
-        let clamped = Math.max(1, Math.min(999, value));
-        vars.noteScreenTimeMillis = 100000 / clamped;
-    }
-
-    function nextLr2HiSpeedNumber(current, steps) {
-        if (steps === 0) {
-            return current;
-        }
-        let value = isFinite(current) ? current : 100;
-        let direction = steps < 0 ? -1 : 1;
-        let count = Math.max(1, Math.abs(steps || 1));
-        for (let i = 0; i < count; ++i) {
-            if (direction > 0) {
-                value = value % 10 === 0
-                    ? value + 10
-                    : Math.ceil(value / 10) * 10;
-                if (value > 900) {
-                    value = 10;
-                }
-            } else {
-                value = value % 10 === 0
-                    ? value - 10
-                    : Math.floor(value / 10) * 10;
-                if (value < 10) {
-                    value = 900;
-                }
-            }
-        }
-        return value;
-    }
-
-    function adjustHiSpeedNumber(side, steps) {
-        let current = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
-        root.setHiSpeedNumber(side, root.nextLr2HiSpeedNumber(current, steps));
-    }
-
-    function adjustLaneCoverRatio(side, steps) {
-        let vars = root.generalVarsForSide(side);
-        if (!vars) {
-            return;
-        }
-        vars.laneCoverRatio = Math.max(0, Math.min(1, (vars.laneCoverRatio || 0) + steps * 0.005));
-    }
-
-    function adjustOffset(delta) {
-        let vars = root.mainGeneralVars();
-        if (vars) {
-            vars.offset = Math.max(-99, Math.min(99, (vars.offset || 0) + delta));
-        }
-    }
-
-    function isLoggedIn() {
-        let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
-        return !!profile
-            && profile.loginState === Profile.LoggedIn
-            && !!profile.onlineUserData;
-    }
-
-    function currentLr2RankingChart() {
-        if (root.isResultScreen()) {
-            return root.resultChartData();
-        }
-        if (root.effectiveScreenKey !== "select") {
-            return null;
-        }
-        if (selectContext.cachedSelectedChartData) {
-            return selectContext.cachedSelectedChartData;
-        }
-        if (selectContext.rankingMode && selectContext.rankingBaseItem) {
-            return selectContext.rankingBaseItem;
-        }
-
-        let item = selectContext.current;
-        return selectContext.isChart(item) || selectContext.isEntry(item) ? item : null;
-    }
-
-    readonly property var lr2RankingChart: root.currentLr2RankingChart()
-    readonly property string lr2RankingMd5: root.lr2RankingChart && root.lr2RankingChart.md5
-        ? String(root.lr2RankingChart.md5)
-        : ""
-    property string lr2RankingRequestMd5: ""
-    property bool lr2RankingOpenWhenReady: false
-    property bool lr2InternetRankingOpenWhenReady: false
-    property int lr2RankingTransitionPhase: 0 // 175 before list swap, 176 after list swap.
-    property string lr2RankingTransitionAction: ""
-    property int lr2RankingTransitionStartSkinTime: 0
-    readonly property int lr2RankingTransitionDuration: 120
-    readonly property int lr2RankingTransitionElapsed: root.lr2RankingTransitionPhase !== 0
-        ? Math.max(0, Math.min(root.lr2RankingTransitionDuration,
-            root.selectLiveSkinTime - root.lr2RankingTransitionStartSkinTime))
-        : 0
-
-    function commitLr2RankingRequest() {
-        root.lr2RankingRequestMd5 = root.lr2RankingMd5;
-    }
-
-    function rankingProviderEnum() {
-        let vars = root.mainGeneralVars();
-        return vars ? vars.rankingProvider : OnlineRankingModel.RhythmGame;
-    }
-
-    function lr2RankingMatchesCurrentChart() {
-        let targetMd5 = root.lr2RankingMd5.length > 0 ? root.lr2RankingMd5.toLowerCase() : "";
-        let loadedMd5 = lr2OnlineRanking.md5 ? String(lr2OnlineRanking.md5).toLowerCase() : "";
-        return targetMd5.length > 0 && targetMd5 === loadedMd5;
-    }
-
-    function lr2LocalRankingEntry() {
-        let chart = root.lr2RankingChart;
-        let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
-        if (!chart || !profile) {
-            return null;
-        }
-
-        let scoreList = selectContext.entryScores(chart);
-        let bestPointsScore = selectContext.bestScoreByPoints(scoreList);
-        let bestClearScore = selectContext.scoreWithBestClear(scoreList);
-        if (!bestPointsScore || !bestPointsScore.result || !bestClearScore || !bestClearScore.result) {
-            return null;
-        }
-
-        let stats = selectContext.statsForScore(bestPointsScore);
-        return {
-            __lr2Local: true,
-            userId: profile.onlineUserData ? profile.onlineUserData.userId : 0,
-            userName: profile.vars.generalVars.name,
-            bestClearType: bestClearScore.result.clearType || "NOPLAY",
-            bestPoints: bestPointsScore.result.points || 0,
-            maxPoints: bestPointsScore.result.maxPoints || 0,
-            bestCombo: bestPointsScore.result.maxCombo || 0,
-            bestComboBreaks: stats ? stats.badPoor : 0,
-            scoreCount: scoreList.length
-        };
-    }
-
-    function lr2RankingEntries() {
-        if (!root.lr2RankingMatchesCurrentChart()) {
-            return [];
-        }
-
-        let source = lr2OnlineRanking.rankingEntries || [];
-        let entries = [];
-        for (let i = 0; i < source.length; ++i) {
-            entries.push(source[i]);
-        }
-
-        if (root.rankingProviderEnum() !== OnlineRankingModel.LR2IR) {
-            return entries;
-        }
-
-        let localEntry = root.lr2LocalRankingEntry();
-        if (!localEntry) {
-            return entries;
-        }
-
-        let result = [];
-        let inserted = false;
-        for (let entry of entries) {
-            if (!inserted && localEntry.bestPoints > (entry.bestPoints || 0)) {
-                result.push(localEntry);
-                inserted = true;
-            }
-            result.push(entry);
-        }
-        if (!inserted) {
-            result.push(localEntry);
-        }
-        return result;
-    }
-
-    function lr2RankingClearCounts(entries) {
-        let counts = {};
-        for (let entry of entries || []) {
-            let clearType = entry.bestClearType || "NOPLAY";
-            counts[clearType] = (counts[clearType] || 0) + 1;
-        }
-        return counts;
-    }
-
-    function lr2RankingPlayerCount(entries) {
-        if (!root.lr2RankingMatchesCurrentChart()) {
-            return 0;
-        }
-        let count = Number(lr2OnlineRanking.playerCount || 0);
-        if (entries && entries.length > 0) {
-            return Math.max(count, entries.length);
-        }
-        if (count <= 0) {
-            let source = lr2OnlineRanking.rankingEntries || [];
-            count = source.length || 0;
-        }
-        if (root.rankingProviderEnum() === OnlineRankingModel.LR2IR && root.lr2LocalRankingEntry()) {
-            count += 1;
-        }
-        return count;
-    }
-
-    function lr2RankingTotalPlayCount(entries) {
-        let modelCount = lr2OnlineRanking.scoreCount || 0;
-        let total = 0;
-        for (let entry of entries || []) {
-            total += entry.scoreCount || 0;
-        }
-        return Math.max(modelCount, total);
-    }
-
-    function lr2RankingProfileUserId() {
-        let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
-        if (!profile) {
-            return 0;
-        }
-        if (root.rankingProviderEnum() === OnlineRankingModel.Tachi) {
-            return profile.tachiData ? Number(profile.tachiData.userId || 0) : 0;
-        }
-        return profile.onlineUserData ? Number(profile.onlineUserData.userId || 0) : 0;
-    }
-
-    function lr2RankingPlayerRank(entries) {
-        let userId = root.lr2RankingProfileUserId();
-        for (let i = 0; i < (entries || []).length; ++i) {
-            let entry = entries[i];
-            if (entry.__lr2Local || (userId > 0 && Number(entry.userId || 0) === userId)) {
-                return i + 1;
-            }
-        }
-        return 0;
-    }
-
-    function lr2RankingSnapshot() {
-        let entries = root.lr2RankingEntries();
-        return {
-            entries: entries,
-            clearCounts: root.lr2RankingClearCounts(entries),
-            playerCount: root.lr2RankingPlayerCount(entries),
-            totalPlayCount: root.lr2RankingTotalPlayCount(entries),
-            playerRank: root.lr2RankingPlayerRank(entries)
-        };
-    }
-
-    function lr2RankingEntryAt(index) {
-        let entries = root.lr2RankingEntries();
-        return index >= 0 && index < entries.length ? entries[index] : null;
-    }
-
-    function lr2RankingEntryName(index) {
-        let entry = root.lr2RankingEntryAt(index);
-        if (!entry) {
-            return "";
-        }
-        let name = entry.userName || entry.owner || entry.player || "";
-        return name.length > 0 ? name : "YOU";
-    }
-
-    function lr2RankingEntryClearValue(index) {
-        let entry = root.lr2RankingEntryAt(index);
-        return entry ? root.clearTypeValue(entry.bestClearType || "NOPLAY") : 0;
-    }
-
-    function lr2RankingEntryExScore(index) {
-        let entry = root.lr2RankingEntryAt(index);
-        return entry ? Math.floor(entry.bestPoints || 0) : 0;
-    }
-
-    function lr2RankingClearCount() {
-        let entries = root.lr2RankingEntries();
-        let counts = root.lr2RankingClearCounts(entries);
-        let total = 0;
-        for (let i = 0; i < arguments.length; ++i) {
-            total += counts[arguments[i]] || 0;
-        }
-        return total;
-    }
-
-    function lr2RankingClearPercentValue(afterDot) {
-        let playerCount = root.lr2RankingPlayerCount();
-        if (playerCount <= 0) {
-            return 0;
-        }
-        let count = 0;
-        for (let i = 1; i < arguments.length; ++i) {
-            count += root.lr2RankingClearCount(arguments[i]);
-        }
-        return afterDot
-            ? Math.floor(count * 1000 / playerCount) % 10
-            : Math.floor(count * 100 / playerCount);
-    }
-
-    function applyRankingStatsToSelectContext() {
-        let chart = root.lr2RankingChart;
-        if (root.effectiveScreenKey !== "select"
-                || !chart || !chart.md5
-                || !root.lr2RankingMatchesCurrentChart()
-                || lr2OnlineRanking.loading) {
-            return;
-        }
-        let snapshot = root.lr2RankingSnapshot();
-        selectContext.setRankingStats(
-            chart.md5,
-            snapshot.clearCounts,
-            snapshot.playerCount,
-            snapshot.totalPlayCount,
-            snapshot.playerRank);
-    }
-
-    function handleRankingModelChanged(tryOpenRanking, tryOpenInternetRanking) {
-        root.applyRankingStatsToSelectContext();
-        if (tryOpenRanking && root.lr2RankingOpenWhenReady && !lr2OnlineRanking.loading) {
-            Qt.callLater(root.finishOpenLr2Ranking);
-        }
-        if (tryOpenInternetRanking && root.lr2InternetRankingOpenWhenReady && !lr2OnlineRanking.loading) {
-            Qt.callLater(() => {
-                if (!root.finishOpenLr2InternetRanking()) {
-                    root.lr2InternetRankingOpenWhenReady = false;
-                }
-            });
-        }
-    }
-
-    function lr2RankingStatusOption() {
-        let chart = root.lr2RankingChart;
-        if (!chart || !chart.md5) {
-            return 600;
-        }
-        if (!root.lr2RankingMatchesCurrentChart()) {
-            return lr2OnlineRanking.loading ? 601 : 600;
-        }
-        if (lr2OnlineRanking.loading) {
-            return 601;
-        }
-        return root.lr2RankingPlayerCount() > 0 ? 602 : 603;
-    }
-
-    function startLr2RankingTransition(action) {
-        if (root.lr2RankingTransitionPhase !== 0) {
-            return false;
-        }
-        root.lr2RankingTransitionAction = action;
-        root.lr2RankingTransitionStartSkinTime = root.selectLiveSkinTime;
-        root.lr2RankingTransitionPhase = 175;
-        lr2RankingTransitionTimer.restart();
-        return true;
-    }
-
-    function clearLr2RankingTransition() {
-        root.lr2RankingTransitionPhase = 0;
-        root.lr2RankingTransitionAction = "";
-        lr2RankingTransitionTimer.stop();
-    }
-
-    function enterLr2RankingPostSwapTimer() {
-        root.lr2RankingTransitionStartSkinTime = root.selectLiveSkinTime;
-        root.lr2RankingTransitionPhase = 176;
-        lr2RankingTransitionTimer.restart();
-    }
-
-    function performLr2RankingOpen() {
-        if (!root.lr2RankingMatchesCurrentChart() || lr2OnlineRanking.loading) {
-            return false;
-        }
-        let snapshot = root.lr2RankingSnapshot();
-        if (snapshot.entries.length === 0) {
-            let chart = root.lr2RankingChart;
-            if (chart && chart.md5) {
-                selectContext.setRankingStats(chart.md5, {}, 0, 0, 0);
-            }
-            return false;
-        }
-        let opened = selectContext.showRanking(
-            snapshot.entries,
-            snapshot.clearCounts,
-            snapshot.playerCount,
-            snapshot.totalPlayCount,
-            snapshot.playerRank);
-        if (opened) {
-            root.playOneShot(optionOpenSound);
-        }
-        return opened;
-    }
-
-    function performLr2RankingClose() {
-        if (!selectContext.rankingMode) {
-            return false;
-        }
-        let closed = selectContext.hideRanking();
-        if (closed) {
-            root.playOneShot(optionCloseSound);
-        }
-        return closed;
-    }
-
-    function advanceLr2RankingTransition() {
-        if (root.lr2RankingTransitionPhase === 175) {
-            let ok = root.lr2RankingTransitionAction === "close"
-                ? root.performLr2RankingClose()
-                : root.performLr2RankingOpen();
-            if (!ok) {
-                root.clearLr2RankingTransition();
-                return;
-            }
-            root.enterLr2RankingPostSwapTimer();
-            return;
-        }
-        root.clearLr2RankingTransition();
-    }
-
-    function requestLr2RankingFetch(chart) {
-        let md5 = chart && chart.md5 ? String(chart.md5) : "";
-        if (md5.length === 0) {
-            return false;
-        }
-
-        root.lr2RankingOpenWhenReady = true;
-        if (!lr2OnlineRanking.loading) {
-            lr2OnlineRanking.refresh();
-        }
-        return false;
-    }
-
-    function lr2TachiKeymode(chart) {
-        switch (chart ? (chart.keymode || 0) : 0) {
-        case 5:
-        case 7:
-            return "7K";
-        case 10:
-        case 14:
-            return "14K";
-        default:
-            return "";
-        }
-    }
-
-    function lr2InternetRankingUrl(chart) {
-        let md5 = chart && chart.md5 ? String(chart.md5) : "";
-        if (md5.length === 0) {
-            return "";
-        }
-
-        switch (root.rankingProviderEnum()) {
-        case OnlineRankingModel.RhythmGame: {
-            let vars = root.mainGeneralVars();
-            let baseUrl = vars && vars.websiteBaseUrl
-                ? String(vars.websiteBaseUrl)
-                : "https://rhythmgame.eu";
-            while (baseUrl.length > 0 && baseUrl.charAt(baseUrl.length - 1) === "/") {
-                baseUrl = baseUrl.substring(0, baseUrl.length - 1);
-            }
-            return baseUrl + "/charts/" + md5;
-        }
-        case OnlineRankingModel.Tachi: {
-            if (!root.lr2RankingMatchesCurrentChart() || !lr2OnlineRanking.chartId) {
-                return "";
-            }
-            let keymode = root.lr2TachiKeymode(chart);
-            return keymode.length > 0
-                ? "https://boku.tachi.ac/games/bms/" + keymode + "/charts/" + lr2OnlineRanking.chartId
-                : "";
-        }
-        case OnlineRankingModel.LR2IR:
-        default:
-            return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5="
-                + md5 + "#status";
-        }
-    }
-
-    function finishOpenLr2InternetRanking() {
-        let chart = root.lr2RankingChart;
-        let url = root.lr2InternetRankingUrl(chart);
-        if (url.length === 0) {
-            return false;
-        }
-        root.lr2InternetRankingOpenWhenReady = false;
-        let opened = Qt.openUrlExternally(url);
-        if (opened === false) {
-            console.warn("[LR2] Failed to open internet ranking URL: " + url);
-        }
-        return opened !== false;
-    }
-
-    function openLr2InternetRanking() {
-        root.updateDisplayedSelectChart();
-        let chart = root.lr2RankingChart;
-        if (!chart || !chart.md5) {
-            return false;
-        }
-
-        if (root.rankingProviderEnum() === OnlineRankingModel.Tachi
-                && (!root.lr2RankingMatchesCurrentChart()
-                    || !lr2OnlineRanking.chartId
-                    || lr2OnlineRanking.loading)) {
-            root.lr2InternetRankingOpenWhenReady = true;
-            if (!lr2OnlineRanking.loading) {
-                lr2OnlineRanking.refresh();
-            }
-            return true;
-        }
-
-        return root.finishOpenLr2InternetRanking();
-    }
-
-    function finishOpenLr2Ranking() {
-        if (root.lr2RankingTransitionPhase !== 0) {
-            return true;
-        }
-        if (!root.lr2RankingMatchesCurrentChart() || lr2OnlineRanking.loading) {
-            return false;
-        }
-        let snapshot = root.lr2RankingSnapshot();
-        if (snapshot.entries.length === 0) {
-            root.lr2RankingOpenWhenReady = false;
-            let chart = root.lr2RankingChart;
-            if (chart && chart.md5) {
-                selectContext.setRankingStats(chart.md5, {}, 0, 0, 0);
-            }
-            return false;
-        }
-        root.lr2RankingOpenWhenReady = false;
-        return root.startLr2RankingTransition("open");
-    }
-
-    function openLr2Ranking() {
-        if (!root.selectNavigationReady() || root.selectPanel === 1) {
-            return false;
-        }
-        if (root.lr2RankingTransitionPhase !== 0) {
-            return true;
-        }
-
-        root.updateDisplayedSelectChart();
-        let chart = root.lr2RankingChart;
-        if (!chart || !chart.md5) {
-            return false;
-        }
-        if (!root.lr2RankingMatchesCurrentChart()
-            || lr2OnlineRanking.loading
-            || root.lr2RankingPlayerCount() === 0) {
-            return root.requestLr2RankingFetch(chart);
-        }
-        return root.finishOpenLr2Ranking();
-    }
-
-    function closeLr2Ranking() {
-        root.lr2RankingOpenWhenReady = false;
-        if (root.lr2RankingTransitionPhase !== 0) {
-            return true;
-        }
-        if (!selectContext.rankingMode) {
-            return false;
-        }
-        return root.startLr2RankingTransition("close");
-    }
-
-    function isLr2RankingKey(key) {
-        return key === BmsKey.Col14 || key === BmsKey.Col24;
-    }
-
-    function clearStatusOption() {
-        let vars = root.mainGeneralVars();
-        if (!vars) {
-            return 62;
-        }
-        if (vars.gaugeMode === GaugeMode.Best) {
-            return 62;
-        }
-        let gauge = String(vars.gaugeType || "").toUpperCase();
-        if (gauge === "AEASY" || gauge === "EASY") {
-            return 63;
-        }
-        if (gauge === "NORMAL") {
-            return 64;
-        }
-        if (gauge === "HARD" || gauge === "EXHARD") {
-            return 65;
-        }
-        if (gauge === "FC" || gauge === "PERFECT" || gauge === "MAX") {
-            return 66;
-        }
-        return 62;
-    }
-
-    function clearStatusIsBest() {
-        let vars = root.mainGeneralVars();
-        return !!vars && vars.gaugeMode === GaugeMode.Best;
-    }
+        return readmeState.scrollBy(dx, dy);
+    }
+
+    function hideReadmeImmediately() {
+        readmeState.hideImmediately();
+    }
+
+    function mainGeneralVars() { return optionState.mainGeneralVars(); }
+    function profileForSide(side) { return optionState.profileForSide(side); }
+    function generalVarsForSide(side) { return optionState.generalVarsForSide(side); }
+    function indexOfValue(values, value) { return optionState.indexOfValue(values, value); }
+    function cycleArrayIndex(index, count, delta) { return optionState.cycleArrayIndex(index, count, delta); }
+    function wrappedListValue(values, index) { return optionState.wrappedListValue(values, index); }
+    function arrayContains(values, value) { return optionState.arrayContains(values, value); }
+    function cycleSupportedIndex(current, delta, supportedIndexes, count) { return optionState.cycleSupportedIndex(current, delta, supportedIndexes, count); }
+
+    readonly property int lr2GaugeIndexP1: optionState.lr2GaugeIndexP1
+    readonly property int lr2GaugeIndexP2: optionState.lr2GaugeIndexP2
+    function setGaugeIndex(side, index) { optionState.setGaugeIndex(side, index); }
+
+    readonly property int lr2RandomIndexP1: optionState.lr2RandomIndexP1
+    readonly property int lr2RandomIndexP2: optionState.lr2RandomIndexP2
+    function setRandomIndex(side, index) { optionState.setRandomIndex(side, index); }
+
+    readonly property int lr2HidSudIndexP1: optionState.lr2HidSudIndexP1
+    readonly property int lr2HidSudIndexP2: optionState.lr2HidSudIndexP2
+    function setHidSudIndex(side, index) { optionState.setHidSudIndex(side, index); }
+
+    readonly property int lr2HiSpeedFixIndex: optionState.lr2HiSpeedFixIndex
+    function setHiSpeedFixIndex(index) { optionState.setHiSpeedFixIndex(index); }
+
+    readonly property int lr2BattleIndex: optionState.lr2BattleIndex
+    function ensureBattleProfiles() { return optionState.ensureBattleProfiles(); }
+    function setBattleIndex(index) { optionState.setBattleIndex(index); }
+
+    readonly property int lr2DpOptionIndex: optionState.lr2DpOptionIndex
+    function setDpOptionIndex(index) { optionState.setDpOptionIndex(index); }
+
+    readonly property int lr2FlipIndex: optionState.lr2FlipIndex
+    function setFlipIndex(index) { optionState.setFlipIndex(index); }
+
+    readonly property int lr2LaneCoverIndex: optionState.lr2LaneCoverIndex
+    function setLaneCoverIndex(index) { optionState.setLaneCoverIndex(index); }
+
+    readonly property int lr2BgaIndex: optionState.lr2BgaIndex
+    readonly property int lr2BeatorajaBgaIndex: optionState.lr2BeatorajaBgaIndex
+    function setBgaIndex(index) { optionState.setBgaIndex(index); }
+
+    readonly property int lr2BgaSizeIndex: optionState.lr2BgaSizeIndex
+    function setBgaSizeIndex(index) { optionState.setBgaSizeIndex(index); }
+
+    readonly property int lr2GaugeAutoShiftIndex: optionState.lr2GaugeAutoShiftIndex
+    function setGaugeAutoShiftIndex(index) { optionState.setGaugeAutoShiftIndex(index); }
+
+    readonly property int lr2ScoreGraphIndex: optionState.lr2ScoreGraphIndex
+    function setScoreGraphIndex(index) { optionState.setScoreGraphIndex(index); }
+
+    readonly property int lr2GhostIndex: optionState.lr2GhostIndex
+    function setGhostIndex(index) { optionState.setGhostIndex(index); }
+
+    function lr2BgaEnabled() { return optionState.lr2BgaEnabled(); }
+
+    readonly property int lr2ScoreTargetIndex: optionState.lr2ScoreTargetIndex
+    function setScoreTargetIndex(index) { optionState.setScoreTargetIndex(index); }
+
+    readonly property int lr2BeatorajaTargetIndex: optionState.lr2BeatorajaTargetIndex
+    function setBeatorajaTargetIndex(index) { optionState.setBeatorajaTargetIndex(index); }
+
+    readonly property int lr2TargetPercent: optionState.lr2TargetPercent
+    function setTargetPercent(percent) { optionState.setTargetPercent(percent); }
+
+    readonly property int lr2HiSpeedP1: optionState.lr2HiSpeedP1
+    readonly property int lr2HiSpeedP2: optionState.lr2HiSpeedP2
+    function setHiSpeedNumber(side, value) { optionState.setHiSpeedNumber(side, value); }
+    function nextLr2HiSpeedNumber(current, steps) { return optionState.nextLr2HiSpeedNumber(current, steps); }
+    function adjustHiSpeedNumber(side, steps) { optionState.adjustHiSpeedNumber(side, steps); }
+    function adjustLaneCoverRatio(side, steps) { optionState.adjustLaneCoverRatio(side, steps); }
+    function adjustOffset(delta) { optionState.adjustOffset(delta); }
+
+    function isLoggedIn() { return optionState.isLoggedIn(); }
+    readonly property var lr2RankingChart: lr2Ranking.chart
+    readonly property string lr2RankingMd5: lr2Ranking.md5
+    property alias lr2RankingRequestMd5: lr2Ranking.requestMd5
+    property alias lr2RankingOpenWhenReady: lr2Ranking.openWhenReady
+    property alias lr2InternetRankingOpenWhenReady: lr2Ranking.internetOpenWhenReady
+    property alias lr2RankingTransitionPhase: lr2Ranking.transitionPhase
+    property alias lr2RankingTransitionAction: lr2Ranking.transitionAction
+    property alias lr2RankingTransitionStartSkinTime: lr2Ranking.transitionStartSkinTime
+    readonly property int lr2RankingTransitionDuration: lr2Ranking.transitionDuration
+    readonly property int lr2RankingTransitionElapsed: lr2Ranking.transitionElapsed
+
+    function commitLr2RankingRequest() { lr2Ranking.commitRequest(); }
+    function rankingProviderEnum() { return lr2Ranking.providerEnum(); }
+    function lr2RankingMatchesCurrentChart() { return lr2Ranking.matchesCurrentChart(); }
+    function lr2LocalRankingEntry() { return lr2Ranking.localEntry(); }
+    function lr2RankingEntries() { return lr2Ranking.entries(); }
+    function lr2RankingClearCounts(entries) { return lr2Ranking.clearCounts(entries); }
+    function lr2RankingPlayerCount(entries) { return lr2Ranking.playerCount(entries); }
+    function lr2RankingTotalPlayCount(entries) { return lr2Ranking.totalPlayCount(entries); }
+    function lr2RankingProfileUserId() { return lr2Ranking.profileUserId(); }
+    function lr2RankingPlayerRank(entries) { return lr2Ranking.playerRank(entries); }
+    function lr2RankingSnapshot() { return lr2Ranking.snapshot(); }
+    function lr2RankingEntryAt(index) { return lr2Ranking.entryAt(index); }
+    function lr2RankingEntryName(index) { return lr2Ranking.entryName(index); }
+    function lr2RankingEntryClearValue(index) { return lr2Ranking.entryClearValue(index); }
+    function lr2RankingEntryExScore(index) { return lr2Ranking.entryExScore(index); }
+    function lr2RankingClearCount() { return lr2Ranking.clearCount.apply(lr2Ranking, arguments); }
+    function lr2RankingClearPercentValue() { return lr2Ranking.clearPercentValue.apply(lr2Ranking, arguments); }
+    function applyRankingStatsToSelectContext() { lr2Ranking.applyStatsToSelectContext(); }
+    function handleRankingModelChanged(tryOpenRanking, tryOpenInternetRanking) { lr2Ranking.handleModelChanged(tryOpenRanking, tryOpenInternetRanking); }
+    function lr2RankingStatusOption() { return lr2Ranking.statusOption(); }
+    function startLr2RankingTransition(action) { return lr2Ranking.startTransition(action); }
+    function clearLr2RankingTransition() { lr2Ranking.clearTransition(); }
+    function enterLr2RankingPostSwapTimer() { lr2Ranking.enterPostSwapTimer(); }
+    function performLr2RankingOpen() { return lr2Ranking.performOpen(); }
+    function performLr2RankingClose() { return lr2Ranking.performClose(); }
+    function advanceLr2RankingTransition() { lr2Ranking.advanceTransition(); }
+    function requestLr2RankingFetch(chart) { return lr2Ranking.requestFetch(chart); }
+    function lr2TachiKeymode(chart) { return lr2Ranking.tachiKeymode(chart); }
+    function lr2InternetRankingUrl(chart) { return lr2Ranking.internetRankingUrl(chart); }
+    function finishOpenLr2InternetRanking() { return lr2Ranking.finishOpenInternetRanking(); }
+    function openLr2InternetRanking() { return lr2Ranking.openInternetRanking(); }
+    function finishOpenLr2Ranking() { return lr2Ranking.finishOpenRanking(); }
+    function openLr2Ranking() { return lr2Ranking.openRanking(); }
+    function closeLr2Ranking() { return lr2Ranking.closeRanking(); }
+    function isLr2RankingKey(key) { return key === BmsKey.Col14 || key === BmsKey.Col24; }
+
+    function clearStatusOption() { return optionState.clearStatusOption(); }
+    function clearStatusIsBest() { return optionState.clearStatusIsBest(); }
 
     Rectangle {
         anchors.fill: parent
@@ -2185,135 +750,31 @@ Item {
     }
 
     function inferScreenKey(path) {
-        let normalized = (path || "").replace(/\\/g, "/").toLowerCase();
-        if (normalized.indexOf("/select/") !== -1 || normalized.endsWith("select.lr2skin") || normalized.endsWith("select.csv")) {
-            return "select";
-        }
-        if (normalized.indexOf("/decide/") !== -1 || normalized.endsWith("decide.lr2skin") || normalized.endsWith("decide.csv")) {
-            return "decide";
-        }
-        if (normalized.indexOf("/courseresult/") !== -1 || normalized.endsWith("courseresult.lr2skin") || normalized.endsWith("courseresult.csv")) {
-            return "courseResult";
-        }
-        if (normalized.indexOf("/result/") !== -1 || normalized.endsWith("result.lr2skin") || normalized.endsWith("result.csv")) {
-            return "result";
-        }
-        return "";
+        return screenState.inferKey(path);
     }
 
     function isSelectScrollSlider(src) {
-        return root.effectiveScreenKey === "select"
-            && !!src
-            && !!src.slider
-            && src.sliderType === 1
-            && src.sliderRange > 0
-            && src.sliderDisabled === 0;
+        return skinSliderState.isSelectScrollSlider(src);
     }
 
     function isLr2GenericSlider(src) {
-        return root.effectiveScreenKey === "select"
-            && !!src
-            && !!src.slider
-            && !root.isSelectScrollSlider(src)
-            && src.sliderRange > 0
-            && src.sliderDisabled === 0;
+        return skinSliderState.isLr2GenericSlider(src);
     }
 
     function isGameplayProgressSlider(src) {
-        return root.isGameplayScreen()
-            && !!src
-            && !!src.slider
-            && src.sliderType === 6
-            && src.sliderRange > 0;
+        return skinSliderState.isGameplayProgressSlider(src);
     }
 
     function isGameplayLaneCoverSlider(src) {
-        return root.isGameplayScreen()
-            && !!src
-            && !!src.slider
-            && (src.sliderType === 4 || src.sliderType === 5)
-            && src.sliderRange > 0;
+        return skinSliderState.isGameplayLaneCoverSlider(src);
     }
 
     function sliderTrackState(src, dsts, skinTime) {
-        if (!src || !src.slider) {
-            return null;
-        }
-        let clock = skinTime === undefined
-            ? root.skinTimeForElement(src, dsts)
-            : skinTime;
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        let base = Lr2Timeline.getCurrentStateFromTimerFire(
-            dsts,
-            clock,
-            root.skinTimerFireTime(timer),
-            root.runtimeActiveOptions);
-        if (!base) {
-            return null;
-        }
-
-        let track = {
-            x: base.x,
-            y: base.y,
-            w: base.w,
-            h: base.h
-        };
-        let range = Math.max(1, src.sliderRange || 0);
-        switch (src.sliderDirection) {
-        case 0:
-            track.y -= range;
-            track.h += range;
-            break;
-        case 1:
-            track.w += range;
-            break;
-        case 2:
-            track.h += range;
-            break;
-        case 3:
-            track.x -= range;
-            track.w += range;
-            break;
-        default:
-            return null;
-        }
-        return track;
+        return skinSliderState.trackState(src, dsts, skinTime);
     }
 
     function sliderPositionFromPointer(src, track, pointerX, pointerY) {
-        let range = Math.max(1, src.sliderRange || 0);
-        let moveX = (track.w - range) / 2;
-        let moveY = (track.h - range) / 2;
-        let position = 0;
-        switch (src.sliderDirection) {
-        case 0: {
-            let start = track.y + moveY;
-            let end = track.y + track.h - moveY;
-            position = end !== start ? (end - pointerY) / (end - start) : 0;
-            break;
-        }
-        case 1: {
-            let start = track.x + moveX;
-            let end = track.x + track.w - moveX;
-            position = end !== start ? (pointerX - start) / (end - start) : 0;
-            break;
-        }
-        case 2: {
-            let start = track.y + moveY;
-            let end = track.y + track.h - moveY;
-            position = end !== start ? (pointerY - start) / (end - start) : 0;
-            break;
-        }
-        case 3: {
-            let start = track.x + moveX;
-            let end = track.x + track.w - moveX;
-            position = end !== start ? (end - pointerX) / (end - start) : 0;
-            break;
-        }
-        default:
-            return 0;
-        }
-        return Math.max(0, Math.min(1, position));
+        return skinSliderState.positionFromPointer(src, track, pointerX, pointerY);
     }
 
     function panelMatches(panel) {
@@ -2326,93 +787,36 @@ Item {
         return true;
     }
 
-    function isSelectSearchText(src) {
-        return root.effectiveScreenKey === "select"
-            && root.acceptsInput
-            && src
-            && src.st === 30
-            && src.edit !== 0
-            && root.panelMatches(src.panel || 0);
-    }
+    property alias selectSearchInputItem: selectSearchState.inputItem
 
-    function selectSearchTextState(src, dsts) {
-        if (!root.isSelectSearchText(src)) {
-            return null;
-        }
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        return Lr2Timeline.getCurrentStateFromTimerFire(
-            dsts,
-            root.renderSkinTime,
-            root.skinTimerFireTime(timer),
-            root.runtimeActiveOptions);
-    }
-
-    function textPrefix(text, position) {
-        const source = text || "";
-        const clamped = Math.max(0, Math.min(position || 0, source.length));
-        return source.substring(0, clamped);
-    }
-
-    property var selectSearchInputItem: null
-
-    function selectSearchHasFocus() {
-        return root.selectSearchInputItem && root.selectSearchInputItem.activeFocus;
-    }
+    function isSelectSearchText(src) { return selectSearchState.isText(src); }
+    function selectSearchTextState(src, dsts) { return selectSearchState.textState(src, dsts); }
+    function textPrefix(text, position) { return selectSearchState.textPrefix(text, position); }
+    function selectSearchHasFocus() { return selectSearchState.hasFocus(); }
 
     function selectInputReady() {
-        return root.enabled
-            && root.effectiveScreenKey === "select"
-            && root.acceptsInput
-            && !root.selectSearchHasFocus();
+        return screenState.selectInputReady;
     }
 
     function selectPointerInputReady() {
-        return root.enabled
-            && root.effectiveScreenKey === "select"
-            && root.acceptsInput;
+        return screenState.selectPointerInputReady;
     }
 
     function selectScrollReady() {
-        return root.selectInputReady() && root.lr2ReadmeMode === 0;
+        return screenState.selectScrollReady;
     }
 
     function selectPointerScrollReady() {
-        return root.selectPointerInputReady() && root.lr2ReadmeMode === 0;
+        return screenState.selectPointerScrollReady;
     }
 
     function selectNavigationReady() {
-        return root.selectInputReady()
-            && root.lr2ReadmeMode === 0;
+        return screenState.selectNavigationReady;
     }
 
-    function focusSelectSearch() {
-        if (root.effectiveScreenKey !== "select" || !root.acceptsInput || root.selectPanel > 0) {
-            return;
-        }
-        if (!root.selectSearchInputItem) {
-            return;
-        }
-        root.selectSearchInputItem.syncFromContext();
-        root.selectSearchInputItem.cursorPosition = root.selectSearchInputItem.text.length;
-        root.selectSearchInputItem.forceActiveFocus();
-    }
-
-    function clearSelectSearchFocus() {
-        if (root.selectSearchHasFocus()) {
-            root.forceActiveFocus();
-        }
-    }
-
-    function resetSelectSearch() {
-        if (selectContext.searchText.length > 0) {
-            selectContext.searchText = "";
-            selectContext.touch();
-        }
-        if (root.selectSearchInputItem && root.selectSearchInputItem.text.length > 0) {
-            root.selectSearchInputItem.text = "";
-        }
-        root.clearSelectSearchFocus();
-    }
+    function focusSelectSearch() { selectSearchState.focusInput(); }
+    function clearSelectSearchFocus() { selectSearchState.clearFocus(); }
+    function resetSelectSearch() { selectSearchState.reset(); }
 
     function fallbackSortId(dsts) {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
@@ -2867,346 +1271,22 @@ Item {
         case 26:
             return root.lr2ClockSecond;
         case 27:
-            return Math.floor(root.lr2SceneUptimeSeconds / 3600);
+            return wallClockState.uptimeHours;
         case 28:
-            return Math.floor(root.lr2SceneUptimeSeconds / 60) % 60;
+            return wallClockState.uptimeMinutes;
         case 29:
-            return root.lr2SceneUptimeSeconds % 60;
+            return wallClockState.uptimeSecondPart;
         default:
             return 0;
         }
     }
 
     function updateLr2DateTimeNumbers() {
-        let nowMs = Date.now();
-        let now = new Date(nowMs);
-        let uptimeSeconds = Math.floor(Math.max(0, nowMs - root.sceneStartMs) / 1000);
-        if (root.lr2ClockNowMs !== nowMs)
-            root.lr2ClockNowMs = nowMs;
-        if (root.lr2ClockYear !== now.getFullYear())
-            root.lr2ClockYear = now.getFullYear();
-        if (root.lr2ClockMonth !== now.getMonth() + 1)
-            root.lr2ClockMonth = now.getMonth() + 1;
-        if (root.lr2ClockDay !== now.getDate())
-            root.lr2ClockDay = now.getDate();
-        if (root.lr2ClockHour !== now.getHours())
-            root.lr2ClockHour = now.getHours();
-        if (root.lr2ClockMinute !== now.getMinutes())
-            root.lr2ClockMinute = now.getMinutes();
-        if (root.lr2ClockSecond !== now.getSeconds())
-            root.lr2ClockSecond = now.getSeconds();
-        if (root.lr2SceneUptimeSeconds !== uptimeSeconds)
-            root.lr2SceneUptimeSeconds = uptimeSeconds;
-    }
-
-    function appendCommonRuntimeOptions(options) {
-        let vars = root.mainGeneralVars();
-        root.addOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
-        if (root.isGameplayScreen()) {
-            root.addOption(options, root.gameplayAutoplayActive() ? 33 : 32);
-        } else {
-            root.addOption(options, 32); // autoplay off unless a launch button explicitly requests it.
-        }
-        if (root.effectiveScreenKey === "decide") {
-            root.addOption(options, 33); // LR2 decide reports both autoplay states true.
-        }
-        let ghostPosition = vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
-        root.addOption(options, 34 + ghostPosition);
-        root.addOption(options, vars && vars.scoreGraphEnabled === false ? 38 : 39);
-        root.addOption(options, vars && vars.bgaOn === false ? 40 : 41);
-        root.addOption(options, root.gaugeColorOption(1));
-        root.addOption(options, root.gaugeColorOption(2));
-        root.addGaugeExOption(options, 1);
-        root.addGaugeExOption(options, 2);
-        root.addOption(options, root.gameplayGaugeTrophyOption(1));
-        root.addOption(options, root.gameplayGaugeTrophyOption(2));
-        root.addOption(options, 46); // difficulty filter enabled.
-        root.addOption(options, root.isLoggedIn() ? 51 : 50);
-        root.addOption(options, 52); // extra mode off.
-        root.addOption(options, 54); // 1P autoscratch/assist off.
-        root.addOption(options, 56); // 2P autoscratch/assist off.
-        root.addOption(options, 61);
-        root.addOption(options, root.clearStatusOption());
-        if (root.isGameplayScreen()) {
-            // LR2 play skins use 80 while the chart is still loading, then
-            // switch to 81 when timer 40 (READY / load complete) fires.
-            root.addOption(options, root.gameplayReadySkinTime >= 0 ? 81 : 80);
-        } else {
-            root.addOption(options, 80); // select/decide are already loaded when the skin is shown.
-        }
-        root.addOption(options, root.gameplayReplayActive() ? 84 : 82);
-        root.addOption(options, 572); // course editor/making mode is not supported here.
-        root.addOption(options, 622); // ghost battle is not supported from select.
-        root.addOption(options, 624); // rival compare is not supported from select.
-    }
-
-    function appendPanelOptions(options) {
-        if (root.selectPanel > 0) {
-            root.addOption(options, 20 + root.selectPanel);
-        } else {
-            root.addOption(options, 20);
-        }
-    }
-
-    function appendChartOptions(options, chartData) {
-        let allowStageFileOption = root.effectiveScreenKey !== "decide";
-        if (!chartData) {
-            if (allowStageFileOption) {
-                addOption(options, 190);
-            }
-            addOption(options, 192);
-            addOption(options, 194);
-            addOption(options, 170);
-            addOption(options, 172);
-            addOption(options, 174);
-            addOption(options, 176);
-            addOption(options, 178);
-            root.appendReplayOptions(options, null);
-            addOption(options, 150);
-            return;
-        }
-        if (allowStageFileOption) {
-            addOption(options, chartData.stageFile ? 191 : 190);
-        }
-        addOption(options, chartData.banner ? 193 : 192);
-        addOption(options, chartData.backBmp ? 195 : 194);
-        addOption(options, selectContext.hasBga(chartData) ? 171 : 170);
-        addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
-        addOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
-        addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
-        if (root.skinUsesOption(1177) && root.chartHasBpmStop(chartData)) {
-            addOption(options, 1177);
-        }
-        addOption(options, chartData.isRandom ? 179 : 178);
-        addOption(options, selectContext.judgeOption(chartData));
-        addOption(options, selectContext.highLevelOption(chartData));
-        root.appendReplayOptions(options, chartData);
-
-        let difficulty = selectContext.entryDifficulty(chartData);
-        if (difficulty >= 1 && difficulty <= 5) {
-            addOption(options, 150 + difficulty);
-        } else {
-            addOption(options, 150);
-        }
-
-        let keymode = chartData.keymode || 0;
-        root.appendKeymodeOption(options, keymode, 160);
-        root.appendKeymodeOption(options, root.keymodeAfterOptions(keymode), 165);
-    }
-
-    function replayOptionForSlot(slot, available) {
-        if (slot === 0) {
-            return available ? 197 : 196;
-        }
-        if (slot === 1) {
-            return available ? 1197 : 1196;
-        }
-        if (slot === 2) {
-            return available ? 1200 : 1199;
-        }
-        return available ? 1203 : 1202;
-    }
-
-    function selectedReplayOptionForSlot(slot) {
-        return 1205 + Math.max(0, Math.min(3, slot));
-    }
-
-    function replaySlotAvailable(chartData, slot) {
-        if (!chartData || root.effectiveScreenKey !== "select") {
-            return !!chartData && slot === 0 && selectContext.hasReplay(chartData);
-        }
-        return !!selectContext.replayScoreForType(chartData, slot);
-    }
-
-    function appendReplayOptions(options, chartData) {
-        if (!root.selectUsesReplayOptions()) {
-            return;
-        }
-        let selectedReplayAvailable = false;
-        for (let slot = 0; slot < 4; ++slot) {
-            let available = root.replaySlotAvailable(chartData, slot);
-            root.addOption(options, root.replayOptionForSlot(slot, available));
-            if (slot === root.lr2ReplayType && available) {
-                selectedReplayAvailable = true;
-            }
-        }
-        if (selectedReplayAvailable) {
-            root.addOption(options, root.selectedReplayOptionForSlot(root.lr2ReplayType));
-        }
-    }
-
-    function appendKeymodeOption(options, keymode, baseOption) {
-        switch (keymode) {
-        case 7:
-            root.addOption(options, baseOption);
-            break;
-        case 5:
-            root.addOption(options, baseOption + 1);
-            break;
-        case 14:
-            root.addOption(options, baseOption + 2);
-            break;
-        case 10:
-            root.addOption(options, baseOption + 3);
-            break;
-        case 24:
-            root.addOption(options, 1160);
-            break;
-        case 48:
-            root.addOption(options, 1161);
-            break;
-        case 9:
-            root.addOption(options, 164);
-            break;
-        }
-    }
-
-    function keymodeAfterOptions(keymode) {
-        if (!root.spToDpActive()) {
-            return keymode;
-        }
-        if (keymode === 7) {
-            return 14;
-        }
-        if (keymode === 5) {
-            return 10;
-        }
-        return keymode;
-    }
-
-    function chartKeymodeForStatus(item, selectedChart) {
-        if (selectedChart && selectedChart.keymode) {
-            return selectedChart.keymode;
-        }
-        if ((selectContext.isChart(item) || selectContext.isEntry(item)) && item.keymode) {
-            return item.keymode;
-        }
-        return 0;
-    }
-
-    function appendEntryStatusOptions(options, item, selectedChart) {
-        if (!root.selectUsesEntryStatusOptions()) {
-            return;
-        }
-        let folderLike = selectContext.isFolderLikeForLamp(item);
-        if (!selectContext.isChart(item)
-                && !selectContext.isEntry(item)
-                && !selectContext.isRankingEntry(item)
-                && !folderLike) {
-            return;
-        }
-        if (!folderLike && root.chartKeymodeForStatus(item, selectedChart) <= 0) {
-            return;
-        }
-        let clearOption = selectContext.beatorajaClearOption(item);
-        let hasExactBeatorajaLamp = clearOption >= 1100 && root.skinUsesOption(clearOption);
-        let lamp = selectContext.entryLamp(item);
-        if (!hasExactBeatorajaLamp && lamp >= 0 && lamp <= 5) {
-            root.addOption(options, 100 + lamp);
-        }
-        if (folderLike) {
-            return;
-        }
-        root.addOption(options, clearOption);
-
-        let rank = selectContext.entryRank(item);
-        if (lamp > 0 && rank >= 1) {
-            root.addOption(options, 208 - Math.min(rank, 8));
-            root.addOption(options, 118 - Math.min(rank, 8));
-        }
-    }
-
-    function appendCourseOptions(options, item) {
-        if (!selectContext.isCourse(item)) {
-            return;
-        }
-        if (!root.selectUsesCourseDetailOptions()) {
-            return;
-        }
-        root.addOption(options, 290);
-        root.addOption(options, 293); // rank certification / class
-        if (!item.loadCharts) {
-            return;
-        }
-
-        let stages = item.loadCharts();
-        for (let i = 0; i < Math.min(10, stages.length); ++i) {
-            root.addOption(options, 580 + i);
-        }
-        for (let stage = 0; stage < Math.min(5, stages.length); ++stage) {
-            let difficulty = selectContext.entryDifficulty(stages[stage]);
-            root.addOption(options, 700 + stage * 10 + Math.max(0, Math.min(5, difficulty)));
-        }
-    }
-
-    function appendDifficultyBarOptions(options) {
-        if (!root.selectUsesDifficultyBarOptions()) {
-            return;
-        }
-        for (let diff = 1; diff <= 5; ++diff) {
-            if (selectContext.hasDifficulty(diff)) {
-                root.addOption(options, 504 + diff);
-                root.addOption(options, selectContext.difficultyLevelBarOption(diff));
-            } else {
-                root.addOption(options, 499 + diff);
-            }
-
-            let diffCount = selectContext.difficultyCount(diff);
-            if (diffCount === 1) {
-                root.addOption(options, 509 + diff);
-            } else if (diffCount > 1) {
-                root.addOption(options, 514 + diff);
-            }
-            root.addOption(options, 510 + diff * 10 + selectContext.difficultyLamp(diff));
-        }
-    }
-
-    function appendSelectItemTypeOptions(options, item) {
-        if (selectContext.isChart(item) || selectContext.isEntry(item) || selectContext.isRankingEntry(item)) {
-            root.addOption(options, 2);
-            root.addOption(options, 5);
-        } else if (selectContext.isCourse(item)) {
-            root.addOption(options, 3);
-            root.addOption(options, 5);
-            root.addOption(options, 290);
-        } else {
-            root.addOption(options, 1);
-        }
-    }
-
-    function appendSelectedChartModeOptions(options, chartData) {
-        let keymode = chartData ? (chartData.keymode || 0) : 0;
-        let doubleMode = keymode === 10 || keymode === 14
-            || ((keymode === 5 || keymode === 7) && root.spToDpActive());
-        let battleMode = root.battleModeActive();
-        if (doubleMode) {
-            root.addOption(options, 10);
-        }
-        if (battleMode) {
-            root.addOption(options, 11);
-        }
-        if (doubleMode || battleMode) {
-            root.addOption(options, 12);
-        }
-        if (battleMode) {
-            root.addOption(options, 13);
-        }
+        wallClockState.update();
     }
 
     function isGameplayScreen() {
-        switch (root.effectiveScreenKey) {
-        case "k5":
-        case "k7":
-        case "k10":
-        case "k14":
-        case "k5battle":
-        case "k7battle":
-        case "k10battle":
-        case "k14battle":
-            return true;
-        default:
-            return false;
-        }
+        return screenState.isGameplayScreen();
     }
 
     function chartStatusValue(status) {
@@ -3288,7 +1368,7 @@ Item {
 
     function stopGameplayLifecycle() {
         root.gameplayStartArmed = false;
-        gameplayStartTimer.stop();
+        skinTiming.stopGameplayStartTimer();
         gameplayReadySound.stop();
         gameplayStopSound.stop();
     }
@@ -3310,7 +1390,7 @@ Item {
             gameplayReadySound.play();
         } else {
             root.gameplayStartArmed = true;
-            gameplayStartTimer.restart();
+            skinTiming.restartGameplayStartTimer();
         }
     }
 
@@ -3365,7 +1445,7 @@ Item {
 
         root.gameplayResultOpened = true;
         root.gameplayStartArmed = false;
-        gameplayStartTimer.stop();
+        skinTiming.stopGameplayStartTimer();
 
         let chartData = root.gameplayChartData();
         let profiles = root.gameplayProfiles();
@@ -3382,7 +1462,7 @@ Item {
             root.startGameplayWhenReady();
         } else if (root.chartStatusIs(root.chart.status, ChartRunner.Running)) {
             root.gameplayStartArmed = false;
-            gameplayStartTimer.stop();
+            skinTiming.stopGameplayStartTimer();
         } else if (root.chartStatusIs(root.chart.status, ChartRunner.Finished) && !root.gameplayPlayStopped) {
             root.openGameplayStageResult();
         }
@@ -3427,654 +1507,63 @@ Item {
         return null;
     }
 
-    function isResultScreen() {
-        return root.effectiveScreenKey === "result"
-            || root.effectiveScreenKey === "courseResult";
-    }
-
-    function resultScore(side) {
-        return root.scores && root.scores.length >= side ? root.scores[side - 1] : null;
-    }
-
-    function resultData(side) {
-        let score = root.resultScore(side);
-        return score && score.result ? score.result : null;
-    }
-
-    function resultProfile(side) {
-        return root.profiles && root.profiles.length >= side
-            ? root.profiles[side - 1]
-            : (Rg.profileList ? Rg.profileList.mainProfile : null);
-    }
-
-    function resultChartData() {
-        if (root.effectiveScreenKey === "courseResult") {
-            return null;
-        }
-        if (root.chartData) {
-            return root.chartData;
-        }
-        return root.chartDatas && root.chartDatas.length > 0 ? root.chartDatas[0] : null;
-    }
-
-    function displayChartData() {
-        if (root.isResultScreen()) {
-            return root.resultChartData();
-        }
-        if (root.effectiveScreenKey === "select") {
-            return selectContext.selectedChartData();
-        }
-        if (root.isGameplayScreen()) {
-            return root.gameplayChartData();
-        }
-        return root.chart && root.chart.chartData ? root.chart.chartData : null;
-    }
-
-    function resultClearOption() {
-        let result = root.resultData(1);
-        let clearType = result ? String(result.clearType || "FAILED") : "FAILED";
-        return clearType !== "FAILED" && clearType !== "NOPLAY" ? 90 : 91;
-    }
-
-    function resultTotalNotes(result) {
-        if (!result) {
-            return 0;
-        }
-        let maxPoints = Math.floor(result.maxPoints || 0);
-        return maxPoints > 0 ? Math.floor(maxPoints / 2) : Math.max(0, result.maxHits || 0);
-    }
-
-    function resultJudgementCount(result, judgement) {
-        let counts = result && result.judgementCounts ? result.judgementCounts : [];
-        return judgement >= 0 && judgement < counts.length ? (counts[judgement] || 0) : 0;
-    }
-
-    function resultPoorCount(result) {
-        return root.resultJudgementCount(result, Judgement.Poor)
-            + root.resultJudgementCount(result, Judgement.EmptyPoor);
-    }
-
-    function resultBadPoor(result) {
-        return root.resultJudgementCount(result, Judgement.Bad) + root.resultPoorCount(result);
-    }
-
-    function emptyJudgeTimingCounts() {
-        return {
-            early: [0, 0, 0, 0, 0, 0],
-            late: [0, 0, 0, 0, 0, 0]
-        };
-    }
-
-    function judgementTimingBucket(judgement) {
-        switch (judgement) {
-        case Judgement.Perfect:
-            return 0;
-        case Judgement.Great:
-            return 1;
-        case Judgement.Good:
-            return 2;
-        case Judgement.Bad:
-            return 3;
-        case Judgement.Poor:
-            return 4;
-        case Judgement.EmptyPoor:
-            return 5;
-        default:
-            return -1;
-        }
-    }
-
-    function hitDeviationNanos(hit) {
-        if (!hit) {
-            return 0;
-        }
-        if (hit.points && hit.points.deviation !== undefined) {
-            return Number(hit.points.deviation || 0);
-        }
-        if (hit.hitOffset !== undefined) {
-            return Number(hit.hitOffset || 0);
-        }
-        return 0;
-    }
-
-    function hitDeviationMillis(hit) {
-        return Math.round(-root.hitDeviationNanos(hit) / 1000000);
-    }
-
-    function judgementUpdatesJudgeTimingValue(judgement) {
-        return judgement >= Judgement.Bad && judgement <= Judgement.Perfect;
-    }
-
-    function cloneJudgeTimingCounts(counts) {
-        if (!counts || !counts.early || !counts.late) {
-            return root.emptyJudgeTimingCounts();
-        }
-        return {
-            early: counts.early.slice(),
-            late: counts.late.slice()
-        };
-    }
-
-    function emptyJudgeLaneValues() {
-        return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    }
-
-    function nowJudgeValue(judgement) {
-        switch (judgement) {
-        case Judgement.Perfect:
-            return 1;
-        case Judgement.Great:
-            return 2;
-        case Judgement.Good:
-            return 3;
-        case Judgement.Bad:
-            return 4;
-        case Judgement.Poor:
-            return 5;
-        case Judgement.EmptyPoor:
-            return 6;
-        default:
-            return 0;
-        }
-    }
-
-    function laneJudgeValue(judgement, timing) {
-        switch (judgement) {
-        case Judgement.Perfect:
-            return 1;
-        case Judgement.Great:
-            return timing > 0 ? 2 : 3;
-        case Judgement.Good:
-            return timing > 0 ? 4 : 5;
-        case Judgement.Bad:
-            return timing > 0 ? 6 : 7;
-        default:
-            return 0;
-        }
-    }
-
-    function setGameplayJudgeLaneValue(scoreSide, hit, value) {
-        let lane = root.gameplayLr2LaneForHit(scoreSide, hit);
-        if (lane < 0) {
-            return;
-        }
-        let valuesName = scoreSide === 2 ? "gameplayJudgeLaneValues2" : "gameplayJudgeLaneValues1";
-        let values = (root[valuesName] && root[valuesName].length)
-            ? root[valuesName].slice()
-            : root.emptyJudgeLaneValues();
-        if (lane >= values.length) {
-            values.length = lane + 1;
-            for (let i = 0; i < values.length; ++i) {
-                values[i] = values[i] || 0;
-            }
-        }
-        values[lane] = value;
-        root[valuesName] = values;
-    }
-
-    function gameplayJudgeValueForId(num) {
-        if (num === 520 || num === 522) {
-            return root.gameplayJudgeNowValue1;
-        }
-        if (num === 521) {
-            return root.gameplayJudgeNowValue2;
-        }
-        let side = 1;
-        let offset = -1;
-        if (num >= 500 && num <= 519) {
-            side = Math.floor((num - 500) / 10) + 1;
-            offset = (num - 500) % 10;
-        } else if (num >= 1510 && num <= 1599) {
-            side = 1;
-            offset = (num - 1510) + 10;
-        } else if (num >= 1610 && num <= 1699) {
-            side = 2;
-            offset = (num - 1610) + 10;
-        } else {
-            return 0;
-        }
-        let values = side === 2 ? root.gameplayJudgeLaneValues2 : root.gameplayJudgeLaneValues1;
-        return values && offset >= 0 && offset < values.length ? (values[offset] || 0) : 0;
-    }
-
-    function recordGameplayJudgeTiming(scoreSide, hit) {
-        let judgement = root.gameplayJudgementFromHit(hit);
-        let bucket = root.judgementTimingBucket(judgement);
-        if (bucket < 0) {
-            return;
-        }
-
-        let countsName = scoreSide === 2 ? "gameplayJudgeTimingCounts2" : "gameplayJudgeTimingCounts1";
-        let counts = root.cloneJudgeTimingCounts(root[countsName]);
-        let side = root.hitDeviationNanos(hit) < 0 ? counts.early : counts.late;
-        side[bucket] = (side[bucket] || 0) + 1;
-        root[countsName] = counts;
-
-        let timing = root.hitDeviationMillis(hit);
-        if (root.judgementUpdatesJudgeTimingValue(judgement)) {
-            let timingName = scoreSide === 2 ? "gameplayLastJudgeTiming2" : "gameplayLastJudgeTiming1";
-            root[timingName] = timing;
-        }
-
-        if (scoreSide === 2) {
-            root.gameplayJudgeNowValue2 = root.nowJudgeValue(judgement);
-        } else {
-            root.gameplayJudgeNowValue1 = root.nowJudgeValue(judgement);
-        }
-        let laneValue = root.laneJudgeValue(judgement, timing);
-        if (laneValue > 0) {
-            root.setGameplayJudgeLaneValue(scoreSide, hit, laneValue);
-        }
-    }
-
-    function judgeTimingCount(counts, bucket, early) {
-        if (bucket < 0 || !counts) {
-            return 0;
-        }
-        let source = early ? counts.early : counts.late;
-        return source && bucket < source.length ? (source[bucket] || 0) : 0;
-    }
-
-    function judgeTimingNumberFromCounts(num, counts) {
-        if (num >= 410 && num <= 419) {
-            let bucket = Math.floor((num - 410) / 2);
-            let early = (num - 410) % 2 === 0;
-            return root.judgeTimingCount(counts, bucket, early);
-        }
-        switch (num) {
-        case 421:
-            return root.judgeTimingCount(counts, 5, true);
-        case 422:
-            return root.judgeTimingCount(counts, 5, false);
-        case 423: {
-            let total = 0;
-            for (let i = 1; i <= 5; ++i) {
-                total += root.judgeTimingCount(counts, i, true);
-            }
-            return total;
-        }
-        case 424: {
-            let total = 0;
-            for (let i = 1; i <= 5; ++i) {
-                total += root.judgeTimingCount(counts, i, false);
-            }
-            return total;
-        }
-        default:
-            return 0;
-        }
-    }
-
-    function resultCacheKey(score) {
-        if (!score) {
-            return "";
-        }
-        let replay = score.replayData || null;
-        let events = replay && replay.hitEvents ? replay.hitEvents : [];
-        let result = score.result || null;
-        let guid = replay && replay.guid ? replay.guid : (result && result.guid ? result.guid : "");
-        return String(guid) + ":" + events.length;
-    }
-
-    function resultJudgeTimingCounts(side) {
-        let score = root.resultScore(side);
-        let key = root.resultCacheKey(score);
-        if (key.length === 0) {
-            return root.emptyJudgeTimingCounts();
-        }
-
-        let cache = root.resultJudgeTimingCountsCache || {};
-        if (cache[key]) {
-            return cache[key];
-        }
-
-        let counts = root.emptyJudgeTimingCounts();
-        let events = score && score.replayData && score.replayData.hitEvents
-            ? score.replayData.hitEvents
-            : [];
-        for (let hit of events || []) {
-            let judgement = root.gameplayJudgementFromHit(hit);
-            let bucket = root.judgementTimingBucket(judgement);
-            if (bucket < 0) {
-                continue;
-            }
-            let sideCounts = root.hitDeviationNanos(hit) < 0 ? counts.early : counts.late;
-            sideCounts[bucket] = (sideCounts[bucket] || 0) + 1;
-        }
-
-        let next = Object.assign({}, cache);
-        next[key] = counts;
-        root.resultJudgeTimingCountsCache = next;
-        return counts;
-    }
-
-    function resultTimingStats(side) {
-        let score = root.resultScore(side);
-        let key = root.resultCacheKey(score);
-        if (key.length === 0) {
-            return { averageDuration: 0, average: 0, stddev: 0 };
-        }
-
-        let cache = root.resultTimingStatsCache || {};
-        if (cache[key]) {
-            return cache[key];
-        }
-
-        let events = score && score.replayData && score.replayData.hitEvents
-            ? score.replayData.hitEvents
-            : [];
-        let count = 0;
-        let absSum = 0;
-        let sum = 0;
-        let sumSq = 0;
-        for (let hit of events || []) {
-            let judgement = root.gameplayJudgementFromHit(hit);
-            if (judgement < Judgement.Bad || judgement > Judgement.Perfect) {
-                continue;
-            }
-            let ms = root.hitDeviationMillis(hit);
-            if (ms < -150 || ms > 150) {
-                continue;
-            }
-            ++count;
-            absSum += Math.abs(ms);
-            sum += ms;
-            sumSq += ms * ms;
-        }
-
-        let stats = { averageDuration: 0, average: 0, stddev: 0 };
-        if (count > 0) {
-            let average = sum / count;
-            stats = {
-                averageDuration: absSum / count,
-                average: average,
-                stddev: Math.sqrt(Math.max(0, sumSq / count - average * average))
-            };
-        }
-
-        let next = Object.assign({}, cache);
-        next[key] = stats;
-        root.resultTimingStatsCache = next;
-        return stats;
-    }
-
-    function signedAfterDot(value) {
-        let scaled = Math.floor(Math.abs(value || 0) * 100) % 100;
-        return value < 0 ? -scaled : scaled;
-    }
-
-    function resultGaugeInfo(side) {
-        let score = root.resultScore(side);
-        let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
-        if (!infos || infos.length === 0) {
-            return null;
-        }
-
-        let best = null;
-        let fallback = infos[infos.length - 1];
-        for (let i = 0; i < infos.length; ++i) {
-            let info = infos[i];
-            let history = info && info.gaugeHistory ? info.gaugeHistory : [];
-            let last = history && history.length > 0 ? history[history.length - 1].gauge : 0;
-            if (!best && last > (info.threshold || 0)) {
-                best = info;
-            }
-            if (info && !info.courseGauge) {
-                fallback = info;
-            }
-        }
-        return best || fallback;
-    }
-
-    function resultGaugeValue(side) {
-        let info = root.resultGaugeInfo(side);
-        let history = info && info.gaugeHistory ? info.gaugeHistory : [];
-        return history && history.length > 0 ? (history[history.length - 1].gauge || 0) : 0;
-    }
-
-    function gaugeAfterDot(value) {
-        let scaled = Math.max(0, value || 0) * 10;
-        return scaled > 0 && scaled < 1 ? 1 : Math.floor(scaled) % 10;
-    }
-
-    function resultExScore(result) {
-        return result ? Math.floor(result.points || 0) : 0;
-    }
-
-    function resultLr2Score(result) {
-        let totalNotes = root.resultTotalNotes(result);
-        if (totalNotes <= 0) {
-            return 0;
-        }
-        let pgreat = root.resultJudgementCount(result, Judgement.Perfect);
-        let great = root.resultJudgementCount(result, Judgement.Great);
-        let good = root.resultJudgementCount(result, Judgement.Good);
-        return Math.floor((good + (great + pgreat * 2) * 2) * 50000 / totalNotes);
-    }
-
-    function resultScorePrint(result) {
-        let value = root.resultLr2Score(result);
-        let chartData = root.resultChartData();
-        let keymode = chartData ? chartData.keymode : (result ? result.keymode : 0);
-        return keymode === 7 || keymode === 14 ? value : Math.floor(value / 20) * 10;
-    }
-
-    function resultRateInteger(result) {
-        let denominator = root.resultTotalNotes(result) * 2;
-        return denominator > 0 ? Math.floor(root.resultExScore(result) * 100 / denominator) : 0;
-    }
-
-    function resultRateDecimal(result) {
-        let denominator = root.resultTotalNotes(result) * 2;
-        return denominator > 0 ? Math.floor(root.resultExScore(result) * 10000 / denominator) % 100 : 0;
-    }
-
-    function resultScoreRateInteger(points, result) {
-        let denominator = root.resultTotalNotes(result) * 2;
-        return denominator > 0 ? Math.floor(points * 100 / denominator) : 0;
-    }
-
-    function resultScoreRateDecimal(points, result) {
-        let denominator = root.resultTotalNotes(result) * 2;
-        return denominator > 0 ? Math.floor(points * 10000 / denominator) % 100 : 0;
-    }
-
-    function resultRawRank(result) {
-        let denominator = root.resultTotalNotes(result) * 2;
-        if (!result || denominator <= 0 || root.resultExScore(result) <= 0) {
-            return -1;
-        }
-        return Math.floor(root.resultExScore(result) * 9 / denominator);
-    }
-
-    function resultRankDelta(result) {
-        let totalNotes = root.resultTotalNotes(result);
-        let perfectScore = totalNotes * 2;
-        let exScore = root.resultExScore(result);
-        if (totalNotes <= 0 || exScore === perfectScore) {
-            return 0;
-        }
-        let rank = Math.floor(exScore * 9 / perfectScore);
-        rank = Math.max(1, Math.min(8, rank));
-        return exScore - Math.floor(perfectScore * (rank + 1) / 9);
-    }
-
-    function resultRankOptionForResult(result, baseOption) {
-        let rank = root.resultRawRank(result);
-        if (rank < 0) {
-            return baseOption + 8;
-        }
-        if (rank >= 8) {
-            return baseOption;
-        }
-        if (rank <= 1) {
-            return baseOption + 7;
-        }
-        return baseOption + (8 - rank);
-    }
-
-    function resultOldScores(side) {
-        root.resultOldScoresRevision;
-        return side === 2 ? root.resultOldScores2 : root.resultOldScores1;
-    }
-
-    function resultBestScoreByPoints(scores) {
-        let best = null;
-        let bestRate = -1;
-        for (let score of scores || []) {
-            let result = score && score.result ? score.result : null;
-            let maxPoints = result ? (result.maxPoints || 0) : 0;
-            if (maxPoints <= 0) {
-                continue;
-            }
-            let rate = (result.points || 0) / maxPoints;
-            if (rate > bestRate) {
-                best = score;
-                bestRate = rate;
-            }
-        }
-        return best;
-    }
-
-    function resultOldBestScore(side) {
-        return root.resultBestScoreByPoints(root.resultOldScores(side));
-    }
-
-    function resultLastOldScore(side) {
-        root.resultOldScoresRevision;
-        let scores = root.resultOldScores(side) || [];
-        return scores.length > 0 ? scores[0] : null;
-    }
-
-    function resultTargetSavedScore(side) {
-        let profile = root.resultProfile(side);
-        let vars = profile && profile.vars ? profile.vars.generalVars : null;
-        switch (vars ? vars.scoreTarget : ScoreTarget.BestScore) {
-        case ScoreTarget.LastScore:
-            return root.resultLastOldScore(side);
-        case ScoreTarget.BestScore:
-            return root.resultOldBestScore(side);
-        default:
-            return null;
-        }
-    }
-
-    function resultTargetFraction(side) {
-        let profile = root.resultProfile(side);
-        let vars = profile && profile.vars ? profile.vars.generalVars : null;
-        return vars ? (vars.targetScoreFraction || 0) : 0;
-    }
-
-    function resultTargetPoints(side) {
-        let targetScore = root.resultTargetSavedScore(side);
-        if (targetScore && targetScore.result) {
-            return root.resultExScore(targetScore.result);
-        }
-        let current = root.resultData(side);
-        return current ? Math.floor((current.maxPoints || 0) * root.resultTargetFraction(side)) : 0;
-    }
-
-    function resultHighScorePoints(side) {
-        return root.resultExScore(root.resultOldBestResult(side));
-    }
-
-    function resultTargetMaxPoints(side) {
-        let current = root.resultData(side);
-        return current ? Math.max(1, current.maxPoints || 1) : 1;
-    }
-
-    function resultOldBestResult(side) {
-        let score = root.resultOldBestScore(side);
-        return score && score.result ? score.result : null;
-    }
-
-    function resultUpdatedBestResult(side) {
-        let current = root.resultData(side);
-        let old = root.resultOldBestResult(side);
-        if (!current) {
-            return old;
-        }
-        if (!old || (current.maxPoints || 0) <= 0 || (old.maxPoints || 0) <= 0) {
-            return current;
-        }
-        return current.points / current.maxPoints >= old.points / old.maxPoints ? current : old;
-    }
-
-    function resultScoreImproved(side) {
-        let current = root.resultData(side);
-        let old = root.resultOldBestResult(side);
-        return !!current && (!old || root.resultExScore(current) > root.resultExScore(old));
-    }
-
-    function resultComboImproved(side) {
-        let current = root.resultData(side);
-        let old = root.resultOldBestResult(side);
-        return !!current && (!old || (current.maxCombo || 0) > (old.maxCombo || 0));
-    }
-
-    function resultBadPoorImproved(side) {
-        let current = root.resultData(side);
-        let old = root.resultOldBestResult(side);
-        return !!current && (!old || root.resultBadPoor(current) < root.resultBadPoor(old));
-    }
-
-    function updateResultOldScores() {
-        if (!root.isResultScreen()) {
-            return;
-        }
-        let request = ++root.resultOldScoresRequest;
-        root.resultOldScores1 = [];
-        root.resultOldScores2 = [];
-        root.resultOldScoresRevision++;
-
-        for (let side = 1; side <= 2; ++side) {
-            let score = root.resultScore(side);
-            let profile = root.resultProfile(side);
-            let scoreDb = profile ? profile.scoreDb : null;
-            if (!score || !score.result || !scoreDb) {
-                continue;
-            }
-            let currentGuid = score.result.guid || "";
-            if (root.course && root.course.identifier) {
-                let courseId = root.course.identifier;
-                scoreDb.getScoresForCourseId([courseId]).then(result => {
-                    if (request !== root.resultOldScoresRequest) {
-                        return;
-                    }
-                    let list = result && result.scores ? (result.scores[courseId] || []) : [];
-                    let filtered = list.filter(oldScore => oldScore && oldScore.result && oldScore.result.guid !== currentGuid);
-                    if (side === 2) {
-                        root.resultOldScores2 = filtered;
-                    } else {
-                        root.resultOldScores1 = filtered;
-                    }
-                    root.resultOldScoresRevision++;
-                });
-            } else {
-                let chartData = root.resultChartData();
-                let md5 = chartData && chartData.md5 ? String(chartData.md5).toUpperCase() : "";
-                if (md5.length === 0) {
-                    continue;
-                }
-                scoreDb.getScoresForMd5([md5]).then(result => {
-                    if (request !== root.resultOldScoresRequest) {
-                        return;
-                    }
-                    let list = result && result.scores
-                        ? (result.scores[md5] || result.scores[md5.toLowerCase()] || [])
-                        : [];
-                    let filtered = list.filter(oldScore => oldScore && oldScore.result && oldScore.result.guid !== currentGuid);
-                    if (side === 2) {
-                        root.resultOldScores2 = filtered;
-                    } else {
-                        root.resultOldScores1 = filtered;
-                    }
-                    root.resultOldScoresRevision++;
-                });
-            }
-        }
-    }
-
+    function isResultScreen() { return screenState.isResultScreen(); }
+    function resultScore(side) { return resultState.resultScore(side); }
+    function resultData(side) { return resultState.resultData(side); }
+    function resultProfile(side) { return resultState.resultProfile(side); }
+    function resultChartData() { return resultState.resultChartData(); }
+    function displayChartData() { return resultState.displayChartData(); }
+    function resultClearOption() { return resultState.resultClearOption(); }
+    function resultTotalNotes(result) { return resultState.resultTotalNotes(result); }
+    function resultJudgementCount(result, judgement) { return resultState.resultJudgementCount(result, judgement); }
+    function resultPoorCount(result) { return resultState.resultPoorCount(result); }
+    function resultBadPoor(result) { return resultState.resultBadPoor(result); }
+    function emptyJudgeTimingCounts() { return resultState.emptyJudgeTimingCounts(); }
+    function judgementTimingBucket(judgement) { return resultState.judgementTimingBucket(judgement); }
+    function hitDeviationNanos(hit) { return resultState.hitDeviationNanos(hit); }
+    function hitDeviationMillis(hit) { return resultState.hitDeviationMillis(hit); }
+    function judgementUpdatesJudgeTimingValue(judgement) { return resultState.judgementUpdatesJudgeTimingValue(judgement); }
+    function cloneJudgeTimingCounts(counts) { return resultState.cloneJudgeTimingCounts(counts); }
+    function emptyJudgeLaneValues() { return resultState.emptyJudgeLaneValues(); }
+    function nowJudgeValue(judgement) { return resultState.nowJudgeValue(judgement); }
+    function laneJudgeValue(judgement, timing) { return resultState.laneJudgeValue(judgement, timing); }
+    function setGameplayJudgeLaneValue(scoreSide, hit, value) { resultState.setGameplayJudgeLaneValue(scoreSide, hit, value); }
+    function gameplayJudgeValueForId(num) { return resultState.gameplayJudgeValueForId(num); }
+    function recordGameplayJudgeTiming(scoreSide, hit) { resultState.recordGameplayJudgeTiming(scoreSide, hit); }
+    function judgeTimingCount(counts, bucket, early) { return resultState.judgeTimingCount(counts, bucket, early); }
+    function judgeTimingNumberFromCounts(num, counts) { return resultState.judgeTimingNumberFromCounts(num, counts); }
+    function resultCacheKey(score) { return resultState.resultCacheKey(score); }
+    function resultJudgeTimingCounts(side) { return resultState.resultJudgeTimingCounts(side); }
+    function resultTimingStats(side) { return resultState.resultTimingStats(side); }
+    function signedAfterDot(value) { return resultState.signedAfterDot(value); }
+    function resultGaugeInfo(side) { return resultState.resultGaugeInfo(side); }
+    function resultGaugeValue(side) { return resultState.resultGaugeValue(side); }
+    function gaugeAfterDot(value) { return resultState.gaugeAfterDot(value); }
+    function resultExScore(result) { return resultState.resultExScore(result); }
+    function resultLr2Score(result) { return resultState.resultLr2Score(result); }
+    function resultScorePrint(result) { return resultState.resultScorePrint(result); }
+    function resultRateInteger(result) { return resultState.resultRateInteger(result); }
+    function resultRateDecimal(result) { return resultState.resultRateDecimal(result); }
+    function resultScoreRateInteger(points, result) { return resultState.resultScoreRateInteger(points, result); }
+    function resultScoreRateDecimal(points, result) { return resultState.resultScoreRateDecimal(points, result); }
+    function resultRawRank(result) { return resultState.resultRawRank(result); }
+    function resultRankDelta(result) { return resultState.resultRankDelta(result); }
+    function resultRankOptionForResult(result, baseOption) { return resultState.resultRankOptionForResult(result, baseOption); }
+    function resultOldScores(side) { return resultState.resultOldScores(side); }
+    function resultBestScoreByPoints(scores) { return resultState.resultBestScoreByPoints(scores); }
+    function resultOldBestScore(side) { return resultState.resultOldBestScore(side); }
+    function resultLastOldScore(side) { return resultState.resultLastOldScore(side); }
+    function resultTargetSavedScore(side) { return resultState.resultTargetSavedScore(side); }
+    function resultTargetFraction(side) { return resultState.resultTargetFraction(side); }
+    function resultTargetPoints(side) { return resultState.resultTargetPoints(side); }
+    function resultHighScorePoints(side) { return resultState.resultHighScorePoints(side); }
+    function resultTargetMaxPoints(side) { return resultState.resultTargetMaxPoints(side); }
+    function resultOldBestResult(side) { return resultState.resultOldBestResult(side); }
+    function resultUpdatedBestResult(side) { return resultState.resultUpdatedBestResult(side); }
+    function resultScoreImproved(side) { return resultState.resultScoreImproved(side); }
+    function resultComboImproved(side) { return resultState.resultComboImproved(side); }
+    function resultBadPoorImproved(side) { return resultState.resultBadPoorImproved(side); }
+    function updateResultOldScores() { resultState.updateResultOldScores(); }
     function gameplayPlayer(side) {
         if (!root.chart) {
             return null;
@@ -4568,19 +2057,6 @@ Item {
         return 134;
     }
 
-    function appendGameplayLaneCoverOptions(options, side) {
-        let vars = root.generalVarsForSide(side);
-        if (vars && vars.laneCoverOn) {
-            root.addOption(options, 271);
-        }
-        if (vars && vars.liftOn) {
-            root.addOption(options, 272);
-        }
-        if (vars && vars.hiddenOn) {
-            root.addOption(options, 273);
-        }
-    }
-
     function gameplayJudgementOption(side, baseOption) {
         let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
@@ -4606,27 +2082,6 @@ Item {
         return root.resultJudgementCount(resultOrScore, judgement);
     }
 
-    function appendJudgementExistOptions(options, resultOrScore) {
-        if (root.judgementCountForExist(resultOrScore, Judgement.Perfect) > 0) {
-            root.addOption(options, 2241);
-        }
-        if (root.judgementCountForExist(resultOrScore, Judgement.Great) > 0) {
-            root.addOption(options, 2242);
-        }
-        if (root.judgementCountForExist(resultOrScore, Judgement.Good) > 0) {
-            root.addOption(options, 2243);
-        }
-        if (root.judgementCountForExist(resultOrScore, Judgement.Bad) > 0) {
-            root.addOption(options, 2244);
-        }
-        if (root.judgementCountForExist(resultOrScore, Judgement.Poor) > 0) {
-            root.addOption(options, 2245);
-        }
-        if (root.judgementCountForExist(resultOrScore, Judgement.EmptyPoor) > 0) {
-            root.addOption(options, 2246);
-        }
-    }
-
     function gameplaySudChanging(side) {
         let vars = root.generalVarsForSide(side);
         let laneCoverOn = !!vars && !!vars.laneCoverOn;
@@ -4637,133 +2092,6 @@ Item {
                         && (Input.col2sUp || Input.col2sDown)));
         }
         return Input.col2sUp || Input.col2sDown;
-    }
-
-    function appendGameplaySideOptions(options, side) {
-        let score = root.gameplayScore(side);
-        root.addOption(options, root.gameplayGaugeOption(side));
-        root.addOption(options, root.gameplayLaneOption(score));
-        root.addOption(options, root.gameplayLaneCoverOption(side));
-        root.appendGameplayLaneCoverOptions(options, side);
-
-        let currentRank = root.gameplayRankOption(score, side === 2 ? 210 : 200, true);
-        if (currentRank >= 0) {
-            root.addOption(options, currentRank);
-        }
-        if (side === 1) {
-            let totalRank = root.gameplayRankOption(score, 220, false);
-            if (totalRank >= 0) {
-                root.addOption(options, totalRank);
-            }
-            root.addOption(options, root.gameplayExactRankOption(score, 300));
-        } else {
-            root.addOption(options, root.gameplayExactRankOption(score, 310));
-        }
-        root.addGameplayGaugeRangeOption(options, score, side === 2 ? 250 : 230);
-        if (side === 1 && root.gameplayGaugeQualified(score)) {
-            root.addOption(options, 1240);
-        }
-        let judgementOption = root.gameplayJudgementOption(side, side === 2 ? 261 : 241);
-        if (judgementOption >= 0) {
-            root.addOption(options, judgementOption);
-        }
-        let timing = side === 2 ? root.gameplayLastJudgeTiming2 : root.gameplayLastJudgeTiming1;
-        if (timing !== 0 && judgementOption >= 0 && judgementOption !== (side === 2 ? 261 : 241)) {
-            root.addOption(options, timing > 0 ? (side === 2 ? 1262 : 1242) : (side === 2 ? 1263 : 1243));
-        }
-        root.addOption(options, root.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
-    }
-
-    function appendGameplayRuntimeOptions(options) {
-        root.gameplayRevision;
-        let chartData = root.gameplayChartData();
-        root.appendSelectedChartModeOptions(options, chartData);
-        root.appendChartOptions(options, chartData);
-        root.appendGameplaySideOptions(options, 1);
-        if (root.gameplayLanePlayer(2)) {
-            root.appendGameplaySideOptions(options, 2);
-        }
-        root.appendJudgementExistOptions(options, root.gameplayScore(1));
-        if (root.gameplaySudChanging(1)) {
-            root.addOption(options, 270);
-        }
-        if (root.gameplaySudChanging(2)) {
-            root.addOption(options, 271);
-        }
-
-        root.addOption(options, 142); // autoscratch off.
-        if (root.battleModeActive()) {
-            root.addOption(options, 144);
-        }
-        if (root.spToDpActive()) {
-            root.addOption(options, 145);
-        }
-        if (root.chart && root.chart.chartDatas && root.chart.currentChartIndex !== undefined) {
-            let stage = Math.max(0, root.chart.currentChartIndex || 0);
-            let count = root.chart.chartDatas.length || 0;
-            root.addOption(options, 290);
-            root.addOption(options, 293);
-            if (count > 0 && stage === count - 1) {
-                root.addOption(options, 289);
-            } else if (count > 0) {
-                root.addOption(options, 280 + Math.min(stage, 8));
-            }
-        }
-    }
-
-    function appendResultRuntimeOptions(options) {
-        root.resultOldScoresRevision;
-        let chartData = root.resultChartData();
-        root.appendSelectedChartModeOptions(options, chartData);
-        root.appendChartOptions(options, chartData);
-        root.addOption(options, root.resultClearOption());
-        if (options.indexOf(351) === -1) {
-            root.addOption(options, 350);
-        }
-
-        let current1 = root.resultData(1);
-        let current2 = root.resultData(2);
-        root.addOption(options, root.resultRankOptionForResult(current1, 300));
-        if (current2) {
-            root.addOption(options, root.resultRankOptionForResult(current2, 310));
-        }
-        root.addOption(options, root.resultRankOptionForResult(root.resultOldBestResult(1), 320));
-        root.addOption(options, root.resultRankOptionForResult(root.resultUpdatedBestResult(1), 340));
-
-        if (root.resultScoreImproved(1)) {
-            root.addOption(options, 330);
-            if (root.resultRawRank(current1) > root.resultRawRank(root.resultOldBestResult(1))) {
-                root.addOption(options, 335);
-            }
-        } else {
-            root.addOption(options, 1330);
-            if (root.resultRawRank(current1) === root.resultRawRank(root.resultOldBestResult(1))) {
-                root.addOption(options, 1335);
-            }
-        }
-        if (root.resultComboImproved(1)) {
-            root.addOption(options, 331);
-        } else {
-            root.addOption(options, 1331);
-        }
-        if (root.resultBadPoorImproved(1)) {
-            root.addOption(options, 332);
-        } else {
-            root.addOption(options, 1332);
-        }
-        let targetDiff = root.resultExScore(current1) - root.resultTargetPoints(1);
-        if (targetDiff > 0) {
-            root.addOption(options, 336);
-        } else if (targetDiff === 0) {
-            root.addOption(options, 1336);
-        }
-
-        if (current1 && current2) {
-            let diff = root.resultExScore(current1) - root.resultExScore(current2);
-            root.addOption(options, diff > 0 ? 352 : (diff < 0 ? 353 : 354));
-        }
-
-        root.appendJudgementExistOptions(options, current1);
     }
 
     function queueGameplayRevision() {
@@ -5053,7 +2381,7 @@ Item {
             } else {
                 root.gameplayLastMissSkinTime1 = root.renderSkinTime;
             }
-            gameplayPoorBgaOptionTimer.restart();
+            skinTiming.restartGameplayPoorBgaOptionTimer();
         }
 
         let totalNotes = root.gameplayTotalNotes(score);
@@ -5349,47 +2677,21 @@ Item {
         }
     }
 
-    function appendCurrentSelectOptions(options, item, selectedChart) {
-        root.appendSelectItemTypeOptions(options, item);
-        root.appendSelectedChartModeOptions(options, selectedChart);
-        root.appendEntryStatusOptions(options, item, selectedChart);
-        root.appendCourseOptions(options, item);
-
-        if (selectedChart) {
-            root.appendDifficultyBarOptions(options);
-        }
-
-        root.appendChartOptions(options, selectedChart);
-        if (root.selectUsesScoreOptionIds()) {
-            for (let optionId of selectContext.scoreOptionIds(item)) {
-                root.addOption(options, optionId);
-            }
-        }
-    }
-
-    function appendDecideOptions(options) {
-        let chartData = root.chart && root.chart.chartData
-            ? root.chart.chartData
-            : selectContext.selectedChartData();
-        root.appendSelectItemTypeOptions(options, chartData);
-        root.appendSelectedChartModeOptions(options, chartData);
-        root.appendEntryStatusOptions(options, chartData, chartData);
-        root.appendChartOptions(options, chartData);
-        if (root.selectUsesScoreOptionIds()) {
-            for (let optionId of selectContext.scoreOptionIds(chartData)) {
-                root.addOption(options, optionId);
-            }
-        }
+    Lr2RuntimeOptionBuilder {
+        id: runtimeOptions
+        host: root
+        selectContext: selectContext
+        skinModel: skinModel
     }
 
     // Bar delegates get per-row state from the select context; keep their option set stable.
-    readonly property var barActiveOptions: root.buildBarActiveOptions()
-    readonly property var baseActiveOptions: root.buildBaseActiveOptions(root.barActiveOptions)
+    readonly property var barActiveOptions: runtimeOptions.buildBarActiveOptions()
+    readonly property var baseActiveOptions: runtimeOptions.buildBaseActiveOptions(root.barActiveOptions)
     readonly property var runtimeActiveOptions: root.isGameplayScreen()
         ? root.gameplayRuntimeActiveOptions
         : (root.effectiveScreenKey === "select"
             ? root.selectRuntimeActiveOptions
-            : root.buildRuntimeActiveOptions(root.baseActiveOptions))
+            : runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions))
     readonly property var barTimers: ({ "0": 0 })
 
     function sameNumberArray(a, b) {
@@ -5408,17 +2710,17 @@ Item {
     }
 
     function refreshSelectRuntimeActiveOptions() {
-        if (root.effectiveScreenKey !== "select") {
+        if (!root.screenUpdatesActive || root.effectiveScreenKey !== "select") {
             return;
         }
-        let next = root.buildRuntimeActiveOptions(root.baseActiveOptions);
+        let next = runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions);
         if (!root.sameNumberArray(root.selectRuntimeActiveOptions, next)) {
             root.selectRuntimeActiveOptions = next;
         }
     }
 
     function scheduleSelectRuntimeActiveOptionsRefresh() {
-        if (root.effectiveScreenKey !== "select") {
+        if (!root.screenUpdatesActive || root.effectiveScreenKey !== "select") {
             return;
         }
         if (root.selectRuntimeActiveOptionsRefreshQueued) {
@@ -5431,119 +2733,6 @@ Item {
         });
     }
 
-    function runtimeOwnsOptionPair(option) {
-        switch (option) {
-        case 30:
-        case 31:
-        case 32:
-        case 33:
-        case 34:
-        case 35:
-        case 36:
-        case 37:
-        case 38:
-        case 39:
-        case 40:
-        case 41:
-        case 42:
-        case 43:
-        case 44:
-        case 45:
-        case 1046:
-        case 1047:
-        case 50:
-        case 51:
-        case 80:
-        case 81:
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    function appendParserActiveOptions(result) {
-        root.addOption(result, 0);
-        let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
-            ? skinModel.effectiveActiveOptions
-            : root.parseActiveOptions;
-        for (let option of staticOptions) {
-            if (root.runtimeOwnsOptionPair(option)) {
-                continue;
-            }
-            root.addOption(result, option);
-        }
-    }
-
-    function appendStaticSelectOptions(result) {
-        root.appendParserActiveOptions(result);
-
-        root.addOption(result, 20);  // no side panel active
-        root.addOption(result, 46);  // difficulty filter enabled
-        root.addOption(result, 52);  // non-extra mode
-        root.addOption(result, 572); // not course-select mode
-        root.addOption(result, 622); // no ghost battle
-        root.addOption(result, 624); // no rival score
-    }
-
-    function buildBarActiveOptions() {
-        let result = root.finalizeOptionList([]);
-        root.appendStaticSelectOptions(result);
-        root.addOption(result, selectContext.rankingMode ? 621 : 620);
-        return result;
-    }
-
-    function buildBaseActiveOptions(barOptions) {
-        let result = root.effectiveScreenKey === "select"
-            ? root.finalizeOptionList((barOptions || root.barActiveOptions).slice())
-            : root.finalizeOptionList([]);
-        if (root.effectiveScreenKey !== "select") {
-            root.appendParserActiveOptions(result);
-        }
-
-        if (root.effectiveScreenKey !== "select") {
-            return result;
-        }
-
-        root.addOption(result, root.lr2RankingStatusOption());
-        let rankingCount = root.lr2RankingPlayerCount();
-        if (rankingCount === 0) {
-            root.addOption(result, 610);
-        }
-        for (let threshold = 1; threshold <= 6; ++threshold) {
-            if (rankingCount > threshold - 1) {
-                root.addOption(result, 610 + threshold);
-            }
-        }
-        root.addOption(result, 622); // not ghost battle
-        root.addOption(result, 624); // not rival compare
-        root.appendPanelOptions(result);
-
-        return result;
-    }
-
-    function buildRuntimeActiveOptions(baseOptions) {
-        let result = root.finalizeOptionList(baseOptions.slice());
-        if (root.effectiveScreenKey === "select") {
-            root.appendCommonRuntimeOptions(result);
-            let item = selectContext.current;
-            let selectedChart = selectContext.selectedChartData();
-            root.appendCurrentSelectOptions(result, item, selectedChart);
-        } else if (root.effectiveScreenKey === "decide") {
-            root.appendCommonRuntimeOptions(result);
-            root.appendDecideOptions(result);
-        } else if (root.isGameplayScreen()) {
-            root.appendCommonRuntimeOptions(result);
-            root.appendGameplayRuntimeOptions(result);
-        } else if (root.isResultScreen()) {
-            root.appendCommonRuntimeOptions(result);
-            root.appendResultRuntimeOptions(result);
-        } else {
-            root.appendChartOptions(result, root.chart && root.chart.chartData ? root.chart.chartData : null);
-        }
-
-        return result;
-    }
-
     onBaseActiveOptionsChanged: {
         root.scheduleGameplayRuntimeActiveOptionsRefresh();
         root.scheduleSelectRuntimeActiveOptionsRefresh();
@@ -5553,7 +2742,7 @@ Item {
         if (!root.isGameplayScreen()) {
             return;
         }
-        root.gameplayRuntimeActiveOptions = root.buildRuntimeActiveOptions(root.baseActiveOptions);
+        root.gameplayRuntimeActiveOptions = runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions);
     }
 
     function scheduleGameplayRuntimeActiveOptionsRefresh() {
@@ -5571,15 +2760,13 @@ Item {
     }
 
     readonly property int selectRevision: selectContext.selectionRevision + selectContext.scoreRevision
-    property var deferredSelectChart: null
-    property string activePreviewSource: ""
-    property int pendingPreviewRevision: -1
-    property int pendingPreviewRequest: 0
-    property string pendingPreviewSource: ""
-    property bool selectSideEffectsReady: false
-    readonly property var renderChart: root.effectiveScreenKey === "select"
-        ? root.deferredSelectChart
-        : (root.chart || root.resultChartData())
+    property alias deferredSelectChart: selectSideEffects.deferredChart
+    property alias activePreviewSource: selectSideEffects.activePreviewSource
+    property alias pendingPreviewRevision: selectSideEffects.pendingPreviewRevision
+    property alias pendingPreviewRequest: selectSideEffects.pendingPreviewRequest
+    property alias pendingPreviewSource: selectSideEffects.pendingPreviewSource
+    property alias selectSideEffectsReady: selectSideEffects.ready
+    readonly property var renderChart: selectSideEffects.renderChart
     readonly property var visualSelectChart: root.effectiveScreenKey === "select"
         ? selectContext.selectedChartWrapper()
         : root.renderChart
@@ -5619,7 +2806,7 @@ Item {
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
             root.selectPanelClosing = 0;
-            root.lr2ReadmeMode = 0;
+            root.hideReadmeImmediately();
             root.clearLr2RankingTransition();
         }
         if (root.isGameplayScreen()) {
@@ -5778,58 +2965,14 @@ Item {
     }
 
     function updateDisplayedSelectChart() {
-        if (root.effectiveScreenKey === "select") {
-            root.deferredSelectChart = selectContext.selectedChartWrapper();
-        } else {
-            root.deferredSelectChart = root.chart;
-        }
+        selectSideEffects.updateDisplayedChart();
     }
 
     // Previews and ranking fetches are committed side effects; visual selection stays reactive.
     function updateSelectSideEffects() {
-        if (!root.selectSideEffectsReady) {
-            return;
-        }
-
-        if (selectContext.scrollFixedPointDragging) {
-            root.updateDisplayedSelectChart();
-            return;
-        }
-
-        if (!root.selectAudioActive) {
-            root.stopSelectAudio();
-            root.updateDisplayedSelectChart();
-            return;
-        }
-
-        if (!root.deferredSelectChart || skinModel.reloadBanner) {
-            root.updateDisplayedSelectChart();
-        } else {
-            selectChartSettleTimer.restart();
-        }
-
-        let nextPreviewSource = selectContext.selectedPreviewSource() || "";
-        root.pendingPreviewRevision = root.selectRevision;
-        if (nextPreviewSource === root.pendingPreviewSource) {
-            if (nextPreviewSource !== ""
-                    && root.activePreviewSource !== nextPreviewSource
-                    && !previewDelayTimer.running) {
-                previewDelayTimer.restart();
-            }
-            return;
-        }
-
-        previewDelayTimer.stop();
-        root.pendingPreviewRequest += 1;
-        root.pendingPreviewSource = nextPreviewSource;
-        root.activePreviewSource = "";
-        playMusic.stop();
-        if (nextPreviewSource !== "") {
-            previewDelayTimer.restart();
-        }
+        selectSideEffects.update();
     }
-    readonly property bool acceptsInput: root.effectiveScreenKey !== "select"
-        || root.globalSkinTime >= skinModel.startInput
+    readonly property bool acceptsInput: screenState.acceptsInput
     onAcceptsInputChanged: {
         if (root.effectiveScreenKey === "select" && root.acceptsInput) {
             root.selectNoScrollStartSkinTime = root.renderSkinTime;
@@ -6207,162 +3350,47 @@ Item {
     }
 
     function translatedSliderState(src, dsts, position, skinTime) {
-        let clock = skinTime === undefined
-            ? root.skinTimeForElement(src, dsts)
-            : skinTime;
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        let base = Lr2Timeline.getCurrentStateFromTimerFire(
-            dsts,
-            clock,
-            root.skinTimerFireTime(timer),
-            root.runtimeActiveOptions);
-        if (!base) {
-            return null;
-        }
-
-        let sliderOffset = position * Math.max(1, src.sliderRange || 0);
-        let offsetX = 0;
-        let offsetY = 0;
-        switch (src.sliderDirection) {
-        case 0:
-            offsetY = -sliderOffset;
-            break;
-        case 1:
-            offsetX = sliderOffset;
-            break;
-        case 2:
-            offsetY = sliderOffset;
-            break;
-        case 3:
-            offsetX = -sliderOffset;
-            break;
-        default:
-            return null;
-        }
-
-        return {
-            x: base.x + offsetX,
-            y: base.y + offsetY,
-            w: base.w,
-            h: base.h,
-            a: base.a,
-            r: base.r,
-            g: base.g,
-            b: base.b,
-            angle: base.angle || 0,
-            center: base.center || 0,
-            blend: base.blend || 0,
-            filter: base.filter || 0,
-            op1: base.op1 || 0,
-            op2: base.op2 || 0,
-            op3: base.op3 || 0,
-            op4: base.op4 || 0
-        };
+        return skinSliderState.translatedState(src, dsts, position, skinTime);
     }
 
     function selectScrollSliderState(src, dsts, skinTime) {
-        if (!root.isSelectScrollSlider(src)) {
-            return null;
-        }
-
-        let logicalCount = Math.max(1, selectContext.logicalCount);
-        let maxFixed = Math.max(1, logicalCount * 1000 - 1);
-        let fixedValue = Math.max(0, Math.min(maxFixed, selectContext.listCalculatedBarFixed));
-        let position = logicalCount > 1
-            ? fixedValue / maxFixed
-            : 0;
-        return root.translatedSliderState(src, dsts, position, skinTime);
+        return skinSliderState.selectScrollState(src, dsts, skinTime);
     }
 
     function lr2GenericSliderState(src, dsts, skinTime) {
-        if (!root.isLr2GenericSlider(src)) {
-            return null;
-        }
-        let position = src.sliderType === 7
-            ? root.lr2SkinCustomPosition()
-            : root.sliderRawValue(src.sliderType) / 100;
-        return root.translatedSliderState(src, dsts, position, skinTime);
+        return skinSliderState.genericState(src, dsts, skinTime);
     }
 
     function gameplayProgressSliderState(src, dsts, skinTime) {
-        if (!root.isGameplayProgressSlider(src)) {
-            return null;
-        }
-        root.globalSkinTime;
-        let player = root.gameplayPlayer(1);
-        let elapsed = player ? Math.max(0, player.elapsed || 0) : 0;
-        let length = player ? Math.max(0, player.chartLength || 0) : 0;
-        let position = length > 0 ? Math.max(0, Math.min(1, elapsed / length)) : 0;
-        return root.translatedSliderState(src, dsts, position, skinTime);
+        return skinSliderState.gameplayProgressState(src, dsts, skinTime);
     }
 
     function gameplayLaneCoverSliderState(src, dsts, skinTime) {
-        if (!root.isGameplayLaneCoverSlider(src)) {
-            return null;
-        }
-        root.globalSkinTime;
-        let side = src.sliderType === 5 ? 2 : 1;
-        let position = Math.max(0, Math.min(1, root.laneCoverNumber(side) / 1000));
-        return root.translatedSliderState(src, dsts, position, skinTime);
+        return skinSliderState.gameplayLaneCoverState(src, dsts, skinTime);
     }
 
     function selectScrollSliderTrackState(src, dsts, skinTime) {
-        if (!root.isSelectScrollSlider(src)) {
-            return null;
-        }
-        return root.sliderTrackState(src, dsts, skinTime);
+        return skinSliderState.selectScrollTrackState(src, dsts, skinTime);
     }
 
     function lr2GenericSliderTrackState(src, dsts, skinTime) {
-        if (!root.isLr2GenericSlider(src)) {
-            return null;
-        }
-        return root.sliderTrackState(src, dsts, skinTime);
+        return skinSliderState.genericTrackState(src, dsts, skinTime);
     }
 
     function setSelectScrollFromSliderPointer(src, dsts, pointerX, pointerY) {
-        if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0) {
-            return;
-        }
-        let track = root.selectScrollSliderTrackState(src, dsts);
-        root.setSelectScrollFromSliderTrack(src, track, pointerX, pointerY);
+        skinSliderState.setSelectScrollFromPointer(src, dsts, pointerX, pointerY);
     }
 
     function setSelectScrollFromSliderTrack(src, track, pointerX, pointerY) {
-        if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0) {
-            return;
-        }
-        if (!track) {
-            return;
-        }
-
-        let position = root.sliderPositionFromPointer(src, track, pointerX, pointerY);
-        let maxFixed = Math.max(0, selectContext.logicalCount * 1000 - 1);
-        let fixedPoint = Math.max(0, Math.min(maxFixed, Math.round(position * maxFixed)));
-        if (fixedPoint === root.selectSliderFixedPoint) {
-            return;
-        }
-        root.selectSliderFixedPoint = fixedPoint;
-        selectContext.dragScrollFixedPoint(fixedPoint);
+        skinSliderState.setSelectScrollFromTrack(src, track, pointerX, pointerY);
     }
 
     function setLr2GenericSliderFromPointer(src, dsts, pointerX, pointerY) {
-        let track = root.lr2GenericSliderTrackState(src, dsts);
-        root.setLr2GenericSliderFromTrack(src, track, pointerX, pointerY);
+        skinSliderState.setGenericFromPointer(src, dsts, pointerX, pointerY);
     }
 
     function setLr2GenericSliderFromTrack(src, track, pointerX, pointerY) {
-        if (!track) {
-            return;
-        }
-        let position = root.sliderPositionFromPointer(src, track, pointerX, pointerY);
-        if (src.sliderType === 7) {
-            if (root.setLr2SkinCustomPosition(position)) {
-                root.playOneShot(optionChangeSound);
-            }
-            return;
-        }
-        root.setSliderRawValue(src.sliderType, position * 100);
+        skinSliderState.setGenericFromTrack(src, track, pointerX, pointerY);
     }
 
     readonly property var cachedBarBaseStates: selectBarGeometry.cachedBarBaseStates
@@ -6396,36 +3424,55 @@ Item {
     function handleBarRowClick(row, mouse) {
         return selectBarGeometry.handleBarRowClick(row, mouse);
     }
-    readonly property int skinClockResolutionMs: 10
-    property int selectInfoStartSkinTime: 0
-    property int selectScrollStartSkinTime: 0
-    property int selectNoScrollStartSkinTime: 0
-    property int selectDatabaseLoadedSkinTime: 0
-    property int selectAnimationLimit: 3200
-    property int barAnimationLimit: 2200
-    readonly property int selectInfoAnimationLimit: 1000
+    Lr2SkinTiming {
+        id: skinTiming
+        host: root
+        skinModel: skinModel
+        selectContext: selectContext
 
-    Lr2SkinClock {
-        id: skinClock
-        resolutionMs: root.skinClockResolutionMs
-        screenKey: root.effectiveScreenKey
-        selectAnimationLimit: root.selectAnimationLimit
-        barAnimationLimit: root.barAnimationLimit
-        selectInfoAnimationLimit: root.selectInfoAnimationLimit
-        selectInfoStartSkinTime: root.selectInfoStartSkinTime
+        onAutoAdvanceRequested: {
+            if (root.shouldAutoAdvance) {
+                globalRoot.openGameplay(root.chart);
+            }
+        }
     }
 
-    property alias sceneStartMs: skinClock.sceneStartMs
-    property alias skinClockNowMs: skinClock.nowMs
-    property alias globalSkinTime: skinClock.globalSkinTime
-    property alias selectLiveSkinTime: skinClock.selectLiveSkinTime
-    property alias selectSourceSkinTime: skinClock.selectSourceSkinTime
-    property alias selectInfoElapsed: skinClock.selectInfoElapsed
-    property alias renderSkinTime: skinClock.renderSkinTime
-    property alias barSkinTime: skinClock.barSkinTime
-    readonly property bool shouldAutoAdvance: root.effectiveScreenKey === "decide"
-        && !!root.chart
-        && skinModel.sceneTime > 0
+    Lr2WallClockState {
+        id: wallClockState
+        sceneStartMs: skinTiming.sceneStartMs
+    }
+
+    Lr2ScreenState {
+        id: screenState
+        explicitKey: root.screenKey
+        csvPath: root.csvPath
+        hostEnabled: root.enabled
+        hostVisible: root.visible
+        stackActive: root.StackView.status === StackView.Active
+        globalSkinTime: root.globalSkinTime
+        startInput: skinModel.startInput || 0
+        selectSearchFocused: selectSearchState.focused
+        readmeMode: root.lr2ReadmeMode
+    }
+
+    property alias skinClockResolutionMs: skinTiming.resolutionMs
+    property alias selectInfoStartSkinTime: skinTiming.selectInfoStartSkinTime
+    property alias selectScrollStartSkinTime: skinTiming.selectScrollStartSkinTime
+    property alias selectNoScrollStartSkinTime: skinTiming.selectNoScrollStartSkinTime
+    property alias selectDatabaseLoadedSkinTime: skinTiming.selectDatabaseLoadedSkinTime
+    property alias selectAnimationLimit: skinTiming.selectAnimationLimit
+    property alias barAnimationLimit: skinTiming.barAnimationLimit
+    property alias selectInfoAnimationLimit: skinTiming.selectInfoAnimationLimit
+    property alias sceneStartMs: skinTiming.sceneStartMs
+    property alias skinClockNowMs: skinTiming.skinClockNowMs
+    property alias globalSkinTime: skinTiming.globalSkinTime
+    property alias selectLiveSkinTime: skinTiming.selectLiveSkinTime
+    property alias selectSourceSkinTime: skinTiming.selectSourceSkinTime
+    property alias selectInfoElapsed: skinTiming.selectInfoElapsed
+    property alias renderSkinTime: skinTiming.renderSkinTime
+    property alias barSkinTime: skinTiming.barSkinTime
+    readonly property bool shouldAutoAdvance: skinTiming.shouldAutoAdvance
+    readonly property var timers: skinTiming.timers
 
     onRenderSkinTimeChanged: {
         if (root.effectiveScreenKey === "select"
@@ -6465,59 +3512,35 @@ Item {
     }
 
     function updateSelectAnimationLimits() {
-        let startInput = skinModel.startInput || 0;
-        root.selectAnimationLimit = Math.max(3200, startInput);
-        root.barAnimationLimit = Math.max(2200, startInput);
+        skinTiming.updateSelectAnimationLimits();
     }
 
     function restartSkinClock() {
-        root.updateSelectAnimationLimits();
-        let now = Date.now();
-        skinClock.restart(now);
-        root.selectScrollStartSkinTime = 0;
-        root.selectNoScrollStartSkinTime = 0;
-        root.selectDatabaseLoadedSkinTime = 0;
-        root.selectHeldButtonTimerStarts = ({});
-        root.selectPanelClosing = 0;
-        root.selectScratchSoundReady = false;
-        root.updateLr2DateTimeNumbers();
-        root.restartSelectInfoTimer();
-        if (root.shouldAutoAdvance) {
-            sceneEndTimer.restart();
-        } else {
-            sceneEndTimer.stop();
-        }
+        skinTiming.restartSkinClock();
     }
 
     function restartSelectInfoTimer() {
-        root.selectInfoStartSkinTime = root.selectLiveSkinTime;
+        skinTiming.restartSelectInfoTimer();
     }
 
     function quantizedSkinClock(now) {
-        return skinClock.quantize(now);
+        return skinTiming.quantizedSkinClock(now);
     }
 
-    FrameAnimation {
-        id: skinStopwatch
-        running: root.enabled
-        onTriggered: {
-            skinClock.advance(Date.now());
-            if (root.isGameplayScreen()
-                    && root.chart
-                    && (root.gameplayReadySkinTime < 0 || root.gameplayStartSkinTime < 0)) {
-                root.updateGameplayStatusTimers();
-                root.startGameplayWhenReady();
-            }
-        }
+    function gameplayTimerFireTime(timer) {
+        return skinTiming.gameplayTimerFireTime(timer);
     }
 
-    Timer {
-        id: lr2DateTimeStopwatch
-        interval: 1000
-        running: root.enabled
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: root.updateLr2DateTimeNumbers()
+    function resultTimerFireTime(timer) {
+        return skinTiming.resultTimerFireTime(timer);
+    }
+
+    function selectTimerFireTime(timer) {
+        return skinTiming.selectTimerFireTime(timer);
+    }
+
+    function skinTimerFireTime(timer) {
+        return skinTiming.skinTimerFireTime(timer);
     }
 
     Timer {
@@ -6527,273 +3550,10 @@ Item {
         onTriggered: root.handleCommittedSelectState()
     }
 
-    FrameAnimation {
-        id: selectHoverRefreshTimer
-        running: false
-        property bool queued: false
-        function restart() {
-            if (queued) {
-                return;
-            }
-            queued = true;
-            running = true;
-        }
-        function stop() {
-            queued = false;
-            running = false;
-        }
-        onTriggered: {
-            queued = false;
-            running = false;
-            root.runSelectHoverRefresh();
-        }
-    }
-
-    Timer {
-        id: readmeCloseTimer
-        interval: 500
-        repeat: false
-        onTriggered: {
-            root.lr2ReadmeMode = 0;
-            root.lr2ReadmeText = "";
-            root.lr2ReadmeOffsetX = 0;
-            root.lr2ReadmeOffsetY = 0;
-            root.lr2ReadmeMouseHeld = false;
-        }
-    }
-
-    FrameAnimation {
-        id: readmeEdgeScrollTimer
-        running: root.effectiveScreenKey === "select"
-            && root.lr2ReadmeMode === 1
-            && root.lr2ReadmeMouseHeld
-        onTriggered: {
-            const amount = frameTime * 600.0;
-            let dx = 0;
-            let dy = 0;
-            if (root.lr2ReadmeMouseX < 200) {
-                dx += amount;
-            } else if (root.lr2ReadmeMouseX > 440) {
-                dx -= amount;
-            }
-            if (root.lr2ReadmeMouseY < 150) {
-                dy += amount;
-            } else if (root.lr2ReadmeMouseY > 330) {
-                dy -= amount;
-            }
-            if (dx !== 0 || dy !== 0) {
-                root.scrollReadmeBy(dx, dy);
-            }
-        }
-    }
-
-    Timer {
-        id: lr2RankingTransitionTimer
-        interval: root.lr2RankingTransitionDuration
-        repeat: false
-        onTriggered: root.advanceLr2RankingTransition()
-    }
-
-    Timer {
-        id: sceneEndTimer
-        interval: Math.max(1, skinModel.sceneTime)
-        repeat: false
-        onTriggered: {
-            if (root.shouldAutoAdvance) {
-                globalRoot.openGameplay(root.chart);
-            }
-        }
-    }
-
-    Timer {
-        id: gameplayStartTimer
-        interval: Math.max(1, skinModel.playStart || 2000)
-        repeat: false
-        onTriggered: {
-            if (root.gameplayStartArmed
-                    && root.enabled
-                    && root.isGameplayScreen()
-                    && root.chart
-                    && root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
-                root.gameplayStartArmed = false;
-                root.chart.start();
-            }
-        }
-    }
-
-    Timer {
-        id: gameplayPoorBgaOptionTimer
-        interval: 1000
-        repeat: false
-        onTriggered: {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
-        }
-    }
-
-    function gameplayTimerFireTime(timer) {
-        root.gameplayTimerRevision;
-        let value = root.gameplayTimerValues ? root.gameplayTimerValues[timer] : undefined;
-        return value === undefined || value === null ? -1 : value;
-    }
-
-    function resultTimerFireTime(timer) {
-        if (timer === 0) {
-            return 0;
-        }
-        if (timer === 1) {
-            return root.acceptsInput ? Math.min(root.renderSkinTime, skinModel.startInput || 0) : -1;
-        }
-        if (timer === 150) {
-            return root.renderSkinTime >= root.resultGraphStartSkinTime
-                ? root.resultGraphStartSkinTime
-                : -1;
-        }
-        if (timer === 151) {
-            if (root.resultTimer151SkinTime >= 0) {
-                return root.resultTimer151SkinTime;
-            }
-            return root.renderSkinTime >= root.resultGraphEndSkinTime
-                ? root.resultGraphEndSkinTime
-                : -1;
-        }
-        if (timer === 152) {
-            return root.resultTimer152SkinTime >= 0 ? root.resultTimer152SkinTime : -1;
-        }
-        return -1;
-    }
-
-    function selectTimerFireTime(timer) {
-        if (timer === 0) {
-            return 0;
-        }
-        if (timer === 1) {
-            return root.acceptsInput ? Math.min(root.renderSkinTime, skinModel.startInput || 0) : -1;
-        }
-        if (timer === 171) {
-            return root.selectDatabaseLoadedSkinTime;
-        }
-        if (timer === 11) {
-            return root.renderSkinTime - root.selectInfoElapsed;
-        }
-        if (selectContext.visualMoveActive || selectContext.scrollFixedPointDragging) {
-            if (timer === 10) {
-                return root.selectScrollStartSkinTime;
-            }
-            if (timer === 12 && selectContext.scrollDirection === selectContext.lr2ScrollUp) {
-                return root.selectScrollStartSkinTime;
-            }
-            if (timer === 13 && selectContext.scrollDirection === selectContext.lr2ScrollDown) {
-                return root.selectScrollStartSkinTime;
-            }
-        } else if (timer === 14 && root.acceptsInput) {
-            return root.selectNoScrollStartSkinTime;
-        }
-        if (root.selectPanel > 0 && timer === 20 + root.selectPanel) {
-            return root.renderSkinTime - root.selectPanelElapsed;
-        }
-        if (root.selectPanelClosing > 0 && timer === 30 + root.selectPanelClosing) {
-            return root.renderSkinTime - root.selectPanelCloseElapsed;
-        }
-        if (timer === 15 && root.lr2ReadmeMode === 1) {
-            return root.renderSkinTime - root.lr2ReadmeElapsed;
-        }
-        if (timer === 16 && root.lr2ReadmeMode === 2) {
-            return root.renderSkinTime - root.lr2ReadmeElapsed;
-        }
-        if (root.lr2RankingTransitionPhase !== 0 && timer === root.lr2RankingTransitionPhase) {
-            return root.renderSkinTime - root.lr2RankingTransitionElapsed;
-        }
-        return root.selectHeldButtonTimerFireTime(timer);
-    }
-
-    function skinTimerFireTime(timer) {
-        let idx = Number(timer || 0);
-        if (idx === 0) {
-            return 0;
-        }
-        if (root.isGameplayScreen()) {
-            return root.gameplayTimerFireTime(idx);
-        }
-        if (root.isResultScreen()) {
-            return root.resultTimerFireTime(idx);
-        }
-        if (root.effectiveScreenKey === "select") {
-            return root.selectTimerFireTime(idx);
-        }
-        return -1;
-    }
-
-    // Timer fire times (ms since scene start). LR2 select panels use timers
-    // 21..26 for side-drawer opening and 31..36 for closing, so synthesize
-    // those without unfreezing the whole select skin clock.
-    readonly property var timers: {
-        if (root.isGameplayScreen()) {
-            root.gameplayTimerRevision;
-            return root.gameplayTimerValues;
-        }
-        if (root.isResultScreen()) {
-            let resultTimers = { "0": 0 };
-            if (root.acceptsInput) {
-                resultTimers[1] = Math.min(root.renderSkinTime, skinModel.startInput || 0);
-            }
-            if (root.renderSkinTime >= root.resultGraphStartSkinTime) {
-                resultTimers[150] = root.resultGraphStartSkinTime;
-            }
-            if (root.resultTimer151SkinTime >= 0) {
-                resultTimers[151] = root.resultTimer151SkinTime;
-            } else if (root.renderSkinTime >= root.resultGraphEndSkinTime) {
-                resultTimers[151] = root.resultGraphEndSkinTime;
-            }
-            if (root.resultTimer152SkinTime >= 0) {
-                resultTimers[152] = root.resultTimer152SkinTime;
-            }
-            return resultTimers;
-        }
-        if (root.effectiveScreenKey !== "select") {
-            return root.zeroTimers;
-        }
-
-        let result = { "0": 0 };
-        result[171] = root.selectDatabaseLoadedSkinTime;
-        if (root.acceptsInput) {
-            result[1] = Math.min(root.renderSkinTime, skinModel.startInput || 0);
-        }
-        // LR2 restarts the selected-song information timers on item
-        // changes. The select skin clock is intentionally capped after the
-        // intro, so synthesize those timers from their own small stopwatch.
-        result[11] = root.renderSkinTime - root.selectInfoElapsed;
-        if (selectContext.visualMoveActive || selectContext.scrollFixedPointDragging) {
-            result[10] = root.selectScrollStartSkinTime;
-            if (selectContext.scrollDirection === selectContext.lr2ScrollUp) {
-                result[12] = root.selectScrollStartSkinTime;
-            } else if (selectContext.scrollDirection === selectContext.lr2ScrollDown) {
-                result[13] = root.selectScrollStartSkinTime;
-            }
-        } else if (root.acceptsInput) {
-            result[14] = root.selectNoScrollStartSkinTime;
-        }
-        if (root.selectPanel > 0) {
-            result[20 + root.selectPanel] = root.renderSkinTime - root.selectPanelElapsed;
-        }
-        if (root.selectPanelClosing > 0) {
-            result[30 + root.selectPanelClosing] = root.renderSkinTime - root.selectPanelCloseElapsed;
-        }
-        if (root.lr2ReadmeMode === 1) {
-            result[15] = root.renderSkinTime - root.lr2ReadmeElapsed;
-        } else if (root.lr2ReadmeMode === 2) {
-            result[16] = root.renderSkinTime - root.lr2ReadmeElapsed;
-        }
-        if (root.lr2RankingTransitionPhase !== 0) {
-            result[root.lr2RankingTransitionPhase] = root.renderSkinTime - root.lr2RankingTransitionElapsed;
-        }
-        root.addHeldButtonTimers(result);
-        return result;
-    }
-
     Lr2SelectContext {
         id: selectContext
-        enabled: root.effectiveScreenKey === "select"
+        updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
+        enabled: updatesActive
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
 
@@ -6802,25 +3562,25 @@ Item {
         }
 
         onBarMoveStartMsChanged: {
-            if (root.effectiveScreenKey === "select" && barMoveStartMs > 0) {
+            if (root.screenUpdatesActive && root.effectiveScreenKey === "select" && barMoveStartMs > 0) {
                 root.selectScrollStartSkinTime = root.renderSkinTime;
             }
         }
 
         onVisualMoveActiveChanged: {
-            if (root.effectiveScreenKey === "select" && !visualMoveActive && !scrollFixedPointDragging) {
+            if (root.screenUpdatesActive && root.effectiveScreenKey === "select" && !visualMoveActive && !scrollFixedPointDragging) {
                 root.selectNoScrollStartSkinTime = root.renderSkinTime;
             }
         }
 
         onScrollFixedPointDraggingChanged: {
-            if (root.effectiveScreenKey === "select" && !scrollFixedPointDragging && !visualMoveActive) {
+            if (root.screenUpdatesActive && root.effectiveScreenKey === "select" && !scrollFixedPointDragging && !visualMoveActive) {
                 root.selectNoScrollStartSkinTime = root.renderSkinTime;
             }
         }
 
         onOpenedFolder: {
-            if (root.effectiveScreenKey === "select") {
+            if (root.screenUpdatesActive && root.effectiveScreenKey === "select") {
                 root.selectDatabaseLoadedSkinTime = root.renderSkinTime;
                 if (!visualMoveActive && !scrollFixedPointDragging) {
                     root.selectNoScrollStartSkinTime = root.renderSkinTime;
@@ -6849,49 +3609,6 @@ Item {
         hitEvents: {
             let score = root.gameplayBestSavedScore();
             return score && score.replayData ? score.replayData.hitEvents : [];
-        }
-    }
-
-    OnlineRankingModel {
-        id: lr2OnlineRanking
-        md5: root.lr2RankingRequestMd5
-        limit: 999
-        sortBy: OnlineRankingModel.ScorePct
-        sortDir: OnlineRankingModel.Desc
-        provider: root.rankingProviderEnum()
-        webApiUrl: root.mainGeneralVars() ? root.mainGeneralVars().webApiUrl : ""
-
-        onMd5Changed: {
-            root.handleRankingModelChanged(false, false);
-        }
-    }
-    Connections {
-        target: lr2OnlineRanking
-
-        function onLoadingChanged() {
-            root.handleRankingModelChanged(true, true);
-        }
-
-        function onRankingEntriesChanged() {
-            root.handleRankingModelChanged(true, false);
-        }
-
-        function onPlayerCountChanged() {
-            root.handleRankingModelChanged(false, false);
-        }
-
-        function onScoreCountChanged() {
-            root.handleRankingModelChanged(false, false);
-        }
-
-        function onClearCountsChanged() {
-            root.handleRankingModelChanged(true, false);
-        }
-
-        function onChartIdChanged() {
-            if (root.lr2InternetRankingOpenWhenReady && !lr2OnlineRanking.loading) {
-                Qt.callLater(root.finishOpenLr2InternetRanking);
-            }
         }
     }
 
@@ -6929,6 +3646,7 @@ Item {
     }
 
     Component.onCompleted: {
+        root.componentReady = true;
         root.selectSideEffectsReady = true;
         root.commitLr2RankingRequest();
         Qt.callLater(root.restartSkinClock);
@@ -6941,19 +3659,24 @@ Item {
         Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
     }
 
+    function pauseScreenActivity() {
+        selectCommittedStateTimer.stop();
+        selectHoverState.stopRefresh();
+        readmeState.pauseActivity();
+        lr2Ranking.pauseActivity();
+        skinTiming.pauseActivity();
+        if (root.effectiveScreenKey === "select") {
+            root.stopSelectAudio();
+        }
+        if (root.isGameplayScreen()) {
+            root.stopGameplayLifecycle();
+        }
+    }
+
     function stopSelectAudio() {
-        selectChartSettleTimer.stop();
-        previewDelayTimer.stop();
-        selectBgmDelayTimer.stop();
-        root.activePreviewSource = "";
-        root.pendingPreviewRevision = -1;
-        root.pendingPreviewSource = "";
-        root.pendingPreviewRequest += 1;
-        playMusic.stop();
-        selectBgm.stop();
+        selectSideEffects.stopAudio();
         openFolderSound.stop();
         closeFolderSound.stop();
-        scratchSound.stop();
         optionOpenSound.stop();
         optionCloseSound.stop();
         optionChangeSound.stop();
@@ -6997,12 +3720,7 @@ Item {
     }
 
     function playSelectScratch() {
-        if (!root.enabled
-            || root.effectiveScreenKey !== "select"
-            || !root.selectScratchSoundReady) {
-            return;
-        }
-        root.playOneShot(scratchSound);
+        selectSideEffects.playScratch();
     }
 
     function resultInputReady() {
@@ -7021,12 +3739,7 @@ Item {
         return true;
     }
 
-    function submitSelectSearch() {
-        let query = selectContext.searchText.trim();
-        if (query.length > 0) {
-            selectContext.search(query);
-        }
-    }
+    function submitSelectSearch() { selectSearchState.submit(); }
 
     Keys.onUpPressed: (event) => {
         if (root.lr2ReadmeMode === 1) {
@@ -7135,7 +3848,7 @@ Item {
             + (firstTick
                 ? root.selectTargetScratchInitialRepeatMillis
                 : root.selectTargetScratchRepeatMillis);
-        root.handleLr2Button(77, up ? 1 : -1, root.selectPanel, scratchSound);
+        root.handleLr2Button(77, up ? 1 : -1, root.selectPanel, selectSideEffects.scratchSoundPlayer);
         return true;
     }
 
@@ -7218,36 +3931,13 @@ Item {
         }
     }
 
-    AudioPlayer {
-        id: playMusic
-        looping: true
-        fadeInMillis: 1000
-        source: root.selectAudioActive ? root.activePreviewSource : ""
-        onSourceChanged: {
-            stop();
-        }
-    }
-
-    AudioPlayer {
-        id: selectBgm
-        looping: true
-        fadeInMillis: 1000
-        source: root.mainGeneralVars() ? root.mainGeneralVars().bgmPath + "select" : ""
-        property bool canPlay: root.selectAudioActive
-            && (!playMusic.playing || playMusic.source === "")
-        onCanPlayChanged: {
-            if (!canPlay) {
-                stop();
-            }
-        }
-    }
-
-    Timer {
-        id: selectBgmDelayTimer
-        interval: 500
-        running: selectBgm.canPlay
-        repeat: false
-        onTriggered: selectBgm.play()
+    Lr2SelectSideEffects {
+        id: selectSideEffects
+        host: root
+        selectContext: selectContext
+        skinModel: skinModel
+        active: root.selectAudioActive
+        selectRevision: root.selectRevision
     }
 
     AudioPlayer {
@@ -7261,11 +3951,6 @@ Item {
     }
 
     AudioPlayer {
-        id: scratchSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "scratch" : ""
-    }
-
-    AudioPlayer {
         id: gameplayReadySound
         source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "playready" : ""
         onPlayingChanged: {
@@ -7275,7 +3960,7 @@ Item {
                     && root.isGameplayScreen()
                     && root.chart
                     && root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
-                gameplayStartTimer.restart();
+                skinTiming.restartGameplayStartTimer();
             }
         }
     }
@@ -7300,6 +3985,27 @@ Item {
         source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-change" : ""
     }
 
+    Lr2SkinSliderState {
+        id: skinSliderState
+        screenRoot: root
+        selectContext: selectContext
+        optionChangeSound: optionChangeSound
+    }
+
+    Lr2SelectSearchState {
+        id: selectSearchState
+        screenRoot: root
+        selectContext: selectContext
+    }
+
+    Lr2RankingState {
+        id: lr2Ranking
+        host: root
+        selectContext: selectContext
+        optionOpenSound: optionOpenSound
+        optionCloseSound: optionCloseSound
+    }
+
     Lr2SkinValueResolver {
         id: valueResolver
         screenRoot: root
@@ -7311,7 +4017,7 @@ Item {
         id: selectPanelController
         screenRoot: root
         selectContext: selectContext
-        scratchSound: scratchSound
+        scratchSound: selectSideEffects.scratchSoundPlayer
         optionOpenSound: optionOpenSound
         optionCloseSound: optionCloseSound
         optionChangeSound: optionChangeSound
@@ -7322,39 +4028,6 @@ Item {
         screenRoot: root
         skinModel: skinModel
         selectContext: selectContext
-    }
-
-    Timer {
-        id: selectChartSettleTimer
-        interval: 120
-        repeat: false
-        onTriggered: root.updateDisplayedSelectChart()
-    }
-
-    Timer {
-        id: previewDelayTimer
-        interval: 1000
-        repeat: false
-        onTriggered: {
-            if (!root.selectAudioActive
-                || root.pendingPreviewRevision !== root.selectRevision) {
-                return;
-            }
-
-            let source = root.pendingPreviewSource;
-            let request = root.pendingPreviewRequest;
-            root.activePreviewSource = source || "";
-            if (source) {
-                Qt.callLater(() => {
-                    if (root.selectAudioActive
-                        && root.activePreviewSource === source
-                        && root.pendingPreviewRevision === root.selectRevision
-                        && root.pendingPreviewRequest === request) {
-                        playMusic.play();
-                    }
-                });
-            }
-        }
     }
 
     readonly property real skinW: Math.max(1, skinModel.skinWidth || 640)

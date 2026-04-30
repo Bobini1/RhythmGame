@@ -2,9 +2,71 @@ qt_add_library(RhythmGame_qml STATIC)
 target_link_libraries(RhythmGame_qml PUBLIC RhythmGame_lib)
 target_include_directories(RhythmGame_qml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 qt_policy(SET QTP0001 NEW)
-qt_add_qml_module(RhythmGame_qml URI RhythmGameQml VERSION 1.0 SOURCES Rg.h Rg.cpp Lr2BarPositionCache.h Lr2BarPositionCache.cpp Lr2BarPositionedItem.h Lr2BarPositionedItem.cpp Lr2BarInterpolatedState.h Lr2BarInterpolatedState.cpp Lr2SelectVisualState.h Lr2SelectVisualState.cpp Lr2SkinClock.h Lr2SkinClock.cpp
-        QML_FILES ContentFrame.qml Log.qml ColorChanger.qml Lr2SkinScreenWrapper.qml Lr2SkinScene.qml Lr2SkinValueResolver.qml Lr2SelectPanelController.qml Lr2SelectBarGeometry.qml Lr2SpriteRenderer.qml Lr2FastSprite.qml Lr2BgaRenderer.qml Lr2TextRenderer.qml Lr2BitmapFontText.qml Lr2SystemFontText.qml Lr2SelectContext.qml Lr2PlayContext.qml Lr2PlayNoteField.qml Lr2GrooveGaugeRenderer.qml Lr2NumberRenderer.qml Lr2BarSpriteRenderer.qml Lr2BarTextRenderer.qml Lr2BarNumberRenderer.qml Lr2BarGraphRenderer.qml Lr2ResultChartRenderer.qml Lr2NoteChartRenderer.qml Lr2BpmChartRenderer.qml
-        RESOURCES Lr2Timeline.js)
+qt_add_qml_module(RhythmGame_qml
+        URI RhythmGameQml
+        VERSION 1.0
+        SOURCES
+        Rg.h
+        Rg.cpp
+        Lr2BarPositionCache.h
+        Lr2BarPositionCache.cpp
+        Lr2BarPositionedItem.h
+        Lr2BarPositionedItem.cpp
+        Lr2BarInterpolatedState.h
+        Lr2BarInterpolatedState.cpp
+        Lr2SelectVisualState.h
+        Lr2SelectVisualState.cpp
+        Lr2SkinClock.h
+        Lr2SkinClock.cpp
+        QML_FILES
+        ContentFrame.qml
+        Log.qml
+        ColorChanger.qml
+        Lr2SkinScreenWrapper.qml
+        Lr2SkinScene.qml
+        Lr2SkinValueResolver.qml
+        Lr2SkinTiming.qml
+        Lr2WallClockState.qml
+        Lr2ScreenState.qml
+        Lr2ResultState.qml
+        Lr2RankingState.qml
+        Lr2SkinSettingsState.qml
+        Lr2OptionState.qml
+        Lr2SelectPanelController.qml
+        Lr2SkinSliderState.qml
+        Lr2SelectSearchState.qml
+        Lr2SelectBarGeometry.qml
+        Lr2SelectBarWindow.qml
+        Lr2SelectBarCellCache.qml
+        Lr2SelectPointerController.qml
+        Lr2ReadmeState.qml
+        Lr2ReadmeTextElement.qml
+        Lr2ReadmePointerArea.qml
+        Lr2SelectHoverState.qml
+        Lr2SelectSideEffects.qml
+        Lr2RuntimeOptionBuilder.qml
+        Lr2SpriteRenderer.qml
+        Lr2FastSprite.qml
+        Lr2SkinCursor.qml
+        Lr2BgaRenderer.qml
+        Lr2TextElement.qml
+        Lr2TextRenderer.qml
+        Lr2BitmapFontText.qml
+        Lr2SystemFontText.qml
+        Lr2SelectContext.qml
+        Lr2PlayContext.qml
+        Lr2PlayNoteField.qml
+        Lr2GrooveGaugeRenderer.qml
+        Lr2NumberRenderer.qml
+        Lr2BarSpriteRenderer.qml
+        Lr2BarTextRenderer.qml
+        Lr2BarNumberRenderer.qml
+        Lr2BarGraphRenderer.qml
+        Lr2ResultChartRenderer.qml
+        Lr2NoteChartRenderer.qml
+        Lr2BpmChartRenderer.qml
+        RESOURCES
+        Lr2Timeline.js)
 qt6_add_shaders(RhythmGame_qml "shaders"
         PREFIX
         "/"

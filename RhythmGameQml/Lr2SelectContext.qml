@@ -12,6 +12,9 @@ Item {
     property var scores: ({})
     property var folderLampByKey: ({})
     property var folderScoreCountsByKey: ({})
+    property var pendingFolderLampByKey: ({})
+    property var pendingFolderScoreCountsByKey: ({})
+    property int pendingFolderLampPublishCount: 0
     property var chartGroupCache: ({})
     property var chartDifficultyCache: ({})
     property var playerStats: ({
@@ -40,6 +43,8 @@ Item {
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
     property int visualMoveDurationMs: 0
+    property bool componentReady: false
+    property bool updatesActive: true
     property bool visualIndexAnimationEnabled: true
     property bool suppressVisualIndexPublish: false
     property int scrollDirection: 0
@@ -60,13 +65,9 @@ Item {
     property int realItemCount: 0
     property int barRowCount: 0
     property int barCenter: 0
-    property int visibleBarSlotOffset: 0
-    property var visibleBarEntries: []
-    property var visibleBarTextCells: []
-    property var barCellCoreCache: ({})
-    property int barCellCoreCacheScoreRevision: -1
-    property int barCellCoreCacheFolderLampRevision: -1
-    property int barCellCoreCacheListRevision: -1
+    property alias visibleBarSlotOffset: visibleBars.slotOffset
+    property alias visibleBarEntries: visibleBars.entries
+    property alias visibleBarTextCells: visibleBars.cells
     property var selectedScoreStateCache: ({})
     property int selectedScoreStateCacheRevision: -1
     property string selectedScoreStateKey: ""
@@ -74,10 +75,6 @@ Item {
     property var selectedDifficultyCounts: [0, 0, 0, 0, 0, 0]
     property var selectedDifficultyLevels: [0, 0, 0, 0, 0, 0]
     property var selectedDifficultyLamps: [0, 0, 0, 0, 0, 0]
-    property int cachedVisibleBarBaseIndex: -1
-    property int cachedVisibleBarListRevision: -1
-    property int cachedVisibleBarRowCount: -1
-    property int cachedVisibleBarCenter: -1
     property int cachedSyncedCursorBaseIndex: -1
     property bool rankingMode: false
     property var rankingBaseItem: null
@@ -172,14 +169,52 @@ Item {
         scrollDownDirection: root.lr2ScrollDown
     }
 
+    Lr2SelectBarCellCache {
+        id: barCells
+        context: root
+        items: root.items
+        logicalCount: root.logicalCount
+        visualBaseIndex: root.visualBaseIndex
+        barCenter: root.barCenter
+        scoreRevision: root.scoreRevision
+        folderLampRevision: root.folderLampRevision
+        listRevision: root.listRevision
+    }
+
+    Lr2SelectBarWindow {
+        id: visibleBars
+        context: root
+        items: root.items
+        logicalCount: root.logicalCount
+        listRevision: root.listRevision
+        rowCount: Math.max(0, root.barRowCount || 0)
+        barCenter: root.barCenter
+        visualBaseIndex: root.visualBaseIndex
+        onCellsInvalidated: root.barTextCellsInvalidated()
+        onCellRangeChanged: (firstSlot, count) => root.barTextCellRangeChanged(firstSlot, count)
+    }
+
+    onUpdatesActiveChanged: {
+        if (!componentReady) {
+            return;
+        }
+        if (!updatesActive) {
+            pendingWheelSteps = 0;
+            pendingWheelStepTimer.stop();
+        } else {
+            publishPendingFolderLamps();
+            publishBarState(true);
+        }
+    }
+
     Behavior on visualIndex {
-        enabled: root.visualIndexAnimationEnabled
+        enabled: root.updatesActive && root.visualIndexAnimationEnabled
         NumberAnimation {
             id: visualIndexAnimation
             duration: root.visualMoveDurationMs
             easing.type: Easing.Linear
             onRunningChanged: {
-                if (!running) {
+                if (!running && root.updatesActive) {
                     root.publishVisualIndex(true);
                 }
             }
@@ -193,7 +228,7 @@ Item {
     onBarCenterChanged: refreshVisibleBarEntries(true)
 
     Connections {
-        target: visualState
+        target: root.updatesActive ? visualState : null
         function onBaseIndexChanged() {
             root.publishBaseIndex(false);
         }
@@ -243,7 +278,7 @@ Item {
     }
 
     function publishVisualFrame(force) {
-        if (suppressVisualIndexPublish) {
+        if (!updatesActive || suppressVisualIndexPublish) {
             return false;
         }
 
@@ -270,7 +305,7 @@ Item {
     }
 
     function publishBarState(force) {
-        if (suppressVisualIndexPublish) {
+        if (!updatesActive || suppressVisualIndexPublish) {
             return false;
         }
 
@@ -280,7 +315,7 @@ Item {
     }
 
     function publishBaseIndex(force) {
-        if (suppressVisualIndexPublish) {
+        if (!updatesActive || suppressVisualIndexPublish) {
             return false;
         }
         let baseIndex = visualState.baseIndex;
@@ -291,10 +326,7 @@ Item {
 
         let rowsChanged = force
             || baseChanged
-            || cachedVisibleBarBaseIndex < 0
-            || cachedVisibleBarListRevision !== listRevision
-            || cachedVisibleBarRowCount !== barRowCount
-            || cachedVisibleBarCenter !== barCenter;
+            || !visibleBars.isCurrent;
         if (rowsChanged) {
             refreshVisibleBarEntries(!!force);
         }
@@ -302,7 +334,7 @@ Item {
     }
 
     function publishCursorBaseIndex(force) {
-        if (suppressVisualIndexPublish) {
+        if (!updatesActive || suppressVisualIndexPublish) {
             return false;
         }
         let cursorBaseIndex = visualState.cursorBaseIndex;
@@ -314,6 +346,9 @@ Item {
     }
 
     function publishVisualIndex(force) {
+        if (!updatesActive) {
+            return false;
+        }
         let changed = publishVisualFrame(force);
         if (force) {
             publishBarState(false);
@@ -416,6 +451,9 @@ Item {
     }
 
     function updateVisualIndex(now) {
+        if (!updatesActive) {
+            return;
+        }
         if (pendingWheelSteps !== 0) {
             let steps = pendingWheelSteps;
             pendingWheelSteps = 0;
@@ -426,6 +464,9 @@ Item {
     }
 
     function queueWheelSteps(steps) {
+        if (!updatesActive) {
+            return;
+        }
         pendingWheelSteps += steps;
         pendingWheelStepTimer.restart();
     }
@@ -435,6 +476,13 @@ Item {
         interval: 0
         repeat: false
         onTriggered: root.updateVisualIndex(Date.now())
+    }
+
+    Component.onCompleted: {
+        componentReady = true;
+        if (updatesActive) {
+            publishBarState(true);
+        }
     }
 
     function nearestVisualIndex(index, anchor) {
@@ -613,16 +661,12 @@ Item {
     function refreshFolderLamps() {
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
-            folderLampByKey = ({});
-            folderScoreCountsByKey = ({});
-            folderLampRevision += 1;
+            clearFolderLampState();
             return;
         }
 
         let request = ++folderLampRequestRevision;
-        folderLampByKey = ({});
-        folderScoreCountsByKey = ({});
-        folderLampRevision += 1;
+        clearFolderLampState();
 
         for (let item of folderContents) {
             if (!isFolderLikeForLamp(item)) {
@@ -638,16 +682,49 @@ Item {
                 if (request !== folderLampRequestRevision) {
                     return;
                 }
-                let nextLamps = Object.assign({}, folderLampByKey);
-                nextLamps[key] = folderLampFromScores(result);
-                folderLampByKey = nextLamps;
-                let nextCounts = Object.assign({}, folderScoreCountsByKey);
-                nextCounts[key] = folderScoreCountsFromScores(result);
-                folderScoreCountsByKey = nextCounts;
-                folderLampRevision += 1;
-                touch();
+                queueFolderLampResult(key, result);
             });
         }
+    }
+
+    function clearFolderLampState() {
+        folderLampPublishTimer.stop();
+        pendingFolderLampByKey = ({});
+        pendingFolderScoreCountsByKey = ({});
+        pendingFolderLampPublishCount = 0;
+        folderLampByKey = ({});
+        folderScoreCountsByKey = ({});
+        folderLampRevision += 1;
+    }
+
+    function queueFolderLampResult(key, result) {
+        pendingFolderLampByKey[key] = folderLampFromScores(result);
+        pendingFolderScoreCountsByKey[key] = folderScoreCountsFromScores(result);
+        pendingFolderLampPublishCount += 1;
+        if (updatesActive && !folderLampPublishTimer.running) {
+            folderLampPublishTimer.start();
+        }
+    }
+
+    function publishPendingFolderLamps() {
+        if (pendingFolderLampPublishCount <= 0) {
+            return;
+        }
+
+        folderLampByKey = Object.assign({}, folderLampByKey, pendingFolderLampByKey);
+        folderScoreCountsByKey = Object.assign({}, folderScoreCountsByKey, pendingFolderScoreCountsByKey);
+        pendingFolderLampByKey = ({});
+        pendingFolderScoreCountsByKey = ({});
+        pendingFolderLampPublishCount = 0;
+        folderLampRevision += 1;
+        touch();
+    }
+
+    Timer {
+        id: folderLampPublishTimer
+        interval: 16
+        repeat: false
+        onTriggered: root.publishPendingFolderLamps()
     }
 
     Component.onDestruction: {
@@ -1537,254 +1614,31 @@ Item {
     }
 
     function refreshVisibleBarEntries(force) {
-        let rowCount = Math.max(0, barRowCount || 0);
-        if (logicalCount === 0 || rowCount === 0) {
-            if (force
-                    || visibleBarEntries.length !== 0
-                    || visibleBarTextCells.length !== 0) {
-                visibleBarEntries = [];
-                visibleBarTextCells = [];
-                visibleBarSlotOffset = 0;
-                cachedVisibleBarBaseIndex = -1;
-                cachedVisibleBarListRevision = listRevision;
-                cachedVisibleBarRowCount = rowCount;
-                cachedVisibleBarCenter = barCenter;
-                barTextCellsInvalidated();
-            }
-            return;
-        }
-
-        if (!force
-                && cachedVisibleBarBaseIndex >= 0
-                && cachedVisibleBarListRevision === listRevision
-                && cachedVisibleBarRowCount === rowCount
-                && cachedVisibleBarCenter === barCenter
-                && visibleBarEntries.length === rowCount
-                && visibleBarTextCells.length === rowCount) {
-            let forward = (visualBaseIndex - cachedVisibleBarBaseIndex + logicalCount) % logicalCount;
-            let backward = (cachedVisibleBarBaseIndex - visualBaseIndex + logicalCount) % logicalCount;
-            let delta = forward <= backward ? forward : -backward;
-            if (delta !== 0 && Math.abs(delta) <= Math.min(rowCount, 4)) {
-                let textCells = visibleBarTextCells;
-                let entries = visibleBarEntries;
-                let finalSlotOffset = ((visibleBarSlotOffset + delta) % rowCount + rowCount) % rowCount;
-                let steps = Math.abs(delta);
-                let firstChangedSlot = -1;
-                for (let step = 0; step < steps; ++step) {
-                    let row = delta > 0 ? rowCount - steps + step : step;
-                    let slot = (row + finalSlotOffset) % rowCount;
-                    if (firstChangedSlot < 0) {
-                        firstChangedSlot = slot;
-                    }
-                    let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
-                    entries[slot] = entry;
-                    let cell = textCells[slot];
-                    if (!cell) {
-                        cell = barTextCellForRow(row);
-                        textCells[slot] = cell;
-                    } else {
-                        updateBarTextCellForRow(cell, row);
-                    }
-                }
-                visibleBarSlotOffset = finalSlotOffset;
-                cachedVisibleBarBaseIndex = visualBaseIndex;
-                barTextCellRangeChanged(firstChangedSlot, steps);
-                return;
-            }
-        }
-
-        if (!force
-                && cachedVisibleBarBaseIndex === visualBaseIndex
-                && cachedVisibleBarListRevision === listRevision
-                && cachedVisibleBarRowCount === rowCount
-                && cachedVisibleBarCenter === barCenter) {
-            return;
-        }
-
-        let entries = [];
-        let textCells = [];
-        for (let row = 0; row < rowCount; ++row) {
-            let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
-            let cell = barTextCellForRow(row);
-            entries.push(entry);
-            textCells.push(cell);
-        }
-        visibleBarEntries = entries;
-        visibleBarTextCells = textCells;
-        visibleBarSlotOffset = 0;
-        cachedVisibleBarBaseIndex = visualBaseIndex;
-        cachedVisibleBarListRevision = listRevision;
-        cachedVisibleBarRowCount = rowCount;
-        cachedVisibleBarCenter = barCenter;
-        barTextCellsInvalidated();
+        visibleBars.refresh(!!force);
     }
 
     function visibleBarSlotForRow(row) {
-        let rowCount = visibleBarTextCells.length;
-        if (rowCount <= 0 || row < 0 || row >= rowCount) {
-            return -1;
-        }
-        return (row + visibleBarSlotOffset) % rowCount;
+        return visibleBars.slotForRow(row);
     }
 
     function visibleBarEntry(row, fallbackBarCenter) {
-        let slot = visibleBarSlotForRow(row);
-        if (slot >= 0 && slot < visibleBarEntries.length) {
-            return visibleBarEntries[slot];
-        }
-        return barEntry(row, fallbackBarCenter);
-    }
-
-    function ensureBarCellCoreCacheCurrent() {
-        if (barCellCoreCacheScoreRevision === scoreRevision
-                && barCellCoreCacheFolderLampRevision === folderLampRevision
-                && barCellCoreCacheListRevision === listRevision) {
-            return;
-        }
-        barCellCoreCache = {};
-        barCellCoreCacheScoreRevision = scoreRevision;
-        barCellCoreCacheFolderLampRevision = folderLampRevision;
-        barCellCoreCacheListRevision = listRevision;
-    }
-
-    function barCellCoreCacheKey(entry) {
-        if (!entry) {
-            return "empty";
-        }
-        if (isRankingEntry(entry)) {
-            return "ranking:" + (entry.sourceMd5 || "") + ":" + (entry.rankingIndex || 0);
-        }
-        if (isChart(entry)) {
-            return "chart:" + (entry.md5 || entry.path || entry.title || "");
-        }
-        if (isEntry(entry)) {
-            return "entry:" + (entry.md5 || entry.path || entry.title || entry.level || "");
-        }
-        if (isCourse(entry)) {
-            return "course:" + (entry.identifier || entry.name || "");
-        }
-        if (isTable(entry)) {
-            return "table:" + (entry.url || entry.name || "");
-        }
-        if (isLevel(entry)) {
-            return "level:" + folderLampKey(entry);
-        }
-        if (typeof entry === "string") {
-            return "folder:" + entry;
-        }
-        return "item:" + entryDisplayName(entry, true);
-    }
-
-    function rankingEntryRank(entry) {
-        let points = Number(entry.bestPoints || 0);
-        let maxPoints = Number(entry.maxPoints || 0);
-        if (maxPoints <= 0) {
-            return 0;
-        }
-        let rank = Math.floor(points * 9 / maxPoints);
-        if (rank > 7) {
-            rank = 8;
-        }
-        if (rank < 2 && points > 0) {
-            rank = 1;
-        }
-        return rank;
-    }
-
-    function buildBarCellCore(entry) {
-        let ranking = isRankingEntry(entry);
-        let chartLike = isChart(entry);
-        let entryLike = isEntry(entry);
-        let folderLike = isFolderLikeForLamp(entry);
-        let lamp = 0;
-        let rank = 0;
-
-        if (ranking) {
-            lamp = clearTypeLamp(entry.bestClearType);
-            rank = rankingEntryRank(entry);
-        } else if (folderLike) {
-            let key = folderLampKey(entry);
-            lamp = key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
-        } else {
-            lamp = clearTypeLamp(getClearType(entryScores(entry)));
-        }
-
-        return {
-            text: entryDisplayName(entry, true),
-            titleType: entryTitleType(entry),
-            bodyType: entryBodyType(entry),
-            playLevel: entryPlayLevel(entry),
-            difficulty: entryDifficulty(entry),
-            keymode: entry ? (entry.keymode || 0) : 0,
-            ranking: ranking,
-            chartLike: chartLike,
-            entryLike: entryLike,
-            folderLike: folderLike,
-            lamp: lamp,
-            rank: rank
-        };
+        return visibleBars.entryAtRow(row, fallbackBarCenter);
     }
 
     function barCellCore(entry) {
-        ensureBarCellCoreCacheCurrent();
-        let key = barCellCoreCacheKey(entry);
-        let cached = barCellCoreCache[key];
-        if (cached !== undefined) {
-            return cached;
-        }
-        cached = buildBarCellCore(entry);
-        barCellCoreCache[key] = cached;
-        return cached;
-    }
-
-    function assignBarCellCore(cell, row, entry, core) {
-        cell.row = row;
-        cell.entry = entry;
-        cell.text = core.text;
-        cell.titleType = core.titleType;
-        cell.bodyType = core.bodyType;
-        cell.playLevel = core.playLevel;
-        cell.difficulty = core.difficulty;
-        cell.keymode = core.keymode;
-        cell.ranking = core.ranking;
-        cell.chartLike = core.chartLike;
-        cell.entryLike = core.entryLike;
-        cell.folderLike = core.folderLike;
-        cell.lamp = core.lamp;
-        cell.rank = core.rank;
+        return barCells.core(entry);
     }
 
     function barTextCellForRow(row) {
-        let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
-        let core = barCellCore(entry);
-        return {
-            row: row,
-            entry: entry,
-            text: core.text,
-            titleType: core.titleType,
-            bodyType: core.bodyType,
-            playLevel: core.playLevel,
-            difficulty: core.difficulty,
-            keymode: core.keymode,
-            ranking: core.ranking,
-            chartLike: core.chartLike,
-            entryLike: core.entryLike,
-            folderLike: core.folderLike,
-            lamp: core.lamp,
-            rank: core.rank
-        };
+        return barCells.cellForRow(row);
     }
 
     function updateBarTextCellForRow(cell, row) {
-        let entry = items[normalizeIndex(visualBaseIndex + row - barCenter)];
-        assignBarCellCore(cell, row, entry, barCellCore(entry));
+        barCells.updateCellForRow(cell, row);
     }
 
     function visibleBarTextCell(slot) {
-        if (slot >= 0 && slot < visibleBarTextCells.length) {
-            return visibleBarTextCells[slot];
-        }
-        return barTextCellForRow(slot);
+        return visibleBars.cellAtSlot(slot);
     }
 
     function visibleBarDisplayName(row, fallbackBarCenter) {

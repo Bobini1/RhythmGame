@@ -13,6 +13,70 @@ QtObject {
     property var optionChangeSound
 
     readonly property var root: screenRoot
+    property int selectPanel: 0
+    property int selectPanelHeldByStart: 0
+    property int selectPanelStartSkinTime: 0
+    property int selectPanelClosing: 0
+    property int selectPanelCloseStartSkinTime: 0
+    readonly property int selectPanelHoldTime: 250
+    readonly property int selectPanelElapsed: controller.selectPanel > 0
+        ? Math.max(0, Math.min(controller.selectPanelHoldTime, root.selectLiveSkinTime - controller.selectPanelStartSkinTime))
+        : 0
+    readonly property int selectPanelCloseElapsed: controller.selectPanelClosing > 0
+        ? Math.max(0, Math.min(controller.selectPanelHoldTime, root.selectLiveSkinTime - controller.selectPanelCloseStartSkinTime))
+        : 0
+    readonly property bool selectPanelCloseFinished: controller.selectPanelClosing > 0
+        && controller.selectPanelCloseElapsed >= controller.selectPanelHoldTime
+    readonly property int selectHeldButtonSkinTime: controller.currentSelectHeldButtonSkinTime()
+    property var selectHeldButtonTimerStarts: ({})
+    readonly property bool hasSelectHeldButtonTimers: Object.keys(controller.selectHeldButtonTimerStarts).length > 0
+    readonly property int selectTargetScratchInitialRepeatMillis: 300
+    readonly property int selectTargetScratchRepeatMillis: 50
+    property int selectTargetScratchDirection: 0
+    property real selectTargetScratchNextMs: 0
+    readonly property bool anyStartHeld: Input.start1 || Input.start2
+    property bool startHoldSuppressed: false
+
+    onSelectPanelChanged: {
+        if (controller.selectPanel > 0) {
+            root.clearSelectSearchFocus();
+        } else {
+            root.resetLr2SelectScratchRepeat();
+        }
+    }
+
+    onSelectPanelCloseFinishedChanged: {
+        if (controller.selectPanelCloseFinished) {
+            controller.selectPanelClosing = 0;
+        }
+    }
+
+    onSelectPanelElapsedChanged: {
+        if (root.selectHoverHasPoint && controller.selectPanel > 0) {
+            root.scheduleSelectHoverRefresh();
+        }
+    }
+
+    onSelectPanelCloseElapsedChanged: {
+        if (root.selectHoverHasPoint && controller.selectPanelClosing > 0) {
+            root.scheduleSelectHoverRefresh();
+        }
+    }
+
+    onAnyStartHeldChanged: {
+        if (controller.anyStartHeld) {
+            if (controller.selectPanel > 0 && controller.selectPanelHeldByStart === 0) {
+                controller.startHoldSuppressed = true;
+                controller.closeSelectPanel();
+                return;
+            }
+            controller.holdSelectPanel(1);
+        } else {
+            controller.startHoldSuppressed = false;
+            controller.releaseHeldSelectPanel(1);
+        }
+    }
+
     readonly property var splitArrowButtons: controller.lookup([
         10, 11, 12, 20, 21, 22, 26, 27, 28, 33,
         40, 41, 42, 43, 46, 50, 51, 54, 55, 56,

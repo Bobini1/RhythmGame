@@ -200,7 +200,15 @@ ApplicationWindow {
             id: sceneStack
 
             onCurrentItemChanged: {
-                updateEnabledStates();
+                Qt.callLater(updateEnabledStates);
+            }
+
+            onDepthChanged: {
+                Qt.callLater(updateEnabledStates);
+            }
+
+            Component.onCompleted: {
+                Qt.callLater(updateEnabledStates);
             }
 
             function updateEnabledStates() {
@@ -208,7 +216,9 @@ ApplicationWindow {
                 for (let i = 0; i < depth; ++i) {
                     let item = get(i, StackView.ForceLoad);
                     if (item) {
-                        item.enabled = (i === topIndex);
+                        let active = i === topIndex;
+                        item.enabled = active;
+                        item.visible = active;
                     }
                 }
             }
