@@ -51,10 +51,17 @@ Item {
         : null
     readonly property var overlayTimelineTimers: Lr2Timeline.dstsUseDynamicTimer(overlayDsts) ? timers : null
     readonly property var overlayTimelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(overlayDsts) ? activeOptions : []
+    property Lr2TimelineState overlayTimelineCache: Lr2TimelineState {
+        enabled: root.hasOverlayTimelineState && !root.overlayHasStaticTimelineState
+        dsts: root.overlayDsts
+        skinTime: root.skinTime
+        timers: root.overlayTimelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.overlayTimelineActiveOptions
+    }
     readonly property var overlayTimelineState: hasOverlayTimelineState
         ? (overlayStaticTimelineState
-           || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-               overlayDsts, skinTime, overlayTimelineTimers, timerFire, overlayTimelineActiveOptions))
+           || overlayTimelineCache.state)
         : null
 
     readonly property var bodyRows: {

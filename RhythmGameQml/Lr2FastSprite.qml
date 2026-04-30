@@ -1,6 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import "Lr2Timeline.js" as Lr2Timeline
+import RhythmGameQml 1.0
 
 Image {
     id: root
@@ -32,21 +32,15 @@ Image {
         }
         return absPath;
     }
-    readonly property int frameIndex: {
-        if (!srcData) {
-            return 0;
-        }
-        if (root.frameOverride >= 0) {
-            let divX = Math.max(1, srcData.div_x || 1);
-            let divY = Math.max(1, srcData.div_y || 1);
-            return Math.max(0, Math.min(divX * divY - 1, root.frameOverride));
-        }
-        let timerIdx = srcData.timer || 0;
-        let fire = root.sourceTimerFire > -2147483648
-            ? root.sourceTimerFire
-            : (timers && timers[timerIdx] !== undefined ? timers[timerIdx] : -1);
-        return Lr2Timeline.getAnimationFrame(srcData, skinTime, fire);
+    property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
+        enabled: !!root.srcData || root.frameOverride >= 0
+        sourceData: root.srcData
+        skinTime: root.skinTime
+        timers: root.timers
+        timerFire: root.sourceTimerFire
+        frameOverride: root.frameOverride
     }
+    readonly property int frameIndex: animationFrameState.frameIndex
     readonly property real stateX: stateData ? stateData.x || 0 : 0
     readonly property real stateY: stateData ? stateData.y || 0 : 0
     readonly property real stateW: stateData ? stateData.w || 0 : 0

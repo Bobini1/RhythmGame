@@ -2,7 +2,6 @@ pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2Timeline.js" as Lr2Timeline
 
 Lr2NativeCursor {
     id: cursor
@@ -23,12 +22,16 @@ Lr2NativeCursor {
         ? (cursorDsts[0].timer || 0)
         : 0
     readonly property int cursorSrcTimer: cursorSrcData ? (cursorSrcData.timer || 0) : 0
+    property Lr2TimelineState cursorTimelineState: Lr2TimelineState {
+        enabled: cursor.rootReady && !!cursor.cursorSrcData
+        dsts: cursor.cursorDsts
+        skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
+        timers: null
+        timerFire: cursor.rootReady ? cursor.root.skinTimerFireTime(cursor.cursorDstTimer) : -1
+        activeOptions: cursor.rootReady ? cursor.root.runtimeActiveOptions : []
+    }
     readonly property var cursorState: rootReady && cursorSrcData
-        ? Lr2Timeline.getCurrentStateFromTimerFire(
-            cursorDsts,
-            root.renderSkinTime,
-            root.skinTimerFireTime(cursorDstTimer),
-            root.runtimeActiveOptions)
+        ? cursorTimelineState.state
         : null
     readonly property bool wholeTextureSource: cursorSrcData !== null
         && (cursorSrcData.x < 0 || cursorSrcData.y < 0
@@ -48,14 +51,14 @@ Lr2NativeCursor {
         }
         return absPath;
     }
-    readonly property int frameIndex: {
-        if (!rootReady || !cursorSrcData) {
-            return 0;
-        }
-        return Lr2Timeline.getAnimationFrame(cursorSrcData,
-                                             root.renderSkinTime,
-                                             root.skinTimerFireTime(cursorSrcTimer));
+    property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
+        enabled: cursor.rootReady && !!cursor.cursorSrcData
+        sourceData: cursor.cursorSrcData
+        skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
+        timers: null
+        timerFire: cursor.rootReady ? cursor.root.skinTimerFireTime(cursor.cursorSrcTimer) : -1
     }
+    readonly property int frameIndex: animationFrameState.frameIndex
     readonly property rect clipRect: {
         if (!cursorSrcData || wholeTextureSource || !croppedTextureSource) {
             return Qt.rect(0, 0, 0, 0);

@@ -8,8 +8,14 @@ qt_add_qml_module(RhythmGame_qml
         SOURCES
         Rg.h
         Rg.cpp
+        Lr2TimelineState.h
+        Lr2TimelineState.cpp
+        Lr2AnimationFrameState.h
+        Lr2AnimationFrameState.cpp
         Lr2BarPositionCache.h
         Lr2BarPositionCache.cpp
+        Lr2BarBaseStateCache.h
+        Lr2BarBaseStateCache.cpp
         Lr2BarPositionedItem.h
         Lr2BarPositionedItem.cpp
         Lr2BarInterpolatedState.h

@@ -27,9 +27,16 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    property Lr2TimelineState timelineState: Lr2TimelineState {
+        enabled: !root.hasStaticTimelineState
+        dsts: root.dsts
+        skinTime: root.skinTime
+        timers: root.timelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.timelineActiveOptions
+    }
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
+        || timelineState.state
     readonly property var anchor: Lr2Timeline.centerAnchor(currentState ? currentState.center : 0)
     readonly property var bgaContainer: chart && chart.bga ? chart.bga : null
     readonly property real sourceW: Math.max(videoBase.sourceRect.width,

@@ -13,6 +13,8 @@ Item {
     property var activeOptions: []
     property var chart: null
     property int skinTime: 0
+    property var skinClock: null
+    property int skinClockMode: 0
     property int timerFire: 0
     property real skinScale: 1
 
@@ -208,6 +210,8 @@ Item {
         dsts: textElement.dsts
         srcData: textElement.srcData
         skinTime: textElement.skinTime
+        skinClock: textElement.skinClock
+        skinClockMode: textElement.skinClockMode
         activeOptions: textElement.activeOptions
         timerFire: textElement.timerFire
         chart: textElement.chart

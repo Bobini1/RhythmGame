@@ -1,4 +1,5 @@
 import QtQuick
+import RhythmGameQml 1.0
 import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
@@ -22,9 +23,16 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    property Lr2TimelineState timelineState: Lr2TimelineState {
+        enabled: !root.hasStaticTimelineState
+        dsts: root.dsts
+        skinTime: root.skinTime
+        timers: root.timelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.timelineActiveOptions
+    }
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
+        || timelineState.state
     readonly property int side: srcData && srcData.side > 0 ? srcData.side : 1
     readonly property var player: screenRoot ? screenRoot.gameplayPlayer(side) : null
     readonly property var score: player ? player.score : null

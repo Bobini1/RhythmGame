@@ -202,6 +202,13 @@ Item {
                         && model.type !== 5
                         && model.type !== 8
                         && model.type !== 9
+                    readonly property int manualClock: 0
+                    readonly property int renderClock: 1
+                    readonly property int selectSourceClock: 2
+                    readonly property int elementSkinClockMode: usesElementSkinTime
+                        ? (usesLiveSelectClock ? selectSourceClock : renderClock)
+                        : manualClock
+                    readonly property bool useDirectElementSkinClock: usesElementSkinTime
                     readonly property int elementSkinTime: usesElementSkinTime
                         ? (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime)
                         : 0
@@ -251,19 +258,31 @@ Item {
                         Item {
                             width: skinW * skinScale
                             height: skinH * skinScale
+                            readonly property int manualClock: 0
+                            readonly property int renderClock: 1
+                            readonly property int selectSourceClock: 2
+                            readonly property bool useDirectSkinClock: elemLoader.usesSkinTime
+                                && !elemLoader.usesSelectHeldButtonTimer
+                                && !elemLoader.usesSpriteStateOverride
+                            readonly property int spriteSkinClockMode: useDirectSkinClock
+                                ? (elemLoader.usesLiveDstClock ? selectSourceClock : renderClock)
+                                : manualClock
+                            readonly property int spriteSourceSkinClockMode: useDirectSkinClock && elemLoader.usesLiveSourceClock
+                                ? selectSourceClock
+                                : manualClock
                             readonly property int selectHeldSkinClock: elemLoader.usesSelectHeldButtonTimer
                                 ? (root.hasSelectHeldButtonTimers
                                     ? root.selectHeldButtonSkinTime
                                     : root.currentSelectHeldButtonSkinTime())
                                 : 0
-                            readonly property int spriteSkinClock: elemLoader.usesSkinTime
+                            readonly property int spriteSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
                                 ? (elemLoader.usesSelectHeldButtonTimer
                                     ? selectHeldSkinClock
                                     : (elemLoader.usesLiveDstClock
                                         ? root.selectSourceSkinTime
                                         : root.renderSkinTime))
                                 : 0
-                            readonly property int spriteSourceSkinClock: elemLoader.usesSkinTime
+                            readonly property int spriteSourceSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
                                 ? (elemLoader.usesSelectHeldButtonTimer
                                     ? selectHeldSkinClock
                                     : (elemLoader.usesLiveSourceClock
@@ -277,8 +296,11 @@ Item {
                                 anchors.fill: parent
                                 dsts: model.dsts
                                 srcData: root.imageSetSourceFor(model.src)
-                                skinTime: parent.spriteSkinClock
-                                sourceSkinTime: parent.spriteSourceSkinClock
+                                skinTime: parent.useDirectSkinClock ? 0 : parent.spriteSkinClock
+                                sourceSkinTime: parent.useDirectSkinClock ? 0 : parent.spriteSourceSkinClock
+                                skinClock: parent.useDirectSkinClock ? root.skinClockRef : null
+                                skinClockMode: parent.spriteSkinClockMode
+                                sourceSkinClockMode: parent.spriteSourceSkinClockMode
                                 activeOptions: elemLoader.elementActiveOptions
                                 timerFire: elemLoader.dstTimerFire
                                 sourceTimerFire: elemLoader.srcTimerFire
@@ -394,9 +416,12 @@ Item {
                     Component {
                         id: numberComponent
                         Lr2NumberRenderer {
+                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
                             dsts: model.dsts
                             srcData: model.src
-                            skinTime: elemLoader.elementSkinTime
+                            skinTime: elemLoader.useDirectElementSkinClock && !sourceAnimates ? 0 : elemLoader.elementSkinTime
+                            skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
+                            skinClockMode: elemLoader.elementSkinClockMode
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
@@ -418,7 +443,9 @@ Item {
                             selectContext: sceneRoot.selectContext
                             dsts: model.dsts
                             srcData: model.src
-                            skinTime: elemLoader.elementSkinTime
+                            skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
+                            skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
+                            skinClockMode: elemLoader.elementSkinClockMode
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
                             chart: sceneRoot.renderChart
@@ -528,10 +555,19 @@ Item {
                             readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
                             dsts: model.dsts
                             srcData: model.src
-                            skinTime: elemLoader.elementSkinTime
-                            sourceSkinTime: root.effectiveScreenKey === "select" && sourceAnimates
-                                ? root.selectSourceSkinTime
-                                : (sourceAnimates ? root.renderSkinTime : 0)
+                            skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
+                            sourceSkinTime: elemLoader.useDirectElementSkinClock
+                                ? 0
+                                : (root.effectiveScreenKey === "select" && sourceAnimates
+                                    ? root.selectSourceSkinTime
+                                    : (sourceAnimates ? root.renderSkinTime : 0))
+                            skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
+                            skinClockMode: elemLoader.elementSkinClockMode
+                            sourceSkinClockMode: elemLoader.useDirectElementSkinClock && sourceAnimates
+                                ? (root.effectiveScreenKey === "select"
+                                    ? elemLoader.selectSourceClock
+                                    : elemLoader.renderClock)
+                                : elemLoader.manualClock
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire

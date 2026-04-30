@@ -57,9 +57,16 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(timelineDsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(timelineDsts) ? activeOptions : []
+    property Lr2TimelineState timelineState: Lr2TimelineState {
+        enabled: !root.hasStaticTimelineState
+        dsts: root.timelineDsts
+        skinTime: root.skinTime
+        timers: root.timelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.timelineActiveOptions
+    }
     readonly property var textTimelineState: staticTimelineState
-        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-            timelineDsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
+        || timelineState.state
 
     function visibleFor(cellEntry, cellTitleType) {
         return !!cellEntry && !!srcData && !!selectContext

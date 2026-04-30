@@ -1,7 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2Timeline.js" as Lr2Timeline
 
 QtObject {
     id: geometry
@@ -11,20 +10,6 @@ QtObject {
     required property var selectContext
 
     readonly property var root: screenRoot
-
-    function computeBarBaseState(row, selectedRow) {
-        let rows = skinModel.barRows;
-        if (!rows || row < 0 || row >= rows.length) {
-            return null;
-        }
-        let data = rows[row];
-        let useOn = row === selectedRow && data.onDsts && data.onDsts.length > 0;
-        let dstList = useOn ? data.onDsts : data.offDsts;
-        if (!dstList || dstList.length === 0) {
-            dstList = data.onDsts || [];
-        }
-        return Lr2Timeline.getCurrentState(dstList, root.barSkinTime, root.barTimers, root.barActiveOptions);
-    }
 
     readonly property bool fastBarScrollActive: false
     readonly property real fastBarScrollX: 0
@@ -36,13 +21,14 @@ QtObject {
     readonly property int clickEndRow: Math.min(
         (skinModel.barRows ? skinModel.barRows.length : 0) - 1,
         skinModel.barAvailableEnd + 3)
-    readonly property var cachedBarBaseStates: {
-        let rows = skinModel.barRows || [];
-        let result = [];
-        for (let row = 0; row < rows.length; ++row) {
-            result.push(geometry.computeBarBaseState(row, geometry.selectedRow));
-        }
-        return result;
+    readonly property var cachedBarBaseStates: barBaseStateCache.baseStates
+
+    property Lr2BarBaseStateCache barBaseStateCache: Lr2BarBaseStateCache {
+        barRows: geometry.skinModel.barRows
+        selectedRow: geometry.selectedRow
+        skinTime: geometry.root.barSkinTime
+        timers: geometry.root.barTimers
+        activeOptions: geometry.root.barActiveOptions
     }
 
     property Lr2BarPositionCache barPositionCache: Lr2BarPositionCache {

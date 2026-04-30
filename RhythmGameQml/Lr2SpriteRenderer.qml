@@ -1,5 +1,6 @@
 import QtQuick
 import QtMultimedia
+import RhythmGameQml 1.0
 
 import "Lr2Timeline.js" as Lr2Timeline
 
@@ -14,6 +15,9 @@ Item {
     property var srcData
     property int skinTime: 0
     property int sourceSkinTime: skinTime
+    property var skinClock: null
+    property int skinClockMode: 0
+    property int sourceSkinClockMode: 0
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
@@ -42,30 +46,46 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
-    readonly property var currentState: forceHidden
-        ? null
-        : (stateOverride || staticTimelineState
-           || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-               dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions))
-    readonly property real stateX: root.currentState ? (root.currentState.x || 0) : 0
-    readonly property real stateY: root.currentState ? (root.currentState.y || 0) : 0
-    readonly property real stateW: root.currentState ? (root.currentState.w || 0) : 0
-    readonly property real stateH: root.currentState ? (root.currentState.h || 0) : 0
+    property Lr2TimelineState timelineState: Lr2TimelineState {
+        enabled: !root.stateOverride && !root.forceHidden && !root.hasStaticTimelineState
+        skinClock: root.skinClock
+        clockMode: root.skinClockMode
+        dsts: root.dsts
+        skinTime: root.skinTime
+        timers: root.timelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.timelineActiveOptions
+    }
+    readonly property var objectState: forceHidden ? null : (stateOverride || staticTimelineState)
+    readonly property bool hasCurrentState: !!objectState || (!forceHidden && timelineState.hasState)
+    readonly property real stateX: objectState ? (objectState.x || 0) : (timelineState.hasState ? timelineState.stateX : 0)
+    readonly property real stateY: objectState ? (objectState.y || 0) : (timelineState.hasState ? timelineState.stateY : 0)
+    readonly property real stateW: objectState ? (objectState.w || 0) : (timelineState.hasState ? timelineState.stateW : 0)
+    readonly property real stateH: objectState ? (objectState.h || 0) : (timelineState.hasState ? timelineState.stateH : 0)
+    readonly property real stateA: objectState ? (objectState.a === undefined ? 255 : objectState.a) : (timelineState.hasState ? timelineState.stateA : 0)
+    readonly property real stateR: objectState ? (objectState.r === undefined ? 255 : objectState.r) : (timelineState.hasState ? timelineState.stateR : 255)
+    readonly property real stateG: objectState ? (objectState.g === undefined ? 255 : objectState.g) : (timelineState.hasState ? timelineState.stateG : 255)
+    readonly property real stateB: objectState ? (objectState.b === undefined ? 255 : objectState.b) : (timelineState.hasState ? timelineState.stateB : 255)
+    readonly property real stateAngle: objectState ? (objectState.angle || 0) : (timelineState.hasState ? timelineState.stateAngle : 0)
+    readonly property int stateCenter: objectState ? (objectState.center || 0) : (timelineState.hasState ? timelineState.stateCenter : 0)
+    readonly property int stateBlend: objectState ? (objectState.blend || 0) : (timelineState.hasState ? timelineState.stateBlend : 0)
+    readonly property int stateFilter: objectState ? (objectState.filter || 0) : (timelineState.hasState ? timelineState.stateFilter : 0)
+    readonly property int stateOp4: objectState ? (objectState.op4 || 0) : (timelineState.hasState ? timelineState.stateOp4 : 0)
     readonly property real drawX: root.stateX + (root.stateW < 0 ? root.stateW : 0) + root.offsetX
     readonly property real drawY: root.stateY + (root.stateH < 0 ? root.stateH : 0) + root.offsetY
     readonly property real drawW: Math.abs(root.stateW)
     readonly property real drawH: Math.abs(root.stateH)
     readonly property real effectiveAngle: {
-        if (!currentState) {
+        if (!hasCurrentState) {
             return 0;
         }
-        if ((currentState.op4 || 0) === 1) {
+        if (root.stateOp4 === 1) {
             return scratchAngle1;
         }
-        if ((currentState.op4 || 0) === 2) {
+        if (root.stateOp4 === 2) {
             return scratchAngle2;
         }
-        return currentState.angle || 0;
+        return root.stateAngle;
     }
     // LR2 blend modes we can express via Qt Quick primitives:
     //   0 = TRANSCOLOR alpha (black -> transparent, then alpha)
@@ -81,7 +101,7 @@ Item {
     // them properly needs a C++ QSGMaterial subclass that overrides
     // updatePipelineState(). Until that lands, fall through to plain alpha.
     readonly property int blendMode: {
-        let raw = currentState ? currentState.blend : 1;
+        let raw = hasCurrentState ? stateBlend : 1;
         if (raw === 0 && !root.colorKeyEnabled) return 1;
         if (raw === 5 || raw === 6) return 2;
         if (raw === 3 || raw === 4 || raw === 9 || raw === 11) return 1;
@@ -91,18 +111,18 @@ Item {
         if (value === undefined || value === null) return 1.0;
         return Math.max(0, Math.min(255, value)) / 255.0;
     }
-    readonly property real tintR: root.currentState ? root.colorComponent(root.currentState.r) : 1.0
-    readonly property real tintG: root.currentState ? root.colorComponent(root.currentState.g) : 1.0
-    readonly property real tintB: root.currentState ? root.colorComponent(root.currentState.b) : 1.0
+    readonly property real tintR: root.hasCurrentState ? root.colorComponent(root.stateR) : 1.0
+    readonly property real tintG: root.hasCurrentState ? root.colorComponent(root.stateG) : 1.0
+    readonly property real tintB: root.hasCurrentState ? root.colorComponent(root.stateB) : 1.0
     readonly property bool hasColorTint: Math.abs(root.tintR - 1.0) > 0.001
         || Math.abs(root.tintG - 1.0) > 0.001
         || Math.abs(root.tintB - 1.0) > 0.001
     readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
-    readonly property bool usesScratchRotation: currentState
-        && ((currentState.op4 || 0) === 1 || (currentState.op4 || 0) === 2)
+    readonly property bool usesScratchRotation: hasCurrentState
+        && (root.stateOp4 === 1 || root.stateOp4 === 2)
     readonly property var anchor: root.usesScratchRotation
         ? ({ x: 0.5, y: 0.5 })
-        : Lr2Timeline.centerAnchor(currentState ? currentState.center : 0)
+        : Lr2Timeline.centerAnchor(root.hasCurrentState ? root.stateCenter : 0)
     readonly property bool isSolidFill: srcData && srcData.specialType === 2
     readonly property bool hasWholeTextureSource: srcData && !root.isSolidFill
         && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
@@ -114,8 +134,8 @@ Item {
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
     readonly property bool shouldPlayVideo: root.mediaActive
         && root.hasDrawableVideo
-        && root.currentState
-        && root.currentState.a > 0
+        && root.hasCurrentState
+        && root.stateA > 0
         && root.drawW > 0
         && root.drawH > 0
 
@@ -166,28 +186,27 @@ Item {
         return absPath;
     }
 
-    readonly property int frameIndex: {
-        if (!root.hasFrameAnimation) return 0;
-        if (root.frameOverride >= 0) {
-            let divX = Math.max(1, srcData.div_x || 1);
-            let divY = Math.max(1, srcData.div_y || 1);
-            return Math.max(0, Math.min(divX * divY - 1, root.frameOverride));
-        }
-        let timerIdx = srcData.timer || 0;
-        let fire = root.sourceTimerFire > -2147483648
-            ? root.sourceTimerFire
-            : ((timers && timers[timerIdx] !== undefined) ? timers[timerIdx] : -1);
-        return Lr2Timeline.getAnimationFrame(srcData, sourceSkinTime, fire);
+    property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
+        enabled: root.hasFrameAnimation || root.frameOverride >= 0
+        skinClock: root.skinClock
+        clockMode: root.hasFrameAnimation ? root.sourceSkinClockMode : 0
+        sourceData: root.srcData
+        skinTime: root.sourceSkinTime
+        timers: root.timers
+        timerFire: root.sourceTimerFire
+        frameOverride: root.frameOverride
+        textureWidth: Math.max(0, atlasImage.implicitWidth)
+        textureHeight: Math.max(0, atlasImage.implicitHeight)
     }
 
     Item {
         id: sprite
-        x: root.currentState ? root.drawX * root.scaleOverride : 0
-        y: root.currentState ? root.drawY * root.scaleOverride : 0
-        width: root.currentState ? root.drawW * root.scaleOverride : 0
-        height: root.currentState ? root.drawH * root.scaleOverride : 0
-        visible: root.currentState && root.currentState.a > 0 && width > 0 && height > 0
-        opacity: root.currentState ? root.currentState.a / 255.0 : 0
+        x: root.hasCurrentState ? root.drawX * root.scaleOverride : 0
+        y: root.hasCurrentState ? root.drawY * root.scaleOverride : 0
+        width: root.hasCurrentState ? root.drawW * root.scaleOverride : 0
+        height: root.hasCurrentState ? root.drawH * root.scaleOverride : 0
+        visible: root.hasCurrentState && root.stateA > 0 && width > 0 && height > 0
+        opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
 
         transform: Rotation {
             origin.x: sprite.width * root.anchor.x
@@ -231,45 +250,17 @@ Item {
             anchors.fill: parent
             visible: root.hasDrawableTexture && atlasImage.status === Image.Ready
             blending: true
-            property variant source: atlasImage
+            property var source: atlasImage
             property color tint: root.tintColor
             property color transColor: root.transColor
             property real blendMode: root.blendMode
             property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
             property real tolerance: 0.03125
-            property real nearestMode: root.currentState && (root.currentState.filter || 0) === 0 ? 1.0 : 0.0
+            property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
-            property vector4d sourceRect: {
-                if (!root.srcData || !root.hasDrawableTexture
-                    || atlasImage.implicitWidth <= 0
-                    || atlasImage.implicitHeight <= 0
-                    || root.hasWholeTextureSource) {
-                    return Qt.vector4d(0, 0, 1, 1);
-                }
-
-                let sx = Math.max(0, root.srcData.x || 0);
-                let sy = Math.max(0, root.srcData.y || 0);
-                let sw = root.srcData.w;
-                let sh = root.srcData.h;
-
-                let divX = Math.max(1, root.srcData.div_x || 1);
-                let divY = Math.max(1, root.srcData.div_y || 1);
-                let cellW = sw / divX;
-                let cellH = sh / divY;
-
-                let col = root.frameIndex % divX;
-                let row = Math.floor(root.frameIndex / divX) % divY;
-
-                let atlasW = Math.max(1, atlasImage.implicitWidth);
-                let atlasH = Math.max(1, atlasImage.implicitHeight);
-                return Qt.vector4d(
-                    (sx + col * cellW) / atlasW,
-                    (sy + row * cellH) / atlasH,
-                    cellW / atlasW,
-                    cellH / atlasH);
-            }
+            property vector4d sourceRect: root.animationFrameState.sourceRect
             fragmentShader: "qrc:/Lr2SpriteAtlas.frag.qsb"
         }
 

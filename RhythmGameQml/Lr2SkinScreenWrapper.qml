@@ -3464,6 +3464,7 @@ Item {
     property alias barAnimationLimit: skinTiming.barAnimationLimit
     property alias selectInfoAnimationLimit: skinTiming.selectInfoAnimationLimit
     property alias sceneStartMs: skinTiming.sceneStartMs
+    property alias skinClockRef: skinTiming.skinClockRef
     property alias skinClockNowMs: skinTiming.skinClockNowMs
     property alias globalSkinTime: skinTiming.globalSkinTime
     property alias selectLiveSkinTime: skinTiming.selectLiveSkinTime

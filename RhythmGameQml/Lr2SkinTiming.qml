@@ -38,6 +38,7 @@ QtObject {
     }
 
     property alias sceneStartMs: skinClock.sceneStartMs
+    property alias skinClockRef: skinClock
     property alias skinClockNowMs: skinClock.nowMs
     property alias globalSkinTime: skinClock.globalSkinTime
     property alias selectLiveSkinTime: skinClock.selectLiveSkinTime

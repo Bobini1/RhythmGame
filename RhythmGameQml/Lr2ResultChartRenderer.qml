@@ -1,4 +1,5 @@
 import QtQuick
+import RhythmGameQml 1.0
 import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
@@ -28,9 +29,16 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    property Lr2TimelineState timelineState: Lr2TimelineState {
+        enabled: !root.hasStaticTimelineState
+        dsts: root.dsts
+        skinTime: root.skinTime
+        timers: root.timelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.timelineActiveOptions
+    }
     readonly property var currentState: staticTimelineState
-        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-            dsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
+        || timelineState.state
     readonly property string resolvedSource: {
         if (!srcData || !srcData.source) return "";
         let absPath = srcData.source.replace(/\\/g, "/");
@@ -42,14 +50,14 @@ Item {
         }
         return absPath;
     }
-    readonly property int sourceFrameIndex: {
-        if (!srcData) return 0;
-        let timerIdx = srcData.timer || 0;
-        let fire = root.sourceTimerFire > -2147483648
-            ? root.sourceTimerFire
-            : (timers && timers[timerIdx] !== undefined ? timers[timerIdx] : -1);
-        return Lr2Timeline.getAnimationFrame(srcData, skinTime, fire);
+    property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
+        enabled: !!root.srcData
+        sourceData: root.srcData
+        skinTime: root.skinTime
+        timers: root.timers
+        timerFire: root.sourceTimerFire
     }
+    readonly property int sourceFrameIndex: animationFrameState.frameIndex
     readonly property int resultRevision: screenRoot ? screenRoot.resultOldScoresRevision : 0
 
     function resultScore() {

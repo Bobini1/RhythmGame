@@ -43,9 +43,16 @@ Item {
         : null
     readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(numberDsts) ? timers : null
     readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(numberDsts) ? activeOptions : []
+    property Lr2TimelineState timelineState: Lr2TimelineState {
+        enabled: !root.hasStaticTimelineState
+        dsts: root.numberDsts
+        skinTime: root.skinTime
+        timers: root.timelineTimers
+        timerFire: root.timerFire
+        activeOptions: root.timelineActiveOptions
+    }
     readonly property var numberTimelineState: staticTimelineState
-        || Lr2Timeline.getCurrentStateWithOptionalTimerFire(
-            numberDsts, skinTime, timelineTimers, timerFire, timelineActiveOptions)
+        || timelineState.state
     readonly property bool numberSourceAnimates: srcData && srcData.source
         && (srcData.source.cycle || 0) > 0
 
