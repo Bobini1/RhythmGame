@@ -12,6 +12,10 @@ class Lr2BarPositionedItem : public QQuickItem {
     QML_ELEMENT
     Q_PROPERTY(Lr2BarPositionCache* positionCache READ positionCache WRITE setPositionCache NOTIFY positionCacheChanged)
     Q_PROPERTY(int row READ row WRITE setRow NOTIFY rowChanged)
+    Q_PROPERTY(bool useSlotRow READ useSlotRow WRITE setUseSlotRow NOTIFY useSlotRowChanged)
+    Q_PROPERTY(int slot READ slot WRITE setSlot NOTIFY slotChanged)
+    Q_PROPERTY(int effectiveRow READ effectiveRow NOTIFY effectiveRowChanged)
+    Q_PROPERTY(bool rowVisible READ rowVisible NOTIFY rowVisibleChanged)
     Q_PROPERTY(qreal scaleOverride READ scaleOverride WRITE setScaleOverride NOTIFY scaleOverrideChanged)
     Q_PROPERTY(bool usePositionCache READ usePositionCache WRITE setUsePositionCache NOTIFY usePositionCacheChanged)
     Q_PROPERTY(bool hasOverride READ hasOverride WRITE setHasOverride NOTIFY hasOverrideChanged)
@@ -30,6 +34,15 @@ public:
 
     int row() const;
     void setRow(int row);
+
+    bool useSlotRow() const;
+    void setUseSlotRow(bool useSlotRow);
+
+    int slot() const;
+    void setSlot(int slot);
+
+    int effectiveRow() const;
+    bool rowVisible() const;
 
     qreal scaleOverride() const;
     void setScaleOverride(qreal scale);
@@ -61,6 +74,10 @@ public:
 signals:
     void positionCacheChanged();
     void rowChanged();
+    void useSlotRowChanged();
+    void slotChanged();
+    void effectiveRowChanged();
+    void rowVisibleChanged();
     void scaleOverrideChanged();
     void usePositionCacheChanged();
     void hasOverrideChanged();
@@ -74,10 +91,17 @@ signals:
 private:
     static bool sameReal(qreal lhs, qreal rhs);
     void updatePosition();
+    int resolvedRow() const;
 
     QPointer<Lr2BarPositionCache> m_positionCache;
     QMetaObject::Connection m_revisionConnection;
+    QMetaObject::Connection m_slotOffsetConnection;
+    QMetaObject::Connection m_slotCountConnection;
     int m_row = -1;
+    bool m_useSlotRow = false;
+    int m_slot = -1;
+    int m_effectiveRow = -1;
+    bool m_rowVisible = false;
     qreal m_scaleOverride = 1.0;
     bool m_usePositionCache = true;
     bool m_hasOverride = false;

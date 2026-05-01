@@ -31,7 +31,6 @@ Item {
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
     readonly property int barCellCount: barCells ? barCells.length : 0
-    readonly property int barCellSlotOffset: selectContext ? selectContext.visibleBarSlotOffset : 0
 
     readonly property int numberSlotCount: barRows && selectContext && srcData
         ? Math.max(0, barRows.length)
@@ -70,56 +69,23 @@ Item {
         return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
     }
 
-    function visibleForCell(cell) {
-        if (!cell || !srcData || !selectContext) {
+    function visibleForValues(cellValid, ranking, chartLike, entryLike, keymode, playLevel, difficulty) {
+        if (!cellValid || !srcData || !selectContext) {
             return false;
         }
-        if (!cell.ranking && !cell.chartLike && !cell.entryLike) {
+        if (!ranking && !chartLike && !entryLike) {
             return false;
         }
-        if (cell.ranking) {
+        if (ranking) {
             return srcData.variant === 6;
         }
-        if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) <= 0) {
+        if ((keymode || 0) <= 0 || (playLevel || 0) <= 0) {
             return false;
         }
-        let difficulty = cell.difficulty || 0;
         if (difficulty <= 0) {
             return srcData.variant === 0;
         }
         return srcData.variant === difficulty;
-    }
-
-    function displayRowForSlot(slot) {
-        let count = root.barCellCount;
-        return count > 0 ? ((slot - root.barCellSlotOffset) % count + count) % count : -1;
-    }
-
-    function refreshNumberCellRange(firstSlot, changedCount, force) {
-        let count = numberRepeater.count;
-        if (count <= 0 || changedCount <= 0) {
-            return;
-        }
-        if (count !== root.barCellCount || changedCount >= count) {
-            root.refreshNumberCells(force);
-            return;
-        }
-        for (let i = 0; i < changedCount; ++i) {
-            root.refreshNumberCell((firstSlot + i) % count, force);
-        }
-    }
-
-    function refreshNumberCells(force) {
-        for (let i = 0; i < numberRepeater.count; ++i) {
-            refreshNumberCell(i, force);
-        }
-    }
-
-    function refreshNumberCell(slot, force) {
-        let item = numberRepeater.itemAt(slot);
-        if (item) {
-            item.refreshCell(force);
-        }
     }
 
     Repeater {
@@ -130,51 +96,32 @@ Item {
         Lr2BarPositionedItem {
             id: barNumberDelegate
 
-            readonly property int slot: modelData
-            property var cell: null
-            readonly property int displayRow: root.displayRowForSlot(slot)
-            readonly property var visibleBase: root.visibilityState(displayRow)
-            readonly property bool selectedRowContent: displayRow === root.selectedRow
-            readonly property bool contentVisible: displayRow > 0
-                && !!visibleBase
-                && root.visibleForCell(cell)
+            readonly property var cell: root.barCells && slot >= 0 && slot < root.barCells.length
+                ? root.barCells[slot]
+                : null
+            readonly property bool cellValid: !!cell
+            readonly property bool cellRanking: cell ? !!cell.ranking : false
+            readonly property bool cellChartLike: cell ? !!cell.chartLike : false
+            readonly property bool cellEntryLike: cell ? !!cell.entryLike : false
+            readonly property int cellKeymode: cell ? (cell.keymode || 0) : 0
+            readonly property int cellPlayLevel: cell ? (cell.playLevel || 0) : 0
+            readonly property int cellDifficulty: cell ? (cell.difficulty || 0) : 0
+            readonly property bool contentVisible: rowVisible
+                && root.visibleForValues(cellValid, cellRanking, cellChartLike, cellEntryLike,
+                    cellKeymode, cellPlayLevel, cellDifficulty)
             positionCache: root.barPositionCache
-            row: displayRow
+            slot: index
             scaleOverride: root.scaleOverride
+            useSlotRow: true
             usePositionCache: true
-            hasOverride: root.fastBarScrollActive && selectedRowContent
-            overrideX: root.selectedFastBarDrawX
-            overrideY: root.selectedFastBarDrawY
-            adjustX: hasOverride ? root.fastBarScrollX : 0
-            adjustY: hasOverride ? root.fastBarScrollY : 0
-            fallbackX: visibleBase ? visibleBase.x : 0
-            fallbackY: visibleBase ? visibleBase.y : 0
+            hasOverride: false
+            adjustX: 0
+            adjustY: 0
+            fallbackX: 0
+            fallbackY: 0
             width: root.width
             height: root.height
             visible: contentVisible
-
-            function cellAtSlot() {
-                return root.barCells && slot >= 0 && slot < root.barCells.length
-                    ? root.barCells[slot]
-                    : null;
-            }
-
-            function refreshCell(force) {
-                let next = cellAtSlot();
-                if (force && cell === next) {
-                    cell = null;
-                }
-                if (cell !== next) {
-                    cell = next;
-                }
-            }
-
-            Component.onCompleted: {
-                refreshCell(false);
-            }
-            onSlotChanged: {
-                refreshCell(false);
-            }
 
             Lr2NumberRenderer {
                 anchors.fill: parent
@@ -189,20 +136,8 @@ Item {
                 colorKeyEnabled: root.colorKeyEnabled
                 transColor: root.transColor
                 stateOverride: root.numberTimelineState
-                value: parent.cell ? (parent.cell.playLevel || 0) : 0
+                value: parent.cellPlayLevel
             }
-        }
-    }
-
-    onBarCellsChanged: refreshNumberCells(false)
-
-    Connections {
-        target: root.selectContext
-        function onBarTextCellsInvalidated() {
-            root.refreshNumberCells(false);
-        }
-        function onBarTextCellRangeChanged(firstSlot, count) {
-            root.refreshNumberCellRange(firstSlot, count, true);
         }
     }
 }

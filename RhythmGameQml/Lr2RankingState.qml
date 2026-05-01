@@ -19,6 +19,16 @@ QtObject {
     property int transitionPhase: 0 // 175 before list swap, 176 after list swap.
     property string transitionAction: ""
     property int transitionStartSkinTime: 0
+    property var cachedSnapshot: null
+    property string cachedSnapshotTargetMd5: ""
+    property string cachedSnapshotLoadedMd5: ""
+    property var cachedSnapshotEntrySource: null
+    property var emptyRankingEntries: []
+    property int cachedSnapshotPlayerCount: -1
+    property int cachedSnapshotScoreCount: -1
+    property int cachedSnapshotScoreRevision: -1
+    property int cachedSnapshotProvider: -1
+    property int cachedSnapshotProfileUserId: -1
     readonly property int transitionDuration: 120
     readonly property int transitionElapsed: root.transitionPhase !== 0
         ? Math.max(0, Math.min(root.transitionDuration,
@@ -66,12 +76,21 @@ QtObject {
             return root.selectContext.rankingBaseItem;
         }
 
-        let item = root.selectContext.current;
+        let item = root.selectContext.focusedItem;
         return root.selectContext.isChart(item) || root.selectContext.isEntry(item) ? item : null;
     }
 
-    function commitRequest() {
-        root.requestMd5 = root.md5;
+    function md5ForChart(chart) {
+        return chart && chart.md5 ? String(chart.md5) : "";
+    }
+
+    function commitRequest(chart) {
+        let nextMd5 = chart === undefined ? root.md5 : root.md5ForChart(chart);
+        if (root.requestMd5 !== nextMd5) {
+            root.requestMd5 = nextMd5;
+            return true;
+        }
+        return false;
     }
 
     function providerEnum() {
@@ -113,18 +132,17 @@ QtObject {
         };
     }
 
-    function entries() {
+    function buildEntries(source, provider) {
         if (!root.matchesCurrentChart()) {
             return [];
         }
 
-        let source = root.rankingModel.rankingEntries || [];
         let result = [];
-        for (let i = 0; i < source.length; ++i) {
+        for (let i = 0; i < (source || []).length; ++i) {
             result.push(source[i]);
         }
 
-        if (root.providerEnum() !== OnlineRankingModel.LR2IR) {
+        if (provider !== OnlineRankingModel.LR2IR) {
             return result;
         }
 
@@ -148,6 +166,10 @@ QtObject {
         return withLocal;
     }
 
+    function entries() {
+        return root.snapshot().entries;
+    }
+
     function clearCounts(entries) {
         let counts = {};
         for (let entry of entries || []) {
@@ -158,6 +180,9 @@ QtObject {
     }
 
     function playerCount(entries) {
+        if (entries === undefined) {
+            return root.snapshot().playerCount;
+        }
         if (!root.matchesCurrentChart()) {
             return 0;
         }
@@ -176,6 +201,9 @@ QtObject {
     }
 
     function totalPlayCount(entries) {
+        if (entries === undefined) {
+            return root.snapshot().totalPlayCount;
+        }
         let modelCount = root.rankingModel.scoreCount || 0;
         let total = 0;
         for (let entry of entries || []) {
@@ -196,6 +224,9 @@ QtObject {
     }
 
     function playerRank(entries) {
+        if (entries === undefined) {
+            return root.snapshot().playerRank;
+        }
         let userId = root.profileUserId();
         for (let i = 0; i < (entries || []).length; ++i) {
             let entry = entries[i];
@@ -207,14 +238,44 @@ QtObject {
     }
 
     function snapshot() {
-        let currentEntries = root.entries();
-        return {
+        let targetMd5 = root.md5;
+        let loadedMd5 = root.rankingModel.md5 ? String(root.rankingModel.md5) : "";
+        let source = root.rankingModel.rankingEntries || root.emptyRankingEntries;
+        let playerCountValue = Number(root.rankingModel.playerCount || 0);
+        let scoreCountValue = Number(root.rankingModel.scoreCount || 0);
+        let scoreRevision = root.selectContext.scoreRevision;
+        let provider = root.providerEnum();
+        let userId = root.profileUserId();
+
+        if (root.cachedSnapshot
+                && root.cachedSnapshotTargetMd5 === targetMd5
+                && root.cachedSnapshotLoadedMd5 === loadedMd5
+                && root.cachedSnapshotEntrySource === source
+                && root.cachedSnapshotPlayerCount === playerCountValue
+                && root.cachedSnapshotScoreCount === scoreCountValue
+                && root.cachedSnapshotScoreRevision === scoreRevision
+                && root.cachedSnapshotProvider === provider
+                && root.cachedSnapshotProfileUserId === userId) {
+            return root.cachedSnapshot;
+        }
+
+        let currentEntries = root.buildEntries(source, provider);
+        root.cachedSnapshot = {
             entries: currentEntries,
             clearCounts: root.clearCounts(currentEntries),
             playerCount: root.playerCount(currentEntries),
             totalPlayCount: root.totalPlayCount(currentEntries),
             playerRank: root.playerRank(currentEntries)
         };
+        root.cachedSnapshotTargetMd5 = targetMd5;
+        root.cachedSnapshotLoadedMd5 = loadedMd5;
+        root.cachedSnapshotEntrySource = source;
+        root.cachedSnapshotPlayerCount = playerCountValue;
+        root.cachedSnapshotScoreCount = scoreCountValue;
+        root.cachedSnapshotScoreRevision = scoreRevision;
+        root.cachedSnapshotProvider = provider;
+        root.cachedSnapshotProfileUserId = userId;
+        return root.cachedSnapshot;
     }
 
     function entryAt(index) {
@@ -242,8 +303,7 @@ QtObject {
     }
 
     function clearCount() {
-        let currentEntries = root.entries();
-        let counts = root.clearCounts(currentEntries);
+        let counts = root.snapshot().clearCounts;
         let total = 0;
         for (let i = 0; i < arguments.length; ++i) {
             total += counts[arguments[i]] || 0;
@@ -389,8 +449,9 @@ QtObject {
             return false;
         }
 
+        let changed = root.commitRequest(chart);
         root.openWhenReady = true;
-        if (!root.rankingModel.loading) {
+        if (!changed && !root.rankingModel.loading) {
             root.rankingModel.refresh();
         }
         return false;
@@ -462,12 +523,13 @@ QtObject {
             return false;
         }
 
+        let changed = root.commitRequest(targetChart);
         if (root.providerEnum() === OnlineRankingModel.Tachi
                 && (!root.matchesCurrentChart()
                     || !root.rankingModel.chartId
                     || root.rankingModel.loading)) {
             root.internetOpenWhenReady = true;
-            if (!root.rankingModel.loading) {
+            if (!changed && !root.rankingModel.loading) {
                 root.rankingModel.refresh();
             }
             return true;
@@ -509,6 +571,7 @@ QtObject {
         if (!targetChart || !targetChart.md5) {
             return false;
         }
+        root.commitRequest(targetChart);
         if (!root.matchesCurrentChart()
             || root.rankingModel.loading
             || root.playerCount() === 0) {

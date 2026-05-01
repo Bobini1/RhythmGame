@@ -51,11 +51,11 @@ Item {
     property int revision: 0
     property int listRevision: 0
     property int selectionRevision: 0
+    property int focusRevision: 0
     property int scoreRevision: 0
     property int folderLampRevision: 0
     property int folderLampRequestRevision: 0
     property bool scrollFixedPointDragging: false
-    property bool scrollingText: false
     property string searchText: ""
     property var attachedTextCache: ({})
     property int difficultyFilter: 0
@@ -71,6 +71,11 @@ Item {
     property var selectedScoreStateCache: ({})
     property int selectedScoreStateCacheRevision: -1
     property string selectedScoreStateKey: ""
+    property int refreshedFocusedIndex: -1
+    property var refreshedFocusedItem: null
+    property int refreshedFocusedScoreRevision: -1
+    property bool refreshedFocusedRankingMode: false
+    property var refreshedFocusedRankingBaseItem: null
     property var selectedDifficultyCharts: []
     property var selectedDifficultyCounts: [0, 0, 0, 0, 0, 0]
     property var selectedDifficultyLevels: [0, 0, 0, 0, 0, 0]
@@ -90,6 +95,8 @@ Item {
     property real rankingSavedVisualIndex: 0
     property int rankingSavedSelectedOffset: 0
     property var cachedSelectedChartData: null
+    property var cachedSelectedChartWrapper: null
+    property var cachedSelectedChartWrapperData: null
     readonly property var emptyScoreList: []
     readonly property var emptyScoreOptionIds: []
     readonly property var emptyScoreCounts: ({
@@ -157,6 +164,11 @@ Item {
     readonly property int count: items.length
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
     readonly property var current: logicalCount > 0 ? items[currentIndex] : null
+    readonly property int focusedIndex: logicalCount > 0 ? currentIndex : 0
+    readonly property var focusedItem: logicalCount > 0 ? items[focusedIndex] : null
+    onFocusedIndexChanged: {
+        refreshFocusedState();
+    }
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
     property bool visualMoveActive: false
     property int visualBaseIndex: 0
@@ -190,8 +202,6 @@ Item {
         rowCount: Math.max(0, root.barRowCount || 0)
         barCenter: root.barCenter
         visualBaseIndex: root.visualBaseIndex
-        onCellsInvalidated: root.barTextCellsInvalidated()
-        onCellRangeChanged: (firstSlot, count) => root.barTextCellRangeChanged(firstSlot, count)
     }
 
     onUpdatesActiveChanged: {
@@ -222,11 +232,8 @@ Item {
     }
 
     signal openedFolder()
-    signal barTextCellsInvalidated()
-    signal barTextCellRangeChanged(int firstSlot, int count)
     onBarRowCountChanged: refreshVisibleBarEntries(true)
     onBarCenterChanged: refreshVisibleBarEntries(true)
-
     Connections {
         target: root.updatesActive ? visualState : null
         function onBaseIndexChanged() {
@@ -249,9 +256,29 @@ Item {
     }
 
     function touchSelection() {
-        refreshSelectedScoreState();
+        refreshFocusedState();
         selectionRevision += 1;
         touch();
+    }
+
+    function refreshFocusedState() {
+        if (refreshedFocusedIndex === focusedIndex
+                && refreshedFocusedItem === focusedItem
+                && refreshedFocusedScoreRevision === scoreRevision
+                && refreshedFocusedRankingMode === rankingMode
+                && refreshedFocusedRankingBaseItem === rankingBaseItem) {
+            return false;
+        }
+        refreshedFocusedIndex = focusedIndex;
+        refreshedFocusedItem = focusedItem;
+        refreshedFocusedScoreRevision = scoreRevision;
+        refreshedFocusedRankingMode = rankingMode;
+        refreshedFocusedRankingBaseItem = rankingBaseItem;
+        if (refreshSelectedScoreState()) {
+            focusRevision += 1;
+            return true;
+        }
+        return false;
     }
 
     function wrapBarFixed(value) {
@@ -438,14 +465,28 @@ Item {
         if (logicalCount === 0) {
             return false;
         }
-        let nextIndex = normalizeIndex((cursorBaseIndex === undefined ? visualState.cursorBaseIndex : cursorBaseIndex) + selectedOffset);
+        let nextIndex = (visualMoveActive || Date.now() < barMoveEndMs)
+            ? normalizeIndex(targetIndex)
+            : normalizeIndex((cursorBaseIndex === undefined ? visualState.cursorBaseIndex : cursorBaseIndex) + selectedOffset);
         if (currentIndex === nextIndex) {
             return false;
         }
         currentIndex = nextIndex;
         targetIndex = nextIndex;
-        scrollingText = false;
-        scrollingTextTimer.restart();
+        touchSelection();
+        return true;
+    }
+
+    function commitLogicalSelection(index) {
+        if (logicalCount === 0) {
+            return false;
+        }
+        let normalized = normalizeIndex(index);
+        targetIndex = normalized;
+        if (currentIndex === normalized) {
+            return false;
+        }
+        currentIndex = normalized;
         touchSelection();
         return true;
     }
@@ -468,7 +509,7 @@ Item {
             return;
         }
         pendingWheelSteps += steps;
-        pendingWheelStepTimer.restart();
+        updateVisualIndex(Date.now());
     }
 
     Timer {
@@ -1033,7 +1074,7 @@ Item {
                 || selectedOffset !== 0
                 || pendingWheelSteps !== 0
                 || visualMoveActive) {
-            return current;
+            return focusedItem;
         }
         return null;
     }
@@ -1120,7 +1161,7 @@ Item {
         if (!folderContents.length) {
             return;
         }
-        let old = preferredItem === undefined ? current : preferredItem;
+        let old = preferredItem === undefined ? focusedItem : preferredItem;
         let sortedFiltered = sortFilter(folderContents);
         realItemCount = sortedFiltered.length;
         addToMinimumCount(sortedFiltered);
@@ -1131,8 +1172,6 @@ Item {
         selectedOffset = 0;
         cachedSyncedCursorBaseIndex = -1;
         setVisualIndexImmediate(currentIndex);
-        scrollingText = false;
-        scrollingTextTimer.restart();
         touchList();
         touchSelection();
     }
@@ -1328,10 +1367,9 @@ Item {
         oldBarFixed = listTopbarFixed;
         nowBarFixed = Math.round(targetVisual * 1000);
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp : lr2ScrollDown;
+        targetIndex = normalized;
         beginVisualMove(lr2ClickDuration, now);
-        scrollingText = false;
-        scrollingTextTimer.restart();
-        touchSelection();
+        commitLogicalSelection(normalized);
     }
 
     function setScrollIndexImmediate(index) {
@@ -1344,8 +1382,6 @@ Item {
         currentIndex = normalized;
         targetIndex = normalized;
         setVisualIndexImmediate(normalized);
-        scrollingText = false;
-        scrollingTextTimer.restart();
         touchSelection();
     }
 
@@ -1404,11 +1440,11 @@ Item {
         nowBarFixed = Math.round(nearestVisualIndex(rounded, clamped / 1000.0) * 1000);
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
             : (nowBarFixed > listTopbarFixed ? lr2ScrollDown : scrollDirection);
-        targetIndex = normalizeIndex(rounded);
+        let nextIndex = normalizeIndex(rounded);
+        targetIndex = nextIndex;
         let selectionTouched = beginVisualMove(durationMs !== undefined ? durationMs : 100, now);
-        if (!selectionTouched && oldOffset !== selectedOffset) {
-            scrollingText = false;
-            scrollingTextTimer.restart();
+        let focusTouched = commitLogicalSelection(nextIndex);
+        if (!selectionTouched && !focusTouched && oldOffset !== selectedOffset) {
             touchSelection();
         }
     }
@@ -1435,11 +1471,11 @@ Item {
         nowBarFixed = Math.round(nearestVisualIndex(rounded, listTopbarFixed / 1000.0) * 1000);
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp
             : (nowBarFixed > listTopbarFixed ? lr2ScrollDown : scrollDirection);
-        targetIndex = normalizeIndex(rounded);
+        let nextIndex = normalizeIndex(rounded);
+        targetIndex = nextIndex;
         let selectionTouched = beginVisualMove(durationMs !== undefined ? durationMs : 100, now);
-        if (!selectionTouched && (wasDragging || oldOffset !== selectedOffset)) {
-            scrollingText = false;
-            scrollingTextTimer.restart();
+        let focusTouched = commitLogicalSelection(nextIndex);
+        if (!selectionTouched && !focusTouched && (wasDragging || oldOffset !== selectedOffset)) {
             touchSelection();
         }
     }
@@ -1456,8 +1492,13 @@ Item {
         oldBarFixed = listTopbarFixed;
         nowBarFixed += Math.round(entries * 1000);
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
-        targetIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
-        beginVisualMove(durationMs, now);
+        let nextIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
+        targetIndex = nextIndex;
+        let selectionTouched = beginVisualMove(durationMs, now);
+        let focusTouched = commitLogicalSelection(nextIndex);
+        if (!selectionTouched && !focusTouched) {
+            touchSelection();
+        }
     }
 
     function scrollBy(entries, durationMs) {
@@ -1473,18 +1514,7 @@ Item {
         if (logicalCount === 0 || entries === 0) {
             return;
         }
-        let now = Date.now();
-        if (repeated) {
-            if (now <= barMoveEndMs - 20) {
-                return;
-            }
-            scrollBy(entries, lr2SpeedNext);
-            return;
-        }
-        if (now <= barMoveEndMs) {
-            return;
-        }
-        scrollBy(entries, lr2SpeedFirst);
+        scrollBy(entries, repeated ? lr2SpeedNext : lr2SpeedFirst);
     }
 
     function selectVisibleRow(row, barCenter) {
@@ -1495,8 +1525,6 @@ Item {
         cachedSyncedCursorBaseIndex = -1;
         currentIndex = normalizeIndex(visualBaseIndex + selectedOffset);
         targetIndex = currentIndex;
-        scrollingText = false;
-        scrollingTextTimer.restart();
         touchSelection();
     }
 
@@ -1504,7 +1532,7 @@ Item {
         if (logicalCount === 0) {
             return null;
         }
-        return current;
+        return focusedItem;
     }
 
     function selectedRow(barCenter) {
@@ -1707,7 +1735,7 @@ Item {
                 return historyStack[i];
             }
         }
-        return isTable(current) ? current : null;
+        return isTable(focusedItem) ? focusedItem : null;
     }
 
     function currentTableName() {
@@ -1720,7 +1748,7 @@ Item {
         if (isLevel(item)) {
             return item.name || "";
         }
-        return isLevel(current) ? (current.name || "") : "";
+        return isLevel(focusedItem) ? (focusedItem.name || "") : "";
     }
 
     function currentTableFullName() {
@@ -1891,6 +1919,45 @@ Item {
         return "";
     }
 
+    function entrySelectionKey(item, fallbackIndex) {
+        if (!item) {
+            return "empty";
+        }
+        if (isRankingEntry(item)) {
+            return "ranking:" + (item.sourceMd5 || "") + ":" + (item.rankingIndex || 0);
+        }
+        if (isChart(item)) {
+            return "chart:" + (item.md5
+                || item.sha256
+                || item.path
+                || ((item.title || "") + "\n" + (item.subtitle || "") + "\n"
+                    + (item.artist || "") + "\n" + (item.playLevel || 0) + "\n"
+                    + (item.keymode || 0) + "\n" + (item.difficulty || 0))
+                || ("index:" + fallbackIndex));
+        }
+        if (isEntry(item)) {
+            return "entry:" + (item.md5
+                || item.path
+                || ((item.title || "") + "\n" + (item.subtitle || "") + "\n"
+                    + (item.artist || "") + "\n" + (item.level || "") + "\n"
+                    + (item.difficulty || 0))
+                || ("index:" + fallbackIndex));
+        }
+        if (isCourse(item)) {
+            return "course:" + (item.identifier || item.name || ("index:" + fallbackIndex));
+        }
+        if (isTable(item)) {
+            return "table:" + (item.url || item.name || ("index:" + fallbackIndex));
+        }
+        if (isLevel(item)) {
+            return "level:" + (folderLampKey(item) || item.name || ("index:" + fallbackIndex));
+        }
+        if (typeof item === "string") {
+            return "folder:" + item;
+        }
+        return "item:" + (entryDisplayName(item, true) || ("index:" + fallbackIndex));
+    }
+
     function entryScores(item) {
         let revisionMarker = scoreRevision;
         let id = entryIdentifier(item);
@@ -1898,7 +1965,7 @@ Item {
     }
 
     function cachedEntryScores(item) {
-        return item === current || item === cachedSelectedChartData
+        return item === focusedItem || item === cachedSelectedChartData
             ? selectedScoreList
             : entryScores(item);
     }
@@ -1948,7 +2015,6 @@ Item {
         if (!usesExtendedBarLampVariants(variants)) {
             return clearTypeLamp(clear);
         }
-
         switch (clear || "NOPLAY") {
         case "FAILED":
             return 1;
@@ -2308,7 +2374,7 @@ Item {
 
     function currentFolderScoreCountsOrNull() {
         let revisionMarker = folderLampRevision;
-        let key = folderLampKey(current);
+        let key = folderLampKey(focusedItem);
         return key && folderScoreCountsByKey[key] !== undefined
             ? folderScoreCountsByKey[key]
             : null;
@@ -2386,7 +2452,7 @@ Item {
     }
 
     function scoreOptionIds(item) {
-        if (item === current || item === cachedSelectedChartData) {
+        if (item === focusedItem || item === cachedSelectedChartData) {
             let key = selectedScoreStateKey || "__selected";
             if (selectedScoreOptionIdsKey !== key) {
                 selectedScoreOptionIds = scoreOptionIdsFromList(selectedScoreList);
@@ -2503,8 +2569,30 @@ Item {
         return best.result.points / best.result.maxPoints;
     }
 
+    function chartDataForItem(item) {
+        if (rankingMode && rankingBaseItem) {
+            return rankingBaseItem;
+        }
+        return (isChart(item) || isEntry(item)) ? item : null;
+    }
+
     function selectedChartData() {
         return cachedSelectedChartData;
+    }
+
+    function updateSelectedChartWrapper(chartData) {
+        if (!chartData) {
+            if (cachedSelectedChartWrapperData !== null) {
+                cachedSelectedChartWrapperData = null;
+                cachedSelectedChartWrapper = null;
+            }
+            return null;
+        }
+        if (cachedSelectedChartWrapperData !== chartData) {
+            cachedSelectedChartWrapperData = chartData;
+            cachedSelectedChartWrapper = { chartData: chartData };
+        }
+        return cachedSelectedChartWrapper;
     }
 
     function refreshSelectedScoreState() {
@@ -2514,24 +2602,23 @@ Item {
             selectedScoreStateKey = "";
             selectedScoreOptionIdsKey = "";
         }
-        let item = current;
-        let nextChartData = rankingMode && rankingBaseItem
-            ? rankingBaseItem
-            : ((isChart(item) || isEntry(item)) ? item : null);
+        let item = focusedItem;
+        let nextChartData = chartDataForItem(item);
         let stateKey = "";
         if (nextChartData) {
-            stateKey = "chart:" + entryIdentifier(nextChartData);
+            stateKey = entrySelectionKey(nextChartData, focusedIndex);
         } else if (isRankingEntry(item)) {
-            stateKey = "ranking:" + (item.sourceMd5 || "") + ":" + (item.rankingIndex || 0);
+            stateKey = entrySelectionKey(item, focusedIndex);
         } else {
-            stateKey = "item:" + entryIdentifier(item);
+            stateKey = entrySelectionKey(item, focusedIndex);
         }
         if (stateKey && stateKey === selectedScoreStateKey) {
-            return;
+            return false;
         }
         let cached = stateKey ? selectedScoreStateCache[stateKey] : null;
         if (cached) {
             cachedSelectedChartData = cached.chartData;
+            updateSelectedChartWrapper(cached.chartData);
             selectedScoreList = cached.scoreList;
             selectedBestStats = cached.bestStats;
             selectedScoreCounts = cached.scoreCounts;
@@ -2544,12 +2631,13 @@ Item {
                 selectedScoreOptionIdsKey = "";
             }
             refreshSelectedDifficultyState(cached.chartData);
-            return;
+            return true;
         }
         let scoreList = entryScores(nextChartData || item);
         let nextBestStats = bestStats(scoreList);
         let nextScoreCounts = scoreCounts(scoreList);
         cachedSelectedChartData = nextChartData;
+        updateSelectedChartWrapper(nextChartData);
         selectedScoreList = scoreList;
         selectedBestStats = nextBestStats;
         selectedScoreCounts = nextScoreCounts;
@@ -2565,6 +2653,7 @@ Item {
                 scoreCounts: nextScoreCounts
             };
         }
+        return true;
     }
 
     function rankingClearCountValue() {
@@ -2621,13 +2710,42 @@ Item {
             && rankingPlayerCount > 0;
     }
 
+    function sameRankingClearCounts(a, b) {
+        let left = a || {};
+        let right = b || {};
+        for (let key in left) {
+            if (Number(left[key] || 0) !== Number(right[key] || 0)) {
+                return false;
+            }
+        }
+        for (let key in right) {
+            if (Number(left[key] || 0) !== Number(right[key] || 0)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function setRankingStats(md5, clearCounts, playerCount, totalPlayCount, playerRank) {
-        rankingStatsMd5 = normalizedMd5(md5);
-        rankingClearCounts = clearCounts || {};
-        rankingPlayerRank = Math.max(0, Number(playerRank || 0));
-        rankingPlayerCount = Math.max(0, Number(playerCount || 0));
-        rankingTotalPlayCount = Math.max(0, Number(totalPlayCount || rankingPlayerCount));
+        let nextMd5 = normalizedMd5(md5);
+        let nextClearCounts = clearCounts || {};
+        let nextPlayerRank = Math.max(0, Number(playerRank || 0));
+        let nextPlayerCount = Math.max(0, Number(playerCount || 0));
+        let nextTotalPlayCount = Math.max(0, Number(totalPlayCount || nextPlayerCount));
+        if (rankingStatsMd5 === nextMd5
+                && rankingPlayerRank === nextPlayerRank
+                && rankingPlayerCount === nextPlayerCount
+                && rankingTotalPlayCount === nextTotalPlayCount
+                && sameRankingClearCounts(rankingClearCounts, nextClearCounts)) {
+            return false;
+        }
+        rankingStatsMd5 = nextMd5;
+        rankingClearCounts = nextClearCounts;
+        rankingPlayerRank = nextPlayerRank;
+        rankingPlayerCount = nextPlayerCount;
+        rankingTotalPlayCount = nextTotalPlayCount;
         touch();
+        return true;
     }
 
     function rankingEntryFrom(entry, index, chart) {
@@ -2683,8 +2801,6 @@ Item {
         targetIndex = 0;
         selectedOffset = 0;
         setVisualIndexImmediate(0);
-        scrollingText = false;
-        scrollingTextTimer.restart();
         touchList();
         touchSelection();
         return true;
@@ -2708,8 +2824,6 @@ Item {
         targetIndex = restoreIndex;
         selectedOffset = rankingSavedSelectedOffset;
         setVisualIndexImmediate(rankingSavedVisualIndex);
-        scrollingText = false;
-        scrollingTextTimer.restart();
         touchList();
         touchSelection();
         return true;
@@ -2999,8 +3113,7 @@ Item {
     }
 
     function selectedChartWrapper() {
-        let chartData = selectedChartData();
-        return chartData ? { chartData: chartData } : null;
+        return updateSelectedChartWrapper(selectedChartData());
     }
 
     function selectedPreviewSource() {
@@ -3010,7 +3123,7 @@ Item {
 
     function numberValue(num) {
         let chart = selectedChartData();
-        let rankingEntry = isRankingEntry(current) ? current : null;
+        let rankingEntry = isRankingEntry(focusedItem) ? focusedItem : null;
         let stats = selectedBestStats;
         let counts = selectedScoreCounts;
         let currentFolderCounts = currentFolderScoreCountsOrNull();
@@ -3430,11 +3543,5 @@ Item {
         default:
             return 0;
         }
-    }
-
-    Timer {
-        id: scrollingTextTimer
-        interval: 500
-        onTriggered: root.scrollingText = true
     }
 }

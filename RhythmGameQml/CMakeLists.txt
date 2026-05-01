@@ -22,6 +22,8 @@ qt_add_qml_module(RhythmGame_qml
         Lr2BarInterpolatedState.cpp
         Lr2SelectVisualState.h
         Lr2SelectVisualState.cpp
+        Lr2SelectBarCell.h
+        Lr2SelectBarCell.cpp
         Lr2SkinClock.h
         Lr2SkinClock.cpp
         QML_FILES

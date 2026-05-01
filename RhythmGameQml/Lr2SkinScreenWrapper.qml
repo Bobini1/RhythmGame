@@ -36,8 +36,6 @@ Item {
     property var gameplayRuntimeActiveOptions: []
     property bool gameplayRuntimeActiveOptionsRefreshQueued: false
     property var selectRuntimeActiveOptions: []
-    property bool selectRuntimeActiveOptionsRefreshQueued: false
-    property bool committedSelectStateQueued: false
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
@@ -125,7 +123,7 @@ Item {
             Qt.callLater(() => sceneStack.pop());
         }
         if (enabled) {
-            Qt.callLater(root.openSelectIfNeeded);
+            root.openSelectIfNeeded();
             Qt.callLater(root.activateGameplayIfNeeded);
         } else {
             root.stopSelectAudio();
@@ -139,9 +137,9 @@ Item {
         }
         if (screenUpdatesActive) {
             root.updateLr2DateTimeNumbers();
-            Qt.callLater(root.openSelectIfNeeded);
+            root.openSelectIfNeeded();
             Qt.callLater(root.activateGameplayIfNeeded);
-            Qt.callLater(root.refreshSelectRuntimeActiveOptions);
+            root.refreshSelectRuntimeActiveOptions();
             Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
         } else {
             root.pauseScreenActivity();
@@ -698,7 +696,7 @@ Item {
     readonly property int lr2RankingTransitionDuration: lr2Ranking.transitionDuration
     readonly property int lr2RankingTransitionElapsed: lr2Ranking.transitionElapsed
 
-    function commitLr2RankingRequest() { lr2Ranking.commitRequest(); }
+    function commitLr2RankingRequest(chart) { return lr2Ranking.commitRequest(chart); }
     function rankingProviderEnum() { return lr2Ranking.providerEnum(); }
     function lr2RankingMatchesCurrentChart() { return lr2Ranking.matchesCurrentChart(); }
     function lr2LocalRankingEntry() { return lr2Ranking.localEntry(); }
@@ -1506,7 +1504,12 @@ Item {
     function resultData(side) { return resultState.resultData(side); }
     function resultProfile(side) { return resultState.resultProfile(side); }
     function resultChartData() { return resultState.resultChartData(); }
-    function displayChartData() { return resultState.displayChartData(); }
+    function displayChartData() {
+        if (root.effectiveScreenKey === "select") {
+            return selectContext.cachedSelectedChartData;
+        }
+        return resultState.displayChartData();
+    }
     function resultClearOption() { return resultState.resultClearOption(); }
     function resultTotalNotes(result) { return resultState.resultTotalNotes(result); }
     function resultJudgementCount(result, judgement) { return resultState.resultJudgementCount(result, judgement); }
@@ -2679,8 +2682,8 @@ Item {
     }
 
     // Bar delegates get per-row state from the select context; keep their option set stable.
-    readonly property var barActiveOptions: runtimeOptions.buildBarActiveOptions()
-    readonly property var baseActiveOptions: runtimeOptions.buildBaseActiveOptions(root.barActiveOptions)
+    property var barActiveOptions: []
+    property var baseActiveOptions: []
     readonly property var runtimeActiveOptions: root.isGameplayScreen()
         ? root.gameplayRuntimeActiveOptions
         : (root.effectiveScreenKey === "select"
@@ -2703,6 +2706,21 @@ Item {
         return true;
     }
 
+    function refreshBaseActiveOptions() {
+        let nextBar = runtimeOptions.buildBarActiveOptions();
+        let barChanged = !root.sameNumberArray(root.barActiveOptions, nextBar);
+        if (barChanged) {
+            root.barActiveOptions = nextBar;
+        }
+
+        let nextBase = runtimeOptions.buildBaseActiveOptions(nextBar);
+        let baseChanged = !root.sameNumberArray(root.baseActiveOptions, nextBase);
+        if (baseChanged) {
+            root.baseActiveOptions = nextBase;
+        }
+        return barChanged || baseChanged;
+    }
+
     function refreshSelectRuntimeActiveOptions() {
         if (!root.screenUpdatesActive || root.effectiveScreenKey !== "select") {
             return;
@@ -2714,22 +2732,13 @@ Item {
     }
 
     function scheduleSelectRuntimeActiveOptionsRefresh() {
-        if (!root.screenUpdatesActive || root.effectiveScreenKey !== "select") {
-            return;
-        }
-        if (root.selectRuntimeActiveOptionsRefreshQueued) {
-            return;
-        }
-        root.selectRuntimeActiveOptionsRefreshQueued = true;
-        Qt.callLater(function() {
-            root.selectRuntimeActiveOptionsRefreshQueued = false;
-            root.refreshSelectRuntimeActiveOptions();
-        });
+        root.refreshSelectRuntimeActiveOptions();
     }
 
-    onBaseActiveOptionsChanged: {
-        root.scheduleGameplayRuntimeActiveOptionsRefresh();
-        root.scheduleSelectRuntimeActiveOptionsRefresh();
+    function scheduleSelectRankingStatusOptionsRefresh() {
+        if (root.selectUsesRankingStatusOptions()) {
+            root.scheduleSelectRuntimeActiveOptionsRefresh();
+        }
     }
 
     function refreshGameplayRuntimeActiveOptions() {
@@ -2753,16 +2762,19 @@ Item {
         });
     }
 
-    readonly property int selectRevision: selectContext.selectionRevision + selectContext.scoreRevision
+    readonly property int selectRevision: selectContext.scoreRevision
+        + selectContext.focusRevision
     property alias deferredSelectChart: selectSideEffects.deferredChart
     property alias activePreviewSource: selectSideEffects.activePreviewSource
     property alias pendingPreviewRevision: selectSideEffects.pendingPreviewRevision
     property alias pendingPreviewRequest: selectSideEffects.pendingPreviewRequest
     property alias pendingPreviewSource: selectSideEffects.pendingPreviewSource
     property alias selectSideEffectsReady: selectSideEffects.ready
-    readonly property var renderChart: selectSideEffects.renderChart
+    readonly property var renderChart: root.effectiveScreenKey === "select"
+        ? selectContext.cachedSelectedChartWrapper
+        : selectSideEffects.renderChart
     readonly property var visualSelectChart: root.effectiveScreenKey === "select"
-        ? selectContext.selectedChartWrapper()
+        ? selectContext.cachedSelectedChartWrapper
         : root.renderChart
     readonly property var selectedCourseStages: {
         let revision = root.effectiveScreenKey === "select" ? selectContext.selectionRevision : 0;
@@ -2774,7 +2786,7 @@ Item {
                 return root.course.loadCharts();
             }
         }
-        let item = root.effectiveScreenKey === "select" ? selectContext.current : null;
+        let item = root.effectiveScreenKey === "select" ? selectContext.focusedItem : null;
         if (!item || !selectContext.isCourse(item) || !item.loadCharts) {
             return [];
         }
@@ -2782,21 +2794,53 @@ Item {
     }
 
     onSelectRevisionChanged: {
+        root.handleCommittedSelectState();
         root.scheduleSelectRuntimeActiveOptionsRefresh();
-        root.queueCommittedSelectState();
     }
     Connections {
         target: selectContext
+        function onFocusRevisionChanged() {
+            if (root.effectiveScreenKey === "select") {
+                root.restartSelectInfoTimer();
+            }
+        }
+
         function onSelectionRevisionChanged() {
-            root.restartSelectInfoTimer();
             root.playSelectScratch();
+        }
+        function onRankingModeChanged() {
+            if (root.refreshBaseActiveOptions()) {
+                root.scheduleSelectRuntimeActiveOptionsRefresh();
+            }
+        }
+    }
+    Connections {
+        target: lr2Ranking.rankingModel
+        function onLoadingChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+        function onRankingEntriesChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+        function onPlayerCountChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+        function onScoreCountChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+        function onClearCountsChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+        function onMd5Changed() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+    }
+    onSelectPanelChanged: {
+        if (root.refreshBaseActiveOptions()) {
+            root.scheduleSelectRuntimeActiveOptionsRefresh();
+        }
+    }
+    onLr2RankingTransitionPhaseChanged: {
+        if (root.refreshBaseActiveOptions()) {
+            root.scheduleSelectRuntimeActiveOptionsRefresh();
+        }
+    }
+    onParseActiveOptionsChanged: {
+        if (root.refreshBaseActiveOptions()) {
+            root.scheduleSelectRuntimeActiveOptionsRefresh();
+            root.scheduleGameplayRuntimeActiveOptionsRefresh();
         }
     }
     onEffectiveScreenKeyChanged: {
         if (root.effectiveScreenKey !== "select") {
-            selectCommittedStateTimer.stop();
-            root.committedSelectStateQueued = false;
-            root.selectRuntimeActiveOptionsRefreshQueued = false;
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
             root.selectPanelClosing = 0;
@@ -2923,33 +2967,20 @@ Item {
     }
 
     function handleCommittedSelectState() {
-        root.commitLr2RankingRequest();
-        root.applyRankingStatsToSelectContext();
+        if (root.commitLr2RankingRequest()) {
+            root.applyRankingStatsToSelectContext();
+        }
         root.updateSelectSideEffects();
     }
 
-    function queueCommittedSelectState() {
-        if (root.effectiveScreenKey !== "select") {
-            return;
-        }
-        if (selectContext.visualMoveActive || selectContext.pendingWheelSteps !== 0) {
-            selectCommittedStateTimer.restart();
-            return;
-        }
-        if (root.committedSelectStateQueued) {
-            return;
-        }
-        root.committedSelectStateQueued = true;
-        Qt.callLater(function() {
-            root.committedSelectStateQueued = false;
-            root.handleCommittedSelectState();
-        });
-    }
-
     function handleScreenContextChanged() {
-        root.commitLr2RankingRequest();
+        let rankingRequestChanged = root.commitLr2RankingRequest();
+        root.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
         root.restartSelectInfoTimer();
+        if (rankingRequestChanged) {
+            root.applyRankingStatsToSelectContext();
+        }
         root.updateSelectSideEffects();
     }
 
@@ -3000,8 +3031,8 @@ Item {
         return valueResolver.lr2SelectOptionText(st);
     }
 
-    function resolveText(st) {
-        return valueResolver.resolveText(st);
+    function resolveText(st, revision) {
+        return valueResolver.resolveText(st, revision);
     }
 
     function resolveGameplayNumber(num) {
@@ -3028,8 +3059,8 @@ Item {
         return valueResolver.resolveNumber(num);
     }
 
-    function numberValue(src) {
-        return valueResolver.numberValue(src);
+    function numberValue(src, revision) {
+        return valueResolver.numberValue(src, revision);
     }
 
     function imageSetValue(imageSetRef, sourceCount) {
@@ -3506,6 +3537,10 @@ Item {
             || root.skinUsesOptionRange(700, 755);
     }
 
+    function selectUsesRankingStatusOptions() {
+        return root.skinUsesOptionRange(600, 616);
+    }
+
     function updateSelectAnimationLimits() {
         skinTiming.updateSelectAnimationLimits();
     }
@@ -3536,13 +3571,6 @@ Item {
 
     function skinTimerFireTime(timer) {
         return skinTiming.skinTimerFireTime(timer);
-    }
-
-    Timer {
-        id: selectCommittedStateTimer
-        interval: 90
-        repeat: false
-        onTriggered: root.handleCommittedSelectState()
     }
 
     Lr2SelectContext {
@@ -3618,9 +3646,11 @@ Item {
                 selectContext.resetSortSourceFrameCount();
             }
             root.queueSkinClockRestartAfterLoad();
-            Qt.callLater(root.openSelectIfNeeded);
+            root.openSelectIfNeeded();
             Qt.callLater(root.activateGameplayIfNeeded);
-            Qt.callLater(root.refreshLr2SkinSettingItems);
+            root.refreshLr2SkinSettingItems();
+            root.refreshBaseActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
             Qt.callLater(root.updateResultOldScores);
         }
@@ -3628,34 +3658,36 @@ Item {
 
     readonly property var skinModelRef: skinModel
 
-    onCsvPathChanged: Qt.callLater(root.openSelectIfNeeded)
+    onCsvPathChanged: root.openSelectIfNeeded()
     onSkinSettingsChanged: {
-        Qt.callLater(root.refreshLr2SkinSettingItems);
-        Qt.callLater(root.refreshSelectRuntimeActiveOptions);
+        root.refreshLr2SkinSettingItems();
+        root.refreshBaseActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
     }
     onScreenKeyChanged: {
-        Qt.callLater(root.openSelectIfNeeded);
+        root.openSelectIfNeeded();
         Qt.callLater(root.activateGameplayIfNeeded);
-        Qt.callLater(root.refreshLr2SkinSettingItems);
-        Qt.callLater(root.refreshSelectRuntimeActiveOptions);
+        root.refreshLr2SkinSettingItems();
+        root.refreshBaseActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
     }
 
     Component.onCompleted: {
         root.componentReady = true;
         root.selectSideEffectsReady = true;
         root.commitLr2RankingRequest();
-        Qt.callLater(root.restartSkinClock);
-        Qt.callLater(root.openSelectIfNeeded);
+        root.restartSkinClock();
+        root.openSelectIfNeeded();
         Qt.callLater(root.activateGameplayIfNeeded);
-        Qt.callLater(root.updateSelectSideEffects);
+        root.updateSelectSideEffects();
         Qt.callLater(root.updateGameplaySavedScores);
-        Qt.callLater(root.refreshLr2SkinSettingItems);
-        Qt.callLater(root.refreshSelectRuntimeActiveOptions);
+        root.refreshLr2SkinSettingItems();
+        root.refreshBaseActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
         Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
     }
 
     function pauseScreenActivity() {
-        selectCommittedStateTimer.stop();
         selectHoverState.stopRefresh();
         readmeState.pauseActivity();
         lr2Ranking.pauseActivity();
@@ -3690,7 +3722,7 @@ Item {
             return false;
         }
         let currentFolder = selectContext.historyStack[selectContext.historyStack.length - 1];
-        selectContext.open(currentFolder, selectContext.current);
+        selectContext.open(currentFolder, selectContext.focusedItem);
         return true;
     }
 

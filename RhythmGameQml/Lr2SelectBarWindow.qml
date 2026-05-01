@@ -1,6 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 
 import QtQml
+import RhythmGameQml 1.0
 
 QtObject {
     id: root
@@ -27,8 +28,36 @@ QtObject {
         && cachedRowCount === rowCount
         && cachedCenter === barCenter
 
-    signal cellsInvalidated()
-    signal cellRangeChanged(int firstSlot, int count)
+    function createCell() {
+        return Qt.createQmlObject("import RhythmGameQml 1.0\nLr2SelectBarCell {}", root);
+    }
+
+    function ensureCellList(count) {
+        let current = cells || [];
+        let next = current.length === count ? current : current.slice(0, count);
+        let changed = next !== current;
+
+        for (let i = 0; i < count; ++i) {
+            if (!next[i]) {
+                if (next === current) {
+                    next = current.slice();
+                }
+                next[i] = createCell();
+                changed = true;
+            }
+        }
+
+        for (let old = count; old < current.length; ++old) {
+            if (current[old] && current[old].destroy) {
+                current[old].destroy();
+            }
+        }
+
+        if (changed) {
+            cells = next;
+        }
+        return next;
+    }
 
     function invalidate() {
         cachedBaseIndex = -1;
@@ -46,13 +75,17 @@ QtObject {
             return;
         }
         entries = [];
+        for (let i = 0; i < cells.length; ++i) {
+            if (cells[i] && cells[i].destroy) {
+                cells[i].destroy();
+            }
+        }
         cells = [];
         slotOffset = 0;
         cachedBaseIndex = -1;
         cachedListRevision = listRevision;
         cachedRowCount = rowCount;
         cachedCenter = barCenter;
-        cellsInvalidated();
     }
 
     function refresh(force) {
@@ -72,7 +105,7 @@ QtObject {
             let forward = (visualBaseIndex - cachedBaseIndex + logicalCount) % logicalCount;
             let backward = (cachedBaseIndex - visualBaseIndex + logicalCount) % logicalCount;
             let delta = forward <= backward ? forward : -backward;
-            if (delta !== 0 && Math.abs(delta) <= Math.min(effectiveRowCount, 4)) {
+            if (delta !== 0 && Math.abs(delta) < effectiveRowCount) {
                 shiftWindow(delta, effectiveRowCount);
                 return;
             }
@@ -103,11 +136,11 @@ QtObject {
 
             entries[slot] = itemForRow(row);
             let cell = cells[slot];
-            if (cell) {
-                context.updateBarTextCellForRow(cell, row);
-            } else {
-                cells[slot] = context.barTextCellForRow(row);
+            if (!cell) {
+                cell = createCell();
+                cells[slot] = cell;
             }
+            context.updateBarTextCellForRow(cell, row);
         }
 
         slotOffset = nextOffset;
@@ -115,25 +148,22 @@ QtObject {
         cachedListRevision = listRevision;
         cachedRowCount = effectiveRowCount;
         cachedCenter = barCenter;
-        cellRangeChanged(firstChangedSlot, steps);
     }
 
     function rebuild(effectiveRowCount) {
         let nextEntries = [];
-        let nextCells = [];
+        let nextCells = ensureCellList(effectiveRowCount);
         for (let row = 0; row < effectiveRowCount; ++row) {
             nextEntries.push(itemForRow(row));
-            nextCells.push(context.barTextCellForRow(row));
+            context.updateBarTextCellForRow(nextCells[row], row);
         }
 
         entries = nextEntries;
-        cells = nextCells;
         slotOffset = 0;
         cachedBaseIndex = visualBaseIndex;
         cachedListRevision = listRevision;
         cachedRowCount = effectiveRowCount;
         cachedCenter = barCenter;
-        cellsInvalidated();
     }
 
     function slotForRow(row) {

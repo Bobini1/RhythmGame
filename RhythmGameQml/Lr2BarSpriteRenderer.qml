@@ -42,7 +42,6 @@ Item {
     readonly property int barCellCount: barTextCells && barTextCells.length > 0
         ? barTextCells.length
         : (barCells ? barCells.length : 0)
-    readonly property int barCellSlotOffset: selectContext ? selectContext.visibleBarSlotOffset : 0
     readonly property bool hasOverlayTimelineState: srcData && srcData.kind >= 2
     readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
     readonly property bool overlayHasStaticTimelineState: Lr2Timeline.canUseStaticState(overlayDsts)
@@ -171,15 +170,11 @@ Item {
             : null;
     }
 
-    function displayRowForSlot(slot) {
-        let count = root.barCellCount;
-        return count > 0 ? ((slot - root.barCellSlotOffset) % count + count) % count : -1;
-    }
-
     function slotForDisplayRow(row) {
         let count = root.barCellCount;
+        let offset = root.selectContext ? root.selectContext.visibleBarSlotOffset : 0;
         return count > 0 && row >= 0 && row < count
-            ? (row + root.barCellSlotOffset) % count
+            ? (row + offset) % count
             : -1;
     }
 
@@ -210,21 +205,21 @@ Item {
         return srcData.sources[bodyType] || srcData.sources[0] || srcData.source || null;
     }
 
-    function overlayVisibleFor(cell) {
+    function overlayVisibleForValues(cellValid, lamp, ranking, rank) {
         if (!selectContext || !srcData) {
             return false;
         }
         if (srcData.kind === 2) {
             return true;
         }
-        if (!cell) {
+        if (!cellValid) {
             return false;
         }
         switch (srcData.kind) {
         case 3:
-            return (cell.lamp || 0) === srcData.variant;
+            return (lamp || 0) === srcData.variant;
         case 6:
-            return !!cell.ranking && (cell.rank || 0) === srcData.variant;
+            return !!ranking && (rank || 0) === srcData.variant;
         default:
             return false;
         }
@@ -242,37 +237,9 @@ Item {
             : -2147483648;
     }
 
-    function refreshOverlayCells(force) {
-        for (let i = 0; i < overlayRepeater.count; ++i) {
-            let item = overlayRepeater.itemAt(i);
-            if (item) {
-                item.refreshCell(force);
-            }
-        }
-    }
-
-    function refreshOverlayCell(slot, force) {
-        let item = overlayRepeater.itemAt(slot);
-        if (item) {
-            item.refreshCell(force);
-        }
-    }
-
-    function refreshOverlayCellRange(firstSlot, changedCount, force) {
-        let count = overlayRepeater.count;
-        if (count <= 0 || changedCount <= 0) {
-            return;
-        }
-        if (count !== root.barCellCount || changedCount >= count) {
-            root.refreshOverlayCells(force);
-            return;
-        }
-        for (let i = 0; i < changedCount; ++i) {
-            root.refreshOverlayCell((firstSlot + i) % count, force);
-        }
-    }
-
     Repeater {
+        id: bodyRepeater
+
         model: root.bodyRows
 
         Lr2BarPositionedItem {
@@ -331,45 +298,31 @@ Item {
 
             readonly property bool selectedOverlaySource: root.srcData && root.srcData.kind === 2
             readonly property bool usesRowPositionCache: !selectedOverlaySource
-            readonly property int slot: selectedOverlaySource ? root.selectedRow : modelData
-            readonly property int displayRow: selectedOverlaySource
-                ? slot
-                : root.displayRowForSlot(slot)
-            readonly property var visibleBase: root.visibilityState(displayRow)
-            readonly property bool selectedRowContent: displayRow === root.selectedRow
-            property var cell: null
-            readonly property bool contentVisible: displayRow > 0
-                && !!visibleBase
-                && root.overlayVisibleFor(cell)
+            readonly property int displayRow: selectedOverlaySource ? slot : effectiveRow
+            readonly property var visibleBase: selectedOverlaySource ? root.visibilityState(displayRow) : null
+            readonly property var cell: selectedOverlaySource
+                ? null
+                : root.cellData(displayRow)
+            readonly property bool cellValid: selectedOverlaySource ? true : !!cell
+            readonly property int cellLamp: cell ? (cell.lamp || 0) : 0
+            readonly property bool cellRanking: cell ? !!cell.ranking : false
+            readonly property int cellRank: cell ? (cell.rank || 0) : 0
+            readonly property bool contentVisible: (selectedOverlaySource
+                    ? displayRow > 0 && !!visibleBase
+                    : rowVisible)
+                && root.overlayVisibleForValues(cellValid, cellLamp, cellRanking, cellRank)
             positionCache: root.barPositionCache
-            row: displayRow
+            row: selectedOverlaySource ? displayRow : -1
+            slot: selectedOverlaySource ? root.selectedRow : modelData
             scaleOverride: root.scaleOverride
+            useSlotRow: usesRowPositionCache
             usePositionCache: usesRowPositionCache
-            hasOverride: usesRowPositionCache && root.fastBarScrollActive && selectedRowContent
-            overrideX: root.selectedFastBarDrawX
-            overrideY: root.selectedFastBarDrawY
-            fallbackX: visibleBase ? visibleBase.x : 0
-            fallbackY: visibleBase ? visibleBase.y : 0
+            hasOverride: false
+            fallbackX: selectedOverlaySource && visibleBase ? visibleBase.x : 0
+            fallbackY: selectedOverlaySource && visibleBase ? visibleBase.y : 0
             width: root.width
             height: root.height
             visible: contentVisible
-
-            function refreshCell(force) {
-                let next = selectedOverlaySource ? null : root.textCellData(slot);
-                if (force && cell === next) {
-                    cell = null;
-                }
-                if (cell !== next) {
-                    cell = next;
-                }
-            }
-
-            Component.onCompleted: {
-                refreshCell(false);
-            }
-            onSlotChanged: {
-                refreshCell(false);
-            }
 
             Lr2SpriteRenderer {
                 anchors.fill: parent
@@ -387,20 +340,6 @@ Item {
                 colorKeyEnabled: root.colorKeyEnabled
                 stateOverride: root.overlayTimelineState
             }
-        }
-    }
-
-    onBarTextCellsChanged: {
-        refreshOverlayCells(false);
-    }
-
-    Connections {
-        target: root.selectContext
-        function onBarTextCellsInvalidated() {
-            root.refreshOverlayCells(false);
-        }
-        function onBarTextCellRangeChanged(firstSlot, count) {
-            root.refreshOverlayCellRange(firstSlot, count, true);
         }
     }
 }

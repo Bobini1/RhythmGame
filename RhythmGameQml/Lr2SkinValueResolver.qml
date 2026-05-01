@@ -112,7 +112,7 @@ QtObject {
         case 124:
             return "";
         case 130:
-            return root.clearLabelForLamp(selectContext.entryLamp(selectContext.current));
+            return root.clearLabelForLamp(selectContext.entryLamp(selectContext.focusedItem));
         case 131:
         case 132:
         case 133:
@@ -136,7 +136,7 @@ QtObject {
         case 164:
             return root.chartSubtitle(root.courseStage(st - 160));
         case 170:
-            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.current, true) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.focusedItem, true) : "";
         case 171:
             return "TITLE";
         case 172:
@@ -171,12 +171,15 @@ QtObject {
         }
     }
 
-    function resolveText(st) {
-        let revision = root.effectiveScreenKey === "select"
+    function resolveText(st, revision) {
+        let revisionToken = revision !== undefined ? revision : (root.effectiveScreenKey === "select"
             ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision + root.lr2SkinSettingsRevision
-            : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision);
+            : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision));
+        if (revisionToken < -1) {
+            return "";
+        }
         let chartData = root.displayChartData();
-        let currentEntry = root.effectiveScreenKey === "select" ? selectContext.current : null;
+        let currentEntry = root.effectiveScreenKey === "select" ? selectContext.focusedItem : null;
         switch (st) {
         case 1:
             return root.optionText(root.lr2TargetLabels, root.lr2ScoreTargetIndex);
@@ -1020,7 +1023,11 @@ QtObject {
         return 0;
     }
 
-    function numberValue(src) {
+    function numberValue(src, revision) {
+        let revisionToken = revision || 0;
+        if (revisionToken < -1) {
+            return 0;
+        }
         if (src && src.nowCombo) {
             return (src.side || (src.timer === 47 ? 2 : 1)) === 2
                 ? root.gameplayJudgeCombo2

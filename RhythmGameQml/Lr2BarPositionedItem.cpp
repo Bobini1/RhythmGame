@@ -16,6 +16,12 @@ void Lr2BarPositionedItem::setPositionCache(Lr2BarPositionCache* cache) {
     if (m_revisionConnection) {
         disconnect(m_revisionConnection);
     }
+    if (m_slotOffsetConnection) {
+        disconnect(m_slotOffsetConnection);
+    }
+    if (m_slotCountConnection) {
+        disconnect(m_slotCountConnection);
+    }
 
     m_positionCache = cache;
     if (m_positionCache) {
@@ -24,8 +30,28 @@ void Lr2BarPositionedItem::setPositionCache(Lr2BarPositionCache* cache) {
             &Lr2BarPositionCache::revisionChanged,
             this,
             &Lr2BarPositionedItem::updatePosition);
+        m_slotOffsetConnection = connect(
+            m_positionCache,
+            &Lr2BarPositionCache::slotOffsetChanged,
+            this,
+            [this]() {
+                if (m_useSlotRow) {
+                    updatePosition();
+                }
+            });
+        m_slotCountConnection = connect(
+            m_positionCache,
+            &Lr2BarPositionCache::slotCountChanged,
+            this,
+            [this]() {
+                if (m_useSlotRow) {
+                    updatePosition();
+                }
+            });
     } else {
         m_revisionConnection = {};
+        m_slotOffsetConnection = {};
+        m_slotCountConnection = {};
     }
 
     emit positionCacheChanged();
@@ -41,8 +67,41 @@ void Lr2BarPositionedItem::setRow(int row) {
         return;
     }
     m_row = row;
-    emit rowChanged();
     updatePosition();
+}
+
+bool Lr2BarPositionedItem::useSlotRow() const {
+    return m_useSlotRow;
+}
+
+void Lr2BarPositionedItem::setUseSlotRow(bool useSlotRow) {
+    if (m_useSlotRow == useSlotRow) {
+        return;
+    }
+    m_useSlotRow = useSlotRow;
+    emit useSlotRowChanged();
+    updatePosition();
+}
+
+int Lr2BarPositionedItem::slot() const {
+    return m_slot;
+}
+
+void Lr2BarPositionedItem::setSlot(int slot) {
+    if (m_slot == slot) {
+        return;
+    }
+    m_slot = slot;
+    emit slotChanged();
+    updatePosition();
+}
+
+int Lr2BarPositionedItem::effectiveRow() const {
+    return m_effectiveRow;
+}
+
+bool Lr2BarPositionedItem::rowVisible() const {
+    return m_rowVisible;
 }
 
 qreal Lr2BarPositionedItem::scaleOverride() const {
@@ -54,7 +113,6 @@ void Lr2BarPositionedItem::setScaleOverride(qreal scale) {
         return;
     }
     m_scaleOverride = scale;
-    emit scaleOverrideChanged();
     updatePosition();
 }
 
@@ -67,7 +125,6 @@ void Lr2BarPositionedItem::setUsePositionCache(bool useCache) {
         return;
     }
     m_usePositionCache = useCache;
-    emit usePositionCacheChanged();
     updatePosition();
 }
 
@@ -80,7 +137,6 @@ void Lr2BarPositionedItem::setHasOverride(bool hasOverride) {
         return;
     }
     m_hasOverride = hasOverride;
-    emit hasOverrideChanged();
     updatePosition();
 }
 
@@ -93,7 +149,6 @@ void Lr2BarPositionedItem::setOverrideX(qreal value) {
         return;
     }
     m_overrideX = value;
-    emit overrideXChanged();
     updatePosition();
 }
 
@@ -106,7 +161,6 @@ void Lr2BarPositionedItem::setOverrideY(qreal value) {
         return;
     }
     m_overrideY = value;
-    emit overrideYChanged();
     updatePosition();
 }
 
@@ -119,7 +173,6 @@ void Lr2BarPositionedItem::setAdjustX(qreal value) {
         return;
     }
     m_adjustX = value;
-    emit adjustXChanged();
     updatePosition();
 }
 
@@ -132,7 +185,6 @@ void Lr2BarPositionedItem::setAdjustY(qreal value) {
         return;
     }
     m_adjustY = value;
-    emit adjustYChanged();
     updatePosition();
 }
 
@@ -145,7 +197,6 @@ void Lr2BarPositionedItem::setFallbackX(qreal value) {
         return;
     }
     m_fallbackX = value;
-    emit fallbackXChanged();
     updatePosition();
 }
 
@@ -158,7 +209,6 @@ void Lr2BarPositionedItem::setFallbackY(qreal value) {
         return;
     }
     m_fallbackY = value;
-    emit fallbackYChanged();
     updatePosition();
 }
 
@@ -166,18 +216,44 @@ bool Lr2BarPositionedItem::sameReal(qreal lhs, qreal rhs) {
     return qAbs(lhs - rhs) <= 0.000001;
 }
 
+int Lr2BarPositionedItem::resolvedRow() const {
+    if (m_useSlotRow && m_positionCache) {
+        return m_positionCache->rowForSlot(m_slot);
+    }
+    return m_row;
+}
+
 void Lr2BarPositionedItem::updatePosition() {
+    const int row = resolvedRow();
+    if (m_effectiveRow != row) {
+        m_effectiveRow = row;
+        emit effectiveRowChanged();
+    }
+
+    const bool rowVisible = row > 0
+        && (!m_positionCache || row < m_positionCache->count());
+    if (m_rowVisible != rowVisible) {
+        m_rowVisible = rowVisible;
+        emit rowVisibleChanged();
+    }
+
     qreal nextX = m_fallbackX;
     qreal nextY = m_fallbackY;
 
     if (m_hasOverride) {
         nextX = m_overrideX;
         nextY = m_overrideY;
-    } else if (m_usePositionCache && m_positionCache && m_row >= 0 && m_row < m_positionCache->count()) {
-        nextX = m_positionCache->xAt(m_row);
-        nextY = m_positionCache->yAt(m_row);
+    } else if (m_usePositionCache && m_positionCache && row >= 0 && row < m_positionCache->count()) {
+        nextX = m_positionCache->xAt(row);
+        nextY = m_positionCache->yAt(row);
     }
 
-    setX((nextX - m_adjustX) * m_scaleOverride);
-    setY((nextY - m_adjustY) * m_scaleOverride);
+    const qreal scaledX = (nextX - m_adjustX) * m_scaleOverride;
+    const qreal scaledY = (nextY - m_adjustY) * m_scaleOverride;
+    if (!sameReal(x(), scaledX)) {
+        setX(scaledX);
+    }
+    if (!sameReal(y(), scaledY)) {
+        setY(scaledY);
+    }
 }

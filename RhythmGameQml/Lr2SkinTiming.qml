@@ -163,6 +163,9 @@ QtObject {
             result[1] = Math.min(root.renderSkinTime, root.skinModel.startInput || 0);
         }
         result[11] = root.renderSkinTime - root.selectInfoElapsed;
+        if (root.host.acceptsInput) {
+            result[14] = root.selectNoScrollStartSkinTime;
+        }
         if (root.selectContext.visualMoveActive || root.selectContext.scrollFixedPointDragging) {
             result[10] = root.selectScrollStartSkinTime;
             if (root.selectContext.scrollDirection === root.selectContext.lr2ScrollUp) {
@@ -170,8 +173,6 @@ QtObject {
             } else if (root.selectContext.scrollDirection === root.selectContext.lr2ScrollDown) {
                 result[13] = root.selectScrollStartSkinTime;
             }
-        } else if (root.host.acceptsInput) {
-            result[14] = root.selectNoScrollStartSkinTime;
         }
         if (root.host.selectPanel > 0) {
             result[20 + root.host.selectPanel] = root.renderSkinTime - root.host.selectPanelElapsed;
@@ -280,6 +281,9 @@ QtObject {
         if (timer === 11) {
             return root.renderSkinTime - root.selectInfoElapsed;
         }
+        if (timer === 14 && root.host.acceptsInput) {
+            return root.selectNoScrollStartSkinTime;
+        }
         if (root.selectContext.visualMoveActive || root.selectContext.scrollFixedPointDragging) {
             if (timer === 10) {
                 return root.selectScrollStartSkinTime;
@@ -290,8 +294,6 @@ QtObject {
             if (timer === 13 && root.selectContext.scrollDirection === root.selectContext.lr2ScrollDown) {
                 return root.selectScrollStartSkinTime;
             }
-        } else if (timer === 14 && root.host.acceptsInput) {
-            return root.selectNoScrollStartSkinTime;
         }
         if (root.host.selectPanel > 0 && timer === 20 + root.host.selectPanel) {
             return root.renderSkinTime - root.host.selectPanelElapsed;

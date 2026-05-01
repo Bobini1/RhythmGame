@@ -102,6 +102,7 @@ QtObject {
         }
 
         return {
+            valid: !!entry,
             text: context.entryDisplayName(entry, true),
             titleType: context.entryTitleType(entry),
             bodyType: context.entryBodyType(entry),
@@ -133,6 +134,7 @@ QtObject {
     function assignCore(cell, row, entry, cachedCore) {
         cell.row = row;
         cell.entry = entry;
+        cell.valid = !!entry;
         cell.text = cachedCore.text;
         cell.titleType = cachedCore.titleType;
         cell.bodyType = cachedCore.bodyType;
@@ -153,6 +155,7 @@ QtObject {
         return {
             row: row,
             entry: entry,
+            valid: !!entry,
             text: cachedCore.text,
             titleType: cachedCore.titleType,
             bodyType: cachedCore.bodyType,

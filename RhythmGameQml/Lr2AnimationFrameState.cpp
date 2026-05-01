@@ -9,6 +9,7 @@
 #include <cmath>
 
 using gameplay_logic::lr2_skin::Lr2SrcImage;
+using gameplay_logic::lr2_skin::Lr2SrcBarGraph;
 
 namespace {
 int mapInt(const QVariantMap& map, const QString& name, int fallback) {
@@ -335,6 +336,20 @@ qreal Lr2AnimationFrameState::timerValue(int timerIdx) const {
 bool Lr2AnimationFrameState::readSource(const QVariant& value, Source& source) {
     if (value.canConvert<Lr2SrcImage>()) {
         const auto parsed = value.value<Lr2SrcImage>();
+        source.valid = true;
+        source.divX = std::max(1, parsed.div_x);
+        source.divY = std::max(1, parsed.div_y);
+        source.cycle = parsed.cycle;
+        source.timer = parsed.timer;
+        source.x = parsed.x;
+        source.y = parsed.y;
+        source.w = parsed.w;
+        source.h = parsed.h;
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcBarGraph>()) {
+        const auto parsed = value.value<Lr2SrcBarGraph>();
         source.valid = true;
         source.divX = std::max(1, parsed.div_x);
         source.divY = std::max(1, parsed.div_y);

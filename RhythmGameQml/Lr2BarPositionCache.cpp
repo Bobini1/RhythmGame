@@ -15,7 +15,6 @@ QVariantList Lr2BarPositionCache::baseStates() const {
 void Lr2BarPositionCache::setBaseStates(const QVariantList& states) {
     rebuildBaseCoordinates(states);
     rebuildDrawCoordinates();
-    emit baseStatesChanged();
     bumpRevision();
 }
 
@@ -29,8 +28,32 @@ void Lr2BarPositionCache::setScrollOffset(qreal offset) {
     }
     m_scrollOffset = offset;
     rebuildDrawCoordinates();
-    emit scrollOffsetChanged();
     bumpRevision();
+}
+
+int Lr2BarPositionCache::slotOffset() const {
+    return m_slotOffset;
+}
+
+void Lr2BarPositionCache::setSlotOffset(int offset) {
+    if (m_slotOffset == offset) {
+        return;
+    }
+    m_slotOffset = offset;
+    emit slotOffsetChanged();
+}
+
+int Lr2BarPositionCache::slotCount() const {
+    return m_slotCount;
+}
+
+void Lr2BarPositionCache::setSlotCount(int count) {
+    count = qMax(0, count);
+    if (m_slotCount == count) {
+        return;
+    }
+    m_slotCount = count;
+    emit slotCountChanged();
 }
 
 Lr2SelectVisualState* Lr2BarPositionCache::visualState() const {
@@ -61,7 +84,6 @@ void Lr2BarPositionCache::setVisualState(Lr2SelectVisualState* state) {
         setScrollOffset(0.0);
     }
 
-    emit visualStateChanged();
 }
 
 int Lr2BarPositionCache::revision() const {
@@ -84,6 +106,14 @@ qreal Lr2BarPositionCache::yAt(int row) const {
         return 0.0;
     }
     return m_drawYs[row];
+}
+
+int Lr2BarPositionCache::rowForSlot(int slot) const {
+    const int count = m_slotCount > 0 ? m_slotCount : m_drawXs.size();
+    if (count <= 0 || slot < 0) {
+        return -1;
+    }
+    return ((slot - m_slotOffset) % count + count) % count;
 }
 
 void Lr2BarPositionCache::rebuildBaseCoordinates(const QVariantList& states) {

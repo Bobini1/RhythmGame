@@ -134,6 +134,32 @@ Item {
         readonly property bool horizontal: root.srcData ? root.srcData.direction === 0 : true
         readonly property real drawnW: horizontal ? fullW * root.displayedValue : fullW
         readonly property real drawnH: horizontal ? fullH : fullH * root.displayedValue
+        readonly property vector4d clippedSourceRect: {
+            let rect = root.animationFrameState.sourceRect;
+            if (!rect) {
+                return Qt.vector4d(0, 0, 1, 1);
+            }
+
+            let x = rect.x;
+            let y = rect.y;
+            let w = rect.z;
+            let h = rect.w;
+            let amount = root.displayedValue;
+            if (horizontal) {
+                let clippedW = w * amount;
+                if (signedW < 0) {
+                    x += w - clippedW;
+                }
+                w = clippedW;
+            } else {
+                let clippedH = h * amount;
+                if (signedH < 0) {
+                    y += h - clippedH;
+                }
+                h = clippedH;
+            }
+            return Qt.vector4d(x, y, w, h);
+        }
 
         x: root.hasCurrentState
             ? root.stateX * root.scaleOverride
@@ -175,7 +201,7 @@ Item {
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, graphAtlas.implicitWidth),
                 Math.max(1, graphAtlas.implicitHeight))
-            property vector4d sourceRect: root.animationFrameState.sourceRect
+            property vector4d sourceRect: graph.clippedSourceRect
             fragmentShader: "qrc:/Lr2SpriteAtlas.frag.qsb"
         }
     }

@@ -132,7 +132,10 @@ Item {
         return Math.max(0, Math.min(height - lineWidth, (height - lineWidth) * (1 - value)));
     }
 
-    visible: currentState && currentState.a > 0 && !!srcData && !!chartData
+    visible: !!currentState
+        && (currentState.a === undefined ? 255 : currentState.a) > 0
+        && !!srcData
+        && !!chartData
 
     Canvas {
         id: chartCanvas

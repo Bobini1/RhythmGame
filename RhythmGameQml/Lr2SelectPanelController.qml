@@ -180,9 +180,10 @@ QtObject {
         },
         "18": () => true,
         "19": () => {
-            let replayScore = selectContext.replayScoreForType(selectContext.current, root.lr2ReplayType);
+            let targetItem = selectContext.activationItem();
+            let replayScore = selectContext.replayScoreForType(targetItem, root.lr2ReplayType);
             if (replayScore) {
-                root.selectGoForward(selectContext.current, false, true, replayScore);
+                root.selectGoForward(targetItem, false, true, replayScore);
             }
             return false;
         },
@@ -686,9 +687,10 @@ QtObject {
     }
 
     function playReplaySlot(replayType) {
-        let replayScore = selectContext.replayScoreForType(selectContext.current, replayType);
+        let targetItem = selectContext.activationItem();
+        let replayScore = selectContext.replayScoreForType(targetItem, replayType);
         if (replayScore) {
-            root.selectGoForward(selectContext.current, false, true, replayScore);
+            root.selectGoForward(targetItem, false, true, replayScore);
         }
         return false;
     }

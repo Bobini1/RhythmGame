@@ -19,6 +19,15 @@ Item {
     readonly property var renderChart: rootReady ? root.renderChart : null
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
+    readonly property int valueRevision: !rootReady ? 0
+        : (root.effectiveScreenKey === "select"
+            ? root.selectRevision
+                + selectContext.listRevision
+                + selectContext.folderLampRevision
+                + root.lr2SkinSettingsRevision
+            : (root.isResultScreen()
+                ? root.resultOldScoresRevision
+                : root.gameplayRevision))
 
     function hoverPointInSkinCoordinates() {
         return rootReady ? root.selectHoverPointInSkinCoordinates() : Qt.point(0, 0);
@@ -127,7 +136,7 @@ Item {
                         return;
                     }
                     selectContext.selectVisibleRow(target.row, skinModel.barCenter);
-                    root.selectGoForward(selectContext.current);
+                    root.selectGoForward(selectContext.activationItem());
                     mouse.accepted = true;
                 }
                 onCanceled: {
@@ -426,7 +435,7 @@ Item {
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
                             scaleOverride: skinScale
-                            value: root.numberValue(model.src)
+                            value: root.numberValue(model.src, sceneRoot.valueRevision)
                             forceHidden: root.numberForceHidden(model.src)
                             animationRevision: root.numberAnimationRevision(model.src)
                             colorKeyEnabled: skinModel.hasTransColor
@@ -448,6 +457,7 @@ Item {
                             skinClockMode: elemLoader.elementSkinClockMode
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
+                            valueRevision: sceneRoot.valueRevision
                             chart: sceneRoot.renderChart
                             skinScale: skinScale
                         }

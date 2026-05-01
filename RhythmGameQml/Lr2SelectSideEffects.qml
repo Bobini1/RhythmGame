@@ -37,21 +37,11 @@ Item {
             return;
         }
 
-        if (root.selectContext.scrollFixedPointDragging) {
-            root.updateDisplayedChart();
-            return;
-        }
+        root.updateDisplayedChart();
 
         if (!root.active) {
             root.stopAudio();
-            root.updateDisplayedChart();
             return;
-        }
-
-        if (!root.deferredChart || root.skinModel.reloadBanner) {
-            root.updateDisplayedChart();
-        } else {
-            selectChartSettleTimer.restart();
         }
 
         let nextPreviewSource = root.selectContext.selectedPreviewSource() || "";
@@ -76,7 +66,6 @@ Item {
     }
 
     function stopAudio() {
-        selectChartSettleTimer.stop();
         previewDelayTimer.stop();
         selectBgmDelayTimer.stop();
         root.activePreviewSource = "";
@@ -130,13 +119,6 @@ Item {
     AudioPlayer {
         id: scratchSound
         source: root.host.mainGeneralVars() ? root.host.mainGeneralVars().soundsetPath + "scratch" : ""
-    }
-
-    Timer {
-        id: selectChartSettleTimer
-        interval: 120
-        repeat: false
-        onTriggered: root.updateDisplayedChart()
     }
 
     Timer {

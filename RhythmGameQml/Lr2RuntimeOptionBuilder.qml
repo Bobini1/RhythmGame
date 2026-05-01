@@ -460,6 +460,7 @@ QtObject {
         root.appendSelectedChartModeOptions(options, selectedChart);
         root.appendEntryStatusOptions(options, item, selectedChart);
         root.appendCourseOptions(options, item);
+        root.appendRankingStatusOptions(options);
 
         if (selectedChart) {
             root.appendDifficultyBarOptions(options);
@@ -548,15 +549,10 @@ QtObject {
         return result;
     }
 
-    function buildBaseActiveOptions(barOptions) {
-        let result = host.effectiveScreenKey === "select"
-            ? root.finalizeOptionList((barOptions || host.barActiveOptions).slice())
-            : root.finalizeOptionList([]);
-        if (host.effectiveScreenKey !== "select") {
-            root.appendParserActiveOptions(result);
-            return result;
+    function appendRankingStatusOptions(result) {
+        if (!host.selectUsesRankingStatusOptions()) {
+            return;
         }
-
         root.addOption(result, host.lr2RankingStatusOption());
         let rankingCount = host.lr2RankingPlayerCount();
         if (rankingCount === 0) {
@@ -567,6 +563,17 @@ QtObject {
                 root.addOption(result, 610 + threshold);
             }
         }
+    }
+
+    function buildBaseActiveOptions(barOptions) {
+        let result = host.effectiveScreenKey === "select"
+            ? root.finalizeOptionList((barOptions || host.barActiveOptions).slice())
+            : root.finalizeOptionList([]);
+        if (host.effectiveScreenKey !== "select") {
+            root.appendParserActiveOptions(result);
+            return result;
+        }
+
         root.addOption(result, 622); // not ghost battle
         root.addOption(result, 624); // not rival compare
         root.appendPanelOptions(result);
@@ -578,7 +585,7 @@ QtObject {
         let result = root.finalizeOptionList(baseOptions.slice());
         if (host.effectiveScreenKey === "select") {
             root.appendCommonRuntimeOptions(result);
-            root.appendCurrentSelectOptions(result, selectContext.current, selectContext.selectedChartData());
+            root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
         } else if (host.effectiveScreenKey === "decide") {
             root.appendCommonRuntimeOptions(result);
             root.appendDecideOptions(result);

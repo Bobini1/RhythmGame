@@ -33,6 +33,8 @@ QtObject {
 
     property Lr2BarPositionCache barPositionCache: Lr2BarPositionCache {
         baseStates: geometry.cachedBarBaseStates
+        slotOffset: geometry.selectContext ? geometry.selectContext.visibleBarSlotOffset : 0
+        slotCount: geometry.skinModel.barRows ? geometry.skinModel.barRows.length : 0
         visualState: geometry.selectContext ? geometry.selectContext.visualStateObject : null
     }
 
