@@ -903,9 +903,13 @@ Item {
             return false;
         }
         let first = dsts[0];
-        return root.selectOptionChangesWithFocus(first.op1)
+        if (first.__selectFocusActiveOptions !== undefined) {
+            return first.__selectFocusActiveOptions;
+        }
+        first.__selectFocusActiveOptions = root.selectOptionChangesWithFocus(first.op1)
             || root.selectOptionChangesWithFocus(first.op2)
             || root.selectOptionChangesWithFocus(first.op3);
+        return first.__selectFocusActiveOptions;
     }
 
     function activeOptionsForElementDsts(dsts, focusSensitive) {
@@ -1021,6 +1025,7 @@ Item {
         }
         options.push(option);
         lookup[option] = true;
+        options.__key = undefined;
     }
 
     function skinUsesOption(option) {
@@ -2752,7 +2757,14 @@ Item {
     }
 
     function numberArrayKey(values) {
-        return values && values.length ? values.join(",") : "";
+        if (!values || values.length === 0) {
+            return "";
+        }
+        if (values.__key !== undefined) {
+            return values.__key;
+        }
+        values.__key = values.join(",");
+        return values.__key;
     }
 
     function activeOptionPresent(option, activeOptions) {
@@ -2763,6 +2775,14 @@ Item {
         return lookup
             ? lookup[option] === true
             : activeOptions.indexOf(option) !== -1;
+    }
+
+    function rememberActiveOptionsForDst(first, activeOptionsKey, result) {
+        if (activeOptionsKey !== undefined && activeOptionsKey !== null) {
+            first.__activeOptionsCacheKey = activeOptionsKey;
+            first.__activeOptionsCacheResult = result;
+        }
+        return result;
     }
 
     function activeOptionsForDsts(dsts, activeOptions) {
@@ -2776,6 +2796,10 @@ Item {
         let op3 = first.op3 || 0;
         if (op1 === 0 && op2 === 0 && op3 === 0) {
             return root.emptyActiveOptions;
+        }
+        let activeOptionsKey = root.numberArrayKey(activeOptions);
+        if (first.__activeOptionsCacheKey === activeOptionsKey) {
+            return first.__activeOptionsCacheResult || root.emptyActiveOptions;
         }
 
         let count = 0;
@@ -2817,7 +2841,7 @@ Item {
             }
         }
         if (count === 0) {
-            return root.emptyActiveOptions;
+            return root.rememberActiveOptionsForDst(first, activeOptionsKey, root.emptyActiveOptions);
         }
         if (count > 1 && idB < idA) {
             let swapAB = idA;
@@ -2841,11 +2865,12 @@ Item {
             : (count === 2 ? (idA + "," + idB) : (idA + "," + idB + "," + idC));
         let cached = Lr2ActiveOptionCache.get(key);
         if (cached) {
-            return cached;
+            return root.rememberActiveOptionsForDst(first, activeOptionsKey, cached);
         }
         let ids = count === 1 ? [idA] : (count === 2 ? [idA, idB] : [idA, idB, idC]);
         root.finalizeOptionList(ids);
-        return Lr2ActiveOptionCache.put(key, ids);
+        return root.rememberActiveOptionsForDst(first, activeOptionsKey,
+            Lr2ActiveOptionCache.put(key, ids));
     }
 
     function refreshBaseActiveOptions() {

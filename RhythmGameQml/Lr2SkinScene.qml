@@ -233,10 +233,10 @@ Item {
                     width: skinW * skinScale
                     height: skinH * skinScale
                     z: root.elementZ(model.type, index, model.src, model.dsts)
-                    readonly property bool usesActiveOptions: root.dstsUseActiveOptions(model.dsts)
+                    readonly property bool usesActiveOptions: !!root.dstsUseActiveOptions(model.dsts)
                     readonly property bool usesFocusActiveOptions: root.effectiveScreenKey === "select"
-                        && usesActiveOptions
-                        && root.dstsUseSelectFocusActiveOptions(model.dsts)
+                        && !!usesActiveOptions
+                        && !!root.dstsUseSelectFocusActiveOptions(model.dsts)
                     readonly property bool usesSkinTime: root.elementUsesSkinTime(model.src, model.dsts)
                     readonly property int dstTimer: model.dsts && model.dsts.length > 0
                         ? (model.dsts[0].timer || 0)

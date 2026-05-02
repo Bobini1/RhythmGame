@@ -2,7 +2,7 @@
 
 let cache = {};
 let size = 0;
-const maxSize = 1024;
+const maxSize = 8192;
 
 function get(key) {
     return cache[key];
