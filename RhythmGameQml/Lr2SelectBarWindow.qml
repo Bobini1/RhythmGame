@@ -134,13 +134,14 @@ QtObject {
                 firstChangedSlot = slot;
             }
 
-            entries[slot] = itemForRow(row);
+            let entry = itemForRow(row);
+            entries[slot] = entry;
             let cell = cells[slot];
             if (!cell) {
                 cell = createCell();
                 cells[slot] = cell;
             }
-            context.updateBarTextCellForRow(cell, row);
+            context.updateBarTextCell(cell, row, entry);
         }
 
         slotOffset = nextOffset;
@@ -154,8 +155,9 @@ QtObject {
         let nextEntries = [];
         let nextCells = ensureCellList(effectiveRowCount);
         for (let row = 0; row < effectiveRowCount; ++row) {
-            nextEntries.push(itemForRow(row));
-            context.updateBarTextCellForRow(nextCells[row], row);
+            let entry = itemForRow(row);
+            nextEntries.push(entry);
+            context.updateBarTextCell(nextCells[row], row, entry);
         }
 
         entries = nextEntries;

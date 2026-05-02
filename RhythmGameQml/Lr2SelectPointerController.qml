@@ -77,7 +77,9 @@ QtObject {
             element.dsts,
             root.renderSkinTime,
             root.skinTimerFireTime(dstTimer),
-            root.dstsUseActiveOptions(element.dsts) ? root.runtimeActiveOptions : root.emptyActiveOptions);
+            root.dstsUseActiveOptions(element.dsts)
+                ? root.activeOptionsForDsts(element.dsts, root.runtimeActiveOptions)
+                : root.emptyActiveOptions);
     }
 
     function rectContains(state, skinX, skinY) {

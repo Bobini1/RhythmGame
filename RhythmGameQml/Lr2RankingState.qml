@@ -11,7 +11,11 @@ QtObject {
     required property var optionOpenSound
     required property var optionCloseSound
 
-    readonly property var chart: root.currentChart()
+    readonly property int selectFocusRevision: selectContext.focusRevision
+    readonly property var chart: {
+        root.selectFocusRevision;
+        return root.currentChart();
+    }
     readonly property string md5: root.chart && root.chart.md5 ? String(root.chart.md5) : ""
     property string requestMd5: ""
     property bool openWhenReady: false
@@ -69,8 +73,9 @@ QtObject {
         if (root.host.effectiveScreenKey !== "select") {
             return null;
         }
-        if (root.selectContext.cachedSelectedChartData) {
-            return root.selectContext.cachedSelectedChartData;
+        let selectedChart = root.selectContext.selectedChartData();
+        if (selectedChart) {
+            return selectedChart;
         }
         if (root.selectContext.rankingMode && root.selectContext.rankingBaseItem) {
             return root.selectContext.rankingBaseItem;

@@ -95,10 +95,11 @@ QtObject {
             lamp = context.clearTypeLamp(entry.bestClearType);
             rank = rankingEntryRank(entry);
         } else if (folderLike) {
-            let key = context.folderLampKey(entry);
-            lamp = key && context.folderLampByKey[key] !== undefined ? context.folderLampByKey[key] : 0;
-        } else {
-            lamp = context.clearTypeLamp(context.getClearType(context.entryScores(entry)));
+            lamp = context.entryLamp(entry);
+        } else if (entry) {
+            let summary = context.scoreSummaryForItem(entry);
+            lamp = summary.lamp;
+            rank = summary.rank;
         }
 
         return {
@@ -132,21 +133,21 @@ QtObject {
     }
 
     function assignCore(cell, row, entry, cachedCore) {
-        cell.row = row;
-        cell.entry = entry;
-        cell.valid = !!entry;
-        cell.text = cachedCore.text;
-        cell.titleType = cachedCore.titleType;
-        cell.bodyType = cachedCore.bodyType;
-        cell.playLevel = cachedCore.playLevel;
-        cell.difficulty = cachedCore.difficulty;
-        cell.keymode = cachedCore.keymode;
-        cell.ranking = cachedCore.ranking;
-        cell.chartLike = cachedCore.chartLike;
-        cell.entryLike = cachedCore.entryLike;
-        cell.folderLike = cachedCore.folderLike;
-        cell.lamp = cachedCore.lamp;
-        cell.rank = cachedCore.rank;
+        cell.setCore(
+            row,
+            !!entry,
+            cachedCore.text,
+            cachedCore.titleType,
+            cachedCore.bodyType,
+            cachedCore.playLevel,
+            cachedCore.difficulty,
+            cachedCore.keymode,
+            cachedCore.ranking,
+            cachedCore.chartLike,
+            cachedCore.entryLike,
+            cachedCore.folderLike,
+            cachedCore.lamp,
+            cachedCore.rank);
     }
 
     function cellForRow(row) {
@@ -173,6 +174,10 @@ QtObject {
 
     function updateCellForRow(cell, row) {
         let entry = entryForRow(row);
+        assignCore(cell, row, entry, core(entry));
+    }
+
+    function updateCell(cell, row, entry) {
         assignCore(cell, row, entry, core(entry));
     }
 }

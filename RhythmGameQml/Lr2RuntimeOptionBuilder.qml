@@ -209,9 +209,33 @@ QtObject {
         if (!folderLike && root.chartKeymodeForStatus(item, selectedChart) <= 0) {
             return;
         }
-        let clearOption = selectContext.beatorajaClearOption(item);
+        let clearOption = 100;
+        let lamp = 0;
+        let rank = 0;
+        if (selectContext.isRankingEntry(item)) {
+            clearOption = selectContext.beatorajaClearOptionForClearType(item.bestClearType);
+            lamp = selectContext.clearTypeLamp(item.bestClearType);
+            let points = Number(item.bestPoints || 0);
+            let maxPoints = Number(item.maxPoints || 0);
+            if (maxPoints > 0) {
+                rank = Math.floor(points * 9 / maxPoints);
+                if (rank > 7) {
+                    rank = 8;
+                }
+                if (rank < 2 && points > 0) {
+                    rank = 1;
+                }
+            }
+        } else if (folderLike) {
+            clearOption = 100;
+            lamp = selectContext.entryLamp(item);
+        } else {
+            let summary = selectContext.scoreSummaryForItem(item);
+            clearOption = selectContext.beatorajaClearOptionForClearType(summary.clearType);
+            lamp = summary.lamp;
+            rank = summary.rank;
+        }
         let hasExactBeatorajaLamp = clearOption >= 1100 && host.skinUsesOption(clearOption);
-        let lamp = selectContext.entryLamp(item);
         if (!hasExactBeatorajaLamp && lamp >= 0 && lamp <= 5) {
             root.addOption(options, 100 + lamp);
         }
@@ -220,7 +244,6 @@ QtObject {
         }
         root.addOption(options, clearOption);
 
-        let rank = selectContext.entryRank(item);
         if (lamp > 0 && rank >= 1) {
             root.addOption(options, 208 - Math.min(rank, 8));
             root.addOption(options, 118 - Math.min(rank, 8));
@@ -581,12 +604,25 @@ QtObject {
         return result;
     }
 
+    function buildSelectCommonActiveOptions(baseOptions) {
+        let result = root.finalizeOptionList((baseOptions || []).slice());
+        root.appendCommonRuntimeOptions(result);
+        return result;
+    }
+
+    function buildSelectRuntimeActiveOptions(commonOptions) {
+        let result = root.finalizeOptionList((commonOptions || []).slice());
+        root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
+        return result;
+    }
+
     function buildRuntimeActiveOptions(baseOptions) {
-        let result = root.finalizeOptionList(baseOptions.slice());
         if (host.effectiveScreenKey === "select") {
-            root.appendCommonRuntimeOptions(result);
-            root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
-        } else if (host.effectiveScreenKey === "decide") {
+            return root.buildSelectRuntimeActiveOptions(root.buildSelectCommonActiveOptions(baseOptions));
+        }
+
+        let result = root.finalizeOptionList(baseOptions.slice());
+        if (host.effectiveScreenKey === "decide") {
             root.appendCommonRuntimeOptions(result);
             root.appendDecideOptions(result);
         } else if (host.isGameplayScreen()) {

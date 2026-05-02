@@ -2,6 +2,7 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick.Controls
 import RhythmGameQml 1.0
+import "Lr2ActiveOptionCache.js" as Lr2ActiveOptionCache
 import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
@@ -20,6 +21,9 @@ Item {
     property bool componentReady: false
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
+    readonly property bool usedOptionFilterActive: !!skinModel
+        && !!skinModel.usedOptions
+        && skinModel.usedOptions.length > 0
     readonly property var usedOptionLookup: {
         let result = {};
         let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
@@ -874,6 +878,46 @@ Item {
         return Lr2Timeline.dstsUseActiveOptions(dsts);
     }
 
+    function selectOptionChangesWithFocus(option) {
+        let op = Math.abs(option || 0);
+        return op === 1 || op === 2 || op === 3 || op === 5
+            || (op >= 10 && op <= 13)
+            || (op >= 70 && op <= 79)
+            || (op >= 100 && op <= 130)
+            || op === 144 || op === 145
+            || (op >= 150 && op <= 186)
+            || (op >= 190 && op <= 197)
+            || (op >= 280 && op <= 293)
+            || (op >= 500 && op <= 565)
+            || (op >= 580 && op <= 589)
+            || (op >= 600 && op <= 616)
+            || (op >= 700 && op <= 755)
+            || (op >= 1100 && op <= 1104)
+            || op === 1128
+            || op === 1160 || op === 1161 || op === 1177
+            || (op >= 1196 && op <= 1208);
+    }
+
+    function dstsUseSelectFocusActiveOptions(dsts) {
+        if (!dsts || dsts.length === 0 || !dsts[0]) {
+            return false;
+        }
+        let first = dsts[0];
+        return root.selectOptionChangesWithFocus(first.op1)
+            || root.selectOptionChangesWithFocus(first.op2)
+            || root.selectOptionChangesWithFocus(first.op3);
+    }
+
+    function activeOptionsForElementDsts(dsts, focusSensitive) {
+        if (!root.dstsUseActiveOptions(dsts)) {
+            return root.emptyActiveOptions;
+        }
+        let options = root.effectiveScreenKey === "select" && !focusSensitive
+            ? root.selectCommonActiveOptions
+            : root.runtimeActiveOptions;
+        return root.activeOptionsForDsts(dsts, options);
+    }
+
     function elementUsesTimers(src, dsts) {
         return Lr2Timeline.dstsUseDynamicTimer(dsts) || Lr2Timeline.srcUsesDynamicTimer(src);
     }
@@ -968,8 +1012,7 @@ Item {
         if (option === undefined || option === null) {
             return;
         }
-        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
-        if (used.length > 0 && !root.usedOptionLookup[Math.abs(option)]) {
+        if (root.usedOptionFilterActive && !root.usedOptionLookup[Math.abs(option)]) {
             return;
         }
         let lookup = root.optionLookupFor(options);
@@ -981,13 +1024,11 @@ Item {
     }
 
     function skinUsesOption(option) {
-        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
-        return used.length === 0 || !!root.usedOptionLookup[Math.abs(option)];
+        return !root.usedOptionFilterActive || !!root.usedOptionLookup[Math.abs(option)];
     }
 
     function skinUsesAnyOption(options) {
-        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
-        if (used.length === 0) {
+        if (!root.usedOptionFilterActive) {
             return true;
         }
         for (let i = 0; i < options.length; ++i) {
@@ -999,8 +1040,7 @@ Item {
     }
 
     function skinUsesOptionRange(first, last) {
-        let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
-        if (used.length === 0) {
+        if (!root.usedOptionFilterActive) {
             return true;
         }
         for (let option = first; option <= last; ++option) {
@@ -1506,7 +1546,7 @@ Item {
     function resultChartData() { return resultState.resultChartData(); }
     function displayChartData() {
         if (root.effectiveScreenKey === "select") {
-            return selectContext.cachedSelectedChartData;
+            return selectContext.selectedChartData();
         }
         return resultState.displayChartData();
     }
@@ -2684,6 +2724,11 @@ Item {
     // Bar delegates get per-row state from the select context; keep their option set stable.
     property var barActiveOptions: []
     property var baseActiveOptions: []
+    property string baseActiveOptionsKey: ""
+    property var selectCommonActiveOptions: []
+    property string selectCommonActiveOptionsKey: ""
+    property bool selectCommonActiveOptionsReady: false
+    property string selectRuntimeActiveOptionsKey: ""
     readonly property var runtimeActiveOptions: root.isGameplayScreen()
         ? root.gameplayRuntimeActiveOptions
         : (root.effectiveScreenKey === "select"
@@ -2706,6 +2751,103 @@ Item {
         return true;
     }
 
+    function numberArrayKey(values) {
+        return values && values.length ? values.join(",") : "";
+    }
+
+    function activeOptionPresent(option, activeOptions) {
+        if (!activeOptions || option === undefined || option === null) {
+            return false;
+        }
+        let lookup = activeOptions.__lookup;
+        return lookup
+            ? lookup[option] === true
+            : activeOptions.indexOf(option) !== -1;
+    }
+
+    function activeOptionsForDsts(dsts, activeOptions) {
+        if (!dsts || dsts.length === 0 || !dsts[0] || !activeOptions) {
+            return root.emptyActiveOptions;
+        }
+
+        let first = dsts[0];
+        let op1 = first.op1 || 0;
+        let op2 = first.op2 || 0;
+        let op3 = first.op3 || 0;
+        if (op1 === 0 && op2 === 0 && op3 === 0) {
+            return root.emptyActiveOptions;
+        }
+
+        let count = 0;
+        let idA = 0;
+        let idB = 0;
+        let idC = 0;
+        if (op1 !== 0) {
+            let id1 = Math.abs(op1);
+            if (root.activeOptionPresent(id1, activeOptions)) {
+                idA = id1;
+                count = 1;
+            }
+        }
+        if (op2 !== 0) {
+            let id2 = Math.abs(op2);
+            if (root.activeOptionPresent(id2, activeOptions)
+                    && (count === 0 || id2 !== idA)) {
+                if (count === 0) {
+                    idA = id2;
+                } else {
+                    idB = id2;
+                }
+                ++count;
+            }
+        }
+        if (op3 !== 0) {
+            let id3 = Math.abs(op3);
+            if (root.activeOptionPresent(id3, activeOptions)
+                    && (count === 0 || id3 !== idA)
+                    && (count < 2 || id3 !== idB)) {
+                if (count === 0) {
+                    idA = id3;
+                } else if (count === 1) {
+                    idB = id3;
+                } else {
+                    idC = id3;
+                }
+                ++count;
+            }
+        }
+        if (count === 0) {
+            return root.emptyActiveOptions;
+        }
+        if (count > 1 && idB < idA) {
+            let swapAB = idA;
+            idA = idB;
+            idB = swapAB;
+        }
+        if (count > 2) {
+            if (idC < idB) {
+                let swapBC = idB;
+                idB = idC;
+                idC = swapBC;
+            }
+            if (idB < idA) {
+                let swapAB2 = idA;
+                idA = idB;
+                idB = swapAB2;
+            }
+        }
+        let key = count === 1
+            ? String(idA)
+            : (count === 2 ? (idA + "," + idB) : (idA + "," + idB + "," + idC));
+        let cached = Lr2ActiveOptionCache.get(key);
+        if (cached) {
+            return cached;
+        }
+        let ids = count === 1 ? [idA] : (count === 2 ? [idA, idB] : [idA, idB, idC]);
+        root.finalizeOptionList(ids);
+        return Lr2ActiveOptionCache.put(key, ids);
+    }
+
     function refreshBaseActiveOptions() {
         let nextBar = runtimeOptions.buildBarActiveOptions();
         let barChanged = !root.sameNumberArray(root.barActiveOptions, nextBar);
@@ -2717,18 +2859,37 @@ Item {
         let baseChanged = !root.sameNumberArray(root.baseActiveOptions, nextBase);
         if (baseChanged) {
             root.baseActiveOptions = nextBase;
+            root.baseActiveOptionsKey = root.numberArrayKey(nextBase);
         }
-        return barChanged || baseChanged;
+
+        let nextSelectCommon = runtimeOptions.buildSelectCommonActiveOptions(nextBase);
+        let selectCommonChanged = !root.sameNumberArray(root.selectCommonActiveOptions, nextSelectCommon);
+        root.selectCommonActiveOptionsReady = true;
+        if (selectCommonChanged) {
+            root.selectCommonActiveOptions = nextSelectCommon;
+            root.selectCommonActiveOptionsKey = root.numberArrayKey(nextSelectCommon);
+        }
+
+        if (baseChanged || selectCommonChanged) {
+            root.selectRuntimeActiveOptionsKey = "";
+        }
+        return barChanged || baseChanged || selectCommonChanged;
     }
 
     function refreshSelectRuntimeActiveOptions() {
         if (!root.screenUpdatesActive || root.effectiveScreenKey !== "select") {
             return;
         }
-        let next = runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions);
-        if (!root.sameNumberArray(root.selectRuntimeActiveOptions, next)) {
-            root.selectRuntimeActiveOptions = next;
+        if (!root.selectCommonActiveOptionsReady) {
+            root.refreshBaseActiveOptions();
         }
+        let next = runtimeOptions.buildSelectRuntimeActiveOptions(root.selectCommonActiveOptions);
+        let nextKey = root.numberArrayKey(next);
+        if (nextKey === root.selectRuntimeActiveOptionsKey) {
+            return;
+        }
+        root.selectRuntimeActiveOptionsKey = nextKey;
+        root.selectRuntimeActiveOptions = next;
     }
 
     function scheduleSelectRuntimeActiveOptionsRefresh() {
@@ -2771,13 +2932,13 @@ Item {
     property alias pendingPreviewSource: selectSideEffects.pendingPreviewSource
     property alias selectSideEffectsReady: selectSideEffects.ready
     readonly property var renderChart: root.effectiveScreenKey === "select"
-        ? selectContext.cachedSelectedChartWrapper
+        ? (selectContext.focusRevision, selectContext.selectedChartWrapper())
         : selectSideEffects.renderChart
     readonly property var visualSelectChart: root.effectiveScreenKey === "select"
-        ? selectContext.cachedSelectedChartWrapper
+        ? (selectContext.focusRevision, selectContext.selectedChartWrapper())
         : root.renderChart
     readonly property var selectedCourseStages: {
-        let revision = root.effectiveScreenKey === "select" ? selectContext.selectionRevision : 0;
+        let revision = root.effectiveScreenKey === "select" ? selectContext.focusRevision : 0;
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {
                 return root.chartDatas;
@@ -2786,7 +2947,7 @@ Item {
                 return root.course.loadCharts();
             }
         }
-        let item = root.effectiveScreenKey === "select" ? selectContext.focusedItem : null;
+        let item = root.effectiveScreenKey === "select" ? selectContext.selectedItem() : null;
         if (!item || !selectContext.isCourse(item) || !item.loadCharts) {
             return [];
         }
@@ -3287,7 +3448,9 @@ Item {
             dsts,
             root.renderSkinTime,
             root.skinTimerFireTime(timer),
-            root.runtimeActiveOptions);
+            root.dstsUseActiveOptions(dsts)
+                ? root.activeOptionsForDsts(dsts, root.runtimeActiveOptions)
+                : root.emptyActiveOptions);
         return root.onMouseStateContainsPoint(src, state, mx, my);
     }
 
@@ -3316,7 +3479,9 @@ Item {
             dsts,
             root.renderSkinTime,
             root.skinTimerFireTime(timer),
-            root.dstsUseActiveOptions(dsts) ? root.runtimeActiveOptions : root.emptyActiveOptions);
+            root.dstsUseActiveOptions(dsts)
+                ? root.activeOptionsForDsts(dsts, root.runtimeActiveOptions)
+                : root.emptyActiveOptions);
         let combo = root.nowJudgeComboValue(src);
         if (!base || combo <= 0) {
             return base;
@@ -3508,37 +3673,44 @@ Item {
         }
     }
 
-    function selectUsesReplayOptions() {
-        return root.skinUsesAnyOption([
+    readonly property bool selectReplayOptionsUsed: root.skinUsesAnyOption([
             196, 197, 1196, 1197, 1199, 1200,
             1202, 1203, 1205, 1206, 1207, 1208
-        ]);
+        ])
+    readonly property bool selectScoreOptionIdsUsed: root.skinUsesOptionRange(105, 130)
+        || root.skinUsesAnyOption([144, 145, 1100, 1102, 1103, 1104, 1128])
+    readonly property bool selectEntryStatusOptionsUsed: root.skinUsesOptionRange(100, 130)
+        || root.skinUsesOptionRange(200, 207)
+        || root.skinUsesAnyOption([1100, 1102, 1103, 1104])
+    readonly property bool selectDifficultyBarOptionsUsed: root.skinUsesOptionRange(70, 79)
+        || root.skinUsesOptionRange(500, 565)
+    readonly property bool selectCourseDetailOptionsUsed: root.skinUsesAnyOption([290, 293])
+        || root.skinUsesOptionRange(580, 589)
+        || root.skinUsesOptionRange(700, 755)
+    readonly property bool selectRankingStatusOptionsUsed: root.skinUsesOptionRange(600, 616)
+
+    function selectUsesReplayOptions() {
+        return root.selectReplayOptionsUsed;
     }
 
     function selectUsesScoreOptionIds() {
-        return root.skinUsesOptionRange(105, 130)
-            || root.skinUsesAnyOption([144, 145, 1100, 1102, 1103, 1104, 1128]);
+        return root.selectScoreOptionIdsUsed;
     }
 
     function selectUsesEntryStatusOptions() {
-        return root.skinUsesOptionRange(100, 130)
-            || root.skinUsesOptionRange(200, 207)
-            || root.skinUsesAnyOption([1100, 1102, 1103, 1104]);
+        return root.selectEntryStatusOptionsUsed;
     }
 
     function selectUsesDifficultyBarOptions() {
-        return root.skinUsesOptionRange(70, 79)
-            || root.skinUsesOptionRange(500, 565);
+        return root.selectDifficultyBarOptionsUsed;
     }
 
     function selectUsesCourseDetailOptions() {
-        return root.skinUsesAnyOption([290, 293])
-            || root.skinUsesOptionRange(580, 589)
-            || root.skinUsesOptionRange(700, 755);
+        return root.selectCourseDetailOptionsUsed;
     }
 
     function selectUsesRankingStatusOptions() {
-        return root.skinUsesOptionRange(600, 616);
+        return root.selectRankingStatusOptionsUsed;
     }
 
     function updateSelectAnimationLimits() {

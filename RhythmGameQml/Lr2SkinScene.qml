@@ -29,6 +29,57 @@ Item {
                 ? root.resultOldScoresRevision
                 : root.gameplayRevision))
 
+    function selectNumberUsesFocusedState(num) {
+        return num === 42 || num === 96
+            || (num >= 45 && num <= 49)
+            || (num >= 70 && num <= 116)
+            || num === 128
+            || num === 150 || num === 152 || num === 154
+            || (num >= 179 && num <= 182)
+            || (num >= 200 && num <= 242)
+            || num === 290 || num === 291
+            || num === 300 || (num >= 320 && num <= 330)
+            || (num >= 350 && num <= 368)
+            || (num >= 410 && num <= 427)
+            || num === 1163 || num === 1164
+            || (num >= 1312 && num <= 1327);
+    }
+
+    function numberValueRevision(src) {
+        if (!rootReady) {
+            return 0;
+        }
+        if (root.effectiveScreenKey !== "select") {
+            return valueRevision;
+        }
+        let num = src ? (src.num || 0) : 0;
+        return selectNumberUsesFocusedState(num)
+            ? valueRevision
+            : root.lr2SkinSettingsRevision;
+    }
+
+    function selectTextUsesFocusedState(st) {
+        return (st >= 10 && st <= 29) && st !== 26;
+    }
+
+    function textValueRevision(src) {
+        if (!rootReady) {
+            return 0;
+        }
+        if (root.effectiveScreenKey !== "select") {
+            return valueRevision;
+        }
+        let st = src ? (src.st || 0) : 0;
+        if (selectTextUsesFocusedState(st)) {
+            return valueRevision;
+        }
+        if (st === 30 || st === 60 || st === 61 || st === 62
+                || (st >= 1000 && st <= 1003)) {
+            return selectContext.listRevision + root.lr2SkinSettingsRevision;
+        }
+        return root.lr2SkinSettingsRevision;
+    }
+
     function hoverPointInSkinCoordinates() {
         return rootReady ? root.selectHoverPointInSkinCoordinates() : Qt.point(0, 0);
     }
@@ -183,6 +234,9 @@ Item {
                     height: skinH * skinScale
                     z: root.elementZ(model.type, index, model.src, model.dsts)
                     readonly property bool usesActiveOptions: root.dstsUseActiveOptions(model.dsts)
+                    readonly property bool usesFocusActiveOptions: root.effectiveScreenKey === "select"
+                        && usesActiveOptions
+                        && root.dstsUseSelectFocusActiveOptions(model.dsts)
                     readonly property bool usesSkinTime: root.elementUsesSkinTime(model.src, model.dsts)
                     readonly property int dstTimer: model.dsts && model.dsts.length > 0
                         ? (model.dsts[0].timer || 0)
@@ -196,7 +250,7 @@ Item {
                     readonly property bool usesSpriteForceHidden: root.elementUsesSpriteForceHidden(model.src)
                     readonly property bool usesButtonFrameOverride: root.elementUsesButtonFrameOverride(model.src)
                     readonly property var elementActiveOptions: usesActiveOptions
-                        ? root.runtimeActiveOptions
+                        ? root.activeOptionsForElementDsts(model.dsts, usesFocusActiveOptions)
                         : root.emptyActiveOptions
                     readonly property int dstTimerFire: dstTimer !== 0
                         ? root.skinTimerFireTime(dstTimer)
@@ -425,6 +479,7 @@ Item {
                     Component {
                         id: numberComponent
                         Lr2NumberRenderer {
+                            id: numberRenderer
                             readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
                             dsts: model.dsts
                             srcData: model.src
@@ -435,7 +490,9 @@ Item {
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
                             scaleOverride: skinScale
-                            value: root.numberValue(model.src, sceneRoot.valueRevision)
+                            value: numberRenderer.hasCurrentState
+                                ? root.numberValue(model.src, sceneRoot.numberValueRevision(model.src))
+                                : 0
                             forceHidden: root.numberForceHidden(model.src)
                             animationRevision: root.numberAnimationRevision(model.src)
                             colorKeyEnabled: skinModel.hasTransColor
@@ -457,7 +514,7 @@ Item {
                             skinClockMode: elemLoader.elementSkinClockMode
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
-                            valueRevision: sceneRoot.valueRevision
+                            valueRevision: sceneRoot.textValueRevision(model.src)
                             chart: sceneRoot.renderChart
                             skinScale: skinScale
                         }

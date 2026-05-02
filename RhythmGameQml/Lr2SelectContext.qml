@@ -2,9 +2,12 @@ pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import RhythmGameQml 1.0
+import "Lr2SelectStateStore.js" as Lr2SelectStateStore
 
 Item {
     id: root
+
+    readonly property int selectedStateStoreId: Lr2SelectStateStore.allocate()
 
     property var items: []
     property var folderContents: []
@@ -70,16 +73,17 @@ Item {
     property alias visibleBarTextCells: visibleBars.cells
     property var selectedScoreStateCache: ({})
     property int selectedScoreStateCacheRevision: -1
-    property string selectedScoreStateKey: ""
+    property var scoreSummaryCache: ({})
+    property int scoreSummaryCacheRevision: -1
+    property var selectedDifficultyStateCache: ({})
+    property int selectedDifficultyStateCacheScoreRevision: -1
+    property int selectedDifficultyStateCacheListRevision: -1
     property int refreshedFocusedIndex: -1
     property var refreshedFocusedItem: null
     property int refreshedFocusedScoreRevision: -1
+    property int refreshedFocusedListRevision: -1
     property bool refreshedFocusedRankingMode: false
     property var refreshedFocusedRankingBaseItem: null
-    property var selectedDifficultyCharts: []
-    property var selectedDifficultyCounts: [0, 0, 0, 0, 0, 0]
-    property var selectedDifficultyLevels: [0, 0, 0, 0, 0, 0]
-    property var selectedDifficultyLamps: [0, 0, 0, 0, 0, 0]
     property int cachedSyncedCursorBaseIndex: -1
     property bool rankingMode: false
     property var rankingBaseItem: null
@@ -94,11 +98,10 @@ Item {
     property int rankingSavedCurrentIndex: 0
     property real rankingSavedVisualIndex: 0
     property int rankingSavedSelectedOffset: 0
-    property var cachedSelectedChartData: null
-    property var cachedSelectedChartWrapper: null
-    property var cachedSelectedChartWrapperData: null
     readonly property var emptyScoreList: []
     readonly property var emptyScoreOptionIds: []
+    readonly property var emptyDifficultyCharts: [null, null, null, null, null, null]
+    readonly property var emptyDifficultyNumbers: [0, 0, 0, 0, 0, 0]
     readonly property var emptyScoreCounts: ({
         play: 0,
         clear: 0,
@@ -131,26 +134,35 @@ Item {
         perfect: 0,
         max: 0
     })
-    property var selectedScoreList: []
-    property var selectedBestStats: null
-    property var selectedScoreCounts: ({
-        play: 0,
-        clear: 0,
-        fail: 0,
-        noplay: 0,
-        assist: 0,
-        lightAssist: 0,
-        easy: 0,
-        normal: 0,
-        hard: 0,
-        exhard: 0,
-        fc: 0,
-        perfect: 0,
-        max: 0,
-        minBadPoor: 0
+    readonly property var emptyDifficultyState: ({
+        key: "empty",
+        charts: emptyDifficultyCharts,
+        counts: emptyDifficultyNumbers,
+        levels: emptyDifficultyNumbers,
+        lamps: emptyDifficultyNumbers
     })
-    property var selectedScoreOptionIds: []
-    property string selectedScoreOptionIdsKey: ""
+    property var selectedScoreState: ({
+        key: "",
+        scoreRevision: -1,
+        listRevision: -1,
+        item: null,
+        chartData: null,
+        chartWrapper: null,
+        scoreList: emptyScoreList,
+        summary: null,
+        bestStats: null,
+        scoreCounts: emptyScoreCounts,
+        scoreOptionIds: null,
+        difficultyState: emptyDifficultyState
+    })
+    function selectedState() {
+        return Lr2SelectStateStore.state(selectedStateStoreId) || selectedScoreState;
+    }
+
+    function applySelectedScoreState(state) {
+        selectedScoreState = state;
+        Lr2SelectStateStore.setState(selectedStateStoreId, state);
+    }
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
@@ -166,9 +178,6 @@ Item {
     readonly property var current: logicalCount > 0 ? items[currentIndex] : null
     readonly property int focusedIndex: logicalCount > 0 ? currentIndex : 0
     readonly property var focusedItem: logicalCount > 0 ? items[focusedIndex] : null
-    onFocusedIndexChanged: {
-        refreshFocusedState();
-    }
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
     property bool visualMoveActive: false
     property int visualBaseIndex: 0
@@ -265,6 +274,7 @@ Item {
         if (refreshedFocusedIndex === focusedIndex
                 && refreshedFocusedItem === focusedItem
                 && refreshedFocusedScoreRevision === scoreRevision
+                && refreshedFocusedListRevision === listRevision
                 && refreshedFocusedRankingMode === rankingMode
                 && refreshedFocusedRankingBaseItem === rankingBaseItem) {
             return false;
@@ -272,6 +282,7 @@ Item {
         refreshedFocusedIndex = focusedIndex;
         refreshedFocusedItem = focusedItem;
         refreshedFocusedScoreRevision = scoreRevision;
+        refreshedFocusedListRevision = listRevision;
         refreshedFocusedRankingMode = rankingMode;
         refreshedFocusedRankingBaseItem = rankingBaseItem;
         if (refreshSelectedScoreState()) {
@@ -520,6 +531,7 @@ Item {
     }
 
     Component.onCompleted: {
+        Lr2SelectStateStore.setState(selectedStateStoreId, selectedScoreState);
         componentReady = true;
         if (updatesActive) {
             publishBarState(true);
@@ -769,6 +781,7 @@ Item {
     }
 
     Component.onDestruction: {
+        Lr2SelectStateStore.clear(selectedStateStoreId);
         Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
     }
 
@@ -933,20 +946,16 @@ Item {
     }
 
     function entryScoreRateForSort(item) {
-        let best = bestScoreByPoints(cachedEntryScores(item));
-        if (!best || !best.result || best.result.maxPoints <= 0) {
-            return null;
-        }
-        return best.result.points / best.result.maxPoints;
+        let summary = scoreSummaryForItem(item);
+        return summary.bestScore ? summary.scoreRate : null;
     }
 
     function entryMissCountForSort(item) {
-        let scoreList = cachedEntryScores(item);
-        if (!scoreList || scoreList.length === 0) {
+        let summary = scoreSummaryForItem(item);
+        if (!summary.bestScore && summary.scoreCounts.play <= 0) {
             return null;
         }
-        let counts = scoreCounts(scoreList);
-        return counts.minBadPoor >= 0 ? counts.minBadPoor : null;
+        return summary.scoreCounts.minBadPoor >= 0 ? summary.scoreCounts.minBadPoor : null;
     }
 
     function compareByBpm(a, b) {
@@ -1080,8 +1089,9 @@ Item {
     }
 
     function handleScoresLoaded() {
-        refreshSelectedScoreState();
         scoreRevision += 1;
+        refreshScoreCachesForRevision();
+        refreshSelectedScoreState();
         if (activeSortUsesScores()) {
             sortOrFilterChanged(scoreLoadPreferredItem());
         }
@@ -1665,6 +1675,10 @@ Item {
         barCells.updateCellForRow(cell, row);
     }
 
+    function updateBarTextCell(cell, row, entry) {
+        barCells.updateCell(cell, row, entry);
+    }
+
     function visibleBarTextCell(slot) {
         return visibleBars.cellAtSlot(slot);
     }
@@ -1735,7 +1749,8 @@ Item {
                 return historyStack[i];
             }
         }
-        return isTable(focusedItem) ? focusedItem : null;
+        let item = selectedItem();
+        return isTable(item) ? item : null;
     }
 
     function currentTableName() {
@@ -1748,7 +1763,8 @@ Item {
         if (isLevel(item)) {
             return item.name || "";
         }
-        return isLevel(focusedItem) ? (focusedItem.name || "") : "";
+        let selected = selectedItem();
+        return isLevel(selected) ? (selected.name || "") : "";
     }
 
     function currentTableFullName() {
@@ -1964,9 +1980,211 @@ Item {
         return id ? (scores[id] || emptyScoreList) : emptyScoreList;
     }
 
+    function refreshScoreCachesForRevision() {
+        if (selectedScoreStateCacheRevision === scoreRevision
+                && scoreSummaryCacheRevision === scoreRevision) {
+            return;
+        }
+        selectedScoreStateCache = {};
+        selectedScoreStateCacheRevision = scoreRevision;
+        scoreSummaryCache = {};
+        scoreSummaryCacheRevision = scoreRevision;
+    }
+
+    function clearTypePriority(clear) {
+        switch (clear || "NOPLAY") {
+        case "FAILED":
+            return 1;
+        case "AEASY":
+            return 2;
+        case "EASY":
+            return 3;
+        case "NORMAL":
+            return 4;
+        case "HARD":
+            return 5;
+        case "EXHARD":
+            return 6;
+        case "FC":
+            return 7;
+        case "PERFECT":
+            return 8;
+        case "MAX":
+            return 9;
+        default:
+            return 0;
+        }
+    }
+
+    function rankForScoreRate(rate) {
+        if (rate >= 1.0) return 9;
+        if (rate >= 8 / 9) return 8;
+        if (rate >= 7 / 9) return 7;
+        if (rate >= 6 / 9) return 6;
+        if (rate >= 5 / 9) return 5;
+        if (rate >= 4 / 9) return 4;
+        if (rate >= 3 / 9) return 3;
+        if (rate >= 2 / 9) return 2;
+        return rate > 0 ? 1 : 0;
+    }
+
+    function badPoorForScore(score) {
+        let counts = score?.result?.judgementCounts || [];
+        return judgementCount(counts, Judgement.Bad)
+            + judgementCount(counts, Judgement.Poor)
+            + judgementCount(counts, Judgement.EmptyPoor);
+    }
+
+    function buildScoreSummary(scoreList) {
+        if (!scoreList || scoreList.length === 0) {
+            return {
+                scoreList: emptyScoreList,
+                bestScore: null,
+                bestStats: null,
+                scoreCounts: emptyScoreCounts,
+                clearType: "NOPLAY",
+                lamp: 0,
+                rank: 0,
+                scoreRate: 0
+            };
+        }
+
+        let counts = {
+            play: 0,
+            clear: 0,
+            fail: 0,
+            noplay: 0,
+            assist: 0,
+            lightAssist: 0,
+            easy: 0,
+            normal: 0,
+            hard: 0,
+            exhard: 0,
+            fc: 0,
+            perfect: 0,
+            max: 0,
+            minBadPoor: 0
+        };
+        let bestScore = null;
+        let bestRate = -1;
+        let bestClearType = "NOPLAY";
+        let bestClearPriority = 0;
+        let minBadPoor = -1;
+
+        for (let score of scoreList) {
+            if (!score || !score.result) {
+                continue;
+            }
+
+            ++counts.play;
+            let clearType = clearTypeOf(score);
+            let clearPriority = clearTypePriority(clearType);
+            if (clearPriority > bestClearPriority) {
+                bestClearPriority = clearPriority;
+                bestClearType = clearType;
+            }
+
+            if (clearType !== "FAILED" && clearType !== "NOPLAY") {
+                ++counts.clear;
+            }
+            switch (clearType) {
+            case "FAILED":
+                ++counts.fail;
+                break;
+            case "AEASY":
+                ++counts.assist;
+                break;
+            case "EASY":
+                ++counts.easy;
+                break;
+            case "NORMAL":
+                ++counts.normal;
+                break;
+            case "HARD":
+                ++counts.hard;
+                break;
+            case "EXHARD":
+                ++counts.exhard;
+                break;
+            case "FC":
+                ++counts.fc;
+                break;
+            case "PERFECT":
+                ++counts.perfect;
+                break;
+            case "MAX":
+                ++counts.max;
+                break;
+            default:
+                ++counts.noplay;
+                break;
+            }
+
+            let badPoor = badPoorForScore(score);
+            minBadPoor = minBadPoor < 0 ? badPoor : Math.min(minBadPoor, badPoor);
+
+            let maxPoints = score.result.maxPoints || 0;
+            if (maxPoints > 0) {
+                let rate = (score.result.points || 0) / maxPoints;
+                if (rate > bestRate) {
+                    bestRate = rate;
+                    bestScore = score;
+                }
+            }
+        }
+
+        counts.minBadPoor = Math.max(0, minBadPoor);
+        let scoreRate = Math.max(0, bestRate);
+        return {
+            scoreList: scoreList,
+            bestScore: bestScore,
+            bestStats: bestScore ? statsForScore(bestScore, false) : null,
+            scoreCounts: counts,
+            clearType: bestClearType,
+            lamp: clearTypeLamp(bestClearType),
+            rank: rankForScoreRate(scoreRate),
+            scoreRate: scoreRate
+        };
+    }
+
+    function scoreSummaryKey(item) {
+        if (!item) {
+            return "empty";
+        }
+        let id = entryIdentifier(item);
+        if (id) {
+            return "score:" + id;
+        }
+        return entrySelectionKey(item, 0);
+    }
+
+    function scoreSummaryForItem(item) {
+        refreshScoreCachesForRevision();
+        let state = selectedState();
+        if ((item === state.item || item === state.chartData)
+                && state.key
+                && state.scoreRevision === scoreRevision) {
+            return state.summary || buildScoreSummary(state.scoreList || emptyScoreList);
+        }
+
+        let key = scoreSummaryKey(item);
+        let cached = key ? scoreSummaryCache[key] : null;
+        if (cached) {
+            return cached;
+        }
+
+        cached = buildScoreSummary(entryScores(item));
+        if (key) {
+            scoreSummaryCache[key] = cached;
+        }
+        return cached;
+    }
+
     function cachedEntryScores(item) {
-        return item === focusedItem || item === cachedSelectedChartData
-            ? selectedScoreList
+        let state = selectedState();
+        return (item === state.item || item === state.chartData)
+                && state.scoreRevision === scoreRevision
+            ? (state.scoreList || emptyScoreList)
             : entryScores(item);
     }
 
@@ -2064,9 +2282,12 @@ Item {
 
     function getClearType(scoreList) {
         let clearType = "NOPLAY";
+        let priority = 0;
         for (let score of scoreList) {
             let next = clearTypeOf(score);
-            if (clearTypePriorities.indexOf(next) > clearTypePriorities.indexOf(clearType)) {
+            let nextPriority = clearTypePriority(next);
+            if (nextPriority > priority) {
+                priority = nextPriority;
                 clearType = next;
             }
         }
@@ -2249,10 +2470,7 @@ Item {
     }
 
     function bestStats(scoreList) {
-        if (!scoreList || scoreList.length === 0) {
-            return null;
-        }
-        return statsForScore(bestScoreByPoints(scoreList), false);
+        return buildScoreSummary(scoreList).bestStats;
     }
 
     function ensureStatsTiming(stats, score) {
@@ -2268,67 +2486,13 @@ Item {
     }
 
     function ensureSelectedBestStatsTiming() {
-        return ensureStatsTiming(selectedBestStats, bestScoreByPoints(selectedScoreList));
+        let state = selectedState();
+        let summary = state.summary || buildScoreSummary(state.scoreList || emptyScoreList);
+        return ensureStatsTiming(state.bestStats, summary.bestScore);
     }
 
     function scoreCounts(scoreList) {
-        if (!scoreList || scoreList.length === 0) {
-            return emptyScoreCounts;
-        }
-        let counts = {
-            play: 0,
-            clear: 0,
-            fail: 0,
-            noplay: 0,
-            assist: 0,
-            lightAssist: 0,
-            easy: 0,
-            normal: 0,
-            hard: 0,
-            exhard: 0,
-            fc: 0,
-            perfect: 0,
-            max: 0,
-            minBadPoor: 0
-        };
-        let minBadPoor = -1;
-        for (let score of scoreList) {
-            if (!score || !score.result) {
-                continue;
-            }
-            ++counts.play;
-            if (isClearedScore(score)) {
-                ++counts.clear;
-            }
-            let clearType = clearTypeOf(score);
-            if (clearType === "FAILED") {
-                ++counts.fail;
-            } else if (clearType === "AEASY") {
-                ++counts.assist;
-            } else if (clearType === "EASY") {
-                ++counts.easy;
-            } else if (clearType === "NORMAL") {
-                ++counts.normal;
-            } else if (clearType === "HARD") {
-                ++counts.hard;
-            } else if (clearType === "EXHARD") {
-                ++counts.exhard;
-            } else if (clearType === "FC") {
-                ++counts.fc;
-            } else if (clearType === "PERFECT") {
-                ++counts.perfect;
-            } else if (clearType === "MAX") {
-                ++counts.max;
-            } else {
-                ++counts.noplay;
-            }
-                let stats = statsForScore(score, false);
-            if (stats) {
-                minBadPoor = minBadPoor < 0 ? stats.badPoor : Math.min(minBadPoor, stats.badPoor);
-            }
-        }
-        counts.minBadPoor = Math.max(0, minBadPoor);
-        return counts;
+        return buildScoreSummary(scoreList).scoreCounts;
     }
 
     function percentInteger(value, total) {
@@ -2374,7 +2538,7 @@ Item {
 
     function currentFolderScoreCountsOrNull() {
         let revisionMarker = folderLampRevision;
-        let key = folderLampKey(focusedItem);
+        let key = folderLampKey(selectedState().item);
         return key && folderScoreCountsByKey[key] !== undefined
             ? folderScoreCountsByKey[key]
             : null;
@@ -2452,27 +2616,29 @@ Item {
     }
 
     function scoreOptionIds(item) {
-        if (item === focusedItem || item === cachedSelectedChartData) {
-            let key = selectedScoreStateKey || "__selected";
-            if (selectedScoreOptionIdsKey !== key) {
-                selectedScoreOptionIds = scoreOptionIdsFromList(selectedScoreList);
-                selectedScoreOptionIdsKey = key;
-                let cached = selectedScoreStateKey ? selectedScoreStateCache[selectedScoreStateKey] : null;
-                if (cached) {
-                    cached.scoreOptionIds = selectedScoreOptionIds;
-                }
+        let state = selectedState();
+        if ((item === state.item || item === state.chartData)
+                && state.scoreRevision === scoreRevision) {
+            if (!state.scoreOptionIds) {
+                state.scoreOptionIds = scoreOptionIdsFromSummary(
+                    state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
             }
-            return selectedScoreOptionIds;
+            return state.scoreOptionIds;
         }
-        return scoreOptionIdsFromList(entryScores(item));
+        return scoreOptionIdsFromSummary(scoreSummaryForItem(item));
     }
 
     function scoreOptionIdsFromList(scoreList) {
+        return scoreOptionIdsFromSummary(buildScoreSummary(scoreList));
+    }
+
+    function scoreOptionIdsFromSummary(summary) {
+        let scoreList = summary ? summary.scoreList : emptyScoreList;
         if (!scoreList || scoreList.length === 0) {
             return emptyScoreOptionIds;
         }
         let ids = [];
-        appendScoreClearOptionIds(getClearType(scoreList), ids);
+        appendScoreClearOptionIds(summary ? summary.clearType : getClearType(scoreList), ids);
         for (let score of scoreList) {
             appendScoreOptionIds(score, ids);
         }
@@ -2490,8 +2656,7 @@ Item {
             let key = folderLampKey(item);
             return key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
         }
-        let clear = getClearType(cachedEntryScores(item));
-        return clearTypeLamp(clear);
+        return scoreSummaryForItem(item).lamp;
     }
 
     function entryClearType(item) {
@@ -2501,11 +2666,11 @@ Item {
         if (isFolderLikeForLamp(item)) {
             return "NOPLAY";
         }
-        return getClearType(cachedEntryScores(item));
+        return scoreSummaryForItem(item).clearType;
     }
 
-    function beatorajaClearOption(item) {
-        switch (entryClearType(item)) {
+    function beatorajaClearOptionForClearType(clearType) {
+        switch (clearType || "NOPLAY") {
         case "FAILED":
             return 101;
         case "AEASY":
@@ -2529,6 +2694,10 @@ Item {
         }
     }
 
+    function beatorajaClearOption(item) {
+        return beatorajaClearOptionForClearType(entryClearType(item));
+    }
+
     function entryRank(item) {
         if (isRankingEntry(item)) {
             let points = Number(item.bestPoints || 0);
@@ -2545,28 +2714,11 @@ Item {
             }
             return rank;
         }
-        let best = bestScoreByPoints(cachedEntryScores(item));
-        if (!best || !best.result || best.result.maxPoints <= 0) {
-            return 0;
-        }
-        let rate = 100.0 * best.result.points / best.result.maxPoints;
-        if (rate >= 100.0) return 9;
-        if (rate >= 100.0 * 8 / 9) return 8;
-        if (rate >= 100.0 * 7 / 9) return 7;
-        if (rate >= 100.0 * 6 / 9) return 6;
-        if (rate >= 100.0 * 5 / 9) return 5;
-        if (rate >= 100.0 * 4 / 9) return 4;
-        if (rate >= 100.0 * 3 / 9) return 3;
-        if (rate >= 100.0 * 2 / 9) return 2;
-        return rate > 0 ? 1 : 0;
+        return scoreSummaryForItem(item).rank;
     }
 
     function entryScoreRate(item) {
-        let best = bestScoreByPoints(cachedEntryScores(item));
-        if (!best || !best.result || best.result.maxPoints <= 0) {
-            return 0;
-        }
-        return best.result.points / best.result.maxPoints;
+        return scoreSummaryForItem(item).scoreRate;
     }
 
     function chartDataForItem(item) {
@@ -2577,31 +2729,19 @@ Item {
     }
 
     function selectedChartData() {
-        return cachedSelectedChartData;
+        return selectedState().chartData;
     }
 
-    function updateSelectedChartWrapper(chartData) {
-        if (!chartData) {
-            if (cachedSelectedChartWrapperData !== null) {
-                cachedSelectedChartWrapperData = null;
-                cachedSelectedChartWrapper = null;
-            }
-            return null;
-        }
-        if (cachedSelectedChartWrapperData !== chartData) {
-            cachedSelectedChartWrapperData = chartData;
-            cachedSelectedChartWrapper = { chartData: chartData };
-        }
-        return cachedSelectedChartWrapper;
+    function selectedItem() {
+        return selectedState().item;
+    }
+
+    function chartWrapperForData(chartData) {
+        return chartData ? { chartData: chartData } : null;
     }
 
     function refreshSelectedScoreState() {
-        if (selectedScoreStateCacheRevision !== scoreRevision) {
-            selectedScoreStateCache = {};
-            selectedScoreStateCacheRevision = scoreRevision;
-            selectedScoreStateKey = "";
-            selectedScoreOptionIdsKey = "";
-        }
+        refreshScoreCachesForRevision();
         let item = focusedItem;
         let nextChartData = chartDataForItem(item);
         let stateKey = "";
@@ -2612,46 +2752,64 @@ Item {
         } else {
             stateKey = entrySelectionKey(item, focusedIndex);
         }
-        if (stateKey && stateKey === selectedScoreStateKey) {
+        let currentState = selectedState();
+        if (stateKey
+                && stateKey === currentState.key
+                && currentState.scoreRevision === scoreRevision
+                && currentState.listRevision === listRevision) {
             return false;
         }
         let cached = stateKey ? selectedScoreStateCache[stateKey] : null;
+        if (cached && (cached.scoreRevision !== scoreRevision || cached.listRevision !== listRevision)) {
+            cached = null;
+        }
         if (cached) {
-            cachedSelectedChartData = cached.chartData;
-            updateSelectedChartWrapper(cached.chartData);
-            selectedScoreList = cached.scoreList;
-            selectedBestStats = cached.bestStats;
-            selectedScoreCounts = cached.scoreCounts;
-            selectedScoreStateKey = stateKey;
-            if (cached.scoreOptionIds) {
-                selectedScoreOptionIds = cached.scoreOptionIds;
-                selectedScoreOptionIdsKey = stateKey;
-            } else {
-                selectedScoreOptionIds = emptyScoreOptionIds;
-                selectedScoreOptionIdsKey = "";
+            if (!cached.summary) {
+                cached.summary = buildScoreSummary(cached.scoreList);
+                cached.bestStats = cached.summary.bestStats;
+                cached.scoreCounts = cached.summary.scoreCounts;
             }
-            refreshSelectedDifficultyState(cached.chartData);
+            if (!cached.difficultyState) {
+                cached.difficultyState = difficultyStateForChart(cached.chartData);
+            }
+            if (!cached.chartWrapper) {
+                cached.chartWrapper = chartWrapperForData(cached.chartData);
+            }
+            applySelectedScoreState(cached);
+            let summaryKey = scoreSummaryKey(cached.chartData || item);
+            if (summaryKey) {
+                scoreSummaryCache[summaryKey] = cached.summary;
+            }
             return true;
         }
-        let scoreList = entryScores(nextChartData || item);
-        let nextBestStats = bestStats(scoreList);
-        let nextScoreCounts = scoreCounts(scoreList);
-        cachedSelectedChartData = nextChartData;
-        updateSelectedChartWrapper(nextChartData);
-        selectedScoreList = scoreList;
-        selectedBestStats = nextBestStats;
-        selectedScoreCounts = nextScoreCounts;
-        selectedScoreStateKey = stateKey;
-        selectedScoreOptionIds = emptyScoreOptionIds;
-        selectedScoreOptionIdsKey = "";
-        refreshSelectedDifficultyState(nextChartData);
+        let targetItem = nextChartData || item;
+        let summaryKey = scoreSummaryKey(targetItem);
+        let summary = summaryKey ? scoreSummaryCache[summaryKey] : null;
+        let scoreList = summary ? (summary.scoreList || emptyScoreList) : entryScores(targetItem);
+        if (!summary) {
+            summary = buildScoreSummary(scoreList);
+            if (summaryKey) {
+                scoreSummaryCache[summaryKey] = summary;
+            }
+        }
+        let nextState = {
+            key: stateKey,
+            scoreRevision: scoreRevision,
+            listRevision: listRevision,
+            item: item,
+            chartData: nextChartData,
+            chartWrapper: chartWrapperForData(nextChartData),
+            scoreList: scoreList,
+            summary: summary,
+            bestStats: summary.bestStats,
+            scoreCounts: summary.scoreCounts,
+            scoreOptionIds: null,
+            difficultyState: difficultyStateForChart(nextChartData)
+        };
+        applySelectedScoreState(nextState);
         if (stateKey) {
-            selectedScoreStateCache[stateKey] = {
-                chartData: nextChartData,
-                scoreList: scoreList,
-                bestStats: nextBestStats,
-                scoreCounts: nextScoreCounts
-            };
+            selectedScoreStateCache[stateKey] = nextState;
+            scoreSummaryCache[stateKey] = summary;
         }
         return true;
     }
@@ -2934,8 +3092,7 @@ Item {
 
         chartGroupCache = groups;
         chartDifficultyCache = difficulties;
-        selectedScoreStateKey = "";
-        selectedScoreOptionIdsKey = "";
+        selectedDifficultyStateCache = {};
     }
 
     function chartsForCurrentSong() {
@@ -2955,7 +3112,17 @@ Item {
         return result;
     }
 
-    function refreshSelectedDifficultyState(chart) {
+    function refreshDifficultyCacheForRevision() {
+        if (selectedDifficultyStateCacheScoreRevision === scoreRevision
+                && selectedDifficultyStateCacheListRevision === listRevision) {
+            return;
+        }
+        selectedDifficultyStateCache = {};
+        selectedDifficultyStateCacheScoreRevision = scoreRevision;
+        selectedDifficultyStateCacheListRevision = listRevision;
+    }
+
+    function buildSelectedDifficultyState(chart) {
         let charts = chartsForSong(chart);
         let byDiff = [null, null, null, null, null, null];
         let counts = [0, 0, 0, 0, 0, 0];
@@ -2979,14 +3146,33 @@ Item {
             levels[diff] = candidate.playLevel || 0;
             lamps[diff] = entryLamp(candidate);
         }
-        selectedDifficultyCharts = byDiff;
-        selectedDifficultyCounts = counts;
-        selectedDifficultyLevels = levels;
-        selectedDifficultyLamps = lamps;
+        return {
+            charts: byDiff,
+            counts: counts,
+            levels: levels,
+            lamps: lamps
+        };
+    }
+
+    function difficultyStateForChart(chart) {
+        refreshDifficultyCacheForRevision();
+        let key = chart
+            ? chartDifficultyGroupKey(chart) + "\n" + entrySelectionKey(chart, 0)
+            : "empty";
+
+        let cached = selectedDifficultyStateCache[key];
+        if (!cached) {
+            cached = buildSelectedDifficultyState(chart);
+            cached.key = key;
+            selectedDifficultyStateCache[key] = cached;
+        }
+        return cached;
     }
 
     function chartForDifficulty(diff) {
-        return diff >= 1 && diff <= 5 ? selectedDifficultyCharts[diff] : null;
+        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
+        let charts = difficultyState.charts || emptyDifficultyCharts;
+        return diff >= 1 && diff <= 5 ? charts[diff] : null;
     }
 
     function nextChartForDifficulty(diff) {
@@ -3024,11 +3210,15 @@ Item {
     }
 
     function difficultyCount(diff) {
-        return diff >= 1 && diff <= 5 ? selectedDifficultyCounts[diff] || 0 : 0;
+        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
+        let counts = difficultyState.counts || emptyDifficultyNumbers;
+        return diff >= 1 && diff <= 5 ? counts[diff] || 0 : 0;
     }
 
     function difficultyPlayLevel(diff) {
-        return diff >= 1 && diff <= 5 ? selectedDifficultyLevels[diff] || 0 : 0;
+        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
+        let levels = difficultyState.levels || emptyDifficultyNumbers;
+        return diff >= 1 && diff <= 5 ? levels[diff] || 0 : 0;
     }
 
     function levelBarFlashThreshold() {
@@ -3057,7 +3247,9 @@ Item {
     }
 
     function difficultyLamp(diff) {
-        return diff >= 1 && diff <= 5 ? selectedDifficultyLamps[diff] || 0 : 0;
+        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
+        let lamps = difficultyState.lamps || emptyDifficultyNumbers;
+        return diff >= 1 && diff <= 5 ? lamps[diff] || 0 : 0;
     }
 
     function attachedTextFile(chart) {
@@ -3113,7 +3305,7 @@ Item {
     }
 
     function selectedChartWrapper() {
-        return updateSelectedChartWrapper(selectedChartData());
+        return selectedState().chartWrapper;
     }
 
     function selectedPreviewSource() {
@@ -3122,16 +3314,82 @@ Item {
     }
 
     function numberValue(num) {
-        let chart = selectedChartData();
-        let rankingEntry = isRankingEntry(focusedItem) ? focusedItem : null;
-        let stats = selectedBestStats;
-        let counts = selectedScoreCounts;
-        let currentFolderCounts = currentFolderScoreCountsOrNull();
-        let folderCounts = currentFolderCounts || emptyFolderScoreCounts;
-        let hasRankingStats = rankingStatsAvailable();
-        if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
-            stats = ensureSelectedBestStatsTiming();
+        let state = selectedState();
+        let chartLoaded = false;
+        let chartValue = null;
+        let rankingEntryLoaded = false;
+        let rankingEntryValue = null;
+        let statsLoaded = false;
+        let statsValue = null;
+        let timingStatsLoaded = false;
+        let timingStatsValue = null;
+        let countsLoaded = false;
+        let countsValue = null;
+        let folderCountsLoaded = false;
+        let folderCountsValue = null;
+        let rankingStatsLoaded = false;
+        let rankingStatsValue = false;
+
+        function chart() {
+            if (!chartLoaded) {
+                chartLoaded = true;
+                chartValue = state.chartData;
+            }
+            return chartValue;
         }
+
+        function rankingEntry() {
+            if (!rankingEntryLoaded) {
+                rankingEntryLoaded = true;
+                rankingEntryValue = isRankingEntry(state.item) ? state.item : null;
+            }
+            return rankingEntryValue;
+        }
+
+        function stats() {
+            if (!statsLoaded) {
+                statsLoaded = true;
+                statsValue = state.bestStats;
+            }
+            return statsValue;
+        }
+
+        function timingStats() {
+            if (!timingStatsLoaded) {
+                timingStatsLoaded = true;
+                timingStatsValue = ensureSelectedBestStatsTiming();
+            }
+            return timingStatsValue;
+        }
+
+        function counts() {
+            if (!countsLoaded) {
+                countsLoaded = true;
+                countsValue = state.scoreCounts || emptyScoreCounts;
+            }
+            return countsValue;
+        }
+
+        function currentFolderCounts() {
+            if (!folderCountsLoaded) {
+                folderCountsLoaded = true;
+                folderCountsValue = currentFolderScoreCountsOrNull();
+            }
+            return folderCountsValue;
+        }
+
+        function folderCounts() {
+            return currentFolderCounts() || emptyFolderScoreCounts;
+        }
+
+        function hasRankingStats() {
+            if (!rankingStatsLoaded) {
+                rankingStatsLoaded = true;
+                rankingStatsValue = rankingStatsAvailable();
+            }
+            return rankingStatsValue;
+        }
+
         switch (num) {
         case 30:
             return playerStats.playCount || 0;
@@ -3170,7 +3428,7 @@ Item {
             return 0;
         case 42:
         case 96:
-            return chart ? (chart.playLevel || 0) : 0;
+            return chart() ? (chart().playLevel || 0) : 0;
         case 45:
         case 46:
         case 47:
@@ -3184,101 +3442,101 @@ Item {
         case 59:
             return 100;
         case 70:
-            return rankingEntry ? Math.round(rankingEntry.bestPoints) : (stats ? Math.round(stats.score) : 0);
+            return rankingEntry() ? Math.round(rankingEntry().bestPoints) : (stats() ? Math.round(stats().score) : 0);
         case 71:
-            return rankingEntry ? Math.round(rankingEntry.bestPoints) : (stats ? Math.round(stats.exscore) : 0);
+            return rankingEntry() ? Math.round(rankingEntry().bestPoints) : (stats() ? Math.round(stats().exscore) : 0);
         case 72:
-            return rankingEntry ? Math.round(rankingEntry.maxPoints) : (stats ? Math.round(stats.maxPoints) : 0);
+            return rankingEntry() ? Math.round(rankingEntry().maxPoints) : (stats() ? Math.round(stats().maxPoints) : 0);
         case 73:
-            return rankingEntry && rankingEntry.maxPoints > 0
-                ? Math.round(rankingEntry.bestPoints * 100 / rankingEntry.maxPoints)
-                : (stats && stats.maxPoints > 0 ? Math.round(stats.score * 100 / stats.maxPoints) : 0);
+            return rankingEntry() && rankingEntry().maxPoints > 0
+                ? Math.round(rankingEntry().bestPoints * 100 / rankingEntry().maxPoints)
+                : (stats() && stats().maxPoints > 0 ? Math.round(stats().score * 100 / stats().maxPoints) : 0);
         case 74:
-            return rankingEntry ? Math.round(rankingEntry.maxPoints / 2) : chartPlayableNoteCount(chart);
+            return rankingEntry() ? Math.round(rankingEntry().maxPoints / 2) : chartPlayableNoteCount(chart());
         case 75:
-            return rankingEntry ? rankingEntry.bestCombo : (stats ? stats.maxCombo : 0);
+            return rankingEntry() ? rankingEntry().bestCombo : (stats() ? stats().maxCombo : 0);
         case 76:
-            return rankingEntry ? rankingEntry.bestComboBreaks : counts.minBadPoor;
+            return rankingEntry() ? rankingEntry().bestComboBreaks : counts().minBadPoor;
         case 77:
-            return rankingEntry ? rankingEntry.scoreCount : counts.play;
+            return rankingEntry() ? rankingEntry().scoreCount : counts().play;
         case 78:
-            return counts.clear;
+            return counts().clear;
         case 79:
-            return counts.fail;
+            return counts().fail;
         case 100:
-            return scorePrintValue(stats, chart);
+            return scorePrintValue(stats(), chart());
         case 101:
-            return stats ? Math.round(stats.exscore) : 0;
+            return stats() ? Math.round(stats().exscore) : 0;
         case 102:
-            return stats ? percentInteger(stats.exscore, stats.maxPoints) : 0;
+            return stats() ? percentInteger(stats().exscore, stats().maxPoints) : 0;
         case 103:
-            return stats ? percentAfterDot(stats.exscore, stats.maxPoints) : 0;
+            return stats() ? percentAfterDot(stats().exscore, stats().maxPoints) : 0;
         case 104:
         case 105:
-            return stats ? stats.maxCombo : 0;
+            return stats() ? stats().maxCombo : 0;
         case 106:
-            return chartPlayableNoteCount(chart);
+            return chartPlayableNoteCount(chart());
         case 107:
             return 0;
         case 108:
         case 128:
-            return stats ? Math.round(stats.exscore) : 0;
+            return stats() ? Math.round(stats().exscore) : 0;
         case 109:
             return 0;
         case 80:
-            return stats ? stats.pg : 0;
+            return stats() ? stats().pg : 0;
         case 81:
-            return stats ? stats.gr : 0;
+            return stats() ? stats().gr : 0;
         case 82:
-            return stats ? stats.gd : 0;
+            return stats() ? stats().gd : 0;
         case 83:
-            return stats ? stats.bd : 0;
+            return stats() ? stats().bd : 0;
         case 84:
-            return stats ? stats.poor : 0;
+            return stats() ? stats().poor : 0;
         case 85:
-            return stats ? percentInteger(stats.pg, stats.totalJudgements) : 0;
+            return stats() ? percentInteger(stats().pg, stats().totalJudgements) : 0;
         case 86:
-            return stats ? percentInteger(stats.gr, stats.totalJudgements) : 0;
+            return stats() ? percentInteger(stats().gr, stats().totalJudgements) : 0;
         case 87:
-            return stats ? percentInteger(stats.gd, stats.totalJudgements) : 0;
+            return stats() ? percentInteger(stats().gd, stats().totalJudgements) : 0;
         case 88:
-            return stats ? percentInteger(stats.bd, stats.totalJudgements) : 0;
+            return stats() ? percentInteger(stats().bd, stats().totalJudgements) : 0;
         case 89:
-            return stats ? percentInteger(stats.poor, stats.totalJudgements) : 0;
+            return stats() ? percentInteger(stats().poor, stats().totalJudgements) : 0;
         case 110:
-            return stats ? stats.pg : 0;
+            return stats() ? stats().pg : 0;
         case 111:
-            return stats ? stats.gr : 0;
+            return stats() ? stats().gr : 0;
         case 112:
-            return stats ? stats.gd : 0;
+            return stats() ? stats().gd : 0;
         case 113:
-            return stats ? stats.bd : 0;
+            return stats() ? stats().bd : 0;
         case 114:
-            return stats ? stats.poor : 0;
+            return stats() ? stats().poor : 0;
         case 115:
-            return stats ? percentInteger(stats.exscore, stats.maxPoints) : 0;
+            return stats() ? percentInteger(stats().exscore, stats().maxPoints) : 0;
         case 116:
-            return stats ? percentAfterDot(stats.exscore, stats.maxPoints) : 0;
+            return stats() ? percentAfterDot(stats().exscore, stats().maxPoints) : 0;
         case 410:
-            return stats ? timingCount(stats, 0, true) : 0;
+            return timingStats() ? timingCount(timingStats(), 0, true) : 0;
         case 411:
-            return stats ? timingCount(stats, 0, false) : 0;
+            return timingStats() ? timingCount(timingStats(), 0, false) : 0;
         case 412:
-            return stats ? timingCount(stats, 1, true) : 0;
+            return timingStats() ? timingCount(timingStats(), 1, true) : 0;
         case 413:
-            return stats ? timingCount(stats, 1, false) : 0;
+            return timingStats() ? timingCount(timingStats(), 1, false) : 0;
         case 414:
-            return stats ? timingCount(stats, 2, true) : 0;
+            return timingStats() ? timingCount(timingStats(), 2, true) : 0;
         case 415:
-            return stats ? timingCount(stats, 2, false) : 0;
+            return timingStats() ? timingCount(timingStats(), 2, false) : 0;
         case 416:
-            return stats ? timingCount(stats, 3, true) : 0;
+            return timingStats() ? timingCount(timingStats(), 3, true) : 0;
         case 417:
-            return stats ? timingCount(stats, 3, false) : 0;
+            return timingStats() ? timingCount(timingStats(), 3, false) : 0;
         case 418:
-            return stats ? timingCount(stats, 4, true) : 0;
+            return timingStats() ? timingCount(timingStats(), 4, true) : 0;
         case 419:
-            return stats ? timingCount(stats, 4, false) : 0;
+            return timingStats() ? timingCount(timingStats(), 4, false) : 0;
         case 121:
         case 151:
             return 0;
@@ -3289,189 +3547,189 @@ Item {
         case 136:
             return 0;
         case 150:
-            return stats ? Math.round(stats.exscore) : 0;
+            return stats() ? Math.round(stats().exscore) : 0;
         case 152:
-            return stats ? Math.round(stats.exscore) : 0;
+            return stats() ? Math.round(stats().exscore) : 0;
         case 154:
             return 0;
         case 420:
-            return stats ? stats.miss : 0;
+            return stats() ? stats().miss : 0;
         case 421:
-            return stats ? timingCount(stats, 5, true) : 0;
+            return timingStats() ? timingCount(timingStats(), 5, true) : 0;
         case 422:
-            return stats ? timingCount(stats, 5, false) : 0;
+            return timingStats() ? timingCount(timingStats(), 5, false) : 0;
         case 423:
-            return stats ? stats.totalEarly : 0;
+            return timingStats() ? timingStats().totalEarly : 0;
         case 424:
-            return stats ? stats.totalLate : 0;
+            return timingStats() ? timingStats().totalLate : 0;
         case 425:
-            return stats ? stats.comboBreak : 0;
+            return stats() ? stats().comboBreak : 0;
         case 426:
-            return stats ? stats.pr : 0;
+            return stats() ? stats().pr : 0;
         case 427:
-            return stats ? stats.badPoor : 0;
+            return stats() ? stats().badPoor : 0;
         case 92:
-            return hasRankingStats
+            return hasRankingStats()
                 ? rankingPlayerRank
-                : (chart && chart.mainBpm ? Math.round(chart.mainBpm) : -1);
+                : (chart() && chart().mainBpm ? Math.round(chart().mainBpm) : -1);
         case 93:
-            return hasRankingStats ? rankingPlayerCount : 0;
+            return hasRankingStats() ? rankingPlayerCount : 0;
         case 94:
-            return hasRankingStats ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
+            return hasRankingStats() ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
         case 179:
-            return hasRankingStats ? rankingPlayerRank : 0;
+            return hasRankingStats() ? rankingPlayerRank : 0;
         case 180:
-            return hasRankingStats ? rankingPlayerCount : 0;
+            return hasRankingStats() ? rankingPlayerCount : 0;
         case 181:
-            return hasRankingStats ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
+            return hasRankingStats() ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
         case 182:
             return 0;
         case 200:
-            return hasRankingStats ? rankingPlayerCount : counts.play;
+            return hasRankingStats() ? rankingPlayerCount : counts().play;
         case 201:
-            return hasRankingStats ? rankingTotalPlayCount : counts.play;
+            return hasRankingStats() ? rankingTotalPlayCount : counts().play;
         case 202:
-            return hasRankingStats ? rankingClearCountValue("NOPLAY") : counts.noplay;
+            return hasRankingStats() ? rankingClearCountValue("NOPLAY") : counts().noplay;
         case 203:
-            return hasRankingStats ? rankingClearPercent("NOPLAY") : percentInteger(counts.noplay, counts.play + counts.noplay);
+            return hasRankingStats() ? rankingClearPercent("NOPLAY") : percentInteger(counts().noplay, counts().play + counts().noplay);
         case 204:
-            return hasRankingStats ? rankingClearCountValue("AEASY") : counts.assist;
+            return hasRankingStats() ? rankingClearCountValue("AEASY") : counts().assist;
         case 205:
-            return hasRankingStats ? rankingClearPercent("AEASY") : percentInteger(counts.assist, counts.play);
+            return hasRankingStats() ? rankingClearPercent("AEASY") : percentInteger(counts().assist, counts().play);
         case 206:
-            return hasRankingStats ? rankingClearCountValue("LIGHTASSIST") : counts.lightAssist;
+            return hasRankingStats() ? rankingClearCountValue("LIGHTASSIST") : counts().lightAssist;
         case 207:
-            return hasRankingStats ? rankingClearPercent("LIGHTASSIST") : percentInteger(counts.lightAssist, counts.play);
+            return hasRankingStats() ? rankingClearPercent("LIGHTASSIST") : percentInteger(counts().lightAssist, counts().play);
         case 208:
-            return hasRankingStats ? rankingClearCountValue("EXHARD") : counts.exhard;
+            return hasRankingStats() ? rankingClearCountValue("EXHARD") : counts().exhard;
         case 209:
-            return hasRankingStats ? rankingClearPercent("EXHARD") : percentInteger(counts.exhard, counts.play);
+            return hasRankingStats() ? rankingClearPercent("EXHARD") : percentInteger(counts().exhard, counts().play);
         case 210:
-            return hasRankingStats ? rankingClearCountValue("FAILED") : counts.fail;
+            return hasRankingStats() ? rankingClearCountValue("FAILED") : counts().fail;
         case 211:
-            return hasRankingStats ? rankingClearPercent("FAILED") : percentInteger(counts.fail, counts.play);
+            return hasRankingStats() ? rankingClearPercent("FAILED") : percentInteger(counts().fail, counts().play);
         case 212:
-            return hasRankingStats ? rankingClearCountValue("EASY") : counts.easy;
+            return hasRankingStats() ? rankingClearCountValue("EASY") : counts().easy;
         case 213:
-            return hasRankingStats ? rankingClearPercent("EASY") : percentInteger(counts.easy, counts.play);
+            return hasRankingStats() ? rankingClearPercent("EASY") : percentInteger(counts().easy, counts().play);
         case 214:
-            return hasRankingStats ? rankingClearCountValue("NORMAL") : counts.normal;
+            return hasRankingStats() ? rankingClearCountValue("NORMAL") : counts().normal;
         case 215:
-            return hasRankingStats ? rankingClearPercent("NORMAL") : percentInteger(counts.normal, counts.play);
+            return hasRankingStats() ? rankingClearPercent("NORMAL") : percentInteger(counts().normal, counts().play);
         case 216:
-            return hasRankingStats ? rankingClearCountValue("HARD") : counts.hard;
+            return hasRankingStats() ? rankingClearCountValue("HARD") : counts().hard;
         case 217:
-            return hasRankingStats ? rankingClearPercent("HARD") : percentInteger(counts.hard, counts.play);
+            return hasRankingStats() ? rankingClearPercent("HARD") : percentInteger(counts().hard, counts().play);
         case 218:
-            return hasRankingStats ? rankingClearCountValue("FC") : counts.fc;
+            return hasRankingStats() ? rankingClearCountValue("FC") : counts().fc;
         case 219:
-            return hasRankingStats ? rankingClearPercent("FC") : percentInteger(counts.fc, counts.play);
+            return hasRankingStats() ? rankingClearPercent("FC") : percentInteger(counts().fc, counts().play);
         case 222:
-            return hasRankingStats ? rankingClearCountValue("PERFECT") : counts.perfect;
+            return hasRankingStats() ? rankingClearCountValue("PERFECT") : counts().perfect;
         case 223:
-            return hasRankingStats ? rankingClearPercent("PERFECT") : percentInteger(counts.perfect, counts.play);
+            return hasRankingStats() ? rankingClearPercent("PERFECT") : percentInteger(counts().perfect, counts().play);
         case 224:
-            return hasRankingStats ? rankingClearCountValue("MAX") : counts.max;
+            return hasRankingStats() ? rankingClearCountValue("MAX") : counts().max;
         case 225:
-            return hasRankingStats ? rankingClearPercent("MAX") : percentInteger(counts.max, counts.play);
+            return hasRankingStats() ? rankingClearPercent("MAX") : percentInteger(counts().max, counts().play);
         case 226:
-            return hasRankingStats ? rankingClearCountValue("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : counts.clear;
+            return hasRankingStats() ? rankingClearCountValue("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : counts().clear;
         case 227:
-            return hasRankingStats ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentInteger(counts.clear, counts.play);
+            return hasRankingStats() ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentInteger(counts().clear, counts().play);
         case 228:
-            return hasRankingStats ? rankingClearCountValue("FC", "PERFECT", "MAX") : counts.fc + counts.perfect + counts.max;
+            return hasRankingStats() ? rankingClearCountValue("FC", "PERFECT", "MAX") : counts().fc + counts().perfect + counts().max;
         case 229:
-            return hasRankingStats ? rankingClearPercent("FC", "PERFECT", "MAX") : percentInteger(counts.fc + counts.perfect + counts.max, counts.play);
+            return hasRankingStats() ? rankingClearPercent("FC", "PERFECT", "MAX") : percentInteger(counts().fc + counts().perfect + counts().max, counts().play);
         case 230:
-            return hasRankingStats ? rankingClearPercentAfterDot("NOPLAY") : percentAfterDot(counts.noplay, counts.play + counts.noplay);
+            return hasRankingStats() ? rankingClearPercentAfterDot("NOPLAY") : percentAfterDot(counts().noplay, counts().play + counts().noplay);
         case 231:
-            return hasRankingStats ? rankingClearPercentAfterDot("AEASY") : percentAfterDot(counts.assist, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("AEASY") : percentAfterDot(counts().assist, counts().play);
         case 232:
-            return hasRankingStats ? rankingClearPercentAfterDot("LIGHTASSIST") : percentAfterDot(counts.lightAssist, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("LIGHTASSIST") : percentAfterDot(counts().lightAssist, counts().play);
         case 233:
-            return hasRankingStats ? rankingClearPercentAfterDot("EXHARD") : percentAfterDot(counts.exhard, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("EXHARD") : percentAfterDot(counts().exhard, counts().play);
         case 234:
-            return hasRankingStats ? rankingClearPercentAfterDot("FAILED") : percentAfterDot(counts.fail, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("FAILED") : percentAfterDot(counts().fail, counts().play);
         case 235:
-            return hasRankingStats ? rankingClearPercentAfterDot("EASY") : percentAfterDot(counts.easy, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("EASY") : percentAfterDot(counts().easy, counts().play);
         case 236:
-            return hasRankingStats ? rankingClearPercentAfterDot("NORMAL") : percentAfterDot(counts.normal, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("NORMAL") : percentAfterDot(counts().normal, counts().play);
         case 237:
-            return hasRankingStats ? rankingClearPercentAfterDot("HARD") : percentAfterDot(counts.hard, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("HARD") : percentAfterDot(counts().hard, counts().play);
         case 238:
-            return hasRankingStats ? rankingClearPercentAfterDot("FC") : percentAfterDot(counts.fc, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("FC") : percentAfterDot(counts().fc, counts().play);
         case 239:
-            return hasRankingStats ? rankingClearPercentAfterDot("PERFECT") : percentAfterDot(counts.perfect, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("PERFECT") : percentAfterDot(counts().perfect, counts().play);
         case 240:
-            return hasRankingStats ? rankingClearPercentAfterDot("MAX") : percentAfterDot(counts.max, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("MAX") : percentAfterDot(counts().max, counts().play);
         case 241:
-            return hasRankingStats ? rankingClearPercentAfterDot("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentAfterDot(counts.clear, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentAfterDot(counts().clear, counts().play);
         case 242:
-            return hasRankingStats ? rankingClearPercentAfterDot("FC", "PERFECT", "MAX") : percentAfterDot(counts.fc + counts.perfect + counts.max, counts.play);
+            return hasRankingStats() ? rankingClearPercentAfterDot("FC", "PERFECT", "MAX") : percentAfterDot(counts().fc + counts().perfect + counts().max, counts().play);
         case 90:
         case 290:
-            return chart && (chart.maxBpm || chart.mainBpm)
-                ? Math.round(chart.maxBpm || chart.mainBpm)
+            return chart() && (chart().maxBpm || chart().mainBpm)
+                ? Math.round(chart().maxBpm || chart().mainBpm)
                 : -1;
         case 91:
         case 291:
-            return chart && (chart.minBpm || chart.mainBpm)
-                ? Math.round(chart.minBpm || chart.mainBpm)
+            return chart() && (chart().minBpm || chart().mainBpm)
+                ? Math.round(chart().minBpm || chart().mainBpm)
                 : -1;
         case 300:
-            return currentFolderCounts ? folderCounts.total : -1;
+            return currentFolderCounts() ? folderCounts().total : -1;
         case 320:
-            return currentFolderCounts ? folderCounts.noplay : -1;
+            return currentFolderCounts() ? folderCounts().noplay : -1;
         case 321:
-            return currentFolderCounts ? folderCounts.fail : -1;
+            return currentFolderCounts() ? folderCounts().fail : -1;
         case 322:
-            return currentFolderCounts ? folderCounts.assist : -1;
+            return currentFolderCounts() ? folderCounts().assist : -1;
         case 323:
-            return currentFolderCounts ? folderCounts.lightAssist : -1;
+            return currentFolderCounts() ? folderCounts().lightAssist : -1;
         case 324:
-            return currentFolderCounts ? folderCounts.easy : -1;
+            return currentFolderCounts() ? folderCounts().easy : -1;
         case 325:
-            return currentFolderCounts ? folderCounts.normal : -1;
+            return currentFolderCounts() ? folderCounts().normal : -1;
         case 326:
-            return currentFolderCounts ? folderCounts.hard : -1;
+            return currentFolderCounts() ? folderCounts().hard : -1;
         case 327:
-            return currentFolderCounts ? folderCounts.exhard : -1;
+            return currentFolderCounts() ? folderCounts().exhard : -1;
         case 328:
-            return currentFolderCounts ? folderCounts.fc : -1;
+            return currentFolderCounts() ? folderCounts().fc : -1;
         case 329:
-            return currentFolderCounts ? folderCounts.perfect : -1;
+            return currentFolderCounts() ? folderCounts().perfect : -1;
         case 330:
-            return currentFolderCounts ? folderCounts.max : -1;
+            return currentFolderCounts() ? folderCounts().max : -1;
         case 350:
-            return chart ? (chart.normalNoteCount || 0) : -1;
+            return chart() ? (chart().normalNoteCount || 0) : -1;
         case 351:
-            return chart ? (chart.lnCount || 0) : -1;
+            return chart() ? (chart().lnCount || 0) : -1;
         case 352:
-            return chart ? (chart.scratchCount || 0) : -1;
+            return chart() ? (chart().scratchCount || 0) : -1;
         case 353:
-            return chart ? (chart.bssCount || 0) : -1;
+            return chart() ? (chart().bssCount || 0) : -1;
         case 354:
-            return chart ? (chart.mineCount || 0) : -1;
+            return chart() ? (chart().mineCount || 0) : -1;
         case 360:
-            return chartDensityValue(chart, "peakDensity", false);
+            return chartDensityValue(chart(), "peakDensity", false);
         case 361:
-            return chartDensityValue(chart, "peakDensity", true);
+            return chartDensityValue(chart(), "peakDensity", true);
         case 362:
-            return chartDensityValue(chart, "endDensity", false);
+            return chartDensityValue(chart(), "endDensity", false);
         case 363:
-            return chartDensityValue(chart, "endDensity", true);
+            return chartDensityValue(chart(), "endDensity", true);
         case 364:
-            return chartDensityWhole(chart);
+            return chartDensityWhole(chart());
         case 365:
-            return chartDensityAfterDot(chart);
+            return chartDensityAfterDot(chart());
         case 368:
-            return chart ? Math.floor(chart.total || 0) : -1;
+            return chart() ? Math.floor(chart().total || 0) : -1;
         case 1163: {
-            let seconds = chartLengthSeconds(chart);
+            let seconds = chartLengthSeconds(chart());
             return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;
         }
         case 1164: {
-            let seconds = chartLengthSeconds(chart);
+            let seconds = chartLengthSeconds(chart());
             return seconds >= 0 ? seconds % 60 : -1;
         }
         default:
@@ -3484,7 +3742,28 @@ Item {
     }
 
     function barGraphValue(type) {
-        let stats = selectedBestStats;
+        let state = selectedState();
+        let statsLoaded = false;
+        let statsValue = null;
+        let chartLoaded = false;
+        let chartValue = null;
+
+        function stats() {
+            if (!statsLoaded) {
+                statsLoaded = true;
+                statsValue = state.bestStats;
+            }
+            return statsValue;
+        }
+
+        function chart() {
+            if (!chartLoaded) {
+                chartLoaded = true;
+                chartValue = state.chartData;
+            }
+            return chartValue;
+        }
+
         switch (type) {
         case 101:
             return logicalCount > 1 ? Math.max(0, Math.min(1, currentNormalizedVisualIndex() / Math.max(1, logicalCount - 1))) : 0;
@@ -3492,16 +3771,15 @@ Item {
             return 1;
         case 110:
         case 111:
-            return stats && stats.maxPoints > 0 ? stats.exscore / stats.maxPoints : 0;
+            return stats() && stats().maxPoints > 0 ? stats().exscore / stats().maxPoints : 0;
         case 112:
         case 113:
-            return stats && stats.maxPoints > 0 ? stats.exscore / stats.maxPoints : 0;
+            return stats() && stats().maxPoints > 0 ? stats().exscore / stats().maxPoints : 0;
         case 114:
         case 115:
             return 0;
         case 103: {
-            let chart = selectedChartData();
-            let level = chart ? (chart.playLevel || 0) : 0;
+            let level = chart() ? (chart().playLevel || 0) : 0;
             return level > 0 ? level / Math.max(1, levelBarFlashThreshold()) : 0;
         }
         case 105:
@@ -3526,20 +3804,22 @@ Item {
         case 9:
             return difficultyGraphValue(type - 4);
         case 40:
-            return stats ? stats.pg / stats.totalJudgements : 0;
+            return stats() ? stats().pg / stats().totalJudgements : 0;
         case 41:
-            return stats ? stats.gr / stats.totalJudgements : 0;
+            return stats() ? stats().gr / stats().totalJudgements : 0;
         case 42:
-            return stats ? stats.gd / stats.totalJudgements : 0;
+            return stats() ? stats().gd / stats().totalJudgements : 0;
         case 43:
-            return stats ? stats.bd / stats.totalJudgements : 0;
+            return stats() ? stats().bd / stats().totalJudgements : 0;
         case 44:
-            return stats ? stats.pr / stats.totalJudgements : 0;
+            return stats() ? stats().pr / stats().totalJudgements : 0;
         case 45:
-            return stats && selectedChartData() ? stats.maxCombo / Math.max(1, selectedChartData().normalNoteCount + selectedChartData().scratchCount + selectedChartData().lnCount + selectedChartData().bssCount) : 0;
+            return stats() && chart()
+                ? stats().maxCombo / Math.max(1, chart().normalNoteCount + chart().scratchCount + chart().lnCount + chart().bssCount)
+                : 0;
         case 46:
         case 47:
-            return stats && stats.maxPoints > 0 ? stats.score / stats.maxPoints : 0;
+            return stats() && stats().maxPoints > 0 ? stats().score / stats().maxPoints : 0;
         default:
             return 0;
         }

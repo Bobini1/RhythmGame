@@ -23,7 +23,6 @@ Item {
     readonly property bool ready: root !== undefined && root !== null
     readonly property bool selectReady: selectContext !== undefined && selectContext !== null
 
-    readonly property string resolvedText: ready ? root.resolveText(srcData ? srcData.st : -1, valueRevision) : ""
     readonly property var searchTextState: ready ? root.selectSearchTextState(srcData, dsts) : null
     readonly property bool isSearchText: ready && root.isSelectSearchText(srcData)
     readonly property string searchFontPath: srcData ? srcData.fontPath : ""
@@ -206,6 +205,7 @@ Item {
     }
 
     Lr2TextRenderer {
+        id: textRenderer
         z: 2
         anchors.fill: parent
         dsts: textElement.dsts
@@ -217,7 +217,10 @@ Item {
         timerFire: textElement.timerFire
         chart: textElement.chart
         scaleOverride: textElement.skinScale
-        resolvedText: textElement.resolvedText
+        resolvedText: textRenderer.hasCurrentState && textElement.ready
+            ? textElement.root.resolveText(textElement.srcData ? textElement.srcData.st : -1,
+                                           textElement.valueRevision)
+            : ""
     }
 
     Loader {

@@ -175,7 +175,10 @@ Item {
         return maxValue;
     }
 
-    visible: currentState && currentState.a > 0 && !!srcData && !!chartData
+    visible: !!currentState
+        && (currentState.a === undefined ? 255 : currentState.a) > 0
+        && !!srcData
+        && !!chartData
 
     Canvas {
         id: chartCanvas

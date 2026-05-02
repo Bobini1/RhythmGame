@@ -74,6 +74,9 @@ qt_add_qml_module(RhythmGame_qml
         Lr2NoteChartRenderer.qml
         Lr2BpmChartRenderer.qml
         RESOURCES
+        Lr2ActiveOptionCache.js
+        Lr2SelectStateStore.js
+        Lr2ValueCache.js
         Lr2Timeline.js)
 qt6_add_shaders(RhythmGame_qml "shaders"
         PREFIX

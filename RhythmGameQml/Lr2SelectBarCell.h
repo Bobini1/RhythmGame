@@ -72,7 +72,23 @@ public:
     int rank() const;
     void setRank(int value);
 
+    Q_INVOKABLE void setCore(int row,
+                             bool valid,
+                             const QString& text,
+                             int titleType,
+                             int bodyType,
+                             int playLevel,
+                             int difficulty,
+                             int keymode,
+                             bool ranking,
+                             bool chartLike,
+                             bool entryLike,
+                             bool folderLike,
+                             int lamp,
+                             int rank);
+
 signals:
+    void coreChanged();
     void rowChanged();
     void entryChanged();
     void validChanged();

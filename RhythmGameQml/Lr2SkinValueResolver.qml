@@ -1,6 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml 1.0
+import "Lr2ValueCache.js" as Lr2ValueCache
 
 QtObject {
     id: resolver
@@ -10,6 +11,28 @@ QtObject {
     required property var playContext
 
     readonly property var root: screenRoot
+
+    function selectTextCacheable(st) {
+        return ((st >= 10 && st <= 29) && st !== 26)
+            || st === 30 || st === 60 || st === 61 || st === 62
+            || (st >= 1000 && st <= 1003);
+    }
+
+    function selectNumberCacheable(num) {
+        return num === 42 || num === 96
+            || (num >= 45 && num <= 49)
+            || (num >= 70 && num <= 116)
+            || num === 128
+            || num === 150 || num === 152 || num === 154
+            || (num >= 179 && num <= 182)
+            || (num >= 200 && num <= 242)
+            || num === 290 || num === 291
+            || num === 300 || (num >= 320 && num <= 330)
+            || (num >= 350 && num <= 368)
+            || (num >= 410 && num <= 427)
+            || num === 1163 || num === 1164
+            || (num >= 1312 && num <= 1327);
+    }
 
     function optionText(labels, index) {
         return index >= 0 && index < labels.length ? labels[index] : "";
@@ -112,7 +135,7 @@ QtObject {
         case 124:
             return "";
         case 130:
-            return root.clearLabelForLamp(selectContext.entryLamp(selectContext.focusedItem));
+            return root.clearLabelForLamp(selectContext.entryLamp(selectContext.selectedItem()));
         case 131:
         case 132:
         case 133:
@@ -136,7 +159,7 @@ QtObject {
         case 164:
             return root.chartSubtitle(root.courseStage(st - 160));
         case 170:
-            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.focusedItem, true) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.selectedItem(), true) : "";
         case 171:
             return "TITLE";
         case 172:
@@ -178,62 +201,90 @@ QtObject {
         if (revisionToken < -1) {
             return "";
         }
-        let chartData = root.displayChartData();
-        let currentEntry = root.effectiveScreenKey === "select" ? selectContext.focusedItem : null;
+        if (root.effectiveScreenKey === "select" && resolver.selectTextCacheable(st)) {
+            let cacheKey = revisionToken + "|" + st;
+            let cached = Lr2ValueCache.getText(cacheKey);
+            if (cached !== undefined) {
+                return cached;
+            }
+            let cachedValue = resolver.computeResolvedText(st, revisionToken);
+            return Lr2ValueCache.putText(cacheKey, cachedValue);
+        }
+        return resolver.computeResolvedText(st, revisionToken);
+    }
+
+    function computeResolvedText(st, revisionToken) {
+        if (revisionToken < -1) {
+            return "";
+        }
+        let chartDataLoaded = false;
+        let chartDataValue = null;
+        function chartData() {
+            if (!chartDataLoaded) {
+                chartDataLoaded = true;
+                chartDataValue = root.displayChartData();
+            }
+            return chartDataValue;
+        }
+        function currentEntry() {
+            return root.effectiveScreenKey === "select" ? selectContext.selectedItem() : null;
+        }
         switch (st) {
         case 1:
             return root.optionText(root.lr2TargetLabels, root.lr2ScoreTargetIndex);
         case 2:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 10:
-            if (chartData) {
-                return (chartData.title || "").replace(/\r\n|\n|\r/g, " ");
+            if (chartData()) {
+                return (chartData().title || "").replace(/\r\n|\n|\r/g, " ");
             }
             if (root.effectiveScreenKey === "select") {
-                return selectContext.entryMainTitle(currentEntry);
+                return selectContext.entryMainTitle(currentEntry());
             }
             return root.course ? (root.course.name || "") : (root.chart && root.chart.course ? root.chart.course.name : "");
         case 11:
-            return chartData ? (chartData.subtitle || "") : "";
+            return chartData() ? (chartData().subtitle || "") : "";
         case 12:
-            return chartData ? ((chartData.title || "") + (chartData.subtitle ? " " + chartData.subtitle : "")) : selectContext.entryDisplayName(currentEntry, true);
+            return chartData()
+                ? ((chartData().title || "") + (chartData().subtitle ? " " + chartData().subtitle : ""))
+                : selectContext.entryDisplayName(currentEntry(), true);
         case 13:
-            return chartData ? (chartData.genre || "") : "Course";
+            return chartData() ? (chartData().genre || "") : "Course";
         case 14:
-            return chartData ? (chartData.artist || "") : "";
+            return chartData() ? (chartData().artist || "") : "";
         case 15:
-            return chartData ? (chartData.subartist || "") : "";
+            return chartData() ? (chartData().subartist || "") : "";
         case 16:
-            if (!chartData) {
+            if (!chartData()) {
                 return "";
             }
-            return (chartData.artist || "")
-                + (chartData.subartist ? " " + chartData.subartist : "");
+            return (chartData().artist || "")
+                + (chartData().subartist ? " " + chartData().subartist : "");
         case 17:
-            return chartData ? String(chartData.playLevel || "") : "";
+            return chartData() ? String(chartData().playLevel || "") : "";
         case 18:
-            return chartData ? String(selectContext.entryDifficulty(chartData) || "") : "";
+            return chartData() ? String(selectContext.entryDifficulty(chartData()) || "") : "";
         case 20:
             if (root.effectiveScreenKey === "select") {
-                return selectContext.entryMainTitle(currentEntry);
+                return selectContext.entryMainTitle(currentEntry());
             }
             return root.isResultScreen() ? "" : "";
         case 21:
-            return root.effectiveScreenKey === "select" ? selectContext.entrySubtitle(currentEntry) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entrySubtitle(currentEntry()) : "";
         case 23:
-            return root.effectiveScreenKey === "select" ? selectContext.entryGenre(currentEntry) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entryGenre(currentEntry()) : "";
         case 24:
-            return root.effectiveScreenKey === "select" ? selectContext.entryArtist(currentEntry) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entryArtist(currentEntry()) : "";
         case 25:
-            return root.effectiveScreenKey === "select" ? selectContext.entrySubartist(currentEntry) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entrySubartist(currentEntry()) : "";
         case 26:
             return "";
         case 27:
-            return chartData ? String(chartData.playLevel || "") : "";
+            return chartData() ? String(chartData().playLevel || "") : "";
         case 28:
-            return chartData ? String(selectContext.entryDifficulty(chartData) || "") : "";
+            return chartData() ? String(selectContext.entryDifficulty(chartData()) || "") : "";
         case 29:
-            return chartData ? String(chartData.rank || "") : "";
+            return chartData() ? String(chartData().rank || "") : "";
         case 30:
             if (root.effectiveScreenKey !== "select") {
                 return "";
@@ -1024,7 +1075,7 @@ QtObject {
     }
 
     function numberValue(src, revision) {
-        let revisionToken = revision || 0;
+        let revisionToken = revision !== undefined ? revision : 0;
         if (revisionToken < -1) {
             return 0;
         }
@@ -1033,7 +1084,17 @@ QtObject {
                 ? root.gameplayJudgeCombo2
                 : root.gameplayJudgeCombo1;
         }
-        return root.resolveNumber(src ? src.num : 0);
+        let num = src ? (src.num || 0) : 0;
+        if (root.effectiveScreenKey === "select" && resolver.selectNumberCacheable(num)) {
+            let cacheKey = revisionToken + "|" + num;
+            let cached = Lr2ValueCache.getNumber(cacheKey);
+            if (cached !== undefined) {
+                return cached;
+            }
+            let cachedValue = resolver.resolveNumber(num);
+            return Lr2ValueCache.putNumber(cacheKey, cachedValue);
+        }
+        return resolver.resolveNumber(num);
     }
 
     function imageSetValue(imageSetRef, sourceCount) {

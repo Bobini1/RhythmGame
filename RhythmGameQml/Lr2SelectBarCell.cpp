@@ -106,3 +106,80 @@ void Lr2SelectBarCell::setRank(int value) {
     m_rank = value;
     emit rankChanged();
 }
+
+void Lr2SelectBarCell::setCore(int row,
+                               bool valid,
+                               const QString& text,
+                               int titleType,
+                               int bodyType,
+                               int playLevel,
+                               int difficulty,
+                               int keymode,
+                               bool ranking,
+                               bool chartLike,
+                               bool entryLike,
+                               bool folderLike,
+                               int lamp,
+                               int rank) {
+    const bool rowChanged = m_row != row;
+    const bool validChanged = m_valid != valid;
+    const bool textChanged = m_text != text;
+    const bool titleTypeChanged = m_titleType != titleType;
+    const bool bodyTypeChanged = m_bodyType != bodyType;
+    const bool playLevelChanged = m_playLevel != playLevel;
+    const bool difficultyChanged = m_difficulty != difficulty;
+    const bool keymodeChanged = m_keymode != keymode;
+    const bool rankingChanged = m_ranking != ranking;
+    const bool chartLikeChanged = m_chartLike != chartLike;
+    const bool entryLikeChanged = m_entryLike != entryLike;
+    const bool folderLikeChanged = m_folderLike != folderLike;
+    const bool lampChanged = m_lamp != lamp;
+    const bool rankChanged = m_rank != rank;
+
+    if (!rowChanged
+            && !validChanged
+            && !textChanged
+            && !titleTypeChanged
+            && !bodyTypeChanged
+            && !playLevelChanged
+            && !difficultyChanged
+            && !keymodeChanged
+            && !rankingChanged
+            && !chartLikeChanged
+            && !entryLikeChanged
+            && !folderLikeChanged
+            && !lampChanged
+            && !rankChanged) {
+        return;
+    }
+
+    m_row = row;
+    m_valid = valid;
+    m_text = text;
+    m_titleType = titleType;
+    m_bodyType = bodyType;
+    m_playLevel = playLevel;
+    m_difficulty = difficulty;
+    m_keymode = keymode;
+    m_ranking = ranking;
+    m_chartLike = chartLike;
+    m_entryLike = entryLike;
+    m_folderLike = folderLike;
+    m_lamp = lamp;
+    m_rank = rank;
+
+    if (rowChanged) emit this->rowChanged();
+    if (validChanged) emit this->validChanged();
+    if (textChanged) emit this->textChanged();
+    if (titleTypeChanged) emit this->titleTypeChanged();
+    if (bodyTypeChanged) emit this->bodyTypeChanged();
+    if (playLevelChanged) emit this->playLevelChanged();
+    if (difficultyChanged) emit this->difficultyChanged();
+    if (keymodeChanged) emit this->keymodeChanged();
+    if (rankingChanged) emit this->rankingChanged();
+    if (chartLikeChanged) emit this->chartLikeChanged();
+    if (entryLikeChanged) emit this->entryLikeChanged();
+    if (folderLikeChanged) emit this->folderLikeChanged();
+    if (lampChanged) emit this->lampChanged();
+    if (rankChanged) emit this->rankChanged();
+}
