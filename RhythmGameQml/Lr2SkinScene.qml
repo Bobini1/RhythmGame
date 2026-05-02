@@ -252,12 +252,22 @@ Item {
                     readonly property var elementActiveOptions: usesActiveOptions
                         ? root.activeOptionsForElementDsts(model.dsts, usesFocusActiveOptions)
                         : root.emptyActiveOptions
-                    readonly property int dstTimerFire: dstTimer !== 0
-                        ? root.skinTimerFireTime(dstTimer)
-                        : 0
-                    readonly property int srcTimerFire: srcTimer !== 0
-                        ? root.skinTimerFireTime(srcTimer)
-                        : 0
+                    readonly property int dstTimerFire: {
+                        if (dstTimer === 0) {
+                            return 0;
+                        }
+                        let timers = root.timers;
+                        let fire = timers ? timers[dstTimer] : undefined;
+                        return fire === undefined || fire === null ? -1 : fire;
+                    }
+                    readonly property int srcTimerFire: {
+                        if (srcTimer === 0) {
+                            return 0;
+                        }
+                        let timers = root.timers;
+                        let fire = timers ? timers[srcTimer] : undefined;
+                        return fire === undefined || fire === null ? -1 : fire;
+                    }
                     readonly property bool usesElementSkinTime: usesSkinTime
                         && model.type !== 0
                         && model.type !== 3
