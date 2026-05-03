@@ -2615,8 +2615,8 @@ Item {
         }
     }
 
-    function scoreOptionIds(item, selectedStateOverride) {
-        let state = selectedStateOverride || selectedState();
+    function scoreOptionIds(item) {
+        let state = selectedState();
         if ((item === state.item || item === state.chartData)
                 && state.scoreRevision === scoreRevision) {
             if (!state.scoreOptionIds) {

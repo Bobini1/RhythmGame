@@ -195,7 +195,7 @@ QtObject {
         return 0;
     }
 
-    function appendEntryStatusOptions(options, item, selectedChart, selectedState) {
+    function appendEntryStatusOptions(options, item, selectedChart) {
         if (!host.selectUsesEntryStatusOptions()) {
             return;
         }
@@ -230,11 +230,7 @@ QtObject {
             clearOption = 100;
             lamp = selectContext.entryLamp(item);
         } else {
-            let summary = selectedState
-                && item === selectedState.item
-                && selectedState.scoreRevision === selectContext.scoreRevision
-                ? selectedState.summary
-                : selectContext.scoreSummaryForItem(item);
+            let summary = selectContext.scoreSummaryForItem(item);
             clearOption = selectContext.beatorajaClearOptionForClearType(summary.clearType);
             lamp = summary.lamp;
             rank = summary.rank;
@@ -274,37 +270,25 @@ QtObject {
         }
     }
 
-    function appendDifficultyBarOptions(options, selectedChart, selectedState) {
+    function appendDifficultyBarOptions(options) {
         if (!host.selectUsesDifficultyBarOptions()) {
             return;
         }
-        let difficultyState = selectedState
-            && selectedState.chartData === selectedChart
-            && selectedState.scoreRevision === selectContext.scoreRevision
-            && selectedState.listRevision === selectContext.listRevision
-            ? (selectedState.difficultyState || selectContext.emptyDifficultyState)
-            : selectContext.difficultyStateForChart(selectedChart);
-        let charts = difficultyState.charts || selectContext.emptyDifficultyCharts;
-        let counts = difficultyState.counts || selectContext.emptyDifficultyNumbers;
-        let levels = difficultyState.levels || selectContext.emptyDifficultyNumbers;
-        let lamps = difficultyState.lamps || selectContext.emptyDifficultyNumbers;
-        let keymode = selectedChart ? (selectedChart.keymode || 0) : 0;
-        let levelBarThreshold = keymode === 5 || keymode === 10 ? 9 : 12;
         for (let diff = 1; diff <= 5; ++diff) {
-            if (!!charts[diff]) {
+            if (selectContext.hasDifficulty(diff)) {
                 root.addOption(options, 504 + diff);
-                root.addOption(options, (levels[diff] || 0) > levelBarThreshold ? 74 + diff : 69 + diff);
+                root.addOption(options, selectContext.difficultyLevelBarOption(diff));
             } else {
                 root.addOption(options, 499 + diff);
             }
 
-            let diffCount = counts[diff] || 0;
+            let diffCount = selectContext.difficultyCount(diff);
             if (diffCount === 1) {
                 root.addOption(options, 509 + diff);
             } else if (diffCount > 1) {
                 root.addOption(options, 514 + diff);
             }
-            root.addOption(options, 510 + diff * 10 + (lamps[diff] || 0));
+            root.addOption(options, 510 + diff * 10 + selectContext.difficultyLamp(diff));
         }
     }
 
@@ -494,20 +478,20 @@ QtObject {
         root.appendJudgementExistOptions(options, current1);
     }
 
-    function appendCurrentSelectOptions(options, item, selectedChart, selectedState) {
+    function appendCurrentSelectOptions(options, item, selectedChart) {
         root.appendSelectItemTypeOptions(options, item);
         root.appendSelectedChartModeOptions(options, selectedChart);
-        root.appendEntryStatusOptions(options, item, selectedChart, selectedState);
+        root.appendEntryStatusOptions(options, item, selectedChart);
         root.appendCourseOptions(options, item);
         root.appendRankingStatusOptions(options);
 
         if (selectedChart) {
-            root.appendDifficultyBarOptions(options, selectedChart, selectedState);
+            root.appendDifficultyBarOptions(options);
         }
 
         root.appendChartOptions(options, selectedChart);
         if (host.selectUsesScoreOptionIds()) {
-            for (let optionId of selectContext.scoreOptionIds(item, selectedState)) {
+            for (let optionId of selectContext.scoreOptionIds(item)) {
                 root.addOption(options, optionId);
             }
         }
@@ -628,11 +612,7 @@ QtObject {
 
     function buildSelectRuntimeActiveOptions(commonOptions) {
         let result = root.finalizeOptionList((commonOptions || []).slice());
-        let state = selectContext.selectedState();
-        root.appendCurrentSelectOptions(result,
-            state.item || selectContext.focusedItem,
-            state.chartData || selectContext.selectedChartData(),
-            state);
+        root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
         return result;
     }
 
