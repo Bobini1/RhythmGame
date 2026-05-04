@@ -82,6 +82,7 @@ struct ParseState
     int barAvailableEnd = -1;
     std::set<int> activeOptions;
     std::set<int> usedOptions;
+    std::set<int> usedElementOptions;
     Lr2Element currentElement;
     bool hasCurrentElement = false;
     QVariantMap settingValues;
@@ -266,27 +267,46 @@ parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
 }
 
 void
-recordDstOption(ParseState& state, const int option)
+recordDstOption(std::set<int>& options, const int option)
 {
     if (option == 0) {
         return;
     }
-    state.usedOptions.insert(option < 0 ? -option : option);
+    options.insert(option < 0 ? -option : option);
 }
 
 void
-recordDstOptions(ParseState& state, const Lr2Dst& dst)
+recordDstOption(ParseState& state, const int option, const bool elementOption)
 {
-    recordDstOption(state, dst.op1);
-    recordDstOption(state, dst.op2);
-    recordDstOption(state, dst.op3);
+    recordDstOption(state.usedOptions, option);
+    if (elementOption) {
+        recordDstOption(state.usedElementOptions, option);
+    }
+}
+
+void
+recordDstOptions(ParseState& state,
+                 const Lr2Dst& dst,
+                 const bool elementOptions)
+{
+    recordDstOption(state, dst.op1, elementOptions);
+    recordDstOption(state, dst.op2, elementOptions);
+    recordDstOption(state, dst.op3, elementOptions);
 }
 
 void
 parseDst(const QStringList& tokens, ParseState& state, Lr2Element& element)
 {
     const auto dst = parseDstValue(tokens, state.sortId);
-    recordDstOptions(state, dst);
+    recordDstOptions(state, dst, true);
+    element.dsts.append(QVariant::fromValue(dst));
+}
+
+void
+parseBarDst(const QStringList& tokens, ParseState& state, Lr2Element& element)
+{
+    const auto dst = parseDstValue(tokens, state.sortId);
+    recordDstOptions(state, dst, false);
     element.dsts.append(QVariant::fromValue(dst));
 }
 
@@ -313,7 +333,7 @@ parseDstWithOptionGate(const QStringList& tokens,
 {
     auto dst = parseDstValue(tokens, state.sortId);
     addDstOptionGate(dst, option);
-    recordDstOptions(state, dst);
+    recordDstOptions(state, dst, true);
     element.dsts.append(QVariant::fromValue(dst));
 }
 
@@ -1267,7 +1287,7 @@ appendBarTextDst(ParseState& state, const QStringList& tokens, const int titleTy
           QVariant::fromValue(state.barTitleSources.value(titleType));
         state.hasCurrentElement = true;
     }
-    parseDst(tokens, state, state.currentElement);
+    parseBarDst(tokens, state, state.currentElement);
 }
 
 auto
@@ -1297,7 +1317,7 @@ appendBarNumberDst(ParseState& state, const QStringList& tokens, const int varia
         state.currentElement.src = QVariant::fromValue(src);
         state.hasCurrentElement = true;
     }
-    parseDst(tokens, state, state.currentElement);
+    parseBarDst(tokens, state, state.currentElement);
 }
 
 void
@@ -2102,6 +2122,10 @@ parseFile(const std::filesystem::path& filePath,
     for (const int option : state.usedOptions) {
         usedOptions.append(option);
     }
+    QVariantList usedElementOptions;
+    for (const int option : state.usedElementOptions) {
+        usedElementOptions.append(option);
+    }
 
     QVariantList barLampVariants;
     for (auto it = state.barLampSources.cbegin();
@@ -2140,6 +2164,7 @@ parseFile(const std::filesystem::path& filePath,
       .skinHeight = state.skinHeight,
       .activeOptions = activeOptions,
       .usedOptions = usedOptions,
+      .usedElementOptions = usedElementOptions,
       .barLampVariants = barLampVariants,
       .barRows = barRows,
       .helpFiles = state.helpFiles,

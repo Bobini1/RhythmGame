@@ -1,6 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 
 import QtQml
+import RhythmGameQml 1.0
 
 QtObject {
     id: root
@@ -38,34 +39,6 @@ QtObject {
         cacheListRevision = listRevision;
     }
 
-    function cacheKey(entry) {
-        if (!entry) {
-            return "empty";
-        }
-        if (context.isRankingEntry(entry)) {
-            return "ranking:" + (entry.sourceMd5 || "") + ":" + (entry.rankingIndex || 0);
-        }
-        if (context.isChart(entry)) {
-            return "chart:" + (entry.md5 || entry.path || entry.title || "");
-        }
-        if (context.isEntry(entry)) {
-            return "entry:" + (entry.md5 || entry.path || entry.title || entry.level || "");
-        }
-        if (context.isCourse(entry)) {
-            return "course:" + (entry.identifier || entry.name || "");
-        }
-        if (context.isTable(entry)) {
-            return "table:" + (entry.url || entry.name || "");
-        }
-        if (context.isLevel(entry)) {
-            return "level:" + context.folderLampKey(entry);
-        }
-        if (typeof entry === "string") {
-            return "folder:" + entry;
-        }
-        return "item:" + context.entryDisplayName(entry, true);
-    }
-
     function rankingEntryRank(entry) {
         let points = Number(entry.bestPoints || 0);
         let maxPoints = Number(entry.maxPoints || 0);
@@ -83,33 +56,127 @@ QtObject {
         return rank;
     }
 
-    function buildCore(entry) {
-        let ranking = context.isRankingEntry(entry);
-        let chartLike = context.isChart(entry);
-        let entryLike = context.isEntry(entry);
-        let folderLike = context.isFolderLikeForLamp(entry);
+    function folderDisplayName(path) {
+        let normalized = path.replace(/\\/g, "/").replace(/\/$/, "");
+        let slash = normalized.lastIndexOf("/");
+        return slash >= 0 ? normalized.slice(slash + 1) : normalized;
+    }
+
+    function chartDifficulty(item) {
+        let cached = context.chartDifficultyCache[item.path || ""];
+        if (cached !== undefined) {
+            return cached;
+        }
+        return Math.max(0, item.difficulty || 0);
+    }
+
+    function buildCore(item) {
+        let valid = !!item;
+        let key = "empty";
+        let text = "";
+        let bodyType = 1;
+        let playLevel = 0;
+        let difficulty = 0;
+        let keymode = 0;
+        let ranking = false;
+        let chartLike = false;
+        let entryLike = false;
+        let folderLike = false;
         let lamp = 0;
         let rank = 0;
 
-        if (ranking) {
-            lamp = context.clearTypeLamp(entry.bestClearType);
-            rank = rankingEntryRank(entry);
-        } else if (folderLike) {
-            lamp = context.entryLamp(entry);
-        } else if (entry) {
-            let summary = context.scoreSummaryForItem(entry);
+        if (!item) {
+            return {
+                key: key,
+                valid: false,
+                text: text,
+                titleType: 0,
+                bodyType: bodyType,
+                playLevel: playLevel,
+                difficulty: difficulty,
+                keymode: keymode,
+                ranking: false,
+                chartLike: false,
+                entryLike: false,
+                folderLike: false,
+                lamp: 0,
+                rank: 0
+            };
+        }
+
+        if (item.__lr2RankingEntry === true) {
+            ranking = true;
+            key = "ranking:" + (item.sourceMd5 || "") + ":" + (item.rankingIndex || 0);
+            text = item.title || "";
+            bodyType = 0;
+            playLevel = item.level || 0;
+            keymode = item.keymode || 0;
+            lamp = context.clearTypeLamp(item.bestClearType);
+            rank = rankingEntryRank(item);
+        } else if (item instanceof ChartData) {
+            chartLike = true;
+            key = "chart:" + (item.md5 || item.path || item.title || "");
+            text = item.subtitle ? (item.title || "") + " " + item.subtitle : (item.title || "");
+            bodyType = 0;
+            playLevel = item.playLevel || 0;
+            difficulty = chartDifficulty(item);
+            keymode = item.keymode || 0;
+            let summary = context.scoreLampRankForItem(item);
+            lamp = summary.lamp;
+            rank = summary.rank;
+        } else if (item instanceof entry) {
+            entryLike = true;
+            key = "entry:" + (item.md5 || item.path || item.title || item.level || "");
+            text = item.subtitle ? (item.title || "") + " " + item.subtitle : (item.title || "");
+            bodyType = 0;
+            let parsedLevel = parseInt(item.level);
+            playLevel = isNaN(parsedLevel) ? 0 : parsedLevel;
+            keymode = item.keymode || 0;
+            let summary = context.scoreLampRankForItem(item);
+            lamp = summary.lamp;
+            rank = summary.rank;
+        } else if (item instanceof table) {
+            key = "table:" + (item.url || item.name || "");
+            text = item.name || "";
+            bodyType = 2;
+            folderLike = true;
+            lamp = context.entryLamp(item);
+        } else if (item instanceof level) {
+            key = "level:" + context.folderLampKey(item);
+            text = context.entryDisplayName(item, true);
+            bodyType = 2;
+            folderLike = true;
+            lamp = context.entryLamp(item);
+        } else if (item instanceof course) {
+            key = "course:" + (item.identifier || item.name || "");
+            text = item.name || "";
+            bodyType = 8;
+            let summary = context.scoreLampRankForItem(item);
+            lamp = summary.lamp;
+            rank = summary.rank;
+        } else if (typeof item === "string") {
+            key = "folder:" + item;
+            text = folderDisplayName(item);
+            folderLike = true;
+            lamp = context.entryLamp(item);
+        } else {
+            text = context.entryDisplayName(item, true);
+            key = "item:" + text;
+            keymode = item.keymode || 0;
+            let summary = context.scoreLampRankForItem(item);
             lamp = summary.lamp;
             rank = summary.rank;
         }
 
         return {
-            valid: !!entry,
-            text: context.entryDisplayName(entry, true),
-            titleType: context.entryTitleType(entry),
-            bodyType: context.entryBodyType(entry),
-            playLevel: context.entryPlayLevel(entry),
-            difficulty: context.entryDifficulty(entry),
-            keymode: entry ? (entry.keymode || 0) : 0,
+            key: key,
+            valid: valid,
+            text: text,
+            titleType: 0,
+            bodyType: bodyType,
+            playLevel: playLevel,
+            difficulty: difficulty,
+            keymode: keymode,
             ranking: ranking,
             chartLike: chartLike,
             entryLike: entryLike,
@@ -119,15 +186,34 @@ QtObject {
         };
     }
 
-    function core(entry) {
+    function core(item) {
         ensureCurrent();
-        let key = cacheKey(entry);
+        let key = "";
+        if (!item) {
+            key = "empty";
+        } else if (item.__lr2RankingEntry === true) {
+            key = "ranking:" + (item.sourceMd5 || "") + ":" + (item.rankingIndex || 0);
+        } else if (item instanceof ChartData) {
+            key = "chart:" + (item.md5 || item.path || item.title || "");
+        } else if (item instanceof entry) {
+            key = "entry:" + (item.md5 || item.path || item.title || item.level || "");
+        } else if (item instanceof table) {
+            key = "table:" + (item.url || item.name || "");
+        } else if (item instanceof level) {
+            key = "level:" + context.folderLampKey(item);
+        } else if (item instanceof course) {
+            key = "course:" + (item.identifier || item.name || "");
+        } else if (typeof item === "string") {
+            key = "folder:" + item;
+        } else {
+            key = "item:" + context.entryDisplayName(item, true);
+        }
         let cached = cache[key];
         if (cached !== undefined) {
             return cached;
         }
 
-        cached = buildCore(entry);
+        cached = buildCore(item);
         cache[key] = cached;
         return cached;
     }

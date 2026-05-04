@@ -18,6 +18,60 @@ QtObject {
         return host.finalizeOptionList(options);
     }
 
+    function runtimeUsedOptionLookup() {
+        return host.usedOptionFilterActive ? host.usedOptionLookup : null;
+    }
+
+    function runtimeOptionUsed(lookup, option) {
+        return !lookup || !!lookup[Math.abs(option)];
+    }
+
+    function runtimeOptionRangeUsed(lookup, first, last) {
+        if (!lookup) {
+            return true;
+        }
+        for (let option = first; option <= last; ++option) {
+            if (lookup[option]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function runtimeAnyOptionUsed(lookup, options) {
+        if (!lookup) {
+            return true;
+        }
+        for (let i = 0; i < options.length; ++i) {
+            if (lookup[Math.abs(options[i])]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function copyActiveOptions(options) {
+        let result = [];
+        let source = options || [];
+        let lookup = {};
+        let used = host.usedOptionFilterActive ? host.usedOptionLookup : null;
+        for (let i = 0; i < source.length; ++i) {
+            let option = source[i];
+            if (option === undefined || option === null) {
+                continue;
+            }
+            let absOption = Math.abs(option);
+            if ((used && !used[absOption])
+                    || lookup[option] === true) {
+                continue;
+            }
+            result.push(option);
+            lookup[option] = true;
+        }
+        result.__lookup = lookup;
+        return result;
+    }
+
     function appendCommonRuntimeOptions(options) {
         let vars = host.mainGeneralVars();
         root.addOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
@@ -64,45 +118,99 @@ QtObject {
     }
 
     function appendChartOptions(options, chartData) {
+        let usedOptions = root.runtimeUsedOptionLookup();
         let allowStageFileOption = host.effectiveScreenKey !== "decide";
+        let usesStageFileOption = allowStageFileOption
+            && root.runtimeOptionRangeUsed(usedOptions, 190, 191);
+        let usesBannerOption = root.runtimeOptionRangeUsed(usedOptions, 192, 193);
+        let usesBackBmpOption = root.runtimeOptionRangeUsed(usedOptions, 194, 195);
+        let usesBgaOption = root.runtimeOptionRangeUsed(usedOptions, 170, 171);
+        let usesLongNoteOption = root.runtimeOptionRangeUsed(usedOptions, 172, 173);
+        let usesAttachedTextOption = root.runtimeOptionRangeUsed(usedOptions, 174, 175);
+        let usesBpmRangeOption = root.runtimeOptionRangeUsed(usedOptions, 176, 177);
+        let usesRandomOption = root.runtimeOptionRangeUsed(usedOptions, 178, 179);
+        let usesJudgeOption = root.runtimeOptionRangeUsed(usedOptions, 180, 183);
+        let usesHighLevelOption = root.runtimeOptionRangeUsed(usedOptions, 185, 186);
+        let usesDifficultyOption = root.runtimeOptionRangeUsed(usedOptions, 150, 155);
+        let usesKeymodeOption = root.runtimeOptionRangeUsed(usedOptions, 160, 169)
+            || root.runtimeAnyOptionUsed(usedOptions, [1160, 1161]);
+
         if (!chartData) {
-            if (allowStageFileOption) {
+            if (usesStageFileOption) {
                 root.addOption(options, 190);
             }
-            root.addOption(options, 192);
-            root.addOption(options, 194);
-            root.addOption(options, 170);
-            root.addOption(options, 172);
-            root.addOption(options, 174);
-            root.addOption(options, 176);
-            root.addOption(options, 178);
+            if (usesBannerOption) {
+                root.addOption(options, 192);
+            }
+            if (usesBackBmpOption) {
+                root.addOption(options, 194);
+            }
+            if (usesBgaOption) {
+                root.addOption(options, 170);
+            }
+            if (usesLongNoteOption) {
+                root.addOption(options, 172);
+            }
+            if (usesAttachedTextOption) {
+                root.addOption(options, 174);
+            }
+            if (usesBpmRangeOption) {
+                root.addOption(options, 176);
+            }
+            if (usesRandomOption) {
+                root.addOption(options, 178);
+            }
             root.appendReplayOptions(options, null);
-            root.addOption(options, 150);
+            if (usesDifficultyOption) {
+                root.addOption(options, 150);
+            }
             return;
         }
-        if (allowStageFileOption) {
+        if (usesStageFileOption) {
             root.addOption(options, chartData.stageFile ? 191 : 190);
         }
-        root.addOption(options, chartData.banner ? 193 : 192);
-        root.addOption(options, chartData.backBmp ? 195 : 194);
-        root.addOption(options, selectContext.hasBga(chartData) ? 171 : 170);
-        root.addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
-        root.addOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
-        root.addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
-        if (host.skinUsesOption(1177) && host.chartHasBpmStop(chartData)) {
+        if (usesBannerOption) {
+            root.addOption(options, chartData.banner ? 193 : 192);
+        }
+        if (usesBackBmpOption) {
+            root.addOption(options, chartData.backBmp ? 195 : 194);
+        }
+        if (usesBgaOption) {
+            root.addOption(options, selectContext.hasBga(chartData) ? 171 : 170);
+        }
+        if (usesLongNoteOption) {
+            root.addOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
+        }
+        if (usesAttachedTextOption) {
+            root.addOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
+        }
+        if (usesBpmRangeOption) {
+            root.addOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
+        }
+        if (root.runtimeOptionUsed(usedOptions, 1177) && host.chartHasBpmStop(chartData)) {
             root.addOption(options, 1177);
         }
-        root.addOption(options, chartData.isRandom ? 179 : 178);
-        root.addOption(options, selectContext.judgeOption(chartData));
-        root.addOption(options, selectContext.highLevelOption(chartData));
+        if (usesRandomOption) {
+            root.addOption(options, chartData.isRandom ? 179 : 178);
+        }
+        if (usesJudgeOption) {
+            root.addOption(options, selectContext.judgeOption(chartData));
+        }
+        if (usesHighLevelOption) {
+            root.addOption(options, selectContext.highLevelOption(chartData));
+        }
         root.appendReplayOptions(options, chartData);
 
-        let difficulty = selectContext.entryDifficulty(chartData);
-        root.addOption(options, difficulty >= 1 && difficulty <= 5 ? 150 + difficulty : 150);
+        if (usesDifficultyOption) {
+            let difficulty = selectContext.entryDifficulty(chartData);
+            root.addOption(options, difficulty >= 1 && difficulty <= 5 ? 150 + difficulty : 150);
+        }
 
-        let keymode = chartData.keymode || 0;
-        root.appendKeymodeOption(options, keymode, 160);
-        root.appendKeymodeOption(options, root.keymodeAfterOptions(keymode), 165);
+        if (usesKeymodeOption) {
+            let keymode = chartData.keymode || 0;
+            root.appendKeymodeOption(options, keymode, 160);
+            root.appendKeymodeOption(options, root.keymodeAfterOptions(keymode), 165);
+        }
     }
 
     function replayOptionForSlot(slot, available) {
@@ -146,29 +254,31 @@ QtObject {
         }
     }
 
-    function appendKeymodeOption(options, keymode, baseOption) {
+    function keymodeOptionFor(keymode, baseOption) {
         switch (keymode) {
         case 7:
-            root.addOption(options, baseOption);
-            break;
+            return baseOption;
         case 5:
-            root.addOption(options, baseOption + 1);
-            break;
+            return baseOption + 1;
         case 14:
-            root.addOption(options, baseOption + 2);
-            break;
+            return baseOption + 2;
         case 10:
-            root.addOption(options, baseOption + 3);
-            break;
+            return baseOption + 3;
         case 24:
-            root.addOption(options, 1160);
-            break;
+            return 1160;
         case 48:
-            root.addOption(options, 1161);
-            break;
+            return 1161;
         case 9:
-            root.addOption(options, 164);
-            break;
+            return 164;
+        default:
+            return 0;
+        }
+    }
+
+    function appendKeymodeOption(options, keymode, baseOption) {
+        let option = root.keymodeOptionFor(keymode, baseOption);
+        if (option > 0) {
+            root.addOption(options, option);
         }
     }
 
@@ -195,7 +305,7 @@ QtObject {
         return 0;
     }
 
-    function appendEntryStatusOptions(options, item, selectedChart) {
+    function appendEntryStatusOptions(options, item, selectedChart, scoreSummary) {
         if (!host.selectUsesEntryStatusOptions()) {
             return;
         }
@@ -230,12 +340,13 @@ QtObject {
             clearOption = 100;
             lamp = selectContext.entryLamp(item);
         } else {
-            let summary = selectContext.scoreSummaryForItem(item);
+            let summary = scoreSummary || selectContext.scoreSummaryForItem(item);
             clearOption = selectContext.beatorajaClearOptionForClearType(summary.clearType);
             lamp = summary.lamp;
             rank = summary.rank;
         }
-        let hasExactBeatorajaLamp = clearOption >= 1100 && host.skinUsesOption(clearOption);
+        let hasExactBeatorajaLamp = clearOption >= 1100
+            && root.runtimeOptionUsed(root.runtimeUsedOptionLookup(), clearOption);
         if (!hasExactBeatorajaLamp && lamp >= 0 && lamp <= 5) {
             root.addOption(options, 100 + lamp);
         }
@@ -270,25 +381,30 @@ QtObject {
         }
     }
 
-    function appendDifficultyBarOptions(options) {
+    function appendDifficultyBarOptions(options, difficultyState, selectedChart) {
         if (!host.selectUsesDifficultyBarOptions()) {
             return;
         }
+        let counts = difficultyState && difficultyState.counts ? difficultyState.counts : [];
+        let levels = difficultyState && difficultyState.levels ? difficultyState.levels : [];
+        let lamps = difficultyState && difficultyState.lamps ? difficultyState.lamps : [];
+        let keymode = selectedChart ? (selectedChart.keymode || 0) : 0;
+        let flashThreshold = keymode === 5 || keymode === 10 ? 9 : 12;
         for (let diff = 1; diff <= 5; ++diff) {
-            if (selectContext.hasDifficulty(diff)) {
+            let diffCount = counts[diff] || 0;
+            if (diffCount > 0) {
                 root.addOption(options, 504 + diff);
-                root.addOption(options, selectContext.difficultyLevelBarOption(diff));
+                root.addOption(options, (levels[diff] || 0) > flashThreshold ? 74 + diff : 69 + diff);
             } else {
                 root.addOption(options, 499 + diff);
             }
 
-            let diffCount = selectContext.difficultyCount(diff);
             if (diffCount === 1) {
                 root.addOption(options, 509 + diff);
             } else if (diffCount > 1) {
                 root.addOption(options, 514 + diff);
             }
-            root.addOption(options, 510 + diff * 10 + selectContext.difficultyLamp(diff));
+            root.addOption(options, 510 + diff * 10 + (lamps[diff] || 0));
         }
     }
 
@@ -479,19 +595,40 @@ QtObject {
     }
 
     function appendCurrentSelectOptions(options, item, selectedChart) {
-        root.appendSelectItemTypeOptions(options, item);
-        root.appendSelectedChartModeOptions(options, selectedChart);
-        root.appendEntryStatusOptions(options, item, selectedChart);
-        root.appendCourseOptions(options, item);
+        let state = selectContext.selectedState();
+        let stateCurrent = state && state.scoreRevision === selectContext.scoreRevision
+            && state.listRevision === selectContext.listRevision;
+        let selectedItem = item || (state ? state.item : null);
+        let chartData = selectedChart !== undefined ? selectedChart : (state ? state.chartData : null);
+        let canUseState = stateCurrent
+            && state
+            && (selectedItem === state.item || selectedItem === state.chartData)
+            && chartData === state.chartData;
+        let summary = canUseState ? state.summary : null;
+        let difficultyState = canUseState ? state.difficultyState : null;
+
+        root.appendSelectItemTypeOptions(options, selectedItem);
+        root.appendSelectedChartModeOptions(options, chartData);
+        root.appendEntryStatusOptions(options, selectedItem, chartData, summary);
+        root.appendCourseOptions(options, selectedItem);
         root.appendRankingStatusOptions(options);
 
-        if (selectedChart) {
-            root.appendDifficultyBarOptions(options);
+        if (chartData) {
+            root.appendDifficultyBarOptions(options, difficultyState, chartData);
         }
 
-        root.appendChartOptions(options, selectedChart);
+        root.appendChartOptions(options, chartData);
         if (host.selectUsesScoreOptionIds()) {
-            for (let optionId of selectContext.scoreOptionIds(item)) {
+            let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
+            if (!scoreOptionIds) {
+                scoreOptionIds = summary
+                    ? selectContext.scoreOptionIdsFromSummary(summary)
+                    : selectContext.scoreOptionIds(selectedItem);
+                if (canUseState) {
+                    state.scoreOptionIds = scoreOptionIds;
+                }
+            }
+            for (let optionId of scoreOptionIds) {
                 root.addOption(options, optionId);
             }
         }
@@ -611,7 +748,7 @@ QtObject {
     }
 
     function buildSelectRuntimeActiveOptions(commonOptions) {
-        let result = root.finalizeOptionList((commonOptions || []).slice());
+        let result = root.copyActiveOptions(commonOptions);
         root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
         return result;
     }

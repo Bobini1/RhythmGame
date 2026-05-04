@@ -107,6 +107,75 @@ void Lr2SelectBarCell::setRank(int value) {
     emit rankChanged();
 }
 
+int Lr2SelectBarCell::revision() const { return m_revision; }
+
+int Lr2SelectBarCell::bodyTypeValue() const { return m_bodyType; }
+
+bool Lr2SelectBarCell::textVisible(int titleType) const {
+    return m_valid && m_titleType == titleType;
+}
+
+QString Lr2SelectBarCell::textForTitleType(int titleType) const {
+    return textVisible(titleType) ? m_text : QString();
+}
+
+bool Lr2SelectBarCell::numberVisible(int variant) const {
+    if (!m_valid) {
+        return false;
+    }
+    if (m_ranking) {
+        return variant == 6;
+    }
+    if (!m_chartLike && !m_entryLike) {
+        return false;
+    }
+    if (m_keymode <= 0 || m_playLevel <= 0) {
+        return false;
+    }
+    return m_difficulty <= 0 ? variant == 0 : variant == m_difficulty;
+}
+
+int Lr2SelectBarCell::numberValueForVariant(int variant) const {
+    return numberVisible(variant) ? m_playLevel : 0;
+}
+
+int Lr2SelectBarCell::numberValueOrInvisibleForVariant(int variant) const {
+    return numberVisible(variant) ? m_playLevel : -2147483648;
+}
+
+bool Lr2SelectBarCell::lampVisibleForKind(int kind) const {
+    return m_valid && kind == 3 && m_lamp > 0;
+}
+
+int Lr2SelectBarCell::lampForKind(int kind) const {
+    return kind == 3 ? m_lamp : 0;
+}
+
+bool Lr2SelectBarCell::rankingForKind(int kind) const {
+    return m_valid && kind == 6 && m_ranking;
+}
+
+bool Lr2SelectBarCell::rankVisibleForKind(int kind) const {
+    return m_valid && kind == 6 && m_ranking && m_rank > 0;
+}
+
+int Lr2SelectBarCell::rankForKind(int kind) const {
+    return kind == 6 && m_ranking ? m_rank : 0;
+}
+
+bool Lr2SelectBarCell::overlayVisibleForKind(int kind, int variant) const {
+    if (!m_valid) {
+        return false;
+    }
+    if (kind == 3) {
+        return m_lamp == variant;
+    }
+    if (kind == 6) {
+        return m_ranking && m_rank == variant;
+    }
+    return false;
+}
+
 void Lr2SelectBarCell::setCore(int row,
                                bool valid,
                                const QString& text,
@@ -167,19 +236,22 @@ void Lr2SelectBarCell::setCore(int row,
     m_folderLike = folderLike;
     m_lamp = lamp;
     m_rank = rank;
+    ++m_revision;
 
-    if (rowChanged) emit this->rowChanged();
-    if (validChanged) emit this->validChanged();
-    if (textChanged) emit this->textChanged();
-    if (titleTypeChanged) emit this->titleTypeChanged();
-    if (bodyTypeChanged) emit this->bodyTypeChanged();
-    if (playLevelChanged) emit this->playLevelChanged();
-    if (difficultyChanged) emit this->difficultyChanged();
-    if (keymodeChanged) emit this->keymodeChanged();
-    if (rankingChanged) emit this->rankingChanged();
-    if (chartLikeChanged) emit this->chartLikeChanged();
-    if (entryLikeChanged) emit this->entryLikeChanged();
-    if (folderLikeChanged) emit this->folderLikeChanged();
-    if (lampChanged) emit this->lampChanged();
-    if (rankChanged) emit this->rankChanged();
+    Q_UNUSED(rowChanged);
+    Q_UNUSED(validChanged);
+    Q_UNUSED(textChanged);
+    Q_UNUSED(titleTypeChanged);
+    Q_UNUSED(bodyTypeChanged);
+    Q_UNUSED(playLevelChanged);
+    Q_UNUSED(difficultyChanged);
+    Q_UNUSED(keymodeChanged);
+    Q_UNUSED(rankingChanged);
+    Q_UNUSED(chartLikeChanged);
+    Q_UNUSED(entryLikeChanged);
+    Q_UNUSED(folderLikeChanged);
+    Q_UNUSED(lampChanged);
+    Q_UNUSED(rankChanged);
+    emit revisionChanged();
+    emit coreChanged();
 }

@@ -32,6 +32,18 @@ Item {
         }
         return result;
     }
+    readonly property bool usedElementOptionFilterAvailable: !!skinModel
+        && skinModel.usedElementOptions !== undefined
+    readonly property var usedElementOptionLookup: {
+        let result = {};
+        let used = root.usedElementOptionFilterAvailable && skinModel.usedElementOptions
+            ? skinModel.usedElementOptions
+            : [];
+        for (let option of used) {
+            result[Math.abs(option)] = true;
+        }
+        return result;
+    }
     property int gameplayRevision: 0
     property bool gameplayRevisionQueued: false
     property int gameplayTimerRevision: 0
@@ -878,44 +890,11 @@ Item {
         return Lr2Timeline.dstsUseActiveOptions(dsts);
     }
 
-    function selectOptionChangesWithFocus(option) {
-        let op = Math.abs(option || 0);
-        return op === 1 || op === 2 || op === 3 || op === 5
-            || (op >= 10 && op <= 13)
-            || (op >= 70 && op <= 79)
-            || (op >= 100 && op <= 130)
-            || op === 144 || op === 145
-            || (op >= 150 && op <= 186)
-            || (op >= 190 && op <= 197)
-            || (op >= 280 && op <= 293)
-            || (op >= 500 && op <= 565)
-            || (op >= 580 && op <= 589)
-            || (op >= 600 && op <= 616)
-            || (op >= 700 && op <= 755)
-            || (op >= 1100 && op <= 1104)
-            || op === 1128
-            || op === 1160 || op === 1161 || op === 1177
-            || (op >= 1196 && op <= 1208);
-    }
-
-    function dstsUseSelectFocusActiveOptions(dsts) {
-        if (!dsts || dsts.length === 0 || !dsts[0]) {
-            return false;
-        }
-        let first = dsts[0];
-        return root.selectOptionChangesWithFocus(first.op1)
-            || root.selectOptionChangesWithFocus(first.op2)
-            || root.selectOptionChangesWithFocus(first.op3);
-    }
-
-    function activeOptionsForElementDsts(dsts, focusSensitive) {
+    function activeOptionsForElementDsts(dsts) {
         if (!root.dstsUseActiveOptions(dsts)) {
             return root.emptyActiveOptions;
         }
-        let options = root.effectiveScreenKey === "select" && !focusSensitive
-            ? root.selectCommonActiveOptions
-            : root.runtimeActiveOptions;
-        return root.activeOptionsForDsts(dsts, options);
+        return root.activeOptionsForDsts(dsts, root.runtimeActiveOptions);
     }
 
     function elementUsesTimers(src, dsts) {
@@ -1012,7 +991,9 @@ Item {
         if (option === undefined || option === null) {
             return;
         }
-        if (root.usedOptionFilterActive && !root.usedOptionLookup[Math.abs(option)]) {
+        let absOption = Math.abs(option);
+        if (root.usedOptionFilterActive
+                && !root.usedOptionLookup[absOption]) {
             return;
         }
         let lookup = root.optionLookupFor(options);
@@ -1045,6 +1026,37 @@ Item {
         }
         for (let option = first; option <= last; ++option) {
             if (root.usedOptionLookup[option]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function skinUsesSelectElementOption(option) {
+        if (!root.usedElementOptionFilterAvailable) {
+            return root.skinUsesOption(option);
+        }
+        return !!root.usedElementOptionLookup[Math.abs(option)];
+    }
+
+    function skinUsesAnySelectElementOption(options) {
+        if (!root.usedElementOptionFilterAvailable) {
+            return root.skinUsesAnyOption(options);
+        }
+        for (let i = 0; i < options.length; ++i) {
+            if (root.usedElementOptionLookup[Math.abs(options[i])]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function skinUsesSelectElementOptionRange(first, last) {
+        if (!root.usedElementOptionFilterAvailable) {
+            return root.skinUsesOptionRange(first, last);
+        }
+        for (let option = first; option <= last; ++option) {
+            if (root.usedElementOptionLookup[option]) {
                 return true;
             }
         }
@@ -2893,6 +2905,9 @@ Item {
     }
 
     function scheduleSelectRuntimeActiveOptionsRefresh() {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
         root.refreshSelectRuntimeActiveOptions();
     }
 
@@ -3449,7 +3464,7 @@ Item {
             root.renderSkinTime,
             root.skinTimerFireTime(timer),
             root.dstsUseActiveOptions(dsts)
-                ? root.activeOptionsForDsts(dsts, root.runtimeActiveOptions)
+                ? root.activeOptionsForElementDsts(dsts)
                 : root.emptyActiveOptions);
         return root.onMouseStateContainsPoint(src, state, mx, my);
     }
@@ -3663,7 +3678,9 @@ Item {
     property alias renderSkinTime: skinTiming.renderSkinTime
     property alias barSkinTime: skinTiming.barSkinTime
     readonly property bool shouldAutoAdvance: skinTiming.shouldAutoAdvance
-    readonly property var timers: skinTiming.timers
+    readonly property var timers: root.isGameplayScreen() || root.isResultScreen()
+        ? skinTiming.timers
+        : root.zeroTimers
 
     onRenderSkinTimeChanged: {
         if (root.effectiveScreenKey === "select"
@@ -3673,21 +3690,21 @@ Item {
         }
     }
 
-    readonly property bool selectReplayOptionsUsed: root.skinUsesAnyOption([
+    readonly property bool selectReplayOptionsUsed: root.skinUsesAnySelectElementOption([
             196, 197, 1196, 1197, 1199, 1200,
             1202, 1203, 1205, 1206, 1207, 1208
         ])
-    readonly property bool selectScoreOptionIdsUsed: root.skinUsesOptionRange(105, 130)
-        || root.skinUsesAnyOption([144, 145, 1100, 1102, 1103, 1104, 1128])
-    readonly property bool selectEntryStatusOptionsUsed: root.skinUsesOptionRange(100, 130)
-        || root.skinUsesOptionRange(200, 207)
-        || root.skinUsesAnyOption([1100, 1102, 1103, 1104])
-    readonly property bool selectDifficultyBarOptionsUsed: root.skinUsesOptionRange(70, 79)
-        || root.skinUsesOptionRange(500, 565)
-    readonly property bool selectCourseDetailOptionsUsed: root.skinUsesAnyOption([290, 293])
-        || root.skinUsesOptionRange(580, 589)
-        || root.skinUsesOptionRange(700, 755)
-    readonly property bool selectRankingStatusOptionsUsed: root.skinUsesOptionRange(600, 616)
+    readonly property bool selectScoreOptionIdsUsed: root.skinUsesSelectElementOptionRange(105, 130)
+        || root.skinUsesAnySelectElementOption([144, 145, 1100, 1102, 1103, 1104, 1128])
+    readonly property bool selectEntryStatusOptionsUsed: root.skinUsesSelectElementOptionRange(100, 130)
+        || root.skinUsesSelectElementOptionRange(200, 207)
+        || root.skinUsesAnySelectElementOption([1100, 1102, 1103, 1104])
+    readonly property bool selectDifficultyBarOptionsUsed: root.skinUsesSelectElementOptionRange(70, 79)
+        || root.skinUsesSelectElementOptionRange(500, 565)
+    readonly property bool selectCourseDetailOptionsUsed: root.skinUsesAnySelectElementOption([290, 293])
+        || root.skinUsesSelectElementOptionRange(580, 589)
+        || root.skinUsesSelectElementOptionRange(700, 755)
+    readonly property bool selectRankingStatusOptionsUsed: root.skinUsesSelectElementOptionRange(600, 616)
 
     function selectUsesReplayOptions() {
         return root.selectReplayOptionsUsed;
@@ -3739,6 +3756,14 @@ Item {
 
     function selectTimerFireTime(timer) {
         return skinTiming.selectTimerFireTime(timer);
+    }
+
+    function selectTimerCanFire(timer) {
+        return skinTiming.selectTimerCanFire(timer);
+    }
+
+    function skinTimerCanFire(timer) {
+        return skinTiming.skinTimerCanFire(timer);
     }
 
     function skinTimerFireTime(timer) {

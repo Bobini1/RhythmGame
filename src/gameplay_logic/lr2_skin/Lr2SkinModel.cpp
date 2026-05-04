@@ -124,6 +124,10 @@ QVariantList Lr2SkinModel::usedOptions() const {
     return m_usedOptions;
 }
 
+QVariantList Lr2SkinModel::usedElementOptions() const {
+    return m_usedElementOptions;
+}
+
 QVariantList Lr2SkinModel::barLampVariants() const {
     return m_barLampVariants;
 }
@@ -255,6 +259,7 @@ void Lr2SkinModel::loadSkin() {
         m_elements.clear();
         const bool metadataChanged = !m_effectiveActiveOptions.isEmpty() ||
                                      !m_usedOptions.isEmpty() ||
+                                     !m_usedElementOptions.isEmpty() ||
                                      !m_barLampVariants.isEmpty() ||
                                      !m_barRows.isEmpty() ||
                                      m_startInput != 0 ||
@@ -292,6 +297,7 @@ void Lr2SkinModel::loadSkin() {
                                      !m_lineDsts.isEmpty();
         m_effectiveActiveOptions.clear();
         m_usedOptions.clear();
+        m_usedElementOptions.clear();
         m_barLampVariants.clear();
         m_barRows.clear();
         m_helpFiles.clear();
@@ -350,6 +356,7 @@ void Lr2SkinModel::loadSkin() {
                                  m_skinHeight != skinData.skinHeight ||
                                  m_effectiveActiveOptions != skinData.activeOptions ||
                                  m_usedOptions != skinData.usedOptions ||
+                                 m_usedElementOptions != skinData.usedElementOptions ||
                                  m_barLampVariants != skinData.barLampVariants ||
                                  m_barRows != skinData.barRows ||
                                  m_helpFiles != skinData.helpFiles ||
@@ -389,6 +396,7 @@ void Lr2SkinModel::loadSkin() {
     m_skinHeight = skinData.skinHeight;
     m_effectiveActiveOptions = skinData.activeOptions;
     m_usedOptions = skinData.usedOptions;
+    m_usedElementOptions = skinData.usedElementOptions;
     m_barLampVariants = skinData.barLampVariants;
     m_barRows = skinData.barRows;
     m_helpFiles = skinData.helpFiles;

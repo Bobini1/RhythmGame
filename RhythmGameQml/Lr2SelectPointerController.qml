@@ -78,7 +78,7 @@ QtObject {
             root.renderSkinTime,
             root.skinTimerFireTime(dstTimer),
             root.dstsUseActiveOptions(element.dsts)
-                ? root.activeOptionsForDsts(element.dsts, root.runtimeActiveOptions)
+                ? root.activeOptionsForElementDsts(element.dsts)
                 : root.emptyActiveOptions);
     }
 

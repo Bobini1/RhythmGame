@@ -234,14 +234,13 @@ Item {
                     height: skinH * skinScale
                     z: root.elementZ(model.type, index, model.src, model.dsts)
                     readonly property bool usesActiveOptions: !!root.dstsUseActiveOptions(model.dsts)
-                    readonly property bool usesFocusActiveOptions: root.effectiveScreenKey === "select"
-                        && !!usesActiveOptions
-                        && !!root.dstsUseSelectFocusActiveOptions(model.dsts)
                     readonly property bool usesSkinTime: root.elementUsesSkinTime(model.src, model.dsts)
                     readonly property int dstTimer: model.dsts && model.dsts.length > 0
                         ? (model.dsts[0].timer || 0)
                         : 0
                     readonly property int srcTimer: model.src ? (model.src.timer || 0) : 0
+                    readonly property bool dstTimerCanFire: root.skinTimerCanFire(dstTimer)
+                    readonly property bool srcTimerCanFire: root.skinTimerCanFire(srcTimer)
                     readonly property bool usesSelectHeldButtonTimer: root.isSelectHeldButtonTimer(dstTimer)
                     readonly property bool usesLiveDstClock: root.elementUsesLiveDstClock(model.dsts)
                     readonly property bool usesLiveSourceClock: root.elementUsesLiveSourceClock(model.src)
@@ -250,23 +249,19 @@ Item {
                     readonly property bool usesSpriteForceHidden: root.elementUsesSpriteForceHidden(model.src)
                     readonly property bool usesButtonFrameOverride: root.elementUsesButtonFrameOverride(model.src)
                     readonly property var elementActiveOptions: usesActiveOptions
-                        ? root.activeOptionsForElementDsts(model.dsts, usesFocusActiveOptions)
+                        ? root.activeOptionsForElementDsts(model.dsts)
                         : root.emptyActiveOptions
                     readonly property int dstTimerFire: {
                         if (dstTimer === 0) {
                             return 0;
                         }
-                        let timers = root.timers;
-                        let fire = timers ? timers[dstTimer] : undefined;
-                        return fire === undefined || fire === null ? -1 : fire;
+                        return dstTimerCanFire ? root.skinTimerFireTime(dstTimer) : -1;
                     }
                     readonly property int srcTimerFire: {
                         if (srcTimer === 0) {
                             return 0;
                         }
-                        let timers = root.timers;
-                        let fire = timers ? timers[srcTimer] : undefined;
-                        return fire === undefined || fire === null ? -1 : fire;
+                        return srcTimerCanFire ? root.skinTimerFireTime(srcTimer) : -1;
                     }
                     readonly property bool usesElementSkinTime: usesSkinTime
                         && model.type !== 0

@@ -153,43 +153,7 @@ QtObject {
             }
             return resultTimers;
         }
-        if (root.host.effectiveScreenKey !== "select") {
-            return root.zeroTimers;
-        }
-
-        let result = { "0": 0 };
-        result[171] = root.selectDatabaseLoadedSkinTime;
-        if (root.host.acceptsInput) {
-            result[1] = Math.min(root.renderSkinTime, root.skinModel.startInput || 0);
-        }
-        result[11] = root.renderSkinTime - root.selectInfoElapsed;
-        if (root.host.acceptsInput) {
-            result[14] = root.selectNoScrollStartSkinTime;
-        }
-        if (root.selectContext.visualMoveActive || root.selectContext.scrollFixedPointDragging) {
-            result[10] = root.selectScrollStartSkinTime;
-            if (root.selectContext.scrollDirection === root.selectContext.lr2ScrollUp) {
-                result[12] = root.selectScrollStartSkinTime;
-            } else if (root.selectContext.scrollDirection === root.selectContext.lr2ScrollDown) {
-                result[13] = root.selectScrollStartSkinTime;
-            }
-        }
-        if (root.host.selectPanel > 0) {
-            result[20 + root.host.selectPanel] = root.renderSkinTime - root.host.selectPanelElapsed;
-        }
-        if (root.host.selectPanelClosing > 0) {
-            result[30 + root.host.selectPanelClosing] = root.renderSkinTime - root.host.selectPanelCloseElapsed;
-        }
-        if (root.host.lr2ReadmeMode === 1) {
-            result[15] = root.renderSkinTime - root.host.lr2ReadmeElapsed;
-        } else if (root.host.lr2ReadmeMode === 2) {
-            result[16] = root.renderSkinTime - root.host.lr2ReadmeElapsed;
-        }
-        if (root.host.lr2RankingTransitionPhase !== 0) {
-            result[root.host.lr2RankingTransitionPhase] = root.renderSkinTime - root.host.lr2RankingTransitionElapsed;
-        }
-        root.host.addHeldButtonTimers(result);
-        return result;
+        return root.zeroTimers;
     }
 
     function updateSelectAnimationLimits() {
@@ -311,6 +275,42 @@ QtObject {
             return root.renderSkinTime - root.host.lr2RankingTransitionElapsed;
         }
         return root.host.selectHeldButtonTimerFireTime(timer);
+    }
+
+    function selectTimerCanFire(timer) {
+        if (timer === 0 || timer === 1 || timer === 10 || timer === 11
+                || timer === 12 || timer === 13 || timer === 14
+                || timer === 15 || timer === 16 || timer === 171
+                || timer === 175 || timer === 176) {
+            return true;
+        }
+        if (timer >= 21 && timer <= 26) {
+            return true;
+        }
+        if (timer >= 31 && timer <= 36) {
+            return true;
+        }
+        return root.host && root.host.isSelectHeldButtonTimer(timer);
+    }
+
+    function skinTimerCanFire(timer) {
+        if (!root.host) {
+            return false;
+        }
+        let idx = Number(timer || 0);
+        if (idx === 0) {
+            return true;
+        }
+        if (root.host.isGameplayScreen()) {
+            return true;
+        }
+        if (root.host.isResultScreen()) {
+            return idx === 1 || idx === 150 || idx === 151 || idx === 152;
+        }
+        if (root.host.effectiveScreenKey === "select") {
+            return root.selectTimerCanFire(idx);
+        }
+        return false;
     }
 
     function skinTimerFireTime(timer) {

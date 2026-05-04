@@ -28,7 +28,9 @@ Lr2NativeCursor {
         skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
         timers: null
         timerFire: cursor.rootReady ? cursor.root.skinTimerFireTime(cursor.cursorDstTimer) : -1
-        activeOptions: cursor.rootReady ? cursor.root.runtimeActiveOptions : []
+        activeOptions: cursor.rootReady
+            ? cursor.root.activeOptionsForElementDsts(cursor.cursorDsts)
+            : []
     }
     readonly property var cursorState: rootReady && cursorSrcData
         ? cursorTimelineState.state

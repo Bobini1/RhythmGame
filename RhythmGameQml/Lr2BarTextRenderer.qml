@@ -93,11 +93,13 @@ Item {
             readonly property var cell: root.barCells && slot >= 0 && slot < root.barCells.length
                 ? root.barCells[slot]
                 : null
-            readonly property bool cellValid: cell ? !!cell.valid : false
-            readonly property int cellTitleType: cell ? cell.titleType : -1
-            readonly property string cellText: cell ? (cell.text || "") : ""
-            readonly property bool contentVisible: rowVisible
-                && root.visibleFor(cellValid, cellTitleType)
+            readonly property int sourceTitleType: root.srcData ? root.srcData.titleType : -1
+            readonly property int cellRevision: cell ? cell.revision : -1
+            readonly property string cellText: {
+                let revision = cellRevision;
+                return cell ? cell.textForTitleType(sourceTitleType) : "";
+            }
+            readonly property bool contentVisible: rowVisible && cellText.length > 0
             positionCache: root.barPositionCache
             slot: index
             scaleOverride: root.scaleOverride

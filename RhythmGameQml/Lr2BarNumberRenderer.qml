@@ -99,16 +99,13 @@ Item {
             readonly property var cell: root.barCells && slot >= 0 && slot < root.barCells.length
                 ? root.barCells[slot]
                 : null
-            readonly property bool cellValid: !!cell
-            readonly property bool cellRanking: cell ? !!cell.ranking : false
-            readonly property bool cellChartLike: cell ? !!cell.chartLike : false
-            readonly property bool cellEntryLike: cell ? !!cell.entryLike : false
-            readonly property int cellKeymode: cell ? (cell.keymode || 0) : 0
-            readonly property int cellPlayLevel: cell ? (cell.playLevel || 0) : 0
-            readonly property int cellDifficulty: cell ? (cell.difficulty || 0) : 0
-            readonly property bool contentVisible: rowVisible
-                && root.visibleForValues(cellValid, cellRanking, cellChartLike, cellEntryLike,
-                    cellKeymode, cellPlayLevel, cellDifficulty)
+            readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
+            readonly property int cellRevision: cell ? cell.revision : -1
+            readonly property int cellPlayLevel: {
+                let revision = cellRevision;
+                return cell ? cell.numberValueOrInvisibleForVariant(sourceVariant) : -2147483648;
+            }
+            readonly property bool contentVisible: rowVisible && cellPlayLevel !== -2147483648
             positionCache: root.barPositionCache
             slot: index
             scaleOverride: root.scaleOverride
@@ -136,7 +133,7 @@ Item {
                 colorKeyEnabled: root.colorKeyEnabled
                 transColor: root.transColor
                 stateOverride: root.numberTimelineState
-                value: parent.cellPlayLevel
+                value: parent.contentVisible ? parent.cellPlayLevel : 0
             }
         }
     }

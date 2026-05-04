@@ -22,6 +22,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(int skinHeight READ skinHeight NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList effectiveActiveOptions READ effectiveActiveOptions NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList usedOptions READ usedOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList usedElementOptions READ usedElementOptions NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barLampVariants READ barLampVariants NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList helpFiles READ helpFiles NOTIFY skinMetadataChanged)
@@ -79,6 +80,7 @@ public:
     int skinHeight() const;
     QVariantList effectiveActiveOptions() const;
     QVariantList usedOptions() const;
+    QVariantList usedElementOptions() const;
     QVariantList barLampVariants() const;
     QVariantList barRows() const;
     QVariantList helpFiles() const;
@@ -121,6 +123,7 @@ private:
     QVariantList m_activeOptions;
     QVariantList m_effectiveActiveOptions;
     QVariantList m_usedOptions;
+    QVariantList m_usedElementOptions;
     QVariantList m_barLampVariants;
     QVariantList m_barRows;
     QVariantList m_helpFiles;

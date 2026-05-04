@@ -31,7 +31,7 @@ QtObject {
             dsts,
             host.renderSkinTime,
             host.skinTimerFireTime(timer),
-            host.runtimeActiveOptions);
+            host.activeOptionsForElementDsts(dsts));
     }
 
     function textPrefix(text, position) {

@@ -201,6 +201,7 @@ Item {
             return srcData && srcData.source ? srcData.source : null;
         }
         let cell = cellData(row);
+        let revision = cell ? cell.revision : -1;
         let bodyType = cell ? (cell.bodyType || 0) : 0;
         return srcData.sources[bodyType] || srcData.sources[0] || srcData.source || null;
     }
@@ -296,21 +297,26 @@ Item {
         Lr2BarPositionedItem {
             id: overlayDelegate
 
-            readonly property bool selectedOverlaySource: root.srcData && root.srcData.kind === 2
+            readonly property int sourceKind: root.srcData ? (root.srcData.kind || 0) : 0
+            readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
+            readonly property bool selectedOverlaySource: sourceKind === 2
             readonly property bool usesRowPositionCache: !selectedOverlaySource
             readonly property int displayRow: selectedOverlaySource ? slot : effectiveRow
             readonly property var visibleBase: selectedOverlaySource ? root.visibilityState(displayRow) : null
             readonly property var cell: selectedOverlaySource
                 ? null
                 : root.cellData(displayRow)
+            readonly property int cellRevision: cell ? cell.revision : -1
             readonly property bool cellValid: selectedOverlaySource ? true : !!cell
-            readonly property int cellLamp: cell ? (cell.lamp || 0) : 0
-            readonly property bool cellRanking: cell ? !!cell.ranking : false
-            readonly property int cellRank: cell ? (cell.rank || 0) : 0
+            readonly property bool cellOverlayVisible: {
+                let revision = cellRevision;
+                return !selectedOverlaySource && cell
+                    && cell.overlayVisibleForKind(sourceKind, sourceVariant);
+            }
             readonly property bool contentVisible: (selectedOverlaySource
                     ? displayRow > 0 && !!visibleBase
                     : rowVisible)
-                && root.overlayVisibleForValues(cellValid, cellLamp, cellRanking, cellRank)
+                && (selectedOverlaySource || cellOverlayVisible)
             positionCache: root.barPositionCache
             row: selectedOverlaySource ? displayRow : -1
             slot: selectedOverlaySource ? root.selectedRow : modelData

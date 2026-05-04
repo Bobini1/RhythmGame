@@ -11,9 +11,14 @@ QtObject {
 
     readonly property var root: screenRoot
 
-    readonly property bool fastBarScrollActive: false
-    readonly property real fastBarScrollX: 0
-    readonly property real fastBarScrollY: 0
+    readonly property var fastBarScrollStep: fastBarScrollStepFor(cachedBarBaseStates)
+    readonly property bool fastBarScrollActive: fastBarScrollStep.valid
+    readonly property real fastBarScrollX: fastBarScrollActive && selectContext
+        ? -fastBarScrollStep.dx * selectContext.visualStateObject.offset
+        : 0
+    readonly property real fastBarScrollY: fastBarScrollActive && selectContext
+        ? -fastBarScrollStep.dy * selectContext.visualStateObject.offset
+        : 0
     readonly property real selectedFastBarDrawX: 0
     readonly property real selectedFastBarDrawY: 0
     readonly property int selectedRow: skinModel.barCenter + selectContext.selectedOffset
@@ -35,7 +40,73 @@ QtObject {
         baseStates: geometry.cachedBarBaseStates
         slotOffset: geometry.selectContext ? geometry.selectContext.visibleBarSlotOffset : 0
         slotCount: geometry.skinModel.barRows ? geometry.skinModel.barRows.length : 0
-        visualState: geometry.selectContext ? geometry.selectContext.visualStateObject : null
+        visualState: geometry.fastBarScrollActive || !geometry.selectContext
+            ? null
+            : geometry.selectContext.visualStateObject
+    }
+
+    function stateNumber(state, name, fallback) {
+        if (!state) {
+            return fallback;
+        }
+        let value = state[name];
+        return value === undefined || value === null ? fallback : Number(value);
+    }
+
+    function stateHasPosition(state) {
+        return !!state && (state.x !== undefined || state.y !== undefined);
+    }
+
+    function sameStateNumber(lhs, rhs, name, fallback) {
+        return Math.abs(stateNumber(lhs, name, fallback) - stateNumber(rhs, name, fallback)) <= 0.001;
+    }
+
+    function fastScrollStateCompatible(lhs, rhs) {
+        return sameStateNumber(lhs, rhs, "w", 0)
+            && sameStateNumber(lhs, rhs, "h", 0)
+            && sameStateNumber(lhs, rhs, "a", 255)
+            && sameStateNumber(lhs, rhs, "r", 255)
+            && sameStateNumber(lhs, rhs, "g", 255)
+            && sameStateNumber(lhs, rhs, "b", 255)
+            && sameStateNumber(lhs, rhs, "angle", 0)
+            && sameStateNumber(lhs, rhs, "center", 0)
+            && sameStateNumber(lhs, rhs, "blend", 0)
+            && sameStateNumber(lhs, rhs, "filter", 0)
+            && sameStateNumber(lhs, rhs, "op4", 0);
+    }
+
+    function fastBarScrollStepFor(states) {
+        if (!states || states.length < 2) {
+            return { valid: false, dx: 0, dy: 0 };
+        }
+
+        let dx = 0;
+        let dy = 0;
+        let haveStep = false;
+        for (let row = 1; row < states.length; ++row) {
+            let previous = states[row - 1];
+            let current = states[row];
+            if (!stateHasPosition(previous) || !stateHasPosition(current)) {
+                continue;
+            }
+
+            let nextDx = stateNumber(current, "x", 0) - stateNumber(previous, "x", 0);
+            let nextDy = stateNumber(current, "y", 0) - stateNumber(previous, "y", 0);
+            if (!haveStep) {
+                dx = nextDx;
+                dy = nextDy;
+                haveStep = true;
+            } else if (Math.abs(dx - nextDx) > 0.001 || Math.abs(dy - nextDy) > 0.001) {
+                return { valid: false, dx: 0, dy: 0 };
+            }
+
+            if (row !== selectedRow && row - 1 !== selectedRow
+                    && !fastScrollStateCompatible(previous, current)) {
+                return { valid: false, dx: 0, dy: 0 };
+            }
+        }
+
+        return { valid: haveStep && (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001), dx: dx, dy: dy };
     }
 
     function selectedBarRow() {

@@ -23,6 +23,7 @@ class Lr2SelectBarCell : public QObject {
     Q_PROPERTY(bool folderLike READ isFolderLike WRITE setFolderLike NOTIFY folderLikeChanged)
     Q_PROPERTY(int lamp READ lamp WRITE setLamp NOTIFY lampChanged)
     Q_PROPERTY(int rank READ rank WRITE setRank NOTIFY rankChanged)
+    Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
 
 public:
     explicit Lr2SelectBarCell(QObject* parent = nullptr);
@@ -72,6 +73,21 @@ public:
     int rank() const;
     void setRank(int value);
 
+    int revision() const;
+
+    Q_INVOKABLE int bodyTypeValue() const;
+    Q_INVOKABLE bool textVisible(int titleType) const;
+    Q_INVOKABLE QString textForTitleType(int titleType) const;
+    Q_INVOKABLE bool numberVisible(int variant) const;
+    Q_INVOKABLE int numberValueForVariant(int variant) const;
+    Q_INVOKABLE int numberValueOrInvisibleForVariant(int variant) const;
+    Q_INVOKABLE bool lampVisibleForKind(int kind) const;
+    Q_INVOKABLE int lampForKind(int kind) const;
+    Q_INVOKABLE bool rankingForKind(int kind) const;
+    Q_INVOKABLE bool rankVisibleForKind(int kind) const;
+    Q_INVOKABLE int rankForKind(int kind) const;
+    Q_INVOKABLE bool overlayVisibleForKind(int kind, int variant) const;
+
     Q_INVOKABLE void setCore(int row,
                              bool valid,
                              const QString& text,
@@ -104,6 +120,7 @@ signals:
     void folderLikeChanged();
     void lampChanged();
     void rankChanged();
+    void revisionChanged();
 
 private:
     int m_row = -1;
@@ -121,4 +138,5 @@ private:
     bool m_folderLike = false;
     int m_lamp = 0;
     int m_rank = 0;
+    int m_revision = 0;
 };

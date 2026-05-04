@@ -75,6 +75,8 @@ Item {
     property int selectedScoreStateCacheRevision: -1
     property var scoreSummaryCache: ({})
     property int scoreSummaryCacheRevision: -1
+    property var scoreLampRankCache: ({})
+    property int scoreLampRankCacheRevision: -1
     property var selectedDifficultyStateCache: ({})
     property int selectedDifficultyStateCacheScoreRevision: -1
     property int selectedDifficultyStateCacheListRevision: -1
@@ -431,7 +433,9 @@ Item {
         targetVisualIndex = nowBarFixed / 1000.0;
         animationStartVisualIndex = oldBarFixed / 1000.0;
         visualMoveDurationMs = Math.max(1, durationMs);
+        suppressVisualIndexPublish = true;
         visualIndex = targetVisualIndex;
+        suppressVisualIndexPublish = false;
         return publishBarState();
     }
 
@@ -1504,8 +1508,8 @@ Item {
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
         let nextIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
         targetIndex = nextIndex;
-        let selectionTouched = beginVisualMove(durationMs, now);
         let focusTouched = commitLogicalSelection(nextIndex);
+        let selectionTouched = beginVisualMove(durationMs, now);
         if (!selectionTouched && !focusTouched) {
             touchSelection();
         }
@@ -1982,13 +1986,16 @@ Item {
 
     function refreshScoreCachesForRevision() {
         if (selectedScoreStateCacheRevision === scoreRevision
-                && scoreSummaryCacheRevision === scoreRevision) {
+                && scoreSummaryCacheRevision === scoreRevision
+                && scoreLampRankCacheRevision === scoreRevision) {
             return;
         }
         selectedScoreStateCache = {};
         selectedScoreStateCacheRevision = scoreRevision;
         scoreSummaryCache = {};
         scoreSummaryCacheRevision = scoreRevision;
+        scoreLampRankCache = {};
+        scoreLampRankCacheRevision = scoreRevision;
     }
 
     function clearTypePriority(clear) {
@@ -2176,6 +2183,77 @@ Item {
         cached = buildScoreSummary(entryScores(item));
         if (key) {
             scoreSummaryCache[key] = cached;
+            scoreLampRankCache[key] = cached;
+        }
+        return cached;
+    }
+
+    function buildScoreLampRank(scoreList) {
+        if (!scoreList || scoreList.length === 0) {
+            return {
+                clearType: "NOPLAY",
+                lamp: 0,
+                rank: 0,
+                scoreRate: 0
+            };
+        }
+
+        let bestRate = -1;
+        let bestClearType = "NOPLAY";
+        let bestClearPriority = 0;
+
+        for (let score of scoreList) {
+            if (!score || !score.result) {
+                continue;
+            }
+
+            let clearType = clearTypeOf(score);
+            let clearPriority = clearTypePriority(clearType);
+            if (clearPriority > bestClearPriority) {
+                bestClearPriority = clearPriority;
+                bestClearType = clearType;
+            }
+
+            let maxPoints = score.result.maxPoints || 0;
+            if (maxPoints > 0) {
+                let rate = (score.result.points || 0) / maxPoints;
+                if (rate > bestRate) {
+                    bestRate = rate;
+                }
+            }
+        }
+
+        let scoreRate = Math.max(0, bestRate);
+        return {
+            clearType: bestClearType,
+            lamp: clearTypeLamp(bestClearType),
+            rank: rankForScoreRate(scoreRate),
+            scoreRate: scoreRate
+        };
+    }
+
+    function scoreLampRankForItem(item) {
+        refreshScoreCachesForRevision();
+        let state = selectedState();
+        if ((item === state.item || item === state.chartData)
+                && state.key
+                && state.scoreRevision === scoreRevision) {
+            if (state.summary) {
+                return state.summary;
+            }
+            return buildScoreLampRank(state.scoreList || emptyScoreList);
+        }
+
+        let key = scoreSummaryKey(item);
+        let cached = key ? scoreLampRankCache[key] : null;
+        if (cached) {
+            return cached;
+        }
+
+        let summary = key ? scoreSummaryCache[key] : null;
+        cached = summary || buildScoreLampRank(entryScores(item));
+        if (key) {
+            scoreLampRankCache[key] = cached;
         }
         return cached;
     }
@@ -2656,7 +2734,7 @@ Item {
             let key = folderLampKey(item);
             return key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
         }
-        return scoreSummaryForItem(item).lamp;
+        return scoreLampRankForItem(item).lamp;
     }
 
     function entryClearType(item) {
@@ -2666,7 +2744,7 @@ Item {
         if (isFolderLikeForLamp(item)) {
             return "NOPLAY";
         }
-        return scoreSummaryForItem(item).clearType;
+        return scoreLampRankForItem(item).clearType;
     }
 
     function beatorajaClearOptionForClearType(clearType) {
@@ -2714,11 +2792,11 @@ Item {
             }
             return rank;
         }
-        return scoreSummaryForItem(item).rank;
+        return scoreLampRankForItem(item).rank;
     }
 
     function entryScoreRate(item) {
-        return scoreSummaryForItem(item).scoreRate;
+        return scoreLampRankForItem(item).scoreRate;
     }
 
     function chartDataForItem(item) {
@@ -2779,6 +2857,7 @@ Item {
             let summaryKey = scoreSummaryKey(cached.chartData || item);
             if (summaryKey) {
                 scoreSummaryCache[summaryKey] = cached.summary;
+                scoreLampRankCache[summaryKey] = cached.summary;
             }
             return true;
         }
@@ -2790,6 +2869,7 @@ Item {
             summary = buildScoreSummary(scoreList);
             if (summaryKey) {
                 scoreSummaryCache[summaryKey] = summary;
+                scoreLampRankCache[summaryKey] = summary;
             }
         }
         let nextState = {
@@ -2810,6 +2890,7 @@ Item {
         if (stateKey) {
             selectedScoreStateCache[stateKey] = nextState;
             scoreSummaryCache[stateKey] = summary;
+            scoreLampRankCache[stateKey] = summary;
         }
         return true;
     }

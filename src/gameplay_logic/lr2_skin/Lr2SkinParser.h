@@ -403,6 +403,7 @@ struct Lr2SkinData
     int skinHeight = 480;
     QVariantList activeOptions;
     QVariantList usedOptions;
+    QVariantList usedElementOptions;
     QVariantList barLampVariants;
     QVariantList barRows;
     QVariantList helpFiles;
