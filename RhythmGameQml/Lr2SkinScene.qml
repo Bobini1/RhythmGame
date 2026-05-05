@@ -255,13 +255,13 @@ Item {
                         if (dstTimer === 0) {
                             return 0;
                         }
-                        return dstTimerCanFire ? root.skinTimerFireTime(dstTimer) : -1;
+                        return dstTimerCanFire ? root.skinTimerFireTime(dstTimer, usesLiveDstClock) : -1;
                     }
                     readonly property int srcTimerFire: {
                         if (srcTimer === 0) {
                             return 0;
                         }
-                        return srcTimerCanFire ? root.skinTimerFireTime(srcTimer) : -1;
+                        return srcTimerCanFire ? root.skinTimerFireTime(srcTimer, usesLiveSourceClock) : -1;
                     }
                     readonly property bool usesElementSkinTime: usesSkinTime
                         && model.type !== 0
@@ -329,14 +329,15 @@ Item {
                             readonly property int manualClock: 0
                             readonly property int renderClock: 1
                             readonly property int selectSourceClock: 2
+                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
                             readonly property bool useDirectSkinClock: elemLoader.usesSkinTime
                                 && !elemLoader.usesSelectHeldButtonTimer
                                 && !elemLoader.usesSpriteStateOverride
                             readonly property int spriteSkinClockMode: useDirectSkinClock
                                 ? (elemLoader.usesLiveDstClock ? selectSourceClock : renderClock)
                                 : manualClock
-                            readonly property int spriteSourceSkinClockMode: useDirectSkinClock && elemLoader.usesLiveSourceClock
-                                ? selectSourceClock
+                            readonly property int spriteSourceSkinClockMode: useDirectSkinClock && sourceAnimates
+                                ? (elemLoader.usesLiveSourceClock ? selectSourceClock : renderClock)
                                 : manualClock
                             readonly property int selectHeldSkinClock: elemLoader.usesSelectHeldButtonTimer
                                 ? (root.hasSelectHeldButtonTimers

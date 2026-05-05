@@ -55,13 +55,14 @@ QtObject {
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
         let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let liveClock = root.elementUsesLiveDstClock(dsts);
         let activeOptions = root.dstsUseActiveOptions(dsts)
             ? root.activeOptionsForElementDsts(dsts)
             : root.emptyActiveOptions;
         let base = Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
             clock,
-            root.skinTimerFireTime(timer),
+            root.skinTimerFireTime(timer, liveClock),
             activeOptions);
         if (!base) {
             return null;
@@ -136,13 +137,14 @@ QtObject {
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
         let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let liveClock = root.elementUsesLiveDstClock(dsts);
         let activeOptions = root.dstsUseActiveOptions(dsts)
             ? root.activeOptionsForElementDsts(dsts)
             : root.emptyActiveOptions;
         let base = Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
             clock,
-            root.skinTimerFireTime(timer),
+            root.skinTimerFireTime(timer, liveClock),
             activeOptions);
         if (!base) {
             return null;

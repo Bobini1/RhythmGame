@@ -935,9 +935,19 @@ Item {
                 || (src.resultChartType || 0) > 0));
     }
 
+    function dstsUseSelectPanelTimer(dsts) {
+        if (!dsts || dsts.length === 0 || !dsts[0]) {
+            return false;
+        }
+        const timer = dsts[0].timer || 0;
+        return (timer >= 21 && timer <= 26)
+            || (timer >= 31 && timer <= 36);
+    }
+
     function elementUsesLiveDstClock(dsts) {
         return root.effectiveScreenKey === "select"
-            && Lr2Timeline.dstsLoopContinuously(dsts);
+            && (root.dstsUseSelectPanelTimer(dsts)
+                || Lr2Timeline.dstsLoopContinuously(dsts));
     }
 
     function elementUsesLiveSourceClock(src) {
@@ -2171,6 +2181,11 @@ Item {
         return Input.col2sUp || Input.col2sDown;
     }
 
+    function gameplayLaneCoverChangingOptionActive() {
+        return root.isGameplayScreen()
+            && (Input.start1 || Input.select1 || Input.start2 || Input.select2);
+    }
+
     function queueGameplayRevision() {
         if (!root.isGameplayScreen()) {
             root.gameplayRevision++;
@@ -2231,6 +2246,7 @@ Item {
     }
 
     function resetGameplayTimers() {
+        root.stopLr2GameplayOptionRepeat();
         root.gameplayReadySkinTime = -1;
         root.gameplayStartSkinTime = -1;
         root.gameplayGaugeUpSkinTime1 = -1;
@@ -3403,8 +3419,8 @@ Item {
         return selectPanelController.addHeldButtonTimers(result);
     }
 
-    function selectHeldButtonTimerFireTime(timer) {
-        return selectPanelController.selectHeldButtonTimerFireTime(timer);
+    function selectHeldButtonTimerFireTime(timer, liveClock) {
+        return selectPanelController.selectHeldButtonTimerFireTime(timer, liveClock);
     }
 
     function spriteSkinTime(src, dsts) {
@@ -3439,8 +3455,24 @@ Item {
         return selectPanelController.gameplayOptionModifierHeldForKey(key);
     }
 
+    function gameplayOptionKeyHeld(key) {
+        return selectPanelController.gameplayOptionKeyHeld(key);
+    }
+
+    function isGameplayOptionModifierKey(key) {
+        return selectPanelController.isGameplayOptionModifierKey(key);
+    }
+
     function handleLr2GameplayOptionKey(key) {
         return selectPanelController.handleLr2GameplayOptionKey(key);
+    }
+
+    function releaseLr2GameplayOptionKey(key) {
+        return selectPanelController.releaseLr2GameplayOptionKey(key);
+    }
+
+    function stopLr2GameplayOptionRepeat() {
+        return selectPanelController.stopLr2GameplayOptionRepeat();
     }
 
     function handleLr2GameplayScratchTick(side, up) {
@@ -3487,10 +3519,11 @@ Item {
             return null;
         }
         const timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        const liveClock = root.elementUsesLiveDstClock(dsts);
         const state = Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
-            root.renderSkinTime,
-            root.skinTimerFireTime(timer),
+            liveClock ? root.selectSourceSkinTime : root.renderSkinTime,
+            root.skinTimerFireTime(timer, liveClock),
             root.dstsUseActiveOptions(dsts)
                 ? root.activeOptionsForElementDsts(dsts)
                 : root.emptyActiveOptions);
@@ -3782,8 +3815,8 @@ Item {
         return skinTiming.resultTimerFireTime(timer);
     }
 
-    function selectTimerFireTime(timer) {
-        return skinTiming.selectTimerFireTime(timer);
+    function selectTimerFireTime(timer, liveClock) {
+        return skinTiming.selectTimerFireTime(timer, liveClock);
     }
 
     function selectTimerCanFire(timer) {
@@ -3794,8 +3827,8 @@ Item {
         return skinTiming.skinTimerCanFire(timer);
     }
 
-    function skinTimerFireTime(timer) {
-        return skinTiming.skinTimerFireTime(timer);
+    function skinTimerFireTime(timer, liveClock) {
+        return skinTiming.skinTimerFireTime(timer, liveClock);
     }
 
     Lr2SelectContext {
@@ -4177,6 +4210,7 @@ Item {
         }
     }
     Input.onButtonReleased: (key) => {
+        root.releaseLr2GameplayOptionKey(key);
         root.releaseSelectHeldButtonTimer(key);
         if (root.isLr2RankingKey(key)) {
             root.closeLr2Ranking();

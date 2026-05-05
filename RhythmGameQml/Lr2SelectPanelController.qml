@@ -34,6 +34,10 @@ QtObject {
     readonly property int selectTargetScratchRepeatMillis: 50
     property int selectTargetScratchDirection: 0
     property real selectTargetScratchNextMs: 0
+    readonly property int gameplayOptionInitialRepeatMillis: 300
+    readonly property int gameplayOptionRepeatMillis: 50
+    property int gameplayOptionRepeatKey: -1
+    property bool gameplayOptionRepeating: false
     readonly property bool anyStartHeld: Input.start1 || Input.start2
     readonly property bool anySelectHeld: Input.select1 || Input.select2
     readonly property int heldOptionPanel: controller.anyStartHeld && controller.anySelectHeld ? 3
@@ -41,6 +45,12 @@ QtObject {
         : controller.anySelectHeld ? 2
         : 0
     property bool startHoldSuppressed: false
+
+    property Timer gameplayOptionRepeatTimer: Timer {
+        id: gameplayOptionRepeatTimer
+        repeat: false
+        onTriggered: controller.repeatGameplayOptionKey()
+    }
 
     onSelectPanelChanged: {
         if (controller.selectPanel > 0) {
@@ -69,6 +79,8 @@ QtObject {
     }
 
     onHeldOptionPanelChanged: controller.updateHeldOptionPanel()
+    onAnyStartHeldChanged: controller.handleGameplayOptionModifierChanged()
+    onAnySelectHeldChanged: controller.handleGameplayOptionModifierChanged()
 
     function updateHeldOptionPanel() {
         if (controller.heldOptionPanel > 0) {
@@ -88,16 +100,26 @@ QtObject {
         }
     }
 
+    function handleGameplayOptionModifierChanged() {
+        if (!root.isGameplayScreen()) {
+            return;
+        }
+        root.scheduleGameplayRuntimeActiveOptionsRefresh();
+        root.queueGameplayRevision();
+        if (controller.gameplayOptionRepeating
+                && !root.gameplayOptionModifierHeldForKey(controller.gameplayOptionRepeatKey)) {
+            controller.stopLr2GameplayOptionRepeat();
+        }
+    }
+
     readonly property var splitArrowButtons: controller.lookup([
         10, 11, 12, 20, 21, 22, 26, 27, 28, 33,
         40, 41, 42, 43, 46, 50, 51, 54, 55, 56,
-        57, 58, 59, 72, 74, 76, 77, 78, 83, 190, 308,
-        340, 341
+        57, 58, 59, 72, 74, 76, 77, 78, 83, 190, 308
     ])
     readonly property var imageSetButtons: controller.lookup([
         40, 41, 42, 43, 54, 55, 72, 74, 77, 78,
-        301, 302, 303, 304, 305, 306, 307, 308,
-        340, 341
+        301, 302, 303, 304, 305, 306, 307, 308
     ])
     readonly property var fixedZeroButtonFrames: controller.lookup([
         13, 14, 18, 44, 45, 74, 75, 80, 81, 82, 83,
@@ -170,9 +192,7 @@ QtObject {
         "73": () => root.lr2BgaSizeIndex,
         "77": () => root.lr2BeatorajaTargetIndex,
         "78": () => root.lr2GaugeAutoShiftIndex,
-        "308": () => root.lr2LnModeIndex,
-        "340": () => root.lr2JudgeAlgorithmIndex,
-        "341": () => root.lr2BottomShiftableGaugeIndex
+        "308": () => root.lr2LnModeIndex
     })
     readonly property var selectButtonActions: ({
         "10": delta => {
@@ -340,9 +360,7 @@ QtObject {
         "308": delta => root.setLnModeIndex(root.lr2LnModeIndex + delta),
         "316": () => controller.playReplaySlot(1),
         "317": () => controller.playReplaySlot(2),
-        "318": () => controller.playReplaySlot(3),
-        "340": delta => root.setJudgeAlgorithmIndex(root.lr2JudgeAlgorithmIndex + delta),
-        "341": delta => root.setBottomShiftableGaugeIndex(root.lr2BottomShiftableGaugeIndex + delta)
+        "318": () => controller.playReplaySlot(3)
     })
 
     function lookup(values) {
@@ -602,7 +620,7 @@ QtObject {
         result[timer] = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
     }
 
-    function selectHeldButtonTimerFireTime(timer) {
+    function selectHeldButtonTimerFireTime(timer, liveClock) {
         if (root.effectiveScreenKey !== "select"
                 || root.selectPanel !== 1
                 || !root.isSelectHeldButtonTimer(timer)) {
@@ -659,7 +677,11 @@ QtObject {
         }
 
         let start = root.selectHeldButtonTimerStarts[timer];
-        return start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
+        let liveStart = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
+        if (liveClock === true) {
+            return liveStart;
+        }
+        return root.renderSkinTime - Math.max(0, root.selectLiveSkinTime - liveStart);
     }
 
     function addHeldButtonTimers(result) {
@@ -816,7 +838,89 @@ QtObject {
             || (!root.battleModeActive() && (Input.start2 || Input.select2));
     }
 
-    function handleLr2GameplayOptionKey(key) {
+    function gameplayOptionKeyHeld(key) {
+        switch (key) {
+        case BmsKey.Col11:
+            return Input.col11;
+        case BmsKey.Col12:
+            return Input.col12;
+        case BmsKey.Col13:
+            return Input.col13;
+        case BmsKey.Col14:
+            return Input.col14;
+        case BmsKey.Col15:
+            return Input.col15;
+        case BmsKey.Col16:
+            return Input.col16;
+        case BmsKey.Col17:
+            return Input.col17;
+        case BmsKey.Col21:
+            return Input.col21;
+        case BmsKey.Col22:
+            return Input.col22;
+        case BmsKey.Col23:
+            return Input.col23;
+        case BmsKey.Col24:
+            return Input.col24;
+        case BmsKey.Col25:
+            return Input.col25;
+        case BmsKey.Col26:
+            return Input.col26;
+        case BmsKey.Col27:
+            return Input.col27;
+        default:
+            return false;
+        }
+    }
+
+    function isGameplayOptionModifierKey(key) {
+        return key === BmsKey.Start1
+            || key === BmsKey.Start2
+            || key === BmsKey.Select1
+            || key === BmsKey.Select2;
+    }
+
+    function startLr2GameplayOptionRepeat(key) {
+        controller.gameplayOptionRepeatKey = key;
+        controller.gameplayOptionRepeating = true;
+        gameplayOptionRepeatTimer.interval = controller.gameplayOptionInitialRepeatMillis;
+        gameplayOptionRepeatTimer.restart();
+    }
+
+    function stopLr2GameplayOptionRepeat() {
+        controller.gameplayOptionRepeating = false;
+        controller.gameplayOptionRepeatKey = -1;
+        gameplayOptionRepeatTimer.stop();
+    }
+
+    function releaseLr2GameplayOptionKey(key) {
+        if (!controller.gameplayOptionRepeating) {
+            return;
+        }
+        if (key === controller.gameplayOptionRepeatKey
+                || (controller.isGameplayOptionModifierKey(key)
+                    && !root.gameplayOptionModifierHeldForKey(controller.gameplayOptionRepeatKey))) {
+            controller.stopLr2GameplayOptionRepeat();
+        }
+    }
+
+    function repeatGameplayOptionKey() {
+        if (!controller.gameplayOptionRepeating) {
+            return;
+        }
+        let key = controller.gameplayOptionRepeatKey;
+        if (!root.isGameplayScreen()
+                || !root.gameplayOptionKeyHeld(key)
+                || !root.gameplayOptionModifierHeldForKey(key)
+                || !controller.applyLr2GameplayOptionKey(key)) {
+            controller.stopLr2GameplayOptionRepeat();
+            return;
+        }
+        gameplayOptionRepeatTimer.interval = controller.gameplayOptionRepeatMillis;
+        gameplayOptionRepeatTimer.restart();
+    }
+
+    function applyLr2GameplayOptionKey(key) {
         if (!root.isGameplayScreen() || !root.gameplayOptionModifierHeldForKey(key)) {
             return false;
         }
@@ -860,6 +964,14 @@ QtObject {
         default:
             return false;
         }
+    }
+
+    function handleLr2GameplayOptionKey(key) {
+        if (!controller.applyLr2GameplayOptionKey(key)) {
+            return false;
+        }
+        controller.startLr2GameplayOptionRepeat(key);
+        return true;
     }
 
     function handleLr2GameplayScratchTick(side, up) {

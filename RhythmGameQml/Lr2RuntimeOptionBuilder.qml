@@ -441,6 +441,9 @@ QtObject {
     }
 
     function appendGameplayLaneCoverOptions(options, side) {
+        if (side !== 1) {
+            return;
+        }
         let vars = host.generalVarsForSide(side);
         if (vars && vars.laneCoverOn) {
             root.addOption(options, 271);
@@ -519,11 +522,8 @@ QtObject {
             root.appendGameplaySideOptions(options, 2);
         }
         root.appendJudgementExistOptions(options, host.gameplayScore(1));
-        if (host.gameplaySudChanging(1)) {
+        if (host.gameplayLaneCoverChangingOptionActive()) {
             root.addOption(options, 270);
-        }
-        if (host.gameplaySudChanging(2)) {
-            root.addOption(options, 271);
         }
 
         root.addOption(options, 142); // autoscratch off.

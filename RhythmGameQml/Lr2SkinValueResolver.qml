@@ -28,11 +28,14 @@ QtObject {
             || (num >= 200 && num <= 242)
             || num === 290 || num === 291
             || num === 300 || num === 308 || (num >= 320 && num <= 330)
-            || num === 340 || num === 341
             || (num >= 350 && num <= 368)
             || (num >= 410 && num <= 427)
             || num === 1163 || num === 1164
             || (num >= 1312 && num <= 1327);
+    }
+
+    function optionOnlyRankId(id) {
+        return id >= 340 && id <= 347;
     }
 
     function optionText(labels, index) {
@@ -130,10 +133,6 @@ QtObject {
             return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP2);
         case 308:
             return root.optionText(root.lr2LnModeLabels, root.lr2LnModeIndex);
-        case 340:
-            return root.optionText(root.lr2JudgeAlgorithmLabels, root.lr2JudgeAlgorithmIndex);
-        case 341:
-            return root.optionText(root.lr2BottomShiftableGaugeLabels, root.lr2BottomShiftableGaugeIndex);
         case 120:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 121:
@@ -1007,10 +1006,6 @@ QtObject {
                 return root.dateTimeNumber(num);
             case 308:
                 return root.lr2LnModeIndex;
-            case 340:
-                return root.lr2JudgeAlgorithmIndex;
-            case 341:
-                return root.lr2BottomShiftableGaugeIndex;
             case 310:
                 return root.hiSpeedInteger(1);
             case 311:
@@ -1145,10 +1140,6 @@ QtObject {
             return 0;
         case 308:
             return root.lr2LnModeIndex;
-        case 340:
-            return root.lr2JudgeAlgorithmIndex;
-        case 341:
-            return root.lr2BottomShiftableGaugeIndex;
         default:
             return root.resolveNumber(id);
         }
@@ -1200,7 +1191,13 @@ QtObject {
     }
 
     function numberForceHidden(src) {
-        if (!src || !src.nowCombo || !root.isGameplayScreen()) {
+        if (!src) {
+            return false;
+        }
+        if (resolver.optionOnlyRankId(src.num || 0)) {
+            return true;
+        }
+        if (!src.nowCombo || !root.isGameplayScreen()) {
             return false;
         }
         let side = src.side || (src.timer === 47 ? 2 : 1);

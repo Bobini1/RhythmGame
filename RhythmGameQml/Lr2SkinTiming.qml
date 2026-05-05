@@ -229,10 +229,19 @@ QtObject {
         return -1;
     }
 
-    function selectTimerFireTime(timer) {
+    function selectTimerBaseTime(liveClock) {
+        return liveClock === true ? root.selectSourceSkinTime : root.renderSkinTime;
+    }
+
+    function selectElapsedSince(startSkinTime) {
+        return Math.max(0, root.selectLiveSkinTime - startSkinTime);
+    }
+
+    function selectTimerFireTime(timer, liveClock) {
         if (!root.host) {
             return -1;
         }
+        let baseTime = root.selectTimerBaseTime(liveClock);
         if (timer === 0) {
             return 0;
         }
@@ -243,7 +252,7 @@ QtObject {
             return root.selectDatabaseLoadedSkinTime;
         }
         if (timer === 11) {
-            return root.renderSkinTime - root.selectInfoElapsed;
+            return baseTime - root.selectInfoElapsed;
         }
         if (timer === 14 && root.host.acceptsInput) {
             return root.selectNoScrollStartSkinTime;
@@ -262,26 +271,27 @@ QtObject {
         if (timer >= 21 && timer <= 26) {
             let panel = timer - 20;
             return root.host.selectPanel === panel
-                ? root.renderSkinTime - root.host.selectPanelElapsed
+                ? baseTime - root.selectElapsedSince(root.host.selectPanelStartSkinTime)
                 : -1;
         }
         if (timer >= 31 && timer <= 36) {
             let panel = timer - 30;
+            let elapsed = root.selectElapsedSince(root.host.selectPanelCloseStartSkinTime);
             return root.host.selectPanelClosing === panel
-                    && root.host.selectPanelCloseElapsed < root.host.selectPanelHoldTime
-                ? root.renderSkinTime - root.host.selectPanelCloseElapsed
+                    && elapsed < root.host.selectPanelHoldTime
+                ? baseTime - elapsed
                 : -1;
         }
         if (timer === 15 && root.host.lr2ReadmeMode === 1) {
-            return root.renderSkinTime - root.host.lr2ReadmeElapsed;
+            return baseTime - root.host.lr2ReadmeElapsed;
         }
         if (timer === 16 && root.host.lr2ReadmeMode === 2) {
-            return root.renderSkinTime - root.host.lr2ReadmeElapsed;
+            return baseTime - root.host.lr2ReadmeElapsed;
         }
         if (root.host.lr2RankingTransitionPhase !== 0 && timer === root.host.lr2RankingTransitionPhase) {
-            return root.renderSkinTime - root.host.lr2RankingTransitionElapsed;
+            return baseTime - root.host.lr2RankingTransitionElapsed;
         }
-        return root.host.selectHeldButtonTimerFireTime(timer);
+        return root.host.selectHeldButtonTimerFireTime(timer, liveClock);
     }
 
     function selectTimerCanFire(timer) {
@@ -320,7 +330,7 @@ QtObject {
         return false;
     }
 
-    function skinTimerFireTime(timer) {
+    function skinTimerFireTime(timer, liveClock) {
         if (!root.host) {
             return -1;
         }
@@ -335,7 +345,7 @@ QtObject {
             return root.resultTimerFireTime(idx);
         }
         if (root.host.effectiveScreenKey === "select") {
-            return root.selectTimerFireTime(idx);
+            return root.selectTimerFireTime(idx, liveClock);
         }
         return -1;
     }

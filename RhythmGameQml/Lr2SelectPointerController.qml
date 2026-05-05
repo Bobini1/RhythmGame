@@ -73,10 +73,11 @@ QtObject {
         const dstTimer = element.dsts && element.dsts.length > 0
             ? (element.dsts[0].timer || 0)
             : 0;
+        const liveClock = root.elementUsesLiveDstClock(element.dsts);
         return Lr2Timeline.getCurrentStateFromTimerFire(
             element.dsts,
-            root.renderSkinTime,
-            root.skinTimerFireTime(dstTimer),
+            liveClock ? root.selectSourceSkinTime : root.renderSkinTime,
+            root.skinTimerFireTime(dstTimer, liveClock),
             root.dstsUseActiveOptions(element.dsts)
                 ? root.activeOptionsForElementDsts(element.dsts)
                 : root.emptyActiveOptions);
