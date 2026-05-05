@@ -378,6 +378,7 @@ Item {
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
                                 colorKeyEnabled: skinModel.hasTransColor
+                                screenRoot: sceneRoot.root
                                 frameOverride: elemLoader.usesButtonFrameOverride ? root.buttonFrame(model.src) : -1
                                 stateOverride: elemLoader.usesSpriteStateOverride
                                     ? root.spriteStateOverride(model.src, model.dsts, parent.spriteSkinClock)
@@ -503,6 +504,7 @@ Item {
                             animationRevision: root.numberAnimationRevision(model.src)
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
+                            screenRoot: sceneRoot.root
                         }
                     }
 

@@ -259,13 +259,18 @@ QtObject {
     }
 
     readonly property int lr2HidSudIndexP1: {
-        let vars = root.generalVarsForSide(1);
-        if (!vars) return 0;
-        return (vars.hiddenOn ? 1 : 0) + (vars.laneCoverOn ? 2 : 0);
+        return root.lr2HidSudIndex(1);
     }
     readonly property int lr2HidSudIndexP2: {
-        let vars = root.generalVarsForSide(2);
-        if (!vars) return 0;
+        return root.lr2HidSudIndex(2);
+    }
+
+    function lr2HidSudIndex(side) {
+        let normalizedSide = side === 2 ? 2 : 1;
+        let vars = root.generalVarsForSide(normalizedSide);
+        if (!vars) {
+            return 0;
+        }
         return (vars.hiddenOn ? 1 : 0) + (vars.laneCoverOn ? 2 : 0);
     }
 
@@ -405,6 +410,13 @@ QtObject {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.laneCoverOn = root.wrapValue(index, 2) === 1;
+        }
+    }
+
+    function toggleLaneCover(side) {
+        let vars = root.generalVarsForSide(side);
+        if (vars) {
+            vars.laneCoverOn = !vars.laneCoverOn;
         }
     }
 
@@ -649,6 +661,21 @@ QtObject {
             return;
         }
         vars.laneCoverRatio = Math.max(0, Math.min(1, (vars.laneCoverRatio || 0) + steps * 0.005));
+    }
+
+    function adjustGameplayCoverValue(side, steps, changeLift) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let value = (steps || 0) * 0.005;
+        if (vars.laneCoverOn || (!vars.liftOn && !vars.hiddenOn)) {
+            vars.laneCoverRatio = Math.max(0, Math.min(1, (vars.laneCoverRatio || 0) + value));
+        } else if (vars.liftOn && (!vars.hiddenOn || changeLift)) {
+            vars.liftRatio = Math.max(0, Math.min(1, (vars.liftRatio || 0) - value));
+        } else {
+            vars.hiddenRatio = Math.max(0, Math.min(1, (vars.hiddenRatio || 0) - value));
+        }
     }
 
     function adjustOffset(delta) {

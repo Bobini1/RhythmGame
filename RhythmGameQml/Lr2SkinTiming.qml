@@ -133,7 +133,17 @@ QtObject {
         }
         if (root.host.isGameplayScreen()) {
             root.host.gameplayTimerRevision;
-            return root.host.gameplayTimerValues;
+            let values = root.host.gameplayTimerValues || root.zeroTimers;
+            let rhythmTimer = root.host.gameplayRhythmTimerSkinTime();
+            if (rhythmTimer < 0) {
+                return values;
+            }
+            let result = {};
+            for (let key in values) {
+                result[key] = values[key];
+            }
+            result[140] = rhythmTimer;
+            return result;
         }
         if (root.host.isResultScreen()) {
             let resultTimers = { "0": 0 };
@@ -194,6 +204,9 @@ QtObject {
     function gameplayTimerFireTime(timer) {
         if (!root.host) {
             return -1;
+        }
+        if (Number(timer || 0) === 140) {
+            return root.host.gameplayRhythmTimerSkinTime();
         }
         root.host.gameplayTimerRevision;
         let value = root.host.gameplayTimerValues ? root.host.gameplayTimerValues[timer] : undefined;

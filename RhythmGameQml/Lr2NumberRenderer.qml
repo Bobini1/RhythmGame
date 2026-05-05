@@ -23,6 +23,7 @@ Item {
     property bool colorKeyEnabled: false
     property color transColor: "black"
     property var stateOverride: null
+    property var screenRoot: null
 
     readonly property bool hasStaticTimelineState: !stateOverride
         && !forceHidden
@@ -42,18 +43,23 @@ Item {
         timerFire: root.timerFire
         activeOptions: root.timelineActiveOptions
     }
-    readonly property var objectState: root.forceHidden ? null : (root.stateOverride || root.staticTimelineState)
-    readonly property bool hasCurrentState: !!objectState || (!root.forceHidden && root.timelineState.hasState)
-    readonly property real stateX: objectState ? (objectState.x || 0) : (timelineState.hasState ? timelineState.stateX : 0)
-    readonly property real stateY: objectState ? (objectState.y || 0) : (timelineState.hasState ? timelineState.stateY : 0)
-    readonly property real stateW: objectState ? (objectState.w || 0) : (timelineState.hasState ? timelineState.stateW : 0)
-    readonly property real stateH: objectState ? (objectState.h || 0) : (timelineState.hasState ? timelineState.stateH : 0)
-    readonly property real stateA: objectState ? (objectState.a === undefined ? 255 : objectState.a) : (timelineState.hasState ? timelineState.stateA : 0)
-    readonly property real stateR: objectState ? (objectState.r === undefined ? 255 : objectState.r) : (timelineState.hasState ? timelineState.stateR : 255)
-    readonly property real stateG: objectState ? (objectState.g === undefined ? 255 : objectState.g) : (timelineState.hasState ? timelineState.stateG : 255)
-    readonly property real stateB: objectState ? (objectState.b === undefined ? 255 : objectState.b) : (timelineState.hasState ? timelineState.stateB : 255)
-    readonly property int stateBlend: objectState ? (objectState.blend || 0) : (timelineState.hasState ? timelineState.stateBlend : 0)
-    readonly property int stateFilter: objectState ? (objectState.filter || 0) : (timelineState.hasState ? timelineState.stateFilter : 0)
+    readonly property var rawObjectState: root.forceHidden ? null : (root.stateOverride || root.staticTimelineState)
+    readonly property var rawTimelineState: !root.forceHidden && root.timelineState.hasState ? root.timelineState.state : null
+    readonly property var rawCurrentState: rawObjectState || rawTimelineState
+    readonly property var objectState: root.screenRoot && root.screenRoot.applyLr2DstOffsets
+        ? root.screenRoot.applyLr2DstOffsets(root.rawCurrentState, root.dsts, root.srcData ? root.srcData.side || 0 : 0)
+        : root.rawCurrentState
+    readonly property bool hasCurrentState: !!objectState
+    readonly property real stateX: objectState ? (objectState.x || 0) : 0
+    readonly property real stateY: objectState ? (objectState.y || 0) : 0
+    readonly property real stateW: objectState ? (objectState.w || 0) : 0
+    readonly property real stateH: objectState ? (objectState.h || 0) : 0
+    readonly property real stateA: objectState ? (objectState.a === undefined ? 255 : objectState.a) : 0
+    readonly property real stateR: objectState ? (objectState.r === undefined ? 255 : objectState.r) : 255
+    readonly property real stateG: objectState ? (objectState.g === undefined ? 255 : objectState.g) : 255
+    readonly property real stateB: objectState ? (objectState.b === undefined ? 255 : objectState.b) : 255
+    readonly property int stateBlend: objectState ? (objectState.blend || 0) : 0
+    readonly property int stateFilter: objectState ? (objectState.filter || 0) : 0
     readonly property int blendMode: {
         let raw = hasCurrentState ? stateBlend : 1;
         if (raw === 0 && !root.colorKeyEnabled) return 1;

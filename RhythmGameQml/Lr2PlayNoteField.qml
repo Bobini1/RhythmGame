@@ -141,6 +141,81 @@ Item {
         return Math.max(1, Math.abs(dst && dst.y ? dst.y : 480));
     }
 
+    function lr2HidSudMode(side) {
+        if (screenRoot && screenRoot.lr2HidSudIndex) {
+            return screenRoot.lr2HidSudIndex(side);
+        }
+        return 0;
+    }
+
+    function generalVarsForSide(side) {
+        return screenRoot && screenRoot.generalVarsForSide
+            ? screenRoot.generalVarsForSide(side)
+            : null;
+    }
+
+    function laneCoverRatio(side) {
+        let vars = generalVarsForSide(side);
+        return vars ? Math.max(0, Math.min(1, vars.laneCoverRatio || 0)) : 0;
+    }
+
+    function hiddenRatio(side) {
+        let vars = generalVarsForSide(side);
+        return vars ? Math.max(0, Math.min(1, vars.hiddenRatio || 0)) : 0;
+    }
+
+    function laneBottom(dst) {
+        return dst && dst.y !== undefined ? dst.y : 480;
+    }
+
+    function laneVisibleTravelHeight(side, dst, includeLaneCover) {
+        let vars = generalVarsForSide(side);
+        let visibleHeight = dstTravelHeight(dst);
+        if (vars && vars.liftOn) {
+            visibleHeight *= Math.max(0, Math.min(1 - (vars.liftRatio || 0), 1));
+        }
+        if (includeLaneCover && vars && vars.laneCoverOn) {
+            visibleHeight *= Math.max(0, Math.min(1 - (vars.laneCoverRatio || 0), 1));
+        }
+        return Math.max(1, visibleHeight);
+    }
+
+    function laneCoverClipTop(side, dst) {
+        let vars = generalVarsForSide(side);
+        if (!vars || !vars.laneCoverOn) {
+            return 0;
+        }
+        return Math.max(0, laneBottom(dst) - laneVisibleTravelHeight(side, dst, true));
+    }
+
+    function hiddenClipBottom(side, dst) {
+        let vars = generalVarsForSide(side);
+        let fullHeight = skinModel && skinModel.skinHeight ? skinModel.skinHeight : 480;
+        if (!vars || !vars.hiddenOn) {
+            return fullHeight;
+        }
+        let bottom = laneBottom(dst);
+        let visibleHeight = laneVisibleTravelHeight(side, dst, false);
+        return Math.max(0, bottom - visibleHeight * hiddenRatio(side));
+    }
+
+    function hidSudClipTop(side, dst) {
+        let mode = lr2HidSudMode(side);
+        if (mode === 2 || mode === 3) {
+            return laneCoverClipTop(side, dst);
+        }
+        return 0;
+    }
+
+    function hidSudClipBottom(side, dst) {
+        let mode = lr2HidSudMode(side);
+        let fullHeight = skinModel && skinModel.skinHeight ? skinModel.skinHeight : 480;
+        if (mode === 1 || mode === 3) {
+            return hiddenClipBottom(side, dst);
+        }
+        return fullHeight;
+    }
+
     function sideSpeedHeight(side, fallbackDst) {
         let start = side === 2 ? 10 : 0;
         let end = side === 2 ? 20 : 10;
@@ -247,6 +322,9 @@ Item {
                 return player ? player.position || 0 : 0;
             }
             property real layerSkinY: root.movingLayerY(playerPosition, dstState, multiplier)
+            property int hidSudMode: root.lr2HidSudMode(side)
+            property real clipTopSkin: root.hidSudClipTop(side, dstState)
+            property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
 
             width: parent.width
             height: parent.height
@@ -268,28 +346,39 @@ Item {
             Component.onCompleted: syncBarLineWindow()
 
             Item {
-                id: lineLayer
+                id: lineClip
 
                 width: parent.width
-                height: parent.height
-                y: lineArea.layerSkinY * root.skinScale
+                height: lineArea.hidSudMode > 0
+                    ? Math.max(1, (lineArea.clipBottomSkin - lineArea.clipTopSkin) * root.skinScale)
+                    : parent.height
+                y: lineArea.hidSudMode > 0 ? lineArea.clipTopSkin * root.skinScale : 0
+                clip: lineArea.hidSudMode > 0
 
-                Repeater {
-                    model: lineArea.barLinesState || []
+                Item {
+                    id: lineLayer
 
-                    delegate: Lr2FastSprite {
-                        id: lineItem
+                    width: parent.width
+                    height: lineArea.height
+                    y: lineArea.layerSkinY * root.skinScale - lineClip.y
 
-                        required property var display
+                    Repeater {
+                        model: lineArea.barLinesState || []
 
-                        srcData: lineArea.lineSource
-                        stateData: root.spriteState(
-                            lineArea.dstState,
-                            root.lineLocalY(display, lineArea.multiplier),
-                            lineArea.dstState ? lineArea.dstState.h : 0)
-                        skinTime: root.renderSkinTime
-                        timers: root.timers
-                        scaleOverride: root.skinScale
+                        delegate: Lr2FastSprite {
+                            id: lineItem
+
+                            required property var display
+
+                            srcData: lineArea.lineSource
+                            stateData: root.spriteState(
+                                lineArea.dstState,
+                                root.lineLocalY(display, lineArea.multiplier),
+                                lineArea.dstState ? lineArea.dstState.h : 0)
+                            skinTime: root.renderSkinTime
+                            timers: root.timers
+                            scaleOverride: root.skinScale
+                        }
                     }
                 }
             }
@@ -348,6 +437,9 @@ Item {
                 return player ? player.position || 0 : 0;
             }
             property real layerSkinY: root.movingLayerY(playerPosition, dstState, multiplier)
+            property int hidSudMode: root.lr2HidSudMode(side)
+            property real clipTopSkin: root.hidSudClipTop(side, dstState)
+            property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
 
             width: parent.width
             height: parent.height
@@ -387,86 +479,97 @@ Item {
             Component.onCompleted: syncColumnWindow()
 
             Item {
-                id: noteLayer
+                id: noteClip
 
                 width: parent.width
-                height: parent.height
-                y: lane.layerSkinY * root.skinScale
+                height: lane.hidSudMode > 0
+                    ? Math.max(1, (lane.clipBottomSkin - lane.clipTopSkin) * root.skinScale)
+                    : parent.height
+                y: lane.hidSudMode > 0 ? lane.clipTopSkin * root.skinScale : 0
+                clip: lane.hidSudMode > 0
 
-                Repeater {
-                    model: lane.columnState || []
+                Item {
+                    id: noteLayer
 
-                    delegate: Item {
-                        id: noteItem
+                    width: parent.width
+                    height: lane.height
+                    y: lane.layerSkinY * root.skinScale - noteClip.y
 
-                        required property var display
-                        required property int index
+                    Repeater {
+                        model: lane.columnState || []
 
-                        readonly property var hitData: display ? display.hitData : null
-                        readonly property bool visibleNote: display
-                            && display.note
-                            && (display.note.type === note.Type.LongNoteBegin
-                                || display.note.type === note.Type.LongNoteEnd
-                                || !hitData)
-                        readonly property bool heldLongNote: display
-                            && display.note
-                            && display.note.type === note.Type.LongNoteBegin
-                            && hitData
-                            && !display.otherEndHitData
-                        readonly property bool staticLongNote: display
-                            && display.note
-                            && display.note.type === note.Type.LongNoteBegin
-                            && (heldLongNote || display.belowBottom)
-                            && root.nextNotePosition(display, lane.notes) > lane.playerPosition
-                        readonly property real localY: (staticLongNote
-                            ? -lane.playerPosition
-                            : -root.notePosition(display)) * lane.multiplier
-                        readonly property var noteSource: lane.sourceForDisplay(display)
-                        readonly property var lnBodySource: heldLongNote
-                            ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
-                            : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
-                        readonly property var noteState: root.spriteState(
-                            lane.dstState,
-                            localY,
-                            lane.dstState ? lane.dstState.h : 0)
+                        delegate: Item {
+                            id: noteItem
 
-                        visible: visibleNote && !!noteSource && !!noteState
-                        width: parent.width
-                        height: parent.height
-                        z: -index
+                            required property var display
+                            required property int index
 
-                        Loader {
-                            id: lnBodyLoader
-
-                            active: noteItem.visible
+                            readonly property var hitData: display ? display.hitData : null
+                            readonly property bool visibleNote: display
+                                && display.note
+                                && (display.note.type === note.Type.LongNoteBegin
+                                    || display.note.type === note.Type.LongNoteEnd
+                                    || !hitData)
+                            readonly property bool heldLongNote: display
+                                && display.note
                                 && display.note.type === note.Type.LongNoteBegin
-                                && !!noteItem.lnBodySource
-                                && root.nextNotePosition(display, lane.notes) < Infinity
+                                && hitData
+                                && !display.otherEndHitData
+                            readonly property bool staticLongNote: display
+                                && display.note
+                                && display.note.type === note.Type.LongNoteBegin
+                                && (heldLongNote || display.belowBottom)
+                                && root.nextNotePosition(display, lane.notes) > lane.playerPosition
+                            readonly property real localY: (staticLongNote
+                                ? -lane.playerPosition
+                                : -root.notePosition(display)) * lane.multiplier
+                            readonly property var noteSource: lane.sourceForDisplay(display)
+                            readonly property var lnBodySource: heldLongNote
+                                ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
+                                : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
+                            readonly property var noteState: root.spriteState(
+                                lane.dstState,
+                                localY,
+                                lane.dstState ? lane.dstState.h : 0)
 
-                            sourceComponent: Component {
-                                Lr2FastSprite {
-                                    srcData: noteItem.lnBodySource
-                                    skinTime: root.renderSkinTime
-                                    timers: root.timers
-                                    scaleOverride: root.skinScale
-                                    tileVertically: true
-                                    stateData: {
-                                        let nextY = -root.nextNotePosition(display, lane.notes) * lane.multiplier;
-                                        let noteHeight = lane.dstState ? Math.abs(lane.dstState.h || 0) : 0;
-                                        let top = Math.min(noteItem.localY, nextY) + noteHeight;
-                                        let height = Math.max(1, Math.abs(noteItem.localY - nextY) - noteHeight);
-                                        return root.spriteState(lane.dstState, top, height);
+                            visible: visibleNote && !!noteSource && !!noteState
+                            width: parent.width
+                            height: parent.height
+                            z: -index
+
+                            Loader {
+                                id: lnBodyLoader
+
+                                active: noteItem.visible
+                                    && display.note.type === note.Type.LongNoteBegin
+                                    && !!noteItem.lnBodySource
+                                    && root.nextNotePosition(display, lane.notes) < Infinity
+
+                                sourceComponent: Component {
+                                    Lr2FastSprite {
+                                        srcData: noteItem.lnBodySource
+                                        skinTime: root.renderSkinTime
+                                        timers: root.timers
+                                        scaleOverride: root.skinScale
+                                        tileVertically: true
+                                        stateData: {
+                                            let nextY = -root.nextNotePosition(display, lane.notes) * lane.multiplier;
+                                            let noteHeight = lane.dstState ? Math.abs(lane.dstState.h || 0) : 0;
+                                            let top = Math.min(noteItem.localY, nextY) + noteHeight;
+                                            let height = Math.max(1, Math.abs(noteItem.localY - nextY) - noteHeight);
+                                            return root.spriteState(lane.dstState, top, height);
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        Lr2FastSprite {
-                            srcData: noteItem.noteSource
-                            stateData: noteItem.noteState
-                            skinTime: root.renderSkinTime
-                            timers: root.timers
-                            scaleOverride: root.skinScale
+                            Lr2FastSprite {
+                                srcData: noteItem.noteSource
+                                stateData: noteItem.noteState
+                                skinTime: root.renderSkinTime
+                                timers: root.timers
+                                scaleOverride: root.skinScale
+                            }
                         }
                     }
                 }

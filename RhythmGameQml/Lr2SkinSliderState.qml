@@ -47,6 +47,13 @@ QtObject {
             && src.sliderRange > 0;
     }
 
+    function isLr2NumberRefSlider(src) {
+        return !!src
+            && !!src.slider
+            && !!src.sliderRefNumber
+            && src.sliderRange > 0;
+    }
+
     function trackState(src, dsts, skinTime) {
         if (!src || !src.slider) {
             return null;
@@ -230,7 +237,28 @@ QtObject {
         }
         root.globalSkinTime;
         let side = src.sliderType === 5 ? 2 : 1;
-        let position = Math.max(0, Math.min(1, root.laneCoverNumber(side) / 1000));
+        let position = Math.max(0, Math.min(1, root.gameplayLaneCoverSliderPosition(side)));
+        return sliders.translatedState(src, dsts, position, skinTime);
+    }
+
+    function numberRefSliderState(src, dsts, skinTime) {
+        if (!sliders.isLr2NumberRefSlider(src)) {
+            return null;
+        }
+        let minValue = src.sliderMinValue || 0;
+        let maxValue = src.sliderMaxValue || 0;
+        if (minValue === maxValue) {
+            return sliders.translatedState(src, dsts, 0, skinTime);
+        }
+        let value = root.resolveNumber(src.sliderType || 0);
+        let position = 0;
+        if (minValue < maxValue) {
+            position = value <= minValue ? 0
+                : (value >= maxValue ? 1 : Math.abs((value - minValue) / (maxValue - minValue)));
+        } else {
+            position = value <= maxValue ? 1
+                : (value >= minValue ? 0 : Math.abs((value - minValue) / (maxValue - minValue)));
+        }
         return sliders.translatedState(src, dsts, position, skinTime);
     }
 

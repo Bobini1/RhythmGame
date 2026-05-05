@@ -14,6 +14,7 @@
 #include "support/QStringToPath.h"
 #include "support/Exception.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstring>
 #include <qcolor.h>

@@ -36,8 +36,12 @@ QtObject {
     property real selectTargetScratchNextMs: 0
     readonly property int gameplayOptionInitialRepeatMillis: 300
     readonly property int gameplayOptionRepeatMillis: 50
+    readonly property int gameplayLaneCoverDoublePressMillis: 500
     property int gameplayOptionRepeatKey: -1
     property bool gameplayOptionRepeating: false
+    property var gameplayLastStartPressMs: ({})
+    property bool gameplayStartSelectComboHeld: false
+    property bool gameplayChangeLiftTarget: false
     readonly property bool anyStartHeld: Input.start1 || Input.start2
     readonly property bool anySelectHeld: Input.select1 || Input.select2
     readonly property int heldOptionPanel: controller.anyStartHeld && controller.anySelectHeld ? 3
@@ -104,6 +108,11 @@ QtObject {
         if (!root.isGameplayScreen()) {
             return;
         }
+        let startAndSelectHeld = controller.anyStartHeld && controller.anySelectHeld;
+        if (startAndSelectHeld && !controller.gameplayStartSelectComboHeld) {
+            controller.gameplayChangeLiftTarget = !controller.gameplayChangeLiftTarget;
+        }
+        controller.gameplayStartSelectComboHeld = startAndSelectHeld;
         root.scheduleGameplayRuntimeActiveOptionsRefresh();
         root.queueGameplayRevision();
         if (controller.gameplayOptionRepeating
@@ -830,12 +839,23 @@ QtObject {
         return root.keyUsesPlayer2(key) && root.battleModeActive() ? 2 : 1;
     }
 
-    function gameplayOptionModifierHeldForKey(key) {
-        if (root.keyUsesPlayer2(key) && root.battleModeActive()) {
-            return Input.start2 || Input.select2;
+    function startHeldForSide(side) {
+        if (side === 2 && root.battleModeActive()) {
+            return Input.start2;
         }
-        return Input.start1 || Input.select1
-            || (!root.battleModeActive() && (Input.start2 || Input.select2));
+        return Input.start1 || (!root.battleModeActive() && Input.start2);
+    }
+
+    function selectHeldForSide(side) {
+        if (side === 2 && root.battleModeActive()) {
+            return Input.select2;
+        }
+        return Input.select1 || (!root.battleModeActive() && Input.select2);
+    }
+
+    function gameplayOptionModifierHeldForKey(key) {
+        let side = root.gameplayOptionSideForKey(key);
+        return controller.startHeldForSide(side) || controller.selectHeldForSide(side);
     }
 
     function gameplayOptionKeyHeld(key) {
@@ -920,53 +940,123 @@ QtObject {
         gameplayOptionRepeatTimer.restart();
     }
 
+    function isGameplayDecreaseKey(key) {
+        switch (key) {
+        case BmsKey.Col11:
+        case BmsKey.Col13:
+        case BmsKey.Col15:
+        case BmsKey.Col17:
+        case BmsKey.Col21:
+        case BmsKey.Col23:
+        case BmsKey.Col25:
+        case BmsKey.Col27:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function isGameplayIncreaseKey(key) {
+        switch (key) {
+        case BmsKey.Col12:
+        case BmsKey.Col14:
+        case BmsKey.Col16:
+        case BmsKey.Col22:
+        case BmsKey.Col24:
+        case BmsKey.Col26:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function applyLr2LaneCoverKey(side, key) {
+        switch (key) {
+        case BmsKey.Col16:
+        case BmsKey.Col26:
+            root.adjustLaneCoverRatio(side, -1);
+            return true;
+        case BmsKey.Col17:
+        case BmsKey.Col27:
+            root.adjustLaneCoverRatio(side, 1);
+            return true;
+        default:
+            return false;
+        }
+    }
+
     function applyLr2GameplayOptionKey(key) {
         if (!root.isGameplayScreen() || !root.gameplayOptionModifierHeldForKey(key)) {
             return false;
         }
 
         let side = root.gameplayOptionSideForKey(key);
-        switch (key) {
-        case BmsKey.Col11:
-        case BmsKey.Col13:
-        case BmsKey.Col15:
-        case BmsKey.Col21:
-        case BmsKey.Col23:
-        case BmsKey.Col25:
-            root.adjustHiSpeedNumber(side, -1);
-            return true;
-        case BmsKey.Col12:
-        case BmsKey.Col14:
-        case BmsKey.Col22:
-        case BmsKey.Col24:
-            root.adjustHiSpeedNumber(side, 1);
-            return true;
-        case BmsKey.Col16:
-        case BmsKey.Col26: {
-            let vars = root.generalVarsForSide(side);
-            if (vars && vars.laneCoverOn) {
-                root.adjustLaneCoverRatio(side, -1);
-            } else {
-                root.adjustHiSpeedNumber(side, 1);
-            }
-            return true;
-        }
-        case BmsKey.Col17:
-        case BmsKey.Col27: {
-            let vars = root.generalVarsForSide(side);
-            if (vars && vars.laneCoverOn) {
-                root.adjustLaneCoverRatio(side, 1);
-            } else {
-                root.adjustHiSpeedNumber(side, -1);
-            }
-            return true;
-        }
-        default:
+        let startHeld = controller.startHeldForSide(side);
+        let selectHeld = controller.selectHeldForSide(side);
+        if (startHeld === selectHeld) {
             return false;
         }
+
+        if (selectHeld) {
+            if (controller.isGameplayDecreaseKey(key)) {
+                root.adjustDurationNumber(side, 1);
+                return true;
+            }
+            if (controller.isGameplayIncreaseKey(key)) {
+                root.adjustDurationNumber(side, -1);
+                return true;
+            }
+            return false;
+        }
+
+        let vars = root.generalVarsForSide(side);
+        if (vars && vars.laneCoverOn && controller.applyLr2LaneCoverKey(side, key)) {
+            return true;
+        }
+        if (controller.isGameplayDecreaseKey(key)) {
+            root.adjustHiSpeedNumber(side, -1);
+            return true;
+        }
+        if (controller.isGameplayIncreaseKey(key)) {
+            root.adjustHiSpeedNumber(side, 1);
+            return true;
+        }
+        return false;
+    }
+
+    function handleGameplayStartPress(key) {
+        if (!root.isGameplayScreen()
+                || (key !== BmsKey.Start1 && key !== BmsKey.Start2)) {
+            return false;
+        }
+        let side = root.gameplayOptionSideForKey(key);
+        if (controller.selectHeldForSide(side)) {
+            return false;
+        }
+        let now = Date.now();
+        let sideKey = String(side);
+        let last = controller.gameplayLastStartPressMs[sideKey] || 0;
+        let next = {};
+        for (let keyName in controller.gameplayLastStartPressMs) {
+            next[keyName] = controller.gameplayLastStartPressMs[keyName];
+        }
+        if (last > 0 && now - last <= controller.gameplayLaneCoverDoublePressMillis) {
+            next[sideKey] = 0;
+            controller.gameplayLastStartPressMs = next;
+            root.toggleLaneCover(side);
+            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.queueGameplayRevision();
+            return true;
+        }
+        next[sideKey] = now;
+        controller.gameplayLastStartPressMs = next;
+        return false;
     }
 
     function handleLr2GameplayOptionKey(key) {
+        if (controller.handleGameplayStartPress(key)) {
+            return true;
+        }
         if (!controller.applyLr2GameplayOptionKey(key)) {
             return false;
         }
@@ -982,7 +1072,17 @@ QtObject {
         if (!root.gameplayOptionModifierHeldForKey(key)) {
             return false;
         }
-        root.adjustHiSpeedNumber(root.gameplayOptionSideForKey(key), up ? 1 : -1);
+        let controlSide = root.gameplayOptionSideForKey(key);
+        let startHeld = controller.startHeldForSide(controlSide);
+        let selectHeld = controller.selectHeldForSide(controlSide);
+        if (startHeld === selectHeld) {
+            return false;
+        }
+        if (selectHeld) {
+            root.adjustDurationNumber(controlSide, up ? 1 : -1);
+        } else {
+            root.adjustGameplayCoverValue(controlSide, up ? 1 : -1, controller.gameplayChangeLiftTarget);
+        }
         return true;
     }
 

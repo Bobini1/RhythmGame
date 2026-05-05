@@ -5,6 +5,7 @@
 #include <QList>
 #include <QMap>
 #include <QMetaType>
+#include <QVariantList>
 
 namespace gameplay_logic::lr2_skin {
 
@@ -32,6 +33,7 @@ struct Lr2Dst
     Q_PROPERTY(int op2 MEMBER op2)
     Q_PROPERTY(int op3 MEMBER op3)
     Q_PROPERTY(int op4 MEMBER op4)
+    Q_PROPERTY(QVariantList offsets MEMBER offsets)
   public:
     int time = 0;
     int x = 0;
@@ -54,6 +56,7 @@ struct Lr2Dst
     int op2 = 0;
     int op3 = 0;
     int op4 = 0;
+    QVariantList offsets;
 };
 
 struct Lr2SrcImage
@@ -91,6 +94,9 @@ struct Lr2SrcImage
     Q_PROPERTY(int sliderRange MEMBER sliderRange)
     Q_PROPERTY(int sliderType MEMBER sliderType)
     Q_PROPERTY(int sliderDisabled MEMBER sliderDisabled)
+    Q_PROPERTY(bool sliderRefNumber MEMBER sliderRefNumber)
+    Q_PROPERTY(int sliderMinValue MEMBER sliderMinValue)
+    Q_PROPERTY(int sliderMaxValue MEMBER sliderMaxValue)
     Q_PROPERTY(bool imageSet MEMBER imageSet)
     Q_PROPERTY(int imageSetRef MEMBER imageSetRef)
     Q_PROPERTY(QVariantList imageSetSources MEMBER imageSetSources)
@@ -141,6 +147,9 @@ struct Lr2SrcImage
     int sliderRange = 0;
     int sliderType = 0;
     int sliderDisabled = 0;
+    bool sliderRefNumber = false;
+    int sliderMinValue = 0;
+    int sliderMaxValue = 0;
     bool imageSet = false;
     int imageSetRef = 0;
     QVariantList imageSetSources;

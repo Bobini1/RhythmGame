@@ -219,6 +219,29 @@ parseDstOptionToken(QString token) -> int
 }
 
 auto
+parseDstOffsets(const QStringList& tokens, const int startIndex) -> QVariantList
+{
+    QVariantList offsets;
+    for (int i = startIndex; i < tokens.size(); ++i) {
+        auto token = tokens[i].trimmed();
+        if (token.isEmpty()) {
+            continue;
+        }
+        token.remove(QRegularExpression(QStringLiteral("[^0-9-]")));
+        if (token.isEmpty()) {
+            continue;
+        }
+
+        bool ok = false;
+        const int offset = token.toInt(&ok);
+        if (ok && offset != 0) {
+            offsets.append(offset);
+        }
+    }
+    return offsets;
+}
+
+auto
 parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
 {
     Lr2Dst dst;
@@ -263,6 +286,7 @@ parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
         dst.op3 = parseDstOptionToken(tokens[20]);
     if (tokens.size() > 21 && !tokens[21].isEmpty())
         dst.op4 = tokens[21].toInt();
+    dst.offsets = parseDstOffsets(tokens, 21);
     return dst;
 }
 
@@ -1594,7 +1618,8 @@ processCommand(const QStringList& tokens,
         src.buttonPanel = src.op3;
         src.buttonPlusOnly = src.op4;
         state.currentElement.src = QVariant::fromValue(src);
-    } else if (command == "#SRC_SLIDER") {
+    } else if (command == "#SRC_SLIDER"
+               || command == "#SRC_SLIDER_REFNUMBER") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
         state.currentElement.type = 0;
@@ -1605,6 +1630,15 @@ processCommand(const QStringList& tokens,
         src.sliderRange = src.op2;
         src.sliderType = src.op3;
         src.sliderDisabled = src.op4;
+        if (command == "#SRC_SLIDER_REFNUMBER") {
+            src.sliderRefNumber = true;
+            if (tokens.size() > 15 && !tokens[15].isEmpty()) {
+                src.sliderMinValue = tokens[15].toInt();
+            }
+            if (tokens.size() > 16 && !tokens[16].isEmpty()) {
+                src.sliderMaxValue = tokens[16].toInt();
+            }
+        }
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#DST_BUTTON" || command == "#DST_SLIDER") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {

@@ -665,6 +665,7 @@ Item {
 
     readonly property int lr2HidSudIndexP1: optionState.lr2HidSudIndexP1
     readonly property int lr2HidSudIndexP2: optionState.lr2HidSudIndexP2
+    function lr2HidSudIndex(side) { return optionState.lr2HidSudIndex(side); }
     function setHidSudIndex(side, index) { optionState.setHidSudIndex(side, index); }
 
     readonly property int lr2HiSpeedFixIndex: optionState.lr2HiSpeedFixIndex
@@ -681,7 +682,14 @@ Item {
     function setFlipIndex(index) { optionState.setFlipIndex(index); }
 
     readonly property int lr2LaneCoverIndex: optionState.lr2LaneCoverIndex
-    function setLaneCoverIndex(index) { optionState.setLaneCoverIndex(index); }
+    function setLaneCoverIndex(index) {
+        optionState.setLaneCoverIndex(index);
+        root.noteGameplayOptionChanged();
+    }
+    function toggleLaneCover(side) {
+        optionState.toggleLaneCover(side);
+        root.noteGameplayOptionChanged();
+    }
 
     readonly property int lr2BgaIndex: optionState.lr2BgaIndex
     readonly property int lr2BeatorajaBgaIndex: optionState.lr2BeatorajaBgaIndex
@@ -721,11 +729,35 @@ Item {
 
     readonly property int lr2HiSpeedP1: optionState.lr2HiSpeedP1
     readonly property int lr2HiSpeedP2: optionState.lr2HiSpeedP2
-    function setHiSpeedNumber(side, value) { optionState.setHiSpeedNumber(side, value); }
+    function noteGameplayOptionChanged() {
+        if (!root.isGameplayScreen()) {
+            return;
+        }
+        root.queueGameplayRevision();
+        root.scheduleGameplayRuntimeActiveOptionsRefresh();
+    }
+
+    function setHiSpeedNumber(side, value) {
+        optionState.setHiSpeedNumber(side, value);
+        root.noteGameplayOptionChanged();
+    }
     function nextLr2HiSpeedNumber(current, steps) { return optionState.nextLr2HiSpeedNumber(current, steps); }
-    function adjustHiSpeedNumber(side, steps) { optionState.adjustHiSpeedNumber(side, steps); }
-    function adjustDurationNumber(side, steps) { optionState.adjustDurationNumber(side, steps); }
-    function adjustLaneCoverRatio(side, steps) { optionState.adjustLaneCoverRatio(side, steps); }
+    function adjustHiSpeedNumber(side, steps) {
+        optionState.adjustHiSpeedNumber(side, steps);
+        root.noteGameplayOptionChanged();
+    }
+    function adjustDurationNumber(side, steps) {
+        optionState.adjustDurationNumber(side, steps);
+        root.noteGameplayOptionChanged();
+    }
+    function adjustLaneCoverRatio(side, steps) {
+        optionState.adjustLaneCoverRatio(side, steps);
+        root.noteGameplayOptionChanged();
+    }
+    function adjustGameplayCoverValue(side, steps, changeLift) {
+        optionState.adjustGameplayCoverValue(side, steps, changeLift);
+        root.noteGameplayOptionChanged();
+    }
     function adjustOffset(delta) { optionState.adjustOffset(delta); }
 
     function isLoggedIn() { return optionState.isLoggedIn(); }
@@ -803,6 +835,10 @@ Item {
 
     function isGameplayLaneCoverSlider(src) {
         return skinSliderState.isGameplayLaneCoverSlider(src);
+    }
+
+    function isLr2NumberRefSlider(src) {
+        return skinSliderState.isLr2NumberRefSlider(src);
     }
 
     function sliderTrackState(src, dsts, skinTime) {
@@ -1220,9 +1256,27 @@ Item {
 
     function laneCoverNumber(side) {
         let vars = root.generalVarsForSide(side);
-        return vars && vars.laneCoverOn
-            ? Math.round((vars.laneCoverRatio || 0) * 1000)
-            : 0;
+        if (!vars) {
+            return 0;
+        }
+        if (root.isGameplayScreen()) {
+            let cover = vars.laneCoverOn ? (vars.laneCoverRatio || 0) : 0;
+            let lift = vars.liftOn ? (vars.liftRatio || 0) : 0;
+            return Math.round(Math.max(0, Math.min(1, 1 - cover - lift)) * 1000);
+        }
+        return Math.round((vars.laneCoverRatio || 0) * 1000);
+    }
+
+    function gameplayLaneCoverSliderPosition(side) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars || !vars.laneCoverOn) {
+            return 0;
+        }
+        let lane = vars.laneCoverRatio || 0;
+        if (vars.liftOn) {
+            lane *= 1 - (vars.liftRatio || 0);
+        }
+        return lane;
     }
 
     function liftNumber(side) {
@@ -1248,15 +1302,128 @@ Item {
     function durationNumber(side, green) {
         let vars = root.generalVarsForSide(side);
         let duration = vars && vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
-        return Math.round(duration * (green ? 1.0 : 0.6));
+        return Math.round(duration * (green ? 0.6 : 1.0));
     }
 
     function durationNumberForBpm(side, bpm, green, cover) {
         let safeBpm = Math.max(1, bpm || 0);
         let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
         let vars = root.generalVarsForSide(side);
-        let visible = cover && vars && vars.laneCoverOn ? 1 - (vars.laneCoverRatio || 0) : 1;
+        let visible = cover && vars ? 1 - (vars.laneCoverRatio || 0) : 1;
         return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 1.0 : 0.6));
+    }
+
+    function firstDstStateY(dsts) {
+        if (!dsts || dsts.length === 0 || !dsts[0]) {
+            return 0;
+        }
+        let dst = dsts[0];
+        return Math.abs(dst.y || 0);
+    }
+
+    function gameplayLaneOffsetHeight(side) {
+        let model = root.skinModelRef || skinModel;
+        let start = side === 2 ? 10 : 0;
+        let end = side === 2 ? 20 : 10;
+        let lineDsts = model && model.lineDsts ? model.lineDsts : [];
+        for (let i = start; i < end && i < lineDsts.length; ++i) {
+            let lineY = root.firstDstStateY(lineDsts[i]);
+            if (lineY > 0) {
+                return lineY;
+            }
+        }
+        let noteDsts = model && model.noteDsts ? model.noteDsts : [];
+        for (let lane = start; lane < end && lane < noteDsts.length; ++lane) {
+            let noteY = root.firstDstStateY(noteDsts[lane]);
+            if (noteY > 0) {
+                return noteY;
+            }
+        }
+        return Math.max(1, root.skinH || 480);
+    }
+
+    function lr2OffsetSide(state, requestedSide) {
+        if (requestedSide === 1 || requestedSide === 2) {
+            return requestedSide;
+        }
+        return 1;
+    }
+
+    function lr2OffsetValue(id, side) {
+        if (!root.isGameplayScreen()) {
+            return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
+        }
+        let vars = root.generalVarsForSide(side);
+        let height = root.gameplayLaneOffsetHeight(side);
+        let liftRatio = vars && vars.liftOn ? Math.max(0, Math.min(vars.liftRatio || 0, 1)) : 0;
+        let visibleHeight = height * Math.max(0, 1 - liftRatio);
+        if (id === 3 || id === 50) {
+            return {
+                x: 0,
+                y: vars && vars.liftOn ? -height * liftRatio : 0,
+                w: 0,
+                h: 0,
+                a: 0,
+                r: 0
+            };
+        }
+        if (id === 4 || id === 51) {
+            return {
+                x: 0,
+                y: vars && vars.laneCoverOn ? visibleHeight * Math.max(0, Math.min(vars.laneCoverRatio || 0, 1)) : 0,
+                w: 0,
+                h: 0,
+                a: 0,
+                r: 0
+            };
+        }
+        if (id === 5) {
+            return {
+                x: 0,
+                y: vars && vars.hiddenOn ? visibleHeight * Math.max(0, Math.min(vars.hiddenRatio || 0, 1)) : 0,
+                w: 0,
+                h: 0,
+                a: vars && vars.hiddenOn ? 0 : -255,
+                r: 0
+            };
+        }
+        return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
+    }
+
+    function applyLr2DstOffsets(state, dsts, requestedSide) {
+        if (!state || !dsts || dsts.length === 0 || !dsts[0] || !dsts[0].offsets || dsts[0].offsets.length === 0) {
+            return state;
+        }
+        let side = root.lr2OffsetSide(state, requestedSide || 0);
+        let adjusted = {
+            x: state.x || 0,
+            y: state.y || 0,
+            w: state.w || 0,
+            h: state.h || 0,
+            a: state.a === undefined ? 255 : state.a,
+            r: state.r === undefined ? 255 : state.r,
+            g: state.g === undefined ? 255 : state.g,
+            b: state.b === undefined ? 255 : state.b,
+            angle: state.angle || 0,
+            center: state.center || 0,
+            sortId: state.sortId || 0,
+            blend: state.blend || 0,
+            filter: state.filter || 0,
+            op1: state.op1 || 0,
+            op2: state.op2 || 0,
+            op3: state.op3 || 0,
+            op4: state.op4 || 0
+        };
+        for (let i = 0; i < dsts[0].offsets.length; ++i) {
+            let offset = root.lr2OffsetValue(Number(dsts[0].offsets[i]), side);
+            adjusted.x += offset.x - offset.w / 2;
+            adjusted.y += offset.y - offset.h / 2;
+            adjusted.w += offset.w;
+            adjusted.h += offset.h;
+            adjusted.a += offset.a;
+            adjusted.angle += offset.r;
+        }
+        return adjusted;
     }
 
     function bpmDurationNumber(num, chartData) {
@@ -2129,16 +2296,14 @@ Item {
     }
 
     function gameplayLaneCoverOption(side) {
-        let vars = root.generalVarsForSide(side);
-        let hidden = !!vars && !!vars.hiddenOn;
-        let sudden = !!vars && !!vars.laneCoverOn;
-        if (hidden && sudden) {
+        let hidSud = root.lr2HidSudIndex(side);
+        if (hidSud === 3) {
             return 137;
         }
-        if (hidden) {
+        if (hidSud === 1) {
             return 135;
         }
-        if (sudden) {
+        if (hidSud === 2) {
             return 136;
         }
         return 134;
@@ -3583,6 +3748,9 @@ Item {
         if (root.isGameplayLaneCoverSlider(src)) {
             return root.gameplayLaneCoverSliderState(src, dsts, skinTime);
         }
+        if (root.isLr2NumberRefSlider(src)) {
+            return root.lr2NumberRefSliderState(src, dsts, skinTime);
+        }
         if (root.isLr2GenericSlider(src)) {
             return root.lr2GenericSliderState(src, dsts, skinTime);
         }
@@ -3594,6 +3762,7 @@ Item {
             || root.isSelectScrollSlider(src)
             || root.isGameplayProgressSlider(src)
             || root.isGameplayLaneCoverSlider(src)
+            || root.isLr2NumberRefSlider(src)
             || root.isLr2GenericSlider(src);
     }
 
@@ -3633,6 +3802,10 @@ Item {
 
     function gameplayLaneCoverSliderState(src, dsts, skinTime) {
         return skinSliderState.gameplayLaneCoverState(src, dsts, skinTime);
+    }
+
+    function lr2NumberRefSliderState(src, dsts, skinTime) {
+        return skinSliderState.numberRefSliderState(src, dsts, skinTime);
     }
 
     function selectScrollSliderTrackState(src, dsts, skinTime) {
