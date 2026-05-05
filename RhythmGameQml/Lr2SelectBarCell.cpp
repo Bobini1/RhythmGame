@@ -124,7 +124,7 @@ bool Lr2SelectBarCell::numberVisible(int variant) const {
         return false;
     }
     if (m_ranking) {
-        return variant == 6;
+        return variant == 0 || variant == 6;
     }
     if (!m_chartLike && !m_entryLike) {
         return false;

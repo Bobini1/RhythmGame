@@ -259,11 +259,18 @@ QtObject {
                 return root.selectScrollStartSkinTime;
             }
         }
-        if (root.host.selectPanel > 0 && timer === 20 + root.host.selectPanel) {
-            return root.renderSkinTime - root.host.selectPanelElapsed;
+        if (timer >= 21 && timer <= 26) {
+            let panel = timer - 20;
+            return root.host.selectPanel === panel
+                ? root.renderSkinTime - root.host.selectPanelElapsed
+                : -1;
         }
-        if (root.host.selectPanelClosing > 0 && timer === 30 + root.host.selectPanelClosing) {
-            return root.renderSkinTime - root.host.selectPanelCloseElapsed;
+        if (timer >= 31 && timer <= 36) {
+            let panel = timer - 30;
+            return root.host.selectPanelClosing === panel
+                    && root.host.selectPanelCloseElapsed < root.host.selectPanelHoldTime
+                ? root.renderSkinTime - root.host.selectPanelCloseElapsed
+                : -1;
         }
         if (timer === 15 && root.host.lr2ReadmeMode === 1) {
             return root.renderSkinTime - root.host.lr2ReadmeElapsed;

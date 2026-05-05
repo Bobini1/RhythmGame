@@ -1147,21 +1147,52 @@ Item {
         sortMode = order[frame];
     }
 
+    function selectEntrySortBucket(item) {
+        if (typeof item === "string") {
+            return 0;
+        }
+        if (isTable(item) || isLevel(item)) {
+            return 1;
+        }
+        if (isCourse(item)) {
+            return 2;
+        }
+        if (isRankingEntry(item)) {
+            return 3;
+        }
+        if (isChart(item) || isEntry(item)) {
+            return 4;
+        }
+        return 5;
+    }
+
+    function sortEntryBucket(entries) {
+        if (activeSortMode() === 0 || entries.length <= 1) {
+            return entries;
+        }
+        let result = entries.slice();
+        result.sort(compareCharts);
+        return result;
+    }
+
     function sortFilter(input) {
-        let entries = [];
+        let buckets = [[], [], [], [], [], []];
         for (let item of input) {
             if (isChart(item) || isEntry(item)) {
                 if (!chartFilterMatches(item)) {
                     continue;
                 }
             }
-            entries.push(item);
+            buckets[selectEntrySortBucket(item)].push(item);
         }
-        entries = difficultyFilteredCharts(entries);
-        if (activeSortMode() !== 0) {
-            entries.sort(compareCharts);
+
+        buckets[4] = difficultyFilteredCharts(buckets[4]);
+
+        let result = [];
+        for (let i = 0; i < buckets.length; ++i) {
+            result.push(...sortEntryBucket(buckets[i]));
         }
-        let result = entries;
+
         if (result.length === 0) {
             result.push(null);
         }
