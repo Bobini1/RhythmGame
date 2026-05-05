@@ -52,6 +52,10 @@ QtObject {
     readonly property var lr2DpOptionSupportedIndexes: [0, 1, 2]
     readonly property var lr2GaugeAutoShiftLabels: ["OFF", "CONTINUE", "SURVIVAL->GROOVE", "BEST CLEAR", "SELECT->UNDER"]
     readonly property var lr2GaugeAutoShiftSupportedIndexes: [0, 3, 4]
+    readonly property var lr2BottomShiftableGaugeLabels: ["ASSIST EASY", "EASY", "NORMAL"]
+    readonly property var lr2BottomShiftableGaugeValues: ["AEASY", "EASY", "NORMAL"]
+    readonly property var lr2LnModeLabels: ["LN", "CN", "HCN"]
+    readonly property var lr2JudgeAlgorithmLabels: ["LR2", "AC", "BOTTOM PRIORITY"]
     readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
     readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE", "LAST SCORE"]
     readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
@@ -466,6 +470,35 @@ QtObject {
         }
     }
 
+    readonly property int lr2BottomShiftableGaugeIndex: {
+        let vars = root.mainGeneralVars();
+        return vars ? root.indexOfValue(root.lr2BottomShiftableGaugeValues, vars.bottomShiftableGauge) : 0;
+    }
+
+    function setBottomShiftableGaugeIndex(index) {
+        let vars = root.mainGeneralVars();
+        if (!vars) {
+            return false;
+        }
+        let normalized = root.wrapValue(index, root.lr2BottomShiftableGaugeValues.length);
+        let value = root.lr2BottomShiftableGaugeValues[normalized];
+        if (vars.bottomShiftableGauge === value) {
+            return false;
+        }
+        vars.bottomShiftableGauge = value;
+        return true;
+    }
+
+    readonly property int lr2LnModeIndex: 0
+    function setLnModeIndex(index) {
+        return false;
+    }
+
+    readonly property int lr2JudgeAlgorithmIndex: 0
+    function setJudgeAlgorithmIndex(index) {
+        return false;
+    }
+
     readonly property int lr2ScoreGraphIndex: {
         let vars = root.mainGeneralVars();
         return vars && vars.scoreGraphEnabled === false ? 0 : 1;
@@ -601,6 +634,15 @@ QtObject {
         root.setHiSpeedNumber(side, root.nextLr2HiSpeedNumber(current, steps));
     }
 
+    function adjustDurationNumber(side, steps) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let current = vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
+        vars.noteScreenTimeMillis = Math.max(1, Math.min(10000, Math.round(current + (steps || 1))));
+    }
+
     function adjustLaneCoverRatio(side, steps) {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
@@ -612,7 +654,7 @@ QtObject {
     function adjustOffset(delta) {
         let vars = root.mainGeneralVars();
         if (vars) {
-            vars.offset = Math.max(-99, Math.min(99, (vars.offset || 0) + delta));
+            vars.offset = Math.max(-500, Math.min(500, (vars.offset || 0) + delta));
         }
     }
 

@@ -226,9 +226,9 @@ Item {
         root.updateSelectSideEffects();
         if (root.effectiveScreenKey === "select"
                 && root.acceptsInput
-                && root.anyStartHeld
+                && root.heldOptionPanel > 0
                 && !root.startHoldSuppressed) {
-            root.holdSelectPanel(1);
+            root.holdSelectPanel(root.heldOptionPanel);
         }
         root.forceActiveFocus();
     }
@@ -281,6 +281,18 @@ Item {
         enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
         sequence: "F8"
         onActivated: root.reloadCurrentSelectFolder()
+    }
+
+    Shortcut {
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        sequence: "3"
+        onActivated: root.triggerSelectPanelButton(308, 1)
+    }
+
+    Shortcut {
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        sequence: "5"
+        onActivated: root.toggleSelectPanel(3)
     }
 
     StackView.onActivated: {
@@ -378,6 +390,8 @@ Item {
     property alias selectTargetScratchDirection: selectPanelController.selectTargetScratchDirection
     property alias selectTargetScratchNextMs: selectPanelController.selectTargetScratchNextMs
     readonly property bool anyStartHeld: selectPanelController.anyStartHeld
+    readonly property bool anySelectHeld: selectPanelController.anySelectHeld
+    readonly property int heldOptionPanel: selectPanelController.heldOptionPanel
     property alias startHoldSuppressed: selectPanelController.startHoldSuppressed
 
     Lr2OptionState {
@@ -396,6 +410,10 @@ Item {
     readonly property var lr2DpOptionSupportedIndexes: optionState.lr2DpOptionSupportedIndexes
     readonly property var lr2GaugeAutoShiftLabels: optionState.lr2GaugeAutoShiftLabels
     readonly property var lr2GaugeAutoShiftSupportedIndexes: optionState.lr2GaugeAutoShiftSupportedIndexes
+    readonly property var lr2BottomShiftableGaugeLabels: optionState.lr2BottomShiftableGaugeLabels
+    readonly property var lr2BottomShiftableGaugeValues: optionState.lr2BottomShiftableGaugeValues
+    readonly property var lr2LnModeLabels: optionState.lr2LnModeLabels
+    readonly property var lr2JudgeAlgorithmLabels: optionState.lr2JudgeAlgorithmLabels
     readonly property var lr2BattleLabels: optionState.lr2BattleLabels
     readonly property var lr2TargetLabels: optionState.lr2TargetLabels
     readonly property var lr2TargetValues: optionState.lr2TargetValues
@@ -675,6 +693,15 @@ Item {
     readonly property int lr2GaugeAutoShiftIndex: optionState.lr2GaugeAutoShiftIndex
     function setGaugeAutoShiftIndex(index) { optionState.setGaugeAutoShiftIndex(index); }
 
+    readonly property int lr2BottomShiftableGaugeIndex: optionState.lr2BottomShiftableGaugeIndex
+    function setBottomShiftableGaugeIndex(index) { return optionState.setBottomShiftableGaugeIndex(index); }
+
+    readonly property int lr2LnModeIndex: optionState.lr2LnModeIndex
+    function setLnModeIndex(index) { return optionState.setLnModeIndex(index); }
+
+    readonly property int lr2JudgeAlgorithmIndex: optionState.lr2JudgeAlgorithmIndex
+    function setJudgeAlgorithmIndex(index) { return optionState.setJudgeAlgorithmIndex(index); }
+
     readonly property int lr2ScoreGraphIndex: optionState.lr2ScoreGraphIndex
     function setScoreGraphIndex(index) { optionState.setScoreGraphIndex(index); }
 
@@ -697,6 +724,7 @@ Item {
     function setHiSpeedNumber(side, value) { optionState.setHiSpeedNumber(side, value); }
     function nextLr2HiSpeedNumber(current, steps) { return optionState.nextLr2HiSpeedNumber(current, steps); }
     function adjustHiSpeedNumber(side, steps) { optionState.adjustHiSpeedNumber(side, steps); }
+    function adjustDurationNumber(side, steps) { optionState.adjustDurationNumber(side, steps); }
     function adjustLaneCoverRatio(side, steps) { optionState.adjustLaneCoverRatio(side, steps); }
     function adjustOffset(delta) { optionState.adjustOffset(delta); }
 
@@ -3178,8 +3206,8 @@ Item {
         if (root.effectiveScreenKey === "select" && root.acceptsInput) {
             root.selectNoScrollStartSkinTime = root.renderSkinTime;
         }
-        if (root.acceptsInput && root.anyStartHeld && !root.startHoldSuppressed) {
-            root.holdSelectPanel(1);
+        if (root.acceptsInput && root.heldOptionPanel > 0 && !root.startHoldSuppressed) {
+            root.holdSelectPanel(root.heldOptionPanel);
         }
     }
 

@@ -35,6 +35,11 @@ QtObject {
     property int selectTargetScratchDirection: 0
     property real selectTargetScratchNextMs: 0
     readonly property bool anyStartHeld: Input.start1 || Input.start2
+    readonly property bool anySelectHeld: Input.select1 || Input.select2
+    readonly property int heldOptionPanel: controller.anyStartHeld && controller.anySelectHeld ? 3
+        : controller.anyStartHeld ? 1
+        : controller.anySelectHeld ? 2
+        : 0
     property bool startHoldSuppressed: false
 
     onSelectPanelChanged: {
@@ -63,32 +68,40 @@ QtObject {
         }
     }
 
-    onAnyStartHeldChanged: {
-        if (controller.anyStartHeld) {
+    onHeldOptionPanelChanged: controller.updateHeldOptionPanel()
+
+    function updateHeldOptionPanel() {
+        if (controller.heldOptionPanel > 0) {
             if (controller.selectPanel > 0 && controller.selectPanelHeldByStart === 0) {
                 controller.startHoldSuppressed = true;
                 controller.closeSelectPanel();
                 return;
             }
-            controller.holdSelectPanel(1);
+            if (!controller.startHoldSuppressed) {
+                controller.holdSelectPanel(controller.heldOptionPanel);
+            }
         } else {
             controller.startHoldSuppressed = false;
-            controller.releaseHeldSelectPanel(1);
+            if (controller.selectPanelHeldByStart > 0) {
+                controller.closeSelectPanel();
+            }
         }
     }
 
     readonly property var splitArrowButtons: controller.lookup([
         10, 11, 12, 20, 21, 22, 26, 27, 28, 33,
         40, 41, 42, 43, 46, 50, 51, 54, 55, 56,
-        57, 58, 72, 74, 76, 77, 78, 83, 190, 308
+        57, 58, 59, 72, 74, 76, 77, 78, 83, 190, 308,
+        340, 341
     ])
     readonly property var imageSetButtons: controller.lookup([
         40, 41, 42, 43, 54, 55, 72, 74, 77, 78,
-        301, 302, 303, 304, 305, 306, 307, 308
+        301, 302, 303, 304, 305, 306, 307, 308,
+        340, 341
     ])
     readonly property var fixedZeroButtonFrames: controller.lookup([
         13, 14, 18, 44, 45, 74, 75, 80, 81, 82, 83,
-        210, 301, 302, 303, 304, 305, 306, 307, 308
+        210, 301, 302, 303, 304, 305, 306, 307
     ])
     readonly property var player2Keys: controller.lookup([
         BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24,
@@ -114,6 +127,15 @@ QtObject {
             [BmsKey.Col16, 74, 1], [BmsKey.Col26, 74, 1],
             [BmsKey.Col17, 75, 1], [BmsKey.Col27, 75, 1],
             [BmsKey.Select1, 83, 1], [BmsKey.Select2, 83, 1]
+        ]),
+        "3": controller.bindingLookup([
+            [BmsKey.Col11, 72, 1], [BmsKey.Col21, 72, 1],
+            [BmsKey.Col12, 78, 1], [BmsKey.Col22, 78, 1],
+            [BmsKey.Col13, 75, 1], [BmsKey.Col23, 75, 1],
+            [BmsKey.Col14, 59, -1], [BmsKey.Col24, 59, -1],
+            [BmsKey.Col15, 74, -1], [BmsKey.Col25, 74, -1],
+            [BmsKey.Col16, 59, 1], [BmsKey.Col26, 59, 1],
+            [BmsKey.Col17, 74, 1], [BmsKey.Col27, 74, 1]
         ])
     })
     readonly property var buttonFrameGetters: ({
@@ -147,7 +169,10 @@ QtObject {
         "72": () => root.lr2BgaIndex,
         "73": () => root.lr2BgaSizeIndex,
         "77": () => root.lr2BeatorajaTargetIndex,
-        "78": () => root.lr2GaugeAutoShiftIndex
+        "78": () => root.lr2GaugeAutoShiftIndex,
+        "308": () => root.lr2LnModeIndex,
+        "340": () => root.lr2JudgeAlgorithmIndex,
+        "341": () => root.lr2BottomShiftableGaugeIndex
     })
     readonly property var selectButtonActions: ({
         "10": delta => {
@@ -258,6 +283,10 @@ QtObject {
             root.adjustHiSpeedNumber(2, delta);
             return true;
         },
+        "59": delta => {
+            root.adjustDurationNumber(1, delta);
+            return true;
+        },
         "70": delta => {
             root.setScoreGraphIndex(root.lr2ScoreGraphIndex + delta);
             return true;
@@ -308,10 +337,12 @@ QtObject {
         "305": () => false,
         "306": () => false,
         "307": () => false,
-        "308": () => false,
+        "308": delta => root.setLnModeIndex(root.lr2LnModeIndex + delta),
         "316": () => controller.playReplaySlot(1),
         "317": () => controller.playReplaySlot(2),
-        "318": () => controller.playReplaySlot(3)
+        "318": () => controller.playReplaySlot(3),
+        "340": delta => root.setJudgeAlgorithmIndex(root.lr2JudgeAlgorithmIndex + delta),
+        "341": delta => root.setBottomShiftableGaugeIndex(root.lr2BottomShiftableGaugeIndex + delta)
     })
 
     function lookup(values) {

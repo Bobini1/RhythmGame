@@ -27,7 +27,8 @@ QtObject {
             || (num >= 179 && num <= 182)
             || (num >= 200 && num <= 242)
             || num === 290 || num === 291
-            || num === 300 || (num >= 320 && num <= 330)
+            || num === 300 || num === 308 || (num >= 320 && num <= 330)
+            || num === 340 || num === 341
             || (num >= 350 && num <= 368)
             || (num >= 410 && num <= 427)
             || num === 1163 || num === 1164
@@ -127,6 +128,12 @@ QtObject {
             return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP1);
         case 85:
             return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP2);
+        case 308:
+            return root.optionText(root.lr2LnModeLabels, root.lr2LnModeIndex);
+        case 340:
+            return root.optionText(root.lr2JudgeAlgorithmLabels, root.lr2JudgeAlgorithmIndex);
+        case 341:
+            return root.optionText(root.lr2BottomShiftableGaugeLabels, root.lr2BottomShiftableGaugeIndex);
         case 120:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 121:
@@ -998,6 +1005,12 @@ QtObject {
             case 28:
             case 29:
                 return root.dateTimeNumber(num);
+            case 308:
+                return root.lr2LnModeIndex;
+            case 340:
+                return root.lr2JudgeAlgorithmIndex;
+            case 341:
+                return root.lr2BottomShiftableGaugeIndex;
             case 310:
                 return root.hiSpeedInteger(1);
             case 311:
@@ -1129,8 +1142,13 @@ QtObject {
         case 305:
         case 306:
         case 307:
-        case 308:
             return 0;
+        case 308:
+            return root.lr2LnModeIndex;
+        case 340:
+            return root.lr2JudgeAlgorithmIndex;
+        case 341:
+            return root.lr2BottomShiftableGaugeIndex;
         default:
             return root.resolveNumber(id);
         }
