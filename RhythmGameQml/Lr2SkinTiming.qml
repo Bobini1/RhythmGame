@@ -54,9 +54,11 @@ QtObject {
         id: skinStopwatch
         running: root.host && root.host.screenUpdatesActive
         onTriggered: {
-            if (!root.host) {
+            const host = root.host;
+            if (!host) {
                 return;
             }
+            const gameplayScreen = host.isGameplayScreen();
             const now = Date.now();
             if (now - root.lastFpsSampleMs >= root.fpsSampleIntervalMs) {
                 root.lastFpsSampleMs = now;
@@ -64,12 +66,15 @@ QtObject {
                     ? Math.round(1.0 / skinStopwatch.smoothFrameTime)
                     : 0;
             }
+            if (gameplayScreen) {
+                host.gameplayFrameStateRef.refresh(
+                    Math.max(0, Math.floor(root.clock.quantize(now) - root.sceneStartMs)));
+            }
             root.clock.advanceFrame(now);
-            if (root.host.isGameplayScreen()
-                    && root.host.chart
-                    && (root.host.gameplayReadySkinTime < 0 || root.host.gameplayStartSkinTime < 0)) {
-                root.host.updateGameplayStatusTimers();
-                root.host.startGameplayWhenReady();
+            if (gameplayScreen && host.chart
+                    && (host.gameplayReadySkinTime < 0 || host.gameplayStartSkinTime < 0)) {
+                host.updateGameplayStatusTimers();
+                host.startGameplayWhenReady();
             }
         }
     }
@@ -128,24 +133,7 @@ QtObject {
     // 21..26 for side-drawer opening and 31..36 for closing, so synthesize
     // those without unfreezing the whole select skin clock.
     readonly property var timers: {
-        if (!root.host) {
-            return root.zeroTimers;
-        }
-        if (root.host.isGameplayScreen()) {
-            root.host.gameplayTimerRevision;
-            let values = root.host.gameplayTimerValues || root.zeroTimers;
-            let rhythmTimer = root.host.gameplayRhythmTimerSkinTime();
-            if (rhythmTimer < 0) {
-                return values;
-            }
-            let result = {};
-            for (let key in values) {
-                result[key] = values[key];
-            }
-            result[140] = rhythmTimer;
-            return result;
-        }
-        if (root.host.isResultScreen()) {
+        if (root.host && root.host.isResultScreen()) {
             let resultTimers = { "0": 0 };
             if (root.host.acceptsInput) {
                 resultTimers[1] = Math.min(root.renderSkinTime, root.skinModel.startInput || 0);

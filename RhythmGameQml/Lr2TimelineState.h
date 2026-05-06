@@ -22,6 +22,15 @@ class Lr2TimelineState : public QObject {
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
+    Q_PROPERTY(bool sliderTranslationEnabled READ sliderTranslationEnabled WRITE setSliderTranslationEnabled NOTIFY sliderTranslationChanged)
+    Q_PROPERTY(qreal sliderPosition READ sliderPosition WRITE setSliderPosition NOTIFY sliderTranslationChanged)
+    Q_PROPERTY(int sliderRange READ sliderRange WRITE setSliderRange NOTIFY sliderTranslationChanged)
+    Q_PROPERTY(int sliderDirection READ sliderDirection WRITE setSliderDirection NOTIFY sliderTranslationChanged)
+    Q_PROPERTY(bool dstOffsetsEnabled READ dstOffsetsEnabled WRITE setDstOffsetsEnabled NOTIFY dstOffsetsChanged)
+    Q_PROPERTY(qreal dstOffsetLiftY READ dstOffsetLiftY WRITE setDstOffsetLiftY NOTIFY dstOffsetsChanged)
+    Q_PROPERTY(qreal dstOffsetLaneCoverY READ dstOffsetLaneCoverY WRITE setDstOffsetLaneCoverY NOTIFY dstOffsetsChanged)
+    Q_PROPERTY(qreal dstOffsetHiddenY READ dstOffsetHiddenY WRITE setDstOffsetHiddenY NOTIFY dstOffsetsChanged)
+    Q_PROPERTY(qreal dstOffsetHiddenA READ dstOffsetHiddenA WRITE setDstOffsetHiddenA NOTIFY dstOffsetsChanged)
     Q_PROPERTY(QVariant state READ state NOTIFY stateChanged)
     Q_PROPERTY(bool hasState READ hasState NOTIFY stateChanged)
     Q_PROPERTY(qreal stateX READ stateX NOTIFY stateChanged)
@@ -79,6 +88,33 @@ public:
     QVariant activeOptions() const;
     void setActiveOptions(const QVariant& options);
 
+    bool sliderTranslationEnabled() const;
+    void setSliderTranslationEnabled(bool enabled);
+
+    qreal sliderPosition() const;
+    void setSliderPosition(qreal position);
+
+    int sliderRange() const;
+    void setSliderRange(int range);
+
+    int sliderDirection() const;
+    void setSliderDirection(int direction);
+
+    bool dstOffsetsEnabled() const;
+    void setDstOffsetsEnabled(bool enabled);
+
+    qreal dstOffsetLiftY() const;
+    void setDstOffsetLiftY(qreal value);
+
+    qreal dstOffsetLaneCoverY() const;
+    void setDstOffsetLaneCoverY(qreal value);
+
+    qreal dstOffsetHiddenY() const;
+    void setDstOffsetHiddenY(qreal value);
+
+    qreal dstOffsetHiddenA() const;
+    void setDstOffsetHiddenA(qreal value);
+
     QVariant state() const;
     bool hasState() const;
     qreal stateX() const;
@@ -108,6 +144,8 @@ signals:
     void timersChanged();
     void timerFireChanged();
     void activeOptionsChanged();
+    void sliderTranslationChanged();
+    void dstOffsetsChanged();
     void stateChanged();
 
 private:
@@ -134,6 +172,7 @@ private:
         int op2 = 0;
         int op3 = 0;
         int op4 = 0;
+        QVector<int> offsets;
     };
 
     struct State {
@@ -169,9 +208,12 @@ private:
     qreal timerValue(int timerIdx) const;
     bool allOpsMatch(const Dst& dst) const;
     bool checkSingleOp(int op) const;
+    State translatedSliderState(State state) const;
+    State offsetDstState(State state) const;
     void assignState(const State& state);
 
     static bool readDst(const QVariant& value, Dst& dst);
+    static QVector<int> readOffsets(const QVariant& value);
     static int animationLimitFor(const QVector<Dst>& dsts);
     static State currentState(const QVector<Dst>& dsts,
                               int globalTime,
@@ -193,6 +235,15 @@ private:
     int m_timerFire = -2147483648;
     QVariant m_activeOptions;
     QSet<int> m_activeOptionSet;
+    bool m_sliderTranslationEnabled = false;
+    qreal m_sliderPosition = 0.0;
+    int m_sliderRange = 0;
+    int m_sliderDirection = 0;
+    bool m_dstOffsetsEnabled = false;
+    qreal m_dstOffsetLiftY = 0.0;
+    qreal m_dstOffsetLaneCoverY = 0.0;
+    qreal m_dstOffsetHiddenY = 0.0;
+    qreal m_dstOffsetHiddenA = 0.0;
     State m_state;
     int m_animationLimit = -1;
 };

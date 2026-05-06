@@ -13,12 +13,20 @@ Item {
     property var runtimeActiveOptions: []
     property var timers: ({ 0: 0 })
     property color transColor: "black"
-    property int framePulse: 0
     readonly property bool playfieldActive: root.enabled
         && !!screenRoot
         && !!skinModel
         && (!screenRoot.isGameplayScreen || screenRoot.isGameplayScreen())
         && !!root.playerForLr2Index(0)
+    readonly property var gameplayFrameState: screenRoot ? screenRoot.gameplayFrameStateRef : null
+    readonly property var fallbackPlayer1: gameplayFrameState ? null : root.playerForLr2Index(0)
+    readonly property var fallbackPlayer2: gameplayFrameState ? null : root.playerForLr2Index(10)
+    readonly property real sampledPosition1: gameplayFrameState
+        ? gameplayFrameState.position1 || 0
+        : (fallbackPlayer1 ? fallbackPlayer1.position || 0 : 0)
+    readonly property real sampledPosition2: gameplayFrameState
+        ? gameplayFrameState.position2 || 0
+        : (fallbackPlayer2 ? fallbackPlayer2.position || 0 : 0)
 
     function listValue(list, index) {
         return list && index >= 0 && index < list.length ? list[index] : null;
@@ -45,11 +53,38 @@ Item {
         if (Lr2Timeline.canUseStaticState(dsts)) {
             return Lr2Timeline.copyDstAsState(dsts[0], dsts[0]);
         }
-        return Lr2Timeline.getCurrentState(
+        let timerFire = 0;
+        if (Lr2Timeline.dstsUseDynamicTimer(dsts)) {
+            timerFire = root.timerFireFor(dsts[0].timer || 0);
+        }
+        return Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
             renderSkinTime,
-            Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null,
+            timerFire,
             Lr2Timeline.dstsUseActiveOptions(dsts) ? runtimeActiveOptions : []);
+    }
+
+    function timerFireFor(timer) {
+        let idx = Number(timer || 0);
+        if (idx === 0) {
+            return 0;
+        }
+        if (screenRoot && screenRoot.skinTimerFireTime) {
+            return screenRoot.skinTimerFireTime(idx, false);
+        }
+        return Lr2Timeline.getTimerFire(timers, idx);
+    }
+
+    function sourceTimerFireFor(src) {
+        if (!src || (src.cycle || 0) <= 0) {
+            return -2147483648;
+        }
+        let divX = Math.max(1, src.div_x || 1);
+        let divY = Math.max(1, src.div_y || 1);
+        if (divX * divY <= 1) {
+            return -2147483648;
+        }
+        return root.timerFireFor(src.timer || 0);
     }
 
     function noteDstState(index) {
@@ -288,11 +323,6 @@ Item {
         };
     }
 
-    FrameAnimation {
-        running: root.playfieldActive
-        onTriggered: root.framePulse += 1
-    }
-
     Repeater {
         model: root.playfieldActive
                 ? root.lineIndexes
@@ -317,10 +347,7 @@ Item {
             property real multiplier: root.heightMultiplier(
                 player,
                 root.sideSpeedHeight(side, dstState))
-            property real playerPosition: {
-                root.framePulse;
-                return player ? player.position || 0 : 0;
-            }
+            property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
             property real layerSkinY: root.movingLayerY(playerPosition, dstState, multiplier)
             property int hidSudMode: root.lr2HidSudMode(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
@@ -376,7 +403,8 @@ Item {
                                 root.lineLocalY(display, lineArea.multiplier),
                                 lineArea.dstState ? lineArea.dstState.h : 0)
                             skinTime: root.renderSkinTime
-                            timers: root.timers
+                            timers: null
+                            sourceTimerFire: root.sourceTimerFireFor(lineArea.lineSource)
                             scaleOverride: root.skinScale
                         }
                     }
@@ -432,10 +460,7 @@ Item {
             property real multiplier: root.heightMultiplier(
                 player,
                 root.sideSpeedHeight(side, dstState))
-            property real playerPosition: {
-                root.framePulse;
-                return player ? player.position || 0 : 0;
-            }
+            property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
             property real layerSkinY: root.movingLayerY(playerPosition, dstState, multiplier)
             property int hidSudMode: root.lr2HidSudMode(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
@@ -549,7 +574,8 @@ Item {
                                     Lr2FastSprite {
                                         srcData: noteItem.lnBodySource
                                         skinTime: root.renderSkinTime
-                                        timers: root.timers
+                                        timers: null
+                                        sourceTimerFire: root.sourceTimerFireFor(noteItem.lnBodySource)
                                         scaleOverride: root.skinScale
                                         tileVertically: true
                                         stateData: {
@@ -567,7 +593,8 @@ Item {
                                 srcData: noteItem.noteSource
                                 stateData: noteItem.noteState
                                 skinTime: root.renderSkinTime
-                                timers: root.timers
+                                timers: null
+                                sourceTimerFire: root.sourceTimerFireFor(noteItem.noteSource)
                                 scaleOverride: root.skinScale
                             }
                         }

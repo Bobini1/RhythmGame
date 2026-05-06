@@ -54,7 +54,7 @@ QtObject {
             && src.sliderRange > 0;
     }
 
-    function trackState(src, dsts, skinTime) {
+    function trackState(src, dsts, skinTime, timerFire, activeOptions) {
         if (!src || !src.slider) {
             return null;
         }
@@ -63,14 +63,19 @@ QtObject {
             : skinTime;
         let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
         let liveClock = root.elementUsesLiveDstClock(dsts);
-        let activeOptions = root.dstsUseActiveOptions(dsts)
-            ? root.activeOptionsForElementDsts(dsts)
-            : root.emptyActiveOptions;
+        let effectiveTimerFire = timerFire === undefined
+            ? root.skinTimerFireTime(timer, liveClock)
+            : timerFire;
+        let effectiveActiveOptions = activeOptions === undefined
+            ? (root.dstsUseActiveOptions(dsts)
+                ? root.activeOptionsForElementDsts(dsts)
+                : root.emptyActiveOptions)
+            : activeOptions;
         let base = Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
             clock,
-            root.skinTimerFireTime(timer, liveClock),
-            activeOptions);
+            effectiveTimerFire,
+            effectiveActiveOptions);
         if (!base) {
             return null;
         }
@@ -139,20 +144,25 @@ QtObject {
         return Math.max(0, Math.min(1, position));
     }
 
-    function translatedState(src, dsts, position, skinTime) {
+    function translatedState(src, dsts, position, skinTime, timerFire, activeOptions) {
         let clock = skinTime === undefined
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
         let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
         let liveClock = root.elementUsesLiveDstClock(dsts);
-        let activeOptions = root.dstsUseActiveOptions(dsts)
-            ? root.activeOptionsForElementDsts(dsts)
-            : root.emptyActiveOptions;
+        let effectiveTimerFire = timerFire === undefined
+            ? root.skinTimerFireTime(timer, liveClock)
+            : timerFire;
+        let effectiveActiveOptions = activeOptions === undefined
+            ? (root.dstsUseActiveOptions(dsts)
+                ? root.activeOptionsForElementDsts(dsts)
+                : root.emptyActiveOptions)
+            : activeOptions;
         let base = Lr2Timeline.getCurrentStateFromTimerFire(
             dsts,
             clock,
-            root.skinTimerFireTime(timer, liveClock),
-            activeOptions);
+            effectiveTimerFire,
+            effectiveActiveOptions);
         if (!base) {
             return null;
         }
@@ -197,9 +207,9 @@ QtObject {
         };
     }
 
-    function selectScrollState(src, dsts, skinTime) {
+    function selectScrollPosition(src) {
         if (!sliders.isSelectScrollSlider(src)) {
-            return null;
+            return 0;
         }
 
         let logicalCount = Math.max(1, selectContext.logicalCount);
@@ -209,61 +219,116 @@ QtObject {
             ? visualState.fixed
             : selectContext.listCalculatedBarFixed;
         fixedValue = Math.max(0, Math.min(maxFixed, fixedValue));
-        let position = logicalCount > 1 ? fixedValue / maxFixed : 0;
-        return sliders.translatedState(src, dsts, position, skinTime);
+        return logicalCount > 1 ? fixedValue / maxFixed : 0;
     }
 
-    function genericState(src, dsts, skinTime) {
+    function genericPosition(src) {
         if (!sliders.isLr2GenericSlider(src)) {
-            return null;
+            return 0;
         }
-        let position = src.sliderType === 7
+        return src.sliderType === 7
             ? root.lr2SkinCustomPosition()
             : root.sliderRawValue(src.sliderType) / 100;
-        return sliders.translatedState(src, dsts, position, skinTime);
     }
 
-    function gameplayProgressState(src, dsts, skinTime) {
+    function gameplayProgressPosition(src) {
         if (!sliders.isGameplayProgressSlider(src)) {
-            return null;
+            return 0;
         }
-        root.globalSkinTime;
-        let player = root.gameplayPlayer(1);
-        let elapsed = player ? Math.max(0, player.elapsed || 0) : 0;
-        let length = player ? Math.max(0, player.chartLength || 0) : 0;
-        let position = length > 0 ? Math.max(0, Math.min(1, elapsed / length)) : 0;
-        return sliders.translatedState(src, dsts, position, skinTime);
+        let frameState = root.gameplayFrameStateRef;
+        return frameState ? frameState.progressPosition || 0 : 0;
     }
 
-    function gameplayLaneCoverState(src, dsts, skinTime) {
+    function gameplayLaneCoverPosition(src) {
         if (!sliders.isGameplayLaneCoverSlider(src)) {
-            return null;
+            return 0;
         }
-        root.globalSkinTime;
         let side = src.sliderType === 5 ? 2 : 1;
-        let position = Math.max(0, Math.min(1, root.gameplayLaneCoverSliderPosition(side)));
-        return sliders.translatedState(src, dsts, position, skinTime);
+        return Math.max(0, Math.min(1, root.gameplayLaneCoverSliderPosition(side)));
     }
 
-    function numberRefSliderState(src, dsts, skinTime) {
+    function numberRefSliderPosition(src) {
         if (!sliders.isLr2NumberRefSlider(src)) {
-            return null;
+            return 0;
         }
         let minValue = src.sliderMinValue || 0;
         let maxValue = src.sliderMaxValue || 0;
         if (minValue === maxValue) {
-            return sliders.translatedState(src, dsts, 0, skinTime);
+            return 0;
         }
         let value = root.resolveNumber(src.sliderType || 0);
-        let position = 0;
         if (minValue < maxValue) {
-            position = value <= minValue ? 0
+            return value <= minValue ? 0
                 : (value >= maxValue ? 1 : Math.abs((value - minValue) / (maxValue - minValue)));
-        } else {
-            position = value <= maxValue ? 1
-                : (value >= minValue ? 0 : Math.abs((value - minValue) / (maxValue - minValue)));
         }
-        return sliders.translatedState(src, dsts, position, skinTime);
+        return value <= maxValue ? 1
+            : (value >= minValue ? 0 : Math.abs((value - minValue) / (maxValue - minValue)));
+    }
+
+    function selectScrollState(src, dsts, skinTime, timerFire, activeOptions) {
+        if (!sliders.isSelectScrollSlider(src)) {
+            return null;
+        }
+
+        return sliders.translatedState(
+            src,
+            dsts,
+            sliders.selectScrollPosition(src),
+            skinTime,
+            timerFire,
+            activeOptions);
+    }
+
+    function genericState(src, dsts, skinTime, timerFire, activeOptions) {
+        if (!sliders.isLr2GenericSlider(src)) {
+            return null;
+        }
+        return sliders.translatedState(
+            src,
+            dsts,
+            sliders.genericPosition(src),
+            skinTime,
+            timerFire,
+            activeOptions);
+    }
+
+    function gameplayProgressState(src, dsts, skinTime, timerFire, activeOptions) {
+        if (!sliders.isGameplayProgressSlider(src)) {
+            return null;
+        }
+        return sliders.translatedState(
+            src,
+            dsts,
+            sliders.gameplayProgressPosition(src),
+            skinTime,
+            timerFire,
+            activeOptions);
+    }
+
+    function gameplayLaneCoverState(src, dsts, skinTime, timerFire, activeOptions) {
+        if (!sliders.isGameplayLaneCoverSlider(src)) {
+            return null;
+        }
+        return sliders.translatedState(
+            src,
+            dsts,
+            sliders.gameplayLaneCoverPosition(src),
+            skinTime,
+            timerFire,
+            activeOptions);
+    }
+
+    function numberRefSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+        if (!sliders.isLr2NumberRefSlider(src)) {
+            return null;
+        }
+        return sliders.translatedState(
+            src,
+            dsts,
+            sliders.numberRefSliderPosition(src),
+            skinTime,
+            timerFire,
+            activeOptions);
     }
 
     function selectScrollTrackState(src, dsts, skinTime) {

@@ -12,6 +12,8 @@ qt_add_qml_module(RhythmGame_qml
         Lr2TimelineState.cpp
         Lr2AnimationFrameState.h
         Lr2AnimationFrameState.cpp
+        Lr2GameplayFrameState.h
+        Lr2GameplayFrameState.cpp
         Lr2BarPositionCache.h
         Lr2BarPositionCache.cpp
         Lr2BarBaseStateCache.h

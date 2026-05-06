@@ -70,7 +70,10 @@ Item {
         return 2;
     }
 
-    FrameAnimation {
+    Timer {
+        interval: 16
+        repeat: true
+        triggeredOnStart: true
         running: root.mediaActive && root.currentState && root.srcData
         onTriggered: {
             // DXLib GetRand(2) returns an integer in the inclusive 0..2 range.

@@ -105,10 +105,12 @@ Item {
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
+    property alias gameplayFrameStateRef: gameplayFrameState
     readonly property bool stackScreenActive: screenState.stackActive
     readonly property bool screenUpdatesActive: screenState.updatesActive
     readonly property int lr2CurrentFps: skinTiming.currentFps
     readonly property var lr2InitialClockNow: wallClockState.initialNow
+    property alias skinTimingRef: skinTiming
     property alias lr2ClockNowMs: wallClockState.nowMs
     property alias lr2ClockYear: wallClockState.year
     property alias lr2ClockMonth: wallClockState.month
@@ -1431,6 +1433,88 @@ Item {
         return Math.max(1, root.skinH || 480);
     }
 
+    readonly property real gameplayLaneOffsetHeightP1: root.gameplayLaneOffsetHeight(1)
+    readonly property real gameplayLaneOffsetHeightP2: root.gameplayLaneOffsetHeight(2)
+
+    function cachedGameplayLaneOffsetHeight(side) {
+        return side === 2 ? root.gameplayLaneOffsetHeightP2 : root.gameplayLaneOffsetHeightP1;
+    }
+
+    function lr2Clamp01(value) {
+        return Math.max(0, Math.min(value || 0, 1));
+    }
+
+    function computeGameplayDstOffsetLiftY(side) {
+        if (!root.isGameplayScreen()) {
+            return 0;
+        }
+        let vars = root.generalVarsForSide(side);
+        return vars && vars.liftOn
+            ? -root.cachedGameplayLaneOffsetHeight(side) * root.lr2Clamp01(vars.liftRatio)
+            : 0;
+    }
+
+    function computeGameplayDstOffsetLaneCoverY(side) {
+        if (!root.isGameplayScreen()) {
+            return 0;
+        }
+        let vars = root.generalVarsForSide(side);
+        if (!vars || !vars.laneCoverOn) {
+            return 0;
+        }
+        let height = root.cachedGameplayLaneOffsetHeight(side);
+        let liftRatio = vars.liftOn ? root.lr2Clamp01(vars.liftRatio) : 0;
+        let visibleHeight = height * Math.max(0, 1 - liftRatio);
+        return visibleHeight * root.lr2Clamp01(vars.laneCoverRatio);
+    }
+
+    function computeGameplayDstOffsetHiddenY(side) {
+        if (!root.isGameplayScreen()) {
+            return 0;
+        }
+        let vars = root.generalVarsForSide(side);
+        if (!vars || !vars.hiddenOn) {
+            return 0;
+        }
+        let height = root.cachedGameplayLaneOffsetHeight(side);
+        let liftRatio = vars.liftOn ? root.lr2Clamp01(vars.liftRatio) : 0;
+        let visibleHeight = height * Math.max(0, 1 - liftRatio);
+        return visibleHeight * root.lr2Clamp01(vars.hiddenRatio);
+    }
+
+    function computeGameplayDstOffsetHiddenA(side) {
+        if (!root.isGameplayScreen()) {
+            return 0;
+        }
+        let vars = root.generalVarsForSide(side);
+        return vars && vars.hiddenOn ? 0 : -255;
+    }
+
+    readonly property real gameplayDstOffsetLiftY1: root.computeGameplayDstOffsetLiftY(1)
+    readonly property real gameplayDstOffsetLiftY2: root.computeGameplayDstOffsetLiftY(2)
+    readonly property real gameplayDstOffsetLaneCoverY1: root.computeGameplayDstOffsetLaneCoverY(1)
+    readonly property real gameplayDstOffsetLaneCoverY2: root.computeGameplayDstOffsetLaneCoverY(2)
+    readonly property real gameplayDstOffsetHiddenY1: root.computeGameplayDstOffsetHiddenY(1)
+    readonly property real gameplayDstOffsetHiddenY2: root.computeGameplayDstOffsetHiddenY(2)
+    readonly property real gameplayDstOffsetHiddenA1: root.computeGameplayDstOffsetHiddenA(1)
+    readonly property real gameplayDstOffsetHiddenA2: root.computeGameplayDstOffsetHiddenA(2)
+
+    function gameplayDstOffsetLiftY(side) {
+        return side === 2 ? root.gameplayDstOffsetLiftY2 : root.gameplayDstOffsetLiftY1;
+    }
+
+    function gameplayDstOffsetLaneCoverY(side) {
+        return side === 2 ? root.gameplayDstOffsetLaneCoverY2 : root.gameplayDstOffsetLaneCoverY1;
+    }
+
+    function gameplayDstOffsetHiddenY(side) {
+        return side === 2 ? root.gameplayDstOffsetHiddenY2 : root.gameplayDstOffsetHiddenY1;
+    }
+
+    function gameplayDstOffsetHiddenA(side) {
+        return side === 2 ? root.gameplayDstOffsetHiddenA2 : root.gameplayDstOffsetHiddenA1;
+    }
+
     function lr2OffsetSide(state, requestedSide) {
         if (requestedSide === 1 || requestedSide === 2) {
             return requestedSide;
@@ -1442,14 +1526,10 @@ Item {
         if (!root.isGameplayScreen()) {
             return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
         }
-        let vars = root.generalVarsForSide(side);
-        let height = root.gameplayLaneOffsetHeight(side);
-        let liftRatio = vars && vars.liftOn ? Math.max(0, Math.min(vars.liftRatio || 0, 1)) : 0;
-        let visibleHeight = height * Math.max(0, 1 - liftRatio);
         if (id === 3 || id === 50) {
             return {
                 x: 0,
-                y: vars && vars.liftOn ? -height * liftRatio : 0,
+                y: root.gameplayDstOffsetLiftY(side),
                 w: 0,
                 h: 0,
                 a: 0,
@@ -1459,7 +1539,7 @@ Item {
         if (id === 4 || id === 51) {
             return {
                 x: 0,
-                y: vars && vars.laneCoverOn ? visibleHeight * Math.max(0, Math.min(vars.laneCoverRatio || 0, 1)) : 0,
+                y: root.gameplayDstOffsetLaneCoverY(side),
                 w: 0,
                 h: 0,
                 a: 0,
@@ -1469,10 +1549,10 @@ Item {
         if (id === 5) {
             return {
                 x: 0,
-                y: vars && vars.hiddenOn ? visibleHeight * Math.max(0, Math.min(vars.hiddenRatio || 0, 1)) : 0,
+                y: root.gameplayDstOffsetHiddenY(side),
                 w: 0,
                 h: 0,
-                a: vars && vars.hiddenOn ? 0 : -255,
+                a: root.gameplayDstOffsetHiddenA(side),
                 r: 0
             };
         }
@@ -1484,6 +1564,10 @@ Item {
             return state;
         }
         let side = root.lr2OffsetSide(state, requestedSide || 0);
+        let liftY = root.gameplayDstOffsetLiftY(side);
+        let laneCoverY = root.gameplayDstOffsetLaneCoverY(side);
+        let hiddenY = root.gameplayDstOffsetHiddenY(side);
+        let hiddenA = root.gameplayDstOffsetHiddenA(side);
         let adjusted = {
             x: state.x || 0,
             y: state.y || 0,
@@ -1504,13 +1588,19 @@ Item {
             op4: state.op4 || 0
         };
         for (let i = 0; i < dsts[0].offsets.length; ++i) {
-            let offset = root.lr2OffsetValue(Number(dsts[0].offsets[i]), side);
-            adjusted.x += offset.x - offset.w / 2;
-            adjusted.y += offset.y - offset.h / 2;
-            adjusted.w += offset.w;
-            adjusted.h += offset.h;
-            adjusted.a += offset.a;
-            adjusted.angle += offset.r;
+            let id = Number(dsts[0].offsets[i]);
+            let offsetY = 0;
+            let offsetA = 0;
+            if (id === 3 || id === 50) {
+                offsetY = liftY;
+            } else if (id === 4 || id === 51) {
+                offsetY = laneCoverY;
+            } else if (id === 5) {
+                offsetY = hiddenY;
+                offsetA = hiddenA;
+            }
+            adjusted.y += offsetY;
+            adjusted.a += offsetA;
         }
         return adjusted;
     }
@@ -2757,6 +2847,9 @@ Item {
     }
 
     function gameplayRhythmTimerSkinTime() {
+        if (root.isGameplayScreen()) {
+            return gameplayFrameState.rhythmTimerSkinTime;
+        }
         let player = root.gameplayPlayer(1) || root.gameplayPlayer(2);
         if (!player) {
             return -1;
@@ -2771,6 +2864,15 @@ Item {
         let beatMs = 60000 / bpm;
         let rhythm = beatMs > 0 ? (elapsedMs % beatMs) * 1000 / beatMs : 0;
         return Math.max(0, Math.round(root.renderSkinTime - rhythm));
+    }
+
+    function resetGameplayFrameSamples() {
+        gameplayFrameState.reset();
+    }
+
+    function refreshGameplayFrameSamples(frameSkinTime) {
+        let sampleSkinTime = frameSkinTime === undefined ? root.renderSkinTime : frameSkinTime;
+        gameplayFrameState.refresh(sampleSkinTime);
     }
 
     function addGameplayTimers(result) {
@@ -3863,59 +3965,98 @@ Item {
         return src.timer === 47 ? root.gameplayJudgeCombo2 : root.gameplayJudgeCombo1;
     }
 
-    function nowJudgeState(src, dsts) {
+    function nowJudgeOffsetX(src, dsts) {
         if (!root.isNowJudgeSprite(src)) {
-            return null;
+            return 0;
         }
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        let base = Lr2Timeline.getCurrentStateFromTimerFire(
-            dsts,
-            root.renderSkinTime,
-            root.skinTimerFireTime(timer),
-            root.dstsUseActiveOptions(dsts)
-                ? root.activeOptionsForDsts(dsts, root.runtimeActiveOptions)
-                : root.emptyActiveOptions);
         let combo = root.nowJudgeComboValue(src);
-        if (!base || combo <= 0) {
-            return base;
+        if (combo <= 0) {
+            return 0;
         }
 
-        let shifted = root.copyObject(base);
         let digits = Math.abs(Math.round(combo)).toString().length;
-        let comboDigitW = Math.max(1, Math.round((base.h || src.h || 30) * 22 / 30));
-        shifted.x -= digits * comboDigitW * 0.5;
-        return shifted;
+        let dst = dsts && dsts.length > 0 ? dsts[0] : null;
+        let baseH = dst && dst.h ? Math.abs(dst.h) : (src.h || 30);
+        let comboDigitW = Math.max(1, Math.round(baseH * 22 / 30));
+        return -digits * comboDigitW * 0.5;
     }
 
-    function spriteStateOverride(src, dsts, skinTime) {
-        if (root.isNowJudgeSprite(src)) {
-            return root.nowJudgeState(src, dsts);
-        }
+    readonly property int noSpriteStateOverride: 0
+    readonly property int selectScrollSpriteStateOverride: 1
+    readonly property int gameplayProgressSpriteStateOverride: 2
+    readonly property int gameplayLaneCoverSpriteStateOverride: 3
+    readonly property int numberRefSpriteStateOverride: 4
+    readonly property int genericSliderSpriteStateOverride: 5
+
+    function elementSpriteStateOverrideKind(src) {
         if (root.isSelectScrollSlider(src)) {
-            return root.selectScrollSliderState(src, dsts, skinTime);
+            return root.selectScrollSpriteStateOverride;
         }
         if (root.isGameplayProgressSlider(src)) {
-            return root.gameplayProgressSliderState(src, dsts, skinTime);
+            return root.gameplayProgressSpriteStateOverride;
         }
         if (root.isGameplayLaneCoverSlider(src)) {
-            return root.gameplayLaneCoverSliderState(src, dsts, skinTime);
+            return root.gameplayLaneCoverSpriteStateOverride;
         }
         if (root.isLr2NumberRefSlider(src)) {
-            return root.lr2NumberRefSliderState(src, dsts, skinTime);
+            return root.numberRefSpriteStateOverride;
         }
         if (root.isLr2GenericSlider(src)) {
-            return root.lr2GenericSliderState(src, dsts, skinTime);
+            return root.genericSliderSpriteStateOverride;
         }
-        return null;
+        return root.noSpriteStateOverride;
+    }
+
+    function spriteStateOverrideForKind(kind, src, dsts, skinTime, timerFire, activeOptions) {
+        switch (kind) {
+        case root.selectScrollSpriteStateOverride:
+            return root.selectScrollSliderState(src, dsts, skinTime, timerFire, activeOptions);
+        case root.gameplayProgressSpriteStateOverride:
+            return root.gameplayProgressSliderState(src, dsts, skinTime, timerFire, activeOptions);
+        case root.gameplayLaneCoverSpriteStateOverride:
+            return root.gameplayLaneCoverSliderState(src, dsts, skinTime, timerFire, activeOptions);
+        case root.numberRefSpriteStateOverride:
+            return root.lr2NumberRefSliderState(src, dsts, skinTime, timerFire, activeOptions);
+        case root.genericSliderSpriteStateOverride:
+            return root.lr2GenericSliderState(src, dsts, skinTime, timerFire, activeOptions);
+        default:
+            return null;
+        }
+    }
+
+    function spriteStateOverride(src, dsts, skinTime, timerFire, activeOptions) {
+        return root.spriteStateOverrideForKind(
+            root.elementSpriteStateOverrideKind(src),
+            src,
+            dsts,
+            skinTime,
+            timerFire,
+            activeOptions);
+    }
+
+    function spriteSliderPositionForKind(kind, src) {
+        switch (kind) {
+        case root.selectScrollSpriteStateOverride:
+            return skinSliderState.selectScrollPosition(src);
+        case root.gameplayProgressSpriteStateOverride:
+            return skinSliderState.gameplayProgressPosition(src);
+        case root.gameplayLaneCoverSpriteStateOverride:
+            return skinSliderState.gameplayLaneCoverPosition(src);
+        case root.numberRefSpriteStateOverride:
+            return skinSliderState.numberRefSliderPosition(src);
+        case root.genericSliderSpriteStateOverride:
+            return skinSliderState.genericPosition(src);
+        default:
+            return 0;
+        }
+    }
+
+    function spriteSliderPosition(src) {
+        return root.spriteSliderPositionForKind(root.elementSpriteStateOverrideKind(src), src);
     }
 
     function elementUsesSpriteStateOverride(src) {
-        return root.isNowJudgeSprite(src)
-            || root.isSelectScrollSlider(src)
-            || root.isGameplayProgressSlider(src)
-            || root.isGameplayLaneCoverSlider(src)
-            || root.isLr2NumberRefSlider(src)
-            || root.isLr2GenericSlider(src);
+        return root.elementSpriteStateOverrideKind(src) !== root.noSpriteStateOverride;
     }
 
     function spriteForceHidden(src, elementIndex) {
@@ -3936,28 +4077,28 @@ Item {
             && !!src.button;
     }
 
-    function translatedSliderState(src, dsts, position, skinTime) {
-        return skinSliderState.translatedState(src, dsts, position, skinTime);
+    function translatedSliderState(src, dsts, position, skinTime, timerFire, activeOptions) {
+        return skinSliderState.translatedState(src, dsts, position, skinTime, timerFire, activeOptions);
     }
 
-    function selectScrollSliderState(src, dsts, skinTime) {
-        return skinSliderState.selectScrollState(src, dsts, skinTime);
+    function selectScrollSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+        return skinSliderState.selectScrollState(src, dsts, skinTime, timerFire, activeOptions);
     }
 
-    function lr2GenericSliderState(src, dsts, skinTime) {
-        return skinSliderState.genericState(src, dsts, skinTime);
+    function lr2GenericSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+        return skinSliderState.genericState(src, dsts, skinTime, timerFire, activeOptions);
     }
 
-    function gameplayProgressSliderState(src, dsts, skinTime) {
-        return skinSliderState.gameplayProgressState(src, dsts, skinTime);
+    function gameplayProgressSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+        return skinSliderState.gameplayProgressState(src, dsts, skinTime, timerFire, activeOptions);
     }
 
-    function gameplayLaneCoverSliderState(src, dsts, skinTime) {
-        return skinSliderState.gameplayLaneCoverState(src, dsts, skinTime);
+    function gameplayLaneCoverSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+        return skinSliderState.gameplayLaneCoverState(src, dsts, skinTime, timerFire, activeOptions);
     }
 
-    function lr2NumberRefSliderState(src, dsts, skinTime) {
-        return skinSliderState.numberRefSliderState(src, dsts, skinTime);
+    function lr2NumberRefSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+        return skinSliderState.numberRefSliderState(src, dsts, skinTime, timerFire, activeOptions);
     }
 
     function selectScrollSliderTrackState(src, dsts, skinTime) {
@@ -4015,6 +4156,12 @@ Item {
     function handleBarRowClick(row, mouse) {
         return selectBarGeometry.handleBarRowClick(row, mouse);
     }
+
+    Lr2GameplayFrameState {
+        id: gameplayFrameState
+        chart: root.chart
+    }
+
     Lr2SkinTiming {
         id: skinTiming
         host: root
@@ -4064,7 +4211,7 @@ Item {
     property alias renderSkinTime: skinTiming.renderSkinTime
     property alias barSkinTime: skinTiming.barSkinTime
     readonly property bool shouldAutoAdvance: skinTiming.shouldAutoAdvance
-    readonly property var timers: root.isGameplayScreen() || root.isResultScreen()
+    readonly property var timers: root.isResultScreen()
         ? skinTiming.timers
         : root.zeroTimers
 

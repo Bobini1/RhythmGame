@@ -182,6 +182,10 @@ QVector4D Lr2AnimationFrameState::sourceRect() const {
     return m_sourceRect;
 }
 
+QRectF Lr2AnimationFrameState::sourceClipRect() const {
+    return m_sourceClipRect;
+}
+
 void Lr2AnimationFrameState::rebuildSource() {
     Source next;
     readSource(m_sourceData, next);
@@ -266,8 +270,9 @@ void Lr2AnimationFrameState::updateFrameIndex() {
     }
 
     const QVector4D nextRect = sourceRectFor(m_source, next, m_textureWidth, m_textureHeight);
+    const QRectF nextClipRect = sourceClipRectFor(m_source, next);
     const bool frameChanged = m_frameIndex != next;
-    const bool rectChanged = m_sourceRect != nextRect;
+    const bool rectChanged = m_sourceRect != nextRect || m_sourceClipRect != nextClipRect;
 
     if (frameChanged) {
         m_frameIndex = next;
@@ -275,6 +280,7 @@ void Lr2AnimationFrameState::updateFrameIndex() {
     }
     if (rectChanged) {
         m_sourceRect = nextRect;
+        m_sourceClipRect = nextClipRect;
         emit sourceRectChanged();
     }
 }
@@ -427,4 +433,19 @@ QVector4D Lr2AnimationFrameState::sourceRectFor(const Source& source,
         static_cast<float>((source.y + row * cellH) / textureHeight),
         static_cast<float>(cellW / textureWidth),
         static_cast<float>(cellH / textureHeight));
+}
+
+QRectF Lr2AnimationFrameState::sourceClipRectFor(const Source& source, int frameIndex) {
+    if (!source.valid || source.w <= 0 || source.h <= 0) {
+        return QRectF(0.0, 0.0, 0.0, 0.0);
+    }
+
+    const int divX = std::max(1, source.divX);
+    const int divY = std::max(1, source.divY);
+    const qreal cellW = static_cast<qreal>(source.w) / divX;
+    const qreal cellH = static_cast<qreal>(source.h) / divY;
+    const int col = frameIndex % divX;
+    const int row = (frameIndex / divX) % divY;
+
+    return QRectF(source.x + col * cellW, source.y + row * cellH, cellW, cellH);
 }

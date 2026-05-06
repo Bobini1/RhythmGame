@@ -30,6 +30,15 @@ Item {
     property color transColor: "black"
     property int frameOverride: -1
     property var stateOverride: null
+    property bool sliderTranslationEnabled: false
+    property real sliderPosition: 0
+    property int sliderRange: 0
+    property int sliderDirection: 0
+    property bool dstOffsetsEnabled: false
+    property real dstOffsetLiftY: 0
+    property real dstOffsetLaneCoverY: 0
+    property real dstOffsetHiddenY: 0
+    property real dstOffsetHiddenA: 0
     property bool forceHidden: false
     property bool mediaActive: true
     property real scratchAngle1: 0
@@ -40,6 +49,8 @@ Item {
         && (srcData.cycle || 0) > 0
         && Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1) > 1
     readonly property bool hasStaticTimelineState: !stateOverride
+        && !sliderTranslationEnabled
+        && !dstOffsetsEnabled
         && !forceHidden
         && Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -56,27 +67,51 @@ Item {
         timers: root.timelineTimers
         timerFire: root.timerFire
         activeOptions: root.timelineActiveOptions
+        sliderTranslationEnabled: root.sliderTranslationEnabled
+        sliderPosition: root.sliderPosition
+        sliderRange: root.sliderRange
+        sliderDirection: root.sliderDirection
+        dstOffsetsEnabled: root.dstOffsetsEnabled
+        dstOffsetLiftY: root.dstOffsetLiftY
+        dstOffsetLaneCoverY: root.dstOffsetLaneCoverY
+        dstOffsetHiddenY: root.dstOffsetHiddenY
+        dstOffsetHiddenA: root.dstOffsetHiddenA
     }
     readonly property var rawObjectState: forceHidden ? null : (stateOverride || staticTimelineState)
-    readonly property var rawTimelineState: !forceHidden && timelineState.hasState ? timelineState.state : null
-    readonly property var rawCurrentState: rawObjectState || rawTimelineState
-    readonly property var objectState: root.screenRoot && root.screenRoot.applyLr2DstOffsets
-        ? root.screenRoot.applyLr2DstOffsets(root.rawCurrentState, root.dsts, root.srcData ? root.srcData.side || 0 : 0)
-        : root.rawCurrentState
-    readonly property bool hasCurrentState: !!objectState
-    readonly property real stateX: objectState ? (objectState.x || 0) : 0
-    readonly property real stateY: objectState ? (objectState.y || 0) : 0
-    readonly property real stateW: objectState ? (objectState.w || 0) : 0
-    readonly property real stateH: objectState ? (objectState.h || 0) : 0
-    readonly property real stateA: objectState ? (objectState.a === undefined ? 255 : objectState.a) : 0
-    readonly property real stateR: objectState ? (objectState.r === undefined ? 255 : objectState.r) : 255
-    readonly property real stateG: objectState ? (objectState.g === undefined ? 255 : objectState.g) : 255
-    readonly property real stateB: objectState ? (objectState.b === undefined ? 255 : objectState.b) : 255
-    readonly property real stateAngle: objectState ? (objectState.angle || 0) : 0
-    readonly property int stateCenter: objectState ? (objectState.center || 0) : 0
-    readonly property int stateBlend: objectState ? (objectState.blend || 0) : 0
-    readonly property int stateFilter: objectState ? (objectState.filter || 0) : 0
-    readonly property int stateOp4: objectState ? (objectState.op4 || 0) : 0
+    readonly property bool hasObjectState: !!rawObjectState
+    readonly property bool hasTimelineState: !forceHidden && timelineState.hasState
+    readonly property bool needsDstOffsets: !root.dstOffsetsEnabled
+        && root.screenRoot
+        && root.screenRoot.applyLr2DstOffsets
+        && root.dsts
+        && root.dsts.length > 0
+        && root.dsts[0]
+        && root.dsts[0].offsets
+        && root.dsts[0].offsets.length > 0
+    readonly property var objectState: {
+        if (!root.needsDstOffsets) {
+            return root.rawObjectState;
+        }
+        let currentState = root.rawObjectState || (root.hasTimelineState ? root.timelineState.state : null);
+        return root.screenRoot.applyLr2DstOffsets(
+            currentState,
+            root.dsts,
+            root.srcData ? root.srcData.side || 0 : 0);
+    }
+    readonly property bool hasCurrentState: needsDstOffsets ? !!objectState : (hasObjectState || hasTimelineState)
+    readonly property real stateX: objectState ? (objectState.x || 0) : (hasTimelineState ? timelineState.stateX : 0)
+    readonly property real stateY: objectState ? (objectState.y || 0) : (hasTimelineState ? timelineState.stateY : 0)
+    readonly property real stateW: objectState ? (objectState.w || 0) : (hasTimelineState ? timelineState.stateW : 0)
+    readonly property real stateH: objectState ? (objectState.h || 0) : (hasTimelineState ? timelineState.stateH : 0)
+    readonly property real stateA: objectState ? (objectState.a === undefined ? 255 : objectState.a) : (hasTimelineState ? timelineState.stateA : 0)
+    readonly property real stateR: objectState ? (objectState.r === undefined ? 255 : objectState.r) : (hasTimelineState ? timelineState.stateR : 255)
+    readonly property real stateG: objectState ? (objectState.g === undefined ? 255 : objectState.g) : (hasTimelineState ? timelineState.stateG : 255)
+    readonly property real stateB: objectState ? (objectState.b === undefined ? 255 : objectState.b) : (hasTimelineState ? timelineState.stateB : 255)
+    readonly property real stateAngle: objectState ? (objectState.angle || 0) : (hasTimelineState ? timelineState.stateAngle : 0)
+    readonly property int stateCenter: objectState ? (objectState.center || 0) : (hasTimelineState ? timelineState.stateCenter : 0)
+    readonly property int stateBlend: objectState ? (objectState.blend || 0) : (hasTimelineState ? timelineState.stateBlend : 0)
+    readonly property int stateFilter: objectState ? (objectState.filter || 0) : (hasTimelineState ? timelineState.stateFilter : 0)
+    readonly property int stateOp4: objectState ? (objectState.op4 || 0) : (hasTimelineState ? timelineState.stateOp4 : 0)
     readonly property real drawX: root.stateX + (root.stateW < 0 ? root.stateW : 0) + root.offsetX
     readonly property real drawY: root.stateY + (root.stateH < 0 ? root.stateH : 0) + root.offsetY
     readonly property real drawW: Math.abs(root.stateW)

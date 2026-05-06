@@ -58,22 +58,7 @@ Image {
         && height > 0
     opacity: stateData && stateData.a !== undefined ? stateData.a / 255.0 : 1.0
     source: hasDrawableTexture ? resolvedSource : ""
-    sourceClipRect: {
-        if (!srcData) {
-            return Qt.rect(0, 0, 0, 0);
-        }
-        let divX = Math.max(1, srcData.div_x || 1);
-        let divY = Math.max(1, srcData.div_y || 1);
-        let cellW = srcData.w / divX;
-        let cellH = srcData.h / divY;
-        let col = frameIndex % divX;
-        let row = Math.floor(frameIndex / divX) % divY;
-        return Qt.rect(
-            (srcData.x || 0) + col * cellW,
-            (srcData.y || 0) + row * cellH,
-            cellW,
-            cellH);
-    }
+    sourceClipRect: animationFrameState.sourceClipRect
     fillMode: tileVertically ? Image.TileVertically : Image.Stretch
     cache: true
     asynchronous: true

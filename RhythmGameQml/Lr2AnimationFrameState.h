@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QMetaObject>
 #include <QPointer>
+#include <QRectF>
 #include <QVariant>
 #include <QVector4D>
 #include <QtQml/qqmlregistration.h>
@@ -24,6 +25,7 @@ class Lr2AnimationFrameState : public QObject {
     Q_PROPERTY(int textureHeight READ textureHeight WRITE setTextureHeight NOTIFY textureHeightChanged)
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameIndexChanged)
     Q_PROPERTY(QVector4D sourceRect READ sourceRect NOTIFY sourceRectChanged)
+    Q_PROPERTY(QRectF sourceClipRect READ sourceClipRect NOTIFY sourceRectChanged)
 
 public:
     enum ClockMode {
@@ -70,6 +72,7 @@ public:
 
     int frameIndex() const;
     QVector4D sourceRect() const;
+    QRectF sourceClipRect() const;
 
 signals:
     void skinClockChanged();
@@ -108,6 +111,7 @@ private:
     static bool readSource(const QVariant& value, Source& source);
     static int frameCount(const Source& source);
     static QVector4D sourceRectFor(const Source& source, int frameIndex, int textureWidth, int textureHeight);
+    static QRectF sourceClipRectFor(const Source& source, int frameIndex);
 
     bool m_enabled = true;
     QPointer<Lr2SkinClock> m_skinClock;
@@ -123,4 +127,5 @@ private:
     int m_textureHeight = 0;
     int m_frameIndex = 0;
     QVector4D m_sourceRect = QVector4D(0.0f, 0.0f, 1.0f, 1.0f);
+    QRectF m_sourceClipRect = QRectF(0.0, 0.0, 0.0, 0.0);
 };

@@ -155,6 +155,148 @@ void Lr2TimelineState::setActiveOptions(const QVariant& options) {
     updateState();
 }
 
+bool Lr2TimelineState::sliderTranslationEnabled() const {
+    return m_sliderTranslationEnabled;
+}
+
+void Lr2TimelineState::setSliderTranslationEnabled(bool enabled) {
+    if (m_sliderTranslationEnabled == enabled) {
+        return;
+    }
+
+    m_sliderTranslationEnabled = enabled;
+    emit sliderTranslationChanged();
+    updateState();
+}
+
+qreal Lr2TimelineState::sliderPosition() const {
+    return m_sliderPosition;
+}
+
+void Lr2TimelineState::setSliderPosition(qreal position) {
+    if (!std::isfinite(position)) {
+        position = 0.0;
+    }
+    if (std::abs(m_sliderPosition - position) <= 0.0001) {
+        return;
+    }
+
+    m_sliderPosition = position;
+    emit sliderTranslationChanged();
+    updateState();
+}
+
+int Lr2TimelineState::sliderRange() const {
+    return m_sliderRange;
+}
+
+void Lr2TimelineState::setSliderRange(int range) {
+    range = std::max(0, range);
+    if (m_sliderRange == range) {
+        return;
+    }
+
+    m_sliderRange = range;
+    emit sliderTranslationChanged();
+    updateState();
+}
+
+int Lr2TimelineState::sliderDirection() const {
+    return m_sliderDirection;
+}
+
+void Lr2TimelineState::setSliderDirection(int direction) {
+    if (m_sliderDirection == direction) {
+        return;
+    }
+
+    m_sliderDirection = direction;
+    emit sliderTranslationChanged();
+    updateState();
+}
+
+bool Lr2TimelineState::dstOffsetsEnabled() const {
+    return m_dstOffsetsEnabled;
+}
+
+void Lr2TimelineState::setDstOffsetsEnabled(bool enabled) {
+    if (m_dstOffsetsEnabled == enabled) {
+        return;
+    }
+
+    m_dstOffsetsEnabled = enabled;
+    emit dstOffsetsChanged();
+    updateState();
+}
+
+qreal Lr2TimelineState::dstOffsetLiftY() const {
+    return m_dstOffsetLiftY;
+}
+
+void Lr2TimelineState::setDstOffsetLiftY(qreal value) {
+    if (!std::isfinite(value)) {
+        value = 0.0;
+    }
+    if (std::abs(m_dstOffsetLiftY - value) <= 0.0001) {
+        return;
+    }
+
+    m_dstOffsetLiftY = value;
+    emit dstOffsetsChanged();
+    updateState();
+}
+
+qreal Lr2TimelineState::dstOffsetLaneCoverY() const {
+    return m_dstOffsetLaneCoverY;
+}
+
+void Lr2TimelineState::setDstOffsetLaneCoverY(qreal value) {
+    if (!std::isfinite(value)) {
+        value = 0.0;
+    }
+    if (std::abs(m_dstOffsetLaneCoverY - value) <= 0.0001) {
+        return;
+    }
+
+    m_dstOffsetLaneCoverY = value;
+    emit dstOffsetsChanged();
+    updateState();
+}
+
+qreal Lr2TimelineState::dstOffsetHiddenY() const {
+    return m_dstOffsetHiddenY;
+}
+
+void Lr2TimelineState::setDstOffsetHiddenY(qreal value) {
+    if (!std::isfinite(value)) {
+        value = 0.0;
+    }
+    if (std::abs(m_dstOffsetHiddenY - value) <= 0.0001) {
+        return;
+    }
+
+    m_dstOffsetHiddenY = value;
+    emit dstOffsetsChanged();
+    updateState();
+}
+
+qreal Lr2TimelineState::dstOffsetHiddenA() const {
+    return m_dstOffsetHiddenA;
+}
+
+void Lr2TimelineState::setDstOffsetHiddenA(qreal value) {
+    if (!std::isfinite(value)) {
+        value = 0.0;
+    }
+    if (std::abs(m_dstOffsetHiddenA - value) <= 0.0001) {
+        return;
+    }
+
+    m_dstOffsetHiddenA = value;
+    emit dstOffsetsChanged();
+    updateState();
+}
+
 QVariant Lr2TimelineState::state() const {
     if (!m_state.valid) {
         return {};
@@ -372,7 +514,14 @@ void Lr2TimelineState::updateState() {
         return;
     }
 
-    assignState(currentState(m_dsts, m_effectiveSkinTime, effectiveTimerFire(), *this));
+    State state = currentState(m_dsts, m_effectiveSkinTime, effectiveTimerFire(), *this);
+    if (m_sliderTranslationEnabled) {
+        state = translatedSliderState(state);
+    }
+    if (m_dstOffsetsEnabled) {
+        state = offsetDstState(state);
+    }
+    assignState(state);
 }
 
 int Lr2TimelineState::clockSkinTime() const {
@@ -449,6 +598,58 @@ bool Lr2TimelineState::checkSingleOp(int op) const {
     return negate ? !present : present;
 }
 
+Lr2TimelineState::State Lr2TimelineState::translatedSliderState(State state) const {
+    if (!state.valid) {
+        return state;
+    }
+
+    const qreal offset = m_sliderPosition * std::max(1, m_sliderRange);
+    switch (m_sliderDirection) {
+    case 0:
+        state.y -= offset;
+        break;
+    case 1:
+        state.x += offset;
+        break;
+    case 2:
+        state.y += offset;
+        break;
+    case 3:
+        state.x -= offset;
+        break;
+    default:
+        state.valid = false;
+        break;
+    }
+    return state;
+}
+
+Lr2TimelineState::State Lr2TimelineState::offsetDstState(State state) const {
+    if (!state.valid || m_dsts.isEmpty() || m_dsts.front().offsets.isEmpty()) {
+        return state;
+    }
+
+    for (int offset : m_dsts.front().offsets) {
+        switch (offset) {
+        case 3:
+        case 50:
+            state.y += m_dstOffsetLiftY;
+            break;
+        case 4:
+        case 51:
+            state.y += m_dstOffsetLaneCoverY;
+            break;
+        case 5:
+            state.y += m_dstOffsetHiddenY;
+            state.a += m_dstOffsetHiddenA;
+            break;
+        default:
+            break;
+        }
+    }
+    return state;
+}
+
 void Lr2TimelineState::assignState(const State& state) {
     if (sameState(m_state, state)) {
         return;
@@ -483,6 +684,7 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
         dst.op2 = parsed.op2;
         dst.op3 = parsed.op3;
         dst.op4 = parsed.op4;
+        dst.offsets = readOffsets(parsed.offsets);
         return true;
     }
 
@@ -510,6 +712,10 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
         dst.op2 = mapInt(map, QStringLiteral("op2"), 0);
         dst.op3 = mapInt(map, QStringLiteral("op3"), 0);
         dst.op4 = mapInt(map, QStringLiteral("op4"), 0);
+        const auto offsetsIt = map.constFind(QStringLiteral("offsets"));
+        if (offsetsIt != map.constEnd()) {
+            dst.offsets = readOffsets(*offsetsIt);
+        }
         return true;
     }
 
@@ -544,7 +750,43 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
     dst.op2 = jsInt(jsValue, QStringLiteral("op2"), 0);
     dst.op3 = jsInt(jsValue, QStringLiteral("op3"), 0);
     dst.op4 = jsInt(jsValue, QStringLiteral("op4"), 0);
+    dst.offsets = readOffsets(QVariant::fromValue(jsValue.property(QStringLiteral("offsets"))));
     return true;
+}
+
+QVector<int> Lr2TimelineState::readOffsets(const QVariant& value) {
+    QVector<int> offsets;
+
+    const QVariantList list = value.toList();
+    if (!list.isEmpty()) {
+        offsets.reserve(list.size());
+        for (const QVariant& entry : list) {
+            bool ok = false;
+            const int offset = entry.toInt(&ok);
+            if (ok) {
+                offsets.append(offset);
+            }
+        }
+        return offsets;
+    }
+
+    if (!value.canConvert<QJSValue>()) {
+        return offsets;
+    }
+
+    const QJSValue jsValue = value.value<QJSValue>();
+    if (!jsValue.isArray()) {
+        return offsets;
+    }
+    const int length = jsValue.property(QStringLiteral("length")).toInt();
+    offsets.reserve(length);
+    for (int i = 0; i < length; ++i) {
+        const QJSValue entry = jsValue.property(static_cast<quint32>(i));
+        if (entry.isNumber()) {
+            offsets.append(entry.toInt());
+        }
+    }
+    return offsets;
 }
 
 int Lr2TimelineState::animationLimitFor(const QVector<Dst>& dsts) {

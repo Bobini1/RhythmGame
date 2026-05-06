@@ -262,13 +262,15 @@ Item {
                         ? (model.dsts[0].timer || 0)
                         : 0
                     readonly property int srcTimer: model.src ? (model.src.timer || 0) : 0
-                    readonly property bool dstTimerCanFire: root.skinTimerCanFire(dstTimer)
-                    readonly property bool srcTimerCanFire: root.skinTimerCanFire(srcTimer)
+                    readonly property var timing: root.skinTimingRef
+                    readonly property bool dstTimerCanFire: timing ? timing.skinTimerCanFire(dstTimer) : false
+                    readonly property bool srcTimerCanFire: timing ? timing.skinTimerCanFire(srcTimer) : false
                     readonly property bool usesSelectHeldButtonTimer: root.isSelectHeldButtonTimer(dstTimer)
                     readonly property bool usesLiveDstClock: root.elementUsesLiveDstClock(model.dsts)
                     readonly property bool usesLiveSourceClock: root.elementUsesLiveSourceClock(model.src)
                     readonly property bool usesLiveSelectClock: usesLiveDstClock || usesLiveSourceClock
-                    readonly property bool usesSpriteStateOverride: root.elementUsesSpriteStateOverride(model.src)
+                    readonly property int spriteStateOverrideKind: root.elementSpriteStateOverrideKind(model.src)
+                    readonly property bool usesSpriteStateOverride: spriteStateOverrideKind !== root.noSpriteStateOverride
                     readonly property bool usesSpriteForceHidden: root.elementUsesSpriteForceHidden(model.src)
                     readonly property bool usesButtonFrameOverride: root.elementUsesButtonFrameOverride(model.src)
                     readonly property var elementActiveOptions: usesActiveOptions
@@ -278,13 +280,17 @@ Item {
                         if (dstTimer === 0) {
                             return 0;
                         }
-                        return dstTimerCanFire ? root.skinTimerFireTime(dstTimer, usesLiveDstClock) : -1;
+                        return dstTimerCanFire && timing
+                            ? timing.skinTimerFireTime(dstTimer, usesLiveDstClock)
+                            : -1;
                     }
                     readonly property int srcTimerFire: {
                         if (srcTimer === 0) {
                             return 0;
                         }
-                        return srcTimerCanFire ? root.skinTimerFireTime(srcTimer, usesLiveSourceClock) : -1;
+                        return srcTimerCanFire && timing
+                            ? timing.skinTimerFireTime(srcTimer, usesLiveSourceClock)
+                            : -1;
                     }
                     readonly property bool usesElementSkinTime: usesSkinTime
                         && model.type !== 0
@@ -355,10 +361,10 @@ Item {
                             readonly property int renderClock: 1
                             readonly property int selectSourceClock: 2
                             readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
+                            readonly property real nowJudgeOffsetX: root.nowJudgeOffsetX(model.src, model.dsts)
                             readonly property int scratchRotationSide: root.dstsScratchRotationSide(model.dsts)
                             readonly property bool useDirectSkinClock: elemLoader.usesSkinTime
                                 && !elemLoader.usesSelectHeldButtonTimer
-                                && !elemLoader.usesSpriteStateOverride
                             readonly property int spriteSkinClockMode: useDirectSkinClock
                                 ? (elemLoader.usesLiveDstClock ? selectSourceClock : renderClock)
                                 : manualClock
@@ -374,8 +380,8 @@ Item {
                                 ? (elemLoader.usesSelectHeldButtonTimer
                                     ? selectHeldSkinClock
                                     : (elemLoader.usesLiveDstClock
-                                        ? root.selectSourceSkinTime
-                                        : root.renderSkinTime))
+                                            ? root.selectSourceSkinTime
+                                            : root.renderSkinTime))
                                 : 0
                             readonly property int spriteSourceSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
                                 ? (elemLoader.usesSelectHeldButtonTimer
@@ -384,6 +390,17 @@ Item {
                                         ? root.selectSourceSkinTime
                                         : spriteSkinClock))
                                 : 0
+                            readonly property bool sliderTranslationEnabled: elemLoader.usesSpriteStateOverride
+                            readonly property real sliderPosition: sliderTranslationEnabled
+                                ? root.spriteSliderPositionForKind(elemLoader.spriteStateOverrideKind, model.src)
+                                : 0
+                            readonly property bool dstOffsetsEnabled: root.isGameplayScreen()
+                                && model.dsts
+                                && model.dsts.length > 0
+                                && model.dsts[0]
+                                && model.dsts[0].offsets
+                                && model.dsts[0].offsets.length > 0
+                            readonly property int dstOffsetSide: model.src && model.src.side === 2 ? 2 : 1
 
                             Component.onCompleted: root.observeSelectSortButton(model.src)
 
@@ -405,10 +422,25 @@ Item {
                                 transColor: skinModel.transColor
                                 colorKeyEnabled: skinModel.hasTransColor
                                 screenRoot: sceneRoot.root
+                                offsetX: parent.nowJudgeOffsetX
                                 frameOverride: elemLoader.usesButtonFrameOverride ? root.buttonFrame(model.src) : -1
-                                stateOverride: elemLoader.usesSpriteStateOverride
-                                    ? root.spriteStateOverride(model.src, model.dsts, parent.spriteSkinClock)
-                                    : null
+                                sliderTranslationEnabled: parent.sliderTranslationEnabled
+                                sliderPosition: parent.sliderPosition
+                                sliderRange: model.src ? model.src.sliderRange || 0 : 0
+                                sliderDirection: model.src ? model.src.sliderDirection || 0 : 0
+                                dstOffsetsEnabled: parent.dstOffsetsEnabled
+                                dstOffsetLiftY: parent.dstOffsetSide === 2
+                                    ? root.gameplayDstOffsetLiftY2
+                                    : root.gameplayDstOffsetLiftY1
+                                dstOffsetLaneCoverY: parent.dstOffsetSide === 2
+                                    ? root.gameplayDstOffsetLaneCoverY2
+                                    : root.gameplayDstOffsetLaneCoverY1
+                                dstOffsetHiddenY: parent.dstOffsetSide === 2
+                                    ? root.gameplayDstOffsetHiddenY2
+                                    : root.gameplayDstOffsetHiddenY1
+                                dstOffsetHiddenA: parent.dstOffsetSide === 2
+                                    ? root.gameplayDstOffsetHiddenA2
+                                    : root.gameplayDstOffsetHiddenA1
                                 forceHidden: elemLoader.usesSpriteForceHidden
                                     ? root.spriteForceHidden(model.src, index)
                                     : false
@@ -443,9 +475,7 @@ Item {
                             runtimeActiveOptions: sceneRoot.root.noteFieldUsesActiveOptions()
                                 ? sceneRoot.root.runtimeActiveOptions
                                 : sceneRoot.root.emptyActiveOptions
-                            timers: sceneRoot.root.noteFieldUsesTimers()
-                                ? sceneRoot.root.timers
-                                : sceneRoot.root.zeroTimers
+                            timers: null
                             transColor: sceneRoot.root.skinModelRef ? sceneRoot.root.skinModelRef.transColor : "black"
                             enabled: sceneRoot.root.enabled && sceneRoot.root.isGameplayScreen()
                         }
