@@ -298,9 +298,6 @@ QtObject {
             if (selectContext.searchText.length > 0) {
                 return selectContext.searchText;
             }
-            if (root.selectSearchHasFocus()) {
-                return "";
-            }
             let folderName = selectContext.currentFolderDisplayName();
             return folderName.length > 0 ? folderName : root.lr2SearchPlaceholderText;
         case 60:

@@ -33,6 +33,17 @@ Item {
     readonly property string searchEditingText: searchInputLoader.item
         ? searchInputLoader.item.text
         : (selectReady ? selectContext.searchText : "")
+    readonly property string searchDisplayText: {
+        if (!isSearchText) {
+            return "";
+        }
+        if (searchEditingText.length > 0) {
+            return searchEditingText;
+        }
+        return ready
+            ? root.resolveText(srcData ? srcData.st : -1, valueRevision)
+            : "";
+    }
     readonly property int searchCursorPosition: searchInputLoader.item
         ? searchInputLoader.item.cursorPosition
         : 0
@@ -222,7 +233,7 @@ Item {
                 return "";
             }
             if (textElement.isSearchText) {
-                return textElement.searchEditingText;
+                return textElement.searchDisplayText;
             }
             return textElement.root.resolveText(textElement.srcData ? textElement.srcData.st : -1,
                                                 textElement.valueRevision);
@@ -255,13 +266,14 @@ Item {
             height: textState ? Math.abs(textState.h) * skinScale : 0
             visible: !!textState
             enabled: !!textState
-            opacity: textState ? textState.a / 255.0 : 0
+            opacity: 0
             clip: true
             activeFocusOnTab: false
             inputMethodHints: Qt.ImhNoPredictiveText
 
             color: "transparent"
             cursorVisible: false
+            cursorDelegate: Item {}
             selectionColor: "transparent"
             selectedTextColor: "transparent"
 
