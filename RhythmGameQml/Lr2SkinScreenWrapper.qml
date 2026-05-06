@@ -3046,6 +3046,7 @@ Item {
     property string selectCommonActiveOptionsKey: ""
     property bool selectCommonActiveOptionsReady: false
     property string selectRuntimeActiveOptionsKey: ""
+    property string gameplayRuntimeActiveOptionsKey: ""
     readonly property var runtimeActiveOptions: root.isGameplayScreen()
         ? root.gameplayRuntimeActiveOptions
         : (root.effectiveScreenKey === "select"
@@ -3190,6 +3191,9 @@ Item {
         if (baseChanged || selectCommonChanged) {
             root.selectRuntimeActiveOptionsKey = "";
         }
+        if (baseChanged) {
+            root.gameplayRuntimeActiveOptionsKey = "";
+        }
         return barChanged || baseChanged || selectCommonChanged;
     }
 
@@ -3229,7 +3233,13 @@ Item {
         if (!root.isGameplayScreen()) {
             return;
         }
-        root.gameplayRuntimeActiveOptions = runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions);
+        let next = runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions);
+        let nextKey = root.numberArrayKey(next);
+        if (nextKey === root.gameplayRuntimeActiveOptionsKey) {
+            return;
+        }
+        root.gameplayRuntimeActiveOptionsKey = nextKey;
+        root.gameplayRuntimeActiveOptions = next;
     }
 
     function scheduleGameplayRuntimeActiveOptionsRefresh() {

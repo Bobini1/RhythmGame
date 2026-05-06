@@ -1678,6 +1678,7 @@ processCommand(const QStringList& tokens,
             state.nowJudgeDsts[lr2NowStateKey(side, index)].append(dst);
             dst.timer = lr2NowDisplayTimer(command);
             addDstOptionGate(dst, lr2NowJudgementOption(command, index));
+            recordDstOptions(state, dst, true);
             state.currentElement.dsts.append(QVariant::fromValue(dst));
         }
     } else if (command == "#SRC_NOWCOMBO_1P" ||
@@ -1709,6 +1710,7 @@ processCommand(const QStringList& tokens,
             }
             dst.timer = lr2NowDisplayTimer(command);
             addDstOptionGate(dst, lr2NowJudgementOption(command, index));
+            recordDstOptions(state, dst, true);
             state.currentElement.dsts.append(QVariant::fromValue(dst));
         }
     } else if (command == "#SRC_BARGRAPH") {
