@@ -34,6 +34,12 @@ QtObject {
             || (num >= 1312 && num <= 1327);
     }
 
+    function gameplayNumberCacheable(num) {
+        return num !== 20
+            && num !== 160
+            && (num < 161 || num > 164);
+    }
+
     function optionOnlyRankId(id) {
         return id >= 340 && id <= 347;
     }
@@ -1098,6 +1104,15 @@ QtObject {
             }
             let cachedValue = resolver.resolveNumber(num);
             return Lr2ValueCache.putNumber(cacheKey, cachedValue);
+        }
+        if (root.isGameplayScreen() && resolver.gameplayNumberCacheable(num)) {
+            let gameplayCacheKey = "g|" + revisionToken + "|" + num;
+            let gameplayCached = Lr2ValueCache.getNumber(gameplayCacheKey);
+            if (gameplayCached !== undefined) {
+                return gameplayCached;
+            }
+            let gameplayCachedValue = resolver.resolveNumber(num);
+            return Lr2ValueCache.putNumber(gameplayCacheKey, gameplayCachedValue);
         }
         return resolver.resolveNumber(num);
     }
