@@ -752,6 +752,14 @@ Item {
         optionState.adjustDurationNumber(side, steps);
         root.noteGameplayOptionChanged();
     }
+    function adjustScratchDurationNumber(side, amount) {
+        optionState.adjustScratchDurationNumber(side, amount);
+        root.noteGameplayOptionChanged();
+    }
+    function adjustScratchCoverNumber(side, amount) {
+        optionState.adjustScratchCoverNumber(side, amount);
+        root.noteGameplayOptionChanged();
+    }
     function adjustLaneCoverRatio(side, steps) {
         optionState.adjustLaneCoverRatio(side, steps);
         root.noteGameplayOptionChanged();
@@ -3762,8 +3770,16 @@ Item {
         return selectPanelController.stopLr2GameplayOptionRepeat();
     }
 
-    function handleLr2GameplayScratchTick(side, up) {
-        return selectPanelController.handleLr2GameplayScratchTick(side, up);
+    function pressLr2GameplayScratchDirection(side, up) {
+        return selectPanelController.pressLr2GameplayScratchDirection(side, up);
+    }
+
+    function releaseLr2GameplayScratchDirection(side, up) {
+        return selectPanelController.releaseLr2GameplayScratchDirection(side, up);
+    }
+
+    function handleLr2GameplayScratchTick(side, up, number) {
+        return selectPanelController.handleLr2GameplayScratchTick(side, up, number);
     }
 
     function handleLr2GameplayArrow(key) {
@@ -4439,45 +4455,69 @@ Item {
 
     Input.onCol1sDownTicked: (number, type) => {
         if (!root.handleLr2SelectScratchTick(1, false, number, type)
-                && !root.handleLr2GameplayScratchTick(1, false)) {
+                && !root.handleLr2GameplayScratchTick(1, false, number)) {
             root.navigate(number, type, false, BmsKey.Col1sDown);
         }
     }
     Input.onCol1sUpTicked: (number, type) => {
         if (!root.handleLr2SelectScratchTick(1, true, number, type)
-                && !root.handleLr2GameplayScratchTick(1, true)) {
+                && !root.handleLr2GameplayScratchTick(1, true, number)) {
             root.navigate(number, type, true, BmsKey.Col1sUp);
         }
     }
     Input.onCol2sDownTicked: (number, type) => {
         if (!root.handleLr2SelectScratchTick(2, false, number, type)
-                && !root.handleLr2GameplayScratchTick(2, false)) {
+                && !root.handleLr2GameplayScratchTick(2, false, number)) {
             root.navigate(number, type, false, BmsKey.Col2sDown);
         }
     }
     Input.onCol2sUpTicked: (number, type) => {
         if (!root.handleLr2SelectScratchTick(2, true, number, type)
-                && !root.handleLr2GameplayScratchTick(2, true)) {
+                && !root.handleLr2GameplayScratchTick(2, true, number)) {
             root.navigate(number, type, true, BmsKey.Col2sUp);
         }
     }
-    Input.onCol1sDownPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col1sDown)
-    Input.onCol1sUpPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col1sUp)
-    Input.onCol2sDownPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col2sDown)
-    Input.onCol2sUpPressed: if (root.selectScrollReady() && root.selectPanel <= 0) root.lastNavigateKey.push(BmsKey.Col2sUp)
+    Input.onCol1sDownPressed: {
+        root.pressLr2GameplayScratchDirection(1, false);
+        if (root.selectScrollReady() && root.selectPanel <= 0) {
+            root.lastNavigateKey.push(BmsKey.Col1sDown);
+        }
+    }
+    Input.onCol1sUpPressed: {
+        root.pressLr2GameplayScratchDirection(1, true);
+        if (root.selectScrollReady() && root.selectPanel <= 0) {
+            root.lastNavigateKey.push(BmsKey.Col1sUp);
+        }
+    }
+    Input.onCol2sDownPressed: {
+        root.pressLr2GameplayScratchDirection(2, false);
+        if (root.selectScrollReady() && root.selectPanel <= 0) {
+            root.lastNavigateKey.push(BmsKey.Col2sDown);
+        }
+    }
+    Input.onCol2sUpPressed: {
+        root.pressLr2GameplayScratchDirection(2, true);
+        if (root.selectScrollReady() && root.selectPanel <= 0) {
+            root.lastNavigateKey.push(BmsKey.Col2sUp);
+        }
+    }
     Input.onCol1sDownReleased: {
+        root.releaseLr2GameplayScratchDirection(1, false);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown);
         root.releaseLr2SelectScratchRepeat(false);
     }
     Input.onCol1sUpReleased: {
+        root.releaseLr2GameplayScratchDirection(1, true);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp);
         root.releaseLr2SelectScratchRepeat(true);
     }
     Input.onCol2sDownReleased: {
+        root.releaseLr2GameplayScratchDirection(2, false);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown);
         root.releaseLr2SelectScratchRepeat(false);
     }
     Input.onCol2sUpReleased: {
+        root.releaseLr2GameplayScratchDirection(2, true);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp);
         root.releaseLr2SelectScratchRepeat(true);
     }

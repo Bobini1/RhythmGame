@@ -40,8 +40,7 @@ QtObject {
     property int gameplayOptionRepeatKey: -1
     property bool gameplayOptionRepeating: false
     property var gameplayLastStartPressMs: ({})
-    property bool gameplayStartSelectComboHeld: false
-    property bool gameplayChangeLiftTarget: false
+    property var gameplayScratchLastDirectionUp: ({ "1": false, "2": false })
     readonly property bool anyStartHeld: Input.start1 || Input.start2
     readonly property bool anySelectHeld: Input.select1 || Input.select2
     readonly property int heldOptionPanel: controller.anyStartHeld && controller.anySelectHeld ? 3
@@ -108,11 +107,6 @@ QtObject {
         if (!root.isGameplayScreen()) {
             return;
         }
-        let startAndSelectHeld = controller.anyStartHeld && controller.anySelectHeld;
-        if (startAndSelectHeld && !controller.gameplayStartSelectComboHeld) {
-            controller.gameplayChangeLiftTarget = !controller.gameplayChangeLiftTarget;
-        }
-        controller.gameplayStartSelectComboHeld = startAndSelectHeld;
         root.scheduleGameplayRuntimeActiveOptionsRefresh();
         root.queueGameplayRevision();
         if (controller.gameplayOptionRepeating
@@ -913,6 +907,27 @@ QtObject {
         gameplayOptionRepeatTimer.stop();
     }
 
+    function setGameplayScratchLastDirection(side, up) {
+        let next = {};
+        for (let key in controller.gameplayScratchLastDirectionUp) {
+            next[key] = controller.gameplayScratchLastDirectionUp[key];
+        }
+        next[String(side)] = !!up;
+        controller.gameplayScratchLastDirectionUp = next;
+    }
+
+    function pressLr2GameplayScratchDirection(side, up) {
+        if (root.isGameplayScreen()) {
+            controller.setGameplayScratchLastDirection(side, up);
+        }
+    }
+
+    function releaseLr2GameplayScratchDirection(side, up) {
+        if (root.isGameplayScreen()) {
+            controller.setGameplayScratchLastDirection(side, !up);
+        }
+    }
+
     function releaseLr2GameplayOptionKey(key) {
         if (!controller.gameplayOptionRepeating) {
             return;
@@ -1064,7 +1079,25 @@ QtObject {
         return true;
     }
 
-    function handleLr2GameplayScratchTick(side, up) {
+    function gameplayScratchBothDirectionsHeld(side) {
+        return side === 2
+            ? Input.col2sUp && Input.col2sDown
+            : Input.col1sUp && Input.col1sDown;
+    }
+
+    function gameplayScratchAmount(side, up, number) {
+        let amount = up ? -1 : 1;
+        let lastDirectionUp = controller.gameplayScratchLastDirectionUp[String(side)] === true;
+        if ((amount > 0 && lastDirectionUp) || (amount < 0 && !lastDirectionUp)) {
+            return 0;
+        }
+        if ((number || 0) > 50 || controller.gameplayScratchBothDirectionsHeld(side)) {
+            return 10 * amount;
+        }
+        return amount;
+    }
+
+    function handleLr2GameplayScratchTick(side, up, number) {
         if (!root.isGameplayScreen()) {
             return false;
         }
@@ -1078,10 +1111,14 @@ QtObject {
         if (startHeld === selectHeld) {
             return false;
         }
-        if (selectHeld) {
-            root.adjustDurationNumber(controlSide, up ? 1 : -1);
+        let amount = controller.gameplayScratchAmount(side, up, number);
+        if (amount === 0) {
+            return true;
+        }
+        if (startHeld) {
+            root.adjustScratchDurationNumber(controlSide, amount);
         } else {
-            root.adjustGameplayCoverValue(controlSide, up ? 1 : -1, controller.gameplayChangeLiftTarget);
+            root.adjustScratchCoverNumber(controlSide, amount);
         }
         return true;
     }

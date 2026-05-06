@@ -655,6 +655,28 @@ QtObject {
         vars.noteScreenTimeMillis = Math.max(1, Math.min(10000, Math.round(current + (steps || 1))));
     }
 
+    function adjustScratchDurationNumber(side, amount) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let current = vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
+        vars.noteScreenTimeMillis = current + current / 1000 * amount;
+    }
+
+    function adjustScratchCoverNumber(side, amount) {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let value = 0.0005 * amount;
+        if (vars.laneCoverOn) {
+            vars.laneCoverRatio = (vars.laneCoverRatio || 0) + value;
+        } else if (vars.liftOn) {
+            vars.liftRatio = (vars.liftRatio || 0) + value;
+        }
+    }
+
     function adjustLaneCoverRatio(side, steps) {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
