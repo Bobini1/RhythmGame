@@ -4389,6 +4389,10 @@ Item {
         if (!root.selectScrollReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
             return;
         }
+        if (type === InputTranslator.AnalogScratchTick) {
+            selectContext.queueWheelSteps(up ? 1 : -1);
+            return;
+        }
         let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
         if (type === InputTranslator.ButtonTick) {
             if (number === 0 || number >= 10) {

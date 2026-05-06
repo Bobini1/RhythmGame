@@ -539,7 +539,7 @@ Item {
             return;
         }
         pendingWheelSteps += steps;
-        updateVisualIndex(Date.now());
+        pendingWheelStepTimer.restart();
     }
 
     Timer {
