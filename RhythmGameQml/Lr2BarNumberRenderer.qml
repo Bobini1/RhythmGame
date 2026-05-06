@@ -79,7 +79,7 @@ Item {
         if (ranking) {
             return srcData.variant === 0 || srcData.variant === 6;
         }
-        if ((keymode || 0) <= 0 || (playLevel || 0) <= 0) {
+        if ((keymode || 0) <= 0 || (playLevel || 0) < 0) {
             return false;
         }
         if (difficulty <= 0) {

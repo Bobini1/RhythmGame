@@ -150,7 +150,7 @@ bool Lr2SelectBarCell::numberVisible(int variant) const {
     if (!m_chartLike && !m_entryLike) {
         return false;
     }
-    if (m_keymode <= 0 || m_playLevel <= 0) {
+    if (m_keymode <= 0 || m_playLevel < 0) {
         return false;
     }
     return m_difficulty <= 0 ? variant == 0 : variant == m_difficulty;

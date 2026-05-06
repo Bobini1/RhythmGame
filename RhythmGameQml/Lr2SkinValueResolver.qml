@@ -267,9 +267,9 @@ QtObject {
             return (chartData().artist || "")
                 + (chartData().subartist ? " " + chartData().subartist : "");
         case 17:
-            return chartData() ? String(chartData().playLevel || "") : "";
+            return chartData() ? String(chartData().playLevel || 0) : "";
         case 18:
-            return chartData() ? String(selectContext.entryDifficulty(chartData()) || "") : "";
+            return chartData() ? String(selectContext.entryDifficulty(chartData())) : "";
         case 20:
             if (root.effectiveScreenKey === "select") {
                 return selectContext.entryMainTitle(currentEntry());
@@ -286,9 +286,9 @@ QtObject {
         case 26:
             return "";
         case 27:
-            return chartData() ? String(chartData().playLevel || "") : "";
+            return chartData() ? String(chartData().playLevel || 0) : "";
         case 28:
-            return chartData() ? String(selectContext.entryDifficulty(chartData()) || "") : "";
+            return chartData() ? String(selectContext.entryDifficulty(chartData())) : "";
         case 29:
             return chartData() ? String(chartData().rank || "") : "";
         case 30:

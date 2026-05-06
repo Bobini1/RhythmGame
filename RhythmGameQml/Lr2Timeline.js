@@ -87,6 +87,12 @@ function dstsUseDynamicTimer(dsts) {
     return (dsts[0].timer || 0) !== 0;
 }
 
+function dstsScratchRotationSide(dsts) {
+    if (!dsts || dsts.length === 0 || !dsts[0]) return 0;
+    var op4 = dsts[0].op4 || 0;
+    return op4 === 1 || op4 === 2 ? op4 : 0;
+}
+
 function srcUsesDynamicTimer(src) {
     if (!src) return false;
     return (src.timer || 0) !== 0 && (src.cycle || 0) > 0;

@@ -6,6 +6,7 @@ Item {
 
     property var screenRoot
     property int renderSkinTime: 0
+    property int scratchRotationSides: 0
 
     property real scratchAngle1: 0
     property real scratchAngle2: 0
@@ -217,13 +218,27 @@ Item {
     }
 
     function advanceScratchAngles() {
+        if (!enabled || scratchRotationSides === 0) {
+            lastScratchSkinTime = renderSkinTime;
+            return;
+        }
         let dt = Math.max(0, renderSkinTime - lastScratchSkinTime);
         lastScratchSkinTime = renderSkinTime;
         if (dt <= 0) {
             return;
         }
-        scratchAngle1 = (scratchAngle1 + dt * scratchDirection(1) * 360 / 1000) % 360;
-        scratchAngle2 = (scratchAngle2 + dt * scratchDirection(2) * 360 / 1000) % 360;
+        if ((scratchRotationSides & 1) !== 0) {
+            let direction1 = scratchDirection(1);
+            if (direction1 !== 0) {
+                scratchAngle1 = (scratchAngle1 + dt * direction1 * 360 / 1000) % 360;
+            }
+        }
+        if ((scratchRotationSides & 2) !== 0) {
+            let direction2 = scratchDirection(2);
+            if (direction2 !== 0) {
+                scratchAngle2 = (scratchAngle2 + dt * direction2 * 360 / 1000) % 360;
+            }
+        }
     }
 
     onRenderSkinTimeChanged: advanceScratchAngles()

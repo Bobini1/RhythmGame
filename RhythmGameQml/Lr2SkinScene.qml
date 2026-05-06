@@ -355,6 +355,7 @@ Item {
                             readonly property int renderClock: 1
                             readonly property int selectSourceClock: 2
                             readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
+                            readonly property int scratchRotationSide: root.dstsScratchRotationSide(model.dsts)
                             readonly property bool useDirectSkinClock: elemLoader.usesSkinTime
                                 && !elemLoader.usesSelectHeldButtonTimer
                                 && !elemLoader.usesSpriteStateOverride
@@ -411,8 +412,8 @@ Item {
                                 forceHidden: elemLoader.usesSpriteForceHidden
                                     ? root.spriteForceHidden(model.src, index)
                                     : false
-                                scratchAngle1: playContext.scratchAngle1
-                                scratchAngle2: playContext.scratchAngle2
+                                scratchAngle1: parent.scratchRotationSide === 1 ? playContext.scratchAngle1 : 0
+                                scratchAngle2: parent.scratchRotationSide === 2 ? playContext.scratchAngle2 : 0
                             }
                         }
                     }

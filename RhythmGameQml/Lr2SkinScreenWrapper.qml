@@ -1039,6 +1039,10 @@ Item {
         return Lr2Timeline.dstsUseActiveOptions(dsts);
     }
 
+    function dstsScratchRotationSide(dsts) {
+        return Lr2Timeline.dstsScratchRotationSide(dsts);
+    }
+
     function activeOptionsForElementDsts(dsts) {
         if (!root.dstsUseActiveOptions(dsts)) {
             return root.emptyActiveOptions;
@@ -4187,6 +4191,7 @@ Item {
         enabled: root.isGameplayScreen()
         screenRoot: root
         renderSkinTime: root.renderSkinTime
+        scratchRotationSides: skinModel.scratchRotationSides || 0
     }
 
     ScoreReplayer {
