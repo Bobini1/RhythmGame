@@ -49,8 +49,11 @@ struct ParseState
     QMap<int, Lr2SrcImage> barRivalLampSources;
     QMap<int, Lr2SrcImage> barRankSources;
     QMap<int, Lr2SrcImage> barRivalSources;
+    QMap<int, Lr2SrcImage> barLabelSources;
     QMap<int, Lr2SrcNumber> barLevelSources;
     QMap<int, Lr2SrcBarText> barTitleSources;
+    Lr2SrcBarGraph barDistributionGraphSource;
+    bool hasBarDistributionGraphSource = false;
     Lr2SrcImage barFlashSource;
     bool hasBarFlashSource = false;
     QMap<int, QVariantList> barBodyOffDsts;
@@ -1719,6 +1722,23 @@ processCommand(const QStringList& tokens,
         if (state.hasCurrentElement && state.currentElement.type == 6) {
             parseDst(tokens, state, state.currentElement);
         }
+    } else if (command == "#SRC_BAR_GRAPH") {
+        flushCurrentElement(state);
+        state.barDistributionGraphSource = parseBarGraphSource(tokens, state);
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.barDistributionGraphSource.graphType = tokens[1].toInt();
+        }
+        state.hasBarDistributionGraphSource = true;
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 13;
+        state.currentElement.src =
+          QVariant::fromValue(state.barDistributionGraphSource);
+        state.hasCurrentElement = true;
+    } else if (command == "#DST_BAR_GRAPH") {
+        if (state.hasCurrentElement && state.currentElement.type == 13 &&
+            state.hasBarDistributionGraphSource) {
+            parseBarDst(tokens, state, state.currentElement);
+        }
     } else if (command == "#SRC_GAUGECHART_1P" ||
                command == "#SRC_GAUGECHART_2P") {
         flushCurrentElement(state);
@@ -2067,6 +2087,24 @@ processCommand(const QStringList& tokens,
                                 state.barRivalSources.value(variant)),
                               {});
         }
+    } else if (command == "#SRC_BAR_LABEL") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.barLabelSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#DST_BAR_LABEL") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty() &&
+            state.barLabelSources.contains(tokens[1].toInt())) {
+            const int variant = tokens[1].toInt();
+            appendBarImageDst(state,
+                              tokens,
+                              Lr2SrcBarImage::Label,
+                              -1,
+                              variant,
+                              QVariant::fromValue(
+                                state.barLabelSources.value(variant)),
+                              {});
+        }
     }
 }
 
@@ -2168,6 +2206,13 @@ parseFile(const std::filesystem::path& filePath,
         barLampVariants.append(it.key());
     }
 
+    QVariantList barTitleTypes;
+    for (auto it = state.barTitleSources.cbegin();
+         it != state.barTitleSources.cend();
+         ++it) {
+        barTitleTypes.append(it.key());
+    }
+
     QVariantList barRows;
     auto rows = QSet<int>{};
     for (auto it = state.barBodyOffDsts.cbegin();
@@ -2201,6 +2246,7 @@ parseFile(const std::filesystem::path& filePath,
       .usedElementOptions = usedElementOptions,
       .barLampVariants = barLampVariants,
       .barRows = barRows,
+      .barTitleTypes = barTitleTypes,
       .helpFiles = state.helpFiles,
       .transColor = state.transColor,
       .hasTransColor = state.hasTransColor,

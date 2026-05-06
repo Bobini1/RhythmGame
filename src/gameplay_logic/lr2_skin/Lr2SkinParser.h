@@ -251,7 +251,8 @@ struct Lr2SrcBarImage
         MyLamp = 4,
         RivalLamp = 5,
         Rank = 6,
-        Rival = 7
+        Rival = 7,
+        Label = 8
     };
 
     int kind = BodyOff;
@@ -399,7 +400,8 @@ struct Lr2Element
   public:
     // 0=image, 1=number, 2=text, 3=bar image, 4=bar text,
     // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge,
-    // 10=result gauge/score chart, 11=note chart, 12=BPM chart
+    // 10=result gauge/score chart, 11=note chart, 12=BPM chart,
+    // 13=select bar folder distribution graph
     int type = -1;
     QVariant src;
     QVariantList dsts;
@@ -415,6 +417,7 @@ struct Lr2SkinData
     QVariantList usedElementOptions;
     QVariantList barLampVariants;
     QVariantList barRows;
+    QVariantList barTitleTypes;
     QVariantList helpFiles;
     QString transColor = "#000000";
     bool hasTransColor = false;

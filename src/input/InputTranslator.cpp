@@ -11,6 +11,8 @@
 
 #include <QKeyEvent>
 #include <QVariant>
+#include <algorithm>
+#include <cmath>
 #include <spdlog/spdlog.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -459,7 +461,11 @@ InputTranslator::saveAnalogAxisConfig() const
     statement.execute();
 }
 void
-InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, bool analog)
+InputTranslator::handleAxisChange(Gamepad gamepad,
+                                  Uint8 axis,
+                                  int64_t time,
+                                  bool analog,
+                                  int analogTickCount)
 {
     auto scratchKey = std::pair{ gamepad, axis };
     auto& scratch = scratches[scratchKey];
@@ -500,7 +506,9 @@ InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, boo
                 pressButton(*button, time);
                 if (analog) {
                     tickTypes[static_cast<int>(*button)] = AnalogScratchTick;
-                    emitTick(*button);
+                    for (int i = 0; i < analogTickCount; ++i) {
+                        emitTick(*button);
+                    }
                 } else {
                     tickTypes[static_cast<int>(*button)] = ClassicScratchTick;
                 }
@@ -670,8 +678,8 @@ InputTranslator::handleAxis(Gamepad gamepad,
     scratch.value = value;
     scratch.delta += curDelta;
 
-    auto setScratchDirection = [&](Key::Direction dir) {
-        scratch.delta = 0;
+    auto setScratchDirection = [&](Key::Direction dir, double remainingDelta) {
+        scratch.delta = remainingDelta;
         scratch.direction = dir;
 
         scratch.timer->setSingleShot(true);
@@ -688,16 +696,25 @@ InputTranslator::handleAxis(Gamepad gamepad,
     const auto requiredThreshold = scratch.direction == Key::Direction::None
                                      ? analogConfig->getTriggerThreshold()
                                      : analogConfig->getReleaseThreshold();
+    if (requiredThreshold <= 0.0) {
+        return;
+    }
 
+    auto tickCount = 0;
     if (curDelta > 0 && scratch.delta >= requiredThreshold) {
-        setScratchDirection(Key::Direction::Up);
+        tickCount = static_cast<int>(std::floor(scratch.delta / requiredThreshold));
+        setScratchDirection(Key::Direction::Up,
+                            std::fmod(scratch.delta, requiredThreshold));
     } else if (curDelta < 0 && -scratch.delta >= requiredThreshold) {
-        setScratchDirection(Key::Direction::Down);
+        tickCount =
+          static_cast<int>(std::floor(-scratch.delta / requiredThreshold));
+        setScratchDirection(Key::Direction::Down,
+                            -std::fmod(-scratch.delta, requiredThreshold));
     } else {
         return;
     }
 
-    handleAxisChange(gamepad, axis, time, true);
+    handleAxisChange(gamepad, axis, time, true, std::max(1, tickCount));
 }
 void
 InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)

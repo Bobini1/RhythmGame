@@ -39,6 +39,27 @@ bool hasMouseHoverElement(const QList<Lr2Element>& elements) {
     return false;
 }
 
+int scratchRotationSidesForElements(const QList<Lr2Element>& elements) {
+    int result = 0;
+    for (const auto& element : elements) {
+        if (element.type != 0 || element.dsts.isEmpty()) {
+            continue;
+        }
+        const auto& dstValue = element.dsts.first();
+        if (!dstValue.canConvert<Lr2Dst>()) {
+            continue;
+        }
+        const auto dst = dstValue.value<Lr2Dst>();
+        if (dst.op4 == 1 || dst.op4 == 2) {
+            result |= dst.op4;
+            if (result == 3) {
+                return result;
+            }
+        }
+    }
+    return result;
+}
+
 }
 
 Lr2SkinModel::Lr2SkinModel(QObject* parent) : QAbstractListModel(parent) {}
@@ -136,6 +157,10 @@ QVariantList Lr2SkinModel::barRows() const {
     return m_barRows;
 }
 
+QVariantList Lr2SkinModel::barTitleTypes() const {
+    return m_barTitleTypes;
+}
+
 QVariantList Lr2SkinModel::helpFiles() const {
     return m_helpFiles;
 }
@@ -146,6 +171,10 @@ QVariantMap Lr2SkinModel::mouseCursor() const {
 
 bool Lr2SkinModel::hasMouseHover() const {
     return m_hasMouseHover;
+}
+
+int Lr2SkinModel::scratchRotationSides() const {
+    return m_scratchRotationSides;
 }
 
 QString Lr2SkinModel::transColor() const {
@@ -262,6 +291,7 @@ void Lr2SkinModel::loadSkin() {
                                      !m_usedElementOptions.isEmpty() ||
                                      !m_barLampVariants.isEmpty() ||
                                      !m_barRows.isEmpty() ||
+                                     !m_barTitleTypes.isEmpty() ||
                                      m_startInput != 0 ||
                                      m_sceneTime != 0 ||
                                      m_loadStart != 0 ||
@@ -274,6 +304,7 @@ void Lr2SkinModel::loadSkin() {
                                      !m_helpFiles.isEmpty() ||
                                      !m_mouseCursor.isEmpty() ||
                                      m_hasMouseHover ||
+                                     m_scratchRotationSides != 0 ||
                                      m_transColor != "#000000" ||
                                      m_hasTransColor ||
                                      m_reloadBanner ||
@@ -300,9 +331,11 @@ void Lr2SkinModel::loadSkin() {
         m_usedElementOptions.clear();
         m_barLampVariants.clear();
         m_barRows.clear();
+        m_barTitleTypes.clear();
         m_helpFiles.clear();
         m_mouseCursor.clear();
         m_hasMouseHover = false;
+        m_scratchRotationSides = 0;
         m_transColor = "#000000";
         m_hasTransColor = false;
         m_reloadBanner = false;
@@ -345,6 +378,7 @@ void Lr2SkinModel::loadSkin() {
     m_elements = skinData.elements;
     const auto mouseCursor = findMouseCursorElement(m_elements);
     const bool hasMouseHover = hasMouseHoverElement(m_elements);
+    const int scratchRotationSides = scratchRotationSidesForElements(m_elements);
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
                                  m_loadStart != skinData.loadStart ||
@@ -359,9 +393,11 @@ void Lr2SkinModel::loadSkin() {
                                  m_usedElementOptions != skinData.usedElementOptions ||
                                  m_barLampVariants != skinData.barLampVariants ||
                                  m_barRows != skinData.barRows ||
+                                 m_barTitleTypes != skinData.barTitleTypes ||
                                  m_helpFiles != skinData.helpFiles ||
                                  m_mouseCursor != mouseCursor ||
                                  m_hasMouseHover != hasMouseHover ||
+                                 m_scratchRotationSides != scratchRotationSides ||
                                  m_transColor != skinData.transColor ||
                                  m_hasTransColor != skinData.hasTransColor ||
                                  m_reloadBanner != skinData.reloadBanner ||
@@ -399,9 +435,11 @@ void Lr2SkinModel::loadSkin() {
     m_usedElementOptions = skinData.usedElementOptions;
     m_barLampVariants = skinData.barLampVariants;
     m_barRows = skinData.barRows;
+    m_barTitleTypes = skinData.barTitleTypes;
     m_helpFiles = skinData.helpFiles;
     m_mouseCursor = mouseCursor;
     m_hasMouseHover = hasMouseHover;
+    m_scratchRotationSides = scratchRotationSides;
     m_transColor = skinData.transColor;
     m_hasTransColor = skinData.hasTransColor;
     m_reloadBanner = skinData.reloadBanner;

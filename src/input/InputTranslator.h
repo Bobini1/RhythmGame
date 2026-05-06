@@ -250,7 +250,8 @@ class InputTranslator final : public QObject
     void handleAxisChange(Gamepad gamepad,
                           Uint8 axis,
                           int64_t time,
-                          bool analog);
+                          bool analog,
+                          int analogTickCount = 1);
     void checkAnalogAxisStatus();
     void autoReleaseScratch(const std::pair<Gamepad, uint8_t>& scratchKey,
                             int64_t time);
