@@ -204,7 +204,11 @@ QtObject {
 
         let logicalCount = Math.max(1, selectContext.logicalCount);
         let maxFixed = Math.max(1, logicalCount * 1000 - 1);
-        let fixedValue = Math.max(0, Math.min(maxFixed, selectContext.listCalculatedBarFixed));
+        let visualState = selectContext.visualStateObject;
+        let fixedValue = visualState
+            ? visualState.fixed
+            : selectContext.listCalculatedBarFixed;
+        fixedValue = Math.max(0, Math.min(maxFixed, fixedValue));
         let position = logicalCount > 1 ? fixedValue / maxFixed : 0;
         return sliders.translatedState(src, dsts, position, skinTime);
     }

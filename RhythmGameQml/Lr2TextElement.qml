@@ -217,10 +217,16 @@ Item {
         timerFire: textElement.timerFire
         chart: textElement.chart
         scaleOverride: textElement.skinScale
-        resolvedText: textRenderer.hasCurrentState && textElement.ready
-            ? textElement.root.resolveText(textElement.srcData ? textElement.srcData.st : -1,
-                                           textElement.valueRevision)
-            : ""
+        resolvedText: {
+            if (!textRenderer.hasCurrentState || !textElement.ready) {
+                return "";
+            }
+            if (textElement.isSearchText) {
+                return textElement.searchEditingText;
+            }
+            return textElement.root.resolveText(textElement.srcData ? textElement.srcData.st : -1,
+                                                textElement.valueRevision);
+        }
     }
 
     Loader {

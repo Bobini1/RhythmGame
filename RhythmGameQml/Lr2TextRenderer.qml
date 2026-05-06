@@ -97,6 +97,7 @@ Item {
             anchors.fill: parent
             fontPath: root.srcData ? root.srcData.fontPath : ""
             text: root.resolvedText
+            textColor: root.textColor
             alignment: root.textAlignment
         }
 
@@ -123,6 +124,7 @@ Item {
                 anchors.fill: parent
                 fontPath: root.srcData ? root.srcData.fontPath : ""
                 text: root.resolvedText
+                textColor: root.textColor
                 alignment: root.textAlignment
             }
 

@@ -28,6 +28,11 @@ Item {
             : (root.isResultScreen()
                 ? root.resultOldScoresRevision
                 : root.gameplayRevision))
+    readonly property int selectDetailValueRevision: !rootReady ? 0
+        : root.selectRuntimeActiveOptionsRevision
+            + selectContext.listRevision
+            + selectContext.folderLampRevision
+            + root.lr2SkinSettingsRevision
 
     function selectNumberUsesFocusedState(num) {
         return num === 42 || num === 96
@@ -54,7 +59,7 @@ Item {
         }
         let num = src ? (src.num || 0) : 0;
         return selectNumberUsesFocusedState(num)
-            ? valueRevision
+            ? selectDetailValueRevision
             : root.lr2SkinSettingsRevision;
     }
 
@@ -71,13 +76,31 @@ Item {
         }
         let st = src ? (src.st || 0) : 0;
         if (selectTextUsesFocusedState(st)) {
-            return valueRevision;
+            return selectDetailValueRevision;
         }
         if (st === 30 || st === 60 || st === 61 || st === 62
                 || (st >= 1000 && st <= 1003)) {
             return selectContext.listRevision + root.lr2SkinSettingsRevision;
         }
         return root.lr2SkinSettingsRevision;
+    }
+
+    function selectBarGraphUsesFocusedState(type) {
+        return (type >= 5 && type <= 9)
+            || (type >= 40 && type <= 47)
+            || (type >= 103 && type <= 115)
+            || (type >= 140 && type <= 147);
+    }
+
+    function barGraphValueRevision(src) {
+        if (!rootReady) {
+            return 0;
+        }
+        if (root.effectiveScreenKey !== "select") {
+            return valueRevision;
+        }
+        let type = src ? (src.graphType || 0) : 0;
+        return selectBarGraphUsesFocusedState(type) ? selectDetailValueRevision : valueRevision;
     }
 
     function hoverPointInSkinCoordinates() {
@@ -317,6 +340,8 @@ Item {
                             return noteChartComponent;
                         } else if (model.type === 12) {
                             return bpmChartComponent;
+                        } else if (model.type === 13) {
+                            return barDistributionGraphComponent;
                         }
                         return undefined;
                     }
@@ -650,11 +675,41 @@ Item {
                             scaleOverride: skinScale
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
-                            value: root.resolveBarGraph(model.src ? model.src.graphType : 0)
+                            value: {
+                                sceneRoot.barGraphValueRevision(model.src);
+                                return root.resolveBarGraph(model.src ? model.src.graphType : 0);
+                            }
                             animateValue: root.effectiveScreenKey === "select"
                                 && model.src
                                 && model.src.graphType >= 5
                                 && model.src.graphType <= 9
+                        }
+                    }
+
+                    Component {
+                        id: barDistributionGraphComponent
+                        Lr2BarDistributionGraphRenderer {
+                            dsts: model.dsts
+                            srcData: model.src
+                            skinTime: root.barSkinTime
+                            sourceSkinTime: root.effectiveScreenKey === "select"
+                                ? root.selectSourceSkinTime
+                                : root.renderSkinTime
+                            activeOptions: root.barActiveOptions
+                            timers: root.barTimers
+                            timerFire: elemLoader.dstTimerFire
+                            sourceTimerFire: elemLoader.srcTimerFire
+                            chart: sceneRoot.renderChart
+                            scaleOverride: skinScale
+                            selectContext: sceneRoot.root.selectContextRef
+                            barRows: skinModel.barRows
+                            barPositionCache: root.cachedBarPositionCache
+                            barCells: selectContext.visibleBarTextCells
+                            fastBarScrollActive: root.fastBarScrollActive
+                            fastBarScrollX: root.fastBarScrollX
+                            fastBarScrollY: root.fastBarScrollY
+                            colorKeyEnabled: skinModel.hasTransColor
+                            transColor: skinModel.transColor
                         }
                     }
                 }

@@ -52,6 +52,8 @@ Item {
     property var gameplayRuntimeActiveOptions: []
     property bool gameplayRuntimeActiveOptionsRefreshQueued: false
     property var selectRuntimeActiveOptions: []
+    property int selectRuntimeActiveOptionsRevision: 0
+    property bool selectSideEffectsRefreshQueued: false
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
@@ -897,6 +899,71 @@ Item {
         return dsts[0].sortId || 0;
     }
 
+    readonly property real selectBarElementSortBase: root.computeSelectBarElementSortBase()
+
+    function updateMinSortId(current, dsts) {
+        if (!dsts || dsts.length === 0 || !dsts[0]) {
+            return current;
+        }
+        const sortId = dsts[0].sortId || 0;
+        return current < 0 || sortId < current ? sortId : current;
+    }
+
+    function computeSelectBarElementSortBase() {
+        let result = -1;
+        const rows = skinModel.barRows || [];
+        for (let rowIndex = 0; rowIndex < rows.length; ++rowIndex) {
+            const row = rows[rowIndex];
+            if (!row) {
+                continue;
+            }
+            result = root.updateMinSortId(result, row.offDsts);
+            result = root.updateMinSortId(result, row.onDsts);
+        }
+        return result >= 0 ? result : 0;
+    }
+
+    function isSelectBarElement(type, src) {
+        return type === 4
+            || type === 5
+            || type === 13
+            || (type === 3 && !!src && src.kind !== undefined);
+    }
+
+    function selectBarElementLayer(type, src) {
+        if (type === 13) {
+            return 0.20; // folder progress graph, after the row body
+        }
+        if (type === 4) {
+            return 0.30; // bar title
+        }
+        if (type === 5) {
+            return 0.60; // level number
+        }
+        if (type !== 3 || !src) {
+            return 0.0;
+        }
+
+        switch (src.kind || 0) {
+        case 0: // BAR_BODY_OFF
+        case 1: // BAR_BODY_ON, consumed by the row body cache
+            return 0.0;
+        case 2: // BAR_FLASH
+            return 0.10;
+        case 3: // BAR_LAMP
+        case 4: // BAR_MY_LAMP
+        case 5: // BAR_RIVAL_LAMP
+            return 0.50;
+        case 6: // BAR_RANK
+        case 7: // BAR_RIVAL
+            return 0.65;
+        case 8: // BAR_LABEL: LN / mine / random labels
+            return 0.70;
+        default:
+            return 0.40;
+        }
+    }
+
     function timelineSortId(dsts, skinTime, activeOptions, timers) {
         let state = Lr2Timeline.getCurrentState(
             dsts,
@@ -942,8 +1009,18 @@ Item {
     }
 
     function elementZ(type, index, src, dsts) {
-        // OpenLR2 stamps every DST keyframe with the skin command counter and
-        // globally sorts DrawingBuf by that value before drawing.
+        // LR2/beatoraja draw BAR_* parts through a single bar renderer. Their
+        // #DST_BAR_* command positions configure that renderer instead of
+        // participating in the outer skin draw order independently.
+        if (root.isSelectBarElement(type, src)) {
+            return root.selectBarElementSortBase
+                + root.selectBarElementLayer(type, src)
+                + root.fallbackSortId(dsts) * 0.000001
+                + index * 0.000000001;
+        }
+
+        // OpenLR2 stamps every non-bar DST keyframe with the skin command
+        // counter and globally sorts DrawingBuf by that value before drawing.
         if (type === 8) {
             return root.staticNoteElementSortId() + index * 0.000001;
         }
@@ -2942,6 +3019,13 @@ Item {
         skinModel: skinModel
     }
 
+    Timer {
+        id: selectRuntimeActiveOptionsRefreshTimer
+        interval: 20
+        repeat: false
+        onTriggered: root.refreshSelectRuntimeActiveOptions()
+    }
+
     // Bar delegates get per-row state from the select context; keep their option set stable.
     property var barActiveOptions: []
     property var baseActiveOptions: []
@@ -3106,6 +3190,7 @@ Item {
         }
         let next = runtimeOptions.buildSelectRuntimeActiveOptions(root.selectCommonActiveOptions);
         let nextKey = root.numberArrayKey(next);
+        root.selectRuntimeActiveOptionsRevision += 1;
         if (nextKey === root.selectRuntimeActiveOptionsKey) {
             return;
         }
@@ -3117,7 +3202,9 @@ Item {
         if (root.effectiveScreenKey !== "select") {
             return;
         }
-        root.refreshSelectRuntimeActiveOptions();
+        if (!selectRuntimeActiveOptionsRefreshTimer.running) {
+            selectRuntimeActiveOptionsRefreshTimer.start();
+        }
     }
 
     function scheduleSelectRankingStatusOptionsRefresh() {
@@ -3155,11 +3242,36 @@ Item {
     property alias pendingPreviewRequest: selectSideEffects.pendingPreviewRequest
     property alias pendingPreviewSource: selectSideEffects.pendingPreviewSource
     property alias selectSideEffectsReady: selectSideEffects.ready
+    readonly property string selectChartContentRevision: root.effectiveScreenKey === "select"
+        ? (selectContext.focusRevision,
+           selectContext.scoreRevision,
+           selectContext.listRevision,
+           selectContext.visualChartContentRevision)
+        : ""
+    readonly property string selectChartWrapperContentRevision: {
+        let wrapper = selectContext.visualChartWrapper;
+        let chartData = wrapper && wrapper.chartData ? wrapper.chartData : null;
+        return chartData
+            ? (String(chartData.md5 || "")
+               + ":" + String(chartData.length || 0)
+               + ":" + String(chartData.normalNoteCount || 0)
+               + ":" + String(chartData.scratchCount || 0)
+               + ":" + String(chartData.lnCount || 0)
+               + ":" + String(chartData.bssCount || 0)
+               + ":" + String(chartData.mineCount || 0)
+               + ":" + selectContext.chartHistogramRevision(chartData))
+            : "";
+    }
+    readonly property var selectSkinChartWrapper: root.effectiveScreenKey === "select"
+        ? (root.selectChartContentRevision,
+           root.selectChartWrapperContentRevision,
+           selectContext.visualChartWrapper)
+        : null
     readonly property var renderChart: root.effectiveScreenKey === "select"
-        ? (selectContext.focusRevision, selectContext.selectedChartWrapper())
+        ? root.selectSkinChartWrapper
         : selectSideEffects.renderChart
     readonly property var visualSelectChart: root.effectiveScreenKey === "select"
-        ? (selectContext.focusRevision, selectContext.selectedChartWrapper())
+        ? root.selectSkinChartWrapper
         : root.renderChart
     readonly property var selectedCourseStages: {
         let revision = root.effectiveScreenKey === "select" ? selectContext.focusRevision : 0;
@@ -3355,7 +3467,7 @@ Item {
         if (root.commitLr2RankingRequest()) {
             root.applyRankingStatsToSelectContext();
         }
-        root.updateSelectSideEffects();
+        root.scheduleSelectSideEffectsUpdate();
     }
 
     function handleScreenContextChanged() {
@@ -3381,6 +3493,16 @@ Item {
     // Previews and ranking fetches are committed side effects; visual selection stays reactive.
     function updateSelectSideEffects() {
         selectSideEffects.update();
+    }
+    function scheduleSelectSideEffectsUpdate() {
+        if (root.selectSideEffectsRefreshQueued) {
+            return;
+        }
+        root.selectSideEffectsRefreshQueued = true;
+        Qt.callLater(function() {
+            root.selectSideEffectsRefreshQueued = false;
+            root.updateSelectSideEffects();
+        });
     }
     readonly property bool acceptsInput: screenState.acceptsInput
     onAcceptsInputChanged: {
@@ -4008,6 +4130,7 @@ Item {
         id: selectContext
         updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
         enabled: updatesActive
+        barTitleTypes: skinModel.barTitleTypes || []
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
 

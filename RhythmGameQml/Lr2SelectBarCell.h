@@ -23,6 +23,9 @@ class Lr2SelectBarCell : public QObject {
     Q_PROPERTY(bool folderLike READ isFolderLike WRITE setFolderLike NOTIFY folderLikeChanged)
     Q_PROPERTY(int lamp READ lamp WRITE setLamp NOTIFY lampChanged)
     Q_PROPERTY(int rank READ rank WRITE setRank NOTIFY rankChanged)
+    Q_PROPERTY(int labelMask READ labelMask WRITE setLabelMask NOTIFY labelMaskChanged)
+    Q_PROPERTY(QVariantList graphLamps READ graphLamps WRITE setGraphLamps NOTIFY graphLampsChanged)
+    Q_PROPERTY(QVariantList graphRanks READ graphRanks WRITE setGraphRanks NOTIFY graphRanksChanged)
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
 
 public:
@@ -73,6 +76,15 @@ public:
     int rank() const;
     void setRank(int value);
 
+    int labelMask() const;
+    void setLabelMask(int value);
+
+    QVariantList graphLamps() const;
+    void setGraphLamps(const QVariantList& value);
+
+    QVariantList graphRanks() const;
+    void setGraphRanks(const QVariantList& value);
+
     int revision() const;
 
     Q_INVOKABLE int bodyTypeValue() const;
@@ -101,7 +113,10 @@ public:
                              bool entryLike,
                              bool folderLike,
                              int lamp,
-                             int rank);
+                             int rank,
+                             int labelMask,
+                             const QVariantList& graphLamps,
+                             const QVariantList& graphRanks);
 
 signals:
     void coreChanged();
@@ -120,6 +135,9 @@ signals:
     void folderLikeChanged();
     void lampChanged();
     void rankChanged();
+    void labelMaskChanged();
+    void graphLampsChanged();
+    void graphRanksChanged();
     void revisionChanged();
 
 private:
@@ -138,5 +156,8 @@ private:
     bool m_folderLike = false;
     int m_lamp = 0;
     int m_rank = 0;
+    int m_labelMask = 0;
+    QVariantList m_graphLamps;
+    QVariantList m_graphRanks;
     int m_revision = 0;
 };

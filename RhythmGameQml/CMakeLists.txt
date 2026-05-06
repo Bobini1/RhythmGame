@@ -70,6 +70,7 @@ qt_add_qml_module(RhythmGame_qml
         Lr2BarTextRenderer.qml
         Lr2BarNumberRenderer.qml
         Lr2BarGraphRenderer.qml
+        Lr2BarDistributionGraphRenderer.qml
         Lr2ResultChartRenderer.qml
         Lr2NoteChartRenderer.qml
         Lr2BpmChartRenderer.qml

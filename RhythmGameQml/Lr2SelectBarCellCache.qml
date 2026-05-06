@@ -14,11 +14,29 @@ QtObject {
     property int scoreRevision: 0
     property int folderLampRevision: 0
     property int listRevision: 0
+    property var barTitleTypes: []
+    readonly property string barTitleTypesKey: {
+        let list = barTitleTypes || [];
+        let parts = [];
+        for (let i = 0; i < list.length; ++i) {
+            parts.push(Number(list[i]) || 0);
+        }
+        return parts.join(",");
+    }
+    readonly property var barTitleTypeLookup: {
+        let lookup = ({});
+        let list = barTitleTypes || [];
+        for (let i = 0; i < list.length; ++i) {
+            lookup[Number(list[i]) || 0] = true;
+        }
+        return lookup;
+    }
 
     property var cache: ({})
     property int cacheScoreRevision: -1
     property int cacheFolderLampRevision: -1
     property int cacheListRevision: -1
+    property string cacheBarTitleTypesKey: ""
 
     function entryForRow(row) {
         if (logicalCount <= 0) {
@@ -30,13 +48,15 @@ QtObject {
     function ensureCurrent() {
         if (cacheScoreRevision === scoreRevision
                 && cacheFolderLampRevision === folderLampRevision
-                && cacheListRevision === listRevision) {
+                && cacheListRevision === listRevision
+                && cacheBarTitleTypesKey === barTitleTypesKey) {
             return;
         }
         cache = {};
         cacheScoreRevision = scoreRevision;
         cacheFolderLampRevision = folderLampRevision;
         cacheListRevision = listRevision;
+        cacheBarTitleTypesKey = barTitleTypesKey;
     }
 
     function rankingEntryRank(entry) {
@@ -70,10 +90,53 @@ QtObject {
         return Math.max(0, item.difficulty || 0);
     }
 
+    function hasBarTitleType(type) {
+        return barTitleTypeLookup[Number(type) || 0] === true;
+    }
+
+    function titleTypeWithFallback(preferred, fallback) {
+        if (barTitleTypesKey.length <= 0) {
+            return fallback;
+        }
+        if (hasBarTitleType(preferred)) {
+            return preferred;
+        }
+        if (hasBarTitleType(fallback)) {
+            return fallback;
+        }
+        return preferred;
+    }
+
+    function chartLabelMask(item) {
+        if (!(item instanceof ChartData)) {
+            return 0;
+        }
+
+        let mask = 0;
+        if (((item.lnCount || 0) + (item.bssCount || 0)) > 0) {
+            mask |= 1 << 0;
+        }
+        if (item.isRandom) {
+            mask |= 1 << 1;
+        }
+        if ((item.mineCount || 0) > 0) {
+            mask |= 1 << 2;
+        }
+        return mask;
+    }
+
+    function folderGraphDistribution(item) {
+        if (!context || !context.folderDistribution) {
+            return null;
+        }
+        return context.folderDistribution(item);
+    }
+
     function buildCore(item) {
         let valid = !!item;
         let key = "empty";
         let text = "";
+        let titleType = 0;
         let bodyType = 1;
         let playLevel = 0;
         let difficulty = 0;
@@ -84,6 +147,9 @@ QtObject {
         let folderLike = false;
         let lamp = 0;
         let rank = 0;
+        let labelMask = 0;
+        let graphLamps = [];
+        let graphRanks = [];
 
         if (!item) {
             return {
@@ -100,7 +166,10 @@ QtObject {
                 entryLike: false,
                 folderLike: false,
                 lamp: 0,
-                rank: 0
+                rank: 0,
+                labelMask: 0,
+                graphLamps: [],
+                graphRanks: []
             };
         }
 
@@ -117,6 +186,7 @@ QtObject {
             chartLike = true;
             key = "chart:" + (item.md5 || item.path || item.title || "");
             text = item.subtitle ? (item.title || "") + " " + item.subtitle : (item.title || "");
+            titleType = titleTypeWithFallback(2, 0);
             bodyType = 0;
             playLevel = item.playLevel || 0;
             difficulty = chartDifficulty(item);
@@ -124,10 +194,12 @@ QtObject {
             let summary = context.scoreLampRankForItem(item);
             lamp = summary.lamp;
             rank = summary.rank;
+            labelMask = chartLabelMask(item);
         } else if (item instanceof entry) {
             entryLike = true;
             key = "entry:" + (item.md5 || item.path || item.title || item.level || "");
             text = item.subtitle ? (item.title || "") + " " + item.subtitle : (item.title || "");
+            titleType = titleTypeWithFallback(8, 0);
             bodyType = 0;
             let parsedLevel = parseInt(item.level);
             playLevel = isNaN(parsedLevel) ? 0 : parsedLevel;
@@ -138,18 +210,21 @@ QtObject {
         } else if (item instanceof table) {
             key = "table:" + (item.url || item.name || "");
             text = item.name || "";
+            titleType = titleTypeWithFallback(6, 0);
             bodyType = 2;
             folderLike = true;
             lamp = context.entryLamp(item);
         } else if (item instanceof level) {
             key = "level:" + context.folderLampKey(item);
             text = context.entryDisplayName(item, true);
+            titleType = titleTypeWithFallback(6, 0);
             bodyType = 2;
             folderLike = true;
             lamp = context.entryLamp(item);
         } else if (item instanceof course) {
             key = "course:" + (item.identifier || item.name || "");
             text = item.name || "";
+            titleType = titleTypeWithFallback(7, 0);
             bodyType = 8;
             let summary = context.scoreLampRankForItem(item);
             lamp = summary.lamp;
@@ -157,6 +232,7 @@ QtObject {
         } else if (typeof item === "string") {
             key = "folder:" + item;
             text = folderDisplayName(item);
+            titleType = titleTypeWithFallback(4, 0);
             folderLike = true;
             lamp = context.entryLamp(item);
         } else {
@@ -168,11 +244,17 @@ QtObject {
             rank = summary.rank;
         }
 
+        if (folderLike) {
+            let distribution = folderGraphDistribution(item);
+            graphLamps = distribution && distribution.lamps ? distribution.lamps : [];
+            graphRanks = distribution && distribution.ranks ? distribution.ranks : [];
+        }
+
         return {
             key: key,
             valid: valid,
             text: text,
-            titleType: 0,
+            titleType: titleType,
             bodyType: bodyType,
             playLevel: playLevel,
             difficulty: difficulty,
@@ -182,7 +264,10 @@ QtObject {
             entryLike: entryLike,
             folderLike: folderLike,
             lamp: lamp,
-            rank: rank
+            rank: rank,
+            labelMask: labelMask,
+            graphLamps: graphLamps,
+            graphRanks: graphRanks
         };
     }
 
@@ -233,7 +318,10 @@ QtObject {
             cachedCore.entryLike,
             cachedCore.folderLike,
             cachedCore.lamp,
-            cachedCore.rank);
+            cachedCore.rank,
+            cachedCore.labelMask,
+            cachedCore.graphLamps,
+            cachedCore.graphRanks);
     }
 
     function cellForRow(row) {
@@ -254,7 +342,10 @@ QtObject {
             entryLike: cachedCore.entryLike,
             folderLike: cachedCore.folderLike,
             lamp: cachedCore.lamp,
-            rank: cachedCore.rank
+            rank: cachedCore.rank,
+            labelMask: cachedCore.labelMask,
+            graphLamps: cachedCore.graphLamps,
+            graphRanks: cachedCore.graphRanks
         };
     }
 

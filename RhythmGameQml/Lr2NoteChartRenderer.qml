@@ -13,6 +13,11 @@ Item {
     property int timerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
+    property string cachedDataRevision: ""
+    property var cachedDensityData: []
+    property int cachedMaxDensity: 20
+    property int cachedSourceW: 5
+    property int cachedSourceH: 100
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -49,27 +54,42 @@ Item {
         }
         return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
     }
+    function chartWithHistogram(value) {
+        return value
+            && value.histogramData !== undefined
+            && value.histogramData !== null
+                ? value
+                : null;
+    }
+
+    function histogramRevision(histogram) {
+        if (!histogram) {
+            return "";
+        }
+        let parts = [];
+        for (let i = 0; i < 5; ++i) {
+            let series = histogram[i] || [];
+            parts.push(series.length || 0);
+        }
+        return parts.join(":");
+    }
+
     readonly property var chartData: {
         if (!chart) {
             return null;
         }
-        if (chart.chartData) {
-            return chart.chartData;
-        }
-        if (chart.histogramData) {
-            return chart;
-        }
-        return null;
+        return chartWithHistogram(chart.chartData) || chartWithHistogram(chart);
     }
-    readonly property int dataRevision: chartData
-        ? ((chartData.md5 ? String(chartData.md5) : "")
-           + ":" + (chartData.length || 0)
-           + ":" + (chartData.normalNoteCount || 0)
-           + ":" + (chartData.scratchCount || 0)
-           + ":" + (chartData.lnCount || 0)
-           + ":" + (chartData.bssCount || 0)
-           + ":" + (chartData.mineCount || 0)).length
-        : 0
+    readonly property string dataRevision: chartData
+        ? (String(chartData.md5 || "")
+           + ":" + String(chartData.length || 0)
+           + ":" + String(chartData.normalNoteCount || 0)
+           + ":" + String(chartData.scratchCount || 0)
+           + ":" + String(chartData.lnCount || 0)
+           + ":" + String(chartData.bssCount || 0)
+           + ":" + String(chartData.mineCount || 0)
+           + ":" + histogramRevision(chartData.histogramData))
+        : ""
 
     function densityAt(series, index) {
         return series && index < series.length ? (Number(series[index]) || 0) : 0;
@@ -175,6 +195,19 @@ Item {
         return maxValue;
     }
 
+    function updateCachedGraphData() {
+        if (cachedDataRevision === dataRevision) {
+            return;
+        }
+
+        cachedDataRevision = dataRevision;
+        cachedDensityData = buildNormalData(chartData ? (chartData.histogramData || []) : []);
+        let bucketCount = Math.max(1, cachedDensityData.length);
+        cachedMaxDensity = graphMax(cachedDensityData);
+        cachedSourceW = bucketCount * 5;
+        cachedSourceH = cachedMaxDensity * 5;
+    }
+
     visible: !!currentState
         && (currentState.a === undefined ? 255 : currentState.a) > 0
         && !!srcData
@@ -188,8 +221,13 @@ Item {
         height: Math.max(1, root.drawH * root.scaleOverride)
         visible: root.visible
         opacity: root.currentState ? Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0)) : 0
+        renderTarget: Canvas.Image
         renderStrategy: Canvas.Threaded
         antialiasing: false
+
+        onAvailableChanged: root.requestChartPaint()
+        onWidthChanged: root.requestChartPaint()
+        onHeightChanged: root.requestChartPaint()
 
         onPaint: {
             let ctx = getContext("2d");
@@ -198,11 +236,12 @@ Item {
                 return;
             }
 
-            let data = root.buildNormalData(root.chartData.histogramData || []);
+            root.updateCachedGraphData();
+            let data = root.cachedDensityData;
             let bucketCount = Math.max(1, data.length);
-            let maxDensity = root.graphMax(data);
-            let sourceW = bucketCount * 5;
-            let sourceH = maxDensity * 5;
+            let maxDensity = root.cachedMaxDensity;
+            let sourceW = root.cachedSourceW;
+            let sourceH = root.cachedSourceH;
 
             ctx.save();
             ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
@@ -216,7 +255,7 @@ Item {
     }
 
     function requestChartPaint() {
-        if (chartCanvas.available) {
+        if (root.visible && chartCanvas.available) {
             chartCanvas.requestPaint();
         }
     }
@@ -227,5 +266,6 @@ Item {
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
     onRevealChanged: requestChartPaint()
+    onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }

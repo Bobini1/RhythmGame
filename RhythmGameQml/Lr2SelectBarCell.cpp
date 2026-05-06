@@ -107,6 +107,27 @@ void Lr2SelectBarCell::setRank(int value) {
     emit rankChanged();
 }
 
+int Lr2SelectBarCell::labelMask() const { return m_labelMask; }
+void Lr2SelectBarCell::setLabelMask(int value) {
+    if (m_labelMask == value) return;
+    m_labelMask = value;
+    emit labelMaskChanged();
+}
+
+QVariantList Lr2SelectBarCell::graphLamps() const { return m_graphLamps; }
+void Lr2SelectBarCell::setGraphLamps(const QVariantList& value) {
+    if (m_graphLamps == value) return;
+    m_graphLamps = value;
+    emit graphLampsChanged();
+}
+
+QVariantList Lr2SelectBarCell::graphRanks() const { return m_graphRanks; }
+void Lr2SelectBarCell::setGraphRanks(const QVariantList& value) {
+    if (m_graphRanks == value) return;
+    m_graphRanks = value;
+    emit graphRanksChanged();
+}
+
 int Lr2SelectBarCell::revision() const { return m_revision; }
 
 int Lr2SelectBarCell::bodyTypeValue() const { return m_bodyType; }
@@ -173,6 +194,9 @@ bool Lr2SelectBarCell::overlayVisibleForKind(int kind, int variant) const {
     if (kind == 6) {
         return m_ranking && m_rank == variant;
     }
+    if (kind == 8) {
+        return variant >= 0 && variant < 31 && (m_labelMask & (1 << variant)) != 0;
+    }
     return false;
 }
 
@@ -189,7 +213,10 @@ void Lr2SelectBarCell::setCore(int row,
                                bool entryLike,
                                bool folderLike,
                                int lamp,
-                               int rank) {
+                               int rank,
+                               int labelMask,
+                               const QVariantList& graphLamps,
+                               const QVariantList& graphRanks) {
     const bool rowChanged = m_row != row;
     const bool validChanged = m_valid != valid;
     const bool textChanged = m_text != text;
@@ -204,6 +231,9 @@ void Lr2SelectBarCell::setCore(int row,
     const bool folderLikeChanged = m_folderLike != folderLike;
     const bool lampChanged = m_lamp != lamp;
     const bool rankChanged = m_rank != rank;
+    const bool labelMaskChanged = m_labelMask != labelMask;
+    const bool graphLampsChanged = m_graphLamps != graphLamps;
+    const bool graphRanksChanged = m_graphRanks != graphRanks;
 
     if (!rowChanged
             && !validChanged
@@ -218,7 +248,10 @@ void Lr2SelectBarCell::setCore(int row,
             && !entryLikeChanged
             && !folderLikeChanged
             && !lampChanged
-            && !rankChanged) {
+            && !rankChanged
+            && !labelMaskChanged
+            && !graphLampsChanged
+            && !graphRanksChanged) {
         return;
     }
 
@@ -236,6 +269,9 @@ void Lr2SelectBarCell::setCore(int row,
     m_folderLike = folderLike;
     m_lamp = lamp;
     m_rank = rank;
+    m_labelMask = labelMask;
+    m_graphLamps = graphLamps;
+    m_graphRanks = graphRanks;
     ++m_revision;
 
     Q_UNUSED(rowChanged);
@@ -252,6 +288,9 @@ void Lr2SelectBarCell::setCore(int row,
     Q_UNUSED(folderLikeChanged);
     Q_UNUSED(lampChanged);
     Q_UNUSED(rankChanged);
+    Q_UNUSED(labelMaskChanged);
+    Q_UNUSED(graphLampsChanged);
+    Q_UNUSED(graphRanksChanged);
     emit revisionChanged();
     emit coreChanged();
 }

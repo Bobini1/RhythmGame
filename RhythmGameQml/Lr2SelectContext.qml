@@ -15,8 +15,10 @@ Item {
     property var scores: ({})
     property var folderLampByKey: ({})
     property var folderScoreCountsByKey: ({})
+    property var folderDistributionByKey: ({})
     property var pendingFolderLampByKey: ({})
     property var pendingFolderScoreCountsByKey: ({})
+    property var pendingFolderDistributionByKey: ({})
     property int pendingFolderLampPublishCount: 0
     property var chartGroupCache: ({})
     property var chartDifficultyCache: ({})
@@ -65,6 +67,7 @@ Item {
     property int keyFilter: 0
     property int sortMode: 0
     property int sortSourceFrameCount: 5
+    property var barTitleTypes: []
     property int realItemCount: 0
     property int barRowCount: 0
     property int barCenter: 0
@@ -157,6 +160,8 @@ Item {
         scoreOptionIds: null,
         difficultyState: emptyDifficultyState
     })
+    property var visualChartWrapper: null
+    property string visualChartContentRevision: ""
     function selectedState() {
         return Lr2SelectStateStore.state(selectedStateStoreId) || selectedScoreState;
     }
@@ -164,6 +169,14 @@ Item {
     function applySelectedScoreState(state) {
         selectedScoreState = state;
         Lr2SelectStateStore.setState(selectedStateStoreId, state);
+        let nextChartWrapper = state.chartWrapper;
+        if (visualChartWrapper !== nextChartWrapper) {
+            visualChartWrapper = nextChartWrapper;
+        }
+        let nextChartRevision = chartContentRevisionForState(state);
+        if (visualChartContentRevision !== nextChartRevision) {
+            visualChartContentRevision = nextChartRevision;
+        }
     }
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
@@ -202,6 +215,7 @@ Item {
         scoreRevision: root.scoreRevision
         folderLampRevision: root.folderLampRevision
         listRevision: root.listRevision
+        barTitleTypes: root.barTitleTypes
     }
 
     Lr2SelectBarWindow {
@@ -245,6 +259,7 @@ Item {
     signal openedFolder()
     onBarRowCountChanged: refreshVisibleBarEntries(true)
     onBarCenterChanged: refreshVisibleBarEntries(true)
+    onBarTitleTypesChanged: refreshVisibleBarEntries(true)
     Connections {
         target: root.updatesActive ? visualState : null
         function onBaseIndexChanged() {
@@ -715,6 +730,87 @@ Item {
         return counts;
     }
 
+    function emptyFolderDistribution() {
+        return {
+            lamps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            ranks: [
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            ]
+        };
+    }
+
+    function beatorajaClearTypeIndex(clear) {
+        switch (clear || "NOPLAY") {
+        case "FAILED":
+            return 1;
+        case "AEASY":
+            return 2;
+        case "LIGHTASSIST":
+        case "LIGHT_ASSIST":
+            return 3;
+        case "EASY":
+            return 4;
+        case "NORMAL":
+            return 5;
+        case "HARD":
+            return 6;
+        case "EXHARD":
+            return 7;
+        case "FC":
+            return 8;
+        case "PERFECT":
+            return 9;
+        case "MAX":
+            return 10;
+        default:
+            return 0;
+        }
+    }
+
+    function folderDistributionFromScores(result) {
+        let distribution = emptyFolderDistribution();
+        if (!result) {
+            return distribution;
+        }
+        if (result instanceof tableQueryResult) {
+            result = result.scores;
+        }
+
+        let unplayed = Math.max(0, result.unplayed || 0);
+        distribution.lamps[0] += unplayed;
+        distribution.ranks[0] += unplayed;
+
+        for (let scoreList of Object.values(result.scores || {})) {
+            if (!scoreList || scoreList.length === 0) {
+                distribution.lamps[0] += 1;
+                distribution.ranks[0] += 1;
+                continue;
+            }
+
+            let clearIndex = beatorajaClearTypeIndex(getClearType(scoreList));
+            distribution.lamps[Math.max(0, Math.min(10, clearIndex))] += 1;
+
+            let best = bestScoreByPoints(scoreList);
+            let maxPoints = best?.result?.maxPoints || 0;
+            if (maxPoints <= 0) {
+                distribution.ranks[0] += 1;
+                continue;
+            }
+
+            let rank = Math.floor((best.result.points || 0) * 27 / maxPoints);
+            distribution.ranks[Math.max(0, Math.min(27, rank))] += 1;
+        }
+        return distribution;
+    }
+
+    function folderDistribution(item) {
+        let key = folderLampKey(item);
+        return key && folderDistributionByKey[key] !== undefined
+            ? folderDistributionByKey[key]
+            : emptyFolderDistribution();
+    }
+
     function refreshFolderLamps() {
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
@@ -748,15 +844,19 @@ Item {
         folderLampPublishTimer.stop();
         pendingFolderLampByKey = ({});
         pendingFolderScoreCountsByKey = ({});
+        pendingFolderDistributionByKey = ({});
         pendingFolderLampPublishCount = 0;
         folderLampByKey = ({});
         folderScoreCountsByKey = ({});
+        folderDistributionByKey = ({});
         folderLampRevision += 1;
+        refreshVisibleBarEntries(true);
     }
 
     function queueFolderLampResult(key, result) {
         pendingFolderLampByKey[key] = folderLampFromScores(result);
         pendingFolderScoreCountsByKey[key] = folderScoreCountsFromScores(result);
+        pendingFolderDistributionByKey[key] = folderDistributionFromScores(result);
         pendingFolderLampPublishCount += 1;
         if (updatesActive && !folderLampPublishTimer.running) {
             folderLampPublishTimer.start();
@@ -770,10 +870,13 @@ Item {
 
         folderLampByKey = Object.assign({}, folderLampByKey, pendingFolderLampByKey);
         folderScoreCountsByKey = Object.assign({}, folderScoreCountsByKey, pendingFolderScoreCountsByKey);
+        folderDistributionByKey = Object.assign({}, folderDistributionByKey, pendingFolderDistributionByKey);
         pendingFolderLampByKey = ({});
         pendingFolderScoreCountsByKey = ({});
+        pendingFolderDistributionByKey = ({});
         pendingFolderLampPublishCount = 0;
         folderLampRevision += 1;
+        refreshVisibleBarEntries(true);
         touch();
     }
 
@@ -1098,6 +1201,8 @@ Item {
         refreshSelectedScoreState();
         if (activeSortUsesScores()) {
             sortOrFilterChanged(scoreLoadPreferredItem());
+        } else {
+            refreshVisibleBarEntries(true);
         }
         touch();
     }
@@ -2645,6 +2750,30 @@ Item {
                            + 400000 * stats.gd) / totalNotes);
     }
 
+    function nextRankDelta(stats, chart) {
+        if (!stats) {
+            return 0;
+        }
+
+        let scoreMaxPoints = stats.maxPoints || 0;
+        let targetMaxPoints = chartPlayableNoteCount(chart) * 2;
+        if (targetMaxPoints <= 0) {
+            targetMaxPoints = scoreMaxPoints;
+        }
+        if (scoreMaxPoints <= 0 || targetMaxPoints <= 0) {
+            return 0;
+        }
+
+        let rate = Math.max(0, stats.exscore || 0) / scoreMaxPoints;
+        for (let rank = 0; rank < 27; ++rank) {
+            let qualified = rate >= rank / 27;
+            if (rank % 3 === 0 && !qualified) {
+                return Math.round(rank * targetMaxPoints / 27 - rate * targetMaxPoints);
+            }
+        }
+        return Math.round(targetMaxPoints - rate * targetMaxPoints);
+    }
+
     function currentFolderScoreCountsOrNull() {
         let revisionMarker = folderLampRevision;
         let key = folderLampKey(selectedState().item);
@@ -2847,6 +2976,48 @@ Item {
 
     function chartWrapperForData(chartData) {
         return chartData ? { chartData: chartData } : null;
+    }
+
+    function chartHistogramRevision(chartData) {
+        let histogram = chartData && chartData.histogramData ? chartData.histogramData : null;
+        if (!histogram) {
+            return "";
+        }
+        let parts = [];
+        for (let i = 0; i < 6; ++i) {
+            let series = histogram[i] || [];
+            parts.push(series.length || 0);
+        }
+        return parts.join(":");
+    }
+
+    function chartContentRevisionForData(stateKey, chartData) {
+        if (!chartData) {
+            return String(stateKey || "");
+        }
+        return String(stateKey || "")
+            + ":" + String(chartData.md5 || "")
+            + ":" + String(chartData.length || 0)
+            + ":" + String(chartData.normalNoteCount || 0)
+            + ":" + String(chartData.scratchCount || 0)
+            + ":" + String(chartData.lnCount || 0)
+            + ":" + String(chartData.bssCount || 0)
+            + ":" + String(chartData.mineCount || 0)
+            + ":" + chartHistogramRevision(chartData);
+    }
+
+    function chartContentRevisionForState(state) {
+        if (!state) {
+            return "";
+        }
+        let chartData = state.chartWrapper && state.chartWrapper.chartData
+            ? state.chartWrapper.chartData
+            : state.chartData;
+        return chartContentRevisionForData(state.key, chartData);
+    }
+
+    function selectedChartContentRevision() {
+        return visualChartContentRevision;
     }
 
     function refreshSelectedScoreState() {
@@ -3417,7 +3588,7 @@ Item {
     }
 
     function selectedChartWrapper() {
-        return selectedState().chartWrapper;
+        return visualChartWrapper || selectedState().chartWrapper;
     }
 
     function selectedPreviewSource() {
@@ -3663,7 +3834,7 @@ Item {
         case 152:
             return stats() ? Math.round(stats().exscore) : 0;
         case 154:
-            return 0;
+            return nextRankDelta(stats(), chart());
         case 420:
             return stats() ? stats().miss : 0;
         case 421:
@@ -3931,7 +4102,7 @@ Item {
                 : 0;
         case 46:
         case 47:
-            return stats() && stats().maxPoints > 0 ? stats().score / stats().maxPoints : 0;
+            return stats() && stats().maxPoints > 0 ? stats().exscore / stats().maxPoints : 0;
         default:
             return 0;
         }

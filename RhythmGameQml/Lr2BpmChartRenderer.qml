@@ -13,6 +13,8 @@ Item {
     property int timerFire: -2147483648
     property var chart
     property real scaleOverride: 1.0
+    property string cachedDataRevision: ""
+    property var cachedSpeedData: []
 
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -49,25 +51,28 @@ Item {
         }
         return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
     }
+    function chartWithBpmData(value) {
+        return value
+            && (value.bpmChanges !== undefined
+                || value.initialBpm !== undefined
+                || value.mainBpm !== undefined)
+                    ? value
+                    : null;
+    }
+
     readonly property var chartData: {
         if (!chart) {
             return null;
         }
-        if (chart.chartData) {
-            return chart.chartData;
-        }
-        if (chart.bpmChanges) {
-            return chart;
-        }
-        return null;
+        return chartWithBpmData(chart.chartData) || chartWithBpmData(chart);
     }
-    readonly property int dataRevision: chartData
-        ? ((chartData.md5 ? String(chartData.md5) : "")
-           + ":" + (chartData.length || 0)
-           + ":" + (chartData.mainBpm || 0)
-           + ":" + (chartData.minBpm || 0)
-           + ":" + (chartData.maxBpm || 0)).length
-        : 0
+    readonly property string dataRevision: chartData
+        ? (String(chartData.md5 || "")
+           + ":" + String(chartData.length || 0)
+           + ":" + String(chartData.mainBpm || 0)
+           + ":" + String(chartData.minBpm || 0)
+           + ":" + String(chartData.maxBpm || 0))
+        : ""
 
     function hexColor(value, fallback) {
         let raw = value === undefined || value === null ? "" : String(value);
@@ -121,6 +126,15 @@ Item {
         return result;
     }
 
+    function updateCachedSpeedData() {
+        if (cachedDataRevision === dataRevision) {
+            return;
+        }
+
+        cachedDataRevision = dataRevision;
+        cachedSpeedData = buildSpeedData(chartData);
+    }
+
     function graphY(speed, mainSpeed, height, lineWidth) {
         let minValue = 1.0 / 8.0;
         let maxValue = 8.0;
@@ -146,7 +160,12 @@ Item {
         visible: root.visible
         opacity: root.currentState ? Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0)) : 0
         renderTarget: Canvas.Image
+        renderStrategy: Canvas.Threaded
         antialiasing: false
+
+        onAvailableChanged: root.requestChartPaint()
+        onWidthChanged: root.requestChartPaint()
+        onHeightChanged: root.requestChartPaint()
 
         onPaint: {
             let ctx = getContext("2d");
@@ -155,7 +174,8 @@ Item {
                 return;
             }
 
-            let data = root.buildSpeedData(root.chartData);
+            root.updateCachedSpeedData();
+            let data = root.cachedSpeedData;
             if (data.length === 0) {
                 return;
             }
@@ -197,7 +217,7 @@ Item {
     }
 
     function requestChartPaint() {
-        if (chartCanvas.available) {
+        if (root.visible && chartCanvas.available) {
             chartCanvas.requestPaint();
         }
     }
@@ -208,5 +228,6 @@ Item {
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
     onRevealChanged: requestChartPaint()
+    onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }
