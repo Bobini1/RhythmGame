@@ -172,10 +172,13 @@ Item {
 
     function slotForDisplayRow(row) {
         let count = root.barCellCount;
-        let offset = root.selectContext ? root.selectContext.visibleBarSlotOffset : 0;
-        return count > 0 && row >= 0 && row < count
-            ? (row + offset) % count
-            : -1;
+        if (count <= 0 || row < 0 || row >= count) {
+            return -1;
+        }
+        let offset = root.barPositionCache ? root.barPositionCache.slotOffset : 0;
+        return root.barPositionCache
+            ? root.barPositionCache.slotForRow(row)
+            : (row + offset) % count;
     }
 
     function cellData(row) {
@@ -184,8 +187,9 @@ Item {
         return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
     }
 
-    function textCellData(slot) {
-        return barTextCells && slot >= 0 && slot < barTextCells.length ? barTextCells[slot] : null;
+    function cellDataForSlot(slot) {
+        let cells = barTextCells && barTextCells.length > 0 ? barTextCells : barCells;
+        return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
     }
 
     function bodyDsts(row) {
@@ -305,7 +309,7 @@ Item {
             readonly property var visibleBase: selectedOverlaySource ? root.visibilityState(displayRow) : null
             readonly property var cell: selectedOverlaySource
                 ? null
-                : root.cellData(displayRow)
+                : root.cellDataForSlot(slot)
             readonly property int cellRevision: cell ? cell.revision : -1
             readonly property bool cellValid: selectedOverlaySource ? true : !!cell
             readonly property bool cellOverlayVisible: {

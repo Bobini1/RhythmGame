@@ -9,6 +9,9 @@ QtObject {
     required property var host
     required property var selectContext
     required property var skinModel
+    property var selectRuntimeActiveOptionsCache: ({})
+    property int selectRuntimeActiveOptionsCacheSize: 0
+    readonly property int selectRuntimeActiveOptionsCacheLimit: 256
 
     function addOption(options, option) {
         host.addOption(options, option);
@@ -70,6 +73,55 @@ QtObject {
         }
         result.__lookup = lookup;
         return result;
+    }
+
+    function clearSelectRuntimeActiveOptionsCache() {
+        selectRuntimeActiveOptionsCache = ({});
+        selectRuntimeActiveOptionsCacheSize = 0;
+    }
+
+    function selectRuntimeActiveOptionsCacheKey(commonOptions) {
+        let state = selectContext.selectedState();
+        let commonKey = host.selectCommonActiveOptionsKey !== undefined
+            ? host.selectCommonActiveOptionsKey
+            : host.numberArrayKey(commonOptions || []);
+        let rankingKey = "";
+        if (host.selectUsesRankingStatusOptions()) {
+            rankingKey = String(host.lr2RankingStatusOption()) + ":" + String(host.lr2RankingPlayerCount());
+        }
+        let featureKey = (host.selectUsesReplayOptions() ? "1" : "0")
+            + (host.selectUsesScoreOptionIds() ? "1" : "0")
+            + (host.selectUsesEntryStatusOptions() ? "1" : "0")
+            + (host.selectUsesDifficultyBarOptions() ? "1" : "0")
+            + (host.selectUsesCourseDetailOptions() ? "1" : "0")
+            + (host.selectUsesRankingStatusOptions() ? "1" : "0");
+        return commonKey
+            + "|" + featureKey
+            + "|" + String(state ? state.key || "" : "")
+            + "|" + String(selectContext.scoreRevision || 0)
+            + "|" + String(selectContext.listRevision || 0)
+            + "|" + String(selectContext.folderLampRevision || 0)
+            + "|" + String(selectContext.visualChartContentRevision || "")
+            + "|" + String(selectContext.rankingMode ? 1 : 0)
+            + "|" + String(host.selectPanel || 0)
+            + "|" + String(host.lr2ReplayType || 0)
+            + "|" + rankingKey;
+    }
+
+    function cachedSelectRuntimeActiveOptions(cacheKey) {
+        let cached = selectRuntimeActiveOptionsCache[cacheKey];
+        return cached !== undefined ? cached : null;
+    }
+
+    function storeSelectRuntimeActiveOptions(cacheKey, options) {
+        if (selectRuntimeActiveOptionsCacheSize >= selectRuntimeActiveOptionsCacheLimit) {
+            root.clearSelectRuntimeActiveOptionsCache();
+        }
+        if (selectRuntimeActiveOptionsCache[cacheKey] === undefined) {
+            selectRuntimeActiveOptionsCacheSize += 1;
+        }
+        selectRuntimeActiveOptionsCache[cacheKey] = options;
+        return options;
     }
 
     function appendCommonRuntimeOptions(options) {
@@ -748,9 +800,14 @@ QtObject {
     }
 
     function buildSelectRuntimeActiveOptions(commonOptions) {
+        let cacheKey = root.selectRuntimeActiveOptionsCacheKey(commonOptions);
+        let cached = root.cachedSelectRuntimeActiveOptions(cacheKey);
+        if (cached) {
+            return cached;
+        }
         let result = root.copyActiveOptions(commonOptions);
         root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
-        return result;
+        return root.storeSelectRuntimeActiveOptions(cacheKey, result);
     }
 
     function buildRuntimeActiveOptions(baseOptions) {

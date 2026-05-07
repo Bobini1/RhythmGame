@@ -29,7 +29,7 @@ Item {
                 ? root.resultOldScoresRevision
                 : root.gameplayRevision))
     readonly property int selectDetailValueRevision: !rootReady ? 0
-        : root.selectRuntimeActiveOptionsRevision
+        : root.selectRevision
             + selectContext.listRevision
             + selectContext.folderLampRevision
             + root.lr2SkinSettingsRevision
@@ -306,7 +306,13 @@ Item {
                         ? (usesLiveSelectClock ? selectSourceClock : renderClock)
                         : manualClock
                     readonly property bool useDirectElementSkinClock: usesElementSkinTime
-                    readonly property int elementSkinTime: usesElementSkinTime
+                    readonly property bool needsManualElementSkinTime: usesElementSkinTime
+                        && (model.type === 7
+                            || model.type === 10
+                            || model.type === 11
+                            || model.type === 12
+                            || (model.type === 1 && root.sourceHasFrameAnimation(model.src)))
+                    readonly property int elementSkinTime: needsManualElementSkinTime
                         ? (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime)
                         : 0
 
@@ -720,12 +726,15 @@ Item {
                     Component {
                         id: barDistributionGraphComponent
                         Lr2BarDistributionGraphRenderer {
+                            readonly property bool barDistributionSourceAnimates: root.barDistributionGraphSourceAnimates(model.src)
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
-                            sourceSkinTime: root.effectiveScreenKey === "select"
-                                ? root.selectSourceSkinTime
-                                : root.renderSkinTime
+                            sourceSkinTime: barDistributionSourceAnimates
+                                ? (root.effectiveScreenKey === "select"
+                                    ? root.selectSourceSkinTime
+                                    : root.renderSkinTime)
+                                : 0
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
                             timerFire: elemLoader.dstTimerFire

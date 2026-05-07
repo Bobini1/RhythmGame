@@ -286,10 +286,6 @@ Item {
         return display && display.time ? display.time.position || 0 : 0;
     }
 
-    function movingLayerY(playerPosition, dst, multiplier) {
-        return (dst ? dst.y || 0 : 0) + playerPosition * multiplier;
-    }
-
     function lineLocalY(display, multiplier) {
         return -linePosition(display) * multiplier;
     }
@@ -348,7 +344,7 @@ Item {
                 player,
                 root.sideSpeedHeight(side, dstState))
             property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
-            property real layerSkinY: root.movingLayerY(playerPosition, dstState, multiplier)
+            property real layerSkinY: (dstState ? dstState.y || 0 : 0) + playerPosition * multiplier
             property int hidSudMode: root.lr2HidSudMode(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
@@ -461,7 +457,7 @@ Item {
                 player,
                 root.sideSpeedHeight(side, dstState))
             property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
-            property real layerSkinY: root.movingLayerY(playerPosition, dstState, multiplier)
+            property real layerSkinY: (dstState ? dstState.y || 0 : 0) + playerPosition * multiplier
             property int hidSudMode: root.lr2HidSudMode(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)

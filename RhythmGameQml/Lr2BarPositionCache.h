@@ -14,6 +14,7 @@ class Lr2BarPositionCache : public QObject {
     Q_PROPERTY(QVariantList baseStates READ baseStates WRITE setBaseStates NOTIFY baseStatesChanged)
     Q_PROPERTY(qreal scrollOffset READ scrollOffset WRITE setScrollOffset NOTIFY scrollOffsetChanged)
     Q_PROPERTY(int slotOffset READ slotOffset WRITE setSlotOffset NOTIFY slotOffsetChanged)
+    Q_PROPERTY(QObject* slotOffsetSource READ slotOffsetSource WRITE setSlotOffsetSource NOTIFY slotOffsetSourceChanged)
     Q_PROPERTY(int slotCount READ slotCount WRITE setSlotCount NOTIFY slotCountChanged)
     Q_PROPERTY(Lr2SelectVisualState* visualState READ visualState WRITE setVisualState NOTIFY visualStateChanged)
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
@@ -31,6 +32,9 @@ public:
     int slotOffset() const;
     void setSlotOffset(int offset);
 
+    QObject* slotOffsetSource() const;
+    void setSlotOffsetSource(QObject* source);
+
     int slotCount() const;
     void setSlotCount(int count);
 
@@ -42,15 +46,20 @@ public:
 
     Q_INVOKABLE qreal xAt(int row) const;
     Q_INVOKABLE qreal yAt(int row) const;
+    Q_INVOKABLE int slotForRow(int row) const;
     Q_INVOKABLE int rowForSlot(int slot) const;
 
 signals:
     void baseStatesChanged();
     void scrollOffsetChanged();
     void slotOffsetChanged();
+    void slotOffsetSourceChanged();
     void slotCountChanged();
     void visualStateChanged();
     void revisionChanged();
+
+private slots:
+    void updateSlotOffsetFromSource();
 
 private:
     void rebuildBaseCoordinates(const QVariantList& states);
@@ -65,6 +74,8 @@ private:
     QVector<bool> m_validRows;
     qreal m_scrollOffset = 0.0;
     int m_slotOffset = 0;
+    QPointer<QObject> m_slotOffsetSource;
+    QMetaObject::Connection m_slotOffsetSourceConnection;
     int m_slotCount = 0;
     QPointer<Lr2SelectVisualState> m_visualState;
     QMetaObject::Connection m_visualStateOffsetConnection;

@@ -1166,6 +1166,7 @@ Item {
             return;
         }
         options.push(option);
+        options.__key = undefined;
         lookup[option] = true;
     }
 
@@ -3172,7 +3173,14 @@ Item {
     }
 
     function numberArrayKey(values) {
-        return values && values.length ? values.join(",") : "";
+        if (!values || values.length === 0) {
+            return "";
+        }
+        if (values.__key !== undefined) {
+            return values.__key;
+        }
+        values.__key = values.join(",");
+        return values.__key;
     }
 
     function activeOptionPresent(option, activeOptions) {
@@ -3308,12 +3316,12 @@ Item {
         }
         let next = runtimeOptions.buildSelectRuntimeActiveOptions(root.selectCommonActiveOptions);
         let nextKey = root.numberArrayKey(next);
-        root.selectRuntimeActiveOptionsRevision += 1;
         if (nextKey === root.selectRuntimeActiveOptionsKey) {
             return;
         }
         root.selectRuntimeActiveOptionsKey = nextKey;
         root.selectRuntimeActiveOptions = next;
+        root.selectRuntimeActiveOptionsRevision += 1;
     }
 
     function scheduleSelectRuntimeActiveOptionsRefresh() {
@@ -3372,20 +3380,9 @@ Item {
            selectContext.listRevision,
            selectContext.visualChartContentRevision)
         : ""
-    readonly property string selectChartWrapperContentRevision: {
-        let wrapper = selectContext.visualChartWrapper;
-        let chartData = wrapper && wrapper.chartData ? wrapper.chartData : null;
-        return chartData
-            ? (String(chartData.md5 || "")
-               + ":" + String(chartData.length || 0)
-               + ":" + String(chartData.normalNoteCount || 0)
-               + ":" + String(chartData.scratchCount || 0)
-               + ":" + String(chartData.lnCount || 0)
-               + ":" + String(chartData.bssCount || 0)
-               + ":" + String(chartData.mineCount || 0)
-               + ":" + selectContext.chartHistogramRevision(chartData))
-            : "";
-    }
+    readonly property string selectChartWrapperContentRevision: root.effectiveScreenKey === "select"
+        ? selectContext.visualChartContentRevision
+        : ""
     readonly property var selectSkinChartWrapper: root.effectiveScreenKey === "select"
         ? (root.selectChartContentRevision,
            root.selectChartWrapperContentRevision,
@@ -3726,6 +3723,15 @@ Item {
         return src
             && (src.cycle || 0) > 0
             && Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1) > 1;
+    }
+
+    function barDistributionGraphSourceAnimates(src) {
+        if (!src || (src.cycle || 0) <= 0) {
+            return false;
+        }
+        let segments = (src.graphType || 0) === 0 ? 11 : 28;
+        let frames = Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1);
+        return Math.floor(frames / segments) > 1;
     }
 
     function wrapValue(value, count) {

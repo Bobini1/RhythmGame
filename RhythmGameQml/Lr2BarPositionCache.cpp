@@ -43,6 +43,40 @@ void Lr2BarPositionCache::setSlotOffset(int offset) {
     emit slotOffsetChanged();
 }
 
+QObject* Lr2BarPositionCache::slotOffsetSource() const {
+    return m_slotOffsetSource;
+}
+
+void Lr2BarPositionCache::setSlotOffsetSource(QObject* source) {
+    if (m_slotOffsetSource == source) {
+        return;
+    }
+
+    if (m_slotOffsetSourceConnection) {
+        disconnect(m_slotOffsetSourceConnection);
+    }
+
+    m_slotOffsetSource = source;
+    if (m_slotOffsetSource) {
+        m_slotOffsetSourceConnection = connect(
+            m_slotOffsetSource,
+            SIGNAL(visibleBarSlotOffsetChanged()),
+            this,
+            SLOT(updateSlotOffsetFromSource()));
+        updateSlotOffsetFromSource();
+    } else {
+        m_slotOffsetSourceConnection = {};
+        setSlotOffset(0);
+    }
+    emit slotOffsetSourceChanged();
+}
+
+void Lr2BarPositionCache::updateSlotOffsetFromSource() {
+    setSlotOffset(m_slotOffsetSource
+        ? m_slotOffsetSource->property("visibleBarSlotOffset").toInt()
+        : 0);
+}
+
 int Lr2BarPositionCache::slotCount() const {
     return m_slotCount;
 }
@@ -106,6 +140,14 @@ qreal Lr2BarPositionCache::yAt(int row) const {
         return 0.0;
     }
     return m_drawYs[row];
+}
+
+int Lr2BarPositionCache::slotForRow(int row) const {
+    const int count = m_slotCount > 0 ? m_slotCount : m_drawXs.size();
+    if (count <= 0 || row < 0 || row >= count) {
+        return -1;
+    }
+    return (row + m_slotOffset) % count;
 }
 
 int Lr2BarPositionCache::rowForSlot(int slot) const {

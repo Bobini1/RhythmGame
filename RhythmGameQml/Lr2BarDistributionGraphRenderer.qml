@@ -32,6 +32,13 @@ Item {
     readonly property int barCellCount: barCells ? barCells.length : 0
     readonly property int graphType: srcData ? (srcData.graphType || 0) : 0
     readonly property int segmentCount: graphType === 0 ? 11 : 28
+    readonly property int frameCountValue: srcData
+        ? Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1)
+        : 1
+    readonly property int animationGroupCount: Math.max(1, Math.floor(frameCountValue / segmentCount))
+    readonly property bool sourceAnimates: srcData && animationGroupCount > 1 && (srcData.cycle || 0) > 0
+    readonly property int animationGroupFrameValue: animationGroupFrame()
+    readonly property int frameOverrideBase: animationGroupFrameValue * segmentCount
     readonly property var graphDsts: srcData ? dsts : []
     readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(graphDsts)
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -65,21 +72,8 @@ Item {
         return total;
     }
 
-    function frameCount() {
-        if (!srcData) {
-            return 1;
-        }
-        return Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1);
-    }
-
     function animationGroupFrame() {
-        if (!srcData) {
-            return 0;
-        }
-
-        let groups = Math.max(1, Math.floor(frameCount() / segmentCount));
-        let cycle = srcData.cycle || 0;
-        if (groups <= 1 || cycle <= 0) {
+        if (!sourceAnimates) {
             return 0;
         }
 
@@ -96,13 +90,14 @@ Item {
             return 0;
         }
 
+        let cycle = srcData.cycle || 0;
         let phase = animTime % cycle;
-        let msPerFrame = cycle / groups;
-        return Math.max(0, Math.min(groups - 1, Math.floor(phase / msPerFrame)));
+        let msPerFrame = cycle / animationGroupCount;
+        return Math.max(0, Math.min(animationGroupCount - 1, Math.floor(phase / msPerFrame)));
     }
 
     function frameForSegment(segment) {
-        return Math.min(frameCount() - 1, animationGroupFrame() * segmentCount + segment);
+        return Math.min(frameCountValue - 1, frameOverrideBase + segment);
     }
 
     function segmentState(base, start, width) {

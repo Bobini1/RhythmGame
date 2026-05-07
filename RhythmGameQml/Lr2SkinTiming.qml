@@ -24,6 +24,8 @@ QtObject {
     property int fpsSampleIntervalMs: 250
     readonly property int selectInfoAnimationLimit: 1000
     readonly property var zeroTimers: ({ "0": 0 })
+    property var selectTimerFireCache: ({})
+    property int selectTimerFireCacheEpoch: 0
     readonly property bool shouldAutoAdvance: root.host
         && root.host.effectiveScreenKey === "decide"
         && !!root.host.chart
@@ -79,6 +81,18 @@ QtObject {
         }
     }
 
+    property Connections selectTimerFireCacheContextConnections: Connections {
+        target: root.selectContext
+        function onVisualMoveActiveChanged() { root.clearSelectTimerFireCache(); }
+        function onScrollFixedPointDraggingChanged() { root.clearSelectTimerFireCache(); }
+        function onScrollDirectionChanged() { root.clearSelectTimerFireCache(); }
+    }
+
+    onSelectInfoStartSkinTimeChanged: clearSelectTimerFireCache()
+    onSelectScrollStartSkinTimeChanged: clearSelectTimerFireCache()
+    onSelectNoScrollStartSkinTimeChanged: clearSelectTimerFireCache()
+    onSelectDatabaseLoadedSkinTimeChanged: clearSelectTimerFireCache()
+
     property Timer dateTimeStopwatch: Timer {
         interval: 1000
         running: root.host && root.host.screenUpdatesActive
@@ -129,6 +143,46 @@ QtObject {
         }
     }
 
+    function clearSelectTimerFireCache() {
+        root.selectTimerFireCacheEpoch += 1;
+    }
+
+    function canCacheSelectTimerFire(timer) {
+        return timer === 10
+            || timer === 11
+            || timer === 12
+            || timer === 13
+            || timer === 171;
+    }
+
+    function cachedSelectTimerFireTime(timer, liveClock) {
+        let epoch = root.selectTimerFireCacheEpoch;
+        let frame = root.globalSkinTime;
+        let cache = root.selectTimerFireCache;
+        if (cache.__frame !== frame || cache.__epoch !== epoch) {
+            cache.__frame = frame;
+            cache.__epoch = epoch;
+            cache["0:10"] = undefined;
+            cache["0:11"] = undefined;
+            cache["0:12"] = undefined;
+            cache["0:13"] = undefined;
+            cache["0:171"] = undefined;
+            cache["1:10"] = undefined;
+            cache["1:11"] = undefined;
+            cache["1:12"] = undefined;
+            cache["1:13"] = undefined;
+            cache["1:171"] = undefined;
+        }
+        let key = (liveClock === true ? "1:" : "0:") + timer;
+        let cached = cache[key];
+        if (cached !== undefined) {
+            return cached;
+        }
+        let value = root.selectTimerFireTime(timer, liveClock);
+        cache[key] = value;
+        return value;
+    }
+
     // Timer fire times (ms since scene start). LR2 select panels use timers
     // 21..26 for side-drawer opening and 31..36 for closing, so synthesize
     // those without unfreezing the whole select skin clock.
@@ -169,6 +223,7 @@ QtObject {
         root.selectScrollStartSkinTime = 0;
         root.selectNoScrollStartSkinTime = 0;
         root.selectDatabaseLoadedSkinTime = 0;
+        root.clearSelectTimerFireCache();
         root.host.selectHeldButtonTimerStarts = ({});
         root.host.selectPanelClosing = 0;
         root.host.selectScratchSoundReady = false;
@@ -346,7 +401,9 @@ QtObject {
             return root.resultTimerFireTime(idx);
         }
         if (root.host.effectiveScreenKey === "select") {
-            return root.selectTimerFireTime(idx, liveClock);
+            return root.canCacheSelectTimerFire(idx)
+                ? root.cachedSelectTimerFireTime(idx, liveClock)
+                : root.selectTimerFireTime(idx, liveClock);
         }
         return -1;
     }

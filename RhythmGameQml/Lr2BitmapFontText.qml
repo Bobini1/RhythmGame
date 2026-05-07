@@ -39,7 +39,7 @@ Item {
                 + "?text=" + encodeURIComponent(root.text)
             : ""
         cache: true
-        smooth: false
+        smooth: true
         mipmap: false
         fillMode: Image.Stretch
     }

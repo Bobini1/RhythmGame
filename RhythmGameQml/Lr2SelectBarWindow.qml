@@ -125,15 +125,10 @@ QtObject {
     function shiftWindow(delta, effectiveRowCount) {
         let nextOffset = ((slotOffset + delta) % effectiveRowCount + effectiveRowCount) % effectiveRowCount;
         let steps = Math.abs(delta);
-        let firstChangedSlot = -1;
 
         for (let step = 0; step < steps; ++step) {
             let row = delta > 0 ? effectiveRowCount - steps + step : step;
             let slot = (row + nextOffset) % effectiveRowCount;
-            if (firstChangedSlot < 0) {
-                firstChangedSlot = slot;
-            }
-
             let entry = itemForRow(row);
             entries[slot] = entry;
             let cell = cells[slot];

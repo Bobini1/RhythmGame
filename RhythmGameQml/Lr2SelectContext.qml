@@ -60,6 +60,7 @@ Item {
     property int scoreRevision: 0
     property int folderLampRevision: 0
     property int folderLampRequestRevision: 0
+    property int focusedStateRefreshDelayMs: 35
     property bool scrollFixedPointDragging: false
     property string searchText: ""
     property var attachedTextCache: ({})
@@ -229,6 +230,13 @@ Item {
         visualBaseIndex: root.visualBaseIndex
     }
 
+    Timer {
+        id: focusedStateRefreshTimer
+        interval: root.focusedStateRefreshDelayMs
+        repeat: false
+        onTriggered: root.flushFocusedStateRefresh()
+    }
+
     onUpdatesActiveChanged: {
         if (!componentReady) {
             return;
@@ -281,10 +289,31 @@ Item {
         touch();
     }
 
-    function touchSelection() {
-        refreshFocusedState();
+    function touchSelection(deferFocusedStateRefresh) {
+        if (deferFocusedStateRefresh) {
+            scheduleFocusedStateRefresh();
+        } else {
+            flushFocusedStateRefresh(false);
+        }
         selectionRevision += 1;
         touch();
+    }
+
+    function scheduleFocusedStateRefresh() {
+        if (!focusedStateRefreshTimer.running) {
+            focusedStateRefreshTimer.restart();
+        }
+    }
+
+    function flushFocusedStateRefresh(touchAfterRefresh) {
+        focusedStateRefreshTimer.stop();
+        if (refreshFocusedState()) {
+            if (touchAfterRefresh === undefined || touchAfterRefresh) {
+                touch();
+            }
+            return true;
+        }
+        return false;
     }
 
     function refreshFocusedState() {
@@ -507,7 +536,7 @@ Item {
         return true;
     }
 
-    function commitLogicalSelection(index) {
+    function commitLogicalSelection(index, deferFocusedStateRefresh) {
         if (logicalCount === 0) {
             return false;
         }
@@ -517,7 +546,7 @@ Item {
             return false;
         }
         currentIndex = normalized;
-        touchSelection();
+        touchSelection(!!deferFocusedStateRefresh);
         return true;
     }
 
@@ -1644,10 +1673,10 @@ Item {
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
         let nextIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
         targetIndex = nextIndex;
-        let focusTouched = commitLogicalSelection(nextIndex);
+        let focusTouched = commitLogicalSelection(nextIndex, true);
         let selectionTouched = beginVisualMove(durationMs, now);
         if (!selectionTouched && !focusTouched) {
-            touchSelection();
+            touchSelection(true);
         }
     }
 
