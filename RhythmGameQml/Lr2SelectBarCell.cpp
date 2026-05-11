@@ -1,5 +1,187 @@
 #include "Lr2SelectBarCell.h"
 
+#include <QJSValue>
+#include <QMetaProperty>
+
+#include <algorithm>
+#include <cmath>
+#include <utility>
+#include <vector>
+
+namespace {
+
+qreal toReal(const QVariant& value, qreal fallback = 0.0) {
+    if (!value.isValid() || value.isNull()) {
+        return fallback;
+    }
+    bool ok = false;
+    const qreal result = value.toReal(&ok);
+    return ok ? result : fallback;
+}
+
+QVariant gadgetProperty(const QVariant& source, const char* name) {
+    const QMetaObject* metaObject = source.metaType().metaObject();
+    if (!metaObject) {
+        return {};
+    }
+    const int propertyIndex = metaObject->indexOfProperty(name);
+    if (propertyIndex < 0) {
+        return {};
+    }
+    return metaObject->property(propertyIndex).readOnGadget(source.constData());
+}
+
+QVariant valueProperty(const QVariant& source, const char* name) {
+    if (!source.isValid() || source.isNull()) {
+        return {};
+    }
+    if (source.canConvert<QVariantMap>()) {
+        const QVariantMap map = source.toMap();
+        const auto it = map.constFind(QString::fromLatin1(name));
+        return it == map.constEnd() ? QVariant() : *it;
+    }
+    if (source.canConvert<QVariantHash>()) {
+        const QVariantHash hash = source.toHash();
+        const auto it = hash.constFind(QString::fromLatin1(name));
+        return it == hash.constEnd() ? QVariant() : *it;
+    }
+    if (source.canConvert<QJSValue>()) {
+        const QJSValue value = source.value<QJSValue>();
+        if (value.isObject()) {
+            const QJSValue property = value.property(QString::fromLatin1(name));
+            return property.isUndefined() || property.isNull() ? QVariant() : property.toVariant();
+        }
+    }
+    if (source.canConvert<QObject*>()) {
+        if (QObject* object = source.value<QObject*>()) {
+            return object->property(name);
+        }
+    }
+    return gadgetProperty(source, name);
+}
+
+QVariantList graphValuesForType(int graphType,
+                                const QVariantList& graphLamps,
+                                const QVariantList& graphRanks) {
+    return graphType == 0 ? graphLamps : graphRanks;
+}
+
+struct GraphBaseState {
+    qreal x = 0.0;
+    qreal y = 0.0;
+    qreal w = 0.0;
+    qreal h = 0.0;
+    QVariant a;
+    QVariant r;
+    QVariant g;
+    QVariant b;
+    QVariant blend;
+    QVariant filter;
+    QVariant angle;
+    QVariant center;
+    QVariant sortId;
+    QVariant op1;
+    QVariant op2;
+    QVariant op3;
+    QVariant op4;
+};
+
+GraphBaseState graphBaseStateFromMap(const QVariantMap& map) {
+    return {
+        toReal(map.value(QStringLiteral("x"))),
+        toReal(map.value(QStringLiteral("y"))),
+        toReal(map.value(QStringLiteral("w"))),
+        toReal(map.value(QStringLiteral("h"))),
+        map.value(QStringLiteral("a")),
+        map.value(QStringLiteral("r")),
+        map.value(QStringLiteral("g")),
+        map.value(QStringLiteral("b")),
+        map.value(QStringLiteral("blend")),
+        map.value(QStringLiteral("filter")),
+        map.value(QStringLiteral("angle")),
+        map.value(QStringLiteral("center")),
+        map.value(QStringLiteral("sortId")),
+        map.value(QStringLiteral("op1")),
+        map.value(QStringLiteral("op2")),
+        map.value(QStringLiteral("op3")),
+        map.value(QStringLiteral("op4")),
+    };
+}
+
+GraphBaseState graphBaseStateFromHash(const QVariantHash& hash) {
+    return {
+        toReal(hash.value(QStringLiteral("x"))),
+        toReal(hash.value(QStringLiteral("y"))),
+        toReal(hash.value(QStringLiteral("w"))),
+        toReal(hash.value(QStringLiteral("h"))),
+        hash.value(QStringLiteral("a")),
+        hash.value(QStringLiteral("r")),
+        hash.value(QStringLiteral("g")),
+        hash.value(QStringLiteral("b")),
+        hash.value(QStringLiteral("blend")),
+        hash.value(QStringLiteral("filter")),
+        hash.value(QStringLiteral("angle")),
+        hash.value(QStringLiteral("center")),
+        hash.value(QStringLiteral("sortId")),
+        hash.value(QStringLiteral("op1")),
+        hash.value(QStringLiteral("op2")),
+        hash.value(QStringLiteral("op3")),
+        hash.value(QStringLiteral("op4")),
+    };
+}
+
+GraphBaseState graphBaseState(const QVariant& source) {
+    if (source.canConvert<QVariantMap>()) {
+        return graphBaseStateFromMap(source.toMap());
+    }
+    if (source.canConvert<QVariantHash>()) {
+        return graphBaseStateFromHash(source.toHash());
+    }
+    return {
+        toReal(valueProperty(source, "x")),
+        toReal(valueProperty(source, "y")),
+        toReal(valueProperty(source, "w")),
+        toReal(valueProperty(source, "h")),
+        valueProperty(source, "a"),
+        valueProperty(source, "r"),
+        valueProperty(source, "g"),
+        valueProperty(source, "b"),
+        valueProperty(source, "blend"),
+        valueProperty(source, "filter"),
+        valueProperty(source, "angle"),
+        valueProperty(source, "center"),
+        valueProperty(source, "sortId"),
+        valueProperty(source, "op1"),
+        valueProperty(source, "op2"),
+        valueProperty(source, "op3"),
+        valueProperty(source, "op4"),
+    };
+}
+
+QVariantMap segmentState(const GraphBaseState& baseState, qreal start, qreal width) {
+    return {
+        {QStringLiteral("x"), baseState.x + std::min<qreal>(0.0, baseState.w) + start},
+        {QStringLiteral("y"), baseState.y + std::min<qreal>(0.0, baseState.h)},
+        {QStringLiteral("w"), width},
+        {QStringLiteral("h"), std::abs(baseState.h)},
+        {QStringLiteral("a"), baseState.a},
+        {QStringLiteral("r"), baseState.r},
+        {QStringLiteral("g"), baseState.g},
+        {QStringLiteral("b"), baseState.b},
+        {QStringLiteral("blend"), baseState.blend},
+        {QStringLiteral("filter"), baseState.filter},
+        {QStringLiteral("angle"), baseState.angle},
+        {QStringLiteral("center"), baseState.center},
+        {QStringLiteral("sortId"), baseState.sortId},
+        {QStringLiteral("op1"), baseState.op1},
+        {QStringLiteral("op2"), baseState.op2},
+        {QStringLiteral("op3"), baseState.op3},
+        {QStringLiteral("op4"), baseState.op4},
+    };
+}
+
+} // namespace
+
 Lr2SelectBarCell::Lr2SelectBarCell(QObject* parent) : QObject(parent) {}
 
 int Lr2SelectBarCell::row() const { return m_row; }
@@ -198,6 +380,96 @@ bool Lr2SelectBarCell::overlayVisibleForKind(int kind, int variant) const {
         return variant >= 0 && variant < 31 && (m_labelMask & (1 << variant)) != 0;
     }
     return false;
+}
+
+qreal Lr2SelectBarCell::graphValueForType(int graphType, int segment) const {
+    if (segment < 0) {
+        return 0.0;
+    }
+    const QVariantList& values = graphType == 0 ? m_graphLamps : m_graphRanks;
+    return segment < values.size() ? std::max<qreal>(0.0, toReal(values.at(segment))) : 0.0;
+}
+
+QVariantList Lr2SelectBarCell::graphSegmentModel(int graphType,
+                                                 int segmentCount,
+                                                 int frameCount,
+                                                 const QVariant& state) const {
+    if (m_graphSegmentCacheRevision == m_revision
+            && m_graphSegmentCacheGraphType == graphType
+            && m_graphSegmentCacheSegmentCount == segmentCount
+            && m_graphSegmentCacheFrameCount == frameCount
+            && m_graphSegmentCacheState == state) {
+        return m_graphSegmentCacheModel;
+    }
+
+    auto cacheAndReturn = [this, graphType, segmentCount, frameCount, &state](QVariantList model) {
+        m_graphSegmentCacheRevision = m_revision;
+        m_graphSegmentCacheGraphType = graphType;
+        m_graphSegmentCacheSegmentCount = segmentCount;
+        m_graphSegmentCacheFrameCount = frameCount;
+        m_graphSegmentCacheState = state;
+        m_graphSegmentCacheModel = std::move(model);
+        return m_graphSegmentCacheModel;
+    };
+
+    if (!m_valid || !m_folderLike || !state.isValid() || state.isNull()) {
+        return cacheAndReturn({});
+    }
+
+    const QVariantList values = graphValuesForType(graphType, m_graphLamps, m_graphRanks);
+    if (values.isEmpty()) {
+        return cacheAndReturn({});
+    }
+
+    qreal total = 0.0;
+    const int effectiveSegmentCount = std::max(0, segmentCount);
+    for (int i = 0; i < effectiveSegmentCount && i < values.size(); ++i) {
+        total += std::max<qreal>(0.0, toReal(values.at(i)));
+    }
+    if (total <= 0.0) {
+        return cacheAndReturn({});
+    }
+
+    const GraphBaseState baseState = graphBaseState(state);
+    const qreal fullW = std::abs(baseState.w);
+    const qreal fullH = std::abs(baseState.h);
+    if (fullW <= 0.0 || fullH <= 0.0) {
+        return cacheAndReturn({});
+    }
+
+    QVariantList result;
+    result.reserve(effectiveSegmentCount);
+
+    std::vector<qreal> starts(static_cast<size_t>(effectiveSegmentCount), 0.0);
+    std::vector<qreal> widths(static_cast<size_t>(effectiveSegmentCount), 0.0);
+
+    qreal accumulated = 0.0;
+    for (int segment = effectiveSegmentCount - 1; segment >= 0; --segment) {
+        const qreal amount = segment < values.size()
+            ? std::max<qreal>(0.0, toReal(values.at(segment)))
+            : 0.0;
+        if (amount <= 0.0) {
+            continue;
+        }
+        starts[static_cast<size_t>(segment)] = accumulated * fullW / total;
+        widths[static_cast<size_t>(segment)] = amount * fullW / total;
+        accumulated += amount;
+    }
+
+    for (int segment = 0; segment < effectiveSegmentCount; ++segment) {
+        const bool visible = widths[static_cast<size_t>(segment)] > 0.0;
+        result.append(QVariantMap {
+            {QStringLiteral("segment"), segment},
+            {QStringLiteral("frameOffset"), std::min(std::max(1, frameCount) - 1, segment)},
+            {QStringLiteral("visible"), visible},
+            {QStringLiteral("state"), visible
+                ? segmentState(baseState,
+                               starts[static_cast<size_t>(segment)],
+                               widths[static_cast<size_t>(segment)])
+                : QVariantMap {}},
+        });
+    }
+    return cacheAndReturn(std::move(result));
 }
 
 void Lr2SelectBarCell::setCore(int row,

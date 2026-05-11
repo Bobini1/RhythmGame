@@ -9,6 +9,9 @@
 #include <cmath>
 
 using gameplay_logic::lr2_skin::Lr2Dst;
+using gameplay_logic::lr2_skin::Lr2SrcBarGraph;
+using gameplay_logic::lr2_skin::Lr2SrcImage;
+using gameplay_logic::lr2_skin::Lr2SrcNumber;
 
 namespace {
 int mapInt(const QVariantMap& map, const QString& name, int fallback) {
@@ -46,7 +49,7 @@ int Lr2TimelineState::clockMode() const {
 }
 
 void Lr2TimelineState::setClockMode(int mode) {
-    mode = std::clamp(mode, static_cast<int>(ManualClock), static_cast<int>(SelectLiveClock));
+    mode = std::clamp(mode, static_cast<int>(ManualClock), static_cast<int>(SelectInfoClock));
     if (m_clockMode == mode) {
         return;
     }
@@ -82,6 +85,7 @@ void Lr2TimelineState::setDsts(const QVariantList& dsts) {
 
     m_dstsValue = dsts;
     rebuildDsts();
+    rebuildAnalysis();
     updateAnimationLimit();
     emit dstsChanged();
     updateState();
@@ -298,29 +302,7 @@ void Lr2TimelineState::setDstOffsetHiddenA(qreal value) {
 }
 
 QVariant Lr2TimelineState::state() const {
-    if (!m_state.valid) {
-        return {};
-    }
-
-    QVariantMap state;
-    state.insert(QStringLiteral("x"), m_state.x);
-    state.insert(QStringLiteral("y"), m_state.y);
-    state.insert(QStringLiteral("w"), m_state.w);
-    state.insert(QStringLiteral("h"), m_state.h);
-    state.insert(QStringLiteral("a"), m_state.a);
-    state.insert(QStringLiteral("r"), m_state.r);
-    state.insert(QStringLiteral("g"), m_state.g);
-    state.insert(QStringLiteral("b"), m_state.b);
-    state.insert(QStringLiteral("angle"), m_state.angle);
-    state.insert(QStringLiteral("center"), m_state.center);
-    state.insert(QStringLiteral("sortId"), m_state.sortId);
-    state.insert(QStringLiteral("blend"), m_state.blend);
-    state.insert(QStringLiteral("filter"), m_state.filter);
-    state.insert(QStringLiteral("op1"), m_state.op1);
-    state.insert(QStringLiteral("op2"), m_state.op2);
-    state.insert(QStringLiteral("op3"), m_state.op3);
-    state.insert(QStringLiteral("op4"), m_state.op4);
-    return state;
+    return stateToVariant(m_state);
 }
 
 bool Lr2TimelineState::hasState() const {
@@ -395,16 +377,157 @@ int Lr2TimelineState::stateOp4() const {
     return m_state.op4;
 }
 
-void Lr2TimelineState::rebuildDsts() {
-    m_dsts.clear();
-    m_dsts.reserve(m_dstsValue.size());
+bool Lr2TimelineState::canUseStaticState() const {
+    return m_canUseStaticState;
+}
 
-    for (const QVariant& entry : m_dstsValue) {
-        Dst dst;
-        if (readDst(entry, dst)) {
-            m_dsts.append(dst);
-        }
+QVariant Lr2TimelineState::staticState() const {
+    if (!m_canUseStaticState || m_dsts.isEmpty()) {
+        return {};
     }
+    return stateToVariant(copyDstAsState(m_dsts.front(), m_dsts.front()));
+}
+
+bool Lr2TimelineState::usesActiveOptions() const {
+    return m_usesActiveOptions;
+}
+
+bool Lr2TimelineState::usesDynamicTimer() const {
+    return m_usesDynamicTimer;
+}
+
+bool Lr2TimelineState::loopsContinuously() const {
+    return m_loopsContinuously;
+}
+
+int Lr2TimelineState::scratchRotationSide() const {
+    return m_scratchRotationSide;
+}
+
+int Lr2TimelineState::firstTimer() const {
+    return m_firstTimer;
+}
+
+int Lr2TimelineState::firstSortId() const {
+    return m_firstSortId;
+}
+
+QVariant Lr2TimelineState::stateFor(const QVariantList& dsts,
+                                    int skinTime,
+                                    const QVariant& timers,
+                                    const QVariant& activeOptions) const {
+    const QVector<Dst> parsed = readDsts(dsts);
+    if (parsed.isEmpty()) {
+        return {};
+    }
+
+    Lr2TimelineState cache;
+    cache.m_timers = timers;
+    cache.m_activeOptions = activeOptions;
+    cache.rebuildActiveOptionSet();
+    return stateToVariant(currentState(parsed, skinTime, cache.timerValue(parsed.front().timer), cache));
+}
+
+QVariant Lr2TimelineState::stateFromTimerFire(const QVariantList& dsts,
+                                              int skinTime,
+                                              int timerFire,
+                                              const QVariant& activeOptions) const {
+    const QVector<Dst> parsed = readDsts(dsts);
+    if (parsed.isEmpty()) {
+        return {};
+    }
+
+    Lr2TimelineState cache;
+    cache.m_activeOptions = activeOptions;
+    cache.rebuildActiveOptionSet();
+    return stateToVariant(currentState(parsed, skinTime, timerFire, cache));
+}
+
+QVariant Lr2TimelineState::staticStateFor(const QVariantList& dsts) const {
+    const QVector<Dst> parsed = readDsts(dsts);
+    const DstAnalysis analysis = analyzeDsts(parsed);
+    if (!analysis.canUseStaticState || parsed.isEmpty()) {
+        return {};
+    }
+    return stateToVariant(copyDstAsState(parsed.front(), parsed.front()));
+}
+
+bool Lr2TimelineState::canUseStaticStateFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).canUseStaticState;
+}
+
+bool Lr2TimelineState::usesActiveOptionsFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).usesActiveOptions;
+}
+
+bool Lr2TimelineState::usesDynamicTimerFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).usesDynamicTimer;
+}
+
+bool Lr2TimelineState::loopsContinuouslyFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).loopsContinuously;
+}
+
+int Lr2TimelineState::scratchRotationSideFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).scratchRotationSide;
+}
+
+int Lr2TimelineState::firstTimerFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).firstTimer;
+}
+
+int Lr2TimelineState::firstSortIdFor(const QVariantList& dsts) const {
+    return analyzeDsts(readDsts(dsts)).firstSortId;
+}
+
+int Lr2TimelineState::timerFireFor(const QVariant& timers, int timerIdx) const {
+    Lr2TimelineState cache;
+    cache.m_timers = timers;
+    return static_cast<int>(std::floor(cache.timerValue(timerIdx)));
+}
+
+int Lr2TimelineState::sourceTimerFor(const QVariant& src) const {
+    Source source;
+    return readSource(src, source) ? source.timer : 0;
+}
+
+bool Lr2TimelineState::sourceUsesDynamicTimer(const QVariant& src) const {
+    Source source;
+    return readSource(src, source) && source.timer != 0 && source.cycle > 0;
+}
+
+bool Lr2TimelineState::sourceCyclesContinuously(const QVariant& src) const {
+    Source source;
+    return readSource(src, source)
+        && source.cycle > 0
+        && std::max(1, source.divX) * std::max(1, source.divY) > 1;
+}
+
+void Lr2TimelineState::rebuildDsts() {
+    m_dsts = readDsts(m_dstsValue);
+}
+
+void Lr2TimelineState::rebuildAnalysis() {
+    const DstAnalysis analysis = analyzeDsts(m_dsts);
+
+    if (m_canUseStaticState == analysis.canUseStaticState
+            && m_usesActiveOptions == analysis.usesActiveOptions
+            && m_usesDynamicTimer == analysis.usesDynamicTimer
+            && m_loopsContinuously == analysis.loopsContinuously
+            && m_scratchRotationSide == analysis.scratchRotationSide
+            && m_firstTimer == analysis.firstTimer
+            && m_firstSortId == analysis.firstSortId) {
+        return;
+    }
+
+    m_canUseStaticState = analysis.canUseStaticState;
+    m_usesActiveOptions = analysis.usesActiveOptions;
+    m_usesDynamicTimer = analysis.usesDynamicTimer;
+    m_loopsContinuously = analysis.loopsContinuously;
+    m_scratchRotationSide = analysis.scratchRotationSide;
+    m_firstTimer = analysis.firstTimer;
+    m_firstSortId = analysis.firstSortId;
+    emit analysisChanged();
 }
 
 void Lr2TimelineState::rebuildActiveOptionSet() {
@@ -482,6 +605,13 @@ void Lr2TimelineState::reconnectClock() {
             this,
             &Lr2TimelineState::updateSkinTimeFromClock);
         break;
+    case SelectInfoClock:
+        m_clockConnection = QObject::connect(
+            m_skinClock,
+            &Lr2SkinClock::selectInfoElapsedChanged,
+            this,
+            &Lr2TimelineState::updateSkinTimeFromClock);
+        break;
     default:
         break;
     }
@@ -540,6 +670,8 @@ int Lr2TimelineState::clockSkinTime() const {
         return m_skinClock->globalSkinTime();
     case SelectLiveClock:
         return m_skinClock->selectLiveSkinTime();
+    case SelectInfoClock:
+        return m_skinClock->selectInfoElapsed();
     default:
         return m_requestedSkinTime;
     }
@@ -754,6 +886,81 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
     return true;
 }
 
+QVector<Lr2TimelineState::Dst> Lr2TimelineState::readDsts(const QVariantList& dsts) {
+    QVector<Dst> result;
+    result.reserve(dsts.size());
+
+    for (const QVariant& entry : dsts) {
+        Dst dst;
+        if (readDst(entry, dst)) {
+            result.append(dst);
+        }
+    }
+    return result;
+}
+
+bool Lr2TimelineState::readSource(const QVariant& value, Source& source) {
+    if (!value.isValid() || value.isNull()) {
+        return false;
+    }
+
+    if (value.canConvert<Lr2SrcImage>()) {
+        const auto parsed = value.value<Lr2SrcImage>();
+        source.valid = true;
+        source.divX = std::max(1, parsed.div_x);
+        source.divY = std::max(1, parsed.div_y);
+        source.cycle = parsed.cycle;
+        source.timer = parsed.timer;
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcNumber>()) {
+        const auto parsed = value.value<Lr2SrcNumber>();
+        source.valid = true;
+        source.divX = std::max(1, parsed.div_x);
+        source.divY = std::max(1, parsed.div_y);
+        source.cycle = parsed.cycle;
+        source.timer = parsed.timer;
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcBarGraph>()) {
+        const auto parsed = value.value<Lr2SrcBarGraph>();
+        source.valid = true;
+        source.divX = std::max(1, parsed.div_x);
+        source.divY = std::max(1, parsed.div_y);
+        source.cycle = parsed.cycle;
+        source.timer = parsed.timer;
+        return true;
+    }
+
+    if (value.canConvert<QVariantMap>()) {
+        const QVariantMap map = value.toMap();
+        source.valid = true;
+        source.divX = std::max(1, mapInt(map, QStringLiteral("div_x"), 1));
+        source.divY = std::max(1, mapInt(map, QStringLiteral("div_y"), 1));
+        source.cycle = mapInt(map, QStringLiteral("cycle"), 0);
+        source.timer = mapInt(map, QStringLiteral("timer"), 0);
+        return true;
+    }
+
+    if (!value.canConvert<QJSValue>()) {
+        return false;
+    }
+
+    const QJSValue jsValue = value.value<QJSValue>();
+    if (!jsValue.isObject()) {
+        return false;
+    }
+
+    source.valid = true;
+    source.divX = std::max(1, jsInt(jsValue, QStringLiteral("div_x"), 1));
+    source.divY = std::max(1, jsInt(jsValue, QStringLiteral("div_y"), 1));
+    source.cycle = jsInt(jsValue, QStringLiteral("cycle"), 0);
+    source.timer = jsInt(jsValue, QStringLiteral("timer"), 0);
+    return true;
+}
+
 QVector<int> Lr2TimelineState::readOffsets(const QVariant& value) {
     QVector<int> offsets;
 
@@ -787,6 +994,32 @@ QVector<int> Lr2TimelineState::readOffsets(const QVariant& value) {
         }
     }
     return offsets;
+}
+
+Lr2TimelineState::DstAnalysis Lr2TimelineState::analyzeDsts(const QVector<Dst>& dsts) {
+    DstAnalysis analysis;
+    if (dsts.isEmpty() || !dsts.front().valid) {
+        return analysis;
+    }
+
+    const Dst& first = dsts.front();
+    analysis.firstTimer = first.timer;
+    analysis.firstSortId = first.sortId;
+    analysis.usesDynamicTimer = first.timer != 0;
+    analysis.usesActiveOptions = first.op1 != 0 || first.op2 != 0 || first.op3 != 0;
+    analysis.scratchRotationSide = first.op4 == 1 || first.op4 == 2 ? first.op4 : 0;
+    analysis.canUseStaticState = dsts.size() == 1
+        && first.time <= 0
+        && first.timer == 0
+        && first.op1 == 0
+        && first.op2 == 0
+        && first.op3 == 0;
+
+    if (dsts.size() >= 2) {
+        const Dst& last = dsts.back();
+        analysis.loopsContinuously = first.loop >= 0 && first.loop < last.time;
+    }
+    return analysis;
 }
 
 int Lr2TimelineState::animationLimitFor(const QVector<Dst>& dsts) {
@@ -926,6 +1159,32 @@ Lr2TimelineState::State Lr2TimelineState::copyDstAsState(const Dst& dst, const D
     state.op3 = controlDst.op3;
     state.op4 = controlDst.op4;
     return state;
+}
+
+QVariant Lr2TimelineState::stateToVariant(const State& state) {
+    if (!state.valid) {
+        return {};
+    }
+
+    QVariantMap value;
+    value.insert(QStringLiteral("x"), state.x);
+    value.insert(QStringLiteral("y"), state.y);
+    value.insert(QStringLiteral("w"), state.w);
+    value.insert(QStringLiteral("h"), state.h);
+    value.insert(QStringLiteral("a"), state.a);
+    value.insert(QStringLiteral("r"), state.r);
+    value.insert(QStringLiteral("g"), state.g);
+    value.insert(QStringLiteral("b"), state.b);
+    value.insert(QStringLiteral("angle"), state.angle);
+    value.insert(QStringLiteral("center"), state.center);
+    value.insert(QStringLiteral("sortId"), state.sortId);
+    value.insert(QStringLiteral("blend"), state.blend);
+    value.insert(QStringLiteral("filter"), state.filter);
+    value.insert(QStringLiteral("op1"), state.op1);
+    value.insert(QStringLiteral("op2"), state.op2);
+    value.insert(QStringLiteral("op3"), state.op3);
+    value.insert(QStringLiteral("op4"), state.op4);
+    return value;
 }
 
 qreal Lr2TimelineState::applyAccel(qreal progress, int accType) {

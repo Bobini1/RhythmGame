@@ -50,6 +50,14 @@ class Lr2TimelineState : public QObject {
     Q_PROPERTY(int stateOp2 READ stateOp2 NOTIFY stateChanged)
     Q_PROPERTY(int stateOp3 READ stateOp3 NOTIFY stateChanged)
     Q_PROPERTY(int stateOp4 READ stateOp4 NOTIFY stateChanged)
+    Q_PROPERTY(bool canUseStaticState READ canUseStaticState NOTIFY analysisChanged)
+    Q_PROPERTY(QVariant staticState READ staticState NOTIFY analysisChanged)
+    Q_PROPERTY(bool usesActiveOptions READ usesActiveOptions NOTIFY analysisChanged)
+    Q_PROPERTY(bool usesDynamicTimer READ usesDynamicTimer NOTIFY analysisChanged)
+    Q_PROPERTY(bool loopsContinuously READ loopsContinuously NOTIFY analysisChanged)
+    Q_PROPERTY(int scratchRotationSide READ scratchRotationSide NOTIFY analysisChanged)
+    Q_PROPERTY(int firstTimer READ firstTimer NOTIFY analysisChanged)
+    Q_PROPERTY(int firstSortId READ firstSortId NOTIFY analysisChanged)
 
 public:
     enum ClockMode {
@@ -58,7 +66,8 @@ public:
         SelectSourceClock = 2,
         BarClock = 3,
         GlobalClock = 4,
-        SelectLiveClock = 5
+        SelectLiveClock = 5,
+        SelectInfoClock = 6
     };
     Q_ENUM(ClockMode)
 
@@ -134,6 +143,35 @@ public:
     int stateOp2() const;
     int stateOp3() const;
     int stateOp4() const;
+    bool canUseStaticState() const;
+    QVariant staticState() const;
+    bool usesActiveOptions() const;
+    bool usesDynamicTimer() const;
+    bool loopsContinuously() const;
+    int scratchRotationSide() const;
+    int firstTimer() const;
+    int firstSortId() const;
+
+    Q_INVOKABLE QVariant stateFor(const QVariantList& dsts,
+                                  int skinTime,
+                                  const QVariant& timers,
+                                  const QVariant& activeOptions) const;
+    Q_INVOKABLE QVariant stateFromTimerFire(const QVariantList& dsts,
+                                            int skinTime,
+                                            int timerFire,
+                                            const QVariant& activeOptions) const;
+    Q_INVOKABLE QVariant staticStateFor(const QVariantList& dsts) const;
+    Q_INVOKABLE bool canUseStaticStateFor(const QVariantList& dsts) const;
+    Q_INVOKABLE bool usesActiveOptionsFor(const QVariantList& dsts) const;
+    Q_INVOKABLE bool usesDynamicTimerFor(const QVariantList& dsts) const;
+    Q_INVOKABLE bool loopsContinuouslyFor(const QVariantList& dsts) const;
+    Q_INVOKABLE int scratchRotationSideFor(const QVariantList& dsts) const;
+    Q_INVOKABLE int firstTimerFor(const QVariantList& dsts) const;
+    Q_INVOKABLE int firstSortIdFor(const QVariantList& dsts) const;
+    Q_INVOKABLE int timerFireFor(const QVariant& timers, int timerIdx) const;
+    Q_INVOKABLE int sourceTimerFor(const QVariant& src) const;
+    Q_INVOKABLE bool sourceUsesDynamicTimer(const QVariant& src) const;
+    Q_INVOKABLE bool sourceCyclesContinuously(const QVariant& src) const;
 
 signals:
     void skinClockChanged();
@@ -147,6 +185,7 @@ signals:
     void sliderTranslationChanged();
     void dstOffsetsChanged();
     void stateChanged();
+    void analysisChanged();
 
 private:
     struct Dst {
@@ -196,8 +235,27 @@ private:
         int op4 = 0;
     };
 
+    struct Source {
+        bool valid = false;
+        int divX = 1;
+        int divY = 1;
+        int cycle = 0;
+        int timer = 0;
+    };
+
+    struct DstAnalysis {
+        bool canUseStaticState = false;
+        bool usesActiveOptions = false;
+        bool usesDynamicTimer = false;
+        bool loopsContinuously = false;
+        int scratchRotationSide = 0;
+        int firstTimer = 0;
+        int firstSortId = 0;
+    };
+
     void rebuildDsts();
     void rebuildActiveOptionSet();
+    void rebuildAnalysis();
     void reconnectClock();
     void updateSkinTimeFromClock();
     void updateAnimationLimit();
@@ -213,13 +271,17 @@ private:
     void assignState(const State& state);
 
     static bool readDst(const QVariant& value, Dst& dst);
+    static QVector<Dst> readDsts(const QVariantList& dsts);
+    static bool readSource(const QVariant& value, Source& source);
     static QVector<int> readOffsets(const QVariant& value);
+    static DstAnalysis analyzeDsts(const QVector<Dst>& dsts);
     static int animationLimitFor(const QVector<Dst>& dsts);
     static State currentState(const QVector<Dst>& dsts,
                               int globalTime,
                               qreal timerFire,
                               const Lr2TimelineState& cache);
     static State copyDstAsState(const Dst& dst, const Dst& controlDst);
+    static QVariant stateToVariant(const State& state);
     static qreal applyAccel(qreal progress, int accType);
     static bool sameState(const State& lhs, const State& rhs);
 
@@ -246,4 +308,11 @@ private:
     qreal m_dstOffsetHiddenA = 0.0;
     State m_state;
     int m_animationLimit = -1;
+    bool m_canUseStaticState = false;
+    bool m_usesActiveOptions = false;
+    bool m_usesDynamicTimer = false;
+    bool m_loopsContinuously = false;
+    int m_scratchRotationSide = 0;
+    int m_firstTimer = 0;
+    int m_firstSortId = 0;
 };

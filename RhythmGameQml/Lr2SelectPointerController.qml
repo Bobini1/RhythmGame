@@ -1,13 +1,13 @@
 pragma ValueTypeBehavior: Addressable
 
 import QtQuick
-import "Lr2Timeline.js" as Lr2Timeline
 
 QtObject {
     id: pointerController
 
     required property var screenRoot
     required property var selectContext
+    property var skinRuntime: null
     property real skinScale: 1
     property var elements: ({})
 
@@ -24,14 +24,22 @@ QtObject {
         return result;
     }
 
-    function registerElement(elementIndex, type, src, dsts, z) {
+    function registerElement(elementIndex, type, src, z) {
         if (!ready || type !== 0 || !src) {
             return;
         }
 
-        const buttonId = root.elementButtonId(src);
-        const selectScroll = root.isSelectScrollSlider(src);
-        const genericSlider = root.isLr2GenericSlider(src);
+        const descriptor = skinRuntime ? skinRuntime.descriptor(elementIndex) : null;
+        const hasDescriptor = descriptor && descriptor.index !== undefined;
+        const buttonId = hasDescriptor && descriptor.buttonId > 0
+            ? descriptor.buttonId
+            : root.elementButtonId(src);
+        const selectScroll = hasDescriptor
+            ? descriptor.selectScrollSlider
+            : root.isSelectScrollSlider(src);
+        const genericSlider = hasDescriptor
+            ? descriptor.genericSlider
+            : root.isLr2GenericSlider(src);
         if (buttonId <= 0 && !selectScroll && !genericSlider) {
             return;
         }
@@ -40,15 +48,12 @@ QtObject {
         nextElements[String(elementIndex)] = {
             index: elementIndex,
             src: src,
-            dsts: dsts,
+            runtimeIndex: elementIndex,
             z: z || 0,
             buttonId: buttonId,
             sourceCount: root.elementSourceFrameCount(src),
             selectScroll: selectScroll,
-            genericSlider: genericSlider,
-            staticState: Lr2Timeline.canUseStaticState(dsts)
-                ? Lr2Timeline.getCurrentState(dsts, 0, root.zeroTimers, root.emptyActiveOptions)
-                : null
+            genericSlider: genericSlider
         };
         elements = nextElements;
     }
@@ -67,20 +72,17 @@ QtObject {
         if (!ready || !element) {
             return null;
         }
-        if (element.staticState) {
-            return element.staticState;
+        if (!skinRuntime || element.runtimeIndex === undefined) {
+            return null;
         }
-        const dstTimer = element.dsts && element.dsts.length > 0
-            ? (element.dsts[0].timer || 0)
-            : 0;
-        const liveClock = root.elementUsesLiveDstClock(element.dsts);
-        return Lr2Timeline.getCurrentStateFromTimerFire(
-            element.dsts,
-            liveClock ? root.selectSourceSkinTime : root.renderSkinTime,
-            root.skinTimerFireTime(dstTimer, liveClock),
-            root.dstsUseActiveOptions(element.dsts)
-                ? root.activeOptionsForElementDsts(element.dsts)
-                : root.emptyActiveOptions);
+        const staticState = skinRuntime.staticStateForElement(element.runtimeIndex);
+        if (staticState) {
+            return staticState;
+        }
+        const descriptor = skinRuntime.descriptor(element.runtimeIndex);
+        return skinRuntime.stateForElement(
+            element.runtimeIndex,
+            descriptor.usesLiveDstClock ? root.selectSourceSkinTime : root.renderSkinTime);
     }
 
     function rectContains(state, skinX, skinY) {
@@ -98,12 +100,14 @@ QtObject {
         if (!ready || !element || (!element.selectScroll && !element.genericSlider)) {
             return null;
         }
-        const sliderSkinClock = root.elementUsesLiveSelectClock(element.src, element.dsts)
-            ? root.selectSourceSkinTime
-            : root.renderSkinTime;
-        return element.selectScroll
-            ? root.selectScrollSliderTrackState(element.src, element.dsts, sliderSkinClock)
-            : root.lr2GenericSliderTrackState(element.src, element.dsts, sliderSkinClock);
+        if (skinRuntime && element.runtimeIndex !== undefined) {
+            const descriptor = skinRuntime.descriptor(element.runtimeIndex);
+            const sliderSkinClock = descriptor.usesLiveSelectClock
+                ? root.selectSourceSkinTime
+                : root.renderSkinTime;
+            return skinRuntime.sliderTrackStateForElement(element.runtimeIndex, sliderSkinClock);
+        }
+        return null;
     }
 
     function hitSlider(skinX, skinY) {

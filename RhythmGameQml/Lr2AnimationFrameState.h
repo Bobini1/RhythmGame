@@ -21,6 +21,7 @@ class Lr2AnimationFrameState : public QObject {
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
     Q_PROPERTY(int frameOverride READ frameOverride WRITE setFrameOverride NOTIFY frameOverrideChanged)
+    Q_PROPERTY(int frameGroupSize READ frameGroupSize WRITE setFrameGroupSize NOTIFY frameGroupSizeChanged)
     Q_PROPERTY(int textureWidth READ textureWidth WRITE setTextureWidth NOTIFY textureWidthChanged)
     Q_PROPERTY(int textureHeight READ textureHeight WRITE setTextureHeight NOTIFY textureHeightChanged)
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameIndexChanged)
@@ -34,7 +35,8 @@ public:
         SelectSourceClock = 2,
         BarClock = 3,
         GlobalClock = 4,
-        SelectLiveClock = 5
+        SelectLiveClock = 5,
+        SelectInfoClock = 6
     };
     Q_ENUM(ClockMode)
 
@@ -64,6 +66,9 @@ public:
     int frameOverride() const;
     void setFrameOverride(int frameOverride);
 
+    int frameGroupSize() const;
+    void setFrameGroupSize(int frameGroupSize);
+
     int textureWidth() const;
     void setTextureWidth(int textureWidth);
 
@@ -83,6 +88,7 @@ signals:
     void timersChanged();
     void timerFireChanged();
     void frameOverrideChanged();
+    void frameGroupSizeChanged();
     void textureWidthChanged();
     void textureHeightChanged();
     void frameIndexChanged();
@@ -123,6 +129,7 @@ private:
     QVariant m_timers;
     int m_timerFire = -2147483648;
     int m_frameOverride = -1;
+    int m_frameGroupSize = 1;
     int m_textureWidth = 0;
     int m_textureHeight = 0;
     int m_frameIndex = 0;

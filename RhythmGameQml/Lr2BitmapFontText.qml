@@ -1,6 +1,7 @@
 import QtQuick
+import RhythmGameQml
 
-// Existing renderer API, backed by one provider-generated texture per string.
+// Existing renderer API, backed by a native texture item instead of image-provider URLs.
 Item {
     id: root
 
@@ -10,8 +11,8 @@ Item {
     // 0 = left (default), 1 = center, 2 = right. Matches LR2's #SRC_TEXT align.
     property int alignment: 0
 
-    readonly property real naturalWidth: textImage.implicitWidth
-    readonly property real naturalHeight: textImage.implicitHeight
+    readonly property real naturalWidth: textImage.naturalWidth
+    readonly property real naturalHeight: textImage.naturalHeight
     readonly property real scaleY: naturalHeight > 0 ? height / naturalHeight : 1
     readonly property real fitScaleX: naturalWidth > width && naturalWidth > 0
         ? width / naturalWidth
@@ -23,35 +24,16 @@ Item {
             ? root.width - root.drawnWidth
             : 0
     readonly property bool hasRenderableText: root.fontPath.length > 0 && root.text.length > 0
-    readonly property bool hasColorTint: Math.abs(root.textColor.r - 1.0) > 0.001
-        || Math.abs(root.textColor.g - 1.0) > 0.001
-        || Math.abs(root.textColor.b - 1.0) > 0.001
 
-    Image {
+    Lr2BitmapFontTexture {
         id: textImage
 
         x: root.alignedX
         width: root.drawnWidth
         height: root.height
-        visible: root.hasRenderableText && !root.hasColorTint
-        source: root.hasRenderableText
-            ? "image://lr2font/" + encodeURIComponent(root.fontPath)
-                + "?text=" + encodeURIComponent(root.text)
-            : ""
-        cache: true
-        smooth: true
-        mipmap: false
-        fillMode: Image.Stretch
-    }
-
-    ShaderEffect {
-        x: root.alignedX
-        width: root.drawnWidth
-        height: root.height
-        visible: root.hasColorTint && textImage.status === Image.Ready && root.hasRenderableText
-        blending: true
-        property var source: textImage
-        property color tint: root.textColor
-        fragmentShader: "qrc:/Lr2Tint.frag.qsb"
+        visible: root.hasRenderableText
+        fontPath: root.hasRenderableText ? root.fontPath : ""
+        text: root.hasRenderableText ? root.text : ""
+        textColor: root.textColor
     }
 }

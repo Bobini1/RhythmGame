@@ -71,13 +71,13 @@ QtObject {
 
     onSelectPanelElapsedChanged: {
         if (root.selectHoverHasPoint && controller.selectPanel > 0) {
-            root.scheduleSelectHoverRefresh();
+            root.refreshSelectHoverCache();
         }
     }
 
     onSelectPanelCloseElapsedChanged: {
         if (root.selectHoverHasPoint && controller.selectPanelClosing > 0) {
-            root.scheduleSelectHoverRefresh();
+            root.refreshSelectHoverCache();
         }
     }
 
@@ -107,8 +107,8 @@ QtObject {
         if (!root.isGameplayScreen()) {
             return;
         }
-        root.scheduleGameplayRuntimeActiveOptionsRefresh();
-        root.queueGameplayRevision();
+        root.refreshGameplayRuntimeActiveOptions();
+        root.bumpGameplayRevision();
         if (controller.gameplayOptionRepeating
                 && !root.gameplayOptionModifierHeldForKey(controller.gameplayOptionRepeatKey)) {
             controller.stopLr2GameplayOptionRepeat();
@@ -1059,8 +1059,8 @@ QtObject {
             next[sideKey] = 0;
             controller.gameplayLastStartPressMs = next;
             root.toggleLaneCover(side);
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
-            root.queueGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
+            root.bumpGameplayRevision();
             return true;
         }
         next[sideKey] = now;

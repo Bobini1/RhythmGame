@@ -169,6 +169,10 @@ void Lr2SkinClock::restart(qreal now) {
     }
 }
 
+void Lr2SkinClock::restartSelectInfoTimer() {
+    setSelectInfoStartSkinTime(m_selectLiveSkinTime);
+}
+
 void Lr2SkinClock::advanceTo(qreal now, bool notifyNow) {
     if (sameReal(m_nowMs, now)) {
         return;

@@ -2,8 +2,6 @@ import QtQuick
 import QtMultimedia
 import RhythmGameQml 1.0
 
-import "Lr2Timeline.js" as Lr2Timeline
-
 // The root Item is sized by its parent (Loader / container) to the skin
 // canvas. An inner `sprite` Item does the real animated positioning and
 // sizing, so that the parent container can't override our bindings (which
@@ -52,12 +50,12 @@ Item {
         && !sliderTranslationEnabled
         && !dstOffsetsEnabled
         && !forceHidden
-        && Lr2Timeline.canUseStaticState(dsts)
+        && timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState
-        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        ? timelineState.staticState
         : null
-    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
-    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
+    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.stateOverride && !root.forceHidden && !root.hasStaticTimelineState
         skinClock: root.skinClock
@@ -161,9 +159,22 @@ Item {
     readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
     readonly property bool usesScratchRotation: hasCurrentState
         && (root.stateOp4 === 1 || root.stateOp4 === 2)
+    function centerAnchor(idx) {
+        switch (idx) {
+        case 1: return { x: 0.0, y: 1.0 };
+        case 2: return { x: 0.5, y: 1.0 };
+        case 3: return { x: 1.0, y: 1.0 };
+        case 4: return { x: 0.0, y: 0.5 };
+        case 6: return { x: 1.0, y: 0.5 };
+        case 7: return { x: 0.0, y: 0.0 };
+        case 8: return { x: 0.5, y: 0.0 };
+        case 9: return { x: 1.0, y: 0.0 };
+        default: return { x: 0.5, y: 0.5 };
+        }
+    }
     readonly property var anchor: root.usesScratchRotation
         ? ({ x: 0.5, y: 0.5 })
-        : Lr2Timeline.centerAnchor(root.hasCurrentState ? root.stateCenter : 0)
+        : centerAnchor(root.hasCurrentState ? root.stateCenter : 0)
     readonly property bool isSolidFill: srcData && srcData.specialType === 2
     readonly property bool hasWholeTextureSource: srcData && !root.isSolidFill
         && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
@@ -181,19 +192,19 @@ Item {
         && root.drawH > 0
 
     function syncVideoPlayback() {
-        if (root.shouldPlayVideo) {
-            if (videoPlayer.playbackState !== MediaPlayer.PlayingState) {
-                videoPlayer.play();
-            }
-        } else {
-            videoPlayer.stop();
+        if (videoLoader.item && videoLoader.item.syncVideoPlayback) {
+            videoLoader.item.syncVideoPlayback();
         }
     }
 
     onShouldPlayVideoChanged: syncVideoPlayback()
     onResolvedSourceChanged: syncVideoPlayback()
     Component.onCompleted: syncVideoPlayback()
-    Component.onDestruction: videoPlayer.stop()
+    Component.onDestruction: {
+        if (videoLoader.item && videoLoader.item.stopVideo) {
+            videoLoader.item.stopVideo();
+        }
+    }
 
     readonly property string resolvedSource: {
         if (!srcData) return "";
@@ -255,25 +266,57 @@ Item {
             angle: root.effectiveAngle
         }
 
-        VideoOutput {
-            id: videoOutput
+        Loader {
+            id: videoLoader
             anchors.fill: parent
-            visible: root.hasDrawableVideo
-            fillMode: VideoOutput.Stretch
+            active: root.hasDrawableVideo
+            sourceComponent: videoComponent
+            onLoaded: root.syncVideoPlayback()
         }
 
-        AudioOutput {
-            id: videoAudio
-            muted: true
-            volume: 0
-        }
+        Component {
+            id: videoComponent
 
-        MediaPlayer {
-            id: videoPlayer
-            source: root.hasDrawableVideo ? root.resolvedSource : ""
-            videoOutput: videoOutput
-            audioOutput: videoAudio
-            loops: MediaPlayer.Infinite
+            Item {
+                anchors.fill: parent
+
+                function syncVideoPlayback() {
+                    if (root.shouldPlayVideo) {
+                        if (videoPlayer.playbackState !== MediaPlayer.PlayingState) {
+                            videoPlayer.play();
+                        }
+                    } else {
+                        videoPlayer.stop();
+                    }
+                }
+
+                function stopVideo() {
+                    videoPlayer.stop();
+                }
+
+                VideoOutput {
+                    id: videoOutput
+                    anchors.fill: parent
+                    fillMode: VideoOutput.Stretch
+                }
+
+                AudioOutput {
+                    id: videoAudio
+                    muted: true
+                    volume: 0
+                }
+
+                MediaPlayer {
+                    id: videoPlayer
+                    source: root.hasDrawableVideo ? root.resolvedSource : ""
+                    videoOutput: videoOutput
+                    audioOutput: videoAudio
+                    loops: MediaPlayer.Infinite
+                }
+
+                Component.onCompleted: syncVideoPlayback()
+                Component.onDestruction: stopVideo()
+            }
         }
 
         Image {

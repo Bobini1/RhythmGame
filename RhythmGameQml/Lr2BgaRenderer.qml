@@ -2,8 +2,6 @@ import QtMultimedia
 import QtQuick
 import RhythmGameQml 1.0
 
-import "Lr2Timeline.js" as Lr2Timeline
-
 Item {
     id: root
 
@@ -21,12 +19,12 @@ Item {
     readonly property alias layerSink: videoLayer.videoSink
     readonly property alias layer2Sink: videoLayer2.videoSink
     readonly property alias poorSink: videoPoor.videoSink
-    readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(dsts)
+    readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState
-        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        ? timelineState.staticState
         : null
-    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
-    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
+    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
         dsts: root.dsts
@@ -37,7 +35,20 @@ Item {
     }
     readonly property var currentState: staticTimelineState
         || timelineState.state
-    readonly property var anchor: Lr2Timeline.centerAnchor(currentState ? currentState.center : 0)
+    function centerAnchor(idx) {
+        switch (idx) {
+        case 1: return { x: 0.0, y: 1.0 };
+        case 2: return { x: 0.5, y: 1.0 };
+        case 3: return { x: 1.0, y: 1.0 };
+        case 4: return { x: 0.0, y: 0.5 };
+        case 6: return { x: 1.0, y: 0.5 };
+        case 7: return { x: 0.0, y: 0.0 };
+        case 8: return { x: 0.5, y: 0.0 };
+        case 9: return { x: 1.0, y: 0.0 };
+        default: return { x: 0.5, y: 0.5 };
+        }
+    }
+    readonly property var anchor: centerAnchor(currentState ? currentState.center : 0)
     readonly property var bgaContainer: chart && chart.bga ? chart.bga : null
     readonly property real sourceW: Math.max(videoBase.sourceRect.width,
                                              videoLayer.sourceRect.width,

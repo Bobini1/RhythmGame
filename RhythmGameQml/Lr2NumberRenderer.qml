@@ -1,6 +1,5 @@
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
     id: root
@@ -27,12 +26,12 @@ Item {
 
     readonly property bool hasStaticTimelineState: !stateOverride
         && !forceHidden
-        && Lr2Timeline.canUseStaticState(dsts)
+        && timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState
-        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        ? timelineState.staticState
         : null
-    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
-    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
+    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.stateOverride && !root.forceHidden && !root.hasStaticTimelineState
         skinClock: root.skinClock

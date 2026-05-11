@@ -38,19 +38,15 @@ Item {
     property int targetIndex: currentIndex
     property alias visualIndex: visualState.visualIndex
     property real targetVisualIndex: 0
-    property int listTopbarFixed: 0
-    property int listCalculatedBarFixed: 0
+    readonly property int listTopbarFixed: visualState.rawFixed
+    readonly property int listCalculatedBarFixed: visualState.fixed
     property int oldBarFixed: 0
     property int nowBarFixed: 0
-    property int pendingWheelSteps: 0
     property int selectedOffset: 0
-    property real animationStartVisualIndex: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
-    property int visualMoveDurationMs: 0
     property bool componentReady: false
     property bool updatesActive: true
-    property bool visualIndexAnimationEnabled: true
     property bool suppressVisualIndexPublish: false
     property int scrollDirection: 0
     property int revision: 0
@@ -60,7 +56,6 @@ Item {
     property int scoreRevision: 0
     property int folderLampRevision: 0
     property int folderLampRequestRevision: 0
-    property int focusedStateRefreshDelayMs: 35
     property bool scrollFixedPointDragging: false
     property string searchText: ""
     property var attachedTextCache: ({})
@@ -75,15 +70,6 @@ Item {
     property alias visibleBarSlotOffset: visibleBars.slotOffset
     property alias visibleBarEntries: visibleBars.entries
     property alias visibleBarTextCells: visibleBars.cells
-    property var selectedScoreStateCache: ({})
-    property int selectedScoreStateCacheRevision: -1
-    property var scoreSummaryCache: ({})
-    property int scoreSummaryCacheRevision: -1
-    property var scoreLampRankCache: ({})
-    property int scoreLampRankCacheRevision: -1
-    property var selectedDifficultyStateCache: ({})
-    property int selectedDifficultyStateCacheScoreRevision: -1
-    property int selectedDifficultyStateCacheListRevision: -1
     property int refreshedFocusedIndex: -1
     property var refreshedFocusedItem: null
     property int refreshedFocusedScoreRevision: -1
@@ -174,7 +160,9 @@ Item {
         if (visualChartWrapper !== nextChartWrapper) {
             visualChartWrapper = nextChartWrapper;
         }
-        let nextChartRevision = chartContentRevisionForState(state);
+        let nextChartRevision = state.contentRevision !== undefined
+            ? String(state.contentRevision || "")
+            : chartContentRevisionForState(state);
         if (visualChartContentRevision !== nextChartRevision) {
             visualChartContentRevision = nextChartRevision;
         }
@@ -195,8 +183,8 @@ Item {
     readonly property int focusedIndex: logicalCount > 0 ? currentIndex : 0
     readonly property var focusedItem: logicalCount > 0 ? items[focusedIndex] : null
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
-    property bool visualMoveActive: false
-    property int visualBaseIndex: 0
+    readonly property bool visualMoveActive: Math.abs(nowBarFixed - visualState.rawFixed) > 0
+    readonly property real normalizedVisualIndex: logicalCount > 0 ? visualState.fixed / 1000.0 : 0
     property alias visualStateObject: visualState
 
     Lr2SelectVisualState {
@@ -206,61 +194,39 @@ Item {
         scrollDownDirection: root.lr2ScrollDown
     }
 
-    Lr2SelectBarCellCache {
-        id: barCells
-        context: root
-        items: root.items
-        logicalCount: root.logicalCount
-        visualBaseIndex: root.visualBaseIndex
-        barCenter: root.barCenter
-        scoreRevision: root.scoreRevision
-        folderLampRevision: root.folderLampRevision
-        listRevision: root.listRevision
-        barTitleTypes: root.barTitleTypes
+    Lr2SelectStateCache {
+        id: nativeSelectState
+        scores: root.scores
+        chartDifficultyCache: root.chartDifficultyCache
+        chartGroupCache: root.chartGroupCache
+        folderLampByKey: root.folderLampByKey
+        folderDistributionByKey: root.folderDistributionByKey
+        historyStack: root.historyStack
     }
 
     Lr2SelectBarWindow {
         id: visibleBars
         context: root
+        nativeState: nativeSelectState
         items: root.items
         logicalCount: root.logicalCount
         listRevision: root.listRevision
         rowCount: Math.max(0, root.barRowCount || 0)
         barCenter: root.barCenter
-        visualBaseIndex: root.visualBaseIndex
-    }
-
-    Timer {
-        id: focusedStateRefreshTimer
-        interval: root.focusedStateRefreshDelayMs
-        repeat: false
-        onTriggered: root.flushFocusedStateRefresh()
+        visualState: root.visualStateObject
+        scoreRevision: root.scoreRevision
+        folderLampRevision: root.folderLampRevision
+        barTitleTypes: root.barTitleTypes
+        active: root.updatesActive
     }
 
     onUpdatesActiveChanged: {
         if (!componentReady) {
             return;
         }
-        if (!updatesActive) {
-            pendingWheelSteps = 0;
-            pendingWheelStepTimer.stop();
-        } else {
+        if (updatesActive) {
             publishPendingFolderLamps();
             publishBarState(true);
-        }
-    }
-
-    Behavior on visualIndex {
-        enabled: root.updatesActive && root.visualIndexAnimationEnabled
-        NumberAnimation {
-            id: visualIndexAnimation
-            duration: root.visualMoveDurationMs
-            easing.type: Easing.Linear
-            onRunningChanged: {
-                if (!running && root.updatesActive) {
-                    root.publishVisualIndex(true);
-                }
-            }
         }
     }
 
@@ -270,12 +236,14 @@ Item {
     onBarTitleTypesChanged: refreshVisibleBarEntries(true)
     Connections {
         target: root.updatesActive ? visualState : null
-        function onBaseIndexChanged() {
-            root.publishBaseIndex(false);
-        }
-
         function onCursorBaseIndexChanged() {
             root.publishCursorBaseIndex(false);
+        }
+
+        function onAnimationFinished() {
+            if (root.updatesActive) {
+                root.publishVisualIndex(true);
+            }
         }
     }
 
@@ -289,24 +257,13 @@ Item {
         touch();
     }
 
-    function touchSelection(deferFocusedStateRefresh) {
-        if (deferFocusedStateRefresh) {
-            scheduleFocusedStateRefresh();
-        } else {
-            flushFocusedStateRefresh(false);
-        }
+    function touchSelection() {
+        flushFocusedStateRefresh(false);
         selectionRevision += 1;
         touch();
     }
 
-    function scheduleFocusedStateRefresh() {
-        if (!focusedStateRefreshTimer.running) {
-            focusedStateRefreshTimer.restart();
-        }
-    }
-
     function flushFocusedStateRefresh(touchAfterRefresh) {
-        focusedStateRefreshTimer.stop();
         if (refreshFocusedState()) {
             if (touchAfterRefresh === undefined || touchAfterRefresh) {
                 touch();
@@ -362,30 +319,7 @@ Item {
     }
 
     function publishVisualFrame(force) {
-        if (!updatesActive || suppressVisualIndexPublish) {
-            return false;
-        }
-
-        let rawFixed = visualState.rawFixed;
-        let calculatedFixed = visualState.fixed;
-        let moving = Math.abs(nowBarFixed - rawFixed) > 0;
-        if (!force
-                && listTopbarFixed === rawFixed
-                && listCalculatedBarFixed === calculatedFixed
-                && visualMoveActive === moving) {
-            return false;
-        }
-
-        if (listTopbarFixed !== rawFixed) {
-            listTopbarFixed = rawFixed;
-        }
-        if (listCalculatedBarFixed !== calculatedFixed) {
-            listCalculatedBarFixed = calculatedFixed;
-        }
-        if (visualMoveActive !== moving) {
-            visualMoveActive = moving;
-        }
-        return true;
+        return !!force && updatesActive && !suppressVisualIndexPublish;
     }
 
     function publishBarState(force) {
@@ -402,19 +336,11 @@ Item {
         if (!updatesActive || suppressVisualIndexPublish) {
             return false;
         }
-        let baseIndex = visualState.baseIndex;
-        let baseChanged = visualBaseIndex !== baseIndex;
-        if (baseChanged) {
-            visualBaseIndex = baseIndex;
-        }
-
-        let rowsChanged = force
-            || baseChanged
-            || !visibleBars.isCurrent;
-        if (rowsChanged) {
+        if (force || !visibleBars.isCurrent) {
             refreshVisibleBarEntries(!!force);
+            return true;
         }
-        return rowsChanged;
+        return false;
     }
 
     function publishCursorBaseIndex(force) {
@@ -442,25 +368,27 @@ Item {
 
     function setVisualIndexRaw(index) {
         suppressVisualIndexPublish = true;
-        visualIndexAnimationEnabled = false;
-        visualIndex = index;
-        visualIndexAnimationEnabled = true;
+        visualState.jumpTo(index);
         suppressVisualIndexPublish = false;
     }
 
     function currentNormalizedVisualIndex() {
-        return logicalCount > 0 ? visualState.fixed / 1000.0 : 0;
+        return normalizedVisualIndex;
+    }
+
+    function nativeBarGraphValue(type) {
+        return nativeSelectState.barGraphValue(
+            type,
+            logicalCount,
+            type === 101 ? normalizedVisualIndex : 0);
     }
 
     function setVisualIndexImmediate(index) {
         let fixed = Math.round(index * 1000);
-        listTopbarFixed = fixed;
         oldBarFixed = fixed;
         nowBarFixed = fixed;
         setVisualIndexRaw(index);
         targetVisualIndex = index;
-        animationStartVisualIndex = index;
-        visualMoveDurationMs = 0;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
         scrollDirection = 0;
@@ -475,10 +403,11 @@ Item {
         barMoveEndMs = now + Math.max(1, durationMs);
         setVisualIndexRaw(listTopbarFixed / 1000.0);
         targetVisualIndex = nowBarFixed / 1000.0;
-        animationStartVisualIndex = oldBarFixed / 1000.0;
-        visualMoveDurationMs = Math.max(1, durationMs);
         suppressVisualIndexPublish = true;
-        visualIndex = targetVisualIndex;
+        visualState.startAnimation(oldBarFixed / 1000.0,
+                                   targetVisualIndex,
+                                   Math.max(1, durationMs),
+                                   now);
         suppressVisualIndexPublish = false;
         return publishBarState();
     }
@@ -536,7 +465,7 @@ Item {
         return true;
     }
 
-    function commitLogicalSelection(index, deferFocusedStateRefresh) {
+    function commitLogicalSelection(index) {
         if (logicalCount === 0) {
             return false;
         }
@@ -546,18 +475,12 @@ Item {
             return false;
         }
         currentIndex = normalized;
-        touchSelection(!!deferFocusedStateRefresh);
+        touchSelection();
         return true;
     }
 
     function updateVisualIndex(now) {
         if (!updatesActive) {
-            return;
-        }
-        if (pendingWheelSteps !== 0) {
-            let steps = pendingWheelSteps;
-            pendingWheelSteps = 0;
-            applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
             return;
         }
         publishVisualIndex();
@@ -567,15 +490,7 @@ Item {
         if (!updatesActive) {
             return;
         }
-        pendingWheelSteps += steps;
-        pendingWheelStepTimer.restart();
-    }
-
-    Timer {
-        id: pendingWheelStepTimer
-        interval: 0
-        repeat: false
-        onTriggered: root.updateVisualIndex(Date.now())
+        applyLr2ScrollDelta(-steps, lr2WheelDuration, Date.now());
     }
 
     Component.onCompleted: {
@@ -667,98 +582,6 @@ Item {
         return "";
     }
 
-    function folderLampFromScores(result) {
-        if (!result) {
-            return 0;
-        }
-        if (result instanceof tableQueryResult) {
-            result = result.scores;
-        }
-
-        let lamp = 5;
-        let seen = false;
-        if ((result.unplayed || 0) > 0) {
-            return 0;
-        }
-
-        for (let scoreList of Object.values(result.scores || {})) {
-            seen = true;
-            lamp = Math.min(lamp, clearTypeLamp(getClearType(scoreList)));
-        }
-        return seen ? lamp : 0;
-    }
-
-    function folderScoreCountsFromScores(result) {
-        if (!result) {
-            return emptyFolderScoreCounts;
-        }
-        if (result instanceof tableQueryResult) {
-            result = result.scores;
-        }
-
-        let counts = {
-            total: Math.max(0, result.unplayed || 0),
-            play: 0,
-            clear: 0,
-            fail: 0,
-            noplay: Math.max(0, result.unplayed || 0),
-            assist: 0,
-            lightAssist: 0,
-            easy: 0,
-            normal: 0,
-            hard: 0,
-            exhard: 0,
-            fc: 0,
-            perfect: 0,
-            max: 0
-        };
-        for (let scoreList of Object.values(result.scores || {})) {
-            ++counts.total;
-            if (!scoreList || scoreList.length === 0) {
-                ++counts.noplay;
-                continue;
-            }
-            ++counts.play;
-            let clearType = getClearType(scoreList);
-            if (clearType !== "FAILED" && clearType !== "NOPLAY") {
-                ++counts.clear;
-            }
-            switch (clearType) {
-            case "FAILED":
-                ++counts.fail;
-                break;
-            case "AEASY":
-                ++counts.assist;
-                break;
-            case "EASY":
-                ++counts.easy;
-                break;
-            case "NORMAL":
-                ++counts.normal;
-                break;
-            case "HARD":
-                ++counts.hard;
-                break;
-            case "EXHARD":
-                ++counts.exhard;
-                break;
-            case "FC":
-                ++counts.fc;
-                break;
-            case "PERFECT":
-                ++counts.perfect;
-                break;
-            case "MAX":
-                ++counts.max;
-                break;
-            default:
-                ++counts.noplay;
-                break;
-            }
-        }
-        return counts;
-    }
-
     function emptyFolderDistribution() {
         return {
             lamps: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -767,70 +590,6 @@ Item {
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
             ]
         };
-    }
-
-    function beatorajaClearTypeIndex(clear) {
-        switch (clear || "NOPLAY") {
-        case "FAILED":
-            return 1;
-        case "AEASY":
-            return 2;
-        case "LIGHTASSIST":
-        case "LIGHT_ASSIST":
-            return 3;
-        case "EASY":
-            return 4;
-        case "NORMAL":
-            return 5;
-        case "HARD":
-            return 6;
-        case "EXHARD":
-            return 7;
-        case "FC":
-            return 8;
-        case "PERFECT":
-            return 9;
-        case "MAX":
-            return 10;
-        default:
-            return 0;
-        }
-    }
-
-    function folderDistributionFromScores(result) {
-        let distribution = emptyFolderDistribution();
-        if (!result) {
-            return distribution;
-        }
-        if (result instanceof tableQueryResult) {
-            result = result.scores;
-        }
-
-        let unplayed = Math.max(0, result.unplayed || 0);
-        distribution.lamps[0] += unplayed;
-        distribution.ranks[0] += unplayed;
-
-        for (let scoreList of Object.values(result.scores || {})) {
-            if (!scoreList || scoreList.length === 0) {
-                distribution.lamps[0] += 1;
-                distribution.ranks[0] += 1;
-                continue;
-            }
-
-            let clearIndex = beatorajaClearTypeIndex(getClearType(scoreList));
-            distribution.lamps[Math.max(0, Math.min(10, clearIndex))] += 1;
-
-            let best = bestScoreByPoints(scoreList);
-            let maxPoints = best?.result?.maxPoints || 0;
-            if (maxPoints <= 0) {
-                distribution.ranks[0] += 1;
-                continue;
-            }
-
-            let rank = Math.floor((best.result.points || 0) * 27 / maxPoints);
-            distribution.ranks[Math.max(0, Math.min(27, rank))] += 1;
-        }
-        return distribution;
     }
 
     function folderDistribution(item) {
@@ -849,7 +608,6 @@ Item {
 
         let request = ++folderLampRequestRevision;
         clearFolderLampState();
-
         for (let item of folderContents) {
             if (!isFolderLikeForLamp(item)) {
                 continue;
@@ -860,7 +618,7 @@ Item {
                 continue;
             }
 
-            db.getScores(item).then((result) => {
+            db.getScoreSummary(item).then((result) => {
                 if (request !== folderLampRequestRevision) {
                     return;
                 }
@@ -870,7 +628,6 @@ Item {
     }
 
     function clearFolderLampState() {
-        folderLampPublishTimer.stop();
         pendingFolderLampByKey = ({});
         pendingFolderScoreCountsByKey = ({});
         pendingFolderDistributionByKey = ({});
@@ -883,12 +640,24 @@ Item {
     }
 
     function queueFolderLampResult(key, result) {
-        pendingFolderLampByKey[key] = folderLampFromScores(result);
-        pendingFolderScoreCountsByKey[key] = folderScoreCountsFromScores(result);
-        pendingFolderDistributionByKey[key] = folderDistributionFromScores(result);
+        let summary = result || ({});
+        let counts = summary.counts !== undefined ? summary.counts : summary["counts"];
+        let distribution = summary.distribution !== undefined
+            ? summary.distribution
+            : summary["distribution"];
+        let lamp = summary.lamp !== undefined ? summary.lamp : summary["lamp"];
+        if (counts === undefined || distribution === undefined) {
+            summary = nativeSelectState.folderSummaryFromScores(result);
+            counts = summary.counts;
+            distribution = summary.distribution;
+            lamp = summary.lamp;
+        }
+        pendingFolderLampByKey[key] = lamp || 0;
+        pendingFolderScoreCountsByKey[key] = counts || emptyFolderScoreCounts;
+        pendingFolderDistributionByKey[key] = distribution || emptyFolderDistribution();
         pendingFolderLampPublishCount += 1;
-        if (updatesActive && !folderLampPublishTimer.running) {
-            folderLampPublishTimer.start();
+        if (updatesActive) {
+            publishPendingFolderLamps();
         }
     }
 
@@ -905,15 +674,7 @@ Item {
         pendingFolderDistributionByKey = ({});
         pendingFolderLampPublishCount = 0;
         folderLampRevision += 1;
-        refreshVisibleBarEntries(true);
         touch();
-    }
-
-    Timer {
-        id: folderLampPublishTimer
-        interval: 16
-        repeat: false
-        onTriggered: root.publishPendingFolderLamps()
     }
 
     Component.onDestruction: {
@@ -1217,7 +978,6 @@ Item {
         if (currentIndex !== 0
                 || targetIndex !== 0
                 || selectedOffset !== 0
-                || pendingWheelSteps !== 0
                 || visualMoveActive) {
             return focusedItem;
         }
@@ -1226,7 +986,6 @@ Item {
 
     function handleScoresLoaded() {
         scoreRevision += 1;
-        refreshScoreCachesForRevision();
         refreshSelectedScoreState();
         if (activeSortUsesScores()) {
             sortOrFilterChanged(scoreLoadPreferredItem());
@@ -1393,9 +1152,25 @@ Item {
         attachedTextCache = cache;
     }
 
+    function folderContentsNeedFullScores() {
+        for (let item of folderContents) {
+            if (isChart(item) || isEntry(item) || isCourse(item) || isRankingEntry(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     function refreshScores() {
         Rg.profileList.mainProfile.scoreDb.cancelPending();
         let folder = historyStack.length > 0 ? historyStack[historyStack.length - 1] : "";
+        if (!folderContentsNeedFullScores()) {
+            scores = ({});
+            handleScoresLoaded();
+            refreshPreviewFiles();
+            refreshFolderLamps();
+            return;
+        }
         if (folder === "SEARCH") {
             let md5s = [];
             for (let item of folderContents) {
@@ -1496,7 +1271,7 @@ Item {
         realItemCount = results.length;
         addToMinimumCount(results);
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
-            historyStack.push("SEARCH");
+            historyStack = historyStack.concat(["SEARCH"]);
         }
         items = results;
         currentIndex = 0;
@@ -1571,13 +1346,11 @@ Item {
 
     function setBarFixedImmediate(fixedValue) {
         let clamped = clampBarFixed(fixedValue);
-        listTopbarFixed = clamped;
         oldBarFixed = clamped;
         nowBarFixed = clamped;
         setVisualIndexRaw(clamped / 1000.0);
         barMoveStartMs = 0;
         barMoveEndMs = 0;
-        visualMoveDurationMs = 0;
         return publishBarState();
     }
 
@@ -1667,16 +1440,16 @@ Item {
         if (logicalCount === 0 || entries === 0) {
             return;
         }
-        listTopbarFixed = currentFixed !== undefined ? currentFixed : animatedTopbarFixed(now);
-        oldBarFixed = listTopbarFixed;
+        let topbarFixed = currentFixed !== undefined ? currentFixed : animatedTopbarFixed(now);
+        oldBarFixed = topbarFixed;
         nowBarFixed += Math.round(entries * 1000);
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
         let nextIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
         targetIndex = nextIndex;
-        let focusTouched = commitLogicalSelection(nextIndex, true);
+        let focusTouched = commitLogicalSelection(nextIndex);
         let selectionTouched = beginVisualMove(durationMs, now);
         if (!selectionTouched && !focusTouched) {
-            touchSelection(true);
+            touchSelection();
         }
     }
 
@@ -1702,7 +1475,7 @@ Item {
         }
         selectedOffset = row - barCenter;
         cachedSyncedCursorBaseIndex = -1;
-        currentIndex = normalizeIndex(visualBaseIndex + selectedOffset);
+        currentIndex = normalizeIndex(visualState.baseIndex + selectedOffset);
         targetIndex = currentIndex;
         touchSelection();
     }
@@ -1726,7 +1499,7 @@ Item {
         if (logicalCount === 0) {
             return barCenter;
         }
-        let offset = normalizeIndex(index) - normalizeIndex(visualBaseIndex);
+        let offset = normalizeIndex(index) - normalizeIndex(visualState.baseIndex);
         if (offset > logicalCount / 2) {
             offset -= logicalCount;
         }
@@ -1756,7 +1529,8 @@ Item {
         if (historyStack.length <= 1) {
             return;
         }
-        let last = historyStack.pop();
+        let last = historyStack[historyStack.length - 1];
+        historyStack = historyStack.slice(0, historyStack.length - 1);
         open(historyStack[historyStack.length - 1], last);
     }
 
@@ -1785,7 +1559,7 @@ Item {
         if (isEntry(item) || item === null || item === undefined) {
             return;
         }
-        historyStack.push(item);
+        historyStack = historyStack.concat([item]);
         open(item);
     }
 
@@ -1817,7 +1591,7 @@ Item {
         if (logicalCount === 0) {
             return null;
         }
-        return items[normalizeIndex(visualBaseIndex + row - barCenter)];
+        return items[normalizeIndex(visualState.baseIndex + row - barCenter)];
     }
 
     function refreshVisibleBarEntries(force) {
@@ -1833,19 +1607,38 @@ Item {
     }
 
     function barCellCore(entry) {
-        return barCells.core(entry);
+        return nativeSelectState.barCellCore(entry, barTitleTypes, scoreRevision, listRevision, folderLampRevision);
     }
 
     function barTextCellForRow(row) {
-        return barCells.cellForRow(row);
+        let slot = visibleBars.slotForRow(row);
+        return slot >= 0 ? visibleBars.cellAtSlot(slot) : null;
     }
 
     function updateBarTextCellForRow(cell, row) {
-        barCells.updateCellForRow(cell, row);
+        if (cell) {
+            nativeSelectState.updateBarCell(
+                cell,
+                row,
+                barEntry(row, barCenter),
+                barTitleTypes,
+                scoreRevision,
+                listRevision,
+                folderLampRevision);
+        }
     }
 
     function updateBarTextCell(cell, row, entry) {
-        barCells.updateCell(cell, row, entry);
+        if (cell) {
+            nativeSelectState.updateBarCell(
+                cell,
+                row,
+                entry,
+                barTitleTypes,
+                scoreRevision,
+                listRevision,
+                folderLampRevision);
+        }
     }
 
     function visibleBarTextCell(slot) {
@@ -2149,20 +1942,6 @@ Item {
         return id ? (scores[id] || emptyScoreList) : emptyScoreList;
     }
 
-    function refreshScoreCachesForRevision() {
-        if (selectedScoreStateCacheRevision === scoreRevision
-                && scoreSummaryCacheRevision === scoreRevision
-                && scoreLampRankCacheRevision === scoreRevision) {
-            return;
-        }
-        selectedScoreStateCache = {};
-        selectedScoreStateCacheRevision = scoreRevision;
-        scoreSummaryCache = {};
-        scoreSummaryCacheRevision = scoreRevision;
-        scoreLampRankCache = {};
-        scoreLampRankCacheRevision = scoreRevision;
-    }
-
     function clearTypePriority(clear) {
         switch (clear || "NOPLAY") {
         case "FAILED":
@@ -2331,96 +2110,11 @@ Item {
     }
 
     function scoreSummaryForItem(item) {
-        refreshScoreCachesForRevision();
-        let state = selectedState();
-        if ((item === state.item || item === state.chartData)
-                && state.key
-                && state.scoreRevision === scoreRevision) {
-            return state.summary || buildScoreSummary(state.scoreList || emptyScoreList);
-        }
-
-        let key = scoreSummaryKey(item);
-        let cached = key ? scoreSummaryCache[key] : null;
-        if (cached) {
-            return cached;
-        }
-
-        cached = buildScoreSummary(entryScores(item));
-        if (key) {
-            scoreSummaryCache[key] = cached;
-            scoreLampRankCache[key] = cached;
-        }
-        return cached;
-    }
-
-    function buildScoreLampRank(scoreList) {
-        if (!scoreList || scoreList.length === 0) {
-            return {
-                clearType: "NOPLAY",
-                lamp: 0,
-                rank: 0,
-                scoreRate: 0
-            };
-        }
-
-        let bestRate = -1;
-        let bestClearType = "NOPLAY";
-        let bestClearPriority = 0;
-
-        for (let score of scoreList) {
-            if (!score || !score.result) {
-                continue;
-            }
-
-            let clearType = clearTypeOf(score);
-            let clearPriority = clearTypePriority(clearType);
-            if (clearPriority > bestClearPriority) {
-                bestClearPriority = clearPriority;
-                bestClearType = clearType;
-            }
-
-            let maxPoints = score.result.maxPoints || 0;
-            if (maxPoints > 0) {
-                let rate = (score.result.points || 0) / maxPoints;
-                if (rate > bestRate) {
-                    bestRate = rate;
-                }
-            }
-        }
-
-        let scoreRate = Math.max(0, bestRate);
-        return {
-            clearType: bestClearType,
-            lamp: clearTypeLamp(bestClearType),
-            rank: rankForScoreRate(scoreRate),
-            scoreRate: scoreRate
-        };
+        return nativeSelectState.scoreSummaryForItem(item, scoreRevision, listRevision);
     }
 
     function scoreLampRankForItem(item) {
-        refreshScoreCachesForRevision();
-        let state = selectedState();
-        if ((item === state.item || item === state.chartData)
-                && state.key
-                && state.scoreRevision === scoreRevision) {
-            if (state.summary) {
-                return state.summary;
-            }
-            return buildScoreLampRank(state.scoreList || emptyScoreList);
-        }
-
-        let key = scoreSummaryKey(item);
-        let cached = key ? scoreLampRankCache[key] : null;
-        if (cached) {
-            return cached;
-        }
-
-        let summary = key ? scoreSummaryCache[key] : null;
-        cached = summary || buildScoreLampRank(entryScores(item));
-        if (key) {
-            scoreLampRankCache[key] = cached;
-        }
-        return cached;
+        return nativeSelectState.scoreLampRankForItem(item, scoreRevision, listRevision);
     }
 
     function cachedEntryScores(item) {
@@ -2892,7 +2586,7 @@ Item {
             }
             return state.scoreOptionIds;
         }
-        return scoreOptionIdsFromSummary(scoreSummaryForItem(item));
+        return nativeSelectState.scoreOptionIdsForItem(item, scoreRevision, listRevision);
     }
 
     function scoreOptionIdsFromList(scoreList) {
@@ -3050,79 +2744,17 @@ Item {
     }
 
     function refreshSelectedScoreState() {
-        refreshScoreCachesForRevision();
-        let item = focusedItem;
-        let nextChartData = chartDataForItem(item);
-        let stateKey = "";
-        if (nextChartData) {
-            stateKey = entrySelectionKey(nextChartData, focusedIndex);
-        } else if (isRankingEntry(item)) {
-            stateKey = entrySelectionKey(item, focusedIndex);
-        } else {
-            stateKey = entrySelectionKey(item, focusedIndex);
-        }
-        let currentState = selectedState();
-        if (stateKey
-                && stateKey === currentState.key
-                && currentState.scoreRevision === scoreRevision
-                && currentState.listRevision === listRevision) {
+        let result = nativeSelectState.refreshSelectedState(
+            focusedItem,
+            focusedIndex,
+            scoreRevision,
+            listRevision,
+            rankingMode,
+            rankingBaseItem);
+        if (!result || !result.changed) {
             return false;
         }
-        let cached = stateKey ? selectedScoreStateCache[stateKey] : null;
-        if (cached && (cached.scoreRevision !== scoreRevision || cached.listRevision !== listRevision)) {
-            cached = null;
-        }
-        if (cached) {
-            if (!cached.summary) {
-                cached.summary = buildScoreSummary(cached.scoreList);
-                cached.bestStats = cached.summary.bestStats;
-                cached.scoreCounts = cached.summary.scoreCounts;
-            }
-            if (!cached.difficultyState) {
-                cached.difficultyState = difficultyStateForChart(cached.chartData);
-            }
-            if (!cached.chartWrapper) {
-                cached.chartWrapper = chartWrapperForData(cached.chartData);
-            }
-            applySelectedScoreState(cached);
-            let summaryKey = scoreSummaryKey(cached.chartData || item);
-            if (summaryKey) {
-                scoreSummaryCache[summaryKey] = cached.summary;
-                scoreLampRankCache[summaryKey] = cached.summary;
-            }
-            return true;
-        }
-        let targetItem = nextChartData || item;
-        let summaryKey = scoreSummaryKey(targetItem);
-        let summary = summaryKey ? scoreSummaryCache[summaryKey] : null;
-        let scoreList = summary ? (summary.scoreList || emptyScoreList) : entryScores(targetItem);
-        if (!summary) {
-            summary = buildScoreSummary(scoreList);
-            if (summaryKey) {
-                scoreSummaryCache[summaryKey] = summary;
-                scoreLampRankCache[summaryKey] = summary;
-            }
-        }
-        let nextState = {
-            key: stateKey,
-            scoreRevision: scoreRevision,
-            listRevision: listRevision,
-            item: item,
-            chartData: nextChartData,
-            chartWrapper: chartWrapperForData(nextChartData),
-            scoreList: scoreList,
-            summary: summary,
-            bestStats: summary.bestStats,
-            scoreCounts: summary.scoreCounts,
-            scoreOptionIds: null,
-            difficultyState: difficultyStateForChart(nextChartData)
-        };
-        applySelectedScoreState(nextState);
-        if (stateKey) {
-            selectedScoreStateCache[stateKey] = nextState;
-            scoreSummaryCache[stateKey] = summary;
-            scoreLampRankCache[stateKey] = summary;
-        }
+        applySelectedScoreState(result.state);
         return true;
     }
 
@@ -3404,7 +3036,6 @@ Item {
 
         chartGroupCache = groups;
         chartDifficultyCache = difficulties;
-        selectedDifficultyStateCache = {};
     }
 
     function chartsForCurrentSong() {
@@ -3424,61 +3055,8 @@ Item {
         return result;
     }
 
-    function refreshDifficultyCacheForRevision() {
-        if (selectedDifficultyStateCacheScoreRevision === scoreRevision
-                && selectedDifficultyStateCacheListRevision === listRevision) {
-            return;
-        }
-        selectedDifficultyStateCache = {};
-        selectedDifficultyStateCacheScoreRevision = scoreRevision;
-        selectedDifficultyStateCacheListRevision = listRevision;
-    }
-
-    function buildSelectedDifficultyState(chart) {
-        let charts = chartsForSong(chart);
-        let byDiff = [null, null, null, null, null, null];
-        let counts = [0, 0, 0, 0, 0, 0];
-        let levels = [0, 0, 0, 0, 0, 0];
-        let lamps = [0, 0, 0, 0, 0, 0];
-        for (let candidate of charts) {
-            let diff = entryDifficulty(candidate);
-            if (diff < 1 || diff > 5) {
-                continue;
-            }
-            counts[diff] += 1;
-            if (!byDiff[diff] || (chart && sameEntry(candidate, chart))) {
-                byDiff[diff] = candidate;
-            }
-        }
-        for (let diff = 1; diff <= 5; ++diff) {
-            let candidate = byDiff[diff];
-            if (!candidate) {
-                continue;
-            }
-            levels[diff] = candidate.playLevel || 0;
-            lamps[diff] = entryLamp(candidate);
-        }
-        return {
-            charts: byDiff,
-            counts: counts,
-            levels: levels,
-            lamps: lamps
-        };
-    }
-
     function difficultyStateForChart(chart) {
-        refreshDifficultyCacheForRevision();
-        let key = chart
-            ? chartDifficultyGroupKey(chart) + "\n" + entrySelectionKey(chart, 0)
-            : "empty";
-
-        let cached = selectedDifficultyStateCache[key];
-        if (!cached) {
-            cached = buildSelectedDifficultyState(chart);
-            cached.key = key;
-            selectedDifficultyStateCache[key] = cached;
-        }
-        return cached;
+        return nativeSelectState.difficultyStateForChart(chart, scoreRevision, listRevision);
     }
 
     function chartForDifficulty(diff) {
@@ -4054,86 +3632,6 @@ Item {
     }
 
     function barGraphValue(type) {
-        let state = selectedState();
-        let statsLoaded = false;
-        let statsValue = null;
-        let chartLoaded = false;
-        let chartValue = null;
-
-        function stats() {
-            if (!statsLoaded) {
-                statsLoaded = true;
-                statsValue = state.bestStats;
-            }
-            return statsValue;
-        }
-
-        function chart() {
-            if (!chartLoaded) {
-                chartLoaded = true;
-                chartValue = state.chartData;
-            }
-            return chartValue;
-        }
-
-        switch (type) {
-        case 101:
-            return logicalCount > 1 ? Math.max(0, Math.min(1, currentNormalizedVisualIndex() / Math.max(1, logicalCount - 1))) : 0;
-        case 102:
-            return 1;
-        case 110:
-        case 111:
-            return stats() && stats().maxPoints > 0 ? stats().exscore / stats().maxPoints : 0;
-        case 112:
-        case 113:
-            return stats() && stats().maxPoints > 0 ? stats().exscore / stats().maxPoints : 0;
-        case 114:
-        case 115:
-            return 0;
-        case 103: {
-            let level = chart() ? (chart().playLevel || 0) : 0;
-            return level > 0 ? level / Math.max(1, levelBarFlashThreshold()) : 0;
-        }
-        case 105:
-        case 106:
-        case 107:
-        case 108:
-        case 109:
-            return difficultyGraphValue(type - 104);
-        case 140:
-        case 141:
-        case 142:
-        case 143:
-        case 144:
-        case 145:
-        case 146:
-        case 147:
-            return barGraphValue(type - 100);
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-        case 9:
-            return difficultyGraphValue(type - 4);
-        case 40:
-            return stats() ? stats().pg / stats().totalJudgements : 0;
-        case 41:
-            return stats() ? stats().gr / stats().totalJudgements : 0;
-        case 42:
-            return stats() ? stats().gd / stats().totalJudgements : 0;
-        case 43:
-            return stats() ? stats().bd / stats().totalJudgements : 0;
-        case 44:
-            return stats() ? stats().pr / stats().totalJudgements : 0;
-        case 45:
-            return stats() && chart()
-                ? stats().maxCombo / Math.max(1, chart().normalNoteCount + chart().scratchCount + chart().lnCount + chart().bssCount)
-                : 0;
-        case 46:
-        case 47:
-            return stats() && stats().maxPoints > 0 ? stats().exscore / stats().maxPoints : 0;
-        default:
-            return 0;
-        }
+        return nativeBarGraphValue(type);
     }
 }

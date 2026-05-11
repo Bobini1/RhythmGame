@@ -2,14 +2,10 @@
 
 #include "Lr2FontCache.h"
 
-#include <QCache>
-#include <QMutex>
-#include <QMutexLocker>
 #include <QPainter>
 #include <QUrl>
 #include <QUrlQuery>
 #include <algorithm>
-#include <climits>
 #include <cmath>
 #include <utility>
 
@@ -54,34 +50,6 @@ validGlyph(const Lr2FontDict& dict, const Lr2FontGlyph& glyph) -> bool
 }
 
 auto
-textImageCache() -> QCache<QString, QImage>&
-{
-    static QCache<QString, QImage> cache;
-    static const bool initialized = [] {
-        cache.setMaxCost(64 * 1024 * 1024);
-        return true;
-    }();
-    Q_UNUSED(initialized);
-    return cache;
-}
-
-auto
-textImageCacheMutex() -> QMutex&
-{
-    static QMutex mutex;
-    return mutex;
-}
-
-auto
-cacheKey(const QString& fontPath, const QString& text) -> QString
-{
-    auto key = fontPath;
-    key.append(QChar(0x1f));
-    key.append(text);
-    return key;
-}
-
-auto
 providerQueryValue(const QUrlQuery& query, const QString& key) -> QString
 {
     // QML constructs the provider URL with encodeURIComponent(), and Qt Quick
@@ -92,16 +60,8 @@ providerQueryValue(const QUrlQuery& query, const QString& key) -> QString
 }
 
 auto
-cachedTextImage(const QString& fontPath, const QString& text) -> QImage
+composeTextImage(const QString& fontPath, const QString& text) -> QImage
 {
-    const auto key = cacheKey(fontPath, text);
-    {
-        QMutexLocker lock(&textImageCacheMutex());
-        if (const auto* cached = textImageCache().object(key)) {
-            return *cached;
-        }
-    }
-
     const auto* dict = Lr2FontCache::instance().load(fontPath);
     if (!dict || dict->height <= 0 || text.isEmpty()) {
         return {};
@@ -153,15 +113,6 @@ cachedTextImage(const QString& fontPath, const QString& text) -> QImage
     }
     painter.end();
 
-    const auto imageCost = std::max<qsizetype>(1, image.sizeInBytes());
-    {
-        QMutexLocker lock(&textImageCacheMutex());
-        textImageCache().insert(
-          key,
-          new QImage(image),
-          static_cast<int>(std::min<qsizetype>(imageCost, INT_MAX)));
-    }
-
     return image;
 }
 
@@ -175,7 +126,7 @@ Lr2FontImageProvider::Lr2FontImageProvider()
 QImage
 Lr2FontImageProvider::textImage(const QString& fontPath, const QString& text)
 {
-    return cachedTextImage(fontPath, text);
+    return composeTextImage(fontPath, text);
 }
 
 QImage

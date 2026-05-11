@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls
 import RhythmGameQml 1.0
 import "Lr2ActiveOptionCache.js" as Lr2ActiveOptionCache
-import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
     id: root
@@ -21,6 +20,7 @@ Item {
     property bool componentReady: false
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
+    property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property bool usedOptionFilterActive: !!skinModel
         && !!skinModel.usedOptions
         && skinModel.usedOptions.length > 0
@@ -45,15 +45,11 @@ Item {
         return result;
     }
     property int gameplayRevision: 0
-    property bool gameplayRevisionQueued: false
     property int gameplayTimerRevision: 0
-    property bool gameplayTimerRevisionQueued: false
     property var gameplayTimerValues: ({ "0": 0 })
     property var gameplayRuntimeActiveOptions: []
-    property bool gameplayRuntimeActiveOptionsRefreshQueued: false
     property var selectRuntimeActiveOptions: []
     property int selectRuntimeActiveOptionsRevision: 0
-    property bool selectSideEffectsRefreshQueued: false
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
@@ -111,6 +107,8 @@ Item {
     readonly property int lr2CurrentFps: skinTiming.currentFps
     readonly property var lr2InitialClockNow: wallClockState.initialNow
     property alias skinTimingRef: skinTiming
+    property alias skinTimerStateRef: skinTiming.skinTimerStateRef
+    property alias skinRuntimeRef: skinRuntime
     property alias lr2ClockNowMs: wallClockState.nowMs
     property alias lr2ClockYear: wallClockState.year
     property alias lr2ClockMonth: wallClockState.month
@@ -144,7 +142,7 @@ Item {
         }
         if (enabled) {
             root.openSelectIfNeeded();
-            Qt.callLater(root.activateGameplayIfNeeded);
+            root.activateGameplayIfNeeded();
         } else {
             root.stopSelectAudio();
             root.stopGameplayLifecycle();
@@ -158,9 +156,9 @@ Item {
         if (screenUpdatesActive) {
             root.updateLr2DateTimeNumbers();
             root.openSelectIfNeeded();
-            Qt.callLater(root.activateGameplayIfNeeded);
+            root.activateGameplayIfNeeded();
             root.refreshSelectRuntimeActiveOptions();
-            Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
+            root.refreshGameplayRuntimeActiveOptions();
         } else {
             root.pauseScreenActivity();
         }
@@ -223,9 +221,9 @@ Item {
         if (root.effectiveScreenKey === "select" && selectContext.historyStack.length === 0) {
             root.selectScratchSoundReady = false;
             selectContext.openRoot();
-            Qt.callLater(() => root.selectScratchSoundReady = true);
+            root.selectScratchSoundReady = true;
         } else if (root.effectiveScreenKey === "select" && !root.selectScratchSoundReady) {
-            Qt.callLater(() => root.selectScratchSoundReady = true);
+            root.selectScratchSoundReady = true;
         }
         root.updateSelectSideEffects();
         if (root.effectiveScreenKey === "select"
@@ -300,7 +298,7 @@ Item {
     }
 
     StackView.onActivated: {
-        Qt.callLater(root.activateGameplayIfNeeded);
+        root.activateGameplayIfNeeded();
     }
     
     readonly property string effectiveScreenKey: screenState.effectiveKey
@@ -479,10 +477,9 @@ Item {
     Lr2SelectHoverState {
         id: selectHoverState
         host: root
+        skinRuntime: root.skinRuntimeRef
         tracking: root.selectHoverTracking
         skinScale: root.skinScale
-        zeroTimers: root.zeroTimers
-        emptyActiveOptions: root.emptyActiveOptions
     }
     property alias selectHoverElements: selectHoverState.elements
     readonly property int selectHoverElementCount: selectHoverState.elementCount
@@ -490,7 +487,6 @@ Item {
     property alias selectHoverVisibleByIndex: selectHoverState.visibleByIndex
     readonly property string selectHoverVisibleSignature: selectHoverState.visibleSignature
     property alias selectHoverRevision: selectHoverState.revision
-    property alias selectHoverRefreshQueued: selectHoverState.refreshQueued
     property alias selectHoverSkinX: selectHoverState.skinX
     property alias selectHoverSkinY: selectHoverState.skinY
     readonly property bool selectHoverHasPoint: selectHoverState.hasPoint
@@ -517,20 +513,12 @@ Item {
         selectHoverState.clearPoint();
     }
 
-    function registerSelectHoverElement(elementIndex, src, dsts, enabled) {
-        selectHoverState.registerElement(elementIndex, src, dsts, enabled);
+    function registerSelectHoverElement(elementIndex, src, enabled) {
+        selectHoverState.registerElement(elementIndex, src, enabled);
     }
 
     function unregisterSelectHoverElement(elementIndex) {
         selectHoverState.unregisterElement(elementIndex);
-    }
-
-    function scheduleSelectHoverRefresh() {
-        selectHoverState.scheduleRefresh();
-    }
-
-    function runSelectHoverRefresh() {
-        selectHoverState.runRefresh();
     }
 
     function clearSelectHoverCache() {
@@ -737,8 +725,8 @@ Item {
         if (!root.isGameplayScreen()) {
             return;
         }
-        root.queueGameplayRevision();
-        root.scheduleGameplayRuntimeActiveOptionsRefresh();
+        root.bumpGameplayRevision();
+        root.refreshGameplayRuntimeActiveOptions();
     }
 
     function setHiSpeedNumber(side, value) {
@@ -839,26 +827,6 @@ Item {
 
     function isLr2GenericSlider(src) {
         return skinSliderState.isLr2GenericSlider(src);
-    }
-
-    function isGameplayProgressSlider(src) {
-        return skinSliderState.isGameplayProgressSlider(src);
-    }
-
-    function isGameplayLaneCoverSlider(src) {
-        return skinSliderState.isGameplayLaneCoverSlider(src);
-    }
-
-    function isLr2NumberRefSlider(src) {
-        return skinSliderState.isLr2NumberRefSlider(src);
-    }
-
-    function sliderTrackState(src, dsts, skinTime) {
-        return skinSliderState.trackState(src, dsts, skinTime);
-    }
-
-    function sliderPositionFromPointer(src, track, pointerX, pointerY) {
-        return skinSliderState.positionFromPointer(src, track, pointerX, pointerY);
     }
 
     function panelMatches(panel) {
@@ -975,7 +943,7 @@ Item {
     }
 
     function timelineSortId(dsts, skinTime, activeOptions, timers) {
-        let state = Lr2Timeline.getCurrentState(
+        let state = timelineResolver.stateFor(
             dsts,
             skinTime,
             timers || root.timers,
@@ -1038,11 +1006,7 @@ Item {
     }
 
     function dstsUseActiveOptions(dsts) {
-        return Lr2Timeline.dstsUseActiveOptions(dsts);
-    }
-
-    function dstsScratchRotationSide(dsts) {
-        return Lr2Timeline.dstsScratchRotationSide(dsts);
+        return timelineResolver.usesActiveOptionsFor(dsts);
     }
 
     function activeOptionsForElementDsts(dsts) {
@@ -1052,21 +1016,8 @@ Item {
         return root.activeOptionsForDsts(dsts, root.runtimeActiveOptions);
     }
 
-    function elementUsesTimers(src, dsts) {
-        return Lr2Timeline.dstsUseDynamicTimer(dsts) || Lr2Timeline.srcUsesDynamicTimer(src);
-    }
-
-    function elementUsesSkinTime(src, dsts) {
-        return !Lr2Timeline.canUseStaticState(dsts)
-            || (!!src && (Lr2Timeline.srcCyclesContinuously(src)
-                || (src.resultChartType || 0) > 0));
-    }
-
     function dstsUseSelectPanelTimer(dsts) {
-        if (!dsts || dsts.length === 0 || !dsts[0]) {
-            return false;
-        }
-        const timer = dsts[0].timer || 0;
+        const timer = timelineResolver.firstTimerFor(dsts);
         return (timer >= 21 && timer <= 26)
             || (timer >= 31 && timer <= 36);
     }
@@ -1074,12 +1025,12 @@ Item {
     function elementUsesLiveDstClock(dsts) {
         return root.effectiveScreenKey === "select"
             && (root.dstsUseSelectPanelTimer(dsts)
-                || Lr2Timeline.dstsLoopContinuously(dsts));
+                || timelineResolver.loopsContinuouslyFor(dsts));
     }
 
     function elementUsesLiveSourceClock(src) {
         return root.effectiveScreenKey === "select"
-            && Lr2Timeline.srcCyclesContinuously(src);
+            && timelineResolver.sourceCyclesContinuously(src);
     }
 
     function elementUsesLiveSelectClock(src, dsts) {
@@ -1093,63 +1044,16 @@ Item {
             : root.renderSkinTime;
     }
 
-    function dstCollectionUsesActiveOptions(collection) {
-        if (!collection) {
-            return false;
-        }
-        for (let i = 0; i < collection.length; ++i) {
-            if (Lr2Timeline.dstsUseActiveOptions(collection[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function dstCollectionUsesTimers(collection) {
-        if (!collection) {
-            return false;
-        }
-        for (let i = 0; i < collection.length; ++i) {
-            if (Lr2Timeline.dstsUseDynamicTimer(collection[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function sourceCollectionUsesTimers(collection) {
-        if (!collection) {
-            return false;
-        }
-        for (let i = 0; i < collection.length; ++i) {
-            if (Lr2Timeline.srcUsesDynamicTimer(collection[i])) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     function noteFieldUsesActiveOptions() {
-        return root.dstCollectionUsesActiveOptions(skinModel.noteDsts)
-            || root.dstCollectionUsesActiveOptions(skinModel.lineDsts);
+        return root.skinRuntimeRef
+            ? root.skinRuntimeRef.noteFieldUsesActiveOptions()
+            : false;
     }
 
     function noteFieldUsesTimers() {
-        return root.dstCollectionUsesTimers(skinModel.noteDsts)
-            || root.dstCollectionUsesTimers(skinModel.lineDsts)
-            || root.sourceCollectionUsesTimers(skinModel.noteSources)
-            || root.sourceCollectionUsesTimers(skinModel.autoNoteSources)
-            || root.sourceCollectionUsesTimers(skinModel.mineSources)
-            || root.sourceCollectionUsesTimers(skinModel.autoMineSources)
-            || root.sourceCollectionUsesTimers(skinModel.lnStartSources)
-            || root.sourceCollectionUsesTimers(skinModel.autoLnStartSources)
-            || root.sourceCollectionUsesTimers(skinModel.lnEndSources)
-            || root.sourceCollectionUsesTimers(skinModel.autoLnEndSources)
-            || root.sourceCollectionUsesTimers(skinModel.lnBodySources)
-            || root.sourceCollectionUsesTimers(skinModel.autoLnBodySources)
-            || root.sourceCollectionUsesTimers(skinModel.lnBodyActiveSources)
-            || root.sourceCollectionUsesTimers(skinModel.autoLnBodyActiveSources)
-            || root.sourceCollectionUsesTimers(skinModel.lineSources);
+        return root.skinRuntimeRef
+            ? root.skinRuntimeRef.noteFieldUsesTimers()
+            : false;
     }
 
     function addOption(options, option) {
@@ -2531,34 +2435,12 @@ Item {
             && (Input.start1 || Input.select1 || Input.start2 || Input.select2);
     }
 
-    function queueGameplayRevision() {
-        if (!root.isGameplayScreen()) {
-            root.gameplayRevision++;
-            return;
-        }
-        if (root.gameplayRevisionQueued) {
-            return;
-        }
-        root.gameplayRevisionQueued = true;
-        Qt.callLater(function() {
-            root.gameplayRevisionQueued = false;
-            root.gameplayRevision++;
-        });
+    function bumpGameplayRevision() {
+        root.gameplayRevision++;
     }
 
-    function queueGameplayTimerRevision() {
-        if (!root.isGameplayScreen()) {
-            root.gameplayTimerRevision++;
-            return;
-        }
-        if (root.gameplayTimerRevisionQueued) {
-            return;
-        }
-        root.gameplayTimerRevisionQueued = true;
-        Qt.callLater(function() {
-            root.gameplayTimerRevisionQueued = false;
-            root.gameplayTimerRevision++;
-        });
+    function bumpGameplayTimerRevision() {
+        root.gameplayTimerRevision++;
     }
 
     function setGameplayTimerValue(timer, skinTime) {
@@ -2566,7 +2448,7 @@ Item {
             return;
         }
         root.gameplayTimerValues[timer] = skinTime;
-        root.queueGameplayTimerRevision();
+        root.bumpGameplayTimerRevision();
     }
 
     function clearGameplayTimerValue(timer) {
@@ -2574,7 +2456,7 @@ Item {
             return;
         }
         delete root.gameplayTimerValues[timer];
-        root.queueGameplayTimerRevision();
+        root.bumpGameplayTimerRevision();
     }
 
     function resetGameplayTimerValues() {
@@ -2586,7 +2468,6 @@ Item {
             values[timer] = 0;
         }
         root.gameplayTimerValues = values;
-        root.gameplayTimerRevisionQueued = false;
         root.gameplayTimerRevision++;
     }
 
@@ -2656,7 +2537,7 @@ Item {
             root.setGameplayTimerValue(41, root.gameplayStartSkinTime);
         }
         if (optionsChanged) {
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
 
@@ -3134,13 +3015,6 @@ Item {
         skinModel: skinModel
     }
 
-    Timer {
-        id: selectRuntimeActiveOptionsRefreshTimer
-        interval: 20
-        repeat: false
-        onTriggered: root.refreshSelectRuntimeActiveOptions()
-    }
-
     // Bar delegates get per-row state from the select context; keep their option set stable.
     property var barActiveOptions: []
     property var baseActiveOptions: []
@@ -3324,18 +3198,9 @@ Item {
         root.selectRuntimeActiveOptionsRevision += 1;
     }
 
-    function scheduleSelectRuntimeActiveOptionsRefresh() {
-        if (root.effectiveScreenKey !== "select") {
-            return;
-        }
-        if (!selectRuntimeActiveOptionsRefreshTimer.running) {
-            selectRuntimeActiveOptionsRefreshTimer.start();
-        }
-    }
-
-    function scheduleSelectRankingStatusOptionsRefresh() {
+    function refreshSelectRankingStatusOptions() {
         if (root.selectUsesRankingStatusOptions()) {
-            root.scheduleSelectRuntimeActiveOptionsRefresh();
+            root.refreshSelectRuntimeActiveOptions();
         }
     }
 
@@ -3350,20 +3215,6 @@ Item {
         }
         root.gameplayRuntimeActiveOptionsKey = nextKey;
         root.gameplayRuntimeActiveOptions = next;
-    }
-
-    function scheduleGameplayRuntimeActiveOptionsRefresh() {
-        if (!root.isGameplayScreen()) {
-            return;
-        }
-        if (root.gameplayRuntimeActiveOptionsRefreshQueued) {
-            return;
-        }
-        root.gameplayRuntimeActiveOptionsRefreshQueued = true;
-        Qt.callLater(function() {
-            root.gameplayRuntimeActiveOptionsRefreshQueued = false;
-            root.refreshGameplayRuntimeActiveOptions();
-        });
     }
 
     readonly property int selectRevision: selectContext.scoreRevision
@@ -3413,48 +3264,42 @@ Item {
 
     onSelectRevisionChanged: {
         root.handleCommittedSelectState();
-        root.scheduleSelectRuntimeActiveOptionsRefresh();
+        root.refreshSelectRuntimeActiveOptions();
     }
     Connections {
         target: selectContext
-        function onFocusRevisionChanged() {
-            if (root.effectiveScreenKey === "select") {
-                root.restartSelectInfoTimer();
-            }
-        }
-
         function onSelectionRevisionChanged() {
             root.playSelectScratch();
         }
         function onRankingModeChanged() {
             if (root.refreshBaseActiveOptions()) {
-                root.scheduleSelectRuntimeActiveOptionsRefresh();
+                root.refreshSelectRuntimeActiveOptions();
             }
         }
     }
     Connections {
         target: lr2Ranking.rankingModel
-        function onLoadingChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
-        function onRankingEntriesChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
-        function onPlayerCountChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
-        function onScoreCountChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
-        function onClearCountsChanged() { root.scheduleSelectRankingStatusOptionsRefresh(); }
-        function onMd5Changed() { root.scheduleSelectRankingStatusOptionsRefresh(); }
+        function onLoadingChanged() { root.refreshSelectRankingStatusOptions(); }
+        function onRankingEntriesChanged() { root.refreshSelectRankingStatusOptions(); }
+        function onPlayerCountChanged() { root.refreshSelectRankingStatusOptions(); }
+        function onScoreCountChanged() { root.refreshSelectRankingStatusOptions(); }
+        function onClearCountsChanged() { root.refreshSelectRankingStatusOptions(); }
+        function onMd5Changed() { root.refreshSelectRankingStatusOptions(); }
     }
     onSelectPanelChanged: {
         if (root.refreshBaseActiveOptions()) {
-            root.scheduleSelectRuntimeActiveOptionsRefresh();
+            root.refreshSelectRuntimeActiveOptions();
         }
     }
     onLr2RankingTransitionPhaseChanged: {
         if (root.refreshBaseActiveOptions()) {
-            root.scheduleSelectRuntimeActiveOptionsRefresh();
+            root.refreshSelectRuntimeActiveOptions();
         }
     }
     onParseActiveOptionsChanged: {
         if (root.refreshBaseActiveOptions()) {
-            root.scheduleSelectRuntimeActiveOptionsRefresh();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
     onEffectiveScreenKeyChanged: {
@@ -3472,55 +3317,55 @@ Item {
             root.gameplayNothingWasHit = true;
             root.resetGameplayTimers();
             root.refreshGameplayRuntimeActiveOptions();
-            Qt.callLater(root.updateGameplayStatusTimers);
-            Qt.callLater(root.activateGameplayIfNeeded);
+            root.updateGameplayStatusTimers();
+            root.activateGameplayIfNeeded();
         }
         if (root.isResultScreen()) {
             root.resultTimer151SkinTime = -1;
             root.resultTimer152SkinTime = -1;
-            Qt.callLater(root.updateResultOldScores);
+            root.updateResultOldScores();
         }
-        Qt.callLater(root.updateGameplaySavedScores);
+        root.updateGameplaySavedScores();
         root.handleScreenContextChanged();
     }
     onChartChanged: {
         root.gameplayRevision++;
-        root.scheduleGameplayRuntimeActiveOptionsRefresh();
+        root.refreshGameplayRuntimeActiveOptions();
         root.gameplayResultOpened = false;
         root.gameplayShowedCourseResult = false;
         root.gameplayPlayStopped = false;
         root.gameplayNothingWasHit = true;
         root.stopGameplayLifecycle();
         root.resetGameplayTimers();
-        Qt.callLater(root.updateGameplayStatusTimers);
-        Qt.callLater(root.updateGameplaySavedScores);
-        Qt.callLater(root.activateGameplayIfNeeded);
+        root.updateGameplayStatusTimers();
+        root.updateGameplaySavedScores();
+        root.activateGameplayIfNeeded();
         if (root.effectiveScreenKey !== "select") {
             root.handleExternalChartChanged();
         }
     }
-    onScoresChanged: Qt.callLater(root.updateResultOldScores)
-    onProfilesChanged: Qt.callLater(root.updateResultOldScores)
-    onChartDataChanged: Qt.callLater(root.updateResultOldScores)
-    onChartDatasChanged: Qt.callLater(root.updateResultOldScores)
-    onCourseChanged: Qt.callLater(root.updateResultOldScores)
+    onScoresChanged: root.updateResultOldScores()
+    onProfilesChanged: root.updateResultOldScores()
+    onChartDataChanged: root.updateResultOldScores()
+    onChartDatasChanged: root.updateResultOldScores()
+    onCourseChanged: root.updateResultOldScores()
     Connections {
         target: root.isGameplayScreen() ? root.chart : null
         ignoreUnknownSignals: true
         function onCurrentChartIndexChanged() {
             root.gameplayRevision++;
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.refreshGameplayRuntimeActiveOptions();
             root.gameplayResultOpened = false;
             root.gameplayPlayStopped = false;
             root.gameplayNothingWasHit = true;
             root.resetGameplayTimers();
-            Qt.callLater(root.updateGameplayStatusTimers);
-            Qt.callLater(root.updateGameplaySavedScores);
-            Qt.callLater(root.activateGameplayIfNeeded);
+            root.updateGameplayStatusTimers();
+            root.updateGameplaySavedScores();
+            root.activateGameplayIfNeeded();
         }
         function onStatusChanged() {
             root.gameplayRevision++;
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.refreshGameplayRuntimeActiveOptions();
             root.handleGameplayStatusChanged();
         }
     }
@@ -3529,8 +3374,8 @@ Item {
         ignoreUnknownSignals: true
         function onHit(hit) {
             root.notifyGameplayReplayHit(hit);
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
@@ -3538,28 +3383,28 @@ Item {
         }
         function onPointsChanged() {
             root.updateGameplayScorePrintTarget(1);
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
         function onComboChanged() {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
         function onMaxComboChanged() {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
         function onMaxPointsNowChanged() {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
     Connections {
         target: root.isGameplayScreen() ? root.gameplayScore(2) : null
         ignoreUnknownSignals: true
         function onHit(hit) {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
@@ -3567,20 +3412,20 @@ Item {
         }
         function onPointsChanged() {
             root.updateGameplayScorePrintTarget(2);
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
         function onComboChanged() {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
         function onMaxComboChanged() {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
         function onMaxPointsNowChanged() {
-            root.queueGameplayRevision();
-            root.scheduleGameplayRuntimeActiveOptionsRefresh();
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
 
@@ -3588,7 +3433,7 @@ Item {
         if (root.commitLr2RankingRequest()) {
             root.applyRankingStatsToSelectContext();
         }
-        root.scheduleSelectSideEffectsUpdate();
+        root.updateSelectSideEffects();
     }
 
     function handleScreenContextChanged() {
@@ -3614,16 +3459,6 @@ Item {
     // Previews and ranking fetches are committed side effects; visual selection stays reactive.
     function updateSelectSideEffects() {
         selectSideEffects.update();
-    }
-    function scheduleSelectSideEffectsUpdate() {
-        if (root.selectSideEffectsRefreshQueued) {
-            return;
-        }
-        root.selectSideEffectsRefreshQueued = true;
-        Qt.callLater(function() {
-            root.selectSideEffectsRefreshQueued = false;
-            root.updateSelectSideEffects();
-        });
     }
     readonly property bool acceptsInput: screenState.acceptsInput
     onAcceptsInputChanged: {
@@ -3717,12 +3552,6 @@ Item {
 
     function resultBarGraphValue(type) {
         return valueResolver.resultBarGraphValue(type);
-    }
-
-    function sourceHasFrameAnimation(src) {
-        return src
-            && (src.cycle || 0) > 0
-            && Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1) > 1;
     }
 
     function barDistributionGraphSourceAnimates(src) {
@@ -3929,32 +3758,6 @@ Item {
             : null;
     }
 
-    function onMouseElementStateAt(element, mx, my) {
-        if (!element || !element.src || !element.src.onMouse || !root.panelMatches(element.src.hoverPanel || 0)) {
-            return null;
-        }
-        if (element.staticState) {
-            return root.onMouseStateContainsPoint(element.src, element.staticState, mx, my);
-        }
-        return root.onMouseSpriteStateAt(element.src, element.dsts, mx, my);
-    }
-
-    function onMouseSpriteStateAt(src, dsts, mx, my) {
-        if (!src || !src.onMouse || !root.panelMatches(src.hoverPanel || 0)) {
-            return null;
-        }
-        const timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        const liveClock = root.elementUsesLiveDstClock(dsts);
-        const state = Lr2Timeline.getCurrentStateFromTimerFire(
-            dsts,
-            liveClock ? root.selectSourceSkinTime : root.renderSkinTime,
-            root.skinTimerFireTime(timer, liveClock),
-            root.dstsUseActiveOptions(dsts)
-                ? root.activeOptionsForElementDsts(dsts)
-                : root.emptyActiveOptions);
-        return root.onMouseStateContainsPoint(src, state, mx, my);
-    }
-
     function isNowJudgeSprite(src) {
         return root.isGameplayScreen()
             && src
@@ -3987,58 +3790,11 @@ Item {
         return -digits * comboDigitW * 0.5;
     }
 
-    readonly property int noSpriteStateOverride: 0
     readonly property int selectScrollSpriteStateOverride: 1
     readonly property int gameplayProgressSpriteStateOverride: 2
     readonly property int gameplayLaneCoverSpriteStateOverride: 3
     readonly property int numberRefSpriteStateOverride: 4
     readonly property int genericSliderSpriteStateOverride: 5
-
-    function elementSpriteStateOverrideKind(src) {
-        if (root.isSelectScrollSlider(src)) {
-            return root.selectScrollSpriteStateOverride;
-        }
-        if (root.isGameplayProgressSlider(src)) {
-            return root.gameplayProgressSpriteStateOverride;
-        }
-        if (root.isGameplayLaneCoverSlider(src)) {
-            return root.gameplayLaneCoverSpriteStateOverride;
-        }
-        if (root.isLr2NumberRefSlider(src)) {
-            return root.numberRefSpriteStateOverride;
-        }
-        if (root.isLr2GenericSlider(src)) {
-            return root.genericSliderSpriteStateOverride;
-        }
-        return root.noSpriteStateOverride;
-    }
-
-    function spriteStateOverrideForKind(kind, src, dsts, skinTime, timerFire, activeOptions) {
-        switch (kind) {
-        case root.selectScrollSpriteStateOverride:
-            return root.selectScrollSliderState(src, dsts, skinTime, timerFire, activeOptions);
-        case root.gameplayProgressSpriteStateOverride:
-            return root.gameplayProgressSliderState(src, dsts, skinTime, timerFire, activeOptions);
-        case root.gameplayLaneCoverSpriteStateOverride:
-            return root.gameplayLaneCoverSliderState(src, dsts, skinTime, timerFire, activeOptions);
-        case root.numberRefSpriteStateOverride:
-            return root.lr2NumberRefSliderState(src, dsts, skinTime, timerFire, activeOptions);
-        case root.genericSliderSpriteStateOverride:
-            return root.lr2GenericSliderState(src, dsts, skinTime, timerFire, activeOptions);
-        default:
-            return null;
-        }
-    }
-
-    function spriteStateOverride(src, dsts, skinTime, timerFire, activeOptions) {
-        return root.spriteStateOverrideForKind(
-            root.elementSpriteStateOverrideKind(src),
-            src,
-            dsts,
-            skinTime,
-            timerFire,
-            activeOptions);
-    }
 
     function spriteSliderPositionForKind(kind, src) {
         switch (kind) {
@@ -4057,14 +3813,6 @@ Item {
         }
     }
 
-    function spriteSliderPosition(src) {
-        return root.spriteSliderPositionForKind(root.elementSpriteStateOverrideKind(src), src);
-    }
-
-    function elementUsesSpriteStateOverride(src) {
-        return root.elementSpriteStateOverrideKind(src) !== root.noSpriteStateOverride;
-    }
-
     function spriteForceHidden(src, elementIndex) {
         if (src && src.onMouse) {
             return root.selectHoverRevision >= 0
@@ -4073,58 +3821,8 @@ Item {
         return false;
     }
 
-    function elementUsesSpriteForceHidden(src) {
-        return !!(src && src.onMouse);
-    }
-
-    function elementUsesButtonFrameOverride(src) {
-        return root.effectiveScreenKey === "select"
-            && !!src
-            && !!src.button;
-    }
-
-    function translatedSliderState(src, dsts, position, skinTime, timerFire, activeOptions) {
-        return skinSliderState.translatedState(src, dsts, position, skinTime, timerFire, activeOptions);
-    }
-
-    function selectScrollSliderState(src, dsts, skinTime, timerFire, activeOptions) {
-        return skinSliderState.selectScrollState(src, dsts, skinTime, timerFire, activeOptions);
-    }
-
-    function lr2GenericSliderState(src, dsts, skinTime, timerFire, activeOptions) {
-        return skinSliderState.genericState(src, dsts, skinTime, timerFire, activeOptions);
-    }
-
-    function gameplayProgressSliderState(src, dsts, skinTime, timerFire, activeOptions) {
-        return skinSliderState.gameplayProgressState(src, dsts, skinTime, timerFire, activeOptions);
-    }
-
-    function gameplayLaneCoverSliderState(src, dsts, skinTime, timerFire, activeOptions) {
-        return skinSliderState.gameplayLaneCoverState(src, dsts, skinTime, timerFire, activeOptions);
-    }
-
-    function lr2NumberRefSliderState(src, dsts, skinTime, timerFire, activeOptions) {
-        return skinSliderState.numberRefSliderState(src, dsts, skinTime, timerFire, activeOptions);
-    }
-
-    function selectScrollSliderTrackState(src, dsts, skinTime) {
-        return skinSliderState.selectScrollTrackState(src, dsts, skinTime);
-    }
-
-    function lr2GenericSliderTrackState(src, dsts, skinTime) {
-        return skinSliderState.genericTrackState(src, dsts, skinTime);
-    }
-
-    function setSelectScrollFromSliderPointer(src, dsts, pointerX, pointerY) {
-        skinSliderState.setSelectScrollFromPointer(src, dsts, pointerX, pointerY);
-    }
-
     function setSelectScrollFromSliderTrack(src, track, pointerX, pointerY) {
         skinSliderState.setSelectScrollFromTrack(src, track, pointerX, pointerY);
-    }
-
-    function setLr2GenericSliderFromPointer(src, dsts, pointerX, pointerY) {
-        skinSliderState.setGenericFromPointer(src, dsts, pointerX, pointerY);
     }
 
     function setLr2GenericSliderFromTrack(src, track, pointerX, pointerY) {
@@ -4181,6 +3879,16 @@ Item {
         }
     }
 
+    Lr2SkinRuntime {
+        id: skinRuntime
+        skinModel: root.skinModelRef
+        runtimeActiveOptions: root.runtimeActiveOptions
+        timerState: root.skinTimerStateRef
+        screenKey: root.effectiveScreenKey
+        gameplayScreen: root.isGameplayScreen()
+        selectBarElementSortBase: root.selectBarElementSortBase
+    }
+
     Lr2WallClockState {
         id: wallClockState
         sceneStartMs: skinTiming.sceneStartMs
@@ -4225,7 +3933,7 @@ Item {
         if (root.effectiveScreenKey === "select"
                 && root.selectHoverHasPoint
                 && root.globalSkinTime < root.selectAnimationLimit) {
-            root.scheduleSelectHoverRefresh();
+            root.refreshSelectHoverCache();
         }
     }
 
@@ -4385,12 +4093,12 @@ Item {
             }
             root.queueSkinClockRestartAfterLoad();
             root.openSelectIfNeeded();
-            Qt.callLater(root.activateGameplayIfNeeded);
+            root.activateGameplayIfNeeded();
             root.refreshLr2SkinSettingItems();
             root.refreshBaseActiveOptions();
             root.refreshSelectRuntimeActiveOptions();
-            Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
-            Qt.callLater(root.updateResultOldScores);
+            root.refreshGameplayRuntimeActiveOptions();
+            root.updateResultOldScores();
         }
     }
 
@@ -4404,7 +4112,7 @@ Item {
     }
     onScreenKeyChanged: {
         root.openSelectIfNeeded();
-        Qt.callLater(root.activateGameplayIfNeeded);
+        root.activateGameplayIfNeeded();
         root.refreshLr2SkinSettingItems();
         root.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
@@ -4416,17 +4124,16 @@ Item {
         root.commitLr2RankingRequest();
         root.restartSkinClock();
         root.openSelectIfNeeded();
-        Qt.callLater(root.activateGameplayIfNeeded);
+        root.activateGameplayIfNeeded();
         root.updateSelectSideEffects();
-        Qt.callLater(root.updateGameplaySavedScores);
+        root.updateGameplaySavedScores();
         root.refreshLr2SkinSettingItems();
         root.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
-        Qt.callLater(root.refreshGameplayRuntimeActiveOptions);
+        root.refreshGameplayRuntimeActiveOptions();
     }
 
     function pauseScreenActivity() {
-        selectHoverState.stopRefresh();
         readmeState.pauseActivity();
         lr2Ranking.pauseActivity();
         skinTiming.pauseActivity();

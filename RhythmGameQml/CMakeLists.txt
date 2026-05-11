@@ -24,10 +24,32 @@ qt_add_qml_module(RhythmGame_qml
         Lr2BarInterpolatedState.cpp
         Lr2SelectVisualState.h
         Lr2SelectVisualState.cpp
+        Lr2SelectStateCache.h
+        Lr2SelectStateCache.cpp
         Lr2SelectBarCell.h
         Lr2SelectBarCell.cpp
+        Lr2SelectBarWindow.h
+        Lr2SelectBarWindow.cpp
         Lr2SkinClock.h
         Lr2SkinClock.cpp
+        Lr2SkinFrameDriver.h
+        Lr2SkinFrameDriver.cpp
+        Lr2SelectInfoTimerBridge.h
+        Lr2SelectInfoTimerBridge.cpp
+        Lr2SkinTimerState.h
+        Lr2SkinTimerState.cpp
+        Lr2SkinElementTimerState.h
+        Lr2SkinElementTimerState.cpp
+        Lr2SkinRuntimeTypes.h
+        Lr2SkinRuntimeTypes.cpp
+        Lr2SkinRuntime.h
+        Lr2SkinRuntime.cpp
+        Lr2SkinSliderGeometry.h
+        Lr2SkinSliderGeometry.cpp
+        Lr2BarDistributionGraphItem.h
+        Lr2BarDistributionGraphItem.cpp
+        Lr2BitmapFontTexture.h
+        Lr2BitmapFontTexture.cpp
         QML_FILES
         ContentFrame.qml
         Log.qml
@@ -46,8 +68,6 @@ qt_add_qml_module(RhythmGame_qml
         Lr2SkinSliderState.qml
         Lr2SelectSearchState.qml
         Lr2SelectBarGeometry.qml
-        Lr2SelectBarWindow.qml
-        Lr2SelectBarCellCache.qml
         Lr2SelectPointerController.qml
         Lr2ReadmeState.qml
         Lr2ReadmeTextElement.qml
@@ -79,8 +99,7 @@ qt_add_qml_module(RhythmGame_qml
         RESOURCES
         Lr2ActiveOptionCache.js
         Lr2SelectStateStore.js
-        Lr2ValueCache.js
-        Lr2Timeline.js)
+        Lr2ValueCache.js)
 qt6_add_shaders(RhythmGame_qml "shaders"
         PREFIX
         "/"
@@ -88,6 +107,7 @@ qt6_add_shaders(RhythmGame_qml "shaders"
         "ColorChanger.frag"
         "Lr2AddBlend.frag"
         "Lr2SpriteAtlas.frag"
+        "Lr2BarDistributionGraph.vert"
+        "Lr2BarDistributionGraph.frag"
         "Lr2InvertBlend.frag"
-        "Lr2Tint.frag"
 )

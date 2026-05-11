@@ -8,6 +8,7 @@
 #endif
 #include <QGuiApplication>
 #include <QObject>
+#include <QPixmapCache>
 #include <QtQuick>
 #include <QQuickStyle>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -189,6 +190,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         QQuickStyle::setStyle("FluentWinUI3");
+        QPixmapCache::setCacheLimit(256 * 1024);
         if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
         }

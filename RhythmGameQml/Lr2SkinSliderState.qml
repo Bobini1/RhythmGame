@@ -1,7 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 
 import QtQuick
-import "Lr2Timeline.js" as Lr2Timeline
+import RhythmGameQml 1.0
 
 QtObject {
     id: sliders
@@ -12,46 +12,27 @@ QtObject {
 
     readonly property var root: screenRoot
     property int selectSliderFixedPoint: -1
+    property Lr2TimelineState timelineResolver: Lr2TimelineState {}
+    property Lr2SkinSliderGeometry sliderGeometry: Lr2SkinSliderGeometry {}
 
     function isSelectScrollSlider(src) {
-        return root.effectiveScreenKey === "select"
-            && !!src
-            && !!src.slider
-            && src.sliderType === 1
-            && src.sliderRange > 0
-            && src.sliderDisabled === 0;
+        return sliderGeometry.isSelectScrollSlider(root.effectiveScreenKey, src);
     }
 
     function isLr2GenericSlider(src) {
-        return root.effectiveScreenKey === "select"
-            && !!src
-            && !!src.slider
-            && !sliders.isSelectScrollSlider(src)
-            && src.sliderRange > 0
-            && src.sliderDisabled === 0;
+        return sliderGeometry.isGenericSlider(root.effectiveScreenKey, src);
     }
 
     function isGameplayProgressSlider(src) {
-        return root.isGameplayScreen()
-            && !!src
-            && !!src.slider
-            && src.sliderType === 6
-            && src.sliderRange > 0;
+        return sliderGeometry.isGameplayProgressSlider(root.isGameplayScreen(), src);
     }
 
     function isGameplayLaneCoverSlider(src) {
-        return root.isGameplayScreen()
-            && !!src
-            && !!src.slider
-            && (src.sliderType === 4 || src.sliderType === 5)
-            && src.sliderRange > 0;
+        return sliderGeometry.isGameplayLaneCoverSlider(root.isGameplayScreen(), src);
     }
 
     function isLr2NumberRefSlider(src) {
-        return !!src
-            && !!src.slider
-            && !!src.sliderRefNumber
-            && src.sliderRange > 0;
+        return sliderGeometry.isNumberRefSlider(src);
     }
 
     function trackState(src, dsts, skinTime, timerFire, activeOptions) {
@@ -61,7 +42,7 @@ QtObject {
         let clock = skinTime === undefined
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let timer = timelineResolver.firstTimerFor(dsts);
         let liveClock = root.elementUsesLiveDstClock(dsts);
         let effectiveTimerFire = timerFire === undefined
             ? root.skinTimerFireTime(timer, liveClock)
@@ -71,7 +52,7 @@ QtObject {
                 ? root.activeOptionsForElementDsts(dsts)
                 : root.emptyActiveOptions)
             : activeOptions;
-        let base = Lr2Timeline.getCurrentStateFromTimerFire(
+        let base = timelineResolver.stateFromTimerFire(
             dsts,
             clock,
             effectiveTimerFire,
@@ -79,76 +60,18 @@ QtObject {
         if (!base) {
             return null;
         }
-
-        let track = {
-            x: base.x,
-            y: base.y,
-            w: base.w,
-            h: base.h
-        };
-        let range = Math.max(1, src.sliderRange || 0);
-        switch (src.sliderDirection) {
-        case 0:
-            track.y -= range;
-            track.h += range;
-            break;
-        case 1:
-            track.w += range;
-            break;
-        case 2:
-            track.h += range;
-            break;
-        case 3:
-            track.x -= range;
-            track.w += range;
-            break;
-        default:
-            return null;
-        }
-        return track;
+        return sliderGeometry.trackState(src, base);
     }
 
     function positionFromPointer(src, track, pointerX, pointerY) {
-        let range = Math.max(1, src.sliderRange || 0);
-        let moveX = (track.w - range) / 2;
-        let moveY = (track.h - range) / 2;
-        let position = 0;
-        switch (src.sliderDirection) {
-        case 0: {
-            let start = track.y + moveY;
-            let end = track.y + track.h - moveY;
-            position = end !== start ? (end - pointerY) / (end - start) : 0;
-            break;
-        }
-        case 1: {
-            let start = track.x + moveX;
-            let end = track.x + track.w - moveX;
-            position = end !== start ? (pointerX - start) / (end - start) : 0;
-            break;
-        }
-        case 2: {
-            let start = track.y + moveY;
-            let end = track.y + track.h - moveY;
-            position = end !== start ? (pointerY - start) / (end - start) : 0;
-            break;
-        }
-        case 3: {
-            let start = track.x + moveX;
-            let end = track.x + track.w - moveX;
-            position = end !== start ? (end - pointerX) / (end - start) : 0;
-            break;
-        }
-        default:
-            return 0;
-        }
-        return Math.max(0, Math.min(1, position));
+        return sliderGeometry.positionFromPointer(src, track, pointerX, pointerY);
     }
 
     function translatedState(src, dsts, position, skinTime, timerFire, activeOptions) {
         let clock = skinTime === undefined
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
+        let timer = timelineResolver.firstTimerFor(dsts);
         let liveClock = root.elementUsesLiveDstClock(dsts);
         let effectiveTimerFire = timerFire === undefined
             ? root.skinTimerFireTime(timer, liveClock)
@@ -158,7 +81,7 @@ QtObject {
                 ? root.activeOptionsForElementDsts(dsts)
                 : root.emptyActiveOptions)
             : activeOptions;
-        let base = Lr2Timeline.getCurrentStateFromTimerFire(
+        let base = timelineResolver.stateFromTimerFire(
             dsts,
             clock,
             effectiveTimerFire,
@@ -166,45 +89,7 @@ QtObject {
         if (!base) {
             return null;
         }
-
-        let sliderOffset = position * Math.max(1, src.sliderRange || 0);
-        let offsetX = 0;
-        let offsetY = 0;
-        switch (src.sliderDirection) {
-        case 0:
-            offsetY = -sliderOffset;
-            break;
-        case 1:
-            offsetX = sliderOffset;
-            break;
-        case 2:
-            offsetY = sliderOffset;
-            break;
-        case 3:
-            offsetX = -sliderOffset;
-            break;
-        default:
-            return null;
-        }
-
-        return {
-            x: base.x + offsetX,
-            y: base.y + offsetY,
-            w: base.w,
-            h: base.h,
-            a: base.a,
-            r: base.r,
-            g: base.g,
-            b: base.b,
-            angle: base.angle || 0,
-            center: base.center || 0,
-            blend: base.blend || 0,
-            filter: base.filter || 0,
-            op1: base.op1 || 0,
-            op2: base.op2 || 0,
-            op3: base.op3 || 0,
-            op4: base.op4 || 0
-        };
+        return sliderGeometry.translatedState(src, base, position);
     }
 
     function selectScrollPosition(src) {

@@ -1,8 +1,6 @@
 import QtQuick
 import RhythmGameQml 1.0
 
-import "Lr2Timeline.js" as Lr2Timeline
-
 Item {
     id: root
 
@@ -36,12 +34,12 @@ Item {
         ? Math.max(0, barRows.length)
         : 0
     readonly property var numberDsts: srcData && srcData.source ? dsts : []
-    readonly property bool hasStaticTimelineState: Lr2Timeline.canUseStaticState(numberDsts)
+    readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState
-        ? Lr2Timeline.copyDstAsState(numberDsts[0], numberDsts[0])
+        ? timelineState.staticState
         : null
-    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(numberDsts) ? timers : null
-    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(numberDsts) ? activeOptions : []
+    readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
+    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
         dsts: root.numberDsts

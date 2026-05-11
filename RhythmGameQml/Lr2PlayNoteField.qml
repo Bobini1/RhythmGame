@@ -1,7 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
     id: root
@@ -13,6 +12,10 @@ Item {
     property var runtimeActiveOptions: []
     property var timers: ({ 0: 0 })
     property color transColor: "black"
+    property Lr2TimelineState timelineResolver: Lr2TimelineState {}
+    readonly property var skinRuntime: screenRoot ? screenRoot.skinRuntimeRef : null
+    readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
+    readonly property int runtimeTimerRevision: skinRuntime ? skinRuntime.timerRevision : 0
     readonly property bool playfieldActive: root.enabled
         && !!screenRoot
         && !!skinModel
@@ -50,18 +53,18 @@ Item {
     }
 
     function dstStateFor(dsts) {
-        if (Lr2Timeline.canUseStaticState(dsts)) {
-            return Lr2Timeline.copyDstAsState(dsts[0], dsts[0]);
+        if (timelineResolver.canUseStaticStateFor(dsts)) {
+            return timelineResolver.staticStateFor(dsts);
         }
         let timerFire = 0;
-        if (Lr2Timeline.dstsUseDynamicTimer(dsts)) {
-            timerFire = root.timerFireFor(dsts[0].timer || 0);
+        if (timelineResolver.usesDynamicTimerFor(dsts)) {
+            timerFire = root.timerFireFor(timelineResolver.firstTimerFor(dsts));
         }
-        return Lr2Timeline.getCurrentStateFromTimerFire(
+        return timelineResolver.stateFromTimerFire(
             dsts,
             renderSkinTime,
             timerFire,
-            Lr2Timeline.dstsUseActiveOptions(dsts) ? runtimeActiveOptions : []);
+            timelineResolver.usesActiveOptionsFor(dsts) ? runtimeActiveOptions : []);
     }
 
     function timerFireFor(timer) {
@@ -72,26 +75,31 @@ Item {
         if (screenRoot && screenRoot.skinTimerFireTime) {
             return screenRoot.skinTimerFireTime(idx, false);
         }
-        return Lr2Timeline.getTimerFire(timers, idx);
+        return timelineResolver.timerFireFor(timers, idx);
     }
 
     function sourceTimerFireFor(src) {
-        if (!src || (src.cycle || 0) <= 0) {
+        if (!timelineResolver.sourceCyclesContinuously(src)) {
             return -2147483648;
         }
-        let divX = Math.max(1, src.div_x || 1);
-        let divY = Math.max(1, src.div_y || 1);
-        if (divX * divY <= 1) {
-            return -2147483648;
-        }
-        return root.timerFireFor(src.timer || 0);
+        return root.timerFireFor(timelineResolver.sourceTimerFor(src));
     }
 
     function noteDstState(index) {
+        if (skinRuntime) {
+            runtimeRevision;
+            runtimeTimerRevision;
+            return skinRuntime.noteDstState(index, renderSkinTime);
+        }
         return dstStateFor(noteDsts(index));
     }
 
     function lineDstState(index) {
+        if (skinRuntime) {
+            runtimeRevision;
+            runtimeTimerRevision;
+            return skinRuntime.lineDstState(index, renderSkinTime);
+        }
         return dstStateFor(lineDsts(index));
     }
 

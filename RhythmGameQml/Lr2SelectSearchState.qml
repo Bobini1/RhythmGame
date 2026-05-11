@@ -1,7 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 
 import QtQuick
-import "Lr2Timeline.js" as Lr2Timeline
+import RhythmGameQml 1.0
 
 QtObject {
     id: searchState
@@ -11,6 +11,7 @@ QtObject {
 
     readonly property var host: screenRoot
     property var inputItem: null
+    property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property bool focused: !!searchState.inputItem && searchState.inputItem.activeFocus
 
     function isText(src) {
@@ -26,8 +27,8 @@ QtObject {
         if (!searchState.isText(src)) {
             return null;
         }
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        return Lr2Timeline.getCurrentStateFromTimerFire(
+        let timer = timelineResolver.firstTimerFor(dsts);
+        return timelineResolver.stateFromTimerFire(
             dsts,
             host.renderSkinTime,
             host.skinTimerFireTime(timer),

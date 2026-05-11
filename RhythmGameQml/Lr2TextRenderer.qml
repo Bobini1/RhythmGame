@@ -1,6 +1,5 @@
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2Timeline.js" as Lr2Timeline
 
 // Root fills the Loader (skin canvas); inner `textBox` does the real
 // animated positioning/sizing so that QQuickLoader's size-sync can't
@@ -25,12 +24,12 @@ Item {
     property string resolvedText: ""
 
     readonly property bool hasStaticTimelineState: !stateOverride
-        && Lr2Timeline.canUseStaticState(dsts)
+        && timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState
-        ? Lr2Timeline.copyDstAsState(dsts[0], dsts[0])
+        ? timelineState.staticState
         : null
-    readonly property var timelineTimers: Lr2Timeline.dstsUseDynamicTimer(dsts) ? timers : null
-    readonly property var timelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(dsts) ? activeOptions : []
+    readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
+    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.stateOverride && !root.hasStaticTimelineState
         skinClock: root.skinClock
@@ -95,8 +94,8 @@ Item {
         Lr2BitmapFontText {
             visible: root.isLr2Font && root.blendMode !== 2
             anchors.fill: parent
-            fontPath: root.srcData ? root.srcData.fontPath : ""
-            text: root.resolvedText
+            fontPath: root.blendMode !== 2 && root.srcData ? root.srcData.fontPath : ""
+            text: root.blendMode !== 2 ? root.resolvedText : ""
             textColor: root.textColor
             alignment: root.textAlignment
         }
@@ -104,9 +103,9 @@ Item {
         Lr2SystemFontText {
             visible: !root.isLr2Font && root.blendMode !== 2
             anchors.fill: parent
-            text: root.displayText
+            text: root.blendMode !== 2 ? root.displayText : ""
             textColor: root.textColor
-            family: root.fontFamily
+            family: root.blendMode !== 2 ? root.fontFamily : ""
             alignment: root.textAlignment
             fontSize: root.textFontSize
             fontThickness: root.textFontThickness
@@ -120,20 +119,20 @@ Item {
             anchors.fill: parent
 
             Lr2BitmapFontText {
-                visible: root.isLr2Font
+                visible: root.blendMode === 2 && root.isLr2Font
                 anchors.fill: parent
-                fontPath: root.srcData ? root.srcData.fontPath : ""
-                text: root.resolvedText
+                fontPath: root.blendMode === 2 && root.srcData ? root.srcData.fontPath : ""
+                text: root.blendMode === 2 ? root.resolvedText : ""
                 textColor: root.textColor
                 alignment: root.textAlignment
             }
 
             Lr2SystemFontText {
-                visible: !root.isLr2Font
+                visible: root.blendMode === 2 && !root.isLr2Font
                 anchors.fill: parent
-                text: root.displayText
+                text: root.blendMode === 2 ? root.displayText : ""
                 textColor: root.textColor
-                family: root.fontFamily
+                family: root.blendMode === 2 ? root.fontFamily : ""
                 alignment: root.textAlignment
                 fontSize: root.textFontSize
                 fontThickness: root.textFontThickness

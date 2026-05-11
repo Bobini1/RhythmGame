@@ -1,16 +1,14 @@
 pragma ValueTypeBehavior: Addressable
 
 import QtQuick
-import "Lr2Timeline.js" as Lr2Timeline
 
 QtObject {
     id: root
 
     required property var host
+    property var skinRuntime: null
     property bool tracking: false
     property real skinScale: 1
-    property var zeroTimers: ({ "0": 0 })
-    property var emptyActiveOptions: []
 
     property var elements: ({})
     readonly property int elementCount: Object.keys(root.elements).length
@@ -33,7 +31,6 @@ QtObject {
     property var visibleByIndex: ({})
     readonly property string visibleSignature: Object.keys(root.visibleByIndex).join(",")
     property int revision: 0
-    property bool refreshQueued: false
     property int skinX: -1
     property int skinY: -1
     readonly property bool hasPoint: root.skinX >= 0 && root.skinY >= 0
@@ -50,16 +47,7 @@ QtObject {
         }
     }
 
-    onCandidateKeysChanged: root.scheduleRefresh()
-
-    property FrameAnimation refreshAnimation: FrameAnimation {
-        running: false
-        onTriggered: {
-            root.refreshQueued = false;
-            running = false;
-            root.refreshCache();
-        }
-    }
+    onCandidateKeysChanged: root.refreshIfTracking()
 
     function copyObject(value) {
         let result = {};
@@ -88,7 +76,7 @@ QtObject {
         }
         root.skinX = mx;
         root.skinY = my;
-        root.scheduleRefresh();
+        root.refreshIfTracking();
         return true;
     }
 
@@ -102,7 +90,7 @@ QtObject {
         root.clearCache();
     }
 
-    function registerElement(elementIndex, src, dsts, enabled) {
+    function registerElement(elementIndex, src, enabled) {
         const key = String(elementIndex);
         const hadElement = root.elements[key] !== undefined;
         if (!enabled || !src || !src.onMouse) {
@@ -110,7 +98,7 @@ QtObject {
                 let nextElements = root.copyObject(root.elements);
                 delete nextElements[key];
                 root.elements = nextElements;
-                root.scheduleRefresh();
+                root.refreshIfTracking();
             }
             return;
         }
@@ -118,13 +106,10 @@ QtObject {
         let nextElements = root.copyObject(root.elements);
         nextElements[key] = {
             "src": src,
-            "dsts": dsts,
-            "staticState": Lr2Timeline.canUseStaticState(dsts)
-                ? Lr2Timeline.getCurrentState(dsts, 0, root.zeroTimers, root.emptyActiveOptions)
-                : null
+            "runtimeIndex": elementIndex
         };
         root.elements = nextElements;
-        root.scheduleRefresh();
+        root.refreshIfTracking();
     }
 
     function unregisterElement(elementIndex) {
@@ -135,27 +120,14 @@ QtObject {
         let nextElements = root.copyObject(root.elements);
         delete nextElements[key];
         root.elements = nextElements;
-        root.scheduleRefresh();
+        root.refreshIfTracking();
     }
 
-    function scheduleRefresh() {
-        if (!root.tracking || root.refreshQueued || root.refreshAnimation.running) {
+    function refreshIfTracking() {
+        if (!root.tracking) {
             return;
         }
-        root.refreshQueued = true;
-        root.refreshAnimation.running = true;
-    }
-
-    function stopRefresh() {
-        root.refreshQueued = false;
-        root.refreshAnimation.running = false;
-    }
-
-    function runRefresh() {
-        if (root.refreshQueued) {
-            root.refreshQueued = false;
-            root.refreshCache();
-        }
+        root.refreshCache();
     }
 
     function clearCache() {
@@ -164,6 +136,33 @@ QtObject {
         }
         root.visibleByIndex = {};
         root.revision += 1;
+    }
+
+    function elementState(element) {
+        if (!element) {
+            return null;
+        }
+        if (!root.skinRuntime || element.runtimeIndex === undefined) {
+            return null;
+        }
+
+        const staticState = root.skinRuntime.staticStateForElement(element.runtimeIndex);
+        if (staticState) {
+            return staticState;
+        }
+
+        const descriptor = root.skinRuntime.descriptor(element.runtimeIndex);
+        return root.skinRuntime.stateForElement(
+            element.runtimeIndex,
+            descriptor.usesLiveDstClock ? root.host.selectSourceSkinTime : root.host.renderSkinTime);
+    }
+
+    function hoverStateAt(element, mx, my) {
+        if (!element || !element.src || !element.src.onMouse
+                || !root.host.panelMatches(element.src.hoverPanel || 0)) {
+            return null;
+        }
+        return root.host.onMouseStateContainsPoint(element.src, root.elementState(element), mx, my);
     }
 
     function refreshCache() {
@@ -180,7 +179,7 @@ QtObject {
         for (let i = 0; i < keys.length; ++i) {
             const key = keys[i];
             const element = root.elements[key];
-            if (root.host.onMouseElementStateAt(element, mx, my) !== null) {
+            if (root.hoverStateAt(element, mx, my) !== null) {
                 visible[key] = true;
                 visibleKeys.push(key);
             }

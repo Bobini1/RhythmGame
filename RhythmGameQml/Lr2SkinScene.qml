@@ -16,6 +16,9 @@ Item {
     readonly property real skinW: rootReady ? root.skinW : 0
     readonly property real skinH: rootReady ? root.skinH : 0
     readonly property real skinScale: rootReady ? root.skinScale : 1
+    readonly property var skinRuntime: rootReady ? root.skinRuntimeRef : null
+    readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
+    readonly property int runtimeActiveOptionsRevision: skinRuntime ? skinRuntime.activeOptionsRevision : 0
     readonly property var renderChart: rootReady ? root.renderChart : null
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
@@ -33,6 +36,8 @@ Item {
             + selectContext.listRevision
             + selectContext.folderLampRevision
             + root.lr2SkinSettingsRevision
+    readonly property int selectStableBarGraphValueRevision: !rootReady ? 0
+        : root.lr2SkinSettingsRevision
 
     function selectNumberUsesFocusedState(num) {
         return num === 42 || num === 96
@@ -86,7 +91,8 @@ Item {
     }
 
     function selectBarGraphUsesFocusedState(type) {
-        return (type >= 5 && type <= 9)
+        return type === 101
+            || (type >= 5 && type <= 9)
             || (type >= 40 && type <= 47)
             || (type >= 103 && type <= 115)
             || (type >= 140 && type <= 147);
@@ -100,7 +106,9 @@ Item {
             return valueRevision;
         }
         let type = src ? (src.graphType || 0) : 0;
-        return selectBarGraphUsesFocusedState(type) ? selectDetailValueRevision : valueRevision;
+        return selectBarGraphUsesFocusedState(type)
+            ? selectDetailValueRevision
+            : selectStableBarGraphValueRevision;
     }
 
     function hoverPointInSkinCoordinates() {
@@ -111,6 +119,7 @@ Item {
         id: selectPointerController
         screenRoot: sceneRoot.root
         selectContext: sceneRoot.selectContext
+        skinRuntime: sceneRoot.skinRuntime
         skinScale: sceneRoot.skinScale
     }
 
@@ -255,70 +264,75 @@ Item {
                     x: 0; y: 0
                     width: skinW * skinScale
                     height: skinH * skinScale
-                    z: root.elementZ(model.type, index, model.src, model.dsts)
-                    readonly property bool usesActiveOptions: !!root.dstsUseActiveOptions(model.dsts)
-                    readonly property bool usesSkinTime: root.elementUsesSkinTime(model.src, model.dsts)
-                    readonly property int dstTimer: model.dsts && model.dsts.length > 0
-                        ? (model.dsts[0].timer || 0)
-                        : 0
-                    readonly property int srcTimer: model.src ? (model.src.timer || 0) : 0
-                    readonly property var timing: root.skinTimingRef
-                    readonly property bool dstTimerCanFire: timing ? timing.skinTimerCanFire(dstTimer) : false
-                    readonly property bool srcTimerCanFire: timing ? timing.skinTimerCanFire(srcTimer) : false
-                    readonly property bool usesSelectHeldButtonTimer: root.isSelectHeldButtonTimer(dstTimer)
-                    readonly property bool usesLiveDstClock: root.elementUsesLiveDstClock(model.dsts)
-                    readonly property bool usesLiveSourceClock: root.elementUsesLiveSourceClock(model.src)
-                    readonly property bool usesLiveSelectClock: usesLiveDstClock || usesLiveSourceClock
-                    readonly property int spriteStateOverrideKind: root.elementSpriteStateOverrideKind(model.src)
-                    readonly property bool usesSpriteStateOverride: spriteStateOverrideKind !== root.noSpriteStateOverride
-                    readonly property bool usesSpriteForceHidden: root.elementUsesSpriteForceHidden(model.src)
-                    readonly property bool usesButtonFrameOverride: root.elementUsesButtonFrameOverride(model.src)
-                    readonly property var elementActiveOptions: usesActiveOptions
-                        ? root.activeOptionsForElementDsts(model.dsts)
-                        : root.emptyActiveOptions
+                    z: elementState.z || 0
+
+                    readonly property var elementState: {
+                        sceneRoot.runtimeRevision;
+                        return sceneRoot.skinRuntime
+                            ? sceneRoot.skinRuntime.descriptor(index)
+                            : ({});
+                    }
+
+                    readonly property bool usesActiveOptions: elementState.usesActiveOptions
+                    readonly property bool usesSkinTime: elementState.usesSkinTime
+                    readonly property int dstTimer: elementState.dstTimer
+                    readonly property int srcTimer: elementState.srcTimer
+                    readonly property bool usesSelectHeldButtonTimer: elementState.usesSelectHeldButtonTimer
+                    readonly property bool usesLiveDstClock: elementState.usesLiveDstClock
+                    readonly property bool usesLiveSourceClock: elementState.usesLiveSourceClock
+                    readonly property bool usesLiveSelectClock: elementState.usesLiveSelectClock
+                    readonly property bool usesDynamicDstTimer: elementState.usesDynamicDstTimer
+                    readonly property bool usesDynamicSrcTimer: elementState.usesDynamicSrcTimer
+                    readonly property int spriteStateOverrideKind: elementState.spriteStateOverrideKind
+                    readonly property bool usesSpriteStateOverride: elementState.usesSpriteStateOverride
+                    readonly property bool usesSpriteForceHidden: elementState.usesSpriteForceHidden
+                    readonly property bool usesButtonFrameOverride: elementState.usesButtonFrameOverride
+                    readonly property var elementTimerState: {
+                        sceneRoot.runtimeRevision;
+                        return sceneRoot.skinRuntime
+                            ? sceneRoot.skinRuntime.elementTimerState(index)
+                            : null;
+                    }
+                    readonly property var elementActiveOptions: {
+                        sceneRoot.runtimeRevision;
+                        sceneRoot.runtimeActiveOptionsRevision;
+                        return elemLoader.usesActiveOptions && sceneRoot.skinRuntime
+                            ? sceneRoot.skinRuntime.elementActiveOptionsForElement(index)
+                            : root.emptyActiveOptions;
+                    }
                     readonly property int dstTimerFire: {
-                        if (dstTimer === 0) {
-                            return 0;
+                        if (!elemLoader.usesDynamicDstTimer) {
+                            return elemLoader.dstTimer === 0 ? 0 : -1;
                         }
-                        return dstTimerCanFire && timing
-                            ? timing.skinTimerFireTime(dstTimer, usesLiveDstClock)
+                        return elemLoader.elementTimerState
+                            ? elemLoader.elementTimerState.dstTimerFire
                             : -1;
                     }
                     readonly property int srcTimerFire: {
-                        if (srcTimer === 0) {
-                            return 0;
+                        if (!elemLoader.usesDynamicSrcTimer) {
+                            return elemLoader.srcTimer === 0 ? 0 : -1;
                         }
-                        return srcTimerCanFire && timing
-                            ? timing.skinTimerFireTime(srcTimer, usesLiveSourceClock)
+                        return elemLoader.elementTimerState
+                            ? elemLoader.elementTimerState.srcTimerFire
                             : -1;
                     }
-                    readonly property bool usesElementSkinTime: usesSkinTime
-                        && model.type !== 0
-                        && model.type !== 3
-                        && model.type !== 4
-                        && model.type !== 5
-                        && model.type !== 8
-                        && model.type !== 9
+                    readonly property bool usesElementSkinTime: elementState.usesElementSkinTime
                     readonly property int manualClock: 0
                     readonly property int renderClock: 1
                     readonly property int selectSourceClock: 2
-                    readonly property int elementSkinClockMode: usesElementSkinTime
-                        ? (usesLiveSelectClock ? selectSourceClock : renderClock)
-                        : manualClock
-                    readonly property bool useDirectElementSkinClock: usesElementSkinTime
-                    readonly property bool needsManualElementSkinTime: usesElementSkinTime
-                        && (model.type === 7
-                            || model.type === 10
-                            || model.type === 11
-                            || model.type === 12
-                            || (model.type === 1 && root.sourceHasFrameAnimation(model.src)))
+                    readonly property int selectInfoClock: 6
+                    readonly property int elementSkinClockMode: elementState.elementSkinClockMode
+                    readonly property bool useDirectElementSkinClock: elementState.useDirectElementSkinClock
+                    readonly property bool needsManualElementSkinTime: elementState.needsManualElementSkinTime
                     readonly property int elementSkinTime: needsManualElementSkinTime
-                        ? (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime)
+                        ? (elementSkinClockMode === selectInfoClock
+                            ? root.selectInfoElapsed
+                            : (usesLiveSelectClock ? root.selectSourceSkinTime : root.renderSkinTime))
                         : 0
 
                     Component.onCompleted: {
-                        root.registerSelectHoverElement(index, model.src, model.dsts, usesSpriteForceHidden);
-                        selectPointerController.registerElement(index, model.type, model.src, model.dsts, z);
+                        root.registerSelectHoverElement(index, model.src, usesSpriteForceHidden);
+                        selectPointerController.registerElement(index, model.type, model.src, z);
                     }
                     Component.onDestruction: {
                         root.unregisterSelectHoverElement(index);
@@ -327,7 +341,7 @@ Item {
 
                     sourceComponent: {
                         if (model.type === 0) {
-                            return model.src && model.src.mouseCursor ? undefined : imageComponent;
+                            return elementState.sourceMouseCursor ? undefined : imageComponent;
                         } else if (model.type === 1) {
                             return numberComponent;
                         } else if (model.type === 2) {
@@ -366,17 +380,13 @@ Item {
                             readonly property int manualClock: 0
                             readonly property int renderClock: 1
                             readonly property int selectSourceClock: 2
-                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
+                            readonly property int selectInfoClock: 6
+                            readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
                             readonly property real nowJudgeOffsetX: root.nowJudgeOffsetX(model.src, model.dsts)
-                            readonly property int scratchRotationSide: root.dstsScratchRotationSide(model.dsts)
-                            readonly property bool useDirectSkinClock: elemLoader.usesSkinTime
-                                && !elemLoader.usesSelectHeldButtonTimer
-                            readonly property int spriteSkinClockMode: useDirectSkinClock
-                                ? (elemLoader.usesLiveDstClock ? selectSourceClock : renderClock)
-                                : manualClock
-                            readonly property int spriteSourceSkinClockMode: useDirectSkinClock && sourceAnimates
-                                ? (elemLoader.usesLiveSourceClock ? selectSourceClock : renderClock)
-                                : manualClock
+                            readonly property int scratchRotationSide: elementState.scratchRotationSide
+                            readonly property bool useDirectSkinClock: elementState.spriteUsesDirectSkinClock
+                            readonly property int spriteSkinClockMode: elementState.spriteSkinClockMode
+                            readonly property int spriteSourceSkinClockMode: elementState.spriteSourceSkinClockMode
                             readonly property int selectHeldSkinClock: elemLoader.usesSelectHeldButtonTimer
                                 ? (root.hasSelectHeldButtonTimers
                                     ? root.selectHeldButtonSkinTime
@@ -385,28 +395,27 @@ Item {
                             readonly property int spriteSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
                                 ? (elemLoader.usesSelectHeldButtonTimer
                                     ? selectHeldSkinClock
-                                    : (elemLoader.usesLiveDstClock
+                                    : (spriteSkinClockMode === selectInfoClock
+                                        ? root.selectInfoElapsed
+                                        : (elemLoader.usesLiveDstClock
                                             ? root.selectSourceSkinTime
-                                            : root.renderSkinTime))
+                                            : root.renderSkinTime)))
                                 : 0
                             readonly property int spriteSourceSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
                                 ? (elemLoader.usesSelectHeldButtonTimer
                                     ? selectHeldSkinClock
-                                    : (elemLoader.usesLiveSourceClock
+                                    : (spriteSourceSkinClockMode === selectInfoClock
+                                        ? root.selectInfoElapsed
+                                        : (elemLoader.usesLiveSourceClock
                                         ? root.selectSourceSkinTime
-                                        : spriteSkinClock))
+                                        : spriteSkinClock)))
                                 : 0
                             readonly property bool sliderTranslationEnabled: elemLoader.usesSpriteStateOverride
                             readonly property real sliderPosition: sliderTranslationEnabled
                                 ? root.spriteSliderPositionForKind(elemLoader.spriteStateOverrideKind, model.src)
                                 : 0
-                            readonly property bool dstOffsetsEnabled: root.isGameplayScreen()
-                                && model.dsts
-                                && model.dsts.length > 0
-                                && model.dsts[0]
-                                && model.dsts[0].offsets
-                                && model.dsts[0].offsets.length > 0
-                            readonly property int dstOffsetSide: model.src && model.src.side === 2 ? 2 : 1
+                            readonly property bool dstOffsetsEnabled: elementState.dstOffsetsEnabled
+                            readonly property int dstOffsetSide: elementState.dstOffsetSide
 
                             Component.onCompleted: root.observeSelectSortButton(model.src)
 
@@ -549,7 +558,7 @@ Item {
                         id: numberComponent
                         Lr2NumberRenderer {
                             id: numberRenderer
-                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
+                            readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.useDirectElementSkinClock && !sourceAnimates ? 0 : elemLoader.elementSkinTime
@@ -609,7 +618,7 @@ Item {
                     Component {
                         id: barImageComponent
                         Lr2BarSpriteRenderer {
-                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
+                            readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.barSkinTime
@@ -689,7 +698,7 @@ Item {
                     Component {
                         id: barGraphComponent
                         Lr2BarGraphRenderer {
-                            readonly property bool sourceAnimates: root.sourceHasFrameAnimation(model.src)
+                            readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
@@ -714,7 +723,10 @@ Item {
                             transColor: skinModel.transColor
                             value: {
                                 sceneRoot.barGraphValueRevision(model.src);
-                                return root.resolveBarGraph(model.src ? model.src.graphType : 0);
+                                let graphType = model.src ? model.src.graphType || 0 : 0;
+                                return root.effectiveScreenKey === "select"
+                                    ? selectContext.nativeBarGraphValue(graphType)
+                                    : root.resolveBarGraph(graphType);
                             }
                             animateValue: root.effectiveScreenKey === "select"
                                 && model.src

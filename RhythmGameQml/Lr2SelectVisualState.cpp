@@ -10,6 +10,11 @@ qreal Lr2SelectVisualState::visualIndex() const {
 }
 
 void Lr2SelectVisualState::setVisualIndex(qreal value) {
+    stopAnimation();
+    setVisualIndexValue(value);
+}
+
+void Lr2SelectVisualState::setVisualIndexValue(qreal value) {
     if (m_visualIndex == value) {
         return;
     }
@@ -76,6 +81,64 @@ int Lr2SelectVisualState::cursorBaseIndex() const {
 
 qreal Lr2SelectVisualState::offset() const {
     return m_offset;
+}
+
+bool Lr2SelectVisualState::animationRunning() const {
+    return m_animationRunning;
+}
+
+void Lr2SelectVisualState::jumpTo(qreal value) {
+    stopAnimation();
+    setVisualIndexValue(value);
+}
+
+void Lr2SelectVisualState::startAnimation(qreal from, qreal to, int durationMs, qreal nowMs) {
+    durationMs = std::max(0, durationMs);
+    if (durationMs <= 0 || from == to) {
+        jumpTo(to);
+        emit animationFinished();
+        return;
+    }
+
+    m_animationFrom = from;
+    m_animationTo = to;
+    m_animationStartMs = nowMs;
+    m_animationEndMs = nowMs + durationMs;
+
+    const bool wasRunning = m_animationRunning;
+    m_animationRunning = true;
+    setVisualIndexValue(from);
+    if (!wasRunning) {
+        emit animationRunningChanged();
+    }
+    advanceAnimation(nowMs);
+}
+
+bool Lr2SelectVisualState::advanceAnimation(qreal nowMs) {
+    if (!m_animationRunning) {
+        return false;
+    }
+
+    if (nowMs >= m_animationEndMs) {
+        m_animationRunning = false;
+        setVisualIndexValue(m_animationTo);
+        emit animationRunningChanged();
+        emit animationFinished();
+        return true;
+    }
+
+    const qreal duration = std::max<qreal>(1.0, m_animationEndMs - m_animationStartMs);
+    const qreal progress = std::clamp((nowMs - m_animationStartMs) / duration, 0.0, 1.0);
+    setVisualIndexValue(m_animationFrom + (m_animationTo - m_animationFrom) * progress);
+    return true;
+}
+
+void Lr2SelectVisualState::stopAnimation() {
+    if (!m_animationRunning) {
+        return;
+    }
+    m_animationRunning = false;
+    emit animationRunningChanged();
 }
 
 void Lr2SelectVisualState::recompute() {

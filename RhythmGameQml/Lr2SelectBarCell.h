@@ -99,6 +99,11 @@ public:
     Q_INVOKABLE bool rankVisibleForKind(int kind) const;
     Q_INVOKABLE int rankForKind(int kind) const;
     Q_INVOKABLE bool overlayVisibleForKind(int kind, int variant) const;
+    Q_INVOKABLE QVariantList graphSegmentModel(int graphType,
+                                               int segmentCount,
+                                               int frameCount,
+                                               const QVariant& state) const;
+    qreal graphValueForType(int graphType, int segment) const;
 
     Q_INVOKABLE void setCore(int row,
                              bool valid,
@@ -160,4 +165,11 @@ private:
     QVariantList m_graphLamps;
     QVariantList m_graphRanks;
     int m_revision = 0;
+
+    mutable int m_graphSegmentCacheRevision = -1;
+    mutable int m_graphSegmentCacheGraphType = -1;
+    mutable int m_graphSegmentCacheSegmentCount = -1;
+    mutable int m_graphSegmentCacheFrameCount = -1;
+    mutable QVariant m_graphSegmentCacheState;
+    mutable QVariantList m_graphSegmentCacheModel;
 };

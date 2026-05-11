@@ -19,6 +19,16 @@ add_executable(RhythmGame_test
         charts/BmsChart.test.cpp
         resource_managers/loadBmsSounds.test.cpp
         resource_managers/Lr2FontCache.test.cpp
+        lr2_skin/Lr2SkinRuntimeTypes.test.cpp
+        lr2_skin/Lr2SelectStateCache.test.cpp
+        ../RhythmGameQml/Lr2SkinRuntimeTypes.cpp
+        ../RhythmGameQml/Lr2SelectBarCell.cpp
+        ../RhythmGameQml/Lr2SelectBarWindow.cpp
+        ../RhythmGameQml/Lr2SelectVisualState.cpp
+        ../RhythmGameQml/Lr2SelectStateCache.cpp
+)
+target_include_directories(RhythmGame_test PRIVATE
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml
 )
 target_link_libraries(
         RhythmGame_test PRIVATE

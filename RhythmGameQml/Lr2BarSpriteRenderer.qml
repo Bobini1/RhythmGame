@@ -1,6 +1,5 @@
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2Timeline.js" as Lr2Timeline
 
 Item {
     id: root
@@ -44,12 +43,12 @@ Item {
         : (barCells ? barCells.length : 0)
     readonly property bool hasOverlayTimelineState: srcData && srcData.kind >= 2
     readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
-    readonly property bool overlayHasStaticTimelineState: Lr2Timeline.canUseStaticState(overlayDsts)
+    readonly property bool overlayHasStaticTimelineState: overlayTimelineCache.canUseStaticState
     readonly property var overlayStaticTimelineState: overlayHasStaticTimelineState
-        ? Lr2Timeline.copyDstAsState(overlayDsts[0], overlayDsts[0])
+        ? overlayTimelineCache.staticState
         : null
-    readonly property var overlayTimelineTimers: Lr2Timeline.dstsUseDynamicTimer(overlayDsts) ? timers : null
-    readonly property var overlayTimelineActiveOptions: Lr2Timeline.dstsUseActiveOptions(overlayDsts) ? activeOptions : []
+    readonly property var overlayTimelineTimers: overlayTimelineCache.usesDynamicTimer ? timers : null
+    readonly property var overlayTimelineActiveOptions: overlayTimelineCache.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState overlayTimelineCache: Lr2TimelineState {
         enabled: root.hasOverlayTimelineState && !root.overlayHasStaticTimelineState
         dsts: root.overlayDsts
@@ -230,14 +229,20 @@ Item {
         }
     }
 
+    function sourceCyclesContinuously(source) {
+        return source
+            && (source.cycle || 0) > 0
+            && Math.max(1, source.div_x || 1) * Math.max(1, source.div_y || 1) > 1;
+    }
+
     function spriteSourceSkinTime(source) {
-        return Lr2Timeline.srcCyclesContinuously(source)
+        return sourceCyclesContinuously(source)
             ? root.sourceSkinTime
             : 0;
     }
 
     function spriteSourceTimerFire(source) {
-        return Lr2Timeline.srcCyclesContinuously(source)
+        return sourceCyclesContinuously(source)
             ? root.sourceTimerFire
             : -2147483648;
     }

@@ -47,7 +47,7 @@ int Lr2AnimationFrameState::clockMode() const {
 }
 
 void Lr2AnimationFrameState::setClockMode(int mode) {
-    mode = std::clamp(mode, static_cast<int>(ManualClock), static_cast<int>(SelectLiveClock));
+    mode = std::clamp(mode, static_cast<int>(ManualClock), static_cast<int>(SelectInfoClock));
     if (m_clockMode == mode) {
         return;
     }
@@ -141,6 +141,21 @@ void Lr2AnimationFrameState::setFrameOverride(int frameOverride) {
 
     m_frameOverride = frameOverride;
     emit frameOverrideChanged();
+    updateFrameIndex();
+}
+
+int Lr2AnimationFrameState::frameGroupSize() const {
+    return m_frameGroupSize;
+}
+
+void Lr2AnimationFrameState::setFrameGroupSize(int frameGroupSize) {
+    frameGroupSize = std::max(1, frameGroupSize);
+    if (m_frameGroupSize == frameGroupSize) {
+        return;
+    }
+
+    m_frameGroupSize = frameGroupSize;
+    emit frameGroupSizeChanged();
     updateFrameIndex();
 }
 
@@ -238,6 +253,13 @@ void Lr2AnimationFrameState::reconnectClock() {
             this,
             &Lr2AnimationFrameState::updateSkinTimeFromClock);
         break;
+    case SelectInfoClock:
+        m_clockConnection = QObject::connect(
+            m_skinClock,
+            &Lr2SkinClock::selectInfoElapsedChanged,
+            this,
+            &Lr2AnimationFrameState::updateSkinTimeFromClock);
+        break;
     default:
         break;
     }
@@ -256,16 +278,19 @@ void Lr2AnimationFrameState::updateSkinTimeFromClock() {
 void Lr2AnimationFrameState::updateFrameIndex() {
     int next = 0;
     const int frames = frameCount(m_source);
+    const int animationFrames = m_frameGroupSize > 1
+        ? std::max(1, frames / m_frameGroupSize)
+        : frames;
 
     if (m_enabled && m_frameOverride >= 0) {
         next = std::clamp(m_frameOverride, 0, std::max(0, frames - 1));
-    } else if (m_enabled && m_source.valid && frames > 1 && m_source.cycle > 0) {
+    } else if (m_enabled && m_source.valid && animationFrames > 1 && m_source.cycle > 0) {
         const qreal fire = effectiveTimerFire();
         const qreal animTime = m_skinTime - fire;
-        const qreal msPerFrame = static_cast<qreal>(m_source.cycle) / frames;
+        const qreal msPerFrame = static_cast<qreal>(m_source.cycle) / animationFrames;
         if (fire >= 0.0 && animTime >= 0.0 && msPerFrame >= 1.0) {
             const qreal phase = std::fmod(animTime, static_cast<qreal>(m_source.cycle));
-            next = std::clamp(static_cast<int>(std::floor(phase / msPerFrame)), 0, frames - 1);
+            next = std::clamp(static_cast<int>(std::floor(phase / msPerFrame)), 0, animationFrames - 1);
         }
     }
 
@@ -301,6 +326,8 @@ int Lr2AnimationFrameState::clockSkinTime() const {
         return m_skinClock->globalSkinTime();
     case SelectLiveClock:
         return m_skinClock->selectLiveSkinTime();
+    case SelectInfoClock:
+        return m_skinClock->selectInfoElapsed();
     default:
         return m_skinTime;
     }
