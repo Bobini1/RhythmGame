@@ -98,6 +98,13 @@ Item {
         return barRows && row >= 0 && row < barRows.length ? barRows[row] : null;
     }
 
+    function sourceUsesChartAsset(source) {
+        if (!source) {
+            return false;
+        }
+        return source.specialType === 1 || source.specialType === 3 || source.specialType === 4;
+    }
+
     function visibilityState(row) {
         return cachedBaseState(row);
     }
@@ -290,7 +297,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: root.spriteSourceTimerFire(bodyDelegate.bodySource)
-                chart: root.chart
+                chart: root.sourceUsesChartAsset(bodyDelegate.bodySource) ? root.chart : null
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: false
@@ -349,7 +356,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: root.spriteSourceTimerFire(srcData)
-                chart: root.chart
+                chart: root.sourceUsesChartAsset(srcData) ? root.chart : null
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: root.colorKeyEnabled

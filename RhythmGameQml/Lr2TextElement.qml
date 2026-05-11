@@ -226,7 +226,6 @@ Item {
         skinClockMode: textElement.skinClockMode
         activeOptions: textElement.activeOptions
         timerFire: textElement.timerFire
-        chart: textElement.chart
         scaleOverride: textElement.skinScale
         resolvedText: {
             if (!textRenderer.hasCurrentState || !textElement.ready) {

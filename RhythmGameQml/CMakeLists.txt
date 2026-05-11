@@ -40,6 +40,8 @@ qt_add_qml_module(RhythmGame_qml
         Lr2SkinTimerState.cpp
         Lr2SkinElementTimerState.h
         Lr2SkinElementTimerState.cpp
+        Lr2SkinElementActiveOptionsState.h
+        Lr2SkinElementActiveOptionsState.cpp
         Lr2SkinRuntimeTypes.h
         Lr2SkinRuntimeTypes.cpp
         Lr2SkinRuntime.h

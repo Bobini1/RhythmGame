@@ -12,6 +12,7 @@
 
 class Lr2SkinTimerState;
 class Lr2SkinElementTimerState;
+class Lr2SkinElementActiveOptionsState;
 
 class Lr2SkinRuntime : public QObject {
     Q_OBJECT
@@ -55,6 +56,7 @@ public:
 
     Q_INVOKABLE QVariantMap descriptor(int index) const;
     Q_INVOKABLE QVariantList elementActiveOptionsForElement(int index) const;
+    Q_INVOKABLE QObject* elementActiveOptionsState(int index) const;
     Q_INVOKABLE QVariant staticStateForElement(int index) const;
     Q_INVOKABLE QVariant stateForElement(int index, int skinTime) const;
     Q_INVOKABLE QVariant sliderTrackStateForElement(int index, int skinTime) const;
@@ -156,8 +158,11 @@ private:
     const ElementDescriptor* descriptorAt(int index) const;
     void updateTimerFiresForIndexes(const QVector<int>& indexes);
     void ensureElementTimerStateCount(int count);
+    void ensureElementActiveOptionsStateCount(int count);
     void updateElementTimerState(int index, const TimerSnapshot& snapshot);
+    bool updateElementActiveOptionsState(int index, const QVariantList& activeOptions);
     void resetElementTimerStates();
+    void resetElementActiveOptionsStates();
     void reconnectSkinModel();
     void reconnectTimerState();
     void refreshActiveOptions();
@@ -175,6 +180,7 @@ private:
     qreal m_selectBarElementSortBase = 0.0;
     QVector<ElementDescriptor> m_descriptors;
     QVector<Lr2SkinElementTimerState*> m_elementTimerStates;
+    QVector<Lr2SkinElementActiveOptionsState*> m_elementActiveOptionsStates;
     QVector<int> m_timerDescriptorIndexes;
     QVector<int> m_selectInfoTimerDescriptorIndexes;
     QVector<LaneDescriptor> m_noteLaneDescriptors;

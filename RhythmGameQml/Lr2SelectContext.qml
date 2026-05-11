@@ -156,7 +156,6 @@ Item {
     }
 
     function applySelectedScoreState(state) {
-        selectedScoreState = state;
         Lr2SelectStateStore.setState(selectedStateStoreId, state);
         let nextChartWrapper = state.chartWrapper;
         if (visualChartWrapper !== nextChartWrapper) {

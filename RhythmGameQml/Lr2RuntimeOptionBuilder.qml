@@ -80,8 +80,8 @@ QtObject {
         selectRuntimeActiveOptionsCacheSize = 0;
     }
 
-    function selectRuntimeActiveOptionsCacheKey(commonOptions) {
-        let state = selectContext.selectedState();
+    function selectRuntimeActiveOptionsCacheKey(commonOptions, state) {
+        state = state !== undefined ? state : selectContext.selectedState();
         let commonKey = host.selectCommonActiveOptionsKey !== undefined
             ? host.selectCommonActiveOptionsKey
             : host.numberArrayKey(commonOptions || []);
@@ -646,8 +646,8 @@ QtObject {
         root.appendJudgementExistOptions(options, current1);
     }
 
-    function appendCurrentSelectOptions(options, item, selectedChart) {
-        let state = selectContext.selectedState();
+    function appendCurrentSelectOptions(options, item, selectedChart, state) {
+        state = state !== undefined ? state : selectContext.selectedState();
         let stateCurrent = state && state.scoreRevision === selectContext.scoreRevision
             && state.listRevision === selectContext.listRevision;
         let selectedItem = item || (state ? state.item : null);
@@ -800,13 +800,16 @@ QtObject {
     }
 
     function buildSelectRuntimeActiveOptions(commonOptions) {
-        let cacheKey = root.selectRuntimeActiveOptionsCacheKey(commonOptions);
+        let state = selectContext.selectedState();
+        let chartData = state ? state.chartData : null;
+        let item = selectContext.focusedItem;
+        let cacheKey = root.selectRuntimeActiveOptionsCacheKey(commonOptions, state);
         let cached = root.cachedSelectRuntimeActiveOptions(cacheKey);
         if (cached) {
             return cached;
         }
         let result = root.copyActiveOptions(commonOptions);
-        root.appendCurrentSelectOptions(result, selectContext.focusedItem, selectContext.selectedChartData());
+        root.appendCurrentSelectOptions(result, item, chartData, state);
         return root.storeSelectRuntimeActiveOptions(cacheKey, result);
     }
 

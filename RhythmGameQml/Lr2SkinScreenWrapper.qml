@@ -49,7 +49,6 @@ Item {
     property var gameplayTimerValues: ({ "0": 0 })
     property var gameplayRuntimeActiveOptions: []
     property var selectRuntimeActiveOptions: []
-    property int selectRuntimeActiveOptionsRevision: 0
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
@@ -3195,7 +3194,6 @@ Item {
         }
         root.selectRuntimeActiveOptionsKey = nextKey;
         root.selectRuntimeActiveOptions = next;
-        root.selectRuntimeActiveOptionsRevision += 1;
     }
 
     function refreshSelectRankingStatusOptions() {

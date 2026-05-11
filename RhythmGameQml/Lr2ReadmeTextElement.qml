@@ -36,7 +36,6 @@ Item {
             skinTime: readmeElement.skinTime
             activeOptions: readmeElement.activeOptions
             timerFire: readmeElement.timerFire
-            chart: readmeElement.chart
             scaleOverride: readmeElement.skinScale
             offsetX: readmeElement.root.lr2ReadmeOffsetX
             offsetY: readmeElement.root.lr2ReadmeOffsetY

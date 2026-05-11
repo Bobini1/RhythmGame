@@ -1,5 +1,6 @@
 #include "Lr2SkinRuntime.h"
 
+#include "Lr2SkinElementActiveOptionsState.h"
 #include "Lr2SkinElementTimerState.h"
 #include "Lr2SkinTimerState.h"
 
@@ -142,6 +143,12 @@ QVariantList Lr2SkinRuntime::elementActiveOptionsForElement(int index) const {
     return descriptor ? descriptor->elementActiveOptions : QVariantList {};
 }
 
+QObject* Lr2SkinRuntime::elementActiveOptionsState(int index) const {
+    return index >= 0 && index < m_elementActiveOptionsStates.size()
+        ? m_elementActiveOptionsStates.at(index)
+        : nullptr;
+}
+
 QVariant Lr2SkinRuntime::staticStateForElement(int index) const {
     const ElementDescriptor* descriptor = descriptorAt(index);
     if (!descriptor || descriptor->staticState.isNull() || descriptor->dsts.isEmpty()) {
@@ -232,9 +239,11 @@ void Lr2SkinRuntime::rebuildDescriptors() {
 
     if (!m_skinModel) {
         resetElementTimerStates();
+        resetElementActiveOptionsStates();
         bumpRevision();
         bumpTimerRevision();
         bumpSelectInfoTimerRevision();
+        bumpActiveOptionsRevision();
         return;
     }
 
@@ -252,6 +261,7 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     const int rows = m_skinModel->rowCount();
     m_descriptors.reserve(rows);
     ensureElementTimerStateCount(rows);
+    ensureElementActiveOptionsStateCount(rows);
     for (int row = 0; row < rows; ++row) {
         const int type = modelData(row, "type").toInt();
         const QVariant source = modelData(row, "src");
@@ -268,9 +278,13 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         }
         m_descriptors.append(std::move(descriptor));
         updateElementTimerState(row, m_descriptors.constLast().timers);
+        updateElementActiveOptionsState(row, m_descriptors.constLast().elementActiveOptions);
     }
     for (int row = rows; row < m_elementTimerStates.size(); ++row) {
         updateElementTimerState(row, TimerSnapshot {});
+    }
+    for (int row = rows; row < m_elementActiveOptionsStates.size(); ++row) {
+        updateElementActiveOptionsState(row, QVariantList {});
     }
 
     const QVector<LaneDescriptor>* laneCollections[] = {
@@ -366,6 +380,12 @@ void Lr2SkinRuntime::ensureElementTimerStateCount(int count) {
     }
 }
 
+void Lr2SkinRuntime::ensureElementActiveOptionsStateCount(int count) {
+    while (m_elementActiveOptionsStates.size() < count) {
+        m_elementActiveOptionsStates.append(new Lr2SkinElementActiveOptionsState(this));
+    }
+}
+
 void Lr2SkinRuntime::updateElementTimerState(int index, const TimerSnapshot& snapshot) {
     if (index < 0) {
         return;
@@ -378,10 +398,26 @@ void Lr2SkinRuntime::updateElementTimerState(int index, const TimerSnapshot& sna
         snapshot.srcTimerFire);
 }
 
+bool Lr2SkinRuntime::updateElementActiveOptionsState(int index, const QVariantList& activeOptions) {
+    if (index < 0) {
+        return false;
+    }
+    ensureElementActiveOptionsStateCount(index + 1);
+    return m_elementActiveOptionsStates[index]->setActiveOptions(activeOptions);
+}
+
 void Lr2SkinRuntime::resetElementTimerStates() {
     for (auto* timerState : std::as_const(m_elementTimerStates)) {
         if (timerState) {
             timerState->setSnapshot(false, -1, false, -1);
+        }
+    }
+}
+
+void Lr2SkinRuntime::resetElementActiveOptionsStates() {
+    for (auto* activeOptionsState : std::as_const(m_elementActiveOptionsStates)) {
+        if (activeOptionsState) {
+            activeOptionsState->setActiveOptions(QVariantList {});
         }
     }
 }
@@ -705,10 +741,16 @@ void Lr2SkinRuntime::reconnectTimerState() {
 }
 
 void Lr2SkinRuntime::refreshActiveOptions() {
+    bool anyChanged = false;
     for (ElementDescriptor& descriptor : m_descriptors) {
         descriptor.elementActiveOptions = descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty()
             ? rt::activeOptionsForDsts(descriptor.dsts.front(), m_runtimeActiveOptions)
             : QVariantList {};
+        anyChanged = updateElementActiveOptionsState(descriptor.index, descriptor.elementActiveOptions)
+            || anyChanged;
+    }
+    if (!anyChanged) {
+        return;
     }
     bumpActiveOptionsRevision();
 }

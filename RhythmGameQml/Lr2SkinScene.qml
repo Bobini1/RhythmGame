@@ -18,7 +18,6 @@ Item {
     readonly property real skinScale: rootReady ? root.skinScale : 1
     readonly property var skinRuntime: rootReady ? root.skinRuntimeRef : null
     readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
-    readonly property int runtimeActiveOptionsRevision: skinRuntime ? skinRuntime.activeOptionsRevision : 0
     readonly property var renderChart: rootReady ? root.renderChart : null
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
@@ -109,6 +108,36 @@ Item {
         return selectBarGraphUsesFocusedState(type)
             ? selectDetailValueRevision
             : selectStableBarGraphValueRevision;
+    }
+
+    function sourceUsesChartAsset(src) {
+        if (!src) {
+            return false;
+        }
+        return src.specialType === 1 || src.specialType === 3 || src.specialType === 4;
+    }
+
+    function sourceTreeUsesChartAsset(value, depth) {
+        if (!value || depth > 4) {
+            return false;
+        }
+        if (sourceUsesChartAsset(value)) {
+            return true;
+        }
+        if (value.length !== undefined && typeof value !== "string") {
+            for (let i = 0; i < value.length; ++i) {
+                if (sourceTreeUsesChartAsset(value[i], depth + 1)) {
+                    return true;
+                }
+            }
+        }
+        if (value.source && sourceTreeUsesChartAsset(value.source, depth + 1)) {
+            return true;
+        }
+        if (value.sources && sourceTreeUsesChartAsset(value.sources, depth + 1)) {
+            return true;
+        }
+        return false;
     }
 
     function hoverPointInSkinCoordinates() {
@@ -287,19 +316,19 @@ Item {
                     readonly property bool usesSpriteStateOverride: elementState.usesSpriteStateOverride
                     readonly property bool usesSpriteForceHidden: elementState.usesSpriteForceHidden
                     readonly property bool usesButtonFrameOverride: elementState.usesButtonFrameOverride
+                    readonly property var elementActiveOptionsState: sceneRoot.skinRuntime
+                        ? sceneRoot.skinRuntime.elementActiveOptionsState(index)
+                        : null
                     readonly property var elementTimerState: {
                         sceneRoot.runtimeRevision;
                         return sceneRoot.skinRuntime
                             ? sceneRoot.skinRuntime.elementTimerState(index)
                             : null;
                     }
-                    readonly property var elementActiveOptions: {
-                        sceneRoot.runtimeRevision;
-                        sceneRoot.runtimeActiveOptionsRevision;
-                        return elemLoader.usesActiveOptions && sceneRoot.skinRuntime
-                            ? sceneRoot.skinRuntime.elementActiveOptionsForElement(index)
-                            : root.emptyActiveOptions;
-                    }
+                    readonly property var elementActiveOptions: elemLoader.usesActiveOptions
+                        && elemLoader.elementActiveOptionsState
+                        ? elemLoader.elementActiveOptionsState.activeOptions
+                        : root.emptyActiveOptions
                     readonly property int dstTimerFire: {
                         if (!elemLoader.usesDynamicDstTimer) {
                             return elemLoader.dstTimer === 0 ? 0 : -1;
@@ -431,7 +460,7 @@ Item {
                                 activeOptions: elemLoader.elementActiveOptions
                                 timerFire: elemLoader.dstTimerFire
                                 sourceTimerFire: elemLoader.srcTimerFire
-                                chart: sceneRoot.renderChart
+                                chart: sceneRoot.sourceUsesChartAsset(model.src) ? sceneRoot.renderChart : null
                                 scaleOverride: skinScale
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
@@ -594,7 +623,6 @@ Item {
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
                             valueRevision: sceneRoot.textValueRevision(model.src)
-                            chart: sceneRoot.renderChart
                             skinScale: skinScale
                         }
                     }
@@ -627,7 +655,6 @@ Item {
                                 : (sourceAnimates ? root.renderSkinTime : 0)
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
-                            chart: sceneRoot.renderChart
                             scaleOverride: skinScale
                             selectContext: sceneRoot.root.selectContextRef
                             barRows: skinModel.barRows
@@ -642,6 +669,7 @@ Item {
                             selectedFastBarDrawX: root.selectedFastBarDrawX
                             selectedFastBarDrawY: root.selectedFastBarDrawY
                             barCenter: skinModel.barCenter
+                            chart: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.renderChart : null
                             transColor: skinModel.transColor
                             colorKeyEnabled: skinModel.hasTransColor
                         }
@@ -717,7 +745,7 @@ Item {
                             activeOptions: elemLoader.elementActiveOptions
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
-                            chart: sceneRoot.renderChart
+                            chart: sceneRoot.sourceUsesChartAsset(model.src) ? sceneRoot.renderChart : null
                             scaleOverride: skinScale
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
