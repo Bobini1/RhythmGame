@@ -3268,8 +3268,12 @@ Item {
     }
     Connections {
         target: selectContext
-        function onSelectionRevisionChanged() {
-            root.playSelectScratch();
+        function onEntryChangeSoundsRequested(count) {
+            let repeats = Math.max(0, Math.round(count || 0));
+            if (repeats <= 0) {
+                return;
+            }
+            selectSideEffects.playScratchBurst(repeats);
         }
         function onRankingModeChanged() {
             if (root.refreshBaseActiveOptions()) {
@@ -3863,7 +3867,7 @@ Item {
 
     Lr2GameplayFrameState {
         id: gameplayFrameState
-        chart: root.chart
+        chart: root.chart || null
     }
 
     Lr2SkinTiming {
@@ -4156,6 +4160,10 @@ Item {
 
     function playOneShot(player) {
         if (!root.enabled || !player || !player.source) {
+            return;
+        }
+        if (player.playOverlapping) {
+            player.playOverlapping();
             return;
         }
         player.stop();

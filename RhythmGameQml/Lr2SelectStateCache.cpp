@@ -149,26 +149,30 @@ int clearTypePriority(const QString& clearType) {
     if (clearType == QStringLiteral("AEASY")) {
         return 2;
     }
-    if (clearType == QStringLiteral("EASY")) {
+    if (clearType == QStringLiteral("LIGHTASSIST")
+            || clearType == QStringLiteral("LIGHT_ASSIST")) {
         return 3;
     }
-    if (clearType == QStringLiteral("NORMAL")) {
+    if (clearType == QStringLiteral("EASY")) {
         return 4;
     }
-    if (clearType == QStringLiteral("HARD")) {
+    if (clearType == QStringLiteral("NORMAL")) {
         return 5;
     }
-    if (clearType == QStringLiteral("EXHARD")) {
+    if (clearType == QStringLiteral("HARD")) {
         return 6;
     }
-    if (clearType == QStringLiteral("FC")) {
+    if (clearType == QStringLiteral("EXHARD")) {
         return 7;
     }
-    if (clearType == QStringLiteral("PERFECT")) {
+    if (clearType == QStringLiteral("FC")) {
         return 8;
     }
-    if (clearType == QStringLiteral("MAX")) {
+    if (clearType == QStringLiteral("PERFECT")) {
         return 9;
+    }
+    if (clearType == QStringLiteral("MAX")) {
+        return 10;
     }
     return 0;
 }
@@ -177,7 +181,10 @@ int clearTypeLamp(const QString& clearType) {
     if (clearType == QStringLiteral("FAILED")) {
         return 1;
     }
-    if (clearType == QStringLiteral("AEASY") || clearType == QStringLiteral("EASY")) {
+    if (clearType == QStringLiteral("AEASY")
+            || clearType == QStringLiteral("LIGHTASSIST")
+            || clearType == QStringLiteral("LIGHT_ASSIST")
+            || clearType == QStringLiteral("EASY")) {
         return 2;
     }
     if (clearType == QStringLiteral("NORMAL")) {
@@ -192,6 +199,21 @@ int clearTypeLamp(const QString& clearType) {
         return 5;
     }
     return 0;
+}
+
+QString canonicalClearType(const QString& clearType) {
+    if (clearType == QStringLiteral("FAILED")) return QStringLiteral("FAILED");
+    if (clearType == QStringLiteral("AEASY")) return QStringLiteral("AEASY");
+    if (clearType == QStringLiteral("LIGHTASSIST")
+            || clearType == QStringLiteral("LIGHT_ASSIST")) return QStringLiteral("LIGHTASSIST");
+    if (clearType == QStringLiteral("EASY")) return QStringLiteral("EASY");
+    if (clearType == QStringLiteral("NORMAL")) return QStringLiteral("NORMAL");
+    if (clearType == QStringLiteral("HARD")) return QStringLiteral("HARD");
+    if (clearType == QStringLiteral("EXHARD")) return QStringLiteral("EXHARD");
+    if (clearType == QStringLiteral("FC")) return QStringLiteral("FC");
+    if (clearType == QStringLiteral("PERFECT")) return QStringLiteral("PERFECT");
+    if (clearType == QStringLiteral("MAX")) return QStringLiteral("MAX");
+    return QStringLiteral("NOPLAY");
 }
 
 QString clearTypeOf(const QVariant& score);
@@ -586,20 +608,17 @@ QVariantMap Lr2SelectStateCache::folderSummaryFromScores(const QVariant& result)
     const int unplayed = std::max(0, toInt(valueProperty(scoreResult, "unplayed")));
 
     QVariantMap counts {
-        {QStringLiteral("total"), unplayed},
-        {QStringLiteral("play"), 0},
-        {QStringLiteral("clear"), 0},
-        {QStringLiteral("fail"), 0},
-        {QStringLiteral("noplay"), unplayed},
-        {QStringLiteral("assist"), 0},
-        {QStringLiteral("lightAssist"), 0},
-        {QStringLiteral("easy"), 0},
-        {QStringLiteral("normal"), 0},
-        {QStringLiteral("hard"), 0},
-        {QStringLiteral("exhard"), 0},
-        {QStringLiteral("fc"), 0},
-        {QStringLiteral("perfect"), 0},
-        {QStringLiteral("max"), 0},
+        {QStringLiteral("NOPLAY"), unplayed},
+        {QStringLiteral("FAILED"), 0},
+        {QStringLiteral("AEASY"), 0},
+        {QStringLiteral("LIGHTASSIST"), 0},
+        {QStringLiteral("EASY"), 0},
+        {QStringLiteral("NORMAL"), 0},
+        {QStringLiteral("HARD"), 0},
+        {QStringLiteral("EXHARD"), 0},
+        {QStringLiteral("FC"), 0},
+        {QStringLiteral("PERFECT"), 0},
+        {QStringLiteral("MAX"), 0},
     };
 
     QVariantList lamps {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -618,43 +637,16 @@ QVariantMap Lr2SelectStateCache::folderSummaryFromScores(const QVariant& result)
 
     for (auto it = scores.cbegin(); it != scores.cend(); ++it) {
         const QVariantList scoreList = toList(it.value());
-        increment(counts, QStringLiteral("total"));
-
         if (scoreList.isEmpty()) {
-            increment(counts, QStringLiteral("noplay"));
+            increment(counts, QStringLiteral("NOPLAY"));
             lamps[0] = lamps.at(0).toInt() + 1;
             ranks[0] = ranks.at(0).toInt() + 1;
             continue;
         }
 
         seenScoreList = true;
-        increment(counts, QStringLiteral("play"));
-        const QString clearType = bestClearTypeForScores(scoreList);
-        if (clearType != QStringLiteral("FAILED") && clearType != QStringLiteral("NOPLAY")) {
-            increment(counts, QStringLiteral("clear"));
-        }
-
-        if (clearType == QStringLiteral("FAILED")) {
-            increment(counts, QStringLiteral("fail"));
-        } else if (clearType == QStringLiteral("AEASY")) {
-            increment(counts, QStringLiteral("assist"));
-        } else if (clearType == QStringLiteral("EASY")) {
-            increment(counts, QStringLiteral("easy"));
-        } else if (clearType == QStringLiteral("NORMAL")) {
-            increment(counts, QStringLiteral("normal"));
-        } else if (clearType == QStringLiteral("HARD")) {
-            increment(counts, QStringLiteral("hard"));
-        } else if (clearType == QStringLiteral("EXHARD")) {
-            increment(counts, QStringLiteral("exhard"));
-        } else if (clearType == QStringLiteral("FC")) {
-            increment(counts, QStringLiteral("fc"));
-        } else if (clearType == QStringLiteral("PERFECT")) {
-            increment(counts, QStringLiteral("perfect"));
-        } else if (clearType == QStringLiteral("MAX")) {
-            increment(counts, QStringLiteral("max"));
-        } else {
-            increment(counts, QStringLiteral("noplay"));
-        }
+        const QString clearType = canonicalClearType(bestClearTypeForScores(scoreList));
+        increment(counts, clearType);
 
         folderLamp = std::min(folderLamp, clearTypeLamp(clearType));
         const int lampIndex = std::clamp(beatorajaClearTypeIndex(clearType), 0, 10);

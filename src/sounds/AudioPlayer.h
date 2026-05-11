@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QTimer>
 #include <qqmlintegration.h>
+#include <vector>
 
 namespace sounds {
 class AudioEngine;
@@ -31,14 +32,18 @@ class AudioPlayer : public QObject
 
     QString source;
     std::unique_ptr<ma_sound> sound;
+    std::vector<std::unique_ptr<ma_sound>> overlappingSounds;
     double volume = 1.0;
     bool looping = false;
     bool playing = false;
     uint64_t fadeInMillis = 0;
     float length = 0.0f;
     QTimer playingFinishedTimer;
+    QTimer overlappingCleanupTimer;
     void onDeviceChanged();
     void onPlayingFinishedTimerTriggered();
+    void cleanupOverlappingSounds();
+    void stopOverlappingSounds();
 
   public:
     explicit AudioPlayer(QObject* parent = nullptr);
@@ -48,6 +53,7 @@ class AudioPlayer : public QObject
     void resetSource();
     void setPlaying(bool value);
     Q_INVOKABLE void play();
+    Q_INVOKABLE void playOverlapping();
     Q_INVOKABLE void stop();
     auto isPlaying() const -> bool;
 

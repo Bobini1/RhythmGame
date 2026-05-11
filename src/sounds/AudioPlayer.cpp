@@ -12,6 +12,7 @@ namespace sounds {
 void
 AudioPlayer::onDeviceChanged()
 {
+    stopOverlappingSounds();
     if (!sound) {
         return;
     }
@@ -66,6 +67,12 @@ AudioPlayer::AudioPlayer(QObject* parent)
             &QTimer::timeout,
             this,
             &AudioPlayer::onPlayingFinishedTimerTriggered);
+
+    overlappingCleanupTimer.setInterval(100);
+    connect(&overlappingCleanupTimer,
+            &QTimer::timeout,
+            this,
+            &AudioPlayer::cleanupOverlappingSounds);
 }
 
 void
@@ -90,6 +97,7 @@ AudioPlayer::setPlaying(bool value)
 
 AudioPlayer::~AudioPlayer()
 {
+    stopOverlappingSounds();
     if (sound) {
         ma_sound_uninit(sound.get());
     }
@@ -106,6 +114,7 @@ AudioPlayer::setSource(const QString& value)
         return;
     }
     source = value;
+    stopOverlappingSounds();
     if (sound) {
         ma_sound_uninit(sound.get());
     } else {
@@ -162,6 +171,7 @@ AudioPlayer::setSource(const QString& value)
 void
 AudioPlayer::resetSource()
 {
+    stopOverlappingSounds();
     if (sound) {
         ma_sound_uninit(sound.get());
         sound.reset();
@@ -175,6 +185,30 @@ auto
 AudioPlayer::isPlaying() const -> bool
 {
     return playing;
+}
+void
+AudioPlayer::cleanupOverlappingSounds()
+{
+    auto finished = std::erase_if(overlappingSounds, [](auto& instance) {
+        if (ma_sound_at_end(instance.get()) == 0) {
+            return false;
+        }
+        ma_sound_uninit(instance.get());
+        return true;
+    });
+    if (finished > 0 && overlappingSounds.empty()) {
+        overlappingCleanupTimer.stop();
+    }
+}
+void
+AudioPlayer::stopOverlappingSounds()
+{
+    overlappingCleanupTimer.stop();
+    for (const auto& instance : overlappingSounds) {
+        ma_sound_stop(instance.get());
+        ma_sound_uninit(instance.get());
+    }
+    overlappingSounds.clear();
 }
 void
 AudioPlayer::play()
@@ -197,8 +231,40 @@ AudioPlayer::play()
     emit playingChanged();
 }
 void
+AudioPlayer::playOverlapping()
+{
+    if (!sound) {
+        return;
+    }
+    cleanupOverlappingSounds();
+    auto instance = std::make_unique<ma_sound>();
+    if (ma_sound_init_copy(engine->getEngine(),
+                           sound.get(),
+                           MA_SOUND_FLAG_NO_PITCH |
+                             MA_SOUND_FLAG_NO_SPATIALIZATION,
+                           nullptr,
+                           instance.get()) != MA_SUCCESS) {
+        spdlog::error("Failed to clone sound: {}", source.toStdString());
+        return;
+    }
+    ma_sound_set_looping(instance.get(), MA_FALSE);
+    ma_sound_set_volume(instance.get(), volume);
+    ma_sound_set_fade_in_milliseconds(instance.get(), 0, volume, fadeInMillis);
+    ma_sound_seek_to_pcm_frame(instance.get(), 0);
+    if (ma_sound_start(instance.get()) != MA_SUCCESS) {
+        spdlog::error("Failed to play sound: {}", source.toStdString());
+        ma_sound_uninit(instance.get());
+        return;
+    }
+    overlappingSounds.push_back(std::move(instance));
+    if (!overlappingCleanupTimer.isActive()) {
+        overlappingCleanupTimer.start();
+    }
+}
+void
 AudioPlayer::stop()
 {
+    stopOverlappingSounds();
     if (!isPlaying()) {
         return;
     }

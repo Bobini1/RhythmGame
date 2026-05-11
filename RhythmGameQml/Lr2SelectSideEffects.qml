@@ -78,12 +78,19 @@ Item {
     }
 
     function playScratch() {
+        root.playScratchBurst(1);
+    }
+
+    function playScratchBurst(repeats) {
         if (!root.host.enabled
             || root.host.effectiveScreenKey !== "select"
             || !root.scratchSoundReady) {
             return;
         }
-        root.host.playOneShot(scratchSound);
+        let count = Math.max(0, Math.round(repeats || 0));
+        for (let i = 0; i < count; ++i) {
+            scratchSound.playOverlapping();
+        }
     }
 
     AudioPlayer {

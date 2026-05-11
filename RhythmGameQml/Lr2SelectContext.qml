@@ -42,6 +42,7 @@ Item {
     readonly property int listCalculatedBarFixed: visualState.fixed
     property int oldBarFixed: 0
     property int nowBarFixed: 0
+    property int pendingWheelSteps: 0
     property int selectedOffset: 0
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
@@ -56,6 +57,7 @@ Item {
     property int scoreRevision: 0
     property int folderLampRevision: 0
     property int folderLampRequestRevision: 0
+    property bool suppressNextSelectionSound: false
     property bool scrollFixedPointDragging: false
     property string searchText: ""
     property var attachedTextCache: ({})
@@ -224,13 +226,17 @@ Item {
         if (!componentReady) {
             return;
         }
-        if (updatesActive) {
+        if (!updatesActive) {
+            pendingWheelSteps = 0;
+            pendingWheelStepTimer.stop();
+        } else {
             publishPendingFolderLamps();
             publishBarState(true);
         }
     }
 
     signal openedFolder()
+    signal entryChangeSoundsRequested(int count)
     onBarRowCountChanged: refreshVisibleBarEntries(true)
     onBarCenterChanged: refreshVisibleBarEntries(true)
     onBarTitleTypesChanged: refreshVisibleBarEntries(true)
@@ -259,6 +265,11 @@ Item {
 
     function touchSelection() {
         flushFocusedStateRefresh(false);
+        if (suppressNextSelectionSound) {
+            suppressNextSelectionSound = false;
+        } else {
+            entryChangeSoundsRequested(1);
+        }
         selectionRevision += 1;
         touch();
     }
@@ -483,6 +494,13 @@ Item {
         if (!updatesActive) {
             return;
         }
+        visualState.advanceAnimation(now);
+        if (pendingWheelSteps !== 0) {
+            let steps = pendingWheelSteps;
+            pendingWheelSteps = 0;
+            applyLr2ScrollDelta(-steps, lr2WheelDuration, now, animatedTopbarFixed(now));
+            return;
+        }
         publishVisualIndex();
     }
 
@@ -490,7 +508,15 @@ Item {
         if (!updatesActive) {
             return;
         }
-        applyLr2ScrollDelta(-steps, lr2WheelDuration, Date.now());
+        pendingWheelSteps += steps;
+        pendingWheelStepTimer.restart();
+    }
+
+    Timer {
+        id: pendingWheelStepTimer
+        interval: 0
+        repeat: false
+        onTriggered: root.updateVisualIndex(Date.now())
     }
 
     Component.onCompleted: {
@@ -599,6 +625,47 @@ Item {
             : emptyFolderDistribution();
     }
 
+    function folderScoreCountsFromSummaryCounts(counts) {
+        if (!counts) {
+            return emptyFolderScoreCounts;
+        }
+        if (counts.NOPLAY === undefined
+                && counts.FAILED === undefined
+                && counts.AEASY === undefined) {
+            return counts;
+        }
+
+        let noplay = counts.NOPLAY || 0;
+        let fail = counts.FAILED || 0;
+        let assist = counts.AEASY || 0;
+        let lightAssist = counts.LIGHTASSIST || counts.LIGHT_ASSIST || 0;
+        let easy = counts.EASY || 0;
+        let normal = counts.NORMAL || 0;
+        let hard = counts.HARD || 0;
+        let exhard = counts.EXHARD || 0;
+        let fc = counts.FC || 0;
+        let perfect = counts.PERFECT || 0;
+        let max = counts.MAX || 0;
+        let play = fail + assist + lightAssist + easy + normal + hard + exhard + fc + perfect + max;
+        let clear = assist + lightAssist + easy + normal + hard + exhard + fc + perfect + max;
+        return {
+            total: noplay + play,
+            play: play,
+            clear: clear,
+            fail: fail,
+            noplay: noplay,
+            assist: assist,
+            lightAssist: lightAssist,
+            easy: easy,
+            normal: normal,
+            hard: hard,
+            exhard: exhard,
+            fc: fc,
+            perfect: perfect,
+            max: max
+        };
+    }
+
     function refreshFolderLamps() {
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
@@ -653,7 +720,7 @@ Item {
             lamp = summary.lamp;
         }
         pendingFolderLampByKey[key] = lamp || 0;
-        pendingFolderScoreCountsByKey[key] = counts || emptyFolderScoreCounts;
+        pendingFolderScoreCountsByKey[key] = folderScoreCountsFromSummaryCounts(counts);
         pendingFolderDistributionByKey[key] = distribution || emptyFolderDistribution();
         pendingFolderLampPublishCount += 1;
         if (updatesActive) {
@@ -1446,11 +1513,14 @@ Item {
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
         let nextIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
         targetIndex = nextIndex;
+        entryChangeSoundsRequested(Math.abs(Math.round(entries)));
+        suppressNextSelectionSound = true;
         let focusTouched = commitLogicalSelection(nextIndex);
         let selectionTouched = beginVisualMove(durationMs, now);
         if (!selectionTouched && !focusTouched) {
             touchSelection();
         }
+        suppressNextSelectionSound = false;
     }
 
     function scrollBy(entries, durationMs) {

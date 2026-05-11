@@ -2,7 +2,6 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQml.Models
-import "../common/helpers.js" as Helpers
 
 PathView {
     id: pathView
@@ -58,25 +57,30 @@ PathView {
         return {};
     }
     property var folderClearStats: []
+    function clearStatsFromScoreSummary(summary) {
+        let counts = summary?.counts || {};
+        return {
+            "NOPLAY": counts.NOPLAY || 0,
+            "FAILED": counts.FAILED || 0,
+            "AEASY": counts.AEASY || 0,
+            "LIGHTASSIST": counts.LIGHTASSIST || counts.LIGHT_ASSIST || 0,
+            "EASY": counts.EASY || 0,
+            "NORMAL": counts.NORMAL || 0,
+            "HARD": counts.HARD || 0,
+            "EXHARD": counts.EXHARD || 0,
+            "FC": counts.FC || 0,
+            "PERFECT": counts.PERFECT || 0,
+            "MAX": counts.MAX || 0
+        };
+    }
     function refreshFolderClearStats() {
         folderClearStats = [];
         for (let folder of folderContents) {
             if (folder instanceof ChartData || folder instanceof entry || folder instanceof course || folder === null) {
                 continue;
             }
-            Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
-                if (result instanceof tableQueryResult) {
-                    result = result.scores;
-                }
-                let clearCounts = {"NOPLAY": result.unplayed};
-                for (let scores of Object.values(result.scores)) {
-                    let clear = Helpers.getClearType(scores);
-                    if (clearCounts[clear] === undefined) {
-                        clearCounts[clear] = 0;
-                    }
-                    clearCounts[clear] += 1;
-                }
-                folderClearStats.push([folder, clearCounts]);
+            Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder).then((result) => {
+                folderClearStats.push([folder, clearStatsFromScoreSummary(result)]);
                 folderClearStats = folderClearStats.slice();
             });
         }
@@ -100,6 +104,7 @@ PathView {
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
     property real wheelRemainder: 0
+    property int suppressedCurrentItemSoundChanges: 0
     readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
     property var historyStack: []
@@ -142,9 +147,17 @@ PathView {
         return count > 0 ? ((base % count) + count) % count : 0;
     }
 
-    function publishBarState() {
+    function targetIndexForFixed(fixed) {
+        return count > 0 ? ((Math.round(fixed / 1000) % count) + count) % count : 0;
+    }
+
+    function animatedTopbarFixed(now) {
+        return lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+    }
+
+    function publishBarState(syncSelection) {
         listCalculatedBarFixed = wrapBarFixed(listTopbarFixed);
-        if (count <= 0) {
+        if (!syncSelection || count <= 0) {
             return;
         }
         let nextIndex = cursorIndexForFixed(listCalculatedBarFixed);
@@ -156,6 +169,7 @@ PathView {
     }
 
     function setNavigationImmediate(index) {
+        stopEntryChangeSounds();
         let normalized = count > 0 ? ((index % count) + count) % count : 0;
         currentIndex = normalized;
         let fixed = normalized * 1000;
@@ -167,6 +181,7 @@ PathView {
         scrollDirection = 0;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
+        suppressedCurrentItemSoundChanges = 0;
         scrollingText = false;
         scrollingTextTimer.restart();
     }
@@ -176,32 +191,59 @@ PathView {
             let steps = pendingWheelSteps;
             pendingWheelSteps = 0;
             applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
+            return;
         }
-        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
-        publishBarState();
+        listTopbarFixed = animatedTopbarFixed(now);
+        publishBarState(false);
     }
 
     function applyLr2ScrollDelta(entries, durationMs, now) {
         if (count === 0 || entries === 0) {
             return;
         }
-        listTopbarFixed = lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+        listTopbarFixed = animatedTopbarFixed(now);
         oldBarFixed = listTopbarFixed;
         nowBarFixed += Math.round(entries * 1000);
         scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
         barMoveStartMs = now;
         barMoveEndMs = now + Math.max(1, durationMs);
         highlightMoveDuration = Math.max(1, durationMs);
-        publishBarState();
+        let nextIndex = targetIndexForFixed(nowBarFixed);
+        playEntryChangeSounds(Math.abs(Math.round(entries)));
+        if (currentIndex !== nextIndex) {
+            suppressedCurrentItemSoundChanges += 1;
+            currentIndex = nextIndex;
+            scrollingText = false;
+            scrollingTextTimer.restart();
+        }
+        publishBarState(false);
+    }
+
+    function stopEntryChangeSounds() {
+        scratchSound.stop();
+    }
+
+    function playEntryChangeSounds(repeats) {
+        let count = Math.max(0, Math.round(repeats));
+        if (count <= 0) {
+            return;
+        }
+        for (let i = 0; i < count; ++i) {
+            scratchSound.playOverlapping();
+        }
     }
 
     function queueWheelSteps(steps) {
         pendingWheelSteps += steps;
+        pendingWheelStepTimer.restart();
     }
 
     function handleWheel(wheel) {
-        let rawSteps = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y / 120 : wheel.pixelDelta.y / 120;
-        wheelRemainder += rawSteps;
+        let delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
+        if (delta === 0) {
+            return;
+        }
+        wheelRemainder += delta / 120.0;
         let steps = wheelRemainder > 0 ? Math.floor(wheelRemainder) : Math.ceil(wheelRemainder);
         if (steps !== 0) {
             wheelRemainder -= steps;
@@ -220,14 +262,7 @@ PathView {
 
     function scrollByKey(entries, repeated) {
         if (count === 0 || entries === 0) return;
-        let now = Date.now();
-        if (repeated) {
-            if (now <= barMoveEndMs - 20) return;
-            scrollBy(entries, lr2SpeedNext);
-            return;
-        }
-        if (now <= barMoveEndMs) return;
-        scrollBy(entries, lr2SpeedFirst);
+        scrollBy(entries, repeated ? lr2SpeedNext : lr2SpeedFirst);
     }
 
     function decrementViewIndex(repeated) {
@@ -615,13 +650,16 @@ PathView {
     }
     AudioPlayer {
         id: scratchSound
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch";
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch"
     }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
-        scratchSound.stop();
-        scratchSound.play();
+        if (suppressedCurrentItemSoundChanges > 0) {
+            suppressedCurrentItemSoundChanges -= 1;
+        } else {
+            playEntryChangeSounds(1);
+        }
     }
     onFilterChanged: {
         sortOrFilterChanged();
@@ -640,11 +678,19 @@ PathView {
         }
     }
     Timer {
+        id: pendingWheelStepTimer
+
+        interval: 0
+        repeat: false
+
+        onTriggered: pathView.updateVisualIndex(Date.now())
+    }
+    Timer {
         id: movementTick
 
         interval: 16
         repeat: true
-        running: pathView.visualMoveActive || pathView.pendingWheelSteps !== 0
+        running: pathView.visualMoveActive
         onTriggered: pathView.updateVisualIndex(Date.now())
     }
     MouseArea {

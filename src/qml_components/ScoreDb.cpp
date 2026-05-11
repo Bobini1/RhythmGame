@@ -57,19 +57,24 @@ struct ScoreSummaryChart
 int summaryClearTypePriority(const QString& clearType) {
     if (clearType == QStringLiteral("FAILED")) return 1;
     if (clearType == QStringLiteral("AEASY")) return 2;
-    if (clearType == QStringLiteral("EASY")) return 3;
-    if (clearType == QStringLiteral("NORMAL")) return 4;
-    if (clearType == QStringLiteral("HARD")) return 5;
-    if (clearType == QStringLiteral("EXHARD")) return 6;
-    if (clearType == QStringLiteral("FC")) return 7;
-    if (clearType == QStringLiteral("PERFECT")) return 8;
-    if (clearType == QStringLiteral("MAX")) return 9;
+    if (clearType == QStringLiteral("LIGHTASSIST")
+        || clearType == QStringLiteral("LIGHT_ASSIST")) return 3;
+    if (clearType == QStringLiteral("EASY")) return 4;
+    if (clearType == QStringLiteral("NORMAL")) return 5;
+    if (clearType == QStringLiteral("HARD")) return 6;
+    if (clearType == QStringLiteral("EXHARD")) return 7;
+    if (clearType == QStringLiteral("FC")) return 8;
+    if (clearType == QStringLiteral("PERFECT")) return 9;
+    if (clearType == QStringLiteral("MAX")) return 10;
     return 0;
 }
 
 int summaryClearTypeLamp(const QString& clearType) {
     if (clearType == QStringLiteral("FAILED")) return 1;
-    if (clearType == QStringLiteral("AEASY") || clearType == QStringLiteral("EASY")) return 2;
+    if (clearType == QStringLiteral("AEASY")
+        || clearType == QStringLiteral("LIGHTASSIST")
+        || clearType == QStringLiteral("LIGHT_ASSIST")
+        || clearType == QStringLiteral("EASY")) return 2;
     if (clearType == QStringLiteral("NORMAL")) return 3;
     if (clearType == QStringLiteral("HARD") || clearType == QStringLiteral("EXHARD")) return 4;
     if (clearType == QStringLiteral("FC")
@@ -78,6 +83,21 @@ int summaryClearTypeLamp(const QString& clearType) {
         return 5;
     }
     return 0;
+}
+
+QString canonicalSummaryClearType(const QString& clearType) {
+    if (clearType == QStringLiteral("FAILED")) return QStringLiteral("FAILED");
+    if (clearType == QStringLiteral("AEASY")) return QStringLiteral("AEASY");
+    if (clearType == QStringLiteral("LIGHTASSIST")
+        || clearType == QStringLiteral("LIGHT_ASSIST")) return QStringLiteral("LIGHTASSIST");
+    if (clearType == QStringLiteral("EASY")) return QStringLiteral("EASY");
+    if (clearType == QStringLiteral("NORMAL")) return QStringLiteral("NORMAL");
+    if (clearType == QStringLiteral("HARD")) return QStringLiteral("HARD");
+    if (clearType == QStringLiteral("EXHARD")) return QStringLiteral("EXHARD");
+    if (clearType == QStringLiteral("FC")) return QStringLiteral("FC");
+    if (clearType == QStringLiteral("PERFECT")) return QStringLiteral("PERFECT");
+    if (clearType == QStringLiteral("MAX")) return QStringLiteral("MAX");
+    return QStringLiteral("NOPLAY");
 }
 
 int summaryClearTypeDistributionIndex(const QString& clearType) {
@@ -103,20 +123,17 @@ void incrementSummaryCount(QVariantMap& counts, const QString& key) {
 
 QVariantMap emptySummaryCounts() {
     return {
-        {QStringLiteral("total"), 0},
-        {QStringLiteral("play"), 0},
-        {QStringLiteral("clear"), 0},
-        {QStringLiteral("fail"), 0},
-        {QStringLiteral("noplay"), 0},
-        {QStringLiteral("assist"), 0},
-        {QStringLiteral("lightAssist"), 0},
-        {QStringLiteral("easy"), 0},
-        {QStringLiteral("normal"), 0},
-        {QStringLiteral("hard"), 0},
-        {QStringLiteral("exhard"), 0},
-        {QStringLiteral("fc"), 0},
-        {QStringLiteral("perfect"), 0},
-        {QStringLiteral("max"), 0},
+        {QStringLiteral("NOPLAY"), 0},
+        {QStringLiteral("FAILED"), 0},
+        {QStringLiteral("AEASY"), 0},
+        {QStringLiteral("LIGHTASSIST"), 0},
+        {QStringLiteral("EASY"), 0},
+        {QStringLiteral("NORMAL"), 0},
+        {QStringLiteral("HARD"), 0},
+        {QStringLiteral("EXHARD"), 0},
+        {QStringLiteral("FC"), 0},
+        {QStringLiteral("PERFECT"), 0},
+        {QStringLiteral("MAX"), 0},
     };
 }
 
@@ -179,45 +196,17 @@ class ScoreSummaryAccumulator
         int unplayed = 0;
 
         for (const auto& chart : charts) {
-            incrementSummaryCount(counts, QStringLiteral("total"));
-
             if (!chart.hasScore) {
                 ++unplayed;
-                incrementSummaryCount(counts, QStringLiteral("noplay"));
+                incrementSummaryCount(counts, QStringLiteral("NOPLAY"));
                 lamps[0] = lamps.at(0).toInt() + 1;
                 ranks[0] = ranks.at(0).toInt() + 1;
                 continue;
             }
 
             seenScore = true;
-            incrementSummaryCount(counts, QStringLiteral("play"));
-            const QString& clearType = chart.bestClearType;
-            if (clearType != QStringLiteral("FAILED")
-                && clearType != QStringLiteral("NOPLAY")) {
-                incrementSummaryCount(counts, QStringLiteral("clear"));
-            }
-
-            if (clearType == QStringLiteral("FAILED")) {
-                incrementSummaryCount(counts, QStringLiteral("fail"));
-            } else if (clearType == QStringLiteral("AEASY")) {
-                incrementSummaryCount(counts, QStringLiteral("assist"));
-            } else if (clearType == QStringLiteral("EASY")) {
-                incrementSummaryCount(counts, QStringLiteral("easy"));
-            } else if (clearType == QStringLiteral("NORMAL")) {
-                incrementSummaryCount(counts, QStringLiteral("normal"));
-            } else if (clearType == QStringLiteral("HARD")) {
-                incrementSummaryCount(counts, QStringLiteral("hard"));
-            } else if (clearType == QStringLiteral("EXHARD")) {
-                incrementSummaryCount(counts, QStringLiteral("exhard"));
-            } else if (clearType == QStringLiteral("FC")) {
-                incrementSummaryCount(counts, QStringLiteral("fc"));
-            } else if (clearType == QStringLiteral("PERFECT")) {
-                incrementSummaryCount(counts, QStringLiteral("perfect"));
-            } else if (clearType == QStringLiteral("MAX")) {
-                incrementSummaryCount(counts, QStringLiteral("max"));
-            } else {
-                incrementSummaryCount(counts, QStringLiteral("noplay"));
-            }
+            const QString clearType = canonicalSummaryClearType(chart.bestClearType);
+            incrementSummaryCount(counts, clearType);
 
             folderLamp = std::min(folderLamp, summaryClearTypeLamp(clearType));
             const int lampIndex = std::clamp(summaryClearTypeDistributionIndex(clearType), 0, 10);
