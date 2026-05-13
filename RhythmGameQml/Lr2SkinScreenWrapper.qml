@@ -48,6 +48,7 @@ Item {
     property int gameplayNumberRevision1: 0
     property int gameplayNumberRevision2: 0
     property int gameplayStaticNumberRevision: 0
+    property string gameplayStaticNumberRevisionKey: "static|0"
     property int gameplayTimerRevision: 0
     property bool gameplayRevisionRefreshPending: false
     property bool gameplayNumberRevision1Pending: false
@@ -2542,52 +2543,76 @@ Item {
         }
     }
 
-    function gameplayNumberRevision(src) {
+    function updateGameplayStaticNumberRevision() {
+        root.gameplayStaticNumberRevision++;
+        let chartData = root.gameplayChartData();
+        let chartKey = chartData ? (chartData.md5 || chartData.sha256 || chartData.title || "") : "";
+        root.gameplayStaticNumberRevisionKey = "static|" + root.gameplayStaticNumberRevision + "|" + chartKey;
+    }
+
+    function gameplayNumberRevisionKind(src) {
         if (!root.gameplayScreenActive) {
             return 0;
         }
         if (src && src.nowCombo) {
             let nowComboSide = src.side || (src.timer === 47 ? 2 : 1);
-            return nowComboSide === 2
-                ? "j2|" + root.gameplayJudgeRevision2
-                : "j1|" + root.gameplayJudgeRevision1;
+            return nowComboSide === 2 ? 7 : 6;
         }
 
         let num = src ? (src.num || 0) : 0;
         if (num === 20 || (num >= 160 && num <= 164)) {
-            return "time|" + root.renderSkinTime;
+            return 4;
         }
         if (num === 11 || num === 15) {
-            return "s2|" + root.gameplayNumberRevision2;
+            return 2;
         }
         if (num === 10 || num === 12 || num === 13 || num === 14
                 || (num >= 310 && num <= 315)) {
-            return "s1|" + root.gameplayNumberRevision1;
+            return 1;
         }
         if (num === 108 || num === 128 || (num >= 150 && num <= 158)) {
-            return "x|" + root.gameplayNumberRevision1 + "|" + root.gameplayNumberRevision2
-                + "|" + root.gameplayScoresRevision;
+            return 3;
         }
         if ((num >= 120 && num <= 136) || num === 526 || num === 521
                 || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
-            return "p2|" + root.gameplayNumberRevision2 + "|" + root.gameplayJudgeRevision2;
+            return 2;
         }
         if ((num >= 100 && num <= 116) || num === 407
                 || (num >= 410 && num <= 427)
                 || (num >= 500 && num <= 509) || num === 520 || num === 522
                 || num === 525 || num === 527 || (num >= 1510 && num <= 1599)) {
-            return "p1|" + root.gameplayNumberRevision1 + "|" + root.gameplayJudgeRevision1;
+            return 1;
         }
         if (num === 42 || num === 90 || num === 91 || num === 92
                 || num === 106 || num === 126 || num === 165
                 || num === 290 || num === 291
                 || (num >= 350 && num <= 365) || num === 368
                 || num === 1163 || num === 1164) {
-            let chartData = root.gameplayChartData();
-            let chartKey = chartData ? (chartData.md5 || chartData.sha256 || chartData.title || "") : "";
-            return "static|" + root.gameplayStaticNumberRevision + "|" + chartKey;
+            return 5;
         }
-        return "g|" + root.gameplayNumberRevision1 + "|" + root.gameplayNumberRevision2;
+        return 3;
+    }
+
+    function gameplayNumberRevisionForKind(kind) {
+        switch (kind) {
+        case 1:
+            return "p1|" + root.gameplayNumberRevision1 + "|" + root.gameplayJudgeRevision1;
+        case 2:
+            return "p2|" + root.gameplayNumberRevision2 + "|" + root.gameplayJudgeRevision2;
+        case 3:
+            return "x|" + root.gameplayNumberRevision1 + "|" + root.gameplayNumberRevision2
+                + "|" + root.gameplayScoresRevision;
+        case 4:
+            return "time|" + root.renderSkinTime;
+        case 5:
+            return root.gameplayStaticNumberRevisionKey;
+        case 6:
+            return "j1|" + root.gameplayJudgeRevision1;
+        case 7:
+            return "j2|" + root.gameplayJudgeRevision2;
+        default:
+            return 0;
+        }
     }
 
     function setGameplayTimerValue(timer, skinTime) {
@@ -3550,7 +3575,7 @@ Item {
         function onCurrentChartIndexChanged() {
             root.gameplayRevision++;
             root.bumpGameplayNumberRevision(0);
-            root.gameplayStaticNumberRevision++;
+            root.updateGameplayStaticNumberRevision();
             root.refreshGameplayRuntimeActiveOptions();
             root.gameplayResultOpened = false;
             root.gameplayPlayStopped = false;
@@ -3563,7 +3588,7 @@ Item {
         function onStatusChanged() {
             root.gameplayRevision++;
             root.bumpGameplayNumberRevision(0);
-            root.gameplayStaticNumberRevision++;
+            root.updateGameplayStaticNumberRevision();
             root.refreshGameplayRuntimeActiveOptions();
             root.handleGameplayStatusChanged();
         }

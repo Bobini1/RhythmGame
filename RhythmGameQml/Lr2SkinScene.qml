@@ -555,6 +555,7 @@ Item {
                         Lr2NumberRenderer {
                             id: numberRenderer
                             readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
+                            readonly property int gameplayRevisionKind: root.gameplayNumberRevisionKind(model.src)
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.useDirectElementSkinClock && !sourceAnimates ? 0 : elemLoader.elementSkinTime
@@ -583,7 +584,9 @@ Item {
                                     return selectContext.nativeState.numberValue(num);
                                 }
                                 if (root.gameplayScreenActive) {
-                                    return root.numberValue(model.src, root.gameplayNumberRevision(model.src));
+                                    return root.numberValue(
+                                        model.src,
+                                        root.gameplayNumberRevisionForKind(numberRenderer.gameplayRevisionKind));
                                 }
                                 return root.numberValue(model.src, sceneRoot.valueRevision);
                             }
