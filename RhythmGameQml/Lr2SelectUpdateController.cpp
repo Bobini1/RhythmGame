@@ -171,9 +171,6 @@ void Lr2SelectUpdateController::handleSelectRevisionChanged() {
     refreshSelectRuntimeActiveOptions();
 }
 
-void Lr2SelectUpdateController::flushSelectDetailRevision() {
-    setSelectDetailRevision(m_selectRevision);
-}
 
 void Lr2SelectUpdateController::selectRevisionDependencyChanged() {
     updateSelectRevision(true);

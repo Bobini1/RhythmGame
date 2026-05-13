@@ -36,9 +36,6 @@ public:
     Q_INVOKABLE bool refreshBaseActiveOptions();
     Q_INVOKABLE bool refreshSelectRuntimeActiveOptions();
     Q_INVOKABLE bool refreshGameplayRuntimeActiveOptions();
-    Q_INVOKABLE void handleCommittedSelectState();
-    Q_INVOKABLE void handleSelectRevisionChanged();
-    Q_INVOKABLE void flushSelectDetailRevision();
 
 signals:
     void hostChanged();
@@ -64,6 +61,8 @@ private:
     bool sameNumberArray(const QVariant& lhs, const QVariant& rhs) const;
     QString numberArrayKey(const QVariant& values) const;
     QList<int> numberList(const QVariant& values) const;
+    void handleCommittedSelectState();
+    void handleSelectRevisionChanged();
     bool updateSelectRevision(bool runSideEffects);
     void setSelectDetailRevision(int revision);
     void reconnectSelectContext();

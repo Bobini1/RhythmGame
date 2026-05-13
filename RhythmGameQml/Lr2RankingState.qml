@@ -522,7 +522,6 @@ QtObject {
     }
 
     function openInternetRanking() {
-        root.host.updateDisplayedSelectChart();
         let targetChart = root.chart;
         if (!targetChart || !targetChart.md5) {
             return false;
@@ -571,7 +570,6 @@ QtObject {
             return true;
         }
 
-        root.host.updateDisplayedSelectChart();
         let targetChart = root.chart;
         if (!targetChart || !targetChart.md5) {
             return false;

@@ -232,7 +232,7 @@ Item {
         } else if (root.effectiveScreenKey === "select" && !root.selectScratchSoundReady) {
             root.selectScratchSoundReady = true;
         }
-        root.updateSelectSideEffects();
+        selectSideEffects.update();
         if (root.effectiveScreenKey === "select"
                 && root.acceptsInput
                 && root.heldOptionPanel > 0
@@ -3440,11 +3440,6 @@ Item {
 
     property alias selectRevision: selectUpdateController.selectRevision
     property alias selectDetailRevision: selectUpdateController.selectDetailRevision
-    property alias activePreviewSource: selectSideEffects.activePreviewSource
-    property alias pendingPreviewRevision: selectSideEffects.pendingPreviewRevision
-    property alias pendingPreviewRequest: selectSideEffects.pendingPreviewRequest
-    property alias pendingPreviewSource: selectSideEffects.pendingPreviewSource
-    property alias selectSideEffectsReady: selectSideEffects.ready
     readonly property string selectChartContentRevision: root.effectiveScreenKey === "select"
         ? (selectContext.focusRevision,
            selectContext.scoreRevision,
@@ -3466,7 +3461,9 @@ Item {
         ? root.selectSkinChartWrapper
         : root.renderChart
     readonly property var selectedCourseStages: {
-        let revision = root.effectiveScreenKey === "select" ? selectContext.focusRevision : 0;
+        if (root.effectiveScreenKey === "select") {
+            selectContext.focusRevision;
+        }
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {
                 return root.chartDatas;
@@ -3561,7 +3558,7 @@ Item {
         root.updateGameplaySavedScores();
         root.activateGameplayIfNeeded();
         if (root.effectiveScreenKey !== "select") {
-            root.handleExternalChartChanged();
+            root.commitLr2RankingRequest();
         }
     }
     onScoresChanged: root.updateResultOldScores()
@@ -3643,14 +3640,6 @@ Item {
         }
     }
 
-    function handleCommittedSelectState() {
-        selectUpdateController.flushSelectDetailRevision();
-        if (root.commitLr2RankingRequest()) {
-            root.applyRankingStatsToSelectContext();
-        }
-        root.updateSelectSideEffects();
-    }
-
     function handleScreenContextChanged() {
         let rankingRequestChanged = root.commitLr2RankingRequest();
         root.refreshBaseActiveOptions();
@@ -3659,22 +3648,13 @@ Item {
         if (rankingRequestChanged) {
             root.applyRankingStatsToSelectContext();
         }
-        root.updateSelectSideEffects();
+        selectSideEffects.update();
     }
 
-    function handleExternalChartChanged() {
-        root.updateDisplayedSelectChart();
-        root.commitLr2RankingRequest();
-    }
-
-    function updateDisplayedSelectChart() {
-        selectSideEffects.updateDisplayedChart();
-    }
-
-    // Previews and ranking fetches are committed side effects; visual selection stays reactive.
     function updateSelectSideEffects() {
         selectSideEffects.update();
     }
+
     readonly property bool acceptsInput: screenState.acceptsInput
     onAcceptsInputChanged: {
         if (root.effectiveScreenKey === "select" && root.acceptsInput) {
@@ -4354,12 +4334,12 @@ Item {
 
     Component.onCompleted: {
         root.componentReady = true;
-        root.selectSideEffectsReady = true;
+        selectSideEffects.ready = true;
         root.commitLr2RankingRequest();
         root.restartSkinClock();
         root.openSelectIfNeeded();
         root.activateGameplayIfNeeded();
-        root.updateSelectSideEffects();
+        selectSideEffects.update();
         root.updateGameplaySavedScores();
         root.refreshLr2SkinSettingItems();
         root.refreshBaseActiveOptions();
