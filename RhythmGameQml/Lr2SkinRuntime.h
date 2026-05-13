@@ -3,10 +3,12 @@
 #include "Lr2SkinRuntimeTypes.h"
 
 #include <QAbstractItemModel>
+#include <QHash>
 #include <QList>
 #include <QMetaObject>
 #include <QObject>
 #include <QPointer>
+#include <QSet>
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
@@ -62,6 +64,8 @@ public:
     Q_INVOKABLE QVariant sliderTrackStateForElement(int index, int skinTime) const;
     Q_INVOKABLE QVariant noteDstState(int index, int skinTime) const;
     Q_INVOKABLE QVariant lineDstState(int index, int skinTime) const;
+    Q_INVOKABLE bool noteDstStateUsesSkinTime(int index) const;
+    Q_INVOKABLE bool lineDstStateUsesSkinTime(int index) const;
     Q_INVOKABLE int dstTimerFire(int index) const;
     Q_INVOKABLE int srcTimerFire(int index) const;
     Q_INVOKABLE bool dstTimerCanFire(int index) const;
@@ -85,6 +89,7 @@ signals:
 private slots:
     void rebuildDescriptors();
     void updateTimerFires();
+    void updateGameplayTimerFires();
     void updateSelectInfoTimerFires();
 
 private:
@@ -157,6 +162,7 @@ private:
                                       const QVariantList& noteDsts) const;
     TimerSnapshot timerSnapshotFor(const ElementDescriptor& descriptor) const;
     QVariant stateForLane(const QVector<LaneDescriptor>& lanes, int index, int skinTime) const;
+    bool laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes, int index) const;
     const ElementDescriptor* descriptorAt(int index) const;
     void updateTimerFiresForIndexes(const QVector<int>& indexes);
     void ensureElementTimerStateCount(int count);
@@ -185,6 +191,8 @@ private:
     QVector<Lr2SkinElementActiveOptionsState*> m_elementActiveOptionsStates;
     QVector<int> m_timerDescriptorIndexes;
     QVector<int> m_selectInfoTimerDescriptorIndexes;
+    QHash<int, QVector<int>> m_timerDescriptorIndexesByTimer;
+    QSet<int> m_noteFieldTimerIds;
     QVector<LaneDescriptor> m_noteLaneDescriptors;
     QVector<LaneDescriptor> m_lineLaneDescriptors;
     bool m_noteFieldUsesActiveOptions = false;

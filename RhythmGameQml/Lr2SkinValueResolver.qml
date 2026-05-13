@@ -339,7 +339,6 @@ QtObject {
     }
 
     function resolveGameplayNumber(num) {
-        root.gameplayRevision;
         let chartData = root.gameplayChartData();
         let p1 = root.gameplayPlayer(1);
         let s1 = root.gameplayScore(1);

@@ -2,7 +2,6 @@
 
 #include "Lr2SkinClock.h"
 
-#include <QJSValue>
 #include <QVariantMap>
 
 #include <algorithm>
@@ -26,21 +25,29 @@ QVariant objectProperty(QObject* object, const char* name) {
     return object ? object->property(name) : QVariant();
 }
 
-QVariant indexedValue(const QVariant& source, int key) {
-    const QString stringKey = QString::number(key);
-    if (source.canConvert<QVariantMap>()) {
-        const QVariantMap map = source.toMap();
-        const auto it = map.constFind(stringKey);
-        return it == map.constEnd() ? QVariant() : *it;
+QHash<int, int> gameplayTimerHashFromVariant(const QVariant& source) {
+    QHash<int, int> result;
+    if (!source.isValid() || source.isNull()) {
+        return result;
     }
-    if (source.canConvert<QJSValue>()) {
-        const QJSValue value = source.value<QJSValue>();
-        if (value.isObject()) {
-            const QJSValue property = value.property(stringKey);
-            return property.isUndefined() || property.isNull() ? QVariant() : property.toVariant();
+
+    const QVariantMap map = source.toMap();
+    for (auto it = map.constBegin(); it != map.constEnd(); ++it) {
+        bool ok = false;
+        const int key = it.key().toInt(&ok);
+        if (ok) {
+            result.insert(key, toInt(it.value(), -1));
         }
     }
-    return QVariant();
+    return result;
+}
+
+QVariantMap variantMapFromGameplayTimerHash(const QHash<int, int>& values) {
+    QVariantMap result;
+    for (auto it = values.constBegin(); it != values.constEnd(); ++it) {
+        result.insert(QString::number(it.key()), it.value());
+    }
+    return result;
 }
 }
 
@@ -359,12 +366,16 @@ void Lr2SkinTimerState::setGameplayTimerRevision(int value) {
     }
 }
 
-QVariant Lr2SkinTimerState::gameplayTimerValues() const { return m_gameplayTimerValues; }
+QVariant Lr2SkinTimerState::gameplayTimerValues() const {
+    return variantMapFromGameplayTimerHash(m_gameplayTimerValues);
+}
 void Lr2SkinTimerState::setGameplayTimerValues(const QVariant& values) {
-    if (m_gameplayTimerValues == values) {
+    const QHash<int, int> next = gameplayTimerHashFromVariant(values);
+    if (m_gameplayTimerValues == next) {
         return;
     }
-    m_gameplayTimerValues = values;
+    m_gameplayTimerValues = next;
+    m_gameplayTimerValuesDirty = false;
     emit gameplayTimerValuesChanged();
     bumpRevision();
 }
@@ -534,6 +545,72 @@ bool Lr2SkinTimerState::isSelectHeldButtonTimer(const QVariant& timer) const {
     return m_host && invokeHostBool("isSelectHeldButtonTimer", timerValue(timer));
 }
 
+bool Lr2SkinTimerState::setGameplayTimerValue(const QVariant& timer, int skinTime) {
+    const int idx = timerValue(timer);
+    if (idx == 0 || skinTime < 0) {
+        return false;
+    }
+    const auto it = m_gameplayTimerValues.constFind(idx);
+    if (it != m_gameplayTimerValues.constEnd() && it.value() == skinTime) {
+        return false;
+    }
+    m_gameplayTimerValues.insert(idx, skinTime);
+    m_gameplayTimerValuesDirty = true;
+    m_pendingGameplayTimerChanges.insert(idx);
+    emit gameplayTimerValuesChanged();
+    return true;
+}
+
+bool Lr2SkinTimerState::clearGameplayTimerValue(const QVariant& timer) {
+    const int idx = timerValue(timer);
+    if (idx == 0 || !m_gameplayTimerValues.contains(idx)) {
+        return false;
+    }
+    m_gameplayTimerValues.remove(idx);
+    m_gameplayTimerValuesDirty = true;
+    m_pendingGameplayTimerChanges.insert(idx);
+    emit gameplayTimerValuesChanged();
+    return true;
+}
+
+bool Lr2SkinTimerState::resetGameplayTimerValues() {
+    const QHash<int, int> next = initialGameplayTimerValues();
+    if (m_gameplayTimerValues == next) {
+        return false;
+    }
+    m_gameplayTimerValues = next;
+    m_gameplayTimerValuesDirty = true;
+    m_pendingGameplayTimerChanges.clear();
+    m_pendingGameplayTimerFullRefresh = true;
+    emit gameplayTimerValuesChanged();
+    return commitGameplayTimerChanges();
+}
+
+bool Lr2SkinTimerState::commitGameplayTimerChanges() {
+    if (!m_gameplayTimerValuesDirty) {
+        return false;
+    }
+    m_committedGameplayTimerChanges = m_pendingGameplayTimerChanges;
+    m_committedGameplayTimerFullRefresh = m_pendingGameplayTimerFullRefresh;
+    m_pendingGameplayTimerChanges.clear();
+    m_pendingGameplayTimerFullRefresh = false;
+    m_gameplayTimerValuesDirty = false;
+    ++m_gameplayTimerRevision;
+    emit gameplayTimerRevisionChanged();
+    emit gameplayTimerValuesCommitted();
+    return true;
+}
+
+QSet<int> Lr2SkinTimerState::takeCommittedGameplayTimerChanges(bool* fullRefresh) {
+    if (fullRefresh) {
+        *fullRefresh = m_committedGameplayTimerFullRefresh;
+    }
+    m_committedGameplayTimerFullRefresh = false;
+    QSet<int> result = m_committedGameplayTimerChanges;
+    m_committedGameplayTimerChanges.clear();
+    return result;
+}
+
 void Lr2SkinTimerState::clearSelectTimerFireCache() {
     ++m_cacheEpoch;
     bumpRevision();
@@ -621,8 +698,20 @@ int Lr2SkinTimerState::invokeHostInt(const char* method, const QVariant& arg1, c
 }
 
 int Lr2SkinTimerState::gameplayTimerValue(int timer) const {
-    const QVariant value = indexedValue(m_gameplayTimerValues, timer);
-    return value.isValid() && !value.isNull() ? toInt(value, -1) : -1;
+    const auto it = m_gameplayTimerValues.constFind(timer);
+    return it == m_gameplayTimerValues.constEnd() ? -1 : it.value();
+}
+
+QHash<int, int> Lr2SkinTimerState::initialGameplayTimerValues() const {
+    QHash<int, int> result;
+    result.insert(0, 0);
+    for (int timer = 120; timer <= 127; ++timer) {
+        result.insert(timer, 0);
+    }
+    for (int timer = 130; timer <= 137; ++timer) {
+        result.insert(timer, 0);
+    }
+    return result;
 }
 
 int Lr2SkinTimerState::cacheIndexForTimer(int timer, bool liveClock) const {

@@ -16,6 +16,8 @@ QtObject {
     property int readmeMode: 0
 
     readonly property string effectiveKey: explicitKey || inferKey(csvPath)
+    readonly property bool gameplayScreen: isGameplayKey(effectiveKey)
+    readonly property bool resultScreen: effectiveKey === "result" || effectiveKey === "courseResult"
     readonly property bool updatesActive: hostEnabled && hostVisible && stackActive
     readonly property bool acceptsInput: effectiveKey !== "select" || globalSkinTime >= startInput
     readonly property bool selectPointerInputReady: updatesActive && effectiveKey === "select" && acceptsInput
@@ -49,8 +51,8 @@ QtObject {
         return "";
     }
 
-    function isGameplayScreen() {
-        switch (root.effectiveKey) {
+    function isGameplayKey(key) {
+        switch (key) {
         case "k5":
         case "k7":
         case "k10":
@@ -65,7 +67,11 @@ QtObject {
         }
     }
 
+    function isGameplayScreen() {
+        return root.gameplayScreen;
+    }
+
     function isResultScreen() {
-        return root.effectiveKey === "result" || root.effectiveKey === "courseResult";
+        return root.resultScreen;
     }
 }

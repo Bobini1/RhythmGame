@@ -69,8 +69,8 @@ QtObject {
         clock: skinClock
         selectContext: root.selectContext
         screenKey: root.host ? root.host.effectiveScreenKey : ""
-        gameplayScreen: root.host ? root.host.isGameplayScreen() : false
-        resultScreen: root.host ? root.host.isResultScreen() : false
+        gameplayScreen: root.host ? root.host.gameplayScreenActive : false
+        resultScreen: root.host ? root.host.resultScreenActive : false
         acceptsInput: root.host ? root.host.acceptsInput : false
         startInput: root.skinModel ? (root.skinModel.startInput || 0) : 0
         globalSkinTime: root.globalSkinTime
@@ -93,8 +93,6 @@ QtObject {
         resultTimer152SkinTime: root.host ? root.host.resultTimer152SkinTime : -1
         resultGraphStartSkinTime: root.host ? root.host.resultGraphStartSkinTime : 0
         resultGraphEndSkinTime: root.host ? root.host.resultGraphEndSkinTime : 0
-        gameplayTimerRevision: root.host ? root.host.gameplayTimerRevision : 0
-        gameplayTimerValues: root.host ? root.host.gameplayTimerValues : ({ "0": 0 })
     }
 
     property Lr2SelectInfoTimerBridge selectInfoTimerBridge: Lr2SelectInfoTimerBridge {
@@ -168,7 +166,7 @@ QtObject {
     // 21..26 for side-drawer opening and 31..36 for closing, so synthesize
     // those without unfreezing the whole select skin clock.
     readonly property var timers: {
-        if (root.host && root.host.isResultScreen()) {
+        if (root.host && root.host.resultScreenActive) {
             let resultTimers = { "0": 0 };
             if (root.host.acceptsInput) {
                 resultTimers[1] = Math.min(root.renderSkinTime, root.skinModel.startInput || 0);
@@ -255,6 +253,22 @@ QtObject {
         timerState.revision;
         timerState.selectInfoRevision;
         return timerState.skinTimerFireTime(timer, liveClock === true);
+    }
+
+    function setGameplayTimerValue(timer, skinTime) {
+        return timerState.setGameplayTimerValue(timer, skinTime);
+    }
+
+    function clearGameplayTimerValue(timer) {
+        return timerState.clearGameplayTimerValue(timer);
+    }
+
+    function resetGameplayTimerValues() {
+        return timerState.resetGameplayTimerValues();
+    }
+
+    function commitGameplayTimerChanges() {
+        return timerState.commitGameplayTimerChanges();
     }
 
     function restartGameplayStartTimer() {

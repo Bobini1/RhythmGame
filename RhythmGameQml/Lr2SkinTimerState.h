@@ -5,6 +5,8 @@
 #include <QMetaObject>
 #include <QObject>
 #include <QPointer>
+#include <QHash>
+#include <QSet>
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
@@ -153,6 +155,11 @@ public:
     Q_INVOKABLE bool skinTimerCanFire(const QVariant& timer) const;
     Q_INVOKABLE int skinTimerFireTime(const QVariant& timer, bool liveClock = false);
     Q_INVOKABLE bool isSelectHeldButtonTimer(const QVariant& timer) const;
+    Q_INVOKABLE bool setGameplayTimerValue(const QVariant& timer, int skinTime);
+    Q_INVOKABLE bool clearGameplayTimerValue(const QVariant& timer);
+    Q_INVOKABLE bool resetGameplayTimerValues();
+    Q_INVOKABLE bool commitGameplayTimerChanges();
+    QSet<int> takeCommittedGameplayTimerChanges(bool* fullRefresh = nullptr);
 
 public slots:
     void clearSelectTimerFireCache();
@@ -190,6 +197,7 @@ signals:
     void resultGraphEndSkinTimeChanged();
     void gameplayTimerRevisionChanged();
     void gameplayTimerValuesChanged();
+    void gameplayTimerValuesCommitted();
     void revisionChanged();
     void selectInfoRevisionChanged();
 
@@ -205,6 +213,7 @@ private:
     int invokeHostInt(const char* method) const;
     int invokeHostInt(const char* method, const QVariant& arg1, const QVariant& arg2) const;
     int gameplayTimerValue(int timer) const;
+    QHash<int, int> initialGameplayTimerValues() const;
     int cacheIndexForTimer(int timer, bool liveClock) const;
     void resetFrameCache() const;
     void bumpRevision();
@@ -245,7 +254,12 @@ private:
     int m_resultGraphStartSkinTime = 0;
     int m_resultGraphEndSkinTime = 0;
     int m_gameplayTimerRevision = 0;
-    QVariant m_gameplayTimerValues;
+    QHash<int, int> m_gameplayTimerValues;
+    bool m_gameplayTimerValuesDirty = false;
+    bool m_pendingGameplayTimerFullRefresh = false;
+    bool m_committedGameplayTimerFullRefresh = false;
+    QSet<int> m_pendingGameplayTimerChanges;
+    QSet<int> m_committedGameplayTimerChanges;
     int m_revision = 0;
     int m_selectInfoRevision = 0;
     int m_cacheEpoch = 0;

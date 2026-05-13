@@ -30,7 +30,7 @@ Item {
                 + selectContext.listRevision
                 + selectContext.folderLampRevision
                 + root.lr2SkinSettingsRevision
-            : (root.isResultScreen()
+            : (root.resultScreenActive
                 ? root.resultOldScoresRevision
                 : root.gameplayRevision))
     readonly property int selectDetailValueRevision: !rootReady ? 0
@@ -470,7 +470,7 @@ Item {
                             timerFire: elemLoader.dstTimerFire
                             chart: root.chart
                             scaleOverride: skinScale
-                            mediaActive: root.enabled && root.isGameplayScreen() && root.lr2BgaEnabled()
+                            mediaActive: root.enabled && root.gameplayScreenActive && root.lr2BgaEnabled()
                             poorVisible: root.gameplayPoorBgaVisible()
                         }
                     }
@@ -488,7 +488,7 @@ Item {
                                 : sceneRoot.root.emptyActiveOptions
                             timers: null
                             transColor: sceneRoot.root.skinModelRef ? sceneRoot.root.skinModelRef.transColor : "black"
-                            enabled: sceneRoot.root.enabled && sceneRoot.root.isGameplayScreen()
+                            enabled: sceneRoot.root.enabled && sceneRoot.root.gameplayScreenActive
                         }
                     }
 
@@ -502,7 +502,7 @@ Item {
                             timerFire: elemLoader.dstTimerFire
                             screenRoot: sceneRoot.root
                             scaleOverride: skinScale
-                            mediaActive: sceneRoot.root.enabled && sceneRoot.root.isGameplayScreen()
+                            mediaActive: sceneRoot.root.enabled && sceneRoot.root.gameplayScreenActive
                             transColor: sceneRoot.root.skinModelRef ? sceneRoot.root.skinModelRef.transColor : "black"
                         }
                     }
@@ -581,6 +581,9 @@ Item {
                                         return root.numberValue(model.src, sceneRoot.selectDetailValueRevision);
                                     }
                                     return selectContext.nativeState.numberValue(num);
+                                }
+                                if (root.gameplayScreenActive) {
+                                    return root.numberValue(model.src, root.gameplayNumberRevision(model.src));
                                 }
                                 return root.numberValue(model.src, sceneRoot.valueRevision);
                             }

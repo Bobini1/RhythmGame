@@ -225,6 +225,14 @@ QVariant Lr2SkinRuntime::lineDstState(int index, int skinTime) const {
     return stateForLane(m_lineLaneDescriptors, index, skinTime);
 }
 
+bool Lr2SkinRuntime::noteDstStateUsesSkinTime(int index) const {
+    return laneStateUsesSkinTime(m_noteLaneDescriptors, index);
+}
+
+bool Lr2SkinRuntime::lineDstStateUsesSkinTime(int index) const {
+    return laneStateUsesSkinTime(m_lineLaneDescriptors, index);
+}
+
 int Lr2SkinRuntime::dstTimerFire(int index) const {
     const ElementDescriptor* descriptor = descriptorAt(index);
     return descriptor ? descriptor->timers.dstTimerFire : -1;
@@ -263,6 +271,8 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     m_descriptors.clear();
     m_timerDescriptorIndexes.clear();
     m_selectInfoTimerDescriptorIndexes.clear();
+    m_timerDescriptorIndexesByTimer.clear();
+    m_noteFieldTimerIds.clear();
     m_noteLaneDescriptors.clear();
     m_lineLaneDescriptors.clear();
     m_noteFieldUsesActiveOptions = false;
@@ -282,11 +292,19 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     const QVariantList lineDsts = modelListProperty("lineDsts");
     m_noteLaneDescriptors.reserve(noteDsts.size());
     for (const QVariant& dsts : noteDsts) {
-        m_noteLaneDescriptors.append(buildLaneDescriptor(dsts));
+        LaneDescriptor descriptor = buildLaneDescriptor(dsts);
+        if (descriptor.analysis.usesDynamicTimer && descriptor.analysis.firstTimer != 0) {
+            m_noteFieldTimerIds.insert(descriptor.analysis.firstTimer);
+        }
+        m_noteLaneDescriptors.append(std::move(descriptor));
     }
     m_lineLaneDescriptors.reserve(lineDsts.size());
     for (const QVariant& dsts : lineDsts) {
-        m_lineLaneDescriptors.append(buildLaneDescriptor(dsts));
+        LaneDescriptor descriptor = buildLaneDescriptor(dsts);
+        if (descriptor.analysis.usesDynamicTimer && descriptor.analysis.firstTimer != 0) {
+            m_noteFieldTimerIds.insert(descriptor.analysis.firstTimer);
+        }
+        m_lineLaneDescriptors.append(std::move(descriptor));
     }
 
     const int rows = m_skinModel->rowCount();
@@ -303,6 +321,12 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         const bool usesSelectInfoTimer = descriptor.dstTimer == 11 || descriptor.srcTimer == 11;
         if (usesGeneralTimer) {
             m_timerDescriptorIndexes.append(row);
+            if (descriptor.usesDynamicDstTimer && descriptor.dstTimer != 11) {
+                m_timerDescriptorIndexesByTimer[descriptor.dstTimer].append(row);
+            }
+            if (descriptor.usesDynamicSrcTimer && descriptor.srcTimer != 11) {
+                m_timerDescriptorIndexesByTimer[descriptor.srcTimer].append(row);
+            }
         }
         if (usesSelectInfoTimer) {
             m_selectInfoTimerDescriptorIndexes.append(row);
@@ -361,12 +385,47 @@ void Lr2SkinRuntime::updateTimerFires() {
     updateTimerFiresForIndexes(m_timerDescriptorIndexes);
 }
 
+void Lr2SkinRuntime::updateGameplayTimerFires() {
+    if (!m_timerState) {
+        updateTimerFires();
+        return;
+    }
+
+    bool fullRefresh = false;
+    const QSet<int> changedTimers = m_timerState->takeCommittedGameplayTimerChanges(&fullRefresh);
+    if (fullRefresh || changedTimers.isEmpty()) {
+        updateTimerFires();
+        if (m_noteFieldUsesTimers) {
+            bumpTimerRevision();
+        }
+        return;
+    }
+
+    QSet<int> seenIndexes;
+    QVector<int> indexes;
+    bool noteFieldChanged = false;
+    for (int timer : changedTimers) {
+        noteFieldChanged = noteFieldChanged || m_noteFieldTimerIds.contains(timer);
+        const QVector<int> timerIndexes = m_timerDescriptorIndexesByTimer.value(timer);
+        for (int index : timerIndexes) {
+            if (seenIndexes.contains(index)) {
+                continue;
+            }
+            seenIndexes.insert(index);
+            indexes.append(index);
+        }
+    }
+    updateTimerFiresForIndexes(indexes);
+    if (noteFieldChanged) {
+        bumpTimerRevision();
+    }
+}
+
 void Lr2SkinRuntime::updateSelectInfoTimerFires() {
     updateTimerFiresForIndexes(m_selectInfoTimerDescriptorIndexes);
 }
 
 void Lr2SkinRuntime::updateTimerFiresForIndexes(const QVector<int>& indexes) {
-    bool generalChanged = false;
     bool selectInfoChanged = false;
     for (int index : indexes) {
         if (index < 0 || index >= m_descriptors.size()) {
@@ -382,23 +441,16 @@ void Lr2SkinRuntime::updateTimerFiresForIndexes(const QVector<int>& indexes) {
             if (dstChanged) {
                 if (descriptor.dstTimer == 11) {
                     selectInfoChanged = true;
-                } else {
-                    generalChanged = true;
                 }
             }
             if (srcChanged) {
                 if (descriptor.srcTimer == 11) {
                     selectInfoChanged = true;
-                } else {
-                    generalChanged = true;
                 }
             }
             descriptor.timers = next;
             updateElementTimerState(index, descriptor.timers);
         }
-    }
-    if (generalChanged) {
-        bumpTimerRevision();
     }
     if (selectInfoChanged) {
         bumpSelectInfoTimerRevision();
@@ -700,6 +752,17 @@ QVariant Lr2SkinRuntime::stateForLane(const QVector<LaneDescriptor>& lanes,
         m_activeOptionSet));
 }
 
+bool Lr2SkinRuntime::laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes, int index) const {
+    if (index < 0 || index >= lanes.size()) {
+        return false;
+    }
+
+    const LaneDescriptor& lane = lanes.at(index);
+    return !(lane.staticState.isValid()
+        && !lane.staticState.isNull()
+        && (!lane.analysis.usesActiveOptions || rt::allOpsMatch(lane.dsts.front(), m_activeOptionSet)));
+}
+
 const Lr2SkinRuntime::ElementDescriptor* Lr2SkinRuntime::descriptorAt(int index) const {
     if (index < 0 || index >= m_descriptors.size()) {
         return nullptr;
@@ -768,6 +831,11 @@ void Lr2SkinRuntime::reconnectTimerState() {
         &Lr2SkinTimerState::revisionChanged,
         this,
         &Lr2SkinRuntime::updateTimerFires));
+    m_timerStateConnections.append(QObject::connect(
+        m_timerState,
+        &Lr2SkinTimerState::gameplayTimerValuesCommitted,
+        this,
+        &Lr2SkinRuntime::updateGameplayTimerFires));
     m_timerStateConnections.append(QObject::connect(
         m_timerState,
         &Lr2SkinTimerState::selectInfoRevisionChanged,

@@ -45,8 +45,15 @@ Item {
         return result;
     }
     property int gameplayRevision: 0
+    property int gameplayNumberRevision1: 0
+    property int gameplayNumberRevision2: 0
+    property int gameplayStaticNumberRevision: 0
     property int gameplayTimerRevision: 0
-    property var gameplayTimerValues: ({ "0": 0 })
+    property bool gameplayRevisionRefreshPending: false
+    property bool gameplayNumberRevision1Pending: false
+    property bool gameplayNumberRevision2Pending: false
+    property bool gameplayTimerRevisionPending: false
+    property bool gameplayRuntimeRefreshPending: false
     property var gameplayRuntimeActiveOptions: []
     property var selectRuntimeActiveOptions: []
     property int gameplayReadySkinTime: -1
@@ -301,6 +308,8 @@ Item {
     }
     
     readonly property string effectiveScreenKey: screenState.effectiveKey
+    readonly property bool gameplayScreenActive: screenState.gameplayScreen
+    readonly property bool resultScreenActive: screenState.resultScreen
     function playerIsAutoPlayer(player) {
         return !!player && player instanceof AutoPlayer;
     }
@@ -725,8 +734,7 @@ Item {
         if (!root.isGameplayScreen()) {
             return;
         }
-        root.bumpGameplayRevision();
-        root.refreshGameplayRuntimeActiveOptions();
+        root.requestGameplayRevisionRefresh();
     }
 
     function setHiSpeedNumber(side, value) {
@@ -1625,7 +1633,11 @@ Item {
     }
 
     function isGameplayScreen() {
-        return screenState.isGameplayScreen();
+        return root.gameplayScreenActive;
+    }
+
+    function isResultScreen() {
+        return root.resultScreenActive;
     }
 
     function chartStatusValue(status) {
@@ -1846,7 +1858,6 @@ Item {
         return null;
     }
 
-    function isResultScreen() { return screenState.isResultScreen(); }
     function resultScore(side) { return resultState.resultScore(side); }
     function resultData(side) { return resultState.resultData(side); }
     function resultProfile(side) { return resultState.resultProfile(side); }
@@ -2445,36 +2456,162 @@ Item {
         root.gameplayRevision++;
     }
 
+    function bumpGameplayNumberRevision(side) {
+        if (side === 2) {
+            root.gameplayNumberRevision2++;
+        } else if (side === 1) {
+            root.gameplayNumberRevision1++;
+        } else {
+            root.gameplayNumberRevision1++;
+            root.gameplayNumberRevision2++;
+        }
+    }
+
+    function requestGameplayRevisionRefresh(side) {
+        if (!root.isGameplayScreen()) {
+            return;
+        }
+        root.gameplayRevisionRefreshPending = true;
+        if (side === 1) {
+            root.gameplayNumberRevision1Pending = true;
+        } else if (side === 2) {
+            root.gameplayNumberRevision2Pending = true;
+        } else {
+            root.gameplayNumberRevision1Pending = true;
+            root.gameplayNumberRevision2Pending = true;
+        }
+        root.requestGameplayRuntimeRefresh();
+    }
+
+    function flushGameplayRevisionRefresh() {
+        root.flushGameplayRuntimeRefresh();
+    }
+
     function bumpGameplayTimerRevision() {
         root.gameplayTimerRevision++;
+    }
+
+    function requestGameplayTimerRevision() {
+        root.gameplayTimerRevisionPending = true;
+        root.requestGameplayRuntimeRefresh();
+    }
+
+    function flushGameplayTimerRevision() {
+        root.flushGameplayRuntimeRefresh();
+    }
+
+    function requestGameplayRuntimeRefresh() {
+        if (root.gameplayRuntimeRefreshPending) {
+            return;
+        }
+        root.gameplayRuntimeRefreshPending = true;
+        Qt.callLater(root.flushGameplayRuntimeRefresh);
+    }
+
+    function flushGameplayRuntimeRefresh() {
+        if (!root.gameplayRuntimeRefreshPending
+                && !root.gameplayTimerRevisionPending
+                && !root.gameplayRevisionRefreshPending
+                && !root.gameplayNumberRevision1Pending
+                && !root.gameplayNumberRevision2Pending) {
+            return;
+        }
+
+        let refreshTimers = root.gameplayTimerRevisionPending;
+        let refreshGameplay = root.gameplayRevisionRefreshPending;
+        let refreshNumbers1 = root.gameplayNumberRevision1Pending;
+        let refreshNumbers2 = root.gameplayNumberRevision2Pending;
+        root.gameplayRuntimeRefreshPending = false;
+        root.gameplayTimerRevisionPending = false;
+        root.gameplayRevisionRefreshPending = false;
+        root.gameplayNumberRevision1Pending = false;
+        root.gameplayNumberRevision2Pending = false;
+
+        if (refreshTimers && skinTiming.commitGameplayTimerChanges()) {
+            root.bumpGameplayTimerRevision();
+        }
+        if (refreshNumbers1) {
+            root.bumpGameplayNumberRevision(1);
+        }
+        if (refreshNumbers2) {
+            root.bumpGameplayNumberRevision(2);
+        }
+        if (refreshGameplay && root.isGameplayScreen()) {
+            root.bumpGameplayRevision();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+    }
+
+    function gameplayNumberRevision(src) {
+        if (!root.gameplayScreenActive) {
+            return 0;
+        }
+        if (src && src.nowCombo) {
+            let nowComboSide = src.side || (src.timer === 47 ? 2 : 1);
+            return nowComboSide === 2
+                ? "j2|" + root.gameplayJudgeRevision2
+                : "j1|" + root.gameplayJudgeRevision1;
+        }
+
+        let num = src ? (src.num || 0) : 0;
+        if (num === 20 || (num >= 160 && num <= 164)) {
+            return "time|" + root.renderSkinTime;
+        }
+        if (num === 11 || num === 15) {
+            return "s2|" + root.gameplayNumberRevision2;
+        }
+        if (num === 10 || num === 12 || num === 13 || num === 14
+                || (num >= 310 && num <= 315)) {
+            return "s1|" + root.gameplayNumberRevision1;
+        }
+        if (num === 108 || num === 128 || (num >= 150 && num <= 158)) {
+            return "x|" + root.gameplayNumberRevision1 + "|" + root.gameplayNumberRevision2
+                + "|" + root.gameplayScoresRevision;
+        }
+        if ((num >= 120 && num <= 136) || num === 526 || num === 521
+                || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
+            return "p2|" + root.gameplayNumberRevision2 + "|" + root.gameplayJudgeRevision2;
+        }
+        if ((num >= 100 && num <= 116) || num === 407
+                || (num >= 410 && num <= 427)
+                || (num >= 500 && num <= 509) || num === 520 || num === 522
+                || num === 525 || num === 527 || (num >= 1510 && num <= 1599)) {
+            return "p1|" + root.gameplayNumberRevision1 + "|" + root.gameplayJudgeRevision1;
+        }
+        if (num === 42 || num === 90 || num === 91 || num === 92
+                || num === 106 || num === 126 || num === 165
+                || num === 290 || num === 291
+                || (num >= 350 && num <= 365) || num === 368
+                || num === 1163 || num === 1164) {
+            let chartData = root.gameplayChartData();
+            let chartKey = chartData ? (chartData.md5 || chartData.sha256 || chartData.title || "") : "";
+            return "static|" + root.gameplayStaticNumberRevision + "|" + chartKey;
+        }
+        return "g|" + root.gameplayNumberRevision1 + "|" + root.gameplayNumberRevision2;
     }
 
     function setGameplayTimerValue(timer, skinTime) {
         if (!timer || skinTime < 0) {
             return;
         }
-        root.gameplayTimerValues[timer] = skinTime;
-        root.bumpGameplayTimerRevision();
+        if (skinTiming.setGameplayTimerValue(timer, skinTime)) {
+            root.requestGameplayTimerRevision();
+        }
     }
 
     function clearGameplayTimerValue(timer) {
-        if (!timer || root.gameplayTimerValues[timer] === undefined) {
+        if (!timer) {
             return;
         }
-        delete root.gameplayTimerValues[timer];
-        root.bumpGameplayTimerRevision();
+        if (skinTiming.clearGameplayTimerValue(timer)) {
+            root.requestGameplayTimerRevision();
+        }
     }
 
     function resetGameplayTimerValues() {
-        let values = { "0": 0 };
-        for (let timer = 120; timer <= 127; ++timer) {
-            values[timer] = 0;
+        if (skinTiming.resetGameplayTimerValues()) {
+            root.gameplayTimerRevision++;
         }
-        for (let timer = 130; timer <= 137; ++timer) {
-            values[timer] = 0;
-        }
-        root.gameplayTimerValues = values;
-        root.gameplayTimerRevision++;
     }
 
     function resetGameplayTimers() {
@@ -3029,6 +3166,7 @@ Item {
     property string selectCommonActiveOptionsKey: ""
     property bool selectCommonActiveOptionsReady: false
     property string selectRuntimeActiveOptionsKey: ""
+    property string gameplayRuntimeActiveOptionsStateKey: ""
     property string gameplayRuntimeActiveOptionsKey: ""
     property var runtimeActiveOptions: []
     readonly property var barTimers: ({ "0": 0 })
@@ -3166,8 +3304,113 @@ Item {
         }
     }
 
+    function appendGameplayRuntimeOptionSideKeyParts(parts, side) {
+        let score = root.gameplayScore(side);
+        let gaugeValue = Math.floor(root.gameplayGaugeValue(score));
+        let gaugeBucket = gaugeValue >= 100 ? 10 : Math.max(0, Math.floor(gaugeValue / 10));
+        let judgementOption = root.gameplayJudgementOption(side, side === 2 ? 261 : 241);
+        let timing = side === 2 ? root.gameplayLastJudgeTiming2 : root.gameplayLastJudgeTiming1;
+        let vars = root.generalVarsForSide(side);
+
+        parts.push(
+            side,
+            root.gameplayGaugeOption(side),
+            root.gameplayLaneOption(score),
+            root.gameplayLaneCoverOption(side),
+            side === 1 && vars && vars.laneCoverOn ? 1 : 0,
+            side === 1 && vars && vars.liftOn ? 1 : 0,
+            side === 1 && vars && vars.hiddenOn ? 1 : 0,
+            root.gameplayRankOption(score, side === 2 ? 210 : 200, true),
+            side === 1 ? root.gameplayRankOption(score, 220, false) : -1,
+            root.gameplayExactRankOption(score, side === 2 ? 310 : 300),
+            side === 1 && root.gameplayGaugeQualified(score) ? 1 : 0,
+            gaugeBucket,
+            judgementOption,
+            timing !== 0 && judgementOption >= 0 && judgementOption !== (side === 2 ? 261 : 241)
+                ? (timing > 0 ? 1 : -1)
+                : 0,
+            root.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
+    }
+
+    function gameplayRuntimeOptionStateKey() {
+        if (!root.isGameplayScreen()) {
+            return "";
+        }
+
+        let vars = root.mainGeneralVars();
+        let score1 = root.gameplayScore(1);
+        let chartData = root.gameplayChartData();
+        let chartCount = root.chart && root.chart.chartDatas ? root.chart.chartDatas.length || 0 : 0;
+        let chartIndex = root.chart && root.chart.currentChartIndex !== undefined
+            ? Math.max(0, root.chart.currentChartIndex || 0)
+            : 0;
+        let parts = [
+            root.effectiveScreenKey,
+            root.baseActiveOptionsKey,
+            vars ? vars.bgaSize || 0 : 0,
+            vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0,
+            vars && vars.scoreGraphEnabled === false ? 0 : 1,
+            vars && vars.bgaOn === false ? 0 : 1,
+            root.gameplayAutoplayActive() ? 1 : 0,
+            root.gaugeColorOption(1),
+            root.gaugeColorOption(2),
+            root.activeGaugeNameForSide(1),
+            root.activeGaugeNameForSide(2),
+            root.gameplayGaugeTrophyOption(1),
+            root.gameplayGaugeTrophyOption(2),
+            root.isLoggedIn() ? 1 : 0,
+            root.clearStatusOption(),
+            root.gameplayReadySkinTime >= 0 ? 1 : 0,
+            root.gameplayReplayActive() ? 1 : 0,
+            root.battleModeActive() ? 1 : 0,
+            root.spToDpActive() ? 1 : 0,
+            chartIndex,
+            chartCount,
+            chartData ? chartData.keymode || 0 : 0,
+            chartData && chartData.stageFile ? 1 : 0,
+            chartData && chartData.banner ? 1 : 0,
+            chartData && chartData.backBmp ? 1 : 0,
+            chartData && selectContext.hasBga(chartData) ? 1 : 0,
+            chartData && selectContext.hasLongNote(chartData) ? 1 : 0,
+            chartData && selectContext.hasAttachedText(chartData) ? 1 : 0,
+            chartData ? chartData.minBpm || 0 : 0,
+            chartData ? chartData.maxBpm || 0 : 0,
+            chartData && root.chartHasBpmStop(chartData) ? 1 : 0,
+            chartData && chartData.isRandom ? 1 : 0,
+            chartData ? selectContext.judgeOption(chartData) : 0,
+            chartData ? selectContext.highLevelOption(chartData) : 0,
+            chartData ? selectContext.entryDifficulty(chartData) : 0,
+            root.lr2ReplayType,
+            chartData && selectContext.hasReplay(chartData) ? 1 : 0,
+            root.gameplayLaneCoverChangingOptionActive() ? 1 : 0
+        ];
+
+        root.appendGameplayRuntimeOptionSideKeyParts(parts, 1);
+        if (root.gameplayLanePlayer(2)) {
+            root.appendGameplayRuntimeOptionSideKeyParts(parts, 2);
+        }
+
+        let judgementOptions = [
+            Judgement.Perfect,
+            Judgement.Great,
+            Judgement.Good,
+            Judgement.Bad,
+            Judgement.Poor,
+            Judgement.EmptyPoor
+        ];
+        for (let judgement of judgementOptions) {
+            parts.push(root.judgementCountForExist(score1, judgement) > 0 ? 1 : 0);
+        }
+        return parts.join("|");
+    }
+
     function refreshGameplayRuntimeActiveOptions() {
-        selectUpdateController.refreshGameplayRuntimeActiveOptions();
+        let nextKey = root.gameplayRuntimeOptionStateKey();
+        if (nextKey === root.gameplayRuntimeActiveOptionsStateKey) {
+            return false;
+        }
+        root.gameplayRuntimeActiveOptionsStateKey = nextKey;
+        return selectUpdateController.refreshGameplayRuntimeActiveOptions();
     }
 
     property alias selectRevision: selectUpdateController.selectRevision
@@ -3306,6 +3549,8 @@ Item {
         ignoreUnknownSignals: true
         function onCurrentChartIndexChanged() {
             root.gameplayRevision++;
+            root.bumpGameplayNumberRevision(0);
+            root.gameplayStaticNumberRevision++;
             root.refreshGameplayRuntimeActiveOptions();
             root.gameplayResultOpened = false;
             root.gameplayPlayStopped = false;
@@ -3317,6 +3562,8 @@ Item {
         }
         function onStatusChanged() {
             root.gameplayRevision++;
+            root.bumpGameplayNumberRevision(0);
+            root.gameplayStaticNumberRevision++;
             root.refreshGameplayRuntimeActiveOptions();
             root.handleGameplayStatusChanged();
         }
@@ -3326,58 +3573,48 @@ Item {
         ignoreUnknownSignals: true
         function onHit(hit) {
             root.notifyGameplayReplayHit(hit);
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
             root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
+            root.requestGameplayRevisionRefresh(1);
         }
         function onPointsChanged() {
             root.updateGameplayScorePrintTarget(1);
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(1);
         }
         function onComboChanged() {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(1);
         }
         function onMaxComboChanged() {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(1);
         }
         function onMaxPointsNowChanged() {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(1);
         }
     }
     Connections {
         target: root.isGameplayScreen() ? root.gameplayScore(2) : null
         ignoreUnknownSignals: true
         function onHit(hit) {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
             root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
+            root.requestGameplayRevisionRefresh(2);
         }
         function onPointsChanged() {
             root.updateGameplayScorePrintTarget(2);
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(2);
         }
         function onComboChanged() {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(2);
         }
         function onMaxComboChanged() {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(2);
         }
         function onMaxPointsNowChanged() {
-            root.bumpGameplayRevision();
-            root.refreshGameplayRuntimeActiveOptions();
+            root.requestGameplayRevisionRefresh(2);
         }
     }
 
@@ -3843,7 +4080,7 @@ Item {
         skinModel: root.skinModelRef
         timerState: root.skinTimerStateRef
         screenKey: root.effectiveScreenKey
-        gameplayScreen: root.isGameplayScreen()
+        gameplayScreen: root.gameplayScreenActive
         selectBarElementSortBase: root.selectBarElementSortBase
     }
 

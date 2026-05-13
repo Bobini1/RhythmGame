@@ -16,10 +16,11 @@ Item {
     readonly property var skinRuntime: screenRoot ? screenRoot.skinRuntimeRef : null
     readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
     readonly property int runtimeTimerRevision: skinRuntime ? skinRuntime.timerRevision : 0
+    readonly property int runtimeActiveOptionsRevision: skinRuntime ? skinRuntime.activeOptionsRevision : 0
     readonly property bool playfieldActive: root.enabled
         && !!screenRoot
         && !!skinModel
-        && (!screenRoot.isGameplayScreen || screenRoot.isGameplayScreen())
+        && (screenRoot.gameplayScreenActive === undefined || screenRoot.gameplayScreenActive)
         && !!root.playerForLr2Index(0)
     readonly property var gameplayFrameState: screenRoot ? screenRoot.gameplayFrameStateRef : null
     readonly property var fallbackPlayer1: gameplayFrameState ? null : root.playerForLr2Index(0)
@@ -88,8 +89,12 @@ Item {
     function noteDstState(index) {
         if (skinRuntime) {
             runtimeRevision;
-            runtimeTimerRevision;
-            return skinRuntime.noteDstState(index, renderSkinTime);
+            runtimeActiveOptionsRevision;
+            if (skinRuntime.noteDstStateUsesSkinTime(index)) {
+                runtimeTimerRevision;
+                return skinRuntime.noteDstState(index, renderSkinTime);
+            }
+            return skinRuntime.noteDstState(index, 0);
         }
         return dstStateFor(noteDsts(index));
     }
@@ -97,8 +102,12 @@ Item {
     function lineDstState(index) {
         if (skinRuntime) {
             runtimeRevision;
-            runtimeTimerRevision;
-            return skinRuntime.lineDstState(index, renderSkinTime);
+            runtimeActiveOptionsRevision;
+            if (skinRuntime.lineDstStateUsesSkinTime(index)) {
+                runtimeTimerRevision;
+                return skinRuntime.lineDstState(index, renderSkinTime);
+            }
+            return skinRuntime.lineDstState(index, 0);
         }
         return dstStateFor(lineDsts(index));
     }
