@@ -10,6 +10,7 @@
 #include <QtQml/qqmlregistration.h>
 
 class Lr2SkinClock;
+class Lr2SkinElementActiveOptionsState;
 
 class Lr2TimelineState : public QObject {
     Q_OBJECT
@@ -21,6 +22,7 @@ class Lr2TimelineState : public QObject {
     Q_PROPERTY(int skinTime READ skinTime WRITE setSkinTime NOTIFY skinTimeChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
+    Q_PROPERTY(QObject* activeOptionsState READ activeOptionsState WRITE setActiveOptionsState NOTIFY activeOptionsStateChanged)
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
     Q_PROPERTY(bool sliderTranslationEnabled READ sliderTranslationEnabled WRITE setSliderTranslationEnabled NOTIFY sliderTranslationChanged)
     Q_PROPERTY(qreal sliderPosition READ sliderPosition WRITE setSliderPosition NOTIFY sliderTranslationChanged)
@@ -93,6 +95,9 @@ public:
 
     int timerFire() const;
     void setTimerFire(int timerFire);
+
+    QObject* activeOptionsState() const;
+    void setActiveOptionsState(QObject* state);
 
     QVariant activeOptions() const;
     void setActiveOptions(const QVariant& options);
@@ -181,6 +186,7 @@ signals:
     void skinTimeChanged();
     void timersChanged();
     void timerFireChanged();
+    void activeOptionsStateChanged();
     void activeOptionsChanged();
     void sliderTranslationChanged();
     void dstOffsetsChanged();
@@ -257,6 +263,8 @@ private:
     void rebuildActiveOptionSet();
     void rebuildAnalysis();
     void reconnectClock();
+    void reconnectActiveOptionsState();
+    void activeOptionsStateDidChange();
     void updateSkinTimeFromClock();
     void updateAnimationLimit();
     void updateState();
@@ -295,6 +303,8 @@ private:
     int m_effectiveSkinTime = 0;
     QVariant m_timers;
     int m_timerFire = -2147483648;
+    QPointer<QObject> m_activeOptionsState;
+    QMetaObject::Connection m_activeOptionsStateConnection;
     QVariant m_activeOptions;
     QSet<int> m_activeOptionSet;
     bool m_sliderTranslationEnabled = false;

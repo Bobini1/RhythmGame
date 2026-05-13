@@ -88,6 +88,7 @@ public:
     int revision() const;
 
     Q_INVOKABLE int bodyTypeValue() const;
+    Q_INVOKABLE QVariant bodySource(const QVariant& sources, const QVariant& fallback) const;
     Q_INVOKABLE bool textVisible(int titleType) const;
     Q_INVOKABLE QString textForTitleType(int titleType) const;
     Q_INVOKABLE bool numberVisible(int variant) const;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QObject>
+#include <QSet>
 #include <QVariant>
 
 class Lr2SkinElementActiveOptionsState : public QObject {
@@ -11,6 +12,7 @@ public:
     explicit Lr2SkinElementActiveOptionsState(QObject* parent = nullptr);
 
     QVariantList activeOptions() const;
+    QSet<int> activeOptionSet() const;
     bool setActiveOptions(const QVariantList& value);
 
 signals:
@@ -18,5 +20,7 @@ signals:
 
 private:
     QVariantList m_activeOptions;
+    QSet<int> m_activeOptionSet;
 };
+
 

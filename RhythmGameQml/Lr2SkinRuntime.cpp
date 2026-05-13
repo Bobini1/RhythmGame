@@ -27,6 +27,37 @@ bool sourceCollectionUsesTimers(const QVariantList& sources) {
     return false;
 }
 
+bool selectNumberUsesFocusedState(int num) {
+    return num == 42 || num == 96
+        || (num >= 45 && num <= 49)
+        || (num >= 70 && num <= 116)
+        || num == 128
+        || num == 150 || num == 152 || num == 154
+        || (num >= 179 && num <= 182)
+        || (num >= 200 && num <= 242)
+        || num == 290 || num == 291
+        || num == 300 || (num >= 320 && num <= 330)
+        || (num >= 350 && num <= 368)
+        || (num >= 410 && num <= 427)
+        || num == 1163 || num == 1164
+        || (num >= 1312 && num <= 1327);
+}
+
+int selectTextRevisionKind(int st) {
+    constexpr int SettingsRevision = 0;
+    constexpr int FocusedRevision = 1;
+    constexpr int ListRevision = 2;
+
+    if ((st >= 10 && st <= 29) && st != 26) {
+        return FocusedRevision;
+    }
+    if (st == 30 || st == 60 || st == 61 || st == 62
+            || (st >= 1000 && st <= 1003)) {
+        return ListRevision;
+    }
+    return SettingsRevision;
+}
+
 } // namespace
 
 Lr2SkinRuntime::Lr2SkinRuntime(QObject* parent) : QObject(parent) {}
@@ -482,6 +513,8 @@ QVariantMap Lr2SkinRuntime::descriptorMap(const ElementDescriptor& descriptor) c
     value.insert(QStringLiteral("gameplayLaneCoverSlider"), descriptor.gameplayLaneCoverSlider);
     value.insert(QStringLiteral("numberRefSlider"), descriptor.numberRefSlider);
     value.insert(QStringLiteral("buttonId"), descriptor.buttonId);
+    value.insert(QStringLiteral("numberUsesFocusedSelectState"), descriptor.numberUsesFocusedSelectState);
+    value.insert(QStringLiteral("textSelectRevisionKind"), descriptor.textSelectRevisionKind);
     return value;
 }
 
@@ -586,6 +619,8 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.gameplayLaneCoverSlider = descriptor.spriteStateOverrideKind == rt::GameplayLaneCoverSpriteStateOverride;
     descriptor.numberRefSlider = descriptor.spriteStateOverrideKind == rt::NumberRefSpriteStateOverride;
     descriptor.buttonId = descriptor.source.buttonId;
+    descriptor.numberUsesFocusedSelectState = selectNumberUsesFocusedState(descriptor.source.num);
+    descriptor.textSelectRevisionKind = selectTextRevisionKind(descriptor.source.st);
 
     if (rt::isSelectBarElement(type, descriptor.source)) {
         descriptor.z = m_selectBarElementSortBase

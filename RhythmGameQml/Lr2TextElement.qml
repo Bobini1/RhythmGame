@@ -10,6 +10,7 @@ Item {
     required property var selectContext
     property var dsts: []
     property var srcData: null
+    property var activeOptionsState: null
     property var activeOptions: []
     property var chart: null
     property int skinTime: 0
@@ -18,6 +19,7 @@ Item {
     property int timerFire: 0
     property real skinScale: 1
     property int valueRevision: 0
+    property int selectRevisionKind: 0
 
     readonly property var root: screenRoot
     readonly property bool ready: root !== undefined && root !== null
@@ -224,6 +226,7 @@ Item {
         skinTime: textElement.skinTime
         skinClock: textElement.skinClock
         skinClockMode: textElement.skinClockMode
+        activeOptionsState: textElement.activeOptionsState
         activeOptions: textElement.activeOptions
         timerFire: textElement.timerFire
         scaleOverride: textElement.skinScale
@@ -231,11 +234,20 @@ Item {
             if (!textRenderer.hasCurrentState || !textElement.ready) {
                 return "";
             }
+            const st = textElement.srcData ? textElement.srcData.st : -1;
             if (textElement.isSearchText) {
                 return textElement.searchDisplayText;
             }
-            return textElement.root.resolveText(textElement.srcData ? textElement.srcData.st : -1,
-                                                textElement.valueRevision);
+            if (textElement.selectReady
+                    && textElement.selectContext.nativeState
+                    && textElement.root.effectiveScreenKey === "select"
+                    && textElement.selectRevisionKind === 1) {
+                const nativeText = textElement.selectContext.nativeState.textValue(st);
+                if (nativeText !== undefined && nativeText !== null) {
+                    return nativeText;
+                }
+            }
+            return textElement.root.resolveText(st, textElement.valueRevision);
         }
     }
 

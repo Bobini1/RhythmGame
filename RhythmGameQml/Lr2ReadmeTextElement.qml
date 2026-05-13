@@ -9,6 +9,7 @@ Item {
     required property var screenRoot
     property var dsts: []
     property var srcData: null
+    property var activeOptionsState: null
     property var activeOptions: []
     property var chart: null
     property int skinTime: 0
@@ -34,6 +35,7 @@ Item {
             dsts: readmeElement.dsts
             srcData: readmeElement.srcData
             skinTime: readmeElement.skinTime
+            activeOptionsState: readmeElement.activeOptionsState
             activeOptions: readmeElement.activeOptions
             timerFire: readmeElement.timerFire
             scaleOverride: readmeElement.skinScale

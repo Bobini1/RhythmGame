@@ -13,31 +13,19 @@ Item {
     property int selectRevision: 0
     property bool ready: false
     property bool scratchSoundReady: false
-    property var deferredChart: null
     property string activePreviewSource: ""
     property int pendingPreviewRevision: -1
     property int pendingPreviewRequest: 0
     property string pendingPreviewSource: ""
     property alias scratchSoundPlayer: scratchSound
 
-    readonly property var renderChart: root.host.effectiveScreenKey === "select"
-        ? root.deferredChart
-        : (root.host.chart || root.host.resultChartData())
-
-    function updateDisplayedChart() {
-        if (root.host.effectiveScreenKey === "select") {
-            root.deferredChart = root.selectContext.selectedChartWrapper();
-        } else {
-            root.deferredChart = root.host.chart;
-        }
-    }
+    readonly property var renderChart: root.host.chart || root.host.resultChartData()
 
     function update() {
         if (!root.ready) {
             return;
         }
 
-        root.updateDisplayedChart();
 
         if (!root.active) {
             root.stopAudio();

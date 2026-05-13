@@ -590,6 +590,7 @@ Item {
         if (root.effectiveScreenKey !== "select") {
             return false;
         }
+        selectContext.flushFocusedStateRefresh(false);
         return root.openReadmePath(
             selectContext.attachedTextFile(selectContext.selectedChartData()));
     }
@@ -801,9 +802,15 @@ Item {
     function lr2TachiKeymode(chart) { return lr2Ranking.tachiKeymode(chart); }
     function lr2InternetRankingUrl(chart) { return lr2Ranking.internetRankingUrl(chart); }
     function finishOpenLr2InternetRanking() { return lr2Ranking.finishOpenInternetRanking(); }
-    function openLr2InternetRanking() { return lr2Ranking.openInternetRanking(); }
+    function openLr2InternetRanking() {
+        selectContext.flushFocusedStateRefresh(false);
+        return lr2Ranking.openInternetRanking();
+    }
     function finishOpenLr2Ranking() { return lr2Ranking.finishOpenRanking(); }
-    function openLr2Ranking() { return lr2Ranking.openRanking(); }
+    function openLr2Ranking() {
+        selectContext.flushFocusedStateRefresh(false);
+        return lr2Ranking.openRanking();
+    }
     function closeLr2Ranking() { return lr2Ranking.closeRanking(); }
     function isLr2RankingKey(key) { return key === BmsKey.Col14 || key === BmsKey.Col24; }
 
@@ -3023,11 +3030,7 @@ Item {
     property bool selectCommonActiveOptionsReady: false
     property string selectRuntimeActiveOptionsKey: ""
     property string gameplayRuntimeActiveOptionsKey: ""
-    readonly property var runtimeActiveOptions: root.isGameplayScreen()
-        ? root.gameplayRuntimeActiveOptions
-        : (root.effectiveScreenKey === "select"
-            ? root.selectRuntimeActiveOptions
-            : runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions))
+    property var runtimeActiveOptions: []
     readonly property var barTimers: ({ "0": 0 })
 
     function sameNumberArray(a, b) {
@@ -3150,50 +3153,11 @@ Item {
     }
 
     function refreshBaseActiveOptions() {
-        let nextBar = runtimeOptions.buildBarActiveOptions();
-        let barChanged = !root.sameNumberArray(root.barActiveOptions, nextBar);
-        if (barChanged) {
-            root.barActiveOptions = nextBar;
-        }
-
-        let nextBase = runtimeOptions.buildBaseActiveOptions(nextBar);
-        let baseChanged = !root.sameNumberArray(root.baseActiveOptions, nextBase);
-        if (baseChanged) {
-            root.baseActiveOptions = nextBase;
-            root.baseActiveOptionsKey = root.numberArrayKey(nextBase);
-        }
-
-        let nextSelectCommon = runtimeOptions.buildSelectCommonActiveOptions(nextBase);
-        let selectCommonChanged = !root.sameNumberArray(root.selectCommonActiveOptions, nextSelectCommon);
-        root.selectCommonActiveOptionsReady = true;
-        if (selectCommonChanged) {
-            root.selectCommonActiveOptions = nextSelectCommon;
-            root.selectCommonActiveOptionsKey = root.numberArrayKey(nextSelectCommon);
-        }
-
-        if (baseChanged || selectCommonChanged) {
-            root.selectRuntimeActiveOptionsKey = "";
-        }
-        if (baseChanged) {
-            root.gameplayRuntimeActiveOptionsKey = "";
-        }
-        return barChanged || baseChanged || selectCommonChanged;
+        return selectUpdateController.refreshBaseActiveOptions();
     }
 
     function refreshSelectRuntimeActiveOptions() {
-        if (!root.screenUpdatesActive || root.effectiveScreenKey !== "select") {
-            return;
-        }
-        if (!root.selectCommonActiveOptionsReady) {
-            root.refreshBaseActiveOptions();
-        }
-        let next = runtimeOptions.buildSelectRuntimeActiveOptions(root.selectCommonActiveOptions);
-        let nextKey = root.numberArrayKey(next);
-        if (nextKey === root.selectRuntimeActiveOptionsKey) {
-            return;
-        }
-        root.selectRuntimeActiveOptionsKey = nextKey;
-        root.selectRuntimeActiveOptions = next;
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
     function refreshSelectRankingStatusOptions() {
@@ -3203,21 +3167,11 @@ Item {
     }
 
     function refreshGameplayRuntimeActiveOptions() {
-        if (!root.isGameplayScreen()) {
-            return;
-        }
-        let next = runtimeOptions.buildRuntimeActiveOptions(root.baseActiveOptions);
-        let nextKey = root.numberArrayKey(next);
-        if (nextKey === root.gameplayRuntimeActiveOptionsKey) {
-            return;
-        }
-        root.gameplayRuntimeActiveOptionsKey = nextKey;
-        root.gameplayRuntimeActiveOptions = next;
+        selectUpdateController.refreshGameplayRuntimeActiveOptions();
     }
 
-    readonly property int selectRevision: selectContext.scoreRevision
-        + selectContext.focusRevision
-    property alias deferredSelectChart: selectSideEffects.deferredChart
+    property alias selectRevision: selectUpdateController.selectRevision
+    property alias selectDetailRevision: selectUpdateController.selectDetailRevision
     property alias activePreviewSource: selectSideEffects.activePreviewSource
     property alias pendingPreviewRevision: selectSideEffects.pendingPreviewRevision
     property alias pendingPreviewRequest: selectSideEffects.pendingPreviewRequest
@@ -3260,10 +3214,6 @@ Item {
         return item.loadCharts();
     }
 
-    onSelectRevisionChanged: {
-        root.handleCommittedSelectState();
-        root.refreshSelectRuntimeActiveOptions();
-    }
     Connections {
         target: selectContext
         function onEntryChangeSoundsRequested(count) {
@@ -3432,6 +3382,7 @@ Item {
     }
 
     function handleCommittedSelectState() {
+        selectUpdateController.flushSelectDetailRevision();
         if (root.commitLr2RankingRequest()) {
             root.applyRankingStatsToSelectContext();
         }
@@ -3497,6 +3448,12 @@ Item {
     }
 
     function resolveText(st, revision) {
+        if (root.effectiveScreenKey === "select") {
+            let nativeText = selectContext.nativeState.textValue(st);
+            if (nativeText !== undefined && nativeText !== null) {
+                return nativeText;
+            }
+        }
         return valueResolver.resolveText(st, revision);
     }
 
@@ -3884,7 +3841,6 @@ Item {
     Lr2SkinRuntime {
         id: skinRuntime
         skinModel: root.skinModelRef
-        runtimeActiveOptions: root.runtimeActiveOptions
         timerState: root.skinTimerStateRef
         screenKey: root.effectiveScreenKey
         gameplayScreen: root.isGameplayScreen()
@@ -4059,6 +4015,20 @@ Item {
         }
     }
 
+    Lr2SelectUpdateController {
+        id: selectUpdateController
+        host: root
+        selectContext: selectContext
+        runtimeOptions: runtimeOptions
+        skinRuntime: skinRuntime
+    }
+
+    Lr2SelectKeyNavigationFilter {
+        target: root
+        screenState: screenState
+        navigationController: selectContext.navigationController
+    }
+
     Lr2PlayContext {
         id: playContext
         enabled: root.isGameplayScreen()
@@ -4229,9 +4199,9 @@ Item {
             event.accepted = true;
             return;
         }
-        if (!root.selectScrollReady()) return;
+        if (!screenState.selectScrollReady) return;
         event.accepted = true;
-        selectContext.decrementViewIndex(event.isAutoRepeat);
+        selectContext.navigationController.decrementViewIndex(event.isAutoRepeat);
     }
     Keys.onDownPressed: (event) => {
         if (root.lr2ReadmeMode === 1) {
@@ -4243,9 +4213,9 @@ Item {
             event.accepted = true;
             return;
         }
-        if (!root.selectScrollReady()) return;
+        if (!screenState.selectScrollReady) return;
         event.accepted = true;
-        selectContext.incrementViewIndex(event.isAutoRepeat);
+        selectContext.navigationController.incrementViewIndex(event.isAutoRepeat);
     }
     Keys.onLeftPressed: (event) => {
         if (root.handleLr2GameplayArrow(Qt.Key_Left)) {

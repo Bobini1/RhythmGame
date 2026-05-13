@@ -15,7 +15,15 @@ class Lr2SelectStateCache : public QObject {
     Q_PROPERTY(QVariant chartGroupCache READ chartGroupCache WRITE setChartGroupCache NOTIFY chartGroupCacheChanged)
     Q_PROPERTY(QVariant folderLampByKey READ folderLampByKey WRITE setFolderLampByKey NOTIFY folderLampByKeyChanged)
     Q_PROPERTY(QVariant folderDistributionByKey READ folderDistributionByKey WRITE setFolderDistributionByKey NOTIFY folderDistributionByKeyChanged)
+    Q_PROPERTY(QVariant folderScoreCountsByKey READ folderScoreCountsByKey WRITE setFolderScoreCountsByKey NOTIFY folderScoreCountsByKeyChanged)
     Q_PROPERTY(QVariant historyStack READ historyStack WRITE setHistoryStack NOTIFY historyStackChanged)
+    Q_PROPERTY(QVariant playerStats READ playerStats WRITE setPlayerStats NOTIFY playerStatsChanged)
+    Q_PROPERTY(int profileOffset READ profileOffset WRITE setProfileOffset NOTIFY profileOffsetChanged)
+    Q_PROPERTY(QVariant rankingClearCounts READ rankingClearCounts WRITE setRankingClearCounts NOTIFY rankingClearCountsChanged)
+    Q_PROPERTY(QString rankingStatsMd5 READ rankingStatsMd5 WRITE setRankingStatsMd5 NOTIFY rankingStatsMd5Changed)
+    Q_PROPERTY(int rankingPlayerRank READ rankingPlayerRank WRITE setRankingPlayerRank NOTIFY rankingPlayerRankChanged)
+    Q_PROPERTY(int rankingPlayerCount READ rankingPlayerCount WRITE setRankingPlayerCount NOTIFY rankingPlayerCountChanged)
+    Q_PROPERTY(int rankingTotalPlayCount READ rankingTotalPlayCount WRITE setRankingTotalPlayCount NOTIFY rankingTotalPlayCountChanged)
 
 public:
     explicit Lr2SelectStateCache(QObject* parent = nullptr);
@@ -35,8 +43,32 @@ public:
     QVariant folderDistributionByKey() const;
     void setFolderDistributionByKey(const QVariant& value);
 
+    QVariant folderScoreCountsByKey() const;
+    void setFolderScoreCountsByKey(const QVariant& value);
+
     QVariant historyStack() const;
     void setHistoryStack(const QVariant& value);
+
+    QVariant playerStats() const;
+    void setPlayerStats(const QVariant& value);
+
+    int profileOffset() const;
+    void setProfileOffset(int value);
+
+    QVariant rankingClearCounts() const;
+    void setRankingClearCounts(const QVariant& value);
+
+    QString rankingStatsMd5() const;
+    void setRankingStatsMd5(const QString& value);
+
+    int rankingPlayerRank() const;
+    void setRankingPlayerRank(int value);
+
+    int rankingPlayerCount() const;
+    void setRankingPlayerCount(int value);
+
+    int rankingTotalPlayCount() const;
+    void setRankingTotalPlayCount(int value);
 
     Q_INVOKABLE QVariantMap refreshSelectedState(const QVariant& item,
                                                  int focusedIndex,
@@ -60,6 +92,8 @@ public:
     Q_INVOKABLE qreal barGraphValue(int type,
                                     int logicalCount,
                                     qreal currentNormalizedVisualIndex) const;
+    Q_INVOKABLE QVariant textValue(int st) const;
+    Q_INVOKABLE int numberValue(int num) const;
     Q_INVOKABLE QVariantMap barCellCore(const QVariant& item,
                                         const QVariant& barTitleTypes,
                                         int scoreRevision,
@@ -79,7 +113,15 @@ signals:
     void chartGroupCacheChanged();
     void folderLampByKeyChanged();
     void folderDistributionByKeyChanged();
+    void folderScoreCountsByKeyChanged();
     void historyStackChanged();
+    void playerStatsChanged();
+    void profileOffsetChanged();
+    void rankingClearCountsChanged();
+    void rankingStatsMd5Changed();
+    void rankingPlayerRankChanged();
+    void rankingPlayerCountChanged();
+    void rankingTotalPlayCountChanged();
 
 private:
     enum class ItemKind {
@@ -174,7 +216,15 @@ private:
     QVariant m_chartGroupCache;
     QVariant m_folderLampByKey;
     QVariant m_folderDistributionByKey;
+    QVariant m_folderScoreCountsByKey;
     QVariant m_historyStack;
+    QVariant m_playerStats;
+    int m_profileOffset = 0;
+    QVariant m_rankingClearCounts;
+    QString m_rankingStatsMd5;
+    int m_rankingPlayerRank = 0;
+    int m_rankingPlayerCount = 0;
+    int m_rankingTotalPlayCount = 0;
     QHash<QString, QVariantMap> m_selectedStateCache;
     QHash<QString, QVariantMap> m_scoreSummaryCache;
     QHash<QString, QVariantMap> m_scoreLampRankCache;

@@ -180,6 +180,27 @@ QVariantMap segmentState(const GraphBaseState& baseState, qreal start, qreal wid
     };
 }
 
+QVariant listValueAt(const QVariant& values, int index) {
+    if (index < 0) {
+        return {};
+    }
+
+    const QVariantList list = values.toList();
+    if (!list.isEmpty()) {
+        return index < list.size() ? list.at(index) : QVariant {};
+    }
+
+    if (!values.canConvert<QJSValue>()) {
+        return {};
+    }
+    const QJSValue jsValue = values.value<QJSValue>();
+    if (!jsValue.isArray()) {
+        return {};
+    }
+    const int length = jsValue.property(QStringLiteral("length")).toInt();
+    return index < length ? jsValue.property(static_cast<quint32>(index)).toVariant() : QVariant {};
+}
+
 } // namespace
 
 Lr2SelectBarCell::Lr2SelectBarCell(QObject* parent) : QObject(parent) {}
@@ -313,6 +334,14 @@ void Lr2SelectBarCell::setGraphRanks(const QVariantList& value) {
 int Lr2SelectBarCell::revision() const { return m_revision; }
 
 int Lr2SelectBarCell::bodyTypeValue() const { return m_bodyType; }
+
+QVariant Lr2SelectBarCell::bodySource(const QVariant& sources, const QVariant& fallback) const {
+    QVariant source = listValueAt(sources, m_bodyType);
+    if (!source.isValid() || source.isNull()) {
+        source = listValueAt(sources, 0);
+    }
+    return source.isValid() && !source.isNull() ? source : fallback;
+}
 
 bool Lr2SelectBarCell::textVisible(int titleType) const {
     return m_valid && m_titleType == titleType;

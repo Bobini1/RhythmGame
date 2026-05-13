@@ -8,11 +8,15 @@ Item {
     property var srcData
     property int skinTime: 0
     property int sourceSkinTime: skinTime
+    property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property int sourceTimerFire: -2147483648
     property var chart
+    property string stageFileSource: ""
+    property string backBmpSource: ""
+    property string bannerSource: ""
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
@@ -48,14 +52,14 @@ Item {
         ? overlayTimelineCache.staticState
         : null
     readonly property var overlayTimelineTimers: overlayTimelineCache.usesDynamicTimer ? timers : null
-    readonly property var overlayTimelineActiveOptions: overlayTimelineCache.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState overlayTimelineCache: Lr2TimelineState {
         enabled: root.hasOverlayTimelineState && !root.overlayHasStaticTimelineState
         dsts: root.overlayDsts
         skinTime: root.skinTime
         timers: root.overlayTimelineTimers
         timerFire: root.timerFire
-        activeOptions: root.overlayTimelineActiveOptions
+        activeOptionsState: root.activeOptionsState
+        activeOptions: root.activeOptions
     }
     readonly property var overlayTimelineState: hasOverlayTimelineState
         ? (overlayStaticTimelineState
@@ -103,6 +107,22 @@ Item {
             return false;
         }
         return source.specialType === 1 || source.specialType === 3 || source.specialType === 4;
+    }
+
+    function chartAssetSourceFor(source) {
+        if (!source) {
+            return "";
+        }
+        if (source.specialType === 1) {
+            return stageFileSource;
+        }
+        if (source.specialType === 3) {
+            return backBmpSource;
+        }
+        if (source.specialType === 4) {
+            return bannerSource;
+        }
+        return "";
     }
 
     function visibilityState(row) {
@@ -206,16 +226,6 @@ Item {
         return data.offDsts && data.offDsts.length > 0 ? data.offDsts : (data.onDsts || []);
     }
 
-    function sourceForBody(row) {
-        if (!selectContext || !srcData || !srcData.sources) {
-            return srcData && srcData.source ? srcData.source : null;
-        }
-        let cell = cellData(row);
-        let revision = cell ? cell.revision : -1;
-        let bodyType = cell ? (cell.bodyType || 0) : 0;
-        return srcData.sources[bodyType] || srcData.sources[0] || srcData.source || null;
-    }
-
     function overlayVisibleForValues(cellValid, lamp, ranking, rank) {
         if (!selectContext || !srcData) {
             return false;
@@ -265,7 +275,15 @@ Item {
             readonly property int bodyRow: modelData
             readonly property var baseState: root.cachedBaseState(bodyRow)
             readonly property bool needsStateInterpolation: root.bodyNeedsStateInterpolation(bodyRow)
-            readonly property var bodySource: root.sourceForBody(bodyRow)
+            readonly property var bodyCell: root.cellData(bodyRow)
+            readonly property int bodyCellRevision: bodyCell ? bodyCell.revision : -1
+            readonly property var bodySource: {
+                bodyCellRevision;
+                let fallback = root.srcData && root.srcData.source ? root.srcData.source : null;
+                return bodyCell && root.srcData && root.srcData.sources
+                    ? bodyCell.bodySource(root.srcData.sources, fallback)
+                    : fallback;
+            }
             readonly property var staticBodyState: root.positionlessState(baseState)
             readonly property var effectiveBodyState: needsStateInterpolation ? bodyInterpolatedState : staticBodyState
             positionCache: root.barPositionCache
@@ -297,7 +315,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: root.spriteSourceTimerFire(bodyDelegate.bodySource)
-                chart: root.sourceUsesChartAsset(bodyDelegate.bodySource) ? root.chart : null
+                chartAssetSource: root.chartAssetSourceFor(bodyDelegate.bodySource)
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: false
@@ -356,7 +374,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: root.spriteSourceTimerFire(srcData)
-                chart: root.sourceUsesChartAsset(srcData) ? root.chart : null
+                chartAssetSource: root.chartAssetSourceFor(srcData)
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: root.colorKeyEnabled

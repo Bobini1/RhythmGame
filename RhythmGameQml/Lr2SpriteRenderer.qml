@@ -16,11 +16,13 @@ Item {
     property var skinClock: null
     property int skinClockMode: 0
     property int sourceSkinClockMode: 0
+    property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property int sourceTimerFire: -2147483648
     property var chart
+    property string chartAssetSource: ""
     property real scaleOverride: 1.0
     property real offsetX: 0
     property real offsetY: 0
@@ -55,7 +57,6 @@ Item {
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
-    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.stateOverride && !root.forceHidden && !root.hasStaticTimelineState
         skinClock: root.skinClock
@@ -64,7 +65,8 @@ Item {
         skinTime: root.skinTime
         timers: root.timelineTimers
         timerFire: root.timerFire
-        activeOptions: root.timelineActiveOptions
+        activeOptionsState: root.activeOptionsState
+        activeOptions: root.activeOptions
         sliderTranslationEnabled: root.sliderTranslationEnabled
         sliderPosition: root.sliderPosition
         sliderRange: root.sliderRange
@@ -209,6 +211,9 @@ Item {
     readonly property string resolvedSource: {
         if (!srcData) return "";
         if (srcData.specialType === 1 || srcData.specialType === 3 || srcData.specialType === 4) {
+            if (root.chartAssetSource.length > 0) {
+                return root.chartAssetSource;
+            }
             let chartData = root.chart ? (root.chart.chartData || root.chart) : null;
             let fileName = "";
             if (srcData.specialType === 1) {

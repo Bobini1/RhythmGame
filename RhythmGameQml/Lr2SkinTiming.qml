@@ -41,6 +41,7 @@ QtObject {
         clock: skinClock
         gameplayFrameState: root.host ? root.host.gameplayFrameStateRef : null
         selectVisualState: root.selectContext ? root.selectContext.visualStateObject : null
+        frameAnimation: skinStopwatch
         gameplayScreen: root.host ? root.host.isGameplayScreen() : false
         gameplayStartupPending: root.host
             && frameDriver.gameplayScreen
@@ -107,7 +108,6 @@ QtObject {
     property FrameAnimation skinStopwatch: FrameAnimation {
         id: skinStopwatch
         running: root.host && root.host.screenUpdatesActive
-        onTriggered: frameDriver.tick(skinStopwatch.smoothFrameTime)
     }
 
     property Timer dateTimeStopwatch: Timer {

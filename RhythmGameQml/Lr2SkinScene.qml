@@ -19,6 +19,9 @@ Item {
     readonly property var skinRuntime: rootReady ? root.skinRuntimeRef : null
     readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
     readonly property var renderChart: rootReady ? root.renderChart : null
+    readonly property string stageFileSource: rootReady ? selectContext.visualStageFileSource : ""
+    readonly property string backBmpSource: rootReady ? selectContext.visualBackBmpSource : ""
+    readonly property string bannerSource: rootReady ? selectContext.visualBannerSource : ""
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
     readonly property int valueRevision: !rootReady ? 0
@@ -31,63 +34,15 @@ Item {
                 ? root.resultOldScoresRevision
                 : root.gameplayRevision))
     readonly property int selectDetailValueRevision: !rootReady ? 0
-        : root.selectRevision
+        : root.selectDetailRevision
             + selectContext.listRevision
             + selectContext.folderLampRevision
             + root.lr2SkinSettingsRevision
     readonly property int selectStableBarGraphValueRevision: !rootReady ? 0
         : root.lr2SkinSettingsRevision
-
-    function selectNumberUsesFocusedState(num) {
-        return num === 42 || num === 96
-            || (num >= 45 && num <= 49)
-            || (num >= 70 && num <= 116)
-            || num === 128
-            || num === 150 || num === 152 || num === 154
-            || (num >= 179 && num <= 182)
-            || (num >= 200 && num <= 242)
-            || num === 290 || num === 291
-            || num === 300 || (num >= 320 && num <= 330)
-            || (num >= 350 && num <= 368)
-            || (num >= 410 && num <= 427)
-            || num === 1163 || num === 1164
-            || (num >= 1312 && num <= 1327);
-    }
-
-    function numberValueRevision(src) {
-        if (!rootReady) {
-            return 0;
-        }
-        if (root.effectiveScreenKey !== "select") {
-            return valueRevision;
-        }
-        let num = src ? (src.num || 0) : 0;
-        return selectNumberUsesFocusedState(num)
-            ? selectDetailValueRevision
-            : root.lr2SkinSettingsRevision;
-    }
-
-    function selectTextUsesFocusedState(st) {
-        return (st >= 10 && st <= 29) && st !== 26;
-    }
-
-    function textValueRevision(src) {
-        if (!rootReady) {
-            return 0;
-        }
-        if (root.effectiveScreenKey !== "select") {
-            return valueRevision;
-        }
-        let st = src ? (src.st || 0) : 0;
-        if (selectTextUsesFocusedState(st)) {
-            return selectDetailValueRevision;
-        }
-        if (st === 30 || st === 60 || st === 61 || st === 62
-                || (st >= 1000 && st <= 1003)) {
-            return selectContext.listRevision + root.lr2SkinSettingsRevision;
-        }
-        return root.lr2SkinSettingsRevision;
-    }
+    readonly property int textSettingsRevisionKind: 0
+    readonly property int textFocusedRevisionKind: 1
+    readonly property int textListRevisionKind: 2
 
     function selectBarGraphUsesFocusedState(type) {
         return type === 101
@@ -115,6 +70,22 @@ Item {
             return false;
         }
         return src.specialType === 1 || src.specialType === 3 || src.specialType === 4;
+    }
+
+    function chartAssetSourceFor(src) {
+        if (!src) {
+            return "";
+        }
+        if (src.specialType === 1) {
+            return stageFileSource;
+        }
+        if (src.specialType === 3) {
+            return backBmpSource;
+        }
+        if (src.specialType === 4) {
+            return bannerSource;
+        }
+        return "";
     }
 
     function sourceTreeUsesChartAsset(value, depth) {
@@ -325,10 +296,6 @@ Item {
                             ? sceneRoot.skinRuntime.elementTimerState(index)
                             : null;
                     }
-                    readonly property var elementActiveOptions: elemLoader.usesActiveOptions
-                        && elemLoader.elementActiveOptionsState
-                        ? elemLoader.elementActiveOptionsState.activeOptions
-                        : root.emptyActiveOptions
                     readonly property int dstTimerFire: {
                         if (!elemLoader.usesDynamicDstTimer) {
                             return elemLoader.dstTimer === 0 ? 0 : -1;
@@ -457,10 +424,10 @@ Item {
                                 skinClock: parent.useDirectSkinClock ? root.skinClockRef : null
                                 skinClockMode: parent.spriteSkinClockMode
                                 sourceSkinClockMode: parent.spriteSourceSkinClockMode
-                                activeOptions: elemLoader.elementActiveOptions
+                                activeOptionsState: elemLoader.elementActiveOptionsState
                                 timerFire: elemLoader.dstTimerFire
                                 sourceTimerFire: elemLoader.srcTimerFire
-                                chart: sceneRoot.sourceUsesChartAsset(model.src) ? sceneRoot.renderChart : null
+                                chartAssetSource: sceneRoot.chartAssetSourceFor(model.src)
                                 scaleOverride: skinScale
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
@@ -499,7 +466,7 @@ Item {
                         Lr2BgaRenderer {
                             dsts: model.dsts
                             skinTime: elemLoader.elementSkinTime
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             chart: root.chart
                             scaleOverride: skinScale
@@ -531,7 +498,7 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.renderSkinTime
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             screenRoot: sceneRoot.root
                             scaleOverride: skinScale
@@ -547,7 +514,7 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
                             scaleOverride: skinScale
@@ -562,7 +529,7 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             scaleOverride: skinScale
                             chart: root.visualSelectChart
@@ -576,7 +543,7 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: elemLoader.elementSkinTime
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             scaleOverride: skinScale
                             chart: root.visualSelectChart
@@ -593,13 +560,30 @@ Item {
                             skinTime: elemLoader.useDirectElementSkinClock && !sourceAnimates ? 0 : elemLoader.elementSkinTime
                             skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
                             skinClockMode: elemLoader.elementSkinClockMode
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
                             scaleOverride: skinScale
-                            value: numberRenderer.hasCurrentState
-                                ? root.numberValue(model.src, sceneRoot.numberValueRevision(model.src))
-                                : 0
+                            value: {
+                                if (!numberRenderer.hasCurrentState) {
+                                    return 0;
+                                }
+                                if (root.effectiveScreenKey === "select") {
+                                    let num = model.src ? model.src.num || 0 : 0;
+                                    if (!elementState.numberUsesFocusedSelectState) {
+                                        return root.numberValue(model.src, root.lr2SkinSettingsRevision);
+                                    }
+                                    sceneRoot.selectDetailValueRevision;
+                                    if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
+                                        return root.numberValue(model.src, sceneRoot.selectDetailValueRevision);
+                                    }
+                                    if (num >= 1312 && num <= 1327) {
+                                        return root.numberValue(model.src, sceneRoot.selectDetailValueRevision);
+                                    }
+                                    return selectContext.nativeState.numberValue(num);
+                                }
+                                return root.numberValue(model.src, sceneRoot.valueRevision);
+                            }
                             forceHidden: root.numberForceHidden(model.src)
                             animationRevision: root.numberAnimationRevision(model.src)
                             colorKeyEnabled: skinModel.hasTransColor
@@ -620,9 +604,16 @@ Item {
                             skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
                             skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
                             skinClockMode: elemLoader.elementSkinClockMode
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
-                            valueRevision: sceneRoot.textValueRevision(model.src)
+                            valueRevision: root.effectiveScreenKey !== "select"
+                                ? sceneRoot.valueRevision
+                                : (elementState.textSelectRevisionKind === sceneRoot.textFocusedRevisionKind
+                                    ? sceneRoot.selectDetailValueRevision
+                                    : (elementState.textSelectRevisionKind === sceneRoot.textListRevisionKind
+                                        ? selectContext.listRevision + root.lr2SkinSettingsRevision
+                                        : root.lr2SkinSettingsRevision))
+                            selectRevisionKind: elementState.textSelectRevisionKind
                             skinScale: skinScale
                         }
                     }
@@ -636,9 +627,8 @@ Item {
                             dsts: model.dsts
                             srcData: model.src
                             skinTime: root.renderSkinTime
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
-                            chart: sceneRoot.renderChart
                             skinScale: skinScale
                         }
                     }
@@ -669,7 +659,9 @@ Item {
                             selectedFastBarDrawX: root.selectedFastBarDrawX
                             selectedFastBarDrawY: root.selectedFastBarDrawY
                             barCenter: skinModel.barCenter
-                            chart: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.renderChart : null
+                            stageFileSource: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.stageFileSource : ""
+                            backBmpSource: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.backBmpSource : ""
+                            bannerSource: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.bannerSource : ""
                             transColor: skinModel.transColor
                             colorKeyEnabled: skinModel.hasTransColor
                         }
@@ -742,10 +734,10 @@ Item {
                                     ? elemLoader.selectSourceClock
                                     : elemLoader.renderClock)
                                 : elemLoader.manualClock
-                            activeOptions: elemLoader.elementActiveOptions
+                            activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
-                            chart: sceneRoot.sourceUsesChartAsset(model.src) ? sceneRoot.renderChart : null
+                            chartAssetSource: sceneRoot.chartAssetSourceFor(model.src)
                             scaleOverride: skinScale
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
@@ -779,7 +771,6 @@ Item {
                             timers: root.barTimers
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
-                            chart: sceneRoot.renderChart
                             scaleOverride: skinScale
                             selectContext: sceneRoot.root.selectContextRef
                             barRows: skinModel.barRows
@@ -790,6 +781,7 @@ Item {
                             fastBarScrollY: root.fastBarScrollY
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
+                            chartAssetSource: sceneRoot.chartAssetSourceFor(model.src)
                         }
                     }
                 }

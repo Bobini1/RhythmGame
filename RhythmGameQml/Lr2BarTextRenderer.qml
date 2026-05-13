@@ -7,6 +7,7 @@ Item {
     property var dsts: []
     property var srcData
     property int skinTime: 0
+    property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
@@ -53,14 +54,14 @@ Item {
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
-    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
         dsts: root.timelineDsts
         skinTime: root.skinTime
         timers: root.timelineTimers
         timerFire: root.timerFire
-        activeOptions: root.timelineActiveOptions
+        activeOptionsState: root.activeOptionsState
+        activeOptions: root.activeOptions
     }
     readonly property var textTimelineState: staticTimelineState
         || timelineState.state

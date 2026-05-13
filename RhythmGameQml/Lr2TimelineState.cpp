@@ -1,6 +1,7 @@
 #include "Lr2TimelineState.h"
 
 #include "Lr2SkinClock.h"
+#include "Lr2SkinElementActiveOptionsState.h"
 #include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 
 #include <QJSValue>
@@ -144,7 +145,31 @@ void Lr2TimelineState::setTimerFire(int timerFire) {
     updateState();
 }
 
+QObject* Lr2TimelineState::activeOptionsState() const {
+    return m_activeOptionsState;
+}
+
+void Lr2TimelineState::setActiveOptionsState(QObject* state) {
+    if (m_activeOptionsState == state) {
+        return;
+    }
+
+    m_activeOptionsState = state;
+    reconnectActiveOptionsState();
+    emit activeOptionsStateChanged();
+    activeOptionsStateDidChange();
+}
+
 QVariant Lr2TimelineState::activeOptions() const {
+    if (auto* state = qobject_cast<Lr2SkinElementActiveOptionsState*>(m_activeOptionsState)) {
+        return state->activeOptions();
+    }
+    if (m_activeOptionsState) {
+        const QVariant stateOptions = m_activeOptionsState->property("activeOptions");
+        if (stateOptions.isValid()) {
+            return stateOptions;
+        }
+    }
     return m_activeOptions;
 }
 
@@ -154,9 +179,11 @@ void Lr2TimelineState::setActiveOptions(const QVariant& options) {
     }
 
     m_activeOptions = options;
-    rebuildActiveOptionSet();
     emit activeOptionsChanged();
-    updateState();
+    if (!m_activeOptionsState) {
+        rebuildActiveOptionSet();
+        updateState();
+    }
 }
 
 bool Lr2TimelineState::sliderTranslationEnabled() const {
@@ -533,7 +560,16 @@ void Lr2TimelineState::rebuildAnalysis() {
 void Lr2TimelineState::rebuildActiveOptionSet() {
     m_activeOptionSet.clear();
 
-    const QVariantList list = m_activeOptions.toList();
+    if (auto* state = qobject_cast<Lr2SkinElementActiveOptionsState*>(m_activeOptionsState)) {
+        m_activeOptionSet = state->activeOptionSet();
+        return;
+    }
+
+    const QVariant activeOptions = m_activeOptionsState
+        ? m_activeOptionsState->property("activeOptions")
+        : m_activeOptions;
+
+    const QVariantList list = activeOptions.toList();
     if (!list.isEmpty()) {
         for (const QVariant& option : list) {
             bool ok = false;
@@ -545,11 +581,11 @@ void Lr2TimelineState::rebuildActiveOptionSet() {
         return;
     }
 
-    if (!m_activeOptions.canConvert<QJSValue>()) {
+    if (!activeOptions.canConvert<QJSValue>()) {
         return;
     }
 
-    const QJSValue value = m_activeOptions.value<QJSValue>();
+    const QJSValue value = activeOptions.value<QJSValue>();
     const int length = value.property(QStringLiteral("length")).toInt();
     for (int i = 0; i < length; ++i) {
         const QJSValue option = value.property(static_cast<quint32>(i));
@@ -557,6 +593,27 @@ void Lr2TimelineState::rebuildActiveOptionSet() {
             m_activeOptionSet.insert(option.toInt());
         }
     }
+}
+
+void Lr2TimelineState::reconnectActiveOptionsState() {
+    if (m_activeOptionsStateConnection) {
+        QObject::disconnect(m_activeOptionsStateConnection);
+        m_activeOptionsStateConnection = {};
+    }
+
+    if (auto* state = qobject_cast<Lr2SkinElementActiveOptionsState*>(m_activeOptionsState)) {
+        m_activeOptionsStateConnection = QObject::connect(
+            state,
+            &Lr2SkinElementActiveOptionsState::activeOptionsChanged,
+            this,
+            &Lr2TimelineState::activeOptionsStateDidChange);
+    }
+}
+
+void Lr2TimelineState::activeOptionsStateDidChange() {
+    rebuildActiveOptionSet();
+    emit activeOptionsChanged();
+    updateState();
 }
 
 void Lr2TimelineState::reconnectClock() {

@@ -295,6 +295,7 @@ bool readSource(const QVariant& value, Source& source) {
     if (value.canConvert<Lr2SrcNumber>()) {
         const auto parsed = value.value<Lr2SrcNumber>();
         source.valid = true;
+        source.num = parsed.num;
         source.divX = std::max(1, parsed.div_x);
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
@@ -321,14 +322,23 @@ bool readSource(const QVariant& value, Source& source) {
         return true;
     }
 
-    if (value.canConvert<Lr2SrcBarNumber>() || value.canConvert<Lr2SrcText>()) {
+    if (value.canConvert<Lr2SrcBarNumber>()) {
         source.valid = true;
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcText>()) {
+        const auto parsed = value.value<Lr2SrcText>();
+        source.valid = true;
+        source.st = parsed.st;
         return true;
     }
 
     if (value.canConvert<QVariantMap>()) {
         const QVariantMap map = value.toMap();
         source.valid = true;
+        source.num = mapInt(map, QStringLiteral("num"), 0);
+        source.st = mapInt(map, QStringLiteral("st"), 0);
         source.divX = std::max(1, mapInt(map, QStringLiteral("div_x"), 1));
         source.divY = std::max(1, mapInt(map, QStringLiteral("div_y"), 1));
         source.cycle = mapInt(map, QStringLiteral("cycle"), 0);
@@ -360,6 +370,8 @@ bool readSource(const QVariant& value, Source& source) {
     }
 
     source.valid = true;
+    source.num = jsInt(jsValue, QStringLiteral("num"), 0);
+    source.st = jsInt(jsValue, QStringLiteral("st"), 0);
     source.divX = std::max(1, jsInt(jsValue, QStringLiteral("div_x"), 1));
     source.divY = std::max(1, jsInt(jsValue, QStringLiteral("div_y"), 1));
     source.cycle = jsInt(jsValue, QStringLiteral("cycle"), 0);

@@ -8,11 +8,13 @@ Item {
     property var srcData
     property int skinTime: 0
     property int sourceSkinTime: skinTime
+    property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property int sourceTimerFire: -2147483648
     property var chart
+    property string chartAssetSource: ""
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
@@ -50,14 +52,14 @@ Item {
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
-    readonly property var timelineActiveOptions: timelineState.usesActiveOptions ? activeOptions : []
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
         dsts: root.graphDsts
         skinTime: root.skinTime
         timers: root.timelineTimers
         timerFire: root.timerFire
-        activeOptions: root.timelineActiveOptions
+        activeOptionsState: root.activeOptionsState
+        activeOptions: root.activeOptions
     }
     readonly property var graphTimelineState: staticTimelineState
         || timelineState.state
@@ -182,7 +184,7 @@ Item {
                     timers: root.timers
                     timerFire: -2147483648
                     sourceTimerFire: -2147483648
-                    chart: root.chart
+                    chartAssetSource: root.chartAssetSource
                     scaleOverride: root.scaleOverride
                     transColor: root.transColor
                     colorKeyEnabled: root.colorKeyEnabled

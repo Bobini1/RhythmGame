@@ -60,6 +60,24 @@ void Lr2SkinFrameDriver::setSelectVisualState(Lr2SelectVisualState* state) {
     emit selectVisualStateChanged();
 }
 
+QObject* Lr2SkinFrameDriver::frameAnimation() const {
+    return m_frameAnimation;
+}
+
+void Lr2SkinFrameDriver::setFrameAnimation(QObject* animation) {
+    if (m_frameAnimation == animation) {
+        return;
+    }
+    if (m_frameAnimation) {
+        QObject::disconnect(m_frameAnimation, SIGNAL(triggered()), this, SLOT(tickFromFrameAnimation()));
+    }
+    m_frameAnimation = animation;
+    if (m_frameAnimation) {
+        QObject::connect(m_frameAnimation, SIGNAL(triggered()), this, SLOT(tickFromFrameAnimation()));
+    }
+    emit frameAnimationChanged();
+}
+
 bool Lr2SkinFrameDriver::gameplayScreen() const {
     return m_gameplayScreen;
 }
@@ -129,6 +147,10 @@ void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
         invokeHostMethod("updateGameplayStatusTimers");
         invokeHostMethod("startGameplayWhenReady");
     }
+}
+
+void Lr2SkinFrameDriver::tickFromFrameAnimation() {
+    tick(m_frameAnimation ? m_frameAnimation->property("smoothFrameTime").toReal() : 0.0);
 }
 
 void Lr2SkinFrameDriver::setCurrentFps(int value) {

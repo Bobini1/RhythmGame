@@ -55,6 +55,8 @@ struct Dst {
 
 struct Source {
     bool valid = false;
+    int num = 0;
+    int st = 0;
     int divX = 1;
     int divY = 1;
     int cycle = 0;

@@ -80,6 +80,159 @@ QtObject {
         selectRuntimeActiveOptionsCacheSize = 0;
     }
 
+    function optionListKey(values) {
+        return host.numberArrayKey(values || []);
+    }
+
+    function selectItemKindKey(item) {
+        if (selectContext.isRankingEntry(item)) return "ranking";
+        if (selectContext.isCourse(item)) return "course";
+        if (selectContext.isChart(item)) return "chart";
+        if (selectContext.isEntry(item)) return "entry";
+        if (selectContext.isFolderLikeForLamp(item)) return "folder";
+        return item ? "other" : "none";
+    }
+
+    function selectedModeKey(chartData) {
+        let keymode = chartData ? (chartData.keymode || 0) : 0;
+        return String(keymode)
+            + ":" + String(root.keymodeAfterOptions(keymode))
+            + ":" + String(host.spToDpActive() ? 1 : 0)
+            + ":" + String(host.battleModeActive() ? 1 : 0);
+    }
+
+    function chartOptionSignature(chartData) {
+        let usedOptions = root.runtimeUsedOptionLookup();
+        if (!chartData) {
+            return "nochart";
+        }
+
+        let parts = [
+            chartData.stageFile ? 1 : 0,
+            chartData.banner ? 1 : 0,
+            chartData.backBmp ? 1 : 0,
+            selectContext.hasBga(chartData) ? 1 : 0,
+            selectContext.hasLongNote(chartData) ? 1 : 0,
+            (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 1 : 0,
+            chartData.isRandom ? 1 : 0,
+            selectContext.judgeOption(chartData),
+            selectContext.highLevelOption(chartData),
+            selectContext.entryDifficulty(chartData),
+            chartData.keymode || 0,
+            root.keymodeAfterOptions(chartData.keymode || 0)
+        ];
+        if (root.runtimeOptionRangeUsed(usedOptions, 174, 175)) {
+            parts.push(selectContext.hasAttachedText(chartData) ? 1 : 0);
+        }
+        if (root.runtimeOptionUsed(usedOptions, 1177)) {
+            parts.push(host.chartHasBpmStop(chartData) ? 1 : 0);
+        }
+        return parts.join(":");
+    }
+
+    function entryStatusSignature(item, chartData, state) {
+        if (!host.selectUsesEntryStatusOptions()) {
+            return "";
+        }
+        if (!item) {
+            return "none";
+        }
+        if (selectContext.isRankingEntry(item)) {
+            return "ranking:" + String(item.bestClearType || "")
+                + ":" + String(item.bestPoints || 0)
+                + ":" + String(item.maxPoints || 0);
+        }
+        if (selectContext.isFolderLikeForLamp(item)) {
+            return "folder:" + String(selectContext.entryLamp(item));
+        }
+        if (!selectContext.isChart(item) && !selectContext.isEntry(item)) {
+            return "other";
+        }
+        if (!chartData || (chartData.keymode || 0) <= 0) {
+            return "no-keymode";
+        }
+        let summary = state && state.summary ? state.summary : selectContext.scoreSummaryForItem(item);
+        return "score:" + String(summary ? summary.clearType || "" : "")
+            + ":" + String(summary ? summary.lamp || 0 : 0)
+            + ":" + String(summary ? summary.rank || 0 : 0);
+    }
+
+    function courseSignature(item) {
+        if (!host.selectUsesCourseDetailOptions() || !selectContext.isCourse(item) || !item.loadCharts) {
+            return "";
+        }
+        let stages = item.loadCharts();
+        let parts = [Math.min(10, stages.length)];
+        for (let stage = 0; stage < Math.min(5, stages.length); ++stage) {
+            parts.push(selectContext.entryDifficulty(stages[stage]));
+        }
+        return parts.join(":");
+    }
+
+    function difficultyBarSignature(difficultyState, selectedChart) {
+        if (!host.selectUsesDifficultyBarOptions() || !selectedChart) {
+            return "";
+        }
+        let counts = difficultyState && difficultyState.counts ? difficultyState.counts : [];
+        let levels = difficultyState && difficultyState.levels ? difficultyState.levels : [];
+        let lamps = difficultyState && difficultyState.lamps ? difficultyState.lamps : [];
+        let keymode = selectedChart ? (selectedChart.keymode || 0) : 0;
+        let flashThreshold = keymode === 5 || keymode === 10 ? 9 : 12;
+        let parts = [keymode, flashThreshold];
+        for (let diff = 1; diff <= 5; ++diff) {
+            parts.push(counts[diff] || 0);
+            parts.push((levels[diff] || 0) > flashThreshold ? 1 : 0);
+            parts.push(lamps[diff] || 0);
+        }
+        return parts.join(":");
+    }
+
+    function replaySignature(chartData) {
+        if (!host.selectUsesReplayOptions()) {
+            return "";
+        }
+        let parts = [host.lr2ReplayType || 0];
+        for (let slot = 0; slot < 4; ++slot) {
+            parts.push(root.replaySlotAvailable(chartData, slot) ? 1 : 0);
+        }
+        return parts.join(":");
+    }
+
+    function scoreOptionIdsSignature(item, state) {
+        if (!host.selectUsesScoreOptionIds()) {
+            return "";
+        }
+        let stateCurrent = state && state.scoreRevision === selectContext.scoreRevision
+            && state.listRevision === selectContext.listRevision;
+        let scoreOptionIds = stateCurrent && state ? state.scoreOptionIds : null;
+        if (!scoreOptionIds) {
+            let summary = stateCurrent && state ? state.summary : null;
+            scoreOptionIds = summary
+                ? selectContext.scoreOptionIdsFromSummary(summary)
+                : selectContext.scoreOptionIds(item);
+            if (stateCurrent && state) {
+                state.scoreOptionIds = scoreOptionIds;
+            }
+        }
+        return root.optionListKey(scoreOptionIds);
+    }
+
+    function selectStateOptionsSignature(state) {
+        let item = state ? state.item : selectContext.focusedItem;
+        let chartData = state ? state.chartData : null;
+        let difficultyState = state ? state.difficultyState : null;
+        return [
+            root.selectItemKindKey(item),
+            root.selectedModeKey(chartData),
+            root.chartOptionSignature(chartData),
+            root.entryStatusSignature(item, chartData, state),
+            root.courseSignature(item),
+            root.difficultyBarSignature(difficultyState, chartData),
+            root.replaySignature(chartData),
+            root.scoreOptionIdsSignature(item, state)
+        ].join("|");
+    }
+
     function selectRuntimeActiveOptionsCacheKey(commonOptions, state) {
         state = state !== undefined ? state : selectContext.selectedState();
         let commonKey = host.selectCommonActiveOptionsKey !== undefined
@@ -97,11 +250,7 @@ QtObject {
             + (host.selectUsesRankingStatusOptions() ? "1" : "0");
         return commonKey
             + "|" + featureKey
-            + "|" + String(state ? state.key || "" : "")
-            + "|" + String(selectContext.scoreRevision || 0)
-            + "|" + String(selectContext.listRevision || 0)
-            + "|" + String(selectContext.folderLampRevision || 0)
-            + "|" + String(selectContext.visualChartContentRevision || "")
+            + "|" + root.selectStateOptionsSignature(state)
             + "|" + String(selectContext.rankingMode ? 1 : 0)
             + "|" + String(host.selectPanel || 0)
             + "|" + String(host.lr2ReplayType || 0)

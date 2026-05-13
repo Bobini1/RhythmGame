@@ -2,12 +2,9 @@ pragma ValueTypeBehavior: Addressable
 
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2SelectStateStore.js" as Lr2SelectStateStore
 
 Item {
     id: root
-
-    readonly property int selectedStateStoreId: Lr2SelectStateStore.allocate()
 
     property var items: []
     property var folderContents: []
@@ -135,6 +132,7 @@ Item {
         levels: emptyDifficultyNumbers,
         lamps: emptyDifficultyNumbers
     })
+    property alias navigationController: nativeNavigation
     property var selectedScoreState: ({
         key: "",
         scoreRevision: -1,
@@ -151,15 +149,42 @@ Item {
     })
     property var visualChartWrapper: null
     property string visualChartContentRevision: ""
+    property string visualStageFileSource: ""
+    property string visualBackBmpSource: ""
+    property string visualBannerSource: ""
     function selectedState() {
-        return Lr2SelectStateStore.state(selectedStateStoreId) || selectedScoreState;
+        return selectedScoreState;
+    }
+
+    function chartAssetUrl(chartData, fileName) {
+        if (!chartData || !fileName || !chartData.chartDirectory) {
+            return "";
+        }
+        let dir = String(chartData.chartDirectory).replace(/\\/g, "/");
+        if (dir[0] !== "/") {
+            dir = "/" + dir;
+        }
+        return "file://" + dir + String(fileName).replace(/\.[^/.]+$/, "");
     }
 
     function applySelectedScoreState(state) {
-        Lr2SelectStateStore.setState(selectedStateStoreId, state);
+        selectedScoreState = state;
+        let chartData = state.chartData;
         let nextChartWrapper = state.chartWrapper;
         if (visualChartWrapper !== nextChartWrapper) {
             visualChartWrapper = nextChartWrapper;
+        }
+        let nextStageFileSource = chartAssetUrl(chartData, chartData ? chartData.stageFile : "");
+        if (visualStageFileSource !== nextStageFileSource) {
+            visualStageFileSource = nextStageFileSource;
+        }
+        let nextBackBmpSource = chartAssetUrl(chartData, chartData ? chartData.backBmp : "");
+        if (visualBackBmpSource !== nextBackBmpSource) {
+            visualBackBmpSource = nextBackBmpSource;
+        }
+        let nextBannerSource = chartAssetUrl(chartData, chartData ? chartData.banner : "");
+        if (visualBannerSource !== nextBannerSource) {
+            visualBannerSource = nextBannerSource;
         }
         let nextChartRevision = state.contentRevision !== undefined
             ? String(state.contentRevision || "")
@@ -187,6 +212,7 @@ Item {
     readonly property bool visualMoveActive: Math.abs(nowBarFixed - visualState.rawFixed) > 0
     readonly property real normalizedVisualIndex: logicalCount > 0 ? visualState.fixed / 1000.0 : 0
     property alias visualStateObject: visualState
+    property alias nativeState: nativeSelectState
 
     Lr2SelectVisualState {
         id: visualState
@@ -202,7 +228,22 @@ Item {
         chartGroupCache: root.chartGroupCache
         folderLampByKey: root.folderLampByKey
         folderDistributionByKey: root.folderDistributionByKey
+        folderScoreCountsByKey: root.folderScoreCountsByKey
         historyStack: root.historyStack
+        playerStats: root.playerStats
+        profileOffset: Rg.profileList.mainProfile.vars.generalVars.offset || 0
+        rankingClearCounts: root.rankingClearCounts
+        rankingStatsMd5: root.rankingStatsMd5
+        rankingPlayerRank: root.rankingPlayerRank
+        rankingPlayerCount: root.rankingPlayerCount
+        rankingTotalPlayCount: root.rankingTotalPlayCount
+    }
+
+    Lr2SelectNavigationController {
+        id: nativeNavigation
+        context: root
+        visualState: visualState
+        stateCache: nativeSelectState
     }
 
     Lr2SelectBarWindow {
@@ -263,18 +304,11 @@ Item {
     }
 
     function touchSelection() {
-        flushFocusedStateRefresh(false);
-        if (suppressNextSelectionSound) {
-            suppressNextSelectionSound = false;
-        } else {
-            entryChangeSoundsRequested(1);
-        }
-        selectionRevision += 1;
-        touch();
+        nativeNavigation.touchSelection();
     }
 
     function flushFocusedStateRefresh(touchAfterRefresh) {
-        if (refreshFocusedState()) {
+        if (nativeNavigation.refreshFocusedState()) {
             if (touchAfterRefresh === undefined || touchAfterRefresh) {
                 touch();
             }
@@ -284,25 +318,7 @@ Item {
     }
 
     function refreshFocusedState() {
-        if (refreshedFocusedIndex === focusedIndex
-                && refreshedFocusedItem === focusedItem
-                && refreshedFocusedScoreRevision === scoreRevision
-                && refreshedFocusedListRevision === listRevision
-                && refreshedFocusedRankingMode === rankingMode
-                && refreshedFocusedRankingBaseItem === rankingBaseItem) {
-            return false;
-        }
-        refreshedFocusedIndex = focusedIndex;
-        refreshedFocusedItem = focusedItem;
-        refreshedFocusedScoreRevision = scoreRevision;
-        refreshedFocusedListRevision = listRevision;
-        refreshedFocusedRankingMode = rankingMode;
-        refreshedFocusedRankingBaseItem = rankingBaseItem;
-        if (refreshSelectedScoreState()) {
-            focusRevision += 1;
-            return true;
-        }
-        return false;
+        return nativeNavigation.refreshFocusedState();
     }
 
     function wrapBarFixed(value) {
@@ -460,33 +476,11 @@ Item {
     }
 
     function syncCurrentToVisual(cursorBaseIndex) {
-        if (logicalCount === 0) {
-            return false;
-        }
-        let nextIndex = (visualMoveActive || Date.now() < barMoveEndMs)
-            ? normalizeIndex(targetIndex)
-            : normalizeIndex((cursorBaseIndex === undefined ? visualState.cursorBaseIndex : cursorBaseIndex) + selectedOffset);
-        if (currentIndex === nextIndex) {
-            return false;
-        }
-        currentIndex = nextIndex;
-        targetIndex = nextIndex;
-        touchSelection();
-        return true;
+        return nativeNavigation.syncCurrentToVisual(cursorBaseIndex === undefined ? -1 : cursorBaseIndex);
     }
 
     function commitLogicalSelection(index) {
-        if (logicalCount === 0) {
-            return false;
-        }
-        let normalized = normalizeIndex(index);
-        targetIndex = normalized;
-        if (currentIndex === normalized) {
-            return false;
-        }
-        currentIndex = normalized;
-        touchSelection();
-        return true;
+        return nativeNavigation.commitLogicalSelection(index);
     }
 
     function updateVisualIndex(now) {
@@ -519,7 +513,6 @@ Item {
     }
 
     Component.onCompleted: {
-        Lr2SelectStateStore.setState(selectedStateStoreId, selectedScoreState);
         componentReady = true;
         if (updatesActive) {
             publishBarState(true);
@@ -744,7 +737,6 @@ Item {
     }
 
     Component.onDestruction: {
-        Lr2SelectStateStore.clear(selectedStateStoreId);
         Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
     }
 
@@ -1503,39 +1495,18 @@ Item {
     }
 
     function applyLr2ScrollDelta(entries, durationMs, now, currentFixed) {
-        if (logicalCount === 0 || entries === 0) {
-            return;
-        }
-        let topbarFixed = currentFixed !== undefined ? currentFixed : animatedTopbarFixed(now);
-        oldBarFixed = topbarFixed;
-        nowBarFixed += Math.round(entries * 1000);
-        scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
-        let nextIndex = normalizeIndex(Math.round(nowBarFixed / 1000) + selectedOffset);
-        targetIndex = nextIndex;
-        entryChangeSoundsRequested(Math.abs(Math.round(entries)));
-        suppressNextSelectionSound = true;
-        let focusTouched = commitLogicalSelection(nextIndex);
-        let selectionTouched = beginVisualMove(durationMs, now);
-        if (!selectionTouched && !focusTouched) {
-            touchSelection();
-        }
-        suppressNextSelectionSound = false;
+        nativeNavigation.applyLr2ScrollDelta(entries,
+                                             durationMs,
+                                             now === undefined ? -1 : now,
+                                             currentFixed === undefined ? -2147483648 : currentFixed);
     }
 
     function scrollBy(entries, durationMs) {
-        if (logicalCount === 0 || entries === 0) {
-            return;
-        }
-        let now = Date.now();
-        let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
-        applyLr2ScrollDelta(entries, duration, now, animatedTopbarFixed(now));
+        nativeNavigation.scrollBy(entries, durationMs === undefined ? -1 : durationMs);
     }
 
     function scrollByKey(entries, repeated) {
-        if (logicalCount === 0 || entries === 0) {
-            return;
-        }
-        scrollBy(entries, repeated ? lr2SpeedNext : lr2SpeedFirst);
+        nativeNavigation.scrollByKey(entries, !!repeated);
     }
 
     function selectVisibleRow(row, barCenter) {
@@ -1583,11 +1554,11 @@ Item {
     }
 
     function decrementViewIndex(repeated) {
-        scrollByKey(-1, !!repeated);
+        nativeNavigation.decrementViewIndex(!!repeated);
     }
 
     function incrementViewIndex(repeated) {
-        scrollByKey(1, !!repeated);
+        nativeNavigation.incrementViewIndex(!!repeated);
     }
 
     function goBack() {
@@ -2813,18 +2784,7 @@ Item {
     }
 
     function refreshSelectedScoreState() {
-        let result = nativeSelectState.refreshSelectedState(
-            focusedItem,
-            focusedIndex,
-            scoreRevision,
-            listRevision,
-            rankingMode,
-            rankingBaseItem);
-        if (!result || !result.changed) {
-            return false;
-        }
-        applySelectedScoreState(result.state);
-        return true;
+        return nativeNavigation.refreshFocusedState();
     }
 
     function rankingClearCountValue() {

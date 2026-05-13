@@ -24,6 +24,12 @@ qt_add_qml_module(RhythmGame_qml
         Lr2BarInterpolatedState.cpp
         Lr2SelectVisualState.h
         Lr2SelectVisualState.cpp
+        Lr2SelectNavigationController.h
+        Lr2SelectNavigationController.cpp
+        Lr2SelectKeyNavigationFilter.h
+        Lr2SelectKeyNavigationFilter.cpp
+        Lr2SelectUpdateController.h
+        Lr2SelectUpdateController.cpp
         Lr2SelectStateCache.h
         Lr2SelectStateCache.cpp
         Lr2SelectBarCell.h
@@ -100,7 +106,6 @@ qt_add_qml_module(RhythmGame_qml
         Lr2BpmChartRenderer.qml
         RESOURCES
         Lr2ActiveOptionCache.js
-        Lr2SelectStateStore.js
         Lr2ValueCache.js)
 qt6_add_shaders(RhythmGame_qml "shaders"
         PREFIX

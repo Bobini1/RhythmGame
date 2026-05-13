@@ -15,6 +15,7 @@ class Lr2SkinFrameDriver : public QObject {
     Q_PROPERTY(Lr2SkinClock* clock READ clock WRITE setClock NOTIFY clockChanged)
     Q_PROPERTY(Lr2GameplayFrameState* gameplayFrameState READ gameplayFrameState WRITE setGameplayFrameState NOTIFY gameplayFrameStateChanged)
     Q_PROPERTY(Lr2SelectVisualState* selectVisualState READ selectVisualState WRITE setSelectVisualState NOTIFY selectVisualStateChanged)
+    Q_PROPERTY(QObject* frameAnimation READ frameAnimation WRITE setFrameAnimation NOTIFY frameAnimationChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(bool gameplayStartupPending READ gameplayStartupPending WRITE setGameplayStartupPending NOTIFY gameplayStartupPendingChanged)
     Q_PROPERTY(int currentFps READ currentFps NOTIFY currentFpsChanged)
@@ -35,6 +36,9 @@ public:
     Lr2SelectVisualState* selectVisualState() const;
     void setSelectVisualState(Lr2SelectVisualState* state);
 
+    QObject* frameAnimation() const;
+    void setFrameAnimation(QObject* animation);
+
     bool gameplayScreen() const;
     void setGameplayScreen(bool value);
 
@@ -53,12 +57,15 @@ signals:
     void clockChanged();
     void gameplayFrameStateChanged();
     void selectVisualStateChanged();
+    void frameAnimationChanged();
     void gameplayScreenChanged();
     void gameplayStartupPendingChanged();
     void currentFpsChanged();
     void fpsSampleIntervalMsChanged();
 
 private:
+    Q_SLOT void tickFromFrameAnimation();
+
     void setCurrentFps(int value);
     void invokeHostMethod(const char* method) const;
 
@@ -66,6 +73,7 @@ private:
     QPointer<Lr2SkinClock> m_clock;
     QPointer<Lr2GameplayFrameState> m_gameplayFrameState;
     QPointer<Lr2SelectVisualState> m_selectVisualState;
+    QPointer<QObject> m_frameAnimation;
     bool m_gameplayScreen = false;
     bool m_gameplayStartupPending = false;
     int m_currentFps = 0;
