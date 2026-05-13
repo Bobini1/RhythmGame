@@ -339,11 +339,6 @@ QtObject {
     }
 
     function resolveGameplayNumber(num) {
-        let chartData = root.gameplayChartData();
-        let p1 = root.gameplayPlayer(1);
-        let s1 = root.gameplayScore(1);
-        let s2 = root.gameplayScore(2);
-
         if ((num >= 1510 && num <= 1599) || (num >= 1610 && num <= 1699)) {
             return root.gameplayJudgeValueForId(num);
         }
@@ -370,6 +365,35 @@ QtObject {
             return root.liftNumber(1);
         case 315:
             return root.hiddenNumber(1);
+        case 12: {
+            let vars = root.mainGeneralVars();
+            return vars ? Math.round(vars.offset || 0) : 0;
+        }
+        case 13:
+            return root.lr2TargetPercent;
+        case 14:
+            return root.laneCoverNumber(1);
+        case 15:
+            return root.laneCoverNumber(2);
+        case 160: {
+            let p1 = root.gameplayPlayer(1);
+            return p1 && (p1.bpm || 0) > 0 ? Math.round(p1.bpm) : 1;
+        }
+        case 161:
+            return Math.floor(root.gameplayTimeSeconds(1, false) / 60);
+        case 162:
+            return root.gameplayTimeSeconds(1, false) % 60;
+        case 163:
+            return Math.floor(root.gameplayTimeSeconds(1, true) / 60);
+        case 164:
+            return root.gameplayTimeSeconds(1, true) % 60;
+        }
+
+        let chartData = root.gameplayChartData();
+        let s1 = root.gameplayScore(1);
+        let s2 = root.gameplayScore(2);
+
+        switch (num) {
         case 1312:
         case 1313:
         case 1314:
@@ -387,16 +411,6 @@ QtObject {
         case 1326:
         case 1327:
             return root.bpmDurationNumber(num, chartData);
-        case 12: {
-            let vars = root.mainGeneralVars();
-            return vars ? Math.round(vars.offset || 0) : 0;
-        }
-        case 13:
-            return root.lr2TargetPercent;
-        case 14:
-            return root.laneCoverNumber(1);
-        case 15:
-            return root.laneCoverNumber(2);
         case 100:
             return root.gameplayDisplayedScorePrint(1);
         case 101:
@@ -541,16 +555,6 @@ QtObject {
             return root.gameplayScoreRateInteger(root.gameplayTargetScorePoints(), s1);
         case 158:
             return root.gameplayScoreRateDecimal(root.gameplayTargetScorePoints(), s1);
-        case 160:
-            return p1 && (p1.bpm || 0) > 0 ? Math.round(p1.bpm) : 1;
-        case 161:
-            return Math.floor(root.gameplayTimeSeconds(1, false) / 60);
-        case 162:
-            return root.gameplayTimeSeconds(1, false) % 60;
-        case 163:
-            return Math.floor(root.gameplayTimeSeconds(1, true) / 60);
-        case 164:
-            return root.gameplayTimeSeconds(1, true) % 60;
         case 1163: {
             let seconds = root.chartLengthSeconds(chartData);
             return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;

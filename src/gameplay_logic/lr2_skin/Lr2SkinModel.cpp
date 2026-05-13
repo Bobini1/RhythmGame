@@ -1,8 +1,110 @@
 #include "Lr2SkinModel.h"
 
+#include <algorithm>
+
 namespace gameplay_logic::lr2_skin {
 
 namespace {
+
+int firstSortId(const QVariantList& dsts) {
+    if (dsts.isEmpty()) {
+        return 0;
+    }
+
+    const QVariant& first = dsts.first();
+    return first.canConvert<Lr2Dst>() ? first.value<Lr2Dst>().sortId : 0;
+}
+
+int staticNoteElementSortId(const QVariantList& noteDsts) {
+    int result = -1;
+    for (const QVariant& laneDstsValue : noteDsts) {
+        const int sortId = firstSortId(laneDstsValue.toList());
+        result = result < 0 || sortId < result ? sortId : result;
+    }
+    return result >= 0 ? result : 0;
+}
+
+void updateMinSortId(int& current, const QVariantList& dsts) {
+    if (dsts.isEmpty()) {
+        return;
+    }
+
+    const int sortId = firstSortId(dsts);
+    current = current < 0 || sortId < current ? sortId : current;
+}
+
+int selectBarElementSortBase(const QVariantList& barRows) {
+    int result = -1;
+    for (const QVariant& rowValue : barRows) {
+        const QVariantMap row = rowValue.toMap();
+        updateMinSortId(result, row.value(QStringLiteral("offDsts")).toList());
+        updateMinSortId(result, row.value(QStringLiteral("onDsts")).toList());
+    }
+    return result >= 0 ? result : 0;
+}
+
+bool isSelectBarElement(const Lr2Element& element) {
+    return element.type == 4
+        || element.type == 5
+        || element.type == 13
+        || (element.type == 3 && element.src.canConvert<Lr2SrcBarImage>());
+}
+
+double selectBarElementLayer(const Lr2Element& element) {
+    if (element.type == 13) {
+        return 0.20;
+    }
+    if (element.type == 4) {
+        return 0.30;
+    }
+    if (element.type == 5) {
+        return 0.60;
+    }
+    if (element.type != 3 || !element.src.canConvert<Lr2SrcBarImage>()) {
+        return 0.0;
+    }
+
+    switch (element.src.value<Lr2SrcBarImage>().kind) {
+    case Lr2SrcBarImage::BodyOff:
+    case Lr2SrcBarImage::BodyOn:
+        return 0.0;
+    case Lr2SrcBarImage::Flash:
+        return 0.10;
+    case Lr2SrcBarImage::Lamp:
+    case Lr2SrcBarImage::MyLamp:
+    case Lr2SrcBarImage::RivalLamp:
+        return 0.50;
+    case Lr2SrcBarImage::Rank:
+    case Lr2SrcBarImage::Rival:
+        return 0.65;
+    case Lr2SrcBarImage::Label:
+        return 0.70;
+    default:
+        return 0.40;
+    }
+}
+
+double elementSortKey(const Lr2Element& element, int noteElementSortId, int selectBarSortBase) {
+    if (isSelectBarElement(element)) {
+        return selectBarSortBase
+            + selectBarElementLayer(element)
+            + firstSortId(element.dsts) * 0.000001;
+    }
+
+    return element.type == 8 ? noteElementSortId : firstSortId(element.dsts);
+}
+
+void sortElementsByDrawOrder(QList<Lr2Element>& elements, const QVariantList& noteDsts, const QVariantList& barRows) {
+    const int noteElementSortId = staticNoteElementSortId(noteDsts);
+    const int selectBarSortBase = selectBarElementSortBase(barRows);
+    std::stable_sort(
+        elements.begin(),
+        elements.end(),
+        [noteElementSortId, selectBarSortBase](const Lr2Element& lhs, const Lr2Element& rhs) {
+            return elementSortKey(lhs, noteElementSortId, selectBarSortBase)
+                < elementSortKey(rhs, noteElementSortId, selectBarSortBase);
+        });
+}
 
 QVariantMap findMouseCursorElement(const QList<Lr2Element>& elements) {
     for (const auto& element : elements) {
@@ -376,9 +478,10 @@ void Lr2SkinModel::loadSkin() {
     beginResetModel();
     const auto skinData = Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
     m_elements = skinData.elements;
-    const auto mouseCursor = findMouseCursorElement(m_elements);
-    const bool hasMouseHover = hasMouseHoverElement(m_elements);
-    const int scratchRotationSides = scratchRotationSidesForElements(m_elements);
+    sortElementsByDrawOrder(m_elements, skinData.noteDsts, skinData.barRows);
+    const auto mouseCursor = findMouseCursorElement(skinData.elements);
+    const bool hasMouseHover = hasMouseHoverElement(skinData.elements);
+    const int scratchRotationSides = scratchRotationSidesForElements(skinData.elements);
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
                                  m_loadStart != skinData.loadStart ||

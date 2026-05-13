@@ -274,7 +274,7 @@ Item {
         Loader {
             id: videoLoader
             anchors.fill: parent
-            active: root.hasDrawableVideo
+            active: root.shouldPlayVideo
             sourceComponent: videoComponent
             onLoaded: root.syncVideoPlayback()
         }
@@ -313,7 +313,7 @@ Item {
 
                 MediaPlayer {
                     id: videoPlayer
-                    source: root.hasDrawableVideo ? root.resolvedSource : ""
+                    source: root.shouldPlayVideo ? root.resolvedSource : ""
                     videoOutput: videoOutput
                     audioOutput: videoAudio
                     loops: MediaPlayer.Infinite

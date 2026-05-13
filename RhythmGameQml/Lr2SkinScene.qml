@@ -265,11 +265,13 @@ Item {
                     width: skinW * skinScale
                     height: skinH * skinScale
                     z: elementState.z || 0
+                    readonly property int elementIndex: index
+                    readonly property var elementData: ({ type: model.type, src: model.src, dsts: model.dsts })
 
                     readonly property var elementState: {
                         sceneRoot.runtimeRevision;
                         return sceneRoot.skinRuntime
-                            ? sceneRoot.skinRuntime.descriptor(index)
+                            ? sceneRoot.skinRuntime.descriptor(elementIndex)
                             : ({});
                     }
 
@@ -288,12 +290,12 @@ Item {
                     readonly property bool usesSpriteForceHidden: elementState.usesSpriteForceHidden
                     readonly property bool usesButtonFrameOverride: elementState.usesButtonFrameOverride
                     readonly property var elementActiveOptionsState: sceneRoot.skinRuntime
-                        ? sceneRoot.skinRuntime.elementActiveOptionsState(index)
+                        ? sceneRoot.skinRuntime.elementActiveOptionsState(elementIndex)
                         : null
                     readonly property var elementTimerState: {
                         sceneRoot.runtimeRevision;
                         return sceneRoot.skinRuntime
-                            ? sceneRoot.skinRuntime.elementTimerState(index)
+                            ? sceneRoot.skinRuntime.elementTimerState(elementIndex)
                             : null;
                     }
                     readonly property int dstTimerFire: {
@@ -327,42 +329,42 @@ Item {
                         : 0
 
                     Component.onCompleted: {
-                        root.registerSelectHoverElement(index, model.src, usesSpriteForceHidden);
-                        selectPointerController.registerElement(index, model.type, model.src, z);
+                        root.registerSelectHoverElement(elementIndex, elemLoader.elementData.src, usesSpriteForceHidden);
+                        selectPointerController.registerElement(elementIndex, elemLoader.elementData.type, elemLoader.elementData.src, elementState.z || 0);
                     }
                     Component.onDestruction: {
-                        root.unregisterSelectHoverElement(index);
-                        selectPointerController.unregisterElement(index);
+                        root.unregisterSelectHoverElement(elementIndex);
+                        selectPointerController.unregisterElement(elementIndex);
                     }
 
                     sourceComponent: {
-                        if (model.type === 0) {
+                        if (elemLoader.elementData.type === 0) {
                             return elementState.sourceMouseCursor ? undefined : imageComponent;
-                        } else if (model.type === 1) {
+                        } else if (elemLoader.elementData.type === 1) {
                             return numberComponent;
-                        } else if (model.type === 2) {
-                            return model.src && model.src.readme ? readmeTextComponent : textComponent;
-                        } else if (model.type === 3) {
+                        } else if (elemLoader.elementData.type === 2) {
+                            return elemLoader.elementData.src && elemLoader.elementData.src.readme ? readmeTextComponent : textComponent;
+                        } else if (elemLoader.elementData.type === 3) {
                             return barImageComponent;
-                        } else if (model.type === 4) {
+                        } else if (elemLoader.elementData.type === 4) {
                             return barTextComponent;
-                        } else if (model.type === 5) {
+                        } else if (elemLoader.elementData.type === 5) {
                             return barNumberComponent;
-                        } else if (model.type === 6) {
+                        } else if (elemLoader.elementData.type === 6) {
                             return barGraphComponent;
-                        } else if (model.type === 7) {
+                        } else if (elemLoader.elementData.type === 7) {
                             return bgaComponent;
-                        } else if (model.type === 8) {
+                        } else if (elemLoader.elementData.type === 8) {
                             return playNotesComponent;
-                        } else if (model.type === 9) {
+                        } else if (elemLoader.elementData.type === 9) {
                             return grooveGaugeComponent;
-                        } else if (model.type === 10) {
+                        } else if (elemLoader.elementData.type === 10) {
                             return resultChartComponent;
-                        } else if (model.type === 11) {
+                        } else if (elemLoader.elementData.type === 11) {
                             return noteChartComponent;
-                        } else if (model.type === 12) {
+                        } else if (elemLoader.elementData.type === 12) {
                             return bpmChartComponent;
-                        } else if (model.type === 13) {
+                        } else if (elemLoader.elementData.type === 13) {
                             return barDistributionGraphComponent;
                         }
                         return undefined;
@@ -378,7 +380,7 @@ Item {
                             readonly property int selectSourceClock: 2
                             readonly property int selectInfoClock: 6
                             readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
-                            readonly property real nowJudgeOffsetX: root.nowJudgeOffsetX(model.src, model.dsts)
+                            readonly property real nowJudgeOffsetX: root.nowJudgeOffsetX(elemLoader.elementData.src, elemLoader.elementData.dsts)
                             readonly property int scratchRotationSide: elementState.scratchRotationSide
                             readonly property bool useDirectSkinClock: elementState.spriteUsesDirectSkinClock
                             readonly property int spriteSkinClockMode: elementState.spriteSkinClockMode
@@ -408,17 +410,17 @@ Item {
                                 : 0
                             readonly property bool sliderTranslationEnabled: elemLoader.usesSpriteStateOverride
                             readonly property real sliderPosition: sliderTranslationEnabled
-                                ? root.spriteSliderPositionForKind(elemLoader.spriteStateOverrideKind, model.src)
+                                ? root.spriteSliderPositionForKind(elemLoader.spriteStateOverrideKind, elemLoader.elementData.src)
                                 : 0
                             readonly property bool dstOffsetsEnabled: elementState.dstOffsetsEnabled
                             readonly property int dstOffsetSide: elementState.dstOffsetSide
 
-                            Component.onCompleted: root.observeSelectSortButton(model.src)
+                            Component.onCompleted: root.observeSelectSortButton(elemLoader.elementData.src)
 
                             Lr2SpriteRenderer {
                                 anchors.fill: parent
-                                dsts: model.dsts
-                                srcData: root.imageSetSourceFor(model.src)
+                                dsts: elemLoader.elementData.dsts
+                                srcData: root.imageSetSourceFor(elemLoader.elementData.src)
                                 skinTime: parent.useDirectSkinClock ? 0 : parent.spriteSkinClock
                                 sourceSkinTime: parent.useDirectSkinClock ? 0 : parent.spriteSourceSkinClock
                                 skinClock: parent.useDirectSkinClock ? root.skinClockRef : null
@@ -427,18 +429,18 @@ Item {
                                 activeOptionsState: elemLoader.elementActiveOptionsState
                                 timerFire: elemLoader.dstTimerFire
                                 sourceTimerFire: elemLoader.srcTimerFire
-                                chartAssetSource: sceneRoot.chartAssetSourceFor(model.src)
+                                chartAssetSource: sceneRoot.chartAssetSourceFor(elemLoader.elementData.src)
                                 scaleOverride: skinScale
                                 mediaActive: root.enabled
                                 transColor: skinModel.transColor
                                 colorKeyEnabled: skinModel.hasTransColor
                                 screenRoot: sceneRoot.root
                                 offsetX: parent.nowJudgeOffsetX
-                                frameOverride: elemLoader.usesButtonFrameOverride ? root.buttonFrame(model.src) : -1
+                                frameOverride: elemLoader.usesButtonFrameOverride ? root.buttonFrame(elemLoader.elementData.src) : -1
                                 sliderTranslationEnabled: parent.sliderTranslationEnabled
                                 sliderPosition: parent.sliderPosition
-                                sliderRange: model.src ? model.src.sliderRange || 0 : 0
-                                sliderDirection: model.src ? model.src.sliderDirection || 0 : 0
+                                sliderRange: elemLoader.elementData.src ? elemLoader.elementData.src.sliderRange || 0 : 0
+                                sliderDirection: elemLoader.elementData.src ? elemLoader.elementData.src.sliderDirection || 0 : 0
                                 dstOffsetsEnabled: parent.dstOffsetsEnabled
                                 dstOffsetLiftY: parent.dstOffsetSide === 2
                                     ? root.gameplayDstOffsetLiftY2
@@ -453,7 +455,7 @@ Item {
                                     ? root.gameplayDstOffsetHiddenA2
                                     : root.gameplayDstOffsetHiddenA1
                                 forceHidden: elemLoader.usesSpriteForceHidden
-                                    ? root.spriteForceHidden(model.src, index)
+                                    ? root.spriteForceHidden(elemLoader.elementData.src, elemLoader.elementIndex)
                                     : false
                                 scratchAngle1: parent.scratchRotationSide === 1 ? playContext.scratchAngle1 : 0
                                 scratchAngle2: parent.scratchRotationSide === 2 ? playContext.scratchAngle2 : 0
@@ -464,7 +466,7 @@ Item {
                     Component {
                         id: bgaComponent
                         Lr2BgaRenderer {
-                            dsts: model.dsts
+                            dsts: elemLoader.elementData.dsts
                             skinTime: elemLoader.elementSkinTime
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
@@ -495,8 +497,8 @@ Item {
                     Component {
                         id: grooveGaugeComponent
                         Lr2GrooveGaugeRenderer {
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: root.renderSkinTime
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
@@ -511,8 +513,8 @@ Item {
                         id: resultChartComponent
                         Lr2ResultChartRenderer {
                             anchors.fill: parent
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
@@ -526,8 +528,8 @@ Item {
                         id: noteChartComponent
                         Lr2NoteChartRenderer {
                             anchors.fill: parent
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
@@ -540,8 +542,8 @@ Item {
                         id: bpmChartComponent
                         Lr2BpmChartRenderer {
                             anchors.fill: parent
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: elemLoader.elementSkinTime
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
@@ -554,10 +556,16 @@ Item {
                         id: numberComponent
                         Lr2NumberRenderer {
                             id: numberRenderer
+                            readonly property var numberSrc: elemLoader.elementData.src
+                            readonly property int numberId: numberSrc ? numberSrc.num || 0 : 0
+                            readonly property bool numberNowCombo: numberSrc && numberSrc.nowCombo
+                            readonly property int numberNowComboSide: numberNowCombo
+                                ? (numberSrc.side || (numberSrc.timer === 47 ? 2 : 1))
+                                : 0
                             readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
-                            readonly property int gameplayRevisionKind: root.gameplayNumberRevisionKind(model.src)
-                            dsts: model.dsts
-                            srcData: model.src
+                            readonly property int gameplayRevisionKind: root.gameplayNumberRevisionKind(numberSrc)
+                            dsts: elemLoader.elementData.dsts
+                            srcData: numberSrc
                             skinTime: elemLoader.useDirectElementSkinClock && !sourceAnimates ? 0 : elemLoader.elementSkinTime
                             skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
                             skinClockMode: elemLoader.elementSkinClockMode
@@ -570,28 +578,52 @@ Item {
                                     return 0;
                                 }
                                 if (root.effectiveScreenKey === "select") {
-                                    let num = model.src ? model.src.num || 0 : 0;
+                                    let num = numberRenderer.numberId;
                                     if (!elementState.numberUsesFocusedSelectState) {
-                                        return root.numberValue(model.src, root.lr2SkinSettingsRevision);
+                                        return root.numberValue(numberRenderer.numberSrc, root.lr2SkinSettingsRevision);
                                     }
                                     sceneRoot.selectDetailValueRevision;
                                     if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
-                                        return root.numberValue(model.src, sceneRoot.selectDetailValueRevision);
+                                        return root.numberValue(numberRenderer.numberSrc, sceneRoot.selectDetailValueRevision);
                                     }
                                     if (num >= 1312 && num <= 1327) {
-                                        return root.numberValue(model.src, sceneRoot.selectDetailValueRevision);
+                                        return root.numberValue(numberRenderer.numberSrc, sceneRoot.selectDetailValueRevision);
                                     }
                                     return selectContext.nativeState.numberValue(num);
                                 }
                                 if (root.gameplayScreenActive) {
+                                    if (numberRenderer.numberNowCombo) {
+                                        return numberRenderer.numberNowComboSide === 2
+                                            ? root.gameplayJudgeCombo2
+                                            : root.gameplayJudgeCombo1;
+                                    }
+                                    if (numberRenderer.numberId === 20) {
+                                        return root.lr2CurrentFps;
+                                    }
+                                    if (numberRenderer.numberId === 160) {
+                                        let p1 = root.gameplayPlayer(1);
+                                        return p1 && (p1.bpm || 0) > 0 ? Math.round(p1.bpm) : 1;
+                                    }
+                                    if (numberRenderer.numberId === 161) {
+                                        return Math.floor(root.gameplayTimeSeconds(1, false) / 60);
+                                    }
+                                    if (numberRenderer.numberId === 162) {
+                                        return root.gameplayTimeSeconds(1, false) % 60;
+                                    }
+                                    if (numberRenderer.numberId === 163) {
+                                        return Math.floor(root.gameplayTimeSeconds(1, true) / 60);
+                                    }
+                                    if (numberRenderer.numberId === 164) {
+                                        return root.gameplayTimeSeconds(1, true) % 60;
+                                    }
                                     return root.numberValue(
-                                        model.src,
+                                        numberRenderer.numberSrc,
                                         root.gameplayNumberRevisionForKind(numberRenderer.gameplayRevisionKind));
                                 }
-                                return root.numberValue(model.src, sceneRoot.valueRevision);
+                                return root.numberValue(numberRenderer.numberSrc, sceneRoot.valueRevision);
                             }
-                            forceHidden: root.numberForceHidden(model.src)
-                            animationRevision: root.numberAnimationRevision(model.src)
+                            forceHidden: root.numberForceHidden(numberSrc)
+                            animationRevision: root.numberAnimationRevision(numberSrc)
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
                             screenRoot: sceneRoot.root
@@ -605,8 +637,8 @@ Item {
                             height: skinH * skinScale
                             screenRoot: sceneRoot.root
                             selectContext: sceneRoot.selectContext
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
                             skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
                             skinClockMode: elemLoader.elementSkinClockMode
@@ -630,8 +662,8 @@ Item {
                             width: skinW * skinScale
                             height: skinH * skinScale
                             screenRoot: sceneRoot.root
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: root.renderSkinTime
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
@@ -643,8 +675,8 @@ Item {
                         id: barImageComponent
                         Lr2BarSpriteRenderer {
                             readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime
                             sourceSkinTime: root.effectiveScreenKey === "select"
                                 ? (sourceAnimates ? root.selectSourceSkinTime : 0)
@@ -665,9 +697,9 @@ Item {
                             selectedFastBarDrawX: root.selectedFastBarDrawX
                             selectedFastBarDrawY: root.selectedFastBarDrawY
                             barCenter: skinModel.barCenter
-                            stageFileSource: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.stageFileSource : ""
-                            backBmpSource: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.backBmpSource : ""
-                            bannerSource: sceneRoot.sourceTreeUsesChartAsset(model.src, 0) ? sceneRoot.bannerSource : ""
+                            stageFileSource: sceneRoot.sourceTreeUsesChartAsset(elemLoader.elementData.src, 0) ? sceneRoot.stageFileSource : ""
+                            backBmpSource: sceneRoot.sourceTreeUsesChartAsset(elemLoader.elementData.src, 0) ? sceneRoot.backBmpSource : ""
+                            bannerSource: sceneRoot.sourceTreeUsesChartAsset(elemLoader.elementData.src, 0) ? sceneRoot.bannerSource : ""
                             transColor: skinModel.transColor
                             colorKeyEnabled: skinModel.hasTransColor
                         }
@@ -676,8 +708,8 @@ Item {
                     Component {
                         id: barTextComponent
                         Lr2BarTextRenderer {
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
@@ -699,8 +731,8 @@ Item {
                     Component {
                         id: barNumberComponent
                         Lr2BarNumberRenderer {
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
@@ -725,8 +757,8 @@ Item {
                         id: barGraphComponent
                         Lr2BarGraphRenderer {
                             readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
-                            dsts: model.dsts
-                            srcData: model.src
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
                             sourceSkinTime: elemLoader.useDirectElementSkinClock
                                 ? 0
@@ -743,30 +775,30 @@ Item {
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             sourceTimerFire: elemLoader.srcTimerFire
-                            chartAssetSource: sceneRoot.chartAssetSourceFor(model.src)
+                            chartAssetSource: sceneRoot.chartAssetSourceFor(elemLoader.elementData.src)
                             scaleOverride: skinScale
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
                             value: {
-                                sceneRoot.barGraphValueRevision(model.src);
-                                let graphType = model.src ? model.src.graphType || 0 : 0;
+                                sceneRoot.barGraphValueRevision(elemLoader.elementData.src);
+                                let graphType = elemLoader.elementData.src ? elemLoader.elementData.src.graphType || 0 : 0;
                                 return root.effectiveScreenKey === "select"
                                     ? selectContext.nativeBarGraphValue(graphType)
                                     : root.resolveBarGraph(graphType);
                             }
                             animateValue: root.effectiveScreenKey === "select"
-                                && model.src
-                                && model.src.graphType >= 5
-                                && model.src.graphType <= 9
+                                && elemLoader.elementData.src
+                                && elemLoader.elementData.src.graphType >= 5
+                                && elemLoader.elementData.src.graphType <= 9
                         }
                     }
 
                     Component {
                         id: barDistributionGraphComponent
                         Lr2BarDistributionGraphRenderer {
-                            readonly property bool barDistributionSourceAnimates: root.barDistributionGraphSourceAnimates(model.src)
-                            dsts: model.dsts
-                            srcData: model.src
+                            readonly property bool barDistributionSourceAnimates: root.barDistributionGraphSourceAnimates(elemLoader.elementData.src)
+                            dsts: elemLoader.elementData.dsts
+                            srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime
                             sourceSkinTime: barDistributionSourceAnimates
                                 ? (root.effectiveScreenKey === "select"
@@ -787,7 +819,7 @@ Item {
                             fastBarScrollY: root.fastBarScrollY
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
-                            chartAssetSource: sceneRoot.chartAssetSourceFor(model.src)
+                            chartAssetSource: sceneRoot.chartAssetSourceFor(elemLoader.elementData.src)
                         }
                     }
                 }

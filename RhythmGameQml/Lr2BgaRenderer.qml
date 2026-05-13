@@ -186,7 +186,7 @@ Item {
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
             visible: !root.poorVisible
-            z: videoBase.z + 1
+            z: 1
         }
 
         VideoOutput {
@@ -195,7 +195,7 @@ Item {
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
             visible: !root.poorVisible
-            z: videoLayer.z + 1
+            z: 2
         }
 
         ColorChanger {
@@ -203,7 +203,7 @@ Item {
             from: "black"
             to: "transparent"
             visible: videoLayer.visible
-            z: videoLayer.z
+            z: 1
 
             source: ShaderEffectSource {
                 hideSource: true
@@ -216,7 +216,7 @@ Item {
             from: "black"
             to: "transparent"
             visible: videoLayer2.visible
-            z: videoLayer2.z
+            z: 2
 
             source: ShaderEffectSource {
                 hideSource: true
@@ -230,7 +230,7 @@ Item {
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
             visible: root.poorVisible
-            z: videoLayer2.z + 1
+            z: 3
         }
     }
 }
