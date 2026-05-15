@@ -1266,7 +1266,8 @@ populateScreenVars(const std::filesystem::path& themePath,
   -> ScreenVarsPopulationResult
 {
     auto result = ScreenVarsPopulationResult{};
-    if (!settingsObject.contains("items") || !settingsObject["items"].isArray()) {
+    if (!settingsObject.contains("items") ||
+        !settingsObject["items"].isArray()) {
         throw support::Exception("Settings object has no items array");
     }
     populateScreenVarsRecursive(
@@ -1367,12 +1368,14 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
             const auto contents =
               QJsonDocument::fromJson(screenObj.getSettingsData().toUtf8());
             if (!contents.isObject()) {
-                throw support::Exception(
-                  std::format("In-memory settings data is not an object for screen {}", screen.toStdString()));
+                throw support::Exception(std::format(
+                  "In-memory settings data is not an object for screen {}",
+                  screen.toStdString()));
             }
             vars[screen] = populateScreenVars(themePath, contents.object());
         } else {
-            auto settingsPath = support::qStringToPath(settingsUrl.toLocalFile());
+            auto settingsPath =
+              support::qStringToPath(settingsUrl.toLocalFile());
             vars[screen] = populateScreenVars(themePath, settingsPath);
         }
     }
@@ -1485,10 +1488,11 @@ resource_managers::Vars::populateThemePropertyMap(
   const std::filesystem::path& themeVarsPath)
 {
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
-        auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
+        auto screenPropertyMap =
+          std::unique_ptr<QQmlPropertyMap>(QQmlPropertyMap::create(&themeVars));
         for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
-            auto propertyMap =
-              std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
+            auto propertyMap = std::unique_ptr<QQmlPropertyMap>(
+              QQmlPropertyMap::create(screenPropertyMap.get()));
             propertyMap->insert(themeVarsData[screenName][themeName]);
             propertyMap->freeze();
             connect(
@@ -1543,7 +1547,7 @@ resource_managers::Vars::populateThemePropertyMap(
             if (screenName == "k7") {
                 auto* k5Obj = themeVars["k5"].value<QQmlPropertyMap*>();
                 if (k5Obj == nullptr) {
-                    k5Obj = new QQmlPropertyMap(&themeVars);
+                    k5Obj = QQmlPropertyMap::create(&themeVars);
                     themeVars.insert("k5", QVariant::fromValue(k5Obj));
                 }
                 if (k5Obj->keys().contains(themeName)) {
@@ -1554,7 +1558,7 @@ resource_managers::Vars::populateThemePropertyMap(
                 auto* k5battleObj =
                   themeVars["k5battle"].value<QQmlPropertyMap*>();
                 if (k5battleObj == nullptr) {
-                    k5battleObj = new QQmlPropertyMap(&themeVars);
+                    k5battleObj = QQmlPropertyMap::create(&themeVars);
                     themeVars.insert("k5battle",
                                      QVariant::fromValue(k5battleObj));
                 }
@@ -1565,7 +1569,7 @@ resource_managers::Vars::populateThemePropertyMap(
             } else if (screenName == "k14") {
                 auto* k10Obj = themeVars["k10"].value<QQmlPropertyMap*>();
                 if (k10Obj == nullptr) {
-                    k10Obj = new QQmlPropertyMap(&themeVars);
+                    k10Obj = QQmlPropertyMap::create(&themeVars);
                     themeVars.insert("k10", QVariant::fromValue(k10Obj));
                 }
                 if (k10Obj->keys().contains(themeName)) {
@@ -1602,7 +1606,7 @@ resource_managers::Vars::Vars(
     writePool.setMaxThreadCount(1);
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(
-      themeVars, loadedThemeVars, profile->getPath().parent_path());
+      *themeVars, loadedThemeVars, profile->getPath().parent_path());
     readGeneralVars(writePool, generalVars, profile->getPath().parent_path());
     writeGeneralVars();
     for (auto i = generalVars.metaObject()->propertyOffset();
@@ -1624,7 +1628,7 @@ resource_managers::Vars::getGeneralVars() -> GeneralVars*
     return &generalVars;
 }
 auto
-resource_managers::Vars::getThemeVars() -> QQmlPropertyMap*
+resource_managers::Vars::getThemeVars() const -> QQmlPropertyMap*
 {
-    return &themeVars;
+    return themeVars;
 }

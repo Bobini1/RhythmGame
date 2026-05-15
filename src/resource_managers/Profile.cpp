@@ -42,7 +42,7 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
              const std::filesystem::path& themeConfig)
   -> std::unique_ptr<QQmlPropertyMap>
 {
-    auto config = std::make_unique<QQmlPropertyMap>();
+    auto config = std::unique_ptr<QQmlPropertyMap>(QQmlPropertyMap::create());
     fillWithDefaults(*config, availableThemes);
     readConfig(themeConfig, *config, availableThemes);
     config->freeze();

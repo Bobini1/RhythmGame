@@ -534,7 +534,7 @@ class Vars final : public QObject
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
     GeneralVars generalVars;
-    QQmlPropertyMap themeVars;
+    QQmlPropertyMap* themeVars = QQmlPropertyMap::create(this);
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
     QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;
@@ -553,7 +553,7 @@ class Vars final : public QObject
       QList<QString> assetsPaths,
       QObject* parent = nullptr);
     auto getGeneralVars() -> GeneralVars*;
-    auto getThemeVars() -> QQmlPropertyMap*;
+    auto getThemeVars() const -> QQmlPropertyMap*;
 
   signals:
     void generalVarsChanged();
