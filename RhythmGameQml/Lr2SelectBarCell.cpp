@@ -485,17 +485,17 @@ QVariantList Lr2SelectBarCell::graphSegmentModel(int graphType,
         accumulated += amount;
     }
 
-    for (int segment = 0; segment < effectiveSegmentCount; ++segment) {
-        const bool visible = widths[static_cast<size_t>(segment)] > 0.0;
+    for (int segment = effectiveSegmentCount - 1; segment >= 0; --segment) {
+        if (widths[static_cast<size_t>(segment)] <= 0.0) {
+            continue;
+        }
         result.append(QVariantMap {
             {QStringLiteral("segment"), segment},
             {QStringLiteral("frameOffset"), std::min(std::max(1, frameCount) - 1, segment)},
-            {QStringLiteral("visible"), visible},
-            {QStringLiteral("state"), visible
-                ? segmentState(baseState,
-                               starts[static_cast<size_t>(segment)],
-                               widths[static_cast<size_t>(segment)])
-                : QVariantMap {}},
+            {QStringLiteral("visible"), true},
+            {QStringLiteral("state"), segmentState(baseState,
+                                                   starts[static_cast<size_t>(segment)],
+                                                   widths[static_cast<size_t>(segment)])},
         });
     }
     return cacheAndReturn(std::move(result));
