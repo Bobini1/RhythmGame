@@ -79,11 +79,38 @@ Item {
         return timelineResolver.timerFireFor(timers, idx);
     }
 
-    function sourceTimerFireFor(src) {
-        if (!timelineResolver.sourceCyclesContinuously(src)) {
+    function sourceCyclesContinuously(src) {
+        return src
+            && (src.cycle || 0) > 0
+            && Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1) > 1;
+    }
+
+    function sourceTimerFor(src, fallbackTimer) {
+        if (!sourceCyclesContinuously(src)) {
+            return 0;
+        }
+        let timer = Number(src.timer || 0);
+        if (timer !== 0) {
+            return timer;
+        }
+        return fallbackTimer !== undefined && fallbackTimer > 0 ? fallbackTimer : 0;
+    }
+
+    function sourceTimerFireFor(src, fallbackTimer) {
+        if (!sourceCyclesContinuously(src)) {
             return -2147483648;
         }
-        return root.timerFireFor(timelineResolver.sourceTimerFor(src));
+        return root.timerFireFor(sourceTimerFor(src, fallbackTimer));
+    }
+
+    function sourceSkinTimeFor(src, timerFire, fallbackTimer) {
+        if (!sourceCyclesContinuously(src)) {
+            return 0;
+        }
+        if (sourceTimerFor(src, fallbackTimer) !== 0 && timerFire < 0) {
+            return 0;
+        }
+        return renderSkinTime;
     }
 
     function noteDstState(index) {
@@ -410,14 +437,19 @@ Item {
 
                             required property var display
 
+                            readonly property int computedSourceTimerFire: root.sourceTimerFireFor(
+                                lineArea.lineSource)
+
                             srcData: lineArea.lineSource
                             stateData: root.spriteState(
                                 lineArea.dstState,
                                 root.lineLocalY(display, lineArea.multiplier),
                                 lineArea.dstState ? lineArea.dstState.h : 0)
-                            skinTime: root.renderSkinTime
+                            skinTime: root.sourceSkinTimeFor(
+                                lineArea.lineSource,
+                                lineItem.computedSourceTimerFire)
                             timers: null
-                            sourceTimerFire: root.sourceTimerFireFor(lineArea.lineSource)
+                            sourceTimerFire: lineItem.computedSourceTimerFire
                             scaleOverride: root.skinScale
                         }
                     }
@@ -565,6 +597,11 @@ Item {
                             readonly property var lnBodySource: heldLongNote
                                 ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
                                 : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
+                            readonly property int lnTimer: 70 + lane.lr2Index
+                            readonly property int noteSourceTimerFire: root.sourceTimerFireFor(noteSource)
+                            readonly property int lnBodySourceTimerFire: root.sourceTimerFireFor(
+                                lnBodySource,
+                                heldLongNote ? lnTimer : 0)
                             readonly property var noteState: root.spriteState(
                                 lane.dstState,
                                 localY,
@@ -586,9 +623,12 @@ Item {
                                 sourceComponent: Component {
                                     Lr2FastSprite {
                                         srcData: noteItem.lnBodySource
-                                        skinTime: root.renderSkinTime
+                                        skinTime: root.sourceSkinTimeFor(
+                                            noteItem.lnBodySource,
+                                            noteItem.lnBodySourceTimerFire,
+                                            noteItem.heldLongNote ? noteItem.lnTimer : 0)
                                         timers: null
-                                        sourceTimerFire: root.sourceTimerFireFor(noteItem.lnBodySource)
+                                        sourceTimerFire: noteItem.lnBodySourceTimerFire
                                         scaleOverride: root.skinScale
                                         tileVertically: true
                                         stateData: {
@@ -605,9 +645,11 @@ Item {
                             Lr2FastSprite {
                                 srcData: noteItem.noteSource
                                 stateData: noteItem.noteState
-                                skinTime: root.renderSkinTime
+                                skinTime: root.sourceSkinTimeFor(
+                                    noteItem.noteSource,
+                                    noteItem.noteSourceTimerFire)
                                 timers: null
-                                sourceTimerFire: root.sourceTimerFireFor(noteItem.noteSource)
+                                sourceTimerFire: noteItem.noteSourceTimerFire
                                 scaleOverride: root.skinScale
                             }
                         }
