@@ -45,6 +45,7 @@ Image {
     readonly property real stateY: stateData ? stateData.y || 0 : 0
     readonly property real stateW: stateData ? stateData.w || 0 : 0
     readonly property real stateH: stateData ? stateData.h || 0 : 0
+    readonly property int stateFilter: stateData ? stateData.filter || 0 : 0
     readonly property real drawX: stateX + (stateW < 0 ? stateW : 0)
     readonly property real drawY: stateY + (stateH < 0 ? stateH : 0)
 
@@ -62,6 +63,6 @@ Image {
     fillMode: tileVertically ? Image.TileVertically : Image.Stretch
     cache: true
     asynchronous: true
-    smooth: true
+    smooth: stateFilter !== 0
     mipmap: false
 }

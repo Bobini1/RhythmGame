@@ -6,6 +6,7 @@
 #include <QImageReader>
 #include <QJSValue>
 #include <QMatrix4x4>
+#include <QMetaProperty>
 #include <QQuickWindow>
 #include <QSGGeometryNode>
 #include <QSGMaterial>
@@ -94,6 +95,17 @@ int toInt(const QVariant& value, int fallback = 0) {
     return ok ? result : fallback;
 }
 
+QVariant gadgetProperty(const QVariant& source, const char* name) {
+    const QMetaObject* metaObject = source.metaType().metaObject();
+    if (!metaObject) {
+        return {};
+    }
+    const int propertyIndex = metaObject->indexOfProperty(name);
+    return propertyIndex < 0
+        ? QVariant {}
+        : metaObject->property(propertyIndex).readOnGadget(source.constData());
+}
+
 QVariant valueProperty(const QVariant& source, const char* name) {
     if (!source.isValid() || source.isNull()) {
         return {};
@@ -120,10 +132,19 @@ QVariant valueProperty(const QVariant& source, const char* name) {
             return object->property(name);
         }
     }
-    return {};
+    return gadgetProperty(source, name);
 }
 
-QString resolvedImageSource(const QVariant& srcData) {
+bool sourceUsesChartAsset(int specialType) {
+    return specialType == 1 || specialType == 3 || specialType == 4;
+}
+
+QString resolvedImageSource(const QVariant& srcData, const QString& chartAssetSource) {
+    const int specialType = toInt(valueProperty(srcData, "specialType"));
+    if (sourceUsesChartAsset(specialType) && !chartAssetSource.isEmpty()) {
+        return chartAssetSource;
+    }
+
     const QString rawSource = valueProperty(srcData, "source").toString();
     if (rawSource.isEmpty()) {
         return {};
@@ -498,6 +519,20 @@ void Lr2BarDistributionGraphItem::setColorKeyEnabled(bool value) {
     requestSceneUpdate();
 }
 
+QString Lr2BarDistributionGraphItem::chartAssetSource() const {
+    return m_chartAssetSource;
+}
+
+void Lr2BarDistributionGraphItem::setChartAssetSource(const QString& value) {
+    if (m_chartAssetSource == value) {
+        return;
+    }
+    m_chartAssetSource = value;
+    parseSource();
+    emit chartAssetSourceChanged();
+    requestSceneUpdate();
+}
+
 void Lr2BarDistributionGraphItem::parseSource() {
     m_source = {};
     if (!m_srcData.isValid() || m_srcData.isNull()) {
@@ -513,7 +548,7 @@ void Lr2BarDistributionGraphItem::parseSource() {
     m_source.h = toReal(valueProperty(m_srcData, "h"));
     m_source.divX = std::max(1, toInt(valueProperty(m_srcData, "div_x"), 1));
     m_source.divY = std::max(1, toInt(valueProperty(m_srcData, "div_y"), 1));
-    m_source.source = resolvedImageSource(m_srcData);
+    m_source.source = resolvedImageSource(m_srcData, m_chartAssetSource);
     loadSourceImage();
 }
 
@@ -521,9 +556,9 @@ void Lr2BarDistributionGraphItem::loadSourceImage() {
     m_sourceImage = {};
     m_textureDirty = true;
 
-    if (m_source.specialType == 2) {
+    if (m_source.specialType == 2 || m_source.specialType == 5) {
         m_sourceImage = QImage(1, 1, QImage::Format_RGBA8888);
-        m_sourceImage.fill(Qt::black);
+        m_sourceImage.fill(m_source.specialType == 5 ? Qt::white : Qt::black);
         return;
     }
 
@@ -621,11 +656,16 @@ QSGNode* Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode, UpdatePa
     qreal sourceY = m_source.y;
     qreal sourceW = m_source.w;
     qreal sourceH = m_source.h;
-    if (sourceW <= 0.0 || sourceH <= 0.0 || sourceX < 0.0 || sourceY < 0.0) {
+    if (m_source.specialType == 2 || m_source.specialType == 5
+            || sourceW < 0.0 || sourceH < 0.0 || sourceX < 0.0 || sourceY < 0.0) {
         sourceX = 0.0;
         sourceY = 0.0;
         sourceW = imageW;
         sourceH = imageH;
+    }
+    if (sourceW <= 0.0 || sourceH <= 0.0) {
+        delete node;
+        return nullptr;
     }
     const qreal cellW = sourceW / m_source.divX;
     const qreal cellH = sourceH / m_source.divY;

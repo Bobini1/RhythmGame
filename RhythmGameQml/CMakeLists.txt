@@ -20,6 +20,8 @@ qt_add_qml_module(RhythmGame_qml
         Lr2BarBaseStateCache.cpp
         Lr2BarPositionedItem.h
         Lr2BarPositionedItem.cpp
+        Lr2BarTextItem.h
+        Lr2BarTextItem.cpp
         Lr2BarInterpolatedState.h
         Lr2BarInterpolatedState.cpp
         Lr2SelectVisualState.h

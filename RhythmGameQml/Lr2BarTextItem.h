@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Lr2BarPositionCache.h"
+#include "Lr2TimelineState.h"
 
 #include <QColor>
+#include <QHash>
 #include <QImage>
 #include <QPointer>
 #include <QQuickItem>
@@ -12,28 +14,25 @@
 
 class Lr2SelectBarCell;
 
-class Lr2BarDistributionGraphItem : public QQuickItem {
+class Lr2BarTextItem : public QQuickItem {
     Q_OBJECT
     QML_ELEMENT
+    Q_PROPERTY(QVariantList dsts READ dsts WRITE setDsts NOTIFY dstsChanged)
     Q_PROPERTY(QVariant srcData READ srcData WRITE setSrcData NOTIFY srcDataChanged)
-    Q_PROPERTY(QVariant stateData READ stateData WRITE setStateData NOTIFY stateDataChanged)
     Q_PROPERTY(QVariantList barCells READ barCells WRITE setBarCells NOTIFY barCellsChanged)
     Q_PROPERTY(Lr2BarPositionCache* barPositionCache READ barPositionCache WRITE setBarPositionCache NOTIFY barPositionCacheChanged)
     Q_PROPERTY(qreal scaleOverride READ scaleOverride WRITE setScaleOverride NOTIFY scaleOverrideChanged)
-    Q_PROPERTY(int frameOverrideBase READ frameOverrideBase WRITE setFrameOverrideBase NOTIFY frameOverrideBaseChanged)
-    Q_PROPERTY(QColor transColor READ transColor WRITE setTransColor NOTIFY transColorChanged)
-    Q_PROPERTY(bool colorKeyEnabled READ colorKeyEnabled WRITE setColorKeyEnabled NOTIFY colorKeyEnabledChanged)
-    Q_PROPERTY(QString chartAssetSource READ chartAssetSource WRITE setChartAssetSource NOTIFY chartAssetSourceChanged)
+    Q_PROPERTY(bool supported READ isSupported NOTIFY supportedChanged)
 
 public:
-    explicit Lr2BarDistributionGraphItem(QQuickItem* parent = nullptr);
-    ~Lr2BarDistributionGraphItem() override;
+    explicit Lr2BarTextItem(QQuickItem* parent = nullptr);
+    ~Lr2BarTextItem() override;
+
+    QVariantList dsts() const;
+    void setDsts(const QVariantList& value);
 
     QVariant srcData() const;
     void setSrcData(const QVariant& value);
-
-    QVariant stateData() const;
-    void setStateData(const QVariant& value);
 
     QVariantList barCells() const;
     void setBarCells(const QVariantList& value);
@@ -44,53 +43,49 @@ public:
     qreal scaleOverride() const;
     void setScaleOverride(qreal value);
 
-    int frameOverrideBase() const;
-    void setFrameOverrideBase(int value);
-
-    QColor transColor() const;
-    void setTransColor(const QColor& value);
-
-    bool colorKeyEnabled() const;
-    void setColorKeyEnabled(bool value);
-
-    QString chartAssetSource() const;
-    void setChartAssetSource(const QString& value);
+    bool isSupported() const;
 
 signals:
+    void dstsChanged();
     void srcDataChanged();
-    void stateDataChanged();
     void barCellsChanged();
     void barPositionCacheChanged();
     void scaleOverrideChanged();
-    void frameOverrideBaseChanged();
-    void transColorChanged();
-    void colorKeyEnabledChanged();
-    void chartAssetSourceChanged();
+    void supportedChanged();
 
 protected:
     QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData* data) override;
 
 private:
     struct Source {
-        int graphType = 0;
-        int specialType = 0;
-        qreal x = 0.0;
-        qreal y = 0.0;
-        qreal w = 0.0;
-        qreal h = 0.0;
-        int divX = 1;
-        int divY = 1;
-        QString source;
+        int titleType = -1;
+        int align = 0;
+        int fontSize = 0;
+        int fontThickness = 0;
+        int fontType = 0;
+        bool bitmapFont = false;
+        QString fontPath;
+        QString fontFamily;
+        bool isLr2Font = false;
+    };
+
+    struct TextImage {
+        QImage image;
+        QSizeF naturalSize;
     };
 
     void parseSource();
-    void loadSourceImage();
+    void updateTimelineDsts();
     void reconnectCells();
+    void reconnectPositionCache();
+    void updateSupported();
     void requestSceneUpdate();
+    TextImage textImageFor(const QString& text, const QColor& color, qreal boxHeight, bool hasEdge);
 
+    QVariantList m_dsts;
+    QVariantList m_timelineDsts;
     QVariant m_srcData;
-    QVariant m_stateData;
-    QVariantList m_barCellsValue;
+    QVariantList m_barCellValues;
     QVector<QPointer<Lr2SelectBarCell>> m_barCells;
     QVector<QMetaObject::Connection> m_cellConnections;
     QPointer<Lr2BarPositionCache> m_barPositionCache;
@@ -98,11 +93,9 @@ private:
     QMetaObject::Connection m_positionSlotOffsetConnection;
     QMetaObject::Connection m_positionSlotCountConnection;
     qreal m_scaleOverride = 1.0;
-    int m_frameOverrideBase = 0;
-    QColor m_transColor = Qt::black;
-    bool m_colorKeyEnabled = false;
-    QString m_chartAssetSource;
+    bool m_supported = false;
+    bool m_hasUnsupportedBlend = false;
     Source m_source;
-    QImage m_sourceImage;
-    bool m_textureDirty = true;
+    Lr2TimelineState m_timeline;
+    QHash<QString, TextImage> m_textImageCache;
 };

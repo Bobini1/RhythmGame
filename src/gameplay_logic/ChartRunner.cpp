@@ -97,13 +97,15 @@ ChartRunner::start()
         startRequested = true;
         return;
     }
+    startTimepoint = std::chrono::steady_clock::now();
     setStatus(Running);
-    propertyUpdateTimer.start(1);
+    propertyUpdateTimer.setTimerType(Qt::PreciseTimer);
     connect(&propertyUpdateTimer,
             &QTimer::timeout,
             this,
-            &ChartRunner::updateElapsed);
-    startTimepoint = std::chrono::steady_clock::now();
+            &ChartRunner::updateElapsed,
+            Qt::UniqueConnection);
+    propertyUpdateTimer.start(1);
 }
 
 void
@@ -292,6 +294,15 @@ ChartRunner::setInputMapping(QList<int> inputMapping)
     this->inputMapping = inputMapping;
     emit inputMappingChanged();
 }
+auto
+ChartRunner::currentOffsetFromStart() const -> std::chrono::nanoseconds
+{
+    if (status != Running) {
+        return {};
+    }
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::steady_clock::now() - startTimepoint);
+}
 Player::Player(BmsNotes* notes,
                BmsLiveScore* score,
                GameplayState* state,
@@ -470,6 +481,35 @@ auto
 Player::getBeatPosition() const -> double
 {
     return beatPosition;
+}
+auto
+Player::positionInfoAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> BmsGameReferee::PositionInfo
+{
+    if (!referee) {
+        return { .position = position, .beatPosition = beatPosition };
+    }
+
+    const auto visualOffset =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::duration<double, std::milli>(
+          profile ? profile->getVars()->getGeneralVars()->getOffset()
+                  : 0.0));
+    const auto visualOffsetFromStart = offsetFromStart + visualOffset;
+    const auto bpmChange = referee->getBpm(visualOffsetFromStart);
+    return BmsGameReferee::getPosition(bpmChange, visualOffsetFromStart);
+}
+auto
+Player::positionAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> double
+{
+    return positionInfoAt(offsetFromStart).position;
+}
+auto
+Player::beatPositionAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> double
+{
+    return positionInfoAt(offsetFromStart).beatPosition;
 }
 auto
 Player::getElapsed() const -> int64_t

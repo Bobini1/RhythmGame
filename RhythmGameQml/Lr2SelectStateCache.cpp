@@ -86,33 +86,30 @@ QVariant valueProperty(const QVariant& source, const char* name) {
     return gadgetProperty(source, name);
 }
 
-QVariant indexedValue(const QVariant& source, const QString& key) {
-    if (!source.isValid() || source.isNull()) {
+QVariantMap toLookupMap(const QVariant& value) {
+    if (!value.isValid() || value.isNull()) {
         return {};
     }
-    if (source.canConvert<QVariantMap>()) {
-        const QVariantMap map = source.toMap();
-        const auto it = map.constFind(key);
-        return it == map.constEnd() ? QVariant() : *it;
+    if (value.canConvert<QVariantMap>()) {
+        return value.toMap();
     }
-    if (source.canConvert<QVariantHash>()) {
-        const QVariantHash hash = source.toHash();
-        const auto it = hash.constFind(key);
-        return it == hash.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QJSValue>()) {
-        const QJSValue value = source.value<QJSValue>();
-        if (value.isObject()) {
-            const QJSValue property = value.property(key);
-            return property.isUndefined() || property.isNull() ? QVariant() : property.toVariant();
+    if (value.canConvert<QVariantHash>()) {
+        QVariantMap result;
+        const QVariantHash hash = value.toHash();
+        for (auto it = hash.cbegin(); it != hash.cend(); ++it) {
+            result.insert(it.key(), it.value());
         }
+        return result;
     }
-    if (source.canConvert<QObject*>()) {
-        if (QObject* object = source.value<QObject*>()) {
-            return object->property(key.toLatin1().constData());
-        }
+    if (value.canConvert<QJSValue>()) {
+        return value.value<QJSValue>().toVariant().toMap();
     }
     return {};
+}
+
+QVariant mapValue(const QVariantMap& map, const QString& key) {
+    const auto it = map.constFind(key);
+    return it == map.cend() ? QVariant {} : it.value();
 }
 
 QVariantList toList(const QVariant& value) {
@@ -484,6 +481,7 @@ void Lr2SelectStateCache::setScores(const QVariant& value) {
         return;
     }
     m_scores = value;
+    m_scoresByKey = toLookupMap(value);
     clearScoreCaches();
     emit scoresChanged();
 }
@@ -497,6 +495,7 @@ void Lr2SelectStateCache::setChartDifficultyCache(const QVariant& value) {
         return;
     }
     m_chartDifficultyCache = value;
+    m_chartDifficultyByPath = toLookupMap(value);
     clearDifficultyCache();
     emit chartDifficultyCacheChanged();
 }
@@ -510,6 +509,7 @@ void Lr2SelectStateCache::setChartGroupCache(const QVariant& value) {
         return;
     }
     m_chartGroupCache = value;
+    m_chartGroupsByKey = toLookupMap(value);
     clearDifficultyCache();
     emit chartGroupCacheChanged();
 }
@@ -523,6 +523,7 @@ void Lr2SelectStateCache::setFolderLampByKey(const QVariant& value) {
         return;
     }
     m_folderLampByKey = value;
+    m_folderLampLookup = toLookupMap(value);
     clearBarCellCache();
     emit folderLampByKeyChanged();
 }
@@ -536,6 +537,7 @@ void Lr2SelectStateCache::setFolderDistributionByKey(const QVariant& value) {
         return;
     }
     m_folderDistributionByKey = value;
+    m_folderDistributionLookup = toLookupMap(value);
     clearBarCellCache();
     emit folderDistributionByKeyChanged();
 }
@@ -549,6 +551,7 @@ void Lr2SelectStateCache::setFolderScoreCountsByKey(const QVariant& value) {
         return;
     }
     m_folderScoreCountsByKey = value;
+    m_folderScoreCountsLookup = toLookupMap(value);
     emit folderScoreCountsByKeyChanged();
 }
 
@@ -598,6 +601,7 @@ void Lr2SelectStateCache::setRankingClearCounts(const QVariant& value) {
         return;
     }
     m_rankingClearCounts = value;
+    m_rankingClearCountLookup = toLookupMap(value);
     emit rankingClearCountsChanged();
 }
 
@@ -1057,7 +1061,7 @@ int Lr2SelectStateCache::numberValue(int num) const {
         return diff >= 1 && diff < levels.size() && toInt(levels.at(diff)) > 0 ? toInt(levels.at(diff)) : -1;
     };
     auto rankingCountValue = [this](const QString& key) {
-        return toInt(indexedValue(m_rankingClearCounts, key));
+        return toInt(mapValue(m_rankingClearCountLookup, key));
     };
     const bool hasRankingStats = m_rankingPlayerCount > 0
         && !m_rankingStatsMd5.isEmpty()
@@ -1071,7 +1075,7 @@ int Lr2SelectStateCache::numberValue(int num) const {
     };
     auto folderCounts = [this, &item]() {
         const QString key = folderLampKey(item);
-        const QVariant value = key.isEmpty() ? QVariant() : indexedValue(m_folderScoreCountsByKey, key);
+        const QVariant value = key.isEmpty() ? QVariant() : mapValue(m_folderScoreCountsLookup, key);
         return value.isValid() && !value.isNull() ? value.toMap() : QVariantMap {};
     };
     auto folderCount = [&folderCounts](const QString& key) {
@@ -1473,7 +1477,7 @@ QVariantList Lr2SelectStateCache::entryScores(const QVariant& item) const {
     if (id.isEmpty()) {
         return {};
     }
-    return toList(indexedValue(m_scores, id));
+    return toList(mapValue(m_scoresByKey, id));
 }
 
 QVariantMap Lr2SelectStateCache::buildScoreSummary(const QVariantList& scoreList) const {
@@ -1622,7 +1626,7 @@ QVariantMap Lr2SelectStateCache::buildDifficultyState(const QVariant& chart,
         return m_difficultyStateCache.value(key);
     }
 
-    QVariantList charts = toList(indexedValue(m_chartGroupCache, chartDifficultyGroupKey(chart)));
+    QVariantList charts = toList(mapValue(m_chartGroupsByKey, chartDifficultyGroupKey(chart)));
     if (charts.isEmpty() && chart.isValid() && !chart.isNull()) {
         charts.append(chart);
     }
@@ -2073,7 +2077,7 @@ int Lr2SelectStateCache::entryDifficulty(const QVariant& item) const {
         return 0;
     }
     const QString path = toString(valueProperty(item, "path"));
-    const QVariant cached = indexedValue(m_chartDifficultyCache, path);
+    const QVariant cached = mapValue(m_chartDifficultyByPath, path);
     if (cached.isValid()) {
         return toInt(cached);
     }
@@ -2100,7 +2104,7 @@ int Lr2SelectStateCache::entryLamp(const QVariant& item) {
     }
     if (kind == ItemKind::Folder || kind == ItemKind::Table || kind == ItemKind::Level) {
         const QString key = folderLampKey(item);
-        return key.isEmpty() ? 0 : toInt(indexedValue(m_folderLampByKey, key));
+        return key.isEmpty() ? 0 : toInt(mapValue(m_folderLampLookup, key));
     }
     return cachedScoreLampRank(item).value(QStringLiteral("lamp")).toInt();
 }
@@ -2162,7 +2166,7 @@ QVariantMap Lr2SelectStateCache::folderDistribution(const QVariant& item) const 
     if (key.isEmpty()) {
         return {};
     }
-    const QVariant value = indexedValue(m_folderDistributionByKey, key);
+    const QVariant value = mapValue(m_folderDistributionLookup, key);
     return value.canConvert<QVariantMap>() ? value.toMap() : QVariantMap();
 }
 

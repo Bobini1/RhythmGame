@@ -335,8 +335,8 @@ Item {
             readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
             readonly property bool selectedOverlaySource: sourceKind === 2
             readonly property bool usesRowPositionCache: !selectedOverlaySource
-            readonly property int displayRow: selectedOverlaySource ? slot : effectiveRow
-            readonly property var visibleBase: selectedOverlaySource ? root.visibilityState(displayRow) : null
+            readonly property int selectedDisplayRow: selectedOverlaySource ? slot : -1
+            readonly property var visibleBase: selectedOverlaySource ? root.visibilityState(selectedDisplayRow) : null
             readonly property var cell: selectedOverlaySource
                 ? null
                 : root.cellDataForSlot(slot)
@@ -348,11 +348,11 @@ Item {
                     && cell.overlayVisibleForKind(sourceKind, sourceVariant);
             }
             readonly property bool contentVisible: (selectedOverlaySource
-                    ? displayRow > 0 && !!visibleBase
+                    ? selectedDisplayRow > 0 && !!visibleBase
                     : rowVisible)
                 && (selectedOverlaySource || cellOverlayVisible)
             positionCache: root.barPositionCache
-            row: selectedOverlaySource ? displayRow : -1
+            row: selectedOverlaySource ? selectedDisplayRow : -1
             slot: selectedOverlaySource ? root.selectedRow : modelData
             scaleOverride: root.scaleOverride
             useSlotRow: usesRowPositionCache

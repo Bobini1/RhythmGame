@@ -13,6 +13,8 @@
 #include "qml_components/Bga.h"
 #include "NoteState.h"
 
+#include <chrono>
+
 #include <QTimer>
 #include <QFutureWatcher>
 namespace gameplay_logic {
@@ -128,6 +130,7 @@ class ChartRunner final : public QObject
     auto getPlayer2() const -> Player*;
     auto getInputMapping() const -> QList<int>;
     void setInputMapping(QList<int> inputMapping);
+    auto currentOffsetFromStart() const -> std::chrono::nanoseconds;
 
   signals:
     void statusChanged();
@@ -207,6 +210,8 @@ class Player : public QObject
     void setBeatPosition(BmsGameReferee::Position beatPosition);
     void setBpm(double newBpm);
     void setScroll(double second);
+    auto positionInfoAt(std::chrono::nanoseconds offsetFromStart) const
+      -> BmsGameReferee::PositionInfo;
 
     QFutureWatcher<BmsGameReferee> refereeWatcher;
     QFuture<BmsGameReferee> refereeFuture;
@@ -236,6 +241,9 @@ class Player : public QObject
     auto getProfile() const -> resource_managers::Profile*;
     auto getPosition() const -> double;
     auto getBeatPosition() const -> double;
+    auto positionAt(std::chrono::nanoseconds offsetFromStart) const -> double;
+    auto beatPositionAt(std::chrono::nanoseconds offsetFromStart) const
+      -> double;
     auto getElapsed() const -> int64_t;
     auto getStatus() const -> ChartRunner::Status;
     void setStatus(ChartRunner::Status status);

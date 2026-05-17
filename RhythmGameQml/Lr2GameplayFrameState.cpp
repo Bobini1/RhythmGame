@@ -72,10 +72,22 @@ void Lr2GameplayFrameState::refresh(int frameSkinTime) {
 
     Player* progressPlayer = m_player1;
     Player* lanePlayer1 = m_player1;
-    Player* lanePlayer2 = m_player2 ? m_player2.data() : (m_useDoublePlayLanes ? m_player1.data() : nullptr);
+    Player* lanePlayer2 = m_player2
+        ? m_player2.data()
+        : (m_useDoublePlayLanes ? m_player1.data() : nullptr);
+    const bool useLiveSample = m_chart && m_chart->getStatus() == ChartRunner::Running;
+    const auto liveOffset = useLiveSample
+        ? m_chart->currentOffsetFromStart()
+        : std::chrono::nanoseconds::zero();
 
-    const qreal elapsed = progressPlayer ? std::max<qreal>(0.0, progressPlayer->getElapsed()) : 0.0;
-    const qreal length = progressPlayer ? std::max<qreal>(0.0, progressPlayer->getChartLength()) : 0.0;
+    const qreal elapsed = progressPlayer
+        ? std::max<qreal>(
+            0.0,
+            useLiveSample ? liveOffset.count() : progressPlayer->getElapsed())
+        : 0.0;
+    const qreal length = progressPlayer
+        ? std::max<qreal>(0.0, progressPlayer->getChartLength())
+        : 0.0;
     const qreal progress = length > 0.0 ? std::clamp(elapsed / length, 0.0, 1.0) : 0.0;
     if (m_lastProgressFrameSkinTime < 0
             || frameSkinTime < m_lastProgressFrameSkinTime
@@ -86,21 +98,31 @@ void Lr2GameplayFrameState::refresh(int frameSkinTime) {
         setProgressPosition(progress);
     }
 
-    setPosition1(lanePlayer1 ? lanePlayer1->getPosition() : 0.0);
-    setPosition2(lanePlayer2 ? lanePlayer2->getPosition() : 0.0);
+    setPosition1(lanePlayer1
+        ? (useLiveSample ? lanePlayer1->positionAt(liveOffset) : lanePlayer1->getPosition())
+        : 0.0);
+    setPosition2(lanePlayer2
+        ? (useLiveSample ? lanePlayer2->positionAt(liveOffset) : lanePlayer2->getPosition())
+        : 0.0);
 
     Player* rhythmPlayer = progressPlayer ? progressPlayer : m_player2.data();
     int rhythmTimer = -1;
     if (rhythmPlayer) {
-        const qreal beatPosition = rhythmPlayer->getBeatPosition();
+        const qreal beatPosition = useLiveSample
+            ? rhythmPlayer->beatPositionAt(liveOffset)
+            : rhythmPlayer->getBeatPosition();
         if (beatPosition > 0.0) {
             const qreal rhythm = (beatPosition - std::floor(beatPosition)) * 1000.0;
             rhythmTimer = std::max(0, static_cast<int>(std::llround(frameSkinTime - rhythm)));
         } else {
             const qreal bpm = std::max<qreal>(1.0, rhythmPlayer->getBpm());
-            const qreal elapsedMs = std::max<qreal>(0.0, rhythmPlayer->getElapsed()) / 1000000.0;
+            const qreal elapsedMs = std::max<qreal>(
+                0.0,
+                useLiveSample ? liveOffset.count() : rhythmPlayer->getElapsed()) / 1000000.0;
             const qreal beatMs = 60000.0 / bpm;
-            const qreal rhythm = beatMs > 0.0 ? std::fmod(elapsedMs, beatMs) * 1000.0 / beatMs : 0.0;
+            const qreal rhythm = beatMs > 0.0
+                ? std::fmod(elapsedMs, beatMs) * 1000.0 / beatMs
+                : 0.0;
             rhythmTimer = std::max(0, static_cast<int>(std::llround(frameSkinTime - rhythm)));
         }
     }

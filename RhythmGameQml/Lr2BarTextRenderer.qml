@@ -81,10 +81,22 @@ Item {
         return baseState(row);
     }
 
+    Lr2BarTextItem {
+        id: nativeText
+
+        anchors.fill: parent
+        visible: supported
+        dsts: root.timelineDsts
+        srcData: root.srcData
+        barCells: root.barCells
+        barPositionCache: root.barPositionCache
+        scaleOverride: root.scaleOverride
+    }
+
     Repeater {
         id: textRepeater
 
-        model: root.textSlotCount
+        model: nativeText.supported ? 0 : root.textSlotCount
 
         Lr2BarPositionedItem {
             id: barTextDelegate

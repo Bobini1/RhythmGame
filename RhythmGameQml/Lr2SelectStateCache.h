@@ -212,15 +212,22 @@ private:
     QVariant chartWrapperForData(const QVariant& chartData) const;
 
     QVariant m_scores;
+    QVariantMap m_scoresByKey;
     QVariant m_chartDifficultyCache;
+    QVariantMap m_chartDifficultyByPath;
     QVariant m_chartGroupCache;
+    QVariantMap m_chartGroupsByKey;
     QVariant m_folderLampByKey;
+    QVariantMap m_folderLampLookup;
     QVariant m_folderDistributionByKey;
+    QVariantMap m_folderDistributionLookup;
     QVariant m_folderScoreCountsByKey;
+    QVariantMap m_folderScoreCountsLookup;
     QVariant m_historyStack;
     QVariant m_playerStats;
     int m_profileOffset = 0;
     QVariant m_rankingClearCounts;
+    QVariantMap m_rankingClearCountLookup;
     QString m_rankingStatsMd5;
     int m_rankingPlayerRank = 0;
     int m_rankingPlayerCount = 0;
