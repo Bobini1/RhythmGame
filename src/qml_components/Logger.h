@@ -13,7 +13,7 @@ namespace qml_components {
 /**
  * @brief Lets you access the entire log history of this session.
  */
-class Logger : public QObject
+class Logger final : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
@@ -21,7 +21,7 @@ class Logger : public QObject
     /**
      * @brief All log messages.
      */
-    Q_PROPERTY(QStringListModel* history READ getHistory CONSTANT)
+    Q_PROPERTY(QStringListModel* history READ getHistory CONSTANT FINAL)
     QStringListModel* history{};
 
   public:

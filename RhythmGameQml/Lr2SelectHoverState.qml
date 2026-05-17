@@ -49,7 +49,7 @@ QtObject {
 
     onCandidateKeysChanged: root.refreshIfTracking()
 
-    function copyObject(value) {
+    function copyObject(value: var) : var {
         let result = {};
         for (let key in value || {}) {
             result[key] = value[key];
@@ -57,14 +57,14 @@ QtObject {
         return result;
     }
 
-    function pointInSkinCoordinates() {
+    function pointInSkinCoordinates() : var {
         if (!root.tracking || !root.hasPoint) {
             return null;
         }
         return Qt.point(root.skinX * root.skinScale, root.skinY * root.skinScale);
     }
 
-    function updatePoint(x, y) {
+    function updatePoint(x: var, y: var) : var {
         if (!root.tracking) {
             root.clearPoint();
             return false;
@@ -80,7 +80,7 @@ QtObject {
         return true;
     }
 
-    function clearPoint() {
+    function clearPoint() : var {
         if (!root.hasPoint) {
             root.clearCache();
             return;
@@ -90,7 +90,7 @@ QtObject {
         root.clearCache();
     }
 
-    function registerElement(elementIndex, src, enabled) {
+    function registerElement(elementIndex: var, src: var, enabled: var) : var {
         const key = String(elementIndex);
         const hadElement = root.elements[key] !== undefined;
         if (!enabled || !src || !src.onMouse) {
@@ -112,7 +112,7 @@ QtObject {
         root.refreshIfTracking();
     }
 
-    function unregisterElement(elementIndex) {
+    function unregisterElement(elementIndex: var) : var {
         const key = String(elementIndex);
         if (root.elements[key] === undefined) {
             return;
@@ -123,14 +123,14 @@ QtObject {
         root.refreshIfTracking();
     }
 
-    function refreshIfTracking() {
+    function refreshIfTracking() : var {
         if (!root.tracking) {
             return;
         }
         root.refreshCache();
     }
 
-    function clearCache() {
+    function clearCache() : var {
         if (Object.keys(root.visibleByIndex).length === 0) {
             return;
         }
@@ -138,7 +138,7 @@ QtObject {
         root.revision += 1;
     }
 
-    function elementState(element) {
+    function elementState(element: var) : var {
         if (!element) {
             return null;
         }
@@ -157,7 +157,7 @@ QtObject {
             descriptor.usesLiveDstClock ? root.host.selectSourceSkinTime : root.host.renderSkinTime);
     }
 
-    function hoverStateAt(element, mx, my) {
+    function hoverStateAt(element: var, mx: var, my: var) : var {
         if (!element || !element.src || !element.src.onMouse
                 || !root.host.panelMatches(element.src.hoverPanel || 0)) {
             return null;
@@ -165,7 +165,7 @@ QtObject {
         return root.host.onMouseStateContainsPoint(element.src, root.elementState(element), mx, my);
     }
 
-    function refreshCache() {
+    function refreshCache() : var {
         if (!root.tracking || root.candidateKeys.length <= 0 || !root.hasPoint) {
             root.clearCache();
             return;

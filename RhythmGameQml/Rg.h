@@ -33,29 +33,29 @@ class Rg final : public QObject
     QML_ELEMENT
 
     Q_PROPERTY(qml_components::ProgramSettings* programSettings MEMBER
-                 programSettings CONSTANT)
+                 programSettings CONSTANT FINAL)
     Q_PROPERTY(
-      input::InputTranslator* inputTranslator MEMBER inputTranslator CONSTANT)
+      input::InputTranslator* inputTranslator MEMBER inputTranslator CONSTANT FINAL)
     Q_PROPERTY(
-      qml_components::ChartLoader* chartLoader MEMBER chartLoader CONSTANT)
+      qml_components::ChartLoader* chartLoader MEMBER chartLoader CONSTANT FINAL)
     Q_PROPERTY(qml_components::RootSongFoldersConfig* rootSongFoldersConfig
-                 MEMBER rootSongFoldersConfig CONSTANT)
+                 MEMBER rootSongFoldersConfig CONSTANT FINAL)
     Q_PROPERTY(qml_components::SongFolderFactory* songFolderFactory MEMBER
-                 songFolderFactory CONSTANT)
+                 songFolderFactory CONSTANT FINAL)
     Q_PROPERTY(qml_components::PreviewFilePathFetcher* previewFilePathFetcher
-                 MEMBER previewFilePathFetcher CONSTANT)
-    Q_PROPERTY(qml_components::FileQuery* fileQuery MEMBER fileQuery CONSTANT)
-    Q_PROPERTY(qml_components::Themes* themes MEMBER themes CONSTANT)
+                 MEMBER previewFilePathFetcher CONSTANT FINAL)
+    Q_PROPERTY(qml_components::FileQuery* fileQuery MEMBER fileQuery CONSTANT FINAL)
+    Q_PROPERTY(qml_components::Themes* themes MEMBER themes CONSTANT FINAL)
     Q_PROPERTY(
-      input::GamepadManager* gamepadManager MEMBER gamepadManager CONSTANT)
+      input::GamepadManager* gamepadManager MEMBER gamepadManager CONSTANT FINAL)
     Q_PROPERTY(
-      qml_components::ProfileList* profileList MEMBER profileList CONSTANT)
-    Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT)
+      qml_components::ProfileList* profileList MEMBER profileList CONSTANT FINAL)
+    Q_PROPERTY(resource_managers::Tables* tables MEMBER tables CONSTANT FINAL)
     Q_PROPERTY(
-      resource_managers::Languages* languages MEMBER languages CONSTANT)
-    Q_PROPERTY(sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT)
+      resource_managers::Languages* languages MEMBER languages CONSTANT FINAL)
+    Q_PROPERTY(sounds::AudioEngine* audioEngine MEMBER audioEngine CONSTANT FINAL)
     Q_PROPERTY(
-      qml_components::OnlineScores* onlineScores MEMBER onlineScores CONSTANT)
+      qml_components::OnlineScores* onlineScores MEMBER onlineScores CONSTANT FINAL)
 
     qml_components::ProgramSettings* programSettings;
     input::InputTranslator* inputTranslator;

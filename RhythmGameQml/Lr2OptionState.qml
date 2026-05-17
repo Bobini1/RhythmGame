@@ -8,7 +8,7 @@ QtObject {
 
     required property var host
 
-    function copyObject(object) {
+    function copyObject(object: var) : var {
         let result = {};
         if (!object) {
             return result;
@@ -20,7 +20,7 @@ QtObject {
         return result;
     }
 
-    function wrapValue(value, count) {
+    function wrapValue(value: var, count: var) : var {
         return host.wrapValue(value, count);
     }
 
@@ -93,13 +93,13 @@ QtObject {
     property var lr2FxOn: [false, false, false]
     property var lr2FxTarget: [0, 0, 0]
 
-    function setArrayValue(array, index, value) {
+    function setArrayValue(array: var, index: var, value: var) : var {
         let copy = array.slice();
         copy[index] = value;
         return copy;
     }
 
-    function sliderInitialValue(type) {
+    function sliderInitialValue(type: var) : var {
         if (type === 17 || type === 18 || type === 19) {
             return 100;
         }
@@ -109,13 +109,13 @@ QtObject {
         return 50;
     }
 
-    function sliderRawValue(type) {
+    function sliderRawValue(type: var) : var {
         let key = String(type);
         let value = root.lr2SliderValues[key];
         return value === undefined ? root.sliderInitialValue(type) : value;
     }
 
-    function setSliderRawValue(type, value) {
+    function setSliderRawValue(type: var, value: var) : var {
         let key = String(type);
         let rounded = Math.max(0, Math.min(100, Math.round(value)));
         if (root.sliderRawValue(type) === rounded && root.lr2SliderValues[key] !== undefined) {
@@ -126,7 +126,7 @@ QtObject {
         root.lr2SliderValues = copy;
     }
 
-    function lr2SliderNumber(num) {
+    function lr2SliderNumber(num: var) : var {
         if (num >= 50 && num <= 56) {
             return root.sliderRawValue(10 + num - 50);
         }
@@ -163,7 +163,7 @@ QtObject {
         return profile ? profile.vars.generalVars : null;
     }
 
-    function indexOfValue(values, value) {
+    function indexOfValue(values: var, value: var) : var {
         for (let i = 0; i < values.length; ++i) {
             if (values[i] === value) {
                 return i;
@@ -172,15 +172,15 @@ QtObject {
         return 0;
     }
 
-    function cycleArrayIndex(index, count, delta) {
+    function cycleArrayIndex(index: var, count: var, delta: var) : var {
         return root.wrapValue(index + delta, count);
     }
 
-    function wrappedListValue(values, index) {
+    function wrappedListValue(values: var, index: var) : var {
         return values[root.wrapValue(index, values.length)];
     }
 
-    function arrayContains(values, value) {
+    function arrayContains(values: var, value: var) : var {
         for (let i = 0; i < values.length; ++i) {
             if (values[i] === value) {
                 return true;
@@ -189,7 +189,7 @@ QtObject {
         return false;
     }
 
-    function cycleSupportedIndex(current, delta, supportedIndexes, count) {
+    function cycleSupportedIndex(current: var, delta: var, supportedIndexes: var, count: var) : var {
         if (!supportedIndexes || supportedIndexes.length <= 0 || count <= 0) {
             return 0;
         }
@@ -219,7 +219,7 @@ QtObject {
         return vars ? root.indexOfValue(root.lr2GaugeValues, vars.gaugeType) : 0;
     }
 
-    function setGaugeIndex(side, index) {
+    function setGaugeIndex(side: var, index: var) : void {
         let vars = root.generalVarsForSide(side);
         if (vars) {
             vars.gaugeType = root.wrappedListValue(root.lr2GaugeValues, index);
@@ -239,7 +239,7 @@ QtObject {
         return root.indexOfValue(root.lr2RandomValues, value);
     }
 
-    function setRandomIndex(side, index) {
+    function setRandomIndex(side: var, index: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -265,7 +265,7 @@ QtObject {
         return root.lr2HidSudIndex(2);
     }
 
-    function lr2HidSudIndex(side) {
+    function lr2HidSudIndex(side: var) : var {
         let normalizedSide = side === 2 ? 2 : 1;
         let vars = root.generalVarsForSide(normalizedSide);
         if (!vars) {
@@ -274,7 +274,7 @@ QtObject {
         return (vars.hiddenOn ? 1 : 0) + (vars.laneCoverOn ? 2 : 0);
     }
 
-    function setHidSudIndex(side, index) {
+    function setHidSudIndex(side: var, index: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -289,7 +289,7 @@ QtObject {
         return vars ? root.indexOfValue(root.lr2HiSpeedFixValues, vars.hiSpeedFix) : 0;
     }
 
-    function setHiSpeedFixIndex(index) {
+    function setHiSpeedFixIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.hiSpeedFix = root.wrappedListValue(root.lr2HiSpeedFixValues, index);
@@ -307,7 +307,7 @@ QtObject {
         return 0;
     }
 
-    function ensureBattleProfiles() {
+    function ensureBattleProfiles() : var {
         let list = Rg.profileList;
         let p1 = list.battleProfiles.player1Profile || list.mainProfile;
         let p2 = list.battleProfiles.player2Profile;
@@ -335,7 +335,7 @@ QtObject {
         return true;
     }
 
-    function setBattleIndex(index) {
+    function setBattleIndex(index: var) : var {
         let vars = root.mainGeneralVars();
         let normalized = root.wrapValue(index, root.lr2BattleLabels.length);
         if (!vars) {
@@ -363,7 +363,7 @@ QtObject {
         return 0;
     }
 
-    function setDpOptionIndex(index) {
+    function setDpOptionIndex(index: var) : var {
         let vars = root.mainGeneralVars();
         if (!vars) {
             return;
@@ -388,7 +388,7 @@ QtObject {
         return vars && vars.dpOptions === DpOptions.Flip ? 1 : 0;
     }
 
-    function setFlipIndex(index) {
+    function setFlipIndex(index: var) : var {
         let vars = root.mainGeneralVars();
         if (!vars) {
             return;
@@ -406,14 +406,14 @@ QtObject {
         return vars && vars.laneCoverOn ? 1 : 0;
     }
 
-    function setLaneCoverIndex(index) {
+    function setLaneCoverIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.laneCoverOn = root.wrapValue(index, 2) === 1;
         }
     }
 
-    function toggleLaneCover(side) {
+    function toggleLaneCover(side: var) : void {
         let vars = root.generalVarsForSide(side);
         if (vars) {
             vars.laneCoverOn = !vars.laneCoverOn;
@@ -430,7 +430,7 @@ QtObject {
         return vars && !vars.bgaOn ? 2 : 0;
     }
 
-    function setBgaIndex(index) {
+    function setBgaIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.bgaOn = root.wrapValue(index, 2) === 0;
@@ -442,7 +442,7 @@ QtObject {
         return vars ? Math.max(0, Math.min(1, vars.bgaSize || 0)) : 0;
     }
 
-    function setBgaSizeIndex(index) {
+    function setBgaSizeIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.bgaSize = root.wrapValue(index, root.lr2BgaSizeLabels.length);
@@ -463,7 +463,7 @@ QtObject {
         return 0;
     }
 
-    function setGaugeAutoShiftIndex(index) {
+    function setGaugeAutoShiftIndex(index: var) : var {
         let vars = root.mainGeneralVars();
         if (!vars) {
             return;
@@ -487,7 +487,7 @@ QtObject {
         return vars ? root.indexOfValue(root.lr2BottomShiftableGaugeValues, vars.bottomShiftableGauge) : 0;
     }
 
-    function setBottomShiftableGaugeIndex(index) {
+    function setBottomShiftableGaugeIndex(index: var) : var {
         let vars = root.mainGeneralVars();
         if (!vars) {
             return false;
@@ -502,12 +502,12 @@ QtObject {
     }
 
     readonly property int lr2LnModeIndex: 0
-    function setLnModeIndex(index) {
+    function setLnModeIndex(index: var) : var {
         return false;
     }
 
     readonly property int lr2JudgeAlgorithmIndex: 0
-    function setJudgeAlgorithmIndex(index) {
+    function setJudgeAlgorithmIndex(index: var) : var {
         return false;
     }
 
@@ -516,7 +516,7 @@ QtObject {
         return vars && vars.scoreGraphEnabled === false ? 0 : 1;
     }
 
-    function setScoreGraphIndex(index) {
+    function setScoreGraphIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.scoreGraphEnabled = root.wrapValue(index, 2) === 1;
@@ -528,14 +528,14 @@ QtObject {
         return vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
     }
 
-    function setGhostIndex(index) {
+    function setGhostIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.ghostPosition = root.wrapValue(index, root.lr2GhostLabels.length);
         }
     }
 
-    function lr2BgaEnabled() {
+    function lr2BgaEnabled() : var {
         let vars = root.mainGeneralVars();
         return !vars || vars.bgaOn !== false;
     }
@@ -545,7 +545,7 @@ QtObject {
         return vars ? root.indexOfValue(root.lr2TargetValues, vars.scoreTarget) : 0;
     }
 
-    function setScoreTargetIndex(index) {
+    function setScoreTargetIndex(index: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.scoreTarget = root.wrappedListValue(root.lr2TargetValues, index);
@@ -570,7 +570,7 @@ QtObject {
         return bestIndex;
     }
 
-    function setBeatorajaTargetIndex(index) {
+    function setBeatorajaTargetIndex(index: var) : var {
         let vars = root.mainGeneralVars();
         if (!vars) {
             return;
@@ -585,7 +585,7 @@ QtObject {
         return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
     }
 
-    function setTargetPercent(percent) {
+    function setTargetPercent(percent: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.targetScoreFraction = Math.max(0, Math.min(1, Math.floor(percent) / 100));
@@ -605,7 +605,7 @@ QtObject {
             : Math.max(1, Math.min(999, Math.round(100000 / vars.noteScreenTimeMillis)));
     }
 
-    function setHiSpeedNumber(side, value) {
+    function setHiSpeedNumber(side: var, value: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -614,7 +614,7 @@ QtObject {
         vars.noteScreenTimeMillis = 100000 / clamped;
     }
 
-    function nextLr2HiSpeedNumber(current, steps) {
+    function nextLr2HiSpeedNumber(current: var, steps: var) : var {
         if (steps === 0) {
             return current;
         }
@@ -641,12 +641,12 @@ QtObject {
         return value;
     }
 
-    function adjustHiSpeedNumber(side, steps) {
+    function adjustHiSpeedNumber(side: var, steps: var) : void {
         let current = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
         root.setHiSpeedNumber(side, root.nextLr2HiSpeedNumber(current, steps));
     }
 
-    function adjustDurationNumber(side, steps) {
+    function adjustDurationNumber(side: var, steps: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -655,7 +655,7 @@ QtObject {
         vars.noteScreenTimeMillis = Math.max(1, Math.min(10000, Math.round(current + (steps || 1))));
     }
 
-    function adjustScratchDurationNumber(side, amount) {
+    function adjustScratchDurationNumber(side: var, amount: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -664,7 +664,7 @@ QtObject {
         vars.noteScreenTimeMillis = current + current / 1000 * amount;
     }
 
-    function adjustScratchCoverNumber(side, amount) {
+    function adjustScratchCoverNumber(side: var, amount: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -677,7 +677,7 @@ QtObject {
         }
     }
 
-    function adjustLaneCoverRatio(side, steps) {
+    function adjustLaneCoverRatio(side: var, steps: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -685,7 +685,7 @@ QtObject {
         vars.laneCoverRatio = Math.max(0, Math.min(1, (vars.laneCoverRatio || 0) + steps * 0.005));
     }
 
-    function adjustGameplayCoverValue(side, steps, changeLift) {
+    function adjustGameplayCoverValue(side: var, steps: var, changeLift: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
@@ -700,14 +700,14 @@ QtObject {
         }
     }
 
-    function adjustOffset(delta) {
+    function adjustOffset(delta: var) : void {
         let vars = root.mainGeneralVars();
         if (vars) {
             vars.offset = Math.max(-500, Math.min(500, (vars.offset || 0) + delta));
         }
     }
 
-    function clearStatusOption() {
+    function clearStatusOption() : var {
         let vars = root.mainGeneralVars();
         if (!vars || vars.gaugeMode === GaugeMode.Best) {
             return 62;
@@ -728,12 +728,12 @@ QtObject {
         return 62;
     }
 
-    function clearStatusIsBest() {
+    function clearStatusIsBest() : var {
         let vars = root.mainGeneralVars();
         return !!vars && vars.gaugeMode === GaugeMode.Best;
     }
 
-    function isLoggedIn() {
+    function isLoggedIn() : var {
         let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
         return !!profile
             && profile.loginState === Profile.LoggedIn

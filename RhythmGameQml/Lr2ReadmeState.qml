@@ -55,7 +55,7 @@ QtObject {
         }
     }
 
-    function openText(value) {
+    function openText(value: var) : void {
         root.text = value || "";
         root.startSkinTime = root.skinTime;
         root.mode = 1;
@@ -69,7 +69,7 @@ QtObject {
         }
     }
 
-    function openPath(path) {
+    function openPath(path: var) : var {
         if (!path) {
             return false;
         }
@@ -80,7 +80,7 @@ QtObject {
         return true;
     }
 
-    function close() {
+    function close() : var {
         if (root.mode === 0) {
             return;
         }
@@ -90,7 +90,7 @@ QtObject {
         root.closeTimer.restart();
     }
 
-    function hideImmediately() {
+    function hideImmediately() : void {
         root.closeTimer.stop();
         root.mode = 0;
         root.text = "";
@@ -99,12 +99,12 @@ QtObject {
         root.mouseHeld = false;
     }
 
-    function pauseActivity() {
+    function pauseActivity() : void {
         root.closeTimer.stop();
         root.mouseHeld = false;
     }
 
-    function linesForSource(src) {
+    function linesForSource(src: var) : var {
         if (!src || !src.readme || root.mode === 0) {
             return [];
         }
@@ -115,17 +115,17 @@ QtObject {
         return [];
     }
 
-    function contentHeight() {
+    function contentHeight() : var {
         return root.lines.length * Math.max(1, root.lineSpacing);
     }
 
-    function clampOffsets() {
+    function clampOffsets() : void {
         const minY = Math.min(0, root.skinHeight - root.contentHeight());
         root.offsetX = Math.min(0, root.offsetX);
         root.offsetY = Math.max(minY, Math.min(0, root.offsetY));
     }
 
-    function scrollBy(dx, dy) {
+    function scrollBy(dx: var, dy: var) : var {
         if (root.mode !== 1) {
             return false;
         }

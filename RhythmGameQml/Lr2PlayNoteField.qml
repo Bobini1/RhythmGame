@@ -32,11 +32,11 @@ Item {
         ? gameplayFrameState.position2 || 0
         : (fallbackPlayer2 ? fallbackPlayer2.position || 0 : 0)
 
-    function listValue(list, index) {
+    function listValue(list: var, index: var) : var {
         return list && index >= 0 && index < list.length ? list[index] : null;
     }
 
-    function sourceAt(list, index) {
+    function sourceAt(list: var, index: var) : var {
         let source = listValue(list, index);
         if (source && (source.source || source.specialType)) {
             return source;
@@ -45,15 +45,15 @@ Item {
         return source && (source.source || source.specialType) ? source : null;
     }
 
-    function noteDsts(index) {
+    function noteDsts(index: var) : var {
         return listValue(skinModel ? skinModel.noteDsts : [], index) || [];
     }
 
-    function lineDsts(index) {
+    function lineDsts(index: var) : var {
         return listValue(skinModel ? skinModel.lineDsts : [], index) || [];
     }
 
-    function dstStateFor(dsts) {
+    function dstStateFor(dsts: var) : var {
         if (timelineResolver.canUseStaticStateFor(dsts)) {
             return timelineResolver.staticStateFor(dsts);
         }
@@ -68,7 +68,7 @@ Item {
             timelineResolver.usesActiveOptionsFor(dsts) ? runtimeActiveOptions : []);
     }
 
-    function timerFireFor(timer) {
+    function timerFireFor(timer: var) : var {
         let idx = Number(timer || 0);
         if (idx === 0) {
             return 0;
@@ -79,13 +79,13 @@ Item {
         return timelineResolver.timerFireFor(timers, idx);
     }
 
-    function sourceCyclesContinuously(src) {
+    function sourceCyclesContinuously(src: var) : var {
         return src
             && (src.cycle || 0) > 0
             && Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1) > 1;
     }
 
-    function sourceTimerFor(src, fallbackTimer) {
+    function sourceTimerFor(src: var, fallbackTimer: var) : var {
         if (!sourceCyclesContinuously(src)) {
             return 0;
         }
@@ -96,14 +96,14 @@ Item {
         return fallbackTimer !== undefined && fallbackTimer > 0 ? fallbackTimer : 0;
     }
 
-    function sourceTimerFireFor(src, fallbackTimer) {
+    function sourceTimerFireFor(src: var, fallbackTimer: var) : var {
         if (!sourceCyclesContinuously(src)) {
             return -2147483648;
         }
         return root.timerFireFor(sourceTimerFor(src, fallbackTimer));
     }
 
-    function sourceSkinTimeFor(src, timerFire, fallbackTimer) {
+    function sourceSkinTimeFor(src: var, timerFire: var, fallbackTimer: var) : var {
         if (!sourceCyclesContinuously(src)) {
             return 0;
         }
@@ -113,7 +113,7 @@ Item {
         return renderSkinTime;
     }
 
-    function noteDstState(index) {
+    function noteDstState(index: var) : var {
         if (skinRuntime) {
             runtimeRevision;
             runtimeActiveOptionsRevision;
@@ -126,7 +126,7 @@ Item {
         return dstStateFor(noteDsts(index));
     }
 
-    function lineDstState(index) {
+    function lineDstState(index: var) : var {
         if (skinRuntime) {
             runtimeRevision;
             runtimeActiveOptionsRevision;
@@ -161,11 +161,11 @@ Item {
         return result;
     }
 
-    function sideForLr2Index(index) {
+    function sideForLr2Index(index: var) : var {
         return index >= 10 ? 2 : 1;
     }
 
-    function engineColumnForLr2Index(index) {
+    function engineColumnForLr2Index(index: var) : var {
         if (screenRoot && screenRoot.gameplayEngineColumnForLr2Lane) {
             return screenRoot.gameplayEngineColumnForLr2Lane(index);
         }
@@ -175,7 +175,7 @@ Item {
         return index === 0 ? 7 : index - 1;
     }
 
-    function playerForLr2Index(index) {
+    function playerForLr2Index(index: var) : var {
         let side = sideForLr2Index(index);
         if (screenRoot && screenRoot.gameplayLanePlayer) {
             return screenRoot.gameplayLanePlayer(side);
@@ -183,14 +183,14 @@ Item {
         return screenRoot && screenRoot.gameplayPlayer ? screenRoot.gameplayPlayer(side) : null;
     }
 
-    function lineSourceFor(index) {
+    function lineSourceFor(index: var) : var {
         if (!skinModel) {
             return null;
         }
         return sourceAt(skinModel.lineSources, index);
     }
 
-    function bpmFor(player) {
+    function bpmFor(player: var) : var {
         let chartData = screenRoot ? screenRoot.gameplayChartData() : null;
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
@@ -216,38 +216,38 @@ Item {
         }
     }
 
-    function dstTravelHeight(dst) {
+    function dstTravelHeight(dst: var) : var {
         return Math.max(1, Math.abs(dst && dst.y ? dst.y : 480));
     }
 
-    function lr2HidSudMode(side) {
+    function lr2HidSudMode(side: var) : var {
         if (screenRoot && screenRoot.lr2HidSudIndex) {
             return screenRoot.lr2HidSudIndex(side);
         }
         return 0;
     }
 
-    function generalVarsForSide(side) {
+    function generalVarsForSide(side: var) : var {
         return screenRoot && screenRoot.generalVarsForSide
             ? screenRoot.generalVarsForSide(side)
             : null;
     }
 
-    function laneCoverRatio(side) {
+    function laneCoverRatio(side: var) : var {
         let vars = generalVarsForSide(side);
         return vars ? Math.max(0, Math.min(1, vars.laneCoverRatio || 0)) : 0;
     }
 
-    function hiddenRatio(side) {
+    function hiddenRatio(side: var) : var {
         let vars = generalVarsForSide(side);
         return vars ? Math.max(0, Math.min(1, vars.hiddenRatio || 0)) : 0;
     }
 
-    function laneBottom(dst) {
+    function laneBottom(dst: var) : var {
         return dst && dst.y !== undefined ? dst.y : 480;
     }
 
-    function laneVisibleTravelHeight(side, dst, includeLaneCover) {
+    function laneVisibleTravelHeight(side: var, dst: var, includeLaneCover: var) : var {
         let vars = generalVarsForSide(side);
         let visibleHeight = dstTravelHeight(dst);
         if (vars && vars.liftOn) {
@@ -259,7 +259,7 @@ Item {
         return Math.max(1, visibleHeight);
     }
 
-    function laneCoverClipTop(side, dst) {
+    function laneCoverClipTop(side: var, dst: var) : var {
         let vars = generalVarsForSide(side);
         if (!vars || !vars.laneCoverOn) {
             return 0;
@@ -267,7 +267,7 @@ Item {
         return Math.max(0, laneBottom(dst) - laneVisibleTravelHeight(side, dst, true));
     }
 
-    function hiddenClipBottom(side, dst) {
+    function hiddenClipBottom(side: var, dst: var) : var {
         let vars = generalVarsForSide(side);
         let fullHeight = skinModel && skinModel.skinHeight ? skinModel.skinHeight : 480;
         if (!vars || !vars.hiddenOn) {
@@ -278,7 +278,7 @@ Item {
         return Math.max(0, bottom - visibleHeight * hiddenRatio(side));
     }
 
-    function hidSudClipTop(side, dst) {
+    function hidSudClipTop(side: var, dst: var) : var {
         let mode = lr2HidSudMode(side);
         if (mode === 2 || mode === 3) {
             return laneCoverClipTop(side, dst);
@@ -286,7 +286,7 @@ Item {
         return 0;
     }
 
-    function hidSudClipBottom(side, dst) {
+    function hidSudClipBottom(side: var, dst: var) : var {
         let mode = lr2HidSudMode(side);
         let fullHeight = skinModel && skinModel.skinHeight ? skinModel.skinHeight : 480;
         if (mode === 1 || mode === 3) {
@@ -295,7 +295,7 @@ Item {
         return fullHeight;
     }
 
-    function sideSpeedHeight(side, fallbackDst) {
+    function sideSpeedHeight(side: var, fallbackDst: var) : var {
         let start = side === 2 ? 10 : 0;
         let end = side === 2 ? 20 : 10;
         for (let i = start; i < end; ++i) {
@@ -307,7 +307,7 @@ Item {
         return dstTravelHeight(fallbackDst);
     }
 
-    function heightMultiplier(player, visibleHeight) {
+    function heightMultiplier(player: var, visibleHeight: var) : var {
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
             : null;
@@ -322,19 +322,19 @@ Item {
         return Math.max(0.0001, baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1)));
     }
 
-    function notePosition(display) {
+    function notePosition(display: var) : var {
         return display && display.note && display.note.time ? display.note.time.position || 0 : 0;
     }
 
-    function linePosition(display) {
+    function linePosition(display: var) : var {
         return display && display.time ? display.time.position || 0 : 0;
     }
 
-    function lineLocalY(display, multiplier) {
+    function lineLocalY(display: var, multiplier: var) : var {
         return -linePosition(display) * multiplier;
     }
 
-    function nextNotePosition(display, notes) {
+    function nextNotePosition(display: var, notes: var) : var {
         if (!display || !notes) {
             return Infinity;
         }
@@ -342,7 +342,7 @@ Item {
         return next && next.time ? next.time.position || Infinity : Infinity;
     }
 
-    function spriteState(dst, y, height) {
+    function spriteState(dst: var, y: var, height: var) : var {
         if (!dst) {
             return null;
         }
@@ -397,7 +397,7 @@ Item {
             height: parent.height
             z: -1
 
-            function syncBarLineWindow() {
+            function syncBarLineWindow() : var {
                 if (!lineArea.barLinesState || !lineArea.dstState || lineArea.multiplier <= 0) {
                     return;
                 }
@@ -514,7 +514,7 @@ Item {
             width: parent.width
             height: parent.height
 
-            function syncColumnWindow() {
+            function syncColumnWindow() : var {
                 if (!lane.columnState || !lane.dstState || lane.multiplier <= 0) {
                     return;
                 }
@@ -522,7 +522,7 @@ Item {
                 lane.columnState.bottomPosition = lane.playerPosition;
             }
 
-            function sourceForDisplay(display) {
+            function sourceForDisplay(display: var) : var {
                 if (!display || !display.note) {
                     return null;
                 }

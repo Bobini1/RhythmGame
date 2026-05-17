@@ -15,7 +15,7 @@ QtObject {
     readonly property bool ready: root !== undefined && root !== null
     readonly property bool selectReady: selectContext !== undefined && selectContext !== null
 
-    function copyObject(object) {
+    function copyObject(object: var) : var {
         let result = {};
         const keys = Object.keys(object || {});
         for (let i = 0; i < keys.length; ++i) {
@@ -24,7 +24,7 @@ QtObject {
         return result;
     }
 
-    function registerElement(elementIndex, type, src, z) {
+    function registerElement(elementIndex: var, type: var, src: var, z: var) : var {
         if (!ready || type !== 0 || !src) {
             return;
         }
@@ -58,7 +58,7 @@ QtObject {
         elements = nextElements;
     }
 
-    function unregisterElement(elementIndex) {
+    function unregisterElement(elementIndex: var) : var {
         const key = String(elementIndex);
         if (elements[key] === undefined) {
             return;
@@ -68,7 +68,7 @@ QtObject {
         elements = nextElements;
     }
 
-    function elementState(element) {
+    function elementState(element: var) : var {
         if (!ready || !element) {
             return null;
         }
@@ -85,7 +85,7 @@ QtObject {
             descriptor.usesLiveDstClock ? root.selectSourceSkinTime : root.renderSkinTime);
     }
 
-    function rectContains(state, skinX, skinY) {
+    function rectContains(state: var, skinX: var, skinY: var) : var {
         if (!state) {
             return false;
         }
@@ -96,7 +96,7 @@ QtObject {
         return skinX >= left && skinX <= right && skinY >= top && skinY <= bottom;
     }
 
-    function sliderTrackState(element) {
+    function sliderTrackState(element: var) : var {
         if (!ready || !element || (!element.selectScroll && !element.genericSlider)) {
             return null;
         }
@@ -110,7 +110,7 @@ QtObject {
         return null;
     }
 
-    function hitSlider(skinX, skinY) {
+    function hitSlider(skinX: var, skinY: var) : var {
         if (!ready || !root.selectPointerScrollReady()) {
             return null;
         }
@@ -133,7 +133,7 @@ QtObject {
         return best;
     }
 
-    function hitButton(skinX, skinY) {
+    function hitButton(skinX: var, skinY: var) : var {
         if (!ready || !root.selectPointerInputReady()) {
             return null;
         }
@@ -159,7 +159,7 @@ QtObject {
         return best;
     }
 
-    function rowAt(skinX, skinY) {
+    function rowAt(skinX: var, skinY: var) : var {
         if (!ready || !root.selectPointerScrollReady()) {
             return -1;
         }
@@ -173,7 +173,7 @@ QtObject {
         return -1;
     }
 
-    function targetAt(x, y, button) {
+    function targetAt(x: var, y: var, button: var) : var {
         if (!ready) {
             return { kind: "blank", skinX: 0, skinY: 0 };
         }
@@ -199,7 +199,7 @@ QtObject {
             : { kind: "blank", skinX: skinX, skinY: skinY };
     }
 
-    function updateSlider(target, x, y) {
+    function updateSlider(target: var, x: var, y: var) : var {
         if (!ready || !target || target.kind !== "slider") {
             return;
         }
@@ -212,7 +212,7 @@ QtObject {
         }
     }
 
-    function finishSlider(target) {
+    function finishSlider(target: var) : var {
         if (!ready || !selectReady || !target || target.kind !== "slider" || !target.element.selectScroll) {
             return;
         }
@@ -220,7 +220,7 @@ QtObject {
         root.selectSliderFixedPoint = -1;
     }
 
-    function clickButton(target, mouse) {
+    function clickButton(target: var, mouse: var) : var {
         if (!ready || !target) {
             return;
         }
@@ -243,7 +243,7 @@ QtObject {
         mouse.accepted = true;
     }
 
-    function sameTarget(a, b) {
+    function sameTarget(a: var, b: var) : var {
         if (!a || !b || a.kind !== b.kind) {
             return false;
         }

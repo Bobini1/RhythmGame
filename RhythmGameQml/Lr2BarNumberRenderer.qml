@@ -54,21 +54,21 @@ Item {
     readonly property bool numberSourceAnimates: srcData && srcData.source
         && (srcData.source.cycle || 0) > 0
 
-    function baseState(row) {
+    function baseState(row: var) : var {
         return barBaseStates && row >= 0 && row < barBaseStates.length
             ? barBaseStates[row]
             : null;
     }
 
-    function visibilityState(row) {
+    function visibilityState(row: var) : var {
         return baseState(row);
     }
 
-    function cellData(row) {
+    function cellData(row: var) : var {
         return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
     }
 
-    function visibleForValues(cellValid, ranking, chartLike, entryLike, keymode, playLevel, difficulty) {
+    function visibleForValues(cellValid: var, ranking: var, chartLike: var, entryLike: var, keymode: var, playLevel: var, difficulty: var) : var {
         if (!cellValid || !srcData || !selectContext) {
             return false;
         }
@@ -100,10 +100,9 @@ Item {
                 : null
             readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
             readonly property int cellRevision: cell ? cell.revision : -1
-            readonly property int cellPlayLevel: {
-                let revision = cellRevision;
-                return cell ? cell.numberValueOrInvisibleForVariant(sourceVariant) : -2147483648;
-            }
+            readonly property int cellPlayLevel: cell && cellRevision >= 0
+                ? cell.numberValueOrInvisibleForVariant(sourceVariant)
+                : -2147483648
             readonly property bool contentVisible: rowVisible && cellPlayLevel !== -2147483648
             positionCache: root.barPositionCache
             slot: index

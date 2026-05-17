@@ -44,7 +44,7 @@ Item {
     readonly property int textFocusedRevisionKind: 1
     readonly property int textListRevisionKind: 2
 
-    function selectBarGraphUsesFocusedState(type) {
+    function selectBarGraphUsesFocusedState(type: var) : var {
         return type === 101
             || (type >= 5 && type <= 9)
             || (type >= 40 && type <= 47)
@@ -52,7 +52,7 @@ Item {
             || (type >= 140 && type <= 147);
     }
 
-    function barGraphValueRevision(src) {
+    function barGraphValueRevision(src: var) : var {
         if (!rootReady) {
             return 0;
         }
@@ -65,14 +65,14 @@ Item {
             : selectStableBarGraphValueRevision;
     }
 
-    function sourceUsesChartAsset(src) {
+    function sourceUsesChartAsset(src: var) : var {
         if (!src) {
             return false;
         }
         return src.specialType === 1 || src.specialType === 3 || src.specialType === 4;
     }
 
-    function chartAssetSourceFor(src) {
+    function chartAssetSourceFor(src: var) : var {
         if (!src) {
             return "";
         }
@@ -88,7 +88,7 @@ Item {
         return "";
     }
 
-    function sourceTreeUsesChartAsset(value, depth) {
+    function sourceTreeUsesChartAsset(value: var, depth: var) : var {
         if (!value || depth > 4) {
             return false;
         }
@@ -111,7 +111,7 @@ Item {
         return false;
     }
 
-    function hoverPointInSkinCoordinates() {
+    function hoverPointInSkinCoordinates() : var {
         return rootReady ? root.selectHoverPointInSkinCoordinates() : Qt.point(0, 0);
     }
 

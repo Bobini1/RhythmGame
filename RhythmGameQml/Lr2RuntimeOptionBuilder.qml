@@ -13,23 +13,23 @@ QtObject {
     property int selectRuntimeActiveOptionsCacheSize: 0
     readonly property int selectRuntimeActiveOptionsCacheLimit: 256
 
-    function addOption(options, option) {
+    function addOption(options: var, option: var) : void {
         host.addOption(options, option);
     }
 
-    function finalizeOptionList(options) {
+    function finalizeOptionList(options: var) : var {
         return host.finalizeOptionList(options);
     }
 
-    function runtimeUsedOptionLookup() {
+    function runtimeUsedOptionLookup() : var {
         return host.usedOptionFilterActive ? host.usedOptionLookup : null;
     }
 
-    function runtimeOptionUsed(lookup, option) {
+    function runtimeOptionUsed(lookup: var, option: var) : var {
         return !lookup || !!lookup[Math.abs(option)];
     }
 
-    function runtimeOptionRangeUsed(lookup, first, last) {
+    function runtimeOptionRangeUsed(lookup: var, first: var, last: var) : var {
         if (!lookup) {
             return true;
         }
@@ -41,7 +41,7 @@ QtObject {
         return false;
     }
 
-    function runtimeAnyOptionUsed(lookup, options) {
+    function runtimeAnyOptionUsed(lookup: var, options: var) : var {
         if (!lookup) {
             return true;
         }
@@ -53,7 +53,7 @@ QtObject {
         return false;
     }
 
-    function copyActiveOptions(options) {
+    function copyActiveOptions(options: var) : var {
         let result = [];
         let source = options || [];
         let lookup = {};
@@ -75,16 +75,16 @@ QtObject {
         return result;
     }
 
-    function clearSelectRuntimeActiveOptionsCache() {
+    function clearSelectRuntimeActiveOptionsCache() : void {
         selectRuntimeActiveOptionsCache = ({});
         selectRuntimeActiveOptionsCacheSize = 0;
     }
 
-    function optionListKey(values) {
+    function optionListKey(values: var) : var {
         return host.numberArrayKey(values || []);
     }
 
-    function selectItemKindKey(item) {
+    function selectItemKindKey(item: var) : var {
         if (selectContext.isRankingEntry(item)) return "ranking";
         if (selectContext.isCourse(item)) return "course";
         if (selectContext.isChart(item)) return "chart";
@@ -93,7 +93,7 @@ QtObject {
         return item ? "other" : "none";
     }
 
-    function selectedModeKey(chartData) {
+    function selectedModeKey(chartData: var) : var {
         let keymode = chartData ? (chartData.keymode || 0) : 0;
         return String(keymode)
             + ":" + String(root.keymodeAfterOptions(keymode))
@@ -101,7 +101,7 @@ QtObject {
             + ":" + String(host.battleModeActive() ? 1 : 0);
     }
 
-    function chartOptionSignature(chartData) {
+    function chartOptionSignature(chartData: var) : var {
         let usedOptions = root.runtimeUsedOptionLookup();
         if (!chartData) {
             return "nochart";
@@ -130,7 +130,7 @@ QtObject {
         return parts.join(":");
     }
 
-    function entryStatusSignature(item, chartData, state) {
+    function entryStatusSignature(item: var, chartData: var, state: var) : var {
         if (!host.selectUsesEntryStatusOptions()) {
             return "";
         }
@@ -157,7 +157,7 @@ QtObject {
             + ":" + String(summary ? summary.rank || 0 : 0);
     }
 
-    function courseSignature(item) {
+    function courseSignature(item: var) : var {
         if (!host.selectUsesCourseDetailOptions() || !selectContext.isCourse(item) || !item.loadCharts) {
             return "";
         }
@@ -169,7 +169,7 @@ QtObject {
         return parts.join(":");
     }
 
-    function difficultyBarSignature(difficultyState, selectedChart) {
+    function difficultyBarSignature(difficultyState: var, selectedChart: var) : var {
         if (!host.selectUsesDifficultyBarOptions() || !selectedChart) {
             return "";
         }
@@ -187,7 +187,7 @@ QtObject {
         return parts.join(":");
     }
 
-    function replaySignature(chartData) {
+    function replaySignature(chartData: var) : var {
         if (!host.selectUsesReplayOptions()) {
             return "";
         }
@@ -198,7 +198,7 @@ QtObject {
         return parts.join(":");
     }
 
-    function scoreOptionIdsSignature(item, state) {
+    function scoreOptionIdsSignature(item: var, state: var) : var {
         if (!host.selectUsesScoreOptionIds()) {
             return "";
         }
@@ -217,7 +217,7 @@ QtObject {
         return root.optionListKey(scoreOptionIds);
     }
 
-    function selectStateOptionsSignature(state) {
+    function selectStateOptionsSignature(state: var) : var {
         let item = state ? state.item : selectContext.focusedItem;
         let chartData = state ? state.chartData : null;
         let difficultyState = state ? state.difficultyState : null;
@@ -233,7 +233,7 @@ QtObject {
         ].join("|");
     }
 
-    function selectRuntimeActiveOptionsCacheKey(commonOptions, state) {
+    function selectRuntimeActiveOptionsCacheKey(commonOptions: var, state: var) : var {
         state = state !== undefined ? state : selectContext.selectedState();
         let commonKey = host.selectCommonActiveOptionsKey !== undefined
             ? host.selectCommonActiveOptionsKey
@@ -257,12 +257,12 @@ QtObject {
             + "|" + rankingKey;
     }
 
-    function cachedSelectRuntimeActiveOptions(cacheKey) {
+    function cachedSelectRuntimeActiveOptions(cacheKey: var) : var {
         let cached = selectRuntimeActiveOptionsCache[cacheKey];
         return cached !== undefined ? cached : null;
     }
 
-    function storeSelectRuntimeActiveOptions(cacheKey, options) {
+    function storeSelectRuntimeActiveOptions(cacheKey: var, options: var) : var {
         if (selectRuntimeActiveOptionsCacheSize >= selectRuntimeActiveOptionsCacheLimit) {
             root.clearSelectRuntimeActiveOptionsCache();
         }
@@ -273,7 +273,7 @@ QtObject {
         return options;
     }
 
-    function appendCommonRuntimeOptions(options) {
+    function appendCommonRuntimeOptions(options: var) : void {
         let vars = host.mainGeneralVars();
         root.addOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
         if (host.isGameplayScreen()) {
@@ -314,11 +314,11 @@ QtObject {
         root.addOption(options, 624); // rival compare is not supported from select.
     }
 
-    function appendPanelOptions(options) {
+    function appendPanelOptions(options: var) : void {
         root.addOption(options, host.selectPanel > 0 ? 20 + host.selectPanel : 20);
     }
 
-    function appendChartOptions(options, chartData) {
+    function appendChartOptions(options: var, chartData: var) : var {
         let usedOptions = root.runtimeUsedOptionLookup();
         let allowStageFileOption = host.effectiveScreenKey !== "decide";
         let usesStageFileOption = allowStageFileOption
@@ -414,7 +414,7 @@ QtObject {
         }
     }
 
-    function replayOptionForSlot(slot, available) {
+    function replayOptionForSlot(slot: var, available: var) : var {
         if (slot === 0) {
             return available ? 197 : 196;
         }
@@ -427,18 +427,18 @@ QtObject {
         return available ? 1203 : 1202;
     }
 
-    function selectedReplayOptionForSlot(slot) {
+    function selectedReplayOptionForSlot(slot: var) : var {
         return 1205 + Math.max(0, Math.min(3, slot));
     }
 
-    function replaySlotAvailable(chartData, slot) {
+    function replaySlotAvailable(chartData: var, slot: var) : var {
         if (!chartData || host.effectiveScreenKey !== "select") {
             return !!chartData && slot === 0 && selectContext.hasReplay(chartData);
         }
         return !!selectContext.replayScoreForType(chartData, slot);
     }
 
-    function appendReplayOptions(options, chartData) {
+    function appendReplayOptions(options: var, chartData: var) : var {
         if (!host.selectUsesReplayOptions()) {
             return;
         }
@@ -455,7 +455,7 @@ QtObject {
         }
     }
 
-    function keymodeOptionFor(keymode, baseOption) {
+    function keymodeOptionFor(keymode: var, baseOption: var) : var {
         switch (keymode) {
         case 7:
             return baseOption;
@@ -476,14 +476,14 @@ QtObject {
         }
     }
 
-    function appendKeymodeOption(options, keymode, baseOption) {
+    function appendKeymodeOption(options: var, keymode: var, baseOption: var) : void {
         let option = root.keymodeOptionFor(keymode, baseOption);
         if (option > 0) {
             root.addOption(options, option);
         }
     }
 
-    function keymodeAfterOptions(keymode) {
+    function keymodeAfterOptions(keymode: var) : var {
         if (!host.spToDpActive()) {
             return keymode;
         }
@@ -496,7 +496,7 @@ QtObject {
         return keymode;
     }
 
-    function chartKeymodeForStatus(item, selectedChart) {
+    function chartKeymodeForStatus(item: var, selectedChart: var) : var {
         if (selectedChart && selectedChart.keymode) {
             return selectedChart.keymode;
         }
@@ -506,7 +506,7 @@ QtObject {
         return 0;
     }
 
-    function appendEntryStatusOptions(options, item, selectedChart, scoreSummary) {
+    function appendEntryStatusOptions(options: var, item: var, selectedChart: var, scoreSummary: var) : var {
         if (!host.selectUsesEntryStatusOptions()) {
             return;
         }
@@ -562,7 +562,7 @@ QtObject {
         }
     }
 
-    function appendCourseOptions(options, item) {
+    function appendCourseOptions(options: var, item: var) : var {
         if (!selectContext.isCourse(item) || !host.selectUsesCourseDetailOptions()) {
             return;
         }
@@ -582,7 +582,7 @@ QtObject {
         }
     }
 
-    function appendDifficultyBarOptions(options, difficultyState, selectedChart) {
+    function appendDifficultyBarOptions(options: var, difficultyState: var, selectedChart: var) : var {
         if (!host.selectUsesDifficultyBarOptions()) {
             return;
         }
@@ -609,7 +609,7 @@ QtObject {
         }
     }
 
-    function appendSelectItemTypeOptions(options, item) {
+    function appendSelectItemTypeOptions(options: var, item: var) : void {
         if (selectContext.isChart(item) || selectContext.isEntry(item) || selectContext.isRankingEntry(item)) {
             root.addOption(options, 2);
             root.addOption(options, 5);
@@ -622,7 +622,7 @@ QtObject {
         }
     }
 
-    function appendSelectedChartModeOptions(options, chartData) {
+    function appendSelectedChartModeOptions(options: var, chartData: var) : void {
         let keymode = chartData ? (chartData.keymode || 0) : 0;
         let doubleMode = keymode === 10 || keymode === 14
             || ((keymode === 5 || keymode === 7) && host.spToDpActive());
@@ -641,7 +641,7 @@ QtObject {
         }
     }
 
-    function appendGameplayLaneCoverOptions(options, side) {
+    function appendGameplayLaneCoverOptions(options: var, side: var) : var {
         if (side !== 1) {
             return;
         }
@@ -657,7 +657,7 @@ QtObject {
         }
     }
 
-    function appendJudgementExistOptions(options, resultOrScore) {
+    function appendJudgementExistOptions(options: var, resultOrScore: var) : void {
         if (host.judgementCountForExist(resultOrScore, Judgement.Perfect) > 0) {
             root.addOption(options, 2241);
         }
@@ -678,7 +678,7 @@ QtObject {
         }
     }
 
-    function appendGameplaySideOptions(options, side) {
+    function appendGameplaySideOptions(options: var, side: var) : void {
         let score = host.gameplayScore(side);
         root.addOption(options, host.gameplayGaugeOption(side));
         root.addOption(options, host.gameplayLaneOption(score));
@@ -713,7 +713,7 @@ QtObject {
         root.addOption(options, host.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
     }
 
-    function appendGameplayRuntimeOptions(options) {
+    function appendGameplayRuntimeOptions(options: var) : void {
         host.gameplayRevision;
         let chartData = host.gameplayChartData();
         root.appendSelectedChartModeOptions(options, chartData);
@@ -747,7 +747,7 @@ QtObject {
         }
     }
 
-    function appendResultRuntimeOptions(options) {
+    function appendResultRuntimeOptions(options: var) : void {
         host.resultOldScoresRevision;
         let chartData = host.resultChartData();
         root.appendSelectedChartModeOptions(options, chartData);
@@ -795,7 +795,7 @@ QtObject {
         root.appendJudgementExistOptions(options, current1);
     }
 
-    function appendCurrentSelectOptions(options, item, selectedChart, state) {
+    function appendCurrentSelectOptions(options: var, item: var, selectedChart: var, state: var) : void {
         state = state !== undefined ? state : selectContext.selectedState();
         let stateCurrent = state && state.scoreRevision === selectContext.scoreRevision
             && state.listRevision === selectContext.listRevision;
@@ -835,7 +835,7 @@ QtObject {
         }
     }
 
-    function appendDecideOptions(options) {
+    function appendDecideOptions(options: var) : void {
         let chartData = host.chart && host.chart.chartData
             ? host.chart.chartData
             : selectContext.selectedChartData();
@@ -850,7 +850,7 @@ QtObject {
         }
     }
 
-    function runtimeOwnsOptionPair(option) {
+    function runtimeOwnsOptionPair(option: var) : var {
         switch (option) {
         case 30:
         case 31:
@@ -880,7 +880,7 @@ QtObject {
         }
     }
 
-    function appendParserActiveOptions(result) {
+    function appendParserActiveOptions(result: var) : void {
         root.addOption(result, 0);
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
             ? skinModel.effectiveActiveOptions
@@ -892,7 +892,7 @@ QtObject {
         }
     }
 
-    function appendStaticSelectOptions(result) {
+    function appendStaticSelectOptions(result: var) : void {
         root.appendParserActiveOptions(result);
 
         root.addOption(result, 20);  // no side panel active
@@ -903,14 +903,14 @@ QtObject {
         root.addOption(result, 624); // no rival score
     }
 
-    function buildBarActiveOptions() {
+    function buildBarActiveOptions() : var {
         let result = root.finalizeOptionList([]);
         root.appendStaticSelectOptions(result);
         root.addOption(result, selectContext.rankingMode ? 621 : 620);
         return result;
     }
 
-    function appendRankingStatusOptions(result) {
+    function appendRankingStatusOptions(result: var) : var {
         if (!host.selectUsesRankingStatusOptions()) {
             return;
         }
@@ -926,7 +926,7 @@ QtObject {
         }
     }
 
-    function buildBaseActiveOptions(barOptions) {
+    function buildBaseActiveOptions(barOptions: var) : var {
         let result = host.effectiveScreenKey === "select"
             ? root.finalizeOptionList((barOptions || host.barActiveOptions).slice())
             : root.finalizeOptionList([]);
@@ -942,13 +942,13 @@ QtObject {
         return result;
     }
 
-    function buildSelectCommonActiveOptions(baseOptions) {
+    function buildSelectCommonActiveOptions(baseOptions: var) : var {
         let result = root.finalizeOptionList((baseOptions || []).slice());
         root.appendCommonRuntimeOptions(result);
         return result;
     }
 
-    function buildSelectRuntimeActiveOptions(commonOptions) {
+    function buildSelectRuntimeActiveOptions(commonOptions: var) : var {
         let state = selectContext.selectedState();
         let chartData = state ? state.chartData : null;
         let item = selectContext.focusedItem;
@@ -962,7 +962,7 @@ QtObject {
         return root.storeSelectRuntimeActiveOptions(cacheKey, result);
     }
 
-    function buildRuntimeActiveOptions(baseOptions) {
+    function buildRuntimeActiveOptions(baseOptions: var) : var {
         if (host.effectiveScreenKey === "select") {
             return root.buildSelectRuntimeActiveOptions(root.buildSelectCommonActiveOptions(baseOptions));
         }

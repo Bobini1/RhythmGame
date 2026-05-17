@@ -12,56 +12,56 @@ Item {
     property real scratchAngle2: 0
     property int lastScratchSkinTime: renderSkinTime
 
-    function normalized(value, maximum) {
+    function normalized(value: var, maximum: var) : var {
         if (maximum <= 0) {
             return 0;
         }
         return Math.max(0, Math.min(1, value / maximum));
     }
 
-    function score(side) {
+    function score(side: var) : var {
         return screenRoot ? screenRoot.gameplayScore(side) : null;
     }
 
-    function totalNotes(side) {
+    function totalNotes(side: var) : var {
         return screenRoot ? screenRoot.gameplayTotalNotes(score(side)) : 0;
     }
 
-    function totalPoints(side) {
+    function totalPoints(side: var) : var {
         return totalNotes(side) * 2;
     }
 
-    function currentNotes(side) {
+    function currentNotes(side: var) : var {
         return screenRoot ? screenRoot.gameplayCurrentNotes(score(side)) : 0;
     }
 
-    function exScore(side) {
+    function exScore(side: var) : var {
         return screenRoot ? screenRoot.gameplayExScore(score(side)) : 0;
     }
 
-    function judgementCount(side, judgement) {
+    function judgementCount(side: var, judgement: var) : var {
         return screenRoot ? screenRoot.gameplayJudgementCount(score(side), judgement) : 0;
     }
 
-    function poorCount(side) {
+    function poorCount(side: var) : var {
         return screenRoot ? screenRoot.gameplayPoorCount(score(side)) : 0;
     }
 
-    function scorePrint(side) {
+    function scorePrint(side: var) : var {
         if (!screenRoot) {
             return 0;
         }
         return screenRoot.gameplayScorePrint(score(side), screenRoot.gameplayChartData());
     }
 
-    function scorePrintMaximum() {
+    function scorePrintMaximum() : var {
         let chartData = screenRoot ? screenRoot.gameplayChartData() : null;
         return chartData && (chartData.keymode === 7 || chartData.keymode === 14)
             ? 20000
             : 10000;
     }
 
-    function resultScorePrint(result) {
+    function resultScorePrint(result: var) : var {
         if (!result || !result.judgementCounts || (result.maxHits || 0) <= 0) {
             return 0;
         }
@@ -72,11 +72,11 @@ Item {
         return keymode === 7 || keymode === 14 ? value : Math.floor(value / 20) * 10;
     }
 
-    function savedScorePoints(savedScore) {
+    function savedScorePoints(savedScore: var) : var {
         return screenRoot ? screenRoot.gameplaySavedScorePoints(savedScore) : 0;
     }
 
-    function scoreGraphValue(type) {
+    function scoreGraphValue(type: var) : var {
         switch (type) {
         case 10:
             return normalized(exScore(1), totalPoints(1));
@@ -106,7 +106,7 @@ Item {
         }
     }
 
-    function playerStatGraphValue(type, side) {
+    function playerStatGraphValue(type: var, side: var) : var {
         let groupOffset = side === 2 ? 30 : 20;
         switch (type - groupOffset) {
         case 0:
@@ -131,7 +131,7 @@ Item {
         }
     }
 
-    function bestStatGraphValue(type) {
+    function bestStatGraphValue(type: var) : var {
         let best = screenRoot ? screenRoot.gameplayBestSavedScore() : null;
         let result = best ? best.result : null;
         let counts = result && result.judgementCounts ? result.judgementCounts : [];
@@ -161,7 +161,7 @@ Item {
         }
     }
 
-    function barGraphValue(type) {
+    function barGraphValue(type: var) : var {
         if (!screenRoot || !screenRoot.isGameplayScreen()) {
             return 0;
         }
@@ -195,7 +195,7 @@ Item {
         return 0;
     }
 
-    function scratchDirection(side) {
+    function scratchDirection(side: var) : var {
         if (side === 2) {
             if (Input.col2sUp) {
                 return -2;
@@ -217,7 +217,7 @@ Item {
             : 0;
     }
 
-    function advanceScratchAngles() {
+    function advanceScratchAngles() : var {
         if (!enabled || scratchRotationSides === 0) {
             lastScratchSkinTime = renderSkinTime;
             return;

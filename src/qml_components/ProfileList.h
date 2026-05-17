@@ -19,14 +19,14 @@ class ThemeFamily;
  * @details This class contains the two profiles used in battle mode.
  * You need to set both profiles before setting ProfileList::battleActive.
  */
-class BattleProfiles final : public QObject
+class BattleProfiles : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(resource_managers::Profile* player1Profile READ getPlayer1Profile
-                 WRITE setPlayer1Profile NOTIFY player1ProfileChanged)
+                 WRITE setPlayer1Profile NOTIFY player1ProfileChanged FINAL)
     Q_PROPERTY(resource_managers::Profile* player2Profile READ getPlayer2Profile
-                 WRITE setPlayer2Profile NOTIFY player2ProfileChanged)
+                 WRITE setPlayer2Profile NOTIFY player2ProfileChanged FINAL)
 
     resource_managers::Profile* player1Profile{};
     resource_managers::Profile* player2Profile{};
@@ -61,24 +61,25 @@ class ProfileList final : public QObject
      * The main profile does not need to be assigned to P1 or P2.
      */
     Q_PROPERTY(resource_managers::Profile* mainProfile READ getMainProfile WRITE
-                 setMainProfile NOTIFY mainProfileChanged)
+                 setMainProfile NOTIFY mainProfileChanged FINAL)
     /**
      * @brief The profiles used in battle mode.
      * @see battleActive
      */
-    Q_PROPERTY(BattleProfiles* battleProfiles READ getBattleProfiles CONSTANT)
+    Q_PROPERTY(qml_components::BattleProfiles* battleProfiles READ
+                 getBattleProfiles CONSTANT FINAL)
     /**
      * @brief The list of all available profiles.
      */
     Q_PROPERTY(QList<resource_managers::Profile*> profiles READ getProfiles
-                 NOTIFY profilesChanged)
+                 NOTIFY profilesChanged FINAL)
     /**
      * @brief Launch SP charts in battle mode with two profiles.
      * @details Both battleProfiles.player1Profile and
      * battleProfiles.player2Profile must be set before enabling battle.
      */
     Q_PROPERTY(bool battleActive READ getBattleActive WRITE setBattleActive
-                 NOTIFY battleActiveChanged)
+                 NOTIFY battleActiveChanged FINAL)
 
     std::filesystem::path profilesFolder;
     std::filesystem::path mainDbPath;

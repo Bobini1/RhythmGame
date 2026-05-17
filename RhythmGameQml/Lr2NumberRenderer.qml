@@ -89,11 +89,11 @@ Item {
         return absPath;
     }
 
-    function digitCount(value) {
+    function digitCount(value: var) : var {
         return Math.abs(Math.round(value)).toString().length;
     }
 
-    function leftPad(text, width) {
+    function leftPad(text: var, width: var) : var {
         let result = text;
         while (result.length < width) {
             result = " " + result;
@@ -101,7 +101,7 @@ Item {
         return result.slice(result.length - width);
     }
 
-    function rightPad(text, width) {
+    function rightPad(text: var, width: var) : var {
         let result = text;
         while (result.length < width) {
             result += " ";
@@ -109,7 +109,7 @@ Item {
         return result.slice(0, width);
     }
 
-    function leadingPad(text, width, ch) {
+    function leadingPad(text: var, width: var, ch: var) : var {
         let result = text;
         while (result.length < width) {
             result = ch + result;
@@ -117,7 +117,7 @@ Item {
         return result.slice(result.length - width);
     }
 
-    function numberFrameGroupSize() {
+    function numberFrameGroupSize() : var {
         if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0) {
             let divX = root.srcData ? Math.max(1, root.srcData.div_x || 1) : 1;
             let divY = root.srcData ? Math.max(1, root.srcData.div_y || 1) : 1;
@@ -136,7 +136,7 @@ Item {
         return 0;
     }
 
-    function numberAnimationBaseFrame() {
+    function numberAnimationBaseFrame() : var {
         let groupSize = root.frameGroupSize;
         if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0 || groupSize <= 0) {
             return 0;
@@ -219,7 +219,7 @@ Item {
         && root.srcData
         && root.srcData.keta > 0
 
-    function signedFixedFrameIndex(slot) {
+    function signedFixedFrameIndex(slot: var) : var {
         let keta = root.srcData ? root.srcData.keta || 0 : 0;
         let totalSlots = keta + 1;
         if (slot < 0 || slot >= totalSlots) {
@@ -245,7 +245,7 @@ Item {
         return root.isNegativeValue ? 12 : 0;
     }
 
-    function textForValue() {
+    function textForValue() : var {
         let text = Math.abs(Math.round(root.value)).toString();
         let keta = root.srcData ? root.srcData.keta || 0 : 0;
         if (keta <= 0) {
@@ -270,7 +270,7 @@ Item {
     readonly property real digitW: root.hasCurrentState ? root.stateW * root.scaleOverride : 0
     readonly property real digitH: root.hasCurrentState ? root.stateH * root.scaleOverride : 0
     readonly property real textW: displayText.length * digitW
-    function colorComponent(value) {
+    function colorComponent(value: var) : var {
         if (value === undefined || value === null) return 1.0;
         return Math.max(0, Math.min(255, value)) / 255.0;
     }

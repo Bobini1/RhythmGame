@@ -21,7 +21,7 @@ Item {
 
     readonly property var renderChart: root.host.chart || root.host.resultChartData()
 
-    function update() {
+    function update() : var {
         if (!root.ready) {
             return;
         }
@@ -53,7 +53,7 @@ Item {
         }
     }
 
-    function stopAudio() {
+    function stopAudio() : void {
         previewDelayTimer.stop();
         selectBgmDelayTimer.stop();
         root.activePreviewSource = "";
@@ -65,11 +65,11 @@ Item {
         scratchSound.stop();
     }
 
-    function playScratch() {
+    function playScratch() : void {
         root.playScratchBurst(1);
     }
 
-    function playScratchBurst(repeats) {
+    function playScratchBurst(repeats: var) : var {
         if (!root.host.enabled
             || root.host.effectiveScreenKey !== "select"
             || !root.scratchSoundReady) {

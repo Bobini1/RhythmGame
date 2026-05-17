@@ -62,7 +62,7 @@ Item {
         if (raw === 3 || raw === 4 || raw === 9 || raw === 11) return 1;
         return raw;
     }
-    function colorComponent(value) {
+    function colorComponent(value: var) : var {
         if (value === undefined || value === null) return 1.0;
         return Math.max(0, Math.min(255, value)) / 255.0;
     }

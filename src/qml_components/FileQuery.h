@@ -8,7 +8,7 @@
 #include <QUrl>
 #include <QFile>
 namespace qml_components {
-class FileQuery final : public QObject
+class FileQuery : public QObject
 {
     Q_OBJECT
 

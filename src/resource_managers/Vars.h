@@ -523,7 +523,8 @@ class Vars final : public QObject
      * @brief The general variables management object of the profile.
      */
     Q_PROPERTY(
-      GeneralVars* generalVars READ getGeneralVars NOTIFY generalVarsChanged)
+      resource_managers::GeneralVars* generalVars READ getGeneralVars NOTIFY
+        generalVarsChanged FINAL)
     /**
      * @brief The theme variables for all loaded themes.
      * @details This is a dynamic object that contains a map of maps of maps.
@@ -532,7 +533,7 @@ class Vars final : public QObject
      * @see qml_components::QmlUtils::themeName
      */
     Q_PROPERTY(
-      QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
+      QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged FINAL)
     GeneralVars generalVars;
     QQmlPropertyMap* themeVars = QQmlPropertyMap::create(this);
     const Profile* profile;

@@ -45,7 +45,7 @@ QtObject {
             : geometry.selectContext.visualStateObject
     }
 
-    function stateNumber(state, name, fallback) {
+    function stateNumber(state: var, name: var, fallback: var) : var {
         if (!state) {
             return fallback;
         }
@@ -53,15 +53,15 @@ QtObject {
         return value === undefined || value === null ? fallback : Number(value);
     }
 
-    function stateHasPosition(state) {
+    function stateHasPosition(state: var) : var {
         return !!state && (state.x !== undefined || state.y !== undefined);
     }
 
-    function sameStateNumber(lhs, rhs, name, fallback) {
+    function sameStateNumber(lhs: var, rhs: var, name: var, fallback: var) : var {
         return Math.abs(stateNumber(lhs, name, fallback) - stateNumber(rhs, name, fallback)) <= 0.001;
     }
 
-    function fastScrollStateCompatible(lhs, rhs) {
+    function fastScrollStateCompatible(lhs: var, rhs: var) : var {
         return sameStateNumber(lhs, rhs, "w", 0)
             && sameStateNumber(lhs, rhs, "h", 0)
             && sameStateNumber(lhs, rhs, "a", 255)
@@ -75,7 +75,7 @@ QtObject {
             && sameStateNumber(lhs, rhs, "op4", 0);
     }
 
-    function fastBarScrollStepFor(states) {
+    function fastBarScrollStepFor(states: var) : var {
         if (!states || states.length < 2) {
             return { valid: false, dx: 0, dy: 0 };
         }
@@ -109,26 +109,26 @@ QtObject {
         return { valid: haveStep && (Math.abs(dx) > 0.001 || Math.abs(dy) > 0.001), dx: dx, dy: dy };
     }
 
-    function selectedBarRow() {
+    function selectedBarRow() : var {
         return geometry.selectedRow;
     }
 
-    function barClickStart() {
+    function barClickStart() : var {
         return geometry.clickStartRow;
     }
 
-    function barClickEnd() {
+    function barClickEnd() : var {
         return geometry.clickEndRow;
     }
 
-    function barRowCanClick(row) {
+    function barRowCanClick(row: var) : var {
         if (skinModel.barAvailableEnd < skinModel.barAvailableStart) {
             return false;
         }
         return row >= geometry.clickStartRow && row <= geometry.clickEndRow;
     }
 
-    function barRowScrollDelta(row) {
+    function barRowScrollDelta(row: var) : var {
         let first = skinModel.barAvailableStart;
         let last = skinModel.barAvailableEnd;
         if (row < first) {
@@ -140,7 +140,7 @@ QtObject {
         return 0;
     }
 
-    function handleBarRowClick(row, mouse) {
+    function handleBarRowClick(row: var, mouse: var) : var {
         root.clearSelectSearchFocus();
         if (mouse.button === Qt.RightButton) {
             root.selectGoBack();

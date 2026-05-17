@@ -47,7 +47,7 @@ ApplicationWindow {
         id: globalRoot
 
         readonly property Profile mainProfile: Rg.profileList.mainProfile
-        function configuredScreen(screenKey, fallbackKey) {
+        function configuredScreen(screenKey: var, fallbackKey: var) : var {
             let themeName = mainProfile.themeConfig[screenKey];
             let family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
             if (family && family.screens && family.screens[screenKey]) {
@@ -76,19 +76,19 @@ ApplicationWindow {
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
 
-        function isFullScreen() {
+        function isFullScreen() : var {
             return contentContainer.visibility === Window.FullScreen;
         }
 
-        function setFullScreen(enabled) {
+        function setFullScreen(enabled: var) : void {
             contentContainer.visibility = enabled ? Window.FullScreen : Window.Windowed;
         }
 
-        function toggleFullScreen() {
+        function toggleFullScreen() : void {
             setFullScreen(!isFullScreen());
         }
 
-        function currentLr2Settings(screenKey) {
+        function currentLr2Settings(screenKey: var) : var {
             let themeName = mainProfile.themeConfig[screenKey];
             let screenVars = mainProfile.vars.themeVars[screenKey];
             if (screenVars && screenVars[themeName]) {
@@ -103,7 +103,7 @@ ApplicationWindow {
             return undefined;
         }
 
-        function openSelect() {
+        function openSelect() : void {
             let selectScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select;
             let props = {};
             if (selectScreen && selectScreen.csvPath) {
@@ -114,7 +114,7 @@ ApplicationWindow {
             sceneStack.pushItem(selectComponent, props);
         }
 
-        function openChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
+        function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var) : var {
             let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!chart) {
                 console.error("Failed to load chart");
@@ -130,7 +130,7 @@ ApplicationWindow {
             sceneStack.pushItem(decideComponent, props);
         }
 
-        function openCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2) {
+        function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var) : var {
             let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!runner) {
                 console.error("Failed to load course");
@@ -146,7 +146,7 @@ ApplicationWindow {
             sceneStack.pushItem(decideComponent, props);
         }
 
-        function openGameplay(runner) {
+        function openGameplay(runner: var) : void {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screenKey = "k" + keys + (battle ? "battle" : "");
@@ -161,7 +161,7 @@ ApplicationWindow {
             sceneStack.pushItem(component, props);
         }
 
-        function openResult(scores, profiles, chartData) {
+        function openResult(scores: var, profiles: var, chartData: var) : void {
             let resultScreen = configuredScreen("result");
             let props = {
                 "scores": scores,
@@ -176,7 +176,7 @@ ApplicationWindow {
             sceneStack.pushItem(resultComponent, props);
         }
 
-        function openCourseResult(scores, profiles, chartDatas, course) {
+        function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var) : void {
             let hasCourseResultScreen = configuredScreen("courseResult") !== null;
             let courseResultScreen = configuredScreen("courseResult", "result");
             let props = {
@@ -211,7 +211,7 @@ ApplicationWindow {
                 Qt.callLater(updateEnabledStates);
             }
 
-            function updateEnabledStates() {
+            function updateEnabledStates() : void {
                 let topIndex = depth - 1;
                 for (let i = 0; i < depth; ++i) {
                     let item = get(i, StackView.ForceLoad);

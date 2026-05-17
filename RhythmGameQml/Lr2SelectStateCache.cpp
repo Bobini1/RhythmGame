@@ -2,8 +2,11 @@
 
 #include "Lr2SelectBarCell.h"
 #include "gameplay_logic/ChartData.h"
+#include "resource_managers/Profile.h"
+#include "resource_managers/Vars.h"
 
 #include <QJSValue>
+#include <QJSValueIterator>
 #include <QMetaProperty>
 #include <QSet>
 
@@ -86,7 +89,44 @@ QVariant valueProperty(const QVariant& source, const char* name) {
     return gadgetProperty(source, name);
 }
 
-QVariantMap toLookupMap(const QVariant& value) {
+QVariant variantFromJsValue(const QJSValue& value);
+
+QVariantList listFromJsValue(const QJSValue& value) {
+    QVariantList result;
+    const qsizetype length = std::max<qsizetype>(
+        0,
+        static_cast<qsizetype>(value.property(QStringLiteral("length")).toInt()));
+    result.reserve(length);
+    for (qsizetype i = 0; i < length; ++i) {
+        result.append(variantFromJsValue(value.property(static_cast<quint32>(i))));
+    }
+    return result;
+}
+
+QVariantMap mapFromJsValue(const QJSValue& value) {
+    QVariantMap result;
+    QJSValueIterator it(value);
+    while (it.hasNext()) {
+        it.next();
+        result.insert(it.name(), variantFromJsValue(it.value()));
+    }
+    return result;
+}
+
+QVariant variantFromJsValue(const QJSValue& value) {
+    if (value.isUndefined() || value.isNull()) {
+        return {};
+    }
+    if (value.isArray()) {
+        return listFromJsValue(value);
+    }
+    if (value.isObject()) {
+        return mapFromJsValue(value);
+    }
+    return value.toVariant();
+}
+
+QVariantMap toVariantMap(const QVariant& value) {
     if (!value.isValid() || value.isNull()) {
         return {};
     }
@@ -102,9 +142,15 @@ QVariantMap toLookupMap(const QVariant& value) {
         return result;
     }
     if (value.canConvert<QJSValue>()) {
-        return value.value<QJSValue>().toVariant().toMap();
+        const QJSValue jsValue = value.value<QJSValue>();
+        const QVariant converted = variantFromJsValue(jsValue);
+        return converted.canConvert<QVariantMap>() ? converted.toMap() : QVariantMap();
     }
     return {};
+}
+
+QVariantMap toLookupMap(const QVariant& value) {
+    return toVariantMap(value);
 }
 
 QVariant mapValue(const QVariantMap& map, const QString& key) {
@@ -129,7 +175,8 @@ QVariantList toList(const QVariant& value) {
         return result;
     }
     if (value.canConvert<QJSValue>()) {
-        return value.value<QJSValue>().toVariant().toList();
+        const QVariant converted = variantFromJsValue(value.value<QJSValue>());
+        return converted.canConvert<QVariantList>() ? converted.toList() : QVariantList();
     }
     return {};
 }
@@ -580,16 +627,52 @@ void Lr2SelectStateCache::setPlayerStats(const QVariant& value) {
     emit playerStatsChanged();
 }
 
-int Lr2SelectStateCache::profileOffset() const {
+QObject* Lr2SelectStateCache::profile() const {
+    return m_profile.data();
+}
+
+void Lr2SelectStateCache::setProfile(QObject* value) {
+    if (m_profile == value) {
+        return;
+    }
+
+    QObject::disconnect(m_profileOffsetConnection);
+    m_profile = value;
+
+    if (auto* profile = qobject_cast<resource_managers::Profile*>(value)) {
+        if (auto* generalVars = profile->getVars()->getGeneralVars()) {
+            m_profileOffsetConnection =
+                connect(generalVars,
+                        &resource_managers::GeneralVars::offsetChanged,
+                        this,
+                        &Lr2SelectStateCache::syncProfileOffset);
+        }
+    }
+
+    syncProfileOffset();
+    emit profileChanged();
+}
+
+qreal Lr2SelectStateCache::profileOffset() const {
     return m_profileOffset;
 }
 
-void Lr2SelectStateCache::setProfileOffset(int value) {
+void Lr2SelectStateCache::setProfileOffset(qreal value) {
     if (m_profileOffset == value) {
         return;
     }
     m_profileOffset = value;
     emit profileOffsetChanged();
+}
+
+void Lr2SelectStateCache::syncProfileOffset() {
+    auto* profile = qobject_cast<resource_managers::Profile*>(m_profile.data());
+    if (!profile) {
+        setProfileOffset(0.0);
+        return;
+    }
+
+    setProfileOffset(profile->getVars()->getGeneralVars()->getOffset());
 }
 
 QVariant Lr2SelectStateCache::rankingClearCounts() const {
@@ -1100,7 +1183,7 @@ int Lr2SelectStateCache::numberValue(int num) const {
     case 40: return 0;
     case 10:
     case 11: return 100;
-    case 12: return m_profileOffset;
+    case 12: return static_cast<int>(std::lround(m_profileOffset));
     case 13: return 0;
     case 42:
     case 96: return chartInt("playLevel");
@@ -2167,7 +2250,7 @@ QVariantMap Lr2SelectStateCache::folderDistribution(const QVariant& item) const 
         return {};
     }
     const QVariant value = mapValue(m_folderDistributionLookup, key);
-    return value.canConvert<QVariantMap>() ? value.toMap() : QVariantMap();
+    return toVariantMap(value);
 }
 
 QVariantMap Lr2SelectStateCache::emptyScoreSummary() const {

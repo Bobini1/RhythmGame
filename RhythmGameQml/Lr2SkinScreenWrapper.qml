@@ -189,7 +189,7 @@ Item {
 
             Connections {
                 target: columnState
-                function onPressedChanged() {
+                function onPressedChanged() : void {
                     root.syncGameplayKeyTimerFromColumnState(timerId, columnState);
                 }
             }
@@ -214,14 +214,14 @@ Item {
 
             Connections {
                 target: columnState
-                function onHoldingLongNoteChanged() {
+                function onHoldingLongNoteChanged() : void {
                     root.syncGameplayLongNoteTimerFromColumnState(timerId, columnState);
                 }
             }
         }
     }
 
-    function openSelectIfNeeded() {
+    function openSelectIfNeeded() : var {
         if (root.effectiveScreenKey === "select" && !root.screenUpdatesActive) {
             return;
         }
@@ -311,18 +311,18 @@ Item {
     readonly property string effectiveScreenKey: screenState.effectiveKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
-    function playerIsAutoPlayer(player) {
+    function playerIsAutoPlayer(player: var) : var {
         return !!player && player instanceof AutoPlayer;
     }
 
-    function gameplayAutoplayActive() {
+    function gameplayAutoplayActive() : var {
         return root.isGameplayScreen()
             && !!root.chart
             && root.playerIsAutoPlayer(root.chart.player1)
             && (!root.chart.player2 || root.playerIsAutoPlayer(root.chart.player2));
     }
 
-    function gameplayReplayActive() {
+    function gameplayReplayActive() : var {
         if (!root.isGameplayScreen() || !root.chart) {
             return false;
         }
@@ -331,7 +331,7 @@ Item {
         return !!((p1 && p1.replayedScore) || (p2 && p2.replayedScore));
     }
 
-    function optionLookupFor(options) {
+    function optionLookupFor(options: var) : var {
         if (!options) {
             return {};
         }
@@ -346,7 +346,7 @@ Item {
         return lookup;
     }
 
-    function finalizeOptionList(options) {
+    function finalizeOptionList(options: var) : var {
         root.optionLookupFor(options);
         return options;
     }
@@ -510,35 +510,35 @@ Item {
         }
     }
 
-    function selectHoverPointInSkinCoordinates() {
+    function selectHoverPointInSkinCoordinates() : var {
         return selectHoverState.pointInSkinCoordinates();
     }
 
-    function updateSelectHoverPoint(x, y) {
+    function updateSelectHoverPoint(x: var, y: var) : var {
         return selectHoverState.updatePoint(x, y);
     }
 
-    function clearSelectHoverPoint() {
+    function clearSelectHoverPoint() : void {
         selectHoverState.clearPoint();
     }
 
-    function registerSelectHoverElement(elementIndex, src, enabled) {
+    function registerSelectHoverElement(elementIndex: var, src: var, enabled: var) : void {
         selectHoverState.registerElement(elementIndex, src, enabled);
     }
 
-    function unregisterSelectHoverElement(elementIndex) {
+    function unregisterSelectHoverElement(elementIndex: var) : void {
         selectHoverState.unregisterElement(elementIndex);
     }
 
-    function clearSelectHoverCache() {
+    function clearSelectHoverCache() : void {
         selectHoverState.clearCache();
     }
 
-    function refreshSelectHoverCache() {
+    function refreshSelectHoverCache() : void {
         selectHoverState.refreshCache();
     }
 
-    function copyObject(object) {
+    function copyObject(object: var) : var {
         let result = {};
         if (!object) {
             return result;
@@ -550,49 +550,49 @@ Item {
         return result;
     }
 
-    function localizedName(value) { return skinSettingsState.localizedName(value); }
-    function lr2SkinTypeScreenKey(type) { return skinSettingsState.skinTypeScreenKey(type); }
-    function profileRoot() { return skinSettingsState.profileRoot(); }
-    function lr2ConfiguredThemeName(screen) { return skinSettingsState.configuredThemeName(screen); }
-    function lr2ThemeFamilyForScreen(screen) { return skinSettingsState.themeFamilyForScreen(screen); }
-    function lr2ScreenObject(screen) { return skinSettingsState.screenObject(screen); }
-    function lr2AvailableThemeNamesForScreen(screen) { return skinSettingsState.availableThemeNamesForScreen(screen); }
-    function lr2SettingDestinationForScreen(screen) { return skinSettingsState.settingDestinationForScreen(screen); }
-    function currentLr2SkinPreviewScreen() { return skinSettingsState.currentPreviewScreen(); }
-    function defaultLr2SkinPreviewScreen() { return skinSettingsState.defaultPreviewScreen(); }
-    function setLr2SkinPreviewScreen(screen) { return skinSettingsState.setPreviewScreen(screen); }
-    function lr2SkinPreviewTitle() { return skinSettingsState.previewTitle(); }
-    function lr2SkinPreviewMaker() { return skinSettingsState.previewMaker(); }
-    function normalizeLr2SkinSetting(item, family) { return skinSettingsState.normalizeSetting(item, family); }
-    function buildLr2SkinSettingItems() { return skinSettingsState.buildItems(); }
-    function refreshLr2SkinSettingItems() { skinSettingsState.refreshItems(); }
-    function lr2SkinCustomMaxOffset() { return skinSettingsState.maxOffset(); }
-    function lr2SkinCustomPosition() { return skinSettingsState.position(); }
-    function setLr2SkinCustomPosition(position) { return skinSettingsState.setPosition(position); }
-    function lr2SkinSettingAtVisibleRow(row) { return skinSettingsState.settingAtVisibleRow(row); }
-    function lr2SkinSettingCurrentValue(item) { return skinSettingsState.currentValue(item); }
-    function lr2SkinSettingName(row) { return skinSettingsState.settingName(row); }
-    function lr2SkinSettingValueText(row) { return skinSettingsState.settingValueText(row); }
-    function changeLr2SkinSetting(row, delta) { return skinSettingsState.changeSetting(row, delta); }
-    function changeLr2Soundset(delta) { return skinSettingsState.changeSoundset(delta); }
-    function changeLr2SelectedTheme(delta) { return skinSettingsState.changeSelectedTheme(delta); }
-    function queueSkinClockRestartAfterLoad() { skinSettingsState.queueSkinClockRestartAfterLoad(); }
+    function localizedName(value: var) : var { return skinSettingsState.localizedName(value); }
+    function lr2SkinTypeScreenKey(type: var) : var { return skinSettingsState.skinTypeScreenKey(type); }
+    function profileRoot() : var { return skinSettingsState.profileRoot(); }
+    function lr2ConfiguredThemeName(screen: var) : var { return skinSettingsState.configuredThemeName(screen); }
+    function lr2ThemeFamilyForScreen(screen: var) : var { return skinSettingsState.themeFamilyForScreen(screen); }
+    function lr2ScreenObject(screen: var) : var { return skinSettingsState.screenObject(screen); }
+    function lr2AvailableThemeNamesForScreen(screen: var) : var { return skinSettingsState.availableThemeNamesForScreen(screen); }
+    function lr2SettingDestinationForScreen(screen: var) : var { return skinSettingsState.settingDestinationForScreen(screen); }
+    function currentLr2SkinPreviewScreen() : var { return skinSettingsState.currentPreviewScreen(); }
+    function defaultLr2SkinPreviewScreen() : var { return skinSettingsState.defaultPreviewScreen(); }
+    function setLr2SkinPreviewScreen(screen: var) : var { return skinSettingsState.setPreviewScreen(screen); }
+    function lr2SkinPreviewTitle() : var { return skinSettingsState.previewTitle(); }
+    function lr2SkinPreviewMaker() : var { return skinSettingsState.previewMaker(); }
+    function normalizeLr2SkinSetting(item: var, family: var) : var { return skinSettingsState.normalizeSetting(item, family); }
+    function buildLr2SkinSettingItems() : var { return skinSettingsState.buildItems(); }
+    function refreshLr2SkinSettingItems() : void { skinSettingsState.refreshItems(); }
+    function lr2SkinCustomMaxOffset() : var { return skinSettingsState.maxOffset(); }
+    function lr2SkinCustomPosition() : var { return skinSettingsState.position(); }
+    function setLr2SkinCustomPosition(position: var) : var { return skinSettingsState.setPosition(position); }
+    function lr2SkinSettingAtVisibleRow(row: var) : var { return skinSettingsState.settingAtVisibleRow(row); }
+    function lr2SkinSettingCurrentValue(item: var) : var { return skinSettingsState.currentValue(item); }
+    function lr2SkinSettingName(row: var) : var { return skinSettingsState.settingName(row); }
+    function lr2SkinSettingValueText(row: var) : var { return skinSettingsState.settingValueText(row); }
+    function changeLr2SkinSetting(row: var, delta: var) : var { return skinSettingsState.changeSetting(row, delta); }
+    function changeLr2Soundset(delta: var) : var { return skinSettingsState.changeSoundset(delta); }
+    function changeLr2SelectedTheme(delta: var) : var { return skinSettingsState.changeSelectedTheme(delta); }
+    function queueSkinClockRestartAfterLoad() : void { skinSettingsState.queueSkinClockRestartAfterLoad(); }
 
-    function setArrayValue(array, index, value) { return optionState.setArrayValue(array, index, value); }
-    function sliderInitialValue(type) { return optionState.sliderInitialValue(type); }
-    function sliderRawValue(type) { return optionState.sliderRawValue(type); }
-    function setSliderRawValue(type, value) { optionState.setSliderRawValue(type, value); }
-    function lr2SliderNumber(num) { return optionState.lr2SliderNumber(num); }
+    function setArrayValue(array: var, index: var, value: var) : var { return optionState.setArrayValue(array, index, value); }
+    function sliderInitialValue(type: var) : var { return optionState.sliderInitialValue(type); }
+    function sliderRawValue(type: var) : var { return optionState.sliderRawValue(type); }
+    function setSliderRawValue(type: var, value: var) : void { optionState.setSliderRawValue(type, value); }
+    function lr2SliderNumber(num: var) : var { return optionState.lr2SliderNumber(num); }
 
-    function openReadmeText(text) {
+    function openReadmeText(text: var) : void {
         readmeState.openText(text);
     }
 
-    function openReadmePath(path) {
+    function openReadmePath(path: var) : var {
         return readmeState.openPath(path);
     }
 
-    function toggleSelectedReadme() {
+    function toggleSelectedReadme() : var {
         if (root.lr2ReadmeMode > 0) {
             root.closeReadme();
             return true;
@@ -605,7 +605,7 @@ Item {
             selectContext.attachedTextFile(selectContext.selectedChartData()));
     }
 
-    function openHelpFile(index) {
+    function openHelpFile(index: var) : var {
         let helpFiles = skinModel.helpFiles || [];
         if (index < 0 || index >= helpFiles.length) {
             return false;
@@ -613,7 +613,7 @@ Item {
         return root.openReadmePath(helpFiles[index]);
     }
 
-    function toggleMainHelp() {
+    function toggleMainHelp() : var {
         if (root.lr2ReadmeMode > 0) {
             root.closeReadme();
             return true;
@@ -624,152 +624,152 @@ Item {
         return root.openHelpFile(0);
     }
 
-    function closeReadme() {
+    function closeReadme() : void {
         readmeState.close();
     }
 
-    function readmeLinesForSource(src) {
+    function readmeLinesForSource(src: var) : var {
         return readmeState.linesForSource(src);
     }
 
-    function readmeContentHeight() {
+    function readmeContentHeight() : var {
         return readmeState.contentHeight();
     }
 
-    function clampReadmeOffsets() {
+    function clampReadmeOffsets() : void {
         readmeState.clampOffsets();
     }
 
-    function scrollReadmeBy(dx, dy) {
+    function scrollReadmeBy(dx: var, dy: var) : var {
         return readmeState.scrollBy(dx, dy);
     }
 
-    function hideReadmeImmediately() {
+    function hideReadmeImmediately() : void {
         readmeState.hideImmediately();
     }
 
     function mainGeneralVars() { return optionState.mainGeneralVars(); }
     function profileForSide(side) { return optionState.profileForSide(side); }
     function generalVarsForSide(side) { return optionState.generalVarsForSide(side); }
-    function indexOfValue(values, value) { return optionState.indexOfValue(values, value); }
-    function cycleArrayIndex(index, count, delta) { return optionState.cycleArrayIndex(index, count, delta); }
-    function wrappedListValue(values, index) { return optionState.wrappedListValue(values, index); }
-    function arrayContains(values, value) { return optionState.arrayContains(values, value); }
-    function cycleSupportedIndex(current, delta, supportedIndexes, count) { return optionState.cycleSupportedIndex(current, delta, supportedIndexes, count); }
+    function indexOfValue(values: var, value: var) : var { return optionState.indexOfValue(values, value); }
+    function cycleArrayIndex(index: var, count: var, delta: var) : var { return optionState.cycleArrayIndex(index, count, delta); }
+    function wrappedListValue(values: var, index: var) : var { return optionState.wrappedListValue(values, index); }
+    function arrayContains(values: var, value: var) : var { return optionState.arrayContains(values, value); }
+    function cycleSupportedIndex(current: var, delta: var, supportedIndexes: var, count: var) : var { return optionState.cycleSupportedIndex(current, delta, supportedIndexes, count); }
 
     readonly property int lr2GaugeIndexP1: optionState.lr2GaugeIndexP1
     readonly property int lr2GaugeIndexP2: optionState.lr2GaugeIndexP2
-    function setGaugeIndex(side, index) { optionState.setGaugeIndex(side, index); }
+    function setGaugeIndex(side: var, index: var) : void { optionState.setGaugeIndex(side, index); }
 
     readonly property int lr2RandomIndexP1: optionState.lr2RandomIndexP1
     readonly property int lr2RandomIndexP2: optionState.lr2RandomIndexP2
-    function setRandomIndex(side, index) { optionState.setRandomIndex(side, index); }
+    function setRandomIndex(side: var, index: var) : void { optionState.setRandomIndex(side, index); }
 
     readonly property int lr2HidSudIndexP1: optionState.lr2HidSudIndexP1
     readonly property int lr2HidSudIndexP2: optionState.lr2HidSudIndexP2
-    function lr2HidSudIndex(side) { return optionState.lr2HidSudIndex(side); }
-    function setHidSudIndex(side, index) { optionState.setHidSudIndex(side, index); }
+    function lr2HidSudIndex(side: var) : var { return optionState.lr2HidSudIndex(side); }
+    function setHidSudIndex(side: var, index: var) : void { optionState.setHidSudIndex(side, index); }
 
     readonly property int lr2HiSpeedFixIndex: optionState.lr2HiSpeedFixIndex
-    function setHiSpeedFixIndex(index) { optionState.setHiSpeedFixIndex(index); }
+    function setHiSpeedFixIndex(index: var) : void { optionState.setHiSpeedFixIndex(index); }
 
     readonly property int lr2BattleIndex: optionState.lr2BattleIndex
-    function ensureBattleProfiles() { return optionState.ensureBattleProfiles(); }
-    function setBattleIndex(index) { optionState.setBattleIndex(index); }
+    function ensureBattleProfiles() : var { return optionState.ensureBattleProfiles(); }
+    function setBattleIndex(index: var) : void { optionState.setBattleIndex(index); }
 
     readonly property int lr2DpOptionIndex: optionState.lr2DpOptionIndex
-    function setDpOptionIndex(index) { optionState.setDpOptionIndex(index); }
+    function setDpOptionIndex(index: var) : void { optionState.setDpOptionIndex(index); }
 
     readonly property int lr2FlipIndex: optionState.lr2FlipIndex
-    function setFlipIndex(index) { optionState.setFlipIndex(index); }
+    function setFlipIndex(index: var) : void { optionState.setFlipIndex(index); }
 
     readonly property int lr2LaneCoverIndex: optionState.lr2LaneCoverIndex
-    function setLaneCoverIndex(index) {
+    function setLaneCoverIndex(index: var) : void {
         optionState.setLaneCoverIndex(index);
         root.noteGameplayOptionChanged();
     }
-    function toggleLaneCover(side) {
+    function toggleLaneCover(side: var) : void {
         optionState.toggleLaneCover(side);
         root.noteGameplayOptionChanged();
     }
 
     readonly property int lr2BgaIndex: optionState.lr2BgaIndex
     readonly property int lr2BeatorajaBgaIndex: optionState.lr2BeatorajaBgaIndex
-    function setBgaIndex(index) { optionState.setBgaIndex(index); }
+    function setBgaIndex(index: var) : void { optionState.setBgaIndex(index); }
 
     readonly property int lr2BgaSizeIndex: optionState.lr2BgaSizeIndex
-    function setBgaSizeIndex(index) { optionState.setBgaSizeIndex(index); }
+    function setBgaSizeIndex(index: var) : void { optionState.setBgaSizeIndex(index); }
 
     readonly property int lr2GaugeAutoShiftIndex: optionState.lr2GaugeAutoShiftIndex
-    function setGaugeAutoShiftIndex(index) { optionState.setGaugeAutoShiftIndex(index); }
+    function setGaugeAutoShiftIndex(index: var) : void { optionState.setGaugeAutoShiftIndex(index); }
 
     readonly property int lr2BottomShiftableGaugeIndex: optionState.lr2BottomShiftableGaugeIndex
-    function setBottomShiftableGaugeIndex(index) { return optionState.setBottomShiftableGaugeIndex(index); }
+    function setBottomShiftableGaugeIndex(index: var) : var { return optionState.setBottomShiftableGaugeIndex(index); }
 
     readonly property int lr2LnModeIndex: optionState.lr2LnModeIndex
-    function setLnModeIndex(index) { return optionState.setLnModeIndex(index); }
+    function setLnModeIndex(index: var) : var { return optionState.setLnModeIndex(index); }
 
     readonly property int lr2JudgeAlgorithmIndex: optionState.lr2JudgeAlgorithmIndex
-    function setJudgeAlgorithmIndex(index) { return optionState.setJudgeAlgorithmIndex(index); }
+    function setJudgeAlgorithmIndex(index: var) : var { return optionState.setJudgeAlgorithmIndex(index); }
 
     readonly property int lr2ScoreGraphIndex: optionState.lr2ScoreGraphIndex
-    function setScoreGraphIndex(index) { optionState.setScoreGraphIndex(index); }
+    function setScoreGraphIndex(index: var) : void { optionState.setScoreGraphIndex(index); }
 
     readonly property int lr2GhostIndex: optionState.lr2GhostIndex
-    function setGhostIndex(index) { optionState.setGhostIndex(index); }
+    function setGhostIndex(index: var) : void { optionState.setGhostIndex(index); }
 
-    function lr2BgaEnabled() { return optionState.lr2BgaEnabled(); }
+    function lr2BgaEnabled() : var { return optionState.lr2BgaEnabled(); }
 
     readonly property int lr2ScoreTargetIndex: optionState.lr2ScoreTargetIndex
-    function setScoreTargetIndex(index) { optionState.setScoreTargetIndex(index); }
+    function setScoreTargetIndex(index: var) : void { optionState.setScoreTargetIndex(index); }
 
     readonly property int lr2BeatorajaTargetIndex: optionState.lr2BeatorajaTargetIndex
-    function setBeatorajaTargetIndex(index) { optionState.setBeatorajaTargetIndex(index); }
+    function setBeatorajaTargetIndex(index: var) : void { optionState.setBeatorajaTargetIndex(index); }
 
     readonly property int lr2TargetPercent: optionState.lr2TargetPercent
-    function setTargetPercent(percent) { optionState.setTargetPercent(percent); }
+    function setTargetPercent(percent: var) : void { optionState.setTargetPercent(percent); }
 
     readonly property int lr2HiSpeedP1: optionState.lr2HiSpeedP1
     readonly property int lr2HiSpeedP2: optionState.lr2HiSpeedP2
-    function noteGameplayOptionChanged() {
+    function noteGameplayOptionChanged() : var {
         if (!root.isGameplayScreen()) {
             return;
         }
         root.requestGameplayRevisionRefresh();
     }
 
-    function setHiSpeedNumber(side, value) {
+    function setHiSpeedNumber(side: var, value: var) : void {
         optionState.setHiSpeedNumber(side, value);
         root.noteGameplayOptionChanged();
     }
-    function nextLr2HiSpeedNumber(current, steps) { return optionState.nextLr2HiSpeedNumber(current, steps); }
-    function adjustHiSpeedNumber(side, steps) {
+    function nextLr2HiSpeedNumber(current: var, steps: var) : var { return optionState.nextLr2HiSpeedNumber(current, steps); }
+    function adjustHiSpeedNumber(side: var, steps: var) : void {
         optionState.adjustHiSpeedNumber(side, steps);
         root.noteGameplayOptionChanged();
     }
-    function adjustDurationNumber(side, steps) {
+    function adjustDurationNumber(side: var, steps: var) : void {
         optionState.adjustDurationNumber(side, steps);
         root.noteGameplayOptionChanged();
     }
-    function adjustScratchDurationNumber(side, amount) {
+    function adjustScratchDurationNumber(side: var, amount: var) : void {
         optionState.adjustScratchDurationNumber(side, amount);
         root.noteGameplayOptionChanged();
     }
-    function adjustScratchCoverNumber(side, amount) {
+    function adjustScratchCoverNumber(side: var, amount: var) : void {
         optionState.adjustScratchCoverNumber(side, amount);
         root.noteGameplayOptionChanged();
     }
-    function adjustLaneCoverRatio(side, steps) {
+    function adjustLaneCoverRatio(side: var, steps: var) : void {
         optionState.adjustLaneCoverRatio(side, steps);
         root.noteGameplayOptionChanged();
     }
-    function adjustGameplayCoverValue(side, steps, changeLift) {
+    function adjustGameplayCoverValue(side: var, steps: var, changeLift: var) : void {
         optionState.adjustGameplayCoverValue(side, steps, changeLift);
         root.noteGameplayOptionChanged();
     }
-    function adjustOffset(delta) { optionState.adjustOffset(delta); }
+    function adjustOffset(delta: var) : void { optionState.adjustOffset(delta); }
 
-    function isLoggedIn() { return optionState.isLoggedIn(); }
+    function isLoggedIn() : var { return optionState.isLoggedIn(); }
     readonly property var lr2RankingChart: lr2Ranking.chart
     readonly property string lr2RankingMd5: lr2Ranking.md5
     property alias lr2RankingRequestMd5: lr2Ranking.requestMd5
@@ -781,50 +781,50 @@ Item {
     readonly property int lr2RankingTransitionDuration: lr2Ranking.transitionDuration
     readonly property int lr2RankingTransitionElapsed: lr2Ranking.transitionElapsed
 
-    function commitLr2RankingRequest(chart) { return lr2Ranking.commitRequest(chart); }
-    function rankingProviderEnum() { return lr2Ranking.providerEnum(); }
-    function lr2RankingMatchesCurrentChart() { return lr2Ranking.matchesCurrentChart(); }
-    function lr2LocalRankingEntry() { return lr2Ranking.localEntry(); }
-    function lr2RankingEntries() { return lr2Ranking.entries(); }
-    function lr2RankingClearCounts(entries) { return lr2Ranking.clearCounts(entries); }
-    function lr2RankingPlayerCount(entries) { return lr2Ranking.playerCount(entries); }
-    function lr2RankingTotalPlayCount(entries) { return lr2Ranking.totalPlayCount(entries); }
-    function lr2RankingProfileUserId() { return lr2Ranking.profileUserId(); }
-    function lr2RankingPlayerRank(entries) { return lr2Ranking.playerRank(entries); }
-    function lr2RankingSnapshot() { return lr2Ranking.snapshot(); }
-    function lr2RankingEntryAt(index) { return lr2Ranking.entryAt(index); }
-    function lr2RankingEntryName(index) { return lr2Ranking.entryName(index); }
-    function lr2RankingEntryClearValue(index) { return lr2Ranking.entryClearValue(index); }
-    function lr2RankingEntryExScore(index) { return lr2Ranking.entryExScore(index); }
-    function lr2RankingClearCount() { return lr2Ranking.clearCount.apply(lr2Ranking, arguments); }
-    function lr2RankingClearPercentValue() { return lr2Ranking.clearPercentValue.apply(lr2Ranking, arguments); }
-    function applyRankingStatsToSelectContext() { lr2Ranking.applyStatsToSelectContext(); }
-    function handleRankingModelChanged(tryOpenRanking, tryOpenInternetRanking) { lr2Ranking.handleModelChanged(tryOpenRanking, tryOpenInternetRanking); }
-    function lr2RankingStatusOption() { return lr2Ranking.statusOption(); }
-    function startLr2RankingTransition(action) { return lr2Ranking.startTransition(action); }
-    function clearLr2RankingTransition() { lr2Ranking.clearTransition(); }
-    function enterLr2RankingPostSwapTimer() { lr2Ranking.enterPostSwapTimer(); }
-    function performLr2RankingOpen() { return lr2Ranking.performOpen(); }
-    function performLr2RankingClose() { return lr2Ranking.performClose(); }
-    function advanceLr2RankingTransition() { lr2Ranking.advanceTransition(); }
-    function requestLr2RankingFetch(chart) { return lr2Ranking.requestFetch(chart); }
-    function lr2TachiKeymode(chart) { return lr2Ranking.tachiKeymode(chart); }
-    function lr2InternetRankingUrl(chart) { return lr2Ranking.internetRankingUrl(chart); }
-    function finishOpenLr2InternetRanking() { return lr2Ranking.finishOpenInternetRanking(); }
-    function openLr2InternetRanking() {
+    function commitLr2RankingRequest(chart: var) : var { return lr2Ranking.commitRequest(chart); }
+    function rankingProviderEnum() : var { return lr2Ranking.providerEnum(); }
+    function lr2RankingMatchesCurrentChart() : var { return lr2Ranking.matchesCurrentChart(); }
+    function lr2LocalRankingEntry() : var { return lr2Ranking.localEntry(); }
+    function lr2RankingEntries() : var { return lr2Ranking.entries(); }
+    function lr2RankingClearCounts(entries: var) : var { return lr2Ranking.clearCounts(entries); }
+    function lr2RankingPlayerCount(entries: var) : var { return lr2Ranking.playerCount(entries); }
+    function lr2RankingTotalPlayCount(entries: var) : var { return lr2Ranking.totalPlayCount(entries); }
+    function lr2RankingProfileUserId() : var { return lr2Ranking.profileUserId(); }
+    function lr2RankingPlayerRank(entries: var) : var { return lr2Ranking.playerRank(entries); }
+    function lr2RankingSnapshot() : var { return lr2Ranking.snapshot(); }
+    function lr2RankingEntryAt(index: var) : var { return lr2Ranking.entryAt(index); }
+    function lr2RankingEntryName(index: var) : var { return lr2Ranking.entryName(index); }
+    function lr2RankingEntryClearValue(index: var) : var { return lr2Ranking.entryClearValue(index); }
+    function lr2RankingEntryExScore(index: var) : var { return lr2Ranking.entryExScore(index); }
+    function lr2RankingClearCount() : var { return lr2Ranking.clearCount.apply(lr2Ranking, arguments); }
+    function lr2RankingClearPercentValue() : var { return lr2Ranking.clearPercentValue.apply(lr2Ranking, arguments); }
+    function applyRankingStatsToSelectContext() : void { lr2Ranking.applyStatsToSelectContext(); }
+    function handleRankingModelChanged(tryOpenRanking: var, tryOpenInternetRanking: var) : void { lr2Ranking.handleModelChanged(tryOpenRanking, tryOpenInternetRanking); }
+    function lr2RankingStatusOption() : var { return lr2Ranking.statusOption(); }
+    function startLr2RankingTransition(action: var) : var { return lr2Ranking.startTransition(action); }
+    function clearLr2RankingTransition() : void { lr2Ranking.clearTransition(); }
+    function enterLr2RankingPostSwapTimer() : void { lr2Ranking.enterPostSwapTimer(); }
+    function performLr2RankingOpen() : var { return lr2Ranking.performOpen(); }
+    function performLr2RankingClose() : var { return lr2Ranking.performClose(); }
+    function advanceLr2RankingTransition() : void { lr2Ranking.advanceTransition(); }
+    function requestLr2RankingFetch(chart: var) : var { return lr2Ranking.requestFetch(chart); }
+    function lr2TachiKeymode(chart: var) : var { return lr2Ranking.tachiKeymode(chart); }
+    function lr2InternetRankingUrl(chart: var) : var { return lr2Ranking.internetRankingUrl(chart); }
+    function finishOpenLr2InternetRanking() : var { return lr2Ranking.finishOpenInternetRanking(); }
+    function openLr2InternetRanking() : var {
         selectContext.flushFocusedStateRefresh(false);
         return lr2Ranking.openInternetRanking();
     }
-    function finishOpenLr2Ranking() { return lr2Ranking.finishOpenRanking(); }
-    function openLr2Ranking() {
+    function finishOpenLr2Ranking() : var { return lr2Ranking.finishOpenRanking(); }
+    function openLr2Ranking() : var {
         selectContext.flushFocusedStateRefresh(false);
         return lr2Ranking.openRanking();
     }
-    function closeLr2Ranking() { return lr2Ranking.closeRanking(); }
-    function isLr2RankingKey(key) { return key === BmsKey.Col14 || key === BmsKey.Col24; }
+    function closeLr2Ranking() : var { return lr2Ranking.closeRanking(); }
+    function isLr2RankingKey(key: var) : var { return key === BmsKey.Col14 || key === BmsKey.Col24; }
 
-    function clearStatusOption() { return optionState.clearStatusOption(); }
-    function clearStatusIsBest() { return optionState.clearStatusIsBest(); }
+    function clearStatusOption() : var { return optionState.clearStatusOption(); }
+    function clearStatusIsBest() : var { return optionState.clearStatusIsBest(); }
 
     Rectangle {
         anchors.fill: parent
@@ -832,19 +832,19 @@ Item {
         z: -1000000
     }
 
-    function inferScreenKey(path) {
+    function inferScreenKey(path: var) : var {
         return screenState.inferKey(path);
     }
 
-    function isSelectScrollSlider(src) {
+    function isSelectScrollSlider(src: var) : var {
         return skinSliderState.isSelectScrollSlider(src);
     }
 
-    function isLr2GenericSlider(src) {
+    function isLr2GenericSlider(src: var) : var {
         return skinSliderState.isLr2GenericSlider(src);
     }
 
-    function panelMatches(panel) {
+    function panelMatches(panel: var) : var {
         if (panel > 0) {
             return root.selectPanel === panel;
         }
@@ -856,36 +856,36 @@ Item {
 
     property alias selectSearchInputItem: selectSearchState.inputItem
 
-    function isSelectSearchText(src) { return selectSearchState.isText(src); }
-    function selectSearchTextState(src, dsts) { return selectSearchState.textState(src, dsts); }
-    function textPrefix(text, position) { return selectSearchState.textPrefix(text, position); }
-    function selectSearchHasFocus() { return selectSearchState.hasFocus(); }
+    function isSelectSearchText(src: var) : var { return selectSearchState.isText(src); }
+    function selectSearchTextState(src: var, dsts: var) : var { return selectSearchState.textState(src, dsts); }
+    function textPrefix(text: var, position: var) : var { return selectSearchState.textPrefix(text, position); }
+    function selectSearchHasFocus() : var { return selectSearchState.hasFocus(); }
 
-    function selectInputReady() {
+    function selectInputReady() : var {
         return screenState.selectInputReady;
     }
 
-    function selectPointerInputReady() {
+    function selectPointerInputReady() : var {
         return screenState.selectPointerInputReady;
     }
 
-    function selectScrollReady() {
+    function selectScrollReady() : var {
         return screenState.selectScrollReady;
     }
 
-    function selectPointerScrollReady() {
+    function selectPointerScrollReady() : var {
         return screenState.selectPointerScrollReady;
     }
 
-    function selectNavigationReady() {
+    function selectNavigationReady() : var {
         return screenState.selectNavigationReady;
     }
 
-    function focusSelectSearch() { selectSearchState.focusInput(); }
-    function clearSelectSearchFocus() { selectSearchState.clearFocus(); }
-    function resetSelectSearch() { selectSearchState.reset(); }
+    function focusSelectSearch() : void { selectSearchState.focusInput(); }
+    function clearSelectSearchFocus() : void { selectSearchState.clearFocus(); }
+    function resetSelectSearch() : void { selectSearchState.reset(); }
 
-    function fallbackSortId(dsts) {
+    function fallbackSortId(dsts: var) : var {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return 0;
         }
@@ -894,7 +894,7 @@ Item {
 
     readonly property real selectBarElementSortBase: root.computeSelectBarElementSortBase()
 
-    function updateMinSortId(current, dsts) {
+    function updateMinSortId(current: var, dsts: var) : var {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return current;
         }
@@ -902,7 +902,7 @@ Item {
         return current < 0 || sortId < current ? sortId : current;
     }
 
-    function computeSelectBarElementSortBase() {
+    function computeSelectBarElementSortBase() : var {
         let result = -1;
         const rows = skinModel.barRows || [];
         for (let rowIndex = 0; rowIndex < rows.length; ++rowIndex) {
@@ -916,14 +916,14 @@ Item {
         return result >= 0 ? result : 0;
     }
 
-    function isSelectBarElement(type, src) {
+    function isSelectBarElement(type: var, src: var) : var {
         return type === 4
             || type === 5
             || type === 13
             || (type === 3 && !!src && src.kind !== undefined);
     }
 
-    function selectBarElementLayer(type, src) {
+    function selectBarElementLayer(type: var, src: var) : var {
         if (type === 13) {
             return 0.20; // folder progress graph, after the row body
         }
@@ -957,7 +957,7 @@ Item {
         }
     }
 
-    function timelineSortId(dsts, skinTime, activeOptions, timers) {
+    function timelineSortId(dsts: var, skinTime: var, activeOptions: var, timers: var) : var {
         let state = timelineResolver.stateFor(
             dsts,
             skinTime,
@@ -969,7 +969,7 @@ Item {
         return root.fallbackSortId(dsts);
     }
 
-    function noteElementSortId(skinTime, activeOptions, timers) {
+    function noteElementSortId(skinTime: var, activeOptions: var, timers: var) : var {
         let noteDsts = skinModel.noteDsts || [];
         let result = -1;
         for (let lane = 0; lane < noteDsts.length; ++lane) {
@@ -985,7 +985,7 @@ Item {
         return result >= 0 ? result : 0;
     }
 
-    function staticNoteElementSortId() {
+    function staticNoteElementSortId() : var {
         let noteDsts = skinModel.noteDsts || [];
         let result = -1;
         for (let lane = 0; lane < noteDsts.length; ++lane) {
@@ -1001,7 +1001,7 @@ Item {
         return result >= 0 ? result : 0;
     }
 
-    function elementZ(type, index, src, dsts) {
+    function elementZ(type: var, index: var, src: var, dsts: var) : var {
         // LR2/beatoraja draw BAR_* parts through a single bar renderer. Their
         // #DST_BAR_* command positions configure that renderer instead of
         // participating in the outer skin draw order independently.
@@ -1020,58 +1020,58 @@ Item {
         return root.fallbackSortId(dsts) + index * 0.000001;
     }
 
-    function dstsUseActiveOptions(dsts) {
+    function dstsUseActiveOptions(dsts: var) : var {
         return timelineResolver.usesActiveOptionsFor(dsts);
     }
 
-    function activeOptionsForElementDsts(dsts) {
+    function activeOptionsForElementDsts(dsts: var) : var {
         if (!root.dstsUseActiveOptions(dsts)) {
             return root.emptyActiveOptions;
         }
         return root.activeOptionsForDsts(dsts, root.runtimeActiveOptions);
     }
 
-    function dstsUseSelectPanelTimer(dsts) {
+    function dstsUseSelectPanelTimer(dsts: var) : var {
         const timer = timelineResolver.firstTimerFor(dsts);
         return (timer >= 21 && timer <= 26)
             || (timer >= 31 && timer <= 36);
     }
 
-    function elementUsesLiveDstClock(dsts) {
+    function elementUsesLiveDstClock(dsts: var) : var {
         return root.effectiveScreenKey === "select"
             && (root.dstsUseSelectPanelTimer(dsts)
                 || timelineResolver.loopsContinuouslyFor(dsts));
     }
 
-    function elementUsesLiveSourceClock(src) {
+    function elementUsesLiveSourceClock(src: var) : var {
         return root.effectiveScreenKey === "select"
             && timelineResolver.sourceCyclesContinuously(src);
     }
 
-    function elementUsesLiveSelectClock(src, dsts) {
+    function elementUsesLiveSelectClock(src: var, dsts: var) : var {
         return root.elementUsesLiveDstClock(dsts)
             || root.elementUsesLiveSourceClock(src);
     }
 
-    function skinTimeForElement(src, dsts) {
+    function skinTimeForElement(src: var, dsts: var) : var {
         return root.elementUsesLiveSelectClock(src, dsts)
             ? root.selectSourceSkinTime
             : root.renderSkinTime;
     }
 
-    function noteFieldUsesActiveOptions() {
+    function noteFieldUsesActiveOptions() : var {
         return root.skinRuntimeRef
             ? root.skinRuntimeRef.noteFieldUsesActiveOptions()
             : false;
     }
 
-    function noteFieldUsesTimers() {
+    function noteFieldUsesTimers() : var {
         return root.skinRuntimeRef
             ? root.skinRuntimeRef.noteFieldUsesTimers()
             : false;
     }
 
-    function addOption(options, option) {
+    function addOption(options: var, option: var) : var {
         if (option === undefined || option === null) {
             return;
         }
@@ -1089,11 +1089,11 @@ Item {
         lookup[option] = true;
     }
 
-    function skinUsesOption(option) {
+    function skinUsesOption(option: var) : var {
         return !root.usedOptionFilterActive || !!root.usedOptionLookup[Math.abs(option)];
     }
 
-    function skinUsesAnyOption(options) {
+    function skinUsesAnyOption(options: var) : var {
         if (!root.usedOptionFilterActive) {
             return true;
         }
@@ -1105,7 +1105,7 @@ Item {
         return false;
     }
 
-    function skinUsesOptionRange(first, last) {
+    function skinUsesOptionRange(first: var, last: var) : var {
         if (!root.usedOptionFilterActive) {
             return true;
         }
@@ -1117,14 +1117,14 @@ Item {
         return false;
     }
 
-    function skinUsesSelectElementOption(option) {
+    function skinUsesSelectElementOption(option: var) : var {
         if (!root.usedElementOptionFilterAvailable) {
             return root.skinUsesOption(option);
         }
         return !!root.usedElementOptionLookup[Math.abs(option)];
     }
 
-    function skinUsesAnySelectElementOption(options) {
+    function skinUsesAnySelectElementOption(options: var) : var {
         if (!root.usedElementOptionFilterAvailable) {
             return root.skinUsesAnyOption(options);
         }
@@ -1136,7 +1136,7 @@ Item {
         return false;
     }
 
-    function skinUsesSelectElementOptionRange(first, last) {
+    function skinUsesSelectElementOptionRange(first: var, last: var) : var {
         if (!root.usedElementOptionFilterAvailable) {
             return root.skinUsesOptionRange(first, last);
         }
@@ -1148,12 +1148,12 @@ Item {
         return false;
     }
 
-    function configuredGaugeName(side) {
+    function configuredGaugeName(side: var) : var {
         let vars = root.generalVarsForSide(side);
         return String(vars ? vars.gaugeType : "").toUpperCase();
     }
 
-    function gameplayActiveGauge(score) {
+    function gameplayActiveGauge(score: var) : var {
         if (!score || !score.gauges || score.gauges.length === 0) {
             return null;
         }
@@ -1166,12 +1166,12 @@ Item {
         return gauges[gauges.length - 1] || null;
     }
 
-    function gameplayActiveGaugeName(score) {
+    function gameplayActiveGaugeName(score: var) : var {
         let gauge = root.gameplayActiveGauge(score);
         return String(gauge && gauge.name ? gauge.name : "").toUpperCase();
     }
 
-    function activeGaugeNameForSide(side) {
+    function activeGaugeNameForSide(side: var) : var {
         if (root.isGameplayScreen()) {
             let activeName = root.gameplayActiveGaugeName(root.gameplayScore(side));
             if (activeName.length > 0) {
@@ -1181,7 +1181,7 @@ Item {
         return root.configuredGaugeName(side);
     }
 
-    function gaugeNameIsSurvival(name) {
+    function gaugeNameIsSurvival(name: var) : var {
         switch (String(name || "").toUpperCase()) {
         case "HARD":
         case "EXHARD":
@@ -1197,7 +1197,7 @@ Item {
         }
     }
 
-    function gaugeNameUsesBeatorajaExOption(name) {
+    function gaugeNameUsesBeatorajaExOption(name: var) : var {
         switch (String(name || "").toUpperCase()) {
         case "AEASY":
         case "EASY":
@@ -1213,7 +1213,7 @@ Item {
         }
     }
 
-    function gaugeNameUsesExGaugeSprites(name) {
+    function gaugeNameUsesExGaugeSprites(name: var) : var {
         switch (String(name || "").toUpperCase()) {
         case "EXHARD":
         case "FC":
@@ -1227,19 +1227,19 @@ Item {
         }
     }
 
-    function addGaugeExOption(options, side) {
+    function addGaugeExOption(options: var, side: var) : void {
         let gauge = root.activeGaugeNameForSide(side);
         if (root.gaugeNameUsesBeatorajaExOption(gauge)) {
             root.addOption(options, side === 2 ? 1047 : 1046);
         }
     }
 
-    function gaugeColorOption(side) {
+    function gaugeColorOption(side: var) : var {
         let red = root.gaugeNameIsSurvival(root.activeGaugeNameForSide(side));
         return side === 2 ? (red ? 45 : 44) : (red ? 43 : 42);
     }
 
-    function gameplayGaugeTrophyOption(side) {
+    function gameplayGaugeTrophyOption(side: var) : var {
         let gauge = root.activeGaugeNameForSide(side);
         if (gauge === "AEASY") {
             return 124;
@@ -1256,16 +1256,16 @@ Item {
         return 118;
     }
 
-    function battleModeActive() {
+    function battleModeActive() : var {
         return !!(Rg.profileList && Rg.profileList.battleActive);
     }
 
-    function spToDpActive() {
+    function spToDpActive() : var {
         let vars = root.mainGeneralVars();
         return !!vars && vars.dpOptions === DpOptions.Battle;
     }
 
-    function laneCoverNumber(side) {
+    function laneCoverNumber(side: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return 0;
@@ -1278,7 +1278,7 @@ Item {
         return Math.round((vars.laneCoverRatio || 0) * 1000);
     }
 
-    function gameplayLaneCoverSliderPosition(side) {
+    function gameplayLaneCoverSliderPosition(side: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars || !vars.laneCoverOn) {
             return 0;
@@ -1290,33 +1290,33 @@ Item {
         return lane;
     }
 
-    function liftNumber(side) {
+    function liftNumber(side: var) : var {
         let vars = root.generalVarsForSide(side);
         return vars && vars.liftOn ? Math.round((vars.liftRatio || 0) * 1000) : 0;
     }
 
-    function hiddenNumber(side) {
+    function hiddenNumber(side: var) : var {
         let vars = root.generalVarsForSide(side);
         return vars && vars.hiddenOn ? Math.round((vars.hiddenRatio || 0) * 1000) : 0;
     }
 
-    function hiSpeedInteger(side) {
+    function hiSpeedInteger(side: var) : var {
         let value = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
         return Math.floor(value / 100);
     }
 
-    function hiSpeedAfterDot(side) {
+    function hiSpeedAfterDot(side: var) : var {
         let value = side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1;
         return Math.floor(value) % 100;
     }
 
-    function durationNumber(side, green) {
+    function durationNumber(side: var, green: var) : var {
         let vars = root.generalVarsForSide(side);
         let duration = vars && vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
         return Math.round(duration * (green ? 0.6 : 1.0));
     }
 
-    function durationNumberForBpm(side, bpm, green, cover) {
+    function durationNumberForBpm(side: var, bpm: var, green: var, cover: var) : var {
         let safeBpm = Math.max(1, bpm || 0);
         let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
         let vars = root.generalVarsForSide(side);
@@ -1324,7 +1324,7 @@ Item {
         return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 1.0 : 0.6));
     }
 
-    function firstDstStateY(dsts) {
+    function firstDstStateY(dsts: var) : var {
         if (!dsts || dsts.length === 0 || !dsts[0]) {
             return 0;
         }
@@ -1332,7 +1332,7 @@ Item {
         return Math.abs(dst.y || 0);
     }
 
-    function gameplayLaneOffsetHeight(side) {
+    function gameplayLaneOffsetHeight(side: var) : var {
         let model = root.skinModelRef || skinModel;
         let start = side === 2 ? 10 : 0;
         let end = side === 2 ? 20 : 10;
@@ -1356,15 +1356,15 @@ Item {
     readonly property real gameplayLaneOffsetHeightP1: root.gameplayLaneOffsetHeight(1)
     readonly property real gameplayLaneOffsetHeightP2: root.gameplayLaneOffsetHeight(2)
 
-    function cachedGameplayLaneOffsetHeight(side) {
+    function cachedGameplayLaneOffsetHeight(side: var) : var {
         return side === 2 ? root.gameplayLaneOffsetHeightP2 : root.gameplayLaneOffsetHeightP1;
     }
 
-    function lr2Clamp01(value) {
+    function lr2Clamp01(value: var) : var {
         return Math.max(0, Math.min(value || 0, 1));
     }
 
-    function computeGameplayDstOffsetLiftY(side) {
+    function computeGameplayDstOffsetLiftY(side: var) : var {
         if (!root.isGameplayScreen()) {
             return 0;
         }
@@ -1374,7 +1374,7 @@ Item {
             : 0;
     }
 
-    function computeGameplayDstOffsetLaneCoverY(side) {
+    function computeGameplayDstOffsetLaneCoverY(side: var) : var {
         if (!root.isGameplayScreen()) {
             return 0;
         }
@@ -1388,7 +1388,7 @@ Item {
         return visibleHeight * root.lr2Clamp01(vars.laneCoverRatio);
     }
 
-    function computeGameplayDstOffsetHiddenY(side) {
+    function computeGameplayDstOffsetHiddenY(side: var) : var {
         if (!root.isGameplayScreen()) {
             return 0;
         }
@@ -1402,7 +1402,7 @@ Item {
         return visibleHeight * root.lr2Clamp01(vars.hiddenRatio);
     }
 
-    function computeGameplayDstOffsetHiddenA(side) {
+    function computeGameplayDstOffsetHiddenA(side: var) : var {
         if (!root.isGameplayScreen()) {
             return 0;
         }
@@ -1419,30 +1419,30 @@ Item {
     readonly property real gameplayDstOffsetHiddenA1: root.computeGameplayDstOffsetHiddenA(1)
     readonly property real gameplayDstOffsetHiddenA2: root.computeGameplayDstOffsetHiddenA(2)
 
-    function gameplayDstOffsetLiftY(side) {
+    function gameplayDstOffsetLiftY(side: var) : var {
         return side === 2 ? root.gameplayDstOffsetLiftY2 : root.gameplayDstOffsetLiftY1;
     }
 
-    function gameplayDstOffsetLaneCoverY(side) {
+    function gameplayDstOffsetLaneCoverY(side: var) : var {
         return side === 2 ? root.gameplayDstOffsetLaneCoverY2 : root.gameplayDstOffsetLaneCoverY1;
     }
 
-    function gameplayDstOffsetHiddenY(side) {
+    function gameplayDstOffsetHiddenY(side: var) : var {
         return side === 2 ? root.gameplayDstOffsetHiddenY2 : root.gameplayDstOffsetHiddenY1;
     }
 
-    function gameplayDstOffsetHiddenA(side) {
+    function gameplayDstOffsetHiddenA(side: var) : var {
         return side === 2 ? root.gameplayDstOffsetHiddenA2 : root.gameplayDstOffsetHiddenA1;
     }
 
-    function lr2OffsetSide(state, requestedSide) {
+    function lr2OffsetSide(state: var, requestedSide: var) : var {
         if (requestedSide === 1 || requestedSide === 2) {
             return requestedSide;
         }
         return 1;
     }
 
-    function lr2OffsetValue(id, side) {
+    function lr2OffsetValue(id: var, side: var) : var {
         if (!root.isGameplayScreen()) {
             return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
         }
@@ -1479,7 +1479,7 @@ Item {
         return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
     }
 
-    function applyLr2DstOffsets(state, dsts, requestedSide) {
+    function applyLr2DstOffsets(state: var, dsts: var, requestedSide: var) : var {
         if (!state || !dsts || dsts.length === 0 || !dsts[0] || !dsts[0].offsets || dsts[0].offsets.length === 0) {
             return state;
         }
@@ -1525,7 +1525,7 @@ Item {
         return adjusted;
     }
 
-    function bpmDurationNumber(num, chartData) {
+    function bpmDurationNumber(num: var, chartData: var) : var {
         let green = (num - 1312) % 2 === 1;
         let cover = (num - 1312) % 4 < 2;
         let mode = Math.floor((num - 1312) / 4);
@@ -1545,11 +1545,11 @@ Item {
         return root.durationNumberForBpm(1, bpm, green, cover);
     }
 
-    function chartLengthSeconds(chartData) {
+    function chartLengthSeconds(chartData: var) : var {
         return chartData ? Math.floor(Math.max(0, chartData.length || 0) / 1000000000) : -1;
     }
 
-    function chartPlayableNoteCount(chartData) {
+    function chartPlayableNoteCount(chartData: var) : var {
         if (!chartData) {
             return 0;
         }
@@ -1559,7 +1559,7 @@ Item {
             + (chartData.bssCount || 0);
     }
 
-    function chartDensityNumber(chartData, propertyName, afterDot) {
+    function chartDensityNumber(chartData: var, propertyName: var, afterDot: var) : var {
         if (!chartData) {
             return -1;
         }
@@ -1567,7 +1567,7 @@ Item {
         return afterDot ? Math.floor(value * 100) % 100 : Math.floor(value);
     }
 
-    function chartHasBpmStop(chartData) {
+    function chartHasBpmStop(chartData: var) : var {
         let changes = chartData && chartData.bpmChanges ? chartData.bpmChanges : [];
         for (let i = 0; i < changes.length; ++i) {
             if ((changes[i].bpm || 0) === 0) {
@@ -1577,7 +1577,7 @@ Item {
         return false;
     }
 
-    function clearTypeValue(clearType) {
+    function clearTypeValue(clearType: var) : var {
         switch (String(clearType || "NOPLAY")) {
         case "FAILED":
             return 1;
@@ -1602,7 +1602,7 @@ Item {
         }
     }
 
-    function dateTimeNumber(num) {
+    function dateTimeNumber(num: var) : var {
         switch (num) {
         case 20:
             return root.lr2CurrentFps;
@@ -1629,19 +1629,19 @@ Item {
         }
     }
 
-    function updateLr2DateTimeNumbers() {
+    function updateLr2DateTimeNumbers() : void {
         wallClockState.update();
     }
 
-    function isGameplayScreen() {
+    function isGameplayScreen() : var {
         return root.gameplayScreenActive;
     }
 
-    function isResultScreen() {
+    function isResultScreen() : var {
         return root.resultScreenActive;
     }
 
-    function chartStatusValue(status) {
+    function chartStatusValue(status: var) : var {
         if (status === ChartRunner.Loading || status === "Loading") {
             return ChartRunner.Loading;
         }
@@ -1673,15 +1673,15 @@ Item {
         return isNaN(numeric) ? ChartRunner.Loading : numeric;
     }
 
-    function chartStatusIs(status, expected) {
+    function chartStatusIs(status: var, expected: var) : var {
         return root.chartStatusValue(status) === expected;
     }
 
-    function chartStatusAtLeast(status, minimum) {
+    function chartStatusAtLeast(status: var, minimum: var) : var {
         return root.chartStatusValue(status) >= minimum;
     }
 
-    function gameplayStatusAtLeast(minimum) {
+    function gameplayStatusAtLeast(minimum: var) : var {
         if (!root.chart || root.chart.status === undefined) {
             return false;
         }
@@ -1707,25 +1707,25 @@ Item {
         return false;
     }
 
-    function isCourseGameplay() {
+    function isCourseGameplay() : var {
         return !!(root.chart && root.chart.chartDatas && root.chart.currentChartIndex !== undefined);
     }
 
-    function gameplayProfiles() {
+    function gameplayProfiles() : var {
         return [
             root.chart && root.chart.player1 ? root.chart.player1.profile : null,
             root.chart && root.chart.player2 ? root.chart.player2.profile : null
         ];
     }
 
-    function stopGameplayLifecycle() {
+    function stopGameplayLifecycle() : void {
         root.gameplayStartArmed = false;
         skinTiming.stopGameplayStartTimer();
         gameplayReadySound.stop();
         gameplayStopSound.stop();
     }
 
-    function startGameplayWhenReady() {
+    function startGameplayWhenReady() : var {
         if (!root.enabled
                 || !root.isGameplayScreen()
                 || !root.chart
@@ -1746,7 +1746,7 @@ Item {
         }
     }
 
-    function activateGameplayIfNeeded() {
+    function activateGameplayIfNeeded() : var {
         if (!root.enabled
                 || !root.isGameplayScreen()
                 || !root.chart
@@ -1787,7 +1787,7 @@ Item {
         root.startGameplayWhenReady();
     }
 
-    function openGameplayStageResult() {
+    function openGameplayStageResult() : var {
         if (!root.enabled
                 || !root.isGameplayScreen()
                 || !root.chart
@@ -1805,7 +1805,7 @@ Item {
         globalRoot.openResult(scores, profiles, chartData);
     }
 
-    function handleGameplayStatusChanged() {
+    function handleGameplayStatusChanged() : var {
         root.updateGameplayStatusTimers();
         if (!root.enabled || !root.isGameplayScreen() || !root.chart) {
             return;
@@ -1820,7 +1820,7 @@ Item {
         }
     }
 
-    function gameplayHitCountsAsPlayed(hit) {
+    function gameplayHitCountsAsPlayed(hit: var) : var {
         if (!hit || !hit.points) {
             return false;
         }
@@ -1831,7 +1831,7 @@ Item {
             && judgement !== Judgement.MineAvoided;
     }
 
-    function handleGameplayEscape() {
+    function handleGameplayEscape() : var {
         if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
             return false;
         }
@@ -1846,7 +1846,7 @@ Item {
         return true;
     }
 
-    function gameplayChartData() {
+    function gameplayChartData() : var {
         if (!root.chart) {
             return null;
         }
@@ -1859,85 +1859,85 @@ Item {
         return null;
     }
 
-    function resultScore(side) { return resultState.resultScore(side); }
-    function resultData(side) { return resultState.resultData(side); }
-    function resultProfile(side) { return resultState.resultProfile(side); }
-    function resultChartData() { return resultState.resultChartData(); }
-    function displayChartData() {
+    function resultScore(side: var) : var { return resultState.resultScore(side); }
+    function resultData(side: var) : var { return resultState.resultData(side); }
+    function resultProfile(side: var) : var { return resultState.resultProfile(side); }
+    function resultChartData() : var { return resultState.resultChartData(); }
+    function displayChartData() : var {
         if (root.effectiveScreenKey === "select") {
             return selectContext.selectedChartData();
         }
         return resultState.displayChartData();
     }
-    function resultClearOption() { return resultState.resultClearOption(); }
-    function resultTotalNotes(result) { return resultState.resultTotalNotes(result); }
-    function resultJudgementCount(result, judgement) { return resultState.resultJudgementCount(result, judgement); }
-    function resultPoorCount(result) { return resultState.resultPoorCount(result); }
-    function resultBadPoor(result) { return resultState.resultBadPoor(result); }
-    function emptyJudgeTimingCounts() { return resultState.emptyJudgeTimingCounts(); }
-    function judgementTimingBucket(judgement) { return resultState.judgementTimingBucket(judgement); }
-    function hitDeviationNanos(hit) { return resultState.hitDeviationNanos(hit); }
-    function hitDeviationMillis(hit) { return resultState.hitDeviationMillis(hit); }
-    function judgementUpdatesJudgeTimingValue(judgement) { return resultState.judgementUpdatesJudgeTimingValue(judgement); }
-    function cloneJudgeTimingCounts(counts) { return resultState.cloneJudgeTimingCounts(counts); }
-    function emptyJudgeLaneValues() { return resultState.emptyJudgeLaneValues(); }
-    function nowJudgeValue(judgement) { return resultState.nowJudgeValue(judgement); }
-    function laneJudgeValue(judgement, timing) { return resultState.laneJudgeValue(judgement, timing); }
-    function setGameplayJudgeLaneValue(scoreSide, hit, value) { resultState.setGameplayJudgeLaneValue(scoreSide, hit, value); }
-    function gameplayJudgeValueForId(num) { return resultState.gameplayJudgeValueForId(num); }
-    function recordGameplayJudgeTiming(scoreSide, hit) { resultState.recordGameplayJudgeTiming(scoreSide, hit); }
-    function judgeTimingCount(counts, bucket, early) { return resultState.judgeTimingCount(counts, bucket, early); }
-    function judgeTimingNumberFromCounts(num, counts) { return resultState.judgeTimingNumberFromCounts(num, counts); }
-    function resultCacheKey(score) { return resultState.resultCacheKey(score); }
-    function resultJudgeTimingCounts(side) { return resultState.resultJudgeTimingCounts(side); }
-    function resultTimingStats(side) { return resultState.resultTimingStats(side); }
-    function signedAfterDot(value) { return resultState.signedAfterDot(value); }
-    function resultGaugeInfo(side) { return resultState.resultGaugeInfo(side); }
-    function resultGaugeValue(side) { return resultState.resultGaugeValue(side); }
-    function gaugeAfterDot(value) { return resultState.gaugeAfterDot(value); }
-    function resultExScore(result) { return resultState.resultExScore(result); }
-    function resultLr2Score(result) { return resultState.resultLr2Score(result); }
-    function resultScorePrint(result) { return resultState.resultScorePrint(result); }
-    function resultRateInteger(result) { return resultState.resultRateInteger(result); }
-    function resultRateDecimal(result) { return resultState.resultRateDecimal(result); }
-    function resultScoreRateInteger(points, result) { return resultState.resultScoreRateInteger(points, result); }
-    function resultScoreRateDecimal(points, result) { return resultState.resultScoreRateDecimal(points, result); }
-    function resultRawRank(result) { return resultState.resultRawRank(result); }
-    function resultRankDelta(result) { return resultState.resultRankDelta(result); }
-    function resultRankOptionForResult(result, baseOption) { return resultState.resultRankOptionForResult(result, baseOption); }
-    function resultOldScores(side) { return resultState.resultOldScores(side); }
-    function resultBestScoreByPoints(scores) { return resultState.resultBestScoreByPoints(scores); }
-    function resultOldBestScore(side) { return resultState.resultOldBestScore(side); }
-    function resultLastOldScore(side) { return resultState.resultLastOldScore(side); }
-    function resultTargetSavedScore(side) { return resultState.resultTargetSavedScore(side); }
-    function resultTargetFraction(side) { return resultState.resultTargetFraction(side); }
-    function resultTargetPoints(side) { return resultState.resultTargetPoints(side); }
-    function resultHighScorePoints(side) { return resultState.resultHighScorePoints(side); }
-    function resultTargetMaxPoints(side) { return resultState.resultTargetMaxPoints(side); }
-    function resultOldBestResult(side) { return resultState.resultOldBestResult(side); }
-    function resultUpdatedBestResult(side) { return resultState.resultUpdatedBestResult(side); }
-    function resultScoreImproved(side) { return resultState.resultScoreImproved(side); }
-    function resultComboImproved(side) { return resultState.resultComboImproved(side); }
-    function resultBadPoorImproved(side) { return resultState.resultBadPoorImproved(side); }
-    function updateResultOldScores() { resultState.updateResultOldScores(); }
-    function gameplayPlayer(side) {
+    function resultClearOption() : var { return resultState.resultClearOption(); }
+    function resultTotalNotes(result: var) : var { return resultState.resultTotalNotes(result); }
+    function resultJudgementCount(result: var, judgement: var) : var { return resultState.resultJudgementCount(result, judgement); }
+    function resultPoorCount(result: var) : var { return resultState.resultPoorCount(result); }
+    function resultBadPoor(result: var) : var { return resultState.resultBadPoor(result); }
+    function emptyJudgeTimingCounts() : var { return resultState.emptyJudgeTimingCounts(); }
+    function judgementTimingBucket(judgement: var) : var { return resultState.judgementTimingBucket(judgement); }
+    function hitDeviationNanos(hit: var) : var { return resultState.hitDeviationNanos(hit); }
+    function hitDeviationMillis(hit: var) : var { return resultState.hitDeviationMillis(hit); }
+    function judgementUpdatesJudgeTimingValue(judgement: var) : var { return resultState.judgementUpdatesJudgeTimingValue(judgement); }
+    function cloneJudgeTimingCounts(counts: var) : var { return resultState.cloneJudgeTimingCounts(counts); }
+    function emptyJudgeLaneValues() : var { return resultState.emptyJudgeLaneValues(); }
+    function nowJudgeValue(judgement: var) : var { return resultState.nowJudgeValue(judgement); }
+    function laneJudgeValue(judgement: var, timing: var) : var { return resultState.laneJudgeValue(judgement, timing); }
+    function setGameplayJudgeLaneValue(scoreSide: var, hit: var, value: var) : void { resultState.setGameplayJudgeLaneValue(scoreSide, hit, value); }
+    function gameplayJudgeValueForId(num: var) : var { return resultState.gameplayJudgeValueForId(num); }
+    function recordGameplayJudgeTiming(scoreSide: var, hit: var) : void { resultState.recordGameplayJudgeTiming(scoreSide, hit); }
+    function judgeTimingCount(counts: var, bucket: var, early: var) : var { return resultState.judgeTimingCount(counts, bucket, early); }
+    function judgeTimingNumberFromCounts(num: var, counts: var) : var { return resultState.judgeTimingNumberFromCounts(num, counts); }
+    function resultCacheKey(score: var) : var { return resultState.resultCacheKey(score); }
+    function resultJudgeTimingCounts(side: var) : var { return resultState.resultJudgeTimingCounts(side); }
+    function resultTimingStats(side: var) : var { return resultState.resultTimingStats(side); }
+    function signedAfterDot(value: var) : var { return resultState.signedAfterDot(value); }
+    function resultGaugeInfo(side: var) : var { return resultState.resultGaugeInfo(side); }
+    function resultGaugeValue(side: var) : var { return resultState.resultGaugeValue(side); }
+    function gaugeAfterDot(value: var) : var { return resultState.gaugeAfterDot(value); }
+    function resultExScore(result: var) : var { return resultState.resultExScore(result); }
+    function resultLr2Score(result: var) : var { return resultState.resultLr2Score(result); }
+    function resultScorePrint(result: var) : var { return resultState.resultScorePrint(result); }
+    function resultRateInteger(result: var) : var { return resultState.resultRateInteger(result); }
+    function resultRateDecimal(result: var) : var { return resultState.resultRateDecimal(result); }
+    function resultScoreRateInteger(points: var, result: var) : var { return resultState.resultScoreRateInteger(points, result); }
+    function resultScoreRateDecimal(points: var, result: var) : var { return resultState.resultScoreRateDecimal(points, result); }
+    function resultRawRank(result: var) : var { return resultState.resultRawRank(result); }
+    function resultRankDelta(result: var) : var { return resultState.resultRankDelta(result); }
+    function resultRankOptionForResult(result: var, baseOption: var) : var { return resultState.resultRankOptionForResult(result, baseOption); }
+    function resultOldScores(side: var) : var { return resultState.resultOldScores(side); }
+    function resultBestScoreByPoints(scores: var) : var { return resultState.resultBestScoreByPoints(scores); }
+    function resultOldBestScore(side: var) : var { return resultState.resultOldBestScore(side); }
+    function resultLastOldScore(side: var) : var { return resultState.resultLastOldScore(side); }
+    function resultTargetSavedScore(side: var) : var { return resultState.resultTargetSavedScore(side); }
+    function resultTargetFraction(side: var) : var { return resultState.resultTargetFraction(side); }
+    function resultTargetPoints(side: var) : var { return resultState.resultTargetPoints(side); }
+    function resultHighScorePoints(side: var) : var { return resultState.resultHighScorePoints(side); }
+    function resultTargetMaxPoints(side: var) : var { return resultState.resultTargetMaxPoints(side); }
+    function resultOldBestResult(side: var) : var { return resultState.resultOldBestResult(side); }
+    function resultUpdatedBestResult(side: var) : var { return resultState.resultUpdatedBestResult(side); }
+    function resultScoreImproved(side: var) : var { return resultState.resultScoreImproved(side); }
+    function resultComboImproved(side: var) : var { return resultState.resultComboImproved(side); }
+    function resultBadPoorImproved(side: var) : var { return resultState.resultBadPoorImproved(side); }
+    function updateResultOldScores() : void { resultState.updateResultOldScores(); }
+    function gameplayPlayer(side: var) : var {
         if (!root.chart) {
             return null;
         }
         return side === 2 ? root.chart.player2 : root.chart.player1;
     }
 
-    function gameplayKeymode() {
+    function gameplayKeymode() : var {
         let chartData = root.gameplayChartData();
         return chartData ? chartData.keymode || 0 : 0;
     }
 
-    function gameplayUsesDoublePlayLanes() {
+    function gameplayUsesDoublePlayLanes() : var {
         let keymode = root.gameplayKeymode();
         return keymode === 10 || keymode === 14;
     }
 
-    function gameplayLanePlayer(side) {
+    function gameplayLanePlayer(side: var) : var {
         if (!root.chart) {
             return null;
         }
@@ -1947,7 +1947,7 @@ Item {
         return root.chart.player1;
     }
 
-    function gameplayEngineColumnForLr2Lane(lane) {
+    function gameplayEngineColumnForLr2Lane(lane: var) : var {
         if (lane >= 10) {
             if (root.chart && root.chart.player2) {
                 return lane === 10 ? 7 : lane - 11;
@@ -1957,7 +1957,7 @@ Item {
         return lane === 0 ? 7 : lane - 1;
     }
 
-    function gameplayLr2LaneForKeyTimer(timer) {
+    function gameplayLr2LaneForKeyTimer(timer: var) : var {
         if (timer === 100) {
             return 0;
         }
@@ -1973,7 +1973,7 @@ Item {
         return -1;
     }
 
-    function gameplayLr2LaneForLongNoteTimer(timer) {
+    function gameplayLr2LaneForLongNoteTimer(timer: var) : var {
         if (timer === 70) {
             return 0;
         }
@@ -1989,19 +1989,19 @@ Item {
         return -1;
     }
 
-    function gameplayCoursePlayer(side) {
+    function gameplayCoursePlayer(side: var) : var {
         if (!root.chart) {
             return null;
         }
         return side === 2 ? root.chart.coursePlayer2 : root.chart.coursePlayer1;
     }
 
-    function gameplayScore(side) {
+    function gameplayScore(side: var) : var {
         let player = root.gameplayPlayer(side);
         return player ? player.score : null;
     }
 
-    function gameplayTotalNotes(score) {
+    function gameplayTotalNotes(score: var) : var {
         if (!score) {
             return 0;
         }
@@ -2012,32 +2012,32 @@ Item {
         return Math.max(0, score.maxHits || 0);
     }
 
-    function gameplayCurrentNotes(score) {
+    function gameplayCurrentNotes(score: var) : var {
         if (!score) {
             return 0;
         }
         return Math.floor(Math.max(0, score.maxPointsNow || 0) / 2);
     }
 
-    function gameplayExScore(score) {
+    function gameplayExScore(score: var) : var {
         return score ? Math.floor(score.points || 0) : 0;
     }
 
-    function gameplaySavedScorePoints(score) {
+    function gameplaySavedScorePoints(score: var) : var {
         return score && score.result ? Math.floor(score.result.points || 0) : 0;
     }
 
-    function gameplayScoreRateInteger(points, score) {
+    function gameplayScoreRateInteger(points: var, score: var) : var {
         let denominator = root.gameplayTotalNotes(score) * 2;
         return denominator > 0 ? Math.floor(points * 100 / denominator) : 0;
     }
 
-    function gameplayScoreRateDecimal(points, score) {
+    function gameplayScoreRateDecimal(points: var, score: var) : var {
         let denominator = root.gameplayTotalNotes(score) * 2;
         return denominator > 0 ? Math.floor(points * 10000 / denominator) % 100 : 0;
     }
 
-    function gameplayBestSavedScore() {
+    function gameplayBestSavedScore() : var {
         root.gameplayScoresRevision;
         let scores = root.gameplayScores1 || [];
         let best = null;
@@ -2052,13 +2052,13 @@ Item {
         return best;
     }
 
-    function gameplayLastSavedScore() {
+    function gameplayLastSavedScore() : var {
         root.gameplayScoresRevision;
         let scores = root.gameplayScores1 || [];
         return scores.length > 0 ? scores[0] : null;
     }
 
-    function gameplayTargetSavedScore() {
+    function gameplayTargetSavedScore() : var {
         let player = root.gameplayPlayer(1);
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
@@ -2073,7 +2073,7 @@ Item {
         }
     }
 
-    function gameplayTargetFraction() {
+    function gameplayTargetFraction() : var {
         let player = root.gameplayPlayer(1);
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
@@ -2081,12 +2081,12 @@ Item {
         return vars ? (vars.targetScoreFraction || 0) : 0;
     }
 
-    function gameplayHighScorePoints() {
+    function gameplayHighScorePoints() : var {
         root.gameplayScoresRevision;
         return root.gameplayBestSavedScore() ? Math.floor(gameplayBestScoreReplayer.points || 0) : 0;
     }
 
-    function gameplayTargetScorePoints() {
+    function gameplayTargetScorePoints() : var {
         root.gameplayScoresRevision;
         if (root.battleModeActive()) {
             return root.gameplayExScore(root.gameplayScore(2));
@@ -2098,7 +2098,7 @@ Item {
         return score ? Math.floor((score.maxPointsNow || 0) * root.gameplayTargetFraction()) : 0;
     }
 
-    function gameplayTargetFinalPoints() {
+    function gameplayTargetFinalPoints() : var {
         if (root.battleModeActive()) {
             return 0;
         }
@@ -2110,12 +2110,12 @@ Item {
         return score ? Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction()) : 0;
     }
 
-    function resetGameplayScoreReplayers() {
+    function resetGameplayScoreReplayers() : void {
         gameplayTargetScoreReplayer.resetPoints();
         gameplayBestScoreReplayer.resetPoints();
     }
 
-    function updateGameplaySavedScores() {
+    function updateGameplaySavedScores() : var {
         root.gameplayScoreRequest += 1;
         let request = root.gameplayScoreRequest;
         root.gameplayScores1 = [];
@@ -2147,7 +2147,7 @@ Item {
         });
     }
 
-    function notifyGameplayReplayHit(hit) {
+    function notifyGameplayReplayHit(hit: var) : void {
         if (root.gameplayTargetSavedScore()) {
             gameplayTargetScoreReplayer.notifyHit(hit);
         }
@@ -2156,15 +2156,15 @@ Item {
         }
     }
 
-    function gameplayJudgementCount(score, judgement) {
+    function gameplayJudgementCount(score: var, judgement: var) : var {
         return score && score.judgementCount ? score.judgementCount(judgement) : 0;
     }
 
-    function gameplayPoorCount(score) {
+    function gameplayPoorCount(score: var) : var {
         return root.gameplayJudgementCount(score, 0) + root.gameplayJudgementCount(score, 1);
     }
 
-    function gameplayLr2Score(score) {
+    function gameplayLr2Score(score: var) : var {
         let totalNotes = root.gameplayTotalNotes(score);
         if (totalNotes <= 0) {
             return 0;
@@ -2175,13 +2175,13 @@ Item {
         return Math.floor((good + (great + pgreat * 2) * 2) * 50000 / totalNotes);
     }
 
-    function gameplayScorePrint(score, chartData) {
+    function gameplayScorePrint(score: var, chartData: var) : var {
         let value = root.gameplayLr2Score(score);
         let keymode = chartData ? chartData.keymode : 0;
         return keymode === 7 || keymode === 14 ? value : Math.floor(value / 20) * 10;
     }
 
-    function lr2LinearValueByTime(from, to, start, end, now) {
+    function lr2LinearValueByTime(from: var, to: var, start: var, end: var, now: var) : var {
         if (from === to) {
             return from;
         }
@@ -2192,11 +2192,11 @@ Item {
         return start < now ? to : from;
     }
 
-    function gameplayScorePrintTargetValue(side) {
+    function gameplayScorePrintTargetValue(side: var) : var {
         return root.gameplayScorePrint(root.gameplayScore(side), root.gameplayChartData());
     }
 
-    function gameplayDisplayedScorePrint(side) {
+    function gameplayDisplayedScorePrint(side: var) : var {
         let startName = side === 2 ? "gameplayScorePrintStart2" : "gameplayScorePrintStart1";
         let targetName = side === 2 ? "gameplayScorePrintTarget2" : "gameplayScorePrintTarget1";
         let startTimeName = side === 2 ? "gameplayScorePrintStartSkinTime2" : "gameplayScorePrintStartSkinTime1";
@@ -2211,7 +2211,7 @@ Item {
             start, target, root[startTimeName], root[endTimeName], now));
     }
 
-    function resetGameplayScorePrint() {
+    function resetGameplayScorePrint() : void {
         let value1 = root.gameplayScorePrintTargetValue(1);
         let value2 = root.gameplayScorePrintTargetValue(2);
         root.gameplayScorePrintStart1 = value1;
@@ -2224,7 +2224,7 @@ Item {
         root.gameplayScorePrintEndSkinTime2 = root.renderSkinTime;
     }
 
-    function updateGameplayScorePrintTarget(side) {
+    function updateGameplayScorePrintTarget(side: var) : var {
         let targetName = side === 2 ? "gameplayScorePrintTarget2" : "gameplayScorePrintTarget1";
         let newTarget = root.gameplayScorePrintTargetValue(side);
         if (newTarget === root[targetName]) {
@@ -2245,7 +2245,7 @@ Item {
         }
     }
 
-    function gameplayCombo(side, maxCombo) {
+    function gameplayCombo(side: var, maxCombo: var) : var {
         let coursePlayer = root.gameplayCoursePlayer(side);
         if (coursePlayer) {
             return maxCombo ? (coursePlayer.maxCombo || 0) : (coursePlayer.combo || 0);
@@ -2254,24 +2254,24 @@ Item {
         return score ? (maxCombo ? (score.maxCombo || 0) : (score.combo || 0)) : 0;
     }
 
-    function gameplayGaugeValue(score) {
+    function gameplayGaugeValue(score: var) : var {
         let gauge = root.gameplayActiveGauge(score);
         return gauge ? (gauge.gauge || 0) : 0;
     }
 
-    function gameplayRateInteger(score, currentOnly) {
+    function gameplayRateInteger(score: var, currentOnly: var) : var {
         let notes = currentOnly ? root.gameplayCurrentNotes(score) : root.gameplayTotalNotes(score);
         let denominator = notes * 2;
         return denominator > 0 ? Math.floor(root.gameplayExScore(score) * 100 / denominator) : 0;
     }
 
-    function gameplayRateDecimal(score, currentOnly) {
+    function gameplayRateDecimal(score: var, currentOnly: var) : var {
         let notes = currentOnly ? root.gameplayCurrentNotes(score) : root.gameplayTotalNotes(score);
         let denominator = notes * 2;
         return denominator > 0 ? Math.floor(root.gameplayExScore(score) * 10000 / denominator) % 100 : 0;
     }
 
-    function gameplayRankDelta(score) {
+    function gameplayRankDelta(score: var) : var {
         let totalNotes = root.gameplayTotalNotes(score);
         let perfectScore = totalNotes * 2;
         let exScore = root.gameplayExScore(score);
@@ -2283,7 +2283,7 @@ Item {
         return exScore - Math.floor(perfectScore * (rank + 1) / 9);
     }
 
-    function gameplayTimeSeconds(side, remaining) {
+    function gameplayTimeSeconds(side: var, remaining: var) : var {
         let player = root.gameplayPlayer(side);
         if (!player) {
             return 0;
@@ -2296,7 +2296,7 @@ Item {
         return Math.max(0, length - elapsed);
     }
 
-    function gameplayRawRank(score, currentOnly) {
+    function gameplayRawRank(score: var, currentOnly: var) : var {
         let notes = currentOnly ? root.gameplayCurrentNotes(score) : root.gameplayTotalNotes(score);
         let denominator = notes * 2;
         if (denominator <= 0) {
@@ -2305,7 +2305,7 @@ Item {
         return Math.floor(root.gameplayExScore(score) * 9 / denominator);
     }
 
-    function gameplayRankOption(score, baseOption, currentOnly) {
+    function gameplayRankOption(score: var, baseOption: var, currentOnly: var) : var {
         let rank = root.gameplayRawRank(score, currentOnly);
         if (rank < 0) {
             return -1;
@@ -2334,7 +2334,7 @@ Item {
         return baseOption + 7;
     }
 
-    function gameplayExactRankOption(score, baseOption) {
+    function gameplayExactRankOption(score: var, baseOption: var) : var {
         if (!score || root.gameplayExScore(score) <= 0) {
             return baseOption + 8;
         }
@@ -2351,18 +2351,18 @@ Item {
         return baseOption + (8 - rank);
     }
 
-    function addGameplayGaugeRangeOption(options, score, baseOption) {
+    function addGameplayGaugeRangeOption(options: var, score: var, baseOption: var) : void {
         let gauge = Math.floor(root.gameplayGaugeValue(score));
         let bucket = gauge >= 100 ? 10 : Math.max(0, Math.floor(gauge / 10));
         root.addOption(options, baseOption + bucket);
     }
 
-    function gameplayGaugeQualified(score) {
+    function gameplayGaugeQualified(score: var) : var {
         let gauge = root.gameplayActiveGauge(score);
         return gauge ? (gauge.gauge || 0) > (gauge.threshold || 0) : false;
     }
 
-    function gameplayGaugeOption(side) {
+    function gameplayGaugeOption(side: var) : var {
         let gauge = root.activeGaugeNameForSide(side);
         if (gauge === "HARD" || gauge === "EXHARD" || gauge === "DAN"
             || gauge === "EXDAN" || gauge === "EXHARDDAN") {
@@ -2377,7 +2377,7 @@ Item {
         return 118;
     }
 
-    function gameplayLaneOption(score) {
+    function gameplayLaneOption(score: var) : var {
         if (!score) {
             return 126;
         }
@@ -2397,7 +2397,7 @@ Item {
         }
     }
 
-    function gameplayLaneCoverOption(side) {
+    function gameplayLaneCoverOption(side: var) : var {
         let hidSud = root.lr2HidSudIndex(side);
         if (hidSud === 3) {
             return 137;
@@ -2411,22 +2411,22 @@ Item {
         return 134;
     }
 
-    function gameplayJudgementOption(side, baseOption) {
+    function gameplayJudgementOption(side: var, baseOption: var) : var {
         let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
     }
 
-    function gameplayPoorBgaOption(side, baseOption) {
+    function gameplayPoorBgaOption(side: var, baseOption: var) : var {
         let skinTime = side === 2 ? root.gameplayLastMissSkinTime2 : root.gameplayLastMissSkinTime1;
         return skinTime >= 0 && root.renderSkinTime - skinTime < 1000 ? baseOption + 1 : baseOption;
     }
 
-    function gameplayPoorBgaVisible() {
+    function gameplayPoorBgaVisible() : var {
         root.gameplayRevision;
         return root.gameplayPoorBgaOption(1, 247) === 248;
     }
 
-    function judgementCountForExist(resultOrScore, judgement) {
+    function judgementCountForExist(resultOrScore: var, judgement: var) : var {
         if (!resultOrScore) {
             return 0;
         }
@@ -2436,7 +2436,7 @@ Item {
         return root.resultJudgementCount(resultOrScore, judgement);
     }
 
-    function gameplaySudChanging(side) {
+    function gameplaySudChanging(side: var) : var {
         let vars = root.generalVarsForSide(side);
         let laneCoverOn = !!vars && !!vars.laneCoverOn;
         if (side === 1) {
@@ -2448,16 +2448,16 @@ Item {
         return Input.col2sUp || Input.col2sDown;
     }
 
-    function gameplayLaneCoverChangingOptionActive() {
+    function gameplayLaneCoverChangingOptionActive() : var {
         return root.isGameplayScreen()
             && (Input.start1 || Input.select1 || Input.start2 || Input.select2);
     }
 
-    function bumpGameplayRevision() {
+    function bumpGameplayRevision() : void {
         root.gameplayRevision++;
     }
 
-    function bumpGameplayNumberRevision(side) {
+    function bumpGameplayNumberRevision(side: var) : void {
         if (side === 2) {
             root.gameplayNumberRevision2++;
         } else if (side === 1) {
@@ -2468,7 +2468,7 @@ Item {
         }
     }
 
-    function requestGameplayRevisionRefresh(side) {
+    function requestGameplayRevisionRefresh(side: var) : var {
         if (!root.isGameplayScreen()) {
             return;
         }
@@ -2484,24 +2484,24 @@ Item {
         root.requestGameplayRuntimeRefresh();
     }
 
-    function flushGameplayRevisionRefresh() {
+    function flushGameplayRevisionRefresh() : void {
         root.flushGameplayRuntimeRefresh();
     }
 
-    function bumpGameplayTimerRevision() {
+    function bumpGameplayTimerRevision() : void {
         root.gameplayTimerRevision++;
     }
 
-    function requestGameplayTimerRevision() {
+    function requestGameplayTimerRevision() : void {
         root.gameplayTimerRevisionPending = true;
         root.requestGameplayRuntimeRefresh();
     }
 
-    function flushGameplayTimerRevision() {
+    function flushGameplayTimerRevision() : void {
         root.flushGameplayRuntimeRefresh();
     }
 
-    function requestGameplayRuntimeRefresh() {
+    function requestGameplayRuntimeRefresh() : var {
         if (root.gameplayRuntimeRefreshPending) {
             return;
         }
@@ -2509,7 +2509,7 @@ Item {
         Qt.callLater(root.flushGameplayRuntimeRefresh);
     }
 
-    function flushGameplayRuntimeRefresh() {
+    function flushGameplayRuntimeRefresh() : var {
         if (!root.gameplayRuntimeRefreshPending
                 && !root.gameplayTimerRevisionPending
                 && !root.gameplayRevisionRefreshPending
@@ -2543,14 +2543,14 @@ Item {
         }
     }
 
-    function updateGameplayStaticNumberRevision() {
+    function updateGameplayStaticNumberRevision() : void {
         root.gameplayStaticNumberRevision++;
         let chartData = root.gameplayChartData();
         let chartKey = chartData ? (chartData.md5 || chartData.sha256 || chartData.title || "") : "";
         root.gameplayStaticNumberRevisionKey = "static|" + root.gameplayStaticNumberRevision + "|" + chartKey;
     }
 
-    function gameplayNumberRevisionKind(src) {
+    function gameplayNumberRevisionKind(src: var) : var {
         if (!root.gameplayScreenActive) {
             return 0;
         }
@@ -2593,7 +2593,7 @@ Item {
         return 3;
     }
 
-    function gameplayNumberRevisionForKind(kind) {
+    function gameplayNumberRevisionForKind(kind: var) : var {
         switch (kind) {
         case 1:
             return "p1|" + root.gameplayNumberRevision1 + "|" + root.gameplayJudgeRevision1;
@@ -2615,7 +2615,7 @@ Item {
         }
     }
 
-    function setGameplayTimerValue(timer, skinTime) {
+    function setGameplayTimerValue(timer: var, skinTime: var) : var {
         if (!timer || skinTime < 0) {
             return;
         }
@@ -2624,7 +2624,7 @@ Item {
         }
     }
 
-    function clearGameplayTimerValue(timer) {
+    function clearGameplayTimerValue(timer: var) : var {
         if (!timer) {
             return;
         }
@@ -2633,13 +2633,13 @@ Item {
         }
     }
 
-    function resetGameplayTimerValues() {
+    function resetGameplayTimerValues() : void {
         if (skinTiming.resetGameplayTimerValues()) {
             root.gameplayTimerRevision++;
         }
     }
 
-    function resetGameplayTimers() {
+    function resetGameplayTimers() : void {
         root.stopLr2GameplayOptionRepeat();
         root.gameplayReadySkinTime = -1;
         root.gameplayStartSkinTime = -1;
@@ -2680,7 +2680,7 @@ Item {
         root.resetGameplayTimerValues();
     }
 
-    function updateGameplayStatusTimers() {
+    function updateGameplayStatusTimers() : var {
         if (!root.isGameplayScreen() || !root.chart || root.chart.status === undefined) {
             return;
         }
@@ -2709,7 +2709,7 @@ Item {
         }
     }
 
-    function gameplayLr2LaneForHit(side, hit) {
+    function gameplayLr2LaneForHit(side: var, hit: var) : var {
         if (!hit || hit.column === undefined) {
             return -1;
         }
@@ -2733,14 +2733,14 @@ Item {
         return column >= 0 && column <= 6 ? column + 1 : -1;
     }
 
-    function gameplayHitDisplaySide(scoreSide, hit) {
+    function gameplayHitDisplaySide(scoreSide: var, hit: var) : var {
         if (scoreSide === 2) {
             return 2;
         }
         return root.gameplayLr2LaneForHit(scoreSide, hit) >= 10 ? 2 : 1;
     }
 
-    function gameplayNoteForHit(side, hit) {
+    function gameplayNoteForHit(side: var, hit: var) : var {
         if (!hit || hit.noteIndex === undefined || hit.noteIndex < 0) {
             return null;
         }
@@ -2752,7 +2752,7 @@ Item {
         return notes && hit.noteIndex < notes.length ? notes[hit.noteIndex] : null;
     }
 
-    function updateGameplayHitEffectTimers(side, hit) {
+    function updateGameplayHitEffectTimers(side: var, hit: var) : var {
         if (!hit) {
             return;
         }
@@ -2796,19 +2796,19 @@ Item {
         }
     }
 
-    function gameplayJudgementFromHit(hit) {
+    function gameplayJudgementFromHit(hit: var) : var {
         return hit && hit.points && hit.points.judgement !== undefined
             ? hit.points.judgement
             : -1;
     }
 
-    function gameplayJudgeComboForHit(scoreSide, judgement) {
+    function gameplayJudgeComboForHit(scoreSide: var, judgement: var) : var {
         return judgement >= Judgement.Good && judgement <= Judgement.Perfect
             ? root.gameplayCombo(scoreSide, false)
             : 0;
     }
 
-    function updateGameplayHitTimers(displaySide, hit, scoreSide) {
+    function updateGameplayHitTimers(displaySide: var, hit: var, scoreSide: var) : var {
         scoreSide = scoreSide || displaySide;
         let score = root.gameplayScore(scoreSide);
         if (!score) {
@@ -2890,13 +2890,13 @@ Item {
         root[previousComboName] = currentChartCombo;
     }
 
-    function addGameplayTimer(result, timer, skinTime) {
+    function addGameplayTimer(result: var, timer: var, skinTime: var) : void {
         if (skinTime >= 0) {
             result[timer] = skinTime;
         }
     }
 
-    function gameplayRhythmTimerSkinTime() {
+    function gameplayRhythmTimerSkinTime() : var {
         if (root.isGameplayScreen()) {
             return gameplayFrameState.rhythmTimerSkinTime;
         }
@@ -2916,16 +2916,16 @@ Item {
         return Math.max(0, Math.round(root.renderSkinTime - rhythm));
     }
 
-    function resetGameplayFrameSamples() {
+    function resetGameplayFrameSamples() : void {
         gameplayFrameState.reset();
     }
 
-    function refreshGameplayFrameSamples(frameSkinTime) {
+    function refreshGameplayFrameSamples(frameSkinTime: var) : void {
         let sampleSkinTime = frameSkinTime === undefined ? root.renderSkinTime : frameSkinTime;
         gameplayFrameState.refresh(sampleSkinTime);
     }
 
-    function addGameplayTimers(result) {
+    function addGameplayTimers(result: var) : var {
         if (!root.isGameplayScreen()) {
             return;
         }
@@ -2951,7 +2951,7 @@ Item {
         root.addGameplayEffectTimers(result);
     }
 
-    function addGameplayEffectTimers(result) {
+    function addGameplayEffectTimers(result: var) : void {
         for (let keyName in root.gameplayHitTimerStarts) {
             result[keyName] = root.gameplayHitTimerStarts[keyName];
         }
@@ -2960,7 +2960,7 @@ Item {
         }
     }
 
-    function initialGameplayOffButtonTimers() {
+    function initialGameplayOffButtonTimers() : var {
         let result = {};
         for (let timer = 120; timer <= 127; ++timer) {
             result[timer] = 0;
@@ -2971,7 +2971,7 @@ Item {
         return result;
     }
 
-    function gameplayKeyOnTimerForKey(key) {
+    function gameplayKeyOnTimerForKey(key: var) : var {
         switch (key) {
         case BmsKey.Col1sUp:
         case BmsKey.Col1sDown:
@@ -3012,18 +3012,18 @@ Item {
         }
     }
 
-    function gameplayKeyOffTimerForOnTimer(timer) {
+    function gameplayKeyOffTimerForOnTimer(timer: var) : var {
         return ((timer >= 100 && timer <= 107) || (timer >= 110 && timer <= 117))
             ? timer + 20
             : 0;
     }
 
-    function gameplayKeyTimerHeld(timer) {
+    function gameplayKeyTimerHeld(timer: var) : var {
         let columnState = root.gameplayColumnStateForKeyTimer(timer);
         return !!columnState && !!columnState.pressed;
     }
 
-    function setGameplayKeyTimerPressed(timer, pressed) {
+    function setGameplayKeyTimerPressed(timer: var, pressed: var) : var {
         if (!root.isGameplayScreen() || !root.chart) {
             return;
         }
@@ -3056,15 +3056,15 @@ Item {
         root.gameplayPreviousPressedTimers[timer] = pressed;
     }
 
-    function syncGameplayKeyTimerFromColumn(timer) {
+    function syncGameplayKeyTimerFromColumn(timer: var) : void {
         root.setGameplayKeyTimerPressed(timer, root.gameplayKeyTimerHeld(timer));
     }
 
-    function syncGameplayKeyTimerFromColumnState(timer, columnState) {
+    function syncGameplayKeyTimerFromColumnState(timer: var, columnState: var) : void {
         root.setGameplayKeyTimerPressed(timer, !!columnState && !!columnState.pressed);
     }
 
-    function setGameplayLongNoteTimerHeld(timer, held) {
+    function setGameplayLongNoteTimerHeld(timer: var, held: var) : var {
         if (!root.isGameplayScreen() || !root.chart) {
             return;
         }
@@ -3083,11 +3083,11 @@ Item {
         }
     }
 
-    function syncGameplayLongNoteTimerFromColumnState(timer, columnState) {
+    function syncGameplayLongNoteTimerFromColumnState(timer: var, columnState: var) : void {
         root.setGameplayLongNoteTimerHeld(timer, !!columnState && !!columnState.holdingLongNote);
     }
 
-    function gameplayColumnStateForLr2Lane(lane) {
+    function gameplayColumnStateForLr2Lane(lane: var) : var {
         if (lane < 0) {
             return null;
         }
@@ -3103,15 +3103,15 @@ Item {
                 : null;
     }
 
-    function gameplayColumnStateForKeyTimer(timer) {
+    function gameplayColumnStateForKeyTimer(timer: var) : var {
         return root.gameplayColumnStateForLr2Lane(root.gameplayLr2LaneForKeyTimer(timer));
     }
 
-    function gameplayColumnStateForLongNoteTimer(timer) {
+    function gameplayColumnStateForLongNoteTimer(timer: var) : var {
         return root.gameplayColumnStateForLr2Lane(root.gameplayLr2LaneForLongNoteTimer(timer));
     }
 
-    function syncGameplayKeyTimersFromColumns() {
+    function syncGameplayKeyTimersFromColumns() : var {
         if (!root.isGameplayScreen() || !root.chart) {
             return;
         }
@@ -3121,7 +3121,7 @@ Item {
         }
     }
 
-    function syncGameplayLongNoteTimersFromColumns() {
+    function syncGameplayLongNoteTimersFromColumns() : var {
         if (!root.isGameplayScreen() || !root.chart) {
             return;
         }
@@ -3133,7 +3133,7 @@ Item {
         }
     }
 
-    function pressGameplayButtonTimer(key) {
+    function pressGameplayButtonTimer(key: var) : var {
         if (!root.isGameplayScreen()) {
             return;
         }
@@ -3150,7 +3150,7 @@ Item {
         root.clearGameplayTimerValue(offTimer);
     }
 
-    function releaseGameplayButtonTimer(key) {
+    function releaseGameplayButtonTimer(key: var) : var {
         let onTimer = root.gameplayKeyOnTimerForKey(key);
         let offTimer = root.gameplayKeyOffTimerForOnTimer(onTimer);
         if (!onTimer || !offTimer) {
@@ -3164,7 +3164,7 @@ Item {
         root.setGameplayTimerValue(offTimer, root.renderSkinTime);
     }
 
-    function addGameplayKeyTimers(result) {
+    function addGameplayKeyTimers(result: var) : void {
         for (let keyName in root.gameplayHeldButtonTimerStarts) {
             result[keyName] = root.gameplayHeldButtonTimerStarts[keyName];
         }
@@ -3196,7 +3196,7 @@ Item {
     property var runtimeActiveOptions: []
     readonly property var barTimers: ({ "0": 0 })
 
-    function sameNumberArray(a, b) {
+    function sameNumberArray(a: var, b: var) : var {
         if (a === b) {
             return true;
         }
@@ -3211,7 +3211,7 @@ Item {
         return true;
     }
 
-    function numberArrayKey(values) {
+    function numberArrayKey(values: var) : var {
         if (!values || values.length === 0) {
             return "";
         }
@@ -3222,7 +3222,7 @@ Item {
         return values.__key;
     }
 
-    function activeOptionPresent(option, activeOptions) {
+    function activeOptionPresent(option: var, activeOptions: var) : var {
         if (!activeOptions || option === undefined || option === null) {
             return false;
         }
@@ -3232,7 +3232,7 @@ Item {
             : activeOptions.indexOf(option) !== -1;
     }
 
-    function activeOptionsForDsts(dsts, activeOptions) {
+    function activeOptionsForDsts(dsts: var, activeOptions: var) : var {
         if (!dsts || dsts.length === 0 || !dsts[0] || !activeOptions) {
             return root.emptyActiveOptions;
         }
@@ -3315,21 +3315,21 @@ Item {
         return Lr2ActiveOptionCache.put(key, ids);
     }
 
-    function refreshBaseActiveOptions() {
+    function refreshBaseActiveOptions() : var {
         return selectUpdateController.refreshBaseActiveOptions();
     }
 
-    function refreshSelectRuntimeActiveOptions() {
+    function refreshSelectRuntimeActiveOptions() : void {
         selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
-    function refreshSelectRankingStatusOptions() {
+    function refreshSelectRankingStatusOptions() : void {
         if (root.selectUsesRankingStatusOptions()) {
             root.refreshSelectRuntimeActiveOptions();
         }
     }
 
-    function appendGameplayRuntimeOptionSideKeyParts(parts, side) {
+    function appendGameplayRuntimeOptionSideKeyParts(parts: var, side: var) : void {
         let score = root.gameplayScore(side);
         let gaugeValue = Math.floor(root.gameplayGaugeValue(score));
         let gaugeBucket = gaugeValue >= 100 ? 10 : Math.max(0, Math.floor(gaugeValue / 10));
@@ -3357,7 +3357,7 @@ Item {
             root.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
     }
 
-    function gameplayRuntimeOptionStateKey() {
+    function gameplayRuntimeOptionStateKey() : var {
         if (!root.isGameplayScreen()) {
             return "";
         }
@@ -3429,7 +3429,7 @@ Item {
         return parts.join("|");
     }
 
-    function refreshGameplayRuntimeActiveOptions() {
+    function refreshGameplayRuntimeActiveOptions() : var {
         let nextKey = root.gameplayRuntimeOptionStateKey();
         if (nextKey === root.gameplayRuntimeActiveOptionsStateKey) {
             return false;
@@ -3481,14 +3481,14 @@ Item {
 
     Connections {
         target: selectContext
-        function onEntryChangeSoundsRequested(count) {
+        function onEntryChangeSoundsRequested(count: var) : var {
             let repeats = Math.max(0, Math.round(count || 0));
             if (repeats <= 0) {
                 return;
             }
             selectSideEffects.playScratchBurst(repeats);
         }
-        function onRankingModeChanged() {
+        function onRankingModeChanged() : void {
             if (root.refreshBaseActiveOptions()) {
                 root.refreshSelectRuntimeActiveOptions();
             }
@@ -3496,12 +3496,12 @@ Item {
     }
     Connections {
         target: lr2Ranking.rankingModel
-        function onLoadingChanged() { root.refreshSelectRankingStatusOptions(); }
-        function onRankingEntriesChanged() { root.refreshSelectRankingStatusOptions(); }
-        function onPlayerCountChanged() { root.refreshSelectRankingStatusOptions(); }
-        function onScoreCountChanged() { root.refreshSelectRankingStatusOptions(); }
-        function onClearCountsChanged() { root.refreshSelectRankingStatusOptions(); }
-        function onMd5Changed() { root.refreshSelectRankingStatusOptions(); }
+        function onLoadingChanged() : void { root.refreshSelectRankingStatusOptions(); }
+        function onRankingEntriesChanged() : void { root.refreshSelectRankingStatusOptions(); }
+        function onPlayerCountChanged() : void { root.refreshSelectRankingStatusOptions(); }
+        function onScoreCountChanged() : void { root.refreshSelectRankingStatusOptions(); }
+        function onClearCountsChanged() : void { root.refreshSelectRankingStatusOptions(); }
+        function onMd5Changed() : void { root.refreshSelectRankingStatusOptions(); }
     }
     onSelectPanelChanged: {
         if (root.refreshBaseActiveOptions()) {
@@ -3569,7 +3569,7 @@ Item {
     Connections {
         target: root.isGameplayScreen() ? root.chart : null
         ignoreUnknownSignals: true
-        function onCurrentChartIndexChanged() {
+        function onCurrentChartIndexChanged() : void {
             root.gameplayRevision++;
             root.bumpGameplayNumberRevision(0);
             root.updateGameplayStaticNumberRevision();
@@ -3582,7 +3582,7 @@ Item {
             root.updateGameplaySavedScores();
             root.activateGameplayIfNeeded();
         }
-        function onStatusChanged() {
+        function onStatusChanged() : void {
             root.gameplayRevision++;
             root.bumpGameplayNumberRevision(0);
             root.updateGameplayStaticNumberRevision();
@@ -3593,7 +3593,7 @@ Item {
     Connections {
         target: root.isGameplayScreen() ? root.gameplayScore(1) : null
         ignoreUnknownSignals: true
-        function onHit(hit) {
+        function onHit(hit: var) : void {
             root.notifyGameplayReplayHit(hit);
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
@@ -3601,46 +3601,46 @@ Item {
             root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
             root.requestGameplayRevisionRefresh(1);
         }
-        function onPointsChanged() {
+        function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
             root.requestGameplayRevisionRefresh(1);
         }
-        function onComboChanged() {
+        function onComboChanged() : void {
             root.requestGameplayRevisionRefresh(1);
         }
-        function onMaxComboChanged() {
+        function onMaxComboChanged() : void {
             root.requestGameplayRevisionRefresh(1);
         }
-        function onMaxPointsNowChanged() {
+        function onMaxPointsNowChanged() : void {
             root.requestGameplayRevisionRefresh(1);
         }
     }
     Connections {
         target: root.isGameplayScreen() ? root.gameplayScore(2) : null
         ignoreUnknownSignals: true
-        function onHit(hit) {
+        function onHit(hit: var) : void {
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
             root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
             root.requestGameplayRevisionRefresh(2);
         }
-        function onPointsChanged() {
+        function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
             root.requestGameplayRevisionRefresh(2);
         }
-        function onComboChanged() {
+        function onComboChanged() : void {
             root.requestGameplayRevisionRefresh(2);
         }
-        function onMaxComboChanged() {
+        function onMaxComboChanged() : void {
             root.requestGameplayRevisionRefresh(2);
         }
-        function onMaxPointsNowChanged() {
+        function onMaxPointsNowChanged() : void {
             root.requestGameplayRevisionRefresh(2);
         }
     }
 
-    function handleScreenContextChanged() {
+    function handleScreenContextChanged() : void {
         let rankingRequestChanged = root.commitLr2RankingRequest();
         root.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
@@ -3651,7 +3651,7 @@ Item {
         selectSideEffects.update();
     }
 
-    function updateSelectSideEffects() {
+    function updateSelectSideEffects() : void {
         selectSideEffects.update();
     }
 
@@ -3665,31 +3665,31 @@ Item {
         }
     }
 
-    function optionText(labels, index) {
+    function optionText(labels: var, index: var) : var {
         return valueResolver.optionText(labels, index);
     }
 
-    function clearLabelForLamp(lamp) {
+    function clearLabelForLamp(lamp: var) : var {
         return valueResolver.clearLabelForLamp(lamp);
     }
 
-    function courseStage(index) {
+    function courseStage(index: var) : var {
         return valueResolver.courseStage(index);
     }
 
-    function chartTitle(chart) {
+    function chartTitle(chart: var) : var {
         return valueResolver.chartTitle(chart);
     }
 
-    function chartSubtitle(chart) {
+    function chartSubtitle(chart: var) : var {
         return valueResolver.chartSubtitle(chart);
     }
 
-    function lr2SelectOptionText(st) {
+    function lr2SelectOptionText(st: var) : var {
         return valueResolver.lr2SelectOptionText(st);
     }
 
-    function resolveText(st, revision) {
+    function resolveText(st: var, revision: var) : var {
         if (root.effectiveScreenKey === "select") {
             let nativeText = selectContext.nativeState.textValue(st);
             if (nativeText !== undefined && nativeText !== null) {
@@ -3699,63 +3699,63 @@ Item {
         return valueResolver.resolveText(st, revision);
     }
 
-    function resolveGameplayNumber(num) {
+    function resolveGameplayNumber(num: var) : var {
         return valueResolver.resolveGameplayNumber(num);
     }
 
-    function resultCompareResult() {
+    function resultCompareResult() : var {
         return valueResolver.resultCompareResult();
     }
 
-    function resolveResultSideNumber(num, result) {
+    function resolveResultSideNumber(num: var, result: var) : var {
         return valueResolver.resolveResultSideNumber(num, result);
     }
 
-    function resolveResultTargetSideNumber(num, side) {
+    function resolveResultTargetSideNumber(num: var, side: var) : var {
         return valueResolver.resolveResultTargetSideNumber(num, side);
     }
 
-    function resolveResultNumber(num) {
+    function resolveResultNumber(num: var) : var {
         return valueResolver.resolveResultNumber(num);
     }
 
-    function resolveNumber(num) {
+    function resolveNumber(num: var) : var {
         return valueResolver.resolveNumber(num);
     }
 
-    function numberValue(src, revision) {
+    function numberValue(src: var, revision: var) : var {
         return valueResolver.numberValue(src, revision);
     }
 
-    function imageSetValue(imageSetRef, sourceCount) {
+    function imageSetValue(imageSetRef: var, sourceCount: var) : var {
         return valueResolver.imageSetValue(imageSetRef, sourceCount);
     }
 
-    function imageSetSourceFor(src) {
+    function imageSetSourceFor(src: var) : var {
         return valueResolver.imageSetSourceFor(src);
     }
 
-    function numberForceHidden(src) {
+    function numberForceHidden(src: var) : var {
         return valueResolver.numberForceHidden(src);
     }
 
-    function numberAnimationRevision(src) {
+    function numberAnimationRevision(src: var) : var {
         return valueResolver.numberAnimationRevision(src);
     }
 
-    function resolveBarGraph(type) {
+    function resolveBarGraph(type: var) : var {
         return valueResolver.resolveBarGraph(type);
     }
 
-    function normalizedBarValue(value, maximum) {
+    function normalizedBarValue(value: var, maximum: var) : var {
         return valueResolver.normalizedBarValue(value, maximum);
     }
 
-    function resultBarGraphValue(type) {
+    function resultBarGraphValue(type: var) : var {
         return valueResolver.resultBarGraphValue(type);
     }
 
-    function barDistributionGraphSourceAnimates(src) {
+    function barDistributionGraphSourceAnimates(src: var) : var {
         if (!src || (src.cycle || 0) <= 0) {
             return false;
         }
@@ -3764,11 +3764,11 @@ Item {
         return Math.floor(frames / segments) > 1;
     }
 
-    function wrapValue(value, count) {
+    function wrapValue(value: var, count: var) : var {
         return ((value % count) + count) % count;
     }
 
-    function elementSourceFrameCount(src) {
+    function elementSourceFrameCount(src: var) : var {
         if (!src) {
             return 0;
         }
@@ -3778,175 +3778,175 @@ Item {
         return Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1);
     }
 
-    function observeSelectSortButton(src) {
+    function observeSelectSortButton(src: var) : var {
         return selectPanelController.observeSelectSortButton(src);
     }
 
-    function buttonUsesSplitArrows(buttonId) {
+    function buttonUsesSplitArrows(buttonId: var) : var {
         return selectPanelController.buttonUsesSplitArrows(buttonId);
     }
 
-    function imageSetButtonId(src) {
+    function imageSetButtonId(src: var) : var {
         return selectPanelController.imageSetButtonId(src);
     }
 
-    function elementButtonId(src) {
+    function elementButtonId(src: var) : var {
         return selectPanelController.elementButtonId(src);
     }
 
-    function elementButtonPanel(src) {
+    function elementButtonPanel(src: var) : var {
         return selectPanelController.elementButtonPanel(src);
     }
 
-    function elementButtonClickEnabled(src) {
+    function elementButtonClickEnabled(src: var) : var {
         return selectPanelController.elementButtonClickEnabled(src);
     }
 
-    function elementButtonPanelMatches(src) {
+    function elementButtonPanelMatches(src: var) : var {
         return selectPanelController.elementButtonPanelMatches(src);
     }
 
-    function buttonMouseDelta(src, mouseX, width) {
+    function buttonMouseDelta(src: var, mouseX: var, width: var) : var {
         return selectPanelController.buttonMouseDelta(src, mouseX, width);
     }
 
-    function buttonFrame(src) {
+    function buttonFrame(src: var) : var {
         return selectPanelController.buttonFrame(src);
     }
 
-    function closeSelectPanel() {
+    function closeSelectPanel() : var {
         return selectPanelController.closeSelectPanel();
     }
 
-    function startSelectPanelCloseTimer(panel) {
+    function startSelectPanelCloseTimer(panel: var) : var {
         return selectPanelController.startSelectPanelCloseTimer(panel);
     }
 
-    function openSelectPanel(panel, heldByStart) {
+    function openSelectPanel(panel: var, heldByStart: var) : var {
         return selectPanelController.openSelectPanel(panel, heldByStart);
     }
 
-    function toggleSelectPanel(panel) {
+    function toggleSelectPanel(panel: var) : var {
         return selectPanelController.toggleSelectPanel(panel);
     }
 
-    function holdSelectPanel(panel) {
+    function holdSelectPanel(panel: var) : var {
         return selectPanelController.holdSelectPanel(panel);
     }
 
-    function releaseHeldSelectPanel(panel) {
+    function releaseHeldSelectPanel(panel: var) : var {
         return selectPanelController.releaseHeldSelectPanel(panel);
     }
 
-    function currentSelectHeldButtonSkinTime() {
+    function currentSelectHeldButtonSkinTime() : var {
         return selectPanelController.currentSelectHeldButtonSkinTime();
     }
 
-    function selectHeldButtonTimerForKey(key) {
+    function selectHeldButtonTimerForKey(key: var) : var {
         return selectPanelController.selectHeldButtonTimerForKey(key);
     }
 
-    function isSelectHeldButtonTimer(timer) {
+    function isSelectHeldButtonTimer(timer: var) : var {
         return selectPanelController.isSelectHeldButtonTimer(timer);
     }
 
-    function pressSelectHeldButtonTimer(key) {
+    function pressSelectHeldButtonTimer(key: var) : var {
         return selectPanelController.pressSelectHeldButtonTimer(key);
     }
 
-    function releaseSelectHeldButtonTimer(key) {
+    function releaseSelectHeldButtonTimer(key: var) : var {
         return selectPanelController.releaseSelectHeldButtonTimer(key);
     }
 
-    function addHeldButtonTimer(result, timer, held) {
+    function addHeldButtonTimer(result: var, timer: var, held: var) : var {
         return selectPanelController.addHeldButtonTimer(result, timer, held);
     }
 
-    function addHeldButtonTimers(result) {
+    function addHeldButtonTimers(result: var) : var {
         return selectPanelController.addHeldButtonTimers(result);
     }
 
-    function selectHeldButtonTimerFireTime(timer, liveClock) {
+    function selectHeldButtonTimerFireTime(timer: var, liveClock: var) : var {
         return selectPanelController.selectHeldButtonTimerFireTime(timer, liveClock);
     }
 
-    function spriteSkinTime(src, dsts) {
+    function spriteSkinTime(src: var, dsts: var) : var {
         return selectPanelController.spriteSkinTime(src, dsts);
     }
 
-    function buttonPanelMatches(src) {
+    function buttonPanelMatches(src: var) : var {
         return selectPanelController.buttonPanelMatches(src);
     }
 
-    function handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount) {
+    function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var) : var {
         return selectPanelController.handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount);
     }
 
-    function triggerSelectPanelButton(buttonId, delta) {
+    function triggerSelectPanelButton(buttonId: var, delta: var) : var {
         return selectPanelController.triggerSelectPanelButton(buttonId, delta);
     }
 
-    function triggerPanelButtonForKey(p1ButtonId, p2ButtonId, key, delta) {
+    function triggerPanelButtonForKey(p1ButtonId: var, p2ButtonId: var, key: var, delta: var) : var {
         return selectPanelController.triggerPanelButtonForKey(p1ButtonId, p2ButtonId, key, delta);
     }
 
-    function keyUsesPlayer2(key) {
+    function keyUsesPlayer2(key: var) : var {
         return selectPanelController.keyUsesPlayer2(key);
     }
 
-    function gameplayOptionSideForKey(key) {
+    function gameplayOptionSideForKey(key: var) : var {
         return selectPanelController.gameplayOptionSideForKey(key);
     }
 
-    function gameplayOptionModifierHeldForKey(key) {
+    function gameplayOptionModifierHeldForKey(key: var) : var {
         return selectPanelController.gameplayOptionModifierHeldForKey(key);
     }
 
-    function gameplayOptionKeyHeld(key) {
+    function gameplayOptionKeyHeld(key: var) : var {
         return selectPanelController.gameplayOptionKeyHeld(key);
     }
 
-    function isGameplayOptionModifierKey(key) {
+    function isGameplayOptionModifierKey(key: var) : var {
         return selectPanelController.isGameplayOptionModifierKey(key);
     }
 
-    function handleLr2GameplayOptionKey(key) {
+    function handleLr2GameplayOptionKey(key: var) : var {
         return selectPanelController.handleLr2GameplayOptionKey(key);
     }
 
-    function releaseLr2GameplayOptionKey(key) {
+    function releaseLr2GameplayOptionKey(key: var) : var {
         return selectPanelController.releaseLr2GameplayOptionKey(key);
     }
 
-    function stopLr2GameplayOptionRepeat() {
+    function stopLr2GameplayOptionRepeat() : var {
         return selectPanelController.stopLr2GameplayOptionRepeat();
     }
 
-    function pressLr2GameplayScratchDirection(side, up) {
+    function pressLr2GameplayScratchDirection(side: var, up: var) : var {
         return selectPanelController.pressLr2GameplayScratchDirection(side, up);
     }
 
-    function releaseLr2GameplayScratchDirection(side, up) {
+    function releaseLr2GameplayScratchDirection(side: var, up: var) : var {
         return selectPanelController.releaseLr2GameplayScratchDirection(side, up);
     }
 
-    function handleLr2GameplayScratchTick(side, up, number) {
+    function handleLr2GameplayScratchTick(side: var, up: var, number: var) : var {
         return selectPanelController.handleLr2GameplayScratchTick(side, up, number);
     }
 
-    function handleLr2GameplayArrow(key) {
+    function handleLr2GameplayArrow(key: var) : var {
         return selectPanelController.handleLr2GameplayArrow(key);
     }
 
-    function handleSelectPanelKey(key) {
+    function handleSelectPanelKey(key: var) : var {
         return selectPanelController.handleSelectPanelKey(key);
     }
 
-    function handleSelectWheel(wheel) {
+    function handleSelectWheel(wheel: var) : var {
         return selectPanelController.handleSelectWheel(wheel);
     }
 
-    function onMouseStateContainsPoint(src, state, mx, my) {
+    function onMouseStateContainsPoint(src: var, state: var, mx: var, my: var) : var {
         if (!src || !state) {
             return null;
         }
@@ -3959,7 +3959,7 @@ Item {
             : null;
     }
 
-    function isNowJudgeSprite(src) {
+    function isNowJudgeSprite(src: var) : var {
         return root.isGameplayScreen()
             && src
             && (src.timer === 46 || src.timer === 47)
@@ -3968,14 +3968,14 @@ Item {
             && (src.op1 || 0) === 0;
     }
 
-    function nowJudgeComboValue(src) {
+    function nowJudgeComboValue(src: var) : var {
         if (!src) {
             return 0;
         }
         return src.timer === 47 ? root.gameplayJudgeCombo2 : root.gameplayJudgeCombo1;
     }
 
-    function nowJudgeOffsetX(src, dsts) {
+    function nowJudgeOffsetX(src: var, dsts: var) : var {
         if (!root.isNowJudgeSprite(src)) {
             return 0;
         }
@@ -3997,7 +3997,7 @@ Item {
     readonly property int numberRefSpriteStateOverride: 4
     readonly property int genericSliderSpriteStateOverride: 5
 
-    function spriteSliderPositionForKind(kind, src) {
+    function spriteSliderPositionForKind(kind: var, src: var) : var {
         switch (kind) {
         case root.selectScrollSpriteStateOverride:
             return skinSliderState.selectScrollPosition(src);
@@ -4014,7 +4014,7 @@ Item {
         }
     }
 
-    function spriteForceHidden(src, elementIndex) {
+    function spriteForceHidden(src: var, elementIndex: var) : var {
         if (src && src.onMouse) {
             return root.selectHoverRevision >= 0
                 && root.selectHoverVisibleByIndex[String(elementIndex)] !== true;
@@ -4022,11 +4022,11 @@ Item {
         return false;
     }
 
-    function setSelectScrollFromSliderTrack(src, track, pointerX, pointerY) {
+    function setSelectScrollFromSliderTrack(src: var, track: var, pointerX: var, pointerY: var) : void {
         skinSliderState.setSelectScrollFromTrack(src, track, pointerX, pointerY);
     }
 
-    function setLr2GenericSliderFromTrack(src, track, pointerX, pointerY) {
+    function setLr2GenericSliderFromTrack(src: var, track: var, pointerX: var, pointerY: var) : void {
         skinSliderState.setGenericFromTrack(src, track, pointerX, pointerY);
     }
 
@@ -4038,27 +4038,27 @@ Item {
     readonly property real selectedFastBarDrawX: selectBarGeometry.selectedFastBarDrawX
     readonly property real selectedFastBarDrawY: selectBarGeometry.selectedFastBarDrawY
 
-    function selectedBarRow() {
+    function selectedBarRow() : var {
         return selectBarGeometry.selectedBarRow();
     }
 
-    function barClickStart() {
+    function barClickStart() : var {
         return selectBarGeometry.barClickStart();
     }
 
-    function barClickEnd() {
+    function barClickEnd() : var {
         return selectBarGeometry.barClickEnd();
     }
 
-    function barRowCanClick(row) {
+    function barRowCanClick(row: var) : var {
         return selectBarGeometry.barRowCanClick(row);
     }
 
-    function barRowScrollDelta(row) {
+    function barRowScrollDelta(row: var) : var {
         return selectBarGeometry.barRowScrollDelta(row);
     }
 
-    function handleBarRowClick(row, mouse) {
+    function handleBarRowClick(row: var, mouse: var) : var {
         return selectBarGeometry.handleBarRowClick(row, mouse);
     }
 
@@ -4153,67 +4153,67 @@ Item {
         || root.skinUsesSelectElementOptionRange(700, 755)
     readonly property bool selectRankingStatusOptionsUsed: root.skinUsesSelectElementOptionRange(600, 616)
 
-    function selectUsesReplayOptions() {
+    function selectUsesReplayOptions() : var {
         return root.selectReplayOptionsUsed;
     }
 
-    function selectUsesScoreOptionIds() {
+    function selectUsesScoreOptionIds() : var {
         return root.selectScoreOptionIdsUsed;
     }
 
-    function selectUsesEntryStatusOptions() {
+    function selectUsesEntryStatusOptions() : var {
         return root.selectEntryStatusOptionsUsed;
     }
 
-    function selectUsesDifficultyBarOptions() {
+    function selectUsesDifficultyBarOptions() : var {
         return root.selectDifficultyBarOptionsUsed;
     }
 
-    function selectUsesCourseDetailOptions() {
+    function selectUsesCourseDetailOptions() : var {
         return root.selectCourseDetailOptionsUsed;
     }
 
-    function selectUsesRankingStatusOptions() {
+    function selectUsesRankingStatusOptions() : var {
         return root.selectRankingStatusOptionsUsed;
     }
 
-    function updateSelectAnimationLimits() {
+    function updateSelectAnimationLimits() : void {
         skinTiming.updateSelectAnimationLimits();
     }
 
-    function restartSkinClock() {
+    function restartSkinClock() : void {
         skinTiming.restartSkinClock();
     }
 
-    function restartSelectInfoTimer() {
+    function restartSelectInfoTimer() : void {
         skinTiming.restartSelectInfoTimer();
     }
 
-    function quantizedSkinClock(now) {
+    function quantizedSkinClock(now: var) : var {
         return skinTiming.quantizedSkinClock(now);
     }
 
-    function gameplayTimerFireTime(timer) {
+    function gameplayTimerFireTime(timer: var) : var {
         return skinTiming.gameplayTimerFireTime(timer);
     }
 
-    function resultTimerFireTime(timer) {
+    function resultTimerFireTime(timer: var) : var {
         return skinTiming.resultTimerFireTime(timer);
     }
 
-    function selectTimerFireTime(timer, liveClock) {
+    function selectTimerFireTime(timer: var, liveClock: var) : var {
         return skinTiming.selectTimerFireTime(timer, liveClock);
     }
 
-    function selectTimerCanFire(timer) {
+    function selectTimerCanFire(timer: var) : var {
         return skinTiming.selectTimerCanFire(timer);
     }
 
-    function skinTimerCanFire(timer) {
+    function skinTimerCanFire(timer: var) : var {
         return skinTiming.skinTimerCanFire(timer);
     }
 
-    function skinTimerFireTime(timer, liveClock) {
+    function skinTimerFireTime(timer: var, liveClock: var) : var {
         return skinTiming.skinTimerFireTime(timer, liveClock);
     }
 
@@ -4347,7 +4347,7 @@ Item {
         root.refreshGameplayRuntimeActiveOptions();
     }
 
-    function pauseScreenActivity() {
+    function pauseScreenActivity() : void {
         readmeState.pauseActivity();
         lr2Ranking.pauseActivity();
         skinTiming.pauseActivity();
@@ -4359,7 +4359,7 @@ Item {
         }
     }
 
-    function stopSelectAudio() {
+    function stopSelectAudio() : void {
         selectSideEffects.stopAudio();
         openFolderSound.stop();
         closeFolderSound.stop();
@@ -4368,7 +4368,7 @@ Item {
         optionChangeSound.stop();
     }
 
-    function playOneShot(player) {
+    function playOneShot(player: var) : var {
         if (!root.enabled || !player || !player.source) {
             return;
         }
@@ -4380,7 +4380,7 @@ Item {
         player.play();
     }
 
-    function reloadCurrentSelectFolder() {
+    function reloadCurrentSelectFolder() : var {
         if (root.effectiveScreenKey !== "select" || selectContext.historyStack.length === 0) {
             return false;
         }
@@ -4389,7 +4389,7 @@ Item {
         return true;
     }
 
-    function selectGoBack() {
+    function selectGoBack() : var {
         if (root.closeLr2Ranking()) {
             return;
         }
@@ -4400,7 +4400,7 @@ Item {
         }
     }
 
-    function selectGoForward(item, autoplay, replay, replayScore) {
+    function selectGoForward(item: var, autoplay: var, replay: var, replayScore: var) : void {
         let targetItem = item === undefined ? selectContext.activationItem() : item;
         let before = selectContext.historyStack.length;
         selectContext.goForward(targetItem, autoplay, replay, replayScore);
@@ -4409,15 +4409,15 @@ Item {
         }
     }
 
-    function playSelectScratch() {
+    function playSelectScratch() : void {
         selectSideEffects.playScratch();
     }
 
-    function resultInputReady() {
+    function resultInputReady() : var {
         return root.enabled && root.isResultScreen() && root.acceptsInput;
     }
 
-    function closeResultScreen() {
+    function closeResultScreen() : var {
         if (!root.resultInputReady()) {
             return false;
         }
@@ -4429,7 +4429,7 @@ Item {
         return true;
     }
 
-    function submitSelectSearch() { selectSearchState.submit(); }
+    function submitSelectSearch() : void { selectSearchState.submit(); }
 
     Keys.onUpPressed: (event) => {
         if (root.lr2ReadmeMode === 1) {
@@ -4494,7 +4494,7 @@ Item {
 
     property var lastNavigateKey: []
 
-    function navigate(number, type, up, key) {
+    function navigate(number: var, type: var, up: var, key: var) : var {
         if (!root.selectScrollReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
             return;
         }
@@ -4512,12 +4512,12 @@ Item {
         }
     }
 
-    function resetLr2SelectScratchRepeat() {
+    function resetLr2SelectScratchRepeat() : void {
         root.selectTargetScratchDirection = 0;
         root.selectTargetScratchNextMs = 0;
     }
 
-    function releaseLr2SelectScratchRepeat(up) {
+    function releaseLr2SelectScratchRepeat(up: var) : void {
         let sameDirectionStillHeld = up
             ? (Input.col1sUp || Input.col2sUp)
             : (Input.col1sDown || Input.col2sDown);
@@ -4527,7 +4527,7 @@ Item {
         }
     }
 
-    function handleLr2SelectScratchTick(side, up, number, type) {
+    function handleLr2SelectScratchTick(side: var, up: var, number: var, type: var) : var {
         if (!root.selectInputReady() || root.selectPanel !== 1) {
             return false;
         }

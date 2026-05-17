@@ -49,7 +49,7 @@ Item {
         ? 4
         : 0
 
-    function segmentFrame(segment, hp, trembleRoll, survival) {
+    function segmentFrame(segment: var, hp: var, trembleRoll: var, survival: var) : var {
         let oneBased = segment + 1;
         let tremble = hp - trembleRoll;
         if (!survival) {
@@ -81,7 +81,7 @@ Item {
         }
     }
 
-    function segmentState(segment) {
+    function segmentState(segment: var) : var {
         if (!currentState || !srcData) {
             return null;
         }

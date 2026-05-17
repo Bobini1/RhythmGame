@@ -98,18 +98,18 @@ Item {
         return total;
     }
 
-    function rowData(row) {
+    function rowData(row: var) : var {
         return barRows && row >= 0 && row < barRows.length ? barRows[row] : null;
     }
 
-    function sourceUsesChartAsset(source) {
+    function sourceUsesChartAsset(source: var) : var {
         if (!source) {
             return false;
         }
         return source.specialType === 1 || source.specialType === 3 || source.specialType === 4;
     }
 
-    function chartAssetSourceFor(source) {
+    function chartAssetSourceFor(source: var) : var {
         if (!source) {
             return "";
         }
@@ -125,11 +125,11 @@ Item {
         return "";
     }
 
-    function visibilityState(row) {
+    function visibilityState(row: var) : var {
         return cachedBaseState(row);
     }
 
-    function stateField(state, name, fallback) {
+    function stateField(state: var, name: var, fallback: var) : var {
         if (!state) {
             return fallback;
         }
@@ -137,11 +137,11 @@ Item {
         return value === undefined || value === null ? fallback : value;
     }
 
-    function sameStateField(a, b, name, fallback) {
+    function sameStateField(a: var, b: var, name: var, fallback: var) : var {
         return Math.abs(stateField(a, name, fallback) - stateField(b, name, fallback)) <= 0.001;
     }
 
-    function bodyNeedsStateInterpolation(row) {
+    function bodyNeedsStateInterpolation(row: var) : var {
         if (applyFastBarScroll) {
             return false;
         }
@@ -165,7 +165,7 @@ Item {
             || !sameStateField(fromState, toState, "op4", 0);
     }
 
-    function positionlessState(state) {
+    function positionlessState(state: var) : var {
         if (!state) {
             return null;
         }
@@ -190,13 +190,13 @@ Item {
         };
     }
 
-    function cachedBaseState(row) {
+    function cachedBaseState(row: var) : var {
         return barBaseStates && row >= 0 && row < barBaseStates.length
             ? barBaseStates[row]
             : null;
     }
 
-    function slotForDisplayRow(row) {
+    function slotForDisplayRow(row: var) : var {
         let count = root.barCellCount;
         if (count <= 0 || row < 0 || row >= count) {
             return -1;
@@ -207,18 +207,18 @@ Item {
             : (row + offset) % count;
     }
 
-    function cellData(row) {
+    function cellData(row: var) : var {
         let cells = barTextCells && barTextCells.length > 0 ? barTextCells : barCells;
         let slot = slotForDisplayRow(row);
         return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
     }
 
-    function cellDataForSlot(slot) {
+    function cellDataForSlot(slot: var) : var {
         let cells = barTextCells && barTextCells.length > 0 ? barTextCells : barCells;
         return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
     }
 
-    function bodyDsts(row) {
+    function bodyDsts(row: var) : var {
         let data = rowData(row);
         if (!data) {
             return [];
@@ -226,7 +226,7 @@ Item {
         return data.offDsts && data.offDsts.length > 0 ? data.offDsts : (data.onDsts || []);
     }
 
-    function overlayVisibleForValues(cellValid, lamp, ranking, rank) {
+    function overlayVisibleForValues(cellValid: var, lamp: var, ranking: var, rank: var) : var {
         if (!selectContext || !srcData) {
             return false;
         }
@@ -246,19 +246,19 @@ Item {
         }
     }
 
-    function sourceCyclesContinuously(source) {
+    function sourceCyclesContinuously(source: var) : var {
         return source
             && (source.cycle || 0) > 0
             && Math.max(1, source.div_x || 1) * Math.max(1, source.div_y || 1) > 1;
     }
 
-    function spriteSourceSkinTime(source) {
+    function spriteSourceSkinTime(source: var) : var {
         return sourceCyclesContinuously(source)
             ? root.sourceSkinTime
             : 0;
     }
 
-    function spriteSourceTimerFire(source) {
+    function spriteSourceTimerFire(source: var) : var {
         return sourceCyclesContinuously(source)
             ? root.sourceTimerFire
             : -2147483648;
@@ -278,9 +278,8 @@ Item {
             readonly property var bodyCell: root.cellData(bodyRow)
             readonly property int bodyCellRevision: bodyCell ? bodyCell.revision : -1
             readonly property var bodySource: {
-                bodyCellRevision;
                 let fallback = root.srcData && root.srcData.source ? root.srcData.source : null;
-                return bodyCell && root.srcData && root.srcData.sources
+                return bodyCell && bodyCellRevision >= 0 && root.srcData && root.srcData.sources
                     ? bodyCell.bodySource(root.srcData.sources, fallback)
                     : fallback;
             }
@@ -342,11 +341,10 @@ Item {
                 : root.cellDataForSlot(slot)
             readonly property int cellRevision: cell ? cell.revision : -1
             readonly property bool cellValid: selectedOverlaySource ? true : !!cell
-            readonly property bool cellOverlayVisible: {
-                let revision = cellRevision;
-                return !selectedOverlaySource && cell
-                    && cell.overlayVisibleForKind(sourceKind, sourceVariant);
-            }
+            readonly property bool cellOverlayVisible: !selectedOverlaySource
+                && cell
+                && cellRevision >= 0
+                && cell.overlayVisibleForKind(sourceKind, sourceVariant)
             readonly property bool contentVisible: (selectedOverlaySource
                     ? selectedDisplayRow > 0 && !!visibleBase
                     : rowVisible)

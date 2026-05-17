@@ -8,6 +8,7 @@ qt_add_qml_module(RhythmGame_qml
         SOURCES
         Rg.h
         Rg.cpp
+        QmlForeignTypes.h
         Lr2TimelineState.h
         Lr2TimelineState.cpp
         Lr2AnimationFrameState.h

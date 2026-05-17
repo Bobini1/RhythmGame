@@ -27,6 +27,7 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/Lr2NativeCursor.h"
 #include "qml_components/InputAttached.h"
+#include "../RhythmGameQml/QmlForeignTypes.h"
 #include "../RhythmGameQml/Rg.h"
 #include "gameplay_logic/BmsScoreCourse.h"
 #include "input/CustomNotifyApp.h"
@@ -139,7 +140,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     } unregisterHandler;
 
     auto log = qml_components::Logger{ nullptr };
-    qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
+    rhythm_game_qml::LoggerForeign::instance = &log;
 
     auto logger = support::qtLoggerMt("log", &log, "addLog");
 
@@ -397,8 +398,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "CourseRunner");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
-        qmlRegisterType<resource_managers::Profile>(
-          "RhythmGameQml", 1, 0, "Profile");
         qmlRegisterType<gameplay_logic::Player>(
           "RhythmGameQml", 1, 0, "Player");
         qmlRegisterUncreatableType<gameplay_logic::AutoPlayer>(
@@ -436,10 +435,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
-        qmlRegisterType<input::AnalogAxisConfig>(
-          "RhythmGameQml", 1, 0, "AnalogAxisConfig");
-        qmlRegisterType<input::InputTranslator>(
-          "RhythmGameQml", 1, 0, "InputTranslator");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
           "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(

@@ -26,7 +26,7 @@ QtObject {
     readonly property bool selectPointerScrollReady: selectPointerInputReady && readmeMode === 0
     readonly property bool selectNavigationReady: selectInputReady && readmeMode === 0
 
-    function inferKey(path) {
+    function inferKey(path: var) : var {
         let normalized = (path || "").replace(/\\/g, "/").toLowerCase();
         if (normalized.indexOf("/select/") !== -1
                 || normalized.endsWith("select.lr2skin")
@@ -51,7 +51,7 @@ QtObject {
         return "";
     }
 
-    function isGameplayKey(key) {
+    function isGameplayKey(key: var) : var {
         switch (key) {
         case "k5":
         case "k7":
@@ -67,11 +67,11 @@ QtObject {
         }
     }
 
-    function isGameplayScreen() {
+    function isGameplayScreen() : var {
         return root.gameplayScreen;
     }
 
-    function isResultScreen() {
+    function isResultScreen() : var {
         return root.resultScreen;
     }
 }

@@ -51,7 +51,7 @@ Item {
         }
         return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
     }
-    function chartWithBpmData(value) {
+    function chartWithBpmData(value: var) : var {
         return value
             && (value.bpmChanges !== undefined
                 || value.initialBpm !== undefined
@@ -74,7 +74,7 @@ Item {
            + ":" + String(chartData.maxBpm || 0))
         : ""
 
-    function hexColor(value, fallback) {
+    function hexColor(value: var, fallback: var) : var {
         let raw = value === undefined || value === null ? "" : String(value);
         raw = raw.replace(/[^0-9a-fA-F]/g, "");
         if (raw.length < 6) {
@@ -83,7 +83,7 @@ Item {
         return "#" + raw.substring(0, 6);
     }
 
-    function lineColor(speed, minSpeed, maxSpeed, mainSpeed) {
+    function lineColor(speed: var, minSpeed: var, maxSpeed: var, mainSpeed: var) : var {
         if (speed <= 0) {
             return hexColor(srcData ? srcData.stopLineColor : "", "#ff00ff");
         }
@@ -99,19 +99,19 @@ Item {
         return hexColor(srcData ? srcData.otherBpmColor : "", "#ffff00");
     }
 
-    function speedAt(change) {
+    function speedAt(change: var) : var {
         let bpm = change && change.bpm !== undefined ? Number(change.bpm) : 0;
         let scroll = change && change.scroll !== undefined ? Number(change.scroll) : 1;
         return bpm * scroll;
     }
 
-    function timeAt(change) {
+    function timeAt(change: var) : var {
         return change && change.time && change.time.timestamp !== undefined
             ? Number(change.time.timestamp)
             : 0;
     }
 
-    function buildSpeedData(chartData) {
+    function buildSpeedData(chartData: var) : var {
         let changes = chartData && chartData.bpmChanges ? chartData.bpmChanges : [];
         let result = [];
         for (let i = 0; i < changes.length; ++i) {
@@ -126,7 +126,7 @@ Item {
         return result;
     }
 
-    function updateCachedSpeedData() {
+    function updateCachedSpeedData() : var {
         if (cachedDataRevision === dataRevision) {
             return;
         }
@@ -135,7 +135,7 @@ Item {
         cachedSpeedData = buildSpeedData(chartData);
     }
 
-    function graphY(speed, mainSpeed, height, lineWidth) {
+    function graphY(speed: var, mainSpeed: var, height: var, lineWidth: var) : var {
         let minValue = 1.0 / 8.0;
         let maxValue = 8.0;
         let minLog = Math.log(minValue) / Math.LN10;
@@ -216,7 +216,7 @@ Item {
         }
     }
 
-    function requestChartPaint() {
+    function requestChartPaint() : void {
         if (root.visible && chartCanvas.available) {
             chartCanvas.requestPaint();
         }

@@ -22,7 +22,7 @@ QtObject {
     readonly property int uptimeMinutes: Math.floor(uptimeSeconds / 60) % 60
     readonly property int uptimeSecondPart: uptimeSeconds % 60
 
-    function update() {
+    function update() : void {
         let nextNowMs = Date.now();
         let nextNow = new Date(nextNowMs);
         let nextUptimeSeconds = Math.floor(Math.max(0, nextNowMs - root.sceneStartMs) / 1000);

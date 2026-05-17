@@ -63,12 +63,12 @@ Item {
     property bool searchCursorOn: true
     property int searchDragAnchor: 0
 
-    function restartSearchCursorBlink() {
+    function restartSearchCursorBlink() : void {
         searchCursorOn = true;
         searchCursorBlinkTimer.restart();
     }
 
-    function searchCursorPositionAt(parentX) {
+    function searchCursorPositionAt(parentX: var) : var {
         const text = searchEditingText || "";
         if (text.length <= 0 || searchTextScaleX <= 0) {
             return 0;
@@ -87,7 +87,7 @@ Item {
         return text.length;
     }
 
-    function moveSearchCursorTo(parentX, selecting) {
+    function moveSearchCursorTo(parentX: var, selecting: var) : var {
         if (!searchInputLoader.item) {
             return;
         }
@@ -261,7 +261,7 @@ Item {
             property bool syncing: false
             readonly property var textState: textElement.searchTextState
 
-            function syncFromContext() {
+            function syncFromContext() : var {
                 const context = textElement.selectReady ? textElement.selectContext : null;
                 if (!context || text === context.searchText) {
                     return;
@@ -348,7 +348,7 @@ Item {
 
             Connections {
                 target: textElement.selectReady ? textElement.selectContext : null
-                function onSearchTextChanged() {
+                function onSearchTextChanged() : void {
                     const oldPosition = searchInput.cursorPosition;
                     searchInput.syncFromContext();
                     searchInput.cursorPosition = Math.min(oldPosition, searchInput.text.length);

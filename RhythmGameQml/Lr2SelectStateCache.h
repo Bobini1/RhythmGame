@@ -2,6 +2,7 @@
 
 #include <QHash>
 #include <QObject>
+#include <QPointer>
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
@@ -18,7 +19,8 @@ class Lr2SelectStateCache : public QObject {
     Q_PROPERTY(QVariant folderScoreCountsByKey READ folderScoreCountsByKey WRITE setFolderScoreCountsByKey NOTIFY folderScoreCountsByKeyChanged)
     Q_PROPERTY(QVariant historyStack READ historyStack WRITE setHistoryStack NOTIFY historyStackChanged)
     Q_PROPERTY(QVariant playerStats READ playerStats WRITE setPlayerStats NOTIFY playerStatsChanged)
-    Q_PROPERTY(int profileOffset READ profileOffset WRITE setProfileOffset NOTIFY profileOffsetChanged)
+    Q_PROPERTY(QObject* profile READ profile WRITE setProfile NOTIFY profileChanged)
+    Q_PROPERTY(qreal profileOffset READ profileOffset WRITE setProfileOffset NOTIFY profileOffsetChanged)
     Q_PROPERTY(QVariant rankingClearCounts READ rankingClearCounts WRITE setRankingClearCounts NOTIFY rankingClearCountsChanged)
     Q_PROPERTY(QString rankingStatsMd5 READ rankingStatsMd5 WRITE setRankingStatsMd5 NOTIFY rankingStatsMd5Changed)
     Q_PROPERTY(int rankingPlayerRank READ rankingPlayerRank WRITE setRankingPlayerRank NOTIFY rankingPlayerRankChanged)
@@ -52,8 +54,11 @@ public:
     QVariant playerStats() const;
     void setPlayerStats(const QVariant& value);
 
-    int profileOffset() const;
-    void setProfileOffset(int value);
+    QObject* profile() const;
+    void setProfile(QObject* value);
+
+    qreal profileOffset() const;
+    void setProfileOffset(qreal value);
 
     QVariant rankingClearCounts() const;
     void setRankingClearCounts(const QVariant& value);
@@ -116,6 +121,7 @@ signals:
     void folderScoreCountsByKeyChanged();
     void historyStackChanged();
     void playerStatsChanged();
+    void profileChanged();
     void profileOffsetChanged();
     void rankingClearCountsChanged();
     void rankingStatsMd5Changed();
@@ -210,6 +216,7 @@ private:
     QVariantMap emptyScoreCounts() const;
     QVariantMap emptyDifficultyState() const;
     QVariant chartWrapperForData(const QVariant& chartData) const;
+    void syncProfileOffset();
 
     QVariant m_scores;
     QVariantMap m_scoresByKey;
@@ -225,7 +232,9 @@ private:
     QVariantMap m_folderScoreCountsLookup;
     QVariant m_historyStack;
     QVariant m_playerStats;
-    int m_profileOffset = 0;
+    QPointer<QObject> m_profile;
+    QMetaObject::Connection m_profileOffsetConnection;
+    qreal m_profileOffset = 0.0;
     QVariant m_rankingClearCounts;
     QVariantMap m_rankingClearCountLookup;
     QString m_rankingStatsMd5;

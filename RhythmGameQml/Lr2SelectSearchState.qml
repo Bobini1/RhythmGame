@@ -14,7 +14,7 @@ QtObject {
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property bool focused: !!searchState.inputItem && searchState.inputItem.activeFocus
 
-    function isText(src) {
+    function isText(src: var) : var {
         return host.effectiveScreenKey === "select"
             && host.acceptsInput
             && src
@@ -23,7 +23,7 @@ QtObject {
             && host.panelMatches(src.panel || 0);
     }
 
-    function textState(src, dsts) {
+    function textState(src: var, dsts: var) : var {
         if (!searchState.isText(src)) {
             return null;
         }
@@ -35,24 +35,24 @@ QtObject {
             host.activeOptionsForElementDsts(dsts));
     }
 
-    function textPrefix(text, position) {
+    function textPrefix(text: var, position: var) : var {
         const source = text || "";
         const clamped = Math.max(0, Math.min(position || 0, source.length));
         return source.substring(0, clamped);
     }
 
-    function hasFocus() {
+    function hasFocus() : var {
         return searchState.focused;
     }
 
-    function canFocus() {
+    function canFocus() : var {
         return host.effectiveScreenKey === "select"
             && host.acceptsInput
             && host.selectPanel <= 0
             && !!searchState.inputItem;
     }
 
-    function focusInput() {
+    function focusInput() : var {
         if (!searchState.canFocus()) {
             return;
         }
@@ -61,13 +61,13 @@ QtObject {
         searchState.inputItem.forceActiveFocus();
     }
 
-    function clearFocus() {
+    function clearFocus() : void {
         if (searchState.hasFocus()) {
             host.forceActiveFocus();
         }
     }
 
-    function reset() {
+    function reset() : void {
         if (selectContext.searchText.length > 0) {
             selectContext.searchText = "";
             selectContext.touch();
@@ -78,7 +78,7 @@ QtObject {
         searchState.clearFocus();
     }
 
-    function submit() {
+    function submit() : void {
         let query = selectContext.searchText.trim();
         if (query.length > 0) {
             selectContext.search(query);

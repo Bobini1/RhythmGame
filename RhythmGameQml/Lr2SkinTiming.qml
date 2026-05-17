@@ -158,7 +158,7 @@ QtObject {
         }
     }
 
-    function clearSelectTimerFireCache() {
+    function clearSelectTimerFireCache() : void {
         root.timerState.clearSelectTimerFireCache();
     }
 
@@ -187,13 +187,13 @@ QtObject {
         return root.zeroTimers;
     }
 
-    function updateSelectAnimationLimits() {
+    function updateSelectAnimationLimits() : void {
         let startInput = root.skinModel.startInput || 0;
         root.selectAnimationLimit = Math.max(3200, startInput);
         root.barAnimationLimit = Math.max(2200, startInput);
     }
 
-    function restartSkinClock() {
+    function restartSkinClock() : var {
         if (!root.host) {
             return;
         }
@@ -215,79 +215,79 @@ QtObject {
         }
     }
 
-    function restartSelectInfoTimer() {
+    function restartSelectInfoTimer() : void {
         root.clock.restartSelectInfoTimer();
     }
 
-    function quantizedSkinClock(now) {
+    function quantizedSkinClock(now: var) : var {
         return root.clock.quantize(now);
     }
 
-    function gameplayTimerFireTime(timer) {
+    function gameplayTimerFireTime(timer: var) : var {
         timerState.revision;
         return timerState.gameplayTimerFireTime(timer);
     }
 
-    function resultTimerFireTime(timer) {
+    function resultTimerFireTime(timer: var) : var {
         timerState.revision;
         return timerState.resultTimerFireTime(timer);
     }
 
-    function selectTimerFireTime(timer, liveClock) {
+    function selectTimerFireTime(timer: var, liveClock: var) : var {
         timerState.revision;
         timerState.selectInfoRevision;
         return timerState.selectTimerFireTime(timer, liveClock === true);
     }
 
-    function selectTimerCanFire(timer) {
+    function selectTimerCanFire(timer: var) : var {
         timerState.revision;
         return timerState.selectTimerCanFire(timer);
     }
 
-    function skinTimerCanFire(timer) {
+    function skinTimerCanFire(timer: var) : var {
         timerState.revision;
         return timerState.skinTimerCanFire(timer);
     }
 
-    function skinTimerFireTime(timer, liveClock) {
+    function skinTimerFireTime(timer: var, liveClock: var) : var {
         timerState.revision;
         timerState.selectInfoRevision;
         return timerState.skinTimerFireTime(timer, liveClock === true);
     }
 
-    function setGameplayTimerValue(timer, skinTime) {
+    function setGameplayTimerValue(timer: var, skinTime: var) : var {
         return timerState.setGameplayTimerValue(timer, skinTime);
     }
 
-    function clearGameplayTimerValue(timer) {
+    function clearGameplayTimerValue(timer: var) : var {
         return timerState.clearGameplayTimerValue(timer);
     }
 
-    function resetGameplayTimerValues() {
+    function resetGameplayTimerValues() : var {
         return timerState.resetGameplayTimerValues();
     }
 
-    function commitGameplayTimerChanges() {
+    function commitGameplayTimerChanges() : var {
         return timerState.commitGameplayTimerChanges();
     }
 
-    function restartGameplayStartTimer() {
+    function restartGameplayStartTimer() : void {
         root.gameplayStartTimer.restart();
     }
 
-    function stopGameplayStartTimer() {
+    function stopGameplayStartTimer() : void {
         root.gameplayStartTimer.stop();
     }
 
-    function restartGameplayPoorBgaOptionTimer() {
+    function restartGameplayPoorBgaOptionTimer() : void {
         root.gameplayPoorBgaOptionTimer.restart();
     }
 
-    function stopGameplayPoorBgaOptionTimer() {
+    function stopGameplayPoorBgaOptionTimer() : void {
         root.gameplayPoorBgaOptionTimer.stop();
     }
 
-    function pauseActivity() {
+    function pauseActivity() : void {
         root.sceneEndTimer.stop();
         root.stopGameplayStartTimer();
         root.stopGameplayPoorBgaOptionTimer();

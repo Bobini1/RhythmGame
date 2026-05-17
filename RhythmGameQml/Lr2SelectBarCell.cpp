@@ -485,7 +485,7 @@ QVariantList Lr2SelectBarCell::graphSegmentModel(int graphType,
         accumulated += amount;
     }
 
-    for (int segment = effectiveSegmentCount - 1; segment >= 0; --segment) {
+    for (int segment = 0; segment < effectiveSegmentCount; ++segment) {
         if (widths[static_cast<size_t>(segment)] <= 0.0) {
             continue;
         }

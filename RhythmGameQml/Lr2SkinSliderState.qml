@@ -15,27 +15,27 @@ QtObject {
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     property Lr2SkinSliderGeometry sliderGeometry: Lr2SkinSliderGeometry {}
 
-    function isSelectScrollSlider(src) {
+    function isSelectScrollSlider(src: var) : var {
         return sliderGeometry.isSelectScrollSlider(root.effectiveScreenKey, src);
     }
 
-    function isLr2GenericSlider(src) {
+    function isLr2GenericSlider(src: var) : var {
         return sliderGeometry.isGenericSlider(root.effectiveScreenKey, src);
     }
 
-    function isGameplayProgressSlider(src) {
+    function isGameplayProgressSlider(src: var) : var {
         return sliderGeometry.isGameplayProgressSlider(root.isGameplayScreen(), src);
     }
 
-    function isGameplayLaneCoverSlider(src) {
+    function isGameplayLaneCoverSlider(src: var) : var {
         return sliderGeometry.isGameplayLaneCoverSlider(root.isGameplayScreen(), src);
     }
 
-    function isLr2NumberRefSlider(src) {
+    function isLr2NumberRefSlider(src: var) : var {
         return sliderGeometry.isNumberRefSlider(src);
     }
 
-    function trackState(src, dsts, skinTime, timerFire, activeOptions) {
+    function trackState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         if (!src || !src.slider) {
             return null;
         }
@@ -63,11 +63,11 @@ QtObject {
         return sliderGeometry.trackState(src, base);
     }
 
-    function positionFromPointer(src, track, pointerX, pointerY) {
+    function positionFromPointer(src: var, track: var, pointerX: var, pointerY: var) : var {
         return sliderGeometry.positionFromPointer(src, track, pointerX, pointerY);
     }
 
-    function translatedState(src, dsts, position, skinTime, timerFire, activeOptions) {
+    function translatedState(src: var, dsts: var, position: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         let clock = skinTime === undefined
             ? root.skinTimeForElement(src, dsts)
             : skinTime;
@@ -92,7 +92,7 @@ QtObject {
         return sliderGeometry.translatedState(src, base, position);
     }
 
-    function selectScrollPosition(src) {
+    function selectScrollPosition(src: var) : var {
         if (!sliders.isSelectScrollSlider(src)) {
             return 0;
         }
@@ -107,7 +107,7 @@ QtObject {
         return logicalCount > 1 ? fixedValue / maxFixed : 0;
     }
 
-    function genericPosition(src) {
+    function genericPosition(src: var) : var {
         if (!sliders.isLr2GenericSlider(src)) {
             return 0;
         }
@@ -116,7 +116,7 @@ QtObject {
             : root.sliderRawValue(src.sliderType) / 100;
     }
 
-    function gameplayProgressPosition(src) {
+    function gameplayProgressPosition(src: var) : var {
         if (!sliders.isGameplayProgressSlider(src)) {
             return 0;
         }
@@ -124,7 +124,7 @@ QtObject {
         return frameState ? frameState.progressPosition || 0 : 0;
     }
 
-    function gameplayLaneCoverPosition(src) {
+    function gameplayLaneCoverPosition(src: var) : var {
         if (!sliders.isGameplayLaneCoverSlider(src)) {
             return 0;
         }
@@ -132,7 +132,7 @@ QtObject {
         return Math.max(0, Math.min(1, root.gameplayLaneCoverSliderPosition(side)));
     }
 
-    function numberRefSliderPosition(src) {
+    function numberRefSliderPosition(src: var) : var {
         if (!sliders.isLr2NumberRefSlider(src)) {
             return 0;
         }
@@ -150,7 +150,7 @@ QtObject {
             : (value >= minValue ? 0 : Math.abs((value - minValue) / (maxValue - minValue)));
     }
 
-    function selectScrollState(src, dsts, skinTime, timerFire, activeOptions) {
+    function selectScrollState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         if (!sliders.isSelectScrollSlider(src)) {
             return null;
         }
@@ -164,7 +164,7 @@ QtObject {
             activeOptions);
     }
 
-    function genericState(src, dsts, skinTime, timerFire, activeOptions) {
+    function genericState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         if (!sliders.isLr2GenericSlider(src)) {
             return null;
         }
@@ -177,7 +177,7 @@ QtObject {
             activeOptions);
     }
 
-    function gameplayProgressState(src, dsts, skinTime, timerFire, activeOptions) {
+    function gameplayProgressState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         if (!sliders.isGameplayProgressSlider(src)) {
             return null;
         }
@@ -190,7 +190,7 @@ QtObject {
             activeOptions);
     }
 
-    function gameplayLaneCoverState(src, dsts, skinTime, timerFire, activeOptions) {
+    function gameplayLaneCoverState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         if (!sliders.isGameplayLaneCoverSlider(src)) {
             return null;
         }
@@ -203,7 +203,7 @@ QtObject {
             activeOptions);
     }
 
-    function numberRefSliderState(src, dsts, skinTime, timerFire, activeOptions) {
+    function numberRefSliderState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         if (!sliders.isLr2NumberRefSlider(src)) {
             return null;
         }
@@ -216,19 +216,19 @@ QtObject {
             activeOptions);
     }
 
-    function selectScrollTrackState(src, dsts, skinTime) {
+    function selectScrollTrackState(src: var, dsts: var, skinTime: var) : var {
         return sliders.isSelectScrollSlider(src)
             ? sliders.trackState(src, dsts, skinTime)
             : null;
     }
 
-    function genericTrackState(src, dsts, skinTime) {
+    function genericTrackState(src: var, dsts: var, skinTime: var) : var {
         return sliders.isLr2GenericSlider(src)
             ? sliders.trackState(src, dsts, skinTime)
             : null;
     }
 
-    function setSelectScrollFromPointer(src, dsts, pointerX, pointerY) {
+    function setSelectScrollFromPointer(src: var, dsts: var, pointerX: var, pointerY: var) : var {
         if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0) {
             return;
         }
@@ -239,7 +239,7 @@ QtObject {
             pointerY);
     }
 
-    function setSelectScrollFromTrack(src, track, pointerX, pointerY) {
+    function setSelectScrollFromTrack(src: var, track: var, pointerX: var, pointerY: var) : var {
         if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0 || !track) {
             return;
         }
@@ -254,7 +254,7 @@ QtObject {
         selectContext.dragScrollFixedPoint(fixedPoint);
     }
 
-    function setGenericFromPointer(src, dsts, pointerX, pointerY) {
+    function setGenericFromPointer(src: var, dsts: var, pointerX: var, pointerY: var) : void {
         sliders.setGenericFromTrack(
             src,
             sliders.genericTrackState(src, dsts),
@@ -262,7 +262,7 @@ QtObject {
             pointerY);
     }
 
-    function setGenericFromTrack(src, track, pointerX, pointerY) {
+    function setGenericFromTrack(src: var, track: var, pointerX: var, pointerY: var) : var {
         if (!track) {
             return;
         }

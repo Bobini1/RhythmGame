@@ -20,29 +20,29 @@ QtObject {
     property var resultTimingStatsCache: ({})
     property var resultJudgeTimingCountsCache: ({})
 
-    function isResultScreen() {
+    function isResultScreen() : var {
         return root.host.effectiveScreenKey === "result"
             || root.host.effectiveScreenKey === "courseResult";
     }
 
-    function resultScore(side) {
+    function resultScore(side: var) : var {
         return root.host.scores && root.host.scores.length >= side
             ? root.host.scores[side - 1]
             : null;
     }
 
-    function resultData(side) {
+    function resultData(side: var) : var {
         let score = root.resultScore(side);
         return score && score.result ? score.result : null;
     }
 
-    function resultProfile(side) {
+    function resultProfile(side: var) : var {
         return root.host.profiles && root.host.profiles.length >= side
             ? root.host.profiles[side - 1]
             : (Rg.profileList ? Rg.profileList.mainProfile : null);
     }
 
-    function resultChartData() {
+    function resultChartData() : var {
         if (root.host.effectiveScreenKey === "courseResult") {
             return null;
         }
@@ -54,7 +54,7 @@ QtObject {
             : null;
     }
 
-    function displayChartData() {
+    function displayChartData() : var {
         if (root.isResultScreen()) {
             return root.resultChartData();
         }
@@ -67,13 +67,13 @@ QtObject {
         return root.host.chart && root.host.chart.chartData ? root.host.chart.chartData : null;
     }
 
-    function resultClearOption() {
+    function resultClearOption() : var {
         let result = root.resultData(1);
         let clearType = result ? String(result.clearType || "FAILED") : "FAILED";
         return clearType !== "FAILED" && clearType !== "NOPLAY" ? 90 : 91;
     }
 
-    function resultTotalNotes(result) {
+    function resultTotalNotes(result: var) : var {
         if (!result) {
             return 0;
         }
@@ -81,28 +81,28 @@ QtObject {
         return maxPoints > 0 ? Math.floor(maxPoints / 2) : Math.max(0, result.maxHits || 0);
     }
 
-    function resultJudgementCount(result, judgement) {
+    function resultJudgementCount(result: var, judgement: var) : var {
         let counts = result && result.judgementCounts ? result.judgementCounts : [];
         return judgement >= 0 && judgement < counts.length ? (counts[judgement] || 0) : 0;
     }
 
-    function resultPoorCount(result) {
+    function resultPoorCount(result: var) : var {
         return root.resultJudgementCount(result, Judgement.Poor)
             + root.resultJudgementCount(result, Judgement.EmptyPoor);
     }
 
-    function resultBadPoor(result) {
+    function resultBadPoor(result: var) : var {
         return root.resultJudgementCount(result, Judgement.Bad) + root.resultPoorCount(result);
     }
 
-    function emptyJudgeTimingCounts() {
+    function emptyJudgeTimingCounts() : var {
         return {
             early: [0, 0, 0, 0, 0, 0],
             late: [0, 0, 0, 0, 0, 0]
         };
     }
 
-    function judgementTimingBucket(judgement) {
+    function judgementTimingBucket(judgement: var) : var {
         switch (judgement) {
         case Judgement.Perfect:
             return 0;
@@ -121,7 +121,7 @@ QtObject {
         }
     }
 
-    function hitDeviationNanos(hit) {
+    function hitDeviationNanos(hit: var) : var {
         if (!hit) {
             return 0;
         }
@@ -134,15 +134,15 @@ QtObject {
         return 0;
     }
 
-    function hitDeviationMillis(hit) {
+    function hitDeviationMillis(hit: var) : var {
         return Math.round(-root.hitDeviationNanos(hit) / 1000000);
     }
 
-    function judgementUpdatesJudgeTimingValue(judgement) {
+    function judgementUpdatesJudgeTimingValue(judgement: var) : var {
         return judgement >= Judgement.Bad && judgement <= Judgement.Perfect;
     }
 
-    function cloneJudgeTimingCounts(counts) {
+    function cloneJudgeTimingCounts(counts: var) : var {
         if (!counts || !counts.early || !counts.late) {
             return root.emptyJudgeTimingCounts();
         }
@@ -152,11 +152,11 @@ QtObject {
         };
     }
 
-    function emptyJudgeLaneValues() {
+    function emptyJudgeLaneValues() : var {
         return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
 
-    function nowJudgeValue(judgement) {
+    function nowJudgeValue(judgement: var) : var {
         switch (judgement) {
         case Judgement.Perfect:
             return 1;
@@ -175,7 +175,7 @@ QtObject {
         }
     }
 
-    function laneJudgeValue(judgement, timing) {
+    function laneJudgeValue(judgement: var, timing: var) : var {
         switch (judgement) {
         case Judgement.Perfect:
             return 1;
@@ -190,7 +190,7 @@ QtObject {
         }
     }
 
-    function setGameplayJudgeLaneValue(scoreSide, hit, value) {
+    function setGameplayJudgeLaneValue(scoreSide: var, hit: var, value: var) : var {
         let lane = root.host.gameplayLr2LaneForHit(scoreSide, hit);
         if (lane < 0) {
             return;
@@ -210,7 +210,7 @@ QtObject {
         root.host[valuesName] = values;
     }
 
-    function gameplayJudgeValueForId(num) {
+    function gameplayJudgeValueForId(num: var) : var {
         if (num === 520 || num === 522) {
             return root.host.gameplayJudgeNowValue1;
         }
@@ -239,7 +239,7 @@ QtObject {
         return values && offset >= 0 && offset < values.length ? (values[offset] || 0) : 0;
     }
 
-    function recordGameplayJudgeTiming(scoreSide, hit) {
+    function recordGameplayJudgeTiming(scoreSide: var, hit: var) : var {
         let judgement = root.host.gameplayJudgementFromHit(hit);
         let bucket = root.judgementTimingBucket(judgement);
         if (bucket < 0) {
@@ -270,7 +270,7 @@ QtObject {
         }
     }
 
-    function judgeTimingCount(counts, bucket, early) {
+    function judgeTimingCount(counts: var, bucket: var, early: var) : var {
         if (bucket < 0 || !counts) {
             return 0;
         }
@@ -278,7 +278,7 @@ QtObject {
         return source && bucket < source.length ? (source[bucket] || 0) : 0;
     }
 
-    function judgeTimingNumberFromCounts(num, counts) {
+    function judgeTimingNumberFromCounts(num: var, counts: var) : var {
         if (num >= 410 && num <= 419) {
             let bucket = Math.floor((num - 410) / 2);
             let early = (num - 410) % 2 === 0;
@@ -308,7 +308,7 @@ QtObject {
         }
     }
 
-    function resultCacheKey(score) {
+    function resultCacheKey(score: var) : var {
         if (!score) {
             return "";
         }
@@ -319,7 +319,7 @@ QtObject {
         return String(guid) + ":" + events.length;
     }
 
-    function resultJudgeTimingCounts(side) {
+    function resultJudgeTimingCounts(side: var) : var {
         let score = root.resultScore(side);
         let key = root.resultCacheKey(score);
         if (key.length === 0) {
@@ -351,7 +351,7 @@ QtObject {
         return counts;
     }
 
-    function resultTimingStats(side) {
+    function resultTimingStats(side: var) : var {
         let score = root.resultScore(side);
         let key = root.resultCacheKey(score);
         if (key.length === 0) {
@@ -401,12 +401,12 @@ QtObject {
         return stats;
     }
 
-    function signedAfterDot(value) {
+    function signedAfterDot(value: var) : var {
         let scaled = Math.floor(Math.abs(value || 0) * 100) % 100;
         return value < 0 ? -scaled : scaled;
     }
 
-    function resultGaugeInfo(side) {
+    function resultGaugeInfo(side: var) : var {
         let score = root.resultScore(side);
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
         if (!infos || infos.length === 0) {
@@ -429,22 +429,22 @@ QtObject {
         return best || fallback;
     }
 
-    function resultGaugeValue(side) {
+    function resultGaugeValue(side: var) : var {
         let info = root.resultGaugeInfo(side);
         let history = info && info.gaugeHistory ? info.gaugeHistory : [];
         return history && history.length > 0 ? (history[history.length - 1].gauge || 0) : 0;
     }
 
-    function gaugeAfterDot(value) {
+    function gaugeAfterDot(value: var) : var {
         let scaled = Math.max(0, value || 0) * 10;
         return scaled > 0 && scaled < 1 ? 1 : Math.floor(scaled) % 10;
     }
 
-    function resultExScore(result) {
+    function resultExScore(result: var) : var {
         return result ? Math.floor(result.points || 0) : 0;
     }
 
-    function resultLr2Score(result) {
+    function resultLr2Score(result: var) : var {
         let totalNotes = root.resultTotalNotes(result);
         if (totalNotes <= 0) {
             return 0;
@@ -455,34 +455,34 @@ QtObject {
         return Math.floor((good + (great + pgreat * 2) * 2) * 50000 / totalNotes);
     }
 
-    function resultScorePrint(result) {
+    function resultScorePrint(result: var) : var {
         let value = root.resultLr2Score(result);
         let chartData = root.resultChartData();
         let keymode = chartData ? chartData.keymode : (result ? result.keymode : 0);
         return keymode === 7 || keymode === 14 ? value : Math.floor(value / 20) * 10;
     }
 
-    function resultRateInteger(result) {
+    function resultRateInteger(result: var) : var {
         let denominator = root.resultTotalNotes(result) * 2;
         return denominator > 0 ? Math.floor(root.resultExScore(result) * 100 / denominator) : 0;
     }
 
-    function resultRateDecimal(result) {
+    function resultRateDecimal(result: var) : var {
         let denominator = root.resultTotalNotes(result) * 2;
         return denominator > 0 ? Math.floor(root.resultExScore(result) * 10000 / denominator) % 100 : 0;
     }
 
-    function resultScoreRateInteger(points, result) {
+    function resultScoreRateInteger(points: var, result: var) : var {
         let denominator = root.resultTotalNotes(result) * 2;
         return denominator > 0 ? Math.floor(points * 100 / denominator) : 0;
     }
 
-    function resultScoreRateDecimal(points, result) {
+    function resultScoreRateDecimal(points: var, result: var) : var {
         let denominator = root.resultTotalNotes(result) * 2;
         return denominator > 0 ? Math.floor(points * 10000 / denominator) % 100 : 0;
     }
 
-    function resultRawRank(result) {
+    function resultRawRank(result: var) : var {
         let denominator = root.resultTotalNotes(result) * 2;
         if (!result || denominator <= 0 || root.resultExScore(result) <= 0) {
             return -1;
@@ -490,7 +490,7 @@ QtObject {
         return Math.floor(root.resultExScore(result) * 9 / denominator);
     }
 
-    function resultRankDelta(result) {
+    function resultRankDelta(result: var) : var {
         let totalNotes = root.resultTotalNotes(result);
         let perfectScore = totalNotes * 2;
         let exScore = root.resultExScore(result);
@@ -502,7 +502,7 @@ QtObject {
         return exScore - Math.floor(perfectScore * (rank + 1) / 9);
     }
 
-    function resultRankOptionForResult(result, baseOption) {
+    function resultRankOptionForResult(result: var, baseOption: var) : var {
         let rank = root.resultRawRank(result);
         if (rank < 0) {
             return baseOption + 8;
@@ -516,12 +516,12 @@ QtObject {
         return baseOption + (8 - rank);
     }
 
-    function resultOldScores(side) {
+    function resultOldScores(side: var) : var {
         root.resultOldScoresRevision;
         return side === 2 ? root.resultOldScores2 : root.resultOldScores1;
     }
 
-    function resultBestScoreByPoints(scores) {
+    function resultBestScoreByPoints(scores: var) : var {
         let best = null;
         let bestRate = -1;
         for (let score of scores || []) {
@@ -539,17 +539,17 @@ QtObject {
         return best;
     }
 
-    function resultOldBestScore(side) {
+    function resultOldBestScore(side: var) : var {
         return root.resultBestScoreByPoints(root.resultOldScores(side));
     }
 
-    function resultLastOldScore(side) {
+    function resultLastOldScore(side: var) : var {
         root.resultOldScoresRevision;
         let scores = root.resultOldScores(side) || [];
         return scores.length > 0 ? scores[0] : null;
     }
 
-    function resultTargetSavedScore(side) {
+    function resultTargetSavedScore(side: var) : var {
         let profile = root.resultProfile(side);
         let vars = profile && profile.vars ? profile.vars.generalVars : null;
         switch (vars ? vars.scoreTarget : ScoreTarget.BestScore) {
@@ -562,13 +562,13 @@ QtObject {
         }
     }
 
-    function resultTargetFraction(side) {
+    function resultTargetFraction(side: var) : var {
         let profile = root.resultProfile(side);
         let vars = profile && profile.vars ? profile.vars.generalVars : null;
         return vars ? (vars.targetScoreFraction || 0) : 0;
     }
 
-    function resultTargetPoints(side) {
+    function resultTargetPoints(side: var) : var {
         let targetScore = root.resultTargetSavedScore(side);
         if (targetScore && targetScore.result) {
             return root.resultExScore(targetScore.result);
@@ -577,21 +577,21 @@ QtObject {
         return current ? Math.floor((current.maxPoints || 0) * root.resultTargetFraction(side)) : 0;
     }
 
-    function resultHighScorePoints(side) {
+    function resultHighScorePoints(side: var) : var {
         return root.resultExScore(root.resultOldBestResult(side));
     }
 
-    function resultTargetMaxPoints(side) {
+    function resultTargetMaxPoints(side: var) : var {
         let current = root.resultData(side);
         return current ? Math.max(1, current.maxPoints || 1) : 1;
     }
 
-    function resultOldBestResult(side) {
+    function resultOldBestResult(side: var) : var {
         let score = root.resultOldBestScore(side);
         return score && score.result ? score.result : null;
     }
 
-    function resultUpdatedBestResult(side) {
+    function resultUpdatedBestResult(side: var) : var {
         let current = root.resultData(side);
         let old = root.resultOldBestResult(side);
         if (!current) {
@@ -603,25 +603,25 @@ QtObject {
         return current.points / current.maxPoints >= old.points / old.maxPoints ? current : old;
     }
 
-    function resultScoreImproved(side) {
+    function resultScoreImproved(side: var) : var {
         let current = root.resultData(side);
         let old = root.resultOldBestResult(side);
         return !!current && (!old || root.resultExScore(current) > root.resultExScore(old));
     }
 
-    function resultComboImproved(side) {
+    function resultComboImproved(side: var) : var {
         let current = root.resultData(side);
         let old = root.resultOldBestResult(side);
         return !!current && (!old || (current.maxCombo || 0) > (old.maxCombo || 0));
     }
 
-    function resultBadPoorImproved(side) {
+    function resultBadPoorImproved(side: var) : var {
         let current = root.resultData(side);
         let old = root.resultOldBestResult(side);
         return !!current && (!old || root.resultBadPoor(current) < root.resultBadPoor(old));
     }
 
-    function updateResultOldScores() {
+    function updateResultOldScores() : var {
         if (!root.isResultScreen()) {
             return;
         }

@@ -60,26 +60,26 @@ Item {
     readonly property int sourceFrameIndex: animationFrameState.frameIndex
     readonly property int resultRevision: screenRoot ? screenRoot.resultOldScoresRevision : 0
 
-    function resultScore() {
+    function resultScore() : var {
         let side = srcData && srcData.side ? srcData.side : 1;
         return screenRoot ? screenRoot.resultScore(side) : null;
     }
 
-    function resultData() {
+    function resultData() : var {
         let score = resultScore();
         return score && score.result ? score.result : null;
     }
 
-    function replayEvents() {
+    function replayEvents() : var {
         let score = resultScore();
         return score && score.replayData ? (score.replayData.hitEvents || []) : [];
     }
 
-    function scoreChartSide() {
+    function scoreChartSide() : var {
         return srcData && srcData.side ? srcData.side : 1;
     }
 
-    function scoreChartScore() {
+    function scoreChartScore() : var {
         if (!screenRoot || !srcData) {
             return null;
         }
@@ -97,11 +97,11 @@ Item {
         return null;
     }
 
-    function scoreChartReplayEvents(score) {
+    function scoreChartReplayEvents(score: var) : var {
         return score && score.replayData ? (score.replayData.hitEvents || []) : [];
     }
 
-    function gaugeInfo() {
+    function gaugeInfo() : var {
         let score = resultScore();
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
         if (!infos || infos.length === 0) {
@@ -124,7 +124,7 @@ Item {
         return best || fallback;
     }
 
-    function scoreChartFinalPoints() {
+    function scoreChartFinalPoints() : var {
         let score = scoreChartScore();
         let result = score && score.result ? score.result : null;
         if (result) {
@@ -137,7 +137,7 @@ Item {
         return -1;
     }
 
-    function graphColor(state) {
+    function graphColor(state: var) : var {
         let r = Math.max(0, Math.min(255, state && state.r !== undefined ? state.r : 255));
         let g = Math.max(0, Math.min(255, state && state.g !== undefined ? state.g : 255));
         let b = Math.max(0, Math.min(255, state && state.b !== undefined ? state.b : 255));
@@ -145,19 +145,19 @@ Item {
         return "rgba(" + r + "," + g + "," + b + "," + a + ")";
     }
 
-    function cacheValueCount(fieldW, step) {
+    function cacheValueCount(fieldW: var, step: var) : var {
         return Math.max(1, Math.ceil(Math.max(1, fieldW) / Math.max(1, step)));
     }
 
-    function clampPercent(value) {
+    function clampPercent(value: var) : var {
         return Math.max(0, Math.min(100, value));
     }
 
-    function scorePercent(points, maxPoints) {
+    function scorePercent(points: var, maxPoints: var) : var {
         return clampPercent(points * 100 / Math.max(1, maxPoints || 1));
     }
 
-    function buildLinearScoreCache(fieldW, step, finalPoints, maxPoints) {
+    function buildLinearScoreCache(fieldW: var, step: var, finalPoints: var, maxPoints: var) : var {
         let count = cacheValueCount(fieldW, step);
         let result = new Array(count);
         for (let i = 0; i < count; ++i) {
@@ -166,7 +166,7 @@ Item {
         return result;
     }
 
-    function buildReplayScoreCache(score, fieldW, step, maxPoints) {
+    function buildReplayScoreCache(score: var, fieldW: var, step: var, maxPoints: var) : var {
         let scoreResult = score && score.result ? score.result : null;
         let events = scoreChartReplayEvents(score);
         if (!scoreResult || !events || events.length === 0) {
@@ -195,7 +195,7 @@ Item {
         return result;
     }
 
-    function buildGradeTargetCache(fieldW, step, maxPoints) {
+    function buildGradeTargetCache(fieldW: var, step: var, maxPoints: var) : var {
         if (!screenRoot || !srcData || (srcData.resultChartIndex || 0) !== 2
                 || !screenRoot.resultTargetFraction || scoreChartScore()) {
             return [];
@@ -231,7 +231,7 @@ Item {
         return result;
     }
 
-    function buildGaugeCache(fieldW, step) {
+    function buildGaugeCache(fieldW: var, step: var) : var {
         let info = gaugeInfo();
         let history = info && info.gaugeHistory ? info.gaugeHistory : [];
         let maxGauge = info ? Math.max(1, info.maxGauge || 100) : 100;
@@ -269,7 +269,7 @@ Item {
         return result;
     }
 
-    function buildScoreCache(fieldW, step) {
+    function buildScoreCache(fieldW: var, step: var) : var {
         let current = resultData();
         let maxPoints = current ? Math.max(1, current.maxPoints || 1) : 1;
         let score = scoreChartScore();
@@ -290,7 +290,7 @@ Item {
         return buildLinearScoreCache(fieldW, step, finalPoints, maxPoints);
     }
 
-    function rebuildValueCache() {
+    function rebuildValueCache() : var {
         if (!root.currentState || !root.srcData) {
             root.valueCache = [];
             root.paintedColumnCount = -1;
@@ -314,7 +314,7 @@ Item {
         requestTimedChartPaint();
     }
 
-    function cachedSegmentVisible(value) {
+    function cachedSegmentVisible(value: var) : var {
         if (root.cachedChartType !== 1) {
             return true;
         }
@@ -324,7 +324,7 @@ Item {
         return root.cachedChartIndex === 0 ? value < 80 : value >= 80;
     }
 
-    function drawColumnCount() {
+    function drawColumnCount() : var {
         if (!root.currentState || !root.srcData || root.valueCache.length === 0) {
             return 0;
         }
@@ -335,13 +335,13 @@ Item {
         return Math.min(root.valueCache.length, Math.ceil(drawLength / root.cachedStep));
     }
 
-    function requestChartPaint() {
+    function requestChartPaint() : void {
         if (chartCanvas.available) {
             chartCanvas.requestPaint();
         }
     }
 
-    function requestTimedChartPaint() {
+    function requestTimedChartPaint() : var {
         let count = drawColumnCount();
         if (count === root.paintedColumnCount) {
             return;
@@ -350,7 +350,7 @@ Item {
         requestChartPaint();
     }
 
-    function drawGraphPoint(ctx, imageLoaded, sx, sy, srcW, srcH, x, value, dstW, dstH, fieldH) {
+    function drawGraphPoint(ctx: var, imageLoaded: var, sx: var, sy: var, srcW: var, srcH: var, x: var, value: var, dstW: var, dstH: var, fieldH: var) : var {
         if (value < 0 || !root.cachedSegmentVisible(value)) {
             return;
         }

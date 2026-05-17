@@ -66,18 +66,18 @@ Item {
     readonly property var textTimelineState: staticTimelineState
         || timelineState.state
 
-    function visibleFor(cellValid, cellTitleType) {
+    function visibleFor(cellValid: var, cellTitleType: var) : var {
         return cellValid && !!srcData && !!selectContext
             && cellTitleType === srcData.titleType;
     }
 
-    function baseState(row) {
+    function baseState(row: var) : var {
         return barBaseStates && row >= 0 && row < barBaseStates.length
             ? barBaseStates[row]
             : null;
     }
 
-    function visibilityState(row) {
+    function visibilityState(row: var) : var {
         return baseState(row);
     }
 
@@ -106,10 +106,9 @@ Item {
                 : null
             readonly property int sourceTitleType: root.srcData ? root.srcData.titleType : -1
             readonly property int cellRevision: cell ? cell.revision : -1
-            readonly property string cellText: {
-                let revision = cellRevision;
-                return cell ? cell.textForTitleType(sourceTitleType) : "";
-            }
+            readonly property string cellText: cell && cellRevision >= 0
+                ? cell.textForTitleType(sourceTitleType)
+                : ""
             readonly property bool contentVisible: rowVisible && cellText.length > 0
             positionCache: root.barPositionCache
             slot: index

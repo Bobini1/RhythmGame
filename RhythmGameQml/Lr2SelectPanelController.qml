@@ -85,7 +85,7 @@ QtObject {
     onAnyStartHeldChanged: controller.handleGameplayOptionModifierChanged()
     onAnySelectHeldChanged: controller.handleGameplayOptionModifierChanged()
 
-    function updateHeldOptionPanel() {
+    function updateHeldOptionPanel() : var {
         if (controller.heldOptionPanel > 0) {
             if (controller.selectPanel > 0 && controller.selectPanelHeldByStart === 0) {
                 controller.startHoldSuppressed = true;
@@ -103,7 +103,7 @@ QtObject {
         }
     }
 
-    function handleGameplayOptionModifierChanged() {
+    function handleGameplayOptionModifierChanged() : var {
         if (!root.isGameplayScreen()) {
             return;
         }
@@ -366,7 +366,7 @@ QtObject {
         "318": () => controller.playReplaySlot(3)
     })
 
-    function lookup(values) {
+    function lookup(values: var) : var {
         let result = {};
         for (let value of values) {
             result[String(value)] = true;
@@ -374,7 +374,7 @@ QtObject {
         return result;
     }
 
-    function bindingLookup(bindings) {
+    function bindingLookup(bindings: var) : var {
         let result = {};
         for (let binding of bindings) {
             result[String(binding[0])] = { buttonId: binding[1], delta: binding[2] };
@@ -382,20 +382,20 @@ QtObject {
         return result;
     }
 
-    function observeSelectSortButton(src) {
+    function observeSelectSortButton(src: var) : void {
         if (root.effectiveScreenKey === "select" && root.elementButtonId(src) === 12) {
             selectContext.observeSortSourceFrameCount(root.elementSourceFrameCount(src));
         }
     }
 
-    function buttonUsesSplitArrows(buttonId) {
+    function buttonUsesSplitArrows(buttonId: var) : var {
         if (controller.splitArrowButtons[String(buttonId)]) {
             return true;
         }
         return buttonId >= 220 && buttonId <= 229;
     }
 
-    function imageSetButtonId(src) {
+    function imageSetButtonId(src: var) : var {
         if (!src || !src.imageSet) {
             return 0;
         }
@@ -406,7 +406,7 @@ QtObject {
         return controller.imageSetButtons[String(id)] ? id : 0;
     }
 
-    function elementButtonId(src) {
+    function elementButtonId(src: var) : var {
         if (!src) {
             return 0;
         }
@@ -416,11 +416,11 @@ QtObject {
         return root.imageSetButtonId(src);
     }
 
-    function elementButtonPanel(src) {
+    function elementButtonPanel(src: var) : var {
         return src && src.button ? (src.buttonPanel || 0) : root.selectPanel;
     }
 
-    function elementButtonClickEnabled(src) {
+    function elementButtonClickEnabled(src: var) : var {
         if (!src) {
             return false;
         }
@@ -429,14 +429,14 @@ QtObject {
             : root.selectPanel > 0 && root.imageSetButtonId(src) > 0;
     }
 
-    function elementButtonPanelMatches(src) {
+    function elementButtonPanelMatches(src: var) : var {
         if (!src) {
             return false;
         }
         return src.button ? root.buttonPanelMatches(src) : root.selectPanel > 0;
     }
 
-    function buttonMouseDelta(src, mouseX, width) {
+    function buttonMouseDelta(src: var, mouseX: var, width: var) : var {
         if (src && src.buttonPlusOnly === 1) {
             return 1;
         }
@@ -449,7 +449,7 @@ QtObject {
         return 1;
     }
 
-    function buttonFrame(src) {
+    function buttonFrame(src: var) : var {
         if (root.effectiveScreenKey !== "select" || !src || !src.button) {
             return -1;
         }
@@ -475,7 +475,7 @@ QtObject {
         return -1;
     }
 
-    function closeSelectPanel() {
+    function closeSelectPanel() : void {
         if (root.selectPanel > 0) {
             root.playOneShot(optionCloseSound);
             root.startSelectPanelCloseTimer(root.selectPanel);
@@ -485,7 +485,7 @@ QtObject {
         root.selectHeldButtonTimerStarts = ({});
     }
 
-    function startSelectPanelCloseTimer(panel) {
+    function startSelectPanelCloseTimer(panel: var) : var {
         if (panel <= 0) {
             return;
         }
@@ -493,7 +493,7 @@ QtObject {
         root.selectPanelClosing = panel;
     }
 
-    function openSelectPanel(panel, heldByStart) {
+    function openSelectPanel(panel: var, heldByStart: var) : var {
         if (panel <= 0) {
             return;
         }
@@ -508,7 +508,7 @@ QtObject {
         root.selectPanelHeldByStart = heldByStart ? panel : 0;
     }
 
-    function toggleSelectPanel(panel) {
+    function toggleSelectPanel(panel: var) : var {
         if (panel <= 0) {
             return;
         }
@@ -519,7 +519,7 @@ QtObject {
         root.openSelectPanel(panel, false);
     }
 
-    function holdSelectPanel(panel) {
+    function holdSelectPanel(panel: var) : var {
         if (!root.selectInputReady()) {
             return;
         }
@@ -529,20 +529,20 @@ QtObject {
         root.openSelectPanel(panel, true);
     }
 
-    function releaseHeldSelectPanel(panel) {
+    function releaseHeldSelectPanel(panel: var) : void {
         if (root.selectPanelHeldByStart === panel) {
             root.closeSelectPanel();
         }
     }
 
-    function currentSelectHeldButtonSkinTime() {
+    function currentSelectHeldButtonSkinTime() : var {
         if (root.effectiveScreenKey !== "select") {
             return root.renderSkinTime;
         }
         return root.selectLiveSkinTime;
     }
 
-    function selectHeldButtonTimerForKey(key) {
+    function selectHeldButtonTimerForKey(key: var) : var {
         switch (key) {
         case BmsKey.Col11:
             return 101;
@@ -577,11 +577,11 @@ QtObject {
         }
     }
 
-    function isSelectHeldButtonTimer(timer) {
+    function isSelectHeldButtonTimer(timer: var) : var {
         return (timer >= 101 && timer <= 107) || (timer >= 111 && timer <= 117);
     }
 
-    function pressSelectHeldButtonTimer(key) {
+    function pressSelectHeldButtonTimer(key: var) : var {
         if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
             return;
         }
@@ -601,7 +601,7 @@ QtObject {
         root.selectHeldButtonTimerStarts = copy;
     }
 
-    function releaseSelectHeldButtonTimer(key) {
+    function releaseSelectHeldButtonTimer(key: var) : var {
         let timer = root.selectHeldButtonTimerForKey(key);
         if (!timer || root.selectHeldButtonTimerStarts[timer] === undefined) {
             return;
@@ -615,7 +615,7 @@ QtObject {
         root.selectHeldButtonTimerStarts = copy;
     }
 
-    function addHeldButtonTimer(result, timer, held) {
+    function addHeldButtonTimer(result: var, timer: var, held: var) : var {
         if (!held) {
             return;
         }
@@ -623,7 +623,7 @@ QtObject {
         result[timer] = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
     }
 
-    function selectHeldButtonTimerFireTime(timer, liveClock) {
+    function selectHeldButtonTimerFireTime(timer: var, liveClock: var) : var {
         if (root.effectiveScreenKey !== "select"
                 || root.selectPanel !== 1
                 || !root.isSelectHeldButtonTimer(timer)) {
@@ -687,7 +687,7 @@ QtObject {
         return root.renderSkinTime - Math.max(0, root.selectLiveSkinTime - liveStart);
     }
 
-    function addHeldButtonTimers(result) {
+    function addHeldButtonTimers(result: var) : var {
         if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
             return;
         }
@@ -707,21 +707,21 @@ QtObject {
         root.addHeldButtonTimer(result, 117, Input.col27);
     }
 
-    function spriteSkinTime(src, dsts) {
+    function spriteSkinTime(src: var, dsts: var) : var {
         let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
         return root.isSelectHeldButtonTimer(timer)
             ? (root.hasSelectHeldButtonTimers ? root.selectHeldButtonSkinTime : root.currentSelectHeldButtonSkinTime())
             : root.skinTimeForElement(src, dsts);
     }
 
-    function buttonPanelMatches(src) {
+    function buttonPanelMatches(src: var) : var {
         if (!src || !src.button) {
             return false;
         }
         return root.panelMatches(src.buttonPanel || 0);
     }
 
-    function setFxType(slot, delta) {
+    function setFxType(slot: var, delta: var) : var {
         root.lr2FxType = root.setArrayValue(
             root.lr2FxType,
             slot,
@@ -729,12 +729,12 @@ QtObject {
         return true;
     }
 
-    function toggleFx(slot) {
+    function toggleFx(slot: var) : var {
         root.lr2FxOn = root.setArrayValue(root.lr2FxOn, slot, !root.lr2FxOn[slot]);
         return true;
     }
 
-    function setFxTarget(slot, delta) {
+    function setFxTarget(slot: var, delta: var) : var {
         root.lr2FxTarget = root.setArrayValue(
             root.lr2FxTarget,
             slot,
@@ -742,7 +742,7 @@ QtObject {
         return true;
     }
 
-    function playReplaySlot(replayType) {
+    function playReplaySlot(replayType: var) : var {
         let targetItem = selectContext.activationItem();
         let replayScore = selectContext.replayScoreForType(targetItem, replayType);
         if (replayScore) {
@@ -751,7 +751,7 @@ QtObject {
         return false;
     }
 
-    function handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount) {
+    function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var) : var {
         if (!root.enabled || root.effectiveScreenKey !== "select" || !root.acceptsInput) {
             return;
         }
@@ -812,12 +812,12 @@ QtObject {
         }
     }
 
-    function triggerSelectPanelButton(buttonId, delta) {
+    function triggerSelectPanelButton(buttonId: var, delta: var) : var {
         root.handleLr2Button(buttonId, delta === undefined ? 1 : delta, root.selectPanel);
         return true;
     }
 
-    function triggerPanelButtonForKey(p1ButtonId, p2ButtonId, key, delta) {
+    function triggerPanelButtonForKey(p1ButtonId: var, p2ButtonId: var, key: var, delta: var) : var {
         let buttonId = p1ButtonId;
         if (p2ButtonId !== undefined && root.keyUsesPlayer2(key)) {
             buttonId = p2ButtonId;
@@ -825,34 +825,34 @@ QtObject {
         return root.triggerSelectPanelButton(buttonId, delta === undefined ? 1 : delta);
     }
 
-    function keyUsesPlayer2(key) {
+    function keyUsesPlayer2(key: var) : var {
         return controller.player2Keys[String(key)] === true;
     }
 
-    function gameplayOptionSideForKey(key) {
+    function gameplayOptionSideForKey(key: var) : var {
         return root.keyUsesPlayer2(key) && root.battleModeActive() ? 2 : 1;
     }
 
-    function startHeldForSide(side) {
+    function startHeldForSide(side: var) : var {
         if (side === 2 && root.battleModeActive()) {
             return Input.start2;
         }
         return Input.start1 || (!root.battleModeActive() && Input.start2);
     }
 
-    function selectHeldForSide(side) {
+    function selectHeldForSide(side: var) : var {
         if (side === 2 && root.battleModeActive()) {
             return Input.select2;
         }
         return Input.select1 || (!root.battleModeActive() && Input.select2);
     }
 
-    function gameplayOptionModifierHeldForKey(key) {
+    function gameplayOptionModifierHeldForKey(key: var) : var {
         let side = root.gameplayOptionSideForKey(key);
         return controller.startHeldForSide(side) || controller.selectHeldForSide(side);
     }
 
-    function gameplayOptionKeyHeld(key) {
+    function gameplayOptionKeyHeld(key: var) : var {
         switch (key) {
         case BmsKey.Col11:
             return Input.col11;
@@ -887,27 +887,27 @@ QtObject {
         }
     }
 
-    function isGameplayOptionModifierKey(key) {
+    function isGameplayOptionModifierKey(key: var) : var {
         return key === BmsKey.Start1
             || key === BmsKey.Start2
             || key === BmsKey.Select1
             || key === BmsKey.Select2;
     }
 
-    function startLr2GameplayOptionRepeat(key) {
+    function startLr2GameplayOptionRepeat(key: var) : void {
         controller.gameplayOptionRepeatKey = key;
         controller.gameplayOptionRepeating = true;
         gameplayOptionRepeatTimer.interval = controller.gameplayOptionInitialRepeatMillis;
         gameplayOptionRepeatTimer.restart();
     }
 
-    function stopLr2GameplayOptionRepeat() {
+    function stopLr2GameplayOptionRepeat() : void {
         controller.gameplayOptionRepeating = false;
         controller.gameplayOptionRepeatKey = -1;
         gameplayOptionRepeatTimer.stop();
     }
 
-    function setGameplayScratchLastDirection(side, up) {
+    function setGameplayScratchLastDirection(side: var, up: var) : void {
         let next = {};
         for (let key in controller.gameplayScratchLastDirectionUp) {
             next[key] = controller.gameplayScratchLastDirectionUp[key];
@@ -916,19 +916,19 @@ QtObject {
         controller.gameplayScratchLastDirectionUp = next;
     }
 
-    function pressLr2GameplayScratchDirection(side, up) {
+    function pressLr2GameplayScratchDirection(side: var, up: var) : void {
         if (root.isGameplayScreen()) {
             controller.setGameplayScratchLastDirection(side, up);
         }
     }
 
-    function releaseLr2GameplayScratchDirection(side, up) {
+    function releaseLr2GameplayScratchDirection(side: var, up: var) : void {
         if (root.isGameplayScreen()) {
             controller.setGameplayScratchLastDirection(side, !up);
         }
     }
 
-    function releaseLr2GameplayOptionKey(key) {
+    function releaseLr2GameplayOptionKey(key: var) : var {
         if (!controller.gameplayOptionRepeating) {
             return;
         }
@@ -939,7 +939,7 @@ QtObject {
         }
     }
 
-    function repeatGameplayOptionKey() {
+    function repeatGameplayOptionKey() : var {
         if (!controller.gameplayOptionRepeating) {
             return;
         }
@@ -955,7 +955,7 @@ QtObject {
         gameplayOptionRepeatTimer.restart();
     }
 
-    function isGameplayDecreaseKey(key) {
+    function isGameplayDecreaseKey(key: var) : var {
         switch (key) {
         case BmsKey.Col11:
         case BmsKey.Col13:
@@ -971,7 +971,7 @@ QtObject {
         }
     }
 
-    function isGameplayIncreaseKey(key) {
+    function isGameplayIncreaseKey(key: var) : var {
         switch (key) {
         case BmsKey.Col12:
         case BmsKey.Col14:
@@ -985,7 +985,7 @@ QtObject {
         }
     }
 
-    function applyLr2LaneCoverKey(side, key) {
+    function applyLr2LaneCoverKey(side: var, key: var) : var {
         switch (key) {
         case BmsKey.Col16:
         case BmsKey.Col26:
@@ -1000,7 +1000,7 @@ QtObject {
         }
     }
 
-    function applyLr2GameplayOptionKey(key) {
+    function applyLr2GameplayOptionKey(key: var) : var {
         if (!root.isGameplayScreen() || !root.gameplayOptionModifierHeldForKey(key)) {
             return false;
         }
@@ -1039,7 +1039,7 @@ QtObject {
         return false;
     }
 
-    function handleGameplayStartPress(key) {
+    function handleGameplayStartPress(key: var) : var {
         if (!root.isGameplayScreen()
                 || (key !== BmsKey.Start1 && key !== BmsKey.Start2)) {
             return false;
@@ -1068,7 +1068,7 @@ QtObject {
         return false;
     }
 
-    function handleLr2GameplayOptionKey(key) {
+    function handleLr2GameplayOptionKey(key: var) : var {
         if (controller.handleGameplayStartPress(key)) {
             return true;
         }
@@ -1079,13 +1079,13 @@ QtObject {
         return true;
     }
 
-    function gameplayScratchBothDirectionsHeld(side) {
+    function gameplayScratchBothDirectionsHeld(side: var) : var {
         return side === 2
             ? Input.col2sUp && Input.col2sDown
             : Input.col1sUp && Input.col1sDown;
     }
 
-    function gameplayScratchAmount(side, up, number) {
+    function gameplayScratchAmount(side: var, up: var, number: var) : var {
         let amount = up ? -1 : 1;
         let lastDirectionUp = controller.gameplayScratchLastDirectionUp[String(side)] === true;
         if ((amount > 0 && lastDirectionUp) || (amount < 0 && !lastDirectionUp)) {
@@ -1097,7 +1097,7 @@ QtObject {
         return amount;
     }
 
-    function handleLr2GameplayScratchTick(side, up, number) {
+    function handleLr2GameplayScratchTick(side: var, up: var, number: var) : var {
         if (!root.isGameplayScreen()) {
             return false;
         }
@@ -1123,7 +1123,7 @@ QtObject {
         return true;
     }
 
-    function handleLr2GameplayArrow(key) {
+    function handleLr2GameplayArrow(key: var) : var {
         if (!root.isGameplayScreen()) {
             return false;
         }
@@ -1145,7 +1145,7 @@ QtObject {
         }
     }
 
-    function handleSelectPanelKey(key) {
+    function handleSelectPanelKey(key: var) : var {
         if (!root.selectInputReady() || root.selectPanel <= 0) {
             return false;
         }
@@ -1157,7 +1157,7 @@ QtObject {
 
     property real selectWheelRemainder: 0
 
-    function handleSelectWheel(wheel) {
+    function handleSelectWheel(wheel: var) : var {
         if (root.lr2ReadmeMode === 1) {
             let readmeDelta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
             if (readmeDelta !== 0) {

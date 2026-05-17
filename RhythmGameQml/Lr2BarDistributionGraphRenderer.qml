@@ -68,8 +68,8 @@ Item {
         return Math.min(frameCountValue - 1, frameOverrideBase + segment);
     }
 
-    function segmentsForCell(cell) {
-        if (!cell || !graphTimelineState) {
+    function segmentsForCell(cell, revision) {
+        if (!cell || revision < 0 || !graphTimelineState) {
             return [];
         }
         return cell.graphSegmentModel(graphType, segmentCount, frameCountValue, graphTimelineState);
@@ -87,10 +87,7 @@ Item {
                 ? root.barCells[slot]
                 : null
             readonly property int cellRevision: cell ? cell.revision : -1
-            readonly property var segmentModel: {
-                let revision = cellRevision;
-                return root.segmentsForCell(cell);
-            }
+            readonly property var segmentModel: root.segmentsForCell(cell, cellRevision)
             readonly property bool contentVisible: rowVisible && segmentModel.length > 0
 
             positionCache: root.barPositionCache

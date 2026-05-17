@@ -24,7 +24,7 @@ MouseArea {
     hoverEnabled: true
     z: 100250
 
-    function updateReadmeMouse(mouse) {
+    function updateReadmeMouse(mouse: var) : var {
         if (!ready || !mouse) {
             return false;
         }

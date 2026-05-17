@@ -54,7 +54,7 @@ Item {
         }
         return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
     }
-    function chartWithHistogram(value) {
+    function chartWithHistogram(value: var) : var {
         return value
             && value.histogramData !== undefined
             && value.histogramData !== null
@@ -62,7 +62,7 @@ Item {
                 : null;
     }
 
-    function histogramRevision(histogram) {
+    function histogramRevision(histogram: var) : var {
         if (!histogram) {
             return "";
         }
@@ -91,11 +91,11 @@ Item {
            + ":" + histogramRevision(chartData.histogramData))
         : ""
 
-    function densityAt(series, index) {
+    function densityAt(series: var, index: var) : var {
         return series && index < series.length ? (Number(series[index]) || 0) : 0;
     }
 
-    function hexColor(value, fallback) {
+    function hexColor(value: var, fallback: var) : var {
         let raw = value === undefined || value === null ? "" : String(value);
         raw = raw.replace(/[^0-9a-fA-F]/g, "");
         if (raw.length < 6) {
@@ -104,14 +104,14 @@ Item {
         return "#" + raw.substring(0, 6);
     }
 
-    function noteColors() {
+    function noteColors() : var {
         return [
             "#44ff44", "#228822", "#ff4444", "#4444ff",
             "#222288", "#cccccc", "#880000"
         ];
     }
 
-    function drawBackground(ctx, sourceW, sourceH, maxDensity, bucketCount) {
+    function drawBackground(ctx: var, sourceW: var, sourceH: var, maxDensity: var, bucketCount: var) : var {
         if (srcData && (srcData.backTexOff || 0) === 1) {
             return;
         }
@@ -138,7 +138,7 @@ Item {
         }
     }
 
-    function buildNormalData(histogram) {
+    function buildNormalData(histogram: var) : var {
         let normal = histogram && histogram[0] ? histogram[0] : [];
         let scratch = histogram && histogram[1] ? histogram[1] : [];
         let ln = histogram && histogram[2] ? histogram[2] : [];
@@ -160,7 +160,7 @@ Item {
         return data;
     }
 
-    function drawBars(ctx, data, maxDensity, sourceH) {
+    function drawBars(ctx: var, data: var, maxDensity: var, sourceH: var) : void {
         let colors = noteColors();
         let noGap = srcData && (srcData.noGap || 0) === 1;
         let reverse = srcData && (srcData.orderReverse || 0) === 1;
@@ -181,7 +181,7 @@ Item {
         }
     }
 
-    function graphMax(data) {
+    function graphMax(data: var) : var {
         let maxValue = 20;
         for (let i = 0; i < data.length; ++i) {
             let total = 0;
@@ -195,7 +195,7 @@ Item {
         return maxValue;
     }
 
-    function updateCachedGraphData() {
+    function updateCachedGraphData() : var {
         if (cachedDataRevision === dataRevision) {
             return;
         }
@@ -254,7 +254,7 @@ Item {
         }
     }
 
-    function requestChartPaint() {
+    function requestChartPaint() : void {
         if (root.visible && chartCanvas.available) {
             chartCanvas.requestPaint();
         }

@@ -15,7 +15,7 @@ QtObject {
     property var items: []
     property bool suppressNextClockRestart: false
 
-    function localizedName(value) {
+    function localizedName(value: var) : var {
         if (value === undefined || value === null) {
             return "";
         }
@@ -25,7 +25,7 @@ QtObject {
         return value.en || value.ja || value[Qt.locale().name] || "";
     }
 
-    function skinTypeScreenKey(type) {
+    function skinTypeScreenKey(type: var) : var {
         switch (type) {
         case 0:
             return "k7";
@@ -56,26 +56,26 @@ QtObject {
         }
     }
 
-    function profileRoot() {
+    function profileRoot() : var {
         return Rg.profileList ? Rg.profileList.mainProfile : null;
     }
 
-    function configuredThemeName(screen) {
+    function configuredThemeName(screen: var) : var {
         let profile = root.profileRoot();
         return profile && profile.themeConfig ? (profile.themeConfig[screen] || "") : "";
     }
 
-    function themeFamilyForScreen(screen) {
+    function themeFamilyForScreen(screen: var) : var {
         let themeName = root.configuredThemeName(screen);
         return themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
     }
 
-    function screenObject(screen) {
+    function screenObject(screen: var) : var {
         let family = root.themeFamilyForScreen(screen);
         return family && family.screens ? family.screens[screen] : null;
     }
 
-    function availableThemeNamesForScreen(screen) {
+    function availableThemeNamesForScreen(screen: var) : var {
         let result = [];
         let families = Rg.themes.availableThemeFamilies || {};
         for (let [name, family] of Object.entries(families)) {
@@ -86,7 +86,7 @@ QtObject {
         return result;
     }
 
-    function settingDestinationForScreen(screen) {
+    function settingDestinationForScreen(screen: var) : var {
         let profile = root.profileRoot();
         let themeName = root.configuredThemeName(screen);
         if (!profile || !profile.vars || !profile.vars.themeVars || !themeName) {
@@ -96,20 +96,20 @@ QtObject {
         return screenVars ? screenVars[themeName] : null;
     }
 
-    function currentPreviewScreen() {
+    function currentPreviewScreen() : var {
         return root.previewScreenKey.length > 0
             ? root.previewScreenKey
             : root.defaultPreviewScreen();
     }
 
-    function defaultPreviewScreen() {
+    function defaultPreviewScreen() : var {
         if (root.host.effectiveScreenKey === "select" && root.screenObject("k7")) {
             return "k7";
         }
         return root.host.effectiveScreenKey || "select";
     }
 
-    function setPreviewScreen(screen) {
+    function setPreviewScreen(screen: var) : var {
         if (screen.length === 0) {
             return false;
         }
@@ -125,7 +125,7 @@ QtObject {
         return true;
     }
 
-    function previewTitle() {
+    function previewTitle() : var {
         let screen = root.currentPreviewScreen();
         if (screen === "soundset") {
             let vars = root.host.mainGeneralVars();
@@ -138,11 +138,11 @@ QtObject {
         return themeName.length > 0 ? themeName : screen.toUpperCase();
     }
 
-    function previewMaker() {
+    function previewMaker() : var {
         return root.metadata.maker || "";
     }
 
-    function normalizeSetting(item, family) {
+    function normalizeSetting(item: var, family: var) : var {
         if (!item || !item.id) {
             return null;
         }
@@ -188,7 +188,7 @@ QtObject {
         return result;
     }
 
-    function buildItems() {
+    function buildItems() : var {
         let screen = root.currentPreviewScreen();
         if (screen === "soundset") {
             return [];
@@ -219,23 +219,23 @@ QtObject {
         return result;
     }
 
-    function refreshItems() {
+    function refreshItems() : void {
         root.metadata = ({});
         root.items = root.buildItems();
         root.customOffset = Math.max(0, Math.min(root.maxOffset(), root.customOffset));
         ++root.revision;
     }
 
-    function maxOffset() {
+    function maxOffset() : var {
         return Math.max(0, root.items.length - 5);
     }
 
-    function position() {
+    function position() : var {
         let max = root.maxOffset();
         return max > 0 ? root.customOffset / max : 0;
     }
 
-    function setPosition(position) {
+    function setPosition(position: var) : var {
         let max = root.maxOffset();
         let next = Math.max(0, Math.min(max, Math.round(position * max)));
         if (next === root.customOffset) {
@@ -246,12 +246,12 @@ QtObject {
         return true;
     }
 
-    function settingAtVisibleRow(row) {
+    function settingAtVisibleRow(row: var) : var {
         let index = root.customOffset + row;
         return index >= 0 && index < root.items.length ? root.items[index] : null;
     }
 
-    function currentValue(item) {
+    function currentValue(item: var) : var {
         let destination = root.settingDestinationForScreen(root.currentPreviewScreen());
         let value = destination && destination[item.id] !== undefined ? destination[item.id] : undefined;
         if ((value === undefined || value === null || value === "") && root.host.skinSettings) {
@@ -263,12 +263,12 @@ QtObject {
         return value === undefined || value === null ? "" : String(value);
     }
 
-    function settingName(row) {
+    function settingName(row: var) : var {
         let item = root.settingAtVisibleRow(row);
         return item ? item.name : "";
     }
 
-    function settingValueText(row) {
+    function settingValueText(row: var) : var {
         let item = root.settingAtVisibleRow(row);
         if (!item) {
             return "";
@@ -278,7 +278,7 @@ QtObject {
         return index >= 0 && index < item.labels.length ? item.labels[index] : value;
     }
 
-    function changeSetting(row, delta) {
+    function changeSetting(row: var, delta: var) : var {
         let item = root.settingAtVisibleRow(row);
         if (!item || item.choices.length <= 0) {
             return false;
@@ -309,7 +309,7 @@ QtObject {
         return true;
     }
 
-    function changeSoundset(delta) {
+    function changeSoundset(delta: var) : var {
         let vars = root.host.mainGeneralVars();
         if (!vars) {
             return false;
@@ -332,7 +332,7 @@ QtObject {
         return true;
     }
 
-    function changeSelectedTheme(delta) {
+    function changeSelectedTheme(delta: var) : var {
         let screen = root.currentPreviewScreen();
         if (screen === "soundset") {
             return root.changeSoundset(delta);
@@ -363,7 +363,7 @@ QtObject {
         return true;
     }
 
-    function queueSkinClockRestartAfterLoad() {
+    function queueSkinClockRestartAfterLoad() : var {
         if (root.suppressNextClockRestart) {
             root.suppressNextClockRestart = false;
             return;

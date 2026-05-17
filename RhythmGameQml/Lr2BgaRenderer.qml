@@ -36,7 +36,7 @@ Item {
     }
     readonly property var currentState: staticTimelineState
         || timelineState.state
-    function centerAnchor(idx) {
+    function centerAnchor(idx: var) : var {
         switch (idx) {
         case 1: return { x: 0.0, y: 1.0 };
         case 2: return { x: 0.5, y: 1.0 };
@@ -63,7 +63,7 @@ Item {
                                              256)
     property var attachedBga: null
 
-    function clearOutput() {
+    function clearOutput() : void {
         if ("clearOutput" in videoBase) {
             videoBase.clearOutput();
             videoLayer.clearOutput();
@@ -72,14 +72,14 @@ Item {
         }
     }
 
-    function bgaLayer(container, index) {
+    function bgaLayer(container: var, index: var) : var {
         if (!container || !container.layers || container.layers.length <= index) {
             return null;
         }
         return container.layers[index];
     }
 
-    function detachAttachedBga() {
+    function detachAttachedBga() : var {
         let container = attachedBga;
         if (!container) {
             clearOutput();
@@ -100,7 +100,7 @@ Item {
         clearOutput();
     }
 
-    function attachBga() {
+    function attachBga() : var {
         if (!mediaActive || !bgaContainer) {
             detachAttachedBga();
             return;
@@ -138,15 +138,15 @@ Item {
         target: root.chart
         ignoreUnknownSignals: true
 
-        function onBgaLoaded() {
+        function onBgaLoaded() : void {
             Qt.callLater(root.attachBga);
         }
 
-        function onBgaChanged() {
+        function onBgaChanged() : void {
             Qt.callLater(root.attachBga);
         }
 
-        function onStatusChanged() {
+        function onStatusChanged() : void {
             Qt.callLater(root.attachBga);
         }
     }

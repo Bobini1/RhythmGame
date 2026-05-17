@@ -12,13 +12,13 @@ QtObject {
 
     readonly property var root: screenRoot
 
-    function selectTextCacheable(st) {
+    function selectTextCacheable(st: var) : var {
         return ((st >= 10 && st <= 29) && st !== 26)
             || st === 30 || st === 60 || st === 61 || st === 62
             || (st >= 1000 && st <= 1003);
     }
 
-    function selectNumberCacheable(num) {
+    function selectNumberCacheable(num: var) : var {
         return num === 42 || num === 96
             || (num >= 45 && num <= 49)
             || (num >= 70 && num <= 116)
@@ -34,21 +34,21 @@ QtObject {
             || (num >= 1312 && num <= 1327);
     }
 
-    function gameplayNumberCacheable(num) {
+    function gameplayNumberCacheable(num: var) : var {
         return num !== 20
             && num !== 160
             && (num < 161 || num > 164);
     }
 
-    function optionOnlyRankId(id) {
+    function optionOnlyRankId(id: var) : var {
         return id >= 340 && id <= 347;
     }
 
-    function optionText(labels, index) {
+    function optionText(labels: var, index: var) : var {
         return index >= 0 && index < labels.length ? labels[index] : "";
     }
 
-    function clearLabelForLamp(lamp) {
+    function clearLabelForLamp(lamp: var) : var {
         switch (lamp) {
         case 1:
             return "FAILED";
@@ -65,27 +65,27 @@ QtObject {
         }
     }
 
-    function courseStage(index) {
+    function courseStage(index: var) : var {
         return index >= 0 && index < root.selectedCourseStages.length
             ? root.selectedCourseStages[index]
             : null;
     }
 
-    function chartTitle(chart) {
+    function chartTitle(chart: var) : var {
         if (typeof chart === "string") {
             return chart;
         }
         return chart ? (chart.title || "") : "";
     }
 
-    function chartSubtitle(chart) {
+    function chartSubtitle(chart: var) : var {
         if (typeof chart === "string") {
             return "";
         }
         return chart ? (chart.subtitle || "") : "";
     }
 
-    function lr2SelectOptionText(st) {
+    function lr2SelectOptionText(st: var) : var {
         switch (st) {
         case 50:
             return root.lr2SkinPreviewTitle();
@@ -206,7 +206,7 @@ QtObject {
         }
     }
 
-    function resolveText(st, revision) {
+    function resolveText(st: var, revision: var) : var {
         let revisionToken = revision !== undefined ? revision : (root.effectiveScreenKey === "select"
             ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision + root.lr2SkinSettingsRevision
             : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision));
@@ -225,7 +225,7 @@ QtObject {
         return resolver.computeResolvedText(st, revisionToken);
     }
 
-    function computeResolvedText(st, revisionToken) {
+    function computeResolvedText(st: var, revisionToken: var) : var {
         if (revisionToken < -1) {
             return "";
         }
@@ -338,7 +338,7 @@ QtObject {
         }
     }
 
-    function resolveGameplayNumber(num) {
+    function resolveGameplayNumber(num: var) : var {
         if ((num >= 1510 && num <= 1599) || (num >= 1610 && num <= 1699)) {
             return root.gameplayJudgeValueForId(num);
         }
@@ -609,11 +609,11 @@ QtObject {
         }
     }
 
-    function resultCompareResult() {
+    function resultCompareResult() : var {
         return root.resultData(2) || root.resultOldBestResult(1);
     }
 
-    function resolveResultSideNumber(num, result) {
+    function resolveResultSideNumber(num: var, result: var) : var {
         switch (num) {
         case 0:
             return root.resultScorePrint(result);
@@ -646,7 +646,7 @@ QtObject {
         }
     }
 
-    function resolveResultTargetSideNumber(num, side) {
+    function resolveResultTargetSideNumber(num: var, side: var) : var {
         let targetScore = root.resultTargetSavedScore(side);
         let targetResult = targetScore && targetScore.result ? targetScore.result : null;
         if (targetResult) {
@@ -672,7 +672,7 @@ QtObject {
         }
     }
 
-    function resolveResultNumber(num) {
+    function resolveResultNumber(num: var) : var {
         root.resultOldScoresRevision;
         let current = root.resultData(1);
         let old = root.resultOldBestResult(1);
@@ -976,7 +976,7 @@ QtObject {
         }
     }
 
-    function resolveNumber(num) {
+    function resolveNumber(num: var) : var {
         if (root.isResultScreen()) {
             return root.resolveResultNumber(num);
         }
@@ -1088,7 +1088,7 @@ QtObject {
         return 0;
     }
 
-    function numberValue(src, revision) {
+    function numberValue(src: var, revision: var) : var {
         let revisionToken = revision !== undefined ? revision : 0;
         if (revisionToken < -1) {
             return 0;
@@ -1120,7 +1120,7 @@ QtObject {
         return resolver.resolveNumber(num);
     }
 
-    function imageSetValue(imageSetRef, sourceCount) {
+    function imageSetValue(imageSetRef: var, sourceCount: var) : var {
         let id = Math.floor(imageSetRef || 0);
         switch (id) {
         case 12:
@@ -1160,7 +1160,7 @@ QtObject {
         }
     }
 
-    function imageSetSourceFor(src) {
+    function imageSetSourceFor(src: var) : var {
         if (!src || !src.imageSet || !src.imageSetSources || src.imageSetSources.length <= 0) {
             return src;
         }
@@ -1205,7 +1205,7 @@ QtObject {
         };
     }
 
-    function numberForceHidden(src) {
+    function numberForceHidden(src: var) : var {
         if (!src) {
             return false;
         }
@@ -1222,7 +1222,7 @@ QtObject {
             || (src.judgementIndex >= 0 && judgement !== src.judgementIndex);
     }
 
-    function numberAnimationRevision(src) {
+    function numberAnimationRevision(src: var) : var {
         if (!src || !src.nowCombo || !root.isGameplayScreen()) {
             return 0;
         }
@@ -1231,7 +1231,7 @@ QtObject {
             : root.gameplayJudgeRevision1;
     }
 
-    function resolveBarGraph(type) {
+    function resolveBarGraph(type: var) : var {
         if (root.effectiveScreenKey === "select") {
             return selectContext.barGraphValue(type);
         }
@@ -1244,11 +1244,11 @@ QtObject {
         return 0;
     }
 
-    function normalizedBarValue(value, maximum) {
+    function normalizedBarValue(value: var, maximum: var) : var {
         return maximum > 0 ? Math.max(0, Math.min(1, value / maximum)) : 0;
     }
 
-    function resultBarGraphValue(type) {
+    function resultBarGraphValue(type: var) : var {
         let current = root.resultData(1);
         let old = root.resultOldBestResult(1);
         let maxPoints = current ? Math.max(0, current.maxPoints || 0) : 0;
