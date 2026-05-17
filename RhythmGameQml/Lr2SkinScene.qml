@@ -43,6 +43,11 @@ Item {
     readonly property int textSettingsRevisionKind: 0
     readonly property int textFocusedRevisionKind: 1
     readonly property int textListRevisionKind: 2
+    readonly property int liveGameplayRhythmTimer: rootReady
+        && root.gameplayScreenActive
+        && root.gameplayFrameStateRef
+            ? root.gameplayFrameStateRef.rhythmTimerSkinTime
+            : -1
 
     function selectBarGraphUsesFocusedState(type: var) : var {
         return type === 101
@@ -285,6 +290,12 @@ Item {
                     readonly property bool usesLiveSelectClock: elementState.usesLiveSelectClock
                     readonly property bool usesDynamicDstTimer: elementState.usesDynamicDstTimer
                     readonly property bool usesDynamicSrcTimer: elementState.usesDynamicSrcTimer
+                    readonly property bool usesLiveGameplayDstTimer: sceneRoot.rootReady
+                        && root.gameplayScreenActive
+                        && elemLoader.dstTimer === 140
+                    readonly property bool usesLiveGameplaySrcTimer: sceneRoot.rootReady
+                        && root.gameplayScreenActive
+                        && elemLoader.srcTimer === 140
                     readonly property int spriteStateOverrideKind: elementState.spriteStateOverrideKind
                     readonly property bool usesSpriteStateOverride: elementState.usesSpriteStateOverride
                     readonly property bool usesSpriteForceHidden: elementState.usesSpriteForceHidden
@@ -302,6 +313,9 @@ Item {
                         if (!elemLoader.usesDynamicDstTimer) {
                             return elemLoader.dstTimer === 0 ? 0 : -1;
                         }
+                        if (elemLoader.usesLiveGameplayDstTimer) {
+                            return sceneRoot.liveGameplayRhythmTimer;
+                        }
                         return elemLoader.elementTimerState
                             ? elemLoader.elementTimerState.dstTimerFire
                             : -1;
@@ -309,6 +323,9 @@ Item {
                     readonly property int srcTimerFire: {
                         if (!elemLoader.usesDynamicSrcTimer) {
                             return elemLoader.srcTimer === 0 ? 0 : -1;
+                        }
+                        if (elemLoader.usesLiveGameplaySrcTimer) {
+                            return sceneRoot.liveGameplayRhythmTimer;
                         }
                         return elemLoader.elementTimerState
                             ? elemLoader.elementTimerState.srcTimerFire

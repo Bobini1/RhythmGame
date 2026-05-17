@@ -47,8 +47,6 @@ QtObject {
             return "k7battle";
         case 13:
             return "k5battle";
-        case 14:
-            return "k14battle";
         case 15:
             return "courseResult";
         default:

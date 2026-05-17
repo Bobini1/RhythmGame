@@ -201,6 +201,9 @@ Item {
     readonly property int lr2ScrollDown: 2
     readonly property var lr2SortOrder: [0, 1, 2, 3, 4]
     readonly property var beatorajaSortOrder: [2, 5, 6, 7, 1, 3, 4, 8]
+    readonly property var lr2KeyFilterOrder: [0, 1, 2, 3, 4, 5, 6]
+    // beatoraja select button art is all/5/7/10/14/9/24/24D. 9K and 24K are not supported here.
+    readonly property var beatorajaKeyFilterOrder: [0, 1, 2, 3, 4]
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: items.length
@@ -757,11 +760,26 @@ Item {
     }
 
     function keyFilterMatches(item: var) : var {
-        if (!isChart(item) || keyFilter === 0) {
+        let filter = effectiveKeyFilter();
+        if (!isChart(item) || filter === 0) {
             return true;
         }
         let keymode = item.keymode || 0;
-        switch (keyFilter) {
+        if (beatorajaKeyFilterOrderActive()) {
+            switch (filter) {
+            case 1:
+                return keymode === 5;
+            case 2:
+                return keymode === 7;
+            case 3:
+                return keymode === 10;
+            case 4:
+                return keymode === 14;
+            default:
+                return true;
+            }
+        }
+        switch (filter) {
         case 1:
             return keymode === 5 || keymode === 7;
         case 2:
@@ -1057,16 +1075,109 @@ Item {
         return sourceCount >= 8 ? beatorajaSortOrder : lr2SortOrder;
     }
 
+    function beatorajaKeyFilterOrderActive() : var {
+        return sortSourceFrameCount >= 8;
+    }
+
+    function keyFilterOrder(sourceCount: var) : var {
+        let order = beatorajaKeyFilterOrderActive()
+            ? beatorajaKeyFilterOrder
+            : lr2KeyFilterOrder;
+        let maxFrame = Math.floor(Number(sourceCount || 0)) - 1;
+        if (maxFrame < 0) {
+            return order;
+        }
+
+        let result = [];
+        for (let frame of order) {
+            if (frame <= maxFrame) {
+                result.push(frame);
+            }
+        }
+        return result.length > 0 ? result : [0];
+    }
+
+    function exactKeymodeForFilter(filter: var, beatorajaOrder: var) : var {
+        if (beatorajaOrder) {
+            switch (filter) {
+            case 1: return 5;
+            case 2: return 7;
+            case 3: return 10;
+            case 4: return 14;
+            default: return 0;
+            }
+        }
+        switch (filter) {
+        case 2: return 7;
+        case 3: return 5;
+        case 5: return 14;
+        case 6: return 10;
+        default: return 0;
+        }
+    }
+
+    function keyFilterForExactKeymode(keymode: var, beatorajaOrder: var) : var {
+        if (beatorajaOrder) {
+            switch (keymode) {
+            case 5: return 1;
+            case 7: return 2;
+            case 10: return 3;
+            case 14: return 4;
+            default: return 0;
+            }
+        }
+        switch (keymode) {
+        case 7: return 2;
+        case 5: return 3;
+        case 14: return 5;
+        case 10: return 6;
+        default: return 0;
+        }
+    }
+
+    function remapKeyFilterOrder(filter: var, wasBeatoraja: var, isBeatoraja: var) : var {
+        if (wasBeatoraja === isBeatoraja) {
+            return filter;
+        }
+
+        let exactKeymode = exactKeymodeForFilter(filter, wasBeatoraja);
+        return exactKeymode > 0
+            ? keyFilterForExactKeymode(exactKeymode, isBeatoraja)
+            : 0;
+    }
+
+    function effectiveKeyFilter() : var {
+        let order = keyFilterOrder();
+        return order.indexOf(keyFilter) >= 0 ? keyFilter : 0;
+    }
+
+    function keyFilterFrameForSourceCount(sourceCount: var) : var {
+        let order = keyFilterOrder(sourceCount);
+        return order.indexOf(keyFilter) >= 0 ? keyFilter : order[0];
+    }
+
+    function adjustKeyFilter(delta: var, sourceCount: var) : void {
+        let order = keyFilterOrder(sourceCount);
+        let frame = order.indexOf(keyFilter);
+        if (frame < 0) {
+            frame = 0;
+        }
+        frame = ((frame + delta) % order.length + order.length) % order.length;
+        keyFilter = order[frame];
+    }
+
     function resetSortSourceFrameCount() : void {
         setSortSourceFrameCount(5);
     }
 
     function setSortSourceFrameCount(sourceCount: var) : var {
+        let wasBeatoraja = beatorajaKeyFilterOrderActive();
         let normalized = sourceCount >= 8 ? 8 : 5;
         if (sortSourceFrameCount === normalized) {
             return;
         }
         sortSourceFrameCount = normalized;
+        keyFilter = remapKeyFilterOrder(keyFilter, wasBeatoraja, beatorajaKeyFilterOrderActive());
         if (folderContents.length > 0) {
             sortOrFilterChanged();
         }
@@ -1818,7 +1929,17 @@ Item {
     }
 
     function keyFilterLabel() : var {
-        switch (keyFilter) {
+        let filter = effectiveKeyFilter();
+        if (beatorajaKeyFilterOrderActive()) {
+            switch (filter) {
+            case 1: return "5KEYS";
+            case 2: return "7KEYS";
+            case 3: return "10KEYS";
+            case 4: return "14KEYS";
+            default: return "ALL";
+            }
+        }
+        switch (filter) {
         case 1: return "SINGLE";
         case 2: return "7KEYS";
         case 3: return "5KEYS";

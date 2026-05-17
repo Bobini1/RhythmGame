@@ -543,6 +543,7 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
         auto* textureNode = new QSGSimpleTextureNode;
         textureNode->setTexture(texture);
         textureNode->setOwnsTexture(true);
+        textureNode->setFiltering(QSGTexture::Linear);
         textureNode->setRect(QRectF(x, y, drawnW, drawnH));
 
         if (opacity < 0.999) {

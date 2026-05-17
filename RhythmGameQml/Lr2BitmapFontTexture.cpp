@@ -78,6 +78,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         node = new QSGSimpleTextureNode;
         auto* texture = window()->createTextureFromImage(m_image);
         if (texture) {
+            texture->setFiltering(QSGTexture::Linear);
             texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
             texture->setVerticalWrapMode(QSGTexture::ClampToEdge);
         }

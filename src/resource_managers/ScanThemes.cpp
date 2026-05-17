@@ -320,6 +320,25 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
     return QString::fromUtf8(
       QJsonDocument(rootObj).toJson(QJsonDocument::Compact));
 }
+
+auto
+lr2SkinTypeScreenKey(int typeId) -> QString
+{
+    static const auto screenKeys = QHash<int, QString>{
+        { 0, QStringLiteral("k7") },
+        { 1, QStringLiteral("k5") },
+        { 2, QStringLiteral("k14") },
+        { 3, QStringLiteral("k10") },
+        { 5, QStringLiteral("select") },
+        { 6, QStringLiteral("decide") },
+        { 7, QStringLiteral("result") },
+        { 12, QStringLiteral("k7battle") },
+        { 13, QStringLiteral("k5battle") },
+        { 15, QStringLiteral("courseResult") },
+    };
+
+    return screenKeys.value(typeId);
+}
 } // namespace
 
 auto
@@ -352,17 +371,8 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                     const auto settingsData = buildLr2SettingsData(
                       lr2Entry.path(), typeId, title, maker);
 
-                    auto lr2TypeMap = QMap<int, QString>{
-                        { 0, "k7" },           { 1, "k5" },
-                        { 2, "k14" },          { 3, "k10" },
-                        { 5, "select" },       { 6, "decide" },
-                        { 7, "result" },       { 12, "k7battle" },
-                        { 13, "k5battle" },    { 14, "k14battle" },
-                        { 15, "courseResult" }
-                    };
-
-                    if (typeId != -1 && lr2TypeMap.contains(typeId)) {
-                        QString screenKey = lr2TypeMap[typeId];
+                    const auto screenKey = lr2SkinTypeScreenKey(typeId);
+                    if (!screenKey.isEmpty()) {
                         QString familyName =
                           title + " (" +
                           support::pathToQString(lr2Entry.path().filename()) +

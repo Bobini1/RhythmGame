@@ -165,7 +165,7 @@ QtObject {
     })
     readonly property var buttonFrameGetters: ({
         "10": () => selectContext.difficultyFilter,
-        "11": () => Math.min(selectContext.keyFilter, 6),
+        "11": src => selectContext.keyFilterFrameForSourceCount(root.elementSourceFrameCount(src)),
         "12": src => selectContext.sortFrameForSourceCount(root.elementSourceFrameCount(src)),
         "20": src => root.lr2FxType[src.buttonId - 20] || 0,
         "21": src => root.lr2FxType[src.buttonId - 20] || 0,
@@ -203,8 +203,8 @@ QtObject {
             selectContext.sortOrFilterChanged();
             return true;
         },
-        "11": delta => {
-            selectContext.keyFilter = root.wrapValue(selectContext.keyFilter + delta, 7);
+        "11": (delta, sourceCount) => {
+            selectContext.adjustKeyFilter(delta, sourceCount || 7);
             selectContext.sortOrFilterChanged();
             return true;
         },
