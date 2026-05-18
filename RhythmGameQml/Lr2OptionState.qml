@@ -57,8 +57,8 @@ QtObject {
     readonly property var lr2LnModeLabels: ["LN", "CN", "HCN"]
     readonly property var lr2JudgeAlgorithmLabels: ["LR2", "AC", "BOTTOM PRIORITY"]
     readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
-    readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE", "LAST SCORE"]
-    readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
+    readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE"]
+    readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore]
     readonly property var lr2BeatorajaTargetLabels: [
         "PACEMAKER A-",
         "PACEMAKER A",

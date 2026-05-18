@@ -193,7 +193,7 @@ QtObject {
         "71": () => root.lr2GhostIndex,
         "72": () => root.lr2BgaIndex,
         "73": () => root.lr2BgaSizeIndex,
-        "77": () => root.lr2BeatorajaTargetIndex,
+        "77": () => root.lr2ScoreTargetIndex,
         "78": () => root.lr2GaugeAutoShiftIndex,
         "308": () => root.lr2LnModeIndex
     })
@@ -336,7 +336,7 @@ QtObject {
             return true;
         },
         "77": delta => {
-            root.setBeatorajaTargetIndex(root.lr2BeatorajaTargetIndex + delta);
+            root.setScoreTargetIndex(root.lr2ScoreTargetIndex + delta);
             return true;
         },
         "78": delta => {

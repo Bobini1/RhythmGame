@@ -292,8 +292,10 @@ QtObject {
         root.addOption(options, host.gaugeColorOption(2));
         host.addGaugeExOption(options, 1);
         host.addGaugeExOption(options, 2);
-        root.addOption(options, host.gameplayGaugeTrophyOption(1));
-        root.addOption(options, host.gameplayGaugeTrophyOption(2));
+        if (host.isGameplayScreen()) {
+            root.addOption(options, host.gameplayGaugeTrophyOption(1));
+            root.addOption(options, host.gameplayGaugeTrophyOption(2));
+        }
         root.addOption(options, 46); // difficulty filter enabled.
         root.addOption(options, host.isLoggedIn() ? 51 : 50);
         root.addOption(options, 52); // extra mode off.

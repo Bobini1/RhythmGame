@@ -1142,7 +1142,7 @@ QtObject {
         case 72:
             return sourceCount >= 3 ? root.lr2BeatorajaBgaIndex : root.lr2BgaIndex;
         case 77:
-            return root.lr2BeatorajaTargetIndex;
+            return root.lr2ScoreTargetIndex;
         case 78:
             return root.lr2GaugeAutoShiftIndex;
         case 301:

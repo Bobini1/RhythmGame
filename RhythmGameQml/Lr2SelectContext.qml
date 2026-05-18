@@ -2674,9 +2674,10 @@ Item {
     function appendScoreClearOptionIds(clearType: var, ids: var) : void {
         switch (clearType || "NOPLAY") {
         case "AEASY":
+        case "LIGHTASSIST":
+        case "LIGHT_ASSIST":
             ids.push(124);
             ids.push(1100);
-            ids.push(121);
             break;
         case "EASY":
             ids.push(121);
@@ -2688,7 +2689,6 @@ Item {
             ids.push(119);
             break;
         case "EXHARD":
-            ids.push(119);
             ids.push(125);
             ids.push(1102);
             break;
@@ -2696,11 +2696,11 @@ Item {
             ids.push(105);
             break;
         case "PERFECT":
-            ids.push(122);
+            ids.push(105);
             ids.push(1103);
             break;
         case "MAX":
-            ids.push(122);
+            ids.push(105);
             ids.push(1104);
             break;
         }
@@ -2761,8 +2761,8 @@ Item {
             return emptyScoreOptionIds;
         }
         let ids = [];
-        appendScoreClearOptionIds(summary ? summary.clearType : getClearType(scoreList), ids);
         for (let score of scoreList) {
+            appendScoreClearOptionIds(clearTypeOf(score), ids);
             appendScoreOptionIds(score, ids);
         }
         ids = [...new Set(ids)];

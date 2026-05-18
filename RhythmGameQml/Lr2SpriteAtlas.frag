@@ -26,10 +26,24 @@ void main(void) {
         vec2 sourceSizePx = ubuf.sourceRect.zw * textureSizePx;
         vec2 minPx = min(sourceStartPx, sourceStartPx + sourceSizePx);
         vec2 maxPx = max(sourceStartPx, sourceStartPx + sourceSizePx) - vec2(1.0);
-        vec2 destTexel = fwidth(qt_TexCoord0);
-        vec2 samplePx = sourceStartPx
-            + max(vec2(0.0), qt_TexCoord0 - destTexel * 0.5) * sourceSizePx;
-        samplePx = clamp(floor(samplePx), minPx, maxPx) + vec2(0.5);
+        vec2 samplePx;
+        if (ubuf.nearestMode > 1.5) {
+            vec2 destTexel = max(fwidth(qt_TexCoord0), vec2(0.000001));
+            vec2 destSizePx = max(vec2(1.0), vec2(1.0) / destTexel);
+            vec2 destIndex = clamp(qt_TexCoord0 * destSizePx - vec2(0.5),
+                vec2(0.0),
+                max(destSizePx - vec2(1.0), vec2(0.0)));
+            vec2 destSpan = max(destSizePx - vec2(1.0), vec2(1.0));
+            vec2 sourceSpan = max(sourceSizePx - vec2(1.0), vec2(0.0));
+            samplePx = sourceStartPx + destIndex * sourceSpan / destSpan;
+            samplePx = floor(samplePx + vec2(0.5));
+        } else {
+            vec2 destTexel = fwidth(qt_TexCoord0);
+            samplePx = sourceStartPx
+                + max(vec2(0.0), qt_TexCoord0 - destTexel * 0.5) * sourceSizePx;
+            samplePx = floor(samplePx);
+        }
+        samplePx = clamp(samplePx, minPx, maxPx) + vec2(0.5);
         uv = samplePx / textureSizePx;
     }
     vec4 tex = texture(source, uv);

@@ -1759,36 +1759,36 @@ QVariantList Lr2SelectStateCache::buildScoreOptionIds(const QVariantMap& summary
 
     QSet<int> lookup;
     QVariantList ids;
-    const QString clearType = toString(summary.value(QStringLiteral("clearType")));
-    if (clearType == QStringLiteral("AEASY")) {
-        appendUniqueOption(lookup, ids, 124);
-        appendUniqueOption(lookup, ids, 1100);
-        appendUniqueOption(lookup, ids, 121);
-    } else if (clearType == QStringLiteral("EASY")) {
-        appendUniqueOption(lookup, ids, 121);
-    } else if (clearType == QStringLiteral("NORMAL")) {
-        appendUniqueOption(lookup, ids, 118);
-    } else if (clearType == QStringLiteral("HARD")) {
-        appendUniqueOption(lookup, ids, 119);
-    } else if (clearType == QStringLiteral("EXHARD")) {
-        appendUniqueOption(lookup, ids, 119);
-        appendUniqueOption(lookup, ids, 125);
-        appendUniqueOption(lookup, ids, 1102);
-    } else if (clearType == QStringLiteral("FC")) {
-        appendUniqueOption(lookup, ids, 105);
-    } else if (clearType == QStringLiteral("PERFECT")) {
-        appendUniqueOption(lookup, ids, 122);
-        appendUniqueOption(lookup, ids, 1103);
-    } else if (clearType == QStringLiteral("MAX")) {
-        appendUniqueOption(lookup, ids, 122);
-        appendUniqueOption(lookup, ids, 1104);
-    }
+    auto appendClearOptions = [&lookup, &ids](const QString& clearType) {
+        if (clearType == QStringLiteral("AEASY") || clearType == QStringLiteral("LIGHTASSIST")) {
+            appendUniqueOption(lookup, ids, 124);
+            appendUniqueOption(lookup, ids, 1100);
+        } else if (clearType == QStringLiteral("EASY")) {
+            appendUniqueOption(lookup, ids, 121);
+        } else if (clearType == QStringLiteral("NORMAL")) {
+            appendUniqueOption(lookup, ids, 118);
+        } else if (clearType == QStringLiteral("HARD")) {
+            appendUniqueOption(lookup, ids, 119);
+        } else if (clearType == QStringLiteral("EXHARD")) {
+            appendUniqueOption(lookup, ids, 125);
+            appendUniqueOption(lookup, ids, 1102);
+        } else if (clearType == QStringLiteral("FC")) {
+            appendUniqueOption(lookup, ids, 105);
+        } else if (clearType == QStringLiteral("PERFECT")) {
+            appendUniqueOption(lookup, ids, 105);
+            appendUniqueOption(lookup, ids, 1103);
+        } else if (clearType == QStringLiteral("MAX")) {
+            appendUniqueOption(lookup, ids, 105);
+            appendUniqueOption(lookup, ids, 1104);
+        }
+    };
 
     for (const QVariant& score : scoreList) {
         const QVariant result = valueProperty(score, "result");
         if (!result.isValid() || result.isNull()) {
             continue;
         }
+        appendClearOptions(canonicalClearType(clearTypeOf(score)));
         switch (toInt(valueProperty(result, "noteOrderAlgorithm"))) {
         case 1:
             appendUniqueOption(lookup, ids, 127);

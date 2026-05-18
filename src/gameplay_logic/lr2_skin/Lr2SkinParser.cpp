@@ -2202,6 +2202,80 @@ loadLines(const std::filesystem::path& filePath) -> std::vector<QStringList>
     return lines;
 }
 
+auto
+samePath(const std::filesystem::path& lhs, const std::filesystem::path& rhs)
+  -> bool
+{
+    const auto left = std::filesystem::absolute(lhs).lexically_normal();
+    const auto right = std::filesystem::absolute(rhs).lexically_normal();
+    return QString::fromStdString(left.generic_string())
+             .compare(QString::fromStdString(right.generic_string()),
+                      Qt::CaseInsensitive) == 0;
+}
+
+auto
+isExtension(const std::filesystem::path& path, const QString& extension) -> bool
+{
+    return QString::fromStdString(path.extension().generic_string())
+             .compare(extension, Qt::CaseInsensitive) == 0;
+}
+
+auto
+lr2SkinIncludesPath(const std::filesystem::path& lr2skinPath,
+                    const std::filesystem::path& includeTarget) -> bool
+{
+    const auto lines = loadLines(lr2skinPath);
+    const auto currentDir = lr2skinPath.parent_path();
+
+    for (const auto& tokens : lines) {
+        if (tokens.size() < 2 || normalizeCommand(tokens[0]) != "#INCLUDE") {
+            continue;
+        }
+        const auto includePath = resolveRawPath(currentDir, tokens[1]);
+        if (!includePath.empty() && samePath(includePath, includeTarget)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+auto
+siblingLr2SkinForCsv(const std::filesystem::path& filePath)
+  -> std::filesystem::path
+{
+    if (!isExtension(filePath, QStringLiteral(".csv"))) {
+        return {};
+    }
+
+    const auto directory = filePath.parent_path();
+    auto preferred = directory / filePath.stem();
+    preferred += ".lr2skin";
+    std::error_code ec;
+    if (std::filesystem::is_regular_file(preferred, ec) &&
+        lr2SkinIncludesPath(preferred, filePath)) {
+        return preferred;
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(directory, ec)) {
+        if (ec || !entry.is_regular_file() ||
+            !isExtension(entry.path(), QStringLiteral(".lr2skin")) ||
+            samePath(entry.path(), preferred)) {
+            continue;
+        }
+        if (lr2SkinIncludesPath(entry.path(), filePath)) {
+            return entry.path();
+        }
+    }
+    return {};
+}
+
+auto
+topLevelSkinPath(const std::filesystem::path& filePath) -> std::filesystem::path
+{
+    const auto wrapperPath = siblingLr2SkinForCsv(filePath);
+    return wrapperPath.empty() ? filePath : wrapperPath;
+}
+
 void
 parseFileIntoState(const std::filesystem::path& filePath, ParseState& state)
 {
@@ -2352,7 +2426,9 @@ Lr2SkinParser::parseData(const QString& path,
                          const QVariantList& activeOptions)
 {
     const auto options = parseOptions(activeOptions);
-    return parseFile(support::qStringToPath(path), settingValues, options);
+    return parseFile(topLevelSkinPath(support::qStringToPath(path)),
+                     settingValues,
+                     options);
 }
 
 } // namespace gameplay_logic::lr2_skin

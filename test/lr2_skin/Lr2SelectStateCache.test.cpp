@@ -60,7 +60,10 @@ TEST_CASE("LR2 select state cache builds focused score snapshots natively", "[lr
     const QVariantMap easyChart = chart(QStringLiteral("DEF"), QStringLiteral("song/easy.bms"), 2, 5);
 
     cache.setScores(QVariantMap {
-        {QStringLiteral("ABC"), QVariantList {score(QStringLiteral("HARD"), 160, 200)}},
+        {QStringLiteral("ABC"), QVariantList {
+            score(QStringLiteral("HARD"), 160, 200),
+            score(QStringLiteral("EASY"), 80, 200),
+        }},
         {QStringLiteral("DEF"), QVariantList {score(QStringLiteral("EASY"), 80, 200)}},
     });
     cache.setChartGroupCache(QVariantMap {
@@ -78,6 +81,7 @@ TEST_CASE("LR2 select state cache builds focused score snapshots natively", "[lr
 
     const QVariantList scoreOptions = state.value(QStringLiteral("scoreOptionIds")).toList();
     REQUIRE(scoreOptions.contains(119));
+    REQUIRE(scoreOptions.contains(121));
     REQUIRE(scoreOptions.contains(128));
     REQUIRE(scoreOptions.contains(145));
 
@@ -89,6 +93,39 @@ TEST_CASE("LR2 select state cache builds focused score snapshots natively", "[lr
     REQUIRE(counts.at(2).toInt() == 1);
     REQUIRE(levels.at(4).toInt() == 12);
     REQUIRE(lamps.at(4).toInt() == 4);
+}
+
+TEST_CASE("LR2 select state cache maps score clear options exactly", "[lr2][runtime][select]") {
+    Lr2SelectStateCache cache;
+    const QVariantMap assistChart = chart(QStringLiteral("ASSIST"), QStringLiteral("song/assist.bms"), 2, 5);
+    const QVariantMap exhardChart = chart(QStringLiteral("EXHARD"), QStringLiteral("song/exhard.bms"), 4, 12);
+    const QVariantMap perfectChart = chart(QStringLiteral("PERFECT"), QStringLiteral("song/perfect.bms"), 5, 13);
+
+    cache.setScores(QVariantMap {
+        {QStringLiteral("ASSIST"), QVariantList {score(QStringLiteral("AEASY"), 60, 200)}},
+        {QStringLiteral("EXHARD"), QVariantList {score(QStringLiteral("EXHARD"), 160, 200)}},
+        {QStringLiteral("PERFECT"), QVariantList {score(QStringLiteral("PERFECT"), 200, 200)}},
+    });
+
+    auto scoreOptionsFor = [&cache](const QVariantMap& selectedChart) {
+        const QVariantMap result = cache.refreshSelectedState(selectedChart, 0, 1, 1, false, {});
+        return result.value(QStringLiteral("state")).toMap().value(QStringLiteral("scoreOptionIds")).toList();
+    };
+
+    const QVariantList assistOptions = scoreOptionsFor(assistChart);
+    REQUIRE(assistOptions.contains(124));
+    REQUIRE(assistOptions.contains(1100));
+    REQUIRE(!assistOptions.contains(121));
+
+    const QVariantList exhardOptions = scoreOptionsFor(exhardChart);
+    REQUIRE(exhardOptions.contains(125));
+    REQUIRE(exhardOptions.contains(1102));
+    REQUIRE(!exhardOptions.contains(119));
+
+    const QVariantList perfectOptions = scoreOptionsFor(perfectChart);
+    REQUIRE(perfectOptions.contains(105));
+    REQUIRE(perfectOptions.contains(1103));
+    REQUIRE(!perfectOptions.contains(122));
 }
 
 TEST_CASE("LR2 select state cache resolves select number values natively", "[lr2][runtime][select]") {
@@ -186,6 +223,9 @@ TEST_CASE("LR2 select state cache resolves focused text values natively", "[lr2]
     REQUIRE(cache.textValue(18).toString() == QStringLiteral("4"));
     REQUIRE(cache.textValue(20).toString() == QStringLiteral("Main\nTitle"));
     REQUIRE(cache.textValue(21).toString() == QStringLiteral("Sub"));
+    REQUIRE(cache.textValue(23).toString() == QStringLiteral("Genre"));
+    REQUIRE(cache.textValue(24).toString() == QStringLiteral("Artist"));
+    REQUIRE(cache.textValue(25).toString() == QStringLiteral("Subartist"));
     REQUIRE(!cache.textValue(9999).isValid());
 }
 

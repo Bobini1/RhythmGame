@@ -173,6 +173,7 @@ Item {
     readonly property int sourceDivX: root.srcData ? Math.max(1, root.srcData.div_x || 1) : 1
     readonly property int sourceDivY: root.srcData ? Math.max(1, root.srcData.div_y || 1) : 1
     readonly property int sourceFrameCount: sourceDivX * sourceDivY
+    readonly property int sourceCellW: root.sourceW > 0 ? Math.max(1, Math.floor(root.sourceW / root.sourceDivX)) : 0
     readonly property bool sourceAnimates: !!root.srcData
         && (root.srcData.cycle || 0) > 0
         && root.frameGroupSize > 0
@@ -267,7 +268,14 @@ Item {
     }
 
     readonly property string displayText: textForValue()
-    readonly property real digitW: root.hasCurrentState ? root.stateW * root.scaleOverride : 0
+    readonly property bool usesCompactDownscaledDigits: root.hasCurrentState
+        && root.stateFilter === 0
+        && root.stateW > 2
+        && root.stateW <= 4
+        && root.sourceCellW >= root.stateW + 2
+    readonly property real digitW: root.hasCurrentState
+        ? (root.usesCompactDownscaledDigits ? root.stateW - 1 : root.stateW) * root.scaleOverride
+        : 0
     readonly property real digitH: root.hasCurrentState ? root.stateH * root.scaleOverride : 0
     readonly property real textW: displayText.length * digitW
     function colorComponent(value: var) : var {
@@ -358,7 +366,7 @@ Item {
                     property real blendMode: root.blendMode
                     property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
                     property real tolerance: 0.03125
-                    property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 1.0 : 0.0
+                    property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 2.0 : 0.0
                     property vector2d sourceSize: Qt.vector2d(root.atlasW, root.atlasH)
                     property vector4d sourceRect: {
                         if (digitRoot.frameIndex < 0 || root.atlasSourceRects.length <= 0) {
