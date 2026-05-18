@@ -50,6 +50,13 @@ validGlyph(const Lr2FontDict& dict, const Lr2FontGlyph& glyph) -> bool
 }
 
 auto
+glyphAdvance(const Lr2FontDict& dict, const Lr2FontGlyph& glyph) -> qreal
+{
+    return glyph.rect.width() > 0 ? glyph.rect.width()
+                                  : fallbackAdvance(dict.height);
+}
+
+auto
 providerQueryValue(const QUrlQuery& query, const QString& key) -> QString
 {
     // QML constructs the provider URL with encodeURIComponent(), and Qt Quick
@@ -71,7 +78,13 @@ composeTextImage(const QString& fontPath, const QString& text) -> QImage
     glyphs.reserve(text.size());
 
     qreal sourceTotalWidth = 0.0;
+    bool hasPreviousCharacter = false;
     for (const auto codepoint : text.toUcs4()) {
+        if (hasPreviousCharacter) {
+            sourceTotalWidth += dict->kerning;
+        }
+        hasPreviousCharacter = true;
+
         const auto it = dict->glyphs.find(static_cast<char32_t>(codepoint));
         if (it == dict->glyphs.end()) {
             sourceTotalWidth += fallbackAdvance(dict->height);
@@ -79,9 +92,7 @@ composeTextImage(const QString& fontPath, const QString& text) -> QImage
         }
 
         const auto& glyph = it.value();
-        const qreal advance = glyph.rect.width() > 0
-                                ? glyph.rect.width()
-                                : fallbackAdvance(dict->height);
+        const qreal advance = glyphAdvance(*dict, glyph);
 
         if (validGlyph(*dict, glyph)) {
             glyphs.append({ &dict->textures[glyph.imgIdx],

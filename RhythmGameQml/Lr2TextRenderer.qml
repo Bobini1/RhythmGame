@@ -61,10 +61,19 @@ Item {
         return raw;
     }
     readonly property string displayText: root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?"))
+    readonly property int stateFilter: objectState ? (objectState.filter || 0) : (timelineState.hasState ? timelineState.stateFilter : 0)
     readonly property color textColor: root.hasCurrentState
         ? Qt.rgba(root.stateR / 255.0, root.stateG / 255.0, root.stateB / 255.0, 1.0)
         : "white"
     readonly property string fontFamily: root.srcData ? (root.srcData.fontFamily || root.srcData.fontPath || "") : ""
+    readonly property string normalizedFontPath: root.srcData
+        ? String(root.srcData.fontPath || "").replace(/\\/g, "/").toLowerCase()
+        : ""
+    readonly property bool uppercaseBitmapText: root.isLr2Font
+        && root.normalizedFontPath.indexOf("/font/title/") !== -1
+    readonly property string bitmapText: root.uppercaseBitmapText
+        ? root.resolvedText.toUpperCase()
+        : root.resolvedText
     readonly property int textAlignment: root.srcData ? root.srcData.align : 0
     readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
     readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
@@ -96,8 +105,9 @@ Item {
             visible: root.isLr2Font && root.blendMode !== 2
             anchors.fill: parent
             fontPath: root.blendMode !== 2 && root.srcData ? root.srcData.fontPath : ""
-            text: root.blendMode !== 2 ? root.resolvedText : ""
+            text: root.blendMode !== 2 ? root.bitmapText : ""
             textColor: root.textColor
+            textureFilter: root.stateFilter
             alignment: root.textAlignment
         }
 
@@ -123,8 +133,9 @@ Item {
                 visible: root.blendMode === 2 && root.isLr2Font
                 anchors.fill: parent
                 fontPath: root.blendMode === 2 && root.srcData ? root.srcData.fontPath : ""
-                text: root.blendMode === 2 ? root.resolvedText : ""
+                text: root.blendMode === 2 ? root.bitmapText : ""
                 textColor: root.textColor
+                textureFilter: root.stateFilter
                 alignment: root.textAlignment
             }
 

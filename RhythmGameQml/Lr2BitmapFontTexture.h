@@ -12,6 +12,7 @@ class Lr2BitmapFontTexture : public QQuickItem {
     Q_PROPERTY(QString fontPath READ fontPath WRITE setFontPath NOTIFY fontPathChanged)
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
     Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
+    Q_PROPERTY(int textureFilter READ textureFilter WRITE setTextureFilter NOTIFY textureFilterChanged)
     Q_PROPERTY(qreal naturalWidth READ naturalWidth NOTIFY naturalSizeChanged)
     Q_PROPERTY(qreal naturalHeight READ naturalHeight NOTIFY naturalSizeChanged)
 
@@ -27,6 +28,9 @@ public:
     QColor textColor() const;
     void setTextColor(const QColor& value);
 
+    int textureFilter() const;
+    void setTextureFilter(int value);
+
     qreal naturalWidth() const;
     qreal naturalHeight() const;
 
@@ -34,6 +38,7 @@ signals:
     void fontPathChanged();
     void textChanged();
     void textColorChanged();
+    void textureFilterChanged();
     void naturalSizeChanged();
 
 protected:
@@ -51,5 +56,6 @@ private:
     QColor m_textColor = Qt::white;
     QImage m_image;
     QSize m_naturalSize;
+    int m_textureFilter = 1;
     bool m_textureDirty = true;
 };

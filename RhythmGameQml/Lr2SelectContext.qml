@@ -83,6 +83,7 @@ Item {
     property int rankingPlayerRank: 0
     property int rankingPlayerCount: 0
     property int rankingTotalPlayCount: 0
+    property int rankingStatsRevision: 0
     property var rankingSavedItems: []
     property var rankingSavedFolderContents: []
     property int rankingSavedRealItemCount: 0
@@ -2996,6 +2997,7 @@ Item {
         rankingPlayerRank = nextPlayerRank;
         rankingPlayerCount = nextPlayerCount;
         rankingTotalPlayCount = nextTotalPlayCount;
+        rankingStatsRevision += 1;
         touch();
         return true;
     }
@@ -3609,9 +3611,7 @@ Item {
         case 427:
             return stats() ? stats().badPoor : 0;
         case 92:
-            return hasRankingStats()
-                ? rankingPlayerRank
-                : (chart() && chart().mainBpm ? Math.round(chart().mainBpm) : -1);
+            return hasRankingStats() ? rankingPlayerRank : 0;
         case 93:
             return hasRankingStats() ? rankingPlayerCount : 0;
         case 94:

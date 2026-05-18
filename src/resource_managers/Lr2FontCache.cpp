@@ -278,6 +278,21 @@ decodeLr2FontCharId(Cp932Decoder& decoder, const int chrId) -> char32_t
     return 0;
 }
 
+auto
+parseLr2Int(const QString& token) -> int
+{
+    const auto trimmed = token.trimmed();
+
+    bool ok = false;
+    const int intValue = trimmed.toInt(&ok);
+    if (ok) {
+        return intValue;
+    }
+
+    const double realValue = trimmed.toDouble(&ok);
+    return ok ? static_cast<int>(realValue) : 0;
+}
+
 } // namespace
 
 Lr2FontCache&
@@ -318,20 +333,22 @@ Lr2FontCache::load(const QString& path)
         const auto cmd = tokens[0].trimmed().toUpper();
 
         if (cmd == "#S" && tokens.size() > 1) {
-            dict.height = tokens[1].toInt();
+            dict.height = parseLr2Int(tokens[1]);
+        } else if (cmd == "#M" && tokens.size() > 1) {
+            dict.kerning = parseLr2Int(tokens[1]);
         } else if (cmd == "#T" && tokens.size() > 2) {
-            const int mapId = tokens[1].toInt();
+            const int mapId = parseLr2Int(tokens[1]);
             const auto imgPath = tokens[2].trimmed();
             QImage img = readFontImage(fontData, imgPath);
             dict.imgMap[mapId] = static_cast<int>(dict.textures.size());
             dict.textures.append(std::move(img));
         } else if (cmd == "#R" && tokens.size() > 6) {
-            const int chrId = tokens[1].toInt();
-            const int imgId = tokens[2].toInt();
-            const QRect r(tokens[3].toInt(),
-                          tokens[4].toInt(),
-                          tokens[5].toInt(),
-                          tokens[6].toInt());
+            const int chrId = parseLr2Int(tokens[1]);
+            const int imgId = parseLr2Int(tokens[2]);
+            const QRect r(parseLr2Int(tokens[3]),
+                          parseLr2Int(tokens[4]),
+                          parseLr2Int(tokens[5]),
+                          parseLr2Int(tokens[6]));
 
             const auto charCode = decodeLr2FontCharId(cp932Decoder, chrId);
 

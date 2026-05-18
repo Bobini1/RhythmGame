@@ -1154,7 +1154,7 @@ int Lr2SelectStateCache::numberValue(int num) const {
         for (const char* key : keys) {
             total += rankingCountValue(QString::fromLatin1(key));
         }
-        return afterDot ? percentAfterDot(total, m_rankingTotalPlayCount) : percentInteger(total, m_rankingTotalPlayCount);
+        return afterDot ? percentAfterDot(total, m_rankingPlayerCount) : percentInteger(total, m_rankingPlayerCount);
     };
     auto folderCounts = [this, &item]() {
         const QString key = folderLampKey(item);
@@ -1243,7 +1243,7 @@ int Lr2SelectStateCache::numberValue(int num) const {
     case 425: return toInt(stats.value(QStringLiteral("comboBreak")));
     case 426: return toInt(stats.value(QStringLiteral("pr")));
     case 427: return toInt(stats.value(QStringLiteral("badPoor")));
-    case 92: return hasRankingStats ? m_rankingPlayerRank : (chartInt("mainBpm") > 0 ? qRound(toReal(valueProperty(chart, "mainBpm"))) : -1);
+    case 92: return hasRankingStats ? m_rankingPlayerRank : 0;
     case 93: return hasRankingStats ? m_rankingPlayerCount : 0;
     case 94: return hasRankingStats ? rankingPercentValue({"AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"}, false) : 0;
     case 179: return hasRankingStats ? m_rankingPlayerRank : 0;

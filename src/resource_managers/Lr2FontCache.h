@@ -22,6 +22,7 @@ struct Lr2FontDict
     QHash<char32_t, Lr2FontGlyph> glyphs;
     QHash<int, int> imgMap; // file-declared ID -> index into textures
     int height = 0;
+    int kerning = 0;
 };
 
 // Process-wide cache of parsed .lr2font files. Returned pointers stay valid

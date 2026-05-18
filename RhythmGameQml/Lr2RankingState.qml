@@ -66,6 +66,30 @@ QtObject {
         onTriggered: root.advanceTransition()
     }
 
+    property Timer autoStatsFetchTimer: Timer {
+        interval: 600
+        repeat: false
+        onTriggered: root.refreshCurrentChartStats()
+    }
+
+    onMd5Changed: {
+        if (root.host.effectiveScreenKey !== "select") {
+            root.autoStatsFetchTimer.stop();
+            return;
+        }
+        if (root.md5.length <= 0) {
+            root.autoStatsFetchTimer.stop();
+            return;
+        }
+        root.autoStatsFetchTimer.restart();
+    }
+
+    Component.onCompleted: {
+        if (root.host.effectiveScreenKey === "select" && root.md5.length > 0) {
+            root.autoStatsFetchTimer.restart();
+        }
+    }
+
     function currentChart() : var {
         if (root.host.isResultScreen()) {
             return root.host.resultChartData();
@@ -107,6 +131,28 @@ QtObject {
         let targetMd5 = root.md5.length > 0 ? root.md5.toLowerCase() : "";
         let loadedMd5 = root.rankingModel.md5 ? String(root.rankingModel.md5).toLowerCase() : "";
         return targetMd5.length > 0 && targetMd5 === loadedMd5;
+    }
+
+    function refreshCurrentChartStats() : void {
+        if (root.host.effectiveScreenKey !== "select") {
+            return;
+        }
+        let targetChart = root.chart;
+        let targetMd5 = root.md5ForChart(targetChart);
+        if (targetMd5.length <= 0) {
+            return;
+        }
+        if (root.requestMd5 === targetMd5 && root.matchesCurrentChart()) {
+            let entries = root.rankingModel.rankingEntries || [];
+            if (Number(root.rankingModel.playerCount || 0) > 0 || entries.length > 0) {
+                root.applyStatsToSelectContext();
+            } else if (!root.rankingModel.loading) {
+                root.rankingModel.refresh();
+            }
+            return;
+        }
+
+        root.commitRequest(targetChart);
     }
 
     function localEntry() : var {
@@ -334,8 +380,7 @@ QtObject {
         let targetChart = root.chart;
         if (root.host.effectiveScreenKey !== "select"
                 || !targetChart || !targetChart.md5
-                || !root.matchesCurrentChart()
-                || root.rankingModel.loading) {
+                || !root.matchesCurrentChart()) {
             return;
         }
         let currentSnapshot = root.snapshot();
@@ -596,5 +641,6 @@ QtObject {
 
     function pauseActivity() : void {
         root.transitionTimer.stop();
+        root.autoStatsFetchTimer.stop();
     }
 }

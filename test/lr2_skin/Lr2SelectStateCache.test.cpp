@@ -125,7 +125,7 @@ TEST_CASE("LR2 select state cache resolves select number values natively", "[lr2
     REQUIRE(cache.numberValue(84) == 1);
     REQUIRE(cache.numberValue(90) == 180);
     REQUIRE(cache.numberValue(91) == 120);
-    REQUIRE(cache.numberValue(92) == 150);
+    REQUIRE(cache.numberValue(92) == 0);
     REQUIRE(cache.numberValue(102) == 80);
     REQUIRE(cache.numberValue(103) == 0);
     REQUIRE(cache.numberValue(350) == 100);
@@ -146,14 +146,16 @@ TEST_CASE("LR2 select state cache resolves select number values natively", "[lr2
         {QStringLiteral("FC"), 2},
     });
     REQUIRE(cache.numberValue(179) == 0);
-    REQUIRE(cache.numberValue(92) == 150);
+    REQUIRE(cache.numberValue(92) == 0);
     cache.setRankingStatsMd5(QStringLiteral("abc"));
+    REQUIRE(cache.numberValue(92) == 4);
+    REQUIRE(cache.numberValue(94) == 35);
     REQUIRE(cache.numberValue(179) == 4);
     REQUIRE(cache.numberValue(180) == 20);
     REQUIRE(cache.numberValue(216) == 5);
-    REQUIRE(cache.numberValue(217) == 20);
+    REQUIRE(cache.numberValue(217) == 25);
     REQUIRE(cache.numberValue(218) == 2);
-    REQUIRE(cache.numberValue(219) == 8);
+    REQUIRE(cache.numberValue(219) == 10);
 
     const QString folder = QStringLiteral("C:/BMS/Packs/Folder One");
     cache.setFolderScoreCountsByKey(QVariantMap {

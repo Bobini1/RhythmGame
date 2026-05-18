@@ -143,7 +143,7 @@ QtObject {
                 + ":" + String(item.maxPoints || 0);
         }
         if (selectContext.isFolderLikeForLamp(item)) {
-            return "folder:" + String(selectContext.entryLamp(item));
+            return "folder";
         }
         if (!selectContext.isChart(item) && !selectContext.isEntry(item)) {
             return "other";
@@ -520,6 +520,9 @@ QtObject {
         if (!folderLike && root.chartKeymodeForStatus(item, selectedChart) <= 0) {
             return;
         }
+        if (folderLike) {
+            return;
+        }
         let clearOption = 100;
         let lamp = 0;
         let rank = 0;
@@ -537,9 +540,6 @@ QtObject {
                     rank = 1;
                 }
             }
-        } else if (folderLike) {
-            clearOption = 100;
-            lamp = selectContext.entryLamp(item);
         } else {
             let summary = scoreSummary || selectContext.scoreSummaryForItem(item);
             clearOption = selectContext.beatorajaClearOptionForClearType(summary.clearType);
@@ -550,9 +550,6 @@ QtObject {
             && root.runtimeOptionUsed(root.runtimeUsedOptionLookup(), clearOption);
         if (!hasExactBeatorajaLamp && lamp >= 0 && lamp <= 5) {
             root.addOption(options, 100 + lamp);
-        }
-        if (folderLike) {
-            return;
         }
         root.addOption(options, clearOption);
 

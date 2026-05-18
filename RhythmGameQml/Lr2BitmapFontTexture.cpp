@@ -9,6 +9,15 @@
 #include <algorithm>
 #include <cmath>
 
+namespace {
+
+QSGTexture::Filtering filteringForFilter(int filter)
+{
+    return filter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
+}
+
+} // namespace
+
 Lr2BitmapFontTexture::Lr2BitmapFontTexture(QQuickItem* parent) : QQuickItem(parent) {
     setFlag(ItemHasContents, true);
 }
@@ -57,6 +66,20 @@ void Lr2BitmapFontTexture::setTextColor(const QColor& value) {
     update();
 }
 
+int Lr2BitmapFontTexture::textureFilter() const {
+    return m_textureFilter;
+}
+
+void Lr2BitmapFontTexture::setTextureFilter(int value) {
+    if (m_textureFilter == value) {
+        return;
+    }
+
+    m_textureFilter = value;
+    emit textureFilterChanged();
+    update();
+}
+
 qreal Lr2BitmapFontTexture::naturalWidth() const {
     return m_naturalSize.width();
 }
@@ -78,16 +101,19 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         node = new QSGSimpleTextureNode;
         auto* texture = window()->createTextureFromImage(m_image);
         if (texture) {
-            texture->setFiltering(QSGTexture::Linear);
             texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
             texture->setVerticalWrapMode(QSGTexture::ClampToEdge);
         }
         node->setTexture(texture);
         node->setOwnsTexture(true);
-        node->setFiltering(QSGTexture::Linear);
         m_textureDirty = false;
     }
 
+    const auto filtering = filteringForFilter(m_textureFilter);
+    if (auto* texture = node->texture()) {
+        texture->setFiltering(filtering);
+    }
+    node->setFiltering(filtering);
     node->setRect(boundingRect());
     return node;
 }

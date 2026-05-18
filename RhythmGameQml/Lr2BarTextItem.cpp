@@ -32,6 +32,7 @@ struct TextState {
     qreal g = 255.0;
     qreal b = 255.0;
     int blend = 0;
+    int filter = 0;
 };
 
 qreal toReal(const QVariant& value, qreal fallback = 0.0) {
@@ -144,6 +145,7 @@ TextState stateFromVariant(const QVariant& value) {
     state.g = toReal(valueProperty(value, "g"), 255.0);
     state.b = toReal(valueProperty(value, "b"), 255.0);
     state.blend = toInt(valueProperty(value, "blend"));
+    state.filter = toInt(valueProperty(value, "filter"));
     return state;
 }
 
@@ -170,6 +172,11 @@ QString colorKey(const QColor& color) {
         + u',' + QString::number(color.rgba64().green(), 16)
         + u',' + QString::number(color.rgba64().blue(), 16)
         + u',' + QString::number(color.rgba64().alpha(), 16);
+}
+
+QSGTexture::Filtering filteringForFilter(int filter)
+{
+    return filter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
 }
 
 void clearChildren(QSGNode* node) {
@@ -536,14 +543,15 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
         if (!texture) {
             continue;
         }
-        texture->setFiltering(QSGTexture::Linear);
+        const auto filtering = filteringForFilter(state.filter);
+        texture->setFiltering(filtering);
         texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
         texture->setVerticalWrapMode(QSGTexture::ClampToEdge);
 
         auto* textureNode = new QSGSimpleTextureNode;
         textureNode->setTexture(texture);
         textureNode->setOwnsTexture(true);
-        textureNode->setFiltering(QSGTexture::Linear);
+        textureNode->setFiltering(filtering);
         textureNode->setRect(QRectF(x, y, drawnW, drawnH));
 
         if (opacity < 0.999) {

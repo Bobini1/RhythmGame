@@ -37,6 +37,7 @@ Item {
         : root.selectDetailRevision
             + selectContext.listRevision
             + selectContext.folderLampRevision
+            + selectContext.rankingStatsRevision
             + root.lr2SkinSettingsRevision
     readonly property int selectStableBarGraphValueRevision: !rootReady ? 0
         : root.lr2SkinSettingsRevision
@@ -241,7 +242,7 @@ Item {
                 onHoveredChanged: {
                     if (hovered) {
                         if (root.updateSelectHoverPoint(point.position.x, point.position.y)) {
-                            root.runSelectHoverRefresh();
+                            root.refreshSelectHoverCache();
                         }
                     } else {
                         root.clearSelectHoverPoint();
@@ -255,7 +256,7 @@ Item {
                 onTriggered: {
                     if (root.updateSelectHoverPoint(selectHoverHandler.point.position.x,
                                                     selectHoverHandler.point.position.y)) {
-                        root.runSelectHoverRefresh();
+                        root.refreshSelectHoverCache();
                     }
                 }
             }

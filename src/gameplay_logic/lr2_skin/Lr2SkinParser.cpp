@@ -785,40 +785,81 @@ setSkinResolution(ParseState& state, const int resolution)
     state.hasSkinResolution = true;
 }
 
-void
-considerSkinCanvasDst(const Lr2Dst& dst, int& bestWidth, int& bestHeight)
+struct SkinCanvasCandidate
 {
-    const int w = dst.w < 0 ? -dst.w : dst.w;
-    const int h = dst.h < 0 ? -dst.h : dst.h;
-    if (dst.x != 0 || dst.y != 0 || w < 320 || h < 240) {
+    int width = 0;
+    int height = 0;
+    int count = 0;
+};
+
+auto
+canvasCandidateAspectAllowed(const int width, const int height) -> bool
+{
+    const double aspect =
+      static_cast<double>(width) / static_cast<double>(height);
+    return aspect >= 1.0 && aspect <= 2.1;
+}
+
+void
+considerSkinCanvasDst(const Lr2Dst& dst,
+                      std::vector<SkinCanvasCandidate>& candidates)
+{
+    const int width = dst.w < 0 ? -dst.w : dst.w;
+    const int height = dst.h < 0 ? -dst.h : dst.h;
+    if (dst.x != 0 || dst.y != 0 || width < 320 || height < 240 ||
+        !canvasCandidateAspectAllowed(width, height)) {
         return;
     }
 
-    const double aspect = static_cast<double>(w) / static_cast<double>(h);
-    if (aspect < 1.2 || aspect > 2.1) {
-        return;
+    for (auto& candidate : candidates) {
+        if (candidate.width == width && candidate.height == height) {
+            ++candidate.count;
+            return;
+        }
     }
 
-    if (w * h > bestWidth * bestHeight) {
-        bestWidth = w;
-        bestHeight = h;
-    }
+    candidates.push_back(SkinCanvasCandidate{
+      .width = width,
+      .height = height,
+      .count = 1,
+    });
 }
 
 auto
 inferSkinCanvas(const QList<Lr2Element>& elements) -> std::pair<int, int>
 {
-    int bestWidth = 640;
-    int bestHeight = 480;
+    static constexpr int fallbackWidth = 640;
+    static constexpr int fallbackHeight = 480;
+    static constexpr int fallbackArea = fallbackWidth * fallbackHeight;
+    static constexpr int repeatedSmallCanvasThreshold = 3;
+
+    std::vector<SkinCanvasCandidate> candidates;
     for (const auto& element : elements) {
         for (const auto& dstValue : element.dsts) {
             if (dstValue.canConvert<Lr2Dst>()) {
-                considerSkinCanvasDst(
-                  dstValue.value<Lr2Dst>(), bestWidth, bestHeight);
+                considerSkinCanvasDst(dstValue.value<Lr2Dst>(), candidates);
             }
         }
     }
-    return { bestWidth, bestHeight };
+
+    const SkinCanvasCandidate* best = nullptr;
+    for (const auto& candidate : candidates) {
+        const int area = candidate.width * candidate.height;
+        const bool safeSmallCanvas =
+          area < fallbackArea &&
+          candidate.count >= repeatedSmallCanvasThreshold;
+        if (area < fallbackArea && !safeSmallCanvas) {
+            continue;
+        }
+        if (!best || area > best->width * best->height) {
+            best = &candidate;
+        }
+    }
+
+    if (!best) {
+        return { fallbackWidth, fallbackHeight };
+    }
+    return { best->width, best->height };
 }
 
 void

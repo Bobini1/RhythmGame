@@ -26,7 +26,9 @@ void main(void) {
         vec2 sourceSizePx = ubuf.sourceRect.zw * textureSizePx;
         vec2 minPx = min(sourceStartPx, sourceStartPx + sourceSizePx);
         vec2 maxPx = max(sourceStartPx, sourceStartPx + sourceSizePx) - vec2(1.0);
-        vec2 samplePx = sourceStartPx + qt_TexCoord0 * sourceSizePx;
+        vec2 destTexel = fwidth(qt_TexCoord0);
+        vec2 samplePx = sourceStartPx
+            + max(vec2(0.0), qt_TexCoord0 - destTexel * 0.5) * sourceSizePx;
         samplePx = clamp(floor(samplePx), minPx, maxPx) + vec2(0.5);
         uv = samplePx / textureSizePx;
     }
