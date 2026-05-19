@@ -73,8 +73,9 @@ QtObject {
         if (!path) {
             return false;
         }
-        const fileText = Rg.fileQuery.readTextFile(path) || "";
-        root.openText(fileText.length > 0
+        const rawText = Rg.fileQuery.readTextFile(path);
+        const fileText = rawText ? String(rawText) : "";
+        root.openText(fileText !== ""
             ? fileText
             : "HELP FILE NOT FOUND\n\n" + path);
         return true;

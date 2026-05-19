@@ -7,6 +7,7 @@
 
 #include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ThemeFamily.h"
+#include "support/CreateQmlPropertyMap.h"
 
 #include <QObject>
 #include <QThreadPool>
@@ -266,6 +267,17 @@ class GeneralVars final : public QObject
                  setTargetScoreFraction NOTIFY targetScoreFractionChanged RESET
                    resetTargetScoreFraction)
     /**
+     * @brief The default custom target fraction used by LR2's user-defined
+     * target option.
+     * @details This is separate from targetScoreFraction, which represents the
+     * currently active gameplay target when scoreTarget is Fraction.
+     */
+    Q_PROPERTY(double defaultTargetScoreFraction READ
+                 getDefaultTargetScoreFraction WRITE
+                   setDefaultTargetScoreFraction NOTIFY
+                     defaultTargetScoreFractionChanged RESET
+                       resetDefaultTargetScoreFraction)
+    /**
      * @brief The folder with select, decide and main screen music
      * @details To get the list of available BGM folders, call
      * getAvailableBgms().
@@ -368,6 +380,7 @@ class GeneralVars final : public QObject
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
+    double defaultTargetScoreFraction = 0.9;
     QString websiteBaseUrl = "https://rhythmgame.eu";
     QString bgmPath;
     QString soundsetPath;
@@ -460,6 +473,9 @@ class GeneralVars final : public QObject
     auto getTargetScoreFraction() const -> double;
     void setTargetScoreFraction(double value);
     void resetTargetScoreFraction();
+    auto getDefaultTargetScoreFraction() const -> double;
+    void setDefaultTargetScoreFraction(double value);
+    void resetDefaultTargetScoreFraction();
     auto getWebApiUrl() const -> QString;
     auto getWebsiteBaseUrl() const -> QString;
     void setWebsiteBaseUrl(const QString& value);
@@ -507,6 +523,7 @@ class GeneralVars final : public QObject
     void offsetChanged();
     void scoreTargetChanged();
     void targetScoreFractionChanged();
+    void defaultTargetScoreFractionChanged();
     void websiteBaseUrlChanged();
     void bgmChanged();
     void bgmPathChanged();
@@ -535,7 +552,7 @@ class Vars final : public QObject
     Q_PROPERTY(
       QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged FINAL)
     GeneralVars generalVars;
-    QQmlPropertyMap* themeVars = QQmlPropertyMap::create(this);
+    QQmlPropertyMap* themeVars = support::createQmlPropertyMap(this);
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
     QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;

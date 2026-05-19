@@ -16,8 +16,12 @@ Item {
     property var chartDatas: []
     property var course: null
     property var skinSettings
+    property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
+    readonly property var lr2SkinMetadata: root.parseLr2SkinMetadata()
+    readonly property string lr2SkinFamily: root.lr2SkinMetadata.format === "beatoraja" ? "beatoraja" : "lr2"
+    readonly property bool lr2SkinUsesBeatorajaSemantics: root.lr2SkinFamily === "beatoraja"
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
@@ -142,6 +146,18 @@ Item {
         70, 71, 72, 73, 74, 75, 76, 77,
         80, 81, 82, 83, 84, 85, 86, 87
     ]
+
+    function parseLr2SkinMetadata() : var {
+        if (!root.skinSettingsData || root.skinSettingsData.length === 0) {
+            return {};
+        }
+        try {
+            return JSON.parse(root.skinSettingsData) || {};
+        } catch (error) {
+            console.warn("Failed to parse LR2 skin metadata for " + root.screenKey + ": " + error);
+            return {};
+        }
+    }
 
     onEnabledChanged: {
         if (root.effectiveScreenKey === "decide" && enabled) {
@@ -412,6 +428,7 @@ Item {
 
     readonly property var lr2GaugeLabels: optionState.lr2GaugeLabels
     readonly property var lr2GaugeValues: optionState.lr2GaugeValues
+    readonly property var lr2ClassicGaugeLabels: optionState.lr2ClassicGaugeLabels
     readonly property var lr2RandomLabels: optionState.lr2RandomLabels
     readonly property var lr2RandomValues: optionState.lr2RandomValues
     readonly property var lr2RandomSupportedIndexes: optionState.lr2RandomSupportedIndexes
@@ -428,8 +445,10 @@ Item {
     readonly property var lr2BattleLabels: optionState.lr2BattleLabels
     readonly property var lr2TargetLabels: optionState.lr2TargetLabels
     readonly property var lr2TargetValues: optionState.lr2TargetValues
+    readonly property var lr2ClassicTargetLabels: optionState.lr2ClassicTargetLabels
     readonly property var lr2BeatorajaTargetLabels: optionState.lr2BeatorajaTargetLabels
     readonly property var lr2BeatorajaTargetFractions: optionState.lr2BeatorajaTargetFractions
+    readonly property int lr2OptionRevision: optionState.revision
     readonly property var lr2BgaSizeLabels: optionState.lr2BgaSizeLabels
     readonly property var lr2GhostLabels: optionState.lr2GhostLabels
     readonly property var lr2HidSudLabels: optionState.lr2HidSudLabels
@@ -660,10 +679,74 @@ Item {
     readonly property int lr2GaugeIndexP1: optionState.lr2GaugeIndexP1
     readonly property int lr2GaugeIndexP2: optionState.lr2GaugeIndexP2
     function setGaugeIndex(side: var, index: var) : void { optionState.setGaugeIndex(side, index); }
+    function lr2GaugeButtonFrame(side: var, sourceCount: var) : var {
+        let buttonId = side === 2 ? 41 : 40;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        return optionState.lr2GaugeButtonFrame(side, count);
+    }
+    function setGaugeButtonIndex(side: var, index: var, sourceCount: var) : void {
+        let buttonId = side === 2 ? 41 : 40;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        optionState.setGaugeButtonIndex(side, index, count);
+    }
+    function adjustGaugeButtonIndex(side: var, delta: var, sourceCount: var) : void {
+        let buttonId = side === 2 ? 41 : 40;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        optionState.adjustGaugeButtonIndex(side, delta, count);
+    }
+    function lr2GaugeText(side: var, sourceCount: var) : var {
+        let buttonId = side === 2 ? 41 : 40;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        return optionState.lr2GaugeText(side, count);
+    }
 
     readonly property int lr2RandomIndexP1: optionState.lr2RandomIndexP1
     readonly property int lr2RandomIndexP2: optionState.lr2RandomIndexP2
     function setRandomIndex(side: var, index: var) : void { optionState.setRandomIndex(side, index); }
+    function lr2RandomButtonFrame(side: var, sourceCount: var) : var {
+        let buttonId = side === 2 ? 43 : 42;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        return optionState.lr2RandomButtonFrame(side, count);
+    }
+    function setRandomButtonIndex(side: var, index: var, sourceCount: var) : void {
+        let buttonId = side === 2 ? 43 : 42;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        optionState.setRandomButtonIndex(side, index, count);
+    }
+    function adjustRandomButtonIndex(side: var, delta: var, sourceCount: var) : void {
+        let buttonId = side === 2 ? 43 : 42;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        optionState.adjustRandomButtonIndex(side, delta, count);
+    }
+    function lr2RandomText(side: var, sourceCount: var) : var {
+        let buttonId = side === 2 ? 43 : 42;
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        }
+        return optionState.lr2RandomText(side, count);
+    }
 
     readonly property int lr2HidSudIndexP1: optionState.lr2HidSudIndexP1
     readonly property int lr2HidSudIndexP2: optionState.lr2HidSudIndexP2
@@ -719,12 +802,48 @@ Item {
     function setGhostIndex(index: var) : void { optionState.setGhostIndex(index); }
 
     function lr2BgaEnabled() : var { return optionState.lr2BgaEnabled(); }
+    function bumpLr2OptionRevision() : void { optionState.bumpRevision(); }
 
     readonly property int lr2ScoreTargetIndex: optionState.lr2ScoreTargetIndex
     function setScoreTargetIndex(index: var) : void { optionState.setScoreTargetIndex(index); }
 
+    readonly property int lr2ClassicTargetIndex: optionState.lr2ClassicTargetIndex
+    function setClassicTargetIndex(index: var) : void { optionState.setClassicTargetIndex(index); }
+
     readonly property int lr2BeatorajaTargetIndex: optionState.lr2BeatorajaTargetIndex
     function setBeatorajaTargetIndex(index: var) : void { optionState.setBeatorajaTargetIndex(index); }
+
+    function lr2TargetButtonFrame(sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(77);
+        }
+        return optionState.lr2TargetButtonFrame(count);
+    }
+
+    function setTargetButtonIndex(index: var, sourceCount: var) : void {
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(77);
+        }
+        optionState.setTargetButtonIndex(index, count);
+    }
+
+    function adjustTargetButtonIndex(delta: var, sourceCount: var) : void {
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(77);
+        }
+        optionState.adjustTargetButtonIndex(delta, count);
+    }
+
+    function lr2TargetText(sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 1) {
+            count = selectPanelController.observedSelectButtonSourceCount(77);
+        }
+        return optionState.lr2TargetText(count);
+    }
 
     readonly property int lr2TargetPercent: optionState.lr2TargetPercent
     function setTargetPercent(percent: var) : void { optionState.setTargetPercent(percent); }
@@ -3547,6 +3666,9 @@ Item {
     }
     onChartChanged: {
         root.gameplayRevision++;
+        if (root.effectiveScreenKey !== "select") {
+            root.refreshSelectRuntimeActiveOptions();
+        }
         root.refreshGameplayRuntimeActiveOptions();
         root.gameplayResultOpened = false;
         root.gameplayShowedCourseResult = false;
@@ -3563,7 +3685,12 @@ Item {
     }
     onScoresChanged: root.updateResultOldScores()
     onProfilesChanged: root.updateResultOldScores()
-    onChartDataChanged: root.updateResultOldScores()
+    onChartDataChanged: {
+        if (root.effectiveScreenKey !== "select") {
+            root.refreshSelectRuntimeActiveOptions();
+        }
+        root.updateResultOldScores();
+    }
     onChartDatasChanged: root.updateResultOldScores()
     onCourseChanged: root.updateResultOldScores()
     Connections {
@@ -3690,6 +3817,7 @@ Item {
     }
 
     function resolveText(st: var, revision: var) : var {
+        revision;
         if (root.effectiveScreenKey === "select") {
             let nativeText = selectContext.nativeState.textValue(st);
             if (nativeText !== undefined && nativeText !== null) {

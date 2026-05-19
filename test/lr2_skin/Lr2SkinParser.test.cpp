@@ -6,11 +6,12 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QFile>
-#include <QTemporaryDir>
 #include <QString>
+#include <QTemporaryDir>
 
 #include <filesystem>
 
+using gameplay_logic::lr2_skin::Lr2Dst;
 using gameplay_logic::lr2_skin::Lr2SkinParser;
 
 namespace {
@@ -88,4 +89,27 @@ TEST_CASE("LR2 skin parser honors explicit resolution over inferred canvas",
 
     CHECK(skin.skinWidth == 1280);
     CHECK(skin.skinHeight == 720);
+}
+
+TEST_CASE("LR2 skin parser accepts fractional destination coordinates",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,full.png\n"
+                                 "#SRC_NUMBER,0,0,0,120,730,120,10,1,0,0,46,2,2\n"
+                                 "#DST_NUMBER,0,260,248.5,340.9,73.5,120.2,0,255,255,255,255,1,0,0,0\n"));
+
+    const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
+
+    REQUIRE(skin.elements.size() == 1);
+    REQUIRE(skin.elements.first().dsts.size() == 1);
+
+    const auto dst = skin.elements.first().dsts.first().value<Lr2Dst>();
+    CHECK(dst.x == 248);
+    CHECK(dst.y == 340);
+    CHECK(dst.w == 73);
+    CHECK(dst.h == 120);
 }

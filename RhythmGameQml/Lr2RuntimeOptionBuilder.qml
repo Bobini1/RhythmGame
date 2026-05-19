@@ -17,6 +17,20 @@ QtObject {
         host.addOption(options, option);
     }
 
+    function removeOptionRange(options: var, first: var, last: var) : void {
+        if (!options) {
+            return;
+        }
+        for (let i = options.length - 1; i >= 0; --i) {
+            let option = Math.abs(options[i]);
+            if (option >= first && option <= last) {
+                options.splice(i, 1);
+            }
+        }
+        options.__lookup = undefined;
+        options.__key = undefined;
+    }
+
     function finalizeOptionList(options: var) : var {
         return host.finalizeOptionList(options);
     }
@@ -365,6 +379,7 @@ QtObject {
             }
             root.appendReplayOptions(options, null);
             if (usesDifficultyOption) {
+                root.removeOptionRange(options, 150, 155);
                 root.addOption(options, 150);
             }
             return;
@@ -406,6 +421,7 @@ QtObject {
 
         if (usesDifficultyOption) {
             let difficulty = selectContext.entryDifficulty(chartData);
+            root.removeOptionRange(options, 150, 155);
             root.addOption(options, difficulty >= 1 && difficulty <= 5 ? 150 + difficulty : 150);
         }
 

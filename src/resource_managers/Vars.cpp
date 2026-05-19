@@ -561,6 +561,25 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
     setTargetScoreFraction(8.0 / 9.0);
 }
 auto
+resource_managers::GeneralVars::getDefaultTargetScoreFraction() const -> double
+{
+    return defaultTargetScoreFraction;
+}
+void
+resource_managers::GeneralVars::setDefaultTargetScoreFraction(double value)
+{
+    if (defaultTargetScoreFraction == value) {
+        return;
+    }
+    defaultTargetScoreFraction = value;
+    emit defaultTargetScoreFractionChanged();
+}
+void
+resource_managers::GeneralVars::resetDefaultTargetScoreFraction()
+{
+    setDefaultTargetScoreFraction(0.9);
+}
+auto
 resource_managers::GeneralVars::getWebApiUrl() const -> QString
 {
     return websiteBaseUrl + "/api/";
@@ -1488,11 +1507,11 @@ resource_managers::Vars::populateThemePropertyMap(
   const std::filesystem::path& themeVarsPath)
 {
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
-        auto screenPropertyMap =
-          std::unique_ptr<QQmlPropertyMap>(QQmlPropertyMap::create(&themeVars));
+        auto screenPropertyMap = std::unique_ptr<QQmlPropertyMap>(
+          support::createQmlPropertyMap(&themeVars));
         for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
             auto propertyMap = std::unique_ptr<QQmlPropertyMap>(
-              QQmlPropertyMap::create(screenPropertyMap.get()));
+              support::createQmlPropertyMap(screenPropertyMap.get()));
             propertyMap->insert(themeVarsData[screenName][themeName]);
             propertyMap->freeze();
             connect(
@@ -1547,7 +1566,7 @@ resource_managers::Vars::populateThemePropertyMap(
             if (screenName == "k7") {
                 auto* k5Obj = themeVars["k5"].value<QQmlPropertyMap*>();
                 if (k5Obj == nullptr) {
-                    k5Obj = QQmlPropertyMap::create(&themeVars);
+                    k5Obj = support::createQmlPropertyMap(&themeVars);
                     themeVars.insert("k5", QVariant::fromValue(k5Obj));
                 }
                 if (k5Obj->keys().contains(themeName)) {
@@ -1558,7 +1577,7 @@ resource_managers::Vars::populateThemePropertyMap(
                 auto* k5battleObj =
                   themeVars["k5battle"].value<QQmlPropertyMap*>();
                 if (k5battleObj == nullptr) {
-                    k5battleObj = QQmlPropertyMap::create(&themeVars);
+                    k5battleObj = support::createQmlPropertyMap(&themeVars);
                     themeVars.insert("k5battle",
                                      QVariant::fromValue(k5battleObj));
                 }
@@ -1569,7 +1588,7 @@ resource_managers::Vars::populateThemePropertyMap(
             } else if (screenName == "k14") {
                 auto* k10Obj = themeVars["k10"].value<QQmlPropertyMap*>();
                 if (k10Obj == nullptr) {
-                    k10Obj = QQmlPropertyMap::create(&themeVars);
+                    k10Obj = support::createQmlPropertyMap(&themeVars);
                     themeVars.insert("k10", QVariant::fromValue(k10Obj));
                 }
                 if (k10Obj->keys().contains(themeName)) {

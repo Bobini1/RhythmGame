@@ -14,6 +14,7 @@ class Lr2SelectStateCache : public QObject {
     Q_PROPERTY(QVariant scores READ scores WRITE setScores NOTIFY scoresChanged)
     Q_PROPERTY(QVariant chartDifficultyCache READ chartDifficultyCache WRITE setChartDifficultyCache NOTIFY chartDifficultyCacheChanged)
     Q_PROPERTY(QVariant chartGroupCache READ chartGroupCache WRITE setChartGroupCache NOTIFY chartGroupCacheChanged)
+    Q_PROPERTY(bool beatorajaDifficulty0Semantics READ beatorajaDifficulty0Semantics WRITE setBeatorajaDifficulty0Semantics NOTIFY beatorajaDifficulty0SemanticsChanged)
     Q_PROPERTY(QVariant folderLampByKey READ folderLampByKey WRITE setFolderLampByKey NOTIFY folderLampByKeyChanged)
     Q_PROPERTY(QVariant folderDistributionByKey READ folderDistributionByKey WRITE setFolderDistributionByKey NOTIFY folderDistributionByKeyChanged)
     Q_PROPERTY(QVariant folderScoreCountsByKey READ folderScoreCountsByKey WRITE setFolderScoreCountsByKey NOTIFY folderScoreCountsByKeyChanged)
@@ -38,6 +39,9 @@ public:
 
     QVariant chartGroupCache() const;
     void setChartGroupCache(const QVariant& value);
+
+    bool beatorajaDifficulty0Semantics() const;
+    void setBeatorajaDifficulty0Semantics(bool value);
 
     QVariant folderLampByKey() const;
     void setFolderLampByKey(const QVariant& value);
@@ -116,6 +120,7 @@ signals:
     void scoresChanged();
     void chartDifficultyCacheChanged();
     void chartGroupCacheChanged();
+    void beatorajaDifficulty0SemanticsChanged();
     void folderLampByKeyChanged();
     void folderDistributionByKeyChanged();
     void folderScoreCountsByKeyChanged();
@@ -200,6 +205,7 @@ private:
     QString scoreSummaryKey(const QVariant& item) const;
     QString chartDifficultyGroupKey(const QVariant& chart) const;
     QString chartGroupKey(const QVariant& chart) const;
+    QString chartDifficultyCacheKey(const QVariant& chart) const;
     QString displayName(const QVariant& item) const;
     QString folderLampKey(const QVariant& item) const;
     QString barCellKey(const QVariant& item) const;
@@ -224,6 +230,7 @@ private:
     QVariantMap m_chartDifficultyByPath;
     QVariant m_chartGroupCache;
     QVariantMap m_chartGroupsByKey;
+    bool m_beatorajaDifficulty0Semantics = false;
     QVariant m_folderLampByKey;
     QVariantMap m_folderLampLookup;
     QVariant m_folderDistributionByKey;

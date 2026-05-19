@@ -561,6 +561,19 @@ void Lr2SelectStateCache::setChartGroupCache(const QVariant& value) {
     emit chartGroupCacheChanged();
 }
 
+bool Lr2SelectStateCache::beatorajaDifficulty0Semantics() const {
+    return m_beatorajaDifficulty0Semantics;
+}
+
+void Lr2SelectStateCache::setBeatorajaDifficulty0Semantics(bool value) {
+    if (m_beatorajaDifficulty0Semantics == value) {
+        return;
+    }
+    m_beatorajaDifficulty0Semantics = value;
+    clearDifficultyCache();
+    emit beatorajaDifficulty0SemanticsChanged();
+}
+
 QVariant Lr2SelectStateCache::folderLampByKey() const {
     return m_folderLampByKey;
 }
@@ -1107,10 +1120,21 @@ QVariant Lr2SelectStateCache::textValue(int st) const {
     case 18:
     case 28:
         return hasChart ? QString::number(entryDifficulty(chart)) : QString();
+    case 19:
+    case 29: {
+        const QVariant exLevel = valueProperty(chart, "exlevel").isValid()
+            ? valueProperty(chart, "exlevel")
+            : valueProperty(chart, "exLevel");
+        return hasChart && exLevel.isValid() && !exLevel.isNull()
+            ? toString(exLevel)
+            : QString();
+    }
     case 20:
         return mainTitle();
     case 21:
         return (sourceKind == ItemKind::Chart || sourceKind == ItemKind::Entry) ? text("subtitle") : QString();
+    case 22:
+        return displayTitle();
     case 23:
         return sourceKind == ItemKind::Chart ? text("genre") : QString();
     case 24:
@@ -1118,9 +1142,7 @@ QVariant Lr2SelectStateCache::textValue(int st) const {
     case 25:
         return (sourceKind == ItemKind::Chart || sourceKind == ItemKind::Entry) ? text("subartist") : QString();
     case 26:
-        return QString();
-    case 29:
-        return hasChart ? toString(valueProperty(chart, "rank")) : QString();
+        return (sourceKind == ItemKind::Chart || sourceKind == ItemKind::Entry) ? text("tag") : QString();
     default:
         return {};
     }
@@ -1138,6 +1160,10 @@ int Lr2SelectStateCache::numberValue(int num) const {
     auto count = [&counts](const QString& key) { return toInt(counts.value(key)); };
     auto playerStat = [&player](const QString& key) { return toInt(player.value(key)); };
     auto chartInt = [&chart](const char* key, int fallback = 0) { return toInt(valueProperty(chart, key), fallback); };
+    auto selectedChartPlayLevel = [&chart]() {
+        const QVariant level = valueProperty(chart, "playLevel");
+        return level.isValid() && !level.isNull() ? toInt(level, -1) : -1;
+    };
     auto difficultyValue = [this](int diff) {
         const QVariantMap difficultyState = m_selectedState.value(QStringLiteral("difficultyState")).toMap();
         const QVariantList levels = toList(difficultyState.value(QStringLiteral("levels")));
@@ -1187,7 +1213,8 @@ int Lr2SelectStateCache::numberValue(int num) const {
     case 13: return 0;
     case 42:
     case 96: return chartInt("playLevel");
-    case 45: case 46: case 47: case 48: case 49: return difficultyValue(num - 44);
+    case 45: case 46: case 47: case 48: case 49:
+        return m_beatorajaDifficulty0Semantics ? selectedChartPlayLevel() : difficultyValue(num - 44);
     case 57: case 58: case 59: return 100;
     case 70: return itemKind(item) == ItemKind::Ranking ? qRound(toReal(valueProperty(item, "bestPoints"))) : qRound(stat(QStringLiteral("score")));
     case 71: return itemKind(item) == ItemKind::Ranking ? qRound(toReal(valueProperty(item, "bestPoints"))) : qRound(stat(QStringLiteral("exscore")));
@@ -2080,6 +2107,26 @@ QString Lr2SelectStateCache::chartGroupKey(const QVariant& chart) const {
     return key;
 }
 
+QString Lr2SelectStateCache::chartDifficultyCacheKey(const QVariant& chart) const {
+    if (!chart.isValid() || chart.isNull()) {
+        return {};
+    }
+
+    QString key = toString(valueProperty(chart, "path"));
+    if (!key.isEmpty()) {
+        return key;
+    }
+    key = toString(valueProperty(chart, "md5"));
+    if (!key.isEmpty()) {
+        return QStringLiteral("md5:%1").arg(key);
+    }
+    key = toString(valueProperty(chart, "sha256"));
+    if (!key.isEmpty()) {
+        return QStringLiteral("sha256:%1").arg(key);
+    }
+    return entrySelectionKey(chart, 0);
+}
+
 QString Lr2SelectStateCache::displayName(const QVariant& item) const {
     if (item.typeId() == QMetaType::QString) {
         QString normalized = item.toString();
@@ -2159,12 +2206,20 @@ int Lr2SelectStateCache::entryDifficulty(const QVariant& item) const {
     if (itemKind(item) != ItemKind::Chart) {
         return 0;
     }
+    const int raw = toInt(valueProperty(item, "difficulty"));
+    if (m_beatorajaDifficulty0Semantics && (raw <= 0 || raw > 5)) {
+        return raw;
+    }
+    const QString key = chartDifficultyCacheKey(item);
+    QVariant cached = mapValue(m_chartDifficultyByPath, key);
     const QString path = toString(valueProperty(item, "path"));
-    const QVariant cached = mapValue(m_chartDifficultyByPath, path);
+    if (!cached.isValid() && !path.isEmpty() && path != key) {
+        cached = mapValue(m_chartDifficultyByPath, path);
+    }
     if (cached.isValid()) {
         return toInt(cached);
     }
-    return std::max(0, toInt(valueProperty(item, "difficulty")));
+    return raw;
 }
 
 int Lr2SelectStateCache::entryPlayLevel(const QVariant& item) const {

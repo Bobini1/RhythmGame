@@ -17,10 +17,12 @@ QVariantMap chart(QString md5, QString path, int difficulty, int playLevel) {
         {QStringLiteral("genre"), QStringLiteral("Genre")},
         {QStringLiteral("artist"), QStringLiteral("Artist")},
         {QStringLiteral("subartist"), QStringLiteral("Subartist")},
+        {QStringLiteral("tag"), QStringLiteral("Tag")},
         {QStringLiteral("keymode"), 7},
         {QStringLiteral("chartDirectory"), QStringLiteral("song")},
         {QStringLiteral("difficulty"), difficulty},
         {QStringLiteral("playLevel"), playLevel},
+        {QStringLiteral("exlevel"), 99},
         {QStringLiteral("normalNoteCount"), 100},
         {QStringLiteral("scratchCount"), 10},
         {QStringLiteral("lnCount"), 5},
@@ -93,6 +95,94 @@ TEST_CASE("LR2 select state cache builds focused score snapshots natively", "[lr
     REQUIRE(counts.at(2).toInt() == 1);
     REQUIRE(levels.at(4).toInt() == 12);
     REQUIRE(lamps.at(4).toInt() == 4);
+}
+
+TEST_CASE("LR2 select state cache applies normalized LR2 invalid difficulties",
+          "[lr2][runtime][select]")
+{
+    Lr2SelectStateCache cache;
+    const QVariantMap rawInvalidChart =
+        chart(QStringLiteral("LR2INV"), QStringLiteral("song/7b.bms"), 6, 6);
+
+    cache.setChartGroupCache(QVariantMap {
+        {QStringLiteral("song\n7"), QVariantList {rawInvalidChart}},
+    });
+    cache.setChartDifficultyCache(QVariantMap {
+        {QStringLiteral("song/7b.bms"), 2},
+    });
+
+    const QVariantMap result =
+        cache.refreshSelectedState(rawInvalidChart, 0, 1, 1, false, {});
+    REQUIRE(result.value(QStringLiteral("changed")).toBool());
+
+    const QVariantMap state = result.value(QStringLiteral("state")).toMap();
+    const QVariantMap difficultyState =
+        state.value(QStringLiteral("difficultyState")).toMap();
+    const QVariantList counts =
+        difficultyState.value(QStringLiteral("counts")).toList();
+    const QVariantList levels =
+        difficultyState.value(QStringLiteral("levels")).toList();
+
+    REQUIRE(counts.at(1).toInt() == 0);
+    REQUIRE(counts.at(2).toInt() == 1);
+    REQUIRE(levels.at(2).toInt() == 6);
+    REQUIRE(cache.numberValue(45) == -1);
+    REQUIRE(cache.numberValue(46) == 6);
+    REQUIRE(cache.numberValue(49) == -1);
+}
+
+TEST_CASE("LR2 select state cache keeps beatoraja difficulty0 chart levels visible",
+          "[lr2][runtime][select]")
+{
+    Lr2SelectStateCache cache;
+    const QVariantMap difficulty0Chart =
+        chart(QStringLiteral("BEG"), QStringLiteral("song/7b.bms"), 6, 6);
+
+    cache.setBeatorajaDifficulty0Semantics(true);
+    cache.setChartGroupCache(QVariantMap {
+        {QStringLiteral("song\n7"), QVariantList {difficulty0Chart}},
+    });
+
+    const QVariantMap result =
+        cache.refreshSelectedState(difficulty0Chart, 0, 1, 1, false, {});
+    REQUIRE(result.value(QStringLiteral("changed")).toBool());
+
+    const QVariantMap state = result.value(QStringLiteral("state")).toMap();
+    const QVariantMap difficultyState =
+        state.value(QStringLiteral("difficultyState")).toMap();
+    const QVariantList counts =
+        difficultyState.value(QStringLiteral("counts")).toList();
+    const QVariantList levels =
+        difficultyState.value(QStringLiteral("levels")).toList();
+
+    REQUIRE(counts.at(1).toInt() == 0);
+    REQUIRE(levels.at(1).toInt() == 0);
+    REQUIRE(cache.numberValue(45) == 6);
+    REQUIRE(cache.numberValue(46) == 6);
+    REQUIRE(cache.numberValue(49) == 6);
+}
+
+TEST_CASE("LR2 select state cache uses beatoraja folder numbers as selected level",
+          "[lr2][runtime][select]")
+{
+    Lr2SelectStateCache cache;
+    const QVariantMap normalChart =
+        chart(QStringLiteral("BJAN"), QStringLiteral("song/normal.bms"), 2, 7);
+    const QVariantMap hyperChart =
+        chart(QStringLiteral("BJAH"), QStringLiteral("song/hyper.bms"), 3, 9);
+
+    cache.setBeatorajaDifficulty0Semantics(true);
+    cache.setChartGroupCache(QVariantMap {
+        {QStringLiteral("song\n7"), QVariantList {normalChart, hyperChart}},
+    });
+
+    const QVariantMap result =
+        cache.refreshSelectedState(normalChart, 0, 1, 1, false, {});
+    REQUIRE(result.value(QStringLiteral("changed")).toBool());
+
+    REQUIRE(cache.numberValue(45) == 7);
+    REQUIRE(cache.numberValue(46) == 7);
+    REQUIRE(cache.numberValue(49) == 7);
 }
 
 TEST_CASE("LR2 select state cache maps score clear options exactly", "[lr2][runtime][select]") {
@@ -221,11 +311,17 @@ TEST_CASE("LR2 select state cache resolves focused text values natively", "[lr2]
     REQUIRE(cache.textValue(16).toString() == QStringLiteral("Artist Subartist"));
     REQUIRE(cache.textValue(17).toString() == QStringLiteral("12"));
     REQUIRE(cache.textValue(18).toString() == QStringLiteral("4"));
+    REQUIRE(cache.textValue(19).toString() == QStringLiteral("99"));
     REQUIRE(cache.textValue(20).toString() == QStringLiteral("Main\nTitle"));
     REQUIRE(cache.textValue(21).toString() == QStringLiteral("Sub"));
+    REQUIRE(cache.textValue(22).toString() == QStringLiteral("Main\nTitle Sub"));
     REQUIRE(cache.textValue(23).toString() == QStringLiteral("Genre"));
     REQUIRE(cache.textValue(24).toString() == QStringLiteral("Artist"));
     REQUIRE(cache.textValue(25).toString() == QStringLiteral("Subartist"));
+    REQUIRE(cache.textValue(26).toString() == QStringLiteral("Tag"));
+    REQUIRE(cache.textValue(27).toString() == QStringLiteral("12"));
+    REQUIRE(cache.textValue(28).toString() == QStringLiteral("4"));
+    REQUIRE(cache.textValue(29).toString() == QStringLiteral("99"));
     REQUIRE(!cache.textValue(9999).isValid());
 }
 

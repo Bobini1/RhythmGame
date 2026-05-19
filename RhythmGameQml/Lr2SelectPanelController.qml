@@ -41,12 +41,15 @@ QtObject {
     property bool gameplayOptionRepeating: false
     property var gameplayLastStartPressMs: ({})
     property var gameplayScratchLastDirectionUp: ({ "1": false, "2": false })
+    property var observedSelectButtonSourceCounts: ({})
     readonly property bool anyStartHeld: Input.start1 || Input.start2
     readonly property bool anySelectHeld: Input.select1 || Input.select2
-    readonly property int heldOptionPanel: controller.anyStartHeld && controller.anySelectHeld ? 3
-        : controller.anyStartHeld ? 1
-        : controller.anySelectHeld ? 2
-        : 0
+    readonly property int heldOptionPanel: root.lr2SkinUsesBeatorajaSemantics
+                                           ? (controller.anyStartHeld && controller.anySelectHeld ? 3
+                                              : controller.anyStartHeld ? 1
+                                              : controller.anySelectHeld ? 2
+                                              : 0)
+                                           : (controller.anyStartHeld ? 1 : 0)
     property bool startHoldSuppressed: false
 
     property Timer gameplayOptionRepeatTimer: Timer {
@@ -133,7 +136,7 @@ QtObject {
         BmsKey.Col25, BmsKey.Col26, BmsKey.Col27,
         BmsKey.Col2sUp, BmsKey.Col2sDown, BmsKey.Start2, BmsKey.Select2
     ])
-    readonly property var selectPanelKeyBindings: ({
+    readonly property var beatorajaSelectPanelKeyBindings: ({
         "1": controller.bindingLookup([
             [BmsKey.Col11, 42, 1], [BmsKey.Col21, 42, 1],
             [BmsKey.Col12, 42, -1], [BmsKey.Col22, 42, -1],
@@ -163,6 +166,39 @@ QtObject {
             [BmsKey.Col17, 74, 1], [BmsKey.Col27, 74, 1]
         ])
     })
+    readonly property var lr2SelectPanelKeyBindings: ({
+        "1": controller.bindingLookup([
+            [BmsKey.Col11, 11, 1], [BmsKey.Col21, 11, 1],
+            [BmsKey.Col12, 42, 1], [BmsKey.Col22, 43, 1],
+            [BmsKey.Col13, 40, 1], [BmsKey.Col23, 41, 1],
+            [BmsKey.Col14, 56, 1], [BmsKey.Col24, 56, 1],
+            [BmsKey.Col15, 57, -1], [BmsKey.Col25, 58, -1],
+            [BmsKey.Col17, 57, 1], [BmsKey.Col27, 58, 1],
+            [BmsKey.Select1, 77, 1], [BmsKey.Select2, 77, 1]
+        ]),
+        "2": controller.bindingLookup([
+            [BmsKey.Col11, 71, 1], [BmsKey.Col21, 71, 1],
+            [BmsKey.Col12, 70, 1], [BmsKey.Col22, 70, 1],
+            [BmsKey.Col13, 76, 1], [BmsKey.Col23, 76, 1],
+            [BmsKey.Col14, 72, 1], [BmsKey.Col24, 72, 1],
+            [BmsKey.Col15, 73, 1], [BmsKey.Col25, 73, 1],
+            [BmsKey.Col16, 74, 1], [BmsKey.Col26, 74, 1],
+            [BmsKey.Col17, 75, 1], [BmsKey.Col27, 75, 1],
+            [BmsKey.Select1, 83, 1], [BmsKey.Select2, 83, 1]
+        ]),
+        "3": controller.bindingLookup([
+            [BmsKey.Col11, 72, 1], [BmsKey.Col21, 72, 1],
+            [BmsKey.Col12, 78, 1], [BmsKey.Col22, 78, 1],
+            [BmsKey.Col13, 75, 1], [BmsKey.Col23, 75, 1],
+            [BmsKey.Col14, 59, -1], [BmsKey.Col24, 59, -1],
+            [BmsKey.Col15, 74, -1], [BmsKey.Col25, 74, -1],
+            [BmsKey.Col16, 59, 1], [BmsKey.Col26, 59, 1],
+            [BmsKey.Col17, 74, 1], [BmsKey.Col27, 74, 1]
+        ])
+    })
+    readonly property var selectPanelKeyBindings: root.lr2SkinUsesBeatorajaSemantics
+        ? controller.beatorajaSelectPanelKeyBindings
+        : controller.lr2SelectPanelKeyBindings
     readonly property var buttonFrameGetters: ({
         "10": () => selectContext.difficultyFilter,
         "11": src => selectContext.keyFilterFrameForSourceCount(root.elementSourceFrameCount(src)),
@@ -179,10 +215,10 @@ QtObject {
         "29": () => root.lr2EqOn ? 1 : 0,
         "32": () => root.lr2PitchOn ? 1 : 0,
         "33": () => root.lr2PitchType,
-        "40": () => root.lr2GaugeIndexP1,
-        "41": () => root.lr2GaugeIndexP2,
-        "42": () => root.lr2RandomIndexP1,
-        "43": () => root.lr2RandomIndexP2,
+        "40": src => root.lr2GaugeButtonFrame(1, root.elementSourceFrameCount(src)),
+        "41": src => root.lr2GaugeButtonFrame(2, root.elementSourceFrameCount(src)),
+        "42": src => root.lr2RandomButtonFrame(1, root.elementSourceFrameCount(src)),
+        "43": src => root.lr2RandomButtonFrame(2, root.elementSourceFrameCount(src)),
         "46": () => root.lr2LaneCoverIndex,
         "50": () => root.lr2HidSudIndexP1,
         "51": () => root.lr2HidSudIndexP2,
@@ -193,7 +229,7 @@ QtObject {
         "71": () => root.lr2GhostIndex,
         "72": () => root.lr2BgaIndex,
         "73": () => root.lr2BgaSizeIndex,
-        "77": () => root.lr2ScoreTargetIndex,
+        "77": src => root.lr2TargetButtonFrame(root.elementSourceFrameCount(src)),
         "78": () => root.lr2GaugeAutoShiftIndex,
         "308": () => root.lr2LnModeIndex
     })
@@ -256,20 +292,24 @@ QtObject {
             root.lr2PitchType = root.wrapValue(root.lr2PitchType + delta, 3);
             return true;
         },
-        "40": delta => {
-            root.setGaugeIndex(1, root.lr2GaugeIndexP1 + delta);
+        "40": (delta, sourceCount) => {
+            let count = controller.selectButtonSourceCount(40, sourceCount);
+            root.adjustGaugeButtonIndex(1, delta, count);
             return true;
         },
-        "41": delta => {
-            root.setGaugeIndex(2, root.lr2GaugeIndexP2 + delta);
+        "41": (delta, sourceCount) => {
+            let count = controller.selectButtonSourceCount(41, sourceCount);
+            root.adjustGaugeButtonIndex(2, delta, count);
             return true;
         },
-        "42": delta => {
-            root.setRandomIndex(1, root.lr2RandomIndexP1 + delta);
+        "42": (delta, sourceCount) => {
+            let count = controller.selectButtonSourceCount(42, sourceCount);
+            root.adjustRandomButtonIndex(1, delta, count);
             return true;
         },
-        "43": delta => {
-            root.setRandomIndex(2, root.lr2RandomIndexP2 + delta);
+        "43": (delta, sourceCount) => {
+            let count = controller.selectButtonSourceCount(43, sourceCount);
+            root.adjustRandomButtonIndex(2, delta, count);
             return true;
         },
         "44": () => false,
@@ -335,8 +375,9 @@ QtObject {
             root.setTargetPercent(root.lr2TargetPercent + delta);
             return true;
         },
-        "77": delta => {
-            root.setScoreTargetIndex(root.lr2ScoreTargetIndex + delta);
+        "77": (delta, sourceCount) => {
+            let count = controller.selectButtonSourceCount(77, sourceCount);
+            root.adjustTargetButtonIndex(delta, count);
             return true;
         },
         "78": delta => {
@@ -382,10 +423,42 @@ QtObject {
         return result;
     }
 
-    function observeSelectSortButton(src: var) : void {
-        if (root.effectiveScreenKey === "select" && root.elementButtonId(src) === 12) {
-            selectContext.observeSortSourceFrameCount(root.elementSourceFrameCount(src));
+    function observedSelectButtonSourceCount(buttonId: var) : var {
+        return controller.observedSelectButtonSourceCounts[String(buttonId)] || 0;
+    }
+
+    function selectButtonSourceCount(buttonId: var, sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        return count > 1 ? count : controller.observedSelectButtonSourceCount(buttonId);
+    }
+
+    function observeSelectButtonSourceCount(buttonId: var, sourceCount: var) : void {
+        let count = Math.floor(sourceCount || 0);
+        if (buttonId <= 0 || count <= 1) {
+            return;
         }
+        let key = String(buttonId);
+        if ((controller.observedSelectButtonSourceCounts[key] || 0) >= count) {
+            return;
+        }
+        let copy = {};
+        for (let name in controller.observedSelectButtonSourceCounts) {
+            copy[name] = controller.observedSelectButtonSourceCounts[name];
+        }
+        copy[key] = count;
+        controller.observedSelectButtonSourceCounts = copy;
+    }
+
+    function observeSelectSortButton(src: var) : void {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
+        let buttonId = root.elementButtonId(src);
+        let sourceCount = root.elementSourceFrameCount(src);
+        if (buttonId === 12) {
+            selectContext.observeSortSourceFrameCount(sourceCount);
+        }
+        controller.observeSelectButtonSourceCount(buttonId, sourceCount);
     }
 
     function buttonUsesSplitArrows(buttonId: var) : var {
@@ -808,12 +881,18 @@ QtObject {
             }
         }
         if (optionChanged) {
+            root.bumpLr2OptionRevision();
             root.playOneShot(soundPlayer || optionChangeSound);
         }
     }
 
     function triggerSelectPanelButton(buttonId: var, delta: var) : var {
-        root.handleLr2Button(buttonId, delta === undefined ? 1 : delta, root.selectPanel);
+        root.handleLr2Button(
+            buttonId,
+            delta === undefined ? 1 : delta,
+            root.selectPanel,
+            undefined,
+            controller.selectButtonSourceCount(buttonId, 0));
         return true;
     }
 
@@ -1116,9 +1195,9 @@ QtObject {
             return true;
         }
         if (startHeld) {
-            root.adjustScratchDurationNumber(controlSide, amount);
-        } else {
             root.adjustScratchCoverNumber(controlSide, amount);
+        } else {
+            root.adjustScratchDurationNumber(controlSide, amount);
         }
         return true;
     }

@@ -155,6 +155,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/support/PathToQString.h
         src/support/QStringToPath.cpp
         src/support/QStringToPath.h
+        src/support/CreateQmlPropertyMap.cpp
+        src/support/CreateQmlPropertyMap.h
         src/support/PathToUtfString.cpp
         src/support/PathToUtfString.h
         src/support/UtfStringToPath.cpp

@@ -200,7 +200,7 @@ Item {
             property color transColor: root.transColor
             property real blendMode: root.blendMode
             property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
-            property real tolerance: 0.03125
+            property real tolerance: 0.001
             property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, graphAtlas.implicitWidth),

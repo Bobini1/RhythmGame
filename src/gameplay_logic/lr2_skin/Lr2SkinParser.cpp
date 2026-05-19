@@ -245,42 +245,59 @@ parseDstOffsets(const QStringList& tokens, const int startIndex) -> QVariantList
 }
 
 auto
+parseDstInteger(const QString& token) -> int
+{
+    bool ok = false;
+    const int integerValue = token.toInt(&ok);
+    if (ok) {
+        return integerValue;
+    }
+
+    const double realValue = token.toDouble(&ok);
+    if (ok) {
+        return static_cast<int>(realValue);
+    }
+
+    return 0;
+}
+
+auto
 parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
 {
     Lr2Dst dst;
     dst.sortId = sortId;
     if (tokens.size() > 2 && !tokens[2].isEmpty())
-        dst.time = tokens[2].toInt();
+        dst.time = parseDstInteger(tokens[2]);
     if (tokens.size() > 3 && !tokens[3].isEmpty())
-        dst.x = tokens[3].toInt();
+        dst.x = parseDstInteger(tokens[3]);
     if (tokens.size() > 4 && !tokens[4].isEmpty())
-        dst.y = tokens[4].toInt();
+        dst.y = parseDstInteger(tokens[4]);
     if (tokens.size() > 5 && !tokens[5].isEmpty())
-        dst.w = tokens[5].toInt();
+        dst.w = parseDstInteger(tokens[5]);
     if (tokens.size() > 6 && !tokens[6].isEmpty())
-        dst.h = tokens[6].toInt();
+        dst.h = parseDstInteger(tokens[6]);
     if (tokens.size() > 7 && !tokens[7].isEmpty())
-        dst.acc = tokens[7].toInt();
+        dst.acc = parseDstInteger(tokens[7]);
     if (tokens.size() > 8 && !tokens[8].isEmpty())
-        dst.a = tokens[8].toInt();
+        dst.a = parseDstInteger(tokens[8]);
     if (tokens.size() > 9 && !tokens[9].isEmpty())
-        dst.r = tokens[9].toInt();
+        dst.r = parseDstInteger(tokens[9]);
     if (tokens.size() > 10 && !tokens[10].isEmpty())
-        dst.g = tokens[10].toInt();
+        dst.g = parseDstInteger(tokens[10]);
     if (tokens.size() > 11 && !tokens[11].isEmpty())
-        dst.b = tokens[11].toInt();
+        dst.b = parseDstInteger(tokens[11]);
     if (tokens.size() > 12 && !tokens[12].isEmpty())
-        dst.blend = tokens[12].toInt();
+        dst.blend = parseDstInteger(tokens[12]);
     if (tokens.size() > 13 && !tokens[13].isEmpty())
-        dst.filter = tokens[13].toInt();
+        dst.filter = parseDstInteger(tokens[13]);
     if (tokens.size() > 14 && !tokens[14].isEmpty())
-        dst.angle = tokens[14].toInt();
+        dst.angle = parseDstInteger(tokens[14]);
     if (tokens.size() > 15 && !tokens[15].isEmpty())
-        dst.center = tokens[15].toInt();
+        dst.center = parseDstInteger(tokens[15]);
     if (tokens.size() > 16 && !tokens[16].isEmpty())
-        dst.loop = tokens[16].toInt();
+        dst.loop = parseDstInteger(tokens[16]);
     if (tokens.size() > 17 && !tokens[17].isEmpty())
-        dst.timer = tokens[17].toInt();
+        dst.timer = parseDstInteger(tokens[17]);
     if (tokens.size() > 18 && !tokens[18].isEmpty())
         dst.op1 = parseDstOptionToken(tokens[18]);
     if (tokens.size() > 19 && !tokens[19].isEmpty())
@@ -288,7 +305,7 @@ parseDstValue(const QStringList& tokens, const int sortId) -> Lr2Dst
     if (tokens.size() > 20 && !tokens[20].isEmpty())
         dst.op3 = parseDstOptionToken(tokens[20]);
     if (tokens.size() > 21 && !tokens[21].isEmpty())
-        dst.op4 = tokens[21].toInt();
+        dst.op4 = parseDstInteger(tokens[21]);
     dst.offsets = parseDstOffsets(tokens, 21);
     return dst;
 }

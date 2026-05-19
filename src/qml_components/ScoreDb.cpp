@@ -492,6 +492,13 @@ ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
   : scoreDb(scoreDb)
 {
 }
+
+ScoreDb::~ScoreDb()
+{
+    stopSource.request_stop();
+    threadPool.waitForDone();
+}
+
 auto
 ScoreDb::getScoresForMd5(const QList<QString>& md5s) const
   -> QIfPendingReply<ScoreQueryResult>

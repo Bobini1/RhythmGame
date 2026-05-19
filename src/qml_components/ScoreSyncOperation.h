@@ -19,7 +19,7 @@ namespace qml_components {
  * the error() signal but do not halt the operation — finished() is always
  * emitted exactly once when done == total.
  */
-class ScoreSyncOperation final : public QObject
+class ScoreSyncOperation : public QObject
 {
     Q_OBJECT
     QML_ELEMENT

@@ -31,30 +31,30 @@ Item {
         maxCombo: 0
     })
     property var previewFiles: ({})
-    property int currentIndex: 0
-    property int targetIndex: currentIndex
+    property alias currentIndex: nativeNavigation.currentIndex
+    property alias targetIndex: nativeNavigation.targetIndex
     property alias visualIndex: visualState.visualIndex
-    property real targetVisualIndex: 0
+    property alias targetVisualIndex: nativeNavigation.targetVisualIndex
     readonly property int listTopbarFixed: visualState.rawFixed
     readonly property int listCalculatedBarFixed: visualState.fixed
-    property int oldBarFixed: 0
-    property int nowBarFixed: 0
+    property alias oldBarFixed: nativeNavigation.oldBarFixed
+    property alias nowBarFixed: nativeNavigation.nowBarFixed
     property int pendingWheelSteps: 0
-    property int selectedOffset: 0
-    property double barMoveStartMs: 0
-    property double barMoveEndMs: 0
+    property alias selectedOffset: nativeNavigation.selectedOffset
+    property alias barMoveStartMs: nativeNavigation.barMoveStartMs
+    property alias barMoveEndMs: nativeNavigation.barMoveEndMs
     property bool componentReady: false
-    property bool updatesActive: true
-    property bool suppressVisualIndexPublish: false
-    property int scrollDirection: 0
-    property int revision: 0
-    property int listRevision: 0
-    property int selectionRevision: 0
-    property int focusRevision: 0
-    property int scoreRevision: 0
+    property alias updatesActive: nativeNavigation.updatesActive
+    property alias suppressVisualIndexPublish: nativeNavigation.suppressVisualIndexPublish
+    property alias scrollDirection: nativeNavigation.scrollDirection
+    property alias revision: nativeNavigation.revision
+    property alias listRevision: nativeNavigation.listRevision
+    property alias selectionRevision: nativeNavigation.selectionRevision
+    property alias focusRevision: nativeNavigation.focusRevision
+    property alias scoreRevision: nativeNavigation.scoreRevision
     property int folderLampRevision: 0
     property int folderLampRequestRevision: 0
-    property bool suppressNextSelectionSound: false
+    property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
     property var attachedTextCache: ({})
@@ -69,15 +69,9 @@ Item {
     property alias visibleBarSlotOffset: visibleBars.slotOffset
     property alias visibleBarEntries: visibleBars.entries
     property alias visibleBarTextCells: visibleBars.cells
-    property int refreshedFocusedIndex: -1
-    property var refreshedFocusedItem: null
-    property int refreshedFocusedScoreRevision: -1
-    property int refreshedFocusedListRevision: -1
-    property bool refreshedFocusedRankingMode: false
-    property var refreshedFocusedRankingBaseItem: null
-    property int cachedSyncedCursorBaseIndex: -1
-    property bool rankingMode: false
-    property var rankingBaseItem: null
+    property alias cachedSyncedCursorBaseIndex: nativeNavigation.cachedSyncedCursorBaseIndex
+    property alias rankingMode: nativeNavigation.rankingMode
+    property alias rankingBaseItem: nativeNavigation.rankingBaseItem
     property string rankingStatsMd5: ""
     property var rankingClearCounts: ({})
     property int rankingPlayerRank: 0
@@ -134,77 +128,27 @@ Item {
         lamps: emptyDifficultyNumbers
     })
     property alias navigationController: nativeNavigation
-    property var selectedScoreState: ({
-        key: "",
-        scoreRevision: -1,
-        listRevision: -1,
-        item: null,
-        chartData: null,
-        chartWrapper: null,
-        scoreList: emptyScoreList,
-        summary: null,
-        bestStats: null,
-        scoreCounts: emptyScoreCounts,
-        scoreOptionIds: null,
-        difficultyState: emptyDifficultyState
-    })
-    property var visualChartWrapper: null
-    property string visualChartContentRevision: ""
-    property string visualStageFileSource: ""
-    property string visualBackBmpSource: ""
-    property string visualBannerSource: ""
+    property alias selectedScoreState: nativeNavigation.selectedScoreState
+    property alias visualChartWrapper: nativeNavigation.visualChartWrapper
+    property alias visualChartContentRevision: nativeNavigation.visualChartContentRevision
+    property alias visualStageFileSource: nativeNavigation.visualStageFileSource
+    property alias visualBackBmpSource: nativeNavigation.visualBackBmpSource
+    property alias visualBannerSource: nativeNavigation.visualBannerSource
     function selectedState() : var {
         return selectedScoreState;
     }
-
-    function chartAssetUrl(chartData: var, fileName: var) : var {
-        if (!chartData || !fileName || !chartData.chartDirectory) {
-            return "";
-        }
-        let dir = String(chartData.chartDirectory).replace(/\\/g, "/");
-        if (dir[0] !== "/") {
-            dir = "/" + dir;
-        }
-        return "file://" + dir + String(fileName).replace(/\.[^/.]+$/, "");
-    }
-
-    function applySelectedScoreState(state: var) : void {
-        selectedScoreState = state;
-        let chartData = state.chartData;
-        let nextChartWrapper = state.chartWrapper;
-        if (visualChartWrapper !== nextChartWrapper) {
-            visualChartWrapper = nextChartWrapper;
-        }
-        let nextStageFileSource = chartAssetUrl(chartData, chartData ? chartData.stageFile : "");
-        if (visualStageFileSource !== nextStageFileSource) {
-            visualStageFileSource = nextStageFileSource;
-        }
-        let nextBackBmpSource = chartAssetUrl(chartData, chartData ? chartData.backBmp : "");
-        if (visualBackBmpSource !== nextBackBmpSource) {
-            visualBackBmpSource = nextBackBmpSource;
-        }
-        let nextBannerSource = chartAssetUrl(chartData, chartData ? chartData.banner : "");
-        if (visualBannerSource !== nextBannerSource) {
-            visualBannerSource = nextBannerSource;
-        }
-        let nextChartRevision = state.contentRevision !== undefined
-            ? String(state.contentRevision || "")
-            : chartContentRevisionForState(state);
-        if (visualChartContentRevision !== nextChartRevision) {
-            visualChartContentRevision = nextChartRevision;
-        }
-    }
-    readonly property int lr2SpeedFirst: 300
-    readonly property int lr2SpeedNext: 70
+    readonly property alias lr2SpeedFirst: nativeNavigation.lr2SpeedFirst
+    readonly property alias lr2SpeedNext: nativeNavigation.lr2SpeedNext
     readonly property int lr2WheelDuration: 200
     readonly property int lr2ClickDuration: 200
-    readonly property int lr2ScrollUp: 1
-    readonly property int lr2ScrollDown: 2
+    readonly property alias lr2ScrollUp: nativeNavigation.lr2ScrollUp
+    readonly property alias lr2ScrollDown: nativeNavigation.lr2ScrollDown
     readonly property var lr2SortOrder: [0, 1, 2, 3, 4]
     readonly property var beatorajaSortOrder: [2, 5, 6, 7, 1, 3, 4, 8]
     readonly property var lr2KeyFilterOrder: [0, 1, 2, 3, 4, 5, 6]
     // beatoraja select button art is all/5/7/10/14/9/24/24D. 9K and 24K are not supported here.
     readonly property var beatorajaKeyFilterOrder: [0, 1, 2, 3, 4]
+    readonly property bool beatorajaDifficulty0Semantics: sortSourceFrameCount >= 8
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: items.length
@@ -230,6 +174,7 @@ Item {
         scores: root.scores
         chartDifficultyCache: root.chartDifficultyCache
         chartGroupCache: root.chartGroupCache
+        beatorajaDifficulty0Semantics: root.beatorajaDifficulty0Semantics
         folderLampByKey: root.folderLampByKey
         folderDistributionByKey: root.folderDistributionByKey
         folderScoreCountsByKey: root.folderScoreCountsByKey
@@ -245,9 +190,29 @@ Item {
 
     Lr2SelectNavigationController {
         id: nativeNavigation
-        context: root
         visualState: visualState
         stateCache: nativeSelectState
+        logicalCount: root.logicalCount
+        focusedIndex: root.focusedIndex
+        focusedItem: root.focusedItem
+        selectedScoreState: ({
+            key: "",
+            scoreRevision: -1,
+            listRevision: -1,
+            item: null,
+            chartData: null,
+            chartWrapper: null,
+            scoreList: root.emptyScoreList,
+            summary: null,
+            bestStats: null,
+            scoreCounts: root.emptyScoreCounts,
+            scoreOptionIds: null,
+            difficultyState: root.emptyDifficultyState
+        })
+
+        function onEntryChangeSoundsRequested(count: int) : void {
+            root.entryChangeSoundsRequested(count);
+        }
     }
 
     Lr2SelectBarWindow {
@@ -834,7 +799,9 @@ Item {
             let higherDifficulty = 0;
             for (let chart of groups[groupKey]) {
                 let difficulty = entryDifficulty(chart);
-                if (difficulty === difficultyFilter) {
+                if (beatorajaDifficulty0Semantics && (difficulty <= 0 || difficulty > 5)) {
+                    unknown.push(chart);
+                } else if (difficulty === difficultyFilter) {
                     exact.push(chart);
                 } else if (difficulty > 0 && difficulty < difficultyFilter) {
                     if (difficulty > lowerDifficulty) {
@@ -1998,11 +1965,19 @@ Item {
         if (!isChart(item)) {
             return 0;
         }
-        let cached = chartDifficultyCache[item.path || ""];
+        let raw = rawChartDifficulty(item);
+        if (beatorajaDifficulty0Semantics && (raw <= 0 || raw > 5)) {
+            return raw;
+        }
+        let key = chartDifficultyCacheKey(item);
+        let cached = chartDifficultyCache[key];
+        if (cached === undefined && item.path && key !== item.path) {
+            cached = chartDifficultyCache[item.path];
+        }
         if (cached !== undefined) {
             return cached;
         }
-        return Math.max(0, rawChartDifficulty(item));
+        return raw;
     }
 
     function chartNoteCount(item: var) : var {
@@ -3112,28 +3087,24 @@ Item {
         return 0;
     }
 
+    function chartDifficultyCacheKey(chart: var) : var {
+        if (!chart) {
+            return "";
+        }
+        if (chart.path) {
+            return chart.path;
+        }
+        if (chart.md5) {
+            return "md5:" + chart.md5;
+        }
+        if (chart.sha256) {
+            return "sha256:" + chart.sha256;
+        }
+        return entrySelectionKey(chart, 0);
+    }
+
     function inferGroupDifficulties(group: var) : var {
         let result = {};
-        let hasInvalid = false;
-        let allBeginner = group.length > 1;
-        let hasNonTrivialLevel = false;
-        for (let chart of group) {
-            let raw = rawChartDifficulty(chart);
-            hasInvalid = hasInvalid || raw < 1 || raw > 5;
-            allBeginner = allBeginner && raw === 1;
-            hasNonTrivialLevel = hasNonTrivialLevel || entryPlayLevel(chart) > 1;
-        }
-
-        // New scans keep missing #DIFFICULTY as invalid. Older scans used to
-        // coerce it to BEGINNER; infer those only when the whole group has that
-        // shape, so explicit beginner singles stay untouched.
-        if (!hasInvalid && !(allBeginner && hasNonTrivialLevel)) {
-            for (let chart of group) {
-                result[chart.path || ""] = Math.max(0, rawChartDifficulty(chart));
-            }
-            return result;
-        }
-
         let sorted = group.slice();
         sorted.sort((a, b) => {
             let noteDiff = chartNoteCount(a) - chartNoteCount(b);
@@ -3143,16 +3114,15 @@ Item {
             return (a.path || "").localeCompare(b.path || "");
         });
 
-        let inferred = 1;
+        let inferred = 0;
+        let hasPrevious = false;
         for (let chart of sorted) {
             let raw = rawChartDifficulty(chart);
-            let hint = allBeginner ? difficultyHint(chart) : 0;
-            if (raw >= 1 && raw <= 5 && !allBeginner) {
+            if (raw >= 0 && raw <= 5) {
                 inferred = raw;
-            } else if (hint > 0) {
-                inferred = hint;
+                hasPrevious = true;
             } else {
-                inferred += 1;
+                inferred = hasPrevious ? inferred + 1 : 2;
                 if (inferred === 5) {
                     inferred = 4;
                 } else if (inferred < 1) {
@@ -3160,8 +3130,9 @@ Item {
                 } else if (inferred > 5) {
                     inferred = 5;
                 }
+                hasPrevious = true;
             }
-            result[chart.path || ""] = inferred;
+            result[chartDifficultyCacheKey(chart)] = inferred;
         }
         return result;
     }
@@ -3476,6 +3447,10 @@ Item {
         case 47:
         case 48:
         case 49:
+            if (beatorajaDifficulty0Semantics && chart()) {
+                let level = chart().playLevel;
+                return level !== undefined ? level : -1;
+            }
             return hasDifficulty(num - 44) ? difficultyPlayLevel(num - 44) : -1;
         case 57:
             return 100;

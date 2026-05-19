@@ -365,7 +365,7 @@ Item {
                     property color transColor: root.transColor
                     property real blendMode: root.blendMode
                     property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
-                    property real tolerance: 0.03125
+                    property real tolerance: 0.001
                     property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 2.0 : 0.0
                     property vector2d sourceSize: Qt.vector2d(root.atlasW, root.atlasH)
                     property vector4d sourceRect: {

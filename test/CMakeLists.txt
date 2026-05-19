@@ -20,9 +20,11 @@ add_executable(RhythmGame_test
         resource_managers/loadBmsSounds.test.cpp
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/ScanThemes.test.cpp
+        lr2_skin/Lr2BarBaseStateCache.test.cpp
         lr2_skin/Lr2SkinParser.test.cpp
         lr2_skin/Lr2SkinRuntimeTypes.test.cpp
         lr2_skin/Lr2SelectStateCache.test.cpp
+        ../RhythmGameQml/Lr2BarBaseStateCache.cpp
         ../RhythmGameQml/Lr2SkinRuntimeTypes.cpp
         ../RhythmGameQml/Lr2SelectBarCell.cpp
         ../RhythmGameQml/Lr2SelectBarWindow.cpp

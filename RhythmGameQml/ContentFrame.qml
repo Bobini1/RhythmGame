@@ -103,14 +103,20 @@ ApplicationWindow {
             return undefined;
         }
 
+        function setLr2ScreenProps(props: var, screenObj: var, screenKey: var) : void {
+            if (!screenObj || !screenObj.csvPath) {
+                return;
+            }
+            props["csvPath"] = screenObj.csvPath;
+            props["skinSettings"] = currentLr2Settings(screenKey);
+            props["skinSettingsData"] = screenObj.settingsData || "";
+            props["screenKey"] = screenKey;
+        }
+
         function openSelect() : void {
             let selectScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select;
             let props = {};
-            if (selectScreen && selectScreen.csvPath) {
-                props["csvPath"] = selectScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("select");
-                props["screenKey"] = "select";
-            }
+            setLr2ScreenProps(props, selectScreen, "select");
             sceneStack.pushItem(selectComponent, props);
         }
 
@@ -122,11 +128,7 @@ ApplicationWindow {
             }
             let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
             let props = { "chart": chart };
-            if (decideScreen.csvPath) {
-                props["csvPath"] = decideScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("decide");
-                props["screenKey"] = "decide";
-            }
+            setLr2ScreenProps(props, decideScreen, "decide");
             sceneStack.pushItem(decideComponent, props);
         }
 
@@ -138,11 +140,7 @@ ApplicationWindow {
             }
             let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
             let props = { "chart": runner };
-            if (decideScreen.csvPath) {
-                props["csvPath"] = decideScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("decide");
-                props["screenKey"] = "decide";
-            }
+            setLr2ScreenProps(props, decideScreen, "decide");
             sceneStack.pushItem(decideComponent, props);
         }
 
@@ -153,11 +151,7 @@ ApplicationWindow {
             let component = globalRoot[screenKey + "Component"];
             let screenObj = Rg.themes.availableThemeFamilies[mainProfile.themeConfig[screenKey]].screens[screenKey];
             let props = { "chart": runner };
-            if (screenObj && screenObj.csvPath) {
-                props["csvPath"] = screenObj.csvPath;
-                props["skinSettings"] = currentLr2Settings(screenKey);
-                props["screenKey"] = screenKey;
-            }
+            setLr2ScreenProps(props, screenObj, screenKey);
             sceneStack.pushItem(component, props);
         }
 
@@ -168,11 +162,7 @@ ApplicationWindow {
                 "profiles": profiles,
                 "chartData": chartData
             };
-            if (resultScreen && resultScreen.csvPath) {
-                props["csvPath"] = resultScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings("result");
-                props["screenKey"] = "result";
-            }
+            setLr2ScreenProps(props, resultScreen, "result");
             sceneStack.pushItem(resultComponent, props);
         }
 
@@ -187,9 +177,7 @@ ApplicationWindow {
             };
             if (courseResultScreen && courseResultScreen.csvPath) {
                 let settingsKey = hasCourseResultScreen ? "courseResult" : "result";
-                props["csvPath"] = courseResultScreen.csvPath;
-                props["skinSettings"] = currentLr2Settings(settingsKey);
-                props["screenKey"] = settingsKey;
+                setLr2ScreenProps(props, courseResultScreen, settingsKey);
             }
             sceneStack.pushItem(courseResultComponent, props);
         }

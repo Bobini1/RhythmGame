@@ -76,6 +76,7 @@ class ScoreDb final : public QObject
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
+    ~ScoreDb();
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForMd5(
       const QList<QString>& md5s) const;
     Q_INVOKABLE QIfPendingReply<ScoreQueryResult> getScoresForCourseId(
