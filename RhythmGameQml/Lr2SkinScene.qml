@@ -24,12 +24,13 @@ Item {
     readonly property string bannerSource: rootReady ? selectContext.visualBannerSource : ""
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
+    readonly property int optionValueRevision: rootReady ? root.lr2SkinSettingsRevision + root.lr2OptionRevision : 0
     readonly property int valueRevision: !rootReady ? 0
         : (root.effectiveScreenKey === "select"
             ? root.selectRevision
                 + selectContext.listRevision
                 + selectContext.folderLampRevision
-                + root.lr2SkinSettingsRevision
+                + sceneRoot.optionValueRevision
             : (root.resultScreenActive
                 ? root.resultOldScoresRevision
                 : root.gameplayRevision))
@@ -38,9 +39,9 @@ Item {
             + selectContext.listRevision
             + selectContext.folderLampRevision
             + selectContext.rankingStatsRevision
-            + root.lr2SkinSettingsRevision
+            + sceneRoot.optionValueRevision
     readonly property int selectStableBarGraphValueRevision: !rootReady ? 0
-        : root.lr2SkinSettingsRevision
+        : sceneRoot.optionValueRevision
     readonly property int textSettingsRevisionKind: 0
     readonly property int textFocusedRevisionKind: 1
     readonly property int textListRevisionKind: 2
@@ -76,6 +77,35 @@ Item {
             return false;
         }
         return src.specialType === 1 || src.specialType === 3 || src.specialType === 4;
+    }
+
+    function sourceCyclesContinuously(src: var) : var {
+        return src
+            && (src.cycle || 0) > 0
+            && Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1) > 1;
+    }
+
+    function sourceTreeCyclesContinuously(value: var, depth: var) : var {
+        if (!value || depth > 4) {
+            return false;
+        }
+        if (sourceCyclesContinuously(value)) {
+            return true;
+        }
+        if (value.length !== undefined && typeof value !== "string") {
+            for (let i = 0; i < value.length; ++i) {
+                if (sourceTreeCyclesContinuously(value[i], depth + 1)) {
+                    return true;
+                }
+            }
+        }
+        if (value.source && sourceTreeCyclesContinuously(value.source, depth + 1)) {
+            return true;
+        }
+        if (value.sources && sourceTreeCyclesContinuously(value.sources, depth + 1)) {
+            return true;
+        }
+        return false;
     }
 
     function chartAssetSourceFor(src: var) : var {
@@ -432,6 +462,9 @@ Item {
                                 : 0
                             readonly property bool dstOffsetsEnabled: elementState.dstOffsetsEnabled
                             readonly property int dstOffsetSide: elementState.dstOffsetSide
+                            readonly property int buttonFrameOverrideValue: elemLoader.usesButtonFrameOverride
+                                ? root.buttonFrame(elemLoader.elementData.src)
+                                : -1
 
                             Component.onCompleted: root.observeSelectSortButton(elemLoader.elementData.src)
 
@@ -454,7 +487,9 @@ Item {
                                 colorKeyEnabled: skinModel.hasTransColor
                                 screenRoot: sceneRoot.root
                                 offsetX: parent.nowJudgeOffsetX
-                                frameOverride: elemLoader.usesButtonFrameOverride ? root.buttonFrame(elemLoader.elementData.src) : -1
+                                frameOverride: parent.buttonFrameOverrideValue >= 0
+                                    ? parent.buttonFrameOverrideValue
+                                    : -1
                                 sliderTranslationEnabled: parent.sliderTranslationEnabled
                                 sliderPosition: parent.sliderPosition
                                 sliderRange: elemLoader.elementData.src ? elemLoader.elementData.src.sliderRange || 0 : 0
@@ -472,9 +507,10 @@ Item {
                                 dstOffsetHiddenA: parent.dstOffsetSide === 2
                                     ? root.gameplayDstOffsetHiddenA2
                                     : root.gameplayDstOffsetHiddenA1
-                                forceHidden: elemLoader.usesSpriteForceHidden
-                                    ? root.spriteForceHidden(elemLoader.elementData.src, elemLoader.elementIndex)
-                                    : false
+                                forceHidden: (elemLoader.usesSpriteForceHidden
+                                        ? root.spriteForceHidden(elemLoader.elementData.src, elemLoader.elementIndex)
+                                        : false)
+                                    || parent.buttonFrameOverrideValue < -1
                                 scratchAngle1: parent.scratchRotationSide === 1 ? playContext.scratchAngle1 : 0
                                 scratchAngle2: parent.scratchRotationSide === 2 ? playContext.scratchAngle2 : 0
                             }
@@ -598,7 +634,7 @@ Item {
                                 if (root.effectiveScreenKey === "select") {
                                     let num = numberRenderer.numberId;
                                     if (!elementState.numberUsesFocusedSelectState) {
-                                        return root.numberValue(numberRenderer.numberSrc, root.lr2SkinSettingsRevision);
+                                        return root.numberValue(numberRenderer.numberSrc, sceneRoot.optionValueRevision);
                                     }
                                     sceneRoot.selectDetailValueRevision;
                                     if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
@@ -667,8 +703,8 @@ Item {
                                 : (elementState.textSelectRevisionKind === sceneRoot.textFocusedRevisionKind
                                     ? sceneRoot.selectDetailValueRevision
                                     : (elementState.textSelectRevisionKind === sceneRoot.textListRevisionKind
-                                        ? selectContext.listRevision + root.lr2SkinSettingsRevision
-                                        : root.lr2SkinSettingsRevision))
+                                        ? selectContext.listRevision + sceneRoot.optionValueRevision
+                                        : sceneRoot.optionValueRevision))
                             selectRevisionKind: elementState.textSelectRevisionKind
                             skinScale: skinScale
                         }
@@ -692,7 +728,7 @@ Item {
                     Component {
                         id: barImageComponent
                         Lr2BarSpriteRenderer {
-                            readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
+                            readonly property bool sourceAnimates: sceneRoot.sourceTreeCyclesContinuously(elemLoader.elementData.src, 0)
                             dsts: elemLoader.elementData.dsts
                             srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime

@@ -92,13 +92,13 @@ QtObject {
         case 51:
             return root.lr2SkinPreviewMaker();
         case 63:
-            return root.optionText(root.lr2RandomLabels, root.lr2RandomIndexP1);
+            return root.lr2RandomText(1);
         case 64:
-            return root.optionText(root.lr2RandomLabels, root.lr2RandomIndexP2);
+            return root.lr2RandomText(2);
         case 65:
-            return root.optionText(root.lr2GaugeLabels, root.lr2GaugeIndexP1);
+            return root.lr2GaugeText(1);
         case 66:
-            return root.optionText(root.lr2GaugeLabels, root.lr2GaugeIndexP2);
+            return root.lr2GaugeText(2);
         case 67:
             return "OFF";
         case 68:
@@ -208,7 +208,11 @@ QtObject {
 
     function resolveText(st: var, revision: var) : var {
         let revisionToken = revision !== undefined ? revision : (root.effectiveScreenKey === "select"
-            ? selectContext.selectionRevision + selectContext.scoreRevision + selectContext.listRevision + root.lr2SkinSettingsRevision
+            ? selectContext.selectionRevision
+                + selectContext.scoreRevision
+                + selectContext.listRevision
+                + root.lr2SkinSettingsRevision
+                + root.lr2OptionRevision
             : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision));
         if (revisionToken < -1) {
             return "";
@@ -243,7 +247,7 @@ QtObject {
         }
         switch (st) {
         case 1:
-            return root.optionText(root.lr2TargetLabels, root.lr2ScoreTargetIndex);
+            return root.lr2TargetText();
         case 2:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 10:
@@ -276,6 +280,8 @@ QtObject {
             return chartData() ? String(chartData().playLevel || 0) : "";
         case 18:
             return chartData() ? String(selectContext.entryDifficulty(chartData())) : "";
+        case 19:
+            return chartData() ? String(chartData().exlevel || chartData().exLevel || "") : "";
         case 20:
             if (root.effectiveScreenKey === "select") {
                 return selectContext.entryMainTitle(currentEntry());
@@ -283,6 +289,8 @@ QtObject {
             return root.isResultScreen() ? "" : "";
         case 21:
             return root.effectiveScreenKey === "select" ? selectContext.entrySubtitle(currentEntry()) : "";
+        case 22:
+            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(currentEntry(), true) : "";
         case 23:
             return root.effectiveScreenKey === "select" ? selectContext.entryGenre(currentEntry()) : "";
         case 24:
@@ -290,13 +298,13 @@ QtObject {
         case 25:
             return root.effectiveScreenKey === "select" ? selectContext.entrySubartist(currentEntry()) : "";
         case 26:
-            return "";
+            return root.effectiveScreenKey === "select" && currentEntry() ? (currentEntry().tag || "") : "";
         case 27:
             return chartData() ? String(chartData().playLevel || 0) : "";
         case 28:
             return chartData() ? String(selectContext.entryDifficulty(chartData())) : "";
         case 29:
-            return chartData() ? String(chartData().rank || "") : "";
+            return chartData() ? String(chartData().exlevel || chartData().exLevel || "") : "";
         case 30:
             if (root.effectiveScreenKey !== "select") {
                 return "";
@@ -1128,13 +1136,13 @@ QtObject {
                 ? selectContext.sortFrameForSourceCount(sourceCount)
                 : root.resolveNumber(id);
         case 40:
-            return root.lr2GaugeIndexP1;
+            return root.lr2GaugeButtonFrame(1, sourceCount);
         case 41:
-            return root.lr2GaugeIndexP2;
+            return root.lr2GaugeButtonFrame(2, sourceCount);
         case 42:
-            return root.lr2RandomIndexP1;
+            return root.lr2RandomButtonFrame(1, sourceCount);
         case 43:
-            return root.lr2RandomIndexP2;
+            return root.lr2RandomButtonFrame(2, sourceCount);
         case 54:
             return root.lr2DpOptionIndex;
         case 55:
@@ -1142,7 +1150,7 @@ QtObject {
         case 72:
             return sourceCount >= 3 ? root.lr2BeatorajaBgaIndex : root.lr2BgaIndex;
         case 77:
-            return root.lr2ScoreTargetIndex;
+            return root.lr2TargetButtonFrame(sourceCount);
         case 78:
             return root.lr2GaugeAutoShiftIndex;
         case 301:
@@ -1165,6 +1173,12 @@ QtObject {
             return src;
         }
         let value = Math.floor(root.imageSetValue(src.imageSetRef || 0, src.imageSetSources.length));
+        if (isFinite(value) && value < -1) {
+            let hidden = root.copyObject(src);
+            hidden.source = "";
+            hidden.specialType = 0;
+            return hidden;
+        }
         if (!isFinite(value) || value < 0 || value >= src.imageSetSources.length) {
             value = 0;
         }
