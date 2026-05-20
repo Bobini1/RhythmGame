@@ -8,6 +8,7 @@
 #include "SerializeConfig.h"
 #include "gameplay_logic/ChartData.h"
 #include "support/Compress.h"
+#include "support/CreateQmlPropertyMap.h"
 #include "support/PathToQString.h"
 #include "input/GamepadManager.h"
 #include "support/PathToUtfString.h"
@@ -42,7 +43,8 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
              const std::filesystem::path& themeConfig)
   -> std::unique_ptr<QQmlPropertyMap>
 {
-    auto config = std::unique_ptr<QQmlPropertyMap>(QQmlPropertyMap::create());
+    auto config =
+      std::unique_ptr<QQmlPropertyMap>(support::createQmlPropertyMap());
     fillWithDefaults(*config, availableThemes);
     readConfig(themeConfig, *config, availableThemes);
     config->freeze();

@@ -242,6 +242,7 @@ Item {
                     && textElement.selectContext.nativeState
                     && textElement.root.effectiveScreenKey === "select"
                     && textElement.selectRevisionKind === 1) {
+                textElement.valueRevision;
                 const nativeText = textElement.selectContext.nativeState.textValue(st);
                 if (nativeText !== undefined && nativeText !== null) {
                     return nativeText;

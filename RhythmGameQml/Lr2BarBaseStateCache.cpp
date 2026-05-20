@@ -3,6 +3,7 @@
 #include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 
 #include <QJSValue>
+#include <QJSValueIterator>
 #include <QVariantMap>
 #include <algorithm>
 #include <cmath>
@@ -25,6 +26,62 @@ int jsInt(const QJSValue& value, const QString& name, int fallback) {
 QVariant invalidState() {
     return {};
 }
+
+QVariant normalizedVariant(const QVariant& value);
+
+QVariantList normalizedList(const QVariantList& values) {
+    QVariantList result;
+    result.reserve(values.size());
+    for (const QVariant& value : values) {
+        result.append(normalizedVariant(value));
+    }
+    return result;
+}
+
+QVariantMap normalizedMap(const QVariantMap& values) {
+    QVariantMap result;
+    for (auto it = values.constBegin(); it != values.constEnd(); ++it) {
+        result.insert(it.key(), normalizedVariant(it.value()));
+    }
+    return result;
+}
+
+QVariant variantFromJsValue(const QJSValue& value) {
+    if (value.isArray()) {
+        const int length = value.property(QStringLiteral("length")).toInt();
+        QVariantList result;
+        result.reserve(length);
+        for (int i = 0; i < length; ++i) {
+            result.append(variantFromJsValue(value.property(static_cast<quint32>(i))));
+        }
+        return result;
+    }
+
+    if (value.isObject()) {
+        QVariantMap result;
+        QJSValueIterator it(value);
+        while (it.hasNext()) {
+            it.next();
+            result.insert(it.name(), variantFromJsValue(it.value()));
+        }
+        return result;
+    }
+
+    return value.toVariant();
+}
+
+QVariant normalizedVariant(const QVariant& value) {
+    if (value.canConvert<QJSValue>()) {
+        return variantFromJsValue(value.value<QJSValue>());
+    }
+    if (value.canConvert<QVariantList>()) {
+        return normalizedList(value.toList());
+    }
+    if (value.canConvert<QVariantMap>()) {
+        return normalizedMap(value.toMap());
+    }
+    return value;
+}
 } // namespace
 
 Lr2BarBaseStateCache::Lr2BarBaseStateCache(QObject* parent) : QObject(parent) {}
@@ -34,11 +91,12 @@ QVariantList Lr2BarBaseStateCache::barRows() const {
 }
 
 void Lr2BarBaseStateCache::setBarRows(const QVariantList& rows) {
-    if (m_barRows == rows) {
+    const QVariantList nextRows = normalizedList(rows);
+    if (m_barRows == nextRows) {
         return;
     }
 
-    m_barRows = rows;
+    m_barRows = nextRows;
     rebuildRows();
     updateAnimationLimit();
     emit barRowsChanged();
@@ -89,11 +147,12 @@ QVariant Lr2BarBaseStateCache::timers() const {
 }
 
 void Lr2BarBaseStateCache::setTimers(const QVariant& timers) {
-    if (m_timers == timers) {
+    const QVariant nextTimers = normalizedVariant(timers);
+    if (m_timers == nextTimers) {
         return;
     }
 
-    m_timers = timers;
+    m_timers = nextTimers;
     emit timersChanged();
     rebuildBaseStates();
 }
@@ -103,11 +162,12 @@ QVariant Lr2BarBaseStateCache::activeOptions() const {
 }
 
 void Lr2BarBaseStateCache::setActiveOptions(const QVariant& options) {
-    if (m_activeOptions == options) {
+    const QVariant nextOptions = normalizedVariant(options);
+    if (m_activeOptions == nextOptions) {
         return;
     }
 
-    m_activeOptions = options;
+    m_activeOptions = nextOptions;
     rebuildActiveOptionSet();
     emit activeOptionsChanged();
     rebuildBaseStates();
@@ -177,6 +237,10 @@ void Lr2BarBaseStateCache::rebuildBaseStates() {
             m_effectiveSkinTime,
             first ? timerFire(first->timer) : -1.0,
             *this));
+    }
+
+    if (m_baseStates == next) {
+        return;
     }
 
     m_baseStates = next;
@@ -399,12 +463,18 @@ int Lr2BarBaseStateCache::freezeEndTime(const QVector<Dst>& dsts) {
         return -1;
     }
 
+    const int endTime = dsts.back().time;
     if (dsts.size() == 1) {
-        return first.loop < 0 ? -1 : first.time;
+        return first.loop < 0 ? endTime + 1 : first.time;
     }
 
-    const int endTime = dsts.back().time;
-    return first.loop == endTime ? endTime : -1;
+    if (first.loop < 0 || first.loop > endTime) {
+        return endTime + 1;
+    }
+    if (first.loop == endTime) {
+        return endTime;
+    }
+    return -1;
 }
 
 QVariant Lr2BarBaseStateCache::currentState(const QVector<Dst>& dsts,

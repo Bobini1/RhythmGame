@@ -204,6 +204,7 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
     }
 
     QJsonArray itemsArray;
+    bool beatorajaSkin = false;
     const auto lines = decodeSkinText(file.readAll()).split('\n');
     for (auto line : lines) {
         line = line.trimmed();
@@ -227,6 +228,9 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             if (parts.size() >= 4) {
                 maker = parts[3].trimmed();
             }
+        } else if (command == "#RESOLUTION" || command == "#CUSTOMOFFSET" ||
+                   command == "#CUSTOMOPTION_ADDITION_SETTING") {
+            beatorajaSkin = true;
         } else if (command == "#CUSTOMOPTION") {
             if (parts.size() < 4) {
                 continue;
@@ -316,6 +320,7 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
     rootObj["title"] = title;
     rootObj["maker"] = maker;
     rootObj["type"] = typeId;
+    rootObj["format"] = beatorajaSkin ? "beatoraja" : "lr2";
     rootObj["items"] = itemsArray;
     return QString::fromUtf8(
       QJsonDocument(rootObj).toJson(QJsonDocument::Compact));

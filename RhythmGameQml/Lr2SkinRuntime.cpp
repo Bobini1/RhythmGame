@@ -48,7 +48,7 @@ int selectTextRevisionKind(int st) {
     constexpr int FocusedRevision = 1;
     constexpr int ListRevision = 2;
 
-    if ((st >= 10 && st <= 29) && st != 26) {
+    if (st >= 10 && st <= 29) {
         return FocusedRevision;
     }
     if (st == 30 || st == 60 || st == 61 || st == 62
