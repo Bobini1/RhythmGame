@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Lr2BarPositionCache.h"
+#include "Lr2BarPositionMap.h"
 
 #include <QColor>
 #include <QImage>
@@ -17,8 +17,17 @@ class Lr2BarDistributionGraphItem : public QQuickItem {
     QML_ELEMENT
     Q_PROPERTY(QVariant srcData READ srcData WRITE setSrcData NOTIFY srcDataChanged)
     Q_PROPERTY(QVariant stateData READ stateData WRITE setStateData NOTIFY stateDataChanged)
+    Q_PROPERTY(int sourceGraphType READ sourceGraphType WRITE setSourceGraphType NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(int sourceSpecialType READ sourceSpecialType WRITE setSourceSpecialType NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(qreal sourceX READ sourceX WRITE setSourceX NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(qreal sourceY READ sourceY WRITE setSourceY NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(qreal sourceW READ sourceW WRITE setSourceW NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(qreal sourceH READ sourceH WRITE setSourceH NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(int sourceDivX READ sourceDivX WRITE setSourceDivX NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(int sourceDivY READ sourceDivY WRITE setSourceDivY NOTIFY sourceFieldsChanged)
+    Q_PROPERTY(QString sourcePath READ sourcePath WRITE setSourcePath NOTIFY sourceFieldsChanged)
     Q_PROPERTY(QVariantList barCells READ barCells WRITE setBarCells NOTIFY barCellsChanged)
-    Q_PROPERTY(Lr2BarPositionCache* barPositionCache READ barPositionCache WRITE setBarPositionCache NOTIFY barPositionCacheChanged)
+    Q_PROPERTY(Lr2BarPositionMap* barPositionMap READ barPositionMap WRITE setBarPositionMap NOTIFY barPositionMapChanged)
     Q_PROPERTY(qreal scaleOverride READ scaleOverride WRITE setScaleOverride NOTIFY scaleOverrideChanged)
     Q_PROPERTY(int frameOverrideBase READ frameOverrideBase WRITE setFrameOverrideBase NOTIFY frameOverrideBaseChanged)
     Q_PROPERTY(QColor transColor READ transColor WRITE setTransColor NOTIFY transColorChanged)
@@ -35,11 +44,38 @@ public:
     QVariant stateData() const;
     void setStateData(const QVariant& value);
 
+    int sourceGraphType() const;
+    void setSourceGraphType(int value);
+
+    int sourceSpecialType() const;
+    void setSourceSpecialType(int value);
+
+    qreal sourceX() const;
+    void setSourceX(qreal value);
+
+    qreal sourceY() const;
+    void setSourceY(qreal value);
+
+    qreal sourceW() const;
+    void setSourceW(qreal value);
+
+    qreal sourceH() const;
+    void setSourceH(qreal value);
+
+    int sourceDivX() const;
+    void setSourceDivX(int value);
+
+    int sourceDivY() const;
+    void setSourceDivY(int value);
+
+    QString sourcePath() const;
+    void setSourcePath(const QString& value);
+
     QVariantList barCells() const;
     void setBarCells(const QVariantList& value);
 
-    Lr2BarPositionCache* barPositionCache() const;
-    void setBarPositionCache(Lr2BarPositionCache* value);
+    Lr2BarPositionMap* barPositionMap() const;
+    void setBarPositionMap(Lr2BarPositionMap* value);
 
     qreal scaleOverride() const;
     void setScaleOverride(qreal value);
@@ -59,8 +95,9 @@ public:
 signals:
     void srcDataChanged();
     void stateDataChanged();
+    void sourceFieldsChanged();
     void barCellsChanged();
-    void barPositionCacheChanged();
+    void barPositionMapChanged();
     void scaleOverrideChanged();
     void frameOverrideBaseChanged();
     void transColorChanged();
@@ -80,11 +117,11 @@ private:
         qreal h = 0.0;
         int divX = 1;
         int divY = 1;
-        QString source;
     };
 
     void parseSource();
     void loadSourceImage();
+    QString resolvedSource() const;
     void reconnectCells();
     void requestSceneUpdate();
 
@@ -93,8 +130,8 @@ private:
     QVariantList m_barCellsValue;
     QVector<QPointer<Lr2SelectBarCell>> m_barCells;
     QVector<QMetaObject::Connection> m_cellConnections;
-    QPointer<Lr2BarPositionCache> m_barPositionCache;
-    QMetaObject::Connection m_positionRevisionConnection;
+    QPointer<Lr2BarPositionMap> m_barPositionMap;
+    QMetaObject::Connection m_positionCoordinatesConnection;
     QMetaObject::Connection m_positionSlotOffsetConnection;
     QMetaObject::Connection m_positionSlotCountConnection;
     qreal m_scaleOverride = 1.0;
@@ -103,6 +140,7 @@ private:
     bool m_colorKeyEnabled = false;
     QString m_chartAssetSource;
     Source m_source;
+    QString m_sourcePath;
     QImage m_sourceImage;
     bool m_textureDirty = true;
 };

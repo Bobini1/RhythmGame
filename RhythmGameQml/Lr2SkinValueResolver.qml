@@ -1,7 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml 1.0
-import "Lr2ValueCache.js" as Lr2ValueCache
 
 QtObject {
     id: resolver
@@ -11,34 +10,6 @@ QtObject {
     required property var playContext
 
     readonly property var root: screenRoot
-
-    function selectTextCacheable(st: var) : var {
-        return ((st >= 10 && st <= 29) && st !== 26)
-            || st === 30 || st === 60 || st === 61 || st === 62
-            || (st >= 1000 && st <= 1003);
-    }
-
-    function selectNumberCacheable(num: var) : var {
-        return num === 42 || num === 96
-            || (num >= 45 && num <= 49)
-            || (num >= 70 && num <= 116)
-            || num === 128
-            || num === 150 || num === 152 || num === 154
-            || (num >= 179 && num <= 182)
-            || (num >= 200 && num <= 242)
-            || num === 290 || num === 291
-            || num === 300 || num === 308 || (num >= 320 && num <= 330)
-            || (num >= 350 && num <= 368)
-            || (num >= 410 && num <= 427)
-            || num === 1163 || num === 1164
-            || (num >= 1312 && num <= 1327);
-    }
-
-    function gameplayNumberCacheable(num: var) : var {
-        return num !== 20
-            && num !== 160
-            && (num < 161 || num > 164);
-    }
 
     function optionOnlyRankId(id: var) : var {
         return id >= 340 && id <= 347;
@@ -206,33 +177,11 @@ QtObject {
         }
     }
 
-    function resolveText(st: var, revision: var) : var {
-        let revisionToken = revision !== undefined ? revision : (root.effectiveScreenKey === "select"
-            ? selectContext.selectionRevision
-                + selectContext.scoreRevision
-                + selectContext.listRevision
-                + root.lr2SkinSettingsRevision
-                + root.lr2OptionRevision
-            : (root.isResultScreen() ? root.resultOldScoresRevision : root.gameplayRevision));
-        if (revisionToken < -1) {
-            return "";
-        }
-        if (root.effectiveScreenKey === "select" && resolver.selectTextCacheable(st)) {
-            let cacheKey = revisionToken + "|" + st;
-            let cached = Lr2ValueCache.getText(cacheKey);
-            if (cached !== undefined) {
-                return cached;
-            }
-            let cachedValue = resolver.computeResolvedText(st, revisionToken);
-            return Lr2ValueCache.putText(cacheKey, cachedValue);
-        }
-        return resolver.computeResolvedText(st, revisionToken);
+    function resolveText(st: var) : var {
+        return resolver.computeResolvedText(st);
     }
 
-    function computeResolvedText(st: var, revisionToken: var) : var {
-        if (revisionToken < -1) {
-            return "";
-        }
+    function computeResolvedText(st: var) : var {
         let chartDataLoaded = false;
         let chartDataValue = null;
         function chartData() {
@@ -1096,35 +1045,13 @@ QtObject {
         return 0;
     }
 
-    function numberValue(src: var, revision: var) : var {
-        let revisionToken = revision !== undefined ? revision : 0;
-        if (revisionToken < -1) {
-            return 0;
-        }
+    function numberValue(src: var) : var {
         if (src && src.nowCombo) {
             return (src.side || (src.timer === 47 ? 2 : 1)) === 2
                 ? root.gameplayJudgeCombo2
                 : root.gameplayJudgeCombo1;
         }
         let num = src ? (src.num || 0) : 0;
-        if (root.effectiveScreenKey === "select" && resolver.selectNumberCacheable(num)) {
-            let cacheKey = revisionToken + "|" + num;
-            let cached = Lr2ValueCache.getNumber(cacheKey);
-            if (cached !== undefined) {
-                return cached;
-            }
-            let cachedValue = resolver.resolveNumber(num);
-            return Lr2ValueCache.putNumber(cacheKey, cachedValue);
-        }
-        if (root.isGameplayScreen() && resolver.gameplayNumberCacheable(num)) {
-            let gameplayCacheKey = "g|" + revisionToken + "|" + num;
-            let gameplayCached = Lr2ValueCache.getNumber(gameplayCacheKey);
-            if (gameplayCached !== undefined) {
-                return gameplayCached;
-            }
-            let gameplayCachedValue = resolver.resolveNumber(num);
-            return Lr2ValueCache.putNumber(gameplayCacheKey, gameplayCachedValue);
-        }
         return resolver.resolveNumber(num);
     }
 

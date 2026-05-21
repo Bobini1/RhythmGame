@@ -19,10 +19,6 @@ int mapInt(const QVariantMap& map, const QString& name, int fallback) {
         : it->toInt();
 }
 
-int jsInt(const QJSValue& value, const QString& name, int fallback) {
-    const QJSValue field = value.property(name);
-    return field.isUndefined() || field.isNull() ? fallback : field.toInt();
-}
 } // namespace
 
 Lr2AnimationFrameState::Lr2AnimationFrameState(QObject* parent) : QObject(parent) {}
@@ -409,25 +405,7 @@ bool Lr2AnimationFrameState::readSource(const QVariant& value, Source& source) {
         return true;
     }
 
-    if (!value.canConvert<QJSValue>()) {
-        return false;
-    }
-
-    const QJSValue jsValue = value.value<QJSValue>();
-    if (!jsValue.isObject()) {
-        return false;
-    }
-
-    source.valid = true;
-    source.divX = std::max(1, jsInt(jsValue, QStringLiteral("div_x"), 1));
-    source.divY = std::max(1, jsInt(jsValue, QStringLiteral("div_y"), 1));
-    source.cycle = jsInt(jsValue, QStringLiteral("cycle"), 0);
-    source.timer = jsInt(jsValue, QStringLiteral("timer"), 0);
-    source.x = jsInt(jsValue, QStringLiteral("x"), 0);
-    source.y = jsInt(jsValue, QStringLiteral("y"), 0);
-    source.w = jsInt(jsValue, QStringLiteral("w"), 0);
-    source.h = jsInt(jsValue, QStringLiteral("h"), 0);
-    return true;
+    return false;
 }
 
 int Lr2AnimationFrameState::frameCount(const Source& source) {

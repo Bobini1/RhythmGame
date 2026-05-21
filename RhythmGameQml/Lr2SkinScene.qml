@@ -24,27 +24,6 @@ Item {
     readonly property string bannerSource: rootReady ? selectContext.visualBannerSource : ""
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
-    readonly property int optionValueRevision: rootReady ? root.lr2SkinSettingsRevision + root.lr2OptionRevision : 0
-    readonly property int valueRevision: !rootReady ? 0
-        : (root.effectiveScreenKey === "select"
-            ? root.selectRevision
-                + selectContext.listRevision
-                + selectContext.folderLampRevision
-                + sceneRoot.optionValueRevision
-            : (root.resultScreenActive
-                ? root.resultOldScoresRevision
-                : root.gameplayRevision))
-    readonly property int selectDetailValueRevision: !rootReady ? 0
-        : root.selectDetailRevision
-            + selectContext.listRevision
-            + selectContext.folderLampRevision
-            + selectContext.rankingStatsRevision
-            + sceneRoot.optionValueRevision
-    readonly property int selectStableBarGraphValueRevision: !rootReady ? 0
-        : sceneRoot.optionValueRevision
-    readonly property int textSettingsRevisionKind: 0
-    readonly property int textFocusedRevisionKind: 1
-    readonly property int textListRevisionKind: 2
     readonly property int liveGameplayRhythmTimer: rootReady
         && root.gameplayScreenActive
         && root.gameplayFrameStateRef
@@ -57,19 +36,6 @@ Item {
             || (type >= 40 && type <= 47)
             || (type >= 103 && type <= 115)
             || (type >= 140 && type <= 147);
-    }
-
-    function barGraphValueRevision(src: var) : var {
-        if (!rootReady) {
-            return 0;
-        }
-        if (root.effectiveScreenKey !== "select") {
-            return valueRevision;
-        }
-        let type = src ? (src.graphType || 0) : 0;
-        return selectBarGraphUsesFocusedState(type)
-            ? selectDetailValueRevision
-            : selectStableBarGraphValueRevision;
     }
 
     function sourceUsesChartAsset(src: var) : var {
@@ -272,7 +238,7 @@ Item {
                 onHoveredChanged: {
                     if (hovered) {
                         if (root.updateSelectHoverPoint(point.position.x, point.position.y)) {
-                            root.refreshSelectHoverCache();
+                            root.refreshSelectHoverState();
                         }
                     } else {
                         root.clearSelectHoverPoint();
@@ -286,7 +252,7 @@ Item {
                 onTriggered: {
                     if (root.updateSelectHoverPoint(selectHoverHandler.point.position.x,
                                                     selectHoverHandler.point.position.y)) {
-                        root.refreshSelectHoverCache();
+                        root.refreshSelectHoverState();
                     }
                 }
             }
@@ -617,7 +583,6 @@ Item {
                                 ? (numberSrc.side || (numberSrc.timer === 47 ? 2 : 1))
                                 : 0
                             readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
-                            readonly property int gameplayRevisionKind: root.gameplayNumberRevisionKind(numberSrc)
                             dsts: elemLoader.elementData.dsts
                             srcData: numberSrc
                             skinTime: elemLoader.useDirectElementSkinClock && !sourceAnimates ? 0 : elemLoader.elementSkinTime
@@ -634,16 +599,15 @@ Item {
                                 if (root.effectiveScreenKey === "select") {
                                     let num = numberRenderer.numberId;
                                     if (!elementState.numberUsesFocusedSelectState) {
-                                        return root.numberValue(numberRenderer.numberSrc, sceneRoot.optionValueRevision);
+                                        return root.numberValue(numberRenderer.numberSrc);
                                     }
-                                    sceneRoot.selectDetailValueRevision;
                                     if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
-                                        return root.numberValue(numberRenderer.numberSrc, sceneRoot.selectDetailValueRevision);
+                                        return root.numberValue(numberRenderer.numberSrc);
                                     }
                                     if (num >= 1312 && num <= 1327) {
-                                        return root.numberValue(numberRenderer.numberSrc, sceneRoot.selectDetailValueRevision);
+                                        return root.numberValue(numberRenderer.numberSrc);
                                     }
-                                    return selectContext.nativeState.numberValue(num);
+                                    return selectContext.numberValue(num);
                                 }
                                 if (root.gameplayScreenActive) {
                                     if (numberRenderer.numberNowCombo) {
@@ -670,11 +634,9 @@ Item {
                                     if (numberRenderer.numberId === 164) {
                                         return root.gameplayTimeSeconds(1, true) % 60;
                                     }
-                                    return root.numberValue(
-                                        numberRenderer.numberSrc,
-                                        root.gameplayNumberRevisionForKind(numberRenderer.gameplayRevisionKind));
+                                    return root.numberValue(numberRenderer.numberSrc);
                                 }
-                                return root.numberValue(numberRenderer.numberSrc, sceneRoot.valueRevision);
+                                return root.numberValue(numberRenderer.numberSrc);
                             }
                             forceHidden: root.numberForceHidden(numberSrc)
                             animationRevision: root.numberAnimationRevision(numberSrc)
@@ -698,14 +660,6 @@ Item {
                             skinClockMode: elemLoader.elementSkinClockMode
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
-                            valueRevision: root.effectiveScreenKey !== "select"
-                                ? sceneRoot.valueRevision
-                                : (elementState.textSelectRevisionKind === sceneRoot.textFocusedRevisionKind
-                                    ? sceneRoot.selectDetailValueRevision
-                                    : (elementState.textSelectRevisionKind === sceneRoot.textListRevisionKind
-                                        ? selectContext.listRevision + sceneRoot.optionValueRevision
-                                        : sceneRoot.optionValueRevision))
-                            selectRevisionKind: elementState.textSelectRevisionKind
                             skinScale: skinScale
                         }
                     }
@@ -732,17 +686,21 @@ Item {
                             dsts: elemLoader.elementData.dsts
                             srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime
-                            sourceSkinTime: root.effectiveScreenKey === "select"
-                                ? (sourceAnimates ? root.selectSourceSkinTime : 0)
-                                : (sourceAnimates ? root.renderSkinTime : 0)
+                            sourceSkinTime: 0
+                            skinClock: sourceAnimates ? root.skinClockRef : null
+                            sourceSkinClockMode: sourceAnimates
+                                ? (root.effectiveScreenKey === "select"
+                                    ? elemLoader.selectSourceClock
+                                    : elemLoader.renderClock)
+                                : elemLoader.manualClock
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
                             scaleOverride: skinScale
                             selectContext: sceneRoot.root.selectContextRef
                             barRows: skinModel.barRows
                             barLampVariants: skinModel.barLampVariants
-                            barBaseStates: root.cachedBarBaseStates
-                            barPositionCache: root.cachedBarPositionCache
+                            barBaseStateResolver: root.barBaseStateResolver
+                            barPositionMap: root.barPositionMap
                             barCells: selectContext.visibleBarTextCells
                             barTextCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
@@ -770,8 +728,8 @@ Item {
                             scaleOverride: skinScale
                             selectContext: sceneRoot.root.selectContextRef
                             barRows: skinModel.barRows
-                            barBaseStates: root.cachedBarBaseStates
-                            barPositionCache: root.cachedBarPositionCache
+                            barBaseStateResolver: root.barBaseStateResolver
+                            barPositionMap: root.barPositionMap
                             barCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
                             fastBarScrollX: root.fastBarScrollX
@@ -793,8 +751,8 @@ Item {
                             scaleOverride: skinScale
                             selectContext: sceneRoot.root.selectContextRef
                             barRows: skinModel.barRows
-                            barBaseStates: root.cachedBarBaseStates
-                            barPositionCache: root.cachedBarPositionCache
+                            barBaseStateResolver: root.barBaseStateResolver
+                            barPositionMap: root.barPositionMap
                             barCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
                             fastBarScrollX: root.fastBarScrollX
@@ -834,7 +792,6 @@ Item {
                             colorKeyEnabled: skinModel.hasTransColor
                             transColor: skinModel.transColor
                             value: {
-                                sceneRoot.barGraphValueRevision(elemLoader.elementData.src);
                                 let graphType = elemLoader.elementData.src ? elemLoader.elementData.src.graphType || 0 : 0;
                                 return root.effectiveScreenKey === "select"
                                     ? selectContext.nativeBarGraphValue(graphType)
@@ -854,11 +811,13 @@ Item {
                             dsts: elemLoader.elementData.dsts
                             srcData: elemLoader.elementData.src
                             skinTime: root.barSkinTime
-                            sourceSkinTime: barDistributionSourceAnimates
+                            sourceSkinTime: 0
+                            skinClock: barDistributionSourceAnimates ? root.skinClockRef : null
+                            sourceSkinClockMode: barDistributionSourceAnimates
                                 ? (root.effectiveScreenKey === "select"
-                                    ? root.selectSourceSkinTime
-                                    : root.renderSkinTime)
-                                : 0
+                                    ? elemLoader.selectSourceClock
+                                    : elemLoader.renderClock)
+                                : elemLoader.manualClock
                             activeOptions: root.barActiveOptions
                             timers: root.barTimers
                             timerFire: elemLoader.dstTimerFire
@@ -866,7 +825,7 @@ Item {
                             scaleOverride: skinScale
                             selectContext: sceneRoot.root.selectContextRef
                             barRows: skinModel.barRows
-                            barPositionCache: root.cachedBarPositionCache
+                            barPositionMap: root.barPositionMap
                             barCells: selectContext.visibleBarTextCells
                             fastBarScrollActive: root.fastBarScrollActive
                             fastBarScrollX: root.fastBarScrollX

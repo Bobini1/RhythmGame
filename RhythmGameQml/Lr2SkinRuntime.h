@@ -141,7 +141,6 @@ private:
         bool numberRefSlider = false;
         int buttonId = 0;
         bool numberUsesFocusedSelectState = false;
-        int textSelectRevisionKind = 0;
         TimerSnapshot timers;
     };
 

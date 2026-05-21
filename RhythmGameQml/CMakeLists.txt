@@ -15,10 +15,10 @@ qt_add_qml_module(RhythmGame_qml
         Lr2AnimationFrameState.cpp
         Lr2GameplayFrameState.h
         Lr2GameplayFrameState.cpp
-        Lr2BarPositionCache.h
-        Lr2BarPositionCache.cpp
-        Lr2BarBaseStateCache.h
-        Lr2BarBaseStateCache.cpp
+        Lr2BarPositionMap.h
+        Lr2BarPositionMap.cpp
+        Lr2BarBaseStateResolver.h
+        Lr2BarBaseStateResolver.cpp
         Lr2BarPositionedItem.h
         Lr2BarPositionedItem.cpp
         Lr2BarTextItem.h
@@ -29,16 +29,20 @@ qt_add_qml_module(RhythmGame_qml
         Lr2SelectVisualState.cpp
         Lr2SelectNavigationController.h
         Lr2SelectNavigationController.cpp
+        Lr2SelectItemModel.h
+        Lr2SelectItemModel.cpp
+        Lr2SelectBarModel.h
+        Lr2SelectBarModel.cpp
+        Lr2SelectDetailState.h
+        Lr2SelectDetailState.cpp
+        Lr2ChartDataSnapshot.h
+        Lr2ChartDataSnapshot.cpp
         Lr2SelectKeyNavigationFilter.h
         Lr2SelectKeyNavigationFilter.cpp
         Lr2SelectUpdateController.h
         Lr2SelectUpdateController.cpp
-        Lr2SelectStateCache.h
-        Lr2SelectStateCache.cpp
         Lr2SelectBarCell.h
         Lr2SelectBarCell.cpp
-        Lr2SelectBarWindow.h
-        Lr2SelectBarWindow.cpp
         Lr2SkinClock.h
         Lr2SkinClock.cpp
         Lr2SkinFrameDriver.h
@@ -107,10 +111,9 @@ qt_add_qml_module(RhythmGame_qml
         Lr2ResultChartRenderer.qml
         Lr2NoteChartRenderer.qml
         Lr2BpmChartRenderer.qml
-        RESOURCES
-        Lr2ActiveOptionCache.js
-        Lr2ValueCache.js)
+        )
 qt6_add_shaders(RhythmGame_qml "shaders"
+        BATCHABLE
         PREFIX
         "/"
         FILES

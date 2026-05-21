@@ -163,9 +163,8 @@ QtObject {
         if (!ready || !root.selectPointerScrollReady()) {
             return -1;
         }
-        const states = root.cachedBarBaseStates || [];
         for (let row = root.barClickEnd(); row >= root.barClickStart(); --row) {
-            const state = row >= 0 && row < states.length ? states[row] : null;
+            const state = root.barBaseStateAt(row);
             if (rectContains(state, skinX, skinY)) {
                 return row;
             }

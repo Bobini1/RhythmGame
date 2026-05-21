@@ -45,7 +45,7 @@ Item {
     property real scratchAngle2: 0
     property var screenRoot: null
 
-    readonly property bool hasFrameAnimation: srcData
+    readonly property bool hasFrameAnimation: !!srcData
         && (srcData.cycle || 0) > 0
         && Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1) > 1
     readonly property bool hasStaticTimelineState: !stateOverride
@@ -82,6 +82,7 @@ Item {
     readonly property bool hasTimelineState: !forceHidden && timelineState.hasState
     readonly property bool needsDstOffsets: !root.dstOffsetsEnabled
         && root.screenRoot
+        && root.screenRoot.gameplayScreenActive
         && root.screenRoot.applyLr2DstOffsets
         && root.dsts
         && root.dsts.length > 0
@@ -177,21 +178,22 @@ Item {
     readonly property var anchor: root.usesScratchRotation
         ? ({ x: 0.5, y: 0.5 })
         : centerAnchor(root.hasCurrentState ? root.stateCenter : 0)
-    readonly property bool isSolidFill: srcData && srcData.specialType === 2
-    readonly property bool hasWholeTextureSource: srcData && !root.isSolidFill
+    readonly property bool isSolidFill: !!srcData && srcData.specialType === 2
+    readonly property bool hasWholeTextureSource: !!srcData && !root.isSolidFill
         && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
-    readonly property bool hasCroppedTextureSource: srcData && !root.isSolidFill && srcData.w > 0 && srcData.h > 0
+    readonly property bool hasCroppedTextureSource: !!srcData && !root.isSolidFill && srcData.w > 0 && srcData.h > 0
     readonly property bool isVideoSource: /\.(mpg|mpeg|mp4|avi|wmv|mov|mkv)$/i.test(root.resolvedSource)
     readonly property bool hasDrawableVideo: root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
     readonly property bool hasDrawableTexture: !root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
-    readonly property bool shouldPlayVideo: root.mediaActive
-        && root.hasDrawableVideo
-        && root.hasCurrentState
+    readonly property bool hasRenderableState: root.hasCurrentState
         && root.stateA > 0
         && root.drawW > 0
         && root.drawH > 0
+    readonly property bool shouldPlayVideo: root.mediaActive
+        && root.hasDrawableVideo
+        && root.hasRenderableState
 
     function syncVideoPlayback() : void {
         if (videoLoader.item && videoLoader.item.syncVideoPlayback) {
@@ -244,7 +246,9 @@ Item {
     }
 
     property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
-        enabled: root.hasFrameAnimation || root.frameOverride >= 0
+        enabled: (root.hasFrameAnimation || root.frameOverride >= 0)
+            && (root.hasDrawableTexture || root.hasDrawableVideo)
+            && root.hasRenderableState
         skinClock: root.skinClock
         clockMode: root.hasFrameAnimation ? root.sourceSkinClockMode : 0
         sourceData: root.srcData
@@ -262,7 +266,7 @@ Item {
         y: root.hasCurrentState ? root.drawY * root.scaleOverride : 0
         width: root.hasCurrentState ? root.drawW * root.scaleOverride : 0
         height: root.hasCurrentState ? root.drawH * root.scaleOverride : 0
-        visible: root.hasCurrentState && root.stateA > 0 && width > 0 && height > 0
+        visible: root.hasRenderableState
         opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
 
         transform: Rotation {
@@ -328,7 +332,7 @@ Item {
             id: atlasImage
             source: root.hasDrawableTexture ? root.resolvedSource : ""
             cache: true
-            asynchronous: root.srcData
+            asynchronous: !!root.srcData
                 && (root.srcData.specialType === 1
                     || root.srcData.specialType === 3
                     || root.srcData.specialType === 4)
@@ -339,6 +343,7 @@ Item {
             anchors.fill: parent
             visible: root.hasDrawableTexture && atlasImage.status === Image.Ready
             blending: true
+            supportsAtlasTextures: true
             property var source: atlasImage
             property color tint: root.tintColor
             property color transColor: root.transColor
@@ -354,7 +359,7 @@ Item {
         }
 
         Rectangle {
-            visible: root.isSolidFill || (srcData && srcData.specialType === 5)
+            visible: root.isSolidFill || (!!srcData && srcData.specialType === 5)
             anchors.fill: parent
             color: srcData && srcData.specialType === 5 ? "white" : "black"
         }

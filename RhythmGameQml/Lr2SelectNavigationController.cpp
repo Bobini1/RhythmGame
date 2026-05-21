@@ -1,62 +1,10 @@
 #include "Lr2SelectNavigationController.h"
 
 #include <QDateTime>
-#include <QJSValue>
-#include <QMetaProperty>
-#include <QUrl>
 
 #include <algorithm>
 #include <cmath>
 #include <limits>
-
-namespace {
-
-QVariant gadgetProperty(const QVariant& source, const char* name) {
-    const QMetaObject* metaObject = source.metaType().metaObject();
-    if (!metaObject) {
-        return {};
-    }
-    const int propertyIndex = metaObject->indexOfProperty(name);
-    if (propertyIndex < 0) {
-        return {};
-    }
-    return metaObject->property(propertyIndex).readOnGadget(source.constData());
-}
-
-QVariant valueProperty(const QVariant& source, const char* name) {
-    if (!source.isValid() || source.isNull()) {
-        return {};
-    }
-    if (source.canConvert<QObject*>()) {
-        if (QObject* object = source.value<QObject*>()) {
-            return object->property(name);
-        }
-    }
-    if (source.canConvert<QVariantMap>()) {
-        const QVariantMap map = source.toMap();
-        const auto it = map.constFind(QString::fromLatin1(name));
-        return it == map.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QVariantHash>()) {
-        const QVariantHash hash = source.toHash();
-        const auto it = hash.constFind(QString::fromLatin1(name));
-        return it == hash.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QJSValue>()) {
-        const QJSValue value = source.value<QJSValue>();
-        if (value.isObject()) {
-            const QJSValue property = value.property(QString::fromLatin1(name));
-            return property.isUndefined() || property.isNull() ? QVariant() : property.toVariant();
-        }
-    }
-    return gadgetProperty(source, name);
-}
-
-QString stringValue(const QVariant& value) {
-    return value.isValid() && !value.isNull() ? value.toString() : QString();
-}
-
-} // namespace
 
 Lr2SelectNavigationController::Lr2SelectNavigationController(QObject* parent) : QObject(parent) {}
 
@@ -84,47 +32,34 @@ void Lr2SelectNavigationController::setVisualState(Lr2SelectVisualState* state) 
     emit visualStateChanged();
 }
 
-Lr2SelectStateCache* Lr2SelectNavigationController::stateCache() const {
-    return m_stateCache;
-}
-
-void Lr2SelectNavigationController::setStateCache(Lr2SelectStateCache* cache) {
-    if (m_stateCache == cache) {
-        return;
-    }
-    m_stateCache = cache;
-    emit stateCacheChanged();
-}
-
 bool Lr2SelectNavigationController::refreshFocusedState() {
     if (!m_context) {
         return false;
     }
 
     const int focusedIndex = intProperty("focusedIndex");
-    const QVariant focusedItem = variantProperty("focusedItem");
     const int scoreRevision = intProperty("scoreRevision");
     const int listRevision = intProperty("listRevision");
     const bool rankingMode = boolProperty("rankingMode");
-    const QVariant rankingBaseItem = variantProperty("rankingBaseItem");
 
     if (intProperty("refreshedFocusedIndex", -1) == focusedIndex
-            && variantProperty("refreshedFocusedItem") == focusedItem
             && intProperty("refreshedFocusedScoreRevision", -1) == scoreRevision
             && intProperty("refreshedFocusedListRevision", -1) == listRevision
-            && boolProperty("refreshedFocusedRankingMode") == rankingMode
-            && variantProperty("refreshedFocusedRankingBaseItem") == rankingBaseItem) {
+            && boolProperty("refreshedFocusedRankingMode") == rankingMode) {
         return false;
     }
 
     setPropertyIfChanged("refreshedFocusedIndex", focusedIndex);
-    setPropertyIfChanged("refreshedFocusedItem", focusedItem);
     setPropertyIfChanged("refreshedFocusedScoreRevision", scoreRevision);
     setPropertyIfChanged("refreshedFocusedListRevision", listRevision);
     setPropertyIfChanged("refreshedFocusedRankingMode", rankingMode);
-    setPropertyIfChanged("refreshedFocusedRankingBaseItem", rankingBaseItem);
 
-    if (refreshSelectedScoreState()) {
+    bool refreshed = false;
+    QVariant result;
+    if (QMetaObject::invokeMethod(m_context, "refreshSelectedScoreState", Q_RETURN_ARG(QVariant, result))) {
+        refreshed = result.toBool();
+    }
+    if (refreshed) {
         incrementProperty("focusRevision");
         return true;
     }
@@ -143,7 +78,6 @@ bool Lr2SelectNavigationController::touchSelection() {
         emitEntryChangeSoundsRequested(1);
     }
     incrementProperty("selectionRevision");
-    incrementProperty("revision");
     return true;
 }
 
@@ -263,10 +197,6 @@ bool Lr2SelectNavigationController::boolProperty(const char* name, bool fallback
     return value.isValid() ? value.toBool() : fallback;
 }
 
-QVariant Lr2SelectNavigationController::variantProperty(const char* name) const {
-    return m_context ? m_context->property(name) : QVariant();
-}
-
 void Lr2SelectNavigationController::setPropertyIfChanged(const char* name, const QVariant& value) const {
     if (!m_context || m_context->property(name) == value) {
         return;
@@ -344,65 +274,10 @@ bool Lr2SelectNavigationController::publishCursorBaseIndex(bool force) {
         return false;
     }
     const int cursorBaseIndex = m_visualState->cursorBaseIndex();
-    if (force || intProperty("cachedSyncedCursorBaseIndex", -1) != cursorBaseIndex) {
-        setPropertyIfChanged("cachedSyncedCursorBaseIndex", cursorBaseIndex);
+    if (force || intProperty("lastSyncedCursorBaseIndex", -1) != cursorBaseIndex) {
+        setPropertyIfChanged("lastSyncedCursorBaseIndex", cursorBaseIndex);
         return syncCurrentToVisual(cursorBaseIndex);
     }
     return false;
-}
-
-bool Lr2SelectNavigationController::refreshSelectedScoreState() {
-    if (!m_context || !m_stateCache) {
-        return false;
-    }
-
-    const QVariantMap result = m_stateCache->refreshSelectedState(
-        variantProperty("focusedItem"),
-        intProperty("focusedIndex"),
-        intProperty("scoreRevision"),
-        intProperty("listRevision"),
-        boolProperty("rankingMode"),
-        variantProperty("rankingBaseItem"));
-    if (!result.value(QStringLiteral("changed")).toBool()) {
-        return false;
-    }
-    applySelectedScoreState(result.value(QStringLiteral("state")).toMap());
-    return true;
-}
-
-void Lr2SelectNavigationController::applySelectedScoreState(const QVariantMap& state) const {
-    if (!m_context) {
-        return;
-    }
-
-    setPropertyIfChanged("selectedScoreState", state);
-
-    const QVariant chartData = state.value(QStringLiteral("chartData"));
-    setPropertyIfChanged("visualChartWrapper", state.value(QStringLiteral("chartWrapper")));
-    setPropertyIfChanged("visualStageFileSource", chartAssetUrl(chartData, valueProperty(chartData, "stageFile")));
-    setPropertyIfChanged("visualBackBmpSource", chartAssetUrl(chartData, valueProperty(chartData, "backBmp")));
-    setPropertyIfChanged("visualBannerSource", chartAssetUrl(chartData, valueProperty(chartData, "banner")));
-    setPropertyIfChanged("visualChartContentRevision", state.value(QStringLiteral("contentRevision")).toString());
-}
-
-QString Lr2SelectNavigationController::chartAssetUrl(const QVariant& chartData, const QVariant& fileName) const {
-    const QString file = stringValue(fileName);
-    QString dir = stringValue(valueProperty(chartData, "chartDirectory"));
-    if (dir.isEmpty() || file.isEmpty()) {
-        return {};
-    }
-
-    dir.replace(QLatin1Char('\\'), QLatin1Char('/'));
-    if (!dir.startsWith(QLatin1Char('/'))) {
-        dir.prepend(QLatin1Char('/'));
-    }
-
-    QString stem = file;
-    const int slash = std::max(stem.lastIndexOf(QLatin1Char('/')), stem.lastIndexOf(QLatin1Char('\\')));
-    const int dot = stem.lastIndexOf(QLatin1Char('.'));
-    if (dot > slash) {
-        stem.truncate(dot);
-    }
-    return QStringLiteral("file://") + dir + stem;
 }
 

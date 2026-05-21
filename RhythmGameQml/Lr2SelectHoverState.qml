@@ -30,7 +30,6 @@ QtObject {
     }
     property var visibleByIndex: ({})
     readonly property string visibleSignature: Object.keys(root.visibleByIndex).join(",")
-    property int revision: 0
     property int skinX: -1
     property int skinY: -1
     readonly property bool hasPoint: root.skinX >= 0 && root.skinY >= 0
@@ -82,12 +81,12 @@ QtObject {
 
     function clearPoint() : var {
         if (!root.hasPoint) {
-            root.clearCache();
+            root.clearVisibleState();
             return;
         }
         root.skinX = -1;
         root.skinY = -1;
-        root.clearCache();
+        root.clearVisibleState();
     }
 
     function registerElement(elementIndex: var, src: var, enabled: var) : var {
@@ -127,15 +126,14 @@ QtObject {
         if (!root.tracking) {
             return;
         }
-        root.refreshCache();
+        root.refreshVisibleState();
     }
 
-    function clearCache() : var {
+    function clearVisibleState() : var {
         if (Object.keys(root.visibleByIndex).length === 0) {
             return;
         }
         root.visibleByIndex = {};
-        root.revision += 1;
     }
 
     function elementState(element: var) : var {
@@ -165,9 +163,9 @@ QtObject {
         return root.host.onMouseStateContainsPoint(element.src, root.elementState(element), mx, my);
     }
 
-    function refreshCache() : var {
+    function refreshVisibleState() : var {
         if (!root.tracking || root.candidateKeys.length <= 0 || !root.hasPoint) {
-            root.clearCache();
+            root.clearVisibleState();
             return;
         }
 
@@ -190,6 +188,5 @@ QtObject {
             return;
         }
         root.visibleByIndex = visible;
-        root.revision += 1;
     }
 }

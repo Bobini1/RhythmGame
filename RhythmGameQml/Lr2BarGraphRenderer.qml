@@ -195,6 +195,7 @@ Item {
             anchors.fill: parent
             visible: graphAtlas.status === Image.Ready
             blending: true
+            supportsAtlasTextures: true
             property var source: graphAtlas
             property color tint: root.tintColor
             property color transColor: root.transColor

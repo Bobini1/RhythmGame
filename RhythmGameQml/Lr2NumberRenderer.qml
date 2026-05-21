@@ -360,6 +360,7 @@ Item {
                     anchors.fill: parent
                     visible: digitAtlas.status === Image.Ready && digitRoot.frameIndex >= 0
                     blending: true
+                    supportsAtlasTextures: true
                     property var source: digitAtlas
                     property color tint: root.tintColor
                     property color transColor: root.transColor

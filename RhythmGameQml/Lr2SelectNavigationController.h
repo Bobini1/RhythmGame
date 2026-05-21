@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Lr2SelectStateCache.h"
 #include "Lr2SelectVisualState.h"
 
 #include <QObject>
@@ -15,7 +14,6 @@ class Lr2SelectNavigationController : public QObject {
     QML_ELEMENT
     Q_PROPERTY(QObject* context READ context WRITE setContext NOTIFY contextChanged)
     Q_PROPERTY(Lr2SelectVisualState* visualState READ visualState WRITE setVisualState NOTIFY visualStateChanged)
-    Q_PROPERTY(Lr2SelectStateCache* stateCache READ stateCache WRITE setStateCache NOTIFY stateCacheChanged)
 
 public:
     explicit Lr2SelectNavigationController(QObject* parent = nullptr);
@@ -25,9 +23,6 @@ public:
 
     Lr2SelectVisualState* visualState() const;
     void setVisualState(Lr2SelectVisualState* state);
-
-    Lr2SelectStateCache* stateCache() const;
-    void setStateCache(Lr2SelectStateCache* cache);
 
     Q_INVOKABLE bool refreshFocusedState();
     Q_INVOKABLE bool touchSelection();
@@ -42,13 +37,11 @@ public:
 signals:
     void contextChanged();
     void visualStateChanged();
-    void stateCacheChanged();
 
 private:
     int intProperty(const char* name, int fallback = 0) const;
     qreal realProperty(const char* name, qreal fallback = 0.0) const;
     bool boolProperty(const char* name, bool fallback = false) const;
-    QVariant variantProperty(const char* name) const;
     void setPropertyIfChanged(const char* name, const QVariant& value) const;
     void incrementProperty(const char* name) const;
 
@@ -60,13 +53,9 @@ private:
     void emitEntryChangeSoundsRequested(int count) const;
     bool beginVisualMove(int durationMs, qreal nowMs);
     bool publishCursorBaseIndex(bool force);
-    bool refreshSelectedScoreState();
-    void applySelectedScoreState(const QVariantMap& state) const;
-    QString chartAssetUrl(const QVariant& chartData, const QVariant& fileName) const;
 
     QPointer<QObject> m_context;
     QPointer<Lr2SelectVisualState> m_visualState;
-    QPointer<Lr2SelectStateCache> m_stateCache;
 };
 
 

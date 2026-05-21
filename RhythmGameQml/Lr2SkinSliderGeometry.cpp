@@ -2,7 +2,6 @@
 
 #include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 
-#include <QJSValue>
 #include <QVariantMap>
 
 #include <algorithm>
@@ -32,20 +31,6 @@ bool mapBool(const QVariantMap& map, const QString& name, bool fallback) {
         : it->toBool();
 }
 
-int jsInt(const QJSValue& value, const QString& name, int fallback) {
-    const QJSValue field = value.property(name);
-    return field.isUndefined() || field.isNull() ? fallback : field.toInt();
-}
-
-qreal jsReal(const QJSValue& value, const QString& name, qreal fallback) {
-    const QJSValue field = value.property(name);
-    return field.isUndefined() || field.isNull() ? fallback : field.toNumber();
-}
-
-bool jsBool(const QJSValue& value, const QString& name, bool fallback) {
-    const QJSValue field = value.property(name);
-    return field.isUndefined() || field.isNull() ? fallback : field.toBool();
-}
 } // namespace
 
 Lr2SkinSliderGeometry::Lr2SkinSliderGeometry(QObject* parent) : QObject(parent) {}
@@ -238,23 +223,7 @@ bool Lr2SkinSliderGeometry::readSource(const QVariant& value, Source& source) {
         return true;
     }
 
-    if (!value.canConvert<QJSValue>()) {
-        return false;
-    }
-
-    const QJSValue jsValue = value.value<QJSValue>();
-    if (!jsValue.isObject()) {
-        return false;
-    }
-
-    source.valid = true;
-    source.slider = jsBool(jsValue, QStringLiteral("slider"), false);
-    source.sliderDirection = jsInt(jsValue, QStringLiteral("sliderDirection"), 0);
-    source.sliderRange = jsInt(jsValue, QStringLiteral("sliderRange"), 0);
-    source.sliderType = jsInt(jsValue, QStringLiteral("sliderType"), 0);
-    source.sliderDisabled = jsInt(jsValue, QStringLiteral("sliderDisabled"), 0);
-    source.sliderRefNumber = jsBool(jsValue, QStringLiteral("sliderRefNumber"), false);
-    return true;
+    return false;
 }
 
 bool Lr2SkinSliderGeometry::readState(const QVariant& value, State& state) {
@@ -285,34 +254,7 @@ bool Lr2SkinSliderGeometry::readState(const QVariant& value, State& state) {
         return true;
     }
 
-    if (!value.canConvert<QJSValue>()) {
-        return false;
-    }
-
-    const QJSValue jsValue = value.value<QJSValue>();
-    if (!jsValue.isObject()) {
-        return false;
-    }
-
-    state.valid = true;
-    state.x = jsReal(jsValue, QStringLiteral("x"), 0.0);
-    state.y = jsReal(jsValue, QStringLiteral("y"), 0.0);
-    state.w = jsReal(jsValue, QStringLiteral("w"), 0.0);
-    state.h = jsReal(jsValue, QStringLiteral("h"), 0.0);
-    state.a = jsReal(jsValue, QStringLiteral("a"), 255.0);
-    state.r = jsReal(jsValue, QStringLiteral("r"), 255.0);
-    state.g = jsReal(jsValue, QStringLiteral("g"), 255.0);
-    state.b = jsReal(jsValue, QStringLiteral("b"), 255.0);
-    state.angle = jsReal(jsValue, QStringLiteral("angle"), 0.0);
-    state.center = jsInt(jsValue, QStringLiteral("center"), 0);
-    state.sortId = jsReal(jsValue, QStringLiteral("sortId"), 0.0);
-    state.blend = jsInt(jsValue, QStringLiteral("blend"), 0);
-    state.filter = jsInt(jsValue, QStringLiteral("filter"), 0);
-    state.op1 = jsInt(jsValue, QStringLiteral("op1"), 0);
-    state.op2 = jsInt(jsValue, QStringLiteral("op2"), 0);
-    state.op3 = jsInt(jsValue, QStringLiteral("op3"), 0);
-    state.op4 = jsInt(jsValue, QStringLiteral("op4"), 0);
-    return true;
+    return false;
 }
 
 QVariant Lr2SkinSliderGeometry::stateToVariant(const State& state) {

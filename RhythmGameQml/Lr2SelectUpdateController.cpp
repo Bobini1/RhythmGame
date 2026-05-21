@@ -1,6 +1,5 @@
 #include "Lr2SelectUpdateController.h"
 
-#include <QJSValue>
 #include <QMetaObject>
 #include <QStringList>
 
@@ -265,18 +264,6 @@ QList<int> Lr2SelectUpdateController::numberList(const QVariant& values) const {
         return result;
     }
 
-    if (!values.canConvert<QJSValue>()) {
-        return result;
-    }
-    const QJSValue jsValue = values.value<QJSValue>();
-    if (!jsValue.isArray()) {
-        return result;
-    }
-    const int length = jsValue.property(QStringLiteral("length")).toInt();
-    result.reserve(length);
-    for (int i = 0; i < length; ++i) {
-        result.append(jsValue.property(static_cast<quint32>(i)).toInt());
-    }
     return result;
 }
 

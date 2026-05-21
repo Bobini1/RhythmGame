@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Lr2BarPositionCache.h"
+#include "Lr2BarPositionMap.h"
 #include "Lr2TimelineState.h"
 
 #include <QColor>
@@ -20,7 +20,7 @@ class Lr2BarTextItem : public QQuickItem {
     Q_PROPERTY(QVariantList dsts READ dsts WRITE setDsts NOTIFY dstsChanged)
     Q_PROPERTY(QVariant srcData READ srcData WRITE setSrcData NOTIFY srcDataChanged)
     Q_PROPERTY(QVariantList barCells READ barCells WRITE setBarCells NOTIFY barCellsChanged)
-    Q_PROPERTY(Lr2BarPositionCache* barPositionCache READ barPositionCache WRITE setBarPositionCache NOTIFY barPositionCacheChanged)
+    Q_PROPERTY(Lr2BarPositionMap* barPositionMap READ barPositionMap WRITE setBarPositionMap NOTIFY barPositionMapChanged)
     Q_PROPERTY(qreal scaleOverride READ scaleOverride WRITE setScaleOverride NOTIFY scaleOverrideChanged)
     Q_PROPERTY(bool supported READ isSupported NOTIFY supportedChanged)
 
@@ -37,8 +37,8 @@ public:
     QVariantList barCells() const;
     void setBarCells(const QVariantList& value);
 
-    Lr2BarPositionCache* barPositionCache() const;
-    void setBarPositionCache(Lr2BarPositionCache* value);
+    Lr2BarPositionMap* barPositionMap() const;
+    void setBarPositionMap(Lr2BarPositionMap* value);
 
     qreal scaleOverride() const;
     void setScaleOverride(qreal value);
@@ -49,7 +49,7 @@ signals:
     void dstsChanged();
     void srcDataChanged();
     void barCellsChanged();
-    void barPositionCacheChanged();
+    void barPositionMapChanged();
     void scaleOverrideChanged();
     void supportedChanged();
 
@@ -77,7 +77,7 @@ private:
     void parseSource();
     void updateTimelineDsts();
     void reconnectCells();
-    void reconnectPositionCache();
+    void reconnectPositionMap();
     void updateSupported();
     void requestSceneUpdate();
     TextImage textImageFor(const QString& text, const QColor& color, qreal boxHeight, bool hasEdge);
@@ -88,8 +88,8 @@ private:
     QVariantList m_barCellValues;
     QVector<QPointer<Lr2SelectBarCell>> m_barCells;
     QVector<QMetaObject::Connection> m_cellConnections;
-    QPointer<Lr2BarPositionCache> m_barPositionCache;
-    QMetaObject::Connection m_positionRevisionConnection;
+    QPointer<Lr2BarPositionMap> m_barPositionMap;
+    QMetaObject::Connection m_positionCoordinatesConnection;
     QMetaObject::Connection m_positionSlotOffsetConnection;
     QMetaObject::Connection m_positionSlotCountConnection;
     qreal m_scaleOverride = 1.0;

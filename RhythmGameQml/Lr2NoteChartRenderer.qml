@@ -18,6 +18,9 @@ Item {
     property int cachedMaxDensity: 20
     property int cachedSourceW: 5
     property int cachedSourceH: 100
+    property Lr2ChartDataSnapshot chartSnapshot: Lr2ChartDataSnapshot {
+        chart: root.chart
+    }
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState
@@ -54,42 +57,8 @@ Item {
         }
         return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
     }
-    function chartWithHistogram(value: var) : var {
-        return value
-            && value.histogramData !== undefined
-            && value.histogramData !== null
-                ? value
-                : null;
-    }
-
-    function histogramRevision(histogram: var) : var {
-        if (!histogram) {
-            return "";
-        }
-        let parts = [];
-        for (let i = 0; i < 5; ++i) {
-            let series = histogram[i] || [];
-            parts.push(series.length || 0);
-        }
-        return parts.join(":");
-    }
-
-    readonly property var chartData: {
-        if (!chart) {
-            return null;
-        }
-        return chartWithHistogram(chart.chartData) || chartWithHistogram(chart);
-    }
-    readonly property string dataRevision: chartData
-        ? (String(chartData.md5 || "")
-           + ":" + String(chartData.length || 0)
-           + ":" + String(chartData.normalNoteCount || 0)
-           + ":" + String(chartData.scratchCount || 0)
-           + ":" + String(chartData.lnCount || 0)
-           + ":" + String(chartData.bssCount || 0)
-           + ":" + String(chartData.mineCount || 0)
-           + ":" + histogramRevision(chartData.histogramData))
-        : ""
+    readonly property bool hasChartData: chartSnapshot.hasHistogram
+    readonly property string dataRevision: chartSnapshot.revision
 
     function densityAt(series: var, index: var) : var {
         return series && index < series.length ? (Number(series[index]) || 0) : 0;
@@ -201,7 +170,7 @@ Item {
         }
 
         cachedDataRevision = dataRevision;
-        cachedDensityData = buildNormalData(chartData ? (chartData.histogramData || []) : []);
+        cachedDensityData = buildNormalData(hasChartData ? chartSnapshot.histogramData : []);
         let bucketCount = Math.max(1, cachedDensityData.length);
         cachedMaxDensity = graphMax(cachedDensityData);
         cachedSourceW = bucketCount * 5;
@@ -211,7 +180,7 @@ Item {
     visible: !!currentState
         && (currentState.a === undefined ? 255 : currentState.a) > 0
         && !!srcData
-        && !!chartData
+        && hasChartData
 
     Canvas {
         id: chartCanvas
@@ -232,7 +201,7 @@ Item {
         onPaint: {
             let ctx = getContext("2d");
             ctx.clearRect(0, 0, width, height);
-            if (!root.chartData || !root.srcData || width <= 0 || height <= 0) {
+            if (!root.hasChartData || !root.srcData || width <= 0 || height <= 0) {
                 return;
             }
 
@@ -261,7 +230,7 @@ Item {
     }
 
     onChartChanged: requestChartPaint()
-    onChartDataChanged: requestChartPaint()
+    onHasChartDataChanged: requestChartPaint()
     onDataRevisionChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()

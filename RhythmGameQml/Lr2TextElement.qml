@@ -18,8 +18,6 @@ Item {
     property int skinClockMode: 0
     property int timerFire: 0
     property real skinScale: 1
-    property int valueRevision: 0
-    property int selectRevisionKind: 0
 
     readonly property var root: screenRoot
     readonly property bool ready: root !== undefined && root !== null
@@ -43,7 +41,7 @@ Item {
             return searchEditingText;
         }
         return ready
-            ? root.resolveText(srcData ? srcData.st : -1, valueRevision)
+            ? root.resolveText(srcData ? srcData.st : -1)
             : "";
     }
     readonly property int searchCursorPosition: searchInputLoader.item
@@ -231,24 +229,14 @@ Item {
         timerFire: textElement.timerFire
         scaleOverride: textElement.skinScale
         resolvedText: {
-            if (!textRenderer.hasCurrentState || !textElement.ready) {
+            if (!textElement.ready) {
                 return "";
             }
             const st = textElement.srcData ? textElement.srcData.st : -1;
             if (textElement.isSearchText) {
                 return textElement.searchDisplayText;
             }
-            if (textElement.selectReady
-                    && textElement.selectContext.nativeState
-                    && textElement.root.effectiveScreenKey === "select"
-                    && textElement.selectRevisionKind === 1) {
-                textElement.valueRevision;
-                const nativeText = textElement.selectContext.nativeState.textValue(st);
-                if (nativeText !== undefined && nativeText !== null) {
-                    return nativeText;
-                }
-            }
-            return textElement.root.resolveText(st, textElement.valueRevision);
+            return textElement.root.resolveText(st);
         }
     }
 

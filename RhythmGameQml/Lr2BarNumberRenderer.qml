@@ -15,8 +15,8 @@ Item {
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
-    property var barBaseStates: []
-    property var barPositionCache
+    property var barBaseStateResolver
+    property var barPositionMap
     property var barCells: []
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
@@ -26,6 +26,9 @@ Item {
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    readonly property int barBaseStateRevision: barBaseStateResolver
+        ? barBaseStateResolver.baseStatesRevision
+        : 0
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -55,8 +58,9 @@ Item {
         && (srcData.source.cycle || 0) > 0
 
     function baseState(row: var) : var {
-        return barBaseStates && row >= 0 && row < barBaseStates.length
-            ? barBaseStates[row]
+        root.barBaseStateRevision;
+        return barBaseStateResolver && row >= 0 && row < barBaseStateResolver.stateCount()
+            ? barBaseStateResolver.stateAt(row)
             : null;
     }
 
@@ -99,16 +103,25 @@ Item {
                 ? root.barCells[slot]
                 : null
             readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
-            readonly property int cellRevision: cell ? cell.revision : -1
-            readonly property int cellPlayLevel: cell && cellRevision >= 0
-                ? cell.numberValueOrInvisibleForVariant(sourceVariant)
+            readonly property bool cellNumberVisible: cell
+                && cell.valid
+                && (cell.ranking || cell.chartLike || cell.entryLike)
+                && (cell.ranking
+                    ? (sourceVariant === 0 || sourceVariant === 6)
+                    : ((cell.keymode || 0) > 0
+                        && (cell.playLevel || 0) >= 0
+                        && (cell.difficulty <= 0
+                            ? sourceVariant === 0
+                            : sourceVariant === cell.difficulty)))
+            readonly property int cellPlayLevel: cellNumberVisible
+                ? cell.playLevel
                 : -2147483648
             readonly property bool contentVisible: rowVisible && cellPlayLevel !== -2147483648
-            positionCache: root.barPositionCache
+            positionMap: root.barPositionMap
             slot: index
             scaleOverride: root.scaleOverride
             useSlotRow: true
-            usePositionCache: true
+            usePositionMap: true
             hasOverride: false
             adjustX: 0
             adjustY: 0

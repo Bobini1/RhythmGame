@@ -14,8 +14,8 @@ Item {
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
-    property var barBaseStates: []
-    property var barPositionCache
+    property var barBaseStateResolver
+    property var barPositionMap
     property var barCells: []
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
@@ -23,6 +23,9 @@ Item {
     property real selectedFastBarDrawX: 0
     property real selectedFastBarDrawY: 0
     property int barCenter: 0
+    readonly property int barBaseStateRevision: barBaseStateResolver
+        ? barBaseStateResolver.baseStatesRevision
+        : 0
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -72,8 +75,9 @@ Item {
     }
 
     function baseState(row: var) : var {
-        return barBaseStates && row >= 0 && row < barBaseStates.length
-            ? barBaseStates[row]
+        root.barBaseStateRevision;
+        return barBaseStateResolver && row >= 0 && row < barBaseStateResolver.stateCount()
+            ? barBaseStateResolver.stateAt(row)
             : null;
     }
 
@@ -89,7 +93,7 @@ Item {
         dsts: root.timelineDsts
         srcData: root.srcData
         barCells: root.barCells
-        barPositionCache: root.barPositionCache
+        barPositionMap: root.barPositionMap
         scaleOverride: root.scaleOverride
     }
 
@@ -105,16 +109,15 @@ Item {
                 ? root.barCells[slot]
                 : null
             readonly property int sourceTitleType: root.srcData ? root.srcData.titleType : -1
-            readonly property int cellRevision: cell ? cell.revision : -1
-            readonly property string cellText: cell && cellRevision >= 0
-                ? cell.textForTitleType(sourceTitleType)
+            readonly property string cellText: cell && cell.valid && cell.titleType === sourceTitleType
+                ? cell.text
                 : ""
             readonly property bool contentVisible: rowVisible && cellText.length > 0
-            positionCache: root.barPositionCache
+            positionMap: root.barPositionMap
             slot: index
             scaleOverride: root.scaleOverride
             useSlotRow: true
-            usePositionCache: true
+            usePositionMap: true
             hasOverride: false
             adjustX: 0
             adjustY: 0

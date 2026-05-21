@@ -59,6 +59,7 @@ QtObject {
     readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
     readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE"]
     readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore]
+    readonly property var lr2ClassicTargetLabels: lr2TargetLabels
     readonly property var lr2BeatorajaTargetLabels: [
         "PACEMAKER A-",
         "PACEMAKER A",
@@ -180,6 +181,12 @@ QtObject {
         return values[root.wrapValue(index, values.length)];
     }
 
+    function clampedButtonFrame(index: var, sourceCount: var) : var {
+        let frame = Math.max(0, Math.floor(index || 0));
+        let count = Math.floor(sourceCount || 0);
+        return count > 0 ? Math.max(0, Math.min(count - 1, frame)) : frame;
+    }
+
     function arrayContains(values: var, value: var) : var {
         for (let i = 0; i < values.length; ++i) {
             if (values[i] === value) {
@@ -226,6 +233,24 @@ QtObject {
         }
     }
 
+    function lr2GaugeButtonFrame(side: var, sourceCount: var) : var {
+        return root.clampedButtonFrame(side === 2 ? root.lr2GaugeIndexP2 : root.lr2GaugeIndexP1, sourceCount);
+    }
+
+    function setGaugeButtonIndex(side: var, index: var, sourceCount: var) : void {
+        root.setGaugeIndex(side, root.clampedButtonFrame(index, sourceCount));
+    }
+
+    function adjustGaugeButtonIndex(side: var, delta: var, sourceCount: var) : void {
+        let current = side === 2 ? root.lr2GaugeIndexP2 : root.lr2GaugeIndexP1;
+        root.setGaugeIndex(side, current + delta);
+    }
+
+    function lr2GaugeText(side: var, sourceCount: var) : var {
+        let index = side === 2 ? root.lr2GaugeIndexP2 : root.lr2GaugeIndexP1;
+        return root.lr2GaugeLabels[root.clampedButtonFrame(index, root.lr2GaugeLabels.length)];
+    }
+
     readonly property int lr2RandomIndexP1: {
         let vars = root.generalVarsForSide(1);
         return vars ? root.indexOfValue(root.lr2RandomValues, vars.noteOrderAlgorithm) : 0;
@@ -256,6 +281,57 @@ QtObject {
         } else {
             vars.noteOrderAlgorithm = value;
         }
+    }
+
+    function randomSupportedIndexesForSourceCount(sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        if (count <= 0 || count >= root.lr2RandomValues.length) {
+            return root.lr2RandomSupportedIndexes;
+        }
+        let result = [];
+        for (let i = 0; i < root.lr2RandomSupportedIndexes.length; ++i) {
+            let index = root.lr2RandomSupportedIndexes[i];
+            if (index < count) {
+                result.push(index);
+            }
+        }
+        return result.length > 0 ? result : [0];
+    }
+
+    function lr2RandomButtonFrame(side: var, sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let supported = root.randomSupportedIndexesForSourceCount(count);
+        return root.clampedButtonFrame(
+            root.arrayContains(supported, current) ? current : supported[0],
+            count);
+    }
+
+    function setRandomButtonIndex(side: var, index: var, sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let normalized = root.cycleSupportedIndex(
+            current,
+            index - current,
+            root.randomSupportedIndexesForSourceCount(count),
+            count > 0 ? count : root.lr2RandomValues.length);
+        root.setRandomIndex(side, normalized);
+    }
+
+    function adjustRandomButtonIndex(side: var, delta: var, sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let normalized = root.cycleSupportedIndex(
+            current,
+            delta,
+            root.randomSupportedIndexesForSourceCount(count),
+            count > 0 ? count : root.lr2RandomValues.length);
+        root.setRandomIndex(side, normalized);
+    }
+
+    function lr2RandomText(side: var, sourceCount: var) : var {
+        let frame = root.lr2RandomButtonFrame(side, sourceCount);
+        return root.lr2RandomLabels[root.clampedButtonFrame(frame, root.lr2RandomLabels.length)];
     }
 
     readonly property int lr2HidSudIndexP1: {
@@ -552,6 +628,11 @@ QtObject {
         }
     }
 
+    readonly property int lr2ClassicTargetIndex: lr2ScoreTargetIndex
+    function setClassicTargetIndex(index: var) : void {
+        root.setScoreTargetIndex(index);
+    }
+
     readonly property int lr2BeatorajaTargetIndex: {
         let vars = root.mainGeneralVars();
         if (!vars) {
@@ -578,6 +659,39 @@ QtObject {
         let normalized = root.wrapValue(index, root.lr2BeatorajaTargetFractions.length);
         vars.scoreTarget = ScoreTarget.Fraction;
         vars.targetScoreFraction = root.lr2BeatorajaTargetFractions[normalized];
+    }
+
+    function targetUsesBeatorajaFrames(sourceCount: var) : var {
+        return Math.floor(sourceCount || 0) >= root.lr2BeatorajaTargetLabels.length;
+    }
+
+    function lr2TargetButtonFrame(sourceCount: var) : var {
+        return root.targetUsesBeatorajaFrames(sourceCount)
+            ? root.lr2BeatorajaTargetIndex
+            : root.lr2ScoreTargetIndex;
+    }
+
+    function setTargetButtonIndex(index: var, sourceCount: var) : void {
+        if (root.targetUsesBeatorajaFrames(sourceCount)) {
+            root.setBeatorajaTargetIndex(index);
+        } else {
+            root.setScoreTargetIndex(index);
+        }
+    }
+
+    function adjustTargetButtonIndex(delta: var, sourceCount: var) : void {
+        if (root.targetUsesBeatorajaFrames(sourceCount)) {
+            root.setBeatorajaTargetIndex(root.lr2BeatorajaTargetIndex + delta);
+        } else {
+            root.setScoreTargetIndex(root.lr2ScoreTargetIndex + delta);
+        }
+    }
+
+    function lr2TargetText(sourceCount: var) : var {
+        if (root.targetUsesBeatorajaFrames(sourceCount)) {
+            return root.lr2BeatorajaTargetLabels[root.lr2TargetButtonFrame(sourceCount)];
+        }
+        return root.lr2TargetLabels[root.lr2TargetButtonFrame(sourceCount)];
     }
 
     readonly property int lr2TargetPercent: {

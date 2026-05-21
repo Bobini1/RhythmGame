@@ -22,11 +22,8 @@ QtObject {
     readonly property int selectPanelElapsed: controller.selectPanel > 0
         ? Math.max(0, Math.min(controller.selectPanelHoldTime, root.selectLiveSkinTime - controller.selectPanelStartSkinTime))
         : 0
-    readonly property int selectPanelCloseElapsed: controller.selectPanelClosing > 0
-        ? Math.max(0, Math.min(controller.selectPanelHoldTime, root.selectLiveSkinTime - controller.selectPanelCloseStartSkinTime))
-        : 0
-    readonly property bool selectPanelCloseFinished: controller.selectPanelClosing > 0
-        && controller.selectPanelCloseElapsed >= controller.selectPanelHoldTime
+    property int selectPanelCloseElapsed: 0
+    property bool selectPanelCloseFinished: false
     readonly property int selectHeldButtonSkinTime: controller.currentSelectHeldButtonSkinTime()
     property var selectHeldButtonTimerStarts: ({})
     readonly property bool hasSelectHeldButtonTimers: Object.keys(controller.selectHeldButtonTimerStarts).length > 0
@@ -49,6 +46,13 @@ QtObject {
         : 0
     property bool startHoldSuppressed: false
 
+    property Timer selectPanelCloseTimer: Timer {
+        id: selectPanelCloseTimer
+        interval: controller.selectPanelHoldTime
+        repeat: false
+        onTriggered: controller.selectPanelClosing = 0
+    }
+
     property Timer gameplayOptionRepeatTimer: Timer {
         id: gameplayOptionRepeatTimer
         repeat: false
@@ -63,27 +67,59 @@ QtObject {
         }
     }
 
-    onSelectPanelCloseFinishedChanged: {
-        if (controller.selectPanelCloseFinished) {
-            controller.selectPanelClosing = 0;
+    onSelectPanelClosingChanged: {
+        if (controller.selectPanelClosing <= 0) {
+            selectPanelCloseTimer.stop();
         }
+        controller.updateSelectPanelCloseProgress();
+    }
+
+    onSelectPanelCloseStartSkinTimeChanged: {
+        controller.updateSelectPanelCloseProgress();
     }
 
     onSelectPanelElapsedChanged: {
         if (root.selectHoverHasPoint && controller.selectPanel > 0) {
-            root.refreshSelectHoverCache();
+            root.refreshSelectHoverState();
         }
     }
 
     onSelectPanelCloseElapsedChanged: {
         if (root.selectHoverHasPoint && controller.selectPanelClosing > 0) {
-            root.refreshSelectHoverCache();
+            root.refreshSelectHoverState();
         }
     }
 
     onHeldOptionPanelChanged: controller.updateHeldOptionPanel()
     onAnyStartHeldChanged: controller.handleGameplayOptionModifierChanged()
     onAnySelectHeldChanged: controller.handleGameplayOptionModifierChanged()
+
+    property Connections selectPanelClockConnection: Connections {
+        target: controller.root || null
+        enabled: !!controller.root
+
+        function onSelectLiveSkinTimeChanged() : void {
+            controller.updateSelectPanelCloseProgress();
+        }
+    }
+
+    function updateSelectPanelCloseProgress() : void {
+        let elapsed = 0;
+        if (controller.selectPanelClosing > 0) {
+            elapsed = Math.max(0, Math.min(
+                controller.selectPanelHoldTime,
+                root.selectLiveSkinTime - controller.selectPanelCloseStartSkinTime));
+        }
+
+        let finished = controller.selectPanelClosing > 0
+            && elapsed >= controller.selectPanelHoldTime;
+        if (controller.selectPanelCloseElapsed !== elapsed) {
+            controller.selectPanelCloseElapsed = elapsed;
+        }
+        if (controller.selectPanelCloseFinished !== finished) {
+            controller.selectPanelCloseFinished = finished;
+        }
+    }
 
     function updateHeldOptionPanel() : var {
         if (controller.heldOptionPanel > 0) {
@@ -487,10 +523,12 @@ QtObject {
 
     function startSelectPanelCloseTimer(panel: var) : var {
         if (panel <= 0) {
+            selectPanelCloseTimer.stop();
             return;
         }
         root.selectPanelCloseStartSkinTime = root.selectLiveSkinTime;
         root.selectPanelClosing = panel;
+        selectPanelCloseTimer.restart();
     }
 
     function openSelectPanel(panel: var, heldByStart: var) : var {

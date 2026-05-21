@@ -1,6 +1,7 @@
 #pragma once
 
-#include "Lr2BarPositionCache.h"
+#include "Lr2BarBaseStateResolver.h"
+#include "Lr2BarPositionMap.h"
 
 #include <QMetaObject>
 #include <QObject>
@@ -9,13 +10,12 @@
 #include <QVector>
 #include <QtQml/qqmlregistration.h>
 
-class QJSValue;
-
 class Lr2BarInterpolatedState : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QVariantList baseStates READ baseStates WRITE setBaseStates NOTIFY baseStatesChanged)
-    Q_PROPERTY(Lr2BarPositionCache* positionCache READ positionCache WRITE setPositionCache NOTIFY positionCacheChanged)
+    Q_PROPERTY(Lr2BarBaseStateResolver* baseStateResolver READ baseStateResolver WRITE setBaseStateResolver NOTIFY baseStateResolverChanged)
+    Q_PROPERTY(Lr2BarPositionMap* positionMap READ positionMap WRITE setPositionMap NOTIFY positionMapChanged)
     Q_PROPERTY(int row READ row WRITE setRow NOTIFY rowChanged)
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
     Q_PROPERTY(qreal x READ x NOTIFY stateChanged)
@@ -41,9 +41,11 @@ public:
 
     QVariantList baseStates() const;
     void setBaseStates(const QVariantList& states);
+    Lr2BarBaseStateResolver* baseStateResolver() const;
+    void setBaseStateResolver(Lr2BarBaseStateResolver* resolver);
 
-    Lr2BarPositionCache* positionCache() const;
-    void setPositionCache(Lr2BarPositionCache* cache);
+    Lr2BarPositionMap* positionMap() const;
+    void setPositionMap(Lr2BarPositionMap* map);
 
     int row() const;
     void setRow(int row);
@@ -71,7 +73,8 @@ public:
 
 signals:
     void baseStatesChanged();
-    void positionCacheChanged();
+    void baseStateResolverChanged();
+    void positionMapChanged();
     void rowChanged();
     void enabledChanged();
     void stateChanged();
@@ -100,15 +103,16 @@ private:
 
     static bool sameReal(qreal lhs, qreal rhs);
     static qreal readField(const QVariantMap& map, const QString& name, qreal fallback);
-    static qreal readField(const QJSValue& value, const QString& name, qreal fallback);
     static State extractState(const QVariant& variant);
     static State interpolate(const State& from, const State& to, qreal progress);
 
     void updateState();
     bool assignState(const State& state);
 
-    QPointer<Lr2BarPositionCache> m_positionCache;
-    QMetaObject::Connection m_revisionConnection;
+    QPointer<Lr2BarPositionMap> m_positionMap;
+    QMetaObject::Connection m_coordinatesConnection;
+    QPointer<Lr2BarBaseStateResolver> m_baseStateResolver;
+    QMetaObject::Connection m_baseStateResolverConnection;
     QVector<State> m_baseStates;
     State m_state;
     int m_row = -1;

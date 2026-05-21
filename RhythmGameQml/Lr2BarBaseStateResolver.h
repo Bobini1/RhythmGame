@@ -7,7 +7,7 @@
 #include <QVector>
 #include <QtQml/qqmlregistration.h>
 
-class Lr2BarBaseStateCache : public QObject {
+class Lr2BarBaseStateResolver : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QVariantList barRows READ barRows WRITE setBarRows NOTIFY barRowsChanged)
@@ -16,10 +16,14 @@ class Lr2BarBaseStateCache : public QObject {
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
     Q_PROPERTY(QVariantList baseStates READ baseStates NOTIFY baseStatesChanged)
+    Q_PROPERTY(int baseStatesRevision READ baseStatesRevision NOTIFY baseStatesChanged)
     Q_PROPERTY(int animationLimit READ animationLimit NOTIFY animationLimitChanged)
+    Q_PROPERTY(bool fastScrollActive READ fastScrollActive NOTIFY baseStatesChanged)
+    Q_PROPERTY(qreal fastScrollDx READ fastScrollDx NOTIFY baseStatesChanged)
+    Q_PROPERTY(qreal fastScrollDy READ fastScrollDy NOTIFY baseStatesChanged)
 
 public:
-    explicit Lr2BarBaseStateCache(QObject* parent = nullptr);
+    explicit Lr2BarBaseStateResolver(QObject* parent = nullptr);
 
     QVariantList barRows() const;
     void setBarRows(const QVariantList& rows);
@@ -37,7 +41,16 @@ public:
     void setActiveOptions(const QVariant& options);
 
     QVariantList baseStates() const;
+    int baseStatesRevision() const;
     int animationLimit() const;
+    bool fastScrollActive() const;
+    qreal fastScrollDx() const;
+    qreal fastScrollDy() const;
+    Q_INVOKABLE int stateCount() const;
+    Q_INVOKABLE QVariant stateAt(int row) const;
+    bool stateValidAt(int row) const;
+    qreal stateXAt(int row) const;
+    qreal stateYAt(int row) const;
 
 signals:
     void barRowsChanged();
@@ -79,9 +92,31 @@ private:
         QVector<Dst> onDsts;
     };
 
+    struct State {
+        bool valid = false;
+        qreal x = 0.0;
+        qreal y = 0.0;
+        qreal w = 0.0;
+        qreal h = 0.0;
+        qreal a = 255.0;
+        qreal r = 255.0;
+        qreal g = 255.0;
+        qreal b = 255.0;
+        qreal angle = 0.0;
+        qreal center = 0.0;
+        qreal sortId = 0.0;
+        int blend = 0;
+        int filter = 0;
+        int op1 = 0;
+        int op2 = 0;
+        int op3 = 0;
+        int op4 = 0;
+    };
+
     void rebuildRows();
     void rebuildActiveOptionSet();
     void rebuildBaseStates();
+    void rebuildFastScrollStep();
     void updateAnimationLimit();
     int effectiveSkinTime(int requestedTime) const;
     qreal timerFire(int timerIdx) const;
@@ -92,11 +127,14 @@ private:
     static bool readDst(const QVariant& value, Dst& dst);
     static QVariant rowField(const QVariant& row, const QString& name);
     static int freezeEndTime(const QVector<Dst>& dsts);
-    static QVariant currentState(const QVector<Dst>& dsts,
-                                 int globalTime,
-                                 qreal timerFire,
-                                 const Lr2BarBaseStateCache& cache);
-    static QVariant copyDstAsState(const Dst& dst, const Dst& controlDst);
+    static State currentState(const QVector<Dst>& dsts,
+                              int globalTime,
+                              qreal timerFire,
+                              const Lr2BarBaseStateResolver& resolver);
+    static State copyDstAsState(const Dst& dst, const Dst& controlDst);
+    static QVariant stateToVariant(const State& state);
+    static bool statesEqual(const QVector<State>& lhs, const QVector<State>& rhs);
+    static bool stateEqual(const State& lhs, const State& rhs);
     static qreal applyAccel(qreal progress, int accType);
 
     QVariantList m_barRows;
@@ -107,6 +145,10 @@ private:
     QVariant m_timers;
     QVariant m_activeOptions;
     QSet<int> m_activeOptionSet;
-    QVariantList m_baseStates;
+    QVector<State> m_baseStates;
+    int m_baseStatesRevision = 0;
     int m_animationLimit = 0;
+    bool m_fastScrollActive = false;
+    qreal m_fastScrollDx = 0.0;
+    qreal m_fastScrollDy = 0.0;
 };

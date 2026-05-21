@@ -26,7 +26,6 @@ class Lr2SelectBarCell : public QObject {
     Q_PROPERTY(int labelMask READ labelMask WRITE setLabelMask NOTIFY labelMaskChanged)
     Q_PROPERTY(QVariantList graphLamps READ graphLamps WRITE setGraphLamps NOTIFY graphLampsChanged)
     Q_PROPERTY(QVariantList graphRanks READ graphRanks WRITE setGraphRanks NOTIFY graphRanksChanged)
-    Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
 
 public:
     explicit Lr2SelectBarCell(QObject* parent = nullptr);
@@ -85,8 +84,6 @@ public:
     QVariantList graphRanks() const;
     void setGraphRanks(const QVariantList& value);
 
-    int revision() const;
-
     Q_INVOKABLE int bodyTypeValue() const;
     Q_INVOKABLE QVariant bodySource(const QVariant& sources, const QVariant& fallback) const;
     Q_INVOKABLE bool textVisible(int titleType) const;
@@ -100,10 +97,6 @@ public:
     Q_INVOKABLE bool rankVisibleForKind(int kind) const;
     Q_INVOKABLE int rankForKind(int kind) const;
     Q_INVOKABLE bool overlayVisibleForKind(int kind, int variant) const;
-    Q_INVOKABLE QVariantList graphSegmentModel(int graphType,
-                                               int segmentCount,
-                                               int frameCount,
-                                               const QVariant& state) const;
     qreal graphValueForType(int graphType, int segment) const;
 
     Q_INVOKABLE void setCore(int row,
@@ -144,7 +137,6 @@ signals:
     void labelMaskChanged();
     void graphLampsChanged();
     void graphRanksChanged();
-    void revisionChanged();
 
 private:
     int m_row = -1;
@@ -165,12 +157,4 @@ private:
     int m_labelMask = 0;
     QVariantList m_graphLamps;
     QVariantList m_graphRanks;
-    int m_revision = 0;
-
-    mutable int m_graphSegmentCacheRevision = -1;
-    mutable int m_graphSegmentCacheGraphType = -1;
-    mutable int m_graphSegmentCacheSegmentCount = -1;
-    mutable int m_graphSegmentCacheFrameCount = -1;
-    mutable QVariant m_graphSegmentCacheState;
-    mutable QVariantList m_graphSegmentCacheModel;
 };

@@ -8,6 +8,8 @@ Item {
     property var srcData
     property int skinTime: 0
     property int sourceSkinTime: skinTime
+    property var skinClock: null
+    property int sourceSkinClockMode: 0
     property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
@@ -18,7 +20,7 @@ Item {
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
-    property var barPositionCache
+    property var barPositionMap
     property var barCells: []
     property bool fastBarScrollActive: false
     property real fastBarScrollX: 0
@@ -31,6 +33,14 @@ Item {
 
     readonly property int barCellCount: barCells ? barCells.length : 0
     readonly property int graphType: srcData ? (srcData.graphType || 0) : 0
+    readonly property int sourceSpecialType: srcData ? (srcData.specialType || 0) : 0
+    readonly property real sourceX: srcData ? (srcData.x || 0) : 0
+    readonly property real sourceY: srcData ? (srcData.y || 0) : 0
+    readonly property real sourceW: srcData ? (srcData.w || 0) : 0
+    readonly property real sourceH: srcData ? (srcData.h || 0) : 0
+    readonly property int sourceDivX: srcData ? Math.max(1, srcData.div_x || 1) : 1
+    readonly property int sourceDivY: srcData ? Math.max(1, srcData.div_y || 1) : 1
+    readonly property string sourcePath: srcData && srcData.source ? srcData.source : ""
     readonly property int segmentCount: graphType === 0 ? 11 : 28
     readonly property int frameCountValue: srcData
         ? Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1)
@@ -39,8 +49,10 @@ Item {
     readonly property bool sourceAnimates: srcData && animationGroupCount > 1 && (srcData.cycle || 0) > 0
     property Lr2AnimationFrameState sourceAnimationState: Lr2AnimationFrameState {
         enabled: root.sourceAnimates
+        skinClock: root.skinClock
+        clockMode: root.sourceSkinClockMode
         sourceData: root.srcData
-        skinTime: root.sourceSkinTime
+        skinTime: root.sourceSkinClockMode === 0 ? root.sourceSkinTime : 0
         timerFire: root.sourceTimerFire
         frameGroupSize: root.segmentCount
     }
@@ -64,63 +76,25 @@ Item {
     readonly property var graphTimelineState: staticTimelineState
         || timelineState.state
 
-    function frameForSegment(segment) {
-        return Math.min(frameCountValue - 1, frameOverrideBase + segment);
-    }
-
-    function segmentsForCell(cell, revision) {
-        if (!cell || revision < 0 || !graphTimelineState) {
-            return [];
-        }
-        return cell.graphSegmentModel(graphType, segmentCount, frameCountValue, graphTimelineState);
-    }
-
-    Repeater {
-        model: root.barRows && root.selectContext && root.srcData
-            ? Math.max(0, root.barRows.length)
-            : 0
-
-        Lr2BarPositionedItem {
-            id: graphDelegate
-
-            readonly property var cell: root.barCells && slot >= 0 && slot < root.barCells.length
-                ? root.barCells[slot]
-                : null
-            readonly property int cellRevision: cell ? cell.revision : -1
-            readonly property var segmentModel: root.segmentsForCell(cell, cellRevision)
-            readonly property bool contentVisible: rowVisible && segmentModel.length > 0
-
-            positionCache: root.barPositionCache
-            slot: index
-            scaleOverride: root.scaleOverride
-            useSlotRow: true
-            usePositionCache: true
-            hasOverride: false
-            width: root.width
-            height: root.height
-            visible: contentVisible
-
-            Repeater {
-                model: graphDelegate.segmentModel
-
-                Lr2SpriteRenderer {
-                    anchors.fill: parent
-                    dsts: []
-                    srcData: root.srcData
-                    skinTime: 0
-                    sourceSkinTime: 0
-                    activeOptions: root.activeOptions
-                    timers: root.timers
-                    timerFire: -2147483648
-                    sourceTimerFire: -2147483648
-                    chartAssetSource: root.chartAssetSource
-                    scaleOverride: root.scaleOverride
-                    transColor: root.transColor
-                    colorKeyEnabled: root.colorKeyEnabled
-                    frameOverride: root.frameForSegment(modelData.segment)
-                    stateOverride: modelData.state
-                }
-            }
-        }
+    Lr2BarDistributionGraphItem {
+        anchors.fill: parent
+        visible: !!root.barRows && !!root.selectContext && !!root.srcData && !!root.graphTimelineState
+        stateData: root.graphTimelineState
+        sourceGraphType: root.graphType
+        sourceSpecialType: root.sourceSpecialType
+        sourceX: root.sourceX
+        sourceY: root.sourceY
+        sourceW: root.sourceW
+        sourceH: root.sourceH
+        sourceDivX: root.sourceDivX
+        sourceDivY: root.sourceDivY
+        sourcePath: root.sourcePath
+        barCells: root.barCells || []
+        barPositionMap: root.barPositionMap
+        scaleOverride: root.scaleOverride
+        frameOverrideBase: root.frameOverrideBase
+        transColor: root.transColor
+        colorKeyEnabled: root.colorKeyEnabled
+        chartAssetSource: root.chartAssetSource
     }
 }

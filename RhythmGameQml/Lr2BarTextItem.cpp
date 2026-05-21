@@ -5,7 +5,6 @@
 
 #include <QFont>
 #include <QFontMetricsF>
-#include <QJSValue>
 #include <QMetaProperty>
 #include <QPainter>
 #include <QQuickWindow>
@@ -78,13 +77,6 @@ QVariant valueProperty(const QVariant& source, const char* name) {
         const QVariantHash hash = source.toHash();
         const auto it = hash.constFind(QString::fromLatin1(name));
         return it == hash.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QJSValue>()) {
-        const QJSValue value = source.value<QJSValue>();
-        if (value.isObject()) {
-            const QJSValue property = value.property(QString::fromLatin1(name));
-            return property.isUndefined() || property.isNull() ? QVariant() : property.toVariant();
-        }
     }
     if (source.canConvert<QObject*>()) {
         if (QObject* object = source.value<QObject*>()) {
@@ -243,17 +235,17 @@ void Lr2BarTextItem::setBarCells(const QVariantList& value) {
     requestSceneUpdate();
 }
 
-Lr2BarPositionCache* Lr2BarTextItem::barPositionCache() const {
-    return m_barPositionCache;
+Lr2BarPositionMap* Lr2BarTextItem::barPositionMap() const {
+    return m_barPositionMap;
 }
 
-void Lr2BarTextItem::setBarPositionCache(Lr2BarPositionCache* value) {
-    if (m_barPositionCache == value) {
+void Lr2BarTextItem::setBarPositionMap(Lr2BarPositionMap* value) {
+    if (m_barPositionMap == value) {
         return;
     }
-    m_barPositionCache = value;
-    reconnectPositionCache();
-    emit barPositionCacheChanged();
+    m_barPositionMap = value;
+    reconnectPositionMap();
+    emit barPositionMapChanged();
     requestSceneUpdate();
 }
 
@@ -312,7 +304,7 @@ void Lr2BarTextItem::reconnectCells() {
         }
         m_cellConnections.append(connect(
             cell,
-            &Lr2SelectBarCell::revisionChanged,
+            &Lr2SelectBarCell::coreChanged,
             this,
             [this]() {
                 if (m_textImageCache.size() > 512) {
@@ -323,9 +315,9 @@ void Lr2BarTextItem::reconnectCells() {
     }
 }
 
-void Lr2BarTextItem::reconnectPositionCache() {
-    if (m_positionRevisionConnection) {
-        disconnect(m_positionRevisionConnection);
+void Lr2BarTextItem::reconnectPositionMap() {
+    if (m_positionCoordinatesConnection) {
+        disconnect(m_positionCoordinatesConnection);
     }
     if (m_positionSlotOffsetConnection) {
         disconnect(m_positionSlotOffsetConnection);
@@ -334,26 +326,26 @@ void Lr2BarTextItem::reconnectPositionCache() {
         disconnect(m_positionSlotCountConnection);
     }
 
-    if (!m_barPositionCache) {
-        m_positionRevisionConnection = {};
+    if (!m_barPositionMap) {
+        m_positionCoordinatesConnection = {};
         m_positionSlotOffsetConnection = {};
         m_positionSlotCountConnection = {};
         return;
     }
 
-    m_positionRevisionConnection = connect(
-        m_barPositionCache,
-        &Lr2BarPositionCache::revisionChanged,
+    m_positionCoordinatesConnection = connect(
+        m_barPositionMap,
+        &Lr2BarPositionMap::coordinatesChanged,
         this,
         &Lr2BarTextItem::requestSceneUpdate);
     m_positionSlotOffsetConnection = connect(
-        m_barPositionCache,
-        &Lr2BarPositionCache::slotOffsetChanged,
+        m_barPositionMap,
+        &Lr2BarPositionMap::slotOffsetChanged,
         this,
         &Lr2BarTextItem::requestSceneUpdate);
     m_positionSlotCountConnection = connect(
-        m_barPositionCache,
-        &Lr2BarPositionCache::slotCountChanged,
+        m_barPositionMap,
+        &Lr2BarPositionMap::slotCountChanged,
         this,
         &Lr2BarTextItem::requestSceneUpdate);
 }
@@ -475,7 +467,7 @@ Lr2BarTextItem::TextImage Lr2BarTextItem::textImageFor(const QString& text,
 }
 
 QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) {
-    if (!window() || !m_supported || !m_barPositionCache || m_barCells.isEmpty()) {
+    if (!window() || !m_supported || !m_barPositionMap || m_barCells.isEmpty()) {
         delete oldNode;
         return nullptr;
     }
@@ -504,8 +496,8 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
             continue;
         }
 
-        const int row = m_barPositionCache->rowForSlot(slot);
-        if (row <= 0 || row >= m_barPositionCache->count()) {
+        const int row = m_barPositionMap->rowForSlot(slot);
+        if (row <= 0 || row >= m_barPositionMap->count()) {
             continue;
         }
 
@@ -532,9 +524,9 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
             ? (boxW - drawnW) * 0.5
             : (m_source.align == 2 ? boxW - drawnW : 0.0);
 
-        const qreal x = (m_barPositionCache->xAt(row) + state.x) * m_scaleOverride
+        const qreal x = (m_barPositionMap->xAt(row) + state.x) * m_scaleOverride
             + anchorOffsetX + alignedX;
-        const qreal y = (m_barPositionCache->yAt(row) + state.y) * m_scaleOverride;
+        const qreal y = (m_barPositionMap->yAt(row) + state.y) * m_scaleOverride;
         if (drawnW <= 0.0 || drawnH <= 0.0) {
             continue;
         }

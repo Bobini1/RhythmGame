@@ -2,15 +2,14 @@
 
 #include "Lr2SelectBarCell.h"
 
-#include <QFileInfo>
 #include <QImageReader>
-#include <QJSValue>
 #include <QMatrix4x4>
 #include <QMetaProperty>
 #include <QQuickWindow>
 #include <QSGGeometryNode>
 #include <QSGMaterial>
 #include <QSGTexture>
+#include <QtGlobal>
 #include <QtMath>
 #include <QUrl>
 #include <QVariantMap>
@@ -120,13 +119,6 @@ QVariant valueProperty(const QVariant& source, const char* name) {
         const auto it = hash.constFind(QString::fromLatin1(name));
         return it == hash.constEnd() ? QVariant() : *it;
     }
-    if (source.canConvert<QJSValue>()) {
-        const QJSValue value = source.value<QJSValue>();
-        if (value.isObject()) {
-            const QJSValue property = value.property(QString::fromLatin1(name));
-            return property.isUndefined() || property.isNull() ? QVariant() : property.toVariant();
-        }
-    }
     if (source.canConvert<QObject*>()) {
         if (QObject* object = source.value<QObject*>()) {
             return object->property(name);
@@ -139,13 +131,11 @@ bool sourceUsesChartAsset(int specialType) {
     return specialType == 1 || specialType == 3 || specialType == 4;
 }
 
-QString resolvedImageSource(const QVariant& srcData, const QString& chartAssetSource) {
-    const int specialType = toInt(valueProperty(srcData, "specialType"));
+QString resolvedImageSource(int specialType, QString rawSource, const QString& chartAssetSource) {
     if (sourceUsesChartAsset(specialType) && !chartAssetSource.isEmpty()) {
         return chartAssetSource;
     }
 
-    const QString rawSource = valueProperty(srcData, "source").toString();
     if (rawSource.isEmpty()) {
         return {};
     }
@@ -405,6 +395,127 @@ void Lr2BarDistributionGraphItem::setStateData(const QVariant& value) {
     requestSceneUpdate();
 }
 
+int Lr2BarDistributionGraphItem::sourceGraphType() const {
+    return m_source.graphType;
+}
+
+void Lr2BarDistributionGraphItem::setSourceGraphType(int value) {
+    if (m_source.graphType == value) {
+        return;
+    }
+    m_source.graphType = value;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+int Lr2BarDistributionGraphItem::sourceSpecialType() const {
+    return m_source.specialType;
+}
+
+void Lr2BarDistributionGraphItem::setSourceSpecialType(int value) {
+    if (m_source.specialType == value) {
+        return;
+    }
+    m_source.specialType = value;
+    loadSourceImage();
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+qreal Lr2BarDistributionGraphItem::sourceX() const {
+    return m_source.x;
+}
+
+void Lr2BarDistributionGraphItem::setSourceX(qreal value) {
+    if (qFuzzyCompare(m_source.x, value)) {
+        return;
+    }
+    m_source.x = value;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+qreal Lr2BarDistributionGraphItem::sourceY() const {
+    return m_source.y;
+}
+
+void Lr2BarDistributionGraphItem::setSourceY(qreal value) {
+    if (qFuzzyCompare(m_source.y, value)) {
+        return;
+    }
+    m_source.y = value;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+qreal Lr2BarDistributionGraphItem::sourceW() const {
+    return m_source.w;
+}
+
+void Lr2BarDistributionGraphItem::setSourceW(qreal value) {
+    if (qFuzzyCompare(m_source.w, value)) {
+        return;
+    }
+    m_source.w = value;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+qreal Lr2BarDistributionGraphItem::sourceH() const {
+    return m_source.h;
+}
+
+void Lr2BarDistributionGraphItem::setSourceH(qreal value) {
+    if (qFuzzyCompare(m_source.h, value)) {
+        return;
+    }
+    m_source.h = value;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+int Lr2BarDistributionGraphItem::sourceDivX() const {
+    return m_source.divX;
+}
+
+void Lr2BarDistributionGraphItem::setSourceDivX(int value) {
+    const int next = std::max(1, value);
+    if (m_source.divX == next) {
+        return;
+    }
+    m_source.divX = next;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+int Lr2BarDistributionGraphItem::sourceDivY() const {
+    return m_source.divY;
+}
+
+void Lr2BarDistributionGraphItem::setSourceDivY(int value) {
+    const int next = std::max(1, value);
+    if (m_source.divY == next) {
+        return;
+    }
+    m_source.divY = next;
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
+QString Lr2BarDistributionGraphItem::sourcePath() const {
+    return m_sourcePath;
+}
+
+void Lr2BarDistributionGraphItem::setSourcePath(const QString& value) {
+    if (m_sourcePath == value) {
+        return;
+    }
+    m_sourcePath = value;
+    loadSourceImage();
+    emit sourceFieldsChanged();
+    requestSceneUpdate();
+}
+
 QVariantList Lr2BarDistributionGraphItem::barCells() const {
     return m_barCellsValue;
 }
@@ -419,16 +530,16 @@ void Lr2BarDistributionGraphItem::setBarCells(const QVariantList& value) {
     requestSceneUpdate();
 }
 
-Lr2BarPositionCache* Lr2BarDistributionGraphItem::barPositionCache() const {
-    return m_barPositionCache;
+Lr2BarPositionMap* Lr2BarDistributionGraphItem::barPositionMap() const {
+    return m_barPositionMap;
 }
 
-void Lr2BarDistributionGraphItem::setBarPositionCache(Lr2BarPositionCache* value) {
-    if (m_barPositionCache == value) {
+void Lr2BarDistributionGraphItem::setBarPositionMap(Lr2BarPositionMap* value) {
+    if (m_barPositionMap == value) {
         return;
     }
-    if (m_positionRevisionConnection) {
-        disconnect(m_positionRevisionConnection);
+    if (m_positionCoordinatesConnection) {
+        disconnect(m_positionCoordinatesConnection);
     }
     if (m_positionSlotOffsetConnection) {
         disconnect(m_positionSlotOffsetConnection);
@@ -437,30 +548,30 @@ void Lr2BarDistributionGraphItem::setBarPositionCache(Lr2BarPositionCache* value
         disconnect(m_positionSlotCountConnection);
     }
 
-    m_barPositionCache = value;
-    if (m_barPositionCache) {
-        m_positionRevisionConnection = connect(
-            m_barPositionCache,
-            &Lr2BarPositionCache::revisionChanged,
+    m_barPositionMap = value;
+    if (m_barPositionMap) {
+        m_positionCoordinatesConnection = connect(
+            m_barPositionMap,
+            &Lr2BarPositionMap::coordinatesChanged,
             this,
             &Lr2BarDistributionGraphItem::requestSceneUpdate);
         m_positionSlotOffsetConnection = connect(
-            m_barPositionCache,
-            &Lr2BarPositionCache::slotOffsetChanged,
+            m_barPositionMap,
+            &Lr2BarPositionMap::slotOffsetChanged,
             this,
             &Lr2BarDistributionGraphItem::requestSceneUpdate);
         m_positionSlotCountConnection = connect(
-            m_barPositionCache,
-            &Lr2BarPositionCache::slotCountChanged,
+            m_barPositionMap,
+            &Lr2BarPositionMap::slotCountChanged,
             this,
             &Lr2BarDistributionGraphItem::requestSceneUpdate);
     } else {
-        m_positionRevisionConnection = {};
+        m_positionCoordinatesConnection = {};
         m_positionSlotOffsetConnection = {};
         m_positionSlotCountConnection = {};
     }
 
-    emit barPositionCacheChanged();
+    emit barPositionMapChanged();
     requestSceneUpdate();
 }
 
@@ -528,13 +639,12 @@ void Lr2BarDistributionGraphItem::setChartAssetSource(const QString& value) {
         return;
     }
     m_chartAssetSource = value;
-    parseSource();
+    loadSourceImage();
     emit chartAssetSourceChanged();
     requestSceneUpdate();
 }
 
 void Lr2BarDistributionGraphItem::parseSource() {
-    m_source = {};
     if (!m_srcData.isValid() || m_srcData.isNull()) {
         loadSourceImage();
         return;
@@ -548,8 +658,12 @@ void Lr2BarDistributionGraphItem::parseSource() {
     m_source.h = toReal(valueProperty(m_srcData, "h"));
     m_source.divX = std::max(1, toInt(valueProperty(m_srcData, "div_x"), 1));
     m_source.divY = std::max(1, toInt(valueProperty(m_srcData, "div_y"), 1));
-    m_source.source = resolvedImageSource(m_srcData, m_chartAssetSource);
+    m_sourcePath = valueProperty(m_srcData, "source").toString();
     loadSourceImage();
+}
+
+QString Lr2BarDistributionGraphItem::resolvedSource() const {
+    return resolvedImageSource(m_source.specialType, m_sourcePath, m_chartAssetSource);
 }
 
 void Lr2BarDistributionGraphItem::loadSourceImage() {
@@ -562,11 +676,12 @@ void Lr2BarDistributionGraphItem::loadSourceImage() {
         return;
     }
 
-    if (m_source.source.isEmpty()) {
+    const QString source = resolvedSource();
+    if (source.isEmpty()) {
         return;
     }
 
-    const QString path = localPathForSource(m_source.source);
+    const QString path = localPathForSource(source);
     if (path.isEmpty()) {
         return;
     }
@@ -592,7 +707,7 @@ void Lr2BarDistributionGraphItem::reconnectCells() {
         }
         m_cellConnections.append(connect(
             cell,
-            &Lr2SelectBarCell::revisionChanged,
+            &Lr2SelectBarCell::coreChanged,
             this,
             &Lr2BarDistributionGraphItem::requestSceneUpdate));
         m_cellConnections.append(connect(
@@ -610,7 +725,7 @@ void Lr2BarDistributionGraphItem::requestSceneUpdate() {
 QSGNode* Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) {
     const GraphState state = stateFromVariant(m_stateData);
     const bool hasTexture = !m_sourceImage.isNull();
-    if (!state.valid || state.a <= 0.0 || m_barCells.isEmpty() || !m_barPositionCache || !hasTexture) {
+    if (!state.valid || state.a <= 0.0 || m_barCells.isEmpty() || !m_barPositionMap || !hasTexture) {
         delete oldNode;
         return nullptr;
     }
@@ -692,12 +807,12 @@ QSGNode* Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode, UpdatePa
 
     for (int slot = 0; slot < m_barCells.size(); ++slot) {
         const auto* cell = m_barCells.at(slot).data();
-        if (!cell || !cell->isValid() || !cell->isFolderLike()) {
+        if (!cell || !cell->isValid()) {
             continue;
         }
 
-        const int row = m_barPositionCache->rowForSlot(slot);
-        if (row <= 0 || row >= m_barPositionCache->count()) {
+        const int row = m_barPositionMap->rowForSlot(slot);
+        if (row <= 0 || row >= m_barPositionMap->count()) {
             continue;
         }
 
@@ -725,8 +840,8 @@ QSGNode* Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode, UpdatePa
             accumulated += amount;
         }
 
-        const qreal rowX = m_barPositionCache->xAt(row);
-        const qreal rowY = m_barPositionCache->yAt(row);
+        const qreal rowX = m_barPositionMap->xAt(row);
+        const qreal rowY = m_barPositionMap->yAt(row);
         for (int segment = 0; segment < segmentCount; ++segment) {
             const qreal segmentW = widths[static_cast<size_t>(segment)];
             if (segmentW <= 0.0) {

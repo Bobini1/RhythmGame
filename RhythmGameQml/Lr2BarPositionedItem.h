@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Lr2BarPositionCache.h"
+#include "Lr2BarPositionMap.h"
 
 #include <QPointer>
 #include <QQuickItem>
@@ -10,14 +10,14 @@
 class Lr2BarPositionedItem : public QQuickItem {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(Lr2BarPositionCache* positionCache READ positionCache WRITE setPositionCache NOTIFY positionCacheChanged)
+    Q_PROPERTY(Lr2BarPositionMap* positionMap READ positionMap WRITE setPositionMap NOTIFY positionMapChanged)
     Q_PROPERTY(int row READ row WRITE setRow NOTIFY rowChanged)
     Q_PROPERTY(bool useSlotRow READ useSlotRow WRITE setUseSlotRow NOTIFY useSlotRowChanged)
     Q_PROPERTY(int slot READ slot WRITE setSlot NOTIFY slotChanged)
     Q_PROPERTY(int effectiveRow READ effectiveRow NOTIFY effectiveRowChanged)
     Q_PROPERTY(bool rowVisible READ rowVisible NOTIFY rowVisibleChanged)
     Q_PROPERTY(qreal scaleOverride READ scaleOverride WRITE setScaleOverride NOTIFY scaleOverrideChanged)
-    Q_PROPERTY(bool usePositionCache READ usePositionCache WRITE setUsePositionCache NOTIFY usePositionCacheChanged)
+    Q_PROPERTY(bool usePositionMap READ usePositionMap WRITE setUsePositionMap NOTIFY usePositionMapChanged)
     Q_PROPERTY(bool hasOverride READ hasOverride WRITE setHasOverride NOTIFY hasOverrideChanged)
     Q_PROPERTY(qreal overrideX READ overrideX WRITE setOverrideX NOTIFY overrideXChanged)
     Q_PROPERTY(qreal overrideY READ overrideY WRITE setOverrideY NOTIFY overrideYChanged)
@@ -29,8 +29,8 @@ class Lr2BarPositionedItem : public QQuickItem {
 public:
     explicit Lr2BarPositionedItem(QQuickItem* parent = nullptr);
 
-    Lr2BarPositionCache* positionCache() const;
-    void setPositionCache(Lr2BarPositionCache* cache);
+    Lr2BarPositionMap* positionMap() const;
+    void setPositionMap(Lr2BarPositionMap* map);
 
     int row() const;
     void setRow(int row);
@@ -47,8 +47,8 @@ public:
     qreal scaleOverride() const;
     void setScaleOverride(qreal scale);
 
-    bool usePositionCache() const;
-    void setUsePositionCache(bool useCache);
+    bool usePositionMap() const;
+    void setUsePositionMap(bool useMap);
 
     bool hasOverride() const;
     void setHasOverride(bool hasOverride);
@@ -72,14 +72,14 @@ public:
     void setFallbackY(qreal value);
 
 signals:
-    void positionCacheChanged();
+    void positionMapChanged();
     void rowChanged();
     void useSlotRowChanged();
     void slotChanged();
     void effectiveRowChanged();
     void rowVisibleChanged();
     void scaleOverrideChanged();
-    void usePositionCacheChanged();
+    void usePositionMapChanged();
     void hasOverrideChanged();
     void overrideXChanged();
     void overrideYChanged();
@@ -93,8 +93,8 @@ private:
     void updatePosition();
     int resolvedRow() const;
 
-    QPointer<Lr2BarPositionCache> m_positionCache;
-    QMetaObject::Connection m_revisionConnection;
+    QPointer<Lr2BarPositionMap> m_positionMap;
+    QMetaObject::Connection m_coordinatesConnection;
     QMetaObject::Connection m_slotOffsetConnection;
     QMetaObject::Connection m_slotCountConnection;
     int m_row = -1;
@@ -103,7 +103,7 @@ private:
     int m_effectiveRow = -1;
     bool m_rowVisible = false;
     qreal m_scaleOverride = 1.0;
-    bool m_usePositionCache = true;
+    bool m_usePositionMap = true;
     bool m_hasOverride = false;
     qreal m_overrideX = 0.0;
     qreal m_overrideY = 0.0;

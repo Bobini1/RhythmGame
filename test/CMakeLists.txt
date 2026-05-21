@@ -20,16 +20,18 @@ add_executable(RhythmGame_test
         resource_managers/loadBmsSounds.test.cpp
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/ScanThemes.test.cpp
-        lr2_skin/Lr2BarBaseStateCache.test.cpp
+        lr2_skin/Lr2BarBaseStateResolver.test.cpp
+        lr2_skin/Lr2SelectBarModel.test.cpp
         lr2_skin/Lr2SkinParser.test.cpp
         lr2_skin/Lr2SkinRuntimeTypes.test.cpp
-        lr2_skin/Lr2SelectStateCache.test.cpp
-        ../RhythmGameQml/Lr2BarBaseStateCache.cpp
+        ../RhythmGameQml/Lr2BarBaseStateResolver.cpp
+        ../RhythmGameQml/Lr2BarPositionMap.cpp
         ../RhythmGameQml/Lr2SkinRuntimeTypes.cpp
+        ../RhythmGameQml/Lr2ChartDataSnapshot.cpp
         ../RhythmGameQml/Lr2SelectBarCell.cpp
-        ../RhythmGameQml/Lr2SelectBarWindow.cpp
+        ../RhythmGameQml/Lr2SelectBarModel.cpp
+        ../RhythmGameQml/Lr2SelectItemModel.cpp
         ../RhythmGameQml/Lr2SelectVisualState.cpp
-        ../RhythmGameQml/Lr2SelectStateCache.cpp
 )
 target_include_directories(RhythmGame_test PRIVATE
         ${CMAKE_SOURCE_DIR}/RhythmGameQml

@@ -1,6 +1,5 @@
 #include "Lr2BarInterpolatedState.h"
 
-#include <QJSValue>
 #include <QVariantMap>
 #include <QtMath>
 
@@ -19,31 +18,62 @@ void Lr2BarInterpolatedState::setBaseStates(const QVariantList& states) {
     updateState();
 }
 
-Lr2BarPositionCache* Lr2BarInterpolatedState::positionCache() const {
-    return m_positionCache;
+Lr2BarBaseStateResolver* Lr2BarInterpolatedState::baseStateResolver() const {
+    return m_baseStateResolver;
 }
 
-void Lr2BarInterpolatedState::setPositionCache(Lr2BarPositionCache* cache) {
-    if (m_positionCache == cache) {
+void Lr2BarInterpolatedState::setBaseStateResolver(Lr2BarBaseStateResolver* resolver) {
+    if (m_baseStateResolver == resolver) {
         return;
     }
 
-    if (m_revisionConnection) {
-        disconnect(m_revisionConnection);
+    if (m_baseStateResolverConnection) {
+        disconnect(m_baseStateResolverConnection);
     }
 
-    m_positionCache = cache;
-    if (m_positionCache) {
-        m_revisionConnection = connect(
-            m_positionCache,
-            &Lr2BarPositionCache::revisionChanged,
+    m_baseStateResolver = resolver;
+    if (m_baseStateResolver) {
+        m_baseStateResolverConnection = connect(
+            m_baseStateResolver,
+            &Lr2BarBaseStateResolver::baseStatesChanged,
+            this,
+            [this]() {
+                emit baseStatesChanged();
+                updateState();
+            });
+    } else {
+        m_baseStateResolverConnection = {};
+    }
+
+    emit baseStateResolverChanged();
+    updateState();
+}
+
+Lr2BarPositionMap* Lr2BarInterpolatedState::positionMap() const {
+    return m_positionMap;
+}
+
+void Lr2BarInterpolatedState::setPositionMap(Lr2BarPositionMap* map) {
+    if (m_positionMap == map) {
+        return;
+    }
+
+    if (m_coordinatesConnection) {
+        disconnect(m_coordinatesConnection);
+    }
+
+    m_positionMap = map;
+    if (m_positionMap) {
+        m_coordinatesConnection = connect(
+            m_positionMap,
+            &Lr2BarPositionMap::coordinatesChanged,
             this,
             &Lr2BarInterpolatedState::updateState);
     } else {
-        m_revisionConnection = {};
+        m_coordinatesConnection = {};
     }
 
-    emit positionCacheChanged();
+    emit positionMapChanged();
     updateState();
 }
 
@@ -150,14 +180,6 @@ qreal Lr2BarInterpolatedState::readField(const QVariantMap& map, const QString& 
     return it == map.constEnd() || !it->isValid() || it->isNull() ? fallback : it->toDouble();
 }
 
-qreal Lr2BarInterpolatedState::readField(const QJSValue& value, const QString& name, qreal fallback) {
-    const QJSValue field = value.property(name);
-    if (field.isUndefined() || field.isNull()) {
-        return fallback;
-    }
-    return field.toNumber();
-}
-
 Lr2BarInterpolatedState::State Lr2BarInterpolatedState::extractState(const QVariant& variant) {
     State state;
     if (!variant.isValid() || variant.isNull()) {
@@ -185,31 +207,6 @@ Lr2BarInterpolatedState::State Lr2BarInterpolatedState::extractState(const QVari
         state.op3 = readField(map, QStringLiteral("op3"), 0.0);
         state.op4 = readField(map, QStringLiteral("op4"), 0.0);
         return state;
-    }
-
-    if (variant.canConvert<QJSValue>()) {
-        const QJSValue value = variant.value<QJSValue>();
-        if (!value.isObject()) {
-            return state;
-        }
-        state.valid = true;
-        state.x = readField(value, QStringLiteral("x"), 0.0);
-        state.y = readField(value, QStringLiteral("y"), 0.0);
-        state.w = readField(value, QStringLiteral("w"), 0.0);
-        state.h = readField(value, QStringLiteral("h"), 0.0);
-        state.a = readField(value, QStringLiteral("a"), 0.0);
-        state.r = readField(value, QStringLiteral("r"), 255.0);
-        state.g = readField(value, QStringLiteral("g"), 255.0);
-        state.b = readField(value, QStringLiteral("b"), 255.0);
-        state.angle = readField(value, QStringLiteral("angle"), 0.0);
-        state.center = readField(value, QStringLiteral("center"), 0.0);
-        state.sortId = readField(value, QStringLiteral("sortId"), 0.0);
-        state.blend = readField(value, QStringLiteral("blend"), 0.0);
-        state.filter = readField(value, QStringLiteral("filter"), 0.0);
-        state.op1 = readField(value, QStringLiteral("op1"), 0.0);
-        state.op2 = readField(value, QStringLiteral("op2"), 0.0);
-        state.op3 = readField(value, QStringLiteral("op3"), 0.0);
-        state.op4 = readField(value, QStringLiteral("op4"), 0.0);
     }
 
     return state;
@@ -244,13 +241,22 @@ Lr2BarInterpolatedState::State Lr2BarInterpolatedState::interpolate(
 
 void Lr2BarInterpolatedState::updateState() {
     State next;
-    if (m_enabled && m_row >= 0 && m_row < m_baseStates.size()) {
-        const State& from = m_baseStates[m_row];
+    const bool useResolver = m_baseStateResolver && m_baseStateResolver->stateCount() > 0;
+    const int stateCount = useResolver ? m_baseStateResolver->stateCount() : m_baseStates.size();
+    if (m_enabled && m_row >= 0 && m_row < stateCount) {
+        const State from = useResolver
+            ? extractState(m_baseStateResolver->stateAt(m_row))
+            : m_baseStates[m_row];
         next = from;
 
-        const qreal progress = m_positionCache ? m_positionCache->scrollOffset() : 0.0;
-        if (progress > 0.001 && m_row > 0 && m_baseStates[m_row - 1].valid) {
-            next = interpolate(from, m_baseStates[m_row - 1], progress);
+        const qreal progress = m_positionMap ? m_positionMap->scrollOffset() : 0.0;
+        const State previous = progress > 0.001 && m_row > 0
+            ? (useResolver
+                ? extractState(m_baseStateResolver->stateAt(m_row - 1))
+                : m_baseStates[m_row - 1])
+            : State {};
+        if (progress > 0.001 && m_row > 0 && previous.valid) {
+            next = interpolate(from, previous, progress);
         }
     }
 

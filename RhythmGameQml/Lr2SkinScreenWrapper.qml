@@ -2,7 +2,6 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import QtQuick.Controls
 import RhythmGameQml 1.0
-import "Lr2ActiveOptionCache.js" as Lr2ActiveOptionCache
 
 Item {
     id: root
@@ -448,7 +447,6 @@ Item {
     readonly property var lr2ClassicTargetLabels: optionState.lr2ClassicTargetLabels
     readonly property var lr2BeatorajaTargetLabels: optionState.lr2BeatorajaTargetLabels
     readonly property var lr2BeatorajaTargetFractions: optionState.lr2BeatorajaTargetFractions
-    readonly property int lr2OptionRevision: optionState.revision
     readonly property var lr2BgaSizeLabels: optionState.lr2BgaSizeLabels
     readonly property var lr2GhostLabels: optionState.lr2GhostLabels
     readonly property var lr2HidSudLabels: optionState.lr2HidSudLabels
@@ -514,7 +512,6 @@ Item {
     readonly property var selectHoverCandidateKeys: selectHoverState.candidateKeys
     property alias selectHoverVisibleByIndex: selectHoverState.visibleByIndex
     readonly property string selectHoverVisibleSignature: selectHoverState.visibleSignature
-    property alias selectHoverRevision: selectHoverState.revision
     property alias selectHoverSkinX: selectHoverState.skinX
     property alias selectHoverSkinY: selectHoverState.skinY
     readonly property bool selectHoverHasPoint: selectHoverState.hasPoint
@@ -549,12 +546,12 @@ Item {
         selectHoverState.unregisterElement(elementIndex);
     }
 
-    function clearSelectHoverCache() : void {
-        selectHoverState.clearCache();
+    function clearSelectHoverState() : void {
+        selectHoverState.clearVisibleState();
     }
 
-    function refreshSelectHoverCache() : void {
-        selectHoverState.refreshCache();
+    function refreshSelectHoverState() : void {
+        selectHoverState.refreshVisibleState();
     }
 
     function copyObject(object: var) : var {
@@ -619,7 +616,7 @@ Item {
         if (root.effectiveScreenKey !== "select") {
             return false;
         }
-        selectContext.flushFocusedStateRefresh(false);
+        selectContext.flushFocusedStateRefresh();
         return root.openReadmePath(
             selectContext.attachedTextFile(selectContext.selectedChartData()));
     }
@@ -802,7 +799,6 @@ Item {
     function setGhostIndex(index: var) : void { optionState.setGhostIndex(index); }
 
     function lr2BgaEnabled() : var { return optionState.lr2BgaEnabled(); }
-    function bumpLr2OptionRevision() : void { optionState.bumpRevision(); }
 
     readonly property int lr2ScoreTargetIndex: optionState.lr2ScoreTargetIndex
     function setScoreTargetIndex(index: var) : void { optionState.setScoreTargetIndex(index); }
@@ -931,12 +927,12 @@ Item {
     function lr2InternetRankingUrl(chart: var) : var { return lr2Ranking.internetRankingUrl(chart); }
     function finishOpenLr2InternetRanking() : var { return lr2Ranking.finishOpenInternetRanking(); }
     function openLr2InternetRanking() : var {
-        selectContext.flushFocusedStateRefresh(false);
+        selectContext.flushFocusedStateRefresh();
         return lr2Ranking.openInternetRanking();
     }
     function finishOpenLr2Ranking() : var { return lr2Ranking.finishOpenRanking(); }
     function openLr2Ranking() : var {
-        selectContext.flushFocusedStateRefresh(false);
+        selectContext.flushFocusedStateRefresh();
         return lr2Ranking.openRanking();
     }
     function closeLr2Ranking() : var { return lr2Ranking.closeRanking(); }
@@ -3422,16 +3418,9 @@ Item {
                 idB = swapAB2;
             }
         }
-        let key = count === 1
-            ? String(idA)
-            : (count === 2 ? (idA + "," + idB) : (idA + "," + idB + "," + idC));
-        let cached = Lr2ActiveOptionCache.get(key);
-        if (cached) {
-            return cached;
-        }
         let ids = count === 1 ? [idA] : (count === 2 ? [idA, idB] : [idA, idB, idC]);
         root.finalizeOptionList(ids);
-        return Lr2ActiveOptionCache.put(key, ids);
+        return ids;
     }
 
     function refreshBaseActiveOptions() : var {
@@ -3816,15 +3805,8 @@ Item {
         return valueResolver.lr2SelectOptionText(st);
     }
 
-    function resolveText(st: var, revision: var) : var {
-        revision;
-        if (root.effectiveScreenKey === "select") {
-            let nativeText = selectContext.nativeState.textValue(st);
-            if (nativeText !== undefined && nativeText !== null) {
-                return nativeText;
-            }
-        }
-        return valueResolver.resolveText(st, revision);
+    function resolveText(st: var) : var {
+        return valueResolver.resolveText(st);
     }
 
     function resolveGameplayNumber(num: var) : var {
@@ -3851,8 +3833,8 @@ Item {
         return valueResolver.resolveNumber(num);
     }
 
-    function numberValue(src: var, revision: var) : var {
-        return valueResolver.numberValue(src, revision);
+    function numberValue(src: var) : var {
+        return valueResolver.numberValue(src);
     }
 
     function imageSetValue(imageSetRef: var, sourceCount: var) : var {
@@ -4144,8 +4126,8 @@ Item {
 
     function spriteForceHidden(src: var, elementIndex: var) : var {
         if (src && src.onMouse) {
-            return root.selectHoverRevision >= 0
-                && root.selectHoverVisibleByIndex[String(elementIndex)] !== true;
+            root.selectHoverVisibleSignature;
+            return root.selectHoverVisibleByIndex[String(elementIndex)] !== true;
         }
         return false;
     }
@@ -4158,8 +4140,8 @@ Item {
         skinSliderState.setGenericFromTrack(src, track, pointerX, pointerY);
     }
 
-    readonly property var cachedBarBaseStates: selectBarGeometry.cachedBarBaseStates
-    readonly property var cachedBarPositionCache: selectBarGeometry.barPositionCache
+    readonly property var barBaseStateResolver: selectBarGeometry.barBaseStateResolver
+    readonly property var barPositionMap: selectBarGeometry.barPositionMap
     readonly property bool fastBarScrollActive: selectBarGeometry.fastBarScrollActive
     readonly property real fastBarScrollX: selectBarGeometry.fastBarScrollX
     readonly property real fastBarScrollY: selectBarGeometry.fastBarScrollY
@@ -4180,6 +4162,10 @@ Item {
 
     function barRowCanClick(row: var) : var {
         return selectBarGeometry.barRowCanClick(row);
+    }
+
+    function barBaseStateAt(row: var) : var {
+        return barBaseStateResolver ? barBaseStateResolver.stateAt(row) : null;
     }
 
     function barRowScrollDelta(row: var) : var {
@@ -4261,7 +4247,7 @@ Item {
         if (root.effectiveScreenKey === "select"
                 && root.selectHoverHasPoint
                 && root.globalSkinTime < root.selectAnimationLimit) {
-            root.refreshSelectHoverCache();
+            root.refreshSelectHoverState();
         }
     }
 

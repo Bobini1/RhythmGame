@@ -4,17 +4,17 @@
 
 Lr2BarPositionedItem::Lr2BarPositionedItem(QQuickItem* parent) : QQuickItem(parent) {}
 
-Lr2BarPositionCache* Lr2BarPositionedItem::positionCache() const {
-    return m_positionCache;
+Lr2BarPositionMap* Lr2BarPositionedItem::positionMap() const {
+    return m_positionMap;
 }
 
-void Lr2BarPositionedItem::setPositionCache(Lr2BarPositionCache* cache) {
-    if (m_positionCache == cache) {
+void Lr2BarPositionedItem::setPositionMap(Lr2BarPositionMap* map) {
+    if (m_positionMap == map) {
         return;
     }
 
-    if (m_revisionConnection) {
-        disconnect(m_revisionConnection);
+    if (m_coordinatesConnection) {
+        disconnect(m_coordinatesConnection);
     }
     if (m_slotOffsetConnection) {
         disconnect(m_slotOffsetConnection);
@@ -23,16 +23,16 @@ void Lr2BarPositionedItem::setPositionCache(Lr2BarPositionCache* cache) {
         disconnect(m_slotCountConnection);
     }
 
-    m_positionCache = cache;
-    if (m_positionCache) {
-        m_revisionConnection = connect(
-            m_positionCache,
-            &Lr2BarPositionCache::revisionChanged,
+    m_positionMap = map;
+    if (m_positionMap) {
+        m_coordinatesConnection = connect(
+            m_positionMap,
+            &Lr2BarPositionMap::coordinatesChanged,
             this,
             &Lr2BarPositionedItem::updatePosition);
         m_slotOffsetConnection = connect(
-            m_positionCache,
-            &Lr2BarPositionCache::slotOffsetChanged,
+            m_positionMap,
+            &Lr2BarPositionMap::slotOffsetChanged,
             this,
             [this]() {
                 if (m_useSlotRow) {
@@ -40,8 +40,8 @@ void Lr2BarPositionedItem::setPositionCache(Lr2BarPositionCache* cache) {
                 }
             });
         m_slotCountConnection = connect(
-            m_positionCache,
-            &Lr2BarPositionCache::slotCountChanged,
+            m_positionMap,
+            &Lr2BarPositionMap::slotCountChanged,
             this,
             [this]() {
                 if (m_useSlotRow) {
@@ -49,12 +49,12 @@ void Lr2BarPositionedItem::setPositionCache(Lr2BarPositionCache* cache) {
                 }
             });
     } else {
-        m_revisionConnection = {};
+        m_coordinatesConnection = {};
         m_slotOffsetConnection = {};
         m_slotCountConnection = {};
     }
 
-    emit positionCacheChanged();
+    emit positionMapChanged();
     updatePosition();
 }
 
@@ -116,15 +116,15 @@ void Lr2BarPositionedItem::setScaleOverride(qreal scale) {
     updatePosition();
 }
 
-bool Lr2BarPositionedItem::usePositionCache() const {
-    return m_usePositionCache;
+bool Lr2BarPositionedItem::usePositionMap() const {
+    return m_usePositionMap;
 }
 
-void Lr2BarPositionedItem::setUsePositionCache(bool useCache) {
-    if (m_usePositionCache == useCache) {
+void Lr2BarPositionedItem::setUsePositionMap(bool useMap) {
+    if (m_usePositionMap == useMap) {
         return;
     }
-    m_usePositionCache = useCache;
+    m_usePositionMap = useMap;
     updatePosition();
 }
 
@@ -217,8 +217,8 @@ bool Lr2BarPositionedItem::sameReal(qreal lhs, qreal rhs) {
 }
 
 int Lr2BarPositionedItem::resolvedRow() const {
-    if (m_useSlotRow && m_positionCache) {
-        return m_positionCache->rowForSlot(m_slot);
+    if (m_useSlotRow && m_positionMap) {
+        return m_positionMap->rowForSlot(m_slot);
     }
     return m_row;
 }
@@ -231,7 +231,7 @@ void Lr2BarPositionedItem::updatePosition() {
     }
 
     const bool rowVisible = row > 0
-        && (!m_positionCache || row < m_positionCache->count());
+        && (!m_positionMap || row < m_positionMap->count());
     if (m_rowVisible != rowVisible) {
         m_rowVisible = rowVisible;
         emit rowVisibleChanged();
@@ -243,9 +243,9 @@ void Lr2BarPositionedItem::updatePosition() {
     if (m_hasOverride) {
         nextX = m_overrideX;
         nextY = m_overrideY;
-    } else if (m_usePositionCache && m_positionCache && row >= 0 && row < m_positionCache->count()) {
-        nextX = m_positionCache->xAt(row);
-        nextY = m_positionCache->yAt(row);
+    } else if (m_usePositionMap && m_positionMap && row >= 0 && row < m_positionMap->count()) {
+        nextX = m_positionMap->xAt(row);
+        nextY = m_positionMap->yAt(row);
     }
 
     const qreal scaledX = (nextX - m_adjustX) * m_scaleOverride;
