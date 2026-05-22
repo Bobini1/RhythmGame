@@ -73,7 +73,9 @@ QtObject {
         resultScreen: root.host ? root.host.resultScreenActive : false
         acceptsInput: root.host ? root.host.acceptsInput : false
         startInput: root.skinModel ? (root.skinModel.startInput || 0) : 0
-        globalSkinTime: root.globalSkinTime
+        globalSkinTime: root.host && root.host.effectiveScreenKey === "select"
+            ? root.renderSkinTime
+            : root.globalSkinTime
         renderSkinTime: root.renderSkinTime
         selectSourceSkinTime: root.selectSourceSkinTime
         selectLiveSkinTime: root.selectLiveSkinTime

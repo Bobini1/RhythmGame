@@ -177,6 +177,45 @@ QVariant Lr2BarBaseStateResolver::stateAt(int row) const {
     return row >= 0 && row < m_baseStates.size() ? stateToVariant(m_baseStates.at(row)) : QVariant();
 }
 
+bool Lr2BarBaseStateResolver::stateNeedsInterpolationAt(int row) const {
+    if (row <= 0 || row >= m_baseStates.size()) {
+        return false;
+    }
+
+    const State& fromState = m_baseStates.at(row);
+    const State& toState = m_baseStates.at(row - 1);
+    if (!fromState.valid || !toState.valid) {
+        return false;
+    }
+
+    return !sameStateNumber(fromState.w, toState.w)
+        || !sameStateNumber(fromState.h, toState.h)
+        || !sameStateNumber(fromState.a, toState.a)
+        || !sameStateNumber(fromState.r, toState.r)
+        || !sameStateNumber(fromState.g, toState.g)
+        || !sameStateNumber(fromState.b, toState.b)
+        || !sameStateNumber(fromState.angle, toState.angle)
+        || !sameStateNumber(fromState.center, toState.center)
+        || fromState.blend != toState.blend
+        || fromState.filter != toState.filter
+        || fromState.op4 != toState.op4;
+}
+
+QVariant Lr2BarBaseStateResolver::positionlessStateAt(int row) const {
+    if (row < 0 || row >= m_baseStates.size()) {
+        return QVariant();
+    }
+
+    State state = m_baseStates.at(row);
+    if (!state.valid) {
+        return QVariant();
+    }
+
+    state.x = 0.0;
+    state.y = 0.0;
+    return stateToVariant(state);
+}
+
 bool Lr2BarBaseStateResolver::stateValidAt(int row) const {
     return row >= 0 && row < m_baseStates.size() && m_baseStates.at(row).valid;
 }

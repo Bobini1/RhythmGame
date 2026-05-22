@@ -475,8 +475,9 @@ Item {
         id: readmeState
         host: root
         updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
+            && root.lr2ReadmeMode > 0
         skinHeight: root.skinH
-        skinTime: root.selectLiveSkinTime
+        skinTime: root.lr2ReadmeMode > 0 ? root.selectLiveSkinTime : 0
     }
     property alias lr2SkinPreviewScreenKey: skinSettingsState.previewScreenKey
     property alias lr2SkinCustomOffset: skinSettingsState.customOffset
@@ -4215,7 +4216,7 @@ Item {
         hostEnabled: root.enabled
         hostVisible: root.visible
         stackActive: root.StackView.status === StackView.Active
-        globalSkinTime: root.globalSkinTime
+        globalSkinTime: root.effectiveScreenKey === "select" ? root.renderSkinTime : root.globalSkinTime
         startInput: skinModel.startInput || 0
         selectSearchFocused: selectSearchState.focused
         readmeMode: root.lr2ReadmeMode

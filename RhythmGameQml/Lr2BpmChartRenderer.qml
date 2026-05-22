@@ -7,11 +7,14 @@ Item {
     property var dsts: []
     property var srcData
     property int skinTime: 0
+    property var skinClock: null
+    property int skinClockMode: 0
     property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property var chart
+    property string chartRevision: ""
     property real scaleOverride: 1.0
     property string cachedDataRevision: ""
     property var cachedSpeedData: []
@@ -23,6 +26,8 @@ Item {
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
+        skinClock: root.skinClock
+        clockMode: root.skinClockMode
         dsts: root.dsts
         skinTime: root.skinTime
         timers: root.timelineTimers
@@ -49,7 +54,21 @@ Item {
         if (!srcData || (srcData.delay || 0) <= 0) {
             return 1;
         }
-        return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
+        return Math.max(0, Math.min(1, effectiveSkinTime / Math.max(1, srcData.delay || 1)));
+    }
+    readonly property int effectiveSkinTime: {
+        if (!skinClock || skinClockMode === 0) {
+            return skinTime;
+        }
+        switch (skinClockMode) {
+        case 1: return skinClock.renderSkinTime;
+        case 2: return skinClock.selectSourceSkinTime;
+        case 3: return skinClock.barSkinTime;
+        case 4: return skinClock.globalSkinTime;
+        case 5: return skinClock.selectLiveSkinTime;
+        case 6: return skinClock.selectInfoElapsed;
+        default: return skinTime;
+        }
     }
     function chartWithBpmData(value: var) : var {
         return value
@@ -64,6 +83,7 @@ Item {
         if (!chart) {
             return null;
         }
+        chartRevision;
         return chartWithBpmData(chart.chartData) || chartWithBpmData(chart);
     }
     readonly property string dataRevision: chartData

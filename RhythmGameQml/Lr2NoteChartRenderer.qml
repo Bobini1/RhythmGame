@@ -7,19 +7,26 @@ Item {
     property var dsts: []
     property var srcData
     property int skinTime: 0
+    property var skinClock: null
+    property int skinClockMode: 0
     property var activeOptionsState: null
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property var chart
+    property string chartRevision: ""
     property real scaleOverride: 1.0
     property string cachedDataRevision: ""
     property var cachedDensityData: []
     property int cachedMaxDensity: 20
     property int cachedSourceW: 5
     property int cachedSourceH: 100
+    readonly property var snapshotChart: ({
+        chartData: chart && chart.chartData !== undefined ? chart.chartData : chart,
+        revision: chartRevision
+    })
     property Lr2ChartDataSnapshot chartSnapshot: Lr2ChartDataSnapshot {
-        chart: root.chart
+        chart: root.snapshotChart
     }
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
@@ -29,6 +36,8 @@ Item {
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
+        skinClock: root.skinClock
+        clockMode: root.skinClockMode
         dsts: root.dsts
         skinTime: root.skinTime
         timers: root.timelineTimers
@@ -55,10 +64,24 @@ Item {
         if (!srcData || (srcData.delay || 0) <= 0) {
             return 1;
         }
-        return Math.max(0, Math.min(1, skinTime / Math.max(1, srcData.delay || 1)));
+        return Math.max(0, Math.min(1, effectiveSkinTime / Math.max(1, srcData.delay || 1)));
     }
     readonly property bool hasChartData: chartSnapshot.hasHistogram
     readonly property string dataRevision: chartSnapshot.revision
+    readonly property int effectiveSkinTime: {
+        if (!skinClock || skinClockMode === 0) {
+            return skinTime;
+        }
+        switch (skinClockMode) {
+        case 1: return skinClock.renderSkinTime;
+        case 2: return skinClock.selectSourceSkinTime;
+        case 3: return skinClock.barSkinTime;
+        case 4: return skinClock.globalSkinTime;
+        case 5: return skinClock.selectLiveSkinTime;
+        case 6: return skinClock.selectInfoElapsed;
+        default: return skinTime;
+        }
+    }
 
     function densityAt(series: var, index: var) : var {
         return series && index < series.length ? (Number(series[index]) || 0) : 0;

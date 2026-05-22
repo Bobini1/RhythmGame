@@ -55,9 +55,13 @@ QtObject {
         }
     }
 
+    function currentSkinTime() : var {
+        return root.host ? root.host.selectLiveSkinTime : root.skinTime;
+    }
+
     function openText(value: var) : void {
         root.text = value || "";
-        root.startSkinTime = root.skinTime;
+        root.startSkinTime = root.currentSkinTime();
         root.mode = 1;
         root.offsetX = 0;
         root.offsetY = 0;
@@ -84,7 +88,7 @@ QtObject {
         if (root.mode === 0) {
             return;
         }
-        root.startSkinTime = root.skinTime;
+        root.startSkinTime = root.currentSkinTime();
         root.mode = 2;
         root.mouseHeld = false;
         root.closeTimer.restart();

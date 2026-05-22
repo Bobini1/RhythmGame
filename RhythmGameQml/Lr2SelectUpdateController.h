@@ -60,6 +60,15 @@ private:
     void applyRuntimeActiveOptions(const QVariant& value) const;
     bool sameNumberArray(const QVariant& lhs, const QVariant& rhs) const;
     QString numberArrayKey(const QVariant& values) const;
+    QVariant normalizedNumberArray(const QVariant& values) const;
+    QVariantList mergedNumberArray(const QVariant& first, const QVariant& second) const;
+    QVariantList selectStaticOptions(bool includeRankingOption, bool includePanelOption) const;
+    QObject* skinModelObject() const;
+    bool runtimeOwnsOptionPair(int option) const;
+    bool skinUsesOption(int option) const;
+    void appendUniqueOption(QVariantList& options, int option) const;
+    void appendUniqueSkinOption(QVariantList& options, int option) const;
+    void appendDefaultOptionIfMissing(QVariantList& options, const QList<int>& choices, int fallback) const;
     QList<int> numberList(const QVariant& values) const;
     void handleCommittedSelectState();
     void handleSelectRevisionChanged();

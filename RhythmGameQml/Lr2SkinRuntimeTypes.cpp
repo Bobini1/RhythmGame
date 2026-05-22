@@ -273,6 +273,10 @@ bool readSource(const QVariant& value, Source& source) {
     if (value.canConvert<Lr2SrcImage>()) {
         const auto parsed = value.value<Lr2SrcImage>();
         source.valid = true;
+        source.x = parsed.x;
+        source.y = parsed.y;
+        source.w = parsed.w;
+        source.h = parsed.h;
         source.divX = std::max(1, parsed.div_x);
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
@@ -288,7 +292,10 @@ bool readSource(const QVariant& value, Source& source) {
         source.sliderType = parsed.sliderType;
         source.sliderDisabled = parsed.sliderDisabled;
         source.sliderRefNumber = parsed.sliderRefNumber;
+        source.imageSet = parsed.imageSet;
         source.side = parsed.side;
+        source.specialType = parsed.specialType;
+        source.path = parsed.source;
         return true;
     }
 
@@ -296,21 +303,32 @@ bool readSource(const QVariant& value, Source& source) {
         const auto parsed = value.value<Lr2SrcNumber>();
         source.valid = true;
         source.num = parsed.num;
+        source.x = parsed.x;
+        source.y = parsed.y;
+        source.w = parsed.w;
+        source.h = parsed.h;
         source.divX = std::max(1, parsed.div_x);
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
         source.side = parsed.side;
+        source.path = parsed.source;
         return true;
     }
 
     if (value.canConvert<Lr2SrcBarGraph>()) {
         const auto parsed = value.value<Lr2SrcBarGraph>();
         source.valid = true;
+        source.x = parsed.x;
+        source.y = parsed.y;
+        source.w = parsed.w;
+        source.h = parsed.h;
         source.divX = std::max(1, parsed.div_x);
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.specialType = parsed.specialType;
+        source.path = parsed.source;
         return true;
     }
 
@@ -339,6 +357,10 @@ bool readSource(const QVariant& value, Source& source) {
         source.valid = true;
         source.num = mapInt(map, QStringLiteral("num"), 0);
         source.st = mapInt(map, QStringLiteral("st"), 0);
+        source.x = mapInt(map, QStringLiteral("x"), 0);
+        source.y = mapInt(map, QStringLiteral("y"), 0);
+        source.w = mapInt(map, QStringLiteral("w"), 0);
+        source.h = mapInt(map, QStringLiteral("h"), 0);
         source.divX = std::max(1, mapInt(map, QStringLiteral("div_x"), 1));
         source.divY = std::max(1, mapInt(map, QStringLiteral("div_y"), 1));
         source.cycle = mapInt(map, QStringLiteral("cycle"), 0);
@@ -354,9 +376,12 @@ bool readSource(const QVariant& value, Source& source) {
         source.sliderType = mapInt(map, QStringLiteral("sliderType"), 0);
         source.sliderDisabled = mapInt(map, QStringLiteral("sliderDisabled"), 0);
         source.sliderRefNumber = mapBool(map, QStringLiteral("sliderRefNumber"), false);
+        source.imageSet = mapBool(map, QStringLiteral("imageSet"), false);
         source.side = mapInt(map, QStringLiteral("side"), 0);
         source.hasKind = mapHas(map, QStringLiteral("kind"));
         source.kind = mapInt(map, QStringLiteral("kind"), 0);
+        source.specialType = mapInt(map, QStringLiteral("specialType"), 0);
+        source.path = map.value(QStringLiteral("source")).toString();
         return true;
     }
 
@@ -372,6 +397,10 @@ bool readSource(const QVariant& value, Source& source) {
     source.valid = true;
     source.num = jsInt(jsValue, QStringLiteral("num"), 0);
     source.st = jsInt(jsValue, QStringLiteral("st"), 0);
+    source.x = jsInt(jsValue, QStringLiteral("x"), 0);
+    source.y = jsInt(jsValue, QStringLiteral("y"), 0);
+    source.w = jsInt(jsValue, QStringLiteral("w"), 0);
+    source.h = jsInt(jsValue, QStringLiteral("h"), 0);
     source.divX = std::max(1, jsInt(jsValue, QStringLiteral("div_x"), 1));
     source.divY = std::max(1, jsInt(jsValue, QStringLiteral("div_y"), 1));
     source.cycle = jsInt(jsValue, QStringLiteral("cycle"), 0);
@@ -387,9 +416,15 @@ bool readSource(const QVariant& value, Source& source) {
     source.sliderType = jsInt(jsValue, QStringLiteral("sliderType"), 0);
     source.sliderDisabled = jsInt(jsValue, QStringLiteral("sliderDisabled"), 0);
     source.sliderRefNumber = jsBool(jsValue, QStringLiteral("sliderRefNumber"), false);
+    source.imageSet = jsBool(jsValue, QStringLiteral("imageSet"), false);
     source.side = jsInt(jsValue, QStringLiteral("side"), 0);
     source.hasKind = jsHas(jsValue, QStringLiteral("kind"));
     source.kind = jsInt(jsValue, QStringLiteral("kind"), 0);
+    source.specialType = jsInt(jsValue, QStringLiteral("specialType"), 0);
+    const QJSValue sourcePath = jsValue.property(QStringLiteral("source"));
+    source.path = sourcePath.isUndefined() || sourcePath.isNull()
+        ? QString {}
+        : sourcePath.toString();
     return true;
 }
 

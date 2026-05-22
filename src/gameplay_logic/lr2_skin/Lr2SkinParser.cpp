@@ -949,7 +949,7 @@ sourceForGr(const int gr,
     }
     if (gr >= 0 && gr < state.images.size()) {
         const auto source = state.images[gr];
-        if (source.isEmpty() && w <= 1 && h <= 1) {
+        if (source.isEmpty() && w >= 0 && h >= 0 && w <= 1 && h <= 1) {
             return { Lr2SrcImage::SolidBlack, {} };
         }
         return { Lr2SrcImage::None, source };

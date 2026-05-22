@@ -160,6 +160,10 @@ Item {
         || Math.abs(root.tintG - 1.0) > 0.001
         || Math.abs(root.tintB - 1.0) > 0.001
     readonly property color tintColor: Qt.rgba(root.tintR, root.tintG, root.tintB, 1.0)
+    readonly property bool useFastImagePath: root.hasDrawableTexture
+        && root.hasCroppedTextureSource
+        && root.blendMode === 1
+        && !root.hasColorTint
     readonly property bool usesScratchRotation: hasCurrentState
         && (root.stateOp4 === 1 || root.stateOp4 === 2)
     function centerAnchor(idx: var) : var {
@@ -192,6 +196,10 @@ Item {
         && root.drawW > 0
         && root.drawH > 0
     readonly property bool shouldPlayVideo: root.mediaActive
+        && root.visible
+        && root.opacity > 0
+        && root.width > 0
+        && root.height > 0
         && root.hasDrawableVideo
         && root.hasRenderableState
 
@@ -256,8 +264,8 @@ Item {
         timers: root.timers
         timerFire: root.sourceTimerFire
         frameOverride: root.frameOverride
-        textureWidth: Math.max(0, atlasImage.implicitWidth)
-        textureHeight: Math.max(0, atlasImage.implicitHeight)
+        textureWidth: Math.max(0, root.useFastImagePath ? 0 : atlasImage.implicitWidth)
+        textureHeight: Math.max(0, root.useFastImagePath ? 0 : atlasImage.implicitHeight)
     }
 
     Item {
@@ -301,6 +309,8 @@ Item {
 
                 function stopVideo() : void {
                     videoPlayer.stop();
+                    videoPlayer.videoOutput = null;
+                    videoPlayer.source = "";
                 }
 
                 VideoOutput {
@@ -309,17 +319,10 @@ Item {
                     fillMode: VideoOutput.Stretch
                 }
 
-                AudioOutput {
-                    id: videoAudio
-                    muted: true
-                    volume: 0
-                }
-
                 MediaPlayer {
                     id: videoPlayer
                     source: root.shouldPlayVideo ? root.resolvedSource : ""
                     videoOutput: videoOutput
-                    audioOutput: videoAudio
                     loops: MediaPlayer.Infinite
                 }
 
@@ -329,19 +332,32 @@ Item {
         }
 
         Image {
-            id: atlasImage
-            source: root.hasDrawableTexture ? root.resolvedSource : ""
+            id: fastImage
+            anchors.fill: parent
+            source: root.hasDrawableTexture && root.useFastImagePath ? root.resolvedSource : ""
+            sourceClipRect: root.animationFrameState.sourceClipRect
+            fillMode: Image.Stretch
             cache: true
-            asynchronous: !!root.srcData
-                && (root.srcData.specialType === 1
-                    || root.srcData.specialType === 3
-                    || root.srcData.specialType === 4)
+            asynchronous: true
+            retainWhileLoading: true
+            smooth: root.hasCurrentState && root.stateFilter !== 0
+            mipmap: false
+            visible: root.useFastImagePath && status === Image.Ready
+        }
+
+        Image {
+            id: atlasImage
+            source: root.hasDrawableTexture && !root.useFastImagePath ? root.resolvedSource : ""
+            cache: true
+            asynchronous: true
+            retainWhileLoading: true
+            mipmap: false
             visible: false
         }
 
         ShaderEffect {
             anchors.fill: parent
-            visible: root.hasDrawableTexture && atlasImage.status === Image.Ready
+            visible: root.hasDrawableTexture && !root.useFastImagePath && atlasImage.status === Image.Ready
             blending: true
             supportsAtlasTextures: true
             property var source: atlasImage

@@ -23,7 +23,8 @@ Item {
     readonly property string backBmpSource: rootReady ? selectContext.visualBackBmpSource : ""
     readonly property string bannerSource: rootReady ? selectContext.visualBannerSource : ""
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
-    readonly property bool selectScreenActive: screenUpdatesActive && root.effectiveScreenKey === "select"
+    readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
+    readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
     readonly property int liveGameplayRhythmTimer: rootReady
         && root.gameplayScreenActive
         && root.gameplayFrameStateRef
@@ -387,6 +388,7 @@ Item {
                     Component {
                         id: imageComponent
                         Item {
+                            id: imageComponentRoot
                             width: skinW * skinScale
                             height: skinH * skinScale
                             readonly property int manualClock: 0
@@ -438,47 +440,47 @@ Item {
                                 anchors.fill: parent
                                 dsts: elemLoader.elementData.dsts
                                 srcData: root.imageSetSourceFor(elemLoader.elementData.src)
-                                skinTime: parent.useDirectSkinClock ? 0 : parent.spriteSkinClock
-                                sourceSkinTime: parent.useDirectSkinClock ? 0 : parent.spriteSourceSkinClock
-                                skinClock: parent.useDirectSkinClock ? root.skinClockRef : null
-                                skinClockMode: parent.spriteSkinClockMode
-                                sourceSkinClockMode: parent.spriteSourceSkinClockMode
+                                skinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSkinClock
+                                sourceSkinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSourceSkinClock
+                                skinClock: imageComponentRoot.useDirectSkinClock ? root.skinClockRef : null
+                                skinClockMode: imageComponentRoot.spriteSkinClockMode
+                                sourceSkinClockMode: imageComponentRoot.spriteSourceSkinClockMode
                                 activeOptionsState: elemLoader.elementActiveOptionsState
                                 timerFire: elemLoader.dstTimerFire
                                 sourceTimerFire: elemLoader.srcTimerFire
                                 chartAssetSource: sceneRoot.chartAssetSourceFor(elemLoader.elementData.src)
                                 scaleOverride: skinScale
-                                mediaActive: root.enabled
+                                mediaActive: root.enabled && sceneRoot.screenUpdatesActive
                                 transColor: skinModel.transColor
                                 colorKeyEnabled: skinModel.hasTransColor
                                 screenRoot: sceneRoot.root
-                                offsetX: parent.nowJudgeOffsetX
-                                frameOverride: parent.buttonFrameOverrideValue >= 0
-                                    ? parent.buttonFrameOverrideValue
+                                offsetX: imageComponentRoot.nowJudgeOffsetX
+                                frameOverride: imageComponentRoot.buttonFrameOverrideValue >= 0
+                                    ? imageComponentRoot.buttonFrameOverrideValue
                                     : -1
-                                sliderTranslationEnabled: parent.sliderTranslationEnabled
-                                sliderPosition: parent.sliderPosition
+                                sliderTranslationEnabled: imageComponentRoot.sliderTranslationEnabled
+                                sliderPosition: imageComponentRoot.sliderPosition
                                 sliderRange: elemLoader.elementData.src ? elemLoader.elementData.src.sliderRange || 0 : 0
                                 sliderDirection: elemLoader.elementData.src ? elemLoader.elementData.src.sliderDirection || 0 : 0
-                                dstOffsetsEnabled: parent.dstOffsetsEnabled
-                                dstOffsetLiftY: parent.dstOffsetSide === 2
+                                dstOffsetsEnabled: imageComponentRoot.dstOffsetsEnabled
+                                dstOffsetLiftY: imageComponentRoot.dstOffsetSide === 2
                                     ? root.gameplayDstOffsetLiftY2
                                     : root.gameplayDstOffsetLiftY1
-                                dstOffsetLaneCoverY: parent.dstOffsetSide === 2
+                                dstOffsetLaneCoverY: imageComponentRoot.dstOffsetSide === 2
                                     ? root.gameplayDstOffsetLaneCoverY2
                                     : root.gameplayDstOffsetLaneCoverY1
-                                dstOffsetHiddenY: parent.dstOffsetSide === 2
+                                dstOffsetHiddenY: imageComponentRoot.dstOffsetSide === 2
                                     ? root.gameplayDstOffsetHiddenY2
                                     : root.gameplayDstOffsetHiddenY1
-                                dstOffsetHiddenA: parent.dstOffsetSide === 2
+                                dstOffsetHiddenA: imageComponentRoot.dstOffsetSide === 2
                                     ? root.gameplayDstOffsetHiddenA2
                                     : root.gameplayDstOffsetHiddenA1
                                 forceHidden: (elemLoader.usesSpriteForceHidden
                                         ? root.spriteForceHidden(elemLoader.elementData.src, elemLoader.elementIndex)
                                         : false)
-                                    || parent.buttonFrameOverrideValue < -1
-                                scratchAngle1: parent.scratchRotationSide === 1 ? playContext.scratchAngle1 : 0
-                                scratchAngle2: parent.scratchRotationSide === 2 ? playContext.scratchAngle2 : 0
+                                    || imageComponentRoot.buttonFrameOverrideValue < -1
+                                scratchAngle1: imageComponentRoot.scratchRotationSide === 1 ? playContext.scratchAngle1 : 0
+                                scratchAngle2: imageComponentRoot.scratchRotationSide === 2 ? playContext.scratchAngle2 : 0
                             }
                         }
                     }
@@ -550,11 +552,14 @@ Item {
                             anchors.fill: parent
                             dsts: elemLoader.elementData.dsts
                             srcData: elemLoader.elementData.src
-                            skinTime: elemLoader.elementSkinTime
+                            skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
+                            skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
+                            skinClockMode: elemLoader.elementSkinClockMode
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             scaleOverride: skinScale
                             chart: root.visualSelectChart
+                            chartRevision: root.selectChartContentRevision
                         }
                     }
 
@@ -564,11 +569,14 @@ Item {
                             anchors.fill: parent
                             dsts: elemLoader.elementData.dsts
                             srcData: elemLoader.elementData.src
-                            skinTime: elemLoader.elementSkinTime
+                            skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
+                            skinClock: elemLoader.useDirectElementSkinClock ? root.skinClockRef : null
+                            skinClockMode: elemLoader.elementSkinClockMode
                             activeOptionsState: elemLoader.elementActiveOptionsState
                             timerFire: elemLoader.dstTimerFire
                             scaleOverride: skinScale
                             chart: root.visualSelectChart
+                            chartRevision: root.selectChartContentRevision
                         }
                     }
 
@@ -683,9 +691,11 @@ Item {
                         id: barImageComponent
                         Lr2BarSpriteRenderer {
                             readonly property bool sourceAnimates: sceneRoot.sourceTreeCyclesContinuously(elemLoader.elementData.src, 0)
+                            readonly property bool needsTimelineSkinTime: elemLoader.elementData.src
+                                && elemLoader.elementData.src.kind >= 2
                             dsts: elemLoader.elementData.dsts
                             srcData: elemLoader.elementData.src
-                            skinTime: root.barSkinTime
+                            skinTime: needsTimelineSkinTime ? root.barSkinTime : 0
                             sourceSkinTime: 0
                             skinClock: sourceAnimates ? root.skinClockRef : null
                             sourceSkinClockMode: sourceAnimates

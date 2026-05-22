@@ -48,9 +48,11 @@ public:
     qreal fastScrollDy() const;
     Q_INVOKABLE int stateCount() const;
     Q_INVOKABLE QVariant stateAt(int row) const;
+    Q_INVOKABLE bool stateNeedsInterpolationAt(int row) const;
+    Q_INVOKABLE QVariant positionlessStateAt(int row) const;
     bool stateValidAt(int row) const;
-    qreal stateXAt(int row) const;
-    qreal stateYAt(int row) const;
+    Q_INVOKABLE qreal stateXAt(int row) const;
+    Q_INVOKABLE qreal stateYAt(int row) const;
 
 signals:
     void barRowsChanged();

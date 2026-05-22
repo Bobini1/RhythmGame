@@ -182,6 +182,7 @@ void Lr2TimelineState::setActiveOptions(const QVariant& options) {
     emit activeOptionsChanged();
     if (!m_activeOptionsState) {
         rebuildActiveOptionSet();
+        emit analysisChanged();
         updateState();
     }
 }
@@ -409,7 +410,7 @@ bool Lr2TimelineState::canUseStaticState() const {
 }
 
 QVariant Lr2TimelineState::staticState() const {
-    if (!m_canUseStaticState || m_dsts.isEmpty()) {
+    if (!m_canUseStaticState || m_dsts.isEmpty() || !allOpsMatch(m_dsts.front())) {
         return {};
     }
     return stateToVariant(copyDstAsState(m_dsts.front(), m_dsts.front()));
@@ -613,6 +614,7 @@ void Lr2TimelineState::reconnectActiveOptionsState() {
 void Lr2TimelineState::activeOptionsStateDidChange() {
     rebuildActiveOptionSet();
     emit activeOptionsChanged();
+    emit analysisChanged();
     updateState();
 }
 

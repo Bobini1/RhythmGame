@@ -1,6 +1,7 @@
 #include "Lr2BarDistributionGraphItem.h"
 
 #include "Lr2SelectBarCell.h"
+#include "Lr2SkinClock.h"
 
 #include <QImageReader>
 #include <QMatrix4x4>
@@ -21,6 +22,14 @@
 namespace {
 
 constexpr int uniformSize = 112;
+constexpr int manualClock = 0;
+constexpr int renderClock = 1;
+constexpr int selectSourceClock = 2;
+constexpr int barClock = 3;
+constexpr int globalClock = 4;
+constexpr int selectLiveClock = 5;
+constexpr int selectInfoClock = 6;
+constexpr int timerFireUnset = -2147483648;
 
 struct GraphVertex {
     float x;
@@ -379,7 +388,71 @@ void Lr2BarDistributionGraphItem::setSrcData(const QVariant& value) {
     m_srcData = value;
     parseSource();
     emit srcDataChanged();
+    refreshAnimationFrameBase();
     requestSceneUpdate();
+}
+
+QObject* Lr2BarDistributionGraphItem::skinClock() const {
+    return m_skinClock;
+}
+
+void Lr2BarDistributionGraphItem::setSkinClock(QObject* value) {
+    auto* clock = qobject_cast<Lr2SkinClock*>(value);
+    if (m_skinClock == clock) {
+        return;
+    }
+
+    m_skinClock = clock;
+    reconnectClock();
+    emit skinClockChanged();
+    refreshAnimationFrameBase();
+}
+
+int Lr2BarDistributionGraphItem::sourceSkinClockMode() const {
+    return m_sourceSkinClockMode;
+}
+
+void Lr2BarDistributionGraphItem::setSourceSkinClockMode(int value) {
+    value = std::clamp(value, manualClock, selectInfoClock);
+    if (m_sourceSkinClockMode == value) {
+        return;
+    }
+
+    m_sourceSkinClockMode = value;
+    reconnectClock();
+    emit sourceSkinClockModeChanged();
+    refreshAnimationFrameBase();
+}
+
+int Lr2BarDistributionGraphItem::sourceSkinTime() const {
+    return m_sourceSkinTime;
+}
+
+void Lr2BarDistributionGraphItem::setSourceSkinTime(int value) {
+    value = std::max(0, value);
+    if (m_sourceSkinTime == value) {
+        return;
+    }
+
+    m_sourceSkinTime = value;
+    emit sourceSkinTimeChanged();
+    if (m_sourceSkinClockMode == manualClock) {
+        refreshAnimationFrameBase();
+    }
+}
+
+int Lr2BarDistributionGraphItem::sourceTimerFire() const {
+    return m_sourceTimerFire;
+}
+
+void Lr2BarDistributionGraphItem::setSourceTimerFire(int value) {
+    if (m_sourceTimerFire == value) {
+        return;
+    }
+
+    m_sourceTimerFire = value;
+    emit sourceTimerFireChanged();
+    refreshAnimationFrameBase();
 }
 
 QVariant Lr2BarDistributionGraphItem::stateData() const {
@@ -405,6 +478,7 @@ void Lr2BarDistributionGraphItem::setSourceGraphType(int value) {
     }
     m_source.graphType = value;
     emit sourceFieldsChanged();
+    refreshAnimationFrameBase();
     requestSceneUpdate();
 }
 
@@ -485,6 +559,7 @@ void Lr2BarDistributionGraphItem::setSourceDivX(int value) {
     }
     m_source.divX = next;
     emit sourceFieldsChanged();
+    refreshAnimationFrameBase();
     requestSceneUpdate();
 }
 
@@ -499,6 +574,7 @@ void Lr2BarDistributionGraphItem::setSourceDivY(int value) {
     }
     m_source.divY = next;
     emit sourceFieldsChanged();
+    refreshAnimationFrameBase();
     requestSceneUpdate();
 }
 
@@ -646,6 +722,8 @@ void Lr2BarDistributionGraphItem::setChartAssetSource(const QString& value) {
 
 void Lr2BarDistributionGraphItem::parseSource() {
     if (!m_srcData.isValid() || m_srcData.isNull()) {
+        m_source = {};
+        m_sourcePath.clear();
         loadSourceImage();
         return;
     }
@@ -658,6 +736,8 @@ void Lr2BarDistributionGraphItem::parseSource() {
     m_source.h = toReal(valueProperty(m_srcData, "h"));
     m_source.divX = std::max(1, toInt(valueProperty(m_srcData, "div_x"), 1));
     m_source.divY = std::max(1, toInt(valueProperty(m_srcData, "div_y"), 1));
+    m_source.cycle = toInt(valueProperty(m_srcData, "cycle"));
+    m_source.timer = toInt(valueProperty(m_srcData, "timer"));
     m_sourcePath = valueProperty(m_srcData, "source").toString();
     loadSourceImage();
 }
@@ -716,6 +796,122 @@ void Lr2BarDistributionGraphItem::reconnectCells() {
             this,
             &Lr2BarDistributionGraphItem::requestSceneUpdate));
     }
+}
+
+void Lr2BarDistributionGraphItem::reconnectClock() {
+    if (m_clockConnection) {
+        disconnect(m_clockConnection);
+        m_clockConnection = {};
+    }
+    if (!m_skinClock || m_sourceSkinClockMode == manualClock) {
+        return;
+    }
+
+    switch (m_sourceSkinClockMode) {
+    case renderClock:
+        m_clockConnection = connect(
+            m_skinClock,
+            &Lr2SkinClock::renderSkinTimeChanged,
+            this,
+            &Lr2BarDistributionGraphItem::refreshAnimationFrameBase);
+        break;
+    case selectSourceClock:
+        m_clockConnection = connect(
+            m_skinClock,
+            &Lr2SkinClock::selectSourceSkinTimeChanged,
+            this,
+            &Lr2BarDistributionGraphItem::refreshAnimationFrameBase);
+        break;
+    case barClock:
+        m_clockConnection = connect(
+            m_skinClock,
+            &Lr2SkinClock::barSkinTimeChanged,
+            this,
+            &Lr2BarDistributionGraphItem::refreshAnimationFrameBase);
+        break;
+    case globalClock:
+        m_clockConnection = connect(
+            m_skinClock,
+            &Lr2SkinClock::globalSkinTimeChanged,
+            this,
+            &Lr2BarDistributionGraphItem::refreshAnimationFrameBase);
+        break;
+    case selectLiveClock:
+        m_clockConnection = connect(
+            m_skinClock,
+            &Lr2SkinClock::selectLiveSkinTimeChanged,
+            this,
+            &Lr2BarDistributionGraphItem::refreshAnimationFrameBase);
+        break;
+    case selectInfoClock:
+        m_clockConnection = connect(
+            m_skinClock,
+            &Lr2SkinClock::selectInfoElapsedChanged,
+            this,
+            &Lr2BarDistributionGraphItem::refreshAnimationFrameBase);
+        break;
+    default:
+        break;
+    }
+}
+
+void Lr2BarDistributionGraphItem::refreshAnimationFrameBase() {
+    const int next = computedFrameOverrideBase();
+    if (m_frameOverrideBase == next) {
+        return;
+    }
+
+    m_frameOverrideBase = next;
+    emit frameOverrideBaseChanged();
+    requestSceneUpdate();
+}
+
+int Lr2BarDistributionGraphItem::sourceClockSkinTime() const {
+    if (!m_skinClock || m_sourceSkinClockMode == manualClock) {
+        return m_sourceSkinTime;
+    }
+
+    switch (m_sourceSkinClockMode) {
+    case renderClock:
+        return m_skinClock->renderSkinTime();
+    case selectSourceClock:
+        return m_skinClock->selectSourceSkinTime();
+    case barClock:
+        return m_skinClock->barSkinTime();
+    case globalClock:
+        return m_skinClock->globalSkinTime();
+    case selectLiveClock:
+        return m_skinClock->selectLiveSkinTime();
+    case selectInfoClock:
+        return m_skinClock->selectInfoElapsed();
+    default:
+        return m_sourceSkinTime;
+    }
+}
+
+int Lr2BarDistributionGraphItem::computedFrameOverrideBase() const {
+    const int segmentCount = m_source.graphType == 0 ? 11 : 28;
+    const int frameCount = std::max(1, m_source.divX * m_source.divY);
+    const int animationGroups = std::max(1, frameCount / segmentCount);
+    if (animationGroups <= 1 || m_source.cycle <= 0) {
+        return 0;
+    }
+
+    const qreal timerFire = m_sourceTimerFire > timerFireUnset
+        ? static_cast<qreal>(m_sourceTimerFire)
+        : (m_source.timer == 0 ? 0.0 : -1.0);
+    const qreal animTime = static_cast<qreal>(sourceClockSkinTime()) - timerFire;
+    const qreal msPerFrame = static_cast<qreal>(m_source.cycle) / animationGroups;
+    if (timerFire < 0.0 || animTime < 0.0 || msPerFrame < 1.0) {
+        return 0;
+    }
+
+    const qreal phase = std::fmod(animTime, static_cast<qreal>(m_source.cycle));
+    const int group = std::clamp(
+        static_cast<int>(std::floor(phase / msPerFrame)),
+        0,
+        animationGroups - 1);
+    return group * segmentCount;
 }
 
 void Lr2BarDistributionGraphItem::requestSceneUpdate() {

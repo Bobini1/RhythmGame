@@ -24,7 +24,7 @@ QtObject {
         : 0
     property int selectPanelCloseElapsed: 0
     property bool selectPanelCloseFinished: false
-    readonly property int selectHeldButtonSkinTime: controller.currentSelectHeldButtonSkinTime()
+    property int selectHeldButtonSkinTime: 0
     property var selectHeldButtonTimerStarts: ({})
     readonly property bool hasSelectHeldButtonTimers: Object.keys(controller.selectHeldButtonTimerStarts).length > 0
     readonly property int selectTargetScratchInitialRepeatMillis: 300
@@ -93,13 +93,27 @@ QtObject {
     onHeldOptionPanelChanged: controller.updateHeldOptionPanel()
     onAnyStartHeldChanged: controller.handleGameplayOptionModifierChanged()
     onAnySelectHeldChanged: controller.handleGameplayOptionModifierChanged()
+    onHasSelectHeldButtonTimersChanged: controller.updateSelectHeldButtonSkinTime()
 
     property Connections selectPanelClockConnection: Connections {
         target: controller.root || null
         enabled: !!controller.root
+            && (controller.selectPanel > 0
+                || controller.selectPanelClosing > 0
+                || controller.hasSelectHeldButtonTimers)
 
         function onSelectLiveSkinTimeChanged() : void {
             controller.updateSelectPanelCloseProgress();
+            if (controller.hasSelectHeldButtonTimers) {
+                controller.updateSelectHeldButtonSkinTime();
+            }
+        }
+    }
+
+    function updateSelectHeldButtonSkinTime() : void {
+        let next = controller.hasSelectHeldButtonTimers ? controller.currentSelectHeldButtonSkinTime() : 0;
+        if (controller.selectHeldButtonSkinTime !== next) {
+            controller.selectHeldButtonSkinTime = next;
         }
     }
 
@@ -635,7 +649,7 @@ QtObject {
         for (let keyName in starts) {
             copy[keyName] = starts[keyName];
         }
-        copy[timer] = root.selectHeldButtonSkinTime;
+        copy[timer] = root.currentSelectHeldButtonSkinTime();
         root.selectHeldButtonTimerStarts = copy;
     }
 

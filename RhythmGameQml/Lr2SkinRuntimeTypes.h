@@ -57,6 +57,10 @@ struct Source {
     bool valid = false;
     int num = 0;
     int st = 0;
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = 0;
     int divX = 1;
     int divY = 1;
     int cycle = 0;
@@ -72,9 +76,12 @@ struct Source {
     int sliderType = 0;
     int sliderDisabled = 0;
     bool sliderRefNumber = false;
+    bool imageSet = false;
     int side = 0;
     bool hasKind = false;
     int kind = 0;
+    int specialType = 0;
+    QString path;
 };
 
 struct State {

@@ -4,6 +4,7 @@
 
 #include <QColor>
 #include <QImage>
+#include <QMetaObject>
 #include <QPointer>
 #include <QQuickItem>
 #include <QVariant>
@@ -11,11 +12,16 @@
 #include <QtQml/qqmlregistration.h>
 
 class Lr2SelectBarCell;
+class Lr2SkinClock;
 
 class Lr2BarDistributionGraphItem : public QQuickItem {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QVariant srcData READ srcData WRITE setSrcData NOTIFY srcDataChanged)
+    Q_PROPERTY(QObject* skinClock READ skinClock WRITE setSkinClock NOTIFY skinClockChanged)
+    Q_PROPERTY(int sourceSkinClockMode READ sourceSkinClockMode WRITE setSourceSkinClockMode NOTIFY sourceSkinClockModeChanged)
+    Q_PROPERTY(int sourceSkinTime READ sourceSkinTime WRITE setSourceSkinTime NOTIFY sourceSkinTimeChanged)
+    Q_PROPERTY(int sourceTimerFire READ sourceTimerFire WRITE setSourceTimerFire NOTIFY sourceTimerFireChanged)
     Q_PROPERTY(QVariant stateData READ stateData WRITE setStateData NOTIFY stateDataChanged)
     Q_PROPERTY(int sourceGraphType READ sourceGraphType WRITE setSourceGraphType NOTIFY sourceFieldsChanged)
     Q_PROPERTY(int sourceSpecialType READ sourceSpecialType WRITE setSourceSpecialType NOTIFY sourceFieldsChanged)
@@ -40,6 +46,18 @@ public:
 
     QVariant srcData() const;
     void setSrcData(const QVariant& value);
+
+    QObject* skinClock() const;
+    void setSkinClock(QObject* value);
+
+    int sourceSkinClockMode() const;
+    void setSourceSkinClockMode(int value);
+
+    int sourceSkinTime() const;
+    void setSourceSkinTime(int value);
+
+    int sourceTimerFire() const;
+    void setSourceTimerFire(int value);
 
     QVariant stateData() const;
     void setStateData(const QVariant& value);
@@ -94,6 +112,10 @@ public:
 
 signals:
     void srcDataChanged();
+    void skinClockChanged();
+    void sourceSkinClockModeChanged();
+    void sourceSkinTimeChanged();
+    void sourceTimerFireChanged();
     void stateDataChanged();
     void sourceFieldsChanged();
     void barCellsChanged();
@@ -117,15 +139,26 @@ private:
         qreal h = 0.0;
         int divX = 1;
         int divY = 1;
+        int cycle = 0;
+        int timer = 0;
     };
 
     void parseSource();
     void loadSourceImage();
     QString resolvedSource() const;
     void reconnectCells();
+    void reconnectClock();
     void requestSceneUpdate();
+    void refreshAnimationFrameBase();
+    int sourceClockSkinTime() const;
+    int computedFrameOverrideBase() const;
 
     QVariant m_srcData;
+    QPointer<Lr2SkinClock> m_skinClock;
+    QMetaObject::Connection m_clockConnection;
+    int m_sourceSkinClockMode = 0;
+    int m_sourceSkinTime = 0;
+    int m_sourceTimerFire = -2147483648;
     QVariant m_stateData;
     QVariantList m_barCellsValue;
     QVector<QPointer<Lr2SelectBarCell>> m_barCells;

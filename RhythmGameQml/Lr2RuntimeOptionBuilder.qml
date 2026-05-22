@@ -72,6 +72,20 @@ QtObject {
         return result;
     }
 
+    function cloneOptionList(options: var) : var {
+        let result = [];
+        let source = options || [];
+        let length = source.length || 0;
+        result.length = 0;
+        for (let i = 0; i < length; ++i) {
+            let option = source[i];
+            if (option !== undefined && option !== null) {
+                result.push(option);
+            }
+        }
+        return root.finalizeOptionList(result);
+    }
+
     function appendCommonRuntimeOptions(options: var) : void {
         let vars = host.mainGeneralVars();
         root.addOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
@@ -683,7 +697,9 @@ QtObject {
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
             ? skinModel.effectiveActiveOptions
             : host.parseActiveOptions;
-        for (let option of staticOptions) {
+        let length = staticOptions ? staticOptions.length || 0 : 0;
+        for (let i = 0; i < length; ++i) {
+            let option = staticOptions[i];
             if (!root.runtimeOwnsOptionPair(option)) {
                 root.addOption(result, option);
             }
@@ -702,7 +718,7 @@ QtObject {
     }
 
     function buildBarActiveOptions() : var {
-        let result = root.finalizeOptionList([]);
+        let result = root.cloneOptionList([]);
         root.appendStaticSelectOptions(result);
         root.addOption(result, selectContext.rankingMode ? 621 : 620);
         return result;
@@ -726,13 +742,14 @@ QtObject {
 
     function buildBaseActiveOptions(barOptions: var) : var {
         let result = host.effectiveScreenKey === "select"
-            ? root.finalizeOptionList((barOptions || host.barActiveOptions).slice())
+            ? root.cloneOptionList(barOptions || host.barActiveOptions)
             : root.finalizeOptionList([]);
         if (host.effectiveScreenKey !== "select") {
             root.appendParserActiveOptions(result);
             return result;
         }
 
+        root.appendStaticSelectOptions(result);
         root.addOption(result, 622); // not ghost battle
         root.addOption(result, 624); // not rival compare
         root.appendPanelOptions(result);
@@ -741,7 +758,7 @@ QtObject {
     }
 
     function buildSelectCommonActiveOptions(baseOptions: var) : var {
-        let result = root.finalizeOptionList((baseOptions || []).slice());
+        let result = root.cloneOptionList(baseOptions);
         root.appendCommonRuntimeOptions(result);
         return result;
     }
@@ -760,7 +777,7 @@ QtObject {
             return root.buildSelectRuntimeActiveOptions(root.buildSelectCommonActiveOptions(baseOptions));
         }
 
-        let result = root.finalizeOptionList(baseOptions.slice());
+        let result = root.cloneOptionList(baseOptions);
         if (host.effectiveScreenKey === "decide") {
             root.appendCommonRuntimeOptions(result);
             root.appendDecideOptions(result);

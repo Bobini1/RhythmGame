@@ -629,8 +629,9 @@ bool Lr2SkinTimerState::canCacheSelectTimerFire(int timer) const {
 }
 
 int Lr2SkinTimerState::cachedSelectTimerFireTime(int timer, bool liveClock) {
-    if (m_cacheFrame != m_globalSkinTime || m_cacheEpochSnapshot != m_cacheEpoch) {
-        resetFrameCache();
+    const int cacheFrame = selectTimerCacheFrame(liveClock);
+    if (m_cacheFrame != cacheFrame || m_cacheEpochSnapshot != m_cacheEpoch) {
+        resetFrameCache(cacheFrame);
     }
     const int cacheIndex = cacheIndexForTimer(timer, liveClock);
     if (cacheIndex < 0) {
@@ -714,6 +715,10 @@ QHash<int, int> Lr2SkinTimerState::initialGameplayTimerValues() const {
     return result;
 }
 
+int Lr2SkinTimerState::selectTimerCacheFrame(bool liveClock) const {
+    return liveClock ? m_selectSourceSkinTime : m_renderSkinTime;
+}
+
 int Lr2SkinTimerState::cacheIndexForTimer(int timer, bool liveClock) const {
     int timerOffset = -1;
     switch (timer) {
@@ -738,8 +743,8 @@ int Lr2SkinTimerState::cacheIndexForTimer(int timer, bool liveClock) const {
     return (liveClock ? 5 : 0) + timerOffset;
 }
 
-void Lr2SkinTimerState::resetFrameCache() const {
-    m_cacheFrame = m_globalSkinTime;
+void Lr2SkinTimerState::resetFrameCache(int cacheFrame) const {
+    m_cacheFrame = cacheFrame;
     m_cacheEpochSnapshot = m_cacheEpoch;
     m_cacheValid.fill(false);
 }

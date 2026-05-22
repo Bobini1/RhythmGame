@@ -142,65 +142,27 @@ Item {
         return baseStateAt(row);
     }
 
-    function stateField(state: var, name: var, fallback: var) : var {
-        if (!state) {
-            return fallback;
-        }
-        let value = state[name];
-        return value === undefined || value === null ? fallback : value;
-    }
-
-    function sameStateField(a: var, b: var, name: var, fallback: var) : var {
-        return Math.abs(stateField(a, name, fallback) - stateField(b, name, fallback)) <= 0.001;
-    }
-
     function bodyNeedsStateInterpolation(row: var) : var {
         if (applyFastBarScroll) {
             return false;
         }
-
-        let fromState = baseStateAt(row);
-        let toState = row > 0 ? baseStateAt(row - 1) : null;
-        if (!fromState || !toState) {
-            return false;
-        }
-
-        return !sameStateField(fromState, toState, "w", 0)
-            || !sameStateField(fromState, toState, "h", 0)
-            || !sameStateField(fromState, toState, "a", 255)
-            || !sameStateField(fromState, toState, "r", 255)
-            || !sameStateField(fromState, toState, "g", 255)
-            || !sameStateField(fromState, toState, "b", 255)
-            || !sameStateField(fromState, toState, "angle", 0)
-            || !sameStateField(fromState, toState, "center", 0)
-            || !sameStateField(fromState, toState, "blend", 0)
-            || !sameStateField(fromState, toState, "filter", 0)
-            || !sameStateField(fromState, toState, "op4", 0);
+        root.barBaseStateRevision;
+        return barBaseStateResolver ? barBaseStateResolver.stateNeedsInterpolationAt(row) : false;
     }
 
-    function positionlessState(state: var) : var {
-        if (!state) {
-            return null;
-        }
-        return {
-            x: 0,
-            y: 0,
-            w: state.w,
-            h: state.h,
-            a: state.a,
-            r: state.r,
-            g: state.g,
-            b: state.b,
-            blend: state.blend,
-            filter: state.filter,
-            angle: state.angle,
-            center: state.center,
-            sortId: state.sortId,
-            op1: state.op1,
-            op2: state.op2,
-            op3: state.op3,
-            op4: state.op4
-        };
+    function positionlessStateAt(row: var) : var {
+        root.barBaseStateRevision;
+        return barBaseStateResolver ? barBaseStateResolver.positionlessStateAt(row) : null;
+    }
+
+    function baseStateXAt(row: var) : var {
+        root.barBaseStateRevision;
+        return barBaseStateResolver ? barBaseStateResolver.stateXAt(row) : 0;
+    }
+
+    function baseStateYAt(row: var) : var {
+        root.barBaseStateRevision;
+        return barBaseStateResolver ? barBaseStateResolver.stateYAt(row) : 0;
     }
 
     function baseStateAt(row: var) : var {
@@ -275,7 +237,6 @@ Item {
             id: bodyDelegate
 
             readonly property int bodyRow: modelData
-            readonly property var baseState: root.baseStateAt(bodyRow)
             readonly property bool needsStateInterpolation: root.bodyNeedsStateInterpolation(bodyRow)
             readonly property var bodyCell: root.cellData(bodyRow)
             readonly property var bodySource: {
@@ -288,14 +249,14 @@ Item {
                     || fallback;
             }
             readonly property bool bodySourceAnimates: root.sourceCyclesContinuously(bodySource)
-            readonly property var staticBodyState: root.positionlessState(baseState)
+            readonly property var staticBodyState: root.positionlessStateAt(bodyRow)
             readonly property var effectiveBodyState: needsStateInterpolation ? bodyInterpolatedState : staticBodyState
             positionMap: root.barPositionMap
             row: bodyDelegate.bodyRow
             scaleOverride: root.scaleOverride
             usePositionMap: !needsStateInterpolation && !root.applyFastBarScroll
-            fallbackX: !needsStateInterpolation && baseState ? baseState.x : 0
-            fallbackY: !needsStateInterpolation && baseState ? baseState.y : 0
+            fallbackX: !needsStateInterpolation ? root.baseStateXAt(bodyRow) : 0
+            fallbackY: !needsStateInterpolation ? root.baseStateYAt(bodyRow) : 0
             visible: !!effectiveBodyState
             width: root.width
             height: root.height

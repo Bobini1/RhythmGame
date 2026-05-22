@@ -191,7 +191,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         QQuickStyle::setStyle("FluentWinUI3");
-        QPixmapCache::setCacheLimit(256 * 1024);
+        QPixmapCache::setCacheLimit(512 * 1024);
         if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
         }

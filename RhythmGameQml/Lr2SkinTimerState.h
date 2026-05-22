@@ -214,8 +214,9 @@ private:
     int invokeHostInt(const char* method, const QVariant& arg1, const QVariant& arg2) const;
     int gameplayTimerValue(int timer) const;
     QHash<int, int> initialGameplayTimerValues() const;
+    int selectTimerCacheFrame(bool liveClock) const;
     int cacheIndexForTimer(int timer, bool liveClock) const;
-    void resetFrameCache() const;
+    void resetFrameCache(int cacheFrame) const;
     void bumpRevision();
     void bumpSelectInfoRevision();
     bool setInt(int& field, int value);
