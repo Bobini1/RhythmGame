@@ -295,8 +295,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             auto statement =
               db.createStatement("SELECT path FROM charts WHERE md5 = ?;");
             statement.bind(1, md5.toStdString());
-            return statement.executeAndGet<std::string>().transform(
-              support::utfStringToPath);
+            auto path = statement.executeAndGet<std::string>();
+            if (!path) {
+                return std::optional<std::filesystem::path>{};
+            }
+            return std::optional{ support::utfStringToPath(*path) };
         };
         auto chartLoader = qml_components::ChartLoader{
             &profileList,
