@@ -1,126 +1,88 @@
+include(Lr2/lr2_skin_sources.cmake)
+
+set(RHYTHM_GAME_QML_SOURCES
+        Rg.h
+        Rg.cpp
+        QmlForeignTypes.h
+)
+
+set(RHYTHM_GAME_QML_FILES
+        ContentFrame.qml
+        Log.qml
+        ColorChanger.qml
+)
+
+set(RHYTHM_GAME_QML_SHADERS
+        ColorChanger.frag
+)
+
 qt_add_library(RhythmGame_qml STATIC)
 target_link_libraries(RhythmGame_qml PUBLIC RhythmGame_lib)
-target_include_directories(RhythmGame_qml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(RhythmGame_qml PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 qt_policy(SET QTP0001 NEW)
+qt_policy(SET QTP0004 NEW)
+qt_policy(SET QTP0005 NEW)
 qt_add_qml_module(RhythmGame_qml
         URI RhythmGameQml
         VERSION 1.0
         SOURCES
-        Rg.h
-        Rg.cpp
-        QmlForeignTypes.h
-        Lr2TimelineState.h
-        Lr2TimelineState.cpp
-        Lr2AnimationFrameState.h
-        Lr2AnimationFrameState.cpp
-        Lr2GameplayFrameState.h
-        Lr2GameplayFrameState.cpp
-        Lr2BarPositionMap.h
-        Lr2BarPositionMap.cpp
-        Lr2BarBaseStateResolver.h
-        Lr2BarBaseStateResolver.cpp
-        Lr2BarPositionedItem.h
-        Lr2BarPositionedItem.cpp
-        Lr2BarTextItem.h
-        Lr2BarTextItem.cpp
-        Lr2BarInterpolatedState.h
-        Lr2BarInterpolatedState.cpp
-        Lr2SelectVisualState.h
-        Lr2SelectVisualState.cpp
-        Lr2SelectNavigationController.h
-        Lr2SelectNavigationController.cpp
-        Lr2SelectItemModel.h
-        Lr2SelectItemModel.cpp
-        Lr2SelectBarModel.h
-        Lr2SelectBarModel.cpp
-        Lr2SelectDetailState.h
-        Lr2SelectDetailState.cpp
-        Lr2ChartDataSnapshot.h
-        Lr2ChartDataSnapshot.cpp
-        Lr2SelectKeyNavigationFilter.h
-        Lr2SelectKeyNavigationFilter.cpp
-        Lr2SelectUpdateController.h
-        Lr2SelectUpdateController.cpp
-        Lr2SelectBarCell.h
-        Lr2SelectBarCell.cpp
-        Lr2SkinClock.h
-        Lr2SkinClock.cpp
-        Lr2SkinFrameDriver.h
-        Lr2SkinFrameDriver.cpp
-        Lr2SelectInfoTimerBridge.h
-        Lr2SelectInfoTimerBridge.cpp
-        Lr2SkinTimerState.h
-        Lr2SkinTimerState.cpp
-        Lr2SkinElementTimerState.h
-        Lr2SkinElementTimerState.cpp
-        Lr2SkinElementActiveOptionsState.h
-        Lr2SkinElementActiveOptionsState.cpp
-        Lr2SkinRuntimeTypes.h
-        Lr2SkinRuntimeTypes.cpp
-        Lr2SkinRuntime.h
-        Lr2SkinRuntime.cpp
-        Lr2SkinSliderGeometry.h
-        Lr2SkinSliderGeometry.cpp
-        Lr2BarDistributionGraphItem.h
-        Lr2BarDistributionGraphItem.cpp
-        Lr2BitmapFontTexture.h
-        Lr2BitmapFontTexture.cpp
+        ${RHYTHM_GAME_QML_SOURCES}
         QML_FILES
-        ContentFrame.qml
-        Log.qml
-        ColorChanger.qml
-        Lr2SkinScreenWrapper.qml
-        Lr2SkinScene.qml
-        Lr2SkinValueResolver.qml
-        Lr2SkinTiming.qml
-        Lr2WallClockState.qml
-        Lr2ScreenState.qml
-        Lr2ResultState.qml
-        Lr2RankingState.qml
-        Lr2SkinSettingsState.qml
-        Lr2OptionState.qml
-        Lr2SelectPanelController.qml
-        Lr2SkinSliderState.qml
-        Lr2SelectSearchState.qml
-        Lr2SelectBarGeometry.qml
-        Lr2SelectPointerController.qml
-        Lr2ReadmeState.qml
-        Lr2ReadmeTextElement.qml
-        Lr2ReadmePointerArea.qml
-        Lr2SelectHoverState.qml
-        Lr2SelectSideEffects.qml
-        Lr2RuntimeOptionBuilder.qml
-        Lr2SpriteRenderer.qml
-        Lr2FastSprite.qml
-        Lr2SkinCursor.qml
-        Lr2BgaRenderer.qml
-        Lr2TextElement.qml
-        Lr2TextRenderer.qml
-        Lr2BitmapFontText.qml
-        Lr2SystemFontText.qml
-        Lr2SelectContext.qml
-        Lr2PlayContext.qml
-        Lr2PlayNoteField.qml
-        Lr2GrooveGaugeRenderer.qml
-        Lr2NumberRenderer.qml
-        Lr2BarSpriteRenderer.qml
-        Lr2BarTextRenderer.qml
-        Lr2BarNumberRenderer.qml
-        Lr2BarGraphRenderer.qml
-        Lr2BarDistributionGraphRenderer.qml
-        Lr2ResultChartRenderer.qml
-        Lr2NoteChartRenderer.qml
-        Lr2BpmChartRenderer.qml
-        )
+        ${RHYTHM_GAME_QML_FILES}
+)
+
 qt6_add_shaders(RhythmGame_qml "shaders"
         BATCHABLE
         PREFIX
         "/"
         FILES
-        "ColorChanger.frag"
-        "Lr2AddBlend.frag"
-        "Lr2SpriteAtlas.frag"
-        "Lr2BarDistributionGraph.vert"
-        "Lr2BarDistributionGraph.frag"
-        "Lr2InvertBlend.frag"
+        ${RHYTHM_GAME_QML_SHADERS}
+)
+
+function(lr2_make_absolute_files out_var)
+    set(absolute_files)
+    foreach(relative_file IN LISTS ARGN)
+        list(APPEND absolute_files "${CMAKE_CURRENT_SOURCE_DIR}/${relative_file}")
+    endforeach()
+    set(${out_var} ${absolute_files} PARENT_SCOPE)
+endfunction()
+
+lr2_make_absolute_files(LR2_SKIN_SOURCES_ABSOLUTE ${LR2_SKIN_SOURCES})
+lr2_make_absolute_files(LR2_SKIN_QML_FILES_ABSOLUTE ${LR2_SKIN_QML_FILES})
+
+foreach(lr2_qml_file IN LISTS LR2_SKIN_QML_FILES_ABSOLUTE)
+    get_filename_component(lr2_qml_alias "${lr2_qml_file}" NAME)
+    set_source_files_properties("${lr2_qml_file}" PROPERTIES
+            QT_RESOURCE_ALIAS "${lr2_qml_alias}"
+    )
+endforeach()
+
+qt_add_library(RhythmGame_lr2_qml STATIC)
+target_link_libraries(RhythmGame_lr2_qml PUBLIC RhythmGame_lib)
+target_include_directories(RhythmGame_lr2_qml PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/Lr2
+)
+
+qt_add_qml_module(RhythmGame_lr2_qml
+        URI RhythmGameQml.Lr2
+        VERSION 1.0
+        OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Lr2"
+        DEPENDENCIES
+        TARGET RhythmGame_qml
+        SOURCES
+        ${LR2_SKIN_SOURCES_ABSOLUTE}
+        QML_FILES
+        ${LR2_SKIN_QML_FILES_ABSOLUTE}
+)
+
+qt6_add_shaders(RhythmGame_lr2_qml "lr2_shaders"
+        BATCHABLE
+        PREFIX
+        "/"
+        FILES
+        ${LR2_SKIN_SHADERS}
 )

@@ -281,6 +281,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/Lr2FontImageProvider.h
         src/resource_managers/Lr2FontCache.cpp
         src/resource_managers/Lr2FontCache.h
+        src/resource_managers/lr2_skin/Lr2ThemeScanner.cpp
+        src/resource_managers/lr2_skin/Lr2ThemeScanner.h
         src/gameplay_logic/lr2_skin/Lr2SkinParser.h
         src/gameplay_logic/lr2_skin/Lr2SkinParser.cpp
         src/gameplay_logic/lr2_skin/Lr2SkinModel.h
@@ -362,6 +364,7 @@ target_include_directories(
 # ---- Declare QML module ----
 add_subdirectory(RhythmGameQml)
 qt_import_qml_plugins(RhythmGame_qmlplugin)
+qt_import_qml_plugins(RhythmGame_lr2_qmlplugin)
 
 # ---- Declare executable ----
 
@@ -409,7 +412,7 @@ target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 add_subdirectory(src/tgaplugin)
 add_subdirectory(src/cimplugin)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin tga cim)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin RhythmGame_lr2_qmlplugin tga cim)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

@@ -16,6 +16,7 @@ if (WIN32)
             COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> $<$<CONFIG:Debug,RelWithDebInfo>:--pdb> --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
             $<TARGET_FILE:RhythmGame_exe>
             COMMENT "Running windeployqt..."
+            COMMAND_EXPAND_LISTS
             VERBATIM
     )
 
