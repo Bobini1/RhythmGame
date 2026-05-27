@@ -111,7 +111,8 @@ ChartRunner::start()
 void
 ChartRunner::updateElapsed()
 {
-    const auto offset = std::chrono::steady_clock::now() - startTimepoint;
+    const auto now = std::chrono::steady_clock::now();
+    const auto offset = now - startTimepoint;
     player1->update(offset,
                     /*lastUpdate=*/false);
     if (player2 != nullptr) {
@@ -385,7 +386,8 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        const auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
+        const auto bpmChange =
+          referee->getBpm(offsetFromStart + visualOffset);
         setBpm(bpmChange.bpm);
         setScroll(bpmChange.scroll);
         auto position =
