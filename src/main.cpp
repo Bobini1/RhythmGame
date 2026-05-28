@@ -195,6 +195,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
         }
+        if (!qEnvironmentVariableIsSet("QV4_GC_TIMELIMIT")) {
+            qputenv("QV4_GC_TIMELIMIT", QByteArray("1"));
+        }
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
 
