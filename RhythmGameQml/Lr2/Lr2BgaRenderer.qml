@@ -1,6 +1,7 @@
 import QtMultimedia
 import QtQuick
 import RhythmGameQml
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: root
@@ -36,20 +37,7 @@ Item {
     }
     readonly property var currentState: staticTimelineState
         || timelineState.state
-    function centerAnchor(idx: var) : var {
-        switch (idx) {
-        case 1: return { x: 0.0, y: 1.0 };
-        case 2: return { x: 0.5, y: 1.0 };
-        case 3: return { x: 1.0, y: 1.0 };
-        case 4: return { x: 0.0, y: 0.5 };
-        case 6: return { x: 1.0, y: 0.5 };
-        case 7: return { x: 0.0, y: 0.0 };
-        case 8: return { x: 0.5, y: 0.0 };
-        case 9: return { x: 1.0, y: 0.0 };
-        default: return { x: 0.5, y: 0.5 };
-        }
-    }
-    readonly property var anchor: centerAnchor(currentState ? currentState.center : 0)
+    readonly property var anchor: Lr2SkinUtils.centerAnchor(currentState ? currentState.center : 0)
     readonly property var bgaContainer: chart && chart.bga ? chart.bga : null
     readonly property real sourceW: Math.max(videoBase.sourceRect.width,
                                              videoLayer.sourceRect.width,

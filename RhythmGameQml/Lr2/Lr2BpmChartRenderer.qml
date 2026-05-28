@@ -1,5 +1,6 @@
 import QtQuick
 import RhythmGameQml
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: root
@@ -56,20 +57,7 @@ Item {
         }
         return Math.max(0, Math.min(1, effectiveSkinTime / Math.max(1, srcData.delay || 1)));
     }
-    readonly property int effectiveSkinTime: {
-        if (!skinClock || skinClockMode === 0) {
-            return skinTime;
-        }
-        switch (skinClockMode) {
-        case 1: return skinClock.renderSkinTime;
-        case 2: return skinClock.selectSourceSkinTime;
-        case 3: return skinClock.barSkinTime;
-        case 4: return skinClock.globalSkinTime;
-        case 5: return skinClock.selectLiveSkinTime;
-        case 6: return skinClock.selectInfoElapsed;
-        default: return skinTime;
-        }
-    }
+    readonly property int effectiveSkinTime: Lr2SkinUtils.skinTimeForClock(skinClock, skinClockMode, skinTime)
     function chartWithBpmData(value: var) : var {
         return value
             && (value.bpmChanges !== undefined
@@ -94,29 +82,20 @@ Item {
            + ":" + String(chartData.maxBpm || 0))
         : ""
 
-    function hexColor(value: var, fallback: var) : var {
-        let raw = value === undefined || value === null ? "" : String(value);
-        raw = raw.replace(/[^0-9a-fA-F]/g, "");
-        if (raw.length < 6) {
-            return fallback;
-        }
-        return "#" + raw.substring(0, 6);
-    }
-
     function lineColor(speed: var, minSpeed: var, maxSpeed: var, mainSpeed: var) : var {
         if (speed <= 0) {
-            return hexColor(srcData ? srcData.stopLineColor : "", "#ff00ff");
+            return Lr2SkinUtils.hexColor(srcData ? srcData.stopLineColor : "", "#ff00ff");
         }
         if (Math.abs(speed - mainSpeed) < 0.0001) {
-            return hexColor(srcData ? srcData.mainBpmColor : "", "#00ff00");
+            return Lr2SkinUtils.hexColor(srcData ? srcData.mainBpmColor : "", "#00ff00");
         }
         if (Math.abs(speed - minSpeed) < 0.0001) {
-            return hexColor(srcData ? srcData.minBpmColor : "", "#0000ff");
+            return Lr2SkinUtils.hexColor(srcData ? srcData.minBpmColor : "", "#0000ff");
         }
         if (Math.abs(speed - maxSpeed) < 0.0001) {
-            return hexColor(srcData ? srcData.maxBpmColor : "", "#ff0000");
+            return Lr2SkinUtils.hexColor(srcData ? srcData.maxBpmColor : "", "#ff0000");
         }
-        return hexColor(srcData ? srcData.otherBpmColor : "", "#ffff00");
+        return Lr2SkinUtils.hexColor(srcData ? srcData.otherBpmColor : "", "#ffff00");
     }
 
     function speedAt(change: var) : var {
@@ -216,7 +195,7 @@ Item {
                 let y1 = Math.round(root.graphY(data[i - 1].speed, mainSpeed, height, lineWidth));
                 let y2 = Math.round(root.graphY(data[i].speed, mainSpeed, height, lineWidth));
                 if (Math.abs(y2 - y1) - lineWidth > 0) {
-                    ctx.fillStyle = root.hexColor(root.srcData.transitionLineColor, "#7f7f7f");
+                    ctx.fillStyle = Lr2SkinUtils.hexColor(root.srcData.transitionLineColor, "#7f7f7f");
                     ctx.fillRect(x, Math.min(y1, y2) + lineWidth, lineWidth, Math.abs(y2 - y1) - lineWidth);
                 }
 
@@ -251,4 +230,3 @@ Item {
     onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }
-

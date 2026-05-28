@@ -49,23 +49,25 @@ Item {
         ? 4
         : 0
 
-    function segmentFrame(segment: var, hp: var, trembleRoll: var, survival: var) : var {
-        let oneBased = segment + 1;
-        let tremble = hp - trembleRoll;
-        if (!survival) {
-            if (oneBased < 40) {
-                return ((oneBased < tremble || hp <= oneBased || oneBased === 1) && oneBased <= hp)
+    function segmentFrame(segmentIndex: var, filledSegments: var, trembleRoll: var, survivalGauge: var) : var {
+        let segmentNumber = segmentIndex + 1;
+        let trembleBoundary = filledSegments - trembleRoll;
+        if (!survivalGauge) {
+            if (segmentNumber < 40) {
+                return ((segmentNumber < trembleBoundary || filledSegments <= segmentNumber || segmentNumber === 1)
+                        && segmentNumber <= filledSegments)
                     ? 1
                     : 3;
             }
-            if ((tremble <= oneBased && oneBased < hp && oneBased !== 1) || hp < oneBased) {
+            if ((trembleBoundary <= segmentNumber && segmentNumber < filledSegments && segmentNumber !== 1)
+                    || filledSegments < segmentNumber) {
                 return 2;
             }
             return 0;
         }
 
-        if (oneBased < tremble || hp <= oneBased || oneBased === 1) {
-            return hp < oneBased ? 2 : 0;
+        if (segmentNumber < trembleBoundary || filledSegments <= segmentNumber || segmentNumber === 1) {
+            return filledSegments < segmentNumber ? 2 : 0;
         }
         return 2;
     }

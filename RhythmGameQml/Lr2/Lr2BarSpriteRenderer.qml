@@ -188,21 +188,19 @@ Item {
         return data.offDsts && data.offDsts.length > 0 ? data.offDsts : (data.onDsts || []);
     }
 
-    function overlayVisibleForValues(cellValid: var, lamp: var, ranking: var, rank: var) : var {
-        if (!selectContext || !srcData) {
+    function overlayVisibleForCell(cell: var, sourceKind: var, sourceVariant: var) : var {
+        if (!selectContext || !srcData || !cell || !cell.valid) {
             return false;
         }
-        if (srcData.kind === 2) {
-            return true;
-        }
-        if (!cellValid) {
-            return false;
-        }
-        switch (srcData.kind) {
+        switch (sourceKind) {
         case 3:
-            return (lamp || 0) === srcData.variant;
+            return cell.lamp === sourceVariant;
         case 6:
-            return !!ranking && (rank || 0) === srcData.variant;
+            return cell.ranking && cell.rank === sourceVariant;
+        case 8:
+            return sourceVariant >= 0
+                && sourceVariant < 31
+                && (cell.labelMask & (1 << sourceVariant)) !== 0;
         default:
             return false;
         }
@@ -296,19 +294,8 @@ Item {
             readonly property var cell: selectedOverlaySource
                 ? null
                 : root.cellDataForSlot(slot)
-            readonly property bool cellValid: selectedOverlaySource ? true : !!cell
             readonly property bool cellOverlayVisible: !selectedOverlaySource
-                && cell
-                && cell.valid
-                && (sourceKind === 3
-                    ? cell.lamp === sourceVariant
-                    : (sourceKind === 6
-                        ? cell.ranking && cell.rank === sourceVariant
-                        : (sourceKind === 8
-                            ? sourceVariant >= 0
-                                && sourceVariant < 31
-                                && (cell.labelMask & (1 << sourceVariant)) !== 0
-                            : false)))
+                && root.overlayVisibleForCell(cell, sourceKind, sourceVariant)
             readonly property bool contentVisible: (selectedOverlaySource
                     ? selectedDisplayRow > 0 && !!visibleBase
                     : rowVisible)
@@ -354,4 +341,3 @@ Item {
         }
     }
 }
-

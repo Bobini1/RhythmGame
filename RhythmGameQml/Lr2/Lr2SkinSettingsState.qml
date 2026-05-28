@@ -1,7 +1,6 @@
 pragma ValueTypeBehavior: Addressable
-import RhythmGameQml
-
 import QtQuick
+import RhythmGameQml
 
 QtObject {
     id: root
@@ -14,6 +13,19 @@ QtObject {
     property var metadata: ({})
     property var items: []
     property bool suppressNextClockRestart: false
+    readonly property var screenKeyBySkinType: ({
+        0: "k7",
+        1: "k5",
+        2: "k14",
+        3: "k10",
+        5: "select",
+        6: "decide",
+        7: "result",
+        10: "soundset",
+        12: "k7battle",
+        13: "k5battle",
+        15: "courseResult"
+    })
 
     function localizedName(value: var) : var {
         if (value === undefined || value === null) {
@@ -26,32 +38,18 @@ QtObject {
     }
 
     function skinTypeScreenKey(type: var) : var {
-        switch (type) {
-        case 0:
-            return "k7";
-        case 1:
-            return "k5";
-        case 2:
-            return "k14";
-        case 3:
-            return "k10";
-        case 5:
-            return "select";
-        case 6:
-            return "decide";
-        case 7:
-            return "result";
-        case 10:
-            return "soundset";
-        case 12:
-            return "k7battle";
-        case 13:
-            return "k5battle";
-        case 15:
-            return "courseResult";
-        default:
+        return root.screenKeyBySkinType[type] || "";
+    }
+
+    function choiceAfterDelta(choices: var, current: var, delta: var) : var {
+        if (!choices || choices.length <= 0) {
             return "";
         }
+        let index = choices.indexOf(current);
+        if (index < 0) {
+            index = 0;
+        }
+        return choices[root.host.wrapValue(index + delta, choices.length)];
     }
 
     function profileRoot() : var {
@@ -283,11 +281,7 @@ QtObject {
         }
 
         let current = root.currentValue(item);
-        let index = item.choices.indexOf(current);
-        if (index < 0) {
-            index = 0;
-        }
-        let nextValue = item.choices[root.host.wrapValue(index + delta, item.choices.length)];
+        let nextValue = root.choiceAfterDelta(item.choices, current, delta);
         if (nextValue === current) {
             return false;
         }
@@ -317,11 +311,7 @@ QtObject {
             return false;
         }
         let current = vars.soundset || "";
-        let index = choices.indexOf(current);
-        if (index < 0) {
-            index = 0;
-        }
-        let next = choices[((index + delta) % choices.length + choices.length) % choices.length];
+        let next = root.choiceAfterDelta(choices, current, delta);
         if (next === current) {
             return false;
         }
@@ -346,11 +336,7 @@ QtObject {
         }
 
         let current = root.configuredThemeName(screen);
-        let index = choices.indexOf(current);
-        if (index < 0) {
-            index = 0;
-        }
-        let next = choices[((index + delta) % choices.length + choices.length) % choices.length];
+        let next = root.choiceAfterDelta(choices, current, delta);
         if (next === current) {
             return false;
         }
@@ -369,4 +355,3 @@ QtObject {
         Qt.callLater(root.host.restartSkinClock);
     }
 }
-

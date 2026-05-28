@@ -102,6 +102,20 @@ Loader {
     readonly property int renderClock: 1
     readonly property int selectSourceClock: 2
     readonly property int selectInfoClock: 6
+    readonly property int elementTypeImage: 0
+    readonly property int elementTypeNumber: 1
+    readonly property int elementTypeText: 2
+    readonly property int elementTypeBarImage: 3
+    readonly property int elementTypeBarText: 4
+    readonly property int elementTypeBarNumber: 5
+    readonly property int elementTypeBarGraph: 6
+    readonly property int elementTypeBga: 7
+    readonly property int elementTypePlayNotes: 8
+    readonly property int elementTypeGrooveGauge: 9
+    readonly property int elementTypeResultChart: 10
+    readonly property int elementTypeNoteChart: 11
+    readonly property int elementTypeBpmChart: 12
+    readonly property int elementTypeBarDistributionGraph: 13
     readonly property int elementSkinClockMode: elementState.elementSkinClockMode
     readonly property bool useDirectElementSkinClock: elementState.useDirectElementSkinClock
     readonly property bool needsManualElementSkinTime: elementState.needsManualElementSkinTime
@@ -111,20 +125,20 @@ Loader {
             : elemLoader.screenRoot.currentSelectHeldButtonSkinTime())
         : 0
     readonly property int elementSkinTime: needsManualElementSkinTime
-        ? skinTimeForClock(elementSkinClockMode, usesLiveSelectClock, elemLoader.screenRoot.renderSkinTime, false)
+        ? elementSkinTimeForClock(elementSkinClockMode, usesLiveSelectClock, elemLoader.screenRoot.renderSkinTime, false)
         : 0
 
-    function skinTimeForClock(clockMode: var, liveClockEnabled: var, fallbackSkinTime: var, useHeldButtonTimer: var) : var {
-        if (useHeldButtonTimer && usesSelectHeldButtonTimer) {
+    function elementSkinTimeForClock(clockMode: var, useSelectLiveClock: var, fallbackSkinTime: var, allowHeldButtonTimer: var) : var {
+        if (allowHeldButtonTimer && usesSelectHeldButtonTimer) {
             return selectHeldButtonSkinClock;
         }
         if (clockMode === selectInfoClock) {
             return elemLoader.screenRoot.selectInfoElapsed;
         }
-        return liveClockEnabled ? elemLoader.screenRoot.selectSourceSkinTime : fallbackSkinTime;
+        return useSelectLiveClock ? elemLoader.screenRoot.selectSourceSkinTime : fallbackSkinTime;
     }
 
-    function sourceClockMode(sourceAnimates: var) : var {
+    function sourceSkinClockModeFor(sourceAnimates: var) : var {
         if (!sourceAnimates) {
             return manualClock;
         }
@@ -133,7 +147,7 @@ Loader {
             : renderClock;
     }
 
-    function sourceSkinTimeForAnimation(sourceAnimates: var) : var {
+    function sourceSkinTimeForAnimatedSource(sourceAnimates: var) : var {
         if (!sourceAnimates) {
             return 0;
         }
@@ -152,35 +166,35 @@ Loader {
 
     function componentForElement() : var {
         switch (elemLoader.elementData.type) {
-        case 0:
+        case elemLoader.elementTypeImage:
             return elementState.sourceMouseCursor ? undefined : imageComponent;
-        case 1:
+        case elemLoader.elementTypeNumber:
             return numberComponent;
-        case 2:
+        case elemLoader.elementTypeText:
             return elemLoader.elementData.src && elemLoader.elementData.src.readme
                 ? readmeTextComponent
                 : textComponent;
-        case 3:
+        case elemLoader.elementTypeBarImage:
             return barImageComponent;
-        case 4:
+        case elemLoader.elementTypeBarText:
             return barTextComponent;
-        case 5:
+        case elemLoader.elementTypeBarNumber:
             return barNumberComponent;
-        case 6:
+        case elemLoader.elementTypeBarGraph:
             return barGraphComponent;
-        case 7:
+        case elemLoader.elementTypeBga:
             return bgaComponent;
-        case 8:
+        case elemLoader.elementTypePlayNotes:
             return playNotesComponent;
-        case 9:
+        case elemLoader.elementTypeGrooveGauge:
             return grooveGaugeComponent;
-        case 10:
+        case elemLoader.elementTypeResultChart:
             return resultChartComponent;
-        case 11:
+        case elemLoader.elementTypeNoteChart:
             return noteChartComponent;
-        case 12:
+        case elemLoader.elementTypeBpmChart:
             return bpmChartComponent;
-        case 13:
+        case elemLoader.elementTypeBarDistributionGraph:
             return barDistributionGraphComponent;
         default:
             return undefined;
@@ -213,14 +227,14 @@ Loader {
             readonly property int spriteSkinClockMode: elementState.spriteSkinClockMode
             readonly property int spriteSourceSkinClockMode: elementState.spriteSourceSkinClockMode
             readonly property int spriteSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
-                ? elemLoader.skinTimeForClock(
+                ? elemLoader.elementSkinTimeForClock(
                     spriteSkinClockMode,
                     elemLoader.usesLiveDstClock,
                     elemLoader.screenRoot.renderSkinTime,
                     true)
                 : 0
             readonly property int spriteSourceSkinClock: !useDirectSkinClock && elemLoader.usesSkinTime
-                ? elemLoader.skinTimeForClock(
+                ? elemLoader.elementSkinTimeForClock(
                     spriteSourceSkinClockMode,
                     elemLoader.usesLiveSourceClock,
                     spriteSkinClock,
@@ -498,7 +512,7 @@ Loader {
             skinTime: needsTimelineSkinTime ? elemLoader.screenRoot.barSkinTime : 0
             sourceSkinTime: 0
             skinClock: sourceAnimates ? elemLoader.screenRoot.skinClockRef : null
-            sourceSkinClockMode: elemLoader.sourceClockMode(sourceAnimates)
+            sourceSkinClockMode: elemLoader.sourceSkinClockModeFor(sourceAnimates)
             activeOptions: elemLoader.screenRoot.barActiveOptions
             timers: elemLoader.screenRoot.barTimers
             scaleOverride: skinScale
@@ -580,11 +594,11 @@ Loader {
             skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
             sourceSkinTime: elemLoader.useDirectElementSkinClock
                 ? 0
-                : elemLoader.sourceSkinTimeForAnimation(sourceAnimates)
+                : elemLoader.sourceSkinTimeForAnimatedSource(sourceAnimates)
             skinClock: elemLoader.useDirectElementSkinClock ? elemLoader.screenRoot.skinClockRef : null
             skinClockMode: elemLoader.elementSkinClockMode
             sourceSkinClockMode: elemLoader.useDirectElementSkinClock
-                ? elemLoader.sourceClockMode(sourceAnimates)
+                ? elemLoader.sourceSkinClockModeFor(sourceAnimates)
                 : elemLoader.manualClock
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
@@ -615,7 +629,7 @@ Loader {
             skinTime: elemLoader.screenRoot.barSkinTime
             sourceSkinTime: 0
             skinClock: barDistributionSourceAnimates ? elemLoader.screenRoot.skinClockRef : null
-            sourceSkinClockMode: elemLoader.sourceClockMode(barDistributionSourceAnimates)
+            sourceSkinClockMode: elemLoader.sourceSkinClockModeFor(barDistributionSourceAnimates)
             activeOptions: elemLoader.screenRoot.barActiveOptions
             timers: elemLoader.screenRoot.barTimers
             timerFire: elemLoader.dstTimerFire

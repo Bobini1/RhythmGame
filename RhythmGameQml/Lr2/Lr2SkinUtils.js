@@ -143,6 +143,30 @@ function colorComponent(value) {
     return Math.max(0, Math.min(255, value)) / 255.0;
 }
 
+function hexColor(value, fallback) {
+    let raw = value === undefined || value === null ? "" : String(value);
+    raw = raw.replace(/[^0-9a-fA-F]/g, "");
+    if (raw.length < 6) {
+        return fallback;
+    }
+    return "#" + raw.substring(0, 6);
+}
+
+function skinTimeForClock(clock, clockMode, fallbackSkinTime) {
+    if (!clock || clockMode === 0) {
+        return fallbackSkinTime;
+    }
+    switch (clockMode) {
+    case 1: return clock.renderSkinTime;
+    case 2: return clock.selectSourceSkinTime;
+    case 3: return clock.barSkinTime;
+    case 4: return clock.globalSkinTime;
+    case 5: return clock.selectLiveSkinTime;
+    case 6: return clock.selectInfoElapsed;
+    default: return fallbackSkinTime;
+    }
+}
+
 function centerAnchor(index) {
     switch (index) {
     case 1: return { x: 0.0, y: 1.0 };

@@ -183,83 +183,113 @@ QtObject {
         }
     }
 
+    function selectedTextEntry() : var {
+        return root.effectiveScreenKey === "select" ? selectContext.selectedItem() : null;
+    }
+
+    function courseDisplayName() : var {
+        if (root.course) {
+            return root.course.name || "";
+        }
+        return root.chart && root.chart.course ? root.chart.course.name : "";
+    }
+
+    function resolveChartText(st: var, chartData: var, selectedEntry: var) : var {
+        switch (st) {
+        case 10:
+            if (chartData) {
+                return (chartData.title || "").replace(/\r\n|\n|\r/g, " ");
+            }
+            return root.effectiveScreenKey === "select"
+                ? selectContext.entryMainTitle(selectedEntry)
+                : resolver.courseDisplayName();
+        case 11:
+            return chartData ? (chartData.subtitle || "") : "";
+        case 12:
+            return chartData
+                ? ((chartData.title || "") + (chartData.subtitle ? " " + chartData.subtitle : ""))
+                : selectContext.entryDisplayName(selectedEntry, true);
+        case 13:
+            return chartData ? (chartData.genre || "") : "Course";
+        case 14:
+            return chartData ? (chartData.artist || "") : "";
+        case 15:
+            return chartData ? (chartData.subartist || "") : "";
+        case 16:
+            return chartData
+                ? (chartData.artist || "") + (chartData.subartist ? " " + chartData.subartist : "")
+                : "";
+        case 17:
+        case 27:
+            return chartData ? String(chartData.playLevel || 0) : "";
+        case 18:
+        case 28:
+            return chartData ? String(selectContext.entryDifficulty(chartData)) : "";
+        case 19:
+        case 29:
+            return chartData ? String(chartData.exlevel || chartData.exLevel || "") : "";
+        default:
+            return "";
+        }
+    }
+
+    function resolveSelectedEntryText(st: var, selectedEntry: var) : var {
+        if (root.effectiveScreenKey !== "select") {
+            return "";
+        }
+        switch (st) {
+        case 20:
+            return selectContext.entryMainTitle(selectedEntry);
+        case 21:
+            return selectContext.entrySubtitle(selectedEntry);
+        case 22:
+            return selectContext.entryDisplayName(selectedEntry, true);
+        case 23:
+            return selectContext.entryGenre(selectedEntry);
+        case 24:
+            return selectContext.entryArtist(selectedEntry);
+        case 25:
+            return selectContext.entrySubartist(selectedEntry);
+        case 26:
+            return selectedEntry ? (selectedEntry.tag || "") : "";
+        default:
+            return "";
+        }
+    }
+
     function resolveText(st: var) : var {
         return resolver.computeResolvedText(resolver.numericValue(st, -1));
     }
 
     function computeResolvedText(st: var) : var {
-        let chartDataLoaded = false;
-        let chartDataValue = null;
-        function chartData() {
-            if (!chartDataLoaded) {
-                chartDataLoaded = true;
-                chartDataValue = root.displayChartData();
-            }
-            return chartDataValue;
-        }
-        function currentEntry() {
-            return root.effectiveScreenKey === "select" ? selectContext.selectedItem() : null;
-        }
         switch (st) {
         case 1:
             return root.lr2TargetText();
         case 2:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 10:
-            if (chartData()) {
-                return (chartData().title || "").replace(/\r\n|\n|\r/g, " ");
-            }
-            if (root.effectiveScreenKey === "select") {
-                return selectContext.entryMainTitle(currentEntry());
-            }
-            return root.course ? (root.course.name || "") : (root.chart && root.chart.course ? root.chart.course.name : "");
         case 11:
-            return chartData() ? (chartData().subtitle || "") : "";
         case 12:
-            return chartData()
-                ? ((chartData().title || "") + (chartData().subtitle ? " " + chartData().subtitle : ""))
-                : selectContext.entryDisplayName(currentEntry(), true);
         case 13:
-            return chartData() ? (chartData().genre || "") : "Course";
         case 14:
-            return chartData() ? (chartData().artist || "") : "";
         case 15:
-            return chartData() ? (chartData().subartist || "") : "";
         case 16:
-            if (!chartData()) {
-                return "";
-            }
-            return (chartData().artist || "")
-                + (chartData().subartist ? " " + chartData().subartist : "");
         case 17:
-            return chartData() ? String(chartData().playLevel || 0) : "";
         case 18:
-            return chartData() ? String(selectContext.entryDifficulty(chartData())) : "";
         case 19:
-            return chartData() ? String(chartData().exlevel || chartData().exLevel || "") : "";
+            return resolver.resolveChartText(st, root.displayChartData(), resolver.selectedTextEntry());
         case 20:
-            if (root.effectiveScreenKey === "select") {
-                return selectContext.entryMainTitle(currentEntry());
-            }
-            return root.isResultScreen() ? "" : "";
         case 21:
-            return root.effectiveScreenKey === "select" ? selectContext.entrySubtitle(currentEntry()) : "";
         case 22:
-            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(currentEntry(), true) : "";
         case 23:
-            return root.effectiveScreenKey === "select" ? selectContext.entryGenre(currentEntry()) : "";
         case 24:
-            return root.effectiveScreenKey === "select" ? selectContext.entryArtist(currentEntry()) : "";
         case 25:
-            return root.effectiveScreenKey === "select" ? selectContext.entrySubartist(currentEntry()) : "";
         case 26:
-            return root.effectiveScreenKey === "select" && currentEntry() ? (currentEntry().tag || "") : "";
+            return resolver.resolveSelectedEntryText(st, resolver.selectedTextEntry());
         case 27:
-            return chartData() ? String(chartData().playLevel || 0) : "";
         case 28:
-            return chartData() ? String(selectContext.entryDifficulty(chartData())) : "";
         case 29:
-            return chartData() ? String(chartData().exlevel || chartData().exLevel || "") : "";
+            return resolver.resolveChartText(st, root.displayChartData(), resolver.selectedTextEntry());
         case 30:
             if (root.effectiveScreenKey !== "select") {
                 return "";

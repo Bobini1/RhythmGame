@@ -72,23 +72,23 @@ Item {
         return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
     }
 
-    function visibleForValues(cellValid: var, ranking: var, chartLike: var, entryLike: var, keymode: var, playLevel: var, difficulty: var) : var {
-        if (!cellValid || !srcData || !selectContext) {
+    function numberVisibleForCell(cell: var, sourceVariant: var) : var {
+        if (!cell || !cell.valid || !srcData || !selectContext) {
             return false;
         }
-        if (!ranking && !chartLike && !entryLike) {
+        if (!cell.ranking && !cell.chartLike && !cell.entryLike) {
             return false;
         }
-        if (ranking) {
-            return srcData.variant === 0 || srcData.variant === 6;
+        if (cell.ranking) {
+            return sourceVariant === 0 || sourceVariant === 6;
         }
-        if ((keymode || 0) <= 0 || (playLevel || 0) < 0) {
+        if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) < 0) {
             return false;
         }
-        if (difficulty <= 0) {
-            return srcData.variant === 0;
+        if (cell.difficulty <= 0) {
+            return sourceVariant === 0;
         }
-        return srcData.variant === difficulty;
+        return sourceVariant === cell.difficulty;
     }
 
     Repeater {
@@ -103,16 +103,7 @@ Item {
                 ? root.barCells[slot]
                 : null
             readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
-            readonly property bool cellNumberVisible: cell
-                && cell.valid
-                && (cell.ranking || cell.chartLike || cell.entryLike)
-                && (cell.ranking
-                    ? (sourceVariant === 0 || sourceVariant === 6)
-                    : ((cell.keymode || 0) > 0
-                        && (cell.playLevel || 0) >= 0
-                        && (cell.difficulty <= 0
-                            ? sourceVariant === 0
-                            : sourceVariant === cell.difficulty)))
+            readonly property bool cellNumberVisible: root.numberVisibleForCell(cell, sourceVariant)
             readonly property int cellPlayLevel: cellNumberVisible
                 ? cell.playLevel
                 : -2147483648
@@ -149,4 +140,3 @@ Item {
         }
     }
 }
-

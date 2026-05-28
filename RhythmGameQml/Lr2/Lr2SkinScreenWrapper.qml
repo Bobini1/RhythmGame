@@ -1526,80 +1526,45 @@ Item {
         return side === 2 ? root.gameplayDstOffsetHiddenA2 : root.gameplayDstOffsetHiddenA1;
     }
 
-    function lr2OffsetSide(state: var, requestedSide: var) : var {
-        if (requestedSide === 1 || requestedSide === 2) {
-            return requestedSide;
-        }
-        return 1;
+    function normalizedDstOffsetSide(sideHint: var) : var {
+        return sideHint === 2 ? 2 : 1;
     }
 
-    function lr2OffsetValue(id: var, side: var) : var {
-        if (!root.isGameplayScreen()) {
-            return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
-        }
-        if (id === 3 || id === 50) {
-            return {
-                x: 0,
-                y: root.gameplayDstOffsetLiftY(side),
-                w: 0,
-                h: 0,
-                a: 0,
-                r: 0
-            };
-        }
-        if (id === 4 || id === 51) {
-            return {
-                x: 0,
-                y: root.gameplayDstOffsetLaneCoverY(side),
-                w: 0,
-                h: 0,
-                a: 0,
-                r: 0
-            };
-        }
-        if (id === 5) {
-            return {
-                x: 0,
-                y: root.gameplayDstOffsetHiddenY(side),
-                w: 0,
-                h: 0,
-                a: root.gameplayDstOffsetHiddenA(side),
-                r: 0
-            };
-        }
-        return { x: 0, y: 0, w: 0, h: 0, a: 0, r: 0 };
+    function copyTimelineStateForDstOffsets(timelineState: var) : var {
+        return {
+            x: timelineState.x || 0,
+            y: timelineState.y || 0,
+            w: timelineState.w || 0,
+            h: timelineState.h || 0,
+            a: timelineState.a === undefined ? 255 : timelineState.a,
+            r: timelineState.r === undefined ? 255 : timelineState.r,
+            g: timelineState.g === undefined ? 255 : timelineState.g,
+            b: timelineState.b === undefined ? 255 : timelineState.b,
+            angle: timelineState.angle || 0,
+            center: timelineState.center || 0,
+            sortId: timelineState.sortId || 0,
+            blend: timelineState.blend || 0,
+            filter: timelineState.filter || 0,
+            op1: timelineState.op1 || 0,
+            op2: timelineState.op2 || 0,
+            op3: timelineState.op3 || 0,
+            op4: timelineState.op4 || 0
+        };
     }
 
-    function applyLr2DstOffsets(state: var, dsts: var, requestedSide: var) : var {
-        if (!state || !dsts || dsts.length === 0 || !dsts[0] || !dsts[0].offsets || dsts[0].offsets.length === 0) {
-            return state;
+    function applyLr2DstOffsets(timelineState: var, dsts: var, sideHint: var) : var {
+        if (!timelineState || !dsts || dsts.length === 0 || !dsts[0] || !dsts[0].offsets || dsts[0].offsets.length === 0) {
+            return timelineState;
         }
-        let side = root.lr2OffsetSide(state, requestedSide || 0);
+        let side = root.normalizedDstOffsetSide(sideHint || 0);
         let liftY = root.gameplayDstOffsetLiftY(side);
         let laneCoverY = root.gameplayDstOffsetLaneCoverY(side);
         let hiddenY = root.gameplayDstOffsetHiddenY(side);
         let hiddenA = root.gameplayDstOffsetHiddenA(side);
-        let adjusted = {
-            x: state.x || 0,
-            y: state.y || 0,
-            w: state.w || 0,
-            h: state.h || 0,
-            a: state.a === undefined ? 255 : state.a,
-            r: state.r === undefined ? 255 : state.r,
-            g: state.g === undefined ? 255 : state.g,
-            b: state.b === undefined ? 255 : state.b,
-            angle: state.angle || 0,
-            center: state.center || 0,
-            sortId: state.sortId || 0,
-            blend: state.blend || 0,
-            filter: state.filter || 0,
-            op1: state.op1 || 0,
-            op2: state.op2 || 0,
-            op3: state.op3 || 0,
-            op4: state.op4 || 0
-        };
-        for (let i = 0; i < dsts[0].offsets.length; ++i) {
-            let id = Number(dsts[0].offsets[i]);
+        let adjustedState = root.copyTimelineStateForDstOffsets(timelineState);
+        let offsets = dsts[0].offsets;
+        for (let i = 0; i < offsets.length; ++i) {
+            let id = Number(offsets[i]);
             let offsetY = 0;
             let offsetA = 0;
             if (id === 3 || id === 50) {
@@ -1610,10 +1575,10 @@ Item {
                 offsetY = hiddenY;
                 offsetA = hiddenA;
             }
-            adjusted.y += offsetY;
-            adjusted.a += offsetA;
+            adjustedState.y += offsetY;
+            adjustedState.a += offsetA;
         }
-        return adjusted;
+        return adjustedState;
     }
 
     function bpmDurationNumber(num: var, chartData: var) : var {
@@ -3524,21 +3489,31 @@ Item {
         return selectUpdateController.refreshGameplayRuntimeActiveOptions();
     }
 
+    function selectChartRevisionKey(focusRevision: var, scoreRevision: var, listRevision: var, chartRevision: var) : var {
+        return focusRevision + "|" + scoreRevision + "|" + listRevision + "|" + chartRevision;
+    }
+
     property alias selectRevision: selectUpdateController.selectRevision
     property alias selectDetailRevision: selectUpdateController.selectDetailRevision
     readonly property string selectChartContentRevision: root.effectiveScreenKey === "select"
-        ? (selectContext.focusRevision,
-           selectContext.scoreRevision,
-           selectContext.listRevision,
-           selectContext.visualChartContentRevision)
+        ? root.selectChartRevisionKey(
+            selectContext.focusRevision,
+            selectContext.scoreRevision,
+            selectContext.listRevision,
+            selectContext.visualChartContentRevision)
         : ""
     readonly property string selectChartWrapperContentRevision: root.effectiveScreenKey === "select"
         ? selectContext.visualChartContentRevision
         : ""
-    readonly property var selectSkinChartWrapper: root.effectiveScreenKey === "select"
-        ? (root.selectChartContentRevision,
-           root.selectChartWrapperContentRevision,
-           selectContext.visualChartWrapper)
+    readonly property var selectChartWrapperState: root.effectiveScreenKey === "select"
+        ? ({
+            chartRevision: root.selectChartContentRevision,
+            wrapperRevision: root.selectChartWrapperContentRevision,
+            wrapper: selectContext.visualChartWrapper
+        })
+        : null
+    readonly property var selectSkinChartWrapper: root.selectChartWrapperState
+        ? root.selectChartWrapperState.wrapper
         : null
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.selectSkinChartWrapper

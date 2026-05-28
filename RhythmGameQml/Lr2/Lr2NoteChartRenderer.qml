@@ -1,5 +1,6 @@
 import QtQuick
 import RhythmGameQml
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: root
@@ -68,32 +69,10 @@ Item {
     }
     readonly property bool hasChartData: chartSnapshot.hasHistogram
     readonly property string dataRevision: chartSnapshot.revision
-    readonly property int effectiveSkinTime: {
-        if (!skinClock || skinClockMode === 0) {
-            return skinTime;
-        }
-        switch (skinClockMode) {
-        case 1: return skinClock.renderSkinTime;
-        case 2: return skinClock.selectSourceSkinTime;
-        case 3: return skinClock.barSkinTime;
-        case 4: return skinClock.globalSkinTime;
-        case 5: return skinClock.selectLiveSkinTime;
-        case 6: return skinClock.selectInfoElapsed;
-        default: return skinTime;
-        }
-    }
+    readonly property int effectiveSkinTime: Lr2SkinUtils.skinTimeForClock(skinClock, skinClockMode, skinTime)
 
     function densityAt(series: var, index: var) : var {
         return series && index < series.length ? (Number(series[index]) || 0) : 0;
-    }
-
-    function hexColor(value: var, fallback: var) : var {
-        let raw = value === undefined || value === null ? "" : String(value);
-        raw = raw.replace(/[^0-9a-fA-F]/g, "");
-        if (raw.length < 6) {
-            return fallback;
-        }
-        return "#" + raw.substring(0, 6);
     }
 
     function noteColors() : var {
@@ -261,4 +240,3 @@ Item {
     onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }
-
