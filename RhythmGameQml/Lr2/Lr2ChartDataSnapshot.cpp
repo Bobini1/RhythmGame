@@ -1,8 +1,8 @@
 #include "Lr2ChartDataSnapshot.h"
 
+#include <QList>
 #include <QMetaProperty>
 #include <QObject>
-#include <QSequentialIterable>
 #include <QStringList>
 #include <algorithm>
 
@@ -41,6 +41,24 @@ QVariant unwrapChart(const QVariant& value) {
     return wrapped.isValid() && !wrapped.isNull() ? wrapped : value;
 }
 
+QVariantList numberListFromSeries(const QList<qint64>& series) {
+    QVariantList result;
+    result.reserve(series.size());
+    for (const qint64 value : series) {
+        result.append(std::max<qint64>(0, value));
+    }
+    return result;
+}
+
+QVariantList histogramListFromSeries(const QList<QList<qint64>>& histogram) {
+    QVariantList result;
+    result.reserve(histogram.size());
+    for (const auto& series : histogram) {
+        result.append(QVariant::fromValue(numberListFromSeries(series)));
+    }
+    return result;
+}
+
 QVariantList listFromValue(const QVariant& value) {
     if (!value.isValid() || value.isNull()) {
         return {};
@@ -48,14 +66,11 @@ QVariantList listFromValue(const QVariant& value) {
     if (value.canConvert<QVariantList>()) {
         return value.toList();
     }
-    if (value.canConvert<QSequentialIterable>()) {
-        QVariantList result;
-        const QSequentialIterable iterable = value.value<QSequentialIterable>();
-        result.reserve(static_cast<int>(iterable.size()));
-        for (const QVariant& entry : iterable) {
-            result.append(entry);
-        }
-        return result;
+    if (value.canConvert<QList<QList<qint64>>>()) {
+        return histogramListFromSeries(value.value<QList<QList<qint64>>>());
+    }
+    if (value.canConvert<QList<qint64>>()) {
+        return numberListFromSeries(value.value<QList<qint64>>());
     }
     return {};
 }
