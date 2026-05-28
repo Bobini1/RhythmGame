@@ -17,7 +17,7 @@ Loader {
     required property var pointerController
     required property var skinRuntime
     required property int runtimeRevision
-    required property int liveGameplayRhythmTimer
+    required property var gameplayFrameState
     required property bool screenUpdatesActive
     required property string stageFileSource
     required property string backBmpSource
@@ -76,7 +76,9 @@ Loader {
             return elemLoader.dstTimer === 0 ? 0 : -1;
         }
         if (elemLoader.usesLiveGameplayDstTimer) {
-            return elemLoader.liveGameplayRhythmTimer;
+            return elemLoader.gameplayFrameState
+                ? elemLoader.gameplayFrameState.rhythmTimerSkinTime
+                : -1;
         }
         return elemLoader.elementTimerState
             ? elemLoader.elementTimerState.dstTimerFire
@@ -87,7 +89,9 @@ Loader {
             return elemLoader.srcTimer === 0 ? 0 : -1;
         }
         if (elemLoader.usesLiveGameplaySrcTimer) {
-            return elemLoader.liveGameplayRhythmTimer;
+            return elemLoader.gameplayFrameState
+                ? elemLoader.gameplayFrameState.rhythmTimerSkinTime
+                : -1;
         }
         return elemLoader.elementTimerState
             ? elemLoader.elementTimerState.srcTimerFire

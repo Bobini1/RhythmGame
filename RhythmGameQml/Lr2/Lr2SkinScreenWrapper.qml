@@ -2599,7 +2599,7 @@ Item {
             return;
         }
         root.gameplayRuntimeRefreshPending = true;
-        Qt.callLater(root.flushGameplayRuntimeRefresh);
+        root.flushGameplayRuntimeRefresh();
     }
 
     function flushGameplayRuntimeRefresh() : var {

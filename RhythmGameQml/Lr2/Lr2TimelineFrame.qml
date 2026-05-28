@@ -74,8 +74,9 @@ QtObject {
         && dsts[0]
         && dsts[0].offsets
         && dsts[0].offsets.length > 0
-    readonly property var stateBeforeScreenOffsets: directState
-        || (hasTimelineState ? timelineState.state : null)
+    readonly property var stateBeforeScreenOffsets: hasScreenDstOffsets
+        ? (directState || (hasTimelineState ? timelineState.state : null))
+        : null
     readonly property var state: hasScreenDstOffsets
         ? screenRoot.applyLr2DstOffsets(
             stateBeforeScreenOffsets,
@@ -119,4 +120,3 @@ QtObject {
     readonly property color tintColor: Qt.rgba(tintR, tintG, tintB, 1.0)
     readonly property real opacity: hasState ? a / 255.0 : 0
 }
-

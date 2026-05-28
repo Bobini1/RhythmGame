@@ -25,6 +25,13 @@ Item {
     property color transColor: "black"
     property var stateOverride: null
     property var screenRoot: null
+    readonly property int dstOffsetSide: srcData && srcData.side === 2 ? 2 : 1
+    readonly property bool hasDstOffsets: dsts
+        && dsts.length > 0
+        && dsts[0]
+        && dsts[0].offsets
+        && dsts[0].offsets.length > 0
+    readonly property bool dstOffsetsEnabled: !!root.screenRoot && hasDstOffsets
 
     Lr2TimelineFrame {
         id: drawState
@@ -40,7 +47,27 @@ Item {
         stateOverride: root.stateOverride
         forceHidden: root.forceHidden
         screenRoot: root.screenRoot
-        screenDstOffsetsEnabled: !!root.screenRoot
+        dstOffsetsEnabled: root.dstOffsetsEnabled
+        dstOffsetLiftY: root.screenRoot
+            ? (root.dstOffsetSide === 2
+                ? root.screenRoot.gameplayDstOffsetLiftY2
+                : root.screenRoot.gameplayDstOffsetLiftY1)
+            : 0
+        dstOffsetLaneCoverY: root.screenRoot
+            ? (root.dstOffsetSide === 2
+                ? root.screenRoot.gameplayDstOffsetLaneCoverY2
+                : root.screenRoot.gameplayDstOffsetLaneCoverY1)
+            : 0
+        dstOffsetHiddenY: root.screenRoot
+            ? (root.dstOffsetSide === 2
+                ? root.screenRoot.gameplayDstOffsetHiddenY2
+                : root.screenRoot.gameplayDstOffsetHiddenY1)
+            : 0
+        dstOffsetHiddenA: root.screenRoot
+            ? (root.dstOffsetSide === 2
+                ? root.screenRoot.gameplayDstOffsetHiddenA2
+                : root.screenRoot.gameplayDstOffsetHiddenA1)
+            : 0
         colorKeyEnabled: root.colorKeyEnabled
         supportsInvertedBlend: false
     }

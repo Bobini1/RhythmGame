@@ -24,11 +24,7 @@ Item {
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
     readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
-    readonly property int liveGameplayRhythmTimer: rootReady
-        && root.gameplayScreenActive
-        && root.gameplayFrameStateRef
-            ? root.gameplayFrameStateRef.rhythmTimerSkinTime
-            : -1
+    readonly property var gameplayFrameState: rootReady ? root.gameplayFrameStateRef : null
 
     Lr2SelectPointerController {
         id: selectPointer
@@ -77,7 +73,7 @@ Item {
                     pointerController: selectPointer
                     skinRuntime: sceneRoot.skinRuntime
                     runtimeRevision: sceneRoot.runtimeRevision
-                    liveGameplayRhythmTimer: sceneRoot.liveGameplayRhythmTimer
+                    gameplayFrameState: sceneRoot.gameplayFrameState
                     screenUpdatesActive: sceneRoot.screenUpdatesActive
                     stageFileSource: sceneRoot.stageFileSource
                     backBmpSource: sceneRoot.backBmpSource
