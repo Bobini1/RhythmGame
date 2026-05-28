@@ -1082,6 +1082,9 @@ QtObject {
     }
 
     function numberValue(src: var) : var {
+        if (root.isGameplayScreen()) {
+            root.gameplayNumberRevisionForKind(root.gameplayNumberRevisionKind(src));
+        }
         if (src && src.nowCombo) {
             return (src.side || (src.timer === 47 ? 2 : 1)) === 2
                 ? root.gameplayJudgeCombo2
@@ -1213,6 +1216,7 @@ QtObject {
             return selectContext.barGraphValue(type);
         }
         if (root.isGameplayScreen()) {
+            root.gameplayRevision;
             return playContext.barGraphValue(type);
         }
         if (root.isResultScreen()) {
