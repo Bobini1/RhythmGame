@@ -58,6 +58,7 @@ Item {
     property bool scrollFixedPointDragging: false
     property string searchText: ""
     property var attachedTextByDirectory: ({})
+    property var hasAttachedTextByDirectory: ({})
     property int difficultyFilter: 0
     property int keyFilter: 0
     property int sortMode: 0
@@ -1302,15 +1303,19 @@ Item {
 
     function refreshAttachedTextIndex(input: var) : void {
         let byDirectory = {};
+        let hasTextByDirectory = {};
         let seen = {};
         for (let item of input || []) {
             if (!item || !item.chartDirectory || seen[item.chartDirectory]) {
                 continue;
             }
             seen[item.chartDirectory] = true;
-            byDirectory[item.chartDirectory] = scanAttachedTextFileForDirectory(item.chartDirectory);
+            let file = scanAttachedTextFileForDirectory(item.chartDirectory);
+            byDirectory[item.chartDirectory] = file;
+            hasTextByDirectory[item.chartDirectory] = file.length > 0;
         }
         attachedTextByDirectory = byDirectory;
+        hasAttachedTextByDirectory = hasTextByDirectory;
     }
 
     function folderContentsNeedFullScores() : var {
@@ -3458,17 +3463,22 @@ Item {
         return diff >= 1 && diff <= 5 ? lamps[diff] || 0 : 0;
     }
 
-    function attachedTextFile(chart: var) : var {
+    function attachedTextFile(chart: var) : string {
         if (!chart || !chart.chartDirectory) {
             return "";
         }
 
         let dir = chart.chartDirectory;
-        return attachedTextByDirectory[dir] || false;
+        return attachedTextByDirectory[dir] || "";
     }
 
-    function hasAttachedText(chart: var) : var {
-        return attachedTextFile(chart).length > 0;
+    function hasAttachedText(chart: var) : bool {
+        let dir = chart ? chart.chartDirectory : "";
+        if (!dir) {
+            return false;
+        }
+
+        return hasAttachedTextByDirectory[dir] === true;
     }
 
     function hasReplay(chart: var) : var {
