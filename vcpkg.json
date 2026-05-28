@@ -47,6 +47,15 @@
       ]
     },
     {
+      "name": "vulkan-loader",
+      "features": [
+        "wayland",
+        "xcb",
+        "xlib"
+      ],
+      "platform": "linux"
+    },
+    {
       "name": "qtbase",
       "default-features": false,
       "features": [
