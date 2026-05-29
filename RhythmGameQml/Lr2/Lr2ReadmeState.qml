@@ -73,14 +73,15 @@ QtObject {
         }
     }
 
-    function openPath(path: var) : var {
-        if (!path) {
+    function openPath(path: var) : bool {
+        const normalizedPath = String(path || "");
+        if (normalizedPath === "") {
             return false;
         }
-        const fileText = Rg.fileQuery.readTextFile(path) || "";
-        root.openText(fileText.length > 0
+        const fileText = Rg.fileQuery.readTextFile(normalizedPath) || "";
+        root.openText(fileText !== ""
             ? fileText
-            : "HELP FILE NOT FOUND\n\n" + path);
+            : "HELP FILE NOT FOUND\n\n" + normalizedPath);
         return true;
     }
 
@@ -139,4 +140,3 @@ QtObject {
         return true;
     }
 }
-
