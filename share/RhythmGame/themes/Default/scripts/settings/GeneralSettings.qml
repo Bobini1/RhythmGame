@@ -329,23 +329,15 @@ Item {
                     }
                 }
                 Range {
-                    id: targetScoreFractionRange
-                    destination: this
-                    property var value: root.generalVars.targetScoreFraction * 100
-                    onValueChanged: {
-                        root.generalVars.targetScoreFraction = value / 100;
-                    }
-                    Binding {
-                        delayed: true
-                        targetScoreFractionRange.value: root.generalVars.targetScoreFraction * 100
-                    }
-                    id_: "value"
+                    destination: root.generalVars
+                    id_: "targetScoreFraction"
                     name: qsTr("Target Score Percentage")
                     min: 0
                     max: 100
-                    default_: 8 / 9 * 100
+                    default_: 8 / 9
                     increment: 1
                     decimals: 6
+                    displayMultiplier: 100
 
                     anchors {
                         left: parent.left

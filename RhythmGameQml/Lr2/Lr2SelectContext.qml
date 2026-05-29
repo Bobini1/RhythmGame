@@ -1926,21 +1926,8 @@ Item {
     }
 
     function entryTitleType(item: var) : var {
-        if (isChart(item)) {
-            return 2;
-        }
-        if (isEntry(item)) {
-            return 8;
-        }
-        if (isTable(item) || isLevel(item)) {
-            return 6;
-        }
-        if (isCourse(item)) {
-            return 7;
-        }
-        if (typeof item === "string") {
-            return 4;
-        }
+        // LR2 uses #SRC_BAR_TITLE index 0 for normal titles and 1 for the
+        // recently-added flash variant; entry categories are handled by bodyType.
         return 0;
     }
 

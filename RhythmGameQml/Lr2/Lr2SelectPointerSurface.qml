@@ -114,6 +114,17 @@ Item {
         onWheel: (wheel) => pointerSurface.screenRoot.handleSelectWheel(wheel)
     }
 
+    function updateHoverPoint() : void {
+        let hoverPoint = hoverHandler.point;
+        if (!hoverPoint || !hoverPoint.position) {
+            return;
+        }
+
+        if (pointerSurface.screenRoot.updateSelectHoverPoint(hoverPoint.position.x, hoverPoint.position.y)) {
+            pointerSurface.screenRoot.refreshSelectHoverState();
+        }
+    }
+
     HoverHandler {
         id: hoverHandler
         enabled: pointerSurface.screenRoot.selectHoverTracking
@@ -126,9 +137,7 @@ Item {
                 return;
             }
 
-            if (pointerSurface.screenRoot.updateSelectHoverPoint(point.position.x, point.position.y)) {
-                pointerSurface.screenRoot.refreshSelectHoverState();
-            }
+            pointerSurface.updateHoverPoint();
         }
     }
 
@@ -136,11 +145,7 @@ Item {
         running: hoverHandler.enabled && hoverHandler.hovered
 
         onTriggered: {
-            if (pointerSurface.screenRoot.updateSelectHoverPoint(
-                    hoverHandler.point.position.x,
-                    hoverHandler.point.position.y)) {
-                pointerSurface.screenRoot.refreshSelectHoverState();
-            }
+            pointerSurface.updateHoverPoint();
         }
     }
 }
