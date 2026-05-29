@@ -158,6 +158,59 @@ Item {
         }
     }
 
+    function normalizedClearType(clearType: var) : var {
+        let value = String(clearType || "NOPLAY").toUpperCase();
+        switch (value) {
+        case "":
+            return "NOPLAY";
+        case "ASSIST":
+        case "ASSISTEASY":
+        case "ASSIST_EASY":
+            return "AEASY";
+        case "LIGHT_ASSIST":
+        case "LIGHTASSISTEASY":
+        case "LIGHT_ASSIST_EASY":
+            return "LIGHTASSIST";
+        case "EX_HARD":
+            return "EXHARD";
+        case "EXHARD_DAN":
+        case "EX_HARD_DAN":
+            return "EXHARDDAN";
+        case "FAILED":
+        case "AEASY":
+        case "LIGHTASSIST":
+        case "EASY":
+        case "NORMAL":
+        case "HARD":
+        case "EXHARD":
+        case "EXHARDDAN":
+        case "FC":
+        case "PERFECT":
+        case "MAX":
+        case "NOPLAY":
+            return value;
+        default:
+            return value;
+        }
+    }
+
+    function skinClearTypeForStatus(clearType: var) : var {
+        let value = root.normalizedClearType(clearType);
+        if (root.lr2SkinUsesBeatorajaSemantics) {
+            return value;
+        }
+        switch (value) {
+        case "AEASY":
+        case "LIGHTASSIST":
+            return "FAILED";
+        case "EXHARD":
+        case "EXHARDDAN":
+            return "HARD";
+        default:
+            return value;
+        }
+    }
+
     onEnabledChanged: {
         if (root.effectiveScreenKey === "decide" && enabled) {
             Qt.callLater(() => sceneStack.pop());
@@ -1328,6 +1381,9 @@ Item {
     }
 
     function addGaugeExOption(options: var, side: var) : void {
+        if (!root.lr2SkinUsesBeatorajaSemantics) {
+            return;
+        }
         let gauge = root.activeGaugeNameForSide(side);
         if (root.gaugeNameUsesBeatorajaExOption(gauge)) {
             root.addOption(options, side === 2 ? 1047 : 1046);
@@ -1341,6 +1397,18 @@ Item {
 
     function gameplayGaugeTrophyOption(side: var) : var {
         let gauge = root.activeGaugeNameForSide(side);
+        if (!root.lr2SkinUsesBeatorajaSemantics) {
+            switch (root.skinClearTypeForStatus(gauge)) {
+            case "EASY":
+                return 121;
+            case "HARD":
+                return 119;
+            case "NORMAL":
+                return 118;
+            default:
+                return undefined;
+            }
+        }
         if (gauge === "AEASY") {
             return 124;
         }
@@ -1643,13 +1711,12 @@ Item {
     }
 
     function clearTypeValue(clearType: var) : var {
-        switch (String(clearType || "NOPLAY")) {
+        switch (root.skinClearTypeForStatus(clearType)) {
         case "FAILED":
             return 1;
         case "AEASY":
             return 2;
         case "LIGHTASSIST":
-        case "LIGHT_ASSIST":
             return 3;
         case "EASY":
             return 4;
@@ -3392,6 +3459,14 @@ Item {
         }
     }
 
+    function refreshSelectPlayOptionLayout() : void {
+        if (root.effectiveScreenKey !== "select") {
+            return;
+        }
+        root.refreshBaseActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
+    }
+
     function appendGameplayRuntimeOptionSideKeyParts(parts: var, side: var) : void {
         let score = root.gameplayScore(side);
         let gaugeValue = Math.floor(root.gameplayGaugeValue(score));
@@ -3575,6 +3650,28 @@ Item {
         function onScoreCountChanged() : void { root.refreshSelectRankingStatusOptions(); }
         function onClearCountsChanged() : void { root.refreshSelectRankingStatusOptions(); }
         function onMd5Changed() : void { root.refreshSelectRankingStatusOptions(); }
+    }
+    Connections {
+        target: Rg.profileList
+        function onBattleActiveChanged() : void {
+            root.refreshSelectPlayOptionLayout();
+        }
+    }
+    Connections {
+        target: Rg.profileList && Rg.profileList.battleProfiles ? Rg.profileList.battleProfiles : null
+        function onPlayer1ProfileChanged() : void {
+            root.refreshSelectPlayOptionLayout();
+        }
+        function onPlayer2ProfileChanged() : void {
+            root.refreshSelectPlayOptionLayout();
+        }
+    }
+    Connections {
+        target: root.mainGeneralVars()
+        ignoreUnknownSignals: true
+        function onDpOptionsChanged() : void {
+            root.refreshSelectPlayOptionLayout();
+        }
     }
     onSelectPanelChanged: {
         if (root.refreshBaseActiveOptions()) {

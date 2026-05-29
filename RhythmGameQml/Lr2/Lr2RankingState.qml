@@ -224,7 +224,7 @@ QtObject {
     function clearCounts(entries: var) : var {
         let counts = {};
         for (let entry of entries || []) {
-            let clearType = entry.bestClearType || "NOPLAY";
+            let clearType = root.selectContext.skinCompatibleClearType(entry.bestClearType || "NOPLAY");
             counts[clearType] = (counts[clearType] || 0) + 1;
         }
         return counts;
@@ -644,4 +644,3 @@ QtObject {
         root.autoStatsFetchTimer.stop();
     }
 }
-

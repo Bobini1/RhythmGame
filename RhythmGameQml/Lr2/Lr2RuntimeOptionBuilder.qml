@@ -106,8 +106,10 @@ QtObject {
         host.addGaugeExOption(options, 1);
         host.addGaugeExOption(options, 2);
         if (host.isGameplayScreen()) {
-            root.addOption(options, host.gameplayGaugeTrophyOption(1));
-            root.addOption(options, host.gameplayGaugeTrophyOption(2));
+            let gaugeTrophy1 = host.gameplayGaugeTrophyOption(1);
+            let gaugeTrophy2 = host.gameplayGaugeTrophyOption(2);
+            root.addOption(options, gaugeTrophy1);
+            root.addOption(options, gaugeTrophy2);
         }
         root.addOption(options, 46); // difficulty filter enabled.
         root.addOption(options, host.isLoggedIn() ? 51 : 50);
@@ -646,7 +648,7 @@ QtObject {
             && state
             && (selectedItem === state.item || selectedItem === state.chartData)
             && chartData === state.chartData;
-        let summary = canUseState ? state.summary : null;
+        let summary = canUseState ? selectContext.skinCompatibleScoreSummary(state.summary) : null;
         let difficultyState = canUseState ? state.difficultyState : null;
 
         root.appendSelectItemTypeOptions(options, selectedItem);
@@ -661,12 +663,14 @@ QtObject {
 
         root.appendChartOptions(options, chartData);
         if (host.selectUsesScoreOptionIds()) {
-            let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
+            let scoreOptionIds = canUseState && host.lr2SkinUsesBeatorajaSemantics
+                ? state.scoreOptionIds
+                : null;
             if (!scoreOptionIds) {
                 scoreOptionIds = summary
                     ? selectContext.scoreOptionIdsFromSummary(summary)
                     : selectContext.scoreOptionIds(selectedItem);
-                if (canUseState) {
+                if (canUseState && host.lr2SkinUsesBeatorajaSemantics) {
                     state.scoreOptionIds = scoreOptionIds;
                 }
             }

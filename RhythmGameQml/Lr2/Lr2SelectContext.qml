@@ -205,7 +205,7 @@ Item {
     readonly property var lr2KeyFilterOrder: [0, 1, 2, 3, 4, 5, 6]
     // beatoraja select button art is all/5/7/10/14/9/24/24D. 9K and 24K are not supported here.
     readonly property var beatorajaKeyFilterOrder: [0, 1, 2, 3, 4]
-    readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
+    readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "LIGHTASSIST", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: items.length
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
@@ -593,6 +593,22 @@ Item {
             : emptyFolderDistribution();
     }
 
+    function lr2CompatibleFolderDistribution(distribution: var) : var {
+        if (root.useBeatorajaSelectOptions) {
+            return distribution;
+        }
+        let lamps = distribution.lamps.slice();
+        lamps[1] = (lamps[1] || 0) + (lamps[2] || 0) + (lamps[3] || 0);
+        lamps[2] = 0;
+        lamps[3] = 0;
+        lamps[6] = (lamps[6] || 0) + (lamps[7] || 0);
+        lamps[7] = 0;
+        return {
+            lamps: lamps,
+            ranks: distribution.ranks
+        };
+    }
+
     function normalizedFolderDistribution(distribution: var) : var {
         let lamps = distribution
             ? (distribution.lamps !== undefined ? distribution.lamps : distribution["lamps"])
@@ -600,10 +616,10 @@ Item {
         let ranks = distribution
             ? (distribution.ranks !== undefined ? distribution.ranks : distribution["ranks"])
             : null;
-        return {
+        return lr2CompatibleFolderDistribution({
             lamps: normalizedNumberArray(lamps, emptyFolderGraphLamps, 11),
             ranks: normalizedNumberArray(ranks, emptyFolderGraphRanks, 28)
-        };
+        });
     }
 
     function barGraphDistribution(item: var) : var {
@@ -618,7 +634,9 @@ Item {
         }
         if (counts.NOPLAY === undefined
                 && counts.FAILED === undefined
-                && counts.AEASY === undefined) {
+                && counts.AEASY === undefined
+                && counts.LIGHTASSIST === undefined
+                && counts.LIGHT_ASSIST === undefined) {
             return counts;
         }
 
@@ -633,6 +651,13 @@ Item {
         let fc = counts.FC || 0;
         let perfect = counts.PERFECT || 0;
         let max = counts.MAX || 0;
+        if (!root.useBeatorajaSelectOptions) {
+            fail += assist + lightAssist;
+            assist = 0;
+            lightAssist = 0;
+            hard += exhard;
+            exhard = 0;
+        }
         let play = fail + assist + lightAssist + easy + normal + hard + exhard + fc + perfect + max;
         let clear = assist + lightAssist + easy + normal + hard + exhard + fc + perfect + max;
         return {
@@ -651,6 +676,17 @@ Item {
             perfect: perfect,
             max: max
         };
+    }
+
+    function lr2CompatibleFolderLamp(lamp: var, counts: var) : var {
+        let value = Math.max(0, lamp || 0);
+        if (root.useBeatorajaSelectOptions || value === 0 || !counts) {
+            return value;
+        }
+        let assist = (counts.AEASY || 0)
+            + (counts.LIGHTASSIST || 0)
+            + (counts.LIGHT_ASSIST || 0);
+        return assist > 0 ? 1 : value;
     }
 
     function refreshFolderLamps() {
@@ -700,9 +736,9 @@ Item {
             ? summary.distribution
             : summary["distribution"];
         let lamp = summary.lamp !== undefined ? summary.lamp : summary["lamp"];
-        pendingFolderLampByKey[key] = lamp || 0;
+        pendingFolderLampByKey[key] = lr2CompatibleFolderLamp(lamp, counts);
         pendingFolderScoreCountsByKey[key] = folderScoreCountsFromSummaryCounts(counts);
-        pendingFolderDistributionByKey[key] = distribution || emptyFolderDistribution();
+        pendingFolderDistributionByKey[key] = normalizedFolderDistribution(distribution || emptyFolderDistribution());
         pendingFolderLampPublishCount += 1;
         if (updatesActive && !folderLampPublishQueued) {
             folderLampPublishQueued = true;
@@ -1330,8 +1366,9 @@ Item {
     }
 
     function refreshScores() : var {
-        Rg.profileList.mainProfile.scoreDb.cancelPending();
         let folder = historyStack.length > 0 ? historyStack[historyStack.length - 1] : "";
+        let scoreDb = Rg.profileList.mainProfile.scoreDb;
+        scoreDb.cancelPending();
         if (!folderContentsNeedFullScores()) {
             scores = ({});
             handleScoresLoaded();
@@ -1346,7 +1383,7 @@ Item {
                     md5s.push(item.md5);
                 }
             }
-            Rg.profileList.mainProfile.scoreDb.getScoresForMd5(md5s).then((result) => {
+            scoreDb.getScoresForMd5(md5s).then((result) => {
                 scores = result.scores;
                 handleScoresLoaded();
             });
@@ -1354,7 +1391,7 @@ Item {
             refreshFolderLamps();
             return;
         }
-        Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
+        scoreDb.getScores(folder).then((result) => {
             if (result && result.courseScores !== undefined) {
                 let newScores = result.scores.scores;
                 for (let [key, value] of Object.entries(result.courseScores.scores)) {
@@ -2235,26 +2272,81 @@ Item {
             || emptyScoreList;
     }
 
+    function normalizedClearType(clear: var) : var {
+        let value = String(clear || "NOPLAY").toUpperCase();
+        switch (value) {
+        case "":
+            return "NOPLAY";
+        case "ASSIST":
+        case "ASSISTEASY":
+        case "ASSIST_EASY":
+            return "AEASY";
+        case "LIGHT_ASSIST":
+        case "LIGHTASSISTEASY":
+        case "LIGHT_ASSIST_EASY":
+            return "LIGHTASSIST";
+        case "EX_HARD":
+            return "EXHARD";
+        case "EXHARD_DAN":
+        case "EX_HARD_DAN":
+            return "EXHARDDAN";
+        case "FAILED":
+        case "AEASY":
+        case "LIGHTASSIST":
+        case "EASY":
+        case "NORMAL":
+        case "HARD":
+        case "EXHARD":
+        case "EXHARDDAN":
+        case "FC":
+        case "PERFECT":
+        case "MAX":
+        case "NOPLAY":
+            return value;
+        default:
+            return value;
+        }
+    }
+
+    function skinCompatibleClearType(clear: var) : var {
+        let value = normalizedClearType(clear);
+        if (root.useBeatorajaSelectOptions) {
+            return value;
+        }
+        switch (value) {
+        case "AEASY":
+        case "LIGHTASSIST":
+            return "FAILED";
+        case "EXHARD":
+        case "EXHARDDAN":
+            return "HARD";
+        default:
+            return value;
+        }
+    }
+
     function clearTypePriority(clear: var) : var {
-        switch (clear || "NOPLAY") {
+        switch (skinCompatibleClearType(clear)) {
         case "FAILED":
             return 1;
         case "AEASY":
             return 2;
-        case "EASY":
+        case "LIGHTASSIST":
             return 3;
-        case "NORMAL":
+        case "EASY":
             return 4;
-        case "HARD":
+        case "NORMAL":
             return 5;
-        case "EXHARD":
+        case "HARD":
             return 6;
-        case "FC":
+        case "EXHARD":
             return 7;
-        case "PERFECT":
+        case "FC":
             return 8;
-        case "MAX":
+        case "PERFECT":
             return 9;
+        case "MAX":
+            return 10;
         default:
             return 0;
         }
@@ -2338,6 +2430,9 @@ Item {
             case "AEASY":
                 ++counts.assist;
                 break;
+            case "LIGHTASSIST":
+                ++counts.lightAssist;
+                break;
             case "EASY":
                 ++counts.easy;
                 break;
@@ -2391,12 +2486,44 @@ Item {
         };
     }
 
+    function skinCompatibleScoreCounts(counts: var) : var {
+        if (!counts || root.useBeatorajaSelectOptions) {
+            return counts || emptyScoreCounts;
+        }
+        let result = Object.assign({}, counts);
+        let assist = (result.assist || 0) + (result.lightAssist || 0);
+        if (assist > 0) {
+            result.fail = (result.fail || 0) + assist;
+            result.clear = Math.max(0, (result.clear || 0) - assist);
+            result.assist = 0;
+            result.lightAssist = 0;
+        }
+        let exhard = result.exhard || 0;
+        if (exhard > 0) {
+            result.hard = (result.hard || 0) + exhard;
+            result.exhard = 0;
+        }
+        return result;
+    }
+
+    function skinCompatibleScoreSummary(summary: var) : var {
+        if (!summary || root.useBeatorajaSelectOptions) {
+            return summary;
+        }
+        let clearType = skinCompatibleClearType(summary.clearType || "NOPLAY");
+        return Object.assign({}, summary, {
+            scoreCounts: skinCompatibleScoreCounts(summary.scoreCounts || emptyScoreCounts),
+            clearType: clearType,
+            lamp: clearTypeLamp(clearType)
+        });
+    }
+
     function scoreSummaryForItem(item: var) : var {
         let state = selectedState();
         if ((item === state.item || item === state.chartData)
                 && state.key
                 && state.scoreRevision === scoreRevision) {
-            return state.summary || buildScoreSummary(state.scoreList || emptyScoreList);
+            return skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
         }
         return buildScoreSummary(entryScores(item));
     }
@@ -2406,14 +2533,15 @@ Item {
     }
 
     function clearTypeOf(score: var) : var {
-        return score?.result?.clearType || "NOPLAY";
+        return skinCompatibleClearType(score?.result?.clearType || "NOPLAY");
     }
 
     function clearTypeLamp(clear: var) : var {
-        switch (clear || "NOPLAY") {
+        switch (skinCompatibleClearType(clear)) {
         case "FAILED":
             return 1;
         case "AEASY":
+        case "LIGHTASSIST":
         case "EASY":
             return 2;
         case "NORMAL":
@@ -2447,14 +2575,17 @@ Item {
     }
 
     function clearTypeBarLamp(clear: var, variants: var) : var {
+        clear = skinCompatibleClearType(clear);
         if (!usesExtendedBarLampVariants(variants)) {
             return clearTypeLamp(clear);
         }
-        switch (clear || "NOPLAY") {
+        switch (clear) {
         case "FAILED":
             return 1;
         case "AEASY":
             return hasBarLampVariant(variants, 9) ? 9 : 2;
+        case "LIGHTASSIST":
+            return hasBarLampVariant(variants, 10) ? 10 : 2;
         case "EASY":
             return 2;
         case "NORMAL":
@@ -2705,7 +2836,7 @@ Item {
 
     function ensureSelectedBestStatsTiming() : var {
         let state = selectedState();
-        let summary = state.summary || buildScoreSummary(state.scoreList || emptyScoreList);
+        let summary = skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
         return ensureStatsTiming(state.bestStats, summary.bestScore);
     }
 
@@ -2792,10 +2923,9 @@ Item {
     function appendScoreClearOptionIds(clearType: var, ids: var) : void {
         // Historical score flags are beatoraja trophy options. The exact
         // selected-bar clear options are added from the current summary only.
-        switch (clearType || "NOPLAY") {
+        switch (skinCompatibleClearType(clearType)) {
         case "AEASY":
         case "LIGHTASSIST":
-        case "LIGHT_ASSIST":
             ids.push(124);
             break;
         case "EASY":
@@ -2849,6 +2979,10 @@ Item {
         let state = selectedState();
         if ((item === state.item || item === state.chartData)
                 && state.scoreRevision === scoreRevision) {
+            if (!root.useBeatorajaSelectOptions) {
+                return scoreOptionIdsFromSummary(
+                    skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList)));
+            }
             if (!state.scoreOptionIds) {
                 state.scoreOptionIds = scoreOptionIdsFromSummary(
                     state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
@@ -2890,7 +3024,7 @@ Item {
 
     function entryClearType(item: var) : var {
         if (isRankingEntry(item)) {
-            return item.bestClearType || "NOPLAY";
+            return skinCompatibleClearType(item.bestClearType || "NOPLAY");
         }
         if (isFolderLikeForLamp(item)) {
             return "NOPLAY";
@@ -2899,11 +3033,13 @@ Item {
     }
 
     function beatorajaClearOptionForClearType(clearType: var) : var {
-        switch (clearType || "NOPLAY") {
+        switch (skinCompatibleClearType(clearType)) {
         case "FAILED":
             return 101;
         case "AEASY":
             return 1100;
+        case "LIGHTASSIST":
+            return 1101;
         case "EASY":
             return 102;
         case "NORMAL":
@@ -3125,9 +3261,21 @@ Item {
         return true;
     }
 
+    function skinCompatibleRankingClearCounts(counts: var) : var {
+        if (!counts || root.useBeatorajaSelectOptions) {
+            return counts || {};
+        }
+        let result = {};
+        for (let key of Object.keys(counts)) {
+            let mapped = skinCompatibleClearType(key);
+            result[mapped] = (result[mapped] || 0) + (counts[key] || 0);
+        }
+        return result;
+    }
+
     function setRankingStats(md5: var, clearCounts: var, playerCount: var, totalPlayCount: var, playerRank: var) : var {
         let nextMd5 = normalizedMd5(md5);
-        let nextClearCounts = clearCounts || {};
+        let nextClearCounts = skinCompatibleRankingClearCounts(clearCounts || {});
         let nextPlayerRank = Math.max(0, Number(playerRank || 0));
         let nextPlayerCount = Math.max(0, Number(playerCount || 0));
         let nextTotalPlayCount = Math.max(0, Number(totalPlayCount || nextPlayerCount));
@@ -3592,7 +3740,7 @@ Item {
         function counts() {
             if (!countsLoaded) {
                 countsLoaded = true;
-                countsValue = state.scoreCounts || emptyScoreCounts;
+                countsValue = skinCompatibleScoreCounts(state.scoreCounts || emptyScoreCounts);
             }
             return countsValue;
         }

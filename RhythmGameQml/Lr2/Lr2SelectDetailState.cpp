@@ -59,30 +59,52 @@ QVariantList normalizedListValue(const QVariant& value) {
 	return {};
 }
 
+QString normalizedClearType(const QString& clearType) {
+	const QString value = clearType.trimmed().toUpper();
+	if (value.isEmpty()) return QStringLiteral("NOPLAY");
+	if (value == QStringLiteral("ASSIST")
+		|| value == QStringLiteral("ASSISTEASY")
+		|| value == QStringLiteral("ASSIST_EASY")) {
+		return QStringLiteral("AEASY");
+	}
+	if (value == QStringLiteral("LIGHT_ASSIST")
+		|| value == QStringLiteral("LIGHTASSISTEASY")
+		|| value == QStringLiteral("LIGHT_ASSIST_EASY")) {
+		return QStringLiteral("LIGHTASSIST");
+	}
+	if (value == QStringLiteral("EX_HARD")) return QStringLiteral("EXHARD");
+	if (value == QStringLiteral("EX_HARD_DAN") || value == QStringLiteral("EXHARD_DAN")) {
+		return QStringLiteral("EXHARDDAN");
+	}
+	return value;
+}
+
 QString clearTypeOf(const QVariant& score) {
-	const QString clearType = resultMap(score).value(QStringLiteral("clearType")).toString();
-	return clearType.isEmpty() ? QStringLiteral("NOPLAY") : clearType;
+	return normalizedClearType(resultMap(score).value(QStringLiteral("clearType")).toString());
 }
 
 int clearTypePriority(const QString& clearType) {
-	if (clearType == QStringLiteral("FAILED")) return 1;
-	if (clearType == QStringLiteral("AEASY")) return 2;
-	if (clearType == QStringLiteral("EASY")) return 3;
-	if (clearType == QStringLiteral("NORMAL")) return 4;
-	if (clearType == QStringLiteral("HARD")) return 5;
-	if (clearType == QStringLiteral("EXHARD")) return 6;
-	if (clearType == QStringLiteral("FC")) return 7;
-	if (clearType == QStringLiteral("PERFECT")) return 8;
-	if (clearType == QStringLiteral("MAX")) return 9;
+	const QString value = normalizedClearType(clearType);
+	if (value == QStringLiteral("FAILED")) return 1;
+	if (value == QStringLiteral("AEASY")) return 2;
+	if (value == QStringLiteral("LIGHTASSIST")) return 3;
+	if (value == QStringLiteral("EASY")) return 4;
+	if (value == QStringLiteral("NORMAL")) return 5;
+	if (value == QStringLiteral("HARD")) return 6;
+	if (value == QStringLiteral("EXHARD") || value == QStringLiteral("EXHARDDAN")) return 7;
+	if (value == QStringLiteral("FC")) return 8;
+	if (value == QStringLiteral("PERFECT")) return 9;
+	if (value == QStringLiteral("MAX")) return 10;
 	return 0;
 }
 
 int clearTypeLamp(const QString& clearType) {
-	if (clearType == QStringLiteral("FAILED")) return 1;
-	if (clearType == QStringLiteral("AEASY") || clearType == QStringLiteral("EASY")) return 2;
-	if (clearType == QStringLiteral("NORMAL")) return 3;
-	if (clearType == QStringLiteral("HARD") || clearType == QStringLiteral("EXHARD")) return 4;
-	if (clearType == QStringLiteral("FC") || clearType == QStringLiteral("PERFECT") || clearType == QStringLiteral("MAX")) return 5;
+	const QString value = normalizedClearType(clearType);
+	if (value == QStringLiteral("FAILED")) return 1;
+	if (value == QStringLiteral("AEASY") || value == QStringLiteral("LIGHTASSIST") || value == QStringLiteral("EASY")) return 2;
+	if (value == QStringLiteral("NORMAL")) return 3;
+	if (value == QStringLiteral("HARD") || value == QStringLiteral("EXHARD") || value == QStringLiteral("EXHARDDAN")) return 4;
+	if (value == QStringLiteral("FC") || value == QStringLiteral("PERFECT") || value == QStringLiteral("MAX")) return 5;
 	return 0;
 }
 
@@ -206,10 +228,11 @@ QVariantMap buildScoreSummary(const QVariantList& scoreList) {
 		}
 		if (clearType == QStringLiteral("FAILED")) increment(counts, QStringLiteral("fail"));
 		else if (clearType == QStringLiteral("AEASY")) increment(counts, QStringLiteral("assist"));
+		else if (clearType == QStringLiteral("LIGHTASSIST")) increment(counts, QStringLiteral("lightAssist"));
 		else if (clearType == QStringLiteral("EASY")) increment(counts, QStringLiteral("easy"));
 		else if (clearType == QStringLiteral("NORMAL")) increment(counts, QStringLiteral("normal"));
 		else if (clearType == QStringLiteral("HARD")) increment(counts, QStringLiteral("hard"));
-		else if (clearType == QStringLiteral("EXHARD")) increment(counts, QStringLiteral("exhard"));
+		else if (clearType == QStringLiteral("EXHARD") || clearType == QStringLiteral("EXHARDDAN")) increment(counts, QStringLiteral("exhard"));
 		else if (clearType == QStringLiteral("FC")) increment(counts, QStringLiteral("fc"));
 		else if (clearType == QStringLiteral("PERFECT")) increment(counts, QStringLiteral("perfect"));
 		else if (clearType == QStringLiteral("MAX")) increment(counts, QStringLiteral("max"));
@@ -245,15 +268,16 @@ QVariantMap buildScoreSummary(const QVariantList& scoreList) {
 void appendScoreClearOptionIds(const QString& clearType, QSet<int>& ids) {
 	// Historical score flags are beatoraja trophy options. The exact
 	// selected-bar clear options are added from the current summary only.
-	if (clearType == QStringLiteral("AEASY") || clearType == QStringLiteral("LIGHTASSIST") || clearType == QStringLiteral("LIGHT_ASSIST")) {
+	const QString value = normalizedClearType(clearType);
+	if (value == QStringLiteral("AEASY") || value == QStringLiteral("LIGHTASSIST")) {
 		ids.insert(124);
-	} else if (clearType == QStringLiteral("EASY")) {
+	} else if (value == QStringLiteral("EASY")) {
 		ids.insert(121);
-	} else if (clearType == QStringLiteral("NORMAL")) {
+	} else if (value == QStringLiteral("NORMAL")) {
 		ids.insert(118);
-	} else if (clearType == QStringLiteral("HARD")) {
+	} else if (value == QStringLiteral("HARD")) {
 		ids.insert(119);
-	} else if (clearType == QStringLiteral("EXHARD")) {
+	} else if (value == QStringLiteral("EXHARD") || value == QStringLiteral("EXHARDDAN")) {
 		ids.insert(125);
 	}
 }

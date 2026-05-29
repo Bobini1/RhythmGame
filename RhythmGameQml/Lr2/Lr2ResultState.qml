@@ -70,6 +70,9 @@ QtObject {
     function resultClearOption() : var {
         let result = root.resultData(1);
         let clearType = result ? String(result.clearType || "FAILED") : "FAILED";
+        if (root.host && root.host.skinClearTypeForStatus) {
+            clearType = root.host.skinClearTypeForStatus(clearType);
+        }
         return clearType !== "FAILED" && clearType !== "NOPLAY" ? 90 : 91;
     }
 
