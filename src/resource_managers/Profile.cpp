@@ -226,6 +226,9 @@ Profile::Profile(
   , vars(this, themeFamilies, std::move(assetsPaths))
   , networkManager(networkManager)
 {
+    themeConfig->setParent(this);
+    vars.setParent(this);
+    scoreDb.setParent(this);
     importPool.setMaxThreadCount(1);
     db.execute("CREATE TABLE IF NOT EXISTS properties ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -261,7 +264,6 @@ Profile::Profile(
     auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
     attachStatement.bind(1, support::pathToUtfString(mainDbPath));
     attachStatement.execute();
-    this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,

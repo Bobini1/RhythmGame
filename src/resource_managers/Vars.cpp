@@ -1622,6 +1622,7 @@ resource_managers::Vars::Vars(
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
                                   this->availableThemeFamilies))
 {
+    generalVars.setParent(this);
     writePool.setMaxThreadCount(1);
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(
