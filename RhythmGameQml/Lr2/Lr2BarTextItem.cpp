@@ -18,7 +18,7 @@
 
 namespace {
 
-constexpr qreal maxLayerSize = 32760.0;
+constexpr qreal maxLayerSize = 16384.0;
 
 struct TextState {
     bool valid = false;

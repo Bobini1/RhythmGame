@@ -8,7 +8,10 @@
 #include "support/QStringToPath.h"
 #include <QFileInfo>
 #include <QStringDecoder>
+#include <cstdint>
+#include <iconv.h>
 #include <spdlog/spdlog.h>
+#include <vector>
 namespace {
 
 auto
@@ -43,14 +46,37 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
 auto
 decodeTextFile(const QByteArray& data) -> QString
 {
-    if (data.startsWith("\xEF\xBB\xBF")) {
-        return QString::fromUtf8(data.sliced(3));
+    const auto startsWithBytes = [&data](QByteArrayView prefix) {
+        return data.size() >= prefix.size() &&
+               QByteArrayView(data.constData(), prefix.size()) == prefix;
+    };
+    const auto decode = [](QStringConverter::Encoding encoding,
+                           QByteArrayView bytes) -> QString {
+        QStringDecoder decoder(encoding);
+        return decoder.decode(bytes);
+    };
+
+    if (startsWithBytes(QByteArrayView("\xEF\xBB\xBF", 3))) {
+        return decode(QStringConverter::Utf8, data.sliced(3));
+    }
+    if (startsWithBytes(QByteArrayView("\x00\x00\xFE\xFF", 4))) {
+        return decode(QStringConverter::Utf32BE, data.sliced(4));
+    }
+    if (startsWithBytes(QByteArrayView("\xFF\xFE\x00\x00", 4))) {
+        return decode(QStringConverter::Utf32LE, data.sliced(4));
+    }
+    if (startsWithBytes(QByteArrayView("\xFE\xFF", 2))) {
+        return decode(QStringConverter::Utf16BE, data.sliced(2));
+    }
+    if (startsWithBytes(QByteArrayView("\xFF\xFE", 2))) {
+        return decode(QStringConverter::Utf16LE, data.sliced(2));
     }
 
-    // LR2-era text files are commonly saved as Japanese Windows text without
-    // a BOM. Prefer that family for no-BOM files; ASCII survives unchanged.
+    // LR2-era text files commonly omit a BOM and use Japanese Windows CP932.
+    // Do not auto-detect UTF-8 for these files; ASCII survives unchanged.
     for (const auto* encoding :
-         { "CP932", "windows-31j", "Shift-JIS" }) {
+         { "CP932", "windows-31j", "Shift-JIS", "Shift_JIS", "SJIS",
+           "MS_Kanji" }) {
         QStringDecoder decoder(encoding);
         if (!decoder.isValid()) {
             continue;
@@ -61,10 +87,28 @@ decodeTextFile(const QByteArray& data) -> QString
         }
     }
 
-    QStringDecoder utf8Decoder(QStringConverter::Utf8);
-    const auto utf8 = utf8Decoder.decode(data);
-    if (!utf8Decoder.hasError()) {
-        return utf8;
+    const auto invalidIconv =
+      reinterpret_cast<iconv_t>(static_cast<std::intptr_t>(-1));
+    for (const auto* encoding :
+         { "CP932", "Windows-31J", "SHIFT_JIS", "Shift-JIS" }) {
+        iconv_t cd = iconv_open("UTF-8", encoding);
+        if (cd == invalidIconv) {
+            continue;
+        }
+
+        auto* srcPtr = const_cast<char*>(data.constData());
+        auto srcLeft = static_cast<size_t>(data.size());
+        const auto dstSize = static_cast<size_t>(data.size()) * 4 + 4;
+        std::vector<char> dstBuf(dstSize);
+        auto* dstPtr = dstBuf.data();
+        auto dstLeft = dstSize;
+
+        const auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
+        iconv_close(cd);
+        if (result != static_cast<size_t>(-1)) {
+            return QString::fromUtf8(
+              dstBuf.data(), static_cast<qsizetype>(dstSize - dstLeft));
+        }
     }
 
     return QString::fromLatin1(data);

@@ -70,7 +70,7 @@ Item {
     readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
     readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
     readonly property int textFontType: root.srcData ? root.srcData.fontType : 0
-    readonly property real maxLayerSize: 32760
+    readonly property real maxLayerSize: 16384
     readonly property real dstWidth: root.hasCurrentState ? root.stateW * root.scaleOverride : 0
     readonly property real dstHeight: root.hasCurrentState ? root.stateH * root.scaleOverride : 0
     // LR2 skins use huge DST widths such as 99999 as "unclipped text". Qt

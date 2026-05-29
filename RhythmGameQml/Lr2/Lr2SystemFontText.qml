@@ -17,7 +17,7 @@ Item {
     readonly property int basePixelSize: Math.max(1, Math.round(fontSize > 0 ? fontSize : height))
     readonly property int edgeWidth: hasEdge ? 1 : 0
     readonly property color edgeColor: Qt.rgba(0.03, 0.02, 0.05, 1.0)
-    readonly property real maxLayerSize: 32760
+    readonly property real maxLayerSize: 16384
     readonly property int resolvedFontWeight: fontThickness >= 6
         ? Font.Bold
         : (fontThickness >= 4 ? Font.DemiBold : Font.Normal)
