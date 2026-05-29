@@ -243,9 +243,10 @@ QVariantMap buildScoreSummary(const QVariantList& scoreList) {
 }
 
 void appendScoreClearOptionIds(const QString& clearType, QSet<int>& ids) {
+	// Historical score flags are beatoraja trophy options. The exact
+	// selected-bar clear options are added from the current summary only.
 	if (clearType == QStringLiteral("AEASY") || clearType == QStringLiteral("LIGHTASSIST") || clearType == QStringLiteral("LIGHT_ASSIST")) {
 		ids.insert(124);
-		ids.insert(1100);
 	} else if (clearType == QStringLiteral("EASY")) {
 		ids.insert(121);
 	} else if (clearType == QStringLiteral("NORMAL")) {
@@ -254,15 +255,6 @@ void appendScoreClearOptionIds(const QString& clearType, QSet<int>& ids) {
 		ids.insert(119);
 	} else if (clearType == QStringLiteral("EXHARD")) {
 		ids.insert(125);
-		ids.insert(1102);
-	} else if (clearType == QStringLiteral("FC")) {
-		ids.insert(105);
-	} else if (clearType == QStringLiteral("PERFECT")) {
-		ids.insert(105);
-		ids.insert(1103);
-	} else if (clearType == QStringLiteral("MAX")) {
-		ids.insert(105);
-		ids.insert(1104);
 	}
 }
 

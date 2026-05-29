@@ -623,7 +623,7 @@ QtObject {
             let info = infos[i];
             let history = info && info.gaugeHistory ? info.gaugeHistory : [];
             let last = history && history.length > 0 ? history[history.length - 1].gauge : 0;
-            if (!best && last > (info.threshold || 0)) {
+            if (!best && root.gaugeAboveThreshold(last, info.threshold)) {
                 best = info;
             }
             if (info && !info.courseGauge) {
@@ -1168,6 +1168,10 @@ QtObject {
                 return root.dateTimeNumber(num);
             case 308:
                 return root.lr2LnModeIndex;
+            case 340:
+                return root.lr2JudgeAlgorithmIndex;
+            case 341:
+                return root.lr2BottomShiftableGaugeIndex;
             case 310:
                 return root.hiSpeedInteger(1);
             case 311:
@@ -1282,6 +1286,8 @@ QtObject {
             return root.lr2TargetButtonFrame(sourceCount);
         case 78:
             return root.lr2GaugeAutoShiftIndex;
+        case 341:
+            return root.lr2BottomShiftableGaugeIndex;
         case 301:
         case 302:
         case 303:
@@ -1289,7 +1295,7 @@ QtObject {
         case 305:
         case 306:
         case 307:
-            return 0;
+            return root.beatorajaAssistOptionFrame(id);
         case 308:
             return root.lr2LnModeIndex;
         default:

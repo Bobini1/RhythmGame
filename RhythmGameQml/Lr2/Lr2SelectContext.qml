@@ -64,6 +64,8 @@ Item {
     property int sortMode: 0
     property int sortSourceFrameCount: 5
     property var barTitleTypes: []
+    property bool useBeatorajaBarTextTypes: false
+    property bool useBeatorajaSelectOptions: false
     property int realItemCount: 0
     property int barRowCount: 0
     property int barCenter: 0
@@ -1007,7 +1009,7 @@ Item {
     }
 
     function activeSortMode() : var {
-        return sortSourceFrameCount >= 8 && sortMode === 0 ? 2 : sortMode;
+        return root.useBeatorajaSelectOptions && sortMode === 0 ? 2 : sortMode;
     }
 
     function compareCharts(a: var, b: var) : var {
@@ -1065,11 +1067,11 @@ Item {
     }
 
     function sortOrderForSourceCount(sourceCount: var) : var {
-        return sourceCount >= 8 ? beatorajaSortOrder : lr2SortOrder;
+        return root.useBeatorajaSelectOptions ? beatorajaSortOrder : lr2SortOrder;
     }
 
     function beatorajaKeyFilterOrderActive() : var {
-        return sortSourceFrameCount >= 8;
+        return root.useBeatorajaSelectOptions;
     }
 
     function keyFilterOrder(sourceCount: var) : var {
@@ -1146,26 +1148,27 @@ Item {
 
     function keyFilterFrameForSourceCount(sourceCount: var) : var {
         let order = keyFilterOrder(sourceCount);
-        return order.indexOf(keyFilter) >= 0 ? keyFilter : order[0];
+        return order.indexOf(keyFilter) >= 0 ? keyFilter : -1;
     }
 
     function adjustKeyFilter(delta: var, sourceCount: var) : void {
         let order = keyFilterOrder(sourceCount);
         let frame = order.indexOf(keyFilter);
         if (frame < 0) {
-            frame = 0;
+            keyFilter = order[0];
+            return;
         }
         frame = ((frame + delta) % order.length + order.length) % order.length;
         keyFilter = order[frame];
     }
 
     function resetSortSourceFrameCount() : void {
-        setSortSourceFrameCount(5);
+        setSortSourceFrameCount(root.useBeatorajaSelectOptions ? 8 : 5);
     }
 
     function setSortSourceFrameCount(sourceCount: var) : var {
         let wasBeatoraja = beatorajaKeyFilterOrderActive();
-        let normalized = sourceCount >= 8 ? 8 : 5;
+        let normalized = root.useBeatorajaSelectOptions ? 8 : 5;
         if (sortSourceFrameCount === normalized) {
             return;
         }
@@ -1177,9 +1180,7 @@ Item {
     }
 
     function observeSortSourceFrameCount(sourceCount: var) : void {
-        if (sourceCount >= 8 && sortSourceFrameCount < 8) {
-            setSortSourceFrameCount(sourceCount);
-        }
+        setSortSourceFrameCount(sourceCount);
     }
 
     function sortFrameForSourceCount(sourceCount: var) : var {
@@ -1188,7 +1189,7 @@ Item {
         if (frame >= 0) {
             return frame;
         }
-        return sourceCount >= 8 ? 0 : 0;
+        return -1;
     }
 
     function adjustSortMode(delta: var, sourceCount: var) : void {
@@ -1196,7 +1197,8 @@ Item {
         let order = sortOrderForSourceCount(sourceCount);
         let frame = order.indexOf(sortMode);
         if (frame < 0) {
-            frame = 0;
+            sortMode = order[0];
+            return;
         }
         frame = ((frame + delta) % order.length + order.length) % order.length;
         sortMode = order[frame];
@@ -1925,9 +1927,45 @@ Item {
         return rank;
     }
 
+    function barTitleTypeDefined(type: var) : var {
+        let normalized = Math.floor(type || 0);
+        let types = root.barTitleTypes || [];
+        for (let value of types) {
+            if (Math.floor(value || 0) === normalized) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function barTitleTypeWithFallback(type: var, fallback: var) : var {
+        let normalized = Math.max(0, Math.floor(type || 0));
+        if (normalized <= 1 || root.barTitleTypeDefined(normalized)) {
+            return normalized;
+        }
+        return Math.max(0, Math.floor(fallback || 0));
+    }
+
+    function beatorajaEntryTitleType(item: var) : var {
+        if (isRankingEntry(item) || isChart(item) || isEntry(item)) {
+            return root.barTitleTypeWithFallback(2, 0);
+        }
+        if (typeof item === "string") {
+            return root.barTitleTypeWithFallback(4, 0);
+        }
+        if (isTable(item) || isLevel(item)) {
+            return root.barTitleTypeWithFallback(6, 0);
+        }
+        if (isCourse(item)) {
+            return root.barTitleTypeWithFallback(7, 0);
+        }
+        return 0;
+    }
+
     function entryTitleType(item: var) : var {
-        // LR2 uses #SRC_BAR_TITLE index 0 for normal titles and 1 for the
-        // recently-added flash variant; entry categories are handled by bodyType.
+        if (root.useBeatorajaBarTextTypes) {
+            return root.beatorajaEntryTitleType(item);
+        }
         return 0;
     }
 
@@ -2752,12 +2790,13 @@ Item {
     }
 
     function appendScoreClearOptionIds(clearType: var, ids: var) : void {
+        // Historical score flags are beatoraja trophy options. The exact
+        // selected-bar clear options are added from the current summary only.
         switch (clearType || "NOPLAY") {
         case "AEASY":
         case "LIGHTASSIST":
         case "LIGHT_ASSIST":
             ids.push(124);
-            ids.push(1100);
             break;
         case "EASY":
             ids.push(121);
@@ -2770,18 +2809,6 @@ Item {
             break;
         case "EXHARD":
             ids.push(125);
-            ids.push(1102);
-            break;
-        case "FC":
-            ids.push(105);
-            break;
-        case "PERFECT":
-            ids.push(105);
-            ids.push(1103);
-            break;
-        case "MAX":
-            ids.push(105);
-            ids.push(1104);
             break;
         }
     }

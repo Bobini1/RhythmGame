@@ -61,6 +61,11 @@ Lr2NativeCursor {
         timerFire: cursor.rootReady ? cursor.root.skinTimerFireTime(cursor.cursorSrcTimer) : -1
     }
     readonly property int frameIndex: animationFrameState.frameIndex
+    readonly property size fallbackTargetSize: rootReady && cursorSrcData
+        ? Qt.size(
+            Math.max(0, cursorSrcData.w || 0) * root.skinVisualScaleX,
+            Math.max(0, cursorSrcData.h || 0) * root.skinVisualScaleY)
+        : Qt.size(0, 0)
     readonly property rect clipRect: {
         if (!cursorSrcData || wholeTextureSource || !croppedTextureSource) {
             return Qt.rect(0, 0, 0, 0);
@@ -88,6 +93,5 @@ Lr2NativeCursor {
     sourceRect: clipRect
     targetSize: cursorState
         ? Qt.size(cursorState.w * root.skinVisualScaleX, cursorState.h * root.skinVisualScaleY)
-        : Qt.size(0, 0)
+        : fallbackTargetSize
 }
-

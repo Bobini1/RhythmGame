@@ -109,6 +109,7 @@ ApplicationWindow {
             if (selectScreen && selectScreen.csvPath) {
                 props["csvPath"] = selectScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("select");
+                props["skinSettingsData"] = selectScreen.settingsData || "";
                 props["screenKey"] = "select";
             }
             sceneStack.pushItem(selectComponent, props);
@@ -125,6 +126,7 @@ ApplicationWindow {
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("decide");
+                props["skinSettingsData"] = decideScreen.settingsData || "";
                 props["screenKey"] = "decide";
             }
             sceneStack.pushItem(decideComponent, props);
@@ -141,6 +143,7 @@ ApplicationWindow {
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("decide");
+                props["skinSettingsData"] = decideScreen.settingsData || "";
                 props["screenKey"] = "decide";
             }
             sceneStack.pushItem(decideComponent, props);
@@ -156,6 +159,7 @@ ApplicationWindow {
             if (screenObj && screenObj.csvPath) {
                 props["csvPath"] = screenObj.csvPath;
                 props["skinSettings"] = currentLr2Settings(screenKey);
+                props["skinSettingsData"] = screenObj.settingsData || "";
                 props["screenKey"] = screenKey;
             }
             sceneStack.pushItem(component, props);
@@ -171,6 +175,7 @@ ApplicationWindow {
             if (resultScreen && resultScreen.csvPath) {
                 props["csvPath"] = resultScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("result");
+                props["skinSettingsData"] = resultScreen.settingsData || "";
                 props["screenKey"] = "result";
             }
             sceneStack.pushItem(resultComponent, props);
@@ -189,6 +194,7 @@ ApplicationWindow {
                 let settingsKey = hasCourseResultScreen ? "courseResult" : "result";
                 props["csvPath"] = courseResultScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings(settingsKey);
+                props["skinSettingsData"] = courseResultScreen.settingsData || "";
                 props["screenKey"] = settingsKey;
             }
             sceneStack.pushItem(courseResultComponent, props);

@@ -776,6 +776,12 @@ Item {
 
     readonly property int lr2LnModeIndex: optionState.lr2LnModeIndex
     function setLnModeIndex(index: var) : var { return optionState.setLnModeIndex(index); }
+    function beatorajaAssistOptionFrame(buttonId: var) : var {
+        return optionState.beatorajaAssistOptionFrame(buttonId);
+    }
+    function toggleBeatorajaAssistOption(buttonId: var) : var {
+        return optionState.toggleBeatorajaAssistOption(buttonId);
+    }
 
     readonly property int lr2JudgeAlgorithmIndex: optionState.lr2JudgeAlgorithmIndex
     function setJudgeAlgorithmIndex(index: var) : var { return optionState.setJudgeAlgorithmIndex(index); }
@@ -915,7 +921,6 @@ Item {
     function isLr2RankingKey(key: var) : var { return key === BmsKey.Col14 || key === BmsKey.Col24; }
 
     function clearStatusOption() : var { return optionState.clearStatusOption(); }
-    function clearStatusIsBest() : var { return optionState.clearStatusIsBest(); }
 
     Rectangle {
         anchors.fill: parent
@@ -1244,13 +1249,17 @@ Item {
         return String(vars ? vars.gaugeType : "").toUpperCase();
     }
 
+    function gaugeAboveThreshold(value: var, threshold: var) : var {
+        return Number(value || 0) > Number(threshold || 0);
+    }
+
     function gameplayActiveGauge(score: var) : var {
         if (!score || !score.gauges || score.gauges.length === 0) {
             return null;
         }
         let gauges = score.gauges;
         for (let gauge of gauges) {
-            if (gauge && (gauge.gauge || 0) > (gauge.threshold || 0)) {
+            if (root.gaugeAboveThreshold(gauge.gauge, gauge.threshold)) {
                 return gauge;
             }
         }
@@ -1639,6 +1648,9 @@ Item {
             return 1;
         case "AEASY":
             return 2;
+        case "LIGHTASSIST":
+        case "LIGHT_ASSIST":
+            return 3;
         case "EASY":
             return 4;
         case "NORMAL":
@@ -2417,7 +2429,7 @@ Item {
 
     function gameplayGaugeQualified(score: var) : var {
         let gauge = root.gameplayActiveGauge(score);
-        return gauge ? (gauge.gauge || 0) > (gauge.threshold || 0) : false;
+        return gauge && root.gaugeAboveThreshold(gauge.gauge, gauge.threshold);
     }
 
     function gameplayGaugeOption(side: var) : var {
@@ -4285,6 +4297,8 @@ Item {
         updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
         enabled: updatesActive
         barTitleTypes: skinModel.barTitleTypes || []
+        useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics
+        useBeatorajaSelectOptions: root.lr2SkinUsesBeatorajaSemantics
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
 

@@ -185,15 +185,15 @@ QtObject {
         BmsKey.Col25, BmsKey.Col26, BmsKey.Col27,
         BmsKey.Col2sUp, BmsKey.Col2sDown, BmsKey.Start2, BmsKey.Select2
     ])
-    readonly property var selectPanelKeyBindings: ({
+    readonly property var lr2SelectPanelKeyBindings: ({
         "1": controller.bindingLookup([
-            [BmsKey.Col11, 42, 1], [BmsKey.Col21, 42, 1],
-            [BmsKey.Col12, 42, -1], [BmsKey.Col22, 42, -1],
-            [BmsKey.Col13, 40, 1], [BmsKey.Col23, 40, 1],
-            [BmsKey.Col14, 54, 1], [BmsKey.Col24, 54, 1],
-            [BmsKey.Col15, 55, 1], [BmsKey.Col25, 55, 1],
-            [BmsKey.Col16, 43, -1], [BmsKey.Col26, 43, -1],
-            [BmsKey.Col17, 43, 1], [BmsKey.Col27, 43, 1]
+            [BmsKey.Col11, 10, 1], [BmsKey.Col21, 10, 1],
+            [BmsKey.Col12, 42, 1], [BmsKey.Col22, 43, 1],
+            [BmsKey.Col13, 54, 1], [BmsKey.Col23, 54, 1],
+            [BmsKey.Col14, 40, 1], [BmsKey.Col24, 41, 1],
+            [BmsKey.Col15, 57, -1], [BmsKey.Col25, 58, -1],
+            [BmsKey.Col16, 44, 1], [BmsKey.Col26, 45, 1],
+            [BmsKey.Col17, 57, 1], [BmsKey.Col27, 58, 1]
         ]),
         "2": controller.bindingLookup([
             [BmsKey.Col11, 71, 1], [BmsKey.Col21, 71, 1],
@@ -215,6 +215,38 @@ QtObject {
             [BmsKey.Col17, 74, 1], [BmsKey.Col27, 74, 1]
         ])
     })
+    readonly property var beatorajaSelectPanelKeyBindings: ({
+        "1": controller.bindingLookup([
+            [BmsKey.Col11, 42, 1], [BmsKey.Col21, 42, 1],
+            [BmsKey.Col12, 42, -1], [BmsKey.Col22, 42, -1],
+            [BmsKey.Col13, 40, 1], [BmsKey.Col23, 40, 1],
+            [BmsKey.Col14, 54, 1], [BmsKey.Col24, 54, 1],
+            [BmsKey.Col15, 55, 1], [BmsKey.Col25, 55, 1],
+            [BmsKey.Col16, 43, -1], [BmsKey.Col26, 43, -1],
+            [BmsKey.Col17, 43, 1], [BmsKey.Col27, 43, 1]
+        ]),
+        "2": controller.bindingLookup([
+            [BmsKey.Col11, 301, 1], [BmsKey.Col21, 301, 1],
+            [BmsKey.Col12, 302, 1], [BmsKey.Col22, 302, 1],
+            [BmsKey.Col13, 303, 1], [BmsKey.Col23, 303, 1],
+            [BmsKey.Col14, 304, 1], [BmsKey.Col24, 304, 1],
+            [BmsKey.Col15, 305, 1], [BmsKey.Col25, 305, 1],
+            [BmsKey.Col16, 306, 1], [BmsKey.Col26, 306, 1],
+            [BmsKey.Col17, 307, 1], [BmsKey.Col27, 307, 1]
+        ]),
+        "3": controller.bindingLookup([
+            [BmsKey.Col11, 72, 1], [BmsKey.Col21, 72, 1],
+            [BmsKey.Col12, 78, 1], [BmsKey.Col22, 78, 1],
+            [BmsKey.Col13, 75, 1], [BmsKey.Col23, 75, 1],
+            [BmsKey.Col14, 59, -1], [BmsKey.Col24, 59, -1],
+            [BmsKey.Col15, 74, -1], [BmsKey.Col25, 74, -1],
+            [BmsKey.Col16, 59, 1], [BmsKey.Col26, 59, 1],
+            [BmsKey.Col17, 74, 1], [BmsKey.Col27, 74, 1]
+        ])
+    })
+    readonly property var activeSelectPanelKeyBindings: root.lr2SkinUsesBeatorajaSemantics
+        ? controller.beatorajaSelectPanelKeyBindings
+        : controller.lr2SelectPanelKeyBindings
     readonly property var buttonFrameGetters: ({
         "10": () => selectContext.difficultyFilter,
         "11": src => selectContext.keyFilterFrameForSourceCount(root.elementSourceFrameCount(src)),
@@ -245,8 +277,9 @@ QtObject {
         "71": () => root.lr2GhostIndex,
         "72": () => root.lr2BgaIndex,
         "73": () => root.lr2BgaSizeIndex,
-        "77": () => root.lr2ScoreTargetIndex,
+        "77": src => root.lr2TargetButtonFrame(root.elementSourceFrameCount(src)),
         "78": () => root.lr2GaugeAutoShiftIndex,
+        "341": () => root.lr2BottomShiftableGaugeIndex,
         "308": () => root.lr2LnModeIndex
     })
     readonly property var selectButtonActions: ({
@@ -387,12 +420,16 @@ QtObject {
             root.setTargetPercent(root.lr2TargetPercent + delta);
             return true;
         },
-        "77": delta => {
-            root.setScoreTargetIndex(root.lr2ScoreTargetIndex + delta);
+        "77": (delta, sourceCount) => {
+            root.adjustTargetButtonIndex(delta, sourceCount);
             return true;
         },
         "78": delta => {
             root.setGaugeAutoShiftIndex(root.lr2GaugeAutoShiftIndex + delta);
+            return true;
+        },
+        "341": delta => {
+            root.setBottomShiftableGaugeIndex(root.lr2BottomShiftableGaugeIndex + delta);
             return true;
         },
         "80": () => {
@@ -405,13 +442,13 @@ QtObject {
             root.lr2ReplayType = root.wrapValue(root.lr2ReplayType + delta, root.lr2ReplayLabels.length);
             return true;
         },
-        "301": () => false,
-        "302": () => false,
-        "303": () => false,
-        "304": () => false,
-        "305": () => false,
-        "306": () => false,
-        "307": () => false,
+        "301": () => root.toggleBeatorajaAssistOption(301),
+        "302": () => root.toggleBeatorajaAssistOption(302),
+        "303": () => root.toggleBeatorajaAssistOption(303),
+        "304": () => root.toggleBeatorajaAssistOption(304),
+        "305": () => root.toggleBeatorajaAssistOption(305),
+        "306": () => root.toggleBeatorajaAssistOption(306),
+        "307": () => root.toggleBeatorajaAssistOption(307),
         "308": delta => root.setLnModeIndex(root.lr2LnModeIndex + delta),
         "316": () => controller.playReplaySlot(1),
         "317": () => controller.playReplaySlot(2),
@@ -931,6 +968,35 @@ QtObject {
         return root.triggerSelectPanelButton(buttonId, delta === undefined ? 1 : delta);
     }
 
+    function handleLr2SelectPanelChord(key: var, panel: var) : var {
+        if (root.lr2SkinUsesBeatorajaSemantics || panel !== 1) {
+            return false;
+        }
+
+        if ((key === BmsKey.Col16 && Input.col17)
+                || (key === BmsKey.Col17 && Input.col16)) {
+            return root.triggerSelectPanelButton(50, -1);
+        }
+        if ((key === BmsKey.Col26 && Input.col27)
+                || (key === BmsKey.Col27 && Input.col26)) {
+            return root.triggerSelectPanelButton(root.battleModeActive() ? 51 : 50, 1);
+        }
+
+        if (key === BmsKey.Col15 && Input.col17) {
+            return root.triggerSelectPanelButton(55, 1);
+        }
+        if (key === BmsKey.Col17 && Input.col15) {
+            return root.triggerSelectPanelButton(55, root.battleModeActive() ? -1 : 1);
+        }
+        if (key === BmsKey.Col25 && Input.col27) {
+            return root.triggerSelectPanelButton(55, 1);
+        }
+        if (key === BmsKey.Col27 && Input.col25) {
+            return root.triggerSelectPanelButton(55, root.battleModeActive() ? -1 : 1);
+        }
+        return false;
+    }
+
     function keyUsesPlayer2(key: var) : var {
         return controller.player2Keys[String(key)] === true;
     }
@@ -1256,9 +1322,19 @@ QtObject {
             return false;
         }
 
-        let panelBindings = controller.selectPanelKeyBindings[String(root.selectPanel)];
+        if (controller.handleLr2SelectPanelChord(key, root.selectPanel)) {
+            return true;
+        }
+
+        let panelBindings = controller.activeSelectPanelKeyBindings[String(root.selectPanel)];
         let binding = panelBindings ? panelBindings[String(key)] : null;
-        return binding ? root.triggerSelectPanelButton(binding.buttonId, binding.delta) : false;
+        if (!binding) {
+            return false;
+        }
+        if ((binding.buttonId || 0) <= 0) {
+            return true;
+        }
+        return root.triggerSelectPanelButton(binding.buttonId, binding.delta);
     }
 
     property real selectWheelRemainder: 0

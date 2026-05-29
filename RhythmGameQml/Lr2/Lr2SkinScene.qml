@@ -84,20 +84,6 @@ Item {
                 }
             }
 
-            Text {
-                visible: sceneRoot.selectScreenActive
-                    && sceneRoot.root.clearStatusIsBest()
-                text: "BEST"
-                x: 80 * sceneRoot.skinScale
-                y: 459 * sceneRoot.skinScale
-                z: 100200
-                color: "white"
-                font.family: "Arial"
-                font.pixelSize: 6 * sceneRoot.skinScale
-                font.bold: true
-                renderType: Text.NativeRendering
-            }
-
             Lr2SkinCursor {
                 anchors.fill: parent
                 screenRoot: sceneRoot.root

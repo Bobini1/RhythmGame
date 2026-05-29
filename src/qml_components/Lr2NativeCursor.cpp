@@ -11,14 +11,6 @@ namespace qml_components {
 namespace {
 
 auto
-transparentCursor() -> QCursor
-{
-    auto pixmap = QPixmap{ 1, 1 };
-    pixmap.fill(Qt::transparent);
-    return QCursor{ pixmap, 0, 0 };
-}
-
-auto
 cursorKey(const QString& source, const QRect& sourceRect, const QSize& target)
   -> QString
 {
@@ -134,16 +126,7 @@ Lr2NativeCursor::updateCursor()
 
     auto image = cursorImage();
     if (image.isNull() || !m_targetSize.isValid() || m_targetSize.isEmpty()) {
-        if (m_appliedKey == QStringLiteral("blank")) {
-            return;
-        }
-        if (m_applied) {
-            QGuiApplication::changeOverrideCursor(transparentCursor());
-        } else {
-            QGuiApplication::setOverrideCursor(transparentCursor());
-        }
-        m_applied = true;
-        m_appliedKey = QStringLiteral("blank");
+        clearCursor();
         return;
     }
 
@@ -164,13 +147,7 @@ Lr2NativeCursor::updateCursor()
 
     const auto pixmap = QPixmap::fromImage(image);
     if (pixmap.isNull()) {
-        if (m_applied) {
-            QGuiApplication::changeOverrideCursor(transparentCursor());
-        } else {
-            QGuiApplication::setOverrideCursor(transparentCursor());
-        }
-        m_applied = true;
-        m_appliedKey = QStringLiteral("blank");
+        clearCursor();
         return;
     }
 

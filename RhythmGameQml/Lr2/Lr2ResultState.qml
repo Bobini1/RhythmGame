@@ -433,7 +433,7 @@ QtObject {
             let info = infos[i];
             let history = info && info.gaugeHistory ? info.gaugeHistory : [];
             let last = history && history.length > 0 ? history[history.length - 1].gauge : 0;
-            if (!best && last > (info.threshold || 0)) {
+            if (!best && root.host && root.host.gaugeAboveThreshold(last, info.threshold)) {
                 best = info;
             }
             if (info && !info.courseGauge) {
@@ -696,4 +696,3 @@ QtObject {
         }
     }
 }
-

@@ -114,7 +114,7 @@ Item {
             let info = infos[i];
             let history = info && info.gaugeHistory ? info.gaugeHistory : [];
             let last = history && history.length > 0 ? history[history.length - 1].gauge : 0;
-            if (!best && last > (info.threshold || 0)) {
+            if (!best && root.screenRoot && root.screenRoot.gaugeAboveThreshold(last, info.threshold)) {
                 best = info;
             }
             if (info && !info.courseGauge) {
@@ -447,4 +447,3 @@ Item {
     onScreenRootChanged: rebuildValueCache()
     onResultRevisionChanged: rebuildValueCache()
 }
-

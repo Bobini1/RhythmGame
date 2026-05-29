@@ -419,7 +419,9 @@ auto
 globToRegex(const QString& wildcard) -> QRegularExpression
 {
     return QRegularExpression(QRegularExpression::wildcardToRegularExpression(
-      wildcard, QRegularExpression::UnanchoredWildcardConversion));
+                                wildcard,
+                                QRegularExpression::UnanchoredWildcardConversion),
+                              QRegularExpression::CaseInsensitiveOption);
 }
 
 auto
@@ -441,6 +443,29 @@ wildcardSuffixForSelection(const QString& wildcard) -> QString
 }
 
 auto
+regularFilePathForSelection(const std::filesystem::path& directory,
+                            const QString& selection) -> std::filesystem::path
+{
+    const auto exact = directory / support::qStringToPath(selection);
+    if (std::filesystem::is_regular_file(exact)) {
+        return exact;
+    }
+
+    std::error_code ec;
+    for (const auto& entry : std::filesystem::directory_iterator(directory, ec)) {
+        if (!entry.is_regular_file()) {
+            continue;
+        }
+        const auto filename =
+          QString::fromStdString(entry.path().filename().generic_string());
+        if (filename.compare(selection, Qt::CaseInsensitive) == 0) {
+            return entry.path();
+        }
+    }
+    return {};
+}
+
+auto
 selectedCustomFilePath(const std::filesystem::path& directory,
                        const QString& wildcard,
                        const QString& selected) -> std::filesystem::path
@@ -452,16 +477,16 @@ selectedCustomFilePath(const std::filesystem::path& directory,
         return {};
     }
 
-    const auto selectedPath = directory / support::qStringToPath(trimmed);
-    if (std::filesystem::is_regular_file(selectedPath)) {
+    const auto selectedPath = regularFilePathForSelection(directory, trimmed);
+    if (!selectedPath.empty()) {
         return selectedPath;
     }
 
     const auto suffix = wildcardSuffixForSelection(wildcard);
     if (!suffix.isEmpty() && !trimmed.endsWith(suffix, Qt::CaseInsensitive)) {
         const auto withSuffix =
-          directory / support::qStringToPath(trimmed + suffix);
-        if (std::filesystem::is_regular_file(withSuffix)) {
+          regularFilePathForSelection(directory, trimmed + suffix);
+        if (!withSuffix.empty()) {
             return withSuffix;
         }
     }
