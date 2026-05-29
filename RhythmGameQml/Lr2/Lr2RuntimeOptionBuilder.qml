@@ -559,6 +559,33 @@ QtObject {
         }
     }
 
+    function resultRankOptionForPoints(points: var, totalNotes: var, baseOption: var) : var {
+        let maxPoints = Math.max(0, totalNotes || 0) * 2;
+        if (maxPoints <= 0 || points <= 0) {
+            return baseOption + 8;
+        }
+        let rank = Math.floor(points * 9 / maxPoints);
+        if (rank >= 8) {
+            return baseOption;
+        }
+        if (rank <= 1) {
+            return baseOption + 7;
+        }
+        return baseOption + (8 - rank);
+    }
+
+    function resultTargetRankOption(side: var, baseOption: var) : var {
+        let targetScore = host.resultTargetSavedScore(side);
+        let targetResult = targetScore && targetScore.result ? targetScore.result : null;
+        if (targetResult) {
+            return host.resultRankOptionForResult(targetResult, baseOption);
+        }
+        return root.resultRankOptionForPoints(
+            host.resultTargetPoints(side),
+            host.resultTotalNotes(host.resultData(side)),
+            baseOption);
+    }
+
     function appendResultRuntimeOptions(options: var) : void {
         host.resultOldScoresRevision;
         let chartData = host.resultChartData();
@@ -574,9 +601,11 @@ QtObject {
         root.addOption(options, host.resultRankOptionForResult(current1, 300));
         if (current2) {
             root.addOption(options, host.resultRankOptionForResult(current2, 310));
+        } else {
+            root.addOption(options, root.resultTargetRankOption(1, 310));
         }
         root.addOption(options, host.resultRankOptionForResult(host.resultOldBestResult(1), 320));
-        root.addOption(options, host.resultRankOptionForResult(host.resultUpdatedBestResult(1), 340));
+        root.addOption(options, host.resultRankOptionForResult(current1, 340));
 
         if (host.resultScoreImproved(1)) {
             root.addOption(options, 330);
@@ -794,4 +823,3 @@ QtObject {
         return result;
     }
 }
-

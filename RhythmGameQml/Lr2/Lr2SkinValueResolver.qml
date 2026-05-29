@@ -602,11 +602,120 @@ QtObject {
         }
     }
 
-    function resultCompareResult() : var {
-        return root.resultData(2) || root.resultOldBestResult(1);
+    function resultCompareScore() : var {
+        return root.resultScore(2) || root.resultTargetSavedScore(1);
     }
 
-    function resolveResultSideNumber(num: var, result: var) : var {
+    function resultCompareResult() : var {
+        let score = resolver.resultCompareScore();
+        return score && score.result ? score.result : null;
+    }
+
+    function resultGaugeValueFromScore(score: var, fallbackSide: var) : var {
+        let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
+        if (!infos || infos.length === 0) {
+            return root.resultGaugeValue(fallbackSide);
+        }
+
+        let best = null;
+        let fallback = infos[infos.length - 1];
+        for (let i = 0; i < infos.length; ++i) {
+            let info = infos[i];
+            let history = info && info.gaugeHistory ? info.gaugeHistory : [];
+            let last = history && history.length > 0 ? history[history.length - 1].gauge : 0;
+            if (!best && last > (info.threshold || 0)) {
+                best = info;
+            }
+            if (info && !info.courseGauge) {
+                fallback = info;
+            }
+        }
+
+        let selected = best || fallback;
+        let history = selected && selected.gaugeHistory ? selected.gaugeHistory : [];
+        return history && history.length > 0 ? (history[history.length - 1].gauge || 0) : 0;
+    }
+
+    function resultScoreBarGraphMaximum(result: var) : var {
+        let chartData = root.resultChartData();
+        let keymode = chartData ? chartData.keymode : (result ? result.keymode : 0);
+        return keymode === 7 || keymode === 14 ? 20000 : 10000;
+    }
+
+    function resultScorePrintFromLr2Score(score: var, result: var) : var {
+        let chartData = root.resultChartData();
+        let keymode = chartData ? chartData.keymode : (result ? result.keymode : 0);
+        return keymode === 7 || keymode === 14 ? score : Math.floor(score / 20) * 10;
+    }
+
+    function resultScorePrintFromTargetPoints(points: var, totalNotes: var, result: var) : var {
+        let score = totalNotes > 0 ? Math.floor(points * 100000 / totalNotes) : 0;
+        return resolver.resultScorePrintFromLr2Score(score, result);
+    }
+
+    function resultRankDeltaFromPoints(points: var, totalNotes: var) : var {
+        let perfectScore = totalNotes * 2;
+        if (totalNotes <= 0 || points === perfectScore) {
+            return 0;
+        }
+        let rank = Math.floor(points * 9 / perfectScore);
+        rank = Math.max(1, Math.min(8, rank));
+        return points - Math.floor(perfectScore * (rank + 1) / 9);
+    }
+
+    function resultFinalCombo(score: var, result: var) : var {
+        let events = score && score.replayData ? (score.replayData.hitEvents || []) : [];
+        if (!events || events.length === 0) {
+            return result ? (result.maxCombo || 0) : 0;
+        }
+
+        let combo = 0;
+        for (let hit of events) {
+            let judgement = root.gameplayJudgementFromHit(hit);
+            if (judgement === Judgement.Poor || judgement === Judgement.Bad) {
+                combo = 0;
+            } else if (judgement >= Judgement.Good && judgement <= Judgement.Perfect) {
+                ++combo;
+            }
+        }
+        return combo;
+    }
+
+    function targetTotalNotes(side: var) : var {
+        return Math.floor(root.resultTargetMaxPoints(side) / 2);
+    }
+
+    function targetClampedPoints(side: var) : var {
+        let totalNotes = resolver.targetTotalNotes(side);
+        return Math.max(0, Math.min(totalNotes * 2, Math.floor(root.resultTargetPoints(side))));
+    }
+
+    function targetMaxCombo(side: var) : var {
+        return resolver.targetTotalNotes(side);
+    }
+
+    function targetPerfectCount(side: var) : var {
+        let totalNotes = resolver.targetTotalNotes(side);
+        let points = resolver.targetClampedPoints(side);
+        return Math.max(0, points - totalNotes);
+    }
+
+    function targetGreatCount(side: var) : var {
+        let totalNotes = resolver.targetTotalNotes(side);
+        let points = resolver.targetClampedPoints(side);
+        if (points <= totalNotes) {
+            return points;
+        }
+        return totalNotes - resolver.targetPerfectCount(side);
+    }
+
+    function targetGoodCount(side: var) : var {
+        let totalNotes = resolver.targetTotalNotes(side);
+        let points = resolver.targetClampedPoints(side);
+        return points < totalNotes ? totalNotes - points : 0;
+    }
+
+    function resolveResultSideNumber(num: var, result: var, score: var, otherResult: var, otherPoints: var) : var {
         switch (num) {
         case 0:
             return root.resultScorePrint(result);
@@ -616,14 +725,21 @@ QtObject {
             return root.resultRateInteger(result);
         case 3:
             return root.resultRateDecimal(result);
+        case 4:
+            return resolver.resultFinalCombo(score, result);
         case 5:
             return result ? (result.maxCombo || 0) : 0;
         case 6:
             return root.resultTotalNotes(result);
         case 7:
-            return result === root.resultData(2)
-                ? Math.floor(root.resultGaugeValue(2))
-                : Math.floor(root.resultGaugeValue(1));
+            return Math.floor(resolver.resultGaugeValueFromScore(
+                score,
+                result === root.resultData(2) ? 2 : 1));
+        case 8:
+            return root.resultExScore(result)
+                - (otherResult ? root.resultExScore(otherResult) : Math.floor(otherPoints || 0));
+        case 9:
+            return root.resultRankDelta(result);
         case 10:
             return root.resultJudgementCount(result, Judgement.Perfect);
         case 11:
@@ -634,6 +750,10 @@ QtObject {
             return root.resultJudgementCount(result, Judgement.Bad);
         case 14:
             return root.resultPoorCount(result);
+        case 15:
+            return root.resultRateInteger(result);
+        case 16:
+            return root.resultRateDecimal(result);
         default:
             return 0;
         }
@@ -643,23 +763,52 @@ QtObject {
         let targetScore = root.resultTargetSavedScore(side);
         let targetResult = targetScore && targetScore.result ? targetScore.result : null;
         if (targetResult) {
-            return root.resolveResultSideNumber(num, targetResult);
+            return resolver.resolveResultSideNumber(
+                num,
+                targetResult,
+                targetScore,
+                root.resultData(side),
+                root.resultExScore(root.resultData(side)));
         }
 
-        let points = root.resultTargetPoints(side);
+        let points = resolver.targetClampedPoints(side);
         let maxPoints = root.resultTargetMaxPoints(side);
         let totalNotes = Math.floor(maxPoints / 2);
+        let current = root.resultData(side);
         switch (num) {
         case 0:
-            return Math.floor(points * 100000 / maxPoints);
+            return resolver.resultScorePrintFromTargetPoints(points, totalNotes, current);
         case 1:
             return points;
         case 2:
             return Math.floor(points * 100 / maxPoints);
         case 3:
             return Math.floor(points * 10000 / maxPoints) % 100;
+        case 4:
+            return totalNotes;
+        case 5:
+            return resolver.targetMaxCombo(side);
         case 6:
             return totalNotes;
+        case 7:
+            return 0;
+        case 8:
+            return points - root.resultExScore(current);
+        case 9:
+            return resolver.resultRankDeltaFromPoints(points, totalNotes);
+        case 10:
+            return resolver.targetPerfectCount(side);
+        case 11:
+            return resolver.targetGreatCount(side);
+        case 12:
+            return resolver.targetGoodCount(side);
+        case 13:
+        case 14:
+            return 0;
+        case 15:
+            return Math.floor(points * 100 / maxPoints);
+        case 16:
+            return Math.floor(points * 10000 / maxPoints) % 100;
         default:
             return 0;
         }
@@ -676,10 +825,24 @@ QtObject {
         }
 
         if (num >= 100 && num <= 116) {
-            return root.resolveResultSideNumber(num - 100, current);
+            return resolver.resolveResultSideNumber(
+                num - 100,
+                current,
+                root.resultScore(1),
+                resolver.resultCompareResult(),
+                root.resultTargetPoints(1));
         }
         if (num >= 120 && num <= 136) {
-            return root.resolveResultTargetSideNumber(num - 120, 1);
+            let compareScore = resolver.resultCompareScore();
+            if (compareScore && compareScore.result && compareScore === root.resultScore(2)) {
+                return resolver.resolveResultSideNumber(
+                    num - 120,
+                    compareScore.result,
+                    compareScore,
+                    current,
+                    root.resultExScore(current));
+            }
+            return resolver.resolveResultTargetSideNumber(num - 120, 1);
         }
 
         switch (num) {
@@ -1234,37 +1397,106 @@ QtObject {
         let old = root.resultOldBestResult(1);
         let maxPoints = current ? Math.max(0, current.maxPoints || 0) : 0;
         let totalNotes = root.resultTotalNotes(current);
+        let compareScore = resolver.resultCompareScore();
+        let compare = compareScore && compareScore.result ? compareScore.result : null;
+        let comparePoints = compare
+            ? root.resultExScore(compare)
+            : resolver.targetClampedPoints(1);
+        let compareMaxPoints = maxPoints || (compare ? (compare.maxPoints || 0) : 0);
+        let compareTotalNotes = compare
+            ? root.resultTotalNotes(compare)
+            : resolver.targetTotalNotes(1);
+        let compareMaxCombo = compare ? (compare.maxCombo || 0) : resolver.targetMaxCombo(1);
+        let oldTotalNotes = root.resultTotalNotes(old);
         switch (type) {
+        case 1:
         case 101:
+        case 2:
         case 102:
             return 1;
+        case 10:
         case 110:
+        case 11:
         case 111:
             return root.normalizedBarValue(root.resultExScore(current), maxPoints);
+        case 12:
         case 112:
+        case 13:
         case 113:
             return root.normalizedBarValue(root.resultExScore(old),
                                            maxPoints || (old ? (old.maxPoints || 0) : 0));
+        case 14:
         case 114:
+        case 15:
         case 115:
             return root.normalizedBarValue(root.resultTargetPoints(1), maxPoints);
+        case 20:
         case 140:
             return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Perfect), totalNotes);
+        case 21:
         case 141:
             return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Great), totalNotes);
+        case 22:
         case 142:
             return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Good), totalNotes);
+        case 23:
         case 143:
             return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Bad), totalNotes);
+        case 24:
         case 144:
             return root.normalizedBarValue(root.resultPoorCount(current), totalNotes);
+        case 25:
         case 145:
             return root.normalizedBarValue(current ? (current.maxCombo || 0) : 0, totalNotes);
+        case 26:
         case 146:
             return root.normalizedBarValue(root.resultScorePrint(current),
-                                           (current && (current.keymode === 7 || current.keymode === 14)) ? 20000 : 10000);
+                                           resolver.resultScoreBarGraphMaximum(current));
+        case 27:
         case 147:
             return root.normalizedBarValue(root.resultExScore(current), maxPoints);
+        case 30:
+            return root.normalizedBarValue(
+                compare ? root.resultJudgementCount(compare, Judgement.Perfect) : resolver.targetPerfectCount(1),
+                compareTotalNotes);
+        case 31:
+            return root.normalizedBarValue(
+                compare ? root.resultJudgementCount(compare, Judgement.Great) : resolver.targetGreatCount(1),
+                compareTotalNotes);
+        case 32:
+            return root.normalizedBarValue(
+                compare ? root.resultJudgementCount(compare, Judgement.Good) : resolver.targetGoodCount(1),
+                compareTotalNotes);
+        case 33:
+            return root.normalizedBarValue(root.resultJudgementCount(compare, Judgement.Bad), compareTotalNotes);
+        case 34:
+            return root.normalizedBarValue(compare ? root.resultPoorCount(compare) : 0, compareTotalNotes);
+        case 35:
+            return root.normalizedBarValue(compareMaxCombo, compareTotalNotes);
+        case 36:
+            return root.normalizedBarValue(
+                compare
+                    ? root.resultScorePrint(compare)
+                    : resolver.resultScorePrintFromTargetPoints(comparePoints, compareTotalNotes, current),
+                resolver.resultScoreBarGraphMaximum(compare || current));
+        case 37:
+            return root.normalizedBarValue(comparePoints, compareMaxPoints);
+        case 40:
+            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Perfect), oldTotalNotes);
+        case 41:
+            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Great), oldTotalNotes);
+        case 42:
+            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Good), oldTotalNotes);
+        case 43:
+            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Bad), oldTotalNotes);
+        case 44:
+            return root.normalizedBarValue(root.resultPoorCount(old), oldTotalNotes);
+        case 45:
+            return root.normalizedBarValue(old ? (old.maxCombo || 0) : 0, oldTotalNotes);
+        case 46:
+            return root.normalizedBarValue(root.resultScorePrint(old), resolver.resultScoreBarGraphMaximum(old));
+        case 47:
+            return root.normalizedBarValue(root.resultExScore(old), old ? (old.maxPoints || 0) : 0);
         default:
             return 0;
         }
