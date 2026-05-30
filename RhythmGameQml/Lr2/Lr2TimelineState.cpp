@@ -30,17 +30,16 @@ int jsInt(const QJSValue& value, const QString& name, int fallback) {
 
 Lr2TimelineState::Lr2TimelineState(QObject* parent) : QObject(parent) {}
 
-QObject* Lr2TimelineState::skinClock() const {
+Lr2SkinClock* Lr2TimelineState::skinClock() const {
     return m_skinClock;
 }
 
-void Lr2TimelineState::setSkinClock(QObject* clock) {
-    auto* typedClock = qobject_cast<Lr2SkinClock*>(clock);
-    if (m_skinClock == typedClock) {
+void Lr2TimelineState::setSkinClock(Lr2SkinClock* clock) {
+    if (m_skinClock == clock) {
         return;
     }
 
-    m_skinClock = typedClock;
+    m_skinClock = clock;
     reconnectClock();
     emit skinClockChanged();
 }
@@ -145,11 +144,11 @@ void Lr2TimelineState::setTimerFire(int timerFire) {
     updateState();
 }
 
-QObject* Lr2TimelineState::activeOptionsState() const {
+Lr2SkinElementActiveOptionsState* Lr2TimelineState::activeOptionsState() const {
     return m_activeOptionsState;
 }
 
-void Lr2TimelineState::setActiveOptionsState(QObject* state) {
+void Lr2TimelineState::setActiveOptionsState(Lr2SkinElementActiveOptionsState* state) {
     if (m_activeOptionsState == state) {
         return;
     }
@@ -161,14 +160,8 @@ void Lr2TimelineState::setActiveOptionsState(QObject* state) {
 }
 
 QVariant Lr2TimelineState::activeOptions() const {
-    if (auto* state = qobject_cast<Lr2SkinElementActiveOptionsState*>(m_activeOptionsState)) {
-        return state->activeOptions();
-    }
     if (m_activeOptionsState) {
-        const QVariant stateOptions = m_activeOptionsState->property("activeOptions");
-        if (stateOptions.isValid()) {
-            return stateOptions;
-        }
+        return m_activeOptionsState->activeOptions();
     }
     return m_activeOptions;
 }
@@ -561,15 +554,12 @@ void Lr2TimelineState::rebuildAnalysis() {
 void Lr2TimelineState::rebuildActiveOptionSet() {
     m_activeOptionSet.clear();
 
-    if (auto* state = qobject_cast<Lr2SkinElementActiveOptionsState*>(m_activeOptionsState)) {
-        m_activeOptionSet = state->activeOptionSet();
+    if (m_activeOptionsState) {
+        m_activeOptionSet = m_activeOptionsState->activeOptionSet();
         return;
     }
 
-    const QVariant activeOptions = m_activeOptionsState
-        ? m_activeOptionsState->property("activeOptions")
-        : m_activeOptions;
-
+    const QVariant activeOptions = m_activeOptions;
     const QVariantList list = activeOptions.toList();
     if (!list.isEmpty()) {
         for (const QVariant& option : list) {
@@ -602,9 +592,9 @@ void Lr2TimelineState::reconnectActiveOptionsState() {
         m_activeOptionsStateConnection = {};
     }
 
-    if (auto* state = qobject_cast<Lr2SkinElementActiveOptionsState*>(m_activeOptionsState)) {
+    if (m_activeOptionsState) {
         m_activeOptionsStateConnection = QObject::connect(
-            state,
+            m_activeOptionsState,
             &Lr2SkinElementActiveOptionsState::activeOptionsChanged,
             this,
             &Lr2TimelineState::activeOptionsStateDidChange);

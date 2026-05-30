@@ -5,59 +5,192 @@
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
+#include "Lr2SkinRuntime.h"
+
 class Lr2SelectUpdateController : public QObject {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(QObject* host READ host WRITE setHost NOTIFY hostChanged)
-    Q_PROPERTY(QObject* selectContext READ selectContext WRITE setSelectContext NOTIFY selectContextChanged)
-    Q_PROPERTY(QObject* runtimeOptions READ runtimeOptions WRITE setRuntimeOptions NOTIFY runtimeOptionsChanged)
-    Q_PROPERTY(QObject* skinRuntime READ skinRuntime WRITE setSkinRuntime NOTIFY skinRuntimeChanged)
+    Q_PROPERTY(QObject* skinModel READ skinModel WRITE setSkinModel NOTIFY skinModelChanged)
+    Q_PROPERTY(Lr2SkinRuntime* skinRuntime READ skinRuntime WRITE setSkinRuntime NOTIFY skinRuntimeChanged)
+    Q_PROPERTY(bool screenUpdatesActive READ screenUpdatesActive WRITE setScreenUpdatesActive NOTIFY screenUpdatesActiveChanged)
+    Q_PROPERTY(QString effectiveScreenKey READ effectiveScreenKey WRITE setEffectiveScreenKey NOTIFY effectiveScreenKeyChanged)
+    Q_PROPERTY(bool componentReady READ componentReady WRITE setComponentReady NOTIFY componentReadyChanged)
+    Q_PROPERTY(bool rankingMode READ rankingMode WRITE setRankingMode NOTIFY rankingModeChanged)
+    Q_PROPERTY(int scoreRevision READ scoreRevision WRITE setScoreRevision NOTIFY scoreRevisionChanged)
+    Q_PROPERTY(int focusRevision READ focusRevision WRITE setFocusRevision NOTIFY focusRevisionChanged)
+    Q_PROPERTY(int selectPanel READ selectPanel WRITE setSelectPanel NOTIFY selectPanelChanged)
+    Q_PROPERTY(QString lr2RankingMd5 READ lr2RankingMd5 WRITE setLr2RankingMd5 NOTIFY lr2RankingMd5Changed)
+    Q_PROPERTY(QString lr2RankingRequestMd5 READ lr2RankingRequestMd5 WRITE setLr2RankingRequestMd5 NOTIFY lr2RankingRequestMd5Changed)
+    Q_PROPERTY(QVariant parseActiveOptions READ parseActiveOptions WRITE setParseActiveOptions NOTIFY parseActiveOptionsChanged)
+    Q_PROPERTY(QVariant runtimeActiveOptions READ runtimeActiveOptions WRITE setRuntimeActiveOptions NOTIFY runtimeActiveOptionsChanged)
+    Q_PROPERTY(QVariant barActiveOptions READ barActiveOptions WRITE setBarActiveOptions NOTIFY barActiveOptionsChanged)
+    Q_PROPERTY(QVariant baseActiveOptions READ baseActiveOptions WRITE setBaseActiveOptions NOTIFY baseActiveOptionsChanged)
+    Q_PROPERTY(QString baseActiveOptionsKey READ baseActiveOptionsKey WRITE setBaseActiveOptionsKey NOTIFY baseActiveOptionsKeyChanged)
+    Q_PROPERTY(QVariant selectCommonActiveOptions READ selectCommonActiveOptions WRITE setSelectCommonActiveOptions NOTIFY selectCommonActiveOptionsChanged)
+    Q_PROPERTY(QString selectCommonActiveOptionsKey READ selectCommonActiveOptionsKey WRITE setSelectCommonActiveOptionsKey NOTIFY selectCommonActiveOptionsKeyChanged)
+    Q_PROPERTY(bool selectCommonActiveOptionsReady READ selectCommonActiveOptionsReady WRITE setSelectCommonActiveOptionsReady NOTIFY selectCommonActiveOptionsReadyChanged)
+    Q_PROPERTY(QVariant selectRuntimeActiveOptions READ selectRuntimeActiveOptions WRITE setSelectRuntimeActiveOptions NOTIFY selectRuntimeActiveOptionsChanged)
+    Q_PROPERTY(QString selectRuntimeActiveOptionsKey READ selectRuntimeActiveOptionsKey WRITE setSelectRuntimeActiveOptionsKey NOTIFY selectRuntimeActiveOptionsKeyChanged)
+    Q_PROPERTY(QVariant gameplayRuntimeActiveOptions READ gameplayRuntimeActiveOptions WRITE setGameplayRuntimeActiveOptions NOTIFY gameplayRuntimeActiveOptionsChanged)
+    Q_PROPERTY(QString gameplayRuntimeActiveOptionsKey READ gameplayRuntimeActiveOptionsKey WRITE setGameplayRuntimeActiveOptionsKey NOTIFY gameplayRuntimeActiveOptionsKeyChanged)
+    Q_PROPERTY(QVariant barRuntimeActiveOptions READ barRuntimeActiveOptions WRITE setBarRuntimeActiveOptions NOTIFY barRuntimeActiveOptionsChanged)
+    Q_PROPERTY(QVariant baseRuntimeActiveOptions READ baseRuntimeActiveOptions WRITE setBaseRuntimeActiveOptions NOTIFY baseRuntimeActiveOptionsChanged)
+    Q_PROPERTY(QVariant selectCommonRuntimeActiveOptions READ selectCommonRuntimeActiveOptions WRITE setSelectCommonRuntimeActiveOptions NOTIFY selectCommonRuntimeActiveOptionsChanged)
+    Q_PROPERTY(QVariant selectRuntimeGeneratedActiveOptions READ selectRuntimeGeneratedActiveOptions WRITE setSelectRuntimeGeneratedActiveOptions NOTIFY selectRuntimeGeneratedActiveOptionsChanged)
+    Q_PROPERTY(QVariant screenRuntimeActiveOptions READ screenRuntimeActiveOptions WRITE setScreenRuntimeActiveOptions NOTIFY screenRuntimeActiveOptionsChanged)
+    Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
+    Q_PROPERTY(int selectedKeymode READ selectedKeymode WRITE setSelectedKeymode NOTIFY selectedKeymodeChanged)
+    Q_PROPERTY(bool spToDpActive READ spToDpActive WRITE setSpToDpActive NOTIFY spToDpActiveChanged)
+    Q_PROPERTY(bool battleModeActive READ battleModeActive WRITE setBattleModeActive NOTIFY battleModeActiveChanged)
     Q_PROPERTY(int selectRevision READ selectRevision NOTIFY selectRevisionChanged)
     Q_PROPERTY(int selectDetailRevision READ selectDetailRevision NOTIFY selectDetailRevisionChanged)
 
 public:
     explicit Lr2SelectUpdateController(QObject* parent = nullptr);
 
-    QObject* host() const;
-    void setHost(QObject* host);
+    QObject* skinModel() const;
+    void setSkinModel(QObject* model);
 
-    QObject* selectContext() const;
-    void setSelectContext(QObject* context);
+    Lr2SkinRuntime* skinRuntime() const;
+    void setSkinRuntime(Lr2SkinRuntime* runtime);
 
-    QObject* runtimeOptions() const;
-    void setRuntimeOptions(QObject* options);
+    bool screenUpdatesActive() const;
+    void setScreenUpdatesActive(bool active);
 
-    QObject* skinRuntime() const;
-    void setSkinRuntime(QObject* runtime);
+    QString effectiveScreenKey() const;
+    void setEffectiveScreenKey(const QString& key);
+
+    bool componentReady() const;
+    void setComponentReady(bool ready);
+
+    bool rankingMode() const;
+    void setRankingMode(bool active);
+
+    int scoreRevision() const;
+    void setScoreRevision(int revision);
+
+    int focusRevision() const;
+    void setFocusRevision(int revision);
+
+    int selectPanel() const;
+    void setSelectPanel(int panel);
+
+    QString lr2RankingMd5() const;
+    void setLr2RankingMd5(const QString& md5);
+
+    QString lr2RankingRequestMd5() const;
+    void setLr2RankingRequestMd5(const QString& md5);
+
+    QVariant parseActiveOptions() const;
+    void setParseActiveOptions(const QVariant& options);
+
+    QVariant runtimeActiveOptions() const;
+    void setRuntimeActiveOptions(const QVariant& options);
+
+    QVariant barActiveOptions() const;
+    void setBarActiveOptions(const QVariant& options);
+
+    QVariant baseActiveOptions() const;
+    void setBaseActiveOptions(const QVariant& options);
+
+    QString baseActiveOptionsKey() const;
+    void setBaseActiveOptionsKey(const QString& key);
+
+    QVariant selectCommonActiveOptions() const;
+    void setSelectCommonActiveOptions(const QVariant& options);
+
+    QString selectCommonActiveOptionsKey() const;
+    void setSelectCommonActiveOptionsKey(const QString& key);
+
+    bool selectCommonActiveOptionsReady() const;
+    void setSelectCommonActiveOptionsReady(bool ready);
+
+    QVariant selectRuntimeActiveOptions() const;
+    void setSelectRuntimeActiveOptions(const QVariant& options);
+
+    QString selectRuntimeActiveOptionsKey() const;
+    void setSelectRuntimeActiveOptionsKey(const QString& key);
+
+    QVariant gameplayRuntimeActiveOptions() const;
+    void setGameplayRuntimeActiveOptions(const QVariant& options);
+
+    QString gameplayRuntimeActiveOptionsKey() const;
+    void setGameplayRuntimeActiveOptionsKey(const QString& key);
+
+    QVariant barRuntimeActiveOptions() const;
+    void setBarRuntimeActiveOptions(const QVariant& options);
+
+    QVariant baseRuntimeActiveOptions() const;
+    void setBaseRuntimeActiveOptions(const QVariant& options);
+
+    QVariant selectCommonRuntimeActiveOptions() const;
+    void setSelectCommonRuntimeActiveOptions(const QVariant& options);
+
+    QVariant selectRuntimeGeneratedActiveOptions() const;
+    void setSelectRuntimeGeneratedActiveOptions(const QVariant& options);
+
+    QVariant screenRuntimeActiveOptions() const;
+    void setScreenRuntimeActiveOptions(const QVariant& options);
+
+    bool gameplayScreen() const;
+    void setGameplayScreen(bool active);
 
     int selectRevision() const;
     int selectDetailRevision() const;
+
+    int selectedKeymode() const;
+    void setSelectedKeymode(int keymode);
+
+    bool spToDpActive() const;
+    void setSpToDpActive(bool active);
+
+    bool battleModeActive() const;
+    void setBattleModeActive(bool active);
 
     Q_INVOKABLE bool refreshBaseActiveOptions();
     Q_INVOKABLE bool refreshSelectRuntimeActiveOptions();
     Q_INVOKABLE bool refreshGameplayRuntimeActiveOptions();
 
 signals:
-    void hostChanged();
-    void selectContextChanged();
-    void runtimeOptionsChanged();
+    void skinModelChanged();
     void skinRuntimeChanged();
+    void screenUpdatesActiveChanged();
+    void effectiveScreenKeyChanged();
+    void componentReadyChanged();
+    void rankingModeChanged();
+    void scoreRevisionChanged();
+    void focusRevisionChanged();
+    void selectPanelChanged();
+    void lr2RankingMd5Changed();
+    void lr2RankingRequestMd5Changed();
+    void parseActiveOptionsChanged();
+    void runtimeActiveOptionsChanged();
+    void barActiveOptionsChanged();
+    void baseActiveOptionsChanged();
+    void baseActiveOptionsKeyChanged();
+    void selectCommonActiveOptionsChanged();
+    void selectCommonActiveOptionsKeyChanged();
+    void selectCommonActiveOptionsReadyChanged();
+    void selectRuntimeActiveOptionsChanged();
+    void selectRuntimeActiveOptionsKeyChanged();
+    void gameplayRuntimeActiveOptionsChanged();
+    void gameplayRuntimeActiveOptionsKeyChanged();
+    void barRuntimeActiveOptionsChanged();
+    void baseRuntimeActiveOptionsChanged();
+    void selectCommonRuntimeActiveOptionsChanged();
+    void selectRuntimeGeneratedActiveOptionsChanged();
+    void screenRuntimeActiveOptionsChanged();
+    void gameplayScreenChanged();
+    void selectedKeymodeChanged();
+    void spToDpActiveChanged();
+    void battleModeActiveChanged();
     void selectRevisionChanged();
     void selectDetailRevisionChanged();
-
-private slots:
-    void selectRevisionDependencyChanged();
+    void rankingStatsApplyRequested();
+    void selectSideEffectsUpdateRequested();
 
 private:
-    QVariant invokeRuntimeOptions(const char* method) const;
-    QVariant invokeRuntimeOptions(const char* method, const QVariant& arg) const;
-    void invokeHostVoid(const char* method) const;
-    int contextInt(const char* name, int fallback = 0) const;
-    bool hostBool(const char* name, bool fallback = false) const;
-    QString hostString(const char* name) const;
-    QVariant hostVariant(const char* name) const;
-    void setHostPropertyIfChanged(const char* name, const QVariant& value) const;
-    void applyRuntimeActiveOptions(const QVariant& value) const;
+    void applyRuntimeActiveOptions(const QVariant& value);
     bool sameNumberArray(const QVariant& lhs, const QVariant& rhs) const;
     QString numberArrayKey(const QVariant& values) const;
     QVariant normalizedNumberArray(const QVariant& values) const;
@@ -66,6 +199,8 @@ private:
     QObject* skinModelObject() const;
     bool runtimeOwnsOptionPair(int option) const;
     bool skinUsesOption(int option) const;
+    int selectModeKeymode(int keymode) const;
+    void appendSelectKeymodeOptions(QVariantList& options) const;
     void appendUniqueOption(QVariantList& options, int option) const;
     void appendUniqueSkinOption(QVariantList& options, int option) const;
     void appendDefaultOptionIfMissing(QVariantList& options, const QList<int>& choices, int fallback) const;
@@ -74,17 +209,39 @@ private:
     void handleSelectRevisionChanged();
     bool updateSelectRevision(bool runSideEffects);
     void setSelectDetailRevision(int revision);
-    void reconnectSelectContext();
 
-    QPointer<QObject> m_host;
-    QPointer<QObject> m_selectContext;
-    QPointer<QObject> m_runtimeOptions;
-    QPointer<QObject> m_skinRuntime;
-    QMetaObject::Connection m_focusRevisionConnection;
-    QMetaObject::Connection m_scoreRevisionConnection;
+    QPointer<QObject> m_skinModel;
+    QPointer<Lr2SkinRuntime> m_skinRuntime;
+    bool m_screenUpdatesActive = false;
+    QString m_effectiveScreenKey;
+    bool m_componentReady = false;
+    bool m_rankingMode = false;
+    int m_scoreRevision = 0;
+    int m_focusRevision = 0;
+    int m_selectPanel = 0;
+    QString m_lr2RankingMd5;
+    QString m_lr2RankingRequestMd5;
+    QVariant m_parseActiveOptions;
+    QVariant m_runtimeActiveOptions;
+    QVariant m_barActiveOptions;
+    QVariant m_baseActiveOptions;
+    QString m_baseActiveOptionsKey;
+    QVariant m_selectCommonActiveOptions;
+    QString m_selectCommonActiveOptionsKey;
+    bool m_selectCommonActiveOptionsReady = false;
+    QVariant m_selectRuntimeActiveOptions;
+    QString m_selectRuntimeActiveOptionsKey;
+    QVariant m_gameplayRuntimeActiveOptions;
+    QString m_gameplayRuntimeActiveOptionsKey;
+    QVariant m_barRuntimeActiveOptions;
+    QVariant m_baseRuntimeActiveOptions;
+    QVariant m_selectCommonRuntimeActiveOptions;
+    QVariant m_selectRuntimeGeneratedActiveOptions;
+    QVariant m_screenRuntimeActiveOptions;
+    bool m_gameplayScreen = false;
+    int m_selectedKeymode = 0;
+    bool m_spToDpActive = false;
+    bool m_battleModeActive = false;
     int m_selectRevision = 0;
     int m_selectDetailRevision = 0;
 };
-
-
-

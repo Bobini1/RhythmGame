@@ -6,6 +6,7 @@
 
 namespace gameplay_logic {
 class ChartRunner;
+class CourseRunner;
 class Player;
 } // namespace gameplay_logic
 
@@ -49,6 +50,7 @@ private:
 
     QPointer<QObject> m_chartObject;
     QPointer<gameplay_logic::ChartRunner> m_chart;
+    QPointer<gameplay_logic::CourseRunner> m_course;
     QPointer<gameplay_logic::Player> m_player1;
     QPointer<gameplay_logic::Player> m_player2;
     bool m_useDoublePlayLanes = false;

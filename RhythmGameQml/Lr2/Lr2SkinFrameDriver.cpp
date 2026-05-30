@@ -5,24 +5,11 @@
 #include "Lr2SkinClock.h"
 
 #include <QDateTime>
-#include <QMetaObject>
 
 #include <algorithm>
 #include <cmath>
 
 Lr2SkinFrameDriver::Lr2SkinFrameDriver(QObject* parent) : QObject(parent) {}
-
-QObject* Lr2SkinFrameDriver::host() const {
-    return m_host;
-}
-
-void Lr2SkinFrameDriver::setHost(QObject* host) {
-    if (m_host == host) {
-        return;
-    }
-    m_host = host;
-    emit hostChanged();
-}
 
 Lr2SkinClock* Lr2SkinFrameDriver::clock() const {
     return m_clock;
@@ -58,24 +45,6 @@ void Lr2SkinFrameDriver::setSelectVisualState(Lr2SelectVisualState* state) {
     }
     m_selectVisualState = state;
     emit selectVisualStateChanged();
-}
-
-QObject* Lr2SkinFrameDriver::frameAnimation() const {
-    return m_frameAnimation;
-}
-
-void Lr2SkinFrameDriver::setFrameAnimation(QObject* animation) {
-    if (m_frameAnimation == animation) {
-        return;
-    }
-    if (m_frameAnimation) {
-        QObject::disconnect(m_frameAnimation, SIGNAL(triggered()), this, SLOT(tickFromFrameAnimation()));
-    }
-    m_frameAnimation = animation;
-    if (m_frameAnimation) {
-        QObject::connect(m_frameAnimation, SIGNAL(triggered()), this, SLOT(tickFromFrameAnimation()));
-    }
-    emit frameAnimationChanged();
 }
 
 bool Lr2SkinFrameDriver::gameplayScreen() const {
@@ -124,9 +93,10 @@ void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
         return;
     }
 
-    const qint64 now = QDateTime::currentMSecsSinceEpoch();
-    if (now - m_lastFpsSampleMs >= m_fpsSampleIntervalMs) {
-        m_lastFpsSampleMs = now;
+    const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    const qreal now = static_cast<qreal>(nowMs);
+    if (nowMs - m_lastFpsSampleMs >= m_fpsSampleIntervalMs) {
+        m_lastFpsSampleMs = nowMs;
         setCurrentFps(smoothFrameTime > 0.0
             ? static_cast<int>(std::lround(1.0 / smoothFrameTime))
             : 0);
@@ -143,14 +113,9 @@ void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
 
     m_clock->advanceFrame(now);
 
-    if (m_gameplayScreen && m_gameplayStartupPending && m_host) {
-        invokeHostMethod("updateGameplayStatusTimers");
-        invokeHostMethod("startGameplayWhenReady");
+    if (m_gameplayScreen && m_gameplayStartupPending) {
+        emit gameplayStartupTickRequested();
     }
-}
-
-void Lr2SkinFrameDriver::tickFromFrameAnimation() {
-    tick(m_frameAnimation ? m_frameAnimation->property("smoothFrameTime").toReal() : 0.0);
 }
 
 void Lr2SkinFrameDriver::setCurrentFps(int value) {
@@ -159,10 +124,4 @@ void Lr2SkinFrameDriver::setCurrentFps(int value) {
     }
     m_currentFps = value;
     emit currentFpsChanged();
-}
-
-void Lr2SkinFrameDriver::invokeHostMethod(const char* method) const {
-    if (m_host) {
-        QMetaObject::invokeMethod(m_host, method);
-    }
 }

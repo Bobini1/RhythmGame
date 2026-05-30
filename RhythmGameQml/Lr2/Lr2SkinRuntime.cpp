@@ -76,16 +76,15 @@ void Lr2SkinRuntime::setRuntimeActiveOptions(const QVariant& value) {
     emit runtimeActiveOptionsChanged();
 }
 
-QObject* Lr2SkinRuntime::timerState() const {
+Lr2SkinTimerState* Lr2SkinRuntime::timerState() const {
     return m_timerState;
 }
 
-void Lr2SkinRuntime::setTimerState(QObject* value) {
-    auto* typedValue = qobject_cast<Lr2SkinTimerState*>(value);
-    if (m_timerState == typedValue) {
+void Lr2SkinRuntime::setTimerState(Lr2SkinTimerState* value) {
+    if (m_timerState == value) {
         return;
     }
-    m_timerState = typedValue;
+    m_timerState = value;
     reconnectTimerState();
     emit timerStateChanged();
     rebuildDescriptors();
@@ -159,7 +158,7 @@ QVariantList Lr2SkinRuntime::elementActiveOptionsForElement(int index) const {
     return descriptor ? descriptor->elementActiveOptions : QVariantList {};
 }
 
-QObject* Lr2SkinRuntime::elementActiveOptionsState(int index) const {
+Lr2SkinElementActiveOptionsState* Lr2SkinRuntime::elementActiveOptionsState(int index) const {
     return index >= 0 && index < m_elementActiveOptionsStates.size()
         ? m_elementActiveOptionsStates.at(index)
         : nullptr;

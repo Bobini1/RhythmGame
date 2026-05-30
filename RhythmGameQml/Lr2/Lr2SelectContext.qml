@@ -244,8 +244,57 @@ Item {
 
     Lr2SelectNavigationController {
         id: nativeNavigation
-        context: root
         visualState: visualState
+        currentIndex: root.currentIndex
+        targetIndex: root.targetIndex
+        selectedOffset: root.selectedOffset
+        targetVisualIndex: root.targetVisualIndex
+        oldBarFixed: root.oldBarFixed
+        nowBarFixed: root.nowBarFixed
+        barMoveStartMs: root.barMoveStartMs
+        barMoveEndMs: root.barMoveEndMs
+        updatesActive: root.updatesActive
+        suppressVisualIndexPublish: root.suppressVisualIndexPublish
+        scrollDirection: root.scrollDirection
+        listRevision: root.listRevision
+        selectionRevision: root.selectionRevision
+        focusRevision: root.focusRevision
+        scoreRevision: root.scoreRevision
+        suppressNextSelectionSound: root.suppressNextSelectionSound
+        refreshedFocusedIndex: root.refreshedFocusedIndex
+        refreshedFocusedScoreRevision: root.refreshedFocusedScoreRevision
+        refreshedFocusedListRevision: root.refreshedFocusedListRevision
+        refreshedFocusedRankingMode: root.refreshedFocusedRankingMode
+        lastSyncedCursorBaseIndex: root.lastSyncedCursorBaseIndex
+        rankingMode: root.rankingMode
+        logicalCount: root.logicalCount
+        lr2SpeedFirst: root.lr2SpeedFirst
+        lr2SpeedNext: root.lr2SpeedNext
+        lr2ScrollUp: root.lr2ScrollUp
+        lr2ScrollDown: root.lr2ScrollDown
+        onCurrentIndexChanged: if (root.currentIndex !== currentIndex) root.currentIndex = currentIndex
+        onTargetIndexChanged: if (root.targetIndex !== targetIndex) root.targetIndex = targetIndex
+        onTargetVisualIndexChanged: if (root.targetVisualIndex !== targetVisualIndex) root.targetVisualIndex = targetVisualIndex
+        onOldBarFixedChanged: if (root.oldBarFixed !== oldBarFixed) root.oldBarFixed = oldBarFixed
+        onNowBarFixedChanged: if (root.nowBarFixed !== nowBarFixed) root.nowBarFixed = nowBarFixed
+        onBarMoveStartMsChanged: if (root.barMoveStartMs !== barMoveStartMs) root.barMoveStartMs = barMoveStartMs
+        onBarMoveEndMsChanged: if (root.barMoveEndMs !== barMoveEndMs) root.barMoveEndMs = barMoveEndMs
+        onSuppressVisualIndexPublishChanged: if (root.suppressVisualIndexPublish !== suppressVisualIndexPublish) root.suppressVisualIndexPublish = suppressVisualIndexPublish
+        onScrollDirectionChanged: if (root.scrollDirection !== scrollDirection) root.scrollDirection = scrollDirection
+        onSelectionRevisionChanged: if (root.selectionRevision !== selectionRevision) root.selectionRevision = selectionRevision
+        onFocusRevisionChanged: if (root.focusRevision !== focusRevision) root.focusRevision = focusRevision
+        onSuppressNextSelectionSoundChanged: if (root.suppressNextSelectionSound !== suppressNextSelectionSound) root.suppressNextSelectionSound = suppressNextSelectionSound
+        onRefreshedFocusedIndexChanged: if (root.refreshedFocusedIndex !== refreshedFocusedIndex) root.refreshedFocusedIndex = refreshedFocusedIndex
+        onRefreshedFocusedScoreRevisionChanged: if (root.refreshedFocusedScoreRevision !== refreshedFocusedScoreRevision) root.refreshedFocusedScoreRevision = refreshedFocusedScoreRevision
+        onRefreshedFocusedListRevisionChanged: if (root.refreshedFocusedListRevision !== refreshedFocusedListRevision) root.refreshedFocusedListRevision = refreshedFocusedListRevision
+        onRefreshedFocusedRankingModeChanged: if (root.refreshedFocusedRankingMode !== refreshedFocusedRankingMode) root.refreshedFocusedRankingMode = refreshedFocusedRankingMode
+        onLastSyncedCursorBaseIndexChanged: if (root.lastSyncedCursorBaseIndex !== lastSyncedCursorBaseIndex) root.lastSyncedCursorBaseIndex = lastSyncedCursorBaseIndex
+        onFocusedStateRefreshRequested: {
+            nativeNavigation.completeFocusedStateRefresh(root.refreshSelectedScoreState());
+        }
+        onEntryChangeSoundsRequested: function(count) {
+            root.entryChangeSoundsRequested(count);
+        }
     }
 
     onUpdatesActiveChanged: {
@@ -2983,11 +3032,8 @@ Item {
                 return scoreOptionIdsFromSummary(
                     skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList)));
             }
-            if (!state.scoreOptionIds) {
-                state.scoreOptionIds = scoreOptionIdsFromSummary(
-                    state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
-            }
-            return state.scoreOptionIds;
+            return state.scoreOptionIds || scoreOptionIdsFromSummary(
+                state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
         }
         return scoreOptionIdsFromSummary(scoreSummaryForItem(item));
     }

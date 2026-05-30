@@ -15,9 +15,14 @@
 class Lr2SkinTimerState : public QObject {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(QObject* host READ host WRITE setHost NOTIFY hostChanged)
     Q_PROPERTY(Lr2SkinClock* clock READ clock WRITE setClock NOTIFY clockChanged)
-    Q_PROPERTY(QObject* selectContext READ selectContext WRITE setSelectContext NOTIFY selectContextChanged)
+    Q_PROPERTY(bool selectVisualMoveActive READ selectVisualMoveActive WRITE setSelectVisualMoveActive NOTIFY selectVisualMoveActiveChanged)
+    Q_PROPERTY(bool selectScrollFixedPointDragging READ selectScrollFixedPointDragging WRITE setSelectScrollFixedPointDragging NOTIFY selectScrollFixedPointDraggingChanged)
+    Q_PROPERTY(int selectScrollDirection READ selectScrollDirection WRITE setSelectScrollDirection NOTIFY selectScrollDirectionChanged)
+    Q_PROPERTY(int selectScrollUp READ selectScrollUp WRITE setSelectScrollUp NOTIFY selectScrollUpChanged)
+    Q_PROPERTY(int selectScrollDown READ selectScrollDown WRITE setSelectScrollDown NOTIFY selectScrollDownChanged)
+    Q_PROPERTY(int gameplayRhythmTimerSkinTime READ gameplayRhythmTimerSkinTime WRITE setGameplayRhythmTimerSkinTime NOTIFY gameplayRhythmTimerSkinTimeChanged)
+    Q_PROPERTY(QVariant selectHeldButtonTimerStarts READ selectHeldButtonTimerStarts WRITE setSelectHeldButtonTimerStarts NOTIFY selectHeldButtonTimerStartsChanged)
     Q_PROPERTY(QString screenKey READ screenKey WRITE setScreenKey NOTIFY screenKeyChanged)
     Q_PROPERTY(bool gameplayScreen READ isGameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(bool resultScreen READ isResultScreen WRITE setResultScreen NOTIFY resultScreenChanged)
@@ -52,14 +57,29 @@ class Lr2SkinTimerState : public QObject {
 public:
     explicit Lr2SkinTimerState(QObject* parent = nullptr);
 
-    QObject* host() const;
-    void setHost(QObject* host);
-
     Lr2SkinClock* clock() const;
     void setClock(Lr2SkinClock* clock);
 
-    QObject* selectContext() const;
-    void setSelectContext(QObject* context);
+    bool selectVisualMoveActive() const;
+    void setSelectVisualMoveActive(bool active);
+
+    bool selectScrollFixedPointDragging() const;
+    void setSelectScrollFixedPointDragging(bool dragging);
+
+    int selectScrollDirection() const;
+    void setSelectScrollDirection(int direction);
+
+    int selectScrollUp() const;
+    void setSelectScrollUp(int value);
+
+    int selectScrollDown() const;
+    void setSelectScrollDown(int value);
+
+    int gameplayRhythmTimerSkinTime() const;
+    void setGameplayRhythmTimerSkinTime(int skinTime);
+
+    QVariant selectHeldButtonTimerStarts() const;
+    void setSelectHeldButtonTimerStarts(const QVariant& values);
 
     QString screenKey() const;
     void setScreenKey(const QString& value);
@@ -166,9 +186,14 @@ public slots:
     void syncSelectInfoElapsedFromClock();
 
 signals:
-    void hostChanged();
     void clockChanged();
-    void selectContextChanged();
+    void selectVisualMoveActiveChanged();
+    void selectScrollFixedPointDraggingChanged();
+    void selectScrollDirectionChanged();
+    void selectScrollUpChanged();
+    void selectScrollDownChanged();
+    void gameplayRhythmTimerSkinTimeChanged();
+    void selectHeldButtonTimerStartsChanged();
     void screenKeyChanged();
     void gameplayScreenChanged();
     void resultScreenChanged();
@@ -207,11 +232,7 @@ private:
     bool canCacheSelectTimerFire(int timer) const;
     int cachedSelectTimerFireTime(int timer, bool liveClock);
     int timerValue(const QVariant& timer) const;
-    int selectContextInt(const char* name, int fallback = 0) const;
-    bool selectContextBool(const char* name) const;
-    bool invokeHostBool(const char* method, const QVariant& arg) const;
-    int invokeHostInt(const char* method) const;
-    int invokeHostInt(const char* method, const QVariant& arg1, const QVariant& arg2) const;
+    bool isSelectHeldButtonTimerId(int timer) const;
     int gameplayTimerValue(int timer) const;
     QHash<int, int> initialGameplayTimerValues() const;
     int selectTimerCacheFrame(bool liveClock) const;
@@ -221,13 +242,15 @@ private:
     void bumpSelectInfoRevision();
     bool setInt(int& field, int value);
 
-    QPointer<QObject> m_host;
     QPointer<Lr2SkinClock> m_clock;
-    QPointer<QObject> m_selectContext;
     QMetaObject::Connection m_clockSelectInfoConnection;
-    QMetaObject::Connection m_visualMoveConnection;
-    QMetaObject::Connection m_dragConnection;
-    QMetaObject::Connection m_directionConnection;
+    bool m_selectVisualMoveActive = false;
+    bool m_selectScrollFixedPointDragging = false;
+    int m_selectScrollDirection = 0;
+    int m_selectScrollUp = 1;
+    int m_selectScrollDown = 2;
+    int m_gameplayRhythmTimerSkinTime = -1;
+    QHash<int, int> m_selectHeldButtonTimerStarts;
     QString m_screenKey;
     bool m_gameplayScreen = false;
     bool m_resultScreen = false;

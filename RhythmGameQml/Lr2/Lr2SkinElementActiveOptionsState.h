@@ -3,9 +3,11 @@
 #include <QObject>
 #include <QSet>
 #include <QVariant>
+#include <QtQml/qqmlregistration.h>
 
 class Lr2SkinElementActiveOptionsState : public QObject {
     Q_OBJECT
+    QML_ELEMENT
     Q_PROPERTY(QVariantList activeOptions READ activeOptions NOTIFY activeOptionsChanged)
 
 public:
@@ -22,5 +24,4 @@ private:
     QVariantList m_activeOptions;
     QSet<int> m_activeOptionSet;
 };
-
 

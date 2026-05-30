@@ -251,7 +251,7 @@ Item {
             sourceClipRect: root.animationFrameState.sourceClipRect
             fillMode: Image.Stretch
             cache: true
-            asynchronous: true
+            asynchronous: false
             retainWhileLoading: true
             smooth: root.hasCurrentState && root.stateFilter !== 0
             mipmap: false

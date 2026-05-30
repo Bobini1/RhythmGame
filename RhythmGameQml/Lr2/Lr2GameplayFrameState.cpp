@@ -1,28 +1,14 @@
 #include "Lr2GameplayFrameState.h"
 
 #include "gameplay_logic/ChartRunner.h"
-#include "gameplay_logic/ChartData.h"
+#include "gameplay_logic/CourseRunner.h"
 
 #include <algorithm>
 #include <cmath>
 
-using gameplay_logic::ChartData;
 using gameplay_logic::ChartRunner;
+using gameplay_logic::CourseRunner;
 using gameplay_logic::Player;
-
-namespace {
-Player* playerFromProperty(QObject* chart, const char* name) {
-    if (!chart) {
-        return nullptr;
-    }
-    return qobject_cast<Player*>(chart->property(name).value<QObject*>());
-}
-
-bool doublePlayKeymode(int keymode) {
-    return keymode == static_cast<int>(ChartData::Keymode::K10)
-        || keymode == static_cast<int>(ChartData::Keymode::K14);
-}
-} // namespace
 
 Lr2GameplayFrameState::Lr2GameplayFrameState(QObject* parent) : QObject(parent) {}
 
@@ -83,10 +69,12 @@ void Lr2GameplayFrameState::refresh(int frameSkinTime) {
     const qreal elapsed = progressPlayer
         ? std::max<qreal>(
             0.0,
-            useLiveSample ? liveOffset.count() : progressPlayer->getElapsed())
+            useLiveSample
+                ? static_cast<qreal>(liveOffset.count())
+                : static_cast<qreal>(progressPlayer->getElapsed()))
         : 0.0;
     const qreal length = progressPlayer
-        ? std::max<qreal>(0.0, progressPlayer->getChartLength())
+        ? std::max<qreal>(0.0, static_cast<qreal>(progressPlayer->getChartLength()))
         : 0.0;
     const qreal progress = length > 0.0 ? std::clamp(elapsed / length, 0.0, 1.0) : 0.0;
     if (m_lastProgressFrameSkinTime < 0
@@ -118,7 +106,9 @@ void Lr2GameplayFrameState::refresh(int frameSkinTime) {
             const qreal bpm = std::max<qreal>(1.0, rhythmPlayer->getBpm());
             const qreal elapsedMs = std::max<qreal>(
                 0.0,
-                useLiveSample ? liveOffset.count() : rhythmPlayer->getElapsed()) / 1000000.0;
+                useLiveSample
+                    ? static_cast<qreal>(liveOffset.count())
+                    : static_cast<qreal>(rhythmPlayer->getElapsed())) / 1000000.0;
             const qreal beatMs = 60000.0 / bpm;
             const qreal rhythm = beatMs > 0.0
                 ? std::fmod(elapsedMs, beatMs) * 1000.0 / beatMs
@@ -139,6 +129,7 @@ void Lr2GameplayFrameState::reset() {
 
 void Lr2GameplayFrameState::cacheChartObjects() {
     m_chart = qobject_cast<ChartRunner*>(m_chartObject);
+    m_course = nullptr;
     if (m_chart) {
         m_player1 = m_chart->getPlayer1();
         m_player2 = m_chart->getPlayer2();
@@ -146,9 +137,17 @@ void Lr2GameplayFrameState::cacheChartObjects() {
         return;
     }
 
-    m_player1 = playerFromProperty(m_chartObject, "player1");
-    m_player2 = playerFromProperty(m_chartObject, "player2");
-    m_useDoublePlayLanes = m_chartObject && doublePlayKeymode(m_chartObject->property("keymode").toInt());
+    m_course = qobject_cast<CourseRunner*>(m_chartObject);
+    if (m_course) {
+        m_player1 = m_course->getPlayer1();
+        m_player2 = m_course->getPlayer2();
+        m_useDoublePlayLanes = gameplay_logic::isDp(m_course->getKeymode());
+        return;
+    }
+
+    m_player1 = nullptr;
+    m_player2 = nullptr;
+    m_useDoublePlayLanes = false;
 }
 
 void Lr2GameplayFrameState::setProgressPosition(qreal value) {

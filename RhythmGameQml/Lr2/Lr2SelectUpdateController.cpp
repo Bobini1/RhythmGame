@@ -1,62 +1,325 @@
 #include "Lr2SelectUpdateController.h"
 
+#include "Lr2SkinRuntime.h"
+
 #include <cstdlib>
 #include <QJSValue>
-#include <QMetaObject>
 #include <QStringList>
 
 Lr2SelectUpdateController::Lr2SelectUpdateController(QObject* parent)
     : QObject(parent) {}
 
-QObject* Lr2SelectUpdateController::host() const {
-    return m_host;
+namespace {
+
+int keymodeOptionFor(int keymode, int baseOption) {
+    switch (keymode) {
+    case 7:
+        return baseOption;
+    case 5:
+        return baseOption + 1;
+    case 14:
+        return baseOption + 2;
+    case 10:
+        return baseOption + 3;
+    case 9:
+        return baseOption + 4;
+    case 24:
+        return 1160;
+    case 48:
+        return 1161;
+    default:
+        return 0;
+    }
 }
 
-void Lr2SelectUpdateController::setHost(QObject* host) {
-    if (m_host == host) {
+}
+
+QObject* Lr2SelectUpdateController::skinModel() const {
+    return m_skinModel;
+}
+
+void Lr2SelectUpdateController::setSkinModel(QObject* model) {
+    if (m_skinModel == model) {
         return;
     }
-    m_host = host;
-    emit hostChanged();
+    m_skinModel = model;
+    emit skinModelChanged();
 }
 
-QObject* Lr2SelectUpdateController::selectContext() const {
-    return m_selectContext;
-}
-
-void Lr2SelectUpdateController::setSelectContext(QObject* context) {
-    if (m_selectContext == context) {
-        return;
-    }
-    m_selectContext = context;
-    reconnectSelectContext();
-    updateSelectRevision(false);
-    emit selectContextChanged();
-}
-
-QObject* Lr2SelectUpdateController::runtimeOptions() const {
-    return m_runtimeOptions;
-}
-
-void Lr2SelectUpdateController::setRuntimeOptions(QObject* options) {
-    if (m_runtimeOptions == options) {
-        return;
-    }
-    m_runtimeOptions = options;
-    emit runtimeOptionsChanged();
-}
-
-QObject* Lr2SelectUpdateController::skinRuntime() const {
+Lr2SkinRuntime* Lr2SelectUpdateController::skinRuntime() const {
     return m_skinRuntime;
 }
 
-void Lr2SelectUpdateController::setSkinRuntime(QObject* runtime) {
+void Lr2SelectUpdateController::setSkinRuntime(Lr2SkinRuntime* runtime) {
     if (m_skinRuntime == runtime) {
         return;
     }
     m_skinRuntime = runtime;
     emit skinRuntimeChanged();
-    applyRuntimeActiveOptions(hostVariant("runtimeActiveOptions"));
+    applyRuntimeActiveOptions(m_runtimeActiveOptions);
+}
+
+bool Lr2SelectUpdateController::screenUpdatesActive() const { return m_screenUpdatesActive; }
+void Lr2SelectUpdateController::setScreenUpdatesActive(bool active) {
+    if (m_screenUpdatesActive == active) {
+        return;
+    }
+    m_screenUpdatesActive = active;
+    emit screenUpdatesActiveChanged();
+}
+
+QString Lr2SelectUpdateController::effectiveScreenKey() const { return m_effectiveScreenKey; }
+void Lr2SelectUpdateController::setEffectiveScreenKey(const QString& key) {
+    if (m_effectiveScreenKey == key) {
+        return;
+    }
+    m_effectiveScreenKey = key;
+    emit effectiveScreenKeyChanged();
+}
+
+bool Lr2SelectUpdateController::componentReady() const { return m_componentReady; }
+void Lr2SelectUpdateController::setComponentReady(bool ready) {
+    if (m_componentReady == ready) {
+        return;
+    }
+    m_componentReady = ready;
+    emit componentReadyChanged();
+}
+
+bool Lr2SelectUpdateController::rankingMode() const { return m_rankingMode; }
+void Lr2SelectUpdateController::setRankingMode(bool active) {
+    if (m_rankingMode == active) {
+        return;
+    }
+    m_rankingMode = active;
+    emit rankingModeChanged();
+}
+
+int Lr2SelectUpdateController::scoreRevision() const { return m_scoreRevision; }
+void Lr2SelectUpdateController::setScoreRevision(int revision) {
+    if (m_scoreRevision == revision) {
+        return;
+    }
+    m_scoreRevision = revision;
+    emit scoreRevisionChanged();
+    updateSelectRevision(true);
+}
+
+int Lr2SelectUpdateController::focusRevision() const { return m_focusRevision; }
+void Lr2SelectUpdateController::setFocusRevision(int revision) {
+    if (m_focusRevision == revision) {
+        return;
+    }
+    m_focusRevision = revision;
+    emit focusRevisionChanged();
+    updateSelectRevision(true);
+}
+
+int Lr2SelectUpdateController::selectPanel() const { return m_selectPanel; }
+void Lr2SelectUpdateController::setSelectPanel(int panel) {
+    if (m_selectPanel == panel) {
+        return;
+    }
+    m_selectPanel = panel;
+    emit selectPanelChanged();
+}
+
+QString Lr2SelectUpdateController::lr2RankingMd5() const { return m_lr2RankingMd5; }
+void Lr2SelectUpdateController::setLr2RankingMd5(const QString& md5) {
+    if (m_lr2RankingMd5 == md5) {
+        return;
+    }
+    m_lr2RankingMd5 = md5;
+    emit lr2RankingMd5Changed();
+}
+
+QString Lr2SelectUpdateController::lr2RankingRequestMd5() const { return m_lr2RankingRequestMd5; }
+void Lr2SelectUpdateController::setLr2RankingRequestMd5(const QString& md5) {
+    if (m_lr2RankingRequestMd5 == md5) {
+        return;
+    }
+    m_lr2RankingRequestMd5 = md5;
+    emit lr2RankingRequestMd5Changed();
+}
+
+QVariant Lr2SelectUpdateController::parseActiveOptions() const { return m_parseActiveOptions; }
+void Lr2SelectUpdateController::setParseActiveOptions(const QVariant& options) {
+    if (m_parseActiveOptions == options) {
+        return;
+    }
+    m_parseActiveOptions = options;
+    emit parseActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::runtimeActiveOptions() const { return m_runtimeActiveOptions; }
+void Lr2SelectUpdateController::setRuntimeActiveOptions(const QVariant& options) {
+    if (m_runtimeActiveOptions == options) {
+        return;
+    }
+    m_runtimeActiveOptions = options;
+    emit runtimeActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::barActiveOptions() const { return m_barActiveOptions; }
+void Lr2SelectUpdateController::setBarActiveOptions(const QVariant& options) {
+    if (m_barActiveOptions == options) {
+        return;
+    }
+    m_barActiveOptions = options;
+    emit barActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::baseActiveOptions() const { return m_baseActiveOptions; }
+void Lr2SelectUpdateController::setBaseActiveOptions(const QVariant& options) {
+    if (m_baseActiveOptions == options) {
+        return;
+    }
+    m_baseActiveOptions = options;
+    emit baseActiveOptionsChanged();
+}
+
+QString Lr2SelectUpdateController::baseActiveOptionsKey() const { return m_baseActiveOptionsKey; }
+void Lr2SelectUpdateController::setBaseActiveOptionsKey(const QString& key) {
+    if (m_baseActiveOptionsKey == key) {
+        return;
+    }
+    m_baseActiveOptionsKey = key;
+    emit baseActiveOptionsKeyChanged();
+}
+
+QVariant Lr2SelectUpdateController::selectCommonActiveOptions() const { return m_selectCommonActiveOptions; }
+void Lr2SelectUpdateController::setSelectCommonActiveOptions(const QVariant& options) {
+    if (m_selectCommonActiveOptions == options) {
+        return;
+    }
+    m_selectCommonActiveOptions = options;
+    emit selectCommonActiveOptionsChanged();
+}
+
+QString Lr2SelectUpdateController::selectCommonActiveOptionsKey() const { return m_selectCommonActiveOptionsKey; }
+void Lr2SelectUpdateController::setSelectCommonActiveOptionsKey(const QString& key) {
+    if (m_selectCommonActiveOptionsKey == key) {
+        return;
+    }
+    m_selectCommonActiveOptionsKey = key;
+    emit selectCommonActiveOptionsKeyChanged();
+}
+
+bool Lr2SelectUpdateController::selectCommonActiveOptionsReady() const { return m_selectCommonActiveOptionsReady; }
+void Lr2SelectUpdateController::setSelectCommonActiveOptionsReady(bool ready) {
+    if (m_selectCommonActiveOptionsReady == ready) {
+        return;
+    }
+    m_selectCommonActiveOptionsReady = ready;
+    emit selectCommonActiveOptionsReadyChanged();
+}
+
+QVariant Lr2SelectUpdateController::selectRuntimeActiveOptions() const { return m_selectRuntimeActiveOptions; }
+void Lr2SelectUpdateController::setSelectRuntimeActiveOptions(const QVariant& options) {
+    if (m_selectRuntimeActiveOptions == options) {
+        return;
+    }
+    m_selectRuntimeActiveOptions = options;
+    emit selectRuntimeActiveOptionsChanged();
+}
+
+QString Lr2SelectUpdateController::selectRuntimeActiveOptionsKey() const { return m_selectRuntimeActiveOptionsKey; }
+void Lr2SelectUpdateController::setSelectRuntimeActiveOptionsKey(const QString& key) {
+    if (m_selectRuntimeActiveOptionsKey == key) {
+        return;
+    }
+    m_selectRuntimeActiveOptionsKey = key;
+    emit selectRuntimeActiveOptionsKeyChanged();
+}
+
+QVariant Lr2SelectUpdateController::gameplayRuntimeActiveOptions() const { return m_gameplayRuntimeActiveOptions; }
+void Lr2SelectUpdateController::setGameplayRuntimeActiveOptions(const QVariant& options) {
+    if (m_gameplayRuntimeActiveOptions == options) {
+        return;
+    }
+    m_gameplayRuntimeActiveOptions = options;
+    emit gameplayRuntimeActiveOptionsChanged();
+}
+
+QString Lr2SelectUpdateController::gameplayRuntimeActiveOptionsKey() const { return m_gameplayRuntimeActiveOptionsKey; }
+void Lr2SelectUpdateController::setGameplayRuntimeActiveOptionsKey(const QString& key) {
+    if (m_gameplayRuntimeActiveOptionsKey == key) {
+        return;
+    }
+    m_gameplayRuntimeActiveOptionsKey = key;
+    emit gameplayRuntimeActiveOptionsKeyChanged();
+}
+
+QVariant Lr2SelectUpdateController::barRuntimeActiveOptions() const {
+    return m_barRuntimeActiveOptions;
+}
+
+void Lr2SelectUpdateController::setBarRuntimeActiveOptions(const QVariant& options) {
+    if (m_barRuntimeActiveOptions == options) {
+        return;
+    }
+    m_barRuntimeActiveOptions = options;
+    emit barRuntimeActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::baseRuntimeActiveOptions() const {
+    return m_baseRuntimeActiveOptions;
+}
+
+void Lr2SelectUpdateController::setBaseRuntimeActiveOptions(const QVariant& options) {
+    if (m_baseRuntimeActiveOptions == options) {
+        return;
+    }
+    m_baseRuntimeActiveOptions = options;
+    emit baseRuntimeActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::selectCommonRuntimeActiveOptions() const {
+    return m_selectCommonRuntimeActiveOptions;
+}
+
+void Lr2SelectUpdateController::setSelectCommonRuntimeActiveOptions(const QVariant& options) {
+    if (m_selectCommonRuntimeActiveOptions == options) {
+        return;
+    }
+    m_selectCommonRuntimeActiveOptions = options;
+    emit selectCommonRuntimeActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::selectRuntimeGeneratedActiveOptions() const {
+    return m_selectRuntimeGeneratedActiveOptions;
+}
+
+void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QVariant& options) {
+    if (m_selectRuntimeGeneratedActiveOptions == options) {
+        return;
+    }
+    m_selectRuntimeGeneratedActiveOptions = options;
+    emit selectRuntimeGeneratedActiveOptionsChanged();
+}
+
+QVariant Lr2SelectUpdateController::screenRuntimeActiveOptions() const {
+    return m_screenRuntimeActiveOptions;
+}
+
+void Lr2SelectUpdateController::setScreenRuntimeActiveOptions(const QVariant& options) {
+    if (m_screenRuntimeActiveOptions == options) {
+        return;
+    }
+    m_screenRuntimeActiveOptions = options;
+    emit screenRuntimeActiveOptionsChanged();
+}
+
+bool Lr2SelectUpdateController::gameplayScreen() const {
+    return m_gameplayScreen;
+}
+
+void Lr2SelectUpdateController::setGameplayScreen(bool active) {
+    if (m_gameplayScreen == active) {
+        return;
+    }
+    m_gameplayScreen = active;
+    emit gameplayScreenChanged();
 }
 
 int Lr2SelectUpdateController::selectRevision() const {
@@ -67,114 +330,140 @@ int Lr2SelectUpdateController::selectDetailRevision() const {
     return m_selectDetailRevision;
 }
 
-bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
-    if (!m_host || !m_runtimeOptions) {
-        return false;
-    }
+int Lr2SelectUpdateController::selectedKeymode() const {
+    return m_selectedKeymode;
+}
 
+void Lr2SelectUpdateController::setSelectedKeymode(int keymode) {
+    if (m_selectedKeymode == keymode) {
+        return;
+    }
+    m_selectedKeymode = keymode;
+    emit selectedKeymodeChanged();
+}
+
+bool Lr2SelectUpdateController::spToDpActive() const {
+    return m_spToDpActive;
+}
+
+void Lr2SelectUpdateController::setSpToDpActive(bool active) {
+    if (m_spToDpActive == active) {
+        return;
+    }
+    m_spToDpActive = active;
+    emit spToDpActiveChanged();
+}
+
+bool Lr2SelectUpdateController::battleModeActive() const {
+    return m_battleModeActive;
+}
+
+void Lr2SelectUpdateController::setBattleModeActive(bool active) {
+    if (m_battleModeActive == active) {
+        return;
+    }
+    m_battleModeActive = active;
+    emit battleModeActiveChanged();
+}
+
+bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
     const QVariant nextBar = mergedNumberArray(
         selectStaticOptions(true, false),
-        normalizedNumberArray(invokeRuntimeOptions("buildBarActiveOptions")));
-    const bool barChanged = !sameNumberArray(hostVariant("barActiveOptions"), nextBar);
+        normalizedNumberArray(m_barRuntimeActiveOptions));
+    const bool barChanged = !sameNumberArray(m_barActiveOptions, nextBar);
     if (barChanged) {
-        setHostPropertyIfChanged("barActiveOptions", nextBar);
+        setBarActiveOptions(nextBar);
     }
 
     const QVariant nextBase = mergedNumberArray(
         mergedNumberArray(nextBar, selectStaticOptions(false, true)),
-        normalizedNumberArray(invokeRuntimeOptions("buildBaseActiveOptions", nextBar)));
-    const bool baseChanged = !sameNumberArray(hostVariant("baseActiveOptions"), nextBase);
+        normalizedNumberArray(m_baseRuntimeActiveOptions));
+    const bool baseChanged = !sameNumberArray(m_baseActiveOptions, nextBase);
     if (baseChanged) {
-        setHostPropertyIfChanged("baseActiveOptions", nextBase);
-        setHostPropertyIfChanged("baseActiveOptionsKey", numberArrayKey(nextBase));
+        setBaseActiveOptions(nextBase);
+        setBaseActiveOptionsKey(numberArrayKey(nextBase));
     }
 
     const QVariant nextSelectCommon = mergedNumberArray(
         nextBase,
-        normalizedNumberArray(invokeRuntimeOptions("buildSelectCommonActiveOptions", nextBase)));
-    const bool selectCommonChanged = !sameNumberArray(hostVariant("selectCommonActiveOptions"), nextSelectCommon);
-    setHostPropertyIfChanged("selectCommonActiveOptionsReady", true);
+        normalizedNumberArray(m_selectCommonRuntimeActiveOptions));
+    const bool selectCommonChanged = !sameNumberArray(m_selectCommonActiveOptions, nextSelectCommon);
+    setSelectCommonActiveOptionsReady(true);
     if (selectCommonChanged) {
-        setHostPropertyIfChanged("selectCommonActiveOptions", nextSelectCommon);
-        setHostPropertyIfChanged("selectCommonActiveOptionsKey", numberArrayKey(nextSelectCommon));
+        setSelectCommonActiveOptions(nextSelectCommon);
+        setSelectCommonActiveOptionsKey(numberArrayKey(nextSelectCommon));
     }
 
     if (baseChanged || selectCommonChanged) {
-        setHostPropertyIfChanged("selectRuntimeActiveOptionsKey", QString());
+        setSelectRuntimeActiveOptionsKey(QString());
     }
     if (baseChanged) {
-        setHostPropertyIfChanged("gameplayRuntimeActiveOptionsKey", QString());
+        setGameplayRuntimeActiveOptionsKey(QString());
     }
     return barChanged || baseChanged || selectCommonChanged;
 }
 
 bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
-    if (!m_host || !m_runtimeOptions || !hostBool("screenUpdatesActive")) {
+    if (!m_screenUpdatesActive) {
         return false;
     }
-    if (hostString("effectiveScreenKey") != QStringLiteral("select")) {
-        const QVariant next = normalizedNumberArray(invokeRuntimeOptions("buildRuntimeActiveOptions", hostVariant("baseActiveOptions")));
-        if (sameNumberArray(hostVariant("runtimeActiveOptions"), next)) {
+    if (m_effectiveScreenKey != QStringLiteral("select")) {
+        const QVariant next = mergedNumberArray(
+            m_baseActiveOptions,
+            normalizedNumberArray(m_screenRuntimeActiveOptions));
+        if (sameNumberArray(m_runtimeActiveOptions, next)) {
             return false;
         }
         applyRuntimeActiveOptions(next);
         return true;
     }
-    if (!hostBool("selectCommonActiveOptionsReady")) {
+    if (!m_selectCommonActiveOptionsReady) {
         refreshBaseActiveOptions();
     }
 
-    const QVariant next = mergedNumberArray(
-        hostVariant("selectCommonActiveOptions"),
-        normalizedNumberArray(invokeRuntimeOptions("buildSelectRuntimeActiveOptions", hostVariant("selectCommonActiveOptions"))));
+    QVariantList next = mergedNumberArray(
+        m_selectCommonActiveOptions,
+        normalizedNumberArray(m_selectRuntimeGeneratedActiveOptions));
+    appendSelectKeymodeOptions(next);
     const QString nextKey = numberArrayKey(next);
-    if (nextKey == hostString("selectRuntimeActiveOptionsKey")
-            && sameNumberArray(hostVariant("runtimeActiveOptions"), next)) {
+    if (nextKey == m_selectRuntimeActiveOptionsKey
+            && sameNumberArray(m_runtimeActiveOptions, next)) {
         return false;
     }
-    setHostPropertyIfChanged("selectRuntimeActiveOptionsKey", nextKey);
-    setHostPropertyIfChanged("selectRuntimeActiveOptions", next);
+    setSelectRuntimeActiveOptionsKey(nextKey);
+    setSelectRuntimeActiveOptions(next);
     applyRuntimeActiveOptions(next);
     return true;
 }
 
 bool Lr2SelectUpdateController::refreshGameplayRuntimeActiveOptions() {
-    bool gameplayScreen = false;
-    if (m_host) {
-        QVariant result;
-        if (QMetaObject::invokeMethod(m_host, "isGameplayScreen", Q_RETURN_ARG(QVariant, result))) {
-            gameplayScreen = result.toBool();
-        }
-    }
-    if (!m_host || !m_runtimeOptions || !gameplayScreen) {
+    if (!m_gameplayScreen) {
         return false;
     }
 
-    const QVariant next = normalizedNumberArray(invokeRuntimeOptions("buildRuntimeActiveOptions", hostVariant("baseActiveOptions")));
+    const QVariant next = mergedNumberArray(
+        m_baseActiveOptions,
+        normalizedNumberArray(m_screenRuntimeActiveOptions));
     const QString nextKey = numberArrayKey(next);
-    if (nextKey == hostString("gameplayRuntimeActiveOptionsKey")
-            && sameNumberArray(hostVariant("runtimeActiveOptions"), next)) {
+    if (nextKey == m_gameplayRuntimeActiveOptionsKey
+            && sameNumberArray(m_runtimeActiveOptions, next)) {
         return false;
     }
-    setHostPropertyIfChanged("gameplayRuntimeActiveOptionsKey", nextKey);
-    setHostPropertyIfChanged("gameplayRuntimeActiveOptions", next);
+    setGameplayRuntimeActiveOptionsKey(nextKey);
+    setGameplayRuntimeActiveOptions(next);
     applyRuntimeActiveOptions(next);
     return true;
 }
 
 void Lr2SelectUpdateController::handleCommittedSelectState() {
-    if (!m_host) {
-        return;
-    }
-    const QString rankingMd5 = hostString("lr2RankingMd5");
-    const bool rankingRequestChanged = hostString("lr2RankingRequestMd5") != rankingMd5;
+    const bool rankingRequestChanged = m_lr2RankingRequestMd5 != m_lr2RankingMd5;
     if (rankingRequestChanged) {
-        setHostPropertyIfChanged("lr2RankingRequestMd5", rankingMd5);
+        setLr2RankingRequestMd5(m_lr2RankingMd5);
     }
     if (rankingRequestChanged) {
-        invokeHostVoid("applyRankingStatsToSelectContext");
+        emit rankingStatsApplyRequested();
     }
-    invokeHostVoid("updateSelectSideEffects");
+    emit selectSideEffectsUpdateRequested();
 }
 
 void Lr2SelectUpdateController::handleSelectRevisionChanged() {
@@ -182,69 +471,10 @@ void Lr2SelectUpdateController::handleSelectRevisionChanged() {
     refreshSelectRuntimeActiveOptions();
 }
 
-
-void Lr2SelectUpdateController::selectRevisionDependencyChanged() {
-    updateSelectRevision(true);
-}
-
-QVariant Lr2SelectUpdateController::invokeRuntimeOptions(const char* method) const {
-    QVariant result;
-    if (m_runtimeOptions) {
-        QMetaObject::invokeMethod(m_runtimeOptions, method, Q_RETURN_ARG(QVariant, result));
-    }
-    return result;
-}
-
-QVariant Lr2SelectUpdateController::invokeRuntimeOptions(const char* method, const QVariant& arg) const {
-    QVariant result;
-    if (m_runtimeOptions) {
-        QMetaObject::invokeMethod(m_runtimeOptions, method, Q_RETURN_ARG(QVariant, result), Q_ARG(QVariant, arg));
-    }
-    return result;
-}
-
-void Lr2SelectUpdateController::invokeHostVoid(const char* method) const {
-    if (m_host) {
-        QMetaObject::invokeMethod(m_host, method);
-    }
-}
-
-int Lr2SelectUpdateController::contextInt(const char* name, int fallback) const {
-    if (!m_selectContext) {
-        return fallback;
-    }
-    bool ok = false;
-    const int value = m_selectContext->property(name).toInt(&ok);
-    return ok ? value : fallback;
-}
-
-bool Lr2SelectUpdateController::hostBool(const char* name, bool fallback) const {
-    if (!m_host) {
-        return fallback;
-    }
-    const QVariant value = m_host->property(name);
-    return value.isValid() ? value.toBool() : fallback;
-}
-
-QString Lr2SelectUpdateController::hostString(const char* name) const {
-    return m_host ? m_host->property(name).toString() : QString();
-}
-
-QVariant Lr2SelectUpdateController::hostVariant(const char* name) const {
-    return m_host ? m_host->property(name) : QVariant();
-}
-
-void Lr2SelectUpdateController::setHostPropertyIfChanged(const char* name, const QVariant& value) const {
-    if (!m_host || m_host->property(name) == value) {
-        return;
-    }
-    m_host->setProperty(name, value);
-}
-
-void Lr2SelectUpdateController::applyRuntimeActiveOptions(const QVariant& value) const {
-    setHostPropertyIfChanged("runtimeActiveOptions", value);
-    if (m_skinRuntime && m_skinRuntime->property("runtimeActiveOptions") != value) {
-        m_skinRuntime->setProperty("runtimeActiveOptions", value);
+void Lr2SelectUpdateController::applyRuntimeActiveOptions(const QVariant& value) {
+    setRuntimeActiveOptions(value);
+    if (m_skinRuntime && m_skinRuntime->runtimeActiveOptions() != value) {
+        m_skinRuntime->setRuntimeActiveOptions(value);
     }
 }
 
@@ -296,7 +526,7 @@ QVariantList Lr2SelectUpdateController::selectStaticOptions(
     QObject* model = skinModelObject();
     QVariant source = model ? model->property("effectiveActiveOptions") : QVariant {};
     if (numberList(source).isEmpty()) {
-        source = hostVariant("parseActiveOptions");
+        source = m_parseActiveOptions;
     }
 
     for (int option : numberList(source)) {
@@ -316,25 +546,16 @@ QVariantList Lr2SelectUpdateController::selectStaticOptions(
     appendUniqueSkinOption(result, 624);
 
     if (includeRankingOption) {
-        const bool rankingMode = m_selectContext && m_selectContext->property("rankingMode").toBool();
-        appendUniqueSkinOption(result, rankingMode ? 621 : 620);
+        appendUniqueSkinOption(result, m_rankingMode ? 621 : 620);
     }
     if (includePanelOption) {
-        const int panel = m_host ? m_host->property("selectPanel").toInt() : 0;
-        appendUniqueSkinOption(result, panel > 0 ? 20 + panel : 20);
+        appendUniqueSkinOption(result, m_selectPanel > 0 ? 20 + m_selectPanel : 20);
     }
     return result;
 }
 
 QObject* Lr2SelectUpdateController::skinModelObject() const {
-    QObject* model = nullptr;
-    if (m_runtimeOptions) {
-        model = m_runtimeOptions->property("skinModel").value<QObject*>();
-    }
-    if (!model && m_host) {
-        model = m_host->property("skinModelRef").value<QObject*>();
-    }
-    return model;
+    return m_skinModel;
 }
 
 bool Lr2SelectUpdateController::runtimeOwnsOptionPair(int option) const {
@@ -359,8 +580,20 @@ bool Lr2SelectUpdateController::runtimeOwnsOptionPair(int option) const {
     case 51:
     case 80:
     case 81:
+    case 160:
+    case 161:
+    case 162:
+    case 163:
+    case 164:
+    case 165:
+    case 166:
+    case 167:
+    case 168:
+    case 169:
     case 1046:
     case 1047:
+    case 1160:
+    case 1161:
         return true;
     default:
         return false;
@@ -380,6 +613,36 @@ bool Lr2SelectUpdateController::skinUsesOption(int option) const {
         }
     }
     return false;
+}
+
+int Lr2SelectUpdateController::selectModeKeymode(int keymode) const {
+    if (!m_spToDpActive && !m_battleModeActive) {
+        return keymode;
+    }
+    if (keymode == 7) {
+        return 14;
+    }
+    if (keymode == 5) {
+        return 10;
+    }
+    return keymode;
+}
+
+void Lr2SelectUpdateController::appendSelectKeymodeOptions(QVariantList& options) const {
+    const int keymode = selectedKeymode();
+    if (keymode <= 0) {
+        return;
+    }
+
+    const int effectiveKeymode = selectModeKeymode(keymode);
+    const int selectOption = keymodeOptionFor(effectiveKeymode, 160);
+    const int afterOption = keymodeOptionFor(effectiveKeymode, 165);
+    if (selectOption > 0) {
+        appendUniqueSkinOption(options, selectOption);
+    }
+    if (afterOption > 0) {
+        appendUniqueSkinOption(options, afterOption);
+    }
 }
 
 void Lr2SelectUpdateController::appendUniqueOption(QVariantList& options, int option) const {
@@ -455,16 +718,14 @@ QList<int> Lr2SelectUpdateController::numberList(const QVariant& values) const {
 }
 
 bool Lr2SelectUpdateController::updateSelectRevision(bool runSideEffects) {
-    const int nextScoreRevision = contextInt("scoreRevision");
-    const int nextFocusRevision = contextInt("focusRevision");
-    const int next = nextScoreRevision + nextFocusRevision;
+    const int next = m_scoreRevision + m_focusRevision;
     if (m_selectRevision == next) {
         return false;
     }
     m_selectRevision = next;
     emit selectRevisionChanged();
     setSelectDetailRevision(next);
-    if (runSideEffects && hostBool("componentReady")) {
+    if (runSideEffects && m_componentReady) {
         handleSelectRevisionChanged();
     }
     return true;
@@ -477,24 +738,3 @@ void Lr2SelectUpdateController::setSelectDetailRevision(int revision) {
     m_selectDetailRevision = revision;
     emit selectDetailRevisionChanged();
 }
-
-void Lr2SelectUpdateController::reconnectSelectContext() {
-    if (m_focusRevisionConnection) {
-        QObject::disconnect(m_focusRevisionConnection);
-        m_focusRevisionConnection = {};
-    }
-    if (m_scoreRevisionConnection) {
-        QObject::disconnect(m_scoreRevisionConnection);
-        m_scoreRevisionConnection = {};
-    }
-    if (!m_selectContext) {
-        return;
-    }
-    m_focusRevisionConnection = QObject::connect(
-        m_selectContext, SIGNAL(focusRevisionChanged()), this, SLOT(selectRevisionDependencyChanged()));
-    m_scoreRevisionConnection = QObject::connect(
-        m_selectContext, SIGNAL(scoreRevisionChanged()), this, SLOT(selectRevisionDependencyChanged()));
-}
-
-
-

@@ -35,7 +35,7 @@ QtObject {
 
     property Lr2BarPositionMap barPositionMap: Lr2BarPositionMap {
         baseStateResolver: geometry.barBaseStateResolver
-        slotOffsetSource: geometry.selectContext
+        slotOffset: geometry.selectContext ? geometry.selectContext.visibleBarSlotOffset : 0
         slotCount: geometry.skinModel.barRows ? geometry.skinModel.barRows.length : 0
         visualState: geometry.fastBarScrollActive || !geometry.selectContext
             ? null
@@ -96,4 +96,3 @@ QtObject {
         selectContext.selectVisibleRow(row, skinModel.barCenter);
     }
 }
-

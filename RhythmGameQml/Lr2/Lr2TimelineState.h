@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Lr2SkinClock.h"
+#include "Lr2SkinElementActiveOptionsState.h"
+
 #include <QObject>
 #include <QMetaObject>
 #include <QPointer>
@@ -9,20 +12,17 @@
 #include <QVector>
 #include <QtQml/qqmlregistration.h>
 
-class Lr2SkinClock;
-class Lr2SkinElementActiveOptionsState;
-
 class Lr2TimelineState : public QObject {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(QObject* skinClock READ skinClock WRITE setSkinClock NOTIFY skinClockChanged)
+    Q_PROPERTY(Lr2SkinClock* skinClock READ skinClock WRITE setSkinClock NOTIFY skinClockChanged)
     Q_PROPERTY(int clockMode READ clockMode WRITE setClockMode NOTIFY clockModeChanged)
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
     Q_PROPERTY(QVariantList dsts READ dsts WRITE setDsts NOTIFY dstsChanged)
     Q_PROPERTY(int skinTime READ skinTime WRITE setSkinTime NOTIFY skinTimeChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
-    Q_PROPERTY(QObject* activeOptionsState READ activeOptionsState WRITE setActiveOptionsState NOTIFY activeOptionsStateChanged)
+    Q_PROPERTY(Lr2SkinElementActiveOptionsState* activeOptionsState READ activeOptionsState WRITE setActiveOptionsState NOTIFY activeOptionsStateChanged)
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
     Q_PROPERTY(bool sliderTranslationEnabled READ sliderTranslationEnabled WRITE setSliderTranslationEnabled NOTIFY sliderTranslationChanged)
     Q_PROPERTY(qreal sliderPosition READ sliderPosition WRITE setSliderPosition NOTIFY sliderTranslationChanged)
@@ -75,8 +75,8 @@ public:
 
     explicit Lr2TimelineState(QObject* parent = nullptr);
 
-    QObject* skinClock() const;
-    void setSkinClock(QObject* clock);
+    Lr2SkinClock* skinClock() const;
+    void setSkinClock(Lr2SkinClock* clock);
 
     int clockMode() const;
     void setClockMode(int mode);
@@ -96,8 +96,8 @@ public:
     int timerFire() const;
     void setTimerFire(int timerFire);
 
-    QObject* activeOptionsState() const;
-    void setActiveOptionsState(QObject* state);
+    Lr2SkinElementActiveOptionsState* activeOptionsState() const;
+    void setActiveOptionsState(Lr2SkinElementActiveOptionsState* state);
 
     QVariant activeOptions() const;
     void setActiveOptions(const QVariant& options);
@@ -303,7 +303,7 @@ private:
     int m_effectiveSkinTime = 0;
     QVariant m_timers;
     int m_timerFire = -2147483648;
-    QPointer<QObject> m_activeOptionsState;
+    QPointer<Lr2SkinElementActiveOptionsState> m_activeOptionsState;
     QMetaObject::Connection m_activeOptionsStateConnection;
     QVariant m_activeOptions;
     QSet<int> m_activeOptionSet;

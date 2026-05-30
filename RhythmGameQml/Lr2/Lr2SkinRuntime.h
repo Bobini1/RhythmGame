@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Lr2SkinElementActiveOptionsState.h"
 #include "Lr2SkinRuntimeTypes.h"
+#include "Lr2SkinTimerState.h"
 
 #include <QAbstractItemModel>
 #include <QHash>
@@ -12,16 +14,14 @@
 #include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
-class Lr2SkinTimerState;
 class Lr2SkinElementTimerState;
-class Lr2SkinElementActiveOptionsState;
 
 class Lr2SkinRuntime : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QObject* skinModel READ skinModel WRITE setSkinModel NOTIFY skinModelChanged)
     Q_PROPERTY(QVariant runtimeActiveOptions READ runtimeActiveOptions WRITE setRuntimeActiveOptions NOTIFY runtimeActiveOptionsChanged)
-    Q_PROPERTY(QObject* timerState READ timerState WRITE setTimerState NOTIFY timerStateChanged)
+    Q_PROPERTY(Lr2SkinTimerState* timerState READ timerState WRITE setTimerState NOTIFY timerStateChanged)
     Q_PROPERTY(QString screenKey READ screenKey WRITE setScreenKey NOTIFY screenKeyChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(qreal selectBarElementSortBase READ selectBarElementSortBase WRITE setSelectBarElementSortBase NOTIFY selectBarElementSortBaseChanged)
@@ -39,8 +39,8 @@ public:
     QVariant runtimeActiveOptions() const;
     void setRuntimeActiveOptions(const QVariant& value);
 
-    QObject* timerState() const;
-    void setTimerState(QObject* value);
+    Lr2SkinTimerState* timerState() const;
+    void setTimerState(Lr2SkinTimerState* value);
 
     QString screenKey() const;
     void setScreenKey(const QString& value);
@@ -58,7 +58,7 @@ public:
 
     Q_INVOKABLE QVariantMap descriptor(int index) const;
     Q_INVOKABLE QVariantList elementActiveOptionsForElement(int index) const;
-    Q_INVOKABLE QObject* elementActiveOptionsState(int index) const;
+    Q_INVOKABLE Lr2SkinElementActiveOptionsState* elementActiveOptionsState(int index) const;
     Q_INVOKABLE QVariant staticStateForElement(int index) const;
     Q_INVOKABLE QVariant stateForElement(int index, int skinTime) const;
     Q_INVOKABLE QVariant sliderTrackStateForElement(int index, int skinTime) const;

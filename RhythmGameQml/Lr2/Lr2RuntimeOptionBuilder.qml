@@ -38,18 +38,6 @@ QtObject {
         return false;
     }
 
-    function runtimeAnyOptionUsed(lookup: var, options: var) : var {
-        if (!lookup) {
-            return true;
-        }
-        for (let i = 0; i < options.length; ++i) {
-            if (lookup[Math.abs(options[i])]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     function copyActiveOptions(options: var) : var {
         let result = [];
         let source = options || [];
@@ -135,7 +123,7 @@ QtObject {
         root.addOption(options, host.selectPanel > 0 ? 20 + host.selectPanel : 20);
     }
 
-    function appendChartOptions(options: var, chartData: var) : var {
+    function appendChartOptions(options: var, chartData: var, fallbackItem: var) : var {
         let usedOptions = root.runtimeUsedOptionLookup();
         let allowStageFileOption = host.effectiveScreenKey !== "decide";
         let usesStageFileOption = allowStageFileOption
@@ -150,8 +138,8 @@ QtObject {
         let usesJudgeOption = root.runtimeOptionRangeUsed(usedOptions, 180, 183);
         let usesHighLevelOption = root.runtimeOptionRangeUsed(usedOptions, 185, 186);
         let usesDifficultyOption = root.runtimeOptionRangeUsed(usedOptions, 150, 155);
-        let usesKeymodeOption = root.runtimeOptionRangeUsed(usedOptions, 160, 169)
-            || root.runtimeAnyOptionUsed(usedOptions, [1160, 1161]);
+        let keymode = root.chartKeymode(chartData, fallbackItem);
+        root.appendChartKeymodeOptions(options, keymode);
 
         if (!chartData) {
             if (usesStageFileOption) {
@@ -224,11 +212,6 @@ QtObject {
             root.addOption(options, difficulty >= 1 && difficulty <= 5 ? 150 + difficulty : 150);
         }
 
-        if (usesKeymodeOption) {
-            let keymode = chartData.keymode || 0;
-            root.appendKeymodeOption(options, keymode, 160);
-            root.appendKeymodeOption(options, root.keymodeAfterOptions(keymode), 165);
-        }
     }
 
     function replayOptionForSlot(slot: var, available: var) : var {
@@ -272,8 +255,29 @@ QtObject {
         }
     }
 
+    function normalizedKeymode(keymode: var) : var {
+        let value = Number(keymode || 0);
+        return isNaN(value) ? 0 : value;
+    }
+
+    function chartObjectKeymode(chart: var) : var {
+        if (!chart) {
+            return 0;
+        }
+        let keymode = root.normalizedKeymode(chart.keymode);
+        if (keymode > 0) {
+            return keymode;
+        }
+        return chart.chartData ? root.normalizedKeymode(chart.chartData.keymode) : 0;
+    }
+
+    function chartKeymode(chartData: var, fallbackItem: var) : var {
+        let keymode = root.chartObjectKeymode(chartData);
+        return keymode > 0 ? keymode : root.chartObjectKeymode(fallbackItem);
+    }
+
     function keymodeOptionFor(keymode: var, baseOption: var) : var {
-        switch (keymode) {
+        switch (root.normalizedKeymode(keymode)) {
         case 7:
             return baseOption;
         case 5:
@@ -287,7 +291,7 @@ QtObject {
         case 48:
             return 1161;
         case 9:
-            return 164;
+            return baseOption + 4;
         default:
             return 0;
         }
@@ -300,8 +304,9 @@ QtObject {
         }
     }
 
-    function keymodeAfterOptions(keymode: var) : var {
-        if (!host.spToDpActive()) {
+    function keymodeForSelectModeOption(keymode: var) : var {
+        keymode = root.normalizedKeymode(keymode);
+        if (!host.spToDpActive() && !host.battleModeActive()) {
             return keymode;
         }
         if (keymode === 7) {
@@ -313,14 +318,18 @@ QtObject {
         return keymode;
     }
 
+    function appendChartKeymodeOptions(options: var, keymode: var) : void {
+        keymode = root.normalizedKeymode(keymode);
+        if (keymode <= 0) {
+            return;
+        }
+        let effectiveKeymode = root.keymodeForSelectModeOption(keymode);
+        root.appendKeymodeOption(options, effectiveKeymode, 160);
+        root.appendKeymodeOption(options, effectiveKeymode, 165);
+    }
+
     function chartKeymodeForStatus(item: var, selectedChart: var) : var {
-        if (selectedChart && selectedChart.keymode) {
-            return selectedChart.keymode;
-        }
-        if ((selectContext.isChart(item) || selectContext.isEntry(item)) && item.keymode) {
-            return item.keymode;
-        }
-        return 0;
+        return root.chartKeymode(selectedChart, item);
     }
 
     function appendEntryStatusOptions(options: var, item: var, selectedChart: var, scoreSummary: var) : var {
@@ -403,7 +412,7 @@ QtObject {
         let counts = difficultyState && difficultyState.counts ? difficultyState.counts : [];
         let levels = difficultyState && difficultyState.levels ? difficultyState.levels : [];
         let lamps = difficultyState && difficultyState.lamps ? difficultyState.lamps : [];
-        let keymode = selectedChart ? (selectedChart.keymode || 0) : 0;
+        let keymode = selectedChart ? root.normalizedKeymode(selectedChart.keymode) : 0;
         let flashThreshold = keymode === 5 || keymode === 10 ? 9 : 12;
         for (let diff = 1; diff <= 5; ++diff) {
             let diffCount = counts[diff] || 0;
@@ -437,7 +446,7 @@ QtObject {
     }
 
     function appendSelectedChartModeOptions(options: var, chartData: var) : void {
-        let keymode = chartData ? (chartData.keymode || 0) : 0;
+        let keymode = chartData ? root.normalizedKeymode(chartData.keymode) : 0;
         let doubleMode = keymode === 10 || keymode === 14
             || ((keymode === 5 || keymode === 7) && host.spToDpActive());
         let battleMode = host.battleModeActive();
@@ -661,7 +670,7 @@ QtObject {
             root.appendDifficultyBarOptions(options, difficultyState, chartData);
         }
 
-        root.appendChartOptions(options, chartData);
+        root.appendChartOptions(options, chartData, selectedItem);
         if (host.selectUsesScoreOptionIds()) {
             let scoreOptionIds = canUseState && host.lr2SkinUsesBeatorajaSemantics
                 ? state.scoreOptionIds
@@ -670,9 +679,6 @@ QtObject {
                 scoreOptionIds = summary
                     ? selectContext.scoreOptionIdsFromSummary(summary)
                     : selectContext.scoreOptionIds(selectedItem);
-                if (canUseState && host.lr2SkinUsesBeatorajaSemantics) {
-                    state.scoreOptionIds = scoreOptionIds;
-                }
             }
             for (let optionId of scoreOptionIds) {
                 root.addOption(options, optionId);
@@ -719,6 +725,18 @@ QtObject {
         case 51:
         case 80:
         case 81:
+        case 160:
+        case 161:
+        case 162:
+        case 163:
+        case 164:
+        case 165:
+        case 166:
+        case 167:
+        case 168:
+        case 169:
+        case 1160:
+        case 1161:
             return true;
         default:
             return false;

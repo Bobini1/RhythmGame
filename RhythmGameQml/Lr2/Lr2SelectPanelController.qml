@@ -27,6 +27,11 @@ QtObject {
     property int selectHeldButtonSkinTime: 0
     property var selectHeldButtonTimerStarts: ({})
     readonly property bool hasSelectHeldButtonTimers: Object.keys(controller.selectHeldButtonTimerStarts).length > 0
+    readonly property var selectHeldButtonTimerFireTimes: {
+        let result = {};
+        controller.addHeldButtonTimers(result);
+        return result;
+    }
     readonly property int selectTargetScratchInitialRepeatMillis: 300
     readonly property int selectTargetScratchRepeatMillis: 50
     property int selectTargetScratchDirection: 0

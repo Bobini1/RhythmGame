@@ -37,16 +37,20 @@ QtObject {
 
     property Lr2SkinFrameDriver frameDriver: Lr2SkinFrameDriver {
         id: frameDriver
-        host: root.host
         clock: skinClock
         gameplayFrameState: root.host ? root.host.gameplayFrameStateRef : null
         selectVisualState: root.selectContext ? root.selectContext.visualStateObject : null
-        frameAnimation: skinStopwatch
         gameplayScreen: root.host ? root.host.isGameplayScreen() : false
         gameplayStartupPending: root.host
             && frameDriver.gameplayScreen
             && !!root.host.chart
             && (root.host.gameplayReadySkinTime < 0 || root.host.gameplayStartSkinTime < 0)
+        onGameplayStartupTickRequested: {
+            if (root.host) {
+                root.host.updateGameplayStatusTimers();
+                root.host.startGameplayWhenReady();
+            }
+        }
     }
 
     property alias sceneStartMs: skinClock.sceneStartMs
@@ -65,9 +69,14 @@ QtObject {
 
     property Lr2SkinTimerState timerState: Lr2SkinTimerState {
         id: timerState
-        host: root.host
         clock: skinClock
-        selectContext: root.selectContext
+        selectVisualMoveActive: root.selectContext ? root.selectContext.visualMoveActive : false
+        selectScrollFixedPointDragging: root.selectContext ? root.selectContext.scrollFixedPointDragging : false
+        selectScrollDirection: root.selectContext ? root.selectContext.scrollDirection : 0
+        selectScrollUp: root.selectContext ? root.selectContext.lr2ScrollUp : 1
+        selectScrollDown: root.selectContext ? root.selectContext.lr2ScrollDown : 2
+        gameplayRhythmTimerSkinTime: root.host ? root.host.gameplayRhythmTimerSkinTime() : -1
+        selectHeldButtonTimerStarts: root.host ? root.host.selectHeldButtonTimerFireTimes : ({})
         screenKey: root.host ? root.host.effectiveScreenKey : ""
         gameplayScreen: root.host ? root.host.gameplayScreenActive : false
         resultScreen: root.host ? root.host.resultScreenActive : false
@@ -108,6 +117,7 @@ QtObject {
     property FrameAnimation skinStopwatch: FrameAnimation {
         id: skinStopwatch
         running: root.host && root.host.screenUpdatesActive
+        onTriggered: frameDriver.tick(skinStopwatch.smoothFrameTime)
     }
 
     property Timer dateTimeStopwatch: Timer {
@@ -295,4 +305,3 @@ QtObject {
         root.stopGameplayPoorBgaOptionTimer();
     }
 }
-

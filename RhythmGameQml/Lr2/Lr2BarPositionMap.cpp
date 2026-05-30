@@ -5,6 +5,16 @@
 #include <QVariantMap>
 #include <QtGlobal>
 
+#include <limits>
+
+namespace {
+int boundedIntSize(qsizetype size) {
+    return size > std::numeric_limits<int>::max()
+        ? std::numeric_limits<int>::max()
+        : static_cast<int>(size);
+}
+} // namespace
+
 Lr2BarPositionMap::Lr2BarPositionMap(QObject* parent) : QObject(parent) {}
 
 QVariantList Lr2BarPositionMap::baseStates() const {
@@ -82,40 +92,6 @@ void Lr2BarPositionMap::setSlotOffset(int offset) {
     emit slotOffsetChanged();
 }
 
-QObject* Lr2BarPositionMap::slotOffsetSource() const {
-    return m_slotOffsetSource;
-}
-
-void Lr2BarPositionMap::setSlotOffsetSource(QObject* source) {
-    if (m_slotOffsetSource == source) {
-        return;
-    }
-
-    if (m_slotOffsetSourceConnection) {
-        disconnect(m_slotOffsetSourceConnection);
-    }
-
-    m_slotOffsetSource = source;
-    if (m_slotOffsetSource) {
-        m_slotOffsetSourceConnection = connect(
-            m_slotOffsetSource,
-            SIGNAL(visibleBarSlotOffsetChanged()),
-            this,
-            SLOT(updateSlotOffsetFromSource()));
-        updateSlotOffsetFromSource();
-    } else {
-        m_slotOffsetSourceConnection = {};
-        setSlotOffset(0);
-    }
-    emit slotOffsetSourceChanged();
-}
-
-void Lr2BarPositionMap::updateSlotOffsetFromSource() {
-    setSlotOffset(m_slotOffsetSource
-        ? m_slotOffsetSource->property("visibleBarSlotOffset").toInt()
-        : 0);
-}
-
 int Lr2BarPositionMap::slotCount() const {
     return m_slotCount;
 }
@@ -156,10 +132,10 @@ void Lr2BarPositionMap::setVisualState(Lr2SelectVisualState* state) {
         m_visualStateOffsetConnection = {};
         setScrollOffset(0.0);
     }
-
 }
+
 int Lr2BarPositionMap::count() const {
-    return m_drawXs.size();
+    return boundedIntSize(m_drawXs.size());
 }
 
 qreal Lr2BarPositionMap::xAt(int row) const {
@@ -177,7 +153,7 @@ qreal Lr2BarPositionMap::yAt(int row) const {
 }
 
 int Lr2BarPositionMap::slotForRow(int row) const {
-    const int count = m_slotCount > 0 ? m_slotCount : m_drawXs.size();
+    const int count = m_slotCount > 0 ? m_slotCount : boundedIntSize(m_drawXs.size());
     if (count <= 0 || row < 0 || row >= count) {
         return -1;
     }
@@ -185,7 +161,7 @@ int Lr2BarPositionMap::slotForRow(int row) const {
 }
 
 int Lr2BarPositionMap::rowForSlot(int slot) const {
-    const int count = m_slotCount > 0 ? m_slotCount : m_drawXs.size();
+    const int count = m_slotCount > 0 ? m_slotCount : boundedIntSize(m_drawXs.size());
     if (count <= 0 || slot < 0) {
         return -1;
     }

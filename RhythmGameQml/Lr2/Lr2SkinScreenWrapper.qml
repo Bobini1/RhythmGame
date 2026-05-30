@@ -464,6 +464,7 @@ Item {
     readonly property int selectHeldButtonSkinTime: selectPanelController.selectHeldButtonSkinTime
     property alias selectHeldButtonTimerStarts: selectPanelController.selectHeldButtonTimerStarts
     readonly property bool hasSelectHeldButtonTimers: selectPanelController.hasSelectHeldButtonTimers
+    readonly property var selectHeldButtonTimerFireTimes: selectPanelController.selectHeldButtonTimerFireTimes
     readonly property int selectTargetScratchInitialRepeatMillis: selectPanelController.selectTargetScratchInitialRepeatMillis
     readonly property int selectTargetScratchRepeatMillis: selectPanelController.selectTargetScratchRepeatMillis
     property alias selectTargetScratchDirection: selectPanelController.selectTargetScratchDirection
@@ -3320,7 +3321,12 @@ Item {
         skinModel: skinModel
     }
 
-    // Bar delegates get per-row state from the select context; keep their option set stable.
+    readonly property var builtBarRuntimeActiveOptions: runtimeOptions.buildBarActiveOptions()
+    readonly property var builtBaseRuntimeActiveOptions: runtimeOptions.buildBaseActiveOptions(root.builtBarRuntimeActiveOptions)
+    readonly property var builtSelectCommonRuntimeActiveOptions: runtimeOptions.buildSelectCommonActiveOptions(root.builtBaseRuntimeActiveOptions)
+    property var builtSelectRuntimeActiveOptions: []
+    property var builtScreenRuntimeActiveOptions: []
+
     property var barActiveOptions: []
     property var baseActiveOptions: []
     property string baseActiveOptionsKey: ""
@@ -3449,7 +3455,27 @@ Item {
         return selectUpdateController.refreshBaseActiveOptions();
     }
 
+    function updateGeneratedSelectRuntimeActiveOptions() : void {
+        let next = root.effectiveScreenKey === "select"
+            ? runtimeOptions.buildSelectRuntimeActiveOptions(root.builtSelectCommonRuntimeActiveOptions)
+            : [];
+        if (!root.sameNumberArray(root.builtSelectRuntimeActiveOptions, next)) {
+            root.builtSelectRuntimeActiveOptions = next;
+        }
+    }
+
+    function updateGeneratedScreenRuntimeActiveOptions() : void {
+        let next = root.effectiveScreenKey === "select"
+            ? []
+            : runtimeOptions.buildRuntimeActiveOptions(root.builtBaseRuntimeActiveOptions);
+        if (!root.sameNumberArray(root.builtScreenRuntimeActiveOptions, next)) {
+            root.builtScreenRuntimeActiveOptions = next;
+        }
+    }
+
     function refreshSelectRuntimeActiveOptions() : void {
+        root.updateGeneratedSelectRuntimeActiveOptions();
+        root.updateGeneratedScreenRuntimeActiveOptions();
         selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
@@ -3573,6 +3599,7 @@ Item {
             return false;
         }
         root.gameplayRuntimeActiveOptionsStateKey = nextKey;
+        root.updateGeneratedScreenRuntimeActiveOptions();
         return selectUpdateController.refreshGameplayRuntimeActiveOptions();
     }
 
@@ -3602,6 +3629,9 @@ Item {
     readonly property var selectSkinChartWrapper: root.selectChartWrapperState
         ? root.selectChartWrapperState.wrapper
         : null
+    readonly property int selectRuntimeKeymode: root.effectiveScreenKey === "select"
+        ? runtimeOptions.chartKeymode(selectContext.selectedChartData(), selectContext.selectedItem())
+        : 0
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.selectSkinChartWrapper
         : selectSideEffects.renderChart
@@ -4433,15 +4463,46 @@ Item {
 
     Lr2SelectUpdateController {
         id: selectUpdateController
-        host: root
-        selectContext: selectContext
-        runtimeOptions: runtimeOptions
+        skinModel: skinModel
         skinRuntime: skinRuntime
+        screenUpdatesActive: root.screenUpdatesActive
+        effectiveScreenKey: root.effectiveScreenKey
+        componentReady: root.componentReady
+        rankingMode: selectContext.rankingMode
+        scoreRevision: selectContext.scoreRevision
+        focusRevision: selectContext.focusRevision
+        selectPanel: root.selectPanel
+        lr2RankingMd5: root.lr2RankingMd5
+        lr2RankingRequestMd5: root.lr2RankingRequestMd5
+        parseActiveOptions: root.parseActiveOptions
+        barRuntimeActiveOptions: root.builtBarRuntimeActiveOptions
+        baseRuntimeActiveOptions: root.builtBaseRuntimeActiveOptions
+        selectCommonRuntimeActiveOptions: root.builtSelectCommonRuntimeActiveOptions
+        selectRuntimeGeneratedActiveOptions: root.builtSelectRuntimeActiveOptions
+        screenRuntimeActiveOptions: root.builtScreenRuntimeActiveOptions
+        gameplayScreen: root.isGameplayScreen()
+        selectedKeymode: root.selectRuntimeKeymode
+        spToDpActive: root.spToDpActive()
+        battleModeActive: root.battleModeActive()
+        onLr2RankingRequestMd5Changed: if (root.lr2RankingRequestMd5 !== lr2RankingRequestMd5) root.lr2RankingRequestMd5 = lr2RankingRequestMd5
+        onRuntimeActiveOptionsChanged: if (root.runtimeActiveOptions !== runtimeActiveOptions) root.runtimeActiveOptions = runtimeActiveOptions
+        onBarActiveOptionsChanged: if (root.barActiveOptions !== barActiveOptions) root.barActiveOptions = barActiveOptions
+        onBaseActiveOptionsChanged: if (root.baseActiveOptions !== baseActiveOptions) root.baseActiveOptions = baseActiveOptions
+        onBaseActiveOptionsKeyChanged: if (root.baseActiveOptionsKey !== baseActiveOptionsKey) root.baseActiveOptionsKey = baseActiveOptionsKey
+        onSelectCommonActiveOptionsChanged: if (root.selectCommonActiveOptions !== selectCommonActiveOptions) root.selectCommonActiveOptions = selectCommonActiveOptions
+        onSelectCommonActiveOptionsKeyChanged: if (root.selectCommonActiveOptionsKey !== selectCommonActiveOptionsKey) root.selectCommonActiveOptionsKey = selectCommonActiveOptionsKey
+        onSelectCommonActiveOptionsReadyChanged: if (root.selectCommonActiveOptionsReady !== selectCommonActiveOptionsReady) root.selectCommonActiveOptionsReady = selectCommonActiveOptionsReady
+        onSelectRuntimeActiveOptionsChanged: if (root.selectRuntimeActiveOptions !== selectRuntimeActiveOptions) root.selectRuntimeActiveOptions = selectRuntimeActiveOptions
+        onSelectRuntimeActiveOptionsKeyChanged: if (root.selectRuntimeActiveOptionsKey !== selectRuntimeActiveOptionsKey) root.selectRuntimeActiveOptionsKey = selectRuntimeActiveOptionsKey
+        onGameplayRuntimeActiveOptionsChanged: if (root.gameplayRuntimeActiveOptions !== gameplayRuntimeActiveOptions) root.gameplayRuntimeActiveOptions = gameplayRuntimeActiveOptions
+        onGameplayRuntimeActiveOptionsKeyChanged: if (root.gameplayRuntimeActiveOptionsKey !== gameplayRuntimeActiveOptionsKey) root.gameplayRuntimeActiveOptionsKey = gameplayRuntimeActiveOptionsKey
+        onRankingStatsApplyRequested: root.applyRankingStatsToSelectContext()
+        onSelectSideEffectsUpdateRequested: root.updateSelectSideEffects()
     }
 
     Lr2SelectKeyNavigationFilter {
         target: root
-        screenState: screenState
+        selectScrollReady: screenState.selectScrollReady
         navigationController: selectContext.navigationController
     }
 

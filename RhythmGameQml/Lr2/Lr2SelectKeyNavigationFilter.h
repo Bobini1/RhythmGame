@@ -10,7 +10,7 @@ class Lr2SelectKeyNavigationFilter : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QObject* target READ target WRITE setTarget NOTIFY targetChanged)
-    Q_PROPERTY(QObject* screenState READ screenState WRITE setScreenState NOTIFY screenStateChanged)
+    Q_PROPERTY(bool selectScrollReady READ selectScrollReady WRITE setSelectScrollReady NOTIFY selectScrollReadyChanged)
     Q_PROPERTY(Lr2SelectNavigationController* navigationController READ navigationController WRITE setNavigationController NOTIFY navigationControllerChanged)
 
 public:
@@ -20,26 +20,25 @@ public:
     QObject* target() const;
     void setTarget(QObject* target);
 
-    QObject* screenState() const;
-    void setScreenState(QObject* state);
+    bool selectScrollReady() const;
+    void setSelectScrollReady(bool ready);
 
     Lr2SelectNavigationController* navigationController() const;
     void setNavigationController(Lr2SelectNavigationController* controller);
 
 signals:
     void targetChanged();
-    void screenStateChanged();
+    void selectScrollReadyChanged();
     void navigationControllerChanged();
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
-    bool selectScrollReady() const;
     void uninstallTargetFilter();
     void installTargetFilter();
 
     QPointer<QObject> m_target;
-    QPointer<QObject> m_screenState;
     QPointer<Lr2SelectNavigationController> m_navigationController;
+    bool m_selectScrollReady = false;
 };

@@ -17,14 +17,6 @@ int toInt(const QVariant& value, int fallback = 0) {
     return ok ? result : fallback;
 }
 
-bool toBool(const QVariant& value) {
-    return value.isValid() && !value.isNull() && value.toBool();
-}
-
-QVariant objectProperty(QObject* object, const char* name) {
-    return object ? object->property(name) : QVariant();
-}
-
 QHash<int, int> gameplayTimerHashFromVariant(const QVariant& source) {
     QHash<int, int> result;
     if (!source.isValid() || source.isNull()) {
@@ -56,17 +48,6 @@ Lr2SkinTimerState::Lr2SkinTimerState(QObject* parent) : QObject(parent) {
     m_cacheValid.fill(false);
 }
 
-QObject* Lr2SkinTimerState::host() const { return m_host; }
-void Lr2SkinTimerState::setHost(QObject* host) {
-    if (m_host == host) {
-        return;
-    }
-    m_host = host;
-    emit hostChanged();
-    clearSelectTimerFireCache();
-    bumpRevision();
-}
-
 Lr2SkinClock* Lr2SkinTimerState::clock() const { return m_clock; }
 void Lr2SkinTimerState::setClock(Lr2SkinClock* clock) {
     if (m_clock == clock) {
@@ -90,46 +71,76 @@ void Lr2SkinTimerState::setClock(Lr2SkinClock* clock) {
     emit clockChanged();
 }
 
-QObject* Lr2SkinTimerState::selectContext() const { return m_selectContext; }
-void Lr2SkinTimerState::setSelectContext(QObject* context) {
-    if (m_selectContext == context) {
+bool Lr2SkinTimerState::selectVisualMoveActive() const { return m_selectVisualMoveActive; }
+void Lr2SkinTimerState::setSelectVisualMoveActive(bool active) {
+    if (m_selectVisualMoveActive == active) {
         return;
     }
+    m_selectVisualMoveActive = active;
+    emit selectVisualMoveActiveChanged();
+    clearSelectTimerFireCache();
+}
 
-    if (m_visualMoveConnection) {
-        disconnect(m_visualMoveConnection);
+bool Lr2SkinTimerState::selectScrollFixedPointDragging() const { return m_selectScrollFixedPointDragging; }
+void Lr2SkinTimerState::setSelectScrollFixedPointDragging(bool dragging) {
+    if (m_selectScrollFixedPointDragging == dragging) {
+        return;
     }
-    if (m_dragConnection) {
-        disconnect(m_dragConnection);
-    }
-    if (m_directionConnection) {
-        disconnect(m_directionConnection);
-    }
+    m_selectScrollFixedPointDragging = dragging;
+    emit selectScrollFixedPointDraggingChanged();
+    clearSelectTimerFireCache();
+}
 
-    m_selectContext = context;
-    if (m_selectContext) {
-        m_visualMoveConnection = connect(
-            m_selectContext,
-            SIGNAL(visualMoveActiveChanged()),
-            this,
-            SLOT(clearSelectTimerFireCache()));
-        m_dragConnection = connect(
-            m_selectContext,
-            SIGNAL(scrollFixedPointDraggingChanged()),
-            this,
-            SLOT(clearSelectTimerFireCache()));
-        m_directionConnection = connect(
-            m_selectContext,
-            SIGNAL(scrollDirectionChanged()),
-            this,
-            SLOT(clearSelectTimerFireCache()));
-    } else {
-        m_visualMoveConnection = {};
-        m_dragConnection = {};
-        m_directionConnection = {};
+int Lr2SkinTimerState::selectScrollDirection() const { return m_selectScrollDirection; }
+void Lr2SkinTimerState::setSelectScrollDirection(int direction) {
+    if (m_selectScrollDirection == direction) {
+        return;
     }
+    m_selectScrollDirection = direction;
+    emit selectScrollDirectionChanged();
+    clearSelectTimerFireCache();
+}
 
-    emit selectContextChanged();
+int Lr2SkinTimerState::selectScrollUp() const { return m_selectScrollUp; }
+void Lr2SkinTimerState::setSelectScrollUp(int value) {
+    if (m_selectScrollUp == value) {
+        return;
+    }
+    m_selectScrollUp = value;
+    emit selectScrollUpChanged();
+    clearSelectTimerFireCache();
+}
+
+int Lr2SkinTimerState::selectScrollDown() const { return m_selectScrollDown; }
+void Lr2SkinTimerState::setSelectScrollDown(int value) {
+    if (m_selectScrollDown == value) {
+        return;
+    }
+    m_selectScrollDown = value;
+    emit selectScrollDownChanged();
+    clearSelectTimerFireCache();
+}
+
+int Lr2SkinTimerState::gameplayRhythmTimerSkinTime() const { return m_gameplayRhythmTimerSkinTime; }
+void Lr2SkinTimerState::setGameplayRhythmTimerSkinTime(int skinTime) {
+    if (m_gameplayRhythmTimerSkinTime == skinTime) {
+        return;
+    }
+    m_gameplayRhythmTimerSkinTime = skinTime;
+    emit gameplayRhythmTimerSkinTimeChanged();
+    bumpRevision();
+}
+
+QVariant Lr2SkinTimerState::selectHeldButtonTimerStarts() const {
+    return variantMapFromGameplayTimerHash(m_selectHeldButtonTimerStarts);
+}
+void Lr2SkinTimerState::setSelectHeldButtonTimerStarts(const QVariant& values) {
+    const QHash<int, int> next = gameplayTimerHashFromVariant(values);
+    if (m_selectHeldButtonTimerStarts == next) {
+        return;
+    }
+    m_selectHeldButtonTimerStarts = next;
+    emit selectHeldButtonTimerStartsChanged();
     clearSelectTimerFireCache();
     bumpRevision();
 }
@@ -385,11 +396,8 @@ int Lr2SkinTimerState::selectInfoRevision() const { return m_selectInfoRevision;
 
 int Lr2SkinTimerState::gameplayTimerFireTime(const QVariant& timer) const {
     const int idx = timerValue(timer);
-    if (!m_host) {
-        return -1;
-    }
     if (idx == 140) {
-        return invokeHostInt("gameplayRhythmTimerSkinTime");
+        return m_gameplayRhythmTimerSkinTime;
     }
     Q_UNUSED(m_gameplayTimerRevision);
     return gameplayTimerValue(idx);
@@ -397,9 +405,6 @@ int Lr2SkinTimerState::gameplayTimerFireTime(const QVariant& timer) const {
 
 int Lr2SkinTimerState::resultTimerFireTime(const QVariant& timer) const {
     const int idx = timerValue(timer);
-    if (!m_host) {
-        return -1;
-    }
     if (idx == 0) {
         return 0;
     }
@@ -423,9 +428,6 @@ int Lr2SkinTimerState::resultTimerFireTime(const QVariant& timer) const {
 
 int Lr2SkinTimerState::selectTimerFireTime(const QVariant& timer, bool liveClock) const {
     const int idx = timerValue(timer);
-    if (!m_host) {
-        return -1;
-    }
 
     const int baseTime = selectTimerBaseTime(liveClock);
     if (idx == 0) {
@@ -444,15 +446,14 @@ int Lr2SkinTimerState::selectTimerFireTime(const QVariant& timer, bool liveClock
         return m_selectNoScrollStartSkinTime;
     }
 
-    if (selectContextBool("visualMoveActive") || selectContextBool("scrollFixedPointDragging")) {
+    if (m_selectVisualMoveActive || m_selectScrollFixedPointDragging) {
         if (idx == 10) {
             return m_selectScrollStartSkinTime;
         }
-        const int scrollDirection = selectContextInt("scrollDirection");
-        if (idx == 12 && scrollDirection == selectContextInt("lr2ScrollUp")) {
+        if (idx == 12 && m_selectScrollDirection == m_selectScrollUp) {
             return m_selectScrollStartSkinTime;
         }
-        if (idx == 13 && scrollDirection == selectContextInt("lr2ScrollDown")) {
+        if (idx == 13 && m_selectScrollDirection == m_selectScrollDown) {
             return m_selectScrollStartSkinTime;
         }
     }
@@ -479,7 +480,17 @@ int Lr2SkinTimerState::selectTimerFireTime(const QVariant& timer, bool liveClock
     if (m_lr2RankingTransitionPhase != 0 && idx == m_lr2RankingTransitionPhase) {
         return baseTime - m_lr2RankingTransitionElapsed;
     }
-    return invokeHostInt("selectHeldButtonTimerFireTime", idx, liveClock);
+    if (!isSelectHeldButtonTimerId(idx)) {
+        return -1;
+    }
+    const auto it = m_selectHeldButtonTimerStarts.constFind(idx);
+    if (it == m_selectHeldButtonTimerStarts.constEnd()) {
+        return -1;
+    }
+    const int liveStart = it.value();
+    return liveClock
+        ? liveStart
+        : m_renderSkinTime - std::max(0, m_selectLiveSkinTime - liveStart);
 }
 
 bool Lr2SkinTimerState::selectTimerCanFire(const QVariant& timer) const {
@@ -496,13 +507,10 @@ bool Lr2SkinTimerState::selectTimerCanFire(const QVariant& timer) const {
     if (idx >= 31 && idx <= 36) {
         return true;
     }
-    return m_host && invokeHostBool("isSelectHeldButtonTimer", idx);
+    return isSelectHeldButtonTimerId(idx);
 }
 
 bool Lr2SkinTimerState::skinTimerCanFire(const QVariant& timer) const {
-    if (!m_host) {
-        return false;
-    }
     const int idx = timerValue(timer);
     if (idx == 0) {
         return true;
@@ -520,9 +528,6 @@ bool Lr2SkinTimerState::skinTimerCanFire(const QVariant& timer) const {
 }
 
 int Lr2SkinTimerState::skinTimerFireTime(const QVariant& timer, bool liveClock) {
-    if (!m_host) {
-        return -1;
-    }
     const int idx = timerValue(timer);
     if (idx == 0) {
         return 0;
@@ -542,7 +547,7 @@ int Lr2SkinTimerState::skinTimerFireTime(const QVariant& timer, bool liveClock) 
 }
 
 bool Lr2SkinTimerState::isSelectHeldButtonTimer(const QVariant& timer) const {
-    return m_host && invokeHostBool("isSelectHeldButtonTimer", timerValue(timer));
+    return isSelectHeldButtonTimerId(timerValue(timer));
 }
 
 bool Lr2SkinTimerState::setGameplayTimerValue(const QVariant& timer, int skinTime) {
@@ -651,51 +656,8 @@ int Lr2SkinTimerState::timerValue(const QVariant& timer) const {
     return toInt(timer, 0);
 }
 
-int Lr2SkinTimerState::selectContextInt(const char* name, int fallback) const {
-    return toInt(objectProperty(m_selectContext, name), fallback);
-}
-
-bool Lr2SkinTimerState::selectContextBool(const char* name) const {
-    return toBool(objectProperty(m_selectContext, name));
-}
-
-bool Lr2SkinTimerState::invokeHostBool(const char* method, const QVariant& arg) const {
-    if (!m_host) {
-        return false;
-    }
-    QVariant result;
-    const bool ok = QMetaObject::invokeMethod(
-        m_host,
-        method,
-        Q_RETURN_ARG(QVariant, result),
-        Q_ARG(QVariant, arg));
-    return ok && toBool(result);
-}
-
-int Lr2SkinTimerState::invokeHostInt(const char* method) const {
-    if (!m_host) {
-        return -1;
-    }
-    QVariant result;
-    const bool ok = QMetaObject::invokeMethod(
-        m_host,
-        method,
-        Q_RETURN_ARG(QVariant, result));
-    return ok ? toInt(result, -1) : -1;
-}
-
-int Lr2SkinTimerState::invokeHostInt(const char* method, const QVariant& arg1, const QVariant& arg2) const {
-    if (!m_host) {
-        return -1;
-    }
-    QVariant result;
-    const bool ok = QMetaObject::invokeMethod(
-        m_host,
-        method,
-        Q_RETURN_ARG(QVariant, result),
-        Q_ARG(QVariant, arg1),
-        Q_ARG(QVariant, arg2));
-    return ok ? toInt(result, -1) : -1;
+bool Lr2SkinTimerState::isSelectHeldButtonTimerId(int timer) const {
+    return (timer >= 101 && timer <= 107) || (timer >= 111 && timer <= 117);
 }
 
 int Lr2SkinTimerState::gameplayTimerValue(int timer) const {
