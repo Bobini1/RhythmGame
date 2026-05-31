@@ -4499,6 +4499,10 @@ Item {
         onSelectRuntimeActiveOptionsKeyChanged: if (root.selectRuntimeActiveOptionsKey !== selectRuntimeActiveOptionsKey) root.selectRuntimeActiveOptionsKey = selectRuntimeActiveOptionsKey
         onGameplayRuntimeActiveOptionsChanged: if (root.gameplayRuntimeActiveOptions !== gameplayRuntimeActiveOptions) root.gameplayRuntimeActiveOptions = gameplayRuntimeActiveOptions
         onGameplayRuntimeActiveOptionsKeyChanged: if (root.gameplayRuntimeActiveOptionsKey !== gameplayRuntimeActiveOptionsKey) root.gameplayRuntimeActiveOptionsKey = gameplayRuntimeActiveOptionsKey
+        // Rebuild the QML-generated option list before the controller commits a revision refresh.
+        onFocusRevisionChanged: root.refreshSelectRuntimeActiveOptions()
+        onScoreRevisionChanged: root.refreshSelectRuntimeActiveOptions()
+        onSelectedKeymodeChanged: root.refreshSelectRuntimeActiveOptions()
         onRankingStatsApplyRequested: root.applyRankingStatsToSelectContext()
         onSelectSideEffectsUpdateRequested: root.updateSelectSideEffects()
     }
