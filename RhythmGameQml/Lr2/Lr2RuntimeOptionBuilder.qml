@@ -723,6 +723,13 @@ QtObject {
         case 1047:
         case 50:
         case 51:
+        case 60:
+        case 61:
+        case 62:
+        case 63:
+        case 64:
+        case 65:
+        case 66:
         case 80:
         case 81:
         case 160:

@@ -579,6 +579,52 @@ resource_managers::GeneralVars::resetDefaultTargetScoreFraction()
 {
     setDefaultTargetScoreFraction(0.9);
 }
+
+auto
+resource_managers::GeneralVars::getSelectSortMode() const -> SelectSortMode
+{
+    return selectSortMode;
+}
+
+void
+resource_managers::GeneralVars::setSelectSortMode(SelectSortMode value)
+{
+    if (selectSortMode == value) {
+        return;
+    }
+    selectSortMode = value;
+    emit selectSortModeChanged();
+}
+
+void
+resource_managers::GeneralVars::resetSelectSortMode()
+{
+    setSelectSortMode(SelectSortMode::Title);
+}
+
+auto
+resource_managers::GeneralVars::getSelectKeymodeFilter() const
+  -> SelectKeymodeFilter
+{
+    return selectKeymodeFilter;
+}
+
+void
+resource_managers::GeneralVars::setSelectKeymodeFilter(
+  SelectKeymodeFilter value)
+{
+    if (selectKeymodeFilter == value) {
+        return;
+    }
+    selectKeymodeFilter = value;
+    emit selectKeymodeFilterChanged();
+}
+
+void
+resource_managers::GeneralVars::resetSelectKeymodeFilter()
+{
+    setSelectKeymodeFilter(SelectKeymodeFilter::All);
+}
 auto
 resource_managers::GeneralVars::getWebApiUrl() const -> QString
 {

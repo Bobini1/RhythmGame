@@ -191,6 +191,7 @@ signals:
 
 private:
     void applyRuntimeActiveOptions(const QVariant& value);
+    void refreshCurrentRuntimeActiveOptions();
     bool sameNumberArray(const QVariant& lhs, const QVariant& rhs) const;
     QString numberArrayKey(const QVariant& values) const;
     QVariant normalizedNumberArray(const QVariant& values) const;

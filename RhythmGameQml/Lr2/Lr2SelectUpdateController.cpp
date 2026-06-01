@@ -66,6 +66,7 @@ void Lr2SelectUpdateController::setScreenUpdatesActive(bool active) {
     }
     m_screenUpdatesActive = active;
     emit screenUpdatesActiveChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QString Lr2SelectUpdateController::effectiveScreenKey() const { return m_effectiveScreenKey; }
@@ -75,6 +76,7 @@ void Lr2SelectUpdateController::setEffectiveScreenKey(const QString& key) {
     }
     m_effectiveScreenKey = key;
     emit effectiveScreenKeyChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 bool Lr2SelectUpdateController::componentReady() const { return m_componentReady; }
@@ -84,6 +86,7 @@ void Lr2SelectUpdateController::setComponentReady(bool ready) {
     }
     m_componentReady = ready;
     emit componentReadyChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 bool Lr2SelectUpdateController::rankingMode() const { return m_rankingMode; }
@@ -260,6 +263,8 @@ void Lr2SelectUpdateController::setBarRuntimeActiveOptions(const QVariant& optio
     }
     m_barRuntimeActiveOptions = options;
     emit barRuntimeActiveOptionsChanged();
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::baseRuntimeActiveOptions() const {
@@ -272,6 +277,8 @@ void Lr2SelectUpdateController::setBaseRuntimeActiveOptions(const QVariant& opti
     }
     m_baseRuntimeActiveOptions = options;
     emit baseRuntimeActiveOptionsChanged();
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::selectCommonRuntimeActiveOptions() const {
@@ -284,6 +291,8 @@ void Lr2SelectUpdateController::setSelectCommonRuntimeActiveOptions(const QVaria
     }
     m_selectCommonRuntimeActiveOptions = options;
     emit selectCommonRuntimeActiveOptionsChanged();
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::selectRuntimeGeneratedActiveOptions() const {
@@ -296,6 +305,7 @@ void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QVa
     }
     m_selectRuntimeGeneratedActiveOptions = options;
     emit selectRuntimeGeneratedActiveOptionsChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::screenRuntimeActiveOptions() const {
@@ -308,6 +318,7 @@ void Lr2SelectUpdateController::setScreenRuntimeActiveOptions(const QVariant& op
     }
     m_screenRuntimeActiveOptions = options;
     emit screenRuntimeActiveOptionsChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 bool Lr2SelectUpdateController::gameplayScreen() const {
@@ -320,6 +331,7 @@ void Lr2SelectUpdateController::setGameplayScreen(bool active) {
     }
     m_gameplayScreen = active;
     emit gameplayScreenChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 int Lr2SelectUpdateController::selectRevision() const {
@@ -471,6 +483,14 @@ void Lr2SelectUpdateController::handleSelectRevisionChanged() {
     refreshSelectRuntimeActiveOptions();
 }
 
+void Lr2SelectUpdateController::refreshCurrentRuntimeActiveOptions() {
+    if (!m_screenUpdatesActive) {
+        return;
+    }
+    refreshSelectRuntimeActiveOptions();
+    refreshGameplayRuntimeActiveOptions();
+}
+
 void Lr2SelectUpdateController::applyRuntimeActiveOptions(const QVariant& value) {
     setRuntimeActiveOptions(value);
     if (m_skinRuntime && m_skinRuntime->runtimeActiveOptions() != value) {
@@ -578,6 +598,13 @@ bool Lr2SelectUpdateController::runtimeOwnsOptionPair(int option) const {
     case 45:
     case 50:
     case 51:
+    case 60:
+    case 61:
+    case 62:
+    case 63:
+    case 64:
+    case 65:
+    case 66:
     case 80:
     case 81:
     case 160:

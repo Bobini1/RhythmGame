@@ -92,11 +92,49 @@ Q_ENUM_NS(ScoreTarget)
 } // namespace score_target
 using namespace score_target;
 
+namespace select_sort_mode {
+Q_NAMESPACE
+enum class SelectSortMode
+{
+    Directory,
+    Title,
+    Artist,
+    Bpm,
+    Length,
+    Level,
+    ClearLamp,
+    ScoreRate,
+    MissCount,
+    TotalNotes,
+};
+Q_ENUM_NS(SelectSortMode)
+} // namespace select_sort_mode
+using namespace select_sort_mode;
+
+namespace select_keymode_filter {
+Q_NAMESPACE
+enum class SelectKeymodeFilter
+{
+    All,
+    Single,
+    Double,
+    K5,
+    K7,
+    K10,
+    K14,
+};
+Q_ENUM_NS(SelectKeymodeFilter)
+} // namespace select_keymode_filter
+using namespace select_keymode_filter;
+
 /**
- * @brief The general variables for the game that all screens and the engine
+ * @brief The general variables for the game that all screens and the
+ * engine
  * should know about and respect. Profile-specific.
- * @details GeneralVars are saved to generalVars.json in the profile directory.
- * All modifications to the variables cause the file to be rewritten.
+ * @details
+ * GeneralVars are saved to generalVars.json in the profile directory.
+ * All
+ * modifications to the variables cause the file to be rewritten.
  */
 class GeneralVars final : public QObject
 {
@@ -273,19 +311,35 @@ class GeneralVars final : public QObject
      * @details This is separate from targetScoreFraction, which represents the
      * currently active gameplay target when scoreTarget is Fraction.
      */
-    Q_PROPERTY(double defaultTargetScoreFraction READ
-                 getDefaultTargetScoreFraction WRITE
-                   setDefaultTargetScoreFraction NOTIFY
-                     defaultTargetScoreFractionChanged RESET
-                       resetDefaultTargetScoreFraction)
+    Q_PROPERTY(
+      double defaultTargetScoreFraction READ getDefaultTargetScoreFraction WRITE
+        setDefaultTargetScoreFraction NOTIFY defaultTargetScoreFractionChanged
+          RESET resetDefaultTargetScoreFraction)
+    /**
+     * @brief The shared music-select sort mode.
+     */
+    Q_PROPERTY(resource_managers::select_sort_mode::SelectSortMode
+                 selectSortMode READ getSelectSortMode WRITE setSelectSortMode
+                   NOTIFY selectSortModeChanged RESET resetSelectSortMode)
+    /**
+     * @brief The shared music-select keymode filter.
+     */
+    Q_PROPERTY(resource_managers::select_keymode_filter::SelectKeymodeFilter
+                 selectKeymodeFilter READ getSelectKeymodeFilter WRITE
+                   setSelectKeymodeFilter NOTIFY selectKeymodeFilterChanged
+                     RESET resetSelectKeymodeFilter)
     /**
      * @brief The folder with select, decide and main screen music
-     * @details To get the list of available BGM folders, call
-     * getAvailableBgms().
-     * Skins are supposed to load files named
-     * select.<ext>, decide.<ext>, main.<ext> from the selected BGM,
-     * where <ext> is an audio format supported by the game.
-     * To get the full path to the BGM, use the bgmPath property.
+
+     * * @details To get the list of available BGM folders, call
+     *
+     * getAvailableBgms(). Skins are supposed to load files named select.<ext>,
+
+     * * decide.<ext>, main.<ext> from the selected BGM, where <ext> is an
+     * audio
+     * format supported by the game. To get the full path to the
+     * BGM, use the
+     * bgmPath property.
      * @see bgmPath
      */
     Q_PROPERTY(
@@ -382,6 +436,8 @@ class GeneralVars final : public QObject
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
     double defaultTargetScoreFraction = 0.9;
+    SelectSortMode selectSortMode = SelectSortMode::Title;
+    SelectKeymodeFilter selectKeymodeFilter = SelectKeymodeFilter::All;
     QString websiteBaseUrl = "https://rhythmgame.eu";
     QString bgmPath;
     QString soundsetPath;
@@ -477,6 +533,12 @@ class GeneralVars final : public QObject
     auto getDefaultTargetScoreFraction() const -> double;
     void setDefaultTargetScoreFraction(double value);
     void resetDefaultTargetScoreFraction();
+    auto getSelectSortMode() const -> SelectSortMode;
+    void setSelectSortMode(SelectSortMode value);
+    void resetSelectSortMode();
+    auto getSelectKeymodeFilter() const -> SelectKeymodeFilter;
+    void setSelectKeymodeFilter(SelectKeymodeFilter value);
+    void resetSelectKeymodeFilter();
     auto getWebApiUrl() const -> QString;
     auto getWebsiteBaseUrl() const -> QString;
     void setWebsiteBaseUrl(const QString& value);
@@ -525,6 +587,8 @@ class GeneralVars final : public QObject
     void scoreTargetChanged();
     void targetScoreFractionChanged();
     void defaultTargetScoreFractionChanged();
+    void selectSortModeChanged();
+    void selectKeymodeFilterChanged();
     void websiteBaseUrlChanged();
     void bgmChanged();
     void bgmPathChanged();
@@ -540,9 +604,8 @@ class Vars final : public QObject
     /**
      * @brief The general variables management object of the profile.
      */
-    Q_PROPERTY(
-      resource_managers::GeneralVars* generalVars READ getGeneralVars NOTIFY
-        generalVarsChanged FINAL)
+    Q_PROPERTY(resource_managers::GeneralVars* generalVars READ getGeneralVars
+                 NOTIFY generalVarsChanged FINAL)
     /**
      * @brief The theme variables for all loaded themes.
      * @details This is a dynamic object that contains a map of maps of maps.
@@ -550,8 +613,8 @@ class Vars final : public QObject
      * themeVars[screen][themeName].varName
      * @see qml_components::QmlUtils::themeName
      */
-    Q_PROPERTY(
-      QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged FINAL)
+    Q_PROPERTY(QQmlPropertyMap* themeVars READ getThemeVars NOTIFY
+                 themeVarsChanged FINAL)
     GeneralVars generalVars;
     QQmlPropertyMap* themeVars = support::createQmlPropertyMap(this);
     const Profile* profile;

@@ -298,12 +298,12 @@ QtObject {
             return true;
         },
         "11": (delta, sourceCount) => {
-            selectContext.adjustKeyFilter(delta, sourceCount || 7);
+            selectContext.adjustKeyFilter(delta, sourceCount || (root.lr2SkinUsesBeatorajaSemantics ? 5 : 7));
             selectContext.sortOrFilterChanged();
             return true;
         },
         "12": (delta, sourceCount) => {
-            selectContext.adjustSortMode(delta, sourceCount || 5);
+            selectContext.adjustSortMode(delta, sourceCount || (root.lr2SkinUsesBeatorajaSemantics ? 8 : 5));
             selectContext.sortOrFilterChanged();
             return true;
         },

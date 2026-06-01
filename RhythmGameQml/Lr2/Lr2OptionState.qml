@@ -989,30 +989,46 @@ QtObject {
 
     function clearStatusOption() : var {
         let vars = root.mainGeneralVars();
-        if (!vars || vars.gaugeMode === GaugeMode.Best) {
-            return 62;
+        if (!vars) {
+            return 64;
+        }
+        if (vars.gaugeMode === GaugeMode.Best) {
+            return 66;
         }
         let gauge = String(vars.gaugeType || "").toUpperCase();
         if (gauge === "AEASY" || gauge === "EASY") {
             return 63;
         }
-        if (gauge === "NORMAL") {
+        if (gauge === "NORMAL" || gauge === "DAN") {
             return 64;
         }
-        if (gauge === "HARD" || gauge === "EXHARD") {
+        if (gauge === "HARD" || gauge === "EXHARD" || gauge === "EXDAN" || gauge === "EXHARDDAN") {
             return 65;
         }
         if (gauge === "FC" || gauge === "PERFECT" || gauge === "MAX") {
             return 66;
         }
-        return 62;
+        return 64;
+    }
+
+    function onlineUserId(data: var) : var {
+        return data ? Number(data.userId || 0) : 0;
     }
 
     function isLoggedIn() : var {
         let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
-        return !!profile
-            && profile.loginState === Profile.LoggedIn
-            && !!profile.onlineUserData;
+        let vars = root.mainGeneralVars();
+        let provider = vars ? vars.rankingProvider : OnlineRankingModel.RhythmGame;
+        if (provider === OnlineRankingModel.LR2IR) {
+            return true;
+        }
+        if (!profile) {
+            return false;
+        }
+        if (provider === OnlineRankingModel.Tachi) {
+            return root.onlineUserId(profile.tachiData) !== 0;
+        }
+        return root.onlineUserId(profile.onlineUserData) !== 0;
     }
 
 }

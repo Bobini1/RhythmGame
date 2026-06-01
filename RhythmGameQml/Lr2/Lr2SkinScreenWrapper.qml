@@ -3729,8 +3729,28 @@ Item {
     }
     Connections {
         target: Rg.profileList
+        function onMainProfileChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
         function onBattleActiveChanged() : void {
             root.refreshSelectPlayOptionLayout();
+        }
+    }
+    Connections {
+        target: Rg.profileList ? Rg.profileList.mainProfile : null
+        ignoreUnknownSignals: true
+        function onLoginStateChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onOnlineUserDataChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onTachiDataChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
     Connections {
@@ -3747,6 +3767,22 @@ Item {
         ignoreUnknownSignals: true
         function onDpOptionsChanged() : void {
             root.refreshSelectPlayOptionLayout();
+        }
+        function onGaugeTypeChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onGaugeModeChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onBottomShiftableGaugeChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onRankingProviderChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
     onSelectPanelChanged: {
@@ -4475,6 +4511,7 @@ Item {
         barTitleTypes: skinModel.barTitleTypes || []
         useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics
         useBeatorajaSelectOptions: root.lr2SkinUsesBeatorajaSemantics
+        generalVars: root.mainGeneralVars()
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
 

@@ -60,8 +60,13 @@ Item {
     property var attachedTextByDirectory: ({})
     property var hasAttachedTextByDirectory: ({})
     property int difficultyFilter: 0
-    property int keyFilter: 0
-    property int sortMode: 0
+    property var generalVars: null
+    property int localSelectKeymodeFilter: SelectKeymodeFilter.All
+    property int localSelectSortMode: SelectSortMode.Title
+    readonly property int selectKeymodeFilter: generalVars ? generalVars.selectKeymodeFilter : localSelectKeymodeFilter
+    readonly property int selectSortMode: generalVars ? generalVars.selectSortMode : localSelectSortMode
+    readonly property int keyFilter: keyFilterFrameForSelectKeymodeFilter(selectKeymodeFilter, beatorajaKeyFilterOrderActive())
+    readonly property int sortMode: legacySortModeForSelectSortMode(selectSortMode)
     property int sortSourceFrameCount: 5
     property var barTitleTypes: []
     property bool useBeatorajaBarTextTypes: false
@@ -203,7 +208,6 @@ Item {
     readonly property var lr2SortOrder: [0, 1, 2, 3, 4]
     readonly property var beatorajaSortOrder: [2, 5, 6, 7, 1, 3, 4, 8]
     readonly property var lr2KeyFilterOrder: [0, 1, 2, 3, 4, 5, 6]
-    // beatoraja select button art is all/5/7/10/14/9/24/24D. 9K and 24K are not supported here.
     readonly property var beatorajaKeyFilterOrder: [0, 1, 2, 3, 4]
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "LIGHTASSIST", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
@@ -841,38 +845,23 @@ Item {
     }
 
     function keyFilterMatches(item: var) : var {
-        let filter = effectiveKeyFilter();
-        if (!isChart(item) || filter === 0) {
+        if (!isChart(item) || selectKeymodeFilter === SelectKeymodeFilter.All) {
             return true;
         }
         let keymode = item.keymode || 0;
-        if (beatorajaKeyFilterOrderActive()) {
-            switch (filter) {
-            case 1:
-                return keymode === 5;
-            case 2:
-                return keymode === 7;
-            case 3:
-                return keymode === 10;
-            case 4:
-                return keymode === 14;
-            default:
-                return true;
-            }
-        }
-        switch (filter) {
-        case 1:
+        switch (selectKeymodeFilter) {
+        case SelectKeymodeFilter.Single:
             return keymode === 5 || keymode === 7;
-        case 2:
-            return keymode === 7;
-        case 3:
-            return keymode === 5;
-        case 4:
+        case SelectKeymodeFilter.Double:
             return keymode === 10 || keymode === 14;
-        case 5:
-            return keymode === 14;
-        case 6:
+        case SelectKeymodeFilter.K5:
+            return keymode === 5;
+        case SelectKeymodeFilter.K7:
+            return keymode === 7;
+        case SelectKeymodeFilter.K10:
             return keymode === 10;
+        case SelectKeymodeFilter.K14:
+            return keymode === 14;
         default:
             return true;
         }
@@ -1012,6 +1001,13 @@ Item {
         return summary.scoreCounts.minBadPoor >= 0 ? summary.scoreCounts.minBadPoor : null;
     }
 
+    function entryTotalNotesForSort(item: var) : var {
+        if (!isChart(item) && !isEntry(item)) {
+            return null;
+        }
+        return (item.total || 0) > 0 ? item.total : null;
+    }
+
     function compareByBpm(a: var, b: var) : var {
         if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
             return compareByNameOnly(a, b);
@@ -1085,6 +1081,17 @@ Item {
         return compareByDifficulty(a, b);
     }
 
+    function compareByTotalNotes(a: var, b: var) : var {
+        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
+            return compareByNameOnly(a, b);
+        }
+        let diff = compareNumberWithMissing(entryTotalNotesForSort(a), entryTotalNotesForSort(b));
+        if (diff !== 0) {
+            return diff;
+        }
+        return compareByTitle(a, b);
+    }
+
     function isSongLikeForSort(item: var) : var {
         return isRankingEntry(item) || isChart(item) || isEntry(item);
     }
@@ -1093,8 +1100,70 @@ Item {
         return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
     }
 
+    function legacySortModeForSelectSortMode(mode: var) : var {
+        switch (mode) {
+        case SelectSortMode.Directory:
+            return 0;
+        case SelectSortMode.Level:
+            return 1;
+        case SelectSortMode.Title:
+            return 2;
+        case SelectSortMode.ClearLamp:
+            return 3;
+        case SelectSortMode.ScoreRate:
+            return 4;
+        case SelectSortMode.Artist:
+            return 5;
+        case SelectSortMode.Bpm:
+            return 6;
+        case SelectSortMode.Length:
+            return 7;
+        case SelectSortMode.MissCount:
+            return 8;
+        case SelectSortMode.TotalNotes:
+            return 9;
+        default:
+            return 2;
+        }
+    }
+
+    function selectSortModeForLegacySortMode(mode: var) : var {
+        switch (mode) {
+        case 0:
+            return SelectSortMode.Directory;
+        case 1:
+            return SelectSortMode.Level;
+        case 2:
+            return SelectSortMode.Title;
+        case 3:
+            return SelectSortMode.ClearLamp;
+        case 4:
+            return SelectSortMode.ScoreRate;
+        case 5:
+            return SelectSortMode.Artist;
+        case 6:
+            return SelectSortMode.Bpm;
+        case 7:
+            return SelectSortMode.Length;
+        case 8:
+            return SelectSortMode.MissCount;
+        case 9:
+            return SelectSortMode.TotalNotes;
+        default:
+            return SelectSortMode.Title;
+        }
+    }
+
+    function setSelectSortMode(mode: var) : void {
+        if (generalVars) {
+            generalVars.selectSortMode = mode;
+        } else {
+            localSelectSortMode = mode;
+        }
+    }
+
     function activeSortMode() : var {
-        return root.useBeatorajaSelectOptions && sortMode === 0 ? 2 : sortMode;
+        return legacySortModeForSelectSortMode(selectSortMode);
     }
 
     function compareCharts(a: var, b: var) : var {
@@ -1115,6 +1184,8 @@ Item {
             return compareByLength(a, b);
         case 8:
             return compareByMissCount(a, b);
+        case 9:
+            return compareByTotalNotes(a, b);
         default:
             return 0;
         }
@@ -1177,74 +1248,75 @@ Item {
         return result.length > 0 ? result : [0];
     }
 
-    function exactKeymodeForFilter(filter: var, beatorajaOrder: var) : var {
+    function keyFilterFrameForSelectKeymodeFilter(filter: var, beatorajaOrder: var) : var {
         if (beatorajaOrder) {
             switch (filter) {
-            case 1: return 5;
-            case 2: return 7;
-            case 3: return 10;
-            case 4: return 14;
-            default: return 0;
+            case SelectKeymodeFilter.All: return 0;
+            case SelectKeymodeFilter.K5: return 1;
+            case SelectKeymodeFilter.K7: return 2;
+            case SelectKeymodeFilter.K10: return 3;
+            case SelectKeymodeFilter.K14: return 4;
+            default: return -1;
             }
         }
         switch (filter) {
-        case 2: return 7;
-        case 3: return 5;
-        case 5: return 14;
-        case 6: return 10;
-        default: return 0;
+        case SelectKeymodeFilter.All: return 0;
+        case SelectKeymodeFilter.Single: return 1;
+        case SelectKeymodeFilter.K7: return 2;
+        case SelectKeymodeFilter.K5: return 3;
+        case SelectKeymodeFilter.Double: return 4;
+        case SelectKeymodeFilter.K14: return 5;
+        case SelectKeymodeFilter.K10: return 6;
+        default: return -1;
         }
     }
 
-    function keyFilterForExactKeymode(keymode: var, beatorajaOrder: var) : var {
+    function selectKeymodeFilterForKeyFilterFrame(frame: var, beatorajaOrder: var) : var {
         if (beatorajaOrder) {
-            switch (keymode) {
-            case 5: return 1;
-            case 7: return 2;
-            case 10: return 3;
-            case 14: return 4;
-            default: return 0;
+            switch (frame) {
+            case 1: return SelectKeymodeFilter.K5;
+            case 2: return SelectKeymodeFilter.K7;
+            case 3: return SelectKeymodeFilter.K10;
+            case 4: return SelectKeymodeFilter.K14;
+            default: return SelectKeymodeFilter.All;
             }
         }
-        switch (keymode) {
-        case 7: return 2;
-        case 5: return 3;
-        case 14: return 5;
-        case 10: return 6;
-        default: return 0;
+        switch (frame) {
+        case 1: return SelectKeymodeFilter.Single;
+        case 2: return SelectKeymodeFilter.K7;
+        case 3: return SelectKeymodeFilter.K5;
+        case 4: return SelectKeymodeFilter.Double;
+        case 5: return SelectKeymodeFilter.K14;
+        case 6: return SelectKeymodeFilter.K10;
+        default: return SelectKeymodeFilter.All;
         }
     }
 
-    function remapKeyFilterOrder(filter: var, wasBeatoraja: var, isBeatoraja: var) : var {
-        if (wasBeatoraja === isBeatoraja) {
-            return filter;
+    function setSelectKeymodeFilter(filter: var) : void {
+        if (generalVars) {
+            generalVars.selectKeymodeFilter = filter;
+        } else {
+            localSelectKeymodeFilter = filter;
         }
-
-        let exactKeymode = exactKeymodeForFilter(filter, wasBeatoraja);
-        return exactKeymode > 0
-            ? keyFilterForExactKeymode(exactKeymode, isBeatoraja)
-            : 0;
-    }
-
-    function effectiveKeyFilter() : var {
-        let order = keyFilterOrder();
-        return order.indexOf(keyFilter) >= 0 ? keyFilter : 0;
     }
 
     function keyFilterFrameForSourceCount(sourceCount: var) : var {
         let order = keyFilterOrder(sourceCount);
-        return order.indexOf(keyFilter) >= 0 ? keyFilter : -1;
+        let frame = keyFilterFrameForSelectKeymodeFilter(selectKeymodeFilter, beatorajaKeyFilterOrderActive());
+        return order.indexOf(frame) >= 0 ? frame : -1;
     }
 
     function adjustKeyFilter(delta: var, sourceCount: var) : void {
         let order = keyFilterOrder(sourceCount);
-        let frame = order.indexOf(keyFilter);
-        if (frame < 0) {
-            keyFilter = order[0];
-            return;
+        let currentFrame = keyFilterFrameForSelectKeymodeFilter(selectKeymodeFilter, beatorajaKeyFilterOrderActive());
+        let index = order.indexOf(currentFrame);
+        if (index < 0) {
+            index = delta < 0 ? order.length - 1 : 0;
+        } else {
+            index = ((index + delta) % order.length + order.length) % order.length;
         }
-        frame = ((frame + delta) % order.length + order.length) % order.length;
-        keyFilter = order[frame];
+        setSelectKeymodeFilter(
+            selectKeymodeFilterForKeyFilterFrame(order[index], beatorajaKeyFilterOrderActive()));
     }
 
     function resetSortSourceFrameCount() : void {
@@ -1252,13 +1324,11 @@ Item {
     }
 
     function setSortSourceFrameCount(sourceCount: var) : var {
-        let wasBeatoraja = beatorajaKeyFilterOrderActive();
         let normalized = root.useBeatorajaSelectOptions ? 8 : 5;
         if (sortSourceFrameCount === normalized) {
             return;
         }
         sortSourceFrameCount = normalized;
-        keyFilter = remapKeyFilterOrder(keyFilter, wasBeatoraja, beatorajaKeyFilterOrderActive());
         if (folderContents.length > 0) {
             sortOrFilterChanged();
         }
@@ -1270,7 +1340,7 @@ Item {
 
     function sortFrameForSourceCount(sourceCount: var) : var {
         let order = sortOrderForSourceCount(sourceCount);
-        let frame = order.indexOf(sortMode);
+        let frame = order.indexOf(activeSortMode());
         if (frame >= 0) {
             return frame;
         }
@@ -1280,13 +1350,13 @@ Item {
     function adjustSortMode(delta: var, sourceCount: var) : void {
         setSortSourceFrameCount(sourceCount);
         let order = sortOrderForSourceCount(sourceCount);
-        let frame = order.indexOf(sortMode);
+        let frame = order.indexOf(activeSortMode());
         if (frame < 0) {
-            sortMode = order[0];
-            return;
+            frame = delta < 0 ? order.length - 1 : 0;
+        } else {
+            frame = ((frame + delta) % order.length + order.length) % order.length;
         }
-        frame = ((frame + delta) % order.length + order.length) % order.length;
-        sortMode = order[frame];
+        setSelectSortMode(selectSortModeForLegacySortMode(order[frame]));
     }
 
     function selectEntrySortBucket(item: var) : var {
@@ -2142,23 +2212,13 @@ Item {
     }
 
     function keyFilterLabel() : var {
-        let filter = effectiveKeyFilter();
-        if (beatorajaKeyFilterOrderActive()) {
-            switch (filter) {
-            case 1: return "5KEYS";
-            case 2: return "7KEYS";
-            case 3: return "10KEYS";
-            case 4: return "14KEYS";
-            default: return "ALL";
-            }
-        }
-        switch (filter) {
-        case 1: return "SINGLE";
-        case 2: return "7KEYS";
-        case 3: return "5KEYS";
-        case 4: return "DOUBLE";
-        case 5: return "14KEYS";
-        case 6: return "10KEYS";
+        switch (selectKeymodeFilter) {
+        case SelectKeymodeFilter.Single: return "SINGLE";
+        case SelectKeymodeFilter.Double: return "DOUBLE";
+        case SelectKeymodeFilter.K5: return "5KEYS";
+        case SelectKeymodeFilter.K7: return "7KEYS";
+        case SelectKeymodeFilter.K10: return "10KEYS";
+        case SelectKeymodeFilter.K14: return "14KEYS";
         default: return "ALL";
         }
     }
@@ -2173,6 +2233,7 @@ Item {
         case 6: return "BPM";
         case 7: return "LENGTH";
         case 8: return "MISS COUNT";
+        case 9: return "TOTAL NOTES";
         default: return "DIRECTORY";
         }
     }
@@ -2923,11 +2984,6 @@ Item {
                                + 100000 * stats.gr
                                + 20000 * stats.gd) / totalNotes)
                 + Math.floor(50000 * (stats.maxCombo || 0) / totalNotes);
-        }
-        if (keymode === 9) {
-            return Math.floor((100000 * stats.pg
-                               + 70000 * stats.gr
-                               + 40000 * stats.gd) / totalNotes);
         }
         return Math.floor((1000000 * stats.pg
                            + 700000 * stats.gr
