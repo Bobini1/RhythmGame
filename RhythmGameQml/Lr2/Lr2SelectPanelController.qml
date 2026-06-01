@@ -175,15 +175,18 @@ QtObject {
     readonly property var splitArrowButtons: controller.lookup([
         10, 11, 12, 20, 21, 22, 26, 27, 28, 33,
         40, 41, 42, 43, 46, 50, 51, 54, 55, 56,
-        57, 58, 59, 72, 74, 76, 77, 78, 83, 190, 308
+        57, 58, 59, 72, 74, 76, 77, 78, 83, 190, 308,
+        340, 341, 342, 344, 350, 351, 352, 353, 360, 361, 400
     ])
     readonly property var imageSetButtons: controller.lookup([
         40, 41, 42, 43, 54, 55, 72, 74, 77, 78,
-        301, 302, 303, 304, 305, 306, 307, 308
+        301, 302, 303, 304, 305, 306, 307, 308,
+        340, 341, 342, 343, 350, 351, 352, 353, 360, 361, 400
     ])
     readonly property var fixedZeroButtonFrames: controller.lookup([
         13, 14, 18, 44, 45, 74, 75, 80, 81, 82, 83,
-        210, 301, 302, 303, 304, 305, 306, 307
+        210, 301, 302, 303, 304, 305, 306, 307,
+        342, 343, 344, 350, 351, 352, 353, 360, 361, 400
     ])
     readonly property var player2Keys: controller.lookup([
         BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24,
@@ -284,6 +287,7 @@ QtObject {
         "73": () => root.lr2BgaSizeIndex,
         "77": src => root.lr2TargetButtonFrame(root.elementSourceFrameCount(src)),
         "78": () => root.lr2GaugeAutoShiftIndex,
+        "340": () => root.lr2JudgeAlgorithmIndex,
         "341": () => root.lr2BottomShiftableGaugeIndex,
         "308": () => root.lr2LnModeIndex
     })
@@ -457,7 +461,18 @@ QtObject {
         "308": delta => root.setLnModeIndex(root.lr2LnModeIndex + delta),
         "316": () => controller.playReplaySlot(1),
         "317": () => controller.playReplaySlot(2),
-        "318": () => controller.playReplaySlot(3)
+        "318": () => controller.playReplaySlot(3),
+        "340": delta => root.setJudgeAlgorithmIndex(root.lr2JudgeAlgorithmIndex + delta),
+        "342": () => false,
+        "343": () => false,
+        "344": () => false,
+        "350": () => false,
+        "351": () => false,
+        "352": () => false,
+        "353": () => false,
+        "360": () => false,
+        "361": () => false,
+        "400": () => false
     })
 
     function lookup(values: var) : var {

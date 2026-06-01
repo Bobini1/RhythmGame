@@ -114,6 +114,8 @@ QtObject {
             return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP1);
         case 85:
             return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP2);
+        case 86:
+            return root.lr2SkinUsesBeatorajaSemantics ? "RIVALCHART" : "";
         case 308:
             return root.optionText(root.lr2LnModeLabels, root.lr2LnModeIndex);
         case 120:
@@ -173,6 +175,9 @@ QtObject {
         case 199:
             return "GROOVE";
         default:
+            if (textId >= 200 && textId <= 219) {
+                return root.lr2TargetNameText(textId);
+            }
             if (textId >= 100 && textId < 110) {
                 return root.lr2SkinSettingName(textId - 100);
             }
@@ -192,6 +197,14 @@ QtObject {
             return root.course.name || "";
         }
         return root.chart && root.chart.course ? root.chart.course.name : "";
+    }
+
+    function beatorajaRivalText() : var {
+        return root.effectiveScreenKey === "select" ? "" : root.lr2TargetText();
+    }
+
+    function chartHashText(chartData: var, field: var) : var {
+        return chartData && chartData[field] ? String(chartData[field]) : "";
     }
 
     function resolveChartText(st: var, chartData: var, selectedEntry: var) : var {
@@ -216,17 +229,29 @@ QtObject {
         case 15:
             return chartData ? (chartData.subartist || "") : "";
         case 16:
+            if (!root.lr2SkinUsesBeatorajaSemantics) {
+                return chartData ? (chartData.tag || "") : "";
+            }
             return chartData
                 ? (chartData.artist || "") + (chartData.subartist ? " " + chartData.subartist : "")
                 : "";
         case 17:
         case 27:
+            if (root.lr2SkinUsesBeatorajaSemantics) {
+                return "";
+            }
             return chartData ? String(chartData.playLevel || 0) : "";
         case 18:
         case 28:
+            if (root.lr2SkinUsesBeatorajaSemantics) {
+                return "";
+            }
             return chartData ? String(selectContext.entryDifficulty(chartData)) : "";
         case 19:
         case 29:
+            if (root.lr2SkinUsesBeatorajaSemantics) {
+                return "";
+            }
             return chartData ? String(chartData.exlevel || chartData.exLevel || "") : "";
         default:
             return "";
@@ -264,7 +289,9 @@ QtObject {
     function computeResolvedText(st: var) : var {
         switch (st) {
         case 1:
-            return root.lr2TargetText();
+            return root.lr2SkinUsesBeatorajaSemantics ? resolver.beatorajaRivalText() : root.lr2TargetText();
+        case 3:
+            return root.lr2SkinUsesBeatorajaSemantics ? root.lr2TargetText() : root.lr2SelectOptionText(st);
         case 2:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 10:
@@ -285,6 +312,9 @@ QtObject {
         case 24:
         case 25:
         case 26:
+            if (root.lr2SkinUsesBeatorajaSemantics) {
+                return "";
+            }
             return resolver.resolveSelectedEntryText(st, resolver.selectedTextEntry());
         case 27:
         case 28:
@@ -305,6 +335,8 @@ QtObject {
             return root.effectiveScreenKey === "select" ? selectContext.sortLabel() : "DIRECTORY";
         case 62:
             return root.effectiveScreenKey === "select" ? selectContext.difficultyFilterLabel() : "ALL";
+        case 86:
+            return root.lr2SkinUsesBeatorajaSemantics ? "RIVALCHART" : "";
         case 120:
         case 121:
         case 122:
@@ -326,6 +358,15 @@ QtObject {
             return root.effectiveScreenKey === "select" ? selectContext.currentTableLevelName() : "";
         case 1003:
             return root.effectiveScreenKey === "select" ? selectContext.currentTableFullName() : "";
+        case 1010:
+            return root.lr2SkinUsesBeatorajaSemantics ? (Qt.application.version || "") : "";
+        case 1020:
+        case 1021:
+            return "";
+        case 1030:
+            return resolver.chartHashText(root.displayChartData(), "md5");
+        case 1031:
+            return resolver.chartHashText(root.displayChartData(), "sha256");
         default:
             return root.effectiveScreenKey === "select" ? root.lr2SelectOptionText(st) : "";
         }
@@ -1286,8 +1327,20 @@ QtObject {
             return root.lr2TargetButtonFrame(sourceCount);
         case 78:
             return root.lr2GaugeAutoShiftIndex;
+        case 340:
+            return root.lr2JudgeAlgorithmIndex;
         case 341:
             return root.lr2BottomShiftableGaugeIndex;
+        case 342:
+        case 343:
+        case 350:
+        case 351:
+        case 352:
+        case 353:
+        case 360:
+        case 361:
+        case 400:
+            return 0;
         case 301:
         case 302:
         case 303:

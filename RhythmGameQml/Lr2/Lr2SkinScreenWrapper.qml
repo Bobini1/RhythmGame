@@ -877,6 +877,10 @@ Item {
         return optionState.lr2TargetText(count);
     }
 
+    function lr2TargetNameText(textId: var) : var {
+        return optionState.lr2TargetNameText(textId);
+    }
+
     readonly property int lr2TargetPercent: optionState.lr2TargetPercent
     function setTargetPercent(percent: var) : void { optionState.setTargetPercent(percent); }
 
@@ -4347,10 +4351,10 @@ Item {
             1202, 1203, 1205, 1206, 1207, 1208
         ])
     readonly property bool selectScoreOptionIdsUsed: root.skinUsesSelectElementOptionRange(105, 130)
-        || root.skinUsesAnySelectElementOption([144, 145, 1100, 1102, 1103, 1104, 1128])
+        || root.skinUsesAnySelectElementOption([144, 145, 1100, 1101, 1102, 1103, 1104, 1128])
     readonly property bool selectEntryStatusOptionsUsed: root.skinUsesSelectElementOptionRange(100, 130)
         || root.skinUsesSelectElementOptionRange(200, 207)
-        || root.skinUsesAnySelectElementOption([1100, 1102, 1103, 1104])
+        || root.skinUsesAnySelectElementOption([1100, 1101, 1102, 1103, 1104])
     readonly property bool selectDifficultyBarOptionsUsed: root.skinUsesSelectElementOptionRange(70, 79)
         || root.skinUsesSelectElementOptionRange(500, 565)
     readonly property bool selectCourseDetailOptionsUsed: root.skinUsesAnySelectElementOption([290, 293])

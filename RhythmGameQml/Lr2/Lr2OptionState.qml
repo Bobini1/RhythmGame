@@ -768,6 +768,23 @@ QtObject {
         return frame < root.lr2TargetLabels.length ? root.lr2TargetLabels[frame] : "";
     }
 
+    function lr2TargetNameText(textId: var) : var {
+        if (!root.targetUsesBeatorajaFrames(0)) {
+            return "";
+        }
+        let id = Math.floor(textId || 0);
+        if (id < 200 || id > 219) {
+            return "";
+        }
+        let current = root.lr2BeatorajaTargetIndex;
+        let count = root.lr2BeatorajaTargetLabels.length;
+        if (current < 0 || count <= 0) {
+            return "";
+        }
+        let offset = id < 210 ? id - 210 : id - 209;
+        return root.lr2BeatorajaTargetLabels[root.wrapValue(current + offset, count)];
+    }
+
     readonly property int lr2TargetPercent: {
         let vars = root.mainGeneralVars();
         return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
