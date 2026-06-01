@@ -71,7 +71,21 @@ QtObject {
         "RANK AAA",
         "RANK AAA+",
         "RANK MAX-",
-        "MAX"
+        "MAX",
+        "NEXT RANK"
+    ]
+    readonly property var lr2BeatorajaCompactTargetLabels: [
+        "RANK A-",
+        "RANK A",
+        "RANK A+",
+        "RANK AA-",
+        "RANK AA",
+        "RANK AA+",
+        "RANK AAA-",
+        "RANK AAA",
+        "RANK AAA+",
+        "MAX",
+        "NEXT RANK"
     ]
     readonly property var lr2BeatorajaTargetFractions: [
         0.6296296296,
@@ -84,8 +98,24 @@ QtObject {
         0.8888888889,
         0.9259259259,
         0.9629629630,
-        1.0
+        1.0,
+        null
     ]
+    readonly property var lr2BeatorajaCompactTargetFractions: [
+        0.6296296296,
+        0.6666666667,
+        0.7037037037,
+        0.7407407407,
+        0.7777777778,
+        0.8148148148,
+        0.8518518519,
+        0.8888888889,
+        0.9259259259,
+        1.0,
+        null
+    ]
+    readonly property int lr2BeatorajaTargetCount: lr2BeatorajaTargetFractions.length
+    readonly property int lr2BeatorajaCompactTargetCount: lr2BeatorajaCompactTargetFractions.length
     readonly property real lr2BeatorajaTargetTolerance: 0.001
     readonly property var lr2BgaSizeLabels: ["NORMAL", "EXTEND"]
     readonly property var lr2GhostLabels: ["OFF", "TYPE A", "TYPE B", "TYPE C"]
@@ -686,9 +716,37 @@ QtObject {
         root.setScoreTargetIndex(index);
     }
 
-    readonly property int lr2BeatorajaTargetIndex: {
+    readonly property int lr2BeatorajaTargetIndex: root.beatorajaTargetIndexForFractions(root.lr2BeatorajaTargetFractions)
+
+    function beatorajaUsesCompactTargetFrames(sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        return count === root.lr2BeatorajaCompactTargetCount
+            && count < root.lr2BeatorajaTargetCount;
+    }
+
+    function beatorajaTargetLabelsForSourceCount(sourceCount: var) : var {
+        return root.beatorajaUsesCompactTargetFrames(sourceCount)
+            ? root.lr2BeatorajaCompactTargetLabels
+            : root.lr2BeatorajaTargetLabels;
+    }
+
+    function beatorajaTargetFractionsForSourceCount(sourceCount: var) : var {
+        return root.beatorajaUsesCompactTargetFrames(sourceCount)
+            ? root.lr2BeatorajaCompactTargetFractions
+            : root.lr2BeatorajaTargetFractions;
+    }
+
+    function beatorajaTargetIndexForFractions(fractions: var) : var {
         let vars = root.mainGeneralVars();
         if (!vars) {
+            return -1;
+        }
+        if (vars.scoreTarget === ScoreTarget.NextRank) {
+            for (let i = 0; i < fractions.length; ++i) {
+                if (fractions[i] === null || fractions[i] === undefined) {
+                    return i;
+                }
+            }
             return -1;
         }
         if (vars.scoreTarget !== ScoreTarget.Fraction) {
@@ -697,8 +755,12 @@ QtObject {
         let fraction = Number(vars.targetScoreFraction || 0);
         let bestIndex = 0;
         let bestDistance = Number.MAX_VALUE;
-        for (let i = 0; i < root.lr2BeatorajaTargetFractions.length; ++i) {
-            let distance = Math.abs(fraction - root.lr2BeatorajaTargetFractions[i]);
+        for (let i = 0; i < fractions.length; ++i) {
+            let targetFraction = fractions[i];
+            if (targetFraction === null || targetFraction === undefined) {
+                continue;
+            }
+            let distance = Math.abs(fraction - targetFraction);
             if (distance < bestDistance) {
                 bestDistance = distance;
                 bestIndex = i;
@@ -712,13 +774,18 @@ QtObject {
         if (!vars) {
             return;
         }
-        let count = root.optionFrameCount(sourceCount, root.lr2BeatorajaTargetFractions.length);
+        let fractions = root.beatorajaTargetFractionsForSourceCount(sourceCount);
+        let count = fractions.length;
         if (count <= 0) {
             return;
         }
         let normalized = root.wrapValue(index, count);
+        if (fractions[normalized] === null || fractions[normalized] === undefined) {
+            vars.scoreTarget = ScoreTarget.NextRank;
+            return;
+        }
         vars.scoreTarget = ScoreTarget.Fraction;
-        vars.targetScoreFraction = root.lr2BeatorajaTargetFractions[normalized];
+        vars.targetScoreFraction = fractions[normalized];
     }
 
     function targetUsesBeatorajaFrames(sourceCount: var) : var {
@@ -726,14 +793,21 @@ QtObject {
     }
 
     function targetButtonFrameCount(sourceCount: var) : var {
-        return root.targetUsesBeatorajaFrames(sourceCount)
-            ? root.optionFrameCount(sourceCount, root.lr2BeatorajaTargetLabels.length)
-            : root.optionFrameCount(sourceCount, root.lr2TargetLabels.length);
+        if (!root.targetUsesBeatorajaFrames(sourceCount)) {
+            return root.optionFrameCount(sourceCount, root.lr2TargetLabels.length);
+        }
+        let source = Math.floor(sourceCount || 0);
+        let targetCount = root.beatorajaTargetFractionsForSourceCount(sourceCount).length;
+        if (source > 1) {
+            return Math.min(source, targetCount);
+        }
+        return source === 1 ? 1 : targetCount;
     }
 
     function lr2TargetButtonFrame(sourceCount: var) : var {
         let frame = root.targetUsesBeatorajaFrames(sourceCount)
-            ? root.lr2BeatorajaTargetIndex
+            ? root.beatorajaTargetIndexForFractions(
+                  root.beatorajaTargetFractionsForSourceCount(sourceCount))
             : root.lr2ScoreTargetIndex;
         let count = root.targetButtonFrameCount(sourceCount);
         return frame >= 0 && frame < count ? frame : -1;
@@ -761,8 +835,9 @@ QtObject {
             return "";
         }
         if (root.targetUsesBeatorajaFrames(sourceCount)) {
-            return frame < root.lr2BeatorajaTargetLabels.length
-                ? root.lr2BeatorajaTargetLabels[frame]
+            let labels = root.beatorajaTargetLabelsForSourceCount(sourceCount);
+            return frame < labels.length
+                ? labels[frame]
                 : "";
         }
         return frame < root.lr2TargetLabels.length ? root.lr2TargetLabels[frame] : "";
@@ -777,7 +852,7 @@ QtObject {
             return "";
         }
         let current = root.lr2BeatorajaTargetIndex;
-        let count = root.lr2BeatorajaTargetLabels.length;
+        let count = root.lr2BeatorajaTargetCount;
         if (current < 0 || count <= 0) {
             return "";
         }

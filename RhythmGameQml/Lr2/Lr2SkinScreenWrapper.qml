@@ -2200,12 +2200,31 @@ Item {
         return scores.length > 0 ? scores[0] : null;
     }
 
-    function gameplayTargetSavedScore() : var {
+    function nextRankTargetPoints(savedPoints: var, maxPoints: var) : var {
+        let max = Math.max(0, Math.floor(maxPoints || 0));
+        if (max <= 0) {
+            return 0;
+        }
+        let current = Math.max(0, Math.floor(savedPoints || 0));
+        for (let rank = 15; rank < 27; ++rank) {
+            let target = Math.ceil(max * rank / 27);
+            if (current < target) {
+                return target;
+            }
+        }
+        return max;
+    }
+
+    function gameplayScoreTargetMode() : var {
         let player = root.gameplayPlayer(1);
         let vars = player && player.profile && player.profile.vars
             ? player.profile.vars.generalVars
             : null;
-        switch (vars ? vars.scoreTarget : ScoreTarget.BestScore) {
+        return vars ? vars.scoreTarget : ScoreTarget.BestScore;
+    }
+
+    function gameplayTargetSavedScore() : var {
+        switch (root.gameplayScoreTargetMode()) {
         case ScoreTarget.LastScore:
             return root.gameplayLastSavedScore();
         case ScoreTarget.BestScore:
@@ -2223,6 +2242,15 @@ Item {
         return vars ? (vars.targetScoreFraction || 0) : 0;
     }
 
+    function gameplayNextRankTargetFraction(maxPoints: var) : var {
+        let max = Math.max(0, Math.floor(maxPoints || 0));
+        if (max <= 0) {
+            return 0;
+        }
+        let saved = root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
+        return root.nextRankTargetPoints(saved, max) / max;
+    }
+
     function gameplayHighScorePoints() : var {
         root.gameplayScoresRevision;
         return root.gameplayBestSavedScore() ? Math.floor(gameplayBestScoreReplayer.points || 0) : 0;
@@ -2237,7 +2265,13 @@ Item {
             return Math.floor(gameplayTargetScoreReplayer.points || 0);
         }
         let score = root.gameplayScore(1);
-        return score ? Math.floor((score.maxPointsNow || 0) * root.gameplayTargetFraction()) : 0;
+        if (!score) {
+            return 0;
+        }
+        let fraction = root.gameplayScoreTargetMode() === ScoreTarget.NextRank
+            ? root.gameplayNextRankTargetFraction(score.maxPoints || 0)
+            : root.gameplayTargetFraction();
+        return Math.floor((score.maxPointsNow || 0) * fraction);
     }
 
     function gameplayTargetFinalPoints() : var {
@@ -2249,7 +2283,15 @@ Item {
             return root.gameplaySavedScorePoints(targetScore);
         }
         let score = root.gameplayScore(1);
-        return score ? Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction()) : 0;
+        if (!score) {
+            return 0;
+        }
+        if (root.gameplayScoreTargetMode() === ScoreTarget.NextRank) {
+            return root.nextRankTargetPoints(
+                root.gameplaySavedScorePoints(root.gameplayBestSavedScore()),
+                score.maxPoints || 0);
+        }
+        return Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction());
     }
 
     function resetGameplayScoreReplayers() : void {

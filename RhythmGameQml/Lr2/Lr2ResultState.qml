@@ -579,6 +579,12 @@ QtObject {
         }
     }
 
+    function resultUsesNextRankTarget(side: var) : var {
+        let profile = root.resultProfile(side);
+        let vars = profile && profile.vars ? profile.vars.generalVars : null;
+        return vars && vars.scoreTarget === ScoreTarget.NextRank;
+    }
+
     function resultTargetFraction(side: var) : var {
         let profile = root.resultProfile(side);
         let vars = profile && profile.vars ? profile.vars.generalVars : null;
@@ -591,6 +597,13 @@ QtObject {
             return root.resultExScore(targetScore.result);
         }
         let current = root.resultData(side);
+        if (root.resultUsesNextRankTarget(side)) {
+            return current
+                ? root.host.nextRankTargetPoints(
+                    root.resultExScore(root.resultOldBestResult(side)),
+                    current.maxPoints || 0)
+                : 0;
+        }
         return current ? Math.floor((current.maxPoints || 0) * root.resultTargetFraction(side)) : 0;
     }
 

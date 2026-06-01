@@ -86,6 +86,7 @@ enum class ScoreTarget
     Fraction,
     BestScore,
     LastScore,
+    NextRank,
 };
 Q_ENUM_NS(ScoreTarget)
 } // namespace score_target
