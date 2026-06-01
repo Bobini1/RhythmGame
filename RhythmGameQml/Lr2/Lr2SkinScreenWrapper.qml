@@ -134,6 +134,7 @@ Item {
     property alias resultOldScores1: resultState.resultOldScores1
     property alias resultOldScores2: resultState.resultOldScores2
     property alias resultOldScoresRevision: resultState.resultOldScoresRevision
+    property alias resultGaugeSelectionRevision: resultState.resultGaugeSelectionRevision
     property alias resultOldScoresRequest: resultState.resultOldScoresRequest
     property alias resultTimer151SkinTime: resultState.resultTimer151SkinTime
     property alias resultTimer152SkinTime: resultState.resultTimer152SkinTime
@@ -1340,6 +1341,13 @@ Item {
                 return activeName;
             }
         }
+        if (root.isResultScreen()) {
+            root.resultGaugeSelectionRevision;
+            let resultName = root.resultGaugeName(side);
+            if (resultName.length > 0) {
+                return resultName;
+            }
+        }
         return root.configuredGaugeName(side);
     }
 
@@ -2039,7 +2047,32 @@ Item {
     function resultTimingStats(side: var) : var { return resultState.resultTimingStats(side); }
     function signedAfterDot(value: var) : var { return resultState.signedAfterDot(value); }
     function resultGaugeInfo(side: var) : var { return resultState.resultGaugeInfo(side); }
+    function resultGaugeName(side: var) : var { return resultState.resultGaugeName(side); }
     function resultGaugeValue(side: var) : var { return resultState.resultGaugeValue(side); }
+    function cycleResultGauge(side: var, delta: var) : var {
+        if (!resultState.cycleResultGauge(side, delta)) {
+            return false;
+        }
+        root.refreshBaseActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
+        return true;
+    }
+    function handleResultGaugeSelectKey(key: var) : var {
+        if (!root.resultInputReady()) {
+            return false;
+        }
+        if (key === BmsKey.Select1) {
+            root.cycleResultGauge(1, 1);
+            return true;
+        }
+        if (key === BmsKey.Select2) {
+            if (root.resultScore(2)) {
+                root.cycleResultGauge(2, 1);
+            }
+            return true;
+        }
+        return false;
+    }
     function gaugeAfterDot(value: var) : var { return resultState.gaugeAfterDot(value); }
     function resultExScore(result: var) : var { return resultState.resultExScore(result); }
     function resultLr2Score(result: var) : var { return resultState.resultLr2Score(result); }
@@ -4163,8 +4196,8 @@ Item {
         return selectPanelController.buttonPanelMatches(src);
     }
 
-    function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var) : var {
-        return selectPanelController.handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount);
+    function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var, mouseButton: var) : var {
+        return selectPanelController.handleLr2Button(buttonId, delta, panel, soundPlayer, sourceCount, mouseButton);
     }
 
     function triggerSelectPanelButton(buttonId: var, delta: var) : var {
@@ -4514,6 +4547,7 @@ Item {
         updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
         enabled: updatesActive
         barTitleTypes: skinModel.barTitleTypes || []
+        barLampVariants: skinModel.barLampVariants || []
         useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics
         useBeatorajaSelectOptions: root.lr2SkinUsesBeatorajaSemantics
         generalVars: root.mainGeneralVars()
@@ -4951,6 +4985,9 @@ Item {
     Input.onCol27Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onButtonPressed: (key) => {
         if (root.handleLr2GameplayOptionKey(key)) {
+            return;
+        }
+        if (root.handleResultGaugeSelectKey(key)) {
             return;
         }
         if (root.closeResultScreen()) {

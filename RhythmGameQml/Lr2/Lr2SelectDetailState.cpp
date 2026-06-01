@@ -79,12 +79,27 @@ QString normalizedClearType(const QString& clearType) {
 	return value;
 }
 
-QString clearTypeOf(const QVariant& score) {
-	return normalizedClearType(resultMap(score).value(QStringLiteral("clearType")).toString());
+QString skinCompatibleClearType(const QString& clearType, bool useBeatorajaSemantics) {
+	const QString value = normalizedClearType(clearType);
+	if (useBeatorajaSemantics) {
+		return value;
+	}
+	if (value == QStringLiteral("AEASY") || value == QStringLiteral("LIGHTASSIST")) {
+		return QStringLiteral("FAILED");
+	}
+	if (value == QStringLiteral("EXHARD") || value == QStringLiteral("EXHARDDAN")) {
+		return QStringLiteral("HARD");
+	}
+	return value;
 }
 
-int clearTypePriority(const QString& clearType) {
-	const QString value = normalizedClearType(clearType);
+QString clearTypeOf(const QVariant& score, bool useBeatorajaSemantics) {
+	return skinCompatibleClearType(resultMap(score).value(QStringLiteral("clearType")).toString(),
+								   useBeatorajaSemantics);
+}
+
+int clearTypePriority(const QString& clearType, bool useBeatorajaSemantics) {
+	const QString value = skinCompatibleClearType(clearType, useBeatorajaSemantics);
 	if (value == QStringLiteral("FAILED")) return 1;
 	if (value == QStringLiteral("AEASY")) return 2;
 	if (value == QStringLiteral("LIGHTASSIST")) return 3;
@@ -98,8 +113,8 @@ int clearTypePriority(const QString& clearType) {
 	return 0;
 }
 
-int clearTypeLamp(const QString& clearType) {
-	const QString value = normalizedClearType(clearType);
+int clearTypeLamp(const QString& clearType, bool useBeatorajaSemantics) {
+	const QString value = skinCompatibleClearType(clearType, useBeatorajaSemantics);
 	if (value == QStringLiteral("FAILED")) return 1;
 	if (value == QStringLiteral("AEASY") || value == QStringLiteral("LIGHTASSIST") || value == QStringLiteral("EASY")) return 2;
 	if (value == QStringLiteral("NORMAL")) return 3;
@@ -188,7 +203,7 @@ void increment(QVariantMap& map, const QString& key) {
 	map.insert(key, map.value(key).toInt() + 1);
 }
 
-QVariantMap buildScoreSummary(const QVariantList& scoreList) {
+QVariantMap buildScoreSummary(const QVariantList& scoreList, bool useBeatorajaSemantics) {
 	if (scoreList.isEmpty()) {
 		return {
 			{QStringLiteral("scoreList"), QVariantList {}},
@@ -216,8 +231,8 @@ QVariantMap buildScoreSummary(const QVariantList& scoreList) {
 		}
 
 		increment(counts, QStringLiteral("play"));
-		const QString clearType = clearTypeOf(score);
-		const int priority = clearTypePriority(clearType);
+		const QString clearType = clearTypeOf(score, useBeatorajaSemantics);
+		const int priority = clearTypePriority(clearType, useBeatorajaSemantics);
 		if (priority > bestClearPriority) {
 			bestClearPriority = priority;
 			bestClearType = clearType;
@@ -259,16 +274,16 @@ QVariantMap buildScoreSummary(const QVariantList& scoreList) {
 		{QStringLiteral("bestStats"), bestScore.isValid() ? QVariant(statsForScore(bestScore)) : QVariant()},
 		{QStringLiteral("scoreCounts"), counts},
 		{QStringLiteral("clearType"), bestClearType},
-		{QStringLiteral("lamp"), clearTypeLamp(bestClearType)},
+		{QStringLiteral("lamp"), clearTypeLamp(bestClearType, useBeatorajaSemantics)},
 		{QStringLiteral("rank"), rankForScoreRate(scoreRate)},
 		{QStringLiteral("scoreRate"), scoreRate},
 	};
 }
 
-void appendScoreClearOptionIds(const QString& clearType, QSet<int>& ids) {
+void appendScoreClearOptionIds(const QString& clearType, bool useBeatorajaSemantics, QSet<int>& ids) {
 	// Historical score flags are beatoraja trophy options. The exact
 	// selected-bar clear options are added from the current summary only.
-	const QString value = normalizedClearType(clearType);
+	const QString value = skinCompatibleClearType(clearType, useBeatorajaSemantics);
 	if (value == QStringLiteral("AEASY") || value == QStringLiteral("LIGHTASSIST")) {
 		ids.insert(124);
 	} else if (value == QStringLiteral("EASY")) {
@@ -314,10 +329,12 @@ void appendScoreOptionIds(const QVariant& score, QSet<int>& ids) {
 	}
 }
 
-QVariantList buildScoreOptionIds(const QVariantList& scoreList) {
+QVariantList buildScoreOptionIds(const QVariantList& scoreList, bool useBeatorajaSemantics) {
 	QSet<int> ids;
 	for (const QVariant& score : scoreList) {
-		appendScoreClearOptionIds(clearTypeOf(score), ids);
+		appendScoreClearOptionIds(clearTypeOf(score, useBeatorajaSemantics),
+								  useBeatorajaSemantics,
+								  ids);
 		appendScoreOptionIds(score, ids);
 	}
 	QList<int> sorted = ids.values();
@@ -600,14 +617,19 @@ bool Lr2SelectDetailState::refresh(const QString& key,
 								   const QVariantList& difficultyCharts,
 								   const QVariantList& difficultyCounts,
 								   const QVariantList& difficultyLevels,
-								   const QVariantList& difficultyLamps) {
-	if (m_key == key && m_scoreRevision == scoreRevision && m_listRevision == listRevision) {
+								   const QVariantList& difficultyLamps,
+								   bool useBeatorajaSemantics) {
+	if (m_key == key
+			&& m_scoreRevision == scoreRevision
+			&& m_listRevision == listRevision
+			&& m_useBeatorajaSemantics == useBeatorajaSemantics) {
 		return false;
 	}
+	m_useBeatorajaSemantics = useBeatorajaSemantics;
 
-	const QVariantMap summary = buildScoreSummary(scoreList);
+	const QVariantMap summary = buildScoreSummary(scoreList, useBeatorajaSemantics);
 	const QVariantMap chartWrapper = buildChartWrapper(chartData);
-	const QVariantList optionIds = buildScoreOptionIds(scoreList);
+	const QVariantList optionIds = buildScoreOptionIds(scoreList, useBeatorajaSemantics);
 	QVariantMap difficultyState {
 		{QStringLiteral("key"), key},
 		{QStringLiteral("charts"), difficultyCharts},

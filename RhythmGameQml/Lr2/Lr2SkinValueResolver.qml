@@ -47,11 +47,59 @@ QtObject {
             : null;
     }
 
+    function singleLineText(text: var) : var {
+        return String(text || "").replace(/\r\n|\n|\r/g, " ");
+    }
+
+    function tableEntryTitleForHash(hash: var) : var {
+        let matches = Rg.tables.search(String(hash || ""));
+        if (!matches || matches.length <= 0) {
+            return "";
+        }
+
+        let entry = matches[0].entry || {};
+        let title = entry.title || "";
+        let subtitle = entry.subtitle || "";
+        if (title.length <= 0) {
+            return "";
+        }
+        return resolver.singleLineText(title + (subtitle ? " " + subtitle : ""));
+    }
+
+    function missingCourseStageTitle(hash: var) : var {
+        let title = resolver.tableEntryTitleForHash(hash);
+        if (title.length <= 0) {
+            title = String(hash || "----");
+        }
+        return (root.lr2SkinUsesBeatorajaSemantics ? "(no song) " : "(missing) ") + title;
+    }
+
+    function missingTableEntryPrefix(chart: var) : var {
+        return !root.lr2SkinUsesBeatorajaSemantics
+            && selectContext
+            && selectContext.isMissingTableEntry(chart)
+            ? "(missing) "
+            : "";
+    }
+
     function chartTitle(chart: var) : var {
         if (typeof chart === "string") {
-            return chart;
+            return resolver.missingCourseStageTitle(chart);
         }
-        return chart ? (chart.title || "") : "";
+        return chart ? resolver.missingTableEntryPrefix(chart) + (chart.title || "") : "";
+    }
+
+    function chartFullTitle(chart: var) : var {
+        if (typeof chart === "string") {
+            return resolver.missingCourseStageTitle(chart);
+        }
+        if (!chart) {
+            return "";
+        }
+        let title = chart.title || "";
+        let subtitle = chart.subtitle || "";
+        let fullTitle = resolver.singleLineText(title + (subtitle ? " " + subtitle : ""));
+        return resolver.missingTableEntryPrefix(chart) + fullTitle;
     }
 
     function chartSubtitle(chart: var) : var {
@@ -211,19 +259,25 @@ QtObject {
         switch (st) {
         case 10:
             if (chartData) {
-                return (chartData.title || "").replace(/\r\n|\n|\r/g, " ");
+                return resolver.singleLineText(resolver.chartTitle(chartData));
             }
-            return root.effectiveScreenKey === "select"
-                ? selectContext.entryMainTitle(selectedEntry)
-                : resolver.courseDisplayName();
+            if (root.effectiveScreenKey === "select") {
+                return root.lr2SkinUsesBeatorajaSemantics && selectContext.isCourse(selectedEntry)
+                    ? ""
+                    : selectContext.entryMainTitle(selectedEntry);
+            }
+            return resolver.courseDisplayName();
         case 11:
             return chartData ? (chartData.subtitle || "") : "";
         case 12:
-            return chartData
-                ? ((chartData.title || "") + (chartData.subtitle ? " " + chartData.subtitle : ""))
+            if (chartData) {
+                return resolver.chartFullTitle(chartData);
+            }
+            return root.lr2SkinUsesBeatorajaSemantics && selectContext.isCourse(selectedEntry)
+                ? ""
                 : selectContext.entryDisplayName(selectedEntry, true);
         case 13:
-            return chartData ? (chartData.genre || "") : "Course";
+            return chartData ? (chartData.genre || "") : (root.lr2SkinUsesBeatorajaSemantics ? "" : "Course");
         case 14:
             return chartData ? (chartData.artist || "") : "";
         case 15:
@@ -351,7 +405,11 @@ QtObject {
             return rankingName.length > 0 ? rankingName : root.lr2SelectOptionText(st);
         }
         case 1000:
-            return root.effectiveScreenKey === "select" ? selectContext.currentFolderDisplayName() : "";
+            return root.effectiveScreenKey === "select"
+                ? (root.lr2SkinUsesBeatorajaSemantics
+                    ? selectContext.currentDirectoryBreadcrumb()
+                    : selectContext.currentFolderDisplayName())
+                : "";
         case 1001:
             return root.effectiveScreenKey === "select" ? selectContext.currentTableName() : "";
         case 1002:
@@ -653,6 +711,13 @@ QtObject {
     }
 
     function resultGaugeValueFromScore(score: var, fallbackSide: var) : var {
+        if (score === root.resultScore(1)) {
+            return root.resultGaugeValue(1);
+        }
+        if (score === root.resultScore(2)) {
+            return root.resultGaugeValue(2);
+        }
+
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
         if (!infos || infos.length === 0) {
             return root.resultGaugeValue(fallbackSide);
@@ -857,6 +922,7 @@ QtObject {
 
     function resolveResultNumber(num: var) : var {
         root.resultOldScoresRevision;
+        root.resultGaugeSelectionRevision;
         let current = root.resultData(1);
         let old = root.resultOldBestResult(1);
         let chartData = root.resultChartData();

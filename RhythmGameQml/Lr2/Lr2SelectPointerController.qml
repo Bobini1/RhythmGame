@@ -239,7 +239,8 @@ QtObject {
             delta,
             root.elementButtonPanel(target.element.src),
             undefined,
-            target.element.sourceCount);
+            target.element.sourceCount,
+            mouse.button);
         mouse.accepted = true;
     }
 
@@ -256,4 +257,3 @@ QtObject {
         return a.kind === "blank";
     }
 }
-

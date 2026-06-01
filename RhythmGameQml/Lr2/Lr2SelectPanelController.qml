@@ -321,14 +321,7 @@ QtObject {
             return false;
         },
         "18": () => true,
-        "19": () => {
-            let targetItem = selectContext.activationItem();
-            let replayScore = selectContext.replayScoreForType(targetItem, root.lr2ReplayType);
-            if (replayScore) {
-                root.selectGoForward(targetItem, false, true, replayScore);
-            }
-            return false;
-        },
+        "19": (delta, sourceCount, mouseButton) => controller.launchReplayType(root.lr2ReplayType, mouseButton),
         "20": delta => controller.setFxType(0, delta),
         "21": delta => controller.setFxType(1, delta),
         "22": delta => controller.setFxType(2, delta),
@@ -459,9 +452,9 @@ QtObject {
         "306": () => root.toggleBeatorajaAssistOption(306),
         "307": () => root.toggleBeatorajaAssistOption(307),
         "308": delta => root.setLnModeIndex(root.lr2LnModeIndex + delta),
-        "316": () => controller.playReplaySlot(1),
-        "317": () => controller.playReplaySlot(2),
-        "318": () => controller.playReplaySlot(3),
+        "316": (delta, sourceCount, mouseButton) => controller.playReplaySlot(1, mouseButton),
+        "317": (delta, sourceCount, mouseButton) => controller.playReplaySlot(2, mouseButton),
+        "318": (delta, sourceCount, mouseButton) => controller.playReplaySlot(3, mouseButton),
         "340": delta => root.setJudgeAlgorithmIndex(root.lr2JudgeAlgorithmIndex + delta),
         "342": () => false,
         "343": () => false,
@@ -905,16 +898,25 @@ QtObject {
         return true;
     }
 
-    function playReplaySlot(replayType: var) : var {
+    function launchReplayType(replayType: var, mouseButton: var) : var {
         let targetItem = selectContext.activationItem();
         let replayScore = selectContext.replayScoreForType(targetItem, replayType);
-        if (replayScore) {
-            root.selectGoForward(targetItem, false, true, replayScore);
+        if (!replayScore) {
+            return false;
         }
+        if (mouseButton === Qt.RightButton) {
+            selectContext.openReplayResult(targetItem, replayScore);
+            return false;
+        }
+        root.selectGoForward(targetItem, false, mouseButton !== Qt.MiddleButton, replayScore);
         return false;
     }
 
-    function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var) : var {
+    function playReplaySlot(replayType: var, mouseButton: var) : var {
+        return controller.launchReplayType(replayType, mouseButton);
+    }
+
+    function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var, mouseButton: var) : var {
         if (!root.enabled || root.effectiveScreenKey !== "select" || !root.acceptsInput) {
             return;
         }
@@ -951,7 +953,7 @@ QtObject {
             return;
         }
         let action = controller.selectButtonActions[String(buttonId)];
-        let optionChanged = action ? action(delta, sourceCount) === true : false;
+        let optionChanged = action ? action(delta, sourceCount, mouseButton) === true : false;
         if (!action) {
             if (buttonId >= 91 && buttonId <= 96) {
                 selectContext.clickDifficulty(buttonId - 91);

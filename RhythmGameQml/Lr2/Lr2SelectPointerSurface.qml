@@ -16,7 +16,7 @@ Item {
         anchors.fill: parent
         enabled: pointerSurface.active
         visible: enabled
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         propagateComposedEvents: true
         preventStealing: true
 
@@ -38,7 +38,8 @@ Item {
 
             if (pressedTarget.kind === "bar" || pressedTarget.kind === "blank") {
                 pointerSurface.screenRoot.clearSelectSearchFocus();
-                mouse.accepted = pressedTarget.kind === "bar";
+                mouse.accepted = pressedTarget.kind === "bar"
+                    && (mouse.button === Qt.LeftButton || mouse.button === Qt.RightButton);
                 return;
             }
 
@@ -77,6 +78,10 @@ Item {
             }
 
             if (target.kind === "bar") {
+                if (mouse.button !== Qt.LeftButton && mouse.button !== Qt.RightButton) {
+                    mouse.accepted = false;
+                    return;
+                }
                 pointerSurface.screenRoot.handleBarRowClick(target.row, mouse);
                 mouse.accepted = true;
                 return;

@@ -19,6 +19,8 @@ QtObject {
     property int resultGraphEndSkinTime: 2000
     property var resultTimingStatsCache: ({})
     property var resultJudgeTimingCountsCache: ({})
+    property var resultGaugeSelectionBySide: ({})
+    property int resultGaugeSelectionRevision: 0
 
     function isResultScreen() : var {
         return root.host.effectiveScreenKey === "result"
@@ -423,9 +425,16 @@ QtObject {
         return value < 0 ? -scaled : scaled;
     }
 
-    function resultGaugeInfo(side: var) : var {
+    function resultGaugeInfos(side: var) : var {
         let score = root.resultScore(side);
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
+        if (!infos || infos.length === 0) {
+            return [];
+        }
+        return infos;
+    }
+
+    function defaultResultGaugeInfo(infos: var) : var {
         if (!infos || infos.length === 0) {
             return null;
         }
@@ -444,6 +453,83 @@ QtObject {
             }
         }
         return best || fallback;
+    }
+
+    function resultGaugeInfoKey(info: var) : var {
+        return String(info && info.name ? info.name : "").toUpperCase();
+    }
+
+    function resultGaugeIndexForInfo(infos: var, selected: var) : var {
+        if (!infos || !selected) {
+            return -1;
+        }
+        let selectedKey = root.resultGaugeInfoKey(selected);
+        for (let i = 0; i < infos.length; ++i) {
+            if (root.resultGaugeInfoKey(infos[i]) === selectedKey) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    function resultGaugeSelectionIndex(side: var) : var {
+        root.resultGaugeSelectionRevision;
+        let values = root.resultGaugeSelectionBySide || {};
+        let value = values[String(side || 1)];
+        let index = value === undefined ? -1 : Math.floor(Number(value));
+        return isNaN(index) ? -1 : index;
+    }
+
+    function setResultGaugeSelectionIndex(side: var, index: var) : void {
+        let next = {};
+        let current = root.resultGaugeSelectionBySide || {};
+        for (let key in current) {
+            next[key] = current[key];
+        }
+        next[String(side || 1)] = Math.max(0, Math.floor(index || 0));
+        root.resultGaugeSelectionBySide = next;
+        root.resultGaugeSelectionRevision += 1;
+    }
+
+    function resultGaugeInfo(side: var) : var {
+        let infos = root.resultGaugeInfos(side);
+        let index = root.resultGaugeSelectionIndex(side);
+        if (index >= 0 && index < infos.length) {
+            return infos[index];
+        }
+        return root.defaultResultGaugeInfo(infos);
+    }
+
+    function resultGaugeName(side: var) : var {
+        let info = root.resultGaugeInfo(side);
+        return String(info && info.name ? info.name : "").toUpperCase();
+    }
+
+    function cycleResultGauge(side: var, delta: var) : var {
+        let infos = root.resultGaugeInfos(side);
+        if (!infos || infos.length === 0) {
+            return false;
+        }
+
+        let cycleInfos = infos.slice();
+        cycleInfos.reverse();
+        let currentInfo = root.resultGaugeInfo(side);
+        let current = root.resultGaugeIndexForInfo(cycleInfos, currentInfo);
+        if (current < 0) {
+            current = 0;
+        }
+
+        let step = Math.round(delta === undefined ? 1 : delta);
+        if (step === 0 || isNaN(step)) {
+            step = 1;
+        }
+        let next = ((current + step) % cycleInfos.length + cycleInfos.length) % cycleInfos.length;
+        let rawIndex = root.resultGaugeIndexForInfo(infos, cycleInfos[next]);
+        if (rawIndex < 0) {
+            return false;
+        }
+        root.setResultGaugeSelectionIndex(side, rawIndex);
+        return true;
     }
 
     function resultGaugeValue(side: var) : var {

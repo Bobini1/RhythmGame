@@ -58,7 +58,9 @@ Item {
         timerFire: root.sourceTimerFire
     }
     readonly property int sourceFrameIndex: animationFrameState.frameIndex
-    readonly property int resultRevision: screenRoot ? screenRoot.resultOldScoresRevision : 0
+    readonly property int resultRevision: screenRoot
+        ? screenRoot.resultOldScoresRevision + screenRoot.resultGaugeSelectionRevision
+        : 0
 
     function resultScore() : var {
         let side = srcData && srcData.side ? srcData.side : 1;
@@ -102,6 +104,10 @@ Item {
     }
 
     function gaugeInfo() : var {
+        if (root.screenRoot && root.screenRoot.resultGaugeInfo) {
+            return root.screenRoot.resultGaugeInfo(scoreChartSide());
+        }
+
         let score = resultScore();
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
         if (!infos || infos.length === 0) {
@@ -137,12 +143,38 @@ Item {
         return -1;
     }
 
+    function graphColorComponent(state: var, name: var) : var {
+        return Math.max(0, Math.min(255, state && state[name] !== undefined ? state[name] : 255));
+    }
+
     function graphColor(state: var) : var {
-        let r = Math.max(0, Math.min(255, state && state.r !== undefined ? state.r : 255));
-        let g = Math.max(0, Math.min(255, state && state.g !== undefined ? state.g : 255));
-        let b = Math.max(0, Math.min(255, state && state.b !== undefined ? state.b : 255));
-        let a = Math.max(0, Math.min(1, (state && state.a !== undefined ? state.a : 255) / 255.0));
-        return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+        let r = graphColorComponent(state, "r");
+        let g = graphColorComponent(state, "g");
+        let b = graphColorComponent(state, "b");
+        return "rgb(" + r + "," + g + "," + b + ")";
+    }
+
+    function graphNeedsTint(state: var) : var {
+        let r = graphColorComponent(state, "r");
+        let g = graphColorComponent(state, "g");
+        let b = graphColorComponent(state, "b");
+        return r !== 255 || g !== 255 || b !== 255;
+    }
+
+    function drawTintedImage(ctx: var, sx: var, sy: var, srcW: var, srcH: var, dx: var, dy: var, dw: var, dh: var) : var {
+        ctx.drawImage(root.resolvedSource, sx, sy, srcW, srcH, dx, dy, dw, dh);
+        if (!root.graphNeedsTint(root.currentState)) {
+            return;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = 1.0;
+        ctx.globalCompositeOperation = "multiply";
+        ctx.fillStyle = root.graphColor(root.currentState);
+        ctx.fillRect(dx, dy, dw, dh);
+        ctx.globalCompositeOperation = "destination-in";
+        ctx.drawImage(root.resolvedSource, sx, sy, srcW, srcH, dx, dy, dw, dh);
+        ctx.restore();
     }
 
     function cacheValueCount(fieldW: var, step: var) : var {
@@ -354,13 +386,13 @@ Item {
         if (value < 0 || !root.cachedSegmentVisible(value)) {
             return;
         }
-        let offsetY = -fieldH * Math.max(0, Math.min(100, value)) / 100.0;
+        let offsetY = Math.trunc(-fieldH * Math.max(0, Math.min(100, value)) / 100.0);
         let dx = (root.currentState.x + x) * root.scaleOverride;
         let dy = (root.currentState.y + offsetY) * root.scaleOverride;
         let dw = Math.max(1, dstW * root.scaleOverride);
         let dh = Math.max(1, dstH * root.scaleOverride);
         if (imageLoaded) {
-            ctx.drawImage(root.resolvedSource, sx, sy, srcW, srcH, dx, dy, dw, dh);
+            root.drawTintedImage(ctx, sx, sy, srcW, srcH, dx, dy, dw, dh);
         } else {
             ctx.fillRect(dx, dy, dw, dh);
         }
@@ -377,9 +409,11 @@ Item {
         onPaint: {
             let ctx = getContext("2d");
             ctx.clearRect(0, 0, width, height);
+            ctx.globalCompositeOperation = "source-over";
             if (!root.currentState || !root.srcData) {
                 return;
             }
+            ctx.imageSmoothingEnabled = root.currentState.filter !== 0;
 
             let fieldW = root.cachedFieldW;
             let fieldH = root.cachedFieldH;
@@ -414,8 +448,8 @@ Item {
 
                 if (previousValue >= 0) {
                     let direction = value >= previousValue ? 1 : -1;
-                    let roundedStart = Math.round(previousValue);
-                    let roundedEnd = Math.round(value);
+                    let roundedStart = Math.trunc(previousValue);
+                    let roundedEnd = Math.trunc(value);
                     for (let v = roundedStart; v !== roundedEnd; v += direction) {
                         root.drawGraphPoint(ctx, imageLoaded, sx, sy, srcW, srcH, x, v, dstW, dstH, fieldH);
                     }

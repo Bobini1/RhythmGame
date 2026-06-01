@@ -121,7 +121,8 @@ public:
 							 const QVariantList& difficultyCharts,
 							 const QVariantList& difficultyCounts,
 							 const QVariantList& difficultyLevels,
-							 const QVariantList& difficultyLamps);
+							 const QVariantList& difficultyLamps,
+							 bool useBeatorajaSemantics);
 	Q_INVOKABLE void clear();
 
 signals:
@@ -146,6 +147,7 @@ private:
 	QString m_key;
 	int m_scoreRevision = -1;
 	int m_listRevision = -1;
+	bool m_useBeatorajaSemantics = false;
 	QVariant m_item;
 	QVariant m_chartData;
 	QVariant m_chartWrapper;

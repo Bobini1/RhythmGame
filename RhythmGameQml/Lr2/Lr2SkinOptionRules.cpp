@@ -11,6 +11,10 @@ bool Lr2SkinOptionRules::isRuntimeOwnedOption(int option) const {
 
 bool Lr2SkinOptionRules::isRuntimeOwnedOptionValue(int option) {
     switch (std::abs(option)) {
+    case 1:
+    case 2:
+    case 3:
+    case 5:
     case 30:
     case 31:
     case 32:

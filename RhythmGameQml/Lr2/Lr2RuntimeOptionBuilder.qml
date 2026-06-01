@@ -481,10 +481,14 @@ QtObject {
     function appendSelectItemTypeOptions(options: var, item: var) : void {
         if (selectContext.isChart(item) || selectContext.isEntry(item) || selectContext.isRankingEntry(item)) {
             root.addOption(options, 2);
-            root.addOption(options, 5);
+            if (selectContext.isPlayableBar(item)) {
+                root.addOption(options, 5);
+            }
         } else if (selectContext.isCourse(item)) {
             root.addOption(options, 3);
-            root.addOption(options, 5);
+            if (selectContext.isPlayableBar(item)) {
+                root.addOption(options, 5);
+            }
             root.addOption(options, 290);
         } else {
             root.addOption(options, 1);

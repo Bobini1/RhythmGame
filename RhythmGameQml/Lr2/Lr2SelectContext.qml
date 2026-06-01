@@ -69,6 +69,7 @@ Item {
     readonly property int sortMode: legacySortModeForSelectSortMode(selectSortMode)
     property int sortSourceFrameCount: 5
     property var barTitleTypes: []
+    property var barLampVariants: []
     property bool useBeatorajaBarTextTypes: false
     property bool useBeatorajaSelectOptions: false
     property int realItemCount: 0
@@ -314,6 +315,11 @@ Item {
         }
     }
 
+    onBarTitleTypesChanged: refreshSkinDependentCellData()
+    onBarLampVariantsChanged: refreshFolderLampSkinData()
+    onUseBeatorajaBarTextTypesChanged: refreshSkinDependentCellData()
+    onUseBeatorajaSelectOptionsChanged: refreshSkinSemanticData()
+
     signal openedFolder()
     signal entryChangeSoundsRequested(int count)
     Connections {
@@ -344,6 +350,27 @@ Item {
 
     function refreshFocusedState() : var {
         return nativeNavigation.refreshFocusedState();
+    }
+
+    function refreshSkinDependentCellData() : void {
+        if (componentReady) {
+            updateSelectItemModelData();
+        }
+    }
+
+    function refreshFolderLampSkinData() : void {
+        if (componentReady) {
+            updateSelectItemModelData();
+            refreshFolderLamps();
+        }
+    }
+
+    function refreshSkinSemanticData() : void {
+        if (componentReady) {
+            updateSelectItemModelData();
+            refreshFocusedState();
+            refreshFolderLamps();
+        }
     }
 
     function wrapBarFixed(value: var) : var {
@@ -567,6 +594,38 @@ Item {
         return item instanceof course;
     }
 
+    function isPlayableChartLike(item: var) : var {
+        if (isRankingEntry(item)) {
+            item = rankingBaseItem;
+        }
+        return isChart(item) && !!item.path;
+    }
+
+    function isMissingTableEntry(item: var) : var {
+        return isEntry(item);
+    }
+
+    function courseStages(item: var) : var {
+        return isCourse(item) && item.loadCharts ? item.loadCharts() : [];
+    }
+
+    function isPlayableCourse(item: var) : var {
+        let stages = courseStages(item);
+        if (stages.length <= 0) {
+            return false;
+        }
+        for (let stage of stages) {
+            if (!isPlayableChartLike(stage)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function isPlayableBar(item: var) : var {
+        return isPlayableChartLike(item) || isPlayableCourse(item);
+    }
+
     function isLevel(item: var) : var {
         return item instanceof level;
     }
@@ -733,13 +792,95 @@ Item {
 
     function lr2CompatibleFolderLamp(lamp: var, counts: var) : var {
         let value = Math.max(0, lamp || 0);
-        if (root.useBeatorajaSelectOptions || value === 0 || !counts) {
+        if (value === 0 || !counts) {
             return value;
         }
         let assist = (counts.AEASY || 0)
             + (counts.LIGHTASSIST || 0)
             + (counts.LIGHT_ASSIST || 0);
         return assist > 0 ? 1 : value;
+    }
+
+    function exactFolderLampFromDistribution(distribution: var) : var {
+        let lamps = distribution
+            ? (distribution.lamps !== undefined ? distribution.lamps : distribution["lamps"])
+            : null;
+        if (!lamps) {
+            return -1;
+        }
+        let limit = Math.min(11, lamps.length || 0);
+        for (let i = 0; i < limit; ++i) {
+            if (Number(lamps[i] || 0) > 0) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    function exactFolderLampFromCounts(counts: var) : var {
+        if (!counts) {
+            return -1;
+        }
+        let order = [
+            "NOPLAY", "FAILED", "AEASY", "LIGHTASSIST", "EASY", "NORMAL",
+            "HARD", "EXHARD", "FC", "PERFECT", "MAX"
+        ];
+        for (let i = 0; i < order.length; ++i) {
+            let key = order[i];
+            let value = Number(counts[key] || 0);
+            if (key === "LIGHTASSIST") {
+                value += Number(counts.LIGHT_ASSIST || 0);
+            }
+            if (value > 0) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    function clearTypeForExactFolderLamp(lamp: var) : var {
+        switch (Math.max(0, Math.floor(lamp || 0))) {
+        case 1:
+            return "FAILED";
+        case 2:
+            return "AEASY";
+        case 3:
+            return "LIGHTASSIST";
+        case 4:
+            return "EASY";
+        case 5:
+            return "NORMAL";
+        case 6:
+            return "HARD";
+        case 7:
+            return "EXHARD";
+        case 8:
+            return "FC";
+        case 9:
+            return "PERFECT";
+        case 10:
+            return "MAX";
+        default:
+            return "NOPLAY";
+        }
+    }
+
+    function beatorajaFolderLamp(lamp: var, counts: var, distribution: var) : var {
+        let exactLamp = exactFolderLampFromDistribution(distribution);
+        if (exactLamp < 0) {
+            exactLamp = exactFolderLampFromCounts(counts);
+        }
+        if (exactLamp >= 0) {
+            return clearTypeBarLamp(clearTypeForExactFolderLamp(exactLamp),
+                                    root.barLampVariants);
+        }
+        return Math.max(0, lamp || 0);
+    }
+
+    function folderBarLamp(lamp: var, counts: var, distribution: var) : var {
+        return root.useBeatorajaSelectOptions
+            ? beatorajaFolderLamp(lamp, counts, distribution)
+            : lr2CompatibleFolderLamp(lamp, counts);
     }
 
     function refreshFolderLamps() {
@@ -789,7 +930,7 @@ Item {
             ? summary.distribution
             : summary["distribution"];
         let lamp = summary.lamp !== undefined ? summary.lamp : summary["lamp"];
-        pendingFolderLampByKey[key] = lr2CompatibleFolderLamp(lamp, counts);
+        pendingFolderLampByKey[key] = folderBarLamp(lamp, counts, distribution);
         pendingFolderScoreCountsByKey[key] = folderScoreCountsFromSummaryCounts(counts);
         pendingFolderDistributionByKey[key] = normalizedFolderDistribution(distribution || emptyFolderDistribution());
         pendingFolderLampPublishCount += 1;
@@ -1869,6 +2010,28 @@ Item {
         open(item);
     }
 
+    function openReplayResult(item: var, replayScore: var) : var {
+        if (!replayScore) {
+            return false;
+        }
+        if (isRankingEntry(item)) {
+            item = rankingBaseItem;
+        }
+        if (isCourse(item)) {
+            globalRoot.openCourseResult(
+                [replayScore],
+                [Rg.profileList.mainProfile],
+                courseStages(item),
+                item);
+            return true;
+        }
+        if (isChart(item)) {
+            globalRoot.openResult([replayScore], [Rg.profileList.mainProfile], item);
+            return true;
+        }
+        return false;
+    }
+
     function sameEntry(a: var, b: var) : var {
         if (isRankingEntry(a) || isRankingEntry(b)) {
             return isRankingEntry(a) && isRankingEntry(b)
@@ -1960,7 +2123,8 @@ Item {
         if (isChart(item) || isEntry(item)) {
             let title = item.title || "";
             let subtitle = item.subtitle || "";
-            return includeSubtitle && subtitle ? title + " " + subtitle : title;
+            let prefix = isMissingTableEntry(item) && !root.useBeatorajaBarTextTypes ? "(missing) " : "";
+            return prefix + (includeSubtitle && subtitle ? title + " " + subtitle : title);
         }
         if (isLevel(item)) {
             let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
@@ -1983,7 +2147,8 @@ Item {
             return item.title || "";
         }
         if (isChart(item) || isEntry(item)) {
-            return item.title || "";
+            let prefix = isMissingTableEntry(item) && !root.useBeatorajaBarTextTypes ? "(missing) " : "";
+            return prefix + (item.title || "");
         }
         return entryDisplayName(item, false);
     }
@@ -1999,6 +2164,20 @@ Item {
             return symbol + (item.name || "");
         }
         return entryDisplayName(item, false);
+    }
+
+    function currentDirectoryBreadcrumb() : var {
+        let parts = [];
+        for (let item of historyStack) {
+            if (!item || item === "SEARCH") {
+                continue;
+            }
+            let name = entryDisplayName(item, false);
+            if (name.length > 0) {
+                parts.push(name);
+            }
+        }
+        return parts.length > 0 ? parts.join(" > ") + " >" : "";
     }
 
     function currentTableItem() : var {
@@ -2054,14 +2233,17 @@ Item {
         if (isRankingEntry(item)) {
             return 0;
         }
-        if (isChart(item) || isEntry(item)) {
+        if (isChart(item)) {
             return 0;
+        }
+        if (isEntry(item)) {
+            return 4;
         }
         if (isTable(item) || isLevel(item)) {
             return 2;
         }
         if (isCourse(item)) {
-            return 8;
+            return isPlayableCourse(item) ? 3 : 4;
         }
         return 1;
     }
@@ -2103,8 +2285,11 @@ Item {
     }
 
     function beatorajaEntryTitleType(item: var) : var {
-        if (isRankingEntry(item) || isChart(item) || isEntry(item)) {
+        if (isRankingEntry(item) || isChart(item)) {
             return root.barTitleTypeWithFallback(2, 0);
+        }
+        if (isEntry(item)) {
+            return root.barTitleTypeWithFallback(8, 0);
         }
         if (typeof item === "string") {
             return root.barTitleTypeWithFallback(4, 0);
@@ -2113,7 +2298,7 @@ Item {
             return root.barTitleTypeWithFallback(6, 0);
         }
         if (isCourse(item)) {
-            return root.barTitleTypeWithFallback(7, 0);
+            return root.barTitleTypeWithFallback(isPlayableCourse(item) ? 7 : 8, 0);
         }
         return 0;
     }
@@ -2171,6 +2356,10 @@ Item {
     function normalizedSelectModelItem(item: var, fallbackIndex: var) : var {
         let summary = scoreLampRankForItem(item);
         let distribution = barGraphDistribution(item);
+        let barLamp = isFolderLikeForLamp(item)
+            ? entryLamp(item)
+            : clearTypeBarLamp(isRankingEntry(item) ? item.bestClearType : summary.clearType,
+                               root.barLampVariants);
         return {
             rawItem: item,
             key: entrySelectionKey(item, fallbackIndex),
@@ -2190,7 +2379,7 @@ Item {
             playLevel: entryPlayLevel(item),
             difficulty: entryDifficulty(item),
             keymode: item && item.keymode ? item.keymode : 0,
-            lamp: isRankingEntry(item) ? clearTypeLamp(item.bestClearType) : summary.lamp,
+            lamp: barLamp,
             scoreRank: isRankingEntry(item) ? rankingEntryRank(item) : summary.rank,
             labelMask: entryLabelMask(item),
             folderLamp: isFolderLikeForLamp(item) ? entryLamp(item) : 0,
@@ -2646,8 +2835,8 @@ Item {
         return skinCompatibleClearType(score?.result?.clearType || "NOPLAY");
     }
 
-    function clearTypeLamp(clear: var) : var {
-        switch (skinCompatibleClearType(clear)) {
+    function collapsedClearTypeLamp(clear: var) : var {
+        switch (normalizedClearType(clear)) {
         case "FAILED":
             return 1;
         case "AEASY":
@@ -2668,6 +2857,10 @@ Item {
         }
     }
 
+    function clearTypeLamp(clear: var) : var {
+        return collapsedClearTypeLamp(skinCompatibleClearType(clear));
+    }
+
     function hasBarLampVariant(variants: var, variant: var) : var {
         return variants && variants.indexOf(variant) !== -1;
     }
@@ -2686,8 +2879,8 @@ Item {
 
     function clearTypeBarLamp(clear: var, variants: var) : var {
         clear = skinCompatibleClearType(clear);
-        if (!usesExtendedBarLampVariants(variants)) {
-            return clearTypeLamp(clear);
+        if (!root.useBeatorajaSelectOptions || !usesExtendedBarLampVariants(variants)) {
+            return collapsedClearTypeLamp(clear);
         }
         switch (clear) {
         case "FAILED":
@@ -2713,13 +2906,6 @@ Item {
         default:
             return 0;
         }
-    }
-
-    function entryBarLamp(item: var, variants: var) : var {
-        if (isFolderLikeForLamp(item)) {
-            return entryLamp(item);
-        }
-        return clearTypeBarLamp(entryClearType(item), variants);
     }
 
     function isClearedScore(score: var) : var {
@@ -3266,7 +3452,8 @@ Item {
                                                   difficultyState.charts || emptyDifficultyCharts,
                                                   difficultyState.counts || emptyDifficultyNumbers,
                                                   difficultyState.levels || emptyDifficultyNumbers,
-                                                  difficultyState.lamps || emptyDifficultyNumbers);
+                                                  difficultyState.lamps || emptyDifficultyNumbers,
+                                                  root.useBeatorajaSelectOptions);
         if (changed) {
             let chartData = selectedDetailState.chartData;
             let nextChartWrapper = selectedDetailState.chartWrapper;
@@ -3758,6 +3945,9 @@ Item {
     }
 
     function judgeOption(chart: var) : var {
+        if (isMissingTableEntry(chart)) {
+            return 180;
+        }
         let rank = chart ? (chart.rank || 75) : 75;
         if (rank <= 25) return 180;
         if (rank <= 50) return 181;
@@ -4143,14 +4333,25 @@ Item {
             return hasRankingStats() ? rankingClearPercentAfterDot("FC", "PERFECT", "MAX") : percentAfterDot(counts().fc + counts().perfect + counts().max, counts().play);
         case 90:
         case 290:
+            if (isMissingTableEntry(chart())) {
+                return 0;
+            }
             return chart() && (chart().maxBpm || chart().mainBpm)
                 ? Math.round(chart().maxBpm || chart().mainBpm)
                 : -1;
         case 91:
         case 291:
+            if (isMissingTableEntry(chart())) {
+                return 0;
+            }
             return chart() && (chart().minBpm || chart().mainBpm)
                 ? Math.round(chart().minBpm || chart().mainBpm)
                 : -1;
+        case 92:
+            if (isMissingTableEntry(chart())) {
+                return 0;
+            }
+            return chart() && chart().mainBpm ? Math.round(chart().mainBpm) : -1;
         case 300:
             return currentFolderCounts() ? folderCounts().total : -1;
         case 320:
@@ -4176,14 +4377,29 @@ Item {
         case 330:
             return currentFolderCounts() ? folderCounts().max : -1;
         case 350:
+            if (isMissingTableEntry(chart())) {
+                return -1;
+            }
             return chart() ? (chart().normalNoteCount || 0) : -1;
         case 351:
+            if (isMissingTableEntry(chart())) {
+                return -1;
+            }
             return chart() ? (chart().lnCount || 0) : -1;
         case 352:
+            if (isMissingTableEntry(chart())) {
+                return -1;
+            }
             return chart() ? (chart().scratchCount || 0) : -1;
         case 353:
+            if (isMissingTableEntry(chart())) {
+                return -1;
+            }
             return chart() ? (chart().bssCount || 0) : -1;
         case 354:
+            if (isMissingTableEntry(chart())) {
+                return -1;
+            }
             return chart() ? (chart().mineCount || 0) : -1;
         case 360:
             return chartDensityValue(chart(), "peakDensity", false);
@@ -4198,6 +4414,9 @@ Item {
         case 365:
             return chartDensityAfterDot(chart());
         case 368:
+            if (isMissingTableEntry(chart())) {
+                return -1;
+            }
             return chart() ? Math.floor(chart().total || 0) : -1;
         case 1163: {
             let seconds = chartLengthSeconds(chart());
