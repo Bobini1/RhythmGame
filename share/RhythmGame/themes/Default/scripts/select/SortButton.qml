@@ -5,29 +5,36 @@ import "../common/helpers.js" as Helpers
 Image {
     id: sortButton
 
-    property int current: {
-        let lowercaseSorts = sortButton.options.map(function(option) { return option.toLowerCase(); });
-        let selectedSort = themeVars.sortOrder.toLowerCase();
-        let index = lowercaseSorts.indexOf(selectedSort);
-        return index === -1 ? 0 : index;
-    }
-    property var options: [QT_TR_NOOP("Title"), QT_TR_NOOP("Artist"), QT_TR_NOOP("BPM"), QT_TR_NOOP("Clear"), QT_TR_NOOP("Score"), QT_TR_NOOP("Level"), QT_TR_NOOP("Total")]
-    required property var themeVars
+    required property var generalVars
+    readonly property int selectedMode: generalVars ? generalVars.selectSortMode : SelectSortMode.Title
+    property var options: [
+        { text: QT_TR_NOOP("Title"), value: SelectSortMode.Title },
+        { text: QT_TR_NOOP("Artist"), value: SelectSortMode.Artist },
+        { text: QT_TR_NOOP("BPM"), value: SelectSortMode.Bpm },
+        { text: QT_TR_NOOP("Length"), value: SelectSortMode.Length },
+        { text: QT_TR_NOOP("Clear"), value: SelectSortMode.ClearLamp },
+        { text: QT_TR_NOOP("Score"), value: SelectSortMode.ScoreRate },
+        { text: QT_TR_NOOP("Miss Count"), value: SelectSortMode.MissCount },
+        { text: QT_TR_NOOP("Level"), value: SelectSortMode.Level },
+        { text: QT_TR_NOOP("Total"), value: SelectSortMode.TotalNotes },
+        { text: QT_TR_NOOP("Directory"), value: SelectSortMode.Directory }
+    ]
 
-    Binding {
-        delayed: true
-        target: sortButton.themeVars
-        property: "sortOrder"
-        value: sortButton.options[sortButton.current].toLowerCase();
-    }
-    Binding {
-        sortButton.current: {
-            let lowercaseSorts = sortButton.options.map(function(option) { return option.toLowerCase(); });
-            let selectedSort = sortButton.themeVars.sortOrder.toLowerCase();
-            let index = lowercaseSorts.indexOf(selectedSort);
-            return index === -1 ? 0 : index;
+    function indexForMode(mode) {
+        for (let i = 0; i < options.length; ++i) {
+            if (options[i].value === mode) {
+                return i;
+            }
         }
+        return -1;
     }
+
+    function textForMode(mode) {
+        let index = indexForMode(mode);
+        return index >= 0 ? options[index].text : QT_TR_NOOP("Title");
+    }
+
+    onSelectedModeChanged: mouseArea.setSort()
 
     source: root.iniImagesUrl + "option.png/button_big"
 
@@ -35,46 +42,74 @@ Image {
         anchors.centerIn: parent
         color: "black"
         font.pixelSize: 20
-        text: qsTr("Sort: %1").arg(qsTr(sortButton.options[sortButton.current]))
+        text: qsTr("Sort: %1").arg(qsTr(sortButton.textForMode(sortButton.selectedMode)))
     }
     MouseArea {
+        id: mouseArea
+
         function compareByTitle(a, b) {
-            let res = a.title.localeCompare(b.title);
+            let res = (a.title || "").localeCompare(b.title || "");
             if (res !== 0) {
                 return res;
             }
-            return a.subtitle.localeCompare(b.subtitle);
+            return (a.subtitle || "").localeCompare(b.subtitle || "");
+        }
+
+        function compareNumberWithMissing(aValue, bValue) {
+            let aMissing = aValue === null || aValue === undefined || !isFinite(aValue);
+            let bMissing = bValue === null || bValue === undefined || !isFinite(bValue);
+            if (aMissing && bMissing) {
+                return 0;
+            }
+            if (aMissing) {
+                return 1;
+            }
+            if (bMissing) {
+                return -1;
+            }
+            return aValue - bValue;
         }
 
         function setSort() {
-            let currentSort = sortButton.options[sortButton.current];
-            switch (currentSort) {
-            case "Title":
+            switch (sortButton.selectedMode) {
+            case SelectSortMode.Directory:
                 songList.sort = null;
                 break;
-            case "Artist":
+            case SelectSortMode.Title:
+                songList.sort = compareByTitle;
+                break;
+            case SelectSortMode.Artist:
                 songList.sort = function (a, b) {
-                    let res = a.artist.localeCompare(b.artist);
+                    let res = (a.artist || "").localeCompare(b.artist || "");
                     if (res !== 0) {
                         return res;
                     }
-                    res = a.subartist.localeCompare(b.subartist);
+                    res = (a.subartist || "").localeCompare(b.subartist || "");
                     if (res !== 0) {
                         return res;
                     }
                     return compareByTitle(a, b);
                 };
                 break;
-            case "BPM":
+            case SelectSortMode.Bpm:
                 songList.sort = function (a, b) {
-                    let res = a.initialBpm - b.initialBpm;
+                    let res = compareNumberWithMissing(a.initialBpm, b.initialBpm);
                     if (res !== 0) {
                         return res;
                     }
                     return compareByTitle(a, b);
                 };
                 break;
-            case "Clear":
+            case SelectSortMode.Length:
+                songList.sort = function (a, b) {
+                    let res = compareNumberWithMissing(a.length, b.length);
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
+                };
+                break;
+            case SelectSortMode.ClearLamp:
                 songList.sort = function (a, b) {
                     let scores1 = songList.scores[a.md5] || [];
                     let scores2 = songList.scores[b.md5] || [];
@@ -87,7 +122,7 @@ Image {
                     return compareByTitle(a, b);
                 };
                 break;
-            case "Score":
+            case SelectSortMode.ScoreRate:
                 songList.sort = function (a, b) {
                     let scores1 = songList.scores[a.md5] || [];
                     let scores2 = songList.scores[b.md5] || [];
@@ -109,23 +144,37 @@ Image {
                     return compareByTitle(a, b);
                 };
                 break;
-            case "Level":
+            case SelectSortMode.MissCount:
                 songList.sort = function (a, b) {
-                    let res = a.playLevel - b.playLevel;
+                    let stats1 = Helpers.getBestStats(songList.scores[a.md5] || []);
+                    let stats2 = Helpers.getBestStats(songList.scores[b.md5] || []);
+                    let res = compareNumberWithMissing(stats1 ? stats1.missCount : null, stats2 ? stats2.missCount : null);
                     if (res !== 0) {
                         return res;
                     }
                     return compareByTitle(a, b);
                 };
                 break;
-            case "Total":
+            case SelectSortMode.Level:
                 songList.sort = function (a, b) {
-                    let res = a.total - b.total;
+                    let res = compareNumberWithMissing(a.playLevel, b.playLevel);
                     if (res !== 0) {
                         return res;
                     }
                     return compareByTitle(a, b);
                 };
+                break;
+            case SelectSortMode.TotalNotes:
+                songList.sort = function (a, b) {
+                    let res = compareNumberWithMissing(a.total, b.total);
+                    if (res !== 0) {
+                        return res;
+                    }
+                    return compareByTitle(a, b);
+                };
+                break;
+            default:
+                songList.sort = compareByTitle;
             }
         }
 
@@ -137,7 +186,9 @@ Image {
             setSort();
         }
         onClicked: {
-            sortButton.current = (sortButton.current + 1) % sortButton.options.length;
+            let current = sortButton.indexForMode(sortButton.selectedMode);
+            let next = current < 0 ? 0 : (current + 1) % sortButton.options.length;
+            sortButton.generalVars.selectSortMode = sortButton.options[next].value;
             setSort();
         }
     }

@@ -204,8 +204,8 @@
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="189"/>
-        <source>Percentage;Best Score;Last Score</source>
-        <translation>Procent;Najlepszy wynik;Ostatni wynik</translation>
+        <source>Percentage;Best Score;Last Score;Next Rank</source>
+        <translation>Procent;Najlepszy wynik;Ostatni wynik;Następna ranga</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="190"/>
@@ -939,8 +939,8 @@ pominięto: %3, łącznie: %4</translation>
     </message>
     <message>
         <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="83"/>
-        <source>GRADE;BEST SCORE;LAST SCORE</source>
-        <translation>OCENA;NAJLEPSZY WYNIK;OSTATNI WYNIK</translation>
+        <source>GRADE;BEST SCORE;LAST SCORE;NEXT RANK</source>
+        <translation>OCENA;NAJLEPSZY WYNIK;OSTATNI WYNIK;NASTĘPNA RANGA</translation>
     </message>
     <message>
         <location filename="../scripts/select/options/ScoreTargetSettingsBattle.qml" line="98"/>
@@ -962,8 +962,8 @@ pominięto: %3, łącznie: %4</translation>
     </message>
     <message>
         <location filename="../scripts/select/options/ScoreTargetSettingsSingle.qml" line="48"/>
-        <source>GRADE;BEST SCORE;LAST SCORE</source>
-        <translation>OCENA;NAJLEPSZY WYNIK;OSTATNI WYNIK</translation>
+        <source>GRADE;BEST SCORE;LAST SCORE;NEXT RANK</source>
+        <translation>OCENA;NAJLEPSZY WYNIK;OSTATNI WYNIK;NASTĘPNA RANGA</translation>
     </message>
     <message>
         <location filename="../scripts/select/options/ScoreTargetSettingsSingle.qml" line="60"/>

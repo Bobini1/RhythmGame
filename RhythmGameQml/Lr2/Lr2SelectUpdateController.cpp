@@ -1,5 +1,6 @@
 #include "Lr2SelectUpdateController.h"
 
+#include "Lr2SkinOptionRules.h"
 #include "Lr2SkinRuntime.h"
 
 #include <cstdlib>
@@ -295,6 +296,20 @@ void Lr2SelectUpdateController::setSelectCommonRuntimeActiveOptions(const QVaria
     refreshCurrentRuntimeActiveOptions();
 }
 
+QVariant Lr2SelectUpdateController::selectRequiredRuntimeActiveOptions() const {
+    return m_selectRequiredRuntimeActiveOptions;
+}
+
+void Lr2SelectUpdateController::setSelectRequiredRuntimeActiveOptions(const QVariant& options) {
+    if (m_selectRequiredRuntimeActiveOptions == options) {
+        return;
+    }
+    m_selectRequiredRuntimeActiveOptions = options;
+    emit selectRequiredRuntimeActiveOptionsChanged();
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
+}
+
 QVariant Lr2SelectUpdateController::selectRuntimeGeneratedActiveOptions() const {
     return m_selectRuntimeGeneratedActiveOptions;
 }
@@ -396,9 +411,12 @@ bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
         setBaseActiveOptionsKey(numberArrayKey(nextBase));
     }
 
-    const QVariant nextSelectCommon = mergedNumberArray(
+    const QVariant nextSelectCommonBase = mergedNumberArray(
         nextBase,
         normalizedNumberArray(m_selectCommonRuntimeActiveOptions));
+    const QVariant nextSelectCommon = mergedNumberArray(
+        nextSelectCommonBase,
+        normalizedNumberArray(m_selectRequiredRuntimeActiveOptions));
     const bool selectCommonChanged = !sameNumberArray(m_selectCommonActiveOptions, nextSelectCommon);
     setSelectCommonActiveOptionsReady(true);
     if (selectCommonChanged) {
@@ -550,7 +568,7 @@ QVariantList Lr2SelectUpdateController::selectStaticOptions(
     }
 
     for (int option : numberList(source)) {
-        if (!runtimeOwnsOptionPair(option)) {
+        if (!Lr2SkinOptionRules::isRuntimeOwnedOptionValue(option)) {
             appendUniqueSkinOption(result, option);
         }
     }
@@ -578,63 +596,20 @@ QObject* Lr2SelectUpdateController::skinModelObject() const {
     return m_skinModel;
 }
 
-bool Lr2SelectUpdateController::runtimeOwnsOptionPair(int option) const {
-    switch (std::abs(option)) {
-    case 30:
-    case 31:
-    case 32:
-    case 33:
-    case 34:
-    case 35:
-    case 36:
-    case 37:
-    case 38:
-    case 39:
-    case 40:
-    case 41:
-    case 42:
-    case 43:
-    case 44:
-    case 45:
-    case 50:
-    case 51:
-    case 60:
-    case 61:
-    case 62:
-    case 63:
-    case 64:
-    case 65:
-    case 66:
-    case 80:
-    case 81:
-    case 160:
-    case 161:
-    case 162:
-    case 163:
-    case 164:
-    case 165:
-    case 166:
-    case 167:
-    case 168:
-    case 169:
-    case 1046:
-    case 1047:
-    case 1160:
-    case 1161:
-        return true;
-    default:
-        return false;
-    }
-}
-
 bool Lr2SelectUpdateController::skinUsesOption(int option) const {
     QObject* model = skinModelObject();
     const QList<int> usedOptions = numberList(model ? model->property("usedOptions") : QVariant {});
-    if (usedOptions.isEmpty()) {
+    const QList<int> usedElementOptions = numberList(model ? model->property("usedElementOptions") : QVariant {});
+    if (usedOptions.isEmpty() && usedElementOptions.isEmpty()) {
         return true;
     }
     const int id = std::abs(option);
     for (int used : usedOptions) {
+        if (std::abs(used) == id) {
+            return true;
+        }
+    }
+    for (int used : usedElementOptions) {
         if (std::abs(used) == id) {
             return true;
         }

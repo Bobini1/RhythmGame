@@ -319,8 +319,8 @@ Item {
                 Choice {
                     destination: root.generalVars
                     id_: "scoreTarget"
-                    choices: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore]
-                    displayStrings: qsTr("Percentage;Best Score;Last Score").split(";")
+                    choices: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore, ScoreTarget.NextRank]
+                    displayStrings: qsTr("Percentage;Best Score;Last Score;Next Rank").split(";")
                     name: qsTr("Score Target Type")
                     default_: ScoreTarget.BestScore
                     anchors {

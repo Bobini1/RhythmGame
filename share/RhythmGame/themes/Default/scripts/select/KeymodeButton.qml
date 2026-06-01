@@ -5,42 +5,48 @@ import QtQuick 2.0
 Image {
     id: keymodeButton
 
-    property int current: {
-        let savedKeymode = themeVars.keymodeFilter;
-        let index = options.indexOf(savedKeymode);
-        return index === -1 ? 0 : index;
-    }
-    property var options: Rg.profileList.battleActive ? ["SINGLE", "5", "7"] : ["SINGLE", "5", "7", "DOUBLE", "10", "14", null]
-    required property var themeVars
+    required property var generalVars
+    readonly property int selectedFilter: generalVars ? generalVars.selectKeymodeFilter : SelectKeymodeFilter.All
+    property var options: Rg.profileList.battleActive
+        ? [
+            { text: QT_TR_NOOP("SINGLE"), value: SelectKeymodeFilter.Single },
+            { text: QT_TR_NOOP("5 keys"), value: SelectKeymodeFilter.K5 },
+            { text: QT_TR_NOOP("7 keys"), value: SelectKeymodeFilter.K7 }
+        ]
+        : [
+            { text: QT_TR_NOOP("SINGLE"), value: SelectKeymodeFilter.Single },
+            { text: QT_TR_NOOP("5 keys"), value: SelectKeymodeFilter.K5 },
+            { text: QT_TR_NOOP("7 keys"), value: SelectKeymodeFilter.K7 },
+            { text: QT_TR_NOOP("DOUBLE"), value: SelectKeymodeFilter.Double },
+            { text: QT_TR_NOOP("10 keys"), value: SelectKeymodeFilter.K10 },
+            { text: QT_TR_NOOP("14 keys"), value: SelectKeymodeFilter.K14 },
+            { text: QT_TR_NOOP("ALL keys"), value: SelectKeymodeFilter.All }
+        ]
 
-    Binding {
-        delayed: true
-        target: themeVars
-        property: "keymodeFilter"
-        when: options[current] !== undefined
-        value: options[current] === null ? "" : options[current].toString()
-    }
-
-    Binding {
-        keymodeButton.current: {
-            let defaultKeymode = Rg.profileList.battleActive ? "SINGLE" : null;
-            let savedKeymode = themeVars.keymodeFilter;
-            if (savedKeymode === undefined) {
-                savedKeymode = defaultKeymode;
+    function indexForFilter(filter) {
+        for (let i = 0; i < options.length; ++i) {
+            if (options[i].value === filter) {
+                return i;
             }
-            let index = options.indexOf(savedKeymode);
-            return index === -1 ? 0 : index;
+        }
+        return -1;
+    }
+
+    function textForFilter(filter) {
+        switch (filter) {
+        case SelectKeymodeFilter.Single: return QT_TR_NOOP("SINGLE");
+        case SelectKeymodeFilter.Double: return QT_TR_NOOP("DOUBLE");
+        case SelectKeymodeFilter.K5: return QT_TR_NOOP("5 keys");
+        case SelectKeymodeFilter.K7: return QT_TR_NOOP("7 keys");
+        case SelectKeymodeFilter.K10: return QT_TR_NOOP("10 keys");
+        case SelectKeymodeFilter.K14: return QT_TR_NOOP("14 keys");
+        default: return QT_TR_NOOP("ALL keys");
         }
     }
 
-    onOptionsChanged: {
-        if (current >= options.length) {
-            current = 0;
-        }
-        mouseArea.setFilter();
-    }
+    onSelectedFilterChanged: mouseArea.setFilter()
+    onOptionsChanged: mouseArea.setFilter()
     enabled: options.length > 1
-
 
     source: root.iniImagesUrl + "option.png/button_big"
 
@@ -48,37 +54,35 @@ Image {
         anchors.centerIn: parent
         color: "black"
         font.pixelSize: 20
-        text: {
-            let current = keymodeButton.options[keymodeButton.current];
-            if (current === null) {
-                return qsTr("ALL keys");
-            }
-            if (current === "SINGLE") {
-                return qsTr("SINGLE");
-            }
-            if (current === "DOUBLE") {
-                return qsTr("DOUBLE");
-            }
-            return qsTr("%1 keys").arg(current)
-        }
+        text: qsTr(keymodeButton.textForFilter(keymodeButton.selectedFilter))
     }
     MouseArea {
         id: mouseArea
+
         function setFilter() {
-            let currentKeymode = keymodeButton.options[keymodeButton.current];
-            if (currentKeymode) {
-                songList.filter = function (chart) {
-                    if (chart instanceof entry) return true;
-                    switch (currentKeymode) {
-                        case "SINGLE":
-                            return chart.keymode === 5 || chart.keymode === 7;
-                        case "DOUBLE":
-                            return chart.keymode === 10 || chart.keymode === 14;
-                        default:
-                            return chart.keymode === parseInt(currentKeymode);
-                    }
-                }
-            } else {
+            switch (keymodeButton.selectedFilter) {
+            case SelectKeymodeFilter.All:
+                songList.filter = null;
+                break;
+            case SelectKeymodeFilter.Single:
+                songList.filter = chart => chart instanceof entry || chart.keymode === 5 || chart.keymode === 7;
+                break;
+            case SelectKeymodeFilter.Double:
+                songList.filter = chart => chart instanceof entry || chart.keymode === 10 || chart.keymode === 14;
+                break;
+            case SelectKeymodeFilter.K5:
+                songList.filter = chart => chart instanceof entry || chart.keymode === 5;
+                break;
+            case SelectKeymodeFilter.K7:
+                songList.filter = chart => chart instanceof entry || chart.keymode === 7;
+                break;
+            case SelectKeymodeFilter.K10:
+                songList.filter = chart => chart instanceof entry || chart.keymode === 10;
+                break;
+            case SelectKeymodeFilter.K14:
+                songList.filter = chart => chart instanceof entry || chart.keymode === 14;
+                break;
+            default:
                 songList.filter = null;
             }
         }
@@ -91,7 +95,9 @@ Image {
             setFilter();
         }
         onClicked: {
-            keymodeButton.current = (keymodeButton.current + 1) % keymodeButton.options.length;
+            let current = keymodeButton.indexForFilter(keymodeButton.selectedFilter);
+            let next = current < 0 ? 0 : (current + 1) % keymodeButton.options.length;
+            keymodeButton.generalVars.selectKeymodeFilter = keymodeButton.options[next].value;
             setFilter();
         }
     }

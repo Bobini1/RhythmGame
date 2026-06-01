@@ -29,6 +29,8 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2ChartDataSnapshot.cpp
         Lr2/Lr2SelectKeyNavigationFilter.h
         Lr2/Lr2SelectKeyNavigationFilter.cpp
+        Lr2/Lr2SkinOptionRules.h
+        Lr2/Lr2SkinOptionRules.cpp
         Lr2/Lr2SelectUpdateController.h
         Lr2/Lr2SelectUpdateController.cpp
         Lr2/Lr2SelectBarCell.h

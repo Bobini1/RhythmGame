@@ -36,6 +36,7 @@ class Lr2SelectUpdateController : public QObject {
     Q_PROPERTY(QVariant barRuntimeActiveOptions READ barRuntimeActiveOptions WRITE setBarRuntimeActiveOptions NOTIFY barRuntimeActiveOptionsChanged)
     Q_PROPERTY(QVariant baseRuntimeActiveOptions READ baseRuntimeActiveOptions WRITE setBaseRuntimeActiveOptions NOTIFY baseRuntimeActiveOptionsChanged)
     Q_PROPERTY(QVariant selectCommonRuntimeActiveOptions READ selectCommonRuntimeActiveOptions WRITE setSelectCommonRuntimeActiveOptions NOTIFY selectCommonRuntimeActiveOptionsChanged)
+    Q_PROPERTY(QVariant selectRequiredRuntimeActiveOptions READ selectRequiredRuntimeActiveOptions WRITE setSelectRequiredRuntimeActiveOptions NOTIFY selectRequiredRuntimeActiveOptionsChanged)
     Q_PROPERTY(QVariant selectRuntimeGeneratedActiveOptions READ selectRuntimeGeneratedActiveOptions WRITE setSelectRuntimeGeneratedActiveOptions NOTIFY selectRuntimeGeneratedActiveOptionsChanged)
     Q_PROPERTY(QVariant screenRuntimeActiveOptions READ screenRuntimeActiveOptions WRITE setScreenRuntimeActiveOptions NOTIFY screenRuntimeActiveOptionsChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
@@ -126,6 +127,9 @@ public:
     QVariant selectCommonRuntimeActiveOptions() const;
     void setSelectCommonRuntimeActiveOptions(const QVariant& options);
 
+    QVariant selectRequiredRuntimeActiveOptions() const;
+    void setSelectRequiredRuntimeActiveOptions(const QVariant& options);
+
     QVariant selectRuntimeGeneratedActiveOptions() const;
     void setSelectRuntimeGeneratedActiveOptions(const QVariant& options);
 
@@ -178,6 +182,7 @@ signals:
     void barRuntimeActiveOptionsChanged();
     void baseRuntimeActiveOptionsChanged();
     void selectCommonRuntimeActiveOptionsChanged();
+    void selectRequiredRuntimeActiveOptionsChanged();
     void selectRuntimeGeneratedActiveOptionsChanged();
     void screenRuntimeActiveOptionsChanged();
     void gameplayScreenChanged();
@@ -198,7 +203,6 @@ private:
     QVariantList mergedNumberArray(const QVariant& first, const QVariant& second) const;
     QVariantList selectStaticOptions(bool includeRankingOption, bool includePanelOption) const;
     QObject* skinModelObject() const;
-    bool runtimeOwnsOptionPair(int option) const;
     bool skinUsesOption(int option) const;
     int selectModeKeymode(int keymode) const;
     void appendSelectKeymodeOptions(QVariantList& options) const;
@@ -237,6 +241,7 @@ private:
     QVariant m_barRuntimeActiveOptions;
     QVariant m_baseRuntimeActiveOptions;
     QVariant m_selectCommonRuntimeActiveOptions;
+    QVariant m_selectRequiredRuntimeActiveOptions;
     QVariant m_selectRuntimeGeneratedActiveOptions;
     QVariant m_screenRuntimeActiveOptions;
     bool m_gameplayScreen = false;

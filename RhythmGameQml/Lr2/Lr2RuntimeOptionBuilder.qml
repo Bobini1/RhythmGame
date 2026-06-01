@@ -10,7 +10,42 @@ QtObject {
     required property var selectContext
     required property var skinModel
 
+    function optionLookupFor(options: var) : var {
+        if (!options) {
+            return {};
+        }
+        if (options.__lookup) {
+            return options.__lookup;
+        }
+        let lookup = {};
+        for (let i = 0; i < options.length; ++i) {
+            lookup[options[i]] = true;
+        }
+        options.__lookup = lookup;
+        return lookup;
+    }
+
+    function addRuntimeOption(options: var, option: var) : void {
+        if (option === undefined || option === null) {
+            return;
+        }
+        let lookup = root.optionLookupFor(options);
+        if (lookup[option] === true) {
+            return;
+        }
+        options.push(option);
+        options.__key = undefined;
+        lookup[option] = true;
+    }
+
     function addOption(options: var, option: var) : void {
+        if (option === undefined || option === null) {
+            return;
+        }
+        if (Lr2SkinOptionRules.isRuntimeOwnedOption(option)) {
+            root.addRuntimeOption(options, option);
+            return;
+        }
         host.addOption(options, option);
     }
 
@@ -42,15 +77,12 @@ QtObject {
         let result = [];
         let source = options || [];
         let lookup = {};
-        let used = host.usedOptionFilterActive ? host.usedOptionLookup : null;
         for (let i = 0; i < source.length; ++i) {
             let option = source[i];
             if (option === undefined || option === null) {
                 continue;
             }
-            let absOption = Math.abs(option);
-            if ((used && !used[absOption])
-                    || lookup[option] === true) {
+            if (lookup[option] === true) {
                 continue;
             }
             result.push(option);
@@ -75,52 +107,66 @@ QtObject {
     }
 
     function appendCommonRuntimeOptions(options: var) : void {
-        let vars = host.mainGeneralVars();
-        root.addOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
-        if (host.isGameplayScreen()) {
-            root.addOption(options, host.gameplayAutoplayActive() ? 33 : 32);
-        } else {
-            root.addOption(options, 32); // autoplay off unless a launch button explicitly requests it.
-        }
-        if (host.effectiveScreenKey === "decide") {
-            root.addOption(options, 33); // LR2 decide reports both autoplay states true.
-        }
-        let ghostPosition = vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
-        root.addOption(options, 34 + ghostPosition);
-        root.addOption(options, vars && vars.scoreGraphEnabled === false ? 38 : 39);
-        root.addOption(options, vars && vars.bgaOn === false ? 40 : 41);
-        root.addOption(options, host.gaugeColorOption(1));
-        root.addOption(options, host.gaugeColorOption(2));
-        host.addGaugeExOption(options, 1);
-        host.addGaugeExOption(options, 2);
+        root.appendRequiredRuntimeOptions(options);
+        root.addOption(options, 572); // course editor/making mode is not supported here.
+        root.addOption(options, 622); // ghost battle is not supported from select.
+        root.addOption(options, 624); // rival compare is not supported from select.
         if (host.isGameplayScreen()) {
             let gaugeTrophy1 = host.gameplayGaugeTrophyOption(1);
             let gaugeTrophy2 = host.gameplayGaugeTrophyOption(2);
             root.addOption(options, gaugeTrophy1);
             root.addOption(options, gaugeTrophy2);
         }
-        root.addOption(options, 46); // difficulty filter enabled.
-        root.addOption(options, host.isLoggedIn() ? 51 : 50);
-        root.addOption(options, 52); // extra mode off.
-        root.addOption(options, 54); // 1P autoscratch/assist off.
-        root.addOption(options, 56); // 2P autoscratch/assist off.
-        root.addOption(options, 61);
-        root.addOption(options, host.clearStatusOption());
+    }
+
+    function appendRequiredRuntimeOptions(options: var) : void {
+        let vars = host.mainGeneralVars();
+        root.addRuntimeOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
+        if (host.isGameplayScreen()) {
+            root.addRuntimeOption(options, host.gameplayAutoplayActive() ? 33 : 32);
+        } else {
+            root.addRuntimeOption(options, 32); // autoplay off unless a launch button explicitly requests it.
+        }
+        if (host.effectiveScreenKey === "decide") {
+            root.addRuntimeOption(options, 33); // LR2 decide reports both autoplay states true.
+        }
+        let ghostPosition = vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
+        root.addRuntimeOption(options, 34 + ghostPosition);
+        root.addRuntimeOption(options, vars && vars.scoreGraphEnabled === false ? 38 : 39);
+        root.addRuntimeOption(options, vars && vars.bgaOn === false ? 40 : 41);
+        root.addRuntimeOption(options, host.gaugeColorOption(1));
+        root.addRuntimeOption(options, host.gaugeColorOption(2));
+        root.addGaugeExOption(options, 1);
+        root.addGaugeExOption(options, 2);
+        root.addRuntimeOption(options, 46); // difficulty filter enabled.
+        root.addRuntimeOption(options, host.isLoggedIn() ? 51 : 50);
+        root.addRuntimeOption(options, 52); // extra mode off.
+        root.addRuntimeOption(options, 54); // 1P autoscratch/assist off.
+        root.addRuntimeOption(options, 56); // 2P autoscratch/assist off.
+        root.addRuntimeOption(options, 61);
+        root.addRuntimeOption(options, host.clearStatusOption());
         if (host.isGameplayScreen()) {
             // LR2 play skins use 80 while the chart is still loading, then
             // switch to 81 when timer 40 (READY / load complete) fires.
-            root.addOption(options, host.gameplayReadySkinTime >= 0 ? 81 : 80);
+            root.addRuntimeOption(options, host.gameplayReadySkinTime >= 0 ? 81 : 80);
         } else {
-            root.addOption(options, 80); // select/decide are already loaded when the skin is shown.
+            root.addRuntimeOption(options, 80); // select/decide are already loaded when the skin is shown.
         }
-        root.addOption(options, host.gameplayReplayActive() ? 84 : 82);
-        root.addOption(options, 572); // course editor/making mode is not supported here.
-        root.addOption(options, 622); // ghost battle is not supported from select.
-        root.addOption(options, 624); // rival compare is not supported from select.
+        root.addRuntimeOption(options, host.gameplayReplayActive() ? 84 : 82);
     }
 
     function appendPanelOptions(options: var) : void {
         root.addOption(options, host.selectPanel > 0 ? 20 + host.selectPanel : 20);
+    }
+
+    function addGaugeExOption(options: var, side: var) : void {
+        if (!host.lr2SkinUsesBeatorajaSemantics) {
+            return;
+        }
+        let gauge = host.activeGaugeNameForSide(side);
+        if (host.gaugeNameUsesBeatorajaExOption(gauge)) {
+            root.addOption(options, side === 2 ? 1047 : 1046);
+        }
     }
 
     function appendChartOptions(options: var, chartData: var, fallbackItem: var) : var {
@@ -701,55 +747,6 @@ QtObject {
         }
     }
 
-    function runtimeOwnsOptionPair(option: var) : var {
-        switch (option) {
-        case 30:
-        case 31:
-        case 32:
-        case 33:
-        case 34:
-        case 35:
-        case 36:
-        case 37:
-        case 38:
-        case 39:
-        case 40:
-        case 41:
-        case 42:
-        case 43:
-        case 44:
-        case 45:
-        case 1046:
-        case 1047:
-        case 50:
-        case 51:
-        case 60:
-        case 61:
-        case 62:
-        case 63:
-        case 64:
-        case 65:
-        case 66:
-        case 80:
-        case 81:
-        case 160:
-        case 161:
-        case 162:
-        case 163:
-        case 164:
-        case 165:
-        case 166:
-        case 167:
-        case 168:
-        case 169:
-        case 1160:
-        case 1161:
-            return true;
-        default:
-            return false;
-        }
-    }
-
     function appendParserActiveOptions(result: var) : void {
         root.addOption(result, 0);
         let staticOptions = skinModel.effectiveActiveOptions && skinModel.effectiveActiveOptions.length
@@ -758,7 +755,7 @@ QtObject {
         let length = staticOptions ? staticOptions.length || 0 : 0;
         for (let i = 0; i < length; ++i) {
             let option = staticOptions[i];
-            if (!root.runtimeOwnsOptionPair(option)) {
+            if (!Lr2SkinOptionRules.isRuntimeOwnedOption(option)) {
                 root.addOption(result, option);
             }
         }
@@ -818,6 +815,12 @@ QtObject {
     function buildSelectCommonActiveOptions(baseOptions: var) : var {
         let result = root.cloneOptionList(baseOptions);
         root.appendCommonRuntimeOptions(result);
+        return result;
+    }
+
+    function buildSelectRequiredRuntimeActiveOptions() : var {
+        let result = root.cloneOptionList([]);
+        root.appendRequiredRuntimeOptions(result);
         return result;
     }
 

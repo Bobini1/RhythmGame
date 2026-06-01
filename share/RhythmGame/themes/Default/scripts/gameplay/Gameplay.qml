@@ -49,6 +49,17 @@ Rectangle {
     property var scores1: []
     property var scoreWithBestPoints1: Helpers.getScoreWithBestPoints(scores1)
     property var lastScore1: scores1[0]
+    readonly property real savedBestPoints1: scoreWithBestPoints1 ? scoreWithBestPoints1.result.points : 0
+    readonly property real targetFraction1: {
+        let vars = chart.player1.profile.vars.generalVars;
+        if (vars.scoreTarget === ScoreTarget.NextRank) {
+            let maxPoints = chart.player1.score.maxPoints || 0;
+            return maxPoints > 0
+                ? Helpers.getNextRankTargetPoints(savedBestPoints1, maxPoints) / maxPoints
+                : 0;
+        }
+        return vars.targetScoreFraction;
+    }
     property var targetScore1: {
         switch (chart.player1.profile.vars.generalVars.scoreTarget) {
         case ScoreTarget.BestScore:
@@ -67,13 +78,16 @@ Rectangle {
         if (targetScore1) {
             return scoreReplayer1.points;
         }
-        return p1MaxPointsNow * chart.player1.profile.vars.generalVars.targetScoreFraction;
+        return p1MaxPointsNow * targetFraction1;
     }
     property real targetPoints2: chart.player1.score.points
     readonly property real targetFinalPoints1: {
         if (isBattle) return 0;
         if (targetScore1) return targetScore1.result.points;
-        return chart.player1.score.maxPoints * chart.player1.profile.vars.generalVars.targetScoreFraction;
+        if (chart.player1.profile.vars.generalVars.scoreTarget === ScoreTarget.NextRank) {
+            return Helpers.getNextRankTargetPoints(savedBestPoints1, chart.player1.score.maxPoints || 0);
+        }
+        return chart.player1.score.maxPoints * targetFraction1;
     }
     ScoreReplayer {
         id: scoreReplayer1

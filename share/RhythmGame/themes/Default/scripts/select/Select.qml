@@ -483,13 +483,13 @@ FocusScope {
                 anchors.leftMargin: 900
                 anchors.top: parent.top
                 anchors.topMargin: 20
-                themeVars: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName]
+                generalVars: Rg.profileList.mainProfile.vars.generalVars
             }
             SortButton {
                 anchors.left: keymodeButton.left
                 anchors.top: keymodeButton.bottom
                 anchors.topMargin: 20
-                themeVars: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName]
+                generalVars: Rg.profileList.mainProfile.vars.generalVars
             }
             MouseArea {
                 id: focusList

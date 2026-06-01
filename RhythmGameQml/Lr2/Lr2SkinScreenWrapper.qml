@@ -25,12 +25,16 @@ Item {
     readonly property var zeroTimers: ({ "0": 0 })
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property bool usedOptionFilterActive: !!skinModel
-        && !!skinModel.usedOptions
-        && skinModel.usedOptions.length > 0
+        && ((!!skinModel.usedOptions && skinModel.usedOptions.length > 0)
+            || (!!skinModel.usedElementOptions && skinModel.usedElementOptions.length > 0))
     readonly property var usedOptionLookup: {
         let result = {};
         let used = skinModel && skinModel.usedOptions ? skinModel.usedOptions : [];
         for (let option of used) {
+            result[Math.abs(option)] = true;
+        }
+        let elementUsed = skinModel && skinModel.usedElementOptions ? skinModel.usedElementOptions : [];
+        for (let option of elementUsed) {
             result[Math.abs(option)] = true;
         }
         return result;
@@ -3370,6 +3374,7 @@ Item {
     readonly property var builtBarRuntimeActiveOptions: runtimeOptions.buildBarActiveOptions()
     readonly property var builtBaseRuntimeActiveOptions: runtimeOptions.buildBaseActiveOptions(root.builtBarRuntimeActiveOptions)
     readonly property var builtSelectCommonRuntimeActiveOptions: runtimeOptions.buildSelectCommonActiveOptions(root.builtBaseRuntimeActiveOptions)
+    readonly property var builtSelectRequiredRuntimeActiveOptions: runtimeOptions.buildSelectRequiredRuntimeActiveOptions()
     property var builtSelectRuntimeActiveOptions: []
     property var builtScreenRuntimeActiveOptions: []
 
@@ -4564,6 +4569,7 @@ Item {
         barRuntimeActiveOptions: root.builtBarRuntimeActiveOptions
         baseRuntimeActiveOptions: root.builtBaseRuntimeActiveOptions
         selectCommonRuntimeActiveOptions: root.builtSelectCommonRuntimeActiveOptions
+        selectRequiredRuntimeActiveOptions: root.builtSelectRequiredRuntimeActiveOptions
         selectRuntimeGeneratedActiveOptions: root.builtSelectRuntimeActiveOptions
         screenRuntimeActiveOptions: root.builtScreenRuntimeActiveOptions
         gameplayScreen: root.isGameplayScreen()
