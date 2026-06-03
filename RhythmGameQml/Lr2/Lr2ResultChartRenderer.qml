@@ -61,6 +61,27 @@ Item {
     readonly property int resultRevision: screenRoot
         ? screenRoot.resultOldScoresRevision + screenRoot.resultGaugeSelectionRevision
         : 0
+    readonly property bool alphaDefaultsOpaque: {
+        if (!srcData || (srcData.resultChartType || 0) <= 0 || !dsts || dsts.length === 0) {
+            return false;
+        }
+        for (let i = 0; i < dsts.length; ++i) {
+            if (((dsts[i] && dsts[i].a !== undefined ? dsts[i].a : 0) || 0) > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+    readonly property real effectiveAlpha: {
+        if (!currentState) {
+            return 0;
+        }
+        let alpha = currentState.a || 0;
+        if (alpha <= 0 && alphaDefaultsOpaque) {
+            alpha = 255;
+        }
+        return Math.max(0, Math.min(255, alpha));
+    }
 
     function resultScore() : var {
         let side = srcData && srcData.side ? srcData.side : 1;
@@ -398,7 +419,7 @@ Item {
         }
     }
 
-    visible: currentState && currentState.a > 0 && !!srcData
+    visible: currentState && effectiveAlpha > 0 && !!srcData
 
     Canvas {
         id: chartCanvas
@@ -435,7 +456,7 @@ Item {
             let sy = (root.srcData.y || 0) + row * srcH;
             let imageLoaded = root.resolvedSource !== "" && isImageLoaded(root.resolvedSource);
 
-            ctx.globalAlpha = Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0));
+            ctx.globalAlpha = root.effectiveAlpha / 255.0;
             ctx.fillStyle = root.graphColor(root.currentState);
             let previousValue = values[0];
             for (let column = 0; column < columnCount; ++column) {
