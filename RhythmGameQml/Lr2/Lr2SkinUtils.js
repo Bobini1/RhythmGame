@@ -1,5 +1,9 @@
 .pragma library
 
+var fileUrlCache = Object.create(null);
+var fileUrlCacheSize = 0;
+var fileUrlCacheLimit = 4096;
+
 function isChartAssetSource(source) {
     return !!source
         && (source.specialType === 1
@@ -87,14 +91,35 @@ function fileUrlForPath(path) {
     if (!path) {
         return "";
     }
-    const normalized = String(path).replace(/\\/g, "/");
+    const pathKey = String(path);
+    const cached = fileUrlCache[pathKey];
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    const normalized = pathKey.replace(/\\/g, "/");
+    const encoded = normalized.split("/").map((part, index) => {
+        if (index === 0 && /^[A-Za-z]:$/.test(part)) {
+            return part;
+        }
+        return encodeURIComponent(part);
+    }).join("/");
+    let result = "";
     if (/^[A-Za-z]:\//.test(normalized)) {
-        return "file:///" + normalized;
+        result = "file:///" + encoded;
+    } else if (normalized.startsWith("/")) {
+        result = "file://" + encoded;
+    } else {
+        result = normalized.replace(/#/g, "%23");
     }
-    if (normalized.startsWith("/")) {
-        return "file://" + normalized;
+
+    if (fileUrlCacheSize >= fileUrlCacheLimit) {
+        fileUrlCache = Object.create(null);
+        fileUrlCacheSize = 0;
     }
-    return normalized;
+    fileUrlCache[pathKey] = result;
+    ++fileUrlCacheSize;
+    return result;
 }
 
 function resolvedSource(source, chart, chartAssetSource) {
@@ -114,7 +139,7 @@ function resolvedSource(source, chart, chartAssetSource) {
         if (dir[0] !== "/") {
             dir = "/" + dir;
         }
-        return "file://" + dir + fileName.replace(/\.[^/.]+$/, "");
+        return fileUrlForPath(dir + fileName.replace(/\.[^/.]+$/, ""));
     }
     return fileUrlForPath(source.source);
 }

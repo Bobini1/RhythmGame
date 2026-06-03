@@ -23,14 +23,19 @@ add_executable(RhythmGame_test
         qml_components/FileQuery.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp
+        lr2_skin/Lr2SelectDetailState.test.cpp
         lr2_skin/Lr2SkinParser.test.cpp
         lr2_skin/Lr2SkinRuntimeTypes.test.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2BarBaseStateResolver.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2BarPositionMap.cpp
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SkinClock.cpp
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SkinOptionRules.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SkinRuntimeTypes.cpp
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SkinTimerState.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2ChartDataSnapshot.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SelectBarCell.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SelectBarModel.cpp
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SelectDetailState.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SelectItemModel.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SelectVisualState.cpp
 )

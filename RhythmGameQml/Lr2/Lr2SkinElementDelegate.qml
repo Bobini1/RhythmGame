@@ -420,6 +420,9 @@ Loader {
                 }
                 if (elemLoader.screenRoot.effectiveScreenKey === "select") {
                     let num = numberRenderer.numberId;
+                    if (num === 20) {
+                        return elemLoader.screenRoot.lr2CurrentFps;
+                    }
                     if (!elementState.numberUsesFocusedSelectState) {
                         return elemLoader.screenRoot.numberValue(numberRenderer.numberSrc);
                     }

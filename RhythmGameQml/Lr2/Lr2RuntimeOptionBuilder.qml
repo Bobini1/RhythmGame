@@ -38,6 +38,41 @@ QtObject {
         lookup[option] = true;
     }
 
+    function removeRuntimeOptionRange(options: var, first: var, last: var) : void {
+        if (!options) {
+            return;
+        }
+
+        let writeIndex = 0;
+        let changed = false;
+        let lookup = {};
+        for (let i = 0; i < options.length; ++i) {
+            let option = options[i];
+            let optionNumber = Number(option);
+            let absOption = Math.abs(optionNumber);
+            if (isFinite(absOption) && absOption >= first && absOption <= last) {
+                changed = true;
+                continue;
+            }
+
+            options[writeIndex++] = option;
+            lookup[option] = true;
+        }
+
+        if (!changed) {
+            return;
+        }
+
+        options.length = writeIndex;
+        options.__lookup = lookup;
+        options.__key = undefined;
+    }
+
+    function setRuntimeOptionRange(options: var, first: var, last: var, option: var) : void {
+        root.removeRuntimeOptionRange(options, first, last);
+        root.addRuntimeOption(options, option);
+    }
+
     function addOption(options: var, option: var) : void {
         if (option === undefined || option === null) {
             return;
@@ -155,10 +190,6 @@ QtObject {
         root.addRuntimeOption(options, host.gameplayReplayActive() ? 84 : 82);
     }
 
-    function appendPanelOptions(options: var) : void {
-        root.addOption(options, host.selectPanel > 0 ? 20 + host.selectPanel : 20);
-    }
-
     function addGaugeExOption(options: var, side: var) : void {
         if (!host.lr2SkinUsesBeatorajaSemantics) {
             return;
@@ -181,7 +212,6 @@ QtObject {
         let usesAttachedTextOption = root.runtimeOptionRangeUsed(usedOptions, 174, 175);
         let usesBpmRangeOption = root.runtimeOptionRangeUsed(usedOptions, 176, 177);
         let usesRandomOption = root.runtimeOptionRangeUsed(usedOptions, 178, 179);
-        let usesJudgeOption = root.runtimeOptionRangeUsed(usedOptions, 180, 183);
         let usesHighLevelOption = root.runtimeOptionRangeUsed(usedOptions, 185, 186);
         let usesDifficultyOption = root.runtimeOptionRangeUsed(usedOptions, 150, 155);
         let keymode = root.chartKeymode(chartData, fallbackItem);
@@ -212,6 +242,7 @@ QtObject {
             if (usesRandomOption) {
                 root.addOption(options, 178);
             }
+            root.setRuntimeOptionRange(options, 180, 184, selectContext.judgeOption(null, fallbackItem));
             root.appendReplayOptions(options, null);
             if (usesDifficultyOption) {
                 root.addOption(options, 150);
@@ -245,9 +276,7 @@ QtObject {
         if (usesRandomOption) {
             root.addOption(options, chartData.isRandom ? 179 : 178);
         }
-        if (usesJudgeOption) {
-            root.addOption(options, selectContext.judgeOption(chartData));
-        }
+        root.setRuntimeOptionRange(options, 180, 184, selectContext.judgeOption(chartData, fallbackItem));
         if (usesHighLevelOption) {
             root.addOption(options, selectContext.highLevelOption(chartData));
         }
@@ -395,12 +424,16 @@ QtObject {
         if (folderLike) {
             return;
         }
+        let clearType = "NOPLAY";
         let clearOption = 100;
         let lamp = 0;
+        let lr2Lamp = 0;
         let rank = 0;
         if (selectContext.isRankingEntry(item)) {
-            clearOption = selectContext.beatorajaClearOptionForClearType(item.bestClearType);
-            lamp = selectContext.clearTypeLamp(item.bestClearType);
+            clearType = item.bestClearType;
+            clearOption = selectContext.beatorajaClearOptionForClearType(clearType);
+            lamp = selectContext.clearTypeLamp(clearType);
+            lr2Lamp = selectContext.collapsedClearTypeLamp(clearType);
             let points = Number(item.bestPoints || 0);
             let maxPoints = Number(item.maxPoints || 0);
             if (maxPoints > 0) {
@@ -414,14 +447,16 @@ QtObject {
             }
         } else {
             let summary = scoreSummary || selectContext.scoreSummaryForItem(item);
-            clearOption = selectContext.beatorajaClearOptionForClearType(summary.clearType);
+            clearType = summary.clearType;
+            clearOption = selectContext.beatorajaClearOptionForClearType(clearType);
             lamp = summary.lamp;
+            lr2Lamp = selectContext.collapsedClearTypeLamp(clearType);
             rank = summary.rank;
         }
         let hasExactBeatorajaLamp = clearOption >= 1100
             && root.runtimeOptionUsed(root.runtimeUsedOptionLookup(), clearOption);
-        if (!hasExactBeatorajaLamp && lamp >= 0 && lamp <= 5) {
-            root.addOption(options, 100 + lamp);
+        if (!hasExactBeatorajaLamp && lr2Lamp >= 0 && lr2Lamp <= 5) {
+            root.addOption(options, 100 + lr2Lamp);
         }
         root.addOption(options, clearOption);
 
@@ -811,7 +846,6 @@ QtObject {
         root.appendStaticSelectOptions(result);
         root.addOption(result, 622); // not ghost battle
         root.addOption(result, 624); // not rival compare
-        root.appendPanelOptions(result);
 
         return result;
     }
@@ -830,8 +864,11 @@ QtObject {
 
     function buildSelectRuntimeActiveOptions(commonOptions: var) : var {
         let state = selectContext.selectedState();
-        let chartData = state ? state.chartData : null;
         let item = selectContext.focusedItem;
+        let chartData = selectContext.chartDataForItem(item);
+        if (!chartData && state) {
+            chartData = state.chartData;
+        }
         let result = root.copyActiveOptions(commonOptions);
         root.appendCurrentSelectOptions(result, item, chartData, state);
         return result;

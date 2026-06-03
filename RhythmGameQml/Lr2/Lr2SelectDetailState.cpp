@@ -115,6 +115,19 @@ int clearTypePriority(const QString& clearType, bool useBeatorajaSemantics) {
 
 int clearTypeLamp(const QString& clearType, bool useBeatorajaSemantics) {
 	const QString value = skinCompatibleClearType(clearType, useBeatorajaSemantics);
+	if (useBeatorajaSemantics) {
+		if (value == QStringLiteral("FAILED")) return 1;
+		if (value == QStringLiteral("AEASY")) return 2;
+		if (value == QStringLiteral("LIGHTASSIST")) return 3;
+		if (value == QStringLiteral("EASY")) return 4;
+		if (value == QStringLiteral("NORMAL")) return 5;
+		if (value == QStringLiteral("HARD")) return 6;
+		if (value == QStringLiteral("EXHARD") || value == QStringLiteral("EXHARDDAN")) return 7;
+		if (value == QStringLiteral("FC")) return 8;
+		if (value == QStringLiteral("PERFECT")) return 9;
+		if (value == QStringLiteral("MAX")) return 10;
+		return 0;
+	}
 	if (value == QStringLiteral("FAILED")) return 1;
 	if (value == QStringLiteral("AEASY") || value == QStringLiteral("LIGHTASSIST") || value == QStringLiteral("EASY")) return 2;
 	if (value == QStringLiteral("NORMAL")) return 3;
