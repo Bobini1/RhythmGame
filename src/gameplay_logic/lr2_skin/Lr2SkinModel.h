@@ -2,6 +2,7 @@
 
 #include <QAbstractListModel>
 #include <QList>
+#include <QSharedPointer>
 #include "Lr2SkinParser.h"
 
 namespace gameplay_logic::lr2_skin {
@@ -42,15 +43,26 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QVariantList lnEndSources READ lnEndSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lnBodySources READ lnBodySources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lnBodyActiveSources READ lnBodyActiveSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList hcnStartSources READ hcnStartSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList hcnEndSources READ hcnEndSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList hcnBodySources READ hcnBodySources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList hcnBodyActiveSources READ hcnBodyActiveSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList hcnBodyReactiveSources READ hcnBodyReactiveSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList hcnBodyMissSources READ hcnBodyMissSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoNoteSources READ autoNoteSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoMineSources READ autoMineSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnStartSources READ autoLnStartSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnEndSources READ autoLnEndSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnBodySources READ autoLnBodySources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList autoLnBodyActiveSources READ autoLnBodyActiveSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoHcnStartSources READ autoHcnStartSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoHcnEndSources READ autoHcnEndSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoHcnBodySources READ autoHcnBodySources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoHcnBodyActiveSources READ autoHcnBodyActiveSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList noteDsts READ noteDsts NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lineSources READ lineSources NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList lineDsts READ lineDsts NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QObject* luaRuntime READ luaRuntime NOTIFY luaRuntimeChanged)
 
 public:
     enum Roles {
@@ -102,21 +114,33 @@ public:
     QVariantList lnEndSources() const;
     QVariantList lnBodySources() const;
     QVariantList lnBodyActiveSources() const;
+    QVariantList hcnStartSources() const;
+    QVariantList hcnEndSources() const;
+    QVariantList hcnBodySources() const;
+    QVariantList hcnBodyActiveSources() const;
+    QVariantList hcnBodyReactiveSources() const;
+    QVariantList hcnBodyMissSources() const;
     QVariantList autoNoteSources() const;
     QVariantList autoMineSources() const;
     QVariantList autoLnStartSources() const;
     QVariantList autoLnEndSources() const;
     QVariantList autoLnBodySources() const;
     QVariantList autoLnBodyActiveSources() const;
+    QVariantList autoHcnStartSources() const;
+    QVariantList autoHcnEndSources() const;
+    QVariantList autoHcnBodySources() const;
+    QVariantList autoHcnBodyActiveSources() const;
     QVariantList noteDsts() const;
     QVariantList lineSources() const;
     QVariantList lineDsts() const;
+    QObject* luaRuntime() const;
 
 signals:
     void csvPathChanged();
     void settingValuesChanged();
     void activeOptionsChanged();
     void skinMetadataChanged();
+    void luaRuntimeChanged();
     void skinLoaded();
 
 private:
@@ -156,15 +180,26 @@ private:
     QVariantList m_lnEndSources;
     QVariantList m_lnBodySources;
     QVariantList m_lnBodyActiveSources;
+    QVariantList m_hcnStartSources;
+    QVariantList m_hcnEndSources;
+    QVariantList m_hcnBodySources;
+    QVariantList m_hcnBodyActiveSources;
+    QVariantList m_hcnBodyReactiveSources;
+    QVariantList m_hcnBodyMissSources;
     QVariantList m_autoNoteSources;
     QVariantList m_autoMineSources;
     QVariantList m_autoLnStartSources;
     QVariantList m_autoLnEndSources;
     QVariantList m_autoLnBodySources;
     QVariantList m_autoLnBodyActiveSources;
+    QVariantList m_autoHcnStartSources;
+    QVariantList m_autoHcnEndSources;
+    QVariantList m_autoHcnBodySources;
+    QVariantList m_autoHcnBodyActiveSources;
     QVariantList m_noteDsts;
     QVariantList m_lineSources;
     QVariantList m_lineDsts;
+    QSharedPointer<QObject> m_luaRuntime;
 };
 
 } // namespace gameplay_logic::lr2_skin

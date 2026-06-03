@@ -33,6 +33,9 @@ Item {
 
     readonly property int barCellCount: barCells ? barCells.length : 0
     readonly property int graphType: srcData ? (srcData.graphType || 0) : 0
+    readonly property int distributionGraphType: graphType < 0
+        ? (graphType === -1 ? 0 : 1)
+        : graphType
     readonly property int sourceSpecialType: srcData ? (srcData.specialType || 0) : 0
     readonly property real sourceX: srcData ? (srcData.x || 0) : 0
     readonly property real sourceY: srcData ? (srcData.y || 0) : 0
@@ -41,7 +44,7 @@ Item {
     readonly property int sourceDivX: srcData ? Math.max(1, srcData.div_x || 1) : 1
     readonly property int sourceDivY: srcData ? Math.max(1, srcData.div_y || 1) : 1
     readonly property string sourcePath: srcData && srcData.source ? srcData.source : ""
-    readonly property int segmentCount: graphType === 0 ? 11 : 28
+    readonly property int segmentCount: distributionGraphType === 0 ? 11 : 28
     readonly property int frameCountValue: srcData
         ? Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1)
         : 1
@@ -54,7 +57,9 @@ Item {
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !root.hasStaticTimelineState
+        id: timelineTracker
+
+        enabled: !timelineTracker.canUseStaticState
         dsts: root.graphDsts
         skinTime: root.skinTime
         timers: root.timelineTimers
@@ -108,7 +113,7 @@ Item {
         if (!cell) {
             return [];
         }
-        return root.graphType === 0 ? cell.graphLamps : cell.graphRanks;
+        return root.distributionGraphType === 0 ? cell.graphLamps : cell.graphRanks;
     }
 
     function graphAmount(values: var, segment: var) : var {
@@ -224,4 +229,3 @@ Item {
         }
     }
 }
-

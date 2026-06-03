@@ -60,7 +60,10 @@ Item {
         : null
     readonly property var overlayTimelineTimers: overlayTimelineTracker.usesDynamicTimer ? timers : null
     property Lr2TimelineState overlayTimelineTracker: Lr2TimelineState {
-        enabled: root.hasOverlayTimelineState && !root.overlayHasStaticTimelineState
+        id: overlayTimelineTrackerObject
+
+        enabled: root.hasOverlayTimelineState
+            && !overlayTimelineTrackerObject.canUseStaticState
         dsts: root.overlayDsts
         skinTime: root.skinTime
         timers: root.overlayTimelineTimers

@@ -23,6 +23,14 @@ Item {
         property var pressedTarget: ({ kind: "none" })
 
         onPressed: (mouse) => {
+            if (mouse.button === Qt.LeftButton
+                    && pointerSurface.screenRoot.effectiveScreenKey === "select"
+                    && pointerSurface.screenRoot.focusSelectSearchAt(mouse.x, mouse.y)) {
+                pressedTarget = { kind: "search" };
+                mouse.accepted = true;
+                return;
+            }
+
             pressedTarget = pointerSurface.pointerController.targetAt(mouse.x, mouse.y, mouse.button);
             if (pressedTarget.kind === "slider") {
                 pointerSurface.screenRoot.clearSelectSearchFocus();
@@ -59,6 +67,12 @@ Item {
             const target = pressedTarget.kind !== "none"
                 ? pressedTarget
                 : releasedTarget;
+
+            if (target.kind === "search") {
+                pressedTarget = { kind: "none" };
+                mouse.accepted = true;
+                return;
+            }
 
             if (target.kind === "slider") {
                 pointerSurface.pointerController.finishSlider(target);
@@ -116,7 +130,13 @@ Item {
             pressedTarget = { kind: "none" };
         }
 
-        onWheel: (wheel) => pointerSurface.screenRoot.handleSelectWheel(wheel)
+        onWheel: (wheel) => {
+            if (pointerSurface.screenRoot.effectiveScreenKey !== "select") {
+                wheel.accepted = false;
+                return;
+            }
+            pointerSurface.screenRoot.handleSelectWheel(wheel);
+        }
     }
 
     function updateHoverPoint() : void {

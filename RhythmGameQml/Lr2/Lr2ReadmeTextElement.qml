@@ -44,8 +44,8 @@ Item {
                 + index * (readmeElement.srcData
                     ? readmeElement.srcData.readmeLineSpacing
                     : readmeElement.root.lr2ReadmeLineSpacing)
+            showUnresolvedTextFallback: false
             resolvedText: modelData
         }
     }
 }
-

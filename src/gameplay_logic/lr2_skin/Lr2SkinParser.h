@@ -5,6 +5,8 @@
 #include <QList>
 #include <QMap>
 #include <QMetaType>
+#include <QObject>
+#include <QSharedPointer>
 #include <QVariantList>
 
 namespace gameplay_logic::lr2_skin {
@@ -29,11 +31,19 @@ struct Lr2Dst
     Q_PROPERTY(int sortId MEMBER sortId)
     Q_PROPERTY(int loop MEMBER loop)
     Q_PROPERTY(int timer MEMBER timer)
+    Q_PROPERTY(int timerCallback MEMBER timerCallback)
     Q_PROPERTY(int op1 MEMBER op1)
     Q_PROPERTY(int op2 MEMBER op2)
     Q_PROPERTY(int op3 MEMBER op3)
     Q_PROPERTY(int op4 MEMBER op4)
     Q_PROPERTY(QVariantList offsets MEMBER offsets)
+    Q_PROPERTY(int stretch MEMBER stretch)
+    Q_PROPERTY(bool hasMouseRect MEMBER hasMouseRect)
+    Q_PROPERTY(int mouseRectX MEMBER mouseRectX)
+    Q_PROPERTY(int mouseRectY MEMBER mouseRectY)
+    Q_PROPERTY(int mouseRectW MEMBER mouseRectW)
+    Q_PROPERTY(int mouseRectH MEMBER mouseRectH)
+    Q_PROPERTY(int drawCallback MEMBER drawCallback)
   public:
     int time = 0;
     int x = 0;
@@ -52,11 +62,19 @@ struct Lr2Dst
     int sortId = 0;
     int loop = 0;
     int timer = 0;
+    int timerCallback = 0;
     int op1 = 0;
     int op2 = 0;
     int op3 = 0;
     int op4 = 0;
     QVariantList offsets;
+    int stretch = -1;
+    bool hasMouseRect = false;
+    int mouseRectX = 0;
+    int mouseRectY = 0;
+    int mouseRectW = 0;
+    int mouseRectH = 0;
+    int drawCallback = 0;
 };
 
 struct Lr2SrcImage
@@ -71,17 +89,33 @@ struct Lr2SrcImage
     Q_PROPERTY(int div_y MEMBER div_y)
     Q_PROPERTY(int cycle MEMBER cycle)
     Q_PROPERTY(int timer MEMBER timer)
+    Q_PROPERTY(int timerCallback MEMBER timerCallback)
     Q_PROPERTY(int op1 MEMBER op1)
     Q_PROPERTY(int op2 MEMBER op2)
     Q_PROPERTY(int op3 MEMBER op3)
     Q_PROPERTY(int op4 MEMBER op4)
     Q_PROPERTY(int resultChartType MEMBER resultChartType)
     Q_PROPERTY(int resultChartIndex MEMBER resultChartIndex)
+    Q_PROPERTY(int timingGraphWidth MEMBER timingGraphWidth)
+    Q_PROPERTY(int timingGraphLineWidth MEMBER timingGraphLineWidth)
+    Q_PROPERTY(QString timingGraphColor MEMBER timingGraphColor)
+    Q_PROPERTY(QString timingAverageColor MEMBER timingAverageColor)
+    Q_PROPERTY(QString timingDevColor MEMBER timingDevColor)
+    Q_PROPERTY(QString timingPGColor MEMBER timingPGColor)
+    Q_PROPERTY(QString timingGRColor MEMBER timingGRColor)
+    Q_PROPERTY(QString timingGDColor MEMBER timingGDColor)
+    Q_PROPERTY(QString timingBDColor MEMBER timingBDColor)
+    Q_PROPERTY(QString timingPRColor MEMBER timingPRColor)
+    Q_PROPERTY(int timingDrawAverage MEMBER timingDrawAverage)
+    Q_PROPERTY(int timingDrawDev MEMBER timingDrawDev)
     Q_PROPERTY(bool button MEMBER button)
     Q_PROPERTY(int buttonId MEMBER buttonId)
     Q_PROPERTY(int buttonClick MEMBER buttonClick)
+    Q_PROPERTY(bool buttonClickEnabled MEMBER buttonClickEnabled)
+    Q_PROPERTY(int buttonClickMode MEMBER buttonClickMode)
     Q_PROPERTY(int buttonPanel MEMBER buttonPanel)
     Q_PROPERTY(int buttonPlusOnly MEMBER buttonPlusOnly)
+    Q_PROPERTY(int buttonActionCallback MEMBER buttonActionCallback)
     Q_PROPERTY(bool onMouse MEMBER onMouse)
     Q_PROPERTY(int hoverPanel MEMBER hoverPanel)
     Q_PROPERTY(int hoverX MEMBER hoverX)
@@ -97,8 +131,11 @@ struct Lr2SrcImage
     Q_PROPERTY(bool sliderRefNumber MEMBER sliderRefNumber)
     Q_PROPERTY(int sliderMinValue MEMBER sliderMinValue)
     Q_PROPERTY(int sliderMaxValue MEMBER sliderMaxValue)
+    Q_PROPERTY(int sliderValueCallback MEMBER sliderValueCallback)
+    Q_PROPERTY(int sliderEventCallback MEMBER sliderEventCallback)
     Q_PROPERTY(bool imageSet MEMBER imageSet)
     Q_PROPERTY(int imageSetRef MEMBER imageSetRef)
+    Q_PROPERTY(int imageSetValueCallback MEMBER imageSetValueCallback)
     Q_PROPERTY(QVariantList imageSetSources MEMBER imageSetSources)
     Q_PROPERTY(bool grooveGaugeEx MEMBER grooveGaugeEx)
     Q_PROPERTY(int specialType MEMBER specialType)
@@ -124,17 +161,33 @@ struct Lr2SrcImage
     int div_y = 1;
     int cycle = 0;
     int timer = 0;
+    int timerCallback = 0;
     int op1 = 0;
     int op2 = 0;
     int op3 = 0;
     int op4 = 0;
     int resultChartType = 0;
     int resultChartIndex = 0;
+    int timingGraphWidth = 301;
+    int timingGraphLineWidth = 1;
+    QString timingGraphColor = QStringLiteral("00FF00FF");
+    QString timingAverageColor = QStringLiteral("FFFFFFFF");
+    QString timingDevColor = QStringLiteral("FFFFFFFF");
+    QString timingPGColor = QStringLiteral("000088FF");
+    QString timingGRColor = QStringLiteral("008800FF");
+    QString timingGDColor = QStringLiteral("888800FF");
+    QString timingBDColor = QStringLiteral("880000FF");
+    QString timingPRColor = QStringLiteral("000000FF");
+    int timingDrawAverage = 1;
+    int timingDrawDev = 1;
     bool button = false;
     int buttonId = 0;
     int buttonClick = 0;
+    bool buttonClickEnabled = false;
+    int buttonClickMode = -1;
     int buttonPanel = 0;
     int buttonPlusOnly = 0;
+    int buttonActionCallback = 0;
     bool onMouse = false;
     int hoverPanel = 0;
     int hoverX = 0;
@@ -150,8 +203,11 @@ struct Lr2SrcImage
     bool sliderRefNumber = false;
     int sliderMinValue = 0;
     int sliderMaxValue = 0;
+    int sliderValueCallback = 0;
+    int sliderEventCallback = 0;
     bool imageSet = false;
     int imageSetRef = 0;
+    int imageSetValueCallback = 0;
     QVariantList imageSetSources;
     bool grooveGaugeEx = false;
     int specialType = None;
@@ -171,6 +227,7 @@ struct Lr2SrcNumber
     Q_PROPERTY(int div_y MEMBER div_y)
     Q_PROPERTY(int cycle MEMBER cycle)
     Q_PROPERTY(int timer MEMBER timer)
+    Q_PROPERTY(int timerCallback MEMBER timerCallback)
     Q_PROPERTY(int num MEMBER num)
     Q_PROPERTY(int align MEMBER align)
     Q_PROPERTY(int keta MEMBER keta)
@@ -178,6 +235,9 @@ struct Lr2SrcNumber
     Q_PROPERTY(bool nowCombo MEMBER nowCombo)
     Q_PROPERTY(int side MEMBER side)
     Q_PROPERTY(int judgementIndex MEMBER judgementIndex)
+    Q_PROPERTY(bool constantValueEnabled MEMBER constantValueEnabled)
+    Q_PROPERTY(int constantValue MEMBER constantValue)
+    Q_PROPERTY(int valueCallback MEMBER valueCallback)
     Q_PROPERTY(QString source MEMBER source)
   public:
     int gr = 0;
@@ -189,6 +249,7 @@ struct Lr2SrcNumber
     int div_y = 1;
     int cycle = 0;
     int timer = 0;
+    int timerCallback = 0;
     int num = 0;
     int align = 0;
     int keta = 0;
@@ -196,6 +257,9 @@ struct Lr2SrcNumber
     bool nowCombo = false;
     int side = 0;
     int judgementIndex = -1;
+    bool constantValueEnabled = false;
+    int constantValue = 0;
+    int valueCallback = 0;
     QString source;
 };
 
@@ -216,6 +280,8 @@ struct Lr2SrcText
     Q_PROPERTY(bool readme MEMBER readme)
     Q_PROPERTY(int readmeId MEMBER readmeId)
     Q_PROPERTY(int readmeLineSpacing MEMBER readmeLineSpacing)
+    Q_PROPERTY(QString constantText MEMBER constantText)
+    Q_PROPERTY(int valueCallback MEMBER valueCallback)
   public:
     int font = 0;
     int st = 0;
@@ -231,6 +297,8 @@ struct Lr2SrcText
     bool readme = false;
     int readmeId = 0;
     int readmeLineSpacing = 18;
+    QString constantText;
+    int valueCallback = 0;
 };
 
 struct Lr2SrcBarImage
@@ -277,6 +345,8 @@ struct Lr2SrcBarText
     Q_PROPERTY(int fontThickness MEMBER fontThickness)
     Q_PROPERTY(int fontType MEMBER fontType)
     Q_PROPERTY(bool bitmapFont MEMBER bitmapFont)
+    Q_PROPERTY(QString constantText MEMBER constantText)
+    Q_PROPERTY(int valueCallback MEMBER valueCallback)
   public:
     int titleType = 0;
     int font = 0;
@@ -290,6 +360,8 @@ struct Lr2SrcBarText
     int fontThickness = 0;
     int fontType = 0;
     bool bitmapFont = false;
+    QString constantText;
+    int valueCallback = 0;
 };
 
 struct Lr2SrcBarNumber
@@ -321,8 +393,13 @@ struct Lr2SrcBarGraph
     Q_PROPERTY(int div_y MEMBER div_y)
     Q_PROPERTY(int cycle MEMBER cycle)
     Q_PROPERTY(int timer MEMBER timer)
+    Q_PROPERTY(int timerCallback MEMBER timerCallback)
     Q_PROPERTY(int graphType MEMBER graphType)
     Q_PROPERTY(int direction MEMBER direction)
+    Q_PROPERTY(bool graphRefNumber MEMBER graphRefNumber)
+    Q_PROPERTY(int graphMinValue MEMBER graphMinValue)
+    Q_PROPERTY(int graphMaxValue MEMBER graphMaxValue)
+    Q_PROPERTY(int valueCallback MEMBER valueCallback)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(QString source MEMBER source)
   public:
@@ -335,8 +412,13 @@ struct Lr2SrcBarGraph
     int div_y = 1;
     int cycle = 0;
     int timer = 0;
+    int timerCallback = 0;
     int graphType = 0;
     int direction = 0;
+    bool graphRefNumber = false;
+    int graphMinValue = 0;
+    int graphMaxValue = 0;
+    int valueCallback = 0;
     int specialType = Lr2SrcImage::None;
     QString source;
 };
@@ -438,15 +520,26 @@ struct Lr2SkinData
     QVariantList lnEndSources;
     QVariantList lnBodySources;
     QVariantList lnBodyActiveSources;
+    QVariantList hcnStartSources;
+    QVariantList hcnEndSources;
+    QVariantList hcnBodySources;
+    QVariantList hcnBodyActiveSources;
+    QVariantList hcnBodyReactiveSources;
+    QVariantList hcnBodyMissSources;
     QVariantList autoNoteSources;
     QVariantList autoMineSources;
     QVariantList autoLnStartSources;
     QVariantList autoLnEndSources;
     QVariantList autoLnBodySources;
     QVariantList autoLnBodyActiveSources;
+    QVariantList autoHcnStartSources;
+    QVariantList autoHcnEndSources;
+    QVariantList autoHcnBodySources;
+    QVariantList autoHcnBodyActiveSources;
     QVariantList noteDsts;
     QVariantList lineSources;
     QVariantList lineDsts;
+    QSharedPointer<QObject> luaRuntime;
 };
 
 class Lr2SkinParser

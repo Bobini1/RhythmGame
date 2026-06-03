@@ -92,6 +92,9 @@ Item {
     readonly property int stateBlend: drawState.blend
     readonly property int stateFilter: drawState.filter
     readonly property int stateOp4: drawState.op4
+    readonly property int stateStretch: drawState.state && drawState.state.stretch !== undefined
+        ? drawState.state.stretch
+        : -1
     readonly property real drawX: root.stateX + (root.stateW < 0 ? root.stateW : 0) + root.offsetX
     readonly property real drawY: root.stateY + (root.stateH < 0 ? root.stateH : 0) + root.offsetY
     readonly property real drawW: Math.abs(root.stateW)
@@ -108,6 +111,9 @@ Item {
         }
         return root.stateAngle;
     }
+    readonly property real rendererAngle: root.usesScratchRotation
+        ? root.effectiveAngle
+        : -root.effectiveAngle
     readonly property int blendMode: drawState.blendMode
     readonly property bool hasColorTint: drawState.hasColorTint
     // Changing Image.sourceClipRect during animation makes Qt Quick revisit
@@ -145,6 +151,81 @@ Item {
         && root.height > 0
         && root.hasDrawableVideo
         && root.hasRenderableState
+
+    function fillModeForStretch(stretch: var) : var {
+        switch (stretch) {
+        case 1:
+        case 4:
+        case 6:
+        case 8:
+        case 9:
+            return Image.PreserveAspectFit;
+        case 2:
+        case 3:
+        case 5:
+        case 7:
+        case 10:
+            return Image.PreserveAspectCrop;
+        default:
+            return Image.Stretch;
+        }
+    }
+
+    function videoFillModeForStretch(stretch: var) : var {
+        switch (stretch) {
+        case 1:
+        case 4:
+        case 6:
+        case 8:
+        case 9:
+            return VideoOutput.PreserveAspectFit;
+        case 2:
+        case 3:
+        case 5:
+        case 7:
+        case 10:
+            return VideoOutput.PreserveAspectCrop;
+        default:
+            return VideoOutput.Stretch;
+        }
+    }
+
+    function shaderSourceRectForStretch(rect: var) : var {
+        if (!rect || root.drawW <= 0 || root.drawH <= 0) {
+            return rect;
+        }
+        if (root.stateStretch !== 3
+                && root.stateStretch !== 5
+                && root.stateStretch !== 7
+                && root.stateStretch !== 10) {
+            return rect;
+        }
+
+        let sourceW = Math.abs(rect.z) * Math.max(1, atlasImage.implicitWidth);
+        let sourceH = Math.abs(rect.w) * Math.max(1, atlasImage.implicitHeight);
+        if (sourceW <= 0 || sourceH <= 0) {
+            return rect;
+        }
+
+        let x = rect.x;
+        let y = rect.y;
+        let w = rect.z;
+        let h = rect.w;
+        const destAspect = root.drawW / root.drawH;
+        const sourceAspect = sourceW / sourceH;
+        if (destAspect > sourceAspect) {
+            const nextSourceH = sourceW / destAspect;
+            const crop = (sourceH - nextSourceH) / sourceH;
+            y += h * crop * 0.5;
+            h *= 1.0 - crop;
+        } else if (destAspect < sourceAspect) {
+            const nextSourceW = sourceH * destAspect;
+            const crop = (sourceW - nextSourceW) / sourceW;
+            x += w * crop * 0.5;
+            w *= 1.0 - crop;
+        }
+        return Qt.vector4d(x, y, w, h);
+    }
 
     function syncVideoPlayback() : void {
         if (videoLoader.item && videoLoader.item.syncVideoPlayback) {
@@ -193,7 +274,7 @@ Item {
         transform: Rotation {
             origin.x: sprite.width * root.anchor.x
             origin.y: sprite.height * root.anchor.y
-            angle: root.effectiveAngle
+            angle: root.rendererAngle
         }
 
         Loader {
@@ -229,7 +310,7 @@ Item {
                 VideoOutput {
                     id: videoOutput
                     anchors.fill: parent
-                    fillMode: VideoOutput.Stretch
+                    fillMode: root.videoFillModeForStretch(root.stateStretch)
                 }
 
                 MediaPlayer {
@@ -249,7 +330,7 @@ Item {
             anchors.fill: parent
             source: root.hasDrawableTexture && root.useFastImagePath ? root.resolvedSource : ""
             sourceClipRect: root.animationFrameState.sourceClipRect
-            fillMode: Image.Stretch
+            fillMode: root.fillModeForStretch(root.stateStretch)
             cache: true
             asynchronous: false
             retainWhileLoading: true
@@ -283,7 +364,7 @@ Item {
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
-            property vector4d sourceRect: root.animationFrameState.sourceRect
+            property vector4d sourceRect: root.shaderSourceRectForStretch(root.animationFrameState.sourceRect)
             fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
         }
 

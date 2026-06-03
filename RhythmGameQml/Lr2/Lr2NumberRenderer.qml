@@ -45,7 +45,7 @@ Item {
         timers: root.timers
         timerFire: root.timerFire
         stateOverride: root.stateOverride
-        forceHidden: root.forceHidden
+        forceHidden: root.forceHidden || root.value <= -2147483648
         screenRoot: root.screenRoot
         dstOffsetsEnabled: root.dstOffsetsEnabled
         dstOffsetLiftY: root.screenRoot

@@ -1,5 +1,6 @@
 #include "Lr2SkinParser.h"
 
+#include "gameplay_logic/lr2_skin/BeatorajaLuaSkin.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
@@ -64,12 +65,20 @@ struct ParseState
     QMap<int, Lr2SrcImage> lnEndSources;
     QMap<int, Lr2SrcImage> lnBodySources;
     QMap<int, Lr2SrcImage> lnBodyActiveSources;
+    QMap<int, Lr2SrcImage> hcnStartSources;
+    QMap<int, Lr2SrcImage> hcnEndSources;
+    QMap<int, Lr2SrcImage> hcnBodySources;
+    QMap<int, Lr2SrcImage> hcnBodyActiveSources;
     QMap<int, Lr2SrcImage> autoNoteSources;
     QMap<int, Lr2SrcImage> autoMineSources;
     QMap<int, Lr2SrcImage> autoLnStartSources;
     QMap<int, Lr2SrcImage> autoLnEndSources;
     QMap<int, Lr2SrcImage> autoLnBodySources;
     QMap<int, Lr2SrcImage> autoLnBodyActiveSources;
+    QMap<int, Lr2SrcImage> autoHcnStartSources;
+    QMap<int, Lr2SrcImage> autoHcnEndSources;
+    QMap<int, Lr2SrcImage> autoHcnBodySources;
+    QMap<int, Lr2SrcImage> autoHcnBodyActiveSources;
     QMap<int, QVariantList> noteDsts;
     QMap<int, Lr2SrcImage> lineSources;
     QMap<int, QVariantList> lineDsts;
@@ -1701,6 +1710,7 @@ processCommand(const QStringList& tokens,
         src.button = true;
         src.buttonId = src.op1;
         src.buttonClick = src.op2;
+        src.buttonClickEnabled = src.op2 != 0;
         src.buttonPanel = src.op3;
         src.buttonPlusOnly = src.op4;
         state.currentElement.src = QVariant::fromValue(src);
@@ -1947,6 +1957,27 @@ processCommand(const QStringList& tokens,
             state.lnBodyActiveSources[tokens[1].toInt()] =
               parseImageSource(tokens, state);
         }
+    } else if (command == "#SRC_HCN_START") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.hcnStartSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_HCN_END") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.hcnEndSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_HCN_BODY" ||
+               command == "#SRC_HCN_BODY_INACTIVE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.hcnBodySources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_HCN_BODY_ACTIVE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.hcnBodyActiveSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
     } else if (command == "#SRC_AUTO_NOTE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
             state.autoNoteSources[tokens[1].toInt()] =
@@ -1976,6 +2007,27 @@ processCommand(const QStringList& tokens,
     } else if (command == "#SRC_AUTO_LN_BODY_ACTIVE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
             state.autoLnBodyActiveSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_HCN_START") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoHcnStartSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_HCN_END") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoHcnEndSources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_HCN_BODY" ||
+               command == "#SRC_AUTO_HCN_BODY_INACTIVE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoHcnBodySources[tokens[1].toInt()] =
+              parseImageSource(tokens, state);
+        }
+    } else if (command == "#SRC_AUTO_HCN_BODY_ACTIVE") {
+        if (tokens.size() > 1 && !tokens[1].isEmpty()) {
+            state.autoHcnBodyActiveSources[tokens[1].toInt()] =
               parseImageSource(tokens, state);
         }
     } else if (command == "#DST_NOTE") {
@@ -2426,6 +2478,10 @@ parseFile(const std::filesystem::path& filePath,
       .lnEndSources = toVariantList(state.lnEndSources),
       .lnBodySources = toVariantList(state.lnBodySources),
       .lnBodyActiveSources = toVariantList(state.lnBodyActiveSources),
+      .hcnStartSources = toVariantList(state.hcnStartSources),
+      .hcnEndSources = toVariantList(state.hcnEndSources),
+      .hcnBodySources = toVariantList(state.hcnBodySources),
+      .hcnBodyActiveSources = toVariantList(state.hcnBodyActiveSources),
       .autoNoteSources = toVariantList(state.autoNoteSources),
       .autoMineSources = toVariantList(state.autoMineSources),
       .autoLnStartSources = toVariantList(state.autoLnStartSources),
@@ -2433,6 +2489,11 @@ parseFile(const std::filesystem::path& filePath,
       .autoLnBodySources = toVariantList(state.autoLnBodySources),
       .autoLnBodyActiveSources =
         toVariantList(state.autoLnBodyActiveSources),
+      .autoHcnStartSources = toVariantList(state.autoHcnStartSources),
+      .autoHcnEndSources = toVariantList(state.autoHcnEndSources),
+      .autoHcnBodySources = toVariantList(state.autoHcnBodySources),
+      .autoHcnBodyActiveSources =
+        toVariantList(state.autoHcnBodyActiveSources),
       .noteDsts = toVariantList(state.noteDsts),
       .lineSources = toVariantList(state.lineSources),
       .lineDsts = toVariantList(state.lineDsts),
@@ -2468,9 +2529,11 @@ Lr2SkinParser::parseData(const QString& path,
                          const QVariantList& activeOptions)
 {
     const auto options = parseOptions(activeOptions);
-    return parseFile(topLevelSkinPath(support::qStringToPath(path)),
-                     settingValues,
-                     options);
+    const auto skinPath = topLevelSkinPath(support::qStringToPath(path));
+    if (isBeatorajaLuaSkinPath(skinPath)) {
+        return parseBeatorajaLuaSkin(skinPath, settingValues, options);
+    }
+    return parseFile(skinPath, settingValues, options);
 }
 
 } // namespace gameplay_logic::lr2_skin

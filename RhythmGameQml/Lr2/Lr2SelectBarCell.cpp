@@ -26,6 +26,13 @@ QVariant listValueAt(const QVariant& values, int index) {
 	return {};
 }
 
+int distributionGraphType(int graphType) {
+    if (graphType < 0) {
+        return graphType == -1 ? 0 : 1;
+    }
+    return graphType;
+}
+
 } // namespace
 
 Lr2SelectBarCell::Lr2SelectBarCell(QObject* parent) : QObject(parent) {}
@@ -238,7 +245,9 @@ qreal Lr2SelectBarCell::graphValueForType(int graphType, int segment) const {
     if (segment < 0) {
         return 0.0;
     }
-    const QVariantList& values = graphType == 0 ? m_graphLamps : m_graphRanks;
+    const QVariantList& values = distributionGraphType(graphType) == 0
+        ? m_graphLamps
+        : m_graphRanks;
     return segment < values.size() ? std::max<qreal>(0.0, toReal(values.at(segment))) : 0.0;
 }
 

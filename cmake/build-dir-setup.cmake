@@ -11,18 +11,21 @@ endif ()
 if (WIN32)
     find_program(TOOL_WINDEPLOYQT NAMES windeployqt)
     find_program(TOOL_WINDEPLOYQT_DEBUG NAMES windeployqt.debug.bat)
-
-    add_custom_command(TARGET RhythmGame_exe POST_BUILD
-            COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> $<$<CONFIG:Debug,RelWithDebInfo>:--pdb> --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
-            $<TARGET_FILE:RhythmGame_exe>
-            COMMENT "Running windeployqt..."
-            COMMAND_EXPAND_LISTS
-            VERBATIM
-    )
+    set(WINDEPLOYQT_RUNTIME_PATH
+            "PATH=$<SHELL_PATH:$<TARGET_FILE_DIR:RhythmGame_exe>>")
 
     add_custom_command(TARGET RhythmGame_exe POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:RhythmGame_exe> $<TARGET_FILE_DIR:RhythmGame_exe>
             COMMAND_EXPAND_LISTS
+    )
+
+    add_custom_command(TARGET RhythmGame_exe POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E env "${WINDEPLOYQT_RUNTIME_PATH}"
+            $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> $<$<CONFIG:Debug,RelWithDebInfo>:--pdb> --qmldir "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default" --qmldir "${CMAKE_SOURCE_DIR}/RhythmGameQml"
+            $<TARGET_FILE:RhythmGame_exe>
+            COMMENT "Running windeployqt..."
+            COMMAND_EXPAND_LISTS
+            VERBATIM
     )
 
     # This is only for running in the build directory, before installation.

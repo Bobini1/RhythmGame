@@ -23,6 +23,7 @@ Item {
     readonly property bool lr2SkinUsesBeatorajaSemantics: root.lr2SkinFamily === "beatoraja"
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
+    readonly property real beatorajaLuaTimerOffMicro: -9223372036854775808
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property bool usedOptionFilterActive: !!skinModel
         && ((!!skinModel.usedOptions && skinModel.usedOptions.length > 0)
@@ -82,6 +83,10 @@ Item {
     property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
     property int gameplayLastJudgeTiming1: 0
     property int gameplayLastJudgeTiming2: 0
+    property var gameplayTimingEvents1: []
+    property var gameplayTimingEvents2: []
+    property int gameplayTimingEventsRevision1: 0
+    property int gameplayTimingEventsRevision2: 0
     property var gameplayJudgeLaneValues1: []
     property var gameplayJudgeLaneValues2: []
     property int gameplayJudgeNowValue1: 0
@@ -120,6 +125,13 @@ Item {
     readonly property bool screenUpdatesActive: screenState.updatesActive
     readonly property int lr2CurrentFps: skinTiming.currentFps
     readonly property var lr2InitialClockNow: wallClockState.initialNow
+    property var beatorajaLuaPressedKeys: ({})
+    property var beatorajaLuaJustPressedKeys: ({})
+    property var beatorajaLuaPressedMouseButtons: ({})
+    property int beatorajaLuaMouseXValue: 0
+    property int beatorajaLuaMouseYValue: 0
+    property int beatorajaLuaMouseDeltaXValue: 0
+    property int beatorajaLuaMouseDeltaYValue: 0
     property alias skinTimingRef: skinTiming
     property alias skinTimerStateRef: skinTiming.skinTimerStateRef
     property alias skinRuntimeRef: skinRuntime
@@ -216,6 +228,118 @@ Item {
         }
     }
 
+    function libGdxKeyForQtKey(qtKey: var) : var {
+        if (qtKey >= Qt.Key_0 && qtKey <= Qt.Key_9) {
+            return 7 + (qtKey - Qt.Key_0);
+        }
+        if (qtKey >= Qt.Key_A && qtKey <= Qt.Key_Z) {
+            return 29 + (qtKey - Qt.Key_A);
+        }
+        if (qtKey >= Qt.Key_F1 && qtKey <= Qt.Key_F12) {
+            return 131 + (qtKey - Qt.Key_F1);
+        }
+
+        switch (qtKey) {
+        case Qt.Key_Up:
+            return 19;
+        case Qt.Key_Down:
+            return 20;
+        case Qt.Key_Left:
+            return 21;
+        case Qt.Key_Right:
+            return 22;
+        case Qt.Key_Shift:
+            return 59;
+        case Qt.Key_Tab:
+            return 61;
+        case Qt.Key_Space:
+            return 62;
+        case Qt.Key_Return:
+        case Qt.Key_Enter:
+            return 66;
+        case Qt.Key_Backspace:
+            return 67;
+        case Qt.Key_Minus:
+            return 69;
+        case Qt.Key_Equal:
+            return 70;
+        case Qt.Key_BracketLeft:
+            return 71;
+        case Qt.Key_BracketRight:
+            return 72;
+        case Qt.Key_Backslash:
+            return 73;
+        case Qt.Key_Semicolon:
+            return 74;
+        case Qt.Key_Apostrophe:
+            return 75;
+        case Qt.Key_Slash:
+            return 76;
+        case Qt.Key_Escape:
+            return 111;
+        case Qt.Key_Delete:
+            return 112;
+        case Qt.Key_Control:
+            return 129;
+        case Qt.Key_Alt:
+            return 57;
+        default:
+            return 0;
+        }
+    }
+
+    function recordBeatorajaLuaKeyEvent(event: var, pressed: var) : void {
+        let keyCode = root.libGdxKeyForQtKey(event.key);
+        if (keyCode <= 0) {
+            event.accepted = false;
+            return;
+        }
+
+        let key = String(keyCode);
+        if (pressed) {
+            if (!root.beatorajaLuaPressedKeys[key] && !event.isAutoRepeat) {
+                root.beatorajaLuaJustPressedKeys[key] = root.globalSkinTime;
+            }
+            root.beatorajaLuaPressedKeys[key] = true;
+        } else {
+            delete root.beatorajaLuaPressedKeys[key];
+        }
+        event.accepted = false;
+    }
+
+    function clearBeatorajaLuaInputState() : void {
+        root.beatorajaLuaPressedKeys = ({});
+        root.beatorajaLuaJustPressedKeys = ({});
+        root.beatorajaLuaPressedMouseButtons = ({});
+        root.beatorajaLuaMouseDeltaXValue = 0;
+        root.beatorajaLuaMouseDeltaYValue = 0;
+    }
+
+    function beatorajaLuaKeyPressed(keyCode: var) : var {
+        let key = String(Math.floor(Number(keyCode) || 0));
+        return root.beatorajaLuaPressedKeys[key] === true;
+    }
+
+    function beatorajaLuaKeyJustPressed(keyCode: var) : var {
+        let key = String(Math.floor(Number(keyCode) || 0));
+        let pressedTime = Number(root.beatorajaLuaJustPressedKeys[key]);
+        return isFinite(pressedTime)
+            && root.globalSkinTime - pressedTime <= Math.max(50, root.skinClockResolutionMs * 2);
+    }
+
+    function beatorajaLuaMouseButtonPressed(button: var) : var {
+        let key = String(Math.floor(Number(button) || 0));
+        return root.beatorajaLuaPressedMouseButtons[key] === true;
+    }
+
+    function beatorajaLuaMouseDeltaX(dummy: var) : var { return root.beatorajaLuaMouseDeltaXValue; }
+    function beatorajaLuaMouseDeltaY(dummy: var) : var { return root.beatorajaLuaMouseDeltaYValue; }
+    function beatorajaLuaMouseX(dummy: var) : var { return root.beatorajaLuaMouseXValue; }
+    function beatorajaLuaMouseY(dummy: var) : var { return root.beatorajaLuaMouseYValue; }
+
+    Keys.onPressed: (event) => root.recordBeatorajaLuaKeyEvent(event, true)
+    Keys.onReleased: (event) => root.recordBeatorajaLuaKeyEvent(event, false)
+
     onEnabledChanged: {
         if (root.effectiveScreenKey === "decide" && enabled) {
             Qt.callLater(() => sceneStack.pop());
@@ -224,6 +348,7 @@ Item {
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
         } else {
+            root.clearBeatorajaLuaInputState();
             root.stopSelectAudio();
             root.stopGameplayLifecycle();
         }
@@ -240,6 +365,7 @@ Item {
             root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         } else {
+            root.clearBeatorajaLuaInputState();
             root.pauseScreenActivity();
         }
     }
@@ -956,6 +1082,7 @@ Item {
     function lr2RankingEntryName(index: var) : var { return lr2Ranking.entryName(index); }
     function lr2RankingEntryClearValue(index: var) : var { return lr2Ranking.entryClearValue(index); }
     function lr2RankingEntryExScore(index: var) : var { return lr2Ranking.entryExScore(index); }
+    function lr2RankingEntryIndex(index: var) : var { return lr2Ranking.entryIndex(index); }
     function lr2RankingClearCount() : var { return lr2Ranking.clearCount.apply(lr2Ranking, arguments); }
     function lr2RankingClearPercentValue() : var { return lr2Ranking.clearPercentValue.apply(lr2Ranking, arguments); }
     function applyRankingStatsToSelectContext() : void { lr2Ranking.applyStatsToSelectContext(); }
@@ -1020,6 +1147,7 @@ Item {
     function selectSearchTextState(src: var, dsts: var) : var { return selectSearchState.textState(src, dsts); }
     function textPrefix(text: var, position: var) : var { return selectSearchState.textPrefix(text, position); }
     function selectSearchHasFocus() : var { return selectSearchState.hasFocus(); }
+    function focusSelectSearchAt(x: var, y: var) : var { return selectSearchState.focusAt(x, y); }
 
     function selectInputReady() : var {
         return screenState.selectInputReady;
@@ -1035,6 +1163,10 @@ Item {
 
     function selectPointerScrollReady() : var {
         return screenState.selectPointerScrollReady;
+    }
+
+    function skinPointerInputReady() : var {
+        return root.screenUpdatesActive && root.acceptsInput;
     }
 
     function selectNavigationReady() : var {
@@ -2637,6 +2769,10 @@ Item {
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
     }
 
+    function gameplayTimingEvents(side: var) : var {
+        return side === 2 ? root.gameplayTimingEvents2 : root.gameplayTimingEvents1;
+    }
+
     function gameplayPoorBgaOption(side: var, baseOption: var) : var {
         let skinTime = side === 2 ? root.gameplayLastMissSkinTime2 : root.gameplayLastMissSkinTime1;
         return skinTime >= 0 && root.renderSkinTime - skinTime < 1000 ? baseOption + 1 : baseOption;
@@ -2880,6 +3016,10 @@ Item {
         root.gameplayJudgeTimingCounts2 = root.emptyJudgeTimingCounts();
         root.gameplayLastJudgeTiming1 = 0;
         root.gameplayLastJudgeTiming2 = 0;
+        root.gameplayTimingEvents1 = [];
+        root.gameplayTimingEvents2 = [];
+        root.gameplayTimingEventsRevision1 = 0;
+        root.gameplayTimingEventsRevision2 = 0;
         root.gameplayJudgeLaneValues1 = root.emptyJudgeLaneValues();
         root.gameplayJudgeLaneValues2 = root.emptyJudgeLaneValues();
         root.gameplayJudgeNowValue1 = 0;
@@ -3421,7 +3561,36 @@ Item {
     property string gameplayRuntimeActiveOptionsStateKey: ""
     property string gameplayRuntimeActiveOptionsKey: ""
     property var runtimeActiveOptions: []
-    readonly property var barTimers: ({ "0": 0 })
+    function barTimerFireFromElapsed(elapsed: var) : var {
+        return Math.max(0, root.barSkinTime - Math.max(0, elapsed || 0));
+    }
+
+    readonly property var barTimers: {
+        const timers = { "0": 0 };
+        if (root.effectiveScreenKey !== "select") {
+            return timers;
+        }
+
+        timers[11] = root.barTimerFireFromElapsed(root.selectInfoElapsed);
+
+        if (root.acceptsInput) {
+            timers[14] = root.selectNoScrollStartSkinTime;
+        }
+
+        if (selectContext.visualMoveActive || selectContext.scrollFixedPointDragging) {
+            const elapsed = Math.max(0, root.selectLiveSkinTime - root.selectScrollStartSkinTime);
+            const fire = root.barTimerFireFromElapsed(elapsed);
+            timers[10] = fire;
+            if (selectContext.scrollDirection === selectContext.lr2ScrollUp) {
+                timers[12] = fire;
+            }
+            if (selectContext.scrollDirection === selectContext.lr2ScrollDown) {
+                timers[13] = fire;
+            }
+        }
+
+        return timers;
+    }
 
     function sameNumberArray(a: var, b: var) : var {
         if (a === b) {
@@ -3650,7 +3819,7 @@ Item {
             chartData ? chartData.maxBpm || 0 : 0,
             chartData && root.chartHasBpmStop(chartData) ? 1 : 0,
             chartData && chartData.isRandom ? 1 : 0,
-            chartData ? selectContext.judgeOption(chartData) : 0,
+            chartData ? selectContext.judgeOption(chartData, selectContext.selectedItem()) : 0,
             chartData ? selectContext.highLevelOption(chartData) : 0,
             chartData ? selectContext.entryDifficulty(chartData) : 0,
             root.lr2ReplayType,
@@ -3716,6 +3885,16 @@ Item {
     readonly property int selectRuntimeKeymode: root.effectiveScreenKey === "select"
         ? runtimeOptions.chartKeymode(selectContext.selectedChartData(), selectContext.selectedItem())
         : 0
+    readonly property int selectRuntimeJudgeOption: {
+        if (root.effectiveScreenKey !== "select") {
+            return 0;
+        }
+        selectContext.focusRevision;
+        selectContext.scoreRevision;
+        selectContext.listRevision;
+        selectContext.visualChartContentRevision;
+        return selectContext.judgeOption(selectContext.selectedChartData(), selectContext.selectedItem());
+    }
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.selectSkinChartWrapper
         : selectSideEffects.renderChart
@@ -4045,6 +4224,142 @@ Item {
         return valueResolver.resolveNumber(num);
     }
 
+    function beatorajaLuaRuntime() : var {
+        return skinModel.luaRuntime || null;
+    }
+
+    function beatorajaLuaNumberValue(num: var) : var {
+        return root.resolveNumber(num);
+    }
+
+    function beatorajaLuaTextValue(st: var) : var {
+        return root.resolveText(st);
+    }
+
+    function beatorajaLuaTimerValue(timer: var) : var {
+        let id = Math.floor(Number(timer) || 0);
+        let runtime = root.beatorajaLuaRuntime();
+        if (runtime && runtime.hasCustomTimer(id)) {
+            return runtime.customTimerMicroValue(id);
+        }
+        if (root.skinTimerStateRef && root.skinTimerStateRef.skinTimerCanFire(id)) {
+            let fireMs = root.skinTimerStateRef.skinTimerFireTime(id, false);
+            return fireMs >= 0 ? fireMs * 1000 : root.beatorajaLuaTimerOffMicro;
+        }
+        let key = String(id);
+        if (root.barTimers && root.barTimers[key] !== undefined) {
+            return root.barTimers[key] >= 0 ? root.barTimers[key] * 1000 : root.beatorajaLuaTimerOffMicro;
+        }
+        if (root.timers && root.timers[key] !== undefined) {
+            return root.timers[key] >= 0 ? root.timers[key] * 1000 : root.beatorajaLuaTimerOffMicro;
+        }
+        return id === 0 ? 0 : root.beatorajaLuaTimerOffMicro;
+    }
+
+    function beatorajaLuaTimeValue(dummy: var) : var {
+        return root.renderSkinTime * 1000;
+    }
+
+    function beatorajaLuaOptionValue(option: var) : var {
+        let id = Math.floor(Number(option) || 0);
+        let options = root.runtimeActiveOptions && root.runtimeActiveOptions.length > 0
+            ? root.runtimeActiveOptions
+            : root.parseActiveOptions;
+        let present = root.activeOptionPresent(Math.abs(id), options);
+        return id < 0 ? !present : present;
+    }
+
+    function beatorajaLuaNumberCallback(callbackId: var) : var {
+        let runtime = root.beatorajaLuaRuntime();
+        return runtime ? runtime.callInt(Math.floor(Number(callbackId) || 0)) : 0;
+    }
+
+    function beatorajaLuaFloatCallback(callbackId: var) : var {
+        let id = Math.floor(Number(callbackId) || 0);
+        if (id <= 0) {
+            return 0;
+        }
+        let runtime = root.beatorajaLuaRuntime();
+        let value = runtime ? Number(runtime.call(id)) : 0;
+        return isFinite(value) ? value : 0;
+    }
+
+    function beatorajaLuaTextCallback(callbackId: var) : var {
+        let runtime = root.beatorajaLuaRuntime();
+        return runtime ? runtime.callString(Math.floor(Number(callbackId) || 0)) : "";
+    }
+
+    function beatorajaLuaDrawCallback(callbackId: var, fallback: var) : var {
+        let id = Math.floor(Number(callbackId) || 0);
+        if (id <= 0) {
+            return fallback;
+        }
+        let runtime = root.beatorajaLuaRuntime();
+        return runtime ? runtime.callBool(id, fallback) : fallback;
+    }
+
+    function beatorajaLuaTimerCallback(callbackId: var) : var {
+        let id = Math.floor(Number(callbackId) || 0);
+        if (id <= 0) {
+            return -1;
+        }
+        let runtime = root.beatorajaLuaRuntime();
+        if (!runtime) {
+            return -1;
+        }
+        let micro = Number(runtime.call(id));
+        if (!isFinite(micro) || micro <= root.beatorajaLuaTimerOffMicro / 2) {
+            return -1;
+        }
+        return Math.floor(micro / 1000);
+    }
+
+    function beatorajaLuaActionCallback(callbackId: var) : void {
+        let runtime = root.beatorajaLuaRuntime();
+        if (runtime) {
+            runtime.callAction(Math.floor(Number(callbackId) || 0));
+        }
+    }
+
+    function beatorajaLuaFloatWriterCallback(callbackId: var, value: var) : void {
+        let runtime = root.beatorajaLuaRuntime();
+        let id = Math.floor(Number(callbackId) || 0);
+        let numericValue = Number(value);
+        if (runtime && id > 0 && isFinite(numericValue)) {
+            runtime.callFloatWriter(id, numericValue);
+        }
+    }
+
+    function beatorajaLuaEventCallback(eventId: var, arg1: var, arg2: var) : var {
+        let runtime = root.beatorajaLuaRuntime();
+        let id = Math.floor(Number(eventId) || 0);
+        return runtime && runtime.hasCustomEvent(id)
+            ? runtime.callEvent(id,
+                                Math.floor(Number(arg1) || 0),
+                                Math.floor(Number(arg2) || 0))
+            : false;
+    }
+
+    function updateBeatorajaLuaCustomObjects() : void {
+        let runtime = root.beatorajaLuaRuntime();
+        if (runtime && root.skinTimerStateRef) {
+            root.skinTimerStateRef.customTimerValues = runtime.updateCustomObjects();
+        }
+    }
+
+    function beatorajaLuaRevision() : var {
+        let runtime = root.beatorajaLuaRuntime();
+        return runtime ? runtime.revision : 0;
+    }
+
+    function updateBeatorajaLuaStateProvider() : void {
+        let runtime = root.beatorajaLuaRuntime();
+        if (runtime) {
+            runtime.stateProvider = root;
+            root.updateBeatorajaLuaCustomObjects();
+        }
+    }
+
     function numberValue(src: var) : var {
         return valueResolver.numberValue(src);
     }
@@ -4069,6 +4384,10 @@ Item {
         return valueResolver.resolveBarGraph(type);
     }
 
+    function barGraphValue(src: var) : var {
+        return valueResolver.barGraphValue(src);
+    }
+
     function normalizedBarValue(value: var, maximum: var) : var {
         return valueResolver.normalizedBarValue(value, maximum);
     }
@@ -4081,7 +4400,11 @@ Item {
         if (!src || (src.cycle || 0) <= 0) {
             return false;
         }
-        let segments = (src.graphType || 0) === 0 ? 11 : 28;
+        let graphType = src.graphType || 0;
+        let distributionGraphType = graphType < 0
+            ? (graphType === -1 ? 0 : 1)
+            : graphType;
+        let segments = distributionGraphType === 0 ? 11 : 28;
         let frames = Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1);
         return Math.floor(frames / segments) > 1;
     }
@@ -4124,8 +4447,8 @@ Item {
         return selectPanelController.elementButtonPanelMatches(src);
     }
 
-    function buttonMouseDelta(src: var, mouseX: var, width: var) : var {
-        return selectPanelController.buttonMouseDelta(src, mouseX, width);
+    function buttonMouseDelta(src: var, mouseX: var, width: var, mouseY: var, height: var) : var {
+        return selectPanelController.buttonMouseDelta(src, mouseX, width, mouseY, height);
     }
 
     function buttonFrame(src: var) : var {
@@ -4314,6 +4637,7 @@ Item {
     readonly property int gameplayLaneCoverSpriteStateOverride: 3
     readonly property int numberRefSpriteStateOverride: 4
     readonly property int genericSliderSpriteStateOverride: 5
+    readonly property int luaValueSliderSpriteStateOverride: 6
 
     function spriteSliderPositionForKind(kind: var, src: var) : var {
         switch (kind) {
@@ -4327,6 +4651,8 @@ Item {
             return skinSliderState.numberRefSliderPosition(src);
         case root.genericSliderSpriteStateOverride:
             return skinSliderState.genericPosition(src);
+        case root.luaValueSliderSpriteStateOverride:
+            return skinSliderState.luaValuePosition(src);
         default:
             return 0;
         }
@@ -4346,6 +4672,10 @@ Item {
 
     function setLr2GenericSliderFromTrack(src: var, track: var, pointerX: var, pointerY: var) : void {
         skinSliderState.setGenericFromTrack(src, track, pointerX, pointerY);
+    }
+
+    function setBeatorajaLuaSliderFromTrack(src: var, track: var, pointerX: var, pointerY: var) : void {
+        skinSliderState.setLuaValueFromTrack(src, track, pointerX, pointerY);
     }
 
     readonly property var barBaseStateResolver: selectBarGeometry.barBaseStateResolver
@@ -4455,6 +4785,7 @@ Item {
         : root.zeroTimers
 
     onRenderSkinTimeChanged: {
+        root.updateBeatorajaLuaCustomObjects();
         if (root.effectiveScreenKey === "select"
                 && root.selectHoverHasPoint
                 && root.globalSkinTime < root.selectAnimationLimit) {
@@ -4550,6 +4881,8 @@ Item {
         barLampVariants: skinModel.barLampVariants || []
         useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics
         useBeatorajaSelectOptions: root.lr2SkinUsesBeatorajaSemantics
+        useBeatorajaCsvBarLampMap: root.lr2SkinUsesBeatorajaSemantics
+                                   && root.lr2SkinMetadata.sourceFormat !== "lua"
         generalVars: root.mainGeneralVars()
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
@@ -4608,6 +4941,7 @@ Item {
         screenRuntimeActiveOptions: root.builtScreenRuntimeActiveOptions
         gameplayScreen: root.isGameplayScreen()
         selectedKeymode: root.selectRuntimeKeymode
+        selectedJudgeOption: root.selectRuntimeJudgeOption
         spToDpActive: root.spToDpActive()
         battleModeActive: root.battleModeActive()
         onLr2RankingRequestMd5Changed: if (root.lr2RankingRequestMd5 !== lr2RankingRequestMd5) root.lr2RankingRequestMd5 = lr2RankingRequestMd5
@@ -4666,7 +5000,10 @@ Item {
         settingValues: root.skinSettings || {}
         activeOptions: root.parseActiveOptions
 
+        onLuaRuntimeChanged: root.updateBeatorajaLuaStateProvider()
+
         onSkinLoaded: {
+            root.updateBeatorajaLuaStateProvider();
             if (root.effectiveScreenKey === "select") {
                 selectContext.resetSortSourceFrameCount();
             }
@@ -4710,6 +5047,7 @@ Item {
         root.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
         root.refreshGameplayRuntimeActiveOptions();
+        root.updateBeatorajaLuaStateProvider();
     }
 
     function pauseScreenActivity() : void {
@@ -4797,6 +5135,7 @@ Item {
     function submitSelectSearch() : void { selectSearchState.submit(); }
 
     Keys.onUpPressed: (event) => {
+        root.recordBeatorajaLuaKeyEvent(event, true);
         if (root.lr2ReadmeMode === 1) {
             event.accepted = true;
             root.scrollReadmeBy(0, Math.max(1, root.lr2ReadmeLineSpacing));
@@ -4811,6 +5150,7 @@ Item {
         selectContext.navigationController.decrementViewIndex(event.isAutoRepeat);
     }
     Keys.onDownPressed: (event) => {
+        root.recordBeatorajaLuaKeyEvent(event, true);
         if (root.lr2ReadmeMode === 1) {
             event.accepted = true;
             root.scrollReadmeBy(0, -Math.max(1, root.lr2ReadmeLineSpacing));
@@ -4825,6 +5165,7 @@ Item {
         selectContext.navigationController.incrementViewIndex(event.isAutoRepeat);
     }
     Keys.onLeftPressed: (event) => {
+        root.recordBeatorajaLuaKeyEvent(event, true);
         if (root.handleLr2GameplayArrow(Qt.Key_Left)) {
             event.accepted = true;
             return;
@@ -4834,6 +5175,7 @@ Item {
         root.selectGoBack();
     }
     Keys.onRightPressed: (event) => {
+        root.recordBeatorajaLuaKeyEvent(event, true);
         if (root.handleLr2GameplayArrow(Qt.Key_Right)) {
             event.accepted = true;
             return;
@@ -4843,6 +5185,7 @@ Item {
         root.selectGoForward();
     }
     Keys.onReturnPressed: (event) => {
+        root.recordBeatorajaLuaKeyEvent(event, true);
         if (root.lr2ReadmeMode > 0) {
             event.accepted = true;
             root.closeReadme();

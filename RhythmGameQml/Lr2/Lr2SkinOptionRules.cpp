@@ -10,63 +10,36 @@ bool Lr2SkinOptionRules::isRuntimeOwnedOption(int option) const {
 }
 
 bool Lr2SkinOptionRules::isRuntimeOwnedOptionValue(int option) {
-    switch (std::abs(option)) {
-    case 1:
-    case 2:
-    case 3:
-    case 5:
-    case 30:
-    case 31:
-    case 32:
-    case 33:
-    case 34:
-    case 35:
-    case 36:
-    case 37:
-    case 38:
-    case 39:
-    case 40:
-    case 41:
-    case 42:
-    case 43:
-    case 44:
-    case 45:
-    case 46:
-    case 47:
-    case 50:
-    case 51:
-    case 52:
-    case 53:
-    case 54:
-    case 55:
-    case 56:
-    case 57:
-    case 60:
-    case 61:
-    case 62:
-    case 63:
-    case 64:
-    case 65:
-    case 66:
-    case 80:
-    case 81:
-    case 82:
-    case 83:
-    case 84:
-    case 160:
-    case 161:
-    case 162:
-    case 163:
-    case 164:
-    case 165:
-    case 166:
-    case 167:
-    case 168:
-    case 169:
+    const int id = std::abs(option);
+    const auto inRange = [id](int first, int last) {
+        return id >= first && id <= last;
+    };
+
+    if (inRange(1, 5)
+        || inRange(30, 66)
+        || inRange(70, 84)
+        || inRange(90, 91)
+        || inRange(100, 145)
+        || inRange(150, 197)
+        || inRange(200, 354)
+        || inRange(499, 624)
+        || id == 625
+        || inRange(700, 755)
+        || inRange(1100, 1104)
+        || inRange(1196, 1208)
+        || inRange(1240, 1263)
+        || inRange(1330, 1336)
+        || inRange(2241, 2246)) {
+        return true;
+    }
+
+    switch (id) {
     case 1046:
     case 1047:
+    case 1128:
     case 1160:
     case 1161:
+    case 1177:
         return true;
     default:
         return false;

@@ -33,7 +33,7 @@ bool selectNumberUsesFocusedState(int num) {
         || (num >= 70 && num <= 116)
         || num == 128
         || num == 150 || num == 152 || num == 154
-        || (num >= 179 && num <= 182)
+        || (num >= 179 && num <= 184)
         || (num >= 200 && num <= 242)
         || num == 290 || num == 291
         || num == 300 || (num >= 320 && num <= 330)
@@ -300,15 +300,16 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         const QVariant source = modelData(row, "src");
         const QVariantList dsts = rt::readVariantList(modelData(row, "dsts"));
         ElementDescriptor descriptor = buildDescriptor(row, type, source, dsts, noteDsts);
-        const bool usesGeneralTimer = (descriptor.usesDynamicDstTimer && descriptor.dstTimer != 11)
-            || (descriptor.usesDynamicSrcTimer && descriptor.srcTimer != 11);
+        const bool usesGeneralTimer =
+            (descriptor.dstTimer != 0 && descriptor.dstTimer != 11)
+            || (descriptor.srcTimer != 0 && descriptor.srcTimer != 11);
         const bool usesSelectInfoTimer = descriptor.dstTimer == 11 || descriptor.srcTimer == 11;
         if (usesGeneralTimer) {
             m_timerDescriptorIndexes.append(row);
-            if (descriptor.usesDynamicDstTimer && descriptor.dstTimer != 11) {
+            if (descriptor.dstTimer != 0 && descriptor.dstTimer != 11) {
                 m_timerDescriptorIndexesByTimer[descriptor.dstTimer].append(row);
             }
-            if (descriptor.usesDynamicSrcTimer && descriptor.srcTimer != 11) {
+            if (descriptor.srcTimer != 0 && descriptor.srcTimer != 11) {
                 m_timerDescriptorIndexesByTimer[descriptor.srcTimer].append(row);
             }
         }
@@ -346,12 +347,22 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         modelListProperty("lnEndSources"),
         modelListProperty("lnBodySources"),
         modelListProperty("lnBodyActiveSources"),
+        modelListProperty("hcnStartSources"),
+        modelListProperty("hcnEndSources"),
+        modelListProperty("hcnBodySources"),
+        modelListProperty("hcnBodyActiveSources"),
+        modelListProperty("hcnBodyReactiveSources"),
+        modelListProperty("hcnBodyMissSources"),
         modelListProperty("autoNoteSources"),
         modelListProperty("autoMineSources"),
         modelListProperty("autoLnStartSources"),
         modelListProperty("autoLnEndSources"),
         modelListProperty("autoLnBodySources"),
         modelListProperty("autoLnBodyActiveSources"),
+        modelListProperty("autoHcnStartSources"),
+        modelListProperty("autoHcnEndSources"),
+        modelListProperty("autoHcnBodySources"),
+        modelListProperty("autoHcnBodyActiveSources"),
         modelListProperty("lineSources"),
     };
     for (const QVariantList& collection : sourceCollections) {
@@ -543,12 +554,16 @@ QVariantMap Lr2SkinRuntime::descriptorMap(const ElementDescriptor& descriptor) c
     value.insert(QStringLiteral("scratchRotationSide"), descriptor.scratchRotationSide);
     value.insert(QStringLiteral("dstTimer"), descriptor.dstTimer);
     value.insert(QStringLiteral("srcTimer"), descriptor.srcTimer);
+    value.insert(QStringLiteral("dstTimerCallback"), descriptor.dstTimerCallback);
+    value.insert(QStringLiteral("srcTimerCallback"), descriptor.srcTimerCallback);
     value.insert(QStringLiteral("selectScrollSlider"), descriptor.selectScrollSlider);
     value.insert(QStringLiteral("genericSlider"), descriptor.genericSlider);
     value.insert(QStringLiteral("gameplayProgressSlider"), descriptor.gameplayProgressSlider);
     value.insert(QStringLiteral("gameplayLaneCoverSlider"), descriptor.gameplayLaneCoverSlider);
     value.insert(QStringLiteral("numberRefSlider"), descriptor.numberRefSlider);
     value.insert(QStringLiteral("buttonId"), descriptor.buttonId);
+    value.insert(QStringLiteral("buttonActionCallback"), descriptor.buttonActionCallback);
+    value.insert(QStringLiteral("luaDrawCallback"), descriptor.luaDrawCallback);
     value.insert(QStringLiteral("numberUsesFocusedSelectState"), descriptor.numberUsesFocusedSelectState);
     return value;
 }
@@ -575,11 +590,18 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     rt::readSource(sourceValue, descriptor.source);
     descriptor.dsts = rt::readDsts(dstValues);
     descriptor.dstAnalysis = rt::analyzeDsts(descriptor.dsts);
+    descriptor.luaDrawCallback =
+        descriptor.dsts.isEmpty() ? 0 : descriptor.dsts.front().drawCallback;
 
     const bool selectScreen = m_screenKey == QStringLiteral("select");
     const bool sourceCycles = rt::sourceCyclesContinuously(descriptor.source);
-    const bool selectInfoDstTimer = selectScreen && descriptor.dstAnalysis.firstTimer == 11;
-    const bool selectInfoSrcTimer = selectScreen && descriptor.source.valid && descriptor.source.timer == 11;
+    const bool selectInfoDstTimer = selectScreen
+        && descriptor.dstAnalysis.firstTimer == 11
+        && !descriptor.dstAnalysis.loopsContinuously;
+    const bool selectInfoSrcTimer = selectScreen
+        && descriptor.source.valid
+        && descriptor.source.timer == 11
+        && !sourceCycles;
     const bool selectPanelTimer = (descriptor.dstAnalysis.firstTimer >= 21 && descriptor.dstAnalysis.firstTimer <= 26)
         || (descriptor.dstAnalysis.firstTimer >= 31 && descriptor.dstAnalysis.firstTimer <= 36);
 
@@ -646,14 +668,19 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.scratchRotationSide = descriptor.dstAnalysis.scratchRotationSide;
     descriptor.dstTimer = descriptor.dstAnalysis.firstTimer;
     descriptor.srcTimer = descriptor.source.valid ? descriptor.source.timer : 0;
-    descriptor.usesDynamicDstTimer = descriptor.dstTimer != 0;
-    descriptor.usesDynamicSrcTimer = descriptor.srcTimer != 0;
+    descriptor.dstTimerCallback = descriptor.dstAnalysis.firstTimerCallback;
+    descriptor.srcTimerCallback = descriptor.source.valid ? descriptor.source.timerCallback : 0;
+    descriptor.usesDynamicDstTimer =
+        descriptor.dstTimer != 0 || descriptor.dstTimerCallback > 0;
+    descriptor.usesDynamicSrcTimer =
+        descriptor.srcTimer != 0 || descriptor.srcTimerCallback > 0;
     descriptor.selectScrollSlider = descriptor.spriteStateOverrideKind == rt::SelectScrollSpriteStateOverride;
     descriptor.genericSlider = descriptor.spriteStateOverrideKind == rt::GenericSliderSpriteStateOverride;
     descriptor.gameplayProgressSlider = descriptor.spriteStateOverrideKind == rt::GameplayProgressSpriteStateOverride;
     descriptor.gameplayLaneCoverSlider = descriptor.spriteStateOverrideKind == rt::GameplayLaneCoverSpriteStateOverride;
     descriptor.numberRefSlider = descriptor.spriteStateOverrideKind == rt::NumberRefSpriteStateOverride;
     descriptor.buttonId = descriptor.source.buttonId;
+    descriptor.buttonActionCallback = descriptor.source.buttonActionCallback;
     descriptor.numberUsesFocusedSelectState = selectNumberUsesFocusedState(descriptor.source.num);
 
     if (rt::isSelectBarElement(type, descriptor.source)) {

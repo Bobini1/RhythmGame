@@ -116,6 +116,17 @@ QtObject {
             : root.sliderRawValue(src.sliderType) / 100;
     }
 
+    function luaValuePosition(src: var) : var {
+        let callback = src ? Math.floor(Number(src.sliderValueCallback) || 0) : 0;
+        if (callback <= 0) {
+            return 0;
+        }
+        root.renderSkinTime;
+        root.beatorajaLuaRevision();
+        let value = Number(root.beatorajaLuaFloatCallback(callback));
+        return isFinite(value) ? value : 0;
+    }
+
     function gameplayProgressPosition(src: var) : var {
         if (!sliders.isGameplayProgressSlider(src)) {
             return 0;
@@ -275,5 +286,12 @@ QtObject {
         }
         root.setSliderRawValue(src.sliderType, position * 100);
     }
-}
 
+    function setLuaValueFromTrack(src: var, track: var, pointerX: var, pointerY: var) : var {
+        if (!track || !src || (src.sliderEventCallback || 0) <= 0) {
+            return;
+        }
+        let position = sliders.positionFromPointer(src, track, pointerX, pointerY);
+        root.beatorajaLuaFloatWriterCallback(src.sliderEventCallback, position);
+    }
+}

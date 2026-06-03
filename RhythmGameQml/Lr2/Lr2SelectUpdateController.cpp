@@ -126,6 +126,9 @@ void Lr2SelectUpdateController::setSelectPanel(int panel) {
     }
     m_selectPanel = panel;
     emit selectPanelChanged();
+    if (refreshBaseActiveOptions()) {
+        refreshSelectRuntimeActiveOptions();
+    }
 }
 
 QString Lr2SelectUpdateController::lr2RankingMd5() const { return m_lr2RankingMd5; }
@@ -369,6 +372,19 @@ void Lr2SelectUpdateController::setSelectedKeymode(int keymode) {
     emit selectedKeymodeChanged();
 }
 
+int Lr2SelectUpdateController::selectedJudgeOption() const {
+    return m_selectedJudgeOption;
+}
+
+void Lr2SelectUpdateController::setSelectedJudgeOption(int option) {
+    if (m_selectedJudgeOption == option) {
+        return;
+    }
+    m_selectedJudgeOption = option;
+    emit selectedJudgeOptionChanged();
+    refreshCurrentRuntimeActiveOptions();
+}
+
 bool Lr2SelectUpdateController::spToDpActive() const {
     return m_spToDpActive;
 }
@@ -454,6 +470,7 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
     QVariantList next = mergedNumberArray(
         m_selectCommonActiveOptions,
         normalizedNumberArray(m_selectRuntimeGeneratedActiveOptions));
+    replaceSelectJudgeOption(next);
     appendSelectKeymodeOptions(next);
     const QString nextKey = numberArrayKey(next);
     if (nextKey == m_selectRuntimeActiveOptionsKey
@@ -644,6 +661,51 @@ void Lr2SelectUpdateController::appendSelectKeymodeOptions(QVariantList& options
     }
     if (afterOption > 0) {
         appendUniqueSkinOption(options, afterOption);
+    }
+}
+
+int Lr2SelectUpdateController::compatibleSelectJudgeOption() const {
+    int option = m_selectedJudgeOption;
+    if (option < 180 || option > 184) {
+        option = 182;
+    }
+
+    if (skinUsesOption(option)) {
+        return option;
+    }
+
+    for (int offset = 1; offset <= 4; ++offset) {
+        const int lower = option - offset;
+        if (lower >= 180 && skinUsesOption(lower)) {
+            return lower;
+        }
+        const int upper = option + offset;
+        if (upper <= 184 && skinUsesOption(upper)) {
+            return upper;
+        }
+    }
+
+    return 0;
+}
+
+void Lr2SelectUpdateController::replaceSelectJudgeOption(QVariantList& options) const {
+    qsizetype write = 0;
+    for (qsizetype read = 0; read < options.size(); ++read) {
+        const int option = options.at(read).toInt();
+        const int id = std::abs(option);
+        if (id >= 180 && id <= 184) {
+            continue;
+        }
+        if (write != read) {
+            options[write] = options.at(read);
+        }
+        ++write;
+    }
+    options.erase(options.begin() + write, options.end());
+
+    const int judgeOption = compatibleSelectJudgeOption();
+    if (judgeOption > 0) {
+        appendUniqueOption(options, judgeOption);
     }
 }
 

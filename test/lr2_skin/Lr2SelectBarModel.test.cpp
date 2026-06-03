@@ -212,6 +212,17 @@ TEST_CASE("LR2 select bar cells consume flat folder graph arrays",
 	REQUIRE(cell->graphValueForType(0, 2) == 4.0);
 }
 
+TEST_CASE("LR2 select item model defaults missing chart rank to normal",
+		  "[lr2][runtime][select]")
+{
+	Lr2SelectItemModel source;
+	QVariantMap value = item(QStringLiteral("chart0"));
+	value.insert(QStringLiteral("type"), QStringLiteral("chart"));
+	source.setItems({ value });
+
+	REQUIRE(source.data(source.index(0, 0), Lr2SelectItemModel::RankRole).toDouble() == 75.0);
+}
+
 TEST_CASE("LR2 select bar cells keep graph data on chart rows",
 		  "[lr2][runtime][select]")
 {

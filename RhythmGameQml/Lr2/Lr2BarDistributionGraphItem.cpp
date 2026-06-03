@@ -111,6 +111,15 @@ toInt(const QVariant& value, int fallback = 0)
     return ok ? result : fallback;
 }
 
+int
+distributionGraphType(const int graphType)
+{
+    if (graphType < 0) {
+        return graphType == -1 ? 0 : 1;
+    }
+    return graphType;
+}
+
 QVariant
 gadgetProperty(const QVariant& source, const char* name)
 {
@@ -249,7 +258,7 @@ centerAnchor(int center)
 qreal
 graphValueAt(const Lr2SelectBarCell* cell, int graphType, int segment)
 {
-    return cell ? cell->graphValueForType(graphType, segment) : 0.0;
+    return cell ? cell->graphValueForType(distributionGraphType(graphType), segment) : 0.0;
 }
 
 int
@@ -1040,7 +1049,7 @@ Lr2BarDistributionGraphItem::sourceClockSkinTime() const
 int
 Lr2BarDistributionGraphItem::computedFrameOverrideBase() const
 {
-    const int segmentCount = m_source.graphType == 0 ? 11 : 28;
+    const int segmentCount = distributionGraphType(m_source.graphType) == 0 ? 11 : 28;
     const int frameCount = std::max(1, m_source.divX * m_source.divY);
     const int animationGroups = std::max(1, frameCount / segmentCount);
     if (animationGroups <= 1 || m_source.cycle <= 0) {
@@ -1109,7 +1118,7 @@ Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode,
     material->transColor = m_transColor;
     material->textureSize = m_sourceImage.size();
 
-    const int segmentCount = m_source.graphType == 0 ? 11 : 28;
+    const int segmentCount = distributionGraphType(m_source.graphType) == 0 ? 11 : 28;
     const int frameCount = std::max(1, m_source.divX * m_source.divY);
     const qreal fullW = std::abs(state.w);
     const qreal fullH = std::abs(state.h);

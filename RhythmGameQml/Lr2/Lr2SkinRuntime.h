@@ -134,12 +134,16 @@ private:
         int scratchRotationSide = 0;
         int dstTimer = 0;
         int srcTimer = 0;
+        int dstTimerCallback = 0;
+        int srcTimerCallback = 0;
         bool selectScrollSlider = false;
         bool genericSlider = false;
         bool gameplayProgressSlider = false;
         bool gameplayLaneCoverSlider = false;
         bool numberRefSlider = false;
         int buttonId = 0;
+        int buttonActionCallback = 0;
+        int luaDrawCallback = 0;
         bool numberUsesFocusedSelectState = false;
         TimerSnapshot timers;
     };

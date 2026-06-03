@@ -34,6 +34,8 @@ Loader {
     readonly property var elementData: ({ type: type, src: src, dsts: dsts || [] })
     readonly property bool elementSourceTreeAnimates: Lr2SkinUtils.sourceTreeCyclesContinuously(src)
     readonly property bool elementSourceTreeUsesChartAsset: Lr2SkinUtils.sourceTreeUsesChartAsset(src)
+    property bool luaDrawVisible: true
+    property bool luaDrawVisibleRefreshPending: false
 
     readonly property var elementState: {
         elemLoader.runtimeRevision;
@@ -41,11 +43,14 @@ Loader {
             ? elemLoader.skinRuntime.descriptor(elementIndex)
             : ({});
     }
+    readonly property int luaDrawCallback: elementState.luaDrawCallback || 0
 
     readonly property bool usesActiveOptions: elementState.usesActiveOptions
     readonly property bool usesSkinTime: elementState.usesSkinTime
     readonly property int dstTimer: elementState.dstTimer
     readonly property int srcTimer: elementState.srcTimer
+    readonly property int dstTimerCallback: elementState.dstTimerCallback || 0
+    readonly property int srcTimerCallback: elementState.srcTimerCallback || 0
     readonly property bool usesSelectHeldButtonTimer: elementState.usesSelectHeldButtonTimer
     readonly property bool usesLiveDstClock: elementState.usesLiveDstClock
     readonly property bool usesLiveSourceClock: elementState.usesLiveSourceClock
@@ -72,6 +77,11 @@ Loader {
             : null;
     }
     readonly property int dstTimerFire: {
+        if (elemLoader.dstTimerCallback > 0) {
+            elemLoader.screenRoot.renderSkinTime;
+            elemLoader.screenRoot.beatorajaLuaRevision();
+            return elemLoader.screenRoot.beatorajaLuaTimerCallback(elemLoader.dstTimerCallback);
+        }
         if (!elemLoader.usesDynamicDstTimer) {
             return elemLoader.dstTimer === 0 ? 0 : -1;
         }
@@ -85,6 +95,11 @@ Loader {
             : -1;
     }
     readonly property int srcTimerFire: {
+        if (elemLoader.srcTimerCallback > 0) {
+            elemLoader.screenRoot.renderSkinTime;
+            elemLoader.screenRoot.beatorajaLuaRevision();
+            return elemLoader.screenRoot.beatorajaLuaTimerCallback(elemLoader.srcTimerCallback);
+        }
         if (!elemLoader.usesDynamicSrcTimer) {
             return elemLoader.srcTimer === 0 ? 0 : -1;
         }
@@ -127,6 +142,28 @@ Loader {
     readonly property int elementSkinTime: needsManualElementSkinTime
         ? elementSkinTimeForClock(elementSkinClockMode, usesLiveSelectClock, elemLoader.screenRoot.renderSkinTime, false)
         : 0
+
+    visible: luaDrawVisible
+    enabled: luaDrawVisible
+
+    function refreshLuaDrawVisible() : void {
+        luaDrawVisible = elemLoader.luaDrawCallback > 0
+            ? elemLoader.screenRoot.beatorajaLuaDrawCallback(elemLoader.luaDrawCallback, true)
+            : true;
+    }
+
+    function scheduleLuaDrawVisibleRefresh() : void {
+        if (elemLoader.luaDrawVisibleRefreshPending) {
+            return;
+        }
+        elemLoader.luaDrawVisibleRefreshPending = true;
+        Qt.callLater(function() {
+            elemLoader.luaDrawVisibleRefreshPending = false;
+            if (elemLoader) {
+                elemLoader.refreshLuaDrawVisible();
+            }
+        });
+    }
 
     function elementSkinTimeForClock(clockMode: var, useSelectLiveClock: var, fallbackSkinTime: var, allowHeldButtonTimer: var) : var {
         if (allowHeldButtonTimer && usesSelectHeldButtonTimer) {
@@ -202,6 +239,7 @@ Loader {
     }
 
     Component.onCompleted: {
+        elemLoader.scheduleLuaDrawVisibleRefresh();
         elemLoader.screenRoot.registerSelectHoverElement(elementIndex, elemLoader.elementData.src, usesSpriteForceHidden);
         elemLoader.screenRoot.registerSelectButtonSource(elementIndex, elemLoader.elementData.src);
         pointerController.registerElement(elementIndex, elemLoader.elementData.type, elemLoader.elementData.src, elementState.z || 0);
@@ -214,13 +252,32 @@ Loader {
 
     sourceComponent: componentForElement()
 
+    onLuaDrawCallbackChanged: scheduleLuaDrawVisibleRefresh()
+
+    Connections {
+        target: elemLoader.screenRoot
+        function onRenderSkinTimeChanged() : void {
+            if (elemLoader.luaDrawCallback > 0) {
+                elemLoader.scheduleLuaDrawVisibleRefresh();
+            }
+        }
+        function onRuntimeActiveOptionsChanged() : void { elemLoader.scheduleLuaDrawVisibleRefresh(); }
+        function onSelectRevisionChanged() : void { elemLoader.scheduleLuaDrawVisibleRefresh(); }
+    }
+
+    Connections {
+        target: elemLoader.screenRoot ? elemLoader.screenRoot.beatorajaLuaRuntime() : null
+        function onRevisionChanged() : void { elemLoader.scheduleLuaDrawVisibleRefresh(); }
+    }
+
     Component {
         id: imageComponent
         Item {
             id: imageComponentRoot
             width: skinW * skinScale
             height: skinH * skinScale
-            readonly property bool sourceAnimates: elementState.sourceHasFrameAnimation
+            readonly property bool sourceAnimates: Lr2SkinUtils.sourceCyclesContinuously(spriteSrcData)
+                || elementState.sourceHasFrameAnimation
             readonly property real nowJudgeOffsetX: elemLoader.screenRoot.nowJudgeOffsetX(elemLoader.elementData.src, elemLoader.elementData.dsts)
             readonly property int scratchRotationSide: elementState.scratchRotationSide
             readonly property bool useDirectSkinClock: elementState.spriteUsesDirectSkinClock
@@ -249,11 +306,107 @@ Loader {
             readonly property int buttonFrameOverrideValue: elemLoader.usesButtonFrameOverride
                 ? elemLoader.screenRoot.buttonFrame(elemLoader.elementData.src)
                 : -1
+            readonly property bool spriteSourceIsImageSet: {
+                const source = elemLoader.elementData.src;
+                return !!source
+                    && !!source.imageSet
+                    && !!source.imageSetSources
+                    && source.imageSetSources.length > 0;
+            }
+            readonly property bool spriteSourceUsesLuaImageSetCallback: {
+                const source = elemLoader.elementData.src;
+                return spriteSourceIsImageSet && (source.imageSetValueCallback || 0) > 0;
+            }
+            readonly property bool spriteSourceNeedsRenderRefresh: spriteSourceUsesLuaImageSetCallback
+                || (spriteSourceIsImageSet && elemLoader.screenRoot.isGameplayScreen())
+            property var spriteSrcData: null
+            property bool spriteSrcRefreshPending: false
+            readonly property int spriteSourceTimerFire: sourceTimerFireForSprite(
+                spriteSrcData,
+                elemLoader.srcTimerFire)
+
+            function sourceTimerFireForSprite(source: var, fallbackFire: var) : var {
+                if (!source) {
+                    return fallbackFire;
+                }
+                let callback = Math.floor(Number(source.timerCallback) || 0);
+                if (callback > 0) {
+                    elemLoader.screenRoot.renderSkinTime;
+                    elemLoader.screenRoot.beatorajaLuaRevision();
+                    return elemLoader.screenRoot.beatorajaLuaTimerCallback(callback);
+                }
+                let timer = Math.floor(Number(source.timer) || 0);
+                if (timer === elemLoader.srcTimer && elemLoader.srcTimerCallback <= 0) {
+                    return fallbackFire;
+                }
+                if (timer === 0) {
+                    return 0;
+                }
+                if (elemLoader.screenRoot.skinTimerStateRef
+                        && elemLoader.screenRoot.skinTimerStateRef.skinTimerCanFire(timer)) {
+                    let fireMs = elemLoader.screenRoot.skinTimerStateRef.skinTimerFireTime(
+                        timer,
+                        elemLoader.usesLiveSourceClock);
+                    return fireMs >= 0 ? fireMs : -1;
+                }
+                return -1;
+            }
+
+            function refreshSpriteSrcData() : void {
+                const nextSource = elemLoader.screenRoot.imageSetSourceFor(elemLoader.elementData.src);
+                if (imageComponentRoot.spriteSrcData !== nextSource) {
+                    imageComponentRoot.spriteSrcData = nextSource;
+                }
+            }
+
+            function scheduleSpriteSrcDataRefresh() : void {
+                if (imageComponentRoot.spriteSrcRefreshPending) {
+                    return;
+                }
+                imageComponentRoot.spriteSrcRefreshPending = true;
+                Qt.callLater(function() {
+                    imageComponentRoot.spriteSrcRefreshPending = false;
+                    if (imageComponentRoot) {
+                        imageComponentRoot.refreshSpriteSrcData();
+                    }
+                });
+            }
+
+            Component.onCompleted: scheduleSpriteSrcDataRefresh()
+
+            Connections {
+                target: elemLoader
+                function onRuntimeRevisionChanged() : void {
+                    if (imageComponentRoot.spriteSourceUsesLuaImageSetCallback) {
+                        imageComponentRoot.scheduleSpriteSrcDataRefresh();
+                    }
+                }
+                function onSrcChanged() : void { imageComponentRoot.scheduleSpriteSrcDataRefresh(); }
+            }
+
+            Connections {
+                target: elemLoader.screenRoot
+                function onRenderSkinTimeChanged() : void {
+                    if (imageComponentRoot.spriteSourceNeedsRenderRefresh) {
+                        imageComponentRoot.scheduleSpriteSrcDataRefresh();
+                    }
+                }
+                function onRuntimeActiveOptionsChanged() : void {
+                    if (imageComponentRoot.spriteSourceIsImageSet) {
+                        imageComponentRoot.scheduleSpriteSrcDataRefresh();
+                    }
+                }
+                function onSelectRevisionChanged() : void {
+                    if (imageComponentRoot.spriteSourceIsImageSet) {
+                        imageComponentRoot.scheduleSpriteSrcDataRefresh();
+                    }
+                }
+            }
 
             Lr2SpriteRenderer {
                 anchors.fill: parent
                 dsts: elemLoader.elementData.dsts
-                srcData: elemLoader.screenRoot.imageSetSourceFor(elemLoader.elementData.src)
+                srcData: imageComponentRoot.spriteSrcData
                 skinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSkinClock
                 sourceSkinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSourceSkinClock
                 skinClock: imageComponentRoot.useDirectSkinClock ? elemLoader.screenRoot.skinClockRef : null
@@ -261,8 +414,8 @@ Loader {
                 sourceSkinClockMode: imageComponentRoot.spriteSourceSkinClockMode
                 activeOptionsState: elemLoader.elementActiveOptionsState
                 timerFire: elemLoader.dstTimerFire
-                sourceTimerFire: elemLoader.srcTimerFire
-                chartAssetSource: elemLoader.chartAssetSourceFor(elemLoader.elementData.src)
+                sourceTimerFire: imageComponentRoot.spriteSourceTimerFire
+                chartAssetSource: elemLoader.chartAssetSourceFor(imageComponentRoot.spriteSrcData)
                 scaleOverride: skinScale
                 mediaActive: elemLoader.screenRoot.enabled && elemLoader.screenUpdatesActive
                 transColor: skinModel.transColor
@@ -396,78 +549,147 @@ Loader {
 
     Component {
         id: numberComponent
-        Lr2NumberRenderer {
-            id: numberRenderer
+        Item {
+            id: numberComponentRoot
+
+            width: elemLoader.skinW * elemLoader.skinScale
+            height: elemLoader.skinH * elemLoader.skinScale
+
             readonly property var numberSrc: elemLoader.elementData.src
             readonly property int numberId: numberSrc ? numberSrc.num || 0 : 0
-            readonly property bool numberNowCombo: numberSrc && numberSrc.nowCombo
+            readonly property bool numberNowCombo: !!(numberSrc && numberSrc.nowCombo)
             readonly property int numberNowComboSide: numberNowCombo
                 ? (numberSrc.side || (numberSrc.timer === 47 ? 2 : 1))
                 : 0
             readonly property bool numberSourceAnimates: elementState.sourceHasFrameAnimation
-            dsts: elemLoader.elementData.dsts
-            srcData: numberSrc
-            skinTime: elemLoader.useDirectElementSkinClock && !numberSourceAnimates ? 0 : elemLoader.elementSkinTime
-            skinClock: elemLoader.useDirectElementSkinClock ? elemLoader.screenRoot.skinClockRef : null
-            skinClockMode: elemLoader.elementSkinClockMode
-            activeOptionsState: elemLoader.elementActiveOptionsState
-            timerFire: elemLoader.dstTimerFire
-            sourceTimerFire: elemLoader.srcTimerFire
-            scaleOverride: skinScale
-            value: {
-                if (!numberRenderer.hasCurrentState) {
-                    return 0;
-                }
+            property int numberValue: 0
+            property bool numberValueRefreshPending: false
+
+            function computeNumberValue() : int {
                 if (elemLoader.screenRoot.effectiveScreenKey === "select") {
-                    let num = numberRenderer.numberId;
+                    let num = numberComponentRoot.numberId;
                     if (num === 20) {
                         return elemLoader.screenRoot.lr2CurrentFps;
                     }
                     if (!elementState.numberUsesFocusedSelectState) {
-                        return elemLoader.screenRoot.numberValue(numberRenderer.numberSrc);
+                        return elemLoader.screenRoot.numberValue(numberComponentRoot.numberSrc);
                     }
                     if ((num >= 410 && num <= 419) || (num >= 421 && num <= 424)) {
-                        return elemLoader.screenRoot.numberValue(numberRenderer.numberSrc);
+                        return elemLoader.screenRoot.numberValue(numberComponentRoot.numberSrc);
                     }
                     if (num >= 1312 && num <= 1327) {
-                        return elemLoader.screenRoot.numberValue(numberRenderer.numberSrc);
+                        return elemLoader.screenRoot.numberValue(numberComponentRoot.numberSrc);
                     }
                     return selectContext.numberValue(num);
                 }
                 if (elemLoader.screenRoot.gameplayScreenActive) {
-                    if (numberRenderer.numberNowCombo) {
-                        return numberRenderer.numberNowComboSide === 2
+                    if (numberComponentRoot.numberNowCombo) {
+                        return numberComponentRoot.numberNowComboSide === 2
                             ? elemLoader.screenRoot.gameplayJudgeCombo2
                             : elemLoader.screenRoot.gameplayJudgeCombo1;
                     }
-                    if (numberRenderer.numberId === 20) {
+                    if (numberComponentRoot.numberId === 20) {
                         return elemLoader.screenRoot.lr2CurrentFps;
                     }
-                    if (numberRenderer.numberId === 160) {
+                    if (numberComponentRoot.numberId === 160) {
                         let p1 = elemLoader.screenRoot.gameplayPlayer(1);
                         return p1 && (p1.bpm || 0) > 0 ? Math.round(p1.bpm) : 1;
                     }
-                    if (numberRenderer.numberId === 161) {
+                    if (numberComponentRoot.numberId === 161) {
                         return Math.floor(elemLoader.screenRoot.gameplayTimeSeconds(1, false) / 60);
                     }
-                    if (numberRenderer.numberId === 162) {
+                    if (numberComponentRoot.numberId === 162) {
                         return elemLoader.screenRoot.gameplayTimeSeconds(1, false) % 60;
                     }
-                    if (numberRenderer.numberId === 163) {
+                    if (numberComponentRoot.numberId === 163) {
                         return Math.floor(elemLoader.screenRoot.gameplayTimeSeconds(1, true) / 60);
                     }
-                    if (numberRenderer.numberId === 164) {
+                    if (numberComponentRoot.numberId === 164) {
                         return elemLoader.screenRoot.gameplayTimeSeconds(1, true) % 60;
                     }
-                    return elemLoader.screenRoot.numberValue(numberRenderer.numberSrc);
+                    return elemLoader.screenRoot.numberValue(numberComponentRoot.numberSrc);
                 }
-                return elemLoader.screenRoot.numberValue(numberRenderer.numberSrc);
+                return elemLoader.screenRoot.numberValue(numberComponentRoot.numberSrc);
             }
-            forceHidden: elemLoader.screenRoot.numberForceHidden(numberSrc)
-            animationRevision: elemLoader.screenRoot.numberAnimationRevision(numberSrc)
-            colorKeyEnabled: skinModel.hasTransColor
-            transColor: skinModel.transColor
-            screenRoot: elemLoader.screenRoot
+
+            function refreshNumberValue() : void {
+                numberComponentRoot.numberValue = numberComponentRoot.computeNumberValue();
+            }
+
+            function scheduleNumberValueRefresh() : void {
+                if (numberComponentRoot.numberValueRefreshPending) {
+                    return;
+                }
+                numberComponentRoot.numberValueRefreshPending = true;
+                Qt.callLater(function() {
+                    numberComponentRoot.numberValueRefreshPending = false;
+                    if (numberComponentRoot) {
+                        numberComponentRoot.refreshNumberValue();
+                    }
+                });
+            }
+
+            Component.onCompleted: scheduleNumberValueRefresh()
+            onNumberIdChanged: scheduleNumberValueRefresh()
+
+            Connections {
+                target: elemLoader
+                function onRuntimeRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onSrcChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+            }
+
+            Connections {
+                target: elemLoader.screenRoot
+                function onRenderSkinTimeChanged() : void {
+                    if (numberComponentRoot.numberId === 20) {
+                        numberComponentRoot.refreshNumberValue();
+                        return;
+                    }
+                    numberComponentRoot.scheduleNumberValueRefresh();
+                }
+                function onRuntimeActiveOptionsChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onSelectRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onLr2CurrentFpsChanged() : void {
+                    if (numberComponentRoot.numberId === 20) {
+                        numberComponentRoot.refreshNumberValue();
+                    }
+                }
+            }
+
+            Connections {
+                target: elemLoader.screenRoot ? elemLoader.screenRoot.beatorajaLuaRuntime() : null
+                function onRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+            }
+
+            Connections {
+                target: elemLoader.selectContext
+                function onFocusRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onScoreRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onListRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onPlayerStatsRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+                function onRankingStatsRevisionChanged() : void { numberComponentRoot.scheduleNumberValueRefresh(); }
+            }
+
+            Lr2NumberRenderer {
+                anchors.fill: parent
+                dsts: elemLoader.elementData.dsts
+                srcData: numberComponentRoot.numberSrc
+                skinTime: elemLoader.useDirectElementSkinClock && !numberComponentRoot.numberSourceAnimates
+                    ? 0
+                    : elemLoader.elementSkinTime
+                skinClock: elemLoader.useDirectElementSkinClock ? elemLoader.screenRoot.skinClockRef : null
+                skinClockMode: elemLoader.elementSkinClockMode
+                activeOptionsState: elemLoader.elementActiveOptionsState
+                timerFire: elemLoader.dstTimerFire
+                sourceTimerFire: elemLoader.srcTimerFire
+                scaleOverride: skinScale
+                value: numberComponentRoot.numberValue
+                forceHidden: elemLoader.screenRoot.numberForceHidden(numberComponentRoot.numberSrc)
+                animationRevision: elemLoader.screenRoot.numberAnimationRevision(numberComponentRoot.numberSrc)
+                colorKeyEnabled: skinModel.hasTransColor
+                transColor: skinModel.transColor
+                screenRoot: elemLoader.screenRoot
+            }
         }
     }
 
@@ -486,6 +708,7 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             skinScale: elemLoader.skinScale
+            showUnresolvedTextFallback: !elemLoader.screenRoot.lr2SkinUsesBeatorajaSemantics
         }
     }
 
@@ -611,10 +834,16 @@ Loader {
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
             value: {
-                let graphType = elemLoader.elementData.src ? elemLoader.elementData.src.graphType || 0 : 0;
+                let src = elemLoader.elementData.src;
+                if (!src) {
+                    return 0;
+                }
+                let graphType = src.graphType || 0;
                 return elemLoader.screenRoot.effectiveScreenKey === "select"
+                    && (src.valueCallback || 0) <= 0
+                    && !src.graphRefNumber
                     ? selectContext.nativeBarGraphValue(graphType)
-                    : elemLoader.screenRoot.resolveBarGraph(graphType);
+                    : elemLoader.screenRoot.barGraphValue(src);
             }
             animateValue: elemLoader.screenRoot.effectiveScreenKey === "select"
                 && elemLoader.elementData.src

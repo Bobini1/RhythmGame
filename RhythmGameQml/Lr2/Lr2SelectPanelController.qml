@@ -96,6 +96,11 @@ QtObject {
             root.refreshSelectHoverState();
         }
     }
+    onSelectPanelCloseFinishedChanged: {
+        if (controller.selectPanelCloseFinished && controller.selectPanelClosing > 0) {
+            controller.selectPanelClosing = 0;
+        }
+    }
 
     onHeldOptionPanelChanged: controller.updateHeldOptionPanel()
     onAnyStartHeldChanged: controller.handleGameplayOptionModifierChanged()
@@ -579,7 +584,7 @@ QtObject {
             return false;
         }
         return src.button
-            ? src.buttonClick !== 0
+            ? (src.buttonClickEnabled === true || src.buttonClick !== 0)
             : root.selectPanel > 0 && root.imageSetButtonId(src) > 0;
     }
 
@@ -590,12 +595,24 @@ QtObject {
         return src.button ? root.buttonPanelMatches(src) : root.selectPanel > 0;
     }
 
-    function buttonMouseDelta(src: var, mouseX: var, width: var) : var {
+    function buttonMouseDelta(src: var, mouseX: var, width: var, mouseY: var, height: var) : var {
         if (src && src.buttonPlusOnly === 1) {
             return 1;
         }
         if (src && src.buttonPlusOnly === 2) {
             return -1;
+        }
+        if (src && src.buttonClickMode !== undefined && src.buttonClickMode >= 0) {
+            if (src.buttonClickMode === 1) {
+                return -1;
+            }
+            if (src.buttonClickMode === 2) {
+                return mouseX < width / 2 ? -1 : 1;
+            }
+            if (src.buttonClickMode === 3) {
+                return mouseY >= height / 2 ? 1 : -1;
+            }
+            return 1;
         }
         if (src && root.buttonUsesSplitArrows(root.elementButtonId(src))) {
             return mouseX < width / 2 ? -1 : 1;
@@ -609,6 +626,15 @@ QtObject {
         }
 
         let buttonId = src.buttonId || 0;
+        if (root.lr2SkinMetadata
+                && root.lr2SkinMetadata.sourceFormat === "lua"
+                && !src.imageSet
+                && (src.imageSetRef || 0) === 0
+                && src.buttonClickMode !== undefined
+                && src.buttonClickMode >= 0) {
+            return 0;
+        }
+
         let frameGetter = controller.buttonFrameGetters[String(buttonId)];
         if (frameGetter) {
             return frameGetter(src);

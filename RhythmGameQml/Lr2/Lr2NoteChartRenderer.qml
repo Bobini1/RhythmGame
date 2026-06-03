@@ -36,7 +36,9 @@ Item {
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !root.hasStaticTimelineState
+        id: timelineTracker
+
+        enabled: !timelineTracker.canUseStaticState
         skinClock: root.skinClock
         clockMode: root.skinClockMode
         dsts: root.dsts
@@ -67,8 +69,27 @@ Item {
         }
         return Math.max(0, Math.min(1, effectiveSkinTime / Math.max(1, srcData.delay || 1)));
     }
-    readonly property bool hasChartData: chartSnapshot.hasHistogram
-    readonly property string dataRevision: chartSnapshot.revision
+    readonly property int basicNoteCount: chartSnapshot.normalNoteCount
+        + chartSnapshot.scratchCount
+        + chartSnapshot.lnCount
+        + chartSnapshot.bssCount
+        + chartSnapshot.mineCount
+    readonly property bool hasChartData: chartSnapshot.hasHistogram || basicNoteCount > 0
+    readonly property string dataRevision: chartSnapshot.revision.length > 0
+        ? chartSnapshot.revision
+        : (chartRevision
+           + ":fallback:"
+           + chartSnapshot.length
+           + ":"
+           + chartSnapshot.normalNoteCount
+           + ":"
+           + chartSnapshot.scratchCount
+           + ":"
+           + chartSnapshot.lnCount
+           + ":"
+           + chartSnapshot.bssCount
+           + ":"
+           + chartSnapshot.mineCount)
     readonly property int effectiveSkinTime: Lr2SkinUtils.skinTimeForClock(skinClock, skinClockMode, skinTime)
 
     function densityAt(series: var, index: var) : var {
@@ -131,6 +152,38 @@ Item {
         return data;
     }
 
+    function spreadCount(data: var, total: var, slot: var) : void {
+        total = Math.max(0, Math.floor(total || 0));
+        if (total <= 0 || !data || data.length <= 0) {
+            return;
+        }
+
+        const base = Math.floor(total / data.length);
+        let remainder = total - base * data.length;
+        for (let i = 0; i < data.length; ++i) {
+            data[i][slot] += base + (remainder > 0 ? 1 : 0);
+            if (remainder > 0) {
+                --remainder;
+            }
+        }
+    }
+
+    function buildFallbackData() : var {
+        const seconds = Math.max(1, Math.ceil(Math.max(0, chartSnapshot.length || 0) / 1000000000));
+        const bucketCount = Math.max(1, Math.min(240, seconds));
+        let data = new Array(bucketCount);
+        for (let i = 0; i < bucketCount; ++i) {
+            data[i] = [0, 0, 0, 0, 0, 0, 0];
+        }
+
+        spreadCount(data, chartSnapshot.bssCount, 1);
+        spreadCount(data, chartSnapshot.scratchCount, 2);
+        spreadCount(data, chartSnapshot.lnCount, 4);
+        spreadCount(data, chartSnapshot.normalNoteCount, 5);
+        spreadCount(data, chartSnapshot.mineCount, 6);
+        return data;
+    }
+
     function drawBars(ctx: var, data: var, maxDensity: var, sourceH: var) : void {
         let colors = noteColors();
         let noGap = srcData && (srcData.noGap || 0) === 1;
@@ -172,7 +225,9 @@ Item {
         }
 
         cachedDataRevision = dataRevision;
-        cachedDensityData = buildNormalData(hasChartData ? chartSnapshot.histogramData : []);
+        cachedDensityData = chartSnapshot.hasHistogram
+            ? buildNormalData(chartSnapshot.histogramData)
+            : buildFallbackData();
         let bucketCount = Math.max(1, cachedDensityData.length);
         cachedMaxDensity = graphMax(cachedDensityData);
         cachedSourceW = bucketCount * 5;

@@ -10,6 +10,7 @@ QtObject {
     required property var playContext
 
     readonly property var root: screenRoot
+    property var imageSetSourceCache: ({})
 
     function numericValue(value: var, fallback: var) : var {
         const numeric = Number(value);
@@ -401,8 +402,7 @@ QtObject {
         case 127:
         case 128:
         case 129: {
-            let rankingName = root.lr2RankingEntryName(st - 120);
-            return rankingName.length > 0 ? rankingName : root.lr2SelectOptionText(st);
+            return root.lr2RankingEntryName(st - 120);
         }
         case 1000:
             return root.effectiveScreenKey === "select"
@@ -1233,7 +1233,7 @@ QtObject {
                 return root.lr2RankingEntryExScore(num - 380);
             }
             if (num >= 390 && num <= 399) {
-                return root.lr2RankingEntryClearValue(num - 390);
+                return root.lr2RankingEntryIndex(num - 390);
             }
             return 0;
         }
@@ -1323,7 +1323,7 @@ QtObject {
                 return root.lr2RankingEntryExScore(num - 380);
             }
             if (num >= 390 && num <= 399) {
-                return root.lr2RankingEntryClearValue(num - 390);
+                return root.lr2RankingEntryIndex(num - 390);
             }
             if ((num >= 271 && num <= 289)
                     || num === 292 || num === 293) {
@@ -1358,6 +1358,12 @@ QtObject {
     function numberValue(src: var) : var {
         if (root.isGameplayScreen()) {
             root.gameplayNumberRevisionForKind(root.gameplayNumberRevisionKind(src));
+        }
+        if (src && (src.valueCallback || 0) > 0) {
+            return root.beatorajaLuaNumberCallback(src.valueCallback);
+        }
+        if (src && src.constantValueEnabled) {
+            return src.constantValue || 0;
         }
         if (src && src.nowCombo) {
             return (src.side || (src.timer === 47 ? 2 : 1)) === 2
@@ -1418,6 +1424,9 @@ QtObject {
         case 308:
             return root.lr2LnModeIndex;
         default:
+            if (id >= 390 && id <= 399) {
+                return root.lr2RankingEntryClearValue(id - 390);
+            }
             return root.resolveNumber(id);
         }
     }
@@ -1426,11 +1435,19 @@ QtObject {
         if (!src || !src.imageSet || !src.imageSetSources || src.imageSetSources.length <= 0) {
             return src;
         }
-        let value = Math.floor(root.imageSetValue(src.imageSetRef || 0, src.imageSetSources.length));
+        let value = Math.floor((src.imageSetValueCallback || 0) > 0
+            ? root.beatorajaLuaNumberCallback(src.imageSetValueCallback)
+            : root.imageSetValue(src.imageSetRef || 0, src.imageSetSources.length));
         if (isFinite(value) && value < -1) {
-            let hidden = root.copyObject(src);
+            let hiddenKey = imageSetSourceCacheKey(src, value, null, "", 0);
+            let hidden = imageSetSourceCache[hiddenKey];
+            if (hidden !== undefined) {
+                return hidden;
+            }
+            hidden = root.copyObject(src);
             hidden.source = "";
             hidden.specialType = 0;
+            imageSetSourceCache[hiddenKey] = hidden;
             return hidden;
         }
         if (!isFinite(value) || value < 0 || value >= src.imageSetSources.length) {
@@ -1446,7 +1463,12 @@ QtObject {
             source = src.source || "";
             specialType = src.specialType || 0;
         }
-        return {
+        let cacheKey = imageSetSourceCacheKey(src, value, selected, source || "", specialType || 0);
+        let cached = imageSetSourceCache[cacheKey];
+        if (cached !== undefined) {
+            return cached;
+        }
+        cached = {
             gr: selected.gr !== undefined ? selected.gr : (src.gr || 0),
             x: selected.x !== undefined ? selected.x : (src.x || 0),
             y: selected.y !== undefined ? selected.y : (src.y || 0),
@@ -1454,8 +1476,11 @@ QtObject {
             h: selected.h !== undefined ? selected.h : (src.h || 0),
             div_x: Math.max(1, selected.div_x || 1),
             div_y: Math.max(1, selected.div_y || 1),
-            cycle: src.cycle || 0,
-            timer: src.timer || 0,
+            cycle: selected.cycle !== undefined ? selected.cycle : (src.cycle || 0),
+            timer: selected.timer !== undefined ? selected.timer : (src.timer || 0),
+            timerCallback: selected.timerCallback !== undefined
+                ? selected.timerCallback
+                : (src.timerCallback || 0),
             zeropadding: src.zeropadding !== undefined ? src.zeropadding : -1,
             op1: src.op1 || 0,
             op2: src.op2 || 0,
@@ -1471,6 +1496,43 @@ QtObject {
             side: selected.side || 0,
             source: source || ""
         };
+        imageSetSourceCache[cacheKey] = cached;
+        return cached;
+    }
+
+    function imageSetSourceCacheKey(src: var, value: var, selected: var, source: var, specialType: var) : string {
+        let selectedGr = selected && selected.gr !== undefined ? selected.gr : (src.gr || 0);
+        let selectedX = selected && selected.x !== undefined ? selected.x : (src.x || 0);
+        let selectedY = selected && selected.y !== undefined ? selected.y : (src.y || 0);
+        let selectedW = selected && selected.w !== undefined ? selected.w : (src.w || 0);
+        let selectedH = selected && selected.h !== undefined ? selected.h : (src.h || 0);
+        let selectedCycle = selected && selected.cycle !== undefined ? selected.cycle : (src.cycle || 0);
+        let selectedTimer = selected && selected.timer !== undefined ? selected.timer : (src.timer || 0);
+        let selectedTimerCallback = selected && selected.timerCallback !== undefined
+            ? selected.timerCallback
+            : (src.timerCallback || 0);
+        return [
+            src.imageSetRef || 0,
+            src.imageSetValueCallback || 0,
+            src.imageSetSources ? src.imageSetSources.length : 0,
+            value,
+            selectedGr,
+            selectedX,
+            selectedY,
+            selectedW,
+            selectedH,
+            selected && selected.div_x ? selected.div_x : (src.div_x || 1),
+            selected && selected.div_y ? selected.div_y : (src.div_y || 1),
+            selectedCycle,
+            selectedTimer,
+            selectedTimerCallback,
+            src.op1 || 0,
+            src.op2 || 0,
+            src.op3 || 0,
+            src.op4 || 0,
+            specialType || 0,
+            source || ""
+        ].join("|");
     }
 
     function numberForceHidden(src: var) : var {
@@ -1511,6 +1573,50 @@ QtObject {
             return root.resultBarGraphValue(type);
         }
         return 0;
+    }
+
+    function ratePropertyValue(value: var, minValue: var, maxValue: var) : var {
+        if (minValue < maxValue) {
+            if (value > maxValue) {
+                return 1;
+            }
+            if (value < minValue) {
+                return 0;
+            }
+            return Math.abs((value - minValue) / (maxValue - minValue));
+        }
+        if (value < maxValue) {
+            return 1;
+        }
+        if (value > minValue) {
+            return 0;
+        }
+        return Math.abs((value - minValue) / (maxValue - minValue));
+    }
+
+    function barGraphValue(src: var) : var {
+        if (!src) {
+            return 0;
+        }
+        let callback = Math.floor(Number(src.valueCallback) || 0);
+        if (callback > 0) {
+            root.renderSkinTime;
+            root.beatorajaLuaRevision();
+            return root.beatorajaLuaFloatCallback(callback);
+        }
+        let graphType = src.graphType || 0;
+        if (src.graphRefNumber) {
+            let minValue = src.graphMinValue || 0;
+            let maxValue = src.graphMaxValue || 0;
+            if (minValue === maxValue) {
+                return 0;
+            }
+            return resolver.ratePropertyValue(
+                resolver.resolveNumber(graphType),
+                minValue,
+                maxValue);
+        }
+        return resolver.resolveBarGraph(graphType);
     }
 
     function normalizedBarValue(value: var, maximum: var) : var {

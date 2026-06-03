@@ -213,11 +213,18 @@ private:
         int sortId = 0;
         int loop = 0;
         int timer = 0;
+        int timerCallback = 0;
         int op1 = 0;
         int op2 = 0;
         int op3 = 0;
         int op4 = 0;
         QVector<int> offsets;
+        int stretch = -1;
+        bool hasMouseRect = false;
+        int mouseRectX = 0;
+        int mouseRectY = 0;
+        int mouseRectW = 0;
+        int mouseRectH = 0;
     };
 
     struct State {
@@ -239,6 +246,12 @@ private:
         int op2 = 0;
         int op3 = 0;
         int op4 = 0;
+        int stretch = -1;
+        bool hasMouseRect = false;
+        int mouseRectX = 0;
+        int mouseRectY = 0;
+        int mouseRectW = 0;
+        int mouseRectH = 0;
     };
 
     struct Source {
@@ -247,6 +260,7 @@ private:
         int divY = 1;
         int cycle = 0;
         int timer = 0;
+        int timerCallback = 0;
     };
 
     struct DstAnalysis {
@@ -256,6 +270,7 @@ private:
         bool loopsContinuously = false;
         int scratchRotationSide = 0;
         int firstTimer = 0;
+        int firstTimerCallback = 0;
         int firstSortId = 0;
     };
 

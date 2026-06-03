@@ -88,6 +88,7 @@ QtObject {
         renderSkinTime: root.renderSkinTime
         selectSourceSkinTime: root.selectSourceSkinTime
         selectLiveSkinTime: root.selectLiveSkinTime
+        selectInfoStartSkinTime: root.selectInfoStartSkinTime
         selectScrollStartSkinTime: root.selectScrollStartSkinTime
         selectNoScrollStartSkinTime: root.selectNoScrollStartSkinTime
         selectDatabaseLoadedSkinTime: root.selectDatabaseLoadedSkinTime

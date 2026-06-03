@@ -1,4 +1,6 @@
 #include "Lr2SkinRuntimeTypes.h"
+#include "Lr2SkinTimerState.h"
+#include "Lr2SkinOptionRules.h"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -54,6 +56,19 @@ TEST_CASE("LR2 runtime dst loops wrap inside the loop segment", "[lr2][runtime]"
     const State state = currentState(dsts, 450, 0, {});
     REQUIRE(state.valid);
     REQUIRE_THAT(state.x, WithinAbs(250.0, 0.0001));
+}
+
+TEST_CASE("LR2 select timer 11 can use uncapped live songbar time", "[lr2][runtime]") {
+    Lr2SkinTimerState timerState;
+    timerState.setScreenKey(QStringLiteral("select"));
+    timerState.setRenderSkinTime(3200);
+    timerState.setSelectSourceSkinTime(6400);
+    timerState.setSelectLiveSkinTime(6400);
+    timerState.setSelectInfoStartSkinTime(5000);
+    timerState.setSelectInfoElapsed(1000);
+
+    CHECK(timerState.skinTimerFireTime(11, false) == 2200);
+    CHECK(timerState.skinTimerFireTime(11, true) == 5000);
 }
 
 TEST_CASE("LR2 runtime classifies slider sources and track geometry", "[lr2][runtime]") {
@@ -117,4 +132,11 @@ TEST_CASE("LR2 runtime hit testing accepts negative dst sizes", "[lr2][runtime]"
     REQUIRE(rectContains(rect, 100, 80));
     REQUIRE_FALSE(rectContains(rect, 59, 65));
     REQUIRE_FALSE(rectContains(rect, 75, 49));
+}
+
+TEST_CASE("LR2 judge-rank skin options are runtime-owned", "[lr2][runtime]") {
+    for (int option = 180; option <= 184; ++option) {
+        REQUIRE(Lr2SkinOptionRules::isRuntimeOwnedOptionValue(option));
+        REQUIRE(Lr2SkinOptionRules::isRuntimeOwnedOptionValue(-option));
+    }
 }

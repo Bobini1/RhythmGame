@@ -487,20 +487,51 @@ Item {
                 && engineColumn < player.notes.notes.length
                     ? player.notes.notes[engineColumn]
                     : []
+            property bool hcnMode: screenRoot && screenRoot.lr2LnModeIndex === 2
             property var normalSource: root.sourceAt(skinModel ? skinModel.noteSources : [], lr2Index)
                 || root.sourceAt(skinModel ? skinModel.autoNoteSources : [], lr2Index)
             property var mineSource: root.sourceAt(skinModel ? skinModel.mineSources : [], lr2Index)
                 || root.sourceAt(skinModel ? skinModel.autoMineSources : [], lr2Index)
-            property var lnStartSource: root.sourceAt(skinModel ? skinModel.lnStartSources : [], lr2Index)
+            property var lnStartSource: (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.hcnStartSources : [], lr2Index)
+                    : null)
+                || root.sourceAt(skinModel ? skinModel.lnStartSources : [], lr2Index)
                 || normalSource
+                || (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.autoHcnStartSources : [], lr2Index)
+                    : null)
                 || root.sourceAt(skinModel ? skinModel.autoLnStartSources : [], lr2Index)
-            property var lnEndSource: root.sourceAt(skinModel ? skinModel.lnEndSources : [], lr2Index)
+            property var lnEndSource: (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.hcnEndSources : [], lr2Index)
+                    : null)
+                || root.sourceAt(skinModel ? skinModel.lnEndSources : [], lr2Index)
                 || normalSource
+                || (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.autoHcnEndSources : [], lr2Index)
+                    : null)
                 || root.sourceAt(skinModel ? skinModel.autoLnEndSources : [], lr2Index)
-            property var lnBodyInactiveSource: root.sourceAt(skinModel ? skinModel.lnBodySources : [], lr2Index)
+            property var lnBodyInactiveSource: (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.hcnBodySources : [], lr2Index)
+                    : null)
+                || root.sourceAt(skinModel ? skinModel.lnBodySources : [], lr2Index)
+                || (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.autoHcnBodySources : [], lr2Index)
+                    : null)
                 || root.sourceAt(skinModel ? skinModel.autoLnBodySources : [], lr2Index)
-            property var lnBodyActiveSource: root.sourceAt(skinModel ? skinModel.lnBodyActiveSources : [], lr2Index)
+            property var lnBodyActiveSource: (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.hcnBodyActiveSources : [], lr2Index)
+                    : null)
+                || root.sourceAt(skinModel ? skinModel.lnBodyActiveSources : [], lr2Index)
+                || (hcnMode
+                    ? root.sourceAt(skinModel ? skinModel.autoHcnBodyActiveSources : [], lr2Index)
+                    : null)
                 || root.sourceAt(skinModel ? skinModel.autoLnBodyActiveSources : [], lr2Index)
+            property var hcnBodyReactiveSource: hcnMode
+                ? root.sourceAt(skinModel ? skinModel.hcnBodyReactiveSources : [], lr2Index)
+                : null
+            property var hcnBodyMissSource: hcnMode
+                ? root.sourceAt(skinModel ? skinModel.hcnBodyMissSources : [], lr2Index)
+                : null
             property real travelHeight: root.dstTravelHeight(dstState)
             property real multiplier: root.heightMultiplier(
                 player,
@@ -538,6 +569,45 @@ Item {
                 default:
                     return null;
                 }
+            }
+
+            function judgementFromHit(hit: var) : var {
+                return hit && hit.points ? hit.points.judgement : -1;
+            }
+
+            function hcnBodyMissed(display: var) : var {
+                let judgement = judgementFromHit(display ? display.hitData : null);
+                let endJudgement = judgementFromHit(display ? display.otherEndHitData : null);
+                return judgement === Judgement.Poor
+                    || judgement === Judgement.Bad
+                    || judgement === Judgement.LnEndSkip
+                    || endJudgement === Judgement.Poor
+                    || endJudgement === Judgement.Bad
+                    || endJudgement === Judgement.LnEndSkip;
+            }
+
+            function hcnBodyReactive(display: var) : var {
+                return hcnMode
+                    && !!display
+                    && display.note
+                    && display.note.type === note.Type.LongNoteBegin
+                    && !!display.hitData
+                    && !display.otherEndHitData
+                    && !!lane.columnState
+                    && !lane.columnState.holdingLongNote
+                    && lane.columnState.pressed
+                    && judgementFromHit(display.hitData) === Judgement.LnBeginHit;
+            }
+
+            function hcnBodyDamage(display: var) : var {
+                return hcnMode
+                    && !!display
+                    && display.note
+                    && display.note.type === note.Type.LongNoteBegin
+                    && !!display.hitData
+                    && !display.otherEndHitData
+                    && !hcnBodyReactive(display)
+                    && (!lane.columnState || !lane.columnState.holdingLongNote);
             }
 
             onPlayerPositionChanged: syncColumnWindow()
@@ -585,6 +655,8 @@ Item {
                                 && display.note.type === note.Type.LongNoteBegin
                                 && hitData
                                 && !display.otherEndHitData
+                                && lane.columnState
+                                && lane.columnState.holdingLongNote
                             readonly property bool staticLongNote: display
                                 && display.note
                                 && display.note.type === note.Type.LongNoteBegin
@@ -596,7 +668,11 @@ Item {
                             readonly property var noteSource: lane.sourceForDisplay(display)
                             readonly property var lnBodySource: heldLongNote
                                 ? (lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
-                                : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
+                                : (lane.hcnBodyReactive(display)
+                                    ? (lane.hcnBodyReactiveSource || lane.lnBodyActiveSource || lane.lnBodyInactiveSource)
+                                    : (lane.hcnBodyMissed(display) || lane.hcnBodyDamage(display)
+                                        ? (lane.hcnBodyMissSource || lane.lnBodyInactiveSource || lane.lnBodyActiveSource)
+                                        : (lane.lnBodyInactiveSource || lane.lnBodyActiveSource)))
                             readonly property int lnTimer: 70 + lane.lr2Index
                             readonly property int noteSourceTimerFire: root.sourceTimerFireFor(noteSource)
                             readonly property int lnBodySourceTimerFire: root.sourceTimerFireFor(
@@ -659,4 +735,3 @@ Item {
         }
     }
 }
-

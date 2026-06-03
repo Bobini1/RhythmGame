@@ -56,7 +56,7 @@ message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools QuickControls2 REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools QuickControls2 Network REQUIRED)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp)
 
 # <------------ QtKeychain (storing login data) --------------->
@@ -80,6 +80,20 @@ find_package(magic_enum REQUIRED)
 # On Linux distributions that ship zlib-ng without compat mode the target is
 # absent; fall back to the system zlib which exposes the same API.
 find_package(zlib-ng CONFIG REQUIRED)
+
+# <------------ LuaJIT (beatoraja Lua skin execution) --------------->
+
+find_path(LUAJIT_INCLUDE_DIR
+        NAMES lua.h
+        PATH_SUFFIXES luajit luajit-2.1 luajit-2.0
+        REQUIRED
+)
+find_library(LUAJIT_LIBRARY
+        NAMES luajit-5.1 lua51 luajit
+        REQUIRED
+)
+message(STATUS "LuaJIT include dir: ${LUAJIT_INCLUDE_DIR}")
+message(STATUS "LuaJIT library: ${LUAJIT_LIBRARY}")
 
 # ---- Load library ----
 
@@ -285,6 +299,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/lr2_skin/Lr2ThemeScanner.h
         src/gameplay_logic/lr2_skin/Lr2SkinParser.h
         src/gameplay_logic/lr2_skin/Lr2SkinParser.cpp
+        src/gameplay_logic/lr2_skin/BeatorajaLuaSkin.h
+        src/gameplay_logic/lr2_skin/BeatorajaLuaSkin.cpp
         src/gameplay_logic/lr2_skin/Lr2SkinModel.h
         src/gameplay_logic/lr2_skin/Lr2SkinModel.cpp
 )
@@ -323,8 +339,8 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
-target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Qt6::Network Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib ${LUAJIT_LIBRARY})
+target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS} ${LUAJIT_INCLUDE_DIR})
 
 if (WIN32)
     # <------------ wil (Windows API helpers) --------------->

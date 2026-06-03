@@ -17,6 +17,18 @@ int mapInt(const QVariantMap& map, const QString& name, int fallback) {
         : it->toInt();
 }
 
+bool mapBool(const QVariantMap& map, const QString& name, bool fallback) {
+    const auto it = map.constFind(name);
+    return it == map.constEnd() || !it->isValid() || it->isNull()
+        ? fallback
+        : it->toBool();
+}
+
+bool mapHas(const QVariantMap& map, const QString& name) {
+    const auto it = map.constFind(name);
+    return it != map.constEnd() && it->isValid() && !it->isNull();
+}
+
 bool sameStateNumber(qreal lhs, qreal rhs) {
     return std::abs(lhs - rhs) <= 0.001;
 }
@@ -445,10 +457,17 @@ bool Lr2BarBaseStateResolver::readDst(const QVariant& value, Dst& dst) {
         dst.sortId = parsed.sortId;
         dst.loop = parsed.loop;
         dst.timer = parsed.timer;
+        dst.timerCallback = parsed.timerCallback;
         dst.op1 = parsed.op1;
         dst.op2 = parsed.op2;
         dst.op3 = parsed.op3;
         dst.op4 = parsed.op4;
+        dst.stretch = parsed.stretch;
+        dst.hasMouseRect = parsed.hasMouseRect;
+        dst.mouseRectX = parsed.mouseRectX;
+        dst.mouseRectY = parsed.mouseRectY;
+        dst.mouseRectW = parsed.mouseRectW;
+        dst.mouseRectH = parsed.mouseRectH;
         return true;
     }
 
@@ -472,10 +491,20 @@ bool Lr2BarBaseStateResolver::readDst(const QVariant& value, Dst& dst) {
         dst.sortId = mapInt(map, QStringLiteral("sortId"), 0);
         dst.loop = mapInt(map, QStringLiteral("loop"), 0);
         dst.timer = mapInt(map, QStringLiteral("timer"), 0);
+        dst.timerCallback = mapInt(map, QStringLiteral("timerCallback"), 0);
         dst.op1 = mapInt(map, QStringLiteral("op1"), 0);
         dst.op2 = mapInt(map, QStringLiteral("op2"), 0);
         dst.op3 = mapInt(map, QStringLiteral("op3"), 0);
         dst.op4 = mapInt(map, QStringLiteral("op4"), 0);
+        dst.stretch = mapInt(map, QStringLiteral("stretch"), -1);
+        dst.hasMouseRect = mapBool(map, QStringLiteral("hasMouseRect"), false);
+        if (dst.hasMouseRect || mapHas(map, QStringLiteral("mouseRectX"))) {
+            dst.hasMouseRect = true;
+            dst.mouseRectX = mapInt(map, QStringLiteral("mouseRectX"), 0);
+            dst.mouseRectY = mapInt(map, QStringLiteral("mouseRectY"), 0);
+            dst.mouseRectW = mapInt(map, QStringLiteral("mouseRectW"), 0);
+            dst.mouseRectH = mapInt(map, QStringLiteral("mouseRectH"), 0);
+        }
         return true;
     }
 
@@ -495,7 +524,7 @@ int Lr2BarBaseStateResolver::freezeEndTime(const QVector<Dst>& dsts) {
     }
 
     const Dst& first = dsts.front();
-    if (first.timer != 0) {
+    if (first.timer != 0 || first.timerCallback > 0) {
         return -1;
     }
 
@@ -603,6 +632,12 @@ Lr2BarBaseStateResolver::State Lr2BarBaseStateResolver::currentState(
     state.op2 = first.op2;
     state.op3 = first.op3;
     state.op4 = first.op4;
+    state.stretch = d1->stretch;
+    state.hasMouseRect = first.hasMouseRect;
+    state.mouseRectX = first.mouseRectX;
+    state.mouseRectY = first.mouseRectY;
+    state.mouseRectW = first.mouseRectW;
+    state.mouseRectH = first.mouseRectH;
     return state;
 }
 
@@ -628,6 +663,12 @@ Lr2BarBaseStateResolver::State Lr2BarBaseStateResolver::copyDstAsState(
     state.op2 = controlDst.op2;
     state.op3 = controlDst.op3;
     state.op4 = controlDst.op4;
+    state.stretch = dst.stretch;
+    state.hasMouseRect = controlDst.hasMouseRect;
+    state.mouseRectX = controlDst.mouseRectX;
+    state.mouseRectY = controlDst.mouseRectY;
+    state.mouseRectW = controlDst.mouseRectW;
+    state.mouseRectH = controlDst.mouseRectH;
     return state;
 }
 
@@ -653,6 +694,12 @@ QVariant Lr2BarBaseStateResolver::stateToVariant(const State& state) {
         {QStringLiteral("op2"), state.op2},
         {QStringLiteral("op3"), state.op3},
         {QStringLiteral("op4"), state.op4},
+        {QStringLiteral("stretch"), state.stretch},
+        {QStringLiteral("hasMouseRect"), state.hasMouseRect},
+        {QStringLiteral("mouseRectX"), state.mouseRectX},
+        {QStringLiteral("mouseRectY"), state.mouseRectY},
+        {QStringLiteral("mouseRectW"), state.mouseRectW},
+        {QStringLiteral("mouseRectH"), state.mouseRectH},
     };
 }
 
@@ -686,7 +733,13 @@ bool Lr2BarBaseStateResolver::stateEqual(const State& lhs, const State& rhs) {
         && lhs.op1 == rhs.op1
         && lhs.op2 == rhs.op2
         && lhs.op3 == rhs.op3
-        && lhs.op4 == rhs.op4;
+        && lhs.op4 == rhs.op4
+        && lhs.stretch == rhs.stretch
+        && lhs.hasMouseRect == rhs.hasMouseRect
+        && lhs.mouseRectX == rhs.mouseRectX
+        && lhs.mouseRectY == rhs.mouseRectY
+        && lhs.mouseRectW == rhs.mouseRectW
+        && lhs.mouseRectH == rhs.mouseRectH;
 }
 
 qreal Lr2BarBaseStateResolver::applyAccel(qreal progress, int accType) {

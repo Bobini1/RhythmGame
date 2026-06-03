@@ -34,16 +34,21 @@ QtObject {
     property bool colorKeyEnabled: false
     property bool supportsInvertedBlend: true
 
-    readonly property bool canUseStaticState: !stateOverride
+    readonly property bool staticStateEligible: !stateOverride
         && !sliderTranslationEnabled
         && !dstOffsetsEnabled
         && !forceHidden
+    readonly property bool canUseStaticState: staticStateEligible
         && timelineState.canUseStaticState
     readonly property var staticState: canUseStaticState ? timelineState.staticState : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
 
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !frame.stateOverride && !frame.forceHidden && !frame.canUseStaticState
+        id: timelineTracker
+
+        enabled: frame.staticStateEligible
+            ? !timelineTracker.canUseStaticState
+            : (!frame.stateOverride && !frame.forceHidden)
         skinClock: frame.skinClock
         clockMode: frame.skinClockMode
         dsts: frame.dsts

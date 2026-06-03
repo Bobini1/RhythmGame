@@ -226,6 +226,15 @@ void Lr2SkinTimerState::setSelectLiveSkinTime(int value) {
     }
 }
 
+int Lr2SkinTimerState::selectInfoStartSkinTime() const { return m_selectInfoStartSkinTime; }
+void Lr2SkinTimerState::setSelectInfoStartSkinTime(int value) {
+    if (setInt(m_selectInfoStartSkinTime, value)) {
+        emit selectInfoStartSkinTimeChanged();
+        clearSelectTimerFireCache();
+        bumpSelectInfoRevision();
+    }
+}
+
 int Lr2SkinTimerState::selectInfoElapsed() const { return m_selectInfoElapsed; }
 void Lr2SkinTimerState::setSelectInfoElapsed(int value) {
     if (setInt(m_selectInfoElapsed, value)) {
@@ -391,6 +400,19 @@ void Lr2SkinTimerState::setGameplayTimerValues(const QVariant& values) {
     bumpRevision();
 }
 
+QVariant Lr2SkinTimerState::customTimerValues() const {
+    return variantMapFromGameplayTimerHash(m_customTimerValues);
+}
+void Lr2SkinTimerState::setCustomTimerValues(const QVariant& values) {
+    const QHash<int, int> next = gameplayTimerHashFromVariant(values);
+    if (m_customTimerValues == next) {
+        return;
+    }
+    m_customTimerValues = next;
+    emit customTimerValuesChanged();
+    clearSelectTimerFireCache();
+}
+
 int Lr2SkinTimerState::revision() const { return m_revision; }
 int Lr2SkinTimerState::selectInfoRevision() const { return m_selectInfoRevision; }
 
@@ -440,7 +462,7 @@ int Lr2SkinTimerState::selectTimerFireTime(const QVariant& timer, bool liveClock
         return m_selectDatabaseLoadedSkinTime;
     }
     if (idx == 11) {
-        return baseTime - m_selectInfoElapsed;
+        return liveClock ? m_selectInfoStartSkinTime : baseTime - m_selectInfoElapsed;
     }
     if (idx == 14 && m_acceptsInput) {
         return m_selectNoScrollStartSkinTime;
@@ -515,6 +537,9 @@ bool Lr2SkinTimerState::skinTimerCanFire(const QVariant& timer) const {
     if (idx == 0) {
         return true;
     }
+    if (m_customTimerValues.contains(idx)) {
+        return true;
+    }
     if (m_gameplayScreen) {
         return true;
     }
@@ -531,6 +556,10 @@ int Lr2SkinTimerState::skinTimerFireTime(const QVariant& timer, bool liveClock) 
     const int idx = timerValue(timer);
     if (idx == 0) {
         return 0;
+    }
+    const auto customTimer = m_customTimerValues.constFind(idx);
+    if (customTimer != m_customTimerValues.constEnd()) {
+        return customTimer.value();
     }
     if (m_gameplayScreen) {
         return gameplayTimerFireTime(idx);

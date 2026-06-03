@@ -36,7 +36,7 @@ QtObject {
         return host.effectiveScreenKey === "select"
             && src
             && searchState.sourceTextId(src) === searchState.searchTextId
-            && searchState.sourceEditMode(src) !== 0
+            && (host.lr2SkinUsesBeatorajaSemantics || searchState.sourceEditMode(src) !== 0)
             && host.panelMatches(searchState.sourcePanel(src));
     }
 
@@ -68,10 +68,44 @@ QtObject {
         }
     }
 
+    function contains(x: var, y: var) : var {
+        const item = searchState.inputItem;
+        if (!item || !item.visible || !item.enabled) {
+            return false;
+        }
+
+        const state = item.textState;
+        if (state) {
+            const left = Math.min(state.x, state.x + state.w);
+            const right = Math.max(state.x, state.x + state.w);
+            const top = Math.min(state.y, state.y + state.h);
+            const bottom = Math.max(state.y, state.y + state.h);
+            return x >= left && x <= right && y >= top && y <= bottom;
+        }
+
+        return x >= item.x
+            && x <= item.x + item.width
+            && y >= item.y
+            && y <= item.y + item.height;
+    }
+
+    function focusAt(x: var, y: var) : var {
+        if (!searchState.contains(x, y)) {
+            return false;
+        }
+        const item = searchState.inputItem;
+        if (item.focusAtSkinX) {
+            item.focusAtSkinX(x);
+        } else {
+            item.forceActiveFocus();
+        }
+        return true;
+    }
+
     function reset() : void {
         if (selectContext.searchText.length > 0) {
             selectContext.searchText = "";
-            selectContext.touch();
+            selectContext.touchSelection();
         }
         if (searchState.inputItem && searchState.inputItem.text.length > 0) {
             searchState.inputItem.text = "";

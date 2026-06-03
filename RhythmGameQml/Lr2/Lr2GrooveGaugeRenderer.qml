@@ -23,7 +23,9 @@ Item {
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !root.hasStaticTimelineState
+        id: timelineTracker
+
+        enabled: !timelineTracker.canUseStaticState
         dsts: root.dsts
         skinTime: root.skinTime
         timers: root.timelineTimers

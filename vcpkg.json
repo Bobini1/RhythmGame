@@ -25,6 +25,7 @@
     "magic-enum",
     "zstd",
     "zlib-ng",
+    "luajit",
     {
       "name": "libsndfile",
       "features": [
@@ -35,70 +36,12 @@
     "sdl2",
     "sdl2-image",
     {
-      "name": "qtbase",
-      "default-features": false,
-      "features": [
-        "dnslookup",
-        "harfbuzz",
-        "jpeg",
-        "opengl",
-        "openssl",
-        "vulkan"
-      ]
-    },
-    {
-      "name": "vulkan-loader",
-      "features": [
-        "wayland",
-        "xcb",
-        "xlib"
-      ],
-      "platform": "linux"
-    },
-    {
-      "name": "qtbase",
-      "default-features": false,
-      "features": [
-        "xcb",
-        "xcb-xlib",
-        "xrender",
-        "egl",
-        "dbus"
-      ],
-      "platform": "linux"
-    },
-    "qtdeclarative",
-    "qtshadertools",
-    "qtsvg",
-    "qtinterfaceframework",
-    "qttranslations",
-    {
-      "name": "qttools",
-      "features": [
-        "linguist",
-        "qml"
-      ]
-    },
-    "qtkeychain-qt6",
-    {
       "name": "mimalloc",
       "features": [
         "override"
       ]
     },
     "libxml2",
-    {
-      "name": "qtmultimedia",
-      "default-features": false,
-      "features": [
-        "qml",
-        "ffmpeg"
-      ]
-    },
-    {
-      "name": "qtwayland",
-      "platform": "linux"
-    },
     {
       "name": "llfio",
       "platform": "!windows"

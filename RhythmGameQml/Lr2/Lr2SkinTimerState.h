@@ -32,6 +32,7 @@ class Lr2SkinTimerState : public QObject {
     Q_PROPERTY(int renderSkinTime READ renderSkinTime WRITE setRenderSkinTime NOTIFY renderSkinTimeChanged)
     Q_PROPERTY(int selectSourceSkinTime READ selectSourceSkinTime WRITE setSelectSourceSkinTime NOTIFY selectSourceSkinTimeChanged)
     Q_PROPERTY(int selectLiveSkinTime READ selectLiveSkinTime WRITE setSelectLiveSkinTime NOTIFY selectLiveSkinTimeChanged)
+    Q_PROPERTY(int selectInfoStartSkinTime READ selectInfoStartSkinTime WRITE setSelectInfoStartSkinTime NOTIFY selectInfoStartSkinTimeChanged)
     Q_PROPERTY(int selectInfoElapsed READ selectInfoElapsed WRITE setSelectInfoElapsed NOTIFY selectInfoElapsedChanged)
     Q_PROPERTY(int selectScrollStartSkinTime READ selectScrollStartSkinTime WRITE setSelectScrollStartSkinTime NOTIFY selectScrollStartSkinTimeChanged)
     Q_PROPERTY(int selectNoScrollStartSkinTime READ selectNoScrollStartSkinTime WRITE setSelectNoScrollStartSkinTime NOTIFY selectNoScrollStartSkinTimeChanged)
@@ -51,6 +52,7 @@ class Lr2SkinTimerState : public QObject {
     Q_PROPERTY(int resultGraphEndSkinTime READ resultGraphEndSkinTime WRITE setResultGraphEndSkinTime NOTIFY resultGraphEndSkinTimeChanged)
     Q_PROPERTY(int gameplayTimerRevision READ gameplayTimerRevision WRITE setGameplayTimerRevision NOTIFY gameplayTimerRevisionChanged)
     Q_PROPERTY(QVariant gameplayTimerValues READ gameplayTimerValues WRITE setGameplayTimerValues NOTIFY gameplayTimerValuesChanged)
+    Q_PROPERTY(QVariant customTimerValues READ customTimerValues WRITE setCustomTimerValues NOTIFY customTimerValuesChanged)
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
     Q_PROPERTY(int selectInfoRevision READ selectInfoRevision NOTIFY selectInfoRevisionChanged)
 
@@ -108,6 +110,9 @@ public:
     int selectLiveSkinTime() const;
     void setSelectLiveSkinTime(int value);
 
+    int selectInfoStartSkinTime() const;
+    void setSelectInfoStartSkinTime(int value);
+
     int selectInfoElapsed() const;
     void setSelectInfoElapsed(int value);
 
@@ -164,6 +169,8 @@ public:
 
     QVariant gameplayTimerValues() const;
     void setGameplayTimerValues(const QVariant& values);
+    QVariant customTimerValues() const;
+    void setCustomTimerValues(const QVariant& values);
 
     int revision() const;
     int selectInfoRevision() const;
@@ -203,6 +210,7 @@ signals:
     void renderSkinTimeChanged();
     void selectSourceSkinTimeChanged();
     void selectLiveSkinTimeChanged();
+    void selectInfoStartSkinTimeChanged();
     void selectInfoElapsedChanged();
     void selectScrollStartSkinTimeChanged();
     void selectNoScrollStartSkinTimeChanged();
@@ -222,6 +230,7 @@ signals:
     void resultGraphEndSkinTimeChanged();
     void gameplayTimerRevisionChanged();
     void gameplayTimerValuesChanged();
+    void customTimerValuesChanged();
     void gameplayTimerValuesCommitted();
     void revisionChanged();
     void selectInfoRevisionChanged();
@@ -260,6 +269,7 @@ private:
     int m_renderSkinTime = 0;
     int m_selectSourceSkinTime = 0;
     int m_selectLiveSkinTime = 0;
+    int m_selectInfoStartSkinTime = 0;
     int m_selectInfoElapsed = 0;
     int m_selectScrollStartSkinTime = 0;
     int m_selectNoScrollStartSkinTime = 0;
@@ -279,6 +289,7 @@ private:
     int m_resultGraphEndSkinTime = 0;
     int m_gameplayTimerRevision = 0;
     QHash<int, int> m_gameplayTimerValues;
+    QHash<int, int> m_customTimerValues;
     bool m_gameplayTimerValuesDirty = false;
     bool m_pendingGameplayTimerFullRefresh = false;
     bool m_committedGameplayTimerFullRefresh = false;

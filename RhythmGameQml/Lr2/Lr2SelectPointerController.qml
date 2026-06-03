@@ -35,13 +35,23 @@ QtObject {
         const buttonId = hasDescriptor && descriptor.buttonId > 0
             ? descriptor.buttonId
             : root.elementButtonId(src);
+        const buttonActionCallback = hasDescriptor && descriptor.buttonActionCallback > 0
+            ? descriptor.buttonActionCallback
+            : (src.buttonActionCallback || 0);
+        const luaDrawCallback = hasDescriptor && descriptor.luaDrawCallback > 0
+            ? descriptor.luaDrawCallback
+            : 0;
         const selectScroll = hasDescriptor
             ? descriptor.selectScrollSlider
             : root.isSelectScrollSlider(src);
         const genericSlider = hasDescriptor
             ? descriptor.genericSlider
             : root.isLr2GenericSlider(src);
-        if (buttonId <= 0 && !selectScroll && !genericSlider) {
+        const luaValueSlider = hasDescriptor
+            ? descriptor.spriteStateOverrideKind === root.luaValueSliderSpriteStateOverride
+                && (src.sliderEventCallback || 0) > 0
+            : (src.sliderValueCallback || 0) > 0 && (src.sliderEventCallback || 0) > 0;
+        if (buttonId <= 0 && buttonActionCallback <= 0 && !selectScroll && !genericSlider && !luaValueSlider) {
             return;
         }
 
@@ -52,9 +62,12 @@ QtObject {
             runtimeIndex: elementIndex,
             z: z || 0,
             buttonId: buttonId,
+            buttonActionCallback: buttonActionCallback,
+            luaDrawCallback: luaDrawCallback,
             sourceCount: root.elementSourceFrameCount(src),
             selectScroll: selectScroll,
-            genericSlider: genericSlider
+            genericSlider: genericSlider,
+            luaValueSlider: luaValueSlider
         };
         elements = nextElements;
     }
@@ -90,15 +103,36 @@ QtObject {
         if (!state) {
             return false;
         }
-        const left = Math.min(state.x, state.x + state.w);
-        const right = Math.max(state.x, state.x + state.w);
-        const top = Math.min(state.y, state.y + state.h);
-        const bottom = Math.max(state.y, state.y + state.h);
+        const rect = hitRect(state);
+        const left = Math.min(rect.x, rect.x + rect.w);
+        const right = Math.max(rect.x, rect.x + rect.w);
+        const top = Math.min(rect.y, rect.y + rect.h);
+        const bottom = Math.max(rect.y, rect.y + rect.h);
         return skinX >= left && skinX <= right && skinY >= top && skinY <= bottom;
     }
 
+    function hitRect(state: var) : var {
+        if (!state) {
+            return ({ x: 0, y: 0, w: 0, h: 0 });
+        }
+        const visualLeft = Math.min(state.x, state.x + state.w);
+        const visualTop = Math.min(state.y, state.y + state.h);
+        const visualW = Math.abs(state.w);
+        const visualH = Math.abs(state.h);
+        if (!state.hasMouseRect) {
+            return ({ x: visualLeft, y: visualTop, w: visualW, h: visualH });
+        }
+
+        return ({
+            x: visualLeft + (state.mouseRectX || 0),
+            y: visualTop + visualH - (state.mouseRectY || 0) - (state.mouseRectH || 0),
+            w: state.mouseRectW || 0,
+            h: state.mouseRectH || 0
+        });
+    }
+
     function sliderTrackState(element: var) : var {
-        if (!ready || !element || (!element.selectScroll && !element.genericSlider)) {
+        if (!ready || !element || (!element.selectScroll && !element.genericSlider && !element.luaValueSlider)) {
             return null;
         }
         if (skinRuntime && element.runtimeIndex !== undefined) {
@@ -112,14 +146,17 @@ QtObject {
     }
 
     function hitSlider(skinX: var, skinY: var) : var {
-        if (!ready || !root.selectPointerScrollReady()) {
+        if (!ready || !root.skinPointerInputReady()) {
             return null;
         }
         let best = null;
         const keys = Object.keys(elements);
         for (let i = 0; i < keys.length; ++i) {
             const element = elements[keys[i]];
-            if (!element || (!element.selectScroll && !element.genericSlider)) {
+            if (!element || (!element.selectScroll && !element.genericSlider && !element.luaValueSlider)) {
+                continue;
+            }
+            if (element.selectScroll && !root.selectPointerScrollReady()) {
                 continue;
             }
             const trackState = sliderTrackState(element);
@@ -135,18 +172,24 @@ QtObject {
     }
 
     function hitButton(skinX: var, skinY: var) : var {
-        if (!ready || !root.selectPointerInputReady()) {
+        if (!ready || !root.skinPointerInputReady()) {
             return null;
         }
         let best = null;
         const keys = Object.keys(elements);
         for (let i = 0; i < keys.length; ++i) {
             const element = elements[keys[i]];
-            if (!element || element.buttonId <= 0) {
+            if (!element || (element.buttonId <= 0 && element.buttonActionCallback <= 0)) {
                 continue;
             }
-            if (!root.elementButtonClickEnabled(element.src)
-                    || !root.elementButtonPanelMatches(element.src)) {
+            if (element.luaDrawCallback > 0
+                    && !root.beatorajaLuaDrawCallback(element.luaDrawCallback, true)) {
+                continue;
+            }
+            const luaActionButton = element.buttonActionCallback > 0;
+            if (!luaActionButton
+                    && (!root.elementButtonClickEnabled(element.src)
+                        || !root.elementButtonPanelMatches(element.src))) {
                 continue;
             }
             const state = elementState(element);
@@ -209,6 +252,8 @@ QtObject {
             root.setSelectScrollFromSliderTrack(target.element.src, target.state, skinX, skinY);
         } else if (target.element.genericSlider) {
             root.setLr2GenericSliderFromTrack(target.element.src, target.state, skinX, skinY);
+        } else if (target.element.luaValueSlider) {
+            root.setBeatorajaLuaSliderFromTrack(target.element.src, target.state, skinX, skinY);
         }
     }
 
@@ -229,11 +274,26 @@ QtObject {
             return;
         }
         const left = Math.min(state.x, state.x + state.w);
+        const top = Math.min(state.y, state.y + state.h);
         const width = Math.abs(state.w);
+        const height = Math.abs(state.h);
         const delta = root.buttonMouseDelta(
             target.element.src,
             target.skinX - left,
-            width);
+            width,
+            target.skinY - top,
+            height);
+        if (target.element.buttonActionCallback > 0) {
+            root.beatorajaLuaActionCallback(target.element.buttonActionCallback);
+            mouse.accepted = true;
+            return;
+        }
+        if (root.beatorajaLuaEventCallback(target.element.buttonId,
+                                           delta,
+                                           mouse.button)) {
+            mouse.accepted = true;
+            return;
+        }
         root.handleLr2Button(
             target.element.buttonId,
             delta,

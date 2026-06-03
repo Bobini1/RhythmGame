@@ -37,8 +37,30 @@ Image {
     readonly property real stateW: stateData ? stateData.w || 0 : 0
     readonly property real stateH: stateData ? stateData.h || 0 : 0
     readonly property int stateFilter: stateData ? stateData.filter || 0 : 0
+    readonly property int stateStretch: stateData && stateData.stretch !== undefined
+        ? stateData.stretch
+        : -1
     readonly property real drawX: stateX + (stateW < 0 ? stateW : 0)
     readonly property real drawY: stateY + (stateH < 0 ? stateH : 0)
+
+    function fillModeForStretch(stretch: var) : var {
+        switch (stretch) {
+        case 1:
+        case 4:
+        case 6:
+        case 8:
+        case 9:
+            return Image.PreserveAspectFit;
+        case 2:
+        case 3:
+        case 5:
+        case 7:
+        case 10:
+            return Image.PreserveAspectCrop;
+        default:
+            return Image.Stretch;
+        }
+    }
 
     x: drawX * scaleOverride
     y: drawY * scaleOverride
@@ -51,10 +73,9 @@ Image {
     opacity: stateData && stateData.a !== undefined ? stateData.a / 255.0 : 1.0
     source: hasDrawableTexture ? resolvedSource : ""
     sourceClipRect: animationFrameState.sourceClipRect
-    fillMode: tileVertically ? Image.TileVertically : Image.Stretch
+    fillMode: tileVertically ? Image.TileVertically : fillModeForStretch(stateStretch)
     cache: true
     asynchronous: true
     smooth: stateFilter !== 0
     mipmap: false
 }
-

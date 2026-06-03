@@ -329,13 +329,15 @@ Player::Player(BmsNotes* notes,
             this,
             &Player::setup);
     refereeWatcher.setFuture(refereeFuture);
-    for (auto [index, column] :
-         std::ranges::views::enumerate(state->getColumnStates())) {
+    const auto columnStates = state->getColumnStates();
+    for (qsizetype index = 0; index < columnStates.size(); ++index) {
+        const auto column = columnStates[index];
+        const auto columnIndex = static_cast<int>(index);
         connect(score,
                 &BmsLiveScore::hit,
                 column,
-                [column, index](const HitEvent& event) {
-                    if (index == event.getColumn()) {
+                [column, columnIndex](const HitEvent& event) {
+                    if (columnIndex == event.getColumn()) {
                         column->onHitEvent(event);
                     }
                 });

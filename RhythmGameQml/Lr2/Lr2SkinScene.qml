@@ -23,7 +23,7 @@ Item {
     readonly property string bannerSource: rootReady ? selectContext.visualBannerSource : ""
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
-    readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
+    readonly property bool pointerSurfaceActive: screenUpdatesActive
     readonly property var gameplayFrameState: rootReady ? root.gameplayFrameStateRef : null
 
     Lr2SelectPointerController {
@@ -58,7 +58,7 @@ Item {
                 selectContext: sceneRoot.selectContext
                 skinModel: sceneRoot.skinModel
                 pointerController: selectPointer
-                active: sceneRoot.selectScreenActive
+                active: sceneRoot.pointerSurfaceActive
             }
 
             Repeater {

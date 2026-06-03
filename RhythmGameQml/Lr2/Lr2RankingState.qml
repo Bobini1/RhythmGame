@@ -345,12 +345,24 @@ QtObject {
 
     function entryClearValue(index: var) : var {
         let entry = root.entryAt(index);
-        return entry ? root.host.clearTypeValue(entry.bestClearType || "NOPLAY") : 0;
+        return entry ? root.host.clearTypeValue(entry.bestClearType || "NOPLAY") : -2147483648;
     }
 
     function entryExScore(index: var) : var {
         let entry = root.entryAt(index);
-        return entry ? Math.floor(entry.bestPoints || 0) : 0;
+        return entry ? Math.floor(entry.bestPoints || 0) : -2147483648;
+    }
+
+    function entryIndex(index: var) : var {
+        let entry = root.entryAt(index);
+        if (!entry) {
+            return -2147483648;
+        }
+        let explicitRank = entry.rank !== undefined
+            ? entry.rank
+            : (entry.ranking !== undefined ? entry.ranking : entry.position);
+        let value = Number(explicitRank || 0);
+        return value > 0 ? Math.floor(value) : Math.floor(index) + 1;
     }
 
     function clearCount() : var {

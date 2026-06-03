@@ -72,6 +72,7 @@ Item {
     property var barLampVariants: []
     property bool useBeatorajaBarTextTypes: false
     property bool useBeatorajaSelectOptions: false
+    property bool useBeatorajaCsvBarLampMap: false
     property int realItemCount: 0
     property int barRowCount: 0
     property int barCenter: 0
@@ -871,8 +872,7 @@ Item {
             exactLamp = exactFolderLampFromCounts(counts);
         }
         if (exactLamp >= 0) {
-            return clearTypeBarLamp(clearTypeForExactFolderLamp(exactLamp),
-                                    root.barLampVariants);
+            return clearTypeBarLamp(clearTypeForExactFolderLamp(exactLamp));
         }
         return Math.max(0, lamp || 0);
     }
@@ -2358,8 +2358,7 @@ Item {
         let distribution = barGraphDistribution(item);
         let barLamp = isFolderLikeForLamp(item)
             ? entryLamp(item)
-            : clearTypeBarLamp(isRankingEntry(item) ? item.bestClearType : summary.clearType,
-                               root.barLampVariants);
+            : clearTypeBarLamp(isRankingEntry(item) ? item.bestClearType : summary.clearType);
         return {
             rawItem: item,
             key: entrySelectionKey(item, fallbackIndex),
@@ -2379,6 +2378,7 @@ Item {
             playLevel: entryPlayLevel(item),
             difficulty: entryDifficulty(item),
             keymode: item && item.keymode ? item.keymode : 0,
+            rank: (isChart(item) || isEntry(item)) ? judgeRank(item) : 75,
             lamp: barLamp,
             scoreRank: isRankingEntry(item) ? rankingEntryRank(item) : summary.rank,
             labelMask: entryLabelMask(item),
@@ -2639,6 +2639,7 @@ Item {
         case "HARD":
             return 6;
         case "EXHARD":
+        case "EXHARDDAN":
             return 7;
         case "FC":
             return 8;
@@ -2857,38 +2858,53 @@ Item {
         }
     }
 
-    function clearTypeLamp(clear: var) : var {
-        return collapsedClearTypeLamp(skinCompatibleClearType(clear));
-    }
-
-    function hasBarLampVariant(variants: var, variant: var) : var {
-        return variants && variants.indexOf(variant) !== -1;
-    }
-
-    function usesExtendedBarLampVariants(variants: var) : var {
-        if (!variants) {
-            return false;
-        }
-        for (let i = 0; i < variants.length; ++i) {
-            if (variants[i] > 5) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function clearTypeBarLamp(clear: var, variants: var) : var {
-        clear = skinCompatibleClearType(clear);
-        if (!root.useBeatorajaSelectOptions || !usesExtendedBarLampVariants(variants)) {
-            return collapsedClearTypeLamp(clear);
-        }
-        switch (clear) {
+    function exactClearTypeLamp(clear: var) : var {
+        switch (normalizedClearType(clear)) {
         case "FAILED":
             return 1;
         case "AEASY":
-            return hasBarLampVariant(variants, 9) ? 9 : 2;
+            return 2;
         case "LIGHTASSIST":
-            return hasBarLampVariant(variants, 10) ? 10 : 2;
+            return 3;
+        case "EASY":
+            return 4;
+        case "NORMAL":
+            return 5;
+        case "HARD":
+            return 6;
+        case "EXHARD":
+        case "EXHARDDAN":
+            return 7;
+        case "FC":
+            return 8;
+        case "PERFECT":
+            return 9;
+        case "MAX":
+            return 10;
+        default:
+            return 0;
+        }
+    }
+
+    function clearTypeLamp(clear: var) : var {
+        let value = skinCompatibleClearType(clear);
+        return root.useBeatorajaSelectOptions
+            ? exactClearTypeLamp(value)
+            : collapsedClearTypeLamp(value);
+    }
+
+    function hasBarLampVariant(variant: var) : var {
+        return root.barLampVariants && root.barLampVariants.indexOf(variant) !== -1;
+    }
+
+    function beatorajaCsvClearTypeBarLamp(clear: var) : var {
+        switch (normalizedClearType(clear)) {
+        case "FAILED":
+            return 1;
+        case "AEASY":
+            return hasBarLampVariant(9) ? 9 : 2;
+        case "LIGHTASSIST":
+            return hasBarLampVariant(10) ? 10 : 2;
         case "EASY":
             return 2;
         case "NORMAL":
@@ -2896,16 +2912,24 @@ Item {
         case "HARD":
             return 4;
         case "EXHARD":
-            return hasBarLampVariant(variants, 5) ? 5 : 4;
+        case "EXHARDDAN":
+            return hasBarLampVariant(5) ? 5 : 4;
         case "FC":
             return 6;
         case "PERFECT":
-            return hasBarLampVariant(variants, 7) ? 7 : 6;
+            return hasBarLampVariant(7) ? 7 : 6;
         case "MAX":
-            return hasBarLampVariant(variants, 8) ? 8 : 6;
+            return hasBarLampVariant(8) ? 8 : 6;
         default:
             return 0;
         }
+    }
+
+    function clearTypeBarLamp(clear: var) : var {
+        let value = skinCompatibleClearType(clear);
+        return root.useBeatorajaCsvBarLampMap
+            ? beatorajaCsvClearTypeBarLamp(value)
+            : clearTypeLamp(value);
     }
 
     function isClearedScore(score: var) : var {
@@ -3229,6 +3253,7 @@ Item {
             ids.push(119);
             break;
         case "EXHARD":
+        case "EXHARDDAN":
             ids.push(125);
             break;
         }
@@ -3335,6 +3360,7 @@ Item {
         case "HARD":
             return 104;
         case "EXHARD":
+        case "EXHARDDAN":
             return 1102;
         case "FC":
             return 105;
@@ -3944,15 +3970,41 @@ Item {
         return !!chart && ((chart.lnCount || 0) + (chart.bssCount || 0)) > 0;
     }
 
-    function judgeOption(chart: var) : var {
-        if (isMissingTableEntry(chart)) {
-            return 180;
+    function chartRankValue(value: var) : var {
+        if (!value) {
+            return NaN;
         }
-        let rank = chart ? (chart.rank || 75) : 75;
-        if (rank <= 25) return 180;
-        if (rank <= 50) return 181;
-        if (rank <= 75) return 182;
-        return 183;
+        if (value.chartData) {
+            return chartRankValue(value.chartData);
+        }
+        if (value.rawItem) {
+            return chartRankValue(value.rawItem);
+        }
+        if (value.rank === undefined || value.rank === null) {
+            return NaN;
+        }
+        let rank = Number(value.rank);
+        return isFinite(rank) && rank >= 0 ? rank : NaN;
+    }
+
+    function judgeRank(chart: var, fallbackItem: var) : var {
+        let rank = chartRankValue(chart);
+        if (!isFinite(rank) && fallbackItem) {
+            rank = chartRankValue(fallbackItem);
+        }
+        if (!isFinite(rank)) {
+            return 75;
+        }
+        return rank;
+    }
+
+    function judgeOption(chart: var, fallbackItem: var) : var {
+        let rank = judgeRank(chart, fallbackItem);
+        if (rank >= 10 && rank < 35) return 180;
+        if (rank >= 35 && rank < 60) return 181;
+        if (rank >= 60 && rank < 85) return 182;
+        if (rank >= 85 && rank < 110) return 183;
+        return 184;
     }
 
     function highLevelOption(chart: var) : var {

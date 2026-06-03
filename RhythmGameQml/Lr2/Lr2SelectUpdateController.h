@@ -41,6 +41,7 @@ class Lr2SelectUpdateController : public QObject {
     Q_PROPERTY(QVariant screenRuntimeActiveOptions READ screenRuntimeActiveOptions WRITE setScreenRuntimeActiveOptions NOTIFY screenRuntimeActiveOptionsChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(int selectedKeymode READ selectedKeymode WRITE setSelectedKeymode NOTIFY selectedKeymodeChanged)
+    Q_PROPERTY(int selectedJudgeOption READ selectedJudgeOption WRITE setSelectedJudgeOption NOTIFY selectedJudgeOptionChanged)
     Q_PROPERTY(bool spToDpActive READ spToDpActive WRITE setSpToDpActive NOTIFY spToDpActiveChanged)
     Q_PROPERTY(bool battleModeActive READ battleModeActive WRITE setBattleModeActive NOTIFY battleModeActiveChanged)
     Q_PROPERTY(int selectRevision READ selectRevision NOTIFY selectRevisionChanged)
@@ -145,6 +146,9 @@ public:
     int selectedKeymode() const;
     void setSelectedKeymode(int keymode);
 
+    int selectedJudgeOption() const;
+    void setSelectedJudgeOption(int option);
+
     bool spToDpActive() const;
     void setSpToDpActive(bool active);
 
@@ -187,6 +191,7 @@ signals:
     void screenRuntimeActiveOptionsChanged();
     void gameplayScreenChanged();
     void selectedKeymodeChanged();
+    void selectedJudgeOptionChanged();
     void spToDpActiveChanged();
     void battleModeActiveChanged();
     void selectRevisionChanged();
@@ -206,6 +211,8 @@ private:
     bool skinUsesOption(int option) const;
     int selectModeKeymode(int keymode) const;
     void appendSelectKeymodeOptions(QVariantList& options) const;
+    int compatibleSelectJudgeOption() const;
+    void replaceSelectJudgeOption(QVariantList& options) const;
     void appendUniqueOption(QVariantList& options, int option) const;
     void appendUniqueSkinOption(QVariantList& options, int option) const;
     void appendDefaultOptionIfMissing(QVariantList& options, const QList<int>& choices, int fallback) const;
@@ -246,6 +253,7 @@ private:
     QVariant m_screenRuntimeActiveOptions;
     bool m_gameplayScreen = false;
     int m_selectedKeymode = 0;
+    int m_selectedJudgeOption = 0;
     bool m_spToDpActive = false;
     bool m_battleModeActive = false;
     int m_selectRevision = 0;

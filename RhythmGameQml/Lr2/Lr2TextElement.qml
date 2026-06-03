@@ -18,16 +18,35 @@ Item {
     property int skinClockMode: 0
     property int timerFire: 0
     property real skinScale: 1
+    property bool showUnresolvedTextFallback: true
 
     readonly property var root: screenRoot
     readonly property bool ready: root !== undefined && root !== null
     readonly property bool selectReady: selectContext !== undefined && selectContext !== null
     readonly property int sourceTextId: srcData ? numberValue(srcData.st, -1) : -1
+    readonly property int sourceValueCallback: srcData ? numberValue(srcData.valueCallback, 0) : 0
+    readonly property string sourceConstantText: srcData && srcData.constantText !== undefined && srcData.constantText !== null
+        ? String(srcData.constantText)
+        : ""
 
     readonly property var searchTextState: ready ? root.selectSearchTextState(srcData, dsts) : null
     readonly property bool isSearchText: ready && root.isSelectSearchText(srcData)
     readonly property string searchFontPath: srcData ? String(srcData.fontPath || "") : ""
+    readonly property string searchFontFamily: srcData ? (srcData.fontFamily || srcData.fontPath || "") : ""
+    readonly property string normalizedSearchFontPath: searchFontPath.replace(/\\/g, "/").toLowerCase()
+    readonly property bool searchIsLr2Font: srcData
+        && (srcData.bitmapFont || normalizedSearchFontPath.endsWith(".lr2font"))
+    readonly property bool searchUppercaseBitmapText: searchIsLr2Font
+        && normalizedSearchFontPath.indexOf("/font/title/") !== -1
+    readonly property int searchFontSize: srcData ? numberValue(srcData.fontSize, 0) : 0
+    readonly property int searchFontThickness: srcData ? numberValue(srcData.fontThickness, 0) : 0
     readonly property int searchAlignment: srcData ? numberValue(srcData.align, 0) : 0
+    readonly property int searchBasePixelSize: Math.max(1, Math.round(searchFontSize > 0
+        ? searchFontSize
+        : (searchInputLoader.item ? searchInputLoader.item.height : 1)))
+    readonly property int searchResolvedFontWeight: searchFontThickness >= 6
+        ? Font.Bold
+        : (searchFontThickness >= 4 ? Font.DemiBold : Font.Normal)
     readonly property bool searchTextEditing: isSearchText
         && searchInputLoader.item
         && searchInputLoader.item.activeFocus
@@ -41,10 +60,28 @@ Item {
         if (searchEditingText.length > 0) {
             return searchEditingText;
         }
-        return ready
-            ? root.resolveText(sourceTextId)
-            : "";
+        if (!selectReady) {
+            return "";
+        }
+        let folderName = selectContext.currentFolderDisplayName();
+        return folderName.length > 0
+            ? folderName
+            : (ready ? root.lr2SearchPlaceholderText : "");
     }
+    property string nonSearchResolvedText: ""
+    property bool nonSearchResolvedTextRefreshPending: false
+    readonly property string rendererResolvedText: {
+        if (!ready) {
+            return "";
+        }
+        if (isSearchText) {
+            return searchDisplayText;
+        }
+        return nonSearchResolvedText;
+    }
+    readonly property string searchMeasuredText: searchUppercaseBitmapText
+        ? searchEditingText.toUpperCase()
+        : searchEditingText
     readonly property int searchCursorPosition: searchInputLoader.item
         ? searchInputLoader.item.cursorPosition
         : 0
@@ -67,6 +104,70 @@ Item {
         return isNaN(numeric) ? fallback : numeric;
     }
 
+    function refreshNonSearchResolvedText() : void {
+        if (!ready || isSearchText) {
+            nonSearchResolvedText = "";
+            return;
+        }
+        if (sourceValueCallback > 0) {
+            nonSearchResolvedText = root.beatorajaLuaTextCallback(sourceValueCallback);
+            return;
+        }
+        if (sourceConstantText.length > 0) {
+            nonSearchResolvedText = sourceConstantText;
+            return;
+        }
+        nonSearchResolvedText = root.resolveText(sourceTextId);
+    }
+
+    function scheduleNonSearchResolvedTextRefresh() : void {
+        if (nonSearchResolvedTextRefreshPending) {
+            return;
+        }
+        nonSearchResolvedTextRefreshPending = true;
+        Qt.callLater(function() {
+            nonSearchResolvedTextRefreshPending = false;
+            if (textElement) {
+                textElement.refreshNonSearchResolvedText();
+            }
+        });
+    }
+
+    Component.onCompleted: scheduleNonSearchResolvedTextRefresh()
+    onReadyChanged: scheduleNonSearchResolvedTextRefresh()
+    onIsSearchTextChanged: scheduleNonSearchResolvedTextRefresh()
+    onSourceTextIdChanged: scheduleNonSearchResolvedTextRefresh()
+    onSourceValueCallbackChanged: scheduleNonSearchResolvedTextRefresh()
+    onSourceConstantTextChanged: scheduleNonSearchResolvedTextRefresh()
+
+    Connections {
+        target: textElement.ready ? textElement.root : null
+        function onRenderSkinTimeChanged() : void {
+            if (textElement.sourceValueCallback > 0) {
+                textElement.scheduleNonSearchResolvedTextRefresh();
+            }
+        }
+        function onSelectRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onRuntimeActiveOptionsChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onLr2SkinSettingsRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+    }
+
+    Connections {
+        target: textElement.ready ? textElement.root.beatorajaLuaRuntime() : null
+        function onRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+    }
+
+    Connections {
+        target: textElement.selectReady ? textElement.selectContext : null
+        function onFocusRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onScoreRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onListRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onSelectionRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onSearchTextChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onPlayerStatsRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+        function onRankingStatsRevisionChanged() : void { textElement.scheduleNonSearchResolvedTextRefresh(); }
+    }
+
     function restartSearchCursorBlink() : void {
         searchCursorOn = true;
         searchCursorBlinkTimer.restart();
@@ -82,7 +183,7 @@ Item {
         let previousWidth = 0;
         for (let i = 1; i <= text.length; ++i) {
             const item = searchPrefixMeasureRepeater.itemAt(i);
-            const width = item ? item.naturalWidth : previousWidth;
+            const width = item ? item.measuredWidth : previousWidth;
             if (sourceX < previousWidth + (width - previousWidth) / 2) {
                 return i - 1;
             }
@@ -131,7 +232,20 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.searchEditingText
+        text: textElement.searchIsLr2Font ? textElement.searchMeasuredText : ""
+    }
+
+    Text {
+        id: searchFullSystemMeasure
+        x: -10000
+        y: -10000
+        opacity: 0
+        text: textElement.searchIsLr2Font ? "" : textElement.searchEditingText
+        font.family: textElement.searchFontFamily
+        font.pixelSize: textElement.searchBasePixelSize
+        font.weight: textElement.searchResolvedFontWeight
+        font.hintingPreference: Font.PreferFullHinting
+        renderType: Text.NativeRendering
     }
 
     Lr2BitmapFontText {
@@ -142,9 +256,24 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.ready
+        text: textElement.ready && textElement.searchIsLr2Font
+            ? textElement.root.textPrefix(textElement.searchMeasuredText, textElement.searchCursorPosition)
+            : ""
+    }
+
+    Text {
+        id: searchCursorSystemMeasure
+        x: -10000
+        y: -10000
+        opacity: 0
+        text: textElement.ready && !textElement.searchIsLr2Font
             ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchCursorPosition)
             : ""
+        font.family: textElement.searchFontFamily
+        font.pixelSize: textElement.searchBasePixelSize
+        font.weight: textElement.searchResolvedFontWeight
+        font.hintingPreference: Font.PreferFullHinting
+        renderType: Text.NativeRendering
     }
 
     Lr2BitmapFontText {
@@ -155,9 +284,24 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.ready
+        text: textElement.ready && textElement.searchIsLr2Font
+            ? textElement.root.textPrefix(textElement.searchMeasuredText, textElement.searchSelectionStart)
+            : ""
+    }
+
+    Text {
+        id: searchSelectionStartSystemMeasure
+        x: -10000
+        y: -10000
+        opacity: 0
+        text: textElement.ready && !textElement.searchIsLr2Font
             ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchSelectionStart)
             : ""
+        font.family: textElement.searchFontFamily
+        font.pixelSize: textElement.searchBasePixelSize
+        font.weight: textElement.searchResolvedFontWeight
+        font.hintingPreference: Font.PreferFullHinting
+        renderType: Text.NativeRendering
     }
 
     Lr2BitmapFontText {
@@ -168,20 +312,50 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.ready
-            ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchSelectionEnd)
+        text: textElement.ready && textElement.searchIsLr2Font
+            ? textElement.root.textPrefix(textElement.searchMeasuredText, textElement.searchSelectionEnd)
             : ""
     }
 
-    readonly property real searchTextScaleY: searchFullMeasure.naturalHeight > 0 && searchInputLoader.item
-        ? searchInputLoader.item.height / searchFullMeasure.naturalHeight
+    Text {
+        id: searchSelectionEndSystemMeasure
+        x: -10000
+        y: -10000
+        opacity: 0
+        text: textElement.ready && !textElement.searchIsLr2Font
+            ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchSelectionEnd)
+            : ""
+        font.family: textElement.searchFontFamily
+        font.pixelSize: textElement.searchBasePixelSize
+        font.weight: textElement.searchResolvedFontWeight
+        font.hintingPreference: Font.PreferFullHinting
+        renderType: Text.NativeRendering
+    }
+
+    readonly property real searchFullNaturalWidth: searchIsLr2Font
+        ? searchFullMeasure.naturalWidth
+        : searchFullSystemMeasure.implicitWidth
+    readonly property real searchFullNaturalHeight: searchIsLr2Font
+        ? searchFullMeasure.naturalHeight
+        : searchBasePixelSize
+    readonly property real searchCursorNaturalWidth: searchIsLr2Font
+        ? searchCursorMeasure.naturalWidth
+        : searchCursorSystemMeasure.implicitWidth
+    readonly property real searchSelectionStartNaturalWidth: searchIsLr2Font
+        ? searchSelectionStartMeasure.naturalWidth
+        : searchSelectionStartSystemMeasure.implicitWidth
+    readonly property real searchSelectionEndNaturalWidth: searchIsLr2Font
+        ? searchSelectionEndMeasure.naturalWidth
+        : searchSelectionEndSystemMeasure.implicitWidth
+    readonly property real searchTextScaleY: searchFullNaturalHeight > 0 && searchInputLoader.item
+        ? searchInputLoader.item.height / searchFullNaturalHeight
         : 1
-    readonly property real searchTextFitScaleX: searchFullMeasure.naturalWidth > 0 && searchInputLoader.item
-        && searchFullMeasure.naturalWidth > searchInputLoader.item.width
-        ? searchInputLoader.item.width / searchFullMeasure.naturalWidth
+    readonly property real searchTextFitScaleX: searchFullNaturalWidth > 0 && searchInputLoader.item
+        && searchFullNaturalWidth > searchInputLoader.item.width
+        ? searchInputLoader.item.width / searchFullNaturalWidth
         : 1
     readonly property real searchTextScaleX: searchTextScaleY * searchTextFitScaleX
-    readonly property real searchDrawnWidth: searchFullMeasure.naturalWidth * searchTextScaleX
+    readonly property real searchDrawnWidth: searchFullNaturalWidth * searchTextScaleX
     readonly property real searchTextOriginX: searchInputLoader.item
         ? searchInputLoader.item.x + (
             searchAlignment === 1
@@ -195,15 +369,33 @@ Item {
         model: textElement.isSearchText ? textElement.searchEditingText.length + 1 : 0
 
         Lr2BitmapFontText {
+            readonly property real measuredWidth: textElement.searchIsLr2Font
+                ? naturalWidth
+                : systemMeasure.implicitWidth
             x: -10000
             y: -10000
             width: 1
             height: searchInputLoader.item ? searchInputLoader.item.height : 1
             opacity: 0
             fontPath: textElement.searchFontPath
-            text: textElement.ready
-                ? textElement.root.textPrefix(textElement.searchEditingText, index)
+            text: textElement.ready && textElement.searchIsLr2Font
+                ? textElement.root.textPrefix(textElement.searchMeasuredText, index)
                 : ""
+
+            Text {
+                id: systemMeasure
+                x: -10000
+                y: -10000
+                opacity: 0
+                text: textElement.ready && !textElement.searchIsLr2Font
+                    ? textElement.root.textPrefix(textElement.searchEditingText, index)
+                    : ""
+                font.family: textElement.searchFontFamily
+                font.pixelSize: textElement.searchBasePixelSize
+                font.weight: textElement.searchResolvedFontWeight
+                font.hintingPreference: Font.PreferFullHinting
+                renderType: Text.NativeRendering
+            }
         }
     }
 
@@ -211,11 +403,11 @@ Item {
         z: 1
         visible: textElement.searchHasSelection && searchInputLoader.item
         x: textElement.searchTextOriginX
-            + searchSelectionStartMeasure.naturalWidth * textElement.searchTextScaleX
+            + textElement.searchSelectionStartNaturalWidth * textElement.searchTextScaleX
         y: textElement.searchTextOriginY
         width: Math.max(
             skinScale,
-            (searchSelectionEndMeasure.naturalWidth - searchSelectionStartMeasure.naturalWidth)
+            (textElement.searchSelectionEndNaturalWidth - textElement.searchSelectionStartNaturalWidth)
                 * textElement.searchTextScaleX)
         height: searchInputLoader.item ? searchInputLoader.item.height : 0
         color: Qt.rgba(0.45, 0.72, 1.0, 0.45)
@@ -234,15 +426,8 @@ Item {
         activeOptions: textElement.activeOptions
         timerFire: textElement.timerFire
         scaleOverride: textElement.skinScale
-        resolvedText: {
-            if (!textElement.ready) {
-                return "";
-            }
-            if (textElement.isSearchText) {
-                return textElement.searchDisplayText;
-            }
-            return textElement.root.resolveText(textElement.sourceTextId);
-        }
+        showUnresolvedTextFallback: textElement.showUnresolvedTextFallback
+        resolvedText: textElement.rendererResolvedText
     }
 
     Loader {
@@ -263,6 +448,10 @@ Item {
                 syncing = true;
                 text = context.searchText;
                 syncing = false;
+            }
+
+            function focusAtSkinX(skinX: var) : void {
+                textElement.moveSearchCursorTo(skinX * skinScale, false);
             }
 
             x: textState ? Math.min(textState.x, textState.x + textState.w) * skinScale : 0
@@ -313,7 +502,7 @@ Item {
                         && context
                         && context.searchText !== text) {
                     context.searchText = text;
-                    context.touch();
+                    context.touchSelection();
                 }
             }
 
@@ -355,7 +544,7 @@ Item {
         z: 5
         visible: textElement.searchCursorVisible && searchInputLoader.item
         x: textElement.searchTextOriginX
-            + searchCursorMeasure.naturalWidth * textElement.searchTextScaleX
+            + textElement.searchCursorNaturalWidth * textElement.searchTextScaleX
         y: textElement.searchTextOriginY
         width: Math.max(1, skinScale)
         height: searchInputLoader.item ? searchInputLoader.item.height : 0

@@ -29,7 +29,9 @@ Item {
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !root.hasStaticTimelineState
+        id: timelineTracker
+
+        enabled: !timelineTracker.canUseStaticState
         dsts: root.dsts
         skinTime: root.skinTime
         timers: root.timelineTimers
@@ -60,6 +62,10 @@ Item {
     readonly property int sourceFrameIndex: animationFrameState.frameIndex
     readonly property int resultRevision: screenRoot
         ? screenRoot.resultOldScoresRevision + screenRoot.resultGaugeSelectionRevision
+        : 0
+    readonly property int gameplayTimingRevision: screenRoot
+        ? (screenRoot.gameplayTimingEventsRevision1 || 0)
+          + (screenRoot.gameplayTimingEventsRevision2 || 0)
         : 0
 
     function resultScore() : var {
@@ -301,6 +307,84 @@ Item {
         return result;
     }
 
+    function timingColor(value: var, fallback: var) : var {
+        let hex = String(value || fallback || "FFFFFFFF").replace("#", "");
+        while (hex.length < 8) {
+            hex += "F";
+        }
+        let r = parseInt(hex.slice(0, 2), 16);
+        let g = parseInt(hex.slice(2, 4), 16);
+        let b = parseInt(hex.slice(4, 6), 16);
+        let a = parseInt(hex.slice(6, 8), 16) / 255.0;
+        return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+    }
+
+    function timingDeviationMs(event: var) : var {
+        if (!event || !event.points || event.points.deviation === undefined) {
+            return NaN;
+        }
+        return Number(event.points.deviation || 0) / 1000000.0;
+    }
+
+    function timingGraphEvents() : var {
+        let score = resultScore();
+        return score && score.replayData ? (score.replayData.hitEvents || []) : [];
+    }
+
+    function buildTimingDistributionCache() : var {
+        let graphWidth = Math.max(1, srcData ? (srcData.timingGraphWidth || 301) : 301);
+        let lineWidth = Math.max(1, srcData ? (srcData.timingGraphLineWidth || 1) : 1);
+        let bucketCount = Math.max(1, Math.floor(graphWidth / lineWidth));
+        let rangeMs = graphWidth / 2.0;
+        let bins = new Array(bucketCount);
+        for (let i = 0; i < bucketCount; ++i) {
+            bins[i] = 0;
+        }
+
+        let events = timingGraphEvents();
+        let sum = 0;
+        let sumSquares = 0;
+        let count = 0;
+        let maxCount = 1;
+        for (let i = 0; i < events.length; ++i) {
+            let ms = timingDeviationMs(events[i]);
+            if (!isFinite(ms) || ms <= -rangeMs || ms >= rangeMs) {
+                continue;
+            }
+            let index = Math.max(0, Math.min(bucketCount - 1,
+                Math.floor((ms + rangeMs) / (2.0 * rangeMs) * bucketCount)));
+            bins[index] += 1;
+            maxCount = Math.max(maxCount, bins[index]);
+            sum += ms;
+            sumSquares += ms * ms;
+            ++count;
+        }
+
+        let average = count > 0 ? sum / count : NaN;
+        let variance = count > 0 ? Math.max(0, sumSquares / count - average * average) : NaN;
+        return {
+            bins: bins,
+            maxCount: maxCount,
+            rangeMs: rangeMs,
+            average: average,
+            stddev: isFinite(variance) ? Math.sqrt(variance) : NaN
+        };
+    }
+
+    function liveTimingGraphEvents() : var {
+        if (!screenRoot || !screenRoot.gameplayTimingEvents) {
+            return [];
+        }
+        return screenRoot.gameplayTimingEvents(scoreChartSide()) || [];
+    }
+
+    function buildLiveTimingVisualizerCache() : var {
+        return {
+            events: liveTimingGraphEvents(),
+            rangeMs: Math.max(1, srcData ? (srcData.op1 || 150) : 150)
+        };
+    }
+
     function buildScoreCache(fieldW: var, step: var) : var {
         let current = resultData();
         let maxPoints = current ? Math.max(1, current.maxPoints || 1) : 1;
@@ -339,15 +423,22 @@ Item {
         root.cachedChartType = chartType;
         root.cachedChartIndex = root.srcData.resultChartIndex || 0;
         root.cachedGaugeHard = false;
-        root.valueCache = chartType === 1
-            ? buildGaugeCache(fieldW, root.cachedStep)
-            : buildScoreCache(fieldW, root.cachedStep);
+        root.valueCache = chartType >= 3
+            ? buildLiveTimingVisualizerCache()
+            : (chartType === 2
+                ? buildTimingDistributionCache()
+                : (chartType === 1
+                ? buildGaugeCache(fieldW, root.cachedStep)
+                : buildScoreCache(fieldW, root.cachedStep)));
         root.paintedColumnCount = -1;
         requestTimedChartPaint();
     }
 
     function cachedSegmentVisible(value: var) : var {
         if (root.cachedChartType !== 1) {
+            return true;
+        }
+        if (root.cachedChartIndex < 0) {
             return true;
         }
         if (root.cachedGaugeHard) {
@@ -359,6 +450,9 @@ Item {
     function drawColumnCount() : var {
         if (!root.currentState || !root.srcData || root.valueCache.length === 0) {
             return 0;
+        }
+        if (root.cachedChartType >= 2) {
+            return 1;
         }
         let start = Math.max(0, root.srcData.op3 || 0);
         let end = Math.max(start + 1, root.srcData.op4 || start + 1);
@@ -380,6 +474,143 @@ Item {
         }
         root.paintedColumnCount = count;
         requestChartPaint();
+    }
+
+    function timingX(bounds: var, rangeMs: var, value: var) : var {
+        return bounds.x + (value + rangeMs) / (2.0 * rangeMs) * bounds.w;
+    }
+
+    function drawTimingBackground(ctx: var, bounds: var, rangeMs: var) : void {
+        let bands = [
+            { from: -rangeMs, to: rangeMs, color: root.timingColor(srcData.timingPRColor, "00000044") },
+            { from: -132, to: 132, color: root.timingColor(srcData.timingBDColor, "88000044") },
+            { from: -88, to: 88, color: root.timingColor(srcData.timingGDColor, "88880044") },
+            { from: -44, to: 44, color: root.timingColor(srcData.timingGRColor, "00880044") },
+            { from: -22, to: 22, color: root.timingColor(srcData.timingPGColor, "00008844") }
+        ];
+        for (let i = 0; i < bands.length; ++i) {
+            let band = bands[i];
+            let left = Math.max(-rangeMs, band.from);
+            let right = Math.min(rangeMs, band.to);
+            if (right <= left) {
+                continue;
+            }
+            let x1 = timingX(bounds, rangeMs, left);
+            let x2 = timingX(bounds, rangeMs, right);
+            ctx.fillStyle = band.color;
+            ctx.fillRect(x1, bounds.y, Math.max(1, x2 - x1), bounds.h);
+        }
+    }
+
+    function drawTimingVerticalLine(ctx: var, bounds: var, rangeMs: var, value: var, color: var) : void {
+        if (!isFinite(value) || value <= -rangeMs || value >= rangeMs) {
+            return;
+        }
+        ctx.fillStyle = color;
+        let x = Math.round(timingX(bounds, rangeMs, value));
+        ctx.fillRect(x, bounds.y, Math.max(1, root.scaleOverride), bounds.h);
+    }
+
+    function drawTimingDistributionGraph(ctx: var) : void {
+        let cache = root.valueCache;
+        if (!cache || !cache.bins || cache.bins.length === 0 || !root.currentState) {
+            return;
+        }
+        let bounds = {
+            x: root.currentState.x * root.scaleOverride,
+            y: root.currentState.y * root.scaleOverride,
+            w: Math.max(1, Math.abs(root.currentState.w || 1) * root.scaleOverride),
+            h: Math.max(1, Math.abs(root.currentState.h || 1) * root.scaleOverride)
+        };
+
+        ctx.globalAlpha = Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0));
+        drawTimingBackground(ctx, bounds, cache.rangeMs);
+        drawTimingVerticalLine(ctx,
+                               bounds,
+                               cache.rangeMs,
+                               0,
+                               root.timingColor(srcData.timingAverageColor, "FFFFFFFF"));
+
+        let barW = Math.max(1, bounds.w / cache.bins.length);
+        ctx.fillStyle = root.timingColor(srcData.timingGraphColor, "00FF00EE");
+        for (let i = 0; i < cache.bins.length; ++i) {
+            let value = cache.bins[i] || 0;
+            if (value <= 0) {
+                continue;
+            }
+            let barH = Math.max(1, bounds.h * value / Math.max(1, cache.maxCount || 1));
+            ctx.fillRect(bounds.x + i * barW, bounds.y + bounds.h - barH, Math.max(1, barW), barH);
+        }
+
+        if (srcData.timingDrawAverage !== 0) {
+            drawTimingVerticalLine(ctx,
+                                   bounds,
+                                   cache.rangeMs,
+                                   cache.average,
+                                   root.timingColor(srcData.timingAverageColor, "FFFFFFFF"));
+        }
+        if (srcData.timingDrawDev !== 0 && isFinite(cache.average) && isFinite(cache.stddev)) {
+            let color = root.timingColor(srcData.timingDevColor, "FFFFFFFF");
+            drawTimingVerticalLine(ctx, bounds, cache.rangeMs, cache.average - cache.stddev, color);
+            drawTimingVerticalLine(ctx, bounds, cache.rangeMs, cache.average + cache.stddev, color);
+        }
+    }
+
+    function timingEventColor(judgement: var) : var {
+        switch (Number(judgement)) {
+        case 5:
+            return root.timingColor(srcData.timingPGColor, "000088FF");
+        case 4:
+            return root.timingColor(srcData.timingGRColor, "008800FF");
+        case 3:
+            return root.timingColor(srcData.timingGDColor, "888800FF");
+        case 2:
+            return root.timingColor(srcData.timingBDColor, "880000FF");
+        default:
+            return root.timingColor(srcData.timingPRColor, "000000FF");
+        }
+    }
+
+    function drawLiveTimingVisualizer(ctx: var) : void {
+        let cache = root.valueCache;
+        if (!cache || !cache.events || !root.currentState) {
+            return;
+        }
+        let bounds = {
+            x: root.currentState.x * root.scaleOverride,
+            y: root.currentState.y * root.scaleOverride,
+            w: Math.max(1, Math.abs(root.currentState.w || 1) * root.scaleOverride),
+            h: Math.max(1, Math.abs(root.currentState.h || 1) * root.scaleOverride)
+        };
+
+        const baseAlpha = Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0));
+        ctx.globalAlpha = baseAlpha;
+        drawTimingBackground(ctx, bounds, cache.rangeMs);
+        drawTimingVerticalLine(ctx,
+                               bounds,
+                               cache.rangeMs,
+                               0,
+                               root.timingColor(srcData.timingAverageColor, "FFFFFFFF"));
+
+        let lineW = Math.max(1, (srcData.timingGraphLineWidth || 1) * root.scaleOverride);
+        for (let i = 0; i < cache.events.length; ++i) {
+            let event = cache.events[i];
+            let timing = Number(event && event.timing !== undefined ? event.timing : NaN);
+            if (!isFinite(timing) || timing <= -cache.rangeMs || timing >= cache.rangeMs) {
+                continue;
+            }
+            let age = Math.max(0, root.skinTime - (event.skinTime || root.skinTime));
+            let decay = srcData.timingDrawDev !== 0
+                ? Math.max(0.15, 1.0 - age / 3000.0)
+                : 1.0;
+            ctx.globalAlpha = baseAlpha * decay;
+            ctx.fillStyle = root.cachedChartType === 4
+                ? root.timingColor(srcData.timingGraphColor, "99CCFF80")
+                : timingEventColor(event.judgement);
+            let x = Math.round(timingX(bounds, cache.rangeMs, timing));
+            ctx.fillRect(x, bounds.y, lineW, bounds.h);
+        }
+        ctx.globalAlpha = baseAlpha;
     }
 
     function drawGraphPoint(ctx: var, imageLoaded: var, sx: var, sy: var, srcW: var, srcH: var, x: var, value: var, dstW: var, dstH: var, fieldH: var) : var {
@@ -414,6 +645,14 @@ Item {
                 return;
             }
             ctx.imageSmoothingEnabled = root.currentState.filter !== 0;
+            if (root.cachedChartType === 2) {
+                drawTimingDistributionGraph(ctx);
+                return;
+            }
+            if (root.cachedChartType >= 3) {
+                drawLiveTimingVisualizer(ctx);
+                return;
+            }
 
             let fieldW = root.cachedFieldW;
             let fieldH = root.cachedFieldH;
@@ -476,8 +715,9 @@ Item {
     }
     onCurrentStateChanged: rebuildValueCache()
     onDstsChanged: rebuildValueCache()
-    onSkinTimeChanged: requestTimedChartPaint()
+    onSkinTimeChanged: root.cachedChartType >= 3 ? requestChartPaint() : requestTimedChartPaint()
     onSrcDataChanged: rebuildValueCache()
     onScreenRootChanged: rebuildValueCache()
     onResultRevisionChanged: rebuildValueCache()
+    onGameplayTimingRevisionChanged: rebuildValueCache()
 }

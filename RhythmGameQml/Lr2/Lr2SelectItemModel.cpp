@@ -370,7 +370,7 @@ Lr2SelectItemModel::Item Lr2SelectItemModel::itemFromVariant(const QVariant& val
 	item.playLevel = intField(value, item.map, "playLevel");
 	item.difficulty = intField(value, item.map, "difficulty");
 	item.keymode = intField(value, item.map, "keymode");
-	item.rank = intField(value, item.map, "rank");
+	item.rank = doubleField(value, item.map, "rank", 75.0);
 	item.duration = intField(value, item.map, "duration");
 	item.minBpm = doubleField(value, item.map, "minBpm");
 	item.maxBpm = doubleField(value, item.map, "maxBpm");

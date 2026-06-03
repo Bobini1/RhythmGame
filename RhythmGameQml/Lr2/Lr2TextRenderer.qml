@@ -21,6 +21,7 @@ Item {
     property real offsetX: 0
     property real offsetY: 0
     property var stateOverride: null
+    property bool showUnresolvedTextFallback: true
     // Bound externally by the screen wrapper with the actual text for this st index
     property string resolvedText: ""
 
@@ -52,7 +53,10 @@ Item {
     readonly property bool isLr2Font: srcData
         && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
     readonly property int blendMode: drawState.blendMode
-    readonly property string displayText: root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?"))
+    readonly property string displayText: root.resolvedText
+        || (root.showUnresolvedTextFallback
+            ? ("ST_" + (root.srcData ? root.srcData.st : "?"))
+            : "")
     readonly property int stateFilter: drawState.filter
     readonly property color textColor: root.hasCurrentState
         ? Qt.rgba(root.stateR / 255.0, root.stateG / 255.0, root.stateB / 255.0, 1.0)

@@ -327,6 +327,30 @@ QVariantList Lr2SkinModel::lnBodyActiveSources() const {
     return m_lnBodyActiveSources;
 }
 
+QVariantList Lr2SkinModel::hcnStartSources() const {
+    return m_hcnStartSources;
+}
+
+QVariantList Lr2SkinModel::hcnEndSources() const {
+    return m_hcnEndSources;
+}
+
+QVariantList Lr2SkinModel::hcnBodySources() const {
+    return m_hcnBodySources;
+}
+
+QVariantList Lr2SkinModel::hcnBodyActiveSources() const {
+    return m_hcnBodyActiveSources;
+}
+
+QVariantList Lr2SkinModel::hcnBodyReactiveSources() const {
+    return m_hcnBodyReactiveSources;
+}
+
+QVariantList Lr2SkinModel::hcnBodyMissSources() const {
+    return m_hcnBodyMissSources;
+}
+
 QVariantList Lr2SkinModel::autoNoteSources() const {
     return m_autoNoteSources;
 }
@@ -351,6 +375,22 @@ QVariantList Lr2SkinModel::autoLnBodyActiveSources() const {
     return m_autoLnBodyActiveSources;
 }
 
+QVariantList Lr2SkinModel::autoHcnStartSources() const {
+    return m_autoHcnStartSources;
+}
+
+QVariantList Lr2SkinModel::autoHcnEndSources() const {
+    return m_autoHcnEndSources;
+}
+
+QVariantList Lr2SkinModel::autoHcnBodySources() const {
+    return m_autoHcnBodySources;
+}
+
+QVariantList Lr2SkinModel::autoHcnBodyActiveSources() const {
+    return m_autoHcnBodyActiveSources;
+}
+
 QVariantList Lr2SkinModel::noteDsts() const {
     return m_noteDsts;
 }
@@ -361,6 +401,10 @@ QVariantList Lr2SkinModel::lineSources() const {
 
 QVariantList Lr2SkinModel::lineDsts() const {
     return m_lineDsts;
+}
+
+QObject* Lr2SkinModel::luaRuntime() const {
+    return m_luaRuntime.data();
 }
 
 void Lr2SkinModel::setCsvPath(const QString& path) {
@@ -419,15 +463,26 @@ void Lr2SkinModel::loadSkin() {
                                      !m_lnEndSources.isEmpty() ||
                                      !m_lnBodySources.isEmpty() ||
                                      !m_lnBodyActiveSources.isEmpty() ||
+                                     !m_hcnStartSources.isEmpty() ||
+                                     !m_hcnEndSources.isEmpty() ||
+                                     !m_hcnBodySources.isEmpty() ||
+                                     !m_hcnBodyActiveSources.isEmpty() ||
+                                     !m_hcnBodyReactiveSources.isEmpty() ||
+                                     !m_hcnBodyMissSources.isEmpty() ||
                                      !m_autoNoteSources.isEmpty() ||
                                      !m_autoMineSources.isEmpty() ||
                                      !m_autoLnStartSources.isEmpty() ||
                                      !m_autoLnEndSources.isEmpty() ||
                                      !m_autoLnBodySources.isEmpty() ||
                                      !m_autoLnBodyActiveSources.isEmpty() ||
+                                     !m_autoHcnStartSources.isEmpty() ||
+                                     !m_autoHcnEndSources.isEmpty() ||
+                                     !m_autoHcnBodySources.isEmpty() ||
+                                     !m_autoHcnBodyActiveSources.isEmpty() ||
                                      !m_noteDsts.isEmpty() ||
                                      !m_lineSources.isEmpty() ||
                                      !m_lineDsts.isEmpty();
+        const bool luaRuntimeDidChange = !m_luaRuntime.isNull();
         m_effectiveActiveOptions.clear();
         m_usedOptions.clear();
         m_usedElementOptions.clear();
@@ -459,18 +514,32 @@ void Lr2SkinModel::loadSkin() {
         m_lnEndSources.clear();
         m_lnBodySources.clear();
         m_lnBodyActiveSources.clear();
+        m_hcnStartSources.clear();
+        m_hcnEndSources.clear();
+        m_hcnBodySources.clear();
+        m_hcnBodyActiveSources.clear();
+        m_hcnBodyReactiveSources.clear();
+        m_hcnBodyMissSources.clear();
         m_autoNoteSources.clear();
         m_autoMineSources.clear();
         m_autoLnStartSources.clear();
         m_autoLnEndSources.clear();
         m_autoLnBodySources.clear();
         m_autoLnBodyActiveSources.clear();
+        m_autoHcnStartSources.clear();
+        m_autoHcnEndSources.clear();
+        m_autoHcnBodySources.clear();
+        m_autoHcnBodyActiveSources.clear();
         m_noteDsts.clear();
         m_lineSources.clear();
         m_lineDsts.clear();
+        m_luaRuntime.clear();
         endResetModel();
         if (metadataChanged) {
             emit skinMetadataChanged();
+        }
+        if (luaRuntimeDidChange) {
+            emit luaRuntimeChanged();
         }
         return;
     }
@@ -514,6 +583,15 @@ void Lr2SkinModel::loadSkin() {
                                  m_lnBodySources != skinData.lnBodySources ||
                                  m_lnBodyActiveSources !=
                                    skinData.lnBodyActiveSources ||
+                                 m_hcnStartSources != skinData.hcnStartSources ||
+                                 m_hcnEndSources != skinData.hcnEndSources ||
+                                 m_hcnBodySources != skinData.hcnBodySources ||
+                                 m_hcnBodyActiveSources !=
+                                   skinData.hcnBodyActiveSources ||
+                                 m_hcnBodyReactiveSources !=
+                                   skinData.hcnBodyReactiveSources ||
+                                 m_hcnBodyMissSources !=
+                                   skinData.hcnBodyMissSources ||
                                  m_autoNoteSources != skinData.autoNoteSources ||
                                  m_autoMineSources != skinData.autoMineSources ||
                                  m_autoLnStartSources != skinData.autoLnStartSources ||
@@ -521,9 +599,17 @@ void Lr2SkinModel::loadSkin() {
                                  m_autoLnBodySources != skinData.autoLnBodySources ||
                                  m_autoLnBodyActiveSources !=
                                    skinData.autoLnBodyActiveSources ||
+                                 m_autoHcnStartSources !=
+                                   skinData.autoHcnStartSources ||
+                                 m_autoHcnEndSources != skinData.autoHcnEndSources ||
+                                 m_autoHcnBodySources !=
+                                   skinData.autoHcnBodySources ||
+                                 m_autoHcnBodyActiveSources !=
+                                   skinData.autoHcnBodyActiveSources ||
                                  m_noteDsts != skinData.noteDsts ||
                                  m_lineSources != skinData.lineSources ||
                                  m_lineDsts != skinData.lineDsts;
+    const bool luaRuntimeDidChange = m_luaRuntime.data() != skinData.luaRuntime.data();
     m_startInput = skinData.startInput;
     m_sceneTime = skinData.sceneTime;
     m_loadStart = skinData.loadStart;
@@ -555,18 +641,32 @@ void Lr2SkinModel::loadSkin() {
     m_lnEndSources = skinData.lnEndSources;
     m_lnBodySources = skinData.lnBodySources;
     m_lnBodyActiveSources = skinData.lnBodyActiveSources;
+    m_hcnStartSources = skinData.hcnStartSources;
+    m_hcnEndSources = skinData.hcnEndSources;
+    m_hcnBodySources = skinData.hcnBodySources;
+    m_hcnBodyActiveSources = skinData.hcnBodyActiveSources;
+    m_hcnBodyReactiveSources = skinData.hcnBodyReactiveSources;
+    m_hcnBodyMissSources = skinData.hcnBodyMissSources;
     m_autoNoteSources = skinData.autoNoteSources;
     m_autoMineSources = skinData.autoMineSources;
     m_autoLnStartSources = skinData.autoLnStartSources;
     m_autoLnEndSources = skinData.autoLnEndSources;
     m_autoLnBodySources = skinData.autoLnBodySources;
     m_autoLnBodyActiveSources = skinData.autoLnBodyActiveSources;
+    m_autoHcnStartSources = skinData.autoHcnStartSources;
+    m_autoHcnEndSources = skinData.autoHcnEndSources;
+    m_autoHcnBodySources = skinData.autoHcnBodySources;
+    m_autoHcnBodyActiveSources = skinData.autoHcnBodyActiveSources;
     m_noteDsts = skinData.noteDsts;
     m_lineSources = skinData.lineSources;
     m_lineDsts = skinData.lineDsts;
+    m_luaRuntime = skinData.luaRuntime;
     endResetModel();
     if (metadataChanged) {
         emit skinMetadataChanged();
+    }
+    if (luaRuntimeDidChange) {
+        emit luaRuntimeChanged();
     }
     emit skinLoaded();
 }

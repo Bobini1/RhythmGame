@@ -58,7 +58,9 @@ Item {
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !root.hasStaticTimelineState
+        id: timelineTracker
+
+        enabled: !timelineTracker.canUseStaticState
         dsts: root.timelineDsts
         skinTime: root.skinTime
         timers: root.timelineTimers
@@ -137,9 +139,9 @@ Item {
                 timerFire: -2147483648
                 scaleOverride: root.scaleOverride
                 stateOverride: root.textTimelineState
+                showUnresolvedTextFallback: false
                 resolvedText: barTextDelegate.cellText
             }
         }
     }
 }
-

@@ -267,6 +267,18 @@ QtObject {
             root.host[timingName] = timing;
         }
 
+        let eventsName = scoreSide === 2 ? "gameplayTimingEvents2" : "gameplayTimingEvents1";
+        let revisionName = scoreSide === 2 ? "gameplayTimingEventsRevision2" : "gameplayTimingEventsRevision1";
+        let events = root.host[eventsName] || [];
+        events = events.slice(Math.max(0, events.length - 127));
+        events.push({
+            timing: timing,
+            judgement: judgement,
+            skinTime: root.host.renderSkinTime
+        });
+        root.host[eventsName] = events;
+        root.host[revisionName]++;
+
         if (scoreSide === 2) {
             root.host.gameplayJudgeNowValue2 = root.nowJudgeValue(judgement);
         } else {

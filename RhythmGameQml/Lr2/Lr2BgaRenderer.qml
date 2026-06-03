@@ -27,7 +27,9 @@ Item {
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
-        enabled: !root.hasStaticTimelineState
+        id: timelineTracker
+
+        enabled: !timelineTracker.canUseStaticState
         dsts: root.dsts
         skinTime: root.skinTime
         timers: root.timelineTimers
@@ -49,7 +51,29 @@ Item {
                                              videoLayer2.sourceRect.height,
                                              videoPoor.sourceRect.height,
                                              256)
+    readonly property int stateStretch: currentState && currentState.stretch !== undefined
+        ? currentState.stretch
+        : -1
     property var attachedBga: null
+
+    function videoFillModeForStretch(stretch: var) : var {
+        switch (stretch) {
+        case 1:
+        case 4:
+        case 6:
+        case 8:
+        case 9:
+            return VideoOutput.PreserveAspectFit;
+        case 2:
+        case 3:
+        case 5:
+        case 7:
+        case 10:
+            return VideoOutput.PreserveAspectCrop;
+        default:
+            return VideoOutput.Stretch;
+        }
+    }
 
     function clearOutput() : void {
         if ("clearOutput" in videoBase) {
@@ -164,7 +188,7 @@ Item {
             id: videoBase
 
             anchors.fill: parent
-            fillMode: VideoOutput.Stretch
+            fillMode: root.videoFillModeForStretch(root.stateStretch)
             visible: !root.poorVisible
         }
 
@@ -172,7 +196,7 @@ Item {
             id: videoLayer
 
             anchors.fill: parent
-            fillMode: VideoOutput.Stretch
+            fillMode: root.videoFillModeForStretch(root.stateStretch)
             visible: !root.poorVisible
             z: 1
         }
@@ -181,7 +205,7 @@ Item {
             id: videoLayer2
 
             anchors.fill: parent
-            fillMode: VideoOutput.Stretch
+            fillMode: root.videoFillModeForStretch(root.stateStretch)
             visible: !root.poorVisible
             z: 2
         }
@@ -216,7 +240,7 @@ Item {
             id: videoPoor
 
             anchors.fill: parent
-            fillMode: VideoOutput.Stretch
+            fillMode: root.videoFillModeForStretch(root.stateStretch)
             visible: root.poorVisible
             z: 3
         }

@@ -175,11 +175,19 @@ bool readDst(const QVariant& value, Dst& dst) {
         dst.sortId = parsed.sortId;
         dst.loop = parsed.loop;
         dst.timer = parsed.timer;
+        dst.timerCallback = parsed.timerCallback;
         dst.op1 = parsed.op1;
         dst.op2 = parsed.op2;
         dst.op3 = parsed.op3;
         dst.op4 = parsed.op4;
         dst.offsets = readOffsets(parsed.offsets);
+        dst.stretch = parsed.stretch;
+        dst.hasMouseRect = parsed.hasMouseRect;
+        dst.mouseRectX = parsed.mouseRectX;
+        dst.mouseRectY = parsed.mouseRectY;
+        dst.mouseRectW = parsed.mouseRectW;
+        dst.mouseRectH = parsed.mouseRectH;
+        dst.drawCallback = parsed.drawCallback;
         return true;
     }
 
@@ -203,6 +211,7 @@ bool readDst(const QVariant& value, Dst& dst) {
         dst.sortId = mapInt(map, QStringLiteral("sortId"), 0);
         dst.loop = mapInt(map, QStringLiteral("loop"), 0);
         dst.timer = mapInt(map, QStringLiteral("timer"), 0);
+        dst.timerCallback = mapInt(map, QStringLiteral("timerCallback"), 0);
         dst.op1 = mapInt(map, QStringLiteral("op1"), 0);
         dst.op2 = mapInt(map, QStringLiteral("op2"), 0);
         dst.op3 = mapInt(map, QStringLiteral("op3"), 0);
@@ -211,6 +220,16 @@ bool readDst(const QVariant& value, Dst& dst) {
         if (offsetsIt != map.constEnd()) {
             dst.offsets = readOffsets(*offsetsIt);
         }
+        dst.stretch = mapInt(map, QStringLiteral("stretch"), -1);
+        dst.hasMouseRect = mapBool(map, QStringLiteral("hasMouseRect"), false);
+        if (dst.hasMouseRect || mapHas(map, QStringLiteral("mouseRectX"))) {
+            dst.hasMouseRect = true;
+            dst.mouseRectX = mapInt(map, QStringLiteral("mouseRectX"), 0);
+            dst.mouseRectY = mapInt(map, QStringLiteral("mouseRectY"), 0);
+            dst.mouseRectW = mapInt(map, QStringLiteral("mouseRectW"), 0);
+            dst.mouseRectH = mapInt(map, QStringLiteral("mouseRectH"), 0);
+        }
+        dst.drawCallback = mapInt(map, QStringLiteral("drawCallback"), 0);
         return true;
     }
 
@@ -241,11 +260,22 @@ bool readDst(const QVariant& value, Dst& dst) {
     dst.sortId = jsInt(jsValue, QStringLiteral("sortId"), 0);
     dst.loop = jsInt(jsValue, QStringLiteral("loop"), 0);
     dst.timer = jsInt(jsValue, QStringLiteral("timer"), 0);
+    dst.timerCallback = jsInt(jsValue, QStringLiteral("timerCallback"), 0);
     dst.op1 = jsInt(jsValue, QStringLiteral("op1"), 0);
     dst.op2 = jsInt(jsValue, QStringLiteral("op2"), 0);
     dst.op3 = jsInt(jsValue, QStringLiteral("op3"), 0);
     dst.op4 = jsInt(jsValue, QStringLiteral("op4"), 0);
     dst.offsets = readOffsets(QVariant::fromValue(jsValue.property(QStringLiteral("offsets"))));
+    dst.stretch = jsInt(jsValue, QStringLiteral("stretch"), -1);
+    dst.hasMouseRect = jsBool(jsValue, QStringLiteral("hasMouseRect"), false);
+    if (dst.hasMouseRect || jsHas(jsValue, QStringLiteral("mouseRectX"))) {
+        dst.hasMouseRect = true;
+        dst.mouseRectX = jsInt(jsValue, QStringLiteral("mouseRectX"), 0);
+        dst.mouseRectY = jsInt(jsValue, QStringLiteral("mouseRectY"), 0);
+        dst.mouseRectW = jsInt(jsValue, QStringLiteral("mouseRectW"), 0);
+        dst.mouseRectH = jsInt(jsValue, QStringLiteral("mouseRectH"), 0);
+    }
+    dst.drawCallback = jsInt(jsValue, QStringLiteral("drawCallback"), 0);
     return true;
 }
 
@@ -281,9 +311,11 @@ bool readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.timerCallback = parsed.timerCallback;
         source.resultChartType = parsed.resultChartType;
         source.button = parsed.button;
         source.buttonId = parsed.buttonId;
+        source.buttonActionCallback = parsed.buttonActionCallback;
         source.onMouse = parsed.onMouse;
         source.mouseCursor = parsed.mouseCursor;
         source.slider = parsed.slider;
@@ -292,6 +324,10 @@ bool readSource(const QVariant& value, Source& source) {
         source.sliderType = parsed.sliderType;
         source.sliderDisabled = parsed.sliderDisabled;
         source.sliderRefNumber = parsed.sliderRefNumber;
+        source.sliderMinValue = parsed.sliderMinValue;
+        source.sliderMaxValue = parsed.sliderMaxValue;
+        source.sliderValueCallback = parsed.sliderValueCallback;
+        source.sliderEventCallback = parsed.sliderEventCallback;
         source.imageSet = parsed.imageSet;
         source.side = parsed.side;
         source.specialType = parsed.specialType;
@@ -311,7 +347,11 @@ bool readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.timerCallback = parsed.timerCallback;
         source.side = parsed.side;
+        source.constantValueEnabled = parsed.constantValueEnabled;
+        source.constantValue = parsed.constantValue;
+        source.valueCallback = parsed.valueCallback;
         source.path = parsed.source;
         return true;
     }
@@ -327,6 +367,13 @@ bool readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.timerCallback = parsed.timerCallback;
+        source.graphType = parsed.graphType;
+        source.graphDirection = parsed.direction;
+        source.graphRefNumber = parsed.graphRefNumber;
+        source.graphMinValue = parsed.graphMinValue;
+        source.graphMaxValue = parsed.graphMaxValue;
+        source.valueCallback = parsed.valueCallback;
         source.specialType = parsed.specialType;
         source.path = parsed.source;
         return true;
@@ -349,6 +396,8 @@ bool readSource(const QVariant& value, Source& source) {
         const auto parsed = value.value<Lr2SrcText>();
         source.valid = true;
         source.st = parsed.st;
+        source.valueCallback = parsed.valueCallback;
+        source.constantText = parsed.constantText;
         return true;
     }
 
@@ -365,9 +414,11 @@ bool readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, mapInt(map, QStringLiteral("div_y"), 1));
         source.cycle = mapInt(map, QStringLiteral("cycle"), 0);
         source.timer = mapInt(map, QStringLiteral("timer"), 0);
+        source.timerCallback = mapInt(map, QStringLiteral("timerCallback"), 0);
         source.resultChartType = mapInt(map, QStringLiteral("resultChartType"), 0);
         source.button = mapBool(map, QStringLiteral("button"), false);
         source.buttonId = mapInt(map, QStringLiteral("buttonId"), 0);
+        source.buttonActionCallback = mapInt(map, QStringLiteral("buttonActionCallback"), 0);
         source.onMouse = mapBool(map, QStringLiteral("onMouse"), false);
         source.mouseCursor = mapBool(map, QStringLiteral("mouseCursor"), false);
         source.slider = mapBool(map, QStringLiteral("slider"), false);
@@ -376,11 +427,25 @@ bool readSource(const QVariant& value, Source& source) {
         source.sliderType = mapInt(map, QStringLiteral("sliderType"), 0);
         source.sliderDisabled = mapInt(map, QStringLiteral("sliderDisabled"), 0);
         source.sliderRefNumber = mapBool(map, QStringLiteral("sliderRefNumber"), false);
+        source.sliderMinValue = mapInt(map, QStringLiteral("sliderMinValue"), 0);
+        source.sliderMaxValue = mapInt(map, QStringLiteral("sliderMaxValue"), 0);
+        source.sliderValueCallback = mapInt(map, QStringLiteral("sliderValueCallback"), 0);
+        source.sliderEventCallback = mapInt(map, QStringLiteral("sliderEventCallback"), 0);
         source.imageSet = mapBool(map, QStringLiteral("imageSet"), false);
         source.side = mapInt(map, QStringLiteral("side"), 0);
         source.hasKind = mapHas(map, QStringLiteral("kind"));
         source.kind = mapInt(map, QStringLiteral("kind"), 0);
+        source.graphType = mapInt(map, QStringLiteral("graphType"), 0);
+        source.graphDirection = mapInt(map, QStringLiteral("direction"), 0);
+        source.graphRefNumber = mapBool(map, QStringLiteral("graphRefNumber"), false);
+        source.graphMinValue = mapInt(map, QStringLiteral("graphMinValue"), 0);
+        source.graphMaxValue = mapInt(map, QStringLiteral("graphMaxValue"), 0);
         source.specialType = mapInt(map, QStringLiteral("specialType"), 0);
+        source.constantValueEnabled =
+            mapBool(map, QStringLiteral("constantValueEnabled"), false);
+        source.constantValue = mapInt(map, QStringLiteral("constantValue"), 0);
+        source.valueCallback = mapInt(map, QStringLiteral("valueCallback"), 0);
+        source.constantText = map.value(QStringLiteral("constantText")).toString();
         source.path = map.value(QStringLiteral("source")).toString();
         return true;
     }
@@ -405,9 +470,11 @@ bool readSource(const QVariant& value, Source& source) {
     source.divY = std::max(1, jsInt(jsValue, QStringLiteral("div_y"), 1));
     source.cycle = jsInt(jsValue, QStringLiteral("cycle"), 0);
     source.timer = jsInt(jsValue, QStringLiteral("timer"), 0);
+    source.timerCallback = jsInt(jsValue, QStringLiteral("timerCallback"), 0);
     source.resultChartType = jsInt(jsValue, QStringLiteral("resultChartType"), 0);
     source.button = jsBool(jsValue, QStringLiteral("button"), false);
     source.buttonId = jsInt(jsValue, QStringLiteral("buttonId"), 0);
+    source.buttonActionCallback = jsInt(jsValue, QStringLiteral("buttonActionCallback"), 0);
     source.onMouse = jsBool(jsValue, QStringLiteral("onMouse"), false);
     source.mouseCursor = jsBool(jsValue, QStringLiteral("mouseCursor"), false);
     source.slider = jsBool(jsValue, QStringLiteral("slider"), false);
@@ -416,11 +483,28 @@ bool readSource(const QVariant& value, Source& source) {
     source.sliderType = jsInt(jsValue, QStringLiteral("sliderType"), 0);
     source.sliderDisabled = jsInt(jsValue, QStringLiteral("sliderDisabled"), 0);
     source.sliderRefNumber = jsBool(jsValue, QStringLiteral("sliderRefNumber"), false);
+    source.sliderMinValue = jsInt(jsValue, QStringLiteral("sliderMinValue"), 0);
+    source.sliderMaxValue = jsInt(jsValue, QStringLiteral("sliderMaxValue"), 0);
+    source.sliderValueCallback = jsInt(jsValue, QStringLiteral("sliderValueCallback"), 0);
+    source.sliderEventCallback = jsInt(jsValue, QStringLiteral("sliderEventCallback"), 0);
     source.imageSet = jsBool(jsValue, QStringLiteral("imageSet"), false);
     source.side = jsInt(jsValue, QStringLiteral("side"), 0);
     source.hasKind = jsHas(jsValue, QStringLiteral("kind"));
     source.kind = jsInt(jsValue, QStringLiteral("kind"), 0);
+    source.graphType = jsInt(jsValue, QStringLiteral("graphType"), 0);
+    source.graphDirection = jsInt(jsValue, QStringLiteral("direction"), 0);
+    source.graphRefNumber = jsBool(jsValue, QStringLiteral("graphRefNumber"), false);
+    source.graphMinValue = jsInt(jsValue, QStringLiteral("graphMinValue"), 0);
+    source.graphMaxValue = jsInt(jsValue, QStringLiteral("graphMaxValue"), 0);
     source.specialType = jsInt(jsValue, QStringLiteral("specialType"), 0);
+    source.constantValueEnabled =
+        jsBool(jsValue, QStringLiteral("constantValueEnabled"), false);
+    source.constantValue = jsInt(jsValue, QStringLiteral("constantValue"), 0);
+    source.valueCallback = jsInt(jsValue, QStringLiteral("valueCallback"), 0);
+    const QJSValue constantText = jsValue.property(QStringLiteral("constantText"));
+    source.constantText = constantText.isUndefined() || constantText.isNull()
+        ? QString {}
+        : constantText.toString();
     const QJSValue sourcePath = jsValue.property(QStringLiteral("source"));
     source.path = sourcePath.isUndefined() || sourcePath.isNull()
         ? QString {}
@@ -436,13 +520,15 @@ DstAnalysis analyzeDsts(const QVector<Dst>& dsts) {
 
     const Dst& first = dsts.front();
     analysis.firstTimer = first.timer;
+    analysis.firstTimerCallback = first.timerCallback;
     analysis.firstSortId = first.sortId;
-    analysis.usesDynamicTimer = first.timer != 0;
+    analysis.usesDynamicTimer = first.timer != 0 || first.timerCallback > 0;
     analysis.usesActiveOptions = first.op1 != 0 || first.op2 != 0 || first.op3 != 0;
     analysis.scratchRotationSide = first.op4 == 1 || first.op4 == 2 ? first.op4 : 0;
     analysis.canUseStaticState = dsts.size() == 1
         && first.time <= 0
         && first.timer == 0
+        && first.timerCallback == 0
         && first.op1 == 0
         && first.op2 == 0
         && first.op3 == 0;
@@ -460,7 +546,7 @@ int animationLimitFor(const QVector<Dst>& dsts) {
     }
 
     const Dst& first = dsts.front();
-    if (first.timer != 0) {
+    if (first.timer != 0 || first.timerCallback > 0) {
         return -1;
     }
 
@@ -688,6 +774,12 @@ State currentState(const QVector<Dst>& dsts,
     state.op2 = first.op2;
     state.op3 = first.op3;
     state.op4 = first.op4;
+    state.stretch = d1->stretch;
+    state.hasMouseRect = first.hasMouseRect;
+    state.mouseRectX = first.mouseRectX;
+    state.mouseRectY = first.mouseRectY;
+    state.mouseRectW = first.mouseRectW;
+    state.mouseRectH = first.mouseRectH;
     return state;
 }
 
@@ -711,6 +803,12 @@ State copyDstAsState(const Dst& dst, const Dst& controlDst) {
     state.op2 = controlDst.op2;
     state.op3 = controlDst.op3;
     state.op4 = controlDst.op4;
+    state.stretch = dst.stretch;
+    state.hasMouseRect = controlDst.hasMouseRect;
+    state.mouseRectX = controlDst.mouseRectX;
+    state.mouseRectY = controlDst.mouseRectY;
+    state.mouseRectW = controlDst.mouseRectW;
+    state.mouseRectH = controlDst.mouseRectH;
     return state;
 }
 
@@ -737,6 +835,12 @@ QVariant stateToVariant(const State& state) {
     value.insert(QStringLiteral("op2"), state.op2);
     value.insert(QStringLiteral("op3"), state.op3);
     value.insert(QStringLiteral("op4"), state.op4);
+    value.insert(QStringLiteral("stretch"), state.stretch);
+    value.insert(QStringLiteral("hasMouseRect"), state.hasMouseRect);
+    value.insert(QStringLiteral("mouseRectX"), state.mouseRectX);
+    value.insert(QStringLiteral("mouseRectY"), state.mouseRectY);
+    value.insert(QStringLiteral("mouseRectW"), state.mouseRectW);
+    value.insert(QStringLiteral("mouseRectH"), state.mouseRectH);
     return value;
 }
 
@@ -762,7 +866,13 @@ bool sameState(const State& lhs, const State& rhs) {
         && lhs.op1 == rhs.op1
         && lhs.op2 == rhs.op2
         && lhs.op3 == rhs.op3
-        && lhs.op4 == rhs.op4;
+        && lhs.op4 == rhs.op4
+        && lhs.stretch == rhs.stretch
+        && lhs.hasMouseRect == rhs.hasMouseRect
+        && lhs.mouseRectX == rhs.mouseRectX
+        && lhs.mouseRectY == rhs.mouseRectY
+        && lhs.mouseRectW == rhs.mouseRectW
+        && lhs.mouseRectH == rhs.mouseRectH;
 }
 
 qreal applyAccel(qreal progress, int accType) {
@@ -786,7 +896,9 @@ bool sourceCyclesContinuously(const Source& source) {
 }
 
 bool sourceUsesDynamicTimer(const Source& source) {
-    return source.valid && source.timer != 0 && source.cycle > 0;
+    return source.valid
+        && (source.timer != 0 || source.timerCallback > 0)
+        && source.cycle > 0;
 }
 
 bool isSelectBarElement(int type, const Source& source) {
@@ -856,6 +968,10 @@ SpriteStateOverrideKind spriteStateOverrideKind(const QString& screenKey,
                                                 const Source& source) {
     if (!source.valid || !source.slider || source.sliderRange <= 0) {
         return NoSpriteStateOverride;
+    }
+
+    if (source.sliderValueCallback > 0) {
+        return LuaValueSliderSpriteStateOverride;
     }
 
     const bool selectScreen = screenKey == QStringLiteral("select");

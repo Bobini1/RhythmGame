@@ -135,7 +135,7 @@ The above preset will make use of the [vcpkg][vcpkg] dependency manager. After
 installing it, make sure the `VCPKG_ROOT` environment variable is pointing at
 the directory where the vcpkg executable is. You will also want
 to inherit from the `vcpkg-<os>-sharedqt` preset, which will make vcpkg install
-the dependencies as static libraries for all libs other than Qt, FFmpeg and mimalloc.
+the dependencies as static libraries for all libs other than Qt and FFmpeg.
 
 [vcpkg]: https://github.com/microsoft/vcpkg
 

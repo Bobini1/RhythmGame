@@ -25,6 +25,7 @@ enum SpriteStateOverrideKind {
     GameplayLaneCoverSpriteStateOverride = 3,
     NumberRefSpriteStateOverride = 4,
     GenericSliderSpriteStateOverride = 5,
+    LuaValueSliderSpriteStateOverride = 6,
 };
 
 struct Dst {
@@ -46,11 +47,19 @@ struct Dst {
     int sortId = 0;
     int loop = 0;
     int timer = 0;
+    int timerCallback = 0;
     int op1 = 0;
     int op2 = 0;
     int op3 = 0;
     int op4 = 0;
     QVector<int> offsets;
+    int stretch = -1;
+    bool hasMouseRect = false;
+    int mouseRectX = 0;
+    int mouseRectY = 0;
+    int mouseRectW = 0;
+    int mouseRectH = 0;
+    int drawCallback = 0;
 };
 
 struct Source {
@@ -65,9 +74,11 @@ struct Source {
     int divY = 1;
     int cycle = 0;
     int timer = 0;
+    int timerCallback = 0;
     int resultChartType = 0;
     bool button = false;
     int buttonId = 0;
+    int buttonActionCallback = 0;
     bool onMouse = false;
     bool mouseCursor = false;
     bool slider = false;
@@ -76,11 +87,24 @@ struct Source {
     int sliderType = 0;
     int sliderDisabled = 0;
     bool sliderRefNumber = false;
+    int sliderMinValue = 0;
+    int sliderMaxValue = 0;
+    int sliderValueCallback = 0;
+    int sliderEventCallback = 0;
     bool imageSet = false;
     int side = 0;
     bool hasKind = false;
     int kind = 0;
+    int graphType = 0;
+    int graphDirection = 0;
+    bool graphRefNumber = false;
+    int graphMinValue = 0;
+    int graphMaxValue = 0;
     int specialType = 0;
+    bool constantValueEnabled = false;
+    int constantValue = 0;
+    int valueCallback = 0;
+    QString constantText;
     QString path;
 };
 
@@ -103,6 +127,12 @@ struct State {
     int op2 = 0;
     int op3 = 0;
     int op4 = 0;
+    int stretch = -1;
+    bool hasMouseRect = false;
+    int mouseRectX = 0;
+    int mouseRectY = 0;
+    int mouseRectW = 0;
+    int mouseRectH = 0;
 };
 
 struct DstAnalysis {
@@ -112,6 +142,7 @@ struct DstAnalysis {
     bool loopsContinuously = false;
     int scratchRotationSide = 0;
     int firstTimer = 0;
+    int firstTimerCallback = 0;
     int firstSortId = 0;
 };
 

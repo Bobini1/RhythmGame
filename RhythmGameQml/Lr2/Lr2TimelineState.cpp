@@ -22,9 +22,31 @@ int mapInt(const QVariantMap& map, const QString& name, int fallback) {
         : it->toInt();
 }
 
+bool mapBool(const QVariantMap& map, const QString& name, bool fallback) {
+    const auto it = map.constFind(name);
+    return it == map.constEnd() || !it->isValid() || it->isNull()
+        ? fallback
+        : it->toBool();
+}
+
+bool mapHas(const QVariantMap& map, const QString& name) {
+    const auto it = map.constFind(name);
+    return it != map.constEnd() && it->isValid() && !it->isNull();
+}
+
 int jsInt(const QJSValue& value, const QString& name, int fallback) {
     const QJSValue field = value.property(name);
     return field.isUndefined() || field.isNull() ? fallback : field.toInt();
+}
+
+bool jsBool(const QJSValue& value, const QString& name, bool fallback) {
+    const QJSValue field = value.property(name);
+    return field.isUndefined() || field.isNull() ? fallback : field.toBool();
+}
+
+bool jsHas(const QJSValue& value, const QString& name) {
+    const QJSValue field = value.property(name);
+    return !field.isUndefined() && !field.isNull();
 }
 } // namespace
 
@@ -514,7 +536,9 @@ int Lr2TimelineState::sourceTimerFor(const QVariant& src) const {
 
 bool Lr2TimelineState::sourceUsesDynamicTimer(const QVariant& src) const {
     Source source;
-    return readSource(src, source) && source.timer != 0 && source.cycle > 0;
+    return readSource(src, source)
+        && (source.timer != 0 || source.timerCallback > 0)
+        && source.cycle > 0;
 }
 
 bool Lr2TimelineState::sourceCyclesContinuously(const QVariant& src) const {
@@ -861,11 +885,18 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
         dst.sortId = parsed.sortId;
         dst.loop = parsed.loop;
         dst.timer = parsed.timer;
+        dst.timerCallback = parsed.timerCallback;
         dst.op1 = parsed.op1;
         dst.op2 = parsed.op2;
         dst.op3 = parsed.op3;
         dst.op4 = parsed.op4;
         dst.offsets = readOffsets(parsed.offsets);
+        dst.stretch = parsed.stretch;
+        dst.hasMouseRect = parsed.hasMouseRect;
+        dst.mouseRectX = parsed.mouseRectX;
+        dst.mouseRectY = parsed.mouseRectY;
+        dst.mouseRectW = parsed.mouseRectW;
+        dst.mouseRectH = parsed.mouseRectH;
         return true;
     }
 
@@ -889,6 +920,7 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
         dst.sortId = mapInt(map, QStringLiteral("sortId"), 0);
         dst.loop = mapInt(map, QStringLiteral("loop"), 0);
         dst.timer = mapInt(map, QStringLiteral("timer"), 0);
+        dst.timerCallback = mapInt(map, QStringLiteral("timerCallback"), 0);
         dst.op1 = mapInt(map, QStringLiteral("op1"), 0);
         dst.op2 = mapInt(map, QStringLiteral("op2"), 0);
         dst.op3 = mapInt(map, QStringLiteral("op3"), 0);
@@ -896,6 +928,15 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
         const auto offsetsIt = map.constFind(QStringLiteral("offsets"));
         if (offsetsIt != map.constEnd()) {
             dst.offsets = readOffsets(*offsetsIt);
+        }
+        dst.stretch = mapInt(map, QStringLiteral("stretch"), -1);
+        dst.hasMouseRect = mapBool(map, QStringLiteral("hasMouseRect"), false);
+        if (dst.hasMouseRect || mapHas(map, QStringLiteral("mouseRectX"))) {
+            dst.hasMouseRect = true;
+            dst.mouseRectX = mapInt(map, QStringLiteral("mouseRectX"), 0);
+            dst.mouseRectY = mapInt(map, QStringLiteral("mouseRectY"), 0);
+            dst.mouseRectW = mapInt(map, QStringLiteral("mouseRectW"), 0);
+            dst.mouseRectH = mapInt(map, QStringLiteral("mouseRectH"), 0);
         }
         return true;
     }
@@ -927,11 +968,21 @@ bool Lr2TimelineState::readDst(const QVariant& value, Dst& dst) {
     dst.sortId = jsInt(jsValue, QStringLiteral("sortId"), 0);
     dst.loop = jsInt(jsValue, QStringLiteral("loop"), 0);
     dst.timer = jsInt(jsValue, QStringLiteral("timer"), 0);
+    dst.timerCallback = jsInt(jsValue, QStringLiteral("timerCallback"), 0);
     dst.op1 = jsInt(jsValue, QStringLiteral("op1"), 0);
     dst.op2 = jsInt(jsValue, QStringLiteral("op2"), 0);
     dst.op3 = jsInt(jsValue, QStringLiteral("op3"), 0);
     dst.op4 = jsInt(jsValue, QStringLiteral("op4"), 0);
     dst.offsets = readOffsets(QVariant::fromValue(jsValue.property(QStringLiteral("offsets"))));
+    dst.stretch = jsInt(jsValue, QStringLiteral("stretch"), -1);
+    dst.hasMouseRect = jsBool(jsValue, QStringLiteral("hasMouseRect"), false);
+    if (dst.hasMouseRect || jsHas(jsValue, QStringLiteral("mouseRectX"))) {
+        dst.hasMouseRect = true;
+        dst.mouseRectX = jsInt(jsValue, QStringLiteral("mouseRectX"), 0);
+        dst.mouseRectY = jsInt(jsValue, QStringLiteral("mouseRectY"), 0);
+        dst.mouseRectW = jsInt(jsValue, QStringLiteral("mouseRectW"), 0);
+        dst.mouseRectH = jsInt(jsValue, QStringLiteral("mouseRectH"), 0);
+    }
     return true;
 }
 
@@ -960,6 +1011,7 @@ bool Lr2TimelineState::readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.timerCallback = parsed.timerCallback;
         return true;
     }
 
@@ -970,6 +1022,7 @@ bool Lr2TimelineState::readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.timerCallback = parsed.timerCallback;
         return true;
     }
 
@@ -980,6 +1033,7 @@ bool Lr2TimelineState::readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, parsed.div_y);
         source.cycle = parsed.cycle;
         source.timer = parsed.timer;
+        source.timerCallback = parsed.timerCallback;
         return true;
     }
 
@@ -990,6 +1044,7 @@ bool Lr2TimelineState::readSource(const QVariant& value, Source& source) {
         source.divY = std::max(1, mapInt(map, QStringLiteral("div_y"), 1));
         source.cycle = mapInt(map, QStringLiteral("cycle"), 0);
         source.timer = mapInt(map, QStringLiteral("timer"), 0);
+        source.timerCallback = mapInt(map, QStringLiteral("timerCallback"), 0);
         return true;
     }
 
@@ -1007,6 +1062,7 @@ bool Lr2TimelineState::readSource(const QVariant& value, Source& source) {
     source.divY = std::max(1, jsInt(jsValue, QStringLiteral("div_y"), 1));
     source.cycle = jsInt(jsValue, QStringLiteral("cycle"), 0);
     source.timer = jsInt(jsValue, QStringLiteral("timer"), 0);
+    source.timerCallback = jsInt(jsValue, QStringLiteral("timerCallback"), 0);
     return true;
 }
 
@@ -1053,13 +1109,15 @@ Lr2TimelineState::DstAnalysis Lr2TimelineState::analyzeDsts(const QVector<Dst>& 
 
     const Dst& first = dsts.front();
     analysis.firstTimer = first.timer;
+    analysis.firstTimerCallback = first.timerCallback;
     analysis.firstSortId = first.sortId;
-    analysis.usesDynamicTimer = first.timer != 0;
+    analysis.usesDynamicTimer = first.timer != 0 || first.timerCallback > 0;
     analysis.usesActiveOptions = first.op1 != 0 || first.op2 != 0 || first.op3 != 0;
     analysis.scratchRotationSide = first.op4 == 1 || first.op4 == 2 ? first.op4 : 0;
     analysis.canUseStaticState = dsts.size() == 1
         && first.time <= 0
         && first.timer == 0
+        && first.timerCallback == 0
         && first.op1 == 0
         && first.op2 == 0
         && first.op3 == 0;
@@ -1077,7 +1135,7 @@ int Lr2TimelineState::animationLimitFor(const QVector<Dst>& dsts) {
     }
 
     const Dst& first = dsts.front();
-    if (first.timer != 0) {
+    if (first.timer != 0 || first.timerCallback > 0) {
         return -1;
     }
 
@@ -1184,6 +1242,12 @@ Lr2TimelineState::State Lr2TimelineState::currentState(const QVector<Dst>& dsts,
     state.op2 = first.op2;
     state.op3 = first.op3;
     state.op4 = first.op4;
+    state.stretch = d1->stretch;
+    state.hasMouseRect = first.hasMouseRect;
+    state.mouseRectX = first.mouseRectX;
+    state.mouseRectY = first.mouseRectY;
+    state.mouseRectW = first.mouseRectW;
+    state.mouseRectH = first.mouseRectH;
     return state;
 }
 
@@ -1207,6 +1271,12 @@ Lr2TimelineState::State Lr2TimelineState::copyDstAsState(const Dst& dst, const D
     state.op2 = controlDst.op2;
     state.op3 = controlDst.op3;
     state.op4 = controlDst.op4;
+    state.stretch = dst.stretch;
+    state.hasMouseRect = controlDst.hasMouseRect;
+    state.mouseRectX = controlDst.mouseRectX;
+    state.mouseRectY = controlDst.mouseRectY;
+    state.mouseRectW = controlDst.mouseRectW;
+    state.mouseRectH = controlDst.mouseRectH;
     return state;
 }
 
@@ -1233,6 +1303,12 @@ QVariant Lr2TimelineState::stateToVariant(const State& state) {
     value.insert(QStringLiteral("op2"), state.op2);
     value.insert(QStringLiteral("op3"), state.op3);
     value.insert(QStringLiteral("op4"), state.op4);
+    value.insert(QStringLiteral("stretch"), state.stretch);
+    value.insert(QStringLiteral("hasMouseRect"), state.hasMouseRect);
+    value.insert(QStringLiteral("mouseRectX"), state.mouseRectX);
+    value.insert(QStringLiteral("mouseRectY"), state.mouseRectY);
+    value.insert(QStringLiteral("mouseRectW"), state.mouseRectW);
+    value.insert(QStringLiteral("mouseRectH"), state.mouseRectH);
     return value;
 }
 
@@ -1272,5 +1348,11 @@ bool Lr2TimelineState::sameState(const State& lhs, const State& rhs) {
         && lhs.op1 == rhs.op1
         && lhs.op2 == rhs.op2
         && lhs.op3 == rhs.op3
-        && lhs.op4 == rhs.op4;
+        && lhs.op4 == rhs.op4
+        && lhs.stretch == rhs.stretch
+        && lhs.hasMouseRect == rhs.hasMouseRect
+        && lhs.mouseRectX == rhs.mouseRectX
+        && lhs.mouseRectY == rhs.mouseRectY
+        && lhs.mouseRectW == rhs.mouseRectW
+        && lhs.mouseRectH == rhs.mouseRectH;
 }

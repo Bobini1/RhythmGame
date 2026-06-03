@@ -1,5 +1,6 @@
 #include "Lr2ThemeScanner.h"
 
+#include "gameplay_logic/lr2_skin/BeatorajaLuaSkin.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
@@ -319,6 +320,7 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
     rootObj["maker"] = maker;
     rootObj["type"] = typeId;
     rootObj["format"] = beatorajaSkin ? "beatoraja" : "lr2";
+    rootObj["sourceFormat"] = "csv";
     rootObj["items"] = itemsArray;
     return QString::fromUtf8(
       QJsonDocument(rootObj).toJson(QJsonDocument::Compact));
@@ -344,6 +346,14 @@ lr2SkinTypeScreenKey(int typeId) -> QString
 }
 
 auto
+isSkinFileWithExtension(const std::filesystem::path& path,
+                        const QString& extension) -> bool
+{
+    return QString::fromStdString(path.extension().generic_string())
+             .compare(extension, Qt::CaseInsensitive) == 0;
+}
+
+auto
 makeLr2Screen(const QUrl& wrapperUrl,
               const QString& settingsData,
               const QString& csvPath,
@@ -351,6 +361,55 @@ makeLr2Screen(const QUrl& wrapperUrl,
 {
     return qml_components::Screen{ wrapperUrl, QUrl(""), settingsData,
                                    QUrl(""),   aliased,  csvPath };
+}
+
+auto
+uniqueThemeFamilyName(const QMap<QString, qml_components::ThemeFamily>& families,
+                      const QString& baseName) -> QString
+{
+    if (!families.contains(baseName)) {
+        return baseName;
+    }
+
+    int suffix = 2;
+    while (families.contains(QStringLiteral("%1 %2").arg(baseName).arg(suffix))) {
+        ++suffix;
+    }
+    return QStringLiteral("%1 %2").arg(baseName).arg(suffix);
+}
+
+void
+insertThemeFamilyScreens(QMap<QString, qml_components::ThemeFamily>& families,
+                         const QString& requestedName,
+                         const QString& path,
+                         const QMap<QString, qml_components::Screen>& screens)
+{
+    const auto existing = families.find(requestedName);
+    if (existing == families.end()) {
+        families.insert(requestedName,
+                        qml_components::ThemeFamily{ path,
+                                                      screens,
+                                                      QMap<QString, QUrl>() });
+        return;
+    }
+
+    if (existing.value().getPath() != path) {
+        families.insert(uniqueThemeFamilyName(families, requestedName),
+                        qml_components::ThemeFamily{ path,
+                                                      screens,
+                                                      QMap<QString, QUrl>() });
+        return;
+    }
+
+    auto mergedScreens = existing.value().getScreens();
+    for (auto it = screens.cbegin(); it != screens.cend(); ++it) {
+        mergedScreens.insert(it.key(), it.value());
+    }
+    const auto translations = existing.value().getTranslations();
+    families.insert(requestedName,
+                    qml_components::ThemeFamily{ path,
+                                                  mergedScreens,
+                                                  translations });
 }
 
 } // namespace
@@ -368,24 +427,44 @@ scanThemeDirectory(const std::filesystem::path& themeDirectory)
             if (!lr2Entry.is_regular_file()) {
                 continue;
             }
-            if (lr2Entry.path().extension() != ".lr2skin") {
+            const bool lr2Skin =
+              isSkinFileWithExtension(lr2Entry.path(), QStringLiteral(".lr2skin"));
+            const bool luaSkin =
+              gameplay_logic::lr2_skin::isBeatorajaLuaSkinPath(lr2Entry.path());
+            if (!lr2Skin && !luaSkin) {
                 continue;
             }
 
             int typeId = -1;
             QString title = "Unknown LR2 Skin";
             QString maker;
-            const auto settingsData =
-              buildLr2SettingsData(lr2Entry.path(), typeId, title, maker);
+            QString settingsData;
+            if (luaSkin) {
+                const auto header =
+                  gameplay_logic::lr2_skin::loadBeatorajaLuaSkinHeader(
+                    lr2Entry.path());
+                if (!header.valid) {
+                    continue;
+                }
+                typeId = header.typeId;
+                title = header.title.isEmpty()
+                          ? QStringLiteral("Unknown beatoraja Lua Skin")
+                          : header.title;
+                maker = header.maker;
+                settingsData = header.settingsData;
+            } else {
+                settingsData =
+                  buildLr2SettingsData(lr2Entry.path(), typeId, title, maker);
+            }
 
             const auto screenKey = lr2SkinTypeScreenKey(typeId);
             if (screenKey.isEmpty()) {
                 continue;
             }
 
-            const auto familyName =
-              title + " (" +
-              support::pathToQString(lr2Entry.path().filename()) + ")";
+            const auto familyName = title.trimmed().isEmpty()
+                                      ? QStringLiteral("Unknown LR2 Skin")
+                                      : title.trimmed();
 
             const auto csvPath = support::pathToQString(
               std::filesystem::absolute(lr2Entry.path()));
@@ -411,13 +490,12 @@ scanThemeDirectory(const std::filesystem::path& themeDirectory)
                   makeLr2Screen(wrapperUrl, settingsData, csvPath, true));
             }
 
-            auto themeFamily = qml_components::ThemeFamily{
-                support::pathToQString(
-                  std::filesystem::absolute(lr2Entry.path().parent_path())),
-                std::move(themeMap),
-                QMap<QString, QUrl>()
-            };
-            themeFamilies.insert(familyName, themeFamily);
+            insertThemeFamilyScreens(
+              themeFamilies,
+              familyName,
+              support::pathToQString(
+                std::filesystem::absolute(lr2Entry.path().parent_path())),
+              themeMap);
         }
     } catch (const std::exception& e) {
         spdlog::warn("Error scanning LR2 skins in {}: {}",

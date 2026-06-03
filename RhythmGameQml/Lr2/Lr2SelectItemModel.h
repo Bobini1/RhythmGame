@@ -123,7 +123,7 @@ private:
 		int playLevel = 0;
 		int difficulty = 0;
 		int keymode = 0;
-		int rank = 0;
+		double rank = 75.0;
 		int duration = 0;
 		double minBpm = 0.0;
 		double maxBpm = 0.0;
