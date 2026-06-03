@@ -337,7 +337,7 @@ class ChartData : public QObject
         std::string stageFile;
         std::string banner;
         std::string backBmp;
-        int rank;
+        double rank;
         double total;
         int playLevel;
         int difficulty;
