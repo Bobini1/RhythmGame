@@ -1,25 +1,11 @@
 #include "Lr2AnimationFrameState.h"
 
 #include "Lr2SkinClock.h"
-#include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 
-#include <QJSValue>
-#include <QVariantMap>
 #include <algorithm>
 #include <cmath>
 
-using gameplay_logic::lr2_skin::Lr2SrcImage;
-using gameplay_logic::lr2_skin::Lr2SrcBarGraph;
-
-namespace {
-int mapInt(const QVariantMap& map, const QString& name, int fallback) {
-    const auto it = map.constFind(name);
-    return it == map.constEnd() || !it->isValid() || it->isNull()
-        ? fallback
-        : it->toInt();
-}
-
-} // namespace
+namespace rt = lr2skin::runtime;
 
 Lr2AnimationFrameState::Lr2AnimationFrameState(QObject* parent) : QObject(parent) {}
 
@@ -199,7 +185,7 @@ QRectF Lr2AnimationFrameState::sourceClipRect() const {
 
 void Lr2AnimationFrameState::rebuildSource() {
     Source next;
-    readSource(m_sourceData, next);
+    rt::readSource(m_sourceData, next);
     m_source = next;
 }
 
@@ -333,79 +319,10 @@ qreal Lr2AnimationFrameState::effectiveTimerFire() const {
     if (m_timerFire > -2147483648) {
         return m_timerFire;
     }
-    return timerValue(m_source.timer);
-}
-
-qreal Lr2AnimationFrameState::timerValue(int timerIdx) const {
     if (!m_timers.isValid() || m_timers.isNull()) {
         return 0.0;
     }
-
-    const QString key = QString::number(timerIdx);
-    if (m_timers.canConvert<QVariantMap>()) {
-        const QVariantMap map = m_timers.toMap();
-        const auto it = map.constFind(key);
-        return it == map.constEnd() || !it->isValid() || it->isNull()
-            ? -1.0
-            : it->toDouble();
-    }
-
-    if (m_timers.canConvert<QJSValue>()) {
-        const QJSValue value = m_timers.value<QJSValue>();
-        if (!value.isObject()) {
-            return -1.0;
-        }
-        const QJSValue field = value.property(key);
-        return field.isUndefined() || field.isNull() ? -1.0 : field.toNumber();
-    }
-
-    return timerIdx == 0 ? 0.0 : -1.0;
-}
-
-bool Lr2AnimationFrameState::readSource(const QVariant& value, Source& source) {
-    if (value.canConvert<Lr2SrcImage>()) {
-        const auto parsed = value.value<Lr2SrcImage>();
-        source.valid = true;
-        source.divX = std::max(1, parsed.div_x);
-        source.divY = std::max(1, parsed.div_y);
-        source.cycle = parsed.cycle;
-        source.timer = parsed.timer;
-        source.x = parsed.x;
-        source.y = parsed.y;
-        source.w = parsed.w;
-        source.h = parsed.h;
-        return true;
-    }
-
-    if (value.canConvert<Lr2SrcBarGraph>()) {
-        const auto parsed = value.value<Lr2SrcBarGraph>();
-        source.valid = true;
-        source.divX = std::max(1, parsed.div_x);
-        source.divY = std::max(1, parsed.div_y);
-        source.cycle = parsed.cycle;
-        source.timer = parsed.timer;
-        source.x = parsed.x;
-        source.y = parsed.y;
-        source.w = parsed.w;
-        source.h = parsed.h;
-        return true;
-    }
-
-    if (value.canConvert<QVariantMap>()) {
-        const QVariantMap map = value.toMap();
-        source.valid = true;
-        source.divX = std::max(1, mapInt(map, QStringLiteral("div_x"), 1));
-        source.divY = std::max(1, mapInt(map, QStringLiteral("div_y"), 1));
-        source.cycle = mapInt(map, QStringLiteral("cycle"), 0);
-        source.timer = mapInt(map, QStringLiteral("timer"), 0);
-        source.x = mapInt(map, QStringLiteral("x"), 0);
-        source.y = mapInt(map, QStringLiteral("y"), 0);
-        source.w = mapInt(map, QStringLiteral("w"), 0);
-        source.h = mapInt(map, QStringLiteral("h"), 0);
-        return true;
-    }
-
-    return false;
+    return rt::timerValue(m_timers, m_source.timer);
 }
 
 int Lr2AnimationFrameState::frameCount(const Source& source) {

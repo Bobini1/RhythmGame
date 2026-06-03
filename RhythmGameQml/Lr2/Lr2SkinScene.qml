@@ -2,6 +2,7 @@ pragma ValueTypeBehavior: Addressable
 pragma ComponentBehavior: Bound
 import QtQuick
 import RhythmGameQml
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: sceneRoot
@@ -18,9 +19,6 @@ Item {
     readonly property real skinScale: rootReady ? root.skinScale : 1
     readonly property var skinRuntime: rootReady ? root.skinRuntimeRef : null
     readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
-    readonly property string stageFileSource: rootReady ? selectContext.visualStageFileSource : ""
-    readonly property string backBmpSource: rootReady ? selectContext.visualBackBmpSource : ""
-    readonly property string bannerSource: rootReady ? selectContext.visualBannerSource : ""
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
     readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
@@ -66,6 +64,7 @@ Item {
                 model: sceneRoot.skinModel
 
                 delegate: Lr2SkinElementDelegate {
+                    readonly property bool usesChartAssetSource: Lr2SkinUtils.sourceTreeUsesChartAsset(src)
                     screenRoot: sceneRoot.root
                     skinModel: sceneRoot.skinModel
                     selectContext: sceneRoot.selectContext
@@ -75,9 +74,9 @@ Item {
                     runtimeRevision: sceneRoot.runtimeRevision
                     gameplayFrameState: sceneRoot.gameplayFrameState
                     screenUpdatesActive: sceneRoot.screenUpdatesActive
-                    stageFileSource: sceneRoot.stageFileSource
-                    backBmpSource: sceneRoot.backBmpSource
-                    bannerSource: sceneRoot.bannerSource
+                    stageFileSource: usesChartAssetSource && sceneRoot.rootReady ? selectContext.visualStageFileSource : ""
+                    backBmpSource: usesChartAssetSource && sceneRoot.rootReady ? selectContext.visualBackBmpSource : ""
+                    bannerSource: usesChartAssetSource && sceneRoot.rootReady ? selectContext.visualBannerSource : ""
                     skinW: sceneRoot.skinW
                     skinH: sceneRoot.skinH
                     skinScale: sceneRoot.skinScale

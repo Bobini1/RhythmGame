@@ -6,6 +6,185 @@ namespace gameplay_logic::lr2_skin {
 
 namespace {
 
+struct ChartAssetSourceUsage {
+    bool stageFile = false;
+    bool backBmp = false;
+    bool banner = false;
+
+    [[nodiscard]] bool allKnown() const {
+        return stageFile && backBmp && banner;
+    }
+};
+
+void includeChartAssetSpecialType(ChartAssetSourceUsage& usage, int specialType) {
+    switch (specialType) {
+    case Lr2SrcImage::StageFile:
+        usage.stageFile = true;
+        break;
+    case Lr2SrcImage::BackBmp:
+        usage.backBmp = true;
+        break;
+    case Lr2SrcImage::Banner:
+        usage.banner = true;
+        break;
+    default:
+        break;
+    }
+}
+
+void includeChartAssetSourceUsage(ChartAssetSourceUsage& usage, const QVariant& source, int depth = 0);
+
+void includeChartAssetListUsage(ChartAssetSourceUsage& usage, const QVariantList& sources, int depth) {
+    for (const QVariant& child : sources) {
+        includeChartAssetSourceUsage(usage, child, depth + 1);
+        if (usage.allKnown()) {
+            return;
+        }
+    }
+}
+
+void includeChartAssetMapUsage(ChartAssetSourceUsage& usage, const QVariantMap& source, int depth) {
+    includeChartAssetSpecialType(usage, source.value(QStringLiteral("specialType")).toInt());
+    includeChartAssetSourceUsage(usage, source.value(QStringLiteral("source")), depth + 1);
+    includeChartAssetSourceUsage(usage, source.value(QStringLiteral("sources")), depth + 1);
+    includeChartAssetSourceUsage(usage, source.value(QStringLiteral("imageSetSources")), depth + 1);
+}
+
+void includeChartAssetSourceUsage(ChartAssetSourceUsage& usage, const QVariant& source, int depth) {
+    if (!source.isValid() || usage.allKnown() || depth > 4) {
+        return;
+    }
+
+    if (source.canConvert<Lr2SrcImage>()) {
+        const Lr2SrcImage image = source.value<Lr2SrcImage>();
+        includeChartAssetSpecialType(usage, image.specialType);
+        includeChartAssetListUsage(usage, image.imageSetSources, depth + 1);
+        return;
+    }
+    if (source.canConvert<Lr2SrcBarGraph>()) {
+        includeChartAssetSpecialType(usage, source.value<Lr2SrcBarGraph>().specialType);
+        return;
+    }
+    if (source.canConvert<Lr2SrcBarImage>()) {
+        const Lr2SrcBarImage barImage = source.value<Lr2SrcBarImage>();
+        includeChartAssetSourceUsage(usage, barImage.source, depth + 1);
+        includeChartAssetListUsage(usage, barImage.sources, depth + 1);
+        return;
+    }
+    if (source.canConvert<Lr2SrcBarNumber>()) {
+        includeChartAssetSourceUsage(usage, source.value<Lr2SrcBarNumber>().source, depth + 1);
+        return;
+    }
+    if (source.canConvert<QVariantList>()) {
+        includeChartAssetListUsage(usage, source.toList(), depth + 1);
+        return;
+    }
+    if (source.canConvert<QVariantMap>()) {
+        includeChartAssetMapUsage(usage, source.toMap(), depth + 1);
+    }
+}
+
+ChartAssetSourceUsage chartAssetSourceUsageForElements(const QList<Lr2Element>& elements) {
+    ChartAssetSourceUsage usage;
+    for (const Lr2Element& element : elements) {
+        includeChartAssetSourceUsage(usage, element.src);
+        if (usage.allKnown()) {
+            break;
+        }
+    }
+    return usage;
+}
+
+bool hasSelectChartRendererElement(const QList<Lr2Element>& elements) {
+    return std::any_of(
+        elements.cbegin(),
+        elements.cend(),
+        [](const Lr2Element& element) {
+            return element.type == 11 || element.type == 12;
+        });
+}
+
+bool selectNumberUsesDifficultyState(int num) {
+    return num >= 45 && num <= 49;
+}
+
+bool selectBarGraphUsesDifficultyState(int graphType) {
+    return graphType >= 5 && graphType <= 9;
+}
+
+bool selectButtonUsesDifficultyState(bool button, int buttonId) {
+    return button && buttonId >= 91 && buttonId <= 96;
+}
+
+bool sourceUsesSelectDifficultyState(const QVariant& source, int depth = 0);
+
+bool sourceListUsesSelectDifficultyState(const QVariantList& sources, int depth) {
+    for (const QVariant& child : sources) {
+        if (sourceUsesSelectDifficultyState(child, depth + 1)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool sourceMapUsesSelectDifficultyState(const QVariantMap& source, int depth) {
+    if (selectNumberUsesDifficultyState(source.value(QStringLiteral("num")).toInt())) {
+        return true;
+    }
+    if (selectBarGraphUsesDifficultyState(source.value(QStringLiteral("graphType")).toInt())) {
+        return true;
+    }
+    if (selectButtonUsesDifficultyState(source.value(QStringLiteral("button")).toBool(),
+                                        source.value(QStringLiteral("buttonId")).toInt())) {
+        return true;
+    }
+    return sourceUsesSelectDifficultyState(source.value(QStringLiteral("source")), depth + 1)
+        || sourceUsesSelectDifficultyState(source.value(QStringLiteral("sources")), depth + 1)
+        || sourceUsesSelectDifficultyState(source.value(QStringLiteral("imageSetSources")), depth + 1);
+}
+
+bool sourceUsesSelectDifficultyState(const QVariant& source, int depth) {
+    if (!source.isValid() || depth > 4) {
+        return false;
+    }
+
+    if (source.canConvert<Lr2SrcNumber>()) {
+        return selectNumberUsesDifficultyState(source.value<Lr2SrcNumber>().num);
+    }
+    if (source.canConvert<Lr2SrcBarGraph>()) {
+        return selectBarGraphUsesDifficultyState(source.value<Lr2SrcBarGraph>().graphType);
+    }
+    if (source.canConvert<Lr2SrcImage>()) {
+        const Lr2SrcImage image = source.value<Lr2SrcImage>();
+        return selectButtonUsesDifficultyState(image.button, image.buttonId)
+            || sourceListUsesSelectDifficultyState(image.imageSetSources, depth + 1);
+    }
+    if (source.canConvert<Lr2SrcBarImage>()) {
+        const Lr2SrcBarImage barImage = source.value<Lr2SrcBarImage>();
+        return sourceUsesSelectDifficultyState(barImage.source, depth + 1)
+            || sourceListUsesSelectDifficultyState(barImage.sources, depth + 1);
+    }
+    if (source.canConvert<Lr2SrcBarNumber>()) {
+        return sourceUsesSelectDifficultyState(source.value<Lr2SrcBarNumber>().source, depth + 1);
+    }
+    if (source.canConvert<QVariantList>()) {
+        return sourceListUsesSelectDifficultyState(source.toList(), depth + 1);
+    }
+    if (source.canConvert<QVariantMap>()) {
+        return sourceMapUsesSelectDifficultyState(source.toMap(), depth + 1);
+    }
+    return false;
+}
+
+bool hasSelectDifficultySourceElement(const QList<Lr2Element>& elements) {
+    return std::any_of(
+        elements.cbegin(),
+        elements.cend(),
+        [](const Lr2Element& element) {
+            return sourceUsesSelectDifficultyState(element.src);
+        });
+}
+
 int firstSortId(const QVariantList& dsts) {
     if (dsts.isEmpty()) {
         return 0;
@@ -291,6 +470,26 @@ bool Lr2SkinModel::reloadBanner() const {
     return m_reloadBanner;
 }
 
+bool Lr2SkinModel::usesStageFileSource() const {
+    return m_usesStageFileSource;
+}
+
+bool Lr2SkinModel::usesBackBmpSource() const {
+    return m_usesBackBmpSource;
+}
+
+bool Lr2SkinModel::usesBannerSource() const {
+    return m_usesBannerSource;
+}
+
+bool Lr2SkinModel::usesSelectChartRenderer() const {
+    return m_usesSelectChartRenderer;
+}
+
+bool Lr2SkinModel::usesSelectDifficultySource() const {
+    return m_usesSelectDifficultySource;
+}
+
 int Lr2SkinModel::barCenter() const {
     return m_barCenter;
 }
@@ -410,6 +609,11 @@ void Lr2SkinModel::loadSkin() {
                                      m_transColor != "#000000" ||
                                      m_hasTransColor ||
                                      m_reloadBanner ||
+                                     m_usesStageFileSource ||
+                                     m_usesBackBmpSource ||
+                                     m_usesBannerSource ||
+                                     m_usesSelectChartRenderer ||
+                                     m_usesSelectDifficultySource ||
                                      m_barCenter != 0 ||
                                      m_barAvailableStart != 0 ||
                                      m_barAvailableEnd != -1 ||
@@ -441,6 +645,11 @@ void Lr2SkinModel::loadSkin() {
         m_transColor = "#000000";
         m_hasTransColor = false;
         m_reloadBanner = false;
+        m_usesStageFileSource = false;
+        m_usesBackBmpSource = false;
+        m_usesBannerSource = false;
+        m_usesSelectChartRenderer = false;
+        m_usesSelectDifficultySource = false;
         m_startInput = 0;
         m_sceneTime = 0;
         m_loadStart = 0;
@@ -482,6 +691,9 @@ void Lr2SkinModel::loadSkin() {
     const auto mouseCursor = findMouseCursorElement(skinData.elements);
     const bool hasMouseHover = hasMouseHoverElement(skinData.elements);
     const int scratchRotationSides = scratchRotationSidesForElements(skinData.elements);
+    const ChartAssetSourceUsage chartAssetUsage = chartAssetSourceUsageForElements(skinData.elements);
+    const bool usesSelectChartRenderer = hasSelectChartRendererElement(skinData.elements);
+    const bool usesSelectDifficultySource = hasSelectDifficultySourceElement(skinData.elements);
     const bool metadataChanged = m_startInput != skinData.startInput ||
                                  m_sceneTime != skinData.sceneTime ||
                                  m_loadStart != skinData.loadStart ||
@@ -504,6 +716,11 @@ void Lr2SkinModel::loadSkin() {
                                  m_transColor != skinData.transColor ||
                                  m_hasTransColor != skinData.hasTransColor ||
                                  m_reloadBanner != skinData.reloadBanner ||
+                                 m_usesStageFileSource != chartAssetUsage.stageFile ||
+                                 m_usesBackBmpSource != chartAssetUsage.backBmp ||
+                                 m_usesBannerSource != chartAssetUsage.banner ||
+                                 m_usesSelectChartRenderer != usesSelectChartRenderer ||
+                                 m_usesSelectDifficultySource != usesSelectDifficultySource ||
                                  m_barCenter != skinData.barCenter ||
                                  m_barAvailableStart != skinData.barAvailableStart ||
                                  m_barAvailableEnd != skinData.barAvailableEnd ||
@@ -546,6 +763,11 @@ void Lr2SkinModel::loadSkin() {
     m_transColor = skinData.transColor;
     m_hasTransColor = skinData.hasTransColor;
     m_reloadBanner = skinData.reloadBanner;
+    m_usesStageFileSource = chartAssetUsage.stageFile;
+    m_usesBackBmpSource = chartAssetUsage.backBmp;
+    m_usesBannerSource = chartAssetUsage.banner;
+    m_usesSelectChartRenderer = usesSelectChartRenderer;
+    m_usesSelectDifficultySource = usesSelectDifficultySource;
     m_barCenter = skinData.barCenter;
     m_barAvailableStart = skinData.barAvailableStart;
     m_barAvailableEnd = skinData.barAvailableEnd;

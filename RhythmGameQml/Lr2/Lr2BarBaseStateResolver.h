@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Lr2SkinRuntimeTypes.h"
+#include "Lr2TimelineStateValue.h"
+
 #include <QObject>
 #include <QSet>
 #include <QVariant>
@@ -15,7 +18,6 @@ class Lr2BarBaseStateResolver : public QObject {
     Q_PROPERTY(int skinTime READ skinTime WRITE setSkinTime NOTIFY skinTimeChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
-    Q_PROPERTY(QVariantList baseStates READ baseStates NOTIFY baseStatesChanged)
     Q_PROPERTY(int baseStatesRevision READ baseStatesRevision NOTIFY baseStatesChanged)
     Q_PROPERTY(int animationLimit READ animationLimit NOTIFY animationLimitChanged)
     Q_PROPERTY(bool fastScrollActive READ fastScrollActive NOTIFY baseStatesChanged)
@@ -40,16 +42,17 @@ public:
     QVariant activeOptions() const;
     void setActiveOptions(const QVariant& options);
 
-    QVariantList baseStates() const;
     int baseStatesRevision() const;
     int animationLimit() const;
     bool fastScrollActive() const;
     qreal fastScrollDx() const;
     qreal fastScrollDy() const;
     Q_INVOKABLE int stateCount() const;
-    Q_INVOKABLE QVariant stateAt(int row) const;
+    Q_INVOKABLE Lr2TimelineStateValue stateAt(int row) const;
     Q_INVOKABLE bool stateNeedsInterpolationAt(int row) const;
-    Q_INVOKABLE QVariant positionlessStateAt(int row) const;
+    Q_INVOKABLE Lr2TimelineStateValue positionlessStateAt(int row) const;
+    Lr2TimelineStateValue stateValueAt(int row) const;
+    Lr2TimelineStateValue positionlessStateValueAt(int row) const;
     bool stateValidAt(int row) const;
     Q_INVOKABLE qreal stateXAt(int row) const;
     Q_INVOKABLE qreal stateYAt(int row) const;
@@ -64,55 +67,12 @@ signals:
     void animationLimitChanged();
 
 private:
-    struct Dst {
-        bool valid = false;
-        int time = 0;
-        int x = 0;
-        int y = 0;
-        int w = 0;
-        int h = 0;
-        int acc = 0;
-        int a = 255;
-        int r = 255;
-        int g = 255;
-        int b = 255;
-        int blend = 0;
-        int filter = 0;
-        int angle = 0;
-        int center = 0;
-        int sortId = 0;
-        int loop = 0;
-        int timer = 0;
-        int op1 = 0;
-        int op2 = 0;
-        int op3 = 0;
-        int op4 = 0;
-    };
+    using Dst = lr2skin::runtime::Dst;
+    using State = Lr2TimelineStateValue;
 
     struct Row {
         QVector<Dst> offDsts;
         QVector<Dst> onDsts;
-    };
-
-    struct State {
-        bool valid = false;
-        qreal x = 0.0;
-        qreal y = 0.0;
-        qreal w = 0.0;
-        qreal h = 0.0;
-        qreal a = 255.0;
-        qreal r = 255.0;
-        qreal g = 255.0;
-        qreal b = 255.0;
-        qreal angle = 0.0;
-        qreal center = 0.0;
-        qreal sortId = 0.0;
-        int blend = 0;
-        int filter = 0;
-        int op1 = 0;
-        int op2 = 0;
-        int op3 = 0;
-        int op4 = 0;
     };
 
     void rebuildRows();
@@ -122,22 +82,9 @@ private:
     void updateAnimationLimit();
     int effectiveSkinTime(int requestedTime) const;
     qreal timerFire(int timerIdx) const;
-    bool allOpsMatch(const Dst& dst) const;
-    bool checkSingleOp(int op) const;
 
-    static QVector<Dst> parseDsts(const QVariant& value);
-    static bool readDst(const QVariant& value, Dst& dst);
     static QVariant rowField(const QVariant& row, const QString& name);
-    static int freezeEndTime(const QVector<Dst>& dsts);
-    static State currentState(const QVector<Dst>& dsts,
-                              int globalTime,
-                              qreal timerFire,
-                              const Lr2BarBaseStateResolver& resolver);
-    static State copyDstAsState(const Dst& dst, const Dst& controlDst);
-    static QVariant stateToVariant(const State& state);
     static bool statesEqual(const QVector<State>& lhs, const QVector<State>& rhs);
-    static bool stateEqual(const State& lhs, const State& rhs);
-    static qreal applyAccel(qreal progress, int accType);
 
     QVariantList m_barRows;
     QVector<Row> m_rows;

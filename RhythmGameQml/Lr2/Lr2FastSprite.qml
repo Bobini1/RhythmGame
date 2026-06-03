@@ -53,7 +53,7 @@ Image {
     sourceClipRect: animationFrameState.sourceClipRect
     fillMode: tileVertically ? Image.TileVertically : Image.Stretch
     cache: true
-    asynchronous: true
+    asynchronous: false
     smooth: stateFilter !== 0
     mipmap: false
 }

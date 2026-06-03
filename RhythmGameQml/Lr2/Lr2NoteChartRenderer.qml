@@ -22,16 +22,12 @@ Item {
     property int cachedMaxDensity: 20
     property int cachedSourceW: 5
     property int cachedSourceH: 100
-    readonly property var snapshotChart: ({
-        chartData: chart && chart.chartData !== undefined ? chart.chartData : chart,
-        revision: chartRevision
-    })
     property Lr2ChartDataSnapshot chartSnapshot: Lr2ChartDataSnapshot {
-        chart: root.snapshotChart
+        chart: root.chart && root.chart.chartData !== undefined ? root.chart.chartData : root.chart
     }
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -47,7 +43,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var currentState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
     readonly property int fieldW: Math.max(1, srcData ? (srcData.fieldW || 1) : 1)
     readonly property int fieldH: Math.max(1, srcData ? (srcData.fieldH || 1) : 1)
     readonly property real stateW: currentState ? (currentState.w || 0) : 0

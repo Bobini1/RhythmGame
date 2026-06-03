@@ -39,7 +39,7 @@ Item {
         : 0
     readonly property var numberDsts: srcData && srcData.source ? dsts : []
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -53,15 +53,17 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var numberTimelineState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
     readonly property bool numberSourceAnimates: srcData && srcData.source
         && (srcData.source.cycle || 0) > 0
 
     function baseState(row: var) : var {
         root.barBaseStateRevision;
-        return barBaseStateResolver && row >= 0 && row < barBaseStateResolver.stateCount()
-            ? barBaseStateResolver.stateAt(row)
-            : null;
+        if (!barBaseStateResolver || row < 0 || row >= barBaseStateResolver.stateCount()) {
+            return null;
+        }
+        let state = barBaseStateResolver.stateAt(row);
+        return state && state.valid ? state : null;
     }
 
     function visibilityState(row: var) : var {

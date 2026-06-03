@@ -18,7 +18,7 @@ Item {
     property int trembleRoll: 0
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -32,7 +32,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var currentState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
     readonly property int side: srcData && srcData.side > 0 ? srcData.side : 1
     readonly property var player: screenRoot ? screenRoot.gameplayPlayer(side) : null
     readonly property var score: player ? player.score : null

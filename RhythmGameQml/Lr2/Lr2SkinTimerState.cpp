@@ -17,7 +17,7 @@ int toInt(const QVariant& value, int fallback = 0) {
     return ok ? result : fallback;
 }
 
-QHash<int, int> gameplayTimerHashFromVariant(const QVariant& source) {
+QHash<int, int> timerHashFromVariant(const QVariant& source) {
     QHash<int, int> result;
     if (!source.isValid() || source.isNull()) {
         return result;
@@ -34,7 +34,7 @@ QHash<int, int> gameplayTimerHashFromVariant(const QVariant& source) {
     return result;
 }
 
-QVariantMap variantMapFromGameplayTimerHash(const QHash<int, int>& values) {
+QVariantMap variantMapFromTimerHash(const QHash<int, int>& values) {
     QVariantMap result;
     for (auto it = values.constBegin(); it != values.constEnd(); ++it) {
         result.insert(QString::number(it.key()), it.value());
@@ -132,10 +132,10 @@ void Lr2SkinTimerState::setGameplayRhythmTimerSkinTime(int skinTime) {
 }
 
 QVariant Lr2SkinTimerState::selectHeldButtonTimerStarts() const {
-    return variantMapFromGameplayTimerHash(m_selectHeldButtonTimerStarts);
+    return variantMapFromTimerHash(m_selectHeldButtonTimerStarts);
 }
 void Lr2SkinTimerState::setSelectHeldButtonTimerStarts(const QVariant& values) {
-    const QHash<int, int> next = gameplayTimerHashFromVariant(values);
+    const QHash<int, int> next = timerHashFromVariant(values);
     if (m_selectHeldButtonTimerStarts == next) {
         return;
     }
@@ -377,113 +377,95 @@ void Lr2SkinTimerState::setGameplayTimerRevision(int value) {
     }
 }
 
-QVariant Lr2SkinTimerState::gameplayTimerValues() const {
-    return variantMapFromGameplayTimerHash(m_gameplayTimerValues);
-}
-void Lr2SkinTimerState::setGameplayTimerValues(const QVariant& values) {
-    const QHash<int, int> next = gameplayTimerHashFromVariant(values);
-    if (m_gameplayTimerValues == next) {
-        return;
-    }
-    m_gameplayTimerValues = next;
-    m_gameplayTimerValuesDirty = false;
-    emit gameplayTimerValuesChanged();
-    bumpRevision();
-}
-
 int Lr2SkinTimerState::revision() const { return m_revision; }
 int Lr2SkinTimerState::selectInfoRevision() const { return m_selectInfoRevision; }
 
-int Lr2SkinTimerState::gameplayTimerFireTime(const QVariant& timer) const {
-    const int idx = timerValue(timer);
-    if (idx == 140) {
+int Lr2SkinTimerState::gameplayTimerFireTime(int timer) const {
+    if (timer == 140) {
         return m_gameplayRhythmTimerSkinTime;
     }
     Q_UNUSED(m_gameplayTimerRevision);
-    return gameplayTimerValue(idx);
+    return gameplayTimerValue(timer);
 }
 
-int Lr2SkinTimerState::resultTimerFireTime(const QVariant& timer) const {
-    const int idx = timerValue(timer);
-    if (idx == 0) {
+int Lr2SkinTimerState::resultTimerFireTime(int timer) const {
+    if (timer == 0) {
         return 0;
     }
-    if (idx == 1) {
+    if (timer == 1) {
         return m_acceptsInput ? std::min(m_renderSkinTime, m_startInput) : -1;
     }
-    if (idx == 150) {
+    if (timer == 150) {
         return m_renderSkinTime >= m_resultGraphStartSkinTime ? m_resultGraphStartSkinTime : -1;
     }
-    if (idx == 151) {
+    if (timer == 151) {
         if (m_resultTimer151SkinTime >= 0) {
             return m_resultTimer151SkinTime;
         }
         return m_renderSkinTime >= m_resultGraphEndSkinTime ? m_resultGraphEndSkinTime : -1;
     }
-    if (idx == 152) {
+    if (timer == 152) {
         return m_resultTimer152SkinTime >= 0 ? m_resultTimer152SkinTime : -1;
     }
     return -1;
 }
 
-int Lr2SkinTimerState::selectTimerFireTime(const QVariant& timer, bool liveClock) const {
-    const int idx = timerValue(timer);
-
+int Lr2SkinTimerState::selectTimerFireTime(int timer, bool liveClock) const {
     const int baseTime = selectTimerBaseTime(liveClock);
-    if (idx == 0) {
+    if (timer == 0) {
         return 0;
     }
-    if (idx == 1) {
+    if (timer == 1) {
         return m_acceptsInput ? std::min(m_renderSkinTime, m_startInput) : -1;
     }
-    if (idx == 171) {
+    if (timer == 171) {
         return m_selectDatabaseLoadedSkinTime;
     }
-    if (idx == 11) {
+    if (timer == 11) {
         return baseTime - m_selectInfoElapsed;
     }
-    if (idx == 14 && m_acceptsInput) {
+    if (timer == 14 && m_acceptsInput) {
         return m_selectNoScrollStartSkinTime;
     }
 
     if (m_selectVisualMoveActive || m_selectScrollFixedPointDragging) {
-        if (idx == 10) {
+        if (timer == 10) {
             return m_selectScrollStartSkinTime;
         }
-        if (idx == 12 && m_selectScrollDirection == m_selectScrollUp) {
+        if (timer == 12 && m_selectScrollDirection == m_selectScrollUp) {
             return m_selectScrollStartSkinTime;
         }
-        if (idx == 13 && m_selectScrollDirection == m_selectScrollDown) {
+        if (timer == 13 && m_selectScrollDirection == m_selectScrollDown) {
             return m_selectScrollStartSkinTime;
         }
     }
 
-    if (idx >= 21 && idx <= 26) {
-        const int panel = idx - 20;
+    if (timer >= 21 && timer <= 26) {
+        const int panel = timer - 20;
         return m_selectPanel == panel
             ? baseTime - selectElapsedSince(m_selectPanelStartSkinTime)
             : -1;
     }
-    if (idx >= 31 && idx <= 36) {
-        const int panel = idx - 30;
+    if (timer >= 31 && timer <= 36) {
+        const int panel = timer - 30;
         const int elapsed = selectElapsedSince(m_selectPanelCloseStartSkinTime);
         return m_selectPanelClosing == panel && elapsed < m_selectPanelHoldTime
             ? baseTime - elapsed
             : -1;
     }
-    if (idx == 15 && m_lr2ReadmeMode == 1) {
+    if (timer == 15 && m_lr2ReadmeMode == 1) {
         return baseTime - m_lr2ReadmeElapsed;
     }
-    if (idx == 16 && m_lr2ReadmeMode == 2) {
+    if (timer == 16 && m_lr2ReadmeMode == 2) {
         return baseTime - m_lr2ReadmeElapsed;
     }
-    if (m_lr2RankingTransitionPhase != 0 && idx == m_lr2RankingTransitionPhase) {
+    if (m_lr2RankingTransitionPhase != 0 && timer == m_lr2RankingTransitionPhase) {
         return baseTime - m_lr2RankingTransitionElapsed;
     }
-    if (!isSelectHeldButtonTimerId(idx)) {
+    if (!isSelectHeldButtonTimerId(timer)) {
         return -1;
     }
-    const auto it = m_selectHeldButtonTimerStarts.constFind(idx);
+    const auto it = m_selectHeldButtonTimerStarts.constFind(timer);
     if (it == m_selectHeldButtonTimerStarts.constEnd()) {
         return -1;
     }
@@ -493,88 +475,81 @@ int Lr2SkinTimerState::selectTimerFireTime(const QVariant& timer, bool liveClock
         : m_renderSkinTime - std::max(0, m_selectLiveSkinTime - liveStart);
 }
 
-bool Lr2SkinTimerState::selectTimerCanFire(const QVariant& timer) const {
-    const int idx = timerValue(timer);
-    if (idx == 0 || idx == 1 || idx == 10 || idx == 11
-            || idx == 12 || idx == 13 || idx == 14
-            || idx == 15 || idx == 16 || idx == 171
-            || idx == 175 || idx == 176) {
+bool Lr2SkinTimerState::selectTimerCanFire(int timer) const {
+    if (timer == 0 || timer == 1 || timer == 10 || timer == 11
+            || timer == 12 || timer == 13 || timer == 14
+            || timer == 15 || timer == 16 || timer == 171
+            || timer == 175 || timer == 176) {
         return true;
     }
-    if (idx >= 21 && idx <= 26) {
+    if (timer >= 21 && timer <= 26) {
         return true;
     }
-    if (idx >= 31 && idx <= 36) {
+    if (timer >= 31 && timer <= 36) {
         return true;
     }
-    return isSelectHeldButtonTimerId(idx);
+    return isSelectHeldButtonTimerId(timer);
 }
 
-bool Lr2SkinTimerState::skinTimerCanFire(const QVariant& timer) const {
-    const int idx = timerValue(timer);
-    if (idx == 0) {
+bool Lr2SkinTimerState::skinTimerCanFire(int timer) const {
+    if (timer == 0) {
         return true;
     }
     if (m_gameplayScreen) {
         return true;
     }
     if (m_resultScreen) {
-        return idx == 1 || idx == 150 || idx == 151 || idx == 152;
+        return timer == 1 || timer == 150 || timer == 151 || timer == 152;
     }
     if (m_screenKey == QStringLiteral("select")) {
-        return selectTimerCanFire(idx);
+        return selectTimerCanFire(timer);
     }
     return false;
 }
 
-int Lr2SkinTimerState::skinTimerFireTime(const QVariant& timer, bool liveClock) {
-    const int idx = timerValue(timer);
-    if (idx == 0) {
+int Lr2SkinTimerState::skinTimerFireTime(int timer, bool liveClock) {
+    if (timer == 0) {
         return 0;
     }
     if (m_gameplayScreen) {
-        return gameplayTimerFireTime(idx);
+        return gameplayTimerFireTime(timer);
     }
     if (m_resultScreen) {
-        return resultTimerFireTime(idx);
+        return resultTimerFireTime(timer);
     }
     if (m_screenKey == QStringLiteral("select")) {
-        return canCacheSelectTimerFire(idx)
-            ? cachedSelectTimerFireTime(idx, liveClock)
-            : selectTimerFireTime(idx, liveClock);
+        return canCacheSelectTimerFire(timer)
+            ? cachedSelectTimerFireTime(timer, liveClock)
+            : selectTimerFireTime(timer, liveClock);
     }
     return -1;
 }
 
-bool Lr2SkinTimerState::isSelectHeldButtonTimer(const QVariant& timer) const {
-    return isSelectHeldButtonTimerId(timerValue(timer));
+bool Lr2SkinTimerState::isSelectHeldButtonTimer(int timer) const {
+    return isSelectHeldButtonTimerId(timer);
 }
 
-bool Lr2SkinTimerState::setGameplayTimerValue(const QVariant& timer, int skinTime) {
-    const int idx = timerValue(timer);
-    if (idx == 0 || skinTime < 0) {
+bool Lr2SkinTimerState::setGameplayTimerValue(int timer, int skinTime) {
+    if (timer == 0 || skinTime < 0) {
         return false;
     }
-    const auto it = m_gameplayTimerValues.constFind(idx);
+    const auto it = m_gameplayTimerValues.constFind(timer);
     if (it != m_gameplayTimerValues.constEnd() && it.value() == skinTime) {
         return false;
     }
-    m_gameplayTimerValues.insert(idx, skinTime);
+    m_gameplayTimerValues.insert(timer, skinTime);
     m_gameplayTimerValuesDirty = true;
-    m_pendingGameplayTimerChanges.insert(idx);
-    emit gameplayTimerValuesChanged();
+    m_pendingGameplayTimerChanges.insert(timer);
     return true;
 }
 
-bool Lr2SkinTimerState::clearGameplayTimerValue(const QVariant& timer) {
-    const int idx = timerValue(timer);
-    if (idx == 0 || !m_gameplayTimerValues.contains(idx)) {
+bool Lr2SkinTimerState::clearGameplayTimerValue(int timer) {
+    if (timer == 0 || !m_gameplayTimerValues.contains(timer)) {
         return false;
     }
-    m_gameplayTimerValues.remove(idx);
+    m_gameplayTimerValues.remove(timer);
     m_gameplayTimerValuesDirty = true;
-    m_pendingGameplayTimerChanges.insert(idx);
-    emit gameplayTimerValuesChanged();
+    m_pendingGameplayTimerChanges.insert(timer);
     return true;
 }
 
@@ -587,7 +562,6 @@ bool Lr2SkinTimerState::resetGameplayTimerValues() {
     m_gameplayTimerValuesDirty = true;
     m_pendingGameplayTimerChanges.clear();
     m_pendingGameplayTimerFullRefresh = true;
-    emit gameplayTimerValuesChanged();
     return commitGameplayTimerChanges();
 }
 
@@ -650,10 +624,6 @@ int Lr2SkinTimerState::cachedSelectTimerFireTime(int timer, bool liveClock) {
     m_cacheValues[index] = value;
     m_cacheValid[index] = true;
     return value;
-}
-
-int Lr2SkinTimerState::timerValue(const QVariant& timer) const {
-    return toInt(timer, 0);
 }
 
 bool Lr2SkinTimerState::isSelectHeldButtonTimerId(int timer) const {

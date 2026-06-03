@@ -10,31 +10,6 @@
 Lr2SelectUpdateController::Lr2SelectUpdateController(QObject* parent)
     : QObject(parent) {}
 
-namespace {
-
-int keymodeOptionFor(int keymode, int baseOption) {
-    switch (keymode) {
-    case 7:
-        return baseOption;
-    case 5:
-        return baseOption + 1;
-    case 14:
-        return baseOption + 2;
-    case 10:
-        return baseOption + 3;
-    case 9:
-        return baseOption + 4;
-    case 24:
-        return 1160;
-    case 48:
-        return 1161;
-    default:
-        return 0;
-    }
-}
-
-}
-
 QObject* Lr2SelectUpdateController::skinModel() const {
     return m_skinModel;
 }
@@ -320,7 +295,11 @@ void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QVa
     }
     m_selectRuntimeGeneratedActiveOptions = options;
     emit selectRuntimeGeneratedActiveOptionsChanged();
-    refreshCurrentRuntimeActiveOptions();
+}
+
+void Lr2SelectUpdateController::replaceSelectRuntimeGeneratedActiveOptions(const QVariant& options) {
+    m_selectRuntimeGeneratedActiveOptions = options;
+    emit selectRuntimeGeneratedActiveOptionsChanged();
 }
 
 QVariant Lr2SelectUpdateController::screenRuntimeActiveOptions() const {
@@ -333,7 +312,6 @@ void Lr2SelectUpdateController::setScreenRuntimeActiveOptions(const QVariant& op
     }
     m_screenRuntimeActiveOptions = options;
     emit screenRuntimeActiveOptionsChanged();
-    refreshCurrentRuntimeActiveOptions();
 }
 
 bool Lr2SelectUpdateController::gameplayScreen() const {
@@ -355,42 +333,6 @@ int Lr2SelectUpdateController::selectRevision() const {
 
 int Lr2SelectUpdateController::selectDetailRevision() const {
     return m_selectDetailRevision;
-}
-
-int Lr2SelectUpdateController::selectedKeymode() const {
-    return m_selectedKeymode;
-}
-
-void Lr2SelectUpdateController::setSelectedKeymode(int keymode) {
-    if (m_selectedKeymode == keymode) {
-        return;
-    }
-    m_selectedKeymode = keymode;
-    emit selectedKeymodeChanged();
-}
-
-bool Lr2SelectUpdateController::spToDpActive() const {
-    return m_spToDpActive;
-}
-
-void Lr2SelectUpdateController::setSpToDpActive(bool active) {
-    if (m_spToDpActive == active) {
-        return;
-    }
-    m_spToDpActive = active;
-    emit spToDpActiveChanged();
-}
-
-bool Lr2SelectUpdateController::battleModeActive() const {
-    return m_battleModeActive;
-}
-
-void Lr2SelectUpdateController::setBattleModeActive(bool active) {
-    if (m_battleModeActive == active) {
-        return;
-    }
-    m_battleModeActive = active;
-    emit battleModeActiveChanged();
 }
 
 bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
@@ -454,7 +396,6 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
     QVariantList next = mergedNumberArray(
         m_selectCommonActiveOptions,
         normalizedNumberArray(m_selectRuntimeGeneratedActiveOptions));
-    appendSelectKeymodeOptions(next);
     const QString nextKey = numberArrayKey(next);
     if (nextKey == m_selectRuntimeActiveOptionsKey
             && sameNumberArray(m_runtimeActiveOptions, next)) {
@@ -615,36 +556,6 @@ bool Lr2SelectUpdateController::skinUsesOption(int option) const {
         }
     }
     return false;
-}
-
-int Lr2SelectUpdateController::selectModeKeymode(int keymode) const {
-    if (!m_spToDpActive && !m_battleModeActive) {
-        return keymode;
-    }
-    if (keymode == 7) {
-        return 14;
-    }
-    if (keymode == 5) {
-        return 10;
-    }
-    return keymode;
-}
-
-void Lr2SelectUpdateController::appendSelectKeymodeOptions(QVariantList& options) const {
-    const int keymode = selectedKeymode();
-    if (keymode <= 0) {
-        return;
-    }
-
-    const int effectiveKeymode = selectModeKeymode(keymode);
-    const int selectOption = keymodeOptionFor(effectiveKeymode, 160);
-    const int afterOption = keymodeOptionFor(effectiveKeymode, 165);
-    if (selectOption > 0) {
-        appendUniqueSkinOption(options, selectOption);
-    }
-    if (afterOption > 0) {
-        appendUniqueSkinOption(options, afterOption);
-    }
 }
 
 void Lr2SelectUpdateController::appendUniqueOption(QVariantList& options, int option) const {

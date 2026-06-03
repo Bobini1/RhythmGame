@@ -24,7 +24,7 @@ Item {
     property int paintedColumnCount: -1
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -38,7 +38,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var currentState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
     readonly property string resolvedSource: {
         if (!srcData || !srcData.source) return "";
         let absPath = srcData.source.replace(/\\/g, "/");

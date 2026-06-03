@@ -12,6 +12,7 @@ using gameplay_logic::lr2_skin::Lr2Dst;
 using gameplay_logic::lr2_skin::Lr2SrcBarGraph;
 using gameplay_logic::lr2_skin::Lr2SrcBarImage;
 using gameplay_logic::lr2_skin::Lr2SrcBarNumber;
+using gameplay_logic::lr2_skin::Lr2SrcBarText;
 using gameplay_logic::lr2_skin::Lr2SrcImage;
 using gameplay_logic::lr2_skin::Lr2SrcNumber;
 using gameplay_logic::lr2_skin::Lr2SrcText;
@@ -23,6 +24,13 @@ int mapInt(const QVariantMap& map, const QString& name, int fallback) {
     return it == map.constEnd() || !it->isValid() || it->isNull()
         ? fallback
         : it->toInt();
+}
+
+qreal mapReal(const QVariantMap& map, const QString& name, qreal fallback) {
+    const auto it = map.constFind(name);
+    return it == map.constEnd() || !it->isValid() || it->isNull()
+        ? fallback
+        : it->toDouble();
 }
 
 bool mapBool(const QVariantMap& map, const QString& name, bool fallback) {
@@ -45,6 +53,11 @@ int jsInt(const QJSValue& value, const QString& name, int fallback) {
 bool jsBool(const QJSValue& value, const QString& name, bool fallback) {
     const QJSValue field = value.property(name);
     return field.isUndefined() || field.isNull() ? fallback : field.toBool();
+}
+
+QString jsString(const QJSValue& value, const QString& name) {
+    const QJSValue field = value.property(name);
+    return field.isUndefined() || field.isNull() ? QString {} : field.toString();
 }
 
 bool jsHas(const QJSValue& value, const QString& name) {
@@ -319,6 +332,7 @@ bool readSource(const QVariant& value, Source& source) {
     if (value.canConvert<Lr2SrcBarGraph>()) {
         const auto parsed = value.value<Lr2SrcBarGraph>();
         source.valid = true;
+        source.graphType = parsed.graphType;
         source.x = parsed.x;
         source.y = parsed.y;
         source.w = parsed.w;
@@ -348,7 +362,38 @@ bool readSource(const QVariant& value, Source& source) {
     if (value.canConvert<Lr2SrcText>()) {
         const auto parsed = value.value<Lr2SrcText>();
         source.valid = true;
+        source.font = parsed.font;
         source.st = parsed.st;
+        source.align = parsed.align;
+        source.edit = parsed.edit;
+        source.panel = parsed.panel;
+        source.fontPath = parsed.fontPath;
+        source.fontFamily = parsed.fontFamily;
+        source.fontSize = parsed.fontSize;
+        source.fontThickness = parsed.fontThickness;
+        source.fontType = parsed.fontType;
+        source.bitmapFont = parsed.bitmapFont;
+        source.readme = parsed.readme;
+        source.readmeId = parsed.readmeId;
+        source.readmeLineSpacing = parsed.readmeLineSpacing;
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcBarText>()) {
+        const auto parsed = value.value<Lr2SrcBarText>();
+        source.valid = true;
+        source.titleType = parsed.titleType;
+        source.font = parsed.font;
+        source.st = parsed.st;
+        source.align = parsed.align;
+        source.edit = parsed.edit;
+        source.panel = parsed.panel;
+        source.fontPath = parsed.fontPath;
+        source.fontFamily = parsed.fontFamily;
+        source.fontSize = parsed.fontSize;
+        source.fontThickness = parsed.fontThickness;
+        source.fontType = parsed.fontType;
+        source.bitmapFont = parsed.bitmapFont;
         return true;
     }
 
@@ -380,6 +425,21 @@ bool readSource(const QVariant& value, Source& source) {
         source.side = mapInt(map, QStringLiteral("side"), 0);
         source.hasKind = mapHas(map, QStringLiteral("kind"));
         source.kind = mapInt(map, QStringLiteral("kind"), 0);
+        source.graphType = mapInt(map, QStringLiteral("graphType"), 0);
+        source.titleType = mapInt(map, QStringLiteral("titleType"), -1);
+        source.align = mapInt(map, QStringLiteral("align"), 0);
+        source.font = mapInt(map, QStringLiteral("font"), 0);
+        source.edit = mapInt(map, QStringLiteral("edit"), 0);
+        source.panel = mapInt(map, QStringLiteral("panel"), 0);
+        source.fontPath = map.value(QStringLiteral("fontPath")).toString();
+        source.fontFamily = map.value(QStringLiteral("fontFamily")).toString();
+        source.fontSize = mapInt(map, QStringLiteral("fontSize"), 0);
+        source.fontThickness = mapInt(map, QStringLiteral("fontThickness"), 0);
+        source.fontType = mapInt(map, QStringLiteral("fontType"), 0);
+        source.bitmapFont = mapBool(map, QStringLiteral("bitmapFont"), false);
+        source.readme = mapBool(map, QStringLiteral("readme"), false);
+        source.readmeId = mapInt(map, QStringLiteral("readmeId"), 0);
+        source.readmeLineSpacing = mapInt(map, QStringLiteral("readmeLineSpacing"), 18);
         source.specialType = mapInt(map, QStringLiteral("specialType"), 0);
         source.path = map.value(QStringLiteral("source")).toString();
         return true;
@@ -420,11 +480,69 @@ bool readSource(const QVariant& value, Source& source) {
     source.side = jsInt(jsValue, QStringLiteral("side"), 0);
     source.hasKind = jsHas(jsValue, QStringLiteral("kind"));
     source.kind = jsInt(jsValue, QStringLiteral("kind"), 0);
+    source.graphType = jsInt(jsValue, QStringLiteral("graphType"), 0);
+    source.titleType = jsInt(jsValue, QStringLiteral("titleType"), -1);
+    source.align = jsInt(jsValue, QStringLiteral("align"), 0);
+    source.font = jsInt(jsValue, QStringLiteral("font"), 0);
+    source.edit = jsInt(jsValue, QStringLiteral("edit"), 0);
+    source.panel = jsInt(jsValue, QStringLiteral("panel"), 0);
+    source.fontPath = jsString(jsValue, QStringLiteral("fontPath"));
+    source.fontFamily = jsString(jsValue, QStringLiteral("fontFamily"));
+    source.fontSize = jsInt(jsValue, QStringLiteral("fontSize"), 0);
+    source.fontThickness = jsInt(jsValue, QStringLiteral("fontThickness"), 0);
+    source.fontType = jsInt(jsValue, QStringLiteral("fontType"), 0);
+    source.bitmapFont = jsBool(jsValue, QStringLiteral("bitmapFont"), false);
+    source.readme = jsBool(jsValue, QStringLiteral("readme"), false);
+    source.readmeId = jsInt(jsValue, QStringLiteral("readmeId"), 0);
+    source.readmeLineSpacing = jsInt(jsValue, QStringLiteral("readmeLineSpacing"), 18);
     source.specialType = jsInt(jsValue, QStringLiteral("specialType"), 0);
     const QJSValue sourcePath = jsValue.property(QStringLiteral("source"));
     source.path = sourcePath.isUndefined() || sourcePath.isNull()
         ? QString {}
         : sourcePath.toString();
+    return true;
+}
+
+bool readState(const QVariant& value, State& state) {
+    if (!value.isValid() || value.isNull()) {
+        return false;
+    }
+
+    if (value.canConvert<State>()) {
+        state = value.value<State>();
+        return state.valid;
+    }
+
+    if (!value.canConvert<QVariantMap>()) {
+        return false;
+    }
+
+    const QVariantMap map = value.toMap();
+    if (!mapHas(map, QStringLiteral("x"))
+            && !mapHas(map, QStringLiteral("y"))
+            && !mapHas(map, QStringLiteral("w"))
+            && !mapHas(map, QStringLiteral("h"))) {
+        return false;
+    }
+
+    state.valid = true;
+    state.x = mapReal(map, QStringLiteral("x"), state.x);
+    state.y = mapReal(map, QStringLiteral("y"), state.y);
+    state.w = mapReal(map, QStringLiteral("w"), state.w);
+    state.h = mapReal(map, QStringLiteral("h"), state.h);
+    state.a = mapReal(map, QStringLiteral("a"), state.a);
+    state.r = mapReal(map, QStringLiteral("r"), state.r);
+    state.g = mapReal(map, QStringLiteral("g"), state.g);
+    state.b = mapReal(map, QStringLiteral("b"), state.b);
+    state.angle = mapReal(map, QStringLiteral("angle"), state.angle);
+    state.center = mapInt(map, QStringLiteral("center"), state.center);
+    state.sortId = mapReal(map, QStringLiteral("sortId"), state.sortId);
+    state.blend = mapInt(map, QStringLiteral("blend"), state.blend);
+    state.filter = mapInt(map, QStringLiteral("filter"), state.filter);
+    state.op1 = mapInt(map, QStringLiteral("op1"), state.op1);
+    state.op2 = mapInt(map, QStringLiteral("op2"), state.op2);
+    state.op3 = mapInt(map, QStringLiteral("op3"), state.op3);
+    state.op4 = mapInt(map, QStringLiteral("op4"), state.op4);
     return true;
 }
 
@@ -714,32 +832,6 @@ State copyDstAsState(const Dst& dst, const Dst& controlDst) {
     return state;
 }
 
-QVariant stateToVariant(const State& state) {
-    if (!state.valid) {
-        return {};
-    }
-
-    QVariantMap value;
-    value.insert(QStringLiteral("x"), state.x);
-    value.insert(QStringLiteral("y"), state.y);
-    value.insert(QStringLiteral("w"), state.w);
-    value.insert(QStringLiteral("h"), state.h);
-    value.insert(QStringLiteral("a"), state.a);
-    value.insert(QStringLiteral("r"), state.r);
-    value.insert(QStringLiteral("g"), state.g);
-    value.insert(QStringLiteral("b"), state.b);
-    value.insert(QStringLiteral("angle"), state.angle);
-    value.insert(QStringLiteral("center"), state.center);
-    value.insert(QStringLiteral("sortId"), state.sortId);
-    value.insert(QStringLiteral("blend"), state.blend);
-    value.insert(QStringLiteral("filter"), state.filter);
-    value.insert(QStringLiteral("op1"), state.op1);
-    value.insert(QStringLiteral("op2"), state.op2);
-    value.insert(QStringLiteral("op3"), state.op3);
-    value.insert(QStringLiteral("op4"), state.op4);
-    return value;
-}
-
 bool sameState(const State& lhs, const State& rhs) {
     const auto sameReal = [](qreal a, qreal b) {
         return std::abs(a - b) <= 0.0001;
@@ -903,7 +995,7 @@ State translatedSliderState(State state, qreal position, int range, int directio
     return state;
 }
 
-QVariant sliderTrackState(const Source& source, const State& baseState) {
+State sliderTrackState(const Source& source, const State& baseState) {
     if (!source.valid || !source.slider || !baseState.valid) {
         return {};
     }
@@ -929,54 +1021,45 @@ QVariant sliderTrackState(const Source& source, const State& baseState) {
         return {};
     }
 
-    QVariantMap value;
-    value.insert(QStringLiteral("x"), track.x);
-    value.insert(QStringLiteral("y"), track.y);
-    value.insert(QStringLiteral("w"), track.w);
-    value.insert(QStringLiteral("h"), track.h);
-    return value;
+    return track;
 }
 
 qreal sliderPositionFromPointer(const Source& source,
-                                const QVariant& track,
+                                const State& track,
                                 qreal pointerX,
                                 qreal pointerY) {
-    if (!source.valid || !source.slider || !track.canConvert<QVariantMap>()) {
+    State state = track;
+    if (!source.valid || !source.slider || !state.valid) {
         return 0.0;
     }
 
-    const QVariantMap state = track.toMap();
-    const qreal x = state.value(QStringLiteral("x")).toReal();
-    const qreal y = state.value(QStringLiteral("y")).toReal();
-    const qreal w = state.value(QStringLiteral("w")).toReal();
-    const qreal h = state.value(QStringLiteral("h")).toReal();
     const qreal range = std::max(1, source.sliderRange);
-    const qreal moveX = (w - range) / 2.0;
-    const qreal moveY = (h - range) / 2.0;
+    const qreal moveX = (state.w - range) / 2.0;
+    const qreal moveY = (state.h - range) / 2.0;
     qreal position = 0.0;
 
     switch (source.sliderDirection) {
     case 0: {
-        const qreal start = y + moveY;
-        const qreal end = y + h - moveY;
+        const qreal start = state.y + moveY;
+        const qreal end = state.y + state.h - moveY;
         position = end != start ? (end - pointerY) / (end - start) : 0.0;
         break;
     }
     case 1: {
-        const qreal start = x + moveX;
-        const qreal end = x + w - moveX;
+        const qreal start = state.x + moveX;
+        const qreal end = state.x + state.w - moveX;
         position = end != start ? (pointerX - start) / (end - start) : 0.0;
         break;
     }
     case 2: {
-        const qreal start = y + moveY;
-        const qreal end = y + h - moveY;
+        const qreal start = state.y + moveY;
+        const qreal end = state.y + state.h - moveY;
         position = end != start ? (pointerY - start) / (end - start) : 0.0;
         break;
     }
     case 3: {
-        const qreal start = x + moveX;
-        const qreal end = x + w - moveX;
+        const qreal start = state.x + moveX;
+        const qreal end = state.x + state.w - moveX;
         position = end != start ? (end - pointerX) / (end - start) : 0.0;
         break;
     }
@@ -988,19 +1071,15 @@ qreal sliderPositionFromPointer(const Source& source,
 }
 
 bool rectContains(const QVariant& state, qreal skinX, qreal skinY) {
-    if (!state.isValid() || state.isNull() || !state.canConvert<QVariantMap>()) {
+    State value;
+    if (!readState(state, value)) {
         return false;
     }
 
-    const QVariantMap map = state.toMap();
-    const qreal x = map.value(QStringLiteral("x")).toReal();
-    const qreal y = map.value(QStringLiteral("y")).toReal();
-    const qreal w = map.value(QStringLiteral("w")).toReal();
-    const qreal h = map.value(QStringLiteral("h")).toReal();
-    const qreal left = std::min(x, x + w);
-    const qreal right = std::max(x, x + w);
-    const qreal top = std::min(y, y + h);
-    const qreal bottom = std::max(y, y + h);
+    const qreal left = std::min(value.x, value.x + value.w);
+    const qreal right = std::max(value.x, value.x + value.w);
+    const qreal top = std::min(value.y, value.y + value.h);
+    const qreal bottom = std::max(value.y, value.y + value.h);
     return skinX >= left && skinX <= right && skinY >= top && skinY <= bottom;
 }
 

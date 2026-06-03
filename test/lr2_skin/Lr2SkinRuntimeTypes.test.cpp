@@ -75,9 +75,10 @@ TEST_CASE("LR2 runtime classifies slider sources and track geometry", "[lr2][run
     base.w = 20;
     base.h = 40;
 
-    const QVariant track = sliderTrackState(source, base);
-    REQUIRE(track.toMap().value(QStringLiteral("x")).toDouble() == 100.0);
-    REQUIRE(track.toMap().value(QStringLiteral("w")).toDouble() == 120.0);
+    const State track = sliderTrackState(source, base);
+    REQUIRE(track.valid);
+    REQUIRE(track.x == 100.0);
+    REQUIRE(track.w == 120.0);
     REQUIRE_THAT(sliderPositionFromPointer(source, track, 100, 20), WithinAbs(1.0, 0.0001));
     REQUIRE_THAT(sliderPositionFromPointer(source, track, 210, 20), WithinAbs(0.0, 0.0001));
 }

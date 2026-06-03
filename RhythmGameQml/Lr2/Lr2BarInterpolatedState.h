@@ -2,18 +2,16 @@
 
 #include "Lr2BarBaseStateResolver.h"
 #include "Lr2BarPositionMap.h"
+#include "Lr2TimelineStateValue.h"
 
 #include <QMetaObject>
 #include <QObject>
 #include <QPointer>
-#include <QVariantList>
-#include <QVector>
 #include <QtQml/qqmlregistration.h>
 
 class Lr2BarInterpolatedState : public QObject {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(QVariantList baseStates READ baseStates WRITE setBaseStates NOTIFY baseStatesChanged)
     Q_PROPERTY(Lr2BarBaseStateResolver* baseStateResolver READ baseStateResolver WRITE setBaseStateResolver NOTIFY baseStateResolverChanged)
     Q_PROPERTY(Lr2BarPositionMap* positionMap READ positionMap WRITE setPositionMap NOTIFY positionMapChanged)
     Q_PROPERTY(int row READ row WRITE setRow NOTIFY rowChanged)
@@ -39,8 +37,6 @@ class Lr2BarInterpolatedState : public QObject {
 public:
     explicit Lr2BarInterpolatedState(QObject* parent = nullptr);
 
-    QVariantList baseStates() const;
-    void setBaseStates(const QVariantList& states);
     Lr2BarBaseStateResolver* baseStateResolver() const;
     void setBaseStateResolver(Lr2BarBaseStateResolver* resolver);
 
@@ -72,7 +68,6 @@ public:
     qreal op4() const;
 
 signals:
-    void baseStatesChanged();
     void baseStateResolverChanged();
     void positionMapChanged();
     void rowChanged();
@@ -80,30 +75,11 @@ signals:
     void stateChanged();
 
 private:
-    struct State {
-        bool valid = false;
-        qreal x = 0.0;
-        qreal y = 0.0;
-        qreal w = 0.0;
-        qreal h = 0.0;
-        qreal a = 0.0;
-        qreal r = 255.0;
-        qreal g = 255.0;
-        qreal b = 255.0;
-        qreal angle = 0.0;
-        qreal center = 0.0;
-        qreal sortId = 0.0;
-        qreal blend = 0.0;
-        qreal filter = 0.0;
-        qreal op1 = 0.0;
-        qreal op2 = 0.0;
-        qreal op3 = 0.0;
-        qreal op4 = 0.0;
-    };
+    using State = Lr2TimelineStateValue;
 
     static bool sameReal(qreal lhs, qreal rhs);
-    static qreal readField(const QVariantMap& map, const QString& name, qreal fallback);
-    static State extractState(const QVariant& variant);
+    static State hiddenState();
+    static State visibleState(const State& state);
     static State interpolate(const State& from, const State& to, qreal progress);
 
     void updateState();
@@ -113,7 +89,6 @@ private:
     QMetaObject::Connection m_coordinatesConnection;
     QPointer<Lr2BarBaseStateResolver> m_baseStateResolver;
     QMetaObject::Connection m_baseStateResolverConnection;
-    QVector<State> m_baseStates;
     State m_state;
     int m_row = -1;
     bool m_enabled = true;

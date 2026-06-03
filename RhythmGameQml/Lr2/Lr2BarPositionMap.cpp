@@ -1,8 +1,6 @@
 #include "Lr2BarPositionMap.h"
 
 #include "Lr2SelectVisualState.h"
-
-#include <QVariantMap>
 #include <QtGlobal>
 
 #include <limits>
@@ -16,17 +14,6 @@ int boundedIntSize(qsizetype size) {
 } // namespace
 
 Lr2BarPositionMap::Lr2BarPositionMap(QObject* parent) : QObject(parent) {}
-
-QVariantList Lr2BarPositionMap::baseStates() const {
-    return {};
-}
-
-void Lr2BarPositionMap::setBaseStates(const QVariantList& states) {
-    rebuildBaseCoordinates(states);
-    rebuildDrawCoordinates();
-    emit baseStatesChanged();
-    notifyCoordinatesChanged();
-}
 
 Lr2BarBaseStateResolver* Lr2BarPositionMap::baseStateResolver() const {
     return m_baseStateResolver;
@@ -50,7 +37,6 @@ void Lr2BarPositionMap::setBaseStateResolver(Lr2BarBaseStateResolver* resolver) 
             [this]() {
                 rebuildBaseCoordinatesFromResolver();
                 rebuildDrawCoordinates();
-                emit baseStatesChanged();
                 notifyCoordinatesChanged();
             });
         rebuildBaseCoordinatesFromResolver();
@@ -63,7 +49,6 @@ void Lr2BarPositionMap::setBaseStateResolver(Lr2BarBaseStateResolver* resolver) 
     rebuildDrawCoordinates();
 
     emit baseStateResolverChanged();
-    emit baseStatesChanged();
     notifyCoordinatesChanged();
 }
 
@@ -168,22 +153,6 @@ int Lr2BarPositionMap::rowForSlot(int slot) const {
     return ((slot - m_slotOffset) % count + count) % count;
 }
 
-void Lr2BarPositionMap::rebuildBaseCoordinates(const QVariantList& states) {
-    const auto size = states.size();
-    m_baseXs.resize(size);
-    m_baseYs.resize(size);
-    m_validRows.resize(size);
-
-    for (qsizetype row = 0; row < size; ++row) {
-        qreal x = 0.0;
-        qreal y = 0.0;
-        const bool valid = extractCoordinates(states[row], x, y);
-        m_baseXs[row] = x;
-        m_baseYs[row] = y;
-        m_validRows[row] = valid;
-    }
-}
-
 void Lr2BarPositionMap::rebuildDrawCoordinates() {
     const auto size = m_baseXs.size();
     m_drawXs.resize(size);
@@ -224,19 +193,4 @@ void Lr2BarPositionMap::rebuildBaseCoordinatesFromResolver() {
         m_baseXs[row] = m_baseStateResolver->stateXAt(row);
         m_baseYs[row] = m_baseStateResolver->stateYAt(row);
     }
-}
-
-bool Lr2BarPositionMap::extractCoordinates(const QVariant& state, qreal& x, qreal& y) {
-    if (!state.isValid() || state.isNull()) {
-        return false;
-    }
-
-    if (state.canConvert<QVariantMap>()) {
-        const QVariantMap map = state.toMap();
-        x = map.value(QStringLiteral("x")).toDouble();
-        y = map.value(QStringLiteral("y")).toDouble();
-        return map.contains(QStringLiteral("x")) || map.contains(QStringLiteral("y"));
-    }
-
-    return false;
 }

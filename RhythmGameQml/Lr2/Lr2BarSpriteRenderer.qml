@@ -56,6 +56,7 @@ Item {
     readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
     readonly property bool overlayHasStaticTimelineState: overlayTimelineTracker.canUseStaticState
     readonly property var overlayStaticTimelineState: overlayHasStaticTimelineState
+        && overlayTimelineTracker.staticState.valid
         ? overlayTimelineTracker.staticState
         : null
     readonly property var overlayTimelineTimers: overlayTimelineTracker.usesDynamicTimer ? timers : null
@@ -70,7 +71,7 @@ Item {
     }
     readonly property var overlayTimelineState: hasOverlayTimelineState
         ? (overlayStaticTimelineState
-           || overlayTimelineTracker.state)
+           || (overlayTimelineTracker.hasState ? overlayTimelineTracker.state : null))
         : null
 
     readonly property var bodyRows: {
@@ -138,7 +139,11 @@ Item {
 
     function positionlessStateAt(row: var) : var {
         root.barBaseStateRevision;
-        return barBaseStateResolver ? barBaseStateResolver.positionlessStateAt(row) : null;
+        if (!barBaseStateResolver) {
+            return null;
+        }
+        let state = barBaseStateResolver.positionlessStateAt(row);
+        return state && state.valid ? state : null;
     }
 
     function baseStateXAt(row: var) : var {
@@ -153,9 +158,11 @@ Item {
 
     function baseStateAt(row: var) : var {
         root.barBaseStateRevision;
-        return barBaseStateResolver && row >= 0 && row < barBaseStateResolver.stateCount()
-            ? barBaseStateResolver.stateAt(row)
-            : null;
+        if (!barBaseStateResolver || row < 0 || row >= barBaseStateResolver.stateCount()) {
+            return null;
+        }
+        let state = barBaseStateResolver.stateAt(row);
+        return state && state.valid ? state : null;
     }
 
     function slotForDisplayRow(row: var) : var {

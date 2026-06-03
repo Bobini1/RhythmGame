@@ -1,5 +1,6 @@
 set(LR2_SKIN_SOURCES
         Lr2/Lr2TimelineState.h
+        Lr2/Lr2TimelineStateValue.h
         Lr2/Lr2TimelineState.cpp
         Lr2/Lr2AnimationFrameState.h
         Lr2/Lr2AnimationFrameState.cpp
@@ -47,6 +48,7 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2SkinElementTimerState.cpp
         Lr2/Lr2SkinElementActiveOptionsState.h
         Lr2/Lr2SkinElementActiveOptionsState.cpp
+        Lr2/Lr2SkinElementDescriptorValue.h
         Lr2/Lr2SkinRuntimeTypes.h
         Lr2/Lr2SkinRuntimeTypes.cpp
         Lr2/Lr2SkinRuntime.h

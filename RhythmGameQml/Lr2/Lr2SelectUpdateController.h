@@ -40,9 +40,6 @@ class Lr2SelectUpdateController : public QObject {
     Q_PROPERTY(QVariant selectRuntimeGeneratedActiveOptions READ selectRuntimeGeneratedActiveOptions WRITE setSelectRuntimeGeneratedActiveOptions NOTIFY selectRuntimeGeneratedActiveOptionsChanged)
     Q_PROPERTY(QVariant screenRuntimeActiveOptions READ screenRuntimeActiveOptions WRITE setScreenRuntimeActiveOptions NOTIFY screenRuntimeActiveOptionsChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
-    Q_PROPERTY(int selectedKeymode READ selectedKeymode WRITE setSelectedKeymode NOTIFY selectedKeymodeChanged)
-    Q_PROPERTY(bool spToDpActive READ spToDpActive WRITE setSpToDpActive NOTIFY spToDpActiveChanged)
-    Q_PROPERTY(bool battleModeActive READ battleModeActive WRITE setBattleModeActive NOTIFY battleModeActiveChanged)
     Q_PROPERTY(int selectRevision READ selectRevision NOTIFY selectRevisionChanged)
     Q_PROPERTY(int selectDetailRevision READ selectDetailRevision NOTIFY selectDetailRevisionChanged)
 
@@ -142,18 +139,10 @@ public:
     int selectRevision() const;
     int selectDetailRevision() const;
 
-    int selectedKeymode() const;
-    void setSelectedKeymode(int keymode);
-
-    bool spToDpActive() const;
-    void setSpToDpActive(bool active);
-
-    bool battleModeActive() const;
-    void setBattleModeActive(bool active);
-
     Q_INVOKABLE bool refreshBaseActiveOptions();
     Q_INVOKABLE bool refreshSelectRuntimeActiveOptions();
     Q_INVOKABLE bool refreshGameplayRuntimeActiveOptions();
+    Q_INVOKABLE void replaceSelectRuntimeGeneratedActiveOptions(const QVariant& options);
 
 signals:
     void skinModelChanged();
@@ -186,9 +175,6 @@ signals:
     void selectRuntimeGeneratedActiveOptionsChanged();
     void screenRuntimeActiveOptionsChanged();
     void gameplayScreenChanged();
-    void selectedKeymodeChanged();
-    void spToDpActiveChanged();
-    void battleModeActiveChanged();
     void selectRevisionChanged();
     void selectDetailRevisionChanged();
     void rankingStatsApplyRequested();
@@ -204,8 +190,6 @@ private:
     QVariantList selectStaticOptions(bool includeRankingOption, bool includePanelOption) const;
     QObject* skinModelObject() const;
     bool skinUsesOption(int option) const;
-    int selectModeKeymode(int keymode) const;
-    void appendSelectKeymodeOptions(QVariantList& options) const;
     void appendUniqueOption(QVariantList& options, int option) const;
     void appendUniqueSkinOption(QVariantList& options, int option) const;
     void appendDefaultOptionIfMissing(QVariantList& options, const QList<int>& choices, int fallback) const;
@@ -245,9 +229,6 @@ private:
     QVariant m_selectRuntimeGeneratedActiveOptions;
     QVariant m_screenRuntimeActiveOptions;
     bool m_gameplayScreen = false;
-    int m_selectedKeymode = 0;
-    bool m_spToDpActive = false;
-    bool m_battleModeActive = false;
     int m_selectRevision = 0;
     int m_selectDetailRevision = 0;
 };

@@ -146,14 +146,15 @@ QtObject {
         }
 
         const staticState = root.skinRuntime.staticStateForElement(element.runtimeIndex);
-        if (staticState) {
+        if (staticState && staticState.valid) {
             return staticState;
         }
 
         const descriptor = root.skinRuntime.descriptor(element.runtimeIndex);
-        return root.skinRuntime.stateForElement(
+        const state = root.skinRuntime.stateForElement(
             element.runtimeIndex,
             descriptor.usesLiveDstClock ? root.host.selectSourceSkinTime : root.host.renderSkinTime);
+        return state && state.valid ? state : null;
     }
 
     function hoverStateAt(element: var, mx: var, my: var) : var {
@@ -191,4 +192,3 @@ QtObject {
         root.visibleByIndex = visible;
     }
 }
-

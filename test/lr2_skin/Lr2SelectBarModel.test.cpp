@@ -1,12 +1,14 @@
 #include "Lr2SelectBarModel.h"
 #include "Lr2SelectBarCell.h"
 #include "Lr2ChartDataSnapshot.h"
+#include "gameplay_logic/ChartData.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
+#include <memory>
 #include <utility>
 
 namespace {
@@ -60,6 +62,53 @@ QList<int> sourceRows(const Lr2SelectBarModel& model) {
 		rows.append(model.sourceRowAt(row));
 	}
 	return rows;
+}
+
+std::unique_ptr<gameplay_logic::ChartData> chartWithHistogram(QObject* parent = nullptr) {
+	return std::make_unique<gameplay_logic::ChartData>(
+		QStringLiteral("title"),
+		QStringLiteral("artist"),
+		QString {},
+		QString {},
+		QString {},
+		QString {},
+		QString {},
+		QString {},
+		75.0,
+		160.0,
+		10,
+		3,
+		false,
+		QList<qint64> {},
+		3,
+		2,
+		1,
+		4,
+		5,
+		1000,
+		120.0,
+		120.0,
+		120.0,
+		120.0,
+		120.0,
+		0.0,
+		0.0,
+		0.0,
+		QStringLiteral("path"),
+		0,
+		QStringLiteral("sha"),
+		QStringLiteral("abc"),
+		gameplay_logic::ChartData::Keymode::K7,
+		QList<QList<qint64>> {
+			QList<qint64> {1, 2, 3},
+			QList<qint64> {4},
+			QList<qint64> {},
+			QList<qint64> {5, 6},
+			QList<qint64> {7},
+		},
+		QList<gameplay_logic::BpmChange> {},
+		0,
+		parent);
 }
 
 } // namespace
@@ -159,28 +208,12 @@ TEST_CASE("LR2 select item model applies async folder summaries by key",
 	REQUIRE(updatedCenterCell->graphValueForType(0, 2) == 5.0);
 }
 
-TEST_CASE("LR2 chart data snapshot unwraps chart wrappers for note graph data",
+TEST_CASE("LR2 chart data snapshot reads typed chart data for note graph data",
 		  "[lr2][runtime][select]")
 {
 	Lr2ChartDataSnapshot snapshot;
-	snapshot.setChart(QVariantMap {
-		{QStringLiteral("chartData"), QVariantMap {
-			{QStringLiteral("md5"), QStringLiteral("abc")},
-			{QStringLiteral("length"), 1000},
-			{QStringLiteral("normalNoteCount"), 3},
-			{QStringLiteral("scratchCount"), 2},
-			{QStringLiteral("lnCount"), 1},
-			{QStringLiteral("bssCount"), 4},
-			{QStringLiteral("mineCount"), 5},
-			{QStringLiteral("histogramData"), QVariantList {
-				QVariantList {1, 2, 3},
-				QVariantList {4},
-				QVariantList {},
-				QVariantList {5, 6},
-				QVariantList {7},
-			}},
-		}},
-	});
+	auto chart = chartWithHistogram(&snapshot);
+	snapshot.setChart(chart.get());
 
 	REQUIRE(snapshot.hasHistogram());
 	REQUIRE(snapshot.md5() == QStringLiteral("abc"));

@@ -148,9 +148,10 @@ int Lr2SkinRuntime::activeOptionsRevision() const {
     return m_activeOptionsRevision;
 }
 
-QVariantMap Lr2SkinRuntime::descriptor(int index) const {
+Lr2SkinElementDescriptorValue Lr2SkinRuntime::descriptor(int index) const {
     const ElementDescriptor* descriptor = descriptorAt(index);
-    return descriptor ? descriptorMap(*descriptor) : QVariantMap {};
+    return descriptor ? static_cast<const Lr2SkinElementDescriptorValue&>(*descriptor)
+                      : Lr2SkinElementDescriptorValue {};
 }
 
 QVariantList Lr2SkinRuntime::elementActiveOptionsForElement(int index) const {
@@ -164,9 +165,9 @@ Lr2SkinElementActiveOptionsState* Lr2SkinRuntime::elementActiveOptionsState(int 
         : nullptr;
 }
 
-QVariant Lr2SkinRuntime::staticStateForElement(int index) const {
+Lr2TimelineStateValue Lr2SkinRuntime::staticStateForElement(int index) const {
     const ElementDescriptor* descriptor = descriptorAt(index);
-    if (!descriptor || descriptor->staticState.isNull() || descriptor->dsts.isEmpty()) {
+    if (!descriptor || !descriptor->staticState.valid || descriptor->dsts.isEmpty()) {
         return {};
     }
     if (descriptor->dstAnalysis.usesActiveOptions
@@ -176,19 +177,19 @@ QVariant Lr2SkinRuntime::staticStateForElement(int index) const {
     return descriptor->staticState;
 }
 
-QVariant Lr2SkinRuntime::stateForElement(int index, int skinTime) const {
+Lr2TimelineStateValue Lr2SkinRuntime::stateForElement(int index, int skinTime) const {
     const ElementDescriptor* descriptor = descriptorAt(index);
     if (!descriptor) {
         return {};
     }
-    return rt::stateToVariant(rt::currentState(
+    return rt::currentState(
         descriptor->dsts,
         skinTime,
         descriptor->timers.dstTimerFire,
-        m_activeOptionSet));
+        m_activeOptionSet);
 }
 
-QVariant Lr2SkinRuntime::sliderTrackStateForElement(int index, int skinTime) const {
+Lr2TimelineStateValue Lr2SkinRuntime::sliderTrackStateForElement(int index, int skinTime) const {
     const ElementDescriptor* descriptor = descriptorAt(index);
     if (!descriptor) {
         return {};
@@ -201,11 +202,11 @@ QVariant Lr2SkinRuntime::sliderTrackStateForElement(int index, int skinTime) con
     return rt::sliderTrackState(descriptor->source, base);
 }
 
-QVariant Lr2SkinRuntime::noteDstState(int index, int skinTime) const {
+Lr2TimelineStateValue Lr2SkinRuntime::noteDstState(int index, int skinTime) const {
     return stateForLane(m_noteLaneDescriptors, index, skinTime);
 }
 
-QVariant Lr2SkinRuntime::lineDstState(int index, int skinTime) const {
+Lr2TimelineStateValue Lr2SkinRuntime::lineDstState(int index, int skinTime) const {
     return stateForLane(m_lineLaneDescriptors, index, skinTime);
 }
 
@@ -512,54 +513,13 @@ QVariantList Lr2SkinRuntime::modelListProperty(const char* name) const {
     return m_skinModel ? m_skinModel->property(name).toList() : QVariantList {};
 }
 
-QVariantMap Lr2SkinRuntime::descriptorMap(const ElementDescriptor& descriptor) const {
-    QVariantMap value;
-    value.insert(QStringLiteral("index"), descriptor.index);
-    value.insert(QStringLiteral("type"), descriptor.type);
-    value.insert(QStringLiteral("z"), descriptor.z);
-    value.insert(QStringLiteral("usesActiveOptions"), descriptor.dstAnalysis.usesActiveOptions);
-    value.insert(QStringLiteral("usesSkinTime"), descriptor.usesSkinTime);
-    value.insert(QStringLiteral("usesElementSkinTime"), descriptor.usesElementSkinTime);
-    value.insert(QStringLiteral("useDirectElementSkinClock"), descriptor.useDirectElementSkinClock);
-    value.insert(QStringLiteral("needsManualElementSkinTime"), descriptor.needsManualElementSkinTime);
-    value.insert(QStringLiteral("elementSkinClockMode"), descriptor.elementSkinClockMode);
-    value.insert(QStringLiteral("sourceHasFrameAnimation"), descriptor.sourceHasFrameAnimation);
-    value.insert(QStringLiteral("usesSelectHeldButtonTimer"), descriptor.usesSelectHeldButtonTimer);
-    value.insert(QStringLiteral("usesLiveDstClock"), descriptor.usesLiveDstClock);
-    value.insert(QStringLiteral("usesLiveSourceClock"), descriptor.usesLiveSourceClock);
-    value.insert(QStringLiteral("usesLiveSelectClock"), descriptor.usesLiveSelectClock);
-    value.insert(QStringLiteral("usesDynamicDstTimer"), descriptor.usesDynamicDstTimer);
-    value.insert(QStringLiteral("usesDynamicSrcTimer"), descriptor.usesDynamicSrcTimer);
-    value.insert(QStringLiteral("spriteUsesDirectSkinClock"), descriptor.spriteUsesDirectSkinClock);
-    value.insert(QStringLiteral("spriteSkinClockMode"), descriptor.spriteSkinClockMode);
-    value.insert(QStringLiteral("spriteSourceSkinClockMode"), descriptor.spriteSourceSkinClockMode);
-    value.insert(QStringLiteral("spriteStateOverrideKind"), descriptor.spriteStateOverrideKind);
-    value.insert(QStringLiteral("usesSpriteStateOverride"), descriptor.usesSpriteStateOverride);
-    value.insert(QStringLiteral("usesSpriteForceHidden"), descriptor.usesSpriteForceHidden);
-    value.insert(QStringLiteral("usesButtonFrameOverride"), descriptor.usesButtonFrameOverride);
-    value.insert(QStringLiteral("sourceMouseCursor"), descriptor.sourceMouseCursor);
-    value.insert(QStringLiteral("dstOffsetsEnabled"), descriptor.dstOffsetsEnabled);
-    value.insert(QStringLiteral("dstOffsetSide"), descriptor.dstOffsetSide);
-    value.insert(QStringLiteral("scratchRotationSide"), descriptor.scratchRotationSide);
-    value.insert(QStringLiteral("dstTimer"), descriptor.dstTimer);
-    value.insert(QStringLiteral("srcTimer"), descriptor.srcTimer);
-    value.insert(QStringLiteral("selectScrollSlider"), descriptor.selectScrollSlider);
-    value.insert(QStringLiteral("genericSlider"), descriptor.genericSlider);
-    value.insert(QStringLiteral("gameplayProgressSlider"), descriptor.gameplayProgressSlider);
-    value.insert(QStringLiteral("gameplayLaneCoverSlider"), descriptor.gameplayLaneCoverSlider);
-    value.insert(QStringLiteral("numberRefSlider"), descriptor.numberRefSlider);
-    value.insert(QStringLiteral("buttonId"), descriptor.buttonId);
-    value.insert(QStringLiteral("numberUsesFocusedSelectState"), descriptor.numberUsesFocusedSelectState);
-    return value;
-}
-
 Lr2SkinRuntime::LaneDescriptor Lr2SkinRuntime::buildLaneDescriptor(const QVariant& dsts) const {
     LaneDescriptor descriptor;
     descriptor.dsts = rt::readDsts(dsts);
     descriptor.analysis = rt::analyzeDsts(descriptor.dsts);
     descriptor.staticState = descriptor.analysis.canUseStaticState && !descriptor.dsts.isEmpty()
-        ? rt::stateToVariant(rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front()))
-        : QVariant {};
+        ? rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front())
+        : Lr2TimelineStateValue {};
     return descriptor;
 }
 
@@ -570,11 +530,13 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     const QVariantList& dstValues,
     const QVariantList& noteDsts) const {
     ElementDescriptor descriptor;
+    descriptor.valid = true;
     descriptor.index = index;
     descriptor.type = type;
     rt::readSource(sourceValue, descriptor.source);
     descriptor.dsts = rt::readDsts(dstValues);
     descriptor.dstAnalysis = rt::analyzeDsts(descriptor.dsts);
+    descriptor.usesActiveOptions = descriptor.dstAnalysis.usesActiveOptions;
 
     const bool selectScreen = m_screenKey == QStringLiteral("select");
     const bool sourceCycles = rt::sourceCyclesContinuously(descriptor.source);
@@ -587,8 +549,8 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
         ? rt::activeOptionsForDsts(descriptor.dsts.front(), m_runtimeActiveOptions)
         : QVariantList {};
     descriptor.staticState = descriptor.dstAnalysis.canUseStaticState && !descriptor.dsts.isEmpty()
-        ? rt::stateToVariant(rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front()))
-        : QVariant {};
+        ? rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front())
+        : Lr2TimelineStateValue {};
     descriptor.sourceHasFrameAnimation = sourceCycles;
     descriptor.usesLiveDstClock = selectScreen && (selectPanelTimer || descriptor.dstAnalysis.loopsContinuously);
     descriptor.usesLiveSourceClock = selectScreen && sourceCycles;
@@ -707,16 +669,15 @@ Lr2SkinRuntime::TimerSnapshot Lr2SkinRuntime::timerSnapshotFor(
     return snapshot;
 }
 
-QVariant Lr2SkinRuntime::stateForLane(const QVector<LaneDescriptor>& lanes,
-                                      int index,
-                                      int skinTime) const {
+Lr2TimelineStateValue Lr2SkinRuntime::stateForLane(const QVector<LaneDescriptor>& lanes,
+                                                   int index,
+                                                   int skinTime) const {
     if (index < 0 || index >= lanes.size()) {
         return {};
     }
 
     const LaneDescriptor& lane = lanes.at(index);
-    if (lane.staticState.isValid()
-            && !lane.staticState.isNull()
+    if (lane.staticState.valid
             && (!lane.analysis.usesActiveOptions || rt::allOpsMatch(lane.dsts.front(), m_activeOptionSet))) {
         return lane.staticState;
     }
@@ -727,11 +688,11 @@ QVariant Lr2SkinRuntime::stateForLane(const QVector<LaneDescriptor>& lanes,
         timerFire = m_timerState->skinTimerFireTime(lane.analysis.firstTimer, false);
     }
 
-    return rt::stateToVariant(rt::currentState(
+    return rt::currentState(
         lane.dsts,
         skinTime,
         timerFire,
-        m_activeOptionSet));
+        m_activeOptionSet);
 }
 
 bool Lr2SkinRuntime::laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes, int index) const {
@@ -740,8 +701,7 @@ bool Lr2SkinRuntime::laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes,
     }
 
     const LaneDescriptor& lane = lanes.at(index);
-    return !(lane.staticState.isValid()
-        && !lane.staticState.isNull()
+    return !(lane.staticState.valid
         && (!lane.analysis.usesActiveOptions || rt::allOpsMatch(lane.dsts.front(), m_activeOptionSet)));
 }
 

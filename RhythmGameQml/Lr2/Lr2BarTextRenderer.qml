@@ -53,7 +53,7 @@ Item {
         ? Math.max(0, barRows.length)
         : 0
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -67,7 +67,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var textTimelineState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
 
     function visibleFor(cellValid: var, cellTitleType: var) : var {
         return cellValid && !!srcData && !!selectContext
@@ -76,9 +76,11 @@ Item {
 
     function baseState(row: var) : var {
         root.barBaseStateRevision;
-        return barBaseStateResolver && row >= 0 && row < barBaseStateResolver.stateCount()
-            ? barBaseStateResolver.stateAt(row)
-            : null;
+        if (!barBaseStateResolver || row < 0 || row >= barBaseStateResolver.stateCount()) {
+            return null;
+        }
+        let state = barBaseStateResolver.stateAt(row);
+        return state && state.valid ? state : null;
     }
 
     function visibilityState(row: var) : var {

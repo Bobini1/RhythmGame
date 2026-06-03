@@ -1,45 +1,21 @@
 #include "Lr2ChartDataSnapshot.h"
 
 #include <QList>
-#include <QMetaProperty>
-#include <QObject>
 #include <QStringList>
 #include <algorithm>
 
 namespace {
 
-QVariant gadgetProperty(const QVariant& value, const char* name) {
-    const QMetaObject* metaObject = value.metaType().metaObject();
-    if (!metaObject) {
-        return {};
-    }
-    const int propertyIndex = metaObject->indexOfProperty(name);
-    return propertyIndex < 0
-        ? QVariant {}
-        : metaObject->property(propertyIndex).readOnGadget(value.constData());
-}
-
-QVariant propertyValue(const QVariant& value, const char* name) {
-    if (!value.isValid() || value.isNull()) {
-        return {};
-    }
-    if (value.canConvert<QVariantMap>()) {
-        const QVariantMap map = value.toMap();
-        const auto it = map.constFind(QString::fromLatin1(name));
-        return it == map.constEnd() ? QVariant {} : *it;
-    }
-    if (value.canConvert<QObject*>()) {
-        if (QObject* object = value.value<QObject*>()) {
-            return object->property(name);
-        }
-    }
-    return gadgetProperty(value, name);
-}
-
-QVariant unwrapChart(const QVariant& value) {
-    const QVariant wrapped = propertyValue(value, "chartData");
-    return wrapped.isValid() && !wrapped.isNull() ? wrapped : value;
-}
+struct ChartSnapshotData {
+    QString md5;
+    qint64 length = 0;
+    int normalNoteCount = 0;
+    int scratchCount = 0;
+    int lnCount = 0;
+    int bssCount = 0;
+    int mineCount = 0;
+    QVariantList histogramData;
+};
 
 QVariantList numberListFromSeries(const QList<qint64>& series) {
     QVariantList result;
@@ -59,45 +35,9 @@ QVariantList histogramListFromSeries(const QList<QList<qint64>>& histogram) {
     return result;
 }
 
-QVariantList listFromValue(const QVariant& value) {
-    if (!value.isValid() || value.isNull()) {
-        return {};
-    }
-    if (value.canConvert<QVariantList>()) {
-        return value.toList();
-    }
-    if (value.canConvert<QList<QList<qint64>>>()) {
-        return histogramListFromSeries(value.value<QList<QList<qint64>>>());
-    }
-    if (value.canConvert<QList<qint64>>()) {
-        return numberListFromSeries(value.value<QList<qint64>>());
-    }
-    return {};
-}
-
-QVariantList numberSeries(const QVariant& value) {
-    const QVariantList source = listFromValue(value);
-    QVariantList result;
-    result.reserve(source.size());
-    for (const QVariant& entry : source) {
-        result.append(std::max<qint64>(0, entry.toLongLong()));
-    }
-    return result;
-}
-
-QVariantList histogramFromValue(const QVariant& value) {
-    const QVariantList source = listFromValue(value);
-    QVariantList result;
-    result.reserve(source.size());
-    for (const QVariant& series : source) {
-        result.append(QVariant::fromValue(numberSeries(series)));
-    }
-    return result;
-}
-
 bool histogramHasData(const QVariantList& histogram) {
     for (const QVariant& seriesValue : histogram) {
-        if (!listFromValue(seriesValue).isEmpty()) {
+        if (!seriesValue.toList().isEmpty()) {
             return true;
         }
     }
@@ -108,21 +48,30 @@ QString histogramRevision(const QVariantList& histogram) {
     QStringList parts;
     for (int i = 0; i < 6; ++i) {
         const QVariant series = i < histogram.size() ? histogram.at(i) : QVariant {};
-        parts.append(QString::number(listFromValue(series).size()));
+        parts.append(QString::number(series.toList().size()));
     }
     return parts.join(QLatin1Char(':'));
 }
 
-int intProperty(const QVariant& value, const char* name) {
-    bool ok = false;
-    const int result = propertyValue(value, name).toInt(&ok);
-    return ok ? result : 0;
+gameplay_logic::ChartData* chartDataObject(QObject* object) {
+    return qobject_cast<gameplay_logic::ChartData*>(object);
 }
 
-qint64 int64Property(const QVariant& value, const char* name) {
-    bool ok = false;
-    const qint64 result = propertyValue(value, name).toLongLong(&ok);
-    return ok ? result : 0;
+ChartSnapshotData chartSnapshotData(gameplay_logic::ChartData* chartData) {
+    if (!chartData) {
+        return {};
+    }
+
+    return {
+        .md5 = chartData->getMd5(),
+        .length = chartData->getLength(),
+        .normalNoteCount = chartData->getNormalNoteCount(),
+        .scratchCount = chartData->getScratchCount(),
+        .lnCount = chartData->getLnCount(),
+        .bssCount = chartData->getBssCount(),
+        .mineCount = chartData->getMineCount(),
+        .histogramData = histogramListFromSeries(chartData->getHistogramData()),
+    };
 }
 
 } // namespace
@@ -130,15 +79,21 @@ qint64 int64Property(const QVariant& value, const char* name) {
 Lr2ChartDataSnapshot::Lr2ChartDataSnapshot(QObject* parent)
     : QObject(parent) {}
 
-QVariant Lr2ChartDataSnapshot::chart() const { return m_chart; }
+QVariant Lr2ChartDataSnapshot::chart() const {
+    return QVariant::fromValue(static_cast<QObject*>(m_chart.data()));
+}
 
-void Lr2ChartDataSnapshot::setChart(const QVariant& value) {
+void Lr2ChartDataSnapshot::setChart(QObject* value) {
     if (m_chart == value) {
         return;
     }
     m_chart = value;
     refresh();
     emit chartChanged();
+}
+
+void Lr2ChartDataSnapshot::setChart(const QVariant& value) {
+    setChart(value.value<QObject*>());
 }
 
 bool Lr2ChartDataSnapshot::hasHistogram() const { return m_hasHistogram; }
@@ -153,15 +108,15 @@ QVariantList Lr2ChartDataSnapshot::histogramData() const { return m_histogramDat
 QString Lr2ChartDataSnapshot::revision() const { return m_revision; }
 
 void Lr2ChartDataSnapshot::refresh() {
-    const QVariant chartData = unwrapChart(m_chart);
-    const QString nextMd5 = propertyValue(chartData, "md5").toString();
-    const qint64 nextLength = int64Property(chartData, "length");
-    const int nextNormal = intProperty(chartData, "normalNoteCount");
-    const int nextScratch = intProperty(chartData, "scratchCount");
-    const int nextLn = intProperty(chartData, "lnCount");
-    const int nextBss = intProperty(chartData, "bssCount");
-    const int nextMine = intProperty(chartData, "mineCount");
-    const QVariantList nextHistogram = histogramFromValue(propertyValue(chartData, "histogramData"));
+    const ChartSnapshotData next = chartSnapshotData(chartDataObject(m_chart.data()));
+    const QString& nextMd5 = next.md5;
+    const qint64 nextLength = next.length;
+    const int nextNormal = next.normalNoteCount;
+    const int nextScratch = next.scratchCount;
+    const int nextLn = next.lnCount;
+    const int nextBss = next.bssCount;
+    const int nextMine = next.mineCount;
+    const QVariantList& nextHistogram = next.histogramData;
     const bool nextHasHistogram = histogramHasData(nextHistogram);
     const QString nextRevision = nextHasHistogram
         ? QStringList {

@@ -49,7 +49,7 @@ Item {
     readonly property bool sourceAnimates: srcData && animationGroupCount > 1 && (srcData.cycle || 0) > 0
     readonly property var graphDsts: srcData ? dsts : []
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -63,7 +63,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var graphTimelineState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
 
     readonly property bool hasGraphState: !!graphTimelineState
     readonly property real stateX: hasGraphState ? (graphTimelineState.x || 0) : 0

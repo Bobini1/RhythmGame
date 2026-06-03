@@ -495,30 +495,25 @@ QtObject {
         }
     }
 
-    function appendDifficultyBarOptions(options: var, difficultyState: var, selectedChart: var) : var {
+    function appendDifficultyBarOptions(options: var, difficultyModel: var, selectedChart: var) : var {
         if (!host.selectUsesDifficultyBarOptions()) {
             return;
         }
-        let counts = difficultyState && difficultyState.counts ? difficultyState.counts : [];
-        let levels = difficultyState && difficultyState.levels ? difficultyState.levels : [];
-        let lamps = difficultyState && difficultyState.lamps ? difficultyState.lamps : [];
+        let includeLamps = host.selectUsesDifficultyLampOptions();
         let keymode = selectedChart ? root.normalizedKeymode(selectedChart.keymode) : 0;
-        let flashThreshold = keymode === 5 || keymode === 10 ? 9 : 12;
-        for (let diff = 1; diff <= 5; ++diff) {
-            let diffCount = counts[diff] || 0;
-            if (diffCount > 0) {
-                root.addOption(options, 504 + diff);
-                root.addOption(options, (levels[diff] || 0) > flashThreshold ? 74 + diff : 69 + diff);
-            } else {
-                root.addOption(options, 499 + diff);
+        if (difficultyModel) {
+            let optionIds = difficultyModel.optionIdsForKeymode(keymode, includeLamps);
+            for (let optionId of optionIds) {
+                root.addOption(options, optionId);
             }
+            return;
+        }
 
-            if (diffCount === 1) {
-                root.addOption(options, 509 + diff);
-            } else if (diffCount > 1) {
-                root.addOption(options, 514 + diff);
+        for (let diff = 1; diff <= 5; ++diff) {
+            root.addOption(options, 499 + diff);
+            if (includeLamps) {
+                root.addOption(options, 510 + diff * 10);
             }
-            root.addOption(options, 510 + diff * 10 + (lamps[diff] || 0));
         }
     }
 
@@ -751,8 +746,8 @@ QtObject {
             && state
             && (selectedItem === state.item || selectedItem === state.chartData)
             && chartData === state.chartData;
-        let summary = canUseState ? selectContext.skinCompatibleScoreSummary(state.summary) : null;
-        let difficultyState = canUseState ? state.difficultyState : null;
+        let summary = canUseState ? state.summary : null;
+        let difficultyModel = canUseState ? state.difficultyModel : null;
 
         root.appendSelectItemTypeOptions(options, selectedItem);
         root.appendSelectedChartModeOptions(options, chartData);
@@ -761,18 +756,14 @@ QtObject {
         root.appendRankingStatusOptions(options);
 
         if (chartData) {
-            root.appendDifficultyBarOptions(options, difficultyState, chartData);
+            root.appendDifficultyBarOptions(options, difficultyModel, chartData);
         }
 
         root.appendChartOptions(options, chartData, selectedItem);
         if (host.selectUsesScoreOptionIds()) {
-            let scoreOptionIds = canUseState && host.lr2SkinUsesBeatorajaSemantics
-                ? state.scoreOptionIds
-                : null;
+            let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
             if (!scoreOptionIds) {
-                scoreOptionIds = summary
-                    ? selectContext.scoreOptionIdsFromSummary(summary)
-                    : selectContext.scoreOptionIds(selectedItem);
+                scoreOptionIds = selectContext.scoreOptionIds(selectedItem);
             }
             for (let optionId of scoreOptionIds) {
                 root.addOption(options, optionId);
@@ -871,15 +862,24 @@ QtObject {
         return result;
     }
 
-    function buildSelectRuntimeActiveOptions(commonOptions: var) : var {
+    function buildSelectGeneratedRuntimeActiveOptions() : var {
         let state = selectContext.selectedState();
-        let item = selectContext.focusedItem;
-        let chartData = selectContext.chartDataForItem(item);
+        let stateCurrent = state
+            && state.scoreRevision === selectContext.scoreRevision
+            && state.listRevision === selectContext.listRevision;
+        let item = stateCurrent ? state.item : selectContext.focusedItem;
+        let chartData = stateCurrent ? state.chartData : selectContext.chartDataForItem(item);
         if (!chartData && state) {
             chartData = state.chartData;
         }
-        let result = root.copyActiveOptions(commonOptions);
+        let result = root.copyActiveOptions([]);
         root.appendCurrentSelectOptions(result, item, chartData, state);
+        return result;
+    }
+
+    function buildSelectRuntimeActiveOptions(commonOptions: var) : var {
+        let result = root.copyActiveOptions(commonOptions);
+        root.appendCurrentSelectOptions(result);
         return result;
     }
 

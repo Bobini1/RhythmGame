@@ -1,22 +1,25 @@
 #include "Lr2BarTextItem.h"
 
 #include "Lr2SelectBarCell.h"
+#include "Lr2SkinRuntimeTypes.h"
+#include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 #include "resource_managers/Lr2FontImageProvider.h"
 
 #include <QFont>
 #include <QFontMetricsF>
-#include <QMetaProperty>
 #include <QPainter>
 #include <QQuickWindow>
 #include <QSGNode>
 #include <QSGOpacityNode>
 #include <QSGSimpleTextureNode>
 #include <QSGTexture>
-#include <QVariantMap>
 #include <algorithm>
 #include <cmath>
 
 namespace {
+
+using gameplay_logic::lr2_skin::Lr2Dst;
+namespace rt = lr2skin::runtime;
 
 constexpr qreal maxLayerSize = 16384.0;
 
@@ -34,110 +37,82 @@ struct TextState {
     int filter = 0;
 };
 
-qreal toReal(const QVariant& value, qreal fallback = 0.0) {
-    if (!value.isValid() || value.isNull()) {
-        return fallback;
-    }
-    bool ok = false;
-    const qreal result = value.toReal(&ok);
-    return ok ? result : fallback;
-}
-
-int toInt(const QVariant& value, int fallback = 0) {
-    if (!value.isValid() || value.isNull()) {
-        return fallback;
-    }
-    bool ok = false;
-    const int result = value.toInt(&ok);
-    return ok ? result : fallback;
-}
-
-QVariant gadgetProperty(const QVariant& source, const char* name) {
-    const QMetaObject* metaObject = source.metaType().metaObject();
-    if (!metaObject) {
-        return {};
-    }
-
-    const int propertyIndex = metaObject->indexOfProperty(name);
-    return propertyIndex < 0
-        ? QVariant {}
-        : metaObject->property(propertyIndex).readOnGadget(source.constData());
-}
-
-QVariant valueProperty(const QVariant& source, const char* name) {
-    if (!source.isValid() || source.isNull()) {
-        return {};
-    }
-    if (source.canConvert<QVariantMap>()) {
-        const QVariantMap map = source.toMap();
-        const auto it = map.constFind(QString::fromLatin1(name));
-        return it == map.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QVariantHash>()) {
-        const QVariantHash hash = source.toHash();
-        const auto it = hash.constFind(QString::fromLatin1(name));
-        return it == hash.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QObject*>()) {
-        if (QObject* object = source.value<QObject*>()) {
-            return object->property(name);
-        }
-    }
-    return gadgetProperty(source, name);
-}
-
-QVariantMap dstAsMap(const QVariant& dst) {
-    static const char* names[] = {
-        "time", "x", "y", "w", "h", "acc", "a", "r", "g", "b",
-        "blend", "filter", "angle", "center", "sortId", "loop",
-        "timer", "op1", "op2", "op3", "op4", "offsets",
-    };
-
-    QVariantMap result;
-    for (const char* name : names) {
-        const QVariant value = valueProperty(dst, name);
-        if (value.isValid()) {
-            result.insert(QString::fromLatin1(name), value);
-        }
+QVariantList offsetsAsVariantList(const QVector<int>& offsets) {
+    QVariantList result;
+    result.reserve(offsets.size());
+    for (int offset : offsets) {
+        result.append(offset);
     }
     return result;
 }
 
+Lr2Dst lr2DstFromRuntimeDst(const rt::Dst& dst) {
+    Lr2Dst result;
+    result.time = dst.time;
+    result.x = dst.x;
+    result.y = dst.y;
+    result.w = dst.w;
+    result.h = dst.h;
+    result.acc = dst.acc;
+    result.a = dst.a;
+    result.r = dst.r;
+    result.g = dst.g;
+    result.b = dst.b;
+    result.blend = dst.blend;
+    result.filter = dst.filter;
+    result.angle = dst.angle;
+    result.center = dst.center;
+    result.sortId = dst.sortId;
+    result.loop = dst.loop;
+    result.timer = dst.timer;
+    result.op1 = dst.op1;
+    result.op2 = dst.op2;
+    result.op3 = dst.op3;
+    result.op4 = dst.op4;
+    result.offsets = offsetsAsVariantList(dst.offsets);
+    return result;
+}
+
 QVariant firstDstWithClearedTitleOps(const QVariant& dst) {
-    QVariantMap map = dstAsMap(dst);
-    map.insert(QStringLiteral("op1"), 0);
-    map.insert(QStringLiteral("op2"), 0);
-    map.insert(QStringLiteral("op3"), 0);
-    return map;
+    rt::Dst parsed;
+    if (!rt::readDst(dst, parsed)) {
+        return dst;
+    }
+
+    Lr2Dst result = lr2DstFromRuntimeDst(parsed);
+    result.op1 = 0;
+    result.op2 = 0;
+    result.op3 = 0;
+    return QVariant::fromValue(result);
 }
 
 bool containsUnsupportedBlend(const QVariantList& dsts) {
     for (const QVariant& dst : dsts) {
-        const int blend = toInt(valueProperty(dst, "blend"));
-        if (blend == 5 || blend == 6) {
+        rt::Dst parsed;
+        if (rt::readDst(dst, parsed) && (parsed.blend == 5 || parsed.blend == 6)) {
             return true;
         }
     }
     return false;
 }
 
-TextState stateFromVariant(const QVariant& value) {
-    TextState state;
-    if (!value.isValid() || value.isNull()) {
-        return state;
+TextState stateFromTimelineState(const Lr2TimelineStateValue& value) {
+    if (!value.valid) {
+        return {};
     }
 
+    TextState state;
     state.valid = true;
-    state.x = toReal(valueProperty(value, "x"));
-    state.y = toReal(valueProperty(value, "y"));
-    state.w = toReal(valueProperty(value, "w"));
-    state.h = toReal(valueProperty(value, "h"));
-    state.a = toReal(valueProperty(value, "a"), 255.0);
-    state.r = toReal(valueProperty(value, "r"), 255.0);
-    state.g = toReal(valueProperty(value, "g"), 255.0);
-    state.b = toReal(valueProperty(value, "b"), 255.0);
-    state.blend = toInt(valueProperty(value, "blend"));
-    state.filter = toInt(valueProperty(value, "filter"));
+    state.x = value.x;
+    state.y = value.y;
+    state.w = value.w;
+    state.h = value.h;
+    state.a = value.a;
+    state.r = value.r;
+    state.g = value.g;
+    state.b = value.b;
+    state.blend = value.blend;
+    state.filter = value.filter;
     return state;
 }
 
@@ -268,14 +243,17 @@ bool Lr2BarTextItem::isSupported() const {
 
 void Lr2BarTextItem::parseSource() {
     Source source;
-    source.titleType = toInt(valueProperty(m_srcData, "titleType"), -1);
-    source.align = toInt(valueProperty(m_srcData, "align"));
-    source.fontSize = toInt(valueProperty(m_srcData, "fontSize"));
-    source.fontThickness = toInt(valueProperty(m_srcData, "fontThickness"));
-    source.fontType = toInt(valueProperty(m_srcData, "fontType"));
-    source.bitmapFont = valueProperty(m_srcData, "bitmapFont").toBool();
-    source.fontPath = valueProperty(m_srcData, "fontPath").toString();
-    source.fontFamily = valueProperty(m_srcData, "fontFamily").toString();
+    rt::Source parsed;
+    if (rt::readSource(m_srcData, parsed)) {
+        source.titleType = parsed.titleType;
+        source.align = parsed.align;
+        source.fontSize = parsed.fontSize;
+        source.fontThickness = parsed.fontThickness;
+        source.fontType = parsed.fontType;
+        source.bitmapFont = parsed.bitmapFont;
+        source.fontPath = parsed.fontPath;
+        source.fontFamily = parsed.fontFamily;
+    }
     source.isLr2Font = source.bitmapFont || source.fontPath.endsWith(QStringLiteral(".lr2font"), Qt::CaseInsensitive);
     m_source = source;
 }
@@ -472,7 +450,7 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
         return nullptr;
     }
 
-    const TextState state = stateFromVariant(m_timeline.staticState());
+    const TextState state = stateFromTimelineState(m_timeline.staticState());
     const qreal boxW = std::min(std::abs(state.w * m_scaleOverride), maxLayerSize);
     const qreal boxH = std::min(std::abs(state.h * m_scaleOverride), maxLayerSize);
     if (!state.valid || state.a <= 0.0 || boxW <= 0.0 || boxH <= 0.0) {

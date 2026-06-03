@@ -73,7 +73,6 @@ public:
 
 	Q_INVOKABLE void rebuild();
 	Q_INVOKABLE void scrollBy(int delta);
-	Q_INVOKABLE QVariantMap get(int row) const;
 	Q_INVOKABLE int sourceRowAt(int row) const;
 	Q_INVOKABLE int slotForRow(int row) const;
 	Q_INVOKABLE QObject* cellAtSlot(int slot) const;

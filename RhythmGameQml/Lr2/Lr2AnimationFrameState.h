@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Lr2SkinRuntimeTypes.h"
+
 #include <QObject>
 #include <QMetaObject>
 #include <QPointer>
@@ -95,17 +97,7 @@ signals:
     void sourceRectChanged();
 
 private:
-    struct Source {
-        bool valid = false;
-        int divX = 1;
-        int divY = 1;
-        int cycle = 0;
-        int timer = 0;
-        int x = 0;
-        int y = 0;
-        int w = 0;
-        int h = 0;
-    };
+    using Source = lr2skin::runtime::Source;
 
     void rebuildSource();
     void reconnectClock();
@@ -113,8 +105,6 @@ private:
     void updateFrameIndex();
     int clockSkinTime() const;
     qreal effectiveTimerFire() const;
-    qreal timerValue(int timerIdx) const;
-    static bool readSource(const QVariant& value, Source& source);
     static int frameCount(const Source& source);
     static QVector4D sourceRectFor(const Source& source, int frameIndex, int textureWidth, int textureHeight);
     static QRectF sourceClipRectFor(const Source& source, int frameIndex);

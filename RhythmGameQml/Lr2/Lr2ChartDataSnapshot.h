@@ -1,6 +1,9 @@
 #pragma once
 
+#include "gameplay_logic/ChartData.h"
+
 #include <QObject>
+#include <QPointer>
 #include <QVariant>
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
@@ -24,6 +27,7 @@ public:
     explicit Lr2ChartDataSnapshot(QObject* parent = nullptr);
 
     QVariant chart() const;
+    void setChart(QObject* value);
     void setChart(const QVariant& value);
 
     bool hasHistogram() const;
@@ -44,7 +48,7 @@ signals:
 private:
     void refresh();
 
-    QVariant m_chart;
+    QPointer<QObject> m_chart;
     bool m_hasHistogram = false;
     QString m_md5;
     qint64 m_length = 0;

@@ -5,14 +5,12 @@
 
 #include <QObject>
 #include <QPointer>
-#include <QVariantList>
 #include <QVector>
 #include <QtQml/qqmlregistration.h>
 
 class Lr2BarPositionMap : public QObject {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(QVariantList baseStates READ baseStates WRITE setBaseStates NOTIFY baseStatesChanged)
     Q_PROPERTY(Lr2BarBaseStateResolver* baseStateResolver READ baseStateResolver WRITE setBaseStateResolver NOTIFY baseStateResolverChanged)
     Q_PROPERTY(qreal scrollOffset READ scrollOffset WRITE setScrollOffset NOTIFY scrollOffsetChanged)
     Q_PROPERTY(int slotOffset READ slotOffset WRITE setSlotOffset NOTIFY slotOffsetChanged)
@@ -23,8 +21,6 @@ class Lr2BarPositionMap : public QObject {
 public:
     explicit Lr2BarPositionMap(QObject* parent = nullptr);
 
-    QVariantList baseStates() const;
-    void setBaseStates(const QVariantList& states);
     Lr2BarBaseStateResolver* baseStateResolver() const;
     void setBaseStateResolver(Lr2BarBaseStateResolver* resolver);
 
@@ -48,7 +44,6 @@ public:
     Q_INVOKABLE int rowForSlot(int slot) const;
 
 signals:
-    void baseStatesChanged();
     void baseStateResolverChanged();
     void scrollOffsetChanged();
     void slotOffsetChanged();
@@ -57,11 +52,9 @@ signals:
     void coordinatesChanged();
 
 private:
-    void rebuildBaseCoordinates(const QVariantList& states);
     void rebuildBaseCoordinatesFromResolver();
     void rebuildDrawCoordinates();
     void notifyCoordinatesChanged();
-    static bool extractCoordinates(const QVariant& state, qreal& x, qreal& y);
 
     QVector<qreal> m_baseXs;
     QVector<qreal> m_baseYs;

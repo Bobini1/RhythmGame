@@ -84,8 +84,8 @@ public:
 	int currentIndex() const;
 	void setCurrentIndex(int index);
 
-	Q_INVOKABLE QVariantMap get(int row) const;
 	Q_INVOKABLE QVariant rawItemAt(int row) const;
+	Q_INVOKABLE QString keyAt(int row) const;
 	Q_INVOKABLE int normalizedIndex(int row) const;
 	Q_INVOKABLE void moveRowTo(int from, int to);
 	Q_INVOKABLE void updateItems(const QVariantList& items);

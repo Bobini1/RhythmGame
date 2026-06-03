@@ -50,7 +50,6 @@ class Lr2SkinTimerState : public QObject {
     Q_PROPERTY(int resultGraphStartSkinTime READ resultGraphStartSkinTime WRITE setResultGraphStartSkinTime NOTIFY resultGraphStartSkinTimeChanged)
     Q_PROPERTY(int resultGraphEndSkinTime READ resultGraphEndSkinTime WRITE setResultGraphEndSkinTime NOTIFY resultGraphEndSkinTimeChanged)
     Q_PROPERTY(int gameplayTimerRevision READ gameplayTimerRevision WRITE setGameplayTimerRevision NOTIFY gameplayTimerRevisionChanged)
-    Q_PROPERTY(QVariant gameplayTimerValues READ gameplayTimerValues WRITE setGameplayTimerValues NOTIFY gameplayTimerValuesChanged)
     Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
     Q_PROPERTY(int selectInfoRevision READ selectInfoRevision NOTIFY selectInfoRevisionChanged)
 
@@ -162,21 +161,18 @@ public:
     int gameplayTimerRevision() const;
     void setGameplayTimerRevision(int value);
 
-    QVariant gameplayTimerValues() const;
-    void setGameplayTimerValues(const QVariant& values);
-
     int revision() const;
     int selectInfoRevision() const;
 
-    Q_INVOKABLE int gameplayTimerFireTime(const QVariant& timer) const;
-    Q_INVOKABLE int resultTimerFireTime(const QVariant& timer) const;
-    Q_INVOKABLE int selectTimerFireTime(const QVariant& timer, bool liveClock = false) const;
-    Q_INVOKABLE bool selectTimerCanFire(const QVariant& timer) const;
-    Q_INVOKABLE bool skinTimerCanFire(const QVariant& timer) const;
-    Q_INVOKABLE int skinTimerFireTime(const QVariant& timer, bool liveClock = false);
-    Q_INVOKABLE bool isSelectHeldButtonTimer(const QVariant& timer) const;
-    Q_INVOKABLE bool setGameplayTimerValue(const QVariant& timer, int skinTime);
-    Q_INVOKABLE bool clearGameplayTimerValue(const QVariant& timer);
+    Q_INVOKABLE int gameplayTimerFireTime(int timer) const;
+    Q_INVOKABLE int resultTimerFireTime(int timer) const;
+    Q_INVOKABLE int selectTimerFireTime(int timer, bool liveClock = false) const;
+    Q_INVOKABLE bool selectTimerCanFire(int timer) const;
+    Q_INVOKABLE bool skinTimerCanFire(int timer) const;
+    Q_INVOKABLE int skinTimerFireTime(int timer, bool liveClock = false);
+    Q_INVOKABLE bool isSelectHeldButtonTimer(int timer) const;
+    Q_INVOKABLE bool setGameplayTimerValue(int timer, int skinTime);
+    Q_INVOKABLE bool clearGameplayTimerValue(int timer);
     Q_INVOKABLE bool resetGameplayTimerValues();
     Q_INVOKABLE bool commitGameplayTimerChanges();
     QSet<int> takeCommittedGameplayTimerChanges(bool* fullRefresh = nullptr);
@@ -221,7 +217,6 @@ signals:
     void resultGraphStartSkinTimeChanged();
     void resultGraphEndSkinTimeChanged();
     void gameplayTimerRevisionChanged();
-    void gameplayTimerValuesChanged();
     void gameplayTimerValuesCommitted();
     void revisionChanged();
     void selectInfoRevisionChanged();
@@ -231,7 +226,6 @@ private:
     int selectElapsedSince(int startSkinTime) const;
     bool canCacheSelectTimerFire(int timer) const;
     int cachedSelectTimerFireTime(int timer, bool liveClock);
-    int timerValue(const QVariant& timer) const;
     bool isSelectHeldButtonTimerId(int timer) const;
     int gameplayTimerValue(int timer) const;
     QHash<int, int> initialGameplayTimerValues() const;

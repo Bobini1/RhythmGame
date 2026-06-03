@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Lr2SkinElementActiveOptionsState.h"
+#include "Lr2SkinElementDescriptorValue.h"
 #include "Lr2SkinRuntimeTypes.h"
 #include "Lr2SkinTimerState.h"
 
@@ -56,14 +57,14 @@ public:
     int selectInfoTimerRevision() const;
     int activeOptionsRevision() const;
 
-    Q_INVOKABLE QVariantMap descriptor(int index) const;
+    Q_INVOKABLE Lr2SkinElementDescriptorValue descriptor(int index) const;
     Q_INVOKABLE QVariantList elementActiveOptionsForElement(int index) const;
     Q_INVOKABLE Lr2SkinElementActiveOptionsState* elementActiveOptionsState(int index) const;
-    Q_INVOKABLE QVariant staticStateForElement(int index) const;
-    Q_INVOKABLE QVariant stateForElement(int index, int skinTime) const;
-    Q_INVOKABLE QVariant sliderTrackStateForElement(int index, int skinTime) const;
-    Q_INVOKABLE QVariant noteDstState(int index, int skinTime) const;
-    Q_INVOKABLE QVariant lineDstState(int index, int skinTime) const;
+    Q_INVOKABLE Lr2TimelineStateValue staticStateForElement(int index) const;
+    Q_INVOKABLE Lr2TimelineStateValue stateForElement(int index, int skinTime) const;
+    Q_INVOKABLE Lr2TimelineStateValue sliderTrackStateForElement(int index, int skinTime) const;
+    Q_INVOKABLE Lr2TimelineStateValue noteDstState(int index, int skinTime) const;
+    Q_INVOKABLE Lr2TimelineStateValue lineDstState(int index, int skinTime) const;
     Q_INVOKABLE bool noteDstStateUsesSkinTime(int index) const;
     Q_INVOKABLE bool lineDstStateUsesSkinTime(int index) const;
     Q_INVOKABLE int dstTimerFire(int index) const;
@@ -100,59 +101,23 @@ private:
         int srcTimerFire = -1;
     };
 
-    struct ElementDescriptor {
-        int index = -1;
-        int type = -1;
+    struct ElementDescriptor : public Lr2SkinElementDescriptorValue {
         lr2skin::runtime::Source source;
         QVector<lr2skin::runtime::Dst> dsts;
         lr2skin::runtime::DstAnalysis dstAnalysis;
         QVariantList elementActiveOptions;
-        QVariant staticState;
-        qreal z = 0.0;
-        bool usesSkinTime = false;
-        bool usesElementSkinTime = false;
-        bool useDirectElementSkinClock = false;
-        bool needsManualElementSkinTime = false;
-        int elementSkinClockMode = lr2skin::runtime::ManualClock;
-        bool sourceHasFrameAnimation = false;
-        bool usesSelectHeldButtonTimer = false;
-        bool usesLiveDstClock = false;
-        bool usesLiveSourceClock = false;
-        bool usesLiveSelectClock = false;
-        bool usesDynamicDstTimer = false;
-        bool usesDynamicSrcTimer = false;
-        bool spriteUsesDirectSkinClock = false;
-        int spriteSkinClockMode = lr2skin::runtime::ManualClock;
-        int spriteSourceSkinClockMode = lr2skin::runtime::ManualClock;
-        int spriteStateOverrideKind = lr2skin::runtime::NoSpriteStateOverride;
-        bool usesSpriteStateOverride = false;
-        bool usesSpriteForceHidden = false;
-        bool usesButtonFrameOverride = false;
-        bool sourceMouseCursor = false;
-        bool dstOffsetsEnabled = false;
-        int dstOffsetSide = 1;
-        int scratchRotationSide = 0;
-        int dstTimer = 0;
-        int srcTimer = 0;
-        bool selectScrollSlider = false;
-        bool genericSlider = false;
-        bool gameplayProgressSlider = false;
-        bool gameplayLaneCoverSlider = false;
-        bool numberRefSlider = false;
-        int buttonId = 0;
-        bool numberUsesFocusedSelectState = false;
+        Lr2TimelineStateValue staticState;
         TimerSnapshot timers;
     };
 
     struct LaneDescriptor {
         QVector<lr2skin::runtime::Dst> dsts;
         lr2skin::runtime::DstAnalysis analysis;
-        QVariant staticState;
+        Lr2TimelineStateValue staticState;
     };
 
     QVariant modelData(int row, const char* roleName) const;
     QVariantList modelListProperty(const char* name) const;
-    QVariantMap descriptorMap(const ElementDescriptor& descriptor) const;
     LaneDescriptor buildLaneDescriptor(const QVariant& dsts) const;
     ElementDescriptor buildDescriptor(int index,
                                       int type,
@@ -160,7 +125,7 @@ private:
                                       const QVariantList& dstValues,
                                       const QVariantList& noteDsts) const;
     TimerSnapshot timerSnapshotFor(const ElementDescriptor& descriptor) const;
-    QVariant stateForLane(const QVector<LaneDescriptor>& lanes, int index, int skinTime) const;
+    Lr2TimelineStateValue stateForLane(const QVector<LaneDescriptor>& lanes, int index, int skinTime) const;
     bool laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes, int index) const;
     const ElementDescriptor* descriptorAt(int index) const;
     void updateTimerFiresForIndexes(const QVector<int>& indexes);

@@ -20,6 +20,9 @@ Item {
     property bool folderLampPublishQueued: false
     property var chartGroupsByKey: ({})
     property var chartDifficultyByPath: ({})
+    property var selectedDifficultyStateCache: ({})
+    property var selectedDifficultyGroupStateCache: ({})
+    property var scoreClearStateByKey: ({})
     property var playerStats: ({
         playCount: 0,
         clearCount: 0,
@@ -72,6 +75,9 @@ Item {
     property var barLampVariants: []
     property bool useBeatorajaBarTextTypes: false
     property bool useBeatorajaSelectOptions: false
+    property bool scoreOptionIdsUsed: true
+    property bool difficultyStateUsed: true
+    property bool difficultyLampStateUsed: true
     property int realItemCount: 0
     property int barRowCount: 0
     property int barCenter: 0
@@ -102,7 +108,6 @@ Item {
     property int rankingSavedSelectedOffset: 0
     readonly property var emptyScoreList: []
     readonly property var emptyScoreOptionIds: []
-    readonly property var emptyDifficultyCharts: [null, null, null, null, null, null]
     readonly property var emptyDifficultyNumbers: [0, 0, 0, 0, 0, 0]
     readonly property var emptyScoreCounts: ({
         play: 0,
@@ -147,10 +152,10 @@ Item {
     })
     readonly property var emptyDifficultyState: ({
         key: "empty",
-        charts: emptyDifficultyCharts,
         counts: emptyDifficultyNumbers,
         levels: emptyDifficultyNumbers,
-        lamps: emptyDifficultyNumbers
+        lamps: emptyDifficultyNumbers,
+        selectedDifficulty: 0
     })
     property alias navigationController: nativeNavigation
     property var visualChartWrapper: null
@@ -158,8 +163,33 @@ Item {
     property string visualStageFileSource: ""
     property string visualBackBmpSource: ""
     property string visualBannerSource: ""
+    property bool stageFileSourceUsed: true
+    property bool backBmpSourceUsed: true
+    property bool bannerSourceUsed: true
+    property bool chartContentRevisionUsed: true
+    onScoreRevisionChanged: {
+        selectedDetailState.clearScoreSummaryCache();
+        clearSelectedDifficultyStateCache();
+        clearScoreClearStateCache();
+    }
+    onScoreOptionIdsUsedChanged: selectedDetailState.clearScoreSummaryCache()
+    onDifficultyStateUsedChanged: clearSelectedDifficultyStateCache()
+    onDifficultyLampStateUsedChanged: clearSelectedDifficultyStateCache()
+    onStageFileSourceUsedChanged: refreshVisualChartAssetSources()
+    onBackBmpSourceUsedChanged: refreshVisualChartAssetSources()
+    onBannerSourceUsedChanged: refreshVisualChartAssetSources()
+    onChartContentRevisionUsedChanged: refreshVisualChartContentRevision()
     function selectedState() : var {
-        return selectedDetailState;
+        return selectedStateProxy;
+    }
+
+    function clearSelectedDifficultyStateCache() : void {
+        selectedDifficultyStateCache = ({});
+        selectedDifficultyGroupStateCache = ({});
+    }
+
+    function clearScoreClearStateCache() : void {
+        scoreClearStateByKey = ({});
     }
 
     function chartAssetUrl(chartData: var, fileName: var) : var {
@@ -173,33 +203,28 @@ Item {
         return "file://" + dir + String(fileName).replace(/\.[^/.]+$/, "");
     }
 
-    function applySelectedScoreState(state: var) : void {
-        let nextState = state || ({});
-        selectedDetailState.apply(nextState);
-        let chartData = nextState.chartData;
-        let nextChartWrapper = nextState.chartWrapper;
-        if (visualChartWrapper !== nextChartWrapper) {
-            visualChartWrapper = nextChartWrapper;
-        }
-        let nextStageFileSource = chartAssetUrl(chartData, chartData ? chartData.stageFile : "");
+    function refreshVisualChartAssetSources(chartData: var) : void {
+        chartData = chartData !== undefined ? chartData : visualChartWrapper;
+        let nextStageFileSource = stageFileSourceUsed
+            ? chartAssetUrl(chartData, chartData ? chartData.stageFile : "")
+            : "";
         if (visualStageFileSource !== nextStageFileSource) {
             visualStageFileSource = nextStageFileSource;
         }
-        let nextBackBmpSource = chartAssetUrl(chartData, chartData ? chartData.backBmp : "");
+        let nextBackBmpSource = backBmpSourceUsed
+            ? chartAssetUrl(chartData, chartData ? chartData.backBmp : "")
+            : "";
         if (visualBackBmpSource !== nextBackBmpSource) {
             visualBackBmpSource = nextBackBmpSource;
         }
-        let nextBannerSource = chartAssetUrl(chartData, chartData ? chartData.banner : "");
+        let nextBannerSource = bannerSourceUsed
+            ? chartAssetUrl(chartData, chartData ? chartData.banner : "")
+            : "";
         if (visualBannerSource !== nextBannerSource) {
             visualBannerSource = nextBannerSource;
         }
-        let nextChartRevision = nextState.contentRevision !== undefined
-            ? String(nextState.contentRevision || "")
-            : chartContentRevisionForState(nextState);
-        if (visualChartContentRevision !== nextChartRevision) {
-            visualChartContentRevision = nextChartRevision;
-        }
     }
+
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
@@ -245,6 +270,21 @@ Item {
 
     Lr2SelectDetailState {
         id: selectedDetailState
+    }
+
+    QtObject {
+        id: selectedStateProxy
+
+        readonly property string key: selectedDetailState.key
+        readonly property int scoreRevision: selectedDetailState.scoreRevision
+        readonly property int listRevision: selectedDetailState.listRevision
+        property var item: null
+        property var chartData: null
+        readonly property var summary: selectedDetailState.summary
+        readonly property var bestStats: selectedDetailState.bestStats
+        readonly property var scoreCounts: selectedDetailState.scoreCounts
+        readonly property var scoreOptionIds: selectedDetailState.scoreOptionIds
+        readonly property var difficultyModel: selectedDetailState.difficultyModel
     }
 
     Lr2SelectNavigationController {
@@ -316,9 +356,17 @@ Item {
     }
 
     onBarTitleTypesChanged: refreshSkinDependentCellData()
-    onBarLampVariantsChanged: refreshFolderLampSkinData()
+    onBarLampVariantsChanged: {
+        clearSelectedDifficultyStateCache();
+        refreshFolderLampSkinData();
+    }
     onUseBeatorajaBarTextTypesChanged: refreshSkinDependentCellData()
-    onUseBeatorajaSelectOptionsChanged: refreshSkinSemanticData()
+    onUseBeatorajaSelectOptionsChanged: {
+        selectedDetailState.clearScoreSummaryCache();
+        clearSelectedDifficultyStateCache();
+        clearScoreClearStateCache();
+        refreshSkinSemanticData();
+    }
 
     signal openedFolder()
     signal entryChangeSoundsRequested(int count)
@@ -2560,15 +2608,19 @@ Item {
         return "item:" + (entryDisplayName(item, true) || ("index:" + fallbackIndex));
     }
 
-    function entryScores(item: var) : var {
-        let id = entryIdentifier(item);
+    function entryScoresForIdentifier(id: var) : var {
         if (!id) {
             return emptyScoreList;
         }
-        return scores[id]
-            || scores[String(id).toUpperCase()]
-            || scores[String(id).toLowerCase()]
+        let key = String(id);
+        return scores[key]
+            || scores[key.toUpperCase()]
+            || scores[key.toLowerCase()]
             || emptyScoreList;
+    }
+
+    function entryScores(item: var) : var {
+        return entryScoresForIdentifier(entryIdentifier(item));
     }
 
     function normalizedClearType(clear: var) : var {
@@ -2785,36 +2837,16 @@ Item {
         };
     }
 
-    function skinCompatibleScoreCounts(counts: var) : var {
-        if (!counts || root.useBeatorajaSelectOptions) {
-            return counts || emptyScoreCounts;
+    function scoreSummaryCacheKeyForIdentifier(id: var) : var {
+        if (!id) {
+            return "";
         }
-        let result = Object.assign({}, counts);
-        let assist = (result.assist || 0) + (result.lightAssist || 0);
-        if (assist > 0) {
-            result.fail = (result.fail || 0) + assist;
-            result.clear = Math.max(0, (result.clear || 0) - assist);
-            result.assist = 0;
-            result.lightAssist = 0;
-        }
-        let exhard = result.exhard || 0;
-        if (exhard > 0) {
-            result.hard = (result.hard || 0) + exhard;
-            result.exhard = 0;
-        }
-        return result;
+        return String(id)
+            + "\n" + scoreRevision;
     }
 
-    function skinCompatibleScoreSummary(summary: var) : var {
-        if (!summary || root.useBeatorajaSelectOptions) {
-            return summary;
-        }
-        let clearType = skinCompatibleClearType(summary.clearType || "NOPLAY");
-        return Object.assign({}, summary, {
-            scoreCounts: skinCompatibleScoreCounts(summary.scoreCounts || emptyScoreCounts),
-            clearType: clearType,
-            lamp: clearTypeLamp(clearType)
-        });
+    function scoreSummaryCacheKey(item: var) : var {
+        return scoreSummaryCacheKeyForIdentifier(entryIdentifier(item));
     }
 
     function scoreSummaryForItem(item: var) : var {
@@ -2822,13 +2854,49 @@ Item {
         if ((item === state.item || item === state.chartData)
                 && state.key
                 && state.scoreRevision === scoreRevision) {
-            return skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
+            return state.summary;
+        }
+        let cacheKey = scoreSummaryCacheKey(item);
+        if (cacheKey) {
+            return selectedDetailState.cachedScoreSummary(
+                        cacheKey,
+                        entryScores(item),
+                        root.useBeatorajaSelectOptions,
+                        root.scoreOptionIdsUsed);
         }
         return buildScoreSummary(entryScores(item));
     }
 
     function scoreLampRankForItem(item: var) : var {
         return scoreSummaryForItem(item);
+    }
+
+    function scoreLampForItem(item: var) : var {
+        return scoreClearStateForItem(item).lamp;
+    }
+
+    function scoreClearStateCacheKey(item: var) : var {
+        let id = entryIdentifier(item);
+        return id ? (String(id) + "\n" + scoreRevision + "\n" + (root.useBeatorajaSelectOptions ? 1 : 0)) : "";
+    }
+
+    function scoreClearStateForItem(item: var) : var {
+        let key = scoreClearStateCacheKey(item);
+        if (key) {
+            let cached = scoreClearStateByKey[key];
+            if (cached !== undefined) {
+                return cached;
+            }
+        }
+        let clearType = getClearType(entryScores(item));
+        let state = {
+            clearType: clearType,
+            lamp: clearTypeLamp(clearType)
+        };
+        if (key) {
+            scoreClearStateByKey[key] = state;
+        }
+        return state;
     }
 
     function clearTypeOf(score: var) : var {
@@ -3132,7 +3200,7 @@ Item {
 
     function ensureSelectedBestStatsTiming() : var {
         let state = selectedState();
-        let summary = skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
+        let summary = state.summary;
         return ensureStatsTiming(state.bestStats, summary.bestScore);
     }
 
@@ -3270,21 +3338,15 @@ Item {
         let state = selectedState();
         if ((item === state.item || item === state.chartData)
                 && state.scoreRevision === scoreRevision) {
-            if (!root.useBeatorajaSelectOptions) {
-                return scoreOptionIdsFromSummary(
-                    skinCompatibleScoreSummary(state.summary || buildScoreSummary(state.scoreList || emptyScoreList)));
-            }
-            return state.scoreOptionIds || scoreOptionIdsFromSummary(
-                state.summary || buildScoreSummary(state.scoreList || emptyScoreList));
+            return state.scoreOptionIds || emptyScoreOptionIds;
         }
         return scoreOptionIdsFromSummary(scoreSummaryForItem(item));
     }
 
-    function scoreOptionIdsFromList(scoreList: var) : var {
-        return scoreOptionIdsFromSummary(buildScoreSummary(scoreList));
-    }
-
     function scoreOptionIdsFromSummary(summary: var) : var {
+        if (summary && summary.optionIds !== undefined) {
+            return summary.optionIds || emptyScoreOptionIds;
+        }
         let scoreList = summary ? summary.scoreList : emptyScoreList;
         if (!scoreList || scoreList.length === 0) {
             return emptyScoreOptionIds;
@@ -3307,7 +3369,7 @@ Item {
             let key = folderLampKey(item);
             return key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
         }
-        return scoreLampRankForItem(item).lamp;
+        return scoreLampForItem(item);
     }
 
     function entryClearType(item: var) : var {
@@ -3317,7 +3379,7 @@ Item {
         if (isFolderLikeForLamp(item)) {
             return "NOPLAY";
         }
-        return scoreLampRankForItem(item).clearType;
+        return scoreClearStateForItem(item).clearType;
     }
 
     function beatorajaClearOptionForClearType(clearType: var) : var {
@@ -3390,35 +3452,11 @@ Item {
     }
 
     function chartWrapperForData(chartData: var) : var {
-        return chartData ? { chartData: chartData } : null;
-    }
-
-    function chartHistogramRevision(chartData: var) : var {
-        let histogram = chartData && chartData.histogramData ? chartData.histogramData : null;
-        if (!histogram) {
-            return "";
-        }
-        let parts = [];
-        for (let i = 0; i < 6; ++i) {
-            let series = histogram[i] || [];
-            parts.push(series.length || 0);
-        }
-        return parts.join(":");
+        return chartData || null;
     }
 
     function chartContentRevisionForData(stateKey: var, chartData: var) : var {
-        if (!chartData) {
-            return String(stateKey || "");
-        }
-        return String(stateKey || "")
-            + ":" + String(chartData.md5 || "")
-            + ":" + String(chartData.length || 0)
-            + ":" + String(chartData.normalNoteCount || 0)
-            + ":" + String(chartData.scratchCount || 0)
-            + ":" + String(chartData.lnCount || 0)
-            + ":" + String(chartData.bssCount || 0)
-            + ":" + String(chartData.mineCount || 0)
-            + ":" + chartHistogramRevision(chartData);
+        return String(stateKey || "");
     }
 
     function chartContentRevisionForState(state: var) : var {
@@ -3435,47 +3473,64 @@ Item {
         return visualChartContentRevision;
     }
 
+    function refreshVisualChartContentRevision(stateKey: var, chartData: var) : void {
+        let key = stateKey !== undefined ? stateKey : selectedDetailState.key;
+        let chart = chartData !== undefined ? chartData : visualChartWrapper;
+        let nextChartRevision = chartContentRevisionForData(key, chart);
+        if (visualChartContentRevision !== nextChartRevision) {
+            visualChartContentRevision = nextChartRevision;
+        }
+    }
+
     function refreshSelectedScoreState() : var {
         let item = focusedItem;
         let nextChartData = chartDataForItem(item);
         let targetItem = isRankingEntry(item) ? item : (nextChartData || item);
-        let stateKey = entrySelectionKey(item, focusedIndex)
-            + "\n" + entrySelectionKey(targetItem, focusedIndex)
-            + "\n" + (rankingMode ? "ranking" : "select");
-        let difficultyState = difficultyStateForChart(nextChartData);
-        let changed = selectedDetailState.refresh(stateKey,
-                                                  scoreRevision,
-                                                  listRevision,
-                                                  item,
-                                                  nextChartData,
-                                                  entryScores(targetItem),
-                                                  difficultyState.charts || emptyDifficultyCharts,
-                                                  difficultyState.counts || emptyDifficultyNumbers,
-                                                  difficultyState.levels || emptyDifficultyNumbers,
-                                                  difficultyState.lamps || emptyDifficultyNumbers,
-                                                  root.useBeatorajaSelectOptions);
+        let itemKey = selectItemModel.keyAt(focusedIndex) || entrySelectionKey(item, focusedIndex);
+        let stateKey = itemKey
+            + "\n" + (rankingMode ? "R" : "S")
+            + (root.useBeatorajaSelectOptions ? "B" : "L")
+            + (root.scoreOptionIdsUsed ? "O" : "N")
+            + (root.difficultyStateUsed ? "D" : "d")
+            + (root.difficultyLampStateUsed ? "M" : "m");
+        if (targetItem !== item) {
+            stateKey += "\n" + entrySelectionKey(targetItem, focusedIndex);
+        }
+        if (selectedDetailState.key === stateKey
+                && selectedDetailState.scoreRevision === scoreRevision
+                && selectedDetailState.listRevision === listRevision) {
+            return false;
+        }
+        let difficultyState = root.difficultyStateUsed ? difficultyStateForChart(nextChartData) : null;
+        if (selectedStateProxy.item !== item) {
+            selectedStateProxy.item = item;
+        }
+        if (selectedStateProxy.chartData !== nextChartData) {
+            selectedStateProxy.chartData = nextChartData;
+        }
+        let targetId = entryIdentifier(targetItem);
+        let targetScoreCacheKey = scoreSummaryCacheKeyForIdentifier(targetId);
+        let targetScores = entryScoresForIdentifier(targetId);
+        let changed = selectedDetailState.refreshSelectedFromQmlValues(
+                stateKey,
+                scoreRevision,
+                listRevision,
+                targetScores,
+                targetScoreCacheKey,
+                difficultyState ? (difficultyState.selectedDifficulty || 0) : 0,
+                difficultyState ? (difficultyState.counts || emptyDifficultyNumbers) : emptyDifficultyNumbers,
+                difficultyState ? (difficultyState.levels || emptyDifficultyNumbers) : emptyDifficultyNumbers,
+                difficultyState && root.difficultyLampStateUsed ? (difficultyState.lamps || emptyDifficultyNumbers) : emptyDifficultyNumbers,
+                root.useBeatorajaSelectOptions,
+                root.scoreOptionIdsUsed);
         if (changed) {
-            let chartData = selectedDetailState.chartData;
-            let nextChartWrapper = selectedDetailState.chartWrapper;
+            let chartData = nextChartData;
+            let nextChartWrapper = chartWrapperForData(chartData);
             if (visualChartWrapper !== nextChartWrapper) {
                 visualChartWrapper = nextChartWrapper;
             }
-            let nextStageFileSource = chartAssetUrl(chartData, chartData ? chartData.stageFile : "");
-            if (visualStageFileSource !== nextStageFileSource) {
-                visualStageFileSource = nextStageFileSource;
-            }
-            let nextBackBmpSource = chartAssetUrl(chartData, chartData ? chartData.backBmp : "");
-            if (visualBackBmpSource !== nextBackBmpSource) {
-                visualBackBmpSource = nextBackBmpSource;
-            }
-            let nextBannerSource = chartAssetUrl(chartData, chartData ? chartData.banner : "");
-            if (visualBannerSource !== nextBannerSource) {
-                visualBannerSource = nextBannerSource;
-            }
-            let nextChartRevision = chartContentRevisionForState(selectedDetailState);
-            if (visualChartContentRevision !== nextChartRevision) {
-                visualChartContentRevision = nextChartRevision;
-            }
+            refreshVisualChartAssetSources(chartData);
+            refreshVisualChartContentRevision(stateKey, chartData);
         }
         return changed;
     }
@@ -3683,6 +3738,13 @@ Item {
         return chartGroupKey(chart) + "\n" + (chart.keymode || 0);
     }
 
+    function chartDifficultyStateItemKey(chart: var) : var {
+        if (!chart) {
+            return "";
+        }
+        return chart.path || chart.md5 || chart.sha256 || entrySelectionKey(chart, 0);
+    }
+
     function difficultyHint(chart: var) : var {
         let text = ((chart.title || "") + " " + (chart.subtitle || "")).toLowerCase();
         if (/\binsane\b/.test(text)) return 5;
@@ -3770,6 +3832,7 @@ Item {
 
         chartGroupsByKey = groups;
         chartDifficultyByPath = difficulties;
+        clearSelectedDifficultyStateCache();
     }
 
     function chartsForCurrentSong() : var {
@@ -3789,52 +3852,97 @@ Item {
         return result;
     }
 
-    function buildSelectedDifficultyState(chart: var) : var {
+    function buildDifficultyGroupState(chart: var) : var {
         let charts = chartsForSong(chart);
-        let byDiff = [null, null, null, null, null, null];
         let counts = [0, 0, 0, 0, 0, 0];
         let levels = [0, 0, 0, 0, 0, 0];
         let lamps = [0, 0, 0, 0, 0, 0];
+        let includeLamps = difficultyLampStateUsed;
         for (let candidate of charts) {
             let diff = entryDifficulty(candidate);
             if (diff < 1 || diff > 5) {
                 continue;
             }
             counts[diff] += 1;
-            if (!byDiff[diff] || (chart && sameEntry(candidate, chart))) {
-                byDiff[diff] = candidate;
+            if (counts[diff] === 1) {
+                levels[diff] = candidate.playLevel || 0;
+                if (includeLamps) {
+                    lamps[diff] = entryLamp(candidate);
+                }
             }
-        }
-        for (let diff = 1; diff <= 5; ++diff) {
-            let candidate = byDiff[diff];
-            if (!candidate) {
-                continue;
-            }
-            levels[diff] = candidate.playLevel || 0;
-            lamps[diff] = entryLamp(candidate);
         }
         return {
-            charts: byDiff,
             counts: counts,
             levels: levels,
             lamps: lamps
         };
     }
 
-    function difficultyStateForChart(chart: var) : var {
-        let key = chart
-            ? chartDifficultyGroupKey(chart) + "\n" + entrySelectionKey(chart, 0)
-            : "empty";
+    function difficultyGroupStateForChart(chart: var) : var {
+        let key = chartDifficultyGroupKey(chart)
+            + "\n" + (difficultyLampStateUsed ? scoreRevision : 0)
+            + "\n" + (difficultyLampStateUsed && root.useBeatorajaSelectOptions ? 1 : 0)
+            + "\n" + (difficultyLampStateUsed ? "lamps" : "plain");
+        let cached = selectedDifficultyGroupStateCache[key];
+        if (cached !== undefined) {
+            return cached;
+        }
+        let state = buildDifficultyGroupState(chart);
+        selectedDifficultyGroupStateCache[key] = state;
+        return state;
+    }
 
+    function buildSelectedDifficultyState(chart: var) : var {
+        let selectedDifficulty = entryDifficulty(chart);
+        let groupState = difficultyGroupStateForChart(chart);
+        let levels = groupState.levels;
+        if (selectedDifficulty >= 1
+                && selectedDifficulty <= 5
+                && chart) {
+            let selectedLevel = chart.playLevel || 0;
+            if (levels[selectedDifficulty] !== selectedLevel) {
+                levels = levels.slice();
+                levels[selectedDifficulty] = selectedLevel;
+            }
+        }
+        return {
+            counts: groupState.counts,
+            levels: levels,
+            lamps: groupState.lamps,
+            selectedDifficulty: selectedDifficulty
+        };
+    }
+
+    function difficultyStateForChart(chart: var) : var {
+        if (!chart || !difficultyStateUsed) {
+            return emptyDifficultyState;
+        }
+
+        let key = chartDifficultyGroupKey(chart)
+            + "\n" + chartDifficultyStateItemKey(chart)
+            + "\n" + (difficultyLampStateUsed ? scoreRevision : 0)
+            + "\n" + (difficultyLampStateUsed && root.useBeatorajaSelectOptions ? 1 : 0)
+            + "\n" + (difficultyLampStateUsed ? "lamps" : "plain");
+        let cached = selectedDifficultyStateCache[key];
+        if (cached !== undefined) {
+            return cached;
+        }
         let state = buildSelectedDifficultyState(chart);
         state.key = key;
+        selectedDifficultyStateCache[key] = state;
         return state;
     }
 
     function chartForDifficulty(diff: var) : var {
-        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
-        let charts = difficultyState.charts || emptyDifficultyCharts;
-        return diff >= 1 && diff <= 5 ? charts[diff] : null;
+        if (diff < 1 || diff > 5) {
+            return null;
+        }
+        for (let chart of chartsForCurrentSong()) {
+            if (entryDifficulty(chart) === diff) {
+                return chart;
+            }
+        }
+        return null;
     }
 
     function nextChartForDifficulty(diff: var) : var {
@@ -3872,15 +3980,13 @@ Item {
     }
 
     function difficultyCount(diff: var) : var {
-        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
-        let counts = difficultyState.counts || emptyDifficultyNumbers;
-        return diff >= 1 && diff <= 5 ? counts[diff] || 0 : 0;
+        let model = selectedState().difficultyModel;
+        return diff >= 1 && diff <= 5 && model ? model.countForDifficulty(diff) : 0;
     }
 
     function difficultyPlayLevel(diff: var) : var {
-        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
-        let levels = difficultyState.levels || emptyDifficultyNumbers;
-        return diff >= 1 && diff <= 5 ? levels[diff] || 0 : 0;
+        let model = selectedState().difficultyModel;
+        return diff >= 1 && diff <= 5 && model ? model.playLevelForDifficulty(diff) : 0;
     }
 
     function levelBarFlashThreshold() : var {
@@ -3909,9 +4015,8 @@ Item {
     }
 
     function difficultyLamp(diff: var) : var {
-        let difficultyState = selectedState().difficultyState || emptyDifficultyState;
-        let lamps = difficultyState.lamps || emptyDifficultyNumbers;
-        return diff >= 1 && diff <= 5 ? lamps[diff] || 0 : 0;
+        let model = selectedState().difficultyModel;
+        return diff >= 1 && diff <= 5 && model ? model.lampForDifficulty(diff) : 0;
     }
 
     function attachedTextFile(chart: var) : string {
@@ -4008,7 +4113,7 @@ Item {
     }
 
     function selectedChartWrapper() : var {
-        return visualChartWrapper || selectedState().chartWrapper;
+        return visualChartWrapper || chartWrapperForData(selectedState().chartData);
     }
 
     function selectedPreviewSource() : var {
@@ -4072,7 +4177,7 @@ Item {
         function counts() {
             if (!countsLoaded) {
                 countsLoaded = true;
-                countsValue = skinCompatibleScoreCounts(state.scoreCounts || emptyScoreCounts);
+                countsValue = state.scoreCounts || emptyScoreCounts;
             }
             return countsValue;
         }
@@ -4472,7 +4577,7 @@ Item {
     }
 
     function hasDifficulty(diff: var) : var {
-        return !!chartForDifficulty(diff);
+        return difficultyCount(diff) > 0;
     }
 
     function barGraphValue(type: var) : var {

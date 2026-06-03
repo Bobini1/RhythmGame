@@ -45,11 +45,12 @@ QtObject {
             return null;
         }
         let timer = timelineResolver.firstTimerFor(dsts);
-        return timelineResolver.stateFromTimerFire(
+        let state = timelineResolver.stateFromTimerFire(
             dsts,
             host.renderSkinTime,
             host.skinTimerFireTime(timer),
             host.activeOptionsForElementDsts(dsts));
+        return state && state.valid ? state : null;
     }
 
     function textPrefix(text: var, position: var) : var {

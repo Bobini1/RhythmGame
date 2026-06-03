@@ -39,7 +39,9 @@ QtObject {
         && !dstOffsetsEnabled
         && !forceHidden
         && timelineState.canUseStaticState
-    readonly property var staticState: canUseStaticState ? timelineState.staticState : null
+    readonly property var staticState: canUseStaticState && timelineState.staticState.valid
+        ? timelineState.staticState
+        : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
 
     property Lr2TimelineState timelineState: Lr2TimelineState {

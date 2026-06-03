@@ -206,19 +206,6 @@ void Lr2SelectBarModel::scrollBy(int delta) {
 	}
 }
 
-QVariantMap Lr2SelectBarModel::get(int row) const {
-	if (row < 0 || row >= m_rows.size()) {
-		return {};
-	}
-	QVariantMap result;
-	const auto roles = roleNames();
-	const BarRow& barRow = m_rows.at(row);
-	for (auto it = roles.cbegin(); it != roles.cend(); ++it) {
-		result.insert(QString::fromUtf8(it.value()), roleData(barRow, it.key()));
-	}
-	return result;
-}
-
 int Lr2SelectBarModel::sourceRowAt(int row) const {
 	return row >= 0 && row < m_rows.size() ? m_rows.at(row).sourceRow : -1;
 }

@@ -126,6 +126,7 @@ Item {
         ? ({ x: 0.5, y: 0.5 })
         : Lr2SkinUtils.centerAnchor(root.hasCurrentState ? root.stateCenter : 0)
     readonly property bool isSolidFill: !!srcData && srcData.specialType === 2
+    readonly property bool sourceIsChartAsset: Lr2SkinUtils.isChartAssetSource(srcData)
     readonly property bool hasWholeTextureSource: !!srcData && !root.isSolidFill
         && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
     readonly property bool hasCroppedTextureSource: !!srcData && !root.isSolidFill && srcData.w > 0 && srcData.h > 0
@@ -251,7 +252,7 @@ Item {
             sourceClipRect: root.animationFrameState.sourceClipRect
             fillMode: Image.Stretch
             cache: true
-            asynchronous: false
+            asynchronous: root.sourceIsChartAsset
             retainWhileLoading: true
             smooth: root.hasCurrentState && root.stateFilter !== 0
             mipmap: false
@@ -262,7 +263,7 @@ Item {
             id: atlasImage
             source: root.hasDrawableTexture && !root.useFastImagePath ? root.resolvedSource : ""
             cache: true
-            asynchronous: true
+            asynchronous: root.sourceIsChartAsset
             retainWhileLoading: true
             mipmap: false
             visible: false

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Lr2TimelineStateValue.h"
+
 #include <QSet>
 #include <QString>
 #include <QVariant>
@@ -80,30 +82,26 @@ struct Source {
     int side = 0;
     bool hasKind = false;
     int kind = 0;
+    int graphType = 0;
+    int titleType = -1;
+    int align = 0;
+    int font = 0;
+    int edit = 0;
+    int panel = 0;
+    QString fontPath;
+    QString fontFamily;
+    int fontSize = 0;
+    int fontThickness = 0;
+    int fontType = 0;
+    bool bitmapFont = false;
+    bool readme = false;
+    int readmeId = 0;
+    int readmeLineSpacing = 18;
     int specialType = 0;
     QString path;
 };
 
-struct State {
-    bool valid = false;
-    qreal x = 0;
-    qreal y = 0;
-    qreal w = 0;
-    qreal h = 0;
-    qreal a = 255;
-    qreal r = 255;
-    qreal g = 255;
-    qreal b = 255;
-    qreal angle = 0;
-    int center = 0;
-    qreal sortId = 0;
-    int blend = 0;
-    int filter = 0;
-    int op1 = 0;
-    int op2 = 0;
-    int op3 = 0;
-    int op4 = 0;
-};
+using State = ::Lr2TimelineStateValue;
 
 struct DstAnalysis {
     bool canUseStaticState = false;
@@ -121,6 +119,7 @@ bool readDst(const QVariant& value, Dst& dst);
 QVector<Dst> readDsts(const QVariantList& dsts);
 QVector<Dst> readDsts(const QVariant& dsts);
 bool readSource(const QVariant& value, Source& source);
+bool readState(const QVariant& value, State& state);
 
 DstAnalysis analyzeDsts(const QVector<Dst>& dsts);
 int animationLimitFor(const QVector<Dst>& dsts);
@@ -134,7 +133,6 @@ State currentState(const QVector<Dst>& dsts,
                    qreal timerFire,
                    const QSet<int>& activeOptions);
 State copyDstAsState(const Dst& dst, const Dst& controlDst);
-QVariant stateToVariant(const State& state);
 bool sameState(const State& lhs, const State& rhs);
 qreal applyAccel(qreal progress, int accType);
 
@@ -150,9 +148,9 @@ SpriteStateOverrideKind spriteStateOverrideKind(const QString& screenKey,
                                                 const Source& source);
 
 State translatedSliderState(State state, qreal position, int range, int direction);
-QVariant sliderTrackState(const Source& source, const State& baseState);
+State sliderTrackState(const Source& source, const State& baseState);
 qreal sliderPositionFromPointer(const Source& source,
-                                const QVariant& track,
+                                const State& track,
                                 qreal pointerX,
                                 qreal pointerY);
 bool rectContains(const QVariant& state, qreal skinX, qreal skinY);

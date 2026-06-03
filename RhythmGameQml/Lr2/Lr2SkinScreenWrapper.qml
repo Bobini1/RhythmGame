@@ -1122,7 +1122,7 @@ Item {
             skinTime,
             timers || root.timers,
             activeOptions || root.runtimeActiveOptions);
-        if (state && state.sortId !== undefined) {
+        if (state && state.valid) {
             return state.sortId;
         }
         return root.fallbackSortId(dsts);
@@ -3541,10 +3541,11 @@ Item {
 
     function updateGeneratedSelectRuntimeActiveOptions() : void {
         let next = root.effectiveScreenKey === "select"
-            ? runtimeOptions.buildSelectRuntimeActiveOptions(root.builtSelectCommonRuntimeActiveOptions)
+            ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
             : [];
         if (!root.sameNumberArray(root.builtSelectRuntimeActiveOptions, next)) {
             root.builtSelectRuntimeActiveOptions = next;
+            selectUpdateController.replaceSelectRuntimeGeneratedActiveOptions(next);
         }
     }
 
@@ -3557,9 +3558,16 @@ Item {
         }
     }
 
+    function updateGeneratedRuntimeActiveOptions() : void {
+        if (root.effectiveScreenKey === "select") {
+            root.updateGeneratedSelectRuntimeActiveOptions();
+        } else {
+            root.updateGeneratedScreenRuntimeActiveOptions();
+        }
+    }
+
     function refreshSelectRuntimeActiveOptions() : void {
-        root.updateGeneratedSelectRuntimeActiveOptions();
-        root.updateGeneratedScreenRuntimeActiveOptions();
+        root.updateGeneratedRuntimeActiveOptions();
         selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
@@ -3687,18 +3695,10 @@ Item {
         return selectUpdateController.refreshGameplayRuntimeActiveOptions();
     }
 
-    function selectChartRevisionKey(focusRevision: var, scoreRevision: var, listRevision: var, chartRevision: var) : var {
-        return focusRevision + "|" + scoreRevision + "|" + listRevision + "|" + chartRevision;
-    }
-
     property alias selectRevision: selectUpdateController.selectRevision
     property alias selectDetailRevision: selectUpdateController.selectDetailRevision
     readonly property string selectChartContentRevision: root.effectiveScreenKey === "select"
-        ? root.selectChartRevisionKey(
-            selectContext.focusRevision,
-            selectContext.scoreRevision,
-            selectContext.listRevision,
-            selectContext.visualChartContentRevision)
+        ? selectContext.visualChartContentRevision
         : ""
     readonly property string selectChartWrapperContentRevision: root.effectiveScreenKey === "select"
         ? selectContext.visualChartContentRevision
@@ -3713,9 +3713,6 @@ Item {
     readonly property var selectSkinChartWrapper: root.selectChartWrapperState
         ? root.selectChartWrapperState.wrapper
         : null
-    readonly property int selectRuntimeKeymode: root.effectiveScreenKey === "select"
-        ? runtimeOptions.chartKeymode(selectContext.selectedChartData(), selectContext.selectedItem())
-        : 0
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.selectSkinChartWrapper
         : selectSideEffects.renderChart
@@ -3724,7 +3721,7 @@ Item {
         : root.renderChart
     readonly property var selectedCourseStages: {
         if (root.effectiveScreenKey === "select") {
-            selectContext.focusRevision;
+            selectContext.visualChartContentRevision;
         }
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {
@@ -4373,7 +4370,11 @@ Item {
     }
 
     function barBaseStateAt(row: var) : var {
-        return barBaseStateResolver ? barBaseStateResolver.stateAt(row) : null;
+        if (!barBaseStateResolver) {
+            return null;
+        }
+        let state = barBaseStateResolver.stateAt(row);
+        return state && state.valid ? state : null;
     }
 
     function barRowScrollDelta(row: var) : var {
@@ -4466,13 +4467,16 @@ Item {
             196, 197, 1196, 1197, 1199, 1200,
             1202, 1203, 1205, 1206, 1207, 1208
         ])
-    readonly property bool selectScoreOptionIdsUsed: root.skinUsesSelectElementOptionRange(105, 130)
-        || root.skinUsesAnySelectElementOption([144, 145, 1100, 1101, 1102, 1103, 1104, 1128])
+    readonly property bool selectScoreOptionIdsUsed: root.skinUsesSelectElementOptionRange(118, 130)
+        || root.skinUsesAnySelectElementOption([144, 145, 1128])
     readonly property bool selectEntryStatusOptionsUsed: root.skinUsesSelectElementOptionRange(100, 130)
         || root.skinUsesSelectElementOptionRange(200, 207)
         || root.skinUsesAnySelectElementOption([1100, 1101, 1102, 1103, 1104])
     readonly property bool selectDifficultyBarOptionsUsed: root.skinUsesSelectElementOptionRange(70, 79)
-        || root.skinUsesSelectElementOptionRange(500, 565)
+        || root.skinUsesSelectElementOptionRange(500, 570)
+    readonly property bool selectDifficultyLampOptionsUsed: root.skinUsesSelectElementOptionRange(520, 570)
+    readonly property bool selectDifficultyStateUsed: root.selectDifficultyBarOptionsUsed
+        || !!skinModel.usesSelectDifficultySource
     readonly property bool selectCourseDetailOptionsUsed: root.skinUsesAnySelectElementOption([290, 293])
         || root.skinUsesSelectElementOptionRange(580, 589)
         || root.skinUsesSelectElementOptionRange(700, 755)
@@ -4492,6 +4496,10 @@ Item {
 
     function selectUsesDifficultyBarOptions() : var {
         return root.selectDifficultyBarOptionsUsed;
+    }
+
+    function selectUsesDifficultyLampOptions() : var {
+        return root.selectDifficultyLampOptionsUsed;
     }
 
     function selectUsesCourseDetailOptions() : var {
@@ -4550,9 +4558,16 @@ Item {
         barLampVariants: skinModel.barLampVariants || []
         useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics
         useBeatorajaSelectOptions: root.lr2SkinUsesBeatorajaSemantics
+        scoreOptionIdsUsed: root.selectScoreOptionIdsUsed
+        difficultyStateUsed: root.selectDifficultyStateUsed
+        difficultyLampStateUsed: root.selectDifficultyLampOptionsUsed
         generalVars: root.mainGeneralVars()
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
+        stageFileSourceUsed: skinModel.usesStageFileSource
+        backBmpSourceUsed: skinModel.usesBackBmpSource
+        bannerSourceUsed: skinModel.usesBannerSource
+        chartContentRevisionUsed: skinModel.usesSelectChartRenderer
 
         Component.onCompleted: {
             root.selectContextRef = selectContext;
@@ -4604,12 +4619,8 @@ Item {
         baseRuntimeActiveOptions: root.builtBaseRuntimeActiveOptions
         selectCommonRuntimeActiveOptions: root.builtSelectCommonRuntimeActiveOptions
         selectRequiredRuntimeActiveOptions: root.builtSelectRequiredRuntimeActiveOptions
-        selectRuntimeGeneratedActiveOptions: root.builtSelectRuntimeActiveOptions
         screenRuntimeActiveOptions: root.builtScreenRuntimeActiveOptions
         gameplayScreen: root.isGameplayScreen()
-        selectedKeymode: root.selectRuntimeKeymode
-        spToDpActive: root.spToDpActive()
-        battleModeActive: root.battleModeActive()
         onLr2RankingRequestMd5Changed: if (root.lr2RankingRequestMd5 !== lr2RankingRequestMd5) root.lr2RankingRequestMd5 = lr2RankingRequestMd5
         onRuntimeActiveOptionsChanged: if (root.runtimeActiveOptions !== runtimeActiveOptions) root.runtimeActiveOptions = runtimeActiveOptions
         onBarActiveOptionsChanged: if (root.barActiveOptions !== barActiveOptions) root.barActiveOptions = barActiveOptions
@@ -4623,9 +4634,8 @@ Item {
         onGameplayRuntimeActiveOptionsChanged: if (root.gameplayRuntimeActiveOptions !== gameplayRuntimeActiveOptions) root.gameplayRuntimeActiveOptions = gameplayRuntimeActiveOptions
         onGameplayRuntimeActiveOptionsKeyChanged: if (root.gameplayRuntimeActiveOptionsKey !== gameplayRuntimeActiveOptionsKey) root.gameplayRuntimeActiveOptionsKey = gameplayRuntimeActiveOptionsKey
         // Rebuild the QML-generated option list before the controller commits a revision refresh.
-        onFocusRevisionChanged: root.refreshSelectRuntimeActiveOptions()
-        onScoreRevisionChanged: root.refreshSelectRuntimeActiveOptions()
-        onSelectedKeymodeChanged: root.refreshSelectRuntimeActiveOptions()
+        onFocusRevisionChanged: root.updateGeneratedRuntimeActiveOptions()
+        onScoreRevisionChanged: root.updateGeneratedRuntimeActiveOptions()
         onRankingStatsApplyRequested: root.applyRankingStatsToSelectContext()
         onSelectSideEffectsUpdateRequested: root.updateSelectSideEffects()
     }

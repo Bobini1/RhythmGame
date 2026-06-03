@@ -57,13 +57,17 @@ QtObject {
             clock,
             effectiveTimerFire,
             effectiveActiveOptions);
-        if (!base) {
+        if (!base || !base.valid) {
             return null;
         }
-        return sliderGeometry.trackState(src, base);
+        let track = sliderGeometry.trackState(src, base);
+        return track && track.valid ? track : null;
     }
 
     function positionFromPointer(src: var, track: var, pointerX: var, pointerY: var) : var {
+        if (!track || !track.valid) {
+            return 0;
+        }
         return sliderGeometry.positionFromPointer(src, track, pointerX, pointerY);
     }
 
@@ -86,10 +90,11 @@ QtObject {
             clock,
             effectiveTimerFire,
             effectiveActiveOptions);
-        if (!base) {
+        if (!base || !base.valid) {
             return null;
         }
-        return sliderGeometry.translatedState(src, base, position);
+        let state = sliderGeometry.translatedState(src, base, position);
+        return state && state.valid ? state : null;
     }
 
     function selectScrollPosition(src: var) : var {
@@ -240,7 +245,7 @@ QtObject {
     }
 
     function setSelectScrollFromTrack(src: var, track: var, pointerX: var, pointerY: var) : var {
-        if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0 || !track) {
+        if (root.effectiveScreenKey !== "select" || selectContext.logicalCount <= 0 || !track || !track.valid) {
             return;
         }
 
@@ -263,7 +268,7 @@ QtObject {
     }
 
     function setGenericFromTrack(src: var, track: var, pointerX: var, pointerY: var) : var {
-        if (!track) {
+        if (!track || !track.valid) {
             return;
         }
         let position = sliders.positionFromPointer(src, track, pointerX, pointerY);

@@ -1,22 +1,10 @@
 #include "Lr2BarInterpolatedState.h"
 
-#include <QVariantMap>
 #include <QtMath>
 
-Lr2BarInterpolatedState::Lr2BarInterpolatedState(QObject* parent) : QObject(parent) {}
-
-QVariantList Lr2BarInterpolatedState::baseStates() const {
-    return {};
-}
-
-void Lr2BarInterpolatedState::setBaseStates(const QVariantList& states) {
-    m_baseStates.resize(states.size());
-    for (qsizetype i = 0; i < states.size(); ++i) {
-        m_baseStates[i] = extractState(states[i]);
-    }
-    emit baseStatesChanged();
-    updateState();
-}
+Lr2BarInterpolatedState::Lr2BarInterpolatedState(QObject* parent)
+    : QObject(parent),
+      m_state(hiddenState()) {}
 
 Lr2BarBaseStateResolver* Lr2BarInterpolatedState::baseStateResolver() const {
     return m_baseStateResolver;
@@ -37,10 +25,7 @@ void Lr2BarInterpolatedState::setBaseStateResolver(Lr2BarBaseStateResolver* reso
             m_baseStateResolver,
             &Lr2BarBaseStateResolver::baseStatesChanged,
             this,
-            [this]() {
-                emit baseStatesChanged();
-                updateState();
-            });
+            &Lr2BarInterpolatedState::updateState);
     } else {
         m_baseStateResolverConnection = {};
     }
@@ -175,41 +160,14 @@ bool Lr2BarInterpolatedState::sameReal(qreal lhs, qreal rhs) {
     return qAbs(lhs - rhs) <= 0.000001;
 }
 
-qreal Lr2BarInterpolatedState::readField(const QVariantMap& map, const QString& name, qreal fallback) {
-    const auto it = map.constFind(name);
-    return it == map.constEnd() || !it->isValid() || it->isNull() ? fallback : it->toDouble();
+Lr2BarInterpolatedState::State Lr2BarInterpolatedState::hiddenState() {
+    State state;
+    state.a = 0.0;
+    return state;
 }
 
-Lr2BarInterpolatedState::State Lr2BarInterpolatedState::extractState(const QVariant& variant) {
-    State state;
-    if (!variant.isValid() || variant.isNull()) {
-        return state;
-    }
-
-    if (variant.canConvert<QVariantMap>()) {
-        const QVariantMap map = variant.toMap();
-        state.valid = map.contains(QStringLiteral("x")) || map.contains(QStringLiteral("y"));
-        state.x = readField(map, QStringLiteral("x"), 0.0);
-        state.y = readField(map, QStringLiteral("y"), 0.0);
-        state.w = readField(map, QStringLiteral("w"), 0.0);
-        state.h = readField(map, QStringLiteral("h"), 0.0);
-        state.a = readField(map, QStringLiteral("a"), 0.0);
-        state.r = readField(map, QStringLiteral("r"), 255.0);
-        state.g = readField(map, QStringLiteral("g"), 255.0);
-        state.b = readField(map, QStringLiteral("b"), 255.0);
-        state.angle = readField(map, QStringLiteral("angle"), 0.0);
-        state.center = readField(map, QStringLiteral("center"), 0.0);
-        state.sortId = readField(map, QStringLiteral("sortId"), 0.0);
-        state.blend = readField(map, QStringLiteral("blend"), 0.0);
-        state.filter = readField(map, QStringLiteral("filter"), 0.0);
-        state.op1 = readField(map, QStringLiteral("op1"), 0.0);
-        state.op2 = readField(map, QStringLiteral("op2"), 0.0);
-        state.op3 = readField(map, QStringLiteral("op3"), 0.0);
-        state.op4 = readField(map, QStringLiteral("op4"), 0.0);
-        return state;
-    }
-
-    return state;
+Lr2BarInterpolatedState::State Lr2BarInterpolatedState::visibleState(const State& state) {
+    return state.valid ? state : hiddenState();
 }
 
 Lr2BarInterpolatedState::State Lr2BarInterpolatedState::interpolate(
@@ -240,21 +198,16 @@ Lr2BarInterpolatedState::State Lr2BarInterpolatedState::interpolate(
 }
 
 void Lr2BarInterpolatedState::updateState() {
-    State next;
-    const bool useResolver = m_baseStateResolver && m_baseStateResolver->stateCount() > 0;
-    const int stateCount = useResolver ? m_baseStateResolver->stateCount() : m_baseStates.size();
+    State next = hiddenState();
+    const int stateCount = m_baseStateResolver ? m_baseStateResolver->stateCount() : 0;
     if (m_enabled && m_row >= 0 && m_row < stateCount) {
-        const State from = useResolver
-            ? extractState(m_baseStateResolver->stateAt(m_row))
-            : m_baseStates[m_row];
+        const State from = visibleState(m_baseStateResolver->stateValueAt(m_row));
         next = from;
 
         const qreal progress = m_positionMap ? m_positionMap->scrollOffset() : 0.0;
         const State previous = progress > 0.001 && m_row > 0
-            ? (useResolver
-                ? extractState(m_baseStateResolver->stateAt(m_row - 1))
-                : m_baseStates[m_row - 1])
-            : State {};
+            ? visibleState(m_baseStateResolver->stateValueAt(m_row - 1))
+            : hiddenState();
         if (progress > 0.001 && m_row > 0 && previous.valid) {
             next = interpolate(from, previous, progress);
         }

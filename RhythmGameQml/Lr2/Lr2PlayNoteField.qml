@@ -55,17 +55,19 @@ Item {
 
     function dstStateFor(dsts: var) : var {
         if (timelineResolver.canUseStaticStateFor(dsts)) {
-            return timelineResolver.staticStateFor(dsts);
+            let staticState = timelineResolver.staticStateFor(dsts);
+            return staticState && staticState.valid ? staticState : null;
         }
         let timerFire = 0;
         if (timelineResolver.usesDynamicTimerFor(dsts)) {
             timerFire = root.timerFireFor(timelineResolver.firstTimerFor(dsts));
         }
-        return timelineResolver.stateFromTimerFire(
+        let state = timelineResolver.stateFromTimerFire(
             dsts,
             renderSkinTime,
             timerFire,
             timelineResolver.usesActiveOptionsFor(dsts) ? runtimeActiveOptions : []);
+        return state && state.valid ? state : null;
     }
 
     function timerFireFor(timer: var) : var {
@@ -117,11 +119,14 @@ Item {
         if (skinRuntime) {
             runtimeRevision;
             runtimeActiveOptionsRevision;
+            let state = null;
             if (skinRuntime.noteDstStateUsesSkinTime(index)) {
                 runtimeTimerRevision;
-                return skinRuntime.noteDstState(index, renderSkinTime);
+                state = skinRuntime.noteDstState(index, renderSkinTime);
+            } else {
+                state = skinRuntime.noteDstState(index, 0);
             }
-            return skinRuntime.noteDstState(index, 0);
+            return state && state.valid ? state : null;
         }
         return dstStateFor(noteDsts(index));
     }
@@ -130,11 +135,14 @@ Item {
         if (skinRuntime) {
             runtimeRevision;
             runtimeActiveOptionsRevision;
+            let state = null;
             if (skinRuntime.lineDstStateUsesSkinTime(index)) {
                 runtimeTimerRevision;
-                return skinRuntime.lineDstState(index, renderSkinTime);
+                state = skinRuntime.lineDstState(index, renderSkinTime);
+            } else {
+                state = skinRuntime.lineDstState(index, 0);
             }
-            return skinRuntime.lineDstState(index, 0);
+            return state && state.valid ? state : null;
         }
         return dstStateFor(lineDsts(index));
     }

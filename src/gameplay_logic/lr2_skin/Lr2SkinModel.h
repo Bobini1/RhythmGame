@@ -33,6 +33,11 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QString transColor READ transColor NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool hasTransColor READ hasTransColor NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool reloadBanner READ reloadBanner NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesStageFileSource READ usesStageFileSource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesBackBmpSource READ usesBackBmpSource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesBannerSource READ usesBannerSource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesSelectChartRenderer READ usesSelectChartRenderer NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesSelectDifficultySource READ usesSelectDifficultySource NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barCenter READ barCenter NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barAvailableStart READ barAvailableStart NOTIFY skinMetadataChanged)
     Q_PROPERTY(int barAvailableEnd READ barAvailableEnd NOTIFY skinMetadataChanged)
@@ -93,6 +98,11 @@ public:
     QString transColor() const;
     bool hasTransColor() const;
     bool reloadBanner() const;
+    bool usesStageFileSource() const;
+    bool usesBackBmpSource() const;
+    bool usesBannerSource() const;
+    bool usesSelectChartRenderer() const;
+    bool usesSelectDifficultySource() const;
     int barCenter() const;
     int barAvailableStart() const;
     int barAvailableEnd() const;
@@ -138,6 +148,11 @@ private:
     QString m_transColor = "#000000";
     bool m_hasTransColor = false;
     bool m_reloadBanner = false;
+    bool m_usesStageFileSource = false;
+    bool m_usesBackBmpSource = false;
+    bool m_usesBannerSource = false;
+    bool m_usesSelectChartRenderer = false;
+    bool m_usesSelectDifficultySource = false;
     int m_startInput = 0;
     int m_sceneTime = 0;
     int m_loadStart = 0;

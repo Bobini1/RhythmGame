@@ -31,7 +31,7 @@ QtObject {
         }
 
         const descriptor = skinRuntime ? skinRuntime.descriptor(elementIndex) : null;
-        const hasDescriptor = descriptor && descriptor.index !== undefined;
+        const hasDescriptor = descriptor && descriptor.valid;
         const buttonId = hasDescriptor && descriptor.buttonId > 0
             ? descriptor.buttonId
             : root.elementButtonId(src);
@@ -77,13 +77,14 @@ QtObject {
             return null;
         }
         const staticState = skinRuntime.staticStateForElement(element.runtimeIndex);
-        if (staticState) {
+        if (staticState && staticState.valid) {
             return staticState;
         }
         const descriptor = skinRuntime.descriptor(element.runtimeIndex);
-        return skinRuntime.stateForElement(
+        const state = skinRuntime.stateForElement(
             element.runtimeIndex,
             descriptor.usesLiveDstClock ? root.selectSourceSkinTime : root.renderSkinTime);
+        return state && state.valid ? state : null;
     }
 
     function rectContains(state: var, skinX: var, skinY: var) : var {
@@ -106,7 +107,8 @@ QtObject {
             const sliderSkinClock = descriptor.usesLiveSelectClock
                 ? root.selectSourceSkinTime
                 : root.renderSkinTime;
-            return skinRuntime.sliderTrackStateForElement(element.runtimeIndex, sliderSkinClock);
+            const state = skinRuntime.sliderTrackStateForElement(element.runtimeIndex, sliderSkinClock);
+            return state && state.valid ? state : null;
         }
         return null;
     }

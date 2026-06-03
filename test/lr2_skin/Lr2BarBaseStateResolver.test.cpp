@@ -46,13 +46,14 @@ TEST_CASE("LR2 bar base state resolver clamps non-looping single dst rows",
 
     REQUIRE(resolver.animationLimit() == 1);
     REQUIRE(baseStateChanges == 1);
-    REQUIRE(resolver.baseStates().size() == 1);
-    REQUIRE(resolver.baseStates().at(0).toMap().value(QStringLiteral("x")).toInt() == 10);
+    REQUIRE(resolver.stateCount() == 1);
+    REQUIRE(resolver.stateValueAt(0).valid);
+    REQUIRE(resolver.stateValueAt(0).x == 10);
 
     resolver.setSkinTime(20);
     REQUIRE(baseStateChanges == 2);
-    REQUIRE(resolver.baseStates().size() == 1);
-    REQUIRE_FALSE(resolver.baseStates().at(0).isValid());
+    REQUIRE(resolver.stateCount() == 1);
+    REQUIRE_FALSE(resolver.stateValueAt(0).valid);
 
     resolver.setSkinTime(40);
     REQUIRE(baseStateChanges == 2);
@@ -75,8 +76,9 @@ TEST_CASE("LR2 bar base state resolver keeps static single dst rows from ticking
 
     resolver.setSkinTime(1000);
     REQUIRE(baseStateChanges == 1);
-    REQUIRE(resolver.baseStates().size() == 1);
-    REQUIRE(resolver.baseStates().at(0).toMap().value(QStringLiteral("x")).toInt() == 30);
+    REQUIRE(resolver.stateCount() == 1);
+    REQUIRE(resolver.stateValueAt(0).valid);
+    REQUIRE(resolver.stateValueAt(0).x == 30);
 }
 
 TEST_CASE("LR2 bar position map reads resolver coordinates on attach",

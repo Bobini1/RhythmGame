@@ -21,7 +21,7 @@ Item {
     property var cachedSpeedData: []
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -37,7 +37,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var currentState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
     readonly property int fieldW: Math.max(1, srcData ? (srcData.fieldW || 1) : 1)
     readonly property int fieldH: Math.max(1, srcData ? (srcData.fieldH || 1) : 1)
     readonly property real stateW: currentState ? (currentState.w || 0) : 0

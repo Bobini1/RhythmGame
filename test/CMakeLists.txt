@@ -26,6 +26,8 @@ add_executable(RhythmGame_test
         lr2_skin/Lr2SelectDetailState.test.cpp
         lr2_skin/Lr2SkinParser.test.cpp
         lr2_skin/Lr2SkinRuntimeTypes.test.cpp
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2TimelineStateValue.h
+        ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SkinElementDescriptorValue.h
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2BarBaseStateResolver.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2BarPositionMap.cpp
         ${CMAKE_SOURCE_DIR}/RhythmGameQml/Lr2/Lr2SkinClock.cpp

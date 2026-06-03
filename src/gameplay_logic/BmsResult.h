@@ -276,7 +276,7 @@ class BmsResult final : public QObject
     auto getMineCount() const -> int;
     auto getPoints() const -> double;
     auto getMaxCombo() const -> int;
-    auto getJudgementCounts() const -> QList<int>;
+    auto getJudgementCounts() const -> const QList<int>&;
     auto getMineHits() const -> int;
     auto getClearType() const -> const QString&;
     auto getRandomSequence() -> const QList<qint64>&;

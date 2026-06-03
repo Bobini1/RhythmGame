@@ -2,10 +2,10 @@
 
 #include "Lr2SelectBarCell.h"
 #include "Lr2SkinClock.h"
+#include "Lr2SkinRuntimeTypes.h"
 
 #include <QImageReader>
 #include <QMatrix4x4>
-#include <QMetaProperty>
 #include <QQuickWindow>
 #include <QSGGeometryNode>
 #include <QSGMaterial>
@@ -13,13 +13,14 @@
 #include <QtGlobal>
 #include <QtMath>
 #include <QUrl>
-#include <QVariantMap>
 #include <algorithm>
 #include <cstring>
 #include <cmath>
 #include <vector>
 
 namespace {
+
+namespace rt = lr2skin::runtime;
 
 constexpr int uniformSize = 112;
 constexpr int manualClock = 0;
@@ -89,65 +90,6 @@ graphAttributes()
     return set;
 }
 
-qreal
-toReal(const QVariant& value, qreal fallback = 0.0)
-{
-    if (!value.isValid() || value.isNull()) {
-        return fallback;
-    }
-    bool ok = false;
-    const qreal result = value.toReal(&ok);
-    return ok ? result : fallback;
-}
-
-int
-toInt(const QVariant& value, int fallback = 0)
-{
-    if (!value.isValid() || value.isNull()) {
-        return fallback;
-    }
-    bool ok = false;
-    const int result = value.toInt(&ok);
-    return ok ? result : fallback;
-}
-
-QVariant
-gadgetProperty(const QVariant& source, const char* name)
-{
-    const QMetaObject* metaObject = source.metaType().metaObject();
-    if (!metaObject) {
-        return {};
-    }
-    const int propertyIndex = metaObject->indexOfProperty(name);
-    return propertyIndex < 0 ? QVariant{}
-                             : metaObject->property(propertyIndex)
-                                 .readOnGadget(source.constData());
-}
-
-QVariant
-valueProperty(const QVariant& source, const char* name)
-{
-    if (!source.isValid() || source.isNull()) {
-        return {};
-    }
-    if (source.canConvert<QVariantMap>()) {
-        const QVariantMap map = source.toMap();
-        const auto it = map.constFind(QString::fromLatin1(name));
-        return it == map.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QVariantHash>()) {
-        const QVariantHash hash = source.toHash();
-        const auto it = hash.constFind(QString::fromLatin1(name));
-        return it == hash.constEnd() ? QVariant() : *it;
-    }
-    if (source.canConvert<QObject*>()) {
-        if (QObject* object = source.value<QObject*>()) {
-            return object->property(name);
-        }
-    }
-    return gadgetProperty(source, name);
-}
-
 bool
 sourceUsesChartAsset(int specialType)
 {
@@ -198,27 +140,33 @@ localPathForSource(const QString& source)
 }
 
 GraphState
-stateFromVariant(const QVariant& value)
+stateFromDst(const rt::Dst& dst)
 {
     GraphState state;
-    if (!value.isValid() || value.isNull()) {
-        return state;
-    }
-
-    state.valid = true;
-    state.x = toReal(valueProperty(value, "x"));
-    state.y = toReal(valueProperty(value, "y"));
-    state.w = toReal(valueProperty(value, "w"));
-    state.h = toReal(valueProperty(value, "h"));
-    state.a = toReal(valueProperty(value, "a"), 255.0);
-    state.r = toReal(valueProperty(value, "r"), 255.0);
-    state.g = toReal(valueProperty(value, "g"), 255.0);
-    state.b = toReal(valueProperty(value, "b"), 255.0);
-    state.angle = toReal(valueProperty(value, "angle"));
-    state.center = toInt(valueProperty(value, "center"));
-    state.blend = toInt(valueProperty(value, "blend"));
-    state.filter = toInt(valueProperty(value, "filter"));
+    state.valid = dst.valid;
+    state.x = dst.x;
+    state.y = dst.y;
+    state.w = dst.w;
+    state.h = dst.h;
+    state.a = dst.a;
+    state.r = dst.r;
+    state.g = dst.g;
+    state.b = dst.b;
+    state.angle = dst.angle;
+    state.center = dst.center;
+    state.blend = dst.blend;
+    state.filter = dst.filter;
     return state;
+}
+
+GraphState
+stateFromVariant(const QVariant& value)
+{
+    rt::Dst dst;
+    if (rt::readDst(value, dst)) {
+        return stateFromDst(dst);
+    }
+    return {};
 }
 
 QPointF
@@ -856,24 +804,25 @@ Lr2BarDistributionGraphItem::setChartAssetSource(const QString& value)
 void
 Lr2BarDistributionGraphItem::parseSource()
 {
-    if (!m_srcData.isValid() || m_srcData.isNull()) {
+    rt::Source source;
+    if (!rt::readSource(m_srcData, source)) {
         m_source = {};
         m_sourcePath.clear();
         loadSourceImage();
         return;
     }
 
-    m_source.graphType = toInt(valueProperty(m_srcData, "graphType"));
-    m_source.specialType = toInt(valueProperty(m_srcData, "specialType"));
-    m_source.x = toReal(valueProperty(m_srcData, "x"));
-    m_source.y = toReal(valueProperty(m_srcData, "y"));
-    m_source.w = toReal(valueProperty(m_srcData, "w"));
-    m_source.h = toReal(valueProperty(m_srcData, "h"));
-    m_source.divX = std::max(1, toInt(valueProperty(m_srcData, "div_x"), 1));
-    m_source.divY = std::max(1, toInt(valueProperty(m_srcData, "div_y"), 1));
-    m_source.cycle = toInt(valueProperty(m_srcData, "cycle"));
-    m_source.timer = toInt(valueProperty(m_srcData, "timer"));
-    m_sourcePath = valueProperty(m_srcData, "source").toString();
+    m_source.graphType = source.graphType;
+    m_source.specialType = source.specialType;
+    m_source.x = source.x;
+    m_source.y = source.y;
+    m_source.w = source.w;
+    m_source.h = source.h;
+    m_source.divX = source.divX;
+    m_source.divY = source.divY;
+    m_source.cycle = source.cycle;
+    m_source.timer = source.timer;
+    m_sourcePath = source.path;
     loadSourceImage();
 }
 

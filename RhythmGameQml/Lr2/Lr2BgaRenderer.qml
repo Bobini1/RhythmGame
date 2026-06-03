@@ -22,7 +22,7 @@ Item {
     readonly property alias layer2Sink: videoLayer2.videoSink
     readonly property alias poorSink: videoPoor.videoSink
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-    readonly property var staticTimelineState: hasStaticTimelineState
+    readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
@@ -36,7 +36,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property var currentState: staticTimelineState
-        || timelineState.state
+        || (timelineState.hasState ? timelineState.state : null)
     readonly property var anchor: Lr2SkinUtils.centerAnchor(currentState ? currentState.center : 0)
     readonly property var bgaContainer: chart && chart.bga ? chart.bga : null
     readonly property real sourceW: Math.max(videoBase.sourceRect.width,
