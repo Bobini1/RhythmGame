@@ -70,7 +70,9 @@ QtObject {
 
     function setRuntimeOptionRange(options: var, first: var, last: var, option: var) : void {
         root.removeRuntimeOptionRange(options, first, last);
-        root.addRuntimeOption(options, option);
+        if (option !== undefined && option !== null && option > 0) {
+            root.addRuntimeOption(options, option);
+        }
     }
 
     function addOption(options: var, option: var) : void {
@@ -215,6 +217,7 @@ QtObject {
         let usesHighLevelOption = root.runtimeOptionRangeUsed(usedOptions, 185, 186);
         let usesDifficultyOption = root.runtimeOptionRangeUsed(usedOptions, 150, 155);
         let keymode = root.chartKeymode(chartData, fallbackItem);
+        let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
         root.appendChartKeymodeOptions(options, keymode);
 
         if (!chartData) {
@@ -242,7 +245,10 @@ QtObject {
             if (usesRandomOption) {
                 root.addOption(options, 178);
             }
-            root.setRuntimeOptionRange(options, 180, 184, selectContext.judgeOption(null, fallbackItem));
+            root.setRuntimeOptionRange(options,
+                                       180,
+                                       184,
+                                       suppressJudgeOption ? 0 : selectContext.judgeOption(null, fallbackItem));
             root.appendReplayOptions(options, null);
             if (usesDifficultyOption) {
                 root.addOption(options, 150);
@@ -276,7 +282,10 @@ QtObject {
         if (usesRandomOption) {
             root.addOption(options, chartData.isRandom ? 179 : 178);
         }
-        root.setRuntimeOptionRange(options, 180, 184, selectContext.judgeOption(chartData, fallbackItem));
+        root.setRuntimeOptionRange(options,
+                                   180,
+                                   184,
+                                   suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem));
         if (usesHighLevelOption) {
             root.addOption(options, selectContext.highLevelOption(chartData));
         }

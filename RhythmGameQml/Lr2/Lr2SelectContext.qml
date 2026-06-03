@@ -3944,15 +3944,55 @@ Item {
         return !!chart && ((chart.lnCount || 0) + (chart.bssCount || 0)) > 0;
     }
 
-    function judgeOption(chart: var) : var {
-        if (isMissingTableEntry(chart)) {
+    function chartRankValue(value: var) : var {
+        if (!value) {
+            return NaN;
+        }
+        if (value.chartData) {
+            return chartRankValue(value.chartData);
+        }
+        if (value.rawItem) {
+            return chartRankValue(value.rawItem);
+        }
+        if (value.rank === undefined || value.rank === null) {
+            return NaN;
+        }
+        let rank = Number(value.rank);
+        return isFinite(rank) ? rank : NaN;
+    }
+
+    function judgeRank(chart: var, fallbackItem: var) : var {
+        let rank = chartRankValue(chart);
+        if (!isFinite(rank) && fallbackItem && !isFolderLikeForLamp(fallbackItem)) {
+            rank = chartRankValue(fallbackItem);
+        }
+        if (!isFinite(rank) && (isChart(chart) || isEntry(chart)
+                || isChart(fallbackItem) || isEntry(fallbackItem))) {
+            return 75;
+        }
+        return rank;
+    }
+
+    function judgeOption(chart: var, fallbackItem: var) : var {
+        if (isMissingTableEntry(chart) || isMissingTableEntry(fallbackItem)) {
             return 180;
         }
-        let rank = chart ? (chart.rank || 75) : 75;
-        if (rank <= 25) return 180;
-        if (rank <= 50) return 181;
-        if (rank <= 75) return 182;
-        return 183;
+        if (isFolderLikeForLamp(chart) || (!chart && isFolderLikeForLamp(fallbackItem))) {
+            return 0;
+        }
+        let rank = judgeRank(chart, fallbackItem);
+        if (!isFinite(rank)) {
+            return 0;
+        }
+        let option = 183;
+        if (rank <= 25) {
+            option = 180;
+        } else if (rank <= 50) {
+            option = 181;
+        } else if (rank <= 75) {
+            option = 182;
+        }
+        return option;
     }
 
     function highLevelOption(chart: var) : var {
