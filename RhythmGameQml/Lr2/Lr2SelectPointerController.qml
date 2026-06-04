@@ -1,6 +1,4 @@
 pragma ValueTypeBehavior: Addressable
-import RhythmGameQml
-
 import QtQuick
 
 QtObject {
@@ -25,8 +23,12 @@ QtObject {
         return result;
     }
 
-    function registerElement(elementIndex: var, type: var, src: var, z: var) : var {
-        if (!ready || type !== 0 || !src) {
+    function registerElement(elementIndex: var, type: var, src: var, z: var, dsts: var) : var {
+        if (!ready) {
+            return;
+        }
+        if (type !== 0 || !src) {
+            unregisterElement(elementIndex);
             return;
         }
 
@@ -42,6 +44,7 @@ QtObject {
             ? descriptor.genericSlider
             : root.isLr2GenericSlider(src);
         if (buttonId <= 0 && !selectScroll && !genericSlider) {
+            unregisterElement(elementIndex);
             return;
         }
 
@@ -53,6 +56,7 @@ QtObject {
             z: z || 0,
             buttonId: buttonId,
             sourceCount: root.elementSourceFrameCount(src),
+            replayType: replayTypeForDsts(dsts),
             selectScroll: selectScroll,
             genericSlider: genericSlider
         };
@@ -201,6 +205,153 @@ QtObject {
             : { kind: "blank", skinX: skinX, skinY: skinY };
     }
 
+    function replayLabel(replayType: var) : var {
+        switch (Math.floor(replayType || 0)) {
+        case 0:
+            return qsTr("NEWEST");
+        case 1:
+            return qsTr("BEST SCORE");
+        case 2:
+            return qsTr("BEST CLEAR");
+        case 3:
+            return qsTr("BEST COMBO");
+        default:
+            return "";
+        }
+    }
+
+    function replayTypeForButton(buttonId: var) : var {
+        switch (Math.floor(buttonId || 0)) {
+        case 19:
+        case 83:
+            return root.lr2ReplayType;
+        case 316:
+            return 1;
+        case 317:
+            return 2;
+        case 318:
+            return 3;
+        default:
+            return -1;
+        }
+    }
+
+    function replayTypeForOption(option: var) : var {
+        switch (Math.floor(option || 0)) {
+        case 197:
+        case 1205:
+            return 0;
+        case 1197:
+        case 1206:
+            return 1;
+        case 1200:
+        case 1207:
+            return 2;
+        case 1203:
+        case 1208:
+            return 3;
+        default:
+            return -1;
+        }
+    }
+
+    function replayTypeForDst(dst: var) : var {
+        if (!dst) {
+            return -1;
+        }
+        let type = replayTypeForOption(dst.op1);
+        if (type >= 0) {
+            return type;
+        }
+        type = replayTypeForOption(dst.op2);
+        if (type >= 0) {
+            return type;
+        }
+        type = replayTypeForOption(dst.op3);
+        if (type >= 0) {
+            return type;
+        }
+        return replayTypeForOption(dst.op4);
+    }
+
+    function replayTypeForDsts(dsts: var) : var {
+        const count = dsts ? (dsts.length || 0) : 0;
+        for (let i = 0; i < count; ++i) {
+            const type = replayTypeForDst(dsts[i]);
+            if (type >= 0) {
+                return type;
+            }
+        }
+        return -1;
+    }
+
+    function replayTypeForTarget(target: var) : var {
+        if (!target || !target.element) {
+            return -1;
+        }
+        return target.element.replayType >= 0
+            ? target.element.replayType
+            : replayTypeForButton(target.element.buttonId);
+    }
+
+    function replayActionTypeForTarget(target: var) : var {
+        if (!target || !target.element || target.element.replayType < 0) {
+            return -1;
+        }
+        switch (Math.floor(target.element.buttonId || 0)) {
+        case 19:
+        case 316:
+        case 317:
+        case 318:
+            return target.element.replayType;
+        default:
+            return -1;
+        }
+    }
+
+    function replayTooltipTargetAt(x: var, y: var) : var {
+        const target = targetAt(x, y, Qt.LeftButton);
+        if (!target || target.kind !== "button" || !target.element) {
+            return null;
+        }
+
+        const label = replayLabel(replayTypeForTarget(target));
+        if (label.length <= 0) {
+            return null;
+        }
+
+        const state = target.state || elementState(target.element);
+        if (!state) {
+            return null;
+        }
+
+        const left = Math.min(state.x, state.x + state.w) * skinScale;
+        const top = Math.min(state.y, state.y + state.h) * skinScale;
+        const width = Math.abs(state.w) * skinScale;
+        const height = Math.abs(state.h) * skinScale;
+        return {
+            text: label,
+            x: left,
+            y: top,
+            w: width,
+            h: height
+        };
+    }
+
+    function clickReplayType(replayType: var, mouse: var) : var {
+        let targetItem = selectContext.activationItem();
+        let replayScore = selectContext.replayScoreForType(targetItem, replayType);
+        if (!replayScore) {
+            return false;
+        }
+        if (mouse.button === Qt.RightButton) {
+            selectContext.openReplayResult(targetItem, replayScore);
+            return true;
+        }
+        root.selectGoForward(targetItem, false, mouse.button !== Qt.MiddleButton, replayScore);
+        return true;
+    }
+
     function updateSlider(target: var, x: var, y: var) : var {
         if (!ready || !target || target.kind !== "slider") {
             return;
@@ -236,6 +387,13 @@ QtObject {
             target.element.src,
             target.skinX - left,
             width);
+        const replayType = replayActionTypeForTarget(target);
+        if (replayType >= 0) {
+            root.resetSelectSearch();
+            clickReplayType(replayType, mouse);
+            mouse.accepted = true;
+            return;
+        }
         root.handleLr2Button(
             target.element.buttonId,
             delta,

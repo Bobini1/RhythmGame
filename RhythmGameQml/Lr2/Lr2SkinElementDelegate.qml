@@ -34,6 +34,7 @@ Loader {
     readonly property var elementData: ({ type: type, src: src, dsts: dsts || [] })
     readonly property bool elementSourceTreeAnimates: Lr2SkinUtils.sourceTreeCyclesContinuously(src)
     readonly property bool elementSourceTreeUsesChartAsset: Lr2SkinUtils.sourceTreeUsesChartAsset(src)
+    property bool componentCompleted: false
 
     readonly property var elementState: {
         elemLoader.runtimeRevision;
@@ -201,10 +202,26 @@ Loader {
         }
     }
 
+    function registerPointerElement() : void {
+        if (!componentCompleted) {
+            return;
+        }
+        pointerController.registerElement(
+            elementIndex,
+            elemLoader.elementData.type,
+            elemLoader.elementData.src,
+            elementState.z || 0,
+            elemLoader.elementData.dsts);
+    }
+
+    onElementDataChanged: registerPointerElement()
+    onElementStateChanged: registerPointerElement()
+
     Component.onCompleted: {
+        componentCompleted = true;
         elemLoader.screenRoot.registerSelectHoverElement(elementIndex, elemLoader.elementData.src, usesSpriteForceHidden);
         elemLoader.screenRoot.registerSelectButtonSource(elementIndex, elemLoader.elementData.src);
-        pointerController.registerElement(elementIndex, elemLoader.elementData.type, elemLoader.elementData.src, elementState.z || 0);
+        registerPointerElement();
     }
     Component.onDestruction: {
         elemLoader.screenRoot.unregisterSelectHoverElement(elementIndex);

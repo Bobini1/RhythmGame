@@ -111,6 +111,7 @@ Item {
     property var gameplayHitTimerStarts: ({})
     property var gameplayLongNoteTimerStarts: ({})
     property bool gameplayResultOpened: false
+    property bool gameplayCourseResultPending: false
     property bool gameplayShowedCourseResult: false
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
@@ -1863,6 +1864,14 @@ Item {
         return !!(root.chart && root.chart.chartDatas && root.chart.currentChartIndex !== undefined);
     }
 
+    function isFinalCourseStage() : var {
+        if (!root.isCourseGameplay() || !root.chart.chartDatas) {
+            return false;
+        }
+        let chartCount = root.chart.chartDatas.length || 0;
+        return chartCount > 0 && (root.chart.currentChartIndex || 0) >= chartCount - 1;
+    }
+
     function gameplayProfiles() : var {
         return [
             root.chart && root.chart.player1 ? root.chart.player1.profile : null,
@@ -1908,7 +1917,8 @@ Item {
 
         root.forceActiveFocus();
         if (root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            if (root.isCourseGameplay() && !root.gameplayShowedCourseResult) {
+            if (root.isCourseGameplay() && root.gameplayCourseResultPending && !root.gameplayShowedCourseResult) {
+                root.gameplayCourseResultPending = false;
                 root.gameplayShowedCourseResult = true;
                 let profiles = root.gameplayProfiles();
                 let chartDatas = root.chart.chartDatas;
@@ -1916,6 +1926,12 @@ Item {
                 Qt.callLater(() => {
                     if (root.enabled && root.isGameplayScreen() && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
                         globalRoot.openCourseResult(root.chart.finish(), profiles, chartDatas, course);
+                    }
+                });
+            } else if (root.isCourseGameplay() && !root.gameplayResultOpened) {
+                Qt.callLater(() => {
+                    if (root.enabled && root.isGameplayScreen() && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                        root.openGameplayStageResult();
                     }
                 });
             } else {
@@ -1953,7 +1969,11 @@ Item {
 
         let chartData = root.gameplayChartData();
         let profiles = root.gameplayProfiles();
+        let finalCourseStage = root.isFinalCourseStage();
         let scores = root.chart instanceof ChartRunner ? root.chart.finish() : root.chart.proceed();
+        if (finalCourseStage) {
+            root.gameplayCourseResultPending = true;
+        }
         globalRoot.openResult(scores, profiles, chartData);
     }
 
@@ -3846,6 +3866,7 @@ Item {
         }
         if (root.isGameplayScreen()) {
             root.gameplayResultOpened = false;
+            root.gameplayCourseResultPending = false;
             root.gameplayShowedCourseResult = false;
             root.gameplayPlayStopped = false;
             root.gameplayNothingWasHit = true;
@@ -3869,6 +3890,7 @@ Item {
         }
         root.refreshGameplayRuntimeActiveOptions();
         root.gameplayResultOpened = false;
+        root.gameplayCourseResultPending = false;
         root.gameplayShowedCourseResult = false;
         root.gameplayPlayStopped = false;
         root.gameplayNothingWasHit = true;
@@ -3900,6 +3922,7 @@ Item {
             root.updateGameplayStaticNumberRevision();
             root.refreshGameplayRuntimeActiveOptions();
             root.gameplayResultOpened = false;
+            root.gameplayCourseResultPending = false;
             root.gameplayPlayStopped = false;
             root.gameplayNothingWasHit = true;
             root.resetGameplayTimers();

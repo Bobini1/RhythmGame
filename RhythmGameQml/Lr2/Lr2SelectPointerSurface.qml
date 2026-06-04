@@ -1,6 +1,6 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
-import RhythmGameQml
+import QtQuick.Controls
 
 Item {
     id: pointerSurface
@@ -10,6 +10,45 @@ Item {
     required property var skinModel
     required property var pointerController
     required property bool active
+    readonly property string replayTooltipRevision: {
+        const runtimeRevision = pointerSurface.pointerController.skinRuntime
+            ? pointerSurface.pointerController.skinRuntime.activeOptionsRevision
+            : 0;
+        return [
+            pointerSurface.screenRoot.selectRevision,
+            pointerSurface.screenRoot.selectChartContentRevision,
+            runtimeRevision
+        ].join("|");
+    }
+    readonly property var replayTooltipTarget: pointerSurface.replayTooltipRevision.length >= 0
+        && pointerSurface.active && mouseArea.containsMouse
+        ? pointerSurface.pointerController.replayTooltipTargetAt(mouseArea.mouseX, mouseArea.mouseY)
+        : null
+    readonly property string replayTooltipText: pointerSurface.replayTooltipTarget
+        ? pointerSurface.replayTooltipTarget.text
+        : ""
+    readonly property string replayTooltipTargetKey: {
+        const target = pointerSurface.replayTooltipTarget;
+        if (!target || pointerSurface.replayTooltipText.length <= 0) {
+            return "";
+        }
+        return [
+            pointerSurface.replayTooltipRevision,
+            target.text,
+            target.x,
+            target.y,
+            target.w,
+            target.h
+        ].join("|");
+    }
+
+    onReplayTooltipTargetKeyChanged: {
+        replayTooltipShowTimer.stop();
+        replayTooltipPopup.displayText = "";
+        if (pointerSurface.replayTooltipTargetKey.length > 0) {
+            replayTooltipShowTimer.restart();
+        }
+    }
 
     MouseArea {
         id: mouseArea
@@ -19,6 +58,7 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         propagateComposedEvents: true
         preventStealing: true
+        hoverEnabled: true
 
         property var pressedTarget: ({ kind: "none" })
 
@@ -117,6 +157,51 @@ Item {
         }
 
         onWheel: (wheel) => pointerSurface.screenRoot.handleSelectWheel(wheel)
+    }
+
+    Item {
+        id: replayTooltipAnchor
+        x: pointerSurface.replayTooltipTarget ? pointerSurface.replayTooltipTarget.x : 0
+        y: pointerSurface.replayTooltipTarget ? pointerSurface.replayTooltipTarget.y : 0
+        width: pointerSurface.replayTooltipTarget ? pointerSurface.replayTooltipTarget.w : 0
+        height: pointerSurface.replayTooltipTarget ? pointerSurface.replayTooltipTarget.h : 0
+    }
+
+    ToolTip {
+        id: replayTooltipPopup
+        parent: pointerSurface
+        visible: displayText.length > 0
+        text: displayText
+        delay: 0
+        timeout: -1
+        x: {
+            const maxX = Math.max(0, pointerSurface.width - width);
+            const centered = replayTooltipAnchor.x + replayTooltipAnchor.width / 2 - width / 2;
+            return Math.max(0, Math.min(maxX, centered));
+        }
+        y: {
+            const margin = 6;
+            const above = replayTooltipAnchor.y - height - margin;
+            const below = replayTooltipAnchor.y + replayTooltipAnchor.height + margin;
+            const preferred = above >= 0 ? above : below;
+            const maxY = Math.max(0, pointerSurface.height - height);
+            return Math.max(0, Math.min(maxY, preferred));
+        }
+
+        property string displayText: ""
+    }
+
+    Timer {
+        id: replayTooltipShowTimer
+        interval: 500
+        repeat: false
+
+        onTriggered: {
+            if (pointerSurface.replayTooltipTargetKey.length <= 0) {
+                return;
+            }
+            replayTooltipPopup.displayText = pointerSurface.replayTooltipText;
+        }
     }
 
     function updateHoverPoint() : void {
