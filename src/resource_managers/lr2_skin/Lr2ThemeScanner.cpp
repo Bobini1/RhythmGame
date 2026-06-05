@@ -86,6 +86,73 @@ makeSafeId(QString text, const QString& fallback) -> QString
     return text.isEmpty() ? fallback : text;
 }
 
+struct SettingsIdState
+{
+    QHash<QString, int> usedIds;
+    QHash<int, QString> duplicateFallbacks;
+    QHash<int, QString> itemTypes;
+};
+
+auto
+availableSettingsId(QString id, const QHash<QString, int>& usedIds) -> QString
+{
+    if (id.isEmpty()) {
+        id = QStringLiteral("setting");
+    }
+    if (!usedIds.contains(id)) {
+        return id;
+    }
+
+    const auto base = id;
+    int suffix = 2;
+    do {
+        id = QStringLiteral("%1_%2").arg(base).arg(suffix++);
+    } while (usedIds.contains(id));
+    return id;
+}
+
+auto
+assignSettingsItemId(const QString& text,
+                     const QString& fallback,
+                     const QString& type,
+                     const int itemIndex,
+                     QJsonArray& itemsArray,
+                     SettingsIdState& state) -> QString
+{
+    const auto baseId = makeSafeId(text, fallback);
+    const auto fallbackId = makeSafeId(fallback,
+                                       QStringLiteral("setting_%1")
+                                         .arg(itemIndex));
+
+    // LR2 skins often have an option and its backing file picker named almost
+    // the same, for example SUDDEN+ Lanecover and SUDDEN Lanecover. Preserve
+    // the historical file id when that happens, and move the choice to its
+    // option-number fallback so saved file selections keep working.
+    if (type == QStringLiteral("file") && state.usedIds.contains(baseId)) {
+        const auto previousIndex = state.usedIds.value(baseId);
+        if (state.itemTypes.value(previousIndex) == QStringLiteral("choice")) {
+            auto previousItem = itemsArray[previousIndex].toObject();
+            const auto previousFallback =
+              state.duplicateFallbacks.value(previousIndex,
+                                             QStringLiteral("setting_%1")
+                                               .arg(previousIndex));
+            const auto previousId =
+              availableSettingsId(previousFallback, state.usedIds);
+            previousItem[QStringLiteral("id")] = previousId;
+            itemsArray[previousIndex] = previousItem;
+            state.usedIds.remove(baseId);
+            state.usedIds.insert(previousId, previousIndex);
+        }
+    }
+
+    const auto id = availableSettingsId(
+      state.usedIds.contains(baseId) ? fallbackId : baseId, state.usedIds);
+    state.usedIds.insert(id, itemIndex);
+    state.duplicateFallbacks.insert(itemIndex, fallbackId);
+    state.itemTypes.insert(itemIndex, type);
+    return id;
+}
+
 auto
 findLr2filesRoot(const std::filesystem::path& currentDir)
   -> std::filesystem::path
@@ -141,6 +208,45 @@ pathOrWildcardParentExists(const std::filesystem::path& path) -> bool
     const auto probe = pathText.contains('*') ? path.parent_path() : path;
     std::error_code ec;
     return !probe.empty() && std::filesystem::exists(probe, ec);
+}
+
+auto
+customFileDefault(const std::filesystem::path& directory,
+                  const QString& defaultStem) -> QString
+{
+    QString firstSelectable;
+    std::error_code ec;
+    if (!std::filesystem::exists(directory, ec)) {
+        return {};
+    }
+
+    for (auto iterator = std::filesystem::directory_iterator(directory, ec);
+         iterator != std::filesystem::directory_iterator{};
+         iterator.increment(ec)) {
+        if (ec) {
+            break;
+        }
+
+        const auto& fileEntry = *iterator;
+        if (!fileEntry.is_regular_file()) {
+            continue;
+        }
+
+        const auto filename = support::pathToQString(
+          fileEntry.path().filename());
+        if (filename.startsWith('.') || filename.endsWith(".ini")) {
+            continue;
+        }
+        if (firstSelectable.isEmpty()) {
+            firstSelectable = filename;
+        }
+        if (!defaultStem.isEmpty() &&
+            support::pathToQString(fileEntry.path().stem()) == defaultStem) {
+            return filename;
+        }
+    }
+
+    return firstSelectable;
 }
 
 auto
@@ -233,6 +339,7 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
     }
 
     QJsonArray itemsArray;
+    SettingsIdState idState;
     bool beatorajaSkin = false;
     const auto lines = decodeSkinText(file.readAll()).split('\n');
     for (auto line : lines) {
@@ -286,7 +393,13 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
 
             QJsonObject item;
             item["type"] = "choice";
-            item["id"] = makeSafeId(name, "opt_" + optionId);
+            item["id"] = assignSettingsItemId(
+              name,
+              "opt_" + optionId,
+              QStringLiteral("choice"),
+              static_cast<int>(itemsArray.size()),
+              itemsArray,
+              idState);
             QJsonObject nameObj;
             nameObj["en"] = name;
             item["name"] = nameObj;
@@ -310,33 +423,28 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
 
             QJsonObject item;
             item["type"] = "file";
-            item["id"] =
-              makeSafeId(name, "file_" + QString::number(itemsArray.size()));
+            item["id"] = assignSettingsItemId(
+              name,
+              "file_" + QString::number(itemsArray.size()),
+              QStringLiteral("file"),
+              static_cast<int>(itemsArray.size()),
+              itemsArray,
+              idState);
             QJsonObject nameObj;
             nameObj["en"] = name;
             item["name"] = nameObj;
             item["path"] = rel;
 
+            QString defaultFile;
             if (parts.size() >= 4) {
-                const auto defaultStem = parts[3].trimmed();
-                if (!defaultStem.isEmpty()) {
-                    std::error_code ec;
-                    if (std::filesystem::exists(absoluteDir, ec)) {
-                        for (const auto& fileEntry :
-                             std::filesystem::directory_iterator(absoluteDir,
-                                                                 ec)) {
-                            if (!fileEntry.is_regular_file()) {
-                                continue;
-                            }
-                            if (support::pathToQString(
-                                  fileEntry.path().stem()) == defaultStem) {
-                                item["default"] = support::pathToQString(
-                                  fileEntry.path().filename());
-                                break;
-                            }
-                        }
-                    }
-                }
+                defaultFile =
+                  customFileDefault(absoluteDir, parts[3].trimmed());
+            }
+            if (defaultFile.isEmpty()) {
+                defaultFile = customFileDefault(absoluteDir, {});
+            }
+            if (!defaultFile.isEmpty()) {
+                item["default"] = defaultFile;
             }
 
             itemsArray.append(item);

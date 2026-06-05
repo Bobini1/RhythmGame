@@ -5,6 +5,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <QtConcurrent>
+#include <QSet>
 #include "Vars.h"
 
 #include "qml_components/FileQuery.h"
@@ -1242,7 +1243,18 @@ struct ScreenVarsPopulationResult
 {
     QHash<QString, QVariant> screenVars;
     QHash<QString, QString> fileTypeProperties;
+    QHash<QString, QSet<QString>> choiceTypeProperties;
 };
+
+auto
+choiceValues(const QJsonObject& object) -> QSet<QString>
+{
+    auto values = QSet<QString>{};
+    for (const auto& choice : object["choices"].toArray()) {
+        values.insert(choice.toObject()["value"].toString());
+    }
+    return values;
+}
 
 void
 createProperty(ScreenVarsPopulationResult& result,
@@ -1279,6 +1291,8 @@ createProperty(ScreenVarsPopulationResult& result,
         createColorProperty(result.screenVars, object);
     } else if (object["type"] == "choice") {
         createChoiceProperty(result.screenVars, object);
+        result.choiceTypeProperties.insert(object["id"].toString(),
+                                           choiceValues(object));
     } else if (object["type"] == "checkbox") {
         createCheckBoxProperty(result.screenVars, object);
     } else if (object["type"] == "string") {
@@ -1489,9 +1503,23 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                         .string(),
                       result[screen][key].toString().toStdString());
                 }
+            } else if (vars[screen].choiceTypeProperties.contains(key)) {
+                if (value.typeId() == QMetaType::QString &&
+                    vars[screen].choiceTypeProperties[key].contains(
+                      value.toString())) {
+                    result[screen][key] = value;
+                } else {
+                    spdlog::debug(
+                      "The saved choice property {} of screen {} of theme {} "
+                      "is not one of the available choices, will use the "
+                      "default instead ({}).",
+                      key.toStdString(),
+                      screen.toStdString(),
+                      themePath.string(),
+                      result[screen][key].toString().toStdString());
+                }
             } else {
-                result[screen][key] =
-                  contents[screen].toObject()[key].toVariant();
+                result[screen][key] = value;
             }
         }
     }

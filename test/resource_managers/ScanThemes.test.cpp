@@ -150,3 +150,82 @@ TEST_CASE("LR2 skin scanner reads no-BOM headers as CP932",
             .toObject()[QStringLiteral("en")]
             .toString() == QString(QChar(0x3044)) + QStringLiteral("(Alt)"));
 }
+
+TEST_CASE("LR2 skin scanner falls back to first custom file when default stem is missing",
+          "[themes][lr2][settings]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto skinRoot = themesRoot / "MissingDefaultSkin";
+
+    writeLr2SkinBytes(skinRoot / "cover" / "Default.png",
+                      QByteArray("image", 5));
+    writeLr2SkinBytes(
+      skinRoot / "play7.lr2skin",
+      QByteArray("#INFORMATION,0,Missing Default,Tester\n"
+                 "#CUSTOMFILE,Cover,cover/*.png,Random\n"
+                 "#ENDOFHEADER\n"));
+
+    const auto themes = resource_managers::scanThemes(themesRoot);
+
+    const auto familyName = QStringLiteral("Missing Default (play7.lr2skin)");
+    REQUIRE(themes.contains(familyName));
+
+    const auto settingsData =
+      themes[familyName].getScreens()[QStringLiteral("k7")].getSettingsData();
+    const auto settings =
+      QJsonDocument::fromJson(settingsData.toUtf8()).object();
+    const auto items = settings[QStringLiteral("items")].toArray();
+    REQUIRE(items.size() == 1);
+
+    const auto item = items[0].toObject();
+    CHECK(item[QStringLiteral("type")].toString() == QStringLiteral("file"));
+    CHECK(item[QStringLiteral("default")].toString() ==
+          QStringLiteral("Default.png"));
+}
+
+TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",
+          "[themes][lr2][settings]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto skinRoot = themesRoot / "CollidingIdsSkin";
+
+    writeLr2SkinBytes(skinRoot / "cover" / "LR2.png",
+                      QByteArray("image", 5));
+    writeLr2SkinBytes(
+      skinRoot / "play7.lr2skin",
+      QByteArray("#INFORMATION,0,Colliding IDs,Tester\n"
+                 "#CUSTOMOPTION,SUDDEN+ Lane(SUDDEN+ Lane),970,Default,"
+                 "Customize\n"
+                 "#CUSTOMFILE,SUDDEN Lane(SUDDEN Lane),cover/*.png,LR2\n"
+                 "#ENDOFHEADER\n"));
+
+    const auto themes = resource_managers::scanThemes(themesRoot);
+
+    const auto familyName = QStringLiteral("Colliding IDs (play7.lr2skin)");
+    REQUIRE(themes.contains(familyName));
+
+    const auto settingsData =
+      themes[familyName].getScreens()[QStringLiteral("k7")].getSettingsData();
+    const auto settings =
+      QJsonDocument::fromJson(settingsData.toUtf8()).object();
+    const auto items = settings[QStringLiteral("items")].toArray();
+    REQUIRE(items.size() == 2);
+
+    const auto optionItem = items[0].toObject();
+    CHECK(optionItem[QStringLiteral("type")].toString() ==
+          QStringLiteral("choice"));
+    CHECK(optionItem[QStringLiteral("id")].toString() ==
+          QStringLiteral("opt_970"));
+    CHECK(optionItem[QStringLiteral("default")].toString() ==
+          QStringLiteral("Default"));
+
+    const auto fileItem = items[1].toObject();
+    CHECK(fileItem[QStringLiteral("type")].toString() ==
+          QStringLiteral("file"));
+    CHECK(fileItem[QStringLiteral("id")].toString() ==
+          QStringLiteral("sudden_lane_sudden_lane"));
+    CHECK(fileItem[QStringLiteral("default")].toString() ==
+          QStringLiteral("LR2.png"));
+}
