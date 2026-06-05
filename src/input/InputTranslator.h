@@ -12,6 +12,7 @@
 #include <QVariant>
 #include <QTimer>
 #include <magic_enum/magic_enum.hpp>
+#include <array>
 #include <functional>
 
 namespace db {
@@ -245,6 +246,7 @@ class InputTranslator final : public QObject
     void pressButton(BmsKey button, uint64_t time);
     void releaseButton(BmsKey button, uint64_t time);
     void unpressAndUnbind(const Key& key, uint64_t time);
+    void bindKeyToButton(const Key& key, BmsKey button, uint64_t time);
     void saveKeyConfig() const;
     void saveAnalogAxisConfig() const;
     void handleAxisChange(Gamepad gamepad,
