@@ -113,7 +113,10 @@ QtObject {
         if (!sliders.isSelectScrollSlider(src)) {
             return 0;
         }
+        return sliders.selectScrollPositionForSlider();
+    }
 
+    function selectScrollPositionForSlider() : var {
         let logicalCount = Math.max(1, selectContext.logicalCount);
         let maxFixed = Math.max(1, logicalCount * 1000 - 1);
         let visualState = selectContext.visualStateObject;
@@ -128,6 +131,10 @@ QtObject {
         if (!sliders.isLr2GenericSlider(src)) {
             return 0;
         }
+        return sliders.genericPositionForSlider(src);
+    }
+
+    function genericPositionForSlider(src: var) : var {
         return src.sliderType === 7
             ? root.lr2SkinCustomPosition()
             : root.sliderRawValue(src.sliderType) / 100;
@@ -137,6 +144,10 @@ QtObject {
         if (!sliders.isGameplayProgressSlider(src)) {
             return 0;
         }
+        return sliders.gameplayProgressPositionForSlider();
+    }
+
+    function gameplayProgressPositionForSlider() : var {
         let frameState = root.gameplayFrameStateRef;
         return frameState ? frameState.progressPosition || 0 : 0;
     }
@@ -145,6 +156,10 @@ QtObject {
         if (!sliders.isGameplayLaneCoverSlider(src)) {
             return 0;
         }
+        return sliders.gameplayLaneCoverPositionForSlider(src);
+    }
+
+    function gameplayLaneCoverPositionForSlider(src: var) : var {
         let side = src.sliderType === 5 ? 2 : 1;
         return Math.max(0, Math.min(1, root.gameplayLaneCoverSliderPosition(side)));
     }
@@ -153,6 +168,10 @@ QtObject {
         if (!sliders.isLr2NumberRefSlider(src)) {
             return 0;
         }
+        return sliders.numberRefSliderPositionForSlider(src);
+    }
+
+    function numberRefSliderPositionForSlider(src: var) : var {
         let minValue = src.sliderMinValue || 0;
         let maxValue = src.sliderMaxValue || 0;
         if (minValue === maxValue) {
@@ -170,15 +189,15 @@ QtObject {
     function positionForKind(kind: var, src: var) : var {
         switch (kind) {
         case selectScrollSpriteStateOverride:
-            return sliders.selectScrollPosition(src);
+            return sliders.selectScrollPositionForSlider();
         case gameplayProgressSpriteStateOverride:
-            return sliders.gameplayProgressPosition(src);
+            return sliders.gameplayProgressPositionForSlider();
         case gameplayLaneCoverSpriteStateOverride:
-            return sliders.gameplayLaneCoverPosition(src);
+            return sliders.gameplayLaneCoverPositionForSlider(src);
         case numberRefSpriteStateOverride:
-            return sliders.numberRefSliderPosition(src);
+            return sliders.numberRefSliderPositionForSlider(src);
         case genericSliderSpriteStateOverride:
-            return sliders.genericPosition(src);
+            return sliders.genericPositionForSlider(src);
         default:
             return 0;
         }

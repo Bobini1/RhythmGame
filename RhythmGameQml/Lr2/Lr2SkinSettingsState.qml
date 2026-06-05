@@ -349,6 +349,10 @@ QtObject {
             root.suppressNextClockRestart = false;
             return;
         }
-        Qt.callLater(root.host.restartSkinClock);
+        Qt.callLater(() => {
+            if (root.host && root.host.skinTimingRef) {
+                root.host.skinTimingRef.restartSkinClock();
+            }
+        });
     }
 }

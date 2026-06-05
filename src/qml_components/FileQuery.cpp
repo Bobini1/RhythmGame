@@ -15,6 +15,20 @@
 namespace {
 
 auto
+fileNameStartsWithDot(const std::filesystem::path& path) -> bool
+{
+    const auto filename = path.filename();
+    if (filename.empty()) {
+        return false;
+    }
+
+    const auto& native = filename.native();
+    return !native.empty() &&
+           native.front() ==
+             static_cast<std::filesystem::path::value_type>('.');
+}
+
+auto
 getSelectableFilesForDirectory(const std::filesystem::path& path)
   -> QList<QString>
 {
@@ -24,18 +38,20 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
         return files;
     }
 
-    for (const auto& file : std::filesystem::directory_iterator(path, ec)) {
+    for (auto iterator = std::filesystem::directory_iterator(path, ec);
+         iterator != std::filesystem::directory_iterator{};
+         iterator.increment(ec)) {
         if (ec) {
             break;
         }
+        const auto& file = *iterator;
         if (!file.is_regular_file() && !file.is_directory()) {
             continue;
         }
         if (file.path().extension() == ".ini") {
             continue;
         }
-        // ignore files starting with dot
-        if (file.path().filename().string().front() == '.') {
+        if (fileNameStartsWithDot(file.path())) {
             continue;
         }
         files.push_back(support::pathToQString(file.path().filename()));

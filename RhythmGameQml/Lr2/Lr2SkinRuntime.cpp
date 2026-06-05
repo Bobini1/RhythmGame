@@ -546,7 +546,7 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.usesLiveDstClock = selectScreen && (selectPanelTimer || descriptor.dstAnalysis.loopsContinuously);
     descriptor.usesLiveSourceClock = selectScreen && sourceCycles;
     descriptor.usesLiveSelectClock = descriptor.usesLiveDstClock || descriptor.usesLiveSourceClock;
-    descriptor.usesSelectHeldButtonTimer = m_timerState
+    descriptor.usesSelectHeldButtonTimer = selectScreen && m_timerState
         ? m_timerState->isSelectHeldButtonTimer(descriptor.dstAnalysis.firstTimer)
         : false;
     descriptor.usesSkinTime = !descriptor.dstAnalysis.canUseStaticState

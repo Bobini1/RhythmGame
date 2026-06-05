@@ -2,6 +2,7 @@ pragma ValueTypeBehavior: Addressable
 import RhythmGameQml
 
 import QtQuick
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: root
@@ -181,14 +182,7 @@ Item {
     }
 
     function chartAssetUrl(chartData: var, fileName: var) : var {
-        if (!chartData || !fileName || !chartData.chartDirectory) {
-            return "";
-        }
-        let dir = String(chartData.chartDirectory).replace(/\\/g, "/");
-        if (dir[0] !== "/") {
-            dir = "/" + dir;
-        }
-        return "file://" + dir + String(fileName).replace(/\.[^/.]+$/, "");
+        return Lr2SkinUtils.chartAssetUrl(chartData, fileName);
     }
 
     function refreshVisualChartAssetSources(chartData: var) : void {
@@ -707,14 +701,23 @@ Item {
             return -1;
         }
         let order = [
-            "NOPLAY", "FAILED", "AEASY", "LIGHTASSIST", "EASY", "NORMAL",
-            "HARD", "EXHARD", "FC", "PERFECT", "MAX"
+            ["NOPLAY", "noplay"],
+            ["FAILED", "fail"],
+            ["AEASY", "assist"],
+            ["LIGHTASSIST", "lightAssist", "LIGHT_ASSIST"],
+            ["EASY", "easy"],
+            ["NORMAL", "normal"],
+            ["HARD", "hard"],
+            ["EXHARD", "exhard"],
+            ["FC", "fc"],
+            ["PERFECT", "perfect"],
+            ["MAX", "max"]
         ];
         for (let i = 0; i < order.length; ++i) {
-            let key = order[i];
-            let value = Number(counts[key] || 0);
-            if (key === "LIGHTASSIST") {
-                value += Number(counts.LIGHT_ASSIST || 0);
+            let keys = order[i];
+            let value = 0;
+            for (let key of keys) {
+                value += Number(counts[key] || 0);
             }
             if (value > 0) {
                 return i;
@@ -814,9 +817,11 @@ Item {
             ? summary.distribution
             : summary["distribution"];
         let lamp = summary.lamp !== undefined ? summary.lamp : summary["lamp"];
+        let normalizedCounts = folderScoreCountsFromSummaryCounts(counts);
+        let normalizedDistribution = normalizedFolderDistribution(distribution);
         pendingFolderLampByKey[key] = folderBarLamp(lamp, counts, distribution);
-        pendingFolderScoreCountsByKey[key] = folderScoreCountsFromSummaryCounts(counts);
-        pendingFolderDistributionByKey[key] = normalizedFolderDistribution(distribution);
+        pendingFolderScoreCountsByKey[key] = normalizedCounts;
+        pendingFolderDistributionByKey[key] = normalizedDistribution;
         pendingFolderLampPublishCount += 1;
         if (updatesActive && !folderLampPublishQueued) {
             folderLampPublishQueued = true;

@@ -4,6 +4,7 @@
 #include "gameplay_logic/ChartData.h"
 #include "resource_managers/Tables.h"
 
+#include <QJSValue>
 #include <QMetaProperty>
 #include <QMetaType>
 #include <QObject>
@@ -25,6 +26,21 @@ gameplay_logic::ChartData* chartDataObject(const QVariant& value) {
 QVariantMap mapFromVariant(const QVariant& value) {
 	if (value.canConvert<QVariantMap>()) {
 		return value.toMap();
+	}
+	if (value.canConvert<QJSValue>()) {
+		const QJSValue jsValue = value.value<QJSValue>();
+		return jsValue.isObject() ? jsValue.toVariant().toMap() : QVariantMap {};
+	}
+	return {};
+}
+
+QVariantList listFromVariant(const QVariant& value) {
+	if (value.canConvert<QVariantList>()) {
+		return value.toList();
+	}
+	if (value.canConvert<QJSValue>()) {
+		const QJSValue jsValue = value.value<QJSValue>();
+		return jsValue.isArray() ? jsValue.toVariant().toList() : QVariantList {};
 	}
 	return {};
 }
@@ -158,7 +174,7 @@ QString normalizedFolderName(QString path) {
 }
 
 QVariantList paddedNumberList(const QVariant& value, int size) {
-	QVariantList source = value.toList();
+	QVariantList source = listFromVariant(value);
 	QVariantList result;
 	result.reserve(size);
 	for (int i = 0; i < size; ++i) {

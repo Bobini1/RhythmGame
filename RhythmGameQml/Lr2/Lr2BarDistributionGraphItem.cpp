@@ -96,6 +96,12 @@ sourceUsesChartAsset(int specialType)
     return specialType == 1 || specialType == 3 || specialType == 4;
 }
 
+bool
+sourceIsSolidFill(int specialType)
+{
+    return specialType == 2 || specialType == 5;
+}
+
 QString
 resolvedImageSource(int specialType,
                     QString rawSource,
@@ -839,7 +845,7 @@ Lr2BarDistributionGraphItem::loadSourceImage()
     m_sourceImage = {};
     m_textureDirty = true;
 
-    if (m_source.specialType == 2 || m_source.specialType == 5) {
+    if (sourceIsSolidFill(m_source.specialType)) {
         m_sourceImage = QImage(1, 1, QImage::Format_RGBA8888);
         m_sourceImage.fill(m_source.specialType == 5 ? Qt::white : Qt::black);
         return;
@@ -858,6 +864,9 @@ Lr2BarDistributionGraphItem::loadSourceImage()
     QImageReader reader(path);
     reader.setAutoTransform(true);
     m_sourceImage = reader.read();
+    if (m_sourceImage.isNull()) {
+        return;
+    }
 }
 
 void
@@ -1025,8 +1034,23 @@ Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode,
 {
     const GraphState state = stateFromVariant(m_stateData);
     const bool hasTexture = !m_sourceImage.isNull();
-    if (!state.valid || state.a <= 0.0 || m_barCells.isEmpty() ||
-        !m_barPositionMap || !hasTexture) {
+    if (!state.valid) {
+        delete oldNode;
+        return nullptr;
+    }
+    if (state.a <= 0.0) {
+        delete oldNode;
+        return nullptr;
+    }
+    if (m_barCells.isEmpty()) {
+        delete oldNode;
+        return nullptr;
+    }
+    if (!m_barPositionMap) {
+        delete oldNode;
+        return nullptr;
+    }
+    if (!hasTexture) {
         delete oldNode;
         return nullptr;
     }
@@ -1073,7 +1097,8 @@ Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode,
     qreal sourceY = m_source.y;
     qreal sourceW = m_source.w;
     qreal sourceH = m_source.h;
-    if (m_source.specialType == 2 || m_source.specialType == 5 ||
+    const bool solidFillSource = sourceIsSolidFill(m_source.specialType);
+    if (solidFillSource ||
         sourceW < 0.0 || sourceH < 0.0 || sourceX < 0.0 || sourceY < 0.0) {
         sourceX = 0.0;
         sourceY = 0.0;
@@ -1088,7 +1113,7 @@ Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode,
     const qreal cellH = sourceH / m_source.divY;
 
     const int blendMode = normalizedBlendMode(state.blend, m_colorKeyEnabled);
-    const bool colorKey = blendMode == 0;
+    const bool colorKey = blendMode == 0 && !solidFillSource;
     const bool nearest = state.filter == 0;
     const QPointF anchor = centerAnchor(state.center);
     const qreal baseX = state.x + std::min<qreal>(0.0, state.w);

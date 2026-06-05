@@ -165,43 +165,50 @@ Item {
         && !!srcData
         && hasChartData
 
-    Canvas {
-        id: chartCanvas
+    Item {
+        id: revealClip
         x: root.drawX
         y: root.drawY
-        width: Math.max(1, root.drawW * root.scaleOverride)
+        width: Math.max(0, root.drawW * root.scaleOverride * root.reveal)
         height: Math.max(1, root.drawH * root.scaleOverride)
         visible: root.visible
-        opacity: root.currentState ? Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0)) : 0
-        renderTarget: Canvas.Image
-        renderStrategy: Canvas.Threaded
-        antialiasing: false
+        clip: root.reveal < 1
 
-        onAvailableChanged: root.requestChartPaint()
-        onWidthChanged: root.requestChartPaint()
         onHeightChanged: root.requestChartPaint()
 
-        onPaint: {
-            let ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            if (!root.hasChartData || !root.srcData || width <= 0 || height <= 0) {
-                return;
+        Canvas {
+            id: chartCanvas
+            width: Math.max(1, root.drawW * root.scaleOverride)
+            height: revealClip.height
+            visible: root.visible
+            opacity: root.currentState ? Math.max(0, Math.min(1, (root.currentState.a || 255) / 255.0)) : 0
+            renderTarget: Canvas.Image
+            renderStrategy: Canvas.Threaded
+            antialiasing: false
+
+            onAvailableChanged: root.requestChartPaint()
+            onWidthChanged: root.requestChartPaint()
+            onHeightChanged: root.requestChartPaint()
+
+            onPaint: {
+                let ctx = getContext("2d");
+                ctx.clearRect(0, 0, width, height);
+                if (!root.hasChartData || !root.srcData || width <= 0 || height <= 0) {
+                    return;
+                }
+
+                let data = root.densityData;
+                let bucketCount = root.bucketCount;
+                let maxDensity = root.maxDensity;
+                let sourceW = root.sourceW;
+                let sourceH = root.sourceH;
+
+                ctx.save();
+                ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
+                root.drawBackground(ctx, sourceW, sourceH, maxDensity, bucketCount);
+                root.drawBars(ctx, data, maxDensity, sourceH);
+                ctx.restore();
             }
-
-            let data = root.densityData;
-            let bucketCount = root.bucketCount;
-            let maxDensity = root.maxDensity;
-            let sourceW = root.sourceW;
-            let sourceH = root.sourceH;
-
-            ctx.save();
-            ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
-            root.drawBackground(ctx, sourceW, sourceH, maxDensity, bucketCount);
-            ctx.beginPath();
-            ctx.rect(0, 0, sourceW * root.reveal, sourceH);
-            ctx.clip();
-            root.drawBars(ctx, data, maxDensity, sourceH);
-            ctx.restore();
         }
     }
 
@@ -216,7 +223,6 @@ Item {
     onDensityDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
-    onRevealChanged: requestChartPaint()
     onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }

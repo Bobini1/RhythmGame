@@ -61,3 +61,19 @@ TEST_CASE("FileQuery honors UTF-16 BOM for text files",
     const auto text = qml_components::FileQuery().readTextFile(path);
     CHECK(text == textWith(QChar(0x3042)));
 }
+
+TEST_CASE("FileQuery lists selectable files with Unicode filenames",
+          "[FileQuery][paths]")
+{
+    QTemporaryDir tempDir;
+    REQUIRE(tempDir.isValid());
+
+    const auto filename =
+      QStringLiteral("mascot-") + QChar(0x3042) + QStringLiteral(".png");
+    writeBytes(tempDir.filePath(filename), QByteArray("x", 1));
+
+    const auto files =
+      qml_components::FileQuery().getSelectableFilesForDirectory(
+        tempDir.path());
+    CHECK(files.contains(filename));
+}

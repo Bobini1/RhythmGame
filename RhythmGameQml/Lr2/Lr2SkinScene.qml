@@ -98,9 +98,9 @@ Item {
                     runtimeElementTimerStates: sceneRoot.runtimeElementTimerStates
                     gameplayFrameState: sceneRoot.gameplayFrameState
                     screenUpdatesActive: sceneRoot.screenUpdatesActive
-                    stageFileSource: usesChartAssetSource && sceneRoot.rootReady ? selectContext.visualStageFileSource : ""
-                    backBmpSource: usesChartAssetSource && sceneRoot.rootReady ? selectContext.visualBackBmpSource : ""
-                    bannerSource: usesChartAssetSource && sceneRoot.rootReady ? selectContext.visualBannerSource : ""
+                    stageFileSource: usesChartAssetSource && sceneRoot.rootReady ? sceneRoot.root.chartAssetStageFileSource : ""
+                    backBmpSource: usesChartAssetSource && sceneRoot.rootReady ? sceneRoot.root.chartAssetBackBmpSource : ""
+                    bannerSource: usesChartAssetSource && sceneRoot.rootReady ? sceneRoot.root.chartAssetBannerSource : ""
                     skinW: sceneRoot.skinW
                     skinH: sceneRoot.skinH
                     skinScale: sceneRoot.skinScale

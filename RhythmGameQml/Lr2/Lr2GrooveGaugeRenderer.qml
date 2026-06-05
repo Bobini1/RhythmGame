@@ -38,14 +38,16 @@ Item {
     readonly property var score: player ? player.score : null
     readonly property real gaugeValue: screenRoot && score ? screenRoot.gameplayGaugeValue(score) : 0
     readonly property int hpSegments: Math.max(0, Math.min(50, Math.floor(gaugeValue / 2)))
-    readonly property string activeGaugeName: screenRoot ? screenRoot.activeGaugeNameForSide(side) : ""
+    readonly property string activeGaugeName: screenRoot
+        ? (side === 2 ? screenRoot.activeGaugeName2 : screenRoot.activeGaugeName1)
+        : ""
     readonly property bool survivalGauge: screenRoot
-        ? screenRoot.gaugeNameIsSurvival(activeGaugeName)
+        ? (side === 2 ? screenRoot.activeGaugeSurvival2 : screenRoot.activeGaugeSurvival1)
         : false
     readonly property int exGaugeFrameOffset: srcData
         && srcData.grooveGaugeEx
         && screenRoot
-        && screenRoot.gaugeNameUsesExGaugeSprites(activeGaugeName)
+        && (side === 2 ? screenRoot.activeGaugeUsesExSprites2 : screenRoot.activeGaugeUsesExSprites1)
         ? 4
         : 0
 
@@ -105,7 +107,7 @@ Item {
     }
 
     Repeater {
-        model: root.currentState && root.srcData ? 50 : 0
+        model: root.srcData ? 50 : 0
 
         Lr2FastSprite {
             srcData: root.srcData
@@ -113,6 +115,8 @@ Item {
             skinTime: root.skinTime
             timers: root.timers
             scaleOverride: root.scaleOverride
+            preloadTexture: true
+            useAtlasShader: true
             frameOverride: root.segmentFrame(
                 index, root.hpSegments, root.trembleRoll, root.survivalGauge)
                 + root.exGaugeFrameOffset

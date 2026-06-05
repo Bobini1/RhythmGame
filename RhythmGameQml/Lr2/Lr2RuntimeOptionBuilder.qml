@@ -34,6 +34,10 @@ QtObject {
         if (option === undefined || option === null) {
             return;
         }
+        let usedOptions = root.runtimeUsedOptions;
+        if (usedOptions && usedOptions[Math.abs(option)] !== true) {
+            return;
+        }
         let lookup = root.optionLookupFor(options);
         if (lookup[option] === true) {
             return;
@@ -170,8 +174,10 @@ QtObject {
         root.addRuntimeOption(options, 34 + ghostPosition);
         root.addRuntimeOption(options, vars && vars.scoreGraphEnabled === false ? 38 : 39);
         root.addRuntimeOption(options, vars && vars.bgaOn === false ? 40 : 41);
-        root.addRuntimeOption(options, host.gaugeColorOption(1));
-        root.addRuntimeOption(options, host.gaugeColorOption(2));
+        if (root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 42, 45)) {
+            root.addRuntimeOption(options, host.gaugeColorOption(1));
+            root.addRuntimeOption(options, host.gaugeColorOption(2));
+        }
         root.addGaugeExOption(options, 1);
         root.addGaugeExOption(options, 2);
         root.addRuntimeOption(options, 46); // difficulty filter enabled.
@@ -195,6 +201,9 @@ QtObject {
         if (!host.lr2SkinUsesBeatorajaSemantics) {
             return;
         }
+        if (!root.runtimeOptionUsed(root.runtimeUsedOptions, side === 2 ? 1047 : 1046)) {
+            return;
+        }
         let gauge = host.activeGaugeNameForSide(side);
         if (host.gaugeNameUsesBeatorajaExOption(gauge)) {
             root.addOption(options, side === 2 ? 1047 : 1046);
@@ -203,9 +212,7 @@ QtObject {
 
     function appendChartOptions(options: var, chartData: var, fallbackItem: var) : var {
         let usedOptions = root.runtimeUsedOptions;
-        let allowStageFileOption = host.effectiveScreenKey !== "decide";
-        let usesStageFileOption = allowStageFileOption
-            && root.runtimeOptionRangeUsed(usedOptions, 190, 191);
+        let usesStageFileOption = root.runtimeOptionRangeUsed(usedOptions, 190, 191);
         let usesBannerOption = root.runtimeOptionRangeUsed(usedOptions, 192, 193);
         let usesBackBmpOption = root.runtimeOptionRangeUsed(usedOptions, 194, 195);
         let usesBgaOption = root.runtimeOptionRangeUsed(usedOptions, 170, 171);
@@ -556,6 +563,9 @@ QtObject {
         if (side !== 1) {
             return;
         }
+        if (!root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 271, 273)) {
+            return;
+        }
         let vars = host.generalVarsForSide(side);
         if (vars && vars.laneCoverOn) {
             root.addOption(options, 271);
@@ -569,59 +579,100 @@ QtObject {
     }
 
     function appendJudgementExistOptions(options: var, resultOrScore: var) : void {
-        if (host.judgementCountForExist(resultOrScore, Judgement.Perfect) > 0) {
+        let usedOptions = root.runtimeUsedOptions;
+        if (root.runtimeOptionUsed(usedOptions, 2241)
+                && host.judgementCountForExist(resultOrScore, Judgement.Perfect) > 0) {
             root.addOption(options, 2241);
         }
-        if (host.judgementCountForExist(resultOrScore, Judgement.Great) > 0) {
+        if (root.runtimeOptionUsed(usedOptions, 2242)
+                && host.judgementCountForExist(resultOrScore, Judgement.Great) > 0) {
             root.addOption(options, 2242);
         }
-        if (host.judgementCountForExist(resultOrScore, Judgement.Good) > 0) {
+        if (root.runtimeOptionUsed(usedOptions, 2243)
+                && host.judgementCountForExist(resultOrScore, Judgement.Good) > 0) {
             root.addOption(options, 2243);
         }
-        if (host.judgementCountForExist(resultOrScore, Judgement.Bad) > 0) {
+        if (root.runtimeOptionUsed(usedOptions, 2244)
+                && host.judgementCountForExist(resultOrScore, Judgement.Bad) > 0) {
             root.addOption(options, 2244);
         }
-        if (host.judgementCountForExist(resultOrScore, Judgement.Poor) > 0) {
+        if (root.runtimeOptionUsed(usedOptions, 2245)
+                && host.judgementCountForExist(resultOrScore, Judgement.Poor) > 0) {
             root.addOption(options, 2245);
         }
-        if (host.judgementCountForExist(resultOrScore, Judgement.EmptyPoor) > 0) {
+        if (root.runtimeOptionUsed(usedOptions, 2246)
+                && host.judgementCountForExist(resultOrScore, Judgement.EmptyPoor) > 0) {
             root.addOption(options, 2246);
         }
     }
 
     function appendGameplaySideOptions(options: var, side: var) : void {
         let score = host.gameplayScore(side);
-        root.addOption(options, host.gameplayGaugeOption(side));
-        root.addOption(options, host.gameplayLaneOption(score));
-        root.addOption(options, host.gameplayLaneCoverOption(side));
+        let usedOptions = root.runtimeUsedOptions;
+        if (root.runtimeOptionRangeUsed(usedOptions, 118, 122)) {
+            root.addOption(options, host.gameplayGaugeOption(side));
+        }
+        if (root.runtimeOptionRangeUsed(usedOptions, 126, 131)) {
+            root.addOption(options, host.gameplayLaneOption(score));
+        }
+        if (root.runtimeOptionRangeUsed(usedOptions, 134, 137)) {
+            root.addOption(options, host.gameplayLaneCoverOption(side));
+        }
         root.appendGameplayLaneCoverOptions(options, side);
 
-        let currentRank = host.gameplayRankOption(score, side === 2 ? 210 : 200, true);
-        if (currentRank >= 0) {
-            root.addOption(options, currentRank);
+        let currentRankFirst = side === 2 ? 210 : 200;
+        if (root.runtimeOptionRangeUsed(usedOptions, currentRankFirst, currentRankFirst + 7)) {
+            let currentRank = host.gameplayRankOption(score, currentRankFirst, true);
+            if (currentRank >= 0) {
+                root.addOption(options, currentRank);
+            }
         }
         if (side === 1) {
-            let totalRank = host.gameplayRankOption(score, 220, false);
-            if (totalRank >= 0) {
-                root.addOption(options, totalRank);
+            if (root.runtimeOptionRangeUsed(usedOptions, 220, 227)) {
+                let totalRank = host.gameplayRankOption(score, 220, false);
+                if (totalRank >= 0) {
+                    root.addOption(options, totalRank);
+                }
             }
-            root.addOption(options, host.gameplayExactRankOption(score, 300));
+            if (root.runtimeOptionRangeUsed(usedOptions, 300, 308)) {
+                root.addOption(options, host.gameplayExactRankOption(score, 300));
+            }
         } else {
-            root.addOption(options, host.gameplayExactRankOption(score, 310));
+            if (root.runtimeOptionRangeUsed(usedOptions, 310, 318)) {
+                root.addOption(options, host.gameplayExactRankOption(score, 310));
+            }
         }
-        host.addGameplayGaugeRangeOption(options, score, side === 2 ? 250 : 230);
-        if (side === 1 && host.gameplayGaugeQualified(score)) {
+        let gaugeRangeFirst = side === 2 ? 250 : 230;
+        if (root.runtimeOptionRangeUsed(usedOptions, gaugeRangeFirst, gaugeRangeFirst + 10)) {
+            host.addGameplayGaugeRangeOption(options, score, gaugeRangeFirst);
+        }
+        if (side === 1 && root.runtimeOptionUsed(usedOptions, 1240) && host.gameplayGaugeQualified(score)) {
             root.addOption(options, 1240);
         }
-        let judgementOption = host.gameplayJudgementOption(side, side === 2 ? 261 : 241);
-        if (judgementOption >= 0) {
-            root.addOption(options, judgementOption);
+        let judgementFirst = side === 2 ? 261 : 241;
+        let judgementOption = -1;
+        if (root.runtimeOptionRangeUsed(usedOptions, judgementFirst, judgementFirst + 5)) {
+            judgementOption = host.gameplayJudgementOption(side, judgementFirst);
+            if (judgementOption >= 0) {
+                root.addOption(options, judgementOption);
+            }
         }
-        let timing = side === 2 ? host.gameplayLastJudgeTiming2 : host.gameplayLastJudgeTiming1;
-        if (timing !== 0 && judgementOption >= 0 && judgementOption !== (side === 2 ? 261 : 241)) {
-            root.addOption(options, timing > 0 ? (side === 2 ? 1262 : 1242) : (side === 2 ? 1263 : 1243));
+        let timingEarlyOption = side === 2 ? 1262 : 1242;
+        let timingLateOption = timingEarlyOption + 1;
+        if (root.runtimeOptionUsed(usedOptions, timingEarlyOption)
+                || root.runtimeOptionUsed(usedOptions, timingLateOption)) {
+            if (judgementOption < 0) {
+                judgementOption = host.gameplayJudgementOption(side, judgementFirst);
+            }
+            let timing = side === 2 ? host.gameplayLastJudgeTiming2 : host.gameplayLastJudgeTiming1;
+            if (timing !== 0 && judgementOption >= 0 && judgementOption !== judgementFirst) {
+                root.addOption(options, timing > 0 ? timingEarlyOption : timingLateOption);
+            }
         }
-        root.addOption(options, side === 2 ? host.gameplayPoorBgaOption2 : host.gameplayPoorBgaOption1);
+        let poorBgaOption = side === 2 ? host.gameplayPoorBgaOption2 : host.gameplayPoorBgaOption1;
+        if (root.runtimeOptionUsed(usedOptions, poorBgaOption)) {
+            root.addOption(options, poorBgaOption);
+        }
     }
 
     function appendGameplayRuntimeOptions(options: var) : void {

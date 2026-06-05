@@ -3,6 +3,7 @@
 var fileUrlCache = Object.create(null);
 var fileUrlCacheSize = 0;
 var fileUrlCacheLimit = 4096;
+var chartAssetVideoExtensionPattern = /\.(mpg|mpeg|mp4|avi|wmv|mov|mkv|webm|m4v)$/i;
 
 function isChartAssetSource(source) {
     return !!source
@@ -87,6 +88,47 @@ function chartAssetFileName(source, chartData) {
     return "";
 }
 
+function chartAssetLookupFileName(fileName) {
+    if (!fileName) {
+        return "";
+    }
+
+    const normalized = String(fileName).replace(/\\/g, "/");
+    const suffixIndex = normalized.search(/[?#]/);
+    const pathPart = suffixIndex >= 0 ? normalized.slice(0, suffixIndex) : normalized;
+    const suffix = suffixIndex >= 0 ? normalized.slice(suffixIndex) : "";
+    const lastSlash = pathPart.lastIndexOf("/");
+    const lastDot = pathPart.lastIndexOf(".");
+    if (lastDot <= lastSlash + 1 || lastDot >= pathPart.length - 1) {
+        return normalized;
+    }
+    if (chartAssetVideoExtensionPattern.test(pathPart)) {
+        return normalized;
+    }
+    return pathPart.slice(0, lastDot) + suffix;
+}
+
+function chartAssetPath(chartData, fileName) {
+    if (!chartData || !fileName || !chartData.chartDirectory) {
+        return "";
+    }
+
+    const filePath = chartAssetLookupFileName(fileName);
+    if (/^[A-Za-z]:\//.test(filePath) || filePath.startsWith("/")) {
+        return filePath;
+    }
+
+    let dir = String(chartData.chartDirectory).replace(/\\/g, "/");
+    if (dir.length > 0 && !dir.endsWith("/")) {
+        dir += "/";
+    }
+    return dir + filePath;
+}
+
+function chartAssetUrl(chartData, fileName) {
+    return fileUrlForPath(chartAssetPath(chartData, fileName));
+}
+
 function fileUrlForPath(path) {
     if (!path) {
         return "";
@@ -135,11 +177,7 @@ function resolvedSource(source, chart, chartAssetSource) {
         if (!chartData || !fileName || !chartData.chartDirectory) {
             return "";
         }
-        let dir = chartData.chartDirectory;
-        if (dir[0] !== "/") {
-            dir = "/" + dir;
-        }
-        return fileUrlForPath(dir + fileName.replace(/\.[^/.]+$/, ""));
+        return chartAssetUrl(chartData, fileName);
     }
     return fileUrlForPath(source.source);
 }

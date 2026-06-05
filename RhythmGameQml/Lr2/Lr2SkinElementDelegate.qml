@@ -657,56 +657,29 @@ Loader {
 
     Component {
         id: barDistributionGraphComponent
-        Item {
-            id: distributionRoot
-
-            readonly property bool sourceAnimates: elementState.barDistributionGraphSourceHasFrameAnimation
-            readonly property var graphDsts: elemLoader.elementData.src ? elemLoader.elementData.dsts : []
-            readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
-            readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
-                ? timelineState.staticState
-                : null
-            readonly property var timelineTimers: timelineState.usesDynamicTimer
-                ? elemLoader.screenRoot.barTimers
-                : null
-            readonly property var graphTimelineState: staticTimelineState
-                || (timelineState.hasState ? timelineState.state : null)
-
-            width: skinW * skinScale
-            height: skinH * skinScale
-            x: elemLoader.screenRoot.fastBarScrollActive
-                ? elemLoader.screenRoot.fastBarScrollX * skinScale
-                : 0
-            y: elemLoader.screenRoot.fastBarScrollActive
-                ? elemLoader.screenRoot.fastBarScrollY * skinScale
-                : 0
-            visible: !!graphTimelineState
-
-            property Lr2TimelineState timelineState: Lr2TimelineState {
-                enabled: !distributionRoot.hasStaticTimelineState
-                dsts: distributionRoot.graphDsts
-                skinTime: elemLoader.screenRoot.barSkinTime
-                timers: distributionRoot.timelineTimers
-                timerFire: elemLoader.dstTimerFire
-                activeOptionsState: elemLoader.elementActiveOptionsState
-                activeOptions: elemLoader.screenRoot.barActiveOptions
-            }
-
-            Lr2BarDistributionGraphItem {
-                anchors.fill: parent
-                srcData: elemLoader.elementData.src
-                stateData: distributionRoot.graphTimelineState
-                skinClock: distributionRoot.sourceAnimates ? elemLoader.screenRoot.skinClockRef : null
-                sourceSkinClockMode: elemLoader.sourceSkinClockModeFor(distributionRoot.sourceAnimates)
-                sourceSkinTime: 0
-                sourceTimerFire: elemLoader.srcTimerFire
-                barPositionMap: elemLoader.screenRoot.barPositionMap
-                barCells: elemLoader.selectContext ? elemLoader.selectContext.visibleBarTextCells : []
-                scaleOverride: skinScale
-                colorKeyEnabled: skinModel.hasTransColor
-                transColor: skinModel.transColor
-                chartAssetSource: elemLoader.directChartAssetSource
-            }
+        Lr2BarDistributionGraphRenderer {
+            dsts: elemLoader.elementData.dsts
+            srcData: elemLoader.elementData.src
+            skinTime: elemLoader.screenRoot.barSkinTime
+            sourceSkinTime: 0
+            skinClock: sourceAnimates ? elemLoader.screenRoot.skinClockRef : null
+            sourceSkinClockMode: elemLoader.sourceSkinClockModeFor(sourceAnimates)
+            activeOptionsState: elemLoader.elementActiveOptionsState
+            activeOptions: elemLoader.screenRoot.barActiveOptions
+            timers: elemLoader.screenRoot.barTimers
+            timerFire: elemLoader.dstTimerFire
+            sourceTimerFire: elemLoader.srcTimerFire
+            scaleOverride: skinScale
+            selectContext: elemLoader.screenRoot.selectContextRef
+            barRows: skinModel.barRows
+            barPositionMap: elemLoader.screenRoot.barPositionMap
+            barCells: elemLoader.selectContext ? elemLoader.selectContext.visibleBarTextCells : []
+            fastBarScrollActive: elemLoader.screenRoot.fastBarScrollActive
+            fastBarScrollX: elemLoader.screenRoot.fastBarScrollX
+            fastBarScrollY: elemLoader.screenRoot.fastBarScrollY
+            colorKeyEnabled: skinModel.hasTransColor
+            transColor: skinModel.transColor
+            chartAssetSource: elemLoader.directChartAssetSource
         }
     }
 }
