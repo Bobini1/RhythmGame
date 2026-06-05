@@ -64,7 +64,7 @@ OnlineRankingModel::performJsonGet(
 
 void
 OnlineRankingModel::handleTachiReply(int startRanking,
-                                     QString keymode,
+                                     QString tachiGame,
                                      int noteCount,
                                      QNetworkReply* reply)
 {
@@ -117,9 +117,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         const int pageSize = 100;
         startRanking += pageSize;
         const auto pbsUrlStr =
-          QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/%2/"
+          QString("https://boku.tachi.ac/api/v1/games/%1/charts/%2/"
                   "pbs?startRanking=%3")
-            .arg(keymode)
+            .arg(tachiGame)
             .arg(chartId)
             .arg(startRanking);
         auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
@@ -132,9 +132,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         connect(pbsReply,
                 &QNetworkReply::finished,
                 this,
-                [this, startRanking, noteCount, pbsReply, keymode]() {
+                [this, startRanking, noteCount, pbsReply, tachiGame]() {
                     handleTachiReply(
-                      startRanking, keymode, noteCount, pbsReply);
+                      startRanking, tachiGame, noteCount, pbsReply);
                 });
     }
 
@@ -801,14 +801,14 @@ OnlineRankingModel::fetchTachi()
             &TachiResolveHandle::resolved,
             this,
             [this, handle](
-              const QString& chartID, const QString& playtype, int noteCount) {
+              const QString& chartID, const QString& tachiGame, int noteCount) {
                 handle->deleteLater();
                 setChartId(chartID);
 
                 const auto pbsUrlStr =
-                  QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/%2/"
+                  QString("https://boku.tachi.ac/api/v1/games/%1/charts/%2/"
                           "pbs?startRanking=1")
-                    .arg(playtype)
+                    .arg(tachiGame)
                     .arg(chartID);
 
                 QNetworkReply* pbsReply =
@@ -821,8 +821,9 @@ OnlineRankingModel::fetchTachi()
                 connect(pbsReply,
                         &QNetworkReply::finished,
                         this,
-                        [this, playtype, noteCount, pbsReply]() {
-                            handleTachiReply(1, playtype, noteCount, pbsReply);
+                        [this, tachiGame, noteCount, pbsReply]() {
+                            handleTachiReply(
+                              1, tachiGame, noteCount, pbsReply);
                         });
             });
 

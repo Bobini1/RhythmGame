@@ -185,14 +185,14 @@ Column {
                 }
             }
 
-            readonly property string keymode: {
+            readonly property string tachiGameId: {
                 switch (side.score.keymode || side.chartKeymode) {
                     case 5:
                     case 7:
-                        return "7K";
+                        return "bms-7k";
                     case 10:
                     case 14:
-                        return "14K";
+                        return "bms-14k";
                 }
                 return "";
             }
@@ -225,7 +225,10 @@ Column {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
                 }
                 if (ranking.provider === OnlineRankingModel.Tachi) {
-                    return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
+                    if (!ranking.chartId || !scoreColumn.tachiGameId) {
+                        return "";
+                    }
+                    return "https://boku.tachi.ac/games/" + scoreColumn.tachiGameId +
                         "/charts/" + ranking.chartId;
                 }
                 return side.profile.vars.generalVars.websiteBaseUrl + "/charts/" + side.score.result.md5

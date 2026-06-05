@@ -329,10 +329,10 @@ FocusScope {
                         case OnlineRankingModel.LR2IR:
                             return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
                         case OnlineRankingModel.Tachi:
-                            if (!ranking.chartId) {
+                            if (!ranking.chartId || !ranking.tachiGameId) {
                                 return "";
                             }
-                            return "https://boku.tachi.ac/games/bms/" + ranking.keymode +
+                            return "https://boku.tachi.ac/games/" + ranking.tachiGameId +
                                 "/charts/" + ranking.chartId;
                     }
                 }

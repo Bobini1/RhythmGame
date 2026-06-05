@@ -122,10 +122,10 @@ QtObject {
     }
 
     onCurrentStatusOptionChanged: {
-        root.refreshHostRankingStatusOptions(true);
+        root.refreshHostRankingStatusOptions();
     }
     onCurrentPlayerCountChanged: {
-        root.refreshHostRankingStatusOptions(false);
+        root.refreshHostRankingStatusOptions();
     }
 
     property Timer transitionTimer: Timer {
@@ -158,38 +158,12 @@ QtObject {
         }
     }
 
-    function rankingStatusLabel(option: var) : var {
-        switch (option) {
-        case 600: return "missing";
-        case 601: return "loading";
-        case 602: return "ready";
-        case 603: return "empty";
-        default: return String(option);
-        }
-    }
-
-    function refreshHostRankingStatusOptions(logTransition: var) : void {
+    function refreshHostRankingStatusOptions() : void {
         if (root.host
                 && root.host.effectiveScreenKey === "select"
                 && root.host.refreshSelectRuntimeActiveOptions) {
             root.host.refreshSelectRuntimeActiveOptions();
         }
-        if (!logTransition) {
-            return;
-        }
-        console.warn("[LR2 ranking status] " + JSON.stringify({
-            option: root.currentStatusOption,
-            label: root.rankingStatusLabel(root.currentStatusOption),
-            chartMd5: root.md5,
-            requestMd5: root.requestMd5,
-            modelMd5: root.loadedMd5,
-            completedMd5: root.completedMd5,
-            loading: !!root.rankingModel.loading,
-            requestMatches: root.requestMatchesCurrentChart,
-            modelMatches: root.modelMatchesCurrentChart,
-            completed: root.currentRequestCompleted,
-            players: root.currentPlayerCount
-        }));
     }
 
     function md5ForChart(chart: var) : var {
@@ -476,7 +450,7 @@ QtObject {
 
     function handleModelChanged(tryOpenRanking: var, tryOpenInternetRanking: var) : void {
         root.applyStatsToSelectContext();
-        root.refreshHostRankingStatusOptions(false);
+        root.refreshHostRankingStatusOptions();
         if (tryOpenRanking && root.openWhenReady && !root.rankingModel.loading) {
             Qt.callLater(root.finishOpenRanking);
         }
@@ -576,14 +550,14 @@ QtObject {
         return false;
     }
 
-    function tachiKeymode(chart: var) : var {
+    function tachiGameId(chart: var) : var {
         switch (chart ? (chart.keymode || 0) : 0) {
         case 5:
         case 7:
-            return "7K";
+            return "bms-7k";
         case 10:
         case 14:
-            return "14K";
+            return "bms-14k";
         default:
             return "";
         }
@@ -610,9 +584,9 @@ QtObject {
             if (!root.modelMatchesCurrentChart || !root.rankingModel.chartId) {
                 return "";
             }
-            let keymode = root.tachiKeymode(chart);
-            return keymode.length > 0
-                ? "https://boku.tachi.ac/games/bms/" + keymode + "/charts/" + root.rankingModel.chartId
+            let tachiGame = root.tachiGameId(chart);
+            return tachiGame.length > 0
+                ? "https://boku.tachi.ac/games/" + tachiGame + "/charts/" + root.rankingModel.chartId
                 : "";
         }
         case OnlineRankingModel.LR2IR:

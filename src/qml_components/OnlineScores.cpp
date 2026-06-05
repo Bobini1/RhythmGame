@@ -32,28 +32,34 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 {
     auto* handle = new TachiResolveHandle();
 
-    static constexpr std::array<const char*, 2> playtypes = { "7K", "14K" };
-    auto attemptIndex = std::make_shared<int>(0);
+    struct TachiGame {
+        const char* game;
+    };
+    static constexpr std::array<TachiGame, 2> games = { {
+      { "bms-7k" },
+      { "bms-14k" },
+    } };
+    auto attemptIndex = std::make_shared<std::size_t>(0);
     auto tryNext = std::make_shared<std::function<void()>>();
 
     *tryNext = [this, handle, md5, attemptIndex, tryNext]() {
-        const int idx = *attemptIndex;
-        if (idx >= static_cast<int>(playtypes.size())) {
+        const auto idx = *attemptIndex;
+        if (idx >= games.size()) {
             emit handle->failed(
-              "Chart not found on Tachi for any supported playtype");
+              "Chart not found on Tachi for any supported BMS game");
             return;
         }
 
         const QUrl resolveUrl(
-          QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/resolve")
-            .arg(playtypes[idx]));
+          QString("https://boku.tachi.ac/api/v1/games/%1/charts/resolve")
+            .arg(games[idx].game));
 
         QNetworkRequest req(resolveUrl);
         req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
         QJsonObject body;
         body.insert("matchType", "bmsChartHash");
-        body.insert("identifier", md5);
+        body.insert("identifier", md5.toLower());
 
         QNetworkReply* reply = networkManager->post(
           req, QJsonDocument(body).toJson(QJsonDocument::Compact));
@@ -106,7 +112,7 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
                   return;
               }
               emit handle->resolved(
-                chartID, QString(playtypes[*attemptIndex]), noteCount);
+                chartID, QString(games[*attemptIndex].game), noteCount);
           });
     };
 
@@ -309,15 +315,15 @@ OnlineScores::getRankingEntryAtTimestamp(
               this,
               [this, handle, pendingReply, userId, timestamp](
                 const QString& chartID,
-                const QString& playtype,
+                const QString& tachiGame,
                 int noteCount) mutable {
                   handle->deleteLater();
 
                   const auto scoresUrlStr =
-                    QString("https://boku.tachi.ac/api/v1/users/%1/games/bms/"
-                            "%2/scores/%3")
+                    QString("https://boku.tachi.ac/api/v1/users/%1/games/%2/"
+                            "scores/%3")
                       .arg(userId)
-                      .arg(playtype)
+                      .arg(tachiGame)
                       .arg(chartID);
 
                   QNetworkReply* scoresReply =

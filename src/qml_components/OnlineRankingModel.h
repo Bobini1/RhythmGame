@@ -268,7 +268,7 @@ class OnlineRankingModel : public QAbstractListModel
                         std::function<void(const QJsonDocument&)> onSuccess,
                         std::function<void(const QString&)> onError);
     void handleTachiReply(int startRanking,
-                          QString keymode,
+                          QString tachiGame,
                           int noteCount,
                           QNetworkReply* reply);
 

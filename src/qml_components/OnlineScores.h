@@ -20,7 +20,7 @@ class TachiResolveHandle : public QObject
 
   signals:
     void resolved(const QString& chartID,
-                  const QString& playtype,
+                  const QString& tachiGame,
                   int noteCount);
     void failed(const QString& error);
     void cancel();
