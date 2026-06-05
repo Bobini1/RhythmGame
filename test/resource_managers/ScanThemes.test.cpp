@@ -6,6 +6,9 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 #include <QString>
 
@@ -26,6 +29,16 @@ writeLr2Skin(const std::filesystem::path& path,
                  .arg(type)
                  .arg(title)
                  .toUtf8());
+}
+
+void
+writeLr2SkinBytes(const std::filesystem::path& path, const QByteArray& data)
+{
+    std::filesystem::create_directories(path.parent_path());
+
+    QFile file(support::pathToQString(path));
+    REQUIRE(file.open(QIODevice::WriteOnly));
+    REQUIRE(file.write(data) == data.size());
 }
 
 auto
@@ -90,4 +103,50 @@ TEST_CASE("LR2 skin scanner skips unsupported beatoraja keymodes",
       themes.contains(QStringLiteral("Forty Eight (play48.lr2skin)")));
     CHECK_FALSE(themes.contains(
       QStringLiteral("Twenty Four Battle (play24battle.lr2skin)")));
+}
+
+TEST_CASE("LR2 skin scanner reads no-BOM headers as CP932",
+          "[themes][lr2][encoding]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto skinRoot = themesRoot / "Cp932Skin";
+
+    writeLr2SkinBytes(
+      skinRoot / "play7.lr2skin",
+      QByteArray("#INFORMATION,0,\x87\x40,Tester\n"
+                 "#CUSTOMOPTION,\x87\x40(Custom),900,\x82\xa0(Default),"
+                 "\x82\xa2(Alt)\n"
+                 "#ENDOFHEADER\n"));
+
+    const auto themes = resource_managers::scanThemes(themesRoot);
+
+    const auto familyName = QString(QChar(0x2460)) +
+                            QStringLiteral(" (play7.lr2skin)");
+    REQUIRE(themes.contains(familyName));
+
+    const auto screens = themes[familyName].getScreens();
+    REQUIRE(screens.contains(QStringLiteral("k7")));
+
+    const auto settingsData = screens[QStringLiteral("k7")].getSettingsData();
+    const auto settings =
+      QJsonDocument::fromJson(settingsData.toUtf8()).object();
+    const auto items = settings[QStringLiteral("items")].toArray();
+    REQUIRE(items.size() == 1);
+
+    const auto item = items[0].toObject();
+    CHECK(item[QStringLiteral("name")]
+            .toObject()[QStringLiteral("en")]
+            .toString() == QString(QChar(0x2460)) + QStringLiteral("(Custom)"));
+
+    const auto choices = item[QStringLiteral("choices")].toArray();
+    REQUIRE(choices.size() == 2);
+    CHECK(choices[0]
+            .toObject()[QStringLiteral("name")]
+            .toObject()[QStringLiteral("en")]
+            .toString() == QString(QChar(0x3042)) + QStringLiteral("(Default)"));
+    CHECK(choices[1]
+            .toObject()[QStringLiteral("name")]
+            .toObject()[QStringLiteral("en")]
+            .toString() == QString(QChar(0x3044)) + QStringLiteral("(Alt)"));
 }

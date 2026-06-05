@@ -11,11 +11,14 @@
 #include <QRegularExpression>
 #include <QStringDecoder>
 #include <QUrl>
+#include <iconv.h>
 #include <spdlog/spdlog.h>
 
+#include <cstdint>
 #include <exception>
 #include <system_error>
 #include <utility>
+#include <vector>
 
 namespace resource_managers::lr2_skin {
 namespace {
@@ -27,13 +30,11 @@ decodeSkinText(const QByteArray& data) -> QString
         return QString::fromUtf8(data.sliced(3));
     }
 
-    QStringDecoder utf8Decoder(QStringConverter::Utf8);
-    const QString utf8 = utf8Decoder.decode(data);
-    if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
-        return utf8;
-    }
-
-    for (const auto* encoding : { "CP932", "windows-31j", "Shift-JIS" }) {
+    // LR2-era skin headers commonly omit a BOM and use Japanese Windows
+    // CP932. ASCII survives unchanged, so prefer CP932 before UTF-8.
+    for (const auto* encoding :
+         { "CP932", "windows-31j", "Shift-JIS", "Shift_JIS", "SJIS",
+           "MS_Kanji" }) {
         QStringDecoder decoder(encoding);
         if (!decoder.isValid()) {
             continue;
@@ -42,6 +43,36 @@ decodeSkinText(const QByteArray& data) -> QString
         if (!decoder.hasError()) {
             return decoded;
         }
+    }
+
+    const auto invalidIconv =
+      reinterpret_cast<iconv_t>(static_cast<std::intptr_t>(-1));
+    for (const auto* encoding :
+         { "CP932", "Windows-31J", "SHIFT_JIS", "Shift-JIS" }) {
+        iconv_t cd = iconv_open("UTF-8", encoding);
+        if (cd == invalidIconv) {
+            continue;
+        }
+
+        auto* srcPtr = const_cast<char*>(data.constData());
+        auto srcLeft = static_cast<size_t>(data.size());
+        const auto dstSize = static_cast<size_t>(data.size()) * 4 + 4;
+        std::vector<char> dstBuf(dstSize);
+        auto* dstPtr = dstBuf.data();
+        auto dstLeft = dstSize;
+
+        const auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
+        iconv_close(cd);
+        if (result != static_cast<size_t>(-1)) {
+            return QString::fromUtf8(
+              dstBuf.data(), static_cast<qsizetype>(dstSize - dstLeft));
+        }
+    }
+
+    QStringDecoder utf8Decoder(QStringConverter::Utf8);
+    const QString utf8 = utf8Decoder.decode(data);
+    if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
+        return utf8;
     }
 
     return QString::fromLatin1(data);

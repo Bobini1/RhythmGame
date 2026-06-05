@@ -9,7 +9,9 @@
 #include <QStringDecoder>
 #include <QStringList>
 #include <algorithm>
+#include <cstdint>
 #include <filesystem>
+#include <iconv.h>
 #include <set>
 #include <utility>
 #include <vector>
@@ -185,15 +187,49 @@ decodeSkinText(const QByteArray& data) -> QString
         return QString::fromUtf8(data.sliced(3));
     }
 
+    // LR2-era skin files usually omit a BOM and use Japanese Windows CP932.
+    // ASCII survives unchanged, so prefer CP932 before UTF-8.
+    for (const auto* encoding :
+         { "CP932", "windows-31j", "Shift-JIS", "Shift_JIS", "SJIS",
+           "MS_Kanji" }) {
+        QStringDecoder decoder(encoding);
+        if (!decoder.isValid()) {
+            continue;
+        }
+        const auto decoded = decoder.decode(data);
+        if (!decoder.hasError()) {
+            return decoded;
+        }
+    }
+
+    const auto invalidIconv =
+      reinterpret_cast<iconv_t>(static_cast<std::intptr_t>(-1));
+    for (const auto* encoding :
+         { "CP932", "Windows-31J", "SHIFT_JIS", "Shift-JIS" }) {
+        iconv_t cd = iconv_open("UTF-8", encoding);
+        if (cd == invalidIconv) {
+            continue;
+        }
+
+        auto* srcPtr = const_cast<char*>(data.constData());
+        auto srcLeft = static_cast<size_t>(data.size());
+        const auto dstSize = static_cast<size_t>(data.size()) * 4 + 4;
+        std::vector<char> dstBuf(dstSize);
+        auto* dstPtr = dstBuf.data();
+        auto dstLeft = dstSize;
+
+        const auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
+        iconv_close(cd);
+        if (result != static_cast<size_t>(-1)) {
+            return QString::fromUtf8(
+              dstBuf.data(), static_cast<qsizetype>(dstSize - dstLeft));
+        }
+    }
+
     QStringDecoder utf8Decoder(QStringConverter::Utf8);
     const QString utf8 = utf8Decoder.decode(data);
     if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
         return utf8;
-    }
-
-    QStringDecoder shiftJisDecoder("Shift-JIS");
-    if (shiftJisDecoder.isValid()) {
-        return shiftJisDecoder.decode(data);
     }
 
     return QString::fromLatin1(data);
