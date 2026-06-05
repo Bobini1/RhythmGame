@@ -329,8 +329,9 @@ Player::Player(BmsNotes* notes,
             this,
             &Player::setup);
     refereeWatcher.setFuture(refereeFuture);
-    for (auto [index, column] :
-         std::ranges::views::enumerate(state->getColumnStates())) {
+    const auto columnStates = state->getColumnStates();
+    for (qsizetype index = 0; index < columnStates.size(); ++index) {
+        auto* column = columnStates[index];
         connect(score,
                 &BmsLiveScore::hit,
                 column,
