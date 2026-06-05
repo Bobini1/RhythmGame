@@ -46,6 +46,7 @@
       "name": "vcpkg-linux-sharedqt",
       "hidden": true,
       "cacheVariables": {
+        "RhythmGame_USE_MIMALLOC": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-linux-sharedqt",
         "VCPKG_HOST_TRIPLET": "x64-linux-sharedqt"
       }

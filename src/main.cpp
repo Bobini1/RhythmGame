@@ -3,7 +3,7 @@
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
-#ifdef _WIN32
+#if defined(_WIN32) && defined(RHYTHMGAME_USE_MIMALLOC)
 #include <mimalloc-new-delete.h>
 #endif
 #include <QGuiApplication>

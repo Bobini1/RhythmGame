@@ -22,7 +22,16 @@ endif ()
 
 # <---- mimalloc (faster memory allocation) ---->
 
-find_package(mimalloc CONFIG REQUIRED)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(RhythmGame_USE_MIMALLOC_DEFAULT OFF)
+else ()
+    set(RhythmGame_USE_MIMALLOC_DEFAULT ON)
+endif ()
+option(RhythmGame_USE_MIMALLOC "Use mimalloc as the global allocator" ${RhythmGame_USE_MIMALLOC_DEFAULT})
+
+if (RhythmGame_USE_MIMALLOC)
+    find_package(mimalloc CONFIG REQUIRED)
+endif ()
 
 # <------------ LibXml2 (html parsing) --------------->
 
@@ -301,7 +310,10 @@ target_compile_definitions(RhythmGame_lib PUBLIC
 
 find_package(Threads REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+if (RhythmGame_USE_MIMALLOC)
+    target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_MIMALLOC)
+    target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+endif ()
 
 # <------------ SndFile (audio file reading) --------------->
 
