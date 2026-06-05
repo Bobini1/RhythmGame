@@ -130,7 +130,7 @@ QtObject {
         case 68:
             return "OFF";
         case 69:
-            return resolver.optionText(root.lr2DpOptionLabels, root.lr2DpOptionIndex);
+            return resolver.optionText(root.lr2BattleLabels, root.lr2BattleIndex);
         case 70:
             return resolver.optionText(["OFF", "FLIP"], root.lr2FlipIndex);
         case 71:
@@ -633,11 +633,11 @@ QtObject {
         case 150:
             return root.gameplayHighScorePoints();
         case 151:
-            return root.gameplayTargetScorePoints();
+            return root.gameplayTargetScorePoints(1);
         case 152:
             return root.gameplayExScore(s1) - root.gameplayHighScorePoints();
         case 153:
-            return root.gameplayExScore(s1) - root.gameplayTargetScorePoints();
+            return root.gameplayExScore(s1) - root.gameplayTargetScorePoints(1);
         case 154:
             return root.gameplayRankDelta(s1);
         case 155:
@@ -645,9 +645,9 @@ QtObject {
         case 156:
             return root.gameplayScoreRateDecimal(root.gameplayHighScorePoints(), s1);
         case 157:
-            return root.gameplayScoreRateInteger(root.gameplayTargetScorePoints(), s1);
+            return root.gameplayScoreRateInteger(root.gameplayTargetScorePoints(1), s1);
         case 158:
-            return root.gameplayScoreRateDecimal(root.gameplayTargetScorePoints(), s1);
+            return root.gameplayScoreRateDecimal(root.gameplayTargetScorePoints(1), s1);
         case 1163: {
             let seconds = root.chartLengthSeconds(chartData);
             return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;

@@ -199,13 +199,17 @@ Item {
     property alias resultGraphEndSkinTime: resultState.resultGraphEndSkinTime
     property alias resultTimingStatsCache: resultState.resultTimingStatsCache
     property alias resultJudgeTimingCountsCache: resultState.resultJudgeTimingCountsCache
-    readonly property var gameplayKeyTimers: [
-        100, 101, 102, 103, 104, 105, 106, 107,
-        110, 111, 112, 113, 114, 115, 116, 117
-    ]
-    readonly property var gameplayLongNoteTimers: [
-        70, 71, 72, 73, 74, 75, 76, 77,
-        80, 81, 82, 83, 84, 85, 86, 87
+    readonly property var gameplayKeyTimers: root.gameplayUsesFiveKeyTimers()
+        ? [100, 101, 102, 103, 104, 105, 110, 111, 112, 113, 114, 115]
+        : [100, 101, 102, 103, 104, 105, 106, 107, 110, 111, 112, 113, 114, 115, 116, 117]
+    readonly property var gameplayLongNoteTimers: root.gameplayUsesFiveKeyTimers()
+        ? [70, 71, 72, 73, 74, 75, 80, 81, 82, 83, 84, 85]
+        : [70, 71, 72, 73, 74, 75, 76, 77, 80, 81, 82, 83, 84, 85, 86, 87]
+    readonly property var gameplayHiddenFiveKeyTimers: [
+        56, 57, 66, 67,
+        76, 77, 86, 87,
+        106, 107, 116, 117,
+        126, 127, 136, 137
     ]
 
     function parseLr2SkinMetadata() : var {
@@ -1315,10 +1319,20 @@ Item {
     }
 
     function battleModeActive() : var {
-        return !!(Rg.profileList && Rg.profileList.battleActive);
+        return !!(root.chart && root.chart.player2)
+            || !!(Rg.profileList && Rg.profileList.battleActive);
     }
 
     function spToDpActive() : var {
+        if (root.chart && !root.chart.player2) {
+            let chartData = root.gameplayChartData();
+            let sourceKeymode = chartData ? Number(chartData.keymode || 0) : 0;
+            let effectiveKeymode = Number(root.chart.keymode || 0);
+            if ((sourceKeymode === 5 && effectiveKeymode === 10)
+                    || (sourceKeymode === 7 && effectiveKeymode === 14)) {
+                return true;
+            }
+        }
         let vars = root.mainGeneralVarsRef;
         return !!vars && vars.dpOptions === DpOptions.Battle;
     }
@@ -1917,6 +1931,9 @@ Item {
     }
 
     function gameplayKeymode() : var {
+        if (root.chart && root.chart.keymode !== undefined) {
+            return root.chart.keymode || 0;
+        }
         let chartData = root.gameplayChartData();
         return chartData ? chartData.keymode || 0 : 0;
     }
@@ -1924,6 +1941,19 @@ Item {
     function gameplayUsesDoublePlayLanes() : var {
         let keymode = root.gameplayKeymode();
         return keymode === 10 || keymode === 14;
+    }
+
+    function gameplayUsesFiveKeyTimers() : var {
+        let keymode = root.gameplayKeymode();
+        return keymode === 5 || keymode === 10;
+    }
+
+    function gameplayLr2LaneAllowedForTimers(lane: var) : var {
+        if (lane < 0) {
+            return false;
+        }
+        return !root.gameplayUsesFiveKeyTimers()
+            || !((lane >= 6 && lane <= 7) || (lane >= 16 && lane <= 17));
     }
 
     function gameplayLanePlayer(side: var) : var {
@@ -1947,6 +1977,10 @@ Item {
     }
 
     function gameplayLr2LaneForKeyTimer(timer: var) : var {
+        if (root.gameplayUsesFiveKeyTimers()
+                && ((timer >= 106 && timer <= 107) || (timer >= 116 && timer <= 117))) {
+            return -1;
+        }
         if (timer === 100) {
             return 0;
         }
@@ -1963,6 +1997,10 @@ Item {
     }
 
     function gameplayLr2LaneForLongNoteTimer(timer: var) : var {
+        if (root.gameplayUsesFiveKeyTimers()
+                && ((timer >= 76 && timer <= 77) || (timer >= 86 && timer <= 87))) {
+            return -1;
+        }
         if (timer === 70) {
             return 0;
         }
@@ -1976,6 +2014,22 @@ Item {
             return timer - 70;
         }
         return -1;
+    }
+
+    function gameplayKeyOnTimerAllowed(timer: var) : var {
+        return root.gameplayLr2LaneForKeyTimer(timer) >= 0;
+    }
+
+    function gameplayLongNoteTimerAllowed(timer: var) : var {
+        return root.gameplayLr2LaneForLongNoteTimer(timer) >= 0;
+    }
+
+    function gameplayHitTimerAllowed(timer: var) : var {
+        if (root.gameplayUsesFiveKeyTimers()
+                && ((timer >= 56 && timer <= 57) || (timer >= 66 && timer <= 67))) {
+            return false;
+        }
+        return (timer >= 50 && timer <= 57) || (timer >= 60 && timer <= 67);
     }
 
     function gameplayCoursePlayer(side: var) : var {
@@ -2103,10 +2157,12 @@ Item {
         return root.gameplayBestSavedScore() ? Math.floor(gameplayBestScoreReplayer.points || 0) : 0;
     }
 
-    function gameplayTargetScorePoints() : var {
+    function gameplayTargetScorePoints(side: var) : var {
         root.gameplayScoresRevision;
+        side = side === 2 ? 2 : 1;
         if (root.battleModeActive()) {
-            return root.gameplayExScore(root.gameplayScore(2));
+            let opponent = root.gameplayScore(side === 2 ? 1 : 2);
+            return opponent ? root.gameplayExScore(opponent) : 0;
         }
         if (root.gameplayTargetSavedScore()) {
             return Math.floor(gameplayTargetScoreReplayer.points || 0);
@@ -2121,9 +2177,11 @@ Item {
         return Math.floor((score.maxPointsNow || 0) * fraction);
     }
 
-    function gameplayTargetFinalPoints() : var {
+    function gameplayTargetFinalPoints(side: var) : var {
         if (root.battleModeActive()) {
-            return 0;
+            side = side === 2 ? 2 : 1;
+            let opponent = root.gameplayScore(side === 2 ? 1 : 2);
+            return opponent ? root.gameplayExScore(opponent) : 0;
         }
         let targetScore = root.gameplayTargetSavedScore();
         if (targetScore) {
@@ -2592,6 +2650,20 @@ Item {
         }
     }
 
+    function clearHiddenFiveKeyGameplayTimers() : void {
+        if (!root.gameplayUsesFiveKeyTimers()) {
+            return;
+        }
+        for (let timer of root.gameplayHiddenFiveKeyTimers) {
+            delete root.gameplayHeldButtonTimerStarts[timer];
+            delete root.gameplayOffButtonTimerStarts[timer];
+            delete root.gameplayPreviousPressedTimers[timer];
+            delete root.gameplayHitTimerStarts[timer];
+            delete root.gameplayLongNoteTimerStarts[timer];
+            root.clearGameplayTimerValue(timer);
+        }
+    }
+
     function resetGameplayTimers() : void {
         root.stopLr2GameplayOptionRepeat();
         root.gameplayReadySkinTime = -1;
@@ -2631,6 +2703,7 @@ Item {
         root.gameplayHitTimerStarts = ({});
         root.gameplayLongNoteTimerStarts = ({});
         root.resetGameplayTimerValues();
+        root.clearHiddenFiveKeyGameplayTimers();
     }
 
     function updateGameplayStatusTimers() : var {
@@ -2671,19 +2744,22 @@ Item {
             if (column === 7) {
                 return 10;
             }
-            return column >= 0 && column <= 6 ? column + 11 : -1;
+            let lane = column >= 0 && column <= 6 ? column + 11 : -1;
+            return root.gameplayLr2LaneAllowedForTimers(lane) ? lane : -1;
         }
         let rightSide = side === 2 || (!root.gameplayPlayer(2) && column >= 8);
         if (rightSide) {
             if (column === 15) {
                 return 10;
             }
-            return column >= 8 && column <= 14 ? column + 3 : -1;
+            let lane = column >= 8 && column <= 14 ? column + 3 : -1;
+            return root.gameplayLr2LaneAllowedForTimers(lane) ? lane : -1;
         }
         if (column === 7) {
             return 0;
         }
-        return column >= 0 && column <= 6 ? column + 1 : -1;
+        let lane = column >= 0 && column <= 6 ? column + 1 : -1;
+        return root.gameplayLr2LaneAllowedForTimers(lane) ? lane : -1;
     }
 
     function gameplayHitDisplaySide(scoreSide: var, hit: var) : var {
@@ -2886,20 +2962,21 @@ Item {
 
     function addGameplayEffectTimers(result: var) : void {
         for (let keyName in root.gameplayHitTimerStarts) {
-            result[keyName] = root.gameplayHitTimerStarts[keyName];
+            if (root.gameplayHitTimerAllowed(Number(keyName))) {
+                result[keyName] = root.gameplayHitTimerStarts[keyName];
+            }
         }
         for (let keyName in root.gameplayLongNoteTimerStarts) {
-            result[keyName] = root.gameplayLongNoteTimerStarts[keyName];
+            if (root.gameplayLongNoteTimerAllowed(Number(keyName))) {
+                result[keyName] = root.gameplayLongNoteTimerStarts[keyName];
+            }
         }
     }
 
     function initialGameplayOffButtonTimers() : var {
         let result = {};
-        for (let timer = 120; timer <= 127; ++timer) {
-            result[timer] = 0;
-        }
-        for (let timer = 130; timer <= 137; ++timer) {
-            result[timer] = 0;
+        for (let timer of root.gameplayKeyTimers) {
+            result[timer + 20] = 0;
         }
         return result;
     }
@@ -2920,9 +2997,9 @@ Item {
         case BmsKey.Col15:
             return 105;
         case BmsKey.Col16:
-            return 106;
+            return root.gameplayUsesFiveKeyTimers() ? 0 : 106;
         case BmsKey.Col17:
-            return 107;
+            return root.gameplayUsesFiveKeyTimers() ? 0 : 107;
         case BmsKey.Col2sUp:
         case BmsKey.Col2sDown:
             return 110;
@@ -2937,18 +3014,16 @@ Item {
         case BmsKey.Col25:
             return 115;
         case BmsKey.Col26:
-            return 116;
+            return root.gameplayUsesFiveKeyTimers() ? 0 : 116;
         case BmsKey.Col27:
-            return 117;
+            return root.gameplayUsesFiveKeyTimers() ? 0 : 117;
         default:
             return 0;
         }
     }
 
     function gameplayKeyOffTimerForOnTimer(timer: var) : var {
-        return ((timer >= 100 && timer <= 107) || (timer >= 110 && timer <= 117))
-            ? timer + 20
-            : 0;
+        return root.gameplayKeyOnTimerAllowed(timer) ? timer + 20 : 0;
     }
 
     function gameplayKeyTimerHeld(timer: var) : var {
@@ -2958,6 +3033,17 @@ Item {
 
     function setGameplayKeyTimerPressed(timer: var, pressed: var) : var {
         if (!root.gameplayScreenActive || !root.chart) {
+            return;
+        }
+        if (!root.gameplayKeyOnTimerAllowed(timer)) {
+            let blockedOffTimer = timer ? timer + 20 : 0;
+            delete root.gameplayHeldButtonTimerStarts[timer];
+            delete root.gameplayPreviousPressedTimers[timer];
+            if (blockedOffTimer) {
+                delete root.gameplayOffButtonTimerStarts[blockedOffTimer];
+                root.clearGameplayTimerValue(blockedOffTimer);
+            }
+            root.clearGameplayTimerValue(timer);
             return;
         }
         let wasPressed = !!root.gameplayPreviousPressedTimers[timer];
@@ -2999,6 +3085,11 @@ Item {
 
     function setGameplayLongNoteTimerHeld(timer: var, held: var) : var {
         if (!root.gameplayScreenActive || !root.chart) {
+            return;
+        }
+        if (!root.gameplayLongNoteTimerAllowed(timer)) {
+            delete root.gameplayLongNoteTimerStarts[timer];
+            root.clearGameplayTimerValue(timer);
             return;
         }
 
@@ -3099,11 +3190,14 @@ Item {
 
     function addGameplayKeyTimers(result: var) : void {
         for (let keyName in root.gameplayHeldButtonTimerStarts) {
-            result[keyName] = root.gameplayHeldButtonTimerStarts[keyName];
+            if (root.gameplayKeyOnTimerAllowed(Number(keyName))) {
+                result[keyName] = root.gameplayHeldButtonTimerStarts[keyName];
+            }
         }
         for (let keyName in root.gameplayOffButtonTimerStarts) {
-            let onTimer = Number(keyName) - 20;
-            if (!root.gameplayPreviousPressedTimers[onTimer]) {
+            let offTimer = Number(keyName);
+            let onTimer = offTimer - 20;
+            if (root.gameplayKeyOnTimerAllowed(onTimer) && !root.gameplayPreviousPressedTimers[onTimer]) {
                 result[keyName] = root.gameplayOffButtonTimerStarts[keyName];
             }
         }
@@ -3370,7 +3464,7 @@ Item {
             root.spToDpActive() ? 1 : 0,
             chartIndex,
             chartCount,
-            chartData ? chartData.keymode || 0 : 0,
+            root.gameplayKeymode(),
             chartData && chartData.stageFile ? 1 : 0,
             chartData && chartData.banner ? 1 : 0,
             chartData && chartData.backBmp ? 1 : 0,

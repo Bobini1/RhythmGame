@@ -1037,7 +1037,11 @@ qreal selectBarElementLayer(int type, const Source& source) {
 int staticNoteElementSortId(const QVariantList& noteDsts) {
     int result = -1;
     for (const QVariant& laneDsts : noteDsts) {
-        const int sortId = firstSortId(laneDsts);
+        const QVariantList laneDstList = readVariantList(laneDsts);
+        if (laneDstList.isEmpty()) {
+            continue;
+        }
+        const int sortId = firstSortId(laneDstList);
         result = result < 0 || sortId < result ? sortId : result;
     }
     return result >= 0 ? result : 0;

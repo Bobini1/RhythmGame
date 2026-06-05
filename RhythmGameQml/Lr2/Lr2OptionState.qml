@@ -192,6 +192,12 @@ QtObject {
 
 
     function profileForSide(side) {
+        if (host.gameplayScreenActive && host.gameplayPlayer) {
+            let player = host.gameplayPlayer(side === 2 ? 2 : 1);
+            if (player && player.profile) {
+                return player.profile;
+            }
+        }
         if (side === 2 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player2Profile) {
             return Rg.profileList.battleProfiles.player2Profile;
         }

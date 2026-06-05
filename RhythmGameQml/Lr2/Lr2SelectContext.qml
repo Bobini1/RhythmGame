@@ -226,9 +226,9 @@ Item {
     readonly property var current: focusedItem
     readonly property var focusedChartData: {
         if (rankingMode && rankingBaseItem) {
-            return rankingBaseItem;
+            return chartDataForItem(rankingBaseItem) || rankingBaseItem;
         }
-        return focusedItem instanceof ChartData || focusedItem instanceof entry ? focusedItem : null;
+        return chartDataForItem(focusedItem);
     }
     readonly property var focusedSelectionTarget: isRankingEntry(focusedItem)
         ? focusedItem
@@ -493,11 +493,46 @@ Item {
         return item instanceof course;
     }
 
+    function chartDataForItem(item: var) : var {
+        if (!item) {
+            return null;
+        }
+        if (isRankingEntry(item)) {
+            return chartDataForItem(rankingBaseItem);
+        }
+        if (isChart(item) || isEntry(item)) {
+            return item;
+        }
+        let chartData = item.chartData;
+        if (chartData && chartData !== item) {
+            let chart = chartDataForItem(chartData);
+            if (chart) {
+                return chart;
+            }
+        }
+        let rawItem = item.rawItem;
+        if (rawItem && rawItem !== item) {
+            let chart = chartDataForItem(rawItem);
+            if (chart) {
+                return chart;
+            }
+        }
+        return null;
+    }
+
+    function selectedChartDataForValues() : var {
+        return chartDataForItem(selectedStateChartData)
+            || chartDataForItem(selectedStateItem)
+            || focusedChartData
+            || chartDataForItem(focusedItem);
+    }
+
     function isPlayableChartLike(item: var) : var {
         if (isRankingEntry(item)) {
             item = rankingBaseItem;
         }
-        return isChart(item) && !!item.path;
+        let chart = chartDataForItem(item);
+        return isChart(chart) && !!chart.path;
     }
 
     function isMissingTableEntry(item: var) : var {
@@ -3529,7 +3564,7 @@ Item {
     }
 
     function chartsForCurrentSong() : var {
-        return chartsForSong(selectedStateChartData);
+        return chartsForSong(selectedChartDataForValues());
     }
 
     function chartsForSong(chart: var) : var {
@@ -3653,7 +3688,7 @@ Item {
     }
 
     function nextChartForDifficulty(diff: var) : var {
-        let currentChart = selectedStateChartData;
+        let currentChart = selectedChartDataForValues();
         let candidates = [];
         for (let chart of chartsForCurrentSong()) {
             if (entryDifficulty(chart) === diff) {
@@ -3678,7 +3713,7 @@ Item {
             return;
         }
 
-        let currentChart = selectedStateChartData;
+        let currentChart = selectedChartDataForValues();
         let target = currentChart && entryDifficulty(currentChart) === diff
             ? nextChartForDifficulty(diff)
             : chartForDifficulty(diff);
@@ -3687,17 +3722,37 @@ Item {
     }
 
     function difficultyCount(diff: var) : var {
+        if (diff < 1 || diff > 5) {
+            return 0;
+        }
         let model = selectedState.difficultyModel;
-        return diff >= 1 && diff <= 5 && model ? model.countForDifficulty(diff) : 0;
+        if (model) {
+            let count = model.countForDifficulty(diff);
+            if (count > 0) {
+                return count;
+            }
+        }
+        let state = difficultyStateForChart(selectedChartDataForValues());
+        return state && state.counts && state.counts.length > diff ? state.counts[diff] || 0 : 0;
     }
 
     function difficultyPlayLevel(diff: var) : var {
+        if (diff < 1 || diff > 5) {
+            return 0;
+        }
         let model = selectedState.difficultyModel;
-        return diff >= 1 && diff <= 5 && model ? model.playLevelForDifficulty(diff) : 0;
+        if (model) {
+            let level = model.playLevelForDifficulty(diff);
+            if (level > 0) {
+                return level;
+            }
+        }
+        let state = difficultyStateForChart(selectedChartDataForValues());
+        return state && state.levels && state.levels.length > diff ? state.levels[diff] || 0 : 0;
     }
 
     function levelBarFlashThreshold() : var {
-        let chart = selectedStateChartData;
+        let chart = selectedChartDataForValues();
         let keymode = chart ? (chart.keymode || 0) : 0;
         if (keymode === 5 || keymode === 10) {
             return 9;
@@ -3722,8 +3777,18 @@ Item {
     }
 
     function difficultyLamp(diff: var) : var {
+        if (diff < 1 || diff > 5) {
+            return 0;
+        }
         let model = selectedState.difficultyModel;
-        return diff >= 1 && diff <= 5 && model ? model.lampForDifficulty(diff) : 0;
+        if (model) {
+            let lamp = model.lampForDifficulty(diff);
+            if (lamp > 0) {
+                return lamp;
+            }
+        }
+        let state = difficultyStateForChart(selectedChartDataForValues());
+        return state && state.lamps && state.lamps.length > diff ? state.lamps[diff] || 0 : 0;
     }
 
     function attachedTextFile(chart: var) : string {
@@ -3774,12 +3839,9 @@ Item {
     }
 
     function judgeRank(chart: var, fallbackItem: var) : var {
-        let rank = chartRankValue(chart);
-        if (!isFinite(rank) && fallbackItem && !isFolderLikeForLamp(fallbackItem)) {
-            rank = chartRankValue(fallbackItem);
-        }
-        if (!isFinite(rank) && (isChart(chart) || isEntry(chart)
-                || isChart(fallbackItem) || isEntry(fallbackItem))) {
+        let chartData = chartDataForItem(chart) || chartDataForItem(fallbackItem);
+        let rank = chartRankValue(chartData);
+        if (!isFinite(rank) && chartData) {
             return 75;
         }
         return rank;

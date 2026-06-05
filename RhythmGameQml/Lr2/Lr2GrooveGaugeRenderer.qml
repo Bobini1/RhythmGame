@@ -34,7 +34,10 @@ Item {
     readonly property var currentState: staticTimelineState
         || (timelineState.hasState ? timelineState.state : null)
     readonly property int side: srcData && srcData.side > 0 ? srcData.side : 1
-    readonly property var player: screenRoot ? screenRoot.gameplayPlayer(side) : null
+    readonly property var player: screenRoot
+        ? (screenRoot.gameplayPlayer(side)
+            || (screenRoot.gameplayLanePlayer ? screenRoot.gameplayLanePlayer(side) : null))
+        : null
     readonly property var score: player ? player.score : null
     readonly property real gaugeValue: screenRoot && score ? screenRoot.gameplayGaugeValue(score) : 0
     readonly property int hpSegments: Math.max(0, Math.min(50, Math.floor(gaugeValue / 2)))

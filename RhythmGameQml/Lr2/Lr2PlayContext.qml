@@ -94,12 +94,10 @@ Item {
                               totalPoints(1));
         case 14:
             return normalized(
-                screenRoot && screenRoot.battleModeActive()
-                    ? exScore(2)
-                    : (screenRoot ? screenRoot.gameplayTargetScorePoints() : 0),
+                screenRoot ? screenRoot.gameplayTargetScorePoints(1) : 0,
                 totalPoints(1));
         case 15:
-            return normalized(screenRoot ? screenRoot.gameplayTargetFinalPoints() : 0,
+            return normalized(screenRoot ? screenRoot.gameplayTargetFinalPoints(1) : 0,
                               totalPoints(1));
         default:
             return 0;

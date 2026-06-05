@@ -30,6 +30,18 @@ QtObject {
         return lookup;
     }
 
+    function appendUniqueRuntimeOption(options: var, option: var) : void {
+        if (option === undefined || option === null) {
+            return;
+        }
+        let lookup = root.optionLookupFor(options);
+        if (lookup[option] === true && options.indexOf(option) !== -1) {
+            return;
+        }
+        options.push(option);
+        lookup[option] = true;
+    }
+
     function addRuntimeOption(options: var, option: var) : void {
         if (option === undefined || option === null) {
             return;
@@ -38,12 +50,14 @@ QtObject {
         if (usedOptions && usedOptions[Math.abs(option)] !== true) {
             return;
         }
-        let lookup = root.optionLookupFor(options);
-        if (lookup[option] === true) {
+        root.appendUniqueRuntimeOption(options, option);
+    }
+
+    function addSelectChartDetailRuntimeOption(options: var, option: var) : void {
+        if (option === undefined || option === null || option <= 0) {
             return;
         }
-        options.push(option);
-        lookup[option] = true;
+        root.appendUniqueRuntimeOption(options, option);
     }
 
     function removeRuntimeOptionRange(options: var, first: var, last: var) : void {
@@ -82,6 +96,15 @@ QtObject {
         }
     }
 
+    function setSelectChartDetailRuntimeOptionRange(options: var, first: var, last: var, option: var) : void {
+        root.removeRuntimeOptionRange(options, first, last);
+        if (host.effectiveScreenKey === "select") {
+            root.addSelectChartDetailRuntimeOption(options, option);
+        } else if (option !== undefined && option !== null && option > 0) {
+            root.addRuntimeOption(options, option);
+        }
+    }
+
     function addOption(options: var, option: var) : void {
         if (option === undefined || option === null) {
             return;
@@ -111,6 +134,55 @@ QtObject {
             }
         }
         return false;
+    }
+
+    function runtimeAnyOptionUsed(lookup: var, options: var) : var {
+        if (!lookup) {
+            return true;
+        }
+        for (let option of options) {
+            if (lookup[Math.abs(option)] === true) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function selectReplayOptionsUsed() : var {
+        return root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [
+            196, 197, 1196, 1197, 1199, 1200,
+            1202, 1203, 1205, 1206, 1207, 1208
+        ]);
+    }
+
+    function selectScoreOptionIdsUsed() : var {
+        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 118, 130)
+            || root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [144, 145, 1128]);
+    }
+
+    function selectEntryStatusOptionsUsed() : var {
+        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 100, 130)
+            || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 200, 207)
+            || root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [1100, 1101, 1102, 1103, 1104]);
+    }
+
+    function selectCourseDetailOptionsUsed() : var {
+        return root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [290, 293])
+            || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 580, 589)
+            || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 700, 755);
+    }
+
+    function selectDifficultyBarOptionsUsed() : var {
+        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 70, 79)
+            || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 500, 570);
+    }
+
+    function selectDifficultyLampOptionsUsed() : var {
+        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 520, 570);
+    }
+
+    function selectRankingStatusOptionsUsed() : var {
+        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 600, 616);
     }
 
     function copyActiveOptions(options: var) : var {
@@ -251,10 +323,10 @@ QtObject {
             if (usesRandomOption) {
                 root.addOption(options, 178);
             }
-            root.setRuntimeOptionRange(options,
-                                       180,
-                                       184,
-                                       suppressJudgeOption ? 0 : selectContext.judgeOption(null, fallbackItem));
+            root.setSelectChartDetailRuntimeOptionRange(options,
+                                                        180,
+                                                        184,
+                                                        suppressJudgeOption ? 0 : selectContext.judgeOption(null, fallbackItem));
             root.appendReplayOptions(options, null);
             if (usesDifficultyOption) {
                 root.addOption(options, 150);
@@ -288,10 +360,10 @@ QtObject {
         if (usesRandomOption) {
             root.addOption(options, chartData.isRandom ? 179 : 178);
         }
-        root.setRuntimeOptionRange(options,
-                                   180,
-                                   184,
-                                   suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem));
+        root.setSelectChartDetailRuntimeOptionRange(options,
+                                                    180,
+                                                    184,
+                                                    suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem));
         if (usesHighLevelOption) {
             root.addOption(options, selectContext.highLevelOption(chartData));
         }
@@ -329,7 +401,7 @@ QtObject {
     }
 
     function appendReplayOptions(options: var, chartData: var) : var {
-        if (!host.selectReplayOptionsUsed) {
+        if (!root.selectReplayOptionsUsed()) {
             return;
         }
         let selectedReplayAvailable = false;
@@ -347,23 +419,32 @@ QtObject {
 
     function normalizedKeymode(keymode: var) : var {
         let value = Number(keymode || 0);
-        return isNaN(value) ? 0 : value;
+        return isFinite(value) ? value : 0;
     }
 
-    function chartObjectKeymode(chart: var) : var {
+    function chartDataForSelection(chartData: var, fallbackItem: var) : var {
+        if (selectContext.chartDataForItem) {
+            let chart = selectContext.chartDataForItem(chartData);
+            if (chart) {
+                return chart;
+            }
+            chart = selectContext.chartDataForItem(fallbackItem);
+            if (chart) {
+                return chart;
+            }
+        }
+        return chartData || null;
+    }
+
+    function chartDataKeymode(chart: var) : var {
         if (!chart) {
             return 0;
         }
-        let keymode = root.normalizedKeymode(chart.keymode);
-        if (keymode > 0) {
-            return keymode;
-        }
-        return chart.chartData ? root.normalizedKeymode(chart.chartData.keymode) : 0;
+        return root.normalizedKeymode(chart.keymode);
     }
 
     function chartKeymode(chartData: var, fallbackItem: var) : var {
-        let keymode = root.chartObjectKeymode(chartData);
-        return keymode > 0 ? keymode : root.chartObjectKeymode(fallbackItem);
+        return root.chartDataKeymode(root.chartDataForSelection(chartData, fallbackItem));
     }
 
     function keymodeOptionFor(keymode: var, baseOption: var) : var {
@@ -387,14 +468,16 @@ QtObject {
         }
     }
 
-    function appendKeymodeOption(options: var, keymode: var, baseOption: var) : void {
+    function appendChartKeymodeOption(options: var, keymode: var, baseOption: var) : void {
         let option = root.keymodeOptionFor(keymode, baseOption);
-        if (option > 0) {
+        if (host.effectiveScreenKey === "select") {
+            root.addSelectChartDetailRuntimeOption(options, option);
+        } else if (option > 0) {
             root.addOption(options, option);
         }
     }
 
-    function keymodeForSelectModeOption(keymode: var) : var {
+    function effectiveChartDetailKeymode(keymode: var) : var {
         keymode = root.normalizedKeymode(keymode);
         if (!host.spToDpActive() && !host.battleModeActive()) {
             return keymode;
@@ -413,9 +496,12 @@ QtObject {
         if (keymode <= 0) {
             return;
         }
-        let effectiveKeymode = root.keymodeForSelectModeOption(keymode);
-        root.appendKeymodeOption(options, effectiveKeymode, 160);
-        root.appendKeymodeOption(options, effectiveKeymode, 165);
+        let effectiveKeymode = root.effectiveChartDetailKeymode(keymode);
+        // LR2 select MODE labels use the chart's raw keymode. The 165..169
+        // family still advertises the effective layout for battle/SP-to-DP.
+        let modeLabelKeymode = host.effectiveScreenKey === "select" ? keymode : effectiveKeymode;
+        root.appendChartKeymodeOption(options, modeLabelKeymode, 160);
+        root.appendChartKeymodeOption(options, effectiveKeymode, 165);
     }
 
     function chartKeymodeForStatus(item: var, selectedChart: var) : var {
@@ -423,7 +509,7 @@ QtObject {
     }
 
     function appendEntryStatusOptions(options: var, item: var, selectedChart: var, scoreSummary: var) : var {
-        if (!host.selectEntryStatusOptionsUsed) {
+        if (!root.selectEntryStatusOptionsUsed()) {
             return;
         }
         let folderLike = selectContext.isFolderLikeForLamp(item);
@@ -482,7 +568,7 @@ QtObject {
     }
 
     function appendCourseOptions(options: var, item: var) : var {
-        if (!selectContext.isCourse(item) || !host.selectCourseDetailOptionsUsed) {
+        if (!selectContext.isCourse(item) || !root.selectCourseDetailOptionsUsed()) {
             return;
         }
         root.addOption(options, 290);
@@ -502,11 +588,12 @@ QtObject {
     }
 
     function appendDifficultyBarOptions(options: var, difficultyModel: var, selectedChart: var) : var {
-        if (!host.selectDifficultyBarOptionsUsed) {
+        if (!root.selectDifficultyBarOptionsUsed()) {
             return;
         }
-        let includeLamps = host.selectDifficultyLampOptionsUsed;
-        let keymode = selectedChart ? root.normalizedKeymode(selectedChart.keymode) : 0;
+        let includeLamps = root.selectDifficultyLampOptionsUsed();
+        let chartData = root.chartDataForSelection(selectedChart, selectedChart);
+        let keymode = root.chartDataKeymode(chartData);
         if (difficultyModel) {
             let optionIds = difficultyModel.optionIdsForKeymode(keymode, includeLamps);
             for (let optionId of optionIds) {
@@ -515,16 +602,43 @@ QtObject {
             return;
         }
 
+        let difficultyState = chartData && selectContext.difficultyStateForChart
+            ? selectContext.difficultyStateForChart(chartData)
+            : null;
+        let counts = difficultyState ? difficultyState.counts || [] : [];
+        let levels = difficultyState ? difficultyState.levels || [] : [];
+        let lamps = difficultyState ? difficultyState.lamps || [] : [];
+        let flashThreshold = keymode === 5 || keymode === 10 ? 9 : 12;
         for (let diff = 1; diff <= 5; ++diff) {
-            root.addOption(options, 499 + diff);
+            let count = counts.length > diff ? counts[diff] || 0 : 0;
+            let level = levels.length > diff ? levels[diff] || 0 : 0;
+            if (count > 0) {
+                root.addOption(options, 504 + diff);
+                root.addOption(options, level > flashThreshold ? 74 + diff : 69 + diff);
+            } else {
+                root.addOption(options, 499 + diff);
+            }
+            if (count === 1) {
+                root.addOption(options, 509 + diff);
+            } else if (count > 1) {
+                root.addOption(options, 514 + diff);
+            }
             if (includeLamps) {
-                root.addOption(options, 510 + diff * 10);
+                let lamp = lamps.length > diff ? lamps[diff] || 0 : 0;
+                root.addOption(options, 510 + diff * 10 + lamp);
             }
         }
     }
 
     function appendSelectItemTypeOptions(options: var, item: var) : void {
-        if (selectContext.isChart(item) || selectContext.isEntry(item) || selectContext.isRankingEntry(item)) {
+        let chartData = root.chartDataForSelection(item, null);
+        let chartLike = !!chartData
+            && !selectContext.isFolderLikeForLamp(item)
+            && !selectContext.isCourse(item);
+        if (selectContext.isChart(item)
+                || selectContext.isEntry(item)
+                || selectContext.isRankingEntry(item)
+                || chartLike) {
             root.addOption(options, 2);
             if (selectContext.isPlayableBar(item)) {
                 root.addOption(options, 5);
@@ -540,8 +654,9 @@ QtObject {
         }
     }
 
-    function appendSelectedChartModeOptions(options: var, chartData: var) : void {
-        let keymode = chartData ? root.normalizedKeymode(chartData.keymode) : 0;
+    function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var) : void {
+        let keymode = root.chartKeymode(chartData, fallbackItem);
+        root.appendChartKeymodeOptions(options, keymode);
         let doubleMode = keymode === 10 || keymode === 14
             || ((keymode === 5 || keymode === 7) && host.spToDpActive());
         let battleMode = host.battleModeActive();
@@ -788,8 +903,9 @@ QtObject {
     function appendCurrentSelectOptions(options: var, item: var, selectedChart: var, state: var) : void {
         state = state !== undefined ? state : selectContext.selectedState;
         let stateCurrent = state === selectContext.selectedState && selectContext.selectedStateCurrent;
-        let selectedItem = item || (state ? state.item : null);
-        let chartData = selectedChart !== undefined ? selectedChart : (state ? state.chartData : null);
+        let selectedItem = item || (state ? state.item : null) || selectContext.focusedItem;
+        let explicitChartData = selectedChart !== undefined ? selectedChart : (state ? state.chartData : null);
+        let chartData = root.chartDataForSelection(explicitChartData, selectedItem);
         let canUseState = stateCurrent
             && state
             && (selectedItem === state.item || selectedItem === state.chartData)
@@ -798,7 +914,7 @@ QtObject {
         let difficultyModel = canUseState ? state.difficultyModel : null;
 
         root.appendSelectItemTypeOptions(options, selectedItem);
-        root.appendSelectedChartModeOptions(options, chartData);
+        root.appendSelectedChartModeOptions(options, chartData, selectedItem);
         root.appendEntryStatusOptions(options, selectedItem, chartData, summary);
         root.appendCourseOptions(options, selectedItem);
         root.appendRankingStatusOptions(options);
@@ -808,7 +924,7 @@ QtObject {
         }
 
         root.appendChartOptions(options, chartData, selectedItem);
-        if (host.selectScoreOptionIdsUsed) {
+        if (root.selectScoreOptionIdsUsed()) {
             let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
             if (!scoreOptionIds) {
                 scoreOptionIds = selectContext.scoreOptionIds(selectedItem);
@@ -827,7 +943,7 @@ QtObject {
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendEntryStatusOptions(options, chartData, chartData);
         root.appendChartOptions(options, chartData);
-        if (host.selectScoreOptionIdsUsed) {
+        if (root.selectScoreOptionIdsUsed()) {
             for (let optionId of selectContext.scoreOptionIds(chartData)) {
                 root.addOption(options, optionId);
             }
@@ -867,7 +983,7 @@ QtObject {
     }
 
     function appendRankingStatusOptions(result: var) : var {
-        if (!host.selectRankingStatusOptionsUsed) {
+        if (!root.selectRankingStatusOptionsUsed()) {
             return;
         }
         root.addOption(result, rankingState.currentStatusOption);
