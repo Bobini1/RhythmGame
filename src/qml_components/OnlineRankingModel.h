@@ -300,6 +300,7 @@ class OnlineRankingModel : public QAbstractListModel
     int scoreCount{ 0 };
     int playerCount{ 0 };
     QString chartId;
+    quint64 currentFetchGeneration{ 0 };
 
     Provider currentProvider{ Provider::RhythmGame };
 };

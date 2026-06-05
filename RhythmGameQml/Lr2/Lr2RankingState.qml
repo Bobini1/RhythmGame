@@ -32,10 +32,22 @@ QtObject {
         : root.selectChart
     readonly property string md5: root.chart && root.chart.md5 ? String(root.chart.md5) : ""
     readonly property string loadedMd5: root.rankingModel.md5 ? String(root.rankingModel.md5) : ""
+    readonly property bool requestMatchesCurrentChart: {
+        let targetMd5 = root.md5.length > 0 ? root.md5.toLowerCase() : "";
+        let requestMd5 = root.requestMd5.length > 0 ? root.requestMd5.toLowerCase() : "";
+        return targetMd5.length > 0 && targetMd5 === requestMd5;
+    }
     readonly property bool modelMatchesCurrentChart: {
         let targetMd5 = root.md5.length > 0 ? root.md5.toLowerCase() : "";
         let modelMd5 = root.loadedMd5.length > 0 ? root.loadedMd5.toLowerCase() : "";
         return targetMd5.length > 0 && targetMd5 === modelMd5;
+    }
+    readonly property bool currentRequestCompleted: {
+        let targetMd5 = root.md5.length > 0 ? root.md5.toLowerCase() : "";
+        let completedMd5 = root.completedMd5.length > 0 ? root.completedMd5.toLowerCase() : "";
+        return targetMd5.length > 0
+            && targetMd5 === completedMd5
+            && root.modelMatchesCurrentChart;
     }
     readonly property int currentPlayerCount: root.computedPlayerCount()
     readonly property int currentStatusOption: {
@@ -43,15 +55,16 @@ QtObject {
         if (!targetChart || !targetChart.md5) {
             return 600;
         }
-        if (!root.modelMatchesCurrentChart) {
-            return root.rankingModel.loading ? 601 : 600;
+        if (!root.requestMatchesCurrentChart) {
+            return 600;
         }
-        if (root.rankingModel.loading) {
+        if (root.rankingModel.loading || !root.currentRequestCompleted) {
             return 601;
         }
-        return root.currentPlayerCount > 0 ? 602 : 603;
+        return 602;
     }
     property string requestMd5: ""
+    property string completedMd5: ""
     property bool openWhenReady: false
     property bool internetOpenWhenReady: false
     property int transitionPhase: 0 // 175 before list swap, 176 after list swap.
@@ -81,8 +94,22 @@ QtObject {
         provider: root.providerEnum()
         webApiUrl: root.host.mainGeneralVarsRef ? root.host.mainGeneralVarsRef.webApiUrl : ""
 
-        onMd5Changed: root.handleModelChanged(false, false)
-        onLoadingChanged: root.handleModelChanged(true, true)
+        onMd5Changed: {
+            root.completedMd5 = "";
+            root.handleModelChanged(false, false);
+        }
+        onLoadingChanged: {
+            if (loading) {
+                root.completedMd5 = "";
+            } else if (root.requestMatchesCurrentChart && root.modelMatchesCurrentChart) {
+                root.completedMd5 = root.loadedMd5;
+            }
+            root.handleModelChanged(true, true);
+        }
+        onProviderChanged: {
+            root.completedMd5 = "";
+            root.handleModelChanged(false, false);
+        }
         onRankingEntriesChanged: root.handleModelChanged(true, false)
         onPlayerCountChanged: root.handleModelChanged(false, false)
         onScoreCountChanged: root.handleModelChanged(false, false)
@@ -92,6 +119,13 @@ QtObject {
                 Qt.callLater(root.finishOpenInternetRanking);
             }
         }
+    }
+
+    onCurrentStatusOptionChanged: {
+        root.refreshHostRankingStatusOptions(true);
+    }
+    onCurrentPlayerCountChanged: {
+        root.refreshHostRankingStatusOptions(false);
     }
 
     property Timer transitionTimer: Timer {
@@ -124,6 +158,40 @@ QtObject {
         }
     }
 
+    function rankingStatusLabel(option: var) : var {
+        switch (option) {
+        case 600: return "missing";
+        case 601: return "loading";
+        case 602: return "ready";
+        case 603: return "empty";
+        default: return String(option);
+        }
+    }
+
+    function refreshHostRankingStatusOptions(logTransition: var) : void {
+        if (root.host
+                && root.host.effectiveScreenKey === "select"
+                && root.host.refreshSelectRuntimeActiveOptions) {
+            root.host.refreshSelectRuntimeActiveOptions();
+        }
+        if (!logTransition) {
+            return;
+        }
+        console.warn("[LR2 ranking status] " + JSON.stringify({
+            option: root.currentStatusOption,
+            label: root.rankingStatusLabel(root.currentStatusOption),
+            chartMd5: root.md5,
+            requestMd5: root.requestMd5,
+            modelMd5: root.loadedMd5,
+            completedMd5: root.completedMd5,
+            loading: !!root.rankingModel.loading,
+            requestMatches: root.requestMatchesCurrentChart,
+            modelMatches: root.modelMatchesCurrentChart,
+            completed: root.currentRequestCompleted,
+            players: root.currentPlayerCount
+        }));
+    }
+
     function md5ForChart(chart: var) : var {
         return chart && chart.md5 ? String(chart.md5) : "";
     }
@@ -153,7 +221,9 @@ QtObject {
         }
         if (root.requestMd5 === targetMd5 && root.modelMatchesCurrentChart) {
             let entries = root.rankingModel.rankingEntries || [];
-            if (Number(root.rankingModel.playerCount || 0) > 0 || entries.length > 0) {
+            if (root.currentRequestCompleted
+                    || Number(root.rankingModel.playerCount || 0) > 0
+                    || entries.length > 0) {
                 root.applyStatsToSelectContext();
             } else if (!root.rankingModel.loading) {
                 root.rankingModel.refresh();
@@ -406,6 +476,7 @@ QtObject {
 
     function handleModelChanged(tryOpenRanking: var, tryOpenInternetRanking: var) : void {
         root.applyStatsToSelectContext();
+        root.refreshHostRankingStatusOptions(false);
         if (tryOpenRanking && root.openWhenReady && !root.rankingModel.loading) {
             Qt.callLater(root.finishOpenRanking);
         }
@@ -546,8 +617,7 @@ QtObject {
         }
         case OnlineRankingModel.LR2IR:
         default:
-            return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5="
-                + targetMd5 + "#status";
+            return "https://lr2ir.com/charts/" + targetMd5 + "#status";
         }
     }
 
