@@ -197,7 +197,11 @@ int firstSortId(const QVariantList& dsts) {
 int staticNoteElementSortId(const QVariantList& noteDsts) {
     int result = -1;
     for (const QVariant& laneDstsValue : noteDsts) {
-        const int sortId = firstSortId(laneDstsValue.toList());
+        const auto laneDsts = laneDstsValue.toList();
+        if (laneDsts.isEmpty()) {
+            continue;
+        }
+        const int sortId = firstSortId(laneDsts);
         result = result < 0 || sortId < result ? sortId : result;
     }
     return result >= 0 ? result : 0;

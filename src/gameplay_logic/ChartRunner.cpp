@@ -152,16 +152,15 @@ ChartRunner::passKey(input::BmsKey key,
     auto mapped =
       restoreScratchDirection(static_cast<input::BmsKey>(mappedIndex), key);
     const auto index = playerIndexFromKey(mapped);
+    const auto doublePlay = isDp(keymode);
     // key pressed for a player side that is not present
-    if (!isDp(chartData->getKeymode()) && index == 1 && player2 == nullptr) {
+    if (!doublePlay && index == 1 && player2 == nullptr) {
         return;
     }
     auto offset =
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
-    auto* player =
-      isDp(chartData->getKeymode()) || index == 0 ? player1 : player2;
-    mapped = isDp(chartData->getKeymode()) ? mapped : convertToP1Key(mapped);
-    if (!isDp(chartData->getKeymode())) {
+    auto* player = doublePlay || index == 0 ? player1 : player2;
+    if (!doublePlay) {
         mapped = convertToP1Key(mapped);
     }
     player->passKey(mapped, eventType, offset);

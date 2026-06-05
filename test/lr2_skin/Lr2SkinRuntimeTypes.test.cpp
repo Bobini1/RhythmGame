@@ -119,3 +119,24 @@ TEST_CASE("LR2 runtime hit testing accepts negative dst sizes", "[lr2][runtime]"
     REQUIRE_FALSE(rectContains(rect, 59, 65));
     REQUIRE_FALSE(rectContains(rect, 75, 49));
 }
+
+TEST_CASE("LR2 runtime note sort ignores sparse empty note lanes",
+          "[lr2][runtime]") {
+    QVariantMap lane0 = dstMap(0, 0, 0, 10, 10);
+    lane0.insert(QStringLiteral("sortId"), 120);
+    QVariantMap lane10 = dstMap(0, 0, 0, 10, 10);
+    lane10.insert(QStringLiteral("sortId"), 210);
+
+    QVariantList noteDsts;
+    noteDsts.append(QVariant::fromValue(QVariantList{ lane0 }));
+    noteDsts.append(QVariant::fromValue(QVariantList{}));
+    noteDsts.append(QVariant::fromValue(QVariantList{}));
+    noteDsts.append(QVariant::fromValue(QVariantList{ lane10 }));
+
+    CHECK(staticNoteElementSortId(noteDsts) == 120);
+    CHECK(staticNoteElementSortId(QVariantList {
+              QVariant::fromValue(QVariantList {}),
+              QVariant::fromValue(QVariantList {})
+          })
+          == 0);
+}

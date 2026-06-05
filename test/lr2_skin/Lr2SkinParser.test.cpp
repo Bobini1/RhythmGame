@@ -8,6 +8,7 @@
 #include <QFile>
 #include <QString>
 #include <QTemporaryDir>
+#include <QVariant>
 
 #include <filesystem>
 
@@ -112,4 +113,38 @@ TEST_CASE("LR2 skin parser accepts fractional destination coordinates",
     CHECK(dst.y == 340);
     CHECK(dst.w == 73);
     CHECK(dst.h == 120);
+}
+
+TEST_CASE("LR2 skin parser records select detail option gates",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,full.png\n"
+                                 "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0,0,0,0\n"
+                                 "#DST_IMAGE,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,2,160,0\n"
+                                 "#SRC_IMAGE,1,0,0,0,10,10,1,1,0,0,0,0,0\n"
+                                 "#DST_IMAGE,1,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,2,180,0\n"
+                                 "#SRC_BARGRAPH,0,0,0,0,10,10,1,1,0,0,5,0,0\n"
+                                 "#DST_BARGRAPH,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,70,505,620\n"));
+
+    const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
+    const auto hasUsedOption = [&skin](int option) {
+        return skin.usedOptions.contains(QVariant(option));
+    };
+    const auto hasElementOption = [&skin](int option) {
+        return skin.usedElementOptions.contains(QVariant(option));
+    };
+
+    CHECK(hasUsedOption(2));
+    CHECK(hasUsedOption(70));
+    CHECK(hasUsedOption(160));
+    CHECK(hasUsedOption(180));
+    CHECK(hasUsedOption(505));
+    CHECK(hasUsedOption(620));
+    CHECK(hasElementOption(160));
+    CHECK(hasElementOption(180));
+    CHECK(hasElementOption(505));
 }
