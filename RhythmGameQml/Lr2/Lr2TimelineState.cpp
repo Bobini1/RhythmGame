@@ -733,10 +733,14 @@ Lr2TimelineState::State Lr2TimelineState::offsetDstState(State state) const {
 }
 
 void Lr2TimelineState::assignState(const State& state) {
+    const bool hadState = m_state.valid;
     if (rt::sameState(m_state, state)) {
         return;
     }
 
     m_state = state;
     emit stateChanged();
+    if (hadState != m_state.valid) {
+        emit hasStateChanged();
+    }
 }

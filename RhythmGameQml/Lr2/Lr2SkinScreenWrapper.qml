@@ -39,31 +39,18 @@ Item {
         }
         return result;
     }
-    readonly property bool usedElementOptionFilterAvailable: !!skinModel
-        && skinModel.usedElementOptions !== undefined
-    readonly property var usedElementOptionLookup: {
-        let result = {};
-        let used = root.usedElementOptionFilterAvailable && skinModel.usedElementOptions
-            ? skinModel.usedElementOptions
-            : [];
-        for (let option of used) {
-            result[Math.abs(option)] = true;
-        }
-        return result;
-    }
     property int gameplayRevision: 0
     property int gameplayNumberRevision1: 0
     property int gameplayNumberRevision2: 0
     property int gameplayStaticNumberRevision: 0
-    property string gameplayStaticNumberRevisionKey: "static|0"
     property int gameplayTimerRevision: 0
     property bool gameplayRevisionRefreshPending: false
     property bool gameplayNumberRevision1Pending: false
     property bool gameplayNumberRevision2Pending: false
     property bool gameplayTimerRevisionPending: false
     property bool gameplayRuntimeRefreshPending: false
-    property var gameplayRuntimeActiveOptions: []
-    property var selectRuntimeActiveOptions: []
+    property alias gameplayRuntimeActiveOptions: selectUpdateController.gameplayRuntimeActiveOptions
+    property alias selectRuntimeActiveOptions: selectUpdateController.selectRuntimeActiveOptions
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
@@ -88,6 +75,12 @@ Item {
     property int gameplayJudgeNowValue2: 0
     property int gameplayLastMissSkinTime1: -1
     property int gameplayLastMissSkinTime2: -1
+    readonly property bool gameplayPoorBgaVisible1: root.gameplayLastMissSkinTime1 >= 0
+        && root.renderSkinTime - root.gameplayLastMissSkinTime1 < 1000
+    readonly property bool gameplayPoorBgaVisible2: root.gameplayLastMissSkinTime2 >= 0
+        && root.renderSkinTime - root.gameplayLastMissSkinTime2 < 1000
+    readonly property int gameplayPoorBgaOption1: root.gameplayPoorBgaVisible1 ? 248 : 247
+    readonly property int gameplayPoorBgaOption2: root.gameplayPoorBgaVisible2 ? 268 : 267
     property int gameplayFullComboSkinTime1: -1
     property int gameplayFullComboSkinTime2: -1
     property int gameplayPreviousGauge1: -1
@@ -117,6 +110,28 @@ Item {
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
     property alias gameplayFrameStateRef: gameplayFrameState
+    readonly property var gameplayPlayer1: root.chart ? root.chart.player1 : null
+    readonly property var gameplayPlayer2: root.chart ? root.chart.player2 : null
+    readonly property var gameplayRhythmTimerPlayer: root.gameplayPlayer1 || root.gameplayPlayer2
+    readonly property int gameplayRhythmTimerSkinTime: {
+        if (root.gameplayScreenActive) {
+            return gameplayFrameState.rhythmTimerSkinTime;
+        }
+        let player = root.gameplayRhythmTimerPlayer;
+        if (!player) {
+            return -1;
+        }
+        let beatPosition = Number(player.beatPosition || 0);
+        if (beatPosition > 0) {
+            let rhythm = (beatPosition - Math.floor(beatPosition)) * 1000;
+            return Math.max(0, Math.round(root.renderSkinTime - rhythm));
+        }
+        let bpm = Math.max(1, Number(player.bpm || 0));
+        let elapsedMs = Math.max(0, Number(player.elapsed || 0)) / 1000000;
+        let beatMs = 60000 / bpm;
+        let rhythm = beatMs > 0 ? (elapsedMs % beatMs) * 1000 / beatMs : 0;
+        return Math.max(0, Math.round(root.renderSkinTime - rhythm));
+    }
     readonly property bool stackScreenActive: screenState.stackActive
     readonly property bool screenUpdatesActive: screenState.updatesActive
     readonly property int lr2CurrentFps: skinTiming.currentFps
@@ -124,6 +139,11 @@ Item {
     property alias skinTimingRef: skinTiming
     property alias skinTimerStateRef: skinTiming.skinTimerStateRef
     property alias skinRuntimeRef: skinRuntime
+    property alias skinValueResolverRef: valueResolver
+    property alias skinSliderStateRef: skinSliderState
+    property alias selectPanelControllerRef: selectPanelController
+    property alias selectHoverStateRef: selectHoverState
+    property alias selectSearchStateRef: selectSearchState
     property alias lr2ClockNowMs: wallClockState.nowMs
     property alias lr2ClockYear: wallClockState.year
     property alias lr2ClockMonth: wallClockState.month
@@ -134,8 +154,6 @@ Item {
     property alias lr2SceneUptimeSeconds: wallClockState.uptimeSeconds
     property alias resultOldScores1: resultState.resultOldScores1
     property alias resultOldScores2: resultState.resultOldScores2
-    property alias resultOldScoresRevision: resultState.resultOldScoresRevision
-    property alias resultGaugeSelectionRevision: resultState.resultGaugeSelectionRevision
     property alias resultOldScoresRequest: resultState.resultOldScoresRequest
     property alias resultTimer151SkinTime: resultState.resultTimer151SkinTime
     property alias resultTimer152SkinTime: resultState.resultTimer152SkinTime
@@ -238,7 +256,7 @@ Item {
             root.updateLr2DateTimeNumbers();
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         } else {
             root.pauseScreenActivity();
@@ -246,7 +264,7 @@ Item {
     }
 
     Repeater {
-        model: root.isGameplayScreen() && root.chart ? root.gameplayKeyTimers : []
+        model: root.gameplayScreenActive && root.chart ? root.gameplayKeyTimers : []
 
         delegate: Item {
             required property int modelData
@@ -271,7 +289,7 @@ Item {
     }
 
     Repeater {
-        model: root.isGameplayScreen() && root.chart ? root.gameplayLongNoteTimers : []
+        model: root.gameplayScreenActive && root.chart ? root.gameplayLongNoteTimers : []
 
         delegate: Item {
             required property int modelData
@@ -306,7 +324,6 @@ Item {
         } else if (root.effectiveScreenKey === "select" && !root.selectScratchSoundReady) {
             root.selectScratchSoundReady = true;
         }
-        selectSideEffects.update();
         if (root.effectiveScreenKey === "select"
                 && root.acceptsInput
                 && root.heldOptionPanel > 0
@@ -317,7 +334,7 @@ Item {
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && !selectSearchState.focused
         sequence: "Esc"
 
         onActivated: {
@@ -329,7 +346,7 @@ Item {
                 root.closeSelectPanel();
                 return;
             }
-            if (root.isGameplayScreen() && root.handleGameplayEscape()) {
+            if (root.gameplayScreenActive && root.handleGameplayEscape()) {
                 return;
             }
             sceneStack.pop();
@@ -337,13 +354,13 @@ Item {
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "F1"
         onActivated: root.toggleMainHelp()
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "F2"
         onActivated: root.toggleSelectedReadme()
     }
@@ -355,25 +372,25 @@ Item {
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "F5"
         onActivated: root.openLr2InternetRanking()
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "F8"
         onActivated: root.reloadCurrentSelectFolder()
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "3"
         onActivated: root.triggerSelectPanelButton(308, 1)
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !root.selectSearchHasFocus()
+        enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "5"
         onActivated: root.toggleSelectPanel(3)
     }
@@ -390,14 +407,14 @@ Item {
     }
 
     function gameplayAutoplayActive() : var {
-        return root.isGameplayScreen()
+        return root.gameplayScreenActive
             && !!root.chart
             && root.playerIsAutoPlayer(root.chart.player1)
             && (!root.chart.player2 || root.playerIsAutoPlayer(root.chart.player2));
     }
 
     function gameplayReplayActive() : var {
-        if (!root.isGameplayScreen() || !root.chart) {
+        if (!root.gameplayScreenActive || !root.chart) {
             return false;
         }
         let p1 = root.gameplayPlayer(1);
@@ -453,7 +470,7 @@ Item {
         } else if (root.effectiveScreenKey === "decide") {
             options.push(900); // stock LR2 decide default: show stagefile
             options.push(33); // LR2 decide reports both autoplay states true.
-        } else if (root.isResultScreen()) {
+        } else if (root.resultScreenActive) {
             options.push(root.resultClearOption(), 350);
         }
         return root.finalizeOptionList(options);
@@ -485,6 +502,7 @@ Item {
         host: root
     }
 
+    readonly property var mainGeneralVarsRef: optionState.mainGeneralVarsValue
     readonly property var lr2GaugeLabels: optionState.lr2GaugeLabels
     readonly property var lr2GaugeValues: optionState.lr2GaugeValues
     readonly property var lr2ClassicGaugeLabels: optionState.lr2ClassicGaugeLabels
@@ -541,7 +559,6 @@ Item {
     }
     property alias lr2SkinPreviewScreenKey: skinSettingsState.previewScreenKey
     property alias lr2SkinCustomOffset: skinSettingsState.customOffset
-    property alias lr2SkinSettingsRevision: skinSettingsState.revision
     property alias lr2SkinSettingMetadata: skinSettingsState.metadata
     property alias lr2SkinSettingItems: skinSettingsState.items
     property alias suppressNextSkinClockRestart: skinSettingsState.suppressNextClockRestart
@@ -565,18 +582,10 @@ Item {
         id: selectHoverState
         host: root
         skinRuntime: root.skinRuntimeRef
+        runtimeElementDescriptors: root.skinRuntimeRef ? root.skinRuntimeRef.elementDescriptors : []
         tracking: root.selectHoverTracking
         skinScale: root.skinScale
     }
-    property alias selectHoverElements: selectHoverState.elements
-    readonly property int selectHoverElementCount: selectHoverState.elementCount
-    readonly property var selectHoverCandidateKeys: selectHoverState.candidateKeys
-    property alias selectHoverVisibleByIndex: selectHoverState.visibleByIndex
-    readonly property string selectHoverVisibleSignature: selectHoverState.visibleSignature
-    property alias selectHoverSkinX: selectHoverState.skinX
-    property alias selectHoverSkinY: selectHoverState.skinY
-    readonly property bool selectHoverHasPoint: selectHoverState.hasPoint
-    property alias selectSliderFixedPoint: skinSliderState.selectSliderFixedPoint
     property alias selectScratchSoundReady: selectSideEffects.scratchSoundReady
     readonly property bool selectAudioActive: root.screenUpdatesActive
         && root.effectiveScreenKey === "select"
@@ -585,34 +594,6 @@ Item {
         if (!root.selectAudioActive) {
             root.stopSelectAudio();
         }
-    }
-
-    function selectHoverPointInSkinCoordinates() : var {
-        return selectHoverState.pointInSkinCoordinates();
-    }
-
-    function updateSelectHoverPoint(x: var, y: var) : var {
-        return selectHoverState.updatePoint(x, y);
-    }
-
-    function clearSelectHoverPoint() : void {
-        selectHoverState.clearPoint();
-    }
-
-    function registerSelectHoverElement(elementIndex: var, src: var, enabled: var) : void {
-        selectHoverState.registerElement(elementIndex, src, enabled);
-    }
-
-    function unregisterSelectHoverElement(elementIndex: var) : void {
-        selectHoverState.unregisterElement(elementIndex);
-    }
-
-    function clearSelectHoverState() : void {
-        selectHoverState.clearVisibleState();
-    }
-
-    function refreshSelectHoverState() : void {
-        selectHoverState.refreshVisibleState();
     }
 
     function copyObject(object: var) : var {
@@ -677,9 +658,9 @@ Item {
         if (root.effectiveScreenKey !== "select") {
             return false;
         }
-        selectContext.flushFocusedStateRefresh();
+        selectContext.navigationController.refreshFocusedState();
         return root.openReadmePath(
-            selectContext.attachedTextFile(selectContext.selectedChartData()));
+            selectContext.attachedTextFile(selectContext.selectedStateChartData));
     }
 
     function openHelpFile(index: var) : var {
@@ -725,7 +706,6 @@ Item {
         readmeState.hideImmediately();
     }
 
-    function mainGeneralVars() { return optionState.mainGeneralVars(); }
     function profileForSide(side) { return optionState.profileForSide(side); }
     function generalVarsForSide(side) { return optionState.generalVarsForSide(side); }
     function indexOfValue(values: var, value: var) : var { return optionState.indexOfValue(values, value); }
@@ -737,18 +717,9 @@ Item {
     readonly property int lr2GaugeIndexP1: optionState.lr2GaugeIndexP1
     readonly property int lr2GaugeIndexP2: optionState.lr2GaugeIndexP2
     function setGaugeIndex(side: var, index: var) : void { optionState.setGaugeIndex(side, index); }
-    function observedSelectButtonSourceCount(buttonId: var) : var {
-        return selectPanelController.observedSelectButtonSourceCount(buttonId);
-    }
-    function registerSelectButtonSource(elementIndex: var, src: var) : void {
-        selectPanelController.registerSelectButtonSource(elementIndex, src);
-    }
-    function unregisterSelectButtonSource(elementIndex: var) : void {
-        selectPanelController.unregisterSelectButtonSource(elementIndex);
-    }
     function selectOptionSourceCount(buttonId: var, sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        return count > 1 ? count : root.observedSelectButtonSourceCount(buttonId);
+        return count > 1 ? count : selectPanelController.observedSelectButtonSourceCount(buttonId);
     }
     function lr2GaugeButtonId(side: var) : var {
         return side === 2 ? 41 : 40;
@@ -852,7 +823,7 @@ Item {
     readonly property int lr2GhostIndex: optionState.lr2GhostIndex
     function setGhostIndex(index: var) : void { optionState.setGhostIndex(index); }
 
-    function lr2BgaEnabled() : var { return optionState.lr2BgaEnabled(); }
+    readonly property bool lr2BgaEnabled: optionState.lr2BgaEnabled
 
     readonly property int lr2ScoreTargetIndex: optionState.lr2ScoreTargetIndex
     function setScoreTargetIndex(index: var) : void { optionState.setScoreTargetIndex(index); }
@@ -893,7 +864,7 @@ Item {
     readonly property int lr2HiSpeedP1: optionState.lr2HiSpeedP1
     readonly property int lr2HiSpeedP2: optionState.lr2HiSpeedP2
     function noteGameplayOptionChanged() : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return;
         }
         root.requestGameplayRevisionRefresh();
@@ -943,25 +914,6 @@ Item {
     readonly property int lr2RankingTransitionElapsed: lr2Ranking.transitionElapsed
 
     function commitLr2RankingRequest(chart: var) : var { return lr2Ranking.commitRequest(chart); }
-    function rankingProviderEnum() : var { return lr2Ranking.providerEnum(); }
-    function lr2RankingMatchesCurrentChart() : var { return lr2Ranking.matchesCurrentChart(); }
-    function lr2LocalRankingEntry() : var { return lr2Ranking.localEntry(); }
-    function lr2RankingEntries() : var { return lr2Ranking.entries(); }
-    function lr2RankingClearCounts(entries: var) : var { return lr2Ranking.clearCounts(entries); }
-    function lr2RankingPlayerCount(entries: var) : var { return lr2Ranking.playerCount(entries); }
-    function lr2RankingTotalPlayCount(entries: var) : var { return lr2Ranking.totalPlayCount(entries); }
-    function lr2RankingProfileUserId() : var { return lr2Ranking.profileUserId(); }
-    function lr2RankingPlayerRank(entries: var) : var { return lr2Ranking.playerRank(entries); }
-    function lr2RankingSnapshot() : var { return lr2Ranking.snapshot(); }
-    function lr2RankingEntryAt(index: var) : var { return lr2Ranking.entryAt(index); }
-    function lr2RankingEntryName(index: var) : var { return lr2Ranking.entryName(index); }
-    function lr2RankingEntryClearValue(index: var) : var { return lr2Ranking.entryClearValue(index); }
-    function lr2RankingEntryExScore(index: var) : var { return lr2Ranking.entryExScore(index); }
-    function lr2RankingClearCount() : var { return lr2Ranking.clearCount.apply(lr2Ranking, arguments); }
-    function lr2RankingClearPercentValue() : var { return lr2Ranking.clearPercentValue.apply(lr2Ranking, arguments); }
-    function applyRankingStatsToSelectContext() : void { lr2Ranking.applyStatsToSelectContext(); }
-    function handleRankingModelChanged(tryOpenRanking: var, tryOpenInternetRanking: var) : void { lr2Ranking.handleModelChanged(tryOpenRanking, tryOpenInternetRanking); }
-    function lr2RankingStatusOption() : var { return lr2Ranking.statusOption(); }
     function startLr2RankingTransition(action: var) : var { return lr2Ranking.startTransition(action); }
     function clearLr2RankingTransition() : void { lr2Ranking.clearTransition(); }
     function enterLr2RankingPostSwapTimer() : void { lr2Ranking.enterPostSwapTimer(); }
@@ -969,16 +921,14 @@ Item {
     function performLr2RankingClose() : var { return lr2Ranking.performClose(); }
     function advanceLr2RankingTransition() : void { lr2Ranking.advanceTransition(); }
     function requestLr2RankingFetch(chart: var) : var { return lr2Ranking.requestFetch(chart); }
-    function lr2TachiKeymode(chart: var) : var { return lr2Ranking.tachiKeymode(chart); }
-    function lr2InternetRankingUrl(chart: var) : var { return lr2Ranking.internetRankingUrl(chart); }
     function finishOpenLr2InternetRanking() : var { return lr2Ranking.finishOpenInternetRanking(); }
     function openLr2InternetRanking() : var {
-        selectContext.flushFocusedStateRefresh();
+        selectContext.navigationController.refreshFocusedState();
         return lr2Ranking.openInternetRanking();
     }
     function finishOpenLr2Ranking() : var { return lr2Ranking.finishOpenRanking(); }
     function openLr2Ranking() : var {
-        selectContext.flushFocusedStateRefresh();
+        selectContext.navigationController.refreshFocusedState();
         return lr2Ranking.openRanking();
     }
     function closeLr2Ranking() : var { return lr2Ranking.closeRanking(); }
@@ -996,14 +946,6 @@ Item {
         return screenState.inferKey(path);
     }
 
-    function isSelectScrollSlider(src: var) : var {
-        return skinSliderState.isSelectScrollSlider(src);
-    }
-
-    function isLr2GenericSlider(src: var) : var {
-        return skinSliderState.isLr2GenericSlider(src);
-    }
-
     function panelMatches(panel: var) : var {
         const panelId = Number(panel || 0);
         if (panelId > 0) {
@@ -1014,13 +956,6 @@ Item {
         }
         return true;
     }
-
-    property alias selectSearchInputItem: selectSearchState.inputItem
-
-    function isSelectSearchText(src: var) : var { return selectSearchState.isText(src); }
-    function selectSearchTextState(src: var, dsts: var) : var { return selectSearchState.textState(src, dsts); }
-    function textPrefix(text: var, position: var) : var { return selectSearchState.textPrefix(text, position); }
-    function selectSearchHasFocus() : var { return selectSearchState.hasFocus(); }
 
     function selectInputReady() : var {
         return screenState.selectInputReady;
@@ -1180,57 +1115,6 @@ Item {
         return root.fallbackSortId(dsts) + index * 0.000001;
     }
 
-    function dstsUseActiveOptions(dsts: var) : var {
-        return timelineResolver.usesActiveOptionsFor(dsts);
-    }
-
-    function activeOptionsForElementDsts(dsts: var) : var {
-        if (!root.dstsUseActiveOptions(dsts)) {
-            return root.emptyActiveOptions;
-        }
-        return root.activeOptionsForDsts(dsts, root.runtimeActiveOptions);
-    }
-
-    function dstsUseSelectPanelTimer(dsts: var) : var {
-        const timer = timelineResolver.firstTimerFor(dsts);
-        return (timer >= 21 && timer <= 26)
-            || (timer >= 31 && timer <= 36);
-    }
-
-    function elementUsesLiveDstClock(dsts: var) : var {
-        return root.effectiveScreenKey === "select"
-            && (root.dstsUseSelectPanelTimer(dsts)
-                || timelineResolver.loopsContinuouslyFor(dsts));
-    }
-
-    function elementUsesLiveSourceClock(src: var) : var {
-        return root.effectiveScreenKey === "select"
-            && timelineResolver.sourceCyclesContinuously(src);
-    }
-
-    function elementUsesLiveSelectClock(src: var, dsts: var) : var {
-        return root.elementUsesLiveDstClock(dsts)
-            || root.elementUsesLiveSourceClock(src);
-    }
-
-    function skinTimeForElement(src: var, dsts: var) : var {
-        return root.elementUsesLiveSelectClock(src, dsts)
-            ? root.selectSourceSkinTime
-            : root.renderSkinTime;
-    }
-
-    function noteFieldUsesActiveOptions() : var {
-        return root.skinRuntimeRef
-            ? root.skinRuntimeRef.noteFieldUsesActiveOptions()
-            : false;
-    }
-
-    function noteFieldUsesTimers() : var {
-        return root.skinRuntimeRef
-            ? root.skinRuntimeRef.noteFieldUsesTimers()
-            : false;
-    }
-
     function addOption(options: var, option: var) : var {
         if (option === undefined || option === null) {
             return;
@@ -1245,67 +1129,7 @@ Item {
             return;
         }
         options.push(option);
-        options.__key = undefined;
         lookup[option] = true;
-    }
-
-    function skinUsesOption(option: var) : var {
-        return !root.usedOptionFilterActive || !!root.usedOptionLookup[Math.abs(option)];
-    }
-
-    function skinUsesAnyOption(options: var) : var {
-        if (!root.usedOptionFilterActive) {
-            return true;
-        }
-        for (let i = 0; i < options.length; ++i) {
-            if (root.usedOptionLookup[Math.abs(options[i])]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function skinUsesOptionRange(first: var, last: var) : var {
-        if (!root.usedOptionFilterActive) {
-            return true;
-        }
-        for (let option = first; option <= last; ++option) {
-            if (root.usedOptionLookup[option]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function skinUsesSelectElementOption(option: var) : var {
-        if (!root.usedElementOptionFilterAvailable) {
-            return root.skinUsesOption(option);
-        }
-        return !!root.usedElementOptionLookup[Math.abs(option)];
-    }
-
-    function skinUsesAnySelectElementOption(options: var) : var {
-        if (!root.usedElementOptionFilterAvailable) {
-            return root.skinUsesAnyOption(options);
-        }
-        for (let i = 0; i < options.length; ++i) {
-            if (root.usedElementOptionLookup[Math.abs(options[i])]) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function skinUsesSelectElementOptionRange(first: var, last: var) : var {
-        if (!root.usedElementOptionFilterAvailable) {
-            return root.skinUsesOptionRange(first, last);
-        }
-        for (let option = first; option <= last; ++option) {
-            if (root.usedElementOptionLookup[option]) {
-                return true;
-            }
-        }
-        return false;
     }
 
     function configuredGaugeName(side: var) : var {
@@ -1336,14 +1160,13 @@ Item {
     }
 
     function activeGaugeNameForSide(side: var) : var {
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             let activeName = root.gameplayActiveGaugeName(root.gameplayScore(side));
             if (activeName.length > 0) {
                 return activeName;
             }
         }
-        if (root.isResultScreen()) {
-            root.resultGaugeSelectionRevision;
+        if (root.resultScreenActive) {
             let resultName = root.resultGaugeName(side);
             if (resultName.length > 0) {
                 return resultName;
@@ -1447,7 +1270,7 @@ Item {
     }
 
     function spToDpActive() : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsRef;
         return !!vars && vars.dpOptions === DpOptions.Battle;
     }
 
@@ -1456,7 +1279,7 @@ Item {
         if (!vars) {
             return 0;
         }
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             let cover = vars.laneCoverOn ? (vars.laneCoverRatio || 0) : 0;
             let lift = vars.liftOn ? (vars.liftRatio || 0) : 0;
             return Math.round(Math.max(0, Math.min(1, 1 - cover - lift)) * 1000);
@@ -1551,7 +1374,7 @@ Item {
     }
 
     function computeGameplayDstOffsetLiftY(side: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return 0;
         }
         let vars = root.generalVarsForSide(side);
@@ -1561,7 +1384,7 @@ Item {
     }
 
     function computeGameplayDstOffsetLaneCoverY(side: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return 0;
         }
         let vars = root.generalVarsForSide(side);
@@ -1575,7 +1398,7 @@ Item {
     }
 
     function computeGameplayDstOffsetHiddenY(side: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return 0;
         }
         let vars = root.generalVarsForSide(side);
@@ -1589,7 +1412,7 @@ Item {
     }
 
     function computeGameplayDstOffsetHiddenA(side: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return 0;
         }
         let vars = root.generalVarsForSide(side);
@@ -1604,77 +1427,6 @@ Item {
     readonly property real gameplayDstOffsetHiddenY2: root.computeGameplayDstOffsetHiddenY(2)
     readonly property real gameplayDstOffsetHiddenA1: root.computeGameplayDstOffsetHiddenA(1)
     readonly property real gameplayDstOffsetHiddenA2: root.computeGameplayDstOffsetHiddenA(2)
-
-    function gameplayDstOffsetLiftY(side: var) : var {
-        return side === 2 ? root.gameplayDstOffsetLiftY2 : root.gameplayDstOffsetLiftY1;
-    }
-
-    function gameplayDstOffsetLaneCoverY(side: var) : var {
-        return side === 2 ? root.gameplayDstOffsetLaneCoverY2 : root.gameplayDstOffsetLaneCoverY1;
-    }
-
-    function gameplayDstOffsetHiddenY(side: var) : var {
-        return side === 2 ? root.gameplayDstOffsetHiddenY2 : root.gameplayDstOffsetHiddenY1;
-    }
-
-    function gameplayDstOffsetHiddenA(side: var) : var {
-        return side === 2 ? root.gameplayDstOffsetHiddenA2 : root.gameplayDstOffsetHiddenA1;
-    }
-
-    function normalizedDstOffsetSide(sideHint: var) : var {
-        return sideHint === 2 ? 2 : 1;
-    }
-
-    function copyTimelineStateForDstOffsets(timelineState: var) : var {
-        return {
-            x: timelineState.x || 0,
-            y: timelineState.y || 0,
-            w: timelineState.w || 0,
-            h: timelineState.h || 0,
-            a: timelineState.a === undefined ? 255 : timelineState.a,
-            r: timelineState.r === undefined ? 255 : timelineState.r,
-            g: timelineState.g === undefined ? 255 : timelineState.g,
-            b: timelineState.b === undefined ? 255 : timelineState.b,
-            angle: timelineState.angle || 0,
-            center: timelineState.center || 0,
-            sortId: timelineState.sortId || 0,
-            blend: timelineState.blend || 0,
-            filter: timelineState.filter || 0,
-            op1: timelineState.op1 || 0,
-            op2: timelineState.op2 || 0,
-            op3: timelineState.op3 || 0,
-            op4: timelineState.op4 || 0
-        };
-    }
-
-    function applyLr2DstOffsets(timelineState: var, dsts: var, sideHint: var) : var {
-        if (!timelineState || !dsts || dsts.length === 0 || !dsts[0] || !dsts[0].offsets || dsts[0].offsets.length === 0) {
-            return timelineState;
-        }
-        let side = root.normalizedDstOffsetSide(sideHint || 0);
-        let liftY = root.gameplayDstOffsetLiftY(side);
-        let laneCoverY = root.gameplayDstOffsetLaneCoverY(side);
-        let hiddenY = root.gameplayDstOffsetHiddenY(side);
-        let hiddenA = root.gameplayDstOffsetHiddenA(side);
-        let adjustedState = root.copyTimelineStateForDstOffsets(timelineState);
-        let offsets = dsts[0].offsets;
-        for (let i = 0; i < offsets.length; ++i) {
-            let id = Number(offsets[i]);
-            let offsetY = 0;
-            let offsetA = 0;
-            if (id === 3 || id === 50) {
-                offsetY = liftY;
-            } else if (id === 4 || id === 51) {
-                offsetY = laneCoverY;
-            } else if (id === 5) {
-                offsetY = hiddenY;
-                offsetA = hiddenA;
-            }
-            adjustedState.y += offsetY;
-            adjustedState.a += offsetA;
-        }
-        return adjustedState;
-    }
 
     function bpmDurationNumber(num: var, chartData: var) : var {
         let green = (num - 1312) % 2 === 1;
@@ -1786,14 +1538,6 @@ Item {
         wallClockState.update();
     }
 
-    function isGameplayScreen() : var {
-        return root.gameplayScreenActive;
-    }
-
-    function isResultScreen() : var {
-        return root.resultScreenActive;
-    }
-
     function chartStatusValue(status: var) : var {
         if (status === ChartRunner.Loading || status === "Loading") {
             return ChartRunner.Loading;
@@ -1881,14 +1625,14 @@ Item {
 
     function stopGameplayLifecycle() : void {
         root.gameplayStartArmed = false;
-        skinTiming.stopGameplayStartTimer();
+        skinTiming.gameplayStartTimer.stop();
         gameplayReadySound.stop();
         gameplayStopSound.stop();
     }
 
     function startGameplayWhenReady() : var {
         if (!root.enabled
-                || !root.isGameplayScreen()
+                || !root.gameplayScreenActive
                 || !root.chart
                 || !root.chartStatusIs(root.chart.status, ChartRunner.Ready)
                 || root.gameplayReadySkinTime < 0
@@ -1903,13 +1647,13 @@ Item {
             gameplayReadySound.play();
         } else {
             root.gameplayStartArmed = true;
-            skinTiming.restartGameplayStartTimer();
+            skinTiming.gameplayStartTimer.restart();
         }
     }
 
     function activateGameplayIfNeeded() : var {
         if (!root.enabled
-                || !root.isGameplayScreen()
+                || !root.gameplayScreenActive
                 || !root.chart
                 || StackView.status !== StackView.Active) {
             return;
@@ -1924,19 +1668,19 @@ Item {
                 let chartDatas = root.chart.chartDatas;
                 let course = root.chart.course;
                 Qt.callLater(() => {
-                    if (root.enabled && root.isGameplayScreen() && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                    if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
                         globalRoot.openCourseResult(root.chart.finish(), profiles, chartDatas, course);
                     }
                 });
             } else if (root.isCourseGameplay() && !root.gameplayResultOpened) {
                 Qt.callLater(() => {
-                    if (root.enabled && root.isGameplayScreen() && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                    if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
                         root.openGameplayStageResult();
                     }
                 });
             } else {
                 Qt.callLater(() => {
-                    if (root.enabled && root.isGameplayScreen() && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                    if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
                         sceneStack.pop();
                     }
                 });
@@ -1957,7 +1701,7 @@ Item {
 
     function openGameplayStageResult() : var {
         if (!root.enabled
-                || !root.isGameplayScreen()
+                || !root.gameplayScreenActive
                 || !root.chart
                 || root.gameplayResultOpened) {
             return;
@@ -1965,7 +1709,7 @@ Item {
 
         root.gameplayResultOpened = true;
         root.gameplayStartArmed = false;
-        skinTiming.stopGameplayStartTimer();
+        skinTiming.gameplayStartTimer.stop();
 
         let chartData = root.gameplayChartData();
         let profiles = root.gameplayProfiles();
@@ -1979,14 +1723,14 @@ Item {
 
     function handleGameplayStatusChanged() : var {
         root.updateGameplayStatusTimers();
-        if (!root.enabled || !root.isGameplayScreen() || !root.chart) {
+        if (!root.enabled || !root.gameplayScreenActive || !root.chart) {
             return;
         }
         if (root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
             root.startGameplayWhenReady();
         } else if (root.chartStatusIs(root.chart.status, ChartRunner.Running)) {
             root.gameplayStartArmed = false;
-            skinTiming.stopGameplayStartTimer();
+            skinTiming.gameplayStartTimer.stop();
         } else if (root.chartStatusIs(root.chart.status, ChartRunner.Finished) && !root.gameplayPlayStopped) {
             root.openGameplayStageResult();
         }
@@ -2037,7 +1781,7 @@ Item {
     function resultChartData() : var { return resultState.resultChartData(); }
     function displayChartData() : var {
         if (root.effectiveScreenKey === "select") {
-            return selectContext.selectedChartData();
+            return selectContext.selectedStateChartData;
         }
         return resultState.displayChartData();
     }
@@ -2073,8 +1817,8 @@ Item {
         if (!resultState.cycleResultGauge(side, delta)) {
             return false;
         }
-        root.refreshBaseActiveOptions();
-        root.refreshSelectRuntimeActiveOptions();
+        selectUpdateController.refreshBaseActiveOptions();
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
         return true;
     }
     function handleResultGaugeSelectKey(key: var) : var {
@@ -2120,10 +1864,7 @@ Item {
     function resultBadPoorImproved(side: var) : var { return resultState.resultBadPoorImproved(side); }
     function updateResultOldScores() : void { resultState.updateResultOldScores(); }
     function gameplayPlayer(side: var) : var {
-        if (!root.chart) {
-            return null;
-        }
-        return side === 2 ? root.chart.player2 : root.chart.player1;
+        return side === 2 ? root.gameplayPlayer2 : root.gameplayPlayer1;
     }
 
     function gameplayKeymode() : var {
@@ -2363,7 +2104,7 @@ Item {
         root.gameplayScoresRevision += 1;
         root.resetGameplayScoreReplayers();
 
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return;
         }
 
@@ -2657,16 +2398,6 @@ Item {
         return judgement >= 0 && judgement <= 5 ? baseOption + (5 - judgement) : -1;
     }
 
-    function gameplayPoorBgaOption(side: var, baseOption: var) : var {
-        let skinTime = side === 2 ? root.gameplayLastMissSkinTime2 : root.gameplayLastMissSkinTime1;
-        return skinTime >= 0 && root.renderSkinTime - skinTime < 1000 ? baseOption + 1 : baseOption;
-    }
-
-    function gameplayPoorBgaVisible() : var {
-        root.gameplayRevision;
-        return root.gameplayPoorBgaOption(1, 247) === 248;
-    }
-
     function judgementCountForExist(resultOrScore: var, judgement: var) : var {
         if (!resultOrScore) {
             return 0;
@@ -2690,7 +2421,7 @@ Item {
     }
 
     function gameplayLaneCoverChangingOptionActive() : var {
-        return root.isGameplayScreen()
+        return root.gameplayScreenActive
             && (Input.start1 || Input.select1 || Input.start2 || Input.select2);
     }
 
@@ -2710,7 +2441,7 @@ Item {
     }
 
     function requestGameplayRevisionRefresh(side: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return;
         }
         root.gameplayRevisionRefreshPending = true;
@@ -2769,7 +2500,7 @@ Item {
         root.gameplayNumberRevision1Pending = false;
         root.gameplayNumberRevision2Pending = false;
 
-        if (refreshTimers && skinTiming.commitGameplayTimerChanges()) {
+        if (refreshTimers && skinTiming.skinTimerStateRef.commitGameplayTimerChanges()) {
             root.bumpGameplayTimerRevision();
         }
         if (refreshNumbers1) {
@@ -2778,7 +2509,7 @@ Item {
         if (refreshNumbers2) {
             root.bumpGameplayNumberRevision(2);
         }
-        if (refreshGameplay && root.isGameplayScreen()) {
+        if (refreshGameplay && root.gameplayScreenActive) {
             root.bumpGameplayRevision();
             root.refreshGameplayRuntimeActiveOptions();
         }
@@ -2786,81 +2517,13 @@ Item {
 
     function updateGameplayStaticNumberRevision() : void {
         root.gameplayStaticNumberRevision++;
-        let chartData = root.gameplayChartData();
-        let chartKey = chartData ? (chartData.md5 || chartData.sha256 || chartData.title || "") : "";
-        root.gameplayStaticNumberRevisionKey = "static|" + root.gameplayStaticNumberRevision + "|" + chartKey;
-    }
-
-    function gameplayNumberRevisionKind(src: var) : var {
-        if (!root.gameplayScreenActive) {
-            return 0;
-        }
-        if (src && src.nowCombo) {
-            let nowComboSide = src.side || (src.timer === 47 ? 2 : 1);
-            return nowComboSide === 2 ? 7 : 6;
-        }
-
-        let num = src ? (src.num || 0) : 0;
-        if (num === 20 || (num >= 160 && num <= 164)) {
-            return 4;
-        }
-        if (num === 11 || num === 15) {
-            return 2;
-        }
-        if (num === 10 || num === 12 || num === 13 || num === 14
-                || (num >= 310 && num <= 315)) {
-            return 1;
-        }
-        if (num === 108 || num === 128 || (num >= 150 && num <= 158)) {
-            return 3;
-        }
-        if ((num >= 120 && num <= 136) || num === 526 || num === 521
-                || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
-            return 2;
-        }
-        if ((num >= 100 && num <= 116) || num === 407
-                || (num >= 410 && num <= 427)
-                || (num >= 500 && num <= 509) || num === 520 || num === 522
-                || num === 525 || num === 527 || (num >= 1510 && num <= 1599)) {
-            return 1;
-        }
-        if (num === 42 || num === 90 || num === 91 || num === 92
-                || num === 106 || num === 126 || num === 165
-                || num === 290 || num === 291
-                || (num >= 350 && num <= 365) || num === 368
-                || num === 1163 || num === 1164) {
-            return 5;
-        }
-        return 3;
-    }
-
-    function gameplayNumberRevisionForKind(kind: var) : var {
-        switch (kind) {
-        case 1:
-            return "p1|" + root.gameplayNumberRevision1 + "|" + root.gameplayJudgeRevision1;
-        case 2:
-            return "p2|" + root.gameplayNumberRevision2 + "|" + root.gameplayJudgeRevision2;
-        case 3:
-            return "x|" + root.gameplayNumberRevision1 + "|" + root.gameplayNumberRevision2
-                + "|" + root.gameplayScoresRevision;
-        case 4:
-            return "time|" + root.renderSkinTime;
-        case 5:
-            return root.gameplayStaticNumberRevisionKey;
-        case 6:
-            return "j1|" + root.gameplayJudgeRevision1;
-        case 7:
-            return "j2|" + root.gameplayJudgeRevision2;
-        default:
-            return 0;
-        }
     }
 
     function setGameplayTimerValue(timer: var, skinTime: var) : var {
         if (!timer || skinTime < 0) {
             return;
         }
-        if (skinTiming.setGameplayTimerValue(timer, skinTime)) {
+        if (skinTiming.skinTimerStateRef.setGameplayTimerValue(timer, skinTime)) {
             root.requestGameplayTimerRevision();
         }
     }
@@ -2869,13 +2532,13 @@ Item {
         if (!timer) {
             return;
         }
-        if (skinTiming.clearGameplayTimerValue(timer)) {
+        if (skinTiming.skinTimerStateRef.clearGameplayTimerValue(timer)) {
             root.requestGameplayTimerRevision();
         }
     }
 
     function resetGameplayTimerValues() : void {
-        if (skinTiming.resetGameplayTimerValues()) {
+        if (skinTiming.skinTimerStateRef.resetGameplayTimerValues()) {
             root.gameplayTimerRevision++;
         }
     }
@@ -2922,7 +2585,7 @@ Item {
     }
 
     function updateGameplayStatusTimers() : var {
-        if (!root.isGameplayScreen() || !root.chart || root.chart.status === undefined) {
+        if (!root.gameplayScreenActive || !root.chart || root.chart.status === undefined) {
             return;
         }
         let optionsChanged = false;
@@ -3109,7 +2772,7 @@ Item {
             } else {
                 root.gameplayLastMissSkinTime1 = root.renderSkinTime;
             }
-            skinTiming.restartGameplayPoorBgaOptionTimer();
+            skinTiming.gameplayPoorBgaOptionTimer.restart();
         }
 
         let totalNotes = root.gameplayTotalNotes(score);
@@ -3137,26 +2800,6 @@ Item {
         }
     }
 
-    function gameplayRhythmTimerSkinTime() : var {
-        if (root.isGameplayScreen()) {
-            return gameplayFrameState.rhythmTimerSkinTime;
-        }
-        let player = root.gameplayPlayer(1) || root.gameplayPlayer(2);
-        if (!player) {
-            return -1;
-        }
-        let beatPosition = Number(player.beatPosition || 0);
-        if (beatPosition > 0) {
-            let rhythm = (beatPosition - Math.floor(beatPosition)) * 1000;
-            return Math.max(0, Math.round(root.renderSkinTime - rhythm));
-        }
-        let bpm = Math.max(1, Number(player.bpm || 0));
-        let elapsedMs = Math.max(0, Number(player.elapsed || 0)) / 1000000;
-        let beatMs = 60000 / bpm;
-        let rhythm = beatMs > 0 ? (elapsedMs % beatMs) * 1000 / beatMs : 0;
-        return Math.max(0, Math.round(root.renderSkinTime - rhythm));
-    }
-
     function resetGameplayFrameSamples() : void {
         gameplayFrameState.reset();
     }
@@ -3167,7 +2810,7 @@ Item {
     }
 
     function addGameplayTimers(result: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return;
         }
         root.gameplayTimerRevision;
@@ -3187,7 +2830,7 @@ Item {
         }
         root.addGameplayTimer(result, 48, root.gameplayFullComboSkinTime1);
         root.addGameplayTimer(result, 49, root.gameplayFullComboSkinTime2);
-        root.addGameplayTimer(result, 140, root.gameplayRhythmTimerSkinTime());
+        root.addGameplayTimer(result, 140, root.gameplayRhythmTimerSkinTime);
         root.addGameplayKeyTimers(result);
         root.addGameplayEffectTimers(result);
     }
@@ -3265,7 +2908,7 @@ Item {
     }
 
     function setGameplayKeyTimerPressed(timer: var, pressed: var) : var {
-        if (!root.isGameplayScreen() || !root.chart) {
+        if (!root.gameplayScreenActive || !root.chart) {
             return;
         }
         let wasPressed = !!root.gameplayPreviousPressedTimers[timer];
@@ -3306,7 +2949,7 @@ Item {
     }
 
     function setGameplayLongNoteTimerHeld(timer: var, held: var) : var {
-        if (!root.isGameplayScreen() || !root.chart) {
+        if (!root.gameplayScreenActive || !root.chart) {
             return;
         }
 
@@ -3353,7 +2996,7 @@ Item {
     }
 
     function syncGameplayKeyTimersFromColumns() : var {
-        if (!root.isGameplayScreen() || !root.chart) {
+        if (!root.gameplayScreenActive || !root.chart) {
             return;
         }
 
@@ -3363,7 +3006,7 @@ Item {
     }
 
     function syncGameplayLongNoteTimersFromColumns() : var {
-        if (!root.isGameplayScreen() || !root.chart) {
+        if (!root.gameplayScreenActive || !root.chart) {
             return;
         }
 
@@ -3375,7 +3018,7 @@ Item {
     }
 
     function pressGameplayButtonTimer(key: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return;
         }
         let onTimer = root.gameplayKeyOnTimerForKey(key);
@@ -3422,28 +3065,29 @@ Item {
         host: root
         selectContext: selectContext
         skinModel: skinModel
+        rankingState: lr2Ranking
     }
 
     readonly property var builtBarRuntimeActiveOptions: runtimeOptions.buildBarActiveOptions()
     readonly property var builtBaseRuntimeActiveOptions: runtimeOptions.buildBaseActiveOptions(root.builtBarRuntimeActiveOptions)
     readonly property var builtSelectCommonRuntimeActiveOptions: runtimeOptions.buildSelectCommonActiveOptions(root.builtBaseRuntimeActiveOptions)
     readonly property var builtSelectRequiredRuntimeActiveOptions: runtimeOptions.buildSelectRequiredRuntimeActiveOptions()
-    property var builtSelectRuntimeActiveOptions: []
-    property var builtScreenRuntimeActiveOptions: []
+    readonly property var builtSelectRuntimeActiveOptions: root.effectiveScreenKey === "select"
+        ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
+        : root.emptyActiveOptions
+    readonly property var builtScreenRuntimeActiveOptions: root.effectiveScreenKey === "select"
+        ? root.emptyActiveOptions
+        : runtimeOptions.buildRuntimeActiveOptions(root.builtBaseRuntimeActiveOptions)
 
-    property var barActiveOptions: []
-    property var baseActiveOptions: []
-    property string baseActiveOptionsKey: ""
-    property var selectCommonActiveOptions: []
-    property string selectCommonActiveOptionsKey: ""
-    property bool selectCommonActiveOptionsReady: false
-    property string selectRuntimeActiveOptionsKey: ""
-    property string gameplayRuntimeActiveOptionsStateKey: ""
-    property string gameplayRuntimeActiveOptionsKey: ""
-    property var runtimeActiveOptions: []
+    property alias barActiveOptions: selectUpdateController.barActiveOptions
+    property alias baseActiveOptions: selectUpdateController.baseActiveOptions
+    property alias selectCommonActiveOptions: selectUpdateController.selectCommonActiveOptions
+    property alias selectCommonActiveOptionsReady: selectUpdateController.selectCommonActiveOptionsReady
+    property var gameplayRuntimeActiveOptionsStateParts: []
+    property alias runtimeActiveOptions: selectUpdateController.runtimeActiveOptions
     readonly property var barTimers: ({ "0": 0 })
 
-    function sameNumberArray(a: var, b: var) : var {
+    function sameArrayValues(a: var, b: var) : var {
         if (a === b) {
             return true;
         }
@@ -3458,15 +3102,16 @@ Item {
         return true;
     }
 
-    function numberArrayKey(values: var) : var {
-        if (!values || values.length === 0) {
-            return "";
+    function sameNumberArray(a: var, b: var) : var {
+        return root.sameArrayValues(a, b);
+    }
+
+    function appendActiveOptionsState(parts: var, activeOptions: var) : void {
+        let count = activeOptions ? activeOptions.length || 0 : 0;
+        parts.push(count);
+        for (let i = 0; i < count; ++i) {
+            parts.push(activeOptions[i] || 0);
         }
-        if (values.__key !== undefined) {
-            return values.__key;
-        }
-        values.__key = values.join(",");
-        return values.__key;
     }
 
     function activeOptionPresent(option: var, activeOptions: var) : var {
@@ -3555,57 +3200,15 @@ Item {
         return ids;
     }
 
-    function refreshBaseActiveOptions() : var {
-        return selectUpdateController.refreshBaseActiveOptions();
-    }
-
-    function updateGeneratedSelectRuntimeActiveOptions() : void {
-        let next = root.effectiveScreenKey === "select"
-            ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
-            : [];
-        if (!root.sameNumberArray(root.builtSelectRuntimeActiveOptions, next)) {
-            root.builtSelectRuntimeActiveOptions = next;
-            selectUpdateController.replaceSelectRuntimeGeneratedActiveOptions(next);
-        }
-    }
-
-    function updateGeneratedScreenRuntimeActiveOptions() : void {
-        let next = root.effectiveScreenKey === "select"
-            ? []
-            : runtimeOptions.buildRuntimeActiveOptions(root.builtBaseRuntimeActiveOptions);
-        if (!root.sameNumberArray(root.builtScreenRuntimeActiveOptions, next)) {
-            root.builtScreenRuntimeActiveOptions = next;
-        }
-    }
-
-    function updateGeneratedRuntimeActiveOptions() : void {
-        if (root.effectiveScreenKey === "select") {
-            root.updateGeneratedSelectRuntimeActiveOptions();
-        } else {
-            root.updateGeneratedScreenRuntimeActiveOptions();
-        }
-    }
-
-    function refreshSelectRuntimeActiveOptions() : void {
-        root.updateGeneratedRuntimeActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
-    }
-
-    function refreshSelectRankingStatusOptions() : void {
-        if (root.selectUsesRankingStatusOptions()) {
-            root.refreshSelectRuntimeActiveOptions();
-        }
-    }
-
     function refreshSelectPlayOptionLayout() : void {
         if (root.effectiveScreenKey !== "select") {
             return;
         }
-        root.refreshBaseActiveOptions();
-        root.refreshSelectRuntimeActiveOptions();
+        selectUpdateController.refreshBaseActiveOptions();
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
-    function appendGameplayRuntimeOptionSideKeyParts(parts: var, side: var) : void {
+    function appendGameplayRuntimeOptionSideState(parts: var, side: var) : void {
         let score = root.gameplayScore(side);
         let gaugeValue = Math.floor(root.gameplayGaugeValue(score));
         let gaugeBucket = gaugeValue >= 100 ? 10 : Math.max(0, Math.floor(gaugeValue / 10));
@@ -3630,15 +3233,15 @@ Item {
             timing !== 0 && judgementOption >= 0 && judgementOption !== (side === 2 ? 261 : 241)
                 ? (timing > 0 ? 1 : -1)
                 : 0,
-            root.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
+            side === 2 ? root.gameplayPoorBgaOption2 : root.gameplayPoorBgaOption1);
     }
 
-    function gameplayRuntimeOptionStateKey() : var {
-        if (!root.isGameplayScreen()) {
-            return "";
+    function gameplayRuntimeOptionStateParts() : var {
+        if (!root.gameplayScreenActive) {
+            return root.emptyActiveOptions;
         }
 
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsRef;
         let score1 = root.gameplayScore(1);
         let chartData = root.gameplayChartData();
         let chartCount = root.chart && root.chart.chartDatas ? root.chart.chartDatas.length || 0 : 0;
@@ -3646,8 +3249,10 @@ Item {
             ? Math.max(0, root.chart.currentChartIndex || 0)
             : 0;
         let parts = [
-            root.effectiveScreenKey,
-            root.baseActiveOptionsKey,
+            root.effectiveScreenKey
+        ];
+        root.appendActiveOptionsState(parts, root.baseActiveOptions);
+        parts.push(
             vars ? vars.bgaSize || 0 : 0,
             vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0,
             vars && vars.scoreGraphEnabled === false ? 0 : 1,
@@ -3683,12 +3288,11 @@ Item {
             chartData ? selectContext.entryDifficulty(chartData) : 0,
             root.lr2ReplayType,
             chartData && selectContext.hasReplay(chartData) ? 1 : 0,
-            root.gameplayLaneCoverChangingOptionActive() ? 1 : 0
-        ];
+            root.gameplayLaneCoverChangingOptionActive() ? 1 : 0);
 
-        root.appendGameplayRuntimeOptionSideKeyParts(parts, 1);
+        root.appendGameplayRuntimeOptionSideState(parts, 1);
         if (root.gameplayLanePlayer(2)) {
-            root.appendGameplayRuntimeOptionSideKeyParts(parts, 2);
+            root.appendGameplayRuntimeOptionSideState(parts, 2);
         }
 
         let judgementOptions = [
@@ -3702,36 +3306,20 @@ Item {
         for (let judgement of judgementOptions) {
             parts.push(root.judgementCountForExist(score1, judgement) > 0 ? 1 : 0);
         }
-        return parts.join("|");
+        return parts;
     }
 
     function refreshGameplayRuntimeActiveOptions() : var {
-        let nextKey = root.gameplayRuntimeOptionStateKey();
-        if (nextKey === root.gameplayRuntimeActiveOptionsStateKey) {
+        let nextState = root.gameplayRuntimeOptionStateParts();
+        if (root.sameArrayValues(nextState, root.gameplayRuntimeActiveOptionsStateParts)) {
             return false;
         }
-        root.gameplayRuntimeActiveOptionsStateKey = nextKey;
-        root.updateGeneratedScreenRuntimeActiveOptions();
+        root.gameplayRuntimeActiveOptionsStateParts = nextState;
         return selectUpdateController.refreshGameplayRuntimeActiveOptions();
     }
 
-    property alias selectRevision: selectUpdateController.selectRevision
-    property alias selectDetailRevision: selectUpdateController.selectDetailRevision
-    readonly property string selectChartContentRevision: root.effectiveScreenKey === "select"
-        ? selectContext.visualChartContentRevision
-        : ""
-    readonly property string selectChartWrapperContentRevision: root.effectiveScreenKey === "select"
-        ? selectContext.visualChartContentRevision
-        : ""
-    readonly property var selectChartWrapperState: root.effectiveScreenKey === "select"
-        ? ({
-            chartRevision: root.selectChartContentRevision,
-            wrapperRevision: root.selectChartWrapperContentRevision,
-            wrapper: selectContext.visualChartWrapper
-        })
-        : null
-    readonly property var selectSkinChartWrapper: root.selectChartWrapperState
-        ? root.selectChartWrapperState.wrapper
+    readonly property var selectSkinChartWrapper: root.effectiveScreenKey === "select"
+        ? selectContext.visualChartWrapper
         : null
     readonly property var renderChart: root.effectiveScreenKey === "select"
         ? root.selectSkinChartWrapper
@@ -3740,9 +3328,6 @@ Item {
         ? root.selectSkinChartWrapper
         : root.renderChart
     readonly property var selectedCourseStages: {
-        if (root.effectiveScreenKey === "select") {
-            selectContext.visualChartContentRevision;
-        }
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {
                 return root.chartDatas;
@@ -3751,7 +3336,7 @@ Item {
                 return root.course.loadCharts();
             }
         }
-        let item = root.effectiveScreenKey === "select" ? selectContext.selectedItem() : null;
+        let item = root.effectiveScreenKey === "select" ? selectContext.selectedStateItem : null;
         if (!item || !selectContext.isCourse(item) || !item.loadCharts) {
             return [];
         }
@@ -3767,25 +3352,11 @@ Item {
             }
             selectSideEffects.playScratchBurst(repeats);
         }
-        function onRankingModeChanged() : void {
-            if (root.refreshBaseActiveOptions()) {
-                root.refreshSelectRuntimeActiveOptions();
-            }
-        }
-    }
-    Connections {
-        target: lr2Ranking.rankingModel
-        function onLoadingChanged() : void { root.refreshSelectRankingStatusOptions(); }
-        function onRankingEntriesChanged() : void { root.refreshSelectRankingStatusOptions(); }
-        function onPlayerCountChanged() : void { root.refreshSelectRankingStatusOptions(); }
-        function onScoreCountChanged() : void { root.refreshSelectRankingStatusOptions(); }
-        function onClearCountsChanged() : void { root.refreshSelectRankingStatusOptions(); }
-        function onMd5Changed() : void { root.refreshSelectRankingStatusOptions(); }
     }
     Connections {
         target: Rg.profileList
         function onMainProfileChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBattleActiveChanged() : void {
@@ -3796,15 +3367,15 @@ Item {
         target: Rg.profileList ? Rg.profileList.mainProfile : null
         ignoreUnknownSignals: true
         function onLoginStateChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onOnlineUserDataChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onTachiDataChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }
@@ -3818,41 +3389,25 @@ Item {
         }
     }
     Connections {
-        target: root.mainGeneralVars()
+        target: root.mainGeneralVarsRef
         ignoreUnknownSignals: true
         function onDpOptionsChanged() : void {
             root.refreshSelectPlayOptionLayout();
         }
         function onGaugeTypeChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onGaugeModeChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBottomShiftableGaugeChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onRankingProviderChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
-            root.refreshGameplayRuntimeActiveOptions();
-        }
-    }
-    onSelectPanelChanged: {
-        if (root.refreshBaseActiveOptions()) {
-            root.refreshSelectRuntimeActiveOptions();
-        }
-    }
-    onLr2RankingTransitionPhaseChanged: {
-        if (root.refreshBaseActiveOptions()) {
-            root.refreshSelectRuntimeActiveOptions();
-        }
-    }
-    onParseActiveOptionsChanged: {
-        if (root.refreshBaseActiveOptions()) {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }
@@ -3864,7 +3419,7 @@ Item {
             root.hideReadmeImmediately();
             root.clearLr2RankingTransition();
         }
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             root.gameplayResultOpened = false;
             root.gameplayCourseResultPending = false;
             root.gameplayShowedCourseResult = false;
@@ -3875,7 +3430,7 @@ Item {
             root.updateGameplayStatusTimers();
             root.activateGameplayIfNeeded();
         }
-        if (root.isResultScreen()) {
+        if (root.resultScreenActive) {
             root.resultTimer151SkinTime = -1;
             root.resultTimer152SkinTime = -1;
             root.updateResultOldScores();
@@ -3886,7 +3441,7 @@ Item {
     onChartChanged: {
         root.gameplayRevision++;
         if (root.effectiveScreenKey !== "select") {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
         }
         root.refreshGameplayRuntimeActiveOptions();
         root.gameplayResultOpened = false;
@@ -3907,14 +3462,14 @@ Item {
     onProfilesChanged: root.updateResultOldScores()
     onChartDataChanged: {
         if (root.effectiveScreenKey !== "select") {
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
         }
         root.updateResultOldScores();
     }
     onChartDatasChanged: root.updateResultOldScores()
     onCourseChanged: root.updateResultOldScores()
     Connections {
-        target: root.isGameplayScreen() ? root.chart : null
+        target: root.gameplayScreenActive ? root.chart : null
         ignoreUnknownSignals: true
         function onCurrentChartIndexChanged() : void {
             root.gameplayRevision++;
@@ -3939,7 +3494,7 @@ Item {
         }
     }
     Connections {
-        target: root.isGameplayScreen() ? root.gameplayScore(1) : null
+        target: root.gameplayScreenActive ? root.gameplayScore(1) : null
         ignoreUnknownSignals: true
         function onHit(hit: var) : void {
             root.notifyGameplayReplayHit(hit);
@@ -3964,7 +3519,7 @@ Item {
         }
     }
     Connections {
-        target: root.isGameplayScreen() ? root.gameplayScore(2) : null
+        target: root.gameplayScreenActive ? root.gameplayScore(2) : null
         ignoreUnknownSignals: true
         function onHit(hit: var) : void {
             if (root.gameplayHitCountsAsPlayed(hit)) {
@@ -3990,17 +3545,12 @@ Item {
 
     function handleScreenContextChanged() : void {
         let rankingRequestChanged = root.commitLr2RankingRequest();
-        root.refreshBaseActiveOptions();
-        root.refreshSelectRuntimeActiveOptions();
-        root.restartSelectInfoTimer();
+        selectUpdateController.refreshBaseActiveOptions();
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        skinTiming.skinClockRef.restartSelectInfoTimer();
         if (rankingRequestChanged) {
-            root.applyRankingStatsToSelectContext();
+            lr2Ranking.applyStatsToSelectContext();
         }
-        selectSideEffects.update();
-    }
-
-    function updateSelectSideEffects() : void {
-        selectSideEffects.update();
     }
 
     readonly property bool acceptsInput: screenState.acceptsInput
@@ -4011,99 +3561,6 @@ Item {
         if (root.acceptsInput && root.heldOptionPanel > 0 && !root.startHoldSuppressed) {
             root.holdSelectPanel(root.heldOptionPanel);
         }
-    }
-
-    function optionText(labels: var, index: var) : var {
-        return valueResolver.optionText(labels, index);
-    }
-
-    function clearLabelForLamp(lamp: var) : var {
-        return valueResolver.clearLabelForLamp(lamp);
-    }
-
-    function courseStage(index: var) : var {
-        return valueResolver.courseStage(index);
-    }
-
-    function chartTitle(chart: var) : var {
-        return valueResolver.chartTitle(chart);
-    }
-
-    function chartSubtitle(chart: var) : var {
-        return valueResolver.chartSubtitle(chart);
-    }
-
-    function lr2SelectOptionText(st: var) : var {
-        return valueResolver.lr2SelectOptionText(st);
-    }
-
-    function resolveText(st: var) : var {
-        return valueResolver.resolveText(st);
-    }
-
-    function resolveGameplayNumber(num: var) : var {
-        return valueResolver.resolveGameplayNumber(num);
-    }
-
-    function resultCompareResult() : var {
-        return valueResolver.resultCompareResult();
-    }
-
-    function resolveResultSideNumber(num: var, result: var) : var {
-        return valueResolver.resolveResultSideNumber(num, result);
-    }
-
-    function resolveResultTargetSideNumber(num: var, side: var) : var {
-        return valueResolver.resolveResultTargetSideNumber(num, side);
-    }
-
-    function resolveResultNumber(num: var) : var {
-        return valueResolver.resolveResultNumber(num);
-    }
-
-    function resolveNumber(num: var) : var {
-        return valueResolver.resolveNumber(num);
-    }
-
-    function numberValue(src: var) : var {
-        return valueResolver.numberValue(src);
-    }
-
-    function imageSetValue(imageSetRef: var, sourceCount: var) : var {
-        return valueResolver.imageSetValue(imageSetRef, sourceCount);
-    }
-
-    function imageSetSourceFor(src: var) : var {
-        return valueResolver.imageSetSourceFor(src);
-    }
-
-    function numberForceHidden(src: var) : var {
-        return valueResolver.numberForceHidden(src);
-    }
-
-    function numberAnimationRevision(src: var) : var {
-        return valueResolver.numberAnimationRevision(src);
-    }
-
-    function resolveBarGraph(type: var) : var {
-        return valueResolver.resolveBarGraph(type);
-    }
-
-    function normalizedBarValue(value: var, maximum: var) : var {
-        return valueResolver.normalizedBarValue(value, maximum);
-    }
-
-    function resultBarGraphValue(type: var) : var {
-        return valueResolver.resultBarGraphValue(type);
-    }
-
-    function barDistributionGraphSourceAnimates(src: var) : var {
-        if (!src || (src.cycle || 0) <= 0) {
-            return false;
-        }
-        let segments = (src.graphType || 0) === 0 ? 11 : 28;
-        let frames = Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1);
-        return Math.floor(frames / segments) > 1;
     }
 
     function wrapValue(value: var, count: var) : var {
@@ -4118,38 +3575,6 @@ Item {
             return src.imageSetSources ? src.imageSetSources.length : 0;
         }
         return Math.max(1, src.div_x || 1) * Math.max(1, src.div_y || 1);
-    }
-
-    function buttonUsesSplitArrows(buttonId: var) : var {
-        return selectPanelController.buttonUsesSplitArrows(buttonId);
-    }
-
-    function imageSetButtonId(src: var) : var {
-        return selectPanelController.imageSetButtonId(src);
-    }
-
-    function elementButtonId(src: var) : var {
-        return selectPanelController.elementButtonId(src);
-    }
-
-    function elementButtonPanel(src: var) : var {
-        return selectPanelController.elementButtonPanel(src);
-    }
-
-    function elementButtonClickEnabled(src: var) : var {
-        return selectPanelController.elementButtonClickEnabled(src);
-    }
-
-    function elementButtonPanelMatches(src: var) : var {
-        return selectPanelController.elementButtonPanelMatches(src);
-    }
-
-    function buttonMouseDelta(src: var, mouseX: var, width: var) : var {
-        return selectPanelController.buttonMouseDelta(src, mouseX, width);
-    }
-
-    function buttonFrame(src: var) : var {
-        return selectPanelController.buttonFrame(src);
     }
 
     function closeSelectPanel() : var {
@@ -4174,46 +3599,6 @@ Item {
 
     function releaseHeldSelectPanel(panel: var) : var {
         return selectPanelController.releaseHeldSelectPanel(panel);
-    }
-
-    function currentSelectHeldButtonSkinTime() : var {
-        return selectPanelController.currentSelectHeldButtonSkinTime();
-    }
-
-    function selectHeldButtonTimerForKey(key: var) : var {
-        return selectPanelController.selectHeldButtonTimerForKey(key);
-    }
-
-    function isSelectHeldButtonTimer(timer: var) : var {
-        return selectPanelController.isSelectHeldButtonTimer(timer);
-    }
-
-    function pressSelectHeldButtonTimer(key: var) : var {
-        return selectPanelController.pressSelectHeldButtonTimer(key);
-    }
-
-    function releaseSelectHeldButtonTimer(key: var) : var {
-        return selectPanelController.releaseSelectHeldButtonTimer(key);
-    }
-
-    function addHeldButtonTimer(result: var, timer: var, held: var) : var {
-        return selectPanelController.addHeldButtonTimer(result, timer, held);
-    }
-
-    function addHeldButtonTimers(result: var) : var {
-        return selectPanelController.addHeldButtonTimers(result);
-    }
-
-    function selectHeldButtonTimerFireTime(timer: var, liveClock: var) : var {
-        return selectPanelController.selectHeldButtonTimerFireTime(timer, liveClock);
-    }
-
-    function spriteSkinTime(src: var, dsts: var) : var {
-        return selectPanelController.spriteSkinTime(src, dsts);
-    }
-
-    function buttonPanelMatches(src: var) : var {
-        return selectPanelController.buttonPanelMatches(src);
     }
 
     function handleLr2Button(buttonId: var, delta: var, panel: var, soundPlayer: var, sourceCount: var, mouseButton: var) : var {
@@ -4297,77 +3682,6 @@ Item {
             : null;
     }
 
-    function isNowJudgeSprite(src: var) : var {
-        return root.isGameplayScreen()
-            && src
-            && (src.timer === 46 || src.timer === 47)
-            && (src.w || 0) > 0
-            && (src.h || 0) > 0
-            && (src.op1 || 0) === 0;
-    }
-
-    function nowJudgeComboValue(src: var) : var {
-        if (!src) {
-            return 0;
-        }
-        return src.timer === 47 ? root.gameplayJudgeCombo2 : root.gameplayJudgeCombo1;
-    }
-
-    function nowJudgeOffsetX(src: var, dsts: var) : var {
-        if (!root.isNowJudgeSprite(src)) {
-            return 0;
-        }
-        let combo = root.nowJudgeComboValue(src);
-        if (combo <= 0) {
-            return 0;
-        }
-
-        let digits = Math.abs(Math.round(combo)).toString().length;
-        let dst = dsts && dsts.length > 0 ? dsts[0] : null;
-        let baseH = dst && dst.h ? Math.abs(dst.h) : (src.h || 30);
-        let comboDigitW = Math.max(1, Math.round(baseH * 22 / 30));
-        return -digits * comboDigitW * 0.5;
-    }
-
-    readonly property int selectScrollSpriteStateOverride: 1
-    readonly property int gameplayProgressSpriteStateOverride: 2
-    readonly property int gameplayLaneCoverSpriteStateOverride: 3
-    readonly property int numberRefSpriteStateOverride: 4
-    readonly property int genericSliderSpriteStateOverride: 5
-
-    function spriteSliderPositionForKind(kind: var, src: var) : var {
-        switch (kind) {
-        case root.selectScrollSpriteStateOverride:
-            return skinSliderState.selectScrollPosition(src);
-        case root.gameplayProgressSpriteStateOverride:
-            return skinSliderState.gameplayProgressPosition(src);
-        case root.gameplayLaneCoverSpriteStateOverride:
-            return skinSliderState.gameplayLaneCoverPosition(src);
-        case root.numberRefSpriteStateOverride:
-            return skinSliderState.numberRefSliderPosition(src);
-        case root.genericSliderSpriteStateOverride:
-            return skinSliderState.genericPosition(src);
-        default:
-            return 0;
-        }
-    }
-
-    function spriteForceHidden(src: var, elementIndex: var) : var {
-        if (src && src.onMouse) {
-            root.selectHoverVisibleSignature;
-            return root.selectHoverVisibleByIndex[String(elementIndex)] !== true;
-        }
-        return false;
-    }
-
-    function setSelectScrollFromSliderTrack(src: var, track: var, pointerX: var, pointerY: var) : void {
-        skinSliderState.setSelectScrollFromTrack(src, track, pointerX, pointerY);
-    }
-
-    function setLr2GenericSliderFromTrack(src: var, track: var, pointerX: var, pointerY: var) : void {
-        skinSliderState.setGenericFromTrack(src, track, pointerX, pointerY);
-    }
-
     readonly property var barBaseStateResolver: selectBarGeometry.barBaseStateResolver
     readonly property var barPositionMap: selectBarGeometry.barPositionMap
     readonly property bool fastBarScrollActive: selectBarGeometry.fastBarScrollActive
@@ -4375,38 +3689,6 @@ Item {
     readonly property real fastBarScrollY: selectBarGeometry.fastBarScrollY
     readonly property real selectedFastBarDrawX: selectBarGeometry.selectedFastBarDrawX
     readonly property real selectedFastBarDrawY: selectBarGeometry.selectedFastBarDrawY
-
-    function selectedBarRow() : var {
-        return selectBarGeometry.selectedBarRow();
-    }
-
-    function barClickStart() : var {
-        return selectBarGeometry.barClickStart();
-    }
-
-    function barClickEnd() : var {
-        return selectBarGeometry.barClickEnd();
-    }
-
-    function barRowCanClick(row: var) : var {
-        return selectBarGeometry.barRowCanClick(row);
-    }
-
-    function barBaseStateAt(row: var) : var {
-        if (!barBaseStateResolver) {
-            return null;
-        }
-        let state = barBaseStateResolver.stateAt(row);
-        return state && state.valid ? state : null;
-    }
-
-    function barRowScrollDelta(row: var) : var {
-        return selectBarGeometry.barRowScrollDelta(row);
-    }
-
-    function handleBarRowClick(row: var, mouse: var) : var {
-        return selectBarGeometry.handleBarRowClick(row, mouse);
-    }
 
     Lr2GameplayFrameState {
         id: gameplayFrameState
@@ -4474,104 +3756,26 @@ Item {
     property alias renderSkinTime: skinTiming.renderSkinTime
     property alias barSkinTime: skinTiming.barSkinTime
     readonly property bool shouldAutoAdvance: skinTiming.shouldAutoAdvance
-    readonly property var timers: root.isResultScreen()
+    readonly property var timers: root.resultScreenActive
         ? skinTiming.timers
         : root.zeroTimers
 
     onRenderSkinTimeChanged: {
         if (root.effectiveScreenKey === "select"
-                && root.selectHoverHasPoint
+                && selectHoverState.hasPoint
                 && root.globalSkinTime < root.selectAnimationLimit) {
-            root.refreshSelectHoverState();
+            selectHoverState.refreshVisibleState();
         }
     }
 
-    readonly property bool selectReplayOptionsUsed: root.skinUsesAnySelectElementOption([
-            196, 197, 1196, 1197, 1199, 1200,
-            1202, 1203, 1205, 1206, 1207, 1208
-        ])
-    readonly property bool selectScoreOptionIdsUsed: root.skinUsesSelectElementOptionRange(118, 130)
-        || root.skinUsesAnySelectElementOption([144, 145, 1128])
-    readonly property bool selectEntryStatusOptionsUsed: root.skinUsesSelectElementOptionRange(100, 130)
-        || root.skinUsesSelectElementOptionRange(200, 207)
-        || root.skinUsesAnySelectElementOption([1100, 1101, 1102, 1103, 1104])
-    readonly property bool selectDifficultyBarOptionsUsed: root.skinUsesSelectElementOptionRange(70, 79)
-        || root.skinUsesSelectElementOptionRange(500, 570)
-    readonly property bool selectDifficultyLampOptionsUsed: root.skinUsesSelectElementOptionRange(520, 570)
-    readonly property bool selectDifficultyStateUsed: root.selectDifficultyBarOptionsUsed
-        || !!skinModel.usesSelectDifficultySource
-    readonly property bool selectCourseDetailOptionsUsed: root.skinUsesAnySelectElementOption([290, 293])
-        || root.skinUsesSelectElementOptionRange(580, 589)
-        || root.skinUsesSelectElementOptionRange(700, 755)
-    readonly property bool selectRankingStatusOptionsUsed: root.skinUsesSelectElementOptionRange(600, 616)
-
-    function selectUsesReplayOptions() : var {
-        return root.selectReplayOptionsUsed;
-    }
-
-    function selectUsesScoreOptionIds() : var {
-        return root.selectScoreOptionIdsUsed;
-    }
-
-    function selectUsesEntryStatusOptions() : var {
-        return root.selectEntryStatusOptionsUsed;
-    }
-
-    function selectUsesDifficultyBarOptions() : var {
-        return root.selectDifficultyBarOptionsUsed;
-    }
-
-    function selectUsesDifficultyLampOptions() : var {
-        return root.selectDifficultyLampOptionsUsed;
-    }
-
-    function selectUsesCourseDetailOptions() : var {
-        return root.selectCourseDetailOptionsUsed;
-    }
-
-    function selectUsesRankingStatusOptions() : var {
-        return root.selectRankingStatusOptionsUsed;
-    }
-
-    function updateSelectAnimationLimits() : void {
-        skinTiming.updateSelectAnimationLimits();
-    }
-
-    function restartSkinClock() : void {
-        skinTiming.restartSkinClock();
-    }
-
-    function restartSelectInfoTimer() : void {
-        skinTiming.restartSelectInfoTimer();
-    }
-
-    function quantizedSkinClock(now: var) : var {
-        return skinTiming.quantizedSkinClock(now);
-    }
-
-    function gameplayTimerFireTime(timer: var) : var {
-        return skinTiming.gameplayTimerFireTime(timer);
-    }
-
-    function resultTimerFireTime(timer: var) : var {
-        return skinTiming.resultTimerFireTime(timer);
-    }
-
-    function selectTimerFireTime(timer: var, liveClock: var) : var {
-        return skinTiming.selectTimerFireTime(timer, liveClock);
-    }
-
-    function selectTimerCanFire(timer: var) : var {
-        return skinTiming.selectTimerCanFire(timer);
-    }
-
-    function skinTimerCanFire(timer: var) : var {
-        return skinTiming.skinTimerCanFire(timer);
-    }
-
-    function skinTimerFireTime(timer: var, liveClock: var) : var {
-        return skinTiming.skinTimerFireTime(timer, liveClock);
-    }
+    readonly property bool selectReplayOptionsUsed: selectUpdateController.selectReplayOptionsUsed
+    readonly property bool selectScoreOptionIdsUsed: selectUpdateController.selectScoreOptionIdsUsed
+    readonly property bool selectEntryStatusOptionsUsed: selectUpdateController.selectEntryStatusOptionsUsed
+    readonly property bool selectDifficultyBarOptionsUsed: selectUpdateController.selectDifficultyBarOptionsUsed
+    readonly property bool selectDifficultyLampOptionsUsed: selectUpdateController.selectDifficultyLampOptionsUsed
+    readonly property bool selectDifficultyStateUsed: selectUpdateController.selectDifficultyStateUsed
+    readonly property bool selectCourseDetailOptionsUsed: selectUpdateController.selectCourseDetailOptionsUsed
+    readonly property bool selectRankingStatusOptionsUsed: selectUpdateController.selectRankingStatusOptionsUsed
 
     Lr2SelectContext {
         id: selectContext
@@ -4584,13 +3788,12 @@ Item {
         scoreOptionIdsUsed: root.selectScoreOptionIdsUsed
         difficultyStateUsed: root.selectDifficultyStateUsed
         difficultyLampStateUsed: root.selectDifficultyLampOptionsUsed
-        generalVars: root.mainGeneralVars()
+        generalVars: root.mainGeneralVarsRef
         barRowCount: skinModel.barRows ? skinModel.barRows.length : 0
         barCenter: skinModel.barCenter
         stageFileSourceUsed: skinModel.usesStageFileSource
         backBmpSourceUsed: skinModel.usesBackBmpSource
         bannerSourceUsed: skinModel.usesBannerSource
-        chartContentRevisionUsed: skinModel.usesSelectChartRenderer
 
         Component.onCompleted: {
             root.selectContextRef = selectContext;
@@ -4632,35 +3835,15 @@ Item {
         effectiveScreenKey: root.effectiveScreenKey
         componentReady: root.componentReady
         rankingMode: selectContext.rankingMode
-        scoreRevision: selectContext.scoreRevision
-        focusRevision: selectContext.focusRevision
         selectPanel: root.selectPanel
-        lr2RankingMd5: root.lr2RankingMd5
-        lr2RankingRequestMd5: root.lr2RankingRequestMd5
         parseActiveOptions: root.parseActiveOptions
         barRuntimeActiveOptions: root.builtBarRuntimeActiveOptions
         baseRuntimeActiveOptions: root.builtBaseRuntimeActiveOptions
         selectCommonRuntimeActiveOptions: root.builtSelectCommonRuntimeActiveOptions
         selectRequiredRuntimeActiveOptions: root.builtSelectRequiredRuntimeActiveOptions
+        selectRuntimeGeneratedActiveOptions: root.builtSelectRuntimeActiveOptions
         screenRuntimeActiveOptions: root.builtScreenRuntimeActiveOptions
-        gameplayScreen: root.isGameplayScreen()
-        onLr2RankingRequestMd5Changed: if (root.lr2RankingRequestMd5 !== lr2RankingRequestMd5) root.lr2RankingRequestMd5 = lr2RankingRequestMd5
-        onRuntimeActiveOptionsChanged: if (root.runtimeActiveOptions !== runtimeActiveOptions) root.runtimeActiveOptions = runtimeActiveOptions
-        onBarActiveOptionsChanged: if (root.barActiveOptions !== barActiveOptions) root.barActiveOptions = barActiveOptions
-        onBaseActiveOptionsChanged: if (root.baseActiveOptions !== baseActiveOptions) root.baseActiveOptions = baseActiveOptions
-        onBaseActiveOptionsKeyChanged: if (root.baseActiveOptionsKey !== baseActiveOptionsKey) root.baseActiveOptionsKey = baseActiveOptionsKey
-        onSelectCommonActiveOptionsChanged: if (root.selectCommonActiveOptions !== selectCommonActiveOptions) root.selectCommonActiveOptions = selectCommonActiveOptions
-        onSelectCommonActiveOptionsKeyChanged: if (root.selectCommonActiveOptionsKey !== selectCommonActiveOptionsKey) root.selectCommonActiveOptionsKey = selectCommonActiveOptionsKey
-        onSelectCommonActiveOptionsReadyChanged: if (root.selectCommonActiveOptionsReady !== selectCommonActiveOptionsReady) root.selectCommonActiveOptionsReady = selectCommonActiveOptionsReady
-        onSelectRuntimeActiveOptionsChanged: if (root.selectRuntimeActiveOptions !== selectRuntimeActiveOptions) root.selectRuntimeActiveOptions = selectRuntimeActiveOptions
-        onSelectRuntimeActiveOptionsKeyChanged: if (root.selectRuntimeActiveOptionsKey !== selectRuntimeActiveOptionsKey) root.selectRuntimeActiveOptionsKey = selectRuntimeActiveOptionsKey
-        onGameplayRuntimeActiveOptionsChanged: if (root.gameplayRuntimeActiveOptions !== gameplayRuntimeActiveOptions) root.gameplayRuntimeActiveOptions = gameplayRuntimeActiveOptions
-        onGameplayRuntimeActiveOptionsKeyChanged: if (root.gameplayRuntimeActiveOptionsKey !== gameplayRuntimeActiveOptionsKey) root.gameplayRuntimeActiveOptionsKey = gameplayRuntimeActiveOptionsKey
-        // Rebuild the QML-generated option list before the controller commits a revision refresh.
-        onFocusRevisionChanged: root.updateGeneratedRuntimeActiveOptions()
-        onScoreRevisionChanged: root.updateGeneratedRuntimeActiveOptions()
-        onRankingStatsApplyRequested: root.applyRankingStatsToSelectContext()
-        onSelectSideEffectsUpdateRequested: root.updateSelectSideEffects()
+        gameplayScreen: root.gameplayScreenActive
     }
 
     Lr2SelectKeyNavigationFilter {
@@ -4671,7 +3854,7 @@ Item {
 
     Lr2PlayContext {
         id: playContext
-        enabled: root.isGameplayScreen()
+        enabled: root.gameplayScreenActive
         screenRoot: root
         renderSkinTime: root.renderSkinTime
         scratchRotationSides: skinModel.scratchRotationSides || 0
@@ -4707,8 +3890,8 @@ Item {
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
             root.refreshLr2SkinSettingItems();
-            root.refreshBaseActiveOptions();
-            root.refreshSelectRuntimeActiveOptions();
+            selectUpdateController.refreshBaseActiveOptions();
+            selectUpdateController.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
             root.updateResultOldScores();
         }
@@ -4719,29 +3902,28 @@ Item {
     onCsvPathChanged: root.openSelectIfNeeded()
     onSkinSettingsChanged: {
         root.refreshLr2SkinSettingItems();
-        root.refreshBaseActiveOptions();
-        root.refreshSelectRuntimeActiveOptions();
+        selectUpdateController.refreshBaseActiveOptions();
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
     onScreenKeyChanged: {
         root.openSelectIfNeeded();
         root.activateGameplayIfNeeded();
         root.refreshLr2SkinSettingItems();
-        root.refreshBaseActiveOptions();
-        root.refreshSelectRuntimeActiveOptions();
+        selectUpdateController.refreshBaseActiveOptions();
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
     Component.onCompleted: {
         root.componentReady = true;
         selectSideEffects.ready = true;
         root.commitLr2RankingRequest();
-        root.restartSkinClock();
+        skinTiming.restartSkinClock();
         root.openSelectIfNeeded();
         root.activateGameplayIfNeeded();
-        selectSideEffects.update();
         root.updateGameplaySavedScores();
         root.refreshLr2SkinSettingItems();
-        root.refreshBaseActiveOptions();
-        root.refreshSelectRuntimeActiveOptions();
+        selectUpdateController.refreshBaseActiveOptions();
+        selectUpdateController.refreshSelectRuntimeActiveOptions();
         root.refreshGameplayRuntimeActiveOptions();
     }
 
@@ -4752,7 +3934,7 @@ Item {
         if (root.effectiveScreenKey === "select") {
             root.stopSelectAudio();
         }
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             root.stopGameplayLifecycle();
         }
     }
@@ -4812,7 +3994,7 @@ Item {
     }
 
     function resultInputReady() : var {
-        return root.enabled && root.isResultScreen() && root.acceptsInput;
+        return root.enabled && root.resultScreenActive && root.acceptsInput;
     }
 
     function closeResultScreen() : var {
@@ -5026,7 +4208,7 @@ Item {
         if (root.closeResultScreen()) {
             return;
         }
-        root.pressSelectHeldButtonTimer(key);
+        selectPanelController.pressSelectHeldButtonTimer(key);
         if (root.handleSelectPanelKey(key)) {
             return;
         }
@@ -5045,7 +4227,7 @@ Item {
     }
     Input.onButtonReleased: (key) => {
         root.releaseLr2GameplayOptionKey(key);
-        root.releaseSelectHeldButtonTimer(key);
+        selectPanelController.releaseSelectHeldButtonTimer(key);
         if (root.isLr2RankingKey(key)) {
             root.closeLr2Ranking();
         }
@@ -5054,68 +4236,70 @@ Item {
     Lr2SelectSideEffects {
         id: selectSideEffects
         host: root
-        selectContext: selectContext
         skinModel: skinModel
+        previewSource: selectContext.selectedPreviewAudioSource
         active: root.selectAudioActive
-        selectRevision: root.selectRevision
     }
 
     AudioPlayer {
         id: openFolderSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "f-open" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "f-open" : ""
     }
 
     AudioPlayer {
         id: closeFolderSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "f-close" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "f-close" : ""
     }
 
     AudioPlayer {
         id: gameplayReadySound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "playready" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "playready" : ""
         onPlayingChanged: {
             if (!playing
                     && root.gameplayStartArmed
                     && root.enabled
-                    && root.isGameplayScreen()
+                    && root.gameplayScreenActive
                     && root.chart
                     && root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
-                skinTiming.restartGameplayStartTimer();
+                skinTiming.gameplayStartTimer.restart();
             }
         }
     }
 
     AudioPlayer {
         id: gameplayStopSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "playstop" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "playstop" : ""
     }
 
     AudioPlayer {
         id: optionOpenSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-open" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "o-open" : ""
     }
 
     AudioPlayer {
         id: optionCloseSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-close" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "o-close" : ""
     }
 
     AudioPlayer {
         id: optionChangeSound
-        source: root.mainGeneralVars() ? root.mainGeneralVars().soundsetPath + "o-change" : ""
+        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "o-change" : ""
     }
 
     Lr2SkinSliderState {
         id: skinSliderState
         screenRoot: root
         selectContext: selectContext
+        valueResolver: root.skinValueResolverRef
         optionChangeSound: optionChangeSound
+        skinTiming: root.skinTimingRef
     }
 
     Lr2SelectSearchState {
         id: selectSearchState
         screenRoot: root
         selectContext: selectContext
+        skinTiming: root.skinTimingRef
     }
 
     Lr2RankingState {
@@ -5131,12 +4315,14 @@ Item {
         screenRoot: root
         selectContext: selectContext
         playContext: playContext
+        rankingState: lr2Ranking
     }
 
     Lr2SelectPanelController {
         id: selectPanelController
         screenRoot: root
         selectContext: selectContext
+        selectHoverState: selectHoverState
         scratchSound: selectSideEffects.scratchSoundPlayer
         optionOpenSound: optionOpenSound
         optionCloseSound: optionCloseSound
@@ -5148,6 +4334,9 @@ Item {
         screenRoot: root
         skinModel: skinModel
         selectContext: selectContext
+        selectedOffset: selectContext.selectedOffset
+        visibleBarSlotOffset: selectContext.visibleBarSlotOffset
+        selectVisualState: selectContext.visualStateObject
     }
 
     readonly property real skinW: Math.max(1, skinModel.skinWidth || 640)
@@ -5164,5 +4353,6 @@ Item {
         skinModel: skinModel
         playContext: playContext
         selectContext: selectContext
+        selectBarGeometry: selectBarGeometry
     }
 }

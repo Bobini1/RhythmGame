@@ -8,6 +8,7 @@ QtObject {
 
     required property var host
     property var skinRuntime: null
+    property var runtimeElementDescriptors: []
     property bool tracking: false
     property real skinScale: 1
 
@@ -30,7 +31,7 @@ QtObject {
         return result;
     }
     property var visibleByIndex: ({})
-    readonly property string visibleSignature: Object.keys(root.visibleByIndex).join(",")
+    property int visibleCount: 0
     property int skinX: -1
     property int skinY: -1
     readonly property bool hasPoint: root.skinX >= 0 && root.skinY >= 0
@@ -57,11 +58,11 @@ QtObject {
         return result;
     }
 
-    function pointInSkinCoordinates() : var {
-        if (!root.tracking || !root.hasPoint) {
-            return null;
-        }
-        return Qt.point(root.skinX * root.skinScale, root.skinY * root.skinScale);
+    function descriptorFor(index: var) : var {
+        const descriptors = root.runtimeElementDescriptors || [];
+        return index >= 0 && index < descriptors.length
+            ? descriptors[index]
+            : null;
     }
 
     function updatePoint(x: var, y: var) : var {
@@ -131,10 +132,23 @@ QtObject {
     }
 
     function clearVisibleState() : var {
-        if (Object.keys(root.visibleByIndex).length === 0) {
+        if (root.visibleCount === 0) {
             return;
         }
         root.visibleByIndex = {};
+        root.visibleCount = 0;
+    }
+
+    function sameVisibleState(visible: var, count: var) : var {
+        if (root.visibleCount !== count) {
+            return false;
+        }
+        for (let key in visible) {
+            if (root.visibleByIndex[key] !== true) {
+                return false;
+            }
+        }
+        return true;
     }
 
     function elementState(element: var) : var {
@@ -150,10 +164,10 @@ QtObject {
             return staticState;
         }
 
-        const descriptor = root.skinRuntime.descriptor(element.runtimeIndex);
+        const descriptor = root.descriptorFor(element.runtimeIndex);
         const state = root.skinRuntime.stateForElement(
             element.runtimeIndex,
-            descriptor.usesLiveDstClock ? root.host.selectSourceSkinTime : root.host.renderSkinTime);
+            descriptor && descriptor.usesLiveDstClock ? root.host.selectSourceSkinTime : root.host.renderSkinTime);
         return state && state.valid ? state : null;
     }
 
@@ -174,21 +188,21 @@ QtObject {
         const mx = root.skinX;
         const my = root.skinY;
         let visible = {};
-        let visibleKeys = [];
+        let visibleCount = 0;
         const keys = root.candidateKeys;
         for (let i = 0; i < keys.length; ++i) {
             const key = keys[i];
             const element = root.elements[key];
             if (root.hoverStateAt(element, mx, my) !== null) {
                 visible[key] = true;
-                visibleKeys.push(key);
+                ++visibleCount;
             }
         }
 
-        const signature = visibleKeys.join(",");
-        if (signature === root.visibleSignature) {
+        if (root.sameVisibleState(visible, visibleCount)) {
             return;
         }
         root.visibleByIndex = visible;
+        root.visibleCount = visibleCount;
     }
 }

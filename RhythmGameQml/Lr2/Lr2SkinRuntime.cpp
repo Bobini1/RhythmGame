@@ -17,14 +17,12 @@ bool sameReal(qreal lhs, qreal rhs) {
     return std::abs(lhs - rhs) <= 0.0001;
 }
 
-bool sourceCollectionUsesTimers(const QVariantList& sources) {
-    for (const QVariant& value : sources) {
-        rt::Source source;
-        if (rt::readSource(value, source) && rt::sourceUsesDynamicTimer(source)) {
-            return true;
-        }
-    }
-    return false;
+bool sourceHasBarDistributionGraphAnimation(const rt::Source& source) {
+    const int segmentCount = source.graphType == 0 ? 11 : 28;
+    const int frameCount = std::max(1, source.divX) * std::max(1, source.divY);
+    return source.valid
+        && source.cycle > 0
+        && std::max(1, frameCount / segmentCount) > 1;
 }
 
 bool selectNumberUsesFocusedState(int num) {
@@ -132,20 +130,31 @@ void Lr2SkinRuntime::setSelectBarElementSortBase(qreal value) {
     rebuildDescriptors();
 }
 
-int Lr2SkinRuntime::revision() const {
-    return m_revision;
+QVariantList Lr2SkinRuntime::elementDescriptors() const {
+    QVariantList result;
+    result.reserve(m_descriptors.size());
+    for (const ElementDescriptor& descriptor : m_descriptors) {
+        result.append(QVariant::fromValue(
+            static_cast<const Lr2SkinElementDescriptorValue&>(descriptor)));
+    }
+    return result;
 }
 
-int Lr2SkinRuntime::timerRevision() const {
-    return m_timerRevision;
+QVariantList Lr2SkinRuntime::elementTimerStates() const {
+    QVariantList result;
+    result.reserve(m_elementTimerStates.size());
+    for (Lr2SkinElementTimerState* state : m_elementTimerStates) {
+        result.append(QVariant::fromValue(static_cast<QObject*>(state)));
+    }
+    return result;
 }
 
-int Lr2SkinRuntime::selectInfoTimerRevision() const {
-    return m_selectInfoTimerRevision;
+QVariantList Lr2SkinRuntime::noteDstTimerFires() const {
+    return m_noteDstTimerFires;
 }
 
-int Lr2SkinRuntime::activeOptionsRevision() const {
-    return m_activeOptionsRevision;
+QVariantList Lr2SkinRuntime::lineDstTimerFires() const {
+    return m_lineDstTimerFires;
 }
 
 Lr2SkinElementDescriptorValue Lr2SkinRuntime::descriptor(int index) const {
@@ -203,11 +212,25 @@ Lr2TimelineStateValue Lr2SkinRuntime::sliderTrackStateForElement(int index, int 
 }
 
 Lr2TimelineStateValue Lr2SkinRuntime::noteDstState(int index, int skinTime) const {
-    return stateForLane(m_noteLaneDescriptors, index, skinTime);
+    return stateForLane(m_noteLaneDescriptors, m_noteDstTimerFires, index, skinTime);
 }
 
 Lr2TimelineStateValue Lr2SkinRuntime::lineDstState(int index, int skinTime) const {
-    return stateForLane(m_lineLaneDescriptors, index, skinTime);
+    return stateForLane(m_lineLaneDescriptors, m_lineDstTimerFires, index, skinTime);
+}
+
+Lr2TimelineStateValue Lr2SkinRuntime::noteDstStateForTimerFire(
+    int index,
+    int skinTime,
+    int timerFire) const {
+    return stateForLaneWithTimerFire(m_noteLaneDescriptors, index, skinTime, timerFire);
+}
+
+Lr2TimelineStateValue Lr2SkinRuntime::lineDstStateForTimerFire(
+    int index,
+    int skinTime,
+    int timerFire) const {
+    return stateForLaneWithTimerFire(m_lineLaneDescriptors, index, skinTime, timerFire);
 }
 
 bool Lr2SkinRuntime::noteDstStateUsesSkinTime(int index) const {
@@ -248,11 +271,8 @@ bool Lr2SkinRuntime::noteFieldUsesActiveOptions() const {
     return m_noteFieldUsesActiveOptions;
 }
 
-bool Lr2SkinRuntime::noteFieldUsesTimers() const {
-    return m_noteFieldUsesTimers;
-}
-
 void Lr2SkinRuntime::rebuildDescriptors() {
+    const bool previousNoteFieldUsesActiveOptions = m_noteFieldUsesActiveOptions;
     m_descriptors.clear();
     m_timerDescriptorIndexes.clear();
     m_selectInfoTimerDescriptorIndexes.clear();
@@ -261,15 +281,15 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     m_noteLaneDescriptors.clear();
     m_lineLaneDescriptors.clear();
     m_noteFieldUsesActiveOptions = false;
-    m_noteFieldUsesTimers = false;
 
     if (!m_skinModel) {
         resetElementTimerStates();
         resetElementActiveOptionsStates();
-        bumpRevision();
-        bumpTimerRevision();
-        bumpSelectInfoTimerRevision();
-        bumpActiveOptionsRevision();
+        if (m_noteFieldUsesActiveOptions != previousNoteFieldUsesActiveOptions) {
+            emit noteFieldUsesActiveOptionsChanged();
+        }
+        notifyElementDataChanged();
+        updateNoteFieldTimerFires();
         return;
     }
 
@@ -335,39 +355,19 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         for (const LaneDescriptor& descriptor : *collection) {
             m_noteFieldUsesActiveOptions = m_noteFieldUsesActiveOptions
                 || descriptor.analysis.usesActiveOptions;
-            m_noteFieldUsesTimers = m_noteFieldUsesTimers
-                || descriptor.analysis.usesDynamicTimer;
         }
     }
 
-    const QVariantList sourceCollections[] = {
-        modelListProperty("noteSources"),
-        modelListProperty("mineSources"),
-        modelListProperty("lnStartSources"),
-        modelListProperty("lnEndSources"),
-        modelListProperty("lnBodySources"),
-        modelListProperty("lnBodyActiveSources"),
-        modelListProperty("autoNoteSources"),
-        modelListProperty("autoMineSources"),
-        modelListProperty("autoLnStartSources"),
-        modelListProperty("autoLnEndSources"),
-        modelListProperty("autoLnBodySources"),
-        modelListProperty("autoLnBodyActiveSources"),
-        modelListProperty("lineSources"),
-    };
-    for (const QVariantList& collection : sourceCollections) {
-        m_noteFieldUsesTimers = m_noteFieldUsesTimers
-            || sourceCollectionUsesTimers(collection);
+    if (m_noteFieldUsesActiveOptions != previousNoteFieldUsesActiveOptions) {
+        emit noteFieldUsesActiveOptionsChanged();
     }
-
-    bumpRevision();
-    bumpTimerRevision();
-    bumpSelectInfoTimerRevision();
-    bumpActiveOptionsRevision();
+    notifyElementDataChanged();
+    updateNoteFieldTimerFires();
 }
 
 void Lr2SkinRuntime::updateTimerFires() {
     updateTimerFiresForIndexes(m_timerDescriptorIndexes);
+    updateNoteFieldTimerFires();
 }
 
 void Lr2SkinRuntime::updateGameplayTimerFires() {
@@ -380,9 +380,6 @@ void Lr2SkinRuntime::updateGameplayTimerFires() {
     const QSet<int> changedTimers = m_timerState->takeCommittedGameplayTimerChanges(&fullRefresh);
     if (fullRefresh || changedTimers.isEmpty()) {
         updateTimerFires();
-        if (m_noteFieldUsesTimers) {
-            bumpTimerRevision();
-        }
         return;
     }
 
@@ -402,16 +399,18 @@ void Lr2SkinRuntime::updateGameplayTimerFires() {
     }
     updateTimerFiresForIndexes(indexes);
     if (noteFieldChanged) {
-        bumpTimerRevision();
+        updateNoteFieldTimerFires();
     }
 }
 
 void Lr2SkinRuntime::updateSelectInfoTimerFires() {
     updateTimerFiresForIndexes(m_selectInfoTimerDescriptorIndexes);
+    if (m_noteFieldTimerIds.contains(11)) {
+        updateNoteFieldTimerFires();
+    }
 }
 
 void Lr2SkinRuntime::updateTimerFiresForIndexes(const QVector<int>& indexes) {
-    bool selectInfoChanged = false;
     for (int index : indexes) {
         if (index < 0 || index >= m_descriptors.size()) {
             continue;
@@ -423,22 +422,9 @@ void Lr2SkinRuntime::updateTimerFiresForIndexes(const QVector<int>& indexes) {
         const bool srcChanged = descriptor.timers.srcTimerCanFire != next.srcTimerCanFire
             || descriptor.timers.srcTimerFire != next.srcTimerFire;
         if (dstChanged || srcChanged) {
-            if (dstChanged) {
-                if (descriptor.dstTimer == 11) {
-                    selectInfoChanged = true;
-                }
-            }
-            if (srcChanged) {
-                if (descriptor.srcTimer == 11) {
-                    selectInfoChanged = true;
-                }
-            }
             descriptor.timers = next;
             updateElementTimerState(index, descriptor.timers);
         }
-    }
-    if (selectInfoChanged) {
-        bumpSelectInfoTimerRevision();
     }
 }
 
@@ -552,6 +538,11 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
         ? rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front())
         : Lr2TimelineStateValue {};
     descriptor.sourceHasFrameAnimation = sourceCycles;
+    descriptor.sourceTreeHasFrameAnimation = rt::sourceTreeCyclesContinuously(sourceValue);
+    descriptor.sourceTreeUsesChartAsset = rt::sourceTreeUsesChartAsset(sourceValue);
+    descriptor.directChartAssetSourceType = rt::chartAssetSourceType(descriptor.source);
+    descriptor.barDistributionGraphSourceHasFrameAnimation =
+        sourceHasBarDistributionGraphAnimation(descriptor.source);
     descriptor.usesLiveDstClock = selectScreen && (selectPanelTimer || descriptor.dstAnalysis.loopsContinuously);
     descriptor.usesLiveSourceClock = selectScreen && sourceCycles;
     descriptor.usesLiveSelectClock = descriptor.usesLiveDstClock || descriptor.usesLiveSourceClock;
@@ -670,8 +661,20 @@ Lr2SkinRuntime::TimerSnapshot Lr2SkinRuntime::timerSnapshotFor(
 }
 
 Lr2TimelineStateValue Lr2SkinRuntime::stateForLane(const QVector<LaneDescriptor>& lanes,
+                                                   const QVariantList& timerFires,
                                                    int index,
                                                    int skinTime) const {
+    const int timerFire = index >= 0 && index < timerFires.size()
+        ? timerFires.at(index).toInt()
+        : -1;
+    return stateForLaneWithTimerFire(lanes, index, skinTime, timerFire);
+}
+
+Lr2TimelineStateValue Lr2SkinRuntime::stateForLaneWithTimerFire(
+    const QVector<LaneDescriptor>& lanes,
+    int index,
+    int skinTime,
+    int timerFire) const {
     if (index < 0 || index >= lanes.size()) {
         return {};
     }
@@ -682,10 +685,8 @@ Lr2TimelineStateValue Lr2SkinRuntime::stateForLane(const QVector<LaneDescriptor>
         return lane.staticState;
     }
 
-    int timerFire = lane.analysis.firstTimer == 0 ? 0 : -1;
-    if (lane.analysis.firstTimer != 0 && m_timerState
-            && m_timerState->skinTimerCanFire(lane.analysis.firstTimer)) {
-        timerFire = m_timerState->skinTimerFireTime(lane.analysis.firstTimer, false);
+    if (timerFire < 0 && lane.analysis.firstTimer == 0) {
+        timerFire = 0;
     }
 
     return rt::currentState(
@@ -703,6 +704,40 @@ bool Lr2SkinRuntime::laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes,
     const LaneDescriptor& lane = lanes.at(index);
     return !(lane.staticState.valid
         && (!lane.analysis.usesActiveOptions || rt::allOpsMatch(lane.dsts.front(), m_activeOptionSet)));
+}
+
+int Lr2SkinRuntime::laneTimerFire(const LaneDescriptor& lane) const {
+    const int timer = lane.analysis.firstTimer;
+    if (timer == 0) {
+        return 0;
+    }
+    if (!m_timerState || !m_timerState->skinTimerCanFire(timer)) {
+        return -1;
+    }
+    return m_timerState->skinTimerFireTime(timer, false);
+}
+
+QVariantList Lr2SkinRuntime::timerFiresForLanes(const QVector<LaneDescriptor>& lanes) const {
+    QVariantList result;
+    result.reserve(lanes.size());
+    for (const LaneDescriptor& lane : lanes) {
+        result.append(laneTimerFire(lane));
+    }
+    return result;
+}
+
+void Lr2SkinRuntime::updateNoteFieldTimerFires() {
+    const QVariantList nextNoteTimerFires = timerFiresForLanes(m_noteLaneDescriptors);
+    if (m_noteDstTimerFires != nextNoteTimerFires) {
+        m_noteDstTimerFires = nextNoteTimerFires;
+        emit noteDstTimerFiresChanged();
+    }
+
+    const QVariantList nextLineTimerFires = timerFiresForLanes(m_lineLaneDescriptors);
+    if (m_lineDstTimerFires != nextLineTimerFires) {
+        m_lineDstTimerFires = nextLineTimerFires;
+        emit lineDstTimerFiresChanged();
+    }
 }
 
 const Lr2SkinRuntime::ElementDescriptor* Lr2SkinRuntime::descriptorAt(int index) const {
@@ -770,7 +805,7 @@ void Lr2SkinRuntime::reconnectTimerState() {
 
     m_timerStateConnections.append(QObject::connect(
         m_timerState,
-        &Lr2SkinTimerState::revisionChanged,
+        &Lr2SkinTimerState::timerFireTimesChanged,
         this,
         &Lr2SkinRuntime::updateTimerFires));
     m_timerStateConnections.append(QObject::connect(
@@ -780,7 +815,7 @@ void Lr2SkinRuntime::reconnectTimerState() {
         &Lr2SkinRuntime::updateGameplayTimerFires));
     m_timerStateConnections.append(QObject::connect(
         m_timerState,
-        &Lr2SkinTimerState::selectInfoRevisionChanged,
+        &Lr2SkinTimerState::selectInfoTimerFireTimesChanged,
         this,
         &Lr2SkinRuntime::updateSelectInfoTimerFires));
 }
@@ -797,25 +832,9 @@ void Lr2SkinRuntime::refreshActiveOptions() {
     if (!anyChanged) {
         return;
     }
-    bumpActiveOptionsRevision();
 }
 
-void Lr2SkinRuntime::bumpRevision() {
-    ++m_revision;
-    emit revisionChanged();
-}
-
-void Lr2SkinRuntime::bumpTimerRevision() {
-    ++m_timerRevision;
-    emit timerRevisionChanged();
-}
-
-void Lr2SkinRuntime::bumpSelectInfoTimerRevision() {
-    ++m_selectInfoTimerRevision;
-    emit selectInfoTimerRevisionChanged();
-}
-
-void Lr2SkinRuntime::bumpActiveOptionsRevision() {
-    ++m_activeOptionsRevision;
-    emit activeOptionsRevisionChanged();
+void Lr2SkinRuntime::notifyElementDataChanged() {
+    emit elementDescriptorsChanged();
+    emit elementTimerStatesChanged();
 }

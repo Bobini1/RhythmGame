@@ -6,13 +6,25 @@ QtObject {
 
     required property var screenRoot
     required property var selectContext
+    required property var selectBarGeometry
+    property var sliderState: null
+    property var selectPanelController: null
+    property var runtimeElementDescriptors: []
     property var skinRuntime: null
     property real skinScale: 1
     property var elements: ({})
 
     readonly property var root: screenRoot
+    readonly property var barGeometry: selectBarGeometry
     readonly property bool ready: root !== undefined && root !== null
     readonly property bool selectReady: selectContext !== undefined && selectContext !== null
+
+    function descriptorFor(index: var) : var {
+        const descriptors = runtimeElementDescriptors || [];
+        return index >= 0 && index < descriptors.length
+            ? descriptors[index]
+            : null;
+    }
 
     function copyObject(object: var) : var {
         let result = {};
@@ -32,17 +44,17 @@ QtObject {
             return;
         }
 
-        const descriptor = skinRuntime ? skinRuntime.descriptor(elementIndex) : null;
+        const descriptor = descriptorFor(elementIndex);
         const hasDescriptor = descriptor && descriptor.valid;
         const buttonId = hasDescriptor && descriptor.buttonId > 0
             ? descriptor.buttonId
-            : root.elementButtonId(src);
+            : (selectPanelController ? selectPanelController.elementButtonId(src) : 0);
         const selectScroll = hasDescriptor
             ? descriptor.selectScrollSlider
-            : root.isSelectScrollSlider(src);
+            : (sliderState ? sliderState.isSelectScrollSlider(src) : false);
         const genericSlider = hasDescriptor
             ? descriptor.genericSlider
-            : root.isLr2GenericSlider(src);
+            : (sliderState ? sliderState.isLr2GenericSlider(src) : false);
         if (buttonId <= 0 && !selectScroll && !genericSlider) {
             unregisterElement(elementIndex);
             return;
@@ -84,10 +96,10 @@ QtObject {
         if (staticState && staticState.valid) {
             return staticState;
         }
-        const descriptor = skinRuntime.descriptor(element.runtimeIndex);
+        const descriptor = descriptorFor(element.runtimeIndex);
         const state = skinRuntime.stateForElement(
             element.runtimeIndex,
-            descriptor.usesLiveDstClock ? root.selectSourceSkinTime : root.renderSkinTime);
+            descriptor && descriptor.usesLiveDstClock ? root.selectSourceSkinTime : root.renderSkinTime);
         return state && state.valid ? state : null;
     }
 
@@ -107,8 +119,8 @@ QtObject {
             return null;
         }
         if (skinRuntime && element.runtimeIndex !== undefined) {
-            const descriptor = skinRuntime.descriptor(element.runtimeIndex);
-            const sliderSkinClock = descriptor.usesLiveSelectClock
+            const descriptor = descriptorFor(element.runtimeIndex);
+            const sliderSkinClock = descriptor && descriptor.usesLiveSelectClock
                 ? root.selectSourceSkinTime
                 : root.renderSkinTime;
             const state = skinRuntime.sliderTrackStateForElement(element.runtimeIndex, sliderSkinClock);
@@ -141,7 +153,7 @@ QtObject {
     }
 
     function hitButton(skinX: var, skinY: var) : var {
-        if (!ready || !root.selectPointerInputReady()) {
+        if (!ready || !selectPanelController || !root.selectPointerInputReady()) {
             return null;
         }
         let best = null;
@@ -151,8 +163,8 @@ QtObject {
             if (!element || element.buttonId <= 0) {
                 continue;
             }
-            if (!root.elementButtonClickEnabled(element.src)
-                    || !root.elementButtonPanelMatches(element.src)) {
+            if (!selectPanelController.elementButtonClickEnabled(element.src)
+                    || !selectPanelController.elementButtonPanelMatches(element.src)) {
                 continue;
             }
             const state = elementState(element);
@@ -167,11 +179,14 @@ QtObject {
     }
 
     function rowAt(skinX: var, skinY: var) : var {
-        if (!ready || !root.selectPointerScrollReady()) {
+        if (!ready || !barGeometry || !root.selectPointerScrollReady()) {
             return -1;
         }
-        for (let row = root.barClickEnd(); row >= root.barClickStart(); --row) {
-            const state = root.barBaseStateAt(row);
+        const barBaseStates = barGeometry.barBaseStates || [];
+        for (let row = barGeometry.clickEndRow; row >= barGeometry.clickStartRow; --row) {
+            const state = row >= 0 && row < barBaseStates.length && barBaseStates[row].valid
+                ? barBaseStates[row]
+                : null;
             if (rectContains(state, skinX, skinY)) {
                 return row;
             }
@@ -203,6 +218,12 @@ QtObject {
         return row >= 0
             ? { kind: "bar", row: row, skinX: skinX, skinY: skinY }
             : { kind: "blank", skinX: skinX, skinY: skinY };
+    }
+
+    function clickBarRow(row: var, mouse: var) : void {
+        if (barGeometry) {
+            barGeometry.handleBarRowClick(row, mouse);
+        }
     }
 
     function replayLabel(replayType: var) : var {
@@ -359,9 +380,13 @@ QtObject {
         const skinX = x / skinScale;
         const skinY = y / skinScale;
         if (target.element.selectScroll) {
-            root.setSelectScrollFromSliderTrack(target.element.src, target.state, skinX, skinY);
+            if (sliderState) {
+                sliderState.setSelectScrollFromTrack(target.element.src, target.state, skinX, skinY);
+            }
         } else if (target.element.genericSlider) {
-            root.setLr2GenericSliderFromTrack(target.element.src, target.state, skinX, skinY);
+            if (sliderState) {
+                sliderState.setGenericFromTrack(target.element.src, target.state, skinX, skinY);
+            }
         }
     }
 
@@ -370,11 +395,13 @@ QtObject {
             return;
         }
         selectContext.finishScrollFixedPoint(100);
-        root.selectSliderFixedPoint = -1;
+        if (sliderState) {
+            sliderState.selectSliderFixedPoint = -1;
+        }
     }
 
     function clickButton(target: var, mouse: var) : var {
-        if (!ready || !target) {
+        if (!ready || !target || !selectPanelController) {
             return;
         }
         const state = target.state || elementState(target.element);
@@ -383,7 +410,7 @@ QtObject {
         }
         const left = Math.min(state.x, state.x + state.w);
         const width = Math.abs(state.w);
-        const delta = root.buttonMouseDelta(
+        const delta = selectPanelController.buttonMouseDelta(
             target.element.src,
             target.skinX - left,
             width);
@@ -394,10 +421,10 @@ QtObject {
             mouse.accepted = true;
             return;
         }
-        root.handleLr2Button(
+        selectPanelController.handleLr2Button(
             target.element.buttonId,
             delta,
-            root.elementButtonPanel(target.element.src),
+            selectPanelController.elementButtonPanel(target.element.src),
             undefined,
             target.element.sourceCount,
             mouse.button);

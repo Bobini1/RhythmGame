@@ -18,6 +18,10 @@ class Lr2SkinElementDescriptorValue {
     Q_PROPERTY(bool needsManualElementSkinTime MEMBER needsManualElementSkinTime)
     Q_PROPERTY(int elementSkinClockMode MEMBER elementSkinClockMode)
     Q_PROPERTY(bool sourceHasFrameAnimation MEMBER sourceHasFrameAnimation)
+    Q_PROPERTY(bool sourceTreeHasFrameAnimation MEMBER sourceTreeHasFrameAnimation)
+    Q_PROPERTY(bool sourceTreeUsesChartAsset MEMBER sourceTreeUsesChartAsset)
+    Q_PROPERTY(int directChartAssetSourceType MEMBER directChartAssetSourceType)
+    Q_PROPERTY(bool barDistributionGraphSourceHasFrameAnimation MEMBER barDistributionGraphSourceHasFrameAnimation)
     Q_PROPERTY(bool usesSelectHeldButtonTimer MEMBER usesSelectHeldButtonTimer)
     Q_PROPERTY(bool usesLiveDstClock MEMBER usesLiveDstClock)
     Q_PROPERTY(bool usesLiveSourceClock MEMBER usesLiveSourceClock)
@@ -57,6 +61,10 @@ public:
     bool needsManualElementSkinTime = false;
     int elementSkinClockMode = 0;
     bool sourceHasFrameAnimation = false;
+    bool sourceTreeHasFrameAnimation = false;
+    bool sourceTreeUsesChartAsset = false;
+    int directChartAssetSourceType = 0;
+    bool barDistributionGraphSourceHasFrameAnimation = false;
     bool usesSelectHeldButtonTimer = false;
     bool usesLiveDstClock = false;
     bool usesLiveSourceClock = false;

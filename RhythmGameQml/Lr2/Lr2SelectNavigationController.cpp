@@ -16,7 +16,16 @@ void Lr2SelectNavigationController::setVisualState(Lr2SelectVisualState* state) 
     if (m_visualState == state) {
         return;
     }
+    if (m_visualCursorConnection) {
+        disconnect(m_visualCursorConnection);
+        m_visualCursorConnection = {};
+    }
+    if (m_visualAnimationConnection) {
+        disconnect(m_visualAnimationConnection);
+        m_visualAnimationConnection = {};
+    }
     m_visualState = state;
+    connectVisualStateSignals();
     emit visualStateChanged();
 }
 
@@ -119,42 +128,6 @@ void Lr2SelectNavigationController::setScrollDirection(int value) {
     emit scrollDirectionChanged();
 }
 
-int Lr2SelectNavigationController::listRevision() const { return m_listRevision; }
-void Lr2SelectNavigationController::setListRevision(int value) {
-    if (m_listRevision == value) {
-        return;
-    }
-    m_listRevision = value;
-    emit listRevisionChanged();
-}
-
-int Lr2SelectNavigationController::selectionRevision() const { return m_selectionRevision; }
-void Lr2SelectNavigationController::setSelectionRevision(int value) {
-    if (m_selectionRevision == value) {
-        return;
-    }
-    m_selectionRevision = value;
-    emit selectionRevisionChanged();
-}
-
-int Lr2SelectNavigationController::focusRevision() const { return m_focusRevision; }
-void Lr2SelectNavigationController::setFocusRevision(int value) {
-    if (m_focusRevision == value) {
-        return;
-    }
-    m_focusRevision = value;
-    emit focusRevisionChanged();
-}
-
-int Lr2SelectNavigationController::scoreRevision() const { return m_scoreRevision; }
-void Lr2SelectNavigationController::setScoreRevision(int value) {
-    if (m_scoreRevision == value) {
-        return;
-    }
-    m_scoreRevision = value;
-    emit scoreRevisionChanged();
-}
-
 bool Lr2SelectNavigationController::suppressNextSelectionSound() const { return m_suppressNextSelectionSound; }
 void Lr2SelectNavigationController::setSuppressNextSelectionSound(bool value) {
     if (m_suppressNextSelectionSound == value) {
@@ -162,42 +135,6 @@ void Lr2SelectNavigationController::setSuppressNextSelectionSound(bool value) {
     }
     m_suppressNextSelectionSound = value;
     emit suppressNextSelectionSoundChanged();
-}
-
-int Lr2SelectNavigationController::refreshedFocusedIndex() const { return m_refreshedFocusedIndex; }
-void Lr2SelectNavigationController::setRefreshedFocusedIndex(int value) {
-    if (m_refreshedFocusedIndex == value) {
-        return;
-    }
-    m_refreshedFocusedIndex = value;
-    emit refreshedFocusedIndexChanged();
-}
-
-int Lr2SelectNavigationController::refreshedFocusedScoreRevision() const { return m_refreshedFocusedScoreRevision; }
-void Lr2SelectNavigationController::setRefreshedFocusedScoreRevision(int value) {
-    if (m_refreshedFocusedScoreRevision == value) {
-        return;
-    }
-    m_refreshedFocusedScoreRevision = value;
-    emit refreshedFocusedScoreRevisionChanged();
-}
-
-int Lr2SelectNavigationController::refreshedFocusedListRevision() const { return m_refreshedFocusedListRevision; }
-void Lr2SelectNavigationController::setRefreshedFocusedListRevision(int value) {
-    if (m_refreshedFocusedListRevision == value) {
-        return;
-    }
-    m_refreshedFocusedListRevision = value;
-    emit refreshedFocusedListRevisionChanged();
-}
-
-bool Lr2SelectNavigationController::refreshedFocusedRankingMode() const { return m_refreshedFocusedRankingMode; }
-void Lr2SelectNavigationController::setRefreshedFocusedRankingMode(bool value) {
-    if (m_refreshedFocusedRankingMode == value) {
-        return;
-    }
-    m_refreshedFocusedRankingMode = value;
-    emit refreshedFocusedRankingModeChanged();
 }
 
 int Lr2SelectNavigationController::lastSyncedCursorBaseIndex() const { return m_lastSyncedCursorBaseIndex; }
@@ -266,22 +203,20 @@ void Lr2SelectNavigationController::setLr2ScrollDown(int value) {
 
 bool Lr2SelectNavigationController::refreshFocusedState() {
     const int focusedIndex = m_logicalCount > 0 ? m_currentIndex : 0;
-    if (m_refreshedFocusedIndex == focusedIndex
-            && m_refreshedFocusedScoreRevision == m_scoreRevision
-            && m_refreshedFocusedListRevision == m_listRevision
-            && m_refreshedFocusedRankingMode == m_rankingMode) {
+    if (!m_focusedStateDirty
+            && m_cachedFocusedStateIndex == focusedIndex
+            && m_cachedFocusedStateRankingMode == m_rankingMode) {
         return false;
     }
 
-    setRefreshedFocusedIndex(focusedIndex);
-    setRefreshedFocusedScoreRevision(m_scoreRevision);
-    setRefreshedFocusedListRevision(m_listRevision);
-    setRefreshedFocusedRankingMode(m_rankingMode);
+    m_cachedFocusedStateIndex = focusedIndex;
+    m_cachedFocusedStateRankingMode = m_rankingMode;
+    m_focusedStateDirty = false;
 
     m_focusedStateRefreshResult = false;
     emit focusedStateRefreshRequested();
     if (m_focusedStateRefreshResult) {
-        setFocusRevision(m_focusRevision + 1);
+        emit focusedStateChanged();
         return true;
     }
     return false;
@@ -294,8 +229,11 @@ bool Lr2SelectNavigationController::touchSelection() {
     } else {
         emitEntryChangeSoundsRequested(1);
     }
-    setSelectionRevision(m_selectionRevision + 1);
     return true;
+}
+
+void Lr2SelectNavigationController::invalidateFocusedState() {
+    m_focusedStateDirty = true;
 }
 
 bool Lr2SelectNavigationController::commitLogicalSelection(int index) {
@@ -461,4 +399,26 @@ bool Lr2SelectNavigationController::publishCursorBaseIndex(bool force) {
         return syncCurrentToVisual(cursorBaseIndex);
     }
     return false;
+}
+
+void Lr2SelectNavigationController::connectVisualStateSignals() {
+    Lr2SelectVisualState* visualState = m_visualState.data();
+    if (!visualState) {
+        return;
+    }
+
+    m_visualCursorConnection = connect(
+        visualState,
+        &Lr2SelectVisualState::cursorBaseIndexChanged,
+        this,
+        [this]() {
+            publishCursorBaseIndex(false);
+        });
+    m_visualAnimationConnection = connect(
+        visualState,
+        &Lr2SelectVisualState::animationFinished,
+        this,
+        [this]() {
+            publishCursorBaseIndex(false);
+        });
 }

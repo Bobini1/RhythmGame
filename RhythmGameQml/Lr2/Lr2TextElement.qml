@@ -8,6 +8,8 @@ Item {
 
     required property var screenRoot
     required property var selectContext
+    property var selectSearchState: null
+    property var valueResolver: null
     property var dsts: []
     property var srcData: null
     property var activeOptionsState: null
@@ -22,10 +24,11 @@ Item {
     readonly property var root: screenRoot
     readonly property bool ready: root !== undefined && root !== null
     readonly property bool selectReady: selectContext !== undefined && selectContext !== null
+    readonly property bool searchStateReady: selectSearchState !== undefined && selectSearchState !== null
     readonly property int sourceTextId: srcData ? numberValue(srcData.st, -1) : -1
 
-    readonly property var searchTextState: ready ? root.selectSearchTextState(srcData, dsts) : null
-    readonly property bool isSearchText: ready && root.isSelectSearchText(srcData)
+    readonly property var searchTextState: searchStateReady ? selectSearchState.textState(srcData, dsts) : null
+    readonly property bool isSearchText: searchStateReady && selectSearchState.isText(srcData)
     readonly property string searchFontPath: srcData ? String(srcData.fontPath || "") : ""
     readonly property int searchAlignment: srcData ? numberValue(srcData.align, 0) : 0
     readonly property bool searchTextEditing: isSearchText
@@ -34,6 +37,12 @@ Item {
     readonly property string searchEditingText: searchInputLoader.item
         ? searchInputLoader.item.text
         : (selectReady ? selectContext.searchText : "")
+    readonly property bool resolvedFallbackTextNeeded: ready
+        && !!valueResolver
+        && (!isSearchText || searchEditingText.length <= 0)
+    readonly property string resolvedFallbackText: resolvedFallbackTextNeeded
+        ? valueResolver.resolveText(sourceTextId)
+        : ""
     readonly property string searchDisplayText: {
         if (!isSearchText) {
             return "";
@@ -41,10 +50,9 @@ Item {
         if (searchEditingText.length > 0) {
             return searchEditingText;
         }
-        return ready
-            ? root.resolveText(sourceTextId)
-            : "";
+        return resolvedFallbackText;
     }
+    readonly property string resolvedText: isSearchText ? searchDisplayText : resolvedFallbackText
     readonly property int searchCursorPosition: searchInputLoader.item
         ? searchInputLoader.item.cursorPosition
         : 0
@@ -65,6 +73,12 @@ Item {
     function numberValue(value: var, fallback: var) : var {
         const numeric = Number(value);
         return isNaN(numeric) ? fallback : numeric;
+    }
+
+    function searchTextPrefix(text: var, position: var) : var {
+        return searchStateReady
+            ? selectSearchState.textPrefix(text, position)
+            : "";
     }
 
     function restartSearchCursorBlink() : void {
@@ -142,9 +156,7 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.ready
-            ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchCursorPosition)
-            : ""
+        text: textElement.searchTextPrefix(textElement.searchEditingText, textElement.searchCursorPosition)
     }
 
     Lr2BitmapFontText {
@@ -155,9 +167,7 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.ready
-            ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchSelectionStart)
-            : ""
+        text: textElement.searchTextPrefix(textElement.searchEditingText, textElement.searchSelectionStart)
     }
 
     Lr2BitmapFontText {
@@ -168,9 +178,7 @@ Item {
         height: searchInputLoader.item ? searchInputLoader.item.height : 1
         opacity: 0
         fontPath: textElement.searchFontPath
-        text: textElement.ready
-            ? textElement.root.textPrefix(textElement.searchEditingText, textElement.searchSelectionEnd)
-            : ""
+        text: textElement.searchTextPrefix(textElement.searchEditingText, textElement.searchSelectionEnd)
     }
 
     readonly property real searchTextScaleY: searchFullMeasure.naturalHeight > 0 && searchInputLoader.item
@@ -201,9 +209,7 @@ Item {
             height: searchInputLoader.item ? searchInputLoader.item.height : 1
             opacity: 0
             fontPath: textElement.searchFontPath
-            text: textElement.ready
-                ? textElement.root.textPrefix(textElement.searchEditingText, index)
-                : ""
+            text: textElement.searchTextPrefix(textElement.searchEditingText, index)
         }
     }
 
@@ -234,15 +240,7 @@ Item {
         activeOptions: textElement.activeOptions
         timerFire: textElement.timerFire
         scaleOverride: textElement.skinScale
-        resolvedText: {
-            if (!textElement.ready) {
-                return "";
-            }
-            if (textElement.isSearchText) {
-                return textElement.searchDisplayText;
-            }
-            return textElement.root.resolveText(textElement.sourceTextId);
-        }
+        resolvedText: textElement.resolvedText
     }
 
     Loader {
@@ -283,15 +281,15 @@ Item {
             selectedTextColor: "transparent"
 
             Component.onCompleted: {
-                if (textElement.ready) {
-                    textElement.root.selectSearchInputItem = searchInput;
+                if (textElement.searchStateReady) {
+                    textElement.selectSearchState.inputItem = searchInput;
                 }
                 syncFromContext();
             }
 
             Component.onDestruction: {
-                if (textElement.ready && textElement.root.selectSearchInputItem === searchInput) {
-                    textElement.root.selectSearchInputItem = null;
+                if (textElement.searchStateReady && textElement.selectSearchState.inputItem === searchInput) {
+                    textElement.selectSearchState.inputItem = null;
                 }
             }
 
@@ -319,24 +317,24 @@ Item {
 
             Keys.onReturnPressed: (event) => {
                 event.accepted = true;
-                if (textElement.ready) {
-                    textElement.root.submitSelectSearch();
-                    textElement.root.clearSelectSearchFocus();
+                if (textElement.searchStateReady) {
+                    textElement.selectSearchState.submit();
+                    textElement.selectSearchState.clearFocus();
                 }
             }
 
             Keys.onEnterPressed: (event) => {
                 event.accepted = true;
-                if (textElement.ready) {
-                    textElement.root.submitSelectSearch();
-                    textElement.root.clearSelectSearchFocus();
+                if (textElement.searchStateReady) {
+                    textElement.selectSearchState.submit();
+                    textElement.selectSearchState.clearFocus();
                 }
             }
 
             Keys.onEscapePressed: (event) => {
                 event.accepted = true;
-                if (textElement.ready) {
-                    textElement.root.resetSelectSearch();
+                if (textElement.searchStateReady) {
+                    textElement.selectSearchState.reset();
                 }
             }
 

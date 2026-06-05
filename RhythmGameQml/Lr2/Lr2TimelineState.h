@@ -36,7 +36,7 @@ class Lr2TimelineState : public QObject {
     Q_PROPERTY(qreal dstOffsetHiddenY READ dstOffsetHiddenY WRITE setDstOffsetHiddenY NOTIFY dstOffsetsChanged)
     Q_PROPERTY(qreal dstOffsetHiddenA READ dstOffsetHiddenA WRITE setDstOffsetHiddenA NOTIFY dstOffsetsChanged)
     Q_PROPERTY(Lr2TimelineStateValue state READ state NOTIFY stateChanged)
-    Q_PROPERTY(bool hasState READ hasState NOTIFY stateChanged)
+    Q_PROPERTY(bool hasState READ hasState NOTIFY hasStateChanged)
     Q_PROPERTY(qreal stateX READ stateX NOTIFY stateChanged)
     Q_PROPERTY(qreal stateY READ stateY NOTIFY stateChanged)
     Q_PROPERTY(qreal stateW READ stateW NOTIFY stateChanged)
@@ -193,6 +193,7 @@ signals:
     void sliderTranslationChanged();
     void dstOffsetsChanged();
     void stateChanged();
+    void hasStateChanged();
     void analysisChanged();
 
 private:

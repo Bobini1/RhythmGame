@@ -26,9 +26,6 @@ Item {
     property int barCenter: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
-    readonly property int barBaseStateRevision: barBaseStateResolver
-        ? barBaseStateResolver.baseStatesRevision
-        : 0
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -57,42 +54,6 @@ Item {
     readonly property bool numberSourceAnimates: srcData && srcData.source
         && (srcData.source.cycle || 0) > 0
 
-    function baseState(row: var) : var {
-        root.barBaseStateRevision;
-        if (!barBaseStateResolver || row < 0 || row >= barBaseStateResolver.stateCount()) {
-            return null;
-        }
-        let state = barBaseStateResolver.stateAt(row);
-        return state && state.valid ? state : null;
-    }
-
-    function visibilityState(row: var) : var {
-        return baseState(row);
-    }
-
-    function cellData(row: var) : var {
-        return barCells && row >= 0 && row < barCells.length ? barCells[row] : null;
-    }
-
-    function numberVisibleForCell(cell: var, sourceVariant: var) : var {
-        if (!cell || !cell.valid || !srcData || !selectContext) {
-            return false;
-        }
-        if (!cell.ranking && !cell.chartLike && !cell.entryLike) {
-            return false;
-        }
-        if (cell.ranking) {
-            return sourceVariant === 0 || sourceVariant === 6;
-        }
-        if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) < 0) {
-            return false;
-        }
-        if (cell.difficulty <= 0) {
-            return sourceVariant === 0;
-        }
-        return sourceVariant === cell.difficulty;
-    }
-
     Repeater {
         id: numberRepeater
 
@@ -105,7 +66,22 @@ Item {
                 ? root.barCells[slot]
                 : null
             readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
-            readonly property bool cellNumberVisible: root.numberVisibleForCell(cell, sourceVariant)
+            readonly property bool cellEligibleForNumber: !!cell && cell.valid && !!root.srcData && !!root.selectContext
+                && (cell.ranking || cell.chartLike || cell.entryLike)
+            readonly property bool cellNumberVisible: {
+                if (!cellEligibleForNumber) {
+                    return false;
+                }
+                if (cell.ranking) {
+                    return sourceVariant === 0 || sourceVariant === 6;
+                }
+                if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) < 0) {
+                    return false;
+                }
+                return cell.difficulty <= 0
+                    ? sourceVariant === 0
+                    : sourceVariant === cell.difficulty;
+            }
             readonly property int cellPlayLevel: cellNumberVisible
                 ? cell.playLevel
                 : -2147483648

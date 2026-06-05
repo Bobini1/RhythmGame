@@ -103,6 +103,72 @@ bool activeOptionPresent(int option, const QVariant& activeOptions) {
     return false;
 }
 
+using SourcePredicate = bool (*)(const lr2skin::runtime::Source&);
+
+bool sourceTreeHas(const QVariant& value, SourcePredicate predicate, int depth);
+
+bool sourceListTreeHas(const QVariantList& values, SourcePredicate predicate, int depth) {
+    for (const QVariant& child : values) {
+        if (sourceTreeHas(child, predicate, depth + 1)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool sourceMapTreeHas(const QVariantMap& value, SourcePredicate predicate, int depth) {
+    return sourceTreeHas(value.value(QStringLiteral("source")), predicate, depth + 1)
+        || sourceTreeHas(value.value(QStringLiteral("sources")), predicate, depth + 1);
+}
+
+bool sourceJsChildTreeHas(const QJSValue& value,
+                          const QString& propertyName,
+                          SourcePredicate predicate,
+                          int depth) {
+    const QJSValue child = value.property(propertyName);
+    return !child.isUndefined()
+        && !child.isNull()
+        && sourceTreeHas(child.toVariant(), predicate, depth + 1);
+}
+
+bool sourceJsTreeHas(const QJSValue& value, SourcePredicate predicate, int depth) {
+    return value.isObject()
+        && (sourceJsChildTreeHas(value, QStringLiteral("source"), predicate, depth)
+            || sourceJsChildTreeHas(value, QStringLiteral("sources"), predicate, depth));
+}
+
+bool sourceTreeHas(const QVariant& value, SourcePredicate predicate, int depth) {
+    if (!value.isValid() || value.isNull() || depth > 4) {
+        return false;
+    }
+
+    lr2skin::runtime::Source source;
+    if (lr2skin::runtime::readSource(value, source) && predicate(source)) {
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcBarImage>()) {
+        const Lr2SrcBarImage barImage = value.value<Lr2SrcBarImage>();
+        return sourceTreeHas(barImage.source, predicate, depth + 1)
+            || sourceTreeHas(QVariant::fromValue(barImage.sources), predicate, depth + 1);
+    }
+    if (value.canConvert<Lr2SrcBarNumber>()) {
+        return sourceTreeHas(value.value<Lr2SrcBarNumber>().source, predicate, depth + 1);
+    }
+
+    const QVariantList values = lr2skin::runtime::readVariantList(value);
+    if (!values.isEmpty() && sourceListTreeHas(values, predicate, depth)) {
+        return true;
+    }
+
+    if (value.canConvert<QVariantMap>() && sourceMapTreeHas(value.toMap(), predicate, depth)) {
+        return true;
+    }
+
+    return value.canConvert<QJSValue>()
+        && sourceJsTreeHas(value.value<QJSValue>(), predicate, depth);
+}
+
 } // namespace
 
 namespace lr2skin::runtime {
@@ -168,6 +234,29 @@ QVector<int> readOffsets(const QVariant& value) {
 }
 
 bool readDst(const QVariant& value, Dst& dst) {
+    if (value.canConvert<Lr2TimelineStateValue>()) {
+        const auto state = value.value<Lr2TimelineStateValue>();
+        dst.valid = state.valid;
+        dst.x = state.x;
+        dst.y = state.y;
+        dst.w = state.w;
+        dst.h = state.h;
+        dst.a = state.a;
+        dst.r = state.r;
+        dst.g = state.g;
+        dst.b = state.b;
+        dst.angle = state.angle;
+        dst.center = state.center;
+        dst.sortId = state.sortId;
+        dst.blend = state.blend;
+        dst.filter = state.filter;
+        dst.op1 = state.op1;
+        dst.op2 = state.op2;
+        dst.op3 = state.op3;
+        dst.op4 = state.op4;
+        return state.valid;
+    }
+
     if (value.canConvert<Lr2Dst>()) {
         const auto parsed = value.value<Lr2Dst>();
         dst.valid = true;
@@ -875,6 +964,29 @@ bool sourceCyclesContinuously(const Source& source) {
     return source.valid
         && source.cycle > 0
         && std::max(1, source.divX) * std::max(1, source.divY) > 1;
+}
+
+bool sourceUsesChartAsset(const Source& source) {
+    return source.valid && chartAssetSourceType(source) != 0;
+}
+
+bool sourceTreeCyclesContinuously(const QVariant& value) {
+    return sourceTreeHas(value, sourceCyclesContinuously, 0);
+}
+
+bool sourceTreeUsesChartAsset(const QVariant& value) {
+    return sourceTreeHas(value, sourceUsesChartAsset, 0);
+}
+
+int chartAssetSourceType(const Source& source) {
+    switch (source.specialType) {
+    case Lr2SrcImage::StageFile:
+    case Lr2SrcImage::BackBmp:
+    case Lr2SrcImage::Banner:
+        return source.specialType;
+    default:
+        return 0;
+    }
 }
 
 bool sourceUsesDynamicTimer(const Source& source) {

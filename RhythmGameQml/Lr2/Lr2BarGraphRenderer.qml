@@ -25,11 +25,11 @@ Item {
     property int valueAnimationDuration: 100
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
 
     Lr2TimelineFrame {
         id: drawState
         dsts: root.dsts
-        srcData: root.srcData
         skinTime: root.skinTime
         skinClock: root.skinClock
         skinClockMode: root.skinClockMode
@@ -56,7 +56,7 @@ Item {
     property real displayedValue: clampedValue
     readonly property int blendMode: drawState.blendMode
     readonly property color tintColor: drawState.tintColor
-    readonly property bool hasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
+    readonly property bool hasFrameAnimation: sourceHasFrameAnimation
     property Lr2AnimationFrameState animationFrameState: Lr2AnimationFrameState {
         enabled: root.hasFrameAnimation
         skinClock: root.skinClock

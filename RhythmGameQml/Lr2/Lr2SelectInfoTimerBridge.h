@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Lr2SelectNavigationController.h"
 #include "Lr2SkinClock.h"
 
 #include <QMetaObject>
@@ -10,15 +11,15 @@
 class Lr2SelectInfoTimerBridge : public QObject {
     Q_OBJECT
     QML_ELEMENT
-    Q_PROPERTY(QObject* selectContext READ selectContext WRITE setSelectContext NOTIFY selectContextChanged)
+    Q_PROPERTY(Lr2SelectNavigationController* navigationController READ navigationController WRITE setNavigationController NOTIFY navigationControllerChanged)
     Q_PROPERTY(Lr2SkinClock* clock READ clock WRITE setClock NOTIFY clockChanged)
     Q_PROPERTY(bool active READ isActive WRITE setActive NOTIFY activeChanged)
 
 public:
     explicit Lr2SelectInfoTimerBridge(QObject* parent = nullptr);
 
-    QObject* selectContext() const;
-    void setSelectContext(QObject* context);
+    Lr2SelectNavigationController* navigationController() const;
+    void setNavigationController(Lr2SelectNavigationController* controller);
 
     Lr2SkinClock* clock() const;
     void setClock(Lr2SkinClock* clock);
@@ -27,7 +28,7 @@ public:
     void setActive(bool active);
 
 signals:
-    void selectContextChanged();
+    void navigationControllerChanged();
     void clockChanged();
     void activeChanged();
 
@@ -35,8 +36,8 @@ private slots:
     void restartFromFocusChange();
 
 private:
-    QPointer<QObject> m_selectContext;
+    QPointer<Lr2SelectNavigationController> m_navigationController;
     QPointer<Lr2SkinClock> m_clock;
-    QMetaObject::Connection m_focusRevisionConnection;
+    QMetaObject::Connection m_focusedStateConnection;
     bool m_active = false;
 };

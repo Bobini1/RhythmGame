@@ -14,14 +14,38 @@ Item {
     property int sourceTimerFire: -2147483648
     property real scaleOverride: 1.0
     property var screenRoot
-    property var valueCache: []
-    property int cachedFieldW: 1
-    property int cachedFieldH: 1
-    property int cachedStep: 1
-    property int cachedChartType: 0
-    property int cachedChartIndex: 0
-    property bool cachedGaugeHard: false
     property int paintedColumnCount: -1
+    readonly property var emptyValueCacheState: ({
+        values: [],
+        fieldW: 1,
+        fieldH: 1,
+        step: 1,
+        chartType: 0,
+        chartIndex: 0,
+        gaugeHard: false
+    })
+    readonly property int chartSide: root.srcData && root.srcData.side ? root.srcData.side : 1
+    readonly property int chartIndex: root.srcData ? (root.srcData.resultChartIndex || 0) : 0
+    readonly property int chartType: root.srcData ? (root.srcData.resultChartType || 0) : 0
+    readonly property var resultScoreData: root.screenRoot ? root.screenRoot.resultScore(root.chartSide) : null
+    readonly property var resultDataValue: root.resultScoreData && root.resultScoreData.result
+        ? root.resultScoreData.result
+        : null
+    readonly property var chartScoreData: {
+        if (!root.screenRoot || !root.srcData) {
+            return null;
+        }
+        if (root.chartIndex === 0) {
+            return root.resultScoreData;
+        }
+        if (root.chartIndex === 1 && root.screenRoot.resultOldBestScore) {
+            return root.screenRoot.resultOldBestScore(root.chartSide);
+        }
+        if (root.chartIndex === 2 && root.screenRoot.resultTargetSavedScore) {
+            return root.screenRoot.resultTargetSavedScore(root.chartSide);
+        }
+        return null;
+    }
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
@@ -39,6 +63,24 @@ Item {
     }
     readonly property var currentState: staticTimelineState
         || (timelineState.hasState ? timelineState.state : null)
+    readonly property bool cacheInputsReady: !!root.currentState && !!root.srcData
+    readonly property int cacheInputFieldW: root.cacheInputsReady
+        ? Math.max(1, root.srcData.op1 || Math.abs(root.currentState.w) || 1)
+        : 1
+    readonly property int cacheInputFieldH: root.cacheInputsReady
+        ? Math.max(1, root.srcData.op2 || Math.abs(root.currentState.h) || 1)
+        : 1
+    readonly property int cacheInputStep: root.cacheInputsReady
+        ? Math.max(1, Math.abs(root.currentState.w || root.srcData.w || 1))
+        : 1
+    readonly property var valueCacheState: root.buildValueCache()
+    readonly property var valueCache: root.valueCacheState.values
+    readonly property int cachedFieldW: root.valueCacheState.fieldW
+    readonly property int cachedFieldH: root.valueCacheState.fieldH
+    readonly property int cachedStep: root.valueCacheState.step
+    readonly property int cachedChartType: root.valueCacheState.chartType
+    readonly property int cachedChartIndex: root.valueCacheState.chartIndex
+    readonly property bool cachedGaugeHard: root.valueCacheState.gaugeHard
     readonly property string resolvedSource: {
         if (!srcData || !srcData.source) return "";
         let absPath = srcData.source.replace(/\\/g, "/");
@@ -58,9 +100,6 @@ Item {
         timerFire: root.sourceTimerFire
     }
     readonly property int sourceFrameIndex: animationFrameState.frameIndex
-    readonly property int resultRevision: screenRoot
-        ? screenRoot.resultOldScoresRevision + screenRoot.resultGaugeSelectionRevision
-        : 0
     readonly property bool alphaDefaultsOpaque: {
         if (!srcData || (srcData.resultChartType || 0) <= 0 || !dsts || dsts.length === 0) {
             return false;
@@ -83,53 +122,16 @@ Item {
         return Math.max(0, Math.min(255, alpha));
     }
 
-    function resultScore() : var {
-        let side = srcData && srcData.side ? srcData.side : 1;
-        return screenRoot ? screenRoot.resultScore(side) : null;
-    }
-
-    function resultData() : var {
-        let score = resultScore();
-        return score && score.result ? score.result : null;
-    }
-
-    function replayEvents() : var {
-        let score = resultScore();
-        return score && score.replayData ? (score.replayData.hitEvents || []) : [];
-    }
-
-    function scoreChartSide() : var {
-        return srcData && srcData.side ? srcData.side : 1;
-    }
-
-    function scoreChartScore() : var {
-        if (!screenRoot || !srcData) {
-            return null;
-        }
-        let index = srcData.resultChartIndex || 0;
-        let side = scoreChartSide();
-        if (index === 0) {
-            return screenRoot.resultScore(side);
-        }
-        if (index === 1 && screenRoot.resultOldBestScore) {
-            return screenRoot.resultOldBestScore(side);
-        }
-        if (index === 2 && screenRoot.resultTargetSavedScore) {
-            return screenRoot.resultTargetSavedScore(side);
-        }
-        return null;
-    }
-
     function scoreChartReplayEvents(score: var) : var {
         return score && score.replayData ? (score.replayData.hitEvents || []) : [];
     }
 
     function gaugeInfo() : var {
         if (root.screenRoot && root.screenRoot.resultGaugeInfo) {
-            return root.screenRoot.resultGaugeInfo(scoreChartSide());
+            return root.screenRoot.resultGaugeInfo(root.chartSide);
         }
 
-        let score = resultScore();
+        let score = root.resultScoreData;
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
         if (!infos || infos.length === 0) {
             return null;
@@ -152,14 +154,13 @@ Item {
     }
 
     function scoreChartFinalPoints() : var {
-        let score = scoreChartScore();
+        let score = root.chartScoreData;
         let result = score && score.result ? score.result : null;
         if (result) {
             return result.points || 0;
         }
-        if (screenRoot && srcData && (srcData.resultChartIndex || 0) === 2
-                && screenRoot.resultTargetPoints) {
-            return screenRoot.resultTargetPoints(scoreChartSide());
+        if (screenRoot && srcData && root.chartIndex === 2 && screenRoot.resultTargetPoints) {
+            return screenRoot.resultTargetPoints(root.chartSide);
         }
         return -1;
     }
@@ -249,12 +250,12 @@ Item {
     }
 
     function buildGradeTargetCache(fieldW: var, step: var, maxPoints: var) : var {
-        if (!screenRoot || !srcData || (srcData.resultChartIndex || 0) !== 2
-                || !screenRoot.resultTargetFraction || scoreChartScore()) {
+        if (!screenRoot || !srcData || root.chartIndex !== 2
+                || !screenRoot.resultTargetFraction || root.chartScoreData) {
             return [];
         }
 
-        let currentScore = resultScore();
+        let currentScore = root.resultScoreData;
         let currentResult = currentScore && currentScore.result ? currentScore.result : null;
         let events = scoreChartReplayEvents(currentScore);
         if (!currentResult || !events || events.length === 0) {
@@ -266,7 +267,7 @@ Item {
         let length = Math.max(1, currentResult.length || 1);
         let points = 0;
         let eventIndex = 0;
-        let perNotePoints = 2.0 * Math.max(0, screenRoot.resultTargetFraction(scoreChartSide()) || 0);
+        let perNotePoints = 2.0 * Math.max(0, screenRoot.resultTargetFraction(root.chartSide) || 0);
         for (let i = 0; i < count; ++i) {
             let targetTime = (i * step / fieldW) * length;
             while (eventIndex < events.length) {
@@ -288,11 +289,12 @@ Item {
         let info = gaugeInfo();
         let history = info && info.gaugeHistory ? info.gaugeHistory : [];
         let maxGauge = info ? Math.max(1, info.maxGauge || 100) : 100;
-        root.cachedGaugeHard = !!info && (String(info.name).toUpperCase().indexOf("HARD") !== -1
-            || String(info.name).toUpperCase().indexOf("DAN") !== -1
-            || String(info.name).toUpperCase().indexOf("FC") !== -1
-            || String(info.name).toUpperCase().indexOf("PERFECT") !== -1
-            || String(info.name).toUpperCase().indexOf("MAX") !== -1);
+        let gaugeName = info ? String(info.name).toUpperCase() : "";
+        let gaugeHard = gaugeName.indexOf("HARD") !== -1
+            || gaugeName.indexOf("DAN") !== -1
+            || gaugeName.indexOf("FC") !== -1
+            || gaugeName.indexOf("PERFECT") !== -1
+            || gaugeName.indexOf("MAX") !== -1;
 
         let count = cacheValueCount(fieldW, step);
         let result = new Array(count);
@@ -300,10 +302,10 @@ Item {
             for (let i = 0; i < count; ++i) {
                 result[i] = 0;
             }
-            return result;
+            return { values: result, gaugeHard: gaugeHard };
         }
 
-        let currentResult = resultData();
+        let currentResult = root.resultDataValue;
         let length = currentResult ? Math.max(1, currentResult.length || 1) : 1;
         let value = history[0].gauge !== undefined ? history[0].gauge : 0;
         let historyIndex = 0;
@@ -319,13 +321,13 @@ Item {
             }
             result[i] = clampPercent(value * 100 / maxGauge);
         }
-        return result;
+        return { values: result, gaugeHard: gaugeHard };
     }
 
     function buildScoreCache(fieldW: var, step: var) : var {
-        let current = resultData();
+        let current = root.resultDataValue;
         let maxPoints = current ? Math.max(1, current.maxPoints || 1) : 1;
-        let score = scoreChartScore();
+        let score = root.chartScoreData;
         let replayValues = buildReplayScoreCache(score, fieldW, step, maxPoints);
         if (replayValues.length > 0) {
             return replayValues;
@@ -343,28 +345,26 @@ Item {
         return buildLinearScoreCache(fieldW, step, finalPoints, maxPoints);
     }
 
-    function rebuildValueCache() : var {
-        if (!root.currentState || !root.srcData) {
-            root.valueCache = [];
-            root.paintedColumnCount = -1;
-            return;
+    function buildValueCache() : var {
+        if (!root.cacheInputsReady) {
+            return root.emptyValueCacheState;
         }
 
-        let fieldW = Math.max(1, root.srcData.op1 || Math.abs(root.currentState.w) || 1);
-        let fieldH = Math.max(1, root.srcData.op2 || Math.abs(root.currentState.h) || 1);
-        let dstW = Math.max(1, Math.abs(root.currentState.w || root.srcData.w || 1));
-        let chartType = root.srcData.resultChartType || 0;
-        root.cachedFieldW = fieldW;
-        root.cachedFieldH = fieldH;
-        root.cachedStep = Math.max(1, dstW);
-        root.cachedChartType = chartType;
-        root.cachedChartIndex = root.srcData.resultChartIndex || 0;
-        root.cachedGaugeHard = false;
-        root.valueCache = chartType === 1
-            ? buildGaugeCache(fieldW, root.cachedStep)
-            : buildScoreCache(fieldW, root.cachedStep);
-        root.paintedColumnCount = -1;
-        requestTimedChartPaint();
+        let fieldW = root.cacheInputFieldW;
+        let fieldH = root.cacheInputFieldH;
+        let step = root.cacheInputStep;
+        let gaugeCache = root.chartType === 1
+            ? buildGaugeCache(fieldW, step)
+            : null;
+        return {
+            values: gaugeCache ? gaugeCache.values : buildScoreCache(fieldW, step),
+            fieldW: fieldW,
+            fieldH: fieldH,
+            step: step,
+            chartType: root.chartType,
+            chartIndex: root.chartIndex,
+            gaugeHard: gaugeCache ? gaugeCache.gaugeHard : false
+        };
     }
 
     function cachedSegmentVisible(value: var) : var {
@@ -484,7 +484,8 @@ Item {
             if (root.resolvedSource !== "") {
                 loadImage(root.resolvedSource);
             }
-            root.rebuildValueCache();
+            root.paintedColumnCount = -1;
+            root.requestTimedChartPaint();
         }
         onImageLoaded: requestPaint()
     }
@@ -495,10 +496,9 @@ Item {
         }
         requestChartPaint();
     }
-    onCurrentStateChanged: rebuildValueCache()
-    onDstsChanged: rebuildValueCache()
+    onValueCacheStateChanged: {
+        root.paintedColumnCount = -1;
+        root.requestTimedChartPaint();
+    }
     onSkinTimeChanged: requestTimedChartPaint()
-    onSrcDataChanged: rebuildValueCache()
-    onScreenRootChanged: rebuildValueCache()
-    onResultRevisionChanged: rebuildValueCache()
 }

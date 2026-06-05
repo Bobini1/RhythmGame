@@ -162,7 +162,7 @@ Item {
     }
 
     function barGraphValue(type: var) : var {
-        if (!screenRoot || !screenRoot.isGameplayScreen()) {
+        if (!screenRoot || !screenRoot.gameplayScreenActive) {
             return 0;
         }
         if (type === 1 || type === 101) {
@@ -211,7 +211,7 @@ Item {
                 return 2;
             }
         }
-        return screenRoot && screenRoot.isGameplayScreen()
+        return screenRoot && screenRoot.gameplayScreenActive
             && screenRoot.gameplayStartSkinTime >= 0
             ? 1
             : 0;
@@ -248,4 +248,3 @@ Item {
         scratchAngle2 = 0;
     }
 }
-

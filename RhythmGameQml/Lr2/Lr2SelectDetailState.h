@@ -179,6 +179,21 @@ struct Lr2SelectScoreSummaryData {
 	QVariantList optionIds;
 };
 
+struct Lr2SelectScoreSummaryCacheKey {
+	QString identifier;
+	int scoreGeneration = 0;
+
+	bool operator==(const Lr2SelectScoreSummaryCacheKey& other) const {
+		return identifier == other.identifier
+			&& scoreGeneration == other.scoreGeneration;
+	}
+};
+
+inline size_t qHash(const Lr2SelectScoreSummaryCacheKey& key, size_t seed = 0) {
+	seed = qHash(key.identifier, seed);
+	return qHash(key.scoreGeneration, seed);
+}
+
 class Lr2SelectScoreSummary : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QVariant bestScore READ bestScore NOTIFY changed)
@@ -286,9 +301,8 @@ private:
 class Lr2SelectDetailState : public QObject {
 	Q_OBJECT
 	QML_ELEMENT
-	Q_PROPERTY(QString key READ key WRITE setKey NOTIFY keyChanged)
-	Q_PROPERTY(int scoreRevision READ scoreRevision WRITE setScoreRevision NOTIFY scoreRevisionChanged)
-	Q_PROPERTY(int listRevision READ listRevision WRITE setListRevision NOTIFY listRevisionChanged)
+	Q_PROPERTY(int scoreGeneration READ scoreGeneration WRITE setScoreGeneration NOTIFY scoreGenerationChanged)
+	Q_PROPERTY(int listGeneration READ listGeneration WRITE setListGeneration NOTIFY listGenerationChanged)
 	Q_PROPERTY(QVariant item READ item WRITE setItem NOTIFY itemChanged)
 	Q_PROPERTY(QVariant chartData READ chartData WRITE setChartData NOTIFY chartDataChanged)
 	Q_PROPERTY(QObject* summary READ summaryObject CONSTANT)
@@ -300,14 +314,11 @@ class Lr2SelectDetailState : public QObject {
 public:
 	explicit Lr2SelectDetailState(QObject* parent = nullptr);
 
-	QString key() const;
-	void setKey(const QString& value);
+	int scoreGeneration() const;
+	void setScoreGeneration(int value);
 
-	int scoreRevision() const;
-	void setScoreRevision(int value);
-
-	int listRevision() const;
-	void setListRevision(int value);
+	int listGeneration() const;
+	void setListGeneration(int value);
 
 	QVariant item() const;
 	void setItem(const QVariant& value);
@@ -328,65 +339,43 @@ public:
 
 	Lr2SelectDifficultyModel* difficultyModel();
 
-	Q_INVOKABLE bool refresh(const QString& key,
-							 int scoreRevision,
-							 int listRevision,
-							 const QVariant& item,
-							 const QVariant& chartData,
-							 const QVariantList& scoreList,
-							 int selectedDifficulty,
-							 const QVariantList& difficultyCounts,
-							 const QVariantList& difficultyLevels,
-							 const QVariantList& difficultyLamps,
-							 bool useBeatorajaSemantics,
-							 bool buildScoreOptionIds);
-	Q_INVOKABLE bool refreshFromQmlValues(const QString& key,
-										  int scoreRevision,
-										  int listRevision,
-										  QJSValue item,
-										  QJSValue chartData,
-										  QJSValue scoreList,
-										  const QString& scoreCacheKey,
-										  int selectedDifficulty,
-										  QJSValue difficultyCounts,
-										  QJSValue difficultyLevels,
-										  QJSValue difficultyLamps,
-										  bool useBeatorajaSemantics,
-										  bool buildScoreOptionIds);
-	Q_INVOKABLE bool refreshSelectedFromQmlValues(const QString& key,
-												  int scoreRevision,
-												  int listRevision,
-												  QJSValue scoreList,
-												  const QString& scoreCacheKey,
-												  int selectedDifficulty,
-												  QJSValue difficultyCounts,
-												  QJSValue difficultyLevels,
-												  QJSValue difficultyLamps,
-												  bool useBeatorajaSemantics,
-												  bool buildScoreOptionIds);
-	Q_INVOKABLE bool refreshFromQmlValues(const QString& key,
-										  int scoreRevision,
-										  int listRevision,
-										  QJSValue item,
-										  QJSValue chartData,
-										  QJSValue scoreList,
-										  int selectedDifficulty,
-										  QJSValue difficultyCounts,
-										  QJSValue difficultyLevels,
-										  QJSValue difficultyLamps,
-										  bool useBeatorajaSemantics,
-										  bool buildScoreOptionIds);
-	Q_INVOKABLE QObject* cachedScoreSummary(const QString& cacheKey,
-											QJSValue scoreList,
-											bool useBeatorajaSemantics,
-											bool buildScoreOptionIds);
+	Q_INVOKABLE bool selectedIdentityMatches(const QString& itemKey,
+											 const QString& targetItemKey,
+											 bool rankingMode,
+											 int scoreGeneration,
+											 int listGeneration,
+											 bool useBeatorajaSemantics,
+											 bool buildScoreOptionIds,
+											 bool difficultyStateUsed,
+											 bool difficultyLampStateUsed) const;
+	Q_INVOKABLE bool refreshSelectedFromQmlIdentityForIdentifier(const QString& itemKey,
+																 const QString& targetItemKey,
+																 bool rankingMode,
+																 int scoreGeneration,
+																 int listGeneration,
+																 QJSValue item,
+																 QJSValue chartData,
+																 QJSValue scoreList,
+																 const QString& scoreIdentifier,
+																 int selectedDifficulty,
+																 QJSValue difficultyCounts,
+																 QJSValue difficultyLevels,
+																 QJSValue difficultyLamps,
+																 bool useBeatorajaSemantics,
+																 bool buildScoreOptionIds,
+																 bool difficultyStateUsed,
+																 bool difficultyLampStateUsed);
+	Q_INVOKABLE QObject* cachedScoreSummaryForIdentifier(const QString& identifier,
+														 int scoreGeneration,
+														 QJSValue scoreList,
+														 bool useBeatorajaSemantics,
+														 bool buildScoreOptionIds);
 	Q_INVOKABLE void clearScoreSummaryCache();
 	Q_INVOKABLE void clear();
 
 signals:
-	void keyChanged();
-	void scoreRevisionChanged();
-	void listRevisionChanged();
+	void scoreGenerationChanged();
+	void listGenerationChanged();
 	void itemChanged();
 	void chartDataChanged();
 	void summaryChanged();
@@ -395,31 +384,45 @@ signals:
 	void scoreOptionIdsChanged();
 
 private:
-	bool refreshMatches(const QString& key,
-						int scoreRevision,
-						int listRevision,
-						bool useBeatorajaSemantics,
-						bool buildScoreOptionIds) const;
-	bool applyRefreshData(const QString& key,
-						  int scoreRevision,
-						  int listRevision,
+	bool selectedRefreshMatches(const QString& itemKey,
+								const QString& targetItemKey,
+								bool rankingMode,
+								int scoreGeneration,
+								int listGeneration,
+								bool useBeatorajaSemantics,
+								bool buildScoreOptionIds,
+								bool difficultyStateUsed,
+								bool difficultyLampStateUsed) const;
+	void rememberSelectedIdentity(const QString& itemKey,
+								  const QString& targetItemKey,
+								  bool rankingMode,
+								  bool difficultyStateUsed,
+								  bool difficultyLampStateUsed);
+	void clearSelectedIdentity();
+	bool applyRefreshData(int scoreGeneration,
+						  int listGeneration,
 						  const QVariant& item,
 						  const QVariant& chartData,
 						  bool useBeatorajaSemantics,
 						  bool buildScoreOptionIds,
 						  const Lr2SelectScoreSummaryData& scoreSummary);
-	const Lr2SelectScoreSummaryData& cachedScoreSummaryData(const QString& cacheKey,
+	const Lr2SelectScoreSummaryData& cachedScoreSummaryData(const Lr2SelectScoreSummaryCacheKey& cacheKey,
 															const QJSValue& scoreList,
 															bool useBeatorajaSemantics,
 															bool buildScoreOptionIds);
 	void ensureScoreSummaryCacheSemantics(bool useBeatorajaSemantics,
 										  bool buildScoreOptionIds);
 
-	QString m_key;
-	int m_scoreRevision = -1;
-	int m_listRevision = -1;
+	int m_scoreGeneration = -1;
+	int m_listGeneration = -1;
 	bool m_useBeatorajaSemantics = false;
 	bool m_buildScoreOptionIds = true;
+	bool m_selectedIdentityValid = false;
+	QString m_selectedItemKey;
+	QString m_selectedTargetItemKey;
+	bool m_selectedRankingMode = false;
+	bool m_selectedDifficultyStateUsed = true;
+	bool m_selectedDifficultyLampStateUsed = true;
 	QVariant m_item;
 	QVariant m_chartData;
 	Lr2SelectScoreSummary m_summary;
@@ -429,7 +432,7 @@ private:
 		Lr2SelectScoreSummaryData data;
 		Lr2SelectScoreSummary* object = nullptr;
 	};
-	QHash<QString, CachedScoreSummary> m_scoreSummaryCache;
+	QHash<Lr2SelectScoreSummaryCacheKey, CachedScoreSummary> m_scoreSummaryCache;
 	bool m_scoreSummaryCacheSemanticsInitialized = false;
 	bool m_scoreSummaryCacheUseBeatorajaSemantics = false;
 	bool m_scoreSummaryCacheBuildScoreOptionIds = true;

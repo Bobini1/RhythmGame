@@ -6,37 +6,52 @@ Item {
     id: root
 
     required property var host
-    required property var selectContext
     required property var skinModel
+    required property string previewSource
 
     property bool active: false
-    property int selectRevision: 0
     property bool ready: false
     property bool scratchSoundReady: false
-    property string activePreviewSource: ""
-    property int pendingPreviewRevision: -1
-    property int pendingPreviewRequest: 0
-    property string pendingPreviewSource: ""
+    property string playingPreviewSource: ""
+    property int previewRequestToken: 0
+    property string queuedPreviewSource: ""
     property alias scratchSoundPlayer: scratchSound
 
     readonly property var renderChart: root.host.chart || root.host.resultChartData()
+    readonly property string requestedPreviewSource: root.ready && root.active
+        ? (root.previewSource || "")
+        : ""
 
-    function update() : var {
+    onActiveChanged: {
+        if (root.ready && !root.active) {
+            root.stopAudio();
+        }
+    }
+    onReadyChanged: {
+        if (root.ready && root.active) {
+            root.syncPreviewRequest();
+        }
+    }
+    onRequestedPreviewSourceChanged: {
+        if (root.active) {
+            root.syncPreviewRequest();
+        }
+    }
+
+    function syncPreviewRequest() : var {
         if (!root.ready) {
             return;
         }
-
 
         if (!root.active) {
             root.stopAudio();
             return;
         }
 
-        let nextPreviewSource = root.selectContext.selectedPreviewSource() || "";
-        root.pendingPreviewRevision = root.selectRevision;
-        if (nextPreviewSource === root.pendingPreviewSource) {
+        let nextPreviewSource = root.requestedPreviewSource;
+        if (nextPreviewSource === root.queuedPreviewSource) {
             if (nextPreviewSource !== ""
-                    && root.activePreviewSource !== nextPreviewSource
+                    && root.playingPreviewSource !== nextPreviewSource
                     && !previewDelayTimer.running) {
                 previewDelayTimer.restart();
             }
@@ -44,9 +59,9 @@ Item {
         }
 
         previewDelayTimer.stop();
-        root.pendingPreviewRequest += 1;
-        root.pendingPreviewSource = nextPreviewSource;
-        root.activePreviewSource = "";
+        root.previewRequestToken += 1;
+        root.queuedPreviewSource = nextPreviewSource;
+        root.playingPreviewSource = "";
         playMusic.stop();
         if (nextPreviewSource !== "") {
             previewDelayTimer.restart();
@@ -56,10 +71,9 @@ Item {
     function stopAudio() : void {
         previewDelayTimer.stop();
         selectBgmDelayTimer.stop();
-        root.activePreviewSource = "";
-        root.pendingPreviewRevision = -1;
-        root.pendingPreviewSource = "";
-        root.pendingPreviewRequest += 1;
+        root.playingPreviewSource = "";
+        root.queuedPreviewSource = "";
+        root.previewRequestToken += 1;
         playMusic.stop();
         selectBgm.stop();
         scratchSound.stop();
@@ -85,7 +99,7 @@ Item {
         id: playMusic
         looping: true
         fadeInMillis: 1000
-        source: root.active ? root.activePreviewSource : ""
+        source: root.active ? root.playingPreviewSource : ""
         onSourceChanged: stop()
     }
 
@@ -93,7 +107,7 @@ Item {
         id: selectBgm
         looping: true
         fadeInMillis: 1000
-        source: root.host.mainGeneralVars() ? root.host.mainGeneralVars().bgmPath + "select" : ""
+        source: root.host.mainGeneralVarsRef ? root.host.mainGeneralVarsRef.bgmPath + "select" : ""
         property bool canPlay: root.active
             && (!playMusic.playing || playMusic.source === "")
         onCanPlayChanged: {
@@ -113,7 +127,7 @@ Item {
 
     AudioPlayer {
         id: scratchSound
-        source: root.host.mainGeneralVars() ? root.host.mainGeneralVars().soundsetPath + "scratch" : ""
+        source: root.host.mainGeneralVarsRef ? root.host.mainGeneralVarsRef.soundsetPath + "scratch" : ""
     }
 
     Timer {
@@ -121,20 +135,18 @@ Item {
         interval: 1000
         repeat: false
         onTriggered: {
-            if (!root.active
-                || root.pendingPreviewRevision !== root.selectRevision) {
+            if (!root.active) {
                 return;
             }
 
-            let source = root.pendingPreviewSource;
-            let request = root.pendingPreviewRequest;
-            root.activePreviewSource = source || "";
+            let source = root.queuedPreviewSource;
+            let request = root.previewRequestToken;
+            root.playingPreviewSource = source || "";
             if (source) {
                 Qt.callLater(() => {
                     if (root.active
-                        && root.activePreviewSource === source
-                        && root.pendingPreviewRevision === root.selectRevision
-                        && root.pendingPreviewRequest === request) {
+                        && root.playingPreviewSource === source
+                        && root.previewRequestToken === request) {
                         playMusic.play();
                     }
                 });
@@ -142,4 +154,3 @@ Item {
         }
     }
 }
-

@@ -131,8 +131,39 @@ void Lr2BarBaseStateResolver::setActiveOptions(const QVariant& options) {
     rebuildBaseStates();
 }
 
-int Lr2BarBaseStateResolver::baseStatesRevision() const {
-    return m_baseStatesRevision;
+QVariantList Lr2BarBaseStateResolver::baseStates() const {
+    QVariantList result;
+    result.reserve(m_baseStates.size());
+    for (const State& state : m_baseStates) {
+        result.append(QVariant::fromValue(state));
+    }
+    return result;
+}
+
+QVariantList Lr2BarBaseStateResolver::positionlessBaseStates() const {
+    QVariantList result;
+    result.reserve(m_baseStates.size());
+    for (const State& state : m_baseStates) {
+        if (!state.valid) {
+            result.append(QVariant::fromValue(State {}));
+            continue;
+        }
+
+        State positionless = state;
+        positionless.x = 0.0;
+        positionless.y = 0.0;
+        result.append(QVariant::fromValue(positionless));
+    }
+    return result;
+}
+
+QVariantList Lr2BarBaseStateResolver::interpolationNeededByRow() const {
+    QVariantList result;
+    result.reserve(m_baseStates.size());
+    for (int row = 0; row < m_baseStates.size(); ++row) {
+        result.append(stateNeedsInterpolationAt(row));
+    }
+    return result;
 }
 
 int Lr2BarBaseStateResolver::animationLimit() const {
@@ -188,10 +219,6 @@ bool Lr2BarBaseStateResolver::stateNeedsInterpolationAt(int row) const {
 }
 
 Lr2TimelineStateValue Lr2BarBaseStateResolver::positionlessStateAt(int row) const {
-    return positionlessStateValueAt(row);
-}
-
-Lr2TimelineStateValue Lr2BarBaseStateResolver::positionlessStateValueAt(int row) const {
     if (row < 0 || row >= m_baseStates.size()) {
         return {};
     }
@@ -257,7 +284,6 @@ void Lr2BarBaseStateResolver::rebuildBaseStates() {
     const qreal oldFastScrollDy = m_fastScrollDy;
     if (statesChanged) {
         m_baseStates = std::move(next);
-        ++m_baseStatesRevision;
     }
     rebuildFastScrollStep();
     if (!statesChanged

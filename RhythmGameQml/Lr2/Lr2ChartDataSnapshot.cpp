@@ -1,7 +1,6 @@
 #include "Lr2ChartDataSnapshot.h"
 
 #include <QList>
-#include <QStringList>
 #include <algorithm>
 
 namespace {
@@ -42,15 +41,6 @@ bool histogramHasData(const QVariantList& histogram) {
         }
     }
     return false;
-}
-
-QString histogramRevision(const QVariantList& histogram) {
-    QStringList parts;
-    for (int i = 0; i < 6; ++i) {
-        const QVariant series = i < histogram.size() ? histogram.at(i) : QVariant {};
-        parts.append(QString::number(series.toList().size()));
-    }
-    return parts.join(QLatin1Char(':'));
 }
 
 gameplay_logic::ChartData* chartDataObject(QObject* object) {
@@ -105,7 +95,6 @@ int Lr2ChartDataSnapshot::lnCount() const { return m_lnCount; }
 int Lr2ChartDataSnapshot::bssCount() const { return m_bssCount; }
 int Lr2ChartDataSnapshot::mineCount() const { return m_mineCount; }
 QVariantList Lr2ChartDataSnapshot::histogramData() const { return m_histogramData; }
-QString Lr2ChartDataSnapshot::revision() const { return m_revision; }
 
 void Lr2ChartDataSnapshot::refresh() {
     const ChartSnapshotData next = chartSnapshotData(chartDataObject(m_chart.data()));
@@ -118,18 +107,6 @@ void Lr2ChartDataSnapshot::refresh() {
     const int nextMine = next.mineCount;
     const QVariantList& nextHistogram = next.histogramData;
     const bool nextHasHistogram = histogramHasData(nextHistogram);
-    const QString nextRevision = nextHasHistogram
-        ? QStringList {
-            nextMd5,
-            QString::number(nextLength),
-            QString::number(nextNormal),
-            QString::number(nextScratch),
-            QString::number(nextLn),
-            QString::number(nextBss),
-            QString::number(nextMine),
-            histogramRevision(nextHistogram),
-        }.join(QLatin1Char(':'))
-        : QString {};
 
     if (m_hasHistogram == nextHasHistogram
             && m_md5 == nextMd5
@@ -139,8 +116,7 @@ void Lr2ChartDataSnapshot::refresh() {
             && m_lnCount == nextLn
             && m_bssCount == nextBss
             && m_mineCount == nextMine
-            && m_histogramData == nextHistogram
-            && m_revision == nextRevision) {
+            && m_histogramData == nextHistogram) {
         return;
     }
 
@@ -153,6 +129,5 @@ void Lr2ChartDataSnapshot::refresh() {
     m_bssCount = nextBss;
     m_mineCount = nextMine;
     m_histogramData = nextHistogram;
-    m_revision = nextRevision;
     emit dataChanged();
 }

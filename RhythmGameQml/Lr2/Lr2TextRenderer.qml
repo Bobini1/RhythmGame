@@ -27,7 +27,6 @@ Item {
     Lr2TimelineFrame {
         id: drawState
         dsts: root.dsts
-        srcData: root.srcData
         skinTime: root.skinTime
         skinClock: root.skinClock
         skinClockMode: root.skinClockMode

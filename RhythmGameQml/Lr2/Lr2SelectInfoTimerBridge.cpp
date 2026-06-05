@@ -1,33 +1,34 @@
 #include "Lr2SelectInfoTimerBridge.h"
 
+#include "Lr2SelectNavigationController.h"
 #include "Lr2SkinClock.h"
 
 Lr2SelectInfoTimerBridge::Lr2SelectInfoTimerBridge(QObject* parent) : QObject(parent) {}
 
-QObject* Lr2SelectInfoTimerBridge::selectContext() const {
-    return m_selectContext;
+Lr2SelectNavigationController* Lr2SelectInfoTimerBridge::navigationController() const {
+    return m_navigationController;
 }
 
-void Lr2SelectInfoTimerBridge::setSelectContext(QObject* context) {
-    if (m_selectContext == context) {
+void Lr2SelectInfoTimerBridge::setNavigationController(Lr2SelectNavigationController* controller) {
+    if (m_navigationController == controller) {
         return;
     }
 
-    if (m_focusRevisionConnection) {
-        disconnect(m_focusRevisionConnection);
+    if (m_focusedStateConnection) {
+        disconnect(m_focusedStateConnection);
     }
 
-    m_selectContext = context;
-    if (m_selectContext) {
-        m_focusRevisionConnection = connect(
-            m_selectContext,
-            SIGNAL(focusRevisionChanged()),
+    m_navigationController = controller;
+    if (m_navigationController) {
+        m_focusedStateConnection = connect(
+            m_navigationController,
+            &Lr2SelectNavigationController::focusedStateChanged,
             this,
-            SLOT(restartFromFocusChange()));
+            &Lr2SelectInfoTimerBridge::restartFromFocusChange);
     } else {
-        m_focusRevisionConnection = {};
+        m_focusedStateConnection = {};
     }
-    emit selectContextChanged();
+    emit navigationControllerChanged();
 }
 
 Lr2SkinClock* Lr2SelectInfoTimerBridge::clock() const {

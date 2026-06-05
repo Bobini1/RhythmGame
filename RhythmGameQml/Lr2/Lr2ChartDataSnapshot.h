@@ -21,7 +21,6 @@ class Lr2ChartDataSnapshot : public QObject {
     Q_PROPERTY(int bssCount READ bssCount NOTIFY dataChanged)
     Q_PROPERTY(int mineCount READ mineCount NOTIFY dataChanged)
     Q_PROPERTY(QVariantList histogramData READ histogramData NOTIFY dataChanged)
-    Q_PROPERTY(QString revision READ revision NOTIFY dataChanged)
 
 public:
     explicit Lr2ChartDataSnapshot(QObject* parent = nullptr);
@@ -39,7 +38,6 @@ public:
     int bssCount() const;
     int mineCount() const;
     QVariantList histogramData() const;
-    QString revision() const;
 
 signals:
     void chartChanged();
@@ -58,5 +56,4 @@ private:
     int m_bssCount = 0;
     int m_mineCount = 0;
     QVariantList m_histogramData;
-    QString m_revision;
 };

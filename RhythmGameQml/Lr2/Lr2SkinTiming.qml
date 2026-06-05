@@ -38,9 +38,10 @@ QtObject {
     property Lr2SkinFrameDriver frameDriver: Lr2SkinFrameDriver {
         id: frameDriver
         clock: skinClock
+        frameAnimation: skinStopwatch
         gameplayFrameState: root.host ? root.host.gameplayFrameStateRef : null
         selectVisualState: root.selectContext ? root.selectContext.visualStateObject : null
-        gameplayScreen: root.host ? root.host.isGameplayScreen() : false
+        gameplayScreen: root.host ? root.host.gameplayScreenActive : false
         gameplayStartupPending: root.host
             && frameDriver.gameplayScreen
             && !!root.host.chart
@@ -75,7 +76,7 @@ QtObject {
         selectScrollDirection: root.selectContext ? root.selectContext.scrollDirection : 0
         selectScrollUp: root.selectContext ? root.selectContext.lr2ScrollUp : 1
         selectScrollDown: root.selectContext ? root.selectContext.lr2ScrollDown : 2
-        gameplayRhythmTimerSkinTime: root.host ? root.host.gameplayRhythmTimerSkinTime() : -1
+        gameplayRhythmTimerSkinTime: root.host ? root.host.gameplayRhythmTimerSkinTime : -1
         selectHeldButtonTimerStarts: root.host ? root.host.selectHeldButtonTimerFireTimes : ({})
         screenKey: root.host ? root.host.effectiveScreenKey : ""
         gameplayScreen: root.host ? root.host.gameplayScreenActive : false
@@ -107,7 +108,7 @@ QtObject {
     }
 
     property Lr2SelectInfoTimerBridge selectInfoTimerBridge: Lr2SelectInfoTimerBridge {
-        selectContext: root.selectContext
+        navigationController: root.selectContext ? root.selectContext.navigationController : null
         clock: skinClock
         active: root.host
             && root.host.screenUpdatesActive
@@ -117,7 +118,6 @@ QtObject {
     property FrameAnimation skinStopwatch: FrameAnimation {
         id: skinStopwatch
         running: root.host && root.host.screenUpdatesActive
-        onTriggered: frameDriver.tick(skinStopwatch.smoothFrameTime)
     }
 
     property Timer dateTimeStopwatch: Timer {
@@ -149,7 +149,7 @@ QtObject {
             if (root.host
                     && root.host.gameplayStartArmed
                     && root.host.enabled
-                    && root.host.isGameplayScreen()
+                    && root.host.gameplayScreenActive
                     && root.host.chart
                     && root.host.chartStatusIs(root.host.chart.status, ChartRunner.Ready)) {
                 root.host.gameplayStartArmed = false;
@@ -165,13 +165,8 @@ QtObject {
             if (!root.host) {
                 return;
             }
-            root.host.bumpGameplayRevision();
             root.host.refreshGameplayRuntimeActiveOptions();
         }
-    }
-
-    function clearSelectTimerFireCache() : void {
-        root.timerState.clearSelectTimerFireCache();
     }
 
     // Timer fire times (ms since scene start). LR2 select panels use timers
@@ -199,27 +194,23 @@ QtObject {
         return root.zeroTimers;
     }
 
-    function updateSelectAnimationLimits() : void {
-        let startInput = root.skinModel.startInput || 0;
-        root.selectAnimationLimit = Math.max(3200, startInput);
-        root.barAnimationLimit = Math.max(2200, startInput);
-    }
-
     function restartSkinClock() : var {
         if (!root.host) {
             return;
         }
-        root.updateSelectAnimationLimits();
+        let startInput = root.skinModel.startInput || 0;
+        root.selectAnimationLimit = Math.max(3200, startInput);
+        root.barAnimationLimit = Math.max(2200, startInput);
         root.clock.restart(Date.now());
         root.selectScrollStartSkinTime = 0;
         root.selectNoScrollStartSkinTime = 0;
         root.selectDatabaseLoadedSkinTime = 0;
-        root.clearSelectTimerFireCache();
+        root.timerState.clearSelectTimerFireCache();
         root.host.selectHeldButtonTimerStarts = ({});
         root.host.selectPanelClosing = 0;
         root.host.selectScratchSoundReady = false;
         root.host.updateLr2DateTimeNumbers();
-        root.restartSelectInfoTimer();
+        root.clock.restartSelectInfoTimer();
         if (root.host.screenUpdatesActive && root.shouldAutoAdvance) {
             root.sceneEndTimer.restart();
         } else {
@@ -227,81 +218,151 @@ QtObject {
         }
     }
 
-    function restartSelectInfoTimer() : void {
-        root.clock.restartSelectInfoTimer();
+    function selectHeldButtonTimer(timer: var) : var {
+        return (timer >= 101 && timer <= 107) || (timer >= 111 && timer <= 117);
     }
 
-    function quantizedSkinClock(now: var) : var {
-        return root.clock.quantize(now);
+    function dependOnSelectTimerClock(liveClock: var) : void {
+        if (liveClock === true) {
+            timerState.selectSourceSkinTime;
+        } else {
+            timerState.renderSkinTime;
+        }
     }
 
-    function gameplayTimerFireTime(timer: var) : var {
-        timerState.revision;
-        return timerState.gameplayTimerFireTime(timer);
+    function dependOnSelectElapsedTimer(liveClock: var) : void {
+        root.dependOnSelectTimerClock(liveClock);
+        timerState.selectLiveSkinTime;
     }
 
-    function resultTimerFireTime(timer: var) : var {
-        timerState.revision;
-        return timerState.resultTimerFireTime(timer);
+    function dependOnSelectTimerFireInputs(timer: var, liveClock: var) : void {
+        let timerId = Number(timer || 0);
+        if (timerId === 0) {
+            return;
+        }
+        if (timerId === 1) {
+            timerState.acceptsInput;
+            timerState.startInput;
+            timerState.renderSkinTime;
+            return;
+        }
+        if (timerId === 10) {
+            timerState.selectVisualMoveActive;
+            timerState.selectScrollFixedPointDragging;
+            timerState.selectScrollStartSkinTime;
+            return;
+        }
+        if (timerId === 11) {
+            root.dependOnSelectTimerClock(liveClock);
+            timerState.selectInfoElapsed;
+            return;
+        }
+        if (timerId === 12) {
+            timerState.selectVisualMoveActive;
+            timerState.selectScrollFixedPointDragging;
+            timerState.selectScrollDirection;
+            timerState.selectScrollUp;
+            timerState.selectScrollStartSkinTime;
+            return;
+        }
+        if (timerId === 13) {
+            timerState.selectVisualMoveActive;
+            timerState.selectScrollFixedPointDragging;
+            timerState.selectScrollDirection;
+            timerState.selectScrollDown;
+            timerState.selectScrollStartSkinTime;
+            return;
+        }
+        if (timerId === 14) {
+            timerState.acceptsInput;
+            timerState.selectNoScrollStartSkinTime;
+            return;
+        }
+        if (timerId === 15) {
+            timerState.lr2ReadmeMode;
+            if (timerState.lr2ReadmeMode === 1) {
+                root.dependOnSelectElapsedTimer(liveClock);
+                timerState.lr2ReadmeElapsed;
+            }
+            return;
+        }
+        if (timerId === 16) {
+            timerState.lr2ReadmeMode;
+            if (timerState.lr2ReadmeMode === 2) {
+                root.dependOnSelectElapsedTimer(liveClock);
+                timerState.lr2ReadmeElapsed;
+            }
+            return;
+        }
+        if (timerId === 171) {
+            timerState.selectDatabaseLoadedSkinTime;
+            return;
+        }
+        if (timerId >= 21 && timerId <= 26) {
+            timerState.selectPanel;
+            if (timerState.selectPanel === timerId - 20) {
+                root.dependOnSelectElapsedTimer(liveClock);
+                timerState.selectPanelStartSkinTime;
+            }
+            return;
+        }
+        if (timerId >= 31 && timerId <= 36) {
+            timerState.selectPanelClosing;
+            if (timerState.selectPanelClosing === timerId - 30) {
+                root.dependOnSelectElapsedTimer(liveClock);
+                timerState.selectPanelCloseStartSkinTime;
+                timerState.selectPanelHoldTime;
+            }
+            return;
+        }
+        if (timerId === 175 || timerId === 176) {
+            timerState.lr2RankingTransitionPhase;
+            if (timerState.lr2RankingTransitionPhase === timerId) {
+                root.dependOnSelectElapsedTimer(liveClock);
+                timerState.lr2RankingTransitionElapsed;
+            }
+            return;
+        }
+        if (root.selectHeldButtonTimer(timerId)) {
+            let starts = timerState.selectHeldButtonTimerStarts;
+            if (starts && starts[timerId] !== undefined && liveClock !== true) {
+                timerState.renderSkinTime;
+                timerState.selectLiveSkinTime;
+            }
+        }
     }
 
     function selectTimerFireTime(timer: var, liveClock: var) : var {
-        timerState.revision;
-        timerState.selectInfoRevision;
+        root.dependOnSelectTimerFireInputs(timer, liveClock);
         return timerState.selectTimerFireTime(timer, liveClock === true);
     }
 
-    function selectTimerCanFire(timer: var) : var {
-        timerState.revision;
-        return timerState.selectTimerCanFire(timer);
-    }
-
-    function skinTimerCanFire(timer: var) : var {
-        timerState.revision;
-        return timerState.skinTimerCanFire(timer);
-    }
-
     function skinTimerFireTime(timer: var, liveClock: var) : var {
-        timerState.revision;
-        timerState.selectInfoRevision;
+        timerState.gameplayScreen;
+        timerState.resultScreen;
+        timerState.screenKey;
+        if (timerState.gameplayScreen) {
+            if (root.host) {
+                root.host.gameplayTimerRevision;
+            }
+            timerState.gameplayRhythmTimerSkinTime;
+        } else if (timerState.resultScreen) {
+            timerState.acceptsInput;
+            timerState.startInput;
+            timerState.renderSkinTime;
+            timerState.resultGraphStartSkinTime;
+            timerState.resultGraphEndSkinTime;
+            timerState.resultTimer151SkinTime;
+            timerState.resultTimer152SkinTime;
+        } else if (timerState.screenKey === "select") {
+            root.dependOnSelectTimerFireInputs(timer, liveClock);
+        }
         return timerState.skinTimerFireTime(timer, liveClock === true);
-    }
-
-    function setGameplayTimerValue(timer: var, skinTime: var) : var {
-        return timerState.setGameplayTimerValue(timer, skinTime);
-    }
-
-    function clearGameplayTimerValue(timer: var) : var {
-        return timerState.clearGameplayTimerValue(timer);
-    }
-
-    function resetGameplayTimerValues() : var {
-        return timerState.resetGameplayTimerValues();
-    }
-
-    function commitGameplayTimerChanges() : var {
-        return timerState.commitGameplayTimerChanges();
-    }
-
-    function restartGameplayStartTimer() : void {
-        root.gameplayStartTimer.restart();
-    }
-
-    function stopGameplayStartTimer() : void {
-        root.gameplayStartTimer.stop();
-    }
-
-    function restartGameplayPoorBgaOptionTimer() : void {
-        root.gameplayPoorBgaOptionTimer.restart();
-    }
-
-    function stopGameplayPoorBgaOptionTimer() : void {
-        root.gameplayPoorBgaOptionTimer.stop();
     }
 
     function pauseActivity() : void {
         root.sceneEndTimer.stop();
-        root.stopGameplayStartTimer();
-        root.stopGameplayPoorBgaOptionTimer();
+        root.gameplayStartTimer.stop();
+        root.gameplayPoorBgaOptionTimer.stop();
     }
 }

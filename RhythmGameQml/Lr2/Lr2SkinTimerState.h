@@ -49,9 +49,6 @@ class Lr2SkinTimerState : public QObject {
     Q_PROPERTY(int resultTimer152SkinTime READ resultTimer152SkinTime WRITE setResultTimer152SkinTime NOTIFY resultTimer152SkinTimeChanged)
     Q_PROPERTY(int resultGraphStartSkinTime READ resultGraphStartSkinTime WRITE setResultGraphStartSkinTime NOTIFY resultGraphStartSkinTimeChanged)
     Q_PROPERTY(int resultGraphEndSkinTime READ resultGraphEndSkinTime WRITE setResultGraphEndSkinTime NOTIFY resultGraphEndSkinTimeChanged)
-    Q_PROPERTY(int gameplayTimerRevision READ gameplayTimerRevision WRITE setGameplayTimerRevision NOTIFY gameplayTimerRevisionChanged)
-    Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
-    Q_PROPERTY(int selectInfoRevision READ selectInfoRevision NOTIFY selectInfoRevisionChanged)
 
 public:
     explicit Lr2SkinTimerState(QObject* parent = nullptr);
@@ -158,12 +155,6 @@ public:
     int resultGraphEndSkinTime() const;
     void setResultGraphEndSkinTime(int value);
 
-    int gameplayTimerRevision() const;
-    void setGameplayTimerRevision(int value);
-
-    int revision() const;
-    int selectInfoRevision() const;
-
     Q_INVOKABLE int gameplayTimerFireTime(int timer) const;
     Q_INVOKABLE int resultTimerFireTime(int timer) const;
     Q_INVOKABLE int selectTimerFireTime(int timer, bool liveClock = false) const;
@@ -216,10 +207,9 @@ signals:
     void resultTimer152SkinTimeChanged();
     void resultGraphStartSkinTimeChanged();
     void resultGraphEndSkinTimeChanged();
-    void gameplayTimerRevisionChanged();
     void gameplayTimerValuesCommitted();
-    void revisionChanged();
-    void selectInfoRevisionChanged();
+    void timerFireTimesChanged();
+    void selectInfoTimerFireTimesChanged();
 
 private:
     int selectTimerBaseTime(bool liveClock) const;
@@ -232,8 +222,8 @@ private:
     int selectTimerCacheFrame(bool liveClock) const;
     int cacheIndexForTimer(int timer, bool liveClock) const;
     void resetFrameCache(int cacheFrame) const;
-    void bumpRevision();
-    void bumpSelectInfoRevision();
+    void notifyTimerFireTimesChanged();
+    void notifySelectInfoTimerFireTimesChanged();
     bool setInt(int& field, int value);
 
     QPointer<Lr2SkinClock> m_clock;
@@ -271,15 +261,12 @@ private:
     int m_resultTimer152SkinTime = -1;
     int m_resultGraphStartSkinTime = 0;
     int m_resultGraphEndSkinTime = 0;
-    int m_gameplayTimerRevision = 0;
     QHash<int, int> m_gameplayTimerValues;
     bool m_gameplayTimerValuesDirty = false;
     bool m_pendingGameplayTimerFullRefresh = false;
     bool m_committedGameplayTimerFullRefresh = false;
     QSet<int> m_pendingGameplayTimerChanges;
     QSet<int> m_committedGameplayTimerChanges;
-    int m_revision = 0;
-    int m_selectInfoRevision = 0;
     int m_cacheEpoch = 0;
     mutable int m_cacheFrame = -1;
     mutable int m_cacheEpochSnapshot = -1;

@@ -19,7 +19,6 @@ class Lr2SelectBarModel : public QAbstractListModel {
 	Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
 	Q_PROPERTY(int slotOffset READ slotOffset NOTIFY slotOffsetChanged)
 	Q_PROPERTY(QVariantList cells READ cells NOTIFY cellsChanged)
-	Q_PROPERTY(QVariantList entries READ entries NOTIFY entriesChanged)
 
 public:
 	enum Roles {
@@ -69,14 +68,9 @@ public:
 
 	int slotOffset() const;
 	QVariantList cells() const;
-	QVariantList entries() const;
 
 	Q_INVOKABLE void rebuild();
 	Q_INVOKABLE void scrollBy(int delta);
-	Q_INVOKABLE int sourceRowAt(int row) const;
-	Q_INVOKABLE int slotForRow(int row) const;
-	Q_INVOKABLE QObject* cellAtSlot(int slot) const;
-	Q_INVOKABLE QVariant entryAtRow(int row) const;
 
 signals:
 	void sourceModelChanged();
@@ -86,7 +80,6 @@ signals:
 	void currentIndexChanged();
 	void slotOffsetChanged();
 	void cellsChanged();
-	void entriesChanged();
 
 private:
 	struct BarRow {
@@ -100,6 +93,7 @@ private:
 	int sourceCount() const;
 	int normalizedSourceRow(int row) const;
 	int sourceRowForVisualRow(int visualRow) const;
+	int slotForRow(int row) const;
 	void disconnectSourceModel();
 	void connectSourceModel();
 	void rebuildRows();
@@ -111,7 +105,6 @@ private:
 	void updateCellForVisualRow(int row);
 	void updateCellsForSourceRows(int first, int last);
 	void updateAllCells();
-	QVariantList buildEntries() const;
 
 	QPointer<Lr2SelectItemModel> m_sourceModel;
 	QList<QMetaObject::Connection> m_sourceConnections;

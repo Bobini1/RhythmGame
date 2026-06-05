@@ -12,17 +12,16 @@ Item {
     property var scores: ({})
     property var folderLampByKey: ({})
     property var folderScoreCountsByKey: ({})
-    property var folderDistributionByKey: ({})
     property var pendingFolderLampByKey: ({})
     property var pendingFolderScoreCountsByKey: ({})
     property var pendingFolderDistributionByKey: ({})
     property int pendingFolderLampPublishCount: 0
     property bool folderLampPublishQueued: false
-    property var chartGroupsByKey: ({})
+    property bool selectItemScoreSummaryPublishQueued: false
+    property var chartGroupsByFolderKeymode: ({})
     property var chartDifficultyByPath: ({})
     property var selectedDifficultyStateCache: ({})
     property var selectedDifficultyGroupStateCache: ({})
-    property var scoreClearStateByKey: ({})
     property var playerStats: ({
         playCount: 0,
         clearCount: 0,
@@ -35,29 +34,26 @@ Item {
         maxCombo: 0
     })
     property var previewFiles: ({})
-    property int currentIndex: 0
-    property int targetIndex: currentIndex
+    property alias currentIndex: nativeNavigation.currentIndex
+    property alias targetIndex: nativeNavigation.targetIndex
     property alias visualIndex: visualState.visualIndex
-    property real targetVisualIndex: 0
+    property alias targetVisualIndex: nativeNavigation.targetVisualIndex
     readonly property int listTopbarFixed: visualState.rawFixed
     readonly property int listCalculatedBarFixed: visualState.fixed
-    property int oldBarFixed: 0
-    property int nowBarFixed: 0
+    property alias oldBarFixed: nativeNavigation.oldBarFixed
+    property alias nowBarFixed: nativeNavigation.nowBarFixed
     property int pendingWheelSteps: 0
-    property int selectedOffset: 0
-    property double barMoveStartMs: 0
-    property double barMoveEndMs: 0
+    property alias selectedOffset: nativeNavigation.selectedOffset
+    property alias barMoveStartMs: nativeNavigation.barMoveStartMs
+    property alias barMoveEndMs: nativeNavigation.barMoveEndMs
     property bool componentReady: false
     property bool updatesActive: true
-    property bool suppressVisualIndexPublish: false
-    property int scrollDirection: 0
-    property int listRevision: 0
-    property int selectionRevision: 0
-    property int focusRevision: 0
-    property int scoreRevision: 0
-    property int folderLampRequestRevision: 0
-    property int playerStatsRevision: 0
-    property bool suppressNextSelectionSound: false
+    property alias suppressVisualIndexPublish: nativeNavigation.suppressVisualIndexPublish
+    property alias scrollDirection: nativeNavigation.scrollDirection
+    property int listGeneration: 0
+    property int scoreGeneration: 0
+    property int folderLampRequestToken: 0
+    property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
     property var attachedTextByDirectory: ({})
@@ -85,13 +81,8 @@ Item {
     readonly property int barLabelRandom: 1
     readonly property int barLabelMine: 2
     property alias visibleBarSlotOffset: visibleBarModel.slotOffset
-    property alias visibleBarEntries: visibleBarModel.entries
     property alias visibleBarTextCells: visibleBarModel.cells
-    property int refreshedFocusedIndex: -1
-    property int refreshedFocusedScoreRevision: -1
-    property int refreshedFocusedListRevision: -1
-    property bool refreshedFocusedRankingMode: false
-    property int lastSyncedCursorBaseIndex: -1
+    property alias lastSyncedCursorBaseIndex: nativeNavigation.lastSyncedCursorBaseIndex
     property bool rankingMode: false
     property var rankingBaseItem: null
     property string rankingStatsMd5: ""
@@ -99,7 +90,6 @@ Item {
     property int rankingPlayerRank: 0
     property int rankingPlayerCount: 0
     property int rankingTotalPlayCount: 0
-    property int rankingStatsRevision: 0
     property var rankingSavedItems: []
     property var rankingSavedFolderContents: []
     property int rankingSavedRealItemCount: 0
@@ -146,10 +136,6 @@ Item {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     ]
-    readonly property var emptyFolderDistributionObject: ({
-        lamps: [],
-        ranks: []
-    })
     readonly property var emptyDifficultyState: ({
         key: "empty",
         counts: emptyDifficultyNumbers,
@@ -159,37 +145,39 @@ Item {
     })
     property alias navigationController: nativeNavigation
     property var visualChartWrapper: null
-    property string visualChartContentRevision: ""
+    readonly property var selectedState: selectedDetailState
+    readonly property var selectedStateItem: selectedDetailState.item
+    readonly property var selectedStateChartData: selectedDetailState.chartData
+    readonly property bool selectedStateScoreCurrent: selectedDetailState.scoreGeneration === scoreGeneration
+    readonly property bool selectedStateListCurrent: selectedDetailState.listGeneration === listGeneration
+    readonly property bool selectedStateCurrent: selectedStateScoreCurrent && selectedStateListCurrent
+    readonly property string selectedPreviewAudioSource: {
+        let chartData = selectedStateChartData;
+        return chartData ? (previewFiles[chartData.chartDirectory] || "") : "";
+    }
     property string visualStageFileSource: ""
     property string visualBackBmpSource: ""
     property string visualBannerSource: ""
     property bool stageFileSourceUsed: true
     property bool backBmpSourceUsed: true
     property bool bannerSourceUsed: true
-    property bool chartContentRevisionUsed: true
-    onScoreRevisionChanged: {
+    onScoreOptionIdsUsedChanged: {
         selectedDetailState.clearScoreSummaryCache();
-        clearSelectedDifficultyStateCache();
-        clearScoreClearStateCache();
+        queueSelectItemScoreSummaries();
     }
-    onScoreOptionIdsUsedChanged: selectedDetailState.clearScoreSummaryCache()
     onDifficultyStateUsedChanged: clearSelectedDifficultyStateCache()
     onDifficultyLampStateUsedChanged: clearSelectedDifficultyStateCache()
     onStageFileSourceUsedChanged: refreshVisualChartAssetSources()
     onBackBmpSourceUsedChanged: refreshVisualChartAssetSources()
     onBannerSourceUsedChanged: refreshVisualChartAssetSources()
-    onChartContentRevisionUsedChanged: refreshVisualChartContentRevision()
-    function selectedState() : var {
-        return selectedStateProxy;
-    }
-
     function clearSelectedDifficultyStateCache() : void {
         selectedDifficultyStateCache = ({});
         selectedDifficultyGroupStateCache = ({});
     }
 
-    function clearScoreClearStateCache() : void {
-        scoreClearStateByKey = ({});
+    function clearScoreLoadedStateCaches() : void {
+        selectedDetailState.clearScoreSummaryCache();
+        clearSelectedDifficultyStateCache();
     }
 
     function chartAssetUrl(chartData: var, fileName: var) : var {
@@ -239,9 +227,24 @@ Item {
 
     readonly property int count: items.length
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
-    readonly property var current: logicalCount > 0 ? items[currentIndex] : null
     readonly property int focusedIndex: logicalCount > 0 ? currentIndex : 0
-    readonly property var focusedItem: logicalCount > 0 ? items[focusedIndex] : null
+    readonly property var focusedItem: logicalCount > 0 ? selectItemModel.currentItem : null
+    readonly property var current: focusedItem
+    readonly property var focusedChartData: {
+        if (rankingMode && rankingBaseItem) {
+            return rankingBaseItem;
+        }
+        return focusedItem instanceof ChartData || focusedItem instanceof entry ? focusedItem : null;
+    }
+    readonly property var focusedSelectionTarget: isRankingEntry(focusedItem)
+        ? focusedItem
+        : (focusedChartData || focusedItem)
+    readonly property string focusedSelectionKey: {
+        return selectItemModel.currentKey || entrySelectionKey(focusedItem, focusedIndex);
+    }
+    readonly property string focusedSelectionTargetKey: focusedSelectionTarget !== focusedItem
+        ? entrySelectionKey(focusedSelectionTarget, focusedIndex)
+        : ""
     readonly property int visualDirection: scrollDirection === lr2ScrollDown ? 1 : (scrollDirection === lr2ScrollUp ? -1 : 0)
     readonly property bool visualMoveActive: Math.abs(nowBarFixed - visualState.rawFixed) > 0
     readonly property real normalizedVisualIndex: logicalCount > 0 ? visualState.fixed / 1000.0 : 0
@@ -257,6 +260,7 @@ Item {
     Lr2SelectItemModel {
         id: selectItemModel
         currentIndex: root.currentIndex
+        items: root.normalizedSelectModelItems(root.items)
     }
 
     Lr2SelectBarModel {
@@ -272,68 +276,16 @@ Item {
         id: selectedDetailState
     }
 
-    QtObject {
-        id: selectedStateProxy
-
-        readonly property string key: selectedDetailState.key
-        readonly property int scoreRevision: selectedDetailState.scoreRevision
-        readonly property int listRevision: selectedDetailState.listRevision
-        property var item: null
-        property var chartData: null
-        readonly property var summary: selectedDetailState.summary
-        readonly property var bestStats: selectedDetailState.bestStats
-        readonly property var scoreCounts: selectedDetailState.scoreCounts
-        readonly property var scoreOptionIds: selectedDetailState.scoreOptionIds
-        readonly property var difficultyModel: selectedDetailState.difficultyModel
-    }
-
     Lr2SelectNavigationController {
         id: nativeNavigation
         visualState: visualState
-        currentIndex: root.currentIndex
-        targetIndex: root.targetIndex
-        selectedOffset: root.selectedOffset
-        targetVisualIndex: root.targetVisualIndex
-        oldBarFixed: root.oldBarFixed
-        nowBarFixed: root.nowBarFixed
-        barMoveStartMs: root.barMoveStartMs
-        barMoveEndMs: root.barMoveEndMs
         updatesActive: root.updatesActive
-        suppressVisualIndexPublish: root.suppressVisualIndexPublish
-        scrollDirection: root.scrollDirection
-        listRevision: root.listRevision
-        selectionRevision: root.selectionRevision
-        focusRevision: root.focusRevision
-        scoreRevision: root.scoreRevision
-        suppressNextSelectionSound: root.suppressNextSelectionSound
-        refreshedFocusedIndex: root.refreshedFocusedIndex
-        refreshedFocusedScoreRevision: root.refreshedFocusedScoreRevision
-        refreshedFocusedListRevision: root.refreshedFocusedListRevision
-        refreshedFocusedRankingMode: root.refreshedFocusedRankingMode
-        lastSyncedCursorBaseIndex: root.lastSyncedCursorBaseIndex
         rankingMode: root.rankingMode
         logicalCount: root.logicalCount
         lr2SpeedFirst: root.lr2SpeedFirst
         lr2SpeedNext: root.lr2SpeedNext
         lr2ScrollUp: root.lr2ScrollUp
         lr2ScrollDown: root.lr2ScrollDown
-        onCurrentIndexChanged: if (root.currentIndex !== currentIndex) root.currentIndex = currentIndex
-        onTargetIndexChanged: if (root.targetIndex !== targetIndex) root.targetIndex = targetIndex
-        onTargetVisualIndexChanged: if (root.targetVisualIndex !== targetVisualIndex) root.targetVisualIndex = targetVisualIndex
-        onOldBarFixedChanged: if (root.oldBarFixed !== oldBarFixed) root.oldBarFixed = oldBarFixed
-        onNowBarFixedChanged: if (root.nowBarFixed !== nowBarFixed) root.nowBarFixed = nowBarFixed
-        onBarMoveStartMsChanged: if (root.barMoveStartMs !== barMoveStartMs) root.barMoveStartMs = barMoveStartMs
-        onBarMoveEndMsChanged: if (root.barMoveEndMs !== barMoveEndMs) root.barMoveEndMs = barMoveEndMs
-        onSuppressVisualIndexPublishChanged: if (root.suppressVisualIndexPublish !== suppressVisualIndexPublish) root.suppressVisualIndexPublish = suppressVisualIndexPublish
-        onScrollDirectionChanged: if (root.scrollDirection !== scrollDirection) root.scrollDirection = scrollDirection
-        onSelectionRevisionChanged: if (root.selectionRevision !== selectionRevision) root.selectionRevision = selectionRevision
-        onFocusRevisionChanged: if (root.focusRevision !== focusRevision) root.focusRevision = focusRevision
-        onSuppressNextSelectionSoundChanged: if (root.suppressNextSelectionSound !== suppressNextSelectionSound) root.suppressNextSelectionSound = suppressNextSelectionSound
-        onRefreshedFocusedIndexChanged: if (root.refreshedFocusedIndex !== refreshedFocusedIndex) root.refreshedFocusedIndex = refreshedFocusedIndex
-        onRefreshedFocusedScoreRevisionChanged: if (root.refreshedFocusedScoreRevision !== refreshedFocusedScoreRevision) root.refreshedFocusedScoreRevision = refreshedFocusedScoreRevision
-        onRefreshedFocusedListRevisionChanged: if (root.refreshedFocusedListRevision !== refreshedFocusedListRevision) root.refreshedFocusedListRevision = refreshedFocusedListRevision
-        onRefreshedFocusedRankingModeChanged: if (root.refreshedFocusedRankingMode !== refreshedFocusedRankingMode) root.refreshedFocusedRankingMode = refreshedFocusedRankingMode
-        onLastSyncedCursorBaseIndexChanged: if (root.lastSyncedCursorBaseIndex !== lastSyncedCursorBaseIndex) root.lastSyncedCursorBaseIndex = lastSyncedCursorBaseIndex
         onFocusedStateRefreshRequested: {
             nativeNavigation.completeFocusedStateRefresh(root.refreshSelectedScoreState());
         }
@@ -351,72 +303,43 @@ Item {
             pendingWheelStepTimer.stop();
         } else {
             publishPendingFolderLamps();
-            publishBarState(true);
+            nativeNavigation.publishCursorBaseIndex(true);
         }
     }
 
-    onBarTitleTypesChanged: refreshSkinDependentCellData()
     onBarLampVariantsChanged: {
         clearSelectedDifficultyStateCache();
+        queueSelectItemScoreSummaries();
         refreshFolderLampSkinData();
     }
-    onUseBeatorajaBarTextTypesChanged: refreshSkinDependentCellData()
+    onBarTitleTypesChanged: queueSelectItemScoreSummaries()
+    onUseBeatorajaBarTextTypesChanged: queueSelectItemScoreSummaries()
     onUseBeatorajaSelectOptionsChanged: {
         selectedDetailState.clearScoreSummaryCache();
         clearSelectedDifficultyStateCache();
-        clearScoreClearStateCache();
         refreshSkinSemanticData();
     }
 
     signal openedFolder()
     signal entryChangeSoundsRequested(int count)
-    Connections {
-        target: root.updatesActive ? visualState : null
-        function onCursorBaseIndexChanged() : void {
-            root.publishCursorBaseIndex(false);
-        }
 
-        function onAnimationFinished() : void {
-            if (root.updatesActive) {
-                root.publishVisualIndex(true);
-            }
-        }
-    }
-
-    function touchList() : void {
-        listRevision += 1;
-        refreshVisibleBarEntries(true);
-    }
-
-    function touchSelection() : void {
-        nativeNavigation.touchSelection();
-    }
-
-    function flushFocusedStateRefresh() : var {
-        return nativeNavigation.refreshFocusedState();
-    }
-
-    function refreshFocusedState() : var {
-        return nativeNavigation.refreshFocusedState();
-    }
-
-    function refreshSkinDependentCellData() : void {
-        if (componentReady) {
-            updateSelectItemModelData();
-        }
+    function markListContentsChanged() : void {
+        listGeneration += 1;
+        nativeNavigation.invalidateFocusedState();
+        queueSelectItemScoreSummaries();
     }
 
     function refreshFolderLampSkinData() : void {
         if (componentReady) {
-            updateSelectItemModelData();
             refreshFolderLamps();
         }
     }
 
     function refreshSkinSemanticData() : void {
         if (componentReady) {
-            updateSelectItemModelData();
-            refreshFocusedState();
+            nativeNavigation.invalidateFocusedState();
+            nativeNavigation.refreshFocusedState();
+            queueSelectItemScoreSummaries();
             refreshFolderLamps();
         }
     }
@@ -444,66 +367,10 @@ Item {
         return Math.trunc(from + (to - from) * ((now - start) / (end - start)));
     }
 
-    function publishVisualFrame(force: var) : var {
-        return !!force && updatesActive && !suppressVisualIndexPublish;
-    }
-
-    function publishBarState(force: var) : var {
-        if (!updatesActive || suppressVisualIndexPublish) {
-            return false;
-        }
-
-        publishVisualFrame(force);
-        publishBaseIndex(force);
-        return publishCursorBaseIndex(force);
-    }
-
-    function publishBaseIndex(force: var) : var {
-        if (!updatesActive || suppressVisualIndexPublish) {
-            return false;
-        }
-        if (force) {
-            refreshVisibleBarEntries(!!force);
-            return true;
-        }
-        return false;
-    }
-
-    function publishCursorBaseIndex(force: var) : var {
-        if (!updatesActive || suppressVisualIndexPublish) {
-            return false;
-        }
-        let cursorBaseIndex = visualState.cursorBaseIndex;
-        if (force || lastSyncedCursorBaseIndex !== cursorBaseIndex) {
-            lastSyncedCursorBaseIndex = cursorBaseIndex;
-            return syncCurrentToVisual(cursorBaseIndex);
-        }
-        return false;
-    }
-
-    function publishVisualIndex(force: var) : var {
-        if (!updatesActive) {
-            return false;
-        }
-        let changed = publishVisualFrame(force);
-        if (force) {
-            publishBarState(false);
-        }
-        return changed;
-    }
-
     function setVisualIndexRaw(index: var) : void {
         suppressVisualIndexPublish = true;
         visualState.jumpTo(index);
         suppressVisualIndexPublish = false;
-    }
-
-    function currentNormalizedVisualIndex() : var {
-        return normalizedVisualIndex;
-    }
-
-    function nativeBarGraphValue(type: var) : var {
-        return barGraphValue(type);
     }
 
     function setVisualIndexImmediate(index: var) : void {
@@ -515,7 +382,7 @@ Item {
         barMoveStartMs = 0;
         barMoveEndMs = 0;
         scrollDirection = 0;
-        publishBarState();
+        nativeNavigation.publishCursorBaseIndex();
     }
 
     function beginVisualMove(durationMs: var, now: var) : var {
@@ -532,7 +399,7 @@ Item {
                                    Math.max(1, durationMs),
                                    now);
         suppressVisualIndexPublish = false;
-        return publishBarState();
+        return nativeNavigation.publishCursorBaseIndex();
     }
 
     function normalizedVisualIndexFor(index: var) : var {
@@ -572,14 +439,6 @@ Item {
         return base;
     }
 
-    function syncCurrentToVisual(cursorBaseIndex: var) : var {
-        return nativeNavigation.syncCurrentToVisual(cursorBaseIndex === undefined ? -1 : cursorBaseIndex);
-    }
-
-    function commitLogicalSelection(index: var) : var {
-        return nativeNavigation.commitLogicalSelection(index);
-    }
-
     function updateVisualIndex(now: var) : var {
         if (!updatesActive) {
             return;
@@ -588,10 +447,8 @@ Item {
         if (pendingWheelSteps !== 0) {
             let steps = pendingWheelSteps;
             pendingWheelSteps = 0;
-            applyLr2ScrollDelta(-steps, lr2WheelDuration, now, animatedTopbarFixed(now));
-            return;
+            nativeNavigation.applyLr2ScrollDelta(-steps, lr2WheelDuration, now, visualState.rawFixed);
         }
-        publishVisualIndex();
     }
 
     function queueWheelSteps(steps: var) : var {
@@ -612,7 +469,7 @@ Item {
     Component.onCompleted: {
         componentReady = true;
         if (updatesActive) {
-            publishBarState(true);
+            nativeNavigation.publishCursorBaseIndex(true);
         }
     }
 
@@ -729,13 +586,6 @@ Item {
         return "";
     }
 
-    function emptyFolderDistribution() {
-        return {
-            lamps: emptyFolderGraphLamps,
-            ranks: emptyFolderGraphRanks
-        };
-    }
-
     function normalizedNumberArray(values: var, fallback: var, wanted: var) : var {
         let source = values || fallback || [];
         let count = wanted > 0 ? wanted : source.length;
@@ -744,13 +594,6 @@ Item {
             result.push(Number(source[i] || 0));
         }
         return result;
-    }
-
-    function folderDistribution(item) {
-        let key = folderLampKey(item);
-        return key && folderDistributionByKey[key] !== undefined
-            ? folderDistributionByKey[key]
-            : emptyFolderDistribution();
     }
 
     function lr2CompatibleFolderDistribution(distribution: var) : var {
@@ -780,12 +623,6 @@ Item {
             lamps: normalizedNumberArray(lamps, emptyFolderGraphLamps, 11),
             ranks: normalizedNumberArray(ranks, emptyFolderGraphRanks, 28)
         });
-    }
-
-    function barGraphDistribution(item: var) : var {
-        return isFolderLikeForLamp(item)
-            ? normalizedFolderDistribution(folderDistribution(item))
-            : emptyFolderDistributionObject;
     }
 
     function folderScoreCountsFromSummaryCounts(counts) {
@@ -938,7 +775,7 @@ Item {
             return;
         }
 
-        let request = ++folderLampRequestRevision;
+        let requestToken = ++folderLampRequestToken;
         clearFolderLampState();
         for (let item of folderContents) {
             if (!isFolderLikeForLamp(item)) {
@@ -951,7 +788,7 @@ Item {
             }
 
             db.getScoreSummary(item).then((result) => {
-                if (request !== folderLampRequestRevision) {
+                if (requestToken !== folderLampRequestToken) {
                     return;
                 }
                 queueFolderLampSummaryResult(key, result);
@@ -967,7 +804,6 @@ Item {
         folderLampPublishQueued = false;
         folderLampByKey = ({});
         folderScoreCountsByKey = ({});
-        folderDistributionByKey = ({});
         selectItemModel.clearFolderSummaries();
     }
 
@@ -980,7 +816,7 @@ Item {
         let lamp = summary.lamp !== undefined ? summary.lamp : summary["lamp"];
         pendingFolderLampByKey[key] = folderBarLamp(lamp, counts, distribution);
         pendingFolderScoreCountsByKey[key] = folderScoreCountsFromSummaryCounts(counts);
-        pendingFolderDistributionByKey[key] = normalizedFolderDistribution(distribution || emptyFolderDistribution());
+        pendingFolderDistributionByKey[key] = normalizedFolderDistribution(distribution);
         pendingFolderLampPublishCount += 1;
         if (updatesActive && !folderLampPublishQueued) {
             folderLampPublishQueued = true;
@@ -1000,7 +836,6 @@ Item {
 
         folderLampByKey = Object.assign({}, folderLampByKey, pendingFolderLampByKey);
         folderScoreCountsByKey = Object.assign({}, folderScoreCountsByKey, pendingFolderScoreCountsByKey);
-        folderDistributionByKey = Object.assign({}, folderDistributionByKey, pendingFolderDistributionByKey);
         for (let key in pendingFolderLampByKey) {
             selectItemModel.setFolderSummary(key,
                                              pendingFolderLampByKey[key] || 0,
@@ -1011,6 +846,35 @@ Item {
         pendingFolderScoreCountsByKey = ({});
         pendingFolderDistributionByKey = ({});
         pendingFolderLampPublishCount = 0;
+    }
+
+    function queueSelectItemScoreSummaries() : void {
+        if (selectItemScoreSummaryPublishQueued) {
+            return;
+        }
+        selectItemScoreSummaryPublishQueued = true;
+        Qt.callLater(() => {
+            selectItemScoreSummaryPublishQueued = false;
+            publishSelectItemScoreSummaries();
+        });
+    }
+
+    function publishSelectItemScoreSummaries() : void {
+        selectItemModel.clearScoreSummaries();
+        for (let item of folderContents) {
+            if (!isChart(item) && !isEntry(item) && !isCourse(item)) {
+                continue;
+            }
+
+            let id = entryIdentifier(item);
+            if (!id) {
+                continue;
+            }
+
+            let summary = scoreSummaryForItem(item);
+            let lamp = clearTypeBarLamp(summary.clearType, root.barLampVariants);
+            selectItemModel.setScoreSummary(String(id), lamp, summary.rank, summary.scoreRate);
+        }
     }
 
     Component.onDestruction: {
@@ -1074,23 +938,26 @@ Item {
                 continue;
             }
 
-            let groupKey = chartDifficultyGroupKey(item);
-            if (!groups[groupKey]) {
-                groups[groupKey] = [];
-                groupOrder.push(groupKey);
+            let group = root.ensureChartGroup(groups, item);
+            if (group.length === 0) {
+                groupOrder.push({
+                    folderKey: root.chartFolderKey(item),
+                    keymodeKey: root.chartKeymodeKey(item)
+                });
             }
-            groups[groupKey].push(item);
+            group.push(item);
         }
 
         let result = passthrough.slice();
-        for (let groupKey of groupOrder) {
+        for (let groupRef of groupOrder) {
+            let group = groups[groupRef.folderKey][groupRef.keymodeKey];
             let exact = [];
             let lower = [];
             let higher = [];
             let unknown = [];
             let lowerDifficulty = 0;
             let higherDifficulty = 0;
-            for (let chart of groups[groupKey]) {
+            for (let chart of group) {
                 let difficulty = entryDifficulty(chart);
                 if (difficulty === difficultyFilter) {
                     exact.push(chart);
@@ -1402,13 +1269,14 @@ Item {
     }
 
     function handleScoresLoaded() : void {
-        scoreRevision += 1;
-        refreshFocusedState();
+        scoreGeneration += 1;
+        clearScoreLoadedStateCaches();
+        nativeNavigation.invalidateFocusedState();
+        nativeNavigation.refreshFocusedState();
         if (activeSortUsesScores()) {
             sortOrFilterChanged(scoreLoadPreferredItem());
-        } else {
-            updateSelectItemModelData();
         }
+        queueSelectItemScoreSummaries();
     }
 
     function sortOrderForSourceCount(sourceCount: var) : var {
@@ -1618,8 +1486,8 @@ Item {
         selectedOffset = 0;
         lastSyncedCursorBaseIndex = -1;
         setVisualIndexImmediate(currentIndex);
-        touchList();
-        touchSelection();
+        markListContentsChanged();
+        nativeNavigation.touchSelection();
     }
 
     function refreshPreviewFiles() : void {
@@ -1722,7 +1590,6 @@ Item {
         }
         db.getTotalStats().then((result) => {
             playerStats = result || playerStats;
-            playerStatsRevision += 1;
         });
     }
 
@@ -1766,8 +1633,8 @@ Item {
         refreshScores();
         refreshPlayerStats();
         openedFolder();
-        touchList();
-        touchSelection();
+        markListContentsChanged();
+        nativeNavigation.touchSelection();
         return folder;
     }
 
@@ -1795,8 +1662,8 @@ Item {
         refreshScores();
         refreshPlayerStats();
         openedFolder();
-        touchList();
-        touchSelection();
+        markListContentsChanged();
+        nativeNavigation.touchSelection();
     }
 
     function openRoot() : void {
@@ -1819,7 +1686,7 @@ Item {
             selectedOffset = 0;
             lastSyncedCursorBaseIndex = -1;
             setVisualIndexImmediate(0);
-            touchSelection();
+            nativeNavigation.touchSelection();
             return;
         }
         let normalized = normalizeIndex(index);
@@ -1836,7 +1703,7 @@ Item {
         scrollDirection = nowBarFixed < listTopbarFixed ? lr2ScrollUp : lr2ScrollDown;
         targetIndex = normalized;
         beginVisualMove(lr2ClickDuration, now);
-        commitLogicalSelection(normalized);
+        nativeNavigation.commitLogicalSelection(normalized);
     }
 
     function setScrollIndexImmediate(index: var) : var {
@@ -1849,7 +1716,7 @@ Item {
         currentIndex = normalized;
         targetIndex = normalized;
         setVisualIndexImmediate(normalized);
-        touchSelection();
+        nativeNavigation.touchSelection();
     }
 
     function beginScrollFixedPointDrag() : void {
@@ -1864,7 +1731,7 @@ Item {
         setVisualIndexRaw(clamped / 1000.0);
         barMoveStartMs = 0;
         barMoveEndMs = 0;
-        return publishBarState();
+        return nativeNavigation.publishCursorBaseIndex();
     }
 
     function dragScrollFixedPoint(fixedValue: var) : var {
@@ -1908,9 +1775,9 @@ Item {
         let nextIndex = normalizeIndex(rounded);
         targetIndex = nextIndex;
         let selectionTouched = beginVisualMove(durationMs !== undefined ? durationMs : 100, now);
-        let focusTouched = commitLogicalSelection(nextIndex);
+        let focusTouched = nativeNavigation.commitLogicalSelection(nextIndex);
         if (!selectionTouched && !focusTouched && oldOffset !== selectedOffset) {
-            touchSelection();
+            nativeNavigation.touchSelection();
         }
     }
 
@@ -1939,21 +1806,10 @@ Item {
         let nextIndex = normalizeIndex(rounded);
         targetIndex = nextIndex;
         let selectionTouched = beginVisualMove(durationMs !== undefined ? durationMs : 100, now);
-        let focusTouched = commitLogicalSelection(nextIndex);
+        let focusTouched = nativeNavigation.commitLogicalSelection(nextIndex);
         if (!selectionTouched && !focusTouched && (wasDragging || oldOffset !== selectedOffset)) {
-            touchSelection();
+            nativeNavigation.touchSelection();
         }
-    }
-
-    function animatedTopbarFixed(now: var) : var {
-        return visualState.rawFixed;
-    }
-
-    function applyLr2ScrollDelta(entries: var, durationMs: var, now: var, currentFixed: var) : void {
-        nativeNavigation.applyLr2ScrollDelta(entries,
-                                             durationMs,
-                                             now === undefined ? -1 : now,
-                                             currentFixed === undefined ? -2147483648 : currentFixed);
     }
 
     function scrollBy(entries: var, durationMs: var) : void {
@@ -1972,7 +1828,7 @@ Item {
         lastSyncedCursorBaseIndex = -1;
         currentIndex = normalizeIndex(visualState.baseIndex + selectedOffset);
         targetIndex = currentIndex;
-        touchSelection();
+        nativeNavigation.touchSelection();
     }
 
     function activationItem() : var {
@@ -2104,63 +1960,6 @@ Item {
         return false;
     }
 
-    function barEntry(row: var, barCenter: var) : var {
-        if (logicalCount === 0) {
-            return null;
-        }
-        return items[normalizeIndex(visualState.baseIndex + row - barCenter)];
-    }
-
-    function refreshSelectItemModel() : void {
-        selectItemModel.items = normalizedSelectModelItems(root.items);
-    }
-
-    function updateSelectItemModelData() : void {
-        selectItemModel.updateItems(normalizedSelectModelItems(root.items));
-    }
-
-    function refreshVisibleBarEntries(force: var) : void {
-        if (force) {
-            refreshSelectItemModel();
-        }
-    }
-
-    function visibleBarSlotForRow(row: var) : var {
-        return visibleBarModel.slotForRow(row);
-    }
-
-    function visibleBarEntry(row: var, fallbackBarCenter: var) : var {
-        return visibleBarModel.entryAtRow(row);
-    }
-
-    function barCellCore(entry: var) : var {
-        return normalizedSelectModelItem(entry, 0);
-    }
-
-    function barTextCellForRow(row: var) : var {
-        let slot = visibleBarModel.slotForRow(row);
-        return slot >= 0 ? visibleBarModel.cellAtSlot(slot) : null;
-    }
-
-    function updateBarTextCellForRow(cell: var, row: var) : void {
-    }
-
-    function updateBarTextCell(cell: var, row: var, entry: var) : void {
-    }
-
-    function visibleBarTextCell(slot: var) : var {
-        return visibleBarModel.cellAtSlot(slot);
-    }
-
-    function visibleBarDisplayName(row: var, fallbackBarCenter: var) : var {
-        let slot = visibleBarSlotForRow(row);
-        let cell = slot >= 0 ? visibleBarTextCell(slot) : null;
-        if (cell && cell.row === row) {
-            return cell.text || "";
-        }
-        return entryDisplayName(visibleBarEntry(row, fallbackBarCenter), true);
-    }
-
     function entryDisplayName(item: var, includeSubtitle: var) : var {
         if (!item) {
             return "";
@@ -2234,7 +2033,7 @@ Item {
                 return historyStack[i];
             }
         }
-        let item = selectedItem();
+        let item = selectedStateItem;
         return isTable(item) ? item : null;
     }
 
@@ -2248,7 +2047,7 @@ Item {
         if (isLevel(item)) {
             return item.name || "";
         }
-        let selected = selectedItem();
+        let selected = selectedStateItem;
         return isLevel(selected) ? (selected.name || "") : "";
     }
 
@@ -2376,66 +2175,21 @@ Item {
         return mask;
     }
 
-    function entryModelType(item: var) : var {
-        if (isRankingEntry(item)) {
-            return "ranking";
-        }
-        if (isChart(item)) {
-            return "chart";
-        }
-        if (isEntry(item)) {
-            return "entry";
-        }
-        if (isCourse(item)) {
-            return "course";
-        }
-        if (isTable(item)) {
-            return "table";
-        }
-        if (isLevel(item)) {
-            return "level";
-        }
-        if (typeof item === "string") {
-            return "folder";
-        }
-        return "unknown";
-    }
-
     function normalizedSelectModelItem(item: var, fallbackIndex: var) : var {
-        let summary = scoreLampRankForItem(item);
-        let distribution = barGraphDistribution(item);
-        let barLamp = isFolderLikeForLamp(item)
-            ? entryLamp(item)
-            : clearTypeBarLamp(isRankingEntry(item) ? item.bestClearType : summary.clearType,
-                               root.barLampVariants);
+        let rankingEntry = isRankingEntry(item);
+        let folderLikeForLamp = isFolderLikeForLamp(item);
         return {
             rawItem: item,
-            key: entrySelectionKey(item, fallbackIndex),
-            folderKey: isFolderLikeForLamp(item) ? folderLampKey(item) : "",
+            folderKey: folderLikeForLamp ? folderLampKey(item) : "",
             displayText: entryDisplayName(item, true),
             titleType: entryTitleType(item),
             bodyType: entryBodyType(item),
             title: entryMainTitle(item),
-            subtitle: entrySubtitle(item),
-            artist: entryArtist(item),
-            subartist: entrySubartist(item),
-            genre: entryGenre(item),
-            path: item && item.path ? item.path : "",
-            md5: item && item.md5 ? item.md5 : "",
-            sha256: item && item.sha256 ? item.sha256 : "",
-            directory: item && item.chartDirectory ? item.chartDirectory : (item && item.directory ? item.directory : ""),
-            playLevel: entryPlayLevel(item),
             difficulty: entryDifficulty(item),
-            keymode: item && item.keymode ? item.keymode : 0,
-            lamp: barLamp,
-            scoreRank: isRankingEntry(item) ? rankingEntryRank(item) : summary.rank,
+            lamp: rankingEntry ? clearTypeBarLamp(item.bestClearType, root.barLampVariants) : 0,
+            scoreRank: rankingEntry ? rankingEntryRank(item) : 0,
             labelMask: entryLabelMask(item),
-            folderLamp: isFolderLikeForLamp(item) ? entryLamp(item) : 0,
-            folderDistribution: distribution,
-            folderGraphLamps: distribution.lamps,
-            folderGraphRanks: distribution.ranks,
-            type: entryModelType(item),
-            __lr2RankingEntry: isRankingEntry(item)
+            __lr2RankingEntry: rankingEntry
         };
     }
 
@@ -2580,17 +2334,11 @@ Item {
             return "chart:" + (item.md5
                 || item.sha256
                 || item.path
-                || ((item.title || "") + "\n" + (item.subtitle || "") + "\n"
-                    + (item.artist || "") + "\n" + (item.playLevel || 0) + "\n"
-                    + (item.keymode || 0) + "\n" + (item.difficulty || 0))
                 || ("index:" + fallbackIndex));
         }
         if (isEntry(item)) {
             return "entry:" + (item.md5
                 || item.path
-                || ((item.title || "") + "\n" + (item.subtitle || "") + "\n"
-                    + (item.artist || "") + "\n" + (item.level || "") + "\n"
-                    + (item.difficulty || 0))
                 || ("index:" + fallbackIndex));
         }
         if (isCourse(item)) {
@@ -2837,66 +2585,23 @@ Item {
         };
     }
 
-    function scoreSummaryCacheKeyForIdentifier(id: var) : var {
-        if (!id) {
-            return "";
-        }
-        return String(id)
-            + "\n" + scoreRevision;
-    }
-
-    function scoreSummaryCacheKey(item: var) : var {
-        return scoreSummaryCacheKeyForIdentifier(entryIdentifier(item));
-    }
-
     function scoreSummaryForItem(item: var) : var {
-        let state = selectedState();
+        let state = selectedState;
         if ((item === state.item || item === state.chartData)
-                && state.key
-                && state.scoreRevision === scoreRevision) {
+                && selectedStateCurrent
+                && state.summary) {
             return state.summary;
         }
-        let cacheKey = scoreSummaryCacheKey(item);
-        if (cacheKey) {
-            return selectedDetailState.cachedScoreSummary(
-                        cacheKey,
+        let id = entryIdentifier(item);
+        if (id) {
+            return selectedDetailState.cachedScoreSummaryForIdentifier(
+                        String(id),
+                        scoreGeneration,
                         entryScores(item),
                         root.useBeatorajaSelectOptions,
                         root.scoreOptionIdsUsed);
         }
         return buildScoreSummary(entryScores(item));
-    }
-
-    function scoreLampRankForItem(item: var) : var {
-        return scoreSummaryForItem(item);
-    }
-
-    function scoreLampForItem(item: var) : var {
-        return scoreClearStateForItem(item).lamp;
-    }
-
-    function scoreClearStateCacheKey(item: var) : var {
-        let id = entryIdentifier(item);
-        return id ? (String(id) + "\n" + scoreRevision + "\n" + (root.useBeatorajaSelectOptions ? 1 : 0)) : "";
-    }
-
-    function scoreClearStateForItem(item: var) : var {
-        let key = scoreClearStateCacheKey(item);
-        if (key) {
-            let cached = scoreClearStateByKey[key];
-            if (cached !== undefined) {
-                return cached;
-            }
-        }
-        let clearType = getClearType(entryScores(item));
-        let state = {
-            clearType: clearType,
-            lamp: clearTypeLamp(clearType)
-        };
-        if (key) {
-            scoreClearStateByKey[key] = state;
-        }
-        return state;
     }
 
     function clearTypeOf(score: var) : var {
@@ -3199,7 +2904,7 @@ Item {
     }
 
     function ensureSelectedBestStatsTiming() : var {
-        let state = selectedState();
+        let state = selectedState;
         let summary = state.summary;
         return ensureStatsTiming(state.bestStats, summary.bestScore);
     }
@@ -3269,7 +2974,7 @@ Item {
     }
 
     function currentFolderScoreCountsOrNull() {
-        let key = folderLampKey(selectedState().item);
+        let key = folderLampKey(selectedState.item);
         return key && folderScoreCountsByKey[key] !== undefined
             ? folderScoreCountsByKey[key]
             : null;
@@ -3335,9 +3040,9 @@ Item {
     }
 
     function scoreOptionIds(item: var) : var {
-        let state = selectedState();
+        let state = selectedState;
         if ((item === state.item || item === state.chartData)
-                && state.scoreRevision === scoreRevision) {
+                && selectedStateScoreCurrent) {
             return state.scoreOptionIds || emptyScoreOptionIds;
         }
         return scoreOptionIdsFromSummary(scoreSummaryForItem(item));
@@ -3369,7 +3074,7 @@ Item {
             let key = folderLampKey(item);
             return key && folderLampByKey[key] !== undefined ? folderLampByKey[key] : 0;
         }
-        return scoreLampForItem(item);
+        return scoreSummaryForItem(item).lamp;
     }
 
     function entryClearType(item: var) : var {
@@ -3379,7 +3084,7 @@ Item {
         if (isFolderLikeForLamp(item)) {
             return "NOPLAY";
         }
-        return scoreClearStateForItem(item).clearType;
+        return scoreSummaryForItem(item).clearType;
     }
 
     function beatorajaClearOptionForClearType(clearType: var) : var {
@@ -3429,108 +3134,59 @@ Item {
             }
             return rank;
         }
-        return scoreLampRankForItem(item).rank;
+        return scoreSummaryForItem(item).rank;
     }
 
     function entryScoreRate(item: var) : var {
-        return scoreLampRankForItem(item).scoreRate;
-    }
-
-    function chartDataForItem(item: var) : var {
-        if (rankingMode && rankingBaseItem) {
-            return rankingBaseItem;
-        }
-        return (isChart(item) || isEntry(item)) ? item : null;
-    }
-
-    function selectedChartData() : var {
-        return selectedState().chartData;
-    }
-
-    function selectedItem() : var {
-        return selectedState().item;
-    }
-
-    function chartWrapperForData(chartData: var) : var {
-        return chartData || null;
-    }
-
-    function chartContentRevisionForData(stateKey: var, chartData: var) : var {
-        return String(stateKey || "");
-    }
-
-    function chartContentRevisionForState(state: var) : var {
-        if (!state) {
-            return "";
-        }
-        let chartData = state.chartWrapper && state.chartWrapper.chartData
-            ? state.chartWrapper.chartData
-            : state.chartData;
-        return chartContentRevisionForData(state.key, chartData);
-    }
-
-    function selectedChartContentRevision() : var {
-        return visualChartContentRevision;
-    }
-
-    function refreshVisualChartContentRevision(stateKey: var, chartData: var) : void {
-        let key = stateKey !== undefined ? stateKey : selectedDetailState.key;
-        let chart = chartData !== undefined ? chartData : visualChartWrapper;
-        let nextChartRevision = chartContentRevisionForData(key, chart);
-        if (visualChartContentRevision !== nextChartRevision) {
-            visualChartContentRevision = nextChartRevision;
-        }
+        return scoreSummaryForItem(item).scoreRate;
     }
 
     function refreshSelectedScoreState() : var {
         let item = focusedItem;
-        let nextChartData = chartDataForItem(item);
-        let targetItem = isRankingEntry(item) ? item : (nextChartData || item);
-        let itemKey = selectItemModel.keyAt(focusedIndex) || entrySelectionKey(item, focusedIndex);
-        let stateKey = itemKey
-            + "\n" + (rankingMode ? "R" : "S")
-            + (root.useBeatorajaSelectOptions ? "B" : "L")
-            + (root.scoreOptionIdsUsed ? "O" : "N")
-            + (root.difficultyStateUsed ? "D" : "d")
-            + (root.difficultyLampStateUsed ? "M" : "m");
-        if (targetItem !== item) {
-            stateKey += "\n" + entrySelectionKey(targetItem, focusedIndex);
-        }
-        if (selectedDetailState.key === stateKey
-                && selectedDetailState.scoreRevision === scoreRevision
-                && selectedDetailState.listRevision === listRevision) {
+        let nextChartData = focusedChartData;
+        let targetItem = focusedSelectionTarget;
+        let itemKey = focusedSelectionKey;
+        let targetItemKey = focusedSelectionTargetKey;
+        if (selectedDetailState.selectedIdentityMatches(
+                itemKey,
+                targetItemKey,
+                rankingMode,
+                scoreGeneration,
+                listGeneration,
+                root.useBeatorajaSelectOptions,
+                root.scoreOptionIdsUsed,
+                root.difficultyStateUsed,
+                root.difficultyLampStateUsed)) {
             return false;
         }
         let difficultyState = root.difficultyStateUsed ? difficultyStateForChart(nextChartData) : null;
-        if (selectedStateProxy.item !== item) {
-            selectedStateProxy.item = item;
-        }
-        if (selectedStateProxy.chartData !== nextChartData) {
-            selectedStateProxy.chartData = nextChartData;
-        }
         let targetId = entryIdentifier(targetItem);
-        let targetScoreCacheKey = scoreSummaryCacheKeyForIdentifier(targetId);
-        let targetScores = entryScoresForIdentifier(targetId);
-        let changed = selectedDetailState.refreshSelectedFromQmlValues(
-                stateKey,
-                scoreRevision,
-                listRevision,
+        let targetScores = targetId ? entryScoresForIdentifier(targetId) : emptyScoreList;
+        let changed = selectedDetailState.refreshSelectedFromQmlIdentityForIdentifier(
+                itemKey,
+                targetItemKey,
+                rankingMode,
+                scoreGeneration,
+                listGeneration,
+                item,
+                nextChartData,
                 targetScores,
-                targetScoreCacheKey,
+                targetId ? String(targetId) : "",
                 difficultyState ? (difficultyState.selectedDifficulty || 0) : 0,
                 difficultyState ? (difficultyState.counts || emptyDifficultyNumbers) : emptyDifficultyNumbers,
                 difficultyState ? (difficultyState.levels || emptyDifficultyNumbers) : emptyDifficultyNumbers,
                 difficultyState && root.difficultyLampStateUsed ? (difficultyState.lamps || emptyDifficultyNumbers) : emptyDifficultyNumbers,
                 root.useBeatorajaSelectOptions,
-                root.scoreOptionIdsUsed);
+                root.scoreOptionIdsUsed,
+                root.difficultyStateUsed,
+                root.difficultyLampStateUsed);
         if (changed) {
             let chartData = nextChartData;
-            let nextChartWrapper = chartWrapperForData(chartData);
+            let nextChartWrapper = chartData || null;
             if (visualChartWrapper !== nextChartWrapper) {
                 visualChartWrapper = nextChartWrapper;
             }
             refreshVisualChartAssetSources(chartData);
-            refreshVisualChartContentRevision(stateKey, chartData);
         }
         return changed;
     }
@@ -3582,7 +3238,7 @@ Item {
     }
 
     function rankingStatsAvailable() : var {
-        let chart = selectedChartData();
+        let chart = selectedStateChartData;
         let currentMd5 = chart ? normalizedMd5(chart.md5) : "";
         return currentMd5.length > 0
             && currentMd5 === normalizedMd5(rankingStatsMd5)
@@ -3635,7 +3291,6 @@ Item {
         rankingPlayerRank = nextPlayerRank;
         rankingPlayerCount = nextPlayerCount;
         rankingTotalPlayCount = nextTotalPlayCount;
-        rankingStatsRevision += 1;
         return true;
     }
 
@@ -3657,7 +3312,7 @@ Item {
     }
 
     function showRanking(entries: var, clearCounts: var, playerCount: var, totalPlayCount: var, playerRank: var) : var {
-        let chart = selectedChartData();
+        let chart = selectedStateChartData;
         if (!chart || !entries || entries.length <= 0) {
             return false;
         }
@@ -3674,7 +3329,7 @@ Item {
         rankingSavedFolderContents = folderContents.slice();
         rankingSavedRealItemCount = realItemCount;
         rankingSavedCurrentIndex = currentIndex;
-        rankingSavedVisualIndex = currentNormalizedVisualIndex();
+        rankingSavedVisualIndex = normalizedVisualIndex;
         rankingSavedSelectedOffset = selectedOffset;
         rankingBaseItem = chart;
 
@@ -3692,8 +3347,8 @@ Item {
         targetIndex = 0;
         selectedOffset = 0;
         setVisualIndexImmediate(0);
-        touchList();
-        touchSelection();
+        markListContentsChanged();
+        nativeNavigation.touchSelection();
         return true;
     }
 
@@ -3715,12 +3370,12 @@ Item {
         targetIndex = restoreIndex;
         selectedOffset = rankingSavedSelectedOffset;
         setVisualIndexImmediate(rankingSavedVisualIndex);
-        touchList();
-        touchSelection();
+        markListContentsChanged();
+        nativeNavigation.touchSelection();
         return true;
     }
 
-    function chartGroupKey(chart: var) : var {
+    function chartFolderKey(chart: var) : var {
         if (!chart) {
             return "";
         }
@@ -3729,13 +3384,48 @@ Item {
         return chart.chartDirectory || chart.directory || "";
     }
 
-    function chartDifficultyGroupKey(chart: var) : var {
-        if (!chart) {
-            return "";
+    function chartKeymodeKey(chart: var) : var {
+        return String(chart ? (chart.keymode || 0) : 0);
+    }
+
+    function ensureChartGroup(groups: var, chart: var) : var {
+        let folderKey = root.chartFolderKey(chart);
+        let keymodeKey = root.chartKeymodeKey(chart);
+        let folderGroups = groups[folderKey];
+        if (!folderGroups) {
+            folderGroups = {};
+            groups[folderKey] = folderGroups;
         }
-        // OpenLR2 computes the side difficulty bars per song folder and
-        // keymode. Mixing 5K/7K variants here makes the bars drift out of sync.
-        return chartGroupKey(chart) + "\n" + (chart.keymode || 0);
+        let group = folderGroups[keymodeKey];
+        if (!group) {
+            group = [];
+            folderGroups[keymodeKey] = group;
+        }
+        return group;
+    }
+
+    function chartGroupForChart(groups: var, chart: var) : var {
+        let folderGroups = groups[root.chartFolderKey(chart)];
+        return folderGroups ? (folderGroups[root.chartKeymodeKey(chart)] || []) : [];
+    }
+
+    function difficultyCacheForChart(cache: var, chart: var, create: var) : var {
+        let folderKey = root.chartFolderKey(chart);
+        let keymodeKey = root.chartKeymodeKey(chart);
+        let folderCache = cache[folderKey];
+        if (!folderCache && create) {
+            folderCache = {};
+            cache[folderKey] = folderCache;
+        }
+        if (!folderCache) {
+            return null;
+        }
+        let keymodeCache = folderCache[keymodeKey];
+        if (!keymodeCache && create) {
+            keymodeCache = {};
+            folderCache[keymodeKey] = keymodeCache;
+        }
+        return keymodeCache || null;
     }
 
     function chartDifficultyStateItemKey(chart: var) : var {
@@ -3819,24 +3509,22 @@ Item {
                 continue;
             }
 
-            let groupKey = chartDifficultyGroupKey(item);
-            if (!groups[groupKey]) {
-                groups[groupKey] = [];
+            root.ensureChartGroup(groups, item).push(item);
+        }
+
+        for (let folderGroups of Object.values(groups)) {
+            for (let group of Object.values(folderGroups)) {
+                Object.assign(difficulties, inferGroupDifficulties(group));
             }
-            groups[groupKey].push(item);
         }
 
-        for (let group of Object.values(groups)) {
-            Object.assign(difficulties, inferGroupDifficulties(group));
-        }
-
-        chartGroupsByKey = groups;
+        chartGroupsByFolderKeymode = groups;
         chartDifficultyByPath = difficulties;
         clearSelectedDifficultyStateCache();
     }
 
     function chartsForCurrentSong() : var {
-        return chartsForSong(selectedChartData());
+        return chartsForSong(selectedStateChartData);
     }
 
     function chartsForSong(chart: var) : var {
@@ -3844,8 +3532,7 @@ Item {
             return [];
         }
 
-        let groupKey = chartDifficultyGroupKey(chart);
-        let result = chartGroupsByKey[groupKey] || [];
+        let result = chartGroupForChart(chartGroupsByFolderKeymode, chart);
         if (result.length === 0) {
             result.push(chart);
         }
@@ -3879,16 +3566,24 @@ Item {
     }
 
     function difficultyGroupStateForChart(chart: var) : var {
-        let key = chartDifficultyGroupKey(chart)
-            + "\n" + (difficultyLampStateUsed ? scoreRevision : 0)
-            + "\n" + (difficultyLampStateUsed && root.useBeatorajaSelectOptions ? 1 : 0)
-            + "\n" + (difficultyLampStateUsed ? "lamps" : "plain");
-        let cached = selectedDifficultyGroupStateCache[key];
-        if (cached !== undefined) {
-            return cached;
+        let lampScoreGeneration = difficultyLampStateUsed ? scoreGeneration : 0;
+        let useBeatorajaLampState = difficultyLampStateUsed && root.useBeatorajaSelectOptions;
+        let keymodeCache = difficultyCacheForChart(selectedDifficultyGroupStateCache, chart, false);
+        let cached = keymodeCache ? keymodeCache.groupState : null;
+        if (cached !== undefined
+                && cached !== null
+                && cached.lampScoreGeneration === lampScoreGeneration
+                && cached.useBeatorajaLampState === useBeatorajaLampState
+                && cached.difficultyLampStateUsed === difficultyLampStateUsed) {
+            return cached.state;
         }
         let state = buildDifficultyGroupState(chart);
-        selectedDifficultyGroupStateCache[key] = state;
+        difficultyCacheForChart(selectedDifficultyGroupStateCache, chart, true).groupState = {
+            lampScoreGeneration: lampScoreGeneration,
+            useBeatorajaLampState: useBeatorajaLampState,
+            difficultyLampStateUsed: difficultyLampStateUsed,
+            state: state
+        };
         return state;
     }
 
@@ -3918,18 +3613,25 @@ Item {
             return emptyDifficultyState;
         }
 
-        let key = chartDifficultyGroupKey(chart)
-            + "\n" + chartDifficultyStateItemKey(chart)
-            + "\n" + (difficultyLampStateUsed ? scoreRevision : 0)
-            + "\n" + (difficultyLampStateUsed && root.useBeatorajaSelectOptions ? 1 : 0)
-            + "\n" + (difficultyLampStateUsed ? "lamps" : "plain");
-        let cached = selectedDifficultyStateCache[key];
-        if (cached !== undefined) {
-            return cached;
+        let itemKey = chartDifficultyStateItemKey(chart);
+        let lampScoreGeneration = difficultyLampStateUsed ? scoreGeneration : 0;
+        let useBeatorajaLampState = difficultyLampStateUsed && root.useBeatorajaSelectOptions;
+        let keymodeCache = difficultyCacheForChart(selectedDifficultyStateCache, chart, false);
+        let cached = keymodeCache ? keymodeCache[itemKey] : null;
+        if (cached !== undefined
+                && cached !== null
+                && cached.lampScoreGeneration === lampScoreGeneration
+                && cached.useBeatorajaLampState === useBeatorajaLampState
+                && cached.difficultyLampStateUsed === difficultyLampStateUsed) {
+            return cached.state;
         }
         let state = buildSelectedDifficultyState(chart);
-        state.key = key;
-        selectedDifficultyStateCache[key] = state;
+        difficultyCacheForChart(selectedDifficultyStateCache, chart, true)[itemKey] = {
+            lampScoreGeneration: lampScoreGeneration,
+            useBeatorajaLampState: useBeatorajaLampState,
+            difficultyLampStateUsed: difficultyLampStateUsed,
+            state: state
+        };
         return state;
     }
 
@@ -3946,7 +3648,7 @@ Item {
     }
 
     function nextChartForDifficulty(diff: var) : var {
-        let currentChart = selectedChartData();
+        let currentChart = selectedStateChartData;
         let candidates = [];
         for (let chart of chartsForCurrentSong()) {
             if (entryDifficulty(chart) === diff) {
@@ -3971,7 +3673,7 @@ Item {
             return;
         }
 
-        let currentChart = selectedChartData();
+        let currentChart = selectedStateChartData;
         let target = currentChart && entryDifficulty(currentChart) === diff
             ? nextChartForDifficulty(diff)
             : chartForDifficulty(diff);
@@ -3980,17 +3682,17 @@ Item {
     }
 
     function difficultyCount(diff: var) : var {
-        let model = selectedState().difficultyModel;
+        let model = selectedState.difficultyModel;
         return diff >= 1 && diff <= 5 && model ? model.countForDifficulty(diff) : 0;
     }
 
     function difficultyPlayLevel(diff: var) : var {
-        let model = selectedState().difficultyModel;
+        let model = selectedState.difficultyModel;
         return diff >= 1 && diff <= 5 && model ? model.playLevelForDifficulty(diff) : 0;
     }
 
     function levelBarFlashThreshold() : var {
-        let chart = selectedChartData();
+        let chart = selectedStateChartData;
         let keymode = chart ? (chart.keymode || 0) : 0;
         if (keymode === 5 || keymode === 10) {
             return 9;
@@ -4015,7 +3717,7 @@ Item {
     }
 
     function difficultyLamp(diff: var) : var {
-        let model = selectedState().difficultyModel;
+        let model = selectedState.difficultyModel;
         return diff >= 1 && diff <= 5 && model ? model.lampForDifficulty(diff) : 0;
     }
 
@@ -4112,21 +3814,12 @@ Item {
         return (chart.playLevel || 0) >= threshold ? 186 : 185;
     }
 
-    function selectedChartWrapper() : var {
-        return visualChartWrapper || chartWrapperForData(selectedState().chartData);
-    }
-
-    function selectedPreviewSource() : var {
-        let chartData = selectedChartData();
-        return chartData ? previewFiles[chartData.chartDirectory] : "";
-    }
-
     function numberValue(num: var) : var {
         return computeNumberValue(num);
     }
 
     function computeNumberValue(num: var) : var {
-        let state = selectedState();
+        let state = selectedState;
         let chartLoaded = false;
         let chartValue = null;
         let rankingEntryLoaded = false;
@@ -4582,13 +4275,13 @@ Item {
 
     function barGraphValue(type: var) : var {
         if (type === 101) {
-            return currentNormalizedVisualIndex();
+            return normalizedVisualIndex;
         }
         return computeBarGraphValue(type);
     }
 
     function computeBarGraphValue(type: var) : var {
-        let state = selectedState();
+        let state = selectedState;
         let statsLoaded = false;
         let statsValue = null;
         let chartLoaded = false;
@@ -4602,7 +4295,7 @@ Item {
         };
         let chart = () => {
             if (!chartLoaded) {
-                chartValue = selectedChartData();
+                chartValue = selectedStateChartData;
                 chartLoaded = true;
             }
             return chartValue;

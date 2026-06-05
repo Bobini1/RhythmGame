@@ -9,43 +9,30 @@ Item {
     required property var selectContext
     required property var skinModel
     required property var pointerController
+    required property var sliderState
+    required property var selectHoverState
     required property bool active
-    readonly property string replayTooltipRevision: {
-        const runtimeRevision = pointerSurface.pointerController.skinRuntime
-            ? pointerSurface.pointerController.skinRuntime.activeOptionsRevision
-            : 0;
-        return [
-            pointerSurface.screenRoot.selectRevision,
-            pointerSurface.screenRoot.selectChartContentRevision,
-            runtimeRevision
-        ].join("|");
-    }
-    readonly property var replayTooltipTarget: pointerSurface.replayTooltipRevision.length >= 0
-        && pointerSurface.active && mouseArea.containsMouse
-        ? pointerSurface.pointerController.replayTooltipTargetAt(mouseArea.mouseX, mouseArea.mouseY)
-        : null
+    readonly property var runtimeActiveOptions: pointerSurface.pointerController.skinRuntime
+        ? pointerSurface.pointerController.skinRuntime.runtimeActiveOptions
+        : []
+    property var replayTooltipTarget: null
     readonly property string replayTooltipText: pointerSurface.replayTooltipTarget
         ? pointerSurface.replayTooltipTarget.text
         : ""
-    readonly property string replayTooltipTargetKey: {
-        const target = pointerSurface.replayTooltipTarget;
-        if (!target || pointerSurface.replayTooltipText.length <= 0) {
-            return "";
-        }
-        return [
-            pointerSurface.replayTooltipRevision,
-            target.text,
-            target.x,
-            target.y,
-            target.w,
-            target.h
-        ].join("|");
-    }
+    onActiveChanged: requestReplayTooltipRefresh()
+    onRuntimeActiveOptionsChanged: requestReplayTooltipRefresh()
 
-    onReplayTooltipTargetKeyChanged: {
+    function clearReplayTooltip() : void {
         replayTooltipShowTimer.stop();
         replayTooltipPopup.displayText = "";
-        if (pointerSurface.replayTooltipTargetKey.length > 0) {
+        pointerSurface.replayTooltipTarget = null;
+    }
+
+    function requestReplayTooltipRefresh() : void {
+        pointerSurface.clearReplayTooltip();
+        if (pointerSurface.active
+                && mouseArea.containsMouse
+                && mouseArea.pressedTarget.kind === "none") {
             replayTooltipShowTimer.restart();
         }
     }
@@ -62,11 +49,16 @@ Item {
 
         property var pressedTarget: ({ kind: "none" })
 
+        onContainsMouseChanged: pointerSurface.requestReplayTooltipRefresh()
+
         onPressed: (mouse) => {
+            pointerSurface.clearReplayTooltip();
             pressedTarget = pointerSurface.pointerController.targetAt(mouse.x, mouse.y, mouse.button);
             if (pressedTarget.kind === "slider") {
                 pointerSurface.screenRoot.clearSelectSearchFocus();
-                pointerSurface.screenRoot.selectSliderFixedPoint = -1;
+                if (pointerSurface.sliderState) {
+                    pointerSurface.sliderState.selectSliderFixedPoint = -1;
+                }
                 if (pressedTarget.element.selectScroll) {
                     pointerSurface.screenRoot.selectScrollStartSkinTime = pointerSurface.screenRoot.renderSkinTime;
                     pointerSurface.selectContext.beginScrollFixedPointDrag();
@@ -87,6 +79,7 @@ Item {
         }
 
         onPositionChanged: (mouse) => {
+            pointerSurface.requestReplayTooltipRefresh();
             if (pressedTarget.kind !== "slider") {
                 return;
             }
@@ -108,6 +101,7 @@ Item {
             }
 
             pressedTarget = { kind: "none" };
+            pointerSurface.requestReplayTooltipRefresh();
             if (target.kind === "button") {
                 if (!pointerSurface.pointerController.sameTarget(target, releasedTarget)) {
                     mouse.accepted = false;
@@ -122,7 +116,7 @@ Item {
                     mouse.accepted = false;
                     return;
                 }
-                pointerSurface.screenRoot.handleBarRowClick(target.row, mouse);
+                pointerSurface.pointerController.clickBarRow(target.row, mouse);
                 mouse.accepted = true;
                 return;
             }
@@ -154,6 +148,7 @@ Item {
         onCanceled: {
             pointerSurface.pointerController.finishSlider(pressedTarget);
             pressedTarget = { kind: "none" };
+            pointerSurface.requestReplayTooltipRefresh();
         }
 
         onWheel: (wheel) => pointerSurface.screenRoot.handleSelectWheel(wheel)
@@ -197,9 +192,9 @@ Item {
         repeat: false
 
         onTriggered: {
-            if (pointerSurface.replayTooltipTargetKey.length <= 0) {
-                return;
-            }
+            pointerSurface.replayTooltipTarget = pointerSurface.active && mouseArea.containsMouse
+                ? pointerSurface.pointerController.replayTooltipTargetAt(mouseArea.mouseX, mouseArea.mouseY)
+                : null;
             replayTooltipPopup.displayText = pointerSurface.replayTooltipText;
         }
     }
@@ -210,20 +205,23 @@ Item {
             return;
         }
 
-        if (pointerSurface.screenRoot.updateSelectHoverPoint(hoverPoint.position.x, hoverPoint.position.y)) {
-            pointerSurface.screenRoot.refreshSelectHoverState();
+        if (pointerSurface.selectHoverState) {
+            pointerSurface.selectHoverState.updatePoint(hoverPoint.position.x, hoverPoint.position.y);
         }
     }
 
     HoverHandler {
         id: hoverHandler
-        enabled: pointerSurface.screenRoot.selectHoverTracking
-            && pointerSurface.screenRoot.selectHoverElementCount > 0
+        enabled: !!pointerSurface.selectHoverState
+            && pointerSurface.selectHoverState.tracking
+            && pointerSurface.selectHoverState.elementCount > 0
         target: pointerSurface
 
         onHoveredChanged: {
             if (!hovered) {
-                pointerSurface.screenRoot.clearSelectHoverPoint();
+                if (pointerSurface.selectHoverState) {
+                    pointerSurface.selectHoverState.clearPoint();
+                }
                 return;
             }
 

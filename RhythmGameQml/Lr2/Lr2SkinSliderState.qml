@@ -8,12 +8,20 @@ QtObject {
 
     required property var screenRoot
     required property var selectContext
+    required property var valueResolver
     property var optionChangeSound
+    property var skinTiming: null
 
     readonly property var root: screenRoot
+    readonly property var skinTimerLookup: skinTiming || (root ? root.skinTimingRef : null)
     property int selectSliderFixedPoint: -1
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     property Lr2SkinSliderGeometry sliderGeometry: Lr2SkinSliderGeometry {}
+    readonly property int selectScrollSpriteStateOverride: 1
+    readonly property int gameplayProgressSpriteStateOverride: 2
+    readonly property int gameplayLaneCoverSpriteStateOverride: 3
+    readonly property int numberRefSpriteStateOverride: 4
+    readonly property int genericSliderSpriteStateOverride: 5
 
     function isSelectScrollSlider(src: var) : var {
         return sliderGeometry.isSelectScrollSlider(root.effectiveScreenKey, src);
@@ -24,11 +32,11 @@ QtObject {
     }
 
     function isGameplayProgressSlider(src: var) : var {
-        return sliderGeometry.isGameplayProgressSlider(root.isGameplayScreen(), src);
+        return sliderGeometry.isGameplayProgressSlider(root.gameplayScreenActive, src);
     }
 
     function isGameplayLaneCoverSlider(src: var) : var {
-        return sliderGeometry.isGameplayLaneCoverSlider(root.isGameplayScreen(), src);
+        return sliderGeometry.isGameplayLaneCoverSlider(root.gameplayScreenActive, src);
     }
 
     function isLr2NumberRefSlider(src: var) : var {
@@ -39,18 +47,20 @@ QtObject {
         if (!src || !src.slider) {
             return null;
         }
-        let clock = skinTime === undefined
-            ? root.skinTimeForElement(src, dsts)
-            : skinTime;
         let timer = timelineResolver.firstTimerFor(dsts);
-        let liveClock = root.elementUsesLiveDstClock(dsts);
+        let liveClock = root.effectiveScreenKey === "select"
+            && (((timer >= 21 && timer <= 26) || (timer >= 31 && timer <= 36))
+                || timelineResolver.loopsContinuouslyFor(dsts));
+        let sourceLiveClock = root.effectiveScreenKey === "select"
+            && timelineResolver.sourceCyclesContinuously(src);
+        let clock = skinTime === undefined
+            ? ((liveClock || sourceLiveClock) ? root.selectSourceSkinTime : root.renderSkinTime)
+            : skinTime;
         let effectiveTimerFire = timerFire === undefined
-            ? root.skinTimerFireTime(timer, liveClock)
+            ? (skinTimerLookup ? skinTimerLookup.skinTimerFireTime(timer, liveClock) : -1)
             : timerFire;
         let effectiveActiveOptions = activeOptions === undefined
-            ? (root.dstsUseActiveOptions(dsts)
-                ? root.activeOptionsForElementDsts(dsts)
-                : root.emptyActiveOptions)
+            ? root.activeOptionsForDsts(dsts, root.runtimeActiveOptions)
             : activeOptions;
         let base = timelineResolver.stateFromTimerFire(
             dsts,
@@ -72,18 +82,20 @@ QtObject {
     }
 
     function translatedState(src: var, dsts: var, position: var, skinTime: var, timerFire: var, activeOptions: var) : var {
-        let clock = skinTime === undefined
-            ? root.skinTimeForElement(src, dsts)
-            : skinTime;
         let timer = timelineResolver.firstTimerFor(dsts);
-        let liveClock = root.elementUsesLiveDstClock(dsts);
+        let liveClock = root.effectiveScreenKey === "select"
+            && (((timer >= 21 && timer <= 26) || (timer >= 31 && timer <= 36))
+                || timelineResolver.loopsContinuouslyFor(dsts));
+        let sourceLiveClock = root.effectiveScreenKey === "select"
+            && timelineResolver.sourceCyclesContinuously(src);
+        let clock = skinTime === undefined
+            ? ((liveClock || sourceLiveClock) ? root.selectSourceSkinTime : root.renderSkinTime)
+            : skinTime;
         let effectiveTimerFire = timerFire === undefined
-            ? root.skinTimerFireTime(timer, liveClock)
+            ? (skinTimerLookup ? skinTimerLookup.skinTimerFireTime(timer, liveClock) : -1)
             : timerFire;
         let effectiveActiveOptions = activeOptions === undefined
-            ? (root.dstsUseActiveOptions(dsts)
-                ? root.activeOptionsForElementDsts(dsts)
-                : root.emptyActiveOptions)
+            ? root.activeOptionsForDsts(dsts, root.runtimeActiveOptions)
             : activeOptions;
         let base = timelineResolver.stateFromTimerFire(
             dsts,
@@ -146,13 +158,30 @@ QtObject {
         if (minValue === maxValue) {
             return 0;
         }
-        let value = root.resolveNumber(src.sliderType || 0);
+        let value = valueResolver.resolveNumber(src.sliderType || 0);
         if (minValue < maxValue) {
             return value <= minValue ? 0
                 : (value >= maxValue ? 1 : Math.abs((value - minValue) / (maxValue - minValue)));
         }
         return value <= maxValue ? 1
             : (value >= minValue ? 0 : Math.abs((value - minValue) / (maxValue - minValue)));
+    }
+
+    function positionForKind(kind: var, src: var) : var {
+        switch (kind) {
+        case selectScrollSpriteStateOverride:
+            return sliders.selectScrollPosition(src);
+        case gameplayProgressSpriteStateOverride:
+            return sliders.gameplayProgressPosition(src);
+        case gameplayLaneCoverSpriteStateOverride:
+            return sliders.gameplayLaneCoverPosition(src);
+        case numberRefSpriteStateOverride:
+            return sliders.numberRefSliderPosition(src);
+        case genericSliderSpriteStateOverride:
+            return sliders.genericPosition(src);
+        default:
+            return 0;
+        }
     }
 
     function selectScrollState(src: var, dsts: var, skinTime: var, timerFire: var, activeOptions: var) : var {

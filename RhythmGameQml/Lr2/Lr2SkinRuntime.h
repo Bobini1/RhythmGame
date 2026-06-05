@@ -26,10 +26,11 @@ class Lr2SkinRuntime : public QObject {
     Q_PROPERTY(QString screenKey READ screenKey WRITE setScreenKey NOTIFY screenKeyChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(qreal selectBarElementSortBase READ selectBarElementSortBase WRITE setSelectBarElementSortBase NOTIFY selectBarElementSortBaseChanged)
-    Q_PROPERTY(int revision READ revision NOTIFY revisionChanged)
-    Q_PROPERTY(int timerRevision READ timerRevision NOTIFY timerRevisionChanged)
-    Q_PROPERTY(int selectInfoTimerRevision READ selectInfoTimerRevision NOTIFY selectInfoTimerRevisionChanged)
-    Q_PROPERTY(int activeOptionsRevision READ activeOptionsRevision NOTIFY activeOptionsRevisionChanged)
+    Q_PROPERTY(QVariantList elementDescriptors READ elementDescriptors NOTIFY elementDescriptorsChanged)
+    Q_PROPERTY(QVariantList elementTimerStates READ elementTimerStates NOTIFY elementTimerStatesChanged)
+    Q_PROPERTY(QVariantList noteDstTimerFires READ noteDstTimerFires NOTIFY noteDstTimerFiresChanged)
+    Q_PROPERTY(QVariantList lineDstTimerFires READ lineDstTimerFires NOTIFY lineDstTimerFiresChanged)
+    Q_PROPERTY(bool noteFieldUsesActiveOptions READ noteFieldUsesActiveOptions NOTIFY noteFieldUsesActiveOptionsChanged)
 
 public:
     explicit Lr2SkinRuntime(QObject* parent = nullptr);
@@ -52,10 +53,10 @@ public:
     qreal selectBarElementSortBase() const;
     void setSelectBarElementSortBase(qreal value);
 
-    int revision() const;
-    int timerRevision() const;
-    int selectInfoTimerRevision() const;
-    int activeOptionsRevision() const;
+    QVariantList elementDescriptors() const;
+    QVariantList elementTimerStates() const;
+    QVariantList noteDstTimerFires() const;
+    QVariantList lineDstTimerFires() const;
 
     Q_INVOKABLE Lr2SkinElementDescriptorValue descriptor(int index) const;
     Q_INVOKABLE QVariantList elementActiveOptionsForElement(int index) const;
@@ -65,6 +66,8 @@ public:
     Q_INVOKABLE Lr2TimelineStateValue sliderTrackStateForElement(int index, int skinTime) const;
     Q_INVOKABLE Lr2TimelineStateValue noteDstState(int index, int skinTime) const;
     Q_INVOKABLE Lr2TimelineStateValue lineDstState(int index, int skinTime) const;
+    Q_INVOKABLE Lr2TimelineStateValue noteDstStateForTimerFire(int index, int skinTime, int timerFire) const;
+    Q_INVOKABLE Lr2TimelineStateValue lineDstStateForTimerFire(int index, int skinTime, int timerFire) const;
     Q_INVOKABLE bool noteDstStateUsesSkinTime(int index) const;
     Q_INVOKABLE bool lineDstStateUsesSkinTime(int index) const;
     Q_INVOKABLE int dstTimerFire(int index) const;
@@ -72,8 +75,7 @@ public:
     Q_INVOKABLE bool dstTimerCanFire(int index) const;
     Q_INVOKABLE bool srcTimerCanFire(int index) const;
     Q_INVOKABLE QObject* elementTimerState(int index) const;
-    Q_INVOKABLE bool noteFieldUsesActiveOptions() const;
-    Q_INVOKABLE bool noteFieldUsesTimers() const;
+    bool noteFieldUsesActiveOptions() const;
 
 signals:
     void skinModelChanged();
@@ -82,10 +84,11 @@ signals:
     void screenKeyChanged();
     void gameplayScreenChanged();
     void selectBarElementSortBaseChanged();
-    void revisionChanged();
-    void timerRevisionChanged();
-    void selectInfoTimerRevisionChanged();
-    void activeOptionsRevisionChanged();
+    void elementDescriptorsChanged();
+    void elementTimerStatesChanged();
+    void noteDstTimerFiresChanged();
+    void lineDstTimerFiresChanged();
+    void noteFieldUsesActiveOptionsChanged();
 
 private slots:
     void rebuildDescriptors();
@@ -125,8 +128,18 @@ private:
                                       const QVariantList& dstValues,
                                       const QVariantList& noteDsts) const;
     TimerSnapshot timerSnapshotFor(const ElementDescriptor& descriptor) const;
-    Lr2TimelineStateValue stateForLane(const QVector<LaneDescriptor>& lanes, int index, int skinTime) const;
+    Lr2TimelineStateValue stateForLane(const QVector<LaneDescriptor>& lanes,
+                                       const QVariantList& timerFires,
+                                       int index,
+                                       int skinTime) const;
+    Lr2TimelineStateValue stateForLaneWithTimerFire(const QVector<LaneDescriptor>& lanes,
+                                                    int index,
+                                                    int skinTime,
+                                                    int timerFire) const;
     bool laneStateUsesSkinTime(const QVector<LaneDescriptor>& lanes, int index) const;
+    int laneTimerFire(const LaneDescriptor& lane) const;
+    QVariantList timerFiresForLanes(const QVector<LaneDescriptor>& lanes) const;
+    void updateNoteFieldTimerFires();
     const ElementDescriptor* descriptorAt(int index) const;
     void updateTimerFiresForIndexes(const QVector<int>& indexes);
     void ensureElementTimerStateCount(int count);
@@ -138,10 +151,7 @@ private:
     void reconnectSkinModel();
     void reconnectTimerState();
     void refreshActiveOptions();
-    void bumpRevision();
-    void bumpTimerRevision();
-    void bumpSelectInfoTimerRevision();
-    void bumpActiveOptionsRevision();
+    void notifyElementDataChanged();
 
     QPointer<QAbstractItemModel> m_skinModel;
     QPointer<Lr2SkinTimerState> m_timerState;
@@ -159,12 +169,9 @@ private:
     QSet<int> m_noteFieldTimerIds;
     QVector<LaneDescriptor> m_noteLaneDescriptors;
     QVector<LaneDescriptor> m_lineLaneDescriptors;
+    QVariantList m_noteDstTimerFires;
+    QVariantList m_lineDstTimerFires;
     bool m_noteFieldUsesActiveOptions = false;
-    bool m_noteFieldUsesTimers = false;
-    int m_revision = 0;
-    int m_timerRevision = 0;
-    int m_selectInfoTimerRevision = 0;
-    int m_activeOptionsRevision = 0;
     QList<QMetaObject::Connection> m_skinModelConnections;
     QList<QMetaObject::Connection> m_timerStateConnections;
 };

@@ -9,7 +9,6 @@ QtObject {
 
     property string previewScreenKey: ""
     property int customOffset: 0
-    property int revision: 0
     property var metadata: ({})
     property var items: []
     property bool suppressNextClockRestart: false
@@ -124,7 +123,7 @@ QtObject {
     function previewTitle() : var {
         let screen = root.currentPreviewScreen();
         if (screen === "soundset") {
-            let vars = root.host.mainGeneralVars();
+            let vars = root.host.mainGeneralVarsRef;
             return vars ? (vars.soundset || "") : "";
         }
         let themeName = root.configuredThemeName(screen);
@@ -219,7 +218,6 @@ QtObject {
         root.metadata = ({});
         root.items = root.buildItems();
         root.customOffset = Math.max(0, Math.min(root.maxOffset(), root.customOffset));
-        ++root.revision;
     }
 
     function maxOffset() : var {
@@ -238,7 +236,6 @@ QtObject {
             return false;
         }
         root.customOffset = next;
-        ++root.revision;
         return true;
     }
 
@@ -297,12 +294,12 @@ QtObject {
             root.suppressNextClockRestart = true;
             root.host.skinSettings = refreshed;
         }
-        ++root.revision;
+        root.items = root.items.slice();
         return true;
     }
 
     function changeSoundset(delta: var) : var {
-        let vars = root.host.mainGeneralVars();
+        let vars = root.host.mainGeneralVarsRef;
         if (!vars) {
             return false;
         }

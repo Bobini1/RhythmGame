@@ -5,6 +5,7 @@
 #include "Lr2SkinClock.h"
 
 #include <QDateTime>
+#include <QVariant>
 
 #include <algorithm>
 #include <cmath>
@@ -21,6 +22,19 @@ void Lr2SkinFrameDriver::setClock(Lr2SkinClock* clock) {
     }
     m_clock = clock;
     emit clockChanged();
+}
+
+QObject* Lr2SkinFrameDriver::frameAnimation() const {
+    return m_frameAnimation;
+}
+
+void Lr2SkinFrameDriver::setFrameAnimation(QObject* animation) {
+    if (m_frameAnimation == animation) {
+        return;
+    }
+    m_frameAnimation = animation;
+    reconnectFrameAnimation();
+    emit frameAnimationChanged();
 }
 
 Lr2GameplayFrameState* Lr2SkinFrameDriver::gameplayFrameState() const {
@@ -124,4 +138,27 @@ void Lr2SkinFrameDriver::setCurrentFps(int value) {
     }
     m_currentFps = value;
     emit currentFpsChanged();
+}
+
+void Lr2SkinFrameDriver::reconnectFrameAnimation() {
+    if (m_frameAnimationConnection) {
+        QObject::disconnect(m_frameAnimationConnection);
+        m_frameAnimationConnection = {};
+    }
+    if (!m_frameAnimation) {
+        return;
+    }
+
+    m_frameAnimationConnection = QObject::connect(
+        m_frameAnimation,
+        SIGNAL(triggered()),
+        this,
+        SLOT(tickFrameAnimation()));
+}
+
+void Lr2SkinFrameDriver::tickFrameAnimation() {
+    if (!m_frameAnimation) {
+        return;
+    }
+    tick(m_frameAnimation->property("smoothFrameTime").toReal());
 }

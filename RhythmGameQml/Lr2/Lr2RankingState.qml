@@ -11,12 +11,46 @@ QtObject {
     required property var optionOpenSound
     required property var optionCloseSound
 
-    readonly property int selectFocusRevision: selectContext.focusRevision
-    readonly property var chart: {
-        root.selectFocusRevision;
-        return root.currentChart();
+    readonly property var selectChart: {
+        if (root.host.effectiveScreenKey !== "select") {
+            return null;
+        }
+
+        let selectedChart = root.selectContext.selectedStateChartData;
+        if (selectedChart) {
+            return selectedChart;
+        }
+        if (root.selectContext.rankingMode && root.selectContext.rankingBaseItem) {
+            return root.selectContext.rankingBaseItem;
+        }
+
+        let item = root.selectContext.focusedItem;
+        return item instanceof ChartData || item instanceof entry ? item : null;
     }
+    readonly property var chart: root.host.resultScreenActive
+        ? root.host.resultChartData()
+        : root.selectChart
     readonly property string md5: root.chart && root.chart.md5 ? String(root.chart.md5) : ""
+    readonly property string loadedMd5: root.rankingModel.md5 ? String(root.rankingModel.md5) : ""
+    readonly property bool modelMatchesCurrentChart: {
+        let targetMd5 = root.md5.length > 0 ? root.md5.toLowerCase() : "";
+        let modelMd5 = root.loadedMd5.length > 0 ? root.loadedMd5.toLowerCase() : "";
+        return targetMd5.length > 0 && targetMd5 === modelMd5;
+    }
+    readonly property int currentPlayerCount: root.computedPlayerCount()
+    readonly property int currentStatusOption: {
+        let targetChart = root.chart;
+        if (!targetChart || !targetChart.md5) {
+            return 600;
+        }
+        if (!root.modelMatchesCurrentChart) {
+            return root.rankingModel.loading ? 601 : 600;
+        }
+        if (root.rankingModel.loading) {
+            return 601;
+        }
+        return root.currentPlayerCount > 0 ? 602 : 603;
+    }
     property string requestMd5: ""
     property bool openWhenReady: false
     property bool internetOpenWhenReady: false
@@ -30,7 +64,7 @@ QtObject {
     property var emptyRankingEntries: []
     property int cachedSnapshotPlayerCount: -1
     property int cachedSnapshotScoreCount: -1
-    property int cachedSnapshotScoreRevision: -1
+    property int cachedSnapshotScoreGeneration: -1
     property int cachedSnapshotProvider: -1
     property int cachedSnapshotProfileUserId: -1
     readonly property int transitionDuration: 120
@@ -45,7 +79,7 @@ QtObject {
         sortBy: OnlineRankingModel.ScorePct
         sortDir: OnlineRankingModel.Desc
         provider: root.providerEnum()
-        webApiUrl: root.host.mainGeneralVars() ? root.host.mainGeneralVars().webApiUrl : ""
+        webApiUrl: root.host.mainGeneralVarsRef ? root.host.mainGeneralVarsRef.webApiUrl : ""
 
         onMd5Changed: root.handleModelChanged(false, false)
         onLoadingChanged: root.handleModelChanged(true, true)
@@ -90,25 +124,6 @@ QtObject {
         }
     }
 
-    function currentChart() : var {
-        if (root.host.isResultScreen()) {
-            return root.host.resultChartData();
-        }
-        if (root.host.effectiveScreenKey !== "select") {
-            return null;
-        }
-        let selectedChart = root.selectContext.selectedChartData();
-        if (selectedChart) {
-            return selectedChart;
-        }
-        if (root.selectContext.rankingMode && root.selectContext.rankingBaseItem) {
-            return root.selectContext.rankingBaseItem;
-        }
-
-        let item = root.selectContext.focusedItem;
-        return root.selectContext.isChart(item) || root.selectContext.isEntry(item) ? item : null;
-    }
-
     function md5ForChart(chart: var) : var {
         return chart && chart.md5 ? String(chart.md5) : "";
     }
@@ -123,14 +138,8 @@ QtObject {
     }
 
     function providerEnum() : var {
-        let vars = root.host.mainGeneralVars();
+        let vars = root.host.mainGeneralVarsRef;
         return vars ? vars.rankingProvider : OnlineRankingModel.RhythmGame;
-    }
-
-    function matchesCurrentChart() : var {
-        let targetMd5 = root.md5.length > 0 ? root.md5.toLowerCase() : "";
-        let loadedMd5 = root.rankingModel.md5 ? String(root.rankingModel.md5).toLowerCase() : "";
-        return targetMd5.length > 0 && targetMd5 === loadedMd5;
     }
 
     function refreshCurrentChartStats() : void {
@@ -142,7 +151,7 @@ QtObject {
         if (targetMd5.length <= 0) {
             return;
         }
-        if (root.requestMd5 === targetMd5 && root.matchesCurrentChart()) {
+        if (root.requestMd5 === targetMd5 && root.modelMatchesCurrentChart) {
             let entries = root.rankingModel.rankingEntries || [];
             if (Number(root.rankingModel.playerCount || 0) > 0 || entries.length > 0) {
                 root.applyStatsToSelectContext();
@@ -184,7 +193,7 @@ QtObject {
     }
 
     function buildEntries(source: var, provider: var) : var {
-        if (!root.matchesCurrentChart()) {
+        if (!root.modelMatchesCurrentChart) {
             return [];
         }
 
@@ -230,11 +239,8 @@ QtObject {
         return counts;
     }
 
-    function playerCount(entries: var) : var {
-        if (entries === undefined) {
-            return root.snapshot().playerCount;
-        }
-        if (!root.matchesCurrentChart()) {
+    function computedPlayerCount(entries: var) : var {
+        if (!root.modelMatchesCurrentChart) {
             return 0;
         }
         let count = Number(root.rankingModel.playerCount || 0);
@@ -249,6 +255,12 @@ QtObject {
             count += 1;
         }
         return count;
+    }
+
+    function playerCount(entries: var) : var {
+        return entries === undefined
+            ? root.currentPlayerCount
+            : root.computedPlayerCount(entries);
     }
 
     function totalPlayCount(entries: var) : var {
@@ -294,7 +306,7 @@ QtObject {
         let source = root.rankingModel.rankingEntries || root.emptyRankingEntries;
         let playerCountValue = Number(root.rankingModel.playerCount || 0);
         let scoreCountValue = Number(root.rankingModel.scoreCount || 0);
-        let scoreRevision = root.selectContext.scoreRevision;
+        let scoreGeneration = root.selectContext.scoreGeneration;
         let provider = root.providerEnum();
         let userId = root.profileUserId();
 
@@ -304,7 +316,7 @@ QtObject {
                 && root.cachedSnapshotEntrySource === source
                 && root.cachedSnapshotPlayerCount === playerCountValue
                 && root.cachedSnapshotScoreCount === scoreCountValue
-                && root.cachedSnapshotScoreRevision === scoreRevision
+                && root.cachedSnapshotScoreGeneration === scoreGeneration
                 && root.cachedSnapshotProvider === provider
                 && root.cachedSnapshotProfileUserId === userId) {
             return root.cachedSnapshot;
@@ -323,7 +335,7 @@ QtObject {
         root.cachedSnapshotEntrySource = source;
         root.cachedSnapshotPlayerCount = playerCountValue;
         root.cachedSnapshotScoreCount = scoreCountValue;
-        root.cachedSnapshotScoreRevision = scoreRevision;
+        root.cachedSnapshotScoreGeneration = scoreGeneration;
         root.cachedSnapshotProvider = provider;
         root.cachedSnapshotProfileUserId = userId;
         return root.cachedSnapshot;
@@ -380,7 +392,7 @@ QtObject {
         let targetChart = root.chart;
         if (root.host.effectiveScreenKey !== "select"
                 || !targetChart || !targetChart.md5
-                || !root.matchesCurrentChart()) {
+                || !root.modelMatchesCurrentChart) {
             return;
         }
         let currentSnapshot = root.snapshot();
@@ -404,20 +416,6 @@ QtObject {
                 }
             });
         }
-    }
-
-    function statusOption() : var {
-        let targetChart = root.chart;
-        if (!targetChart || !targetChart.md5) {
-            return 600;
-        }
-        if (!root.matchesCurrentChart()) {
-            return root.rankingModel.loading ? 601 : 600;
-        }
-        if (root.rankingModel.loading) {
-            return 601;
-        }
-        return root.playerCount() > 0 ? 602 : 603;
     }
 
     function startTransition(action: var) : var {
@@ -444,7 +442,7 @@ QtObject {
     }
 
     function performOpen() : var {
-        if (!root.matchesCurrentChart() || root.rankingModel.loading) {
+        if (!root.modelMatchesCurrentChart || root.rankingModel.loading) {
             return false;
         }
         let currentSnapshot = root.snapshot();
@@ -528,7 +526,7 @@ QtObject {
 
         switch (root.providerEnum()) {
         case OnlineRankingModel.RhythmGame: {
-            let vars = root.host.mainGeneralVars();
+            let vars = root.host.mainGeneralVarsRef;
             let baseUrl = vars && vars.websiteBaseUrl
                 ? String(vars.websiteBaseUrl)
                 : "https://rhythmgame.eu";
@@ -538,7 +536,7 @@ QtObject {
             return baseUrl + "/charts/" + targetMd5;
         }
         case OnlineRankingModel.Tachi: {
-            if (!root.matchesCurrentChart() || !root.rankingModel.chartId) {
+            if (!root.modelMatchesCurrentChart || !root.rankingModel.chartId) {
                 return "";
             }
             let keymode = root.tachiKeymode(chart);
@@ -574,7 +572,7 @@ QtObject {
 
         let changed = root.commitRequest(targetChart);
         if (root.providerEnum() === OnlineRankingModel.Tachi
-                && (!root.matchesCurrentChart()
+                && (!root.modelMatchesCurrentChart
                     || !root.rankingModel.chartId
                     || root.rankingModel.loading)) {
             root.internetOpenWhenReady = true;
@@ -591,7 +589,7 @@ QtObject {
         if (root.transitionPhase !== 0) {
             return true;
         }
-        if (!root.matchesCurrentChart() || root.rankingModel.loading) {
+        if (!root.modelMatchesCurrentChart || root.rankingModel.loading) {
             return false;
         }
         let currentSnapshot = root.snapshot();
@@ -620,9 +618,9 @@ QtObject {
             return false;
         }
         root.commitRequest(targetChart);
-        if (!root.matchesCurrentChart()
+        if (!root.modelMatchesCurrentChart
             || root.rankingModel.loading
-            || root.playerCount() === 0) {
+            || root.currentPlayerCount === 0) {
             return root.requestFetch(targetChart);
         }
         return root.finishOpenRanking();

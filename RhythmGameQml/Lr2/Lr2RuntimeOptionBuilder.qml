@@ -9,6 +9,11 @@ QtObject {
     required property var host
     required property var selectContext
     required property var skinModel
+    required property var rankingState
+    readonly property var runtimeUsedOptions: host.usedOptionFilterActive ? host.usedOptionLookup : null
+    readonly property bool hostGameplayScreen: host.gameplayScreenActive
+    readonly property bool hostResultScreen: host.resultScreenActive
+    readonly property var hostMainGeneralVars: host.mainGeneralVarsRef
 
     function optionLookupFor(options: var) : var {
         if (!options) {
@@ -34,7 +39,6 @@ QtObject {
             return;
         }
         options.push(option);
-        options.__key = undefined;
         lookup[option] = true;
     }
 
@@ -65,7 +69,6 @@ QtObject {
 
         options.length = writeIndex;
         options.__lookup = lookup;
-        options.__key = undefined;
     }
 
     function setRuntimeOptionRange(options: var, first: var, last: var, option: var) : void {
@@ -88,10 +91,6 @@ QtObject {
 
     function finalizeOptionList(options: var) : var {
         return host.finalizeOptionList(options);
-    }
-
-    function runtimeUsedOptionLookup() : var {
-        return host.usedOptionFilterActive ? host.usedOptionLookup : null;
     }
 
     function runtimeOptionUsed(lookup: var, option: var) : var {
@@ -148,7 +147,7 @@ QtObject {
         root.addOption(options, 572); // course editor/making mode is not supported here.
         root.addOption(options, 622); // ghost battle is not supported from select.
         root.addOption(options, 624); // rival compare is not supported from select.
-        if (host.isGameplayScreen()) {
+        if (root.hostGameplayScreen) {
             let gaugeTrophy1 = host.gameplayGaugeTrophyOption(1);
             let gaugeTrophy2 = host.gameplayGaugeTrophyOption(2);
             root.addOption(options, gaugeTrophy1);
@@ -157,9 +156,9 @@ QtObject {
     }
 
     function appendRequiredRuntimeOptions(options: var) : void {
-        let vars = host.mainGeneralVars();
+        let vars = root.hostMainGeneralVars;
         root.addRuntimeOption(options, vars && vars.bgaSize === 1 ? 31 : 30);
-        if (host.isGameplayScreen()) {
+        if (root.hostGameplayScreen) {
             root.addRuntimeOption(options, host.gameplayAutoplayActive() ? 33 : 32);
         } else {
             root.addRuntimeOption(options, 32); // autoplay off unless a launch button explicitly requests it.
@@ -182,7 +181,7 @@ QtObject {
         root.addRuntimeOption(options, 56); // 2P autoscratch/assist off.
         root.addRuntimeOption(options, 61);
         root.addRuntimeOption(options, host.clearStatusOption());
-        if (host.isGameplayScreen()) {
+        if (root.hostGameplayScreen) {
             // LR2 play skins use 80 while the chart is still loading, then
             // switch to 81 when timer 40 (READY / load complete) fires.
             root.addRuntimeOption(options, host.gameplayReadySkinTime >= 0 ? 81 : 80);
@@ -203,7 +202,7 @@ QtObject {
     }
 
     function appendChartOptions(options: var, chartData: var, fallbackItem: var) : var {
-        let usedOptions = root.runtimeUsedOptionLookup();
+        let usedOptions = root.runtimeUsedOptions;
         let allowStageFileOption = host.effectiveScreenKey !== "decide";
         let usesStageFileOption = allowStageFileOption
             && root.runtimeOptionRangeUsed(usedOptions, 190, 191);
@@ -323,7 +322,7 @@ QtObject {
     }
 
     function appendReplayOptions(options: var, chartData: var) : var {
-        if (!host.selectUsesReplayOptions()) {
+        if (!host.selectReplayOptionsUsed) {
             return;
         }
         let selectedReplayAvailable = false;
@@ -417,7 +416,7 @@ QtObject {
     }
 
     function appendEntryStatusOptions(options: var, item: var, selectedChart: var, scoreSummary: var) : var {
-        if (!host.selectUsesEntryStatusOptions()) {
+        if (!host.selectEntryStatusOptionsUsed) {
             return;
         }
         let folderLike = selectContext.isFolderLikeForLamp(item);
@@ -463,7 +462,7 @@ QtObject {
             rank = summary.rank;
         }
         let hasExactBeatorajaLamp = clearOption >= 1100
-            && root.runtimeOptionUsed(root.runtimeUsedOptionLookup(), clearOption);
+            && root.runtimeOptionUsed(root.runtimeUsedOptions, clearOption);
         if (!hasExactBeatorajaLamp && lr2Lamp >= 0 && lr2Lamp <= 5) {
             root.addOption(options, 100 + lr2Lamp);
         }
@@ -476,7 +475,7 @@ QtObject {
     }
 
     function appendCourseOptions(options: var, item: var) : var {
-        if (!selectContext.isCourse(item) || !host.selectUsesCourseDetailOptions()) {
+        if (!selectContext.isCourse(item) || !host.selectCourseDetailOptionsUsed) {
             return;
         }
         root.addOption(options, 290);
@@ -496,10 +495,10 @@ QtObject {
     }
 
     function appendDifficultyBarOptions(options: var, difficultyModel: var, selectedChart: var) : var {
-        if (!host.selectUsesDifficultyBarOptions()) {
+        if (!host.selectDifficultyBarOptionsUsed) {
             return;
         }
-        let includeLamps = host.selectUsesDifficultyLampOptions();
+        let includeLamps = host.selectDifficultyLampOptionsUsed;
         let keymode = selectedChart ? root.normalizedKeymode(selectedChart.keymode) : 0;
         if (difficultyModel) {
             let optionIds = difficultyModel.optionIdsForKeymode(keymode, includeLamps);
@@ -622,7 +621,7 @@ QtObject {
         if (timing !== 0 && judgementOption >= 0 && judgementOption !== (side === 2 ? 261 : 241)) {
             root.addOption(options, timing > 0 ? (side === 2 ? 1262 : 1242) : (side === 2 ? 1263 : 1243));
         }
-        root.addOption(options, host.gameplayPoorBgaOption(side, side === 2 ? 267 : 247));
+        root.addOption(options, side === 2 ? host.gameplayPoorBgaOption2 : host.gameplayPoorBgaOption1);
     }
 
     function appendGameplayRuntimeOptions(options: var) : void {
@@ -687,7 +686,6 @@ QtObject {
     }
 
     function appendResultRuntimeOptions(options: var) : void {
-        host.resultOldScoresRevision;
         let chartData = host.resultChartData();
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendChartOptions(options, chartData);
@@ -737,9 +735,8 @@ QtObject {
     }
 
     function appendCurrentSelectOptions(options: var, item: var, selectedChart: var, state: var) : void {
-        state = state !== undefined ? state : selectContext.selectedState();
-        let stateCurrent = state && state.scoreRevision === selectContext.scoreRevision
-            && state.listRevision === selectContext.listRevision;
+        state = state !== undefined ? state : selectContext.selectedState;
+        let stateCurrent = state === selectContext.selectedState && selectContext.selectedStateCurrent;
         let selectedItem = item || (state ? state.item : null);
         let chartData = selectedChart !== undefined ? selectedChart : (state ? state.chartData : null);
         let canUseState = stateCurrent
@@ -760,7 +757,7 @@ QtObject {
         }
 
         root.appendChartOptions(options, chartData, selectedItem);
-        if (host.selectUsesScoreOptionIds()) {
+        if (host.selectScoreOptionIdsUsed) {
             let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
             if (!scoreOptionIds) {
                 scoreOptionIds = selectContext.scoreOptionIds(selectedItem);
@@ -774,12 +771,12 @@ QtObject {
     function appendDecideOptions(options: var) : void {
         let chartData = host.chart && host.chart.chartData
             ? host.chart.chartData
-            : selectContext.selectedChartData();
+            : selectContext.selectedStateChartData;
         root.appendSelectItemTypeOptions(options, chartData);
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendEntryStatusOptions(options, chartData, chartData);
         root.appendChartOptions(options, chartData);
-        if (host.selectUsesScoreOptionIds()) {
+        if (host.selectScoreOptionIdsUsed) {
             for (let optionId of selectContext.scoreOptionIds(chartData)) {
                 root.addOption(options, optionId);
             }
@@ -819,11 +816,11 @@ QtObject {
     }
 
     function appendRankingStatusOptions(result: var) : var {
-        if (!host.selectUsesRankingStatusOptions()) {
+        if (!host.selectRankingStatusOptionsUsed) {
             return;
         }
-        root.addOption(result, host.lr2RankingStatusOption());
-        let rankingCount = host.lr2RankingPlayerCount();
+        root.addOption(result, rankingState.currentStatusOption);
+        let rankingCount = rankingState.currentPlayerCount;
         if (rankingCount === 0) {
             root.addOption(result, 610);
         }
@@ -863,15 +860,10 @@ QtObject {
     }
 
     function buildSelectGeneratedRuntimeActiveOptions() : var {
-        let state = selectContext.selectedState();
-        let stateCurrent = state
-            && state.scoreRevision === selectContext.scoreRevision
-            && state.listRevision === selectContext.listRevision;
+        let stateCurrent = selectContext.selectedStateCurrent;
+        let state = stateCurrent ? selectContext.selectedState : null;
         let item = stateCurrent ? state.item : selectContext.focusedItem;
-        let chartData = stateCurrent ? state.chartData : selectContext.chartDataForItem(item);
-        if (!chartData && state) {
-            chartData = state.chartData;
-        }
+        let chartData = stateCurrent ? state.chartData : selectContext.focusedChartData;
         let result = root.copyActiveOptions([]);
         root.appendCurrentSelectOptions(result, item, chartData, state);
         return result;
@@ -892,10 +884,10 @@ QtObject {
         if (host.effectiveScreenKey === "decide") {
             root.appendCommonRuntimeOptions(result);
             root.appendDecideOptions(result);
-        } else if (host.isGameplayScreen()) {
+        } else if (root.hostGameplayScreen) {
             root.appendCommonRuntimeOptions(result);
             root.appendGameplayRuntimeOptions(result);
-        } else if (host.isResultScreen()) {
+        } else if (root.hostResultScreen) {
             root.appendCommonRuntimeOptions(result);
             root.appendResultRuntimeOptions(result);
         } else {

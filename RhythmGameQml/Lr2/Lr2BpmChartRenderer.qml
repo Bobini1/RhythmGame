@@ -15,10 +15,7 @@ Item {
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property var chart
-    property string chartRevision: ""
     property real scaleOverride: 1.0
-    property string cachedDataRevision: ""
-    property var cachedSpeedData: []
 
     readonly property bool hasStaticTimelineState: timelineState.canUseStaticState
     readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
@@ -71,16 +68,9 @@ Item {
         if (!chart) {
             return null;
         }
-        chartRevision;
         return chartWithBpmData(chart.chartData) || chartWithBpmData(chart);
     }
-    readonly property string dataRevision: chartData
-        ? (String(chartData.md5 || "")
-           + ":" + String(chartData.length || 0)
-           + ":" + String(chartData.mainBpm || 0)
-           + ":" + String(chartData.minBpm || 0)
-           + ":" + String(chartData.maxBpm || 0))
-        : ""
+    readonly property var speedData: buildSpeedData(chartData)
 
     function lineColor(speed: var, minSpeed: var, maxSpeed: var, mainSpeed: var) : var {
         if (speed <= 0) {
@@ -125,15 +115,6 @@ Item {
         return result;
     }
 
-    function updateCachedSpeedData() : var {
-        if (cachedDataRevision === dataRevision) {
-            return;
-        }
-
-        cachedDataRevision = dataRevision;
-        cachedSpeedData = buildSpeedData(chartData);
-    }
-
     function graphY(speed: var, mainSpeed: var, height: var, lineWidth: var) : var {
         let minValue = 1.0 / 8.0;
         let maxValue = 8.0;
@@ -173,8 +154,7 @@ Item {
                 return;
             }
 
-            root.updateCachedSpeedData();
-            let data = root.cachedSpeedData;
+            let data = root.speedData;
             if (data.length === 0) {
                 return;
             }
@@ -223,7 +203,7 @@ Item {
 
     onChartChanged: requestChartPaint()
     onChartDataChanged: requestChartPaint()
-    onDataRevisionChanged: requestChartPaint()
+    onSpeedDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
     onRevealChanged: requestChartPaint()

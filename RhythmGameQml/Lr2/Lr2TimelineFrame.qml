@@ -1,12 +1,10 @@
 import QtQuick
 import RhythmGameQml
-import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 QtObject {
     id: frame
 
     property var dsts: []
-    property var srcData: null
     property int skinTime: 0
     property var skinClock: null
     property int skinClockMode: 0
@@ -17,8 +15,6 @@ QtObject {
 
     property var stateOverride: null
     property bool forceHidden: false
-    property var screenRoot: null
-    property bool screenDstOffsetsEnabled: false
 
     property bool sliderTranslationEnabled: false
     property real sliderPosition: 0
@@ -67,41 +63,25 @@ QtObject {
 
     readonly property var directState: forceHidden ? null : (stateOverride || staticState)
     readonly property bool hasDirectState: !!directState
-    readonly property bool hasTimelineState: !forceHidden && timelineState.hasState
-    readonly property bool hasScreenDstOffsets: screenDstOffsetsEnabled
-        && !!screenRoot
-        && !!screenRoot.applyLr2DstOffsets
-        && dsts
-        && dsts.length > 0
-        && dsts[0]
-        && dsts[0].offsets
-        && dsts[0].offsets.length > 0
-    readonly property var stateBeforeScreenOffsets: hasScreenDstOffsets
-        ? (directState || (hasTimelineState ? timelineState.state : null))
-        : null
-    readonly property var state: hasScreenDstOffsets
-        ? screenRoot.applyLr2DstOffsets(
-            stateBeforeScreenOffsets,
-            dsts,
-            srcData ? srcData.side || 0 : 0)
-        : directState
-    readonly property bool hasState: hasScreenDstOffsets ? !!state : (hasDirectState || hasTimelineState)
+    readonly property bool hasTimelineState: !forceHidden && !hasDirectState && timelineState.hasState
+    readonly property var state: directState
+    readonly property bool hasState: hasDirectState || hasTimelineState
 
     readonly property real x: state ? (state.x || 0) : (hasTimelineState ? timelineState.stateX : 0)
     readonly property real y: state ? (state.y || 0) : (hasTimelineState ? timelineState.stateY : 0)
     readonly property real w: state ? (state.w || 0) : (hasTimelineState ? timelineState.stateW : 0)
     readonly property real h: state ? (state.h || 0) : (hasTimelineState ? timelineState.stateH : 0)
     readonly property real a: state
-        ? Lr2SkinUtils.stateValue(state, "a", 255)
+        ? (state.a === undefined || state.a === null ? 255 : state.a)
         : (hasTimelineState ? timelineState.stateA : 0)
     readonly property real r: state
-        ? Lr2SkinUtils.stateValue(state, "r", 255)
+        ? (state.r === undefined || state.r === null ? 255 : state.r)
         : (hasTimelineState ? timelineState.stateR : 255)
     readonly property real g: state
-        ? Lr2SkinUtils.stateValue(state, "g", 255)
+        ? (state.g === undefined || state.g === null ? 255 : state.g)
         : (hasTimelineState ? timelineState.stateG : 255)
     readonly property real b: state
-        ? Lr2SkinUtils.stateValue(state, "b", 255)
+        ? (state.b === undefined || state.b === null ? 255 : state.b)
         : (hasTimelineState ? timelineState.stateB : 255)
     readonly property real angle: state ? (state.angle || 0) : (hasTimelineState ? timelineState.stateAngle : 0)
     readonly property int center: state ? (state.center || 0) : (hasTimelineState ? timelineState.stateCenter : 0)
@@ -109,13 +89,28 @@ QtObject {
     readonly property int filter: state ? (state.filter || 0) : (hasTimelineState ? timelineState.stateFilter : 0)
     readonly property int op4: state ? (state.op4 || 0) : (hasTimelineState ? timelineState.stateOp4 : 0)
 
-    readonly property int blendMode: Lr2SkinUtils.normalizedBlendMode(
-        hasState ? blend : 1,
-        colorKeyEnabled,
-        supportsInvertedBlend)
-    readonly property real tintR: hasState ? Lr2SkinUtils.colorComponent(r) : 1.0
-    readonly property real tintG: hasState ? Lr2SkinUtils.colorComponent(g) : 1.0
-    readonly property real tintB: hasState ? Lr2SkinUtils.colorComponent(b) : 1.0
+    readonly property int rawBlendMode: hasState ? blend : 1
+    readonly property int blendMode: {
+        if (rawBlendMode === 0 && !colorKeyEnabled) {
+            return 1;
+        }
+        if (rawBlendMode === 5 || rawBlendMode === 6) {
+            return 2;
+        }
+        if (rawBlendMode === 10 && !supportsInvertedBlend) {
+            return 1;
+        }
+        if (rawBlendMode === 3
+                || rawBlendMode === 4
+                || rawBlendMode === 9
+                || rawBlendMode === 11) {
+            return 1;
+        }
+        return rawBlendMode;
+    }
+    readonly property real tintR: hasState ? Math.max(0, Math.min(255, r)) / 255.0 : 1.0
+    readonly property real tintG: hasState ? Math.max(0, Math.min(255, g)) / 255.0 : 1.0
+    readonly property real tintB: hasState ? Math.max(0, Math.min(255, b)) / 255.0 : 1.0
     readonly property bool hasColorTint: Math.abs(tintR - 1.0) > 0.001
         || Math.abs(tintG - 1.0) > 0.001
         || Math.abs(tintB - 1.0) > 0.001

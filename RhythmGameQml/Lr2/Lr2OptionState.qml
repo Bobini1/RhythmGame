@@ -186,11 +186,10 @@ QtObject {
         return 0;
     }
 
-    function mainGeneralVars() {
-        return Rg.profileList && Rg.profileList.mainProfile
+    readonly property var mainGeneralVarsValue: Rg.profileList && Rg.profileList.mainProfile
             ? Rg.profileList.mainProfile.vars.generalVars
-            : null;
-    }
+            : null
+
 
     function profileForSide(side) {
         if (side === 2 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player2Profile) {
@@ -436,19 +435,19 @@ QtObject {
     }
 
     readonly property int lr2HiSpeedFixIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars ? root.indexOfValue(root.lr2HiSpeedFixValues, vars.hiSpeedFix) : 0;
     }
 
     function setHiSpeedFixIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.hiSpeedFix = root.wrappedListValue(root.lr2HiSpeedFixValues, index);
         }
     }
 
     readonly property int lr2BattleIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (Rg.profileList.battleActive) {
             return 1;
         }
@@ -487,7 +486,7 @@ QtObject {
     }
 
     function setBattleIndex(index: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         let normalized = root.wrapValue(index, root.lr2BattleLabels.length);
         if (!vars) {
             return;
@@ -504,7 +503,7 @@ QtObject {
     }
 
     readonly property int lr2DpOptionIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (Rg.profileList.battleActive || (vars && vars.dpOptions === DpOptions.Battle)) {
             return 2;
         }
@@ -515,7 +514,7 @@ QtObject {
     }
 
     function setDpOptionIndex(index: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return;
         }
@@ -535,12 +534,12 @@ QtObject {
     }
 
     readonly property int lr2FlipIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars && vars.dpOptions === DpOptions.Flip ? 1 : 0;
     }
 
     function setFlipIndex(index: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return;
         }
@@ -553,12 +552,12 @@ QtObject {
     }
 
     readonly property int lr2LaneCoverIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars && vars.laneCoverOn ? 1 : 0;
     }
 
     function setLaneCoverIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.laneCoverOn = root.wrapValue(index, 2) === 1;
         }
@@ -572,36 +571,36 @@ QtObject {
     }
 
     readonly property int lr2BgaIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars && !vars.bgaOn ? 1 : 0;
     }
 
     readonly property int lr2BeatorajaBgaIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars && !vars.bgaOn ? 2 : 0;
     }
 
     function setBgaIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.bgaOn = root.wrapValue(index, 2) === 0;
         }
     }
 
     readonly property int lr2BgaSizeIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars ? Math.max(0, Math.min(1, vars.bgaSize || 0)) : 0;
     }
 
     function setBgaSizeIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.bgaSize = root.wrapValue(index, root.lr2BgaSizeLabels.length);
         }
     }
 
     readonly property int lr2GaugeAutoShiftIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return 0;
         }
@@ -615,7 +614,7 @@ QtObject {
     }
 
     function setGaugeAutoShiftIndex(index: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return;
         }
@@ -634,12 +633,12 @@ QtObject {
     }
 
     readonly property int lr2BottomShiftableGaugeIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars ? root.indexOfValue(root.lr2BottomShiftableGaugeValues, vars.bottomShiftableGauge) : 0;
     }
 
     function setBottomShiftableGaugeIndex(index: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return false;
         }
@@ -671,41 +670,41 @@ QtObject {
     }
 
     readonly property int lr2ScoreGraphIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars && vars.scoreGraphEnabled === false ? 0 : 1;
     }
 
     function setScoreGraphIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.scoreGraphEnabled = root.wrapValue(index, 2) === 1;
         }
     }
 
     readonly property int lr2GhostIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
     }
 
     function setGhostIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.ghostPosition = root.wrapValue(index, root.lr2GhostLabels.length);
         }
     }
 
-    function lr2BgaEnabled() : var {
-        let vars = root.mainGeneralVars();
+    readonly property bool lr2BgaEnabled: {
+        let vars = root.mainGeneralVarsValue;
         return !vars || vars.bgaOn !== false;
     }
 
     readonly property int lr2ScoreTargetIndex: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars ? root.indexOfValueOr(root.lr2TargetValues, vars.scoreTarget, -1) : -1;
     }
 
     function setScoreTargetIndex(index: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.scoreTarget = root.wrappedListValue(root.lr2TargetValues, index);
         }
@@ -737,7 +736,7 @@ QtObject {
     }
 
     function beatorajaTargetIndexForFractions(fractions: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return -1;
         }
@@ -770,7 +769,7 @@ QtObject {
     }
 
     function setBeatorajaTargetIndex(index: var, sourceCount: var) : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return;
         }
@@ -861,12 +860,12 @@ QtObject {
     }
 
     readonly property int lr2TargetPercent: {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
     }
 
     function setTargetPercent(percent: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.targetScoreFraction = Math.max(0, Math.min(1, Math.floor(percent) / 100));
         }
@@ -981,14 +980,14 @@ QtObject {
     }
 
     function adjustOffset(delta: var) : void {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (vars) {
             vars.offset = Math.max(-500, Math.min(500, (vars.offset || 0) + delta));
         }
     }
 
     function clearStatusOption() : var {
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         if (!vars) {
             return 64;
         }
@@ -1017,7 +1016,7 @@ QtObject {
 
     function isLoggedIn() : var {
         let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
-        let vars = root.mainGeneralVars();
+        let vars = root.mainGeneralVarsValue;
         let provider = vars ? vars.rankingProvider : OnlineRankingModel.RhythmGame;
         if (provider === OnlineRankingModel.LR2IR) {
             return true;

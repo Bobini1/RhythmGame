@@ -11,6 +11,8 @@ QtObject {
 
     readonly property int searchTextId: 30
     readonly property var host: screenRoot
+    property var skinTiming: null
+    readonly property var skinTimerLookup: skinTiming || (host ? host.skinTimingRef : null)
     property var inputItem: null
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property bool focused: !!searchState.inputItem && searchState.inputItem.activeFocus
@@ -45,11 +47,14 @@ QtObject {
             return null;
         }
         let timer = timelineResolver.firstTimerFor(dsts);
+        let timerFire = searchState.skinTimerLookup && searchState.skinTimerLookup.skinTimerFireTime
+            ? searchState.skinTimerLookup.skinTimerFireTime(timer)
+            : -1;
         let state = timelineResolver.stateFromTimerFire(
             dsts,
             host.renderSkinTime,
-            host.skinTimerFireTime(timer),
-            host.activeOptionsForElementDsts(dsts));
+            timerFire,
+            host.activeOptionsForDsts(dsts, host.runtimeActiveOptions));
         return state && state.valid ? state : null;
     }
 

@@ -2,7 +2,10 @@
 
 #include "Lr2SelectBarCell.h"
 #include "gameplay_logic/ChartData.h"
+#include "resource_managers/Tables.h"
 
+#include <QMetaProperty>
+#include <QMetaType>
 #include <QObject>
 
 #include <algorithm>
@@ -19,38 +22,130 @@ gameplay_logic::ChartData* chartDataObject(const QVariant& value) {
 	return nullptr;
 }
 
-QVariantMap chartDataMap(gameplay_logic::ChartData* chartData) {
-	if (!chartData) {
-		return {};
-	}
-	return {
-		{QStringLiteral("type"), QStringLiteral("chart")},
-		{QStringLiteral("title"), chartData->getTitle()},
-		{QStringLiteral("subtitle"), chartData->getSubtitle()},
-		{QStringLiteral("artist"), chartData->getArtist()},
-		{QStringLiteral("subartist"), chartData->getSubartist()},
-		{QStringLiteral("genre"), chartData->getGenre()},
-		{QStringLiteral("path"), chartData->getPath()},
-		{QStringLiteral("md5"), chartData->getMd5()},
-		{QStringLiteral("sha256"), chartData->getSha256()},
-		{QStringLiteral("directory"), chartData->getDirectory()},
-		{QStringLiteral("chartDirectory"), chartData->getChartDirectory()},
-		{QStringLiteral("playLevel"), chartData->getPlayLevel()},
-		{QStringLiteral("difficulty"), chartData->getDifficulty()},
-		{QStringLiteral("keymode"), static_cast<int>(chartData->getKeymode())},
-		{QStringLiteral("rank"), chartData->getRank()},
-		{QStringLiteral("duration"), static_cast<qint64>(chartData->getLength())},
-		{QStringLiteral("minBpm"), chartData->getMinBpm()},
-		{QStringLiteral("maxBpm"), chartData->getMaxBpm()},
-		{QStringLiteral("mainBpm"), chartData->getMainBpm()},
-	};
-}
-
-QVariantMap objectToMap(const QVariant& value) {
+QVariantMap mapFromVariant(const QVariant& value) {
 	if (value.canConvert<QVariantMap>()) {
 		return value.toMap();
 	}
-	return chartDataMap(chartDataObject(value));
+	return {};
+}
+
+QVariant mapFieldValue(const QVariantMap& map, const QString& key) {
+	const auto it = map.constFind(key);
+	if (it != map.constEnd()) {
+		return *it;
+	}
+	if (key == QStringLiteral("duration")) {
+		const auto lengthIt = map.constFind(QStringLiteral("length"));
+		if (lengthIt != map.constEnd()) {
+			return *lengthIt;
+		}
+	}
+	if (key == QStringLiteral("playLevel")) {
+		const auto levelIt = map.constFind(QStringLiteral("level"));
+		if (levelIt != map.constEnd()) {
+			return *levelIt;
+		}
+	}
+	return {};
+}
+
+QObject* objectFromVariant(const QVariant& value) {
+	if (auto* object = value.value<QObject*>()) {
+		return object;
+	}
+	return chartDataObject(value);
+}
+
+QVariant objectFieldValue(const QVariant& value, const QString& key) {
+	QObject* object = objectFromVariant(value);
+	if (!object) {
+		return {};
+	}
+
+	QByteArray propertyNameBytes = key.toLatin1();
+	QVariant field = object->property(propertyNameBytes.constData());
+	if (!field.isValid() && key == QStringLiteral("duration")) {
+		propertyNameBytes = QByteArrayLiteral("length");
+		field = object->property(propertyNameBytes.constData());
+	}
+	return field.isValid() ? field : QVariant {};
+}
+
+QVariant gadgetFieldValue(const QVariant& value, const QString& key) {
+	if (!value.isValid() || value.isNull() || objectFromVariant(value)) {
+		return {};
+	}
+
+	const QMetaObject* metaObject = value.metaType().metaObject();
+	if (!metaObject) {
+		return {};
+	}
+
+	QByteArray propertyNameBytes = key.toLatin1();
+	int propertyIndex = metaObject->indexOfProperty(propertyNameBytes.constData());
+	if (propertyIndex < 0 && key == QStringLiteral("playLevel")) {
+		propertyNameBytes = QByteArrayLiteral("level");
+		propertyIndex = metaObject->indexOfProperty(propertyNameBytes.constData());
+	}
+	if (propertyIndex < 0) {
+		return {};
+	}
+
+	const QMetaProperty property = metaObject->property(propertyIndex);
+	const void* gadget = value.constData();
+	if (value.metaType().flags().testFlag(QMetaType::PointerToGadget)) {
+		gadget = *static_cast<void* const*>(value.constData());
+	}
+	if (!gadget) {
+		return {};
+	}
+
+	const QVariant field = property.readOnGadget(gadget);
+	return field.isValid() ? field : QVariant {};
+}
+
+QVariant variantFieldValue(const QVariant& value, const QString& key) {
+	if (!value.isValid() || value.isNull()) {
+		return {};
+	}
+
+	const QVariantMap map = mapFromVariant(value);
+	if (!map.isEmpty()) {
+		const QVariant field = mapFieldValue(map, key);
+		if (field.isValid()) {
+			return field;
+		}
+	}
+
+	const QVariant objectField = objectFieldValue(value, key);
+	if (objectField.isValid()) {
+		return objectField;
+	}
+	return gadgetFieldValue(value, key);
+}
+
+template<typename T>
+bool variantHasType(const QVariant& value) {
+	const QMetaType expectedType = QMetaType::fromType<T>();
+	return value.isValid()
+		&& !value.isNull()
+		&& (value.metaType().id() == expectedType.id()
+			|| value.metaType().metaObject() == expectedType.metaObject());
+}
+
+Lr2SelectItemModel::ItemKind resourceItemKind(const QVariant& value) {
+	if (variantHasType<resource_managers::Entry>(value)) return Lr2SelectItemModel::EntryKind;
+	if (variantHasType<resource_managers::Course>(value)) return Lr2SelectItemModel::CourseKind;
+	if (variantHasType<resource_managers::Table>(value)) return Lr2SelectItemModel::TableKind;
+	if (variantHasType<resource_managers::Level>(value)) return Lr2SelectItemModel::LevelKind;
+	return Lr2SelectItemModel::UnknownKind;
+}
+
+Lr2SelectItemModel::ItemKind kindFromFolderKey(const QString& key) {
+	if (key.startsWith(QStringLiteral("table:"))) return Lr2SelectItemModel::TableKind;
+	if (key.startsWith(QStringLiteral("level:"))) return Lr2SelectItemModel::LevelKind;
+	if (key.startsWith(QStringLiteral("folder:"))) return Lr2SelectItemModel::FolderKind;
+	return Lr2SelectItemModel::UnknownKind;
 }
 
 QString normalizedFolderName(QString path) {
@@ -119,7 +214,6 @@ QHash<int, QByteArray> Lr2SelectItemModel::roleNames() const {
 		{LabelMaskRole, "labelMask"},
 		{FolderLampRole, "folderLamp"},
 		{FolderScoreCountsRole, "folderScoreCounts"},
-		{FolderDistributionRole, "folderDistribution"},
 		{FolderGraphLampsRole, "folderGraphLamps"},
 		{FolderGraphRanksRole, "folderGraphRanks"},
 		{IsChartRole, "isChart"},
@@ -143,6 +237,14 @@ QVariantList Lr2SelectItemModel::items() const {
 }
 
 void Lr2SelectItemModel::setItems(const QVariantList& items) {
+	if (items.size() == m_items.size()) {
+		updateExistingItems(items);
+		return;
+	}
+	replaceItems(items);
+}
+
+void Lr2SelectItemModel::replaceItems(const QVariantList& items) {
 	beginResetModel();
 	m_items.clear();
 	m_items.reserve(items.size());
@@ -154,6 +256,7 @@ void Lr2SelectItemModel::setItems(const QVariantList& items) {
 	endResetModel();
 	emit itemsChanged();
 	emit currentIndexChanged();
+	emit currentItemChanged();
 }
 
 int Lr2SelectItemModel::currentIndex() const {
@@ -168,6 +271,15 @@ void Lr2SelectItemModel::setCurrentIndex(int index) {
 	}
 	m_currentIndex = next;
 	emit currentIndexChanged();
+	emit currentItemChanged();
+}
+
+QVariant Lr2SelectItemModel::currentItem() const {
+	return rawItemAt(m_currentIndex);
+}
+
+QString Lr2SelectItemModel::currentKey() const {
+	return keyAt(m_currentIndex);
 }
 
 QVariant Lr2SelectItemModel::rawItemAt(int row) const {
@@ -178,32 +290,24 @@ QString Lr2SelectItemModel::keyAt(int row) const {
 	return row >= 0 && row < m_items.size() ? m_items.at(row).key : QString();
 }
 
-int Lr2SelectItemModel::normalizedIndex(int row) const {
-	if (m_items.isEmpty()) {
-		return 0;
-	}
-	const int count = m_items.size();
-	const int remainder = row % count;
-	return remainder < 0 ? remainder + count : remainder;
-}
-
 void Lr2SelectItemModel::moveRowTo(int from, int to) {
 	if (from < 0 || from >= m_items.size() || to < 0 || to >= m_items.size() || from == to) {
 		return;
 	}
+	const bool currentItemMoved = m_currentIndex >= std::min(from, to)
+		&& m_currentIndex <= std::max(from, to);
 	const int destination = to > from ? to + 1 : to;
 	if (!beginMoveRows({}, from, from, {}, destination)) {
 		return;
 	}
 	m_items.move(from, to);
 	endMoveRows();
+	if (currentItemMoved) {
+		emit currentItemChanged();
+	}
 }
 
-void Lr2SelectItemModel::updateItems(const QVariantList& items) {
-	if (items.size() != m_items.size()) {
-		setItems(items);
-		return;
-	}
+void Lr2SelectItemModel::updateExistingItems(const QVariantList& items) {
 	if (items.isEmpty()) {
 		return;
 	}
@@ -217,6 +321,8 @@ void Lr2SelectItemModel::updateItems(const QVariantList& items) {
 		roles.append(it.key());
 	}
 	emit dataChanged(index(0, 0), index(m_items.size() - 1, 0), roles);
+	emit itemsChanged();
+	emit currentItemChanged();
 }
 
 void Lr2SelectItemModel::clearFolderSummaries() {
@@ -229,7 +335,6 @@ void Lr2SelectItemModel::clearFolderSummaries() {
 		LampRole,
 		FolderLampRole,
 		FolderScoreCountsRole,
-		FolderDistributionRole,
 		FolderGraphLampsRole,
 		FolderGraphRanksRole,
 	};
@@ -273,7 +378,6 @@ void Lr2SelectItemModel::setFolderSummary(const QString& key,
 		LampRole,
 		FolderLampRole,
 		FolderScoreCountsRole,
-		FolderDistributionRole,
 		FolderGraphLampsRole,
 		FolderGraphRanksRole,
 	};
@@ -295,6 +399,77 @@ void Lr2SelectItemModel::setFolderSummary(const QString& key,
 		item.folderScoreCounts = summary.scoreCounts;
 		item.folderGraphLamps = summary.graphLamps;
 		item.folderGraphRanks = summary.graphRanks;
+		if (firstChanged < 0) {
+			firstChanged = row;
+		}
+		lastChanged = row;
+	}
+	if (firstChanged >= 0) {
+		emit dataChanged(index(firstChanged, 0), index(lastChanged, 0), changedRoles);
+	}
+}
+
+void Lr2SelectItemModel::clearScoreSummaries() {
+	QList<int> changedRoles {
+		LampRole,
+		ScoreRankRole,
+		ScoreRateRole,
+	};
+	int firstChanged = -1;
+	int lastChanged = -1;
+	for (int row = 0; row < m_items.size(); ++row) {
+		Item& item = m_items[row];
+		if (item.kind != ChartKind && item.kind != EntryKind && item.kind != CourseKind) {
+			continue;
+		}
+		if (item.lamp == 0 && item.scoreRank == 0 && item.scoreRate == 0.0) {
+			continue;
+		}
+		item.lamp = 0;
+		item.scoreRank = 0;
+		item.scoreRate = 0.0;
+		if (firstChanged < 0) {
+			firstChanged = row;
+		}
+		lastChanged = row;
+	}
+	if (firstChanged >= 0) {
+		emit dataChanged(index(firstChanged, 0), index(lastChanged, 0), changedRoles);
+	}
+}
+
+void Lr2SelectItemModel::setScoreSummary(const QString& identifier,
+										 int lamp,
+										 int scoreRank,
+										 double scoreRate) {
+	if (identifier.isEmpty()) {
+		return;
+	}
+
+	const int normalizedLamp = std::max(0, lamp);
+	const int normalizedRank = std::max(0, scoreRank);
+	const double normalizedRate = std::max(0.0, scoreRate);
+	QList<int> changedRoles {
+		LampRole,
+		ScoreRankRole,
+		ScoreRateRole,
+	};
+	int firstChanged = -1;
+	int lastChanged = -1;
+	for (int row = 0; row < m_items.size(); ++row) {
+		Item& item = m_items[row];
+		if (item.scoreIdentifier != identifier) {
+			continue;
+		}
+		const bool changed = item.lamp != normalizedLamp
+			|| item.scoreRank != normalizedRank
+			|| item.scoreRate != normalizedRate;
+		if (!changed) {
+			continue;
+		}
+		item.lamp = normalizedLamp;
+		item.scoreRank = normalizedRank;
+		item.scoreRate = normalizedRate;
 		if (firstChanged < 0) {
 			firstChanged = row;
 		}
@@ -356,11 +531,12 @@ bool Lr2SelectItemModel::populateBarCell(int sourceRow, int visualRow, Lr2Select
 
 Lr2SelectItemModel::Item Lr2SelectItemModel::itemFromVariant(const QVariant& value, int fallbackIndex) const {
 	Item item;
-	item.map = objectToMap(value);
+	item.map = mapFromVariant(value);
 	const QVariant rawItem = item.map.value(QStringLiteral("rawItem"));
 	item.raw = rawItem.isValid() && !rawItem.isNull() ? rawItem : value;
 	item.kind = kindFor(value, item.map);
 	item.folderKey = stringField(value, item.map, "folderKey");
+	item.scoreIdentifier = scoreIdentifierFor(value, item.map, item.kind);
 	item.titleType = intField(value, item.map, "titleType");
 	item.bodyType = intField(value, item.map, "bodyType");
 	item.title = stringField(value, item.map, "title");
@@ -410,6 +586,18 @@ Lr2SelectItemModel::Item Lr2SelectItemModel::itemFromVariant(const QVariant& val
 	return item;
 }
 
+QString Lr2SelectItemModel::scoreIdentifierFor(const QVariant& value, const QVariantMap& map, ItemKind kind) {
+	switch (kind) {
+	case ChartKind:
+	case EntryKind:
+		return stringField(value, map, "md5");
+	case CourseKind:
+		return stringField(value, map, "identifier");
+	default:
+		return {};
+	}
+}
+
 void Lr2SelectItemModel::applyFolderSummary(Item& item) const {
 	if (item.folderKey.isEmpty()) {
 		return;
@@ -443,10 +631,19 @@ Lr2SelectItemModel::FolderSummary Lr2SelectItemModel::folderSummaryFromValues(
 }
 
 QVariant Lr2SelectItemModel::fieldValue(const QVariant& value, const QVariantMap& map, const char* name) {
-	Q_UNUSED(value);
 	const QString key = QString::fromLatin1(name);
-	const auto it = map.constFind(key);
-	return it != map.constEnd() ? *it : QVariant {};
+	const QVariant mapField = mapFieldValue(map, key);
+	if (mapField.isValid()) {
+		return mapField;
+	}
+	const QVariant rawItem = map.value(QStringLiteral("rawItem"));
+	if (rawItem.isValid() && !rawItem.isNull()) {
+		const QVariant rawField = variantFieldValue(rawItem, key);
+		if (rawField.isValid()) {
+			return rawField;
+		}
+	}
+	return variantFieldValue(value, key);
 }
 
 QVariantList Lr2SelectItemModel::listField(const QVariant& value, const QVariantMap& map, const char* name) {
@@ -484,11 +681,27 @@ Lr2SelectItemModel::ItemKind Lr2SelectItemModel::kindFor(const QVariant& value, 
 	if (boolField(value, map, "__lr2RankingEntry")) {
 		return RankingKind;
 	}
-	if (value.typeId() == QMetaType::QString) {
+	const QVariant rawItem = map.value(QStringLiteral("rawItem"));
+	if (map.contains(QStringLiteral("rawItem")) && (!rawItem.isValid() || rawItem.isNull())) {
+		return EmptyKind;
+	}
+	if (value.typeId() == QMetaType::QString || rawItem.typeId() == QMetaType::QString) {
 		return FolderKind;
 	}
-	if (chartDataObject(value)) {
+	if (chartDataObject(value) || chartDataObject(rawItem)) {
 		return ChartKind;
+	}
+	const ItemKind rawResourceKind = resourceItemKind(rawItem);
+	if (rawResourceKind != UnknownKind) {
+		return rawResourceKind;
+	}
+	const ItemKind resourceKind = resourceItemKind(value);
+	if (resourceKind != UnknownKind) {
+		return resourceKind;
+	}
+	const ItemKind folderKeyKind = kindFromFolderKey(stringField(value, map, "folderKey"));
+	if (folderKeyKind != UnknownKind) {
+		return folderKeyKind;
 	}
 	const QString type = stringField(value, map, "type").toLower();
 	if (type == QStringLiteral("chart")) return ChartKind;
@@ -532,43 +745,63 @@ QString Lr2SelectItemModel::keyFor(const QVariant& value, const QVariantMap& map
 	if (!explicitKey.isEmpty()) {
 		return explicitKey;
 	}
+	const QString fallbackKey = QStringLiteral("index:%1").arg(fallbackIndex);
 	switch (kind) {
 	case EmptyKind:
-		return QStringLiteral("empty:%1").arg(fallbackIndex);
+		return QStringLiteral("empty");
 	case RankingKind:
 		return QStringLiteral("ranking:%1:%2")
 			.arg(stringField(value, map, "sourceMd5"))
 			.arg(intField(value, map, "rankingIndex"));
-	case ChartKind:
+	case ChartKind: {
+		const QString md5 = stringField(value, map, "md5");
+		const QString sha256 = stringField(value, map, "sha256");
+		const QString path = stringField(value, map, "path");
 		return QStringLiteral("chart:%1").arg(
-			!stringField(value, map, "md5").isEmpty() ? stringField(value, map, "md5")
-			: !stringField(value, map, "path").isEmpty() ? stringField(value, map, "path")
-			: QString::number(fallbackIndex));
-	case EntryKind:
-		return QStringLiteral("entry:%1").arg(
-			!stringField(value, map, "md5").isEmpty() ? stringField(value, map, "md5")
-			: !stringField(value, map, "path").isEmpty() ? stringField(value, map, "path")
-			: QString::number(fallbackIndex));
-	case CourseKind:
-		return QStringLiteral("course:%1").arg(
-			!stringField(value, map, "identifier").isEmpty() ? stringField(value, map, "identifier")
-			: !stringField(value, map, "name").isEmpty() ? stringField(value, map, "name")
-			: QString::number(fallbackIndex));
-	case TableKind:
-		return QStringLiteral("table:%1").arg(
-			!stringField(value, map, "url").isEmpty() ? stringField(value, map, "url")
-			: !stringField(value, map, "name").isEmpty() ? stringField(value, map, "name")
-			: QString::number(fallbackIndex));
-	case LevelKind:
-		return QStringLiteral("level:%1").arg(
-			!stringField(value, map, "name").isEmpty() ? stringField(value, map, "name")
-			: QString::number(fallbackIndex));
-	case FolderKind:
-		return QStringLiteral("folder:%1").arg(value.toString());
-	case UnknownKind:
-		return QStringLiteral("item:%1").arg(fallbackIndex);
+			!md5.isEmpty() ? md5
+			: !sha256.isEmpty() ? sha256
+			: !path.isEmpty() ? path
+			: fallbackKey);
 	}
-	return QStringLiteral("item:%1").arg(fallbackIndex);
+	case EntryKind: {
+		const QString md5 = stringField(value, map, "md5");
+		const QString path = stringField(value, map, "path");
+		return QStringLiteral("entry:%1").arg(
+			!md5.isEmpty() ? md5
+			: !path.isEmpty() ? path
+			: fallbackKey);
+	}
+	case CourseKind: {
+		const QString identifier = stringField(value, map, "identifier");
+		const QString name = stringField(value, map, "name");
+		return QStringLiteral("course:%1").arg(
+			!identifier.isEmpty() ? identifier
+			: !name.isEmpty() ? name
+			: fallbackKey);
+	}
+	case TableKind: {
+		const QString url = stringField(value, map, "url");
+		const QString name = stringField(value, map, "name");
+		return QStringLiteral("table:%1").arg(
+			!url.isEmpty() ? url
+			: !name.isEmpty() ? name
+			: fallbackKey);
+	}
+	case LevelKind: {
+		const QString folderKey = stringField(value, map, "folderKey");
+		const QString name = stringField(value, map, "name");
+		return QStringLiteral("level:%1").arg(
+			!folderKey.isEmpty() ? folderKey
+			: !name.isEmpty() ? name
+			: fallbackKey);
+	}
+	case FolderKind:
+		return QStringLiteral("folder:%1").arg(
+			value.typeId() == QMetaType::QString ? value.toString() : stringField(value, map, "rawItem"));
+	case UnknownKind:
+		return QStringLiteral("item:%1").arg(fallbackKey);
+	}
+	return QStringLiteral("item:%1").arg(fallbackKey);
 }
 
 QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
@@ -606,11 +839,6 @@ QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	case LabelMaskRole: return item.labelMask;
 	case FolderLampRole: return item.folderLamp;
 	case FolderScoreCountsRole: return item.folderScoreCounts;
-	case FolderDistributionRole:
-		return QVariantMap {
-			{QStringLiteral("lamps"), item.folderGraphLamps},
-			{QStringLiteral("ranks"), item.folderGraphRanks},
-		};
 	case FolderGraphLampsRole: return item.folderGraphLamps;
 	case FolderGraphRanksRole: return item.folderGraphRanks;
 	case IsChartRole: return item.kind == ChartKind;

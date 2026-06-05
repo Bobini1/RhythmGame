@@ -3,6 +3,7 @@
 #include "Lr2SelectVisualState.h"
 
 #include <QObject>
+#include <QMetaObject>
 #include <QPointer>
 #include <QtQml/qqmlregistration.h>
 
@@ -23,15 +24,7 @@ class Lr2SelectNavigationController : public QObject {
     Q_PROPERTY(bool updatesActive READ updatesActive WRITE setUpdatesActive NOTIFY updatesActiveChanged)
     Q_PROPERTY(bool suppressVisualIndexPublish READ suppressVisualIndexPublish WRITE setSuppressVisualIndexPublish NOTIFY suppressVisualIndexPublishChanged)
     Q_PROPERTY(int scrollDirection READ scrollDirection WRITE setScrollDirection NOTIFY scrollDirectionChanged)
-    Q_PROPERTY(int listRevision READ listRevision WRITE setListRevision NOTIFY listRevisionChanged)
-    Q_PROPERTY(int selectionRevision READ selectionRevision WRITE setSelectionRevision NOTIFY selectionRevisionChanged)
-    Q_PROPERTY(int focusRevision READ focusRevision WRITE setFocusRevision NOTIFY focusRevisionChanged)
-    Q_PROPERTY(int scoreRevision READ scoreRevision WRITE setScoreRevision NOTIFY scoreRevisionChanged)
     Q_PROPERTY(bool suppressNextSelectionSound READ suppressNextSelectionSound WRITE setSuppressNextSelectionSound NOTIFY suppressNextSelectionSoundChanged)
-    Q_PROPERTY(int refreshedFocusedIndex READ refreshedFocusedIndex WRITE setRefreshedFocusedIndex NOTIFY refreshedFocusedIndexChanged)
-    Q_PROPERTY(int refreshedFocusedScoreRevision READ refreshedFocusedScoreRevision WRITE setRefreshedFocusedScoreRevision NOTIFY refreshedFocusedScoreRevisionChanged)
-    Q_PROPERTY(int refreshedFocusedListRevision READ refreshedFocusedListRevision WRITE setRefreshedFocusedListRevision NOTIFY refreshedFocusedListRevisionChanged)
-    Q_PROPERTY(bool refreshedFocusedRankingMode READ refreshedFocusedRankingMode WRITE setRefreshedFocusedRankingMode NOTIFY refreshedFocusedRankingModeChanged)
     Q_PROPERTY(int lastSyncedCursorBaseIndex READ lastSyncedCursorBaseIndex WRITE setLastSyncedCursorBaseIndex NOTIFY lastSyncedCursorBaseIndexChanged)
     Q_PROPERTY(bool rankingMode READ rankingMode WRITE setRankingMode NOTIFY rankingModeChanged)
     Q_PROPERTY(int logicalCount READ logicalCount WRITE setLogicalCount NOTIFY logicalCountChanged)
@@ -79,32 +72,8 @@ public:
     int scrollDirection() const;
     void setScrollDirection(int value);
 
-    int listRevision() const;
-    void setListRevision(int value);
-
-    int selectionRevision() const;
-    void setSelectionRevision(int value);
-
-    int focusRevision() const;
-    void setFocusRevision(int value);
-
-    int scoreRevision() const;
-    void setScoreRevision(int value);
-
     bool suppressNextSelectionSound() const;
     void setSuppressNextSelectionSound(bool value);
-
-    int refreshedFocusedIndex() const;
-    void setRefreshedFocusedIndex(int value);
-
-    int refreshedFocusedScoreRevision() const;
-    void setRefreshedFocusedScoreRevision(int value);
-
-    int refreshedFocusedListRevision() const;
-    void setRefreshedFocusedListRevision(int value);
-
-    bool refreshedFocusedRankingMode() const;
-    void setRefreshedFocusedRankingMode(bool value);
 
     int lastSyncedCursorBaseIndex() const;
     void setLastSyncedCursorBaseIndex(int value);
@@ -131,6 +100,8 @@ public:
     Q_INVOKABLE bool touchSelection();
     Q_INVOKABLE bool commitLogicalSelection(int index);
     Q_INVOKABLE bool syncCurrentToVisual(int cursorBaseIndex = -1);
+    Q_INVOKABLE bool publishCursorBaseIndex(bool force = false);
+    Q_INVOKABLE void invalidateFocusedState();
     Q_INVOKABLE void applyLr2ScrollDelta(qreal entries, int durationMs, qreal nowMs = -1.0, int currentFixed = std::numeric_limits<int>::min());
     Q_INVOKABLE void scrollBy(qreal entries, int durationMs = -1);
     Q_INVOKABLE void scrollByKey(qreal entries, bool repeated);
@@ -151,15 +122,7 @@ signals:
     void updatesActiveChanged();
     void suppressVisualIndexPublishChanged();
     void scrollDirectionChanged();
-    void listRevisionChanged();
-    void selectionRevisionChanged();
-    void focusRevisionChanged();
-    void scoreRevisionChanged();
     void suppressNextSelectionSoundChanged();
-    void refreshedFocusedIndexChanged();
-    void refreshedFocusedScoreRevisionChanged();
-    void refreshedFocusedListRevisionChanged();
-    void refreshedFocusedRankingModeChanged();
     void lastSyncedCursorBaseIndexChanged();
     void rankingModeChanged();
     void logicalCountChanged();
@@ -168,6 +131,7 @@ signals:
     void lr2ScrollUpChanged();
     void lr2ScrollDownChanged();
     void focusedStateRefreshRequested();
+    void focusedStateChanged();
     void entryChangeSoundsRequested(int count);
 
 private:
@@ -177,9 +141,11 @@ private:
     bool visualMoveActive() const;
     void emitEntryChangeSoundsRequested(int count);
     bool beginVisualMove(int durationMs, qreal nowMs);
-    bool publishCursorBaseIndex(bool force);
+    void connectVisualStateSignals();
 
     QPointer<Lr2SelectVisualState> m_visualState;
+    QMetaObject::Connection m_visualCursorConnection;
+    QMetaObject::Connection m_visualAnimationConnection;
     int m_currentIndex = 0;
     int m_targetIndex = 0;
     int m_selectedOffset = 0;
@@ -191,15 +157,10 @@ private:
     bool m_updatesActive = true;
     bool m_suppressVisualIndexPublish = false;
     int m_scrollDirection = 0;
-    int m_listRevision = 0;
-    int m_selectionRevision = 0;
-    int m_focusRevision = 0;
-    int m_scoreRevision = 0;
     bool m_suppressNextSelectionSound = false;
-    int m_refreshedFocusedIndex = -1;
-    int m_refreshedFocusedScoreRevision = -1;
-    int m_refreshedFocusedListRevision = -1;
-    bool m_refreshedFocusedRankingMode = false;
+    int m_cachedFocusedStateIndex = -1;
+    bool m_cachedFocusedStateRankingMode = false;
+    bool m_focusedStateDirty = false;
     int m_lastSyncedCursorBaseIndex = -1;
     bool m_rankingMode = false;
     int m_logicalCount = 0;

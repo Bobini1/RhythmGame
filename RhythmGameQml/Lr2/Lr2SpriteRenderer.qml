@@ -44,14 +44,13 @@ Item {
     property bool mediaActive: true
     property real scratchAngle1: 0
     property real scratchAngle2: 0
-    property var screenRoot: null
+    property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
 
-    readonly property bool hasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
+    readonly property bool hasFrameAnimation: sourceHasFrameAnimation
 
     Lr2TimelineFrame {
         id: drawState
         dsts: root.dsts
-        srcData: root.srcData
         skinTime: root.skinTime
         skinClock: root.skinClock
         skinClockMode: root.skinClockMode
@@ -61,10 +60,6 @@ Item {
         timerFire: root.timerFire
         stateOverride: root.stateOverride
         forceHidden: root.forceHidden
-        screenRoot: root.screenRoot
-        screenDstOffsetsEnabled: !root.dstOffsetsEnabled
-            && root.screenRoot
-            && root.screenRoot.gameplayScreenActive
         sliderTranslationEnabled: root.sliderTranslationEnabled
         sliderPosition: root.sliderPosition
         sliderRange: root.sliderRange

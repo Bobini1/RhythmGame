@@ -43,6 +43,18 @@ const Lr2SelectScoreSummaryData& emptyScoreSummaryData() {
 	return emptySummary;
 }
 
+Lr2SelectScoreSummaryCacheKey scoreSummaryCacheKeyForIdentifier(const QString& identifier,
+																int scoreGeneration) {
+	return {
+		.identifier = identifier,
+		.scoreGeneration = scoreGeneration,
+	};
+}
+
+bool isValidScoreSummaryCacheKey(const Lr2SelectScoreSummaryCacheKey& cacheKey) {
+	return !cacheKey.identifier.isEmpty();
+}
+
 enum class ClearKind {
 	Noplay,
 	Failed,
@@ -972,25 +984,18 @@ Lr2SelectDetailState::Lr2SelectDetailState(QObject* parent)
 	, m_summary(this)
 	, m_difficultyModel(this) {}
 
-QString Lr2SelectDetailState::key() const { return m_key; }
-void Lr2SelectDetailState::setKey(const QString& value) {
-	if (m_key == value) return;
-	m_key = value;
-	emit keyChanged();
+int Lr2SelectDetailState::scoreGeneration() const { return m_scoreGeneration; }
+void Lr2SelectDetailState::setScoreGeneration(int value) {
+	if (m_scoreGeneration == value) return;
+	m_scoreGeneration = value;
+	emit scoreGenerationChanged();
 }
 
-int Lr2SelectDetailState::scoreRevision() const { return m_scoreRevision; }
-void Lr2SelectDetailState::setScoreRevision(int value) {
-	if (m_scoreRevision == value) return;
-	m_scoreRevision = value;
-	emit scoreRevisionChanged();
-}
-
-int Lr2SelectDetailState::listRevision() const { return m_listRevision; }
-void Lr2SelectDetailState::setListRevision(int value) {
-	if (m_listRevision == value) return;
-	m_listRevision = value;
-	emit listRevisionChanged();
+int Lr2SelectDetailState::listGeneration() const { return m_listGeneration; }
+void Lr2SelectDetailState::setListGeneration(int value) {
+	if (m_listGeneration == value) return;
+	m_listGeneration = value;
+	emit listGenerationChanged();
 }
 
 QVariant Lr2SelectDetailState::item() const { return m_item; }
@@ -1036,21 +1041,51 @@ Lr2SelectDifficultyModel* Lr2SelectDetailState::difficultyModel() {
 	return &m_difficultyModel;
 }
 
-bool Lr2SelectDetailState::refreshMatches(const QString& key,
-										  int scoreRevision,
-										  int listRevision,
-										  bool useBeatorajaSemantics,
-										  bool buildScoreOptionIds) const {
-	return m_key == key
-		&& m_scoreRevision == scoreRevision
-		&& m_listRevision == listRevision
+bool Lr2SelectDetailState::selectedRefreshMatches(const QString& itemKey,
+												  const QString& targetItemKey,
+												  bool rankingMode,
+												  int scoreGeneration,
+												  int listGeneration,
+												  bool useBeatorajaSemantics,
+												  bool buildScoreOptionIds,
+												  bool difficultyStateUsed,
+												  bool difficultyLampStateUsed) const {
+	return m_selectedIdentityValid
+		&& m_selectedItemKey == itemKey
+		&& m_selectedTargetItemKey == targetItemKey
+		&& m_selectedRankingMode == rankingMode
+		&& m_scoreGeneration == scoreGeneration
+		&& m_listGeneration == listGeneration
 		&& m_useBeatorajaSemantics == useBeatorajaSemantics
-		&& m_buildScoreOptionIds == buildScoreOptionIds;
+		&& m_buildScoreOptionIds == buildScoreOptionIds
+		&& m_selectedDifficultyStateUsed == difficultyStateUsed
+		&& m_selectedDifficultyLampStateUsed == difficultyLampStateUsed;
 }
 
-bool Lr2SelectDetailState::applyRefreshData(const QString& key,
-											int scoreRevision,
-											int listRevision,
+void Lr2SelectDetailState::rememberSelectedIdentity(const QString& itemKey,
+													const QString& targetItemKey,
+													bool rankingMode,
+													bool difficultyStateUsed,
+													bool difficultyLampStateUsed) {
+	m_selectedIdentityValid = true;
+	m_selectedItemKey = itemKey;
+	m_selectedTargetItemKey = targetItemKey;
+	m_selectedRankingMode = rankingMode;
+	m_selectedDifficultyStateUsed = difficultyStateUsed;
+	m_selectedDifficultyLampStateUsed = difficultyLampStateUsed;
+}
+
+void Lr2SelectDetailState::clearSelectedIdentity() {
+	m_selectedIdentityValid = false;
+	m_selectedItemKey.clear();
+	m_selectedTargetItemKey.clear();
+	m_selectedRankingMode = false;
+	m_selectedDifficultyStateUsed = true;
+	m_selectedDifficultyLampStateUsed = true;
+}
+
+bool Lr2SelectDetailState::applyRefreshData(int scoreGeneration,
+											int listGeneration,
 											const QVariant& item,
 											const QVariant& chartData,
 											bool useBeatorajaSemantics,
@@ -1059,17 +1094,13 @@ bool Lr2SelectDetailState::applyRefreshData(const QString& key,
 	m_useBeatorajaSemantics = useBeatorajaSemantics;
 	m_buildScoreOptionIds = buildScoreOptionIds;
 
-	if (m_key != key) {
-		m_key = key;
-		emit keyChanged();
+	if (m_scoreGeneration != scoreGeneration) {
+		m_scoreGeneration = scoreGeneration;
+		emit scoreGenerationChanged();
 	}
-	if (m_scoreRevision != scoreRevision) {
-		m_scoreRevision = scoreRevision;
-		emit scoreRevisionChanged();
-	}
-	if (m_listRevision != listRevision) {
-		m_listRevision = listRevision;
-		emit listRevisionChanged();
+	if (m_listGeneration != listGeneration) {
+		m_listGeneration = listGeneration;
+		emit listGenerationChanged();
 	}
 	if (m_item != item) {
 		m_item = item;
@@ -1095,12 +1126,12 @@ bool Lr2SelectDetailState::applyRefreshData(const QString& key,
 }
 
 const Lr2SelectScoreSummaryData& Lr2SelectDetailState::cachedScoreSummaryData(
-	const QString& cacheKey,
+	const Lr2SelectScoreSummaryCacheKey& cacheKey,
 	const QJSValue& scoreList,
 	bool useBeatorajaSemantics,
 	bool buildScoreOptionIds) {
 	ensureScoreSummaryCacheSemantics(useBeatorajaSemantics, buildScoreOptionIds);
-	if (cacheKey.isEmpty()) {
+	if (!isValidScoreSummaryCacheKey(cacheKey)) {
 		return emptyScoreSummaryData();
 	}
 
@@ -1120,12 +1151,15 @@ const Lr2SelectScoreSummaryData& Lr2SelectDetailState::cachedScoreSummaryData(
 	return it->data;
 }
 
-QObject* Lr2SelectDetailState::cachedScoreSummary(const QString& cacheKey,
-												  QJSValue scoreList,
-												  bool useBeatorajaSemantics,
-												  bool buildScoreOptionIds) {
+QObject* Lr2SelectDetailState::cachedScoreSummaryForIdentifier(const QString& identifier,
+															   int scoreGeneration,
+															   QJSValue scoreList,
+															   bool useBeatorajaSemantics,
+															   bool buildScoreOptionIds) {
+	const Lr2SelectScoreSummaryCacheKey cacheKey = scoreSummaryCacheKeyForIdentifier(identifier,
+																					scoreGeneration);
 	ensureScoreSummaryCacheSemantics(useBeatorajaSemantics, buildScoreOptionIds);
-	if (cacheKey.isEmpty()) {
+	if (!isValidScoreSummaryCacheKey(cacheKey)) {
 		return nullptr;
 	}
 
@@ -1174,69 +1208,60 @@ void Lr2SelectDetailState::ensureScoreSummaryCacheSemantics(bool useBeatorajaSem
 	m_scoreSummaryCacheBuildScoreOptionIds = buildScoreOptionIds;
 }
 
-bool Lr2SelectDetailState::refresh(const QString& key,
-								   int scoreRevision,
-								   int listRevision,
-								   const QVariant& item,
-								   const QVariant& chartData,
-								   const QVariantList& scoreList,
-								   int selectedDifficulty,
-								   const QVariantList& difficultyCounts,
-								   const QVariantList& difficultyLevels,
-								   const QVariantList& difficultyLamps,
-								   bool useBeatorajaSemantics,
-								   bool buildScoreOptionIds) {
-	if (refreshMatches(key,
-					   scoreRevision,
-					   listRevision,
-					   useBeatorajaSemantics,
-					   buildScoreOptionIds)) {
-		return false;
-	}
-
-	const Lr2SelectScoreSummaryData scoreSummary = buildScoreSummaryData(scoreList,
-																		 useBeatorajaSemantics,
-																		 buildScoreOptionIds);
-	m_difficultyModel.setRows(difficultyCounts,
-							  difficultyLevels,
-							  difficultyLamps,
-							  selectedDifficulty,
-							  scoreSummary.lamp);
-
-	return applyRefreshData(key,
-							scoreRevision,
-							listRevision,
-							item,
-							chartData,
-							useBeatorajaSemantics,
-							buildScoreOptionIds,
-							scoreSummary);
+bool Lr2SelectDetailState::selectedIdentityMatches(const QString& itemKey,
+												   const QString& targetItemKey,
+												   bool rankingMode,
+												   int scoreGeneration,
+												   int listGeneration,
+												   bool useBeatorajaSemantics,
+												   bool buildScoreOptionIds,
+												   bool difficultyStateUsed,
+												   bool difficultyLampStateUsed) const {
+	return selectedRefreshMatches(itemKey,
+								  targetItemKey,
+								  rankingMode,
+								  scoreGeneration,
+								  listGeneration,
+								  useBeatorajaSemantics,
+								  buildScoreOptionIds,
+								  difficultyStateUsed,
+								  difficultyLampStateUsed);
 }
 
-bool Lr2SelectDetailState::refreshFromQmlValues(const QString& key,
-												int scoreRevision,
-												int listRevision,
-												QJSValue item,
-												QJSValue chartData,
-												QJSValue scoreList,
-												const QString& scoreCacheKey,
-												int selectedDifficulty,
-												QJSValue difficultyCounts,
-												QJSValue difficultyLevels,
-												QJSValue difficultyLamps,
-												bool useBeatorajaSemantics,
-												bool buildScoreOptionIds) {
-	if (refreshMatches(key,
-					   scoreRevision,
-					   listRevision,
-					   useBeatorajaSemantics,
-					   buildScoreOptionIds)) {
+bool Lr2SelectDetailState::refreshSelectedFromQmlIdentityForIdentifier(const QString& itemKey,
+																	   const QString& targetItemKey,
+																	   bool rankingMode,
+																	   int scoreGeneration,
+																	   int listGeneration,
+																	   QJSValue item,
+																	   QJSValue chartData,
+																	   QJSValue scoreList,
+																	   const QString& scoreIdentifier,
+																	   int selectedDifficulty,
+																	   QJSValue difficultyCounts,
+																	   QJSValue difficultyLevels,
+																	   QJSValue difficultyLamps,
+																	   bool useBeatorajaSemantics,
+																	   bool buildScoreOptionIds,
+																	   bool difficultyStateUsed,
+																	   bool difficultyLampStateUsed) {
+	if (selectedRefreshMatches(itemKey,
+							   targetItemKey,
+							   rankingMode,
+							   scoreGeneration,
+							   listGeneration,
+							   useBeatorajaSemantics,
+							   buildScoreOptionIds,
+							   difficultyStateUsed,
+							   difficultyLampStateUsed)) {
 		return false;
 	}
 
 	Lr2SelectScoreSummaryData builtScoreSummary;
 	const Lr2SelectScoreSummaryData* scoreSummary = nullptr;
-	if (scoreCacheKey.isEmpty()) {
+	const Lr2SelectScoreSummaryCacheKey scoreCacheKey = scoreSummaryCacheKeyForIdentifier(scoreIdentifier,
+																						  scoreGeneration);
+	if (!isValidScoreSummaryCacheKey(scoreCacheKey)) {
 		scoreSummary = jsArrayLength(scoreList) == 0
 			? &emptyScoreSummaryData()
 			: &(builtScoreSummary = buildScoreSummaryDataFromJsValue(scoreList,
@@ -1254,67 +1279,19 @@ bool Lr2SelectDetailState::refreshFromQmlValues(const QString& key,
 										  selectedDifficulty,
 										  scoreSummary->lamp);
 
-	return applyRefreshData(key,
-							scoreRevision,
-							listRevision,
+	rememberSelectedIdentity(itemKey,
+							 targetItemKey,
+							 rankingMode,
+							 difficultyStateUsed,
+							 difficultyLampStateUsed);
+
+	return applyRefreshData(scoreGeneration,
+							listGeneration,
 							optionalJsValueVariant(item),
 							optionalJsValueVariant(chartData),
 							useBeatorajaSemantics,
 							buildScoreOptionIds,
 							*scoreSummary);
-}
-
-bool Lr2SelectDetailState::refreshSelectedFromQmlValues(const QString& key,
-														int scoreRevision,
-														int listRevision,
-														QJSValue scoreList,
-														const QString& scoreCacheKey,
-														int selectedDifficulty,
-														QJSValue difficultyCounts,
-														QJSValue difficultyLevels,
-														QJSValue difficultyLamps,
-														bool useBeatorajaSemantics,
-														bool buildScoreOptionIds) {
-	return refreshFromQmlValues(key,
-								scoreRevision,
-								listRevision,
-								QJSValue(),
-								QJSValue(),
-								scoreList,
-								scoreCacheKey,
-								selectedDifficulty,
-								difficultyCounts,
-								difficultyLevels,
-								difficultyLamps,
-								useBeatorajaSemantics,
-								buildScoreOptionIds);
-}
-
-bool Lr2SelectDetailState::refreshFromQmlValues(const QString& key,
-												int scoreRevision,
-												int listRevision,
-												QJSValue item,
-												QJSValue chartData,
-												QJSValue scoreList,
-												int selectedDifficulty,
-												QJSValue difficultyCounts,
-												QJSValue difficultyLevels,
-												QJSValue difficultyLamps,
-												bool useBeatorajaSemantics,
-												bool buildScoreOptionIds) {
-	return refreshFromQmlValues(key,
-								scoreRevision,
-								listRevision,
-								item,
-								chartData,
-								scoreList,
-								QString(),
-								selectedDifficulty,
-								difficultyCounts,
-								difficultyLevels,
-								difficultyLamps,
-								useBeatorajaSemantics,
-								buildScoreOptionIds);
 }
 
 void Lr2SelectDetailState::clear() {
@@ -1326,11 +1303,11 @@ void Lr2SelectDetailState::clear() {
 		emit (this->*signal)();
 	};
 
-	setValue(m_key, QString(), &Lr2SelectDetailState::keyChanged);
-	setValue(m_scoreRevision, -1, &Lr2SelectDetailState::scoreRevisionChanged);
-	setValue(m_listRevision, -1, &Lr2SelectDetailState::listRevisionChanged);
+	setValue(m_scoreGeneration, -1, &Lr2SelectDetailState::scoreGenerationChanged);
+	setValue(m_listGeneration, -1, &Lr2SelectDetailState::listGenerationChanged);
 	setValue(m_item, QVariant(), &Lr2SelectDetailState::itemChanged);
 	setValue(m_chartData, QVariant(), &Lr2SelectDetailState::chartDataChanged);
+	clearSelectedIdentity();
 	const bool hadBestStats = m_summary.bestStatsObject() != nullptr;
 	m_summary.clearValues();
 	if (hadBestStats != (m_summary.bestStatsObject() != nullptr)) {

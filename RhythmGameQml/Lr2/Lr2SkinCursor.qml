@@ -8,9 +8,11 @@ Lr2NativeCursor {
 
     required property var screenRoot
     required property var skinModel
+    property var skinTiming: null
 
     readonly property var root: screenRoot
     readonly property bool rootReady: root !== undefined && root !== null
+    readonly property var skinTimerLookup: skinTiming || (rootReady ? root.skinTimingRef : null)
     readonly property bool modelReady: skinModel !== undefined && skinModel !== null
     readonly property var cursorSrcData: modelReady && skinModel.mouseCursor && skinModel.mouseCursor.src
         ? skinModel.mouseCursor.src
@@ -27,10 +29,12 @@ Lr2NativeCursor {
         dsts: cursor.cursorDsts
         skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
         timers: null
-        timerFire: cursor.rootReady ? cursor.root.skinTimerFireTime(cursor.cursorDstTimer) : -1
-        activeOptions: cursor.rootReady
-            ? cursor.root.activeOptionsForElementDsts(cursor.cursorDsts)
-            : []
+        timerFire: cursor.skinTimerLookup
+            ? cursor.skinTimerLookup.skinTimerFireTime(cursor.cursorDstTimer)
+            : -1
+        activeOptions: cursor.rootReady && usesActiveOptionsFor(cursor.cursorDsts)
+            ? cursor.root.activeOptionsForDsts(cursor.cursorDsts, cursor.root.runtimeActiveOptions)
+            : cursor.rootReady ? cursor.root.emptyActiveOptions : []
     }
     readonly property var cursorState: rootReady && cursorSrcData
         ? cursorTimelineState.state
@@ -58,7 +62,9 @@ Lr2NativeCursor {
         sourceData: cursor.cursorSrcData
         skinTime: cursor.rootReady ? cursor.root.renderSkinTime : 0
         timers: null
-        timerFire: cursor.rootReady ? cursor.root.skinTimerFireTime(cursor.cursorSrcTimer) : -1
+        timerFire: cursor.skinTimerLookup
+            ? cursor.skinTimerLookup.skinTimerFireTime(cursor.cursorSrcTimer)
+            : -1
     }
     readonly property int frameIndex: animationFrameState.frameIndex
     readonly property size fallbackTargetSize: rootReady && cursorSrcData

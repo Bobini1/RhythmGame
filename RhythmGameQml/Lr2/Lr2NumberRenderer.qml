@@ -20,7 +20,6 @@ Item {
     property real offsetY: 0
     property int value: 0
     property bool forceHidden: false
-    property int animationRevision: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
     property var stateOverride: null
@@ -36,7 +35,6 @@ Item {
     Lr2TimelineFrame {
         id: drawState
         dsts: root.dsts
-        srcData: root.srcData
         skinTime: root.skinTime
         skinClock: root.skinClock
         skinClockMode: root.skinClockMode
@@ -46,7 +44,6 @@ Item {
         timerFire: root.timerFire
         stateOverride: root.stateOverride
         forceHidden: root.forceHidden
-        screenRoot: root.screenRoot
         dstOffsetsEnabled: root.dstOffsetsEnabled
         dstOffsetLiftY: root.screenRoot
             ? (root.dstOffsetSide === 2
@@ -86,34 +83,6 @@ Item {
     readonly property int blendMode: drawState.blendMode
 
     readonly property string resolvedSource: Lr2SkinUtils.fileUrlForPath(srcData ? srcData.source : "")
-
-    function digitCount(value: var) : var {
-        return Math.abs(Math.round(value)).toString().length;
-    }
-
-    function leftPad(text: var, width: var) : var {
-        let result = text;
-        while (result.length < width) {
-            result = " " + result;
-        }
-        return result.slice(result.length - width);
-    }
-
-    function rightPad(text: var, width: var) : var {
-        let result = text;
-        while (result.length < width) {
-            result += " ";
-        }
-        return result.slice(0, width);
-    }
-
-    function leadingPad(text: var, width: var, ch: var) : var {
-        let result = text;
-        while (result.length < width) {
-            result = ch + result;
-        }
-        return result.slice(result.length - width);
-    }
 
     function numberFrameGroupSize() : var {
         if (!root.srcData || !root.srcData.cycle || root.srcData.cycle <= 0) {
@@ -217,6 +186,42 @@ Item {
         && root.usesFixedPadding
         && root.srcData
         && root.srcData.keta > 0
+    readonly property int displayKeta: root.srcData ? root.srcData.keta || 0 : 0
+    readonly property string absoluteRoundedText: Math.abs(Math.round(root.value)).toString()
+    readonly property string displaySignText: root.hasSignedFrames
+        ? (root.isNegativeValue ? "-" : "+")
+        : ""
+    readonly property int displayPaddingCount: Math.max(0, root.displayKeta - root.absoluteRoundedText.length)
+    readonly property string displaySpacePadding: {
+        let result = "";
+        for (let i = 0; i < root.displayPaddingCount; ++i) {
+            result += " ";
+        }
+        return result;
+    }
+    readonly property string fixedSlotPadding: {
+        let result = "";
+        let ch = root.zeroPaddingMode === 1 ? "0" : " ";
+        for (let i = 0; i < root.displayPaddingCount; ++i) {
+            result += ch;
+        }
+        return result;
+    }
+    readonly property string paddedDisplayValue: {
+        if (root.displayKeta <= 0) {
+            return root.absoluteRoundedText;
+        }
+        if (root.usesSignedFixedSlots) {
+            let fixedSlots = root.fixedSlotPadding + root.absoluteRoundedText;
+            return fixedSlots.slice(fixedSlots.length - root.displayKeta);
+        }
+        if (root.srcData && root.srcData.align === 0) {
+            let leftAligned = root.displaySpacePadding + root.absoluteRoundedText;
+            return leftAligned.slice(leftAligned.length - root.displayKeta);
+        }
+        let rightAligned = root.absoluteRoundedText + root.displaySpacePadding;
+        return rightAligned.slice(0, root.displayKeta);
+    }
 
     function signedFixedFrameIndex(slot: var) : var {
         let keta = root.srcData ? root.srcData.keta || 0 : 0;
@@ -244,28 +249,7 @@ Item {
         return root.isNegativeValue ? 12 : 0;
     }
 
-    function textForValue() : var {
-        let text = Math.abs(Math.round(root.value)).toString();
-        let keta = root.srcData ? root.srcData.keta || 0 : 0;
-        if (keta <= 0) {
-            return root.hasSignedFrames ? (root.isNegativeValue ? "-" : "+") + text : text;
-        }
-
-        if (root.usesSignedFixedSlots) {
-            let padChar = root.zeroPaddingMode === 1 ? "0" : " ";
-            return (root.isNegativeValue ? "-" : "+") + leadingPad(text, keta, padChar);
-        }
-
-        // LR2 align=0 is "%10d" followed by lastCut(keta).
-        if (root.srcData && root.srcData.align === 0) {
-            text = leftPad(text, keta);
-        } else {
-            text = rightPad(text, keta);
-        }
-        return root.hasSignedFrames ? (root.isNegativeValue ? "-" : "+") + text : text;
-    }
-
-    readonly property string displayText: textForValue()
+    readonly property string displayText: root.displaySignText + root.paddedDisplayValue
     readonly property bool usesCompactDownscaledDigits: root.hasCurrentState
         && root.stateFilter === 0
         && root.stateW > 2
@@ -279,14 +263,14 @@ Item {
     readonly property color tintColor: drawState.tintColor
     readonly property int centeredMissingDigits: srcData && srcData.align === 2 && srcData.keta > 0
         && !(root.hasSignedFrames && root.usesFixedPadding)
-        ? Math.max(0, srcData.keta - digitCount(root.value))
+        ? Math.max(0, srcData.keta - root.absoluteRoundedText.length)
         : 0
     readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
     readonly property bool isNowCombo: srcData
         && (srcData.nowCombo
             || (srcData.num === 104 || srcData.num === 124))
         && (srcData.timer === 46 || srcData.timer === 47)
-    readonly property real nowComboOffset: isNowCombo ? -digitCount(root.value) * digitW * 0.5 : 0
+    readonly property real nowComboOffset: isNowCombo ? -root.absoluteRoundedText.length * digitW * 0.5 : 0
 
     Item {
         id: numberBox
@@ -363,9 +347,6 @@ Item {
                     property vector4d sourceRect: {
                         if (digitRoot.frameIndex < 0 || root.atlasSourceRects.length <= 0) {
                             return root.fullSourceRect;
-                        }
-                        if (root.sourceAnimates) {
-                            root.animationRevision;
                         }
                         const frame = (root.animationBaseFrame
                             + digitRoot.frameIndex

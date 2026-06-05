@@ -137,6 +137,10 @@ bool sameState(const State& lhs, const State& rhs);
 qreal applyAccel(qreal progress, int accType);
 
 bool sourceCyclesContinuously(const Source& source);
+bool sourceUsesChartAsset(const Source& source);
+bool sourceTreeCyclesContinuously(const QVariant& value);
+bool sourceTreeUsesChartAsset(const QVariant& value);
+int chartAssetSourceType(const Source& source);
 bool sourceUsesDynamicTimer(const Source& source);
 bool isSelectBarElement(int type, const Source& source);
 qreal selectBarElementLayer(int type, const Source& source);

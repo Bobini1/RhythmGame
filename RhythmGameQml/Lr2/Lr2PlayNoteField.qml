@@ -6,6 +6,7 @@ Item {
     id: root
 
     property var screenRoot
+    property var skinTiming: null
     property var skinModel
     property real skinScale: 1
     property int renderSkinTime: 0
@@ -14,9 +15,10 @@ Item {
     property color transColor: "black"
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property var skinRuntime: screenRoot ? screenRoot.skinRuntimeRef : null
-    readonly property int runtimeRevision: skinRuntime ? skinRuntime.revision : 0
-    readonly property int runtimeTimerRevision: skinRuntime ? skinRuntime.timerRevision : 0
-    readonly property int runtimeActiveOptionsRevision: skinRuntime ? skinRuntime.activeOptionsRevision : 0
+    readonly property var skinTimerLookup: skinTiming || (screenRoot ? screenRoot.skinTimingRef : null)
+    readonly property var runtimeElementDescriptors: skinRuntime ? skinRuntime.elementDescriptors : []
+    readonly property var runtimeNoteDstTimerFires: skinRuntime ? skinRuntime.noteDstTimerFires : []
+    readonly property var runtimeLineDstTimerFires: skinRuntime ? skinRuntime.lineDstTimerFires : []
     readonly property bool playfieldActive: root.enabled
         && !!screenRoot
         && !!skinModel
@@ -75,8 +77,8 @@ Item {
         if (idx === 0) {
             return 0;
         }
-        if (screenRoot && screenRoot.skinTimerFireTime) {
-            return screenRoot.skinTimerFireTime(idx, false);
+        if (skinTimerLookup && skinTimerLookup.skinTimerFireTime) {
+            return skinTimerLookup.skinTimerFireTime(idx, false);
         }
         return timelineResolver.timerFireFor(timers, idx);
     }
@@ -117,12 +119,14 @@ Item {
 
     function noteDstState(index: var) : var {
         if (skinRuntime) {
-            runtimeRevision;
-            runtimeActiveOptionsRevision;
+            runtimeElementDescriptors;
+            runtimeActiveOptions;
             let state = null;
             if (skinRuntime.noteDstStateUsesSkinTime(index)) {
-                runtimeTimerRevision;
-                state = skinRuntime.noteDstState(index, renderSkinTime);
+                let timerFire = index >= 0 && index < runtimeNoteDstTimerFires.length
+                    ? runtimeNoteDstTimerFires[index]
+                    : -1;
+                state = skinRuntime.noteDstStateForTimerFire(index, renderSkinTime, timerFire);
             } else {
                 state = skinRuntime.noteDstState(index, 0);
             }
@@ -133,12 +137,14 @@ Item {
 
     function lineDstState(index: var) : var {
         if (skinRuntime) {
-            runtimeRevision;
-            runtimeActiveOptionsRevision;
+            runtimeElementDescriptors;
+            runtimeActiveOptions;
             let state = null;
             if (skinRuntime.lineDstStateUsesSkinTime(index)) {
-                runtimeTimerRevision;
-                state = skinRuntime.lineDstState(index, renderSkinTime);
+                let timerFire = index >= 0 && index < runtimeLineDstTimerFires.length
+                    ? runtimeLineDstTimerFires[index]
+                    : -1;
+                state = skinRuntime.lineDstStateForTimerFire(index, renderSkinTime, timerFire);
             } else {
                 state = skinRuntime.lineDstState(index, 0);
             }

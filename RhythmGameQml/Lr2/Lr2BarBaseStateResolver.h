@@ -18,7 +18,9 @@ class Lr2BarBaseStateResolver : public QObject {
     Q_PROPERTY(int skinTime READ skinTime WRITE setSkinTime NOTIFY skinTimeChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
-    Q_PROPERTY(int baseStatesRevision READ baseStatesRevision NOTIFY baseStatesChanged)
+    Q_PROPERTY(QVariantList baseStates READ baseStates NOTIFY baseStatesChanged)
+    Q_PROPERTY(QVariantList positionlessBaseStates READ positionlessBaseStates NOTIFY baseStatesChanged)
+    Q_PROPERTY(QVariantList interpolationNeededByRow READ interpolationNeededByRow NOTIFY baseStatesChanged)
     Q_PROPERTY(int animationLimit READ animationLimit NOTIFY animationLimitChanged)
     Q_PROPERTY(bool fastScrollActive READ fastScrollActive NOTIFY baseStatesChanged)
     Q_PROPERTY(qreal fastScrollDx READ fastScrollDx NOTIFY baseStatesChanged)
@@ -42,7 +44,9 @@ public:
     QVariant activeOptions() const;
     void setActiveOptions(const QVariant& options);
 
-    int baseStatesRevision() const;
+    QVariantList baseStates() const;
+    QVariantList positionlessBaseStates() const;
+    QVariantList interpolationNeededByRow() const;
     int animationLimit() const;
     bool fastScrollActive() const;
     qreal fastScrollDx() const;
@@ -50,9 +54,8 @@ public:
     Q_INVOKABLE int stateCount() const;
     Q_INVOKABLE Lr2TimelineStateValue stateAt(int row) const;
     Q_INVOKABLE bool stateNeedsInterpolationAt(int row) const;
-    Q_INVOKABLE Lr2TimelineStateValue positionlessStateAt(int row) const;
+    Lr2TimelineStateValue positionlessStateAt(int row) const;
     Lr2TimelineStateValue stateValueAt(int row) const;
-    Lr2TimelineStateValue positionlessStateValueAt(int row) const;
     bool stateValidAt(int row) const;
     Q_INVOKABLE qreal stateXAt(int row) const;
     Q_INVOKABLE qreal stateYAt(int row) const;
@@ -95,7 +98,6 @@ private:
     QVariant m_activeOptions;
     QSet<int> m_activeOptionSet;
     QVector<State> m_baseStates;
-    int m_baseStatesRevision = 0;
     int m_animationLimit = 0;
     bool m_fastScrollActive = false;
     qreal m_fastScrollDx = 0.0;

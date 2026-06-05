@@ -13,6 +13,8 @@ class Lr2SelectItemModel : public QAbstractListModel {
 	QML_ELEMENT
 	Q_PROPERTY(QVariantList items READ items WRITE setItems NOTIFY itemsChanged)
 	Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
+	Q_PROPERTY(QVariant currentItem READ currentItem NOTIFY currentItemChanged)
+	Q_PROPERTY(QString currentKey READ currentKey NOTIFY currentItemChanged)
 
 public:
 	enum ItemKind {
@@ -83,22 +85,26 @@ public:
 
 	int currentIndex() const;
 	void setCurrentIndex(int index);
+	QVariant currentItem() const;
+	QString currentKey() const;
 
-	Q_INVOKABLE QVariant rawItemAt(int row) const;
-	Q_INVOKABLE QString keyAt(int row) const;
-	Q_INVOKABLE int normalizedIndex(int row) const;
 	Q_INVOKABLE void moveRowTo(int from, int to);
-	Q_INVOKABLE void updateItems(const QVariantList& items);
 	Q_INVOKABLE void clearFolderSummaries();
 	Q_INVOKABLE void setFolderSummary(const QString& key,
 									  int lamp,
 									  const QVariant& scoreCounts,
 									  const QVariant& distribution);
+	Q_INVOKABLE void clearScoreSummaries();
+	Q_INVOKABLE void setScoreSummary(const QString& identifier,
+									 int lamp,
+									 int scoreRank,
+									 double scoreRate);
 	bool populateBarCell(int sourceRow, int visualRow, Lr2SelectBarCell* cell) const;
 
 signals:
 	void itemsChanged();
 	void currentIndexChanged();
+	void currentItemChanged();
 
 private:
 	struct Item {
@@ -106,6 +112,7 @@ private:
 		QVariantMap map;
 		QString key;
 		QString folderKey;
+		QString scoreIdentifier;
 		ItemKind kind = EmptyKind;
 		QString displayText;
 		int titleType = 0;
@@ -146,7 +153,10 @@ private:
 	};
 
 	Item itemFromVariant(const QVariant& value, int fallbackIndex) const;
+	QVariant rawItemAt(int row) const;
+	QString keyAt(int row) const;
 	void applyFolderSummary(Item& item) const;
+	static QString scoreIdentifierFor(const QVariant& value, const QVariantMap& map, ItemKind kind);
 	static FolderSummary folderSummaryFromValues(int lamp,
 												 const QVariant& scoreCounts,
 												 const QVariant& distribution);
@@ -160,6 +170,8 @@ private:
 	static QString displayTextFor(const QVariant& value, const QVariantMap& map, ItemKind kind);
 	static QString keyFor(const QVariant& value, const QVariantMap& map, ItemKind kind, int fallbackIndex);
 	QVariant roleData(const Item& item, int role) const;
+	void replaceItems(const QVariantList& items);
+	void updateExistingItems(const QVariantList& items);
 
 	QList<Item> m_items;
 	QHash<QString, FolderSummary> m_folderSummaries;

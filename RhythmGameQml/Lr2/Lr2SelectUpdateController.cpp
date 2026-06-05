@@ -18,7 +18,19 @@ void Lr2SelectUpdateController::setSkinModel(QObject* model) {
     if (m_skinModel == model) {
         return;
     }
+    if (m_skinMetadataConnection) {
+        QObject::disconnect(m_skinMetadataConnection);
+        m_skinMetadataConnection = {};
+    }
     m_skinModel = model;
+    if (m_skinModel) {
+        m_skinMetadataConnection = QObject::connect(
+            m_skinModel,
+            SIGNAL(skinMetadataChanged()),
+            this,
+            SLOT(refreshSkinOptionUsage()));
+    }
+    refreshSkinOptionUsage();
     emit skinModelChanged();
 }
 
@@ -72,26 +84,8 @@ void Lr2SelectUpdateController::setRankingMode(bool active) {
     }
     m_rankingMode = active;
     emit rankingModeChanged();
-}
-
-int Lr2SelectUpdateController::scoreRevision() const { return m_scoreRevision; }
-void Lr2SelectUpdateController::setScoreRevision(int revision) {
-    if (m_scoreRevision == revision) {
-        return;
-    }
-    m_scoreRevision = revision;
-    emit scoreRevisionChanged();
-    updateSelectRevision(true);
-}
-
-int Lr2SelectUpdateController::focusRevision() const { return m_focusRevision; }
-void Lr2SelectUpdateController::setFocusRevision(int revision) {
-    if (m_focusRevision == revision) {
-        return;
-    }
-    m_focusRevision = revision;
-    emit focusRevisionChanged();
-    updateSelectRevision(true);
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 int Lr2SelectUpdateController::selectPanel() const { return m_selectPanel; }
@@ -101,24 +95,8 @@ void Lr2SelectUpdateController::setSelectPanel(int panel) {
     }
     m_selectPanel = panel;
     emit selectPanelChanged();
-}
-
-QString Lr2SelectUpdateController::lr2RankingMd5() const { return m_lr2RankingMd5; }
-void Lr2SelectUpdateController::setLr2RankingMd5(const QString& md5) {
-    if (m_lr2RankingMd5 == md5) {
-        return;
-    }
-    m_lr2RankingMd5 = md5;
-    emit lr2RankingMd5Changed();
-}
-
-QString Lr2SelectUpdateController::lr2RankingRequestMd5() const { return m_lr2RankingRequestMd5; }
-void Lr2SelectUpdateController::setLr2RankingRequestMd5(const QString& md5) {
-    if (m_lr2RankingRequestMd5 == md5) {
-        return;
-    }
-    m_lr2RankingRequestMd5 = md5;
-    emit lr2RankingRequestMd5Changed();
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::parseActiveOptions() const { return m_parseActiveOptions; }
@@ -128,6 +106,8 @@ void Lr2SelectUpdateController::setParseActiveOptions(const QVariant& options) {
     }
     m_parseActiveOptions = options;
     emit parseActiveOptionsChanged();
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::runtimeActiveOptions() const { return m_runtimeActiveOptions; }
@@ -157,15 +137,6 @@ void Lr2SelectUpdateController::setBaseActiveOptions(const QVariant& options) {
     emit baseActiveOptionsChanged();
 }
 
-QString Lr2SelectUpdateController::baseActiveOptionsKey() const { return m_baseActiveOptionsKey; }
-void Lr2SelectUpdateController::setBaseActiveOptionsKey(const QString& key) {
-    if (m_baseActiveOptionsKey == key) {
-        return;
-    }
-    m_baseActiveOptionsKey = key;
-    emit baseActiveOptionsKeyChanged();
-}
-
 QVariant Lr2SelectUpdateController::selectCommonActiveOptions() const { return m_selectCommonActiveOptions; }
 void Lr2SelectUpdateController::setSelectCommonActiveOptions(const QVariant& options) {
     if (m_selectCommonActiveOptions == options) {
@@ -173,15 +144,6 @@ void Lr2SelectUpdateController::setSelectCommonActiveOptions(const QVariant& opt
     }
     m_selectCommonActiveOptions = options;
     emit selectCommonActiveOptionsChanged();
-}
-
-QString Lr2SelectUpdateController::selectCommonActiveOptionsKey() const { return m_selectCommonActiveOptionsKey; }
-void Lr2SelectUpdateController::setSelectCommonActiveOptionsKey(const QString& key) {
-    if (m_selectCommonActiveOptionsKey == key) {
-        return;
-    }
-    m_selectCommonActiveOptionsKey = key;
-    emit selectCommonActiveOptionsKeyChanged();
 }
 
 bool Lr2SelectUpdateController::selectCommonActiveOptionsReady() const { return m_selectCommonActiveOptionsReady; }
@@ -202,15 +164,6 @@ void Lr2SelectUpdateController::setSelectRuntimeActiveOptions(const QVariant& op
     emit selectRuntimeActiveOptionsChanged();
 }
 
-QString Lr2SelectUpdateController::selectRuntimeActiveOptionsKey() const { return m_selectRuntimeActiveOptionsKey; }
-void Lr2SelectUpdateController::setSelectRuntimeActiveOptionsKey(const QString& key) {
-    if (m_selectRuntimeActiveOptionsKey == key) {
-        return;
-    }
-    m_selectRuntimeActiveOptionsKey = key;
-    emit selectRuntimeActiveOptionsKeyChanged();
-}
-
 QVariant Lr2SelectUpdateController::gameplayRuntimeActiveOptions() const { return m_gameplayRuntimeActiveOptions; }
 void Lr2SelectUpdateController::setGameplayRuntimeActiveOptions(const QVariant& options) {
     if (m_gameplayRuntimeActiveOptions == options) {
@@ -218,15 +171,6 @@ void Lr2SelectUpdateController::setGameplayRuntimeActiveOptions(const QVariant& 
     }
     m_gameplayRuntimeActiveOptions = options;
     emit gameplayRuntimeActiveOptionsChanged();
-}
-
-QString Lr2SelectUpdateController::gameplayRuntimeActiveOptionsKey() const { return m_gameplayRuntimeActiveOptionsKey; }
-void Lr2SelectUpdateController::setGameplayRuntimeActiveOptionsKey(const QString& key) {
-    if (m_gameplayRuntimeActiveOptionsKey == key) {
-        return;
-    }
-    m_gameplayRuntimeActiveOptionsKey = key;
-    emit gameplayRuntimeActiveOptionsKeyChanged();
 }
 
 QVariant Lr2SelectUpdateController::barRuntimeActiveOptions() const {
@@ -295,11 +239,7 @@ void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QVa
     }
     m_selectRuntimeGeneratedActiveOptions = options;
     emit selectRuntimeGeneratedActiveOptionsChanged();
-}
-
-void Lr2SelectUpdateController::replaceSelectRuntimeGeneratedActiveOptions(const QVariant& options) {
-    m_selectRuntimeGeneratedActiveOptions = options;
-    emit selectRuntimeGeneratedActiveOptionsChanged();
+    refreshSelectRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::screenRuntimeActiveOptions() const {
@@ -312,6 +252,7 @@ void Lr2SelectUpdateController::setScreenRuntimeActiveOptions(const QVariant& op
     }
     m_screenRuntimeActiveOptions = options;
     emit screenRuntimeActiveOptionsChanged();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 bool Lr2SelectUpdateController::gameplayScreen() const {
@@ -327,12 +268,36 @@ void Lr2SelectUpdateController::setGameplayScreen(bool active) {
     refreshCurrentRuntimeActiveOptions();
 }
 
-int Lr2SelectUpdateController::selectRevision() const {
-    return m_selectRevision;
+bool Lr2SelectUpdateController::selectReplayOptionsUsed() const {
+    return m_selectReplayOptionsUsed;
 }
 
-int Lr2SelectUpdateController::selectDetailRevision() const {
-    return m_selectDetailRevision;
+bool Lr2SelectUpdateController::selectScoreOptionIdsUsed() const {
+    return m_selectScoreOptionIdsUsed;
+}
+
+bool Lr2SelectUpdateController::selectEntryStatusOptionsUsed() const {
+    return m_selectEntryStatusOptionsUsed;
+}
+
+bool Lr2SelectUpdateController::selectDifficultyBarOptionsUsed() const {
+    return m_selectDifficultyBarOptionsUsed;
+}
+
+bool Lr2SelectUpdateController::selectDifficultyLampOptionsUsed() const {
+    return m_selectDifficultyLampOptionsUsed;
+}
+
+bool Lr2SelectUpdateController::selectDifficultyStateUsed() const {
+    return m_selectDifficultyStateUsed;
+}
+
+bool Lr2SelectUpdateController::selectCourseDetailOptionsUsed() const {
+    return m_selectCourseDetailOptionsUsed;
+}
+
+bool Lr2SelectUpdateController::selectRankingStatusOptionsUsed() const {
+    return m_selectRankingStatusOptionsUsed;
 }
 
 bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
@@ -350,7 +315,6 @@ bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
     const bool baseChanged = !sameNumberArray(m_baseActiveOptions, nextBase);
     if (baseChanged) {
         setBaseActiveOptions(nextBase);
-        setBaseActiveOptionsKey(numberArrayKey(nextBase));
     }
 
     const QVariant nextSelectCommonBase = mergedNumberArray(
@@ -363,15 +327,8 @@ bool Lr2SelectUpdateController::refreshBaseActiveOptions() {
     setSelectCommonActiveOptionsReady(true);
     if (selectCommonChanged) {
         setSelectCommonActiveOptions(nextSelectCommon);
-        setSelectCommonActiveOptionsKey(numberArrayKey(nextSelectCommon));
     }
 
-    if (baseChanged || selectCommonChanged) {
-        setSelectRuntimeActiveOptionsKey(QString());
-    }
-    if (baseChanged) {
-        setGameplayRuntimeActiveOptionsKey(QString());
-    }
     return barChanged || baseChanged || selectCommonChanged;
 }
 
@@ -396,12 +353,9 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
     QVariantList next = mergedNumberArray(
         m_selectCommonActiveOptions,
         normalizedNumberArray(m_selectRuntimeGeneratedActiveOptions));
-    const QString nextKey = numberArrayKey(next);
-    if (nextKey == m_selectRuntimeActiveOptionsKey
-            && sameNumberArray(m_runtimeActiveOptions, next)) {
+    if (sameNumberArray(m_runtimeActiveOptions, next)) {
         return false;
     }
-    setSelectRuntimeActiveOptionsKey(nextKey);
     setSelectRuntimeActiveOptions(next);
     applyRuntimeActiveOptions(next);
     return true;
@@ -415,31 +369,12 @@ bool Lr2SelectUpdateController::refreshGameplayRuntimeActiveOptions() {
     const QVariant next = mergedNumberArray(
         m_baseActiveOptions,
         normalizedNumberArray(m_screenRuntimeActiveOptions));
-    const QString nextKey = numberArrayKey(next);
-    if (nextKey == m_gameplayRuntimeActiveOptionsKey
-            && sameNumberArray(m_runtimeActiveOptions, next)) {
+    if (sameNumberArray(m_runtimeActiveOptions, next)) {
         return false;
     }
-    setGameplayRuntimeActiveOptionsKey(nextKey);
     setGameplayRuntimeActiveOptions(next);
     applyRuntimeActiveOptions(next);
     return true;
-}
-
-void Lr2SelectUpdateController::handleCommittedSelectState() {
-    const bool rankingRequestChanged = m_lr2RankingRequestMd5 != m_lr2RankingMd5;
-    if (rankingRequestChanged) {
-        setLr2RankingRequestMd5(m_lr2RankingMd5);
-    }
-    if (rankingRequestChanged) {
-        emit rankingStatsApplyRequested();
-    }
-    emit selectSideEffectsUpdateRequested();
-}
-
-void Lr2SelectUpdateController::handleSelectRevisionChanged() {
-    handleCommittedSelectState();
-    refreshSelectRuntimeActiveOptions();
 }
 
 void Lr2SelectUpdateController::refreshCurrentRuntimeActiveOptions() {
@@ -461,19 +396,6 @@ bool Lr2SelectUpdateController::sameNumberArray(const QVariant& lhs, const QVari
     return numberList(lhs) == numberList(rhs);
 }
 
-QString Lr2SelectUpdateController::numberArrayKey(const QVariant& values) const {
-    const QList<int> list = numberList(values);
-    if (list.isEmpty()) {
-        return {};
-    }
-    QStringList parts;
-    parts.reserve(list.size());
-    for (int value : list) {
-        parts.append(QString::number(value));
-    }
-    return parts.join(QLatin1Char(','));
-}
-
 QVariant Lr2SelectUpdateController::normalizedNumberArray(const QVariant& values) const {
     QVariantList result;
     const QList<int> numbers = numberList(values);
@@ -483,7 +405,6 @@ QVariant Lr2SelectUpdateController::normalizedNumberArray(const QVariant& values
     }
     return result;
 }
-
 QVariantList Lr2SelectUpdateController::mergedNumberArray(const QVariant& first, const QVariant& second) const {
     QVariantList result;
     const QList<int> firstList = numberList(first);
@@ -497,18 +418,14 @@ QVariantList Lr2SelectUpdateController::mergedNumberArray(const QVariant& first,
     }
     return result;
 }
-
 QVariantList Lr2SelectUpdateController::selectStaticOptions(
     bool includeRankingOption,
     bool includePanelOption) const {
     QVariantList result;
-    QObject* model = skinModelObject();
-    QVariant source = model ? model->property("effectiveActiveOptions") : QVariant {};
-    if (numberList(source).isEmpty()) {
-        source = m_parseActiveOptions;
-    }
-
-    for (int option : numberList(source)) {
+    const QList<int> source = m_effectiveSkinActiveOptions.isEmpty()
+        ? numberList(m_parseActiveOptions)
+        : m_effectiveSkinActiveOptions;
+    for (int option : source) {
         if (!Lr2SkinOptionRules::isRuntimeOwnedOptionValue(option)) {
             appendUniqueSkinOption(result, option);
         }
@@ -538,24 +455,143 @@ QObject* Lr2SelectUpdateController::skinModelObject() const {
 }
 
 bool Lr2SelectUpdateController::skinUsesOption(int option) const {
-    QObject* model = skinModelObject();
-    const QList<int> usedOptions = numberList(model ? model->property("usedOptions") : QVariant {});
-    const QList<int> usedElementOptions = numberList(model ? model->property("usedElementOptions") : QVariant {});
-    if (usedOptions.isEmpty() && usedElementOptions.isEmpty()) {
+    if (!m_skinOptionFilterActive) {
         return true;
     }
-    const int id = std::abs(option);
-    for (int used : usedOptions) {
-        if (std::abs(used) == id) {
-            return true;
-        }
+    return m_usedSkinOptions.contains(std::abs(option));
+}
+
+bool Lr2SelectUpdateController::skinUsesAnyOption(std::initializer_list<int> options) const {
+    if (!m_skinOptionFilterActive) {
+        return true;
     }
-    for (int used : usedElementOptions) {
-        if (std::abs(used) == id) {
+    for (int option : options) {
+        if (m_usedSkinOptions.contains(std::abs(option))) {
             return true;
         }
     }
     return false;
+}
+
+bool Lr2SelectUpdateController::skinUsesOptionRange(int first, int last) const {
+    if (!m_skinOptionFilterActive) {
+        return true;
+    }
+    for (int option = first; option <= last; ++option) {
+        if (m_usedSkinOptions.contains(std::abs(option))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Lr2SelectUpdateController::skinUsesAnySelectElementOption(std::initializer_list<int> options) const {
+    if (!m_selectElementOptionsAvailable) {
+        return skinUsesAnyOption(options);
+    }
+    for (int option : options) {
+        if (m_usedSelectElementOptions.contains(std::abs(option))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Lr2SelectUpdateController::skinUsesSelectElementOptionRange(int first, int last) const {
+    if (!m_selectElementOptionsAvailable) {
+        return skinUsesOptionRange(first, last);
+    }
+    for (int option = first; option <= last; ++option) {
+        if (m_usedSelectElementOptions.contains(std::abs(option))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void Lr2SelectUpdateController::refreshSkinOptionUsage() {
+    QObject* model = skinModelObject();
+    const QVariant usedOptionsValue = model ? model->property("usedOptions") : QVariant {};
+    const QVariant usedElementOptionsValue = model ? model->property("usedElementOptions") : QVariant {};
+    const QList<int> nextEffectiveSkinActiveOptions = numberList(
+        model ? model->property("effectiveActiveOptions") : QVariant {});
+    const bool nextSkinUsesSelectDifficultySource = model
+        && model->property("usesSelectDifficultySource").toBool();
+
+    QSet<int> nextUsedSkinOptions;
+    for (int option : numberList(usedOptionsValue)) {
+        nextUsedSkinOptions.insert(std::abs(option));
+    }
+
+    QSet<int> nextUsedSelectElementOptions;
+    for (int option : numberList(usedElementOptionsValue)) {
+        const int id = std::abs(option);
+        nextUsedSkinOptions.insert(id);
+        nextUsedSelectElementOptions.insert(id);
+    }
+
+    const bool nextSkinOptionFilterActive = !nextUsedSkinOptions.isEmpty();
+    const bool nextSelectElementOptionsAvailable = model && usedElementOptionsValue.isValid();
+    const bool metadataChanged = m_usedSkinOptions != nextUsedSkinOptions
+        || m_usedSelectElementOptions != nextUsedSelectElementOptions
+        || m_effectiveSkinActiveOptions != nextEffectiveSkinActiveOptions
+        || m_skinUsesSelectDifficultySource != nextSkinUsesSelectDifficultySource
+        || m_skinOptionFilterActive != nextSkinOptionFilterActive
+        || m_selectElementOptionsAvailable != nextSelectElementOptionsAvailable;
+    if (!metadataChanged) {
+        return;
+    }
+
+    m_usedSkinOptions = nextUsedSkinOptions;
+    m_usedSelectElementOptions = nextUsedSelectElementOptions;
+    m_effectiveSkinActiveOptions = nextEffectiveSkinActiveOptions;
+    m_skinUsesSelectDifficultySource = nextSkinUsesSelectDifficultySource;
+    m_skinOptionFilterActive = nextSkinOptionFilterActive;
+    m_selectElementOptionsAvailable = nextSelectElementOptionsAvailable;
+
+    const bool nextReplayOptionsUsed = skinUsesAnySelectElementOption({
+        196, 197, 1196, 1197, 1199, 1200,
+        1202, 1203, 1205, 1206, 1207, 1208
+    });
+    const bool nextScoreOptionIdsUsed = skinUsesSelectElementOptionRange(118, 130)
+        || skinUsesAnySelectElementOption({ 144, 145, 1128 });
+    const bool nextEntryStatusOptionsUsed = skinUsesSelectElementOptionRange(100, 130)
+        || skinUsesSelectElementOptionRange(200, 207)
+        || skinUsesAnySelectElementOption({ 1100, 1101, 1102, 1103, 1104 });
+    const bool nextDifficultyBarOptionsUsed = skinUsesSelectElementOptionRange(70, 79)
+        || skinUsesSelectElementOptionRange(500, 570);
+    const bool nextDifficultyLampOptionsUsed = skinUsesSelectElementOptionRange(520, 570);
+    const bool nextDifficultyStateUsed = nextDifficultyBarOptionsUsed
+        || m_skinUsesSelectDifficultySource;
+    const bool nextCourseDetailOptionsUsed = skinUsesAnySelectElementOption({ 290, 293 })
+        || skinUsesSelectElementOptionRange(580, 589)
+        || skinUsesSelectElementOptionRange(700, 755);
+    const bool nextRankingStatusOptionsUsed = skinUsesSelectElementOptionRange(600, 616);
+
+    bool usageChanged = false;
+    const auto assignUsage = [&usageChanged](bool& current, bool next) {
+        if (current == next) {
+            return;
+        }
+        current = next;
+        usageChanged = true;
+    };
+
+    assignUsage(m_selectReplayOptionsUsed, nextReplayOptionsUsed);
+    assignUsage(m_selectScoreOptionIdsUsed, nextScoreOptionIdsUsed);
+    assignUsage(m_selectEntryStatusOptionsUsed, nextEntryStatusOptionsUsed);
+    assignUsage(m_selectDifficultyBarOptionsUsed, nextDifficultyBarOptionsUsed);
+    assignUsage(m_selectDifficultyLampOptionsUsed, nextDifficultyLampOptionsUsed);
+    assignUsage(m_selectDifficultyStateUsed, nextDifficultyStateUsed);
+    assignUsage(m_selectCourseDetailOptionsUsed, nextCourseDetailOptionsUsed);
+    assignUsage(m_selectRankingStatusOptionsUsed, nextRankingStatusOptionsUsed);
+
+    if (usageChanged) {
+        emit selectOptionUsageChanged();
+    }
+
+    refreshBaseActiveOptions();
+    refreshCurrentRuntimeActiveOptions();
 }
 
 void Lr2SelectUpdateController::appendUniqueOption(QVariantList& options, int option) const {
@@ -628,26 +664,4 @@ QList<int> Lr2SelectUpdateController::numberList(const QVariant& values) const {
     }
 
     return result;
-}
-
-bool Lr2SelectUpdateController::updateSelectRevision(bool runSideEffects) {
-    const int next = m_scoreRevision + m_focusRevision;
-    if (m_selectRevision == next) {
-        return false;
-    }
-    m_selectRevision = next;
-    emit selectRevisionChanged();
-    setSelectDetailRevision(next);
-    if (runSideEffects && m_componentReady) {
-        handleSelectRevisionChanged();
-    }
-    return true;
-}
-
-void Lr2SelectUpdateController::setSelectDetailRevision(int revision) {
-    if (m_selectDetailRevision == revision) {
-        return;
-    }
-    m_selectDetailRevision = revision;
-    emit selectDetailRevisionChanged();
 }

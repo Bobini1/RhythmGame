@@ -6,6 +6,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QJSEngine>
+#include <QJSValue>
 #include <QString>
 #include <QVariantList>
 
@@ -46,21 +48,50 @@ gameplay_logic::BmsScore* scoreWithClearType(const QString& clearType, QObject* 
 		parent);
 }
 
+void refreshState(Lr2SelectDetailState& state,
+				  QJSEngine& engine,
+				  const QString& itemKey,
+				  const QVariantList& scores,
+				  int selectedDifficulty,
+				  const QVariantList& difficultyCounts,
+				  const QVariantList& difficultyLevels,
+				  const QVariantList& difficultyLamps,
+				  bool useBeatorajaSemantics,
+				  bool buildScoreOptionIds) {
+	state.refreshSelectedFromQmlIdentityForIdentifier(
+		itemKey,
+		QString {},
+		false,
+		0,
+		0,
+		QJSValue {},
+		QJSValue {},
+		engine.toScriptValue(scores),
+		itemKey,
+		selectedDifficulty,
+		engine.toScriptValue(difficultyCounts),
+		engine.toScriptValue(difficultyLevels),
+		engine.toScriptValue(difficultyLamps),
+		useBeatorajaSemantics,
+		buildScoreOptionIds,
+		true,
+		!difficultyLamps.isEmpty());
+}
+
 int summaryLampFor(const QString& clearType, bool useBeatorajaSemantics) {
 	Lr2SelectDetailState state;
+	QJSEngine engine;
 	auto* score = scoreWithClearType(clearType, &state);
-	state.refresh(QStringLiteral("key-%1-%2").arg(clearType).arg(useBeatorajaSemantics),
-				  0,
-				  0,
-				  QVariantMap {},
-				  QVariantMap {},
-				  QVariantList {QVariant::fromValue(score)},
-				  0,
-				  QVariantList {},
-				  QVariantList {},
-				  QVariantList {},
-				  useBeatorajaSemantics,
-				  true);
+	refreshState(state,
+				 engine,
+				 QStringLiteral("key-%1-%2").arg(clearType).arg(useBeatorajaSemantics),
+				 QVariantList {QVariant::fromValue(score)},
+				 0,
+				 QVariantList {},
+				 QVariantList {},
+				 QVariantList {},
+				 useBeatorajaSemantics,
+				 true);
 	return state.summary()->lamp();
 }
 
@@ -101,20 +132,19 @@ TEST_CASE("LR2 select detail state fills selected difficulty lamp from summary",
 		  "[lr2][runtime][select]")
 {
 	Lr2SelectDetailState state;
+	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
 
-	state.refresh(QStringLiteral("selected-difficulty-lamp"),
-				  0,
-				  0,
-				  QVariantMap {},
-				  QVariantMap {},
-				  QVariantList {QVariant::fromValue(score)},
-				  3,
-				  QVariantList {0, 0, 0, 1, 0, 0},
-				  QVariantList {0, 0, 0, 10, 0, 0},
-				  QVariantList {0, 0, 0, 0, 0, 0},
-				  true,
-				  true);
+	refreshState(state,
+				 engine,
+				 QStringLiteral("selected-difficulty-lamp"),
+				 QVariantList {QVariant::fromValue(score)},
+				 3,
+				 QVariantList {0, 0, 0, 1, 0, 0},
+				 QVariantList {0, 0, 0, 10, 0, 0},
+				 QVariantList {0, 0, 0, 0, 0, 0},
+				 true,
+				 true);
 
 	CHECK(state.difficultyModel()->lampForDifficulty(3) == 4);
 	const QVariantList optionIds = state.difficultyModel()->optionIdsForKeymode(7, true);
@@ -128,20 +158,19 @@ TEST_CASE("LR2 select detail state can skip selected difficulty lamp",
 		  "[lr2][runtime][select]")
 {
 	Lr2SelectDetailState state;
+	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
 
-	state.refresh(QStringLiteral("selected-difficulty-lamp-skipped"),
-				  0,
-				  0,
-				  QVariantMap {},
-				  QVariantMap {},
-				  QVariantList {QVariant::fromValue(score)},
-				  3,
-				  QVariantList {0, 0, 0, 1, 0, 0},
-				  QVariantList {0, 0, 0, 10, 0, 0},
-				  QVariantList {},
-				  true,
-				  true);
+	refreshState(state,
+				 engine,
+				 QStringLiteral("selected-difficulty-lamp-skipped"),
+				 QVariantList {QVariant::fromValue(score)},
+				 3,
+				 QVariantList {0, 0, 0, 1, 0, 0},
+				 QVariantList {0, 0, 0, 10, 0, 0},
+				 QVariantList {},
+				 true,
+				 true);
 
 	CHECK(state.difficultyModel()->lampForDifficulty(3) == 0);
 }
@@ -150,20 +179,19 @@ TEST_CASE("LR2 select detail state can skip score option ids",
 		  "[lr2][runtime][select]")
 {
 	Lr2SelectDetailState state;
+	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
 
-	state.refresh(QStringLiteral("score-option-skip"),
-				  0,
-				  0,
-				  QVariantMap {},
-				  QVariantMap {},
-				  QVariantList {QVariant::fromValue(score)},
-				  0,
-				  QVariantList {},
-				  QVariantList {},
-				  QVariantList {},
-				  true,
-				  false);
+	refreshState(state,
+				 engine,
+				 QStringLiteral("score-option-skip"),
+				 QVariantList {QVariant::fromValue(score)},
+				 0,
+				 QVariantList {},
+				 QVariantList {},
+				 QVariantList {},
+				 true,
+				 false);
 
 	CHECK(state.summary()->lamp() == 4);
 	CHECK(state.scoreOptionIds().toList().isEmpty());

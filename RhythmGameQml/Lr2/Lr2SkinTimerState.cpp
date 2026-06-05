@@ -128,7 +128,7 @@ void Lr2SkinTimerState::setGameplayRhythmTimerSkinTime(int skinTime) {
     }
     m_gameplayRhythmTimerSkinTime = skinTime;
     emit gameplayRhythmTimerSkinTimeChanged();
-    bumpRevision();
+    notifyTimerFireTimesChanged();
 }
 
 QVariant Lr2SkinTimerState::selectHeldButtonTimerStarts() const {
@@ -142,7 +142,6 @@ void Lr2SkinTimerState::setSelectHeldButtonTimerStarts(const QVariant& values) {
     m_selectHeldButtonTimerStarts = next;
     emit selectHeldButtonTimerStartsChanged();
     clearSelectTimerFireCache();
-    bumpRevision();
 }
 
 QString Lr2SkinTimerState::screenKey() const { return m_screenKey; }
@@ -153,7 +152,6 @@ void Lr2SkinTimerState::setScreenKey(const QString& value) {
     m_screenKey = value;
     emit screenKeyChanged();
     clearSelectTimerFireCache();
-    bumpRevision();
 }
 
 bool Lr2SkinTimerState::isGameplayScreen() const { return m_gameplayScreen; }
@@ -163,7 +161,7 @@ void Lr2SkinTimerState::setGameplayScreen(bool value) {
     }
     m_gameplayScreen = value;
     emit gameplayScreenChanged();
-    bumpRevision();
+    notifyTimerFireTimesChanged();
 }
 
 bool Lr2SkinTimerState::isResultScreen() const { return m_resultScreen; }
@@ -173,7 +171,7 @@ void Lr2SkinTimerState::setResultScreen(bool value) {
     }
     m_resultScreen = value;
     emit resultScreenChanged();
-    bumpRevision();
+    notifyTimerFireTimesChanged();
 }
 
 bool Lr2SkinTimerState::acceptsInput() const { return m_acceptsInput; }
@@ -184,14 +182,13 @@ void Lr2SkinTimerState::setAcceptsInput(bool value) {
     m_acceptsInput = value;
     emit acceptsInputChanged();
     clearSelectTimerFireCache();
-    bumpRevision();
 }
 
 int Lr2SkinTimerState::startInput() const { return m_startInput; }
 void Lr2SkinTimerState::setStartInput(int value) {
     if (setInt(m_startInput, value)) {
         emit startInputChanged();
-        bumpRevision();
+        notifyTimerFireTimesChanged();
     }
 }
 
@@ -207,7 +204,7 @@ void Lr2SkinTimerState::setRenderSkinTime(int value) {
     if (setInt(m_renderSkinTime, value)) {
         emit renderSkinTimeChanged();
         if (m_resultScreen || m_screenKey == QStringLiteral("select")) {
-            bumpRevision();
+            notifyTimerFireTimesChanged();
         }
     }
 }
@@ -231,7 +228,7 @@ void Lr2SkinTimerState::setSelectInfoElapsed(int value) {
     if (setInt(m_selectInfoElapsed, value)) {
         emit selectInfoElapsedChanged();
         ++m_cacheEpoch;
-        bumpSelectInfoRevision();
+        notifySelectInfoTimerFireTimesChanged();
     }
 }
 
@@ -341,7 +338,7 @@ int Lr2SkinTimerState::resultTimer151SkinTime() const { return m_resultTimer151S
 void Lr2SkinTimerState::setResultTimer151SkinTime(int value) {
     if (setInt(m_resultTimer151SkinTime, value)) {
         emit resultTimer151SkinTimeChanged();
-        bumpRevision();
+        notifyTimerFireTimesChanged();
     }
 }
 
@@ -349,7 +346,7 @@ int Lr2SkinTimerState::resultTimer152SkinTime() const { return m_resultTimer152S
 void Lr2SkinTimerState::setResultTimer152SkinTime(int value) {
     if (setInt(m_resultTimer152SkinTime, value)) {
         emit resultTimer152SkinTimeChanged();
-        bumpRevision();
+        notifyTimerFireTimesChanged();
     }
 }
 
@@ -357,7 +354,7 @@ int Lr2SkinTimerState::resultGraphStartSkinTime() const { return m_resultGraphSt
 void Lr2SkinTimerState::setResultGraphStartSkinTime(int value) {
     if (setInt(m_resultGraphStartSkinTime, value)) {
         emit resultGraphStartSkinTimeChanged();
-        bumpRevision();
+        notifyTimerFireTimesChanged();
     }
 }
 
@@ -365,26 +362,14 @@ int Lr2SkinTimerState::resultGraphEndSkinTime() const { return m_resultGraphEndS
 void Lr2SkinTimerState::setResultGraphEndSkinTime(int value) {
     if (setInt(m_resultGraphEndSkinTime, value)) {
         emit resultGraphEndSkinTimeChanged();
-        bumpRevision();
+        notifyTimerFireTimesChanged();
     }
 }
-
-int Lr2SkinTimerState::gameplayTimerRevision() const { return m_gameplayTimerRevision; }
-void Lr2SkinTimerState::setGameplayTimerRevision(int value) {
-    if (setInt(m_gameplayTimerRevision, value)) {
-        emit gameplayTimerRevisionChanged();
-        bumpRevision();
-    }
-}
-
-int Lr2SkinTimerState::revision() const { return m_revision; }
-int Lr2SkinTimerState::selectInfoRevision() const { return m_selectInfoRevision; }
 
 int Lr2SkinTimerState::gameplayTimerFireTime(int timer) const {
     if (timer == 140) {
         return m_gameplayRhythmTimerSkinTime;
     }
-    Q_UNUSED(m_gameplayTimerRevision);
     return gameplayTimerValue(timer);
 }
 
@@ -574,8 +559,6 @@ bool Lr2SkinTimerState::commitGameplayTimerChanges() {
     m_pendingGameplayTimerChanges.clear();
     m_pendingGameplayTimerFullRefresh = false;
     m_gameplayTimerValuesDirty = false;
-    ++m_gameplayTimerRevision;
-    emit gameplayTimerRevisionChanged();
     emit gameplayTimerValuesCommitted();
     return true;
 }
@@ -592,7 +575,7 @@ QSet<int> Lr2SkinTimerState::takeCommittedGameplayTimerChanges(bool* fullRefresh
 
 void Lr2SkinTimerState::clearSelectTimerFireCache() {
     ++m_cacheEpoch;
-    bumpRevision();
+    notifyTimerFireTimesChanged();
 }
 
 int Lr2SkinTimerState::selectTimerBaseTime(bool liveClock) const {
@@ -681,14 +664,12 @@ void Lr2SkinTimerState::resetFrameCache(int cacheFrame) const {
     m_cacheValid.fill(false);
 }
 
-void Lr2SkinTimerState::bumpRevision() {
-    ++m_revision;
-    emit revisionChanged();
+void Lr2SkinTimerState::notifyTimerFireTimesChanged() {
+    emit timerFireTimesChanged();
 }
 
-void Lr2SkinTimerState::bumpSelectInfoRevision() {
-    ++m_selectInfoRevision;
-    emit selectInfoRevisionChanged();
+void Lr2SkinTimerState::notifySelectInfoTimerFireTimesChanged() {
+    emit selectInfoTimerFireTimesChanged();
 }
 
 bool Lr2SkinTimerState::setInt(int& field, int value) {

@@ -68,12 +68,4 @@ QtObject {
         }
     }
 
-    function isGameplayScreen() : var {
-        return root.gameplayScreen;
-    }
-
-    function isResultScreen() : var {
-        return root.resultScreen;
-    }
 }
-

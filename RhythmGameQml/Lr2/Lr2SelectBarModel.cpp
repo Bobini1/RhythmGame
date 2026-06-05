@@ -161,10 +161,6 @@ QVariantList Lr2SelectBarModel::cells() const {
 	return m_cellValues;
 }
 
-QVariantList Lr2SelectBarModel::entries() const {
-	return buildEntries();
-}
-
 void Lr2SelectBarModel::rebuild() {
 	rebuildRows();
 }
@@ -206,23 +202,8 @@ void Lr2SelectBarModel::scrollBy(int delta) {
 	}
 }
 
-int Lr2SelectBarModel::sourceRowAt(int row) const {
-	return row >= 0 && row < m_rows.size() ? m_rows.at(row).sourceRow : -1;
-}
-
 int Lr2SelectBarModel::slotForRow(int row) const {
 	return row >= 0 && row < m_rows.size() ? positiveModulo(row + m_slotOffset, m_rows.size()) : -1;
-}
-
-QObject* Lr2SelectBarModel::cellAtSlot(int slot) const {
-	return slot >= 0 && slot < m_cellObjects.size() ? m_cellObjects.at(slot).data() : nullptr;
-}
-
-QVariant Lr2SelectBarModel::entryAtRow(int row) const {
-	if (row < 0 || row >= m_rows.size()) {
-		return {};
-	}
-	return sourceData(m_rows.at(row), Lr2SelectItemModel::RawItemRole);
 }
 
 QVariant Lr2SelectBarModel::sourceData(const BarRow& row, int sourceRole) const {
@@ -320,7 +301,6 @@ void Lr2SelectBarModel::rebuildRows() {
 	endResetModel();
 	emit slotOffsetChanged();
 	emit cellsChanged();
-	emit entriesChanged();
 }
 
 void Lr2SelectBarModel::emitAllRowsChanged() {
@@ -328,7 +308,6 @@ void Lr2SelectBarModel::emitAllRowsChanged() {
 		return;
 	}
 	updateAllCells();
-	emit entriesChanged();
 }
 
 void Lr2SelectBarModel::ensureCellList(int count) {
@@ -398,13 +377,4 @@ void Lr2SelectBarModel::updateAllCells() {
 	for (int row = 0; row < m_rows.size(); ++row) {
 		updateCellForVisualRow(row);
 	}
-}
-
-QVariantList Lr2SelectBarModel::buildEntries() const {
-	QVariantList result;
-	result.reserve(m_rows.size());
-	for (const BarRow& row : m_rows) {
-		result.append(sourceData(row, Lr2SelectItemModel::RawItemRole));
-	}
-	return result;
 }

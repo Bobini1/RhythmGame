@@ -15,13 +15,7 @@ Item {
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property var chart
-    property string chartRevision: ""
     property real scaleOverride: 1.0
-    property string cachedDataRevision: ""
-    property var cachedDensityData: []
-    property int cachedMaxDensity: 20
-    property int cachedSourceW: 5
-    property int cachedSourceH: 100
     property Lr2ChartDataSnapshot chartSnapshot: Lr2ChartDataSnapshot {
         chart: root.chart && root.chart.chartData !== undefined ? root.chart.chartData : root.chart
     }
@@ -64,7 +58,11 @@ Item {
         return Math.max(0, Math.min(1, effectiveSkinTime / Math.max(1, srcData.delay || 1)));
     }
     readonly property bool hasChartData: chartSnapshot.hasHistogram
-    readonly property string dataRevision: chartSnapshot.revision
+    readonly property var densityData: buildNormalData(hasChartData ? chartSnapshot.histogramData : [])
+    readonly property int bucketCount: Math.max(1, densityData.length)
+    readonly property int maxDensity: graphMax(densityData)
+    readonly property int sourceW: bucketCount * 5
+    readonly property int sourceH: maxDensity * 5
     readonly property int effectiveSkinTime: Lr2SkinUtils.skinTimeForClock(skinClock, skinClockMode, skinTime)
 
     function densityAt(series: var, index: var) : var {
@@ -162,19 +160,6 @@ Item {
         return maxValue;
     }
 
-    function updateCachedGraphData() : var {
-        if (cachedDataRevision === dataRevision) {
-            return;
-        }
-
-        cachedDataRevision = dataRevision;
-        cachedDensityData = buildNormalData(hasChartData ? chartSnapshot.histogramData : []);
-        let bucketCount = Math.max(1, cachedDensityData.length);
-        cachedMaxDensity = graphMax(cachedDensityData);
-        cachedSourceW = bucketCount * 5;
-        cachedSourceH = cachedMaxDensity * 5;
-    }
-
     visible: !!currentState
         && (currentState.a === undefined ? 255 : currentState.a) > 0
         && !!srcData
@@ -203,12 +188,11 @@ Item {
                 return;
             }
 
-            root.updateCachedGraphData();
-            let data = root.cachedDensityData;
-            let bucketCount = Math.max(1, data.length);
-            let maxDensity = root.cachedMaxDensity;
-            let sourceW = root.cachedSourceW;
-            let sourceH = root.cachedSourceH;
+            let data = root.densityData;
+            let bucketCount = root.bucketCount;
+            let maxDensity = root.maxDensity;
+            let sourceW = root.sourceW;
+            let sourceH = root.sourceH;
 
             ctx.save();
             ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
@@ -229,7 +213,7 @@ Item {
 
     onChartChanged: requestChartPaint()
     onHasChartDataChanged: requestChartPaint()
-    onDataRevisionChanged: requestChartPaint()
+    onDensityDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
     onRevealChanged: requestChartPaint()

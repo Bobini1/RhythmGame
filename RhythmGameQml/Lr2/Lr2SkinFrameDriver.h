@@ -4,6 +4,7 @@
 #include "Lr2SelectVisualState.h"
 #include "Lr2SkinClock.h"
 
+#include <QMetaObject>
 #include <QObject>
 #include <QPointer>
 #include <QtQml/qqmlregistration.h>
@@ -12,6 +13,7 @@ class Lr2SkinFrameDriver : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(Lr2SkinClock* clock READ clock WRITE setClock NOTIFY clockChanged)
+    Q_PROPERTY(QObject* frameAnimation READ frameAnimation WRITE setFrameAnimation NOTIFY frameAnimationChanged)
     Q_PROPERTY(Lr2GameplayFrameState* gameplayFrameState READ gameplayFrameState WRITE setGameplayFrameState NOTIFY gameplayFrameStateChanged)
     Q_PROPERTY(Lr2SelectVisualState* selectVisualState READ selectVisualState WRITE setSelectVisualState NOTIFY selectVisualStateChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
@@ -24,6 +26,9 @@ public:
 
     Lr2SkinClock* clock() const;
     void setClock(Lr2SkinClock* clock);
+
+    QObject* frameAnimation() const;
+    void setFrameAnimation(QObject* animation);
 
     Lr2GameplayFrameState* gameplayFrameState() const;
     void setGameplayFrameState(Lr2GameplayFrameState* state);
@@ -46,6 +51,7 @@ public:
 
 signals:
     void clockChanged();
+    void frameAnimationChanged();
     void gameplayFrameStateChanged();
     void selectVisualStateChanged();
     void gameplayScreenChanged();
@@ -54,10 +60,16 @@ signals:
     void fpsSampleIntervalMsChanged();
     void gameplayStartupTickRequested();
 
+private slots:
+    void tickFrameAnimation();
+
 private:
     void setCurrentFps(int value);
+    void reconnectFrameAnimation();
 
     QPointer<Lr2SkinClock> m_clock;
+    QPointer<QObject> m_frameAnimation;
+    QMetaObject::Connection m_frameAnimationConnection;
     QPointer<Lr2GameplayFrameState> m_gameplayFrameState;
     QPointer<Lr2SelectVisualState> m_selectVisualState;
     bool m_gameplayScreen = false;

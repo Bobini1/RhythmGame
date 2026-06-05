@@ -11,7 +11,6 @@ QtObject {
 
     property var resultOldScores1: []
     property var resultOldScores2: []
-    property int resultOldScoresRevision: 0
     property int resultOldScoresRequest: 0
     property int resultTimer151SkinTime: -1
     property int resultTimer152SkinTime: -1
@@ -19,13 +18,10 @@ QtObject {
     property int resultGraphEndSkinTime: 2000
     property var resultTimingStatsCache: ({})
     property var resultJudgeTimingCountsCache: ({})
-    property var resultGaugeSelectionBySide: ({})
-    property int resultGaugeSelectionRevision: 0
-
-    function isResultScreen() : var {
-        return root.host.effectiveScreenKey === "result"
-            || root.host.effectiveScreenKey === "courseResult";
-    }
+    property int resultGaugeSelectionIndex1: -1
+    property int resultGaugeSelectionIndex2: -1
+    readonly property bool resultScreenActive: root.host ? root.host.resultScreenActive : false
+    readonly property bool gameplayScreenActive: root.host ? root.host.gameplayScreenActive : false
 
     function resultScore(side: var) : var {
         return root.host.scores && root.host.scores.length >= side
@@ -57,13 +53,13 @@ QtObject {
     }
 
     function displayChartData() : var {
-        if (root.isResultScreen()) {
+        if (root.resultScreenActive) {
             return root.resultChartData();
         }
         if (root.host.effectiveScreenKey === "select") {
-            return root.selectContext.selectedChartData();
+            return root.selectContext.selectedStateChartData;
         }
-        if (root.host.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             return root.host.gameplayChartData();
         }
         return root.host.chart && root.host.chart.chartData ? root.host.chart.chartData : null;
@@ -473,22 +469,16 @@ QtObject {
     }
 
     function resultGaugeSelectionIndex(side: var) : var {
-        root.resultGaugeSelectionRevision;
-        let values = root.resultGaugeSelectionBySide || {};
-        let value = values[String(side || 1)];
-        let index = value === undefined ? -1 : Math.floor(Number(value));
-        return isNaN(index) ? -1 : index;
+        return side === 2 ? root.resultGaugeSelectionIndex2 : root.resultGaugeSelectionIndex1;
     }
 
     function setResultGaugeSelectionIndex(side: var, index: var) : void {
-        let next = {};
-        let current = root.resultGaugeSelectionBySide || {};
-        for (let key in current) {
-            next[key] = current[key];
+        let next = Math.max(0, Math.floor(index || 0));
+        if (side === 2) {
+            root.resultGaugeSelectionIndex2 = next;
+        } else {
+            root.resultGaugeSelectionIndex1 = next;
         }
-        next[String(side || 1)] = Math.max(0, Math.floor(index || 0));
-        root.resultGaugeSelectionBySide = next;
-        root.resultGaugeSelectionRevision += 1;
     }
 
     function resultGaugeInfo(side: var) : var {
@@ -620,7 +610,6 @@ QtObject {
     }
 
     function resultOldScores(side: var) : var {
-        root.resultOldScoresRevision;
         return side === 2 ? root.resultOldScores2 : root.resultOldScores1;
     }
 
@@ -647,7 +636,6 @@ QtObject {
     }
 
     function resultLastOldScore(side: var) : var {
-        root.resultOldScoresRevision;
         let scores = root.resultOldScores(side) || [];
         return scores.length > 0 ? scores[0] : null;
     }
@@ -738,14 +726,13 @@ QtObject {
     }
 
     function updateResultOldScores() : var {
-        if (!root.isResultScreen()) {
+        if (!root.resultScreenActive) {
             return;
         }
 
         let request = ++root.resultOldScoresRequest;
         root.resultOldScores1 = [];
         root.resultOldScores2 = [];
-        root.resultOldScoresRevision++;
 
         for (let side = 1; side <= 2; ++side) {
             let score = root.resultScore(side);
@@ -770,7 +757,6 @@ QtObject {
                     } else {
                         root.resultOldScores1 = filtered;
                     }
-                    root.resultOldScoresRevision++;
                 });
             } else {
                 let chartData = root.resultChartData();
@@ -792,7 +778,6 @@ QtObject {
                     } else {
                         root.resultOldScores1 = filtered;
                     }
-                    root.resultOldScoresRevision++;
                 });
             }
         }

@@ -1,6 +1,5 @@
 import QtQuick
 import RhythmGameQml
-import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: root
@@ -36,9 +35,13 @@ Item {
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
-    readonly property int barBaseStateRevision: barBaseStateResolver
-        ? barBaseStateResolver.baseStatesRevision
-        : 0
+    readonly property var barBaseStates: barBaseStateResolver ? barBaseStateResolver.baseStates : []
+    readonly property var positionlessBarBaseStates: barBaseStateResolver
+        ? barBaseStateResolver.positionlessBaseStates
+        : []
+    readonly property var barStateInterpolationNeeded: barBaseStateResolver
+        ? barBaseStateResolver.interpolationNeededByRow
+        : []
     readonly property bool selectedBodySource: !!srcData
         && srcData.kind === 0
         && srcData.row === selectedRow
@@ -52,6 +55,11 @@ Item {
     readonly property int barCellCount: barTextCells && barTextCells.length > 0
         ? barTextCells.length
         : (barCells ? barCells.length : 0)
+    readonly property var displayCells: barTextCells && barTextCells.length > 0 ? barTextCells : barCells
+    readonly property int positionSlotCount: barPositionMap
+        ? (barPositionMap.slotCount > 0 ? barPositionMap.slotCount : barPositionMap.count)
+        : barCellCount
+    readonly property int positionSlotOffset: barPositionMap ? barPositionMap.slotOffset : 0
     readonly property bool hasOverlayTimelineState: srcData && srcData.kind >= 2
     readonly property var overlayDsts: hasOverlayTimelineState ? dsts : []
     readonly property bool overlayHasStaticTimelineState: overlayTimelineTracker.canUseStaticState
@@ -74,17 +82,18 @@ Item {
            || (overlayTimelineTracker.hasState ? overlayTimelineTracker.state : null))
         : null
 
-    readonly property var bodyRows: {
+    readonly property int bodyRowIndex: {
         if (!srcData || !selectContext || srcData.kind !== 0) {
-            return [];
+            return -1;
         }
         let total = barRows ? barRows.length : 0;
         let row = srcData.row;
-        if (row <= 0 || row >= total || !rowData(row) || !rowData(row - 1)) {
-            return [];
+        if (row <= 0 || row >= total || !barRows[row] || !barRows[row - 1]) {
+            return -1;
         }
-        return [row];
+        return row;
     }
+    readonly property bool bodyRowActive: bodyRowIndex >= 0
     readonly property int overlaySlotCount: {
         if (!srcData || !selectContext || srcData.kind < 2) {
             return 0;
@@ -106,142 +115,93 @@ Item {
         return total;
     }
 
-    function rowData(row: var) : var {
-        return barRows && row >= 0 && row < barRows.length ? barRows[row] : null;
-    }
-
-    function sourceAt(sources: var, sourceIndex: var) : var {
-        if (!sources || sourceIndex < 0) {
-            return null;
-        }
-        return sourceIndex < sources.length ? sources[sourceIndex] : null;
-    }
-
-    function chartAssetSourceFor(source: var) : var {
-        return Lr2SkinUtils.chartAssetSourceFor(
-            source,
-            stageFileSource,
-            backBmpSource,
-            bannerSource);
-    }
-
-    function visibilityState(row: var) : var {
-        return baseStateAt(row);
-    }
-
-    function bodyNeedsStateInterpolation(row: var) : var {
-        if (applyFastBarScroll) {
-            return false;
-        }
-        root.barBaseStateRevision;
-        return barBaseStateResolver ? barBaseStateResolver.stateNeedsInterpolationAt(row) : false;
-    }
-
-    function positionlessStateAt(row: var) : var {
-        root.barBaseStateRevision;
-        if (!barBaseStateResolver) {
-            return null;
-        }
-        let state = barBaseStateResolver.positionlessStateAt(row);
-        return state && state.valid ? state : null;
-    }
-
-    function baseStateXAt(row: var) : var {
-        root.barBaseStateRevision;
-        return barBaseStateResolver ? barBaseStateResolver.stateXAt(row) : 0;
-    }
-
-    function baseStateYAt(row: var) : var {
-        root.barBaseStateRevision;
-        return barBaseStateResolver ? barBaseStateResolver.stateYAt(row) : 0;
-    }
-
-    function baseStateAt(row: var) : var {
-        root.barBaseStateRevision;
-        if (!barBaseStateResolver || row < 0 || row >= barBaseStateResolver.stateCount()) {
-            return null;
-        }
-        let state = barBaseStateResolver.stateAt(row);
-        return state && state.valid ? state : null;
-    }
-
-    function slotForDisplayRow(row: var) : var {
-        let count = root.barCellCount;
-        if (count <= 0 || row < 0 || row >= count) {
-            return -1;
-        }
-        let offset = root.barPositionMap ? root.barPositionMap.slotOffset : 0;
-        return root.barPositionMap
-            ? root.barPositionMap.slotForRow(row)
-            : (row + offset) % count;
-    }
-
-    function cellData(row: var) : var {
-        let cells = barTextCells && barTextCells.length > 0 ? barTextCells : barCells;
-        let slot = slotForDisplayRow(row);
-        return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
-    }
-
-    function cellDataForSlot(slot: var) : var {
-        let cells = barTextCells && barTextCells.length > 0 ? barTextCells : barCells;
-        return cells && slot >= 0 && slot < cells.length ? cells[slot] : null;
-    }
-
-    function bodyDsts(row: var) : var {
-        let data = rowData(row);
-        if (!data) {
-            return [];
-        }
-        return data.offDsts && data.offDsts.length > 0 ? data.offDsts : (data.onDsts || []);
-    }
-
-    function overlayVisibleForCell(cell: var, sourceKind: var, sourceVariant: var) : var {
-        if (!selectContext || !srcData || !cell || !cell.valid) {
-            return false;
-        }
-        switch (sourceKind) {
-        case 3:
-            return cell.lamp === sourceVariant;
-        case 6:
-            return cell.ranking && cell.rank === sourceVariant;
-        case 8:
-            return sourceVariant >= 0
-                && sourceVariant < 31
-                && (cell.labelMask & (1 << sourceVariant)) !== 0;
-        default:
-            return false;
-        }
-    }
-
     Repeater {
         id: bodyRepeater
 
-        model: root.bodyRows
+        model: root.bodyRowActive ? 1 : 0
 
         Lr2BarPositionedItem {
             id: bodyDelegate
 
-            readonly property int bodyRow: modelData
-            readonly property bool needsStateInterpolation: root.bodyNeedsStateInterpolation(bodyRow)
-            readonly property var bodyCell: root.cellData(bodyRow)
-            readonly property var bodySource: {
-                let fallback = root.srcData && root.srcData.source ? root.srcData.source : null;
-                if (!bodyCell || !root.srcData || !root.srcData.sources) {
-                    return fallback;
+            readonly property int bodyRow: root.bodyRowIndex
+            readonly property int bodySlot: root.positionSlotCount > 0
+                && bodyRow >= 0
+                && bodyRow < root.positionSlotCount
+                ? (bodyRow + root.positionSlotOffset) % root.positionSlotCount
+                : -1
+            readonly property var bodyRowData: root.barRows
+                && bodyRow >= 0
+                && bodyRow < root.barRows.length
+                ? root.barRows[bodyRow]
+                : null
+            readonly property var bodyCell: root.displayCells
+                && bodySlot >= 0
+                && bodySlot < root.displayCells.length
+                ? root.displayCells[bodySlot]
+                : null
+            readonly property var bodySources: root.srcData ? root.srcData.sources : null
+            readonly property var fallbackBodySource: root.srcData && root.srcData.source
+                ? root.srcData.source
+                : null
+            readonly property int bodyType: bodyCell ? bodyCell.bodyType : -1
+            readonly property var typedBodySource: bodySources
+                && bodyType >= 0
+                && bodyType < bodySources.length
+                ? bodySources[bodyType]
+                : null
+            readonly property var firstBodySource: bodySources && bodySources.length > 0
+                ? bodySources[0]
+                : null
+            readonly property var bodySource: typedBodySource || firstBodySource || fallbackBodySource
+            readonly property int bodySourceFrameCount: bodySource
+                ? Math.max(1, bodySource.div_x || 1) * Math.max(1, bodySource.div_y || 1)
+                : 1
+            readonly property bool bodySourceAnimates: !!bodySource
+                && (bodySource.cycle || 0) > 0
+                && bodySourceFrameCount > 1
+            readonly property string bodyChartAssetSource: {
+                if (!bodySource) {
+                    return "";
                 }
-                return root.sourceAt(root.srcData.sources, bodyCell.bodyType)
-                    || root.sourceAt(root.srcData.sources, 0)
-                    || fallback;
+                if (bodySource.specialType === 1) {
+                    return root.stageFileSource;
+                }
+                if (bodySource.specialType === 3) {
+                    return root.backBmpSource;
+                }
+                if (bodySource.specialType === 4) {
+                    return root.bannerSource;
+                }
+                return "";
             }
-            readonly property bool bodySourceAnimates: Lr2SkinUtils.sourceCyclesContinuously(bodySource)
-            readonly property var staticBodyState: root.positionlessStateAt(bodyRow)
+            readonly property var bodyBaseState: root.barBaseStates
+                && bodyRow >= 0
+                && bodyRow < root.barBaseStates.length
+                && root.barBaseStates[bodyRow].valid
+                ? root.barBaseStates[bodyRow]
+                : null
+            readonly property bool needsStateInterpolation: !root.applyFastBarScroll
+                && bodyRow >= 0
+                && bodyRow < root.barStateInterpolationNeeded.length
+                && !!root.barStateInterpolationNeeded[bodyRow]
+            readonly property var staticBodyState: root.positionlessBarBaseStates
+                && bodyRow >= 0
+                && bodyRow < root.positionlessBarBaseStates.length
+                && root.positionlessBarBaseStates[bodyRow].valid
+                ? root.positionlessBarBaseStates[bodyRow]
+                : null
             readonly property var effectiveBodyState: needsStateInterpolation ? bodyInterpolatedState : staticBodyState
+            readonly property var bodyDsts: bodyRowData
+                ? (bodyRowData.offDsts && bodyRowData.offDsts.length > 0
+                   ? bodyRowData.offDsts
+                   : (bodyRowData.onDsts || []))
+                : []
             positionMap: root.barPositionMap
             row: bodyDelegate.bodyRow
             scaleOverride: root.scaleOverride
             usePositionMap: !needsStateInterpolation && !root.applyFastBarScroll
-            fallbackX: !needsStateInterpolation ? root.baseStateXAt(bodyRow) : 0
-            fallbackY: !needsStateInterpolation ? root.baseStateYAt(bodyRow) : 0
+            fallbackX: !needsStateInterpolation && bodyBaseState ? (bodyBaseState.x || 0) : 0
+            fallbackY: !needsStateInterpolation && bodyBaseState ? (bodyBaseState.y || 0) : 0
             visible: !!effectiveBodyState
             width: root.width
             height: root.height
@@ -256,8 +216,9 @@ Item {
 
             Lr2SpriteRenderer {
                 anchors.fill: parent
-                dsts: root.bodyDsts(bodyDelegate.bodyRow)
+                dsts: bodyDelegate.bodyDsts
                 srcData: bodyDelegate.bodySource
+                sourceHasFrameAnimation: bodyDelegate.bodySourceAnimates
                 stateOverride: bodyDelegate.effectiveBodyState
                 forceHidden: !bodyDelegate.effectiveBodyState
                 skinTime: 0
@@ -274,7 +235,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: bodyDelegate.bodySourceAnimates ? root.sourceTimerFire : -2147483648
-                chartAssetSource: root.chartAssetSourceFor(bodyDelegate.bodySource)
+                chartAssetSource: bodyDelegate.bodyChartAssetSource
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: false
@@ -294,15 +255,58 @@ Item {
             readonly property int sourceVariant: root.srcData ? (root.srcData.variant || 0) : 0
             readonly property bool selectedOverlaySource: sourceKind === 2
             readonly property var overlaySource: root.srcData ? root.srcData.source : null
-            readonly property bool overlaySourceAnimates: Lr2SkinUtils.sourceCyclesContinuously(overlaySource)
+            readonly property int overlaySourceFrameCount: overlaySource
+                ? Math.max(1, overlaySource.div_x || 1) * Math.max(1, overlaySource.div_y || 1)
+                : 1
+            readonly property bool overlaySourceAnimates: !!overlaySource
+                && (overlaySource.cycle || 0) > 0
+                && overlaySourceFrameCount > 1
+            readonly property string overlayChartAssetSource: {
+                if (!overlaySource) {
+                    return "";
+                }
+                if (overlaySource.specialType === 1) {
+                    return root.stageFileSource;
+                }
+                if (overlaySource.specialType === 3) {
+                    return root.backBmpSource;
+                }
+                if (overlaySource.specialType === 4) {
+                    return root.bannerSource;
+                }
+                return "";
+            }
             readonly property bool usesRowPositionMap: !selectedOverlaySource
             readonly property int selectedDisplayRow: selectedOverlaySource ? slot : -1
-            readonly property var visibleBase: selectedOverlaySource ? root.visibilityState(selectedDisplayRow) : null
+            readonly property var visibleBase: selectedOverlaySource
+                && root.barBaseStates
+                && selectedDisplayRow >= 0
+                && selectedDisplayRow < root.barBaseStates.length
+                && root.barBaseStates[selectedDisplayRow].valid
+                ? root.barBaseStates[selectedDisplayRow]
+                : null
             readonly property var cell: selectedOverlaySource
                 ? null
-                : root.cellDataForSlot(slot)
-            readonly property bool cellOverlayVisible: !selectedOverlaySource
-                && root.overlayVisibleForCell(cell, sourceKind, sourceVariant)
+                : (root.displayCells && slot >= 0 && slot < root.displayCells.length
+                   ? root.displayCells[slot]
+                   : null)
+            readonly property bool cellOverlayVisible: {
+                if (selectedOverlaySource || !root.selectContext || !root.srcData || !cell || !cell.valid) {
+                    return false;
+                }
+                if (sourceKind === 3) {
+                    return cell.lamp === sourceVariant;
+                }
+                if (sourceKind === 6) {
+                    return cell.ranking && cell.rank === sourceVariant;
+                }
+                if (sourceKind === 8) {
+                    return sourceVariant >= 0
+                        && sourceVariant < 31
+                        && (cell.labelMask & (1 << sourceVariant)) !== 0;
+                }
+                return false;
+            }
             readonly property bool contentVisible: (selectedOverlaySource
                     ? selectedDisplayRow > 0 && !!visibleBase
                     : rowVisible)
@@ -324,6 +328,7 @@ Item {
                 anchors.fill: parent
                 dsts: root.dsts
                 srcData: overlayDelegate.overlaySource
+                sourceHasFrameAnimation: overlayDelegate.overlaySourceAnimates
                 forceHidden: !overlayDelegate.contentVisible
                 skinTime: 0
                 sourceSkinTime: overlayDelegate.overlaySourceAnimates && !root.useDirectSourceSkinClock
@@ -339,7 +344,7 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 sourceTimerFire: overlayDelegate.overlaySourceAnimates ? root.sourceTimerFire : -2147483648
-                chartAssetSource: root.chartAssetSourceFor(overlayDelegate.overlaySource)
+                chartAssetSource: overlayDelegate.overlayChartAssetSource
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: root.colorKeyEnabled

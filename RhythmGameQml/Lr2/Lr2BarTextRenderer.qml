@@ -23,9 +23,6 @@ Item {
     property real selectedFastBarDrawX: 0
     property real selectedFastBarDrawY: 0
     property int barCenter: 0
-    readonly property int barBaseStateRevision: barBaseStateResolver
-        ? barBaseStateResolver.baseStatesRevision
-        : 0
     x: fastBarScrollActive ? fastBarScrollX * scaleOverride : 0
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
@@ -68,24 +65,6 @@ Item {
     }
     readonly property var textTimelineState: staticTimelineState
         || (timelineState.hasState ? timelineState.state : null)
-
-    function visibleFor(cellValid: var, cellTitleType: var) : var {
-        return cellValid && !!srcData && !!selectContext
-            && cellTitleType === srcData.titleType;
-    }
-
-    function baseState(row: var) : var {
-        root.barBaseStateRevision;
-        if (!barBaseStateResolver || row < 0 || row >= barBaseStateResolver.stateCount()) {
-            return null;
-        }
-        let state = barBaseStateResolver.stateAt(row);
-        return state && state.valid ? state : null;
-    }
-
-    function visibilityState(row: var) : var {
-        return baseState(row);
-    }
 
     Lr2BarTextItem {
         id: nativeText

@@ -7,6 +7,7 @@ QtObject {
 
     required property var screenRoot
     required property var selectContext
+    property var selectHoverState: null
     property var scratchSound
     property var optionOpenSound
     property var optionCloseSound
@@ -86,14 +87,18 @@ QtObject {
     }
 
     onSelectPanelElapsedChanged: {
-        if (root.selectHoverHasPoint && controller.selectPanel > 0) {
-            root.refreshSelectHoverState();
+        if (controller.selectHoverState
+                && controller.selectHoverState.hasPoint
+                && controller.selectPanel > 0) {
+            controller.selectHoverState.refreshVisibleState();
         }
     }
 
     onSelectPanelCloseElapsedChanged: {
-        if (root.selectHoverHasPoint && controller.selectPanelClosing > 0) {
-            root.refreshSelectHoverState();
+        if (controller.selectHoverState
+                && controller.selectHoverState.hasPoint
+                && controller.selectPanelClosing > 0) {
+            controller.selectHoverState.refreshVisibleState();
         }
     }
 
@@ -161,7 +166,7 @@ QtObject {
     }
 
     function handleGameplayOptionModifierChanged() : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return;
         }
         root.refreshGameplayRuntimeActiveOptions();
@@ -567,7 +572,7 @@ QtObject {
         if (src.button) {
             return src.buttonId || 0;
         }
-        return root.imageSetButtonId(src);
+        return controller.imageSetButtonId(src);
     }
 
     function elementButtonPanel(src: var) : var {
@@ -580,14 +585,14 @@ QtObject {
         }
         return src.button
             ? src.buttonClick !== 0
-            : root.selectPanel > 0 && root.imageSetButtonId(src) > 0;
+            : root.selectPanel > 0 && controller.imageSetButtonId(src) > 0;
     }
 
     function elementButtonPanelMatches(src: var) : var {
         if (!src) {
             return false;
         }
-        return src.button ? root.buttonPanelMatches(src) : root.selectPanel > 0;
+        return src.button ? controller.buttonPanelMatches(src) : root.selectPanel > 0;
     }
 
     function buttonMouseDelta(src: var, mouseX: var, width: var) : var {
@@ -597,7 +602,7 @@ QtObject {
         if (src && src.buttonPlusOnly === 2) {
             return -1;
         }
-        if (src && root.buttonUsesSplitArrows(root.elementButtonId(src))) {
+        if (src && controller.buttonUsesSplitArrows(controller.elementButtonId(src))) {
             return mouseX < width / 2 ? -1 : 1;
         }
         return 1;
@@ -741,11 +746,11 @@ QtObject {
         if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
             return;
         }
-        let timer = root.selectHeldButtonTimerForKey(key);
+        let timer = controller.selectHeldButtonTimerForKey(key);
         if (!timer) {
             return;
         }
-        let starts = root.selectHeldButtonTimerStarts;
+        let starts = controller.selectHeldButtonTimerStarts;
         if (starts[timer] !== undefined) {
             return;
         }
@@ -753,36 +758,36 @@ QtObject {
         for (let keyName in starts) {
             copy[keyName] = starts[keyName];
         }
-        copy[timer] = root.currentSelectHeldButtonSkinTime();
-        root.selectHeldButtonTimerStarts = copy;
+        copy[timer] = controller.currentSelectHeldButtonSkinTime();
+        controller.selectHeldButtonTimerStarts = copy;
     }
 
     function releaseSelectHeldButtonTimer(key: var) : var {
-        let timer = root.selectHeldButtonTimerForKey(key);
-        if (!timer || root.selectHeldButtonTimerStarts[timer] === undefined) {
+        let timer = controller.selectHeldButtonTimerForKey(key);
+        if (!timer || controller.selectHeldButtonTimerStarts[timer] === undefined) {
             return;
         }
         let copy = {};
-        for (let keyName in root.selectHeldButtonTimerStarts) {
+        for (let keyName in controller.selectHeldButtonTimerStarts) {
             if (Number(keyName) !== timer) {
-                copy[keyName] = root.selectHeldButtonTimerStarts[keyName];
+                copy[keyName] = controller.selectHeldButtonTimerStarts[keyName];
             }
         }
-        root.selectHeldButtonTimerStarts = copy;
+        controller.selectHeldButtonTimerStarts = copy;
     }
 
     function addHeldButtonTimer(result: var, timer: var, held: var) : var {
         if (!held) {
             return;
         }
-        let start = root.selectHeldButtonTimerStarts[timer];
-        result[timer] = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
+        let start = controller.selectHeldButtonTimerStarts[timer];
+        result[timer] = start === undefined ? controller.currentSelectHeldButtonSkinTime() : start;
     }
 
     function selectHeldButtonTimerFireTime(timer: var, liveClock: var) : var {
         if (root.effectiveScreenKey !== "select"
                 || root.selectPanel !== 1
-                || !root.isSelectHeldButtonTimer(timer)) {
+                || !controller.isSelectHeldButtonTimer(timer)) {
             return -1;
         }
 
@@ -835,8 +840,8 @@ QtObject {
             return -1;
         }
 
-        let start = root.selectHeldButtonTimerStarts[timer];
-        let liveStart = start === undefined ? root.currentSelectHeldButtonSkinTime() : start;
+        let start = controller.selectHeldButtonTimerStarts[timer];
+        let liveStart = start === undefined ? controller.currentSelectHeldButtonSkinTime() : start;
         if (liveClock === true) {
             return liveStart;
         }
@@ -847,27 +852,20 @@ QtObject {
         if (root.effectiveScreenKey !== "select" || root.selectPanel !== 1) {
             return;
         }
-        root.addHeldButtonTimer(result, 101, Input.col11);
-        root.addHeldButtonTimer(result, 102, Input.col12);
-        root.addHeldButtonTimer(result, 103, Input.col13);
-        root.addHeldButtonTimer(result, 104, Input.col14);
-        root.addHeldButtonTimer(result, 105, Input.col15);
-        root.addHeldButtonTimer(result, 106, Input.col16);
-        root.addHeldButtonTimer(result, 107, Input.col17);
-        root.addHeldButtonTimer(result, 111, Input.col21);
-        root.addHeldButtonTimer(result, 112, Input.col22);
-        root.addHeldButtonTimer(result, 113, Input.col23);
-        root.addHeldButtonTimer(result, 114, Input.col24);
-        root.addHeldButtonTimer(result, 115, Input.col25);
-        root.addHeldButtonTimer(result, 116, Input.col26);
-        root.addHeldButtonTimer(result, 117, Input.col27);
-    }
-
-    function spriteSkinTime(src: var, dsts: var) : var {
-        let timer = dsts && dsts.length > 0 ? (dsts[0].timer || 0) : 0;
-        return root.isSelectHeldButtonTimer(timer)
-            ? (root.hasSelectHeldButtonTimers ? root.selectHeldButtonSkinTime : root.currentSelectHeldButtonSkinTime())
-            : root.skinTimeForElement(src, dsts);
+        controller.addHeldButtonTimer(result, 101, Input.col11);
+        controller.addHeldButtonTimer(result, 102, Input.col12);
+        controller.addHeldButtonTimer(result, 103, Input.col13);
+        controller.addHeldButtonTimer(result, 104, Input.col14);
+        controller.addHeldButtonTimer(result, 105, Input.col15);
+        controller.addHeldButtonTimer(result, 106, Input.col16);
+        controller.addHeldButtonTimer(result, 107, Input.col17);
+        controller.addHeldButtonTimer(result, 111, Input.col21);
+        controller.addHeldButtonTimer(result, 112, Input.col22);
+        controller.addHeldButtonTimer(result, 113, Input.col23);
+        controller.addHeldButtonTimer(result, 114, Input.col24);
+        controller.addHeldButtonTimer(result, 115, Input.col25);
+        controller.addHeldButtonTimer(result, 116, Input.col26);
+        controller.addHeldButtonTimer(result, 117, Input.col27);
     }
 
     function buttonPanelMatches(src: var) : var {
@@ -926,7 +924,7 @@ QtObject {
             return;
         }
         if (buttonId === 17) {
-            let path = selectContext.attachedTextFile(selectContext.selectedChartData());
+            let path = selectContext.attachedTextFile(selectContext.selectedStateChartData);
             if (path) {
                 root.openReadmePath(path);
             }
@@ -1111,13 +1109,13 @@ QtObject {
     }
 
     function pressLr2GameplayScratchDirection(side: var, up: var) : void {
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             controller.setGameplayScratchLastDirection(side, up);
         }
     }
 
     function releaseLr2GameplayScratchDirection(side: var, up: var) : void {
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             controller.setGameplayScratchLastDirection(side, !up);
         }
     }
@@ -1138,7 +1136,7 @@ QtObject {
             return;
         }
         let key = controller.gameplayOptionRepeatKey;
-        if (!root.isGameplayScreen()
+        if (!root.gameplayScreenActive
                 || !root.gameplayOptionKeyHeld(key)
                 || !root.gameplayOptionModifierHeldForKey(key)
                 || !controller.applyLr2GameplayOptionKey(key)) {
@@ -1195,7 +1193,7 @@ QtObject {
     }
 
     function applyLr2GameplayOptionKey(key: var) : var {
-        if (!root.isGameplayScreen() || !root.gameplayOptionModifierHeldForKey(key)) {
+        if (!root.gameplayScreenActive || !root.gameplayOptionModifierHeldForKey(key)) {
             return false;
         }
 
@@ -1234,7 +1232,7 @@ QtObject {
     }
 
     function handleGameplayStartPress(key: var) : var {
-        if (!root.isGameplayScreen()
+        if (!root.gameplayScreenActive
                 || (key !== BmsKey.Start1 && key !== BmsKey.Start2)) {
             return false;
         }
@@ -1292,7 +1290,7 @@ QtObject {
     }
 
     function handleLr2GameplayScratchTick(side: var, up: var, number: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return false;
         }
         let key = side === 2 ? BmsKey.Col2sUp : BmsKey.Col1sUp;
@@ -1318,7 +1316,7 @@ QtObject {
     }
 
     function handleLr2GameplayArrow(key: var) : var {
-        if (!root.isGameplayScreen()) {
+        if (!root.gameplayScreenActive) {
             return false;
         }
         switch (key) {

@@ -8,6 +8,7 @@ QtObject {
     required property var screenRoot
     required property var selectContext
     required property var playContext
+    required property var rankingState
 
     readonly property var root: screenRoot
 
@@ -129,21 +130,21 @@ QtObject {
         case 68:
             return "OFF";
         case 69:
-            return root.optionText(root.lr2DpOptionLabels, root.lr2DpOptionIndex);
+            return resolver.optionText(root.lr2DpOptionLabels, root.lr2DpOptionIndex);
         case 70:
-            return root.optionText(["OFF", "FLIP"], root.lr2FlipIndex);
+            return resolver.optionText(["OFF", "FLIP"], root.lr2FlipIndex);
         case 71:
-            return root.optionText(["OFF", "ON"], root.lr2ScoreGraphIndex);
+            return resolver.optionText(["OFF", "ON"], root.lr2ScoreGraphIndex);
         case 72:
-            return root.optionText(root.lr2GhostLabels, root.lr2GhostIndex);
+            return resolver.optionText(root.lr2GhostLabels, root.lr2GhostIndex);
         case 73:
-            return root.optionText(["OFF", "ON"], root.lr2LaneCoverIndex);
+            return resolver.optionText(["OFF", "ON"], root.lr2LaneCoverIndex);
         case 74:
-            return root.optionText(root.lr2HiSpeedFixLabels, root.lr2HiSpeedFixIndex);
+            return resolver.optionText(root.lr2HiSpeedFixLabels, root.lr2HiSpeedFixIndex);
         case 75:
-            return root.optionText(root.lr2BgaSizeLabels, root.lr2BgaSizeIndex);
+            return resolver.optionText(root.lr2BgaSizeLabels, root.lr2BgaSizeIndex);
         case 76:
-            return root.optionText(["ON", "OFF"], root.lr2BgaIndex);
+            return resolver.optionText(["ON", "OFF"], root.lr2BgaIndex);
         case 77:
             return "32BIT";
         case 78:
@@ -153,19 +154,19 @@ QtObject {
         case 80:
             return "OFF";
         case 81:
-            return root.optionText(root.lr2ReplayLabels, root.lr2ReplayType);
+            return resolver.optionText(root.lr2ReplayLabels, root.lr2ReplayType);
         case 82:
             return "MISSION COMPLETED";
         case 83:
             return "";
         case 84:
-            return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP1);
+            return resolver.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP1);
         case 85:
-            return root.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP2);
+            return resolver.optionText(root.lr2HidSudLabels, root.lr2HidSudIndexP2);
         case 86:
             return root.lr2SkinUsesBeatorajaSemantics ? "RIVALCHART" : "";
         case 308:
-            return root.optionText(root.lr2LnModeLabels, root.lr2LnModeIndex);
+            return resolver.optionText(root.lr2LnModeLabels, root.lr2LnModeIndex);
         case 120:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 121:
@@ -174,7 +175,7 @@ QtObject {
         case 124:
             return "";
         case 130:
-            return root.clearLabelForLamp(selectContext.entryLamp(selectContext.selectedItem()));
+            return resolver.clearLabelForLamp(selectContext.entryLamp(selectContext.selectedStateItem));
         case 131:
         case 132:
         case 133:
@@ -190,15 +191,15 @@ QtObject {
         case 157:
         case 158:
         case 159:
-            return root.chartTitle(root.courseStage(st - 150));
+            return resolver.chartTitle(resolver.courseStage(st - 150));
         case 160:
         case 161:
         case 162:
         case 163:
         case 164:
-            return root.chartSubtitle(root.courseStage(st - 160));
+            return resolver.chartSubtitle(resolver.courseStage(st - 160));
         case 170:
-            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.selectedItem(), true) : "";
+            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.selectedStateItem, true) : "";
         case 171:
             return "TITLE";
         case 172:
@@ -237,7 +238,7 @@ QtObject {
     }
 
     function selectedTextEntry() : var {
-        return root.effectiveScreenKey === "select" ? selectContext.selectedItem() : null;
+        return root.effectiveScreenKey === "select" ? selectContext.selectedStateItem : null;
     }
 
     function courseDisplayName() : var {
@@ -345,7 +346,7 @@ QtObject {
         case 1:
             return root.lr2SkinUsesBeatorajaSemantics ? resolver.beatorajaRivalText() : root.lr2TargetText();
         case 3:
-            return root.lr2SkinUsesBeatorajaSemantics ? root.lr2TargetText() : root.lr2SelectOptionText(st);
+            return root.lr2SkinUsesBeatorajaSemantics ? root.lr2TargetText() : resolver.lr2SelectOptionText(st);
         case 2:
             return Rg.profileList.mainProfile.vars.generalVars.name || "";
         case 10:
@@ -401,8 +402,8 @@ QtObject {
         case 127:
         case 128:
         case 129: {
-            let rankingName = root.lr2RankingEntryName(st - 120);
-            return rankingName.length > 0 ? rankingName : root.lr2SelectOptionText(st);
+            let rankingName = rankingState.entryName(st - 120);
+            return rankingName.length > 0 ? rankingName : resolver.lr2SelectOptionText(st);
         }
         case 1000:
             return root.effectiveScreenKey === "select"
@@ -426,7 +427,7 @@ QtObject {
         case 1031:
             return resolver.chartHashText(root.displayChartData(), "sha256");
         default:
-            return root.effectiveScreenKey === "select" ? root.lr2SelectOptionText(st) : "";
+            return root.effectiveScreenKey === "select" ? resolver.lr2SelectOptionText(st) : "";
         }
     }
 
@@ -458,7 +459,7 @@ QtObject {
         case 315:
             return root.hiddenNumber(1);
         case 12: {
-            let vars = root.mainGeneralVars();
+            let vars = root.mainGeneralVarsRef;
             return vars ? Math.round(vars.offset || 0) : 0;
         }
         case 13:
@@ -921,8 +922,6 @@ QtObject {
     }
 
     function resolveResultNumber(num: var) : var {
-        root.resultOldScoresRevision;
-        root.resultGaugeSelectionRevision;
         let current = root.resultData(1);
         let old = root.resultOldBestResult(1);
         let chartData = root.resultChartData();
@@ -1127,11 +1126,11 @@ QtObject {
         case 178:
             return root.resultBadPoor(current) - root.resultBadPoor(old);
         case 179:
-            return root.lr2RankingPlayerRank();
+            return rankingState.playerRank();
         case 180:
-            return root.lr2RankingPlayerCount();
+            return rankingState.currentPlayerCount;
         case 181:
-            return root.lr2RankingClearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+            return rankingState.clearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
         case 182:
             return 0;
         case 183:
@@ -1140,111 +1139,111 @@ QtObject {
             return root.resultRateDecimal(old);
         default:
             if (num === 200) {
-                return root.lr2RankingPlayerCount();
+                return rankingState.currentPlayerCount;
             }
             if (num === 201) {
-                return root.lr2RankingTotalPlayCount(root.lr2RankingEntries());
+                return rankingState.totalPlayCount(rankingState.entries());
             }
             if (num >= 202 && num <= 242) {
                 switch (num) {
                 case 202:
-                    return root.lr2RankingClearCount("NOPLAY");
+                    return rankingState.clearCount("NOPLAY");
                 case 203:
-                    return root.lr2RankingClearPercentValue(false, "NOPLAY");
+                    return rankingState.clearPercentValue(false, "NOPLAY");
                 case 204:
-                    return root.lr2RankingClearCount("AEASY");
+                    return rankingState.clearCount("AEASY");
                 case 205:
-                    return root.lr2RankingClearPercentValue(false, "AEASY");
+                    return rankingState.clearPercentValue(false, "AEASY");
                 case 206:
-                    return root.lr2RankingClearCount("LIGHTASSIST");
+                    return rankingState.clearCount("LIGHTASSIST");
                 case 207:
-                    return root.lr2RankingClearPercentValue(false, "LIGHTASSIST");
+                    return rankingState.clearPercentValue(false, "LIGHTASSIST");
                 case 208:
-                    return root.lr2RankingClearCount("EXHARD");
+                    return rankingState.clearCount("EXHARD");
                 case 209:
-                    return root.lr2RankingClearPercentValue(false, "EXHARD");
+                    return rankingState.clearPercentValue(false, "EXHARD");
                 case 210:
-                    return root.lr2RankingClearCount("FAILED");
+                    return rankingState.clearCount("FAILED");
                 case 211:
-                    return root.lr2RankingClearPercentValue(false, "FAILED");
+                    return rankingState.clearPercentValue(false, "FAILED");
                 case 212:
-                    return root.lr2RankingClearCount("EASY");
+                    return rankingState.clearCount("EASY");
                 case 213:
-                    return root.lr2RankingClearPercentValue(false, "EASY");
+                    return rankingState.clearPercentValue(false, "EASY");
                 case 214:
-                    return root.lr2RankingClearCount("NORMAL");
+                    return rankingState.clearCount("NORMAL");
                 case 215:
-                    return root.lr2RankingClearPercentValue(false, "NORMAL");
+                    return rankingState.clearPercentValue(false, "NORMAL");
                 case 216:
-                    return root.lr2RankingClearCount("HARD");
+                    return rankingState.clearCount("HARD");
                 case 217:
-                    return root.lr2RankingClearPercentValue(false, "HARD");
+                    return rankingState.clearPercentValue(false, "HARD");
                 case 218:
-                    return root.lr2RankingClearCount("FC");
+                    return rankingState.clearCount("FC");
                 case 219:
-                    return root.lr2RankingClearPercentValue(false, "FC");
+                    return rankingState.clearPercentValue(false, "FC");
                 case 222:
-                    return root.lr2RankingClearCount("PERFECT");
+                    return rankingState.clearCount("PERFECT");
                 case 223:
-                    return root.lr2RankingClearPercentValue(false, "PERFECT");
+                    return rankingState.clearPercentValue(false, "PERFECT");
                 case 224:
-                    return root.lr2RankingClearCount("MAX");
+                    return rankingState.clearCount("MAX");
                 case 225:
-                    return root.lr2RankingClearPercentValue(false, "MAX");
+                    return rankingState.clearPercentValue(false, "MAX");
                 case 226:
-                    return root.lr2RankingClearCount("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+                    return rankingState.clearCount("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
                 case 227:
-                    return root.lr2RankingClearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+                    return rankingState.clearPercentValue(false, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
                 case 228:
-                    return root.lr2RankingClearCount("FC", "PERFECT", "MAX");
+                    return rankingState.clearCount("FC", "PERFECT", "MAX");
                 case 229:
-                    return root.lr2RankingClearPercentValue(false, "FC", "PERFECT", "MAX");
+                    return rankingState.clearPercentValue(false, "FC", "PERFECT", "MAX");
                 case 230:
-                    return root.lr2RankingClearPercentValue(true, "NOPLAY");
+                    return rankingState.clearPercentValue(true, "NOPLAY");
                 case 231:
-                    return root.lr2RankingClearPercentValue(true, "AEASY");
+                    return rankingState.clearPercentValue(true, "AEASY");
                 case 232:
-                    return root.lr2RankingClearPercentValue(true, "LIGHTASSIST");
+                    return rankingState.clearPercentValue(true, "LIGHTASSIST");
                 case 233:
-                    return root.lr2RankingClearPercentValue(true, "EXHARD");
+                    return rankingState.clearPercentValue(true, "EXHARD");
                 case 234:
-                    return root.lr2RankingClearPercentValue(true, "FAILED");
+                    return rankingState.clearPercentValue(true, "FAILED");
                 case 235:
-                    return root.lr2RankingClearPercentValue(true, "EASY");
+                    return rankingState.clearPercentValue(true, "EASY");
                 case 236:
-                    return root.lr2RankingClearPercentValue(true, "NORMAL");
+                    return rankingState.clearPercentValue(true, "NORMAL");
                 case 237:
-                    return root.lr2RankingClearPercentValue(true, "HARD");
+                    return rankingState.clearPercentValue(true, "HARD");
                 case 238:
-                    return root.lr2RankingClearPercentValue(true, "FC");
+                    return rankingState.clearPercentValue(true, "FC");
                 case 239:
-                    return root.lr2RankingClearPercentValue(true, "PERFECT");
+                    return rankingState.clearPercentValue(true, "PERFECT");
                 case 240:
-                    return root.lr2RankingClearPercentValue(true, "MAX");
+                    return rankingState.clearPercentValue(true, "MAX");
                 case 241:
-                    return root.lr2RankingClearPercentValue(true, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
+                    return rankingState.clearPercentValue(true, "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX");
                 case 242:
-                    return root.lr2RankingClearPercentValue(true, "FC", "PERFECT", "MAX");
+                    return rankingState.clearPercentValue(true, "FC", "PERFECT", "MAX");
                 default:
                     return 0;
                 }
             }
             if (num >= 380 && num <= 389) {
-                return root.lr2RankingEntryExScore(num - 380);
+                return rankingState.entryExScore(num - 380);
             }
             if (num >= 390 && num <= 399) {
-                return root.lr2RankingEntryClearValue(num - 390);
+                return rankingState.entryClearValue(num - 390);
             }
             return 0;
         }
     }
 
     function resolveNumber(num: var) : var {
-        if (root.isResultScreen()) {
-            return root.resolveResultNumber(num);
+        if (root.resultScreenActive) {
+            return resolver.resolveResultNumber(num);
         }
-        if (root.isGameplayScreen()) {
-            return root.resolveGameplayNumber(num);
+        if (root.gameplayScreenActive) {
+            return resolver.resolveGameplayNumber(num);
         }
         if (root.effectiveScreenKey === "select" || root.effectiveScreenKey === "decide") {
             switch (num) {
@@ -1253,7 +1252,7 @@ QtObject {
             case 11:
                 return root.lr2HiSpeedP2;
             case 12: {
-                let vars = root.mainGeneralVars();
+                let vars = root.mainGeneralVarsRef;
                 return vars ? Math.round(vars.offset || 0) : 0;
             }
             case 13:
@@ -1307,23 +1306,23 @@ QtObject {
             case 1325:
             case 1326:
             case 1327:
-                return root.bpmDurationNumber(num, selectContext.selectedChartData());
+                return root.bpmDurationNumber(num, selectContext.selectedStateChartData);
             }
             if ((num >= 50 && num <= 66) || num === 8) {
                 return root.lr2SliderNumber(num);
             }
             if (num >= 250 && num <= 259) {
-                let stage = root.courseStage(num - 250);
+                let stage = resolver.courseStage(num - 250);
                 return selectContext.entryPlayLevel(stage);
             }
             if (num === 220) {
                 return -1;
             }
             if (num >= 380 && num <= 389) {
-                return root.lr2RankingEntryExScore(num - 380);
+                return rankingState.entryExScore(num - 380);
             }
             if (num >= 390 && num <= 399) {
-                return root.lr2RankingEntryClearValue(num - 390);
+                return rankingState.entryClearValue(num - 390);
             }
             if ((num >= 271 && num <= 289)
                     || num === 292 || num === 293) {
@@ -1355,10 +1354,56 @@ QtObject {
         return 0;
     }
 
-    function numberValue(src: var) : var {
-        if (root.isGameplayScreen()) {
-            root.gameplayNumberRevisionForKind(root.gameplayNumberRevisionKind(src));
+    function dependOnGameplayNumberState(src: var) : void {
+        if (!root.gameplayScreenActive) {
+            return;
         }
+        if (src && src.nowCombo) {
+            if ((src.side || (src.timer === 47 ? 2 : 1)) === 2) {
+                root.gameplayJudgeRevision2;
+            } else {
+                root.gameplayJudgeRevision1;
+            }
+            return;
+        }
+
+        let num = src ? (src.num || 0) : 0;
+        if (num === 20 || (num >= 160 && num <= 164)) {
+            root.renderSkinTime;
+            return;
+        }
+        if (num === 11 || num === 15
+                || (num >= 120 && num <= 136) || num === 526 || num === 521
+                || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
+            root.gameplayNumberRevision2;
+            root.gameplayJudgeRevision2;
+            return;
+        }
+        if (num === 10 || num === 12 || num === 13 || num === 14
+                || (num >= 310 && num <= 315)
+                || (num >= 100 && num <= 116) || num === 407
+                || (num >= 410 && num <= 427)
+                || (num >= 500 && num <= 509) || num === 520 || num === 522
+                || num === 525 || num === 527 || (num >= 1510 && num <= 1599)) {
+            root.gameplayNumberRevision1;
+            root.gameplayJudgeRevision1;
+            return;
+        }
+        if (num === 42 || num === 90 || num === 91 || num === 92
+                || num === 106 || num === 126 || num === 165
+                || num === 290 || num === 291
+                || (num >= 350 && num <= 365) || num === 368
+                || num === 1163 || num === 1164) {
+            root.gameplayStaticNumberRevision;
+            return;
+        }
+        root.gameplayNumberRevision1;
+        root.gameplayNumberRevision2;
+        root.gameplayScoresRevision;
+    }
+
+    function numberValue(src: var) : var {
+        resolver.dependOnGameplayNumberState(src);
         if (src && src.nowCombo) {
             return (src.side || (src.timer === 47 ? 2 : 1)) === 2
                 ? root.gameplayJudgeCombo2
@@ -1374,7 +1419,7 @@ QtObject {
         case 12:
             return root.effectiveScreenKey === "select" && sourceCount >= 5
                 ? selectContext.sortFrameForSourceCount(sourceCount)
-                : root.resolveNumber(id);
+                : resolver.resolveNumber(id);
         case 40:
             return root.lr2GaugeButtonFrame(1, sourceCount);
         case 41:
@@ -1418,7 +1463,7 @@ QtObject {
         case 308:
             return root.lr2LnModeIndex;
         default:
-            return root.resolveNumber(id);
+            return resolver.resolveNumber(id);
         }
     }
 
@@ -1426,7 +1471,7 @@ QtObject {
         if (!src || !src.imageSet || !src.imageSetSources || src.imageSetSources.length <= 0) {
             return src;
         }
-        let value = Math.floor(root.imageSetValue(src.imageSetRef || 0, src.imageSetSources.length));
+        let value = Math.floor(resolver.imageSetValue(src.imageSetRef || 0, src.imageSetSources.length));
         if (isFinite(value) && value < -1) {
             let hidden = root.copyObject(src);
             hidden.source = "";
@@ -1480,7 +1525,7 @@ QtObject {
         if (resolver.optionOnlyRankId(src.num || 0)) {
             return true;
         }
-        if (!src.nowCombo || !root.isGameplayScreen()) {
+        if (!src.nowCombo || !root.gameplayScreenActive) {
             return false;
         }
         let side = src.side || (src.timer === 47 ? 2 : 1);
@@ -1490,25 +1535,16 @@ QtObject {
             || (src.judgementIndex >= 0 && judgement !== src.judgementIndex);
     }
 
-    function numberAnimationRevision(src: var) : var {
-        if (!src || !src.nowCombo || !root.isGameplayScreen()) {
-            return 0;
-        }
-        return (src.side || (src.timer === 47 ? 2 : 1)) === 2
-            ? root.gameplayJudgeRevision2
-            : root.gameplayJudgeRevision1;
-    }
-
     function resolveBarGraph(type: var) : var {
         if (root.effectiveScreenKey === "select") {
             return selectContext.barGraphValue(type);
         }
-        if (root.isGameplayScreen()) {
+        if (root.gameplayScreenActive) {
             root.gameplayRevision;
             return playContext.barGraphValue(type);
         }
-        if (root.isResultScreen()) {
-            return root.resultBarGraphValue(type);
+        if (root.resultScreenActive) {
+            return resolver.resultBarGraphValue(type);
         }
         return 0;
     }
@@ -1543,85 +1579,85 @@ QtObject {
         case 110:
         case 11:
         case 111:
-            return root.normalizedBarValue(root.resultExScore(current), maxPoints);
+            return resolver.normalizedBarValue(root.resultExScore(current), maxPoints);
         case 12:
         case 112:
         case 13:
         case 113:
-            return root.normalizedBarValue(root.resultExScore(old),
-                                           maxPoints || (old ? (old.maxPoints || 0) : 0));
+            return resolver.normalizedBarValue(root.resultExScore(old),
+                                               maxPoints || (old ? (old.maxPoints || 0) : 0));
         case 14:
         case 114:
         case 15:
         case 115:
-            return root.normalizedBarValue(root.resultTargetPoints(1), maxPoints);
+            return resolver.normalizedBarValue(root.resultTargetPoints(1), maxPoints);
         case 20:
         case 140:
-            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Perfect), totalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(current, Judgement.Perfect), totalNotes);
         case 21:
         case 141:
-            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Great), totalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(current, Judgement.Great), totalNotes);
         case 22:
         case 142:
-            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Good), totalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(current, Judgement.Good), totalNotes);
         case 23:
         case 143:
-            return root.normalizedBarValue(root.resultJudgementCount(current, Judgement.Bad), totalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(current, Judgement.Bad), totalNotes);
         case 24:
         case 144:
-            return root.normalizedBarValue(root.resultPoorCount(current), totalNotes);
+            return resolver.normalizedBarValue(root.resultPoorCount(current), totalNotes);
         case 25:
         case 145:
-            return root.normalizedBarValue(current ? (current.maxCombo || 0) : 0, totalNotes);
+            return resolver.normalizedBarValue(current ? (current.maxCombo || 0) : 0, totalNotes);
         case 26:
         case 146:
-            return root.normalizedBarValue(root.resultScorePrint(current),
-                                           resolver.resultScoreBarGraphMaximum(current));
+            return resolver.normalizedBarValue(root.resultScorePrint(current),
+                                               resolver.resultScoreBarGraphMaximum(current));
         case 27:
         case 147:
-            return root.normalizedBarValue(root.resultExScore(current), maxPoints);
+            return resolver.normalizedBarValue(root.resultExScore(current), maxPoints);
         case 30:
-            return root.normalizedBarValue(
+            return resolver.normalizedBarValue(
                 compare ? root.resultJudgementCount(compare, Judgement.Perfect) : resolver.targetPerfectCount(1),
                 compareTotalNotes);
         case 31:
-            return root.normalizedBarValue(
+            return resolver.normalizedBarValue(
                 compare ? root.resultJudgementCount(compare, Judgement.Great) : resolver.targetGreatCount(1),
                 compareTotalNotes);
         case 32:
-            return root.normalizedBarValue(
+            return resolver.normalizedBarValue(
                 compare ? root.resultJudgementCount(compare, Judgement.Good) : resolver.targetGoodCount(1),
                 compareTotalNotes);
         case 33:
-            return root.normalizedBarValue(root.resultJudgementCount(compare, Judgement.Bad), compareTotalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(compare, Judgement.Bad), compareTotalNotes);
         case 34:
-            return root.normalizedBarValue(compare ? root.resultPoorCount(compare) : 0, compareTotalNotes);
+            return resolver.normalizedBarValue(compare ? root.resultPoorCount(compare) : 0, compareTotalNotes);
         case 35:
-            return root.normalizedBarValue(compareMaxCombo, compareTotalNotes);
+            return resolver.normalizedBarValue(compareMaxCombo, compareTotalNotes);
         case 36:
-            return root.normalizedBarValue(
+            return resolver.normalizedBarValue(
                 compare
                     ? root.resultScorePrint(compare)
                     : resolver.resultScorePrintFromTargetPoints(comparePoints, compareTotalNotes, current),
                 resolver.resultScoreBarGraphMaximum(compare || current));
         case 37:
-            return root.normalizedBarValue(comparePoints, compareMaxPoints);
+            return resolver.normalizedBarValue(comparePoints, compareMaxPoints);
         case 40:
-            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Perfect), oldTotalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(old, Judgement.Perfect), oldTotalNotes);
         case 41:
-            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Great), oldTotalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(old, Judgement.Great), oldTotalNotes);
         case 42:
-            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Good), oldTotalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(old, Judgement.Good), oldTotalNotes);
         case 43:
-            return root.normalizedBarValue(root.resultJudgementCount(old, Judgement.Bad), oldTotalNotes);
+            return resolver.normalizedBarValue(root.resultJudgementCount(old, Judgement.Bad), oldTotalNotes);
         case 44:
-            return root.normalizedBarValue(root.resultPoorCount(old), oldTotalNotes);
+            return resolver.normalizedBarValue(root.resultPoorCount(old), oldTotalNotes);
         case 45:
-            return root.normalizedBarValue(old ? (old.maxCombo || 0) : 0, oldTotalNotes);
+            return resolver.normalizedBarValue(old ? (old.maxCombo || 0) : 0, oldTotalNotes);
         case 46:
-            return root.normalizedBarValue(root.resultScorePrint(old), resolver.resultScoreBarGraphMaximum(old));
+            return resolver.normalizedBarValue(root.resultScorePrint(old), resolver.resultScoreBarGraphMaximum(old));
         case 47:
-            return root.normalizedBarValue(root.resultExScore(old), old ? (old.maxPoints || 0) : 0);
+            return resolver.normalizedBarValue(root.resultExScore(old), old ? (old.maxPoints || 0) : 0);
         default:
             return 0;
         }
