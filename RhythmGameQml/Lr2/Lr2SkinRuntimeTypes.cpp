@@ -741,7 +741,11 @@ QVariantList activeOptionsForDsts(const Dst& firstDst, const QVariant& activeOpt
             continue;
         }
         const int id = std::abs(op);
-        if (!activeOptionPresent(id, activeOptions)) {
+        const bool present = activeOptionPresent(id, activeOptions);
+        if ((op > 0 && !present) || (op < 0 && present)) {
+            return {};
+        }
+        if (op < 0) {
             continue;
         }
         bool duplicate = false;

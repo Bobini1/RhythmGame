@@ -298,7 +298,7 @@ Item {
             root.updateLr2DateTimeNumbers();
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         } else {
             root.pauseScreenActivity();
@@ -1881,7 +1881,7 @@ Item {
             return false;
         }
         selectUpdateController.refreshBaseActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
         return true;
     }
     function handleResultGaugeSelectKey(key: var) : var {
@@ -3215,9 +3215,8 @@ Item {
     readonly property var builtBaseRuntimeActiveOptions: runtimeOptions.buildBaseActiveOptions(root.builtBarRuntimeActiveOptions)
     readonly property var builtSelectCommonRuntimeActiveOptions: runtimeOptions.buildSelectCommonActiveOptions(root.builtBaseRuntimeActiveOptions)
     readonly property var builtSelectRequiredRuntimeActiveOptions: runtimeOptions.buildSelectRequiredRuntimeActiveOptions()
-    readonly property var builtSelectRuntimeActiveOptions: root.effectiveScreenKey === "select"
-        ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
-        : root.emptyActiveOptions
+    property var builtSelectRuntimeActiveOptions: []
+    property var builtSelectDetailRuntimeActiveOptions: []
     readonly property var builtScreenRuntimeActiveOptions: root.effectiveScreenKey === "select"
         ? root.emptyActiveOptions
         : (root.gameplayScreenActive
@@ -3307,15 +3306,22 @@ Item {
         let idC = 0;
         if (op1 !== 0) {
             let id1 = Math.abs(op1);
-            if (root.activeOptionPresent(id1, activeOptions)) {
+            let present1 = root.activeOptionPresent(id1, activeOptions);
+            if ((op1 > 0 && !present1) || (op1 < 0 && present1)) {
+                return root.emptyActiveOptions;
+            }
+            if (op1 > 0) {
                 idA = id1;
                 count = 1;
             }
         }
         if (op2 !== 0) {
             let id2 = Math.abs(op2);
-            if (root.activeOptionPresent(id2, activeOptions)
-                    && (count === 0 || id2 !== idA)) {
+            let present2 = root.activeOptionPresent(id2, activeOptions);
+            if ((op2 > 0 && !present2) || (op2 < 0 && present2)) {
+                return root.emptyActiveOptions;
+            }
+            if (op2 > 0 && (count === 0 || id2 !== idA)) {
                 if (count === 0) {
                     idA = id2;
                 } else {
@@ -3326,8 +3332,11 @@ Item {
         }
         if (op3 !== 0) {
             let id3 = Math.abs(op3);
-            if (root.activeOptionPresent(id3, activeOptions)
-                    && (count === 0 || id3 !== idA)
+            let present3 = root.activeOptionPresent(id3, activeOptions);
+            if ((op3 > 0 && !present3) || (op3 < 0 && present3)) {
+                return root.emptyActiveOptions;
+            }
+            if (op3 > 0 && (count === 0 || id3 !== idA)
                     && (count < 2 || id3 !== idB)) {
                 if (count === 0) {
                     idA = id3;
@@ -3369,7 +3378,33 @@ Item {
             return;
         }
         selectUpdateController.refreshBaseActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
+    }
+
+    function updateBuiltSelectRuntimeActiveOptions() : void {
+        let nextOptions = root.effectiveScreenKey === "select"
+            ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
+            : [];
+        if (!root.sameArrayValues(nextOptions, root.builtSelectRuntimeActiveOptions)) {
+            root.builtSelectRuntimeActiveOptions = nextOptions;
+        }
+    }
+
+    function updateBuiltSelectDetailRuntimeActiveOptions() : void {
+        let nextOptions = root.effectiveScreenKey === "select"
+            ? runtimeOptions.buildSelectDetailRuntimeActiveOptions()
+            : [];
+        if (!root.sameArrayValues(nextOptions, root.builtSelectDetailRuntimeActiveOptions)) {
+            root.builtSelectDetailRuntimeActiveOptions = nextOptions;
+        }
+    }
+
+    function refreshSelectRuntimeActiveOptions() : var {
+        root.updateBuiltSelectRuntimeActiveOptions();
+        root.updateBuiltSelectDetailRuntimeActiveOptions();
+        selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
+        selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
+        return selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
     function appendGameplayRuntimeOptionSideState(parts: var, side: var) : void {
@@ -3565,9 +3600,28 @@ Item {
         }
     }
     Connections {
+        target: selectContext
+        ignoreUnknownSignals: true
+        function onFocusedItemChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+        }
+        function onFocusedChartDataChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+        }
+        function onSelectedStateItemChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+        }
+        function onSelectedStateChartDataChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+        }
+        function onSelectedStateCurrentChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+        }
+    }
+    Connections {
         target: Rg.profileList
         function onMainProfileChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBattleActiveChanged() : void {
@@ -3578,15 +3632,15 @@ Item {
         target: Rg.profileList ? Rg.profileList.mainProfile : null
         ignoreUnknownSignals: true
         function onLoginStateChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onOnlineUserDataChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onTachiDataChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }
@@ -3606,19 +3660,19 @@ Item {
             root.refreshSelectPlayOptionLayout();
         }
         function onGaugeTypeChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onGaugeModeChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBottomShiftableGaugeChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onRankingProviderChanged() : void {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }
@@ -3652,7 +3706,7 @@ Item {
     onChartChanged: {
         root.gameplayRevision++;
         if (root.effectiveScreenKey !== "select") {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
         }
         root.refreshGameplayRuntimeActiveOptions();
         root.gameplayResultOpened = false;
@@ -3673,7 +3727,7 @@ Item {
     onProfilesChanged: root.updateResultOldScores()
     onChartDataChanged: {
         if (root.effectiveScreenKey !== "select") {
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
         }
         root.updateResultOldScores();
     }
@@ -3757,7 +3811,7 @@ Item {
     function handleScreenContextChanged() : void {
         let rankingRequestChanged = root.commitLr2RankingRequest();
         selectUpdateController.refreshBaseActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
         skinTiming.skinClockRef.restartSelectInfoTimer();
         if (rankingRequestChanged) {
             lr2Ranking.applyStatsToSelectContext();
@@ -4052,7 +4106,6 @@ Item {
         baseRuntimeActiveOptions: root.builtBaseRuntimeActiveOptions
         selectCommonRuntimeActiveOptions: root.builtSelectCommonRuntimeActiveOptions
         selectRequiredRuntimeActiveOptions: root.builtSelectRequiredRuntimeActiveOptions
-        selectRuntimeGeneratedActiveOptions: root.builtSelectRuntimeActiveOptions
         screenRuntimeActiveOptions: root.builtScreenRuntimeActiveOptions
         gameplayScreen: root.gameplayScreenActive
     }
@@ -4102,7 +4155,7 @@ Item {
             root.activateGameplayIfNeeded();
             root.refreshLr2SkinSettingItems();
             selectUpdateController.refreshBaseActiveOptions();
-            selectUpdateController.refreshSelectRuntimeActiveOptions();
+            root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
             root.updateResultOldScores();
         }
@@ -4114,14 +4167,14 @@ Item {
     onSkinSettingsChanged: {
         root.refreshLr2SkinSettingItems();
         selectUpdateController.refreshBaseActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
     }
     onScreenKeyChanged: {
         root.openSelectIfNeeded();
         root.activateGameplayIfNeeded();
         root.refreshLr2SkinSettingItems();
         selectUpdateController.refreshBaseActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
     }
 
     Component.onCompleted: {
@@ -4134,7 +4187,7 @@ Item {
         root.updateGameplaySavedScores();
         root.refreshLr2SkinSettingItems();
         selectUpdateController.refreshBaseActiveOptions();
-        selectUpdateController.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions();
         root.refreshGameplayRuntimeActiveOptions();
     }
 

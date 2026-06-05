@@ -35,6 +35,7 @@ class Lr2SelectUpdateController : public QObject {
     Q_PROPERTY(QVariant selectCommonRuntimeActiveOptions READ selectCommonRuntimeActiveOptions WRITE setSelectCommonRuntimeActiveOptions NOTIFY selectCommonRuntimeActiveOptionsChanged)
     Q_PROPERTY(QVariant selectRequiredRuntimeActiveOptions READ selectRequiredRuntimeActiveOptions WRITE setSelectRequiredRuntimeActiveOptions NOTIFY selectRequiredRuntimeActiveOptionsChanged)
     Q_PROPERTY(QVariant selectRuntimeGeneratedActiveOptions READ selectRuntimeGeneratedActiveOptions WRITE setSelectRuntimeGeneratedActiveOptions NOTIFY selectRuntimeGeneratedActiveOptionsChanged)
+    Q_PROPERTY(QVariant selectDetailRuntimeActiveOptions READ selectDetailRuntimeActiveOptions WRITE setSelectDetailRuntimeActiveOptions NOTIFY selectDetailRuntimeActiveOptionsChanged)
     Q_PROPERTY(QVariant screenRuntimeActiveOptions READ screenRuntimeActiveOptions WRITE setScreenRuntimeActiveOptions NOTIFY screenRuntimeActiveOptionsChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(bool selectReplayOptionsUsed READ selectReplayOptionsUsed NOTIFY selectOptionUsageChanged)
@@ -109,6 +110,9 @@ public:
     QVariant selectRuntimeGeneratedActiveOptions() const;
     void setSelectRuntimeGeneratedActiveOptions(const QVariant& options);
 
+    QVariant selectDetailRuntimeActiveOptions() const;
+    void setSelectDetailRuntimeActiveOptions(const QVariant& options);
+
     QVariant screenRuntimeActiveOptions() const;
     void setScreenRuntimeActiveOptions(const QVariant& options);
 
@@ -149,6 +153,7 @@ signals:
     void selectCommonRuntimeActiveOptionsChanged();
     void selectRequiredRuntimeActiveOptionsChanged();
     void selectRuntimeGeneratedActiveOptionsChanged();
+    void selectDetailRuntimeActiveOptionsChanged();
     void screenRuntimeActiveOptionsChanged();
     void gameplayScreenChanged();
     void selectOptionUsageChanged();
@@ -209,6 +214,7 @@ private:
     QVariant m_selectCommonRuntimeActiveOptions;
     QVariant m_selectRequiredRuntimeActiveOptions;
     QVariant m_selectRuntimeGeneratedActiveOptions;
+    QVariant m_selectDetailRuntimeActiveOptions;
     QVariant m_screenRuntimeActiveOptions;
     bool m_gameplayScreen = false;
 };

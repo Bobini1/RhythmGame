@@ -42,6 +42,31 @@ TEST_CASE("LR2 runtime dst interpolation respects active options", "[lr2][runtim
     REQUIRE_THAT(state.y, WithinAbs(20.0, 0.0001));
 }
 
+TEST_CASE("LR2 runtime dst active options require every positive gate", "[lr2][runtime]") {
+    Dst dst;
+    dst.op1 = 2;
+    dst.op2 = 160;
+
+    REQUIRE(activeOptionsForDsts(dst, QVariantList {2}).isEmpty());
+    REQUIRE(activeOptionsForDsts(dst, QVariantList {160}).isEmpty());
+
+    const QVariantList active = activeOptionsForDsts(dst, QVariantList {2, 160});
+    REQUIRE(active.size() == 2);
+    REQUIRE(active.at(0).toInt() == 2);
+    REQUIRE(active.at(1).toInt() == 160);
+}
+
+TEST_CASE("LR2 runtime dst active options respect negative gates", "[lr2][runtime]") {
+    Dst dst;
+    dst.op1 = 2;
+    dst.op2 = -160;
+
+    const QVariantList active = activeOptionsForDsts(dst, QVariantList {2});
+    REQUIRE(active.size() == 1);
+    REQUIRE(active.at(0).toInt() == 2);
+    REQUIRE(activeOptionsForDsts(dst, QVariantList {2, 160}).isEmpty());
+}
+
 TEST_CASE("LR2 runtime dst loops wrap inside the loop segment", "[lr2][runtime]") {
     QVariantMap first = dstMap(0, 0, 0, 10, 10);
     first.insert(QStringLiteral("loop"), 100);

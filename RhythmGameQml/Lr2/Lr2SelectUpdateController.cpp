@@ -242,6 +242,19 @@ void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QVa
     refreshSelectRuntimeActiveOptions();
 }
 
+QVariant Lr2SelectUpdateController::selectDetailRuntimeActiveOptions() const {
+    return m_selectDetailRuntimeActiveOptions;
+}
+
+void Lr2SelectUpdateController::setSelectDetailRuntimeActiveOptions(const QVariant& options) {
+    if (m_selectDetailRuntimeActiveOptions == options) {
+        return;
+    }
+    m_selectDetailRuntimeActiveOptions = options;
+    emit selectDetailRuntimeActiveOptionsChanged();
+    refreshSelectRuntimeActiveOptions();
+}
+
 QVariant Lr2SelectUpdateController::screenRuntimeActiveOptions() const {
     return m_screenRuntimeActiveOptions;
 }
@@ -350,9 +363,12 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
         refreshBaseActiveOptions();
     }
 
-    QVariantList next = mergedNumberArray(
+    QVariantList nextGenerated = mergedNumberArray(
         m_selectCommonActiveOptions,
         normalizedNumberArray(m_selectRuntimeGeneratedActiveOptions));
+    QVariantList next = mergedNumberArray(
+        nextGenerated,
+        normalizedNumberArray(m_selectDetailRuntimeActiveOptions));
     if (sameNumberArray(m_runtimeActiveOptions, next)) {
         return false;
     }

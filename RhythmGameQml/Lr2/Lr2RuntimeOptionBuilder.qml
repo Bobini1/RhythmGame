@@ -34,12 +34,19 @@ QtObject {
         if (option === undefined || option === null) {
             return;
         }
-        let lookup = root.optionLookupFor(options);
-        if (lookup[option] === true && options.indexOf(option) !== -1) {
+        let optionNumber = Number(option);
+        if (!isFinite(optionNumber)) {
             return;
         }
-        options.push(option);
-        lookup[option] = true;
+        let length = options ? (options.length || 0) : 0;
+        for (let i = 0; i < length; ++i) {
+            if (Number(options[i]) === optionNumber) {
+                return;
+            }
+        }
+        options.push(optionNumber);
+        let lookup = root.optionLookupFor(options);
+        lookup[optionNumber] = true;
     }
 
     function addRuntimeOption(options: var, option: var) : void {
@@ -57,7 +64,18 @@ QtObject {
         if (option === undefined || option === null || option <= 0) {
             return;
         }
-        root.appendUniqueRuntimeOption(options, option);
+        root.appendSelectDetailGateOption(options, option);
+    }
+
+    function appendSelectDetailGateOption(options: var, option: var) : void {
+        let optionNumber = Number(option);
+        if (!isFinite(optionNumber) || optionNumber <= 0) {
+            return;
+        }
+        // Stock LR2 select detail images gate on chart item-kind option 2
+        // together with keymode/judge-rank detail options.
+        root.appendUniqueRuntimeOption(options, 2);
+        root.appendUniqueRuntimeOption(options, optionNumber);
     }
 
     function removeRuntimeOptionRange(options: var, first: var, last: var) : void {
@@ -504,6 +522,26 @@ QtObject {
         root.appendChartKeymodeOption(options, effectiveKeymode, 165);
     }
 
+    function appendSelectChartDetailOptions(options: var, chartData: var, fallbackItem: var) : void {
+        if (host.effectiveScreenKey !== "select") {
+            return;
+        }
+        let keymode = root.chartKeymode(chartData, fallbackItem);
+        if (keymode > 0) {
+            let effectiveKeymode = root.effectiveChartDetailKeymode(keymode);
+            root.addSelectChartDetailRuntimeOption(options, root.keymodeOptionFor(keymode, 160));
+            root.addSelectChartDetailRuntimeOption(options, root.keymodeOptionFor(effectiveKeymode, 165));
+        }
+
+        let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
+        let judgeOption = suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem);
+        root.setSelectChartDetailRuntimeOptionRange(
+            options,
+            180,
+            184,
+            judgeOption);
+    }
+
     function chartKeymodeForStatus(item: var, selectedChart: var) : var {
         return root.chartKeymode(selectedChart, item);
     }
@@ -933,6 +971,7 @@ QtObject {
                 root.addOption(options, optionId);
             }
         }
+        root.appendSelectChartDetailOptions(options, chartData, selectedItem);
     }
 
     function appendDecideOptions(options: var) : void {
@@ -1027,12 +1066,49 @@ QtObject {
     }
 
     function buildSelectGeneratedRuntimeActiveOptions() : var {
-        let stateCurrent = selectContext.selectedStateCurrent;
-        let state = stateCurrent ? selectContext.selectedState : null;
+        let state = selectContext.selectedState;
+        let stateCurrent = state && selectContext.selectedStateCurrent;
         let item = stateCurrent ? state.item : selectContext.focusedItem;
-        let chartData = stateCurrent ? state.chartData : selectContext.focusedChartData;
+        let chartData = stateCurrent
+            ? state.chartData
+            : root.chartDataForSelection(selectContext.focusedChartData, item);
+        if (!stateCurrent && !chartData
+                && (item === null || item === undefined || typeof item === "string")) {
+            chartData = selectContext.selectedChartDataForValues();
+            if (chartData) {
+                item = chartData;
+            }
+        }
         let result = root.copyActiveOptions([]);
-        root.appendCurrentSelectOptions(result, item, chartData, state);
+        root.appendCurrentSelectOptions(result, item, chartData, stateCurrent ? state : null);
+        return result;
+    }
+
+    function buildSelectDetailRuntimeActiveOptions() : var {
+        let state = selectContext.selectedState;
+        let stateCurrent = state && selectContext.selectedStateCurrent;
+        let item = stateCurrent ? state.item : selectContext.focusedItem;
+        let chartData = stateCurrent
+            ? state.chartData
+            : root.chartDataForSelection(selectContext.focusedChartData, item);
+        if (!chartData && (item === null || item === undefined || typeof item === "string")) {
+            chartData = selectContext.selectedChartDataForValues();
+            if (chartData) {
+                item = chartData;
+            }
+        }
+
+        let result = [];
+        let keymode = root.chartKeymode(chartData, item);
+        if (keymode > 0) {
+            let effectiveKeymode = root.effectiveChartDetailKeymode(keymode);
+            root.appendSelectDetailGateOption(result, root.keymodeOptionFor(keymode, 160));
+            root.appendSelectDetailGateOption(result, root.keymodeOptionFor(effectiveKeymode, 165));
+        }
+
+        if (!selectContext.isFolderLikeForLamp(item)) {
+            root.appendSelectDetailGateOption(result, selectContext.judgeOption(chartData, item));
+        }
         return result;
     }
 
