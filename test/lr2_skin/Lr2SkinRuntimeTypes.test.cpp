@@ -1,4 +1,6 @@
 #include "Lr2SkinRuntimeTypes.h"
+#include "Lr2SkinElementActiveOptionsState.h"
+#include "Lr2TimelineState.h"
 
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
@@ -65,6 +67,22 @@ TEST_CASE("LR2 runtime dst active options respect negative gates", "[lr2][runtim
     REQUIRE(active.size() == 1);
     REQUIRE(active.at(0).toInt() == 2);
     REQUIRE(activeOptionsForDsts(dst, QVariantList {2, 160}).isEmpty());
+}
+
+TEST_CASE("LR2 timeline state keeps inactive negative-only gates hidden", "[lr2][runtime]") {
+    QVariantMap first = dstMap(0, 0, 0, 10, 10);
+    first.insert(QStringLiteral("op1"), -5);
+
+    Lr2SkinElementActiveOptionsState activeOptionsState;
+    Lr2TimelineState timelineState;
+    timelineState.setDsts(QVariantList {first});
+    timelineState.setActiveOptionsState(&activeOptionsState);
+
+    activeOptionsState.setActiveOptions(QVariantList {}, false);
+    REQUIRE_FALSE(timelineState.hasState());
+
+    activeOptionsState.setActiveOptions(QVariantList {}, true);
+    REQUIRE(timelineState.hasState());
 }
 
 TEST_CASE("LR2 runtime dst loops wrap inside the loop segment", "[lr2][runtime]") {

@@ -7,16 +7,21 @@ QVariantList Lr2SkinElementActiveOptionsState::activeOptions() const {
     return m_activeOptions;
 }
 
+bool Lr2SkinElementActiveOptionsState::isActive() const {
+    return m_active;
+}
+
 QSet<int> Lr2SkinElementActiveOptionsState::activeOptionSet() const {
     return m_activeOptionSet;
 }
 
-bool Lr2SkinElementActiveOptionsState::setActiveOptions(const QVariantList& value) {
-    if (m_activeOptions == value) {
+bool Lr2SkinElementActiveOptionsState::setActiveOptions(const QVariantList& value, bool active) {
+    if (m_activeOptions == value && m_active == active) {
         return false;
     }
 
     m_activeOptions = value;
+    m_active = active;
     m_activeOptionSet.clear();
     for (const QVariant& option : m_activeOptions) {
         bool ok = false;

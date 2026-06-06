@@ -338,13 +338,15 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         }
         m_descriptors.append(std::move(descriptor));
         updateElementTimerState(row, m_descriptors.constLast().timers);
-        updateElementActiveOptionsState(row, m_descriptors.constLast().elementActiveOptions);
+        updateElementActiveOptionsState(row,
+                                        m_descriptors.constLast().elementActiveOptions,
+                                        m_descriptors.constLast().elementActive);
     }
     for (int row = rows; row < m_elementTimerStates.size(); ++row) {
         updateElementTimerState(row, TimerSnapshot {});
     }
     for (int row = rows; row < m_elementActiveOptionsStates.size(); ++row) {
-        updateElementActiveOptionsState(row, QVariantList {});
+        updateElementActiveOptionsState(row, QVariantList {}, false);
     }
 
     const QVector<LaneDescriptor>* laneCollections[] = {
@@ -452,12 +454,14 @@ void Lr2SkinRuntime::updateElementTimerState(int index, const TimerSnapshot& sna
         snapshot.srcTimerFire);
 }
 
-bool Lr2SkinRuntime::updateElementActiveOptionsState(int index, const QVariantList& activeOptions) {
+bool Lr2SkinRuntime::updateElementActiveOptionsState(int index,
+                                                    const QVariantList& activeOptions,
+                                                    bool active) {
     if (index < 0) {
         return false;
     }
     ensureElementActiveOptionsStateCount(index + 1);
-    return m_elementActiveOptionsStates[index]->setActiveOptions(activeOptions);
+    return m_elementActiveOptionsStates[index]->setActiveOptions(activeOptions, active);
 }
 
 void Lr2SkinRuntime::resetElementTimerStates() {
@@ -471,7 +475,7 @@ void Lr2SkinRuntime::resetElementTimerStates() {
 void Lr2SkinRuntime::resetElementActiveOptionsStates() {
     for (auto* activeOptionsState : std::as_const(m_elementActiveOptionsStates)) {
         if (activeOptionsState) {
-            activeOptionsState->setActiveOptions(QVariantList {});
+            activeOptionsState->setActiveOptions(QVariantList {}, false);
         }
     }
 }
@@ -531,7 +535,11 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     const bool selectPanelTimer = (descriptor.dstAnalysis.firstTimer >= 21 && descriptor.dstAnalysis.firstTimer <= 26)
         || (descriptor.dstAnalysis.firstTimer >= 31 && descriptor.dstAnalysis.firstTimer <= 36);
 
-    descriptor.elementActiveOptions = descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty()
+    const bool usesElementActiveOptions =
+        descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty();
+    descriptor.elementActive = !usesElementActiveOptions
+        || rt::allOpsMatch(descriptor.dsts.front(), m_activeOptionSet);
+    descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
         ? rt::activeOptionsForDsts(descriptor.dsts.front(), m_runtimeActiveOptions)
         : QVariantList {};
     descriptor.staticState = descriptor.dstAnalysis.canUseStaticState && !descriptor.dsts.isEmpty()
@@ -823,10 +831,16 @@ void Lr2SkinRuntime::reconnectTimerState() {
 void Lr2SkinRuntime::refreshActiveOptions() {
     bool anyChanged = false;
     for (ElementDescriptor& descriptor : m_descriptors) {
-        descriptor.elementActiveOptions = descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty()
+        const bool usesElementActiveOptions =
+            descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty();
+        descriptor.elementActive = !usesElementActiveOptions
+            || rt::allOpsMatch(descriptor.dsts.front(), m_activeOptionSet);
+        descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
             ? rt::activeOptionsForDsts(descriptor.dsts.front(), m_runtimeActiveOptions)
             : QVariantList {};
-        anyChanged = updateElementActiveOptionsState(descriptor.index, descriptor.elementActiveOptions)
+        anyChanged = updateElementActiveOptionsState(descriptor.index,
+                                                    descriptor.elementActiveOptions,
+                                                    descriptor.elementActive)
             || anyChanged;
     }
     if (!anyChanged) {

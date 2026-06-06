@@ -383,6 +383,9 @@ bool Lr2TimelineState::canUseStaticState() const {
 }
 
 Lr2TimelineStateValue Lr2TimelineState::staticState() const {
+    if (m_activeOptionsState && !m_activeOptionsState->isActive()) {
+        return {};
+    }
     if (!m_canUseStaticState || m_dsts.isEmpty() || !rt::allOpsMatch(m_dsts.front(), m_activeOptionSet)) {
         return {};
     }
@@ -644,6 +647,10 @@ void Lr2TimelineState::updateAnimationLimit() {
 
 void Lr2TimelineState::updateState() {
     if (!m_enabled) {
+        assignState(State {});
+        return;
+    }
+    if (m_activeOptionsState && !m_activeOptionsState->isActive()) {
         assignState(State {});
         return;
     }

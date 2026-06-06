@@ -108,6 +108,7 @@ private:
         lr2skin::runtime::Source source;
         QVector<lr2skin::runtime::Dst> dsts;
         lr2skin::runtime::DstAnalysis dstAnalysis;
+        bool elementActive = true;
         QVariantList elementActiveOptions;
         Lr2TimelineStateValue staticState;
         TimerSnapshot timers;
@@ -145,7 +146,7 @@ private:
     void ensureElementTimerStateCount(int count);
     void ensureElementActiveOptionsStateCount(int count);
     void updateElementTimerState(int index, const TimerSnapshot& snapshot);
-    bool updateElementActiveOptionsState(int index, const QVariantList& activeOptions);
+    bool updateElementActiveOptionsState(int index, const QVariantList& activeOptions, bool active);
     void resetElementTimerStates();
     void resetElementActiveOptionsStates();
     void reconnectSkinModel();
