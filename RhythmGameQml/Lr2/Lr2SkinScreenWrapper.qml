@@ -3617,6 +3617,9 @@ Item {
         function onSelectedStateCurrentChanged() : void {
             root.refreshSelectRuntimeActiveOptions();
         }
+        function onSelectedDetailValueRevisionChanged() : void {
+            root.refreshSelectRuntimeActiveOptions();
+        }
     }
     Connections {
         target: Rg.profileList

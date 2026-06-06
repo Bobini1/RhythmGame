@@ -152,6 +152,7 @@ Item {
     readonly property bool selectedStateScoreCurrent: selectedDetailState.scoreGeneration === scoreGeneration
     readonly property bool selectedStateListCurrent: selectedDetailState.listGeneration === listGeneration
     readonly property bool selectedStateCurrent: selectedStateScoreCurrent && selectedStateListCurrent
+    property int selectedDetailValueRevision: 0
     readonly property string selectedPreviewAudioSource: {
         let chartData = selectedStateChartData;
         return chartData ? (previewFiles[chartData.chartDirectory] || "") : "";
@@ -268,6 +269,13 @@ Item {
 
     Lr2SelectDetailState {
         id: selectedDetailState
+    }
+
+    Connections {
+        target: selectedDetailState.summary
+        function onChanged() : void {
+            root.selectedDetailValueRevision += 1;
+        }
     }
 
     Lr2SelectNavigationController {
@@ -3886,6 +3894,7 @@ Item {
     }
 
     function computeNumberValue(num: var) : var {
+        root.selectedDetailValueRevision;
         let state = selectedState;
         let chartLoaded = false;
         let chartValue = null;
@@ -4348,6 +4357,7 @@ Item {
     }
 
     function computeBarGraphValue(type: var) : var {
+        root.selectedDetailValueRevision;
         let state = selectedState;
         let statsLoaded = false;
         let statsValue = null;

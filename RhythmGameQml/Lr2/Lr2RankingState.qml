@@ -209,6 +209,7 @@ QtObject {
     }
 
     function localEntry() : var {
+        root.selectContext.scoreGeneration;
         let targetChart = root.chart;
         let profile = Rg.profileList ? Rg.profileList.mainProfile : null;
         if (!targetChart || !profile) {
@@ -272,6 +273,15 @@ QtObject {
 
     function entries() : var {
         return root.snapshot().entries;
+    }
+
+    function staleLocalEntryAt(index: var) : var {
+        if (root.modelMatchesCurrentChart
+                || root.providerEnum() !== OnlineRankingModel.LR2IR
+                || Number(index) !== 0) {
+            return null;
+        }
+        return root.localEntry();
     }
 
     function clearCounts(entries: var) : var {
@@ -386,6 +396,10 @@ QtObject {
     }
 
     function entryAt(index: var) : var {
+        let local = root.staleLocalEntryAt(index);
+        if (local) {
+            return local;
+        }
         let currentEntries = root.entries();
         return index >= 0 && index < currentEntries.length ? currentEntries[index] : null;
     }
