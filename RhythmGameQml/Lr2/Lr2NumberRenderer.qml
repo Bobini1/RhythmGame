@@ -250,13 +250,8 @@ Item {
     }
 
     readonly property string displayText: root.displaySignText + root.paddedDisplayValue
-    readonly property bool usesCompactDownscaledDigits: root.hasCurrentState
-        && root.stateFilter === 0
-        && root.stateW > 2
-        && root.stateW <= 4
-        && root.sourceCellW >= root.stateW + 2
     readonly property real digitW: root.hasCurrentState
-        ? (root.usesCompactDownscaledDigits ? root.stateW - 1 : root.stateW) * root.scaleOverride
+        ? root.stateW * root.scaleOverride
         : 0
     readonly property real digitH: root.hasCurrentState ? root.stateH * root.scaleOverride : 0
     readonly property real textW: displayText.length * digitW

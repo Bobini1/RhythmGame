@@ -14,6 +14,7 @@ Item {
 
     readonly property real naturalWidth: textImage.naturalWidth
     readonly property real naturalHeight: textImage.naturalHeight
+    readonly property real textureHeight: textImage.textureHeight
     readonly property real scaleY: naturalHeight > 0 ? height / naturalHeight : 1
     readonly property real fitScaleX: naturalWidth > width && naturalWidth > 0
         ? width / naturalWidth
@@ -31,7 +32,7 @@ Item {
 
         x: root.alignedX
         width: root.drawnWidth
-        height: root.height
+        height: root.textureHeight * root.scaleY
         visible: root.hasRenderableText
         fontPath: root.hasRenderableText ? root.fontPath : ""
         text: root.hasRenderableText ? root.text : ""
@@ -39,4 +40,3 @@ Item {
         textureFilter: root.textureFilter
     }
 }
-

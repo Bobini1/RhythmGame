@@ -44,6 +44,7 @@ Item {
     property bool mediaActive: true
     property real scratchAngle1: 0
     property real scratchAngle2: 0
+    property bool preferAtlasImagePath: false
     property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
 
     readonly property bool hasFrameAnimation: sourceHasFrameAnimation
@@ -105,12 +106,16 @@ Item {
     }
     readonly property int blendMode: drawState.blendMode
     readonly property bool hasColorTint: drawState.hasColorTint
-    // Changing Image.sourceClipRect during animation makes Qt Quick revisit
-    // pixmap loading machinery. Animated sheets use the atlas shader instead,
-    // where frame changes are just shader-uniform updates.
+    readonly property real effectiveAlpha: root.hasCurrentState && root.stateBlend === 0
+        ? 255
+        : root.stateA
+    // Animated sheets and atlas-heavy screens can crop in the shader so rect
+    // changes stay in uniforms. Ordinary static crops use Image.sourceClipRect
+    // because Qt also handles edge clipping there.
     readonly property bool shouldAnimateInAtlasShader: root.hasFrameAnimation
     readonly property color tintColor: drawState.tintColor
     readonly property bool useFastImagePath: root.hasDrawableTexture
+        && !root.preferAtlasImagePath
         && root.hasCroppedTextureSource
         && !root.shouldAnimateInAtlasShader
         && root.blendMode === 1
@@ -131,7 +136,7 @@ Item {
     readonly property bool hasDrawableTexture: !root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
     readonly property bool hasRenderableState: root.hasCurrentState
-        && root.stateA > 0
+        && root.effectiveAlpha > 0
         && root.drawW > 0
         && root.drawH > 0
     readonly property bool shouldPlayVideo: root.mediaActive
@@ -184,7 +189,7 @@ Item {
         width: root.hasCurrentState ? root.drawW * root.scaleOverride : 0
         height: root.hasCurrentState ? root.drawH * root.scaleOverride : 0
         visible: root.hasRenderableState
-        opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
+        opacity: root.hasCurrentState ? root.effectiveAlpha / 255.0 : 0
 
         transform: Rotation {
             origin.x: sprite.width * root.anchor.x

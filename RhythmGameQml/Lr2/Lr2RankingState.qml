@@ -561,7 +561,7 @@ QtObject {
         if (!changed && !root.rankingModel.loading) {
             root.rankingModel.refresh();
         }
-        return false;
+        return true;
     }
 
     function tachiGameId(chart: var) : var {

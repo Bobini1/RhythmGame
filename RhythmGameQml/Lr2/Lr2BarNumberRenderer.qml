@@ -73,7 +73,7 @@ Item {
                     return false;
                 }
                 if (cell.ranking) {
-                    return sourceVariant === 0 || sourceVariant === 6;
+                    return sourceVariant === 6;
                 }
                 if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) < 0) {
                     return false;

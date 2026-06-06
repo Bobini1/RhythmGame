@@ -312,9 +312,13 @@ QtObject {
         let usesRandomOption = root.runtimeOptionRangeUsed(usedOptions, 178, 179);
         let usesHighLevelOption = root.runtimeOptionRangeUsed(usedOptions, 185, 186);
         let usesDifficultyOption = root.runtimeOptionRangeUsed(usedOptions, 150, 155);
+        let usesTableSongOption = root.runtimeOptionUsed(usedOptions, 1008);
         let keymode = root.chartKeymode(chartData, fallbackItem);
         let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
         root.appendChartKeymodeOptions(options, keymode);
+        if (usesTableSongOption && host.chartInTable(chartData || fallbackItem)) {
+            root.addOption(options, 1008);
+        }
 
         if (!chartData) {
             if (usesStageFileOption) {
@@ -864,10 +868,11 @@ QtObject {
 
     function resultRankOptionForPoints(points: var, totalNotes: var, baseOption: var) : var {
         let maxPoints = Math.max(0, totalNotes || 0) * 2;
-        if (maxPoints <= 0 || points <= 0) {
+        let safePoints = Math.max(0, points || 0);
+        if (safePoints <= 0 || maxPoints <= 0) {
             return baseOption + 8;
         }
-        let rank = Math.floor(points * 9 / maxPoints);
+        let rank = Math.floor(safePoints * 9 / maxPoints);
         if (rank >= 8) {
             return baseOption;
         }

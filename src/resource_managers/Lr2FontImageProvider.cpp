@@ -67,7 +67,8 @@ providerQueryValue(const QUrlQuery& query, const QString& key) -> QString
 }
 
 auto
-composeTextImage(const QString& fontPath, const QString& text) -> QImage
+composeTextImage(const QString& fontPath, const QString& text)
+  -> Lr2RenderedFontText
 {
     const auto* dict = Lr2FontCache::instance().load(fontPath);
     if (!dict || dict->height <= 0 || text.isEmpty()) {
@@ -78,6 +79,7 @@ composeTextImage(const QString& fontPath, const QString& text) -> QImage
     glyphs.reserve(text.size());
 
     qreal sourceTotalWidth = 0.0;
+    int textureHeight = dict->height;
     bool hasPreviousCharacter = false;
     for (const auto codepoint : text.toUcs4()) {
         if (hasPreviousCharacter) {
@@ -98,6 +100,7 @@ composeTextImage(const QString& fontPath, const QString& text) -> QImage
             glyphs.append({ &dict->textures[glyph.imgIdx],
                             glyph.rect,
                             sourceTotalWidth });
+            textureHeight = std::max(textureHeight, glyph.rect.height());
         }
 
         sourceTotalWidth += advance;
@@ -108,7 +111,7 @@ composeTextImage(const QString& fontPath, const QString& text) -> QImage
     }
 
     QImage image(std::max(1, static_cast<int>(std::ceil(sourceTotalWidth))),
-                 dict->height,
+                 textureHeight,
                  QImage::Format_ARGB32);
     image.fill(Qt::transparent);
 
@@ -124,7 +127,10 @@ composeTextImage(const QString& fontPath, const QString& text) -> QImage
     }
     painter.end();
 
-    return image;
+    Lr2RenderedFontText rendered;
+    rendered.image = std::move(image);
+    rendered.naturalSize = QSizeF(sourceTotalWidth, dict->height);
+    return rendered;
 }
 
 } // namespace
@@ -136,6 +142,12 @@ Lr2FontImageProvider::Lr2FontImageProvider()
 
 QImage
 Lr2FontImageProvider::textImage(const QString& fontPath, const QString& text)
+{
+    return renderedText(fontPath, text).image;
+}
+
+Lr2RenderedFontText
+Lr2FontImageProvider::renderedText(const QString& fontPath, const QString& text)
 {
     return composeTextImage(fontPath, text);
 }

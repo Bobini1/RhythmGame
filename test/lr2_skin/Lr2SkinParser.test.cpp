@@ -13,6 +13,7 @@
 #include <filesystem>
 
 using gameplay_logic::lr2_skin::Lr2Dst;
+using gameplay_logic::lr2_skin::Lr2SrcImage;
 using gameplay_logic::lr2_skin::Lr2SkinParser;
 
 namespace {
@@ -113,6 +114,30 @@ TEST_CASE("LR2 skin parser accepts fractional destination coordinates",
     CHECK(dst.y == 340);
     CHECK(dst.w == 73);
     CHECK(dst.h == 120);
+}
+
+TEST_CASE("LR2 skin parser honors explicit image slots after skipped branches",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,base.png,,,,,,0\n"
+                                 "#IF,42\n"
+                                 "#IMAGE,gauge.png,,,,,,11\n"
+                                 "#ENDIF\n"
+                                 "#IMAGE,notes.png,,,,,,15\n"
+                                 "#IMAGE,judge.png,,,,,,16\n"
+                                 "#SRC_NOTE,0,15,0,0,60,30,1,1,0,0,0,0,0\n"));
+
+    const auto skin = Lr2SkinParser::parseData(
+      support::pathToQString(path), QVariantMap{}, QVariantList{});
+
+    REQUIRE(skin.noteSources.size() == 1);
+    const auto source = skin.noteSources.first().value<Lr2SrcImage>();
+    CHECK(source.gr == 15);
+    CHECK(source.source.contains(QStringLiteral("notes.png")));
 }
 
 TEST_CASE("LR2 skin parser records select detail option gates",

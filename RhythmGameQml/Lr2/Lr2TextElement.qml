@@ -240,6 +240,7 @@ Item {
         activeOptions: textElement.activeOptions
         timerFire: textElement.timerFire
         scaleOverride: textElement.skinScale
+        textureFilterOverride: textElement.isSearchText ? 0 : -1
         resolvedText: textElement.resolvedText
     }
 

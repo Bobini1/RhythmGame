@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QImage>
 #include <QQuickItem>
+#include <QSizeF>
 #include <QString>
 #include <QtQml/qqmlregistration.h>
 
@@ -15,6 +16,7 @@ class Lr2BitmapFontTexture : public QQuickItem {
     Q_PROPERTY(int textureFilter READ textureFilter WRITE setTextureFilter NOTIFY textureFilterChanged)
     Q_PROPERTY(qreal naturalWidth READ naturalWidth NOTIFY naturalSizeChanged)
     Q_PROPERTY(qreal naturalHeight READ naturalHeight NOTIFY naturalSizeChanged)
+    Q_PROPERTY(qreal textureHeight READ textureHeight NOTIFY naturalSizeChanged)
 
 public:
     explicit Lr2BitmapFontTexture(QQuickItem* parent = nullptr);
@@ -33,6 +35,7 @@ public:
 
     qreal naturalWidth() const;
     qreal naturalHeight() const;
+    qreal textureHeight() const;
 
 signals:
     void fontPathChanged();
@@ -55,7 +58,7 @@ private:
     QImage m_baseImage;
     QColor m_textColor = Qt::white;
     QImage m_image;
-    QSize m_naturalSize;
+    QSizeF m_naturalSize;
     int m_textureFilter = 1;
     bool m_textureDirty = true;
 };

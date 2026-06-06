@@ -16,6 +16,42 @@ QSGTexture::Filtering filteringForFilter(int filter)
     return filter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
 }
 
+QImage scaledNearestEndpoint(const QImage& image, const QSize& targetSize)
+{
+    if (image.isNull() || targetSize.isEmpty()) {
+        return {};
+    }
+    if (image.size() == targetSize) {
+        return image;
+    }
+
+    const QImage source = image.convertToFormat(QImage::Format_ARGB32);
+    QImage scaled(targetSize, QImage::Format_ARGB32);
+
+    const int sourceW = source.width();
+    const int sourceH = source.height();
+    const int targetW = targetSize.width();
+    const int targetH = targetSize.height();
+
+    for (int y = 0; y < targetH; ++y) {
+        const int sourceY = targetH <= 1
+            ? 0
+            : static_cast<int>(std::lround(
+                static_cast<double>(y) * (sourceH - 1) / (targetH - 1)));
+        const auto* sourceLine = reinterpret_cast<const QRgb*>(source.constScanLine(sourceY));
+        auto* targetLine = reinterpret_cast<QRgb*>(scaled.scanLine(y));
+        for (int x = 0; x < targetW; ++x) {
+            const int sourceX = targetW <= 1
+                ? 0
+                : static_cast<int>(std::lround(
+                    static_cast<double>(x) * (sourceW - 1) / (targetW - 1)));
+            targetLine[x] = sourceLine[sourceX];
+        }
+    }
+
+    return scaled;
+}
+
 } // namespace
 
 Lr2BitmapFontTexture::Lr2BitmapFontTexture(QQuickItem* parent) : QQuickItem(parent) {
@@ -77,6 +113,7 @@ void Lr2BitmapFontTexture::setTextureFilter(int value) {
 
     m_textureFilter = value;
     emit textureFilterChanged();
+    m_textureDirty = true;
     update();
 }
 
@@ -86,6 +123,10 @@ qreal Lr2BitmapFontTexture::naturalWidth() const {
 
 qreal Lr2BitmapFontTexture::naturalHeight() const {
     return m_naturalSize.height();
+}
+
+qreal Lr2BitmapFontTexture::textureHeight() const {
+    return m_baseImage.height();
 }
 
 QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) {
@@ -99,7 +140,12 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
     if (!node || m_textureDirty) {
         delete node;
         node = new QSGSimpleTextureNode;
-        auto* texture = window()->createTextureFromImage(m_image);
+        const QSize targetSize(std::max(1, static_cast<int>(std::lround(width()))),
+                               std::max(1, static_cast<int>(std::lround(height()))));
+        const QImage textureImage = m_textureFilter == 0
+            ? scaledNearestEndpoint(m_image, targetSize)
+            : m_image;
+        auto* texture = window()->createTextureFromImage(textureImage);
         if (texture) {
             texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
             texture->setVerticalWrapMode(QSGTexture::ClampToEdge);
@@ -121,25 +167,32 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
 void Lr2BitmapFontTexture::geometryChange(const QRectF& newGeometry, const QRectF& oldGeometry) {
     QQuickItem::geometryChange(newGeometry, oldGeometry);
     if (newGeometry.size() != oldGeometry.size()) {
+        if (m_textureFilter == 0) {
+            m_textureDirty = true;
+        }
         update();
     }
 }
 
 void Lr2BitmapFontTexture::rebuildImage() {
-    const QSize oldSize = m_naturalSize;
+    const QSizeF oldNaturalSize = m_naturalSize;
+    const int oldTextureHeight = m_baseImage.height();
 
     if (m_fontPath.isEmpty() || m_text.isEmpty()) {
         m_baseImage = {};
         m_image = {};
+        m_naturalSize = {};
     } else {
-        m_baseImage = resource_managers::Lr2FontImageProvider::textImage(m_fontPath, m_text);
+        const auto rendered =
+          resource_managers::Lr2FontImageProvider::renderedText(m_fontPath, m_text);
+        m_baseImage = rendered.image;
+        m_naturalSize = rendered.naturalSize;
         m_image = colorNeedsTint(m_textColor) ? tintedImage(m_baseImage, m_textColor) : m_baseImage;
     }
 
-    m_naturalSize = m_baseImage.size();
     m_textureDirty = true;
 
-    if (m_naturalSize != oldSize) {
+    if (m_naturalSize != oldNaturalSize || m_baseImage.height() != oldTextureHeight) {
         emit naturalSizeChanged();
     }
 

@@ -77,6 +77,7 @@ Item {
         }
         return result;
     }
+    property int tableInfoRevision: 0
     property int gameplayRevision: 0
     property int gameplayNumberRevision1: 0
     property int gameplayNumberRevision2: 0
@@ -484,6 +485,84 @@ Item {
         return options;
     }
 
+    function appendParseOption(options: var, option: var) : void {
+        if (option === undefined || option === null) {
+            return;
+        }
+        let optionNumber = Number(option);
+        if (!isFinite(optionNumber)) {
+            return;
+        }
+        let lookup = root.optionLookupFor(options);
+        if (lookup[optionNumber] === true) {
+            return;
+        }
+        options.push(optionNumber);
+        lookup[optionNumber] = true;
+    }
+
+    function resultTargetRankParseOption(side: var, baseOption: var) : var {
+        let targetScore = root.resultTargetSavedScore(side);
+        let targetResult = targetScore && targetScore.result ? targetScore.result : null;
+        if (targetResult) {
+            return root.resultRankOptionForResult(targetResult, baseOption);
+        }
+        let totalNotes = root.resultTotalNotes(root.resultData(side));
+        let maxPoints = Math.max(0, totalNotes || 0) * 2;
+        let points = Math.max(0, root.resultTargetPoints(side) || 0);
+        if (points <= 0 || maxPoints <= 0) {
+            return baseOption + 8;
+        }
+        let rank = Math.floor(points * 9 / maxPoints);
+        if (rank >= 8) {
+            return baseOption;
+        }
+        if (rank <= 1) {
+            return baseOption + 7;
+        }
+        return baseOption + (8 - rank);
+    }
+
+    function appendResultParseOptions(options: var) : void {
+        let current1 = root.resultData(1);
+        let current2 = root.resultData(2);
+
+        root.appendParseOption(options, root.resultClearOption());
+        root.appendParseOption(options, 350);
+        root.appendParseOption(options, root.resultRankOptionForResult(current1, 300));
+        root.appendParseOption(options, current2
+            ? root.resultRankOptionForResult(current2, 310)
+            : root.resultTargetRankParseOption(1, 310));
+        root.appendParseOption(options, root.resultRankOptionForResult(root.resultOldBestResult(1), 320));
+        root.appendParseOption(options, root.resultRankOptionForResult(current1, 340));
+
+        if (root.resultScoreImproved(1)) {
+            root.appendParseOption(options, 330);
+            if (root.resultRawRank(current1) > root.resultRawRank(root.resultOldBestResult(1))) {
+                root.appendParseOption(options, 335);
+            }
+        } else {
+            root.appendParseOption(options, 1330);
+            if (root.resultRawRank(current1) === root.resultRawRank(root.resultOldBestResult(1))) {
+                root.appendParseOption(options, 1335);
+            }
+        }
+        root.appendParseOption(options, root.resultComboImproved(1) ? 331 : 1331);
+        root.appendParseOption(options, root.resultBadPoorImproved(1) ? 332 : 1332);
+
+        let targetDiff = root.resultExScore(current1) - root.resultTargetPoints(1);
+        if (targetDiff > 0) {
+            root.appendParseOption(options, 336);
+        } else if (targetDiff === 0) {
+            root.appendParseOption(options, 1336);
+        }
+
+        if (current1 && current2) {
+            let diff = root.resultExScore(current1) - root.resultExScore(current2);
+            root.appendParseOption(options, diff > 0 ? 352 : (diff < 0 ? 353 : 354));
+        }
+    }
+
     readonly property var parseActiveOptions: {
         let autoplayOn = root.gameplayAutoplayActive();
         let options = [
@@ -513,7 +592,7 @@ Item {
             options.push(900); // stock LR2 decide default: show stagefile
             options.push(33); // LR2 decide reports both autoplay states true.
         } else if (root.resultScreenActive) {
-            options.push(root.resultClearOption(), 350);
+            root.appendResultParseOptions(options);
         }
         return root.finalizeOptionList(options);
     }
@@ -1847,6 +1926,54 @@ Item {
             return selectContext.selectedStateChartData;
         }
         return resultState.displayChartData();
+    }
+    function chartTableHash(chartData: var) : var {
+        root.tableInfoRevision;
+        if (typeof chartData === "string") {
+            return String(chartData || "");
+        }
+        return chartData && chartData.md5 ? String(chartData.md5) : "";
+    }
+    function tableInfoForHash(hash: var) : var {
+        root.tableInfoRevision;
+        let normalized = String(hash || "");
+        if (normalized.length <= 0 || !Rg.tables || !Rg.tables.search) {
+            return null;
+        }
+        let matches = Rg.tables.search(normalized);
+        return matches && matches.length > 0 ? matches[0] : null;
+    }
+    function tableInfoForChart(chartData: var) : var {
+        return root.tableInfoForHash(root.chartTableHash(chartData));
+    }
+    function tableLevelNameForInfo(info: var) : var {
+        if (!info) {
+            return "";
+        }
+        let levelName = String(info.levelName || "");
+        let symbol = String(info.symbol || "");
+        return symbol.length > 0 && levelName.indexOf(symbol) !== 0
+            ? symbol + levelName
+            : levelName;
+    }
+    function tableFullNameForInfo(info: var) : var {
+        if (!info) {
+            return "";
+        }
+        return root.tableLevelNameForInfo(info) + String(info.tableName || "");
+    }
+    function chartTableName(chartData: var) : var {
+        let info = root.tableInfoForChart(chartData);
+        return info ? String(info.tableName || "") : "";
+    }
+    function chartTableLevelName(chartData: var) : var {
+        return root.tableLevelNameForInfo(root.tableInfoForChart(chartData));
+    }
+    function chartTableFullName(chartData: var) : var {
+        return root.tableFullNameForInfo(root.tableInfoForChart(chartData));
+    }
+    function chartInTable(chartData: var) : var {
+        return !!root.tableInfoForChart(chartData);
     }
     function resultClearOption() : var { return resultState.resultClearOption(); }
     function resultTotalNotes(result: var) : var { return resultState.resultTotalNotes(result); }
@@ -3518,6 +3645,9 @@ Item {
         if (root.skinUsesRuntimeOption(270)) {
             parts.push(root.gameplayLaneCoverChangingOptionActive() ? 1 : 0);
         }
+        if (root.skinUsesRuntimeOption(1008)) {
+            parts.push(root.tableInfoRevision);
+        }
 
         root.appendGameplayRuntimeOptionSideState(parts, 1);
         if (root.gameplayLanePlayer(2)) {
@@ -3619,6 +3749,25 @@ Item {
         }
         function onSelectedDetailValueRevisionChanged() : void {
             root.refreshSelectRuntimeActiveOptions();
+        }
+    }
+    Connections {
+        target: Rg.tables
+        ignoreUnknownSignals: true
+        function onDataChanged() : void {
+            ++root.tableInfoRevision;
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onRowsInserted() : void {
+            ++root.tableInfoRevision;
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
+        }
+        function onModelReset() : void {
+            ++root.tableInfoRevision;
+            root.refreshSelectRuntimeActiveOptions();
+            root.refreshGameplayRuntimeActiveOptions();
         }
     }
     Connections {

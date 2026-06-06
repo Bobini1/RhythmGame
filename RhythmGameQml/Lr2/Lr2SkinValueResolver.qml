@@ -252,6 +252,44 @@ QtObject {
         return root.effectiveScreenKey === "select" ? "" : root.lr2TargetText();
     }
 
+    function selectTableLevelText() : var {
+        let tableItem = selectContext.currentTableItem();
+        return root.tableLevelNameForInfo({
+            "levelName": selectContext.currentTableLevelName(),
+            "symbol": tableItem ? (tableItem.symbol || "") : ""
+        });
+    }
+
+    function selectTableFullText() : var {
+        return resolver.selectTableLevelText() + selectContext.currentTableName();
+    }
+
+    function displayTableChart() : var {
+        let chart = root.displayChartData();
+        return chart || (root.effectiveScreenKey === "select" ? resolver.selectedTextEntry() : null);
+    }
+
+    function displayTableName() : var {
+        let chartText = root.chartTableName(resolver.displayTableChart());
+        return chartText.length > 0
+            ? chartText
+            : (root.effectiveScreenKey === "select" ? selectContext.currentTableName() : "");
+    }
+
+    function displayTableLevelText() : var {
+        let chartText = root.chartTableLevelName(resolver.displayTableChart());
+        return chartText.length > 0
+            ? chartText
+            : (root.effectiveScreenKey === "select" ? resolver.selectTableLevelText() : "");
+    }
+
+    function displayTableFullText() : var {
+        let chartText = root.chartTableFullName(resolver.displayTableChart());
+        return chartText.length > 0
+            ? chartText
+            : (root.effectiveScreenKey === "select" ? resolver.selectTableFullText() : "");
+    }
+
     function chartHashText(chartData: var, field: var) : var {
         return chartData && chartData[field] ? String(chartData[field]) : "";
     }
@@ -412,11 +450,11 @@ QtObject {
                     : selectContext.currentFolderDisplayName())
                 : "";
         case 1001:
-            return root.effectiveScreenKey === "select" ? selectContext.currentTableName() : "";
+            return resolver.displayTableName();
         case 1002:
-            return root.effectiveScreenKey === "select" ? selectContext.currentTableLevelName() : "";
+            return resolver.displayTableLevelText();
         case 1003:
-            return root.effectiveScreenKey === "select" ? selectContext.currentTableFullName() : "";
+            return resolver.displayTableFullText();
         case 1010:
             return root.lr2SkinUsesBeatorajaSemantics ? (Qt.application.version || "") : "";
         case 1020:

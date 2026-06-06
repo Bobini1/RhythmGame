@@ -322,6 +322,7 @@ Loader {
                 timerFire: elemLoader.dstTimerFire
                 sourceTimerFire: elemLoader.srcTimerFire
                 chartAssetSource: elemLoader.directChartAssetSource
+                preferAtlasImagePath: elemLoader.screenRoot.effectiveScreenKey === "select"
                 scaleOverride: skinScale
                 mediaActive: elemLoader.screenRoot.enabled && elemLoader.screenUpdatesActive
                 transColor: skinModel.transColor
@@ -543,7 +544,11 @@ Loader {
                 && elemLoader.elementData.src.kind >= 2
             dsts: elemLoader.elementData.dsts
             srcData: elemLoader.elementData.src
-            skinTime: needsTimelineSkinTime ? elemLoader.screenRoot.barSkinTime : 0
+            skinTime: needsTimelineSkinTime
+                ? (elemLoader.usesLiveDstClock
+                   ? elemLoader.screenRoot.selectSourceSkinTime
+                   : elemLoader.screenRoot.barSkinTime)
+                : 0
             sourceSkinTime: 0
             skinClock: sourceAnimates ? elemLoader.screenRoot.skinClockRef : null
             sourceSkinClockMode: elemLoader.sourceSkinClockModeFor(sourceAnimates)

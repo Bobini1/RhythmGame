@@ -12,6 +12,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <iconv.h>
+#include <optional>
 #include <set>
 #include <utility>
 #include <vector>
@@ -528,6 +529,39 @@ selectedCustomFilePath(const std::filesystem::path& directory,
     }
 
     return {};
+}
+
+auto
+explicitImageIndex(const QStringList& tokens) -> std::optional<int>
+{
+    for (int i = 2; i < tokens.size(); ++i) {
+        const auto token = tokens[i].trimmed();
+        if (token.isEmpty()) {
+            continue;
+        }
+
+        bool ok = false;
+        const int index = token.toInt(&ok);
+        if (ok && index >= 0) {
+            return index;
+        }
+        return std::nullopt;
+    }
+    return std::nullopt;
+}
+
+void
+setImageSource(ParseState& state, const std::optional<int> index, QString source)
+{
+    if (!index) {
+        state.images.append(std::move(source));
+        return;
+    }
+
+    while (state.images.size() <= *index) {
+        state.images.append(QString{});
+    }
+    state.images[*index] = std::move(source);
 }
 
 auto
@@ -1612,10 +1646,12 @@ processCommand(const QStringList& tokens,
             state.hasTransColor = true;
         }
     } else if (command == "#IMAGE") {
-        state.images.append(
-          resolvePath(currentDir,
-                      tokens.size() > 1 ? tokens[1].trimmed() : QString{},
-                      state));
+        setImageSource(state,
+                       explicitImageIndex(tokens),
+                       resolvePath(currentDir,
+                                   tokens.size() > 1 ? tokens[1].trimmed()
+                                                     : QString{},
+                                   state));
     } else if (command == "#IMAGESET") {
         if (tokens.size() > 2 && !tokens[2].trimmed().isEmpty()) {
             state.imageSets.append(parseImageSource(tokens, state));

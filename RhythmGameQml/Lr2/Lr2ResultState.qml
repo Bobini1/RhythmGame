@@ -537,6 +537,13 @@ QtObject {
         return result ? Math.floor(result.points || 0) : 0;
     }
 
+    function resultHasPlayedScore(result: var) : var {
+        if (!result) {
+            return false;
+        }
+        return String(result.clearType || "FAILED").toUpperCase() !== "NOPLAY";
+    }
+
     function resultLr2Score(result: var) : var {
         let totalNotes = root.resultTotalNotes(result);
         if (totalNotes <= 0) {
@@ -576,11 +583,14 @@ QtObject {
     }
 
     function resultRawRank(result: var) : var {
-        let denominator = root.resultTotalNotes(result) * 2;
-        if (!result || denominator <= 0 || root.resultExScore(result) <= 0) {
+        if (!root.resultHasPlayedScore(result)) {
             return -1;
         }
-        return Math.floor(root.resultExScore(result) * 9 / denominator);
+        let denominator = root.resultTotalNotes(result) * 2;
+        if (denominator <= 0) {
+            return 1;
+        }
+        return Math.max(1, Math.floor(root.resultExScore(result) * 9 / denominator));
     }
 
     function resultRankDelta(result: var) : var {
@@ -596,10 +606,13 @@ QtObject {
     }
 
     function resultRankOptionForResult(result: var, baseOption: var) : var {
-        let rank = root.resultRawRank(result);
-        if (rank < 0) {
+        if (!root.resultHasPlayedScore(result)) {
             return baseOption + 8;
         }
+        if (root.resultExScore(result) <= 0 || root.resultTotalNotes(result) <= 0) {
+            return baseOption + 8;
+        }
+        let rank = root.resultRawRank(result);
         if (rank >= 8) {
             return baseOption;
         }
@@ -616,17 +629,25 @@ QtObject {
     function resultBestScoreByPoints(scores: var) : var {
         let best = null;
         let bestRate = -1;
+        let bestHasMaxPoints = false;
         for (let score of scores || []) {
             let result = score && score.result ? score.result : null;
-            let maxPoints = result ? (result.maxPoints || 0) : 0;
-            if (maxPoints <= 0) {
+            if (!root.resultHasPlayedScore(result)) {
                 continue;
             }
-            let rate = (result.points || 0) / maxPoints;
-            if (rate > bestRate) {
-                best = score;
-                bestRate = rate;
+            let maxPoints = result ? (result.maxPoints || 0) : 0;
+            let hasMaxPoints = maxPoints > 0;
+            let rate = hasMaxPoints ? (result.points || 0) / maxPoints : 0;
+            if (rate < bestRate) {
+                continue;
             }
+            if (Math.abs(rate - bestRate) <= 0.0000001
+                    && (bestHasMaxPoints || !hasMaxPoints)) {
+                continue;
+            }
+            best = score;
+            bestRate = rate;
+            bestHasMaxPoints = hasMaxPoints;
         }
         return best;
     }

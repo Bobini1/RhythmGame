@@ -38,6 +38,19 @@ writeKerningFont(const QString& path) -> void
 }
 
 auto
+writeTallGlyphFont(const QString& path) -> void
+{
+    QFile file(path);
+    REQUIRE(file.open(QIODevice::WriteOnly | QIODevice::Text));
+
+    QTextStream stream(&file);
+    stream << "#S,10\n";
+    stream << "#M,0\n";
+    stream << "#T,0,atlas.png\n";
+    stream << "#R,65,0,0,0,3,12\n";
+}
+
+auto
 writeFractionalFont(const QString& path) -> void
 {
     QFile file(path);
@@ -98,6 +111,30 @@ TEST_CASE("LR2 font image provider applies kerning between glyphs",
     REQUIRE(!pair.isNull());
     CHECK(pair.width() == 16);
     CHECK(pair.height() == 18);
+}
+
+TEST_CASE("LR2 font image provider preserves glyphs taller than logical size",
+          "[LR2FONT][resource_managers]")
+{
+    QTemporaryDir tempDir;
+    REQUIRE(tempDir.isValid());
+
+    const auto fontPath = tempDir.filePath("tall-glyph-font.lr2font");
+    const auto atlasPath = tempDir.filePath("atlas.png");
+    writeTallGlyphFont(fontPath);
+
+    QImage atlas(3, 12, QImage::Format_ARGB32);
+    atlas.fill(Qt::white);
+    REQUIRE(atlas.save(atlasPath));
+
+    const auto rendered =
+      resource_managers::Lr2FontImageProvider::renderedText(fontPath, "A");
+    REQUIRE(!rendered.image.isNull());
+    CHECK(rendered.naturalSize.width() == 3);
+    CHECK(rendered.naturalSize.height() == 10);
+    CHECK(rendered.image.width() == 3);
+    CHECK(rendered.image.height() == 12);
+    CHECK(qAlpha(rendered.image.pixel(0, 11)) == 255);
 }
 
 TEST_CASE("LR2 font parser truncates fractional numeric fields",

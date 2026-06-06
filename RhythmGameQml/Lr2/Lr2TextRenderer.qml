@@ -21,6 +21,7 @@ Item {
     property real offsetX: 0
     property real offsetY: 0
     property var stateOverride: null
+    property int textureFilterOverride: -1
     // Bound externally by the screen wrapper with the actual text for this st index
     property string resolvedText: ""
 
@@ -69,6 +70,9 @@ Item {
     readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
     readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
     readonly property int textFontType: root.srcData ? root.srcData.fontType : 0
+    readonly property int effectiveTextureFilter: root.textureFilterOverride >= 0
+        ? root.textureFilterOverride
+        : root.stateFilter
     readonly property real maxLayerSize: 16384
     readonly property real dstWidth: root.hasCurrentState ? root.stateW * root.scaleOverride : 0
     readonly property real dstHeight: root.hasCurrentState ? root.stateH * root.scaleOverride : 0
@@ -98,7 +102,7 @@ Item {
             fontPath: root.blendMode !== 2 && root.srcData ? root.srcData.fontPath : ""
             text: root.blendMode !== 2 ? root.bitmapText : ""
             textColor: root.textColor
-            textureFilter: root.stateFilter
+            textureFilter: root.effectiveTextureFilter
             alignment: root.textAlignment
         }
 
@@ -126,7 +130,7 @@ Item {
                 fontPath: root.blendMode === 2 && root.srcData ? root.srcData.fontPath : ""
                 text: root.blendMode === 2 ? root.bitmapText : ""
                 textColor: root.textColor
-                textureFilter: root.stateFilter
+                textureFilter: root.effectiveTextureFilter
                 alignment: root.textAlignment
             }
 

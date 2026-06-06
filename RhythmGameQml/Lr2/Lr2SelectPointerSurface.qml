@@ -203,22 +203,38 @@ Item {
 
     ToolTip {
         id: replayTooltipPopup
-        parent: pointerSurface
+        parent: pointerSurface.screenRoot
         visible: displayText.length > 0
         text: displayText
         delay: 0
         timeout: -1
         x: {
-            const maxX = Math.max(0, pointerSurface.width - width);
-            const centered = replayTooltipAnchor.x + replayTooltipAnchor.width / 2 - width / 2;
+            const tooltipParent = replayTooltipPopup.parent;
+            const anchorCenter = pointerSurface.mapToItem(
+                tooltipParent,
+                replayTooltipAnchor.x + replayTooltipAnchor.width / 2,
+                replayTooltipAnchor.y);
+            const parentWidth = tooltipParent ? tooltipParent.width : pointerSurface.width;
+            const maxX = Math.max(0, parentWidth - width);
+            const centered = anchorCenter.x - width / 2;
             return Math.max(0, Math.min(maxX, centered));
         }
         y: {
             const margin = 6;
-            const above = replayTooltipAnchor.y - height - margin;
-            const below = replayTooltipAnchor.y + replayTooltipAnchor.height + margin;
+            const tooltipParent = replayTooltipPopup.parent;
+            const anchorTop = pointerSurface.mapToItem(
+                tooltipParent,
+                replayTooltipAnchor.x,
+                replayTooltipAnchor.y);
+            const anchorBottom = pointerSurface.mapToItem(
+                tooltipParent,
+                replayTooltipAnchor.x,
+                replayTooltipAnchor.y + replayTooltipAnchor.height);
+            const above = anchorTop.y - height - margin;
+            const below = anchorBottom.y + margin;
             const preferred = above >= 0 ? above : below;
-            const maxY = Math.max(0, pointerSurface.height - height);
+            const parentHeight = tooltipParent ? tooltipParent.height : pointerSurface.height;
+            const maxY = Math.max(0, parentHeight - height);
             return Math.max(0, Math.min(maxY, preferred));
         }
 

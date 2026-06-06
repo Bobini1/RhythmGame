@@ -370,7 +370,9 @@ Lr2BarTextItem::TextImage Lr2BarTextItem::textImageFor(const QString& text,
 
     TextImage result;
     if (m_source.isLr2Font) {
-        QImage image = resource_managers::Lr2FontImageProvider::textImage(m_source.fontPath, text);
+        const auto rendered =
+          resource_managers::Lr2FontImageProvider::renderedText(m_source.fontPath, text);
+        QImage image = rendered.image;
         if (!image.isNull()
                 && (std::abs(color.redF() - 1.0) > 0.001
                     || std::abs(color.greenF() - 1.0) > 0.001
@@ -396,7 +398,7 @@ Lr2BarTextItem::TextImage Lr2BarTextItem::textImageFor(const QString& text,
             }
         }
         result.image = image;
-        result.naturalSize = image.size();
+        result.naturalSize = rendered.naturalSize;
     } else {
         QFont font(m_source.fontFamily.isEmpty() ? m_source.fontPath : m_source.fontFamily);
         font.setPixelSize(basePixelSize);
@@ -497,7 +499,9 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
             : 1.0;
         const qreal scaleX = scaleY * fitScaleX;
         const qreal drawnW = rendered.naturalSize.width() * scaleX;
-        const qreal drawnH = m_source.isLr2Font ? boxH : rendered.naturalSize.height() * scaleY;
+        const qreal drawnH = m_source.isLr2Font
+            ? rendered.image.height() * scaleY
+            : rendered.naturalSize.height() * scaleY;
         const qreal alignedX = m_source.align == 1
             ? (boxW - drawnW) * 0.5
             : (m_source.align == 2 ? boxW - drawnW : 0.0);
