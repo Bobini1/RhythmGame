@@ -15,10 +15,18 @@
 
 namespace {
 
-gameplay_logic::BmsScore* scoreWithClearType(const QString& clearType, QObject* parent) {
-	const QString guid = QStringLiteral("test-%1").arg(clearType);
+gameplay_logic::BmsScore* scoreWithValues(const QString& clearType,
+										  double maxPoints,
+										  double points,
+										  QList<int> judgementCounts,
+										  int maxCombo,
+										  QObject* parent) {
+	const QString guid = QStringLiteral("test-%1-%2-%3")
+							 .arg(clearType)
+							 .arg(maxPoints)
+							 .arg(points);
 	auto result = std::make_unique<gameplay_logic::BmsResult>(
-		100.0,
+		maxPoints,
 		0,
 		0,
 		0,
@@ -26,10 +34,10 @@ gameplay_logic::BmsScore* scoreWithClearType(const QString& clearType, QObject* 
 		0,
 		0,
 		clearType,
-		QList<int> {0, 0, 0, 0, 0, 0},
+		judgementCounts,
 		0,
-		0.0,
-		0,
+		points,
+		maxCombo,
 		0,
 		0,
 		QList<qint64> {},
@@ -39,12 +47,22 @@ gameplay_logic::BmsScore* scoreWithClearType(const QString& clearType, QObject* 
 		resource_managers::DpOptions::Off,
 		gameplay_logic::ChartData::Keymode::K7,
 		guid,
-		QStringLiteral("sha256-%1").arg(clearType),
-		QStringLiteral("md5-%1").arg(clearType));
+		QStringLiteral("sha256-%1").arg(guid),
+		QStringLiteral("md5-%1").arg(guid));
 	return new gameplay_logic::BmsScore(
 		std::move(result),
 		std::make_unique<gameplay_logic::BmsReplayData>(QList<gameplay_logic::HitEvent> {}, guid),
 		std::make_unique<gameplay_logic::BmsGaugeHistory>(QList<gameplay_logic::BmsGaugeInfo> {}, guid),
+		parent);
+}
+
+gameplay_logic::BmsScore* scoreWithClearType(const QString& clearType, QObject* parent) {
+	return scoreWithValues(
+		clearType,
+		100.0,
+		0.0,
+		QList<int> {0, 0, 0, 0, 0, 0},
+		0,
 		parent);
 }
 
@@ -195,4 +213,35 @@ TEST_CASE("LR2 select detail state can skip score option ids",
 
 	CHECK(state.summary()->lamp() == 4);
 	CHECK(state.scoreOptionIds().toList().isEmpty());
+}
+
+TEST_CASE("LR2 select detail state keeps zero-point played scores as rank F",
+		  "[lr2][runtime][select]")
+{
+	Lr2SelectDetailState state;
+	QJSEngine engine;
+	auto* score = scoreWithValues(QStringLiteral("FAILED"),
+								  0.0,
+								  0.0,
+								  QList<int> {0, 0, 0, 0, 0, 559},
+								  0,
+								  &state);
+
+	refreshState(state,
+				 engine,
+				 QStringLiteral("zero-point-failed"),
+				 QVariantList {QVariant::fromValue(score)},
+				 0,
+				 QVariantList {},
+				 QVariantList {},
+				 QVariantList {},
+				 true,
+				 true);
+
+	REQUIRE(state.summary()->bestStatsObject() != nullptr);
+	CHECK(state.summary()->lamp() == 1);
+	CHECK(state.summary()->rank() == 1);
+	CHECK(state.summary()->scoreRate() == 0.0);
+	CHECK(state.summary()->scoreCounts()->play() == 1);
+	CHECK(state.summary()->scoreCounts()->fail() == 1);
 }

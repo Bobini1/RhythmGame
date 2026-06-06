@@ -2550,6 +2550,7 @@ Item {
         };
         let bestScore = null;
         let bestRate = -1;
+        let bestHasMaxPoints = false;
         let bestClearType = "NOPLAY";
         let bestClearPriority = 0;
         let minBadPoor = -1;
@@ -2610,17 +2611,21 @@ Item {
             minBadPoor = minBadPoor < 0 ? badPoor : Math.min(minBadPoor, badPoor);
 
             let maxPoints = score.result.maxPoints || 0;
-            if (maxPoints > 0) {
-                let rate = (score.result.points || 0) / maxPoints;
-                if (rate > bestRate) {
-                    bestRate = rate;
-                    bestScore = score;
-                }
+            let hasMaxPoints = maxPoints > 0;
+            let rate = hasMaxPoints ? (score.result.points || 0) / maxPoints : 0;
+            if (rate > bestRate
+                    || (rate === bestRate && hasMaxPoints && !bestHasMaxPoints)) {
+                bestRate = rate;
+                bestHasMaxPoints = hasMaxPoints;
+                bestScore = score;
             }
         }
 
         counts.minBadPoor = Math.max(0, minBadPoor);
         let scoreRate = Math.max(0, bestRate);
+        let rank = bestScore && bestClearType !== "NOPLAY"
+            ? Math.max(1, rankForScoreRate(scoreRate))
+            : 0;
         return {
             scoreList: scoreList,
             bestScore: bestScore,
@@ -2628,7 +2633,7 @@ Item {
             scoreCounts: counts,
             clearType: bestClearType,
             lamp: clearTypeLamp(bestClearType),
-            rank: rankForScoreRate(scoreRate),
+            rank: rank,
             scoreRate: scoreRate
         };
     }
@@ -2762,14 +2767,15 @@ Item {
     function bestScoreByPoints(scoreList: var) : var {
         let best = null;
         let bestRate = -1;
+        let bestHasMaxPoints = false;
         for (let score of scoreList) {
             let maxPoints = score?.result?.maxPoints || 0;
-            if (maxPoints <= 0) {
-                continue;
-            }
-            let rate = (score.result.points || 0) / maxPoints;
-            if (rate > bestRate) {
+            let hasMaxPoints = maxPoints > 0;
+            let rate = hasMaxPoints ? (score.result.points || 0) / maxPoints : 0;
+            if (rate > bestRate
+                    || (rate === bestRate && hasMaxPoints && !bestHasMaxPoints)) {
                 bestRate = rate;
+                bestHasMaxPoints = hasMaxPoints;
                 best = score;
             }
         }

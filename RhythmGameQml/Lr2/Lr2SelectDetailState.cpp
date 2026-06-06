@@ -341,6 +341,7 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 	QVariant bestScore;
 	Lr2SelectScoreStatsData bestStatsValue;
 	double bestRate = -1.0;
+	bool bestHasMaxPoints = false;
 	QString bestClearType = QStringLiteral("NOPLAY");
 	ClearKind bestClearKind = ClearKind::Noplay;
 	int bestClearPriority = 0;
@@ -404,14 +405,17 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 		const int badPoor = badPoorForCounts(judgementCounts);
 		minBadPoor = minBadPoor < 0 ? badPoor : std::min(minBadPoor, badPoor);
 
-		if (maxPoints <= 0.0) {
+		const bool hasMaxPoints = maxPoints > 0.0;
+		const double rate = hasMaxPoints ? points / maxPoints : 0.0;
+		if (rate < bestRate) {
 			return;
 		}
-		const double rate = points / maxPoints;
-		if (rate <= bestRate) {
+		if (qFuzzyCompare(rate + 1.0, bestRate + 1.0)
+				&& (bestHasMaxPoints || !hasMaxPoints)) {
 			return;
 		}
 		bestRate = rate;
+		bestHasMaxPoints = hasMaxPoints;
 		bestScore = scoreValue();
 		bestStatsValue = statsForValues(judgementCounts, maxCombo, points, maxPoints);
 	};
@@ -441,7 +445,9 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 		counts,
 		bestClearType,
 		clearKindLamp(bestClearKind, useBeatorajaSemantics),
-		rankForScoreRate(scoreRate),
+		bestScore.isValid() && bestClearKind != ClearKind::Noplay
+			? std::max(1, rankForScoreRate(scoreRate))
+			: 0,
 		scoreRate,
 		buildScoreOptionIds ? optionIds.toSortedVariantList() : QVariantList {},
 	};
