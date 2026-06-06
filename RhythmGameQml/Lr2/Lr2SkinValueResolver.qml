@@ -144,7 +144,7 @@ QtObject {
         case 75:
             return resolver.optionText(root.lr2BgaSizeLabels, root.lr2BgaSizeIndex);
         case 76:
-            return resolver.optionText(["ON", "OFF"], root.lr2BgaIndex);
+            return resolver.optionText(root.lr2BgaLabels, root.lr2BgaIndex);
         case 77:
             return "32BIT";
         case 78:

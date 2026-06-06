@@ -40,6 +40,16 @@ QtObject {
         NoteOrderAlgorithm.SRandomPlus
     ]
     readonly property var lr2RandomSupportedIndexes: [0, 1, 2, 3, 4, 8, 9]
+    readonly property var lr2ClassicRandomLabels: ["OFF", "MIRROR", "RANDOM", "S-RANDOM", "H-RANDOM", "ALL-SCR"]
+    readonly property var lr2ClassicRandomValues: [
+        NoteOrderAlgorithm.Normal,
+        NoteOrderAlgorithm.Mirror,
+        NoteOrderAlgorithm.Random,
+        NoteOrderAlgorithm.SRandom,
+        NoteOrderAlgorithm.RRandom,
+        null
+    ]
+    readonly property var lr2ClassicRandomSupportedIndexes: [0, 1, 2, 3, 4]
     readonly property var lr2HiSpeedFixLabels: ["OFF", "START BPM", "MAX BPM", "MAIN BPM", "MIN BPM"]
     readonly property var lr2HiSpeedFixValues: [
         HiSpeedFix.Off,
@@ -59,7 +69,19 @@ QtObject {
     readonly property var lr2BattleLabels: ["OFF", "BATTLE", "SP TO DP"]
     readonly property var lr2TargetLabels: ["GRADE", "BEST SCORE"]
     readonly property var lr2TargetValues: [ScoreTarget.Fraction, ScoreTarget.BestScore]
-    readonly property var lr2ClassicTargetLabels: lr2TargetLabels
+    readonly property var lr2ClassicTargetLabels: [
+        "NO TARGET",
+        "MY BEST",
+        "RANK AAA",
+        "RANK AA",
+        "RANK A",
+        "",
+        "IR TOP",
+        "IR NEXT",
+        "IR AVERAGE"
+    ]
+    readonly property var lr2ClassicTargetSupportedIndexes: [0, 1, 2, 3, 4, 5]
+    readonly property real lr2ClassicTargetTolerance: 0.001
     readonly property var lr2BeatorajaTargetLabels: [
         "RANK A-",
         "RANK A",
@@ -117,6 +139,7 @@ QtObject {
     readonly property int lr2BeatorajaTargetCount: lr2BeatorajaTargetFractions.length
     readonly property int lr2BeatorajaCompactTargetCount: lr2BeatorajaCompactTargetFractions.length
     readonly property real lr2BeatorajaTargetTolerance: 0.001
+    readonly property var lr2BgaLabels: ["OFF", "NORMAL", "AUTOPLAY"]
     readonly property var lr2BgaSizeLabels: ["NORMAL", "EXTEND"]
     readonly property var lr2GhostLabels: ["OFF", "TYPE A", "TYPE B", "TYPE C"]
     readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
@@ -136,6 +159,8 @@ QtObject {
     property var lr2FxType: [0, 0, 0]
     property var lr2FxOn: [false, false, false]
     property var lr2FxTarget: [0, 0, 0]
+    property int lr2ClassicTargetFrameOverride: -1
+    property int lr2ClassicTargetPercentValue: -1
 
     function setArrayValue(array: var, index: var, value: var) : var {
         let copy = array.slice();
@@ -287,7 +312,7 @@ QtObject {
             return currentIndex;
         }
         let direction = delta < 0 ? -1 : 1;
-        let candidate = root.wrapValue(current + direction, count);
+        let candidate = root.wrapValue(currentIndex + direction, count);
         for (let guard = 0; guard < count; ++guard) {
             if (root.arrayContains(supportedIndexes, candidate)) {
                 return candidate;
@@ -363,14 +388,66 @@ QtObject {
         }
     }
 
+    function randomValue(side: var) : var {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return NoteOrderAlgorithm.Normal;
+        }
+        if (side === 2 && !Rg.profileList.battleActive) {
+            return vars.noteOrderAlgorithmP2;
+        }
+        return vars.noteOrderAlgorithm;
+    }
+
+    function randomButtonUsesClassicFrames(sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        return count > 0 && count <= root.lr2ClassicRandomValues.length;
+    }
+
+    function randomButtonValuesForSourceCount(sourceCount: var) : var {
+        return root.randomButtonUsesClassicFrames(sourceCount)
+            ? root.lr2ClassicRandomValues
+            : root.lr2RandomValues;
+    }
+
+    function randomButtonLabelsForSourceCount(sourceCount: var) : var {
+        return root.randomButtonUsesClassicFrames(sourceCount)
+            ? root.lr2ClassicRandomLabels
+            : root.lr2RandomLabels;
+    }
+
+    function randomButtonSupportedIndexesForSourceCount(sourceCount: var) : var {
+        return root.randomButtonUsesClassicFrames(sourceCount)
+            ? root.lr2ClassicRandomSupportedIndexes
+            : root.lr2RandomSupportedIndexes;
+    }
+
+    function randomButtonFrameForValue(value: var, sourceCount: var) : var {
+        let values = root.randomButtonValuesForSourceCount(sourceCount);
+        return root.indexOfValueOr(values, value, 0);
+    }
+
+    function setRandomValue(side: var, value: var) : var {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        if (side === 2 && !Rg.profileList.battleActive) {
+            vars.noteOrderAlgorithmP2 = value;
+        } else {
+            vars.noteOrderAlgorithm = value;
+        }
+    }
+
     function randomSupportedIndexesForSourceCount(sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        if (count <= 0 || count >= root.lr2RandomValues.length) {
-            return root.lr2RandomSupportedIndexes;
+        let supportedSource = root.randomButtonSupportedIndexesForSourceCount(sourceCount);
+        if (count <= 0) {
+            return supportedSource;
         }
         let result = [];
-        for (let i = 0; i < root.lr2RandomSupportedIndexes.length; ++i) {
-            let index = root.lr2RandomSupportedIndexes[i];
+        for (let i = 0; i < supportedSource.length; ++i) {
+            let index = supportedSource[i];
             if (index < count) {
                 result.push(index);
             }
@@ -380,7 +457,7 @@ QtObject {
 
     function lr2RandomButtonFrame(side: var, sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let current = root.randomButtonFrameForValue(root.randomValue(side), sourceCount);
         let supported = root.randomSupportedIndexesForSourceCount(count);
         return root.clampedButtonFrame(
             root.arrayContains(supported, current) ? current : supported[0],
@@ -389,29 +466,34 @@ QtObject {
 
     function setRandomButtonIndex(side: var, index: var, sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let current = root.randomButtonFrameForValue(root.randomValue(side), sourceCount);
         let normalized = root.cycleSupportedIndex(
             current,
             index - current,
             root.randomSupportedIndexesForSourceCount(count),
-            count > 0 ? count : root.lr2RandomValues.length);
-        root.setRandomIndex(side, normalized);
+            count > 0 ? count : root.randomButtonValuesForSourceCount(sourceCount).length);
+        let value = root.randomButtonValuesForSourceCount(sourceCount)[normalized]
+            || NoteOrderAlgorithm.Normal;
+        root.setRandomValue(side, value);
     }
 
     function adjustRandomButtonIndex(side: var, delta: var, sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        let current = side === 2 ? root.lr2RandomIndexP2 : root.lr2RandomIndexP1;
+        let current = root.randomButtonFrameForValue(root.randomValue(side), sourceCount);
         let normalized = root.cycleSupportedIndex(
             current,
             delta,
             root.randomSupportedIndexesForSourceCount(count),
-            count > 0 ? count : root.lr2RandomValues.length);
-        root.setRandomIndex(side, normalized);
+            count > 0 ? count : root.randomButtonValuesForSourceCount(sourceCount).length);
+        let value = root.randomButtonValuesForSourceCount(sourceCount)[normalized]
+            || NoteOrderAlgorithm.Normal;
+        root.setRandomValue(side, value);
     }
 
     function lr2RandomText(side: var, sourceCount: var) : var {
         let frame = root.lr2RandomButtonFrame(side, sourceCount);
-        return root.lr2RandomLabels[root.clampedButtonFrame(frame, root.lr2RandomLabels.length)];
+        let labels = root.randomButtonLabelsForSourceCount(sourceCount);
+        return labels[root.clampedButtonFrame(frame, labels.length)];
     }
 
     readonly property int lr2HidSudIndexP1: {
@@ -422,8 +504,7 @@ QtObject {
     }
 
     function lr2HidSudIndex(side: var) : var {
-        let normalizedSide = side === 2 ? 2 : 1;
-        let vars = root.generalVarsForSide(normalizedSide);
+        let vars = root.generalVarsForSide(side);
         if (!vars) {
             return 0;
         }
@@ -569,6 +650,30 @@ QtObject {
         }
     }
 
+    readonly property int lr2LiftIndex: {
+        let vars = root.mainGeneralVarsValue;
+        return vars && vars.liftOn ? 1 : 0;
+    }
+
+    function setLiftIndex(index: var) : void {
+        let vars = root.mainGeneralVarsValue;
+        if (vars) {
+            vars.liftOn = root.wrapValue(index, 2) === 1;
+        }
+    }
+
+    readonly property int lr2HiddenIndex: {
+        let vars = root.mainGeneralVarsValue;
+        return vars && vars.hiddenOn ? 1 : 0;
+    }
+
+    function setHiddenIndex(index: var) : void {
+        let vars = root.mainGeneralVarsValue;
+        if (vars) {
+            vars.hiddenOn = root.wrapValue(index, 2) === 1;
+        }
+    }
+
     function toggleLaneCover(side: var) : void {
         let vars = root.generalVarsForSide(side);
         if (vars) {
@@ -578,7 +683,7 @@ QtObject {
 
     readonly property int lr2BgaIndex: {
         let vars = root.mainGeneralVarsValue;
-        return vars && !vars.bgaOn ? 1 : 0;
+        return vars ? Math.max(0, Math.min(2, vars.bgaMode || 0)) : 1;
     }
 
     readonly property int lr2BeatorajaBgaIndex: {
@@ -589,7 +694,7 @@ QtObject {
     function setBgaIndex(index: var) : void {
         let vars = root.mainGeneralVarsValue;
         if (vars) {
-            vars.bgaOn = root.wrapValue(index, 2) === 0;
+            vars.bgaMode = root.wrapValue(index, root.lr2BgaLabels.length);
         }
     }
 
@@ -701,7 +806,16 @@ QtObject {
 
     readonly property bool lr2BgaEnabled: {
         let vars = root.mainGeneralVarsValue;
-        return !vars || vars.bgaOn !== false;
+        let mode = vars ? Math.max(0, Math.min(2, vars.bgaMode || 0)) : 1;
+        if (mode === 0) {
+            return false;
+        }
+        if (mode === 2) {
+            return (host.effectiveScreenKey === "decide")
+                || (host.gameplayAutoplayActive && host.gameplayAutoplayActive())
+                || (host.gameplayReplayActive && host.gameplayReplayActive());
+        }
+        return true;
     }
 
     readonly property int lr2ScoreTargetIndex: {
@@ -716,9 +830,98 @@ QtObject {
         }
     }
 
-    readonly property int lr2ClassicTargetIndex: lr2ScoreTargetIndex
+    function fractionMatchesTarget(fraction: var, target: var) : var {
+        return Math.abs(Number(fraction || 0) - target) <= root.lr2ClassicTargetTolerance;
+    }
+
+    function inferredTargetPercent() : var {
+        let vars = root.mainGeneralVarsValue;
+        return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
+    }
+
+    function ensureClassicTargetPercentInitialized() : void {
+        if (root.lr2ClassicTargetPercentValue < 0) {
+            root.lr2ClassicTargetPercentValue = root.inferredTargetPercent();
+        }
+    }
+
+    function classicTargetUsesDefaultPercent(index: var) : var {
+        return index === 5;
+    }
+
+    function classicTargetIsSupported(index: var) : var {
+        return root.arrayContains(root.lr2ClassicTargetSupportedIndexes, index);
+    }
+
+    function inferredClassicTargetIndex() : var {
+        let vars = root.mainGeneralVarsValue;
+        if (!vars) {
+            return -1;
+        }
+        switch (vars.scoreTarget) {
+        case ScoreTarget.BestScore:
+            return 1;
+        case ScoreTarget.Fraction: {
+            let fraction = Number(vars.targetScoreFraction || 0);
+            if (root.fractionMatchesTarget(fraction, 8 / 9)) {
+                return 2;
+            }
+            if (root.fractionMatchesTarget(fraction, 7 / 9)) {
+                return 3;
+            }
+            if (root.fractionMatchesTarget(fraction, 6 / 9)) {
+                return 4;
+            }
+            return fraction <= root.lr2ClassicTargetTolerance ? 0 : 5;
+        }
+        default:
+            return -1;
+        }
+    }
+
+    readonly property int lr2ClassicTargetIndex: {
+        let override = Math.floor(root.lr2ClassicTargetFrameOverride);
+        return root.classicTargetIsSupported(override)
+            ? override
+            : root.inferredClassicTargetIndex();
+    }
+
     function setClassicTargetIndex(index: var) : void {
-        root.setScoreTargetIndex(index);
+        let vars = root.mainGeneralVarsValue;
+        let normalized = root.wrapValue(index, root.lr2ClassicTargetLabels.length);
+        if (!root.classicTargetIsSupported(normalized)) {
+            return;
+        }
+        root.ensureClassicTargetPercentInitialized();
+        root.lr2ClassicTargetFrameOverride = normalized;
+        if (!vars) {
+            return;
+        }
+        switch (normalized) {
+        case 0:
+            vars.scoreTarget = ScoreTarget.Fraction;
+            vars.targetScoreFraction = 0;
+            break;
+        case 1:
+            vars.scoreTarget = ScoreTarget.BestScore;
+            break;
+        case 2:
+            vars.scoreTarget = ScoreTarget.Fraction;
+            vars.targetScoreFraction = 8 / 9;
+            break;
+        case 3:
+            vars.scoreTarget = ScoreTarget.Fraction;
+            vars.targetScoreFraction = 7 / 9;
+            break;
+        case 4:
+            vars.scoreTarget = ScoreTarget.Fraction;
+            vars.targetScoreFraction = 6 / 9;
+            break;
+        default:
+            vars.scoreTarget = ScoreTarget.Fraction;
+            vars.targetScoreFraction = Math.max(0, Math.min(1, root.lr2TargetPercent / 100));
+            break;
+        }
     }
 
     readonly property int lr2BeatorajaTargetIndex: root.beatorajaTargetIndexForFractions(root.lr2BeatorajaTargetFractions)
@@ -799,7 +1002,7 @@ QtObject {
 
     function targetButtonFrameCount(sourceCount: var) : var {
         if (!root.targetUsesBeatorajaFrames(sourceCount)) {
-            return root.optionFrameCount(sourceCount, root.lr2TargetLabels.length);
+            return root.optionFrameCount(sourceCount, root.lr2ClassicTargetLabels.length);
         }
         let source = Math.floor(sourceCount || 0);
         let targetCount = root.beatorajaTargetFractionsForSourceCount(sourceCount).length;
@@ -813,7 +1016,7 @@ QtObject {
         let frame = root.targetUsesBeatorajaFrames(sourceCount)
             ? root.beatorajaTargetIndexForFractions(
                   root.beatorajaTargetFractionsForSourceCount(sourceCount))
-            : root.lr2ScoreTargetIndex;
+            : root.lr2ClassicTargetIndex;
         let count = root.targetButtonFrameCount(sourceCount);
         return frame >= 0 && frame < count ? frame : -1;
     }
@@ -822,13 +1025,19 @@ QtObject {
         if (root.targetUsesBeatorajaFrames(sourceCount)) {
             root.setBeatorajaTargetIndex(index, sourceCount);
         } else {
-            root.setScoreTargetIndex(index);
+            root.setClassicTargetIndex(index);
         }
     }
 
     function adjustTargetButtonIndex(delta: var, sourceCount: var) : void {
         let count = root.targetButtonFrameCount(sourceCount);
-        let next = root.adjustedOptionIndex(root.lr2TargetButtonFrame(sourceCount), delta, count);
+        let next = root.targetUsesBeatorajaFrames(sourceCount)
+            ? root.adjustedOptionIndex(root.lr2TargetButtonFrame(sourceCount), delta, count)
+            : root.cycleSupportedIndex(
+                  root.lr2TargetButtonFrame(sourceCount),
+                  delta,
+                  root.lr2ClassicTargetSupportedIndexes,
+                  count);
         if (next >= 0) {
             root.setTargetButtonIndex(next, sourceCount);
         }
@@ -845,7 +1054,12 @@ QtObject {
                 ? labels[frame]
                 : "";
         }
-        return frame < root.lr2TargetLabels.length ? root.lr2TargetLabels[frame] : "";
+        if (frame === 5) {
+            return Math.floor(root.lr2TargetPercent) + "%";
+        }
+        return frame < root.lr2ClassicTargetLabels.length
+            ? root.lr2ClassicTargetLabels[frame]
+            : "";
     }
 
     function lr2TargetNameText(textId: var) : var {
@@ -866,14 +1080,18 @@ QtObject {
     }
 
     readonly property int lr2TargetPercent: {
-        let vars = root.mainGeneralVarsValue;
-        return vars ? Math.floor((vars.targetScoreFraction || 0) * 100) : 80;
+        return root.lr2ClassicTargetPercentValue >= 0
+            ? root.lr2ClassicTargetPercentValue
+            : root.inferredTargetPercent();
     }
 
     function setTargetPercent(percent: var) : void {
+        let clamped = Math.max(0, Math.min(100, Math.floor(percent)));
+        root.lr2ClassicTargetPercentValue = clamped;
         let vars = root.mainGeneralVarsValue;
-        if (vars) {
-            vars.targetScoreFraction = Math.max(0, Math.min(1, Math.floor(percent) / 100));
+        if (vars && root.classicTargetUsesDefaultPercent(root.lr2ClassicTargetIndex)) {
+            vars.scoreTarget = ScoreTarget.Fraction;
+            vars.targetScoreFraction = clamped / 100;
         }
     }
 
@@ -949,16 +1167,18 @@ QtObject {
         vars.noteScreenTimeMillis = current + current / 1000 * amount;
     }
 
-    function adjustScratchCoverNumber(side: var, amount: var) : var {
+    function adjustScratchCoverNumber(side: var, amount: var, changeLift: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars) {
             return;
         }
         let value = 0.0005 * amount;
-        if (vars.laneCoverOn) {
-            vars.laneCoverRatio = (vars.laneCoverRatio || 0) + value;
-        } else if (vars.liftOn) {
-            vars.liftRatio = (vars.liftRatio || 0) + value;
+        if (vars.laneCoverOn || (!vars.liftOn && !vars.hiddenOn)) {
+            vars.laneCoverRatio = Math.max(0, Math.min(1, (vars.laneCoverRatio || 0) + value));
+        } else if (vars.liftOn && (!vars.hiddenOn || changeLift !== false)) {
+            vars.liftRatio = Math.max(0, Math.min(1, (vars.liftRatio || 0) + value));
+        } else {
+            vars.hiddenRatio = Math.max(0, Math.min(1, (vars.hiddenRatio || 0) + value));
         }
     }
 

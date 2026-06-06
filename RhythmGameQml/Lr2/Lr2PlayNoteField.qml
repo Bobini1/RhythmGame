@@ -234,13 +234,6 @@ Item {
         return Math.max(1, Math.abs(dst && dst.y ? dst.y : 480));
     }
 
-    function lr2HidSudMode(side: var) : var {
-        if (screenRoot && screenRoot.lr2HidSudIndex) {
-            return screenRoot.lr2HidSudIndex(side);
-        }
-        return 0;
-    }
-
     function generalVarsForSide(side: var) : var {
         return screenRoot && screenRoot.generalVarsForSide
             ? screenRoot.generalVarsForSide(side)
@@ -293,20 +286,16 @@ Item {
     }
 
     function hidSudClipTop(side: var, dst: var) : var {
-        let mode = lr2HidSudMode(side);
-        if (mode === 2 || mode === 3) {
-            return laneCoverClipTop(side, dst);
-        }
-        return 0;
+        return root.laneCoverClipTop(side, dst);
     }
 
     function hidSudClipBottom(side: var, dst: var) : var {
-        let mode = lr2HidSudMode(side);
-        let fullHeight = skinModel && skinModel.skinHeight ? skinModel.skinHeight : 480;
-        if (mode === 1 || mode === 3) {
-            return hiddenClipBottom(side, dst);
-        }
-        return fullHeight;
+        return root.hiddenClipBottom(side, dst);
+    }
+
+    function hidSudClipActive(side: var) : var {
+        let vars = generalVarsForSide(side);
+        return !!vars && (!!vars.laneCoverOn || !!vars.hiddenOn);
     }
 
     function sideSpeedHeight(side: var, fallbackDst: var) : var {
@@ -403,7 +392,7 @@ Item {
                 root.sideSpeedHeight(side, dstState))
             property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
             property real layerSkinY: (dstState ? dstState.y || 0 : 0) + playerPosition * multiplier
-            property int hidSudMode: root.lr2HidSudMode(side)
+            property bool clipActive: root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
 
@@ -430,11 +419,11 @@ Item {
                 id: lineClip
 
                 width: parent.width
-                height: lineArea.hidSudMode > 0
+                height: lineArea.clipActive
                     ? Math.max(1, (lineArea.clipBottomSkin - lineArea.clipTopSkin) * root.skinScale)
                     : parent.height
-                y: lineArea.hidSudMode > 0 ? lineArea.clipTopSkin * root.skinScale : 0
-                clip: lineArea.hidSudMode > 0
+                y: lineArea.clipActive ? lineArea.clipTopSkin * root.skinScale : 0
+                clip: lineArea.clipActive
 
                 Item {
                     id: lineLayer
@@ -521,7 +510,7 @@ Item {
                 root.sideSpeedHeight(side, dstState))
             property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
             property real layerSkinY: (dstState ? dstState.y || 0 : 0) + playerPosition * multiplier
-            property int hidSudMode: root.lr2HidSudMode(side)
+            property bool clipActive: root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
 
@@ -566,11 +555,11 @@ Item {
                 id: noteClip
 
                 width: parent.width
-                height: lane.hidSudMode > 0
+                height: lane.clipActive
                     ? Math.max(1, (lane.clipBottomSkin - lane.clipTopSkin) * root.skinScale)
                     : parent.height
-                y: lane.hidSudMode > 0 ? lane.clipTopSkin * root.skinScale : 0
-                clip: lane.hidSudMode > 0
+                y: lane.clipActive ? lane.clipTopSkin * root.skinScale : 0
+                clip: lane.clipActive
 
                 Item {
                     id: noteLayer

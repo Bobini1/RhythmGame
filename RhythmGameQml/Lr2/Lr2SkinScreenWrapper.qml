@@ -646,6 +646,7 @@ Item {
     readonly property var lr2ClassicTargetLabels: optionState.lr2ClassicTargetLabels
     readonly property var lr2BeatorajaTargetLabels: optionState.lr2BeatorajaTargetLabels
     readonly property var lr2BeatorajaTargetFractions: optionState.lr2BeatorajaTargetFractions
+    readonly property var lr2BgaLabels: optionState.lr2BgaLabels
     readonly property var lr2BgaSizeLabels: optionState.lr2BgaSizeLabels
     readonly property var lr2GhostLabels: optionState.lr2GhostLabels
     readonly property var lr2HidSudLabels: optionState.lr2HidSudLabels
@@ -888,7 +889,10 @@ Item {
     readonly property int lr2HidSudIndexP1: optionState.lr2HidSudIndexP1
     readonly property int lr2HidSudIndexP2: optionState.lr2HidSudIndexP2
     function lr2HidSudIndex(side: var) : var { return optionState.lr2HidSudIndex(side); }
-    function setHidSudIndex(side: var, index: var) : void { optionState.setHidSudIndex(side, index); }
+    function setHidSudIndex(side: var, index: var) : void {
+        optionState.setHidSudIndex(side, index);
+        root.noteGameplayOptionChanged();
+    }
 
     readonly property int lr2HiSpeedFixIndex: optionState.lr2HiSpeedFixIndex
     function setHiSpeedFixIndex(index: var) : void { optionState.setHiSpeedFixIndex(index); }
@@ -906,6 +910,16 @@ Item {
     readonly property int lr2LaneCoverIndex: optionState.lr2LaneCoverIndex
     function setLaneCoverIndex(index: var) : void {
         optionState.setLaneCoverIndex(index);
+        root.noteGameplayOptionChanged();
+    }
+    readonly property int lr2LiftIndex: optionState.lr2LiftIndex
+    function setLiftIndex(index: var) : void {
+        optionState.setLiftIndex(index);
+        root.noteGameplayOptionChanged();
+    }
+    readonly property int lr2HiddenIndex: optionState.lr2HiddenIndex
+    function setHiddenIndex(index: var) : void {
+        optionState.setHiddenIndex(index);
         root.noteGameplayOptionChanged();
     }
     function toggleLaneCover(side: var) : void {
@@ -1008,8 +1022,8 @@ Item {
         optionState.adjustScratchDurationNumber(side, amount);
         root.noteGameplayOptionChanged();
     }
-    function adjustScratchCoverNumber(side: var, amount: var) : void {
-        optionState.adjustScratchCoverNumber(side, amount);
+    function adjustScratchCoverNumber(side: var, amount: var, changeLift: var) : void {
+        optionState.adjustScratchCoverNumber(side, amount, changeLift);
         root.noteGameplayOptionChanged();
     }
     function adjustLaneCoverRatio(side: var, steps: var) : void {
@@ -3610,7 +3624,7 @@ Item {
             vars ? vars.bgaSize || 0 : 0,
             vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0,
             vars && vars.scoreGraphEnabled === false ? 0 : 1,
-            vars && vars.bgaOn === false ? 0 : 1,
+            vars ? Math.max(0, Math.min(2, vars.bgaMode || 0)) : 1,
             root.gameplayAutoplayActive() ? 1 : 0,
             root.gaugeColorOption(1),
             root.gaugeColorOption(2),
@@ -4082,6 +4096,10 @@ Item {
         return selectPanelController.handleSelectPanelKey(key);
     }
 
+    function handleSelectPanelArrow(key: var) : var {
+        return selectPanelController.handleSelectPanelArrow(key);
+    }
+
     function handleSelectWheel(wheel: var) : var {
         return selectPanelController.handleSelectWheel(wheel);
     }
@@ -4460,12 +4478,20 @@ Item {
             event.accepted = true;
             return;
         }
+        if (root.handleSelectPanelArrow(Qt.Key_Left)) {
+            event.accepted = true;
+            return;
+        }
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
         root.selectGoBack();
     }
     Keys.onRightPressed: (event) => {
         if (root.handleLr2GameplayArrow(Qt.Key_Right)) {
+            event.accepted = true;
+            return;
+        }
+        if (root.handleSelectPanelArrow(Qt.Key_Right)) {
             event.accepted = true;
             return;
         }
@@ -4628,6 +4654,9 @@ Item {
         if (root.handleSelectPanelKey(key)) {
             return;
         }
+        if (root.selectInputReady() && root.selectPanel > 0) {
+            return;
+        }
         if (root.isLr2RankingKey(key) && root.openLr2Ranking()) {
             return;
         }
@@ -4637,7 +4666,9 @@ Item {
             root.selectGoForward(undefined, true);
             return;
         }
-        if (root.selectNavigationReady() && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
+        if (root.selectNavigationReady()
+                && root.selectPanel <= 0
+                && (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26)) {
             root.selectGoBack();
         }
     }

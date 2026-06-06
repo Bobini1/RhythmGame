@@ -198,12 +198,21 @@ class GeneralVars final : public QObject
                  NOTIFY hiddenRatioChanged RESET resetHiddenRatio)
     /**
      * @brief Whether BGA is enabled.
+     * @details Compatibility facade over bgaMode. Setting true selects normal
+     * BGA draw mode, setting false selects off.
      */
     Q_PROPERTY(bool bgaOn READ getBgaOn WRITE setBgaOn NOTIFY bgaOnChanged RESET
-                 resetBgaOn)
+                 resetBgaOn STORED false)
+    /**
+     * @brief LR2-style BGA draw mode.
+     * @details 0 is OFF, 1 is NORMAL, 2 is AUTOPLAY/REPLAY only.
+     * Default skin may use the simpler bgaOn facade.
+     */
+    Q_PROPERTY(int bgaMode READ getBgaMode WRITE setBgaMode NOTIFY
+                 bgaModeChanged RESET resetBgaMode)
     /**
      * @brief LR2-style BGA size option.
-     * @details 0 is NORMAL, 1 is EXTEND. Default skins may use their own
+     * @details 0 is NORMAL, 1 is EXTEND. RhythmGame skins may use their own
      * theme variables for BGA geometry and ignore this.
      */
     Q_PROPERTY(int bgaSize READ getBgaSize WRITE setBgaSize NOTIFY
@@ -418,7 +427,7 @@ class GeneralVars final : public QObject
     double liftRatio = 0.1;
     bool hiddenOn = false;
     double hiddenRatio = 0.1;
-    bool bgaOn = true;
+    int bgaMode = 1;
     int bgaSize = 0;
     bool scoreGraphEnabled = true;
     int ghostPosition = 0;
@@ -482,6 +491,9 @@ class GeneralVars final : public QObject
     auto getBgaOn() const -> bool;
     void setBgaOn(bool value);
     void resetBgaOn();
+    auto getBgaMode() const -> int;
+    void setBgaMode(int value);
+    void resetBgaMode();
     auto getBgaSize() const -> int;
     void setBgaSize(int value);
     void resetBgaSize();
@@ -570,6 +582,7 @@ class GeneralVars final : public QObject
     void hiddenOnChanged();
     void hiddenRatioChanged();
     void bgaOnChanged();
+    void bgaModeChanged();
     void bgaSizeChanged();
     void scoreGraphEnabledChanged();
     void ghostPositionChanged();

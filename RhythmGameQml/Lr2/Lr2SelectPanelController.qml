@@ -43,6 +43,8 @@ QtObject {
     property int gameplayOptionRepeatKey: -1
     property bool gameplayOptionRepeating: false
     property var gameplayLastStartPressMs: ({})
+    property var gameplayStartSelectHeld: ({ "1": false, "2": false })
+    property var gameplayCoverChangeLift: ({ "1": true, "2": true })
     property var gameplayScratchLastDirectionUp: ({ "1": false, "2": false })
     property var selectButtonSourcesByElement: ({})
     property var observedSelectButtonSourceCounts: ({})
@@ -169,11 +171,44 @@ QtObject {
         if (!root.gameplayScreenActive) {
             return;
         }
+        controller.updateGameplayCoverChangeTarget(1);
+        controller.updateGameplayCoverChangeTarget(2);
         root.refreshGameplayRuntimeActiveOptions();
         root.bumpGameplayRevision();
         if (controller.gameplayOptionRepeating
                 && !root.gameplayOptionModifierHeldForKey(controller.gameplayOptionRepeatKey)) {
             controller.stopLr2GameplayOptionRepeat();
+        }
+    }
+
+    function setGameplayStartSelectHeld(side: var, held: var) : void {
+        let key = String(side);
+        let next = {};
+        for (let name in controller.gameplayStartSelectHeld) {
+            next[name] = controller.gameplayStartSelectHeld[name];
+        }
+        next[key] = held;
+        controller.gameplayStartSelectHeld = next;
+    }
+
+    function toggleGameplayCoverChangeLift(side: var) : void {
+        let key = String(side);
+        let next = {};
+        for (let name in controller.gameplayCoverChangeLift) {
+            next[name] = controller.gameplayCoverChangeLift[name];
+        }
+        next[key] = !(controller.gameplayCoverChangeLift[key] !== false);
+        controller.gameplayCoverChangeLift = next;
+    }
+
+    function updateGameplayCoverChangeTarget(side: var) : void {
+        let key = String(side);
+        let held = controller.startHeldForSide(side) && controller.selectHeldForSide(side);
+        if (held && controller.gameplayStartSelectHeld[key] !== true) {
+            controller.toggleGameplayCoverChangeLift(side);
+        }
+        if (controller.gameplayStartSelectHeld[key] !== held) {
+            controller.setGameplayStartSelectHeld(side, held);
         }
     }
 
@@ -200,9 +235,9 @@ QtObject {
     ])
     readonly property var lr2SelectPanelKeyBindings: ({
         "1": controller.bindingLookup([
-            [BmsKey.Col11, 10, 1], [BmsKey.Col21, 10, 1],
-            [BmsKey.Col12, 42, 1], [BmsKey.Col22, 43, 1],
-            [BmsKey.Col13, 54, 1], [BmsKey.Col23, 54, 1],
+            [BmsKey.Col11, 11, 1], [BmsKey.Col21, 11, 1],
+            [BmsKey.Col12, 9042, 1], [BmsKey.Col22, 9043, 1],
+            [BmsKey.Col13, 9003, 1], [BmsKey.Col23, 9003, 1],
             [BmsKey.Col14, 40, 1], [BmsKey.Col24, 41, 1],
             [BmsKey.Col15, 57, -1], [BmsKey.Col25, 58, -1],
             [BmsKey.Col16, 44, 1], [BmsKey.Col26, 45, 1],
@@ -278,9 +313,9 @@ QtObject {
         "33": () => root.lr2PitchType,
         "40": () => root.lr2GaugeIndexP1,
         "41": () => root.lr2GaugeIndexP2,
-        "42": () => root.lr2RandomIndexP1,
-        "43": () => root.lr2RandomIndexP2,
-        "46": () => root.lr2LaneCoverIndex,
+        "42": src => root.lr2RandomButtonFrame(1, root.elementSourceFrameCount(src)),
+        "43": src => root.lr2RandomButtonFrame(2, root.elementSourceFrameCount(src)),
+        "46": () => controller.lr2ClassicHidSudControlPresent() ? -2 : root.lr2LaneCoverIndex,
         "50": () => root.lr2HidSudIndexP1,
         "51": () => root.lr2HidSudIndexP2,
         "54": () => root.lr2DpOptionIndex,
@@ -292,6 +327,9 @@ QtObject {
         "73": () => root.lr2BgaSizeIndex,
         "77": src => root.lr2TargetButtonFrame(root.elementSourceFrameCount(src)),
         "78": () => root.lr2GaugeAutoShiftIndex,
+        "330": () => root.lr2LaneCoverIndex,
+        "331": () => root.lr2LiftIndex,
+        "332": () => root.lr2HiddenIndex,
         "340": () => root.lr2JudgeAlgorithmIndex,
         "341": () => root.lr2BottomShiftableGaugeIndex,
         "308": () => root.lr2LnModeIndex
@@ -356,17 +394,20 @@ QtObject {
             root.setGaugeIndex(2, root.lr2GaugeIndexP2 + delta);
             return true;
         },
-        "42": delta => {
-            root.setRandomIndex(1, root.lr2RandomIndexP1 + delta);
+        "42": (delta, sourceCount) => {
+            root.adjustRandomButtonIndex(1, delta, sourceCount);
             return true;
         },
-        "43": delta => {
-            root.setRandomIndex(2, root.lr2RandomIndexP2 + delta);
+        "43": (delta, sourceCount) => {
+            root.adjustRandomButtonIndex(2, delta, sourceCount);
             return true;
         },
         "44": () => false,
         "45": () => false,
         "46": delta => {
+            if (controller.lr2ClassicHidSudControlPresent()) {
+                return false;
+            }
             root.setLaneCoverIndex(root.lr2LaneCoverIndex + delta);
             return true;
         },
@@ -460,6 +501,18 @@ QtObject {
         "316": (delta, sourceCount, mouseButton) => controller.playReplaySlot(1, mouseButton),
         "317": (delta, sourceCount, mouseButton) => controller.playReplaySlot(2, mouseButton),
         "318": (delta, sourceCount, mouseButton) => controller.playReplaySlot(3, mouseButton),
+        "330": delta => {
+            root.setLaneCoverIndex(root.lr2LaneCoverIndex + delta);
+            return true;
+        },
+        "331": delta => {
+            root.setLiftIndex(root.lr2LiftIndex + delta);
+            return true;
+        },
+        "332": delta => {
+            root.setHiddenIndex(root.lr2HiddenIndex + delta);
+            return true;
+        },
         "340": delta => root.setJudgeAlgorithmIndex(root.lr2JudgeAlgorithmIndex + delta),
         "342": () => false,
         "343": () => false,
@@ -470,8 +523,58 @@ QtObject {
         "353": () => false,
         "360": () => false,
         "361": () => false,
-        "400": () => false
+        "400": () => false,
+        "9003": delta => controller.setLr2BattleOrFlip(delta),
+        "9042": delta => controller.setLr2PanelRandomOption(1, delta),
+        "9043": delta => controller.setLr2PanelRandomOption(2, delta),
+        "9050": delta => controller.adjustLr2PanelHidSudOption(1, delta),
+        "9051": delta => controller.adjustLr2PanelHidSudOption(2, delta)
     })
+
+    function lr2SelectKeyFilterIsDouble() : var {
+        switch (selectContext.selectKeymodeFilter) {
+        case SelectKeymodeFilter.Double:
+        case SelectKeymodeFilter.K10:
+        case SelectKeymodeFilter.K14:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function lr2Player2PanelOptionsActive() : var {
+        return root.battleModeActive() || controller.lr2SelectKeyFilterIsDouble();
+    }
+
+    function setLr2PanelRandomOption(side: var, delta: var) : var {
+        let effectiveSide = side === 2 && controller.lr2Player2PanelOptionsActive() ? 2 : 1;
+        let buttonId = effectiveSide === 2 ? 43 : 42;
+        root.adjustRandomButtonIndex(
+            effectiveSide,
+            delta,
+            controller.observedSelectButtonSourceCount(buttonId));
+        return true;
+    }
+
+    function setLr2BattleOrFlip(delta: var) : var {
+        if (controller.lr2SelectKeyFilterIsDouble()) {
+            root.setFlipIndex(root.lr2FlipIndex + delta);
+        } else {
+            root.setBattleIndex(root.lr2BattleIndex + delta);
+        }
+        return true;
+    }
+
+    function adjustLr2PanelHidSudOption(side: var, delta: var) : var {
+        if (side === 2 && root.battleModeActive()) {
+            root.setHidSudIndex(2, root.lr2HidSudIndexP2 + delta);
+            return true;
+        }
+        let next = root.lr2HidSudIndexP1 + delta;
+        root.setHidSudIndex(1, next);
+        root.setHidSudIndex(2, next);
+        return true;
+    }
 
     function lookup(values: var) : var {
         let result = {};
@@ -545,6 +648,11 @@ QtObject {
 
     function observedSelectButtonSourceCount(buttonId: var) : var {
         return Math.floor(controller.observedSelectButtonSourceCounts[String(buttonId)] || 0);
+    }
+
+    function lr2ClassicHidSudControlPresent() : var {
+        return controller.observedSelectButtonSourceCount(50) > 0
+            || controller.observedSelectButtonSourceCount(51) > 0;
     }
 
     function buttonUsesSplitArrows(buttonId: var) : var {
@@ -995,11 +1103,11 @@ QtObject {
 
         if ((key === BmsKey.Col16 && Input.col17)
                 || (key === BmsKey.Col17 && Input.col16)) {
-            return root.triggerSelectPanelButton(50, -1);
+            return root.triggerSelectPanelButton(9050, -1);
         }
         if ((key === BmsKey.Col26 && Input.col27)
                 || (key === BmsKey.Col27 && Input.col26)) {
-            return root.triggerSelectPanelButton(root.battleModeActive() ? 51 : 50, 1);
+            return root.triggerSelectPanelButton(9051, 1);
         }
 
         if (key === BmsKey.Col15 && Input.col17) {
@@ -1310,7 +1418,10 @@ QtObject {
         if (startHeld) {
             root.adjustScratchDurationNumber(controlSide, amount);
         } else {
-            root.adjustScratchCoverNumber(controlSide, amount);
+            root.adjustScratchCoverNumber(
+                controlSide,
+                amount,
+                controller.gameplayCoverChangeLift[String(controlSide)] !== false);
         }
         return true;
     }
@@ -1355,6 +1466,21 @@ QtObject {
             return true;
         }
         return root.triggerSelectPanelButton(binding.buttonId, binding.delta);
+    }
+
+    function handleSelectPanelArrow(key: var) : var {
+        if (!root.selectInputReady() || root.selectPanel <= 0) {
+            return false;
+        }
+        if (!root.lr2SkinUsesBeatorajaSemantics && root.selectPanel === 1) {
+            if (key === Qt.Key_Right) {
+                return root.triggerSelectPanelButton(77, 1);
+            }
+            if (key === Qt.Key_Left) {
+                return root.triggerSelectPanelButton(77, -1);
+            }
+        }
+        return true;
     }
 
     property real selectWheelRemainder: 0

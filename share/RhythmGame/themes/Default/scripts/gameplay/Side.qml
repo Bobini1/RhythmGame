@@ -20,6 +20,8 @@ Item {
 
     property bool start: Input[`start${index+1}`] || (dpSuffix && (Input.start1 || Input.start2))
     property bool select: Input[`select${index+1}`] || (dpSuffix && (Input.select1 || Input.select2))
+    property bool coverChangeLift: true
+    property bool startSelectHeld: false
     property var pointTarget
     property real bestFinalPoints: 0
     property real bestMaxPoints: 0
@@ -27,6 +29,25 @@ Item {
     property real targetFinalPoints: 0
 
     property bool lastDirectionUp: false
+    function updateCoverChangeTarget() {
+        let held = side.start && side.select;
+        if (held && !side.startSelectHeld) {
+            side.coverChangeLift = !side.coverChangeLift;
+        }
+        side.startSelectHeld = held;
+    }
+    onStartChanged: updateCoverChangeTarget()
+    onSelectChanged: updateCoverChangeTarget()
+    function modifyCoverValue(value) {
+        let vars = side.profile.vars.generalVars;
+        if (vars.laneCoverOn || (!vars.liftOn && !vars.hiddenOn)) {
+            vars.laneCoverRatio = Math.max(0, Math.min(1, vars.laneCoverRatio + value));
+        } else if (vars.liftOn && (!vars.hiddenOn || side.coverChangeLift)) {
+            vars.liftRatio = Math.max(0, Math.min(1, vars.liftRatio + value));
+        } else {
+            vars.hiddenRatio = Math.max(0, Math.min(1, vars.hiddenRatio + value));
+        }
+    }
     function modifyGnWn(number, amount) {
         if (amount > 0 && lastDirectionUp || amount < 0 && !lastDirectionUp) {
             return;
@@ -36,14 +57,12 @@ Item {
             mult = 10 * amount;
         }
         let vars = side.profile.vars.generalVars;
-        if (side.start) {
+        if (side.start && side.select) {
+            return;
+        } else if (side.start) {
             vars.noteScreenTimeMillis += vars.noteScreenTimeMillis / 1000 * mult;
         } else if (side.select) {
-            if (vars.laneCoverOn) {
-                vars.laneCoverRatio += 0.0005 * mult;
-            } else if (vars.liftOn) {
-                vars.liftRatio += 0.0005 * mult;
-            }
+            side.modifyCoverValue(0.0005 * mult);
         }
     }
     Input.onCol1sUpTicked: (number, type) => {

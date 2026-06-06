@@ -60,6 +60,32 @@ QtObject {
         root.appendUniqueRuntimeOption(options, option);
     }
 
+    function bgaDrawMode() : var {
+        let vars = root.hostMainGeneralVars;
+        return vars ? Math.max(0, Math.min(2, vars.bgaMode || 0)) : 1;
+    }
+
+    function bgaDrawsInCurrentContext(mode: var) : var {
+        if (mode === 1) {
+            return true;
+        }
+        if (mode !== 2) {
+            return false;
+        }
+        return host.effectiveScreenKey === "decide"
+            || (root.hostGameplayScreen
+                && (host.gameplayAutoplayActive() || host.gameplayReplayActive()));
+    }
+
+    function appendBgaRuntimeOptions(options: var) : void {
+        let mode = root.bgaDrawMode();
+        if (mode === 0) {
+            root.addRuntimeOption(options, 40);
+        } else if (root.bgaDrawsInCurrentContext(mode)) {
+            root.addRuntimeOption(options, 41);
+        }
+    }
+
     function addSelectChartDetailRuntimeOption(options: var, option: var) : void {
         if (option === undefined || option === null || option <= 0) {
             return;
@@ -263,7 +289,7 @@ QtObject {
         let ghostPosition = vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
         root.addRuntimeOption(options, 34 + ghostPosition);
         root.addRuntimeOption(options, vars && vars.scoreGraphEnabled === false ? 38 : 39);
-        root.addRuntimeOption(options, vars && vars.bgaOn === false ? 40 : 41);
+        root.appendBgaRuntimeOptions(options);
         if (root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 42, 45)) {
             root.addRuntimeOption(options, host.gaugeColorOption(1));
             root.addRuntimeOption(options, host.gaugeColorOption(2));

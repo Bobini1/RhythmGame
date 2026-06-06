@@ -174,22 +174,45 @@ resource_managers::GeneralVars::resetHiddenRatio()
 auto
 resource_managers::GeneralVars::getBgaOn() const -> bool
 {
-    return bgaOn;
+    return bgaMode != 0;
 }
 void
 resource_managers::GeneralVars::setBgaOn(bool value)
 {
-    if (bgaOn == value) {
-        return;
-    }
-    bgaOn = value;
-    emit bgaOnChanged();
+    setBgaMode(value ? 1 : 0);
 }
 
 void
 resource_managers::GeneralVars::resetBgaOn()
 {
     setBgaOn(true);
+}
+
+auto
+resource_managers::GeneralVars::getBgaMode() const -> int
+{
+    return bgaMode;
+}
+
+void
+resource_managers::GeneralVars::setBgaMode(int value)
+{
+    value = std::clamp(value, 0, 2);
+    const auto oldBgaOn = getBgaOn();
+    if (bgaMode == value) {
+        return;
+    }
+    bgaMode = value;
+    emit bgaModeChanged();
+    if (oldBgaOn != getBgaOn()) {
+        emit bgaOnChanged();
+    }
+}
+
+void
+resource_managers::GeneralVars::resetBgaMode()
+{
+    setBgaMode(1);
 }
 
 auto
