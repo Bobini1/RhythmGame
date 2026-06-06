@@ -25,6 +25,57 @@ bool sourceHasBarDistributionGraphAnimation(const rt::Source& source) {
         && std::max(1, frameCount / segmentCount) > 1;
 }
 
+QVector<int> activeOptionIdsForDst(const rt::Dst& dst) {
+    QVector<int> result;
+    const int ops[3] = { dst.op1, dst.op2, dst.op3 };
+    for (int op : ops) {
+        const int id = std::abs(op);
+        if (id == 0 || result.contains(id)) {
+            continue;
+        }
+        result.append(id);
+    }
+    return result;
+}
+
+QVariantList activeOptionsForDst(const rt::Dst& dst, const QSet<int>& activeOptions) {
+    int ids[3] = { 0, 0, 0 };
+    int count = 0;
+    const int ops[3] = { dst.op1, dst.op2, dst.op3 };
+    for (int op : ops) {
+        if (op == 0) {
+            continue;
+        }
+        const int id = std::abs(op);
+        const bool present = activeOptions.contains(id);
+        if ((op > 0 && !present) || (op < 0 && present)) {
+            return {};
+        }
+        if (op < 0) {
+            continue;
+        }
+        bool duplicate = false;
+        for (int i = 0; i < count; ++i) {
+            duplicate = duplicate || ids[i] == id;
+        }
+        if (!duplicate && count < 3) {
+            ids[count++] = id;
+        }
+    }
+
+    if (count == 0) {
+        return {};
+    }
+
+    std::sort(ids, ids + count);
+    QVariantList result;
+    result.reserve(count);
+    for (int i = 0; i < count; ++i) {
+        result.append(ids[i]);
+    }
+    return result;
+}
+
 bool selectNumberUsesFocusedState(int num) {
     return num == 42 || num == 96
         || (num >= 45 && num <= 49)
@@ -68,9 +119,19 @@ void Lr2SkinRuntime::setRuntimeActiveOptions(const QVariant& value) {
     if (m_runtimeActiveOptions == value) {
         return;
     }
+    const QSet<int> previousActiveOptionSet = m_activeOptionSet;
+    const QSet<int> nextActiveOptionSet = rt::activeOptionSet(value);
+    QSet<int> changedOptionIds = previousActiveOptionSet;
+    changedOptionIds.unite(nextActiveOptionSet);
+    QSet<int> unchangedOptionIds = previousActiveOptionSet;
+    unchangedOptionIds.intersect(nextActiveOptionSet);
+    changedOptionIds.subtract(unchangedOptionIds);
+
     m_runtimeActiveOptions = value;
-    m_activeOptionSet = rt::activeOptionSet(value);
-    refreshActiveOptions();
+    m_activeOptionSet = nextActiveOptionSet;
+    if (!changedOptionIds.isEmpty()) {
+        refreshActiveOptions(changedOptionIds);
+    }
     emit runtimeActiveOptionsChanged();
 }
 
@@ -274,6 +335,8 @@ bool Lr2SkinRuntime::noteFieldUsesActiveOptions() const {
 void Lr2SkinRuntime::rebuildDescriptors() {
     const bool previousNoteFieldUsesActiveOptions = m_noteFieldUsesActiveOptions;
     m_descriptors.clear();
+    m_activeOptionDescriptorIndexes.clear();
+    m_activeOptionDescriptorIndexesByOption.clear();
     m_timerDescriptorIndexes.clear();
     m_selectInfoTimerDescriptorIndexes.clear();
     m_timerDescriptorIndexesByTimer.clear();
@@ -324,6 +387,12 @@ void Lr2SkinRuntime::rebuildDescriptors() {
         const bool usesGeneralTimer = (descriptor.usesDynamicDstTimer && descriptor.dstTimer != 11)
             || (descriptor.usesDynamicSrcTimer && descriptor.srcTimer != 11);
         const bool usesSelectInfoTimer = descriptor.dstTimer == 11 || descriptor.srcTimer == 11;
+        if (descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty()) {
+            m_activeOptionDescriptorIndexes.append(row);
+            for (int optionId : activeOptionIdsForDst(descriptor.dsts.front())) {
+                m_activeOptionDescriptorIndexesByOption[optionId].append(row);
+            }
+        }
         if (usesGeneralTimer) {
             m_timerDescriptorIndexes.append(row);
             if (descriptor.usesDynamicDstTimer && descriptor.dstTimer != 11) {
@@ -540,7 +609,7 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.elementActive = !usesElementActiveOptions
         || rt::allOpsMatch(descriptor.dsts.front(), m_activeOptionSet);
     descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
-        ? rt::activeOptionsForDsts(descriptor.dsts.front(), m_runtimeActiveOptions)
+        ? activeOptionsForDst(descriptor.dsts.front(), m_activeOptionSet)
         : QVariantList {};
     descriptor.staticState = descriptor.dstAnalysis.canUseStaticState && !descriptor.dsts.isEmpty()
         ? rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front())
@@ -828,15 +897,36 @@ void Lr2SkinRuntime::reconnectTimerState() {
         &Lr2SkinRuntime::updateSelectInfoTimerFires));
 }
 
-void Lr2SkinRuntime::refreshActiveOptions() {
+void Lr2SkinRuntime::refreshActiveOptions(const QSet<int>& changedOptionIds) {
     bool anyChanged = false;
-    for (ElementDescriptor& descriptor : m_descriptors) {
+    QVector<int> indexes;
+    if (changedOptionIds.isEmpty()) {
+        indexes = m_activeOptionDescriptorIndexes;
+    } else {
+        QSet<int> seenIndexes;
+        for (int optionId : changedOptionIds) {
+            const QVector<int> optionIndexes = m_activeOptionDescriptorIndexesByOption.value(optionId);
+            for (int index : optionIndexes) {
+                if (seenIndexes.contains(index)) {
+                    continue;
+                }
+                seenIndexes.insert(index);
+                indexes.append(index);
+            }
+        }
+    }
+
+    for (int index : std::as_const(indexes)) {
+        if (index < 0 || index >= m_descriptors.size()) {
+            continue;
+        }
+        ElementDescriptor& descriptor = m_descriptors[index];
         const bool usesElementActiveOptions =
             descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty();
         descriptor.elementActive = !usesElementActiveOptions
             || rt::allOpsMatch(descriptor.dsts.front(), m_activeOptionSet);
         descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
-            ? rt::activeOptionsForDsts(descriptor.dsts.front(), m_runtimeActiveOptions)
+            ? activeOptionsForDst(descriptor.dsts.front(), m_activeOptionSet)
             : QVariantList {};
         anyChanged = updateElementActiveOptionsState(descriptor.index,
                                                     descriptor.elementActiveOptions,

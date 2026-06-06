@@ -161,6 +161,10 @@ QtObject {
     function refreshHostRankingStatusOptions() : void {
         if (root.host
                 && root.host.effectiveScreenKey === "select"
+                && root.host.queueSelectRuntimeActiveOptionsRefresh) {
+            root.host.queueSelectRuntimeActiveOptionsRefresh();
+        } else if (root.host
+                && root.host.effectiveScreenKey === "select"
                 && root.host.refreshSelectRuntimeActiveOptions) {
             root.host.refreshSelectRuntimeActiveOptions();
         }

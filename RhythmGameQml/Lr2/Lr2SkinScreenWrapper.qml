@@ -3371,6 +3371,7 @@ Item {
     property var gameplayRuntimeActiveOptionsStateParts: []
     property var builtGameplayRuntimeActiveOptions: root.emptyActiveOptions
     property alias runtimeActiveOptions: selectUpdateController.runtimeActiveOptions
+    property bool selectRuntimeActiveOptionsRefreshQueued: false
     readonly property var barTimers: ({ "0": 0 })
 
     function sameArrayValues(a: var, b: var) : var {
@@ -3541,11 +3542,27 @@ Item {
     }
 
     function refreshSelectRuntimeActiveOptions() : var {
+        root.selectRuntimeActiveOptionsRefreshQueued = false;
         root.updateBuiltSelectRuntimeActiveOptions();
         root.updateBuiltSelectDetailRuntimeActiveOptions();
         selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
         selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
         return selectUpdateController.refreshSelectRuntimeActiveOptions();
+    }
+
+    function flushQueuedSelectRuntimeActiveOptionsRefresh() : void {
+        if (!root.selectRuntimeActiveOptionsRefreshQueued) {
+            return;
+        }
+        root.refreshSelectRuntimeActiveOptions();
+    }
+
+    function queueSelectRuntimeActiveOptionsRefresh() : void {
+        if (root.selectRuntimeActiveOptionsRefreshQueued) {
+            return;
+        }
+        root.selectRuntimeActiveOptionsRefreshQueued = true;
+        Qt.callLater(root.flushQueuedSelectRuntimeActiveOptionsRefresh);
     }
 
     function appendGameplayRuntimeOptionSideState(parts: var, side: var) : void {
@@ -3747,22 +3764,22 @@ Item {
         target: selectContext
         ignoreUnknownSignals: true
         function onFocusedItemChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
         }
         function onFocusedChartDataChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
         }
         function onSelectedStateItemChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
         }
         function onSelectedStateChartDataChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
         }
         function onSelectedStateCurrentChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
         }
         function onSelectedDetailValueRevisionChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
         }
     }
     Connections {

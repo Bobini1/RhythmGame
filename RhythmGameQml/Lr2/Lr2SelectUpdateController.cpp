@@ -239,7 +239,6 @@ void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QVa
     }
     m_selectRuntimeGeneratedActiveOptions = options;
     emit selectRuntimeGeneratedActiveOptionsChanged();
-    refreshSelectRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::selectDetailRuntimeActiveOptions() const {
@@ -252,7 +251,6 @@ void Lr2SelectUpdateController::setSelectDetailRuntimeActiveOptions(const QVaria
     }
     m_selectDetailRuntimeActiveOptions = options;
     emit selectDetailRuntimeActiveOptionsChanged();
-    refreshSelectRuntimeActiveOptions();
 }
 
 QVariant Lr2SelectUpdateController::screenRuntimeActiveOptions() const {

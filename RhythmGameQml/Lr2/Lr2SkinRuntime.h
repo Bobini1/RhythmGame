@@ -151,7 +151,7 @@ private:
     void resetElementActiveOptionsStates();
     void reconnectSkinModel();
     void reconnectTimerState();
-    void refreshActiveOptions();
+    void refreshActiveOptions(const QSet<int>& changedOptionIds = {});
     void notifyElementDataChanged();
 
     QPointer<QAbstractItemModel> m_skinModel;
@@ -164,6 +164,8 @@ private:
     QVector<ElementDescriptor> m_descriptors;
     QVector<Lr2SkinElementTimerState*> m_elementTimerStates;
     QVector<Lr2SkinElementActiveOptionsState*> m_elementActiveOptionsStates;
+    QVector<int> m_activeOptionDescriptorIndexes;
+    QHash<int, QVector<int>> m_activeOptionDescriptorIndexesByOption;
     QVector<int> m_timerDescriptorIndexes;
     QVector<int> m_selectInfoTimerDescriptorIndexes;
     QHash<int, QVector<int>> m_timerDescriptorIndexesByTimer;
