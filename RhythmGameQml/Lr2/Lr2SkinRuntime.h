@@ -27,6 +27,7 @@ class Lr2SkinRuntime : public QObject {
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
     Q_PROPERTY(qreal selectBarElementSortBase READ selectBarElementSortBase WRITE setSelectBarElementSortBase NOTIFY selectBarElementSortBaseChanged)
     Q_PROPERTY(QVariantList elementDescriptors READ elementDescriptors NOTIFY elementDescriptorsChanged)
+    Q_PROPERTY(int descriptorRevision READ descriptorRevision NOTIFY elementDescriptorsChanged)
     Q_PROPERTY(QVariantList elementTimerStates READ elementTimerStates NOTIFY elementTimerStatesChanged)
     Q_PROPERTY(QVariantList noteDstTimerFires READ noteDstTimerFires NOTIFY noteDstTimerFiresChanged)
     Q_PROPERTY(QVariantList lineDstTimerFires READ lineDstTimerFires NOTIFY lineDstTimerFiresChanged)
@@ -54,6 +55,7 @@ public:
     void setSelectBarElementSortBase(qreal value);
 
     QVariantList elementDescriptors() const;
+    int descriptorRevision() const;
     QVariantList elementTimerStates() const;
     QVariantList noteDstTimerFires() const;
     QVariantList lineDstTimerFires() const;
@@ -162,6 +164,7 @@ private:
     bool m_gameplayScreen = false;
     qreal m_selectBarElementSortBase = 0.0;
     QVector<ElementDescriptor> m_descriptors;
+    int m_descriptorRevision = 0;
     QVector<Lr2SkinElementTimerState*> m_elementTimerStates;
     QVector<Lr2SkinElementActiveOptionsState*> m_elementActiveOptionsStates;
     QVector<int> m_activeOptionDescriptorIndexes;

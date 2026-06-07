@@ -2,6 +2,8 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2TimelineState.h
         Lr2/Lr2TimelineStateValue.h
         Lr2/Lr2TimelineState.cpp
+        Lr2/Lr2TimelineFrameState.h
+        Lr2/Lr2TimelineFrameState.cpp
         Lr2/Lr2AnimationFrameState.h
         Lr2/Lr2AnimationFrameState.cpp
         Lr2/Lr2GameplayFrameState.h

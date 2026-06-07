@@ -16,7 +16,7 @@ Item {
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
     readonly property var skinRuntime: screenRoot ? screenRoot.skinRuntimeRef : null
     readonly property var skinTimerLookup: skinTiming || (screenRoot ? screenRoot.skinTimingRef : null)
-    readonly property var runtimeElementDescriptors: skinRuntime ? skinRuntime.elementDescriptors : []
+    readonly property int runtimeDescriptorRevision: skinRuntime ? skinRuntime.descriptorRevision : 0
     readonly property var runtimeNoteDstTimerFires: skinRuntime ? skinRuntime.noteDstTimerFires : []
     readonly property var runtimeLineDstTimerFires: skinRuntime ? skinRuntime.lineDstTimerFires : []
     readonly property bool playfieldActive: root.enabled
@@ -119,7 +119,7 @@ Item {
 
     function noteDstState(index: var) : var {
         if (skinRuntime) {
-            runtimeElementDescriptors;
+            runtimeDescriptorRevision;
             runtimeActiveOptions;
             let state = null;
             if (skinRuntime.noteDstStateUsesSkinTime(index)) {
@@ -137,7 +137,7 @@ Item {
 
     function lineDstState(index: var) : var {
         if (skinRuntime) {
-            runtimeElementDescriptors;
+            runtimeDescriptorRevision;
             runtimeActiveOptions;
             let state = null;
             if (skinRuntime.lineDstStateUsesSkinTime(index)) {

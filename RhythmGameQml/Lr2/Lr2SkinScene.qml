@@ -25,7 +25,7 @@ Item {
     readonly property var selectHoverState: rootReady ? root.selectHoverStateRef : null
     readonly property var selectSearchState: rootReady ? root.selectSearchStateRef : null
     readonly property var runtimeElementDescriptors: skinRuntime ? skinRuntime.elementDescriptors : []
-    readonly property var runtimeElementTimerStates: skinRuntime ? skinRuntime.elementTimerStates : []
+    readonly property int runtimeDescriptorRevision: skinRuntime ? skinRuntime.descriptorRevision : 0
     readonly property bool screenUpdatesActive: rootReady && root.screenUpdatesActive
     readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
     readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
@@ -77,9 +77,9 @@ Item {
                 model: sceneRoot.skinModel
 
                 delegate: Lr2SkinElementDelegate {
-                    readonly property var sceneElementState: index >= 0
-                        && index < sceneRoot.runtimeElementDescriptors.length
-                        ? sceneRoot.runtimeElementDescriptors[index]
+                    readonly property int sceneDescriptorRevision: sceneRoot.runtimeDescriptorRevision
+                    readonly property var sceneElementState: sceneRoot.skinRuntime && sceneDescriptorRevision >= 0
+                        ? sceneRoot.skinRuntime.descriptor(index)
                         : ({})
                     readonly property bool usesChartAssetSource: sceneElementState.sourceTreeUsesChartAsset
                     screenRoot: sceneRoot.root
@@ -94,8 +94,7 @@ Item {
                     selectPanelController: sceneRoot.selectPanelController
                     selectHoverState: sceneRoot.selectHoverState
                     selectSearchState: sceneRoot.selectSearchState
-                    runtimeElementDescriptors: sceneRoot.runtimeElementDescriptors
-                    runtimeElementTimerStates: sceneRoot.runtimeElementTimerStates
+                    runtimeDescriptorRevision: sceneRoot.runtimeDescriptorRevision
                     gameplayFrameState: sceneRoot.gameplayFrameState
                     screenUpdatesActive: sceneRoot.screenUpdatesActive
                     stageFileSource: usesChartAssetSource && sceneRoot.rootReady ? sceneRoot.root.chartAssetStageFileSource : ""

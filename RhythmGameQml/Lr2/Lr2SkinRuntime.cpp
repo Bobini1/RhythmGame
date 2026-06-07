@@ -201,6 +201,10 @@ QVariantList Lr2SkinRuntime::elementDescriptors() const {
     return result;
 }
 
+int Lr2SkinRuntime::descriptorRevision() const {
+    return m_descriptorRevision;
+}
+
 QVariantList Lr2SkinRuntime::elementTimerStates() const {
     QVariantList result;
     result.reserve(m_elementTimerStates.size());
@@ -939,6 +943,7 @@ void Lr2SkinRuntime::refreshActiveOptions(const QSet<int>& changedOptionIds) {
 }
 
 void Lr2SkinRuntime::notifyElementDataChanged() {
+    ++m_descriptorRevision;
     emit elementDescriptorsChanged();
     emit elementTimerStatesChanged();
 }

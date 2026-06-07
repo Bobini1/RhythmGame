@@ -21,8 +21,7 @@ Loader {
     required property var selectPanelController
     required property var selectHoverState
     required property var selectSearchState
-    required property var runtimeElementDescriptors
-    required property var runtimeElementTimerStates
+    required property int runtimeDescriptorRevision
     required property var gameplayFrameState
     required property bool screenUpdatesActive
     required property string stageFileSource
@@ -41,9 +40,9 @@ Loader {
     readonly property var elementData: ({ type: type, src: src, dsts: dsts || [] })
     property bool componentCompleted: false
 
-    readonly property var elementState: elementIndex >= 0
-        && elementIndex < elemLoader.runtimeElementDescriptors.length
-        ? elemLoader.runtimeElementDescriptors[elementIndex]
+    readonly property int elementDescriptorRevision: elemLoader.runtimeDescriptorRevision
+    readonly property var elementState: elemLoader.skinRuntime && elementDescriptorRevision >= 0
+        ? elemLoader.skinRuntime.descriptor(elementIndex)
         : ({})
     readonly property bool sourceTreeHasFrameAnimation: elementState.sourceTreeHasFrameAnimation
     readonly property bool sourceTreeUsesChartAsset: elementState.sourceTreeUsesChartAsset
@@ -79,9 +78,8 @@ Loader {
     readonly property var elementActiveOptionsState: elemLoader.skinRuntime
         ? elemLoader.skinRuntime.elementActiveOptionsState(elementIndex)
         : null
-    readonly property var elementTimerState: elementIndex >= 0
-        && elementIndex < elemLoader.runtimeElementTimerStates.length
-        ? elemLoader.runtimeElementTimerStates[elementIndex]
+    readonly property var elementTimerState: elemLoader.skinRuntime
+        ? elemLoader.skinRuntime.elementTimerState(elementIndex)
         : null
     readonly property int dstTimerFire: {
         if (!elemLoader.usesDynamicDstTimer) {
