@@ -3372,6 +3372,8 @@ Item {
     property var builtGameplayRuntimeActiveOptions: root.emptyActiveOptions
     property alias runtimeActiveOptions: selectUpdateController.runtimeActiveOptions
     property bool selectRuntimeActiveOptionsRefreshQueued: false
+    property bool selectRuntimeActiveOptionsStateReady: false
+    property var selectRuntimeActiveOptionsStateParts: []
     readonly property var barTimers: ({ "0": 0 })
 
     function sameArrayValues(a: var, b: var) : var {
@@ -3541,12 +3543,60 @@ Item {
         }
     }
 
+    function selectRuntimeOptionStateParts() : var {
+        if (root.effectiveScreenKey !== "select") {
+            return [root.effectiveScreenKey];
+        }
+
+        let state = selectContext.selectedState;
+        let stateCurrent = state && selectContext.selectedStateCurrent;
+        return [
+            root.effectiveScreenKey,
+            root.usedOptionFilterActive ? 1 : 0,
+            root.usedOptionLookup,
+            root.lr2SkinUsesBeatorajaSemantics ? 1 : 0,
+            root.selectReplayOptionsUsed ? 1 : 0,
+            root.selectScoreOptionIdsUsed ? 1 : 0,
+            root.selectEntryStatusOptionsUsed ? 1 : 0,
+            root.selectDifficultyBarOptionsUsed ? 1 : 0,
+            root.selectDifficultyLampOptionsUsed ? 1 : 0,
+            root.selectDifficultyStateUsed ? 1 : 0,
+            root.selectCourseDetailOptionsUsed ? 1 : 0,
+            root.selectRankingStatusOptionsUsed ? 1 : 0,
+            root.battleModeActive() ? 1 : 0,
+            root.spToDpActive() ? 1 : 0,
+            root.tableInfoRevision,
+            selectContext.scoreGeneration,
+            selectContext.listGeneration,
+            selectContext.selectedDetailValueRevision,
+            selectContext.focusedSelectionKey,
+            selectContext.focusedSelectionTargetKey,
+            selectContext.focusedItem,
+            selectContext.focusedChartData,
+            selectContext.focusedSelectionTarget,
+            stateCurrent ? 1 : 0,
+            state ? state.item : null,
+            state ? state.chartData : null,
+            state ? state.scoreOptionIds : null,
+            selectContext.rankingMode ? 1 : 0,
+            selectContext.rankingBaseItem,
+            lr2Ranking.currentStatusOption,
+            lr2Ranking.currentPlayerCount
+        ];
+    }
+
     function refreshSelectRuntimeActiveOptions() : var {
         root.selectRuntimeActiveOptionsRefreshQueued = false;
-        root.updateBuiltSelectRuntimeActiveOptions();
-        root.updateBuiltSelectDetailRuntimeActiveOptions();
-        selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
-        selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
+        let nextState = root.selectRuntimeOptionStateParts();
+        if (!root.selectRuntimeActiveOptionsStateReady
+                || !root.sameArrayValues(nextState, root.selectRuntimeActiveOptionsStateParts)) {
+            root.selectRuntimeActiveOptionsStateReady = true;
+            root.selectRuntimeActiveOptionsStateParts = nextState;
+            root.updateBuiltSelectRuntimeActiveOptions();
+            root.updateBuiltSelectDetailRuntimeActiveOptions();
+            selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
+            selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
+        }
         return selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
 
