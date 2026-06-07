@@ -146,9 +146,9 @@ Item {
     })
     property alias navigationController: nativeNavigation
     property var visualChartWrapper: null
-    readonly property var selectedState: selectedDetailState
-    readonly property var selectedStateItem: selectedDetailState.item
-    readonly property var selectedStateChartData: selectedDetailState.chartData
+    property alias selectedState: selectedDetailState
+    property alias selectedStateItem: selectedDetailState.item
+    property alias selectedStateChartData: selectedDetailState.chartData
     readonly property bool selectedStateScoreCurrent: selectedDetailState.scoreGeneration === scoreGeneration
     readonly property bool selectedStateListCurrent: selectedDetailState.listGeneration === listGeneration
     readonly property bool selectedStateCurrent: selectedStateScoreCurrent && selectedStateListCurrent
@@ -2647,10 +2647,16 @@ Item {
         }
         let id = entryIdentifier(item);
         if (id) {
-            return selectedDetailState.cachedScoreSummaryForIdentifier(
-                        String(id),
+            let idString = String(id);
+            let summaryCached = selectedDetailState.hasCachedScoreSummaryForIdentifier(
+                        idString,
                         scoreGeneration,
-                        entryScores(item),
+                        root.useBeatorajaSelectOptions,
+                        root.scoreOptionIdsUsed);
+            return selectedDetailState.cachedScoreSummaryForIdentifier(
+                        idString,
+                        scoreGeneration,
+                        summaryCached ? emptyScoreList : entryScores(item),
                         root.useBeatorajaSelectOptions,
                         root.scoreOptionIdsUsed);
         }
@@ -3215,7 +3221,16 @@ Item {
         }
         let difficultyState = root.difficultyStateUsed ? difficultyStateForChart(nextChartData) : null;
         let targetId = entryIdentifier(targetItem);
-        let targetScores = targetId ? entryScoresForIdentifier(targetId) : emptyScoreList;
+        let targetIdString = targetId ? String(targetId) : "";
+        let targetSummaryCached = targetIdString.length > 0
+            && selectedDetailState.hasCachedScoreSummaryForIdentifier(
+                targetIdString,
+                scoreGeneration,
+                root.useBeatorajaSelectOptions,
+                root.scoreOptionIdsUsed);
+        let targetScores = targetIdString.length > 0 && !targetSummaryCached
+            ? entryScoresForIdentifier(targetId)
+            : emptyScoreList;
         let changed = selectedDetailState.refreshSelectedFromQmlIdentityForIdentifier(
                 itemKey,
                 targetItemKey,
@@ -3225,7 +3240,7 @@ Item {
                 item,
                 nextChartData,
                 targetScores,
-                targetId ? String(targetId) : "",
+                targetIdString,
                 difficultyState ? (difficultyState.selectedDifficulty || 0) : 0,
                 difficultyState ? (difficultyState.counts || emptyDifficultyNumbers) : emptyDifficultyNumbers,
                 difficultyState ? (difficultyState.levels || emptyDifficultyNumbers) : emptyDifficultyNumbers,

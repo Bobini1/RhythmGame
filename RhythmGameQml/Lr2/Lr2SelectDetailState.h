@@ -370,6 +370,10 @@ public:
 														 QJSValue scoreList,
 														 bool useBeatorajaSemantics,
 														 bool buildScoreOptionIds);
+	Q_INVOKABLE bool hasCachedScoreSummaryForIdentifier(const QString& identifier,
+														int scoreGeneration,
+														bool useBeatorajaSemantics,
+														bool buildScoreOptionIds);
 	Q_INVOKABLE void clearScoreSummaryCache();
 	Q_INVOKABLE void clear();
 

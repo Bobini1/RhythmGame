@@ -1192,6 +1192,17 @@ QObject* Lr2SelectDetailState::cachedScoreSummaryForIdentifier(const QString& id
 	return it->object;
 }
 
+bool Lr2SelectDetailState::hasCachedScoreSummaryForIdentifier(const QString& identifier,
+															  int scoreGeneration,
+															  bool useBeatorajaSemantics,
+															  bool buildScoreOptionIds) {
+	ensureScoreSummaryCacheSemantics(useBeatorajaSemantics, buildScoreOptionIds);
+	const Lr2SelectScoreSummaryCacheKey cacheKey = scoreSummaryCacheKeyForIdentifier(identifier,
+																					scoreGeneration);
+	return isValidScoreSummaryCacheKey(cacheKey)
+		&& m_scoreSummaryCache.constFind(cacheKey) != m_scoreSummaryCache.constEnd();
+}
+
 void Lr2SelectDetailState::clearScoreSummaryCache() {
 	for (const CachedScoreSummary& entry : std::as_const(m_scoreSummaryCache)) {
 		delete entry.object;

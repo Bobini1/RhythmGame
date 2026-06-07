@@ -4167,9 +4167,6 @@ Item {
         screenKey: root.effectiveScreenKey
         gameplayScreen: root.gameplayScreenActive
         selectBarElementSortBase: root.selectBarElementSortBase
-        runtimeActiveOptions: root.runtimeActiveOptions && root.runtimeActiveOptions.length > 0
-            ? root.runtimeActiveOptions
-            : root.parseActiveOptions
     }
 
     Lr2WallClockState {
