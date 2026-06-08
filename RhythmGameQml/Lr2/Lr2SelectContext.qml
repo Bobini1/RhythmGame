@@ -3870,7 +3870,7 @@ Item {
     }
 
     function hasBga(chart: var) : var {
-        return !!chart && (!!chart.stageFile || !!chart.banner || !!chart.backBmp);
+        return !!chart;
     }
 
     function hasLongNote(chart: var) : var {

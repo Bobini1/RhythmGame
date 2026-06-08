@@ -8,7 +8,7 @@ Loader {
     x: 0; y: 0
     width: skinW * skinScale
     height: skinH * skinScale
-    z: elementState.z || 0
+    z: selectSearchInputElement ? 100260 : elementState.z || 0
     required property var screenRoot
     required property var skinModel
     required property var selectContext
@@ -127,6 +127,9 @@ Loader {
     readonly property int elementTypeNoteChart: 11
     readonly property int elementTypeBpmChart: 12
     readonly property int elementTypeBarDistributionGraph: 13
+    readonly property bool selectSearchInputElement: elemLoader.elementData.type === elemLoader.elementTypeText
+        && elemLoader.selectSearchState
+        && elemLoader.selectSearchState.isText(elemLoader.elementData.src)
     readonly property int elementSkinClockMode: elementState.elementSkinClockMode
     readonly property bool useDirectElementSkinClock: elementState.useDirectElementSkinClock
     readonly property bool needsManualElementSkinTime: elementState.needsManualElementSkinTime

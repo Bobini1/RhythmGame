@@ -222,6 +222,7 @@ Item {
 
             Item {
                 anchors.fill: parent
+                property bool restartingVideo: false
 
                 function syncVideoPlayback() : void {
                     if (root.shouldPlayVideo) {
@@ -231,6 +232,18 @@ Item {
                     } else {
                         videoPlayer.stop();
                     }
+                }
+
+                function loopVideoFromEnd() : void {
+                    if (restartingVideo || !root.shouldPlayVideo || root.resolvedSource === "") {
+                        return;
+                    }
+
+                    restartingVideo = true;
+                    videoPlayer.stop();
+                    videoPlayer.position = 0;
+                    videoPlayer.play();
+                    restartingVideo = false;
                 }
 
                 function stopVideo() : void {
@@ -250,6 +263,17 @@ Item {
                     source: root.shouldPlayVideo ? root.resolvedSource : ""
                     videoOutput: videoOutput
                     loops: MediaPlayer.Infinite
+                    onMediaStatusChanged: {
+                        if (mediaStatus === MediaPlayer.EndOfMedia) {
+                            loopVideoFromEnd();
+                        }
+                    }
+                    onPlaybackStateChanged: {
+                        if (playbackState === MediaPlayer.StoppedState
+                                && mediaStatus === MediaPlayer.EndOfMedia) {
+                            loopVideoFromEnd();
+                        }
+                    }
                 }
 
                 Component.onCompleted: syncVideoPlayback()

@@ -329,8 +329,8 @@ QtObject {
         "29": () => root.lr2EqOn ? 1 : 0,
         "32": () => root.lr2PitchOn ? 1 : 0,
         "33": () => root.lr2PitchType,
-        "40": () => root.lr2GaugeIndexP1,
-        "41": () => root.lr2GaugeIndexP2,
+        "40": src => root.lr2GaugeButtonFrame(1, root.elementSourceFrameCount(src)),
+        "41": src => root.lr2GaugeButtonFrame(2, root.elementSourceFrameCount(src)),
         "42": src => root.lr2RandomButtonFrame(1, root.elementSourceFrameCount(src)),
         "43": src => root.lr2RandomButtonFrame(2, root.elementSourceFrameCount(src)),
         "46": () => controller.lr2ClassicHidSudControlPresent() ? -2 : root.lr2LaneCoverIndex,
@@ -404,12 +404,12 @@ QtObject {
             root.lr2PitchType = root.wrapValue(root.lr2PitchType + delta, 3);
             return true;
         },
-        "40": delta => {
-            root.setGaugeIndex(1, root.lr2GaugeIndexP1 + delta);
+        "40": (delta, sourceCount) => {
+            root.adjustGaugeButtonIndex(1, delta, sourceCount);
             return true;
         },
-        "41": delta => {
-            root.setGaugeIndex(2, root.lr2GaugeIndexP2 + delta);
+        "41": (delta, sourceCount) => {
+            root.adjustGaugeButtonIndex(2, delta, sourceCount);
             return true;
         },
         "42": (delta, sourceCount) => {

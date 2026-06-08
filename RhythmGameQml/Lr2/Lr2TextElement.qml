@@ -27,7 +27,6 @@ Item {
     readonly property bool searchStateReady: selectSearchState !== undefined && selectSearchState !== null
     readonly property int sourceTextId: srcData ? numberValue(srcData.st, -1) : -1
 
-    readonly property var searchTextState: searchStateReady ? selectSearchState.textState(srcData, dsts) : null
     readonly property bool isSearchText: searchStateReady && selectSearchState.isText(srcData)
     readonly property string searchFontPath: srcData ? String(srcData.fontPath || "") : ""
     readonly property int searchAlignment: srcData ? numberValue(srcData.align, 0) : 0
@@ -106,7 +105,7 @@ Item {
     }
 
     function moveSearchCursorTo(parentX: var, selecting: var) : var {
-        if (!searchInputLoader.item) {
+        if (!searchInputLoader.item || !searchEditorActive) {
             return;
         }
         const position = searchCursorPositionAt(parentX);
@@ -244,6 +243,24 @@ Item {
         resolvedText: textElement.resolvedText
     }
 
+    readonly property bool searchEditorActive: isSearchText
+        && textRenderer.hasCurrentState
+        && textRenderer.stateA > 0
+        && Math.abs(textRenderer.stateW) > 0
+        && Math.abs(textRenderer.stateH) > 0
+    readonly property real searchEditorX: searchEditorActive
+        ? Math.min(textRenderer.stateX, textRenderer.stateX + textRenderer.stateW) * textElement.skinScale
+        : 0
+    readonly property real searchEditorY: searchEditorActive
+        ? Math.min(textRenderer.stateY, textRenderer.stateY + textRenderer.stateH) * textElement.skinScale
+        : 0
+    readonly property real searchEditorWidth: searchEditorActive
+        ? Math.abs(textRenderer.stateW) * textElement.skinScale
+        : 0
+    readonly property real searchEditorHeight: searchEditorActive
+        ? Math.abs(textRenderer.stateH) * textElement.skinScale
+        : 0
+
     Loader {
         id: searchInputLoader
         z: 4
@@ -252,7 +269,6 @@ Item {
             id: searchInput
 
             property bool syncing: false
-            readonly property var textState: textElement.searchTextState
 
             function syncFromContext() : var {
                 const context = textElement.selectReady ? textElement.selectContext : null;
@@ -264,12 +280,12 @@ Item {
                 syncing = false;
             }
 
-            x: textState ? Math.min(textState.x, textState.x + textState.w) * skinScale : 0
-            y: textState ? Math.min(textState.y, textState.y + textState.h) * skinScale : 0
-            width: textState ? Math.abs(textState.w) * skinScale : 0
-            height: textState ? Math.abs(textState.h) * skinScale : 0
-            visible: !!textState
-            enabled: !!textState
+            x: textElement.searchEditorX
+            y: textElement.searchEditorY
+            width: textElement.searchEditorWidth
+            height: textElement.searchEditorHeight
+            visible: textElement.searchEditorActive
+            enabled: textElement.searchEditorActive
             opacity: 0
             clip: true
             activeFocusOnTab: false
@@ -364,17 +380,13 @@ Item {
     MouseArea {
         id: searchEditMouseArea
         z: 6
-        enabled: !!textElement.searchTextState
+        enabled: textElement.searchEditorActive
         acceptedButtons: Qt.LeftButton
         preventStealing: true
-        x: textElement.searchTextState
-            ? Math.min(textElement.searchTextState.x, textElement.searchTextState.x + textElement.searchTextState.w) * skinScale
-            : 0
-        y: textElement.searchTextState
-            ? Math.min(textElement.searchTextState.y, textElement.searchTextState.y + textElement.searchTextState.h) * skinScale
-            : 0
-        width: textElement.searchTextState ? Math.abs(textElement.searchTextState.w) * skinScale : 0
-        height: textElement.searchTextState ? Math.abs(textElement.searchTextState.h) * skinScale : 0
+        x: textElement.searchEditorX
+        y: textElement.searchEditorY
+        width: textElement.searchEditorWidth
+        height: textElement.searchEditorHeight
         onPressed: (mouse) => {
             mouse.accepted = true;
             textElement.moveSearchCursorTo(x + mouse.x, false);

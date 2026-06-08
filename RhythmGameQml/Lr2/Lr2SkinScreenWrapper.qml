@@ -2705,15 +2705,33 @@ Item {
 
     function gameplayGaugeOption(side: var) : var {
         let gauge = root.activeGaugeNameForSide(side);
-        if (gauge === "HARD" || gauge === "EXHARD" || gauge === "DAN"
-            || gauge === "EXDAN" || gauge === "EXHARDDAN") {
+        if (root.lr2SkinUsesBeatorajaSemantics) {
+            if (gauge === "HARD" || gauge === "EXHARD" || gauge === "DAN"
+                    || gauge === "EXDAN" || gauge === "EXHARDDAN") {
+                return 119;
+            }
+            if (gauge === "EASY" || gauge === "AEASY") {
+                return 121;
+            }
+            if (gauge === "FC" || gauge === "PERFECT" || gauge === "MAX") {
+                return 122;
+            }
+            return 118;
+        }
+        if (gauge === "HARD" || gauge === "DAN") {
             return 119;
         }
-        if (gauge === "EASY" || gauge === "AEASY") {
+        if (gauge === "FC" || gauge === "PERFECT" || gauge === "MAX") {
+            return 120;
+        }
+        if (gauge === "EASY") {
             return 121;
         }
-        if (gauge === "FC" || gauge === "PERFECT" || gauge === "MAX") {
+        if (gauge === "EXHARD" || gauge === "EXDAN" || gauge === "EXHARDDAN") {
             return 122;
+        }
+        if (gauge === "AEASY" || gauge === "LIGHTASSIST") {
+            return 123;
         }
         return 118;
     }
@@ -3729,7 +3747,7 @@ Item {
     function appendGameplayRuntimeOptionSideState(parts: var, side: var) : void {
         let score = root.gameplayScore(side);
         parts.push(side);
-        if (root.skinUsesRuntimeOptionRange(118, 122)) {
+        if (root.skinUsesRuntimeOptionRange(118, 123)) {
             parts.push(root.gameplayGaugeOption(side));
         }
         if (root.skinUsesRuntimeOptionRange(126, 131)) {

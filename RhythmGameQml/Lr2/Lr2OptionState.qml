@@ -26,6 +26,8 @@ QtObject {
 
     readonly property var lr2GaugeLabels: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EX HARD", "HAZARD"]
     readonly property var lr2GaugeValues: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
+    readonly property var lr2ClassicGaugeLabels: ["OFF", "HARD", "HAZARD", "EASY", "P-ATTACK", "G-ATTACK"]
+    readonly property var lr2ClassicGaugeValues: ["NORMAL", "HARD", "FC", "EASY", "EXHARD", "AEASY"]
     readonly property var lr2RandomLabels: ["OFF", "MIRROR", "RANDOM", "R-RANDOM", "S-RANDOM", "SPIRAL", "H-RANDOM", "ALL-SCR", "RANDOM+", "S-RAN+"]
     readonly property var lr2RandomValues: [
         NoteOrderAlgorithm.Normal,
@@ -342,22 +344,50 @@ QtObject {
         }
     }
 
+    function gaugeUsesBeatorajaFrames(sourceCount: var) : var {
+        return root.host && root.host.lr2SkinUsesBeatorajaSemantics === true;
+    }
+
+    function gaugeLabelsForSourceCount(sourceCount: var) : var {
+        return root.gaugeUsesBeatorajaFrames(sourceCount)
+            ? root.lr2GaugeLabels
+            : root.lr2ClassicGaugeLabels;
+    }
+
+    function gaugeValuesForSourceCount(sourceCount: var) : var {
+        return root.gaugeUsesBeatorajaFrames(sourceCount)
+            ? root.lr2GaugeValues
+            : root.lr2ClassicGaugeValues;
+    }
+
+    function gaugeButtonFrameForValue(value: var, sourceCount: var) : var {
+        let values = root.gaugeValuesForSourceCount(sourceCount);
+        let count = root.optionFrameCount(sourceCount, values.length);
+        return root.clampedButtonFrame(root.indexOfValue(values, value), count);
+    }
+
     function lr2GaugeButtonFrame(side: var, sourceCount: var) : var {
-        return root.clampedButtonFrame(side === 2 ? root.lr2GaugeIndexP2 : root.lr2GaugeIndexP1, sourceCount);
+        let vars = root.generalVarsForSide(side);
+        return root.gaugeButtonFrameForValue(vars ? vars.gaugeType : null, sourceCount);
     }
 
     function setGaugeButtonIndex(side: var, index: var, sourceCount: var) : void {
-        root.setGaugeIndex(side, root.clampedButtonFrame(index, sourceCount));
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return;
+        }
+        let values = root.gaugeValuesForSourceCount(sourceCount);
+        let count = root.optionFrameCount(sourceCount, values.length);
+        vars.gaugeType = root.wrappedListValue(values, root.clampedButtonFrame(index, count));
     }
 
     function adjustGaugeButtonIndex(side: var, delta: var, sourceCount: var) : void {
-        let current = side === 2 ? root.lr2GaugeIndexP2 : root.lr2GaugeIndexP1;
-        root.setGaugeIndex(side, current + delta);
+        root.setGaugeButtonIndex(side, root.lr2GaugeButtonFrame(side, sourceCount) + delta, sourceCount);
     }
 
     function lr2GaugeText(side: var, sourceCount: var) : var {
-        let index = side === 2 ? root.lr2GaugeIndexP2 : root.lr2GaugeIndexP1;
-        return root.lr2GaugeLabels[root.clampedButtonFrame(index, root.lr2GaugeLabels.length)];
+        let labels = root.gaugeLabelsForSourceCount(sourceCount);
+        return labels[root.lr2GaugeButtonFrame(side, labels.length)];
     }
 
     readonly property int lr2RandomIndexP1: {

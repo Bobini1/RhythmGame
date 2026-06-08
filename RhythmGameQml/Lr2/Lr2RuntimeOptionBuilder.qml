@@ -792,7 +792,7 @@ QtObject {
     function appendGameplaySideOptions(options: var, side: var) : void {
         let score = host.gameplayScore(side);
         let usedOptions = root.runtimeUsedOptions;
-        if (root.runtimeOptionRangeUsed(usedOptions, 118, 122)) {
+        if (root.runtimeOptionRangeUsed(usedOptions, 118, 123)) {
             root.addOption(options, host.gameplayGaugeOption(side));
         }
         if (root.runtimeOptionRangeUsed(usedOptions, 126, 131)) {
