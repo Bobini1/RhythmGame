@@ -82,7 +82,6 @@ QtObject {
     property int cachedSnapshotProvider: -1
     property int cachedSnapshotProfileUserId: -1
     property int clearCountsGeneration: 0
-    property string lastApplyStatsLogKey: ""
     readonly property int transitionDuration: 120
     readonly property int transitionElapsed: root.transitionPhase !== 0
         ? Math.max(0, Math.min(root.transitionDuration,
@@ -480,48 +479,9 @@ QtObject {
         if (root.host.effectiveScreenKey !== "select"
                 || !targetChart || !targetChart.md5
                 || !root.modelMatchesCurrentChart) {
-            let skippedKey = [
-                "skip",
-                root.host.effectiveScreenKey,
-                targetChart && targetChart.md5 ? String(targetChart.md5).toLowerCase() : "",
-                root.loadedMd5 ? String(root.loadedMd5).toLowerCase() : "",
-                root.modelMatchesCurrentChart,
-                root.rankingModel.loading,
-                root.currentPlayerCount
-            ].join("|");
-            if (root.lastApplyStatsLogKey !== skippedKey) {
-                root.lastApplyStatsLogKey = skippedKey;
-                console.warn("[LR2] Ranking stats not applied"
-                    + " screen=" + root.host.effectiveScreenKey
-                    + " chartMd5=" + (targetChart && targetChart.md5 ? String(targetChart.md5).toLowerCase() : "")
-                    + " loadedMd5=" + (root.loadedMd5 ? String(root.loadedMd5).toLowerCase() : "")
-                    + " modelMatches=" + root.modelMatchesCurrentChart
-                    + " loading=" + root.rankingModel.loading
-                    + " playerCount=" + root.currentPlayerCount);
-            }
             return;
         }
         let currentSnapshot = root.snapshot();
-        let appliedKey = [
-            "apply",
-            String(targetChart.md5).toLowerCase(),
-            currentSnapshot.entries.length,
-            currentSnapshot.playerCount,
-            currentSnapshot.totalPlayCount,
-            currentSnapshot.playerRank,
-            JSON.stringify(currentSnapshot.clearCounts || {})
-        ].join("|");
-        if (root.lastApplyStatsLogKey !== appliedKey) {
-            root.lastApplyStatsLogKey = appliedKey;
-            console.warn("[LR2] Applying ranking stats to select"
-                + " md5=" + String(targetChart.md5).toLowerCase()
-                + " entries=" + currentSnapshot.entries.length
-                + " playerCount=" + currentSnapshot.playerCount
-                + " totalPlayCount=" + currentSnapshot.totalPlayCount
-                + " playerRank=" + currentSnapshot.playerRank
-                + " modelClearCounts=" + JSON.stringify(root.rankingModel.clearCounts || {})
-                + " snapshotClearCounts=" + JSON.stringify(currentSnapshot.clearCounts || {}));
-        }
         root.selectContext.setRankingStats(
             targetChart.md5,
             currentSnapshot.clearCounts,

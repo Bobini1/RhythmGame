@@ -3,9 +3,7 @@
 #include "resource_managers/Lr2FontImageProvider.h"
 
 #include <QQuickWindow>
-#include <QDebug>
 #include <QPointF>
-#include <QSet>
 #include <QSGSimpleTextureNode>
 #include <QSGTexture>
 
@@ -35,27 +33,6 @@ QSize sceneTextureSizeForItem(const QQuickItem& item)
 
     return QSize(std::max(1, static_cast<int>(std::lround(item.width() * scaleX))),
                  std::max(1, static_cast<int>(std::lround(item.height() * scaleY))));
-}
-
-bool shouldLogBitmapFont(const QString& fontPath, const QString& text)
-{
-    QString normalized = fontPath;
-    normalized.replace('\\', '/');
-    if (!normalized.contains(QStringLiteral("Gothic_Dolls"), Qt::CaseInsensitive)
-            && !normalized.contains(QStringLiteral("/msel/"), Qt::CaseInsensitive)) {
-        return false;
-    }
-
-    static QSet<QString> logged;
-    static int count = 0;
-    const QString key = normalized + u'\x1f' + text.left(64);
-    if (logged.contains(key) || count >= 80) {
-        return false;
-    }
-
-    logged.insert(key);
-    ++count;
-    return true;
 }
 
 QImage scaledNearestEndpoint(const QImage& image, const QSize& targetSize)
@@ -195,19 +172,6 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
                 : m_image;
         } else if (colorNeedsTint(m_textColor)) {
             textureImage = tintedImage(textureImage, m_textColor);
-        }
-        if (shouldLogBitmapFont(m_fontPath, m_text)) {
-            qWarning() << "[LR2] BITMAP_FONT_DEBUG"
-                       << "text=" << m_text
-                       << "font=" << m_fontPath
-                       << "filter=" << m_textureFilter
-                       << "item=" << QSizeF(width(), height())
-                       << "sceneRect=" << mapRectToScene(boundingRect())
-                       << "target=" << targetSize
-                       << "baseImage=" << m_baseImage.size()
-                       << "textureImage=" << textureImage.size()
-                       << "natural=" << m_naturalSize
-                       << "color=" << m_textColor;
         }
         auto* texture = window()->createTextureFromImage(textureImage);
         if (texture) {

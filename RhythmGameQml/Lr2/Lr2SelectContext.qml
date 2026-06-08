@@ -91,7 +91,6 @@ Item {
     property int rankingPlayerRank: 0
     property int rankingPlayerCount: 0
     property int rankingTotalPlayCount: 0
-    property string lastRankingClearRateLogKey: ""
     property var rankingSavedItems: []
     property var rankingSavedFolderContents: []
     property int rankingSavedRealItemCount: 0
@@ -3332,38 +3331,6 @@ Item {
             : ["EASY", "NORMAL", "HARD", "FC", "PERFECT", "MAX"];
     }
 
-    function logRankingClearRateNumber(num: var, value: var, available: var, localCounts: var) : void {
-        if (num !== 94 && num !== 181) {
-            return;
-        }
-        let chart = selectedStateChartData;
-        let selectedMd5 = chart ? normalizedMd5(chart.md5) : "";
-        let localClearRate = localCounts ? percentInteger(localCounts.clear, localCounts.play) : 0;
-        let key = [
-            num,
-            selectedMd5,
-            normalizedMd5(rankingStatsMd5),
-            rankingPlayerCount,
-            value,
-            available,
-            JSON.stringify(rankingClearCounts || {})
-        ].join("|");
-        if (lastRankingClearRateLogKey === key) {
-            return;
-        }
-        lastRankingClearRateLogKey = key;
-        console.warn("[LR2] #NUMBER " + num
-            + " clear-rate value=" + value
-            + " available=" + available
-            + " selectedMd5=" + selectedMd5
-            + " statsMd5=" + normalizedMd5(rankingStatsMd5)
-            + " playerCount=" + rankingPlayerCount
-            + " clearCounts=" + JSON.stringify(rankingClearCounts || {})
-            + " localPlay=" + (localCounts ? (localCounts.play || 0) : 0)
-            + " localClear=" + (localCounts ? (localCounts.clear || 0) : 0)
-            + " localClearRate=" + localClearRate);
-    }
-
     function normalizedMd5(value: var) : var {
         return value ? String(value).toLowerCase() : "";
     }
@@ -3422,16 +3389,6 @@ Item {
         rankingPlayerRank = nextPlayerRank;
         rankingPlayerCount = nextPlayerCount;
         rankingTotalPlayCount = nextTotalPlayCount;
-        console.warn("[LR2] Ranking stats set"
-            + " md5=" + nextMd5
-            + " selectedMd5=" + normalizedMd5(selectedStateChartData ? selectedStateChartData.md5 : "")
-            + " playerCount=" + nextPlayerCount
-            + " totalPlayCount=" + nextTotalPlayCount
-            + " playerRank=" + nextPlayerRank
-            + " clearRate94=" + rankingClearPercentFromCounts(nextClearCounts,
-                nextPlayerCount,
-                rankingClearRateTypesForSkin())
-            + " clearCounts=" + JSON.stringify(nextClearCounts));
         return true;
     }
 
@@ -4248,13 +4205,11 @@ Item {
             return hasRankingStats() ? rankingPlayerCount : 0;
         case 94: {
             let available = hasRankingStats();
-            let value = available
+            return available
                 ? rankingClearPercentFromCounts(rankingClearCounts,
                     rankingPlayerCount,
                     rankingClearRateTypesForSkin())
                 : 0;
-            logRankingClearRateNumber(num, value, available, counts());
-            return value;
         }
         case 179:
             return hasRankingStats() ? rankingPlayerRank : 0;
@@ -4262,13 +4217,11 @@ Item {
             return hasRankingStats() ? rankingPlayerCount : 0;
         case 181: {
             let available = hasRankingStats();
-            let value = available
+            return available
                 ? rankingClearPercentFromCounts(rankingClearCounts,
                     rankingPlayerCount,
                     rankingClearRateTypesForSkin())
                 : 0;
-            logRankingClearRateNumber(num, value, available, counts());
-            return value;
         }
         case 182:
             return 0;

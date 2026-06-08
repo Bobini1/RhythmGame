@@ -1,117 +1,10 @@
 #include "Lr2TimelineFrameState.h"
 
-#include <QJSValue>
-#include <QMetaType>
-
 #include <algorithm>
 #include <cmath>
 
 namespace {
 constexpr int NoTimerFire = -2147483648;
-
-bool variantIsNullish(const QVariant& value) {
-    if (!value.isValid() || value.isNull()) {
-        return true;
-    }
-    if (value.metaType() == QMetaType::fromType<std::nullptr_t>()) {
-        return true;
-    }
-    if (value.canConvert<QJSValue>()) {
-        const QJSValue jsValue = value.value<QJSValue>();
-        return jsValue.isNull() || jsValue.isUndefined();
-    }
-    return false;
-}
-
-QVariant propertyValue(const QVariant& value, const char* name) {
-    if (value.canConvert<Lr2TimelineStateValue>()) {
-        const Lr2TimelineStateValue state = value.value<Lr2TimelineStateValue>();
-        const QByteArray propertyName(name);
-        if (propertyName == "x") {
-            return state.x;
-        }
-        if (propertyName == "y") {
-            return state.y;
-        }
-        if (propertyName == "w") {
-            return state.w;
-        }
-        if (propertyName == "h") {
-            return state.h;
-        }
-        if (propertyName == "a") {
-            return state.a;
-        }
-        if (propertyName == "r") {
-            return state.r;
-        }
-        if (propertyName == "g") {
-            return state.g;
-        }
-        if (propertyName == "b") {
-            return state.b;
-        }
-        if (propertyName == "angle") {
-            return state.angle;
-        }
-        if (propertyName == "center") {
-            return state.center;
-        }
-        if (propertyName == "blend") {
-            return state.blend;
-        }
-        if (propertyName == "filter") {
-            return state.filter;
-        }
-        if (propertyName == "op4") {
-            return state.op4;
-        }
-        return {};
-    }
-
-    if (value.canConvert<QJSValue>()) {
-        const QJSValue jsValue = value.value<QJSValue>();
-        const QJSValue property = jsValue.property(QLatin1String(name));
-        if (!property.isUndefined() && !property.isNull()) {
-            return property.toVariant();
-        }
-        return {};
-    }
-
-    const QVariantMap map = value.toMap();
-    if (!map.isEmpty() || value.metaType() == QMetaType::fromType<QVariantMap>()) {
-        return map.value(QString::fromLatin1(name));
-    }
-
-    const QVariantHash hash = value.toHash();
-    if (!hash.isEmpty() || value.metaType() == QMetaType::fromType<QVariantHash>()) {
-        return hash.value(QString::fromLatin1(name));
-    }
-
-    return {};
-}
-
-qreal realProperty(const QVariant& value, const char* name, qreal fallback) {
-    const QVariant property = propertyValue(value, name);
-    if (!property.isValid() || property.isNull()) {
-        return fallback;
-    }
-
-    bool ok = false;
-    const qreal result = property.toDouble(&ok);
-    return ok && std::isfinite(result) ? result : fallback;
-}
-
-int intProperty(const QVariant& value, const char* name, int fallback) {
-    const QVariant property = propertyValue(value, name);
-    if (!property.isValid() || property.isNull()) {
-        return fallback;
-    }
-
-    bool ok = false;
-    const int result = property.toInt(&ok);
-    return ok ? result : fallback;
-}
 }
 
 Lr2TimelineFrameState::Lr2TimelineFrameState(QObject* parent)
@@ -240,17 +133,30 @@ void Lr2TimelineFrameState::setTimerFire(int timerFire) {
     emit timerFireChanged();
 }
 
-QVariant Lr2TimelineFrameState::stateOverride() const {
-    return m_stateOverride;
+bool Lr2TimelineFrameState::stateOverrideEnabled() const {
+    return m_stateOverrideEnabled;
 }
 
-void Lr2TimelineFrameState::setStateOverride(const QVariant& stateOverride) {
-    if (m_stateOverride == stateOverride) {
+void Lr2TimelineFrameState::setStateOverrideEnabled(bool enabled) {
+    if (m_stateOverrideEnabled == enabled) {
         return;
     }
-    m_stateOverride = stateOverride;
+    m_stateOverrideEnabled = enabled;
     emit stateOverrideChanged();
     updateTimelineConfiguration();
+    updateFrame();
+}
+
+Lr2TimelineStateValue Lr2TimelineFrameState::stateOverrideValue() const {
+    return m_stateOverrideValue;
+}
+
+void Lr2TimelineFrameState::setStateOverrideValue(const Lr2TimelineStateValue& stateOverride) {
+    if (sameStateValue(m_stateOverrideValue, stateOverride)) {
+        return;
+    }
+    m_stateOverrideValue = stateOverride;
+    emit stateOverrideChanged();
     updateFrame();
 }
 
@@ -435,15 +341,15 @@ bool Lr2TimelineFrameState::canUseStaticState() const {
     return m_canUseStaticState;
 }
 
-QVariant Lr2TimelineFrameState::staticState() const {
-    return m_staticStateValid ? stateVariant(m_staticState) : QVariant {};
+Lr2TimelineStateValue Lr2TimelineFrameState::staticState() const {
+    return m_staticStateValid ? m_staticState : Lr2TimelineStateValue {};
 }
 
 QVariant Lr2TimelineFrameState::timelineTimers() const {
     return m_timelineTimers;
 }
 
-QVariant Lr2TimelineFrameState::directState() const {
+Lr2TimelineStateValue Lr2TimelineFrameState::directState() const {
     return m_directState;
 }
 
@@ -455,7 +361,7 @@ bool Lr2TimelineFrameState::hasTimelineState() const {
     return m_hasTimelineState;
 }
 
-QVariant Lr2TimelineFrameState::state() const {
+Lr2TimelineStateValue Lr2TimelineFrameState::state() const {
     return m_directState;
 }
 
@@ -551,30 +457,6 @@ Lr2TimelineState* Lr2TimelineFrameState::timelineState() {
     return &m_timeline;
 }
 
-bool Lr2TimelineFrameState::truthy(const QVariant& value) {
-    if (variantIsNullish(value)) {
-        return false;
-    }
-    if (value.canConvert<QJSValue>()) {
-        return value.value<QJSValue>().toBool();
-    }
-    switch (value.metaType().id()) {
-    case QMetaType::Bool:
-        return value.toBool();
-    case QMetaType::Int:
-    case QMetaType::UInt:
-    case QMetaType::LongLong:
-    case QMetaType::ULongLong:
-    case QMetaType::Double:
-    case QMetaType::Float:
-        return value.toDouble() != 0.0;
-    case QMetaType::QString:
-        return !value.toString().isEmpty();
-    default:
-        return true;
-    }
-}
-
 bool Lr2TimelineFrameState::sameReal(qreal left, qreal right) {
     return std::abs(left - right) <= 0.0001;
 }
@@ -601,28 +483,6 @@ bool Lr2TimelineFrameState::sameStateValue(const Lr2TimelineStateValue& left,
         && left.op4 == right.op4;
 }
 
-QVariant Lr2TimelineFrameState::stateVariant(const Lr2TimelineStateValue& state) {
-    return QVariant::fromValue(state);
-}
-
-Lr2TimelineFrameState::StateFields Lr2TimelineFrameState::fieldsFromVariant(const QVariant& value) {
-    StateFields fields;
-    fields.x = realProperty(value, "x", 0.0);
-    fields.y = realProperty(value, "y", 0.0);
-    fields.w = realProperty(value, "w", 0.0);
-    fields.h = realProperty(value, "h", 0.0);
-    fields.a = realProperty(value, "a", 255.0);
-    fields.r = realProperty(value, "r", 255.0);
-    fields.g = realProperty(value, "g", 255.0);
-    fields.b = realProperty(value, "b", 255.0);
-    fields.angle = realProperty(value, "angle", 0.0);
-    fields.center = intProperty(value, "center", 0);
-    fields.blend = intProperty(value, "blend", 0);
-    fields.filter = intProperty(value, "filter", 0);
-    fields.op4 = intProperty(value, "op4", 0);
-    return fields;
-}
-
 Lr2TimelineFrameState::StateFields Lr2TimelineFrameState::fieldsFromState(const Lr2TimelineStateValue& state) {
     StateFields fields;
     fields.x = state.x;
@@ -646,12 +506,12 @@ qreal Lr2TimelineFrameState::clampedTint(qreal value) {
 }
 
 void Lr2TimelineFrameState::updateTimelineConfiguration() {
-    const bool nextCanUseStaticState = !truthy(m_stateOverride)
+    const bool nextCanUseStaticState = !m_stateOverrideEnabled
         && !m_sliderTranslationEnabled
         && !m_dstOffsetsEnabled
         && !m_forceHidden
         && m_timeline.canUseStaticState();
-    const bool nextEnabled = !truthy(m_stateOverride) && !m_forceHidden && !nextCanUseStaticState;
+    const bool nextEnabled = !m_stateOverrideEnabled && !m_forceHidden && !nextCanUseStaticState;
     m_timeline.setEnabled(nextEnabled);
 }
 
@@ -669,7 +529,7 @@ void Lr2TimelineFrameState::updateFrame() {
     const bool previousCanUseStaticState = m_canUseStaticState;
     const bool previousStaticStateValid = m_staticStateValid;
     const Lr2TimelineStateValue previousStaticState = m_staticState;
-    const QVariant previousDirectState = m_directState;
+    const Lr2TimelineStateValue previousDirectState = m_directState;
     const bool previousHasDirectState = m_hasDirectState;
     const bool previousHasTimelineState = m_hasTimelineState;
     const bool previousHasState = m_hasState;
@@ -683,7 +543,7 @@ void Lr2TimelineFrameState::updateFrame() {
     const QColor previousTintColor = m_tintColor;
     const qreal previousOpacity = m_opacity;
 
-    m_canUseStaticState = !truthy(m_stateOverride)
+    m_canUseStaticState = !m_stateOverrideEnabled
         && !m_sliderTranslationEnabled
         && !m_dstOffsetsEnabled
         && !m_forceHidden
@@ -693,20 +553,20 @@ void Lr2TimelineFrameState::updateFrame() {
 
     if (m_forceHidden) {
         m_directState = {};
-    } else if (truthy(m_stateOverride)) {
-        m_directState = m_stateOverride;
+    } else if (m_stateOverrideEnabled) {
+        m_directState = m_stateOverrideValue;
     } else if (m_staticStateValid) {
-        m_directState = stateVariant(m_staticState);
+        m_directState = m_staticState;
     } else {
         m_directState = {};
     }
 
-    m_hasDirectState = truthy(m_directState);
+    m_hasDirectState = !m_forceHidden && (m_stateOverrideEnabled || m_staticStateValid);
     m_hasTimelineState = !m_forceHidden && !m_hasDirectState && m_timeline.hasState();
     m_hasState = m_hasDirectState || m_hasTimelineState;
 
     if (m_hasDirectState) {
-        m_fields = fieldsFromVariant(m_directState);
+        m_fields = fieldsFromState(m_directState);
     } else if (m_hasTimelineState) {
         m_fields = fieldsFromState(m_timeline.state());
     } else {
@@ -730,7 +590,7 @@ void Lr2TimelineFrameState::updateFrame() {
             || !sameStateValue(previousStaticState, m_staticState)) {
         emit staticStateChanged();
     }
-    if (previousHasDirectState != m_hasDirectState || previousDirectState != m_directState) {
+    if (previousHasDirectState != m_hasDirectState || !sameStateValue(previousDirectState, m_directState)) {
         emit directStateChanged();
     }
     if (previousHasTimelineState != m_hasTimelineState) {

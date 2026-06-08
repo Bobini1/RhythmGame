@@ -35,10 +35,6 @@ Item {
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
-    property var loggedBodyDebugKeys: ({})
-    property int loggedBodyDebugCount: 0
-    property var loggedBodyPlacementKeys: ({})
-    property int loggedBodyPlacementCount: 0
     readonly property var barBaseStates: barBaseStateResolver ? barBaseStateResolver.baseStates : []
     readonly property var positionlessBarBaseStates: barBaseStateResolver
         ? barBaseStateResolver.positionlessBaseStates
@@ -85,96 +81,6 @@ Item {
         ? (overlayStaticTimelineState
            || (overlayTimelineTracker.hasState ? overlayTimelineTracker.state : null))
         : null
-
-    function dstSummary(dst) {
-        if (!dst) {
-            return "null";
-        }
-        return "t=" + (dst.time || 0)
-            + ",xywh=" + [dst.x || 0, dst.y || 0, dst.w || 0, dst.h || 0].join("/")
-            + ",a=" + (dst.a === undefined ? "u" : dst.a)
-            + ",rgb=" + [dst.r === undefined ? "u" : dst.r, dst.g === undefined ? "u" : dst.g, dst.b === undefined ? "u" : dst.b].join("/")
-            + ",blend=" + (dst.blend === undefined ? "u" : dst.blend)
-            + ",filter=" + (dst.filter === undefined ? "u" : dst.filter)
-            + ",loop=" + (dst.loop === undefined ? "u" : dst.loop)
-            + ",timer=" + (dst.timer === undefined ? "u" : dst.timer);
-    }
-
-    function logBodyDebug(row, slot, bodyType, source, state, bodyDsts, cell, rowData) {
-        if (!source || !source.source || String(source.source).indexOf("song_bar") === -1) {
-            return;
-        }
-        const dstCount = bodyDsts ? bodyDsts.length : 0;
-        const stateValid = !!state && state.valid === true;
-        const timeBucket = root.skinTime < 1100 ? "early" : (root.skinTime < 1500 ? "fade" : "final");
-        const key = row + "|" + slot + "|" + bodyType + "|" + source.source
-            + "|" + (stateValid ? 1 : 0)
-            + "|" + dstCount
-            + "|" + timeBucket
-            + "|" + root.selectedRow
-            + "|" + (cell ? cell.text : "");
-        if (loggedBodyDebugKeys[key] || loggedBodyDebugCount >= 90) {
-            return;
-        }
-        loggedBodyDebugKeys[key] = true;
-        loggedBodyDebugCount += 1;
-        console.warn("[LR2] BAR_BODY_DEBUG"
-            + " row=" + row
-            + " slot=" + slot
-            + " selectedRow=" + root.selectedRow
-            + " slotOffset=" + root.positionSlotOffset
-            + " skinTime=" + root.skinTime
-            + " timeBucket=" + timeBucket
-            + " sourceSkinTime=" + root.sourceSkinTime
-            + " bodyType=" + bodyType
-            + " cellValid=" + (cell ? cell.valid : "null")
-            + " cellText=\"" + (cell ? cell.text : "") + "\""
-            + " cellBodyType=" + (cell ? cell.bodyType : "null")
-            + " cellTitleType=" + (cell ? cell.titleType : "null")
-            + " src=" + source.source
-            + " srcRect=" + [source.x, source.y, source.w, source.h].join(",")
-            + " stateValid=" + stateValid
-            + " rawStateValid=" + (state ? state.valid : "null")
-            + " state=" + (state ? [state.x, state.y, state.w, state.h, state.a, state.blend, state.filter].join(",") : "null")
-            + " dstCount=" + dstCount
-            + " firstDst={" + root.dstSummary(dstCount > 0 ? bodyDsts[0] : null) + "}"
-            + " lastDst={" + root.dstSummary(dstCount > 0 ? bodyDsts[dstCount - 1] : null) + "}"
-            + " offCount=" + (rowData && rowData.offDsts ? rowData.offDsts.length : "null")
-            + " onCount=" + (rowData && rowData.onDsts ? rowData.onDsts.length : "null")
-            + " scale=" + root.scaleOverride
-            + " rootSize=" + root.width + "x" + root.height);
-    }
-
-    function logBodyPlacementDebug(row, slot, bodyType, source, state, cell, parentItem) {
-        if (!source || !source.source || String(source.source).indexOf("song_bar") === -1) {
-            return;
-        }
-        if (!state || state.valid !== true) {
-            return;
-        }
-        const key = row + "|" + slot + "|" + bodyType + "|" + root.selectedRow
-            + "|" + (cell ? cell.text : "")
-            + "|" + Math.round(parentItem.x)
-            + "|" + Math.round(parentItem.y);
-        if (loggedBodyPlacementKeys[key] || loggedBodyPlacementCount >= 60) {
-            return;
-        }
-        loggedBodyPlacementKeys[key] = true;
-        loggedBodyPlacementCount += 1;
-        console.warn("[LR2] BAR_BODY_PLACE_DEBUG"
-            + " row=" + row
-            + " slot=" + slot
-            + " selectedRow=" + root.selectedRow
-            + " bodyType=" + bodyType
-            + " cellText=\"" + (cell ? cell.text : "") + "\""
-            + " rootXY=" + root.x + "," + root.y
-            + " rootSize=" + root.width + "x" + root.height
-            + " parentXY=" + parentItem.x + "," + parentItem.y
-            + " parentVisible=" + parentItem.visible
-            + " parentRowVisible=" + parentItem.rowVisible
-            + " effectiveRow=" + parentItem.effectiveRow
-            + " state=" + [state.x, state.y, state.w, state.h, state.a, state.blend, state.filter].join(","));
-    }
 
     readonly property int bodyRowIndex: {
         if (!srcData || !selectContext || srcData.kind !== 0) {
@@ -314,14 +220,6 @@ Item {
                    ? bodyRowData.offDsts
                    : (bodyRowData.onDsts || []))
                 : []
-            onBodySourceChanged: root.logBodyDebug(bodyRow, bodySlot, bodyType, bodySource, effectiveBodyState, bodyDsts, bodyCell, bodyRowData)
-            onEffectiveBodyStateChanged: {
-                root.logBodyDebug(bodyRow, bodySlot, bodyType, bodySource, effectiveBodyState, bodyDsts, bodyCell, bodyRowData);
-                root.logBodyPlacementDebug(bodyRow, bodySlot, bodyType, bodySource, effectiveBodyState, bodyCell, bodyDelegate);
-            }
-            Component.onCompleted: root.logBodyDebug(bodyRow, bodySlot, bodyType, bodySource, effectiveBodyState, bodyDsts, bodyCell, bodyRowData)
-            onXChanged: root.logBodyPlacementDebug(bodyRow, bodySlot, bodyType, bodySource, effectiveBodyState, bodyCell, bodyDelegate)
-            onYChanged: root.logBodyPlacementDebug(bodyRow, bodySlot, bodyType, bodySource, effectiveBodyState, bodyCell, bodyDelegate)
             positionMap: root.barPositionMap
             row: bodyDelegate.bodyRow
             scaleOverride: root.scaleOverride

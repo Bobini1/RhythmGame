@@ -23,7 +23,8 @@ class Lr2TimelineFrameState : public QObject {
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
-    Q_PROPERTY(QVariant stateOverride READ stateOverride WRITE setStateOverride NOTIFY stateOverrideChanged)
+    Q_PROPERTY(bool stateOverrideEnabled READ stateOverrideEnabled WRITE setStateOverrideEnabled NOTIFY stateOverrideChanged)
+    Q_PROPERTY(Lr2TimelineStateValue stateOverrideValue READ stateOverrideValue WRITE setStateOverrideValue NOTIFY stateOverrideChanged)
     Q_PROPERTY(bool forceHidden READ forceHidden WRITE setForceHidden NOTIFY forceHiddenChanged)
     Q_PROPERTY(bool sliderTranslationEnabled READ sliderTranslationEnabled WRITE setSliderTranslationEnabled NOTIFY sliderTranslationChanged)
     Q_PROPERTY(qreal sliderPosition READ sliderPosition WRITE setSliderPosition NOTIFY sliderTranslationChanged)
@@ -37,12 +38,12 @@ class Lr2TimelineFrameState : public QObject {
     Q_PROPERTY(bool colorKeyEnabled READ colorKeyEnabled WRITE setColorKeyEnabled NOTIFY colorKeyEnabledChanged)
     Q_PROPERTY(bool supportsInvertedBlend READ supportsInvertedBlend WRITE setSupportsInvertedBlend NOTIFY supportsInvertedBlendChanged)
     Q_PROPERTY(bool canUseStaticState READ canUseStaticState NOTIFY staticStateChanged)
-    Q_PROPERTY(QVariant staticState READ staticState NOTIFY staticStateChanged)
+    Q_PROPERTY(Lr2TimelineStateValue staticState READ staticState NOTIFY staticStateChanged)
     Q_PROPERTY(QVariant timelineTimers READ timelineTimers NOTIFY timelineTimersChanged)
-    Q_PROPERTY(QVariant directState READ directState NOTIFY directStateChanged)
+    Q_PROPERTY(Lr2TimelineStateValue directState READ directState NOTIFY directStateChanged)
     Q_PROPERTY(bool hasDirectState READ hasDirectState NOTIFY directStateChanged)
     Q_PROPERTY(bool hasTimelineState READ hasTimelineState NOTIFY hasTimelineStateChanged)
-    Q_PROPERTY(QVariant state READ state NOTIFY directStateChanged)
+    Q_PROPERTY(Lr2TimelineStateValue state READ state NOTIFY directStateChanged)
     Q_PROPERTY(bool hasState READ hasState NOTIFY hasStateChanged)
     Q_PROPERTY(qreal x READ x NOTIFY geometryChanged)
     Q_PROPERTY(qreal y READ y NOTIFY geometryChanged)
@@ -86,8 +87,10 @@ public:
     void setTimers(const QVariant& timers);
     int timerFire() const;
     void setTimerFire(int timerFire);
-    QVariant stateOverride() const;
-    void setStateOverride(const QVariant& stateOverride);
+    bool stateOverrideEnabled() const;
+    void setStateOverrideEnabled(bool enabled);
+    Lr2TimelineStateValue stateOverrideValue() const;
+    void setStateOverrideValue(const Lr2TimelineStateValue& stateOverride);
     bool forceHidden() const;
     void setForceHidden(bool forceHidden);
     bool sliderTranslationEnabled() const;
@@ -114,12 +117,12 @@ public:
     void setSupportsInvertedBlend(bool supported);
 
     bool canUseStaticState() const;
-    QVariant staticState() const;
+    Lr2TimelineStateValue staticState() const;
     QVariant timelineTimers() const;
-    QVariant directState() const;
+    Lr2TimelineStateValue directState() const;
     bool hasDirectState() const;
     bool hasTimelineState() const;
-    QVariant state() const;
+    Lr2TimelineStateValue state() const;
     bool hasState() const;
     qreal x() const;
     qreal y() const;
@@ -188,19 +191,19 @@ private:
         int op4 = 0;
     };
 
-    static bool truthy(const QVariant& value);
     static bool sameReal(qreal left, qreal right);
     static bool sameStateValue(const Lr2TimelineStateValue& left, const Lr2TimelineStateValue& right);
-    static QVariant stateVariant(const Lr2TimelineStateValue& state);
-    static StateFields fieldsFromVariant(const QVariant& value);
     static StateFields fieldsFromState(const Lr2TimelineStateValue& state);
     static qreal clampedTint(qreal value);
 
     void updateTimelineConfiguration();
     void updateTimelineTimers();
-    void updateFrame();
     int normalizedBlendMode(int rawBlendMode) const;
 
+private slots:
+    void updateFrame();
+
+private:
     Lr2TimelineState m_timeline;
     QVariantList m_dsts;
     int m_skinTime = 0;
@@ -210,7 +213,8 @@ private:
     QVariant m_activeOptions = QVariantList {};
     QVariant m_timers = QVariantMap { { QStringLiteral("0"), 0 } };
     int m_timerFire = -2147483648;
-    QVariant m_stateOverride;
+    bool m_stateOverrideEnabled = false;
+    Lr2TimelineStateValue m_stateOverrideValue;
     bool m_forceHidden = false;
     bool m_sliderTranslationEnabled = false;
     qreal m_sliderPosition = 0.0;
@@ -228,7 +232,7 @@ private:
     bool m_staticStateValid = false;
     Lr2TimelineStateValue m_staticState;
     QVariant m_timelineTimers;
-    QVariant m_directState;
+    Lr2TimelineStateValue m_directState;
     bool m_hasDirectState = false;
     bool m_hasTimelineState = false;
     bool m_hasState = false;

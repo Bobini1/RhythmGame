@@ -9,9 +9,7 @@
 #include <QFontMetricsF>
 #include <QPainter>
 #include <QQuickWindow>
-#include <QDebug>
 #include <QPointF>
-#include <QSet>
 #include <QSGNode>
 #include <QSGOpacityNode>
 #include <QSGSimpleTextureNode>
@@ -203,27 +201,6 @@ QImage tintedImage(QImage image, const QColor& color)
         }
     }
     return image;
-}
-
-bool shouldLogBarText(const QString& fontPath, const QString& text)
-{
-    QString normalized = fontPath;
-    normalized.replace('\\', '/');
-    if (!normalized.contains(QStringLiteral("Gothic_Dolls"), Qt::CaseInsensitive)
-            && !normalized.contains(QStringLiteral("/msel/"), Qt::CaseInsensitive)) {
-        return false;
-    }
-
-    static QSet<QString> logged;
-    static int count = 0;
-    const QString key = normalized + u'\x1f' + text.left(64);
-    if (logged.contains(key) || count >= 100) {
-        return false;
-    }
-
-    logged.insert(key);
-    ++count;
-    return true;
 }
 
 void clearChildren(QSGNode* node) {
@@ -606,28 +583,6 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
             if (!scaledImage.isNull()) {
                 textureImage = scaledImage;
             }
-        }
-
-        if (shouldLogBarText(m_source.fontPath, text)) {
-            qWarning() << "[LR2] BAR_TEXT_DEBUG"
-                       << "slot=" << slot
-                       << "row=" << row
-                       << "text=" << text
-                       << "font=" << m_source.fontPath
-                       << "lr2Font=" << m_source.isLr2Font
-                       << "titleType=" << m_source.titleType
-                       << "align=" << m_source.align
-                       << "state=" << QRectF(state.x, state.y, state.w, state.h)
-                       << "stateA=" << state.a
-                       << "filter=" << state.filter
-                       << "blend=" << state.blend
-                       << "box=" << QSizeF(boxW, boxH)
-                       << "image=" << rendered.image.size()
-                       << "textureImage=" << textureImage.size()
-                       << "natural=" << rendered.naturalSize
-                       << "scale=" << QSizeF(scaleX, scaleY)
-                       << "sceneScale=" << sceneScale
-                       << "drawn=" << QRectF(x, y, drawnW, drawnH);
         }
 
         auto* texture = window()->createTextureFromImage(textureImage);
