@@ -91,6 +91,7 @@ Item {
     property int rankingPlayerRank: 0
     property int rankingPlayerCount: 0
     property int rankingTotalPlayCount: 0
+    property string lastRankingClearRateLogKey: ""
     property var rankingSavedItems: []
     property var rankingSavedFolderContents: []
     property int rankingSavedRealItemCount: 0
@@ -2134,11 +2135,14 @@ Item {
         if (isEntry(item)) {
             return 4;
         }
-        if (isTable(item) || isLevel(item)) {
+        if (isTable(item)) {
+            return 1;
+        }
+        if (isLevel(item)) {
             return 2;
         }
         if (isCourse(item)) {
-            return isPlayableCourse(item) ? 3 : 4;
+            return isPlayableCourse(item) ? 8 : 9;
         }
         return 1;
     }
@@ -2432,11 +2436,20 @@ Item {
         case "LIGHTASSISTEASY":
         case "LIGHT_ASSIST_EASY":
             return "LIGHTASSIST";
+        case "CLEAR":
+            return "NORMAL";
         case "EX_HARD":
             return "EXHARD";
         case "EXHARD_DAN":
         case "EX_HARD_DAN":
             return "EXHARDDAN";
+        case "FULLCOMBO":
+        case "FULL_COMBO":
+        case "FULL COMBO":
+            return "FC";
+        case "NO_PLAY":
+        case "NO PLAY":
+            return "NOPLAY";
         case "FAILED":
         case "AEASY":
         case "LIGHTASSIST":
@@ -3302,6 +3315,55 @@ Item {
         return Math.floor(total * 1000 / rankingPlayerCount) % 10;
     }
 
+    function rankingClearPercentFromCounts(clearCounts: var, playerCount: var, clearTypes: var) : var {
+        if (!clearCounts || playerCount <= 0) {
+            return 0;
+        }
+        let total = 0;
+        for (let clearType of clearTypes) {
+            total += clearCounts[clearType] || 0;
+        }
+        return Math.floor(total * 100 / playerCount);
+    }
+
+    function rankingClearRateTypesForSkin() : var {
+        return root.useBeatorajaSelectOptions
+            ? ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
+            : ["EASY", "NORMAL", "HARD", "FC", "PERFECT", "MAX"];
+    }
+
+    function logRankingClearRateNumber(num: var, value: var, available: var, localCounts: var) : void {
+        if (num !== 94 && num !== 181) {
+            return;
+        }
+        let chart = selectedStateChartData;
+        let selectedMd5 = chart ? normalizedMd5(chart.md5) : "";
+        let localClearRate = localCounts ? percentInteger(localCounts.clear, localCounts.play) : 0;
+        let key = [
+            num,
+            selectedMd5,
+            normalizedMd5(rankingStatsMd5),
+            rankingPlayerCount,
+            value,
+            available,
+            JSON.stringify(rankingClearCounts || {})
+        ].join("|");
+        if (lastRankingClearRateLogKey === key) {
+            return;
+        }
+        lastRankingClearRateLogKey = key;
+        console.warn("[LR2] #NUMBER " + num
+            + " clear-rate value=" + value
+            + " available=" + available
+            + " selectedMd5=" + selectedMd5
+            + " statsMd5=" + normalizedMd5(rankingStatsMd5)
+            + " playerCount=" + rankingPlayerCount
+            + " clearCounts=" + JSON.stringify(rankingClearCounts || {})
+            + " localPlay=" + (localCounts ? (localCounts.play || 0) : 0)
+            + " localClear=" + (localCounts ? (localCounts.clear || 0) : 0)
+            + " localClearRate=" + localClearRate);
+    }
+
     function normalizedMd5(value: var) : var {
         return value ? String(value).toLowerCase() : "";
     }
@@ -3360,6 +3422,16 @@ Item {
         rankingPlayerRank = nextPlayerRank;
         rankingPlayerCount = nextPlayerCount;
         rankingTotalPlayCount = nextTotalPlayCount;
+        console.warn("[LR2] Ranking stats set"
+            + " md5=" + nextMd5
+            + " selectedMd5=" + normalizedMd5(selectedStateChartData ? selectedStateChartData.md5 : "")
+            + " playerCount=" + nextPlayerCount
+            + " totalPlayCount=" + nextTotalPlayCount
+            + " playerRank=" + nextPlayerRank
+            + " clearRate94=" + rankingClearPercentFromCounts(nextClearCounts,
+                nextPlayerCount,
+                rankingClearRateTypesForSkin())
+            + " clearCounts=" + JSON.stringify(nextClearCounts));
         return true;
     }
 
@@ -4174,14 +4246,30 @@ Item {
             return hasRankingStats() ? rankingPlayerRank : 0;
         case 93:
             return hasRankingStats() ? rankingPlayerCount : 0;
-        case 94:
-            return hasRankingStats() ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
+        case 94: {
+            let available = hasRankingStats();
+            let value = available
+                ? rankingClearPercentFromCounts(rankingClearCounts,
+                    rankingPlayerCount,
+                    rankingClearRateTypesForSkin())
+                : 0;
+            logRankingClearRateNumber(num, value, available, counts());
+            return value;
+        }
         case 179:
             return hasRankingStats() ? rankingPlayerRank : 0;
         case 180:
             return hasRankingStats() ? rankingPlayerCount : 0;
-        case 181:
-            return hasRankingStats() ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : 0;
+        case 181: {
+            let available = hasRankingStats();
+            let value = available
+                ? rankingClearPercentFromCounts(rankingClearCounts,
+                    rankingPlayerCount,
+                    rankingClearRateTypesForSkin())
+                : 0;
+            logRankingClearRateNumber(num, value, available, counts());
+            return value;
+        }
         case 182:
             return 0;
         case 200:

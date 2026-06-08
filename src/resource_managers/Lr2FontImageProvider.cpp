@@ -133,6 +133,73 @@ composeTextImage(const QString& fontPath, const QString& text)
     return rendered;
 }
 
+auto
+composeScaledTextImage(const QString& fontPath,
+                       const QString& text,
+                       const QSize& targetSize,
+                       const bool smooth) -> QImage
+{
+    const auto* dict = Lr2FontCache::instance().load(fontPath);
+    if (!dict || dict->height <= 0 || text.isEmpty() || targetSize.isEmpty()) {
+        return {};
+    }
+
+    QList<GlyphDraw> glyphs;
+    glyphs.reserve(text.size());
+
+    qreal sourceTotalWidth = 0.0;
+    int textureHeight = dict->height;
+    bool hasPreviousCharacter = false;
+    for (const auto codepoint : text.toUcs4()) {
+        if (hasPreviousCharacter) {
+            sourceTotalWidth += dict->kerning;
+        }
+        hasPreviousCharacter = true;
+
+        const auto it = dict->glyphs.find(static_cast<char32_t>(codepoint));
+        if (it == dict->glyphs.end()) {
+            sourceTotalWidth += fallbackAdvance(dict->height);
+            continue;
+        }
+
+        const auto& glyph = it.value();
+        const qreal advance = glyphAdvance(*dict, glyph);
+
+        if (validGlyph(*dict, glyph)) {
+            glyphs.append({ &dict->textures[glyph.imgIdx],
+                            glyph.rect,
+                            sourceTotalWidth });
+            textureHeight = std::max(textureHeight, glyph.rect.height());
+        }
+
+        sourceTotalWidth += advance;
+    }
+
+    if (sourceTotalWidth <= 0.0 || textureHeight <= 0) {
+        return {};
+    }
+
+    QImage image(targetSize, QImage::Format_ARGB32);
+    image.fill(Qt::transparent);
+
+    const qreal scaleX = static_cast<qreal>(targetSize.width()) / sourceTotalWidth;
+    const qreal scaleY = static_cast<qreal>(targetSize.height()) / textureHeight;
+
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing, false);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform, smooth);
+    for (const auto& glyph : glyphs) {
+        const QRectF target(glyph.sourceX * scaleX,
+                            0.0,
+                            glyph.sourceRect.width() * scaleX,
+                            glyph.sourceRect.height() * scaleY);
+        painter.drawImage(target, *glyph.texture, glyph.sourceRect);
+    }
+    painter.end();
+
+    return image;
+}
+
 } // namespace
 
 Lr2FontImageProvider::Lr2FontImageProvider()
@@ -144,6 +211,15 @@ QImage
 Lr2FontImageProvider::textImage(const QString& fontPath, const QString& text)
 {
     return renderedText(fontPath, text).image;
+}
+
+QImage
+Lr2FontImageProvider::scaledTextImage(const QString& fontPath,
+                                      const QString& text,
+                                      const QSize& targetSize,
+                                      const bool smooth)
+{
+    return composeScaledTextImage(fontPath, text, targetSize, smooth);
 }
 
 Lr2RenderedFontText

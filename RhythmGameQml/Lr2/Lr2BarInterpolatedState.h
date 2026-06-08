@@ -16,6 +16,7 @@ class Lr2BarInterpolatedState : public QObject {
     Q_PROPERTY(Lr2BarPositionMap* positionMap READ positionMap WRITE setPositionMap NOTIFY positionMapChanged)
     Q_PROPERTY(int row READ row WRITE setRow NOTIFY rowChanged)
     Q_PROPERTY(bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
+    Q_PROPERTY(bool valid READ isValid NOTIFY stateChanged)
     Q_PROPERTY(qreal x READ x NOTIFY stateChanged)
     Q_PROPERTY(qreal y READ y NOTIFY stateChanged)
     Q_PROPERTY(qreal w READ w NOTIFY stateChanged)
@@ -49,6 +50,7 @@ public:
     bool isEnabled() const;
     void setEnabled(bool enabled);
 
+    bool isValid() const;
     qreal x() const;
     qreal y() const;
     qreal w() const;

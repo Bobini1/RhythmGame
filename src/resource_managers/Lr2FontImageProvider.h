@@ -27,6 +27,10 @@ class Lr2FontImageProvider : public QQuickImageProvider
     static Lr2RenderedFontText renderedText(const QString& fontPath,
                                             const QString& text);
     static QImage textImage(const QString& fontPath, const QString& text);
+    static QImage scaledTextImage(const QString& fontPath,
+                                  const QString& text,
+                                  const QSize& targetSize,
+                                  bool smooth = false);
 
     QImage requestImage(const QString& id,
                         QSize* size,

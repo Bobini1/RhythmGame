@@ -78,8 +78,11 @@ QtObject {
     property int cachedSnapshotPlayerCount: -1
     property int cachedSnapshotScoreCount: -1
     property int cachedSnapshotScoreGeneration: -1
+    property int cachedSnapshotClearCountsGeneration: -1
     property int cachedSnapshotProvider: -1
     property int cachedSnapshotProfileUserId: -1
+    property int clearCountsGeneration: 0
+    property string lastApplyStatsLogKey: ""
     readonly property int transitionDuration: 120
     readonly property int transitionElapsed: root.transitionPhase !== 0
         ? Math.max(0, Math.min(root.transitionDuration,
@@ -113,7 +116,10 @@ QtObject {
         onRankingEntriesChanged: root.handleModelChanged(true, false)
         onPlayerCountChanged: root.handleModelChanged(false, false)
         onScoreCountChanged: root.handleModelChanged(false, false)
-        onClearCountsChanged: root.handleModelChanged(true, false)
+        onClearCountsChanged: {
+            root.clearCountsGeneration += 1;
+            root.handleModelChanged(true, false);
+        }
         onChartIdChanged: {
             if (root.internetOpenWhenReady && !loading) {
                 Qt.callLater(root.finishOpenInternetRanking);
@@ -297,6 +303,22 @@ QtObject {
         return counts;
     }
 
+    function modelClearCounts() : var {
+        let source = root.rankingModel.clearCounts || {};
+        let counts = {};
+        let hasCounts = false;
+        for (let key in source) {
+            let count = Number(source[key] || 0);
+            if (count <= 0) {
+                continue;
+            }
+            let clearType = root.selectContext.skinCompatibleClearType(key);
+            counts[clearType] = (counts[clearType] || 0) + count;
+            hasCounts = true;
+        }
+        return hasCounts ? counts : null;
+    }
+
     function computedPlayerCount(entries: var) : var {
         if (!root.modelMatchesCurrentChart) {
             return 0;
@@ -375,15 +397,17 @@ QtObject {
                 && root.cachedSnapshotPlayerCount === playerCountValue
                 && root.cachedSnapshotScoreCount === scoreCountValue
                 && root.cachedSnapshotScoreGeneration === scoreGeneration
+                && root.cachedSnapshotClearCountsGeneration === root.clearCountsGeneration
                 && root.cachedSnapshotProvider === provider
                 && root.cachedSnapshotProfileUserId === userId) {
             return root.cachedSnapshot;
         }
 
         let currentEntries = root.buildEntries(source, provider);
+        let currentClearCounts = root.modelClearCounts() || root.clearCounts(currentEntries);
         root.cachedSnapshot = {
             entries: currentEntries,
-            clearCounts: root.clearCounts(currentEntries),
+            clearCounts: currentClearCounts,
             playerCount: root.playerCount(currentEntries),
             totalPlayCount: root.totalPlayCount(currentEntries),
             playerRank: root.playerRank(currentEntries)
@@ -394,6 +418,7 @@ QtObject {
         root.cachedSnapshotPlayerCount = playerCountValue;
         root.cachedSnapshotScoreCount = scoreCountValue;
         root.cachedSnapshotScoreGeneration = scoreGeneration;
+        root.cachedSnapshotClearCountsGeneration = root.clearCountsGeneration;
         root.cachedSnapshotProvider = provider;
         root.cachedSnapshotProfileUserId = userId;
         return root.cachedSnapshot;
@@ -455,9 +480,48 @@ QtObject {
         if (root.host.effectiveScreenKey !== "select"
                 || !targetChart || !targetChart.md5
                 || !root.modelMatchesCurrentChart) {
+            let skippedKey = [
+                "skip",
+                root.host.effectiveScreenKey,
+                targetChart && targetChart.md5 ? String(targetChart.md5).toLowerCase() : "",
+                root.loadedMd5 ? String(root.loadedMd5).toLowerCase() : "",
+                root.modelMatchesCurrentChart,
+                root.rankingModel.loading,
+                root.currentPlayerCount
+            ].join("|");
+            if (root.lastApplyStatsLogKey !== skippedKey) {
+                root.lastApplyStatsLogKey = skippedKey;
+                console.warn("[LR2] Ranking stats not applied"
+                    + " screen=" + root.host.effectiveScreenKey
+                    + " chartMd5=" + (targetChart && targetChart.md5 ? String(targetChart.md5).toLowerCase() : "")
+                    + " loadedMd5=" + (root.loadedMd5 ? String(root.loadedMd5).toLowerCase() : "")
+                    + " modelMatches=" + root.modelMatchesCurrentChart
+                    + " loading=" + root.rankingModel.loading
+                    + " playerCount=" + root.currentPlayerCount);
+            }
             return;
         }
         let currentSnapshot = root.snapshot();
+        let appliedKey = [
+            "apply",
+            String(targetChart.md5).toLowerCase(),
+            currentSnapshot.entries.length,
+            currentSnapshot.playerCount,
+            currentSnapshot.totalPlayCount,
+            currentSnapshot.playerRank,
+            JSON.stringify(currentSnapshot.clearCounts || {})
+        ].join("|");
+        if (root.lastApplyStatsLogKey !== appliedKey) {
+            root.lastApplyStatsLogKey = appliedKey;
+            console.warn("[LR2] Applying ranking stats to select"
+                + " md5=" + String(targetChart.md5).toLowerCase()
+                + " entries=" + currentSnapshot.entries.length
+                + " playerCount=" + currentSnapshot.playerCount
+                + " totalPlayCount=" + currentSnapshot.totalPlayCount
+                + " playerRank=" + currentSnapshot.playerRank
+                + " modelClearCounts=" + JSON.stringify(root.rankingModel.clearCounts || {})
+                + " snapshotClearCounts=" + JSON.stringify(currentSnapshot.clearCounts || {}));
+        }
         root.selectContext.setRankingStats(
             targetChart.md5,
             currentSnapshot.clearCounts,

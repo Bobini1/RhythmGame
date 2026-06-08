@@ -464,8 +464,7 @@ Loader {
             readonly property bool selectNumberUsesValueResolver: !selectNumberScreen
                 || !selectNumberHasFocusedState
                 || selectNumberAlwaysUsesResolver
-            readonly property bool usesFocusedSelectNumber: hasCurrentState
-                && selectNumberScreen
+            readonly property bool usesFocusedSelectNumber: selectNumberScreen
                 && !usesFpsNumber
                 && !selectNumberUsesValueResolver
             readonly property bool valueResolverNumberNeeded: hasCurrentState

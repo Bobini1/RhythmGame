@@ -607,6 +607,14 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     const bool selectInfoSrcTimer = selectScreen && descriptor.source.valid && descriptor.source.timer == 11;
     const bool selectPanelTimer = (descriptor.dstAnalysis.firstTimer >= 21 && descriptor.dstAnalysis.firstTimer <= 26)
         || (descriptor.dstAnalysis.firstTimer >= 31 && descriptor.dstAnalysis.firstTimer <= 36);
+    constexpr int selectIntroClockLimit = 3200;
+    const bool selectDelayedPersistentDst = selectScreen
+        && !descriptor.dsts.isEmpty()
+        && descriptor.dsts.front().valid
+        && descriptor.dstAnalysis.firstTimer == 0
+        && descriptor.dsts.front().loop >= 0
+        && descriptor.dsts.front().loop >= descriptor.dsts.back().time
+        && descriptor.dsts.back().time > selectIntroClockLimit;
 
     const bool usesElementActiveOptions =
         descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty();
@@ -624,7 +632,8 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.directChartAssetSourceType = rt::chartAssetSourceType(descriptor.source);
     descriptor.barDistributionGraphSourceHasFrameAnimation =
         sourceHasBarDistributionGraphAnimation(descriptor.source);
-    descriptor.usesLiveDstClock = selectScreen && (selectPanelTimer || descriptor.dstAnalysis.loopsContinuously);
+    descriptor.usesLiveDstClock = selectScreen
+        && (selectPanelTimer || descriptor.dstAnalysis.loopsContinuously || selectDelayedPersistentDst);
     descriptor.usesLiveSourceClock = selectScreen && sourceCycles;
     descriptor.usesLiveSelectClock = descriptor.usesLiveDstClock || descriptor.usesLiveSourceClock;
     descriptor.usesSelectHeldButtonTimer = selectScreen && m_timerState
@@ -691,9 +700,8 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.numberUsesFocusedSelectState = selectNumberUsesFocusedState(descriptor.source.num);
 
     if (rt::isSelectBarElement(type, descriptor.source)) {
-        descriptor.z = m_selectBarElementSortBase
-            + rt::selectBarElementLayer(type, descriptor.source)
-            + descriptor.dstAnalysis.firstSortId * 0.000001
+        descriptor.z = descriptor.dstAnalysis.firstSortId
+            + rt::selectBarElementLayer(type, descriptor.source) * 0.001
             + index * 0.000000001;
     } else if (type == 8) {
         descriptor.z = rt::staticNoteElementSortId(noteDsts) + index * 0.000001;

@@ -9,6 +9,9 @@
 #include <QFontMetricsF>
 #include <QPainter>
 #include <QQuickWindow>
+#include <QDebug>
+#include <QPointF>
+#include <QSet>
 #include <QSGNode>
 #include <QSGOpacityNode>
 #include <QSGSimpleTextureNode>
@@ -144,6 +147,83 @@ QString colorKey(const QColor& color) {
 QSGTexture::Filtering filteringForFilter(int filter)
 {
     return filter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
+}
+
+QSizeF sceneScaleForItem(const QQuickItem& item)
+{
+    qreal dpr = 1.0;
+    if (const auto* window = item.window()) {
+        dpr = std::max<qreal>(1.0, window->devicePixelRatio());
+    }
+
+    const QPointF origin = item.mapToScene(QPointF(0.0, 0.0));
+    const QPointF xUnit = item.mapToScene(QPointF(1.0, 0.0));
+    const QPointF yUnit = item.mapToScene(QPointF(0.0, 1.0));
+    qreal scaleX = std::hypot(xUnit.x() - origin.x(), xUnit.y() - origin.y()) * dpr;
+    qreal scaleY = std::hypot(yUnit.x() - origin.x(), yUnit.y() - origin.y()) * dpr;
+    if (!std::isfinite(scaleX) || scaleX <= 0.0) {
+        scaleX = 1.0;
+    }
+    if (!std::isfinite(scaleY) || scaleY <= 0.0) {
+        scaleY = 1.0;
+    }
+    return QSizeF(scaleX, scaleY);
+}
+
+bool colorNeedsTint(const QColor& color)
+{
+    return std::abs(color.redF() - 1.0) > 0.001
+        || std::abs(color.greenF() - 1.0) > 0.001
+        || std::abs(color.blueF() - 1.0) > 0.001;
+}
+
+QImage tintedImage(QImage image, const QColor& color)
+{
+    if (image.isNull() || !colorNeedsTint(color)) {
+        return image;
+    }
+
+    image = image.convertToFormat(QImage::Format_ARGB32);
+    const double redScale = std::clamp(static_cast<double>(color.redF()), 0.0, 1.0);
+    const double greenScale = std::clamp(static_cast<double>(color.greenF()), 0.0, 1.0);
+    const double blueScale = std::clamp(static_cast<double>(color.blueF()), 0.0, 1.0);
+    for (int y = 0; y < image.height(); ++y) {
+        auto* line = reinterpret_cast<QRgb*>(image.scanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            const QRgb pixel = line[x];
+            const int alpha = qAlpha(pixel);
+            if (alpha == 0) {
+                continue;
+            }
+            line[x] = qRgba(
+                std::clamp(static_cast<int>(std::lround(qRed(pixel) * redScale)), 0, 255),
+                std::clamp(static_cast<int>(std::lround(qGreen(pixel) * greenScale)), 0, 255),
+                std::clamp(static_cast<int>(std::lround(qBlue(pixel) * blueScale)), 0, 255),
+                alpha);
+        }
+    }
+    return image;
+}
+
+bool shouldLogBarText(const QString& fontPath, const QString& text)
+{
+    QString normalized = fontPath;
+    normalized.replace('\\', '/');
+    if (!normalized.contains(QStringLiteral("Gothic_Dolls"), Qt::CaseInsensitive)
+            && !normalized.contains(QStringLiteral("/msel/"), Qt::CaseInsensitive)) {
+        return false;
+    }
+
+    static QSet<QString> logged;
+    static int count = 0;
+    const QString key = normalized + u'\x1f' + text.left(64);
+    if (logged.contains(key) || count >= 100) {
+        return false;
+    }
+
+    logged.insert(key);
+    ++count;
+    return true;
 }
 
 void clearChildren(QSGNode* node) {
@@ -372,32 +452,7 @@ Lr2BarTextItem::TextImage Lr2BarTextItem::textImageFor(const QString& text,
     if (m_source.isLr2Font) {
         const auto rendered =
           resource_managers::Lr2FontImageProvider::renderedText(m_source.fontPath, text);
-        QImage image = rendered.image;
-        if (!image.isNull()
-                && (std::abs(color.redF() - 1.0) > 0.001
-                    || std::abs(color.greenF() - 1.0) > 0.001
-                    || std::abs(color.blueF() - 1.0) > 0.001)) {
-            image = image.convertToFormat(QImage::Format_ARGB32);
-            const double redScale = std::clamp(static_cast<double>(color.redF()), 0.0, 1.0);
-            const double greenScale = std::clamp(static_cast<double>(color.greenF()), 0.0, 1.0);
-            const double blueScale = std::clamp(static_cast<double>(color.blueF()), 0.0, 1.0);
-            for (int y = 0; y < image.height(); ++y) {
-                auto* line = reinterpret_cast<QRgb*>(image.scanLine(y));
-                for (int x = 0; x < image.width(); ++x) {
-                    const QRgb pixel = line[x];
-                    const int alpha = qAlpha(pixel);
-                    if (alpha == 0) {
-                        continue;
-                    }
-                    line[x] = qRgba(
-                        std::clamp(static_cast<int>(std::lround(qRed(pixel) * redScale)), 0, 255),
-                        std::clamp(static_cast<int>(std::lround(qGreen(pixel) * greenScale)), 0, 255),
-                        std::clamp(static_cast<int>(std::lround(qBlue(pixel) * blueScale)), 0, 255),
-                        alpha);
-                }
-            }
-        }
-        result.image = image;
+        result.image = tintedImage(rendered.image, color);
         result.naturalSize = rendered.naturalSize;
     } else {
         QFont font(m_source.fontFamily.isEmpty() ? m_source.fontPath : m_source.fontFamily);
@@ -446,6 +501,34 @@ Lr2BarTextItem::TextImage Lr2BarTextItem::textImageFor(const QString& text,
     return result;
 }
 
+QImage Lr2BarTextItem::scaledLr2TextImageFor(const QString& text,
+                                             const QColor& color,
+                                             const QSize& targetSize)
+{
+    if (!m_source.isLr2Font || text.isEmpty() || targetSize.isEmpty()) {
+        return {};
+    }
+
+    const QString key = m_source.fontPath
+        + u'\x1f' + QString::number(targetSize.width())
+        + u'x' + QString::number(targetSize.height())
+        + u'\x1f' + colorKey(color)
+        + u'\x1f' + text;
+    if (const auto it = m_scaledTextImageCache.constFind(key); it != m_scaledTextImageCache.constEnd()) {
+        return *it;
+    }
+
+    QImage image =
+      resource_managers::Lr2FontImageProvider::scaledTextImage(m_source.fontPath, text, targetSize);
+    image = tintedImage(std::move(image), color);
+
+    if (m_scaledTextImageCache.size() > 512) {
+        m_scaledTextImageCache.clear();
+    }
+    m_scaledTextImageCache.insert(key, image);
+    return image;
+}
+
 QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) {
     if (!window() || !m_supported || !m_barPositionMap || m_barCells.isEmpty()) {
         delete oldNode;
@@ -469,6 +552,7 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
     const qreal anchorOffsetX = m_source.align == 1
         ? -boxW * 0.5
         : (m_source.align == 2 ? -boxW : 0.0);
+    const QSizeF sceneScale = sceneScaleForItem(*this);
 
     for (int slot = 0; slot < m_barCells.size(); ++slot) {
         const auto* cell = m_barCells.at(slot).data();
@@ -513,7 +597,40 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
             continue;
         }
 
-        auto* texture = window()->createTextureFromImage(rendered.image);
+        QImage textureImage = rendered.image;
+        if (m_source.isLr2Font) {
+            const QSize targetSize(
+                std::max(1, static_cast<int>(std::lround(drawnW * sceneScale.width()))),
+                std::max(1, static_cast<int>(std::lround(drawnH * sceneScale.height()))));
+            const QImage scaledImage = scaledLr2TextImageFor(text, textColor, targetSize);
+            if (!scaledImage.isNull()) {
+                textureImage = scaledImage;
+            }
+        }
+
+        if (shouldLogBarText(m_source.fontPath, text)) {
+            qWarning() << "[LR2] BAR_TEXT_DEBUG"
+                       << "slot=" << slot
+                       << "row=" << row
+                       << "text=" << text
+                       << "font=" << m_source.fontPath
+                       << "lr2Font=" << m_source.isLr2Font
+                       << "titleType=" << m_source.titleType
+                       << "align=" << m_source.align
+                       << "state=" << QRectF(state.x, state.y, state.w, state.h)
+                       << "stateA=" << state.a
+                       << "filter=" << state.filter
+                       << "blend=" << state.blend
+                       << "box=" << QSizeF(boxW, boxH)
+                       << "image=" << rendered.image.size()
+                       << "textureImage=" << textureImage.size()
+                       << "natural=" << rendered.naturalSize
+                       << "scale=" << QSizeF(scaleX, scaleY)
+                       << "sceneScale=" << sceneScale
+                       << "drawn=" << QRectF(x, y, drawnW, drawnH);
+        }
+
+        auto* texture = window()->createTextureFromImage(textureImage);
         if (!texture) {
             continue;
         }

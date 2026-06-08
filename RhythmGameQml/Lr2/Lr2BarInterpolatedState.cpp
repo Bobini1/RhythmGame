@@ -88,6 +88,10 @@ void Lr2BarInterpolatedState::setEnabled(bool enabled) {
     updateState();
 }
 
+bool Lr2BarInterpolatedState::isValid() const {
+    return m_state.valid;
+}
+
 qreal Lr2BarInterpolatedState::x() const {
     return m_state.x;
 }

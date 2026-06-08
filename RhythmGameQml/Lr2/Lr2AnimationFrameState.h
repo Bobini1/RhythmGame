@@ -22,6 +22,7 @@ class Lr2AnimationFrameState : public QObject {
     Q_PROPERTY(int skinTime READ skinTime WRITE setSkinTime NOTIFY skinTimeChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
+    Q_PROPERTY(int sourceTimeOffset READ sourceTimeOffset WRITE setSourceTimeOffset NOTIFY sourceTimeOffsetChanged)
     Q_PROPERTY(int frameOverride READ frameOverride WRITE setFrameOverride NOTIFY frameOverrideChanged)
     Q_PROPERTY(int frameGroupSize READ frameGroupSize WRITE setFrameGroupSize NOTIFY frameGroupSizeChanged)
     Q_PROPERTY(int textureWidth READ textureWidth WRITE setTextureWidth NOTIFY textureWidthChanged)
@@ -65,6 +66,9 @@ public:
     int timerFire() const;
     void setTimerFire(int timerFire);
 
+    int sourceTimeOffset() const;
+    void setSourceTimeOffset(int offset);
+
     int frameOverride() const;
     void setFrameOverride(int frameOverride);
 
@@ -89,6 +93,7 @@ signals:
     void skinTimeChanged();
     void timersChanged();
     void timerFireChanged();
+    void sourceTimeOffsetChanged();
     void frameOverrideChanged();
     void frameGroupSizeChanged();
     void textureWidthChanged();
@@ -118,6 +123,7 @@ private:
     int m_skinTime = 0;
     QVariant m_timers;
     int m_timerFire = -2147483648;
+    int m_sourceTimeOffset = 0;
     int m_frameOverride = -1;
     int m_frameGroupSize = 1;
     int m_textureWidth = 0;

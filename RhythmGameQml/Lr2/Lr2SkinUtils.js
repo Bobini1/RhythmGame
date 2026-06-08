@@ -187,13 +187,10 @@ function normalizedBlendMode(rawBlendMode, colorKeyEnabled, supportsInvertedBlen
     if (raw === 0 && !colorKeyEnabled) {
         return 1;
     }
-    if (raw === 5 || raw === 6) {
-        return 2;
-    }
     if (raw === 10 && !supportsInvertedBlend) {
         return 1;
     }
-    if (raw === 3 || raw === 4 || raw === 9 || raw === 11) {
+    if (raw === 3 || raw === 4 || raw === 5 || raw === 6 || raw === 9 || raw === 11) {
         return 1;
     }
     return raw;

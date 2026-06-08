@@ -212,10 +212,8 @@ normalizedBlendMode(int rawBlend, bool colorKeyEnabled)
     if (rawBlend == 0 && !colorKeyEnabled) {
         return 1;
     }
-    if (rawBlend == 5 || rawBlend == 6) {
-        return 2;
-    }
-    if (rawBlend == 3 || rawBlend == 4 || rawBlend == 9 || rawBlend == 11) {
+    if (rawBlend == 3 || rawBlend == 4 || rawBlend == 5 || rawBlend == 6 ||
+        rawBlend == 9 || rawBlend == 11) {
         return 1;
     }
     return rawBlend;

@@ -112,6 +112,21 @@ void Lr2AnimationFrameState::setTimerFire(int timerFire) {
     updateFrameIndex();
 }
 
+int Lr2AnimationFrameState::sourceTimeOffset() const {
+    return m_sourceTimeOffset;
+}
+
+void Lr2AnimationFrameState::setSourceTimeOffset(int offset) {
+    offset = std::max(0, offset);
+    if (m_sourceTimeOffset == offset) {
+        return;
+    }
+
+    m_sourceTimeOffset = offset;
+    emit sourceTimeOffsetChanged();
+    updateFrameIndex();
+}
+
 int Lr2AnimationFrameState::frameOverride() const {
     return m_frameOverride;
 }
@@ -268,7 +283,7 @@ void Lr2AnimationFrameState::updateFrameIndex() {
         next = std::clamp(m_frameOverride, 0, std::max(0, frames - 1));
     } else if (m_enabled && m_source.valid && animationFrames > 1 && m_source.cycle > 0) {
         const qreal fire = effectiveTimerFire();
-        const qreal animTime = m_skinTime - fire;
+        const qreal animTime = m_skinTime - fire - m_sourceTimeOffset;
         const qreal msPerFrame = static_cast<qreal>(m_source.cycle) / animationFrames;
         if (fire >= 0.0 && animTime >= 0.0 && msPerFrame >= 1.0) {
             const qreal phase = std::fmod(animTime, static_cast<qreal>(m_source.cycle));

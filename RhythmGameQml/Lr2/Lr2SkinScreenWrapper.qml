@@ -238,11 +238,20 @@ Item {
         case "LIGHTASSISTEASY":
         case "LIGHT_ASSIST_EASY":
             return "LIGHTASSIST";
+        case "CLEAR":
+            return "NORMAL";
         case "EX_HARD":
             return "EXHARD";
         case "EXHARD_DAN":
         case "EX_HARD_DAN":
             return "EXHARDDAN";
+        case "FULLCOMBO":
+        case "FULL_COMBO":
+        case "FULL COMBO":
+            return "FC";
+        case "NO_PLAY":
+        case "NO PLAY":
+            return "NOPLAY";
         case "FAILED":
         case "AEASY":
         case "LIGHTASSIST":
@@ -1233,12 +1242,11 @@ Item {
 
     function elementZ(type: var, index: var, src: var, dsts: var) : var {
         // LR2/beatoraja draw BAR_* parts through a single bar renderer. Their
-        // #DST_BAR_* command positions configure that renderer instead of
-        // participating in the outer skin draw order independently.
+        // #DST_BAR_* command positions configure that renderer, but the
+        // resulting draw calls still participate in the global LR2 sort order.
         if (root.isSelectBarElement(type, src)) {
-            return root.selectBarElementSortBase
-                + root.selectBarElementLayer(type, src)
-                + root.fallbackSortId(dsts) * 0.000001
+            return root.fallbackSortId(dsts)
+                + root.selectBarElementLayer(type, src) * 0.001
                 + index * 0.000000001;
         }
 

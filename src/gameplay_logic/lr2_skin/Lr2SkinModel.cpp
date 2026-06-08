@@ -267,25 +267,24 @@ double selectBarElementLayer(const Lr2Element& element) {
     }
 }
 
-double elementSortKey(const Lr2Element& element, int noteElementSortId, int selectBarSortBase) {
+double elementSortKey(const Lr2Element& element, int noteElementSortId) {
     if (isSelectBarElement(element)) {
-        return selectBarSortBase
-            + selectBarElementLayer(element)
-            + firstSortId(element.dsts) * 0.000001;
+        return firstSortId(element.dsts)
+            + selectBarElementLayer(element) * 0.001;
     }
 
     return element.type == 8 ? noteElementSortId : firstSortId(element.dsts);
 }
 
 void sortElementsByDrawOrder(QList<Lr2Element>& elements, const QVariantList& noteDsts, const QVariantList& barRows) {
+    Q_UNUSED(barRows)
     const int noteElementSortId = staticNoteElementSortId(noteDsts);
-    const int selectBarSortBase = selectBarElementSortBase(barRows);
     std::stable_sort(
         elements.begin(),
         elements.end(),
-        [noteElementSortId, selectBarSortBase](const Lr2Element& lhs, const Lr2Element& rhs) {
-            return elementSortKey(lhs, noteElementSortId, selectBarSortBase)
-                < elementSortKey(rhs, noteElementSortId, selectBarSortBase);
+        [noteElementSortId](const Lr2Element& lhs, const Lr2Element& rhs) {
+            return elementSortKey(lhs, noteElementSortId)
+                < elementSortKey(rhs, noteElementSortId);
         });
 }
 

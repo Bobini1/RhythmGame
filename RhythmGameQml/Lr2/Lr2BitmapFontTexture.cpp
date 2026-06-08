@@ -3,6 +3,9 @@
 #include "resource_managers/Lr2FontImageProvider.h"
 
 #include <QQuickWindow>
+#include <QDebug>
+#include <QPointF>
+#include <QSet>
 #include <QSGSimpleTextureNode>
 #include <QSGTexture>
 
@@ -11,9 +14,48 @@
 
 namespace {
 
-QSGTexture::Filtering filteringForFilter(int filter)
+QSize sceneTextureSizeForItem(const QQuickItem& item)
 {
-    return filter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
+    qreal dpr = 1.0;
+    if (const auto* window = item.window()) {
+        dpr = std::max<qreal>(1.0, window->devicePixelRatio());
+    }
+
+    const QPointF origin = item.mapToScene(QPointF(0.0, 0.0));
+    const QPointF xUnit = item.mapToScene(QPointF(1.0, 0.0));
+    const QPointF yUnit = item.mapToScene(QPointF(0.0, 1.0));
+    qreal scaleX = std::hypot(xUnit.x() - origin.x(), xUnit.y() - origin.y()) * dpr;
+    qreal scaleY = std::hypot(yUnit.x() - origin.x(), yUnit.y() - origin.y()) * dpr;
+    if (!std::isfinite(scaleX) || scaleX <= 0.0) {
+        scaleX = 1.0;
+    }
+    if (!std::isfinite(scaleY) || scaleY <= 0.0) {
+        scaleY = 1.0;
+    }
+
+    return QSize(std::max(1, static_cast<int>(std::lround(item.width() * scaleX))),
+                 std::max(1, static_cast<int>(std::lround(item.height() * scaleY))));
+}
+
+bool shouldLogBitmapFont(const QString& fontPath, const QString& text)
+{
+    QString normalized = fontPath;
+    normalized.replace('\\', '/');
+    if (!normalized.contains(QStringLiteral("Gothic_Dolls"), Qt::CaseInsensitive)
+            && !normalized.contains(QStringLiteral("/msel/"), Qt::CaseInsensitive)) {
+        return false;
+    }
+
+    static QSet<QString> logged;
+    static int count = 0;
+    const QString key = normalized + u'\x1f' + text.left(64);
+    if (logged.contains(key) || count >= 80) {
+        return false;
+    }
+
+    logged.insert(key);
+    ++count;
+    return true;
 }
 
 QImage scaledNearestEndpoint(const QImage& image, const QSize& targetSize)
@@ -140,11 +182,33 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
     if (!node || m_textureDirty) {
         delete node;
         node = new QSGSimpleTextureNode;
-        const QSize targetSize(std::max(1, static_cast<int>(std::lround(width()))),
-                               std::max(1, static_cast<int>(std::lround(height()))));
-        const QImage textureImage = m_textureFilter == 0
-            ? scaledNearestEndpoint(m_image, targetSize)
-            : m_image;
+        const QSize targetSize = sceneTextureSizeForItem(*this);
+        QImage textureImage =
+          resource_managers::Lr2FontImageProvider::scaledTextImage(
+              m_fontPath,
+              m_text,
+              targetSize,
+              m_textureFilter != 0);
+        if (textureImage.isNull()) {
+            textureImage = m_textureFilter == 0
+                ? scaledNearestEndpoint(m_image, targetSize)
+                : m_image;
+        } else if (colorNeedsTint(m_textColor)) {
+            textureImage = tintedImage(textureImage, m_textColor);
+        }
+        if (shouldLogBitmapFont(m_fontPath, m_text)) {
+            qWarning() << "[LR2] BITMAP_FONT_DEBUG"
+                       << "text=" << m_text
+                       << "font=" << m_fontPath
+                       << "filter=" << m_textureFilter
+                       << "item=" << QSizeF(width(), height())
+                       << "sceneRect=" << mapRectToScene(boundingRect())
+                       << "target=" << targetSize
+                       << "baseImage=" << m_baseImage.size()
+                       << "textureImage=" << textureImage.size()
+                       << "natural=" << m_naturalSize
+                       << "color=" << m_textColor;
+        }
         auto* texture = window()->createTextureFromImage(textureImage);
         if (texture) {
             texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
@@ -155,7 +219,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         m_textureDirty = false;
     }
 
-    const auto filtering = filteringForFilter(m_textureFilter);
+    const auto filtering = QSGTexture::Nearest;
     if (auto* texture = node->texture()) {
         texture->setFiltering(filtering);
     }
@@ -167,9 +231,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
 void Lr2BitmapFontTexture::geometryChange(const QRectF& newGeometry, const QRectF& oldGeometry) {
     QQuickItem::geometryChange(newGeometry, oldGeometry);
     if (newGeometry.size() != oldGeometry.size()) {
-        if (m_textureFilter == 0) {
-            m_textureDirty = true;
-        }
+        m_textureDirty = true;
         update();
     }
 }

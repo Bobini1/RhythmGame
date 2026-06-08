@@ -48,6 +48,14 @@ Item {
     property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
 
     readonly property bool hasFrameAnimation: sourceHasFrameAnimation
+    readonly property int sourceTimeOffset: {
+        if (!srcData || !dsts || dsts.length === 0 || !dsts[0]) {
+            return 0;
+        }
+        return (srcData.timer || 0) === (dsts[0].timer || 0)
+            ? Math.max(0, dsts[0].time || 0)
+            : 0;
+    }
 
     Lr2TimelineFrame {
         id: drawState
@@ -119,6 +127,7 @@ Item {
         && root.hasCroppedTextureSource
         && !root.shouldAnimateInAtlasShader
         && root.blendMode === 1
+        && !root.colorKeyEnabled
         && !root.hasColorTint
     readonly property bool usesScratchRotation: hasCurrentState
         && (root.stateOp4 === 1 || root.stateOp4 === 2)
@@ -177,6 +186,7 @@ Item {
         skinTime: root.sourceSkinTime
         timers: root.timers
         timerFire: root.sourceTimerFire
+        sourceTimeOffset: root.sourceTimeOffset
         frameOverride: root.frameOverride
         textureWidth: Math.max(0, root.useFastImagePath ? 0 : atlasImage.implicitWidth)
         textureHeight: Math.max(0, root.useFastImagePath ? 0 : atlasImage.implicitHeight)
@@ -265,6 +275,7 @@ Item {
             cache: true
             asynchronous: root.sourceIsChartAsset
             retainWhileLoading: true
+            smooth: root.hasCurrentState && root.stateFilter !== 0
             mipmap: false
             visible: false
         }
@@ -278,7 +289,7 @@ Item {
             property color tint: root.tintColor
             property color transColor: root.transColor
             property real blendMode: root.blendMode
-            property real colorKeyEnabled: root.blendMode === 0 ? 1.0 : 0.0
+            property real colorKeyEnabled: root.colorKeyEnabled ? 1.0 : 0.0
             property real tolerance: 0.001
             property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(

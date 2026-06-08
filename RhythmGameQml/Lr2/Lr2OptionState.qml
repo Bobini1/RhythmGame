@@ -223,13 +223,17 @@ QtObject {
                 return player.profile;
             }
         }
-        if (side === 2 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player2Profile) {
-            return Rg.profileList.battleProfiles.player2Profile;
+        const profileList = Rg.profileList;
+        if (!profileList) {
+            return null;
         }
-        if (side === 1 && Rg.profileList.battleActive && Rg.profileList.battleProfiles.player1Profile) {
-            return Rg.profileList.battleProfiles.player1Profile;
+        if (side === 2 && profileList.battleActive && profileList.battleProfiles && profileList.battleProfiles.player2Profile) {
+            return profileList.battleProfiles.player2Profile;
         }
-        return Rg.profileList.mainProfile;
+        if (side === 1 && profileList.battleActive && profileList.battleProfiles && profileList.battleProfiles.player1Profile) {
+            return profileList.battleProfiles.player1Profile;
+        }
+        return profileList.mainProfile;
     }
 
     function generalVarsForSide(side) {
