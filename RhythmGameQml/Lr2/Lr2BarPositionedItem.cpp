@@ -231,7 +231,8 @@ void Lr2BarPositionedItem::updatePosition() {
     }
 
     const bool rowVisible = row > 0
-        && (!m_positionMap || row < m_positionMap->count());
+        && (!m_positionMap
+            || (row < m_positionMap->count() && m_positionMap->validAt(row)));
     if (m_rowVisible != rowVisible) {
         m_rowVisible = rowVisible;
         emit rowVisibleChanged();
@@ -243,7 +244,8 @@ void Lr2BarPositionedItem::updatePosition() {
     if (m_hasOverride) {
         nextX = m_overrideX;
         nextY = m_overrideY;
-    } else if (m_usePositionMap && m_positionMap && row >= 0 && row < m_positionMap->count()) {
+    } else if (m_usePositionMap && m_positionMap && row >= 0
+               && row < m_positionMap->count() && m_positionMap->validAt(row)) {
         nextX = m_positionMap->xAt(row);
         nextY = m_positionMap->yAt(row);
     }

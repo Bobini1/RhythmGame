@@ -37,6 +37,13 @@ QtObject {
     readonly property int selectTargetScratchRepeatMillis: 50
     property int selectTargetScratchDirection: 0
     property real selectTargetScratchNextMs: 0
+    readonly property int selectPanelButtonInitialRepeatMillis: 300
+    readonly property int selectPanelButtonRepeatMillis: 50
+    property int selectPanelRepeatKey: -1
+    property int selectPanelRepeatButtonId: 0
+    property int selectPanelRepeatDelta: 0
+    property int selectPanelRepeatPanel: 0
+    property bool selectPanelButtonRepeating: false
     readonly property int gameplayOptionInitialRepeatMillis: 300
     readonly property int gameplayOptionRepeatMillis: 50
     readonly property int gameplayLaneCoverDoublePressMillis: 500
@@ -69,11 +76,22 @@ QtObject {
         onTriggered: controller.repeatGameplayOptionKey()
     }
 
+    property Timer selectPanelButtonRepeatTimer: Timer {
+        id: selectPanelButtonRepeatTimer
+        repeat: false
+        onTriggered: controller.repeatSelectPanelButton()
+    }
+
     onSelectPanelChanged: {
         if (controller.selectPanel > 0) {
             root.clearSelectSearchFocus();
+            if (controller.selectPanelButtonRepeating
+                    && controller.selectPanelRepeatPanel !== controller.selectPanel) {
+                controller.stopSelectPanelButtonRepeat();
+            }
         } else {
             root.resetLr2SelectScratchRepeat();
+            controller.stopSelectPanelButtonRepeat();
         }
     }
 
@@ -747,6 +765,7 @@ QtObject {
             root.playOneShot(optionCloseSound);
             root.startSelectPanelCloseTimer(root.selectPanel);
         }
+        controller.stopSelectPanelButtonRepeat();
         root.selectPanel = 0;
         root.selectPanelHeldByStart = 0;
         root.selectHeldButtonTimerStarts = ({});
@@ -882,6 +901,67 @@ QtObject {
             }
         }
         controller.selectHeldButtonTimerStarts = copy;
+    }
+
+    function selectPanelButtonCanRepeat(buttonId: var) : var {
+        return buttonId === 59 || buttonId === 74;
+    }
+
+    function startSelectPanelButtonRepeat(key: var, binding: var) : void {
+        if (!binding || !controller.selectPanelButtonCanRepeat(binding.buttonId)) {
+            controller.stopSelectPanelButtonRepeat();
+            return;
+        }
+        controller.selectPanelRepeatKey = key;
+        controller.selectPanelRepeatButtonId = binding.buttonId;
+        controller.selectPanelRepeatDelta = binding.delta === undefined ? 1 : binding.delta;
+        controller.selectPanelRepeatPanel = root.selectPanel;
+        controller.selectPanelButtonRepeating = true;
+        selectPanelButtonRepeatTimer.interval = controller.selectPanelButtonInitialRepeatMillis;
+        selectPanelButtonRepeatTimer.restart();
+    }
+
+    function stopSelectPanelButtonRepeat() : void {
+        controller.selectPanelButtonRepeating = false;
+        controller.selectPanelRepeatKey = -1;
+        controller.selectPanelRepeatButtonId = 0;
+        controller.selectPanelRepeatDelta = 0;
+        controller.selectPanelRepeatPanel = 0;
+        selectPanelButtonRepeatTimer.stop();
+    }
+
+    function releaseSelectPanelButtonRepeat(key: var) : var {
+        if (!controller.selectPanelButtonRepeating || key !== controller.selectPanelRepeatKey) {
+            return;
+        }
+        controller.stopSelectPanelButtonRepeat();
+    }
+
+    function repeatSelectPanelButton() : var {
+        if (!controller.selectPanelButtonRepeating) {
+            return;
+        }
+
+        let key = controller.selectPanelRepeatKey;
+        if (!root.selectInputReady()
+                || root.selectPanel !== controller.selectPanelRepeatPanel
+                || !controller.gameplayOptionKeyHeld(key)) {
+            controller.stopSelectPanelButtonRepeat();
+            return;
+        }
+
+        let panelBindings = controller.activeSelectPanelKeyBindings[String(root.selectPanel)];
+        let binding = panelBindings ? panelBindings[String(key)] : null;
+        if (!binding
+                || binding.buttonId !== controller.selectPanelRepeatButtonId
+                || !controller.selectPanelButtonCanRepeat(binding.buttonId)) {
+            controller.stopSelectPanelButtonRepeat();
+            return;
+        }
+
+        root.triggerSelectPanelButton(binding.buttonId, controller.selectPanelRepeatDelta);
+        selectPanelButtonRepeatTimer.interval = controller.selectPanelButtonRepeatMillis;
+        selectPanelButtonRepeatTimer.restart();
     }
 
     function addHeldButtonTimer(result: var, timer: var, held: var) : var {
@@ -1465,7 +1545,11 @@ QtObject {
         if ((binding.buttonId || 0) <= 0) {
             return true;
         }
-        return root.triggerSelectPanelButton(binding.buttonId, binding.delta);
+        let handled = root.triggerSelectPanelButton(binding.buttonId, binding.delta);
+        if (handled) {
+            controller.startSelectPanelButtonRepeat(key, binding);
+        }
+        return handled;
     }
 
     function handleSelectPanelArrow(key: var) : var {

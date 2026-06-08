@@ -164,6 +164,10 @@ function fileUrlForPath(path) {
     return result;
 }
 
+function sanitizeFilename(value) {
+    return String(value || "").replace(/[/\\:*?"<>|]/g, "_");
+}
+
 function resolvedSource(source, chart, chartAssetSource) {
     if (!source) {
         return "";

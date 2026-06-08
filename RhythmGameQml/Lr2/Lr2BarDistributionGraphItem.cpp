@@ -1137,7 +1137,8 @@ Lr2BarDistributionGraphItem::updatePaintNode(QSGNode* oldNode,
         }
 
         const int row = m_barPositionMap->rowForSlot(slot);
-        if (row <= 0 || row >= m_barPositionMap->count()) {
+        if (row <= 0 || row >= m_barPositionMap->count()
+            || !m_barPositionMap->validAt(row)) {
             continue;
         }
 

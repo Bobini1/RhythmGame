@@ -40,6 +40,7 @@ public:
 
     Q_INVOKABLE qreal xAt(int row) const;
     Q_INVOKABLE qreal yAt(int row) const;
+    Q_INVOKABLE bool validAt(int row) const;
     Q_INVOKABLE int slotForRow(int row) const;
     Q_INVOKABLE int rowForSlot(int slot) const;
 

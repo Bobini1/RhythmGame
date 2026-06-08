@@ -430,6 +430,12 @@ Item {
     }
 
     Shortcut {
+        enabled: root.resultInputReady()
+        sequence: "F6"
+        onActivated: root.saveResultScreenshot()
+    }
+
+    Shortcut {
         enabled: root.screenUpdatesActive && root.effectiveScreenKey === "select" && !selectSearchState.focused
         sequence: "F8"
         onActivated: root.reloadCurrentSelectFolder()
@@ -850,7 +856,11 @@ Item {
     function setGaugeIndex(side: var, index: var) : void { optionState.setGaugeIndex(side, index); }
     function selectOptionSourceCount(buttonId: var, sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        return count > 1 ? count : selectPanelController.observedSelectButtonSourceCount(buttonId);
+        if (count > 1) {
+            return count;
+        }
+        let observed = selectPanelController.observedSelectButtonSourceCount(buttonId);
+        return observed > 1 ? observed : 0;
     }
     function lr2GaugeButtonId(side: var) : var {
         return side === 2 ? 41 : 40;
@@ -2075,6 +2085,99 @@ Item {
     function resultComboImproved(side: var) : var { return resultState.resultComboImproved(side); }
     function resultBadPoorImproved(side: var) : var { return resultState.resultBadPoorImproved(side); }
     function updateResultOldScores() : void { resultState.updateResultOldScores(); }
+
+    function resultScreenshotRankLabel(result: var) : var {
+        switch (root.resultRawRank(result)) {
+        case 8:
+            return "AAA";
+        case 7:
+            return "AA";
+        case 6:
+            return "A";
+        case 5:
+            return "B";
+        case 4:
+            return "C";
+        case 3:
+            return "D";
+        case 2:
+            return "E";
+        case 1:
+            return "F";
+        default:
+            return "NO RANK";
+        }
+    }
+
+    function resultScreenshotDifficultyName(difficulty: var) : var {
+        switch (difficulty) {
+        case 1:
+            return "BEGINNER";
+        case 2:
+            return "NORMAL";
+        case 3:
+            return "HYPER";
+        case 4:
+            return "ANOTHER";
+        case 5:
+            return "INSANE";
+        default:
+            return "";
+        }
+    }
+
+    function resultScreenshotPrefix(chartData: var) : var {
+        if (!chartData) {
+            return "";
+        }
+        let info = root.tableInfoForChart(chartData);
+        if (info) {
+            let tableLevel = root.tableLevelNameForInfo(info);
+            return tableLevel.length > 0 ? tableLevel + " " : "";
+        }
+        let difficulty = root.resultScreenshotDifficultyName(chartData.difficulty);
+        let level = chartData.playLevel || "";
+        if (!difficulty && !level) {
+            return "";
+        }
+        return (difficulty ? difficulty + " " : "") + level + " ";
+    }
+
+    function resultScreenshotFilename() : var {
+        let date = new Date();
+        let timestamp = Qt.formatDateTime(date, "yyyyMMdd_HHmmss");
+        let score = root.resultScore(1);
+        let result = score && score.result ? score.result : null;
+        let chartData = root.resultChartData();
+        let clearType = result
+            ? root.skinClearTypeForStatus(result.clearType || "FAILED")
+            : "FAILED";
+        let rank = root.resultScreenshotRankLabel(result);
+        let title = chartData
+            ? String(chartData.title || "") + (chartData.subtitle ? " " + chartData.subtitle : "")
+            : (root.course && root.course.name ? String(root.course.name) : "");
+        let stem = timestamp + "_" + root.resultScreenshotPrefix(chartData)
+            + title + " " + clearType + " " + rank;
+        return Lr2SkinUtils.sanitizeFilename(stem) + ".png";
+    }
+
+    function saveResultScreenshot() : var {
+        if (!root.resultInputReady()) {
+            return false;
+        }
+        let filename = root.resultScreenshotFilename();
+        root.grabToImage(function(grabResult) {
+            let filepath = Rg.programSettings.screenshotsFolder + "/" + filename;
+            if (grabResult.saveToFile(filepath)) {
+                Rg.programSettings.copyImageToClipboard(filepath);
+                screenshotMessage.show(qsTr("Screenshot saved to %1 and clipboard.").arg(filepath));
+            } else {
+                screenshotMessage.show(qsTr("Failed to save screenshot."));
+            }
+        });
+        return true;
+    }
+
     function gameplayPlayer(side: var) : var {
         return side === 2 ? root.gameplayPlayer2 : root.gameplayPlayer1;
     }
@@ -4748,6 +4851,7 @@ Item {
     Input.onButtonReleased: (key) => {
         root.releaseLr2GameplayOptionKey(key);
         selectPanelController.releaseSelectHeldButtonTimer(key);
+        selectPanelController.releaseSelectPanelButtonRepeat(key);
         if (root.isLr2RankingKey(key)) {
             root.closeLr2Ranking();
         }
@@ -4874,5 +4978,38 @@ Item {
         playContext: playContext
         selectContext: selectContext
         selectBarGeometry: selectBarGeometry
+    }
+
+    Text {
+        id: screenshotMessage
+
+        anchors.top: parent.top
+        anchors.topMargin: 16
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: Math.max(0, parent.width - 32)
+        z: 1000000
+        visible: opacity > 0
+        opacity: 0
+        color: "white"
+        font.pixelSize: 28
+        font.bold: true
+        fontSizeMode: Text.HorizontalFit
+        minimumPixelSize: 10
+        horizontalAlignment: Text.AlignHCenter
+        style: Text.Outline
+        styleColor: "black"
+
+        function show(message: var) : void {
+            text = message;
+            fadeAnim.restart();
+        }
+
+        SequentialAnimation {
+            id: fadeAnim
+
+            NumberAnimation { target: screenshotMessage; property: "opacity"; to: 1.0; duration: 150 }
+            PauseAnimation { duration: 3000 }
+            NumberAnimation { target: screenshotMessage; property: "opacity"; to: 0.0; duration: 600 }
+        }
     }
 }

@@ -137,6 +137,10 @@ qreal Lr2BarPositionMap::yAt(int row) const {
     return m_drawYs[row];
 }
 
+bool Lr2BarPositionMap::validAt(int row) const {
+    return row >= 0 && row < m_validRows.size() && m_validRows[row];
+}
+
 int Lr2BarPositionMap::slotForRow(int row) const {
     const int count = m_slotCount > 0 ? m_slotCount : boundedIntSize(m_drawXs.size());
     if (count <= 0 || row < 0 || row >= count) {
