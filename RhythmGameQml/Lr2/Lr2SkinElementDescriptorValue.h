@@ -12,6 +12,7 @@ class Lr2SkinElementDescriptorValue {
     Q_PROPERTY(int type MEMBER type)
     Q_PROPERTY(qreal z MEMBER z)
     Q_PROPERTY(bool usesActiveOptions MEMBER usesActiveOptions)
+    Q_PROPERTY(bool usesDstSkinTime MEMBER usesDstSkinTime)
     Q_PROPERTY(bool usesSkinTime MEMBER usesSkinTime)
     Q_PROPERTY(bool usesElementSkinTime MEMBER usesElementSkinTime)
     Q_PROPERTY(bool useDirectElementSkinClock MEMBER useDirectElementSkinClock)
@@ -55,6 +56,7 @@ public:
     int type = -1;
     qreal z = 0.0;
     bool usesActiveOptions = false;
+    bool usesDstSkinTime = false;
     bool usesSkinTime = false;
     bool usesElementSkinTime = false;
     bool useDirectElementSkinClock = false;

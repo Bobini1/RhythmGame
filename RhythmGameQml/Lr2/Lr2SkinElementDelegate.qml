@@ -56,6 +56,7 @@ Loader {
                 : ""
 
     readonly property bool usesActiveOptions: elementState.usesActiveOptions
+    readonly property bool usesDstSkinTime: elementState.usesDstSkinTime
     readonly property bool usesSkinTime: elementState.usesSkinTime
     readonly property int dstTimer: elementState.dstTimer
     readonly property int srcTimer: elementState.srcTimer
@@ -539,6 +540,7 @@ Loader {
             readonly property bool sourceAnimates: elemLoader.sourceTreeHasFrameAnimation
             readonly property bool needsTimelineSkinTime: elemLoader.elementData.src
                 && elemLoader.elementData.src.kind >= 2
+                && elemLoader.usesDstSkinTime
             dsts: elemLoader.elementData.dsts
             srcData: elemLoader.elementData.src
             skinTime: needsTimelineSkinTime

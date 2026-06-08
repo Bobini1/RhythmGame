@@ -1,6 +1,7 @@
 #include "Lr2ThemeScanner.h"
 
 #include "support/PathToQString.h"
+#include "support/PathToUtfString.h"
 #include "support/QStringToPath.h"
 
 #include <QFile>
@@ -158,8 +159,7 @@ findLr2filesRoot(const std::filesystem::path& currentDir)
   -> std::filesystem::path
 {
     for (auto dir = currentDir; !dir.empty();) {
-        const auto name =
-          QString::fromStdString(dir.filename().generic_string());
+        const auto name = support::pathToQString(dir.filename());
         if (name.compare("themes", Qt::CaseInsensitive) == 0 &&
             !dir.parent_path().empty()) {
             return dir.parent_path();
@@ -257,7 +257,7 @@ fallbackToCurrentTheme(const std::filesystem::path& currentDir,
 {
     auto it = lr2filesRelative.begin();
     if (it == lr2filesRelative.end() ||
-        QString::fromStdString(it->generic_string())
+        support::pathToQString(*it)
             .compare("themes", Qt::CaseInsensitive) != 0) {
         return {};
     }
@@ -560,7 +560,7 @@ scanThemeDirectory(const std::filesystem::path& themeDirectory)
         }
     } catch (const std::exception& e) {
         spdlog::warn("Error scanning LR2 skins in {}: {}",
-                     themeDirectory.string(),
+                     support::pathToUtfString(themeDirectory),
                      e.what());
     }
     return themeFamilies;

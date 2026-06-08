@@ -1,6 +1,7 @@
 #include "Lr2SkinParser.h"
 
 #include "support/PathToQString.h"
+#include "support/PathToUtfString.h"
 #include "support/QStringToPath.h"
 
 #include <QFile>
@@ -493,8 +494,7 @@ regularFilePathForSelection(const std::filesystem::path& directory,
         if (!entry.is_regular_file()) {
             continue;
         }
-        const auto filename =
-          QString::fromStdString(entry.path().filename().generic_string());
+        const auto filename = support::pathToQString(entry.path().filename());
         if (filename.compare(selection, Qt::CaseInsensitive) == 0) {
             return entry.path();
         }
@@ -594,8 +594,7 @@ resolveWildcardPath(const std::filesystem::path& absolutePattern,
                     const ParseState& state) -> QString
 {
     const auto directory = absolutePattern.parent_path();
-    const auto rawWildcard =
-      QString::fromStdString(absolutePattern.filename().generic_string());
+    const auto rawWildcard = support::pathToQString(absolutePattern.filename());
     const auto wildcard = stripLr2WildcardMarkers(rawWildcard);
     const auto normalizedDirectory =
       std::filesystem::absolute(directory).lexically_normal();
@@ -632,8 +631,7 @@ resolveWildcardPath(const std::filesystem::path& absolutePattern,
         if (!entry.is_regular_file()) {
             continue;
         }
-        const auto filename =
-          QString::fromStdString(entry.path().filename().generic_string());
+        const auto filename = support::pathToQString(entry.path().filename());
         if (regex.match(filename).hasMatch()) {
             matches.push_back(entry.path());
         }
@@ -649,8 +647,7 @@ findLr2filesRoot(const std::filesystem::path& currentDir)
   -> std::filesystem::path
 {
     for (auto dir = currentDir; !dir.empty();) {
-        const auto name =
-          QString::fromStdString(dir.filename().generic_string());
+        const auto name = support::pathToQString(dir.filename());
         if (name.compare("themes", Qt::CaseInsensitive) == 0 &&
             !dir.parent_path().empty()) {
             return dir.parent_path();
@@ -710,7 +707,7 @@ fallbackToCurrentTheme(const std::filesystem::path& currentDir,
 {
     auto it = lr2filesRelative.begin();
     if (it == lr2filesRelative.end() ||
-        QString::fromStdString(it->generic_string())
+        support::pathToQString(*it)
             .compare("themes", Qt::CaseInsensitive) != 0) {
         return {};
     }
@@ -1597,8 +1594,7 @@ processCommand(const QStringList& tokens,
           .settingId = makeSafeId(tokens[1].trimmed(), "file"),
           .directory = std::filesystem::absolute(patternPath.parent_path())
                          .lexically_normal(),
-          .wildcard =
-            QString::fromStdString(patternPath.filename().generic_string()),
+          .wildcard = support::pathToQString(patternPath.filename()),
           .defaultSelection =
             tokens.size() > 3 ? tokens[3].trimmed() : QString{},
         });
@@ -2302,7 +2298,8 @@ loadLines(const std::filesystem::path& filePath) -> std::vector<QStringList>
 {
     QFile file(support::pathToQString(filePath));
     if (!file.open(QIODevice::ReadOnly)) {
-        spdlog::warn("Could not open LR2 skin file: {}", filePath.string());
+        spdlog::warn("Could not open LR2 skin file: {}",
+                     support::pathToUtfString(filePath));
         return {};
     }
 
@@ -2322,15 +2319,15 @@ samePath(const std::filesystem::path& lhs, const std::filesystem::path& rhs)
 {
     const auto left = std::filesystem::absolute(lhs).lexically_normal();
     const auto right = std::filesystem::absolute(rhs).lexically_normal();
-    return QString::fromStdString(left.generic_string())
-             .compare(QString::fromStdString(right.generic_string()),
-                      Qt::CaseInsensitive) == 0;
+    return support::pathToQString(left)
+             .compare(support::pathToQString(right), Qt::CaseInsensitive) ==
+      0;
 }
 
 auto
 isExtension(const std::filesystem::path& path, const QString& extension) -> bool
 {
-    return QString::fromStdString(path.extension().generic_string())
+    return support::pathToQString(path.extension())
              .compare(extension, Qt::CaseInsensitive) == 0;
 }
 

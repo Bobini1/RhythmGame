@@ -4315,8 +4315,8 @@ Item {
         selectContext: selectContext
 
         onAutoAdvanceRequested: {
-            if (root.shouldAutoAdvance) {
-                globalRoot.openGameplay(root.chart);
+            if (root.shouldAutoAdvance && root.chart) {
+                Qt.callLater(globalRoot.openGameplay, root.chart);
             }
         }
     }

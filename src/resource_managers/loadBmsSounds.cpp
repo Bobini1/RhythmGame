@@ -10,6 +10,7 @@
 #include "sounds/SlicedSoundBuffer.h"
 #include "sounds/SoundBuffer.h"
 #include "support/PathToQString.h"
+#include "support/PathToUtfString.h"
 
 #include <optional>
 #include <unordered_set>
@@ -87,7 +88,7 @@ createLowerCaseFilesMap(std::filesystem::path dirToSearch)
          std::filesystem::recursive_directory_iterator(dirToSearch)) {
         if (entry.is_regular_file()) {
             auto path = entry.path();
-            auto pathString = path.filename().string();
+            auto pathString = support::pathToUtfString(path.filename());
             std::ranges::transform(
               pathString, pathString.begin(), [](unsigned char c) {
                   return std::tolower(c);
@@ -118,7 +119,7 @@ loadBmsSounds(sounds::AudioEngine* engine,
             auto filePath = path / value;
             auto actualPath = getActualPathWindows(filePath);
 #else
-            auto valueLower = value.string();
+            auto valueLower = support::pathToUtfString(value);
             std::ranges::transform(
               valueLower, valueLower.begin(), [](unsigned char c) {
                   return std::tolower(c);
@@ -128,7 +129,8 @@ loadBmsSounds(sounds::AudioEngine* engine,
             auto actualPath = getActualPath(lowerCaseFilesMap, valueLower);
 #endif
             if (!actualPath) {
-                spdlog::warn("File {} not found.", filePath.string());
+                spdlog::warn("File {} not found.",
+                             support::pathToUtfString(filePath));
                 continue;
             }
             wavsActualPaths.emplace(key, *actualPath);
@@ -154,7 +156,9 @@ loadBmsSounds(sounds::AudioEngine* engine,
                            engine, path) } };
           } catch (const std::exception& e) {
               spdlog::warn(
-                "Failed to load sound {}: {}", path.string(), e.what());
+                "Failed to load sound {}: {}",
+                support::pathToUtfString(path),
+                e.what());
               return std::nullopt;
           }
       },
@@ -207,7 +211,7 @@ loadBmsonSounds(
 #ifdef _WIN32
         auto actualPath = getActualPathWindows(basePath / relPath);
 #else
-        auto valueLower = relPath.string();
+        auto valueLower = support::pathToUtfString(relPath);
         std::ranges::transform(valueLower,
                                valueLower.begin(),
                                [](unsigned char c) { return std::tolower(c); });
@@ -215,7 +219,7 @@ loadBmsonSounds(
 #endif
         if (!actualPath) {
             spdlog::warn("Bmson sound not found: {}",
-                         (basePath / relPath).string());
+                         support::pathToUtfString(basePath / relPath));
             continue;
         }
         channelActualPaths.emplace(idx, *actualPath);
@@ -239,7 +243,9 @@ loadBmsonSounds(
               };
           } catch (const std::exception& e) {
               spdlog::warn(
-                "Failed to load bmson sound {}: {}", path.string(), e.what());
+                "Failed to load bmson sound {}: {}",
+                support::pathToUtfString(path),
+                e.what());
               return std::nullopt;
           }
       },

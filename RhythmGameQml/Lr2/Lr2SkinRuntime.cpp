@@ -607,6 +607,11 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     const bool selectInfoSrcTimer = selectScreen && descriptor.source.valid && descriptor.source.timer == 11;
     const bool selectPanelTimer = (descriptor.dstAnalysis.firstTimer >= 21 && descriptor.dstAnalysis.firstTimer <= 26)
         || (descriptor.dstAnalysis.firstTimer >= 31 && descriptor.dstAnalysis.firstTimer <= 36);
+    const bool selectHeldDstTimer = selectScreen && m_timerState
+        && m_timerState->isSelectHeldButtonTimer(descriptor.dstAnalysis.firstTimer);
+    const bool selectHeldSrcTimer = selectScreen && m_timerState
+        && descriptor.source.valid
+        && m_timerState->isSelectHeldButtonTimer(descriptor.source.timer);
     constexpr int selectIntroClockLimit = 3200;
     const bool selectDelayedPersistentDst = selectScreen
         && !descriptor.dsts.isEmpty()
@@ -633,13 +638,15 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.barDistributionGraphSourceHasFrameAnimation =
         sourceHasBarDistributionGraphAnimation(descriptor.source);
     descriptor.usesLiveDstClock = selectScreen
-        && (selectPanelTimer || descriptor.dstAnalysis.loopsContinuously || selectDelayedPersistentDst);
-    descriptor.usesLiveSourceClock = selectScreen && sourceCycles;
+        && (selectPanelTimer
+            || selectHeldDstTimer
+            || descriptor.dstAnalysis.loopsContinuously
+            || selectDelayedPersistentDst);
+    descriptor.usesLiveSourceClock = selectScreen && (sourceCycles || selectHeldSrcTimer);
     descriptor.usesLiveSelectClock = descriptor.usesLiveDstClock || descriptor.usesLiveSourceClock;
-    descriptor.usesSelectHeldButtonTimer = selectScreen && m_timerState
-        ? m_timerState->isSelectHeldButtonTimer(descriptor.dstAnalysis.firstTimer)
-        : false;
-    descriptor.usesSkinTime = !descriptor.dstAnalysis.canUseStaticState
+    descriptor.usesSelectHeldButtonTimer = selectHeldDstTimer || selectHeldSrcTimer;
+    descriptor.usesDstSkinTime = !descriptor.dstAnalysis.canUseStaticState;
+    descriptor.usesSkinTime = descriptor.usesDstSkinTime
         || sourceCycles
         || descriptor.source.resultChartType > 0;
     descriptor.usesElementSkinTime = descriptor.usesSkinTime

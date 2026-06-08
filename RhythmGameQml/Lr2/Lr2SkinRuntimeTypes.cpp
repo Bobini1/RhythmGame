@@ -3,6 +3,7 @@
 #include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 
 #include <QJSValue>
+#include <QObject>
 #include <QVariantMap>
 
 #include <algorithm>
@@ -45,6 +46,11 @@ bool mapHas(const QVariantMap& map, const QString& name) {
     return it != map.constEnd() && it->isValid() && !it->isNull();
 }
 
+qreal jsReal(const QJSValue& value, const QString& name, qreal fallback) {
+    const QJSValue field = value.property(name);
+    return field.isUndefined() || field.isNull() ? fallback : field.toNumber();
+}
+
 int jsInt(const QJSValue& value, const QString& name, int fallback) {
     const QJSValue field = value.property(name);
     return field.isUndefined() || field.isNull() ? fallback : field.toInt();
@@ -63,6 +69,134 @@ QString jsString(const QJSValue& value, const QString& name) {
 bool jsHas(const QJSValue& value, const QString& name) {
     const QJSValue field = value.property(name);
     return !field.isUndefined() && !field.isNull();
+}
+
+bool objectHas(QObject* object, const char* name) {
+    if (!object) {
+        return false;
+    }
+    const QVariant field = object->property(name);
+    return field.isValid() && !field.isNull();
+}
+
+qreal objectReal(QObject* object, const char* name, qreal fallback) {
+    if (!object) {
+        return fallback;
+    }
+    const QVariant field = object->property(name);
+    return !field.isValid() || field.isNull() ? fallback : field.toDouble();
+}
+
+int objectInt(QObject* object, const char* name, int fallback) {
+    if (!object) {
+        return fallback;
+    }
+    const QVariant field = object->property(name);
+    return !field.isValid() || field.isNull() ? fallback : field.toInt();
+}
+
+bool readStateMap(const QVariantMap& map, lr2skin::runtime::State& state) {
+    if (mapHas(map, QStringLiteral("valid"))
+            && !mapBool(map, QStringLiteral("valid"), true)) {
+        return false;
+    }
+    if (!mapHas(map, QStringLiteral("x"))
+            && !mapHas(map, QStringLiteral("y"))
+            && !mapHas(map, QStringLiteral("w"))
+            && !mapHas(map, QStringLiteral("h"))) {
+        return false;
+    }
+
+    state.valid = true;
+    state.x = mapReal(map, QStringLiteral("x"), state.x);
+    state.y = mapReal(map, QStringLiteral("y"), state.y);
+    state.w = mapReal(map, QStringLiteral("w"), state.w);
+    state.h = mapReal(map, QStringLiteral("h"), state.h);
+    state.a = mapReal(map, QStringLiteral("a"), state.a);
+    state.r = mapReal(map, QStringLiteral("r"), state.r);
+    state.g = mapReal(map, QStringLiteral("g"), state.g);
+    state.b = mapReal(map, QStringLiteral("b"), state.b);
+    state.angle = mapReal(map, QStringLiteral("angle"), state.angle);
+    state.center = mapInt(map, QStringLiteral("center"), state.center);
+    state.sortId = mapReal(map, QStringLiteral("sortId"), state.sortId);
+    state.blend = mapInt(map, QStringLiteral("blend"), state.blend);
+    state.filter = mapInt(map, QStringLiteral("filter"), state.filter);
+    state.op1 = mapInt(map, QStringLiteral("op1"), state.op1);
+    state.op2 = mapInt(map, QStringLiteral("op2"), state.op2);
+    state.op3 = mapInt(map, QStringLiteral("op3"), state.op3);
+    state.op4 = mapInt(map, QStringLiteral("op4"), state.op4);
+    return true;
+}
+
+bool readStateJsValue(const QJSValue& value, lr2skin::runtime::State& state) {
+    if (!value.isObject()) {
+        return false;
+    }
+    if (jsHas(value, QStringLiteral("valid"))
+            && !jsBool(value, QStringLiteral("valid"), true)) {
+        return false;
+    }
+    if (!jsHas(value, QStringLiteral("x"))
+            && !jsHas(value, QStringLiteral("y"))
+            && !jsHas(value, QStringLiteral("w"))
+            && !jsHas(value, QStringLiteral("h"))) {
+        return false;
+    }
+
+    state.valid = true;
+    state.x = jsReal(value, QStringLiteral("x"), state.x);
+    state.y = jsReal(value, QStringLiteral("y"), state.y);
+    state.w = jsReal(value, QStringLiteral("w"), state.w);
+    state.h = jsReal(value, QStringLiteral("h"), state.h);
+    state.a = jsReal(value, QStringLiteral("a"), state.a);
+    state.r = jsReal(value, QStringLiteral("r"), state.r);
+    state.g = jsReal(value, QStringLiteral("g"), state.g);
+    state.b = jsReal(value, QStringLiteral("b"), state.b);
+    state.angle = jsReal(value, QStringLiteral("angle"), state.angle);
+    state.center = jsInt(value, QStringLiteral("center"), state.center);
+    state.sortId = jsReal(value, QStringLiteral("sortId"), state.sortId);
+    state.blend = jsInt(value, QStringLiteral("blend"), state.blend);
+    state.filter = jsInt(value, QStringLiteral("filter"), state.filter);
+    state.op1 = jsInt(value, QStringLiteral("op1"), state.op1);
+    state.op2 = jsInt(value, QStringLiteral("op2"), state.op2);
+    state.op3 = jsInt(value, QStringLiteral("op3"), state.op3);
+    state.op4 = jsInt(value, QStringLiteral("op4"), state.op4);
+    return true;
+}
+
+bool readStateObject(QObject* object, lr2skin::runtime::State& state) {
+    if (!object) {
+        return false;
+    }
+    if (objectHas(object, "valid") && !object->property("valid").toBool()) {
+        return false;
+    }
+    if (!objectHas(object, "x")
+            && !objectHas(object, "y")
+            && !objectHas(object, "w")
+            && !objectHas(object, "h")) {
+        return false;
+    }
+
+    state.valid = true;
+    state.x = objectReal(object, "x", state.x);
+    state.y = objectReal(object, "y", state.y);
+    state.w = objectReal(object, "w", state.w);
+    state.h = objectReal(object, "h", state.h);
+    state.a = objectReal(object, "a", state.a);
+    state.r = objectReal(object, "r", state.r);
+    state.g = objectReal(object, "g", state.g);
+    state.b = objectReal(object, "b", state.b);
+    state.angle = objectReal(object, "angle", state.angle);
+    state.center = objectInt(object, "center", state.center);
+    state.sortId = objectReal(object, "sortId", state.sortId);
+    state.blend = objectInt(object, "blend", state.blend);
+    state.filter = objectInt(object, "filter", state.filter);
+    state.op1 = objectInt(object, "op1", state.op1);
+    state.op2 = objectInt(object, "op2", state.op2);
+    state.op3 = objectInt(object, "op3", state.op3);
+    state.op4 = objectInt(object, "op4", state.op4);
+    return true;
 }
 
 bool activeOptionPresent(int option, const QVariant& activeOptions) {
@@ -602,37 +736,24 @@ bool readState(const QVariant& value, State& state) {
         return state.valid;
     }
 
-    if (!value.canConvert<QVariantMap>()) {
-        return false;
+    if (value.canConvert<QJSValue>()) {
+        const QJSValue jsValue = value.value<QJSValue>();
+        if (readStateJsValue(jsValue, state)) {
+            return true;
+        }
     }
 
-    const QVariantMap map = value.toMap();
-    if (!mapHas(map, QStringLiteral("x"))
-            && !mapHas(map, QStringLiteral("y"))
-            && !mapHas(map, QStringLiteral("w"))
-            && !mapHas(map, QStringLiteral("h"))) {
-        return false;
+    if (value.canConvert<QObject*>()) {
+        if (readStateObject(value.value<QObject*>(), state)) {
+            return true;
+        }
     }
 
-    state.valid = true;
-    state.x = mapReal(map, QStringLiteral("x"), state.x);
-    state.y = mapReal(map, QStringLiteral("y"), state.y);
-    state.w = mapReal(map, QStringLiteral("w"), state.w);
-    state.h = mapReal(map, QStringLiteral("h"), state.h);
-    state.a = mapReal(map, QStringLiteral("a"), state.a);
-    state.r = mapReal(map, QStringLiteral("r"), state.r);
-    state.g = mapReal(map, QStringLiteral("g"), state.g);
-    state.b = mapReal(map, QStringLiteral("b"), state.b);
-    state.angle = mapReal(map, QStringLiteral("angle"), state.angle);
-    state.center = mapInt(map, QStringLiteral("center"), state.center);
-    state.sortId = mapReal(map, QStringLiteral("sortId"), state.sortId);
-    state.blend = mapInt(map, QStringLiteral("blend"), state.blend);
-    state.filter = mapInt(map, QStringLiteral("filter"), state.filter);
-    state.op1 = mapInt(map, QStringLiteral("op1"), state.op1);
-    state.op2 = mapInt(map, QStringLiteral("op2"), state.op2);
-    state.op3 = mapInt(map, QStringLiteral("op3"), state.op3);
-    state.op4 = mapInt(map, QStringLiteral("op4"), state.op4);
-    return true;
+    if (value.canConvert<QVariantMap>()) {
+        return readStateMap(value.toMap(), state);
+    }
+
+    return false;
 }
 
 DstAnalysis analyzeDsts(const QVector<Dst>& dsts) {

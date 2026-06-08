@@ -49,8 +49,6 @@ Item {
         activeOptionsState: root.activeOptionsState
         activeOptions: root.activeOptions
     }
-    readonly property var numberTimelineState: staticTimelineState
-        || (timelineState.hasState ? timelineState.state : null)
     readonly property bool numberSourceAnimates: srcData && srcData.source
         && (srcData.source.cycle || 0) > 0
 
@@ -112,7 +110,8 @@ Item {
                 scaleOverride: root.scaleOverride
                 colorKeyEnabled: root.colorKeyEnabled
                 transColor: root.transColor
-                stateOverride: root.numberTimelineState
+                stateOverride: root.staticTimelineState
+                stateOverrideSource: root.hasStaticTimelineState ? null : root.timelineState
                 value: parent.contentVisible ? parent.cellPlayLevel : 0
             }
         }

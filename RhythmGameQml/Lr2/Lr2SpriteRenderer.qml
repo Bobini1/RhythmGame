@@ -31,6 +31,7 @@ Item {
     property color transColor: "black"
     property int frameOverride: -1
     property var stateOverride: null
+    property Lr2TimelineState stateOverrideSource: null
     property bool sliderTranslationEnabled: false
     property real sliderPosition: 0
     property int sliderRange: 0
@@ -68,6 +69,7 @@ Item {
         timers: root.timers
         timerFire: root.timerFire
         stateOverride: root.stateOverride
+        stateOverrideSource: root.stateOverrideSource
         forceHidden: root.forceHidden
         sliderTranslationEnabled: root.sliderTranslationEnabled
         sliderPosition: root.sliderPosition

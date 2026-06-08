@@ -77,11 +77,6 @@ Item {
         activeOptionsState: root.activeOptionsState
         activeOptions: root.activeOptions
     }
-    readonly property var overlayTimelineState: hasOverlayTimelineState
-        ? (overlayStaticTimelineState
-           || (overlayTimelineTracker.hasState ? overlayTimelineTracker.state : null))
-        : null
-
     readonly property int bodyRowIndex: {
         if (!srcData || !selectContext || srcData.kind !== 0) {
             return -1;
@@ -383,7 +378,10 @@ Item {
                 scaleOverride: root.scaleOverride
                 transColor: root.transColor
                 colorKeyEnabled: root.colorKeyEnabled
-                stateOverride: root.overlayTimelineState
+                stateOverride: root.overlayStaticTimelineState
+                stateOverrideSource: root.hasOverlayTimelineState && !root.overlayHasStaticTimelineState
+                    ? root.overlayTimelineTracker
+                    : null
             }
         }
     }

@@ -77,7 +77,7 @@ QtObject {
         selectScrollUp: root.selectContext ? root.selectContext.lr2ScrollUp : 1
         selectScrollDown: root.selectContext ? root.selectContext.lr2ScrollDown : 2
         gameplayRhythmTimerSkinTime: root.host ? root.host.gameplayRhythmTimerSkinTime : -1
-        selectHeldButtonTimerStarts: root.host ? root.host.selectHeldButtonTimerFireTimes : ({})
+        selectHeldButtonTimerStarts: root.host ? root.host.selectHeldButtonTimerStarts : ({})
         screenKey: root.host ? root.host.effectiveScreenKey : ""
         gameplayScreen: root.host ? root.host.gameplayScreenActive : false
         resultScreen: root.host ? root.host.resultScreenActive : false

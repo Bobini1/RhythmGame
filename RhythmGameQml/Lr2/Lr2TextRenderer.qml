@@ -21,6 +21,7 @@ Item {
     property real offsetX: 0
     property real offsetY: 0
     property var stateOverride: null
+    property Lr2TimelineState stateOverrideSource: null
     property int textureFilterOverride: -1
     // Bound externally by the screen wrapper with the actual text for this st index
     property string resolvedText: ""
@@ -36,6 +37,7 @@ Item {
         timers: root.timers
         timerFire: root.timerFire
         stateOverride: root.stateOverride
+        stateOverrideSource: root.stateOverrideSource
         supportsInvertedBlend: false
     }
 

@@ -63,9 +63,6 @@ Item {
         activeOptionsState: root.activeOptionsState
         activeOptions: root.activeOptions
     }
-    readonly property var textTimelineState: staticTimelineState
-        || (timelineState.hasState ? timelineState.state : null)
-
     Lr2BarTextItem {
         id: nativeText
 
@@ -117,7 +114,8 @@ Item {
                 timers: root.timers
                 timerFire: -2147483648
                 scaleOverride: root.scaleOverride
-                stateOverride: root.textTimelineState
+                stateOverride: root.staticTimelineState
+                stateOverrideSource: root.hasStaticTimelineState ? null : root.timelineState
                 resolvedText: barTextDelegate.cellText
             }
         }

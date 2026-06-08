@@ -4,7 +4,9 @@
 #include "Lr2TimelineStateValue.h"
 
 #include <QColor>
+#include <QMetaObject>
 #include <QObject>
+#include <QPointer>
 #include <QVariant>
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
@@ -23,6 +25,8 @@ class Lr2TimelineFrameState : public QObject {
     Q_PROPERTY(QVariant activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
     Q_PROPERTY(QVariant timers READ timers WRITE setTimers NOTIFY timersChanged)
     Q_PROPERTY(int timerFire READ timerFire WRITE setTimerFire NOTIFY timerFireChanged)
+    Q_PROPERTY(QVariant stateOverride READ stateOverride WRITE setStateOverride NOTIFY stateOverrideChanged)
+    Q_PROPERTY(Lr2TimelineState* stateOverrideSource READ stateOverrideSource WRITE setStateOverrideSource NOTIFY stateOverrideSourceChanged)
     Q_PROPERTY(bool stateOverrideEnabled READ stateOverrideEnabled WRITE setStateOverrideEnabled NOTIFY stateOverrideChanged)
     Q_PROPERTY(Lr2TimelineStateValue stateOverrideValue READ stateOverrideValue WRITE setStateOverrideValue NOTIFY stateOverrideChanged)
     Q_PROPERTY(bool forceHidden READ forceHidden WRITE setForceHidden NOTIFY forceHiddenChanged)
@@ -87,6 +91,10 @@ public:
     void setTimers(const QVariant& timers);
     int timerFire() const;
     void setTimerFire(int timerFire);
+    QVariant stateOverride() const;
+    void setStateOverride(const QVariant& stateOverride);
+    Lr2TimelineState* stateOverrideSource() const;
+    void setStateOverrideSource(Lr2TimelineState* source);
     bool stateOverrideEnabled() const;
     void setStateOverrideEnabled(bool enabled);
     Lr2TimelineStateValue stateOverrideValue() const;
@@ -157,6 +165,7 @@ signals:
     void timersChanged();
     void timerFireChanged();
     void stateOverrideChanged();
+    void stateOverrideSourceChanged();
     void forceHiddenChanged();
     void sliderTranslationChanged();
     void dstOffsetsChanged();
@@ -196,6 +205,7 @@ private:
     static StateFields fieldsFromState(const Lr2TimelineStateValue& state);
     static qreal clampedTint(qreal value);
 
+    void refreshEffectiveStateOverride();
     void updateTimelineConfiguration();
     void updateTimelineTimers();
     int normalizedBlendMode(int rawBlendMode) const;
@@ -213,6 +223,10 @@ private:
     QVariant m_activeOptions = QVariantList {};
     QVariant m_timers = QVariantMap { { QStringLiteral("0"), 0 } };
     int m_timerFire = -2147483648;
+    bool m_directStateOverrideEnabled = false;
+    Lr2TimelineStateValue m_directStateOverrideValue;
+    QPointer<Lr2TimelineState> m_stateOverrideSource;
+    QMetaObject::Connection m_stateOverrideSourceConnection;
     bool m_stateOverrideEnabled = false;
     Lr2TimelineStateValue m_stateOverrideValue;
     bool m_forceHidden = false;

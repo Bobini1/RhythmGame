@@ -23,6 +23,7 @@ Item {
     property bool colorKeyEnabled: false
     property color transColor: "black"
     property var stateOverride: null
+    property Lr2TimelineState stateOverrideSource: null
     property var screenRoot: null
     readonly property int dstOffsetSide: srcData && srcData.side === 2 ? 2 : 1
     readonly property bool hasDstOffsets: dsts
@@ -43,6 +44,7 @@ Item {
         timers: root.timers
         timerFire: root.timerFire
         stateOverride: root.stateOverride
+        stateOverrideSource: root.stateOverrideSource
         forceHidden: root.forceHidden
         dstOffsetsEnabled: root.dstOffsetsEnabled
         dstOffsetLiftY: root.screenRoot

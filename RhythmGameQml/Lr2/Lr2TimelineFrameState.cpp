@@ -1,7 +1,11 @@
 #include "Lr2TimelineFrameState.h"
 
+#include "Lr2SkinRuntimeTypes.h"
+
 #include <algorithm>
 #include <cmath>
+
+namespace rt = lr2skin::runtime;
 
 namespace {
 constexpr int NoTimerFire = -2147483648;
@@ -133,18 +137,66 @@ void Lr2TimelineFrameState::setTimerFire(int timerFire) {
     emit timerFireChanged();
 }
 
+QVariant Lr2TimelineFrameState::stateOverride() const {
+    return m_stateOverrideEnabled
+        ? QVariant::fromValue(m_stateOverrideValue)
+        : QVariant {};
+}
+
+void Lr2TimelineFrameState::setStateOverride(const QVariant& stateOverride) {
+    Lr2TimelineStateValue nextValue;
+    const bool nextEnabled = rt::readState(stateOverride, nextValue);
+    const bool enabledChanged = m_directStateOverrideEnabled != nextEnabled;
+    const bool valueChanged = !sameStateValue(m_directStateOverrideValue, nextValue);
+    if (!enabledChanged && !valueChanged) {
+        return;
+    }
+
+    m_directStateOverrideEnabled = nextEnabled;
+    m_directStateOverrideValue = nextEnabled ? nextValue : Lr2TimelineStateValue {};
+    refreshEffectiveStateOverride();
+}
+
+Lr2TimelineState* Lr2TimelineFrameState::stateOverrideSource() const {
+    return m_stateOverrideSource;
+}
+
+void Lr2TimelineFrameState::setStateOverrideSource(Lr2TimelineState* source) {
+    if (m_stateOverrideSource == source) {
+        return;
+    }
+
+    if (m_stateOverrideSourceConnection) {
+        disconnect(m_stateOverrideSourceConnection);
+        m_stateOverrideSourceConnection = {};
+    }
+
+    m_stateOverrideSource = source;
+    if (m_stateOverrideSource) {
+        m_stateOverrideSourceConnection = connect(
+            m_stateOverrideSource,
+            &Lr2TimelineState::stateChanged,
+            this,
+            &Lr2TimelineFrameState::refreshEffectiveStateOverride);
+    }
+
+    emit stateOverrideSourceChanged();
+    refreshEffectiveStateOverride();
+}
+
 bool Lr2TimelineFrameState::stateOverrideEnabled() const {
     return m_stateOverrideEnabled;
 }
 
 void Lr2TimelineFrameState::setStateOverrideEnabled(bool enabled) {
-    if (m_stateOverrideEnabled == enabled) {
+    if (m_directStateOverrideEnabled == enabled) {
         return;
     }
-    m_stateOverrideEnabled = enabled;
-    emit stateOverrideChanged();
-    updateTimelineConfiguration();
-    updateFrame();
+    m_directStateOverrideEnabled = enabled;
+    if (!m_directStateOverrideEnabled) {
+        m_directStateOverrideValue = {};
+    }
+    refreshEffectiveStateOverride();
 }
 
 Lr2TimelineStateValue Lr2TimelineFrameState::stateOverrideValue() const {
@@ -152,12 +204,11 @@ Lr2TimelineStateValue Lr2TimelineFrameState::stateOverrideValue() const {
 }
 
 void Lr2TimelineFrameState::setStateOverrideValue(const Lr2TimelineStateValue& stateOverride) {
-    if (sameStateValue(m_stateOverrideValue, stateOverride)) {
+    if (sameStateValue(m_directStateOverrideValue, stateOverride)) {
         return;
     }
-    m_stateOverrideValue = stateOverride;
-    emit stateOverrideChanged();
-    updateFrame();
+    m_directStateOverrideValue = stateOverride;
+    refreshEffectiveStateOverride();
 }
 
 bool Lr2TimelineFrameState::forceHidden() const {
@@ -503,6 +554,39 @@ Lr2TimelineFrameState::StateFields Lr2TimelineFrameState::fieldsFromState(const 
 
 qreal Lr2TimelineFrameState::clampedTint(qreal value) {
     return std::clamp(value, 0.0, 255.0) / 255.0;
+}
+
+void Lr2TimelineFrameState::refreshEffectiveStateOverride() {
+    bool nextEnabled = false;
+    Lr2TimelineStateValue nextValue;
+
+    if (m_stateOverrideSource) {
+        nextValue = m_stateOverrideSource->hasState()
+            ? m_stateOverrideSource->state()
+            : Lr2TimelineStateValue {};
+        nextEnabled = nextValue.valid;
+    } else if (m_directStateOverrideEnabled) {
+        nextValue = m_directStateOverrideValue;
+        nextEnabled = true;
+    }
+
+    if (!nextEnabled && !m_directStateOverrideEnabled) {
+        nextValue = {};
+    }
+
+    const bool enabledChanged = m_stateOverrideEnabled != nextEnabled;
+    const bool valueChanged = !sameStateValue(m_stateOverrideValue, nextValue);
+    if (!enabledChanged && !valueChanged) {
+        return;
+    }
+
+    m_stateOverrideEnabled = nextEnabled;
+    m_stateOverrideValue = nextValue;
+    emit stateOverrideChanged();
+    if (enabledChanged) {
+        updateTimelineConfiguration();
+    }
+    updateFrame();
 }
 
 void Lr2TimelineFrameState::updateTimelineConfiguration() {
