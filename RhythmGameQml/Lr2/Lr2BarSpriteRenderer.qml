@@ -139,6 +139,7 @@ Item {
                 && bodySlot < root.displayCells.length
                 ? root.displayCells[bodySlot]
                 : null
+            readonly property bool bodyCellValid: !!bodyCell && bodyCell.valid
             readonly property var bodySources: root.srcData ? root.srcData.sources : null
             readonly property var fallbackBodySource: root.srcData && root.srcData.source
                 ? root.srcData.source
@@ -180,6 +181,12 @@ Item {
                 && root.barBaseStates[bodyRow].valid
                 ? root.barBaseStates[bodyRow]
                 : null
+            readonly property var previousBodyBaseState: root.barBaseStates
+                && bodyRow > 0
+                && bodyRow - 1 < root.barBaseStates.length
+                && root.barBaseStates[bodyRow - 1].valid
+                ? root.barBaseStates[bodyRow - 1]
+                : null
             readonly property bool needsStateInterpolation: !root.applyFastBarScroll
                 && bodyRow >= 0
                 && bodyRow < root.barStateInterpolationNeeded.length
@@ -220,13 +227,17 @@ Item {
                    ? bodyRowData.offDsts
                    : (bodyRowData.onDsts || []))
                 : []
+            readonly property bool bodyDrawable: bodyCellValid
+                && !!effectiveBodyState
+                && !!previousBodyBaseState
+                && rowVisible
             positionMap: root.barPositionMap
             row: bodyDelegate.bodyRow
             scaleOverride: root.scaleOverride
             usePositionMap: !needsStateInterpolation && !root.applyFastBarScroll
             fallbackX: !needsStateInterpolation && bodyBaseState ? (bodyBaseState.x || 0) : 0
             fallbackY: !needsStateInterpolation && bodyBaseState ? (bodyBaseState.y || 0) : 0
-            visible: !!effectiveBodyState
+            visible: bodyDrawable
             width: root.width
             height: root.height
 
@@ -244,7 +255,7 @@ Item {
                 srcData: bodyDelegate.bodySource
                 sourceHasFrameAnimation: bodyDelegate.bodySourceAnimates
                 stateOverride: bodyDelegate.localBodyState
-                forceHidden: !bodyDelegate.effectiveBodyState
+                forceHidden: !bodyDelegate.bodyDrawable
                 skinTime: 0
                 sourceSkinTime: bodyDelegate.bodySourceAnimates && !root.useDirectSourceSkinClock
                     ? root.sourceSkinTime

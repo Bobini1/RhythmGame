@@ -67,6 +67,7 @@ void Lr2BarPositionedItem::setRow(int row) {
         return;
     }
     m_row = row;
+    emit rowChanged();
     updatePosition();
 }
 
@@ -113,6 +114,7 @@ void Lr2BarPositionedItem::setScaleOverride(qreal scale) {
         return;
     }
     m_scaleOverride = scale;
+    emit scaleOverrideChanged();
     updatePosition();
 }
 
@@ -125,6 +127,7 @@ void Lr2BarPositionedItem::setUsePositionMap(bool useMap) {
         return;
     }
     m_usePositionMap = useMap;
+    emit usePositionMapChanged();
     updatePosition();
 }
 
@@ -137,6 +140,7 @@ void Lr2BarPositionedItem::setHasOverride(bool hasOverride) {
         return;
     }
     m_hasOverride = hasOverride;
+    emit hasOverrideChanged();
     updatePosition();
 }
 
@@ -149,6 +153,7 @@ void Lr2BarPositionedItem::setOverrideX(qreal value) {
         return;
     }
     m_overrideX = value;
+    emit overrideXChanged();
     updatePosition();
 }
 
@@ -161,6 +166,7 @@ void Lr2BarPositionedItem::setOverrideY(qreal value) {
         return;
     }
     m_overrideY = value;
+    emit overrideYChanged();
     updatePosition();
 }
 
@@ -173,6 +179,7 @@ void Lr2BarPositionedItem::setAdjustX(qreal value) {
         return;
     }
     m_adjustX = value;
+    emit adjustXChanged();
     updatePosition();
 }
 
@@ -185,6 +192,7 @@ void Lr2BarPositionedItem::setAdjustY(qreal value) {
         return;
     }
     m_adjustY = value;
+    emit adjustYChanged();
     updatePosition();
 }
 
@@ -197,6 +205,7 @@ void Lr2BarPositionedItem::setFallbackX(qreal value) {
         return;
     }
     m_fallbackX = value;
+    emit fallbackXChanged();
     updatePosition();
 }
 
@@ -209,6 +218,7 @@ void Lr2BarPositionedItem::setFallbackY(qreal value) {
         return;
     }
     m_fallbackY = value;
+    emit fallbackYChanged();
     updatePosition();
 }
 

@@ -551,9 +551,11 @@ void Lr2TimelineFrameState::updateFrame() {
     m_staticState = m_canUseStaticState ? m_timeline.staticState() : Lr2TimelineStateValue {};
     m_staticStateValid = m_canUseStaticState && m_staticState.valid;
 
+    const bool hasValidOverride = m_stateOverrideEnabled && m_stateOverrideValue.valid;
+
     if (m_forceHidden) {
         m_directState = {};
-    } else if (m_stateOverrideEnabled) {
+    } else if (hasValidOverride) {
         m_directState = m_stateOverrideValue;
     } else if (m_staticStateValid) {
         m_directState = m_staticState;
@@ -561,7 +563,7 @@ void Lr2TimelineFrameState::updateFrame() {
         m_directState = {};
     }
 
-    m_hasDirectState = !m_forceHidden && (m_stateOverrideEnabled || m_staticStateValid);
+    m_hasDirectState = !m_forceHidden && (hasValidOverride || m_staticStateValid);
     m_hasTimelineState = !m_forceHidden && !m_hasDirectState && m_timeline.hasState();
     m_hasState = m_hasDirectState || m_hasTimelineState;
 

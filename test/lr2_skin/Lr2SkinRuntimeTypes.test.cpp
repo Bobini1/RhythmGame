@@ -1,5 +1,7 @@
 #include "Lr2SkinRuntimeTypes.h"
+#include "Lr2BarPositionedItem.h"
 #include "Lr2SkinElementActiveOptionsState.h"
+#include "Lr2TimelineFrameState.h"
 #include "Lr2TimelineState.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -83,6 +85,49 @@ TEST_CASE("LR2 timeline state keeps inactive negative-only gates hidden", "[lr2]
 
     activeOptionsState.setActiveOptions(QVariantList {}, true);
     REQUIRE(timelineState.hasState());
+}
+
+TEST_CASE("LR2 timeline frame ignores invalid override states", "[lr2][runtime]") {
+    Lr2TimelineFrameState frame;
+    frame.setDsts(QVariantList {dstMap(0, 12, 34, 56, 78)});
+    frame.setTimerFire(0);
+
+    REQUIRE(frame.hasState());
+    REQUIRE(frame.x() == 12);
+
+    frame.setStateOverrideEnabled(true);
+    frame.setStateOverrideValue({});
+
+    REQUIRE_FALSE(frame.hasState());
+    REQUIRE_FALSE(frame.hasDirectState());
+    REQUIRE(frame.a() == 0);
+
+    Lr2TimelineStateValue validOverride;
+    validOverride.valid = true;
+    validOverride.x = 90;
+    validOverride.y = 12;
+    validOverride.w = 34;
+    validOverride.h = 56;
+    frame.setStateOverrideValue(validOverride);
+
+    REQUIRE(frame.hasState());
+    REQUIRE(frame.hasDirectState());
+    REQUIRE(frame.x() == 90);
+    REQUIRE(frame.y() == 12);
+}
+
+TEST_CASE("LR2 bar positioned item notifies usePositionMap changes", "[lr2][runtime]") {
+    Lr2BarPositionedItem item;
+    int changed = 0;
+    QObject::connect(
+        &item,
+        &Lr2BarPositionedItem::usePositionMapChanged,
+        [&changed]() { ++changed; });
+
+    item.setUsePositionMap(false);
+
+    REQUIRE_FALSE(item.usePositionMap());
+    REQUIRE(changed == 1);
 }
 
 TEST_CASE("LR2 runtime dst loops wrap inside the loop segment", "[lr2][runtime]") {
