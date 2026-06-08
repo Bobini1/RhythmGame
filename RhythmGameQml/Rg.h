@@ -6,9 +6,9 @@
 #define RG_H
 #include "qml_components/ChartLoader.h"
 #include "qml_components/FileQuery.h"
-#include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/RootSongFoldersConfig.h"
+#include "qml_components/SongDirectoryFilePathFetcher.h"
 #include "qml_components/SongFolderFactory.h"
 #include "qml_components/Themes.h"
 #include "input/InputTranslator.h"
@@ -42,8 +42,9 @@ class Rg final : public QObject
                  MEMBER rootSongFoldersConfig CONSTANT FINAL)
     Q_PROPERTY(qml_components::SongFolderFactory* songFolderFactory MEMBER
                  songFolderFactory CONSTANT FINAL)
-    Q_PROPERTY(qml_components::PreviewFilePathFetcher* previewFilePathFetcher
-                 MEMBER previewFilePathFetcher CONSTANT FINAL)
+    Q_PROPERTY(qml_components::SongDirectoryFilePathFetcher*
+                 songDirectoryFilePathFetcher MEMBER songDirectoryFilePathFetcher
+                   CONSTANT FINAL)
     Q_PROPERTY(qml_components::FileQuery* fileQuery MEMBER fileQuery CONSTANT FINAL)
     Q_PROPERTY(qml_components::Themes* themes MEMBER themes CONSTANT FINAL)
     Q_PROPERTY(
@@ -62,7 +63,7 @@ class Rg final : public QObject
     qml_components::ChartLoader* chartLoader;
     qml_components::RootSongFoldersConfig* rootSongFoldersConfig;
     qml_components::SongFolderFactory* songFolderFactory;
-    qml_components::PreviewFilePathFetcher* previewFilePathFetcher;
+    qml_components::SongDirectoryFilePathFetcher* songDirectoryFilePathFetcher;
     qml_components::FileQuery* fileQuery;
     qml_components::Themes* themes;
     input::GamepadManager* gamepadManager;
@@ -78,7 +79,7 @@ class Rg final : public QObject
        qml_components::ChartLoader* chartLoader,
        qml_components::RootSongFoldersConfig* rootSongFoldersConfig,
        qml_components::SongFolderFactory* songFolderFactory,
-       qml_components::PreviewFilePathFetcher* previewFilePathFetcher,
+       qml_components::SongDirectoryFilePathFetcher* songDirectoryFilePathFetcher,
        qml_components::FileQuery* fileQuery,
        qml_components::Themes* themes,
        input::GamepadManager* gamepadManager,

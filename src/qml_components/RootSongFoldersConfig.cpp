@@ -323,6 +323,8 @@ ScanningQueue::clear(const QString& which)
       "(SELECT 1 FROM charts WHERE charts.id = histogram_data.chart_id)");
     db->execute("DELETE FROM preview_files WHERE directory NOT IN "
                 "(SELECT chart_directory FROM charts)");
+    db->execute("DELETE FROM readme_files WHERE directory NOT IN "
+                "(SELECT chart_directory FROM charts)");
     // note_data is unused currently
     // db->execute("DELETE FROM note_data WHERE note_data.sha256 NOT IN "
     //             "(SELECT sha256 FROM charts)");

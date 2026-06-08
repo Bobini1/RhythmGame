@@ -35,6 +35,7 @@ Item {
         maxCombo: 0
     })
     property var previewFiles: ({})
+    property var readmeFiles: ({})
     property alias currentIndex: nativeNavigation.currentIndex
     property alias targetIndex: nativeNavigation.targetIndex
     property alias visualIndex: visualState.visualIndex
@@ -57,8 +58,6 @@ Item {
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
-    property var attachedTextByDirectory: ({})
-    property var hasAttachedTextByDirectory: ({})
     property int difficultyFilter: 0
     property var generalVars: null
     property int localSelectKeymodeFilter: SelectKeymodeFilter.All
@@ -1539,46 +1538,15 @@ Item {
         nativeNavigation.touchSelection();
     }
 
-    function refreshPreviewFiles() : void {
+    function refreshSongDirectoryFiles() : void {
         let dirs = [];
         for (let item of folderContents) {
             if (isChart(item)) {
                 dirs.push(item.chartDirectory);
             }
         }
-        previewFiles = Rg.previewFilePathFetcher.getPreviewFilePaths(dirs);
-    }
-
-    function scanAttachedTextFileForDirectory(dir: var) : var {
-        if (!dir) {
-            return "";
-        }
-
-        let files = Rg.fileQuery.getSelectableFilesForDirectory(dir);
-        for (let file of files) {
-            if (String(file).toLowerCase().endsWith(".txt")) {
-                let separator = dir.endsWith("/") || dir.endsWith("\\") ? "" : "/";
-                return dir + separator + file;
-            }
-        }
-        return "";
-    }
-
-    function refreshAttachedTextIndex(input: var) : void {
-        let byDirectory = {};
-        let hasTextByDirectory = {};
-        let seen = {};
-        for (let item of input || []) {
-            if (!item || !item.chartDirectory || seen[item.chartDirectory]) {
-                continue;
-            }
-            seen[item.chartDirectory] = true;
-            let file = scanAttachedTextFileForDirectory(item.chartDirectory);
-            byDirectory[item.chartDirectory] = file;
-            hasTextByDirectory[item.chartDirectory] = file.length > 0;
-        }
-        attachedTextByDirectory = byDirectory;
-        hasAttachedTextByDirectory = hasTextByDirectory;
+        previewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
+        readmeFiles = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths(dirs);
     }
 
     function folderContentsNeedFullScores() : var {
@@ -1597,7 +1565,7 @@ Item {
         if (!folderContentsNeedFullScores()) {
             scores = ({});
             handleScoresLoaded();
-            refreshPreviewFiles();
+            refreshSongDirectoryFiles();
             refreshFolderLamps();
             return;
         }
@@ -1612,7 +1580,7 @@ Item {
                 scores = result.scores;
                 handleScoresLoaded();
             });
-            refreshPreviewFiles();
+            refreshSongDirectoryFiles();
             refreshFolderLamps();
             return;
         }
@@ -1628,7 +1596,7 @@ Item {
             }
             handleScoresLoaded();
         });
-        refreshPreviewFiles();
+        refreshSongDirectoryFiles();
         refreshFolderLamps();
     }
 
@@ -1666,7 +1634,6 @@ Item {
 
         folderContents = [...folder];
         rebuildFolderIndexes(folderContents);
-        refreshAttachedTextIndex(folderContents);
         folder = sortFilter(folder);
         realItemCount = folder.length;
         addToMinimumCount(folder);
@@ -1695,7 +1662,6 @@ Item {
         }
         folderContents = [...results];
         rebuildFolderIndexes(folderContents);
-        refreshAttachedTextIndex(folderContents);
         results = sortFilter(results);
         realItemCount = results.length;
         addToMinimumCount(results);
@@ -3890,7 +3856,7 @@ Item {
         }
 
         let dir = chart.chartDirectory;
-        return attachedTextByDirectory[dir] || "";
+        return readmeFiles[dir] || "";
     }
 
     function hasAttachedText(chart: var) : bool {
@@ -3899,7 +3865,7 @@ Item {
             return false;
         }
 
-        return hasAttachedTextByDirectory[dir] === true;
+        return !!readmeFiles[dir];
     }
 
     function hasReplay(chart: var) : var {

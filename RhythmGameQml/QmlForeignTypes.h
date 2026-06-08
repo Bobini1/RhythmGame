@@ -7,13 +7,13 @@
 #include "qml_components/FileQuery.h"
 #include "qml_components/Logger.h"
 #include "qml_components/OnlineScores.h"
-#include "qml_components/PreviewFilePathFetcher.h"
 #include "qml_components/ProfileList.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ReplayImportOperation.h"
 #include "qml_components/RootSongFoldersConfig.h"
 #include "qml_components/ScoreDb.h"
 #include "qml_components/ScoreSyncOperation.h"
+#include "qml_components/SongDirectoryFilePathFetcher.h"
 #include "qml_components/SongFolderFactory.h"
 #include "qml_components/Themes.h"
 #include "resource_managers/Languages.h"
@@ -84,8 +84,9 @@ RHYTHMGAME_QML_ANONYMOUS_FOREIGN(RootSongFoldersConfigForeign,
                                  qml_components::RootSongFoldersConfig);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(SongFolderFactoryForeign,
                                  qml_components::SongFolderFactory);
-RHYTHMGAME_QML_ANONYMOUS_FOREIGN(PreviewFilePathFetcherForeign,
-                                 qml_components::PreviewFilePathFetcher);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(
+  SongDirectoryFilePathFetcherForeign,
+  qml_components::SongDirectoryFilePathFetcher);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(FileQueryForeign,
                                  qml_components::FileQuery);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(ThemesForeign, qml_components::Themes);

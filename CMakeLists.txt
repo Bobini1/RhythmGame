@@ -196,8 +196,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsScore.h
         src/qml_components/ProfileList.cpp
         src/qml_components/ProfileList.h
-        src/qml_components/PreviewFilePathFetcher.cpp
-        src/qml_components/PreviewFilePathFetcher.h
+        src/qml_components/SongDirectoryFilePathFetcher.cpp
+        src/qml_components/SongDirectoryFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
         src/qml_components/ScoreSyncOperation.cpp

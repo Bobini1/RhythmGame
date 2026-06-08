@@ -129,6 +129,12 @@ defineDb(db::SqliteCppDb& db)
                "directory TEXT NOT NULL UNIQUE"
                ");");
 
+    db.execute("CREATE TABLE IF NOT EXISTS readme_files ("
+               "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+               "path TEXT NOT NULL,"
+               "directory TEXT NOT NULL UNIQUE"
+               ");");
+
     db.execute("CREATE TABLE IF NOT EXISTS histogram_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "chart_id INTEGER NOT NULL UNIQUE,"

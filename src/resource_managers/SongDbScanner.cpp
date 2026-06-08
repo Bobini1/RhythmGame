@@ -17,6 +17,8 @@ namespace llfio = LLFIO_V2_NAMESPACE;
 #include "support/PathToQString.h"
 #include "support/PathToUtfString.h"
 
+#include <algorithm>
+#include <cctype>
 #include <qthreadpool.h>
 #include <spdlog/stopwatch.h>
 #include <spdlog/spdlog.h>
@@ -121,23 +123,74 @@ loadChart(QThreadPool& threadPool,
 }
 
 void
+addSongDirectoryFileToDb(db::SqliteCppDb& db,
+                         const char* table,
+                         const char* label,
+                         const std::filesystem::path& directory,
+                         const std::filesystem::path& path)
+{
+    try {
+        auto filePath = support::pathToUtfString((path));
+        auto directoryPath = support::pathToUtfString((directory / ""));
+        auto statement = db.createStatement(std::string("INSERT OR REPLACE INTO ") +
+                                            table +
+                                            " (path, directory) VALUES (?, ?)");
+        statement.reset();
+        statement.bind(1, filePath);
+        statement.bind(2, directoryPath);
+        statement.execute();
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to add {} file to db: {}", label, e.what());
+    }
+}
+
+void
 addPreviewFileToDb(db::SqliteCppDb& db,
                    const std::filesystem::path& directory,
                    const std::filesystem::path& path)
 {
-    try {
-        auto previewPath = support::pathToUtfString((path));
-        auto directoryPath = support::pathToUtfString((directory / ""));
-        auto statement = db.createStatement(
-          "INSERT OR REPLACE INTO preview_files (path, directory) "
-          "VALUES (?, ?)");
-        statement.reset();
-        statement.bind(1, previewPath);
-        statement.bind(2, directoryPath);
-        statement.execute();
-    } catch (const std::exception& e) {
-        spdlog::error("Failed to add preview file to db: {}", e.what());
+    addSongDirectoryFileToDb(db, "preview_files", "preview", directory, path);
+}
+
+void
+addReadmeFileToDb(db::SqliteCppDb& db,
+                  const std::filesystem::path& directory,
+                  const std::filesystem::path& path)
+{
+    addSongDirectoryFileToDb(db, "readme_files", "readme", directory, path);
+}
+
+auto
+lowercaseExtension(const std::filesystem::path& path) -> std::string
+{
+    auto extension = support::pathToUtfString(path.extension());
+    std::ranges::transform(extension, extension.begin(), [](unsigned char c) {
+        return static_cast<char>(std::tolower(c));
+    });
+    return extension;
+}
+
+auto
+fileNameStartsWithDot(const std::filesystem::path& path) -> bool
+{
+    const auto filename = path.filename();
+    if (filename.empty()) {
+        return false;
     }
+
+    const auto& native = filename.native();
+    return !native.empty() &&
+           native.front() ==
+             static_cast<std::filesystem::path::value_type>('.');
+}
+
+auto
+isReadmeCandidate(const std::filesystem::path& path) -> bool
+{
+    if (fileNameStartsWithDot(path)) {
+        return false;
+    }
+    return lowercaseExtension(path) == ".txt";
 }
 #ifdef _WIN32
 using NtQueryDirectoryFile_t =
@@ -204,6 +257,7 @@ scanFolder(std::filesystem::path directory,
         }
     }
     auto previewPath = std::filesystem::path{};
+    auto readmePath = std::filesystem::path{};
     auto dirId = int64_t{ 0 };
 
     while (true) {
@@ -262,8 +316,11 @@ scanFolder(std::filesystem::path directory,
                        (extension.compare(".mp3") == 0 ||
                         extension.compare(".ogg") == 0 ||
                         extension.compare(".wav") == 0 ||
-                        extension.compare(".flac") == 0)) {
+                       extension.compare(".flac") == 0)) {
                 previewPath = directory / path;
+            } else if (readmePath.empty() &&
+                       isReadmeCandidate(std::filesystem::path(path))) {
+                readmePath = directory / path;
             }
 
             if (fileInfo->NextEntryOffset == 0) {
@@ -276,6 +333,11 @@ scanFolder(std::filesystem::path directory,
     if (!previewPath.empty() && isSongDirectory) {
         threadPool.start([&db, directory, previewPath] {
             addPreviewFileToDb(db, directory, previewPath);
+        });
+    }
+    if (!readmePath.empty() && isSongDirectory) {
+        threadPool.start([&db, directory, readmePath] {
+            addReadmeFileToDb(db, directory, readmePath);
         });
     }
     for (const auto& entry : directoriesToScan) {
@@ -306,6 +368,7 @@ scanFolder(const std::filesystem::path& directory,
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     auto previewPath = std::filesystem::path{};
+    auto readmePath = std::filesystem::path{};
     auto parentDirQString = support::pathToQString(parentDirectory);
     auto dirId = int64_t{ 0 };
     auto dh = llfio::directory( //
@@ -363,11 +426,18 @@ scanFolder(const std::filesystem::path& directory,
                    (extension == ".mp3" || extension == ".ogg" ||
                     extension == ".wav" || extension == ".flac")) {
             previewPath = directory / path;
+        } else if (readmePath.empty() && isReadmeCandidate(path)) {
+            readmePath = directory / path;
         }
     }
     if (!previewPath.empty() && isSongDirectory) {
         threadPool.start([&db, directory, previewPath] {
             addPreviewFileToDb(db, directory, previewPath);
+        });
+    }
+    if (!readmePath.empty() && isSongDirectory) {
+        threadPool.start([&db, directory, readmePath] {
+            addReadmeFileToDb(db, directory, readmePath);
         });
     }
     for (const auto& entry : directoriesToScan) {

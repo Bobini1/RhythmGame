@@ -6,7 +6,8 @@
 
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
-#include <QFileInfo>
+#include <QFile>
+#include <QUrl>
 #include <QStringDecoder>
 #include <cstdint>
 #include <iconv.h>
@@ -142,13 +143,6 @@ localPathFromUserPath(const QString& path) -> QString
 } // namespace
 
 namespace qml_components {
-auto
-FileQuery::exists(const QString& path) -> bool
-{
-    const QFileInfo info(localPathFromUserPath(path));
-    return info.exists() && info.isFile() && !info.fileName().isEmpty();
-}
-
 auto
 FileQuery::readTextFile(const QString& path) const -> QString
 {

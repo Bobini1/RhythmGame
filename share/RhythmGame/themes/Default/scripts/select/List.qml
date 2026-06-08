@@ -48,7 +48,7 @@ PathView {
                 dirs.push(item.chartDirectory);
             }
         }
-        previewFiles = Rg.previewFilePathFetcher.getPreviewFilePaths(dirs);
+        previewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
     }
     property var scores: {
         return {};

@@ -23,7 +23,7 @@
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
 #include "qml_components/ProfileList.h"
-#include "qml_components/PreviewFilePathFetcher.h"
+#include "qml_components/SongDirectoryFilePathFetcher.h"
 #include "qml_components/FileQuery.h"
 #include "qml_components/Lr2NativeCursor.h"
 #include "qml_components/InputAttached.h"
@@ -325,8 +325,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           qml_components::RootSongFoldersConfig{ &folders, &scanningQueue };
 
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
-        auto previewFilePathFetcher =
-          qml_components::PreviewFilePathFetcher{ &db };
+        auto songDirectoryFilePathFetcher =
+          qml_components::SongDirectoryFilePathFetcher{ &db };
 
         auto fileQuery = qml_components::FileQuery{};
 
@@ -369,7 +369,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &chartLoader,
                       &rootSongFoldersConfig,
                       &songFolderFactory,
-                      &previewFilePathFetcher,
+                      &songDirectoryFilePathFetcher,
                       &fileQuery,
                       &themes,
                       &gamepadManager,
