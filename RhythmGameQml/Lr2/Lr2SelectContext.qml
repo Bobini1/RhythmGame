@@ -2104,10 +2104,7 @@ Item {
         if (isEntry(item)) {
             return 4;
         }
-        if (isTable(item)) {
-            return 1;
-        }
-        if (isLevel(item)) {
+        if (isTable(item) || isLevel(item)) {
             return 2;
         }
         if (isCourse(item)) {
