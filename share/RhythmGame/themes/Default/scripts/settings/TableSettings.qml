@@ -42,6 +42,15 @@ Item {
         return tagTranslations[tag] ?? tag
     }
 
+    function currentTableListUrl() {
+        const generalVars = Rg.profileList?.mainProfile?.vars?.generalVars
+        return generalVars?.tableListUrl ? String(generalVars.tableListUrl).trim() : ""
+    }
+
+    function exceptionMessage(error) {
+        return error?.message !== undefined ? String(error.message) : String(error)
+    }
+
     readonly property var recommendedUrls: {
         const raw = [
             "https://mqppppp.neocities.org/StardustTable.html",
@@ -144,11 +153,18 @@ Item {
 
     function fetchTables() {
         if (fetchState === "loading") return
-        fetchState = "loading"
-        fetchError = ""
-        const url = Rg.profileList.mainProfile.vars.generalVars.tableListUrl
+        const url = currentTableListUrl()
+        if (!url) {
+            allTables = []
+            fetchError = qsTr("No table list URL configured")
+            fetchState = "error"
+            return
+        }
+
         const xhr = new XMLHttpRequest()
         xhr.open("GET", url)
+        fetchState = "loading"
+        fetchError = ""
         xhr.onreadystatechange = function () {
             if (xhr.readyState !== XMLHttpRequest.DONE) return
             if (xhr.status === 200) {
@@ -157,7 +173,7 @@ Item {
                     tableSettings.allTables = Array.isArray(parsed) ? parsed : (parsed.data ?? [])
                     tableSettings.fetchState = "done"
                 } catch (e) {
-                    tableSettings.fetchError = String(e.message)
+                    tableSettings.fetchError = tableSettings.exceptionMessage(e)
                     tableSettings.fetchState = "error"
                 }
             } else {
