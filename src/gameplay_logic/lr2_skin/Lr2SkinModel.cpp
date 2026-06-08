@@ -441,6 +441,10 @@ QVariantList Lr2SkinModel::barRows() const {
     return m_barRows;
 }
 
+QVariantList Lr2SkinModel::barBodyTypes() const {
+    return m_barBodyTypes;
+}
+
 QVariantList Lr2SkinModel::barTitleTypes() const {
     return m_barTitleTypes;
 }
@@ -595,6 +599,7 @@ void Lr2SkinModel::loadSkin() {
                                      !m_usedElementOptions.isEmpty() ||
                                      !m_barLampVariants.isEmpty() ||
                                      !m_barRows.isEmpty() ||
+                                     !m_barBodyTypes.isEmpty() ||
                                      !m_barTitleTypes.isEmpty() ||
                                      m_startInput != 0 ||
                                      m_sceneTime != 0 ||
@@ -640,6 +645,7 @@ void Lr2SkinModel::loadSkin() {
         m_usedElementOptions.clear();
         m_barLampVariants.clear();
         m_barRows.clear();
+        m_barBodyTypes.clear();
         m_barTitleTypes.clear();
         m_helpFiles.clear();
         m_mouseCursor.clear();
@@ -711,6 +717,7 @@ void Lr2SkinModel::loadSkin() {
                                  m_usedElementOptions != skinData.usedElementOptions ||
                                  m_barLampVariants != skinData.barLampVariants ||
                                  m_barRows != skinData.barRows ||
+                                 m_barBodyTypes != skinData.barBodyTypes ||
                                  m_barTitleTypes != skinData.barTitleTypes ||
                                  m_helpFiles != skinData.helpFiles ||
                                  m_mouseCursor != mouseCursor ||
@@ -758,6 +765,7 @@ void Lr2SkinModel::loadSkin() {
     m_usedElementOptions = skinData.usedElementOptions;
     m_barLampVariants = skinData.barLampVariants;
     m_barRows = skinData.barRows;
+    m_barBodyTypes = skinData.barBodyTypes;
     m_barTitleTypes = skinData.barTitleTypes;
     m_helpFiles = skinData.helpFiles;
     m_mouseCursor = mouseCursor;

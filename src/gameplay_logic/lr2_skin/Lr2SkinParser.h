@@ -417,6 +417,7 @@ struct Lr2SkinData
     QVariantList usedElementOptions;
     QVariantList barLampVariants;
     QVariantList barRows;
+    QVariantList barBodyTypes;
     QVariantList barTitleTypes;
     QVariantList helpFiles;
     QString transColor = "#000000";

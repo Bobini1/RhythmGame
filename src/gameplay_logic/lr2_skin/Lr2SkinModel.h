@@ -25,6 +25,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QVariantList usedElementOptions READ usedElementOptions NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barLampVariants READ barLampVariants NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barBodyTypes READ barBodyTypes NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barTitleTypes READ barTitleTypes NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList helpFiles READ helpFiles NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantMap mouseCursor READ mouseCursor NOTIFY skinMetadataChanged)
@@ -90,6 +91,7 @@ public:
     QVariantList usedElementOptions() const;
     QVariantList barLampVariants() const;
     QVariantList barRows() const;
+    QVariantList barBodyTypes() const;
     QVariantList barTitleTypes() const;
     QVariantList helpFiles() const;
     QVariantMap mouseCursor() const;
@@ -140,6 +142,7 @@ private:
     QVariantList m_usedElementOptions;
     QVariantList m_barLampVariants;
     QVariantList m_barRows;
+    QVariantList m_barBodyTypes;
     QVariantList m_barTitleTypes;
     QVariantList m_helpFiles;
     QVariantMap m_mouseCursor;

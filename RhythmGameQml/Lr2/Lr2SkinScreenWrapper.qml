@@ -4288,6 +4288,7 @@ Item {
         id: selectContext
         updatesActive: root.screenUpdatesActive && root.effectiveScreenKey === "select"
         enabled: updatesActive
+        barBodyTypes: skinModel.barBodyTypes || []
         barTitleTypes: skinModel.barTitleTypes || []
         barLampVariants: skinModel.barLampVariants || []
         useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics

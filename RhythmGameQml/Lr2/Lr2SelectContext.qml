@@ -68,6 +68,7 @@ Item {
     readonly property int keyFilter: keyFilterFrameForSelectKeymodeFilter(selectKeymodeFilter, beatorajaKeyFilterOrderActive())
     readonly property int sortMode: legacySortModeForSelectSortMode(selectSortMode)
     property int sortSourceFrameCount: 5
+    property var barBodyTypes: []
     property var barTitleTypes: []
     property var barLampVariants: []
     property bool useBeatorajaBarTextTypes: false
@@ -2125,6 +2126,9 @@ Item {
     }
 
     function entryBodyType(item: var) : var {
+        if (root.useBeatorajaBarTextTypes) {
+            return root.beatorajaEntryBodyType(item);
+        }
         if (isRankingEntry(item)) {
             return 0;
         }
@@ -2163,15 +2167,46 @@ Item {
         return rank;
     }
 
-    function barTitleTypeDefined(type: var) : var {
+    function barTypeDefined(types: var, type: var) : var {
         let normalized = Math.floor(type || 0);
-        let types = root.barTitleTypes || [];
-        for (let value of types) {
+        for (let value of (types || [])) {
             if (Math.floor(value || 0) === normalized) {
                 return true;
             }
         }
         return false;
+    }
+
+    function barBodyTypeDefined(type: var) : var {
+        return root.barTypeDefined(root.barBodyTypes, type);
+    }
+
+    function barBodyTypeWithFallback(type: var, fallback: var) : var {
+        let normalized = Math.max(0, Math.floor(type || 0));
+        if (normalized <= 1 || root.barBodyTypeDefined(normalized)) {
+            return normalized;
+        }
+        return Math.max(0, Math.floor(fallback || 0));
+    }
+
+    function beatorajaEntryBodyType(item: var) : var {
+        if (isRankingEntry(item) || isChart(item)) {
+            return root.barBodyTypeWithFallback(0, 0);
+        }
+        if (isEntry(item)) {
+            return root.barBodyTypeWithFallback(4, 0);
+        }
+        if (isTable(item) || isLevel(item)) {
+            return root.barBodyTypeWithFallback(2, 1);
+        }
+        if (isCourse(item)) {
+            return root.barBodyTypeWithFallback(isPlayableCourse(item) ? 3 : 4, 0);
+        }
+        return root.barBodyTypeWithFallback(1, 0);
+    }
+
+    function barTitleTypeDefined(type: var) : var {
+        return root.barTypeDefined(root.barTitleTypes, type);
     }
 
     function barTitleTypeWithFallback(type: var, fallback: var) : var {
