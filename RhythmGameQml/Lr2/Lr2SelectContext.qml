@@ -82,6 +82,7 @@ Item {
     readonly property int barLabelRandom: 1
     readonly property int barLabelMine: 2
     property alias visibleBarSlotOffset: visibleBarModel.slotOffset
+    property alias visibleBarModelObject: visibleBarModel
     property alias visibleBarTextCells: visibleBarModel.cells
     property alias lastSyncedCursorBaseIndex: nativeNavigation.lastSyncedCursorBaseIndex
     property bool rankingMode: false
@@ -282,7 +283,7 @@ Item {
         logicalCount: root.logicalCount
         rowCountLimit: Math.max(0, root.barRowCount || 0)
         centerRow: root.barCenter
-        currentIndex: visualState.baseIndex
+        visualState: visualState
     }
 
     Lr2SelectDetailState {

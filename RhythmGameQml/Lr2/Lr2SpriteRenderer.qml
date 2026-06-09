@@ -158,10 +158,7 @@ Item {
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
     readonly property bool hasDrawableTexture: !root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
-    readonly property bool hasRenderableState: drawState.hasState
-        && (drawState.blend === 0 ? 255 : drawState.a) > 0
-        && drawState.w !== 0
-        && drawState.h !== 0
+    readonly property bool hasRenderableState: drawState.renderable
     readonly property bool shouldPlayVideo: root.mediaActive
         && root.visible
         && root.opacity > 0

@@ -326,7 +326,7 @@ QtObject {
         }
     }
 
-    function appendChartOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var) : var {
+    function appendChartOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var, chartKeymode: var) : var {
         includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
         let usedOptions = root.runtimeUsedOptions;
         let usesStageFileOption = root.runtimeOptionRangeUsed(usedOptions, 190, 191);
@@ -340,10 +340,10 @@ QtObject {
         let usesHighLevelOption = root.runtimeOptionRangeUsed(usedOptions, 185, 186);
         let usesDifficultyOption = root.runtimeOptionRangeUsed(usedOptions, 150, 155);
         let usesTableSongOption = root.runtimeOptionUsed(usedOptions, 1008);
-        let keymode = root.chartKeymode(chartData, fallbackItem);
-        let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
         if (includeSelectDetailOptions) {
-            root.appendChartKeymodeOptions(options, keymode);
+            root.appendChartKeymodeOptions(options, chartKeymode !== undefined
+                ? chartKeymode
+                : root.chartKeymode(chartData, fallbackItem));
         }
         if (usesTableSongOption && host.chartInTable(chartData || fallbackItem)) {
             root.addOption(options, 1008);
@@ -375,6 +375,7 @@ QtObject {
                 root.addOption(options, 178);
             }
             if (includeSelectDetailOptions) {
+                let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
                 root.setSelectChartDetailRuntimeOptionRange(
                     options,
                     180,
@@ -415,6 +416,7 @@ QtObject {
             root.addOption(options, chartData.isRandom ? 179 : 178);
         }
         if (includeSelectDetailOptions) {
+            let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
             root.setSelectChartDetailRuntimeOptionRange(
                 options,
                 180,
@@ -561,7 +563,7 @@ QtObject {
         root.appendChartKeymodeOption(options, effectiveKeymode, 165);
     }
 
-    function appendSelectChartDetailOptions(options: var, chartData: var, fallbackItem: var) : void {
+    function appendSelectChartDetailOptions(options: var, chartData: var, fallbackItem: var, chartKeymode: var) : void {
         if (host.effectiveScreenKey !== "select") {
             return;
         }
@@ -572,7 +574,7 @@ QtObject {
             return;
         }
 
-        let keymode = root.chartKeymode(chartData, fallbackItem);
+        let keymode = chartKeymode !== undefined ? chartKeymode : root.chartKeymode(chartData, fallbackItem);
         if (usesKeymodeOptions && keymode > 0) {
             let effectiveKeymode = root.effectiveChartDetailKeymode(keymode);
             root.addSelectChartDetailRuntimeOption(options, root.keymodeOptionFor(keymode, 160));
@@ -594,7 +596,7 @@ QtObject {
         return root.chartKeymode(selectedChart, item);
     }
 
-    function appendEntryStatusOptions(options: var, item: var, selectedChart: var, scoreSummary: var) : var {
+    function appendEntryStatusOptions(options: var, item: var, selectedChart: var, scoreSummary: var, chartKeymode: var) : var {
         if (!root.selectEntryStatusOptionsUsed()) {
             return;
         }
@@ -605,7 +607,9 @@ QtObject {
                 && !folderLike) {
             return;
         }
-        if (!folderLike && root.chartKeymodeForStatus(item, selectedChart) <= 0) {
+        if (!folderLike && (chartKeymode !== undefined
+                ? chartKeymode
+                : root.chartKeymodeForStatus(item, selectedChart)) <= 0) {
             return;
         }
         if (folderLike) {
@@ -673,13 +677,13 @@ QtObject {
         }
     }
 
-    function appendDifficultyBarOptions(options: var, difficultyModel: var, selectedChart: var) : var {
+    function appendDifficultyBarOptions(options: var, difficultyModel: var, selectedChart: var, chartKeymode: var) : var {
         if (!root.selectDifficultyBarOptionsUsed()) {
             return;
         }
         let includeLamps = root.selectDifficultyLampOptionsUsed();
-        let chartData = root.chartDataForSelection(selectedChart, selectedChart);
-        let keymode = root.chartDataKeymode(chartData);
+        let chartData = selectedChart;
+        let keymode = chartKeymode !== undefined ? chartKeymode : root.chartDataKeymode(chartData);
         if (difficultyModel) {
             let optionIds = difficultyModel.optionIdsForKeymode(keymode, includeLamps);
             for (let optionId of optionIds) {
@@ -716,8 +720,8 @@ QtObject {
         }
     }
 
-    function appendSelectItemTypeOptions(options: var, item: var) : void {
-        let chartData = root.chartDataForSelection(item, null);
+    function appendSelectItemTypeOptions(options: var, item: var, chartData: var) : void {
+        chartData = chartData !== undefined ? chartData : root.chartDataForSelection(item, null);
         let chartLike = !!chartData
             && !selectContext.isFolderLikeForLamp(item)
             && !selectContext.isCourse(item);
@@ -740,14 +744,14 @@ QtObject {
         }
     }
 
-    function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var) : void {
+    function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var, chartKeymode: var) : void {
         includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
         let usedOptions = root.runtimeUsedOptions;
         if (!root.runtimeOptionRangeUsed(usedOptions, 10, 13)
                 && (!includeSelectDetailOptions || !root.runtimeOptionRangeUsed(usedOptions, 160, 169))) {
             return;
         }
-        let keymode = root.chartKeymode(chartData, fallbackItem);
+        let keymode = chartKeymode !== undefined ? chartKeymode : root.chartKeymode(chartData, fallbackItem);
         if (includeSelectDetailOptions) {
             root.appendChartKeymodeOptions(options, keymode);
         }
@@ -1002,6 +1006,7 @@ QtObject {
         let selectedItem = item || (state ? state.item : null) || selectContext.focusedItem;
         let explicitChartData = selectedChart !== undefined ? selectedChart : (state ? state.chartData : null);
         let chartData = root.chartDataForSelection(explicitChartData, selectedItem);
+        let keymode = root.chartDataKeymode(chartData);
         let canUseState = stateCurrent
             && state
             && (selectedItem === state.item || selectedItem === state.chartData)
@@ -1009,17 +1014,17 @@ QtObject {
         let summary = canUseState ? state.summary : null;
         let difficultyModel = canUseState ? state.difficultyModel : null;
 
-        root.appendSelectItemTypeOptions(options, selectedItem);
-        root.appendSelectedChartModeOptions(options, chartData, selectedItem, includeSelectDetailOptions);
-        root.appendEntryStatusOptions(options, selectedItem, chartData, summary);
+        root.appendSelectItemTypeOptions(options, selectedItem, chartData);
+        root.appendSelectedChartModeOptions(options, chartData, selectedItem, includeSelectDetailOptions, keymode);
+        root.appendEntryStatusOptions(options, selectedItem, chartData, summary, keymode);
         root.appendCourseOptions(options, selectedItem);
         root.appendRankingStatusOptions(options);
 
         if (chartData) {
-            root.appendDifficultyBarOptions(options, difficultyModel, chartData);
+            root.appendDifficultyBarOptions(options, difficultyModel, chartData, keymode);
         }
 
-        root.appendChartOptions(options, chartData, selectedItem, includeSelectDetailOptions);
+        root.appendChartOptions(options, chartData, selectedItem, includeSelectDetailOptions, keymode);
         if (root.selectScoreOptionIdsUsed()) {
             let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
             if (!scoreOptionIds) {
@@ -1030,7 +1035,7 @@ QtObject {
             }
         }
         if (includeSelectDetailOptions) {
-            root.appendSelectChartDetailOptions(options, chartData, selectedItem);
+            root.appendSelectChartDetailOptions(options, chartData, selectedItem, keymode);
         }
     }
 
@@ -1038,10 +1043,11 @@ QtObject {
         let chartData = host.chart && host.chart.chartData
             ? host.chart.chartData
             : selectContext.selectedStateChartData;
-        root.appendSelectItemTypeOptions(options, chartData);
-        root.appendSelectedChartModeOptions(options, chartData);
-        root.appendEntryStatusOptions(options, chartData, chartData);
-        root.appendChartOptions(options, chartData);
+        let keymode = root.chartDataKeymode(chartData);
+        root.appendSelectItemTypeOptions(options, chartData, chartData);
+        root.appendSelectedChartModeOptions(options, chartData, chartData, true, keymode);
+        root.appendEntryStatusOptions(options, chartData, chartData, null, keymode);
+        root.appendChartOptions(options, chartData, chartData, true, keymode);
         if (root.selectScoreOptionIdsUsed()) {
             for (let optionId of selectContext.scoreOptionIds(chartData)) {
                 root.addOption(options, optionId);

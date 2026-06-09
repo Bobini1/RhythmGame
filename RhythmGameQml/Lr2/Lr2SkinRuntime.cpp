@@ -676,7 +676,7 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
             ? rt::SelectInfoClock
             : (descriptor.usesLiveSelectClock ? rt::SelectSourceClock : rt::RenderClock))
         : rt::ManualClock;
-    descriptor.spriteUsesDirectSkinClock = descriptor.usesSkinTime && !descriptor.usesSelectHeldButtonTimer;
+    descriptor.spriteUsesDirectSkinClock = descriptor.usesSkinTime;
     descriptor.spriteSkinClockMode = descriptor.spriteUsesDirectSkinClock
         ? dstClockMode
         : rt::ManualClock;

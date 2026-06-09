@@ -49,6 +49,7 @@ class Lr2TimelineFrameState : public QObject {
     Q_PROPERTY(bool hasTimelineState READ hasTimelineState NOTIFY hasTimelineStateChanged)
     Q_PROPERTY(Lr2TimelineStateValue state READ state NOTIFY directStateChanged)
     Q_PROPERTY(bool hasState READ hasState NOTIFY hasStateChanged)
+    Q_PROPERTY(bool renderable READ isRenderable NOTIFY renderableChanged)
     Q_PROPERTY(qreal x READ x NOTIFY geometryChanged)
     Q_PROPERTY(qreal y READ y NOTIFY geometryChanged)
     Q_PROPERTY(qreal w READ w NOTIFY geometryChanged)
@@ -132,6 +133,7 @@ public:
     bool hasTimelineState() const;
     Lr2TimelineStateValue state() const;
     bool hasState() const;
+    bool isRenderable() const;
     qreal x() const;
     qreal y() const;
     qreal w() const;
@@ -176,6 +178,7 @@ signals:
     void directStateChanged();
     void hasTimelineStateChanged();
     void hasStateChanged();
+    void renderableChanged();
     void geometryChanged();
     void alphaChanged();
     void colorChanged();
@@ -250,6 +253,7 @@ private:
     bool m_hasDirectState = false;
     bool m_hasTimelineState = false;
     bool m_hasState = false;
+    bool m_renderable = false;
     StateFields m_fields;
     int m_rawBlendMode = 1;
     int m_blendMode = 1;

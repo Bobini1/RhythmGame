@@ -5031,7 +5031,7 @@ Item {
         skinModel: skinModel
         selectContext: selectContext
         selectedOffset: selectContext.selectedOffset
-        visibleBarSlotOffset: selectContext.visibleBarSlotOffset
+        visibleBarModel: selectContext.visibleBarModelObject
         selectVisualState: selectContext.visualStateObject
     }
 

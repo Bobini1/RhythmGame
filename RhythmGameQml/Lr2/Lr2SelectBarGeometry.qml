@@ -9,8 +9,8 @@ QtObject {
     required property var skinModel
     required property var selectContext
     required property int selectedOffset
-    required property int visibleBarSlotOffset
-    required property var selectVisualState
+    required property Lr2SelectBarModel visibleBarModel
+    required property Lr2SelectVisualState selectVisualState
 
     readonly property var root: screenRoot
 
@@ -40,7 +40,7 @@ QtObject {
 
     property Lr2BarPositionMap barPositionMap: Lr2BarPositionMap {
         baseStateResolver: geometry.barBaseStateResolver
-        slotOffset: geometry.visibleBarSlotOffset
+        slotOffsetModel: geometry.visibleBarModel
         slotCount: geometry.skinModel.barRows ? geometry.skinModel.barRows.length : 0
         visualState: geometry.fastBarScrollActive || !geometry.selectVisualState
             ? null

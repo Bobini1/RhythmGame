@@ -419,6 +419,10 @@ bool Lr2TimelineFrameState::hasState() const {
     return m_hasState;
 }
 
+bool Lr2TimelineFrameState::isRenderable() const {
+    return m_renderable;
+}
+
 qreal Lr2TimelineFrameState::x() const {
     return m_fields.x;
 }
@@ -616,6 +620,7 @@ void Lr2TimelineFrameState::updateFrame() {
     const bool previousHasDirectState = m_hasDirectState;
     const bool previousHasTimelineState = m_hasTimelineState;
     const bool previousHasState = m_hasState;
+    const bool previousRenderable = m_renderable;
     const StateFields previousFields = m_fields;
     const int previousRawBlendMode = m_rawBlendMode;
     const int previousBlendMode = m_blendMode;
@@ -661,6 +666,10 @@ void Lr2TimelineFrameState::updateFrame() {
 
     m_rawBlendMode = m_hasState ? m_fields.blend : 1;
     m_blendMode = normalizedBlendMode(m_rawBlendMode);
+    m_renderable = m_hasState
+        && (m_fields.blend == 0 || m_fields.a > 0.0)
+        && m_fields.w != 0.0
+        && m_fields.h != 0.0;
     m_tintR = m_hasState ? clampedTint(m_fields.r) : 1.0;
     m_tintG = m_hasState ? clampedTint(m_fields.g) : 1.0;
     m_tintB = m_hasState ? clampedTint(m_fields.b) : 1.0;
@@ -683,6 +692,9 @@ void Lr2TimelineFrameState::updateFrame() {
     }
     if (previousHasState != m_hasState) {
         emit hasStateChanged();
+    }
+    if (previousRenderable != m_renderable) {
+        emit renderableChanged();
     }
     if (!sameReal(previousFields.x, m_fields.x)
             || !sameReal(previousFields.y, m_fields.y)

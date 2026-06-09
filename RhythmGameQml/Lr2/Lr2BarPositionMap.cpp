@@ -77,6 +77,37 @@ void Lr2BarPositionMap::setSlotOffset(int offset) {
     emit slotOffsetChanged();
 }
 
+Lr2SelectBarModel* Lr2BarPositionMap::slotOffsetModel() const {
+    return m_slotOffsetModel;
+}
+
+void Lr2BarPositionMap::setSlotOffsetModel(Lr2SelectBarModel* model) {
+    if (m_slotOffsetModel == model) {
+        return;
+    }
+
+    if (m_slotOffsetModelConnection) {
+        disconnect(m_slotOffsetModelConnection);
+        m_slotOffsetModelConnection = {};
+    }
+
+    m_slotOffsetModel = model;
+    if (m_slotOffsetModel) {
+        m_slotOffsetModelConnection = connect(
+            m_slotOffsetModel,
+            &Lr2SelectBarModel::slotOffsetChanged,
+            this,
+            &Lr2BarPositionMap::syncSlotOffsetFromModel);
+    }
+
+    if (m_slotOffsetModel) {
+        syncSlotOffsetFromModel();
+    } else {
+        setSlotOffset(0);
+    }
+    emit slotOffsetModelChanged();
+}
+
 int Lr2BarPositionMap::slotCount() const {
     return m_slotCount;
 }
@@ -184,6 +215,13 @@ void Lr2BarPositionMap::rebuildDrawCoordinates() {
 
 void Lr2BarPositionMap::notifyCoordinatesChanged() {
     emit coordinatesChanged();
+}
+
+void Lr2BarPositionMap::syncSlotOffsetFromModel() {
+    if (!m_slotOffsetModel) {
+        return;
+    }
+    setSlotOffset(m_slotOffsetModel->slotOffset());
 }
 
 void Lr2BarPositionMap::rebuildBaseCoordinatesFromResolver() {

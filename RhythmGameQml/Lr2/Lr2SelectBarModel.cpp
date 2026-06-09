@@ -153,6 +153,21 @@ void Lr2SelectBarModel::setCurrentIndex(int index) {
 	emit currentIndexChanged();
 }
 
+Lr2SelectVisualState* Lr2SelectBarModel::visualState() const {
+	return m_visualState;
+}
+
+void Lr2SelectBarModel::setVisualState(Lr2SelectVisualState* state) {
+	if (m_visualState == state) {
+		return;
+	}
+	disconnectVisualState();
+	m_visualState = state;
+	connectVisualState();
+	syncCurrentIndexFromVisualState();
+	emit visualStateChanged();
+}
+
 int Lr2SelectBarModel::slotOffset() const {
 	return m_slotOffset;
 }
@@ -279,6 +294,31 @@ void Lr2SelectBarModel::connectSourceModel() {
 		[this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>&) {
 			updateCellsForSourceRows(topLeft.row(), bottomRight.row());
 		}));
+}
+
+void Lr2SelectBarModel::disconnectVisualState() {
+	if (m_visualStateConnection) {
+		disconnect(m_visualStateConnection);
+		m_visualStateConnection = {};
+	}
+}
+
+void Lr2SelectBarModel::connectVisualState() {
+	if (!m_visualState) {
+		return;
+	}
+	m_visualStateConnection = connect(
+		m_visualState,
+		&Lr2SelectVisualState::baseIndexChanged,
+		this,
+		&Lr2SelectBarModel::syncCurrentIndexFromVisualState);
+}
+
+void Lr2SelectBarModel::syncCurrentIndexFromVisualState() {
+	if (!m_visualState) {
+		return;
+	}
+	setCurrentIndex(m_visualState->baseIndex());
 }
 
 void Lr2SelectBarModel::rebuildRows() {

@@ -87,16 +87,27 @@ Item {
                 ? root.barCells[slot]
                 : null
             readonly property int sourceTitleType: root.srcData ? root.srcData.titleType : -1
-            readonly property string cellText: cell && cell.valid && cell.titleType === sourceTitleType
-                ? cell.text
-                : ""
-            readonly property bool contentVisible: rowVisible && cellText.length > 0
+            property string cellText: ""
+            property bool contentVisible: false
+            function resolvedCellText() : string {
+                return cell ? cell.textForTitleType(sourceTitleType) : "";
+            }
+            function refreshContentVisible() : void {
+                contentVisible = rowVisible && cellText.length > 0;
+            }
             function refreshResolvedText() : void {
+                let nextText = resolvedCellText();
+                if (cellText !== nextText) {
+                    cellText = nextText;
+                }
+                refreshContentVisible();
                 if (textRenderer) {
                     textRenderer.resolvedText = cellText;
                 }
             }
-            onCellTextChanged: refreshResolvedText()
+            onCellChanged: refreshResolvedText()
+            onSourceTitleTypeChanged: refreshResolvedText()
+            onRowVisibleChanged: refreshContentVisible()
             positionMap: root.barPositionMap
             slot: index
             scaleOverride: root.scaleOverride
@@ -125,6 +136,13 @@ Item {
                 stateOverride: root.staticTimelineState
                 stateOverrideSource: root.hasStaticTimelineState ? null : root.timelineState
                 Component.onCompleted: barTextDelegate.refreshResolvedText()
+            }
+
+            Connections {
+                target: barTextDelegate.cell
+                function onCoreChanged() : void {
+                    barTextDelegate.refreshResolvedText();
+                }
             }
         }
     }

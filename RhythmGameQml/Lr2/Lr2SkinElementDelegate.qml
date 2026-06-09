@@ -135,20 +135,22 @@ Loader {
     readonly property int elementSkinClockMode: elementState.elementSkinClockMode
     readonly property bool useDirectElementSkinClock: elementState.useDirectElementSkinClock
     readonly property bool needsManualElementSkinTime: elementState.needsManualElementSkinTime
-    readonly property int selectHeldButtonSkinClock: usesSelectHeldButtonTimer
-        ? (elemLoader.selectPanelController
-            ? (elemLoader.selectPanelController.hasSelectHeldButtonTimers
-                ? elemLoader.selectPanelController.selectHeldButtonSkinTime
-                : elemLoader.selectPanelController.currentSelectHeldButtonSkinTime())
-            : 0)
-        : 0
     readonly property int elementSkinTime: needsManualElementSkinTime
         ? elementSkinTimeForClock(elementSkinClockMode, usesLiveSelectClock, elemLoader.screenRoot.renderSkinTime, false)
         : 0
 
+    function selectHeldButtonSkinClockValue() : var {
+        if (!usesSelectHeldButtonTimer || !elemLoader.selectPanelController) {
+            return 0;
+        }
+        return elemLoader.selectPanelController.hasSelectHeldButtonTimers
+            ? elemLoader.selectPanelController.selectHeldButtonSkinTime
+            : elemLoader.selectPanelController.currentSelectHeldButtonSkinTime();
+    }
+
     function elementSkinTimeForClock(clockMode: var, useSelectLiveClock: var, fallbackSkinTime: var, allowHeldButtonTimer: var) : var {
         if (allowHeldButtonTimer && usesSelectHeldButtonTimer) {
-            return selectHeldButtonSkinClock;
+            return selectHeldButtonSkinClockValue();
         }
         if (clockMode === selectInfoClock) {
             return elemLoader.screenRoot.selectInfoElapsed;

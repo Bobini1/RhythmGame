@@ -1,8 +1,10 @@
 #pragma once
 
 #include "Lr2SelectItemModel.h"
+#include "Lr2SelectVisualState.h"
 
 #include <QAbstractListModel>
+#include <QMetaObject>
 #include <QPointer>
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
@@ -17,6 +19,7 @@ class Lr2SelectBarModel : public QAbstractListModel {
 	Q_PROPERTY(int rowCountLimit READ rowCountLimit WRITE setRowCountLimit NOTIFY rowCountLimitChanged)
 	Q_PROPERTY(int centerRow READ centerRow WRITE setCenterRow NOTIFY centerRowChanged)
 	Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
+	Q_PROPERTY(Lr2SelectVisualState* visualState READ visualState WRITE setVisualState NOTIFY visualStateChanged)
 	Q_PROPERTY(int slotOffset READ slotOffset NOTIFY slotOffsetChanged)
 	Q_PROPERTY(QVariantList cells READ cells NOTIFY cellsChanged)
 
@@ -66,6 +69,9 @@ public:
 	int currentIndex() const;
 	void setCurrentIndex(int index);
 
+	Lr2SelectVisualState* visualState() const;
+	void setVisualState(Lr2SelectVisualState* state);
+
 	int slotOffset() const;
 	QVariantList cells() const;
 
@@ -78,6 +84,7 @@ signals:
 	void rowCountLimitChanged();
 	void centerRowChanged();
 	void currentIndexChanged();
+	void visualStateChanged();
 	void slotOffsetChanged();
 	void cellsChanged();
 
@@ -105,9 +112,14 @@ private:
 	void updateCellForVisualRow(int row);
 	void updateCellsForSourceRows(int first, int last);
 	void updateAllCells();
+	void disconnectVisualState();
+	void connectVisualState();
+	void syncCurrentIndexFromVisualState();
 
 	QPointer<Lr2SelectItemModel> m_sourceModel;
+	QPointer<Lr2SelectVisualState> m_visualState;
 	QList<QMetaObject::Connection> m_sourceConnections;
+	QMetaObject::Connection m_visualStateConnection;
 	QList<BarRow> m_rows;
 	QList<QPointer<Lr2SelectBarCell>> m_cellObjects;
 	QVariantList m_cellValues;
