@@ -17,6 +17,7 @@ Loader {
     required property var skinRuntime
     required property var skinTiming
     required property var valueResolver
+    required property var resolvedTextRegistry
     required property var sliderState
     required property var selectPanelController
     required property var selectHoverState
@@ -60,6 +61,7 @@ Loader {
     readonly property bool usesSkinTime: elementState.usesSkinTime
     readonly property int dstTimer: elementState.dstTimer
     readonly property int srcTimer: elementState.srcTimer
+    readonly property int sourceTextId: elementState.sourceTextId !== undefined ? elementState.sourceTextId : -1
     readonly property bool usesSelectHeldButtonTimer: elementState.usesSelectHeldButtonTimer
     readonly property bool usesLiveDstClock: elementState.usesLiveDstClock
     readonly property bool usesLiveSourceClock: elementState.usesLiveSourceClock
@@ -510,9 +512,10 @@ Loader {
             screenRoot: elemLoader.screenRoot
             selectContext: elemLoader.selectContext
             selectSearchState: elemLoader.selectSearchState
-            valueResolver: elemLoader.valueResolver
+            resolvedTextRegistry: elemLoader.resolvedTextRegistry
             dsts: elemLoader.elementData.dsts
             srcData: elemLoader.elementData.src
+            sourceTextId: elemLoader.sourceTextId
             skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
             skinClock: elemLoader.useDirectElementSkinClock ? elemLoader.screenRoot.skinClockRef : null
             skinClockMode: elemLoader.elementSkinClockMode

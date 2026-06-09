@@ -65,9 +65,6 @@ Item {
         : ""
     readonly property bool uppercaseBitmapText: root.isLr2Font
         && root.normalizedFontPath.indexOf("/font/title/") !== -1
-    readonly property string bitmapText: root.uppercaseBitmapText
-        ? root.resolvedText.toUpperCase()
-        : root.resolvedText
     readonly property int textAlignment: root.srcData ? root.srcData.align : 0
     readonly property int textFontSize: root.srcData ? root.srcData.fontSize : 0
     readonly property int textFontThickness: root.srcData ? root.srcData.fontThickness : 0
@@ -98,14 +95,16 @@ Item {
         visible: root.hasCurrentState && root.stateA > 0 && width > 0 && height > 0
         opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
 
-        Lr2BitmapFontText {
+        Lr2BitmapFontTexture {
             visible: root.isLr2Font && root.blendMode !== 2
             anchors.fill: parent
-            fontPath: root.blendMode !== 2 && root.srcData ? root.srcData.fontPath : ""
-            text: root.blendMode !== 2 ? root.bitmapText : ""
+            active: root.blendMode !== 2
+            fontPath: root.srcData ? root.srcData.fontPath : ""
+            text: root.resolvedText
             textColor: root.textColor
             textureFilter: root.effectiveTextureFilter
             alignment: root.textAlignment
+            uppercase: root.uppercaseBitmapText
         }
 
         Lr2SystemFontText {
@@ -126,14 +125,16 @@ Item {
             visible: root.blendMode === 2
             anchors.fill: parent
 
-            Lr2BitmapFontText {
+            Lr2BitmapFontTexture {
                 visible: root.blendMode === 2 && root.isLr2Font
                 anchors.fill: parent
-                fontPath: root.blendMode === 2 && root.srcData ? root.srcData.fontPath : ""
-                text: root.blendMode === 2 ? root.bitmapText : ""
+                active: root.blendMode === 2
+                fontPath: root.srcData ? root.srcData.fontPath : ""
+                text: root.resolvedText
                 textColor: root.textColor
                 textureFilter: root.effectiveTextureFilter
                 alignment: root.textAlignment
+                uppercase: root.uppercaseBitmapText
             }
 
             Lr2SystemFontText {

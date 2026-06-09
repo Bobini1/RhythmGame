@@ -9,6 +9,8 @@ QtObject {
     required property var selectContext
     required property var playContext
     required property var rankingState
+    property Lr2ResolvedTextRegistry textRegistry: null
+    property bool resolvedTextRefreshQueued: false
 
     readonly property var root: screenRoot
 
@@ -379,6 +381,28 @@ QtObject {
         return resolver.computeResolvedText(resolver.numericValue(st, -1));
     }
 
+    function queueResolvedTextRefresh() : void {
+        if (!resolver.textRegistry || resolver.resolvedTextRefreshQueued) {
+            return;
+        }
+        resolver.resolvedTextRefreshQueued = true;
+        Qt.callLater(resolver.refreshResolvedTexts);
+    }
+
+    function refreshResolvedTexts() : void {
+        resolver.resolvedTextRefreshQueued = false;
+        let registry = resolver.textRegistry;
+        if (!registry) {
+            return;
+        }
+
+        let ids = registry.activeTextIds;
+        for (let i = 0; i < ids.length; ++i) {
+            let id = Number(ids[i]);
+            registry.setText(id, resolver.computeResolvedText(id));
+        }
+    }
+
     function computeResolvedText(st: var) : var {
         switch (st) {
         case 1:
@@ -468,6 +492,17 @@ QtObject {
             return root.effectiveScreenKey === "select" ? resolver.lr2SelectOptionText(st) : "";
         }
     }
+
+    onTextRegistryChanged: queueResolvedTextRefresh()
+
+    property Connections textRegistryConnections: Connections {
+        target: resolver.textRegistry
+        function onActiveTextIdsChanged() : void {
+            resolver.queueResolvedTextRefresh();
+        }
+    }
+
+    Component.onCompleted: queueResolvedTextRefresh()
 
     function resolveGameplayNumber(num: var) : var {
         if ((num >= 1510 && num <= 1599) || (num >= 1610 && num <= 1699)) {

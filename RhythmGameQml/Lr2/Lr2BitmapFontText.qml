@@ -11,6 +11,7 @@ Item {
     property int textureFilter: 1
     // 0 = left (default), 1 = center, 2 = right. Matches LR2's #SRC_TEXT align.
     property int alignment: 0
+    property bool uppercase: false
 
     readonly property real naturalWidth: textImage.naturalWidth
     readonly property real naturalHeight: textImage.naturalHeight
@@ -25,5 +26,6 @@ Item {
         textColor: root.textColor
         textureFilter: root.textureFilter
         alignment: root.alignment
+        uppercase: root.uppercase
     }
 }

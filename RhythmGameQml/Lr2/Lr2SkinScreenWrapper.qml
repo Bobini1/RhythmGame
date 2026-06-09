@@ -179,6 +179,7 @@ Item {
     property alias skinTimerStateRef: skinTiming.skinTimerStateRef
     property alias skinRuntimeRef: skinRuntime
     property alias skinValueResolverRef: valueResolver
+    property alias skinResolvedTextRegistryRef: resolvedTextRegistry
     property alias skinSliderStateRef: skinSliderState
     property alias selectPanelControllerRef: selectPanelController
     property alias selectHoverStateRef: selectHoverState
@@ -2805,6 +2806,7 @@ Item {
 
     function bumpGameplayRevision() : void {
         root.gameplayRevision++;
+        root.queueResolvedTextRefresh();
     }
 
     function bumpGameplayNumberRevision(side: var) : void {
@@ -2816,6 +2818,7 @@ Item {
             root.gameplayNumberRevision1++;
             root.gameplayNumberRevision2++;
         }
+        root.queueResolvedTextRefresh();
     }
 
     function requestGameplayRevisionRefresh(side: var) : var {
@@ -2840,6 +2843,7 @@ Item {
 
     function bumpGameplayTimerRevision() : void {
         root.gameplayTimerRevision++;
+        root.queueResolvedTextRefresh();
     }
 
     function requestGameplayTimerRevision() : void {
@@ -2895,6 +2899,7 @@ Item {
 
     function updateGameplayStaticNumberRevision() : void {
         root.gameplayStaticNumberRevision++;
+        root.queueResolvedTextRefresh();
     }
 
     function setGameplayTimerValue(timer: var, skinTime: var) : var {
@@ -3776,11 +3781,18 @@ Item {
     }
 
     function queueSelectRuntimeActiveOptionsRefresh() : void {
+        root.queueResolvedTextRefresh();
         if (root.selectRuntimeActiveOptionsRefreshQueued) {
             return;
         }
         root.selectRuntimeActiveOptionsRefreshQueued = true;
         Qt.callLater(root.flushQueuedSelectRuntimeActiveOptionsRefresh);
+    }
+
+    function queueResolvedTextRefresh() : void {
+        if (root.skinValueResolverRef) {
+            root.skinValueResolverRef.queueResolvedTextRefresh();
+        }
     }
 
     function appendGameplayRuntimeOptionSideState(parts: var, side: var) : void {
@@ -3920,6 +3932,7 @@ Item {
     }
 
     function refreshGameplayRuntimeActiveOptions() : var {
+        root.queueResolvedTextRefresh();
         if (!root.gameplayScreenActive) {
             root.gameplayRuntimeActiveOptionsStateParts = root.emptyActiveOptions;
             if (!root.sameArrayValues(root.builtGameplayRuntimeActiveOptions, root.emptyActiveOptions)) {
@@ -3999,6 +4012,9 @@ Item {
         function onSelectedDetailValueRevisionChanged() : void {
             root.queueSelectRuntimeActiveOptionsRefresh();
         }
+        function onSearchTextChanged() : void {
+            root.queueResolvedTextRefresh();
+        }
     }
     Connections {
         target: Rg.tables
@@ -4022,6 +4038,7 @@ Item {
     Connections {
         target: Rg.profileList
         function onMainProfileChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
@@ -4033,14 +4050,17 @@ Item {
         target: Rg.profileList ? Rg.profileList.mainProfile : null
         ignoreUnknownSignals: true
         function onLoginStateChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onOnlineUserDataChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onTachiDataChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
@@ -4058,21 +4078,35 @@ Item {
         target: root.mainGeneralVarsRef
         ignoreUnknownSignals: true
         function onDpOptionsChanged() : void {
+            root.queueResolvedTextRefresh();
             root.refreshSelectPlayOptionLayout();
         }
+        function onNameChanged() : void {
+            root.queueResolvedTextRefresh();
+        }
+        function onScoreTargetChanged() : void {
+            root.queueResolvedTextRefresh();
+        }
+        function onTargetScoreFractionChanged() : void {
+            root.queueResolvedTextRefresh();
+        }
         function onGaugeTypeChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onGaugeModeChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBottomShiftableGaugeChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onRankingProviderChanged() : void {
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
@@ -4103,9 +4137,11 @@ Item {
         }
         root.updateGameplaySavedScores();
         root.handleScreenContextChanged();
+        root.queueResolvedTextRefresh();
     }
     onChartChanged: {
         root.gameplayRevision++;
+        root.queueResolvedTextRefresh();
         if (root.effectiveScreenKey !== "select") {
             root.refreshSelectRuntimeActiveOptions();
         }
@@ -4124,16 +4160,29 @@ Item {
             root.commitLr2RankingRequest();
         }
     }
-    onScoresChanged: root.updateResultOldScores()
-    onProfilesChanged: root.updateResultOldScores()
+    onScoresChanged: {
+        root.updateResultOldScores();
+        root.queueResolvedTextRefresh();
+    }
+    onProfilesChanged: {
+        root.updateResultOldScores();
+        root.queueResolvedTextRefresh();
+    }
     onChartDataChanged: {
+        root.queueResolvedTextRefresh();
         if (root.effectiveScreenKey !== "select") {
             root.refreshSelectRuntimeActiveOptions();
         }
         root.updateResultOldScores();
     }
-    onChartDatasChanged: root.updateResultOldScores()
-    onCourseChanged: root.updateResultOldScores()
+    onChartDatasChanged: {
+        root.updateResultOldScores();
+        root.queueResolvedTextRefresh();
+    }
+    onCourseChanged: {
+        root.updateResultOldScores();
+        root.queueResolvedTextRefresh();
+    }
     Connections {
         target: root.gameplayScreenActive ? root.chart : null
         ignoreUnknownSignals: true
@@ -4217,6 +4266,7 @@ Item {
         if (rankingRequestChanged) {
             lr2Ranking.applyStatsToSelectContext();
         }
+        root.queueResolvedTextRefresh();
     }
 
     readonly property bool acceptsInput: screenState.acceptsInput
@@ -4991,12 +5041,17 @@ Item {
         optionCloseSound: optionCloseSound
     }
 
+    Lr2ResolvedTextRegistry {
+        id: resolvedTextRegistry
+    }
+
     Lr2SkinValueResolver {
         id: valueResolver
         screenRoot: root
         selectContext: selectContext
         playContext: playContext
         rankingState: lr2Ranking
+        textRegistry: resolvedTextRegistry
     }
 
     Lr2SelectPanelController {

@@ -9,9 +9,10 @@ Item {
     required property var screenRoot
     required property var selectContext
     property var selectSearchState: null
-    property var valueResolver: null
+    property Lr2ResolvedTextRegistry resolvedTextRegistry: null
     property var dsts: []
     property var srcData: null
+    property int sourceTextId: -1
     property var activeOptionsState: null
     property var activeOptions: []
     property var chart: null
@@ -25,7 +26,6 @@ Item {
     readonly property bool ready: root !== undefined && root !== null
     readonly property bool selectReady: selectContext !== undefined && selectContext !== null
     readonly property bool searchStateReady: selectSearchState !== undefined && selectSearchState !== null
-    readonly property int sourceTextId: srcData ? numberValue(srcData.st, -1) : -1
 
     readonly property bool isSearchText: searchStateReady && selectSearchState.isText(srcData)
     readonly property string searchFontPath: srcData ? String(srcData.fontPath || "") : ""
@@ -36,22 +36,6 @@ Item {
     readonly property string searchEditingText: searchInputLoader.item
         ? searchInputLoader.item.text
         : (selectReady ? selectContext.searchText : "")
-    readonly property bool resolvedFallbackTextNeeded: ready
-        && !!valueResolver
-        && (!isSearchText || searchEditingText.length <= 0)
-    readonly property string resolvedFallbackText: resolvedFallbackTextNeeded
-        ? valueResolver.resolveText(sourceTextId)
-        : ""
-    readonly property string searchDisplayText: {
-        if (!isSearchText) {
-            return "";
-        }
-        if (searchEditingText.length > 0) {
-            return searchEditingText;
-        }
-        return resolvedFallbackText;
-    }
-    readonly property string resolvedText: isSearchText ? searchDisplayText : resolvedFallbackText
     readonly property int searchCursorPosition: searchInputLoader.item
         ? searchInputLoader.item.cursorPosition
         : 0
@@ -68,11 +52,6 @@ Item {
         && searchCursorOn
     property bool searchCursorOn: true
     property int searchDragAnchor: 0
-
-    function numberValue(value: var, fallback: var) : var {
-        const numeric = Number(value);
-        return isNaN(numeric) ? fallback : numeric;
-    }
 
     function searchTextPrefix(text: var, position: var) : var {
         return searchStateReady
@@ -135,6 +114,14 @@ Item {
     onSearchCursorPositionChanged: restartSearchCursorBlink()
     onSearchSelectionStartChanged: restartSearchCursorBlink()
     onSearchSelectionEndChanged: restartSearchCursorBlink()
+
+    Lr2ResolvedText {
+        id: resolvedTextState
+        registry: textElement.resolvedTextRegistry
+        sourceTextId: textElement.sourceTextId
+        searchText: textElement.isSearchText
+        editingText: textElement.searchEditingText
+    }
 
     Lr2BitmapFontText {
         id: searchFullMeasure
@@ -240,7 +227,7 @@ Item {
         timerFire: textElement.timerFire
         scaleOverride: textElement.skinScale
         textureFilterOverride: textElement.isSearchText ? 0 : -1
-        resolvedText: textElement.resolvedText
+        resolvedText: resolvedTextState.text
     }
 
     readonly property bool searchEditorActive: isSearchText

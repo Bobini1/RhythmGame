@@ -20,6 +20,7 @@ Item {
     readonly property var skinRuntime: rootReady ? root.skinRuntimeRef : null
     readonly property var skinTiming: rootReady ? root.skinTimingRef : null
     readonly property var valueResolver: rootReady ? root.skinValueResolverRef : null
+    readonly property var resolvedTextRegistry: rootReady ? root.skinResolvedTextRegistryRef : null
     readonly property var sliderState: rootReady ? root.skinSliderStateRef : null
     readonly property var selectPanelController: rootReady ? root.selectPanelControllerRef : null
     readonly property var selectHoverState: rootReady ? root.selectHoverStateRef : null
@@ -90,6 +91,7 @@ Item {
                     skinRuntime: sceneRoot.skinRuntime
                     skinTiming: sceneRoot.skinTiming
                     valueResolver: sceneRoot.valueResolver
+                    resolvedTextRegistry: sceneRoot.resolvedTextRegistry
                     sliderState: sceneRoot.sliderState
                     selectPanelController: sceneRoot.selectPanelController
                     selectHoverState: sceneRoot.selectHoverState

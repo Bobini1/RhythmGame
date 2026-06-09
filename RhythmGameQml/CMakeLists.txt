@@ -61,6 +61,10 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2BarDistributionGraphItem.cpp
         Lr2/Lr2BitmapFontTexture.h
         Lr2/Lr2BitmapFontTexture.cpp
+        Lr2/Lr2ResolvedTextRegistry.h
+        Lr2/Lr2ResolvedTextRegistry.cpp
+        Lr2/Lr2ResolvedText.h
+        Lr2/Lr2ResolvedText.cpp
 )
 
 set(LR2_SKIN_QML_FILES

@@ -696,6 +696,7 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.scratchRotationSide = descriptor.dstAnalysis.scratchRotationSide;
     descriptor.dstTimer = descriptor.dstAnalysis.firstTimer;
     descriptor.srcTimer = descriptor.source.valid ? descriptor.source.timer : 0;
+    descriptor.sourceTextId = descriptor.source.valid ? descriptor.source.st : -1;
     descriptor.usesDynamicDstTimer = descriptor.dstTimer != 0;
     descriptor.usesDynamicSrcTimer = descriptor.srcTimer != 0;
     descriptor.selectScrollSlider = descriptor.spriteStateOverrideKind == rt::SelectScrollSpriteStateOverride;

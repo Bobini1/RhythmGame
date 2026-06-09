@@ -327,7 +327,7 @@ Item {
                             }
                         }
                     }
-                    onPositionChanged: {
+                    onPositionChanged: (position) => {
                         if (lastVideoPosition >= 1000 && position < 500) {
                             notePlaybackStarted();
                         } else if (lastVideoPosition >= 0 && position > lastVideoPosition + 50) {

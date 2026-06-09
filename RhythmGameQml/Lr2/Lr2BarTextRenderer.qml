@@ -91,6 +91,12 @@ Item {
                 ? cell.text
                 : ""
             readonly property bool contentVisible: rowVisible && cellText.length > 0
+            function refreshResolvedText() : void {
+                if (textRenderer) {
+                    textRenderer.resolvedText = cellText;
+                }
+            }
+            onCellTextChanged: refreshResolvedText()
             positionMap: root.barPositionMap
             slot: index
             scaleOverride: root.scaleOverride
@@ -106,6 +112,8 @@ Item {
             visible: contentVisible
 
             Lr2TextRenderer {
+                id: textRenderer
+
                 anchors.fill: parent
                 dsts: root.timelineDsts
                 srcData: root.srcData
@@ -116,7 +124,7 @@ Item {
                 scaleOverride: root.scaleOverride
                 stateOverride: root.staticTimelineState
                 stateOverrideSource: root.hasStaticTimelineState ? null : root.timelineState
-                resolvedText: barTextDelegate.cellText
+                Component.onCompleted: barTextDelegate.refreshResolvedText()
             }
         }
     }

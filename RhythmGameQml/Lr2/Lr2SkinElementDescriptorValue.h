@@ -42,6 +42,7 @@ class Lr2SkinElementDescriptorValue {
     Q_PROPERTY(int scratchRotationSide MEMBER scratchRotationSide)
     Q_PROPERTY(int dstTimer MEMBER dstTimer)
     Q_PROPERTY(int srcTimer MEMBER srcTimer)
+    Q_PROPERTY(int sourceTextId MEMBER sourceTextId)
     Q_PROPERTY(bool selectScrollSlider MEMBER selectScrollSlider)
     Q_PROPERTY(bool genericSlider MEMBER genericSlider)
     Q_PROPERTY(bool gameplayProgressSlider MEMBER gameplayProgressSlider)
@@ -86,6 +87,7 @@ public:
     int scratchRotationSide = 0;
     int dstTimer = 0;
     int srcTimer = 0;
+    int sourceTextId = -1;
     bool selectScrollSlider = false;
     bool genericSlider = false;
     bool gameplayProgressSlider = false;

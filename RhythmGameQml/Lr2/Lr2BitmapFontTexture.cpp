@@ -102,7 +102,9 @@ void Lr2BitmapFontTexture::setText(const QString& value) {
 
     m_text = value;
     emit textChanged();
-    rebuildImage();
+    if (updateRenderedText()) {
+        rebuildImage();
+    }
 }
 
 QColor Lr2BitmapFontTexture::textColor() const {
@@ -150,6 +152,38 @@ void Lr2BitmapFontTexture::setAlignment(int value) {
     update();
 }
 
+bool Lr2BitmapFontTexture::uppercase() const {
+    return m_uppercase;
+}
+
+void Lr2BitmapFontTexture::setUppercase(bool value) {
+    if (m_uppercase == value) {
+        return;
+    }
+
+    m_uppercase = value;
+    emit uppercaseChanged();
+    if (updateRenderedText()) {
+        rebuildImage();
+    }
+}
+
+bool Lr2BitmapFontTexture::isActive() const {
+    return m_active;
+}
+
+void Lr2BitmapFontTexture::setActive(bool value) {
+    if (m_active == value) {
+        return;
+    }
+
+    m_active = value;
+    emit activeChanged();
+    if (updateRenderedText()) {
+        rebuildImage();
+    }
+}
+
 qreal Lr2BitmapFontTexture::naturalWidth() const {
     return m_naturalSize.width();
 }
@@ -178,7 +212,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         QImage textureImage =
           resource_managers::Lr2FontImageProvider::scaledTextImage(
               m_fontPath,
-              m_text,
+              m_renderedText,
               targetSize,
               m_textureFilter != 0);
         if (textureImage.isNull()) {
@@ -217,7 +251,7 @@ void Lr2BitmapFontTexture::geometryChange(const QRectF& newGeometry, const QRect
 
 QRectF Lr2BitmapFontTexture::renderRect() const {
     if (m_fontPath.isEmpty()
-            || m_text.isEmpty()
+            || m_renderedText.isEmpty()
             || width() <= 0.0
             || height() <= 0.0
             || m_naturalSize.width() <= 0.0
@@ -241,17 +275,27 @@ QRectF Lr2BitmapFontTexture::renderRect() const {
     return QRectF(x, 0.0, drawnWidth, drawnHeight);
 }
 
+bool Lr2BitmapFontTexture::updateRenderedText() {
+    const QString nextText = !m_active ? QString() : (m_uppercase ? m_text.toUpper() : m_text);
+    if (m_renderedText == nextText) {
+        return false;
+    }
+
+    m_renderedText = nextText;
+    return true;
+}
+
 void Lr2BitmapFontTexture::rebuildImage() {
     const QSizeF oldNaturalSize = m_naturalSize;
     const int oldTextureHeight = m_baseImage.height();
 
-    if (m_fontPath.isEmpty() || m_text.isEmpty()) {
+    if (m_fontPath.isEmpty() || m_renderedText.isEmpty()) {
         m_baseImage = {};
         m_image = {};
         m_naturalSize = {};
     } else {
         const auto rendered =
-          resource_managers::Lr2FontImageProvider::renderedText(m_fontPath, m_text);
+          resource_managers::Lr2FontImageProvider::renderedText(m_fontPath, m_renderedText);
         m_baseImage = rendered.image;
         m_naturalSize = rendered.naturalSize;
         m_image = colorNeedsTint(m_textColor) ? tintedImage(m_baseImage, m_textColor) : m_baseImage;
