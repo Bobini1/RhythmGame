@@ -2102,7 +2102,7 @@ Item {
             return 0;
         }
         if (isEntry(item)) {
-            return 4;
+            return 5;
         }
         if (isTable(item) || isLevel(item)) {
             return 2;

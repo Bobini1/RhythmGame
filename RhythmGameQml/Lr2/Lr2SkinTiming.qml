@@ -24,6 +24,9 @@ QtObject {
         && root.host.effectiveScreenKey === "decide"
         && !!root.host.chart
         && root.skinModel.sceneTime > 0
+    readonly property bool clockActive: root.host
+        && root.host.enabled
+        && root.host.visible
 
     property Lr2SkinClock clock: Lr2SkinClock {
         id: skinClock
@@ -117,12 +120,12 @@ QtObject {
 
     property FrameAnimation skinStopwatch: FrameAnimation {
         id: skinStopwatch
-        running: root.host && root.host.screenUpdatesActive
+        running: root.clockActive
     }
 
     property Timer dateTimeStopwatch: Timer {
         interval: 1000
-        running: root.host && root.host.screenUpdatesActive
+        running: root.clockActive
         repeat: true
         triggeredOnStart: true
         onTriggered: {

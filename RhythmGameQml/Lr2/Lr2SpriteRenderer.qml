@@ -157,6 +157,7 @@ Item {
         && root.height > 0
         && root.hasDrawableVideo
         && root.hasRenderableState
+    property bool videoReloadPending: false
 
     function syncVideoPlayback() : void {
         if (videoLoader.item && videoLoader.item.syncVideoPlayback) {
@@ -164,8 +165,23 @@ Item {
         }
     }
 
+    function reloadVideoPlayback() : void {
+        if (videoReloadPending || !shouldPlayVideo) {
+            return;
+        }
+
+        videoReloadPending = true;
+        Qt.callLater(function() {
+            videoReloadPending = false;
+            syncVideoPlayback();
+        });
+    }
+
     onShouldPlayVideoChanged: syncVideoPlayback()
-    onResolvedSourceChanged: syncVideoPlayback()
+    onResolvedSourceChanged: {
+        videoReloadPending = false;
+        syncVideoPlayback();
+    }
     Component.onCompleted: syncVideoPlayback()
     Component.onDestruction: {
         if (videoLoader.item && videoLoader.item.stopVideo) {
@@ -212,7 +228,7 @@ Item {
         Loader {
             id: videoLoader
             anchors.fill: parent
-            active: root.shouldPlayVideo
+            active: root.shouldPlayVideo && !root.videoReloadPending
             sourceComponent: videoComponent
             onLoaded: root.syncVideoPlayback()
         }
@@ -222,31 +238,59 @@ Item {
 
             Item {
                 anchors.fill: parent
-                property bool restartingVideo: false
+                property real playbackStartWallMs: 0
+                property int lastVideoPosition: -1
+                property bool sawPositionAdvance: false
+                readonly property int manualLoopLeadMs: 80
+                readonly property int manualLoopGraceMs: 120
+
+                function nowMs() : var {
+                    return Date.now();
+                }
+
+                function notePlaybackStarted() : void {
+                    playbackStartWallMs = nowMs();
+                    lastVideoPosition = -1;
+                    sawPositionAdvance = false;
+                }
 
                 function syncVideoPlayback() : void {
                     if (root.shouldPlayVideo) {
                         if (videoPlayer.playbackState !== MediaPlayer.PlayingState) {
                             videoPlayer.play();
+                        } else if (playbackStartWallMs <= 0) {
+                            notePlaybackStarted();
                         }
                     } else {
+                        playbackStartWallMs = 0;
                         videoPlayer.stop();
                     }
                 }
 
                 function loopVideoFromEnd() : void {
-                    if (restartingVideo || !root.shouldPlayVideo || root.resolvedSource === "") {
+                    if (!root.shouldPlayVideo || root.resolvedSource === "") {
                         return;
                     }
 
-                    restartingVideo = true;
-                    videoPlayer.stop();
-                    videoPlayer.position = 0;
-                    videoPlayer.play();
-                    restartingVideo = false;
+                    root.reloadVideoPlayback();
+                }
+
+                function checkManualLoop() : void {
+                    if (!root.shouldPlayVideo || playbackStartWallMs <= 0 || videoPlayer.duration <= 0) {
+                        return;
+                    }
+
+                    const elapsed = nowMs() - playbackStartWallMs;
+                    const restartAt = sawPositionAdvance
+                        ? videoPlayer.duration + manualLoopGraceMs
+                        : Math.max(1, videoPlayer.duration - manualLoopLeadMs);
+                    if (elapsed >= restartAt) {
+                        root.reloadVideoPlayback();
+                    }
                 }
 
                 function stopVideo() : void {
+                    playbackStartWallMs = 0;
                     videoPlayer.stop();
                     videoPlayer.videoOutput = null;
                     videoPlayer.source = "";
@@ -272,8 +316,34 @@ Item {
                         if (playbackState === MediaPlayer.StoppedState
                                 && mediaStatus === MediaPlayer.EndOfMedia) {
                             loopVideoFromEnd();
+                        } else if (playbackState === MediaPlayer.PlayingState) {
+                            notePlaybackStarted();
+                        } else if (playbackState === MediaPlayer.StoppedState) {
+                            playbackStartWallMs = 0;
+                            if (root.shouldPlayVideo
+                                    && mediaStatus !== MediaPlayer.NoMedia
+                                    && mediaStatus !== MediaPlayer.InvalidMedia) {
+                                root.reloadVideoPlayback();
+                            }
                         }
                     }
+                    onPositionChanged: {
+                        if (lastVideoPosition >= 1000 && position < 500) {
+                            notePlaybackStarted();
+                        } else if (lastVideoPosition >= 0 && position > lastVideoPosition + 50) {
+                            sawPositionAdvance = true;
+                        }
+                        lastVideoPosition = position;
+                    }
+                }
+
+                Timer {
+                    interval: 100
+                    repeat: true
+                    running: root.shouldPlayVideo
+                        && videoPlayer.playbackState === MediaPlayer.PlayingState
+                        && videoPlayer.duration > 0
+                    onTriggered: checkManualLoop()
                 }
 
                 Component.onCompleted: syncVideoPlayback()

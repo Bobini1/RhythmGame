@@ -229,7 +229,7 @@ Item {
             positionMap: root.barPositionMap
             row: bodyDelegate.bodyRow
             scaleOverride: root.scaleOverride
-            usePositionMap: !needsStateInterpolation && !root.applyFastBarScroll
+            usePositionMap: !root.applyFastBarScroll
             fallbackX: !needsStateInterpolation && bodyBaseState ? (bodyBaseState.x || 0) : 0
             fallbackY: !needsStateInterpolation && bodyBaseState ? (bodyBaseState.y || 0) : 0
             visible: bodyDrawable

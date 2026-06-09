@@ -599,7 +599,8 @@ Item {
             610, // no IR ranking rows loaded by default.
             620, // internet ranking panel closed.
             622, // ghost battle off.
-            624  // no rival score.
+            624, // no rival score.
+            965  // stock LR2 tricoro EVENT default: off.
         ];
         if (root.effectiveScreenKey === "select") {
             options.push(900, 905, 910, 915); // stock LR2 select defaults
