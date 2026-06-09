@@ -3,6 +3,7 @@
 #include <QColor>
 #include <QImage>
 #include <QQuickItem>
+#include <QRectF>
 #include <QSizeF>
 #include <QString>
 #include <QtQml/qqmlregistration.h>
@@ -14,6 +15,7 @@ class Lr2BitmapFontTexture : public QQuickItem {
     Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
     Q_PROPERTY(QColor textColor READ textColor WRITE setTextColor NOTIFY textColorChanged)
     Q_PROPERTY(int textureFilter READ textureFilter WRITE setTextureFilter NOTIFY textureFilterChanged)
+    Q_PROPERTY(int alignment READ alignment WRITE setAlignment NOTIFY alignmentChanged)
     Q_PROPERTY(qreal naturalWidth READ naturalWidth NOTIFY naturalSizeChanged)
     Q_PROPERTY(qreal naturalHeight READ naturalHeight NOTIFY naturalSizeChanged)
     Q_PROPERTY(qreal textureHeight READ textureHeight NOTIFY naturalSizeChanged)
@@ -33,6 +35,9 @@ public:
     int textureFilter() const;
     void setTextureFilter(int value);
 
+    int alignment() const;
+    void setAlignment(int value);
+
     qreal naturalWidth() const;
     qreal naturalHeight() const;
     qreal textureHeight() const;
@@ -42,6 +47,7 @@ signals:
     void textChanged();
     void textColorChanged();
     void textureFilterChanged();
+    void alignmentChanged();
     void naturalSizeChanged();
 
 protected:
@@ -49,6 +55,7 @@ protected:
     void geometryChange(const QRectF& newGeometry, const QRectF& oldGeometry) override;
 
 private:
+    QRectF renderRect() const;
     void rebuildImage();
     static bool colorNeedsTint(const QColor& color);
     static QImage tintedImage(const QImage& image, const QColor& color);
@@ -60,5 +67,6 @@ private:
     QImage m_image;
     QSizeF m_naturalSize;
     int m_textureFilter = 1;
+    int m_alignment = 0;
     bool m_textureDirty = true;
 };

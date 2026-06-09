@@ -12,7 +12,7 @@
 
 namespace {
 
-QSize sceneTextureSizeForItem(const QQuickItem& item)
+QSize sceneTextureSizeForItemSize(const QQuickItem& item, const QSizeF& itemSize)
 {
     qreal dpr = 1.0;
     if (const auto* window = item.window()) {
@@ -31,8 +31,8 @@ QSize sceneTextureSizeForItem(const QQuickItem& item)
         scaleY = 1.0;
     }
 
-    return QSize(std::max(1, static_cast<int>(std::lround(item.width() * scaleX))),
-                 std::max(1, static_cast<int>(std::lround(item.height() * scaleY))));
+    return QSize(std::max(1, static_cast<int>(std::lround(itemSize.width() * scaleX))),
+                 std::max(1, static_cast<int>(std::lround(itemSize.height() * scaleY))));
 }
 
 QImage scaledNearestEndpoint(const QImage& image, const QSize& targetSize)
@@ -136,6 +136,20 @@ void Lr2BitmapFontTexture::setTextureFilter(int value) {
     update();
 }
 
+int Lr2BitmapFontTexture::alignment() const {
+    return m_alignment;
+}
+
+void Lr2BitmapFontTexture::setAlignment(int value) {
+    if (m_alignment == value) {
+        return;
+    }
+
+    m_alignment = value;
+    emit alignmentChanged();
+    update();
+}
+
 qreal Lr2BitmapFontTexture::naturalWidth() const {
     return m_naturalSize.width();
 }
@@ -149,7 +163,8 @@ qreal Lr2BitmapFontTexture::textureHeight() const {
 }
 
 QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) {
-    if (!window() || m_image.isNull() || width() <= 0.0 || height() <= 0.0) {
+    const QRectF targetRect = renderRect();
+    if (!window() || m_image.isNull() || targetRect.isEmpty()) {
         delete oldNode;
         m_textureDirty = false;
         return nullptr;
@@ -159,7 +174,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
     if (!node || m_textureDirty) {
         delete node;
         node = new QSGSimpleTextureNode;
-        const QSize targetSize = sceneTextureSizeForItem(*this);
+        const QSize targetSize = sceneTextureSizeForItemSize(*this, targetRect.size());
         QImage textureImage =
           resource_managers::Lr2FontImageProvider::scaledTextImage(
               m_fontPath,
@@ -188,7 +203,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         texture->setFiltering(filtering);
     }
     node->setFiltering(filtering);
-    node->setRect(boundingRect());
+    node->setRect(targetRect);
     return node;
 }
 
@@ -198,6 +213,32 @@ void Lr2BitmapFontTexture::geometryChange(const QRectF& newGeometry, const QRect
         m_textureDirty = true;
         update();
     }
+}
+
+QRectF Lr2BitmapFontTexture::renderRect() const {
+    if (m_fontPath.isEmpty()
+            || m_text.isEmpty()
+            || width() <= 0.0
+            || height() <= 0.0
+            || m_naturalSize.width() <= 0.0
+            || m_naturalSize.height() <= 0.0
+            || m_baseImage.height() <= 0) {
+        return {};
+    }
+
+    const qreal scaleY = height() / m_naturalSize.height();
+    const qreal fitScaleX = m_naturalSize.width() > width()
+        ? width() / m_naturalSize.width()
+        : 1.0;
+    const qreal drawnWidth = m_naturalSize.width() * scaleY * fitScaleX;
+    const qreal drawnHeight = m_baseImage.height() * scaleY;
+    qreal x = 0.0;
+    if (m_alignment == 1) {
+        x = (width() - drawnWidth) / 2.0;
+    } else if (m_alignment == 2) {
+        x = width() - drawnWidth;
+    }
+    return QRectF(x, 0.0, drawnWidth, drawnHeight);
 }
 
 void Lr2BitmapFontTexture::rebuildImage() {
