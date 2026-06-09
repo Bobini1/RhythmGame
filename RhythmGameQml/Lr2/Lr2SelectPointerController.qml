@@ -13,6 +13,7 @@ QtObject {
     property var skinRuntime: null
     property real skinScale: 1
     property var elements: ({})
+    property var elementList: []
 
     readonly property var root: screenRoot
     readonly property var barGeometry: selectBarGeometry
@@ -33,6 +34,18 @@ QtObject {
             result[keys[i]] = object[keys[i]];
         }
         return result;
+    }
+
+    function updateElementList() : void {
+        const keys = Object.keys(elements || {});
+        let nextList = [];
+        for (let i = 0; i < keys.length; ++i) {
+            const element = elements[keys[i]];
+            if (element) {
+                nextList.push(element);
+            }
+        }
+        elementList = nextList;
     }
 
     function registerElement(elementIndex: var, type: var, src: var, z: var, dsts: var) : var {
@@ -73,6 +86,7 @@ QtObject {
             genericSlider: genericSlider
         };
         elements = nextElements;
+        updateElementList();
     }
 
     function unregisterElement(elementIndex: var) : var {
@@ -83,6 +97,7 @@ QtObject {
         let nextElements = copyObject(elements);
         delete nextElements[key];
         elements = nextElements;
+        updateElementList();
     }
 
     function elementState(element: var) : var {
@@ -134,9 +149,9 @@ QtObject {
             return null;
         }
         let best = null;
-        const keys = Object.keys(elements);
-        for (let i = 0; i < keys.length; ++i) {
-            const element = elements[keys[i]];
+        const list = elementList || [];
+        for (let i = 0; i < list.length; ++i) {
+            const element = list[i];
             if (!element || (!element.selectScroll && !element.genericSlider)) {
                 continue;
             }
@@ -157,9 +172,9 @@ QtObject {
             return null;
         }
         let best = null;
-        const keys = Object.keys(elements);
-        for (let i = 0; i < keys.length; ++i) {
-            const element = elements[keys[i]];
+        const list = elementList || [];
+        for (let i = 0; i < list.length; ++i) {
+            const element = list[i];
             if (!element || element.buttonId <= 0) {
                 continue;
             }
@@ -218,6 +233,21 @@ QtObject {
         return row >= 0
             ? { kind: "bar", row: row, skinX: skinX, skinY: skinY }
             : { kind: "blank", skinX: skinX, skinY: skinY };
+    }
+
+    function buttonAt(x: var, y: var) : var {
+        if (!ready) {
+            return null;
+        }
+        const skinX = x / skinScale;
+        const skinY = y / skinScale;
+        const buttonTarget = hitButton(skinX, skinY);
+        if (!buttonTarget) {
+            return null;
+        }
+        buttonTarget.skinX = skinX;
+        buttonTarget.skinY = skinY;
+        return buttonTarget;
     }
 
     function clickBarRow(row: var, mouse: var) : void {
@@ -331,7 +361,7 @@ QtObject {
     }
 
     function replayTooltipTargetAt(x: var, y: var) : var {
-        const target = targetAt(x, y, Qt.LeftButton);
+        const target = buttonAt(x, y);
         if (!target || target.kind !== "button" || !target.element) {
             return null;
         }

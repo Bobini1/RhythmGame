@@ -8,6 +8,10 @@ QList<int> Lr2ResolvedTextRegistry::activeTextIds() const {
     return m_activeTextIds;
 }
 
+int Lr2ResolvedTextRegistry::activeTextIdCount() const {
+    return m_activeTextIds.size();
+}
+
 int Lr2ResolvedTextRegistry::activeTextIdRevision() const {
     return m_activeTextIdRevision;
 }
@@ -49,6 +53,16 @@ void Lr2ResolvedTextRegistry::setText(int sourceTextId, const QString& text) {
 
     m_texts.insert(sourceTextId, text);
     emit textChanged(sourceTextId, text);
+}
+
+int Lr2ResolvedTextRegistry::activeTextIdAt(int index) const {
+    return index >= 0 && index < m_activeTextIds.size()
+        ? m_activeTextIds.at(index)
+        : -1;
+}
+
+bool Lr2ResolvedTextRegistry::isTextIdActive(int sourceTextId) const {
+    return sourceTextId >= 0 && m_refCounts.value(sourceTextId, 0) > 0;
 }
 
 void Lr2ResolvedTextRegistry::appendActiveTextId(int sourceTextId) {

@@ -153,6 +153,8 @@ Item {
     readonly property bool selectedStateListCurrent: selectedDetailState.listGeneration === listGeneration
     readonly property bool selectedStateCurrent: selectedStateScoreCurrent && selectedStateListCurrent
     property int selectedDetailValueRevision: 0
+    property int numberValueCacheRevision: 0
+    property var numberValueCache: ({})
     readonly property string selectedPreviewAudioSource: {
         let chartData = selectedStateChartData;
         return chartData ? (previewFiles[chartData.chartDirectory] || "") : "";
@@ -172,6 +174,22 @@ Item {
     onStageFileSourceUsedChanged: refreshVisualChartAssetSources()
     onBackBmpSourceUsedChanged: refreshVisualChartAssetSources()
     onBannerSourceUsedChanged: refreshVisualChartAssetSources()
+    onSelectedDetailValueRevisionChanged: clearNumberValueCache()
+    onPlayerStatsChanged: clearNumberValueCache()
+    onScoreGenerationChanged: clearNumberValueCache()
+    onListGenerationChanged: clearNumberValueCache()
+    onFolderScoreCountsByKeyChanged: clearNumberValueCache()
+    onRankingStatsMd5Changed: clearNumberValueCache()
+    onRankingClearCountsChanged: clearNumberValueCache()
+    onRankingPlayerRankChanged: clearNumberValueCache()
+    onRankingPlayerCountChanged: clearNumberValueCache()
+    onRankingTotalPlayCountChanged: clearNumberValueCache()
+
+    function clearNumberValueCache() : void {
+        root.numberValueCache = ({});
+        root.numberValueCacheRevision += 1;
+    }
+
     function clearSelectedDifficultyStateCache() : void {
         selectedDifficultyStateCache = ({});
         selectedDifficultyGroupStateCache = ({});
@@ -3938,7 +3956,18 @@ Item {
     }
 
     function numberValue(num: var) : var {
-        return computeNumberValue(num);
+        root.numberValueCacheRevision;
+        const numeric = Number(num);
+        const id = isFinite(numeric) ? Math.floor(numeric) : 0;
+        const key = String(id);
+        const cached = root.numberValueCache[key];
+        if (cached !== undefined) {
+            return cached;
+        }
+
+        const value = computeNumberValue(id);
+        root.numberValueCache[key] = value;
+        return value;
     }
 
     function computeNumberValue(num: var) : var {

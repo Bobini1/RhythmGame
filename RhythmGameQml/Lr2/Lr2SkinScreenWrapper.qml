@@ -3493,6 +3493,27 @@ Item {
     readonly property var builtSelectRequiredRuntimeActiveOptions: runtimeOptions.buildSelectRequiredRuntimeActiveOptions()
     property var builtSelectRuntimeActiveOptions: []
     property var builtSelectDetailRuntimeActiveOptions: []
+    readonly property var selectEntryResolvedTextIds: [
+        3,
+        10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+        150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
+        160, 161, 162, 163, 164, 170,
+        1000, 1001, 1002, 1003, 1030, 1031
+    ]
+    readonly property var selectOptionResolvedTextIds: [
+        3,
+        50, 51, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
+        70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+        80, 81, 82, 83, 84, 85, 86
+    ]
+    readonly property var selectRankingResolvedTextIds: [
+        120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130
+    ]
+    readonly property var selectRuntimeResolvedTextIds: root.selectEntryResolvedTextIds
+        .concat(root.selectOptionResolvedTextIds)
+    readonly property var searchResolvedTextIds: [30]
     readonly property var builtScreenRuntimeActiveOptions: root.effectiveScreenKey === "select"
         ? root.emptyActiveOptions
         : (root.gameplayScreenActive
@@ -3718,8 +3739,8 @@ Item {
         root.refreshSelectRuntimeActiveOptions(false, false);
     }
 
-    function queueSelectRuntimeActiveOptionsRefresh(generatedDirty: var, detailDirty: var) : void {
-        root.queueResolvedTextRefresh();
+    function queueSelectRuntimeActiveOptionsRefresh(generatedDirty: var, detailDirty: var, textIds: var) : void {
+        root.queueResolvedTextRefresh(textIds === undefined ? root.selectRuntimeResolvedTextIds : textIds);
         root.markSelectRuntimeActiveOptionsDirty(generatedDirty, detailDirty);
         if (root.selectRuntimeActiveOptionsRefreshQueued) {
             return;
@@ -3728,9 +3749,9 @@ Item {
         Qt.callLater(root.flushQueuedSelectRuntimeActiveOptionsRefresh);
     }
 
-    function queueResolvedTextRefresh() : void {
+    function queueResolvedTextRefresh(ids: var) : void {
         if (root.skinValueResolverRef) {
-            root.skinValueResolverRef.queueResolvedTextRefresh();
+            root.skinValueResolverRef.queueResolvedTextRefresh(ids);
         }
     }
 
@@ -3934,25 +3955,25 @@ Item {
         target: selectContext
         ignoreUnknownSignals: true
         function onFocusedItemChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh();
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
         }
         function onFocusedChartDataChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh();
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
         }
         function onSelectedStateItemChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh();
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
         }
         function onSelectedStateChartDataChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh();
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
         }
         function onSelectedStateCurrentChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh();
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
         }
         function onSelectedDetailValueRevisionChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, false);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, false, root.selectEntryResolvedTextIds);
         }
         function onSearchTextChanged() : void {
-            root.queueResolvedTextRefresh();
+            root.queueResolvedTextRefresh(root.searchResolvedTextIds);
         }
     }
     Connections {

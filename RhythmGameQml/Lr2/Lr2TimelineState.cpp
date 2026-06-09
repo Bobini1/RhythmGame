@@ -560,9 +560,12 @@ void Lr2TimelineState::reconnectActiveOptionsState() {
 }
 
 void Lr2TimelineState::activeOptionsStateDidChange() {
+    const bool staticStateMayChange = m_canUseStaticState;
     rebuildActiveOptionSet();
     emit activeOptionsChanged();
-    emit analysisChanged();
+    if (staticStateMayChange) {
+        emit analysisChanged();
+    }
     updateState();
 }
 

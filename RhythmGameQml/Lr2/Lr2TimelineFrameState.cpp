@@ -15,7 +15,6 @@ Lr2TimelineFrameState::Lr2TimelineFrameState(QObject* parent)
     : QObject(parent)
     , m_timeline(this) {
     connect(&m_timeline, &Lr2TimelineState::stateChanged, this, &Lr2TimelineFrameState::updateFrame);
-    connect(&m_timeline, &Lr2TimelineState::hasStateChanged, this, &Lr2TimelineFrameState::updateFrame);
     connect(&m_timeline, &Lr2TimelineState::analysisChanged, this, [this] {
         updateTimelineConfiguration();
         updateTimelineTimers();

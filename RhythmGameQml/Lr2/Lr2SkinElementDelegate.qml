@@ -479,7 +479,7 @@ Loader {
             readonly property int valueResolverNumber: valueResolverNumberNeeded
                 ? elemLoader.valueResolver.numberValue(numberSrc)
                 : 0
-            readonly property int focusedSelectNumber: usesFocusedSelectNumber
+            readonly property int focusedSelectNumber: hasCurrentState && usesFocusedSelectNumber
                 ? selectContext.numberValue(numberId)
                 : 0
             readonly property int currentNumberValue: hasCurrentState

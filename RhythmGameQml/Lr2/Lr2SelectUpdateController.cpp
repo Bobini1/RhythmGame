@@ -360,12 +360,16 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
         refreshBaseActiveOptions();
     }
 
-    const QList<int> nextGenerated = mergedNumberArray(
-        m_selectCommonActiveOptions,
-        m_selectRuntimeGeneratedActiveOptions);
-    const QList<int> next = mergedNumberArray(
-        nextGenerated,
-        m_selectDetailRuntimeActiveOptions);
+    QList<int> next = m_selectCommonActiveOptions;
+    next.reserve(m_selectCommonActiveOptions.size()
+        + m_selectRuntimeGeneratedActiveOptions.size()
+        + m_selectDetailRuntimeActiveOptions.size());
+    for (int value : m_selectRuntimeGeneratedActiveOptions) {
+        appendUniqueOption(next, value);
+    }
+    for (int value : m_selectDetailRuntimeActiveOptions) {
+        appendUniqueOption(next, value);
+    }
     if (m_runtimeActiveOptions == next) {
         return false;
     }
@@ -406,22 +410,17 @@ void Lr2SelectUpdateController::applyRuntimeActiveOptions(const QList<int>& valu
 }
 
 QList<int> Lr2SelectUpdateController::mergedNumberArray(const QList<int>& first, const QList<int>& second) const {
-    QList<int> result;
-    result.reserve(first.size() + second.size());
-    QSet<int> seen;
-    seen.reserve(first.size() + second.size());
-    const auto appendUnique = [&result, &seen](int value) {
-        if (seen.contains(value)) {
-            return;
-        }
-        seen.insert(value);
-        result.append(value);
-    };
-    for (int value : first) {
-        appendUnique(value);
+    if (first.isEmpty()) {
+        return second;
     }
+    if (second.isEmpty()) {
+        return first;
+    }
+
+    QList<int> result = first;
+    result.reserve(first.size() + second.size());
     for (int value : second) {
-        appendUnique(value);
+        appendUniqueOption(result, value);
     }
     return result;
 }

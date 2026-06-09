@@ -11,6 +11,8 @@ QtObject {
     required property var rankingState
     property Lr2ResolvedTextRegistry textRegistry: null
     property bool resolvedTextRefreshQueued: false
+    property bool resolvedTextRefreshAllQueued: false
+    property var resolvedTextRefreshPendingIds: ({})
 
     readonly property var root: screenRoot
 
@@ -381,8 +383,22 @@ QtObject {
         return resolver.computeResolvedText(resolver.numericValue(st, -1));
     }
 
-    function queueResolvedTextRefresh() : void {
-        if (!resolver.textRegistry || resolver.resolvedTextRefreshQueued) {
+    function queueResolvedTextRefresh(ids: var) : void {
+        if (!resolver.textRegistry) {
+            return;
+        }
+
+        if (ids === undefined || ids === null) {
+            resolver.resolvedTextRefreshAllQueued = true;
+            resolver.resolvedTextRefreshPendingIds = ({});
+        } else if (!resolver.resolvedTextRefreshAllQueued) {
+            let pending = resolver.resolvedTextRefreshPendingIds;
+            for (let i = 0; i < ids.length; ++i) {
+                pending[String(ids[i])] = true;
+            }
+        }
+
+        if (resolver.resolvedTextRefreshQueued) {
             return;
         }
         resolver.resolvedTextRefreshQueued = true;
@@ -396,10 +412,26 @@ QtObject {
             return;
         }
 
-        let ids = registry.activeTextIds;
-        for (let i = 0; i < ids.length; ++i) {
-            let id = Number(ids[i]);
-            registry.setText(id, resolver.computeResolvedText(id));
+        const refreshAll = resolver.resolvedTextRefreshAllQueued;
+        const pendingIds = resolver.resolvedTextRefreshPendingIds;
+        resolver.resolvedTextRefreshAllQueued = false;
+        resolver.resolvedTextRefreshPendingIds = ({});
+
+        if (refreshAll) {
+            let count = registry.activeTextIdCount;
+            for (let i = 0; i < count; ++i) {
+                let id = registry.activeTextIdAt(i);
+                registry.setText(id, resolver.computeResolvedText(id));
+            }
+            return;
+        }
+
+        const keys = Object.keys(pendingIds);
+        for (let i = 0; i < keys.length; ++i) {
+            let id = Number(keys[i]);
+            if (registry.isTextIdActive(id)) {
+                registry.setText(id, resolver.computeResolvedText(id));
+            }
         }
     }
 

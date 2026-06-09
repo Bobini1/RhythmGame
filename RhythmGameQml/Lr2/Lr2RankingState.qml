@@ -167,7 +167,10 @@ QtObject {
         if (root.host
                 && root.host.effectiveScreenKey === "select"
                 && root.host.queueSelectRuntimeActiveOptionsRefresh) {
-            root.host.queueSelectRuntimeActiveOptionsRefresh(true, false);
+            root.host.queueSelectRuntimeActiveOptionsRefresh(
+                true,
+                false,
+                root.host.selectRankingResolvedTextIds);
         } else if (root.host
                 && root.host.effectiveScreenKey === "select"
                 && root.host.refreshSelectRuntimeActiveOptions) {

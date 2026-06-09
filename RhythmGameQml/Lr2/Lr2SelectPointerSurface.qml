@@ -20,10 +20,24 @@ Item {
         ? pointerSurface.replayTooltipTarget.text
         : ""
     property var replayTooltipPendingTarget: null
-    onActiveChanged: requestReplayTooltipRefresh(true)
+    property bool replayTooltipRefreshPending: false
+    property bool replayTooltipResetDelayPending: false
+    property bool replayTooltipPointerValid: false
+    property real replayTooltipPointerX: 0
+    property real replayTooltipPointerY: 0
+    onActiveChanged: {
+        if (active) {
+            requestReplayTooltipRefresh(true);
+        } else {
+            clearReplayTooltip();
+        }
+    }
     onRuntimeActiveOptionsChanged: requestReplayTooltipRefresh(true)
 
     function clearReplayTooltip() : void {
+        pointerSurface.replayTooltipRefreshPending = false;
+        pointerSurface.replayTooltipResetDelayPending = false;
+        pointerSurface.replayTooltipPointerValid = false;
         replayTooltipShowTimer.stop();
         replayTooltipPopup.displayText = "";
         pointerSurface.replayTooltipTarget = null;
@@ -41,23 +55,58 @@ Item {
             && Math.abs((a.h || 0) - (b.h || 0)) < 0.5;
     }
 
-    function currentReplayTooltipTarget() : var {
+    function currentReplayTooltipTarget(x: var, y: var) : var {
         if (!pointerSurface.active
                 || !mouseArea.containsMouse
                 || mouseArea.pressedTarget.kind !== "none") {
             return null;
         }
-        return pointerSurface.pointerController.replayTooltipTargetAt(mouseArea.mouseX, mouseArea.mouseY);
+        const targetX = x === undefined ? mouseArea.mouseX : x;
+        const targetY = y === undefined ? mouseArea.mouseY : y;
+        return pointerSurface.pointerController.replayTooltipTargetAt(targetX, targetY);
     }
 
-    function requestReplayTooltipRefresh(resetDelay: var) : void {
-        const target = pointerSurface.currentReplayTooltipTarget();
+    function requestReplayTooltipRefresh(resetDelay: var, x: var, y: var) : void {
+        if (x !== undefined && y !== undefined) {
+            pointerSurface.replayTooltipPointerX = x;
+            pointerSurface.replayTooltipPointerY = y;
+            pointerSurface.replayTooltipPointerValid = true;
+        } else if (mouseArea.containsMouse) {
+            pointerSurface.replayTooltipPointerX = mouseArea.mouseX;
+            pointerSurface.replayTooltipPointerY = mouseArea.mouseY;
+            pointerSurface.replayTooltipPointerValid = true;
+        } else {
+            pointerSurface.replayTooltipPointerValid = false;
+        }
+
+        pointerSurface.replayTooltipResetDelayPending =
+            pointerSurface.replayTooltipResetDelayPending || resetDelay === true;
+        pointerSurface.replayTooltipRefreshPending = true;
+    }
+
+    function flushReplayTooltipRefresh() : void {
+        if (!pointerSurface.replayTooltipRefreshPending) {
+            return;
+        }
+
+        const forceReset = pointerSurface.replayTooltipResetDelayPending;
+        const hasPointer = pointerSurface.replayTooltipPointerValid;
+        const pointerX = pointerSurface.replayTooltipPointerX;
+        const pointerY = pointerSurface.replayTooltipPointerY;
+        pointerSurface.replayTooltipRefreshPending = false;
+        pointerSurface.replayTooltipResetDelayPending = false;
+
+        if (!hasPointer) {
+            pointerSurface.clearReplayTooltip();
+            return;
+        }
+
+        const target = pointerSurface.currentReplayTooltipTarget(pointerX, pointerY);
         if (!target) {
             pointerSurface.clearReplayTooltip();
             return;
         }
 
-        const forceReset = resetDelay === true;
         if (!forceReset) {
             if (replayTooltipShowTimer.running
                     && pointerSurface.replayTooltipTargetsMatch(target, pointerSurface.replayTooltipPendingTarget)) {
@@ -88,7 +137,13 @@ Item {
 
         property var pressedTarget: ({ kind: "none" })
 
-        onContainsMouseChanged: pointerSurface.requestReplayTooltipRefresh(true)
+        onContainsMouseChanged: {
+            if (containsMouse) {
+                pointerSurface.requestReplayTooltipRefresh(true);
+            } else {
+                pointerSurface.clearReplayTooltip();
+            }
+        }
 
         onPressed: (mouse) => {
             pointerSurface.clearReplayTooltip();
@@ -118,7 +173,7 @@ Item {
         }
 
         onPositionChanged: (mouse) => {
-            pointerSurface.requestReplayTooltipRefresh(false);
+            pointerSurface.requestReplayTooltipRefresh(false, mouse.x, mouse.y);
             if (pressedTarget.kind !== "slider") {
                 return;
             }
@@ -258,6 +313,12 @@ Item {
             pointerSurface.replayTooltipTarget = target;
             replayTooltipPopup.displayText = pointerSurface.replayTooltipText;
         }
+    }
+
+    FrameAnimation {
+        running: pointerSurface.replayTooltipRefreshPending
+
+        onTriggered: pointerSurface.flushReplayTooltipRefresh()
     }
 
     function updateHoverPoint() : void {

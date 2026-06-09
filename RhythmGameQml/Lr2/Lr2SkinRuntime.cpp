@@ -7,6 +7,7 @@
 #include <QVariantMap>
 
 #include <cmath>
+#include <limits>
 #include <utility>
 
 namespace rt = lr2skin::runtime;
@@ -38,22 +39,15 @@ QVector<int> activeOptionIdsForDst(const rt::Dst& dst) {
     return result;
 }
 
-QVariantList activeOptionsForDst(const rt::Dst& dst, const QSet<int>& activeOptions) {
+QVariantList activeOptionsForMatchedDst(const rt::Dst& dst) {
     int ids[3] = { 0, 0, 0 };
     int count = 0;
     const int ops[3] = { dst.op1, dst.op2, dst.op3 };
     for (int op : ops) {
-        if (op == 0) {
+        if (op <= 0) {
             continue;
         }
         const int id = std::abs(op);
-        const bool present = activeOptions.contains(id);
-        if ((op > 0 && !present) || (op < 0 && present)) {
-            return {};
-        }
-        if (op < 0) {
-            continue;
-        }
         bool duplicate = false;
         for (int i = 0; i < count; ++i) {
             duplicate = duplicate || ids[i] == id;
@@ -119,13 +113,19 @@ void Lr2SkinRuntime::setRuntimeActiveOptions(const QList<int>& value) {
     if (m_runtimeActiveOptions == value) {
         return;
     }
-    const QSet<int> previousActiveOptionSet = m_activeOptionSet;
     const QSet<int> nextActiveOptionSet = rt::activeOptionSet(value);
-    QSet<int> changedOptionIds = previousActiveOptionSet;
-    changedOptionIds.unite(nextActiveOptionSet);
-    QSet<int> unchangedOptionIds = previousActiveOptionSet;
-    unchangedOptionIds.intersect(nextActiveOptionSet);
-    changedOptionIds.subtract(unchangedOptionIds);
+    QVector<int> changedOptionIds;
+    changedOptionIds.reserve(m_activeOptionSet.size() + nextActiveOptionSet.size());
+    for (int optionId : std::as_const(m_activeOptionSet)) {
+        if (!nextActiveOptionSet.contains(optionId)) {
+            changedOptionIds.append(optionId);
+        }
+    }
+    for (int optionId : nextActiveOptionSet) {
+        if (!m_activeOptionSet.contains(optionId)) {
+            changedOptionIds.append(optionId);
+        }
+    }
 
     m_runtimeActiveOptions = value;
     m_activeOptionSet = nextActiveOptionSet;
@@ -341,6 +341,8 @@ void Lr2SkinRuntime::rebuildDescriptors() {
     m_descriptors.clear();
     m_activeOptionDescriptorIndexes.clear();
     m_activeOptionDescriptorIndexesByOption.clear();
+    m_activeOptionRefreshIndexMarks.clear();
+    m_activeOptionRefreshMark = 0;
     m_timerDescriptorIndexes.clear();
     m_selectInfoTimerDescriptorIndexes.clear();
     m_timerDescriptorIndexesByTimer.clear();
@@ -626,7 +628,7 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.elementActive = !usesElementActiveOptions
         || rt::allOpsMatch(descriptor.dsts.front(), m_activeOptionSet);
     descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
-        ? activeOptionsForDst(descriptor.dsts.front(), m_activeOptionSet)
+        ? activeOptionsForMatchedDst(descriptor.dsts.front())
         : QVariantList {};
     descriptor.staticState = descriptor.dstAnalysis.canUseStaticState && !descriptor.dsts.isEmpty()
         ? rt::copyDstAsState(descriptor.dsts.front(), descriptor.dsts.front())
@@ -917,20 +919,31 @@ void Lr2SkinRuntime::reconnectTimerState() {
         &Lr2SkinRuntime::updateSelectInfoTimerFires));
 }
 
-void Lr2SkinRuntime::refreshActiveOptions(const QSet<int>& changedOptionIds) {
+void Lr2SkinRuntime::refreshActiveOptions(const QVector<int>& changedOptionIds) {
     bool anyChanged = false;
     QVector<int> indexes;
     if (changedOptionIds.isEmpty()) {
         indexes = m_activeOptionDescriptorIndexes;
     } else {
-        QSet<int> seenIndexes;
+        if (m_activeOptionRefreshIndexMarks.size() < m_descriptors.size()) {
+            m_activeOptionRefreshIndexMarks.fill(0, m_descriptors.size());
+        }
+        if (m_activeOptionRefreshMark == std::numeric_limits<int>::max()) {
+            m_activeOptionRefreshIndexMarks.fill(0);
+            m_activeOptionRefreshMark = 0;
+        }
+        ++m_activeOptionRefreshMark;
         for (int optionId : changedOptionIds) {
-            const QVector<int> optionIndexes = m_activeOptionDescriptorIndexesByOption.value(optionId);
-            for (int index : optionIndexes) {
-                if (seenIndexes.contains(index)) {
+            const auto optionIt = m_activeOptionDescriptorIndexesByOption.constFind(optionId);
+            if (optionIt == m_activeOptionDescriptorIndexesByOption.constEnd()) {
+                continue;
+            }
+            for (int index : *optionIt) {
+                if (index < 0 || index >= m_activeOptionRefreshIndexMarks.size()
+                        || m_activeOptionRefreshIndexMarks[index] == m_activeOptionRefreshMark) {
                     continue;
                 }
-                seenIndexes.insert(index);
+                m_activeOptionRefreshIndexMarks[index] = m_activeOptionRefreshMark;
                 indexes.append(index);
             }
         }
@@ -943,10 +956,14 @@ void Lr2SkinRuntime::refreshActiveOptions(const QSet<int>& changedOptionIds) {
         ElementDescriptor& descriptor = m_descriptors[index];
         const bool usesElementActiveOptions =
             descriptor.dstAnalysis.usesActiveOptions && !descriptor.dsts.isEmpty();
-        descriptor.elementActive = !usesElementActiveOptions
+        const bool nextElementActive = !usesElementActiveOptions
             || rt::allOpsMatch(descriptor.dsts.front(), m_activeOptionSet);
+        if (!changedOptionIds.isEmpty() && descriptor.elementActive == nextElementActive) {
+            continue;
+        }
+        descriptor.elementActive = nextElementActive;
         descriptor.elementActiveOptions = usesElementActiveOptions && descriptor.elementActive
-            ? activeOptionsForDst(descriptor.dsts.front(), m_activeOptionSet)
+            ? activeOptionsForMatchedDst(descriptor.dsts.front())
             : QVariantList {};
         anyChanged = updateElementActiveOptionsState(descriptor.index,
                                                     descriptor.elementActiveOptions,

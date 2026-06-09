@@ -84,41 +84,20 @@ Item {
         supportsInvertedBlend: true
     }
 
-    readonly property bool hasCurrentState: drawState.hasState
-    readonly property real stateX: drawState.x
-    readonly property real stateY: drawState.y
-    readonly property real stateW: drawState.w
-    readonly property real stateH: drawState.h
-    readonly property real stateA: drawState.a
-    readonly property real stateR: drawState.r
-    readonly property real stateG: drawState.g
-    readonly property real stateB: drawState.b
-    readonly property real stateAngle: drawState.angle
-    readonly property int stateCenter: drawState.center
-    readonly property int stateBlend: drawState.blend
-    readonly property int stateFilter: drawState.filter
-    readonly property int stateOp4: drawState.op4
-    readonly property real drawX: root.stateX + (root.stateW < 0 ? root.stateW : 0) + root.offsetX
-    readonly property real drawY: root.stateY + (root.stateH < 0 ? root.stateH : 0) + root.offsetY
-    readonly property real drawW: Math.abs(root.stateW)
-    readonly property real drawH: Math.abs(root.stateH)
     readonly property real effectiveAngle: {
-        if (!hasCurrentState) {
+        if (!drawState.hasState) {
             return 0;
         }
-        if (root.stateOp4 === 1) {
-            return scratchAngle1;
+        if (drawState.op4 === 1) {
+            return root.scratchAngle1;
         }
-        if (root.stateOp4 === 2) {
-            return scratchAngle2;
+        if (drawState.op4 === 2) {
+            return root.scratchAngle2;
         }
-        return root.stateAngle;
+        return drawState.angle;
     }
     readonly property int blendMode: drawState.blendMode
     readonly property bool hasColorTint: drawState.hasColorTint
-    readonly property real effectiveAlpha: root.hasCurrentState && root.stateBlend === 0
-        ? 255
-        : root.stateA
     // Animated sheets and atlas-heavy screens can crop in the shader so rect
     // changes stay in uniforms. Ordinary static crops use Image.sourceClipRect
     // because Qt also handles edge clipping there.
@@ -131,25 +110,58 @@ Item {
         && root.blendMode === 1
         && !root.colorKeyEnabled
         && !root.hasColorTint
-    readonly property bool usesScratchRotation: hasCurrentState
-        && (root.stateOp4 === 1 || root.stateOp4 === 2)
-    readonly property var anchor: root.usesScratchRotation
-        ? ({ x: 0.5, y: 0.5 })
-        : Lr2SkinUtils.centerAnchor(root.hasCurrentState ? root.stateCenter : 0)
-    readonly property bool isSolidFill: !!srcData && srcData.specialType === 2
-    readonly property bool sourceIsChartAsset: Lr2SkinUtils.isChartAssetSource(srcData)
-    readonly property bool hasWholeTextureSource: !!srcData && !root.isSolidFill
-        && (srcData.x < 0 || srcData.y < 0 || srcData.w < 0 || srcData.h < 0)
-    readonly property bool hasCroppedTextureSource: !!srcData && !root.isSolidFill && srcData.w > 0 && srcData.h > 0
+    readonly property bool usesScratchRotation: drawState.hasState
+        && (drawState.op4 === 1 || drawState.op4 === 2)
+    readonly property int effectiveCenter: drawState.hasState ? drawState.center : 0
+    readonly property real anchorX: {
+        if (root.usesScratchRotation) {
+            return 0.5;
+        }
+        switch (root.effectiveCenter) {
+        case 1:
+        case 4:
+        case 7:
+            return 0.0;
+        case 3:
+        case 6:
+        case 9:
+            return 1.0;
+        default:
+            return 0.5;
+        }
+    }
+    readonly property real anchorY: {
+        if (root.usesScratchRotation) {
+            return 0.5;
+        }
+        switch (root.effectiveCenter) {
+        case 1:
+        case 2:
+        case 3:
+            return 1.0;
+        case 7:
+        case 8:
+        case 9:
+            return 0.0;
+        default:
+            return 0.5;
+        }
+    }
+    readonly property bool isSolidFill: !!root.srcData && root.srcData.specialType === 2
+    readonly property bool sourceIsChartAsset: Lr2SkinUtils.isChartAssetSource(root.srcData)
+    readonly property bool hasWholeTextureSource: !!root.srcData && !root.isSolidFill
+        && (root.srcData.x < 0 || root.srcData.y < 0 || root.srcData.w < 0 || root.srcData.h < 0)
+    readonly property bool hasCroppedTextureSource: !!root.srcData && !root.isSolidFill
+        && root.srcData.w > 0 && root.srcData.h > 0
     readonly property bool isVideoSource: /\.(mpg|mpeg|mp4|avi|wmv|mov|mkv)$/i.test(root.resolvedSource)
     readonly property bool hasDrawableVideo: root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
     readonly property bool hasDrawableTexture: !root.isVideoSource && root.resolvedSource !== ""
         && (root.hasWholeTextureSource || root.hasCroppedTextureSource)
-    readonly property bool hasRenderableState: root.hasCurrentState
-        && root.effectiveAlpha > 0
-        && root.drawW > 0
-        && root.drawH > 0
+    readonly property bool hasRenderableState: drawState.hasState
+        && (drawState.blend === 0 ? 255 : drawState.a) > 0
+        && drawState.w !== 0
+        && drawState.h !== 0
     readonly property bool shouldPlayVideo: root.mediaActive
         && root.visible
         && root.opacity > 0
@@ -212,16 +224,24 @@ Item {
 
     Item {
         id: sprite
-        x: root.hasCurrentState ? root.drawX * root.scaleOverride : 0
-        y: root.hasCurrentState ? root.drawY * root.scaleOverride : 0
-        width: root.hasCurrentState ? root.drawW * root.scaleOverride : 0
-        height: root.hasCurrentState ? root.drawH * root.scaleOverride : 0
+        x: drawState.hasState
+            ? (drawState.x + (drawState.w < 0 ? drawState.w : 0) + root.offsetX) * root.scaleOverride
+            : 0
+        y: drawState.hasState
+            ? (drawState.y + (drawState.h < 0 ? drawState.h : 0) + root.offsetY) * root.scaleOverride
+            : 0
+        width: drawState.hasState
+            ? (drawState.w < 0 ? -drawState.w : drawState.w) * root.scaleOverride
+            : 0
+        height: drawState.hasState
+            ? (drawState.h < 0 ? -drawState.h : drawState.h) * root.scaleOverride
+            : 0
         visible: root.hasRenderableState
-        opacity: root.hasCurrentState ? root.effectiveAlpha / 255.0 : 0
+        opacity: drawState.hasState ? (drawState.blend === 0 ? 1.0 : drawState.a / 255.0) : 0
 
         transform: Rotation {
-            origin.x: sprite.width * root.anchor.x
-            origin.y: sprite.height * root.anchor.y
+            origin.x: sprite.width * root.anchorX
+            origin.y: sprite.height * root.anchorY
             angle: root.effectiveAngle
         }
 
@@ -360,7 +380,7 @@ Item {
             cache: true
             asynchronous: root.sourceIsChartAsset
             retainWhileLoading: true
-            smooth: root.hasCurrentState && root.stateFilter !== 0
+            smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: root.useFastImagePath && status === Image.Ready
         }
@@ -371,7 +391,7 @@ Item {
             cache: true
             asynchronous: root.sourceIsChartAsset
             retainWhileLoading: true
-            smooth: root.hasCurrentState && root.stateFilter !== 0
+            smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: false
         }
@@ -387,7 +407,7 @@ Item {
             property real blendMode: root.blendMode
             property real colorKeyEnabled: root.colorKeyEnabled ? 1.0 : 0.0
             property real tolerance: 0.001
-            property real nearestMode: root.hasCurrentState && root.stateFilter === 0 ? 1.0 : 0.0
+            property real nearestMode: drawState.hasState && drawState.filter === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
@@ -396,9 +416,9 @@ Item {
         }
 
         Rectangle {
-            visible: root.isSolidFill || (!!srcData && srcData.specialType === 5)
+            visible: root.isSolidFill || (!!root.srcData && root.srcData.specialType === 5)
             anchors.fill: parent
-            color: srcData && srcData.specialType === 5 ? "white" : "black"
+            color: root.srcData && root.srcData.specialType === 5 ? "white" : "black"
         }
     }
 }

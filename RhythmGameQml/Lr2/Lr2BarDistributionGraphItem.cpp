@@ -309,7 +309,7 @@ class DistributionGraphMaterial : public QSGMaterial
 
     QColor transColor = Qt::black;
     QSize textureSize;
-    float tolerance = 0.03125f;
+    float tolerance = 0.001f;
 
   private:
     QSGTexture* m_texture = nullptr;
@@ -886,6 +886,16 @@ Lr2BarDistributionGraphItem::reconnectCells()
         m_cellConnections.append(
           connect(cell,
                   &Lr2SelectBarCell::coreChanged,
+                  this,
+                  &Lr2BarDistributionGraphItem::requestSceneUpdate));
+        m_cellConnections.append(
+          connect(cell,
+                  &Lr2SelectBarCell::graphLampsChanged,
+                  this,
+                  &Lr2BarDistributionGraphItem::requestSceneUpdate));
+        m_cellConnections.append(
+          connect(cell,
+                  &Lr2SelectBarCell::graphRanksChanged,
                   this,
                   &Lr2BarDistributionGraphItem::requestSceneUpdate));
         m_cellConnections.append(
