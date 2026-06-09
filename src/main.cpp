@@ -60,11 +60,29 @@ Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
 Q_IMPORT_PLUGIN(CimPlugin)
 
+bool
+shouldSuppressQtLog(QtMsgType type,
+                    const QMessageLogContext& context,
+                    const QString& msg)
+{
+    if (type != QtWarningMsg) {
+        return false;
+    }
+
+    return msg == QStringLiteral(
+                 "QFFmpeg::Demuxer received AVPacket with pts == "
+                    "AV_NOPTS_VALUE");
+}
+
 void
 qtLogHandler(QtMsgType type,
-             const QMessageLogContext& /*context*/,
+             const QMessageLogContext& context,
              const QString& msg)
 {
+    if (shouldSuppressQtLog(type, context, msg)) {
+        return;
+    }
+
     auto loc = msg.toUtf8();
 
     switch (type) {

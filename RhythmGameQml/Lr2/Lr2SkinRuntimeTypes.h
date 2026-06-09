@@ -2,6 +2,7 @@
 
 #include "Lr2TimelineStateValue.h"
 
+#include <QList>
 #include <QSet>
 #include <QString>
 #include <QVariant>
@@ -124,6 +125,7 @@ bool readState(const QVariant& value, State& state);
 DstAnalysis analyzeDsts(const QVector<Dst>& dsts);
 int animationLimitFor(const QVector<Dst>& dsts);
 QSet<int> activeOptionSet(const QVariant& activeOptions);
+QSet<int> activeOptionSet(const QList<int>& activeOptions);
 QVariantList activeOptionsForDsts(const Dst& firstDst, const QVariant& activeOptions);
 bool allOpsMatch(const Dst& dst, const QSet<int>& activeOptions);
 qreal timerValue(const QVariant& timers, int timerIdx);

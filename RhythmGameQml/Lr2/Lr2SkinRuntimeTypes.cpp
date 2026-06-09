@@ -200,6 +200,16 @@ bool readStateObject(QObject* object, lr2skin::runtime::State& state) {
 }
 
 bool activeOptionPresent(int option, const QVariant& activeOptions) {
+    if (activeOptions.canConvert<QList<int>>()) {
+        const QList<int> list = activeOptions.value<QList<int>>();
+        for (int entry : list) {
+            if (std::abs(entry) == option) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     const QVariantList list = activeOptions.toList();
     if (!list.isEmpty()) {
         for (const QVariant& entry : list) {
@@ -809,6 +819,10 @@ int animationLimitFor(const QVector<Dst>& dsts) {
 QSet<int> activeOptionSet(const QVariant& activeOptions) {
     QSet<int> result;
 
+    if (activeOptions.canConvert<QList<int>>()) {
+        return activeOptionSet(activeOptions.value<QList<int>>());
+    }
+
     const QVariantList list = activeOptions.toList();
     if (!list.isEmpty()) {
         for (const QVariant& option : list) {
@@ -849,6 +863,15 @@ QSet<int> activeOptionSet(const QVariant& activeOptions) {
         if (option.isNumber()) {
             result.insert(std::abs(option.toInt()));
         }
+    }
+    return result;
+}
+
+QSet<int> activeOptionSet(const QList<int>& activeOptions) {
+    QSet<int> result;
+    result.reserve(activeOptions.size());
+    for (int option : activeOptions) {
+        result.insert(std::abs(option));
     }
     return result;
 }

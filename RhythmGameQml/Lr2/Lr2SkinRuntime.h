@@ -21,7 +21,7 @@ class Lr2SkinRuntime : public QObject {
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QObject* skinModel READ skinModel WRITE setSkinModel NOTIFY skinModelChanged)
-    Q_PROPERTY(QVariant runtimeActiveOptions READ runtimeActiveOptions WRITE setRuntimeActiveOptions NOTIFY runtimeActiveOptionsChanged)
+    Q_PROPERTY(QList<int> runtimeActiveOptions READ runtimeActiveOptions WRITE setRuntimeActiveOptions NOTIFY runtimeActiveOptionsChanged)
     Q_PROPERTY(Lr2SkinTimerState* timerState READ timerState WRITE setTimerState NOTIFY timerStateChanged)
     Q_PROPERTY(QString screenKey READ screenKey WRITE setScreenKey NOTIFY screenKeyChanged)
     Q_PROPERTY(bool gameplayScreen READ gameplayScreen WRITE setGameplayScreen NOTIFY gameplayScreenChanged)
@@ -39,8 +39,8 @@ public:
     QObject* skinModel() const;
     void setSkinModel(QObject* model);
 
-    QVariant runtimeActiveOptions() const;
-    void setRuntimeActiveOptions(const QVariant& value);
+    QList<int> runtimeActiveOptions() const;
+    void setRuntimeActiveOptions(const QList<int>& value);
 
     Lr2SkinTimerState* timerState() const;
     void setTimerState(Lr2SkinTimerState* value);
@@ -158,7 +158,7 @@ private:
 
     QPointer<QAbstractItemModel> m_skinModel;
     QPointer<Lr2SkinTimerState> m_timerState;
-    QVariant m_runtimeActiveOptions;
+    QList<int> m_runtimeActiveOptions;
     QSet<int> m_activeOptionSet;
     QString m_screenKey;
     bool m_gameplayScreen = false;

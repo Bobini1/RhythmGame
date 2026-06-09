@@ -3502,8 +3502,10 @@ Item {
     property var builtGameplayRuntimeActiveOptions: root.emptyActiveOptions
     property alias runtimeActiveOptions: selectUpdateController.runtimeActiveOptions
     property bool selectRuntimeActiveOptionsRefreshQueued: false
-    property bool selectRuntimeActiveOptionsStateReady: false
-    property var selectRuntimeActiveOptionsStateParts: []
+    property bool selectGeneratedRuntimeActiveOptionsStateReady: false
+    property var selectGeneratedRuntimeActiveOptionsStateParts: []
+    property bool selectDetailRuntimeActiveOptionsStateReady: false
+    property var selectDetailRuntimeActiveOptionsStateParts: []
     readonly property var barTimers: ({ "0": 0 })
 
     function sameArrayValues(a: var, b: var) : var {
@@ -3519,10 +3521,6 @@ Item {
             }
         }
         return true;
-    }
-
-    function sameNumberArray(a: var, b: var) : var {
-        return root.sameArrayValues(a, b);
     }
 
     function skinUsesRuntimeOption(option: var) : var {
@@ -3556,9 +3554,16 @@ Item {
             return false;
         }
         let lookup = activeOptions.__lookup;
-        return lookup
-            ? lookup[option] === true
-            : activeOptions.indexOf(option) !== -1;
+        if (lookup) {
+            return lookup[option] === true;
+        }
+        let count = activeOptions.length || 0;
+        for (let i = 0; i < count; ++i) {
+            if (activeOptions[i] === option) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function activeOptionsForDsts(dsts: var, activeOptions: var) : var {
@@ -3673,7 +3678,7 @@ Item {
         }
     }
 
-    function selectRuntimeOptionStateParts() : var {
+    function selectGeneratedRuntimeOptionStateParts() : var {
         if (root.effectiveScreenKey !== "select") {
             return [root.effectiveScreenKey];
         }
@@ -3715,16 +3720,49 @@ Item {
         ];
     }
 
+    function selectDetailRuntimeOptionStateParts() : var {
+        if (root.effectiveScreenKey !== "select") {
+            return [root.effectiveScreenKey];
+        }
+
+        let state = selectContext.selectedState;
+        let stateCurrent = state && selectContext.selectedStateCurrent;
+        return [
+            root.effectiveScreenKey,
+            root.usedOptionFilterActive ? 1 : 0,
+            root.usedOptionLookup,
+            root.battleModeActive() ? 1 : 0,
+            root.spToDpActive() ? 1 : 0,
+            selectContext.scoreGeneration,
+            selectContext.listGeneration,
+            selectContext.selectedDetailValueRevision,
+            selectContext.focusedItem,
+            selectContext.focusedChartData,
+            stateCurrent ? 1 : 0,
+            state ? state.item : null,
+            state ? state.chartData : null
+        ];
+    }
+
     function refreshSelectRuntimeActiveOptions() : var {
         root.selectRuntimeActiveOptionsRefreshQueued = false;
-        let nextState = root.selectRuntimeOptionStateParts();
-        if (!root.selectRuntimeActiveOptionsStateReady
-                || !root.sameArrayValues(nextState, root.selectRuntimeActiveOptionsStateParts)) {
-            root.selectRuntimeActiveOptionsStateReady = true;
-            root.selectRuntimeActiveOptionsStateParts = nextState;
+        let nextGeneratedState = root.selectGeneratedRuntimeOptionStateParts();
+        let generatedChanged = !root.selectGeneratedRuntimeActiveOptionsStateReady
+            || !root.sameArrayValues(nextGeneratedState, root.selectGeneratedRuntimeActiveOptionsStateParts);
+        if (generatedChanged) {
+            root.selectGeneratedRuntimeActiveOptionsStateReady = true;
+            root.selectGeneratedRuntimeActiveOptionsStateParts = nextGeneratedState;
             root.updateBuiltSelectRuntimeActiveOptions();
-            root.updateBuiltSelectDetailRuntimeActiveOptions();
             selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
+        }
+
+        let nextDetailState = root.selectDetailRuntimeOptionStateParts();
+        let detailChanged = !root.selectDetailRuntimeActiveOptionsStateReady
+            || !root.sameArrayValues(nextDetailState, root.selectDetailRuntimeActiveOptionsStateParts);
+        if (detailChanged) {
+            root.selectDetailRuntimeActiveOptionsStateReady = true;
+            root.selectDetailRuntimeActiveOptionsStateParts = nextDetailState;
+            root.updateBuiltSelectDetailRuntimeActiveOptions();
             selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
         }
         return selectUpdateController.refreshSelectRuntimeActiveOptions();
@@ -3967,24 +4005,24 @@ Item {
         ignoreUnknownSignals: true
         function onDataChanged() : void {
             ++root.tableInfoRevision;
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onRowsInserted() : void {
             ++root.tableInfoRevision;
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onModelReset() : void {
             ++root.tableInfoRevision;
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }
     Connections {
         target: Rg.profileList
         function onMainProfileChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBattleActiveChanged() : void {
@@ -3995,15 +4033,15 @@ Item {
         target: Rg.profileList ? Rg.profileList.mainProfile : null
         ignoreUnknownSignals: true
         function onLoginStateChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onOnlineUserDataChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onTachiDataChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }
@@ -4023,19 +4061,19 @@ Item {
             root.refreshSelectPlayOptionLayout();
         }
         function onGaugeTypeChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onGaugeModeChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onBottomShiftableGaugeChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onRankingProviderChanged() : void {
-            root.refreshSelectRuntimeActiveOptions();
+            root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
     }

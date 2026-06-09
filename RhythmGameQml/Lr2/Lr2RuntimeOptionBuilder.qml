@@ -326,7 +326,8 @@ QtObject {
         }
     }
 
-    function appendChartOptions(options: var, chartData: var, fallbackItem: var) : var {
+    function appendChartOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var) : var {
+        includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
         let usedOptions = root.runtimeUsedOptions;
         let usesStageFileOption = root.runtimeOptionRangeUsed(usedOptions, 190, 191);
         let usesBannerOption = root.runtimeOptionRangeUsed(usedOptions, 192, 193);
@@ -341,7 +342,9 @@ QtObject {
         let usesTableSongOption = root.runtimeOptionUsed(usedOptions, 1008);
         let keymode = root.chartKeymode(chartData, fallbackItem);
         let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
-        root.appendChartKeymodeOptions(options, keymode);
+        if (includeSelectDetailOptions) {
+            root.appendChartKeymodeOptions(options, keymode);
+        }
         if (usesTableSongOption && host.chartInTable(chartData || fallbackItem)) {
             root.addOption(options, 1008);
         }
@@ -371,10 +374,13 @@ QtObject {
             if (usesRandomOption) {
                 root.addOption(options, 178);
             }
-            root.setSelectChartDetailRuntimeOptionRange(options,
-                                                        180,
-                                                        184,
-                                                        suppressJudgeOption ? 0 : selectContext.judgeOption(null, fallbackItem));
+            if (includeSelectDetailOptions) {
+                root.setSelectChartDetailRuntimeOptionRange(
+                    options,
+                    180,
+                    184,
+                    suppressJudgeOption ? 0 : selectContext.judgeOption(null, fallbackItem));
+            }
             root.appendReplayOptions(options, null);
             if (usesDifficultyOption) {
                 root.addOption(options, 150);
@@ -408,10 +414,13 @@ QtObject {
         if (usesRandomOption) {
             root.addOption(options, chartData.isRandom ? 179 : 178);
         }
-        root.setSelectChartDetailRuntimeOptionRange(options,
-                                                    180,
-                                                    184,
-                                                    suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem));
+        if (includeSelectDetailOptions) {
+            root.setSelectChartDetailRuntimeOptionRange(
+                options,
+                180,
+                184,
+                suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem));
+        }
         if (usesHighLevelOption) {
             root.addOption(options, selectContext.highLevelOption(chartData));
         }
@@ -722,9 +731,12 @@ QtObject {
         }
     }
 
-    function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var) : void {
+    function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var) : void {
+        includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
         let keymode = root.chartKeymode(chartData, fallbackItem);
-        root.appendChartKeymodeOptions(options, keymode);
+        if (includeSelectDetailOptions) {
+            root.appendChartKeymodeOptions(options, keymode);
+        }
         let doubleMode = keymode === 10 || keymode === 14
             || ((keymode === 5 || keymode === 7) && host.spToDpActive());
         let battleMode = host.battleModeActive();
@@ -969,7 +981,8 @@ QtObject {
         root.appendJudgementExistOptions(options, current1);
     }
 
-    function appendCurrentSelectOptions(options: var, item: var, selectedChart: var, state: var) : void {
+    function appendCurrentSelectOptions(options: var, item: var, selectedChart: var, state: var, includeSelectDetailOptions: var) : void {
+        includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
         state = state !== undefined ? state : selectContext.selectedState;
         let stateCurrent = state === selectContext.selectedState && selectContext.selectedStateCurrent;
         let selectedItem = item || (state ? state.item : null) || selectContext.focusedItem;
@@ -983,7 +996,7 @@ QtObject {
         let difficultyModel = canUseState ? state.difficultyModel : null;
 
         root.appendSelectItemTypeOptions(options, selectedItem);
-        root.appendSelectedChartModeOptions(options, chartData, selectedItem);
+        root.appendSelectedChartModeOptions(options, chartData, selectedItem, includeSelectDetailOptions);
         root.appendEntryStatusOptions(options, selectedItem, chartData, summary);
         root.appendCourseOptions(options, selectedItem);
         root.appendRankingStatusOptions(options);
@@ -992,7 +1005,7 @@ QtObject {
             root.appendDifficultyBarOptions(options, difficultyModel, chartData);
         }
 
-        root.appendChartOptions(options, chartData, selectedItem);
+        root.appendChartOptions(options, chartData, selectedItem, includeSelectDetailOptions);
         if (root.selectScoreOptionIdsUsed()) {
             let scoreOptionIds = canUseState ? state.scoreOptionIds : null;
             if (!scoreOptionIds) {
@@ -1002,7 +1015,9 @@ QtObject {
                 root.addOption(options, optionId);
             }
         }
-        root.appendSelectChartDetailOptions(options, chartData, selectedItem);
+        if (includeSelectDetailOptions) {
+            root.appendSelectChartDetailOptions(options, chartData, selectedItem);
+        }
     }
 
     function appendDecideOptions(options: var) : void {
@@ -1111,7 +1126,7 @@ QtObject {
             }
         }
         let result = root.copyActiveOptions([]);
-        root.appendCurrentSelectOptions(result, item, chartData, stateCurrent ? state : null);
+        root.appendCurrentSelectOptions(result, item, chartData, stateCurrent ? state : null, false);
         return result;
     }
 

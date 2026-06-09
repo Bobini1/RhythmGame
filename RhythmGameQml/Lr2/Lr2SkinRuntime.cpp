@@ -111,11 +111,11 @@ void Lr2SkinRuntime::setSkinModel(QObject* model) {
     rebuildDescriptors();
 }
 
-QVariant Lr2SkinRuntime::runtimeActiveOptions() const {
+QList<int> Lr2SkinRuntime::runtimeActiveOptions() const {
     return m_runtimeActiveOptions;
 }
 
-void Lr2SkinRuntime::setRuntimeActiveOptions(const QVariant& value) {
+void Lr2SkinRuntime::setRuntimeActiveOptions(const QList<int>& value) {
     if (m_runtimeActiveOptions == value) {
         return;
     }
