@@ -437,6 +437,10 @@ QVariantList Lr2SkinModel::barLampVariants() const {
     return m_barLampVariants;
 }
 
+QVariantList Lr2SkinModel::barLevelVariants() const {
+    return m_barLevelVariants;
+}
+
 QVariantList Lr2SkinModel::barRows() const {
     return m_barRows;
 }
@@ -598,6 +602,7 @@ void Lr2SkinModel::loadSkin() {
                                      !m_usedOptions.isEmpty() ||
                                      !m_usedElementOptions.isEmpty() ||
                                      !m_barLampVariants.isEmpty() ||
+                                     !m_barLevelVariants.isEmpty() ||
                                      !m_barRows.isEmpty() ||
                                      !m_barBodyTypes.isEmpty() ||
                                      !m_barTitleTypes.isEmpty() ||
@@ -644,6 +649,7 @@ void Lr2SkinModel::loadSkin() {
         m_usedOptions.clear();
         m_usedElementOptions.clear();
         m_barLampVariants.clear();
+        m_barLevelVariants.clear();
         m_barRows.clear();
         m_barBodyTypes.clear();
         m_barTitleTypes.clear();
@@ -716,6 +722,7 @@ void Lr2SkinModel::loadSkin() {
                                  m_usedOptions != skinData.usedOptions ||
                                  m_usedElementOptions != skinData.usedElementOptions ||
                                  m_barLampVariants != skinData.barLampVariants ||
+                                 m_barLevelVariants != skinData.barLevelVariants ||
                                  m_barRows != skinData.barRows ||
                                  m_barBodyTypes != skinData.barBodyTypes ||
                                  m_barTitleTypes != skinData.barTitleTypes ||
@@ -764,6 +771,7 @@ void Lr2SkinModel::loadSkin() {
     m_usedOptions = skinData.usedOptions;
     m_usedElementOptions = skinData.usedElementOptions;
     m_barLampVariants = skinData.barLampVariants;
+    m_barLevelVariants = skinData.barLevelVariants;
     m_barRows = skinData.barRows;
     m_barBodyTypes = skinData.barBodyTypes;
     m_barTitleTypes = skinData.barTitleTypes;

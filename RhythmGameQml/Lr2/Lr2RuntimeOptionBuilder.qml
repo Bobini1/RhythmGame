@@ -565,20 +565,29 @@ QtObject {
         if (host.effectiveScreenKey !== "select") {
             return;
         }
+        let usedOptions = root.runtimeUsedOptions;
+        let usesKeymodeOptions = root.runtimeOptionRangeUsed(usedOptions, 160, 169);
+        let usesJudgeOptions = root.runtimeOptionRangeUsed(usedOptions, 180, 184);
+        if (!usesKeymodeOptions && !usesJudgeOptions) {
+            return;
+        }
+
         let keymode = root.chartKeymode(chartData, fallbackItem);
-        if (keymode > 0) {
+        if (usesKeymodeOptions && keymode > 0) {
             let effectiveKeymode = root.effectiveChartDetailKeymode(keymode);
             root.addSelectChartDetailRuntimeOption(options, root.keymodeOptionFor(keymode, 160));
             root.addSelectChartDetailRuntimeOption(options, root.keymodeOptionFor(effectiveKeymode, 165));
         }
 
-        let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
-        let judgeOption = suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem);
-        root.setSelectChartDetailRuntimeOptionRange(
-            options,
-            180,
-            184,
-            judgeOption);
+        if (usesJudgeOptions) {
+            let suppressJudgeOption = selectContext.isFolderLikeForLamp(fallbackItem);
+            let judgeOption = suppressJudgeOption ? 0 : selectContext.judgeOption(chartData, fallbackItem);
+            root.setSelectChartDetailRuntimeOptionRange(
+                options,
+                180,
+                184,
+                judgeOption);
+        }
     }
 
     function chartKeymodeForStatus(item: var, selectedChart: var) : var {
@@ -733,6 +742,11 @@ QtObject {
 
     function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var) : void {
         includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
+        let usedOptions = root.runtimeUsedOptions;
+        if (!root.runtimeOptionRangeUsed(usedOptions, 10, 13)
+                && (!includeSelectDetailOptions || !root.runtimeOptionRangeUsed(usedOptions, 160, 169))) {
+            return;
+        }
         let keymode = root.chartKeymode(chartData, fallbackItem);
         if (includeSelectDetailOptions) {
             root.appendChartKeymodeOptions(options, keymode);
@@ -1131,6 +1145,14 @@ QtObject {
     }
 
     function buildSelectDetailRuntimeActiveOptions() : var {
+        let usedOptions = root.runtimeUsedOptions;
+        let usesKeymodeOptions = root.runtimeOptionRangeUsed(usedOptions, 160, 169);
+        let usesJudgeOptions = root.runtimeOptionRangeUsed(usedOptions, 180, 184);
+        let result = [];
+        if (!usesKeymodeOptions && !usesJudgeOptions) {
+            return result;
+        }
+
         let state = selectContext.selectedState;
         let stateCurrent = state && selectContext.selectedStateCurrent;
         let item = stateCurrent ? state.item : selectContext.focusedItem;
@@ -1144,15 +1166,14 @@ QtObject {
             }
         }
 
-        let result = [];
         let keymode = root.chartKeymode(chartData, item);
-        if (keymode > 0) {
+        if (usesKeymodeOptions && keymode > 0) {
             let effectiveKeymode = root.effectiveChartDetailKeymode(keymode);
             root.appendSelectDetailGateOption(result, root.keymodeOptionFor(keymode, 160));
             root.appendSelectDetailGateOption(result, root.keymodeOptionFor(effectiveKeymode, 165));
         }
 
-        if (!selectContext.isFolderLikeForLamp(item)) {
+        if (usesJudgeOptions && !selectContext.isFolderLikeForLamp(item)) {
             root.appendSelectDetailGateOption(result, selectContext.judgeOption(chartData, item));
         }
         return result;

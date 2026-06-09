@@ -15,6 +15,8 @@ Item {
     property real scaleOverride: 1.0
     property var selectContext
     property var barRows: []
+    property var barLevelVariants: []
+    property bool useBeatorajaBarLevelFallback: false
     property var barBaseStateResolver
     property var barPositionMap
     property var barCells: []
@@ -30,6 +32,8 @@ Item {
     y: fastBarScrollActive ? fastBarScrollY * scaleOverride : 0
     readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
     readonly property int barCellCount: barCells ? barCells.length : 0
+    readonly property bool hasRankingBarLevelVariant: barLevelVariants
+        && barLevelVariants.indexOf(6) !== -1
 
     readonly property int numberSlotCount: barRows && selectContext && srcData
         ? Math.max(0, barRows.length)
@@ -71,7 +75,10 @@ Item {
                     return false;
                 }
                 if (cell.ranking) {
-                    return sourceVariant === 6;
+                    return sourceVariant === 6
+                        || (root.useBeatorajaBarLevelFallback
+                            && sourceVariant === 0
+                            && !root.hasRankingBarLevelVariant);
                 }
                 if ((cell.keymode || 0) <= 0 || (cell.playLevel || 0) < 0) {
                     return false;

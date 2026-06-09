@@ -167,7 +167,7 @@ QtObject {
         if (root.host
                 && root.host.effectiveScreenKey === "select"
                 && root.host.queueSelectRuntimeActiveOptionsRefresh) {
-            root.host.queueSelectRuntimeActiveOptionsRefresh();
+            root.host.queueSelectRuntimeActiveOptionsRefresh(true, false);
         } else if (root.host
                 && root.host.effectiveScreenKey === "select"
                 && root.host.refreshSelectRuntimeActiveOptions) {

@@ -3507,10 +3507,8 @@ Item {
     property var builtGameplayRuntimeActiveOptions: root.emptyActiveOptions
     property alias runtimeActiveOptions: selectUpdateController.runtimeActiveOptions
     property bool selectRuntimeActiveOptionsRefreshQueued: false
-    property bool selectGeneratedRuntimeActiveOptionsStateReady: false
-    property var selectGeneratedRuntimeActiveOptionsStateParts: []
-    property bool selectDetailRuntimeActiveOptionsStateReady: false
-    property var selectDetailRuntimeActiveOptionsStateParts: []
+    property bool selectGeneratedRuntimeActiveOptionsDirty: true
+    property bool selectDetailRuntimeActiveOptionsDirty: true
     readonly property var barTimers: ({ "0": 0 })
 
     function sameArrayValues(a: var, b: var) : var {
@@ -3683,90 +3681,30 @@ Item {
         }
     }
 
-    function selectGeneratedRuntimeOptionStateParts() : var {
-        if (root.effectiveScreenKey !== "select") {
-            return [root.effectiveScreenKey];
-        }
-
-        let state = selectContext.selectedState;
-        let stateCurrent = state && selectContext.selectedStateCurrent;
-        return [
-            root.effectiveScreenKey,
-            root.usedOptionFilterActive ? 1 : 0,
-            root.usedOptionLookup,
-            root.lr2SkinUsesBeatorajaSemantics ? 1 : 0,
-            root.selectReplayOptionsUsed ? 1 : 0,
-            root.selectScoreOptionIdsUsed ? 1 : 0,
-            root.selectEntryStatusOptionsUsed ? 1 : 0,
-            root.selectDifficultyBarOptionsUsed ? 1 : 0,
-            root.selectDifficultyLampOptionsUsed ? 1 : 0,
-            root.selectDifficultyStateUsed ? 1 : 0,
-            root.selectCourseDetailOptionsUsed ? 1 : 0,
-            root.selectRankingStatusOptionsUsed ? 1 : 0,
-            root.battleModeActive() ? 1 : 0,
-            root.spToDpActive() ? 1 : 0,
-            root.tableInfoRevision,
-            selectContext.scoreGeneration,
-            selectContext.listGeneration,
-            selectContext.selectedDetailValueRevision,
-            selectContext.focusedSelectionKey,
-            selectContext.focusedSelectionTargetKey,
-            selectContext.focusedItem,
-            selectContext.focusedChartData,
-            selectContext.focusedSelectionTarget,
-            stateCurrent ? 1 : 0,
-            state ? state.item : null,
-            state ? state.chartData : null,
-            state ? state.scoreOptionIds : null,
-            selectContext.rankingMode ? 1 : 0,
-            selectContext.rankingBaseItem,
-            lr2Ranking.currentStatusOption,
-            lr2Ranking.currentPlayerCount
-        ];
+    function markSelectRuntimeActiveOptionsDirty(generatedDirty: var, detailDirty: var) : void {
+        root.selectGeneratedRuntimeActiveOptionsDirty =
+            root.selectGeneratedRuntimeActiveOptionsDirty || generatedDirty !== false;
+        root.selectDetailRuntimeActiveOptionsDirty =
+            root.selectDetailRuntimeActiveOptionsDirty || detailDirty !== false;
     }
 
-    function selectDetailRuntimeOptionStateParts() : var {
-        if (root.effectiveScreenKey !== "select") {
-            return [root.effectiveScreenKey];
-        }
-
-        let state = selectContext.selectedState;
-        let stateCurrent = state && selectContext.selectedStateCurrent;
-        return [
-            root.effectiveScreenKey,
-            root.usedOptionFilterActive ? 1 : 0,
-            root.usedOptionLookup,
-            root.battleModeActive() ? 1 : 0,
-            root.spToDpActive() ? 1 : 0,
-            selectContext.scoreGeneration,
-            selectContext.listGeneration,
-            selectContext.selectedDetailValueRevision,
-            selectContext.focusedItem,
-            selectContext.focusedChartData,
-            stateCurrent ? 1 : 0,
-            state ? state.item : null,
-            state ? state.chartData : null
-        ];
-    }
-
-    function refreshSelectRuntimeActiveOptions() : var {
+    function refreshSelectRuntimeActiveOptions(forceGeneratedDirty: var, forceDetailDirty: var) : var {
         root.selectRuntimeActiveOptionsRefreshQueued = false;
-        let nextGeneratedState = root.selectGeneratedRuntimeOptionStateParts();
-        let generatedChanged = !root.selectGeneratedRuntimeActiveOptionsStateReady
-            || !root.sameArrayValues(nextGeneratedState, root.selectGeneratedRuntimeActiveOptionsStateParts);
-        if (generatedChanged) {
-            root.selectGeneratedRuntimeActiveOptionsStateReady = true;
-            root.selectGeneratedRuntimeActiveOptionsStateParts = nextGeneratedState;
+        if (forceGeneratedDirty !== false) {
+            root.selectGeneratedRuntimeActiveOptionsDirty = true;
+        }
+        if (forceDetailDirty !== false) {
+            root.selectDetailRuntimeActiveOptionsDirty = true;
+        }
+
+        if (root.selectGeneratedRuntimeActiveOptionsDirty) {
+            root.selectGeneratedRuntimeActiveOptionsDirty = false;
             root.updateBuiltSelectRuntimeActiveOptions();
             selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
         }
 
-        let nextDetailState = root.selectDetailRuntimeOptionStateParts();
-        let detailChanged = !root.selectDetailRuntimeActiveOptionsStateReady
-            || !root.sameArrayValues(nextDetailState, root.selectDetailRuntimeActiveOptionsStateParts);
-        if (detailChanged) {
-            root.selectDetailRuntimeActiveOptionsStateReady = true;
-            root.selectDetailRuntimeActiveOptionsStateParts = nextDetailState;
+        if (root.selectDetailRuntimeActiveOptionsDirty) {
+            root.selectDetailRuntimeActiveOptionsDirty = false;
             root.updateBuiltSelectDetailRuntimeActiveOptions();
             selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
         }
@@ -3777,11 +3715,12 @@ Item {
         if (!root.selectRuntimeActiveOptionsRefreshQueued) {
             return;
         }
-        root.refreshSelectRuntimeActiveOptions();
+        root.refreshSelectRuntimeActiveOptions(false, false);
     }
 
-    function queueSelectRuntimeActiveOptionsRefresh() : void {
+    function queueSelectRuntimeActiveOptionsRefresh(generatedDirty: var, detailDirty: var) : void {
         root.queueResolvedTextRefresh();
+        root.markSelectRuntimeActiveOptionsDirty(generatedDirty, detailDirty);
         if (root.selectRuntimeActiveOptionsRefreshQueued) {
             return;
         }
@@ -4010,7 +3949,7 @@ Item {
             root.queueSelectRuntimeActiveOptionsRefresh();
         }
         function onSelectedDetailValueRevisionChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh();
+            root.queueSelectRuntimeActiveOptionsRefresh(true, false);
         }
         function onSearchTextChanged() : void {
             root.queueResolvedTextRefresh();

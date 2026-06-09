@@ -615,6 +615,8 @@ Loader {
             scaleOverride: skinScale
             selectContext: elemLoader.screenRoot.selectContextRef
             barRows: skinModel.barRows
+            barLevelVariants: skinModel.barLevelVariants
+            useBeatorajaBarLevelFallback: elemLoader.screenRoot.lr2SkinUsesBeatorajaSemantics
             barBaseStateResolver: elemLoader.screenRoot.barBaseStateResolver
             barPositionMap: elemLoader.screenRoot.barPositionMap
             barCells: selectContext.visibleBarTextCells

@@ -2434,6 +2434,13 @@ parseFile(const std::filesystem::path& filePath,
         barLampVariants.append(it.key());
     }
 
+    QVariantList barLevelVariants;
+    for (auto it = state.barLevelSources.cbegin();
+         it != state.barLevelSources.cend();
+         ++it) {
+        barLevelVariants.append(it.key());
+    }
+
     QVariantList barBodyTypes;
     for (auto it = state.barBodySources.cbegin();
          it != state.barBodySources.cend();
@@ -2480,6 +2487,7 @@ parseFile(const std::filesystem::path& filePath,
       .usedOptions = usedOptions,
       .usedElementOptions = usedElementOptions,
       .barLampVariants = barLampVariants,
+      .barLevelVariants = barLevelVariants,
       .barRows = barRows,
       .barBodyTypes = barBodyTypes,
       .barTitleTypes = barTitleTypes,
