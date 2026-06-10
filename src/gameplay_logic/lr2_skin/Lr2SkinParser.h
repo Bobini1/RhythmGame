@@ -103,6 +103,7 @@ struct Lr2SrcImage
     Q_PROPERTY(bool grooveGaugeEx MEMBER grooveGaugeEx)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(int side MEMBER side)
+    Q_PROPERTY(QString debugLabel MEMBER debugLabel)
     Q_PROPERTY(QString source MEMBER source)
   public:
     enum SpecialType
@@ -156,6 +157,7 @@ struct Lr2SrcImage
     bool grooveGaugeEx = false;
     int specialType = None;
     int side = 0;
+    QString debugLabel;
     QString source;
 };
 

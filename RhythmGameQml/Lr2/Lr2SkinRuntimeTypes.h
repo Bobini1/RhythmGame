@@ -103,6 +103,7 @@ struct Source {
     bool bgaNoBase = false;
     bool bgaNoLayer = false;
     bool bgaNoPoor = false;
+    QString debugLabel;
     QString path;
 };
 

@@ -1050,6 +1050,73 @@ sourceForGr(const int gr,
 }
 
 auto
+debugString(const QString& value) -> std::string
+{
+    return value.toStdString();
+}
+
+void
+logJudgelineSource(const Lr2SrcImage& src,
+                   const std::filesystem::path& currentDir)
+{
+    spdlog::warn(
+      "[LR2 judgeline debug] SRC dir={} gr={} srcRect=({}, {}, {}, {}) div={}x{} cycle={} timer={} specialType={} source={}",
+      support::pathToUtfString(currentDir),
+      src.gr,
+      src.x,
+      src.y,
+      src.w,
+      src.h,
+      src.div_x,
+      src.div_y,
+      src.cycle,
+      src.timer,
+      src.specialType,
+      debugString(src.source));
+}
+
+void
+logJudgelineDestination(const Lr2Dst& dst,
+                        const Lr2SrcImage& src,
+                        const std::filesystem::path& currentDir)
+{
+    spdlog::warn(
+      "[LR2 judgeline debug] DST dir={} time={} dst=({}, {}, {}, {}) alpha={} rgb=({}, {}, {}) blend={} filter={} timer={} loop={} ops=({}, {}, {}, {}) offsets={} sortId={} source={}",
+      support::pathToUtfString(currentDir),
+      dst.time,
+      dst.x,
+      dst.y,
+      dst.w,
+      dst.h,
+      dst.a,
+      dst.r,
+      dst.g,
+      dst.b,
+      dst.blend,
+      dst.filter,
+      dst.timer,
+      dst.loop,
+      dst.op1,
+      dst.op2,
+      dst.op3,
+      dst.op4,
+      dst.offsets.size(),
+      dst.sortId,
+      debugString(src.source));
+}
+
+void
+logIgnoredJudgelineDestination(const ParseState& state,
+                               const std::filesystem::path& currentDir)
+{
+    spdlog::warn(
+      "[LR2 judgeline debug] DST ignored dir={} hasCurrentElement={} currentType={}",
+      support::pathToUtfString(currentDir),
+      state.hasCurrentElement,
+      state.hasCurrentElement ? state.currentElement.type : -1);
+}
+
+auto
 parseImageSource(const QStringList& tokens,
                  const ParseState& state,
                  const int grIndex = 2) -> Lr2SrcImage
@@ -1754,8 +1821,12 @@ processCommand(const QStringList& tokens,
         state.currentElement.type = 0;
         state.hasCurrentElement = true;
 
-        state.currentElement.src =
-          QVariant::fromValue(parseImageSource(tokens, state));
+        auto src = parseImageSource(tokens, state);
+        if (command == "#SRC_JUDGELINE") {
+            src.debugLabel = QStringLiteral("SRC_JUDGELINE");
+            logJudgelineSource(src, currentDir);
+        }
+        state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#SRC_IMAGESET") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
@@ -1766,7 +1837,17 @@ processCommand(const QStringList& tokens,
           QVariant::fromValue(parseImageSetSource(tokens, state));
     } else if (command == "#DST_IMAGE" || command == "#DST_JUDGELINE") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {
-            parseDst(tokens, state, state.currentElement);
+            if (command == "#DST_JUDGELINE") {
+                const auto dst = parseDstValue(tokens, state.sortId);
+                recordDstOptions(state, dst, true);
+                state.currentElement.dsts.append(QVariant::fromValue(dst));
+                const auto src = state.currentElement.src.value<Lr2SrcImage>();
+                logJudgelineDestination(dst, src, currentDir);
+            } else {
+                parseDst(tokens, state, state.currentElement);
+            }
+        } else if (command == "#DST_JUDGELINE") {
+            logIgnoredJudgelineDestination(state, currentDir);
         }
     } else if (command == "#SRC_LINE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {

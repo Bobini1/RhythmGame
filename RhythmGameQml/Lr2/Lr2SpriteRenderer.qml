@@ -47,8 +47,14 @@ Item {
     property real scratchAngle2: 0
     property bool preferAtlasImagePath: false
     property bool sourceHasFrameAnimation: Lr2SkinUtils.sourceCyclesContinuously(srcData)
+    property string lastJudgelineDebugSnapshot: ""
+    property bool judgelineDebugReady: false
+    property real loadedTextureWidth: 0
+    property real loadedTextureHeight: 0
 
     readonly property bool hasFrameAnimation: sourceHasFrameAnimation
+    readonly property string debugLabel: root.srcData && root.srcData.debugLabel ? root.srcData.debugLabel : ""
+    readonly property bool debugJudgeline: root.debugLabel === "SRC_JUDGELINE"
     readonly property int sourceTimeOffset: {
         if (!srcData || !dsts || dsts.length === 0 || !dsts[0]) {
             return 0;
@@ -98,15 +104,29 @@ Item {
     }
     readonly property int blendMode: drawState.blendMode
     readonly property bool hasColorTint: drawState.hasColorTint
-    // Animated sheets and atlas-heavy screens can crop in the shader so rect
-    // changes stay in uniforms. Ordinary static crops use Image.sourceClipRect
-    // because Qt also handles edge clipping there.
-    readonly property bool shouldAnimateInAtlasShader: root.hasFrameAnimation
+    readonly property bool hasLoadedTextureBounds: root.loadedTextureWidth > 0 && root.loadedTextureHeight > 0
+    readonly property bool sourceClipExceedsLoadedTexture: {
+        if (!root.hasCroppedTextureSource || !root.hasLoadedTextureBounds) {
+            return false;
+        }
+
+        const rect = root.animationFrameState.sourceClipRect;
+        const epsilon = 0.01;
+        return rect.x < -epsilon
+            || rect.y < -epsilon
+            || rect.x + rect.width > root.loadedTextureWidth + epsilon
+            || rect.y + rect.height > root.loadedTextureHeight + epsilon;
+    }
+    // Animated sheets crop in the shader so rect changes stay in uniforms.
+    // Out-of-bounds LR2 crops also use the shader path: libGDX/beatoraja
+    // creates TextureRegions directly and relies on clamp-to-edge sampling.
+    readonly property bool shouldSampleInAtlasShader: root.hasFrameAnimation
+        || root.sourceClipExceedsLoadedTexture
     readonly property color tintColor: drawState.tintColor
     readonly property bool useFastImagePath: root.hasDrawableTexture
         && !root.preferAtlasImagePath
         && root.hasCroppedTextureSource
-        && !root.shouldAnimateInAtlasShader
+        && !root.shouldSampleInAtlasShader
         && root.blendMode === 1
         && !root.colorKeyEnabled
         && !root.hasColorTint
@@ -168,6 +188,69 @@ Item {
         && root.hasRenderableState
     property bool videoReloadPending: false
 
+    function imageStatusName(status: int) : string {
+        switch (status) {
+        case Image.Null:
+            return "Null";
+        case Image.Ready:
+            return "Ready";
+        case Image.Loading:
+            return "Loading";
+        case Image.Error:
+            return "Error";
+        default:
+            return "Unknown(" + status + ")";
+        }
+    }
+
+    function rectText(value: var) : string {
+        return "(" + value.x + ", " + value.y + ", " + value.width + ", " + value.height + ")";
+    }
+
+    function vectorText(value: var) : string {
+        return "(" + value.x + ", " + value.y + ", " + value.z + ", " + value.w + ")";
+    }
+
+    function logJudgeline(reason: string) : void {
+        if (!root.judgelineDebugReady || !root.debugJudgeline) {
+            return;
+        }
+
+        const src = root.srcData || {};
+        const snapshot = "srcRect=(" + (src.x || 0) + ", " + (src.y || 0)
+            + ", " + (src.w || 0) + ", " + (src.h || 0) + ")"
+            + " div=" + Math.max(1, src.div_x || 1) + "x" + Math.max(1, src.div_y || 1)
+            + " timer=" + (src.timer || 0)
+            + " specialType=" + (src.specialType || 0)
+            + " resolved=" + root.resolvedSource
+            + " dstState=" + (drawState.hasState
+                ? "(" + drawState.x + ", " + drawState.y + ", " + drawState.w + ", " + drawState.h
+                    + ") alpha=" + drawState.a + " blend=" + drawState.blend + " timerFire=" + drawState.timerFire
+                    + " renderable=" + drawState.renderable
+                : "none")
+            + " sprite=(" + sprite.x + ", " + sprite.y + ", " + sprite.width + ", " + sprite.height
+                + ") visible=" + sprite.visible + " opacity=" + sprite.opacity
+            + " rootVisible=" + root.visible + " rootOpacity=" + root.opacity
+            + " drawableTexture=" + root.hasDrawableTexture
+            + " whole=" + root.hasWholeTextureSource
+            + " cropped=" + root.hasCroppedTextureSource
+            + " fastPath=" + root.useFastImagePath
+            + " atlasShader=" + root.shouldSampleInAtlasShader
+            + " fastStatus=" + root.imageStatusName(fastImage.status)
+            + " atlasStatus=" + root.imageStatusName(atlasImage.status)
+            + " textureSize=(" + root.loadedTextureWidth + ", " + root.loadedTextureHeight + ")"
+            + " clipOutOfBounds=" + root.sourceClipExceedsLoadedTexture
+            + " clip=" + root.rectText(root.animationFrameState.sourceClipRect)
+            + " sourceRect=" + root.vectorText(root.animationFrameState.sourceRect)
+            + " frame=" + root.animationFrameState.frameIndex;
+
+        if (snapshot === root.lastJudgelineDebugSnapshot) {
+            return;
+        }
+        root.lastJudgelineDebugSnapshot = snapshot;
+        console.warn("[LR2 judgeline debug] " + reason + "; " + snapshot);
+    }
+
     function syncVideoPlayback() : void {
         if (videoLoader.item && videoLoader.item.syncVideoPlayback) {
             videoLoader.item.syncVideoPlayback();
@@ -189,9 +272,39 @@ Item {
     onShouldPlayVideoChanged: syncVideoPlayback()
     onResolvedSourceChanged: {
         videoReloadPending = false;
+        loadedTextureWidth = 0;
+        loadedTextureHeight = 0;
         syncVideoPlayback();
+        logJudgeline("resolvedSourceChanged");
     }
-    Component.onCompleted: syncVideoPlayback()
+    onUseFastImagePathChanged: logJudgeline("useFastImagePathChanged")
+    onSourceClipExceedsLoadedTextureChanged: logJudgeline("sourceClipExceedsLoadedTextureChanged")
+    onHasDrawableTextureChanged: logJudgeline("hasDrawableTextureChanged")
+    onHasRenderableStateChanged: logJudgeline("hasRenderableStateChanged")
+    onVisibleChanged: logJudgeline("visibleChanged")
+    onOpacityChanged: logJudgeline("opacityChanged")
+    onWidthChanged: logJudgeline("widthChanged")
+    onHeightChanged: logJudgeline("heightChanged")
+    onSrcDataChanged: {
+        lastJudgelineDebugSnapshot = "";
+        logJudgeline("srcDataChanged");
+    }
+    function updateLoadedTextureSize(width: real, height: real) : void {
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        if (loadedTextureWidth === width && loadedTextureHeight === height) {
+            return;
+        }
+        loadedTextureWidth = width;
+        loadedTextureHeight = height;
+        logJudgeline("loadedTextureSizeChanged");
+    }
+    Component.onCompleted: {
+        judgelineDebugReady = true;
+        syncVideoPlayback();
+        logJudgeline("completed");
+    }
     Component.onDestruction: {
         if (videoLoader.item && videoLoader.item.stopVideo) {
             videoLoader.item.stopVideo();
@@ -217,6 +330,18 @@ Item {
         frameOverride: root.frameOverride
         textureWidth: Math.max(0, root.useFastImagePath ? 0 : atlasImage.implicitWidth)
         textureHeight: Math.max(0, root.useFastImagePath ? 0 : atlasImage.implicitHeight)
+    }
+
+    Connections {
+        target: root.animationFrameState
+
+        function onFrameIndexChanged() : void {
+            root.logJudgeline("frameIndexChanged");
+        }
+
+        function onSourceRectChanged() : void {
+            root.logJudgeline("sourceRectChanged");
+        }
     }
 
     Item {
@@ -380,6 +505,12 @@ Item {
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: root.useFastImagePath && status === Image.Ready
+            onStatusChanged: {
+                if (status === Image.Ready) {
+                    root.updateLoadedTextureSize(implicitWidth, implicitHeight);
+                }
+                root.logJudgeline("fastImageStatusChanged");
+            }
         }
 
         Image {
@@ -391,6 +522,12 @@ Item {
             smooth: drawState.hasState && drawState.filter !== 0
             mipmap: false
             visible: false
+            onStatusChanged: {
+                if (status === Image.Ready) {
+                    root.updateLoadedTextureSize(implicitWidth, implicitHeight);
+                }
+                root.logJudgeline("atlasImageStatusChanged");
+            }
         }
 
         ShaderEffect {

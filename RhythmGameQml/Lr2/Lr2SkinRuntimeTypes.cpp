@@ -542,6 +542,7 @@ bool readSource(const QVariant& value, Source& source) {
         source.imageSet = parsed.imageSet;
         source.side = parsed.side;
         source.specialType = parsed.specialType;
+        source.debugLabel = parsed.debugLabel;
         source.path = parsed.source;
         return true;
     }
@@ -685,6 +686,7 @@ bool readSource(const QVariant& value, Source& source) {
         source.readmeId = mapInt(map, QStringLiteral("readmeId"), 0);
         source.readmeLineSpacing = mapInt(map, QStringLiteral("readmeLineSpacing"), 18);
         source.specialType = mapInt(map, QStringLiteral("specialType"), 0);
+        source.debugLabel = map.value(QStringLiteral("debugLabel")).toString();
         source.path = map.value(QStringLiteral("source")).toString();
         return true;
     }
@@ -740,6 +742,7 @@ bool readSource(const QVariant& value, Source& source) {
     source.readmeId = jsInt(jsValue, QStringLiteral("readmeId"), 0);
     source.readmeLineSpacing = jsInt(jsValue, QStringLiteral("readmeLineSpacing"), 18);
     source.specialType = jsInt(jsValue, QStringLiteral("specialType"), 0);
+    source.debugLabel = jsString(jsValue, QStringLiteral("debugLabel"));
     const QJSValue sourcePath = jsValue.property(QStringLiteral("source"));
     source.path = sourcePath.isUndefined() || sourcePath.isNull()
         ? QString {}

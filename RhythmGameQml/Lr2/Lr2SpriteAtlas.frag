@@ -23,6 +23,7 @@ void main(void) {
     vec2 sourceSubRectSize = max(abs(ubuf.qt_SubRect_source.zw), vec2(0.000001));
     vec2 localCoord = (qt_TexCoord0 - ubuf.qt_SubRect_source.xy) / sourceSubRectSize;
     vec2 localUv = ubuf.sourceRect.xy + localCoord * ubuf.sourceRect.zw;
+    localUv = clamp(localUv, vec2(0.0), vec2(1.0));
     vec2 uv = ubuf.qt_SubRect_source.xy + ubuf.qt_SubRect_source.zw * localUv;
     if (ubuf.nearestMode > 0.5) {
         vec2 textureSizePx = max(ubuf.sourceSize, vec2(1.0));
@@ -49,6 +50,7 @@ void main(void) {
         }
         samplePx = clamp(samplePx, minPx, maxPx) + vec2(0.5);
         vec2 localSampleUv = samplePx / textureSizePx;
+        localSampleUv = clamp(localSampleUv, vec2(0.0), vec2(1.0));
         uv = ubuf.qt_SubRect_source.xy + ubuf.qt_SubRect_source.zw * localSampleUv;
     }
     vec4 tex = texture(source, uv);
