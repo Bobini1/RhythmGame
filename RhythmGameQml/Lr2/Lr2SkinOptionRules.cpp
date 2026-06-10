@@ -68,6 +68,22 @@ bool Lr2SkinOptionRules::isRuntimeOwnedOptionValue(int option) {
     case 182:
     case 183:
     case 184:
+    case 196:
+    case 197:
+    case 198:
+    case 1196:
+    case 1197:
+    case 1198:
+    case 1199:
+    case 1200:
+    case 1201:
+    case 1202:
+    case 1203:
+    case 1204:
+    case 1205:
+    case 1206:
+    case 1207:
+    case 1208:
     case 1008:
     case 1046:
     case 1047:

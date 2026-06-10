@@ -40,9 +40,23 @@ QtObject {
             : (Rg.profileList ? Rg.profileList.mainProfile : null);
     }
 
+    function resultCourseChartData() : var {
+        if (root.host.chartData) {
+            return root.host.chartData;
+        }
+        let charts = root.host.chartDatas || [];
+        for (let i = charts.length - 1; i >= 0; --i) {
+            let chart = charts[i];
+            if (chart && typeof chart !== "string") {
+                return chart;
+            }
+        }
+        return null;
+    }
+
     function resultChartData() : var {
         if (root.host.effectiveScreenKey === "courseResult") {
-            return null;
+            return root.resultCourseChartData();
         }
         if (root.host.chartData) {
             return root.host.chartData;

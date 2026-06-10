@@ -303,11 +303,16 @@ Loader {
                 : 0
             readonly property bool dstOffsetsEnabled: elementState.dstOffsetsEnabled
             readonly property int dstOffsetSide: elementState.dstOffsetSide
-            readonly property int buttonFrameOverrideValue: elemLoader.usesButtonFrameOverride
+            readonly property int resultButtonFrameOverrideValue: elemLoader.valueResolver
+                ? elemLoader.valueResolver.resultButtonFrameOverride(elemLoader.elementData.src)
+                : -1
+            readonly property int buttonFrameOverrideValue: resultButtonFrameOverrideValue >= 0
+                ? resultButtonFrameOverrideValue
+                : (elemLoader.usesButtonFrameOverride
                 ? (elemLoader.selectPanelController
                     ? elemLoader.selectPanelController.buttonFrame(elemLoader.elementData.src)
                     : -1)
-                : -1
+                : -1)
             readonly property bool hiddenBySelectHover: elemLoader.usesSpriteForceHidden
                 && !!elemLoader.selectHoverState
                 && !!elemLoader.elementData.src

@@ -192,11 +192,16 @@ QtObject {
         return false;
     }
 
-    function selectReplayOptionsUsed() : var {
+    function replayOptionsUsed() : var {
         return root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [
-            196, 197, 1196, 1197, 1199, 1200,
-            1202, 1203, 1205, 1206, 1207, 1208
+            196, 197, 198, 1196, 1197, 1198,
+            1199, 1200, 1201, 1202, 1203, 1204,
+            1205, 1206, 1207, 1208
         ]);
+    }
+
+    function selectReplayOptionsUsed() : var {
+        return root.replayOptionsUsed();
     }
 
     function selectScoreOptionIdsUsed() : var {
@@ -473,6 +478,15 @@ QtObject {
         }
         if (selectedReplayAvailable) {
             root.addOption(options, root.selectedReplayOptionForSlot(host.lr2ReplayType));
+        }
+    }
+
+    function appendResultReplayOptions(options: var) : void {
+        if (!root.replayOptionsUsed()) {
+            return;
+        }
+        for (let slot = 0; slot < 4; ++slot) {
+            root.addOption(options, root.replayOptionForSlot(slot, false));
         }
     }
 
@@ -999,6 +1013,7 @@ QtObject {
         }
 
         root.appendJudgementExistOptions(options, current1);
+        root.appendResultReplayOptions(options);
     }
 
     function appendCurrentSelectOptions(options: var, item: var, selectedChart: var, state: var, includeSelectDetailOptions: var) : void {

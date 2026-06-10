@@ -2203,10 +2203,14 @@ Item {
             ? root.skinClearTypeForStatus(result.clearType || "FAILED")
             : "FAILED";
         let rank = root.resultScreenshotRankLabel(result);
-        let title = chartData
+        let courseTitle = root.course && root.course.name ? String(root.course.name) : "";
+        let title = root.effectiveScreenKey === "courseResult" && courseTitle.length > 0
+            ? courseTitle
+            : (chartData
             ? String(chartData.title || "") + (chartData.subtitle ? " " + chartData.subtitle : "")
-            : (root.course && root.course.name ? String(root.course.name) : "");
-        let stem = timestamp + "_" + root.resultScreenshotPrefix(chartData)
+            : courseTitle);
+        let prefix = root.effectiveScreenKey === "courseResult" ? "" : root.resultScreenshotPrefix(chartData);
+        let stem = timestamp + "_" + prefix
             + title + " " + clearType + " " + rank;
         return Lr2SkinUtils.sanitizeFilename(stem) + ".png";
     }

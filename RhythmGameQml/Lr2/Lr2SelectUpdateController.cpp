@@ -347,9 +347,7 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
         return false;
     }
     if (m_effectiveScreenKey != QStringLiteral("select")) {
-        const QList<int> next = mergedNumberArray(
-            m_baseActiveOptions,
-            m_screenRuntimeActiveOptions);
+        const QList<int> next = m_screenRuntimeActiveOptions;
         if (m_runtimeActiveOptions == next) {
             return false;
         }
@@ -383,9 +381,7 @@ bool Lr2SelectUpdateController::refreshGameplayRuntimeActiveOptions() {
         return false;
     }
 
-    const QList<int> next = mergedNumberArray(
-        m_baseActiveOptions,
-        m_screenRuntimeActiveOptions);
+    const QList<int> next = m_screenRuntimeActiveOptions;
     if (m_runtimeActiveOptions == next) {
         return false;
     }
@@ -551,8 +547,9 @@ void Lr2SelectUpdateController::refreshSkinOptionUsage() {
     m_selectElementOptionsAvailable = nextSelectElementOptionsAvailable;
 
     const bool nextReplayOptionsUsed = skinUsesAnySelectElementOption({
-        196, 197, 1196, 1197, 1199, 1200,
-        1202, 1203, 1205, 1206, 1207, 1208
+        196, 197, 198, 1196, 1197, 1198,
+        1199, 1200, 1201, 1202, 1203, 1204,
+        1205, 1206, 1207, 1208
     });
     const bool nextScoreOptionIdsUsed = skinUsesSelectElementOptionRange(118, 130)
         || skinUsesAnySelectElementOption({ 144, 145, 1128 });

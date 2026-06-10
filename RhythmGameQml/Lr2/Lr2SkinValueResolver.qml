@@ -21,6 +21,14 @@ QtObject {
         return isNaN(numeric) ? fallback : numeric;
     }
 
+    function integerPart(value: var) : var {
+        const numeric = Number(value);
+        if (!isFinite(numeric)) {
+            return 0;
+        }
+        return numeric < 0 ? Math.ceil(numeric) : Math.floor(numeric);
+    }
+
     function optionOnlyRankId(id: var) : var {
         return id >= 340 && id <= 347;
     }
@@ -301,6 +309,9 @@ QtObject {
     function resolveChartText(st: var, chartData: var, selectedEntry: var) : var {
         switch (st) {
         case 10:
+            if (root.effectiveScreenKey === "courseResult" && resolver.courseDisplayName().length > 0) {
+                return resolver.courseDisplayName();
+            }
             if (chartData) {
                 return resolver.singleLineText(resolver.chartTitle(chartData));
             }
@@ -313,6 +324,9 @@ QtObject {
         case 11:
             return chartData ? (chartData.subtitle || "") : "";
         case 12:
+            if (root.effectiveScreenKey === "courseResult" && resolver.courseDisplayName().length > 0) {
+                return resolver.courseDisplayName();
+            }
             if (chartData) {
                 return resolver.chartFullTitle(chartData);
             }
@@ -1095,6 +1109,12 @@ QtObject {
         switch (num) {
         case 20:
             return root.lr2CurrentFps;
+        case 71:
+            return root.resultExScore(current);
+        case 75:
+            return current ? (current.maxCombo || 0) : 0;
+        case 76:
+            return root.resultBadPoor(current);
         case 310:
             return root.hiSpeedInteger(1);
         case 311:
@@ -1172,28 +1192,44 @@ QtObject {
             return root.clearTypeValue(old ? old.clearType : "NOPLAY");
         case 372: {
             let stats = root.resultTimingStats(1);
-            return Math.floor(stats.averageDuration || 0);
+            return resolver.integerPart(stats.averageDuration || 0);
         }
         case 373: {
             let stats = root.resultTimingStats(1);
             return Math.floor((stats.averageDuration || 0) * 100) % 100;
         }
-        case 374: {
-            let stats = root.resultTimingStats(1);
-            return Math.floor(stats.average || 0);
-        }
-        case 375: {
-            let stats = root.resultTimingStats(1);
-            return root.signedAfterDot(stats.average || 0);
-        }
-        case 376: {
-            let stats = root.resultTimingStats(1);
-            return Math.floor(stats.stddev || 0);
-        }
-        case 377: {
-            let stats = root.resultTimingStats(1);
-            return Math.floor((stats.stddev || 0) * 100) % 100;
-        }
+        case 374:
+            if (root.effectiveScreenKey === "courseResult") {
+                return 0;
+            }
+            {
+                let stats = root.resultTimingStats(1);
+                return resolver.integerPart(stats.average || 0);
+            }
+        case 375:
+            if (root.effectiveScreenKey === "courseResult") {
+                return 0;
+            }
+            {
+                let stats = root.resultTimingStats(1);
+                return root.signedAfterDot(stats.average || 0);
+            }
+        case 376:
+            if (root.effectiveScreenKey === "courseResult") {
+                return 0;
+            }
+            {
+                let stats = root.resultTimingStats(1);
+                return resolver.integerPart(stats.stddev || 0);
+            }
+        case 377:
+            if (root.effectiveScreenKey === "courseResult") {
+                return 0;
+            }
+            {
+                let stats = root.resultTimingStats(1);
+                return Math.floor((stats.stddev || 0) * 100) % 100;
+            }
         case 407:
             return root.gaugeAfterDot(root.resultGaugeValue(1));
         case 410:
@@ -1377,6 +1413,22 @@ QtObject {
             }
             return 0;
         }
+    }
+
+    function resultButtonFrameOverride(src: var) : var {
+        if (!root.resultScreenActive || !src || !src.button) {
+            return -1;
+        }
+
+        let buttonId = Math.floor(resolver.numericValue(src.buttonId, -1));
+        if (buttonId !== 370 && buttonId !== 371) {
+            return -1;
+        }
+
+        let value = Math.max(0, Math.floor(resolver.resolveResultNumber(buttonId) || 0));
+        let divX = Math.max(1, Math.floor(src.div_x || 1));
+        let divY = Math.max(1, Math.floor(src.div_y || 1));
+        return Math.min(value, divY - 1) * divX;
     }
 
     function resolveNumber(num: var) : var {

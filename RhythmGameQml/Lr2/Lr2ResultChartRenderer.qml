@@ -22,7 +22,9 @@ Item {
         step: 1,
         chartType: 0,
         chartIndex: 0,
-        gaugeHard: false
+        gaugeHard: false,
+        gaugeBorderPercent: 80,
+        gaugeColors: root.gaugeGraphColors(null)
     })
     readonly property int chartSide: root.srcData && root.srcData.side ? root.srcData.side : 1
     readonly property int chartIndex: root.srcData ? (root.srcData.resultChartIndex || 0) : 0
@@ -81,6 +83,8 @@ Item {
     readonly property int cachedChartType: root.valueCacheState.chartType
     readonly property int cachedChartIndex: root.valueCacheState.chartIndex
     readonly property bool cachedGaugeHard: root.valueCacheState.gaugeHard
+    readonly property real cachedGaugeBorderPercent: root.valueCacheState.gaugeBorderPercent
+    readonly property var cachedGaugeColors: root.valueCacheState.gaugeColors
     readonly property string resolvedSource: {
         if (!srcData || !srcData.source) return "";
         let absPath = srcData.source.replace(/\\/g, "/");
@@ -169,18 +173,27 @@ Item {
         return Math.max(0, Math.min(255, state && state[name] !== undefined ? state[name] : 255));
     }
 
+    function graphColorComponents(state: var) : var {
+        let color = [
+            graphColorComponent(state, "r"),
+            graphColorComponent(state, "g"),
+            graphColorComponent(state, "b")
+        ];
+        if (root.cachedChartType === 1
+                && color[0] === 255 && color[1] === 255 && color[2] === 255) {
+            return root.cachedChartIndex === 0 ? [0, 255, 0] : [255, 0, 0];
+        }
+        return color;
+    }
+
     function graphColor(state: var) : var {
-        let r = graphColorComponent(state, "r");
-        let g = graphColorComponent(state, "g");
-        let b = graphColorComponent(state, "b");
-        return "rgb(" + r + "," + g + "," + b + ")";
+        let color = graphColorComponents(state);
+        return "rgb(" + color[0] + "," + color[1] + "," + color[2] + ")";
     }
 
     function graphNeedsTint(state: var) : var {
-        let r = graphColorComponent(state, "r");
-        let g = graphColorComponent(state, "g");
-        let b = graphColorComponent(state, "b");
-        return r !== 255 || g !== 255 || b !== 255;
+        let color = graphColorComponents(state);
+        return color[0] !== 255 || color[1] !== 255 || color[2] !== 255;
     }
 
     function drawTintedImage(ctx: var, sx: var, sy: var, srcW: var, srcH: var, dx: var, dy: var, dw: var, dh: var) : var {
@@ -289,6 +302,8 @@ Item {
         let info = gaugeInfo();
         let history = info && info.gaugeHistory ? info.gaugeHistory : [];
         let maxGauge = info ? Math.max(1, info.maxGauge || 100) : 100;
+        let borderPercent = root.clampPercent((info ? Number(info.threshold || 0) : 80) * 100 / maxGauge);
+        let colors = root.gaugeGraphColors(info);
         let gaugeName = info ? String(info.name).toUpperCase() : "";
         let gaugeHard = gaugeName.indexOf("HARD") !== -1
             || gaugeName.indexOf("DAN") !== -1
@@ -297,7 +312,12 @@ Item {
             || gaugeName.indexOf("MAX") !== -1;
 
         if (!history || history.length === 0) {
-            return { values: [], gaugeHard: gaugeHard };
+            return {
+                values: [],
+                gaugeHard: gaugeHard,
+                borderPercent: borderPercent,
+                colors: colors
+            };
         }
 
         let count = cacheValueCount(fieldW, step);
@@ -318,7 +338,12 @@ Item {
             }
             result[i] = clampPercent(value * 100 / maxGauge);
         }
-        return { values: result, gaugeHard: gaugeHard };
+        return {
+            values: result,
+            gaugeHard: gaugeHard,
+            borderPercent: borderPercent,
+            colors: colors
+        };
     }
 
     function buildScoreCache(fieldW: var, step: var) : var {
@@ -360,7 +385,9 @@ Item {
             step: step,
             chartType: root.chartType,
             chartIndex: root.chartIndex,
-            gaugeHard: gaugeCache ? gaugeCache.gaugeHard : false
+            gaugeHard: gaugeCache ? gaugeCache.gaugeHard : false,
+            gaugeBorderPercent: gaugeCache ? gaugeCache.borderPercent : 80,
+            gaugeColors: gaugeCache ? gaugeCache.colors : root.gaugeGraphColors(null)
         };
     }
 
@@ -416,6 +443,124 @@ Item {
         }
     }
 
+    function logicalFillRect(ctx: var, x: var, y: var, w: var, h: var) : void {
+        ctx.fillRect(
+            (root.currentState.x + x) * root.scaleOverride,
+            (root.currentState.y + y) * root.scaleOverride,
+            Math.max(1, w * root.scaleOverride),
+            Math.max(1, h * root.scaleOverride));
+    }
+
+    function gaugeGraphY(value: var, fieldH: var, lineWidth: var) : var {
+        return Math.round(-root.clampPercent(value) * Math.max(1, fieldH - lineWidth) / 100.0);
+    }
+
+    function gaugeGraphColors(info: var) : var {
+        let name = info ? String(info.name || "").toUpperCase() : "";
+        if (name.indexOf("AEASY") !== -1 || name.indexOf("ASSIST") !== -1) {
+            return { graphLine: "#ff00ff", graphBg: "#440044", borderLine: "#ff0000", borderBg: "#440000" };
+        }
+        if (name.indexOf("EASY") !== -1) {
+            return { graphLine: "#00ffff", graphBg: "#004444", borderLine: "#ff0000", borderBg: "#440000" };
+        }
+        if (name.indexOf("EXHARD") !== -1 || name.indexOf("EXDAN") !== -1) {
+            return { graphLine: "#ffff00", graphBg: "#444400", borderLine: "#ffff00", borderBg: "#444400" };
+        }
+        if (name.indexOf("FC") !== -1 || name.indexOf("PERFECT") !== -1 || name.indexOf("MAX") !== -1) {
+            return { graphLine: "#cccccc", graphBg: "#444444", borderLine: "#cccccc", borderBg: "#444444" };
+        }
+        if (name.indexOf("HARD") !== -1 || name.indexOf("DAN") !== -1) {
+            return { graphLine: "#ff0000", graphBg: "#440000", borderLine: "#ff0000", borderBg: "#440000" };
+        }
+        return { graphLine: "#00ff00", graphBg: "#004400", borderLine: "#ff0000", borderBg: "#440000" };
+    }
+
+    function drawGaugeGraphBackground(ctx: var, fieldW: var, fieldH: var, borderPercent: var, colors: var) : void {
+        let topHeight = fieldH * (100 - root.clampPercent(borderPercent)) / 100.0;
+        ctx.fillStyle = colors.graphBg;
+        root.logicalFillRect(ctx, 0, -fieldH, fieldW, fieldH);
+        if (topHeight > 0) {
+            ctx.fillStyle = colors.borderBg;
+            root.logicalFillRect(ctx, 0, -fieldH, fieldW, topHeight);
+        }
+    }
+
+    function drawGaugeGraphSegment(ctx: var, x1: var, y1: var, x2: var, y2: var, lineWidth: var) : void {
+        root.logicalFillRect(ctx, x1, Math.min(y1, y2), lineWidth, Math.abs(y2 - y1) + lineWidth);
+        root.logicalFillRect(ctx, x1, y2, Math.max(lineWidth, x2 - x1 + lineWidth), lineWidth);
+    }
+
+    function drawGaugeGraphVertical(ctx: var, x: var, y1: var, y2: var, lineWidth: var) : void {
+        root.logicalFillRect(ctx, x, Math.min(y1, y2), lineWidth, Math.abs(y2 - y1) + lineWidth);
+    }
+
+    function drawGaugeGraph(ctx: var, values: var, columnCount: var, fieldW: var, fieldH: var, step: var) : void {
+        let lineWidth = Math.max(1, Math.abs(root.srcData && root.srcData.h ? root.srcData.h : 1));
+        let borderPercent = root.cachedGaugeBorderPercent;
+        let borderY = root.gaugeGraphY(borderPercent, fieldH, lineWidth);
+        let colors = root.cachedGaugeColors || root.gaugeGraphColors(null);
+        root.drawGaugeGraphBackground(ctx, fieldW, fieldH, borderPercent, colors);
+        if (!values || values.length === 0 || columnCount <= 0) {
+            return;
+        }
+
+        let previousValue = values[0];
+        let previousX = 0;
+        let previousY = root.gaugeGraphY(previousValue, fieldH, lineWidth);
+        let lastX = previousX;
+        let lastY = previousY;
+        let lastGauge = -1;
+
+        for (let column = 1; column < columnCount; ++column) {
+            let value = values[column];
+            if (value < 0 || previousValue < 0) {
+                previousValue = value;
+                previousX = column * step;
+                previousY = root.gaugeGraphY(value, fieldH, lineWidth);
+                continue;
+            }
+
+            let x = column * step;
+            let y = root.gaugeGraphY(value, fieldH, lineWidth);
+            if (previousValue < borderPercent) {
+                if (value < borderPercent) {
+                    ctx.fillStyle = colors.graphLine;
+                    root.drawGaugeGraphSegment(ctx, previousX, previousY, x, y, lineWidth);
+                } else {
+                    ctx.fillStyle = colors.graphLine;
+                    root.drawGaugeGraphVertical(ctx, previousX, previousY, borderY, lineWidth);
+                    ctx.fillStyle = colors.borderLine;
+                    root.drawGaugeGraphVertical(ctx, previousX, borderY, y, lineWidth);
+                    root.logicalFillRect(ctx, previousX, y, Math.max(lineWidth, x - previousX + lineWidth), lineWidth);
+                }
+            } else {
+                if (value >= borderPercent) {
+                    ctx.fillStyle = colors.borderLine;
+                    root.drawGaugeGraphSegment(ctx, previousX, previousY, x, y, lineWidth);
+                } else {
+                    ctx.fillStyle = colors.borderLine;
+                    root.drawGaugeGraphVertical(ctx, previousX, borderY, previousY, lineWidth);
+                    ctx.fillStyle = colors.graphLine;
+                    root.drawGaugeGraphVertical(ctx, previousX, y, borderY, lineWidth);
+                    root.logicalFillRect(ctx, previousX, y, Math.max(lineWidth, x - previousX + lineWidth), lineWidth);
+                }
+            }
+            if (value >= 0) {
+                lastGauge = value;
+                lastX = x;
+                lastY = y;
+            }
+            previousValue = value;
+            previousX = x;
+            previousY = y;
+        }
+
+        if (lastGauge >= 0) {
+            ctx.fillStyle = lastGauge < borderPercent ? colors.graphLine : colors.borderLine;
+            root.logicalFillRect(ctx, lastX, lastY, Math.max(lineWidth, fieldW - lastX), lineWidth);
+        }
+    }
+
     visible: currentState && effectiveAlpha > 0 && !!srcData
 
     Canvas {
@@ -437,6 +582,11 @@ Item {
             let fieldH = root.cachedFieldH;
             let values = root.valueCache;
             let columnCount = root.drawColumnCount();
+            ctx.globalAlpha = root.effectiveAlpha / 255.0;
+            if (root.cachedChartType === 1) {
+                root.drawGaugeGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep);
+                return;
+            }
             if (values.length === 0 || columnCount <= 0) {
                 return;
             }
@@ -453,8 +603,8 @@ Item {
             let sy = (root.srcData.y || 0) + row * srcH;
             let imageLoaded = root.resolvedSource !== "" && isImageLoaded(root.resolvedSource);
 
-            ctx.globalAlpha = root.effectiveAlpha / 255.0;
             ctx.fillStyle = root.graphColor(root.currentState);
+
             let previousValue = values[0];
             for (let column = 0; column < columnCount; ++column) {
                 let x = column * step;
