@@ -20,7 +20,8 @@ QtObject {
     readonly property bool gameplayScreen: isGameplayKey(effectiveKey)
     readonly property bool resultScreen: effectiveKey === "result" || effectiveKey === "courseResult"
     readonly property bool updatesActive: hostEnabled && hostVisible && stackActive
-    readonly property bool acceptsInput: effectiveKey !== "select" || globalSkinTime >= startInput
+    readonly property bool gatesInputByStartInput: effectiveKey === "select" || effectiveKey === "decide"
+    readonly property bool acceptsInput: !gatesInputByStartInput || globalSkinTime >= startInput
     readonly property bool selectPointerInputReady: updatesActive && effectiveKey === "select" && acceptsInput
     readonly property bool selectInputReady: selectPointerInputReady && !selectSearchFocused
     readonly property bool selectScrollReady: selectInputReady && readmeMode === 0

@@ -19,6 +19,7 @@ Item {
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
+    property bool decideTransitionRequested: false
     readonly property var chartAssetData: {
         if (root.effectiveScreenKey === "select") {
             return selectContext.visualChartWrapper;
@@ -309,6 +310,7 @@ Item {
             root.updateLr2DateTimeNumbers();
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
+            skinTiming.syncSceneEndTimer();
             root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
         } else {
@@ -402,8 +404,26 @@ Item {
             if (root.gameplayScreenActive && root.handleGameplayEscape()) {
                 return;
             }
+            if (root.effectiveScreenKey === "decide") {
+                root.cancelDecideScreen();
+                return;
+            }
             sceneStack.pop();
         }
+    }
+
+    Shortcut {
+        enabled: root.decideScreenActive
+        sequence: "Return"
+
+        onActivated: root.skipDecideScreen()
+    }
+
+    Shortcut {
+        enabled: root.decideScreenActive
+        sequence: "Enter"
+
+        onActivated: root.skipDecideScreen()
     }
 
     Shortcut {
@@ -461,6 +481,10 @@ Item {
     readonly property string effectiveScreenKey: screenState.effectiveKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
+    readonly property bool decideScreenActive: root.enabled
+        && root.visible
+        && root.effectiveScreenKey === "decide"
+        && !root.decideTransitionRequested
     function playerIsAutoPlayer(player: var) : var {
         return !!player && player instanceof AutoPlayer;
     }
@@ -4072,6 +4096,9 @@ Item {
         }
     }
     onEffectiveScreenKeyChanged: {
+        if (root.effectiveScreenKey === "decide") {
+            root.decideTransitionRequested = false;
+        }
         if (root.effectiveScreenKey !== "select") {
             root.selectPanel = 0;
             root.selectPanelHeldByStart = 0;
@@ -4234,6 +4261,11 @@ Item {
         if (root.effectiveScreenKey === "select" && root.acceptsInput) {
             root.selectNoScrollStartSkinTime = root.renderSkinTime;
         }
+        if (root.effectiveScreenKey === "decide"
+                && root.acceptsInput
+                && root.decideStartSelectHeld()) {
+            root.cancelDecideScreen();
+        }
         if (root.acceptsInput && root.heldOptionPanel > 0 && !root.startHoldSuppressed) {
             root.holdSelectPanel(root.heldOptionPanel);
         }
@@ -4383,7 +4415,7 @@ Item {
 
         onAutoAdvanceRequested: {
             if (root.shouldAutoAdvance && root.chart) {
-                Qt.callLater(globalRoot.openGameplay, root.chart);
+                root.advanceDecideScreen();
             }
         }
     }
@@ -4433,7 +4465,7 @@ Item {
     property alias renderSkinTime: skinTiming.renderSkinTime
     property alias barSkinTime: skinTiming.barSkinTime
     readonly property bool shouldAutoAdvance: skinTiming.shouldAutoAdvance
-    readonly property var timers: root.resultScreenActive
+    readonly property var timers: root.resultScreenActive || root.effectiveScreenKey === "decide"
         ? skinTiming.timers
         : root.zeroTimers
 
@@ -4674,6 +4706,117 @@ Item {
         return root.enabled && root.resultScreenActive && root.acceptsInput;
     }
 
+    function decideInputBlockReason(requireChart: var) : var {
+        if (!root.enabled) {
+            return "disabled";
+        }
+        if (!root.visible) {
+            return "hidden";
+        }
+        if (root.effectiveScreenKey !== "decide") {
+            return "not-decide";
+        }
+        if (root.decideTransitionRequested) {
+            return "transition-requested";
+        }
+        if (requireChart === true && !root.chart) {
+            return "missing-chart";
+        }
+        return "";
+    }
+
+    function decideAdvanceBlockReason() : var {
+        if (!root.decideScreenActive) {
+            return "inactive";
+        }
+        if (!root.chart) {
+            return "missing-chart";
+        }
+        if (root.decideTransitionRequested) {
+            return "transition-requested";
+        }
+        return "";
+    }
+
+    function decideInputReady() : var {
+        return root.decideInputBlockReason(false) === "";
+    }
+
+    function decidePlayKey(key: var) : var {
+        switch (key) {
+        case BmsKey.Col11:
+        case BmsKey.Col12:
+        case BmsKey.Col13:
+        case BmsKey.Col14:
+        case BmsKey.Col15:
+        case BmsKey.Col16:
+        case BmsKey.Col17:
+        case BmsKey.Col21:
+        case BmsKey.Col22:
+        case BmsKey.Col23:
+        case BmsKey.Col24:
+        case BmsKey.Col25:
+        case BmsKey.Col26:
+        case BmsKey.Col27:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function decideStartSelectHeld() : var {
+        return (Input.start1 && Input.select1) || (Input.start2 && Input.select2);
+    }
+
+    function decideStartSelectKeyCombo(key: var) : var {
+        return (key === BmsKey.Start1 && Input.select1)
+            || (key === BmsKey.Select1 && Input.start1)
+            || (key === BmsKey.Start2 && Input.select2)
+            || (key === BmsKey.Select2 && Input.start2);
+    }
+
+    function advanceDecideScreen() : var {
+        let reason = root.decideAdvanceBlockReason();
+        if (reason !== "") {
+            return false;
+        }
+        root.decideTransitionRequested = true;
+        Qt.callLater(globalRoot.openGameplay, root.chart);
+        return true;
+    }
+
+    function skipDecideScreen() : var {
+        let reason = root.decideInputBlockReason(true);
+        if (reason !== "") {
+            return false;
+        }
+        return root.advanceDecideScreen();
+    }
+
+    function cancelDecideScreen() : var {
+        let reason = root.decideInputBlockReason(false);
+        if (reason !== "") {
+            return false;
+        }
+        root.decideTransitionRequested = true;
+        sceneStack.pop();
+        return true;
+    }
+
+    function handleDecideButtonPress(key: var) : var {
+        if (root.effectiveScreenKey !== "decide") {
+            return false;
+        }
+        let startSelectCombo = root.decideStartSelectKeyCombo(key);
+        let playKey = root.decidePlayKey(key);
+        if (startSelectCombo) {
+            root.cancelDecideScreen();
+        } else if (playKey) {
+            root.skipDecideScreen();
+        }
+        return true;
+    }
+
     function closeResultScreen() : var {
         if (!root.resultInputReady()) {
             return false;
@@ -4748,6 +4891,11 @@ Item {
             root.closeReadme();
             return;
         }
+        if (root.effectiveScreenKey === "decide") {
+            event.accepted = true;
+            root.skipDecideScreen();
+            return;
+        }
         if (root.closeResultScreen()) {
             event.accepted = true;
             return;
@@ -4755,6 +4903,12 @@ Item {
         if (!root.selectNavigationReady()) return;
         event.accepted = true;
         root.selectGoForward();
+    }
+    Keys.onEnterPressed: (event) => {
+        if (root.effectiveScreenKey === "decide") {
+            event.accepted = true;
+            root.skipDecideScreen();
+        }
     }
 
     property var lastNavigateKey: []
@@ -4884,6 +5038,9 @@ Item {
     Input.onCol21Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol27Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onButtonPressed: (key) => {
+        if (root.handleDecideButtonPress(key)) {
+            return;
+        }
         if (root.handleLr2GameplayOptionKey(key)) {
             return;
         }
@@ -5050,6 +5207,22 @@ Item {
         playContext: playContext
         selectContext: selectContext
         selectBarGeometry: selectBarGeometry
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        z: 999999
+        enabled: root.decideScreenActive
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+
+        onPressed: (mouse) => {
+            mouse.accepted = true;
+            if (mouse.button === Qt.LeftButton) {
+                root.skipDecideScreen();
+            } else if (mouse.button === Qt.RightButton) {
+                root.cancelDecideScreen();
+            }
+        }
     }
 
     Text {

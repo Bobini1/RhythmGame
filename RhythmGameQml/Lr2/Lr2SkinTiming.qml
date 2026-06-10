@@ -194,6 +194,13 @@ QtObject {
             }
             return resultTimers;
         }
+        if (root.host && root.host.effectiveScreenKey === "decide") {
+            let decideTimers = { "0": 0 };
+            if (root.host.acceptsInput) {
+                decideTimers[1] = Math.min(root.renderSkinTime, root.skinModel.startInput || 0);
+            }
+            return decideTimers;
+        }
         return root.zeroTimers;
     }
 
@@ -214,7 +221,12 @@ QtObject {
         root.host.selectScratchSoundReady = false;
         root.host.updateLr2DateTimeNumbers();
         root.clock.restartSelectInfoTimer();
-        if (root.host.screenUpdatesActive && root.shouldAutoAdvance) {
+        root.syncSceneEndTimer();
+    }
+
+    function syncSceneEndTimer() : void {
+        let shouldRun = root.host && root.host.screenUpdatesActive && root.shouldAutoAdvance;
+        if (shouldRun) {
             root.sceneEndTimer.restart();
         } else {
             root.sceneEndTimer.stop();
@@ -357,6 +369,10 @@ QtObject {
             timerState.resultGraphEndSkinTime;
             timerState.resultTimer151SkinTime;
             timerState.resultTimer152SkinTime;
+        } else if (timerState.screenKey === "decide") {
+            timerState.acceptsInput;
+            timerState.startInput;
+            timerState.renderSkinTime;
         } else if (timerState.screenKey === "select") {
             root.dependOnSelectTimerFireInputs(timer, liveClock);
         }

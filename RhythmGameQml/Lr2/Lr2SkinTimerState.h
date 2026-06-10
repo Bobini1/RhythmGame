@@ -213,6 +213,7 @@ signals:
 
 private:
     int selectTimerBaseTime(bool liveClock) const;
+    int startInputTimerFireTime() const;
     int selectElapsedSince(int startSkinTime) const;
     bool canCacheSelectTimerFire(int timer) const;
     int cachedSelectTimerFireTime(int timer, bool liveClock);

@@ -57,8 +57,6 @@ set(LR2_SKIN_SOURCES
         Lr2/Lr2SkinRuntime.cpp
         Lr2/Lr2SkinSliderGeometry.h
         Lr2/Lr2SkinSliderGeometry.cpp
-        Lr2/Lr2BarDistributionGraphItem.h
-        Lr2/Lr2BarDistributionGraphItem.cpp
         Lr2/Lr2BitmapFontTexture.h
         Lr2/Lr2BitmapFontTexture.cpp
         Lr2/Lr2ResolvedTextRegistry.h
@@ -119,8 +117,6 @@ set(LR2_SKIN_QML_FILES
 set(LR2_SKIN_SHADERS
         Lr2/Lr2AddBlend.frag
         Lr2/Lr2SpriteAtlas.frag
-        Lr2/Lr2BarDistributionGraph.vert
-        Lr2/Lr2BarDistributionGraph.frag
         Lr2/Lr2InvertBlend.frag
 )
 

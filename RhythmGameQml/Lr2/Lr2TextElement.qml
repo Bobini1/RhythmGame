@@ -29,7 +29,9 @@ Item {
 
     readonly property bool isSearchText: searchStateReady && selectSearchState.isText(srcData)
     readonly property string searchFontPath: srcData ? String(srcData.fontPath || "") : ""
-    readonly property int searchAlignment: srcData ? numberValue(srcData.align, 0) : 0
+    readonly property int searchAlignment: searchStateReady && srcData
+        ? selectSearchState.numberValue(srcData.align, 0)
+        : 0
     readonly property bool searchTextEditing: isSearchText
         && searchInputLoader.item
         && searchInputLoader.item.activeFocus

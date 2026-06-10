@@ -378,7 +378,7 @@ int Lr2SkinTimerState::resultTimerFireTime(int timer) const {
         return 0;
     }
     if (timer == 1) {
-        return m_acceptsInput ? std::min(m_renderSkinTime, m_startInput) : -1;
+        return startInputTimerFireTime();
     }
     if (timer == 150) {
         return m_renderSkinTime >= m_resultGraphStartSkinTime ? m_resultGraphStartSkinTime : -1;
@@ -401,7 +401,7 @@ int Lr2SkinTimerState::selectTimerFireTime(int timer, bool liveClock) const {
         return 0;
     }
     if (timer == 1) {
-        return m_acceptsInput ? std::min(m_renderSkinTime, m_startInput) : -1;
+        return startInputTimerFireTime();
     }
     if (timer == 171) {
         return m_selectDatabaseLoadedSkinTime;
@@ -486,6 +486,9 @@ bool Lr2SkinTimerState::skinTimerCanFire(int timer) const {
     if (m_resultScreen) {
         return timer == 1 || timer == 150 || timer == 151 || timer == 152;
     }
+    if (m_screenKey == QStringLiteral("decide")) {
+        return timer == 1;
+    }
     if (m_screenKey == QStringLiteral("select")) {
         return selectTimerCanFire(timer);
     }
@@ -501,6 +504,9 @@ int Lr2SkinTimerState::skinTimerFireTime(int timer, bool liveClock) {
     }
     if (m_resultScreen) {
         return resultTimerFireTime(timer);
+    }
+    if (m_screenKey == QStringLiteral("decide")) {
+        return timer == 1 ? startInputTimerFireTime() : -1;
     }
     if (m_screenKey == QStringLiteral("select")) {
         return canCacheSelectTimerFire(timer)
@@ -580,6 +586,10 @@ void Lr2SkinTimerState::clearSelectTimerFireCache() {
 
 int Lr2SkinTimerState::selectTimerBaseTime(bool liveClock) const {
     return liveClock ? m_selectSourceSkinTime : m_renderSkinTime;
+}
+
+int Lr2SkinTimerState::startInputTimerFireTime() const {
+    return m_acceptsInput ? std::min(m_renderSkinTime, m_startInput) : -1;
 }
 
 int Lr2SkinTimerState::selectElapsedSince(int startSkinTime) const {

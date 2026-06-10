@@ -1,6 +1,7 @@
 #include "Lr2SkinRuntimeTypes.h"
 #include "Lr2BarPositionedItem.h"
 #include "Lr2SkinElementActiveOptionsState.h"
+#include "Lr2SkinTimerState.h"
 #include "Lr2TimelineFrameState.h"
 #include "Lr2TimelineState.h"
 
@@ -206,6 +207,24 @@ TEST_CASE("LR2 runtime hit testing accepts negative dst sizes", "[lr2][runtime]"
     REQUIRE(rectContains(rect, 100, 80));
     REQUIRE_FALSE(rectContains(rect, 59, 65));
     REQUIRE_FALSE(rectContains(rect, 75, 49));
+}
+
+TEST_CASE("LR2 timer state exposes decide start-input timer",
+          "[lr2][runtime]") {
+    Lr2SkinTimerState timerState;
+    timerState.setScreenKey(QStringLiteral("decide"));
+    timerState.setStartInput(300);
+    timerState.setRenderSkinTime(250);
+    timerState.setAcceptsInput(false);
+
+    CHECK(timerState.skinTimerCanFire(1));
+    CHECK_FALSE(timerState.skinTimerCanFire(2));
+    CHECK(timerState.skinTimerFireTime(1) == -1);
+
+    timerState.setRenderSkinTime(450);
+    timerState.setAcceptsInput(true);
+
+    CHECK(timerState.skinTimerFireTime(1) == 300);
 }
 
 TEST_CASE("LR2 runtime note sort ignores sparse empty note lanes",
