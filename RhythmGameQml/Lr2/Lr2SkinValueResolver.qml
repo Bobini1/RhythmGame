@@ -29,6 +29,57 @@ QtObject {
         return numeric < 0 ? Math.ceil(numeric) : Math.floor(numeric);
     }
 
+    function playerTotalStatNumber(num: var) : var {
+        let stats = selectContext.playerStats || {};
+        switch (num) {
+        case 30:
+            return stats.playCount || 0;
+        case 31:
+            return stats.clearCount || 0;
+        case 32:
+            return stats.failCount || 0;
+        case 33:
+            return stats.perfectCount || 0;
+        case 34:
+            return stats.greatCount || 0;
+        case 35:
+            return stats.goodCount || 0;
+        case 36:
+            return stats.badCount || 0;
+        case 37:
+            return stats.poorCount || 0;
+        case 333:
+            return (stats.perfectCount || 0)
+                + (stats.greatCount || 0)
+                + (stats.goodCount || 0)
+                + (stats.badCount || 0);
+        default:
+            return undefined;
+        }
+    }
+
+    function resolveBeatorajaGlobalNumber(num: var) : var {
+        switch (num) {
+        case 12: {
+            let vars = root.mainGeneralVarsRef;
+            return vars ? Math.round(vars.offset || 0) : 0;
+        }
+        case 20:
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29:
+            return root.dateTimeNumber(num);
+        default:
+            return resolver.playerTotalStatNumber(num);
+        }
+    }
+
     function optionOnlyRankId(id: var) : var {
         return id >= 340 && id <= 347;
     }
@@ -1108,7 +1159,16 @@ QtObject {
 
         switch (num) {
         case 20:
-            return root.lr2CurrentFps;
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29:
+            return root.dateTimeNumber(num);
         case 71:
             return root.resultExScore(current);
         case 75:
@@ -1432,6 +1492,10 @@ QtObject {
     }
 
     function resolveNumber(num: var) : var {
+        let globalValue = resolver.resolveBeatorajaGlobalNumber(num);
+        if (globalValue !== undefined) {
+            return globalValue;
+        }
         if (root.resultScreenActive) {
             return resolver.resolveResultNumber(num);
         }

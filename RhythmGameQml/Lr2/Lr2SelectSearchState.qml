@@ -77,7 +77,6 @@ QtObject {
     function reset() : void {
         if (selectContext.searchText.length > 0) {
             selectContext.searchText = "";
-            selectContext.touch();
         }
         if (searchState.inputItem && searchState.inputItem.text.length > 0) {
             searchState.inputItem.text = "";

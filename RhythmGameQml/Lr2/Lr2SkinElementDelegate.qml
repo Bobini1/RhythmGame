@@ -510,20 +510,17 @@ Loader {
             readonly property bool usesFocusedSelectNumber: selectNumberScreen
                 && !usesFpsNumber
                 && !selectNumberUsesValueResolver
-            readonly property bool valueResolverNumberNeeded: hasCurrentState
-                && !usesFpsNumber
+            readonly property bool valueResolverNumberNeeded: !usesFpsNumber
                 && !usesFocusedSelectNumber
             readonly property int valueResolverNumber: valueResolverNumberNeeded
                 ? elemLoader.valueResolver.numberValue(numberSrc)
                 : 0
-            readonly property int focusedSelectNumber: hasCurrentState && usesFocusedSelectNumber
+            readonly property int focusedSelectNumber: usesFocusedSelectNumber
                 ? selectContext.numberValue(numberId)
                 : 0
-            readonly property int currentNumberValue: hasCurrentState
-                ? (usesFpsNumber
-                    ? elemLoader.screenRoot.lr2CurrentFps
-                    : (usesFocusedSelectNumber ? focusedSelectNumber : valueResolverNumber))
-                : 0
+            readonly property int currentNumberValue: usesFpsNumber
+                ? elemLoader.screenRoot.lr2CurrentFps
+                : (usesFocusedSelectNumber ? focusedSelectNumber : valueResolverNumber)
             dsts: elemLoader.elementData.dsts
             srcData: numberSrc
             skinTime: elemLoader.useDirectElementSkinClock && !numberSourceAnimates ? 0 : elemLoader.elementSkinTime

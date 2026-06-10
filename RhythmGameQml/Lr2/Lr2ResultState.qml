@@ -374,9 +374,7 @@ QtObject {
             sideCounts[bucket] = (sideCounts[bucket] || 0) + 1;
         }
 
-        let next = Object.assign({}, cache);
-        next[key] = counts;
-        root.resultJudgeTimingCountsCache = next;
+        cache[key] = counts;
         return counts;
     }
 
@@ -428,9 +426,7 @@ QtObject {
             };
         }
 
-        let next = Object.assign({}, cache);
-        next[key] = stats;
-        root.resultTimingStatsCache = next;
+        cache[key] = stats;
         return stats;
     }
 

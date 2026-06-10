@@ -4149,6 +4149,7 @@ Item {
         if (root.resultScreenActive) {
             root.resultTimer151SkinTime = -1;
             root.resultTimer152SkinTime = -1;
+            selectContext.refreshPlayerStats();
             root.updateResultOldScores();
         }
         root.updateGameplaySavedScores();
@@ -4178,6 +4179,9 @@ Item {
         }
     }
     onScoresChanged: {
+        if (root.resultScreenActive) {
+            selectContext.refreshPlayerStats();
+        }
         root.updateResultOldScores();
         root.queueResolvedTextRefresh();
     }
@@ -4633,7 +4637,6 @@ Item {
             selectUpdateController.refreshBaseActiveOptions();
             root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
-            root.updateResultOldScores();
         }
     }
 

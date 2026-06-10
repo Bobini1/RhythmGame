@@ -35,42 +35,6 @@ QSize sceneTextureSizeForItemSize(const QQuickItem& item, const QSizeF& itemSize
                  std::max(1, static_cast<int>(std::lround(itemSize.height() * scaleY))));
 }
 
-QImage scaledNearestEndpoint(const QImage& image, const QSize& targetSize)
-{
-    if (image.isNull() || targetSize.isEmpty()) {
-        return {};
-    }
-    if (image.size() == targetSize) {
-        return image;
-    }
-
-    const QImage source = image.convertToFormat(QImage::Format_ARGB32);
-    QImage scaled(targetSize, QImage::Format_ARGB32);
-
-    const int sourceW = source.width();
-    const int sourceH = source.height();
-    const int targetW = targetSize.width();
-    const int targetH = targetSize.height();
-
-    for (int y = 0; y < targetH; ++y) {
-        const int sourceY = targetH <= 1
-            ? 0
-            : static_cast<int>(std::lround(
-                static_cast<double>(y) * (sourceH - 1) / (targetH - 1)));
-        const auto* sourceLine = reinterpret_cast<const QRgb*>(source.constScanLine(sourceY));
-        auto* targetLine = reinterpret_cast<QRgb*>(scaled.scanLine(y));
-        for (int x = 0; x < targetW; ++x) {
-            const int sourceX = targetW <= 1
-                ? 0
-                : static_cast<int>(std::lround(
-                    static_cast<double>(x) * (sourceW - 1) / (targetW - 1)));
-            targetLine[x] = sourceLine[sourceX];
-        }
-    }
-
-    return scaled;
-}
-
 } // namespace
 
 Lr2BitmapFontTexture::Lr2BitmapFontTexture(QQuickItem* parent) : QQuickItem(parent) {
@@ -214,11 +178,11 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
               m_fontPath,
               m_renderedText,
               targetSize,
-              m_textureFilter != 0);
+              true);
         if (textureImage.isNull()) {
-            textureImage = m_textureFilter == 0
-                ? scaledNearestEndpoint(m_image, targetSize)
-                : m_image;
+            textureImage = m_image.scaled(targetSize,
+                                          Qt::IgnoreAspectRatio,
+                                          Qt::SmoothTransformation);
         } else if (colorNeedsTint(m_textColor)) {
             textureImage = tintedImage(textureImage, m_textColor);
         }
@@ -232,7 +196,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         m_textureDirty = false;
     }
 
-    const auto filtering = QSGTexture::Nearest;
+    const auto filtering = QSGTexture::Linear;
     if (auto* texture = node->texture()) {
         texture->setFiltering(filtering);
     }

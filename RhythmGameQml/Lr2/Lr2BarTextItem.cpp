@@ -142,11 +142,6 @@ QString colorKey(const QColor& color) {
         + u',' + QString::number(color.rgba64().alpha(), 16);
 }
 
-QSGTexture::Filtering filteringForFilter(int filter)
-{
-    return filter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
-}
-
 QSizeF sceneScaleForItem(const QQuickItem& item)
 {
     qreal dpr = 1.0;
@@ -496,7 +491,11 @@ QImage Lr2BarTextItem::scaledLr2TextImageFor(const QString& text,
     }
 
     QImage image =
-      resource_managers::Lr2FontImageProvider::scaledTextImage(m_source.fontPath, text, targetSize);
+      resource_managers::Lr2FontImageProvider::scaledTextImage(
+          m_source.fontPath,
+          text,
+          targetSize,
+          true);
     image = tintedImage(std::move(image), color);
 
     if (m_scaledTextImageCache.size() > 512) {
@@ -590,7 +589,7 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
         if (!texture) {
             continue;
         }
-        const auto filtering = filteringForFilter(state.filter);
+        const auto filtering = QSGTexture::Linear;
         texture->setFiltering(filtering);
         texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
         texture->setVerticalWrapMode(QSGTexture::ClampToEdge);

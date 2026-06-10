@@ -317,7 +317,6 @@ Item {
                         && context
                         && context.searchText !== text) {
                     context.searchText = text;
-                    context.touch();
                 }
             }
 
