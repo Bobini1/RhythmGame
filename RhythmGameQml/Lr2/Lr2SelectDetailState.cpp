@@ -86,12 +86,16 @@ ClearKind normalizedClearKindValue(QStringView value) {
 		return ClearKind::LightAssist;
 	}
 	if (value == QStringLiteral("EASY")) return ClearKind::Easy;
+	if (value == QStringLiteral("DAN")) return ClearKind::Normal;
 	if (value == QStringLiteral("NORMAL")) return ClearKind::Normal;
+	if (value == QStringLiteral("EXDAN")
+			|| value == QStringLiteral("HARD_DAN")
+			|| value == QStringLiteral("HARD DAN")) return ClearKind::Hard;
 	if (value == QStringLiteral("HARD")) return ClearKind::Hard;
 	if (value == QStringLiteral("EX_HARD") || value == QStringLiteral("EXHARD")) return ClearKind::ExHard;
 	if (value == QStringLiteral("EX_HARD_DAN")
 			|| value == QStringLiteral("EXHARD_DAN")
-			|| value == QStringLiteral("EXHARDDAN")) return ClearKind::ExHardDan;
+			|| value == QStringLiteral("EXHARDDAN")) return ClearKind::ExHard;
 	if (value == QStringLiteral("FC")) return ClearKind::FullCombo;
 	if (value == QStringLiteral("PERFECT")) return ClearKind::Perfect;
 	if (value == QStringLiteral("MAX")) return ClearKind::Max;

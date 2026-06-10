@@ -145,6 +145,7 @@ Item {
     property var gameplayLongNoteTimerStarts: ({})
     property bool gameplayResultOpened: false
     property bool gameplayCourseResultPending: false
+    property bool gameplayCourseResultOpening: false
     property bool gameplayShowedCourseResult: false
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
@@ -244,9 +245,16 @@ Item {
             return "NORMAL";
         case "EX_HARD":
             return "EXHARD";
+        case "DAN":
+            return "NORMAL";
+        case "EXDAN":
+        case "HARD_DAN":
+        case "HARD DAN":
+            return "HARD";
+        case "EXHARDDAN":
         case "EXHARD_DAN":
         case "EX_HARD_DAN":
-            return "EXHARDDAN";
+            return "EXHARD";
         case "FULLCOMBO":
         case "FULL_COMBO":
         case "FULL COMBO":
@@ -261,7 +269,6 @@ Item {
         case "NORMAL":
         case "HARD":
         case "EXHARD":
-        case "EXHARDDAN":
         case "FC":
         case "PERFECT":
         case "MAX":
@@ -1112,6 +1119,12 @@ Item {
         return lr2Ranking.openRanking();
     }
     function closeLr2Ranking() : var { return lr2Ranking.closeRanking(); }
+    function launchLr2RankingReplayType(replayType: var, mouseButton: var) : var {
+        return lr2Ranking.launchReplayType(replayType, mouseButton);
+    }
+    function launchLr2RankingScoreAction(mouseButton: var) : var {
+        return lr2Ranking.launchSelectedScoreAction(mouseButton);
+    }
     function isLr2RankingKey(key: var) : var { return key === BmsKey.Col14 || key === BmsKey.Col24; }
 
     function clearStatusOption() : var { return optionState.clearStatusOption(); }
@@ -1861,14 +1874,23 @@ Item {
 
         root.forceActiveFocus();
         if (root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+            if (root.isCourseGameplay() && root.gameplayCourseResultOpening) {
+                return;
+            }
             if (root.isCourseGameplay() && root.gameplayCourseResultPending && !root.gameplayShowedCourseResult) {
                 root.gameplayCourseResultPending = false;
-                root.gameplayShowedCourseResult = true;
+                root.gameplayCourseResultOpening = true;
                 let profiles = root.gameplayProfiles();
                 let chartDatas = root.chart.chartDatas;
                 let course = root.chart.course;
                 Qt.callLater(() => {
-                    if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                    if (root.enabled
+                            && root.gameplayScreenActive
+                            && root.chart
+                            && root.gameplayCourseResultOpening
+                            && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+                        root.gameplayCourseResultOpening = false;
+                        root.gameplayShowedCourseResult = true;
                         globalRoot.openCourseResult(root.chart.finish(), profiles, chartDatas, course);
                     }
                 });
@@ -1917,6 +1939,8 @@ Item {
         let scores = root.chart instanceof ChartRunner ? root.chart.finish() : root.chart.proceed();
         if (finalCourseStage) {
             root.gameplayCourseResultPending = true;
+            root.gameplayCourseResultOpening = false;
+            root.gameplayShowedCourseResult = false;
         }
         globalRoot.openResult(scores, profiles, chartData);
     }
@@ -4109,6 +4133,7 @@ Item {
         if (root.gameplayScreenActive) {
             root.gameplayResultOpened = false;
             root.gameplayCourseResultPending = false;
+            root.gameplayCourseResultOpening = false;
             root.gameplayShowedCourseResult = false;
             root.gameplayPlayStopped = false;
             root.gameplayNothingWasHit = true;
@@ -4135,6 +4160,7 @@ Item {
         root.refreshGameplayRuntimeActiveOptions();
         root.gameplayResultOpened = false;
         root.gameplayCourseResultPending = false;
+        root.gameplayCourseResultOpening = false;
         root.gameplayShowedCourseResult = false;
         root.gameplayPlayStopped = false;
         root.gameplayNothingWasHit = true;
@@ -4180,6 +4206,7 @@ Item {
             root.refreshGameplayRuntimeActiveOptions();
             root.gameplayResultOpened = false;
             root.gameplayCourseResultPending = false;
+            root.gameplayCourseResultOpening = false;
             root.gameplayPlayStopped = false;
             root.gameplayNothingWasHit = true;
             root.resetGameplayTimers();
@@ -4691,6 +4718,10 @@ Item {
 
     function selectGoForward(item: var, autoplay: var, replay: var, replayScore: var) : void {
         let targetItem = item === undefined ? selectContext.activationItem() : item;
+        if (!autoplay && !replay && !replayScore
+                && lr2Ranking.launchEntryReplay(targetItem, 1, Qt.LeftButton)) {
+            return;
+        }
         let before = selectContext.historyStack.length;
         selectContext.goForward(targetItem, autoplay, replay, replayScore);
         if (selectContext.historyStack.length > before) {

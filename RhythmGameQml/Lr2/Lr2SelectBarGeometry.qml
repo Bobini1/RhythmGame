@@ -49,10 +49,6 @@ QtObject {
 
     function handleBarRowClick(row: var, mouse: var) : var {
         root.clearSelectSearchFocus();
-        if (mouse.button === Qt.RightButton) {
-            root.selectGoBack();
-            return;
-        }
 
         let first = skinModel.barAvailableStart;
         let last = skinModel.barAvailableEnd;
@@ -67,7 +63,21 @@ QtObject {
         }
 
         if (row === geometry.selectedRow) {
-            root.selectGoForward();
+            if (root.launchLr2RankingScoreAction(mouse.button)) {
+                return;
+            }
+            if (mouse.button === Qt.RightButton) {
+                root.selectGoBack();
+                return;
+            }
+            if (mouse.button === Qt.LeftButton) {
+                root.selectGoForward();
+            }
+            return;
+        }
+
+        if (mouse.button === Qt.RightButton) {
+            root.selectGoBack();
             return;
         }
 

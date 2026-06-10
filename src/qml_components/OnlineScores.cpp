@@ -262,33 +262,10 @@ OnlineScores::getRankingEntryAtTimestamp(
                       if (!item.isObject())
                           continue;
                       const auto obj = item.toObject();
-                      if (obj.value("userId").toInt() != userId)
-                          continue;
 
-                      RankingEntry entry;
-                      entry.userId = obj.value("userId").toInt();
-                      entry.userName = obj.value("userName").toString();
-                      entry.userImage = obj.value("userImage").toString();
-                      entry.bestPoints = obj.value("points").toDouble();
-                      entry.maxPoints = obj.value("maxPoints").toDouble();
-                      entry.bestPointsGuid =
-                        obj.value("bestPointsGuid").toString();
-                      entry.bestCombo = obj.value("bestCombo").toInt();
-                      entry.maxHits = obj.value("maxHits").toInt();
-                      entry.bestComboGuid =
-                        obj.value("bestComboGuid").toString();
-                      entry.bestClearType =
-                        obj.value("bestClearType").toString();
-                      entry.bestClearTypeGuid =
-                        obj.value("bestClearTypeGuid").toString();
-                      entry.bestComboBreaks =
-                        obj.value("bestComboBreaks").toInt();
-                      entry.bestComboBreaksGuid =
-                        obj.value("bestComboBreaksGuid").toString();
-                      entry.latestDate = obj.value("latestDate").toInteger();
-                      entry.latestDateGuid =
-                        obj.value("latestDateGuid").toString();
-                      entry.scoreCount = obj.value("scoreCount").toInt();
+                      auto entry = rhythmGameRankingEntryFromJson(obj);
+                      if (entry.userId != userId)
+                          continue;
 
                       pendingReply.setSuccess(
                         QVariant::fromValue(std::move(entry)));

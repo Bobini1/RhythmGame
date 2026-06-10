@@ -1,7 +1,14 @@
 #ifndef RHYTHMGAME_ONLINERANKINGMODEL_H
 #define RHYTHMGAME_ONLINERANKINGMODEL_H
 
+#include <QIfPendingReply>
 #include <QtQml>
+
+namespace gameplay_logic {
+class BmsScore;
+}
+
+class QJsonObject;
 
 namespace qml_components {
 class OnlineScores;
@@ -58,6 +65,10 @@ struct RankingEntry
     int scoreCount{};
     auto operator<=>(const RankingEntry&) const = default;
 };
+
+auto
+rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry;
+
 class OnlineRankingModel : public QAbstractListModel
 {
     Q_OBJECT

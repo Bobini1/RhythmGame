@@ -2,6 +2,7 @@
 
 #include "OnlineScores.h"
 #include "ProfileList.h"
+#include "gameplay_logic/Judgement.h"
 #include "support/ConvertTachiClearType.h"
 
 #include <QJsonArray>
@@ -11,139 +12,102 @@
 #include <QUrl>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <functional>
-#include <initializer_list>
 #include <memory>
 
 namespace qml_components {
 namespace {
 auto
-jsonIntValue(const QJsonObject& obj,
-             std::initializer_list<QString> keys,
-             int fallback = 0,
-             bool* found = nullptr) -> int
+judgementCount(const QJsonArray& counts, gameplay_logic::Judgement judgement)
+  -> int
 {
-    for (const auto& key : keys) {
-        const auto value = obj.value(key);
-        if (value.isDouble()) {
-            if (found) {
-                *found = true;
-            }
-            return value.toInt();
-        }
-        if (value.isString()) {
-            bool ok = false;
-            const int parsed = value.toString().toInt(&ok);
-            if (ok) {
-                if (found) {
-                    *found = true;
-                }
-                return parsed;
-            }
-        }
-    }
-    if (found) {
-        *found = false;
-    }
-    return fallback;
+    const auto index = static_cast<int>(judgement);
+    return index >= 0 && index < counts.size() ? counts.at(index).toInt() : 0;
 }
 
-auto
-jsonIntValueOrSum(const QJsonObject& obj,
-                  std::initializer_list<QString> aliases,
-                  std::initializer_list<QString> sumKeys,
-                  bool* found = nullptr) -> int
+void
+setJudgementCountsFromArray(RankingEntry& entry, const QJsonArray& counts)
 {
-    bool aliasFound = false;
-    const int aliasValue = jsonIntValue(obj, aliases, 0, &aliasFound);
-    if (aliasFound) {
-        if (found) {
-            *found = true;
-        }
-        return aliasValue;
-    }
-
-    int sum = 0;
-    bool anySumKeyFound = false;
-    for (const auto& key : sumKeys) {
-        bool keyFound = false;
-        sum += jsonIntValue(obj, { key }, 0, &keyFound);
-        anySumKeyFound = anySumKeyFound || keyFound;
-    }
-    if (found) {
-        *found = anySumKeyFound;
-    }
-    return anySumKeyFound ? sum : 0;
+    entry.bestPerfect =
+      judgementCount(counts, gameplay_logic::Judgement::Perfect);
+    entry.bestGreat = judgementCount(counts, gameplay_logic::Judgement::Great);
+    entry.bestGood = judgementCount(counts, gameplay_logic::Judgement::Good);
+    entry.bestBad = judgementCount(counts, gameplay_logic::Judgement::Bad);
+    entry.bestPoor = judgementCount(counts, gameplay_logic::Judgement::Poor);
+    entry.bestEmptyPoor =
+      judgementCount(counts, gameplay_logic::Judgement::EmptyPoor);
 }
 
 void
 setJudgementCountsFromJson(RankingEntry& entry, const QJsonObject& obj)
 {
-    entry.bestPerfect =
-      jsonIntValueOrSum(obj,
-                        { QStringLiteral("bestPerfect"),
-                          QStringLiteral("bestPerfectCount"),
-                          QStringLiteral("perfectCount"),
-                          QStringLiteral("perfect"),
-                          QStringLiteral("pgreat"),
-                          QStringLiteral("pg") },
-                        { QStringLiteral("epg"), QStringLiteral("lpg") });
-    entry.bestGreat =
-      jsonIntValueOrSum(obj,
-                        { QStringLiteral("bestGreat"),
-                          QStringLiteral("bestGreatCount"),
-                          QStringLiteral("greatCount"),
-                          QStringLiteral("great"),
-                          QStringLiteral("gr") },
-                        { QStringLiteral("egr"), QStringLiteral("lgr") });
-    entry.bestGood =
-      jsonIntValueOrSum(obj,
-                        { QStringLiteral("bestGood"),
-                          QStringLiteral("bestGoodCount"),
-                          QStringLiteral("goodCount"),
-                          QStringLiteral("good"),
-                          QStringLiteral("gd") },
-                        { QStringLiteral("egd"), QStringLiteral("lgd") });
+    entry.bestPerfect = obj.value(QStringLiteral("perfect")).toInt();
+    if (entry.bestPerfect == 0) {
+        entry.bestPerfect = obj.value(QStringLiteral("pgreat")).toInt();
+    }
+    if (entry.bestPerfect == 0) {
+        entry.bestPerfect = obj.value(QStringLiteral("pg")).toInt();
+    }
 
-    bool badFound = false;
-    entry.bestBad =
-      jsonIntValueOrSum(obj,
-                        { QStringLiteral("bestBad"),
-                          QStringLiteral("bestBadCount"),
-                          QStringLiteral("badCount"),
-                          QStringLiteral("bad"),
-                          QStringLiteral("bd") },
-                        { QStringLiteral("ebd"), QStringLiteral("lbd") },
-                        &badFound);
+    entry.bestGreat = obj.value(QStringLiteral("great")).toInt();
+    if (entry.bestGreat == 0) {
+        entry.bestGreat = obj.value(QStringLiteral("gr")).toInt();
+    }
 
-    bool poorFound = false;
-    entry.bestPoor =
-      jsonIntValueOrSum(obj,
-                        { QStringLiteral("bestPoor"),
-                          QStringLiteral("bestPoorCount"),
-                          QStringLiteral("poorCount"),
-                          QStringLiteral("poor") },
-                        { QStringLiteral("epr"), QStringLiteral("lpr") },
-                        &poorFound);
+    entry.bestGood = obj.value(QStringLiteral("good")).toInt();
+    if (entry.bestGood == 0) {
+        entry.bestGood = obj.value(QStringLiteral("gd")).toInt();
+    }
 
-    bool emptyPoorFound = false;
-    entry.bestEmptyPoor =
-      jsonIntValueOrSum(obj,
-                        { QStringLiteral("bestEmptyPoor"),
-                          QStringLiteral("bestEmptyPoorCount"),
-                          QStringLiteral("emptyPoorCount"),
-                          QStringLiteral("emptyPoor"),
-                          QStringLiteral("empty_poor"),
-                          QStringLiteral("miss") },
-                        { QStringLiteral("ems"), QStringLiteral("lms") },
-                        &emptyPoorFound);
+    entry.bestBad = obj.value(QStringLiteral("bad")).toInt();
+    if (entry.bestBad == 0) {
+        entry.bestBad = obj.value(QStringLiteral("bd")).toInt();
+    }
 
-    if (!emptyPoorFound && (badFound || poorFound)) {
-        const int unaccountedBadPoor =
-          entry.bestComboBreaks - entry.bestBad - entry.bestPoor;
-        entry.bestEmptyPoor = std::max(0, unaccountedBadPoor);
+    entry.bestPoor = obj.value(QStringLiteral("poor")).toInt();
+    entry.bestEmptyPoor = obj.value(QStringLiteral("emptyPoor")).toInt();
+    if (entry.bestEmptyPoor == 0) {
+        entry.bestEmptyPoor = obj.value(QStringLiteral("empty_poor")).toInt();
+    }
+    if (entry.bestEmptyPoor == 0) {
+        entry.bestEmptyPoor = obj.value(QStringLiteral("miss")).toInt();
+    }
+    if (entry.bestEmptyPoor == 0 && entry.bestComboBreaks > 0) {
+        entry.bestEmptyPoor =
+          std::max(0,
+                   entry.bestComboBreaks - entry.bestBad - entry.bestPoor);
     }
 }
+}
+
+auto
+rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry
+{
+    RankingEntry entry;
+    entry.userId = obj.value("userId").toInt();
+    entry.userName = obj.value("userName").toString();
+    entry.userImage = obj.value("userImage").toString();
+    entry.bestPoints = obj.value("bestPoints").toDouble();
+    entry.maxPoints = obj.value("maxPoints").toDouble();
+    entry.bestPointsGuid = obj.value("bestPointsGuid").toString();
+    entry.bestCombo = obj.value("bestCombo").toInt();
+    entry.maxHits = obj.value("maxHits").toInt();
+    entry.bestComboGuid = obj.value("bestComboGuid").toString();
+    entry.bestClearType = obj.value("bestClearType").toString();
+    entry.bestClearTypeGuid = obj.value("bestClearTypeGuid").toString();
+    entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
+    setJudgementCountsFromArray(
+      entry, obj.value("bestPointsJudgementCounts").toArray());
+    entry.bestComboBreaksGuid =
+      obj.value("bestComboBreaksGuid").toString();
+    entry.latestDate = obj.value("latestDate").toInteger();
+    entry.latestDateGuid = obj.value("latestDateGuid").toString();
+    entry.scoreCount = obj.value("scoreCount").toInt();
+    if (entry.scoreCount <= 0 && !entry.bestPointsGuid.isEmpty()) {
+        entry.scoreCount = 1;
+    }
+    return entry;
 }
 
 void
@@ -570,27 +534,8 @@ OnlineRankingModel::fetchRhythmGame()
               if (!item.isObject())
                   continue;
               const auto obj = item.toObject();
-              RankingEntry entry;
-              entry.userId = obj.value("userId").toInt();
-              entry.userName = obj.value("userName").toString();
-              entry.userImage = obj.value("userImage").toString();
-              entry.bestPoints = obj.value("bestPoints").toDouble();
-              entry.maxPoints = obj.value("maxPoints").toDouble();
-              entry.bestPointsGuid = obj.value("bestPointsGuid").toString();
-              entry.bestCombo = obj.value("bestCombo").toInt();
-              entry.maxHits = obj.value("maxHits").toInt();
-              entry.bestComboGuid = obj.value("bestComboGuid").toString();
-              entry.bestClearType = obj.value("bestClearType").toString();
+              auto entry = rhythmGameRankingEntryFromJson(obj);
               clearTypeCounts[entry.bestClearType]++;
-              entry.bestClearTypeGuid =
-                obj.value("bestClearTypeGuid").toString();
-              entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
-              setJudgementCountsFromJson(entry, obj);
-              entry.bestComboBreaksGuid =
-                obj.value("bestComboBreaksGuid").toString();
-              entry.latestDate = obj.value("latestDate").toInteger();
-              entry.latestDateGuid = obj.value("latestDateGuid").toString();
-              entry.scoreCount = obj.value("scoreCount").toInt();
               scoreCount += entry.scoreCount;
               newEntries.append(std::move(entry));
           }

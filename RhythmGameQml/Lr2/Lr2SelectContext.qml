@@ -1590,14 +1590,28 @@ Item {
         }
         if (folder === "SEARCH") {
             let md5s = [];
+            let courseIds = [];
             for (let item of folderContents) {
                 if (isChart(item) && item.md5) {
                     md5s.push(item.md5);
+                } else if (isCourse(item) && item.identifier) {
+                    courseIds.push(item.identifier);
                 }
             }
             scoreDb.getScoresForMd5(md5s).then((result) => {
-                scores = result.scores;
-                handleScoresLoaded();
+                if (courseIds.length <= 0) {
+                    scores = result.scores;
+                    handleScoresLoaded();
+                    return;
+                }
+                scoreDb.getScoresForCourseId(courseIds).then((courseResult) => {
+                    let newScores = Object.assign({}, result.scores || {});
+                    for (let [key, value] of Object.entries(courseResult.scores || {})) {
+                        newScores[key] = value;
+                    }
+                    scores = newScores;
+                    handleScoresLoaded();
+                });
             });
             refreshSongDirectoryFiles();
             refreshFolderLamps();
@@ -1921,7 +1935,9 @@ Item {
 
     function goForward(item: var, autoplay: var, replay: var, replayScore: var) : var {
         if (isRankingEntry(item)) {
-            item = rankingBaseItem;
+            let baseItem = rankingBaseItem;
+            hideRanking();
+            item = baseItem;
         }
         if (isChart(item)) {
             let useReplay = !!replay && !!replayScore;
@@ -1953,7 +1969,9 @@ Item {
             return false;
         }
         if (isRankingEntry(item)) {
-            item = rankingBaseItem;
+            let baseItem = rankingBaseItem;
+            hideRanking();
+            item = baseItem;
         }
         if (isCourse(item)) {
             globalRoot.openCourseResult(
@@ -2456,9 +2474,16 @@ Item {
             return "NORMAL";
         case "EX_HARD":
             return "EXHARD";
+        case "DAN":
+            return "NORMAL";
+        case "EXDAN":
+        case "HARD_DAN":
+        case "HARD DAN":
+            return "HARD";
+        case "EXHARDDAN":
         case "EXHARD_DAN":
         case "EX_HARD_DAN":
-            return "EXHARDDAN";
+            return "EXHARD";
         case "FULLCOMBO":
         case "FULL_COMBO":
         case "FULL COMBO":
@@ -2473,7 +2498,6 @@ Item {
         case "NORMAL":
         case "HARD":
         case "EXHARD":
-        case "EXHARDDAN":
         case "FC":
         case "PERFECT":
         case "MAX":
@@ -2932,10 +2956,16 @@ Item {
         return source && bucket < source.length ? (source[bucket] || 0) : 0;
     }
 
+    function timingBucketCountsInTotal(bucket: var) : var {
+        return bucket >= 0 && bucket <= 3;
+    }
+
     function totalTimingCount(counts: var, early: var) : var {
         let total = 0;
-        for (let bucket = 1; bucket <= 5; ++bucket) {
-            total += timingCount(counts, bucket, early);
+        for (let bucket = 0; bucket <= 3; ++bucket) {
+            if (timingBucketCountsInTotal(bucket)) {
+                total += timingCount(counts, bucket, early);
+            }
         }
         return total;
     }
@@ -3410,10 +3440,11 @@ Item {
         return true;
     }
 
-    function rankingEntryFrom(entry: var, index: var, chart: var) : var {
+    function rankingEntryFrom(entry: var, index: var, chart: var, provider: var) : var {
         return {
             __lr2RankingEntry: true,
             rankingIndex: index,
+            rankingProvider: provider === undefined ? OnlineRankingModel.RhythmGame : Number(provider),
             sourceMd5: chart ? (chart.md5 || "") : "",
             title: entry.userName || entry.owner || "",
             level: index + 1,
@@ -3428,6 +3459,11 @@ Item {
             bd: Number(entry.bestBad || 0),
             poor: Number(entry.bestPoor || 0),
             miss: Number(entry.bestEmptyPoor || 0),
+            bestPointsGuid: entry.bestPointsGuid || "",
+            bestComboGuid: entry.bestComboGuid || "",
+            bestComboBreaksGuid: entry.bestComboBreaksGuid || "",
+            bestClearTypeGuid: entry.bestClearTypeGuid || "",
+            latestDateGuid: entry.latestDateGuid || "",
             scoreCount: Number(entry.scoreCount || 0),
             userId: entry.userId || 0
         };
@@ -3475,7 +3511,7 @@ Item {
         };
     }
 
-    function showRanking(entries: var, clearCounts: var, playerCount: var, totalPlayCount: var, playerRank: var) : var {
+    function showRanking(entries: var, clearCounts: var, playerCount: var, totalPlayCount: var, playerRank: var, provider: var) : var {
         let chart = selectedStateChartData;
         if (!chart || !entries || entries.length <= 0) {
             return false;
@@ -3500,7 +3536,7 @@ Item {
         let rows = [];
         let limit = Math.min(entries.length, 999);
         for (let i = 0; i < limit; ++i) {
-            rows.push(rankingEntryFrom(entries[i], i, chart));
+            rows.push(rankingEntryFrom(entries[i], i, chart, provider));
         }
         realItemCount = rows.length;
         addToMinimumCount(rows);
@@ -4174,7 +4210,7 @@ Item {
         case 75:
             return rankingEntry() ? rankingEntry().bestCombo : (stats() ? stats().maxCombo : 0);
         case 76:
-            return rankingEntry() ? rankingEntry().bestComboBreaks : counts().minBadPoor;
+            return rankingEntry() ? (scoreStats() ? scoreStats().badPoor : 0) : counts().minBadPoor;
         case 77:
             return rankingEntry() ? rankingEntry().scoreCount : counts().play;
         case 78:

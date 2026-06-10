@@ -499,6 +499,28 @@ QtObject {
             let rankingName = rankingState.entryName(st - 120);
             return rankingName.length > 0 ? rankingName : resolver.lr2SelectOptionText(st);
         }
+        case 150:
+        case 151:
+        case 152:
+        case 153:
+        case 154:
+        case 155:
+        case 156:
+        case 157:
+        case 158:
+        case 159:
+            return resolver.chartTitle(resolver.courseStage(st - 150));
+        case 160:
+        case 161:
+        case 162:
+        case 163:
+        case 164:
+        case 165:
+        case 166:
+        case 167:
+        case 168:
+        case 169:
+            return resolver.chartSubtitle(resolver.courseStage(st - 160));
         case 1000:
             return root.effectiveScreenKey === "select"
                 ? (root.lr2SkinUsesBeatorajaSemantics
@@ -902,17 +924,27 @@ QtObject {
         return Math.max(0, Math.min(totalNotes * 2, Math.floor(root.resultTargetPoints(side))));
     }
 
+    function hasSyntheticTarget(side: var) : var {
+        return resolver.targetClampedPoints(side) > 0;
+    }
+
     function targetMaxCombo(side: var) : var {
-        return resolver.targetTotalNotes(side);
+        return resolver.hasSyntheticTarget(side) ? resolver.targetTotalNotes(side) : 0;
     }
 
     function targetPerfectCount(side: var) : var {
+        if (!resolver.hasSyntheticTarget(side)) {
+            return 0;
+        }
         let totalNotes = resolver.targetTotalNotes(side);
         let points = resolver.targetClampedPoints(side);
         return Math.max(0, points - totalNotes);
     }
 
     function targetGreatCount(side: var) : var {
+        if (!resolver.hasSyntheticTarget(side)) {
+            return 0;
+        }
         let totalNotes = resolver.targetTotalNotes(side);
         let points = resolver.targetClampedPoints(side);
         if (points <= totalNotes) {
@@ -922,6 +954,9 @@ QtObject {
     }
 
     function targetGoodCount(side: var) : var {
+        if (!resolver.hasSyntheticTarget(side)) {
+            return 0;
+        }
         let totalNotes = resolver.targetTotalNotes(side);
         let points = resolver.targetClampedPoints(side);
         return points < totalNotes ? totalNotes - points : 0;
@@ -987,9 +1022,10 @@ QtObject {
         let maxPoints = root.resultTargetMaxPoints(side);
         let totalNotes = Math.floor(maxPoints / 2);
         let current = root.resultData(side);
+        let hasTarget = resolver.hasSyntheticTarget(side);
         switch (num) {
         case 0:
-            return resolver.resultScorePrintFromTargetPoints(points, totalNotes, current);
+            return hasTarget ? resolver.resultScorePrintFromTargetPoints(points, totalNotes, current) : 0;
         case 1:
             return points;
         case 2:
@@ -997,17 +1033,17 @@ QtObject {
         case 3:
             return Math.floor(points * 10000 / maxPoints) % 100;
         case 4:
-            return totalNotes;
+            return hasTarget ? totalNotes : 0;
         case 5:
             return resolver.targetMaxCombo(side);
         case 6:
-            return totalNotes;
+            return hasTarget ? totalNotes : 0;
         case 7:
             return 0;
         case 8:
-            return points - root.resultExScore(current);
+            return hasTarget ? points - root.resultExScore(current) : 0;
         case 9:
-            return resolver.resultRankDeltaFromPoints(points, totalNotes);
+            return hasTarget ? resolver.resultRankDeltaFromPoints(points, totalNotes) : 0;
         case 10:
             return resolver.targetPerfectCount(side);
         case 11:

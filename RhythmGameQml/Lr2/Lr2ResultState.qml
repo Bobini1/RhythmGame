@@ -293,6 +293,20 @@ QtObject {
         return source && bucket < source.length ? (source[bucket] || 0) : 0;
     }
 
+    function timingBucketCountsInTotal(bucket: var) : var {
+        return bucket >= 0 && bucket <= 3;
+    }
+
+    function totalJudgeTimingCount(counts: var, early: var) : var {
+        let total = 0;
+        for (let i = 0; i <= 3; ++i) {
+            if (root.timingBucketCountsInTotal(i)) {
+                total += root.judgeTimingCount(counts, i, early);
+            }
+        }
+        return total;
+    }
+
     function judgeTimingNumberFromCounts(num: var, counts: var) : var {
         if (num >= 410 && num <= 419) {
             let bucket = Math.floor((num - 410) / 2);
@@ -304,20 +318,10 @@ QtObject {
             return root.judgeTimingCount(counts, 5, true);
         case 422:
             return root.judgeTimingCount(counts, 5, false);
-        case 423: {
-            let total = 0;
-            for (let i = 1; i <= 5; ++i) {
-                total += root.judgeTimingCount(counts, i, true);
-            }
-            return total;
-        }
-        case 424: {
-            let total = 0;
-            for (let i = 1; i <= 5; ++i) {
-                total += root.judgeTimingCount(counts, i, false);
-            }
-            return total;
-        }
+        case 423:
+            return root.totalJudgeTimingCount(counts, true);
+        case 424:
+            return root.totalJudgeTimingCount(counts, false);
         default:
             return 0;
         }

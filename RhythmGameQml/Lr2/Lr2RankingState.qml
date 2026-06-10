@@ -72,6 +72,7 @@ QtObject {
     property string transitionAction: ""
     property int transitionStartSkinTime: 0
     property var cachedSnapshot: null
+    property var cachedReplayScoresByGuid: ({})
     property string cachedSnapshotTargetMd5: ""
     property string cachedSnapshotLoadedMd5: ""
     property var cachedSnapshotEntrySource: null
@@ -101,6 +102,9 @@ QtObject {
             root.completedMd5 = "";
             root.handleModelChanged(false, false);
         }
+        onWebApiUrlChanged: {
+            root.cachedReplayScoresByGuid = {};
+        }
         onLoadingChanged: {
             if (loading) {
                 root.completedMd5 = "";
@@ -111,6 +115,7 @@ QtObject {
         }
         onProviderChanged: {
             root.completedMd5 = "";
+            root.cachedReplayScoresByGuid = {};
             root.handleModelChanged(false, false);
         }
         onRankingEntriesChanged: root.handleModelChanged(true, false)
@@ -195,6 +200,135 @@ QtObject {
     function providerEnum() : var {
         let vars = root.host.mainGeneralVarsRef;
         return vars ? vars.rankingProvider : OnlineRankingModel.RhythmGame;
+    }
+
+    function isRhythmGameRankingEntry(item: var) : var {
+        return root.selectContext.isRankingEntry(item)
+            && Number(item.rankingProvider || 0) === OnlineRankingModel.RhythmGame;
+    }
+
+    function firstReplayGuid(candidates: var) : var {
+        for (let value of candidates || []) {
+            let guid = value ? String(value).trim() : "";
+            if (guid.length > 0) {
+                return guid;
+            }
+        }
+        return "";
+    }
+
+    function replayGuidForType(entry: var, replayType: var) : var {
+        if (!root.isRhythmGameRankingEntry(entry)) {
+            return "";
+        }
+        switch (Math.floor(Number(replayType || 0))) {
+        case 0:
+            return root.firstReplayGuid([
+                entry.latestDateGuid,
+                entry.bestPointsGuid,
+                entry.bestClearTypeGuid,
+                entry.bestComboGuid,
+                entry.bestComboBreaksGuid
+            ]);
+        case 1:
+            return root.firstReplayGuid([
+                entry.bestPointsGuid,
+                entry.latestDateGuid,
+                entry.bestClearTypeGuid,
+                entry.bestComboGuid,
+                entry.bestComboBreaksGuid
+            ]);
+        case 2:
+            return root.firstReplayGuid([
+                entry.bestClearTypeGuid,
+                entry.bestPointsGuid,
+                entry.latestDateGuid,
+                entry.bestComboGuid,
+                entry.bestComboBreaksGuid
+            ]);
+        case 3:
+            return root.firstReplayGuid([
+                entry.bestComboGuid,
+                entry.bestPointsGuid,
+                entry.latestDateGuid,
+                entry.bestClearTypeGuid,
+                entry.bestComboBreaksGuid
+            ]);
+        default:
+            return "";
+        }
+    }
+
+    function launchReplayScore(entry: var, score: var, mouseButton: var) : void {
+        let button = mouseButton === undefined ? Qt.LeftButton : mouseButton;
+        if (button === Qt.RightButton) {
+            root.selectContext.openReplayResult(entry, score);
+            return;
+        }
+        root.host.selectGoForward(entry, false, button !== Qt.MiddleButton, score);
+    }
+
+    function loadReplayScore(guid: var, onReady: var) : var {
+        let key = guid ? String(guid).trim() : "";
+        if (key.length <= 0) {
+            return false;
+        }
+        let webApiUrl = root.rankingModel.webApiUrl
+            ? String(root.rankingModel.webApiUrl).trim()
+            : "";
+        if (webApiUrl.length <= 0) {
+            return false;
+        }
+        if (root.cachedReplayScoresByGuid[key]) {
+            onReady(root.cachedReplayScoresByGuid[key]);
+            return true;
+        }
+
+        if (!Rg.onlineScores) {
+            return false;
+        }
+        let pending = Rg.onlineScores.getScoreByGuid(webApiUrl, key);
+        if (!pending || !pending.valid) {
+            return false;
+        }
+        if (pending.resultAvailable && !pending.success) {
+            return false;
+        }
+        pending.then(function(score) {
+            if (!score) {
+                return;
+            }
+            let nextCache = Object.assign({}, root.cachedReplayScoresByGuid);
+            nextCache[key] = score;
+            root.cachedReplayScoresByGuid = nextCache;
+            onReady(score);
+        });
+        return true;
+    }
+
+    function launchEntryReplay(entry: var, replayType: var, mouseButton: var) : var {
+        let guid = root.replayGuidForType(entry, replayType);
+        if (guid.length <= 0) {
+            return false;
+        }
+        let button = mouseButton === undefined ? Qt.LeftButton : mouseButton;
+        return root.loadReplayScore(guid, function(score) {
+            root.launchReplayScore(entry, score, button);
+        });
+    }
+
+    function launchReplayType(replayType: var, mouseButton: var) : var {
+        return root.launchEntryReplay(
+            root.selectContext.activationItem(),
+            replayType,
+            mouseButton);
+    }
+
+    function launchSelectedScoreAction(mouseButton: var) : var {
+        return root.launchEntryReplay(
+            root.selectContext.activationItem(),
+            1,
+            mouseButton);
     }
 
     function refreshCurrentChartStats() : void {
@@ -565,7 +699,8 @@ QtObject {
             currentSnapshot.clearCounts,
             currentSnapshot.playerCount,
             currentSnapshot.totalPlayCount,
-            currentSnapshot.playerRank);
+            currentSnapshot.playerRank,
+            root.providerEnum());
         if (opened) {
             root.host.playOneShot(root.optionOpenSound);
         }

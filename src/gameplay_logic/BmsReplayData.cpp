@@ -139,7 +139,7 @@ auto
 totalTimingCount(const QList<int>& counts) -> int
 {
     auto total = 0;
-    for (auto bucket = 1; bucket < counts.size(); ++bucket) {
+    for (auto bucket = 0; bucket <= 3 && bucket < counts.size(); ++bucket) {
         total += counts[bucket];
     }
     return total;

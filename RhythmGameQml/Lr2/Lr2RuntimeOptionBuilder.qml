@@ -382,7 +382,7 @@ QtObject {
                     184,
                     suppressJudgeOption ? 0 : selectContext.judgeOption(null, fallbackItem));
             }
-            root.appendReplayOptions(options, null);
+            root.appendReplayOptions(options, fallbackItem);
             if (usesDifficultyOption) {
                 root.addOption(options, 150);
             }
@@ -426,7 +426,7 @@ QtObject {
         if (usesHighLevelOption) {
             root.addOption(options, selectContext.highLevelOption(chartData));
         }
-        root.appendReplayOptions(options, chartData);
+        root.appendReplayOptions(options, chartData || fallbackItem);
 
         if (usesDifficultyOption) {
             let difficulty = selectContext.entryDifficulty(chartData);
@@ -452,20 +452,20 @@ QtObject {
         return 1205 + Math.max(0, Math.min(3, slot));
     }
 
-    function replaySlotAvailable(chartData: var, slot: var) : var {
-        if (!chartData || host.effectiveScreenKey !== "select") {
-            return !!chartData && slot === 0 && selectContext.hasReplay(chartData);
+    function replaySlotAvailable(item: var, slot: var) : var {
+        if (!item || host.effectiveScreenKey !== "select") {
+            return !!item && slot === 0 && selectContext.hasReplay(item);
         }
-        return !!selectContext.replayScoreForType(chartData, slot);
+        return !!selectContext.replayScoreForType(item, slot);
     }
 
-    function appendReplayOptions(options: var, chartData: var) : var {
+    function appendReplayOptions(options: var, item: var) : var {
         if (!root.selectReplayOptionsUsed()) {
             return;
         }
         let selectedReplayAvailable = false;
         for (let slot = 0; slot < 4; ++slot) {
-            let available = root.replaySlotAvailable(chartData, slot);
+            let available = root.replaySlotAvailable(item, slot);
             root.addOption(options, root.replayOptionForSlot(slot, available));
             if (slot === host.lr2ReplayType && available) {
                 selectedReplayAvailable = true;
@@ -600,14 +600,16 @@ QtObject {
         if (!root.selectEntryStatusOptionsUsed()) {
             return;
         }
+        let courseItem = selectContext.isCourse(item);
         let folderLike = selectContext.isFolderLikeForLamp(item);
         if (!selectContext.isChart(item)
                 && !selectContext.isEntry(item)
                 && !selectContext.isRankingEntry(item)
+                && !courseItem
                 && !folderLike) {
             return;
         }
-        if (!folderLike && (chartKeymode !== undefined
+        if (!folderLike && !courseItem && (chartKeymode !== undefined
                 ? chartKeymode
                 : root.chartKeymodeForStatus(item, selectedChart)) <= 0) {
             return;

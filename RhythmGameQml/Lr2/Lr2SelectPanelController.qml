@@ -1085,6 +1085,9 @@ QtObject {
     }
 
     function launchReplayType(replayType: var, mouseButton: var) : var {
+        if (root.launchLr2RankingReplayType(replayType, mouseButton)) {
+            return false;
+        }
         let targetItem = selectContext.activationItem();
         let replayScore = selectContext.replayScoreForType(targetItem, replayType);
         if (!replayScore) {

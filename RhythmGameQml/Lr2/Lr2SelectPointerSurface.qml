@@ -165,7 +165,9 @@ Item {
             if (pressedTarget.kind === "bar" || pressedTarget.kind === "blank") {
                 pointerSurface.screenRoot.clearSelectSearchFocus();
                 mouse.accepted = pressedTarget.kind === "bar"
-                    && (mouse.button === Qt.LeftButton || mouse.button === Qt.RightButton);
+                    && (mouse.button === Qt.LeftButton
+                        || mouse.button === Qt.MiddleButton
+                        || mouse.button === Qt.RightButton);
                 return;
             }
 
@@ -206,7 +208,9 @@ Item {
             }
 
             if (target.kind === "bar") {
-                if (mouse.button !== Qt.LeftButton && mouse.button !== Qt.RightButton) {
+                if (mouse.button !== Qt.LeftButton
+                        && mouse.button !== Qt.MiddleButton
+                        && mouse.button !== Qt.RightButton) {
                     mouse.accepted = false;
                     return;
                 }

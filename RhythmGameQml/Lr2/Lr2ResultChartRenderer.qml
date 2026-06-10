@@ -296,15 +296,12 @@ Item {
             || gaugeName.indexOf("PERFECT") !== -1
             || gaugeName.indexOf("MAX") !== -1;
 
-        let count = cacheValueCount(fieldW, step);
-        let result = new Array(count);
         if (!history || history.length === 0) {
-            for (let i = 0; i < count; ++i) {
-                result[i] = 0;
-            }
-            return { values: result, gaugeHard: gaugeHard };
+            return { values: [], gaugeHard: gaugeHard };
         }
 
+        let count = cacheValueCount(fieldW, step);
+        let result = new Array(count);
         let currentResult = root.resultDataValue;
         let length = currentResult ? Math.max(1, currentResult.length || 1) : 1;
         let value = history[0].gauge !== undefined ? history[0].gauge : 0;
