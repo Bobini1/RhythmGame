@@ -345,6 +345,7 @@ struct Lr2SrcNoteChart
 {
     Q_GADGET
     Q_PROPERTY(int chartType MEMBER chartType)
+    Q_PROPERTY(int playerSide MEMBER playerSide)
     Q_PROPERTY(int fieldW MEMBER fieldW)
     Q_PROPERTY(int fieldH MEMBER fieldH)
     Q_PROPERTY(int start MEMBER start)
@@ -355,6 +356,7 @@ struct Lr2SrcNoteChart
     Q_PROPERTY(int noGap MEMBER noGap)
   public:
     int chartType = 0;
+    int playerSide = 1;
     int fieldW = 1;
     int fieldH = 1;
     int start = 0;
@@ -391,6 +393,40 @@ struct Lr2SrcBpmChart
     QString transitionLineColor = QStringLiteral("7f7f7f");
 };
 
+struct Lr2SrcTimingChart
+{
+    Q_GADGET
+    Q_PROPERTY(int playerSide MEMBER playerSide)
+    Q_PROPERTY(int fieldW MEMBER fieldW)
+    Q_PROPERTY(int fieldH MEMBER fieldH)
+    Q_PROPERTY(int lineWidth MEMBER lineWidth)
+    Q_PROPERTY(QString graphColor MEMBER graphColor)
+    Q_PROPERTY(QString averageColor MEMBER averageColor)
+    Q_PROPERTY(QString devColor MEMBER devColor)
+    Q_PROPERTY(QString pgColor MEMBER pgColor)
+    Q_PROPERTY(QString grColor MEMBER grColor)
+    Q_PROPERTY(QString gdColor MEMBER gdColor)
+    Q_PROPERTY(QString bdColor MEMBER bdColor)
+    Q_PROPERTY(QString prColor MEMBER prColor)
+    Q_PROPERTY(int drawAverage MEMBER drawAverage)
+    Q_PROPERTY(int drawDev MEMBER drawDev)
+  public:
+    int playerSide = 1;
+    int fieldW = 1;
+    int fieldH = 1;
+    int lineWidth = 1;
+    QString graphColor = QStringLiteral("ffffff");
+    QString averageColor = QStringLiteral("ff0000");
+    QString devColor = QStringLiteral("0000ff");
+    QString pgColor = QStringLiteral("0088ff");
+    QString grColor = QStringLiteral("00ff88");
+    QString gdColor = QStringLiteral("ffff00");
+    QString bdColor = QStringLiteral("ff8800");
+    QString prColor = QStringLiteral("ff0000");
+    int drawAverage = 1;
+    int drawDev = 1;
+};
+
 struct Lr2Element
 {
     Q_GADGET
@@ -401,7 +437,7 @@ struct Lr2Element
     // 0=image, 1=number, 2=text, 3=bar image, 4=bar text,
     // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge,
     // 10=result gauge/score chart, 11=note chart, 12=BPM chart,
-    // 13=select bar folder distribution graph
+    // 13=select bar folder distribution graph, 14=timing distribution chart
     int type = -1;
     QVariant src;
     QVariantList dsts;

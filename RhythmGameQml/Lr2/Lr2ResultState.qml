@@ -127,10 +127,6 @@ QtObject {
             return 2;
         case Judgement.Bad:
             return 3;
-        case Judgement.Poor:
-            return 4;
-        case Judgement.EmptyPoor:
-            return 5;
         default:
             return -1;
         }
@@ -404,8 +400,12 @@ QtObject {
         let sum = 0;
         let sumSq = 0;
         for (let hit of events || []) {
+            if (!hit || !hit.noteRemoved) {
+                continue;
+            }
             let judgement = root.host.gameplayJudgementFromHit(hit);
-            if (judgement < Judgement.Bad || judgement > Judgement.Perfect) {
+            if (judgement !== Judgement.Poor
+                    && (judgement < Judgement.Bad || judgement > Judgement.Perfect)) {
                 continue;
             }
             let ms = root.hitDeviationMillis(hit);

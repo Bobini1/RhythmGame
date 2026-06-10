@@ -3,6 +3,7 @@
 #include "Lr2SkinElementActiveOptionsState.h"
 #include "Lr2SkinElementTimerState.h"
 #include "Lr2SkinTimerState.h"
+#include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
 
 #include <QVariantMap>
 
@@ -24,6 +25,19 @@ bool sourceHasBarDistributionGraphAnimation(const rt::Source& source) {
     return source.valid
         && source.cycle > 0
         && std::max(1, frameCount / segmentCount) > 1;
+}
+
+bool chartSourceHasRevealDelay(int type, const QVariant& sourceValue) {
+    using gameplay_logic::lr2_skin::Lr2SrcBpmChart;
+    using gameplay_logic::lr2_skin::Lr2SrcNoteChart;
+
+    if (type == 11 && sourceValue.canConvert<Lr2SrcNoteChart>()) {
+        return sourceValue.value<Lr2SrcNoteChart>().delay > 0;
+    }
+    if (type == 12 && sourceValue.canConvert<Lr2SrcBpmChart>()) {
+        return sourceValue.value<Lr2SrcBpmChart>().delay > 0;
+    }
+    return false;
 }
 
 QVector<int> activeOptionIdsForDst(const rt::Dst& dst) {
@@ -650,7 +664,8 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.usesDstSkinTime = !descriptor.dstAnalysis.canUseStaticState;
     descriptor.usesSkinTime = descriptor.usesDstSkinTime
         || sourceCycles
-        || descriptor.source.resultChartType > 0;
+        || descriptor.source.resultChartType > 0
+        || chartSourceHasRevealDelay(type, sourceValue);
     descriptor.usesElementSkinTime = descriptor.usesSkinTime
         && type != 0
         && type != 3

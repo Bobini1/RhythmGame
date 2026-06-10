@@ -1711,11 +1711,29 @@ QtObject {
         };
     }
 
+    function numberSourceFrameGroupSize(src: var) : var {
+        if (!src) {
+            return 0;
+        }
+        let divX = Math.max(1, src.div_x || 1);
+        let divY = Math.max(1, src.div_y || 1);
+        let frames = divX * divY;
+        if (frames % 24 === 0) return 24;
+        if (frames % 11 === 0) return 11;
+        if (frames % 10 === 0) return 10;
+        return 0;
+    }
+
     function numberForceHidden(src: var) : var {
         if (!src) {
             return false;
         }
         if (resolver.optionOnlyRankId(src.num || 0)) {
+            return true;
+        }
+        if (root.effectiveScreenKey === "select"
+                && resolver.numberSourceFrameGroupSize(src) !== 24
+                && resolver.resolveNumber(src.num || 0) < 0) {
             return true;
         }
         if (!src.nowCombo || !root.gameplayScreenActive) {

@@ -129,6 +129,7 @@ Loader {
     readonly property int elementTypeNoteChart: 11
     readonly property int elementTypeBpmChart: 12
     readonly property int elementTypeBarDistributionGraph: 13
+    readonly property int elementTypeTimingChart: 14
     readonly property bool selectSearchInputElement: elemLoader.elementData.type === elemLoader.elementTypeText
         && elemLoader.selectSearchState
         && elemLoader.selectSearchState.isText(elemLoader.elementData.src)
@@ -138,6 +139,9 @@ Loader {
     readonly property int elementSkinTime: needsManualElementSkinTime
         ? elementSkinTimeForClock(elementSkinClockMode, usesLiveSelectClock, elemLoader.screenRoot.renderSkinTime, false)
         : 0
+    readonly property var chartGraphData: elemLoader.screenRoot.resultScreenActive
+        ? elemLoader.screenRoot.resultChartData()
+        : elemLoader.screenRoot.visualSelectChart
 
     function selectHeldButtonSkinClockValue() : var {
         if (!usesSelectHeldButtonTimer || !elemLoader.selectPanelController) {
@@ -208,6 +212,8 @@ Loader {
             return bpmChartComponent;
         case elemLoader.elementTypeBarDistributionGraph:
             return barDistributionGraphComponent;
+        case elemLoader.elementTypeTimingChart:
+            return timingChartComponent;
         default:
             return undefined;
         }
@@ -441,7 +447,11 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.screenRoot.visualSelectChart
+            chart: elemLoader.chartGraphData
+            score: elemLoader.screenRoot.resultScreenActive
+                ? elemLoader.screenRoot.resultScore((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
+                : null
+            screenRoot: elemLoader.screenRoot
         }
     }
 
@@ -457,7 +467,27 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.screenRoot.visualSelectChart
+            chart: elemLoader.chartGraphData
+        }
+    }
+
+    Component {
+        id: timingChartComponent
+        Lr2TimingChartRenderer {
+            anchors.fill: parent
+            dsts: elemLoader.elementData.dsts
+            srcData: elemLoader.elementData.src
+            skinTime: elemLoader.useDirectElementSkinClock ? 0 : elemLoader.elementSkinTime
+            skinClock: elemLoader.useDirectElementSkinClock ? elemLoader.screenRoot.skinClockRef : null
+            skinClockMode: elemLoader.elementSkinClockMode
+            activeOptionsState: elemLoader.elementActiveOptionsState
+            timerFire: elemLoader.dstTimerFire
+            scaleOverride: skinScale
+            chart: elemLoader.chartGraphData
+            score: elemLoader.screenRoot.resultScreenActive
+                ? elemLoader.screenRoot.resultScore((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
+                : null
+            screenRoot: elemLoader.screenRoot
         }
     }
 

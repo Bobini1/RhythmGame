@@ -104,9 +104,6 @@ rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry
     entry.latestDate = obj.value("latestDate").toInteger();
     entry.latestDateGuid = obj.value("latestDateGuid").toString();
     entry.scoreCount = obj.value("scoreCount").toInt();
-    if (entry.scoreCount <= 0 && !entry.bestPointsGuid.isEmpty()) {
-        entry.scoreCount = 1;
-    }
     return entry;
 }
 
@@ -323,8 +320,6 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             const auto ms = pb.value("timeAchieved").toInteger();
             r.latestDate = ms / 1000;
         }
-
-        r.scoreCount = 1;
 
         r.owner =
           "https://boku.tachi.ac/api/v1/users/" + QString::number(r.userId);
@@ -630,7 +625,6 @@ lr2irEntryFromJson(const QJsonObject& obj) -> RankingEntry
                      obj.value(QStringLiteral("great")).toInt());
     entry.owner =
       QStringLiteral("https://lr2ir.com/players/%1").arg(entry.userId);
-    entry.scoreCount = 1;
     return entry;
 }
 

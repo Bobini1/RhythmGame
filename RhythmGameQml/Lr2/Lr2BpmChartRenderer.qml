@@ -39,14 +39,13 @@ Item {
     readonly property int fieldH: Math.max(1, srcData ? (srcData.fieldH || 1) : 1)
     readonly property real stateW: currentState ? (currentState.w || 0) : 0
     readonly property real stateH: currentState ? (currentState.h || 0) : 0
-    readonly property real drawW: Math.abs(stateW) > 0 ? Math.abs(stateW) : fieldW
-    readonly property real drawH: Math.abs(stateH) > 0 ? Math.abs(stateH) : fieldH
+    readonly property real drawW: chartDstExtent(fieldW, stateW)
+    readonly property real drawH: chartDstExtent(fieldH, stateH)
     readonly property real drawX: currentState
-        ? (currentState.x + (stateW < 0 ? stateW : 0)) * scaleOverride
+        ? (currentState.x + (stateW < 0 ? -drawW : 0)) * scaleOverride
         : 0
     readonly property real drawY: currentState
-        ? (currentState.y + (Math.abs(stateH) > 0 && stateH < 0 ? stateH : 0)
-            - (Math.abs(stateH) > 0 ? 0 : fieldH)) * scaleOverride
+        ? (currentState.y - drawH) * scaleOverride
         : 0
     readonly property real reveal: {
         if (!srcData || (srcData.delay || 0) <= 0) {
@@ -62,6 +61,14 @@ Item {
                 || value.mainBpm !== undefined)
                     ? value
                     : null;
+    }
+
+    function chartDstExtent(fieldSize: var, stateSize: var) : var {
+        let size = Math.abs(Number(stateSize || 0));
+        if (size <= 0) {
+            return fieldSize;
+        }
+        return size <= 4 ? fieldSize * size : size;
     }
 
     readonly property var chartData: {

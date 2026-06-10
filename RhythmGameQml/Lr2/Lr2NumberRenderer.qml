@@ -175,7 +175,6 @@ Item {
         return rects;
     }
     readonly property bool hasSignedFrames: frameGroupSize === 24
-    readonly property bool negativeUnsupported: root.value < 0 && frameGroupSize !== 24
     readonly property bool isNegativeValue: root.value < 0
     readonly property int zeroPaddingMode: {
         if (!root.srcData || root.srcData.zeropadding === undefined || root.srcData.zeropadding < 0) {
@@ -276,7 +275,6 @@ Item {
         width: root.textW
         height: root.digitH
         visible: root.hasCurrentState
-            && !root.negativeUnsupported
             && root.frameGroupSize > 0
             && root.stateA > 0
             && root.digitW > 0

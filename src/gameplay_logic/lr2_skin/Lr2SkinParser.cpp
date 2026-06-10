@@ -1264,6 +1264,12 @@ parseNoteChartSource(const QStringList& tokens) -> Lr2SrcNoteChart
 }
 
 auto
+commandPlayerSide(const QString& command) -> int
+{
+    return command.endsWith(QStringLiteral("_2P")) ? 2 : 1;
+}
+
+auto
 parseChartColor(const QStringList& tokens,
                 const int index,
                 const QString& fallback) -> QString
@@ -1296,6 +1302,31 @@ parseBpmChartSource(const QStringList& tokens) -> Lr2SrcBpmChart
       parseChartColor(tokens, 9, QStringLiteral("ff00ff"));
     src.transitionLineColor =
       parseChartColor(tokens, 10, QStringLiteral("7f7f7f"));
+    return src;
+}
+
+auto
+parseTimingChartSource(const QStringList& tokens) -> Lr2SrcTimingChart
+{
+    Lr2SrcTimingChart src;
+    if (tokens.size() > 4 && !tokens[4].isEmpty())
+        src.fieldW = qMax(1, tokens[4].toInt());
+    if (tokens.size() > 5 && !tokens[5].isEmpty())
+        src.fieldH = qMax(1, tokens[5].toInt());
+    if (tokens.size() > 6 && !tokens[6].isEmpty())
+        src.lineWidth = qMax(1, tokens[6].toInt());
+    src.graphColor = parseChartColor(tokens, 7, QStringLiteral("ffffff"));
+    src.averageColor = parseChartColor(tokens, 8, QStringLiteral("ff0000"));
+    src.devColor = parseChartColor(tokens, 9, QStringLiteral("0000ff"));
+    src.pgColor = parseChartColor(tokens, 10, QStringLiteral("0088ff"));
+    src.grColor = parseChartColor(tokens, 11, QStringLiteral("00ff88"));
+    src.gdColor = parseChartColor(tokens, 12, QStringLiteral("ffff00"));
+    src.bdColor = parseChartColor(tokens, 13, QStringLiteral("ff8800"));
+    src.prColor = parseChartColor(tokens, 14, QStringLiteral("ff0000"));
+    if (tokens.size() > 15 && !tokens[15].isEmpty())
+        src.drawAverage = tokens[15].toInt();
+    if (tokens.size() > 16 && !tokens[16].isEmpty())
+        src.drawDev = tokens[16].toInt();
     return src;
 }
 
@@ -1926,8 +1957,10 @@ processCommand(const QStringList& tokens,
         state.currentElement = Lr2Element{};
         state.currentElement.type = 11;
         state.hasCurrentElement = true;
+        auto src = parseNoteChartSource(tokens);
+        src.playerSide = commandPlayerSide(command);
         state.currentElement.src =
-          QVariant::fromValue(parseNoteChartSource(tokens));
+          QVariant::fromValue(src);
     } else if (command == "#DST_NOTECHART" ||
                command == "#DST_NOTECHART_1P" ||
                command == "#DST_NOTECHART_2P") {
@@ -1947,6 +1980,21 @@ processCommand(const QStringList& tokens,
                command == "#DST_BPMCHART_1P" ||
                command == "#DST_BPMCHART_2P") {
         if (state.hasCurrentElement && state.currentElement.type == 12) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_TIMINGCHART_1P" ||
+               command == "#SRC_TIMINGCHART_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 14;
+        state.hasCurrentElement = true;
+        auto src = parseTimingChartSource(tokens);
+        src.playerSide = commandPlayerSide(command);
+        state.currentElement.src =
+          QVariant::fromValue(src);
+    } else if (command == "#DST_TIMINGCHART_1P" ||
+               command == "#DST_TIMINGCHART_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 14) {
             parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_TEXT") {

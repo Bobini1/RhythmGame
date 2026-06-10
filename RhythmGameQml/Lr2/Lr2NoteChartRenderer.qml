@@ -15,6 +15,8 @@ Item {
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
     property var chart
+    property var score: null
+    property var screenRoot: null
     property real scaleOverride: 1.0
     property Lr2ChartDataSnapshot chartSnapshot: Lr2ChartDataSnapshot {
         chart: root.chart && root.chart.chartData !== undefined ? root.chart.chartData : root.chart
@@ -42,14 +44,13 @@ Item {
     readonly property int fieldH: Math.max(1, srcData ? (srcData.fieldH || 1) : 1)
     readonly property real stateW: currentState ? (currentState.w || 0) : 0
     readonly property real stateH: currentState ? (currentState.h || 0) : 0
-    readonly property real drawW: Math.abs(stateW) > 0 ? Math.abs(stateW) : fieldW
-    readonly property real drawH: Math.abs(stateH) > 0 ? Math.abs(stateH) : fieldH
+    readonly property real drawW: chartDstExtent(fieldW, stateW)
+    readonly property real drawH: chartDstExtent(fieldH, stateH)
     readonly property real drawX: currentState
-        ? (currentState.x + (stateW < 0 ? stateW : 0)) * scaleOverride
+        ? (currentState.x + (stateW < 0 ? -drawW : 0)) * scaleOverride
         : 0
     readonly property real drawY: currentState
-        ? (currentState.y + (Math.abs(stateH) > 0 && stateH < 0 ? stateH : 0)
-            - (Math.abs(stateH) > 0 ? 0 : fieldH)) * scaleOverride
+        ? (currentState.y - drawH) * scaleOverride
         : 0
     readonly property real reveal: {
         if (!srcData || (srcData.delay || 0) <= 0) {
@@ -57,8 +58,11 @@ Item {
         }
         return Math.max(0, Math.min(1, effectiveSkinTime / Math.max(1, srcData.delay || 1)));
     }
-    readonly property bool hasChartData: chartSnapshot.hasHistogram
-    readonly property var densityData: buildNormalData(hasChartData ? chartSnapshot.histogramData : [])
+    readonly property int chartType: srcData ? Math.max(0, Math.min(2, srcData.chartType || 0)) : 0
+    readonly property var chartData: root.chart && root.chart.chartData !== undefined ? root.chart.chartData : root.chart
+    readonly property bool hasChartData: chartType === 0 ? chartSnapshot.hasHistogram : resultEvents.length > 0
+    readonly property var resultEvents: score && score.replayData ? (score.replayData.hitEvents || []) : []
+    readonly property var densityData: buildGraphData()
     readonly property int bucketCount: Math.max(1, densityData.length)
     readonly property int maxDensity: graphMax(densityData)
     readonly property int sourceW: bucketCount * 5
@@ -69,7 +73,28 @@ Item {
         return series && index < series.length ? (Number(series[index]) || 0) : 0;
     }
 
-    function noteColors() : var {
+    function chartDstExtent(fieldSize: var, stateSize: var) : var {
+        let size = Math.abs(Number(stateSize || 0));
+        if (size <= 0) {
+            return fieldSize;
+        }
+        return size <= 4 ? fieldSize * size : size;
+    }
+
+    function graphColors() : var {
+        if (root.chartType === 1) {
+            return [
+                "#555555", "#0088ff", "#00ff88", "#ffff00",
+                "#ff8800", "#ff0000"
+            ];
+        }
+        if (root.chartType === 2) {
+            return [
+                "#555555", "#44ff44", "#0088ff", "#0066cc",
+                "#004488", "#002244", "#ff8800", "#cc6600",
+                "#884400", "#442200"
+            ];
+        }
         return [
             "#44ff44", "#228822", "#ff4444", "#4444ff",
             "#222288", "#cccccc", "#880000"
@@ -125,8 +150,134 @@ Item {
         return data;
     }
 
+    function chartLengthNanos() : var {
+        let result = root.score && root.score.result ? root.score.result : null;
+        let length = Math.max(0,
+            Number(root.chartData && root.chartData.length !== undefined ? root.chartData.length : 0),
+            Number(result && result.length !== undefined ? result.length : 0));
+        let events = root.resultEvents || [];
+        for (let i = 0; i < events.length; ++i) {
+            let offset = Number(events[i] && events[i].offsetFromStart !== undefined
+                ? events[i].offsetFromStart
+                : 0);
+            if (offset > length) {
+                length = offset;
+            }
+        }
+        return length;
+    }
+
+    function emptyReplayBuckets(bucketSize: var) : var {
+        let seconds = Math.max(1, Math.floor(root.chartLengthNanos() / 1000000000) + 1);
+        let result = new Array(seconds);
+        for (let i = 0; i < seconds; ++i) {
+            result[i] = new Array(bucketSize);
+            for (let j = 0; j < bucketSize; ++j) {
+                result[i][j] = 0;
+            }
+        }
+        return result;
+    }
+
+    function eventSecond(hit: var, length: var) : var {
+        let offset = Number(hit && hit.offsetFromStart !== undefined ? hit.offsetFromStart : 0);
+        return Math.max(0, Math.min(length - 1, Math.floor(offset / 1000000000)));
+    }
+
+    function judgementForHit(hit: var) : var {
+        return root.screenRoot && root.screenRoot.gameplayJudgementFromHit
+            ? root.screenRoot.gameplayJudgementFromHit(hit)
+            : (hit && hit.points && hit.points.judgement !== undefined ? hit.points.judgement : -1);
+    }
+
+    function hitDeviationNanos(hit: var) : var {
+        if (hit && hit.points && hit.points.deviation !== undefined) {
+            return Number(hit.points.deviation || 0);
+        }
+        if (hit && hit.hitOffset !== undefined) {
+            return Number(hit.hitOffset || 0);
+        }
+        return 0;
+    }
+
+    function judgeGraphBucket(judgement: var) : var {
+        switch (judgement) {
+        case Judgement.Perfect:
+            return 1;
+        case Judgement.Great:
+            return 2;
+        case Judgement.Good:
+            return 3;
+        case Judgement.Bad:
+            return 4;
+        case Judgement.Poor:
+        case Judgement.EmptyPoor:
+            return 5;
+        default:
+            return -1;
+        }
+    }
+
+    function fastSlowGraphBucket(hit: var, judgement: var) : var {
+        if (judgement === Judgement.Perfect) {
+            return 1;
+        }
+        let base = 0;
+        switch (judgement) {
+        case Judgement.Great:
+            base = 2;
+            break;
+        case Judgement.Good:
+            base = 3;
+            break;
+        case Judgement.Bad:
+            base = 4;
+            break;
+        case Judgement.Poor:
+        case Judgement.EmptyPoor:
+            base = 5;
+            break;
+        default:
+            return -1;
+        }
+        return root.hitDeviationNanos(hit) < 0 ? base : base + 4;
+    }
+
+    function buildReplayData(type: var) : var {
+        let data = root.emptyReplayBuckets(type === 1 ? 6 : 10);
+        let events = root.resultEvents || [];
+        for (let i = 0; i < events.length; ++i) {
+            let hit = events[i];
+            if (!hit || !hit.noteRemoved) {
+                continue;
+            }
+            let judgement = root.judgementForHit(hit);
+            if (judgement === Judgement.EmptyPoor
+                    || judgement < Judgement.Poor
+                    || judgement > Judgement.Perfect) {
+                continue;
+            }
+            let bucket = type === 1
+                ? root.judgeGraphBucket(judgement)
+                : root.fastSlowGraphBucket(hit, judgement);
+            if (bucket < 0) {
+                continue;
+            }
+            let second = root.eventSecond(hit, data.length);
+            data[second][bucket] = (data[second][bucket] || 0) + 1;
+        }
+        return data;
+    }
+
+    function buildGraphData() : var {
+        if (root.chartType === 0) {
+            return root.buildNormalData(root.hasChartData ? root.chartSnapshot.histogramData : []);
+        }
+        return root.buildReplayData(root.chartType);
+    }
+
     function drawBars(ctx: var, data: var, maxDensity: var, sourceH: var) : void {
-        let colors = noteColors();
+        let colors = graphColors();
         let noGap = srcData && (srcData.noGap || 0) === 1;
         let reverse = srcData && (srcData.orderReverse || 0) === 1;
         for (let i = 0; i < data.length; ++i) {
@@ -219,6 +370,7 @@ Item {
     }
 
     onChartChanged: requestChartPaint()
+    onScoreChanged: requestChartPaint()
     onHasChartDataChanged: requestChartPaint()
     onDensityDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()

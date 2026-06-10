@@ -112,6 +112,7 @@ set(LR2_SKIN_QML_FILES
         Lr2/Lr2ResultChartRenderer.qml
         Lr2/Lr2NoteChartRenderer.qml
         Lr2/Lr2BpmChartRenderer.qml
+        Lr2/Lr2TimingChartRenderer.qml
 )
 
 set(LR2_SKIN_SHADERS
