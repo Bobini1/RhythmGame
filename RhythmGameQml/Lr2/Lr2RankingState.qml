@@ -67,6 +67,7 @@ QtObject {
     property string completedMd5: ""
     property bool openWhenReady: false
     property bool internetOpenWhenReady: false
+    property bool closeWhenReady: false
     property int transitionPhase: 0 // 175 before list swap, 176 after list swap.
     property string transitionAction: ""
     property int transitionStartSkinTime: 0
@@ -245,6 +246,12 @@ QtObject {
             maxPoints: bestPointsScore.result.maxPoints || 0,
             bestCombo: bestPointsScore.result.maxCombo || 0,
             bestComboBreaks: stats ? stats.badPoor : 0,
+            bestPerfect: stats ? stats.pg : 0,
+            bestGreat: stats ? stats.gr : 0,
+            bestGood: stats ? stats.gd : 0,
+            bestBad: stats ? stats.bd : 0,
+            bestPoor: stats ? stats.poor : 0,
+            bestEmptyPoor: stats ? stats.miss : 0,
             scoreCount: scoreList.length
         };
     }
@@ -512,6 +519,7 @@ QtObject {
         if (root.transitionPhase !== 0) {
             return false;
         }
+        root.closeWhenReady = false;
         root.transitionAction = action;
         root.transitionStartSkinTime = root.host.selectLiveSkinTime;
         root.transitionPhase = 175;
@@ -523,6 +531,15 @@ QtObject {
         root.transitionPhase = 0;
         root.transitionAction = "";
         root.transitionTimer.stop();
+    }
+
+    function finishTransition() : void {
+        let shouldClose = root.closeWhenReady && root.selectContext.rankingMode;
+        root.clearTransition();
+        root.closeWhenReady = false;
+        if (shouldClose) {
+            root.startTransition("close");
+        }
     }
 
     function enterPostSwapTimer() : void {
@@ -572,13 +589,14 @@ QtObject {
                 ? root.performClose()
                 : root.performOpen();
             if (!ok) {
+                root.closeWhenReady = false;
                 root.clearTransition();
                 return;
             }
             root.enterPostSwapTimer();
             return;
         }
-        root.clearTransition();
+        root.finishTransition();
     }
 
     function requestFetch(chart: var) : var {
@@ -718,6 +736,14 @@ QtObject {
     function closeRanking() : var {
         root.openWhenReady = false;
         if (root.transitionPhase !== 0) {
+            if (root.transitionAction === "open") {
+                if (root.transitionPhase === 175 && !root.selectContext.rankingMode) {
+                    root.closeWhenReady = false;
+                    root.clearTransition();
+                    return true;
+                }
+                root.closeWhenReady = true;
+            }
             return true;
         }
         if (!root.selectContext.rankingMode) {

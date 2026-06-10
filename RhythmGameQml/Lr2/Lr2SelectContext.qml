@@ -3279,6 +3279,7 @@ Item {
                 root.difficultyStateUsed,
                 root.difficultyLampStateUsed);
         if (changed) {
+            root.selectedDetailValueRevision += 1;
             let chartData = nextChartData;
             let nextChartWrapper = chartData || null;
             if (visualChartWrapper !== nextChartWrapper) {
@@ -3421,8 +3422,56 @@ Item {
             maxPoints: Number(entry.maxPoints || 0),
             bestCombo: Number(entry.bestCombo || 0),
             bestComboBreaks: Number(entry.bestComboBreaks || 0),
+            pg: Number(entry.bestPerfect || 0),
+            gr: Number(entry.bestGreat || 0),
+            gd: Number(entry.bestGood || 0),
+            bd: Number(entry.bestBad || 0),
+            poor: Number(entry.bestPoor || 0),
+            miss: Number(entry.bestEmptyPoor || 0),
             scoreCount: Number(entry.scoreCount || 0),
             userId: entry.userId || 0
+        };
+    }
+
+    function rankingScoreStats(entry: var) : var {
+        if (!isRankingEntry(entry)) {
+            return null;
+        }
+        let pg = Math.max(0, Number(entry.pg || 0));
+        let gr = Math.max(0, Number(entry.gr || 0));
+        let gd = Math.max(0, Number(entry.gd || 0));
+        let bd = Math.max(0, Number(entry.bd || 0));
+        let poor = Math.max(0, Number(entry.poor || 0));
+        let miss = Math.max(0, Number(entry.miss || 0));
+        let pr = poor + miss;
+        let maxPoints = Math.max(0, Number(entry.maxPoints || 0));
+        let totalJudgements = pg + gr + gd + bd + pr;
+        if (totalJudgements <= 0 && maxPoints > 0) {
+            totalJudgements = Math.floor(maxPoints / 2);
+        }
+        let bestComboBreaks = Math.max(0, Number(entry.bestComboBreaks || 0));
+        let computedBadPoor = bd + pr;
+        let badPoor = computedBadPoor > 0 ? computedBadPoor : bestComboBreaks;
+        let comboBreak = bd + poor;
+        if (comboBreak <= 0 && computedBadPoor <= 0) {
+            comboBreak = bestComboBreaks;
+        }
+        let bestPoints = Math.max(0, Number(entry.bestPoints || 0));
+        return {
+            pg: pg,
+            gr: gr,
+            gd: gd,
+            bd: bd,
+            poor: poor,
+            miss: miss,
+            pr: pr,
+            totalJudgements: Math.max(1, totalJudgements),
+            comboBreak: comboBreak,
+            badPoor: badPoor,
+            maxCombo: Math.max(0, Number(entry.bestCombo || 0)),
+            score: bestPoints,
+            exscore: bestPoints,
+            maxPoints: maxPoints
         };
     }
 
@@ -3988,6 +4037,8 @@ Item {
         let folderCountsValue = null;
         let rankingStatsLoaded = false;
         let rankingStatsValue = false;
+        let rankingScoreStatsLoaded = false;
+        let rankingScoreStatsValue = null;
 
         function chart() {
             if (!chartLoaded) {
@@ -4003,6 +4054,14 @@ Item {
                 rankingEntryValue = isRankingEntry(state.item) ? state.item : null;
             }
             return rankingEntryValue;
+        }
+
+        function scoreStats() {
+            if (!rankingScoreStatsLoaded) {
+                rankingScoreStatsLoaded = true;
+                rankingScoreStatsValue = rankingScoreStats(rankingEntry());
+            }
+            return rankingScoreStatsValue || stats();
         }
 
         function stats() {
@@ -4123,23 +4182,23 @@ Item {
         case 79:
             return counts().fail;
         case 100:
-            return scorePrintValue(stats(), chart());
+            return scorePrintValue(scoreStats(), chart());
         case 101:
-            return stats() ? Math.round(stats().exscore) : 0;
+            return scoreStats() ? Math.round(scoreStats().exscore) : 0;
         case 102:
-            return stats() ? percentInteger(stats().exscore, stats().maxPoints) : 0;
+            return scoreStats() ? percentInteger(scoreStats().exscore, scoreStats().maxPoints) : 0;
         case 103:
-            return stats() ? percentAfterDot(stats().exscore, stats().maxPoints) : 0;
+            return scoreStats() ? percentAfterDot(scoreStats().exscore, scoreStats().maxPoints) : 0;
         case 104:
         case 105:
-            return stats() ? stats().maxCombo : 0;
+            return scoreStats() ? scoreStats().maxCombo : 0;
         case 106:
             return chartPlayableNoteCount(chart());
         case 107:
             return 0;
         case 108:
         case 128:
-            return stats() ? Math.round(stats().exscore) : 0;
+            return scoreStats() ? Math.round(scoreStats().exscore) : 0;
         case 109:
             return 0;
         case 80:
@@ -4163,19 +4222,23 @@ Item {
         case 89:
             return stats() ? percentInteger(stats().poor, stats().totalJudgements) : 0;
         case 110:
-            return stats() ? stats().pg : 0;
+            return rankingEntry() ? rankingEntry().pg : (stats() ? stats().pg : 0);
         case 111:
-            return stats() ? stats().gr : 0;
+            return rankingEntry() ? rankingEntry().gr : (stats() ? stats().gr : 0);
         case 112:
-            return stats() ? stats().gd : 0;
+            return rankingEntry() ? rankingEntry().gd : (stats() ? stats().gd : 0);
         case 113:
-            return stats() ? stats().bd : 0;
+            return rankingEntry() ? rankingEntry().bd : (stats() ? stats().bd : 0);
         case 114:
-            return stats() ? stats().poor : 0;
+            return rankingEntry() ? rankingEntry().poor : (stats() ? stats().poor : 0);
         case 115:
-            return stats() ? percentInteger(stats().exscore, stats().maxPoints) : 0;
+            return rankingEntry()
+                ? percentInteger(rankingEntry().bestPoints, rankingEntry().maxPoints)
+                : (stats() ? percentInteger(stats().exscore, stats().maxPoints) : 0);
         case 116:
-            return stats() ? percentAfterDot(stats().exscore, stats().maxPoints) : 0;
+            return rankingEntry()
+                ? percentAfterDot(rankingEntry().bestPoints, rankingEntry().maxPoints)
+                : (stats() ? percentAfterDot(stats().exscore, stats().maxPoints) : 0);
         case 410:
             return timingStats() ? timingCount(timingStats(), 0, true) : 0;
         case 411:
@@ -4206,13 +4269,13 @@ Item {
         case 136:
             return 0;
         case 150:
-            return stats() ? Math.round(stats().exscore) : 0;
+            return scoreStats() ? Math.round(scoreStats().exscore) : 0;
         case 152:
-            return stats() ? Math.round(stats().exscore) : 0;
+            return scoreStats() ? Math.round(scoreStats().exscore) : 0;
         case 154:
-            return nextRankDelta(stats(), chart());
+            return nextRankDelta(scoreStats(), chart());
         case 420:
-            return stats() ? stats().miss : 0;
+            return rankingEntry() ? rankingEntry().miss : (stats() ? stats().miss : 0);
         case 421:
             return timingStats() ? timingCount(timingStats(), 5, true) : 0;
         case 422:
@@ -4222,11 +4285,11 @@ Item {
         case 424:
             return timingStats() ? timingStats().totalLate : 0;
         case 425:
-            return stats() ? stats().comboBreak : 0;
+            return scoreStats() ? scoreStats().comboBreak : 0;
         case 426:
-            return stats() ? stats().pr : 0;
+            return scoreStats() ? scoreStats().pr : 0;
         case 427:
-            return stats() ? stats().badPoor : 0;
+            return scoreStats() ? scoreStats().badPoor : 0;
         case 92:
             return hasRankingStats() ? rankingPlayerRank : 0;
         case 93:
@@ -4451,11 +4514,20 @@ Item {
         let state = selectedState;
         let statsLoaded = false;
         let statsValue = null;
+        let rankingScoreStatsLoaded = false;
+        let rankingScoreStatsValue = null;
         let chartLoaded = false;
         let chartValue = null;
+        let selectedRankingScoreStats = () => {
+            if (!rankingScoreStatsLoaded) {
+                rankingScoreStatsValue = rankingScoreStats(state.item);
+                rankingScoreStatsLoaded = true;
+            }
+            return rankingScoreStatsValue;
+        };
         let stats = () => {
             if (!statsLoaded) {
-                statsValue = state.bestStats || {};
+                statsValue = selectedRankingScoreStats() || state.bestStats || {};
                 statsLoaded = true;
             }
             return statsValue;
