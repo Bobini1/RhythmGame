@@ -39,6 +39,28 @@ SongFolderFactory::open(const QString& path)
     }
     return folder;
 }
+
+QVariantList
+SongFolderFactory::openChartDirectory(const QString& path)
+{
+    auto folder = QVariantList{};
+    auto directory = path;
+    if (!directory.isEmpty() && !directory.endsWith('/')) {
+        directory += '/';
+    }
+    getChartsInChartDirectory.reset();
+    getChartsInChartDirectory.bind(1, directory.toStdString());
+    const auto chartResult =
+      getChartsInChartDirectory.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+    for (const auto& row : chartResult) {
+        auto loadedChart = gameplay_logic::ChartData::load(row);
+        QQmlEngine::setObjectOwnership(loadedChart.get(),
+                                       QQmlEngine::JavaScriptOwnership);
+        folder.append(QVariant::fromValue(loadedChart.release()));
+    }
+    return folder;
+}
+
 QVariantList
 SongFolderFactory::openRecursive(const QString& path)
 {

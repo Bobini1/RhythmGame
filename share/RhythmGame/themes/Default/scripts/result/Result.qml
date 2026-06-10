@@ -28,7 +28,23 @@ Item {
     readonly property bool isBattle: score1 && score2
     readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
 
+    function cycleGaugeForKey(key) {
+        if (key === BmsKey.Col16) {
+            return side1.cycleGauge();
+        }
+        if (key === BmsKey.Col26) {
+            if (side2Loader.item) {
+                return side2Loader.item.cycleGauge();
+            }
+            return side1.cycleGauge();
+        }
+        return false;
+    }
+
     Input.onButtonPressed: (key) => {
+        if (cycleGaugeForKey(key)) {
+            return;
+        }
         if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17,
             BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
             sceneStack.pop();
@@ -197,6 +213,8 @@ Item {
             }
 
             Side {
+                id: side1
+
                 score: root.score1
                 isBattle: root.isBattle
                 profile: root.profile1
@@ -206,6 +224,8 @@ Item {
             }
 
             Loader {
+                id: side2Loader
+
                 active: root.isBattle
                 width: parent.width
                 anchors.top: chartInfoRow.bottom

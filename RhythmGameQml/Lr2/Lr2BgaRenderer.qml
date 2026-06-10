@@ -12,6 +12,7 @@ Item {
     property var activeOptions: []
     property var timers: ({ 0: 0 })
     property int timerFire: -2147483648
+    property var srcData: null
     property var chart
     property real scaleOverride: 1.0
     property bool mediaActive: true
@@ -39,6 +40,15 @@ Item {
         || (timelineState.hasState ? timelineState.state : null)
     readonly property var anchor: Lr2SkinUtils.centerAnchor(currentState ? currentState.center : 0)
     readonly property var bgaContainer: chart && chart.bga ? chart.bga : null
+    readonly property bool hasRenderableState: currentState !== null
+        && currentState !== undefined
+        && currentState.a > 0
+        && Math.abs(currentState.w || 0) > 0
+        && Math.abs(currentState.h || 0) > 0
+    readonly property bool drawBaseLayer: !sourceFlag("noBase")
+    readonly property bool drawAdditionalLayers: !sourceFlag("noLayer")
+    readonly property bool drawPoorLayer: !sourceFlag("noPoor")
+    readonly property bool showNormalLayers: !poorVisible || !drawPoorLayer
     readonly property real sourceW: Math.max(videoBase.sourceRect.width,
                                              videoLayer.sourceRect.width,
                                              videoLayer2.sourceRect.width,
@@ -50,6 +60,14 @@ Item {
                                              videoPoor.sourceRect.height,
                                              256)
     property var attachedBga: null
+
+    function sourceFlag(name: string) : bool {
+        if (!srcData) {
+            return false;
+        }
+        let value = srcData[name];
+        return value !== undefined && value !== null && Number(value) !== 0;
+    }
 
     function clearOutput() : void {
         if ("clearOutput" in videoBase) {
@@ -89,7 +107,7 @@ Item {
     }
 
     function attachBga() : var {
-        if (!mediaActive || !bgaContainer) {
+        if (!mediaActive || !bgaContainer || !hasRenderableState) {
             detachAttachedBga();
             return;
         }
@@ -108,10 +126,26 @@ Item {
         let layer2 = bgaLayer(bgaContainer, 2);
         let poor = bgaLayer(bgaContainer, 3);
 
-        if (base) base.videoSink = baseSink;
-        if (layer) layer.videoSink = layerSink;
-        if (layer2) layer2.videoSink = layer2Sink;
-        if (poor) poor.videoSink = poorSink;
+        if (base && drawBaseLayer) {
+            base.videoSink = baseSink;
+        } else if (base && base.videoSink === baseSink) {
+            base.videoSink = null;
+        }
+        if (layer && drawAdditionalLayers) {
+            layer.videoSink = layerSink;
+        } else if (layer && layer.videoSink === layerSink) {
+            layer.videoSink = null;
+        }
+        if (layer2 && drawAdditionalLayers) {
+            layer2.videoSink = layer2Sink;
+        } else if (layer2 && layer2.videoSink === layer2Sink) {
+            layer2.videoSink = null;
+        }
+        if (poor && drawPoorLayer) {
+            poor.videoSink = poorSink;
+        } else if (poor && poor.videoSink === poorSink) {
+            poor.videoSink = null;
+        }
 
         attachedBga = bgaContainer;
     }
@@ -119,6 +153,10 @@ Item {
     onBgaContainerChanged: Qt.callLater(attachBga)
     onMediaActiveChanged: Qt.callLater(attachBga)
     onChartChanged: Qt.callLater(attachBga)
+    onHasRenderableStateChanged: Qt.callLater(attachBga)
+    onDrawBaseLayerChanged: Qt.callLater(attachBga)
+    onDrawAdditionalLayersChanged: Qt.callLater(attachBga)
+    onDrawPoorLayerChanged: Qt.callLater(attachBga)
     Component.onCompleted: Qt.callLater(attachBga)
     Component.onDestruction: detachAttachedBga()
 
@@ -151,7 +189,7 @@ Item {
         y: root.currentState ? root.currentState.y * root.scaleOverride : 0
         width: dstW * sizeRatioX
         height: dstH * sizeRatioY
-        visible: root.mediaActive
+        visible: root.mediaActive && root.hasRenderableState
         opacity: root.currentState ? root.currentState.a / 255.0 : 0
 
         transform: Rotation {
@@ -165,7 +203,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: !root.poorVisible
+            visible: root.drawBaseLayer && root.showNormalLayers
         }
 
         VideoOutput {
@@ -173,7 +211,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: !root.poorVisible
+            visible: root.drawAdditionalLayers && root.showNormalLayers
             z: 1
         }
 
@@ -182,7 +220,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: !root.poorVisible
+            visible: root.drawAdditionalLayers && root.showNormalLayers
             z: 2
         }
 
@@ -217,7 +255,7 @@ Item {
 
             anchors.fill: parent
             fillMode: VideoOutput.Stretch
-            visible: root.poorVisible
+            visible: root.drawPoorLayer && root.poorVisible
             z: 3
         }
     }

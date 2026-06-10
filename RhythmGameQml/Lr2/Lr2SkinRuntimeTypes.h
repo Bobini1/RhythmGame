@@ -99,6 +99,10 @@ struct Source {
     int readmeId = 0;
     int readmeLineSpacing = 18;
     int specialType = 0;
+    bool bga = false;
+    bool bgaNoBase = false;
+    bool bgaNoLayer = false;
+    bool bgaNoPoor = false;
     QString path;
 };
 

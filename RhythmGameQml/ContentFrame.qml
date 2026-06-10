@@ -36,11 +36,36 @@ ApplicationWindow {
     }
     Shortcut {
         autoRepeat: false
+        sequence: "F1"
+        onActivated: globalRoot.toggleFpsOverlay()
+    }
+    Shortcut {
+        autoRepeat: false
+        enabled: globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
+        sequence: "F2"
+        onActivated: globalRoot.reloadCurrentFolderOrTable()
+    }
+    Shortcut {
+        autoRepeat: false
+        enabled: globalRoot.currentScreenSupports("openSelectedFolder")
+        sequence: "F3"
+        onActivated: globalRoot.openCurrentSelectionFolder()
+    }
+    Shortcut {
+        autoRepeat: false
+        sequence: "F4"
+        onActivated: globalRoot.toggleFullScreen()
+    }
+    Shortcut {
+        autoRepeat: false
+        enabled: globalRoot.currentScreenSupports("openSelectedInternetRanking")
         sequence: "F11"
-
-        onActivated: {
-            globalRoot.toggleFullScreen();
-        }
+        onActivated: globalRoot.openCurrentInternetRanking()
+    }
+    Shortcut {
+        autoRepeat: false
+        sequence: "F12"
+        onActivated: globalRoot.openSettings()
     }
 
     Item {
@@ -75,6 +100,10 @@ ApplicationWindow {
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
+        property bool fpsOverlayVisible: false
+        property int fpsOverlayValue: -1
+        property int fpsOverlayFrameCount: 0
+        property double fpsOverlayLastSampleMs: 0
 
         function isFullScreen() : var {
             return contentContainer.visibility === Window.FullScreen;
@@ -86,6 +115,138 @@ ApplicationWindow {
 
         function toggleFullScreen() : void {
             setFullScreen(!isFullScreen());
+        }
+
+        function toggleFpsOverlay() : void {
+            fpsOverlayVisible = !fpsOverlayVisible;
+            fpsOverlayValue = -1;
+            fpsOverlayFrameCount = 0;
+            fpsOverlayLastSampleMs = 0;
+        }
+
+        function normalizeLocalPath(path: var) : var {
+            let value = String(path || "").trim();
+            if (value.length === 0) {
+                return "";
+            }
+            if (/^file:\/\//i.test(value)) {
+                let url = value;
+                if (/^file:\/\/\//i.test(url)) {
+                    value = url.slice(8);
+                } else {
+                    value = url.slice(7);
+                }
+                value = decodeURIComponent(value);
+            }
+            value = value.replace(/\\/g, "/");
+            while (value.length > 3 && value.endsWith("/")) {
+                value = value.slice(0, -1);
+            }
+            return value;
+        }
+
+        function localFileUrl(path: var) : var {
+            let value = String(path || "").trim();
+            if (value.length === 0) {
+                return "";
+            }
+            if (/^file:\/\//i.test(value) || /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) {
+                return value;
+            }
+            value = value.replace(/\\/g, "/");
+            return value[0] === "/" ? "file://" + encodeURI(value) : "file:///" + encodeURI(value);
+        }
+
+        function openLocalFolder(path: var) : var {
+            let url = localFileUrl(path);
+            return url.length > 0 && Qt.openUrlExternally(url);
+        }
+
+        function rootSongFolderForPath(path: var) : var {
+            let target = normalizeLocalPath(path);
+            if (target.length === 0 || !Rg.rootSongFoldersConfig || !Rg.rootSongFoldersConfig.folders) {
+                return null;
+            }
+            let targetLower = target.toLowerCase();
+            let folders = Rg.rootSongFoldersConfig.folders;
+            let best = null;
+            let bestLength = -1;
+            for (let i = 0; i < folders.rowCount(); ++i) {
+                let folder = folders.at(i);
+                let folderPath = normalizeLocalPath(folder ? folder.name : "");
+                if (folderPath.length === 0) {
+                    continue;
+                }
+                let folderLower = folderPath.toLowerCase();
+                let matches = targetLower === folderLower || targetLower.startsWith(folderLower + "/");
+                if (matches && folderLower.length > bestLength) {
+                    best = folder;
+                    bestLength = folderLower.length;
+                }
+            }
+            return best;
+        }
+
+        function scanRootSongFolderForPath(path: var) : var {
+            let folder = rootSongFolderForPath(path);
+            return !!folder
+                && !!Rg.rootSongFoldersConfig
+                && !!Rg.rootSongFoldersConfig.scanningQueue
+                && Rg.rootSongFoldersConfig.scanningQueue.scan(folder);
+        }
+
+        function reloadTableForItem(item: var) : var {
+            if (!item || item.url === undefined) {
+                return false;
+            }
+            let targetUrl = String(item.url || "");
+            if (targetUrl.length === 0) {
+                return false;
+            }
+            let tables = Rg.tables.getList();
+            for (let i = 0; i < tables.length; ++i) {
+                if (String(tables[i].url || "") === targetUrl) {
+                    Rg.tables.reload(i);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function currentScreen() : var {
+            return sceneStack.currentItem || null;
+        }
+
+        function callCurrentScreen(method: var, args: var) : var {
+            let screen = currentScreen();
+            if (screen && typeof screen[method] === "function") {
+                return screen[method].apply(screen, args || []);
+            }
+            return false;
+        }
+
+        function currentScreenSupports(method: var) : var {
+            let screen = currentScreen();
+            return !!screen && typeof screen[method] === "function";
+        }
+
+        function reloadCurrentFolderOrTable() : var {
+            return callCurrentScreen("reloadCurrentFolderOrTable");
+        }
+
+        function openCurrentSelectionFolder() : var {
+            return callCurrentScreen("openSelectedFolder");
+        }
+
+        function openCurrentInternetRanking() : var {
+            return callCurrentScreen("openSelectedInternetRanking");
+        }
+
+        function openSettings(initialTabIndex: var) : void {
+            let item = sceneStack.pushItem(settingsComponent);
+            if (item && initialTabIndex !== undefined && "initialTabIndex" in item) {
+                item.initialTabIndex = initialTabIndex;
+            }
         }
 
         function currentLr2Settings(screenKey: var) : var {
@@ -283,6 +444,50 @@ ApplicationWindow {
 
             onActivated: {
                 debugLogLoader.active = !debugLogLoader.active;
+            }
+        }
+        FrameAnimation {
+            running: globalRoot.fpsOverlayVisible
+
+            onTriggered: {
+                let now = Date.now();
+                if (globalRoot.fpsOverlayLastSampleMs <= 0) {
+                    globalRoot.fpsOverlayLastSampleMs = now;
+                    globalRoot.fpsOverlayFrameCount = 0;
+                    return;
+                }
+                globalRoot.fpsOverlayFrameCount += 1;
+                let elapsed = now - globalRoot.fpsOverlayLastSampleMs;
+                if (globalRoot.fpsOverlayValue < 0 && elapsed > 0) {
+                    globalRoot.fpsOverlayValue = Math.round(1000 / elapsed);
+                }
+                if (elapsed >= 500) {
+                    globalRoot.fpsOverlayValue = Math.round(globalRoot.fpsOverlayFrameCount * 1000 / elapsed);
+                    globalRoot.fpsOverlayFrameCount = 0;
+                    globalRoot.fpsOverlayLastSampleMs = now;
+                }
+            }
+        }
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.margins: 8
+            border.color: "#80ffffff"
+            border.width: 1
+            color: "#c0000000"
+            height: fpsText.implicitHeight + 10
+            radius: 2
+            visible: globalRoot.fpsOverlayVisible
+            width: fpsText.implicitWidth + 14
+            z: 1000000
+
+            Text {
+                id: fpsText
+                anchors.centerIn: parent
+                color: "white"
+                font.bold: true
+                font.pixelSize: 18
+                text: (globalRoot.fpsOverlayValue >= 0 ? globalRoot.fpsOverlayValue : "--") + " FPS"
             }
         }
     }

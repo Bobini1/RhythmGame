@@ -44,6 +44,17 @@ Image {
         }
     }
 
+    function cycle(delta) {
+        let current = keymodeButton.indexForFilter(keymodeButton.selectedFilter);
+        let step = delta === undefined ? 1 : delta;
+        let next = current < 0 ? 0 : (current + step) % keymodeButton.options.length;
+        if (next < 0) {
+            next += keymodeButton.options.length;
+        }
+        keymodeButton.generalVars.selectKeymodeFilter = keymodeButton.options[next].value;
+        mouseArea.setFilter();
+    }
+
     onSelectedFilterChanged: mouseArea.setFilter()
     onOptionsChanged: mouseArea.setFilter()
     enabled: options.length > 1
@@ -95,10 +106,7 @@ Image {
             setFilter();
         }
         onClicked: {
-            let current = keymodeButton.indexForFilter(keymodeButton.selectedFilter);
-            let next = current < 0 ? 0 : (current + 1) % keymodeButton.options.length;
-            keymodeButton.generalVars.selectKeymodeFilter = keymodeButton.options[next].value;
-            setFilter();
+            keymodeButton.cycle(1);
         }
     }
 }

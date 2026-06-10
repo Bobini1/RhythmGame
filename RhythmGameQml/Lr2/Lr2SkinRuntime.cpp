@@ -202,7 +202,7 @@ void Lr2SkinRuntime::setSelectBarElementSortBase(qreal value) {
     }
     m_selectBarElementSortBase = value;
     emit selectBarElementSortBaseChanged();
-    rebuildDescriptors();
+    updateSelectBarElementSortZ();
 }
 
 QVariantList Lr2SkinRuntime::elementDescriptors() const {
@@ -553,6 +553,25 @@ bool Lr2SkinRuntime::updateElementActiveOptionsState(int index,
     return m_elementActiveOptionsStates[index]->setActiveOptions(activeOptions, active);
 }
 
+void Lr2SkinRuntime::updateSelectBarElementSortZ() {
+    bool changed = false;
+    for (ElementDescriptor& descriptor : m_descriptors) {
+        if (!rt::isSelectBarElement(descriptor.type, descriptor.source)) {
+            continue;
+        }
+        const qreal nextZ = m_selectBarElementSortBase
+            + rt::selectBarElementLayer(descriptor.type, descriptor.source) * 0.001
+            + descriptor.index * 0.000000001;
+        if (!sameReal(descriptor.z, nextZ)) {
+            descriptor.z = nextZ;
+            changed = true;
+        }
+    }
+    if (changed) {
+        notifyElementDataChanged();
+    }
+}
+
 void Lr2SkinRuntime::resetElementTimerStates() {
     for (auto* timerState : std::as_const(m_elementTimerStates)) {
         if (timerState) {
@@ -725,7 +744,7 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
     descriptor.numberUsesFocusedSelectState = selectNumberUsesFocusedState(descriptor.source.num);
 
     if (rt::isSelectBarElement(type, descriptor.source)) {
-        descriptor.z = descriptor.dstAnalysis.firstSortId
+        descriptor.z = m_selectBarElementSortBase
             + rt::selectBarElementLayer(type, descriptor.source) * 0.001
             + index * 0.000000001;
     } else if (type == 8) {

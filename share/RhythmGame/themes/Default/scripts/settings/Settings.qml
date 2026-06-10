@@ -4,6 +4,14 @@ import QtQuick.Controls
 
 Page {
     id: settings
+    property int initialTabIndex: 0
+
+    function applyInitialTabIndex() {
+        tabView.currentIndex = Math.max(0, Math.min(tabView.count - 1, initialTabIndex));
+    }
+
+    Component.onCompleted: applyInitialTabIndex()
+    onInitialTabIndexChanged: applyInitialTabIndex()
     
     header: RowLayout {
         Layout.fillWidth: true

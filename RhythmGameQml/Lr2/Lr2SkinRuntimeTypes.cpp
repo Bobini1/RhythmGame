@@ -14,6 +14,7 @@ using gameplay_logic::lr2_skin::Lr2SrcBarGraph;
 using gameplay_logic::lr2_skin::Lr2SrcBarImage;
 using gameplay_logic::lr2_skin::Lr2SrcBarNumber;
 using gameplay_logic::lr2_skin::Lr2SrcBarText;
+using gameplay_logic::lr2_skin::Lr2SrcBga;
 using gameplay_logic::lr2_skin::Lr2SrcImage;
 using gameplay_logic::lr2_skin::Lr2SrcNumber;
 using gameplay_logic::lr2_skin::Lr2SrcText;
@@ -542,6 +543,16 @@ bool readSource(const QVariant& value, Source& source) {
         source.side = parsed.side;
         source.specialType = parsed.specialType;
         source.path = parsed.source;
+        return true;
+    }
+
+    if (value.canConvert<Lr2SrcBga>()) {
+        const auto parsed = value.value<Lr2SrcBga>();
+        source.valid = true;
+        source.bga = true;
+        source.bgaNoBase = parsed.noBase != 0;
+        source.bgaNoLayer = parsed.noLayer != 0;
+        source.bgaNoPoor = parsed.noPoor != 0;
         return true;
     }
 

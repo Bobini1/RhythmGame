@@ -149,6 +149,7 @@ private:
     void ensureElementActiveOptionsStateCount(int count);
     void updateElementTimerState(int index, const TimerSnapshot& snapshot);
     bool updateElementActiveOptionsState(int index, const QVariantList& activeOptions, bool active);
+    void updateSelectBarElementSortZ();
     void resetElementTimerStates();
     void resetElementActiveOptionsStates();
     void reconnectSkinModel();

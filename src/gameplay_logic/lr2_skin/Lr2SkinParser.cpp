@@ -1090,6 +1090,19 @@ parseImageSource(const QStringList& tokens,
 }
 
 auto
+parseBgaSource(const QStringList& tokens) -> Lr2SrcBga
+{
+    Lr2SrcBga src;
+    if (tokens.size() > 11 && !tokens[11].isEmpty())
+        src.noBase = tokens[11].toInt();
+    if (tokens.size() > 12 && !tokens[12].isEmpty())
+        src.noLayer = tokens[12].toInt();
+    if (tokens.size() > 13 && !tokens[13].isEmpty())
+        src.noPoor = tokens[13].toInt();
+    return src;
+}
+
+auto
 parseImageSetSource(const QStringList& tokens,
                     const ParseState& state) -> Lr2SrcImage
 {
@@ -1260,6 +1273,8 @@ parseNoteChartSource(const QStringList& tokens) -> Lr2SrcNoteChart
         src.orderReverse = tokens[17].toInt();
     if (tokens.size() > 18 && !tokens[18].isEmpty())
         src.noGap = tokens[18].toInt();
+    if (tokens.size() > 19 && !tokens[19].isEmpty())
+        src.noGapX = tokens[19].toInt();
     return src;
 }
 
@@ -1327,6 +1342,34 @@ parseTimingChartSource(const QStringList& tokens) -> Lr2SrcTimingChart
         src.drawAverage = tokens[15].toInt();
     if (tokens.size() > 16 && !tokens[16].isEmpty())
         src.drawDev = tokens[16].toInt();
+    return src;
+}
+
+auto
+parseTimingVisualizerSource(const QStringList& tokens)
+  -> Lr2SrcTimingVisualizer
+{
+    Lr2SrcTimingVisualizer src;
+    if (tokens.size() > 4 && !tokens[4].isEmpty())
+        src.fieldW = qMax(1, tokens[4].toInt());
+    if (tokens.size() > 5 && !tokens[5].isEmpty())
+        src.fieldH = qMax(1, tokens[5].toInt());
+    if (tokens.size() > 6 && !tokens[6].isEmpty())
+        src.judgeWidthMillis = qMax(1, tokens[6].toInt());
+    if (tokens.size() > 7 && !tokens[7].isEmpty())
+        src.lineWidth = qBound(1, tokens[7].toInt(), 4);
+    src.lineColor = parseChartColor(tokens, 8, QStringLiteral("00ff00ff"));
+    src.centerColor =
+      parseChartColor(tokens, 9, QStringLiteral("ffffffff"));
+    src.pgColor = parseChartColor(tokens, 10, QStringLiteral("0088ffcc"));
+    src.grColor = parseChartColor(tokens, 11, QStringLiteral("00ff88cc"));
+    src.gdColor = parseChartColor(tokens, 12, QStringLiteral("ffff00cc"));
+    src.bdColor = parseChartColor(tokens, 13, QStringLiteral("ff8800cc"));
+    src.prColor = parseChartColor(tokens, 14, QStringLiteral("ff0000cc"));
+    if (tokens.size() > 15 && !tokens[15].isEmpty())
+        src.transparent = tokens[15].toInt();
+    if (tokens.size() > 16 && !tokens[16].isEmpty())
+        src.drawDecay = tokens[16].toInt();
     return src;
 }
 
@@ -1741,8 +1784,7 @@ processCommand(const QStringList& tokens,
         state.currentElement.type = 7;
         state.hasCurrentElement = true;
 
-        state.currentElement.src =
-          QVariant::fromValue(parseImageSource(tokens, state));
+        state.currentElement.src = QVariant::fromValue(parseBgaSource(tokens));
     } else if (command == "#DST_BGA") {
         if (state.hasCurrentElement && state.currentElement.type == 7) {
             parseDst(tokens, state, state.currentElement);
@@ -1995,6 +2037,21 @@ processCommand(const QStringList& tokens,
     } else if (command == "#DST_TIMINGCHART_1P" ||
                command == "#DST_TIMINGCHART_2P") {
         if (state.hasCurrentElement && state.currentElement.type == 14) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_TIMING_1P" ||
+               command == "#SRC_TIMING_2P") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 15;
+        state.hasCurrentElement = true;
+        auto src = parseTimingVisualizerSource(tokens);
+        src.playerSide = commandPlayerSide(command);
+        state.currentElement.src =
+          QVariant::fromValue(src);
+    } else if (command == "#DST_TIMING_1P" ||
+               command == "#DST_TIMING_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 15) {
             parseDst(tokens, state, state.currentElement);
         }
     } else if (command == "#SRC_TEXT") {

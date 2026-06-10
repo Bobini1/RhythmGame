@@ -573,6 +573,9 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qmlRegisterUncreatableType<
           gameplay_logic::lr2_skin::Lr2SrcTimingChart>(
           "RhythmGameQml", 1, 0, "lr2SrcTimingChart", "Q_GADGET");
+        qmlRegisterUncreatableType<
+          gameplay_logic::lr2_skin::Lr2SrcTimingVisualizer>(
+          "RhythmGameQml", 1, 0, "lr2SrcTimingVisualizer", "Q_GADGET");
         qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Element>(
           "RhythmGameQml", 1, 0, "lr2Element", "Q_GADGET");
         qmlRegisterType<gameplay_logic::lr2_skin::Lr2SkinModel>(

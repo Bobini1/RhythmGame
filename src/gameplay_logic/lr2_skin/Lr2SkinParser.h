@@ -159,6 +159,18 @@ struct Lr2SrcImage
     QString source;
 };
 
+struct Lr2SrcBga
+{
+    Q_GADGET
+    Q_PROPERTY(int noBase MEMBER noBase)
+    Q_PROPERTY(int noLayer MEMBER noLayer)
+    Q_PROPERTY(int noPoor MEMBER noPoor)
+  public:
+    int noBase = 0;
+    int noLayer = 0;
+    int noPoor = 0;
+};
+
 struct Lr2SrcNumber
 {
     Q_GADGET
@@ -354,6 +366,7 @@ struct Lr2SrcNoteChart
     Q_PROPERTY(int backTexOff MEMBER backTexOff)
     Q_PROPERTY(int orderReverse MEMBER orderReverse)
     Q_PROPERTY(int noGap MEMBER noGap)
+    Q_PROPERTY(int noGapX MEMBER noGapX)
   public:
     int chartType = 0;
     int playerSide = 1;
@@ -365,6 +378,7 @@ struct Lr2SrcNoteChart
     int backTexOff = 0;
     int orderReverse = 0;
     int noGap = 0;
+    int noGapX = 0;
 };
 
 struct Lr2SrcBpmChart
@@ -427,6 +441,40 @@ struct Lr2SrcTimingChart
     int drawDev = 1;
 };
 
+struct Lr2SrcTimingVisualizer
+{
+    Q_GADGET
+    Q_PROPERTY(int playerSide MEMBER playerSide)
+    Q_PROPERTY(int fieldW MEMBER fieldW)
+    Q_PROPERTY(int fieldH MEMBER fieldH)
+    Q_PROPERTY(int judgeWidthMillis MEMBER judgeWidthMillis)
+    Q_PROPERTY(int lineWidth MEMBER lineWidth)
+    Q_PROPERTY(QString lineColor MEMBER lineColor)
+    Q_PROPERTY(QString centerColor MEMBER centerColor)
+    Q_PROPERTY(QString pgColor MEMBER pgColor)
+    Q_PROPERTY(QString grColor MEMBER grColor)
+    Q_PROPERTY(QString gdColor MEMBER gdColor)
+    Q_PROPERTY(QString bdColor MEMBER bdColor)
+    Q_PROPERTY(QString prColor MEMBER prColor)
+    Q_PROPERTY(int transparent MEMBER transparent)
+    Q_PROPERTY(int drawDecay MEMBER drawDecay)
+  public:
+    int playerSide = 1;
+    int fieldW = 1;
+    int fieldH = 1;
+    int judgeWidthMillis = 250;
+    int lineWidth = 1;
+    QString lineColor = QStringLiteral("00ff00ff");
+    QString centerColor = QStringLiteral("ffffffff");
+    QString pgColor = QStringLiteral("0088ffcc");
+    QString grColor = QStringLiteral("00ff88cc");
+    QString gdColor = QStringLiteral("ffff00cc");
+    QString bdColor = QStringLiteral("ff8800cc");
+    QString prColor = QStringLiteral("ff0000cc");
+    int transparent = 0;
+    int drawDecay = 0;
+};
+
 struct Lr2Element
 {
     Q_GADGET
@@ -437,7 +485,8 @@ struct Lr2Element
     // 0=image, 1=number, 2=text, 3=bar image, 4=bar text,
     // 5=bar number, 6=bargraph, 7=BGA, 8=play notes, 9=groove gauge,
     // 10=result gauge/score chart, 11=note chart, 12=BPM chart,
-    // 13=select bar folder distribution graph, 14=timing distribution chart
+    // 13=select bar folder distribution graph, 14=timing distribution chart,
+    // 15=timing visualizer
     int type = -1;
     QVariant src;
     QVariantList dsts;

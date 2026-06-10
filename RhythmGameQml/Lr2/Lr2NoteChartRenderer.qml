@@ -60,7 +60,9 @@ Item {
     }
     readonly property int chartType: srcData ? Math.max(0, Math.min(2, srcData.chartType || 0)) : 0
     readonly property var chartData: root.chart && root.chart.chartData !== undefined ? root.chart.chartData : root.chart
-    readonly property bool hasChartData: chartType === 0 ? chartSnapshot.hasHistogram : resultEvents.length > 0
+    readonly property bool hasChartData: chartType === 0
+        ? chartSnapshot.hasHistogram
+        : (chartSnapshot.hasHistogram || resultEvents.length > 0)
     readonly property var resultEvents: score && score.replayData ? (score.replayData.hitEvents || []) : []
     readonly property var densityData: buildGraphData()
     readonly property int bucketCount: Math.max(1, densityData.length)
@@ -179,6 +181,36 @@ Item {
         return result;
     }
 
+    function histogramBucketCount(histogram: var) : var {
+        let count = 0;
+        for (let i = 0; i < 4; ++i) {
+            count = Math.max(count, histogram && histogram[i] ? histogram[i].length : 0);
+        }
+        return count;
+    }
+
+    function histogramPlayableCountAt(histogram: var, index: var) : var {
+        return densityAt(histogram && histogram[0], index)
+            + densityAt(histogram && histogram[1], index)
+            + densityAt(histogram && histogram[2], index)
+            + densityAt(histogram && histogram[3], index);
+    }
+
+    function baseReplayBuckets(bucketSize: var) : var {
+        let histogram = root.chartSnapshot.hasHistogram ? root.chartSnapshot.histogramData : [];
+        let histogramCount = root.histogramBucketCount(histogram);
+        let seconds = Math.max(histogramCount, Math.floor(root.chartLengthNanos() / 1000000000) + 1, 1);
+        let result = new Array(seconds);
+        for (let i = 0; i < seconds; ++i) {
+            result[i] = new Array(bucketSize);
+            for (let j = 0; j < bucketSize; ++j) {
+                result[i][j] = 0;
+            }
+            result[i][0] = root.histogramPlayableCountAt(histogram, i);
+        }
+        return result;
+    }
+
     function eventSecond(hit: var, length: var) : var {
         let offset = Number(hit && hit.offsetFromStart !== undefined ? hit.offsetFromStart : 0);
         return Math.max(0, Math.min(length - 1, Math.floor(offset / 1000000000)));
@@ -244,7 +276,7 @@ Item {
     }
 
     function buildReplayData(type: var) : var {
-        let data = root.emptyReplayBuckets(type === 1 ? 6 : 10);
+        let data = root.baseReplayBuckets(type === 1 ? 6 : 10);
         let events = root.resultEvents || [];
         for (let i = 0; i < events.length; ++i) {
             let hit = events[i];
@@ -264,6 +296,9 @@ Item {
                 continue;
             }
             let second = root.eventSecond(hit, data.length);
+            if (data[second][0] > 0) {
+                data[second][0] = data[second][0] - 1;
+            }
             data[second][bucket] = (data[second][bucket] || 0) + 1;
         }
         return data;
@@ -279,6 +314,7 @@ Item {
     function drawBars(ctx: var, data: var, maxDensity: var, sourceH: var) : void {
         let colors = graphColors();
         let noGap = srcData && (srcData.noGap || 0) === 1;
+        let noGapX = srcData && (srcData.noGapX || 0) === 1;
         let reverse = srcData && (srcData.orderReverse || 0) === 1;
         for (let i = 0; i < data.length; ++i) {
             let n = data[i];
@@ -290,11 +326,30 @@ Item {
                 ctx.fillStyle = colors[index] || "#cccccc";
                 let amount = Math.max(0, Math.floor(n[index] || 0));
                 for (let k = 0; k < amount && yUnits < maxDensity; ++k) {
-                    ctx.fillRect(i * 5, sourceH - (yUnits + 1) * 5, 4, noGap ? 5 : 4);
+                    ctx.fillRect(i * 5, sourceH - (yUnits + 1) * 5, noGapX ? 5 : 4, noGap ? 5 : 4);
                     ++yUnits;
                 }
             }
         }
+    }
+
+    function gameplayElapsedNanos() : var {
+        if (!root.screenRoot || !root.screenRoot.gameplayScreenActive || !root.screenRoot.gameplayPlayer) {
+            return -1;
+        }
+        let side = root.srcData ? (root.srcData.playerSide || 1) : 1;
+        let player = root.screenRoot.gameplayPlayer(side);
+        return player ? Number(player.elapsed || 0) : -1;
+    }
+
+    function drawProgressCursor(ctx: var, sourceW: var, sourceH: var, bucketCount: var) : void {
+        let elapsed = root.gameplayElapsedNanos();
+        if (elapsed < 0 || bucketCount <= 0) {
+            return;
+        }
+        let x = Math.max(0, Math.min(sourceW, elapsed * sourceW / (bucketCount * 1000000000)));
+        ctx.fillStyle = "rgba(255,255,255,1)";
+        ctx.fillRect(x, 0, 3, sourceH);
     }
 
     function graphMax(data: var) : var {
@@ -358,6 +413,7 @@ Item {
                 ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
                 root.drawBackground(ctx, sourceW, sourceH, maxDensity, bucketCount);
                 root.drawBars(ctx, data, maxDensity, sourceH);
+                root.drawProgressCursor(ctx, sourceW, sourceH, bucketCount);
                 ctx.restore();
             }
         }
@@ -375,6 +431,7 @@ Item {
     onDensityDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
+    onEffectiveSkinTimeChanged: requestChartPaint()
     onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }

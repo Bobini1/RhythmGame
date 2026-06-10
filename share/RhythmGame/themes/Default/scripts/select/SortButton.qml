@@ -34,6 +34,17 @@ Image {
         return index >= 0 ? options[index].text : QT_TR_NOOP("Title");
     }
 
+    function cycle(delta) {
+        let current = sortButton.indexForMode(sortButton.selectedMode);
+        let step = delta === undefined ? 1 : delta;
+        let next = current < 0 ? 0 : (current + step) % sortButton.options.length;
+        if (next < 0) {
+            next += sortButton.options.length;
+        }
+        sortButton.generalVars.selectSortMode = sortButton.options[next].value;
+        mouseArea.setSort();
+    }
+
     onSelectedModeChanged: mouseArea.setSort()
 
     source: root.iniImagesUrl + "option.png/button_big"
@@ -186,10 +197,7 @@ Image {
             setSort();
         }
         onClicked: {
-            let current = sortButton.indexForMode(sortButton.selectedMode);
-            let next = current < 0 ? 0 : (current + 1) % sortButton.options.length;
-            sortButton.generalVars.selectSortMode = sortButton.options[next].value;
-            setSort();
+            sortButton.cycle(1);
         }
     }
 }

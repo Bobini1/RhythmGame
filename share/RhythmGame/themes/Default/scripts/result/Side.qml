@@ -35,13 +35,18 @@ Column {
             });
         }
     }
+    function cycleGauge() {
+        lifeGraph.incrementIndex();
+        return true;
+    }
+
     transform: Scale {
         xScale: side.mirrored ? -1 : 1
         origin.x: side.mirrored ? side.width / 2 : 0
     }
     Input.onButtonPressed: (key) => {
         if (key === BmsKey[`Select${mirrored ? 2 : 1}`]) {
-            lifeGraph.incrementIndex();
+            side.cycleGauge();
         }
     }
     Item {

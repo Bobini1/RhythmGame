@@ -277,6 +277,34 @@ PathView {
         setNavigationImmediate(currentIndex);
     }
 
+    function sameEntry(a, b) {
+        if (a instanceof ChartData && b instanceof ChartData) {
+            return a.path === b.path;
+        }
+        if (typeof a === "string" && typeof b === "string") {
+            return a === b;
+        }
+        if (a instanceof level && b instanceof level) {
+            return a.name === b.name;
+        }
+        if (a instanceof table && b instanceof table) {
+            return String(a.url || "") === String(b.url || "");
+        }
+        if (a instanceof course && b instanceof course) {
+            return a.identifier === b.identifier;
+        }
+        return a === b;
+    }
+
+    function indexOfEntry(items, entry) {
+        for (let i = 0; i < items.length; ++i) {
+            if (sameEntry(items[i], entry)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     AudioPlayer {
         id: closeFolderSound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-close";
@@ -287,20 +315,7 @@ PathView {
         }
         let last = historyStack.pop();
         let folder = open(historyStack[historyStack.length - 1]);
-        let idx = folder.findIndex((folderItem) => {
-            if (folderItem instanceof ChartData && last instanceof ChartData) {
-                return folderItem.path === last.path;
-            } else if (typeof folderItem === "string" && typeof last === "string") {
-                return folderItem === last;
-            } else if (folderItem instanceof level && last instanceof level) {
-                return folderItem.name === last.name;
-            } else if (folderItem instanceof table && last instanceof table) {
-                return folderItem.name === last.name;
-            } else if (folderItem instanceof course && last instanceof course) {
-                return folderItem.name === last.name;
-            }
-            return false;
-        });
+        let idx = indexOfEntry(folder, last);
         pathView.positionViewAtIndex(idx, PathView.Center);
         resetNavigation();
         closeFolderSound.stop();
@@ -310,22 +325,30 @@ PathView {
         id: openFolderSound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open";
     }
-    function goForward(item, skipSound = false) {
+    function openPlayable(item, autoplay = false, replay = false, replayScore = null) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
+            let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
             } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
             }
-            return;
+            return true;
         }
         if (item instanceof course) {
+            let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
+                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
             } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
+                globalRoot.openCourse(item, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
             }
+            return true;
+        }
+        return false;
+    }
+    function goForward(item, skipSound = false) {
+        if (openPlayable(item, false, false, null)) {
             return;
         }
         if (item instanceof entry || item === null) {
@@ -358,6 +381,9 @@ PathView {
                 }
             }
             folder.push(...Rg.songFolderFactory.open(item));
+            if (item !== "" && folder.length === 0) {
+                folder.push(...Rg.songFolderFactory.openChartDirectory(item));
+            }
         } else {
             return [];
         }
@@ -371,6 +397,67 @@ PathView {
         pathView.folderContents = newFolderContents;
         openedFolder();
         return folder;
+    }
+
+    function selectedSongFolderPath() {
+        if (current instanceof ChartData && current.chartDirectory) {
+            return current.chartDirectory;
+        }
+        if (typeof current === "string") {
+            return current;
+        }
+        for (let i = historyStack.length - 1; i >= 0; --i) {
+            if (typeof historyStack[i] === "string" && historyStack[i] !== "SEARCH") {
+                return historyStack[i];
+            }
+        }
+        return "";
+    }
+
+    function reloadCurrentFolderOrTable() {
+        if (historyStack.length === 0) {
+            return false;
+        }
+        for (let i = historyStack.length - 1; i >= 0; --i) {
+            if (globalRoot.reloadTableForItem(historyStack[i])) {
+                return true;
+            }
+        }
+        if (globalRoot.scanRootSongFolderForPath(selectedSongFolderPath())) {
+            return true;
+        }
+        let old = current;
+        let folder = open(historyStack[historyStack.length - 1]);
+        let idx = indexOfEntry(folder, old);
+        pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
+        resetNavigation();
+        return true;
+    }
+
+    function openChartDirectory(directory, initialItem) {
+        if (!directory) {
+            return false;
+        }
+        let folder = Rg.songFolderFactory.openChartDirectory(directory);
+        if (!folder.length) {
+            return false;
+        }
+        if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== directory) {
+            historyStack.push(directory);
+        }
+        let newFolderContents = [];
+        for (let item of folder) {
+            newFolderContents.push(item);
+        }
+        folder = sortFilter(folder);
+        addToMinimumCount(folder);
+        pathView.model = folder;
+        pathView.folderContents = newFolderContents;
+        openedFolder();
+        let idx = indexOfEntry(folder, initialItem);
+        pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
+        resetNavigation();
+        return true;
     }
 
     signal openedFolder()
@@ -591,27 +678,17 @@ PathView {
         goForward(current);
     }
     Input.onCol17Pressed: {
-        goForward(current);
+        if (!root.openSelectedReplay(Qt.LeftButton)) {
+            goForward(current);
+        }
     }
     Input.onCol13Pressed: {
-        if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
-        } else {
+        if (!root.openSelectedAutoplay()) {
             goForward(current);
         }
     }
     Input.onCol15Pressed: {
-        if (current instanceof ChartData && songList.currentItem.scores.length > 0) {
-            let key = 0;
-            if (Keys.digit2Pressed) {
-                key = 1;
-            } else if (Keys.digit3Pressed) {
-                key = 2;
-            } else if (Keys.digit4Pressed) {
-                key = 3;
-            }
-            root.openReplay(key, Qt.LeftButton);
-        } else {
+        if (!root.openSelectedAutoplay()) {
             goForward(current);
         }
     }
@@ -619,32 +696,42 @@ PathView {
         goForward(current);
     }
     Input.onCol27Pressed: {
-        goForward(current);
+        if (!root.openSelectedReplay(Qt.LeftButton)) {
+            goForward(current);
+        }
     }
     Input.onCol23Pressed: {
-        if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
-        } else {
+        if (!root.openSelectedAutoplay()) {
             goForward(current);
         }
     }
     Input.onCol25Pressed: {
-        if (current instanceof ChartData && songList.currentItem.scores.length > 0) {
-            let key = 0;
-            if (Keys.digit2Pressed) {
-                key = 1;
-            } else if (Keys.digit3Pressed) {
-                key = 2;
-            } else if (Keys.digit4Pressed) {
-                key = 3;
-            }
-            root.openReplay(key, Qt.LeftButton);
-        } else {
+        if (!root.openSelectedAutoplay()) {
             goForward(current);
         }
     }
+    function handleTopLevelSortKey(key) {
+        if (historyStack.length > 1) {
+            return false;
+        }
+        if (key === BmsKey.Col12 || key === BmsKey.Col22) {
+            return root.cycleSortMode(-1);
+        }
+        if (key === BmsKey.Col14 || key === BmsKey.Col24) {
+            return root.cycleSortMode(1);
+        }
+        return false;
+    }
+
     Input.onButtonPressed: (key) => {
-        if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26) {
+        if (key === BmsKey.Col16 || key === BmsKey.Col26) {
+            root.cycleReplayType();
+            return;
+        }
+        if (handleTopLevelSortKey(key)) {
+            return;
+        }
+        if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col22 || key === BmsKey.Col24) {
             goBack();
         }
     }

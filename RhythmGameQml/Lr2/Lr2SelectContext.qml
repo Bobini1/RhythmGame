@@ -1661,6 +1661,9 @@ Item {
             }
             let songFolders = Rg.songFolderFactory.open(item);
             folder.push(...songFolders);
+            if (item !== "" && folder.length === 0) {
+                folder.push(...Rg.songFolderFactory.openChartDirectory(item));
+            }
         } else {
             return [];
         }
@@ -3879,6 +3882,58 @@ Item {
             : chartForDifficulty(diff);
         difficultyFilter = diff;
         sortOrFilterChanged(target || currentChart);
+    }
+
+    function showAllChartsForCurrentSong() : var {
+        let currentChart = selectedChartDataForValues();
+        if (!currentChart || !currentChart.chartDirectory) {
+            return false;
+        }
+        let folder = Rg.songFolderFactory.openChartDirectory(currentChart.chartDirectory);
+        if (!folder.length) {
+            return false;
+        }
+        hideRanking();
+        difficultyFilter = 0;
+        let directory = currentChart.chartDirectory;
+        if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== directory) {
+            historyStack = historyStack.concat([directory]);
+        }
+        folderContents = [...folder];
+        rebuildFolderIndexes(folderContents);
+        folder = sortFilter(folder);
+        realItemCount = folder.length;
+        addToMinimumCount(folder);
+        items = folder;
+        let initialIndex = folder.findIndex((folderItem) => sameEntry(folderItem, currentChart));
+        currentIndex = initialIndex >= 0 ? initialIndex : 0;
+        targetIndex = currentIndex;
+        selectedOffset = 0;
+        lastSyncedCursorBaseIndex = -1;
+        setVisualIndexImmediate(currentIndex);
+        refreshScores();
+        refreshPlayerStats();
+        openedFolder();
+        markListContentsChanged();
+        nativeNavigation.touchSelection();
+        return folder.length > 0;
+    }
+
+    function selectedSongFolderPath() : var {
+        let currentChart = selectedChartDataForValues();
+        if (currentChart && currentChart.chartDirectory) {
+            return currentChart.chartDirectory;
+        }
+        let item = activationItem();
+        if (typeof item === "string") {
+            return item;
+        }
+        for (let i = historyStack.length - 1; i >= 0; --i) {
+            if (typeof historyStack[i] === "string" && historyStack[i] !== "SEARCH") {
+                return historyStack[i];
+            }
+        }
+        return "";
     }
 
     function difficultyCount(diff: var) : var {
