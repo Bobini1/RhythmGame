@@ -52,6 +52,7 @@ void Lr2SelectUpdateController::setScreenUpdatesActive(bool active) {
         return;
     }
     m_screenUpdatesActive = active;
+    m_selectRuntimeActiveOptionsDirty = true;
     emit screenUpdatesActiveChanged();
     refreshCurrentRuntimeActiveOptions();
 }
@@ -62,6 +63,7 @@ void Lr2SelectUpdateController::setEffectiveScreenKey(const QString& key) {
         return;
     }
     m_effectiveScreenKey = key;
+    m_selectRuntimeActiveOptionsDirty = true;
     emit effectiveScreenKeyChanged();
     refreshCurrentRuntimeActiveOptions();
 }
@@ -142,6 +144,7 @@ void Lr2SelectUpdateController::setSelectCommonActiveOptions(const QList<int>& o
         return;
     }
     m_selectCommonActiveOptions = options;
+    m_selectRuntimeActiveOptionsDirty = true;
     emit selectCommonActiveOptionsChanged();
 }
 
@@ -237,6 +240,7 @@ void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QLi
         return;
     }
     m_selectRuntimeGeneratedActiveOptions = options;
+    m_selectRuntimeActiveOptionsDirty = true;
     emit selectRuntimeGeneratedActiveOptionsChanged();
 }
 
@@ -249,6 +253,7 @@ void Lr2SelectUpdateController::setSelectDetailRuntimeActiveOptions(const QList<
         return;
     }
     m_selectDetailRuntimeActiveOptions = options;
+    m_selectRuntimeActiveOptionsDirty = true;
     emit selectDetailRuntimeActiveOptionsChanged();
 }
 
@@ -351,11 +356,14 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
         if (m_runtimeActiveOptions == next) {
             return false;
         }
-        applyRuntimeActiveOptions(next);
+        applyChangedRuntimeActiveOptions(next);
         return true;
     }
     if (!m_selectCommonActiveOptionsReady) {
         refreshBaseActiveOptions();
+    }
+    if (!m_selectRuntimeActiveOptionsDirty) {
+        return false;
     }
 
     QList<int> next = m_selectCommonActiveOptions;
@@ -369,10 +377,15 @@ bool Lr2SelectUpdateController::refreshSelectRuntimeActiveOptions() {
         appendUniqueOption(next, value);
     }
     if (m_runtimeActiveOptions == next) {
+        m_selectRuntimeActiveOptionsDirty = false;
         return false;
     }
-    setSelectRuntimeActiveOptions(next);
-    applyRuntimeActiveOptions(next);
+    if (m_selectRuntimeActiveOptions != next) {
+        m_selectRuntimeActiveOptions = next;
+        emit selectRuntimeActiveOptionsChanged();
+    }
+    m_selectRuntimeActiveOptionsDirty = false;
+    applyChangedRuntimeActiveOptions(next);
     return true;
 }
 
@@ -386,7 +399,7 @@ bool Lr2SelectUpdateController::refreshGameplayRuntimeActiveOptions() {
         return false;
     }
     setGameplayRuntimeActiveOptions(next);
-    applyRuntimeActiveOptions(next);
+    applyChangedRuntimeActiveOptions(next);
     return true;
 }
 
@@ -399,7 +412,18 @@ void Lr2SelectUpdateController::refreshCurrentRuntimeActiveOptions() {
 }
 
 void Lr2SelectUpdateController::applyRuntimeActiveOptions(const QList<int>& value) {
-    setRuntimeActiveOptions(value);
+    if (m_runtimeActiveOptions != value) {
+        m_runtimeActiveOptions = value;
+        emit runtimeActiveOptionsChanged();
+    }
+    if (m_skinRuntime) {
+        m_skinRuntime->setRuntimeActiveOptions(value);
+    }
+}
+
+void Lr2SelectUpdateController::applyChangedRuntimeActiveOptions(const QList<int>& value) {
+    m_runtimeActiveOptions = value;
+    emit runtimeActiveOptionsChanged();
     if (m_skinRuntime) {
         m_skinRuntime->setRuntimeActiveOptions(value);
     }

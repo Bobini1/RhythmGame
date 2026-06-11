@@ -164,6 +164,7 @@ private slots:
 
 private:
     void applyRuntimeActiveOptions(const QList<int>& value);
+    void applyChangedRuntimeActiveOptions(const QList<int>& value);
     void refreshCurrentRuntimeActiveOptions();
     QList<int> mergedNumberArray(const QList<int>& first, const QList<int>& second) const;
     QList<int> selectStaticOptions(bool includeRankingOption, bool includePanelOption) const;
@@ -205,6 +206,7 @@ private:
     QList<int> m_baseActiveOptions;
     QList<int> m_selectCommonActiveOptions;
     bool m_selectCommonActiveOptionsReady = false;
+    bool m_selectRuntimeActiveOptionsDirty = true;
     QList<int> m_selectRuntimeActiveOptions;
     QList<int> m_gameplayRuntimeActiveOptions;
     QList<int> m_barRuntimeActiveOptions;

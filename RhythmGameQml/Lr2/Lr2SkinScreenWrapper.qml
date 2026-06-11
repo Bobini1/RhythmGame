@@ -4031,22 +4031,26 @@ Item {
         root.refreshSelectRuntimeActiveOptions();
     }
 
-    function updateBuiltSelectRuntimeActiveOptions() : void {
+    function updateBuiltSelectRuntimeActiveOptions() : var {
         let nextOptions = root.effectiveScreenKey === "select"
             ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
             : [];
-        if (!root.sameArrayValues(nextOptions, root.builtSelectRuntimeActiveOptions)) {
-            root.builtSelectRuntimeActiveOptions = nextOptions;
+        if (root.sameArrayValues(nextOptions, root.builtSelectRuntimeActiveOptions)) {
+            return false;
         }
+        root.builtSelectRuntimeActiveOptions = nextOptions;
+        return true;
     }
 
-    function updateBuiltSelectDetailRuntimeActiveOptions() : void {
+    function updateBuiltSelectDetailRuntimeActiveOptions() : var {
         let nextOptions = root.effectiveScreenKey === "select"
             ? runtimeOptions.buildSelectDetailRuntimeActiveOptions()
             : [];
-        if (!root.sameArrayValues(nextOptions, root.builtSelectDetailRuntimeActiveOptions)) {
-            root.builtSelectDetailRuntimeActiveOptions = nextOptions;
+        if (root.sameArrayValues(nextOptions, root.builtSelectDetailRuntimeActiveOptions)) {
+            return false;
         }
+        root.builtSelectDetailRuntimeActiveOptions = nextOptions;
+        return true;
     }
 
     function markSelectRuntimeActiveOptionsDirty(generatedDirty: var, detailDirty: var) : void {
@@ -4065,16 +4069,24 @@ Item {
             root.selectDetailRuntimeActiveOptionsDirty = true;
         }
 
+        let controllerRefreshNeeded = forceGeneratedDirty !== false || forceDetailDirty !== false;
         if (root.selectGeneratedRuntimeActiveOptionsDirty) {
             root.selectGeneratedRuntimeActiveOptionsDirty = false;
-            root.updateBuiltSelectRuntimeActiveOptions();
-            selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
+            if (root.updateBuiltSelectRuntimeActiveOptions()) {
+                selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
+                controllerRefreshNeeded = true;
+            }
         }
 
         if (root.selectDetailRuntimeActiveOptionsDirty) {
             root.selectDetailRuntimeActiveOptionsDirty = false;
-            root.updateBuiltSelectDetailRuntimeActiveOptions();
-            selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
+            if (root.updateBuiltSelectDetailRuntimeActiveOptions()) {
+                selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
+                controllerRefreshNeeded = true;
+            }
+        }
+        if (!controllerRefreshNeeded) {
+            return false;
         }
         return selectUpdateController.refreshSelectRuntimeActiveOptions();
     }
