@@ -49,7 +49,7 @@ QtObject {
         }
         let timer = timelineResolver.firstTimerFor(dsts);
         let liveClock = root.effectiveScreenKey === "select"
-            && (((timer >= 21 && timer <= 26) || (timer >= 31 && timer <= 36))
+            && (((timer >= 21 && timer <= 29) || (timer >= 31 && timer <= 39))
                 || timelineResolver.loopsContinuouslyFor(dsts));
         let sourceLiveClock = root.effectiveScreenKey === "select"
             && timelineResolver.sourceCyclesContinuously(src);
@@ -84,7 +84,7 @@ QtObject {
     function translatedState(src: var, dsts: var, position: var, skinTime: var, timerFire: var, activeOptions: var) : var {
         let timer = timelineResolver.firstTimerFor(dsts);
         let liveClock = root.effectiveScreenKey === "select"
-            && (((timer >= 21 && timer <= 26) || (timer >= 31 && timer <= 36))
+            && (((timer >= 21 && timer <= 29) || (timer >= 31 && timer <= 39))
                 || timelineResolver.loopsContinuouslyFor(dsts));
         let sourceLiveClock = root.effectiveScreenKey === "select"
             && timelineResolver.sourceCyclesContinuously(src);

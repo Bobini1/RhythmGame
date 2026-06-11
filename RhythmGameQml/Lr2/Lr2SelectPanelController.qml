@@ -807,6 +807,14 @@ QtObject {
         root.openSelectPanel(panel, false);
     }
 
+    function triggerSelectPanelToggleButton(buttonId: var) : var {
+        if (buttonId === 7 && root.selectPanel > 0) {
+            root.closeSelectPanel();
+            return;
+        }
+        root.toggleSelectPanel(buttonId);
+    }
+
     function holdSelectPanel(panel: var) : var {
         if (!root.selectInputReady()) {
             return;
@@ -1111,7 +1119,7 @@ QtObject {
         }
         root.resetSelectSearch();
         if (buttonId >= 1 && buttonId <= 9) {
-            root.toggleSelectPanel(buttonId);
+            controller.triggerSelectPanelToggleButton(buttonId);
             return;
         }
         if (buttonId === 17) {

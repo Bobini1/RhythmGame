@@ -173,7 +173,7 @@ QtObject {
     }
 
     // Timer fire times (ms since scene start). LR2 select panels use timers
-    // 21..26 for side-drawer opening and 31..36 for closing, so synthesize
+    // 21..29 for side-drawer opening and 31..39 for closing, so synthesize
     // those without unfreezing the whole select skin clock.
     readonly property var timers: {
         if (root.host && root.host.resultScreenActive) {
@@ -313,7 +313,7 @@ QtObject {
             timerState.selectDatabaseLoadedSkinTime;
             return;
         }
-        if (timerId >= 21 && timerId <= 26) {
+        if (timerId >= 21 && timerId <= 29) {
             timerState.selectPanel;
             if (timerState.selectPanel === timerId - 20) {
                 root.dependOnSelectElapsedTimer(liveClock);
@@ -321,7 +321,7 @@ QtObject {
             }
             return;
         }
-        if (timerId >= 31 && timerId <= 36) {
+        if (timerId >= 31 && timerId <= 39) {
             timerState.selectPanelClosing;
             if (timerState.selectPanelClosing === timerId - 30) {
                 root.dependOnSelectElapsedTimer(liveClock);

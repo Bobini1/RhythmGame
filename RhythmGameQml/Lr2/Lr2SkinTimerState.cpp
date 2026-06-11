@@ -425,13 +425,13 @@ int Lr2SkinTimerState::selectTimerFireTime(int timer, bool liveClock) const {
         }
     }
 
-    if (timer >= 21 && timer <= 26) {
+    if (timer >= 21 && timer <= 29) {
         const int panel = timer - 20;
         return m_selectPanel == panel
             ? baseTime - selectElapsedSince(m_selectPanelStartSkinTime)
             : -1;
     }
-    if (timer >= 31 && timer <= 36) {
+    if (timer >= 31 && timer <= 39) {
         const int panel = timer - 30;
         const int elapsed = selectElapsedSince(m_selectPanelCloseStartSkinTime);
         return m_selectPanelClosing == panel && elapsed < m_selectPanelHoldTime
@@ -467,10 +467,10 @@ bool Lr2SkinTimerState::selectTimerCanFire(int timer) const {
             || timer == 175 || timer == 176) {
         return true;
     }
-    if (timer >= 21 && timer <= 26) {
+    if (timer >= 21 && timer <= 29) {
         return true;
     }
-    if (timer >= 31 && timer <= 36) {
+    if (timer >= 31 && timer <= 39) {
         return true;
     }
     return isSelectHeldButtonTimerId(timer);
