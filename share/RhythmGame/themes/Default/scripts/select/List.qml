@@ -683,9 +683,7 @@ PathView {
         }
     }
     Input.onCol13Pressed: {
-        if (!root.openSelectedAutoplay()) {
-            goForward(current);
-        }
+        goForward(current);
     }
     Input.onCol15Pressed: {
         if (!root.openSelectedAutoplay()) {
@@ -701,9 +699,7 @@ PathView {
         }
     }
     Input.onCol23Pressed: {
-        if (!root.openSelectedAutoplay()) {
-            goForward(current);
-        }
+        goForward(current);
     }
     Input.onCol25Pressed: {
         if (!root.openSelectedAutoplay()) {

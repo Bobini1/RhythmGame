@@ -5521,6 +5521,7 @@ Item {
         root.releaseLr2SelectScratchRepeat(true);
     }
     Input.onCol11Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
+    Input.onCol13Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol17Pressed: {
         if (root.selectNavigationReady() && root.selectPanel <= 0
                 && !root.launchSelectedReplayShortcut(Qt.LeftButton)) {
@@ -5528,6 +5529,7 @@ Item {
         }
     }
     Input.onCol21Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
+    Input.onCol23Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol27Pressed: {
         if (root.selectNavigationReady() && root.selectPanel <= 0
                 && !root.launchSelectedReplayShortcut(Qt.LeftButton)) {
