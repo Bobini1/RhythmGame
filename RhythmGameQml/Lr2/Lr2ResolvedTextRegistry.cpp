@@ -3,6 +3,7 @@
 #include "Lr2ResolvedText.h"
 
 #include <algorithm>
+#include <utility>
 
 Lr2ResolvedTextRegistry::Lr2ResolvedTextRegistry(QObject* parent) : QObject(parent) {}
 
@@ -75,6 +76,46 @@ bool Lr2ResolvedTextRegistry::isTextIdActive(int sourceTextId) const {
     return sourceTextId >= 0 && m_refCounts.value(sourceTextId, 0) > 0;
 }
 
+void Lr2ResolvedTextRegistry::queueAllTextRefresh() {
+    m_queuedTextRefreshAll = true;
+    m_queuedTextRefreshIds.clear();
+}
+
+void Lr2ResolvedTextRegistry::queueTextRefreshIds(const QList<int>& sourceTextIds) {
+    if (m_queuedTextRefreshAll) {
+        return;
+    }
+
+    for (int id : sourceTextIds) {
+        if (id >= 0) {
+            m_queuedTextRefreshIds.insert(id);
+        }
+    }
+}
+
+bool Lr2ResolvedTextRegistry::refreshQueuedTexts(const QJSValue& resolveText) {
+    if (!resolveText.isCallable()) {
+        return false;
+    }
+
+    const QList<int> ids = takeQueuedTextRefreshIds();
+    if (ids.isEmpty()) {
+        return false;
+    }
+
+    QJSValue callback = resolveText;
+    bool refreshed = false;
+    for (int id : ids) {
+        QJSValue text = callback.call(QJSValueList{ QJSValue(id) });
+        if (text.isError()) {
+            continue;
+        }
+        setText(id, text.toString());
+        refreshed = true;
+    }
+    return refreshed;
+}
+
 void Lr2ResolvedTextRegistry::appendActiveTextId(int sourceTextId) {
     const auto insertIt =
         std::lower_bound(m_activeTextIds.begin(), m_activeTextIds.end(), sourceTextId);
@@ -90,6 +131,25 @@ void Lr2ResolvedTextRegistry::removeActiveTextId(int sourceTextId) {
     m_textListeners.remove(sourceTextId);
     ++m_activeTextIdRevision;
     emit activeTextIdsChanged();
+}
+
+QList<int> Lr2ResolvedTextRegistry::takeQueuedTextRefreshIds() {
+    if (m_queuedTextRefreshAll) {
+        m_queuedTextRefreshAll = false;
+        m_queuedTextRefreshIds.clear();
+        return m_activeTextIds;
+    }
+
+    QList<int> ids;
+    ids.reserve(m_queuedTextRefreshIds.size());
+    for (int id : std::as_const(m_queuedTextRefreshIds)) {
+        if (isTextIdActive(id)) {
+            ids.append(id);
+        }
+    }
+    m_queuedTextRefreshIds.clear();
+    std::sort(ids.begin(), ids.end());
+    return ids;
 }
 
 void Lr2ResolvedTextRegistry::addTextListener(int sourceTextId, Lr2ResolvedText* listener) {

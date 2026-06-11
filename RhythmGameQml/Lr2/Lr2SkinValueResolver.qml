@@ -11,8 +11,6 @@ QtObject {
     required property var rankingState
     property Lr2ResolvedTextRegistry textRegistry: null
     property bool resolvedTextRefreshQueued: false
-    property bool resolvedTextRefreshAllQueued: false
-    property var resolvedTextRefreshPendingIds: ({})
 
     readonly property var root: screenRoot
 
@@ -454,13 +452,9 @@ QtObject {
         }
 
         if (ids === undefined || ids === null) {
-            resolver.resolvedTextRefreshAllQueued = true;
-            resolver.resolvedTextRefreshPendingIds = ({});
-        } else if (!resolver.resolvedTextRefreshAllQueued) {
-            let pending = resolver.resolvedTextRefreshPendingIds;
-            for (let i = 0; i < ids.length; ++i) {
-                pending[String(ids[i])] = true;
-            }
+            resolver.textRegistry.queueAllTextRefresh();
+        } else {
+            resolver.textRegistry.queueTextRefreshIds(ids);
         }
 
         if (resolver.resolvedTextRefreshQueued) {
@@ -476,28 +470,7 @@ QtObject {
         if (!registry) {
             return;
         }
-
-        const refreshAll = resolver.resolvedTextRefreshAllQueued;
-        const pendingIds = resolver.resolvedTextRefreshPendingIds;
-        resolver.resolvedTextRefreshAllQueued = false;
-        resolver.resolvedTextRefreshPendingIds = ({});
-
-        if (refreshAll) {
-            let count = registry.activeTextIdCount;
-            for (let i = 0; i < count; ++i) {
-                let id = registry.activeTextIdAt(i);
-                registry.setText(id, resolver.computeResolvedText(id));
-            }
-            return;
-        }
-
-        const keys = Object.keys(pendingIds);
-        for (let i = 0; i < keys.length; ++i) {
-            let id = Number(keys[i]);
-            if (registry.isTextIdActive(id)) {
-                registry.setText(id, resolver.computeResolvedText(id));
-            }
-        }
+        registry.refreshQueuedTexts(function(id) { return resolver.computeResolvedText(id); });
     }
 
     function computeResolvedText(st: var) : var {

@@ -35,6 +35,8 @@ Item {
     property var barLampVariants: []
     property color transColor: "black"
     property bool colorKeyEnabled: false
+    property int selectedOffset: 0
+    property bool rankingMode: false
     readonly property var barBaseStates: barBaseStateResolver ? barBaseStateResolver.baseStates : []
     readonly property var positionlessBarBaseStates: barBaseStateResolver
         ? barBaseStateResolver.positionlessBaseStates
@@ -51,7 +53,7 @@ Item {
     readonly property bool useDirectSourceSkinClock: !!skinClock && sourceSkinClockMode !== 0
     x: applyFastBarScroll ? fastBarScrollX * scaleOverride : 0
     y: applyFastBarScroll ? fastBarScrollY * scaleOverride : 0
-    readonly property int selectedRow: selectContext ? barCenter + selectContext.selectedOffset : barCenter
+    readonly property int selectedRow: barCenter + selectedOffset
     readonly property int barCellCount: barTextCells && barTextCells.length > 0
         ? barTextCells.length
         : (barCells ? barCells.length : 0)
@@ -90,7 +92,7 @@ Item {
     }
     readonly property bool bodyRowActive: bodyRowIndex >= 0
     readonly property int overlaySlotCount: {
-        if (!srcData || !selectContext || srcData.kind < 2) {
+        if (!srcData || srcData.kind < 2) {
             return 0;
         }
 
@@ -99,13 +101,13 @@ Item {
         }
 
         // OpenLR2 draws BAR_RANK only while the IR ranking list is active.
-        if (srcData.kind === 6 && !selectContext.rankingMode) {
+        if (srcData.kind === 6 && !root.rankingMode) {
             return 0;
         }
 
         let total = barRows ? barRows.length : 0;
         if (srcData.kind === 2) {
-            return selectedRow > 0 && selectedRow < total ? 1 : 0;
+            return total > 1 ? 1 : 0;
         }
         return total;
     }
@@ -321,7 +323,7 @@ Item {
                    ? root.displayCells[slot]
                    : null)
             readonly property bool cellOverlayVisible: {
-                if (selectedOverlaySource || !root.selectContext || !root.srcData || !cell || !cell.valid) {
+                if (selectedOverlaySource || !root.srcData || !cell || !cell.valid) {
                     return false;
                 }
                 if (sourceKind === 3) {

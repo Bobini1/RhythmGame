@@ -1,9 +1,11 @@
 #pragma once
 
 #include <QHash>
+#include <QJSValue>
 #include <QList>
 #include <QObject>
 #include <QPointer>
+#include <QSet>
 #include <QString>
 #include <QtQml/qqmlregistration.h>
 
@@ -30,6 +32,9 @@ public:
     Q_INVOKABLE void setText(int sourceTextId, const QString& text);
     Q_INVOKABLE int activeTextIdAt(int index) const;
     Q_INVOKABLE bool isTextIdActive(int sourceTextId) const;
+    Q_INVOKABLE void queueAllTextRefresh();
+    Q_INVOKABLE void queueTextRefreshIds(const QList<int>& sourceTextIds);
+    Q_INVOKABLE bool refreshQueuedTexts(const QJSValue& resolveText);
 
 signals:
     void activeTextIdsChanged();
@@ -37,6 +42,7 @@ signals:
 private:
     void appendActiveTextId(int sourceTextId);
     void removeActiveTextId(int sourceTextId);
+    QList<int> takeQueuedTextRefreshIds();
     void addTextListener(int sourceTextId, Lr2ResolvedText* listener);
     void removeTextListener(int sourceTextId, Lr2ResolvedText* listener);
     void notifyTextListeners(int sourceTextId, const QString& text);
@@ -45,5 +51,7 @@ private:
     QHash<int, QString> m_texts;
     QHash<int, QList<QPointer<Lr2ResolvedText>>> m_textListeners;
     QList<int> m_activeTextIds;
+    QSet<int> m_queuedTextRefreshIds;
     int m_activeTextIdRevision = 0;
+    bool m_queuedTextRefreshAll = false;
 };

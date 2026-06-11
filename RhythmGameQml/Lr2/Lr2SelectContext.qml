@@ -156,11 +156,15 @@ Item {
     property int selectedDetailValueRevision: 0
     property int numberValueStaticRevision: 0
     property int numberValuePlayerStatsRevision: 0
-    property int numberValueSelectedDetailRevision: 0
+    property int numberValueSelectedItemRevision: 0
+    property int numberValueSelectedChartRevision: 0
+    property int numberValueSelectedScoreRevision: 0
+    property int numberValueSelectedDifficultyRevision: 0
     property int numberValueFolderCountsRevision: 0
     property int numberValueRankingStatsRevision: 0
-    property var numberValueCache: ({})
-    property var numberValueCacheRevisions: ({})
+    readonly property int numberValueRevisionLimit: 4096
+    property var numberValueCache: []
+    property var numberValueCacheRevisions: []
     readonly property string selectedPreviewAudioSource: {
         let chartData = selectedStateChartData;
         return chartData ? (previewFiles[chartData.chartDirectory] || "") : "";
@@ -180,10 +184,7 @@ Item {
     onStageFileSourceUsedChanged: refreshVisualChartAssetSources()
     onBackBmpSourceUsedChanged: refreshVisualChartAssetSources()
     onBannerSourceUsedChanged: refreshVisualChartAssetSources()
-    onSelectedDetailValueRevisionChanged: advanceNumberValueSelectedDetailRevision()
     onPlayerStatsChanged: advanceNumberValuePlayerStatsRevision()
-    onScoreGenerationChanged: advanceNumberValueSelectedDetailRevision()
-    onListGenerationChanged: advanceNumberValueSelectedDetailRevision()
     onFolderScoreCountsByKeyChanged: advanceNumberValueFolderCountsRevision()
     onRankingStatsMd5Changed: advanceNumberValueRankingStatsRevision()
     onRankingClearCountsChanged: advanceNumberValueRankingStatsRevision()
@@ -192,26 +193,47 @@ Item {
     onRankingTotalPlayCountChanged: advanceNumberValueRankingStatsRevision()
 
     function advanceNumberValueRevision(value: int) : int {
-        return value > 1000000 ? 1 : value + 1;
+        return value > root.numberValueRevisionLimit ? 1 : value + 1;
     }
 
     function pruneNumberValueCacheIfNeeded() : void {
-        if (root.numberValueSelectedDetailRevision > 1000000
-                || root.numberValuePlayerStatsRevision > 1000000
-                || root.numberValueFolderCountsRevision > 1000000
-                || root.numberValueRankingStatsRevision > 1000000) {
-            root.numberValueCache = ({});
-            root.numberValueCacheRevisions = ({});
+        if (root.numberValueSelectedItemRevision > root.numberValueRevisionLimit
+                || root.numberValueSelectedChartRevision > root.numberValueRevisionLimit
+                || root.numberValueSelectedScoreRevision > root.numberValueRevisionLimit
+                || root.numberValueSelectedDifficultyRevision > root.numberValueRevisionLimit
+                || root.numberValuePlayerStatsRevision > root.numberValueRevisionLimit
+                || root.numberValueFolderCountsRevision > root.numberValueRevisionLimit
+                || root.numberValueRankingStatsRevision > root.numberValueRevisionLimit) {
+            root.numberValueCache = [];
+            root.numberValueCacheRevisions = [];
             root.numberValuePlayerStatsRevision = 0;
-            root.numberValueSelectedDetailRevision = 0;
+            root.numberValueSelectedItemRevision = 0;
+            root.numberValueSelectedChartRevision = 0;
+            root.numberValueSelectedScoreRevision = 0;
+            root.numberValueSelectedDifficultyRevision = 0;
             root.numberValueFolderCountsRevision = 0;
             root.numberValueRankingStatsRevision = 0;
         }
     }
 
-    function advanceNumberValueSelectedDetailRevision() : void {
+    function advanceNumberValueSelectedItemRevision() : void {
         pruneNumberValueCacheIfNeeded();
-        root.numberValueSelectedDetailRevision = advanceNumberValueRevision(root.numberValueSelectedDetailRevision);
+        root.numberValueSelectedItemRevision = advanceNumberValueRevision(root.numberValueSelectedItemRevision);
+    }
+
+    function advanceNumberValueSelectedChartRevision() : void {
+        pruneNumberValueCacheIfNeeded();
+        root.numberValueSelectedChartRevision = advanceNumberValueRevision(root.numberValueSelectedChartRevision);
+    }
+
+    function advanceNumberValueSelectedScoreRevision() : void {
+        pruneNumberValueCacheIfNeeded();
+        root.numberValueSelectedScoreRevision = advanceNumberValueRevision(root.numberValueSelectedScoreRevision);
+    }
+
+    function advanceNumberValueSelectedDifficultyRevision() : void {
+        pruneNumberValueCacheIfNeeded();
+        root.numberValueSelectedDifficultyRevision = advanceNumberValueRevision(root.numberValueSelectedDifficultyRevision);
     }
 
     function advanceNumberValuePlayerStatsRevision() : void {
@@ -332,6 +354,27 @@ Item {
         target: selectedDetailState.summary
         function onChanged() : void {
             root.selectedDetailValueRevision += 1;
+            root.advanceNumberValueSelectedScoreRevision();
+        }
+    }
+
+    Connections {
+        target: selectedDetailState
+        function onItemChanged() : void {
+            root.advanceNumberValueSelectedItemRevision();
+        }
+        function onChartDataChanged() : void {
+            root.advanceNumberValueSelectedChartRevision();
+        }
+    }
+
+    Connections {
+        target: selectedDetailState.difficultyModel
+        function onDataChanged() : void {
+            root.advanceNumberValueSelectedDifficultyRevision();
+        }
+        function onModelReset() : void {
+            root.advanceNumberValueSelectedDifficultyRevision();
         }
     }
 
@@ -3344,7 +3387,6 @@ Item {
                 root.difficultyStateUsed,
                 root.difficultyLampStateUsed);
         if (changed) {
-            root.selectedDetailValueRevision += 1;
             let chartData = nextChartData;
             let nextChartWrapper = chartData || null;
             if (visualChartWrapper !== nextChartWrapper) {
@@ -4128,16 +4170,58 @@ Item {
         return (chart.playLevel || 0) >= threshold ? 186 : 185;
     }
 
+    function numberValueCombinedRevision2(a: int, b: int) : var {
+        const base = root.numberValueRevisionLimit + 3;
+        return a * base + b;
+    }
+
+    function numberValueCombinedRevision3(a: int, b: int, c: int) : var {
+        const base = root.numberValueRevisionLimit + 3;
+        return (a * base + b) * base + c;
+    }
+
+    function numberValueCombinedRevision4(a: int, b: int, c: int, d: int) : var {
+        const base = root.numberValueRevisionLimit + 3;
+        return ((a * base + b) * base + c) * base + d;
+    }
+
+    function numberValueSelectedScoreRevisionValue() : var {
+        return root.rankingMode
+            ? numberValueCombinedRevision2(root.numberValueSelectedItemRevision,
+                                           root.numberValueSelectedScoreRevision)
+            : root.numberValueSelectedScoreRevision;
+    }
+
+    function numberValueSelectedChartScoreRevisionValue() : var {
+        return root.rankingMode
+            ? numberValueCombinedRevision3(root.numberValueSelectedChartRevision,
+                                           root.numberValueSelectedItemRevision,
+                                           root.numberValueSelectedScoreRevision)
+            : numberValueCombinedRevision2(root.numberValueSelectedChartRevision,
+                                           root.numberValueSelectedScoreRevision);
+    }
+
+    function numberValueSelectedDifficultyRevisionValue() : var {
+        return numberValueCombinedRevision2(root.numberValueSelectedChartRevision,
+                                            root.numberValueSelectedDifficultyRevision);
+    }
+
     function numberValueSelectedRankingRevision() : var {
-        return root.numberValueSelectedDetailRevision
-            + ":"
-            + root.numberValueRankingStatsRevision;
+        return numberValueCombinedRevision3(root.numberValueSelectedChartRevision,
+                                            root.numberValueSelectedScoreRevision,
+                                            root.numberValueRankingStatsRevision);
     }
 
     function numberValueSelectedFolderRevision() : var {
-        return root.numberValueSelectedDetailRevision
-            + ":"
-            + root.numberValueFolderCountsRevision;
+        return numberValueCombinedRevision2(root.numberValueSelectedItemRevision,
+                                            root.numberValueFolderCountsRevision);
+    }
+
+    function numberValueSelectedAllRevision() : var {
+        return numberValueCombinedRevision4(root.numberValueSelectedItemRevision,
+                                            root.numberValueSelectedChartRevision,
+                                            root.numberValueSelectedScoreRevision,
+                                            root.numberValueSelectedDifficultyRevision);
     }
 
     function numberValueCacheRevisionForNumber(num: int) : var {
@@ -4153,6 +4237,91 @@ Item {
         case 39:
         case 333:
             return root.numberValuePlayerStatsRevision;
+        case 45:
+        case 46:
+        case 47:
+        case 48:
+        case 49:
+            return numberValueSelectedDifficultyRevisionValue();
+        case 42:
+        case 96:
+        case 90:
+        case 91:
+        case 290:
+        case 291:
+        case 106:
+        case 350:
+        case 351:
+        case 352:
+        case 353:
+        case 354:
+        case 360:
+        case 361:
+        case 362:
+        case 363:
+        case 364:
+        case 365:
+        case 368:
+        case 1163:
+        case 1164:
+            return root.numberValueSelectedChartRevision;
+        case 70:
+        case 71:
+        case 72:
+        case 73:
+        case 75:
+        case 76:
+        case 77:
+        case 78:
+        case 79:
+        case 80:
+        case 81:
+        case 82:
+        case 83:
+        case 84:
+        case 85:
+        case 86:
+        case 87:
+        case 88:
+        case 89:
+        case 101:
+        case 102:
+        case 103:
+        case 104:
+        case 105:
+        case 108:
+        case 110:
+        case 111:
+        case 112:
+        case 113:
+        case 114:
+        case 115:
+        case 116:
+        case 150:
+        case 152:
+        case 410:
+        case 411:
+        case 412:
+        case 413:
+        case 414:
+        case 415:
+        case 416:
+        case 417:
+        case 418:
+        case 419:
+        case 420:
+        case 421:
+        case 422:
+        case 423:
+        case 424:
+        case 425:
+        case 426:
+        case 427:
+            return numberValueSelectedScoreRevisionValue();
+        case 74:
+        case 100:
+        case 154:
+            return numberValueSelectedChartScoreRevisionValue();
         case 92:
         case 93:
         case 94:
@@ -4217,6 +4386,15 @@ Item {
         case 10:
         case 11:
         case 13:
+        case 17:
+        case 18:
+        case 19:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29:
         case 38:
         case 40:
         case 57:
@@ -4229,11 +4407,17 @@ Item {
         case 123:
         case 135:
         case 136:
+        case 137:
         case 151:
         case 182:
+        case 271:
+        case 312:
+        case 313:
+        case 340:
+        case 341:
             return root.numberValueStaticRevision;
         default:
-            return root.numberValueSelectedDetailRevision;
+            return numberValueSelectedAllRevision();
         }
     }
 
@@ -4241,18 +4425,21 @@ Item {
         const numeric = Number(num);
         const id = isFinite(numeric) ? Math.floor(numeric) : 0;
         const revision = numberValueCacheRevisionForNumber(id);
-        const key = String(id);
-        if (root.numberValueCacheRevisions[key] === revision) {
-            return root.numberValueCache[key];
+        if (root.numberValueCacheRevisions[id] === revision) {
+            return root.numberValueCache[id];
         }
 
         const value = computeNumberValue(id);
-        root.numberValueCache[key] = value;
-        root.numberValueCacheRevisions[key] = revision;
+        root.numberValueCache[id] = value;
+        root.numberValueCacheRevisions[id] = revision;
         return value;
     }
 
     function computeNumberValue(num: var) : var {
+        if (selectedDetailState.resolvesSelectedNumberValue(num)) {
+            return selectedDetailState.selectedNumberValue(num);
+        }
+
         let state = selectedState;
         let chartLoaded = false;
         let chartValue = null;
@@ -4733,15 +4920,53 @@ Item {
         return difficultyCount(diff) > 0;
     }
 
+    function barGraphRevisionForType(type: int) : var {
+        switch (type) {
+        case 110:
+        case 111:
+        case 112:
+        case 113:
+        case 114:
+        case 115:
+        case 140:
+        case 141:
+        case 142:
+        case 143:
+        case 144:
+        case 145:
+        case 146:
+        case 147:
+            return barGraphRevisionForType(type - 100);
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+            return numberValueSelectedDifficultyRevisionValue();
+        case 40:
+        case 41:
+        case 42:
+        case 43:
+        case 44:
+        case 45:
+        case 46:
+        case 47:
+            return numberValueSelectedScoreRevisionValue();
+        default:
+            return root.numberValueStaticRevision;
+        }
+    }
+
     function barGraphValue(type: var) : var {
         if (type === 101) {
             return normalizedVisualIndex;
         }
-        return computeBarGraphValue(type);
+        const graphType = Math.floor(Number(type) || 0);
+        barGraphRevisionForType(graphType);
+        return selectedDetailState.selectedBarGraphValue(graphType);
     }
 
     function computeBarGraphValue(type: var) : var {
-        root.selectedDetailValueRevision;
         let state = selectedState;
         let statsLoaded = false;
         let statsValue = null;
