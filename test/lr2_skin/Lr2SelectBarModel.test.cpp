@@ -237,6 +237,14 @@ TEST_CASE("LR2 chart data snapshot reads typed chart data for note graph data",
 	REQUIRE(snapshot.normalNoteCount() == 3);
 	REQUIRE(snapshot.histogramData().size() == 5);
     REQUIRE(snapshot.histogramData().at(0).toList() == QVariantList({1LL, 2LL, 3LL}));
+	REQUIRE(snapshot.normalDensityData().size() == 3);
+	REQUIRE(snapshot.normalDensityData().at(0).toList()
+			== QVariantList({0, 5LL, 4LL, 0, 0, 1LL, 7LL}));
+	REQUIRE(snapshot.normalDensityData().at(1).toList()
+			== QVariantList({0, 6LL, 0, 0, 0, 2LL, 0}));
+	REQUIRE(snapshot.normalDensityData().at(2).toList()
+			== QVariantList({0, 0, 0, 0, 0, 3LL, 0}));
+	REQUIRE(snapshot.normalDensityMax() == 20);
 }
 
 TEST_CASE("LR2 select bar cells consume flat folder graph arrays",

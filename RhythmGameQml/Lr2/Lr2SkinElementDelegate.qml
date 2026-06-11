@@ -640,6 +640,12 @@ Loader {
             timers: elemLoader.screenRoot.barTimers
             scaleOverride: skinScale
             selectContext: elemLoader.screenRoot.selectContextRef
+            selectedOffset: elemLoader.screenRoot.selectContextRef
+                ? elemLoader.screenRoot.selectContextRef.selectedOffset
+                : 0
+            rankingMode: elemLoader.screenRoot.selectContextRef
+                ? elemLoader.screenRoot.selectContextRef.rankingMode
+                : false
             barRows: skinModel.barRows
             barLampVariants: skinModel.barLampVariants
             barBaseStateResolver: elemLoader.screenRoot.barBaseStateResolver

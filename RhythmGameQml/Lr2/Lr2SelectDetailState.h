@@ -374,6 +374,9 @@ public:
 														int scoreGeneration,
 														bool useBeatorajaSemantics,
 														bool buildScoreOptionIds);
+	Q_INVOKABLE bool resolvesSelectedNumberValue(int num) const;
+	Q_INVOKABLE int selectedNumberValue(int num) const;
+	Q_INVOKABLE double selectedBarGraphValue(int type) const;
 	Q_INVOKABLE void clearScoreSummaryCache();
 	Q_INVOKABLE void clear();
 

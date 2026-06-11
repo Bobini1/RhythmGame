@@ -4,6 +4,7 @@
 #include "gameplay_logic/BmsReplayData.h"
 #include "gameplay_logic/BmsScore.h"
 
+#include <catch2/catch_approx.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <QCoreApplication>
@@ -260,4 +261,46 @@ TEST_CASE("LR2 select detail state keeps zero-point played scores as rank F",
 	CHECK(state.summary()->scoreRate() == 0.0);
 	CHECK(state.summary()->scoreCounts()->play() == 1);
 	CHECK(state.summary()->scoreCounts()->fail() == 1);
+}
+
+TEST_CASE("LR2 select detail state resolves selected score numbers in C++",
+		  "[lr2][runtime][select]")
+{
+	ensureCoreApplication();
+	Lr2SelectDetailState state;
+	QJSEngine engine;
+	auto* score = scoreWithValues(QStringLiteral("NORMAL"),
+								  42.0,
+								  21.0,
+								  QList<int> {5, 6, 4, 3, 2, 1},
+								  7,
+								  &state);
+
+	refreshState(state,
+				 engine,
+				 QStringLiteral("selected-number-values"),
+				 QVariantList {QVariant::fromValue(score)},
+				 0,
+				 QVariantList {},
+				 QVariantList {},
+				 QVariantList {},
+				 true,
+				 true);
+
+	CHECK(state.resolvesSelectedNumberValue(101));
+	CHECK_FALSE(state.resolvesSelectedNumberValue(30));
+	CHECK(state.selectedNumberValue(80) == 1);
+	CHECK(state.selectedNumberValue(81) == 2);
+	CHECK(state.selectedNumberValue(82) == 3);
+	CHECK(state.selectedNumberValue(83) == 4);
+	CHECK(state.selectedNumberValue(84) == 5);
+	CHECK(state.selectedNumberValue(101) == 21);
+	CHECK(state.selectedNumberValue(102) == 50);
+	CHECK(state.selectedNumberValue(104) == 7);
+	CHECK(state.selectedNumberValue(425) == 9);
+	CHECK(state.selectedNumberValue(426) == 11);
+	CHECK(state.selectedNumberValue(427) == 15);
+	CHECK(state.selectedBarGraphValue(40) == Catch::Approx(1.0 / 21.0));
+	CHECK(state.selectedBarGraphValue(41) == Catch::Approx(2.0 / 21.0));
+	CHECK(state.selectedBarGraphValue(46) == Catch::Approx(0.5));
 }

@@ -3833,13 +3833,9 @@ Item {
     readonly property var builtBaseRuntimeActiveOptions: runtimeOptions.buildBaseActiveOptions(root.builtBarRuntimeActiveOptions)
     readonly property var builtSelectCommonRuntimeActiveOptions: runtimeOptions.buildSelectCommonActiveOptions(root.builtBaseRuntimeActiveOptions)
     readonly property var builtSelectRequiredRuntimeActiveOptions: runtimeOptions.buildSelectRequiredRuntimeActiveOptions()
-    property var builtSelectRuntimeActiveOptions: []
-    property var builtSelectDetailRuntimeActiveOptions: []
-    readonly property var selectEntryResolvedTextIds: [
-        3,
+    readonly property var selectFocusedEntryResolvedTextIds: [
         10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-        120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 130,
         150, 151, 152, 153, 154, 155, 156, 157, 158, 159,
         160, 161, 162, 163, 164, 170,
         1000, 1001, 1002, 1003, 1030, 1031
@@ -3853,6 +3849,9 @@ Item {
     readonly property var selectRankingResolvedTextIds: [
         120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130
     ]
+    readonly property var selectScoreResolvedTextIds: [130]
+    readonly property var selectEntryResolvedTextIds: root.selectFocusedEntryResolvedTextIds
+        .concat(root.selectRankingResolvedTextIds)
     readonly property var selectRuntimeResolvedTextIds: root.selectEntryResolvedTextIds
         .concat(root.selectOptionResolvedTextIds)
     readonly property var searchResolvedTextIds: [30]
@@ -4026,26 +4025,18 @@ Item {
         root.refreshSelectRuntimeActiveOptions();
     }
 
-    function updateBuiltSelectRuntimeActiveOptions() : var {
+    function updateSelectRuntimeGeneratedActiveOptions() : var {
         let nextOptions = root.effectiveScreenKey === "select"
             ? runtimeOptions.buildSelectGeneratedRuntimeActiveOptions()
             : [];
-        if (root.sameArrayValues(nextOptions, root.builtSelectRuntimeActiveOptions)) {
-            return false;
-        }
-        root.builtSelectRuntimeActiveOptions = nextOptions;
-        return true;
+        return selectUpdateController.updateSelectRuntimeGeneratedActiveOptions(nextOptions);
     }
 
-    function updateBuiltSelectDetailRuntimeActiveOptions() : var {
+    function updateSelectDetailRuntimeActiveOptions() : var {
         let nextOptions = root.effectiveScreenKey === "select"
             ? runtimeOptions.buildSelectDetailRuntimeActiveOptions()
             : [];
-        if (root.sameArrayValues(nextOptions, root.builtSelectDetailRuntimeActiveOptions)) {
-            return false;
-        }
-        root.builtSelectDetailRuntimeActiveOptions = nextOptions;
-        return true;
+        return selectUpdateController.updateSelectDetailRuntimeActiveOptions(nextOptions);
     }
 
     function markSelectRuntimeActiveOptionsDirty(generatedDirty: var, detailDirty: var) : void {
@@ -4067,16 +4058,14 @@ Item {
         let controllerRefreshNeeded = forceGeneratedDirty !== false || forceDetailDirty !== false;
         if (root.selectGeneratedRuntimeActiveOptionsDirty) {
             root.selectGeneratedRuntimeActiveOptionsDirty = false;
-            if (root.updateBuiltSelectRuntimeActiveOptions()) {
-                selectUpdateController.selectRuntimeGeneratedActiveOptions = root.builtSelectRuntimeActiveOptions;
+            if (root.updateSelectRuntimeGeneratedActiveOptions()) {
                 controllerRefreshNeeded = true;
             }
         }
 
         if (root.selectDetailRuntimeActiveOptionsDirty) {
             root.selectDetailRuntimeActiveOptionsDirty = false;
-            if (root.updateBuiltSelectDetailRuntimeActiveOptions()) {
-                selectUpdateController.selectDetailRuntimeActiveOptions = root.builtSelectDetailRuntimeActiveOptions;
+            if (root.updateSelectDetailRuntimeActiveOptions()) {
                 controllerRefreshNeeded = true;
             }
         }
@@ -4316,22 +4305,22 @@ Item {
         target: selectContext
         ignoreUnknownSignals: true
         function onFocusedItemChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectFocusedEntryResolvedTextIds);
         }
         function onFocusedChartDataChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectFocusedEntryResolvedTextIds);
         }
         function onSelectedStateItemChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectFocusedEntryResolvedTextIds);
         }
         function onSelectedStateChartDataChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectFocusedEntryResolvedTextIds);
         }
         function onSelectedStateCurrentChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectEntryResolvedTextIds);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, true, root.selectFocusedEntryResolvedTextIds);
         }
         function onSelectedDetailValueRevisionChanged() : void {
-            root.queueSelectRuntimeActiveOptionsRefresh(true, false, root.selectEntryResolvedTextIds);
+            root.queueSelectRuntimeActiveOptionsRefresh(true, false, root.selectScoreResolvedTextIds);
         }
         function onSearchTextChanged() : void {
             root.queueResolvedTextRefresh(root.searchResolvedTextIds);

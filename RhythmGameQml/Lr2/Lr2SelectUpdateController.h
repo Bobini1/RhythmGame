@@ -132,6 +132,8 @@ public:
     Q_INVOKABLE bool refreshBaseActiveOptions();
     Q_INVOKABLE bool refreshSelectRuntimeActiveOptions();
     Q_INVOKABLE bool refreshGameplayRuntimeActiveOptions();
+    Q_INVOKABLE bool updateSelectRuntimeGeneratedActiveOptions(const QList<int>& options);
+    Q_INVOKABLE bool updateSelectDetailRuntimeActiveOptions(const QList<int>& options);
 
 signals:
     void skinModelChanged();

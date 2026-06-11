@@ -201,37 +201,56 @@ QtObject {
     }
 
     function selectReplayOptionsUsed() : var {
-        return root.replayOptionsUsed();
+        let used = host.selectReplayOptionsUsed;
+        return used === undefined ? root.replayOptionsUsed() : used;
     }
 
     function selectScoreOptionIdsUsed() : var {
+        let used = host.selectScoreOptionIdsUsed;
+        if (used !== undefined) {
+            return used;
+        }
         return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 118, 130)
             || root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [144, 145, 1128]);
     }
 
     function selectEntryStatusOptionsUsed() : var {
+        let used = host.selectEntryStatusOptionsUsed;
+        if (used !== undefined) {
+            return used;
+        }
         return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 100, 130)
             || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 200, 207)
             || root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [1100, 1101, 1102, 1103, 1104]);
     }
 
     function selectCourseDetailOptionsUsed() : var {
+        let used = host.selectCourseDetailOptionsUsed;
+        if (used !== undefined) {
+            return used;
+        }
         return root.runtimeAnyOptionUsed(root.runtimeUsedOptions, [290, 293])
             || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 580, 589)
             || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 700, 755);
     }
 
     function selectDifficultyBarOptionsUsed() : var {
+        let used = host.selectDifficultyBarOptionsUsed;
+        if (used !== undefined) {
+            return used;
+        }
         return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 70, 79)
             || root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 500, 570);
     }
 
     function selectDifficultyLampOptionsUsed() : var {
-        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 520, 570);
+        let used = host.selectDifficultyLampOptionsUsed;
+        return used === undefined ? root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 520, 570) : used;
     }
 
     function selectRankingStatusOptionsUsed() : var {
-        return root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 600, 616);
+        let used = host.selectRankingStatusOptionsUsed;
+        return used === undefined ? root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 600, 616) : used;
     }
 
     function copyActiveOptions(options: var) : var {

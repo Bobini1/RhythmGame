@@ -66,14 +66,12 @@ Item {
     readonly property var resultEvents: score && score.replayData ? (score.replayData.hitEvents || []) : []
     readonly property var densityData: buildGraphData()
     readonly property int bucketCount: Math.max(1, densityData.length)
-    readonly property int maxDensity: graphMax(densityData)
+    readonly property int maxDensity: chartType === 0
+        ? chartSnapshot.normalDensityMax
+        : graphMax(densityData)
     readonly property int sourceW: bucketCount * 5
     readonly property int sourceH: maxDensity * 5
     readonly property int effectiveSkinTime: Lr2SkinUtils.skinTimeForClock(skinClock, skinClockMode, skinTime)
-
-    function densityAt(series: var, index: var) : var {
-        return series && index < series.length ? (Number(series[index]) || 0) : 0;
-    }
 
     function chartDstExtent(fieldSize: var, stateSize: var) : var {
         let size = Math.abs(Number(stateSize || 0));
@@ -130,28 +128,6 @@ Item {
         }
     }
 
-    function buildNormalData(histogram: var) : var {
-        let normal = histogram && histogram[0] ? histogram[0] : [];
-        let scratch = histogram && histogram[1] ? histogram[1] : [];
-        let ln = histogram && histogram[2] ? histogram[2] : [];
-        let bss = histogram && histogram[3] ? histogram[3] : [];
-        let mine = histogram && histogram[4] ? histogram[4] : [];
-        let count = Math.max(normal.length, scratch.length, ln.length, bss.length, mine.length);
-        let data = new Array(count);
-        for (let i = 0; i < count; ++i) {
-            data[i] = [
-                0,
-                densityAt(bss, i),
-                densityAt(scratch, i),
-                0,
-                densityAt(ln, i),
-                densityAt(normal, i),
-                densityAt(mine, i)
-            ];
-        }
-        return data;
-    }
-
     function chartLengthNanos() : var {
         let result = root.score && root.score.result ? root.score.result : null;
         let length = Math.max(0,
@@ -203,10 +179,14 @@ Item {
     }
 
     function histogramPlayableCountAt(histogram: var, index: var) : var {
-        return densityAt(histogram && histogram[0], index)
-            + densityAt(histogram && histogram[1], index)
-            + densityAt(histogram && histogram[2], index)
-            + densityAt(histogram && histogram[3], index);
+        let normal = histogram && histogram[0] ? histogram[0] : null;
+        let scratch = histogram && histogram[1] ? histogram[1] : null;
+        let ln = histogram && histogram[2] ? histogram[2] : null;
+        let bss = histogram && histogram[3] ? histogram[3] : null;
+        return (normal && index < normal.length ? (Number(normal[index]) || 0) : 0)
+            + (scratch && index < scratch.length ? (Number(scratch[index]) || 0) : 0)
+            + (ln && index < ln.length ? (Number(ln[index]) || 0) : 0)
+            + (bss && index < bss.length ? (Number(bss[index]) || 0) : 0);
     }
 
     function baseReplayBuckets(bucketSize: var) : var {
@@ -322,7 +302,7 @@ Item {
 
     function buildGraphData() : var {
         if (root.chartType === 0) {
-            return root.buildNormalData(root.hasChartData ? root.chartSnapshot.histogramData : []);
+            return root.hasChartData ? root.chartSnapshot.normalDensityData : [];
         }
         return root.buildReplayData(root.chartType);
     }

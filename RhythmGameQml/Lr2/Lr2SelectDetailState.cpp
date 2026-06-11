@@ -2,12 +2,15 @@
 
 #include "gameplay_logic/BmsScore.h"
 #include "gameplay_logic/BmsScoreCourse.h"
+#include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/Judgement.h"
 
 #include <QList>
 #include <QObject>
 #include <QStringView>
 #include <algorithm>
+#include <cmath>
+#include <optional>
 #include <utility>
 
 namespace {
@@ -162,6 +165,16 @@ gameplay_logic::BmsScoreCourse* courseScoreFromVariant(const QVariant& value) {
 	return nullptr;
 }
 
+gameplay_logic::ChartData* chartDataFromVariant(const QVariant& value) {
+	if (auto* chart = value.value<gameplay_logic::ChartData*>()) {
+		return chart;
+	}
+	if (auto* object = value.value<QObject*>()) {
+		return qobject_cast<gameplay_logic::ChartData*>(object);
+	}
+	return nullptr;
+}
+
 QVariant scoreVariant(QObject* scoreObject) {
 	return scoreObject ? QVariant::fromValue(scoreObject) : QVariant {};
 }
@@ -228,6 +241,174 @@ int rankForScoreRate(double rate) {
 	if (rate >= 3.0 / 9.0) return 3;
 	if (rate >= 2.0 / 9.0) return 2;
 	return rate > 0.0 ? 1 : 0;
+}
+
+int percentInteger(double value, double total) {
+	return total > 0.0
+		? static_cast<int>(std::floor(std::max(0.0, value) * 100.0 / total))
+		: 0;
+}
+
+int percentAfterDot(double value, double total) {
+	return total > 0.0
+		? static_cast<int>(std::floor(std::max(0.0, value) * 10000.0 / total)) % 100
+		: 0;
+}
+
+double normalized(double value, double total) {
+	return total > 0.0 ? value / total : 0.0;
+}
+
+int chartPlayableNoteCount(gameplay_logic::ChartData* chart) {
+	return chart
+		? chart->getNormalNoteCount()
+			+ chart->getScratchCount()
+			+ chart->getLnCount()
+			+ chart->getBssCount()
+		: 0;
+}
+
+int chartLengthSeconds(gameplay_logic::ChartData* chart) {
+	if (!chart) {
+		return -1;
+	}
+	return static_cast<int>(std::max<qint64>(0, chart->getLength()) / 1000000000);
+}
+
+int chartKeymode(gameplay_logic::ChartData* chart) {
+	return chart ? static_cast<int>(chart->getKeymode()) : 0;
+}
+
+int levelBarFlashThreshold(gameplay_logic::ChartData* chart) {
+	const int keymode = chartKeymode(chart);
+	if (keymode == 5 || keymode == 10) {
+		return 9;
+	}
+	return 12;
+}
+
+int chartDensityValue(gameplay_logic::ChartData* chart, double density, bool afterDot) {
+	if (!chart) {
+		return -1;
+	}
+	density = std::max(0.0, density);
+	return afterDot
+		? static_cast<int>(std::floor(density * 100.0)) % 100
+		: static_cast<int>(std::floor(density));
+}
+
+int scorePrintValue(const Lr2SelectScoreStatsData* stats, gameplay_logic::ChartData* chart) {
+	if (!stats || !stats->valid) {
+		return 0;
+	}
+	int totalNotes = chartPlayableNoteCount(chart);
+	if (totalNotes <= 0) {
+		totalNotes = static_cast<int>(std::floor(stats->maxPoints / 2.0));
+	}
+	if (totalNotes <= 0) {
+		return 0;
+	}
+	const int keymode = chartKeymode(chart);
+	if (keymode == 5 || keymode == 10) {
+		return static_cast<int>(std::floor((100000.0 * stats->pg
+											+ 100000.0 * stats->gr
+											+ 50000.0 * stats->gd) / totalNotes));
+	}
+	if (keymode == 7 || keymode == 14) {
+		return static_cast<int>(std::floor((150000.0 * stats->pg
+											+ 100000.0 * stats->gr
+											+ 20000.0 * stats->gd) / totalNotes))
+			+ static_cast<int>(std::floor(50000.0 * stats->maxCombo / totalNotes));
+	}
+	return static_cast<int>(std::floor((1000000.0 * stats->pg
+										+ 700000.0 * stats->gr
+										+ 400000.0 * stats->gd) / totalNotes));
+}
+
+int nextRankDelta(const Lr2SelectScoreStatsData* stats, gameplay_logic::ChartData* chart) {
+	if (!stats || !stats->valid) {
+		return 0;
+	}
+	const double scoreMaxPoints = stats->maxPoints;
+	double targetMaxPoints = chartPlayableNoteCount(chart) * 2.0;
+	if (targetMaxPoints <= 0.0) {
+		targetMaxPoints = scoreMaxPoints;
+	}
+	if (scoreMaxPoints <= 0.0 || targetMaxPoints <= 0.0) {
+		return 0;
+	}
+	const double rate = std::max(0.0, stats->exscore) / scoreMaxPoints;
+	for (int rank = 0; rank < 27; ++rank) {
+		const bool qualified = rate >= rank / 27.0;
+		if (rank % 3 == 0 && !qualified) {
+			return static_cast<int>(std::llround(rank * targetMaxPoints / 27.0
+												 - rate * targetMaxPoints));
+		}
+	}
+	return static_cast<int>(std::llround(targetMaxPoints - rate * targetMaxPoints));
+}
+
+QVariantMap rankingEntryMap(const QVariant& value) {
+	if (value.canConvert<QVariantMap>()) {
+		return value.toMap();
+	}
+	return {};
+}
+
+double mapNumber(const QVariantMap& map, const QString& key) {
+	return std::max(0.0, map.value(key).toDouble());
+}
+
+std::optional<Lr2SelectScoreStatsData> rankingScoreStatsFromMap(const QVariantMap& map) {
+	if (!map.value(QStringLiteral("__lr2RankingEntry")).toBool()) {
+		return std::nullopt;
+	}
+
+	const int pg = static_cast<int>(mapNumber(map, QStringLiteral("pg")));
+	const int gr = static_cast<int>(mapNumber(map, QStringLiteral("gr")));
+	const int gd = static_cast<int>(mapNumber(map, QStringLiteral("gd")));
+	const int bd = static_cast<int>(mapNumber(map, QStringLiteral("bd")));
+	const int poor = static_cast<int>(mapNumber(map, QStringLiteral("poor")));
+	const int miss = static_cast<int>(mapNumber(map, QStringLiteral("miss")));
+	const int pr = poor + miss;
+	const double maxPoints = mapNumber(map, QStringLiteral("maxPoints"));
+	int totalJudgements = pg + gr + gd + bd + pr;
+	if (totalJudgements <= 0 && maxPoints > 0.0) {
+		totalJudgements = static_cast<int>(std::floor(maxPoints / 2.0));
+	}
+	const int bestComboBreaks = static_cast<int>(mapNumber(map, QStringLiteral("bestComboBreaks")));
+	const int computedBadPoor = bd + pr;
+	const int badPoor = computedBadPoor > 0 ? computedBadPoor : bestComboBreaks;
+	int comboBreak = bd + poor;
+	if (comboBreak <= 0 && computedBadPoor <= 0) {
+		comboBreak = bestComboBreaks;
+	}
+	const double bestPoints = mapNumber(map, QStringLiteral("bestPoints"));
+	return Lr2SelectScoreStatsData {
+		.valid = true,
+		.pg = pg,
+		.gr = gr,
+		.gd = gd,
+		.bd = bd,
+		.poor = poor,
+		.miss = miss,
+		.pr = pr,
+		.totalJudgements = std::max(1, totalJudgements),
+		.comboBreak = comboBreak,
+		.badPoor = badPoor,
+		.maxCombo = static_cast<int>(mapNumber(map, QStringLiteral("bestCombo"))),
+		.score = bestPoints,
+		.exscore = bestPoints,
+		.maxPoints = maxPoints,
+		.early = {},
+		.late = {},
+		.totalEarly = 0,
+		.totalLate = 0,
+	};
+}
+
+std::optional<Lr2SelectScoreStatsData> rankingScoreStatsFromVariant(const QVariant& value) {
+	return rankingScoreStatsFromMap(rankingEntryMap(value));
 }
 
 int judgementCount(const QList<int>& counts, gameplay_logic::Judgement judgement) {
@@ -1205,6 +1386,326 @@ bool Lr2SelectDetailState::hasCachedScoreSummaryForIdentifier(const QString& ide
 																					scoreGeneration);
 	return isValidScoreSummaryCacheKey(cacheKey)
 		&& m_scoreSummaryCache.constFind(cacheKey) != m_scoreSummaryCache.constEnd();
+}
+
+bool Lr2SelectDetailState::resolvesSelectedNumberValue(int num) const {
+	switch (num) {
+	case 42:
+	case 45:
+	case 46:
+	case 47:
+	case 48:
+	case 49:
+	case 70:
+	case 71:
+	case 72:
+	case 73:
+	case 74:
+	case 75:
+	case 76:
+	case 77:
+	case 78:
+	case 79:
+	case 80:
+	case 81:
+	case 82:
+	case 83:
+	case 84:
+	case 85:
+	case 86:
+	case 87:
+	case 88:
+	case 89:
+	case 90:
+	case 91:
+	case 96:
+	case 100:
+	case 101:
+	case 102:
+	case 103:
+	case 104:
+	case 105:
+	case 106:
+	case 108:
+	case 110:
+	case 111:
+	case 112:
+	case 113:
+	case 114:
+	case 115:
+	case 116:
+	case 128:
+	case 150:
+	case 152:
+	case 154:
+	case 290:
+	case 291:
+	case 350:
+	case 351:
+	case 352:
+	case 353:
+	case 354:
+	case 360:
+	case 361:
+	case 362:
+	case 363:
+	case 364:
+	case 365:
+	case 368:
+	case 420:
+	case 425:
+	case 426:
+	case 427:
+	case 1163:
+	case 1164:
+		return true;
+	default:
+		return false;
+	}
+}
+
+int Lr2SelectDetailState::selectedNumberValue(int num) const {
+	gameplay_logic::ChartData* chart = chartDataFromVariant(m_chartData);
+	switch (num) {
+	case 42:
+	case 96:
+		return chart ? chart->getPlayLevel() : 0;
+	case 45:
+	case 46:
+	case 47:
+	case 48:
+	case 49: {
+		const int difficulty = num - 44;
+		return m_difficultyModel.countForDifficulty(difficulty) > 0
+			? m_difficultyModel.playLevelForDifficulty(difficulty)
+			: -1;
+	}
+	case 90:
+	case 290: {
+		if (!chart) {
+			return -1;
+		}
+		const double bpm = chart->getMaxBpm() != 0.0 ? chart->getMaxBpm() : chart->getMainBpm();
+		return bpm != 0.0 ? static_cast<int>(std::llround(bpm)) : -1;
+	}
+	case 91:
+	case 291: {
+		if (!chart) {
+			return -1;
+		}
+		const double bpm = chart->getMinBpm() != 0.0 ? chart->getMinBpm() : chart->getMainBpm();
+		return bpm != 0.0 ? static_cast<int>(std::llround(bpm)) : -1;
+	}
+	case 106:
+		return chartPlayableNoteCount(chart);
+	case 350:
+		return chart ? chart->getNormalNoteCount() : -1;
+	case 351:
+		return chart ? chart->getLnCount() : -1;
+	case 352:
+		return chart ? chart->getScratchCount() : -1;
+	case 353:
+		return chart ? chart->getBssCount() : -1;
+	case 354:
+		return chart ? chart->getMineCount() : -1;
+	case 360:
+		return chartDensityValue(chart, chart ? chart->getPeakDensity() : 0.0, false);
+	case 361:
+		return chartDensityValue(chart, chart ? chart->getPeakDensity() : 0.0, true);
+	case 362:
+		return chartDensityValue(chart, chart ? chart->getEndDensity() : 0.0, false);
+	case 363:
+		return chartDensityValue(chart, chart ? chart->getEndDensity() : 0.0, true);
+	case 364:
+		return chartDensityValue(chart, chart ? chart->getAvgDensity() : 0.0, false);
+	case 365:
+		return chartDensityValue(chart, chart ? chart->getAvgDensity() : 0.0, true);
+	case 368:
+		return chart ? static_cast<int>(std::floor(chart->getTotal())) : -1;
+	case 1163: {
+		const int seconds = chartLengthSeconds(chart);
+		return seconds >= 0 ? (seconds / 60) % 60 : -1;
+	}
+	case 1164: {
+		const int seconds = chartLengthSeconds(chart);
+		return seconds >= 0 ? seconds % 60 : -1;
+	}
+	default:
+		break;
+	}
+
+	QVariantMap rankingMap;
+	bool rankingEntry = false;
+	std::optional<Lr2SelectScoreStatsData> rankingStats;
+	if (m_selectedRankingMode) {
+		rankingMap = rankingEntryMap(m_item);
+		rankingEntry = rankingMap.value(QStringLiteral("__lr2RankingEntry")).toBool();
+		if (rankingEntry) {
+			rankingStats = rankingScoreStatsFromMap(rankingMap);
+		}
+	}
+	const Lr2SelectScoreStats* selectedStatsObject = m_summary.bestStatsStats();
+	const Lr2SelectScoreStatsData* stats = rankingStats
+		? &*rankingStats
+		: (selectedStatsObject->hasValues() ? &selectedStatsObject->values() : nullptr);
+	const Lr2SelectScoreCounts* counts = m_summary.scoreCounts();
+	const auto rankingNumber = [&](const QString& key) {
+		return mapNumber(rankingMap, key);
+	};
+
+	switch (num) {
+	case 70:
+		return rankingEntry
+			? static_cast<int>(std::llround(rankingNumber(QStringLiteral("bestPoints"))))
+			: (stats ? static_cast<int>(std::llround(stats->score)) : 0);
+	case 71:
+		return rankingEntry
+			? static_cast<int>(std::llround(rankingNumber(QStringLiteral("bestPoints"))))
+			: (stats ? static_cast<int>(std::llround(stats->exscore)) : 0);
+	case 72:
+		return rankingEntry
+			? static_cast<int>(std::llround(rankingNumber(QStringLiteral("maxPoints"))))
+			: (stats ? static_cast<int>(std::llround(stats->maxPoints)) : 0);
+	case 73: {
+		if (rankingEntry) {
+			const double maxPoints = rankingNumber(QStringLiteral("maxPoints"));
+			return maxPoints > 0.0
+				? static_cast<int>(std::llround(rankingNumber(QStringLiteral("bestPoints")) * 100.0 / maxPoints))
+				: 0;
+		}
+		return stats && stats->maxPoints > 0.0
+			? static_cast<int>(std::llround(stats->score * 100.0 / stats->maxPoints))
+			: 0;
+	}
+	case 74:
+		return rankingEntry
+			? static_cast<int>(std::llround(rankingNumber(QStringLiteral("maxPoints")) / 2.0))
+			: chartPlayableNoteCount(chart);
+	case 75:
+		return rankingEntry
+			? static_cast<int>(rankingNumber(QStringLiteral("bestCombo")))
+			: (stats ? stats->maxCombo : 0);
+	case 76:
+		return rankingEntry ? (stats ? stats->badPoor : 0) : counts->minBadPoor();
+	case 77:
+		return rankingEntry ? static_cast<int>(rankingNumber(QStringLiteral("scoreCount"))) : counts->play();
+	case 78:
+		return counts->clear();
+	case 79:
+		return counts->fail();
+	case 80:
+		return stats ? stats->pg : 0;
+	case 81:
+		return stats ? stats->gr : 0;
+	case 82:
+		return stats ? stats->gd : 0;
+	case 83:
+		return stats ? stats->bd : 0;
+	case 84:
+		return stats ? stats->poor : 0;
+	case 85:
+		return stats ? percentInteger(stats->pg, stats->totalJudgements) : 0;
+	case 86:
+		return stats ? percentInteger(stats->gr, stats->totalJudgements) : 0;
+	case 87:
+		return stats ? percentInteger(stats->gd, stats->totalJudgements) : 0;
+	case 88:
+		return stats ? percentInteger(stats->bd, stats->totalJudgements) : 0;
+	case 89:
+		return stats ? percentInteger(stats->poor, stats->totalJudgements) : 0;
+	case 100:
+		return scorePrintValue(stats, chart);
+	case 101:
+	case 108:
+	case 128:
+	case 150:
+	case 152:
+		return stats ? static_cast<int>(std::llround(stats->exscore)) : 0;
+	case 102:
+		return stats ? percentInteger(stats->exscore, stats->maxPoints) : 0;
+	case 103:
+		return stats ? percentAfterDot(stats->exscore, stats->maxPoints) : 0;
+	case 104:
+	case 105:
+		return stats ? stats->maxCombo : 0;
+	case 110:
+		return stats ? stats->pg : 0;
+	case 111:
+		return stats ? stats->gr : 0;
+	case 112:
+		return stats ? stats->gd : 0;
+	case 113:
+		return stats ? stats->bd : 0;
+	case 114:
+		return stats ? stats->poor : 0;
+	case 115:
+		return stats ? percentInteger(stats->exscore, stats->maxPoints) : 0;
+	case 116:
+		return stats ? percentAfterDot(stats->exscore, stats->maxPoints) : 0;
+	case 154:
+		return nextRankDelta(stats, chart);
+	case 420:
+		return stats ? stats->miss : 0;
+	case 425:
+		return stats ? stats->comboBreak : 0;
+	case 426:
+		return stats ? stats->pr : 0;
+	case 427:
+		return stats ? stats->badPoor : 0;
+	default:
+		return 0;
+	}
+}
+
+double Lr2SelectDetailState::selectedBarGraphValue(int type) const {
+	if ((type >= 110 && type <= 115) || (type >= 140 && type <= 147)) {
+		return selectedBarGraphValue(type - 100);
+	}
+
+	gameplay_logic::ChartData* chart = chartDataFromVariant(m_chartData);
+	std::optional<Lr2SelectScoreStatsData> rankingStats;
+	if (m_selectedRankingMode) {
+		rankingStats = rankingScoreStatsFromVariant(m_item);
+	}
+	const Lr2SelectScoreStats* selectedStatsObject = m_summary.bestStatsStats();
+	const Lr2SelectScoreStatsData* stats = rankingStats
+		? &*rankingStats
+		: (selectedStatsObject->hasValues() ? &selectedStatsObject->values() : nullptr);
+
+	switch (type) {
+	case 100:
+	case 102:
+	case 103:
+		return 0.0;
+	case 5:
+	case 6:
+	case 7:
+	case 8:
+	case 9: {
+		const int level = m_difficultyModel.playLevelForDifficulty(type - 4);
+		if (level <= 0) {
+			return 0.0;
+		}
+		return static_cast<double>(level) / std::max(1, levelBarFlashThreshold(chart));
+	}
+	case 40:
+		return stats ? normalized(stats->pg, stats->totalJudgements) : 0.0;
+	case 41:
+		return stats ? normalized(stats->gr, stats->totalJudgements) : 0.0;
+	case 42:
+		return stats ? normalized(stats->gd, stats->totalJudgements) : 0.0;
+	case 43:
+		return stats ? normalized(stats->bd, stats->totalJudgements) : 0.0;
+	case 44:
+		return stats ? normalized(stats->pr, stats->totalJudgements) : 0.0;
+	case 45:
+		return stats ? normalized(stats->maxCombo, chartPlayableNoteCount(chart)) : 0.0;
+	case 46:
+	case 47:
+		return stats && stats->maxPoints > 0.0 ? stats->exscore / stats->maxPoints : 0.0;
+	default:
+		return 0.0;
+	}
 }
 
 void Lr2SelectDetailState::clearScoreSummaryCache() {

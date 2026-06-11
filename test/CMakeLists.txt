@@ -22,6 +22,7 @@ add_executable(RhythmGame_test
         resource_managers/ScanThemes.test.cpp
         qml_components/FileQuery.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
+        lr2_skin/Lr2ResolvedTextRegistry.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp
         lr2_skin/Lr2SelectDetailState.test.cpp
         lr2_skin/Lr2SkinParser.test.cpp

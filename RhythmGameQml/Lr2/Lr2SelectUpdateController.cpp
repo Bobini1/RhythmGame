@@ -236,12 +236,7 @@ QList<int> Lr2SelectUpdateController::selectRuntimeGeneratedActiveOptions() cons
 }
 
 void Lr2SelectUpdateController::setSelectRuntimeGeneratedActiveOptions(const QList<int>& options) {
-    if (m_selectRuntimeGeneratedActiveOptions == options) {
-        return;
-    }
-    m_selectRuntimeGeneratedActiveOptions = options;
-    m_selectRuntimeActiveOptionsDirty = true;
-    emit selectRuntimeGeneratedActiveOptionsChanged();
+    updateSelectRuntimeGeneratedActiveOptions(options);
 }
 
 QList<int> Lr2SelectUpdateController::selectDetailRuntimeActiveOptions() const {
@@ -249,12 +244,7 @@ QList<int> Lr2SelectUpdateController::selectDetailRuntimeActiveOptions() const {
 }
 
 void Lr2SelectUpdateController::setSelectDetailRuntimeActiveOptions(const QList<int>& options) {
-    if (m_selectDetailRuntimeActiveOptions == options) {
-        return;
-    }
-    m_selectDetailRuntimeActiveOptions = options;
-    m_selectRuntimeActiveOptionsDirty = true;
-    emit selectDetailRuntimeActiveOptionsChanged();
+    updateSelectDetailRuntimeActiveOptions(options);
 }
 
 QList<int> Lr2SelectUpdateController::screenRuntimeActiveOptions() const {
@@ -400,6 +390,26 @@ bool Lr2SelectUpdateController::refreshGameplayRuntimeActiveOptions() {
     }
     setGameplayRuntimeActiveOptions(next);
     applyChangedRuntimeActiveOptions(next);
+    return true;
+}
+
+bool Lr2SelectUpdateController::updateSelectRuntimeGeneratedActiveOptions(const QList<int>& options) {
+    if (m_selectRuntimeGeneratedActiveOptions == options) {
+        return false;
+    }
+    m_selectRuntimeGeneratedActiveOptions = options;
+    m_selectRuntimeActiveOptionsDirty = true;
+    emit selectRuntimeGeneratedActiveOptionsChanged();
+    return true;
+}
+
+bool Lr2SelectUpdateController::updateSelectDetailRuntimeActiveOptions(const QList<int>& options) {
+    if (m_selectDetailRuntimeActiveOptions == options) {
+        return false;
+    }
+    m_selectDetailRuntimeActiveOptions = options;
+    m_selectRuntimeActiveOptionsDirty = true;
+    emit selectDetailRuntimeActiveOptionsChanged();
     return true;
 }
 
