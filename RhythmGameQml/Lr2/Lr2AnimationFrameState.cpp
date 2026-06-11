@@ -294,7 +294,8 @@ void Lr2AnimationFrameState::updateFrameIndex() {
     const QVector4D nextRect = sourceRectFor(m_source, next, m_textureWidth, m_textureHeight);
     const QRectF nextClipRect = sourceClipRectFor(m_source, next);
     const bool frameChanged = m_frameIndex != next;
-    const bool rectChanged = m_sourceRect != nextRect || m_sourceClipRect != nextClipRect;
+    const bool rectChanged = m_sourceRect != nextRect;
+    const bool clipRectChanged = m_sourceClipRect != nextClipRect;
 
     if (frameChanged) {
         m_frameIndex = next;
@@ -302,8 +303,11 @@ void Lr2AnimationFrameState::updateFrameIndex() {
     }
     if (rectChanged) {
         m_sourceRect = nextRect;
-        m_sourceClipRect = nextClipRect;
         emit sourceRectChanged();
+    }
+    if (clipRectChanged) {
+        m_sourceClipRect = nextClipRect;
+        emit sourceClipRectChanged();
     }
 }
 

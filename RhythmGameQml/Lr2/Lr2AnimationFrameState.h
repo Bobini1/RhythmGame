@@ -29,7 +29,7 @@ class Lr2AnimationFrameState : public QObject {
     Q_PROPERTY(int textureHeight READ textureHeight WRITE setTextureHeight NOTIFY textureHeightChanged)
     Q_PROPERTY(int frameIndex READ frameIndex NOTIFY frameIndexChanged)
     Q_PROPERTY(QVector4D sourceRect READ sourceRect NOTIFY sourceRectChanged)
-    Q_PROPERTY(QRectF sourceClipRect READ sourceClipRect NOTIFY sourceRectChanged)
+    Q_PROPERTY(QRectF sourceClipRect READ sourceClipRect NOTIFY sourceClipRectChanged)
 
 public:
     enum ClockMode {
@@ -100,6 +100,7 @@ signals:
     void textureHeightChanged();
     void frameIndexChanged();
     void sourceRectChanged();
+    void sourceClipRectChanged();
 
 private:
     using Source = lr2skin::runtime::Source;
