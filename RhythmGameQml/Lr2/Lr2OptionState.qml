@@ -378,7 +378,10 @@ QtObject {
         }
         let values = root.gaugeValuesForSourceCount(sourceCount);
         let count = root.optionFrameCount(sourceCount, values.length);
-        vars.gaugeType = root.wrappedListValue(values, root.clampedButtonFrame(index, count));
+        if (count <= 0 || values.length <= 0) {
+            return;
+        }
+        vars.gaugeType = values[root.wrapValue(Math.floor(index || 0), count)] || values[0];
     }
 
     function adjustGaugeButtonIndex(side: var, delta: var, sourceCount: var) : void {

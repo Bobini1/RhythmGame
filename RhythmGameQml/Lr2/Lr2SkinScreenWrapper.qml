@@ -110,6 +110,8 @@ Item {
     property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
     property var gameplayHitEvents1: []
     property var gameplayHitEvents2: []
+    readonly property var gameplayGraphScoreObject1: ({ replayData: { hitEvents: root.gameplayHitEvents1 } })
+    readonly property var gameplayGraphScoreObject2: ({ replayData: { hitEvents: root.gameplayHitEvents2 } })
     property int gameplayLastJudgeTiming1: 0
     property int gameplayLastJudgeTiming2: 0
     property var gameplayJudgeLaneValues1: []
@@ -2338,18 +2340,13 @@ Item {
         if (lane < 0) {
             return false;
         }
-        if (!root.gameplayUsesFiveKeyTimers()) {
-            return true;
-        }
         let side = lane >= 10 ? 2 : 1;
         let laneInSide = side === 2 ? lane - 10 : lane;
         if (laneInSide === 0) {
             return true;
         }
-        if (root.gameplayScratchOnRightForLr2Side(side)) {
-            return laneInSide >= 3 && laneInSide <= 7;
-        }
-        return laneInSide >= 1 && laneInSide <= 5;
+        let keyCount = root.gameplayUsesFiveKeyTimers() ? 5 : 7;
+        return laneInSide >= 1 && laneInSide <= keyCount;
     }
 
     function gameplayLanePlayer(side: var) : var {
@@ -2362,34 +2359,13 @@ Item {
         return root.chart.player1;
     }
 
-    function gameplayRightScratchColumnForLr2Lane(lane: var, localPlayer2: var) : var {
-        let localColumnByLane = [7, 6, 5, 0, 1, 2, 3, 4];
-        let laneInSide = lane >= 10 ? lane - 10 : lane;
-        if (laneInSide < 0 || laneInSide >= localColumnByLane.length) {
-            return -1;
-        }
-        let localColumn = localColumnByLane[laneInSide];
-        return lane >= 10 && !localPlayer2 ? localColumn + 8 : localColumn;
-    }
-
     function gameplayEngineColumnForLr2Lane(lane: var) : var {
         if (lane >= 10) {
+            let laneInSide = lane - 10;
             if (root.chart && root.chart.player2) {
-                if (root.gameplayUsesFiveKeyTimers()
-                        && root.gameplayScratchOnRightForLr2Side(2)) {
-                    return root.gameplayRightScratchColumnForLr2Lane(lane, true);
-                }
-                return lane === 10 ? 7 : lane - 11;
+                return laneInSide === 0 ? 7 : laneInSide - 1;
             }
-            if (root.gameplayUsesFiveKeyTimers()
-                    && root.gameplayScratchOnRightForLr2Side(2)) {
-                return root.gameplayRightScratchColumnForLr2Lane(lane, false);
-            }
-            return lane === 10 ? 15 : 8 + lane - 11;
-        }
-        if (root.gameplayUsesFiveKeyTimers()
-                && root.gameplayScratchOnRightForLr2Side(1)) {
-            return root.gameplayRightScratchColumnForLr2Lane(lane, false);
+            return laneInSide === 0 ? 15 : 8 + laneInSide - 1;
         }
         return lane === 0 ? 7 : lane - 1;
     }
@@ -2500,7 +2476,26 @@ Item {
         }
     }
 
+    function gameplayGraphHitOffset(side: var, hit: var) : var {
+        if (!hit || !hit.noteRemoved) {
+            return -1;
+        }
+        let offset = Number(hit.offsetFromStart !== undefined ? hit.offsetFromStart : -1);
+        if (!isFinite(offset) || offset < 0) {
+            return -1;
+        }
+        let player = root.gameplayPlayer(side);
+        let chartLength = Number(player && player.chartLength !== undefined ? player.chartLength : 0);
+        if (chartLength > 0 && offset > chartLength + 1000000000) {
+            return -1;
+        }
+        return offset;
+    }
+
     function appendGameplayGraphHit(side: var, hit: var) : void {
+        if (root.gameplayGraphHitOffset(side, hit) < 0) {
+            return;
+        }
         let current = root.gameplayHitEventsForSide(side) || [];
         let events = current.slice();
         events.push(hit);
@@ -2508,7 +2503,7 @@ Item {
     }
 
     function gameplayGraphScore(side: var) : var {
-        return { replayData: { hitEvents: root.gameplayHitEventsForSide(side) } };
+        return side === 2 ? root.gameplayGraphScoreObject2 : root.gameplayGraphScoreObject1;
     }
 
     function resetGameplayGraphHits() : void {

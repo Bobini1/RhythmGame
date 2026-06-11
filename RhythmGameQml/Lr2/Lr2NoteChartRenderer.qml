@@ -157,16 +157,29 @@ Item {
         let length = Math.max(0,
             Number(root.chartData && root.chartData.length !== undefined ? root.chartData.length : 0),
             Number(result && result.length !== undefined ? result.length : 0));
+        let maxOffset = length > 0 ? length + 1000000000 : 0;
         let events = root.resultEvents || [];
         for (let i = 0; i < events.length; ++i) {
-            let offset = Number(events[i] && events[i].offsetFromStart !== undefined
-                ? events[i].offsetFromStart
-                : 0);
+            let offset = root.replayEventOffset(events[i], maxOffset);
             if (offset > length) {
                 length = offset;
             }
         }
         return length;
+    }
+
+    function replayEventOffset(hit: var, maxOffset: var) : var {
+        if (!hit || !hit.noteRemoved) {
+            return -1;
+        }
+        let offset = Number(hit.offsetFromStart !== undefined ? hit.offsetFromStart : -1);
+        if (!isFinite(offset) || offset < 0) {
+            return -1;
+        }
+        if (maxOffset > 0 && offset > maxOffset) {
+            return -1;
+        }
+        return offset;
     }
 
     function emptyReplayBuckets(bucketSize: var) : var {
@@ -212,7 +225,10 @@ Item {
     }
 
     function eventSecond(hit: var, length: var) : var {
-        let offset = Number(hit && hit.offsetFromStart !== undefined ? hit.offsetFromStart : 0);
+        let offset = root.replayEventOffset(hit, length > 0 ? length * 1000000000 : 0);
+        if (offset < 0 || length <= 0) {
+            return -1;
+        }
         return Math.max(0, Math.min(length - 1, Math.floor(offset / 1000000000)));
     }
 
@@ -280,7 +296,8 @@ Item {
         let events = root.resultEvents || [];
         for (let i = 0; i < events.length; ++i) {
             let hit = events[i];
-            if (!hit || !hit.noteRemoved) {
+            let second = root.eventSecond(hit, data.length);
+            if (second < 0) {
                 continue;
             }
             let judgement = root.judgementForHit(hit);
@@ -295,7 +312,6 @@ Item {
             if (bucket < 0) {
                 continue;
             }
-            let second = root.eventSecond(hit, data.length);
             if (data[second][0] > 0) {
                 data[second][0] = data[second][0] - 1;
             }
@@ -324,10 +340,19 @@ Item {
             let step = reverse ? -1 : 1;
             for (let index = start; index !== end && yUnits < maxDensity; index += step) {
                 ctx.fillStyle = colors[index] || "#cccccc";
-                let amount = Math.max(0, Math.floor(n[index] || 0));
-                for (let k = 0; k < amount && yUnits < maxDensity; ++k) {
-                    ctx.fillRect(i * 5, sourceH - (yUnits + 1) * 5, noGapX ? 5 : 4, noGap ? 5 : 4);
-                    ++yUnits;
+                let amount = Math.min(maxDensity - yUnits, Math.max(0, Math.floor(n[index] || 0)));
+                if (amount <= 0) {
+                    continue;
+                }
+                if (noGap) {
+                    ctx.fillRect(i * 5, sourceH - (yUnits + amount) * 5,
+                        noGapX ? 5 : 4, amount * 5);
+                    yUnits += amount;
+                } else {
+                    for (let k = 0; k < amount && yUnits < maxDensity; ++k) {
+                        ctx.fillRect(i * 5, sourceH - (yUnits + 1) * 5, noGapX ? 5 : 4, 4);
+                        ++yUnits;
+                    }
                 }
             }
         }
@@ -340,16 +365,6 @@ Item {
         let side = root.srcData ? (root.srcData.playerSide || 1) : 1;
         let player = root.screenRoot.gameplayPlayer(side);
         return player ? Number(player.elapsed || 0) : -1;
-    }
-
-    function drawProgressCursor(ctx: var, sourceW: var, sourceH: var, bucketCount: var) : void {
-        let elapsed = root.gameplayElapsedNanos();
-        if (elapsed < 0 || bucketCount <= 0) {
-            return;
-        }
-        let x = Math.max(0, Math.min(sourceW, elapsed * sourceW / (bucketCount * 1000000000)));
-        ctx.fillStyle = "rgba(255,255,255,1)";
-        ctx.fillRect(x, 0, 3, sourceH);
     }
 
     function graphMax(data: var) : var {
@@ -413,9 +428,26 @@ Item {
                 ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
                 root.drawBackground(ctx, sourceW, sourceH, maxDensity, bucketCount);
                 root.drawBars(ctx, data, maxDensity, sourceH);
-                root.drawProgressCursor(ctx, sourceW, sourceH, bucketCount);
                 ctx.restore();
             }
+        }
+
+        Rectangle {
+            readonly property real elapsedNanos: root.gameplayElapsedNanos()
+            readonly property real rawX: {
+                if (elapsedNanos < 0 || root.bucketCount <= 0) {
+                    return -1;
+                }
+                return elapsedNanos * chartCanvas.width / Math.max(1, root.bucketCount * 1000000000);
+            }
+
+            width: Math.max(1, 3 * chartCanvas.width / Math.max(1, root.sourceW))
+            height: chartCanvas.height
+            x: rawX < 0 ? 0 : Math.max(0, Math.min(chartCanvas.width - width, rawX))
+            visible: root.visible && rawX >= 0
+            opacity: chartCanvas.opacity
+            color: "white"
+            z: 1
         }
     }
 
@@ -430,8 +462,6 @@ Item {
     onHasChartDataChanged: requestChartPaint()
     onDensityDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
-    onCurrentStateChanged: requestChartPaint()
-    onEffectiveSkinTimeChanged: requestChartPaint()
     onVisibleChanged: requestChartPaint()
     Component.onCompleted: requestChartPaint()
 }

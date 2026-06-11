@@ -42,6 +42,18 @@ restoreScratchDirection(input::BmsKey mapped, const input::BmsKey original)
     return mapped;
 }
 
+auto
+logicalColumnFor(const input::BmsKey key) -> int
+{
+    if (key == input::BmsKey::Col1sDown) {
+        return static_cast<int>(input::BmsKey::Col1sUp);
+    }
+    if (key == input::BmsKey::Col2sDown) {
+        return static_cast<int>(input::BmsKey::Col2sUp);
+    }
+    return static_cast<int>(key);
+}
+
 } // namespace
 
 ChartRunner::ChartRunner(
@@ -157,12 +169,35 @@ ChartRunner::passKey(input::BmsKey key,
     if (!doublePlay && index == 1 && player2 == nullptr) {
         return;
     }
-    auto offset =
-      std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
     auto* player = doublePlay || index == 0 ? player1 : player2;
     if (!doublePlay) {
         mapped = convertToP1Key(mapped);
     }
+    if (status != Running) {
+        constexpr auto visualOffset = std::chrono::nanoseconds{ 0 };
+        const auto logicalColumn = logicalColumnFor(mapped);
+        if (eventType == ChartRunner::EventType::KeyPress) {
+            player->getScore()->sendVisualOnlyTap({ logicalColumn,
+                                                    mapped,
+                                                    std::nullopt,
+                                                    visualOffset.count(),
+                                                    std::nullopt,
+                                                    HitEvent::Action::Press,
+                                                    /*noteRemoved=*/false });
+        } else {
+            player->getScore()->sendVisualOnlyRelease(
+              HitEvent{ logicalColumn,
+                        mapped,
+                        std::nullopt,
+                        visualOffset.count(),
+                        std::nullopt,
+                        HitEvent::Action::Release,
+                        /*noteRemoved=*/false });
+        }
+        return;
+    }
+    auto offset =
+      std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
     player->passKey(mapped, eventType, offset);
 }
 
@@ -413,15 +448,7 @@ Player::passKey(input::BmsKey key,
                 ChartRunner::EventType eventType,
                 std::chrono::nanoseconds offset)
 {
-    const auto logicalColumn = [&key] {
-        if (key == input::BmsKey::Col1sDown) {
-            return static_cast<int>(input::BmsKey::Col1sUp);
-        }
-        if (key == input::BmsKey::Col2sDown) {
-            return static_cast<int>(input::BmsKey::Col2sUp);
-        }
-        return static_cast<int>(key);
-    }();
+    const auto logicalColumn = logicalColumnFor(key);
     if (!referee || status == ChartRunner::Status::Finished) {
         if (eventType == ChartRunner::EventType::KeyPress) {
             score->sendVisualOnlyTap({ logicalColumn,
