@@ -43,14 +43,16 @@ signals:
     void textChanged();
 
 private:
+    friend class Lr2ResolvedTextRegistry;
+
     void registerTextId();
     void unregisterTextId();
     void reconnectRegistry();
     void syncFallbackText();
+    void setRegistryFallbackText(const QString& text);
     void updateText();
 
     QPointer<Lr2ResolvedTextRegistry> m_registry;
-    QMetaObject::Connection m_registryTextConnection;
     QMetaObject::Connection m_registryDestroyedConnection;
     int m_sourceTextId = -1;
     int m_registeredTextId = -1;

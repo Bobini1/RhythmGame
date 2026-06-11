@@ -115,7 +115,9 @@ readFontImage(const FontData& data, const QString& imagePath) -> QImage
 
         QBuffer buffer;
         buffer.setData(imageData);
-        buffer.open(QIODevice::ReadOnly);
+        if (!buffer.open(QIODevice::ReadOnly)) {
+            return {};
+        }
         QImageReader reader(&buffer);
         const auto suffix = QFileInfo(imagePath).suffix().toLatin1();
         if (!suffix.isEmpty()) {

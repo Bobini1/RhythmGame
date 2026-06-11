@@ -17,6 +17,7 @@
 #include <qt6keychain/keychain.h>
 
 #include <QNetworkCookie>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <spdlog/spdlog.h>
 #include "gameplay_logic/BmsResult.h"
@@ -417,18 +418,32 @@ Profile::fetchTachiData(int tachiId)
     const auto request = QNetworkRequest("https://boku.tachi.ac/api/v1/users/" +
                                          QString::number(tachiId));
     auto* reply = networkManager->get(request);
+    setTachiLoginState(LoginState::LoggingIn);
     connect(reply, &QNetworkReply::finished, this, [this, reply, tachiId]() {
+        reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
             spdlog::error("Error fetching tachi data for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
                           reply->errorString().toStdString());
+            setTachiLoginState(LoginState::LoginFailed);
+            return;
         }
-        auto data = reply->readAll();
-        auto json = QJsonDocument::fromJson(data).object();
+        QJsonParseError parseError;
+        auto doc = QJsonDocument::fromJson(reply->readAll(), &parseError);
+        if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+            spdlog::error("Error parsing tachi data for user {}: {}",
+                          vars.getGeneralVars()->getName().toStdString(),
+                          parseError.errorString().toStdString());
+            setTachiLoginState(LoginState::LoginFailed);
+            return;
+        }
+
+        auto json = doc.object();
         if (json["success"].toBool() != true) {
             spdlog::error("Tachi data response unsuccessful for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
                           json["description"].toString().toStdString());
+            setTachiLoginState(LoginState::LoginFailed);
         } else {
             auto body = json["body"].toObject();
             auto tachiData = TachiData{};

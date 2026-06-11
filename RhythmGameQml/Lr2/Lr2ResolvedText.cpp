@@ -17,7 +17,6 @@ void Lr2ResolvedText::setRegistry(Lr2ResolvedTextRegistry* value) {
 
     unregisterTextId();
     if (m_registry) {
-        QObject::disconnect(m_registryTextConnection);
         QObject::disconnect(m_registryDestroyedConnection);
     }
     m_registry = value;
@@ -80,7 +79,7 @@ void Lr2ResolvedText::registerTextId() {
         return;
     }
 
-    m_registry->retainTextId(m_sourceTextId);
+    m_registry->retainTextId(m_sourceTextId, this);
     m_registeredTextId = m_sourceTextId;
 }
 
@@ -90,7 +89,7 @@ void Lr2ResolvedText::unregisterTextId() {
         return;
     }
 
-    m_registry->releaseTextId(m_registeredTextId);
+    m_registry->releaseTextId(m_registeredTextId, this);
     m_registeredTextId = -1;
 }
 
@@ -101,17 +100,6 @@ void Lr2ResolvedText::reconnectRegistry() {
         return;
     }
 
-    m_registryTextConnection = QObject::connect(
-        m_registry,
-        &Lr2ResolvedTextRegistry::textChanged,
-        this,
-        [this](int sourceTextId, const QString& text) {
-            if (sourceTextId != m_sourceTextId || m_fallbackText == text) {
-                return;
-            }
-            m_fallbackText = text;
-            updateText();
-        });
     m_registryDestroyedConnection = QObject::connect(
         m_registry,
         &QObject::destroyed,
@@ -129,9 +117,14 @@ void Lr2ResolvedText::syncFallbackText() {
     const QString nextText = m_registry && m_sourceTextId >= 0
         ? m_registry->textFor(m_sourceTextId)
         : QString();
-    if (m_fallbackText != nextText) {
-        m_fallbackText = nextText;
+    setRegistryFallbackText(nextText);
+}
+
+void Lr2ResolvedText::setRegistryFallbackText(const QString& text) {
+    if (m_fallbackText == text) {
+        return;
     }
+    m_fallbackText = text;
     updateText();
 }
 

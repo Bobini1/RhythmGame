@@ -101,7 +101,6 @@ defineDb(db::SqliteCppDb& db)
       "new.subartist, new.genre, new.path); "
       "END;");
 
-    // unused atm (too big)
     db.execute("CREATE TABLE IF NOT EXISTS note_data ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                "sha256 TEXT NOT NULL UNIQUE,"

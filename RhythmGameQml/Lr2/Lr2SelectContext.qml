@@ -156,6 +156,7 @@ Item {
     property int selectedDetailValueRevision: 0
     property int numberValueCacheRevision: 0
     property var numberValueCache: ({})
+    property var numberValueCacheRevisions: ({})
     readonly property string selectedPreviewAudioSource: {
         let chartData = selectedStateChartData;
         return chartData ? (previewFiles[chartData.chartDirectory] || "") : "";
@@ -187,7 +188,11 @@ Item {
     onRankingTotalPlayCountChanged: clearNumberValueCache()
 
     function clearNumberValueCache() : void {
-        root.numberValueCache = ({});
+        if (root.numberValueCacheRevision > 1000000) {
+            root.numberValueCache = ({});
+            root.numberValueCacheRevisions = ({});
+            root.numberValueCacheRevision = 0;
+        }
         root.numberValueCacheRevision += 1;
     }
 
@@ -3284,13 +3289,7 @@ Item {
         let difficultyState = root.difficultyStateUsed ? difficultyStateForChart(nextChartData) : null;
         let targetId = entryIdentifier(targetItem);
         let targetIdString = targetId ? String(targetId) : "";
-        let targetSummaryCached = targetIdString.length > 0
-            && selectedDetailState.hasCachedScoreSummaryForIdentifier(
-                targetIdString,
-                scoreGeneration,
-                root.useBeatorajaSelectOptions,
-                root.scoreOptionIdsUsed);
-        let targetScores = targetIdString.length > 0 && !targetSummaryCached
+        let targetScores = targetIdString.length > 0
             ? entryScoresForIdentifier(targetId)
             : emptyScoreList;
         let changed = selectedDetailState.refreshSelectedFromQmlIdentityForIdentifier(
@@ -4097,17 +4096,17 @@ Item {
     }
 
     function numberValue(num: var) : var {
-        root.numberValueCacheRevision;
+        const revision = root.numberValueCacheRevision;
         const numeric = Number(num);
         const id = isFinite(numeric) ? Math.floor(numeric) : 0;
         const key = String(id);
-        const cached = root.numberValueCache[key];
-        if (cached !== undefined) {
-            return cached;
+        if (root.numberValueCacheRevisions[key] === revision) {
+            return root.numberValueCache[key];
         }
 
         const value = computeNumberValue(id);
         root.numberValueCache[key] = value;
+        root.numberValueCacheRevisions[key] = revision;
         return value;
     }
 

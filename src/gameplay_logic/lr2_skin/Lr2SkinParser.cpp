@@ -42,7 +42,7 @@ struct FontDefinition
 struct ParseState
 {
     QList<Lr2Element> elements;
-    QList<QString> images;
+    QStringList images;
     QList<Lr2SrcImage> imageSets;
     QList<FontDefinition> systemFonts;
     QList<FontDefinition> imageFonts;
@@ -1050,73 +1050,6 @@ sourceForGr(const int gr,
 }
 
 auto
-debugString(const QString& value) -> std::string
-{
-    return value.toStdString();
-}
-
-void
-logJudgelineSource(const Lr2SrcImage& src,
-                   const std::filesystem::path& currentDir)
-{
-    spdlog::warn(
-      "[LR2 judgeline debug] SRC dir={} gr={} srcRect=({}, {}, {}, {}) div={}x{} cycle={} timer={} specialType={} source={}",
-      support::pathToUtfString(currentDir),
-      src.gr,
-      src.x,
-      src.y,
-      src.w,
-      src.h,
-      src.div_x,
-      src.div_y,
-      src.cycle,
-      src.timer,
-      src.specialType,
-      debugString(src.source));
-}
-
-void
-logJudgelineDestination(const Lr2Dst& dst,
-                        const Lr2SrcImage& src,
-                        const std::filesystem::path& currentDir)
-{
-    spdlog::warn(
-      "[LR2 judgeline debug] DST dir={} time={} dst=({}, {}, {}, {}) alpha={} rgb=({}, {}, {}) blend={} filter={} timer={} loop={} ops=({}, {}, {}, {}) offsets={} sortId={} source={}",
-      support::pathToUtfString(currentDir),
-      dst.time,
-      dst.x,
-      dst.y,
-      dst.w,
-      dst.h,
-      dst.a,
-      dst.r,
-      dst.g,
-      dst.b,
-      dst.blend,
-      dst.filter,
-      dst.timer,
-      dst.loop,
-      dst.op1,
-      dst.op2,
-      dst.op3,
-      dst.op4,
-      dst.offsets.size(),
-      dst.sortId,
-      debugString(src.source));
-}
-
-void
-logIgnoredJudgelineDestination(const ParseState& state,
-                               const std::filesystem::path& currentDir)
-{
-    spdlog::warn(
-      "[LR2 judgeline debug] DST ignored dir={} hasCurrentElement={} currentType={}",
-      support::pathToUtfString(currentDir),
-      state.hasCurrentElement,
-      state.hasCurrentElement ? state.currentElement.type : -1);
-}
-
-auto
 parseImageSource(const QStringList& tokens,
                  const ParseState& state,
                  const int grIndex = 2) -> Lr2SrcImage
@@ -1133,9 +1066,9 @@ parseImageSource(const QStringList& tokens,
     if (tokens.size() > grIndex + 4 && !tokens[grIndex + 4].isEmpty())
         src.h = tokens[grIndex + 4].toInt();
     if (tokens.size() > grIndex + 5 && !tokens[grIndex + 5].isEmpty())
-        src.div_x = qMax(1, tokens[grIndex + 5].toInt());
+        src.div_x = (std::max)(1, tokens[grIndex + 5].toInt());
     if (tokens.size() > grIndex + 6 && !tokens[grIndex + 6].isEmpty())
-        src.div_y = qMax(1, tokens[grIndex + 6].toInt());
+        src.div_y = (std::max)(1, tokens[grIndex + 6].toInt());
     if (tokens.size() > grIndex + 7 && !tokens[grIndex + 7].isEmpty())
         src.cycle = tokens[grIndex + 7].toInt();
     if (tokens.size() > grIndex + 8 && !tokens[grIndex + 8].isEmpty())
@@ -1229,9 +1162,9 @@ parseNumberSource(const QStringList& tokens,
     if (tokens.size() > grIndex + 4 && !tokens[grIndex + 4].isEmpty())
         src.h = tokens[grIndex + 4].toInt();
     if (tokens.size() > grIndex + 5 && !tokens[grIndex + 5].isEmpty())
-        src.div_x = qMax(1, tokens[grIndex + 5].toInt());
+        src.div_x = (std::max)(1, tokens[grIndex + 5].toInt());
     if (tokens.size() > grIndex + 6 && !tokens[grIndex + 6].isEmpty())
-        src.div_y = qMax(1, tokens[grIndex + 6].toInt());
+        src.div_y = (std::max)(1, tokens[grIndex + 6].toInt());
     if (tokens.size() > grIndex + 7 && !tokens[grIndex + 7].isEmpty())
         src.cycle = tokens[grIndex + 7].toInt();
     if (tokens.size() > grIndex + 8 && !tokens[grIndex + 8].isEmpty())
@@ -1299,9 +1232,9 @@ parseBarGraphSource(const QStringList& tokens,
     if (tokens.size() > grIndex + 4 && !tokens[grIndex + 4].isEmpty())
         src.h = tokens[grIndex + 4].toInt();
     if (tokens.size() > grIndex + 5 && !tokens[grIndex + 5].isEmpty())
-        src.div_x = qMax(1, tokens[grIndex + 5].toInt());
+        src.div_x = (std::max)(1, tokens[grIndex + 5].toInt());
     if (tokens.size() > grIndex + 6 && !tokens[grIndex + 6].isEmpty())
-        src.div_y = qMax(1, tokens[grIndex + 6].toInt());
+        src.div_y = (std::max)(1, tokens[grIndex + 6].toInt());
     if (tokens.size() > grIndex + 7 && !tokens[grIndex + 7].isEmpty())
         src.cycle = tokens[grIndex + 7].toInt();
     if (tokens.size() > grIndex + 8 && !tokens[grIndex + 8].isEmpty())
@@ -1325,9 +1258,9 @@ parseNoteChartSource(const QStringList& tokens) -> Lr2SrcNoteChart
     if (tokens.size() > 1 && !tokens[1].isEmpty())
         src.chartType = tokens[1].toInt();
     if (tokens.size() > 11 && !tokens[11].isEmpty())
-        src.fieldW = qMax(1, tokens[11].toInt());
+        src.fieldW = (std::max)(1, tokens[11].toInt());
     if (tokens.size() > 12 && !tokens[12].isEmpty())
-        src.fieldH = qMax(1, tokens[12].toInt());
+        src.fieldH = (std::max)(1, tokens[12].toInt());
     if (tokens.size() > 13 && !tokens[13].isEmpty())
         src.start = tokens[13].toInt();
     if (tokens.size() > 14 && !tokens[14].isEmpty())
@@ -1367,13 +1300,13 @@ parseBpmChartSource(const QStringList& tokens) -> Lr2SrcBpmChart
 {
     Lr2SrcBpmChart src;
     if (tokens.size() > 1 && !tokens[1].isEmpty())
-        src.fieldW = qMax(1, tokens[1].toInt());
+        src.fieldW = (std::max)(1, tokens[1].toInt());
     if (tokens.size() > 2 && !tokens[2].isEmpty())
-        src.fieldH = qMax(1, tokens[2].toInt());
+        src.fieldH = (std::max)(1, tokens[2].toInt());
     if (tokens.size() > 3 && !tokens[3].isEmpty())
         src.delay = tokens[3].toInt();
     if (tokens.size() > 4 && !tokens[4].isEmpty())
-        src.lineWidth = qMax(1, tokens[4].toInt());
+        src.lineWidth = (std::max)(1, tokens[4].toInt());
     src.mainBpmColor =
       parseChartColor(tokens, 5, QStringLiteral("00ff00"));
     src.minBpmColor = parseChartColor(tokens, 6, QStringLiteral("0000ff"));
@@ -1392,11 +1325,11 @@ parseTimingChartSource(const QStringList& tokens) -> Lr2SrcTimingChart
 {
     Lr2SrcTimingChart src;
     if (tokens.size() > 4 && !tokens[4].isEmpty())
-        src.fieldW = qMax(1, tokens[4].toInt());
+        src.fieldW = (std::max)(1, tokens[4].toInt());
     if (tokens.size() > 5 && !tokens[5].isEmpty())
-        src.fieldH = qMax(1, tokens[5].toInt());
+        src.fieldH = (std::max)(1, tokens[5].toInt());
     if (tokens.size() > 6 && !tokens[6].isEmpty())
-        src.lineWidth = qMax(1, tokens[6].toInt());
+        src.lineWidth = (std::max)(1, tokens[6].toInt());
     src.graphColor = parseChartColor(tokens, 7, QStringLiteral("ffffff"));
     src.averageColor = parseChartColor(tokens, 8, QStringLiteral("ff0000"));
     src.devColor = parseChartColor(tokens, 9, QStringLiteral("0000ff"));
@@ -1418,13 +1351,13 @@ parseTimingVisualizerSource(const QStringList& tokens)
 {
     Lr2SrcTimingVisualizer src;
     if (tokens.size() > 4 && !tokens[4].isEmpty())
-        src.fieldW = qMax(1, tokens[4].toInt());
+        src.fieldW = (std::max)(1, tokens[4].toInt());
     if (tokens.size() > 5 && !tokens[5].isEmpty())
-        src.fieldH = qMax(1, tokens[5].toInt());
+        src.fieldH = (std::max)(1, tokens[5].toInt());
     if (tokens.size() > 6 && !tokens[6].isEmpty())
-        src.judgeWidthMillis = qMax(1, tokens[6].toInt());
+        src.judgeWidthMillis = (std::max)(1, tokens[6].toInt());
     if (tokens.size() > 7 && !tokens[7].isEmpty())
-        src.lineWidth = qBound(1, tokens[7].toInt(), 4);
+        src.lineWidth = std::clamp(tokens[7].toInt(), 1, 4);
     src.lineColor = parseChartColor(tokens, 8, QStringLiteral("00ff00ff"));
     src.centerColor =
       parseChartColor(tokens, 9, QStringLiteral("ffffffff"));
@@ -1824,7 +1757,6 @@ processCommand(const QStringList& tokens,
         auto src = parseImageSource(tokens, state);
         if (command == "#SRC_JUDGELINE") {
             src.debugLabel = QStringLiteral("SRC_JUDGELINE");
-            logJudgelineSource(src, currentDir);
         }
         state.currentElement.src = QVariant::fromValue(src);
     } else if (command == "#SRC_IMAGESET") {
@@ -1841,13 +1773,9 @@ processCommand(const QStringList& tokens,
                 const auto dst = parseDstValue(tokens, state.sortId);
                 recordDstOptions(state, dst, true);
                 state.currentElement.dsts.append(QVariant::fromValue(dst));
-                const auto src = state.currentElement.src.value<Lr2SrcImage>();
-                logJudgelineDestination(dst, src, currentDir);
             } else {
                 parseDst(tokens, state, state.currentElement);
             }
-        } else if (command == "#DST_JUDGELINE") {
-            logIgnoredJudgelineDestination(state, currentDir);
         }
     } else if (command == "#SRC_LINE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
@@ -2009,7 +1937,8 @@ processCommand(const QStringList& tokens,
             const auto judgeDsts = state.nowJudgeDsts.value(key);
             if (!judgeDsts.isEmpty()) {
                 const auto& judgeDst =
-                  judgeDsts.at(qMin(dstIndex, judgeDsts.size() - 1));
+                  judgeDsts.at((std::min)(dstIndex,
+                                          static_cast<int>(judgeDsts.size() - 1)));
                 dst.x += judgeDst.x;
                 dst.y += judgeDst.y;
             }
@@ -2655,7 +2584,7 @@ parseFile(const std::filesystem::path& filePath,
     }
     int maxRow = -1;
     for (const int row : rows) {
-        maxRow = std::max(maxRow, row);
+        maxRow = (std::max)(maxRow, row);
     }
     for (int row = 0; row <= maxRow; ++row) {
         QVariantMap rowData;

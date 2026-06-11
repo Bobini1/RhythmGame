@@ -259,15 +259,15 @@ TEST_CASE("Parse all basic note types get", "[BmsChartReader]")
     REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0].size() == 1);
     REQUIRE(res.tags.measures[10].p2VisibleNotes[0][0][0] == 0);
     REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0].size() == 3);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][0] == 38);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][1] == 112);
-    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][2] == 186);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][0] == 64);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][1] == 190);
+    REQUIRE(res.tags.measures[999].p1InvisibleNotes[4][0][2] == 316);
     REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0].size() == 1);
     REQUIRE(res.tags.measures[888].p2InvisibleNotes[3][0][0] == 1);
     REQUIRE(res.tags.measures[777].p1LongNotes[2][0].size() == 1);
-    REQUIRE(res.tags.measures[777].p1LongNotes[2][0][0] == 36);
+    REQUIRE(res.tags.measures[777].p1LongNotes[2][0][0] == 62);
     REQUIRE(res.tags.measures[666].p2LongNotes[1][0].size() == 1);
-    REQUIRE(res.tags.measures[666].p2LongNotes[1][0][0] == 37);
+    REQUIRE(res.tags.measures[666].p2LongNotes[1][0][0] == 63);
 }
 
 TEST_CASE("Error recovery on bad value", "[BmsChartReader]")
@@ -299,11 +299,11 @@ TEST_CASE("Parse new-style bpm changes", "[BmsChartReader]")
     auto res = charts::readBmsChart(chart, randomGenerator);
     REQUIRE(res.tags.measures[1].exBpmChanges.size() == 1);
     REQUIRE(res.tags.measures[1].exBpmChanges[0].size() == 1);
-    REQUIRE(res.tags.measures[1].exBpmChanges[0][0] == 38);
+    REQUIRE(res.tags.measures[1].exBpmChanges[0][0] == 64);
     REQUIRE(res.tags.exBpms.size() == 2);
-    REQUIRE(res.tags.exBpms[0].first == 72);
+    REQUIRE(res.tags.exBpms[0].first == 124);
     REQUIRE(res.tags.exBpms[0].second == Catch::Approx(120));
-    REQUIRE(res.tags.exBpms[1].first == 555);
+    REQUIRE(res.tags.exBpms[1].first == 945);
     REQUIRE(res.tags.exBpms[1].second == Catch::Approx(12));
 }
 

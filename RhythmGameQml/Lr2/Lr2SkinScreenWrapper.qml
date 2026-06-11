@@ -4266,15 +4266,19 @@ Item {
         return refreshed;
     }
 
-    readonly property var selectSkinChartWrapper: root.effectiveScreenKey === "select"
-        ? selectContext.visualChartWrapper
-        : null
-    readonly property var renderChart: root.effectiveScreenKey === "select"
-        ? root.selectSkinChartWrapper
-        : selectSideEffects.renderChart
-    readonly property var visualSelectChart: root.effectiveScreenKey === "select"
-        ? root.selectSkinChartWrapper
-        : root.renderChart
+    function skinElementChartGraphData() : var {
+        if (root.resultScreenActive) {
+            return root.resultChartData();
+        }
+        if (root.gameplayScreenActive) {
+            return root.gameplayChartData();
+        }
+        if (root.effectiveScreenKey === "select") {
+            return selectContext.visualChartWrapper;
+        }
+        return root.chart || root.resultChartData();
+    }
+
     readonly property var selectedCourseStages: {
         if (root.effectiveScreenKey === "courseResult") {
             if (root.chartDatas && root.chartDatas.length > 0) {

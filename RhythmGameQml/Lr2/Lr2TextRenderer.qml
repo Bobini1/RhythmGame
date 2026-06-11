@@ -54,7 +54,15 @@ Item {
     readonly property bool isLr2Font: srcData
         && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
     readonly property int blendMode: drawState.blendMode
-    readonly property string displayText: root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?"))
+    readonly property bool normalBlendActive: root.blendMode !== 2
+    readonly property bool additiveBlendActive: root.blendMode === 2
+    readonly property bool normalBitmapTextActive: root.normalBlendActive && root.isLr2Font
+    readonly property bool normalSystemTextActive: root.normalBlendActive && !root.isLr2Font
+    readonly property bool additiveBitmapTextActive: root.additiveBlendActive && root.isLr2Font
+    readonly property bool additiveSystemTextActive: root.additiveBlendActive && !root.isLr2Font
+    readonly property string systemDisplayText: root.isLr2Font
+        ? ""
+        : (root.resolvedText || ("ST_" + (root.srcData ? root.srcData.st : "?")))
     readonly property int stateFilter: drawState.filter
     readonly property color textColor: root.hasCurrentState
         ? Qt.rgba(root.stateR / 255.0, root.stateG / 255.0, root.stateB / 255.0, 1.0)
@@ -96,11 +104,11 @@ Item {
         opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
 
         Lr2BitmapFontTexture {
-            visible: root.isLr2Font && root.blendMode !== 2
+            visible: root.normalBitmapTextActive
             anchors.fill: parent
-            active: root.blendMode !== 2
+            active: root.normalBitmapTextActive
             fontPath: root.srcData ? root.srcData.fontPath : ""
-            text: root.resolvedText
+            text: root.normalBitmapTextActive ? root.resolvedText : ""
             textColor: root.textColor
             textureFilter: root.effectiveTextureFilter
             alignment: root.textAlignment
@@ -108,11 +116,11 @@ Item {
         }
 
         Lr2SystemFontText {
-            visible: !root.isLr2Font && root.blendMode !== 2
+            visible: root.normalSystemTextActive
             anchors.fill: parent
-            text: root.blendMode !== 2 ? root.displayText : ""
+            text: root.normalSystemTextActive ? root.systemDisplayText : ""
             textColor: root.textColor
-            family: root.blendMode !== 2 ? root.fontFamily : ""
+            family: root.normalSystemTextActive ? root.fontFamily : ""
             alignment: root.textAlignment
             fontSize: root.textFontSize
             fontThickness: root.textFontThickness
@@ -126,11 +134,11 @@ Item {
             anchors.fill: parent
 
             Lr2BitmapFontTexture {
-                visible: root.blendMode === 2 && root.isLr2Font
+                visible: root.additiveBitmapTextActive
                 anchors.fill: parent
-                active: root.blendMode === 2
+                active: root.additiveBitmapTextActive
                 fontPath: root.srcData ? root.srcData.fontPath : ""
-                text: root.resolvedText
+                text: root.additiveBitmapTextActive ? root.resolvedText : ""
                 textColor: root.textColor
                 textureFilter: root.effectiveTextureFilter
                 alignment: root.textAlignment
@@ -138,11 +146,11 @@ Item {
             }
 
             Lr2SystemFontText {
-                visible: root.blendMode === 2 && !root.isLr2Font
+                visible: root.additiveSystemTextActive
                 anchors.fill: parent
-                text: root.blendMode === 2 ? root.displayText : ""
+                text: root.additiveSystemTextActive ? root.systemDisplayText : ""
                 textColor: root.textColor
-                family: root.blendMode === 2 ? root.fontFamily : ""
+                family: root.additiveSystemTextActive ? root.fontFamily : ""
                 alignment: root.textAlignment
                 fontSize: root.textFontSize
                 fontThickness: root.textFontThickness

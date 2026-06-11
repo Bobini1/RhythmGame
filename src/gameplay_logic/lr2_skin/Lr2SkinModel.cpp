@@ -207,25 +207,6 @@ int staticNoteElementSortId(const QVariantList& noteDsts) {
     return result >= 0 ? result : 0;
 }
 
-void updateMinSortId(int& current, const QVariantList& dsts) {
-    if (dsts.isEmpty()) {
-        return;
-    }
-
-    const int sortId = firstSortId(dsts);
-    current = current < 0 || sortId < current ? sortId : current;
-}
-
-int selectBarElementSortBase(const QVariantList& barRows) {
-    int result = -1;
-    for (const QVariant& rowValue : barRows) {
-        const QVariantMap row = rowValue.toMap();
-        updateMinSortId(result, row.value(QStringLiteral("offDsts")).toList());
-        updateMinSortId(result, row.value(QStringLiteral("onDsts")).toList());
-    }
-    return result >= 0 ? result : 0;
-}
-
 bool isSelectBarElement(const Lr2Element& element) {
     return element.type == 4
         || element.type == 5
@@ -276,8 +257,7 @@ double elementSortKey(const Lr2Element& element, int noteElementSortId) {
     return element.type == 8 ? noteElementSortId : firstSortId(element.dsts);
 }
 
-void sortElementsByDrawOrder(QList<Lr2Element>& elements, const QVariantList& noteDsts, const QVariantList& barRows) {
-    Q_UNUSED(barRows)
+void sortElementsByDrawOrder(QList<Lr2Element>& elements, const QVariantList& noteDsts) {
     const int noteElementSortId = staticNoteElementSortId(noteDsts);
     std::stable_sort(
         elements.begin(),
@@ -702,7 +682,7 @@ void Lr2SkinModel::loadSkin() {
     beginResetModel();
     const auto skinData = Lr2SkinParser::parseData(m_csvPath, m_settingValues, m_activeOptions);
     m_elements = skinData.elements;
-    sortElementsByDrawOrder(m_elements, skinData.noteDsts, skinData.barRows);
+    sortElementsByDrawOrder(m_elements, skinData.noteDsts);
     const auto mouseCursor = findMouseCursorElement(skinData.elements);
     const bool hasMouseHover = hasMouseHoverElement(skinData.elements);
     const int scratchRotationSides = scratchRotationSidesForElements(skinData.elements);

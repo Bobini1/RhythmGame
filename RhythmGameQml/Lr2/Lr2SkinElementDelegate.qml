@@ -140,12 +140,6 @@ Loader {
     readonly property int elementSkinTime: needsManualElementSkinTime
         ? elementSkinTimeForClock(elementSkinClockMode, usesLiveSelectClock, elemLoader.screenRoot.renderSkinTime, false)
         : 0
-    readonly property var chartGraphData: elemLoader.screenRoot.resultScreenActive
-        ? elemLoader.screenRoot.resultChartData()
-        : (elemLoader.screenRoot.gameplayScreenActive
-            ? elemLoader.screenRoot.gameplayChartData()
-            : elemLoader.screenRoot.visualSelectChart)
-
     function chartScoreForElement(side: var) : var {
         if (elemLoader.screenRoot.resultScreenActive) {
             return elemLoader.screenRoot.resultScore(side);
@@ -463,7 +457,7 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.chartGraphData
+            chart: elemLoader.screenRoot.skinElementChartGraphData()
             score: elemLoader.chartScoreForElement((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
             screenRoot: elemLoader.screenRoot
         }
@@ -481,7 +475,7 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.chartGraphData
+            chart: elemLoader.screenRoot.skinElementChartGraphData()
         }
     }
 
@@ -497,7 +491,7 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.chartGraphData
+            chart: elemLoader.screenRoot.skinElementChartGraphData()
             score: elemLoader.chartScoreForElement((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
             screenRoot: elemLoader.screenRoot
         }
@@ -515,7 +509,7 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.chartGraphData
+            chart: elemLoader.screenRoot.skinElementChartGraphData()
             score: elemLoader.chartScoreForElement((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
             screenRoot: elemLoader.screenRoot
         }
@@ -551,6 +545,25 @@ Loader {
             readonly property int currentNumberValue: usesFpsNumber
                 ? elemLoader.screenRoot.lr2CurrentFps
                 : (usesFocusedSelectNumber ? focusedSelectNumber : valueResolverNumber)
+            readonly property bool hiddenByOptionOnlyRank: elemLoader.valueResolver.optionOnlyRankId(numberId)
+            readonly property bool numberUsesNegativeSelectHide: selectNumberScreen
+                && elemLoader.valueResolver.numberSourceFrameGroupSize(numberSrc) !== 24
+            readonly property bool hiddenByNegativeSelectValue: numberUsesNegativeSelectHide
+                && currentNumberValue < 0
+            readonly property bool numberUsesNowCombo: !!numberSrc
+                && !!numberSrc.nowCombo
+                && elemLoader.screenRoot.gameplayScreenActive
+            readonly property int nowComboSide: numberUsesNowCombo
+                ? (numberSrc.side || (numberSrc.timer === 47 ? 2 : 1))
+                : 0
+            readonly property int nowComboJudgement: !numberUsesNowCombo
+                ? -1
+                : (nowComboSide === 2
+                ? elemLoader.screenRoot.gameplayLastJudgement2
+                : elemLoader.screenRoot.gameplayLastJudgement1)
+            readonly property bool hiddenByNowCombo: numberUsesNowCombo
+                && (currentNumberValue <= 0
+                    || (numberSrc.judgementIndex >= 0 && nowComboJudgement !== numberSrc.judgementIndex))
             dsts: elemLoader.elementData.dsts
             srcData: numberSrc
             skinTime: elemLoader.useDirectElementSkinClock && !numberSourceAnimates ? 0 : elemLoader.elementSkinTime
@@ -561,7 +574,9 @@ Loader {
             sourceTimerFire: elemLoader.srcTimerFire
             scaleOverride: skinScale
             value: numberRenderer.currentNumberValue
-            forceHidden: elemLoader.valueResolver.numberForceHidden(numberSrc)
+            forceHidden: numberRenderer.hiddenByOptionOnlyRank
+                || numberRenderer.hiddenByNegativeSelectValue
+                || numberRenderer.hiddenByNowCombo
             colorKeyEnabled: skinModel.hasTransColor
             transColor: skinModel.transColor
             screenRoot: elemLoader.screenRoot

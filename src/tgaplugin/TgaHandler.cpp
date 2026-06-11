@@ -19,15 +19,44 @@ TgaHandler::canRead(QIODevice* device)
 {
     if (!device)
         return false;
-    // TGA files often start with specific header bytes
-    // Check first few bytes without consuming them
     QByteArray header = device->peek(18);
-    return header.size() >= 18; // Basic TGA header size check
+    if (header.size() < 18) {
+        return false;
+    }
+
+    const auto byteAt = [&header](int index) {
+        return static_cast<unsigned char>(header[index]);
+    };
+    const auto littleEndian16 = [&byteAt](int index) {
+        return static_cast<quint16>(byteAt(index) | (byteAt(index + 1) << 8));
+    };
+
+    const auto colorMapType = byteAt(1);
+    if (colorMapType > 1) {
+        return false;
+    }
+
+    const auto imageType = byteAt(2);
+    if (imageType != 1 && imageType != 2 && imageType != 3 && imageType != 9 &&
+        imageType != 10 && imageType != 11) {
+        return false;
+    }
+
+    const auto width = littleEndian16(12);
+    const auto height = littleEndian16(14);
+    const auto bitsPerPixel = byteAt(16);
+    return width > 0 && height > 0 &&
+           (bitsPerPixel == 8 || bitsPerPixel == 15 || bitsPerPixel == 16 ||
+            bitsPerPixel == 24 || bitsPerPixel == 32);
 }
 
 bool
 TgaHandler::read(QImage* image)
 {
+    if (!image || !device()) {
+        return false;
+    }
+
     QByteArray data = device()->readAll();
 
     SDL_RWops* rw = SDL_RWFromConstMem(data.constData(), data.size());
@@ -59,6 +88,11 @@ TgaHandler::read(QImage* image)
         return false;
 
     QImage result(converted->w, converted->h, format);
+    if (result.isNull()) {
+        SDL_FreeSurface(converted);
+        return false;
+    }
+
     const auto* sourcePixels =
       static_cast<const unsigned char*>(converted->pixels);
     for (int y = 0; y < converted->h; ++y) {

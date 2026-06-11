@@ -1,5 +1,7 @@
 #include "Lr2ResolvedTextRegistry.h"
 
+#include "Lr2ResolvedText.h"
+
 #include <algorithm>
 
 Lr2ResolvedTextRegistry::Lr2ResolvedTextRegistry(QObject* parent) : QObject(parent) {}
@@ -20,11 +22,12 @@ QString Lr2ResolvedTextRegistry::textFor(int sourceTextId) const {
     return m_texts.value(sourceTextId);
 }
 
-void Lr2ResolvedTextRegistry::retainTextId(int sourceTextId) {
+void Lr2ResolvedTextRegistry::retainTextId(int sourceTextId, Lr2ResolvedText* listener) {
     if (sourceTextId < 0) {
         return;
     }
 
+    addTextListener(sourceTextId, listener);
     const int previousCount = m_refCounts.value(sourceTextId, 0);
     m_refCounts.insert(sourceTextId, previousCount + 1);
     if (previousCount == 0) {
@@ -32,14 +35,16 @@ void Lr2ResolvedTextRegistry::retainTextId(int sourceTextId) {
     }
 }
 
-void Lr2ResolvedTextRegistry::releaseTextId(int sourceTextId) {
+void Lr2ResolvedTextRegistry::releaseTextId(int sourceTextId, Lr2ResolvedText* listener) {
     if (sourceTextId < 0) {
         return;
     }
 
+    removeTextListener(sourceTextId, listener);
     const int previousCount = m_refCounts.value(sourceTextId, 0);
     if (previousCount <= 1) {
         m_refCounts.remove(sourceTextId);
+        m_texts.remove(sourceTextId);
         removeActiveTextId(sourceTextId);
         return;
     }
@@ -47,12 +52,17 @@ void Lr2ResolvedTextRegistry::releaseTextId(int sourceTextId) {
 }
 
 void Lr2ResolvedTextRegistry::setText(int sourceTextId, const QString& text) {
-    if (sourceTextId < 0 || m_texts.value(sourceTextId) == text) {
+    if (sourceTextId < 0) {
+        return;
+    }
+
+    auto it = m_texts.constFind(sourceTextId);
+    if (it != m_texts.constEnd() && it.value() == text) {
         return;
     }
 
     m_texts.insert(sourceTextId, text);
-    emit textChanged(sourceTextId, text);
+    notifyTextListeners(sourceTextId, text);
 }
 
 int Lr2ResolvedTextRegistry::activeTextIdAt(int index) const {
@@ -66,8 +76,9 @@ bool Lr2ResolvedTextRegistry::isTextIdActive(int sourceTextId) const {
 }
 
 void Lr2ResolvedTextRegistry::appendActiveTextId(int sourceTextId) {
-    m_activeTextIds.append(sourceTextId);
-    std::sort(m_activeTextIds.begin(), m_activeTextIds.end());
+    const auto insertIt =
+        std::lower_bound(m_activeTextIds.begin(), m_activeTextIds.end(), sourceTextId);
+    m_activeTextIds.insert(insertIt, sourceTextId);
     ++m_activeTextIdRevision;
     emit activeTextIdsChanged();
 }
@@ -76,6 +87,51 @@ void Lr2ResolvedTextRegistry::removeActiveTextId(int sourceTextId) {
     if (!m_activeTextIds.removeOne(sourceTextId)) {
         return;
     }
+    m_textListeners.remove(sourceTextId);
     ++m_activeTextIdRevision;
     emit activeTextIdsChanged();
+}
+
+void Lr2ResolvedTextRegistry::addTextListener(int sourceTextId, Lr2ResolvedText* listener) {
+    if (!listener) {
+        return;
+    }
+
+    QList<QPointer<Lr2ResolvedText>>& listeners = m_textListeners[sourceTextId];
+    for (const QPointer<Lr2ResolvedText>& existing : listeners) {
+        if (existing == listener) {
+            return;
+        }
+    }
+    listeners.append(listener);
+}
+
+void Lr2ResolvedTextRegistry::removeTextListener(int sourceTextId, Lr2ResolvedText* listener) {
+    if (!listener) {
+        return;
+    }
+
+    auto it = m_textListeners.find(sourceTextId);
+    if (it == m_textListeners.end()) {
+        return;
+    }
+    auto& listeners = it.value();
+    listeners.erase(std::remove_if(listeners.begin(),
+                                   listeners.end(),
+                                   [listener](const QPointer<Lr2ResolvedText>& existing) {
+                                       return existing.isNull() || existing == listener;
+                                   }),
+                    listeners.end());
+    if (it->isEmpty()) {
+        m_textListeners.erase(it);
+    }
+}
+
+void Lr2ResolvedTextRegistry::notifyTextListeners(int sourceTextId, const QString& text) {
+    const QList<QPointer<Lr2ResolvedText>> listeners = m_textListeners.value(sourceTextId);
+    for (const QPointer<Lr2ResolvedText>& listener : listeners) {
+        if (listener) {
+            listener->setRegistryFallbackText(text);
+        }
+    }
 }

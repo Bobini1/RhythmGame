@@ -17,7 +17,6 @@ Item {
     property string queuedPreviewSource: ""
     property alias scratchSoundPlayer: scratchSound
 
-    readonly property var renderChart: root.host.chart || root.host.resultChartData()
     readonly property string requestedPreviewSource: root.ready && root.active
         ? (root.previewSource || "")
         : ""

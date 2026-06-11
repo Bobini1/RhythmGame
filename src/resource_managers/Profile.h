@@ -76,7 +76,7 @@ class Profile final : public QObject
     Q_PROPERTY(resource_managers::Profile::LoginState loginState READ
                  getLoginState NOTIFY loginStateChanged FINAL)
     Q_PROPERTY(resource_managers::Profile::LoginState tachiLoginState READ
-                 getTachiLoginState NOTIFY loginStateChanged FINAL)
+                 getTachiLoginState NOTIFY tachiLoginStateChanged FINAL)
     Q_PROPERTY(qml_components::ReplayImportOperation* replayImportOperation
                  READ getReplayImportOperation
                  NOTIFY replayImportOperationChanged FINAL)

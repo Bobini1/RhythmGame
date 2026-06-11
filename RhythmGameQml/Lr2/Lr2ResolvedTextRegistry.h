@@ -3,8 +3,11 @@
 #include <QHash>
 #include <QList>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QtQml/qqmlregistration.h>
+
+class Lr2ResolvedText;
 
 class Lr2ResolvedTextRegistry : public QObject {
     Q_OBJECT
@@ -21,8 +24,8 @@ public:
     int activeTextIdRevision() const;
 
     QString textFor(int sourceTextId) const;
-    void retainTextId(int sourceTextId);
-    void releaseTextId(int sourceTextId);
+    void retainTextId(int sourceTextId, Lr2ResolvedText* listener = nullptr);
+    void releaseTextId(int sourceTextId, Lr2ResolvedText* listener = nullptr);
 
     Q_INVOKABLE void setText(int sourceTextId, const QString& text);
     Q_INVOKABLE int activeTextIdAt(int index) const;
@@ -30,14 +33,17 @@ public:
 
 signals:
     void activeTextIdsChanged();
-    void textChanged(int sourceTextId, const QString& text);
 
 private:
     void appendActiveTextId(int sourceTextId);
     void removeActiveTextId(int sourceTextId);
+    void addTextListener(int sourceTextId, Lr2ResolvedText* listener);
+    void removeTextListener(int sourceTextId, Lr2ResolvedText* listener);
+    void notifyTextListeners(int sourceTextId, const QString& text);
 
     QHash<int, int> m_refCounts;
     QHash<int, QString> m_texts;
+    QHash<int, QList<QPointer<Lr2ResolvedText>>> m_textListeners;
     QList<int> m_activeTextIds;
     int m_activeTextIdRevision = 0;
 };

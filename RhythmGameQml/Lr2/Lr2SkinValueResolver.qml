@@ -1788,28 +1788,6 @@ QtObject {
         return 0;
     }
 
-    function numberForceHidden(src: var) : var {
-        if (!src) {
-            return false;
-        }
-        if (resolver.optionOnlyRankId(src.num || 0)) {
-            return true;
-        }
-        if (root.effectiveScreenKey === "select"
-                && resolver.numberSourceFrameGroupSize(src) !== 24
-                && resolver.resolveNumber(src.num || 0) < 0) {
-            return true;
-        }
-        if (!src.nowCombo || !root.gameplayScreenActive) {
-            return false;
-        }
-        let side = src.side || (src.timer === 47 ? 2 : 1);
-        let judgement = side === 2 ? root.gameplayLastJudgement2 : root.gameplayLastJudgement1;
-        let combo = side === 2 ? root.gameplayJudgeCombo2 : root.gameplayJudgeCombo1;
-        return combo <= 0
-            || (src.judgementIndex >= 0 && judgement !== src.judgementIndex);
-    }
-
     function resolveBarGraph(type: var) : var {
         if (root.effectiveScreenKey === "select") {
             return selectContext.barGraphValue(type);

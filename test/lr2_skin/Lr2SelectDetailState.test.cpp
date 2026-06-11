@@ -6,6 +6,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QCoreApplication>
 #include <QJSEngine>
 #include <QJSValue>
 #include <QString>
@@ -14,6 +15,16 @@
 #include <memory>
 
 namespace {
+
+void ensureCoreApplication() {
+	static int argc = 1;
+	static char appName[] = "RhythmGame_test";
+	static char* argv[] = {appName, nullptr};
+	static std::unique_ptr<QCoreApplication> app;
+	if (!QCoreApplication::instance()) {
+		app = std::make_unique<QCoreApplication>(argc, argv);
+	}
+}
 
 gameplay_logic::BmsScore* scoreWithValues(const QString& clearType,
 										  double maxPoints,
@@ -97,6 +108,7 @@ void refreshState(Lr2SelectDetailState& state,
 }
 
 int summaryLampFor(const QString& clearType, bool useBeatorajaSemantics) {
+	ensureCoreApplication();
 	Lr2SelectDetailState state;
 	QJSEngine engine;
 	auto* score = scoreWithClearType(clearType, &state);
@@ -149,6 +161,7 @@ TEST_CASE("LR2 select detail state keeps LR2 clear lamp buckets",
 TEST_CASE("LR2 select detail state fills selected difficulty lamp from summary",
 		  "[lr2][runtime][select]")
 {
+	ensureCoreApplication();
 	Lr2SelectDetailState state;
 	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
@@ -175,6 +188,7 @@ TEST_CASE("LR2 select detail state fills selected difficulty lamp from summary",
 TEST_CASE("LR2 select detail state can skip selected difficulty lamp",
 		  "[lr2][runtime][select]")
 {
+	ensureCoreApplication();
 	Lr2SelectDetailState state;
 	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
@@ -196,6 +210,7 @@ TEST_CASE("LR2 select detail state can skip selected difficulty lamp",
 TEST_CASE("LR2 select detail state can skip score option ids",
 		  "[lr2][runtime][select]")
 {
+	ensureCoreApplication();
 	Lr2SelectDetailState state;
 	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
@@ -218,6 +233,7 @@ TEST_CASE("LR2 select detail state can skip score option ids",
 TEST_CASE("LR2 select detail state keeps zero-point played scores as rank F",
 		  "[lr2][runtime][select]")
 {
+	ensureCoreApplication();
 	Lr2SelectDetailState state;
 	QJSEngine engine;
 	auto* score = scoreWithValues(QStringLiteral("FAILED"),
