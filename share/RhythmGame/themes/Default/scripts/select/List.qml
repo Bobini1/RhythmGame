@@ -485,11 +485,15 @@ PathView {
         openedFolder();
     }
 
+    function isChartItem(item) {
+        return (item instanceof ChartData || item instanceof entry);
+    }
+
     function sortFilter(input) {
         let resultFolders = [];
         let resultCharts = [];
         for (let item of input) {
-            if (item instanceof ChartData || item instanceof entry) {
+            if (isChartItem(item)) {
                 if (filter && !filter(item))
                     continue;
                 resultCharts.push(item);
@@ -575,7 +579,7 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: modelData instanceof ChartData || modelData instanceof entry || modelData instanceof course ? chartComponent : folderComponent
+        sourceComponent: isChartItem(modelData) || modelData instanceof course ? chartComponent : folderComponent
     }
     path: Path {
         id: path

@@ -1583,8 +1583,8 @@ Item {
         return 5;
     }
 
-    function sortEntryBucket(entries: var) : var {
-        if (activeSortMode() === 0 || entries.length <= 1) {
+    function sortEntryBucket(entries: var, shouldSort: var) : var {
+        if (!shouldSort || activeSortMode() === 0 || entries.length <= 1) {
             return entries;
         }
         let result = entries.slice();
@@ -1607,7 +1607,7 @@ Item {
 
         let result = [];
         for (let i = 0; i < buckets.length; ++i) {
-            result.push(...sortEntryBucket(buckets[i]));
+            result.push(...sortEntryBucket(buckets[i], i === 4));
         }
 
         if (result.length === 0) {
