@@ -543,13 +543,13 @@ Item {
                 }
             }
 
-            onPlayerPositionChanged: syncColumnWindow()
-            onColumnStateChanged: syncColumnWindow()
-            onDstStateChanged: syncColumnWindow()
-            onTravelHeightChanged: syncColumnWindow()
-            onMultiplierChanged: syncColumnWindow()
-            onHeightChanged: syncColumnWindow()
-            Component.onCompleted: syncColumnWindow()
+            onPlayerPositionChanged: Qt.callLater(syncColumnWindow)
+            onColumnStateChanged: Qt.callLater(syncColumnWindow)
+            onDstStateChanged: Qt.callLater(syncColumnWindow)
+            onTravelHeightChanged: Qt.callLater(syncColumnWindow)
+            onMultiplierChanged: Qt.callLater(syncColumnWindow)
+            onHeightChanged: Qt.callLater(syncColumnWindow)
+            Component.onCompleted: Qt.callLater(syncColumnWindow)
 
             Item {
                 id: noteClip

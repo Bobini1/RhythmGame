@@ -53,6 +53,9 @@ Item {
         ? (currentState.y - drawH) * scaleOverride
         : 0
     readonly property real reveal: {
+        if (chartType !== 0 || (screenRoot && screenRoot.gameplayScreenActive)) {
+            return 1;
+        }
         if (!srcData || (srcData.delay || 0) <= 0) {
             return 1;
         }
@@ -60,18 +63,39 @@ Item {
     }
     readonly property int chartType: srcData ? Math.max(0, Math.min(2, srcData.chartType || 0)) : 0
     readonly property var chartData: root.chart && root.chart.chartData !== undefined ? root.chart.chartData : root.chart
-    readonly property bool hasChartData: chartType === 0
-        ? chartSnapshot.hasHistogram
-        : (chartSnapshot.hasHistogram || resultEvents.length > 0)
-    readonly property var resultEvents: score && score.replayData ? (score.replayData.hitEvents || []) : []
-    readonly property var densityData: buildGraphData()
-    readonly property int bucketCount: Math.max(1, densityData.length)
-    readonly property int maxDensity: chartType === 0
-        ? chartSnapshot.normalDensityMax
-        : graphMax(densityData)
+    readonly property int replayDataRevision: score && score.replayData && score.replayData.revision !== undefined
+        ? score.replayData.revision
+        : 0
+    readonly property bool hasChartData: {
+        root.replayDataRevision;
+        return chartSnapshot.hasHistogram;
+    }
+    readonly property var resultEvents: {
+        root.replayDataRevision;
+        return score && score.replayData ? (score.replayData.hitEvents || []) : [];
+    }
+    property var densityData: []
+    property int densityDataRevision: 0
+    readonly property int bucketCount: {
+        root.densityDataRevision;
+        return Math.max(1, densityData.length,
+            chartType === 0 ? 0 : chartSnapshot.normalDensityData.length);
+    }
+    readonly property int maxDensity: {
+        root.densityDataRevision;
+        return chartType === 0
+            ? chartSnapshot.normalDensityMax
+            : Math.max(chartSnapshot.normalDensityMax, graphMax(densityData));
+    }
     readonly property int sourceW: bucketCount * 5
     readonly property int sourceH: maxDensity * 5
     readonly property int effectiveSkinTime: Lr2SkinUtils.skinTimeForClock(skinClock, skinClockMode, skinTime)
+    property var replayDataCacheScore: null
+    property var replayDataCacheChartData: null
+    property int replayDataCacheType: -1
+    property int replayDataCacheBucketSize: 0
+    property int replayDataCacheEventCount: -1
+    property var replayDataCacheData: []
 
     function chartDstExtent(fieldSize: var, stateSize: var) : var {
         let size = Math.abs(Number(stateSize || 0));
@@ -131,6 +155,7 @@ Item {
     function chartLengthNanos() : var {
         let result = root.score && root.score.result ? root.score.result : null;
         let length = Math.max(0,
+            Number(root.chartSnapshot.length || 0),
             Number(root.chartData && root.chartData.length !== undefined ? root.chartData.length : 0),
             Number(result && result.length !== undefined ? result.length : 0));
         let maxOffset = length > 0 ? length + 1000000000 : 0;
@@ -190,18 +215,29 @@ Item {
     }
 
     function baseReplayBuckets(bucketSize: var) : var {
-        let histogram = root.chartSnapshot.hasHistogram ? root.chartSnapshot.histogramData : [];
-        let histogramCount = root.histogramBucketCount(histogram);
-        let seconds = Math.max(histogramCount, Math.floor(root.chartLengthNanos() / 1000000000) + 1, 1);
+        let normalDensity = root.chartSnapshot.hasHistogram ? root.chartSnapshot.normalDensityData : [];
+        let seconds = Math.max(normalDensity.length, Math.floor(root.chartLengthNanos() / 1000000000) + 1, 1);
         let result = new Array(seconds);
         for (let i = 0; i < seconds; ++i) {
             result[i] = new Array(bucketSize);
             for (let j = 0; j < bucketSize; ++j) {
                 result[i][j] = 0;
             }
-            result[i][0] = root.histogramPlayableCountAt(histogram, i);
+            let density = i < normalDensity.length ? normalDensity[i] : null;
+            result[i][0] = density
+                ? (Number(density[1] || 0) + Number(density[2] || 0)
+                    + Number(density[4] || 0) + Number(density[5] || 0))
+                : 0;
         }
         return result;
+    }
+
+    function emptyReplayBucket(bucketSize: var) : var {
+        let bucket = new Array(bucketSize);
+        for (let i = 0; i < bucketSize; ++i) {
+            bucket[i] = 0;
+        }
+        return bucket;
     }
 
     function eventSecond(hit: var, length: var) : var {
@@ -271,40 +307,82 @@ Item {
         return root.hitDeviationNanos(hit) < 0 ? base : base + 4;
     }
 
-    function buildReplayData(type: var) : var {
-        let data = root.baseReplayBuckets(type === 1 ? 6 : 10);
-        let events = root.resultEvents || [];
-        for (let i = 0; i < events.length; ++i) {
-            let hit = events[i];
-            let second = root.eventSecond(hit, data.length);
-            if (second < 0) {
-                continue;
-            }
-            let judgement = root.judgementForHit(hit);
-            if (judgement === Judgement.EmptyPoor
-                    || judgement < Judgement.Poor
-                    || judgement > Judgement.Perfect) {
-                continue;
-            }
-            let bucket = type === 1
-                ? root.judgeGraphBucket(judgement)
-                : root.fastSlowGraphBucket(hit, judgement);
-            if (bucket < 0) {
-                continue;
-            }
-            if (data[second][0] > 0) {
-                data[second][0] = data[second][0] - 1;
-            }
-            data[second][bucket] = (data[second][bucket] || 0) + 1;
+    function appendReplayDataHit(data: var, bucketSize: var, type: var, hit: var) : void {
+        let offset = root.replayEventOffset(hit, 0);
+        if (offset < 0) {
+            return;
         }
+        let second = Math.max(0, Math.floor(offset / 1000000000));
+        while (second >= data.length) {
+            data.push(root.emptyReplayBucket(bucketSize));
+        }
+        let judgement = root.judgementForHit(hit);
+        if (judgement === Judgement.EmptyPoor
+                || judgement < Judgement.Poor
+                || judgement > Judgement.Perfect) {
+            return;
+        }
+        let bucket = type === 1
+            ? root.judgeGraphBucket(judgement)
+            : root.fastSlowGraphBucket(hit, judgement);
+        if (bucket < 0) {
+            return;
+        }
+        data[second][bucket] = (data[second][bucket] || 0) + 1;
+    }
+
+    function replayDataCacheReusable(type: var, bucketSize: var, events: var) : var {
+        return root.replayDataCacheScore === root.score
+            && root.replayDataCacheChartData === root.chartData
+            && root.replayDataCacheType === type
+            && root.replayDataCacheBucketSize === bucketSize
+            && root.replayDataCacheEventCount >= 0
+            && root.replayDataCacheEventCount <= events.length
+            && root.replayDataCacheData.length > 0;
+    }
+
+    function buildReplayData(type: var) : var {
+        let events = root.resultEvents || [];
+        let bucketSize = type === 1 ? 6 : 10;
+        let data;
+        let startIndex = 0;
+        if (root.replayDataCacheReusable(type, bucketSize, events)) {
+            data = root.replayDataCacheData;
+            startIndex = root.replayDataCacheEventCount;
+        } else {
+            data = root.emptyReplayBuckets(bucketSize);
+        }
+        for (let i = startIndex; i < events.length; ++i) {
+            root.appendReplayDataHit(data, bucketSize, type, events[i]);
+        }
+        root.replayDataCacheScore = root.score;
+        root.replayDataCacheChartData = root.chartData;
+        root.replayDataCacheType = type;
+        root.replayDataCacheBucketSize = bucketSize;
+        root.replayDataCacheEventCount = events.length;
+        root.replayDataCacheData = data;
         return data;
     }
 
     function buildGraphData() : var {
         if (root.chartType === 0) {
-            return root.hasChartData ? root.chartSnapshot.normalDensityData : [];
+            return root.chartSnapshot.hasHistogram ? root.chartSnapshot.normalDensityData : [];
         }
         return root.buildReplayData(root.chartType);
+    }
+
+    function resetReplayDataCache() : void {
+        root.replayDataCacheScore = null;
+        root.replayDataCacheChartData = null;
+        root.replayDataCacheType = -1;
+        root.replayDataCacheBucketSize = 0;
+        root.replayDataCacheEventCount = -1;
+        root.replayDataCacheData = [];
+    }
+
+    function updateDensityData() : void {
+        root.densityData = root.buildGraphData();
+        ++root.densityDataRevision;
     }
 
     function drawBars(ctx: var, data: var, maxDensity: var, sourceH: var) : void {
@@ -333,6 +411,38 @@ Item {
                         ctx.fillRect(i * 5, sourceH - (yUnits + 1) * 5, noGapX ? 5 : 4, 4);
                         ++yUnits;
                     }
+                }
+            }
+        }
+    }
+
+    function normalDensityPlayableCount(bucket: var) : var {
+        return bucket
+            ? (Number(bucket[1] || 0) + Number(bucket[2] || 0)
+                + Number(bucket[4] || 0) + Number(bucket[5] || 0))
+            : 0;
+    }
+
+    function drawReplayStaticBars(ctx: var, maxDensity: var, sourceH: var) : void {
+        if (root.chartType === 0 || !root.chartSnapshot.hasHistogram) {
+            return;
+        }
+
+        let data = root.chartSnapshot.normalDensityData;
+        let noGap = srcData && (srcData.noGap || 0) === 1;
+        let noGapX = srcData && (srcData.noGapX || 0) === 1;
+        ctx.fillStyle = graphColors()[0] || "#555555";
+        for (let i = 0; i < data.length; ++i) {
+            let amount = Math.min(maxDensity, Math.max(0,
+                Math.floor(root.normalDensityPlayableCount(data[i]))));
+            if (amount <= 0) {
+                continue;
+            }
+            if (noGap) {
+                ctx.fillRect(i * 5, sourceH - amount * 5, noGapX ? 5 : 4, amount * 5);
+            } else {
+                for (let k = 0; k < amount; ++k) {
+                    ctx.fillRect(i * 5, sourceH - (k + 1) * 5, noGapX ? 5 : 4, 4);
                 }
             }
         }
@@ -407,6 +517,7 @@ Item {
                 ctx.save();
                 ctx.scale(width / Math.max(1, sourceW), height / Math.max(1, sourceH));
                 root.drawBackground(ctx, sourceW, sourceH, maxDensity, bucketCount);
+                root.drawReplayStaticBars(ctx, maxDensity, sourceH);
                 root.drawBars(ctx, data, maxDensity, sourceH);
                 ctx.restore();
             }
@@ -437,11 +548,44 @@ Item {
         }
     }
 
-    onChartChanged: requestChartPaint()
-    onScoreChanged: requestChartPaint()
+    Connections {
+        target: root.chartSnapshot
+        function onDataChanged() : void {
+            root.resetReplayDataCache();
+            root.updateDensityData();
+            root.requestChartPaint();
+        }
+    }
+
+    onChartChanged: {
+        resetReplayDataCache();
+        updateDensityData();
+        requestChartPaint();
+    }
+    onChartDataChanged: {
+        resetReplayDataCache();
+        updateDensityData();
+        requestChartPaint();
+    }
+    onScoreChanged: {
+        resetReplayDataCache();
+        updateDensityData();
+        requestChartPaint();
+    }
+    onReplayDataRevisionChanged: {
+        updateDensityData();
+        requestChartPaint();
+    }
     onHasChartDataChanged: requestChartPaint()
     onDensityDataChanged: requestChartPaint()
-    onSrcDataChanged: requestChartPaint()
+    onSrcDataChanged: {
+        resetReplayDataCache();
+        updateDensityData();
+        requestChartPaint();
+    }
     onVisibleChanged: requestChartPaint()
-    Component.onCompleted: requestChartPaint()
+    Component.onCompleted: {
+        updateDensityData();
+        requestChartPaint();
+    }
 }

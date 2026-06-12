@@ -457,7 +457,9 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.screenRoot.skinElementChartGraphData()
+            chart: elemLoader.screenRoot.gameplayScreenActive
+                ? elemLoader.screenRoot.gameplayChartData()
+                : elemLoader.screenRoot.skinElementChartGraphData()
             score: elemLoader.chartScoreForElement((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
             screenRoot: elemLoader.screenRoot
         }
@@ -475,7 +477,9 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.screenRoot.skinElementChartGraphData()
+            chart: elemLoader.screenRoot.gameplayScreenActive
+                ? elemLoader.screenRoot.gameplayChartData()
+                : elemLoader.screenRoot.skinElementChartGraphData()
         }
     }
 
@@ -491,7 +495,9 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.screenRoot.skinElementChartGraphData()
+            chart: elemLoader.screenRoot.gameplayScreenActive
+                ? elemLoader.screenRoot.gameplayChartData()
+                : elemLoader.screenRoot.skinElementChartGraphData()
             score: elemLoader.chartScoreForElement((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
             screenRoot: elemLoader.screenRoot
         }
@@ -509,7 +515,9 @@ Loader {
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             scaleOverride: skinScale
-            chart: elemLoader.screenRoot.skinElementChartGraphData()
+            chart: elemLoader.screenRoot.gameplayScreenActive
+                ? elemLoader.screenRoot.gameplayChartData()
+                : elemLoader.screenRoot.skinElementChartGraphData()
             score: elemLoader.chartScoreForElement((elemLoader.elementData.src && elemLoader.elementData.src.playerSide) || 1)
             screenRoot: elemLoader.screenRoot
         }

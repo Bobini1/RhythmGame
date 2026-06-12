@@ -70,10 +70,19 @@ Item {
         }
         return chartWithTimingData(chart.chartData) || chartWithTimingData(chart);
     }
-    readonly property var resultEvents: score && score.replayData
-        ? (score.replayData.hitEvents || [])
-        : []
-    readonly property var timingData: buildTimingData()
+    readonly property int replayDataRevision: score && score.replayData && score.replayData.revision !== undefined
+        ? score.replayData.revision
+        : 0
+    readonly property var resultEvents: {
+        root.replayDataRevision;
+        return score && score.replayData
+            ? (score.replayData.hitEvents || [])
+            : [];
+    }
+    readonly property var timingData: {
+        root.replayDataRevision;
+        return buildTimingData();
+    }
     readonly property int sourceH: Math.max(10, timingData.maxCount || 10)
 
     function skinColor(value: var, fallback: var) : var {
@@ -333,6 +342,7 @@ Item {
     onChartChanged: requestChartPaint()
     onChartDataChanged: requestChartPaint()
     onScoreChanged: requestChartPaint()
+    onReplayDataRevisionChanged: requestChartPaint()
     onResultEventsChanged: requestChartPaint()
     onTimingDataChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()

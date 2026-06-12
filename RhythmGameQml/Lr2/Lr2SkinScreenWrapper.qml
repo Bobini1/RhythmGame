@@ -110,8 +110,34 @@ Item {
     property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
     property var gameplayHitEvents1: []
     property var gameplayHitEvents2: []
-    readonly property var gameplayGraphScoreObject1: ({ replayData: { hitEvents: root.gameplayHitEvents1 } })
-    readonly property var gameplayGraphScoreObject2: ({ replayData: { hitEvents: root.gameplayHitEvents2 } })
+    property int gameplayHitEventsRevision1: 0
+    property int gameplayHitEventsRevision2: 0
+    property bool gameplayHitEventsPublishPending: false
+    property bool gameplayHitEventsDirty1: false
+    property bool gameplayHitEventsDirty2: false
+
+    QtObject {
+        id: gameplayGraphReplayData1
+        property var hitEvents: root.gameplayHitEvents1
+        property int revision: root.gameplayHitEventsRevision1
+    }
+
+    QtObject {
+        id: gameplayGraphReplayData2
+        property var hitEvents: root.gameplayHitEvents2
+        property int revision: root.gameplayHitEventsRevision2
+    }
+
+    QtObject {
+        id: gameplayGraphScoreState1
+        property var replayData: gameplayGraphReplayData1
+    }
+
+    QtObject {
+        id: gameplayGraphScoreState2
+        property var replayData: gameplayGraphReplayData2
+    }
+
     property int gameplayLastJudgeTiming1: 0
     property int gameplayLastJudgeTiming2: 0
     property var gameplayJudgeLaneValues1: []
@@ -2471,8 +2497,35 @@ Item {
     function setGameplayHitEventsForSide(side: var, events: var) : void {
         if (side === 2) {
             root.gameplayHitEvents2 = events;
+            ++root.gameplayHitEventsRevision2;
         } else {
             root.gameplayHitEvents1 = events;
+            ++root.gameplayHitEventsRevision1;
+        }
+    }
+
+    function scheduleGameplayHitEventsPublish(side: var) : void {
+        if (side === 2) {
+            root.gameplayHitEventsDirty2 = true;
+        } else {
+            root.gameplayHitEventsDirty1 = true;
+        }
+        if (root.gameplayHitEventsPublishPending) {
+            return;
+        }
+        root.gameplayHitEventsPublishPending = true;
+        Qt.callLater(() => root.publishGameplayHitEvents());
+    }
+
+    function publishGameplayHitEvents() : void {
+        root.gameplayHitEventsPublishPending = false;
+        if (root.gameplayHitEventsDirty1) {
+            root.gameplayHitEventsDirty1 = false;
+            ++root.gameplayHitEventsRevision1;
+        }
+        if (root.gameplayHitEventsDirty2) {
+            root.gameplayHitEventsDirty2 = false;
+            ++root.gameplayHitEventsRevision2;
         }
     }
 
@@ -2497,18 +2550,21 @@ Item {
             return;
         }
         let current = root.gameplayHitEventsForSide(side) || [];
-        let events = current.slice();
-        events.push(hit);
-        root.setGameplayHitEventsForSide(side, events);
+        current.push(hit);
+        root.scheduleGameplayHitEventsPublish(side);
     }
 
     function gameplayGraphScore(side: var) : var {
-        return side === 2 ? root.gameplayGraphScoreObject2 : root.gameplayGraphScoreObject1;
+        return side === 2 ? gameplayGraphScoreState2 : gameplayGraphScoreState1;
     }
 
     function resetGameplayGraphHits() : void {
         root.gameplayHitEvents1 = [];
         root.gameplayHitEvents2 = [];
+        root.gameplayHitEventsDirty1 = false;
+        root.gameplayHitEventsDirty2 = false;
+        ++root.gameplayHitEventsRevision1;
+        ++root.gameplayHitEventsRevision2;
     }
 
     function gameplayTotalNotes(score: var) : var {
@@ -4235,11 +4291,11 @@ Item {
     }
 
     function refreshGameplayRuntimeActiveOptions() : var {
-        root.queueResolvedTextRefresh();
         if (!root.gameplayScreenActive) {
             root.gameplayRuntimeActiveOptionsStateParts = root.emptyActiveOptions;
             if (!root.sameArrayValues(root.builtGameplayRuntimeActiveOptions, root.emptyActiveOptions)) {
                 root.builtGameplayRuntimeActiveOptions = root.emptyActiveOptions;
+                root.queueResolvedTextRefresh();
             }
             return false;
         }
@@ -4256,6 +4312,7 @@ Item {
         }
 
         root.builtGameplayRuntimeActiveOptions = nextOptions;
+        root.queueResolvedTextRefresh();
         let refreshed = selectUpdateController.refreshGameplayRuntimeActiveOptions();
         root.applyGameplayInputMapping();
         root.clearHiddenFiveKeyGameplayTimers();

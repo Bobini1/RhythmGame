@@ -56,10 +56,10 @@ Item {
         }
         return chart.chartData !== undefined ? chart.chartData : chart;
     }
-    readonly property var hitEvents: score && score.replayData
-        ? (score.replayData.hitEvents || [])
-        : []
-    readonly property var recentEvents: recentTimingEvents()
+    readonly property int replayDataRevision: score && score.replayData && score.replayData.revision !== undefined
+        ? score.replayData.revision
+        : 0
+    property var recentEvents: []
 
     function chartDstExtent(fieldSize: var, stateSize: var) : var {
         let size = Math.abs(Number(stateSize || 0));
@@ -162,8 +162,10 @@ Item {
 
     function recentTimingEvents() : var {
         let result = [];
-        let events = root.hitEvents || [];
-        for (let i = 0; i < events.length; ++i) {
+        let events = root.score && root.score.replayData
+            ? (root.score.replayData.hitEvents || [])
+            : [];
+        for (let i = events.length - 1; i >= 0 && result.length < 100; --i) {
             let hit = events[i];
             if (!hit || !hit.noteRemoved) {
                 continue;
@@ -175,12 +177,14 @@ Item {
             if (offset < -root.center || offset > root.center) {
                 continue;
             }
-            result.push(offset);
-            if (result.length > 100) {
-                result.shift();
-            }
+            result.unshift(offset);
         }
         return result;
+    }
+
+    function updateRecentEvents() : void {
+        root.recentEvents = root.recentTimingEvents();
+        root.requestChartPaint();
     }
 
     function sourceToCanvasX(sourceX: var, width: var) : var {
@@ -283,12 +287,12 @@ Item {
 
     onChartChanged: requestChartPaint()
     onChartDataChanged: requestChartPaint()
-    onScoreChanged: requestChartPaint()
-    onHitEventsChanged: requestChartPaint()
+    onScoreChanged: updateRecentEvents()
+    onReplayDataRevisionChanged: updateRecentEvents()
     onRecentEventsChanged: requestChartPaint()
     onSrcDataChanged: requestChartPaint()
     onCurrentStateChanged: requestChartPaint()
     onSourceWChanged: requestChartPaint()
     onVisibleChanged: requestChartPaint()
-    Component.onCompleted: requestChartPaint()
+    Component.onCompleted: updateRecentEvents()
 }
