@@ -153,13 +153,8 @@ Item {
     readonly property bool selectedStateScoreCurrent: selectedDetailState.scoreGeneration === scoreGeneration
     readonly property bool selectedStateListCurrent: selectedDetailState.listGeneration === listGeneration
     readonly property bool selectedStateCurrent: selectedStateScoreCurrent && selectedStateListCurrent
-    property int selectedDetailValueRevision: 0
     property int numberValueStaticRevision: 0
     property int numberValuePlayerStatsRevision: 0
-    property int numberValueSelectedItemRevision: 0
-    property int numberValueSelectedChartRevision: 0
-    property int numberValueSelectedScoreRevision: 0
-    property int numberValueSelectedDifficultyRevision: 0
     property int numberValueFolderCountsRevision: 0
     property int numberValueRankingStatsRevision: 0
     readonly property int numberValueRevisionLimit: 4096
@@ -197,43 +192,15 @@ Item {
     }
 
     function pruneNumberValueCacheIfNeeded() : void {
-        if (root.numberValueSelectedItemRevision > root.numberValueRevisionLimit
-                || root.numberValueSelectedChartRevision > root.numberValueRevisionLimit
-                || root.numberValueSelectedScoreRevision > root.numberValueRevisionLimit
-                || root.numberValueSelectedDifficultyRevision > root.numberValueRevisionLimit
-                || root.numberValuePlayerStatsRevision > root.numberValueRevisionLimit
+        if (root.numberValuePlayerStatsRevision > root.numberValueRevisionLimit
                 || root.numberValueFolderCountsRevision > root.numberValueRevisionLimit
                 || root.numberValueRankingStatsRevision > root.numberValueRevisionLimit) {
             root.numberValueCache = [];
             root.numberValueCacheRevisions = [];
             root.numberValuePlayerStatsRevision = 0;
-            root.numberValueSelectedItemRevision = 0;
-            root.numberValueSelectedChartRevision = 0;
-            root.numberValueSelectedScoreRevision = 0;
-            root.numberValueSelectedDifficultyRevision = 0;
             root.numberValueFolderCountsRevision = 0;
             root.numberValueRankingStatsRevision = 0;
         }
-    }
-
-    function advanceNumberValueSelectedItemRevision() : void {
-        pruneNumberValueCacheIfNeeded();
-        root.numberValueSelectedItemRevision = advanceNumberValueRevision(root.numberValueSelectedItemRevision);
-    }
-
-    function advanceNumberValueSelectedChartRevision() : void {
-        pruneNumberValueCacheIfNeeded();
-        root.numberValueSelectedChartRevision = advanceNumberValueRevision(root.numberValueSelectedChartRevision);
-    }
-
-    function advanceNumberValueSelectedScoreRevision() : void {
-        pruneNumberValueCacheIfNeeded();
-        root.numberValueSelectedScoreRevision = advanceNumberValueRevision(root.numberValueSelectedScoreRevision);
-    }
-
-    function advanceNumberValueSelectedDifficultyRevision() : void {
-        pruneNumberValueCacheIfNeeded();
-        root.numberValueSelectedDifficultyRevision = advanceNumberValueRevision(root.numberValueSelectedDifficultyRevision);
     }
 
     function advanceNumberValuePlayerStatsRevision() : void {
@@ -348,34 +315,6 @@ Item {
 
     Lr2SelectDetailState {
         id: selectedDetailState
-    }
-
-    Connections {
-        target: selectedDetailState.summary
-        function onChanged() : void {
-            root.selectedDetailValueRevision += 1;
-            root.advanceNumberValueSelectedScoreRevision();
-        }
-    }
-
-    Connections {
-        target: selectedDetailState
-        function onItemChanged() : void {
-            root.advanceNumberValueSelectedItemRevision();
-        }
-        function onChartDataChanged() : void {
-            root.advanceNumberValueSelectedChartRevision();
-        }
-    }
-
-    Connections {
-        target: selectedDetailState.difficultyModel
-        function onDataChanged() : void {
-            root.advanceNumberValueSelectedDifficultyRevision();
-        }
-        function onModelReset() : void {
-            root.advanceNumberValueSelectedDifficultyRevision();
-        }
     }
 
     Lr2SelectNavigationController {
@@ -3344,24 +3283,56 @@ Item {
         return scoreSummaryForItem(item).scoreRate;
     }
 
+    property bool selectedRefreshIdentityValid: false
+    property string selectedRefreshItemKey: ""
+    property string selectedRefreshTargetItemKey: ""
+    property bool selectedRefreshRankingMode: false
+    property int selectedRefreshScoreGeneration: -1
+    property int selectedRefreshListGeneration: -1
+    property bool selectedRefreshUseBeatorajaSelectOptions: false
+    property bool selectedRefreshScoreOptionIdsUsed: false
+    property bool selectedRefreshDifficultyStateUsed: true
+    property bool selectedRefreshDifficultyLampStateUsed: true
+
+    function selectedRefreshIdentityMatches(itemKey, targetItemKey) : bool {
+        return selectedRefreshIdentityValid
+            && selectedRefreshItemKey === itemKey
+            && selectedRefreshTargetItemKey === targetItemKey
+            && selectedRefreshRankingMode === rankingMode
+            && selectedRefreshScoreGeneration === scoreGeneration
+            && selectedRefreshListGeneration === listGeneration
+            && selectedRefreshUseBeatorajaSelectOptions === root.useBeatorajaSelectOptions
+            && selectedRefreshScoreOptionIdsUsed === root.scoreOptionIdsUsed
+            && selectedRefreshDifficultyStateUsed === root.difficultyStateUsed
+            && selectedRefreshDifficultyLampStateUsed === root.difficultyLampStateUsed;
+    }
+
+    function rememberSelectedRefreshIdentity(itemKey, targetItemKey) : void {
+        selectedRefreshIdentityValid = true;
+        selectedRefreshItemKey = itemKey;
+        selectedRefreshTargetItemKey = targetItemKey;
+        selectedRefreshRankingMode = rankingMode;
+        selectedRefreshScoreGeneration = scoreGeneration;
+        selectedRefreshListGeneration = listGeneration;
+        selectedRefreshUseBeatorajaSelectOptions = root.useBeatorajaSelectOptions;
+        selectedRefreshScoreOptionIdsUsed = root.scoreOptionIdsUsed;
+        selectedRefreshDifficultyStateUsed = root.difficultyStateUsed;
+        selectedRefreshDifficultyLampStateUsed = root.difficultyLampStateUsed;
+    }
+
+    function invalidateSelectedRefreshIdentity() : void {
+        selectedRefreshIdentityValid = false;
+    }
+
     function refreshSelectedScoreState() : var {
+        let itemKey = focusedSelectionKey;
+        let targetItemKey = focusedSelectionTargetKey;
+        if (root.selectedRefreshIdentityMatches(itemKey, targetItemKey)) {
+            return false;
+        }
         let item = focusedItem;
         let nextChartData = focusedChartData;
         let targetItem = focusedSelectionTarget;
-        let itemKey = focusedSelectionKey;
-        let targetItemKey = focusedSelectionTargetKey;
-        if (selectedDetailState.selectedIdentityMatches(
-                itemKey,
-                targetItemKey,
-                rankingMode,
-                scoreGeneration,
-                listGeneration,
-                root.useBeatorajaSelectOptions,
-                root.scoreOptionIdsUsed,
-                root.difficultyStateUsed,
-                root.difficultyLampStateUsed)) {
-            return false;
-        }
         let difficultyState = root.difficultyStateUsed ? difficultyStateForChart(nextChartData) : null;
         let targetId = entryIdentifier(targetItem);
         let targetIdString = targetId ? String(targetId) : "";
@@ -3386,6 +3357,7 @@ Item {
                 root.scoreOptionIdsUsed,
                 root.difficultyStateUsed,
                 root.difficultyLampStateUsed);
+        root.rememberSelectedRefreshIdentity(itemKey, targetItemKey);
         if (changed) {
             let chartData = nextChartData;
             let nextChartWrapper = chartData || null;
@@ -4187,41 +4159,41 @@ Item {
 
     function numberValueSelectedScoreRevisionValue() : var {
         return root.rankingMode
-            ? numberValueCombinedRevision2(root.numberValueSelectedItemRevision,
-                                           root.numberValueSelectedScoreRevision)
-            : root.numberValueSelectedScoreRevision;
+            ? numberValueCombinedRevision2(selectedDetailState.selectedItemRevision,
+                                           selectedDetailState.selectedScoreRevision)
+            : selectedDetailState.selectedScoreRevision;
     }
 
     function numberValueSelectedChartScoreRevisionValue() : var {
         return root.rankingMode
-            ? numberValueCombinedRevision3(root.numberValueSelectedChartRevision,
-                                           root.numberValueSelectedItemRevision,
-                                           root.numberValueSelectedScoreRevision)
-            : numberValueCombinedRevision2(root.numberValueSelectedChartRevision,
-                                           root.numberValueSelectedScoreRevision);
+            ? numberValueCombinedRevision3(selectedDetailState.selectedChartRevision,
+                                           selectedDetailState.selectedItemRevision,
+                                           selectedDetailState.selectedScoreRevision)
+            : numberValueCombinedRevision2(selectedDetailState.selectedChartRevision,
+                                           selectedDetailState.selectedScoreRevision);
     }
 
     function numberValueSelectedDifficultyRevisionValue() : var {
-        return numberValueCombinedRevision2(root.numberValueSelectedChartRevision,
-                                            root.numberValueSelectedDifficultyRevision);
+        return numberValueCombinedRevision2(selectedDetailState.selectedChartRevision,
+                                            selectedDetailState.selectedDifficultyRevision);
     }
 
     function numberValueSelectedRankingRevision() : var {
-        return numberValueCombinedRevision3(root.numberValueSelectedChartRevision,
-                                            root.numberValueSelectedScoreRevision,
+        return numberValueCombinedRevision3(selectedDetailState.selectedChartRevision,
+                                            selectedDetailState.selectedScoreRevision,
                                             root.numberValueRankingStatsRevision);
     }
 
     function numberValueSelectedFolderRevision() : var {
-        return numberValueCombinedRevision2(root.numberValueSelectedItemRevision,
+        return numberValueCombinedRevision2(selectedDetailState.selectedItemRevision,
                                             root.numberValueFolderCountsRevision);
     }
 
     function numberValueSelectedAllRevision() : var {
-        return numberValueCombinedRevision4(root.numberValueSelectedItemRevision,
-                                            root.numberValueSelectedChartRevision,
-                                            root.numberValueSelectedScoreRevision,
-                                            root.numberValueSelectedDifficultyRevision);
+        return numberValueCombinedRevision4(selectedDetailState.selectedItemRevision,
+                                            selectedDetailState.selectedChartRevision,
+                                            selectedDetailState.selectedScoreRevision,
+                                            selectedDetailState.selectedDifficultyRevision);
     }
 
     function numberValueCacheRevisionForNumber(num: int) : var {
@@ -4264,7 +4236,7 @@ Item {
         case 368:
         case 1163:
         case 1164:
-            return root.numberValueSelectedChartRevision;
+            return selectedDetailState.selectedChartRevision;
         case 70:
         case 71:
         case 72:
@@ -4436,8 +4408,9 @@ Item {
     }
 
     function computeNumberValue(num: var) : var {
-        if (selectedDetailState.resolvesSelectedNumberValue(num)) {
-            return selectedDetailState.selectedNumberValue(num);
+        const selectedValue = selectedDetailState.resolvedSelectedNumberValue(num);
+        if (selectedValue !== undefined && selectedValue !== null) {
+            return selectedValue;
         }
 
         let state = selectedState;

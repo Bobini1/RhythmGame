@@ -310,6 +310,10 @@ class Lr2SelectDetailState : public QObject {
 	Q_PROPERTY(QObject* scoreCounts READ scoreCountsObject CONSTANT)
 	Q_PROPERTY(QVariant scoreOptionIds READ scoreOptionIds WRITE setScoreOptionIds NOTIFY scoreOptionIdsChanged)
 	Q_PROPERTY(Lr2SelectDifficultyModel* difficultyModel READ difficultyModel CONSTANT)
+	Q_PROPERTY(int selectedItemRevision READ selectedItemRevision NOTIFY selectedRevisionsChanged)
+	Q_PROPERTY(int selectedChartRevision READ selectedChartRevision NOTIFY selectedRevisionsChanged)
+	Q_PROPERTY(int selectedScoreRevision READ selectedScoreRevision NOTIFY selectedRevisionsChanged)
+	Q_PROPERTY(int selectedDifficultyRevision READ selectedDifficultyRevision NOTIFY selectedRevisionsChanged)
 
 public:
 	explicit Lr2SelectDetailState(QObject* parent = nullptr);
@@ -338,6 +342,10 @@ public:
 	void setScoreOptionIds(const QVariant& value);
 
 	Lr2SelectDifficultyModel* difficultyModel();
+	int selectedItemRevision() const;
+	int selectedChartRevision() const;
+	int selectedScoreRevision() const;
+	int selectedDifficultyRevision() const;
 
 	Q_INVOKABLE bool selectedIdentityMatches(const QString& itemKey,
 											 const QString& targetItemKey,
@@ -375,6 +383,7 @@ public:
 														bool useBeatorajaSemantics,
 														bool buildScoreOptionIds);
 	Q_INVOKABLE bool resolvesSelectedNumberValue(int num) const;
+	Q_INVOKABLE QVariant resolvedSelectedNumberValue(int num) const;
 	Q_INVOKABLE int selectedNumberValue(int num) const;
 	Q_INVOKABLE double selectedBarGraphValue(int type) const;
 	Q_INVOKABLE void clearScoreSummaryCache();
@@ -389,6 +398,7 @@ signals:
 	void bestStatsChanged();
 	void scoreCountsChanged();
 	void scoreOptionIdsChanged();
+	void selectedRevisionsChanged();
 
 private:
 	bool selectedRefreshMatches(const QString& itemKey,
@@ -412,13 +422,20 @@ private:
 						  const QVariant& chartData,
 						  bool useBeatorajaSemantics,
 						  bool buildScoreOptionIds,
-						  const Lr2SelectScoreSummaryData& scoreSummary);
+						  const Lr2SelectScoreSummaryData& scoreSummary,
+						  bool& itemDidChange,
+						  bool& chartDidChange,
+						  bool& scoreDidChange);
 	const Lr2SelectScoreSummaryData& cachedScoreSummaryData(const Lr2SelectScoreSummaryCacheKey& cacheKey,
 															const QJSValue& scoreList,
 															bool useBeatorajaSemantics,
 															bool buildScoreOptionIds);
 	void ensureScoreSummaryCacheSemantics(bool useBeatorajaSemantics,
 										  bool buildScoreOptionIds);
+	void advanceSelectedRevisions(bool itemDidChange,
+								  bool chartDidChange,
+								  bool scoreDidChange,
+								  bool difficultyDidChange);
 
 	int m_scoreGeneration = -1;
 	int m_listGeneration = -1;
@@ -435,6 +452,10 @@ private:
 	Lr2SelectScoreSummary m_summary;
 	QVariant m_scoreOptionIds;
 	Lr2SelectDifficultyModel m_difficultyModel;
+	int m_selectedItemRevision = 0;
+	int m_selectedChartRevision = 0;
+	int m_selectedScoreRevision = 0;
+	int m_selectedDifficultyRevision = 0;
 	struct CachedScoreSummary {
 		Lr2SelectScoreSummaryData data;
 		Lr2SelectScoreSummary* object = nullptr;

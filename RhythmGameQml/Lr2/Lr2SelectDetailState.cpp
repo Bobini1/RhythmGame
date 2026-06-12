@@ -15,6 +15,8 @@
 
 namespace {
 
+constexpr int selectedRevisionLimit = 4096;
+
 QVariant valueAt(const QVariantList& list, int index) {
 	return index >= 0 && index < list.size() ? list.at(index) : QVariant {};
 }
@@ -1232,6 +1234,22 @@ Lr2SelectDifficultyModel* Lr2SelectDetailState::difficultyModel() {
 	return &m_difficultyModel;
 }
 
+int Lr2SelectDetailState::selectedItemRevision() const {
+	return m_selectedItemRevision;
+}
+
+int Lr2SelectDetailState::selectedChartRevision() const {
+	return m_selectedChartRevision;
+}
+
+int Lr2SelectDetailState::selectedScoreRevision() const {
+	return m_selectedScoreRevision;
+}
+
+int Lr2SelectDetailState::selectedDifficultyRevision() const {
+	return m_selectedDifficultyRevision;
+}
+
 bool Lr2SelectDetailState::selectedRefreshMatches(const QString& itemKey,
 												  const QString& targetItemKey,
 												  bool rankingMode,
@@ -1275,13 +1293,41 @@ void Lr2SelectDetailState::clearSelectedIdentity() {
 	m_selectedDifficultyLampStateUsed = true;
 }
 
+void Lr2SelectDetailState::advanceSelectedRevisions(bool itemDidChange,
+													bool chartDidChange,
+													bool scoreDidChange,
+													bool difficultyDidChange) {
+	auto advance = [](int& revision) {
+		revision = revision >= selectedRevisionLimit ? 1 : revision + 1;
+	};
+
+	if (itemDidChange) {
+		advance(m_selectedItemRevision);
+	}
+	if (chartDidChange) {
+		advance(m_selectedChartRevision);
+	}
+	if (scoreDidChange) {
+		advance(m_selectedScoreRevision);
+	}
+	if (difficultyDidChange) {
+		advance(m_selectedDifficultyRevision);
+	}
+	if (itemDidChange || chartDidChange || scoreDidChange || difficultyDidChange) {
+		emit selectedRevisionsChanged();
+	}
+}
+
 bool Lr2SelectDetailState::applyRefreshData(int scoreGeneration,
 											int listGeneration,
 											const QVariant& item,
 											const QVariant& chartData,
 											bool useBeatorajaSemantics,
 											bool buildScoreOptionIds,
-											const Lr2SelectScoreSummaryData& scoreSummary) {
+											const Lr2SelectScoreSummaryData& scoreSummary,
+											bool& itemDidChange,
+											bool& chartDidChange,
+											bool& scoreDidChange) {
 	m_useBeatorajaSemantics = useBeatorajaSemantics;
 	m_buildScoreOptionIds = buildScoreOptionIds;
 
@@ -1293,17 +1339,19 @@ bool Lr2SelectDetailState::applyRefreshData(int scoreGeneration,
 		m_listGeneration = listGeneration;
 		emit listGenerationChanged();
 	}
-	if (m_item != item) {
+	itemDidChange = m_item != item;
+	if (itemDidChange) {
 		m_item = item;
 		emit itemChanged();
 	}
-	if (m_chartData != chartData) {
+	chartDidChange = m_chartData != chartData;
+	if (chartDidChange) {
 		m_chartData = chartData;
 		emit chartDataChanged();
 	}
 
 	const bool hadBestStats = m_summary.bestStatsObject() != nullptr;
-	m_summary.setValues(scoreSummary);
+	scoreDidChange = m_summary.setValues(scoreSummary);
 	if (hadBestStats != (m_summary.bestStatsObject() != nullptr)) {
 		emit bestStatsChanged();
 	}
@@ -1462,6 +1510,13 @@ bool Lr2SelectDetailState::resolvesSelectedNumberValue(int num) const {
 	default:
 		return false;
 	}
+}
+
+QVariant Lr2SelectDetailState::resolvedSelectedNumberValue(int num) const {
+	if (!resolvesSelectedNumberValue(num)) {
+		return QVariant {};
+	}
+	return selectedNumberValue(num);
 }
 
 int Lr2SelectDetailState::selectedNumberValue(int num) const {
@@ -1795,25 +1850,39 @@ bool Lr2SelectDetailState::refreshSelectedFromQmlIdentityForIdentifier(const QSt
 											   useBeatorajaSemantics,
 											   buildScoreOptionIds);
 	}
-	m_difficultyModel.setRowsFromJsValues(difficultyCounts,
-										  difficultyLevels,
-										  difficultyLamps,
-										  selectedDifficulty,
-										  scoreSummary->lamp);
+	const bool difficultyChanged = m_difficultyModel.setRowsFromJsValues(difficultyCounts,
+																		 difficultyLevels,
+																		 difficultyLamps,
+																		 selectedDifficulty,
+																		 scoreSummary->lamp);
 
+	const bool rankingModeChanged = m_selectedRankingMode != rankingMode;
 	rememberSelectedIdentity(itemKey,
 							 targetItemKey,
 							 rankingMode,
 							 difficultyStateUsed,
 							 difficultyLampStateUsed);
 
-	return applyRefreshData(scoreGeneration,
-							listGeneration,
-							optionalJsValueVariant(item),
-							optionalJsValueVariant(chartData),
-							useBeatorajaSemantics,
-							buildScoreOptionIds,
-							*scoreSummary);
+	bool itemDidChange = false;
+	bool chartDidChange = false;
+	bool scoreDidChange = false;
+	const bool refreshed = applyRefreshData(scoreGeneration,
+										   listGeneration,
+										   optionalJsValueVariant(item),
+										   optionalJsValueVariant(chartData),
+										   useBeatorajaSemantics,
+										   buildScoreOptionIds,
+										   *scoreSummary,
+										   itemDidChange,
+										   chartDidChange,
+										   scoreDidChange);
+	if (refreshed) {
+		advanceSelectedRevisions(itemDidChange,
+								 chartDidChange,
+								 scoreDidChange || rankingModeChanged || (itemDidChange && rankingMode),
+								 difficultyChanged);
+	}
+	return refreshed;
 }
 
 void Lr2SelectDetailState::clear() {
@@ -1837,4 +1906,5 @@ void Lr2SelectDetailState::clear() {
 	}
 	setValue(m_scoreOptionIds, QVariant(), &Lr2SelectDetailState::scoreOptionIdsChanged);
 	m_difficultyModel.setRows({}, {}, {});
+	advanceSelectedRevisions(true, true, true, true);
 }
