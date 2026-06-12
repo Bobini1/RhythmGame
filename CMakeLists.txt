@@ -401,7 +401,6 @@ else ()
     )
 endif ()
 add_executable(RhythmGame::exe ALIAS RhythmGame_exe)
-target_compile_definitions(RhythmGame_exe PRIVATE QT_QML_DEBUG)
 
 qt_add_resources(
         RhythmGame_exe
