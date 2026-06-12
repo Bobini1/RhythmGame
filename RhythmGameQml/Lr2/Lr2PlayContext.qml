@@ -90,8 +90,9 @@ Item {
             return normalized(screenRoot ? screenRoot.gameplayHighScorePoints() : 0,
                               totalPoints(1));
         case 13:
-            return normalized(screenRoot ? screenRoot.gameplayHighScorePoints() : 0,
-                              totalPoints(1));
+            return normalized(
+                screenRoot ? savedScorePoints(screenRoot.gameplayBestSavedScore()) : 0,
+                totalPoints(1));
         case 14:
             return normalized(
                 screenRoot ? screenRoot.gameplayTargetScorePoints(1) : 0,
