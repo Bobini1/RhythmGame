@@ -32,9 +32,9 @@ See the [DEV_THEME.md](DEV_THEME.md) document for more information.
 
 The game also supports CSV-based Lunatic Rave 2 and Beatoraja skins.
 
-[![Beatoraja skin - LITONE5 by DESOUT2](docs/images/litone.png)](https://desout2.tk/litone5-beatoraja/)
+![Lunatic Rave 2 skin - LR2 Default - Play](docs/images/lr2-play.png)]
 
-![Lunatic Rave 2 skin - LR2 Default](docs/images/lr2.png)
+![Lunatic Rave 2 skin - LR2 Default - Select](docs/images/lr2.png)
 
 ### Internet Ranking with Bokutachi and LR2IR support
 
