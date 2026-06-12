@@ -314,6 +314,19 @@ Item {
                         right: parent.right
                     }
                 }
+                Choice {
+                    destination: root.generalVars
+                    id_: "replayType"
+                    choices: [0, 1, 2, 3]
+                    displayStrings: qsTr("Newest;Best Score;Best Clear;Best Combo").split(";")
+                    name: qsTr("Replay Type")
+                    default_: 0
+
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                    }
+                }
                 Separator {
                 }
                 Choice {
