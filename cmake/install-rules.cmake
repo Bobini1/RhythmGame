@@ -21,7 +21,8 @@ qt6_deploy_runtime_dependencies(
     DEPLOY_TOOL_OPTIONS \"--qmldir\" \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\"
 )
 ")
-        install(SCRIPT ${deploy_script})
+        install(SCRIPT ${deploy_script}
+                COMPONENT RhythmGame_Runtime)
     else ()
         qt_generate_deploy_qml_app_script(
                 TARGET RhythmGame_exe
@@ -30,7 +31,8 @@ qt6_deploy_runtime_dependencies(
                 DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\""
                 MACOS_BUNDLE_POST_BUILD
         )
-        install(SCRIPT ${deploy_script})
+        install(SCRIPT ${deploy_script}
+                COMPONENT RhythmGame_Runtime)
     endif ()
 
     if (NOT WIN32)
