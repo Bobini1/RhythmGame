@@ -423,9 +423,6 @@ QtObject {
         "44": () => false,
         "45": () => false,
         "46": delta => {
-            if (controller.lr2ClassicHidSudControlPresent()) {
-                return false;
-            }
             root.setLaneCoverIndex(root.lr2LaneCoverIndex + delta);
             return true;
         },
