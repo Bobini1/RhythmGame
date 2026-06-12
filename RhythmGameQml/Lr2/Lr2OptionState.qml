@@ -52,13 +52,13 @@ QtObject {
         null
     ]
     readonly property var lr2ClassicRandomSupportedIndexes: [0, 1, 2, 3, 4]
-    readonly property var lr2HiSpeedFixLabels: ["OFF", "START BPM", "MAX BPM", "MAIN BPM", "MIN BPM"]
+    readonly property var lr2HiSpeedFixLabels: ["OFF", "MAX BPM", "MIN BPM", "AVERAGE", "CONSTANT"]
     readonly property var lr2HiSpeedFixValues: [
         HiSpeedFix.Off,
-        HiSpeedFix.Start,
         HiSpeedFix.Max,
-        HiSpeedFix.Main,
-        HiSpeedFix.Min
+        HiSpeedFix.Min,
+        HiSpeedFix.Avg,
+        HiSpeedFix.Main
     ]
     readonly property var lr2DpOptionLabels: ["OFF", "FLIP", "BATTLE", "BATTLE AS"]
     readonly property var lr2DpOptionSupportedIndexes: [0, 1, 2]

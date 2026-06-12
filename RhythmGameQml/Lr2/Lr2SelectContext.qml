@@ -4380,7 +4380,7 @@ Item {
         case 75:
             return rankingEntry() ? rankingEntry().bestCombo : (stats() ? stats().maxCombo : 0);
         case 76:
-            return counts().minBadPoor;
+            return rankingEntry() && scoreStats() ? scoreStats().badPoor : counts().minBadPoor;
         case 77:
             return rankingEntry() ? rankingEntry().scoreCount : counts().play;
         case 78:

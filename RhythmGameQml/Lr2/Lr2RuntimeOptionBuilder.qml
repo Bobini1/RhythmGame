@@ -657,7 +657,7 @@ QtObject {
         let rank = 0;
         let hasScore = false;
         if (selectContext.isRankingEntry(item)) {
-            clearType = item.bestClearType;
+            clearType = selectContext.entryClearType(item);
             clearOption = selectContext.beatorajaClearOptionForClearType(clearType);
             lamp = selectContext.clearTypeLamp(clearType);
             lr2Lamp = selectContext.collapsedClearTypeLamp(clearType);

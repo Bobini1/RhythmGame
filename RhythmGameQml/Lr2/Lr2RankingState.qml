@@ -587,7 +587,9 @@ QtObject {
 
     function entryClearValue(index: var) : var {
         let entry = root.entryAt(index);
-        return entry ? root.host.clearTypeValue(entry.bestClearType || "NOPLAY") : 0;
+        return entry
+            ? root.host.clearTypeValue(root.selectContext.skinCompatibleClearType(entry.bestClearType || "NOPLAY"))
+            : 0;
     }
 
     function entryExScore(index: var) : var {

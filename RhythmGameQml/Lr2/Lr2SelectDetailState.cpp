@@ -1498,7 +1498,7 @@ int Lr2SelectDetailState::selectedNumberValue(int num) const {
 			? static_cast<int>(rankingNumber(QStringLiteral("bestCombo")))
 			: (stats ? stats->maxCombo : 0);
 	case 76:
-		return counts->minBadPoor();
+		return rankingEntry && stats ? stats->badPoor : counts->minBadPoor();
 	case 77:
 		return rankingEntry ? static_cast<int>(rankingNumber(QStringLiteral("scoreCount"))) : counts->play();
 	case 78:
