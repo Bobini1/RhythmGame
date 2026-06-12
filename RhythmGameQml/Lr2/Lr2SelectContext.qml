@@ -7,7 +7,6 @@ import "Lr2SkinUtils.js" as Lr2SkinUtils
 Item {
     id: root
 
-    property var items: []
     property var folderContents: []
     property var historyStack: []
     property var scores: ({})
@@ -19,8 +18,6 @@ Item {
     property int pendingFolderLampPublishCount: 0
     property bool folderLampPublishQueued: false
     property bool selectItemScoreSummaryPublishQueued: false
-    property var chartGroupsByFolderKeymode: ({})
-    property var chartDifficultyByPath: ({})
     property var selectedDifficultyStateCache: ({})
     property var selectedDifficultyGroupStateCache: ({})
     property var playerStats: ({
@@ -267,7 +264,7 @@ Item {
     readonly property var beatorajaKeyFilterOrder: [0, 1, 2, 3, 4]
     readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "LIGHTASSIST", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
-    readonly property int count: items.length
+    readonly property int count: selectItemModel.count
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
     readonly property int focusedIndex: logicalCount > 0 ? currentIndex : 0
     readonly property var focusedItem: logicalCount > 0 ? selectItemModel.currentItem : null
@@ -299,10 +296,31 @@ Item {
         scrollDownDirection: root.lr2ScrollDown
     }
 
+    ChartFolderModel {
+        id: selectSortFilter
+        sortMode: root.selectSortMode
+        keymodeFilter: root.selectKeymodeFilter
+        difficultyFilter: root.difficultyFilter
+        scores: root.scores
+    }
+
     Lr2SelectItemModel {
         id: selectItemModel
+        useBeatorajaBarTextTypes: root.useBeatorajaBarTextTypes
+        useBeatorajaSelectOptions: root.useBeatorajaSelectOptions
+        barBodyTypes: root.barBodyTypes
+        barTitleTypes: root.barTitleTypes
+        barLampVariants: root.barLampVariants
+        chartFolderModel: selectSortFilter
+        levelFolderParentKey: {
+            let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
+            return isTable(parent) ? (parent.url || parent.name || "") : "";
+        }
+        levelFolderParentSymbol: {
+            let parent = historyStack.length > 0 ? historyStack[historyStack.length - 1] : null;
+            return isTable(parent) ? (parent.symbol || "") : "";
+        }
         currentIndex: root.currentIndex
-        items: root.normalizedSelectModelItems(root.items)
     }
 
     Lr2SelectBarModel {
@@ -945,27 +963,7 @@ Item {
     }
 
     function publishSelectItemScoreSummaries() : void {
-        let lamps = {};
-        let ranks = {};
-        let rates = {};
-        for (let item of folderContents) {
-            if (!isChart(item) && !isEntry(item) && !isCourse(item)) {
-                continue;
-            }
-
-            let id = entryIdentifier(item);
-            if (!id) {
-                continue;
-            }
-
-            let summary = scoreSummaryForItem(item);
-            let lamp = clearTypeBarLamp(summary.clearType, root.barLampVariants);
-            let key = String(id);
-            lamps[key] = lamp;
-            ranks[key] = summary.rank;
-            rates[key] = summary.scoreRate;
-        }
-        selectItemModel.setScoreSummaries(lamps, ranks, rates);
+        selectItemModel.setScoreSummariesFromScores(scores);
     }
 
     Component.onDestruction: {
@@ -986,265 +984,6 @@ Item {
         for (let i = length; i < limit; i++) {
             input.push(input[i % length] || null);
         }
-    }
-
-    function keyFilterMatches(item: var) : var {
-        if (!isChart(item) || selectKeymodeFilter === SelectKeymodeFilter.All) {
-            return true;
-        }
-        let keymode = item.keymode || 0;
-        switch (selectKeymodeFilter) {
-        case SelectKeymodeFilter.Single:
-            return keymode === 5 || keymode === 7;
-        case SelectKeymodeFilter.Double:
-            return keymode === 10 || keymode === 14;
-        case SelectKeymodeFilter.K5:
-            return keymode === 5;
-        case SelectKeymodeFilter.K7:
-            return keymode === 7;
-        case SelectKeymodeFilter.K10:
-            return keymode === 10;
-        case SelectKeymodeFilter.K14:
-            return keymode === 14;
-        default:
-            return true;
-        }
-    }
-
-    function chartFilterMatches(item: var) : var {
-        return keyFilterMatches(item);
-    }
-
-    function difficultyFilteredCharts(input: var) : var {
-        if (difficultyFilter === 0) {
-            return input;
-        }
-
-        let groupOrder = [];
-        let groups = {};
-        let passthrough = [];
-        for (let item of input) {
-            if (!isChart(item)) {
-                passthrough.push(item);
-                continue;
-            }
-
-            let group = root.ensureChartGroup(groups, item);
-            if (group.length === 0) {
-                groupOrder.push({
-                    folderKey: root.chartFolderKey(item),
-                    keymodeKey: root.chartKeymodeKey(item)
-                });
-            }
-            group.push(item);
-        }
-
-        let result = passthrough.slice();
-        for (let groupRef of groupOrder) {
-            let group = groups[groupRef.folderKey][groupRef.keymodeKey];
-            let exact = [];
-            let lower = [];
-            let higher = [];
-            let unknown = [];
-            let lowerDifficulty = 0;
-            let higherDifficulty = 0;
-            for (let chart of group) {
-                let difficulty = entryDifficulty(chart);
-                if (difficulty === difficultyFilter) {
-                    exact.push(chart);
-                } else if (difficulty > 0 && difficulty < difficultyFilter) {
-                    if (difficulty > lowerDifficulty) {
-                        lower = [chart];
-                        lowerDifficulty = difficulty;
-                    } else if (difficulty === lowerDifficulty) {
-                        lower.push(chart);
-                    }
-                } else if (difficulty > difficultyFilter) {
-                    if (higherDifficulty === 0 || difficulty < higherDifficulty) {
-                        higher = [chart];
-                        higherDifficulty = difficulty;
-                    } else if (difficulty === higherDifficulty) {
-                        higher.push(chart);
-                    }
-                } else {
-                    unknown.push(chart);
-                }
-            }
-            if (exact.length > 0) {
-                result.push(...exact);
-            } else if (lower.length > 0) {
-                result.push(...lower);
-            } else if (higher.length > 0) {
-                result.push(...higher);
-            } else {
-                result.push(...unknown);
-            }
-        }
-        return result;
-    }
-
-    function compareByTitle(a: var, b: var) : var {
-        let titleDiff = compareByNameOnly(a, b);
-        if (titleDiff !== 0) {
-            return titleDiff;
-        }
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return 0;
-        }
-        return compareByDifficulty(a, b);
-    }
-
-    function compareByArtist(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let artistDiff = entryArtist(a).localeCompare(entryArtist(b));
-        if (artistDiff !== 0) {
-            return artistDiff;
-        }
-        return compareByTitle(a, b);
-    }
-
-    function compareNumberWithMissing(aValue: var, bValue: var) : var {
-        let aMissing = aValue === null || aValue === undefined || !isFinite(aValue);
-        let bMissing = bValue === null || bValue === undefined || !isFinite(bValue);
-        if (aMissing && bMissing) {
-            return 0;
-        }
-        if (aMissing) {
-            return 1;
-        }
-        if (bMissing) {
-            return -1;
-        }
-        return aValue - bValue;
-    }
-
-    function entryMaxBpmForSort(item: var) : var {
-        if (!isChart(item) && !isEntry(item)) {
-            return null;
-        }
-        let bpm = item.maxBpm || item.mainBpm || item.minBpm || 0;
-        return bpm > 0 ? bpm : null;
-    }
-
-    function entryLengthForSort(item: var) : var {
-        if (!isChart(item) && !isEntry(item)) {
-            return null;
-        }
-        return (item.length || 0) > 0 ? item.length : null;
-    }
-
-    function entryScoreRateForSort(item: var) : var {
-        let summary = scoreSummaryForItem(item);
-        return summary.bestScore ? summary.scoreRate : null;
-    }
-
-    function entryMissCountForSort(item: var) : var {
-        let summary = scoreSummaryForItem(item);
-        if (!summary.bestScore && summary.scoreCounts.play <= 0) {
-            return null;
-        }
-        return summary.scoreCounts.minBadPoor >= 0 ? summary.scoreCounts.minBadPoor : null;
-    }
-
-    function entryTotalNotesForSort(item: var) : var {
-        if (!isChart(item) && !isEntry(item)) {
-            return null;
-        }
-        return (item.total || 0) > 0 ? item.total : null;
-    }
-
-    function compareByBpm(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let diff = compareNumberWithMissing(entryMaxBpmForSort(a), entryMaxBpmForSort(b));
-        if (diff !== 0) {
-            return diff;
-        }
-        return compareByTitle(a, b);
-    }
-
-    function compareByLength(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let diff = compareNumberWithMissing(entryLengthForSort(a), entryLengthForSort(b));
-        if (diff !== 0) {
-            return diff;
-        }
-        return compareByTitle(a, b);
-    }
-
-    function compareByDifficulty(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let levelDiff = entryPlayLevel(a) - entryPlayLevel(b);
-        if (levelDiff !== 0) {
-            return levelDiff;
-        }
-        return compareByNameOnly(a, b);
-    }
-
-    function compareByClear(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let aScores = entryScores(a);
-        let bScores = entryScores(b);
-        let aMissing = !aScores || aScores.length === 0;
-        let bMissing = !bScores || bScores.length === 0;
-        if (aMissing !== bMissing) {
-            return aMissing ? 1 : -1;
-        }
-        let lampDiff = entryLamp(a) - entryLamp(b);
-        if (lampDiff !== 0) {
-            return lampDiff;
-        }
-        return compareByDifficulty(a, b);
-    }
-
-    function compareByScore(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let diff = compareNumberWithMissing(entryScoreRateForSort(a), entryScoreRateForSort(b));
-        if (diff !== 0) {
-            return diff;
-        }
-        return compareByDifficulty(a, b);
-    }
-
-    function compareByMissCount(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let diff = compareNumberWithMissing(entryMissCountForSort(a), entryMissCountForSort(b));
-        if (diff !== 0) {
-            return diff;
-        }
-        return compareByDifficulty(a, b);
-    }
-
-    function compareByTotalNotes(a: var, b: var) : var {
-        if (!isSongLikeForSort(a) || !isSongLikeForSort(b)) {
-            return compareByNameOnly(a, b);
-        }
-        let diff = compareNumberWithMissing(entryTotalNotesForSort(a), entryTotalNotesForSort(b));
-        if (diff !== 0) {
-            return diff;
-        }
-        return compareByTitle(a, b);
-    }
-
-    function isSongLikeForSort(item: var) : var {
-        return isRankingEntry(item) || isChart(item) || isEntry(item);
-    }
-
-    function compareByNameOnly(a: var, b: var) : var {
-        return entryDisplayName(a, true).localeCompare(entryDisplayName(b, true));
     }
 
     function legacySortModeForSelectSortMode(mode: var) : var {
@@ -1312,33 +1051,7 @@ Item {
     function activeSortMode() : var {
         return legacySortModeForSelectSortMode(selectSortMode);
     }
-
-    function compareCharts(a: var, b: var) : var {
-        switch (activeSortMode()) {
-        case 1:
-            return compareByDifficulty(a, b);
-        case 2:
-            return compareByTitle(a, b);
-        case 3:
-            return compareByClear(a, b);
-        case 4:
-            return compareByScore(a, b);
-        case 5:
-            return compareByArtist(a, b);
-        case 6:
-            return compareByBpm(a, b);
-        case 7:
-            return compareByLength(a, b);
-        case 8:
-            return compareByMissCount(a, b);
-        case 9:
-            return compareByTotalNotes(a, b);
-        default:
-            return 0;
-        }
-    }
-
-    function activeSortUsesScores() : var {
+    function activeSortUsesScores() : var {
         switch (activeSortMode()) {
         case 3: // clear lamp
         case 4: // score rate
@@ -1507,56 +1220,17 @@ Item {
         setSelectSortMode(selectSortModeForLegacySortMode(order[frame]));
     }
 
-    function selectEntrySortBucket(item: var) : var {
-        if (typeof item === "string") {
-            return 0;
-        }
-        if (isTable(item) || isLevel(item)) {
-            return 1;
-        }
-        if (isCourse(item)) {
-            return 2;
-        }
-        if (isRankingEntry(item)) {
-            return 3;
-        }
-        if (isChart(item) || isEntry(item)) {
-            return 4;
-        }
-        return 5;
-    }
-
-    function sortEntryBucket(entries: var, shouldSort: var) : var {
-        if (!shouldSort || activeSortMode() === 0 || entries.length <= 1) {
-            return entries;
-        }
-        let result = entries.slice();
-        result.sort(compareCharts);
-        return result;
-    }
-
-    function sortFilter(input: var) : var {
-        let buckets = [[], [], [], [], [], []];
-        for (let item of input) {
-            if (isChart(item) || isEntry(item)) {
-                if (!chartFilterMatches(item)) {
-                    continue;
-                }
-            }
-            buckets[selectEntrySortBucket(item)].push(item);
-        }
-
-        buckets[4] = difficultyFilteredCharts(buckets[4]);
-
-        let result = [];
-        for (let i = 0; i < buckets.length; ++i) {
-            result.push(...sortEntryBucket(buckets[i], i === 4));
-        }
-
-        if (result.length === 0) {
-            result.push(null);
-        }
-        return result;
+    function applySortedFolderContents(preferredItem: var, useFocusedFallback: bool) : var {
+        let old = preferredItem === undefined && useFocusedFallback ? focusedItem : preferredItem;
+        let state = selectItemModel.setFolderItems(selectSortFilter, folderContents, old, 32);
+        realItemCount = state.realItemCount || 0;
+        let preferredIndex = state.preferredIndex || -1;
+        currentIndex = preferredIndex >= 0 ? preferredIndex : 0;
+        targetIndex = currentIndex;
+        selectedOffset = 0;
+        lastSyncedCursorBaseIndex = -1;
+        setVisualIndexImmediate(currentIndex);
+        return realItemCount > 0;
     }
 
     function sortOrFilterChanged(preferredItem: var) : var {
@@ -1566,21 +1240,10 @@ Item {
         if (!folderContents.length) {
             return;
         }
-        let old = preferredItem === undefined ? focusedItem : preferredItem;
-        let sortedFiltered = sortFilter(folderContents);
-        realItemCount = sortedFiltered.length;
-        addToMinimumCount(sortedFiltered);
-        items = sortedFiltered;
-        let currentIdx = sortedFiltered.findIndex((item) => sameEntry(item, old));
-        currentIndex = currentIdx >= 0 ? currentIdx : 0;
-        targetIndex = currentIndex;
-        selectedOffset = 0;
-        lastSyncedCursorBaseIndex = -1;
-        setVisualIndexImmediate(currentIndex);
+        applySortedFolderContents(preferredItem, true);
         markListContentsChanged();
         nativeNavigation.touchSelection();
     }
-
     function refreshSongDirectoryFiles() : void {
         ensureSongDirectoryFilesForChart(focusedChartData || selectedStateChartData);
     }
@@ -1708,18 +1371,7 @@ Item {
 
         folderContents = [...folder];
         rebuildFolderIndexes(folderContents);
-        folder = sortFilter(folder);
-        realItemCount = folder.length;
-        addToMinimumCount(folder);
-        items = folder;
-        let initialIndex = initialItem === undefined
-            ? 0
-            : folder.findIndex((folderItem) => sameEntry(folderItem, initialItem));
-        currentIndex = initialIndex >= 0 ? initialIndex : 0;
-        targetIndex = currentIndex;
-        selectedOffset = 0;
-        lastSyncedCursorBaseIndex = -1;
-        setVisualIndexImmediate(currentIndex);
+        applySortedFolderContents(initialItem, false);
         refreshScores();
         refreshPlayerStats();
         openedFolder();
@@ -1736,18 +1388,10 @@ Item {
         }
         folderContents = [...results];
         rebuildFolderIndexes(folderContents);
-        results = sortFilter(results);
-        realItemCount = results.length;
-        addToMinimumCount(results);
+        applySortedFolderContents(undefined, false);
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
             historyStack = historyStack.concat(["SEARCH"]);
         }
-        items = results;
-        currentIndex = 0;
-        targetIndex = 0;
-        selectedOffset = 0;
-        lastSyncedCursorBaseIndex = -1;
-        setVisualIndexImmediate(0);
         refreshScores();
         refreshPlayerStats();
         openedFolder();
@@ -2302,33 +1946,6 @@ Item {
         return mask;
     }
 
-    function normalizedSelectModelItem(item: var, fallbackIndex: var) : var {
-        let rankingEntry = isRankingEntry(item);
-        let folderLikeForLamp = isFolderLikeForLamp(item);
-        return {
-            rawItem: item,
-            folderKey: folderLikeForLamp ? folderLampKey(item) : "",
-            displayText: entryDisplayName(item, true),
-            titleType: entryTitleType(item),
-            bodyType: entryBodyType(item),
-            title: entryMainTitle(item),
-            difficulty: entryDifficulty(item),
-            lamp: rankingEntry ? clearTypeBarLamp(item.bestClearType, root.barLampVariants) : 0,
-            scoreRank: rankingEntry ? rankingEntryRank(item) : 0,
-            labelMask: entryLabelMask(item),
-            __lr2RankingEntry: rankingEntry
-        };
-    }
-
-    function normalizedSelectModelItems(sourceItems: var) : var {
-        let result = [];
-        let list = sourceItems || [];
-        for (let i = 0; i < list.length; ++i) {
-            result.push(normalizedSelectModelItem(list[i], i));
-        }
-        return result;
-    }
-
     function keyFilterLabel() : var {
         switch (selectKeymodeFilter) {
         case SelectKeymodeFilter.Single: return "SINGLE";
@@ -2381,32 +1998,12 @@ Item {
         return 0;
     }
 
-    function rawChartDifficulty(item: var) : var {
-        return isChart(item) ? (item.difficulty || 0) : 0;
-    }
-
     function entryDifficulty(item: var) : var {
         if (!isChart(item)) {
             return 0;
         }
-        let difficulty = chartDifficultyByPath[item.path || ""];
-        if (difficulty !== undefined) {
-            return difficulty;
-        }
-        return Math.max(0, rawChartDifficulty(item));
+        return selectSortFilter.difficultyForChart(item);
     }
-
-    function chartNoteCount(item: var) : var {
-        if (!isChart(item)) {
-            return 0;
-        }
-        return (item.normalNoteCount || 0)
-            + (item.scratchCount || 0)
-            + (item.lnCount || 0)
-            + (item.bssCount || 0)
-            + (item.mineCount || 0);
-    }
-
     function chartPlayableNoteCount(item: var) : var {
         if (!isChart(item)) {
             return 0;
@@ -2617,6 +2214,7 @@ Item {
             return {
                 scoreList: emptyScoreList,
                 bestScore: null,
+                hasScore: false,
                 bestStats: null,
                 scoreCounts: emptyScoreCounts,
                 clearType: "NOPLAY",
@@ -2717,12 +2315,13 @@ Item {
 
         counts.minBadPoor = Math.max(0, minBadPoor);
         let scoreRate = Math.max(0, bestRate);
-        let rank = bestScore && bestClearType !== "NOPLAY"
+        let rank = bestScore
             ? Math.max(1, rankForScoreRate(scoreRate))
             : 0;
         return {
             scoreList: scoreList,
             bestScore: bestScore,
+            hasScore: bestScore !== null,
             bestStats: bestScore ? statsForScore(bestScore, false) : null,
             scoreCounts: counts,
             clearType: bestClearType,
@@ -3594,7 +3193,7 @@ Item {
             return true;
         }
 
-        rankingSavedItems = items.slice();
+        rankingSavedItems = selectItemModel.items.slice();
         rankingSavedFolderContents = folderContents.slice();
         rankingSavedRealItemCount = realItemCount;
         rankingSavedCurrentIndex = currentIndex;
@@ -3609,7 +3208,7 @@ Item {
         }
         realItemCount = rows.length;
         addToMinimumCount(rows);
-        items = rows;
+        selectItemModel.items = rows;
         folderContents = rows;
         rankingMode = true;
         currentIndex = 0;
@@ -3632,7 +3231,7 @@ Item {
 
         rankingMode = false;
         rankingBaseItem = null;
-        items = restoreItems;
+        selectItemModel.items = restoreItems;
         folderContents = restoreFolderContents;
         realItemCount = restoreCount;
         currentIndex = restoreIndex;
@@ -3656,28 +3255,6 @@ Item {
     function chartKeymodeKey(chart: var) : var {
         return String(chart ? (chart.keymode || 0) : 0);
     }
-
-    function ensureChartGroup(groups: var, chart: var) : var {
-        let folderKey = root.chartFolderKey(chart);
-        let keymodeKey = root.chartKeymodeKey(chart);
-        let folderGroups = groups[folderKey];
-        if (!folderGroups) {
-            folderGroups = {};
-            groups[folderKey] = folderGroups;
-        }
-        let group = folderGroups[keymodeKey];
-        if (!group) {
-            group = [];
-            folderGroups[keymodeKey] = group;
-        }
-        return group;
-    }
-
-    function chartGroupForChart(groups: var, chart: var) : var {
-        let folderGroups = groups[root.chartFolderKey(chart)];
-        return folderGroups ? (folderGroups[root.chartKeymodeKey(chart)] || []) : [];
-    }
-
     function difficultyCacheForChart(cache: var, chart: var, create: var) : var {
         let folderKey = root.chartFolderKey(chart);
         let keymodeKey = root.chartKeymodeKey(chart);
@@ -3704,91 +3281,8 @@ Item {
         return chart.path || chart.md5 || chart.sha256 || entrySelectionKey(chart, 0);
     }
 
-    function difficultyHint(chart: var) : var {
-        let text = ((chart.title || "") + " " + (chart.subtitle || "")).toLowerCase();
-        if (/\binsane\b/.test(text)) return 5;
-        if (/\banother\b/.test(text)) return 4;
-        if (/\bhyper\b/.test(text)) return 3;
-        if (/\bnormal\b/.test(text)) return 2;
-        if (/\bbeginner\b|\bbgn\b/.test(text)) return 1;
-        if (entryPlayLevel(chart) <= 1) return 1;
-        return 0;
-    }
-
-    function inferGroupDifficulties(group: var) : var {
-        let result = {};
-        let hasInvalid = false;
-        let allBeginner = group.length > 1;
-        let hasNonTrivialLevel = false;
-        for (let chart of group) {
-            let raw = rawChartDifficulty(chart);
-            hasInvalid = hasInvalid || raw < 1 || raw > 5;
-            allBeginner = allBeginner && raw === 1;
-            hasNonTrivialLevel = hasNonTrivialLevel || entryPlayLevel(chart) > 1;
-        }
-
-        // New scans keep missing #DIFFICULTY as invalid. Older scans used to
-        // coerce it to BEGINNER; infer those only when the whole group has that
-        // shape, so explicit beginner singles stay untouched.
-        if (!hasInvalid && !(allBeginner && hasNonTrivialLevel)) {
-            for (let chart of group) {
-                result[chart.path || ""] = Math.max(0, rawChartDifficulty(chart));
-            }
-            return result;
-        }
-
-        let sorted = group.slice();
-        sorted.sort((a, b) => {
-            let noteDiff = chartNoteCount(a) - chartNoteCount(b);
-            if (noteDiff !== 0) {
-                return noteDiff;
-            }
-            return (a.path || "").localeCompare(b.path || "");
-        });
-
-        let inferred = 1;
-        for (let chart of sorted) {
-            let raw = rawChartDifficulty(chart);
-            let hint = allBeginner ? difficultyHint(chart) : 0;
-            if (raw >= 1 && raw <= 5 && !allBeginner) {
-                inferred = raw;
-            } else if (hint > 0) {
-                inferred = hint;
-            } else {
-                inferred += 1;
-                if (inferred === 5) {
-                    inferred = 4;
-                } else if (inferred < 1) {
-                    inferred = 2;
-                } else if (inferred > 5) {
-                    inferred = 5;
-                }
-            }
-            result[chart.path || ""] = inferred;
-        }
-        return result;
-    }
-
     function rebuildFolderIndexes(sourceItems: var) : void {
-        let groups = {};
-        let difficulties = {};
-
-        for (let item of sourceItems) {
-            if (!isChart(item)) {
-                continue;
-            }
-
-            root.ensureChartGroup(groups, item).push(item);
-        }
-
-        for (let folderGroups of Object.values(groups)) {
-            for (let group of Object.values(folderGroups)) {
-                Object.assign(difficulties, inferGroupDifficulties(group));
-            }
-        }
-
-        chartGroupsByFolderKeymode = groups;
-        chartDifficultyByPath = difficulties;
+        selectSortFilter.rebuildFolderIndexes(sourceItems);
         clearSelectedDifficultyStateCache();
     }
 
@@ -3801,7 +3295,7 @@ Item {
             return [];
         }
 
-        let result = chartGroupForChart(chartGroupsByFolderKeymode, chart);
+        let result = selectSortFilter.chartsForSameFolderAndKeymode(chart);
         if (result.length === 0) {
             result.push(chart);
         }
@@ -3967,16 +3461,7 @@ Item {
         }
         folderContents = [...folder];
         rebuildFolderIndexes(folderContents);
-        folder = sortFilter(folder);
-        realItemCount = folder.length;
-        addToMinimumCount(folder);
-        items = folder;
-        let initialIndex = folder.findIndex((folderItem) => sameEntry(folderItem, currentChart));
-        currentIndex = initialIndex >= 0 ? initialIndex : 0;
-        targetIndex = currentIndex;
-        selectedOffset = 0;
-        lastSyncedCursorBaseIndex = -1;
-        setVisualIndexImmediate(currentIndex);
+        applySortedFolderContents(currentChart, false);
         refreshScores();
         refreshPlayerStats();
         openedFolder();
@@ -4905,7 +4390,7 @@ Item {
         case 75:
             return rankingEntry() ? rankingEntry().bestCombo : (stats() ? stats().maxCombo : 0);
         case 76:
-            return rankingEntry() ? (scoreStats() ? scoreStats().badPoor : 0) : counts().minBadPoor;
+            return counts().minBadPoor;
         case 77:
             return rankingEntry() ? rankingEntry().scoreCount : counts().play;
         case 78:

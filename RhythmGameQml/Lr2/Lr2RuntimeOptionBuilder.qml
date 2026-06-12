@@ -655,6 +655,7 @@ QtObject {
         let lamp = 0;
         let lr2Lamp = 0;
         let rank = 0;
+        let hasScore = false;
         if (selectContext.isRankingEntry(item)) {
             clearType = item.bestClearType;
             clearOption = selectContext.beatorajaClearOptionForClearType(clearType);
@@ -662,6 +663,7 @@ QtObject {
             lr2Lamp = selectContext.collapsedClearTypeLamp(clearType);
             let points = Number(item.bestPoints || 0);
             let maxPoints = Number(item.maxPoints || 0);
+            hasScore = maxPoints > 0 || points > 0;
             if (maxPoints > 0) {
                 rank = Math.floor(points * 9 / maxPoints);
                 if (rank > 7) {
@@ -678,15 +680,20 @@ QtObject {
             lamp = summary.lamp;
             lr2Lamp = selectContext.collapsedClearTypeLamp(clearType);
             rank = summary.rank;
+            hasScore = summary.hasScore === true
+                || (summary.bestScore !== undefined && summary.bestScore !== null);
         }
+        let scoreBackedNoplay = hasScore && String(clearType).toUpperCase() === "NOPLAY";
         let hasExactBeatorajaLamp = clearOption >= 1100
             && root.runtimeOptionUsed(root.runtimeUsedOptions, clearOption);
-        if (!hasExactBeatorajaLamp && lr2Lamp >= 0 && lr2Lamp <= 5) {
+        if (!scoreBackedNoplay && !hasExactBeatorajaLamp && lr2Lamp >= 0 && lr2Lamp <= 5) {
             root.addOption(options, 100 + lr2Lamp);
         }
-        root.addOption(options, clearOption);
+        if (!scoreBackedNoplay || clearOption !== 100) {
+            root.addOption(options, clearOption);
+        }
 
-        if (lamp > 0 && rank >= 1) {
+        if (rank >= 1) {
             root.addOption(options, 208 - Math.min(rank, 8));
             root.addOption(options, 118 - Math.min(rank, 8));
         }

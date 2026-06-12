@@ -7,8 +7,8 @@ PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property var filter: null
     property var folderContents: []
+    readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
     onOpenedFolder: refresh()
     function refresh() {
         refreshScores();
@@ -53,6 +53,11 @@ PathView {
     property var scores: {
         return {};
     }
+    onScoresChanged: {
+        if (chartFolderModel.sortModeUsesScores()) {
+            sortOrFilterChanged();
+        }
+    }
     property var previewFiles: {
         return {};
     }
@@ -89,7 +94,6 @@ PathView {
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
     readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0
     property bool scrollingText: false
-    property var sort: null
     readonly property int lr2SpeedFirst: 300
     readonly property int lr2SpeedNext: 70
     readonly property int lr2WheelDuration: 200
@@ -109,14 +113,22 @@ PathView {
 
     property var historyStack: []
 
-    function addToMinimumCount(input) {
-        let length = input.length;
-        if (length >= pathItemCount) {
-            return;
+    ChartFolderModel {
+        id: chartFolderModel
+        sortMode: pathView.generalVars.selectSortMode
+        keymodeFilter: pathView.generalVars.selectKeymodeFilter
+        scores: pathView.scores
+    }
+
+    Connections {
+        target: pathView.generalVars
+
+        function onSelectKeymodeFilterChanged() {
+            Qt.callLater(pathView.sortOrFilterChanged);
         }
-        let limit = Math.ceil(pathItemCount / length) * length
-        for (let i = length; i < limit; i++) {
-            input.push(input[i % length] || null);
+
+        function onSelectSortModeChanged() {
+            Qt.callLater(pathView.sortOrFilterChanged);
         }
     }
 
@@ -391,7 +403,7 @@ PathView {
         for (let item of folder) {
             newFolderContents.push(item);
         }
-        folder = sortFilter(folder);
+        folder = chartFolderModel.filterAndSort(folder);
         addToMinimumCount(folder);
         pathView.model = folder;
         pathView.folderContents = newFolderContents;
@@ -449,12 +461,12 @@ PathView {
         for (let item of folder) {
             newFolderContents.push(item);
         }
-        folder = sortFilter(folder);
+        folder = chartFolderModel.filterAndSort(folder);
         addToMinimumCount(folder);
         pathView.model = folder;
         pathView.folderContents = newFolderContents;
         openedFolder();
-        let idx = indexOfEntry(folder, initialItem);
+        let idx = chartFolderModel.indexOfItem(folder, initialItem);
         pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
         resetNavigation();
         return true;
@@ -472,7 +484,7 @@ PathView {
         for (let item of results) {
             newFolderContents.push(item);
         }
-        results = sortFilter(results);
+        results = chartFolderModel.filterAndSort(results);
         addToMinimumCount(results);
         // The special path for searches.
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
@@ -489,34 +501,12 @@ PathView {
         return (item instanceof ChartData || item instanceof entry);
     }
 
-    function sortFilter(input) {
-        let resultFolders = [];
-        let resultCharts = [];
-        for (let item of input) {
-            if (isChartItem(item)) {
-                if (filter && !filter(item))
-                    continue;
-                resultCharts.push(item);
-            } else {
-                resultFolders.push(item);
-            }
-        }
-        if (sort) {
-            resultCharts.sort(sort);
-        }
-        let result = resultFolders.concat(resultCharts);
-        if (result.length === 0) {
-            result.push(null);
-        }
-        return result;
-    }
-
     function sortOrFilterChanged() {
         if (folderContents.length) {
             let old = pathView.current;
-            let sortedFiltered = sortFilter(folderContents);
+            let sortedFiltered = chartFolderModel.filterAndSort(folderContents);
             addToMinimumCount(sortedFiltered);
-            let currentIdx = sortedFiltered.indexOf(old);
+            let currentIdx = chartFolderModel.indexOfItem(sortedFiltered, old);
             pathView.model = sortedFiltered;
             if (currentIdx >= 0)
                 pathView.positionViewAtIndex(currentIdx, PathView.Center);
@@ -748,13 +738,6 @@ PathView {
             playEntryChangeSounds(1);
         }
     }
-    onFilterChanged: {
-        sortOrFilterChanged();
-    }
-    onSortChanged: {
-        sortOrFilterChanged();
-    }
-
     Timer {
         id: scrollingTextTimer
 
@@ -788,6 +771,16 @@ PathView {
 
         onWheel: wheel => {
             pathView.handleWheel(wheel);
+        }
+    }
+    function addToMinimumCount(input) {
+        let length = input.length;
+        if (length >= pathItemCount) {
+            return;
+        }
+        let limit = Math.ceil(pathItemCount / length) * length
+        for (let i = length; i < limit; i++) {
+            input.push(input[i % length] || null);
         }
     }
 }

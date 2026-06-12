@@ -52,13 +52,9 @@ Image {
             next += keymodeButton.options.length;
         }
         keymodeButton.generalVars.selectKeymodeFilter = keymodeButton.options[next].value;
-        mouseArea.setFilter();
     }
 
-    onSelectedFilterChanged: mouseArea.setFilter()
-    onOptionsChanged: mouseArea.setFilter()
     enabled: options.length > 1
-
     source: root.iniImagesUrl + "option.png/button_big"
 
     Text {
@@ -67,46 +63,10 @@ Image {
         font.pixelSize: 20
         text: qsTr(keymodeButton.textForFilter(keymodeButton.selectedFilter))
     }
+
     MouseArea {
-        id: mouseArea
-
-        function setFilter() {
-            switch (keymodeButton.selectedFilter) {
-            case SelectKeymodeFilter.All:
-                songList.filter = null;
-                break;
-            case SelectKeymodeFilter.Single:
-                songList.filter = chart => chart instanceof entry || chart.keymode === 5 || chart.keymode === 7;
-                break;
-            case SelectKeymodeFilter.Double:
-                songList.filter = chart => chart instanceof entry || chart.keymode === 10 || chart.keymode === 14;
-                break;
-            case SelectKeymodeFilter.K5:
-                songList.filter = chart => chart instanceof entry || chart.keymode === 5;
-                break;
-            case SelectKeymodeFilter.K7:
-                songList.filter = chart => chart instanceof entry || chart.keymode === 7;
-                break;
-            case SelectKeymodeFilter.K10:
-                songList.filter = chart => chart instanceof entry || chart.keymode === 10;
-                break;
-            case SelectKeymodeFilter.K14:
-                songList.filter = chart => chart instanceof entry || chart.keymode === 14;
-                break;
-            default:
-                songList.filter = null;
-            }
-        }
-
         anchors.fill: parent
-
         cursorShape: Qt.PointingHandCursor
-
-        Component.onCompleted: {
-            setFilter();
-        }
-        onClicked: {
-            keymodeButton.cycle(1);
-        }
+        onClicked: keymodeButton.cycle(1)
     }
 }

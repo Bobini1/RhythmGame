@@ -18,6 +18,7 @@
 #include "qml_components/Themes.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Profile.h"
+#include "resource_managers/ChartFolderModel.h"
 #include "resource_managers/Tables.h"
 #include "sounds/AudioEngine.h"
 
@@ -66,6 +67,13 @@ struct ProfileForeign
     QML_FOREIGN(resource_managers::Profile)
     QML_NAMED_ELEMENT(Profile)
     QML_UNCREATABLE("Profile is managed by ProfileList")
+};
+
+struct ChartFolderModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(resource_managers::ChartFolderModel)
+    QML_NAMED_ELEMENT(ChartFolderModel)
 };
 
 #define RHYTHMGAME_QML_ANONYMOUS_FOREIGN(WrapperName, ForeignType)             \

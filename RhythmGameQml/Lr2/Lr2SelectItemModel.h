@@ -4,7 +4,10 @@
 #include <QHash>
 #include <QVariant>
 #include <QVariantList>
+#include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
+
+#include "resource_managers/ChartFolderModel.h"
 
 class Lr2SelectBarCell;
 
@@ -12,9 +15,18 @@ class Lr2SelectItemModel : public QAbstractListModel {
 	Q_OBJECT
 	QML_ELEMENT
 	Q_PROPERTY(QVariantList items READ items WRITE setItems NOTIFY itemsChanged)
+	Q_PROPERTY(int count READ count NOTIFY itemsChanged)
 	Q_PROPERTY(int currentIndex READ currentIndex WRITE setCurrentIndex NOTIFY currentIndexChanged)
 	Q_PROPERTY(QVariant currentItem READ currentItem NOTIFY currentItemChanged)
 	Q_PROPERTY(QString currentKey READ currentKey NOTIFY currentItemChanged)
+	Q_PROPERTY(bool useBeatorajaBarTextTypes READ useBeatorajaBarTextTypes WRITE setUseBeatorajaBarTextTypes NOTIFY selectSkinOptionsChanged)
+	Q_PROPERTY(bool useBeatorajaSelectOptions READ useBeatorajaSelectOptions WRITE setUseBeatorajaSelectOptions NOTIFY selectSkinOptionsChanged)
+	Q_PROPERTY(QVariantList barBodyTypes READ barBodyTypes WRITE setBarBodyTypes NOTIFY selectSkinOptionsChanged)
+	Q_PROPERTY(QVariantList barTitleTypes READ barTitleTypes WRITE setBarTitleTypes NOTIFY selectSkinOptionsChanged)
+	Q_PROPERTY(QVariantList barLampVariants READ barLampVariants WRITE setBarLampVariants NOTIFY selectSkinOptionsChanged)
+	Q_PROPERTY(resource_managers::ChartFolderModel* chartFolderModel READ chartFolderModel WRITE setChartFolderModel NOTIFY chartFolderModelChanged)
+	Q_PROPERTY(QString levelFolderParentKey READ levelFolderParentKey WRITE setLevelFolderParentKey NOTIFY levelFolderParentChanged)
+	Q_PROPERTY(QString levelFolderParentSymbol READ levelFolderParentSymbol WRITE setLevelFolderParentSymbol NOTIFY levelFolderParentChanged)
 
 public:
 	enum ItemKind {
@@ -82,13 +94,34 @@ public:
 
 	QVariantList items() const;
 	void setItems(const QVariantList& items);
+	int count() const;
 
 	int currentIndex() const;
 	void setCurrentIndex(int index);
 	QVariant currentItem() const;
 	QString currentKey() const;
+	bool useBeatorajaBarTextTypes() const;
+	void setUseBeatorajaBarTextTypes(bool value);
+	bool useBeatorajaSelectOptions() const;
+	void setUseBeatorajaSelectOptions(bool value);
+	QVariantList barBodyTypes() const;
+	void setBarBodyTypes(const QVariantList& types);
+	QVariantList barTitleTypes() const;
+	void setBarTitleTypes(const QVariantList& types);
+	QVariantList barLampVariants() const;
+	void setBarLampVariants(const QVariantList& variants);
+	resource_managers::ChartFolderModel* chartFolderModel() const;
+	void setChartFolderModel(resource_managers::ChartFolderModel* model);
+	QString levelFolderParentKey() const;
+	void setLevelFolderParentKey(const QString& key);
+	QString levelFolderParentSymbol() const;
+	void setLevelFolderParentSymbol(const QString& symbol);
 
 	Q_INVOKABLE void moveRowTo(int from, int to);
+	Q_INVOKABLE QVariantMap setFolderItems(resource_managers::ChartFolderModel* folderModel,
+										   const QVariantList& folderContents,
+										   const QVariant& preferredItem,
+										   int minimumCount);
 	Q_INVOKABLE void clearFolderSummaries();
 	Q_INVOKABLE void setFolderSummary(const QString& key,
 									  int lamp,
@@ -105,12 +138,16 @@ public:
 	Q_INVOKABLE void setScoreSummaries(const QVariantMap& lamps,
 									   const QVariantMap& scoreRanks,
 									   const QVariantMap& scoreRates);
+	Q_INVOKABLE void setScoreSummariesFromScores(const QVariantMap& scores);
 	bool populateBarCell(int sourceRow, int visualRow, Lr2SelectBarCell* cell) const;
 
 signals:
 	void itemsChanged();
 	void currentIndexChanged();
 	void currentItemChanged();
+	void selectSkinOptionsChanged();
+	void chartFolderModelChanged();
+	void levelFolderParentChanged();
 
 private:
 	struct Item {
@@ -161,7 +198,9 @@ private:
 	Item itemFromVariant(const QVariant& value, int fallbackIndex) const;
 	QVariant rawItemAt(int row) const;
 	QString keyAt(int row) const;
+	int indexOfRawItem(const QVariant& item) const;
 	void applyFolderSummary(Item& item) const;
+	static void addToMinimumCount(QVariantList& items, int minimumCount);
 	static QString scoreIdentifierFor(const QVariant& value, const QVariantMap& map, ItemKind kind);
 	static FolderSummary folderSummaryFromValues(int lamp,
 												 const QVariant& scoreCounts,
@@ -175,11 +214,29 @@ private:
 	static ItemKind kindFor(const QVariant& value, const QVariantMap& map);
 	static QString displayTextFor(const QVariant& value, const QVariantMap& map, ItemKind kind);
 	static QString keyFor(const QVariant& value, const QVariantMap& map, ItemKind kind, int fallbackIndex);
+	QString folderLampKeyFor(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	QString displayTextForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	QString titleForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	int titleTypeForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	int bodyTypeForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	int difficultyForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	int lampForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	int scoreRankForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
+	int labelMaskForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const;
 	QVariant roleData(const Item& item, int role) const;
 	void replaceItems(const QVariantList& items);
 	void updateExistingItems(const QVariantList& items);
+	void refreshDerivedItems();
 
 	QList<Item> m_items;
 	QHash<QString, FolderSummary> m_folderSummaries;
+	bool m_useBeatorajaBarTextTypes = false;
+	bool m_useBeatorajaSelectOptions = false;
+	QVariantList m_barBodyTypes;
+	QVariantList m_barTitleTypes;
+	QVariantList m_barLampVariants;
+	resource_managers::ChartFolderModel* m_chartFolderModel = nullptr;
+	QString m_levelFolderParentKey;
+	QString m_levelFolderParentSymbol;
 	int m_currentIndex = 0;
 };

@@ -196,6 +196,7 @@ inline size_t qHash(const Lr2SelectScoreSummaryCacheKey& key, size_t seed = 0) {
 class Lr2SelectScoreSummary : public QObject {
 	Q_OBJECT
 	Q_PROPERTY(QVariant bestScore READ bestScore NOTIFY changed)
+	Q_PROPERTY(bool hasScore READ hasScore NOTIFY changed)
 	Q_PROPERTY(QObject* bestStats READ bestStatsObject NOTIFY changed)
 	Q_PROPERTY(QObject* scoreCounts READ scoreCountsObject NOTIFY changed)
 	Q_PROPERTY(QString clearType READ clearType NOTIFY changed)
@@ -208,6 +209,7 @@ public:
 	explicit Lr2SelectScoreSummary(QObject* parent = nullptr);
 
 	QVariant bestScore() const;
+	bool hasScore() const;
 	QObject* bestStatsObject() const;
 	Lr2SelectScoreStats* bestStatsStats() const;
 	QObject* scoreCountsObject() const;

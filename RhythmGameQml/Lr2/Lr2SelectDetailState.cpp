@@ -610,7 +610,7 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 		counts,
 		bestClearType,
 		clearKindLamp(bestClearKind, useBeatorajaSemantics),
-		bestScore.isValid() && bestClearKind != ClearKind::Noplay
+		bestScore.isValid()
 			? std::max(1, rankForScoreRate(scoreRate))
 			: 0,
 		scoreRate,
@@ -809,6 +809,7 @@ Lr2SelectScoreSummary::Lr2SelectScoreSummary(QObject* parent)
 	, m_scoreCounts(this) {}
 
 QVariant Lr2SelectScoreSummary::bestScore() const { return m_bestScore; }
+bool Lr2SelectScoreSummary::hasScore() const { return m_bestScore.isValid() && !m_bestScore.isNull(); }
 QObject* Lr2SelectScoreSummary::bestStatsObject() const {
 	return m_bestStats.hasValues()
 		? const_cast<Lr2SelectScoreStats*>(&m_bestStats)
@@ -1497,7 +1498,7 @@ int Lr2SelectDetailState::selectedNumberValue(int num) const {
 			? static_cast<int>(rankingNumber(QStringLiteral("bestCombo")))
 			: (stats ? stats->maxCombo : 0);
 	case 76:
-		return rankingEntry ? (stats ? stats->badPoor : 0) : counts->minBadPoor();
+		return counts->minBadPoor();
 	case 77:
 		return rankingEntry ? static_cast<int>(rankingNumber(QStringLiteral("scoreCount"))) : counts->play();
 	case 78:

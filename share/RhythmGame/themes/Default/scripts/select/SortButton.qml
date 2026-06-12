@@ -1,6 +1,5 @@
 import RhythmGameQml
 import QtQuick 2.0
-import "../common/helpers.js" as Helpers
 
 Image {
     id: sortButton
@@ -42,10 +41,7 @@ Image {
             next += sortButton.options.length;
         }
         sortButton.generalVars.selectSortMode = sortButton.options[next].value;
-        mouseArea.setSort();
     }
-
-    onSelectedModeChanged: mouseArea.setSort()
 
     source: root.iniImagesUrl + "option.png/button_big"
 
@@ -55,149 +51,10 @@ Image {
         font.pixelSize: 20
         text: qsTr("Sort: %1").arg(qsTr(sortButton.textForMode(sortButton.selectedMode)))
     }
+
     MouseArea {
-        id: mouseArea
-
-        function compareByTitle(a, b) {
-            let res = (a.title || "").localeCompare(b.title || "");
-            if (res !== 0) {
-                return res;
-            }
-            return (a.subtitle || "").localeCompare(b.subtitle || "");
-        }
-
-        function compareNumberWithMissing(aValue, bValue) {
-            let aMissing = aValue === null || aValue === undefined || !isFinite(aValue);
-            let bMissing = bValue === null || bValue === undefined || !isFinite(bValue);
-            if (aMissing && bMissing) {
-                return 0;
-            }
-            if (aMissing) {
-                return 1;
-            }
-            if (bMissing) {
-                return -1;
-            }
-            return aValue - bValue;
-        }
-
-        function setSort() {
-            switch (sortButton.selectedMode) {
-            case SelectSortMode.Directory:
-                songList.sort = null;
-                break;
-            case SelectSortMode.Title:
-                songList.sort = compareByTitle;
-                break;
-            case SelectSortMode.Artist:
-                songList.sort = function (a, b) {
-                    let res = (a.artist || "").localeCompare(b.artist || "");
-                    if (res !== 0) {
-                        return res;
-                    }
-                    res = (a.subartist || "").localeCompare(b.subartist || "");
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.Bpm:
-                songList.sort = function (a, b) {
-                    let res = compareNumberWithMissing(a.initialBpm, b.initialBpm);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.Length:
-                songList.sort = function (a, b) {
-                    let res = compareNumberWithMissing(a.length, b.length);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.ClearLamp:
-                songList.sort = function (a, b) {
-                    let scores1 = songList.scores[a.md5] || [];
-                    let scores2 = songList.scores[b.md5] || [];
-                    let clearType1 = Helpers.getClearType(scores1);
-                    let clearType2 = Helpers.getClearType(scores2);
-                    let res = Helpers.clearTypePriorities.indexOf(clearType2) - Helpers.clearTypePriorities.indexOf(clearType1);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.ScoreRate:
-                songList.sort = function (a, b) {
-                    let scores1 = songList.scores[a.md5] || [];
-                    let scores2 = songList.scores[b.md5] || [];
-                    let score1 = Helpers.getScoreWithBestPoints(scores1);
-                    let score2 = Helpers.getScoreWithBestPoints(scores2);
-                    if (!score1 && !score2) {
-                        return 0;
-                    }
-                    if (!score1) {
-                        return 1;
-                    }
-                    if (!score2) {
-                        return -1;
-                    }
-                    let res = (score2.result.points / score2.result.maxPoints) - (score1.result.points / score1.result.maxPoints);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.MissCount:
-                songList.sort = function (a, b) {
-                    let stats1 = Helpers.getBestStats(songList.scores[a.md5] || []);
-                    let stats2 = Helpers.getBestStats(songList.scores[b.md5] || []);
-                    let res = compareNumberWithMissing(stats1 ? stats1.missCount : null, stats2 ? stats2.missCount : null);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.Level:
-                songList.sort = function (a, b) {
-                    let res = compareNumberWithMissing(a.playLevel, b.playLevel);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            case SelectSortMode.TotalNotes:
-                songList.sort = function (a, b) {
-                    let res = compareNumberWithMissing(a.total, b.total);
-                    if (res !== 0) {
-                        return res;
-                    }
-                    return compareByTitle(a, b);
-                };
-                break;
-            default:
-                songList.sort = compareByTitle;
-            }
-        }
-
         anchors.fill: parent
-
         cursorShape: Qt.PointingHandCursor
-
-        Component.onCompleted: {
-            setSort();
-        }
-        onClicked: {
-            sortButton.cycle(1);
-        }
+        onClicked: sortButton.cycle(1)
     }
 }
