@@ -581,11 +581,11 @@ int compareByNameOnly(const SortEntry& a, const SortEntry& b)
     return compareStrings(a.displayName, b.displayName);
 }
 
-int compareNumberWithMissing(double aValue, bool aMissing, double bValue, bool bMissing)
+int compareNumberWithMissing(double aValue, bool aMissing, double bValue, bool bMissing, bool missingLast = true)
 {
     if (aMissing && bMissing) return 0;
-    if (aMissing) return 1;
-    if (bMissing) return -1;
+    if (aMissing) return missingLast ? 1 : -1;
+    if (bMissing) return missingLast ? -1 : 1;
     if (aValue < bValue) return -1;
     if (aValue > bValue) return 1;
     return 0;
@@ -649,38 +649,42 @@ int compareByTotalNotes(const SortEntry& a, const SortEntry& b)
     return diff != 0 ? diff : compareByTitle(a, b);
 }
 
-int compareByClear(const SortEntry& a, const SortEntry& b)
+int compareByClear(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
 {
     if (a.hasScore != b.hasScore) {
-        return a.hasScore ? -1 : 1;
+        return a.hasScore
+            ? (unscoredItemsLast ? -1 : 1)
+            : (unscoredItemsLast ? 1 : -1);
     }
     if (a.clearPriority != b.clearPriority) {
-        return a.clearPriority > b.clearPriority ? -1 : 1;
+        return a.clearPriority < b.clearPriority ? -1 : 1;
     }
     return compareByLevel(a, b);
 }
 
-int compareByScore(const SortEntry& a, const SortEntry& b)
+int compareByScore(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
 {
     const int diff = compareNumberWithMissing(
         a.scoreRate,
         !a.hasScore,
         b.scoreRate,
-        !b.hasScore);
-    return diff != 0 ? -diff : compareByLevel(a, b);
+        !b.hasScore,
+        unscoredItemsLast);
+    return diff != 0 ? diff : compareByLevel(a, b);
 }
 
-int compareByMissCount(const SortEntry& a, const SortEntry& b)
+int compareByMissCount(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
 {
     const int diff = compareNumberWithMissing(
         a.minBadPoor,
         !a.hasScore,
         b.minBadPoor,
-        !b.hasScore);
+        !b.hasScore,
+        unscoredItemsLast);
     return diff != 0 ? diff : compareByLevel(a, b);
 }
 
-int compareEntries(const SortEntry& a, const SortEntry& b, int sortMode)
+int compareEntries(const SortEntry& a, const SortEntry& b, int sortMode, bool unscoredItemsLast)
 {
     switch (sortMode) {
     case 1: return compareByTitle(a, b);
@@ -688,9 +692,9 @@ int compareEntries(const SortEntry& a, const SortEntry& b, int sortMode)
     case 3: return compareByBpm(a, b);
     case 4: return compareByLength(a, b);
     case 5: return compareByLevel(a, b);
-    case 6: return compareByClear(a, b);
-    case 7: return compareByScore(a, b);
-    case 8: return compareByMissCount(a, b);
+    case 6: return compareByClear(a, b, unscoredItemsLast);
+    case 7: return compareByScore(a, b, unscoredItemsLast);
+    case 8: return compareByMissCount(a, b, unscoredItemsLast);
     case 9: return compareByTotalNotes(a, b);
     default: return 0;
     }
@@ -1008,6 +1012,20 @@ void resource_managers::ChartFolderModel::setDifficultyFilter(int value)
     emit difficultyFilterChanged();
 }
 
+bool resource_managers::ChartFolderModel::unscoredItemsLast() const
+{
+    return m_unscoredItemsLast;
+}
+
+void resource_managers::ChartFolderModel::setUnscoredItemsLast(bool value)
+{
+    if (m_unscoredItemsLast == value) {
+        return;
+    }
+    m_unscoredItemsLast = value;
+    emit unscoredItemsLastChanged();
+}
+
 QVariantMap resource_managers::ChartFolderModel::scores() const
 {
     return m_scores;
@@ -1045,7 +1063,7 @@ QVariantList resource_managers::ChartFolderModel::filterAndSort(const QVariantLi
             chartEntries.begin(),
             chartEntries.end(),
             [this](const SortEntry& a, const SortEntry& b) {
-                const int result = compareEntries(a, b, m_sortMode);
+                const int result = compareEntries(a, b, m_sortMode, m_unscoredItemsLast);
                 if (result != 0) {
                     return result < 0;
                 }

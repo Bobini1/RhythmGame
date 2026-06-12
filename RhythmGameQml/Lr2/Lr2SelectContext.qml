@@ -301,6 +301,7 @@ Item {
         sortMode: root.selectSortMode
         keymodeFilter: root.selectKeymodeFilter
         difficultyFilter: root.difficultyFilter
+        unscoredItemsLast: false
         scores: root.scores
     }
 

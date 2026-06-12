@@ -53,11 +53,6 @@ PathView {
     property var scores: {
         return {};
     }
-    onScoresChanged: {
-        if (chartFolderModel.sortModeUsesScores()) {
-            sortOrFilterChanged();
-        }
-    }
     property var previewFiles: {
         return {};
     }
@@ -117,18 +112,29 @@ PathView {
         id: chartFolderModel
         sortMode: pathView.generalVars.selectSortMode
         keymodeFilter: pathView.generalVars.selectKeymodeFilter
+        unscoredItemsLast: true
         scores: pathView.scores
-    }
 
-    Connections {
-        target: pathView.generalVars
-
-        function onSelectKeymodeFilterChanged() {
+        onSortModeChanged: {
             Qt.callLater(pathView.sortOrFilterChanged);
         }
 
-        function onSelectSortModeChanged() {
+        onKeymodeFilterChanged: {
             Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onDifficultyFilterChanged: {
+            Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onUnscoredItemsLastChanged: {
+            Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onScoresChanged: {
+            if (chartFolderModel.sortModeUsesScores()) {
+                Qt.callLater(pathView.sortOrFilterChanged);
+            }
         }
     }
 
