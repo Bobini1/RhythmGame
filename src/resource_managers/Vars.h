@@ -230,6 +230,12 @@ class GeneralVars final : public QObject
     Q_PROPERTY(int ghostPosition READ getGhostPosition WRITE setGhostPosition
                  NOTIFY ghostPositionChanged RESET resetGhostPosition)
     /**
+     * @brief The replay type selected by replay buttons.
+     * @details 0 newest, 1 best score, 2 best clear, 3 best combo.
+     */
+    Q_PROPERTY(int replayType READ getReplayType WRITE setReplayType NOTIFY
+                 replayTypeChanged RESET resetReplayType)
+    /**
      * @brief The note order algorithm used for reordering notes in charts.
      */
     Q_PROPERTY(resource_managers::note_order_algorithm::NoteOrderAlgorithm
@@ -431,6 +437,7 @@ class GeneralVars final : public QObject
     int bgaSize = 0;
     bool scoreGraphEnabled = true;
     int ghostPosition = 0;
+    int replayType = 0;
     NoteOrderAlgorithm noteOrderAlgorithm = NoteOrderAlgorithm::Normal;
     NoteOrderAlgorithm noteOrderAlgorithmP2 = NoteOrderAlgorithm::Normal;
     HiSpeedFix hiSpeedFix = HiSpeedFix::Main;
@@ -503,6 +510,9 @@ class GeneralVars final : public QObject
     auto getGhostPosition() const -> int;
     void setGhostPosition(int value);
     void resetGhostPosition();
+    auto getReplayType() const -> int;
+    void setReplayType(int value);
+    void resetReplayType();
     auto getNoteOrderAlgorithm() const -> NoteOrderAlgorithm;
     void setNoteOrderAlgorithm(NoteOrderAlgorithm value);
     void resetNoteOrderAlgorithm();
@@ -586,6 +596,7 @@ class GeneralVars final : public QObject
     void bgaSizeChanged();
     void scoreGraphEnabledChanged();
     void ghostPositionChanged();
+    void replayTypeChanged();
     void noteOrderAlgorithmChanged();
     void noteOrderAlgorithmP2Changed();
     void hiSpeedFixChanged();

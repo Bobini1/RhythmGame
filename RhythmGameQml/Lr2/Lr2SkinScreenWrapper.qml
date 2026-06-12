@@ -734,15 +734,7 @@ Item {
         return root.finalizeOptionList(options);
     }
     readonly property var skinParserActiveOptions: {
-        let options = [];
-        let source = root.parseActiveOptions || [];
-        for (let i = 0; i < source.length; ++i) {
-            let option = Number(source[i] || 0);
-            if (!Lr2SkinOptionRules.isRuntimeOwnedOption(option)) {
-                options.push(option);
-            }
-        }
-        return root.finalizeOptionList(options);
+        return root.parseActiveOptions;
     }
 
     function shouldRestartSkinClockAfterLoad() : var {
@@ -811,7 +803,12 @@ Item {
     readonly property var lr2HidSudLabels: optionState.lr2HidSudLabels
     readonly property var lr2ReplayLabels: optionState.lr2ReplayLabels
     readonly property string lr2SearchPlaceholderText: optionState.lr2SearchPlaceholderText
-    property alias lr2ReplayType: optionState.lr2ReplayType
+    readonly property int lr2ReplayType: optionState.lr2ReplayType
+
+    function setReplayType(index: var) : void {
+        optionState.setReplayType(index);
+    }
+
     property alias lr2SliderValues: optionState.lr2SliderValues
     property alias lr2EqOn: optionState.lr2EqOn
     property alias lr2PitchOn: optionState.lr2PitchOn
@@ -3930,7 +3927,9 @@ Item {
         3,
         50, 51, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69,
         70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
-        80, 81, 82, 83, 84, 85, 86
+        80, 81, 82, 83, 84, 85, 86,
+        100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+        110, 111, 112, 113, 114, 115, 116, 117, 118, 119
     ]
     readonly property var selectRankingResolvedTextIds: [
         120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130

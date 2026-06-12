@@ -278,6 +278,27 @@ resource_managers::GeneralVars::resetGhostPosition()
 }
 
 auto
+resource_managers::GeneralVars::getReplayType() const -> int
+{
+    return replayType;
+}
+void
+resource_managers::GeneralVars::setReplayType(int value)
+{
+    value = std::clamp(value, 0, 3);
+    if (replayType == value) {
+        return;
+    }
+    replayType = value;
+    emit replayTypeChanged();
+}
+void
+resource_managers::GeneralVars::resetReplayType()
+{
+    setReplayType(0);
+}
+
+auto
 resource_managers::GeneralVars::getNoteOrderAlgorithm() const
   -> NoteOrderAlgorithm
 {

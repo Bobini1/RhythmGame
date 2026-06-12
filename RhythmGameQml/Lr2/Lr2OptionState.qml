@@ -147,7 +147,7 @@ QtObject {
     readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
     readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
     readonly property string lr2SearchPlaceholderText: "検索語を入力"
-    property int lr2ReplayType: 0
+    readonly property int lr2ReplayType: root.replayTypeIndex(root.mainGeneralVarsValue ? root.mainGeneralVarsValue.replayType : 0)
     property var lr2SliderValues: ({
         "8": 0,
         "10": 50, "11": 50, "12": 50, "13": 50, "14": 50, "15": 50, "16": 50,
@@ -163,6 +163,18 @@ QtObject {
     property var lr2FxTarget: [0, 0, 0]
     property int lr2ClassicTargetFrameOverride: -1
     property int lr2ClassicTargetPercentValue: -1
+
+    function replayTypeIndex(value: var) : var {
+        let numeric = Math.floor(Number(value || 0));
+        return root.wrapValue(isNaN(numeric) ? 0 : numeric, root.lr2ReplayLabels.length);
+    }
+
+    function setReplayType(index: var) : void {
+        let generalVars = root.mainGeneralVarsValue;
+        if (generalVars) {
+            generalVars.replayType = root.replayTypeIndex(index);
+        }
+    }
 
     function setArrayValue(array: var, index: var, value: var) : var {
         let copy = array.slice();

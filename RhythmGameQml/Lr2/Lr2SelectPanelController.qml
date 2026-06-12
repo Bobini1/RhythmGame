@@ -502,7 +502,7 @@ QtObject {
         "81": () => false,
         "82": () => false,
         "83": delta => {
-            root.lr2ReplayType = root.wrapValue(root.lr2ReplayType + delta, root.lr2ReplayLabels.length);
+            root.setReplayType(root.lr2ReplayType + delta);
             return true;
         },
         "301": () => root.toggleBeatorajaAssistOption(301),
