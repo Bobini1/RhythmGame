@@ -150,6 +150,10 @@ void Lr2SkinClock::advanceFrame(qreal now) {
     advanceTo(quantize(now), false);
 }
 
+void Lr2SkinClock::advancePreciseFrame(qreal now) {
+    advanceTo(now, false);
+}
+
 void Lr2SkinClock::restart(qreal now) {
     const qreal nextNow = quantize(now);
     const bool nowChanged = !sameReal(m_nowMs, nextNow);

@@ -299,10 +299,10 @@ class Lr2SelectDetailState : public QObject {
 	Q_PROPERTY(QObject* scoreCounts READ scoreCountsObject CONSTANT)
 	Q_PROPERTY(QVariant scoreOptionIds READ scoreOptionIds WRITE setScoreOptionIds NOTIFY scoreOptionIdsChanged)
 	Q_PROPERTY(Lr2SelectDifficultyModel* difficultyModel READ difficultyModel CONSTANT)
-	Q_PROPERTY(int selectedItemRevision READ selectedItemRevision NOTIFY selectedRevisionsChanged)
-	Q_PROPERTY(int selectedChartRevision READ selectedChartRevision NOTIFY selectedRevisionsChanged)
-	Q_PROPERTY(int selectedScoreRevision READ selectedScoreRevision NOTIFY selectedRevisionsChanged)
-	Q_PROPERTY(int selectedDifficultyRevision READ selectedDifficultyRevision NOTIFY selectedRevisionsChanged)
+	Q_PROPERTY(int selectedItemRevision READ selectedItemRevision NOTIFY selectedItemRevisionChanged)
+	Q_PROPERTY(int selectedChartRevision READ selectedChartRevision NOTIFY selectedChartRevisionChanged)
+	Q_PROPERTY(int selectedScoreRevision READ selectedScoreRevision NOTIFY selectedScoreRevisionChanged)
+	Q_PROPERTY(int selectedDifficultyRevision READ selectedDifficultyRevision NOTIFY selectedDifficultyRevisionChanged)
 
 public:
 	explicit Lr2SelectDetailState(QObject* parent = nullptr);
@@ -387,7 +387,10 @@ signals:
 	void bestStatsChanged();
 	void scoreCountsChanged();
 	void scoreOptionIdsChanged();
-	void selectedRevisionsChanged();
+	void selectedItemRevisionChanged();
+	void selectedChartRevisionChanged();
+	void selectedScoreRevisionChanged();
+	void selectedDifficultyRevisionChanged();
 
 private:
 	bool selectedRefreshMatches(const QString& itemKey,

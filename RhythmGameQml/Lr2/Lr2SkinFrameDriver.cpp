@@ -119,13 +119,17 @@ void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
     if (m_gameplayScreen && m_gameplayFrameState) {
         const int frameSkinTime = std::max(
             0,
-            static_cast<int>(std::floor(m_clock->quantize(now) - m_clock->sceneStartMs())));
+            static_cast<int>(std::floor(now - m_clock->sceneStartMs())));
         m_gameplayFrameState->refresh(frameSkinTime);
     } else if (m_selectVisualState) {
         m_selectVisualState->advanceAnimation(now);
     }
 
-    m_clock->advanceFrame(now);
+    if (m_gameplayScreen) {
+        m_clock->advancePreciseFrame(now);
+    } else {
+        m_clock->advanceFrame(now);
+    }
 
     if (m_gameplayScreen && m_gameplayStartupPending) {
         emit gameplayStartupTickRequested();

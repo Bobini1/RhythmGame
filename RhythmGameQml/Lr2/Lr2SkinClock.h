@@ -59,6 +59,7 @@ public:
     Q_INVOKABLE qreal quantize(qreal now) const;
     Q_INVOKABLE void advance(qreal now);
     Q_INVOKABLE void advanceFrame(qreal now);
+    Q_INVOKABLE void advancePreciseFrame(qreal now);
     Q_INVOKABLE void restart(qreal now);
     Q_INVOKABLE void restartSelectInfoTimer();
 

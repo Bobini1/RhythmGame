@@ -1584,30 +1584,22 @@ QtObject {
         return 0;
     }
 
-    function dependOnGameplayNumberState(src: var) : void {
+    function gameplayNumberDependencyMask(src: var) : int {
         if (!root.gameplayScreenActive) {
-            return;
+            return 0;
         }
         if (src && src.nowCombo) {
-            if ((src.side || (src.timer === 47 ? 2 : 1)) === 2) {
-                root.gameplayJudgeRevision2;
-            } else {
-                root.gameplayJudgeRevision1;
-            }
-            return;
+            return (src.side || (src.timer === 47 ? 2 : 1)) === 2 ? 8 : 4;
         }
 
         let num = src ? (src.num || 0) : 0;
         if (num === 20 || (num >= 160 && num <= 164)) {
-            root.renderSkinTime;
-            return;
+            return 16;
         }
         if (num === 11 || num === 15
                 || (num >= 120 && num <= 136) || num === 526 || num === 521
                 || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
-            root.gameplayNumberRevision2;
-            root.gameplayJudgeRevision2;
-            return;
+            return 10;
         }
         if (num === 10 || num === 12 || num === 13 || num === 14
                 || (num >= 310 && num <= 315)
@@ -1615,21 +1607,41 @@ QtObject {
                 || (num >= 410 && num <= 427)
                 || (num >= 500 && num <= 509) || num === 520 || num === 522
                 || num === 525 || num === 527 || (num >= 1510 && num <= 1599)) {
-            root.gameplayNumberRevision1;
-            root.gameplayJudgeRevision1;
-            return;
+            return 5;
         }
         if (num === 42 || num === 90 || num === 91 || num === 92
                 || num === 106 || num === 126 || num === 165
                 || num === 290 || num === 291
                 || (num >= 350 && num <= 365) || num === 368
                 || num === 1163 || num === 1164) {
-            root.gameplayStaticNumberRevision;
-            return;
+            return 32;
         }
-        root.gameplayNumberRevision1;
-        root.gameplayNumberRevision2;
-        root.gameplayScoresRevision;
+        return 67;
+    }
+
+    function dependOnGameplayNumberState(src: var) : void {
+        const dependencyMask = resolver.gameplayNumberDependencyMask(src);
+        if ((dependencyMask & 1) !== 0) {
+            root.gameplayNumberRevision1;
+        }
+        if ((dependencyMask & 2) !== 0) {
+            root.gameplayNumberRevision2;
+        }
+        if ((dependencyMask & 4) !== 0) {
+            root.gameplayJudgeRevision1;
+        }
+        if ((dependencyMask & 8) !== 0) {
+            root.gameplayJudgeRevision2;
+        }
+        if ((dependencyMask & 16) !== 0) {
+            root.renderSkinTime;
+        }
+        if ((dependencyMask & 32) !== 0) {
+            root.gameplayStaticNumberRevision;
+        }
+        if ((dependencyMask & 64) !== 0) {
+            root.gameplayScoresRevision;
+        }
     }
 
     function numberValue(src: var) : var {

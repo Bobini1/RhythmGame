@@ -544,11 +544,113 @@ Loader {
                 && !selectNumberUsesValueResolver
             readonly property bool valueResolverNumberNeeded: !usesFpsNumber
                 && !usesFocusedSelectNumber
-            readonly property int valueResolverNumber: valueResolverNumberNeeded
-                ? elemLoader.valueResolver.numberValue(numberSrc)
+            readonly property bool valueResolverNumberUsesSelectSnapshot: valueResolverNumberNeeded
+                && selectNumberScreen
+                && (!numberSrc || !numberSrc.nowCombo)
+                && selectContext.numberValueCanUseSelectSnapshot(numberId)
+            property int gameplayValueResolverNumber: 0
+            readonly property int valueResolverNumberDependencyMask: valueResolverNumberNeeded
+                && elemLoader.screenRoot.gameplayScreenActive
+                && !valueResolverNumberUsesSelectSnapshot
+                ? elemLoader.valueResolver.gameplayNumberDependencyMask(numberSrc)
+                : 0
+            readonly property int valueResolverNumber: valueResolverNumberDependencyMask !== 0
+                ? gameplayValueResolverNumber
+                : (valueResolverNumberNeeded
+                    ? (valueResolverNumberUsesSelectSnapshot
+                        ? selectContext.focusedSelectNumberValueForId(
+                            numberId,
+                            selectContext.focusedSelectNumberRevisionForId(numberId))
+                        : elemLoader.valueResolver.numberValue(numberSrc))
+                    : 0)
+            function valueResolverNumberHasDependency(mask: int) : bool {
+                return (valueResolverNumberDependencyMask & mask) !== 0;
+            }
+            function refreshGameplayValueResolverNumber() {
+                if (valueResolverNumberDependencyMask === 0) {
+                    if (gameplayValueResolverNumber !== 0) {
+                        gameplayValueResolverNumber = 0;
+                    }
+                    return;
+                }
+                const nextValue = elemLoader.valueResolver.numberValue(numberSrc);
+                if (gameplayValueResolverNumber !== nextValue) {
+                    gameplayValueResolverNumber = nextValue;
+                }
+            }
+            onValueResolverNumberDependencyMaskChanged: refreshGameplayValueResolverNumber()
+            onNumberSrcChanged: refreshGameplayValueResolverNumber()
+            Connections {
+                target: elemLoader.screenRoot
+                enabled: numberRenderer.valueResolverNumberDependencyMask !== 0
+
+                function onGameplayNumberRevision1Changed() {
+                    if (numberRenderer.valueResolverNumberHasDependency(1)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onGameplayNumberRevision2Changed() {
+                    if (numberRenderer.valueResolverNumberHasDependency(2)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onGameplayJudgeRevision1Changed() {
+                    if (numberRenderer.valueResolverNumberHasDependency(4)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onGameplayJudgeRevision2Changed() {
+                    if (numberRenderer.valueResolverNumberHasDependency(8)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onRenderSkinTimeChanged() {
+                    if (numberRenderer.valueResolverNumberHasDependency(16)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onGameplayStaticNumberRevisionChanged() {
+                    if (numberRenderer.valueResolverNumberHasDependency(32)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+                function onGameplayScoresRevisionChanged() {
+                    if (numberRenderer.valueResolverNumberHasDependency(64)) {
+                        numberRenderer.refreshGameplayValueResolverNumber();
+                    }
+                }
+            }
+            property int focusedSelectNumberRegisteredId: -1
+            function syncFocusedSelectNumberRegistration() {
+                const nextRegisteredId = usesFocusedSelectNumber || valueResolverNumberUsesSelectSnapshot
+                    ? numberId
+                    : -1;
+                if (focusedSelectNumberRegisteredId === nextRegisteredId) {
+                    return;
+                }
+                if (focusedSelectNumberRegisteredId >= 0) {
+                    selectContext.unregisterFocusedSelectNumber(focusedSelectNumberRegisteredId);
+                }
+                focusedSelectNumberRegisteredId = nextRegisteredId;
+                if (focusedSelectNumberRegisteredId >= 0) {
+                    selectContext.registerFocusedSelectNumber(focusedSelectNumberRegisteredId);
+                }
+            }
+            onUsesFocusedSelectNumberChanged: syncFocusedSelectNumberRegistration()
+            onValueResolverNumberUsesSelectSnapshotChanged: syncFocusedSelectNumberRegistration()
+            onNumberIdChanged: syncFocusedSelectNumberRegistration()
+            Component.onCompleted: syncFocusedSelectNumberRegistration()
+            Component.onDestruction: {
+                if (focusedSelectNumberRegisteredId >= 0) {
+                    selectContext.unregisterFocusedSelectNumber(focusedSelectNumberRegisteredId);
+                    focusedSelectNumberRegisteredId = -1;
+                }
+            }
+            readonly property int focusedSelectNumberSnapshotRevision: usesFocusedSelectNumber
+                ? selectContext.focusedSelectNumberRevisionForId(numberId)
                 : 0
             readonly property int focusedSelectNumber: usesFocusedSelectNumber
-                ? selectContext.numberValueForId(numberId)
+                ? selectContext.focusedSelectNumberValueForId(numberId, focusedSelectNumberSnapshotRevision)
                 : 0
             readonly property int currentNumberValue: usesFpsNumber
                 ? elemLoader.screenRoot.lr2CurrentFps

@@ -33,7 +33,6 @@ Item {
     readonly property real sampledPosition2: gameplayFrameState
         ? gameplayFrameState.position2 || 0
         : (fallbackPlayer2 ? fallbackPlayer2.position || 0 : 0)
-
     function listValue(list: var, index: var) : var {
         return list && index >= 0 && index < list.length ? list[index] : null;
     }
@@ -549,7 +548,9 @@ Item {
             onTravelHeightChanged: Qt.callLater(syncColumnWindow)
             onMultiplierChanged: Qt.callLater(syncColumnWindow)
             onHeightChanged: Qt.callLater(syncColumnWindow)
-            Component.onCompleted: Qt.callLater(syncColumnWindow)
+            Component.onCompleted: {
+                Qt.callLater(syncColumnWindow);
+            }
 
             Item {
                 id: noteClip
@@ -661,5 +662,5 @@ Item {
             }
         }
     }
-}
 
+}

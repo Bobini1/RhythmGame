@@ -115,7 +115,6 @@ Item {
     property bool gameplayHitEventsPublishPending: false
     property bool gameplayHitEventsDirty1: false
     property bool gameplayHitEventsDirty2: false
-
     QtObject {
         id: gameplayGraphReplayData1
         property var hitEvents: root.gameplayHitEvents1
@@ -3154,7 +3153,6 @@ Item {
         root.gameplayRevisionRefreshPending = false;
         root.gameplayNumberRevision1Pending = false;
         root.gameplayNumberRevision2Pending = false;
-
         if (refreshTimers && skinTiming.skinTimerStateRef.commitGameplayTimerChanges()) {
             root.bumpGameplayTimerRevision();
         }

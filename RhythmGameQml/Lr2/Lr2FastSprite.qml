@@ -96,4 +96,3 @@ Image {
         fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
     }
 }
-

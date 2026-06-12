@@ -1158,18 +1158,19 @@ void Lr2SelectDetailState::advanceSelectedRevisions(bool itemDidChange,
 
 	if (itemDidChange) {
 		advance(m_selectedItemRevision);
+		emit selectedItemRevisionChanged();
 	}
 	if (chartDidChange) {
 		advance(m_selectedChartRevision);
+		emit selectedChartRevisionChanged();
 	}
 	if (scoreDidChange) {
 		advance(m_selectedScoreRevision);
+		emit selectedScoreRevisionChanged();
 	}
 	if (difficultyDidChange) {
 		advance(m_selectedDifficultyRevision);
-	}
-	if (itemDidChange || chartDidChange || scoreDidChange || difficultyDidChange) {
-		emit selectedRevisionsChanged();
+		emit selectedDifficultyRevisionChanged();
 	}
 }
 
@@ -1677,15 +1678,16 @@ bool Lr2SelectDetailState::refreshSelectedFromVariantIdentityForIdentifier(const
 																		   bool buildScoreOptionIds,
 																		   bool difficultyStateUsed,
 																		   bool difficultyLampStateUsed) {
-	if (selectedRefreshMatches(itemKey,
-							   targetItemKey,
-							   rankingMode,
-							   scoreGeneration,
-							   listGeneration,
-							   useBeatorajaSemantics,
-							   buildScoreOptionIds,
-							   difficultyStateUsed,
-							   difficultyLampStateUsed)) {
+	const bool alreadyCurrent = selectedRefreshMatches(itemKey,
+													   targetItemKey,
+													   rankingMode,
+													   scoreGeneration,
+													   listGeneration,
+													   useBeatorajaSemantics,
+													   buildScoreOptionIds,
+													   difficultyStateUsed,
+													   difficultyLampStateUsed);
+	if (alreadyCurrent) {
 		return false;
 	}
 
@@ -1693,7 +1695,8 @@ bool Lr2SelectDetailState::refreshSelectedFromVariantIdentityForIdentifier(const
 	const Lr2SelectScoreSummaryData* scoreSummary = nullptr;
 	const Lr2SelectScoreSummaryCacheKey scoreCacheKey = scoreSummaryCacheKeyForIdentifier(scoreIdentifier,
 																						  scoreGeneration);
-	if (!isValidScoreSummaryCacheKey(scoreCacheKey)) {
+	const bool validScoreCacheKey = isValidScoreSummaryCacheKey(scoreCacheKey);
+	if (!validScoreCacheKey) {
 		scoreSummary = scoreList.isEmpty()
 			? &emptyScoreSummaryData()
 			: &(builtScoreSummary = buildScoreSummaryData(scoreList,

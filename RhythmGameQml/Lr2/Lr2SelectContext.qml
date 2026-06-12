@@ -4158,46 +4158,317 @@ Item {
         return ((a * base + b) * base + c) * base + d;
     }
 
+    property int numberValueSelectedItemRevision: 0
+    property int numberValueSelectedChartRevision: 0
+    property int numberValueSelectedScoreRevision: 0
+    property int numberValueSelectedDifficultyRevision: 0
+    property bool numberValueSelectedRevisionRefreshPending: false
+
+    function scheduleNumberValueSelectedRevisionRefresh() {
+        if (root.numberValueSelectedRevisionRefreshPending)
+            return;
+
+        root.numberValueSelectedRevisionRefreshPending = true;
+        Qt.callLater(function() {
+            root.numberValueSelectedRevisionRefreshPending = false;
+            root.refreshNumberValueSelectedRevisions();
+        });
+    }
+
+    function refreshNumberValueSelectedRevisions() {
+        const itemRevision = selectedDetailState.selectedItemRevision;
+        const chartRevision = selectedDetailState.selectedChartRevision;
+        const scoreRevision = selectedDetailState.selectedScoreRevision;
+        const difficultyRevision = selectedDetailState.selectedDifficultyRevision;
+        const changed = root.numberValueSelectedItemRevision !== itemRevision
+            || root.numberValueSelectedChartRevision !== chartRevision
+            || root.numberValueSelectedScoreRevision !== scoreRevision
+            || root.numberValueSelectedDifficultyRevision !== difficultyRevision;
+
+        root.numberValueSelectedItemRevision = itemRevision;
+        root.numberValueSelectedChartRevision = chartRevision;
+        root.numberValueSelectedScoreRevision = scoreRevision;
+        root.numberValueSelectedDifficultyRevision = difficultyRevision;
+
+        if (changed)
+            root.refreshFocusedSelectNumberSnapshot();
+    }
+
     function numberValueSelectedScoreRevisionValue() : var {
         return root.rankingMode
-            ? numberValueCombinedRevision2(selectedDetailState.selectedItemRevision,
-                                           selectedDetailState.selectedScoreRevision)
-            : selectedDetailState.selectedScoreRevision;
+            ? numberValueCombinedRevision2(root.numberValueSelectedItemRevision,
+                                           root.numberValueSelectedScoreRevision)
+            : root.numberValueSelectedScoreRevision;
     }
 
     function numberValueSelectedChartScoreRevisionValue() : var {
         return root.rankingMode
-            ? numberValueCombinedRevision3(selectedDetailState.selectedChartRevision,
-                                           selectedDetailState.selectedItemRevision,
-                                           selectedDetailState.selectedScoreRevision)
-            : numberValueCombinedRevision2(selectedDetailState.selectedChartRevision,
-                                           selectedDetailState.selectedScoreRevision);
+            ? numberValueCombinedRevision3(root.numberValueSelectedChartRevision,
+                                           root.numberValueSelectedItemRevision,
+                                           root.numberValueSelectedScoreRevision)
+            : numberValueCombinedRevision2(root.numberValueSelectedChartRevision,
+                                           root.numberValueSelectedScoreRevision);
     }
 
     function numberValueSelectedDifficultyRevisionValue() : var {
-        return numberValueCombinedRevision2(selectedDetailState.selectedChartRevision,
-                                            selectedDetailState.selectedDifficultyRevision);
+        return numberValueCombinedRevision2(root.numberValueSelectedChartRevision,
+                                            root.numberValueSelectedDifficultyRevision);
     }
 
     function numberValueSelectedRankingRevision() : var {
-        return numberValueCombinedRevision3(selectedDetailState.selectedChartRevision,
-                                            selectedDetailState.selectedScoreRevision,
+        return numberValueCombinedRevision3(root.numberValueSelectedChartRevision,
+                                            root.numberValueSelectedScoreRevision,
                                             root.numberValueRankingStatsRevision);
     }
 
     function numberValueSelectedFolderRevision() : var {
-        return numberValueCombinedRevision2(selectedDetailState.selectedItemRevision,
+        return numberValueCombinedRevision2(root.numberValueSelectedItemRevision,
                                             root.numberValueFolderCountsRevision);
     }
 
     function numberValueSelectedAllRevision() : var {
-        return numberValueCombinedRevision4(selectedDetailState.selectedItemRevision,
-                                            selectedDetailState.selectedChartRevision,
-                                            selectedDetailState.selectedScoreRevision,
-                                            selectedDetailState.selectedDifficultyRevision);
+        return numberValueCombinedRevision4(root.numberValueSelectedItemRevision,
+                                            root.numberValueSelectedChartRevision,
+                                            root.numberValueSelectedScoreRevision,
+                                            root.numberValueSelectedDifficultyRevision);
     }
 
-    function numberValueCacheRevisionForNumber(num: int) : var {
+    property var focusedSelectNumberRegistrationCounts: ({})
+    property var focusedSelectNumberSnapshotValues: ({})
+    property var focusedSelectNumberSnapshotRevisions: ({})
+    property int focusedSelectNumberRevision: 0
+    property int focusedSelectNumberRevisionPlayerStats: 0
+    property int focusedSelectNumberRevisionSelectedDifficulty: 0
+    property int focusedSelectNumberRevisionSelectedChart: 0
+    property int focusedSelectNumberRevisionSelectedScore: 0
+    property int focusedSelectNumberRevisionSelectedChartScore: 0
+    property int focusedSelectNumberRevisionSelectedRanking: 0
+    property int focusedSelectNumberRevisionSelectedFolder: 0
+    property int focusedSelectNumberRevisionSelectedAll: 0
+    property bool focusedSelectNumberSnapshotRefreshPending: false
+
+    function normalizedFocusedSelectNumberId(id: var) : int {
+        const numeric = Number(id);
+        return isFinite(numeric) ? Math.floor(numeric) : 0;
+    }
+
+    function nextFocusedSelectNumberRevision(revision: int) : int {
+        return revision >= numberValueRevisionLimit
+            ? 1
+            : revision + 1;
+    }
+
+    function advanceFocusedSelectNumberRevision() {
+        focusedSelectNumberRevision = nextFocusedSelectNumberRevision(focusedSelectNumberRevision);
+    }
+
+    function advanceFocusedSelectNumberRevisionForGroup(group: int) {
+        switch (group) {
+        case root.numberValueRevisionGroupPlayerStats:
+            focusedSelectNumberRevisionPlayerStats =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionPlayerStats);
+            return;
+        case root.numberValueRevisionGroupSelectedDifficulty:
+            focusedSelectNumberRevisionSelectedDifficulty =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedDifficulty);
+            return;
+        case root.numberValueRevisionGroupSelectedChart:
+            focusedSelectNumberRevisionSelectedChart =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedChart);
+            return;
+        case root.numberValueRevisionGroupSelectedScore:
+            focusedSelectNumberRevisionSelectedScore =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedScore);
+            return;
+        case root.numberValueRevisionGroupSelectedChartScore:
+            focusedSelectNumberRevisionSelectedChartScore =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedChartScore);
+            return;
+        case root.numberValueRevisionGroupSelectedRanking:
+            focusedSelectNumberRevisionSelectedRanking =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedRanking);
+            return;
+        case root.numberValueRevisionGroupSelectedFolder:
+            focusedSelectNumberRevisionSelectedFolder =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedFolder);
+            return;
+        default:
+            focusedSelectNumberRevisionSelectedAll =
+                nextFocusedSelectNumberRevision(focusedSelectNumberRevisionSelectedAll);
+            return;
+        }
+    }
+
+    function focusedSelectNumberRevisionForId(id: int) : int {
+        switch (root.numberValueRevisionGroupForNumber(normalizedFocusedSelectNumberId(id))) {
+        case root.numberValueRevisionGroupPlayerStats:
+            return focusedSelectNumberRevisionPlayerStats;
+        case root.numberValueRevisionGroupSelectedDifficulty:
+            return focusedSelectNumberRevisionSelectedDifficulty;
+        case root.numberValueRevisionGroupSelectedChart:
+            return focusedSelectNumberRevisionSelectedChart;
+        case root.numberValueRevisionGroupSelectedScore:
+            return focusedSelectNumberRevisionSelectedScore;
+        case root.numberValueRevisionGroupSelectedChartScore:
+            return focusedSelectNumberRevisionSelectedChartScore;
+        case root.numberValueRevisionGroupSelectedRanking:
+            return focusedSelectNumberRevisionSelectedRanking;
+        case root.numberValueRevisionGroupSelectedFolder:
+            return focusedSelectNumberRevisionSelectedFolder;
+        default:
+            return focusedSelectNumberRevisionSelectedAll;
+        }
+    }
+
+    function registerFocusedSelectNumber(id: var) {
+        const normalizedId = normalizedFocusedSelectNumberId(id);
+        const key = String(normalizedId);
+        const counts = root.focusedSelectNumberRegistrationCounts;
+        counts[key] = (counts[key] || 0) + 1;
+        root.focusedSelectNumberRegistrationCounts = counts;
+        root.scheduleFocusedSelectNumberSnapshotRefresh();
+    }
+
+    function unregisterFocusedSelectNumber(id: var) {
+        const normalizedId = normalizedFocusedSelectNumberId(id);
+        const key = String(normalizedId);
+        const counts = root.focusedSelectNumberRegistrationCounts;
+        const nextCount = (counts[key] || 0) - 1;
+        if (nextCount > 0) {
+            counts[key] = nextCount;
+        } else {
+            delete counts[key];
+        }
+        root.focusedSelectNumberRegistrationCounts = counts;
+    }
+
+    function scheduleFocusedSelectNumberSnapshotRefresh() {
+        if (root.focusedSelectNumberSnapshotRefreshPending) {
+            return;
+        }
+
+        root.focusedSelectNumberSnapshotRefreshPending = true;
+        Qt.callLater(function() {
+            root.focusedSelectNumberSnapshotRefreshPending = false;
+            root.refreshFocusedSelectNumberSnapshot();
+        });
+    }
+
+    function refreshFocusedSelectNumberSnapshot() {
+        const counts = root.focusedSelectNumberRegistrationCounts;
+        const values = root.focusedSelectNumberSnapshotValues;
+        const revisions = root.focusedSelectNumberSnapshotRevisions;
+        const activeKeys = {};
+        const changedGroups = {};
+        let hasRegisteredNumbers = false;
+        for (let key in counts) {
+            const count = counts[key] || 0;
+            if (count <= 0) {
+                continue;
+            }
+
+            hasRegisteredNumbers = true;
+            activeKeys[key] = true;
+
+            const id = Number(key);
+            const group = root.numberValueRevisionGroupForNumber(id);
+            const valueRevision = root.numberValueCacheRevisionForNumber(id);
+            if (Object.prototype.hasOwnProperty.call(values, key)
+                    && Object.prototype.hasOwnProperty.call(revisions, key)
+                    && revisions[key] === valueRevision) {
+                continue;
+            } else {
+                const nextValue = root.numberValueForIdAndRevision(id, valueRevision);
+                if (!Object.prototype.hasOwnProperty.call(values, key) || values[key] !== nextValue)
+                    changedGroups[group] = true;
+                values[key] = nextValue;
+                revisions[key] = valueRevision;
+            }
+        }
+
+        if (!hasRegisteredNumbers) {
+            root.focusedSelectNumberSnapshotValues = ({});
+            root.focusedSelectNumberSnapshotRevisions = ({});
+            return;
+        }
+
+        for (let valueKey in values) {
+            if (!Object.prototype.hasOwnProperty.call(activeKeys, valueKey)) {
+                delete values[valueKey];
+                delete revisions[valueKey];
+            }
+        }
+
+        let hasChangedGroup = false;
+        for (let groupKey in changedGroups) {
+            root.advanceFocusedSelectNumberRevisionForGroup(Number(groupKey));
+            hasChangedGroup = true;
+        }
+        if (hasChangedGroup)
+            root.advanceFocusedSelectNumberRevision();
+    }
+
+    function focusedSelectNumberValueForId(id: int, revision: int) : var {
+        const key = String(normalizedFocusedSelectNumberId(id));
+        const value = root.focusedSelectNumberSnapshotValues[key];
+        return value !== undefined ? value : root.numberValueForId(Number(key));
+    }
+
+    Connections {
+        target: selectedDetailState
+
+        function onSelectedItemRevisionChanged() {
+            root.scheduleNumberValueSelectedRevisionRefresh();
+        }
+
+        function onSelectedChartRevisionChanged() {
+            root.scheduleNumberValueSelectedRevisionRefresh();
+        }
+
+        function onSelectedScoreRevisionChanged() {
+            root.scheduleNumberValueSelectedRevisionRefresh();
+        }
+
+        function onSelectedDifficultyRevisionChanged() {
+            root.scheduleNumberValueSelectedRevisionRefresh();
+        }
+    }
+
+    Connections {
+        target: root
+
+        function onRankingModeChanged() {
+            root.scheduleFocusedSelectNumberSnapshotRefresh();
+        }
+
+        function onNumberValuePlayerStatsRevisionChanged() {
+            root.scheduleFocusedSelectNumberSnapshotRefresh();
+        }
+
+        function onNumberValueRankingStatsRevisionChanged() {
+            root.scheduleFocusedSelectNumberSnapshotRefresh();
+        }
+
+        function onNumberValueFolderCountsRevisionChanged() {
+            root.scheduleFocusedSelectNumberSnapshotRefresh();
+        }
+
+        function onNumberValueStaticRevisionChanged() {
+            root.scheduleFocusedSelectNumberSnapshotRefresh();
+        }
+    }
+
+    readonly property int numberValueRevisionGroupPlayerStats: 1
+    readonly property int numberValueRevisionGroupSelectedDifficulty: 2
+    readonly property int numberValueRevisionGroupSelectedChart: 3
+    readonly property int numberValueRevisionGroupSelectedScore: 4
+    readonly property int numberValueRevisionGroupSelectedChartScore: 5
+    readonly property int numberValueRevisionGroupSelectedRanking: 6
+    readonly property int numberValueRevisionGroupSelectedFolder: 7
+    readonly property int numberValueRevisionGroupStatic: 8
+    readonly property int numberValueRevisionGroupSelectedAll: 9
+
+    function numberValueRevisionGroupForNumber(num: int) : int {
         switch (num) {
         case 30:
         case 31:
@@ -4209,13 +4480,13 @@ Item {
         case 37:
         case 39:
         case 333:
-            return root.numberValuePlayerStatsRevision;
+            return root.numberValueRevisionGroupPlayerStats;
         case 45:
         case 46:
         case 47:
         case 48:
         case 49:
-            return numberValueSelectedDifficultyRevisionValue();
+            return root.numberValueRevisionGroupSelectedDifficulty;
         case 42:
         case 96:
         case 90:
@@ -4237,7 +4508,7 @@ Item {
         case 368:
         case 1163:
         case 1164:
-            return selectedDetailState.selectedChartRevision;
+            return root.numberValueRevisionGroupSelectedChart;
         case 70:
         case 71:
         case 72:
@@ -4290,11 +4561,11 @@ Item {
         case 425:
         case 426:
         case 427:
-            return numberValueSelectedScoreRevisionValue();
+            return root.numberValueRevisionGroupSelectedScore;
         case 74:
         case 100:
         case 154:
-            return numberValueSelectedChartScoreRevisionValue();
+            return root.numberValueRevisionGroupSelectedChartScore;
         case 92:
         case 93:
         case 94:
@@ -4342,7 +4613,7 @@ Item {
         case 240:
         case 241:
         case 242:
-            return numberValueSelectedRankingRevision();
+            return root.numberValueRevisionGroupSelectedRanking;
         case 300:
         case 320:
         case 321:
@@ -4355,7 +4626,7 @@ Item {
         case 328:
         case 329:
         case 330:
-            return numberValueSelectedFolderRevision();
+            return root.numberValueRevisionGroupSelectedFolder;
         case 10:
         case 11:
         case 13:
@@ -4388,14 +4659,55 @@ Item {
         case 313:
         case 340:
         case 341:
+            return root.numberValueRevisionGroupStatic;
+        default:
+            return root.numberValueRevisionGroupSelectedAll;
+        }
+    }
+
+    function numberValueRevisionForGroup(group: int) : var {
+        switch (group) {
+        case root.numberValueRevisionGroupPlayerStats:
+            return root.numberValuePlayerStatsRevision;
+        case root.numberValueRevisionGroupSelectedDifficulty:
+            return numberValueSelectedDifficultyRevisionValue();
+        case root.numberValueRevisionGroupSelectedChart:
+            return root.numberValueSelectedChartRevision;
+        case root.numberValueRevisionGroupSelectedScore:
+            return numberValueSelectedScoreRevisionValue();
+        case root.numberValueRevisionGroupSelectedChartScore:
+            return numberValueSelectedChartScoreRevisionValue();
+        case root.numberValueRevisionGroupSelectedRanking:
+            return numberValueSelectedRankingRevision();
+        case root.numberValueRevisionGroupSelectedFolder:
+            return numberValueSelectedFolderRevision();
+        case root.numberValueRevisionGroupStatic:
             return root.numberValueStaticRevision;
         default:
             return numberValueSelectedAllRevision();
         }
     }
 
-    function numberValueForId(id: int) : var {
-        const revision = numberValueCacheRevisionForNumber(id);
+    function numberValueCacheRevisionForNumber(num: int) : var {
+        return numberValueRevisionForGroup(numberValueRevisionGroupForNumber(num));
+    }
+
+    function numberValueCanUseSelectSnapshot(num: int) : bool {
+        switch (numberValueRevisionGroupForNumber(num)) {
+        case root.numberValueRevisionGroupPlayerStats:
+        case root.numberValueRevisionGroupSelectedDifficulty:
+        case root.numberValueRevisionGroupSelectedChart:
+        case root.numberValueRevisionGroupSelectedScore:
+        case root.numberValueRevisionGroupSelectedChartScore:
+        case root.numberValueRevisionGroupSelectedRanking:
+        case root.numberValueRevisionGroupSelectedFolder:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    function numberValueForIdAndRevision(id: int, revision: var) : var {
         if (root.numberValueCacheRevisions[id] === revision) {
             return root.numberValueCache[id];
         }
@@ -4404,6 +4716,10 @@ Item {
         root.numberValueCache[id] = value;
         root.numberValueCacheRevisions[id] = revision;
         return value;
+    }
+
+    function numberValueForId(id: int) : var {
+        return numberValueForIdAndRevision(id, numberValueCacheRevisionForNumber(id));
     }
 
     function numberValue(num: var) : var {
