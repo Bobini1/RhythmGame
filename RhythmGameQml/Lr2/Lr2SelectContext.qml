@@ -1092,22 +1092,11 @@ Item {
         return root.useBeatorajaSelectOptions;
     }
 
-    function keyFilterOrder(sourceCount: var) : var {
+    function keyFilterOrder() : var {
         let order = beatorajaKeyFilterOrderActive()
             ? beatorajaKeyFilterOrder
             : lr2KeyFilterOrder;
-        let maxFrame = Math.floor(Number(sourceCount || 0)) - 1;
-        if (maxFrame < 0) {
-            return order;
-        }
-
-        let result = [];
-        for (let frame of order) {
-            if (frame <= maxFrame) {
-                result.push(frame);
-            }
-        }
-        return result.length > 0 ? result : [0];
+        return order;
     }
 
     function keyFilterFrameForSelectKeymodeFilter(filter: var, beatorajaOrder: var) : var {
@@ -1163,13 +1152,13 @@ Item {
     }
 
     function keyFilterFrameForSourceCount(sourceCount: var) : var {
-        let order = keyFilterOrder(sourceCount);
         let frame = keyFilterFrameForSelectKeymodeFilter(selectKeymodeFilter, beatorajaKeyFilterOrderActive());
-        return order.indexOf(frame) >= 0 ? frame : -1;
+        let count = Math.floor(Number(sourceCount || 0));
+        return count > 0 ? Math.min(frame, count - 1) : frame;
     }
 
-    function adjustKeyFilter(delta: var, sourceCount: var) : void {
-        let order = keyFilterOrder(sourceCount);
+    function adjustKeyFilter(delta: var) : void {
+        let order = keyFilterOrder();
         let currentFrame = keyFilterFrameForSelectKeymodeFilter(selectKeymodeFilter, beatorajaKeyFilterOrderActive());
         let index = order.indexOf(currentFrame);
         if (index < 0) {

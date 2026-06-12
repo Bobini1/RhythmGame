@@ -24,13 +24,22 @@ QtObject {
     readonly property real selectedFastBarDrawX: 0
     readonly property real selectedFastBarDrawY: 0
     readonly property int selectedRow: skinModel.barCenter + selectedOffset
-    readonly property int barLayoutSkinTime: Math.max(root.barSkinTime, root.barAnimationLimit)
-    readonly property var barBaseStates: barBaseStateResolver.baseStates
+    readonly property int barRenderSkinTime: root.barSkinTime
+    readonly property int barLayoutSkinTime: Math.max(barRenderSkinTime, root.barAnimationLimit)
+    readonly property var barBaseStates: barLayoutBaseStateResolver.baseStates
     readonly property int clickStartRow: Math.max(0, skinModel.barAvailableStart - 3)
     readonly property int clickEndRow: Math.min(
         (skinModel.barRows ? skinModel.barRows.length : 0) - 1,
         skinModel.barAvailableEnd + 3)
     property Lr2BarBaseStateResolver barBaseStateResolver: Lr2BarBaseStateResolver {
+        barRows: geometry.skinModel.barRows
+        selectedRow: geometry.selectedRow
+        skinTime: geometry.barRenderSkinTime
+        timers: geometry.root.barTimers
+        activeOptions: geometry.root.barActiveOptions
+    }
+
+    property Lr2BarBaseStateResolver barLayoutBaseStateResolver: Lr2BarBaseStateResolver {
         barRows: geometry.skinModel.barRows
         selectedRow: geometry.selectedRow
         skinTime: geometry.barLayoutSkinTime

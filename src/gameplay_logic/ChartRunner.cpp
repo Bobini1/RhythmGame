@@ -670,7 +670,6 @@ RePlayer::RePlayer(BmsNotes* notes,
   , replayedScore(replayedScore)
   , events(replayedScore->getReplayData()->getHitEvents())
 {
-    replayedScore->setParent(this);
 }
 void
 RePlayer::passKey(input::BmsKey key,

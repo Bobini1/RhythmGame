@@ -359,7 +359,7 @@ QtObject {
             return true;
         },
         "11": (delta, sourceCount) => {
-            selectContext.adjustKeyFilter(delta, sourceCount || (root.lr2SkinUsesBeatorajaSemantics ? 5 : 7));
+            selectContext.adjustKeyFilter(delta);
             selectContext.sortOrFilterChanged();
             return true;
         },
