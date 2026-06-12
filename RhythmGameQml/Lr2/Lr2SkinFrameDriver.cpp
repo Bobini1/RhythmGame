@@ -109,6 +109,12 @@ void Lr2SkinFrameDriver::tick(qreal smoothFrameTime) {
 
     const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
     const qreal now = static_cast<qreal>(nowMs);
+    if (m_clockRestartPending) {
+        m_clockRestartPending = false;
+        m_clock->restart(now);
+        m_clock->restartSelectInfoTimer();
+    }
+
     if (nowMs - m_lastFpsSampleMs >= m_fpsSampleIntervalMs) {
         m_lastFpsSampleMs = nowMs;
         setCurrentFps(smoothFrameTime > 0.0
@@ -142,6 +148,10 @@ void Lr2SkinFrameDriver::setCurrentFps(int value) {
     }
     m_currentFps = value;
     emit currentFpsChanged();
+}
+
+void Lr2SkinFrameDriver::requestClockRestart() {
+    m_clockRestartPending = true;
 }
 
 void Lr2SkinFrameDriver::reconnectFrameAnimation() {

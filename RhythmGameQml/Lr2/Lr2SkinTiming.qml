@@ -211,7 +211,7 @@ QtObject {
         let startInput = root.skinModel.startInput || 0;
         root.selectAnimationLimit = Math.max(3200, startInput);
         root.barAnimationLimit = Math.max(2200, startInput);
-        root.clock.restart(Date.now());
+        root.frameDriver.requestClockRestart();
         root.selectScrollStartSkinTime = 0;
         root.selectNoScrollStartSkinTime = 0;
         root.selectDatabaseLoadedSkinTime = 0;
@@ -220,7 +220,6 @@ QtObject {
         root.host.selectPanelClosing = 0;
         root.host.selectScratchSoundReady = false;
         root.host.updateLr2DateTimeNumbers();
-        root.clock.restartSelectInfoTimer();
         root.syncSceneEndTimer();
     }
 

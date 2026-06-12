@@ -48,6 +48,7 @@ public:
     void setFpsSampleIntervalMs(int value);
 
     Q_INVOKABLE void tick(qreal smoothFrameTime);
+    Q_INVOKABLE void requestClockRestart();
 
 signals:
     void clockChanged();
@@ -74,6 +75,7 @@ private:
     QPointer<Lr2SelectVisualState> m_selectVisualState;
     bool m_gameplayScreen = false;
     bool m_gameplayStartupPending = false;
+    bool m_clockRestartPending = false;
     int m_currentFps = 0;
     int m_fpsSampleIntervalMs = 250;
     qint64 m_lastFpsSampleMs = 0;
