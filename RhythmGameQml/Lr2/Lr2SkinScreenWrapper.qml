@@ -733,6 +733,17 @@ Item {
         }
         return root.finalizeOptionList(options);
     }
+    readonly property var skinParserActiveOptions: {
+        let options = [];
+        let source = root.parseActiveOptions || [];
+        for (let i = 0; i < source.length; ++i) {
+            let option = Number(source[i] || 0);
+            if (!Lr2SkinOptionRules.isRuntimeOwnedOption(option)) {
+                options.push(option);
+            }
+        }
+        return root.finalizeOptionList(options);
+    }
 
     function shouldRestartSkinClockAfterLoad() : var {
         let currentKey = root.effectiveScreenKey + "\n" + (root.csvPath || "");
@@ -5004,7 +5015,7 @@ Item {
         id: skinModel
         csvPath: root.csvPath
         settingValues: root.skinSettings || {}
-        activeOptions: root.parseActiveOptions
+        activeOptions: root.skinParserActiveOptions
 
         onSkinLoaded: {
             if (root.effectiveScreenKey === "select") {
