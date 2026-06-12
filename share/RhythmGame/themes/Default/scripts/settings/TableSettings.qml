@@ -19,8 +19,10 @@ Item {
     property string tag2Filter:      ""
     property string browserSearch:   ""
     property bool   showUrlEditor:   false   // toggled by the ⚙ button
+    property var    fetchRequest:     null
 
     Component.onCompleted: fetchTables()
+    Component.onDestruction: cancelFetch()
 
     readonly property var tagTranslations: ({
         // tag1 — play style
@@ -49,6 +51,15 @@ Item {
 
     function exceptionMessage(error) {
         return error?.message !== undefined ? String(error.message) : String(error)
+    }
+
+    function cancelFetch() {
+        const xhr = fetchRequest
+        fetchRequest = null
+        if (xhr) {
+            xhr.onreadystatechange = function () {}
+            xhr.abort()
+        }
     }
 
     readonly property var recommendedUrls: {
@@ -161,24 +172,29 @@ Item {
             return
         }
 
+        cancelFetch()
+
         const xhr = new XMLHttpRequest()
+        fetchRequest = xhr
         xhr.open("GET", url)
         fetchState = "loading"
         fetchError = ""
         xhr.onreadystatechange = function () {
             if (xhr.readyState !== XMLHttpRequest.DONE) return
+            if (fetchRequest !== xhr) return
+            fetchRequest = null
             if (xhr.status === 200) {
                 try {
                     const parsed = JSON.parse(xhr.responseText)
-                    tableSettings.allTables = Array.isArray(parsed) ? parsed : (parsed.data ?? [])
-                    tableSettings.fetchState = "done"
+                    allTables = Array.isArray(parsed) ? parsed : (parsed.data ?? [])
+                    fetchState = "done"
                 } catch (e) {
-                    tableSettings.fetchError = tableSettings.exceptionMessage(e)
-                    tableSettings.fetchState = "error"
+                    fetchError = exceptionMessage(e)
+                    fetchState = "error"
                 }
             } else {
-                tableSettings.fetchError = "HTTP " + xhr.status
-                tableSettings.fetchState = "error"
+                fetchError = "HTTP " + xhr.status
+                fetchState = "error"
             }
         }
         xhr.send()
