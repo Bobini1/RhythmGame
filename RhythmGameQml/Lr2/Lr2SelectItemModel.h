@@ -94,11 +94,17 @@ public:
 									  int lamp,
 									  const QVariant& scoreCounts,
 									  const QVariant& distribution);
+	Q_INVOKABLE void setFolderSummaries(const QVariantMap& lamps,
+										const QVariantMap& scoreCounts,
+										const QVariantMap& distributions);
 	Q_INVOKABLE void clearScoreSummaries();
 	Q_INVOKABLE void setScoreSummary(const QString& identifier,
 									 int lamp,
 									 int scoreRank,
 									 double scoreRate);
+	Q_INVOKABLE void setScoreSummaries(const QVariantMap& lamps,
+									   const QVariantMap& scoreRanks,
+									   const QVariantMap& scoreRates);
 	bool populateBarCell(int sourceRow, int visualRow, Lr2SelectBarCell* cell) const;
 
 signals:

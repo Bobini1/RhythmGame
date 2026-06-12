@@ -425,6 +425,66 @@ void Lr2SelectItemModel::setFolderSummary(const QString& key,
 	}
 }
 
+void Lr2SelectItemModel::setFolderSummaries(const QVariantMap& lamps,
+											const QVariantMap& scoreCounts,
+											const QVariantMap& distributions) {
+	if (lamps.isEmpty()) {
+		return;
+	}
+
+	for (auto it = lamps.constBegin(); it != lamps.constEnd(); ++it) {
+		const QString& key = it.key();
+		if (key.isEmpty()) {
+			continue;
+		}
+
+		m_folderSummaries.insert(
+			key,
+			folderSummaryFromValues(it.value().toInt(),
+									scoreCounts.value(key),
+									distributions.value(key)));
+	}
+
+	QList<int> changedRoles {
+		LampRole,
+		FolderLampRole,
+		FolderScoreCountsRole,
+		FolderGraphLampsRole,
+		FolderGraphRanksRole,
+	};
+	int firstChanged = -1;
+	int lastChanged = -1;
+	for (int row = 0; row < m_items.size(); ++row) {
+		Item& item = m_items[row];
+		if (item.folderKey.isEmpty() || !lamps.contains(item.folderKey)) {
+			continue;
+		}
+		const auto summaryIt = m_folderSummaries.constFind(item.folderKey);
+		if (summaryIt == m_folderSummaries.constEnd()) {
+			continue;
+		}
+		const FolderSummary& summary = summaryIt.value();
+		const bool changed = item.folderLamp != summary.lamp
+			|| item.folderScoreCounts != summary.scoreCounts
+			|| item.folderGraphLamps != summary.graphLamps
+			|| item.folderGraphRanks != summary.graphRanks;
+		if (!changed) {
+			continue;
+		}
+		item.folderLamp = summary.lamp;
+		item.folderScoreCounts = summary.scoreCounts;
+		item.folderGraphLamps = summary.graphLamps;
+		item.folderGraphRanks = summary.graphRanks;
+		if (firstChanged < 0) {
+			firstChanged = row;
+		}
+		lastChanged = row;
+	}
+	if (firstChanged >= 0) {
+		emit dataChanged(index(firstChanged, 0), index(lastChanged, 0), changedRoles);
+	}
+}
+
 void Lr2SelectItemModel::clearScoreSummaries() {
 	QList<int> changedRoles {
 		LampRole,
@@ -483,6 +543,54 @@ void Lr2SelectItemModel::setScoreSummary(const QString& identifier,
 		if (!changed) {
 			continue;
 		}
+		item.lamp = normalizedLamp;
+		item.scoreRank = normalizedRank;
+		item.scoreRate = normalizedRate;
+		if (firstChanged < 0) {
+			firstChanged = row;
+		}
+		lastChanged = row;
+	}
+	if (firstChanged >= 0) {
+		emit dataChanged(index(firstChanged, 0), index(lastChanged, 0), changedRoles);
+	}
+}
+
+void Lr2SelectItemModel::setScoreSummaries(const QVariantMap& lamps,
+										   const QVariantMap& scoreRanks,
+										   const QVariantMap& scoreRates) {
+	QList<int> changedRoles {
+		LampRole,
+		ScoreRankRole,
+		ScoreRateRole,
+	};
+	int firstChanged = -1;
+	int lastChanged = -1;
+	for (int row = 0; row < m_items.size(); ++row) {
+		Item& item = m_items[row];
+		if (item.kind != ChartKind && item.kind != EntryKind && item.kind != CourseKind) {
+			continue;
+		}
+
+		const bool hasSummary = !item.scoreIdentifier.isEmpty()
+			&& lamps.contains(item.scoreIdentifier);
+		const int normalizedLamp = hasSummary
+			? std::max(0, lamps.value(item.scoreIdentifier).toInt())
+			: 0;
+		const int normalizedRank = hasSummary
+			? std::max(0, scoreRanks.value(item.scoreIdentifier).toInt())
+			: 0;
+		const double normalizedRate = hasSummary
+			? std::max(0.0, scoreRates.value(item.scoreIdentifier).toDouble())
+			: 0.0;
+
+		const bool changed = item.lamp != normalizedLamp
+			|| item.scoreRank != normalizedRank
+			|| item.scoreRate != normalizedRate;
+		if (!changed) {
+			continue;
+		}
+
 		item.lamp = normalizedLamp;
 		item.scoreRank = normalizedRank;
 		item.scoreRate = normalizedRate;

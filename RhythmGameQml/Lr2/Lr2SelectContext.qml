@@ -36,6 +36,7 @@ Item {
     })
     property var previewFiles: ({})
     property var readmeFiles: ({})
+    property var songDirectoryFilesCheckedByDir: ({})
     property alias currentIndex: nativeNavigation.currentIndex
     property alias targetIndex: nativeNavigation.targetIndex
     property alias visualIndex: visualState.visualIndex
@@ -923,12 +924,9 @@ Item {
 
         folderLampByKey = Object.assign({}, folderLampByKey, pendingFolderLampByKey);
         folderScoreCountsByKey = Object.assign({}, folderScoreCountsByKey, pendingFolderScoreCountsByKey);
-        for (let key in pendingFolderLampByKey) {
-            selectItemModel.setFolderSummary(key,
-                                             pendingFolderLampByKey[key] || 0,
-                                             pendingFolderScoreCountsByKey[key],
-                                             pendingFolderDistributionByKey[key]);
-        }
+        selectItemModel.setFolderSummaries(pendingFolderLampByKey,
+                                           pendingFolderScoreCountsByKey,
+                                           pendingFolderDistributionByKey);
         pendingFolderLampByKey = ({});
         pendingFolderScoreCountsByKey = ({});
         pendingFolderDistributionByKey = ({});
@@ -947,7 +945,9 @@ Item {
     }
 
     function publishSelectItemScoreSummaries() : void {
-        selectItemModel.clearScoreSummaries();
+        let lamps = {};
+        let ranks = {};
+        let rates = {};
         for (let item of folderContents) {
             if (!isChart(item) && !isEntry(item) && !isCourse(item)) {
                 continue;
@@ -960,8 +960,12 @@ Item {
 
             let summary = scoreSummaryForItem(item);
             let lamp = clearTypeBarLamp(summary.clearType, root.barLampVariants);
-            selectItemModel.setScoreSummary(String(id), lamp, summary.rank, summary.scoreRate);
+            let key = String(id);
+            lamps[key] = lamp;
+            ranks[key] = summary.rank;
+            rates[key] = summary.scoreRate;
         }
+        selectItemModel.setScoreSummaries(lamps, ranks, rates);
     }
 
     Component.onDestruction: {
@@ -1578,14 +1582,28 @@ Item {
     }
 
     function refreshSongDirectoryFiles() : void {
-        let dirs = [];
-        for (let item of folderContents) {
-            if (isChart(item)) {
-                dirs.push(item.chartDirectory);
-            }
+        ensureSongDirectoryFilesForChart(focusedChartData || selectedStateChartData);
+    }
+
+    function ensureSongDirectoryFilesForChart(chart: var) : void {
+        let dir = chart && chart.chartDirectory ? chart.chartDirectory : "";
+        if (!dir || songDirectoryFilesCheckedByDir[dir]) {
+            return;
         }
-        previewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
-        readmeFiles = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths(dirs);
+
+        let checked = Object.assign({}, songDirectoryFilesCheckedByDir);
+        checked[dir] = true;
+        songDirectoryFilesCheckedByDir = checked;
+
+        let dirs = [dir];
+        let fetchedPreviewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
+        let fetchedReadmeFiles = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths(dirs);
+        if (fetchedPreviewFiles && fetchedPreviewFiles[dir] !== undefined) {
+            previewFiles = Object.assign({}, previewFiles, fetchedPreviewFiles);
+        }
+        if (fetchedReadmeFiles && fetchedReadmeFiles[dir] !== undefined) {
+            readmeFiles = Object.assign({}, readmeFiles, fetchedReadmeFiles);
+        }
     }
 
     function folderContentsNeedFullScores() : var {
@@ -3366,6 +3384,7 @@ Item {
                 visualChartWrapper = nextChartWrapper;
             }
             refreshVisualChartAssetSources(chartData);
+            ensureSongDirectoryFilesForChart(chartData);
         }
         return changed;
     }
