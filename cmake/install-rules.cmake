@@ -8,14 +8,30 @@ if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
             RUNTIME COMPONENT RhythmGame_Runtime
     )
 
-    qt_generate_deploy_qml_app_script(
-            TARGET RhythmGame_exe
-            OUTPUT_SCRIPT deploy_script
-            NO_UNSUPPORTED_PLATFORM_ERROR
-            DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\""
-            MACOS_BUNDLE_POST_BUILD
-    )
-    install(SCRIPT ${deploy_script})
+    if (WIN32)
+        set(deploy_script "${CMAKE_CURRENT_BINARY_DIR}/.qt/deploy_qml_app_RhythmGame_exe_installed.cmake")
+        file(GENERATE OUTPUT "${deploy_script}" CONTENT
+"include(\"${CMAKE_CURRENT_BINARY_DIR}/.qt/QtDeploySupport-\${CMAKE_INSTALL_CONFIG_NAME}.cmake\")
+include(\"${CMAKE_CURRENT_BINARY_DIR}/.qt/RhythmGame_exe-plugins-\${CMAKE_INSTALL_CONFIG_NAME}.cmake\" OPTIONAL)
+set(__QT_DEPLOY_I18N_CATALOGS \"qtbase;qtdeclarative;qtserialport;qtwebsockets;qtmultimedia\")
+
+qt6_deploy_runtime_dependencies(
+    EXECUTABLE \"\${QT_DEPLOY_PREFIX}/\${QT_DEPLOY_BIN_DIR}/$<TARGET_FILE_NAME:RhythmGame_exe>\"
+    GENERATE_QT_CONF
+    DEPLOY_TOOL_OPTIONS \"--qmldir\" \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\"
+)
+")
+        install(SCRIPT ${deploy_script})
+    else ()
+        qt_generate_deploy_qml_app_script(
+                TARGET RhythmGame_exe
+                OUTPUT_SCRIPT deploy_script
+                NO_UNSUPPORTED_PLATFORM_ERROR
+                DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\""
+                MACOS_BUNDLE_POST_BUILD
+        )
+        install(SCRIPT ${deploy_script})
+    endif ()
 
     if (NOT WIN32)
         install(PROGRAMS RhythmGame.sh DESTINATION ${CMAKE_INSTALL_BINDIR} PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
@@ -27,8 +43,15 @@ else ()
     )
 endif ()
 
-install(DIRECTORY share/RhythmGame
-        DESTINATION ${CMAKE_INSTALL_DATADIR}
+install(DIRECTORY
+        share/RhythmGame/avatars
+        share/RhythmGame/bgm
+        share/RhythmGame/soundsets
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame
+        COMPONENT RhythmGame_Runtime)
+
+install(DIRECTORY share/RhythmGame/themes/Default
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/themes
         COMPONENT RhythmGame_Runtime)
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/profiles/
