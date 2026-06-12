@@ -19,6 +19,7 @@ RowLayout {
     property alias description: strLabel.description
     property int decimals: min < -1 || max > 1 ? 0 : 2
     property real increment: 10 ** -decimals
+    property real displayMultiplier: 1
 
     SettingsLabel {
         id: strLabel
@@ -40,16 +41,16 @@ RowLayout {
                     from: range.sliderMin
                     to: range.sliderMax
                     Layout.fillHeight: true
-                    value: range.destination[range.id_]
+                    value: range.destination[range.id_] * range.displayMultiplier
 
-                    onMoved: range.destination[range.id_] = value;
+                    onMoved: range.destination[range.id_] = value / range.displayMultiplier;
                 }
             }
         }
         SpinBox {
             id: textField
 
-            value: range.destination[range.id_] * 10 ** range.decimals
+            value: range.destination[range.id_] * range.displayMultiplier * 10 ** range.decimals
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.maximumWidth: 200
@@ -71,7 +72,7 @@ RowLayout {
             }
             inputMethodHints: Qt.ImhFormattedNumbersOnly
             onValueModified: {
-                range.destination[range.id_] = value * 10 ** -range.decimals;
+                range.destination[range.id_] = value * 10 ** -range.decimals / range.displayMultiplier;
             }
             valueFromText: function(text, locale) {
                 return Number.fromLocaleString(locale, text) * 10 ** range.decimals;

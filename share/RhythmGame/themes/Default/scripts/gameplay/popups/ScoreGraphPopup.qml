@@ -4,12 +4,13 @@ import QtQml.Models
 GameplayPopup {
     id: popup
 
+    required property var generalVars
     required property var themeVars
 
     model: ObjectModel {
         BooleanOption {
             description: qsTr("Enabled")
-            src: popup.themeVars
+            src: popup.generalVars
             prop: "scoreGraphEnabled"
         }
         NumberWithSlider {

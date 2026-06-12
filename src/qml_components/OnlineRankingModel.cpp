@@ -2,6 +2,7 @@
 
 #include "OnlineScores.h"
 #include "ProfileList.h"
+#include "gameplay_logic/Judgement.h"
 #include "support/ConvertTachiClearType.h"
 
 #include <QJsonArray>
@@ -9,10 +10,103 @@
 #include <QJsonObject>
 #include <QUrlQuery>
 #include <QUrl>
-#include <QXmlStreamReader>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+#include <functional>
+#include <memory>
+
 namespace qml_components {
+namespace {
+auto
+judgementCount(const QJsonArray& counts, gameplay_logic::Judgement judgement)
+  -> int
+{
+    const auto index = static_cast<int>(judgement);
+    return index >= 0 && index < counts.size() ? counts.at(index).toInt() : 0;
+}
+
+void
+setJudgementCountsFromArray(RankingEntry& entry, const QJsonArray& counts)
+{
+    entry.bestPerfect =
+      judgementCount(counts, gameplay_logic::Judgement::Perfect);
+    entry.bestGreat = judgementCount(counts, gameplay_logic::Judgement::Great);
+    entry.bestGood = judgementCount(counts, gameplay_logic::Judgement::Good);
+    entry.bestBad = judgementCount(counts, gameplay_logic::Judgement::Bad);
+    entry.bestPoor = judgementCount(counts, gameplay_logic::Judgement::Poor);
+    entry.bestEmptyPoor =
+      judgementCount(counts, gameplay_logic::Judgement::EmptyPoor);
+}
+
+void
+setJudgementCountsFromJson(RankingEntry& entry, const QJsonObject& obj)
+{
+    entry.bestPerfect = obj.value(QStringLiteral("perfect")).toInt();
+    if (entry.bestPerfect == 0) {
+        entry.bestPerfect = obj.value(QStringLiteral("pgreat")).toInt();
+    }
+    if (entry.bestPerfect == 0) {
+        entry.bestPerfect = obj.value(QStringLiteral("pg")).toInt();
+    }
+
+    entry.bestGreat = obj.value(QStringLiteral("great")).toInt();
+    if (entry.bestGreat == 0) {
+        entry.bestGreat = obj.value(QStringLiteral("gr")).toInt();
+    }
+
+    entry.bestGood = obj.value(QStringLiteral("good")).toInt();
+    if (entry.bestGood == 0) {
+        entry.bestGood = obj.value(QStringLiteral("gd")).toInt();
+    }
+
+    entry.bestBad = obj.value(QStringLiteral("bad")).toInt();
+    if (entry.bestBad == 0) {
+        entry.bestBad = obj.value(QStringLiteral("bd")).toInt();
+    }
+
+    entry.bestPoor = obj.value(QStringLiteral("poor")).toInt();
+    entry.bestEmptyPoor = obj.value(QStringLiteral("emptyPoor")).toInt();
+    if (entry.bestEmptyPoor == 0) {
+        entry.bestEmptyPoor = obj.value(QStringLiteral("empty_poor")).toInt();
+    }
+    if (entry.bestEmptyPoor == 0) {
+        entry.bestEmptyPoor = obj.value(QStringLiteral("miss")).toInt();
+    }
+    if (entry.bestEmptyPoor == 0 && entry.bestComboBreaks > 0) {
+        entry.bestEmptyPoor =
+          std::max(0,
+                   entry.bestComboBreaks - entry.bestBad - entry.bestPoor);
+    }
+}
+}
+
+auto
+rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry
+{
+    RankingEntry entry;
+    entry.userId = obj.value("userId").toInt();
+    entry.userName = obj.value("userName").toString();
+    entry.userImage = obj.value("userImage").toString();
+    entry.bestPoints = obj.value("bestPoints").toDouble();
+    entry.maxPoints = obj.value("maxPoints").toDouble();
+    entry.bestPointsGuid = obj.value("bestPointsGuid").toString();
+    entry.bestCombo = obj.value("bestCombo").toInt();
+    entry.maxHits = obj.value("maxHits").toInt();
+    entry.bestComboGuid = obj.value("bestComboGuid").toString();
+    entry.bestClearType = obj.value("bestClearType").toString();
+    entry.bestClearTypeGuid = obj.value("bestClearTypeGuid").toString();
+    entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
+    setJudgementCountsFromArray(
+      entry, obj.value("bestPointsJudgementCounts").toArray());
+    entry.bestComboBreaksGuid =
+      obj.value("bestComboBreaksGuid").toString();
+    entry.latestDate = obj.value("latestDate").toInteger();
+    entry.latestDateGuid = obj.value("latestDateGuid").toString();
+    entry.scoreCount = obj.value("scoreCount").toInt();
+    return entry;
+}
+
 void
 OnlineRankingModel::performJsonGet(
   const QString& url,
@@ -62,7 +156,7 @@ OnlineRankingModel::performJsonGet(
 
 void
 OnlineRankingModel::handleTachiReply(int startRanking,
-                                     QString keymode,
+                                     QString tachiGame,
                                      int noteCount,
                                      QNetworkReply* reply)
 {
@@ -115,9 +209,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         const int pageSize = 100;
         startRanking += pageSize;
         const auto pbsUrlStr =
-          QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/%2/"
+          QString("https://boku.tachi.ac/api/v1/games/%1/charts/%2/"
                   "pbs?startRanking=%3")
-            .arg(keymode)
+            .arg(tachiGame)
             .arg(chartId)
             .arg(startRanking);
         auto pbsReq = QNetworkRequest(QUrl(pbsUrlStr));
@@ -130,9 +224,9 @@ OnlineRankingModel::handleTachiReply(int startRanking,
         connect(pbsReply,
                 &QNetworkReply::finished,
                 this,
-                [this, startRanking, noteCount, pbsReply, keymode]() {
+                [this, startRanking, noteCount, pbsReply, tachiGame]() {
                     handleTachiReply(
-                      startRanking, keymode, noteCount, pbsReply);
+                      startRanking, tachiGame, noteCount, pbsReply);
                 });
     }
 
@@ -194,6 +288,7 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             r.bestComboBreaks =
               judgements["bad"].toInt() + judgements["poor"].toInt();
         }
+        setJudgementCountsFromJson(r, judgements);
 
         const auto composedFrom = pb.value("composedFrom").toArray();
         for (const auto& cf : composedFrom) {
@@ -225,8 +320,6 @@ OnlineRankingModel::handleTachiReply(int startRanking,
             const auto ms = pb.value("timeAchieved").toInteger();
             r.latestDate = ms / 1000;
         }
-
-        r.scoreCount = 1;
 
         r.owner =
           "https://boku.tachi.ac/api/v1/users/" + QString::number(r.userId);
@@ -262,20 +355,25 @@ OnlineRankingModel::rowCount(const QModelIndex& parent) const -> int
 {
     if (parent.isValid())
         return 0;
-    return std::clamp(static_cast<int>(entries.size()) - currentOffset,
-                      0,
-                      currentLimit ? currentLimit
-                                   : std::numeric_limits<int>::max());
+
+    const auto offset = std::max(0, currentOffset);
+    const auto available =
+      std::max(0, static_cast<int>(entries.size()) - offset);
+    return std::min(available,
+                    currentLimit > 0 ? currentLimit
+                                     : std::numeric_limits<int>::max());
 }
 
 auto
 OnlineRankingModel::data(const QModelIndex& index, int role) const -> QVariant
 {
-    if (!index.isValid() || index.row() < 0 || index.row() >= entries.size()) {
+    const auto entryIndex = index.row() + std::max(0, currentOffset);
+    if (!index.isValid() || index.row() < 0 || entryIndex < 0 ||
+        static_cast<qsizetype>(entryIndex) >= entries.size()) {
         return {};
     }
 
-    const auto& e = entries.at(index.row() - currentOffset);
+    const auto& e = entries.at(entryIndex);
     switch (role) {
         case UserIdRole:
             return e.userId;
@@ -295,6 +393,18 @@ OnlineRankingModel::data(const QModelIndex& index, int role) const -> QVariant
             return e.bestComboGuid;
         case MaxHitsRole:
             return e.maxHits;
+        case BestPerfectRole:
+            return e.bestPerfect;
+        case BestGreatRole:
+            return e.bestGreat;
+        case BestGoodRole:
+            return e.bestGood;
+        case BestBadRole:
+            return e.bestBad;
+        case BestPoorRole:
+            return e.bestPoor;
+        case BestEmptyPoorRole:
+            return e.bestEmptyPoor;
         case BestClearTypeRole:
             return e.bestClearType;
         case BestClearTypeGuidRole:
@@ -312,7 +422,7 @@ OnlineRankingModel::data(const QModelIndex& index, int role) const -> QVariant
         case OwnerRole:
             return e.owner;
         case RankRole:
-            return currentOffset + index.row() + 1;
+            return entryIndex + 1;
         default:
             return {};
     }
@@ -329,6 +439,12 @@ OnlineRankingModel::roleNames() const -> QHash<int, QByteArray>
         { MaxPointsRole, "maxPoints" },
         { BestComboRole, "bestCombo" },
         { MaxHitsRole, "maxHits" },
+        { BestPerfectRole, "bestPerfect" },
+        { BestGreatRole, "bestGreat" },
+        { BestGoodRole, "bestGood" },
+        { BestBadRole, "bestBad" },
+        { BestPoorRole, "bestPoor" },
+        { BestEmptyPoorRole, "bestEmptyPoor" },
         { BestPointsGuidRole, "bestPointsGuid" },
         { BestComboGuidRole, "bestComboGuid" },
         { BestComboBreaksGuidRole, "bestComboBreaksGuid" },
@@ -413,26 +529,8 @@ OnlineRankingModel::fetchRhythmGame()
               if (!item.isObject())
                   continue;
               const auto obj = item.toObject();
-              RankingEntry entry;
-              entry.userId = obj.value("userId").toInt();
-              entry.userName = obj.value("userName").toString();
-              entry.userImage = obj.value("userImage").toString();
-              entry.bestPoints = obj.value("bestPoints").toDouble();
-              entry.maxPoints = obj.value("maxPoints").toDouble();
-              entry.bestPointsGuid = obj.value("bestPointsGuid").toString();
-              entry.bestCombo = obj.value("bestCombo").toInt();
-              entry.maxHits = obj.value("maxHits").toInt();
-              entry.bestComboGuid = obj.value("bestComboGuid").toString();
-              entry.bestClearType = obj.value("bestClearType").toString();
+              auto entry = rhythmGameRankingEntryFromJson(obj);
               clearTypeCounts[entry.bestClearType]++;
-              entry.bestClearTypeGuid =
-                obj.value("bestClearTypeGuid").toString();
-              entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
-              entry.bestComboBreaksGuid =
-                obj.value("bestComboBreaksGuid").toString();
-              entry.latestDate = obj.value("latestDate").toInteger();
-              entry.latestDateGuid = obj.value("latestDateGuid").toString();
-              entry.scoreCount = obj.value("scoreCount").toInt();
               scoreCount += entry.scoreCount;
               newEntries.append(std::move(entry));
           }
@@ -450,59 +548,103 @@ OnlineRankingModel::fetchRhythmGame()
 }
 
 namespace {
-struct TmpEntry
+constexpr int lr2irPageSize = 100;
+struct Lr2irFetchState
 {
-    QString name;
-    int id{ 0 };
-    int clear{ 0 };
-    int notes{ 0 };
-    int combo{ 0 };
-    int pg{ 0 };
-    int gr{ 0 };
-    int minbp{ 0 };
+    QList<RankingEntry> entries;
+    QVariantMap clearCounts;
+    int targetPages{ 1 };
 };
 
 auto
-parseLr2Scores(QXmlStreamReader& xr) -> QList<TmpEntry>
+lr2irApiUrl(const QString& md5, int page) -> QUrl
 {
-    auto out = QList<TmpEntry>{};
-    while (!xr.atEnd()) {
-        xr.readNext();
-        if (xr.isStartElement() && xr.name() == QLatin1String("score")) {
-            TmpEntry e;
-            // parse children until </score>
-            while (!xr.atEnd()) {
-                xr.readNext();
-                if (xr.isStartElement()) {
-                    const auto nm = xr.name().toString();
-                    const auto text = xr.readElementText();
-                    if (nm == QLatin1String("name")) {
-                        e.name = text;
-                    } else if (nm == QLatin1String("id")) {
-                        e.id = text.toInt();
-                    } else if (nm == QLatin1String("clear")) {
-                        e.clear = text.toInt();
-                    } else if (nm == QLatin1String("notes")) {
-                        e.notes = text.toInt();
-                    } else if (nm == QLatin1String("combo")) {
-                        e.combo = text.toInt();
-                    } else if (nm == QLatin1String("pg")) {
-                        e.pg = text.toInt();
-                    } else if (nm == QLatin1String("gr")) {
-                        e.gr = text.toInt();
-                    } else if (nm == QLatin1String("minbp")) {
-                        e.minbp = text.toInt();
-                    }
-                } else if (xr.isEndElement() &&
-                           xr.name() == QLatin1String("score")) {
-                    break;
-                }
-            }
-            out.append(std::move(e));
-        }
+    auto url = QUrl(
+      QStringLiteral("https://lr2ir.com/api/charts/%1").arg(md5.toLower()));
+    if (page > 1) {
+        auto query = QUrlQuery{};
+        query.addQueryItem(QStringLiteral("page"), QString::number(page));
+        url.setQuery(query);
     }
-    return out;
+    return url;
 }
+
+auto
+lr2irClearType(QString clearType, double points, double maxPoints, int greats)
+  -> QString
+{
+    clearType = clearType.trimmed().toUpper();
+    clearType.remove(QChar(0x2605));
+
+    if (clearType.contains(QStringLiteral("FULLCOMBO"))) {
+        if (points == maxPoints && maxPoints > 0) {
+            return QStringLiteral("MAX");
+        }
+        if (greats == 0) {
+            return QStringLiteral("PERFECT");
+        }
+        return QStringLiteral("FC");
+    }
+    if (clearType == QStringLiteral("CLEAR")) {
+        return QStringLiteral("NORMAL");
+    }
+    if (clearType == QStringLiteral("FAILED")) {
+        return QStringLiteral("FAILED");
+    }
+    if (clearType == QStringLiteral("EASY")) {
+        return QStringLiteral("EASY");
+    }
+    if (clearType == QStringLiteral("HARD")) {
+        return QStringLiteral("HARD");
+    }
+    if (clearType == QStringLiteral("NORMAL")) {
+        return QStringLiteral("NORMAL");
+    }
+    return QStringLiteral("NOPLAY");
+}
+
+auto
+lr2irEntryFromJson(const QJsonObject& obj) -> RankingEntry
+{
+    auto entry = RankingEntry{};
+    entry.userId = obj.value(QStringLiteral("player_id")).toInteger();
+    entry.userName = obj.value(QStringLiteral("player_name")).toString();
+    entry.bestPoints = obj.value(QStringLiteral("score")).toDouble();
+    entry.maxPoints = obj.value(QStringLiteral("score_max")).toDouble();
+    entry.bestCombo = obj.value(QStringLiteral("combo")).toInt();
+    entry.maxHits = obj.value(QStringLiteral("combo_max")).toInt();
+    if (entry.maxHits <= 0 && entry.maxPoints > 0) {
+        entry.maxHits = static_cast<int>(entry.maxPoints / 2);
+    }
+    entry.bestComboBreaks = obj.value(QStringLiteral("bad_poor")).toInt();
+    setJudgementCountsFromJson(entry, obj);
+    entry.bestClearType =
+      lr2irClearType(obj.value(QStringLiteral("clear_type")).toString(),
+                     entry.bestPoints,
+                     entry.maxPoints,
+                     obj.value(QStringLiteral("great")).toInt());
+    entry.owner =
+      QStringLiteral("https://lr2ir.com/players/%1").arg(entry.userId);
+    return entry;
+}
+
+auto
+lr2irClearCountsFromChart(const QJsonObject& chart) -> QVariantMap
+{
+    auto counts = QVariantMap{};
+    counts.insert(QStringLiteral("FAILED"),
+                  chart.value(QStringLiteral("failed_count")).toInt());
+    counts.insert(QStringLiteral("EASY"),
+                  chart.value(QStringLiteral("easy_count")).toInt());
+    counts.insert(QStringLiteral("NORMAL"),
+                  chart.value(QStringLiteral("normal_count")).toInt());
+    counts.insert(QStringLiteral("HARD"),
+                  chart.value(QStringLiteral("hard_count")).toInt());
+    counts.insert(QStringLiteral("FC"),
+                  chart.value(QStringLiteral("fc_count")).toInt());
+    return counts;
+}
+
 }
 auto
 OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
@@ -621,106 +763,120 @@ OnlineRankingModel::sortFilterLocal(QList<RankingEntry> entriesUnfiltered) const
 void
 OnlineRankingModel::fetchLR2IR()
 {
-    const QUrl url(
-      "http://www.dream-pro.info/~lavalse/LR2IR/2/getrankingxml.cgi");
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader,
-                      "application/x-www-form-urlencoded");
+    const auto md5 = currentMd5;
+    const auto fetchGeneration = currentFetchGeneration;
+    const auto usesLocalSortOrFilter =
+      currentSortBy != SortableColumn::ScorePct ||
+      currentSortDir != SortDirection::Desc || currentComboLte >= 0 ||
+      currentComboGte >= 0 || currentMissCountGte >= 0 ||
+      currentMissCountLte >= 0 || currentScorePctGte >= 0.0 ||
+      currentScorePctLte >= 0.0;
+    const auto state = std::make_shared<Lr2irFetchState>();
+    const auto requestPage = std::make_shared<std::function<void(int)>>();
 
-    const QByteArray postData =
-      QString("songmd5=%1&id=1").arg(currentMd5).toUtf8();
-
-    QNetworkReply* reply = networkManager->post(request, postData);
-    reply->setParent(this);
-
-    connect(this, &OnlineRankingModel::cancelPendingRequested, reply, [reply] {
-        reply->abort();
-    });
-
-    connect(reply, &QNetworkReply::finished, this, [this, reply] {
-        reply->deleteLater();
-
-        if (reply->error() == QNetworkReply::OperationCanceledError) {
+    *requestPage = [this,
+                    md5,
+                    fetchGeneration,
+                    usesLocalSortOrFilter,
+                    state,
+                    requestPage](int page) {
+        if (fetchGeneration != currentFetchGeneration) {
             return;
         }
-        if (reply->error() == QNetworkReply::ContentNotFoundError) {
-            setLoading(false);
-            return;
-        }
-        if (reply->error() != QNetworkReply::NoError) {
-            spdlog::debug("OnlineRankingModel fetchLR2IR failed: {}",
-                          reply->errorString().toStdString());
-            setLoading(false);
-            return;
-        }
+        auto request = QNetworkRequest(lr2irApiUrl(md5, page));
+        QNetworkReply* reply = networkManager->get(request);
+        reply->setParent(this);
 
-        const QByteArray raw = reply->readAll();
+        connect(this,
+                &OnlineRankingModel::cancelPendingRequested,
+                reply,
+                [reply] { reply->abort(); });
 
-        // Remove the leading '#'
-        QByteArray xmlBytes = raw;
-        const int firstLt = xmlBytes.indexOf('<');
-        if (firstLt > 0) {
-            xmlBytes = xmlBytes.mid(firstLt);
-        }
+        connect(
+          reply,
+          &QNetworkReply::finished,
+          this,
+          [this,
+           reply,
+           page,
+           fetchGeneration,
+           usesLocalSortOrFilter,
+           state,
+           requestPage] {
+              reply->deleteLater();
 
-        QXmlStreamReader xr(xmlBytes);
-        auto tmpList = parseLr2Scores(xr);
+              if (fetchGeneration != currentFetchGeneration) {
+                  return;
+              }
+              if (reply->error() == QNetworkReply::OperationCanceledError) {
+                  return;
+              }
+              if (reply->error() == QNetworkReply::ContentNotFoundError) {
+                  setLoading(false);
+                  return;
+              }
+              if (reply->error() != QNetworkReply::NoError) {
+                  spdlog::debug("OnlineRankingModel fetchLR2IR failed: {}",
+                                reply->errorString().toStdString());
+                  setLoading(false);
+                  return;
+              }
 
-        QList<RankingEntry> newEntries;
-        newEntries.reserve(tmpList.size());
+              QJsonParseError parseError;
+              const auto doc =
+                QJsonDocument::fromJson(reply->readAll(), &parseError);
+              if (parseError.error != QJsonParseError::NoError ||
+                  !doc.isObject()) {
+                  spdlog::debug(
+                    "OnlineRankingModel fetchLR2IR JSON parse failed: {}",
+                    parseError.errorString().toStdString());
+                  setLoading(false);
+                  return;
+              }
 
-        QVector<RankingEntry> entriesUnfiltered;
+              const auto root = doc.object();
+              const auto chart = root.value(QStringLiteral("chart")).toObject();
+              const auto leaderboard =
+                root.value(QStringLiteral("leaderboard")).toArray();
 
-        for (const auto& t : tmpList) {
-            RankingEntry r;
-            r.userId = t.id;
-            r.userName = t.name;
-            r.userImage = QString();
-            const double points = t.pg * 2 + t.gr;
-            const double maxPoints = t.notes * 2;
-            r.bestPoints = points;
-            r.maxPoints = maxPoints;
-            r.bestPointsGuid.clear();
-            r.bestCombo = t.combo;
-            r.maxHits = t.notes;
-            r.bestComboGuid.clear();
-            r.bestClearType = [&] {
-                switch (t.clear) {
-                    case 0:
-                        return "NOPLAY";
-                    case 1:
-                        return "FAILED";
-                    case 2:
-                        return "EASY";
-                    case 3:
-                        return "NORMAL";
-                    case 4:
-                        return "HARD";
-                    default: {
-                        if (r.bestPoints == r.maxPoints) {
-                            return "MAX";
-                        }
-                        if (t.gr + t.pg == r.maxHits) {
-                            return "PERFECT";
-                        }
-                        return "FC";
-                    }
-                }
-            }();
-            r.bestComboBreaks = t.minbp;
-            r.owner = "http://www.dream-pro.info/~lavalse/LR2IR/"
-                      "search.cgi?mode=mypage&playerid=" +
-                      QString::number(r.userId);
+              if (page == 1) {
+                  const auto totalPages =
+                    root.value(QStringLiteral("total_pages")).toInt(1);
+                  const auto totalRows =
+                    root.value(QStringLiteral("total_rows"))
+                      .toInt(static_cast<int>(leaderboard.size()));
+                  setPlayerCount(chart.value(QStringLiteral("play_people"))
+                                   .toInt(totalRows));
+                  setScoreCount(
+                    chart.value(QStringLiteral("play_count")).toInt(totalRows));
+                  state->clearCounts = lr2irClearCountsFromChart(chart);
+                  state->targetPages = std::max(1, totalPages);
+                  state->entries.reserve(totalRows);
+              }
 
-            entriesUnfiltered.append(std::move(r));
-        }
+              for (const auto& value : leaderboard) {
+                  if (value.isObject()) {
+                      state->entries.append(
+                        lr2irEntryFromJson(value.toObject()));
+                  }
+              }
 
-        setPlayerCount(entriesUnfiltered.size());
-        setScoreCount(entriesUnfiltered.size());
+              if (page < state->targetPages) {
+                  (*requestPage)(page + 1);
+                  return;
+              }
 
-        setEntries(sortFilterLocal(std::move(entriesUnfiltered)));
-        setLoading(false);
-    });
+              auto loadedEntries = state->entries;
+              if (usesLocalSortOrFilter) {
+                  loadedEntries = sortFilterLocal(std::move(loadedEntries));
+              }
+              setEntries(std::move(loadedEntries));
+              setClearCounts(state->clearCounts);
+              setLoading(false);
+          });
+    };
+
+    (*requestPage)(1);
 }
 void
 OnlineRankingModel::fetchTachi()
@@ -732,14 +888,14 @@ OnlineRankingModel::fetchTachi()
             &TachiResolveHandle::resolved,
             this,
             [this, handle](
-              const QString& chartID, const QString& playtype, int noteCount) {
+              const QString& chartID, const QString& tachiGame, int noteCount) {
                 handle->deleteLater();
                 setChartId(chartID);
 
                 const auto pbsUrlStr =
-                  QString("https://boku.tachi.ac/api/v1/games/bms/%1/charts/%2/"
+                  QString("https://boku.tachi.ac/api/v1/games/%1/charts/%2/"
                           "pbs?startRanking=1")
-                    .arg(playtype)
+                    .arg(tachiGame)
                     .arg(chartID);
 
                 QNetworkReply* pbsReply =
@@ -752,8 +908,8 @@ OnlineRankingModel::fetchTachi()
                 connect(pbsReply,
                         &QNetworkReply::finished,
                         this,
-                        [this, playtype, noteCount, pbsReply]() {
-                            handleTachiReply(1, playtype, noteCount, pbsReply);
+                        [this, tachiGame, noteCount, pbsReply]() {
+                            handleTachiReply(1, tachiGame, noteCount, pbsReply);
                         });
             });
 
@@ -777,17 +933,23 @@ OnlineRankingModel::fetchTachi()
 void
 OnlineRankingModel::fetch()
 {
-    setPlayerCount(0);
-    setScoreCount(0);
-    setEntries({});
-    setClearCounts({});
-    cancelPending();
+    ++currentFetchGeneration;
+    emit cancelPendingRequested();
+
     if (currentMd5.isEmpty() || (!networkRequestFactory.baseUrl().isValid() &&
                                  currentProvider == Provider::RhythmGame)) {
+        setPlayerCount(0);
+        setScoreCount(0);
+        setEntries({});
+        setClearCounts({});
         setLoading(false);
         return;
     }
     setLoading(true);
+    setPlayerCount(0);
+    setScoreCount(0);
+    setEntries({});
+    setClearCounts({});
 
     switch (currentProvider) {
         case Provider::RhythmGame:
@@ -818,13 +980,13 @@ OnlineRankingModel::setMd5(const QString& md5)
         return;
     }
     currentMd5 = md5;
-    emit md5Changed();
     if (currentProvider != Provider::Tachi) {
         setChartId(md5);
     } else {
         setChartId("");
     }
     fetch();
+    emit md5Changed();
 }
 
 void
@@ -934,6 +1096,7 @@ OnlineRankingModel::getLimit() const -> int
 void
 OnlineRankingModel::setLimit(int limit)
 {
+    limit = std::max(0, limit);
     if (currentLimit == limit) {
         return;
     }
@@ -950,6 +1113,7 @@ OnlineRankingModel::getOffset() const -> int
 void
 OnlineRankingModel::setOffset(int offset)
 {
+    offset = std::max(0, offset);
     if (currentOffset == offset) {
         return;
     }
@@ -1121,13 +1285,13 @@ OnlineRankingModel::setProvider(Provider provider)
         return;
     }
     currentProvider = provider;
-    emit providerChanged();
     if (provider == Provider::Tachi) {
         setChartId("");
     } else {
         setChartId(currentMd5);
     }
     fetch();
+    emit providerChanged();
 }
 auto
 OnlineRankingModel::getClearCounts() const -> QVariantMap
@@ -1153,6 +1317,7 @@ OnlineRankingModel::getRankingEntries() const -> const QList<RankingEntry>&
 void
 OnlineRankingModel::cancelPending()
 {
+    ++currentFetchGeneration;
     emit cancelPendingRequested();
     setLoading(false);
 }

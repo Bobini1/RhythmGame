@@ -8,6 +8,7 @@
 #include "SerializeConfig.h"
 #include "gameplay_logic/ChartData.h"
 #include "support/Compress.h"
+#include "support/CreateQmlPropertyMap.h"
 #include "support/PathToQString.h"
 #include "input/GamepadManager.h"
 #include "support/PathToUtfString.h"
@@ -16,6 +17,7 @@
 #include <qt6keychain/keychain.h>
 
 #include <QNetworkCookie>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <spdlog/spdlog.h>
 #include "gameplay_logic/BmsResult.h"
@@ -42,7 +44,8 @@ createConfig(const QMap<QString, qml_components::ThemeFamily>& availableThemes,
              const std::filesystem::path& themeConfig)
   -> std::unique_ptr<QQmlPropertyMap>
 {
-    auto config = std::make_unique<QQmlPropertyMap>();
+    auto config =
+      std::unique_ptr<QQmlPropertyMap>(support::createQmlPropertyMap());
     fillWithDefaults(*config, availableThemes);
     readConfig(themeConfig, *config, availableThemes);
     config->freeze();
@@ -224,6 +227,9 @@ Profile::Profile(
   , vars(this, themeFamilies, std::move(assetsPaths))
   , networkManager(networkManager)
 {
+    themeConfig->setParent(this);
+    vars.setParent(this);
+    scoreDb.setParent(this);
     importPool.setMaxThreadCount(1);
     db.execute("CREATE TABLE IF NOT EXISTS properties ("
                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -259,7 +265,6 @@ Profile::Profile(
     auto attachStatement = db.createStatement("ATTACH DATABASE ? AS song_db;");
     attachStatement.bind(1, support::pathToUtfString(mainDbPath));
     attachStatement.execute();
-    this->themeConfig->setParent(this);
     auto configPath = dbPath.parent_path() / "theme_config.json";
     connect(themeConfig,
             &QQmlPropertyMap::valueChanged,
@@ -413,18 +418,32 @@ Profile::fetchTachiData(int tachiId)
     const auto request = QNetworkRequest("https://boku.tachi.ac/api/v1/users/" +
                                          QString::number(tachiId));
     auto* reply = networkManager->get(request);
+    setTachiLoginState(LoginState::LoggingIn);
     connect(reply, &QNetworkReply::finished, this, [this, reply, tachiId]() {
+        reply->deleteLater();
         if (reply->error() != QNetworkReply::NoError) {
             spdlog::error("Error fetching tachi data for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
                           reply->errorString().toStdString());
+            setTachiLoginState(LoginState::LoginFailed);
+            return;
         }
-        auto data = reply->readAll();
-        auto json = QJsonDocument::fromJson(data).object();
+        QJsonParseError parseError;
+        auto doc = QJsonDocument::fromJson(reply->readAll(), &parseError);
+        if (parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+            spdlog::error("Error parsing tachi data for user {}: {}",
+                          vars.getGeneralVars()->getName().toStdString(),
+                          parseError.errorString().toStdString());
+            setTachiLoginState(LoginState::LoginFailed);
+            return;
+        }
+
+        auto json = doc.object();
         if (json["success"].toBool() != true) {
             spdlog::error("Tachi data response unsuccessful for user {}: {}",
                           vars.getGeneralVars()->getName().toStdString(),
                           json["description"].toString().toStdString());
+            setTachiLoginState(LoginState::LoginFailed);
         } else {
             auto body = json["body"].toObject();
             auto tachiData = TachiData{};

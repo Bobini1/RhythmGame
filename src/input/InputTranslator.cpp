@@ -11,6 +11,9 @@
 
 #include <QKeyEvent>
 #include <QVariant>
+#include <algorithm>
+#include <array>
+#include <cmath>
 #include <spdlog/spdlog.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -73,6 +76,42 @@ invertScratch(const BmsKey key) -> BmsKey
         default:
             return key;
     }
+}
+
+auto
+removeButtonMappings(QHash<Key, BmsKey>& config, BmsKey button) -> bool
+{
+    auto modified = false;
+    for (auto it = config.begin(); it != config.end();) {
+        if (it.value() == button) {
+            it = config.erase(it);
+            modified = true;
+        } else {
+            ++it;
+        }
+    }
+    return modified;
+}
+
+auto
+removeDuplicateButtonMappings(QHash<Key, BmsKey>& config) -> bool
+{
+    constexpr auto keyCount = magic_enum::enum_count<BmsKey>();
+    auto seen = std::array<bool, keyCount>{};
+    auto modified = false;
+    for (auto it = config.begin(); it != config.end();) {
+        const auto index = static_cast<std::size_t>(it.value());
+        if (index < keyCount && seen[index]) {
+            it = config.erase(it);
+            modified = true;
+        } else {
+            if (index < keyCount) {
+                seen[index] = true;
+            }
+            ++it;
+        }
+    }
+    return modified;
 }
 
 auto
@@ -385,10 +424,16 @@ InputTranslator::unpressAndUnbind(const Key& key, uint64_t time)
 {
     if (auto found = config.find(key); found != config.end()) {
         releaseButton(*found, time);
+        config.erase(found);
     }
-    if (configuredButton.has_value()) {
-        resetButton(*configuredButton);
-    }
+}
+
+void
+InputTranslator::bindKeyToButton(const Key& key, BmsKey button, uint64_t time)
+{
+    unpressAndUnbind(key, time);
+    removeButtonMappings(config, button);
+    config[key] = button;
 }
 void
 InputTranslator::saveKeyConfig() const
@@ -459,7 +504,11 @@ InputTranslator::saveAnalogAxisConfig() const
     statement.execute();
 }
 void
-InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, bool analog)
+InputTranslator::handleAxisChange(Gamepad gamepad,
+                                  Uint8 axis,
+                                  int64_t time,
+                                  bool analog,
+                                  int analogTickCount)
 {
     auto scratchKey = std::pair{ gamepad, axis };
     auto& scratch = scratches[scratchKey];
@@ -469,14 +518,12 @@ InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, boo
     if (isConfiguring() && isScratch(*configuredButton) &&
         keyLookup.direction != Key::Direction::None) {
         auto button = *configuredButton;
-        unpressAndUnbind(keyLookup, time);
         setConfiguredButton({});
-        config[keyLookup] = button;
+        bindKeyToButton(keyLookup, button, time);
         keyLookup.direction = keyLookup.direction == Key::Direction::Up
                                 ? Key::Direction::Down
                                 : Key::Direction::Up;
-        unpressAndUnbind(keyLookup, time);
-        config[keyLookup] = invertScratch(button);
+        bindKeyToButton(keyLookup, invertScratch(button), time);
         emit keyConfigModified();
     } else {
         auto unpressBoth = keyLookup.direction == Key::Direction::None;
@@ -500,7 +547,9 @@ InputTranslator::handleAxisChange(Gamepad gamepad, Uint8 axis, int64_t time, boo
                 pressButton(*button, time);
                 if (analog) {
                     tickTypes[static_cast<int>(*button)] = AnalogScratchTick;
-                    emitTick(*button);
+                    for (int i = 0; i < analogTickCount; ++i) {
+                        emitTick(*button);
+                    }
                 } else {
                     tickTypes[static_cast<int>(*button)] = ClassicScratchTick;
                 }
@@ -670,8 +719,8 @@ InputTranslator::handleAxis(Gamepad gamepad,
     scratch.value = value;
     scratch.delta += curDelta;
 
-    auto setScratchDirection = [&](Key::Direction dir) {
-        scratch.delta = 0;
+    auto setScratchDirection = [&](Key::Direction dir, double remainingDelta) {
+        scratch.delta = remainingDelta;
         scratch.direction = dir;
 
         scratch.timer->setSingleShot(true);
@@ -688,16 +737,25 @@ InputTranslator::handleAxis(Gamepad gamepad,
     const auto requiredThreshold = scratch.direction == Key::Direction::None
                                      ? analogConfig->getTriggerThreshold()
                                      : analogConfig->getReleaseThreshold();
+    if (requiredThreshold <= 0.0) {
+        return;
+    }
 
+    auto tickCount = 0;
     if (curDelta > 0 && scratch.delta >= requiredThreshold) {
-        setScratchDirection(Key::Direction::Up);
+        tickCount = static_cast<int>(std::floor(scratch.delta / requiredThreshold));
+        setScratchDirection(Key::Direction::Up,
+                            std::fmod(scratch.delta, requiredThreshold));
     } else if (curDelta < 0 && -scratch.delta >= requiredThreshold) {
-        setScratchDirection(Key::Direction::Down);
+        tickCount =
+          static_cast<int>(std::floor(-scratch.delta / requiredThreshold));
+        setScratchDirection(Key::Direction::Down,
+                            -std::fmod(-scratch.delta, requiredThreshold));
     } else {
         return;
     }
 
-    handleAxisChange(gamepad, axis, time, true);
+    handleAxisChange(gamepad, axis, time, true, std::max(1, tickCount));
 }
 void
 InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
@@ -706,8 +764,7 @@ InputTranslator::handlePress(Gamepad gamepad, Uint8 button, int64_t time)
         auto keyLookup = Key{ QVariant::fromValue(std::move(gamepad)),
                               Key::Device::Button,
                               button };
-        unpressAndUnbind(keyLookup, time);
-        config[keyLookup] = *configuredButton;
+        bindKeyToButton(keyLookup, *configuredButton, time);
         emit keyConfigModified();
         setConfiguredButton({});
     } else {
@@ -742,6 +799,9 @@ InputTranslator::loadKeyConfig()
     if (const auto keyConfig = statement.executeAndGet<std::string>()) {
         const auto array = QByteArray::fromStdString(keyConfig.value());
         config = support::decompress<QHash<Key, BmsKey>>(array);
+        if (removeDuplicateButtonMappings(config)) {
+            saveKeyConfig();
+        }
         // No migration needed
         if (lastVersion != 0) {
             return;
@@ -769,9 +829,9 @@ InputTranslator::loadKeyConfig()
 #define SC_K 45
 #define SC_L 46
 #define SC_SHIFT 50
-#define SC_CTRL 51
-#define SC_O 48
-#define SC_P 49
+#define SC_CTRL 37
+#define SC_O 32
+#define SC_P 33
 #endif
 #ifdef SC_A
     config[Key{ QVariant::fromValue(nullptr), Key::Device::Keyboard, SC_A }] =
@@ -928,10 +988,12 @@ InputTranslator::getKeyConfig() -> QList<Mapping>
 void
 InputTranslator::setKeyConfig(const QHash<Key, BmsKey>& config)
 {
-    if (this->config == config) {
+    auto normalizedConfig = config;
+    removeDuplicateButtonMappings(normalizedConfig);
+    if (this->config == normalizedConfig) {
         return;
     }
-    this->config = config;
+    this->config = normalizedConfig;
     emit keyConfigModified();
 }
 auto
@@ -942,12 +1004,8 @@ InputTranslator::getKeyConfigHash() -> QHash<Key, BmsKey>
 void
 InputTranslator::resetButton(BmsKey key)
 {
-    for (auto it = config.begin(); it != config.end(); it++) {
-        if (it.value() == key) {
-            config.erase(it);
-            emit keyConfigModified();
-            break;
-        }
+    if (removeButtonMappings(config, key)) {
+        emit keyConfigModified();
     }
 }
 auto
@@ -1118,8 +1176,7 @@ InputTranslator::handleKeyEvent(quint32 nativeScanCode,
                                 Key::Direction::None };
     if (isPress) {
         if (isConfiguring()) {
-            unpressAndUnbind(keyLookup, time);
-            config[keyLookup] = *configuredButton;
+            bindKeyToButton(keyLookup, *configuredButton, time);
             emit keyConfigModified();
             setConfiguredButton({});
         } else {

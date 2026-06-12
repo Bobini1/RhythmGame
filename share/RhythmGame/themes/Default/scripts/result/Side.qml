@@ -35,13 +35,18 @@ Column {
             });
         }
     }
+    function cycleGauge() {
+        lifeGraph.incrementIndex();
+        return true;
+    }
+
     transform: Scale {
         xScale: side.mirrored ? -1 : 1
         origin.x: side.mirrored ? side.width / 2 : 0
     }
     Input.onButtonPressed: (key) => {
         if (key === BmsKey[`Select${mirrored ? 2 : 1}`]) {
-            lifeGraph.incrementIndex();
+            side.cycleGauge();
         }
     }
     Item {
@@ -129,67 +134,49 @@ Column {
                 }
             }
 
-            property var rankingProvider: {
-                let choice = profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider
-                switch (choice) {
-                    case "rhythmgame":
-                        return OnlineRankingModel.RhythmGame;
-                    case "lr2ir":
-                        return OnlineRankingModel.LR2IR;
-                    case "bokutachi":
-                        return OnlineRankingModel.Tachi;
-                    default:
-                        return OnlineRankingModel.RhythmGame;
-                }
+            readonly property var generalVars: side.profile.vars.generalVars
+            property var rankingProvider: OnlineRankingModel.RhythmGame
+
+            function syncRankingProviderFromGeneralVars() {
+                scoreColumn.rankingProvider = scoreColumn.generalVars
+                    ? scoreColumn.generalVars.rankingProvider
+                    : OnlineRankingModel.RhythmGame;
             }
-            Binding {
-                delayed: true
-                scoreColumn.rankingProvider: {
-                    switch (side.profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider) {
-                        case "rhythmgame":
-                            return OnlineRankingModel.RhythmGame;
-                        case "lr2ir":
-                            return OnlineRankingModel.LR2IR;
-                        case "bokutachi":
-                            return OnlineRankingModel.Tachi;
-                        default:
-                            return OnlineRankingModel.RhythmGame;
-                    }
+
+            function setRankingProvider(providerValue) {
+                if (scoreColumn.generalVars) {
+                    scoreColumn.generalVars.rankingProvider = providerValue;
                 }
+                scoreColumn.rankingProvider = providerValue;
             }
-            Binding {
-                delayed: true
-                target: side.profile.vars.themeVars.select[QmlUtils.themeName]
-                property: "rankingProvider"
-                value: {
-                    switch (scoreColumn.rankingProvider) {
-                        case OnlineRankingModel.RhythmGame:
-                            return "rhythmgame";
-                        case OnlineRankingModel.LR2IR:
-                            return "lr2ir";
-                        case OnlineRankingModel.Tachi:
-                            return "bokutachi";
-                    }
+
+            Component.onCompleted: syncRankingProviderFromGeneralVars()
+
+            Connections {
+                target: scoreColumn.generalVars
+
+                function onRankingProviderChanged() {
+                    scoreColumn.syncRankingProviderFromGeneralVars();
                 }
             }
 
             onLeftClicked: {
                 if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.Tachi);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.LR2IR);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.RhythmGame);
                 }
             }
 
             onRightClicked: {
                 if (scoreColumn.rankingProvider === OnlineRankingModel.RhythmGame) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.LR2IR;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.LR2IR);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.LR2IR) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.Tachi;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.Tachi);
                 } else if (scoreColumn.rankingProvider === OnlineRankingModel.Tachi) {
-                    scoreColumn.rankingProvider = OnlineRankingModel.RhythmGame;
+                    scoreColumn.setRankingProvider(OnlineRankingModel.RhythmGame);
                 }
             }
 
@@ -203,14 +190,14 @@ Column {
                 }
             }
 
-            readonly property string keymode: {
+            readonly property string tachiGameId: {
                 switch (side.score.keymode || side.chartKeymode) {
                     case 5:
                     case 7:
-                        return "7K";
+                        return "bms-7k";
                     case 10:
                     case 14:
-                        return "14K";
+                        return "bms-14k";
                 }
                 return "";
             }
@@ -243,7 +230,10 @@ Column {
                     return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + side.score.result.md5;
                 }
                 if (ranking.provider === OnlineRankingModel.Tachi) {
-                    return "https://boku.tachi.ac/games/bms/" + scoreColumn.keymode +
+                    if (!ranking.chartId || !scoreColumn.tachiGameId) {
+                        return "";
+                    }
+                    return "https://boku.tachi.ac/games/" + scoreColumn.tachiGameId +
                         "/charts/" + ranking.chartId;
                 }
                 return side.profile.vars.generalVars.websiteBaseUrl + "/charts/" + side.score.result.md5

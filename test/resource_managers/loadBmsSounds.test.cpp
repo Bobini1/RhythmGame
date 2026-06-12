@@ -38,9 +38,9 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
     auto engine = sounds::AudioEngine{};
     auto sounds = charts::loadBmsSounds(&engine, wavs, folder);
     REQUIRE(sounds.size() == 2);
-    auto sound1 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(0));
+    auto sound1 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(1));
     REQUIRE(sound1 != nullptr);
-    auto sound2 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(1));;
+    auto sound2 = std::dynamic_pointer_cast<sounds::NormalSound>(sounds.at(2));
     REQUIRE(sound2 != nullptr);
     REQUIRE(sound1->getBuffer() == sound2->getBuffer());
 }

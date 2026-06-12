@@ -26,15 +26,14 @@ Image {
         }
         return counts;
     }
-    readonly property string keymode: {
-        // convert keymode to string for tachi provider
+    readonly property string tachiGameId: {
         switch (ranking.chartData?.keymode) {
             case 5:
             case 7:
-                return "7K";
+                return "bms-7k";
             case 10:
             case 14:
-                return "14K";
+                return "bms-14k";
         }
         return "";
     }
@@ -182,7 +181,7 @@ Image {
                 }
                 bestPointsScore: ranking.bestPointsScore
                 bestClearTypeScore: ranking.bestClearTypeScore
-                keymode: ranking.keymode
+                tachiGameId: ranking.tachiGameId
             }
 
             RankingStats {

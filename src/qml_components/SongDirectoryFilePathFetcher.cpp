@@ -2,20 +2,22 @@
 // Created by bobini on 05.10.23.
 //
 
-#include "PreviewFilePathFetcher.h"
+#include "SongDirectoryFilePathFetcher.h"
 
 #include <spdlog/stopwatch.h>
 #include <spdlog/spdlog.h>
+#include <utility>
 
 namespace qml_components {
-PreviewFilePathFetcher::PreviewFilePathFetcher(db::SqliteCppDb* db,
-                                               QObject* parent)
+SongDirectoryFilePathFetcher::SongDirectoryFilePathFetcher(db::SqliteCppDb* db,
+                                                           QObject* parent)
   : QObject(parent)
   , db(db)
 {
 }
 auto
-PreviewFilePathFetcher::getPreviewFilePaths(QList<QString> directories) const
+SongDirectoryFilePathFetcher::getFilePaths(QList<QString> directories,
+                                           const std::string& table) const
   -> QVariantHash
 {
     QVariantHash result;
@@ -39,7 +41,7 @@ PreviewFilePathFetcher::getPreviewFilePaths(QList<QString> directories) const
         auto placeholders = QString("?, ").repeated(chunk.size()).chopped(2);
 
         auto statement = db->createStatement(
-          "SELECT directory, path FROM preview_files WHERE directory IN (" +
+          "SELECT directory, path FROM " + table + " WHERE directory IN (" +
           placeholders.toStdString() + ")");
 
         for (int j = 0; j < chunk.size(); ++j) {
@@ -56,8 +58,25 @@ PreviewFilePathFetcher::getPreviewFilePaths(QList<QString> directories) const
         }
     }
 
-    spdlog::debug("Fetched {} preview file paths in {}s", result.size(), sw);
+    spdlog::debug(
+      "Fetched {} {} file paths in {}s", result.size(), table, sw);
 
     return result;
+}
+
+auto
+SongDirectoryFilePathFetcher::getPreviewFilePaths(
+  QList<QString> directories) const
+  -> QVariantHash
+{
+    return getFilePaths(std::move(directories), "preview_files");
+}
+
+auto
+SongDirectoryFilePathFetcher::getReadmeFilePaths(
+  QList<QString> directories) const
+  -> QVariantHash
+{
+    return getFilePaths(std::move(directories), "readme_files");
 }
 } // namespace qml_components

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.3.6
+        VERSION 1.3.7
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -22,7 +22,16 @@ endif ()
 
 # <---- mimalloc (faster memory allocation) ---->
 
-find_package(mimalloc CONFIG REQUIRED)
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(RhythmGame_USE_MIMALLOC_DEFAULT OFF)
+else ()
+    set(RhythmGame_USE_MIMALLOC_DEFAULT ON)
+endif ()
+option(RhythmGame_USE_MIMALLOC "Use mimalloc as the global allocator" ${RhythmGame_USE_MIMALLOC_DEFAULT})
+
+if (RhythmGame_USE_MIMALLOC)
+    find_package(mimalloc CONFIG REQUIRED)
+endif ()
 
 # <------------ LibXml2 (html parsing) --------------->
 
@@ -69,6 +78,7 @@ find_package(zstd REQUIRED)
 # <------------ SDL2 (gamepad input handling) --------------->
 
 find_package(SDL2 REQUIRED)
+find_package(SDL2_image REQUIRED)
 
 # <------------ magic_enum (enum reflection) --------------->
 
@@ -132,6 +142,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/HitEvent.h
         src/resource_managers/ChartDataFactory.cpp
         src/resource_managers/ChartDataFactory.h
+        src/resource_managers/ChartFolderModel.cpp
+        src/resource_managers/ChartFolderModel.h
         src/gameplay_logic/BmsNotes.cpp
         src/gameplay_logic/BmsNotes.h
         src/resource_managers/ChartFactory.cpp
@@ -154,6 +166,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/support/PathToQString.h
         src/support/QStringToPath.cpp
         src/support/QStringToPath.h
+        src/support/CreateQmlPropertyMap.cpp
+        src/support/CreateQmlPropertyMap.h
         src/support/PathToUtfString.cpp
         src/support/PathToUtfString.h
         src/support/UtfStringToPath.cpp
@@ -184,8 +198,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsScore.h
         src/qml_components/ProfileList.cpp
         src/qml_components/ProfileList.h
-        src/qml_components/PreviewFilePathFetcher.cpp
-        src/qml_components/PreviewFilePathFetcher.h
+        src/qml_components/SongDirectoryFilePathFetcher.cpp
+        src/qml_components/SongDirectoryFilePathFetcher.h
         src/qml_components/ScoreDb.cpp
         src/qml_components/ScoreDb.h
         src/qml_components/ScoreSyncOperation.cpp
@@ -196,6 +210,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/qml_components/OnlineRankingModel.h
         src/qml_components/FileQuery.cpp
         src/qml_components/FileQuery.h
+        src/qml_components/Lr2NativeCursor.cpp
+        src/qml_components/Lr2NativeCursor.h
         src/qml_components/Bga.cpp
         src/qml_components/Bga.h
         src/qml_components/ThemeFamily.cpp
@@ -268,6 +284,20 @@ qt_add_library(RhythmGame_lib OBJECT
         src/support/ConvertTachiClearType.h
         src/support/TimingWindowsFromHash.cpp
         src/support/TimingWindowsFromHash.h
+        src/support/dxa.cpp
+        src/support/dxa.h
+        src/resource_managers/DxaImageProvider.cpp
+        src/resource_managers/DxaImageProvider.h
+        src/resource_managers/Lr2FontImageProvider.cpp
+        src/resource_managers/Lr2FontImageProvider.h
+        src/resource_managers/Lr2FontCache.cpp
+        src/resource_managers/Lr2FontCache.h
+        src/resource_managers/lr2_skin/Lr2ThemeScanner.cpp
+        src/resource_managers/lr2_skin/Lr2ThemeScanner.h
+        src/gameplay_logic/lr2_skin/Lr2SkinParser.h
+        src/gameplay_logic/lr2_skin/Lr2SkinParser.cpp
+        src/gameplay_logic/lr2_skin/Lr2SkinModel.h
+        src/gameplay_logic/lr2_skin/Lr2SkinModel.cpp
 )
 
 if (WIN32)
@@ -282,7 +312,10 @@ target_compile_definitions(RhythmGame_lib PUBLIC
 
 find_package(Threads REQUIRED)
 
-target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+if (RhythmGame_USE_MIMALLOC)
+    target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_MIMALLOC)
+    target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
+endif ()
 
 # <------------ SndFile (audio file reading) --------------->
 
@@ -304,24 +337,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2
-        Qt6::Quick
-        Qt6::QuickControls2
-        Qt6::OpenGL
-        Qt6::Concurrent
-        Qt6::Multimedia
-        Qt6::InterfaceFramework
-        Qt6Keychain::Qt6Keychain
-        Threads::Threads
-        Boost::headers
-        SQLiteCpp
-        spdlog::spdlog
-        foonathan::lexy
-        magic_enum::magic_enum
-        $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd>
-        LibXml2::LibXml2
-        zlib-ng::zlib
-)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
@@ -362,6 +378,7 @@ target_include_directories(
 # ---- Declare QML module ----
 add_subdirectory(RhythmGameQml)
 qt_import_qml_plugins(RhythmGame_qmlplugin)
+qt_import_qml_plugins(RhythmGame_lr2_qmlplugin)
 
 # ---- Declare executable ----
 
@@ -405,7 +422,10 @@ qt_import_qml_plugins(RhythmGame_exe)
 
 target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin)
+add_subdirectory(src/tgaplugin)
+add_subdirectory(src/cimplugin)
+
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin RhythmGame_lr2_qmlplugin tga cim)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

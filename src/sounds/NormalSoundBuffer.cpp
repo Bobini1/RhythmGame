@@ -4,6 +4,8 @@
 
 #include "NormalSoundBuffer.h"
 
+#include "support/PathToUtfString.h"
+
 #include <spdlog/spdlog.h>
 #include <sndfile.hh>
 #include <QGuiApplication>
@@ -13,17 +15,23 @@ sounds::NormalSoundBuffer::NormalSoundBuffer(
   const std::filesystem::path& filename)
 {
     // Decode with libsndfile (float conversion directly).
-    SndfileHandle sndFile{ filename.string() };
+    const auto filenameText = support::pathToUtfString(filename);
+#if defined(_WIN32)
+    const auto nativeFilename = filename.wstring();
+    SndfileHandle sndFile{ nativeFilename.c_str() };
+#else
+    SndfileHandle sndFile{ filenameText.c_str() };
+#endif
     if (sndFile.error() != 0) {
         spdlog::error("Could not open sound file {}: {}",
-                      filename.string(),
+                      filenameText,
                       sf_error_number(sndFile.error()));
         throw std::runtime_error("Could not open sound file");
     }
 
     if ((sndFile.format() & SF_FORMAT_TYPEMASK) == 0) {
         spdlog::error("Unsupported/unknown format for sound file {}",
-                      filename.string());
+                      filenameText);
         throw std::runtime_error("Unsupported sound file format");
     }
     auto sampleRate = sndFile.samplerate();

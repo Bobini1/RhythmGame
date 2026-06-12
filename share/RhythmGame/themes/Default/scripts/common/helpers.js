@@ -26,6 +26,21 @@ function getScoreWithBestPoints(scores) {
     return bestScore;
 }
 
+function getNextRankTargetPoints(points, maxPoints) {
+    let max = Math.max(0, Math.floor(maxPoints || 0));
+    if (max <= 0) {
+        return 0;
+    }
+    let current = Math.max(0, Math.floor(points || 0));
+    for (let rank = 15; rank < 27; ++rank) {
+        let target = Math.ceil(max * rank / 27);
+        if (current < target) {
+            return target;
+        }
+    }
+    return max;
+}
+
 function getScoreWithBestClear(scores) {
     let bestClear = "";
     let bestScore = null;

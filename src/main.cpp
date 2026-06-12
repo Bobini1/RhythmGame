@@ -3,11 +3,12 @@
 #include "gameplay_logic/rules/Lr2TimingWindows.h"
 #include "qml_components/ProgramSettings.h"
 #include "qml_components/ChartLoader.h"
-#ifdef _WIN32
+#if defined(_WIN32) && defined(RHYTHMGAME_USE_MIMALLOC)
 #include <mimalloc-new-delete.h>
 #endif
 #include <QGuiApplication>
 #include <QObject>
+#include <QPixmapCache>
 #include <QtQuick>
 #include <QQuickStyle>
 #include <spdlog/sinks/stdout_color_sinks.h>
@@ -22,9 +23,11 @@
 #include "qml_components/SongFolderFactory.h"
 #include "support/PathToQString.h"
 #include "qml_components/ProfileList.h"
-#include "qml_components/PreviewFilePathFetcher.h"
+#include "qml_components/SongDirectoryFilePathFetcher.h"
 #include "qml_components/FileQuery.h"
+#include "qml_components/Lr2NativeCursor.h"
 #include "qml_components/InputAttached.h"
+#include "../RhythmGameQml/QmlForeignTypes.h"
 #include "../RhythmGameQml/Rg.h"
 #include "gameplay_logic/BmsScoreCourse.h"
 #include "input/CustomNotifyApp.h"
@@ -36,6 +39,7 @@
 #include "resource_managers/Tables.h"
 #include "support/PathToUtfString.h"
 #include "support/UtfStringToPath.h"
+#include "gameplay_logic/ChartRunner.h"
 #include "gameplay_logic/CourseRunner.h"
 #include "qml_components/OnlineProfileInfo.h"
 #include "qml_components/OnlineRankingModel.h"
@@ -46,16 +50,39 @@
 #include "sounds/SoundBuffer.h"
 #include "support/QtSink.h"
 #include "resource_managers/AvatarImageProvider.h"
+#include "resource_managers/DxaImageProvider.h"
+#include "resource_managers/Lr2FontImageProvider.h"
 #include "support/QStringToPath.h"
 #include "qml_components/OnlineScores.h"
+#include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
+Q_IMPORT_PLUGIN(TgaPlugin)
+Q_IMPORT_PLUGIN(CimPlugin)
+
+bool
+shouldSuppressQtLog(QtMsgType type,
+                    const QMessageLogContext& context,
+                    const QString& msg)
+{
+    if (type != QtWarningMsg) {
+        return false;
+    }
+
+    return msg == QStringLiteral(
+                 "QFFmpeg::Demuxer received AVPacket with pts == "
+                    "AV_NOPTS_VALUE");
+}
 
 void
 qtLogHandler(QtMsgType type,
-             const QMessageLogContext& /*context*/,
+             const QMessageLogContext& context,
              const QString& msg)
 {
+    if (shouldSuppressQtLog(type, context, msg)) {
+        return;
+    }
+
     auto loc = msg.toUtf8();
 
     switch (type) {
@@ -131,7 +158,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
     } unregisterHandler;
 
     auto log = qml_components::Logger{ nullptr };
-    qmlRegisterSingletonInstance("RhythmGameQml", 1, 0, "Logger", &log);
+    rhythm_game_qml::LoggerForeign::instance = &log;
 
     auto logger = support::qtLoggerMt("log", &log, "addLog");
 
@@ -182,8 +209,12 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         qputenv("QML_XHR_ALLOW_FILE_READ", QByteArray("1"));
 
         QQuickStyle::setStyle("FluentWinUI3");
+        QPixmapCache::setCacheLimit(512 * 1024);
         if (!qEnvironmentVariableIsSet("QSG_RHI_BACKEND")) {
             QQuickWindow::setGraphicsApi(QSGRendererInterface::Vulkan);
+        }
+        if (!qEnvironmentVariableIsSet("QV4_GC_TIMELIMIT")) {
+            qputenv("QV4_GC_TIMELIMIT", QByteArray("1"));
         }
 
         auto db = db::SqliteCppDb{ dataFolder / "song_db.sqlite" };
@@ -285,8 +316,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             auto statement =
               db.createStatement("SELECT path FROM charts WHERE md5 = ?;");
             statement.bind(1, md5.toStdString());
-            return statement.executeAndGet<std::string>().transform(
-              support::utfStringToPath);
+            auto path = statement.executeAndGet<std::string>();
+            if (!path) {
+                return std::optional<std::filesystem::path>{};
+            }
+            return std::optional{ support::utfStringToPath(*path) };
         };
         auto chartLoader = qml_components::ChartLoader{
             &profileList,
@@ -309,8 +343,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           qml_components::RootSongFoldersConfig{ &folders, &scanningQueue };
 
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
-        auto previewFilePathFetcher =
-          qml_components::PreviewFilePathFetcher{ &db };
+        auto songDirectoryFilePathFetcher =
+          qml_components::SongDirectoryFilePathFetcher{ &db };
 
         auto fileQuery = qml_components::FileQuery{};
 
@@ -353,7 +387,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &chartLoader,
                       &rootSongFoldersConfig,
                       &songFolderFactory,
-                      &previewFilePathFetcher,
+                      &songDirectoryFilePathFetcher,
                       &fileQuery,
                       &themes,
                       &gamepadManager,
@@ -388,10 +422,14 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "CourseRunner");
         qmlRegisterType<gameplay_logic::ChartData>(
           "RhythmGameQml", 1, 0, "ChartData");
-        qmlRegisterType<resource_managers::Profile>(
-          "RhythmGameQml", 1, 0, "Profile");
         qmlRegisterType<gameplay_logic::Player>(
           "RhythmGameQml", 1, 0, "Player");
+        qmlRegisterUncreatableType<gameplay_logic::AutoPlayer>(
+          "RhythmGameQml",
+          1,
+          0,
+          "AutoPlayer",
+          "AutoPlayer is created by ChartLoader");
         qmlRegisterUncreatableType<gameplay_logic::rules::BmsGauge>(
           "RhythmGameQml", 1, 0, "BmsGauge", "BmsGauge is abstract");
         qmlRegisterType<gameplay_logic::BmsLiveScore>(
@@ -421,10 +459,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "BgaContainer");
         qmlRegisterType<input::Key>("RhythmGameQml", 1, 0, "key");
         qmlRegisterType<input::Gamepad>("RhythmGameQml", 1, 0, "gamepad");
-        qmlRegisterType<input::AnalogAxisConfig>(
-          "RhythmGameQml", 1, 0, "AnalogAxisConfig");
-        qmlRegisterType<input::InputTranslator>(
-          "RhythmGameQml", 1, 0, "InputTranslator");
         qmlRegisterType<qml_components::OnlineProfileInfo>(
           "RhythmGameQml", 1, 0, "onlineProfileInfo");
         qmlRegisterUncreatableMetaObject(
@@ -469,6 +503,20 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "ScoreTarget",
           "Access to enums & flags only");
         qmlRegisterUncreatableMetaObject(
+          resource_managers::select_sort_mode::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "SelectSortMode",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
+          resource_managers::select_keymode_filter::staticMetaObject,
+          "RhythmGameQml",
+          1,
+          0,
+          "SelectKeymodeFilter",
+          "Access to enums & flags only");
+        qmlRegisterUncreatableMetaObject(
           resource_managers::note_order_algorithm::staticMetaObject,
           "RhythmGameQml",
           1,
@@ -488,6 +536,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "AudioPlayer");
         qmlRegisterType<qml_components::ScoreReplayer>(
           "RhythmGameQml", 1, 0, "ScoreReplayer");
+        qmlRegisterType<qml_components::Lr2NativeCursor>(
+          "RhythmGameQml", 1, 0, "Lr2NativeCursor");
         qml_components::OnlineRankingModel::networkManager = &networkManager;
         qml_components::OnlineRankingModel::profileList = &profileList;
         qml_components::OnlineRankingModel::onlineScores = &onlineScores;
@@ -499,6 +549,37 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "onlineUserData");
         qmlRegisterType<resource_managers::TachiData>(
           "RhythmGameQml", 1, 0, "tachiData");
+
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Dst>(
+          "RhythmGameQml", 1, 0, "lr2Dst", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcImage>(
+          "RhythmGameQml", 1, 0, "lr2SrcImage", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcText>(
+          "RhythmGameQml", 1, 0, "lr2SrcText", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcNumber>(
+          "RhythmGameQml", 1, 0, "lr2SrcNumber", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBarImage>(
+          "RhythmGameQml", 1, 0, "lr2SrcBarImage", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBarText>(
+          "RhythmGameQml", 1, 0, "lr2SrcBarText", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBarNumber>(
+          "RhythmGameQml", 1, 0, "lr2SrcBarNumber", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBarGraph>(
+          "RhythmGameQml", 1, 0, "lr2SrcBarGraph", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcNoteChart>(
+          "RhythmGameQml", 1, 0, "lr2SrcNoteChart", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBpmChart>(
+          "RhythmGameQml", 1, 0, "lr2SrcBpmChart", "Q_GADGET");
+        qmlRegisterUncreatableType<
+          gameplay_logic::lr2_skin::Lr2SrcTimingChart>(
+          "RhythmGameQml", 1, 0, "lr2SrcTimingChart", "Q_GADGET");
+        qmlRegisterUncreatableType<
+          gameplay_logic::lr2_skin::Lr2SrcTimingVisualizer>(
+          "RhythmGameQml", 1, 0, "lr2SrcTimingVisualizer", "Q_GADGET");
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2Element>(
+          "RhythmGameQml", 1, 0, "lr2Element", "Q_GADGET");
+        qmlRegisterType<gameplay_logic::lr2_skin::Lr2SkinModel>(
+          "RhythmGameQml", 1, 0, "Lr2SkinModel");
 
         qml_components::InputAttached::inputSignalProvider = &inputTranslator;
         qml_components::QmlUtilsAttached::getThemeNameForRootFile =
@@ -522,6 +603,10 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         engine.addImageProvider("ini",
                                 new resource_managers::IniImageProvider{});
+        engine.addImageProvider("dxa",
+                                new resource_managers::DxaImageProvider{});
+        engine.addImageProvider("lr2font",
+                                new resource_managers::Lr2FontImageProvider{});
         auto assetsPaths = std::vector{ installationDataFolder };
         if (!isPortable) {
             assetsPaths.push_back(dataFolder);
@@ -535,7 +620,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             throw std::runtime_error{ "Failed to load main qml" };
         }
         app.setInputTranslator(&inputTranslator);
-        
+
         return app.exec();
     } catch (const std::exception& e) {
         spdlog::critical("Fatal: {}", e.what());

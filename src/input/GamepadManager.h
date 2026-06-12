@@ -48,7 +48,7 @@ struct std::hash<input::Gamepad>
     auto operator()(const input::Gamepad& s) const noexcept -> std::size_t;
 };
 namespace input {
-class GamepadManager final : public QObject
+class GamepadManager : public QObject
 {
     Q_OBJECT
 

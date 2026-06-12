@@ -47,13 +47,16 @@ class ColumnState final : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
+    Q_PROPERTY(bool holdingLongNote READ isHoldingLongNote NOTIFY holdingLongNoteChanged)
 
     QList<NoteState> notes;
     QList<int> timeToPositionIndexMapping;
     boost::icl::interval_map<double, std::set<qint64>> lnBodies;
     int64_t elapsed{};
     bool pressed = false;
+    bool holdingLongNote = false;
     void setPressed(bool pressed);
+    void setHoldingLongNote(bool holdingLongNote);
 
   public:
     explicit ColumnState(QList<NoteState> notes, QObject* parent = nullptr);
@@ -61,6 +64,7 @@ class ColumnState final : public QAbstractListModel
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     void onHitEvent(HitEvent hit);
     auto isPressed() const -> bool;
+    auto isHoldingLongNote() const -> bool;
     auto getNotes() const -> const QList<NoteState>& { return notes; }
     auto getNotes() -> QList<NoteState>& { return notes; }
     auto mapTimeIndexToPositionIndex(int64_t timeIndex) const -> int;
@@ -71,6 +75,7 @@ class ColumnState final : public QAbstractListModel
 
   signals:
     void pressedChanged();
+    void holdingLongNoteChanged();
 };
 
 class BarLineState
@@ -120,6 +125,8 @@ class Filter : public QAbstractProxyModel
     Q_PROPERTY(double bottomPosition READ getBottomPosition WRITE
                  setBottomPosition NOTIFY bottomPositionChanged)
     Q_PROPERTY(bool pressed READ isPressed NOTIFY pressedChanged)
+    Q_PROPERTY(bool holdingLongNote READ isHoldingLongNote NOTIFY
+                 holdingLongNoteChanged)
 
     double topPosition = 0.0;
     double bottomPosition = 0.0;
@@ -127,7 +134,9 @@ class Filter : public QAbstractProxyModel
     int topRow = 0;
     int effectiveBottomRow = 0;
     bool pressed = false;
+    bool holdingLongNote = false;
     void setPressed(bool pressed);
+    void setHoldingLongNote(bool holdingLongNote);
     ColumnState* columnState;
     std::optional<double> getEffectiveBottomRow(double position) const;
 
@@ -140,6 +149,7 @@ class Filter : public QAbstractProxyModel
     auto getBottomPosition() const -> double { return bottomPosition; }
     void setBottomPosition(double value);
     auto isPressed() const -> bool { return pressed; }
+    auto isHoldingLongNote() const -> bool { return holdingLongNote; }
     auto index(int row,
                int column = 0,
                const QModelIndex& parent = QModelIndex()) const
@@ -155,6 +165,7 @@ class Filter : public QAbstractProxyModel
     void topPositionChanged();
     void bottomPositionChanged();
     void pressedChanged();
+    void holdingLongNoteChanged();
 };
 
 /**

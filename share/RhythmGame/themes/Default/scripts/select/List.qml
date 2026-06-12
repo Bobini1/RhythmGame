@@ -2,14 +2,13 @@ pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
 import QtQml.Models
-import "../common/helpers.js" as Helpers
 
 PathView {
     id: pathView
 
     property var current: model[currentIndex]
-    property var filter: null
     property var folderContents: []
+    readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
     onOpenedFolder: refresh()
     function refresh() {
         refreshScores();
@@ -49,7 +48,7 @@ PathView {
                 dirs.push(item.chartDirectory);
             }
         }
-        previewFiles = Rg.previewFilePathFetcher.getPreviewFilePaths(dirs);
+        previewFiles = Rg.songDirectoryFilePathFetcher.getPreviewFilePaths(dirs);
     }
     property var scores: {
         return {};
@@ -58,77 +57,270 @@ PathView {
         return {};
     }
     property var folderClearStats: []
+    function clearStatsFromScoreSummary(summary) {
+        let counts = summary?.counts || {};
+        return {
+            "NOPLAY": counts.NOPLAY || 0,
+            "FAILED": counts.FAILED || 0,
+            "AEASY": counts.AEASY || 0,
+            "LIGHTASSIST": counts.LIGHTASSIST || counts.LIGHT_ASSIST || 0,
+            "EASY": counts.EASY || 0,
+            "NORMAL": counts.NORMAL || 0,
+            "HARD": counts.HARD || 0,
+            "EXHARD": counts.EXHARD || 0,
+            "FC": counts.FC || 0,
+            "PERFECT": counts.PERFECT || 0,
+            "MAX": counts.MAX || 0
+        };
+    }
     function refreshFolderClearStats() {
         folderClearStats = [];
         for (let folder of folderContents) {
             if (folder instanceof ChartData || folder instanceof entry || folder instanceof course || folder === null) {
                 continue;
             }
-            Rg.profileList.mainProfile.scoreDb.getScores(folder).then((result) => {
-                if (result instanceof tableQueryResult) {
-                    result = result.scores;
-                }
-                let clearCounts = {"NOPLAY": result.unplayed};
-                for (let scores of Object.values(result.scores)) {
-                    let clear = Helpers.getClearType(scores);
-                    if (clearCounts[clear] === undefined) {
-                        clearCounts[clear] = 0;
-                    }
-                    clearCounts[clear] += 1;
-                }
-                folderClearStats.push([folder, clearCounts]);
+            Rg.profileList.mainProfile.scoreDb.getScoreSummary(folder).then((result) => {
+                folderClearStats.push([folder, clearStatsFromScoreSummary(result)]);
                 folderClearStats = folderClearStats.slice();
             });
         }
     }
 
     readonly property bool movingInAnyWay: movingManually || flicking || moving || dragging
-    property bool movingManually: movingTimer.running
+    readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0
     property bool scrollingText: false
-    property var sort: null
+    readonly property int lr2SpeedFirst: 300
+    readonly property int lr2SpeedNext: 70
+    readonly property int lr2WheelDuration: 200
+    readonly property int lr2ScrollUp: 1
+    readonly property int lr2ScrollDown: 2
+    property int listTopbarFixed: 0
+    property int listCalculatedBarFixed: 0
+    property int oldBarFixed: 0
+    property int nowBarFixed: 0
+    property int pendingWheelSteps: 0
+    property int scrollDirection: 0
+    property double barMoveStartMs: 0
+    property double barMoveEndMs: 0
+    property real wheelRemainder: 0
+    property int suppressedCurrentItemSoundChanges: 0
+    readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
     property var historyStack: []
 
-    function addToMinimumCount(input) {
-        let length = input.length;
-        if (length >= pathItemCount) {
+    ChartFolderModel {
+        id: chartFolderModel
+        sortMode: pathView.generalVars.selectSortMode
+        keymodeFilter: pathView.generalVars.selectKeymodeFilter
+        unscoredItemsLast: true
+        scores: pathView.scores
+
+        onSortModeChanged: {
+            Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onKeymodeFilterChanged: {
+            Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onDifficultyFilterChanged: {
+            Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onUnscoredItemsLastChanged: {
+            Qt.callLater(pathView.sortOrFilterChanged);
+        }
+
+        onScoresChanged: {
+            if (chartFolderModel.sortModeUsesScores()) {
+                Qt.callLater(pathView.sortOrFilterChanged);
+            }
+        }
+    }
+
+    function wrapBarFixed(value) {
+        let span = count * 1000;
+        if (span <= 0) {
+            return 0;
+        }
+        return ((value % span) + span) % span;
+    }
+
+    function lr2ChangeValueByTime(from, to, start, end, now) {
+        if (end <= start || now >= end) {
+            return to;
+        }
+        if (now <= start) {
+            return from;
+        }
+        return Math.trunc(from + (to - from) * ((now - start) / (end - start)));
+    }
+
+    function cursorIndexForFixed(fixed) {
+        let normalized = wrapBarFixed(fixed);
+        let base = Math.floor(normalized / 1000);
+        if (normalized % 1000 !== 0 && scrollDirection === lr2ScrollDown) {
+            base += 1;
+        }
+        return count > 0 ? ((base % count) + count) % count : 0;
+    }
+
+    function targetIndexForFixed(fixed) {
+        return count > 0 ? ((Math.round(fixed / 1000) % count) + count) % count : 0;
+    }
+
+    function animatedTopbarFixed(now) {
+        return lr2ChangeValueByTime(oldBarFixed, nowBarFixed, barMoveStartMs, barMoveEndMs, now);
+    }
+
+    function publishBarState(syncSelection) {
+        listCalculatedBarFixed = wrapBarFixed(listTopbarFixed);
+        if (!syncSelection || count <= 0) {
             return;
         }
-        let limit = Math.ceil(pathItemCount / length) * length
-        for (let i = length; i < limit; i++) {
-            input.push(input[i % length] || null);
+        let nextIndex = cursorIndexForFixed(listCalculatedBarFixed);
+        if (currentIndex !== nextIndex) {
+            currentIndex = nextIndex;
+            scrollingText = false;
+            scrollingTextTimer.restart();
         }
     }
 
-    property int targetIndex: 0
+    function setNavigationImmediate(index) {
+        stopEntryChangeSounds();
+        let normalized = count > 0 ? ((index % count) + count) % count : 0;
+        currentIndex = normalized;
+        let fixed = normalized * 1000;
+        listTopbarFixed = fixed;
+        listCalculatedBarFixed = fixed;
+        oldBarFixed = fixed;
+        nowBarFixed = fixed;
+        pendingWheelSteps = 0;
+        scrollDirection = 0;
+        barMoveStartMs = 0;
+        barMoveEndMs = 0;
+        suppressedCurrentItemSoundChanges = 0;
+        scrollingText = false;
+        scrollingTextTimer.restart();
+    }
 
-    function decrementViewIndex() {
-        if (count === 0) return;
-        targetIndex = (targetIndex - 1 + count) % count;
-        movingTimer.restart();
-        if (!navigationTimer.running) {
-            applyNavigation();
+    function updateVisualIndex(now) {
+        if (pendingWheelSteps !== 0) {
+            let steps = pendingWheelSteps;
+            pendingWheelSteps = 0;
+            applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
+            return;
+        }
+        listTopbarFixed = animatedTopbarFixed(now);
+        publishBarState(false);
+    }
+
+    function applyLr2ScrollDelta(entries, durationMs, now) {
+        if (count === 0 || entries === 0) {
+            return;
+        }
+        listTopbarFixed = animatedTopbarFixed(now);
+        oldBarFixed = listTopbarFixed;
+        nowBarFixed += Math.round(entries * 1000);
+        scrollDirection = entries < 0 ? lr2ScrollUp : lr2ScrollDown;
+        barMoveStartMs = now;
+        barMoveEndMs = now + Math.max(1, durationMs);
+        highlightMoveDuration = Math.max(1, durationMs);
+        let nextIndex = targetIndexForFixed(nowBarFixed);
+        playEntryChangeSounds(Math.abs(Math.round(entries)));
+        if (currentIndex !== nextIndex) {
+            suppressedCurrentItemSoundChanges += 1;
+            currentIndex = nextIndex;
+            scrollingText = false;
+            scrollingTextTimer.restart();
+        }
+        publishBarState(false);
+    }
+
+    function stopEntryChangeSounds() {
+        scratchSound.stop();
+    }
+
+    function playEntryChangeSounds(repeats) {
+        let count = Math.max(0, Math.round(repeats));
+        if (count <= 0) {
+            return;
+        }
+        for (let i = 0; i < count; ++i) {
+            scratchSound.playOverlapping();
         }
     }
 
-    function incrementViewIndex() {
-        if (count === 0) return;
-        targetIndex = (targetIndex + 1) % count;
-        movingTimer.restart();
-        if (!navigationTimer.running) {
-            applyNavigation();
-        }
+    function queueWheelSteps(steps) {
+        pendingWheelSteps += steps;
+        pendingWheelStepTimer.restart();
     }
 
-    function applyNavigation() {
-        if (currentIndex === targetIndex) return;
-        currentIndex = targetIndex;
-        navigationTimer.restart();
+    function handleWheel(wheel) {
+        let delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
+        if (delta === 0) {
+            return;
+        }
+        wheelRemainder += delta / 120.0;
+        let steps = wheelRemainder > 0 ? Math.floor(wheelRemainder) : Math.ceil(wheelRemainder);
+        if (steps !== 0) {
+            wheelRemainder -= steps;
+            queueWheelSteps(steps);
+        }
+        wheel.accepted = true;
+    }
+
+    function scrollBy(entries, durationMs) {
+        if (count === 0 || entries === 0) return;
+        let now = Date.now();
+        let duration = durationMs !== undefined ? durationMs : lr2SpeedFirst;
+        updateVisualIndex(now);
+        applyLr2ScrollDelta(entries, duration, now);
+    }
+
+    function scrollByKey(entries, repeated) {
+        if (count === 0 || entries === 0) return;
+        scrollBy(entries, repeated ? lr2SpeedNext : lr2SpeedFirst);
+    }
+
+    function decrementViewIndex(repeated) {
+        scrollByKey(-1, !!repeated);
+    }
+
+    function incrementViewIndex(repeated) {
+        scrollByKey(1, !!repeated);
     }
 
     function resetNavigation() {
-        navigationTimer.stop();
-        targetIndex = currentIndex;
+        setNavigationImmediate(currentIndex);
+    }
+
+    function sameEntry(a, b) {
+        if (a instanceof ChartData && b instanceof ChartData) {
+            return a.path === b.path;
+        }
+        if (typeof a === "string" && typeof b === "string") {
+            return a === b;
+        }
+        if (a instanceof level && b instanceof level) {
+            return a.name === b.name;
+        }
+        if (a instanceof table && b instanceof table) {
+            return String(a.url || "") === String(b.url || "");
+        }
+        if (a instanceof course && b instanceof course) {
+            return a.identifier === b.identifier;
+        }
+        return a === b;
+    }
+
+    function indexOfEntry(items, entry) {
+        for (let i = 0; i < items.length; ++i) {
+            if (sameEntry(items[i], entry)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     AudioPlayer {
@@ -141,20 +333,7 @@ PathView {
         }
         let last = historyStack.pop();
         let folder = open(historyStack[historyStack.length - 1]);
-        let idx = folder.findIndex((folderItem) => {
-            if (folderItem instanceof ChartData && last instanceof ChartData) {
-                return folderItem.path === last.path;
-            } else if (typeof folderItem === "string" && typeof last === "string") {
-                return folderItem === last;
-            } else if (folderItem instanceof level && last instanceof level) {
-                return folderItem.name === last.name;
-            } else if (folderItem instanceof table && last instanceof table) {
-                return folderItem.name === last.name;
-            } else if (folderItem instanceof course && last instanceof course) {
-                return folderItem.name === last.name;
-            }
-            return false;
-        });
+        let idx = indexOfEntry(folder, last);
         pathView.positionViewAtIndex(idx, PathView.Center);
         resetNavigation();
         closeFolderSound.stop();
@@ -164,22 +343,30 @@ PathView {
         id: openFolderSound
         source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "f-open";
     }
-    function goForward(item, skipSound = false) {
+    function openPlayable(item, autoplay = false, replay = false, replayScore = null) {
         if (item instanceof ChartData) {
             console.info("Opening chart " + item.path);
+            let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
-                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
             } else {
-                globalRoot.openChart(item.path, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
+                globalRoot.openChart(item.path, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
             }
-            return;
+            return true;
         }
         if (item instanceof course) {
+            let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
-                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, false, false, null, Rg.profileList.battleProfiles.player2Profile, false, false, null);
+                globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
             } else {
-                globalRoot.openCourse(item, Rg.profileList.mainProfile, false, false, null, null, false, false, null);
+                globalRoot.openCourse(item, Rg.profileList.mainProfile, !!autoplay, useReplay, replayScore || null, null, false, false, null);
             }
+            return true;
+        }
+        return false;
+    }
+    function goForward(item, skipSound = false) {
+        if (openPlayable(item, false, false, null)) {
             return;
         }
         if (item instanceof entry || item === null) {
@@ -212,6 +399,9 @@ PathView {
                 }
             }
             folder.push(...Rg.songFolderFactory.open(item));
+            if (item !== "" && folder.length === 0) {
+                folder.push(...Rg.songFolderFactory.openChartDirectory(item));
+            }
         } else {
             return [];
         }
@@ -219,12 +409,73 @@ PathView {
         for (let item of folder) {
             newFolderContents.push(item);
         }
-        folder = sortFilter(folder);
+        folder = chartFolderModel.filterAndSort(folder);
         addToMinimumCount(folder);
         pathView.model = folder;
         pathView.folderContents = newFolderContents;
         openedFolder();
         return folder;
+    }
+
+    function selectedSongFolderPath() {
+        if (current instanceof ChartData && current.chartDirectory) {
+            return current.chartDirectory;
+        }
+        if (typeof current === "string") {
+            return current;
+        }
+        for (let i = historyStack.length - 1; i >= 0; --i) {
+            if (typeof historyStack[i] === "string" && historyStack[i] !== "SEARCH") {
+                return historyStack[i];
+            }
+        }
+        return "";
+    }
+
+    function reloadCurrentFolderOrTable() {
+        if (historyStack.length === 0) {
+            return false;
+        }
+        for (let i = historyStack.length - 1; i >= 0; --i) {
+            if (globalRoot.reloadTableForItem(historyStack[i])) {
+                return true;
+            }
+        }
+        if (globalRoot.scanRootSongFolderForPath(selectedSongFolderPath())) {
+            return true;
+        }
+        let old = current;
+        let folder = open(historyStack[historyStack.length - 1]);
+        let idx = indexOfEntry(folder, old);
+        pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
+        resetNavigation();
+        return true;
+    }
+
+    function openChartDirectory(directory, initialItem) {
+        if (!directory) {
+            return false;
+        }
+        let folder = Rg.songFolderFactory.openChartDirectory(directory);
+        if (!folder.length) {
+            return false;
+        }
+        if (historyStack.length === 0 || historyStack[historyStack.length - 1] !== directory) {
+            historyStack.push(directory);
+        }
+        let newFolderContents = [];
+        for (let item of folder) {
+            newFolderContents.push(item);
+        }
+        folder = chartFolderModel.filterAndSort(folder);
+        addToMinimumCount(folder);
+        pathView.model = folder;
+        pathView.folderContents = newFolderContents;
+        openedFolder();
+        let idx = chartFolderModel.indexOfItem(folder, initialItem);
+        pathView.positionViewAtIndex(idx >= 0 ? idx : 0, PathView.Center);
+        resetNavigation();
+        return true;
     }
 
     signal openedFolder()
@@ -239,7 +490,7 @@ PathView {
         for (let item of results) {
             newFolderContents.push(item);
         }
-        results = sortFilter(results);
+        results = chartFolderModel.filterAndSort(results);
         addToMinimumCount(results);
         // The special path for searches.
         if (historyStack[historyStack.length - 1] !== "SEARCH") {
@@ -252,34 +503,16 @@ PathView {
         openedFolder();
     }
 
-    function sortFilter(input) {
-        let resultFolders = [];
-        let resultCharts = [];
-        for (let item of input) {
-            if (item instanceof ChartData || item instanceof entry) {
-                if (filter && !filter(item))
-                    continue;
-                resultCharts.push(item);
-            } else {
-                resultFolders.push(item);
-            }
-        }
-        if (sort) {
-            resultCharts.sort(sort);
-        }
-        let result = resultFolders.concat(resultCharts);
-        if (result.length === 0) {
-            result.push(null);
-        }
-        return result;
+    function isChartItem(item) {
+        return (item instanceof ChartData || item instanceof entry);
     }
 
     function sortOrFilterChanged() {
         if (folderContents.length) {
             let old = pathView.current;
-            let sortedFiltered = sortFilter(folderContents);
+            let sortedFiltered = chartFolderModel.filterAndSort(folderContents);
             addToMinimumCount(sortedFiltered);
-            let currentIdx = sortedFiltered.indexOf(old);
+            let currentIdx = chartFolderModel.indexOfItem(sortedFiltered, old);
             pathView.model = sortedFiltered;
             if (currentIdx >= 0)
                 pathView.positionViewAtIndex(currentIdx, PathView.Center);
@@ -290,7 +523,7 @@ PathView {
     }
 
     dragMargin: 200
-    highlightMoveDuration: 100
+    highlightMoveDuration: lr2SpeedFirst
     highlightRangeMode: PathView.StrictlyEnforceRange
     pathItemCount: 16
     preferredHighlightBegin: 0.5
@@ -342,7 +575,7 @@ PathView {
         readonly property bool isCurrentItem: PathView.isCurrentItem
         readonly property bool scrollingText: pathView.scrollingText
 
-        sourceComponent: modelData instanceof ChartData || modelData instanceof entry || modelData instanceof course ? chartComponent : folderComponent
+        sourceComponent: isChartItem(modelData) || modelData instanceof course ? chartComponent : folderComponent
     }
     path: Path {
         id: path
@@ -395,15 +628,19 @@ PathView {
         if (lastKey[lastKey.length - 1] !== key) {
             return;
         }
+        if (type === InputTranslator.AnalogScratchTick) {
+            queueWheelSteps(up ? 1 : -1);
+            return;
+        }
         let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
         if (type === InputTranslator.ButtonTick) {
             if (number === 0 || number >= 10) {
-                func();
+                func(number > 0);
             }
         } else if (type === InputTranslator.ClassicScratchTick) {
-            func();
+            func(false);
         } else {
-            func();
+            func(!!number);
         }
     }
     Input.onCol1sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col1sDown)
@@ -441,27 +678,15 @@ PathView {
         goForward(current);
     }
     Input.onCol17Pressed: {
-        goForward(current);
-    }
-    Input.onCol13Pressed: {
-        if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
-        } else {
+        if (!root.openSelectedReplay(Qt.LeftButton)) {
             goForward(current);
         }
     }
+    Input.onCol13Pressed: {
+        goForward(current);
+    }
     Input.onCol15Pressed: {
-        if (current instanceof ChartData && songList.currentItem.scores.length > 0) {
-            let key = 0;
-            if (Keys.digit2Pressed) {
-                key = 1;
-            } else if (Keys.digit3Pressed) {
-                key = 2;
-            } else if (Keys.digit4Pressed) {
-                key = 3;
-            }
-            root.openReplay(key, Qt.LeftButton);
-        } else {
+        if (!root.openSelectedAutoplay()) {
             goForward(current);
         }
     }
@@ -469,52 +694,56 @@ PathView {
         goForward(current);
     }
     Input.onCol27Pressed: {
-        goForward(current);
+        if (!root.openSelectedReplay(Qt.LeftButton)) {
+            goForward(current);
+        }
     }
     Input.onCol23Pressed: {
-        if (current instanceof ChartData) {
-            globalRoot.openChart(songList.current.path, Rg.profileList.mainProfile, true, false, null, null, false, false, null);
-        } else {
-            goForward(current);
-        }
+        goForward(current);
     }
     Input.onCol25Pressed: {
-        if (current instanceof ChartData && songList.currentItem.scores.length > 0) {
-            let key = 0;
-            if (Keys.digit2Pressed) {
-                key = 1;
-            } else if (Keys.digit3Pressed) {
-                key = 2;
-            } else if (Keys.digit4Pressed) {
-                key = 3;
-            }
-            root.openReplay(key, Qt.LeftButton);
-        } else {
+        if (!root.openSelectedAutoplay()) {
             goForward(current);
         }
     }
+    function handleTopLevelSortKey(key) {
+        if (historyStack.length > 1) {
+            return false;
+        }
+        if (key === BmsKey.Col12 || key === BmsKey.Col22) {
+            return root.cycleSortMode(-1);
+        }
+        if (key === BmsKey.Col14 || key === BmsKey.Col24) {
+            return root.cycleSortMode(1);
+        }
+        return false;
+    }
+
     Input.onButtonPressed: (key) => {
-        if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col16 || key === BmsKey.Col22 || key === BmsKey.Col24 || key === BmsKey.Col26) {
+        if (key === BmsKey.Col16 || key === BmsKey.Col26) {
+            root.cycleReplayType();
+            return;
+        }
+        if (handleTopLevelSortKey(key)) {
+            return;
+        }
+        if (key === BmsKey.Col12 || key === BmsKey.Col14 || key === BmsKey.Col22 || key === BmsKey.Col24) {
             goBack();
         }
     }
     AudioPlayer {
         id: scratchSound
-        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch";
+        source: Rg.profileList.mainProfile.vars.generalVars.soundsetPath + "scratch"
     }
     onCurrentItemChanged: {
         scrollingTextTimer.restart();
         scrollingText = false;
-        scratchSound.stop();
-        scratchSound.play();
+        if (suppressedCurrentItemSoundChanges > 0) {
+            suppressedCurrentItemSoundChanges -= 1;
+        } else {
+            playEntryChangeSounds(1);
+        }
     }
-    onFilterChanged: {
-        sortOrFilterChanged();
-    }
-    onSortChanged: {
-        sortOrFilterChanged();
-    }
-
     Timer {
         id: scrollingTextTimer
 
@@ -525,30 +754,39 @@ PathView {
         }
     }
     Timer {
-        id: movingTimer
+        id: pendingWheelStepTimer
 
-        interval: pathView.highlightMoveDuration
-    }
-    Timer {
-        id: navigationTimer
-
-        interval: 16
+        interval: 0
         repeat: false
 
-        onTriggered: {
-            pathView.applyNavigation();
-        }
+        onTriggered: pathView.updateVisualIndex(Date.now())
+    }
+    Timer {
+        id: movementTick
+
+        interval: 16
+        repeat: true
+        running: pathView.visualMoveActive
+        onTriggered: pathView.updateVisualIndex(Date.now())
     }
     MouseArea {
         id: mouse
 
         anchors.fill: parent
+        acceptedButtons: Qt.NoButton
 
         onWheel: wheel => {
-            if (wheel.angleDelta.y > 0)
-                pathView.decrementViewIndex();
-            else
-                pathView.incrementViewIndex();
+            pathView.handleWheel(wheel);
+        }
+    }
+    function addToMinimumCount(input) {
+        let length = input.length;
+        if (length >= pathItemCount) {
+            return;
+        }
+        let limit = Math.ceil(pathItemCount / length) * length
+        for (let i = length; i < limit; i++) {
+            input.push(input[i % length] || null);
         }
     }
 }

@@ -92,6 +92,16 @@ BmsLiveScore::getJudgementCounts() const -> const JudgementCounts*
     return &judgementCounts;
 }
 
+int
+BmsLiveScore::judgementCount(int judgement) const
+{
+    const auto& counts = judgementCounts.getJudgementCounts();
+    if (judgement < 0 || judgement >= counts.size()) {
+        return 0;
+    }
+    return counts[judgement];
+}
+
 void
 BmsLiveScore::sendVisualOnlyTap(HitEvent tap)
 {

@@ -2,17 +2,35 @@ import QtQuick
 import RhythmGameQml
 
 Rectangle {
+    id: optionOverlay
+
     color: {
         let c = Qt.color("black");
         c.a = 0.5;
         return c;
     }
 
+    property bool forcePlayOptions: false
+    property bool forceTargetOptions: false
+
+    function closeForcedOptions() {
+        forcePlayOptions = false;
+        forceTargetOptions = false;
+        login.enabled = false;
+    }
+
+    function togglePlayOptions() {
+        forcePlayOptions = !forcePlayOptions;
+        if (forcePlayOptions) {
+            forceTargetOptions = false;
+        }
+    }
+
     MouseArea {
         anchors.fill: parent
         enabled: parent.visible
         onClicked: (event) => {
-            login.enabled = false;
+            optionOverlay.closeForcedOptions();
         }
         onWheel: (wheel) => {
             wheel.accepted = true;
@@ -88,7 +106,7 @@ Rectangle {
         Loader {
             id: playOptions
             active: enabled
-            enabled: options.startPressed && !login.enabled
+            enabled: (options.startPressed || optionOverlay.forcePlayOptions) && !login.enabled
             anchors.centerIn: parent
 
             source: Rg.profileList.battleActive ? "PlayOptionsBattle.qml" : "PlayOptionsSingle.qml"
@@ -97,7 +115,7 @@ Rectangle {
         Loader {
             id: targetOptions
             active: enabled
-            enabled: options.selectPressed && !login.enabled
+            enabled: (options.selectPressed || optionOverlay.forceTargetOptions) && !login.enabled
             anchors.centerIn: parent
 
             source: Rg.profileList.battleActive ? "ScoreTargetSettingsBattle.qml" : "ScoreTargetSettingsSingle.qml"

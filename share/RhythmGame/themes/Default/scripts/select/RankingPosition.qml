@@ -11,60 +11,40 @@ Item {
     property bool loading: false
     property string rankingLink
     property var profile: Rg.profileList.mainProfile
-    property var provider: {
-        let choice = profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider
-        switch (choice) {
-            case "rhythmgame":
-                return OnlineRankingModel.RhythmGame;
-            case "lr2ir":
-                return OnlineRankingModel.LR2IR;
-            case "bokutachi":
-                return OnlineRankingModel.Tachi;
-            default:
-                return OnlineRankingModel.RhythmGame;
-        }
+    readonly property var generalVars: profile.vars.generalVars
+    property var provider: OnlineRankingModel.RhythmGame
+
+    function syncProviderFromGeneralVars() {
+        ir.provider = ir.generalVars ? ir.generalVars.rankingProvider : OnlineRankingModel.RhythmGame;
     }
-    Binding {
-        delayed: true
-        ir.provider: {
-            switch (profile.vars.themeVars.select[QmlUtils.themeName].rankingProvider) {
-                case "rhythmgame":
-                    return OnlineRankingModel.RhythmGame;
-                case "lr2ir":
-                    return OnlineRankingModel.LR2IR;
-                case "bokutachi":
-                    return OnlineRankingModel.Tachi;
-                default:
-                    return OnlineRankingModel.RhythmGame;
-            }
+
+    function setProvider(providerValue) {
+        if (ir.generalVars) {
+            ir.generalVars.rankingProvider = providerValue;
         }
+        ir.provider = providerValue;
     }
-    Binding {
-        delayed: true
-        target: profile.vars.themeVars.select[QmlUtils.themeName]
-        property: "rankingProvider"
-        value: {
-            switch (ir.provider) {
-                case OnlineRankingModel.RhythmGame:
-                    return "rhythmgame";
-                case OnlineRankingModel.LR2IR:
-                    return "lr2ir";
-                case OnlineRankingModel.Tachi:
-                    return "bokutachi";
-            }
+
+    Component.onCompleted: syncProviderFromGeneralVars()
+
+    Connections {
+        target: ir.generalVars
+
+        function onRankingProviderChanged() {
+            ir.syncProviderFromGeneralVars();
         }
     }
 
     function incrementProvider() {
         switch (ir.provider) {
             case OnlineRankingModel.RhythmGame:
-                ir.provider = OnlineRankingModel.LR2IR;
+                ir.setProvider(OnlineRankingModel.LR2IR);
                 break;
             case OnlineRankingModel.LR2IR:
-                ir.provider = OnlineRankingModel.Tachi;
+                ir.setProvider(OnlineRankingModel.Tachi);
                 break;
             case OnlineRankingModel.Tachi:
-                ir.provider = OnlineRankingModel.RhythmGame;
+                ir.setProvider(OnlineRankingModel.RhythmGame);
                 break;
         }
     }
@@ -72,13 +52,13 @@ Item {
     function decrementProvider() {
         switch (ir.provider) {
             case OnlineRankingModel.RhythmGame:
-                ir.provider = OnlineRankingModel.Tachi;
+                ir.setProvider(OnlineRankingModel.Tachi);
                 break;
             case OnlineRankingModel.LR2IR:
-                ir.provider = OnlineRankingModel.RhythmGame;
+                ir.setProvider(OnlineRankingModel.RhythmGame);
                 break;
             case OnlineRankingModel.Tachi:
-                ir.provider = OnlineRankingModel.LR2IR;
+                ir.setProvider(OnlineRankingModel.LR2IR);
                 break;
         }
     }

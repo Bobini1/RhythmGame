@@ -19,8 +19,10 @@ Item {
     property string tag2Filter:      ""
     property string browserSearch:   ""
     property bool   showUrlEditor:   false   // toggled by the ⚙ button
+    property var    fetchRequest:     null
 
     Component.onCompleted: fetchTables()
+    Component.onDestruction: cancelFetch()
 
     readonly property var tagTranslations: ({
         // tag1 — play style
@@ -40,6 +42,24 @@ Item {
 
     function translateTag(tag) {
         return tagTranslations[tag] ?? tag
+    }
+
+    function currentTableListUrl() {
+        const generalVars = Rg.profileList?.mainProfile?.vars?.generalVars
+        return generalVars?.tableListUrl ? String(generalVars.tableListUrl).trim() : ""
+    }
+
+    function exceptionMessage(error) {
+        return error?.message !== undefined ? String(error.message) : String(error)
+    }
+
+    function cancelFetch() {
+        const xhr = fetchRequest
+        fetchRequest = null
+        if (xhr) {
+            xhr.onreadystatechange = function () {}
+            xhr.abort()
+        }
     }
 
     readonly property var recommendedUrls: {
@@ -144,20 +164,32 @@ Item {
 
     function fetchTables() {
         if (fetchState === "loading") return
+        const url = currentTableListUrl()
+        if (!url) {
+            allTables = []
+            fetchError = qsTr("No table list URL configured")
+            fetchState = "error"
+            return
+        }
+
+        cancelFetch()
+
+        const xhr = new XMLHttpRequest()
+        fetchRequest = xhr
+        xhr.open("GET", url)
         fetchState = "loading"
         fetchError = ""
-        const url = Rg.profileList.mainProfile.vars.generalVars.tableListUrl
-        const xhr = new XMLHttpRequest()
-        xhr.open("GET", url)
         xhr.onreadystatechange = function () {
             if (xhr.readyState !== XMLHttpRequest.DONE) return
+            if (fetchRequest !== xhr) return
+            fetchRequest = null
             if (xhr.status === 200) {
                 try {
                     const parsed = JSON.parse(xhr.responseText)
                     allTables = Array.isArray(parsed) ? parsed : (parsed.data ?? [])
                     fetchState = "done"
                 } catch (e) {
-                    fetchError = String(e.message)
+                    fetchError = exceptionMessage(e)
                     fetchState = "error"
                 }
             } else {

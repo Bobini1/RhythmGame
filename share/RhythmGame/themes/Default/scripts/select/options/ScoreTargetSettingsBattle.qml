@@ -79,8 +79,8 @@ Item {
             down: BmsKey[`Col${bg.player}1`]
             profile: bg.profile
 
-            model: bg.duplicate([ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore])
-            strings: bg.duplicate(qsTr("GRADE;BEST SCORE;LAST SCORE").split(";"))
+            model: bg.duplicate([ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore, ScoreTarget.NextRank])
+            strings: bg.duplicate(qsTr("GRADE;BEST SCORE;LAST SCORE;NEXT RANK").split(";"))
             prop: "scoreTarget"
         }
 
@@ -122,7 +122,7 @@ Item {
             strings: {
                 let base = qsTr("MAX;MAX-;AAA;AAA-;AA;AA-;A;A-;B;C;D;E;F").split(";");
                 if (base.length < scoreTarget.model.length) {
-                    base.unshift((bg.profile.vars.generalVars.targetScoreFraction * 100).toLocaleString(Qt.locale(Rg.languages.selectedLanguage)) + "%");
+                    base.unshift(Math.floor(bg.profile.vars.generalVars.targetScoreFraction * 100).toLocaleString(Qt.locale(Rg.languages.selectedLanguage)) + "%");
                 }
                 return base;
             }

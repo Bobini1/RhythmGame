@@ -1,7 +1,14 @@
 #ifndef RHYTHMGAME_ONLINERANKINGMODEL_H
 #define RHYTHMGAME_ONLINERANKINGMODEL_H
 
+#include <QIfPendingReply>
 #include <QtQml>
+
+namespace gameplay_logic {
+class BmsScore;
+}
+
+class QJsonObject;
 
 namespace qml_components {
 class OnlineScores;
@@ -16,6 +23,12 @@ struct RankingEntry
     Q_PROPERTY(double maxPoints MEMBER maxPoints CONSTANT)
     Q_PROPERTY(int bestCombo MEMBER bestCombo CONSTANT)
     Q_PROPERTY(int maxHits MEMBER maxHits CONSTANT)
+    Q_PROPERTY(int bestPerfect MEMBER bestPerfect CONSTANT)
+    Q_PROPERTY(int bestGreat MEMBER bestGreat CONSTANT)
+    Q_PROPERTY(int bestGood MEMBER bestGood CONSTANT)
+    Q_PROPERTY(int bestBad MEMBER bestBad CONSTANT)
+    Q_PROPERTY(int bestPoor MEMBER bestPoor CONSTANT)
+    Q_PROPERTY(int bestEmptyPoor MEMBER bestEmptyPoor CONSTANT)
     Q_PROPERTY(QString bestClearType MEMBER bestClearType CONSTANT)
     Q_PROPERTY(int bestComboBreaks MEMBER bestComboBreaks CONSTANT)
     Q_PROPERTY(qint64 latestDate MEMBER latestDate CONSTANT)
@@ -34,6 +47,12 @@ struct RankingEntry
     double maxPoints{};
     int bestCombo{};
     int maxHits{};
+    int bestPerfect{};
+    int bestGreat{};
+    int bestGood{};
+    int bestBad{};
+    int bestPoor{};
+    int bestEmptyPoor{};
     QString bestClearType;
     int bestComboBreaks{};
     qint64 latestDate{};
@@ -46,6 +65,10 @@ struct RankingEntry
     int scoreCount{};
     auto operator<=>(const RankingEntry&) const = default;
 };
+
+auto
+rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry;
+
 class OnlineRankingModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -111,6 +134,12 @@ class OnlineRankingModel : public QAbstractListModel
         MaxPointsRole,
         BestComboRole,
         MaxHitsRole,
+        BestPerfectRole,
+        BestGreatRole,
+        BestGoodRole,
+        BestBadRole,
+        BestPoorRole,
+        BestEmptyPoorRole,
         BestPointsGuidRole,
         BestComboGuidRole,
         BestComboBreaksGuidRole,
@@ -268,7 +297,7 @@ class OnlineRankingModel : public QAbstractListModel
                         std::function<void(const QJsonDocument&)> onSuccess,
                         std::function<void(const QString&)> onError);
     void handleTachiReply(int startRanking,
-                          QString keymode,
+                          QString tachiGame,
                           int noteCount,
                           QNetworkReply* reply);
 
@@ -300,6 +329,7 @@ class OnlineRankingModel : public QAbstractListModel
     int scoreCount{ 0 };
     int playerCount{ 0 };
     QString chartId;
+    quint64 currentFetchGeneration{ 0 };
 
     Provider currentProvider{ Provider::RhythmGame };
 };

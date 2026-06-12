@@ -42,6 +42,18 @@ restoreScratchDirection(input::BmsKey mapped, const input::BmsKey original)
     return mapped;
 }
 
+auto
+logicalColumnFor(const input::BmsKey key) -> int
+{
+    if (key == input::BmsKey::Col1sDown) {
+        return static_cast<int>(input::BmsKey::Col1sUp);
+    }
+    if (key == input::BmsKey::Col2sDown) {
+        return static_cast<int>(input::BmsKey::Col2sUp);
+    }
+    return static_cast<int>(key);
+}
+
 } // namespace
 
 ChartRunner::ChartRunner(
@@ -97,19 +109,22 @@ ChartRunner::start()
         startRequested = true;
         return;
     }
+    startTimepoint = std::chrono::steady_clock::now();
     setStatus(Running);
-    propertyUpdateTimer.start(1);
+    propertyUpdateTimer.setTimerType(Qt::PreciseTimer);
     connect(&propertyUpdateTimer,
             &QTimer::timeout,
             this,
-            &ChartRunner::updateElapsed);
-    startTimepoint = std::chrono::steady_clock::now();
+            &ChartRunner::updateElapsed,
+            Qt::UniqueConnection);
+    propertyUpdateTimer.start(1);
 }
 
 void
 ChartRunner::updateElapsed()
 {
-    const auto offset = std::chrono::steady_clock::now() - startTimepoint;
+    const auto now = std::chrono::steady_clock::now();
+    const auto offset = now - startTimepoint;
     player1->update(offset,
                     /*lastUpdate=*/false);
     if (player2 != nullptr) {
@@ -149,18 +164,40 @@ ChartRunner::passKey(input::BmsKey key,
     auto mapped =
       restoreScratchDirection(static_cast<input::BmsKey>(mappedIndex), key);
     const auto index = playerIndexFromKey(mapped);
+    const auto doublePlay = isDp(keymode);
     // key pressed for a player side that is not present
-    if (!isDp(chartData->getKeymode()) && index == 1 && player2 == nullptr) {
+    if (!doublePlay && index == 1 && player2 == nullptr) {
+        return;
+    }
+    auto* player = doublePlay || index == 0 ? player1 : player2;
+    if (!doublePlay) {
+        mapped = convertToP1Key(mapped);
+    }
+    if (status != Running) {
+        constexpr auto visualOffset = std::chrono::nanoseconds{ 0 };
+        const auto logicalColumn = logicalColumnFor(mapped);
+        if (eventType == ChartRunner::EventType::KeyPress) {
+            player->getScore()->sendVisualOnlyTap({ logicalColumn,
+                                                    mapped,
+                                                    std::nullopt,
+                                                    visualOffset.count(),
+                                                    std::nullopt,
+                                                    HitEvent::Action::Press,
+                                                    /*noteRemoved=*/false });
+        } else {
+            player->getScore()->sendVisualOnlyRelease(
+              HitEvent{ logicalColumn,
+                        mapped,
+                        std::nullopt,
+                        visualOffset.count(),
+                        std::nullopt,
+                        HitEvent::Action::Release,
+                        /*noteRemoved=*/false });
+        }
         return;
     }
     auto offset =
       std::chrono::milliseconds{ time } - startTimepoint.time_since_epoch();
-    auto* player =
-      isDp(chartData->getKeymode()) || index == 0 ? player1 : player2;
-    mapped = isDp(chartData->getKeymode()) ? mapped : convertToP1Key(mapped);
-    if (!isDp(chartData->getKeymode())) {
-        mapped = convertToP1Key(mapped);
-    }
     player->passKey(mapped, eventType, offset);
 }
 
@@ -292,6 +329,15 @@ ChartRunner::setInputMapping(QList<int> inputMapping)
     this->inputMapping = inputMapping;
     emit inputMappingChanged();
 }
+auto
+ChartRunner::currentOffsetFromStart() const -> std::chrono::nanoseconds
+{
+    if (status != Running) {
+        return {};
+    }
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+      std::chrono::steady_clock::now() - startTimepoint);
+}
 Player::Player(BmsNotes* notes,
                BmsLiveScore* score,
                GameplayState* state,
@@ -317,8 +363,9 @@ Player::Player(BmsNotes* notes,
             this,
             &Player::setup);
     refereeWatcher.setFuture(refereeFuture);
-    for (auto [index, column] :
-         std::ranges::views::enumerate(state->getColumnStates())) {
+    const auto columnStates = state->getColumnStates();
+    for (qsizetype index = 0; index < columnStates.size(); ++index) {
+        auto* column = columnStates[index];
         connect(score,
                 &BmsLiveScore::hit,
                 column,
@@ -374,7 +421,8 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        const auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
+        const auto bpmChange =
+          referee->getBpm(offsetFromStart + visualOffset);
         setBpm(bpmChange.bpm);
         setScroll(bpmChange.scroll);
         auto position =
@@ -400,15 +448,7 @@ Player::passKey(input::BmsKey key,
                 ChartRunner::EventType eventType,
                 std::chrono::nanoseconds offset)
 {
-    const auto logicalColumn = [&key] {
-        if (key == input::BmsKey::Col1sDown) {
-            return static_cast<int>(input::BmsKey::Col1sUp);
-        }
-        if (key == input::BmsKey::Col2sDown) {
-            return static_cast<int>(input::BmsKey::Col2sUp);
-        }
-        return static_cast<int>(key);
-    }();
+    const auto logicalColumn = logicalColumnFor(key);
     if (!referee || status == ChartRunner::Status::Finished) {
         if (eventType == ChartRunner::EventType::KeyPress) {
             score->sendVisualOnlyTap({ logicalColumn,
@@ -470,6 +510,35 @@ auto
 Player::getBeatPosition() const -> double
 {
     return beatPosition;
+}
+auto
+Player::positionInfoAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> BmsGameReferee::PositionInfo
+{
+    if (!referee) {
+        return { .position = position, .beatPosition = beatPosition };
+    }
+
+    const auto visualOffset =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::duration<double, std::milli>(
+          profile ? profile->getVars()->getGeneralVars()->getOffset()
+                  : 0.0));
+    const auto visualOffsetFromStart = offsetFromStart + visualOffset;
+    const auto bpmChange = referee->getBpm(visualOffsetFromStart);
+    return BmsGameReferee::getPosition(bpmChange, visualOffsetFromStart);
+}
+auto
+Player::positionAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> double
+{
+    return positionInfoAt(offsetFromStart).position;
+}
+auto
+Player::beatPositionAt(const std::chrono::nanoseconds offsetFromStart) const
+  -> double
+{
+    return positionInfoAt(offsetFromStart).beatPosition;
 }
 auto
 Player::getElapsed() const -> int64_t
@@ -601,7 +670,6 @@ RePlayer::RePlayer(BmsNotes* notes,
   , replayedScore(replayedScore)
   , events(replayedScore->getReplayData()->getHitEvents())
 {
-    replayedScore->setParent(this);
 }
 void
 RePlayer::passKey(input::BmsKey key,

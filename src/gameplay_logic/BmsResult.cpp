@@ -35,7 +35,7 @@ gameplay_logic::BmsResult::getMaxCombo() const -> int
     return maxCombo;
 }
 auto
-gameplay_logic::BmsResult::getJudgementCounts() const -> QList<int>
+gameplay_logic::BmsResult::getJudgementCounts() const -> const QList<int>&
 {
     return judgementCounts;
 }

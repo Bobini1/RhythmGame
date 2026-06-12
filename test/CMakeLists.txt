@@ -11,10 +11,27 @@ find_package(Catch2 3 REQUIRED)
 
 # ---- Tests ----
 
-add_executable(RhythmGame_test charts/BmsChartReader.test.cpp db/SqliteCppDb.test.cpp sounds/OpenAlSound.test.cpp findTestAssetsFolder.h charts/BmsChart.test.cpp resource_managers/loadBmsSounds.test.cpp)
+add_executable(RhythmGame_test
+        charts/BmsChartReader.test.cpp
+        db/SqliteCppDb.test.cpp
+        sounds/OpenAlSound.test.cpp
+        findTestAssetsFolder.h
+        charts/BmsChart.test.cpp
+        resource_managers/loadBmsSounds.test.cpp
+        resource_managers/Lr2FontCache.test.cpp
+        resource_managers/ScanThemes.test.cpp
+        qml_components/FileQuery.test.cpp
+        lr2_skin/Lr2BarBaseStateResolver.test.cpp
+        lr2_skin/Lr2ResolvedTextRegistry.test.cpp
+        lr2_skin/Lr2SelectBarModel.test.cpp
+        lr2_skin/Lr2SelectDetailState.test.cpp
+        lr2_skin/Lr2SkinParser.test.cpp
+        lr2_skin/Lr2SkinRuntimeTypes.test.cpp
+)
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
+        RhythmGame_lr2_qml
         Catch2::Catch2WithMain
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
@@ -37,7 +54,7 @@ add_custom_command(TARGET RhythmGame_test POST_BUILD
 
 if (WIN32)
     add_custom_command(TARGET RhythmGame_test POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:RhythmGame_test> $<TARGET_FILE_DIR:RhythmGame_test>
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:RhythmGame_test> $<TARGET_FILE_DIR:RhythmGame_test>
             COMMAND_EXPAND_LISTS
     )
 endif ()

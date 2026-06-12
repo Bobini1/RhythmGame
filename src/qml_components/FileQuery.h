@@ -5,15 +5,16 @@
 #ifndef RHYTHMGAME_FILEQUERY_H
 #define RHYTHMGAME_FILEQUERY_H
 
-#include <QUrl>
-#include <QFile>
+#include <QList>
+#include <QObject>
+#include <QString>
 namespace qml_components {
-class FileQuery final : public QObject
+class FileQuery : public QObject
 {
     Q_OBJECT
 
   public:
-    Q_INVOKABLE bool exists(const QString& path);
+    Q_INVOKABLE QString readTextFile(const QString& path) const;
     /**
      * @brief Get a list of all files in a directory EXCLUDING ini files.
      * @param directory The directory to search.

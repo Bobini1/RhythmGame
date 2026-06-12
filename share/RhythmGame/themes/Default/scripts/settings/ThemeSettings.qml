@@ -95,21 +95,76 @@ RowLayout {
                         Layout.maximumWidth: 300
                         Layout.preferredWidth: 200
                         Layout.fillWidth: true
-                        property var themeNames: {
-                            let themeFamilies = Rg.themes.availableThemeFamilies;
-                            let themeNames = [];
+                        function themeDisplayName(name) {
+                            const text = String(name);
+                            if (!text.toLowerCase().endsWith(".lr2skin)")) {
+                                return text;
+                            }
+                            const filenameStart = text.lastIndexOf(" (");
+                            return filenameStart === -1 ? text : text.slice(0, filenameStart);
+                        }
+
+                        function baseScreenForAlias(screen) {
+                            if (screen === "k5") {
+                                return "k7";
+                            }
+                            if (screen === "k5battle") {
+                                return "k7battle";
+                            }
+                            return "";
+                        }
+
+                        function hasNativeScreen(themeFamilies, themePath, screen) {
                             for (let [name, family] of Object.entries(themeFamilies)) {
-                                if (family.screens[modelData]) {
-                                    themeNames.push(name);
+                                const screenData = family.screens[screen];
+                                if (family.path === themePath && screenData && !screenData.aliased) {
+                                    return true;
                                 }
                             }
-                            return themeNames;
+                            return false;
                         }
-                        model: themeNames
-                        currentIndex: themeNames.indexOf(Rg.profileList.mainProfile.themeConfig[modelData])
 
-                        onCurrentTextChanged: {
-                            Rg.profileList.mainProfile.themeConfig[modelData] = themeComboBox.currentText;
+                        function shouldShowTheme(themeFamilies, family, screen) {
+                            const screenData = family.screens[screen];
+                            if (!screenData) {
+                                return false;
+                            }
+
+                            const baseScreen = baseScreenForAlias(screen);
+                            if (baseScreen === "" || !screenData.aliased || !family.screens[baseScreen]) {
+                                return true;
+                            }
+
+                            return !hasNativeScreen(themeFamilies, family.path, screen);
+                        }
+
+                        function themeChoiceIndex(themeChoices, themeName) {
+                            for (let i = 0; i < themeChoices.length; ++i) {
+                                if (themeChoices[i].name === themeName) {
+                                    return i;
+                                }
+                            }
+                            return -1;
+                        }
+
+                        property var themeChoices: {
+                            let themeFamilies = Rg.themes.availableThemeFamilies;
+                            let choices = [];
+                            for (let [name, family] of Object.entries(themeFamilies)) {
+                                if (shouldShowTheme(themeFamilies, family, modelData)) {
+                                    choices.push({
+                                        label: themeDisplayName(name),
+                                        name: name
+                                    });
+                                }
+                            }
+                            return choices;
+                        }
+                        model: themeChoices.map((choice) => choice.label)
+                        currentIndex: themeChoiceIndex(themeChoices, Rg.profileList.mainProfile.themeConfig[modelData])
+
+                        onActivated: (index) => {
+                            Rg.profileList.mainProfile.themeConfig[modelData] = themeChoices[index].name;
                         }
                     }
                     ScrollView {

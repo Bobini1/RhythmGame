@@ -7,6 +7,20 @@ import "../common/helpers.js" as Helpers
 import "./options"
 
 FocusScope {
+    id: selectScreen
+
+    function reloadCurrentFolderOrTable() {
+        return root.reloadCurrentFolderOrTable();
+    }
+
+    function openSelectedFolder() {
+        return root.openSelectedFolder();
+    }
+
+    function openSelectedInternetRanking() {
+        return root.openSelectedInternetRanking();
+    }
+
     Image {
         id: root
 
@@ -14,18 +28,26 @@ FocusScope {
         readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
         property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
         readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
+        readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible
+        readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
+        readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+        readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
 
         function getScore(type) {
+            let scoreList = songList.currentItem?.scores || [];
+            if (scoreList.length === 0) {
+                return null;
+            }
             switch (type) {
                 case 0:
-                    return songList.currentItem.scores[songList.currentItem.scores.length - 1];
+                    return scoreList[scoreList.length - 1];
                     break;
                 case 1:
                     return songList.currentItem.scoreWithBestPoints;
                     break;
                 case 2:
-                    let clearType = Helpers.getClearType(songList.currentItem?.scores);
-                    let score = songList.currentItem.scores.find((score) => {
+                    let clearType = Helpers.getClearType(scoreList);
+                    let score = scoreList.find((score) => {
                         return score.result.clearType === clearType;
                     });
                     if (score) {
@@ -33,7 +55,7 @@ FocusScope {
                     }
                     break;
                 case 3:
-                    let bestScore = songList.currentItem.scores.reduce((prev, curr) => {
+                    let bestScore = scoreList.reduce((prev, curr) => {
                         return prev.result.maxCombo > curr.result.maxCombo ? prev : curr;
                     });
                     if (bestScore) {
@@ -46,9 +68,12 @@ FocusScope {
 
         function openReplay(type, button) {
             let score = getScore(type);
+            if (!score) {
+                return false;
+            }
             if (button === Qt.RightButton) {
                 globalRoot.openResult([score], [Rg.profileList.mainProfile], songList.current);
-                return;
+                return true;
             }
             let replay = true;
             if (button === Qt.MiddleButton) {
@@ -57,6 +82,134 @@ FocusScope {
             let path = songList.current instanceof course ? songList.current : songList.current.path;
             let func = songList.current instanceof course ? globalRoot.openCourse : globalRoot.openChart;
             func(path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
+            return true;
+        }
+
+        function focusSongList() {
+            songList.forceActiveFocus();
+        }
+
+        function selectedReplayType() {
+            if (Keys.digit2Pressed) {
+                return 1;
+            }
+            if (Keys.digit3Pressed) {
+                return 2;
+            }
+            if (Keys.digit4Pressed) {
+                return 3;
+            }
+            return replayType;
+        }
+
+        function cycleReplayType() {
+            setReplayType(replayType + 1);
+            return true;
+        }
+
+        function replayTypeIndex(value) {
+            let numeric = Math.floor(Number(value || 0));
+            if (isNaN(numeric)) {
+                numeric = 0;
+            }
+            return ((numeric % 4) + 4) % 4;
+        }
+
+        function setReplayType(value) {
+            if (generalVars) {
+                generalVars.replayType = replayTypeIndex(value);
+            }
+        }
+
+        function openSelectedAutoplay() {
+            return songList.openPlayable(songList.current, true, false, null);
+        }
+
+        function openSelectedReplay(button) {
+            let target = songList.current;
+            if (!(target instanceof ChartData || target instanceof course)) {
+                return false;
+            }
+            return openReplay(selectedReplayType(), button || Qt.LeftButton);
+        }
+
+        function reloadCurrentFolderOrTable() {
+            if (globalRoot.reloadTableForItem(songList.current)) {
+                return true;
+            }
+            return songList.reloadCurrentFolderOrTable();
+        }
+
+        function openSelectedFolder() {
+            let target = songList.current;
+            if (target instanceof ChartData && target.chartDirectory) {
+                return globalRoot.openLocalFolder(target.chartDirectory);
+            }
+            if (typeof target === "string") {
+                return globalRoot.openLocalFolder(target);
+            }
+            return false;
+        }
+
+        function openSelectedInternetRanking() {
+            return rankingPosition.rankingLink.length > 0
+                && Qt.openUrlExternally(rankingPosition.rankingLink);
+        }
+
+        function openSelectedReadme() {
+            let target = songList.current;
+            if (!(target instanceof ChartData) || !target.chartDirectory) {
+                return false;
+            }
+            let paths = Rg.songDirectoryFilePathFetcher.getReadmeFilePaths([target.chartDirectory]);
+            let path = paths[target.chartDirectory] || "";
+            return path.length > 0 && Qt.openUrlExternally(globalRoot.localFileUrl(path));
+        }
+
+        function showAllChartsForCurrentSong() {
+            let target = songList.current;
+            return target instanceof ChartData
+                && !!target.chartDirectory
+                && songList.openChartDirectory(target.chartDirectory, target);
+        }
+
+        function cycleSortMode(delta) {
+            sortButton.cycle(delta === undefined ? 1 : delta);
+            return true;
+        }
+
+        function toggleDetailOptions() {
+            options.togglePlayOptions();
+            return true;
+        }
+
+        function openKeyConfig() {
+            globalRoot.openSettings(5);
+            return true;
+        }
+
+        function handleSelectDigitShortcut(digit) {
+            switch (digit) {
+            case 1:
+                keymodeButton.cycle(1);
+                return true;
+            case 2:
+                return cycleSortMode(1);
+            case 3:
+                return false;
+            case 4:
+                return cycleReplayType();
+            case 5:
+                return toggleDetailOptions();
+            case 6:
+                return openKeyConfig();
+            case 8:
+                return showAllChartsForCurrentSong();
+            case 9:
+                return openSelectedReadme();
+            default:
+                return false;
+            }
         }
 
         fillMode: Image.PreserveAspectCrop
@@ -84,6 +237,25 @@ FocusScope {
             clip: true
 
             enabled: !options.visible
+
+            TapHandler {
+                acceptedButtons: Qt.LeftButton
+                gesturePolicy: TapHandler.WithinBounds
+
+                onTapped: (eventPoint, button) => {
+                    if (!searchEdit.activeFocus) {
+                        return;
+                    }
+                    let searchPoint = search.mapFromItem(search.parent,
+                                                         eventPoint.position.x,
+                                                         eventPoint.position.y);
+                    if (searchPoint.x >= 0 && searchPoint.x <= search.width
+                            && searchPoint.y >= 0 && searchPoint.y <= search.height) {
+                        return;
+                    }
+                    root.focusSongList();
+                }
+            }
 
             StageFile {
                 id: stageFile
@@ -306,10 +478,10 @@ FocusScope {
                         case OnlineRankingModel.LR2IR:
                             return "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=ranking&bmsmd5=" + songList.current.md5;
                         case OnlineRankingModel.Tachi:
-                            if (!ranking.chartId) {
+                            if (!ranking.chartId || !ranking.tachiGameId) {
                                 return "";
                             }
-                            return "https://boku.tachi.ac/games/bms/" + ranking.keymode +
+                            return "https://boku.tachi.ac/games/" + ranking.tachiGameId +
                                 "/charts/" + ranking.chartId;
                     }
                 }
@@ -403,11 +575,42 @@ FocusScope {
                     font.pixelSize: 20
                     height: 25
                     width: 540
+                    wrapMode: TextEdit.NoWrap
 
-                    Keys.onReturnPressed: {
-                        songList.search(searchEdit.text);
-                        searchEdit.text = "";
-                        songList.focus = true;
+                    function submitOrOpenCurrent() {
+                        let query = searchEdit.text.trim();
+                        if (query.length > 0) {
+                            songList.search(query);
+                            searchEdit.text = "";
+                        } else {
+                            songList.goForward(songList.current);
+                        }
+                        root.focusSongList();
+                    }
+
+                    Keys.onReturnPressed: event => {
+                        submitOrOpenCurrent();
+                        event.accepted = true;
+                    }
+                    Keys.onEnterPressed: event => {
+                        submitOrOpenCurrent();
+                        event.accepted = true;
+                    }
+                    Keys.onUpPressed: event => {
+                        songList.decrementViewIndex(event.isAutoRepeat);
+                        event.accepted = true;
+                    }
+                    Keys.onDownPressed: event => {
+                        songList.incrementViewIndex(event.isAutoRepeat);
+                        event.accepted = true;
+                    }
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton
+
+                    onWheel: wheel => {
+                        songList.handleWheel(wheel);
                     }
                 }
             }
@@ -429,13 +632,15 @@ FocusScope {
                 anchors.leftMargin: 900
                 anchors.top: parent.top
                 anchors.topMargin: 20
-                themeVars: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName]
+                generalVars: Rg.profileList.mainProfile.vars.generalVars
             }
             SortButton {
+                id: sortButton
+
                 anchors.left: keymodeButton.left
                 anchors.top: keymodeButton.bottom
                 anchors.topMargin: 20
-                themeVars: Rg.profileList.mainProfile.vars.themeVars.select[QmlUtils.themeName]
+                generalVars: Rg.profileList.mainProfile.vars.generalVars
             }
             MouseArea {
                 id: focusList
@@ -444,13 +649,53 @@ FocusScope {
                 z: -1
 
                 onClicked: {
-                    songList.focus = true;
+                    root.focusSongList();
                 }
             }
         }
         Options {
             id: options
             anchors.fill: parent
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "1"
+            onActivated: root.handleSelectDigitShortcut(1)
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "2"
+            onActivated: root.handleSelectDigitShortcut(2)
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "3"
+            onActivated: root.handleSelectDigitShortcut(3)
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "4"
+            onActivated: root.handleSelectDigitShortcut(4)
+        }
+        Shortcut {
+            enabled: root.selectOverlayShortcutEnabled
+            sequence: "5"
+            onActivated: root.handleSelectDigitShortcut(5)
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "6"
+            onActivated: root.handleSelectDigitShortcut(6)
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "8"
+            onActivated: root.handleSelectDigitShortcut(8)
+        }
+        Shortcut {
+            enabled: root.selectShortcutEnabled
+            sequence: "9"
+            onActivated: root.handleSelectDigitShortcut(9)
         }
     }
 }

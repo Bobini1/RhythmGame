@@ -5,6 +5,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <QtConcurrent>
+#include <QSet>
 #include "Vars.h"
 
 #include "qml_components/FileQuery.h"
@@ -14,7 +15,9 @@
 #include "support/QStringToPath.h"
 #include "support/Exception.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cstring>
 #include <qcolor.h>
 #include <qdir.h>
 #include <utility>
@@ -171,22 +174,128 @@ resource_managers::GeneralVars::resetHiddenRatio()
 auto
 resource_managers::GeneralVars::getBgaOn() const -> bool
 {
-    return bgaOn;
+    return bgaMode != 0;
 }
 void
 resource_managers::GeneralVars::setBgaOn(bool value)
 {
-    if (bgaOn == value) {
-        return;
-    }
-    bgaOn = value;
-    emit bgaOnChanged();
+    setBgaMode(value ? 1 : 0);
 }
 
 void
 resource_managers::GeneralVars::resetBgaOn()
 {
     setBgaOn(true);
+}
+
+auto
+resource_managers::GeneralVars::getBgaMode() const -> int
+{
+    return bgaMode;
+}
+
+void
+resource_managers::GeneralVars::setBgaMode(int value)
+{
+    value = std::clamp(value, 0, 2);
+    const auto oldBgaOn = getBgaOn();
+    if (bgaMode == value) {
+        return;
+    }
+    bgaMode = value;
+    emit bgaModeChanged();
+    if (oldBgaOn != getBgaOn()) {
+        emit bgaOnChanged();
+    }
+}
+
+void
+resource_managers::GeneralVars::resetBgaMode()
+{
+    setBgaMode(1);
+}
+
+auto
+resource_managers::GeneralVars::getBgaSize() const -> int
+{
+    return bgaSize;
+}
+void
+resource_managers::GeneralVars::setBgaSize(int value)
+{
+    value = std::clamp(value, 0, 1);
+    if (bgaSize == value) {
+        return;
+    }
+    bgaSize = value;
+    emit bgaSizeChanged();
+}
+void
+resource_managers::GeneralVars::resetBgaSize()
+{
+    setBgaSize(0);
+}
+
+auto
+resource_managers::GeneralVars::getScoreGraphEnabled() const -> bool
+{
+    return scoreGraphEnabled;
+}
+void
+resource_managers::GeneralVars::setScoreGraphEnabled(bool value)
+{
+    if (scoreGraphEnabled == value) {
+        return;
+    }
+    scoreGraphEnabled = value;
+    emit scoreGraphEnabledChanged();
+}
+void
+resource_managers::GeneralVars::resetScoreGraphEnabled()
+{
+    setScoreGraphEnabled(true);
+}
+
+auto
+resource_managers::GeneralVars::getGhostPosition() const -> int
+{
+    return ghostPosition;
+}
+void
+resource_managers::GeneralVars::setGhostPosition(int value)
+{
+    value = std::clamp(value, 0, 3);
+    if (ghostPosition == value) {
+        return;
+    }
+    ghostPosition = value;
+    emit ghostPositionChanged();
+}
+void
+resource_managers::GeneralVars::resetGhostPosition()
+{
+    setGhostPosition(0);
+}
+
+auto
+resource_managers::GeneralVars::getReplayType() const -> int
+{
+    return replayType;
+}
+void
+resource_managers::GeneralVars::setReplayType(int value)
+{
+    value = std::clamp(value, 0, 3);
+    if (replayType == value) {
+        return;
+    }
+    replayType = value;
+    emit replayTypeChanged();
+}
+void
+resource_managers::GeneralVars::resetReplayType()
+{
+    setReplayType(0);
 }
 
 auto
@@ -497,6 +606,71 @@ resource_managers::GeneralVars::resetTargetScoreFraction()
     setTargetScoreFraction(8.0 / 9.0);
 }
 auto
+resource_managers::GeneralVars::getDefaultTargetScoreFraction() const -> double
+{
+    return defaultTargetScoreFraction;
+}
+void
+resource_managers::GeneralVars::setDefaultTargetScoreFraction(double value)
+{
+    if (defaultTargetScoreFraction == value) {
+        return;
+    }
+    defaultTargetScoreFraction = value;
+    emit defaultTargetScoreFractionChanged();
+}
+void
+resource_managers::GeneralVars::resetDefaultTargetScoreFraction()
+{
+    setDefaultTargetScoreFraction(0.9);
+}
+
+auto
+resource_managers::GeneralVars::getSelectSortMode() const -> SelectSortMode
+{
+    return selectSortMode;
+}
+
+void
+resource_managers::GeneralVars::setSelectSortMode(SelectSortMode value)
+{
+    if (selectSortMode == value) {
+        return;
+    }
+    selectSortMode = value;
+    emit selectSortModeChanged();
+}
+
+void
+resource_managers::GeneralVars::resetSelectSortMode()
+{
+    setSelectSortMode(SelectSortMode::Title);
+}
+
+auto
+resource_managers::GeneralVars::getSelectKeymodeFilter() const
+  -> SelectKeymodeFilter
+{
+    return selectKeymodeFilter;
+}
+
+void
+resource_managers::GeneralVars::setSelectKeymodeFilter(
+  SelectKeymodeFilter value)
+{
+    if (selectKeymodeFilter == value) {
+        return;
+    }
+    selectKeymodeFilter = value;
+    emit selectKeymodeFilterChanged();
+}
+
+void
+resource_managers::GeneralVars::resetSelectKeymodeFilter()
+{
+    setSelectKeymodeFilter(SelectKeymodeFilter::All);
+}
+auto
 resource_managers::GeneralVars::getWebApiUrl() const -> QString
 {
     return websiteBaseUrl + "/api/";
@@ -520,6 +694,41 @@ resource_managers::GeneralVars::resetWebsiteBaseUrl()
 {
     setWebsiteBaseUrl("https://rhythmgame.eu");
 }
+
+auto
+resource_managers::GeneralVars::getRankingProvider() const
+  -> qml_components::OnlineRankingModel::Provider
+{
+    return rankingProvider;
+}
+
+void
+resource_managers::GeneralVars::setRankingProvider(
+  qml_components::OnlineRankingModel::Provider value)
+{
+    switch (value) {
+        case qml_components::OnlineRankingModel::Provider::RhythmGame:
+        case qml_components::OnlineRankingModel::Provider::Tachi:
+        case qml_components::OnlineRankingModel::Provider::LR2IR:
+            break;
+        default:
+            value = qml_components::OnlineRankingModel::Provider::RhythmGame;
+            break;
+    }
+    if (rankingProvider == value) {
+        return;
+    }
+    rankingProvider = value;
+    emit rankingProviderChanged();
+}
+
+void
+resource_managers::GeneralVars::resetRankingProvider()
+{
+    setRankingProvider(
+      qml_components::OnlineRankingModel::Provider::RhythmGame);
+}
+
 auto
 resource_managers::GeneralVars::getBgm() const -> QString
 {
@@ -1078,7 +1287,18 @@ struct ScreenVarsPopulationResult
 {
     QHash<QString, QVariant> screenVars;
     QHash<QString, QString> fileTypeProperties;
+    QHash<QString, QSet<QString>> choiceTypeProperties;
 };
+
+auto
+choiceValues(const QJsonObject& object) -> QSet<QString>
+{
+    auto values = QSet<QString>{};
+    for (const auto& choice : object["choices"].toArray()) {
+        values.insert(choice.toObject()["value"].toString());
+    }
+    return values;
+}
 
 void
 createProperty(ScreenVarsPopulationResult& result,
@@ -1115,6 +1335,8 @@ createProperty(ScreenVarsPopulationResult& result,
         createColorProperty(result.screenVars, object);
     } else if (object["type"] == "choice") {
         createChoiceProperty(result.screenVars, object);
+        result.choiceTypeProperties.insert(object["id"].toString(),
+                                           choiceValues(object));
     } else if (object["type"] == "checkbox") {
         createCheckBoxProperty(result.screenVars, object);
     } else if (object["type"] == "string") {
@@ -1163,6 +1385,21 @@ populateScreenVarsRecursive( // NOLINT(*-no-recursion)
 
 auto
 populateScreenVars(const std::filesystem::path& themePath,
+                   const QJsonObject& settingsObject)
+  -> ScreenVarsPopulationResult
+{
+    auto result = ScreenVarsPopulationResult{};
+    if (!settingsObject.contains("items") ||
+        !settingsObject["items"].isArray()) {
+        throw support::Exception("Settings object has no items array");
+    }
+    populateScreenVarsRecursive(
+      result, themePath, settingsObject["items"].toArray());
+    return result;
+}
+
+auto
+populateScreenVars(const std::filesystem::path& themePath,
                    const std::filesystem::path& settingsPath)
   -> ScreenVarsPopulationResult
 {
@@ -1175,6 +1412,7 @@ populateScreenVars(const std::filesystem::path& themePath,
         spdlog::error("Failed to open config for reading: {}: {}",
                       settingsPath.string(),
                       file.errorString().toStdString());
+        return {};
     }
     const auto contents = QJsonDocument::fromJson(file.readAll());
     if (!contents.isObject()) {
@@ -1246,11 +1484,23 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
             continue;
         }
         auto settingsUrl = screenObj.getSettings();
-        if (settingsUrl.isEmpty()) {
+        if (settingsUrl.isEmpty() && screenObj.getSettingsData().isEmpty()) {
             continue;
         }
-        auto settingsPath = support::qStringToPath(settingsUrl.toLocalFile());
-        vars[screen] = populateScreenVars(themePath, settingsPath);
+        if (!screenObj.getSettingsData().isEmpty()) {
+            const auto contents =
+              QJsonDocument::fromJson(screenObj.getSettingsData().toUtf8());
+            if (!contents.isObject()) {
+                throw support::Exception(std::format(
+                  "In-memory settings data is not an object for screen {}",
+                  screen.toStdString()));
+            }
+            vars[screen] = populateScreenVars(themePath, contents.object());
+        } else {
+            auto settingsPath =
+              support::qStringToPath(settingsUrl.toLocalFile());
+            vars[screen] = populateScreenVars(themePath, settingsPath);
+        }
     }
     auto result = QHash<QString, QHash<QString, QVariant>>{};
     for (const auto& [screen, screenVars] : vars.asKeyValueRange()) {
@@ -1297,9 +1547,23 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                         .string(),
                       result[screen][key].toString().toStdString());
                 }
+            } else if (vars[screen].choiceTypeProperties.contains(key)) {
+                if (value.typeId() == QMetaType::QString &&
+                    vars[screen].choiceTypeProperties[key].contains(
+                      value.toString())) {
+                    result[screen][key] = value;
+                } else {
+                    spdlog::debug(
+                      "The saved choice property {} of screen {} of theme {} "
+                      "is not one of the available choices, will use the "
+                      "default instead ({}).",
+                      key.toStdString(),
+                      screen.toStdString(),
+                      themePath.string(),
+                      result[screen][key].toString().toStdString());
+                }
             } else {
-                result[screen][key] =
-                  contents[screen].toObject()[key].toVariant();
+                result[screen][key] = value;
             }
         }
     }
@@ -1361,10 +1625,11 @@ resource_managers::Vars::populateThemePropertyMap(
   const std::filesystem::path& themeVarsPath)
 {
     for (const auto& [screenName, themes] : themeVarsData.asKeyValueRange()) {
-        auto screenPropertyMap = std::make_unique<QQmlPropertyMap>(&themeVars);
+        auto screenPropertyMap = std::unique_ptr<QQmlPropertyMap>(
+          support::createQmlPropertyMap(&themeVars));
         for (const auto& [themeName, vars] : themes.asKeyValueRange()) {
-            auto propertyMap =
-              std::make_unique<QQmlPropertyMap>(screenPropertyMap.get());
+            auto propertyMap = std::unique_ptr<QQmlPropertyMap>(
+              support::createQmlPropertyMap(screenPropertyMap.get()));
             propertyMap->insert(themeVarsData[screenName][themeName]);
             propertyMap->freeze();
             connect(
@@ -1419,7 +1684,7 @@ resource_managers::Vars::populateThemePropertyMap(
             if (screenName == "k7") {
                 auto* k5Obj = themeVars["k5"].value<QQmlPropertyMap*>();
                 if (k5Obj == nullptr) {
-                    k5Obj = new QQmlPropertyMap(&themeVars);
+                    k5Obj = support::createQmlPropertyMap(&themeVars);
                     themeVars.insert("k5", QVariant::fromValue(k5Obj));
                 }
                 if (k5Obj->keys().contains(themeName)) {
@@ -1430,7 +1695,7 @@ resource_managers::Vars::populateThemePropertyMap(
                 auto* k5battleObj =
                   themeVars["k5battle"].value<QQmlPropertyMap*>();
                 if (k5battleObj == nullptr) {
-                    k5battleObj = new QQmlPropertyMap(&themeVars);
+                    k5battleObj = support::createQmlPropertyMap(&themeVars);
                     themeVars.insert("k5battle",
                                      QVariant::fromValue(k5battleObj));
                 }
@@ -1441,7 +1706,7 @@ resource_managers::Vars::populateThemePropertyMap(
             } else if (screenName == "k14") {
                 auto* k10Obj = themeVars["k10"].value<QQmlPropertyMap*>();
                 if (k10Obj == nullptr) {
-                    k10Obj = new QQmlPropertyMap(&themeVars);
+                    k10Obj = support::createQmlPropertyMap(&themeVars);
                     themeVars.insert("k10", QVariant::fromValue(k10Obj));
                 }
                 if (k10Obj->keys().contains(themeName)) {
@@ -1475,10 +1740,11 @@ resource_managers::Vars::Vars(
   , loadedThemeVars(readThemeVars(profile->getPath().parent_path(),
                                   this->availableThemeFamilies))
 {
+    generalVars.setParent(this);
     writePool.setMaxThreadCount(1);
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(
-      themeVars, loadedThemeVars, profile->getPath().parent_path());
+      *themeVars, loadedThemeVars, profile->getPath().parent_path());
     readGeneralVars(writePool, generalVars, profile->getPath().parent_path());
     writeGeneralVars();
     for (auto i = generalVars.metaObject()->propertyOffset();
@@ -1500,7 +1766,7 @@ resource_managers::Vars::getGeneralVars() -> GeneralVars*
     return &generalVars;
 }
 auto
-resource_managers::Vars::getThemeVars() -> QQmlPropertyMap*
+resource_managers::Vars::getThemeVars() const -> QQmlPropertyMap*
 {
-    return &themeVars;
+    return themeVars;
 }

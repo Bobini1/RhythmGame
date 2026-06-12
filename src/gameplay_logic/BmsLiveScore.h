@@ -262,6 +262,7 @@ class BmsLiveScore final : public QObject
     auto getMaxPointsNow() const -> double;
     auto getJudgementCounts() -> JudgementCounts*;
     auto getJudgementCounts() const -> const JudgementCounts*;
+    Q_INVOKABLE int judgementCount(int judgement) const;
     void sendVisualOnlyTap(HitEvent tap);
     void sendVisualOnlyRelease(const HitEvent& release);
     auto getCombo() const -> int;

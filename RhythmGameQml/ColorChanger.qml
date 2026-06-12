@@ -3,7 +3,7 @@ import QtMultimedia 5.15
 
 ShaderEffect {
     property color from: "black"
-    property variant source
+    property var source
     property color to: "transparent"
     property real tolerance: 0.03125
 

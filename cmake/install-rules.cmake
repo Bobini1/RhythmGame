@@ -61,7 +61,7 @@ set(CPACK_PACKAGE_VENDOR "Bobini")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "RhythmGame")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
 
-if (WIN32)
+if (WIN32 AND RhythmGame_USE_MIMALLOC)
     install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc$<$<CONFIG:Debug>:-debug>.dll
             DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT RhythmGame_Runtime)

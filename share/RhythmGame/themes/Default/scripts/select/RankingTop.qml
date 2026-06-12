@@ -13,7 +13,7 @@ Column {
     readonly property var path: chartData?.path
     property var bestPointsScore
     property var bestClearTypeScore
-    property string keymode
+    property string tachiGameId
 
     Repeater {
         id: rankingRepeater
@@ -66,7 +66,8 @@ Column {
                         if (ranking.provider === OnlineRankingModel.LR2IR && !userEntry.isCurrentUser) {
                             url = "http://www.dream-pro.info/~lavalse/LR2IR/search.cgi?mode=mypage&playerid=" + modelData.userId;
                         } else if (ranking.provider === OnlineRankingModel.Tachi) {
-                            url = "https://boku.tachi.ac/u/" + modelData.userName + "/games/bms/" + ranking.keymode
+                            url = "https://boku.tachi.ac/u/" + encodeURIComponent(modelData.userName) +
+                                "/games/" + ranking.tachiGameId
                         }
                         Qt.openUrlExternally(url);
                     }

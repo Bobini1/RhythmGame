@@ -6,7 +6,7 @@ import QtQuick.Controls
 Rectangle {
     id: debugLog
 
-    function scrollToBottom() {
+    function scrollToBottom() : void {
         logScroll.ScrollBar.vertical.position = 1.0 - logScroll.ScrollBar.vertical.size;
     }
 
@@ -30,7 +30,7 @@ Rectangle {
     }
 
     Connections {
-        function onPositionChanged() {
+        function onPositionChanged() : void {
             if (1.0 - logScroll.ScrollBar.vertical.size - logScroll.ScrollBar.vertical.position < 0.01) {
                 //change state
                 if (state !== "autoscroll") {

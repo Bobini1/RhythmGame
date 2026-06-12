@@ -1,0 +1,191 @@
+#pragma once
+
+#include <QAbstractListModel>
+#include <QList>
+#include "Lr2SkinParser.h"
+
+namespace gameplay_logic::lr2_skin {
+
+class Lr2SkinModel : public QAbstractListModel {
+    Q_OBJECT
+    Q_PROPERTY(QString csvPath READ csvPath WRITE setCsvPath NOTIFY csvPathChanged)
+    Q_PROPERTY(QVariantMap settingValues READ settingValues WRITE setSettingValues NOTIFY settingValuesChanged)
+    Q_PROPERTY(QVariantList activeOptions READ activeOptions WRITE setActiveOptions NOTIFY activeOptionsChanged)
+    Q_PROPERTY(int startInput READ startInput NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int sceneTime READ sceneTime NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int loadStart READ loadStart NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int loadEnd READ loadEnd NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int playStart READ playStart NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int fadeOut READ fadeOut NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int skip READ skip NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int skinWidth READ skinWidth NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int skinHeight READ skinHeight NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList effectiveActiveOptions READ effectiveActiveOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList usedOptions READ usedOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList usedElementOptions READ usedElementOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barLampVariants READ barLampVariants NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barLevelVariants READ barLevelVariants NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barBodyTypes READ barBodyTypes NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList barTitleTypes READ barTitleTypes NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList helpFiles READ helpFiles NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantMap mouseCursor READ mouseCursor NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool hasMouseHover READ hasMouseHover NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int scratchRotationSides READ scratchRotationSides NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QString transColor READ transColor NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool hasTransColor READ hasTransColor NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool reloadBanner READ reloadBanner NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesStageFileSource READ usesStageFileSource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesBackBmpSource READ usesBackBmpSource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesBannerSource READ usesBannerSource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesSelectChartRenderer READ usesSelectChartRenderer NOTIFY skinMetadataChanged)
+    Q_PROPERTY(bool usesSelectDifficultySource READ usesSelectDifficultySource NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int barCenter READ barCenter NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int barAvailableStart READ barAvailableStart NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int barAvailableEnd READ barAvailableEnd NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList noteSources READ noteSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList mineSources READ mineSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lnStartSources READ lnStartSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lnEndSources READ lnEndSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lnBodySources READ lnBodySources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lnBodyActiveSources READ lnBodyActiveSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoNoteSources READ autoNoteSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoMineSources READ autoMineSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoLnStartSources READ autoLnStartSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoLnEndSources READ autoLnEndSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoLnBodySources READ autoLnBodySources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList autoLnBodyActiveSources READ autoLnBodyActiveSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList noteDsts READ noteDsts NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lineSources READ lineSources NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList lineDsts READ lineDsts NOTIFY skinMetadataChanged)
+
+public:
+    enum Roles {
+        TypeRole = Qt::UserRole + 1,
+        SrcRole,
+        DstsRole
+    };
+
+    explicit Lr2SkinModel(QObject* parent = nullptr);
+
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    QHash<int, QByteArray> roleNames() const override;
+
+    QString csvPath() const;
+    void setCsvPath(const QString& path);
+    QVariantMap settingValues() const;
+    void setSettingValues(const QVariantMap& values);
+    QVariantList activeOptions() const;
+    void setActiveOptions(const QVariantList& options);
+    int startInput() const;
+    int sceneTime() const;
+    int loadStart() const;
+    int loadEnd() const;
+    int playStart() const;
+    int fadeOut() const;
+    int skip() const;
+    int skinWidth() const;
+    int skinHeight() const;
+    QVariantList effectiveActiveOptions() const;
+    QVariantList usedOptions() const;
+    QVariantList usedElementOptions() const;
+    QVariantList barLampVariants() const;
+    QVariantList barLevelVariants() const;
+    QVariantList barRows() const;
+    QVariantList barBodyTypes() const;
+    QVariantList barTitleTypes() const;
+    QVariantList helpFiles() const;
+    QVariantMap mouseCursor() const;
+    bool hasMouseHover() const;
+    int scratchRotationSides() const;
+    QString transColor() const;
+    bool hasTransColor() const;
+    bool reloadBanner() const;
+    bool usesStageFileSource() const;
+    bool usesBackBmpSource() const;
+    bool usesBannerSource() const;
+    bool usesSelectChartRenderer() const;
+    bool usesSelectDifficultySource() const;
+    int barCenter() const;
+    int barAvailableStart() const;
+    int barAvailableEnd() const;
+    QVariantList noteSources() const;
+    QVariantList mineSources() const;
+    QVariantList lnStartSources() const;
+    QVariantList lnEndSources() const;
+    QVariantList lnBodySources() const;
+    QVariantList lnBodyActiveSources() const;
+    QVariantList autoNoteSources() const;
+    QVariantList autoMineSources() const;
+    QVariantList autoLnStartSources() const;
+    QVariantList autoLnEndSources() const;
+    QVariantList autoLnBodySources() const;
+    QVariantList autoLnBodyActiveSources() const;
+    QVariantList noteDsts() const;
+    QVariantList lineSources() const;
+    QVariantList lineDsts() const;
+
+signals:
+    void csvPathChanged();
+    void settingValuesChanged();
+    void activeOptionsChanged();
+    void skinMetadataChanged();
+    void skinLoaded();
+
+private:
+    void loadSkin();
+    QList<Lr2Element> m_elements;
+    QString m_csvPath;
+    QVariantMap m_settingValues;
+    QVariantList m_activeOptions;
+    QVariantList m_effectiveActiveOptions;
+    QVariantList m_usedOptions;
+    QVariantList m_usedElementOptions;
+    QVariantList m_barLampVariants;
+    QVariantList m_barLevelVariants;
+    QVariantList m_barRows;
+    QVariantList m_barBodyTypes;
+    QVariantList m_barTitleTypes;
+    QVariantList m_helpFiles;
+    QVariantMap m_mouseCursor;
+    bool m_hasMouseHover = false;
+    int m_scratchRotationSides = 0;
+    QString m_transColor = "#000000";
+    bool m_hasTransColor = false;
+    bool m_reloadBanner = false;
+    bool m_usesStageFileSource = false;
+    bool m_usesBackBmpSource = false;
+    bool m_usesBannerSource = false;
+    bool m_usesSelectChartRenderer = false;
+    bool m_usesSelectDifficultySource = false;
+    int m_startInput = 0;
+    int m_sceneTime = 0;
+    int m_loadStart = 0;
+    int m_loadEnd = 0;
+    int m_playStart = 2000;
+    int m_fadeOut = 0;
+    int m_skip = 0;
+    int m_skinWidth = 640;
+    int m_skinHeight = 480;
+    int m_barCenter = 0;
+    int m_barAvailableStart = 0;
+    int m_barAvailableEnd = -1;
+    QVariantList m_noteSources;
+    QVariantList m_mineSources;
+    QVariantList m_lnStartSources;
+    QVariantList m_lnEndSources;
+    QVariantList m_lnBodySources;
+    QVariantList m_lnBodyActiveSources;
+    QVariantList m_autoNoteSources;
+    QVariantList m_autoMineSources;
+    QVariantList m_autoLnStartSources;
+    QVariantList m_autoLnEndSources;
+    QVariantList m_autoLnBodySources;
+    QVariantList m_autoLnBodyActiveSources;
+    QVariantList m_noteDsts;
+    QVariantList m_lineSources;
+    QVariantList m_lineDsts;
+};
+
+} // namespace gameplay_logic::lr2_skin

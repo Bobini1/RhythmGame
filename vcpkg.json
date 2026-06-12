@@ -33,6 +33,7 @@
       ]
     },
     "sdl2",
+    "sdl2-image",
     {
       "name": "qtbase",
       "default-features": false,
@@ -44,6 +45,15 @@
         "openssl",
         "vulkan"
       ]
+    },
+    {
+      "name": "vulkan-loader",
+      "features": [
+        "wayland",
+        "xcb",
+        "xlib"
+      ],
+      "platform": "linux"
     },
     {
       "name": "qtbase",

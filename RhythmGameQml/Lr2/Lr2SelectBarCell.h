@@ -1,0 +1,160 @@
+#pragma once
+
+#include <QObject>
+#include <QString>
+#include <QVariant>
+#include <QtQml/qqmlregistration.h>
+
+class Lr2SelectBarCell : public QObject {
+    Q_OBJECT
+    QML_ELEMENT
+    Q_PROPERTY(int row READ row WRITE setRow NOTIFY rowChanged)
+    Q_PROPERTY(QVariant entry READ entry WRITE setEntry NOTIFY entryChanged)
+    Q_PROPERTY(bool valid READ isValid WRITE setValid NOTIFY validChanged)
+    Q_PROPERTY(QString text READ text WRITE setText NOTIFY textChanged)
+    Q_PROPERTY(int titleType READ titleType WRITE setTitleType NOTIFY titleTypeChanged)
+    Q_PROPERTY(int bodyType READ bodyType WRITE setBodyType NOTIFY bodyTypeChanged)
+    Q_PROPERTY(int playLevel READ playLevel WRITE setPlayLevel NOTIFY playLevelChanged)
+    Q_PROPERTY(int difficulty READ difficulty WRITE setDifficulty NOTIFY difficultyChanged)
+    Q_PROPERTY(int keymode READ keymode WRITE setKeymode NOTIFY keymodeChanged)
+    Q_PROPERTY(bool ranking READ isRanking WRITE setRanking NOTIFY rankingChanged)
+    Q_PROPERTY(bool chartLike READ isChartLike WRITE setChartLike NOTIFY chartLikeChanged)
+    Q_PROPERTY(bool entryLike READ isEntryLike WRITE setEntryLike NOTIFY entryLikeChanged)
+    Q_PROPERTY(bool folderLike READ isFolderLike WRITE setFolderLike NOTIFY folderLikeChanged)
+    Q_PROPERTY(int lamp READ lamp WRITE setLamp NOTIFY lampChanged)
+    Q_PROPERTY(int rank READ rank WRITE setRank NOTIFY rankChanged)
+    Q_PROPERTY(int labelMask READ labelMask WRITE setLabelMask NOTIFY labelMaskChanged)
+    Q_PROPERTY(QVariantList graphLamps READ graphLamps WRITE setGraphLamps NOTIFY graphLampsChanged)
+    Q_PROPERTY(QVariantList graphRanks READ graphRanks WRITE setGraphRanks NOTIFY graphRanksChanged)
+
+public:
+    explicit Lr2SelectBarCell(QObject* parent = nullptr);
+
+    int row() const;
+    void setRow(int value);
+
+    QVariant entry() const;
+    void setEntry(const QVariant& value);
+
+    bool isValid() const;
+    void setValid(bool value);
+
+    QString text() const;
+    void setText(const QString& value);
+
+    int titleType() const;
+    void setTitleType(int value);
+
+    int bodyType() const;
+    void setBodyType(int value);
+
+    int playLevel() const;
+    void setPlayLevel(int value);
+
+    int difficulty() const;
+    void setDifficulty(int value);
+
+    int keymode() const;
+    void setKeymode(int value);
+
+    bool isRanking() const;
+    void setRanking(bool value);
+
+    bool isChartLike() const;
+    void setChartLike(bool value);
+
+    bool isEntryLike() const;
+    void setEntryLike(bool value);
+
+    bool isFolderLike() const;
+    void setFolderLike(bool value);
+
+    int lamp() const;
+    void setLamp(int value);
+
+    int rank() const;
+    void setRank(int value);
+
+    int labelMask() const;
+    void setLabelMask(int value);
+
+    QVariantList graphLamps() const;
+    void setGraphLamps(const QVariantList& value);
+
+    QVariantList graphRanks() const;
+    void setGraphRanks(const QVariantList& value);
+
+    Q_INVOKABLE int bodyTypeValue() const;
+    Q_INVOKABLE QVariant bodySource(const QVariant& sources, const QVariant& fallback) const;
+    Q_INVOKABLE bool textVisible(int titleType) const;
+    Q_INVOKABLE QString textForTitleType(int titleType) const;
+    Q_INVOKABLE bool numberVisible(int variant) const;
+    Q_INVOKABLE int numberValueForVariant(int variant) const;
+    Q_INVOKABLE int numberValueOrInvisibleForVariant(int variant) const;
+    Q_INVOKABLE bool lampVisibleForKind(int kind) const;
+    Q_INVOKABLE int lampForKind(int kind) const;
+    Q_INVOKABLE bool rankingForKind(int kind) const;
+    Q_INVOKABLE bool rankVisibleForKind(int kind) const;
+    Q_INVOKABLE int rankForKind(int kind) const;
+    Q_INVOKABLE bool overlayVisibleForKind(int kind, int variant) const;
+    qreal graphValueForType(int graphType, int segment) const;
+
+    Q_INVOKABLE void setCore(int row,
+                             bool valid,
+                             const QString& text,
+                             int titleType,
+                             int bodyType,
+                             int playLevel,
+                             int difficulty,
+                             int keymode,
+                             bool ranking,
+                             bool chartLike,
+                             bool entryLike,
+                             bool folderLike,
+                             int lamp,
+                             int rank,
+                             int labelMask,
+                             const QVariantList& graphLamps,
+                             const QVariantList& graphRanks);
+
+signals:
+    void coreChanged();
+    void rowChanged();
+    void entryChanged();
+    void validChanged();
+    void textChanged();
+    void titleTypeChanged();
+    void bodyTypeChanged();
+    void playLevelChanged();
+    void difficultyChanged();
+    void keymodeChanged();
+    void rankingChanged();
+    void chartLikeChanged();
+    void entryLikeChanged();
+    void folderLikeChanged();
+    void lampChanged();
+    void rankChanged();
+    void labelMaskChanged();
+    void graphLampsChanged();
+    void graphRanksChanged();
+
+private:
+    int m_row = -1;
+    QVariant m_entry;
+    bool m_valid = false;
+    QString m_text;
+    int m_titleType = -1;
+    int m_bodyType = 0;
+    int m_playLevel = 0;
+    int m_difficulty = 0;
+    int m_keymode = 0;
+    bool m_ranking = false;
+    bool m_chartLike = false;
+    bool m_entryLike = false;
+    bool m_folderLike = false;
+    int m_lamp = 0;
+    int m_rank = 0;
+    int m_labelMask = 0;
+    QVariantList m_graphLamps;
+    QVariantList m_graphRanks;
+};

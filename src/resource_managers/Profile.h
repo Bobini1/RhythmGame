@@ -59,27 +59,27 @@ class Profile final : public QObject
     };
     Q_ENUM(LoginState)
   private:
-    Q_PROPERTY(QString path READ getPathQString CONSTANT)
+    Q_PROPERTY(QString path READ getPathQString CONSTANT FINAL)
     /** @brief The themes selected for this profile. */
-    Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT)
+    Q_PROPERTY(QQmlPropertyMap* themeConfig READ getThemeConfig CONSTANT FINAL)
     /** @brief The persistent configuration variables of this profile. */
-    Q_PROPERTY(Vars* vars READ getVars CONSTANT)
+    Q_PROPERTY(resource_managers::Vars* vars READ getVars CONSTANT FINAL)
     /**
      * @brief The object used for querying the score database of the profile.
      */
-    Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT)
+    Q_PROPERTY(qml_components::ScoreDb* scoreDb READ getScoreDb CONSTANT FINAL)
     /** @brief The unique identifier of the profile. */
-    Q_PROPERTY(QString guid READ getGuid CONSTANT)
+    Q_PROPERTY(QString guid READ getGuid CONSTANT FINAL)
     Q_PROPERTY(QVariant onlineUserData READ getOnlineUserData NOTIFY
-                 onlineUserDataChanged)
-    Q_PROPERTY(QVariant tachiData READ getTachiData NOTIFY tachiDataChanged)
+                 onlineUserDataChanged FINAL)
+    Q_PROPERTY(QVariant tachiData READ getTachiData NOTIFY tachiDataChanged FINAL)
     Q_PROPERTY(resource_managers::Profile::LoginState loginState READ
-                 getLoginState NOTIFY loginStateChanged)
-    Q_PROPERTY(LoginState tachiLoginState READ getTachiLoginState NOTIFY
-                 loginStateChanged)
+                 getLoginState NOTIFY loginStateChanged FINAL)
+    Q_PROPERTY(resource_managers::Profile::LoginState tachiLoginState READ
+                 getTachiLoginState NOTIFY tachiLoginStateChanged FINAL)
     Q_PROPERTY(qml_components::ReplayImportOperation* replayImportOperation
                  READ getReplayImportOperation
-                 NOTIFY replayImportOperationChanged)
+                 NOTIFY replayImportOperationChanged FINAL)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;

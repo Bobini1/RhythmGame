@@ -106,7 +106,8 @@ Image {
         anchors.fill: parent
 
         onClicked: {
-            pathView.positionViewAtIndex(index, PathView.Center);
+            pathView.forceActiveFocus();
+            pathView.setNavigationImmediate(index);
             Qt.callLater(() => pathView.goForward(pathView.current));
         }
     }

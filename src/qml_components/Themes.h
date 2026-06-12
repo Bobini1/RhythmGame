@@ -14,7 +14,7 @@ class Themes final : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QVariantMap availableThemeFamilies READ getAvailableThemeFamilies
-                 CONSTANT)
+                 CONSTANT FINAL)
 
     QVariantMap themes;
 

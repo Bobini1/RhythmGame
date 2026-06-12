@@ -22,12 +22,20 @@ class BmsReplayData final : public QObject
      * @brief The list of hit events that occurred during the score.
      */
     Q_PROPERTY(QList<HitEvent> hitEvents READ getHitEvents CONSTANT)
+    Q_PROPERTY(QList<int> earlyTimingCounts READ getEarlyTimingCounts CONSTANT)
+    Q_PROPERTY(QList<int> lateTimingCounts READ getLateTimingCounts CONSTANT)
+    Q_PROPERTY(int totalEarly READ getTotalEarly CONSTANT)
+    Q_PROPERTY(int totalLate READ getTotalLate CONSTANT)
     /**
      * @brief The identifier of the score this replay data belongs to.
      */
     Q_PROPERTY(QString guid READ getGuid CONSTANT)
 
     QList<HitEvent> hitEvents;
+    QList<int> earlyTimingCounts;
+    QList<int> lateTimingCounts;
+    int totalEarly{};
+    int totalLate{};
     QString guid;
 
   public:
@@ -35,6 +43,10 @@ class BmsReplayData final : public QObject
                            QString guid,
                            QObject* parent = nullptr);
     auto getHitEvents() const -> const QList<HitEvent>&;
+    auto getEarlyTimingCounts() const -> QList<int>;
+    auto getLateTimingCounts() const -> QList<int>;
+    auto getTotalEarly() const -> int;
+    auto getTotalLate() const -> int;
     auto getGuid() const -> QString;
 
     struct DTO
@@ -49,6 +61,7 @@ class BmsReplayData final : public QObject
     static void migrateStoredReplayData(db::SqliteCppDb& db);
     auto toJsonArray() const -> QJsonArray;
     static auto fromJsonArray(const QJsonArray& array) -> QList<HitEvent>;
+    void updateTimingCounts();
 };
 
 } // namespace gameplay_logic

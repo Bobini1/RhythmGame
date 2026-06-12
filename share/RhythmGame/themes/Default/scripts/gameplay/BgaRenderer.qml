@@ -40,7 +40,7 @@ Item {
             anchors.centerIn: videoBase
             height: sourceRect.height ? sourceRect.height : 256
             width: sourceRect.width ? sourceRect.width : 256
-            z: videoBase.z + 1
+            z: 1
         }
         VideoOutput {
             id: videoLayer2
@@ -48,13 +48,13 @@ Item {
             anchors.centerIn: videoBase
             height: sourceRect.height ? sourceRect.height : 256
             width: sourceRect.width ? sourceRect.width : 256
-            z: videoLayer.z + 1
+            z: 2
         }
         ColorChanger {
             anchors.fill: videoLayer
             from: "black"
             to: "transparent"
-            z: videoLayer.z
+            z: 1
 
             source: ShaderEffectSource {
                 hideSource: true
@@ -65,7 +65,7 @@ Item {
             anchors.fill: videoLayer2
             from: "black"
             to: "transparent"
-            z: videoLayer2.z
+            z: 2
 
             source: ShaderEffectSource {
                 hideSource: true
@@ -79,7 +79,7 @@ Item {
             height: sourceRect.height ? sourceRect.height : 256
             visible: false
             width: sourceRect.width ? sourceRect.width : 256
-            z: videoLayer2.z + 1
+            z: 3
         }
     }
 }

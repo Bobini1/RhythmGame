@@ -5,7 +5,9 @@
 #ifndef RHYTHMGAME_VARS_H
 #define RHYTHMGAME_VARS_H
 
+#include "qml_components/OnlineRankingModel.h"
 #include "qml_components/ThemeFamily.h"
+#include "support/CreateQmlPropertyMap.h"
 
 #include <QObject>
 #include <QThreadPool>
@@ -84,16 +86,55 @@ enum class ScoreTarget
     Fraction,
     BestScore,
     LastScore,
+    NextRank,
 };
 Q_ENUM_NS(ScoreTarget)
 } // namespace score_target
 using namespace score_target;
 
+namespace select_sort_mode {
+Q_NAMESPACE
+enum class SelectSortMode
+{
+    Directory,
+    Title,
+    Artist,
+    Bpm,
+    Length,
+    Level,
+    ClearLamp,
+    ScoreRate,
+    MissCount,
+    TotalNotes,
+};
+Q_ENUM_NS(SelectSortMode)
+} // namespace select_sort_mode
+using namespace select_sort_mode;
+
+namespace select_keymode_filter {
+Q_NAMESPACE
+enum class SelectKeymodeFilter
+{
+    All,
+    Single,
+    Double,
+    K5,
+    K7,
+    K10,
+    K14,
+};
+Q_ENUM_NS(SelectKeymodeFilter)
+} // namespace select_keymode_filter
+using namespace select_keymode_filter;
+
 /**
- * @brief The general variables for the game that all screens and the engine
+ * @brief The general variables for the game that all screens and the
+ * engine
  * should know about and respect. Profile-specific.
- * @details GeneralVars are saved to generalVars.json in the profile directory.
- * All modifications to the variables cause the file to be rewritten.
+ * @details
+ * GeneralVars are saved to generalVars.json in the profile directory.
+ * All
+ * modifications to the variables cause the file to be rewritten.
  */
 class GeneralVars final : public QObject
 {
@@ -157,9 +198,43 @@ class GeneralVars final : public QObject
                  NOTIFY hiddenRatioChanged RESET resetHiddenRatio)
     /**
      * @brief Whether BGA is enabled.
+     * @details Compatibility facade over bgaMode. Setting true selects normal
+     * BGA draw mode, setting false selects off.
      */
     Q_PROPERTY(bool bgaOn READ getBgaOn WRITE setBgaOn NOTIFY bgaOnChanged RESET
-                 resetBgaOn)
+                 resetBgaOn STORED false)
+    /**
+     * @brief LR2-style BGA draw mode.
+     * @details 0 is OFF, 1 is NORMAL, 2 is AUTOPLAY/REPLAY only.
+     * Default skin may use the simpler bgaOn facade.
+     */
+    Q_PROPERTY(int bgaMode READ getBgaMode WRITE setBgaMode NOTIFY
+                 bgaModeChanged RESET resetBgaMode)
+    /**
+     * @brief LR2-style BGA size option.
+     * @details 0 is NORMAL, 1 is EXTEND. RhythmGame skins may use their own
+     * theme variables for BGA geometry and ignore this.
+     */
+    Q_PROPERTY(int bgaSize READ getBgaSize WRITE setBgaSize NOTIFY
+                 bgaSizeChanged RESET resetBgaSize)
+    /**
+     * @brief Whether gameplay score graphs are enabled.
+     */
+    Q_PROPERTY(bool scoreGraphEnabled READ getScoreGraphEnabled WRITE
+                 setScoreGraphEnabled NOTIFY scoreGraphEnabledChanged RESET
+                   resetScoreGraphEnabled)
+    /**
+     * @brief LR2-style ghost position option.
+     * @details 0 is OFF, 1-3 are LR2 ghost types A-C.
+     */
+    Q_PROPERTY(int ghostPosition READ getGhostPosition WRITE setGhostPosition
+                 NOTIFY ghostPositionChanged RESET resetGhostPosition)
+    /**
+     * @brief The replay type selected by replay buttons.
+     * @details 0 newest, 1 best score, 2 best clear, 3 best combo.
+     */
+    Q_PROPERTY(int replayType READ getReplayType WRITE setReplayType NOTIFY
+                 replayTypeChanged RESET resetReplayType)
     /**
      * @brief The note order algorithm used for reordering notes in charts.
      */
@@ -246,13 +321,40 @@ class GeneralVars final : public QObject
                  setTargetScoreFraction NOTIFY targetScoreFractionChanged RESET
                    resetTargetScoreFraction)
     /**
+     * @brief The default custom target fraction used by LR2's user-defined
+     * target option.
+     * @details This is separate from targetScoreFraction, which represents the
+     * currently active gameplay target when scoreTarget is Fraction.
+     */
+    Q_PROPERTY(
+      double defaultTargetScoreFraction READ getDefaultTargetScoreFraction WRITE
+        setDefaultTargetScoreFraction NOTIFY defaultTargetScoreFractionChanged
+          RESET resetDefaultTargetScoreFraction)
+    /**
+     * @brief The shared music-select sort mode.
+     */
+    Q_PROPERTY(resource_managers::select_sort_mode::SelectSortMode
+                 selectSortMode READ getSelectSortMode WRITE setSelectSortMode
+                   NOTIFY selectSortModeChanged RESET resetSelectSortMode)
+    /**
+     * @brief The shared music-select keymode filter.
+     */
+    Q_PROPERTY(resource_managers::select_keymode_filter::SelectKeymodeFilter
+                 selectKeymodeFilter READ getSelectKeymodeFilter WRITE
+                   setSelectKeymodeFilter NOTIFY selectKeymodeFilterChanged
+                     RESET resetSelectKeymodeFilter)
+    /**
      * @brief The folder with select, decide and main screen music
-     * @details To get the list of available BGM folders, call
-     * getAvailableBgms().
-     * Skins are supposed to load files named
-     * select.<ext>, decide.<ext>, main.<ext> from the selected BGM,
-     * where <ext> is an audio format supported by the game.
-     * To get the full path to the BGM, use the bgmPath property.
+
+     * * @details To get the list of available BGM folders, call
+     *
+     * getAvailableBgms(). Skins are supposed to load files named select.<ext>,
+
+     * * decide.<ext>, main.<ext> from the selected BGM, where <ext> is an
+     * audio
+     * format supported by the game. To get the full path to the
+     * BGM, use the
+     * bgmPath property.
      * @see bgmPath
      */
     Q_PROPERTY(
@@ -316,6 +418,12 @@ class GeneralVars final : public QObject
      */
     Q_PROPERTY(QString tableListUrl READ getTableListUrl WRITE setTableListUrl
                  NOTIFY tableListUrlChanged RESET resetTableListUrl)
+    /**
+     * @brief Preferred online ranking provider.
+     */
+    Q_PROPERTY(qml_components::OnlineRankingModel::Provider rankingProvider READ
+                 getRankingProvider WRITE setRankingProvider NOTIFY
+                   rankingProviderChanged RESET resetRankingProvider)
 
     // ^ remember to use full namespace for enums for reflection
     double noteScreenTimeMillis = 1000;
@@ -325,7 +433,11 @@ class GeneralVars final : public QObject
     double liftRatio = 0.1;
     bool hiddenOn = false;
     double hiddenRatio = 0.1;
-    bool bgaOn = true;
+    int bgaMode = 1;
+    int bgaSize = 0;
+    bool scoreGraphEnabled = true;
+    int ghostPosition = 0;
+    int replayType = 0;
     NoteOrderAlgorithm noteOrderAlgorithm = NoteOrderAlgorithm::Normal;
     NoteOrderAlgorithm noteOrderAlgorithmP2 = NoteOrderAlgorithm::Normal;
     HiSpeedFix hiSpeedFix = HiSpeedFix::Main;
@@ -339,6 +451,9 @@ class GeneralVars final : public QObject
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...
+    double defaultTargetScoreFraction = 0.9;
+    SelectSortMode selectSortMode = SelectSortMode::Title;
+    SelectKeymodeFilter selectKeymodeFilter = SelectKeymodeFilter::All;
     QString websiteBaseUrl = "https://rhythmgame.eu";
     QString bgmPath;
     QString soundsetPath;
@@ -352,6 +467,8 @@ class GeneralVars final : public QObject
       "UfYy-14dlRmOHb-v3Nbin-Pr5pU9nApG7zcoJfqB6bEut33v"
       "&lib=MZGF-rpGWT28d9kh49MlyleOKhrMb7MMj");
     QString tableListUrl = defaultTableListUrl;
+    qml_components::OnlineRankingModel::Provider rankingProvider =
+      qml_components::OnlineRankingModel::Provider::RhythmGame;
 
     QList<QString> assetsPaths;
 
@@ -381,6 +498,21 @@ class GeneralVars final : public QObject
     auto getBgaOn() const -> bool;
     void setBgaOn(bool value);
     void resetBgaOn();
+    auto getBgaMode() const -> int;
+    void setBgaMode(int value);
+    void resetBgaMode();
+    auto getBgaSize() const -> int;
+    void setBgaSize(int value);
+    void resetBgaSize();
+    auto getScoreGraphEnabled() const -> bool;
+    void setScoreGraphEnabled(bool value);
+    void resetScoreGraphEnabled();
+    auto getGhostPosition() const -> int;
+    void setGhostPosition(int value);
+    void resetGhostPosition();
+    auto getReplayType() const -> int;
+    void setReplayType(int value);
+    void resetReplayType();
     auto getNoteOrderAlgorithm() const -> NoteOrderAlgorithm;
     void setNoteOrderAlgorithm(NoteOrderAlgorithm value);
     void resetNoteOrderAlgorithm();
@@ -420,6 +552,15 @@ class GeneralVars final : public QObject
     auto getTargetScoreFraction() const -> double;
     void setTargetScoreFraction(double value);
     void resetTargetScoreFraction();
+    auto getDefaultTargetScoreFraction() const -> double;
+    void setDefaultTargetScoreFraction(double value);
+    void resetDefaultTargetScoreFraction();
+    auto getSelectSortMode() const -> SelectSortMode;
+    void setSelectSortMode(SelectSortMode value);
+    void resetSelectSortMode();
+    auto getSelectKeymodeFilter() const -> SelectKeymodeFilter;
+    void setSelectKeymodeFilter(SelectKeymodeFilter value);
+    void resetSelectKeymodeFilter();
     auto getWebApiUrl() const -> QString;
     auto getWebsiteBaseUrl() const -> QString;
     void setWebsiteBaseUrl(const QString& value);
@@ -437,6 +578,10 @@ class GeneralVars final : public QObject
     auto getTableListUrl() const -> QString;
     void setTableListUrl(const QString& value);
     void resetTableListUrl();
+    auto getRankingProvider() const
+      -> qml_components::OnlineRankingModel::Provider;
+    void setRankingProvider(qml_components::OnlineRankingModel::Provider value);
+    void resetRankingProvider();
 
   signals:
     void noteScreenTimeMillisChanged();
@@ -447,6 +592,11 @@ class GeneralVars final : public QObject
     void hiddenOnChanged();
     void hiddenRatioChanged();
     void bgaOnChanged();
+    void bgaModeChanged();
+    void bgaSizeChanged();
+    void scoreGraphEnabledChanged();
+    void ghostPositionChanged();
+    void replayTypeChanged();
     void noteOrderAlgorithmChanged();
     void noteOrderAlgorithmP2Changed();
     void hiSpeedFixChanged();
@@ -460,12 +610,16 @@ class GeneralVars final : public QObject
     void offsetChanged();
     void scoreTargetChanged();
     void targetScoreFractionChanged();
+    void defaultTargetScoreFractionChanged();
+    void selectSortModeChanged();
+    void selectKeymodeFilterChanged();
     void websiteBaseUrlChanged();
     void bgmChanged();
     void bgmPathChanged();
     void soundsetChanged();
     void soundsetPathChanged();
     void tableListUrlChanged();
+    void rankingProviderChanged();
 };
 
 class Vars final : public QObject
@@ -474,8 +628,8 @@ class Vars final : public QObject
     /**
      * @brief The general variables management object of the profile.
      */
-    Q_PROPERTY(
-      GeneralVars* generalVars READ getGeneralVars NOTIFY generalVarsChanged)
+    Q_PROPERTY(resource_managers::GeneralVars* generalVars READ getGeneralVars
+                 NOTIFY generalVarsChanged FINAL)
     /**
      * @brief The theme variables for all loaded themes.
      * @details This is a dynamic object that contains a map of maps of maps.
@@ -483,10 +637,10 @@ class Vars final : public QObject
      * themeVars[screen][themeName].varName
      * @see qml_components::QmlUtils::themeName
      */
-    Q_PROPERTY(
-      QQmlPropertyMap* themeVars READ getThemeVars NOTIFY themeVarsChanged)
+    Q_PROPERTY(QQmlPropertyMap* themeVars READ getThemeVars NOTIFY
+                 themeVarsChanged FINAL)
     GeneralVars generalVars;
-    QQmlPropertyMap themeVars;
+    QQmlPropertyMap* themeVars = support::createQmlPropertyMap(this);
     const Profile* profile;
     QMap<QString, qml_components::ThemeFamily> availableThemeFamilies;
     QHash<QString, QHash<QString, QHash<QString, QVariant>>> loadedThemeVars;
@@ -505,7 +659,7 @@ class Vars final : public QObject
       QList<QString> assetsPaths,
       QObject* parent = nullptr);
     auto getGeneralVars() -> GeneralVars*;
-    auto getThemeVars() -> QQmlPropertyMap*;
+    auto getThemeVars() const -> QQmlPropertyMap*;
 
   signals:
     void generalVarsChanged();

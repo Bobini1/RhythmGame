@@ -45,6 +45,20 @@ class SongFolderFactory : public QObject
       "WHERE c.directory IS (SELECT id FROM parent_dir WHERE dir LIKE ? || "
       "'%') "
       "ORDER BY c.title ASC");
+    db::SqliteCppDb::Statement getChartsInChartDirectory = db->createStatement(
+      "SELECT c.id, c.title, c.artist, c.subtitle, c.subartist, "
+      "c.genre, c.stage_file, c.banner, c.back_bmp, c.rank, c.total, "
+      "c.play_level, c.difficulty, c.is_random, c.random_sequence, "
+      "c.normal_note_count, c.scratch_count, "
+      "c.ln_count, c.bss_count, c.mine_count, c.length, c.initial_bpm, "
+      "c.max_bpm, c.min_bpm, "
+      "c.main_bpm, c.avg_bpm, c.peak_density, c.avg_density, c.end_density, "
+      "c.path, c.directory, c.sha256, c.md5, c.keymode, c.game_version, "
+      "h.bpms, h.histogram_data "
+      "FROM charts c "
+      "LEFT JOIN histogram_data h ON h.chart_id = c.id "
+      "WHERE c.chart_directory IS ? "
+      "ORDER BY c.title, c.subtitle ASC");
     db::SqliteCppDb::Statement getMd5 =
       db->createStatement("SELECT md5 FROM charts WHERE directory IS "
                           "(SELECT id FROM parent_dir WHERE dir IS ?)");
@@ -81,6 +95,7 @@ class SongFolderFactory : public QObject
   public:
     explicit SongFolderFactory(db::SqliteCppDb* db, QObject* parent = nullptr);
     Q_INVOKABLE QVariantList open(const QString& path);
+    Q_INVOKABLE QVariantList openChartDirectory(const QString& path);
     Q_INVOKABLE QVariantList openRecursive(const QString& path);
     Q_INVOKABLE int folderSize(const QString& path);
     Q_INVOKABLE QString parentFolder(const QString& path);

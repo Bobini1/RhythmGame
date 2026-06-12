@@ -4,16 +4,20 @@
 
 #include "ScanThemes.h"
 
-#include "qml_components/FileQuery.h"
+#include "resource_managers/lr2_skin/Lr2ThemeScanner.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 
+#include <QFile>
 #include <QJsonDocument>
-#include <QJsonArray>
 #include <QJsonObject>
+#include <QUrl>
 #include <QVariant>
-#include <QJsonValue>
 #include <spdlog/spdlog.h>
+
+#include <exception>
+#include <utility>
+
 auto
 resource_managers::scanThemes(std::filesystem::path themesFolder)
   -> QMap<QString, qml_components::ThemeFamily>
@@ -27,11 +31,15 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
         const auto& path = entry.path();
         auto configPath = path / "theme.json";
         if (!exists(configPath)) {
+            themeFamilies.insert(lr2_skin::scanThemeDirectory(path));
             continue;
         }
+
         auto file = QFile(configPath);
         try {
-            file.open(QIODevice::ReadOnly);
+            if (!file.open(QIODevice::ReadOnly)) {
+                continue;
+            }
             const auto config = QJsonDocument::fromJson(file.readAll());
             const auto& scripts = config["scripts"];
             if (!scripts.isObject() || scripts.toObject().isEmpty()) {
@@ -67,12 +75,15 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                     QUrl::fromLocalFile(support::pathToQString(
                       path / support::qStringToPath(value.toString()))),
                     settingsUrl,
+                    QString{},
                     settingsScriptUrl,
                 };
                 themeMap[key] = screen;
-                auto aliasedScreen = qml_components::Screen{
-                    screen.getScript(), settingsUrl, settingsScriptUrl, true
-                };
+                auto aliasedScreen = qml_components::Screen{ screen.getScript(),
+                                                             settingsUrl,
+                                                             QString{},
+                                                             settingsScriptUrl,
+                                                             true };
                 if (key == "k7" && !scriptObj.contains("k5")) {
                     themeMap["k5"] = aliasedScreen;
                 }
@@ -83,7 +94,7 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                     themeMap["k10"] = aliasedScreen;
                 }
             }
-            // Load translations
+
             auto translations = QMap<QString, QUrl>{};
             if (config["translations"].isObject()) {
                 for (const auto& [language, translation] :
@@ -120,6 +131,7 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
     }
     return themeFamilies;
 }
+
 void
 resource_managers::fillWithDefaults(
   QQmlPropertyMap& object,
