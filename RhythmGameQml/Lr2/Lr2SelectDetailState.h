@@ -3,7 +3,6 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include <QHash>
-#include <QJSValue>
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
@@ -267,11 +266,6 @@ public:
 				 const QVariantList& lamps,
 				 int selectedDifficulty = 0,
 				 int selectedLamp = 0);
-	bool setRowsFromJsValues(const QJSValue& counts,
-							 const QJSValue& levels,
-							 const QJSValue& lamps,
-							 int selectedDifficulty = 0,
-							 int selectedLamp = 0);
 
 private:
 	struct Row {
@@ -290,11 +284,6 @@ private:
 									 const QVariantList& lamps,
 									 int selectedDifficulty,
 									 int selectedLamp);
-	static QList<Row> rowsFromJsValues(const QJSValue& counts,
-									   const QJSValue& levels,
-									   const QJSValue& lamps,
-									   int selectedDifficulty,
-									   int selectedLamp);
 	QList<Row> m_rows;
 };
 
@@ -356,26 +345,26 @@ public:
 											 bool buildScoreOptionIds,
 											 bool difficultyStateUsed,
 											 bool difficultyLampStateUsed) const;
-	Q_INVOKABLE bool refreshSelectedFromQmlIdentityForIdentifier(const QString& itemKey,
-																 const QString& targetItemKey,
-																 bool rankingMode,
-																 int scoreGeneration,
-																 int listGeneration,
-																 QJSValue item,
-																 QJSValue chartData,
-																 QJSValue scoreList,
-																 const QString& scoreIdentifier,
-																 int selectedDifficulty,
-																 QJSValue difficultyCounts,
-																 QJSValue difficultyLevels,
-																 QJSValue difficultyLamps,
-																 bool useBeatorajaSemantics,
-																 bool buildScoreOptionIds,
-																 bool difficultyStateUsed,
-																 bool difficultyLampStateUsed);
+	Q_INVOKABLE bool refreshSelectedFromVariantIdentityForIdentifier(const QString& itemKey,
+																	 const QString& targetItemKey,
+																	 bool rankingMode,
+																	 int scoreGeneration,
+																	 int listGeneration,
+																	 const QVariant& item,
+																	 const QVariant& chartData,
+																	 const QVariantList& scoreList,
+																	 const QString& scoreIdentifier,
+																	 int selectedDifficulty,
+																	 const QVariantList& difficultyCounts,
+																	 const QVariantList& difficultyLevels,
+																	 const QVariantList& difficultyLamps,
+																	 bool useBeatorajaSemantics,
+																	 bool buildScoreOptionIds,
+																	 bool difficultyStateUsed,
+																	 bool difficultyLampStateUsed);
 	Q_INVOKABLE QObject* cachedScoreSummaryForIdentifier(const QString& identifier,
 														 int scoreGeneration,
-														 QJSValue scoreList,
+														 const QVariantList& scoreList,
 														 bool useBeatorajaSemantics,
 														 bool buildScoreOptionIds);
 	Q_INVOKABLE bool hasCachedScoreSummaryForIdentifier(const QString& identifier,
@@ -427,7 +416,7 @@ private:
 						  bool& chartDidChange,
 						  bool& scoreDidChange);
 	const Lr2SelectScoreSummaryData& cachedScoreSummaryData(const Lr2SelectScoreSummaryCacheKey& cacheKey,
-															const QJSValue& scoreList,
+															const QVariantList& scoreList,
 															bool useBeatorajaSemantics,
 															bool buildScoreOptionIds);
 	void ensureScoreSummaryCacheSemantics(bool useBeatorajaSemantics,

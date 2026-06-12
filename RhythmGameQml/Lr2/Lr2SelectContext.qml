@@ -3283,63 +3283,65 @@ Item {
         return scoreSummaryForItem(item).scoreRate;
     }
 
-    property bool selectedRefreshIdentityValid: false
-    property string selectedRefreshItemKey: ""
-    property string selectedRefreshTargetItemKey: ""
-    property bool selectedRefreshRankingMode: false
-    property int selectedRefreshScoreGeneration: -1
-    property int selectedRefreshListGeneration: -1
-    property bool selectedRefreshUseBeatorajaSelectOptions: false
-    property bool selectedRefreshScoreOptionIdsUsed: false
-    property bool selectedRefreshDifficultyStateUsed: true
-    property bool selectedRefreshDifficultyLampStateUsed: true
+    property int selectedRefreshScoresCacheGeneration: -1
+    property string selectedRefreshScoresCacheId: ""
+    property var selectedRefreshScoresCache: emptyScoreList
+    property var selectedRefreshDifficultyCacheChart: null
+    property int selectedRefreshDifficultyCacheListGeneration: -1
+    property int selectedRefreshDifficultyCacheScoreGeneration: -1
+    property bool selectedRefreshDifficultyCacheStateUsed: true
+    property bool selectedRefreshDifficultyCacheLampUsed: true
+    property var selectedRefreshDifficultyCacheValue: null
 
-    function selectedRefreshIdentityMatches(itemKey, targetItemKey) : bool {
-        return selectedRefreshIdentityValid
-            && selectedRefreshItemKey === itemKey
-            && selectedRefreshTargetItemKey === targetItemKey
-            && selectedRefreshRankingMode === rankingMode
-            && selectedRefreshScoreGeneration === scoreGeneration
-            && selectedRefreshListGeneration === listGeneration
-            && selectedRefreshUseBeatorajaSelectOptions === root.useBeatorajaSelectOptions
-            && selectedRefreshScoreOptionIdsUsed === root.scoreOptionIdsUsed
-            && selectedRefreshDifficultyStateUsed === root.difficultyStateUsed
-            && selectedRefreshDifficultyLampStateUsed === root.difficultyLampStateUsed;
+    function selectedRefreshScoresForIdentifier(targetId: var, targetIdString: string) : var {
+        if (targetIdString.length <= 0) {
+            return emptyScoreList;
+        }
+        if (selectedRefreshScoresCacheGeneration !== scoreGeneration
+                || selectedRefreshScoresCacheId !== targetIdString) {
+            selectedRefreshScoresCacheGeneration = scoreGeneration;
+            selectedRefreshScoresCacheId = targetIdString;
+            selectedRefreshScoresCache = entryScoresForIdentifier(targetId);
+        }
+        return selectedRefreshScoresCache;
     }
 
-    function rememberSelectedRefreshIdentity(itemKey, targetItemKey) : void {
-        selectedRefreshIdentityValid = true;
-        selectedRefreshItemKey = itemKey;
-        selectedRefreshTargetItemKey = targetItemKey;
-        selectedRefreshRankingMode = rankingMode;
-        selectedRefreshScoreGeneration = scoreGeneration;
-        selectedRefreshListGeneration = listGeneration;
-        selectedRefreshUseBeatorajaSelectOptions = root.useBeatorajaSelectOptions;
-        selectedRefreshScoreOptionIdsUsed = root.scoreOptionIdsUsed;
-        selectedRefreshDifficultyStateUsed = root.difficultyStateUsed;
-        selectedRefreshDifficultyLampStateUsed = root.difficultyLampStateUsed;
-    }
-
-    function invalidateSelectedRefreshIdentity() : void {
-        selectedRefreshIdentityValid = false;
+    function selectedRefreshDifficultyStateForChart(chartData: var) : var {
+        if (!root.difficultyStateUsed) {
+            return null;
+        }
+        if (selectedRefreshDifficultyCacheChart !== chartData
+                || selectedRefreshDifficultyCacheListGeneration !== listGeneration
+                || selectedRefreshDifficultyCacheScoreGeneration !== scoreGeneration
+                || selectedRefreshDifficultyCacheStateUsed !== root.difficultyStateUsed
+                || selectedRefreshDifficultyCacheLampUsed !== root.difficultyLampStateUsed) {
+            selectedRefreshDifficultyCacheChart = chartData;
+            selectedRefreshDifficultyCacheListGeneration = listGeneration;
+            selectedRefreshDifficultyCacheScoreGeneration = scoreGeneration;
+            selectedRefreshDifficultyCacheStateUsed = root.difficultyStateUsed;
+            selectedRefreshDifficultyCacheLampUsed = root.difficultyLampStateUsed;
+            selectedRefreshDifficultyCacheValue = difficultyStateForChart(chartData);
+        }
+        return selectedRefreshDifficultyCacheValue;
     }
 
     function refreshSelectedScoreState() : var {
         let itemKey = focusedSelectionKey;
         let targetItemKey = focusedSelectionTargetKey;
-        if (root.selectedRefreshIdentityMatches(itemKey, targetItemKey)) {
-            return false;
-        }
         let item = focusedItem;
         let nextChartData = focusedChartData;
         let targetItem = focusedSelectionTarget;
-        let difficultyState = root.difficultyStateUsed ? difficultyStateForChart(nextChartData) : null;
+        let difficultyState = root.selectedRefreshDifficultyStateForChart(nextChartData);
         let targetId = entryIdentifier(targetItem);
         let targetIdString = targetId ? String(targetId) : "";
-        let targetScores = targetIdString.length > 0
-            ? entryScoresForIdentifier(targetId)
-            : emptyScoreList;
-        let changed = selectedDetailState.refreshSelectedFromQmlIdentityForIdentifier(
+        let targetScores = root.selectedRefreshScoresForIdentifier(targetId, targetIdString);
+        let selectedDifficulty = difficultyState ? (difficultyState.selectedDifficulty || 0) : 0;
+        let difficultyCounts = difficultyState ? (difficultyState.counts || emptyDifficultyNumbers) : emptyDifficultyNumbers;
+        let difficultyLevels = difficultyState ? (difficultyState.levels || emptyDifficultyNumbers) : emptyDifficultyNumbers;
+        let difficultyLamps = difficultyState && root.difficultyLampStateUsed
+            ? (difficultyState.lamps || emptyDifficultyNumbers)
+            : emptyDifficultyNumbers;
+        let changed = selectedDetailState.refreshSelectedFromVariantIdentityForIdentifier(
                 itemKey,
                 targetItemKey,
                 rankingMode,
@@ -3349,15 +3351,14 @@ Item {
                 nextChartData,
                 targetScores,
                 targetIdString,
-                difficultyState ? (difficultyState.selectedDifficulty || 0) : 0,
-                difficultyState ? (difficultyState.counts || emptyDifficultyNumbers) : emptyDifficultyNumbers,
-                difficultyState ? (difficultyState.levels || emptyDifficultyNumbers) : emptyDifficultyNumbers,
-                difficultyState && root.difficultyLampStateUsed ? (difficultyState.lamps || emptyDifficultyNumbers) : emptyDifficultyNumbers,
+                selectedDifficulty,
+                difficultyCounts,
+                difficultyLevels,
+                difficultyLamps,
                 root.useBeatorajaSelectOptions,
                 root.scoreOptionIdsUsed,
                 root.difficultyStateUsed,
                 root.difficultyLampStateUsed);
-        root.rememberSelectedRefreshIdentity(itemKey, targetItemKey);
         if (changed) {
             let chartData = nextChartData;
             let nextChartWrapper = chartData || null;
@@ -4393,9 +4394,7 @@ Item {
         }
     }
 
-    function numberValue(num: var) : var {
-        const numeric = Number(num);
-        const id = isFinite(numeric) ? Math.floor(numeric) : 0;
+    function numberValueForId(id: int) : var {
         const revision = numberValueCacheRevisionForNumber(id);
         if (root.numberValueCacheRevisions[id] === revision) {
             return root.numberValueCache[id];
@@ -4405,6 +4404,12 @@ Item {
         root.numberValueCache[id] = value;
         root.numberValueCacheRevisions[id] = revision;
         return value;
+    }
+
+    function numberValue(num: var) : var {
+        const numeric = Number(num);
+        const id = isFinite(numeric) ? Math.floor(numeric) : 0;
+        return numberValueForId(id);
     }
 
     function computeNumberValue(num: var) : var {

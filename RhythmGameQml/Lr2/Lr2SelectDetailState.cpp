@@ -21,28 +21,6 @@ QVariant valueAt(const QVariantList& list, int index) {
 	return index >= 0 && index < list.size() ? list.at(index) : QVariant {};
 }
 
-int jsArrayLength(const QJSValue& value) {
-	return std::max(0, value.property(QStringLiteral("length")).toInt());
-}
-
-QVariant jsValueVariant(const QJSValue& value) {
-	if (QObject* object = value.toQObject()) {
-		return QVariant::fromValue(object);
-	}
-	return value.toVariant();
-}
-
-QVariant optionalJsValueVariant(const QJSValue& value) {
-	return value.isNull() || value.isUndefined() ? QVariant {} : jsValueVariant(value);
-}
-
-int jsIntAt(const QJSValue& list, int length, int index) {
-	if (index < 0 || index >= length) {
-		return 0;
-	}
-	return list.property(static_cast<quint32>(index)).toInt();
-}
-
 const Lr2SelectScoreSummaryData& emptyScoreSummaryData() {
 	static const Lr2SelectScoreSummaryData emptySummary;
 	return emptySummary;
@@ -686,89 +664,6 @@ Lr2SelectScoreSummaryData buildScoreSummaryData(const QVariantList& scoreList,
 		});
 }
 
-Lr2SelectScoreSummaryData buildScoreSummaryDataFromJsValue(const QJSValue& scoreList,
-														   bool useBeatorajaSemantics,
-														   bool buildScoreOptionIds) {
-	return buildScoreSummaryDataForEach(
-		useBeatorajaSemantics,
-		buildScoreOptionIds,
-		[&](const auto& processScore) {
-	for (int i = 0, length = jsArrayLength(scoreList); i < length; ++i) {
-		const QJSValue scoreValue = scoreList.property(static_cast<quint32>(i));
-		QObject* scoreObjectValue = scoreValue.toQObject();
-		if (auto* scoreObject = qobject_cast<gameplay_logic::BmsScore*>(scoreObjectValue)) {
-			const gameplay_logic::BmsResult* result = scoreObject->getResult();
-			if (!result) {
-				continue;
-			}
-			processScore(result->getClearType(),
-                         result->getJudgementCounts(),
-						 result->getMaxCombo(),
-						 result->getMaxPoints(),
-						 result->getPoints(),
-						 static_cast<int>(result->getNoteOrderAlgorithm()),
-						 static_cast<int>(result->getDpOptions()),
-						 static_cast<int>(result->getKeymode()),
-						 [scoreObject]() { return scoreVariant(scoreObject); });
-			continue;
-		}
-
-		if (auto* scoreCourse = qobject_cast<gameplay_logic::BmsScoreCourse*>(scoreObjectValue)) {
-			const gameplay_logic::BmsResultCourse* result = scoreCourse->getResult();
-			if (!result) {
-				continue;
-			}
-			const QList<int> judgementCounts = result->getJudgementCounts();
-			processScore(result->getClearType(),
-						 judgementCounts,
-						 result->getMaxCombo(),
-						 result->getMaxPoints(),
-						 result->getPoints(),
-						 static_cast<int>(result->getNoteOrderAlgorithm()),
-						 static_cast<int>(result->getDpOptions()),
-						 static_cast<int>(result->getKeymode()),
-						 [scoreCourse]() { return scoreVariant(scoreCourse); });
-			continue;
-		}
-
-		const QVariant variantScoreValue = scoreValue.toVariant();
-		if (auto* scoreObject = scoreFromVariant(variantScoreValue)) {
-			const gameplay_logic::BmsResult* result = scoreObject->getResult();
-			if (!result) {
-				continue;
-			}
-			processScore(result->getClearType(),
-                         result->getJudgementCounts(),
-						 result->getMaxCombo(),
-						 result->getMaxPoints(),
-						 result->getPoints(),
-						 static_cast<int>(result->getNoteOrderAlgorithm()),
-						 static_cast<int>(result->getDpOptions()),
-						 static_cast<int>(result->getKeymode()),
-						 [&]() { return variantScoreValue; });
-			continue;
-		}
-
-		if (auto* scoreCourse = courseScoreFromVariant(variantScoreValue)) {
-			const gameplay_logic::BmsResultCourse* result = scoreCourse->getResult();
-			if (!result) {
-				continue;
-			}
-			const QList<int> judgementCounts = result->getJudgementCounts();
-			processScore(result->getClearType(),
-						 judgementCounts,
-						 result->getMaxCombo(),
-						 result->getMaxPoints(),
-						 result->getPoints(),
-						 static_cast<int>(result->getNoteOrderAlgorithm()),
-						 static_cast<int>(result->getDpOptions()),
-						 static_cast<int>(result->getKeymode()),
-						 [&]() { return variantScoreValue; });
-		}
-	}
-		});
-}
-
 } // namespace
 
 bool Lr2SelectScoreStatsData::operator==(const Lr2SelectScoreStatsData& other) const {
@@ -1064,18 +959,6 @@ bool Lr2SelectDifficultyModel::setRows(const QVariantList& counts,
 								  selectedLamp));
 }
 
-bool Lr2SelectDifficultyModel::setRowsFromJsValues(const QJSValue& counts,
-												   const QJSValue& levels,
-												   const QJSValue& lamps,
-												   int selectedDifficulty,
-												   int selectedLamp) {
-	return setRows(rowsFromJsValues(counts,
-									levels,
-									lamps,
-									selectedDifficulty,
-									selectedLamp));
-}
-
 bool Lr2SelectDifficultyModel::setRows(QList<Row> nextRows) {
 	if (m_rows == nextRows) {
 		return false;
@@ -1139,34 +1022,6 @@ QList<Lr2SelectDifficultyModel::Row> Lr2SelectDifficultyModel::rowsFromValues(co
 			!lamps.isEmpty() && difficulty == selectedDifficulty
 				? selectedLamp
 				: valueAt(lamps, difficulty).toInt(),
-		});
-	}
-	return rows;
-}
-
-QList<Lr2SelectDifficultyModel::Row> Lr2SelectDifficultyModel::rowsFromJsValues(const QJSValue& counts,
-																				const QJSValue& levels,
-																				const QJSValue& lamps,
-																				int selectedDifficulty,
-																				int selectedLamp) {
-	const int countCount = jsArrayLength(counts);
-	const int levelCount = jsArrayLength(levels);
-	const int lampCount = jsArrayLength(lamps);
-	if (countCount == 0
-			&& levelCount == 0
-			&& lampCount == 0) {
-		return {};
-	}
-	QList<Row> rows;
-	rows.reserve(5);
-	for (int difficulty = 1; difficulty <= 5; ++difficulty) {
-		rows.append(Row {
-			difficulty,
-			jsIntAt(counts, countCount, difficulty),
-			jsIntAt(levels, levelCount, difficulty),
-			lampCount > 0 && difficulty == selectedDifficulty
-				? selectedLamp
-				: jsIntAt(lamps, lampCount, difficulty),
 		});
 	}
 	return rows;
@@ -1366,7 +1221,7 @@ bool Lr2SelectDetailState::applyRefreshData(int scoreGeneration,
 
 const Lr2SelectScoreSummaryData& Lr2SelectDetailState::cachedScoreSummaryData(
 	const Lr2SelectScoreSummaryCacheKey& cacheKey,
-	const QJSValue& scoreList,
+	const QVariantList& scoreList,
 	bool useBeatorajaSemantics,
 	bool buildScoreOptionIds) {
 	ensureScoreSummaryCacheSemantics(useBeatorajaSemantics, buildScoreOptionIds);
@@ -1378,21 +1233,21 @@ const Lr2SelectScoreSummaryData& Lr2SelectDetailState::cachedScoreSummaryData(
 	if (it != m_scoreSummaryCache.end()) {
 		return it->data;
 	}
-	if (jsArrayLength(scoreList) == 0) {
+	if (scoreList.isEmpty()) {
 		return emptyScoreSummaryData();
 	}
 
 	CachedScoreSummary entry;
-	entry.data = buildScoreSummaryDataFromJsValue(scoreList,
-												  useBeatorajaSemantics,
-												  buildScoreOptionIds);
+	entry.data = buildScoreSummaryData(scoreList,
+									   useBeatorajaSemantics,
+									   buildScoreOptionIds);
 	it = m_scoreSummaryCache.insert(cacheKey, entry);
 	return it->data;
 }
 
 QObject* Lr2SelectDetailState::cachedScoreSummaryForIdentifier(const QString& identifier,
 															   int scoreGeneration,
-															   QJSValue scoreList,
+															   const QVariantList& scoreList,
 															   bool useBeatorajaSemantics,
 															   bool buildScoreOptionIds) {
 	const Lr2SelectScoreSummaryCacheKey cacheKey = scoreSummaryCacheKeyForIdentifier(identifier,
@@ -1805,23 +1660,23 @@ bool Lr2SelectDetailState::selectedIdentityMatches(const QString& itemKey,
 								  difficultyLampStateUsed);
 }
 
-bool Lr2SelectDetailState::refreshSelectedFromQmlIdentityForIdentifier(const QString& itemKey,
-																	   const QString& targetItemKey,
-																	   bool rankingMode,
-																	   int scoreGeneration,
-																	   int listGeneration,
-																	   QJSValue item,
-																	   QJSValue chartData,
-																	   QJSValue scoreList,
-																	   const QString& scoreIdentifier,
-																	   int selectedDifficulty,
-																	   QJSValue difficultyCounts,
-																	   QJSValue difficultyLevels,
-																	   QJSValue difficultyLamps,
-																	   bool useBeatorajaSemantics,
-																	   bool buildScoreOptionIds,
-																	   bool difficultyStateUsed,
-																	   bool difficultyLampStateUsed) {
+bool Lr2SelectDetailState::refreshSelectedFromVariantIdentityForIdentifier(const QString& itemKey,
+																		   const QString& targetItemKey,
+																		   bool rankingMode,
+																		   int scoreGeneration,
+																		   int listGeneration,
+																		   const QVariant& item,
+																		   const QVariant& chartData,
+																		   const QVariantList& scoreList,
+																		   const QString& scoreIdentifier,
+																		   int selectedDifficulty,
+																		   const QVariantList& difficultyCounts,
+																		   const QVariantList& difficultyLevels,
+																		   const QVariantList& difficultyLamps,
+																		   bool useBeatorajaSemantics,
+																		   bool buildScoreOptionIds,
+																		   bool difficultyStateUsed,
+																		   bool difficultyLampStateUsed) {
 	if (selectedRefreshMatches(itemKey,
 							   targetItemKey,
 							   rankingMode,
@@ -1839,22 +1694,22 @@ bool Lr2SelectDetailState::refreshSelectedFromQmlIdentityForIdentifier(const QSt
 	const Lr2SelectScoreSummaryCacheKey scoreCacheKey = scoreSummaryCacheKeyForIdentifier(scoreIdentifier,
 																						  scoreGeneration);
 	if (!isValidScoreSummaryCacheKey(scoreCacheKey)) {
-		scoreSummary = jsArrayLength(scoreList) == 0
+		scoreSummary = scoreList.isEmpty()
 			? &emptyScoreSummaryData()
-			: &(builtScoreSummary = buildScoreSummaryDataFromJsValue(scoreList,
-																	 useBeatorajaSemantics,
-																	 buildScoreOptionIds));
+			: &(builtScoreSummary = buildScoreSummaryData(scoreList,
+														  useBeatorajaSemantics,
+														  buildScoreOptionIds));
 	} else {
 		scoreSummary = &cachedScoreSummaryData(scoreCacheKey,
 											   scoreList,
 											   useBeatorajaSemantics,
 											   buildScoreOptionIds);
 	}
-	const bool difficultyChanged = m_difficultyModel.setRowsFromJsValues(difficultyCounts,
-																		 difficultyLevels,
-																		 difficultyLamps,
-																		 selectedDifficulty,
-																		 scoreSummary->lamp);
+	const bool difficultyChanged = m_difficultyModel.setRows(difficultyCounts,
+															 difficultyLevels,
+															 difficultyLamps,
+															 selectedDifficulty,
+															 scoreSummary->lamp);
 
 	const bool rankingModeChanged = m_selectedRankingMode != rankingMode;
 	rememberSelectedIdentity(itemKey,
@@ -1868,8 +1723,8 @@ bool Lr2SelectDetailState::refreshSelectedFromQmlIdentityForIdentifier(const QSt
 	bool scoreDidChange = false;
 	const bool refreshed = applyRefreshData(scoreGeneration,
 										   listGeneration,
-										   optionalJsValueVariant(item),
-										   optionalJsValueVariant(chartData),
+										   item,
+										   chartData,
 										   useBeatorajaSemantics,
 										   buildScoreOptionIds,
 										   *scoreSummary,

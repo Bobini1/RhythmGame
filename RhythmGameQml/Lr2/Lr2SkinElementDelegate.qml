@@ -548,7 +548,7 @@ Loader {
                 ? elemLoader.valueResolver.numberValue(numberSrc)
                 : 0
             readonly property int focusedSelectNumber: usesFocusedSelectNumber
-                ? selectContext.numberValue(numberId)
+                ? selectContext.numberValueForId(numberId)
                 : 0
             readonly property int currentNumberValue: usesFpsNumber
                 ? elemLoader.screenRoot.lr2CurrentFps

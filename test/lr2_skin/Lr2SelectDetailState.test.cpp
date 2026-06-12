@@ -8,8 +8,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QCoreApplication>
-#include <QJSEngine>
-#include <QJSValue>
 #include <QString>
 #include <QVariantList>
 
@@ -79,7 +77,6 @@ gameplay_logic::BmsScore* scoreWithClearType(const QString& clearType, QObject* 
 }
 
 void refreshState(Lr2SelectDetailState& state,
-				  QJSEngine& engine,
 				  const QString& itemKey,
 				  const QVariantList& scores,
 				  int selectedDifficulty,
@@ -88,20 +85,20 @@ void refreshState(Lr2SelectDetailState& state,
 				  const QVariantList& difficultyLamps,
 				  bool useBeatorajaSemantics,
 				  bool buildScoreOptionIds) {
-	state.refreshSelectedFromQmlIdentityForIdentifier(
+	state.refreshSelectedFromVariantIdentityForIdentifier(
 		itemKey,
 		QString {},
 		false,
 		0,
 		0,
-		QJSValue {},
-		QJSValue {},
-		engine.toScriptValue(scores),
+		QVariant {},
+		QVariant {},
+		scores,
 		itemKey,
 		selectedDifficulty,
-		engine.toScriptValue(difficultyCounts),
-		engine.toScriptValue(difficultyLevels),
-		engine.toScriptValue(difficultyLamps),
+		difficultyCounts,
+		difficultyLevels,
+		difficultyLamps,
 		useBeatorajaSemantics,
 		buildScoreOptionIds,
 		true,
@@ -111,10 +108,8 @@ void refreshState(Lr2SelectDetailState& state,
 int summaryLampFor(const QString& clearType, bool useBeatorajaSemantics) {
 	ensureCoreApplication();
 	Lr2SelectDetailState state;
-	QJSEngine engine;
 	auto* score = scoreWithClearType(clearType, &state);
 	refreshState(state,
-				 engine,
 				 QStringLiteral("key-%1-%2").arg(clearType).arg(useBeatorajaSemantics),
 				 QVariantList {QVariant::fromValue(score)},
 				 0,
@@ -164,11 +159,9 @@ TEST_CASE("LR2 select detail state fills selected difficulty lamp from summary",
 {
 	ensureCoreApplication();
 	Lr2SelectDetailState state;
-	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
 
 	refreshState(state,
-				 engine,
 				 QStringLiteral("selected-difficulty-lamp"),
 				 QVariantList {QVariant::fromValue(score)},
 				 3,
@@ -191,11 +184,9 @@ TEST_CASE("LR2 select detail state can skip selected difficulty lamp",
 {
 	ensureCoreApplication();
 	Lr2SelectDetailState state;
-	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
 
 	refreshState(state,
-				 engine,
 				 QStringLiteral("selected-difficulty-lamp-skipped"),
 				 QVariantList {QVariant::fromValue(score)},
 				 3,
@@ -213,11 +204,9 @@ TEST_CASE("LR2 select detail state can skip score option ids",
 {
 	ensureCoreApplication();
 	Lr2SelectDetailState state;
-	QJSEngine engine;
 	auto* score = scoreWithClearType(QStringLiteral("EASY"), &state);
 
 	refreshState(state,
-				 engine,
 				 QStringLiteral("score-option-skip"),
 				 QVariantList {QVariant::fromValue(score)},
 				 0,
@@ -236,7 +225,6 @@ TEST_CASE("LR2 select detail state keeps zero-point played scores as rank F",
 {
 	ensureCoreApplication();
 	Lr2SelectDetailState state;
-	QJSEngine engine;
 	auto* score = scoreWithValues(QStringLiteral("FAILED"),
 								  0.0,
 								  0.0,
@@ -245,7 +233,6 @@ TEST_CASE("LR2 select detail state keeps zero-point played scores as rank F",
 								  &state);
 
 	refreshState(state,
-				 engine,
 				 QStringLiteral("zero-point-failed"),
 				 QVariantList {QVariant::fromValue(score)},
 				 0,
@@ -268,7 +255,6 @@ TEST_CASE("LR2 select detail state resolves selected score numbers in C++",
 {
 	ensureCoreApplication();
 	Lr2SelectDetailState state;
-	QJSEngine engine;
 	auto* score = scoreWithValues(QStringLiteral("NORMAL"),
 								  42.0,
 								  21.0,
@@ -277,7 +263,6 @@ TEST_CASE("LR2 select detail state resolves selected score numbers in C++",
 								  &state);
 
 	refreshState(state,
-				 engine,
 				 QStringLiteral("selected-number-values"),
 				 QVariantList {QVariant::fromValue(score)},
 				 0,
