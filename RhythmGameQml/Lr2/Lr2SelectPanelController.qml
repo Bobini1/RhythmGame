@@ -1170,6 +1170,7 @@ QtObject {
             }
         }
         if (optionChanged) {
+            root.queueSelectRuntimeActiveOptionsRefresh(false, true, root.selectOptionResolvedTextIds);
             root.playOneShot(soundPlayer || optionChangeSound);
         }
     }
