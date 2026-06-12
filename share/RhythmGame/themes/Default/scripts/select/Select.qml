@@ -30,7 +30,8 @@ FocusScope {
         readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
         readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible
         readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
-        property int replayType: 0
+        readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+        readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
 
         function getScore(type) {
             let scoreList = songList.currentItem?.scores || [];
@@ -102,8 +103,22 @@ FocusScope {
         }
 
         function cycleReplayType() {
-            replayType = (replayType + 1) % 4;
+            setReplayType(replayType + 1);
             return true;
+        }
+
+        function replayTypeIndex(value) {
+            let numeric = Math.floor(Number(value || 0));
+            if (isNaN(numeric)) {
+                numeric = 0;
+            }
+            return ((numeric % 4) + 4) % 4;
+        }
+
+        function setReplayType(value) {
+            if (generalVars) {
+                generalVars.replayType = replayTypeIndex(value);
+            }
         }
 
         function openSelectedAutoplay() {
