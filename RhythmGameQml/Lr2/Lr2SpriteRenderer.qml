@@ -513,7 +513,7 @@ Item {
         Rectangle {
             visible: root.isSolidFill || (!!root.srcData && root.srcData.specialType === 5)
             anchors.fill: parent
-            color: root.srcData && root.srcData.specialType === 5 ? "white" : "black"
+            color: root.srcData && root.srcData.specialType === 5 ? root.tintColor : "black"
         }
     }
 }
