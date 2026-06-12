@@ -688,7 +688,7 @@ QtObject {
         case 407:
             return root.gaugeAfterDot(root.gameplayGaugeValue(s1));
         case 108:
-            return root.gameplayExScore(s1) - root.gameplayExScore(s2);
+            return root.gameplayExScore(s1) - root.gameplayTargetScorePoints(1);
         case 109:
             return root.gameplayRankDelta(s1);
         case 110:
@@ -764,11 +764,15 @@ QtObject {
         case 120:
             return root.gameplayDisplayedScorePrint(2);
         case 121:
-            return root.battleModeActive() ? root.gameplayExScore(s2) : root.gameplayTargetScorePoints(1);
+            return root.battleModeActive() ? root.gameplayExScore(s2) : root.gameplayTargetFinalPoints(1);
         case 122:
-            return root.gameplayRateInteger(s2, true);
+            return root.battleModeActive()
+                ? root.gameplayRateInteger(s2, true)
+                : root.gameplayScoreRateInteger(root.gameplayTargetFinalPoints(1), s1);
         case 123:
-            return root.gameplayRateDecimal(s2, true);
+            return root.battleModeActive()
+                ? root.gameplayRateDecimal(s2, true)
+                : root.gameplayScoreRateDecimal(root.gameplayTargetFinalPoints(1), s1);
         case 124:
             return root.gameplayCombo(2, false);
         case 125:
@@ -796,9 +800,9 @@ QtObject {
         case 136:
             return root.gameplayRateDecimal(s2, false);
         case 150:
-            return root.gameplayHighScorePoints();
+            return root.gameplayHighScoreFinalPoints();
         case 151:
-            return root.gameplayTargetScorePoints(1);
+            return root.gameplayTargetFinalPoints(1);
         case 152:
             return root.gameplayExScore(s1) - root.gameplayHighScorePoints();
         case 153:
@@ -806,13 +810,13 @@ QtObject {
         case 154:
             return root.gameplayRankDelta(s1);
         case 155:
-            return root.gameplayScoreRateInteger(root.gameplayHighScorePoints(), s1);
+            return root.gameplayScoreRateInteger(root.gameplayHighScoreFinalPoints(), s1);
         case 156:
-            return root.gameplayScoreRateDecimal(root.gameplayHighScorePoints(), s1);
+            return root.gameplayScoreRateDecimal(root.gameplayHighScoreFinalPoints(), s1);
         case 157:
-            return root.gameplayScoreRateInteger(root.gameplayTargetScorePoints(1), s1);
+            return root.gameplayScoreRateInteger(root.gameplayTargetFinalPoints(1), s1);
         case 158:
-            return root.gameplayScoreRateDecimal(root.gameplayTargetScorePoints(1), s1);
+            return root.gameplayScoreRateDecimal(root.gameplayTargetFinalPoints(1), s1);
         case 1163: {
             let seconds = root.chartLengthSeconds(chartData);
             return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;

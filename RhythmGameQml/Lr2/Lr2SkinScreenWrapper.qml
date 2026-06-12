@@ -81,6 +81,8 @@ Item {
     }
     property int tableInfoRevision: 0
     property int gameplayRevision: 0
+    property string skinClockRestartKey: ""
+    property bool skinClockRestartLoaded: false
     property int gameplayNumberRevision1: 0
     property int gameplayNumberRevision2: 0
     property int gameplayStaticNumberRevision: 0
@@ -697,13 +699,15 @@ Item {
 
     readonly property var parseActiveOptions: {
         let autoplayOn = root.gameplayAutoplayActive();
+        let vars = root.mainGeneralVarsRef;
+        let ghostPosition = vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0;
         let options = [
             0,  // DEFAULT is always true for #IF.
             20, // no select side panel active.
-            30, // stock LR2 parse-time default: BGA normal.
+            vars && vars.bgaSize === 1 ? 31 : 30,
             autoplayOn ? 33 : 32,
-            34, // stock LR2 parse-time default: ghost off.
-            39, // stock LR2 parse-time default: score graph on.
+            34 + ghostPosition,
+            vars && vars.scoreGraphEnabled === false ? 38 : 39,
             41, // stock LR2 parse-time default: BGA on.
             46, // difficulty filter enabled.
             52, // non-extra mode.
@@ -728,6 +732,17 @@ Item {
             root.appendResultParseOptions(options);
         }
         return root.finalizeOptionList(options);
+    }
+
+    function shouldRestartSkinClockAfterLoad() : var {
+        let currentKey = root.effectiveScreenKey + "\n" + (root.csvPath || "");
+        if (root.skinClockRestartLoaded
+                && root.skinClockRestartKey === currentKey) {
+            return false;
+        }
+        root.skinClockRestartLoaded = true;
+        root.skinClockRestartKey = currentKey;
+        return true;
     }
     property alias selectPanel: selectPanelController.selectPanel
     property alias selectPanelHeldByStart: selectPanelController.selectPanelHeldByStart
@@ -2674,6 +2689,10 @@ Item {
         return root.gameplayBestSavedScore() ? Math.floor(gameplayBestScoreReplayer.points || 0) : 0;
     }
 
+    function gameplayHighScoreFinalPoints() : var {
+        return root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
+    }
+
     function gameplayTargetScorePoints(side: var) : var {
         root.gameplayScoresRevision;
         side = side === 2 ? 2 : 1;
@@ -2883,14 +2902,21 @@ Item {
 
     function gameplayRankDelta(score: var) : var {
         let totalNotes = root.gameplayTotalNotes(score);
-        let perfectScore = totalNotes * 2;
+        let currentNotes = root.gameplayCurrentNotes(score);
         let exScore = root.gameplayExScore(score);
-        if (totalNotes <= 0 || exScore === perfectScore) {
+        if (totalNotes <= 0 || currentNotes <= 0) {
             return 0;
         }
-        let rank = Math.floor(exScore * 9 / perfectScore);
-        rank = Math.max(1, Math.min(8, rank));
-        return exScore - Math.floor(perfectScore * (rank + 1) / 9);
+        let rate = exScore / (totalNotes * 2);
+        let currentPerfectScore = currentNotes * 2;
+        for (let rank = 0; rank < 27; ++rank) {
+            if (rank % 3 !== 0 || rate >= rank / 27) {
+                continue;
+            }
+            return Math.ceil(rank * currentPerfectScore / 27
+                             - rate * currentPerfectScore);
+        }
+        return currentPerfectScore - exScore;
     }
 
     function gameplayTimeSeconds(side: var, remaining: var) : var {
@@ -4984,7 +5010,9 @@ Item {
             if (root.effectiveScreenKey === "select") {
                 selectContext.resetSortSourceFrameCount();
             }
-            root.queueSkinClockRestartAfterLoad();
+            if (root.shouldRestartSkinClockAfterLoad()) {
+                root.queueSkinClockRestartAfterLoad();
+            }
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
             root.refreshLr2SkinSettingItems();
