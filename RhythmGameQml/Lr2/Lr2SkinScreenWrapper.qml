@@ -1577,12 +1577,7 @@ Item {
         if (!vars) {
             return 0;
         }
-        if (root.gameplayScreenActive) {
-            let cover = vars.laneCoverOn ? (vars.laneCoverRatio || 0) : 0;
-            let lift = vars.liftOn ? (vars.liftRatio || 0) : 0;
-            return Math.round(Math.max(0, Math.min(1, 1 - cover - lift)) * 1000);
-        }
-        return Math.round((vars.laneCoverRatio || 0) * 1000);
+        return Math.round(Math.max(0, Math.min(1, vars.laneCoverRatio || 0)) * 1000);
     }
 
     function gameplayLaneCoverSliderPosition(side: var) : var {
@@ -1628,7 +1623,7 @@ Item {
         let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
         let vars = root.generalVarsForSide(side);
         let visible = cover && vars ? 1 - (vars.laneCoverRatio || 0) : 1;
-        return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 1.0 : 0.6));
+        return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 0.6 : 1.0));
     }
 
     function firstDstStateY(dsts: var) : var {

@@ -764,7 +764,7 @@ QtObject {
         case 120:
             return root.gameplayDisplayedScorePrint(2);
         case 121:
-            return root.gameplayExScore(s2);
+            return root.battleModeActive() ? root.gameplayExScore(s2) : root.gameplayTargetScorePoints(1);
         case 122:
             return root.gameplayRateInteger(s2, true);
         case 123:
