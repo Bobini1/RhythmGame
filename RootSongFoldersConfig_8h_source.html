@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -148,7 +148,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>  <span class="keyword">public</span>:</div>
 <div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>    <span class="keyword">auto</span> rowCount(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) <span class="keyword">const</span></div>
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>      -&gt; <span class="keywordtype">int</span> <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keyword">auto</span> data(<span class="keyword">const</span> QModelIndex&amp; index = QModelIndex(),</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    <span class="keyword">auto</span> <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>(<span class="keyword">const</span> QModelIndex&amp; index = QModelIndex(),</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>              <span class="keywordtype">int</span> role = Qt::DisplayRole) <span class="keyword">const</span> -&gt; QVariant <span class="keyword">override</span>;</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>(<a class="code hl_class" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a>* <a class="code hl_namespace" href="namespacedb.html">db</a>,</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                             <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue,</div>
@@ -182,11 +182,11 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordtype">void</span> scanImpl(<span class="keyword">const</span> QString&amp; which);</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">void</span> <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#adce09b58735103e5e3117a2132b5de76">clear</a>(<span class="keyword">const</span> QString&amp; which);</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">void</span> clear(<span class="keyword">const</span> QString&amp; which);</div>
 <div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">~ScanningQueue</a>() <span class="keyword">override</span>;</div>
 <div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keyword">auto</span> rowCount(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) const</div>
 <div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      -&gt; <span class="keywordtype">int</span> override;</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    auto data(const QModelIndex&amp; index = QModelIndex(),</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    auto <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>(const QModelIndex&amp; index = QModelIndex(),</div>
 <div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>              <span class="keywordtype">int</span> role = Qt::DisplayRole) const -&gt; QVariant override;</div>
 <div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    explicit <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>(<a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb* <a class="code hl_namespace" href="namespacedb.html">db</a>,</div>
 <div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                           <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::SongDbScanner scanner,</div>
@@ -224,7 +224,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>} <span class="comment">// namespace qml_components</span></div>
 <div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
 <div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_ROOTSONGFOLDERSCONFIG_H</span></div>
-<div class="ttc" id="aOnlineRankingModel_8cpp_html_adce09b58735103e5e3117a2132b5de76"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#adce09b58735103e5e3117a2132b5de76">clear</a></div><div class="ttdeci">int clear</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:457</div></div>
+<div class="ttc" id="aLr2FontCache_8cpp_html_ad44c6ce322034044d573e6d4678d630b"><div class="ttname"><a href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a></div><div class="ttdeci">QByteArray data</div><div class="ttdef"><b>Definition</b> Lr2FontCache.cpp:25</div></div>
 <div class="ttc" id="aSongDbScanner_8h_html"><div class="ttname"><a href="SongDbScanner_8h.html">SongDbScanner.h</a></div></div>
 <div class="ttc" id="aSqliteCppDb_8h_html"><div class="ttname"><a href="SqliteCppDb_8h.html">SqliteCppDb.h</a></div></div>
 <div class="ttc" id="aclassdb_1_1SqliteCppDb_1_1Statement_html"><div class="ttname"><a href="classdb_1_1SqliteCppDb_1_1Statement.html">db::SqliteCppDb::Statement</a></div><div class="ttdoc">Wrapper for SQLiteCpp::Statement.</div><div class="ttdef"><b>Definition</b> SqliteCppDb.h:34</div></div>

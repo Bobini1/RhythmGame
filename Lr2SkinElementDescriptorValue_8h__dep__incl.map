@@ -1,0 +1,12 @@
+<map id="RhythmGameQml/Lr2/Lr2SkinElementDescriptorValue.h" name="RhythmGameQml/Lr2/Lr2SkinElementDescriptorValue.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="87,5,302,45"/>
+<area shape="rect" id="Node000002" href="$Lr2SkinRuntime_8h.html" title=" " alt="" coords="87,93,302,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="197,59,197,93,192,93,192,59"/>
+<area shape="rect" id="Node000003" href="$Lr2SelectUpdateController_8cpp.html" title=" " alt="" coords="5,269,232,309"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="119,142,92,159,72,183,66,204,72,227,85,249,101,268,97,271,81,252,67,229,61,204,67,180,89,155,116,137"/>
+<area shape="rect" id="Node000004" href="$Lr2SelectUpdateController_8h.html" title=" " alt="" coords="81,181,308,221"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="197,147,197,181,192,181,192,147"/>
+<area shape="rect" id="Node000005" href="$Lr2SkinRuntime_8cpp.html" title=" " alt="" coords="333,181,547,221"/>
+<area shape="poly" id="edge5_Node000002_Node000005" title=" " alt="" coords="262,135,387,179,385,184,261,140"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="171,234,137,271,133,267,167,230"/>
+</map>

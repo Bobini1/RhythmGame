@@ -1,6 +1,9 @@
 <map id="RhythmGameQml" name="RhythmGameQml">
-<area shape="rect" id="node1" href="dir_93b620ca52d15d6769586ad1bbe408e7.html" title="RhythmGameQml" alt="" coords="5,5,144,31"/>
-<area shape="rect" id="node2" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html" title="src" alt="" coords="54,79,95,104"/>
-<area shape="poly" id="edge1" href="dir_000008_000011.html" alt="" coords="77,31,77,65,72,65,72,31"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000008_000011.html" title="12" alt="" coords="74,53,92,68"/>
+<area shape="rect" id="node3" href="dir_68267d1309a1af8e8297ef4c3efbcdba.html" title="src" alt="" coords="85,100,126,125"/>
+<area shape="poly" id="edge1" href="dir_000012_000015.html" alt="" coords="155,54,125,91,121,87,151,51"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000012_000015.html" title="50" alt="" coords="124,84,141,98"/>
+<area shape="rect" id="node2" href="dir_a039bdf4c6ecb59555cfb9223251b35b.html" title="Lr2" alt="" coords="27,27,69,52"/>
+<area shape="poly" id="edge2" href="dir_000006_000015.html" alt="" coords="60,51,89,87,85,91,55,54"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000006_000015.html" title="18" alt="" coords="83,73,100,88"/>
+<area shape="rect" id="clust1" href="dir_93b620ca52d15d6769586ad1bbe408e7.html" alt="" coords="16,16,243,63"/>
 </map>

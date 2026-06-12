@@ -7,5 +7,6 @@ var searchData=
   ['iflist_4',['IfList',['../structcharts_1_1IfList.html',1,'charts']]],
   ['iniimageprovider_5',['IniImageProvider',['../classresource__managers_1_1IniImageProvider.html',1,'resource_managers']]],
   ['inputattached_6',['InputAttached',['../classqml__components_1_1InputAttached.html',1,'qml_components']]],
-  ['inputtranslator_7',['InputTranslator',['../classinput_1_1InputTranslator.html',1,'input']]]
+  ['inputtranslator_7',['InputTranslator',['../classinput_1_1InputTranslator.html',1,'input']]],
+  ['inputtranslatorforeign_8',['InputTranslatorForeign',['../structrhythm__game__qml_1_1InputTranslatorForeign.html',1,'rhythm_game_qml']]]
 ];

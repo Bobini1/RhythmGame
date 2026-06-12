@@ -1,0 +1,17 @@
+<map id="RhythmGameQml/Lr2/Lr2SelectDetailState.h" name="RhythmGameQml/Lr2/Lr2SelectDetailState.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="289,5,516,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,80,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,48,94,96,93,90,313,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="104,93,253,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="350,48,225,91,223,86,348,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="278,93,343,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="382,48,337,86,333,82,379,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="367,93,438,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="405,46,405,79,400,79,400,46"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="462,93,541,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="428,43,477,82,474,87,425,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="565,93,667,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="455,43,572,86,571,91,453,48"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="691,93,879,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="495,43,717,88,716,93,494,48"/>
+</map>

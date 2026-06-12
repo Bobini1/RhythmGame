@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -149,13 +149,13 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>      std::function&lt;<span class="keywordtype">double</span>(std::chrono::nanoseconds, <a class="code hl_enumeration" href="namespacegameplay__logic_1_1judgement.html#a4dd73363d266a4e4aa41782d0e02b6e6">Judgement</a> judgement)&gt;</div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        hitValueFactory);</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a5752ce3c3220b9b7204948084db2e22c">disableSound</a>();</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a715913bca675eea5edc2ae680eb6c2ed">press</a>(std::span&lt;Note&gt; <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>,</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a715913bca675eea5edc2ae680eb6c2ed">press</a>(std::span&lt;Note&gt; notes,</div>
 <div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>               <span class="keywordtype">int</span> <a class="code hl_variable" href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a>,</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>               std::chrono::nanoseconds hitOffset,</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>               std::optional&lt;input::BmsKey&gt; key = std::nullopt)</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      -&gt; QList&lt;HitEvent&gt;;</div>
 <div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a11299eb479ee6eea3273a50548838a63">processMisses</a>(std::span&lt;Note&gt; <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>,</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a11299eb479ee6eea3273a50548838a63">processMisses</a>(std::span&lt;Note&gt; notes,</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                       <span class="keywordtype">int</span> <a class="code hl_variable" href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a>,</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                       std::chrono::nanoseconds <a class="code hl_variable" href="BmsReplayData_8cpp.html#a9f1b9a255b6468923cd96a957db82d36">offsetFromStart</a>)</div>
 <div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      -&gt; std::vector&lt;HitEvent&gt;;</div>
@@ -166,7 +166,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>                      <span class="keywordtype">bool</span> <a class="code hl_variable" href="BeatorajaReplayImporter_8cpp.html#a132ba96da5ba28448b61e42c019312a9">pressed</a>,</div>
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                      <a class="code hl_class" href="classsounds_1_1Sound.html">sounds::Sound</a>* mineHitSound)</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>      -&gt; std::vector&lt;HitEvent&gt;;</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a37fd81719d74976263834884eb57779d">release</a>(std::span&lt;Note&gt; <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>,</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classgameplay__logic_1_1rules_1_1HitRules.html#a37fd81719d74976263834884eb57779d">release</a>(std::span&lt;Note&gt; notes,</div>
 <div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                 <span class="keywordtype">int</span> <a class="code hl_variable" href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a>,</div>
 <div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>                 std::chrono::nanoseconds hitOffset,</div>
 <div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>                 std::optional&lt;input::BmsKey&gt; key = std::nullopt) -&gt; <a class="code hl_class" href="classgameplay__logic_1_1HitEvent.html">HitEvent</a>;</div>
@@ -179,10 +179,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aBmsGauge_8h_html"><div class="ttname"><a href="BmsGauge_8h.html">BmsGauge.h</a></div></div>
 <div class="ttc" id="aBmsKeys_8h_html"><div class="ttname"><a href="BmsKeys_8h.html">BmsKeys.h</a></div></div>
 <div class="ttc" id="aBmsNotesData_8h_html"><div class="ttname"><a href="BmsNotesData_8h.html">BmsNotesData.h</a></div></div>
-<div class="ttc" id="aBmsReplayData_8cpp_html_a60dae4c6e78188cd718b696e4f08fc71"><div class="ttname"><a href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a></div><div class="ttdeci">int column</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:28</div></div>
-<div class="ttc" id="aBmsReplayData_8cpp_html_a9f1b9a255b6468923cd96a957db82d36"><div class="ttname"><a href="BmsReplayData_8cpp.html#a9f1b9a255b6468923cd96a957db82d36">offsetFromStart</a></div><div class="ttdeci">int64_t offsetFromStart</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:25</div></div>
+<div class="ttc" id="aBmsReplayData_8cpp_html_a60dae4c6e78188cd718b696e4f08fc71"><div class="ttname"><a href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a></div><div class="ttdeci">int column</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:29</div></div>
+<div class="ttc" id="aBmsReplayData_8cpp_html_a9f1b9a255b6468923cd96a957db82d36"><div class="ttname"><a href="BmsReplayData_8cpp.html#a9f1b9a255b6468923cd96a957db82d36">offsetFromStart</a></div><div class="ttdeci">int64_t offsetFromStart</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:26</div></div>
 <div class="ttc" id="aHitEvent_8h_html"><div class="ttname"><a href="HitEvent_8h.html">HitEvent.h</a></div></div>
-<div class="ttc" id="aOnlineRankingModel_8cpp_html_a7dbd379c73b20ded52adb099da250071"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a></div><div class="ttdeci">int notes</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:458</div></div>
 <div class="ttc" id="aTimingWindows_8h_html"><div class="ttname"><a href="TimingWindows_8h.html">TimingWindows.h</a></div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1HitEvent_html"><div class="ttname"><a href="classgameplay__logic_1_1HitEvent.html">gameplay_logic::HitEvent</a></div><div class="ttdoc">A very generic event that happened during gameplay.</div><div class="ttdef"><b>Definition</b> HitEvent.h:19</div></div>
 <div class="ttc" id="aclassgameplay__logic_1_1rules_1_1HitRules_html"><div class="ttname"><a href="classgameplay__logic_1_1rules_1_1HitRules.html">gameplay_logic::rules::HitRules</a></div><div class="ttdoc">The class that determines which notes get hit or missed.</div><div class="ttdef"><b>Definition</b> HitRules.h:36</div></div>

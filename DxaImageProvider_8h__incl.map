@@ -1,0 +1,20 @@
+<map id="src/resource_managers/DxaImageProvider.h" name="src/resource_managers/DxaImageProvider.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="220,5,393,45"/>
+<area shape="rect" id="Node000002" href="$dxa_8h.html" title=" " alt="" coords="90,93,201,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,48,183,90,180,85,267,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,96,192"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="220,35,183,42,146,54,110,72,79,95,69,108,62,123,55,154,50,152,57,121,65,105,75,91,107,67,144,49,182,37,219,30"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="225,93,389,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="309,46,309,79,304,79,304,46"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="413,93,477,119"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="341,43,414,84,412,89,339,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="502,93,626,119"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="369,43,514,87,513,92,368,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="132,121,79,160,76,156,129,117"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="120,167,171,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="148,119,148,153,143,153,143,119"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="195,167,272,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="161,117,210,156,207,160,158,121"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="296,167,355,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="175,116,284,159,282,164,173,121"/>
+</map>

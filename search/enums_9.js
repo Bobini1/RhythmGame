@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['noteorderalgorithm_0',['NoteOrderAlgorithm',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691',1,'resource_managers::note_order_algorithm']]],
-  ['notetype_1',['notetype',['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997',1,'charts::BmsNotesData::NoteType'],['../classgameplay__logic_1_1rules_1_1HitRules.html#a443db728853f654e21e75e9dd322a716',1,'gameplay_logic::rules::HitRules::NoteType']]]
+  ['keymode_0',['Keymode',['../classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04',1,'gameplay_logic::ChartData']]],
+  ['kind_1',['kind',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcBarImage.html#aa7176283b740debff806c113ad921337',1,'gameplay_logic::lr2_skin::Lr2SrcBarImage::Kind'],['../structgameplay__logic_1_1lr2__skin_1_1Lr2SrcBarNumber.html#a78eff453598d2dacadf0e6a109c2df25',1,'gameplay_logic::lr2_skin::Lr2SrcBarNumber::Kind']]]
 ];

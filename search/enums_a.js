@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['provider_0',['Provider',['../classqml__components_1_1OnlineRankingModel.html#a3cb485c0fd73499916e3e6db1a964aac',1,'qml_components::OnlineRankingModel']]]
+  ['lntype_0',['LnType',['../structcharts_1_1BmsNotesData.html#a65fd4b4ad481a5966521748190b18c0d',1,'charts::BmsNotesData']]],
+  ['loginstate_1',['LoginState',['../classresource__managers_1_1Profile.html#a24ca795ca1e26537ba6acf5815cc3d14',1,'resource_managers::Profile']]]
 ];

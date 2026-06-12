@@ -1,0 +1,15 @@
+<map id="src/resource_managers/ChartFolderModel.h" name="src/resource_managers/ChartFolderModel.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="205,5,378,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,71,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,48,85,93,83,88,230,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="95,93,170,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="255,48,169,90,167,85,252,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="195,93,273,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="280,47,253,84,249,80,275,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="298,93,399,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="307,44,334,80,330,84,303,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="423,93,530,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="337,43,438,85,436,90,335,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="555,93,743,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="377,43,584,88,583,93,376,48"/>
+</map>

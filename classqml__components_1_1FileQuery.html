@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -76,7 +76,7 @@ $(function() {
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="classqml__components_1_1FileQuery-members.html">List of all members</a>  </div>
-  <div class="headertitle"><div class="title">qml_components::FileQuery Class Reference<span class="mlabels"><span class="mlabel">final</span></span></div></div>
+  <div class="headertitle"><div class="title">qml_components::FileQuery Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
 
@@ -104,31 +104,13 @@ Collaboration diagram for qml_components::FileQuery:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a432f5b6ec31fa1cad9f8678f46aa723b" id="r_a432f5b6ec31fa1cad9f8678f46aa723b"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a432f5b6ec31fa1cad9f8678f46aa723b">exists</a> (const QString &amp;path)</td></tr>
-<tr class="separator:a432f5b6ec31fa1cad9f8678f46aa723b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7c2d3c68d24848e4ae27e37159013e61" id="r_a7c2d3c68d24848e4ae27e37159013e61"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QList&lt; QString &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a7c2d3c68d24848e4ae27e37159013e61">getSelectableFilesForDirectory</a> (const QString &amp;directory) const</td></tr>
+<tr class="memitem:a79de2ad03ac6948b7645001e2834f91f" id="r_a79de2ad03ac6948b7645001e2834f91f"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a79de2ad03ac6948b7645001e2834f91f">readTextFile</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) const</td></tr>
+<tr class="separator:a79de2ad03ac6948b7645001e2834f91f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c2d3c68d24848e4ae27e37159013e61" id="r_a7c2d3c68d24848e4ae27e37159013e61"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QList&lt; QString &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a7c2d3c68d24848e4ae27e37159013e61">getSelectableFilesForDirectory</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>) const</td></tr>
 <tr class="memdesc:a7c2d3c68d24848e4ae27e37159013e61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a list of all files in a directory EXCLUDING ini files.  <br /></td></tr>
 <tr class="separator:a7c2d3c68d24848e4ae27e37159013e61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a432f5b6ec31fa1cad9f8678f46aa723b" name="a432f5b6ec31fa1cad9f8678f46aa723b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a432f5b6ec31fa1cad9f8678f46aa723b">&#9670;&#160;</a></span>exists()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto qml_components::FileQuery::exists </td>
-          <td>(</td>
-          <td class="paramtype">const QString &amp;&#160;</td>
-          <td class="paramname"><em>path</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a7c2d3c68d24848e4ae27e37159013e61" name="a7c2d3c68d24848e4ae27e37159013e61"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7c2d3c68d24848e4ae27e37159013e61">&#9670;&#160;</a></span>getSelectableFilesForDirectory()</h2>
 
@@ -153,6 +135,24 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A list of all files in the directory EXCLUDING ini files. </dd></dl>
+
+</div>
+</div>
+<a id="a79de2ad03ac6948b7645001e2834f91f" name="a79de2ad03ac6948b7645001e2834f91f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a79de2ad03ac6948b7645001e2834f91f">&#9670;&#160;</a></span>readTextFile()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::FileQuery::readTextFile </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>path</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>

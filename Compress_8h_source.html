@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -98,12 +98,12 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">auto</span></div>
 <div class="foldopen" id="foldopen00017" data-start="{" data-end="}">
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespacesupport.html#a2f8f7e59bdb0445162c41761c07e75e4">   17</a></span><a class="code hl_function" href="namespacesupport.html#a2f8f7e59bdb0445162c41761c07e75e4">compress</a>(<span class="keyword">const</span> T&amp; data) -&gt; QByteArray</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno"><a class="line" href="namespacesupport.html#a2f8f7e59bdb0445162c41761c07e75e4">   17</a></span><a class="code hl_function" href="namespacesupport.html#a2f8f7e59bdb0445162c41761c07e75e4">compress</a>(<span class="keyword">const</span> T&amp; <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>) -&gt; QByteArray</div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>{</div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>    <span class="keyword">using namespace </span>std::string_literals;</div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>    <span class="keyword">auto</span> buffer = QByteArray{};</div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>    <span class="keyword">auto</span> stream = QDataStream{ &amp;buffer, QIODevice::WriteOnly };</div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    stream &lt;&lt; data;</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>    stream &lt;&lt; <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>;</div>
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>    <span class="keyword">auto</span> compressedBuffer = QByteArray{};</div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>    compressedBuffer.resize(ZSTD_compressBound(buffer.size()));</div>
 <div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>    <span class="keyword">auto</span> compressedSize = ZSTD_compress(compressedBuffer.data(),</div>
@@ -122,11 +122,11 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keywordtype">void</span></div>
 <div class="foldopen" id="foldopen00039" data-start="{" data-end="}">
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">   39</a></span><a class="code hl_function" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">decompress</a>(QByteArray data, T&amp; out)</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno"><a class="line" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">   39</a></span><a class="code hl_function" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">decompress</a>(QByteArray <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>, T&amp; out)</div>
 <div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>{</div>
 <div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>    <span class="keyword">using namespace </span>std::string_literals;</div>
 <div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>    <span class="keyword">auto</span> decompressedBuffer = QByteArray{};</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keyword">auto</span> decompressedSize = ZSTD_getFrameContentSize(data.data(), data.size());</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>    <span class="keyword">auto</span> decompressedSize = ZSTD_getFrameContentSize(<a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>.data(), <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>.size());</div>
 <div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    <span class="keywordflow">if</span> (ZSTD_isError(decompressedSize)) {</div>
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        <span class="keyword">const</span> <span class="keyword">auto</span>* error = ZSTD_getErrorName(decompressedSize);</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keywordflow">throw</span> std::runtime_error{ <span class="stringliteral">&quot;Failed to decompress data: &quot;</span>s + error };</div>
@@ -134,8 +134,8 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>    decompressedBuffer.resize(decompressedSize);</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>    decompressedSize = ZSTD_decompress(decompressedBuffer.data(),</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>                                       decompressedBuffer.size(),</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                                       data.data(),</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                                       data.size());</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                                       <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>.data(),</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                                       <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>.size());</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>    <span class="keywordflow">if</span> (ZSTD_isError(decompressedSize)) {</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        <span class="keyword">const</span> <span class="keyword">auto</span>* error = ZSTD_getErrorName(decompressedSize);</div>
 <div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">throw</span> std::runtime_error{ <span class="stringliteral">&quot;Failed to decompress data: &quot;</span>s + error };</div>
@@ -149,10 +149,10 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T&gt;</div>
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>T</div>
 <div class="foldopen" id="foldopen00064" data-start="{" data-end="}">
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="namespacesupport.html#ac0a5d7a67683b20124f54061dae1bfdd">   64</a></span><a class="code hl_function" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">decompress</a>(QByteArray data)</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="namespacesupport.html#ac0a5d7a67683b20124f54061dae1bfdd">   64</a></span><a class="code hl_function" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">decompress</a>(QByteArray <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>)</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>{</div>
 <div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    T t;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <a class="code hl_function" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">decompress</a>(data, t);</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    <a class="code hl_function" href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">decompress</a>(<a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>, t);</div>
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordflow">return</span> t;</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>}</div>
 </div>
@@ -160,6 +160,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>} <span class="comment">// namespace support</span></div>
 <div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_COMPRESS_H</span></div>
+<div class="ttc" id="aLr2FontCache_8cpp_html_ad44c6ce322034044d573e6d4678d630b"><div class="ttname"><a href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a></div><div class="ttdeci">QByteArray data</div><div class="ttdef"><b>Definition</b> Lr2FontCache.cpp:25</div></div>
 <div class="ttc" id="anamespacesupport_html"><div class="ttname"><a href="namespacesupport.html">support</a></div><div class="ttdoc">Contains various helper classes and functions.</div><div class="ttdef"><b>Definition</b> Capitalize.h:9</div></div>
 <div class="ttc" id="anamespacesupport_html_a013f33d8423f315bd6224914f7791fb9"><div class="ttname"><a href="namespacesupport.html#a013f33d8423f315bd6224914f7791fb9">support::decompress</a></div><div class="ttdeci">void decompress(QByteArray data, T &amp;out)</div><div class="ttdef"><b>Definition</b> Compress.h:39</div></div>
 <div class="ttc" id="anamespacesupport_html_a2f8f7e59bdb0445162c41761c07e75e4"><div class="ttname"><a href="namespacesupport.html#a2f8f7e59bdb0445162c41761c07e75e4">support::compress</a></div><div class="ttdeci">auto compress(const T &amp;data) -&gt; QByteArray</div><div class="ttdef"><b>Definition</b> Compress.h:17</div></div>

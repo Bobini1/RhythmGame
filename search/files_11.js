@@ -18,12 +18,14 @@ var searchData=
   ['snap_2eh_15',['Snap.h',['../Snap_8h.html',1,'']]],
   ['songdbscanner_2ecpp_16',['SongDbScanner.cpp',['../SongDbScanner_8cpp.html',1,'']]],
   ['songdbscanner_2eh_17',['SongDbScanner.h',['../SongDbScanner_8h.html',1,'']]],
-  ['songfolderfactory_2ecpp_18',['SongFolderFactory.cpp',['../SongFolderFactory_8cpp.html',1,'']]],
-  ['songfolderfactory_2eh_19',['SongFolderFactory.h',['../SongFolderFactory_8h.html',1,'']]],
-  ['sound_2ecpp_20',['Sound.cpp',['../Sound_8cpp.html',1,'']]],
-  ['sound_2eh_21',['Sound.h',['../Sound_8h.html',1,'']]],
-  ['soundbuffer_2ecpp_22',['SoundBuffer.cpp',['../SoundBuffer_8cpp.html',1,'']]],
-  ['soundbuffer_2eh_23',['SoundBuffer.h',['../SoundBuffer_8h.html',1,'']]],
-  ['sqlitecppdb_2ecpp_24',['SqliteCppDb.cpp',['../SqliteCppDb_8cpp.html',1,'']]],
-  ['sqlitecppdb_2eh_25',['SqliteCppDb.h',['../SqliteCppDb_8h.html',1,'']]]
+  ['songdirectoryfilepathfetcher_2ecpp_18',['SongDirectoryFilePathFetcher.cpp',['../SongDirectoryFilePathFetcher_8cpp.html',1,'']]],
+  ['songdirectoryfilepathfetcher_2eh_19',['SongDirectoryFilePathFetcher.h',['../SongDirectoryFilePathFetcher_8h.html',1,'']]],
+  ['songfolderfactory_2ecpp_20',['SongFolderFactory.cpp',['../SongFolderFactory_8cpp.html',1,'']]],
+  ['songfolderfactory_2eh_21',['SongFolderFactory.h',['../SongFolderFactory_8h.html',1,'']]],
+  ['sound_2ecpp_22',['Sound.cpp',['../Sound_8cpp.html',1,'']]],
+  ['sound_2eh_23',['Sound.h',['../Sound_8h.html',1,'']]],
+  ['soundbuffer_2ecpp_24',['SoundBuffer.cpp',['../SoundBuffer_8cpp.html',1,'']]],
+  ['soundbuffer_2eh_25',['SoundBuffer.h',['../SoundBuffer_8h.html',1,'']]],
+  ['sqlitecppdb_2ecpp_26',['SqliteCppDb.cpp',['../SqliteCppDb_8cpp.html',1,'']]],
+  ['sqlitecppdb_2eh_27',['SqliteCppDb.h',['../SqliteCppDb_8h.html',1,'']]]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['wav_5ft_0',['wav_t',['../namespacecharts.html#a9829ed4fc2d4d39ee97d1b460638c72f',1,'charts']]]
+  ['timepoint_0',['TimePoint',['../namespacegameplay__logic.html#a12dd2b5bc311a80c0c84c789c6f01618',1,'gameplay_logic']]],
+  ['timingwindows_1',['TimingWindows',['../namespacegameplay__logic_1_1rules.html#a0a8cef460ac2d13e98de365dc8b265cd',1,'gameplay_logic::rules']]]
 ];

@@ -1,5 +1,7 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="Node000000" title=" " alt="" coords="5,5,120,31"/>
-<area shape="rect" id="Node000001" href="$classsupport_1_1Exception.html" title=" " alt="" coords="168,5,311,31"/>
-<area shape="poly" id="edge71_Node000000_Node000001" title=" " alt="" coords="133,15,167,15,167,21,133,21"/>
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,31,132,56"/>
+<area shape="rect" id="Node000001" href="$classCimPlugin.html" title=" " alt="" coords="180,5,268,31"/>
+<area shape="poly" id="edge100_Node000000_Node000001" title=" " alt="" coords="145,28,179,22,180,28,146,33"/>
+<area shape="rect" id="Node000002" href="$classTgaPlugin.html" title=" " alt="" coords="181,55,267,80"/>
+<area shape="poly" id="edge101_Node000000_Node000002" title=" " alt="" coords="146,53,181,58,180,63,145,58"/>
 </map>

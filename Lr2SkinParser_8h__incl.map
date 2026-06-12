@@ -1,0 +1,15 @@
+<map id="src/gameplay_logic/lr2_skin/Lr2SkinParser.h" name="src/gameplay_logic/lr2_skin/Lr2SkinParser.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="180,5,360,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,93,76,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="216,48,88,91,86,86,214,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="100,93,179,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="240,48,172,88,169,84,237,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="203,93,257,119"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="263,47,245,82,240,80,258,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="281,93,341,119"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="282,44,301,80,296,82,278,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="365,93,460,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="305,43,381,84,379,89,303,48"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="485,93,586,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="334,43,484,87,483,92,333,48"/>
+</map>

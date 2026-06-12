@@ -1,7 +1,20 @@
 var searchData=
 [
-  ['histogramdata_0',['histogramData',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a7985bfd1b49bcdcb75f2fef47d6d3ac6',1,'gameplay_logic::ChartData::DTO']]],
-  ['hit_1',['hit',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#a3d8c3b677253420876865922dafc9641',1,'gameplay_logic::rules::HitRules::Note::hit'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html#a7619c605337f39c4d868d557fd414348',1,'gameplay_logic::rules::HitRules::Mine::hit']]],
-  ['hitevents_2',['hitEvents',['../structgameplay__logic_1_1BmsReplayData_1_1DTO.html#ac0bfc242e8e7f8a2dd37875429bcc18a',1,'gameplay_logic::BmsReplayData::DTO']]],
-  ['hitrules_3',['hitRules',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData']]]
+  ['h_0',['h',['../structlr2skin_1_1runtime_1_1Source.html#adedf98d3ee20351c5bc5ea8df4c6c801',1,'lr2skin::runtime::Source::h'],['../structlr2skin_1_1runtime_1_1Dst.html#a90cff8d6ba4c122590690b8991a40fd0',1,'lr2skin::runtime::Dst::h']]],
+  ['hard_1',['hard',['../structLr2SelectScoreCountsData.html#a57fefa20f5802f71d81784ce7e3218d7',1,'Lr2SelectScoreCountsData']]],
+  ['hasbardistributiongraphsource_2',['hasBarDistributionGraphSource',['../Lr2SkinParser_8cpp.html#ac41f7c76b7b8d23b2565a4db20a3b98a',1,'Lr2SkinParser.cpp']]],
+  ['hasbarflashsource_3',['hasBarFlashSource',['../Lr2SkinParser_8cpp.html#aef00693e110e34c5dfab0b49e927f011',1,'Lr2SkinParser.cpp']]],
+  ['hascurrentelement_4',['hasCurrentElement',['../Lr2SkinParser_8cpp.html#ad1f3051f0c8a9e18e03dd60671a9f0b9',1,'Lr2SkinParser.cpp']]],
+  ['haskind_5',['hasKind',['../structlr2skin_1_1runtime_1_1Source.html#aa3d4d36ebf48c65477fdaf2a6ff969a2',1,'lr2skin::runtime::Source']]],
+  ['hasnoteelement_6',['hasNoteElement',['../Lr2SkinParser_8cpp.html#a270755beb784c807b3d9e2625ef83ce5',1,'Lr2SkinParser.cpp']]],
+  ['hasscore_7',['hasScore',['../ScoreDb_8cpp.html#aaabb77ab8d63699cb759523407834b88',1,'ScoreDb.cpp']]],
+  ['hasskinresolution_8',['hasSkinResolution',['../Lr2SkinParser_8cpp.html#a8d4aa5e69f2ca019398da47eb402785f',1,'Lr2SkinParser.cpp']]],
+  ['hastranscolor_9',['hastranscolor',['../structgameplay__logic_1_1lr2__skin_1_1Lr2SkinData.html#a3b0a3b47485c404f0d35298e259948a4',1,'gameplay_logic::lr2_skin::Lr2SkinData::hasTransColor'],['../Lr2SkinParser_8cpp.html#ae8632b95a5a616577022ca01295c9969',1,'hasTransColor:&#160;Lr2SkinParser.cpp']]],
+  ['headsize_10',['HeadSize',['../namespacedxa.html#ab2a0d4fbcc03b36a09573b4b5df82b3a',1,'dxa']]],
+  ['height_11',['height',['../structresource__managers_1_1Lr2FontDict.html#a6f66ce5a7547e7be5d09ecc7f8df358c',1,'resource_managers::Lr2FontDict::height'],['../Lr2SkinParser_8cpp.html#ad12fc34ce789bce6c8a05d8a17138534',1,'height:&#160;Lr2SkinParser.cpp']]],
+  ['helpfiles_12',['helpfiles',['../Lr2SkinParser_8cpp.html#aec95049fa1020ead176965824f0d96c2',1,'helpFiles:&#160;Lr2SkinParser.cpp'],['../structgameplay__logic_1_1lr2__skin_1_1Lr2SkinData.html#a6b6492d3aea1489cdc21fb63af65205c',1,'gameplay_logic::lr2_skin::Lr2SkinData::helpFiles']]],
+  ['histogramdata_13',['histogramData',['../structgameplay__logic_1_1ChartData_1_1DTO.html#a7985bfd1b49bcdcb75f2fef47d6d3ac6',1,'gameplay_logic::ChartData::DTO']]],
+  ['hit_14',['hit',['../structgameplay__logic_1_1rules_1_1HitRules_1_1Mine.html#a7619c605337f39c4d868d557fd414348',1,'gameplay_logic::rules::HitRules::Mine::hit'],['../structgameplay__logic_1_1rules_1_1HitRules_1_1Note.html#a3d8c3b677253420876865922dafc9641',1,'gameplay_logic::rules::HitRules::Note::hit']]],
+  ['hitevents_15',['hitEvents',['../structgameplay__logic_1_1BmsReplayData_1_1DTO.html#ac0bfc242e8e7f8a2dd37875429bcc18a',1,'gameplay_logic::BmsReplayData::DTO']]],
+  ['hitrules_16',['hitRules',['../structresource__managers_1_1ChartFactory_1_1PlayerSpecificData.html#aec799d8ebd20f59db7b93b89dbe76de6',1,'resource_managers::ChartFactory::PlayerSpecificData']]]
 ];

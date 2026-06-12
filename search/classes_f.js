@@ -6,8 +6,10 @@ var searchData=
   ['playlevel_3',['PlayLevel',['../structcharts_1_1PlayLevel.html',1,'charts']]],
   ['playleveltag_4',['PlayLevelTag',['../structcharts_1_1PlayLevelTag.html',1,'charts']]],
   ['positioninfo_5',['PositionInfo',['../structgameplay__logic_1_1BmsGameReferee_1_1PositionInfo.html',1,'gameplay_logic::BmsGameReferee']]],
-  ['previewfilepathfetcher_6',['PreviewFilePathFetcher',['../classqml__components_1_1PreviewFilePathFetcher.html',1,'qml_components']]],
-  ['profile_7',['Profile',['../classresource__managers_1_1Profile.html',1,'resource_managers']]],
+  ['profile_6',['Profile',['../classresource__managers_1_1Profile.html',1,'resource_managers']]],
+  ['profileforeign_7',['ProfileForeign',['../structrhythm__game__qml_1_1ProfileForeign.html',1,'rhythm_game_qml']]],
   ['profilelist_8',['ProfileList',['../classqml__components_1_1ProfileList.html',1,'qml_components']]],
-  ['programsettings_9',['ProgramSettings',['../classqml__components_1_1ProgramSettings.html',1,'qml_components']]]
+  ['profilelistforeign_9',['ProfileListForeign',['../structrhythm__game__qml_1_1ProfileListForeign.html',1,'rhythm_game_qml']]],
+  ['programsettings_10',['ProgramSettings',['../classqml__components_1_1ProgramSettings.html',1,'qml_components']]],
+  ['programsettingsforeign_11',['ProgramSettingsForeign',['../structrhythm__game__qml_1_1ProgramSettingsForeign.html',1,'rhythm_game_qml']]]
 ];

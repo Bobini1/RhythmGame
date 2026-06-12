@@ -5,11 +5,16 @@ var searchData=
   ['chartdata_2',['ChartData',['../classgameplay__logic_1_1ChartData.html',1,'gameplay_logic']]],
   ['chartdatafactory_3',['ChartDataFactory',['../classresource__managers_1_1ChartDataFactory.html',1,'resource_managers']]],
   ['chartfactory_4',['ChartFactory',['../classresource__managers_1_1ChartFactory.html',1,'resource_managers']]],
-  ['chartloader_5',['ChartLoader',['../classqml__components_1_1ChartLoader.html',1,'qml_components']]],
-  ['chartrunner_6',['ChartRunner',['../classgameplay__logic_1_1ChartRunner.html',1,'gameplay_logic']]],
-  ['columnstate_7',['ColumnState',['../classgameplay__logic_1_1ColumnState.html',1,'gameplay_logic']]],
-  ['course_8',['Course',['../structresource__managers_1_1Course.html',1,'resource_managers']]],
-  ['courseplayer_9',['CoursePlayer',['../classgameplay__logic_1_1CoursePlayer.html',1,'gameplay_logic']]],
-  ['courserunner_10',['CourseRunner',['../classgameplay__logic_1_1CourseRunner.html',1,'gameplay_logic']]],
-  ['customnotifyapp_11',['CustomNotifyApp',['../classinput_1_1CustomNotifyApp.html',1,'input']]]
+  ['chartfoldermodel_5',['ChartFolderModel',['../classresource__managers_1_1ChartFolderModel.html',1,'resource_managers']]],
+  ['chartfoldermodelforeign_6',['ChartFolderModelForeign',['../structrhythm__game__qml_1_1ChartFolderModelForeign.html',1,'rhythm_game_qml']]],
+  ['chartloader_7',['ChartLoader',['../classqml__components_1_1ChartLoader.html',1,'qml_components']]],
+  ['chartloaderforeign_8',['ChartLoaderForeign',['../structrhythm__game__qml_1_1ChartLoaderForeign.html',1,'rhythm_game_qml']]],
+  ['chartrunner_9',['ChartRunner',['../classgameplay__logic_1_1ChartRunner.html',1,'gameplay_logic']]],
+  ['cimhandler_10',['CimHandler',['../classCimHandler.html',1,'']]],
+  ['cimplugin_11',['CimPlugin',['../classCimPlugin.html',1,'']]],
+  ['columnstate_12',['ColumnState',['../classgameplay__logic_1_1ColumnState.html',1,'gameplay_logic']]],
+  ['course_13',['Course',['../structresource__managers_1_1Course.html',1,'resource_managers']]],
+  ['courseplayer_14',['CoursePlayer',['../classgameplay__logic_1_1CoursePlayer.html',1,'gameplay_logic']]],
+  ['courserunner_15',['CourseRunner',['../classgameplay__logic_1_1CourseRunner.html',1,'gameplay_logic']]],
+  ['customnotifyapp_16',['CustomNotifyApp',['../classinput_1_1CustomNotifyApp.html',1,'input']]]
 ];

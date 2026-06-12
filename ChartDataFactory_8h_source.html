@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -126,15 +126,15 @@ $(document).ready(function() { init_codefold(0); });
 </div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>    <span class="keyword">static</span> <span class="keyword">auto</span> <a class="code hl_function" href="classresource__managers_1_1ChartDataFactory.html#a97f0605af21e7c4189eea1eb4116315d">makeNotes</a>(</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>      <span class="keyword">const</span> std::array&lt;std::vector&lt;charts::BmsNotesData::Note&gt;,</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>                       <a class="code hl_variable" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a>&gt;&amp; <a class="code hl_variable" href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a>,</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>                       <a class="code hl_variable" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a>&gt;&amp; notes,</div>
 <div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>      <span class="keyword">const</span> std::vector&lt;charts::BmsNotesData::Time&gt;&amp; barLines)</div>
 <div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>      -&gt; std::unique_ptr&lt;gameplay_logic::BmsNotes&gt;;</div>
 <div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>    <span class="keywordtype">void</span> <a class="code hl_function" href="classresource__managers_1_1ChartDataFactory.html#ad6d9c6c0da72f51e9677867b17424734">handleImplicitSubtitle</a>(QString&amp; title, QString&amp; subtitle) <span class="keyword">const</span>;</div>
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>    <span class="keyword">auto</span> <a class="code hl_function" href="classresource__managers_1_1ChartDataFactory.html#a21f2b81fbf3e95557308eeee9d151bb8">loadChartData</a>(<span class="keyword">const</span> std::filesystem::path&amp; chartPath,</div>
 <div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                       <a class="code hl_typedef" href="classresource__managers_1_1ChartDataFactory.html#a17a0b84ca0e3226924a8c86f0b952b62">RandomGenerator</a> <a class="code hl_variable" href="ReadBmsFile_8cpp.html#a1bfefc378c730fdc6ed818b0f4b666f5">randomGenerator</a>,</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                       int64_t directory = 0) const -&gt; <a class="code hl_struct" href="structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html">ChartComponents</a>;</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    auto <a class="code hl_function" href="classresource__managers_1_1ChartDataFactory.html#a434b19e107ecbef2a36ae47756361a68">loadBmsonChartData</a>(const std::filesystem::path&amp; chartPath,</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                            int64_t directory = 0) const -&gt; <a class="code hl_struct" href="structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html">ChartComponents</a>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                       int64_t <a class="code hl_variable" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a> = 0) const -&gt; <a class="code hl_struct" href="structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html">ChartComponents</a>;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>    auto <a class="code hl_function" href="classresource__managers_1_1ChartDataFactory.html#a434b19e107ecbef2a36ae47756361a68">loadBmsonChartData</a>(const std::filesystem::<a class="code hl_variable" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>&amp; chartPath,</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                            int64_t <a class="code hl_variable" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a> = 0) const -&gt; <a class="code hl_struct" href="structresource__managers_1_1ChartDataFactory_1_1ChartComponents.html">ChartComponents</a>;</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  private:</div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>    struct ChartMetadata</div>
@@ -144,9 +144,9 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        QString subtitle;</div>
 <div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        QString subartist;</div>
 <div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        QString genre;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        QString stageFile;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        QString banner;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        QString backBmp;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        QString <a class="code hl_variable" href="Lr2SkinModel_8cpp.html#aad019707e8f3d887eed0638682be293f">stageFile</a>;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        QString <a class="code hl_variable" href="Lr2SkinModel_8cpp.html#a9f907da3ebe4f958713b5b9de26ca04f">banner</a>;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        QString <a class="code hl_variable" href="Lr2SkinModel_8cpp.html#aa42ed13f34c6ac041fcb3289e594eb5d">backBmp</a>;</div>
 <div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordtype">double</span> rank = 75.0;</div>
 <div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keywordtype">double</span> total = -1.0; <span class="comment">// negative means &quot;use default&quot;</span></div>
 <div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <span class="keywordtype">int</span> playLevel = 1;</div>
@@ -154,7 +154,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        <span class="keywordtype">bool</span> isRandom = <span class="keyword">false</span>;</div>
 <div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        QList&lt;qint64&gt; <a class="code hl_variable" href="BeatorajaReplayImporter_8cpp.html#ac25f7bd1049ee7bbc6843c3681f3925c">randomSequence</a>;</div>
 <div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        QString <a class="code hl_variable" href="BeatorajaReplayImporter_8cpp.html#ac08bf238fe8c57ef0755fd0794d6c504">sha256</a>;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        QString md5;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        QString <a class="code hl_variable" href="ScoreDb_8cpp.html#ade6e59a01f4ff1f64c2e9f6cc390eac4">md5</a>;</div>
 <div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>    };</div>
 <div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>    <span class="keyword">static</span> <span class="keyword">auto</span> buildChartComponents(</div>
 <div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>      <a class="code hl_struct" href="structcharts_1_1BmsNotesData.html">charts::BmsNotesData</a> calculatedNotesData,</div>
@@ -162,7 +162,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>      std::unordered_map&lt;uint64_t, std::filesystem::path&gt; wavs,</div>
 <div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>      std::unordered_map&lt;uint64_t, std::filesystem::path&gt; bmps,</div>
 <div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>      <span class="keyword">const</span> std::filesystem::path&amp; chartPath,</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      int64_t directory,</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>      int64_t <a class="code hl_variable" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>,</div>
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>      <span class="keywordtype">bool</span> bmson) -&gt; ChartComponents;</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>};</div>
 </div>
@@ -174,10 +174,15 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aBeatorajaReplayImporter_8cpp_html_ac25f7bd1049ee7bbc6843c3681f3925c"><div class="ttname"><a href="BeatorajaReplayImporter_8cpp.html#ac25f7bd1049ee7bbc6843c3681f3925c">randomSequence</a></div><div class="ttdeci">QList&lt; qint64 &gt; randomSequence</div><div class="ttdef"><b>Definition</b> BeatorajaReplayImporter.cpp:59</div></div>
 <div class="ttc" id="aBmsNotesData_8h_html"><div class="ttname"><a href="BmsNotesData_8h.html">BmsNotesData.h</a></div></div>
 <div class="ttc" id="aBmsNotes_8h_html"><div class="ttname"><a href="BmsNotes_8h.html">BmsNotes.h</a></div></div>
-<div class="ttc" id="aBmsReplayData_8cpp_html_a60dae4c6e78188cd718b696e4f08fc71"><div class="ttname"><a href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a></div><div class="ttdeci">int column</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:28</div></div>
+<div class="ttc" id="aBmsReplayData_8cpp_html_a60dae4c6e78188cd718b696e4f08fc71"><div class="ttname"><a href="BmsReplayData_8cpp.html#a60dae4c6e78188cd718b696e4f08fc71">column</a></div><div class="ttdeci">int column</div><div class="ttdef"><b>Definition</b> BmsReplayData.cpp:29</div></div>
 <div class="ttc" id="aChartData_8h_html"><div class="ttname"><a href="ChartData_8h.html">ChartData.h</a></div></div>
-<div class="ttc" id="aOnlineRankingModel_8cpp_html_a7dbd379c73b20ded52adb099da250071"><div class="ttname"><a href="OnlineRankingModel_8cpp.html#a7dbd379c73b20ded52adb099da250071">notes</a></div><div class="ttdeci">int notes</div><div class="ttdef"><b>Definition</b> OnlineRankingModel.cpp:458</div></div>
+<div class="ttc" id="aLr2SkinModel_8cpp_html_a9f907da3ebe4f958713b5b9de26ca04f"><div class="ttname"><a href="Lr2SkinModel_8cpp.html#a9f907da3ebe4f958713b5b9de26ca04f">banner</a></div><div class="ttdeci">bool banner</div><div class="ttdef"><b>Definition</b> Lr2SkinModel.cpp:12</div></div>
+<div class="ttc" id="aLr2SkinModel_8cpp_html_aa42ed13f34c6ac041fcb3289e594eb5d"><div class="ttname"><a href="Lr2SkinModel_8cpp.html#aa42ed13f34c6ac041fcb3289e594eb5d">backBmp</a></div><div class="ttdeci">bool backBmp</div><div class="ttdef"><b>Definition</b> Lr2SkinModel.cpp:11</div></div>
+<div class="ttc" id="aLr2SkinModel_8cpp_html_aad019707e8f3d887eed0638682be293f"><div class="ttname"><a href="Lr2SkinModel_8cpp.html#aad019707e8f3d887eed0638682be293f">stageFile</a></div><div class="ttdeci">bool stageFile</div><div class="ttdef"><b>Definition</b> Lr2SkinModel.cpp:10</div></div>
+<div class="ttc" id="aLr2SkinParser_8cpp_html_a34b772573db9a14b1acb61b24709ae73"><div class="ttname"><a href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a></div><div class="ttdeci">QString path</div><div class="ttdef"><b>Definition</b> Lr2SkinParser.cpp:34</div></div>
+<div class="ttc" id="aLr2SkinParser_8cpp_html_ae62b61b88ecdd32256d335fa853edc41"><div class="ttname"><a href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a></div><div class="ttdeci">std::filesystem::path directory</div><div class="ttdef"><b>Definition</b> Lr2SkinParser.cpp:27</div></div>
 <div class="ttc" id="aReadBmsFile_8cpp_html_a1bfefc378c730fdc6ed818b0f4b666f5"><div class="ttname"><a href="ReadBmsFile_8cpp.html#a1bfefc378c730fdc6ed818b0f4b666f5">randomGenerator</a></div><div class="ttdeci">std::function&lt; ParsedBmsChart::RandomRange(ParsedBmsChart::RandomRange)&gt; randomGenerator</div><div class="ttdef"><b>Definition</b> ReadBmsFile.cpp:74</div></div>
+<div class="ttc" id="aScoreDb_8cpp_html_ade6e59a01f4ff1f64c2e9f6cc390eac4"><div class="ttname"><a href="ScoreDb_8cpp.html#ade6e59a01f4ff1f64c2e9f6cc390eac4">md5</a></div><div class="ttdeci">std::string md5</div><div class="ttdef"><b>Definition</b> ScoreDb.cpp:41</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html">resource_managers::ChartDataFactory</a></div><div class="ttdef"><b>Definition</b> ChartDataFactory.h:20</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a17a0b84ca0e3226924a8c86f0b952b62"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a17a0b84ca0e3226924a8c86f0b952b62">resource_managers::ChartDataFactory::RandomGenerator</a></div><div class="ttdeci">std::function&lt; charts::ParsedBmsChart::RandomRange(charts::ParsedBmsChart::RandomRange)&gt; RandomGenerator</div><div class="ttdef"><b>Definition</b> ChartDataFactory.h:28</div></div>
 <div class="ttc" id="aclassresource__managers_1_1ChartDataFactory_html_a21f2b81fbf3e95557308eeee9d151bb8"><div class="ttname"><a href="classresource__managers_1_1ChartDataFactory.html#a21f2b81fbf3e95557308eeee9d151bb8">resource_managers::ChartDataFactory::loadChartData</a></div><div class="ttdeci">auto loadChartData(const std::filesystem::path &amp;chartPath, RandomGenerator randomGenerator, int64_t directory=0) const -&gt; ChartComponents</div><div class="ttdef"><b>Definition</b> ChartDataFactory.cpp:345</div></div>

@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -86,6 +86,8 @@ $(function() {
 <code>#include &quot;<a class="el" href="SqliteCppDb_8h_source.html">db/SqliteCppDb.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="PathToQString_8h_source.html">support/PathToQString.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="PathToUtfString_8h_source.html">support/PathToUtfString.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cctype&gt;</code><br />
 <code>#include &lt;qthreadpool.h&gt;</code><br />
 <code>#include &lt;spdlog/stopwatch.h&gt;</code><br />
 <code>#include &lt;spdlog/spdlog.h&gt;</code><br />
@@ -94,27 +96,31 @@ Include dependency graph for SongDbScanner.cpp:</div>
 <div class="dyncontent">
 <div class="center"><img src="SongDbScanner_8cpp__incl.png" border="0" usemap="#asrc_2resource__managers_2SongDbScanner_8cpp" alt=""/></div>
 <map name="asrc_2resource__managers_2SongDbScanner_8cpp" id="asrc_2resource__managers_2SongDbScanner_8cpp">
-<area shape="rect" title=" " alt="" coords="449,5,623,45"/>
+<area shape="rect" title=" " alt="" coords="645,5,819,45"/>
 <area shape="rect" title=" " alt="" coords="5,93,80,119"/>
-<area shape="poly" title=" " alt="" coords="450,40,289,63,94,96,93,91,288,58,449,35"/>
+<area shape="poly" title=" " alt="" coords="645,35,401,56,250,74,94,96,93,91,249,68,401,51,645,30"/>
 <area shape="rect" title=" " alt="" coords="105,93,162,119"/>
-<area shape="poly" title=" " alt="" coords="450,43,324,65,176,96,175,90,323,60,449,38"/>
+<area shape="poly" title=" " alt="" coords="645,35,435,56,307,73,176,96,175,91,306,68,435,51,645,30"/>
 <area shape="rect" title=" " alt="" coords="186,93,246,119"/>
-<area shape="poly" title=" " alt="" coords="460,48,261,97,259,91,459,43"/>
+<area shape="poly" title=" " alt="" coords="646,39,470,63,266,96,260,97,259,92,265,91,469,58,645,34"/>
 <area shape="rect" href="SongDbScanner_8h.html" title=" " alt="" coords="377,93,511,119"/>
-<area shape="poly" title=" " alt="" coords="515,48,470,86,466,82,512,44"/>
+<area shape="poly" title=" " alt="" coords="664,48,500,92,499,87,662,43"/>
 <area shape="rect" href="SqliteCppDb_8h.html" title=" " alt="" coords="334,387,469,412"/>
-<area shape="poly" title=" " alt="" coords="450,42,403,61,383,76,366,95,347,127,336,156,332,183,332,210,345,268,367,338,375,357,385,374,381,377,370,359,361,340,340,269,327,211,326,183,331,154,343,124,362,92,379,72,400,57,448,37"/>
+<area shape="poly" title=" " alt="" coords="645,33,565,39,482,51,410,69,384,81,366,95,345,125,333,153,328,180,329,208,344,267,367,338,375,357,385,374,381,377,370,359,361,340,339,269,324,208,323,180,328,151,340,122,362,92,381,77,408,64,481,45,565,34,645,27"/>
 <area shape="rect" href="PathToQString_8h.html" title=" " alt="" coords="747,93,925,119"/>
-<area shape="poly" title=" " alt="" coords="609,43,780,87,778,92,607,48"/>
+<area shape="poly" title=" " alt="" coords="759,43,811,83,808,87,756,48"/>
 <area shape="rect" href="PathToUtfString_8h.html" title=" " alt="" coords="536,93,723,119"/>
-<area shape="poly" title=" " alt="" coords="560,44,606,82,603,86,557,48"/>
-<area shape="rect" title=" " alt="" coords="949,93,1061,119"/>
-<area shape="poly" title=" " alt="" coords="623,38,936,90,935,96,622,44"/>
-<area shape="rect" title=" " alt="" coords="1085,93,1233,119"/>
-<area shape="poly" title=" " alt="" coords="623,35,1071,90,1070,96,623,40"/>
-<area shape="rect" title=" " alt="" coords="1257,93,1381,119"/>
-<area shape="poly" title=" " alt="" coords="623,31,896,54,1243,90,1243,96,895,59,623,36"/>
+<area shape="poly" title=" " alt="" coords="709,48,657,87,654,83,706,43"/>
+<area shape="rect" title=" " alt="" coords="949,93,1035,119"/>
+<area shape="poly" title=" " alt="" coords="795,43,942,87,940,92,794,48"/>
+<area shape="rect" title=" " alt="" coords="1059,93,1125,119"/>
+<area shape="poly" title=" " alt="" coords="820,42,1046,91,1045,96,818,47"/>
+<area shape="rect" title=" " alt="" coords="1149,93,1261,119"/>
+<area shape="poly" title=" " alt="" coords="819,38,1137,91,1136,96,819,44"/>
+<area shape="rect" title=" " alt="" coords="1285,93,1433,119"/>
+<area shape="poly" title=" " alt="" coords="819,34,1271,90,1270,96,818,40"/>
+<area shape="rect" title=" " alt="" coords="1457,93,1581,119"/>
+<area shape="poly" title=" " alt="" coords="819,30,1093,54,1443,90,1442,96,1093,59,819,36"/>
 <area shape="poly" title=" " alt="" coords="441,120,406,200,387,256,373,314,373,338,389,374,384,376,368,339,368,313,382,254,401,198,436,118"/>
 <area shape="rect" href="ChartDataFactory_8h.html" title=" " alt="" coords="526,167,671,192"/>
 <area shape="poly" title=" " alt="" coords="470,116,562,158,560,163,468,121"/>
@@ -203,11 +209,21 @@ Namespaces</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:aa5b9af14ddecc324e5d919941dbfc3a5" id="r_aa5b9af14ddecc324e5d919941dbfc3a5"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#aa5b9af14ddecc324e5d919941dbfc3a5">resource_managers::addDirToParentDirs</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, QString root, QString folder)</td></tr>
 <tr class="separator:aa5b9af14ddecc324e5d919941dbfc3a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af2770a1633f6f3213bd5878feea9545b" id="r_af2770a1633f6f3213bd5878feea9545b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#af2770a1633f6f3213bd5878feea9545b">resource_managers::loadChart</a> (QThreadPool &amp;threadPool, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, int64_t directory, const std::filesystem::path &amp;path, std::atomic_bool *stop)</td></tr>
+<tr class="memitem:af2770a1633f6f3213bd5878feea9545b" id="r_af2770a1633f6f3213bd5878feea9545b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#af2770a1633f6f3213bd5878feea9545b">resource_managers::loadChart</a> (QThreadPool &amp;threadPool, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, int64_t <a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>, std::atomic_bool *stop)</td></tr>
 <tr class="separator:af2770a1633f6f3213bd5878feea9545b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48a6a2c7270e93d1249458470d9b92a3" id="r_a48a6a2c7270e93d1249458470d9b92a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a48a6a2c7270e93d1249458470d9b92a3">resource_managers::addPreviewFileToDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const std::filesystem::path &amp;directory, const std::filesystem::path &amp;path)</td></tr>
+<tr class="memitem:a6fc0603ca3dbca9c0c66e44026b29507" id="r_a6fc0603ca3dbca9c0c66e44026b29507"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a6fc0603ca3dbca9c0c66e44026b29507">resource_managers::addSongDirectoryFileToDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const char *table, const char *label, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>)</td></tr>
+<tr class="separator:a6fc0603ca3dbca9c0c66e44026b29507"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48a6a2c7270e93d1249458470d9b92a3" id="r_a48a6a2c7270e93d1249458470d9b92a3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a48a6a2c7270e93d1249458470d9b92a3">resource_managers::addPreviewFileToDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>)</td></tr>
 <tr class="separator:a48a6a2c7270e93d1249458470d9b92a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6cde75ceac2e038e5bd0950f3a1f261b" id="r_a6cde75ceac2e038e5bd0950f3a1f261b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a6cde75ceac2e038e5bd0950f3a1f261b">resource_managers::scanFolder</a> (const std::filesystem::path &amp;directory, const std::filesystem::path &amp;parentDirectory, QThreadPool &amp;threadPool, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const QString &amp;root, const std::function&lt; void(QString)&gt; &amp;updateCurrentScannedFolder, std::vector&lt; llfio::directory_handle::buffer_type &gt; &amp;buffer, std::atomic_bool *stop)</td></tr>
+<tr class="memitem:a6ee64147fbc2934ee2fdd9499abbfa00" id="r_a6ee64147fbc2934ee2fdd9499abbfa00"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a6ee64147fbc2934ee2fdd9499abbfa00">resource_managers::addReadmeFileToDb</a> (<a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>, const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>)</td></tr>
+<tr class="separator:a6ee64147fbc2934ee2fdd9499abbfa00"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7a24de9e7bccd27f2545d7059257d658" id="r_a7a24de9e7bccd27f2545d7059257d658"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a7a24de9e7bccd27f2545d7059257d658">resource_managers::lowercaseExtension</a> (const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) -&gt; std::string</td></tr>
+<tr class="separator:a7a24de9e7bccd27f2545d7059257d658"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf95ffad316ec37ef85fed4d5e01de03" id="r_abf95ffad316ec37ef85fed4d5e01de03"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#abf95ffad316ec37ef85fed4d5e01de03">resource_managers::fileNameStartsWithDot</a> (const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) -&gt; bool</td></tr>
+<tr class="separator:abf95ffad316ec37ef85fed4d5e01de03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94f8a7d0207d390331873bd60a025096" id="r_a94f8a7d0207d390331873bd60a025096"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a94f8a7d0207d390331873bd60a025096">resource_managers::isReadmeCandidate</a> (const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#a34b772573db9a14b1acb61b24709ae73">path</a>) -&gt; bool</td></tr>
+<tr class="separator:a94f8a7d0207d390331873bd60a025096"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6cde75ceac2e038e5bd0950f3a1f261b" id="r_a6cde75ceac2e038e5bd0950f3a1f261b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceresource__managers.html#a6cde75ceac2e038e5bd0950f3a1f261b">resource_managers::scanFolder</a> (const std::filesystem::path &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>, const std::filesystem::path &amp;parentDirectory, QThreadPool &amp;threadPool, <a class="el" href="classdb_1_1SqliteCppDb.html">db::SqliteCppDb</a> &amp;db, const QString &amp;root, const std::function&lt; void(QString)&gt; &amp;updateCurrentScannedFolder, std::vector&lt; llfio::directory_handle::buffer_type &gt; &amp;buffer, std::atomic_bool *stop)</td></tr>
 <tr class="separator:a6cde75ceac2e038e5bd0950f3a1f261b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

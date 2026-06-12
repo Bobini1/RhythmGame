@@ -1,0 +1,25 @@
+<map id="RhythmGameQml/Lr2/Lr2SkinTimerState.h" name="RhythmGameQml/Lr2/Lr2SkinTimerState.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="338,5,553,45"/>
+<area shape="rect" id="Node000002" href="$Lr2SkinClock_8h.html" title=" " alt="" coords="81,93,199,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="373,48,199,92,197,87,372,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,80,192"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="338,36,261,44,182,56,115,73,89,84,71,95,61,108,54,122,46,153,41,152,49,120,56,105,68,91,87,79,113,68,181,51,260,39,337,31"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="199,167,387,192"/>
+<area shape="poly" id="edge11_Node000001_Node000005" title=" " alt="" coords="339,45,297,64,280,78,265,95,260,109,261,124,277,154,272,157,256,126,254,108,260,92,276,74,295,60,337,40"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="275,93,381,119"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="418,48,358,88,355,84,415,43"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="406,93,485,119"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="448,46,448,79,443,79,443,46"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="509,93,574,119"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="470,43,518,82,515,87,467,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="599,93,652,119"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="490,43,587,85,585,90,487,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="677,93,755,119"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="511,43,664,87,663,92,509,48"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="780,93,836,119"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="546,43,767,91,766,96,545,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="126,121,71,160,68,156,123,117"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="105,167,175,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="143,119,143,153,137,153,137,119"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="166,116,257,158,255,163,164,121"/>
+</map>

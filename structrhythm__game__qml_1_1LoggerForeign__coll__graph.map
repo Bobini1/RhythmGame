@@ -1,0 +1,7 @@
+<map id="rhythm_game_qml::LoggerForeign" name="rhythm_game_qml::LoggerForeign">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,168,251,193"/>
+<area shape="rect" id="Node000002" href="$classqml__components_1_1Logger.html" title="Lets you access the entire log history of this session." alt="" coords="35,80,221,105"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,119,131,167,125,167,125,119"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="91,5,165,31"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,45,131,80,125,80,125,45"/>
+</map>

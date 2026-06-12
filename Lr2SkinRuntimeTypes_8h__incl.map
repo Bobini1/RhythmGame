@@ -1,0 +1,24 @@
+<map id="RhythmGameQml/Lr2/Lr2SkinRuntimeTypes.h" name="RhythmGameQml/Lr2/Lr2SkinRuntimeTypes.h">
+<area shape="rect" id="Node000001" title=" " alt="" coords="287,5,501,45"/>
+<area shape="rect" id="Node000002" href="$Lr2TimelineStateValue_8h.html" title=" " alt="" coords="82,93,263,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="342,48,219,91,217,86,340,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="5,167,84,192"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="287,40,160,61,107,76,72,95,62,108,55,122,48,153,43,152,50,121,57,105,68,91,105,71,159,55,286,34"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="288,93,343,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="377,47,339,85,335,82,373,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="367,93,421,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="397,46,397,79,391,79,391,46"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="445,93,516,119"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="417,44,459,82,456,86,413,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="541,93,642,119"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="442,43,550,86,548,91,440,48"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="667,93,740,119"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="469,43,654,89,652,95,467,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="108,167,203,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="172,120,164,154,159,153,167,118"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="153,121,79,162,77,157,151,116"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="227,167,305,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="189,117,242,156,238,160,186,121"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="329,167,517,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="214,116,370,160,369,165,212,121"/>
+</map>

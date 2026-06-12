@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['lnobj_5ft_0',['lnobj_t',['../namespacecharts.html#a6cf01334ded83a6847f620846f7d9ffe',1,'charts']]],
-  ['loadchart_1',['LoadChart',['../classgameplay__logic_1_1CourseRunner.html#aaa581958824a90d5c615f762ea0675eb',1,'gameplay_logic::CourseRunner']]]
+  ['hitvaluefactory_0',['HitValueFactory',['../classqml__components_1_1ChartLoader.html#a482312280c7632a3dde1160caf4e0f8f',1,'qml_components::ChartLoader']]]
 ];

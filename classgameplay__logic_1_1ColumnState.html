@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -111,6 +111,8 @@ Collaboration diagram for gameplay_logic::ColumnState:</div>
 Signals</h2></td></tr>
 <tr class="memitem:aeb29d502b8e70cadb3db7199daf3f11a" id="r_aeb29d502b8e70cadb3db7199daf3f11a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#aeb29d502b8e70cadb3db7199daf3f11a">pressedChanged</a> ()</td></tr>
 <tr class="separator:aeb29d502b8e70cadb3db7199daf3f11a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3d8cfac56e6c7f5a07f247848b5768d2" id="r_a3d8cfac56e6c7f5a07f247848b5768d2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a3d8cfac56e6c7f5a07f247848b5768d2">holdingLongNoteChanged</a> ()</td></tr>
+<tr class="separator:a3d8cfac56e6c7f5a07f247848b5768d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -124,6 +126,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a821ee584defa860a0381343b37af9e6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10c2c1d1aff36a0037c7583a8cc64a0a" id="r_a10c2c1d1aff36a0037c7583a8cc64a0a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a10c2c1d1aff36a0037c7583a8cc64a0a">isPressed</a> () const -&gt; bool</td></tr>
 <tr class="separator:a10c2c1d1aff36a0037c7583a8cc64a0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acf6e284c9f2b6f2668ad3a2cd7380a2d" id="r_acf6e284c9f2b6f2668ad3a2cd7380a2d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#acf6e284c9f2b6f2668ad3a2cd7380a2d">isHoldingLongNote</a> () const -&gt; bool</td></tr>
+<tr class="separator:acf6e284c9f2b6f2668ad3a2cd7380a2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adbf813c70dd3f703c640778c7abf883b" id="r_adbf813c70dd3f703c640778c7abf883b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#adbf813c70dd3f703c640778c7abf883b">getNotes</a> () const -&gt; const QList&lt; <a class="el" href="classgameplay__logic_1_1NoteState.html">NoteState</a> &gt; &amp;</td></tr>
 <tr class="separator:adbf813c70dd3f703c640778c7abf883b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6569e91ad305ddd463900f738839c64e" id="r_a6569e91ad305ddd463900f738839c64e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a6569e91ad305ddd463900f738839c64e">getNotes</a> () -&gt; QList&lt; <a class="el" href="classgameplay__logic_1_1NoteState.html">NoteState</a> &gt; &amp;</td></tr>
@@ -138,6 +142,8 @@ Public Member Functions</h2></td></tr>
 Properties</h2></td></tr>
 <tr class="memitem:a116fbd7d8aec0c9ebad00828b7564ab6" id="r_a116fbd7d8aec0c9ebad00828b7564ab6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#a116fbd7d8aec0c9ebad00828b7564ab6">pressed</a> = false</td></tr>
 <tr class="separator:a116fbd7d8aec0c9ebad00828b7564ab6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab49406a9ef71570e639ad200b3ef81b6" id="r_ab49406a9ef71570e639ad200b3ef81b6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1ColumnState.html#ab49406a9ef71570e639ad200b3ef81b6">holdingLongNote</a> = false</td></tr>
+<tr class="separator:ab49406a9ef71570e639ad200b3ef81b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The state of a single column, including its notes and whether it is currently pressed. </p>
@@ -286,6 +292,48 @@ Properties</h2></td></tr>
 
 </div>
 </div>
+<a id="a3d8cfac56e6c7f5a07f247848b5768d2" name="a3d8cfac56e6c7f5a07f247848b5768d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3d8cfac56e6c7f5a07f247848b5768d2">&#9670;&#160;</a></span>holdingLongNoteChanged</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void gameplay_logic::ColumnState::holdingLongNoteChanged </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">signal</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acf6e284c9f2b6f2668ad3a2cd7380a2d" name="acf6e284c9f2b6f2668ad3a2cd7380a2d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acf6e284c9f2b6f2668ad3a2cd7380a2d">&#9670;&#160;</a></span>isHoldingLongNote()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::ColumnState::isHoldingLongNote </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; bool</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a10c2c1d1aff36a0037c7583a8cc64a0a" name="a10c2c1d1aff36a0037c7583a8cc64a0a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a10c2c1d1aff36a0037c7583a8cc64a0a">&#9670;&#160;</a></span>isPressed()</h2>
 
@@ -391,6 +439,28 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Property Documentation</h2>
+<a id="ab49406a9ef71570e639ad200b3ef81b6" name="ab49406a9ef71570e639ad200b3ef81b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab49406a9ef71570e639ad200b3ef81b6">&#9670;&#160;</a></span>holdingLongNote</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool gameplay_logic::ColumnState::holdingLongNote = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a116fbd7d8aec0c9ebad00828b7564ab6" name="a116fbd7d8aec0c9ebad00828b7564ab6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a116fbd7d8aec0c9ebad00828b7564ab6">&#9670;&#160;</a></span>pressed</h2>
 

@@ -9,9 +9,11 @@ var searchData=
   ['ranktag_6',['RankTag',['../structcharts_1_1RankTag.html',1,'charts']]],
   ['replayer_7',['RePlayer',['../classgameplay__logic_1_1RePlayer.html',1,'gameplay_logic']]],
   ['replayimportoperation_8',['ReplayImportOperation',['../classqml__components_1_1ReplayImportOperation.html',1,'qml_components']]],
-  ['reporterror_9',['ReportError',['../structcharts_1_1ReportError.html',1,'charts']]],
-  ['rg_10',['Rg',['../classRg.html',1,'']]],
-  ['rootsongfolder_11',['RootSongFolder',['../classqml__components_1_1RootSongFolder.html',1,'qml_components']]],
-  ['rootsongfolders_12',['RootSongFolders',['../classqml__components_1_1RootSongFolders.html',1,'qml_components']]],
-  ['rootsongfoldersconfig_13',['RootSongFoldersConfig',['../classqml__components_1_1RootSongFoldersConfig.html',1,'qml_components']]]
+  ['replayimportoperationforeign_9',['ReplayImportOperationForeign',['../structrhythm__game__qml_1_1ReplayImportOperationForeign.html',1,'rhythm_game_qml']]],
+  ['reporterror_10',['ReportError',['../structcharts_1_1ReportError.html',1,'charts']]],
+  ['rg_11',['Rg',['../classRg.html',1,'']]],
+  ['rootsongfolder_12',['RootSongFolder',['../classqml__components_1_1RootSongFolder.html',1,'qml_components']]],
+  ['rootsongfolders_13',['RootSongFolders',['../classqml__components_1_1RootSongFolders.html',1,'qml_components']]],
+  ['rootsongfoldersconfig_14',['RootSongFoldersConfig',['../classqml__components_1_1RootSongFoldersConfig.html',1,'qml_components']]],
+  ['rootsongfoldersconfigforeign_15',['RootSongFoldersConfigForeign',['../structrhythm__game__qml_1_1RootSongFoldersConfigForeign.html',1,'rhythm_game_qml']]]
 ];

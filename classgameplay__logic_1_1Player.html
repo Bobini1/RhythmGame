@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.6</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.7</span>
    </div>
   </td>
  </tr>
@@ -149,6 +149,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a0f7db9d90ecc9e069b5eb63b30372f14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe8d4068274465095f8276656666546a" id="r_abe8d4068274465095f8276656666546a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1Player.html#abe8d4068274465095f8276656666546a">getBeatPosition</a> () const -&gt; double</td></tr>
 <tr class="separator:abe8d4068274465095f8276656666546a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cad779bea1662a315252abb66346b34" id="r_a1cad779bea1662a315252abb66346b34"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1Player.html#a1cad779bea1662a315252abb66346b34">positionAt</a> (std::chrono::nanoseconds <a class="el" href="BmsReplayData_8cpp.html#a9f1b9a255b6468923cd96a957db82d36">offsetFromStart</a>) const -&gt; double</td></tr>
+<tr class="separator:a1cad779bea1662a315252abb66346b34"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab8ea02de237fc58433e93373aeec650c" id="r_ab8ea02de237fc58433e93373aeec650c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1Player.html#ab8ea02de237fc58433e93373aeec650c">beatPositionAt</a> (std::chrono::nanoseconds <a class="el" href="BmsReplayData_8cpp.html#a9f1b9a255b6468923cd96a957db82d36">offsetFromStart</a>) const -&gt; double</td></tr>
+<tr class="separator:ab8ea02de237fc58433e93373aeec650c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53b4b08b61af3d57f1e99f776d1e7eaf" id="r_a53b4b08b61af3d57f1e99f776d1e7eaf"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1Player.html#a53b4b08b61af3d57f1e99f776d1e7eaf">getElapsed</a> () const -&gt; int64_t</td></tr>
 <tr class="separator:a53b4b08b61af3d57f1e99f776d1e7eaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46a2627985e262082d14a57139d8d69c" id="r_a46a2627985e262082d14a57139d8d69c"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1Player.html#a46a2627985e262082d14a57139d8d69c">getStatus</a> () const -&gt; <a class="el" href="classgameplay__logic_1_1ChartRunner.html#af47f61dbd9ce965ac6ae35a48906c97b">ChartRunner::Status</a></td></tr>
@@ -282,6 +286,24 @@ Properties</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ab8ea02de237fc58433e93373aeec650c" name="ab8ea02de237fc58433e93373aeec650c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab8ea02de237fc58433e93373aeec650c">&#9670;&#160;</a></span>beatPositionAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::Player::beatPositionAt </td>
+          <td>(</td>
+          <td class="paramtype">std::chrono::nanoseconds&#160;</td>
+          <td class="paramname"><em>offsetFromStart</em></td><td>)</td>
+          <td> const -&gt; double</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a1ae1e4b244cabca6885dbb790c32e0c8" name="a1ae1e4b244cabca6885dbb790c32e0c8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1ae1e4b244cabca6885dbb790c32e0c8">&#9670;&#160;</a></span>beatPositionChanged</h2>
 
@@ -605,6 +627,24 @@ Properties</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reimplemented in <a class="el" href="classgameplay__logic_1_1RePlayer.html#af24448c3b29b0b4b6fe278c4b6020007">gameplay_logic::RePlayer</a>, and <a class="el" href="classgameplay__logic_1_1AutoPlayer.html#a0cf2e1da12c6f8cd9a733b2e60133fcc">gameplay_logic::AutoPlayer</a>.</p>
+
+</div>
+</div>
+<a id="a1cad779bea1662a315252abb66346b34" name="a1cad779bea1662a315252abb66346b34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cad779bea1662a315252abb66346b34">&#9670;&#160;</a></span>positionAt()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::Player::positionAt </td>
+          <td>(</td>
+          <td class="paramtype">std::chrono::nanoseconds&#160;</td>
+          <td class="paramname"><em>offsetFromStart</em></td><td>)</td>
+          <td> const -&gt; double</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
