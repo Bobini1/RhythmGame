@@ -15,7 +15,7 @@ if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
             DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\""
             MACOS_BUNDLE_POST_BUILD
     )
-    install(SCRIPT ${deploy_script})
+    install(SCRIPT ${deploy_script} COMPONENT RhythmGame_Runtime)
 
     if (NOT WIN32)
         install(PROGRAMS RhythmGame.sh DESTINATION ${CMAKE_INSTALL_BINDIR} PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
@@ -60,6 +60,7 @@ endif ()
 set(CPACK_PACKAGE_VENDOR "Bobini")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "RhythmGame")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE.md")
+set(CPACK_COMPONENTS_ALL RhythmGame_Runtime)
 
 if (WIN32 AND RhythmGame_USE_MIMALLOC)
     install(FILES ${CMAKE_BINARY_DIR}/bin/mimalloc$<$<CONFIG:Debug>:-debug>.dll
