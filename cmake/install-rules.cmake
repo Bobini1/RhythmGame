@@ -8,12 +8,11 @@ if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
             RUNTIME COMPONENT RhythmGame_Runtime
     )
 
-    qt_generate_deploy_qml_app_script(
+    qt_generate_deploy_app_script(
             TARGET RhythmGame_exe
             OUTPUT_SCRIPT deploy_script
             NO_UNSUPPORTED_PLATFORM_ERROR
             DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\""
-            MACOS_BUNDLE_POST_BUILD
     )
     install(SCRIPT ${deploy_script} COMPONENT RhythmGame_Runtime)
 
