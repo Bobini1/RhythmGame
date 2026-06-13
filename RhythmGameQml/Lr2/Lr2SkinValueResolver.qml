@@ -27,6 +27,96 @@ QtObject {
         return numeric < 0 ? Math.ceil(numeric) : Math.floor(numeric);
     }
 
+    function decimalPart(value: var) : var {
+        const numeric = Number(value);
+        if (!isFinite(numeric)) {
+            return 0;
+        }
+        return Math.floor(Math.abs(numeric - resolver.integerPart(numeric)) * 100) % 100;
+    }
+
+    function decimalDigit(value: var, place: var) : var {
+        const numeric = Math.abs(Number(value));
+        if (!isFinite(numeric)) {
+            return 0;
+        }
+        const scale = Math.pow(10, Math.max(1, Math.floor(place || 1)));
+        return Math.floor(numeric * scale) % scale;
+    }
+
+    function useLr2OolNumberSemantics() : var {
+        return !root.lr2SkinUsesBeatorajaSemantics && !root.lr2SkinUsesLunaticVibesSemantics;
+    }
+
+    function ratioWhole(numerator: var, denominator: var) : var {
+        const left = Number(numerator || 0);
+        const right = Number(denominator || 0);
+        return right === 0 ? Math.floor(left) : resolver.integerPart(left / right);
+    }
+
+    function ratioDecimal(numerator: var, denominator: var) : var {
+        const left = Number(numerator || 0);
+        const right = Number(denominator || 0);
+        return right === 0 ? Math.floor(left) : resolver.decimalPart(left / right);
+    }
+
+    function gameplayPoorOrEmptyPoor(score: var) : var {
+        return root.gameplayPoorCount(score);
+    }
+
+    function gameplayComboBreak(score: var) : var {
+        return root.gameplayJudgementCount(score, Judgement.Bad)
+            + resolver.gameplayPoorOrEmptyPoor(score);
+    }
+
+    function gameplayJudgeTotal(score: var) : var {
+        return root.gameplayJudgementCount(score, Judgement.Perfect)
+            + root.gameplayJudgementCount(score, Judgement.Great)
+            + root.gameplayJudgementCount(score, Judgement.Good)
+            + root.gameplayJudgementCount(score, Judgement.Bad)
+            + resolver.gameplayPoorOrEmptyPoor(score);
+    }
+
+    function gameplayJudgePercentage(score: var, count: var, decimal: var) : var {
+        const total = resolver.gameplayJudgeTotal(score);
+        if (total <= 0) {
+            return 0;
+        }
+        const value = Number(count || 0) * 100 / total;
+        return decimal ? resolver.decimalPart(value) : Math.floor(value);
+    }
+
+    function gameplayLastJudgeTiming(side: var) : var {
+        return side === 2 ? root.gameplayLastJudgeTiming2 : root.gameplayLastJudgeTiming1;
+    }
+
+    function gameplayLastJudgeTimingAbs(side: var) : var {
+        return Math.abs(Math.round(Number(resolver.gameplayLastJudgeTiming(side) || 0)));
+    }
+
+    function gameplayFastSlowFlag(side: var) : var {
+        const timing = Number(resolver.gameplayLastJudgeTiming(side) || 0);
+        if (timing > 0) {
+            return 1;
+        }
+        if (timing < 0) {
+            return 2;
+        }
+        return 0;
+    }
+
+    function sceneUptimeNumber(part: var) : var {
+        const seconds = Math.max(0, Math.floor(Number(root.lr2SceneUptimeSeconds || 0)));
+        switch (part) {
+        case "hours":
+            return Math.floor(seconds / 3600);
+        case "minutes":
+            return Math.floor(seconds / 60) % 60;
+        default:
+            return seconds % 60;
+        }
+    }
+
     function playerTotalStatNumber(num: var) : var {
         let stats = selectContext.playerStats || {};
         switch (num) {
@@ -655,7 +745,14 @@ QtObject {
             return root.laneCoverNumber(2);
         case 160: {
             let p1 = root.gameplayPlayer(1);
-            return p1 && (p1.bpm || 0) > 0 ? Math.round(p1.bpm) : 1;
+            if (p1 && (p1.bpm || 0) > 0) {
+                return Math.round(p1.bpm);
+            }
+            let chartData = root.gameplayChartData();
+            let bpm = chartData
+                ? (chartData.initialBpm || chartData.mainBpm || chartData.maxBpm || 1)
+                : 1;
+            return Math.round(Math.max(1, bpm));
         }
         case 161:
             return Math.floor(root.gameplayTimeSeconds(1, false) / 60);
@@ -689,6 +786,44 @@ QtObject {
         case 1326:
         case 1327:
             return root.bpmDurationNumber(num, chartData);
+        case 201:
+            return resolver.gameplayLastJudgeTimingAbs(1);
+        case 210:
+            return resolver.gameplayFastSlowFlag(1);
+        case 211:
+            return resolver.gameplayFastSlowFlag(2);
+        case 212:
+            return root.gameplayJudgeTimingNumber(423, 1);
+        case 213:
+            return resolver.gameplayLastJudgeTimingAbs(2);
+        case 214:
+            return root.gameplayJudgeTimingNumber(424, 1);
+        case 216:
+            return resolver.gameplayComboBreak(s1);
+        case 217:
+            return Math.max(0, root.gameplayTotalNotes(s1) - root.gameplayCurrentNotes(s1));
+        case 218:
+            return root.gameplayCurrentNotes(s1);
+        case 295:
+            return root.lr2RandomIndexP1;
+        case 296: {
+            let stats = root.gameplayJudgeTimingStats(1);
+            return resolver.integerPart(root.timingStatsMean(stats));
+        }
+        case 297: {
+            let stats = root.gameplayJudgeTimingStats(1);
+            return resolver.decimalPart(root.timingStatsMean(stats));
+        }
+        case 298: {
+            let stats = root.gameplayJudgeTimingStats(1);
+            return resolver.integerPart(root.timingStatsStdDev(stats));
+        }
+        case 299: {
+            let stats = root.gameplayJudgeTimingStats(1);
+            return resolver.decimalPart(root.timingStatsStdDev(stats));
+        }
+        case 301:
+            return chartData ? Math.floor(chartData.total || 0) : 0;
         case 302:
             return root.gameplayGreenNumber(1, "current", chartData);
         case 303:
@@ -724,8 +859,12 @@ QtObject {
         case 106:
             return root.gameplayTotalNotes(s1);
         case 107:
-            return Math.floor(root.gameplayGaugeValue(s1) / 2) * 2;
+            return Math.floor(Math.max(0, Math.min(100, root.gameplayGaugeValue(s1))));
         case 407:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.gameplayJudgePercentage(
+                    s1, root.gameplayJudgementCount(s1, Judgement.Great), true);
+            }
             return root.gaugeAfterDot(root.gameplayGaugeValue(s1));
         case 108:
             return root.gameplayExScore(s1) - root.gameplayTargetScorePoints(1);
@@ -745,32 +884,146 @@ QtObject {
             return root.gameplayRateInteger(s1, false);
         case 116:
             return root.gameplayRateDecimal(s1, false);
+        case 400:
+            return resolver.ratioWhole(
+                root.gameplayJudgementCount(s1, Judgement.Perfect),
+                root.gameplayJudgementCount(s1, Judgement.Great));
+        case 401:
+            return resolver.ratioDecimal(
+                root.gameplayJudgementCount(s1, Judgement.Perfect),
+                root.gameplayJudgementCount(s1, Judgement.Great));
+        case 402:
+            return resolver.ratioWhole(
+                root.gameplayJudgementCount(s1, Judgement.Great),
+                root.gameplayJudgementCount(s1, Judgement.Good));
+        case 403:
+            return resolver.ratioDecimal(
+                root.gameplayJudgementCount(s1, Judgement.Great),
+                root.gameplayJudgementCount(s1, Judgement.Good));
+        case 404:
+            return resolver.gameplayJudgePercentage(
+                s1, root.gameplayJudgementCount(s1, Judgement.Perfect), false);
+        case 405:
+            return resolver.gameplayJudgePercentage(
+                s1, root.gameplayJudgementCount(s1, Judgement.Perfect), true);
+        case 406:
+            return resolver.gameplayJudgePercentage(
+                s1, root.gameplayJudgementCount(s1, Judgement.Great), false);
+        case 408:
+            return resolver.gameplayJudgePercentage(
+                s1, root.gameplayJudgementCount(s1, Judgement.Good), false);
+        case 409:
+            return resolver.gameplayJudgePercentage(
+                s1, root.gameplayJudgementCount(s1, Judgement.Good), true);
         case 410:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.gameplayJudgePercentage(
+                    s1, root.gameplayJudgementCount(s1, Judgement.Bad), false);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 411:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.gameplayJudgePercentage(
+                    s1, root.gameplayJudgementCount(s1, Judgement.Bad), true);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 412:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.gameplayJudgePercentage(s1, resolver.gameplayPoorOrEmptyPoor(s1), false);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 413:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.gameplayJudgePercentage(s1, resolver.gameplayPoorOrEmptyPoor(s1), true);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 414:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return 0;
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 415:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return 0;
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 416:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return root.liftNumber(1);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 417:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return 0;
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 418:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return root.lr2RandomIndexP2;
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 419:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return Math.floor(Math.max(0, Math.min(100, root.gameplayGaugeValue(s1))));
+            }
             return root.gameplayJudgeTimingNumber(num, 1);
         case 420:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.decimalDigit(root.gameplayGaugeValue(s1), 1);
+            }
             return root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
         case 421:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.decimalDigit(root.gameplayGaugeValue(s1), 2);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 422:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.gameplayJudgeTotal(s1);
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 423:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.sceneUptimeNumber("seconds");
+            }
+            return root.gameplayJudgeTimingNumber(num, 1);
         case 424:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.sceneUptimeNumber("minutes");
+            }
             return root.gameplayJudgeTimingNumber(num, 1);
         case 425:
-            return root.gameplayJudgementCount(s1, Judgement.Bad)
-                + root.gameplayJudgementCount(s1, Judgement.Poor)
-                + root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.sceneUptimeNumber("hours");
+            }
+            return resolver.gameplayComboBreak(s1);
         case 426:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.sceneUptimeNumber("seconds");
+            }
             return root.gameplayPoorCount(s1);
         case 427:
-            return root.gameplayJudgementCount(s1, Judgement.Bad) + root.gameplayPoorCount(s1);
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.sceneUptimeNumber("minutes");
+            }
+            return resolver.gameplayComboBreak(s1);
+        case 428:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return resolver.sceneUptimeNumber("hours");
+            }
+            return 0;
+        case 429:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return root.gameplayRateDecimal(s1, false);
+            }
+            return 0;
+        case 430:
+            if (resolver.useLr2OolNumberSemantics()) {
+                return root.battleModeActive()
+                    ? root.gameplayRateDecimal(s2, false)
+                    : root.gameplayScoreRateDecimal(root.gameplayTargetFinalPoints(1), s1);
+            }
+            return 0;
         case 525:
             return root.gameplayLastJudgeTiming1;
         case 526:
@@ -820,7 +1073,7 @@ QtObject {
         case 126:
             return root.gameplayTotalNotes(s2);
         case 127:
-            return Math.floor(root.gameplayGaugeValue(s2) / 2) * 2;
+            return Math.floor(Math.max(0, Math.min(100, root.gameplayGaugeValue(s2))));
         case 128:
             return root.gameplayExScore(s2) - root.gameplayExScore(s1);
         case 129:
@@ -878,17 +1131,41 @@ QtObject {
         case 354:
             return chartData ? (chartData.mineCount || 0) : -1;
         case 360:
-            return root.chartDensityNumber(chartData, "peakDensity", false);
+            return root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
         case 361:
-            return root.chartDensityNumber(chartData, "peakDensity", true);
+            return root.gameplayJudgeTimingNumber(423, 1);
         case 362:
-            return root.chartDensityNumber(chartData, "endDensity", false);
+            return root.gameplayJudgeTimingNumber(424, 1);
         case 363:
-            return root.chartDensityNumber(chartData, "endDensity", true);
+            return root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
         case 364:
-            return root.chartDensityNumber(chartData, "avgDensity", false);
+            return root.gameplayJudgementCount(s1, Judgement.Bad)
+                + root.gameplayJudgementCount(s1, Judgement.Poor)
+                + root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
         case 365:
-            return root.chartDensityNumber(chartData, "avgDensity", true);
+            return root.gameplayJudgementCount(s1, Judgement.Bad)
+                + root.gameplayJudgementCount(s1, Judgement.Poor)
+                + root.gameplayJudgementCount(s1, Judgement.EmptyPoor);
+        case 366:
+            return resolver.gameplayLastJudgeTimingAbs(1);
+        case 370:
+            return root.gameplayJudgementCount(s2, Judgement.EmptyPoor);
+        case 371:
+            return root.gameplayJudgeTimingNumber(423, 2);
+        case 372:
+            return root.gameplayJudgeTimingNumber(424, 2);
+        case 373:
+            return root.gameplayJudgementCount(s2, Judgement.EmptyPoor);
+        case 374:
+            return root.gameplayJudgementCount(s2, Judgement.Bad)
+                + root.gameplayJudgementCount(s2, Judgement.Poor)
+                + root.gameplayJudgementCount(s2, Judgement.EmptyPoor);
+        case 375:
+            return root.gameplayJudgementCount(s2, Judgement.Bad)
+                + root.gameplayJudgementCount(s2, Judgement.Poor)
+                + root.gameplayJudgementCount(s2, Judgement.EmptyPoor);
+        case 376:
+            return resolver.gameplayLastJudgeTimingAbs(2);
         case 368:
             return chartData ? Math.floor(chartData.total || 0) : -1;
         case 45:
@@ -1646,18 +1923,32 @@ QtObject {
         if (num === 20 || (num >= 160 && num <= 164)) {
             return 16;
         }
-        if (num === 11 || num === 15
+        if (num === 11 || num === 15 || num === 211 || num === 213
                 || (num >= 120 && num <= 136) || num === 526 || num === 521
                 || (num >= 510 && num <= 519) || (num >= 1610 && num <= 1699)) {
             return 10;
         }
+        if (num === 430) {
+            return 15;
+        }
+        if (num >= 423 && num <= 428) {
+            return 21;
+        }
         if (num === 10 || num === 12 || num === 13 || num === 14
+                || num === 201 || num === 210 || num === 212
+                || (num >= 214 && num <= 218) || num === 295 || num === 301
+                || (num >= 296 && num <= 299)
                 || (num >= 310 && num <= 315)
                 || (num >= 100 && num <= 116) || num === 407
+                || (num >= 400 && num <= 422) || num === 429
                 || (num >= 410 && num <= 427)
                 || (num >= 500 && num <= 509) || num === 520 || num === 522
-                || num === 525 || num === 527 || (num >= 1510 && num <= 1599)) {
+                || num === 525 || num === 527 || (num >= 360 && num <= 366)
+                || (num >= 1510 && num <= 1599)) {
             return 5;
+        }
+        if (num >= 370 && num <= 376) {
+            return 10;
         }
         if (num === 42 || num === 90 || num === 91 || num === 92
                 || num === 106 || num === 126 || num === 165

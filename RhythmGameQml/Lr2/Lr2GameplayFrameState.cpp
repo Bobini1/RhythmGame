@@ -1,7 +1,9 @@
 #include "Lr2GameplayFrameState.h"
 
+#include "gameplay_logic/BmsLiveScore.h"
 #include "gameplay_logic/ChartRunner.h"
 #include "gameplay_logic/CourseRunner.h"
+#include "gameplay_logic/rules/BmsGauge.h"
 
 #include <algorithm>
 #include <cmath>
@@ -40,6 +42,22 @@ qreal Lr2GameplayFrameState::position1() const {
 
 qreal Lr2GameplayFrameState::position2() const {
     return m_position2;
+}
+
+qreal Lr2GameplayFrameState::gaugeValue1() const {
+    return m_gaugeValue1;
+}
+
+qreal Lr2GameplayFrameState::gaugeValue2() const {
+    return m_gaugeValue2;
+}
+
+QString Lr2GameplayFrameState::activeGaugeName1() const {
+    return m_activeGaugeName1;
+}
+
+QString Lr2GameplayFrameState::activeGaugeName2() const {
+    return m_activeGaugeName2;
 }
 
 int Lr2GameplayFrameState::rhythmTimerSkinTime() const {
@@ -92,6 +110,8 @@ void Lr2GameplayFrameState::refresh(int frameSkinTime) {
     setPosition2(lanePlayer2
         ? (useLiveSample ? lanePlayer2->positionAt(liveOffset) : lanePlayer2->getPosition())
         : 0.0);
+    setGaugeState1(activeGaugeForPlayer(lanePlayer1));
+    setGaugeState2(activeGaugeForPlayer(lanePlayer2));
 
     Player* rhythmPlayer = progressPlayer ? progressPlayer : m_player2.data();
     int rhythmTimer = -1;
@@ -124,6 +144,8 @@ void Lr2GameplayFrameState::reset() {
     setProgressPosition(0.0);
     setPosition1(0.0);
     setPosition2(0.0);
+    setGaugeState1({});
+    setGaugeState2({});
     setRhythmTimerSkinTime(-1);
 }
 
@@ -150,6 +172,34 @@ void Lr2GameplayFrameState::cacheChartObjects() {
     m_useDoublePlayLanes = false;
 }
 
+Lr2GameplayFrameState::GaugeSnapshot Lr2GameplayFrameState::activeGaugeForPlayer(const Player* player) {
+    if (!player || !player->getScore()) {
+        return {};
+    }
+
+    const auto gauges = player->getScore()->getGauges();
+    if (gauges.empty()) {
+        return {};
+    }
+
+    const gameplay_logic::rules::BmsGauge* selected = nullptr;
+    for (const auto* gauge : gauges) {
+        if (!gauge) {
+            continue;
+        }
+        if (gauge->getGauge() > gauge->getThreshold()) {
+            selected = gauge;
+            break;
+        }
+    }
+    if (!selected) {
+        selected = gauges.back();
+    }
+    return selected
+        ? GaugeSnapshot{ selected->getGauge(), selected->getName().toUpper() }
+        : GaugeSnapshot{};
+}
+
 void Lr2GameplayFrameState::setProgressPosition(qreal value) {
     if (sameReal(m_progressPosition, value)) {
         return;
@@ -172,6 +222,48 @@ void Lr2GameplayFrameState::setPosition2(qreal value) {
     }
     m_position2 = value;
     emit position2Changed();
+}
+
+void Lr2GameplayFrameState::setGaugeValue1(qreal value) {
+    if (sameReal(m_gaugeValue1, value)) {
+        return;
+    }
+    m_gaugeValue1 = value;
+    emit gaugeValue1Changed();
+}
+
+void Lr2GameplayFrameState::setGaugeValue2(qreal value) {
+    if (sameReal(m_gaugeValue2, value)) {
+        return;
+    }
+    m_gaugeValue2 = value;
+    emit gaugeValue2Changed();
+}
+
+void Lr2GameplayFrameState::setActiveGaugeName1(const QString& value) {
+    if (m_activeGaugeName1 == value) {
+        return;
+    }
+    m_activeGaugeName1 = value;
+    emit activeGaugeName1Changed();
+}
+
+void Lr2GameplayFrameState::setActiveGaugeName2(const QString& value) {
+    if (m_activeGaugeName2 == value) {
+        return;
+    }
+    m_activeGaugeName2 = value;
+    emit activeGaugeName2Changed();
+}
+
+void Lr2GameplayFrameState::setGaugeState1(const GaugeSnapshot& state) {
+    setGaugeValue1(state.value);
+    setActiveGaugeName1(state.name);
+}
+
+void Lr2GameplayFrameState::setGaugeState2(const GaugeSnapshot& state) {
+    setGaugeValue2(state.value);
+    setActiveGaugeName2(state.name);
 }
 
 void Lr2GameplayFrameState::setRhythmTimerSkinTime(int value) {

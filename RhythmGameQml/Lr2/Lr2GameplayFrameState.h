@@ -2,6 +2,7 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QString>
 #include <QtQml/qqmlregistration.h>
 
 namespace gameplay_logic {
@@ -17,6 +18,10 @@ class Lr2GameplayFrameState : public QObject {
     Q_PROPERTY(qreal progressPosition READ progressPosition NOTIFY progressPositionChanged)
     Q_PROPERTY(qreal position1 READ position1 NOTIFY position1Changed)
     Q_PROPERTY(qreal position2 READ position2 NOTIFY position2Changed)
+    Q_PROPERTY(qreal gaugeValue1 READ gaugeValue1 NOTIFY gaugeValue1Changed)
+    Q_PROPERTY(qreal gaugeValue2 READ gaugeValue2 NOTIFY gaugeValue2Changed)
+    Q_PROPERTY(QString activeGaugeName1 READ activeGaugeName1 NOTIFY activeGaugeName1Changed)
+    Q_PROPERTY(QString activeGaugeName2 READ activeGaugeName2 NOTIFY activeGaugeName2Changed)
     Q_PROPERTY(int rhythmTimerSkinTime READ rhythmTimerSkinTime NOTIFY rhythmTimerSkinTimeChanged)
 
 public:
@@ -28,6 +33,10 @@ public:
     qreal progressPosition() const;
     qreal position1() const;
     qreal position2() const;
+    qreal gaugeValue1() const;
+    qreal gaugeValue2() const;
+    QString activeGaugeName1() const;
+    QString activeGaugeName2() const;
     int rhythmTimerSkinTime() const;
 
     Q_INVOKABLE void refresh(int frameSkinTime);
@@ -38,13 +47,29 @@ signals:
     void progressPositionChanged();
     void position1Changed();
     void position2Changed();
+    void gaugeValue1Changed();
+    void gaugeValue2Changed();
+    void activeGaugeName1Changed();
+    void activeGaugeName2Changed();
     void rhythmTimerSkinTimeChanged();
 
 private:
+    struct GaugeSnapshot {
+        qreal value = 0.0;
+        QString name;
+    };
+
     void cacheChartObjects();
+    static GaugeSnapshot activeGaugeForPlayer(const gameplay_logic::Player* player);
     void setProgressPosition(qreal value);
     void setPosition1(qreal value);
     void setPosition2(qreal value);
+    void setGaugeValue1(qreal value);
+    void setGaugeValue2(qreal value);
+    void setActiveGaugeName1(const QString& value);
+    void setActiveGaugeName2(const QString& value);
+    void setGaugeState1(const GaugeSnapshot& state);
+    void setGaugeState2(const GaugeSnapshot& state);
     void setRhythmTimerSkinTime(int value);
     static bool sameReal(qreal lhs, qreal rhs);
 
@@ -58,5 +83,9 @@ private:
     qreal m_progressPosition = 0.0;
     qreal m_position1 = 0.0;
     qreal m_position2 = 0.0;
+    qreal m_gaugeValue1 = 0.0;
+    qreal m_gaugeValue2 = 0.0;
+    QString m_activeGaugeName1;
+    QString m_activeGaugeName2;
     int m_rhythmTimerSkinTime = -1;
 };

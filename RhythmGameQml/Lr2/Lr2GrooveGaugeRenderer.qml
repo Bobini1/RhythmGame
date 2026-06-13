@@ -21,6 +21,10 @@ Item {
     readonly property var staticTimelineState: hasStaticTimelineState && timelineState.staticState.valid
         ? timelineState.staticState
         : null
+    readonly property bool sourceAnimates: !!srcData
+        && (srcData.cycle || 0) > 0
+        && Math.max(1, srcData.div_x || 1) * Math.max(1, srcData.div_y || 1) > 4
+    readonly property int spriteSkinTime: sourceAnimates ? skinTime : 0
     readonly property var timelineTimers: timelineState.usesDynamicTimer ? timers : null
     property Lr2TimelineState timelineState: Lr2TimelineState {
         enabled: !root.hasStaticTimelineState
@@ -115,7 +119,7 @@ Item {
         Lr2FastSprite {
             srcData: root.srcData
             stateData: root.segmentState(index)
-            skinTime: root.skinTime
+            skinTime: root.spriteSkinTime
             timers: root.timers
             scaleOverride: root.scaleOverride
             preloadTexture: true

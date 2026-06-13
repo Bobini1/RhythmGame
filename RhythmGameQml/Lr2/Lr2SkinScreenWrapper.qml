@@ -101,6 +101,8 @@ Item {
     property bool gameplayNumberRevision1Pending: false
     property bool gameplayNumberRevision2Pending: false
     property bool gameplayTimerRevisionPending: false
+    property bool gameplayNumberRevisionFlushPending: false
+    property bool gameplayTimerRevisionFlushPending: false
     property bool gameplayRuntimeRefreshPending: false
     property alias gameplayRuntimeActiveOptions: selectUpdateController.gameplayRuntimeActiveOptions
     property alias selectRuntimeActiveOptions: selectUpdateController.selectRuntimeActiveOptions
@@ -120,6 +122,8 @@ Item {
     property int gameplayJudgeRevision2: 0
     property var gameplayJudgeTimingCounts1: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
     property var gameplayJudgeTimingCounts2: ({ early: [0, 0, 0, 0, 0, 0], late: [0, 0, 0, 0, 0, 0] })
+    property var gameplayJudgeTimingStats1: ({ count: 0, sum: 0, sumSq: 0 })
+    property var gameplayJudgeTimingStats2: ({ count: 0, sum: 0, sumSq: 0 })
     property var gameplayHitEvents1: []
     property var gameplayHitEvents2: []
     property int gameplayHitEventsRevision1: 0
@@ -795,8 +799,8 @@ Item {
 
     function appendGameplayParseOptions(options: var) : void {
         let chartData = root.gameplayChartData();
-        root.appendParseOption(options, root.gaugeColorOption(1));
-        root.appendParseOption(options, root.gaugeColorOption(2));
+        root.appendParseOption(options, root.configuredGaugeColorOption(1));
+        root.appendParseOption(options, root.configuredGaugeColorOption(2));
         root.appendParseOption(options, root.clearStatusOption());
         root.appendGameplayChartParseOptions(options, chartData);
     }
@@ -1537,13 +1541,31 @@ Item {
     }
 
     function gameplayActiveGaugeName(score: var) : var {
+        if (root.gameplayScreenActive && root.gameplayFrameStateRef && score) {
+            if (score === root.gameplayScore(1)) {
+                let name = root.gameplayFrameStateRef.activeGaugeName1 || "";
+                if (name.length > 0) {
+                    return name;
+                }
+            }
+            if (score === root.gameplayScore(2)) {
+                let name = root.gameplayFrameStateRef.activeGaugeName2 || "";
+                if (name.length > 0) {
+                    return name;
+                }
+            }
+        }
         let gauge = root.gameplayActiveGauge(score);
         return String(gauge && gauge.name ? gauge.name : "").toUpperCase();
     }
 
     function resolveActiveGaugeNameForSide(side: var) : var {
         if (root.gameplayScreenActive) {
-            let activeName = root.gameplayActiveGaugeName(root.gameplayScore(side));
+            let activeName = root.gameplayFrameStateRef
+                ? (side === 2
+                    ? (root.gameplayFrameStateRef.activeGaugeName2 || "")
+                    : (root.gameplayFrameStateRef.activeGaugeName1 || ""))
+                : "";
             if (activeName.length > 0) {
                 return activeName;
             }
@@ -1617,9 +1639,17 @@ Item {
         }
     }
 
-    function gaugeColorOption(side: var) : var {
-        let red = root.gaugeNameIsSurvival(root.activeGaugeNameForSide(side));
+    function gaugeColorOptionForName(side: var, name: var) : var {
+        let red = root.gaugeNameIsSurvival(name);
         return side === 2 ? (red ? 45 : 44) : (red ? 43 : 42);
+    }
+
+    function configuredGaugeColorOption(side: var) : var {
+        return root.gaugeColorOptionForName(side, root.configuredGaugeName(side));
+    }
+
+    function gaugeColorOption(side: var) : var {
+        return root.gaugeColorOptionForName(side, root.activeGaugeNameForSide(side));
     }
 
     function gameplayGaugeTrophyOption(side: var) : var {
@@ -2304,6 +2334,7 @@ Item {
     function resultPoorCount(result: var) : var { return resultState.resultPoorCount(result); }
     function resultBadPoor(result: var) : var { return resultState.resultBadPoor(result); }
     function emptyJudgeTimingCounts() : var { return resultState.emptyJudgeTimingCounts(); }
+    function emptyJudgeTimingStats() : var { return resultState.emptyJudgeTimingStats(); }
     function judgementTimingBucket(judgement: var) : var { return resultState.judgementTimingBucket(judgement); }
     function hitDeviationNanos(hit: var) : var { return resultState.hitDeviationNanos(hit); }
     function hitDeviationMillis(hit: var) : var { return resultState.hitDeviationMillis(hit); }
@@ -2316,6 +2347,9 @@ Item {
     function gameplayJudgeValueForId(num: var) : var { return resultState.gameplayJudgeValueForId(num); }
     function recordGameplayJudgeTiming(scoreSide: var, hit: var) : void { resultState.recordGameplayJudgeTiming(scoreSide, hit); }
     function gameplayJudgeTimingNumber(num: var, side: var) : var { return resultState.gameplayJudgeTimingNumber(num, side); }
+    function gameplayJudgeTimingStats(side: var) : var { return resultState.gameplayJudgeTimingStats(side); }
+    function timingStatsMean(stats: var) : var { return resultState.timingStatsMean(stats); }
+    function timingStatsStdDev(stats: var) : var { return resultState.timingStatsStdDev(stats); }
     function resultJudgeTimingNumber(num: var, side: var) : var { return resultState.resultJudgeTimingNumber(num, side); }
     function judgeTimingCount(counts: var, bucket: var, early: var) : var { return resultState.judgeTimingCount(counts, bucket, early); }
     function judgeTimingNumberFromCounts(num: var, counts: var) : var { return resultState.judgeTimingNumberFromCounts(num, counts); }
@@ -3029,6 +3063,14 @@ Item {
     }
 
     function gameplayGaugeValue(score: var) : var {
+        if (root.gameplayScreenActive && root.gameplayFrameStateRef && score) {
+            if (score === root.gameplayScore(1)) {
+                return root.gameplayFrameStateRef.gaugeValue1 || 0;
+            }
+            if (score === root.gameplayScore(2)) {
+                return root.gameplayFrameStateRef.gaugeValue2 || 0;
+            }
+        }
         let gauge = root.gameplayActiveGauge(score);
         return gauge ? (gauge.gauge || 0) : 0;
     }
@@ -3256,14 +3298,9 @@ Item {
             root.gameplayNumberRevision1++;
             root.gameplayNumberRevision2++;
         }
-        root.queueResolvedTextRefresh();
     }
 
-    function requestGameplayRevisionRefresh(side: var) : var {
-        if (!root.gameplayScreenActive) {
-            return;
-        }
-        root.gameplayRevisionRefreshPending = true;
+    function markGameplayNumberRefresh(side: var) : void {
         if (side === 1) {
             root.gameplayNumberRevision1Pending = true;
         } else if (side === 2) {
@@ -3272,6 +3309,30 @@ Item {
             root.gameplayNumberRevision1Pending = true;
             root.gameplayNumberRevision2Pending = true;
         }
+    }
+
+    function requestGameplayNumberRefresh(side: var) : var {
+        if (!root.gameplayScreenActive) {
+            return;
+        }
+        root.markGameplayNumberRefresh(side);
+        if (root.gameplayNumberRevisionFlushPending) {
+            return;
+        }
+        root.gameplayNumberRevisionFlushPending = true;
+        Qt.callLater(() => root.flushGameplayNumberRefresh());
+    }
+
+    function requestGameplayRevisionRefresh(side: var) : var {
+        if (!root.gameplayScreenActive) {
+            return;
+        }
+        root.gameplayRevisionRefreshPending = true;
+        root.markGameplayNumberRefresh(side);
+        if (!root.gameplayNumberRevisionFlushPending) {
+            root.gameplayNumberRevisionFlushPending = true;
+            Qt.callLater(() => root.flushGameplayNumberRefresh());
+        }
         root.requestGameplayRuntimeRefresh();
     }
 
@@ -3279,18 +3340,51 @@ Item {
         root.flushGameplayRuntimeRefresh();
     }
 
+    function flushGameplayNumberRefresh() : void {
+        if (!root.gameplayNumberRevisionFlushPending
+                && !root.gameplayNumberRevision1Pending
+                && !root.gameplayNumberRevision2Pending) {
+            return;
+        }
+
+        let refreshNumbers1 = root.gameplayNumberRevision1Pending;
+        let refreshNumbers2 = root.gameplayNumberRevision2Pending;
+        root.gameplayNumberRevisionFlushPending = false;
+        root.gameplayNumberRevision1Pending = false;
+        root.gameplayNumberRevision2Pending = false;
+        if (refreshNumbers1) {
+            root.bumpGameplayNumberRevision(1);
+        }
+        if (refreshNumbers2) {
+            root.bumpGameplayNumberRevision(2);
+        }
+    }
+
     function bumpGameplayTimerRevision() : void {
         root.gameplayTimerRevision++;
-        root.queueResolvedTextRefresh();
     }
 
     function requestGameplayTimerRevision() : void {
         root.gameplayTimerRevisionPending = true;
-        root.requestGameplayRuntimeRefresh();
+        if (root.gameplayTimerRevisionFlushPending) {
+            return;
+        }
+        root.gameplayTimerRevisionFlushPending = true;
+        Qt.callLater(() => root.flushGameplayTimerRevision());
     }
 
     function flushGameplayTimerRevision() : void {
-        root.flushGameplayRuntimeRefresh();
+        if (!root.gameplayTimerRevisionFlushPending
+                && !root.gameplayTimerRevisionPending) {
+            return;
+        }
+
+        let refreshTimers = root.gameplayTimerRevisionPending;
+        root.gameplayTimerRevisionFlushPending = false;
+        root.gameplayTimerRevisionPending = false;
+        if (refreshTimers && skinTiming.skinTimerStateRef.commitGameplayTimerChanges()) {
+            root.bumpGameplayTimerRevision();
+        }
     }
 
     function requestGameplayRuntimeRefresh() : var {
@@ -3303,31 +3397,13 @@ Item {
 
     function flushGameplayRuntimeRefresh() : var {
         if (!root.gameplayRuntimeRefreshPending
-                && !root.gameplayTimerRevisionPending
-                && !root.gameplayRevisionRefreshPending
-                && !root.gameplayNumberRevision1Pending
-                && !root.gameplayNumberRevision2Pending) {
+                && !root.gameplayRevisionRefreshPending) {
             return;
         }
 
-        let refreshTimers = root.gameplayTimerRevisionPending;
         let refreshGameplay = root.gameplayRevisionRefreshPending;
-        let refreshNumbers1 = root.gameplayNumberRevision1Pending;
-        let refreshNumbers2 = root.gameplayNumberRevision2Pending;
         root.gameplayRuntimeRefreshPending = false;
-        root.gameplayTimerRevisionPending = false;
         root.gameplayRevisionRefreshPending = false;
-        root.gameplayNumberRevision1Pending = false;
-        root.gameplayNumberRevision2Pending = false;
-        if (refreshTimers && skinTiming.skinTimerStateRef.commitGameplayTimerChanges()) {
-            root.bumpGameplayTimerRevision();
-        }
-        if (refreshNumbers1) {
-            root.bumpGameplayNumberRevision(1);
-        }
-        if (refreshNumbers2) {
-            root.bumpGameplayNumberRevision(2);
-        }
         if (refreshGameplay && root.gameplayScreenActive) {
             root.bumpGameplayRevision();
             root.refreshGameplayRuntimeActiveOptions();
@@ -3410,6 +3486,8 @@ Item {
         root.gameplayJudgeRevision2 = 0;
         root.gameplayJudgeTimingCounts1 = root.emptyJudgeTimingCounts();
         root.gameplayJudgeTimingCounts2 = root.emptyJudgeTimingCounts();
+        root.gameplayJudgeTimingStats1 = root.emptyJudgeTimingStats();
+        root.gameplayJudgeTimingStats2 = root.emptyJudgeTimingStats();
         root.resetGameplayGraphHits();
         root.gameplayLastJudgeTiming1 = 0;
         root.gameplayLastJudgeTiming2 = 0;
@@ -3562,6 +3640,25 @@ Item {
         return Math.max(0, Math.min(100, Math.floor(Math.max(0, gauge || 0)) & ~1));
     }
 
+    function gameplayGaugeBucketOptionValue(gauge: var) : var {
+        let gaugeValue = Math.floor(Math.max(0, gauge || 0));
+        return gaugeValue >= 100 ? 10 : Math.max(0, Math.floor(gaugeValue / 10));
+    }
+
+    function gameplayJudgementRuntimeOptionsUsed(side: var) : var {
+        let judgementFirst = side === 2 ? 261 : 241;
+        let timingFirst = side === 2 ? 1262 : 1242;
+        return root.skinUsesRuntimeOptionRange(judgementFirst, judgementFirst + 5)
+            || root.skinUsesRuntimeOptionRange(timingFirst, timingFirst + 1)
+            || root.skinUsesRuntimeOptionRange(side === 2 ? 267 : 247, side === 2 ? 268 : 248);
+    }
+
+    function gameplayGaugeRuntimeOptionsUsed(side: var) : var {
+        return root.skinUsesRuntimeOptionRange(118, 123)
+            || root.skinUsesRuntimeOptionRange(side === 2 ? 250 : 230, side === 2 ? 260 : 240)
+            || (side === 1 && root.skinUsesRuntimeOption(1240));
+    }
+
     function gameplayPreviousGaugeProperty(scoreSide: var) : var {
         return scoreSide === 2 ? "gameplayPreviousGauge2" : "gameplayPreviousGauge1";
     }
@@ -3628,7 +3725,7 @@ Item {
         scoreSide = scoreSide || displaySide;
         let score = root.gameplayScore(scoreSide);
         if (!score) {
-            return;
+            return false;
         }
         root.updateGameplayHitEffectTimers(displaySide, hit);
         let judgement = root.gameplayJudgementFromHit(hit);
@@ -3640,6 +3737,14 @@ Item {
         let previousGaugeNameProperty = root.gameplayPreviousGaugeNameProperty(scoreSide);
         let previousGauge = root[previousGaugeProperty];
         let previousGaugeName = root[previousGaugeNameProperty];
+        let runtimeOptionsChanged = previousGaugeName !== currentGaugeName
+            && root.gameplayGaugeRuntimeOptionsUsed(scoreSide);
+        if (!runtimeOptionsChanged
+                && root.skinUsesRuntimeOptionRange(scoreSide === 2 ? 250 : 230, scoreSide === 2 ? 260 : 240)
+                && root.gameplayGaugeBucketOptionValue(previousGauge)
+                    !== root.gameplayGaugeBucketOptionValue(currentGauge)) {
+            runtimeOptionsChanged = true;
+        }
         if (previousGaugeName !== currentGaugeName) {
             root.clearGameplayGaugeUpTimer(scoreSide);
             root.clearGameplayGaugeMaxTimer(scoreSide);
@@ -3685,6 +3790,9 @@ Item {
                 root.gameplayJudgeCombo1 = displayCombo;
                 root.gameplayJudgeRevision1++;
             }
+            if (root.gameplayJudgementRuntimeOptionsUsed(displaySide)) {
+                runtimeOptionsChanged = true;
+            }
         }
         if (judgement >= 0 && judgement <= Judgement.Bad) {
             if (displaySide === 2) {
@@ -3712,6 +3820,7 @@ Item {
             }
         }
         root[previousComboName] = currentChartCombo;
+        return runtimeOptionsChanged;
     }
 
     function addGameplayTimer(result: var, timer: var, skinTime: var) : void {
@@ -4461,7 +4570,6 @@ Item {
             root.gameplayRuntimeActiveOptionsStateParts = root.emptyActiveOptions;
             if (!root.sameArrayValues(root.builtGameplayRuntimeActiveOptions, root.emptyActiveOptions)) {
                 root.builtGameplayRuntimeActiveOptions = root.emptyActiveOptions;
-                root.queueResolvedTextRefresh();
             }
             return false;
         }
@@ -4478,7 +4586,6 @@ Item {
         }
 
         root.builtGameplayRuntimeActiveOptions = nextOptions;
-        root.queueResolvedTextRefresh();
         let refreshed = selectUpdateController.refreshGameplayRuntimeActiveOptions();
         root.applyGameplayInputMapping();
         root.clearHiddenFiveKeyGameplayTimers();
@@ -4764,21 +4871,25 @@ Item {
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
-            root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
-            root.requestGameplayRevisionRefresh(1);
+            let runtimeOptionsChanged = root.updateGameplayHitTimers(root.gameplayHitDisplaySide(1, hit), hit, 1);
+            if (runtimeOptionsChanged) {
+                root.requestGameplayRevisionRefresh(1);
+            } else {
+                root.requestGameplayNumberRefresh(1);
+            }
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
-            root.requestGameplayRevisionRefresh(1);
+            root.requestGameplayNumberRefresh(1);
         }
         function onComboChanged() : void {
-            root.requestGameplayRevisionRefresh(1);
+            root.requestGameplayNumberRefresh(1);
         }
         function onMaxComboChanged() : void {
-            root.requestGameplayRevisionRefresh(1);
+            root.requestGameplayNumberRefresh(1);
         }
         function onMaxPointsNowChanged() : void {
-            root.requestGameplayRevisionRefresh(1);
+            root.requestGameplayNumberRefresh(1);
         }
     }
     Connections {
@@ -4789,21 +4900,25 @@ Item {
             if (root.gameplayHitCountsAsPlayed(hit)) {
                 root.gameplayNothingWasHit = false;
             }
-            root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
-            root.requestGameplayRevisionRefresh(2);
+            let runtimeOptionsChanged = root.updateGameplayHitTimers(root.gameplayHitDisplaySide(2, hit), hit, 2);
+            if (runtimeOptionsChanged) {
+                root.requestGameplayRevisionRefresh(2);
+            } else {
+                root.requestGameplayNumberRefresh(2);
+            }
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
-            root.requestGameplayRevisionRefresh(2);
+            root.requestGameplayNumberRefresh(2);
         }
         function onComboChanged() : void {
-            root.requestGameplayRevisionRefresh(2);
+            root.requestGameplayNumberRefresh(2);
         }
         function onMaxComboChanged() : void {
-            root.requestGameplayRevisionRefresh(2);
+            root.requestGameplayNumberRefresh(2);
         }
         function onMaxPointsNowChanged() : void {
-            root.requestGameplayRevisionRefresh(2);
+            root.requestGameplayNumberRefresh(2);
         }
     }
 

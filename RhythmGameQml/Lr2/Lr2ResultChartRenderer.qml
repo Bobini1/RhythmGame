@@ -15,6 +15,15 @@ Item {
     property real scaleOverride: 1.0
     property var screenRoot
     property int paintedColumnCount: -1
+    property var liveCacheStore: ({
+        score: { key: "", values: [], eventIndex: 0, points: 0 },
+        gradeTarget: { key: "", values: [], eventIndex: 0, points: 0 },
+        gaugeCaches: {},
+        gaugeScoreGuid: "",
+        gaugeWarmKey: ""
+    })
+    property int renderedColumnCount: 0
+    property string renderedPaintKey: ""
     readonly property var emptyValueCacheState: ({
         values: [],
         fieldW: 1,
@@ -41,9 +50,22 @@ Item {
         : null
     readonly property var gameplayGaugeData: root.gameplayChartActive
             && !root.gameplayMyBestGaugeChart
-            && root.screenRoot.gameplayActiveGauge
-        ? root.screenRoot.gameplayActiveGauge(root.gameplayScoreData)
+        ? root.liveGaugeByName(root.gameplayActiveGaugeName)
         : null
+    readonly property string gameplayActiveGaugeName: root.gameplayChartActive
+            && root.screenRoot
+            && root.screenRoot.gameplayFrameStateRef
+        ? (root.effectiveChartSide === 2
+            ? (root.screenRoot.gameplayFrameStateRef.activeGaugeName2 || "")
+            : (root.screenRoot.gameplayFrameStateRef.activeGaugeName1 || ""))
+        : ""
+    readonly property real gameplayActiveGaugeValue: root.gameplayChartActive
+            && root.screenRoot
+            && root.screenRoot.gameplayFrameStateRef
+        ? (root.effectiveChartSide === 2
+            ? (root.screenRoot.gameplayFrameStateRef.gaugeValue2 || 0)
+            : (root.screenRoot.gameplayFrameStateRef.gaugeValue1 || 0))
+        : 0.0
     readonly property int gameplayHitEventsRevision: root.gameplayChartActive
         ? (root.effectiveChartSide === 2
             ? (root.screenRoot.gameplayHitEventsRevision2 || 0)
@@ -60,12 +82,6 @@ Item {
         : 0
     readonly property real gameplayScoreMaxPointsNow: root.gameplayScoreData
         ? (root.gameplayScoreData.maxPointsNow || 0)
-        : 0
-    readonly property real gameplayGaugeValue: root.gameplayGaugeData
-        ? (root.gameplayGaugeData.gauge || 0)
-        : 0
-    readonly property int gameplayGaugeHistoryLength: root.gameplayGaugeData && root.gameplayGaugeData.gaugeHistory
-        ? root.gameplayGaugeData.gaugeHistory.length
         : 0
     readonly property var resultScoreData: root.screenRoot && !root.gameplayChartActive && root.screenRoot.resultScore
         ? root.screenRoot.resultScore(root.effectiveChartSide)
@@ -228,6 +244,28 @@ Item {
         return best || fallback;
     }
 
+    function liveGaugeByName(name: var) : var {
+        let gauges = root.gameplayScoreData ? (root.gameplayScoreData.gauges || []) : [];
+        if (!gauges || gauges.length === 0) {
+            return null;
+        }
+
+        let normalizedName = String(name || "").toUpperCase();
+        let fallback = null;
+        for (let i = 0; i < gauges.length; ++i) {
+            let gauge = gauges[i];
+            if (!gauge) {
+                continue;
+            }
+            fallback = gauge;
+            if (normalizedName.length > 0
+                    && String(gauge.name || "").toUpperCase() === normalizedName) {
+                return gauge;
+            }
+        }
+        return fallback;
+    }
+
     function liveGaugeInfo(gauge: var) : var {
         if (!gauge) {
             return null;
@@ -247,8 +285,8 @@ Item {
                 root.gameplayScoresRevision;
                 return root.savedScoreGaugeInfo(root.screenRoot.gameplayBestSavedScore());
             }
-            root.gameplayGaugeValue;
-            root.gameplayGaugeHistoryLength;
+            root.gameplayActiveGaugeName;
+            root.gameplayActiveGaugeValue;
             return root.liveGaugeInfo(root.gameplayGaugeData);
         }
 
@@ -386,40 +424,69 @@ Item {
         return result;
     }
 
+    function resetLiveGraphCache(cache: var, key: var, count: var, initialPercent: var) : var {
+        cache.key = key;
+        cache.values = new Array(count);
+        cache.eventIndex = 0;
+        cache.points = 0;
+        cache.historyIndex = 0;
+        cache.value = 0;
+        for (let i = 0; i < count; ++i) {
+            cache.values[i] = initialPercent;
+        }
+        return cache;
+    }
+
+    function fillLiveGraphFrom(values: var, column: var, percent: var) : void {
+        let start = Math.max(0, Math.min(values.length, column));
+        for (let i = start; i < values.length; ++i) {
+            values[i] = percent;
+        }
+    }
+
+    function eventColumn(event: var, fieldW: var, step: var, length: var) : var {
+        let offset = Number(event && event.offsetFromStart !== undefined ? event.offsetFromStart : 0);
+        if (!isFinite(offset)) {
+            offset = 0;
+        }
+        return Math.floor(Math.max(0, Math.min(fieldW, fieldW * offset / Math.max(1, length))) / step);
+    }
+
     function buildGameplayLiveScoreCache(fieldW: var, step: var, maxPoints: var) : var {
         root.gameplayHitEventsRevision;
-        root.gameplayScorePoints;
-        root.gameplayScoreMaxPointsNow;
         if (!root.screenRoot || !root.screenRoot.gameplayHitEventsForSide || !root.gameplayScoreData) {
             return [];
         }
 
         let events = root.screenRoot.gameplayHitEventsForSide(root.effectiveChartSide) || [];
         let count = cacheValueCount(fieldW, step);
-        let result = new Array(count);
         let length = root.gameplayChartLength();
-        let elapsed = root.gameplayChartElapsed();
-        let points = 0;
-        let eventIndex = 0;
-        for (let i = 0; i < count; ++i) {
-            let targetTime = (i * step / fieldW) * length;
-            if (targetTime > elapsed) {
-                result[i] = -1;
-                continue;
-            }
-            while (eventIndex < events.length) {
-                let event = events[eventIndex];
-                if (event && (event.offsetFromStart || 0) > targetTime) {
-                    break;
-                }
-                if (event && event.noteRemoved && event.points && event.points.value !== undefined) {
-                    points += event.points.value || 0;
-                }
-                ++eventIndex;
-            }
-            result[i] = scorePercent(points, maxPoints);
+        let key = [
+            "score",
+            root.effectiveChartSide,
+            root.gameplayScoreData.guid || "",
+            fieldW,
+            step,
+            length,
+            maxPoints
+        ].join("|");
+        let cache = root.liveCacheStore.score;
+        if (cache.key !== key || !cache.values || cache.values.length !== count
+                || cache.eventIndex > events.length) {
+            cache = root.resetLiveGraphCache(cache, key, count, 0);
         }
-        return result;
+        for (let i = cache.eventIndex; i < events.length; ++i) {
+            let event = events[i];
+            if (event && event.noteRemoved && event.points && event.points.value !== undefined) {
+                cache.points += event.points.value || 0;
+                root.fillLiveGraphFrom(
+                    cache.values,
+                    root.eventColumn(event, fieldW, step, length),
+                    scorePercent(cache.points, maxPoints));
+            }
+        }
+        cache.eventIndex = events.length;
+        return cache.values;
     }
 
     function buildGradeTargetCache(fieldW: var, step: var, maxPoints: var) : var {
@@ -472,31 +539,137 @@ Item {
 
         let events = screenRoot.gameplayHitEventsForSide(root.effectiveChartSide) || [];
         let count = cacheValueCount(fieldW, step);
-        let result = new Array(count);
         let length = root.gameplayChartLength();
-        let elapsed = root.gameplayChartElapsed();
-        let points = 0;
-        let eventIndex = 0;
         let perNotePoints = 2.0 * finalPoints / Math.max(1, maxPoints);
+        let key = [
+            "target",
+            root.effectiveChartSide,
+            root.gameplayScoreData ? root.gameplayScoreData.guid || "" : "",
+            fieldW,
+            step,
+            length,
+            maxPoints,
+            finalPoints
+        ].join("|");
+        let cache = root.liveCacheStore.gradeTarget;
+        if (cache.key !== key || !cache.values || cache.values.length !== count
+                || cache.eventIndex > events.length) {
+            cache = root.resetLiveGraphCache(cache, key, count, 0);
+        }
+        for (let i = cache.eventIndex; i < events.length; ++i) {
+            let event = events[i];
+            if (event && event.noteRemoved && event.points) {
+                cache.points += perNotePoints;
+                root.fillLiveGraphFrom(
+                    cache.values,
+                    root.eventColumn(event, fieldW, step, length),
+                    scorePercent(cache.points, maxPoints));
+            }
+        }
+        cache.eventIndex = events.length;
+        return cache.values;
+    }
+
+    function buildGaugeValuesFromHistory(history: var, fieldW: var, step: var, length: var, maxGauge: var) : var {
+        let count = cacheValueCount(fieldW, step);
+        let result = new Array(count);
+        let value = history[0].gauge !== undefined ? history[0].gauge : 0;
+        let historyIndex = 0;
         for (let i = 0; i < count; ++i) {
             let targetTime = (i * step / fieldW) * length;
-            if (targetTime > elapsed) {
-                result[i] = -1;
-                continue;
-            }
-            while (eventIndex < events.length) {
-                let event = events[eventIndex];
-                if (event && (event.offsetFromStart || 0) > targetTime) {
+            while (historyIndex < history.length) {
+                let entry = history[historyIndex];
+                if (entry && (entry.offsetFromStart || 0) > targetTime) {
                     break;
                 }
-                if (event && event.noteRemoved && event.points) {
-                    points += perNotePoints;
-                }
-                ++eventIndex;
+                value = entry && entry.gauge !== undefined ? entry.gauge : value;
+                ++historyIndex;
             }
-            result[i] = scorePercent(points, maxPoints);
+            result[i] = clampPercent(value * 100 / maxGauge);
         }
         return result;
+    }
+
+    function liveGaugeCacheKey(gaugeName: var, maxGauge: var, borderPercent: var, fieldW: var, step: var, length: var) : var {
+        return [
+            "gauge",
+            root.effectiveChartSide,
+            root.gameplayScoreData ? root.gameplayScoreData.guid || "" : "",
+            gaugeName,
+            maxGauge,
+            borderPercent,
+            fieldW,
+            step,
+            length
+        ].join("|");
+    }
+
+    function updateLiveGaugeCache(info: var, fieldW: var, step: var, length: var) : var {
+        let history = info && info.gaugeHistory ? info.gaugeHistory : [];
+        if (!history || history.length === 0) {
+            return null;
+        }
+
+        let maxGauge = Math.max(1, info.maxGauge || 100);
+        let borderPercent = root.clampPercent(Number(info.threshold || 0) * 100 / maxGauge);
+        let gaugeName = String(info.name || "").toUpperCase();
+        let key = root.liveGaugeCacheKey(gaugeName, maxGauge, borderPercent, fieldW, step, length);
+        let count = cacheValueCount(fieldW, step);
+        let store = root.liveCacheStore;
+        let cache = store.gaugeCaches[key];
+        if (!cache || !cache.values || cache.values.length !== count
+                || cache.historyIndex > history.length) {
+            let lastEntry = history[history.length - 1];
+            cache = {
+                values: root.buildGaugeValuesFromHistory(history, fieldW, step, length, maxGauge),
+                historyIndex: history.length,
+                value: lastEntry && lastEntry.gauge !== undefined ? lastEntry.gauge : 0
+            };
+            store.gaugeCaches[key] = cache;
+            return cache;
+        }
+
+        for (let i = cache.historyIndex; i < history.length; ++i) {
+            let entry = history[i];
+            if (entry && entry.gauge !== undefined) {
+                cache.value = entry.gauge;
+                root.fillLiveGraphFrom(
+                    cache.values,
+                    root.eventColumn(entry, fieldW, step, length),
+                    clampPercent(cache.value * 100 / maxGauge));
+            }
+        }
+        cache.historyIndex = history.length;
+        return cache;
+    }
+
+    function warmLiveGaugeCaches(fieldW: var, step: var, length: var) : void {
+        let gauges = root.gameplayScoreData ? (root.gameplayScoreData.gauges || []) : [];
+        if (!gauges || gauges.length === 0) {
+            return;
+        }
+        let store = root.liveCacheStore;
+        let scoreGuid = root.gameplayScoreData ? root.gameplayScoreData.guid || "" : "";
+        if (store.gaugeScoreGuid !== scoreGuid) {
+            store.gaugeScoreGuid = scoreGuid;
+            store.gaugeWarmKey = "";
+            store.gaugeCaches = {};
+        }
+        let warmKey = [
+            scoreGuid,
+            root.gameplayActiveGaugeName,
+            root.gameplayActiveGaugeValue,
+            fieldW,
+            step,
+            length
+        ].join("|");
+        if (store.gaugeWarmKey === warmKey) {
+            return;
+        }
+        store.gaugeWarmKey = warmKey;
+        for (let i = 0; i < gauges.length; ++i) {
+            root.updateLiveGaugeCache(root.liveGaugeInfo(gauges[i]), fieldW, step, length);
+        }
     }
 
     function buildGaugeCache(fieldW: var, step: var) : var {
@@ -522,27 +695,14 @@ Item {
         }
 
         let count = cacheValueCount(fieldW, step);
-        let result = new Array(count);
         let length = root.chartLengthValue();
-        let liveGameplayGauge = root.gameplayChartActive && !root.gameplayMyBestGaugeChart;
-        let elapsed = liveGameplayGauge ? root.gameplayChartElapsed() : length;
-        let value = history[0].gauge !== undefined ? history[0].gauge : 0;
-        let historyIndex = 0;
-        for (let i = 0; i < count; ++i) {
-            let targetTime = (i * step / fieldW) * length;
-            if (liveGameplayGauge && targetTime > elapsed) {
-                result[i] = -1;
-                continue;
-            }
-            while (historyIndex < history.length) {
-                let entry = history[historyIndex];
-                if (entry && (entry.offsetFromStart || 0) > targetTime) {
-                    break;
-                }
-                value = entry && entry.gauge !== undefined ? entry.gauge : value;
-                ++historyIndex;
-            }
-            result[i] = clampPercent(value * 100 / maxGauge);
+        let result = null;
+        if (root.gameplayChartActive && !root.gameplayMyBestGaugeChart) {
+            root.warmLiveGaugeCaches(fieldW, step, length);
+            let cache = root.updateLiveGaugeCache(info, fieldW, step, length);
+            result = cache ? cache.values : [];
+        } else {
+            result = root.buildGaugeValuesFromHistory(history, fieldW, step, length, maxGauge);
         }
         return {
             values: result,
@@ -681,11 +841,12 @@ Item {
         return Math.round(-root.clampPercent(value) * Math.max(1, fieldH) / 100.0);
     }
 
-    function drawScoreLineGraph(ctx: var, values: var, columnCount: var, fieldW: var, fieldH: var, step: var) : void {
+    function drawScoreLineGraph(ctx: var, values: var, columnCount: var, fieldW: var, fieldH: var, step: var, startColumn: var) : void {
         if (!values || values.length === 0 || columnCount <= 0) {
             return;
         }
 
+        let firstColumn = Math.max(0, Math.min(columnCount - 1, startColumn || 0));
         let lineWidth = Math.max(1, Math.abs(root.srcData && root.srcData.w ? root.srcData.w : 1));
         ctx.save();
         ctx.strokeStyle = root.graphColor(root.currentState);
@@ -695,7 +856,13 @@ Item {
         ctx.beginPath();
 
         let started = false;
-        for (let column = 0; column < columnCount; ++column) {
+        if (firstColumn > 0 && values[firstColumn - 1] >= 0) {
+            let previousX = (root.currentState.x + Math.min(fieldW, (firstColumn - 1) * step)) * root.scaleOverride;
+            let previousY = (root.currentState.y + root.scoreGraphY(values[firstColumn - 1], fieldH)) * root.scaleOverride;
+            ctx.moveTo(previousX, previousY);
+            started = true;
+        }
+        for (let column = firstColumn; column < columnCount; ++column) {
             let value = values[column];
             if (value < 0) {
                 started = false;
@@ -736,13 +903,20 @@ Item {
         return { graphLine: "#00ff00", graphBg: "#004400", borderLine: "#ff0000", borderBg: "#440000" };
     }
 
-    function drawGaugeGraphBackground(ctx: var, fieldW: var, fieldH: var, borderPercent: var, colors: var) : void {
+    function drawGaugeGraphBackground(ctx: var, fieldW: var, fieldH: var, borderPercent: var, colors: var, startX: var, widthOverride: var) : void {
+        let x = Math.max(0, startX || 0);
+        let width = widthOverride === undefined
+            ? Math.max(0, fieldW - x)
+            : Math.max(0, widthOverride || 0);
+        if (width <= 0) {
+            return;
+        }
         let topHeight = fieldH * (100 - root.clampPercent(borderPercent)) / 100.0;
         ctx.fillStyle = colors.graphBg;
-        root.logicalFillRect(ctx, 0, -fieldH, fieldW, fieldH);
+        root.logicalFillRect(ctx, x, -fieldH, width, fieldH);
         if (topHeight > 0) {
             ctx.fillStyle = colors.borderBg;
-            root.logicalFillRect(ctx, 0, -fieldH, fieldW, topHeight);
+            root.logicalFillRect(ctx, x, -fieldH, width, topHeight);
         }
     }
 
@@ -755,24 +929,35 @@ Item {
         root.logicalFillRect(ctx, x, Math.min(y1, y2), lineWidth, Math.abs(y2 - y1) + lineWidth);
     }
 
-    function drawGaugeGraph(ctx: var, values: var, columnCount: var, fieldW: var, fieldH: var, step: var) : void {
+    function drawGaugeGraph(ctx: var, values: var, columnCount: var, fieldW: var, fieldH: var, step: var, startColumn: var, fullPaint: var) : void {
         let lineWidth = Math.max(1, Math.abs(root.srcData && root.srcData.h ? root.srcData.h : 1));
         let borderPercent = root.cachedGaugeBorderPercent;
         let borderY = root.gaugeGraphY(borderPercent, fieldH, lineWidth);
         let colors = root.cachedGaugeColors || root.gaugeGraphColors(null);
-        root.drawGaugeGraphBackground(ctx, fieldW, fieldH, borderPercent, colors);
+        let firstColumn = Math.max(1, Math.min(columnCount, startColumn || 1));
+        if (fullPaint) {
+            root.drawGaugeGraphBackground(ctx, fieldW, fieldH, borderPercent, colors, 0);
+        } else {
+            root.drawGaugeGraphBackground(
+                ctx,
+                fieldW,
+                fieldH,
+                borderPercent,
+                colors,
+                Math.max(0, (firstColumn - 1) * step));
+        }
         if (!values || values.length === 0 || columnCount <= 0) {
             return;
         }
 
-        let previousValue = values[0];
-        let previousX = 0;
+        let previousValue = values[firstColumn - 1];
+        let previousX = (firstColumn - 1) * step;
         let previousY = root.gaugeGraphY(previousValue, fieldH, lineWidth);
         let lastX = previousX;
         let lastY = previousY;
         let lastGauge = -1;
 
-        for (let column = 1; column < columnCount; ++column) {
+        for (let column = firstColumn; column < columnCount; ++column) {
             let value = values[column];
             if (value < 0 || previousValue < 0) {
                 previousValue = value;
@@ -816,10 +1001,43 @@ Item {
             previousY = y;
         }
 
-        if (lastGauge >= 0 && !(root.gameplayChartActive && !root.gameplayMyBestGaugeChart)) {
+        if (fullPaint && lastGauge >= 0 && !(root.gameplayChartActive && !root.gameplayMyBestGaugeChart)) {
             ctx.fillStyle = lastGauge < borderPercent ? colors.graphLine : colors.borderLine;
             root.logicalFillRect(ctx, lastX, lastY, Math.max(lineWidth, fieldW - lastX), lineWidth);
         }
+    }
+
+    function paintKey() : var {
+        if (!root.currentState || !root.srcData) {
+            return "";
+        }
+        return [
+            root.resolvedSource,
+            root.currentState.x || 0,
+            root.currentState.y || 0,
+            root.currentState.w || 0,
+            root.currentState.h || 0,
+            root.effectiveAlpha,
+            root.currentState.r === undefined ? 255 : root.currentState.r,
+            root.currentState.g === undefined ? 255 : root.currentState.g,
+            root.currentState.b === undefined ? 255 : root.currentState.b,
+            root.cachedFieldW,
+            root.cachedFieldH,
+            root.cachedStep,
+            root.cachedChartType,
+            root.cachedChartIndex,
+            root.cachedGaugeHard ? 1 : 0,
+            root.cachedGaugeBorderPercent
+        ].join("|");
+    }
+
+    function clearGraphPaintArea(ctx: var, startColumn: var, fieldW: var, fieldH: var, step: var) : void {
+        let startX = Math.max(0, Math.min(fieldW, Math.max(0, startColumn || 0) * step));
+        ctx.clearRect(
+            (root.currentState.x + startX) * root.scaleOverride,
+            (root.currentState.y - fieldH) * root.scaleOverride,
+            Math.max(1, (fieldW - startX + step) * root.scaleOverride),
+            Math.max(1, fieldH * root.scaleOverride));
     }
 
     visible: currentState && effectiveAlpha > 0 && !!srcData
@@ -832,9 +1050,11 @@ Item {
 
         onPaint: {
             let ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
             ctx.globalCompositeOperation = "source-over";
             if (!root.currentState || !root.srcData) {
+                ctx.clearRect(0, 0, width, height);
+                root.renderedPaintKey = "";
+                root.renderedColumnCount = 0;
                 return;
             }
             ctx.imageSmoothingEnabled = root.currentState.filter !== 0;
@@ -843,15 +1063,33 @@ Item {
             let fieldH = root.cachedFieldH;
             let values = root.valueCache;
             let columnCount = root.drawColumnCount();
+            let key = root.paintKey();
+            let incremental = root.gameplayChartActive
+                && root.renderedPaintKey === key
+                && root.renderedColumnCount > 0
+                && columnCount >= root.renderedColumnCount;
+            let startColumn = incremental
+                ? Math.max(0, root.renderedColumnCount - 1)
+                : 0;
+            if (incremental) {
+                root.clearGraphPaintArea(ctx, startColumn, fieldW, fieldH, root.cachedStep);
+            } else {
+                ctx.clearRect(0, 0, width, height);
+            }
             ctx.globalAlpha = root.effectiveAlpha / 255.0;
             if (root.cachedChartType === 1) {
-                root.drawGaugeGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep);
+                root.drawGaugeGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep, startColumn, !incremental);
+                root.renderedPaintKey = key;
+                root.renderedColumnCount = columnCount;
                 return;
             }
             if (root.gameplayChartActive) {
-                root.drawScoreLineGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep);
+                root.drawScoreLineGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep, startColumn);
+                root.renderedPaintKey = key;
+                root.renderedColumnCount = columnCount;
                 return;
             }
+            ctx.clearRect(0, 0, width, height);
             if (values.length === 0 || columnCount <= 0) {
                 return;
             }
@@ -910,6 +1148,8 @@ Item {
     }
     onValueCacheStateChanged: {
         root.paintedColumnCount = -1;
+        root.renderedColumnCount = 0;
+        root.renderedPaintKey = "";
         root.requestTimedChartPaint();
     }
     onSkinTimeChanged: requestTimedChartPaint()

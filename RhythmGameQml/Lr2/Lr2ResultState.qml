@@ -117,6 +117,14 @@ QtObject {
         };
     }
 
+    function emptyJudgeTimingStats() : var {
+        return {
+            count: 0,
+            sum: 0,
+            sumSq: 0
+        };
+    }
+
     function judgementTimingBucket(judgement: var) : var {
         switch (judgement) {
         case Judgement.Perfect:
@@ -271,6 +279,16 @@ QtObject {
         if (root.judgementUpdatesJudgeTimingValue(judgement)) {
             let timingName = scoreSide === 2 ? "gameplayLastJudgeTiming2" : "gameplayLastJudgeTiming1";
             root.host[timingName] = timing;
+
+            let statsName = scoreSide === 2 ? "gameplayJudgeTimingStats2" : "gameplayJudgeTimingStats1";
+            let stats = root.host[statsName];
+            if (!stats) {
+                stats = root.emptyJudgeTimingStats();
+                root.host[statsName] = stats;
+            }
+            stats.count = (stats.count || 0) + 1;
+            stats.sum = (stats.sum || 0) + timing;
+            stats.sumSq = (stats.sumSq || 0) + timing * timing;
         }
 
         if (scoreSide === 2) {
@@ -335,6 +353,25 @@ QtObject {
         default:
             return 0;
         }
+    }
+
+    function gameplayJudgeTimingStats(side: var) : var {
+        let stats = side === 2 ? root.host.gameplayJudgeTimingStats2 : root.host.gameplayJudgeTimingStats1;
+        return stats || root.emptyJudgeTimingStats();
+    }
+
+    function timingStatsMean(stats: var) : var {
+        let count = stats ? Number(stats.count || 0) : 0;
+        return count > 0 ? Number(stats.sum || 0) / count : 0;
+    }
+
+    function timingStatsStdDev(stats: var) : var {
+        let count = stats ? Number(stats.count || 0) : 0;
+        if (count <= 0) {
+            return 0;
+        }
+        let mean = root.timingStatsMean(stats);
+        return Math.sqrt(Math.max(0, Number(stats.sumSq || 0) / count - mean * mean));
     }
 
     function resultCacheKey(score: var) : var {

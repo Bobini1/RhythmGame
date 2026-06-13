@@ -420,7 +420,9 @@ Loader {
         Lr2GrooveGaugeRenderer {
             dsts: elemLoader.elementData.dsts
             srcData: elemLoader.elementData.src
-            skinTime: elemLoader.screenRoot.renderSkinTime
+            skinTime: elementState.sourceHasFrameAnimation || elemLoader.usesDstSkinTime
+                ? elemLoader.screenRoot.renderSkinTime
+                : 0
             activeOptionsState: elemLoader.elementActiveOptionsState
             timerFire: elemLoader.dstTimerFire
             screenRoot: elemLoader.screenRoot
