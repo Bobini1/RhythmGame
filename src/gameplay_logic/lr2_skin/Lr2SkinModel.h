@@ -34,6 +34,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(int scratchRotationSides READ scratchRotationSides NOTIFY skinMetadataChanged)
     Q_PROPERTY(QString transColor READ transColor NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool hasTransColor READ hasTransColor NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QString laneCoverSource READ laneCoverSource NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool reloadBanner READ reloadBanner NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool usesStageFileSource READ usesStageFileSource NOTIFY skinMetadataChanged)
     Q_PROPERTY(bool usesBackBmpSource READ usesBackBmpSource NOTIFY skinMetadataChanged)
@@ -101,6 +102,7 @@ public:
     int scratchRotationSides() const;
     QString transColor() const;
     bool hasTransColor() const;
+    QString laneCoverSource() const;
     bool reloadBanner() const;
     bool usesStageFileSource() const;
     bool usesBackBmpSource() const;
@@ -153,6 +155,7 @@ private:
     int m_scratchRotationSides = 0;
     QString m_transColor = "#000000";
     bool m_hasTransColor = false;
+    QString m_laneCoverSource;
     bool m_reloadBanner = false;
     bool m_usesStageFileSource = false;
     bool m_usesBackBmpSource = false;

@@ -1415,9 +1415,9 @@ QString Lr2SelectItemModel::titleForItem(const QVariant& value, const QVariantMa
 }
 
 int Lr2SelectItemModel::titleTypeForItem(const QVariant& value, const QVariantMap& map, ItemKind kind) const {
-	if (!m_useBeatorajaBarTextTypes) {
-		return 0;
-	}
+    if (!m_useBeatorajaBarTextTypes) {
+        return 0;
+    }
 	auto withFallback = [this](int type, int fallback) {
 		const int normalized = std::max(0, type);
 		if (normalized <= 1 || variantListContainsInt(m_barTitleTypes, normalized)) {

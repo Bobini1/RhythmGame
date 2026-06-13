@@ -27,9 +27,49 @@ Item {
         gaugeColors: root.gaugeGraphColors(null)
     })
     readonly property int chartSide: root.srcData && root.srcData.side ? root.srcData.side : 1
+    readonly property int effectiveChartSide: root.chartSide === 2 ? 2 : 1
     readonly property int chartIndex: root.srcData ? (root.srcData.resultChartIndex || 0) : 0
     readonly property int chartType: root.srcData ? (root.srcData.resultChartType || 0) : 0
-    readonly property var resultScoreData: root.screenRoot ? root.screenRoot.resultScore(root.chartSide) : null
+    readonly property bool gameplayChartActive: !!root.screenRoot && !!root.screenRoot.gameplayScreenActive
+    readonly property bool gameplayMyBestGaugeChart: root.gameplayChartActive
+        && root.chartType === 1 && root.chartSide === 3
+    readonly property var gameplayPlayerData: root.gameplayChartActive && root.screenRoot.gameplayPlayer
+        ? root.screenRoot.gameplayPlayer(root.effectiveChartSide)
+        : null
+    readonly property var gameplayScoreData: root.gameplayChartActive && root.screenRoot.gameplayScore
+        ? root.screenRoot.gameplayScore(root.effectiveChartSide)
+        : null
+    readonly property var gameplayGaugeData: root.gameplayChartActive
+            && !root.gameplayMyBestGaugeChart
+            && root.screenRoot.gameplayActiveGauge
+        ? root.screenRoot.gameplayActiveGauge(root.gameplayScoreData)
+        : null
+    readonly property int gameplayHitEventsRevision: root.gameplayChartActive
+        ? (root.effectiveChartSide === 2
+            ? (root.screenRoot.gameplayHitEventsRevision2 || 0)
+            : (root.screenRoot.gameplayHitEventsRevision1 || 0))
+        : 0
+    readonly property int gameplayScoresRevision: root.gameplayChartActive
+        ? (root.screenRoot.gameplayScoresRevision || 0)
+        : 0
+    readonly property real gameplayScorePoints: root.gameplayScoreData
+        ? (root.gameplayScoreData.points || 0)
+        : 0
+    readonly property real gameplayScoreMaxPoints: root.gameplayScoreData
+        ? (root.gameplayScoreData.maxPoints || 0)
+        : 0
+    readonly property real gameplayScoreMaxPointsNow: root.gameplayScoreData
+        ? (root.gameplayScoreData.maxPointsNow || 0)
+        : 0
+    readonly property real gameplayGaugeValue: root.gameplayGaugeData
+        ? (root.gameplayGaugeData.gauge || 0)
+        : 0
+    readonly property int gameplayGaugeHistoryLength: root.gameplayGaugeData && root.gameplayGaugeData.gaugeHistory
+        ? root.gameplayGaugeData.gaugeHistory.length
+        : 0
+    readonly property var resultScoreData: root.screenRoot && !root.gameplayChartActive && root.screenRoot.resultScore
+        ? root.screenRoot.resultScore(root.effectiveChartSide)
+        : null
     readonly property var resultDataValue: root.resultScoreData && root.resultScoreData.result
         ? root.resultScoreData.result
         : null
@@ -37,14 +77,23 @@ Item {
         if (!root.screenRoot || !root.srcData) {
             return null;
         }
+        if (root.gameplayChartActive) {
+            if (root.chartIndex === 1 && root.screenRoot.gameplayBestSavedScore) {
+                return root.screenRoot.gameplayBestSavedScore();
+            }
+            if (root.chartIndex === 2 && root.screenRoot.gameplayTargetSavedScore) {
+                return root.screenRoot.gameplayTargetSavedScore();
+            }
+            return null;
+        }
         if (root.chartIndex === 0) {
             return root.resultScoreData;
         }
         if (root.chartIndex === 1 && root.screenRoot.resultOldBestScore) {
-            return root.screenRoot.resultOldBestScore(root.chartSide);
+            return root.screenRoot.resultOldBestScore(root.effectiveChartSide);
         }
         if (root.chartIndex === 2 && root.screenRoot.resultTargetSavedScore) {
-            return root.screenRoot.resultTargetSavedScore(root.chartSide);
+            return root.screenRoot.resultTargetSavedScore(root.effectiveChartSide);
         }
         return null;
     }
@@ -130,12 +179,34 @@ Item {
         return score && score.replayData ? (score.replayData.hitEvents || []) : [];
     }
 
-    function gaugeInfo() : var {
-        if (root.screenRoot && root.screenRoot.resultGaugeInfo) {
-            return root.screenRoot.resultGaugeInfo(root.chartSide);
+    function gameplayChartLength() : var {
+        let length = Number(root.gameplayPlayerData && root.gameplayPlayerData.chartLength !== undefined
+            ? root.gameplayPlayerData.chartLength : 0);
+        if (isFinite(length) && length > 0) {
+            return length;
         }
+        return 1;
+    }
 
-        let score = root.resultScoreData;
+    function gameplayChartElapsed() : var {
+        let length = root.gameplayChartLength();
+        let elapsed = Number(root.gameplayPlayerData && root.gameplayPlayerData.elapsed !== undefined
+            ? root.gameplayPlayerData.elapsed : 0);
+        if (!isFinite(elapsed)) {
+            return 0;
+        }
+        return Math.max(0, Math.min(length, elapsed));
+    }
+
+    function chartLengthValue() : var {
+        if (root.gameplayChartActive) {
+            return root.gameplayChartLength();
+        }
+        let currentResult = root.resultDataValue;
+        return currentResult ? Math.max(1, currentResult.length || 1) : 1;
+    }
+
+    function savedScoreGaugeInfo(score: var) : var {
         let infos = score && score.gaugeHistory ? score.gaugeHistory.gaugeInfo : [];
         if (!infos || infos.length === 0) {
             return null;
@@ -157,14 +228,57 @@ Item {
         return best || fallback;
     }
 
+    function liveGaugeInfo(gauge: var) : var {
+        if (!gauge) {
+            return null;
+        }
+        return {
+            maxGauge: Math.max(1, gauge.gaugeMax || 100),
+            threshold: gauge.threshold || 0,
+            name: gauge.name || "",
+            courseGauge: gauge.courseGauge || false,
+            gaugeHistory: gauge.gaugeHistory || []
+        };
+    }
+
+    function gaugeInfo() : var {
+        if (root.gameplayChartActive) {
+            if (root.gameplayMyBestGaugeChart && root.screenRoot.gameplayBestSavedScore) {
+                root.gameplayScoresRevision;
+                return root.savedScoreGaugeInfo(root.screenRoot.gameplayBestSavedScore());
+            }
+            root.gameplayGaugeValue;
+            root.gameplayGaugeHistoryLength;
+            return root.liveGaugeInfo(root.gameplayGaugeData);
+        }
+
+        if (root.screenRoot && root.screenRoot.resultGaugeInfo) {
+            return root.screenRoot.resultGaugeInfo(root.effectiveChartSide);
+        }
+
+        return root.savedScoreGaugeInfo(root.resultScoreData);
+    }
+
     function scoreChartFinalPoints() : var {
+        if (root.gameplayChartActive) {
+            if (root.chartIndex === 0) {
+                return root.gameplayScorePoints;
+            }
+            if (root.chartIndex === 1 && root.screenRoot.gameplayHighScoreFinalPoints) {
+                return root.screenRoot.gameplayHighScoreFinalPoints();
+            }
+            if (root.chartIndex === 2 && root.screenRoot.gameplayTargetFinalPoints) {
+                return root.screenRoot.gameplayTargetFinalPoints(root.effectiveChartSide);
+            }
+            return -1;
+        }
         let score = root.chartScoreData;
         let result = score && score.result ? score.result : null;
         if (result) {
             return result.points || 0;
         }
         if (screenRoot && srcData && root.chartIndex === 2 && screenRoot.resultTargetPoints) {
-            return screenRoot.resultTargetPoints(root.chartSide);
+            return screenRoot.resultTargetPoints(root.effectiveChartSide);
         }
         return -1;
     }
@@ -182,6 +296,16 @@ Item {
         if (root.cachedChartType === 1
                 && color[0] === 255 && color[1] === 255 && color[2] === 255) {
             return root.cachedChartIndex === 0 ? [0, 255, 0] : [255, 0, 0];
+        }
+        if (root.gameplayChartActive && root.cachedChartType === 2
+                && color[0] === 255 && color[1] === 255 && color[2] === 255) {
+            if (root.cachedChartIndex === 1) {
+                return [20, 255, 20];
+            }
+            if (root.cachedChartIndex === 2) {
+                return [255, 20, 20];
+            }
+            return [20, 20, 255];
         }
         return color;
     }
@@ -262,6 +386,42 @@ Item {
         return result;
     }
 
+    function buildGameplayLiveScoreCache(fieldW: var, step: var, maxPoints: var) : var {
+        root.gameplayHitEventsRevision;
+        root.gameplayScorePoints;
+        root.gameplayScoreMaxPointsNow;
+        if (!root.screenRoot || !root.screenRoot.gameplayHitEventsForSide || !root.gameplayScoreData) {
+            return [];
+        }
+
+        let events = root.screenRoot.gameplayHitEventsForSide(root.effectiveChartSide) || [];
+        let count = cacheValueCount(fieldW, step);
+        let result = new Array(count);
+        let length = root.gameplayChartLength();
+        let elapsed = root.gameplayChartElapsed();
+        let points = 0;
+        let eventIndex = 0;
+        for (let i = 0; i < count; ++i) {
+            let targetTime = (i * step / fieldW) * length;
+            if (targetTime > elapsed) {
+                result[i] = -1;
+                continue;
+            }
+            while (eventIndex < events.length) {
+                let event = events[eventIndex];
+                if (event && (event.offsetFromStart || 0) > targetTime) {
+                    break;
+                }
+                if (event && event.noteRemoved && event.points && event.points.value !== undefined) {
+                    points += event.points.value || 0;
+                }
+                ++eventIndex;
+            }
+            result[i] = scorePercent(points, maxPoints);
+        }
+        return result;
+    }
+
     function buildGradeTargetCache(fieldW: var, step: var, maxPoints: var) : var {
         if (!screenRoot || !srcData || root.chartIndex !== 2
                 || !screenRoot.resultTargetFraction || root.chartScoreData) {
@@ -283,6 +443,47 @@ Item {
         let perNotePoints = 2.0 * Math.max(0, screenRoot.resultTargetFraction(root.chartSide) || 0);
         for (let i = 0; i < count; ++i) {
             let targetTime = (i * step / fieldW) * length;
+            while (eventIndex < events.length) {
+                let event = events[eventIndex];
+                if (event && (event.offsetFromStart || 0) > targetTime) {
+                    break;
+                }
+                if (event && event.noteRemoved && event.points) {
+                    points += perNotePoints;
+                }
+                ++eventIndex;
+            }
+            result[i] = scorePercent(points, maxPoints);
+        }
+        return result;
+    }
+
+    function buildGameplayGradeTargetCache(fieldW: var, step: var, maxPoints: var) : var {
+        root.gameplayHitEventsRevision;
+        if (!screenRoot || !srcData || root.chartIndex !== 2
+                || root.chartScoreData || !screenRoot.gameplayHitEventsForSide) {
+            return [];
+        }
+
+        let finalPoints = root.scoreChartFinalPoints();
+        if (finalPoints < 0) {
+            return [];
+        }
+
+        let events = screenRoot.gameplayHitEventsForSide(root.effectiveChartSide) || [];
+        let count = cacheValueCount(fieldW, step);
+        let result = new Array(count);
+        let length = root.gameplayChartLength();
+        let elapsed = root.gameplayChartElapsed();
+        let points = 0;
+        let eventIndex = 0;
+        let perNotePoints = 2.0 * finalPoints / Math.max(1, maxPoints);
+        for (let i = 0; i < count; ++i) {
+            let targetTime = (i * step / fieldW) * length;
+            if (targetTime > elapsed) {
+                result[i] = -1;
+                continue;
+            }
             while (eventIndex < events.length) {
                 let event = events[eventIndex];
                 if (event && (event.offsetFromStart || 0) > targetTime) {
@@ -322,12 +523,17 @@ Item {
 
         let count = cacheValueCount(fieldW, step);
         let result = new Array(count);
-        let currentResult = root.resultDataValue;
-        let length = currentResult ? Math.max(1, currentResult.length || 1) : 1;
+        let length = root.chartLengthValue();
+        let liveGameplayGauge = root.gameplayChartActive && !root.gameplayMyBestGaugeChart;
+        let elapsed = liveGameplayGauge ? root.gameplayChartElapsed() : length;
         let value = history[0].gauge !== undefined ? history[0].gauge : 0;
         let historyIndex = 0;
         for (let i = 0; i < count; ++i) {
             let targetTime = (i * step / fieldW) * length;
+            if (liveGameplayGauge && targetTime > elapsed) {
+                result[i] = -1;
+                continue;
+            }
             while (historyIndex < history.length) {
                 let entry = history[historyIndex];
                 if (entry && (entry.offsetFromStart || 0) > targetTime) {
@@ -348,14 +554,22 @@ Item {
 
     function buildScoreCache(fieldW: var, step: var) : var {
         let current = root.resultDataValue;
-        let maxPoints = current ? Math.max(1, current.maxPoints || 1) : 1;
+        let maxPoints = root.gameplayChartActive
+            ? Math.max(1, root.gameplayScoreMaxPoints || 1)
+            : (current ? Math.max(1, current.maxPoints || 1) : 1);
+        if (root.gameplayChartActive && root.chartIndex === 0) {
+            return buildGameplayLiveScoreCache(fieldW, step, maxPoints);
+        }
+
         let score = root.chartScoreData;
         let replayValues = buildReplayScoreCache(score, fieldW, step, maxPoints);
         if (replayValues.length > 0) {
             return replayValues;
         }
 
-        let gradeValues = buildGradeTargetCache(fieldW, step, maxPoints);
+        let gradeValues = root.gameplayChartActive
+            ? buildGameplayGradeTargetCache(fieldW, step, maxPoints)
+            : buildGradeTargetCache(fieldW, step, maxPoints);
         if (gradeValues.length > 0) {
             return gradeValues;
         }
@@ -405,6 +619,14 @@ Item {
         if (!root.currentState || !root.srcData || root.valueCache.length === 0) {
             return 0;
         }
+        if (root.gameplayChartActive
+                && root.gameplayPlayerData
+                && (root.cachedChartType !== 1 || !root.gameplayMyBestGaugeChart)) {
+            let length = root.gameplayChartLength();
+            let elapsed = root.gameplayChartElapsed();
+            let drawLength = Math.max(0, Math.min(root.cachedFieldW, root.cachedFieldW * elapsed / length));
+            return Math.min(root.valueCache.length, Math.ceil(drawLength / root.cachedStep));
+        }
         let start = Math.max(0, root.srcData.op3 || 0);
         let end = Math.max(start + 1, root.srcData.op4 || start + 1);
         let elapsed = Math.max(0, Math.min(end - start, root.skinTime - start));
@@ -453,6 +675,45 @@ Item {
 
     function gaugeGraphY(value: var, fieldH: var, lineWidth: var) : var {
         return Math.round(-root.clampPercent(value) * Math.max(1, fieldH - lineWidth) / 100.0);
+    }
+
+    function scoreGraphY(value: var, fieldH: var) : var {
+        return Math.round(-root.clampPercent(value) * Math.max(1, fieldH) / 100.0);
+    }
+
+    function drawScoreLineGraph(ctx: var, values: var, columnCount: var, fieldW: var, fieldH: var, step: var) : void {
+        if (!values || values.length === 0 || columnCount <= 0) {
+            return;
+        }
+
+        let lineWidth = Math.max(1, Math.abs(root.srcData && root.srcData.w ? root.srcData.w : 1));
+        ctx.save();
+        ctx.strokeStyle = root.graphColor(root.currentState);
+        ctx.lineWidth = Math.max(1, lineWidth * root.scaleOverride);
+        ctx.lineCap = "butt";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+
+        let started = false;
+        for (let column = 0; column < columnCount; ++column) {
+            let value = values[column];
+            if (value < 0) {
+                started = false;
+                continue;
+            }
+
+            let x = (root.currentState.x + Math.min(fieldW, column * step)) * root.scaleOverride;
+            let y = (root.currentState.y + root.scoreGraphY(value, fieldH)) * root.scaleOverride;
+            if (!started) {
+                ctx.moveTo(x, y);
+                started = true;
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+
+        ctx.stroke();
+        ctx.restore();
     }
 
     function gaugeGraphColors(info: var) : var {
@@ -555,7 +816,7 @@ Item {
             previousY = y;
         }
 
-        if (lastGauge >= 0) {
+        if (lastGauge >= 0 && !(root.gameplayChartActive && !root.gameplayMyBestGaugeChart)) {
             ctx.fillStyle = lastGauge < borderPercent ? colors.graphLine : colors.borderLine;
             root.logicalFillRect(ctx, lastX, lastY, Math.max(lineWidth, fieldW - lastX), lineWidth);
         }
@@ -585,6 +846,10 @@ Item {
             ctx.globalAlpha = root.effectiveAlpha / 255.0;
             if (root.cachedChartType === 1) {
                 root.drawGaugeGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep);
+                return;
+            }
+            if (root.gameplayChartActive) {
+                root.drawScoreLineGraph(ctx, values, columnCount, fieldW, fieldH, root.cachedStep);
                 return;
             }
             if (values.length === 0 || columnCount <= 0) {

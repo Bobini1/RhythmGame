@@ -70,6 +70,7 @@ Item {
     property var barLampVariants: []
     property bool useBeatorajaBarTextTypes: false
     property bool useBeatorajaSelectOptions: false
+    property bool useExpandedClearSemantics: root.useBeatorajaSelectOptions
     property bool scoreOptionIdsUsed: true
     property bool difficultyStateUsed: true
     property bool difficultyLampStateUsed: true
@@ -2138,7 +2139,7 @@ Item {
 
     function skinCompatibleClearType(clear: var) : var {
         let value = normalizedClearType(clear);
-        if (root.useBeatorajaSelectOptions) {
+        if (root.useExpandedClearSemantics) {
             return value;
         }
         switch (value) {
@@ -2394,7 +2395,7 @@ Item {
 
     function clearTypeBarLamp(clear: var, variants: var) : var {
         clear = skinCompatibleClearType(clear);
-        if (!root.useBeatorajaSelectOptions || !usesExtendedBarLampVariants(variants)) {
+        if (!usesExtendedBarLampVariants(variants)) {
             return collapsedClearTypeLamp(clear);
         }
         switch (clear) {

@@ -364,7 +364,7 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             if (parts.size() >= 4) {
                 maker = parts[3].trimmed();
             }
-        } else if (command == "#RESOLUTION" || command == "#CUSTOMOFFSET" ||
+        } else if (command == "#CUSTOMOFFSET" ||
                    command == "#CUSTOMOPTION_ADDITION_SETTING") {
             beatorajaSkin = true;
         } else if (command == "#CUSTOMOPTION") {

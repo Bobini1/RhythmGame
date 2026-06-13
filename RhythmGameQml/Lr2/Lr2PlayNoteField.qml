@@ -1,6 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
+import "Lr2SkinUtils.js" as Lr2SkinUtils
 
 Item {
     id: root
@@ -19,6 +20,9 @@ Item {
     readonly property int runtimeDescriptorRevision: skinRuntime ? skinRuntime.descriptorRevision : 0
     readonly property var runtimeNoteDstTimerFires: skinRuntime ? skinRuntime.noteDstTimerFires : []
     readonly property var runtimeLineDstTimerFires: skinRuntime ? skinRuntime.lineDstTimerFires : []
+    readonly property string laneCoverImageSource: skinModel
+        ? String(skinModel.laneCoverSource || "")
+        : ""
     readonly property bool playfieldActive: root.enabled
         && !!screenRoot
         && !!skinModel
@@ -295,6 +299,57 @@ Item {
     function hidSudClipActive(side: var) : var {
         let vars = generalVarsForSide(side);
         return !!vars && (!!vars.laneCoverOn || !!vars.hiddenOn);
+    }
+
+    function laneBounds(side: var) : var {
+        let start = side === 2 ? 10 : 0;
+        let end = side === 2 ? 20 : 10;
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (let i = start; i < end; ++i) {
+            let state = noteDstState(i);
+            if (!state) {
+                continue;
+            }
+            let width = Math.abs(state.w || 0);
+            if (width <= 0) {
+                continue;
+            }
+            let x1 = state.x || 0;
+            let x2 = x1 + (state.w || 0);
+            let bottom = laneBottom(state);
+            let top = bottom - dstTravelHeight(state);
+            minX = Math.min(minX, x1, x2);
+            maxX = Math.max(maxX, x1, x2);
+            minY = Math.min(minY, top, bottom);
+            maxY = Math.max(maxY, top, bottom);
+        }
+        if (minX === Infinity || maxX <= minX || maxY <= minY) {
+            return null;
+        }
+        return {
+            x: minX,
+            y: minY,
+            w: maxX - minX,
+            h: maxY - minY,
+            bottom: maxY
+        };
+    }
+
+    function laneCoverVisualHeight(side: var, bounds: var) : var {
+        if (!bounds) {
+            return 0;
+        }
+        let vars = generalVarsForSide(side);
+        if (!vars || !vars.laneCoverOn) {
+            return 0;
+        }
+        let liftRatio = vars.liftOn ? Math.max(0, Math.min(1, vars.liftRatio || 0)) : 0;
+        let coverRatio = Math.max(0, Math.min(1, vars.laneCoverRatio || 0));
+        let visibleRatio = Math.max(0, 1 - liftRatio) * Math.max(0, 1 - coverRatio);
+        return Math.max(0, Math.min(bounds.h, bounds.h * (1 - visibleRatio)));
     }
 
     function sideSpeedHeight(side: var, fallbackDst: var) : var {
@@ -659,6 +714,44 @@ Item {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    Repeater {
+        model: root.playfieldActive && root.laneCoverImageSource !== ""
+            ? [1, 2]
+            : []
+
+        delegate: Item {
+            id: laneCoverVisual
+
+            required property int modelData
+
+            readonly property int side: modelData
+            readonly property var bounds: root.laneBounds(side)
+            readonly property real coverHeight: root.laneCoverVisualHeight(side, bounds)
+
+            x: bounds ? bounds.x * root.skinScale : 0
+            y: bounds ? bounds.y * root.skinScale : 0
+            width: bounds ? bounds.w * root.skinScale : 0
+            height: coverHeight * root.skinScale
+            visible: bounds
+                && coverHeight > 0
+                && root.laneCoverImageSource !== ""
+            clip: true
+            z: 10
+
+            Image {
+                source: Lr2SkinUtils.fileUrlForPath(root.laneCoverImageSource)
+                width: laneCoverVisual.width
+                height: laneCoverVisual.bounds
+                    ? laneCoverVisual.bounds.h * root.skinScale
+                    : 0
+                fillMode: Image.Stretch
+                cache: true
+                asynchronous: false
+                smooth: false
             }
         }
     }

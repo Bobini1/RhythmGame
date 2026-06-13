@@ -61,6 +61,16 @@ Item {
     readonly property var lr2SkinMetadata: root.parseLr2SkinMetadata()
     readonly property string lr2SkinFamily: root.lr2SkinMetadata.format === "beatoraja" ? "beatoraja" : "lr2"
     readonly property bool lr2SkinUsesBeatorajaSemantics: root.lr2SkinFamily === "beatoraja"
+    readonly property bool lr2SkinUsesLunaticVibesSemantics: root.lr2SkinFamily === "lunaticvibes"
+        || root.lr2SkinFamily === "lvf"
+        || root.skinUsesRuntimeOption(48)
+        || root.skinUsesRuntimeOption(49)
+        || root.skinUsesRuntimeOption(106)
+        || root.skinUsesRuntimeOption(109)
+        || root.skinUsesRuntimeOption(146)
+        || root.skinUsesRuntimeOption(147)
+    readonly property bool lr2SkinUsesExpandedClearSemantics: root.lr2SkinUsesBeatorajaSemantics
+        || root.lr2SkinUsesLunaticVibesSemantics
     readonly property var emptyActiveOptions: []
     readonly property var zeroTimers: ({ "0": 0 })
     property Lr2TimelineState timelineResolver: Lr2TimelineState {}
@@ -311,7 +321,7 @@ Item {
 
     function skinClearTypeForStatus(clearType: var) : var {
         let value = root.normalizedClearType(clearType);
-        if (root.lr2SkinUsesBeatorajaSemantics) {
+        if (root.lr2SkinUsesExpandedClearSemantics) {
             return value;
         }
         switch (value) {
@@ -728,11 +738,69 @@ Item {
         } else if (root.effectiveScreenKey === "decide") {
             options.push(900); // stock LR2 decide default: show stagefile
             options.push(33); // LR2 decide reports both autoplay states true.
+        } else if (root.gameplayScreenActive) {
+            root.appendGameplayParseOptions(options);
         } else if (root.resultScreenActive) {
             root.appendResultParseOptions(options);
         }
         return root.finalizeOptionList(options);
     }
+
+    function gameplayParseKeymodeOption(keymode: var, baseOption: var) : var {
+        switch (Number(keymode || 0)) {
+        case 7:
+            return baseOption;
+        case 5:
+            return baseOption + 1;
+        case 14:
+            return baseOption + 2;
+        case 10:
+            return baseOption + 3;
+        case 24:
+            return 1160;
+        case 48:
+            return 1161;
+        case 9:
+            return baseOption + 4;
+        default:
+            return 0;
+        }
+    }
+
+    function appendGameplayChartParseOptions(options: var, chartData: var) : void {
+        if (!chartData) {
+            return;
+        }
+
+        let keymode = root.gameplayKeymode();
+        root.appendParseOption(options, root.gameplayParseKeymodeOption(keymode, 160));
+        root.appendParseOption(options, root.gameplayParseKeymodeOption(keymode, 165));
+
+        root.appendParseOption(options, chartData.stageFile ? 191 : 190);
+        root.appendParseOption(options, chartData.banner ? 193 : 192);
+        root.appendParseOption(options, chartData.backBmp ? 195 : 194);
+        root.appendParseOption(options, selectContext.hasBga(chartData) ? 171 : 170);
+        root.appendParseOption(options, selectContext.hasLongNote(chartData) ? 173 : 172);
+        root.appendParseOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
+        root.appendParseOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
+        root.appendParseOption(options, chartData.isRandom ? 179 : 178);
+        root.appendParseOption(options, selectContext.highLevelOption(chartData));
+        if (root.chartHasBpmStop(chartData)) {
+            root.appendParseOption(options, 1177);
+        }
+
+        let difficulty = selectContext.entryDifficulty(chartData);
+        root.appendParseOption(options, difficulty >= 1 && difficulty <= 5 ? 150 + difficulty : 150);
+    }
+
+    function appendGameplayParseOptions(options: var) : void {
+        let chartData = root.gameplayChartData();
+        root.appendParseOption(options, root.gaugeColorOption(1));
+        root.appendParseOption(options, root.gaugeColorOption(2));
+        root.appendParseOption(options, root.clearStatusOption());
+        root.appendGameplayChartParseOptions(options, chartData);
+    }
+
     readonly property var skinParserActiveOptions: {
         return root.parseActiveOptions;
     }
@@ -1654,6 +1722,68 @@ Item {
         let vars = root.generalVarsForSide(side);
         let visible = cover && vars ? 1 - (vars.laneCoverRatio || 0) : 1;
         return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 0.6 : 1.0));
+    }
+
+    function laneEffectTopNumber(side: var) : var {
+        let vars = root.generalVarsForSide(side);
+        return vars && vars.laneCoverOn
+            ? Math.round(root.lr2Clamp01(vars.laneCoverRatio) * 1000)
+            : 0;
+    }
+
+    function laneEffectBottomNumber(side: var) : var {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return 0;
+        }
+        if (vars.liftOn) {
+            return Math.round(root.lr2Clamp01(vars.liftRatio) * 1000);
+        }
+        return vars.hiddenOn ? Math.round(root.lr2Clamp01(vars.hiddenRatio) * 1000) : 0;
+    }
+
+    function gameplayGreenNumberVisibleRatio(side: var) : var {
+        return Math.max(0, 1000 - root.laneEffectTopNumber(side) - root.laneEffectBottomNumber(side)) / 1000;
+    }
+
+    function gameplayGreenNumberCurrentBpm(side: var, chartData: var) : var {
+        let vars = root.generalVarsForSide(side);
+        let player = root.gameplayPlayer(side);
+        if (!vars) {
+            return player && (player.bpm || 0) > 0
+                ? player.bpm
+                : (chartData ? (chartData.mainBpm || chartData.initialBpm || 120) : 120);
+        }
+        switch (vars.hiSpeedFix) {
+        case HiSpeedFix.Main:
+            return chartData ? (chartData.mainBpm || chartData.initialBpm || 120) : 120;
+        case HiSpeedFix.Start:
+            return chartData ? (chartData.initialBpm || chartData.mainBpm || 120) : 120;
+        case HiSpeedFix.Min:
+            return chartData ? (chartData.minBpm || chartData.mainBpm || 120) : 120;
+        case HiSpeedFix.Max:
+            return chartData ? (chartData.maxBpm || chartData.mainBpm || 120) : 120;
+        case HiSpeedFix.Avg:
+            return chartData ? (chartData.avgBpm || chartData.mainBpm || 120) : 120;
+        default:
+            return player && (player.bpm || 0) > 0
+                ? player.bpm
+                : (chartData ? (chartData.mainBpm || chartData.initialBpm || 120) : 120);
+        }
+    }
+
+    function gameplayGreenNumber(side: var, mode: var, chartData: var) : var {
+        let bpm = 0;
+        if (mode === "min") {
+            bpm = chartData ? (chartData.minBpm || chartData.mainBpm || chartData.initialBpm || 120) : 120;
+        } else if (mode === "max") {
+            bpm = chartData ? (chartData.maxBpm || chartData.mainBpm || chartData.initialBpm || 120) : 120;
+        } else {
+            bpm = root.gameplayGreenNumberCurrentBpm(side, chartData);
+        }
+        let safeBpm = Math.max(1, bpm || 0);
+        let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
+        return Math.round(root.gameplayGreenNumberVisibleRatio(side) * 144000 / hiSpeed / safeBpm);
     }
 
     function firstDstStateY(dsts: var) : var {
@@ -4927,6 +5057,7 @@ Item {
         barLampVariants: skinModel.barLampVariants || []
         useBeatorajaBarTextTypes: root.lr2SkinUsesBeatorajaSemantics
         useBeatorajaSelectOptions: root.lr2SkinUsesBeatorajaSemantics
+        useExpandedClearSemantics: root.lr2SkinUsesExpandedClearSemantics
         scoreOptionIdsUsed: root.selectScoreOptionIdsUsed
         difficultyStateUsed: root.selectDifficultyStateUsed
         difficultyLampStateUsed: root.selectDifficultyLampOptionsUsed

@@ -596,6 +596,26 @@ QtObject {
 
     Component.onCompleted: queueResolvedTextRefresh()
 
+    function chartDifficultyValue(chartData: var) : var {
+        if (!chartData) {
+            return 0;
+        }
+        if (selectContext && selectContext.entryDifficulty) {
+            return selectContext.entryDifficulty(chartData);
+        }
+        return Number(chartData.difficulty || 0);
+    }
+
+    function gameplayDifficultyPlayLevel(num: var, chartData: var) : var {
+        if (!chartData) {
+            return 0;
+        }
+        let expectedDifficulty = Number(num || 0) - 44;
+        return resolver.chartDifficultyValue(chartData) === expectedDifficulty
+            ? (chartData.playLevel || 0)
+            : 0;
+    }
+
     function resolveGameplayNumber(num: var) : var {
         if ((num >= 1510 && num <= 1599) || (num >= 1610 && num <= 1699)) {
             return root.gameplayJudgeValueForId(num);
@@ -669,6 +689,26 @@ QtObject {
         case 1326:
         case 1327:
             return root.bpmDurationNumber(num, chartData);
+        case 302:
+            return root.gameplayGreenNumber(1, "current", chartData);
+        case 303:
+            return root.laneEffectTopNumber(1);
+        case 304:
+            return root.gameplayGreenNumber(1, "min", chartData);
+        case 305:
+            return root.gameplayGreenNumber(1, "max", chartData);
+        case 306:
+            return root.laneEffectBottomNumber(1);
+        case 342:
+            return root.gameplayGreenNumber(2, "current", chartData);
+        case 343:
+            return root.laneEffectTopNumber(2);
+        case 344:
+            return root.gameplayGreenNumber(2, "min", chartData);
+        case 345:
+            return root.gameplayGreenNumber(2, "max", chartData);
+        case 346:
+            return root.laneEffectBottomNumber(2);
         case 100:
             return root.gameplayDisplayedScorePrint(1);
         case 101:
@@ -851,6 +891,12 @@ QtObject {
             return root.chartDensityNumber(chartData, "avgDensity", true);
         case 368:
             return chartData ? Math.floor(chartData.total || 0) : -1;
+        case 45:
+        case 46:
+        case 47:
+        case 48:
+        case 49:
+            return resolver.gameplayDifficultyPlayLevel(num, chartData);
         case 42:
         case 96:
             return chartData ? (chartData.playLevel || 0) : 0;

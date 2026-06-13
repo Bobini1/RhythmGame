@@ -510,6 +510,7 @@ struct Lr2SkinData
     QVariantList helpFiles;
     QString transColor = "#000000";
     bool hasTransColor = false;
+    QString laneCoverSource;
     bool reloadBanner = false;
     int startInput = 0;
     int sceneTime = 0;

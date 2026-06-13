@@ -340,17 +340,21 @@ QtObject {
         if (!target || !target.element) {
             return -1;
         }
+        if (Math.floor(target.element.buttonId || 0) === 19) {
+            return root.lr2ReplayType;
+        }
         return target.element.replayType >= 0
             ? target.element.replayType
             : replayTypeForButton(target.element.buttonId);
     }
 
     function replayActionTypeForTarget(target: var) : var {
-        if (!target || !target.element || target.element.replayType < 0) {
+        if (!target || !target.element) {
             return -1;
         }
         switch (Math.floor(target.element.buttonId || 0)) {
         case 19:
+            return root.lr2ReplayType;
         case 316:
         case 317:
         case 318:

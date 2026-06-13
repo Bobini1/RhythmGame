@@ -104,6 +104,7 @@ struct ParseState
     int skinHeight = 480;
     bool hasSkinResolution = false;
     int sortId = 0;
+    QString laneCoverSource;
 };
 
 auto
@@ -588,37 +589,10 @@ selectedCustomFilePath(const std::filesystem::path& directory,
     return {};
 }
 
-auto
-explicitImageIndex(const QStringList& tokens) -> std::optional<int>
-{
-    for (int i = 2; i < tokens.size(); ++i) {
-        const auto token = tokens[i].trimmed();
-        if (token.isEmpty()) {
-            continue;
-        }
-
-        bool ok = false;
-        const int index = token.toInt(&ok);
-        if (ok && index >= 0) {
-            return index;
-        }
-        return std::nullopt;
-    }
-    return std::nullopt;
-}
-
 void
-setImageSource(ParseState& state, const std::optional<int> index, QString source)
+setImageSource(ParseState& state, QString source)
 {
-    if (!index) {
-        state.images.append(std::move(source));
-        return;
-    }
-
-    while (state.images.size() <= *index) {
-        state.images.append(QString{});
-    }
-    state.images[*index] = std::move(source);
+    state.images.append(std::move(source));
 }
 
 auto
@@ -697,6 +671,21 @@ resolveWildcardPath(const std::filesystem::path& absolutePattern,
     return matches.empty() ? QString{}
                            : support::pathToQString(
                                std::filesystem::absolute(matches.front()));
+}
+
+auto
+selectedCustomFileSource(const ParseState& state, const QString& settingId)
+  -> QString
+{
+    for (const auto& customFile : state.customFiles) {
+        if (customFile.settingId.compare(settingId, Qt::CaseInsensitive) != 0) {
+            continue;
+        }
+        return resolveWildcardPath(customFile.directory /
+                                     support::qStringToPath(customFile.wildcard),
+                                   state);
+    }
+    return {};
 }
 
 auto
@@ -1775,7 +1764,6 @@ processCommand(const QStringList& tokens,
         }
     } else if (command == "#IMAGE") {
         setImageSource(state,
-                       explicitImageIndex(tokens),
                        resolvePath(currentDir,
                                    tokens.size() > 1 ? tokens[1].trimmed()
                                                      : QString{},
@@ -2046,6 +2034,17 @@ processCommand(const QStringList& tokens,
           command.endsWith(QStringLiteral("_2P")) ? 2 : 1));
     } else if (command == "#DST_GAUGECHART_1P" ||
                command == "#DST_GAUGECHART_2P") {
+        if (state.hasCurrentElement && state.currentElement.type == 10) {
+            parseDst(tokens, state, state.currentElement);
+        }
+    } else if (command == "#SRC_LVF_EXPERIMENTAL_GAUGECHART_MYBEST") {
+        flushCurrentElement(state);
+        state.currentElement = Lr2Element{};
+        state.currentElement.type = 10;
+        state.hasCurrentElement = true;
+        state.currentElement.src =
+          QVariant::fromValue(parseResultChartSource(tokens, state, 1, 3));
+    } else if (command == "#DST_LVF_EXPERIMENTAL_GAUGECHART_MYBEST") {
         if (state.hasCurrentElement && state.currentElement.type == 10) {
             parseDst(tokens, state, state.currentElement);
         }
@@ -2581,6 +2580,8 @@ parseFile(const std::filesystem::path& filePath,
     state.activeOptions = initialOptions;
     parseFileIntoState(filePath, state);
     flushCurrentElement(state);
+    state.laneCoverSource =
+      selectedCustomFileSource(state, QStringLiteral("lanecover"));
     if (!state.hasSkinResolution) {
         const auto [skinWidth, skinHeight] = inferSkinCanvas(state.elements);
         state.skinWidth = skinWidth;
@@ -2667,6 +2668,7 @@ parseFile(const std::filesystem::path& filePath,
       .helpFiles = state.helpFiles,
       .transColor = state.transColor,
       .hasTransColor = state.hasTransColor,
+      .laneCoverSource = state.laneCoverSource,
       .reloadBanner = state.reloadBanner,
       .startInput = state.startInput,
       .sceneTime = state.sceneTime,

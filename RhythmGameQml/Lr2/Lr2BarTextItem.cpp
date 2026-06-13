@@ -383,8 +383,8 @@ void Lr2BarTextItem::reconnectPositionMap() {
 void Lr2BarTextItem::updateSupported() {
     const bool next = m_source.titleType >= 0
         && !m_dsts.isEmpty()
-        && !m_hasUnsupportedBlend
-        && m_timeline.canUseStaticState();
+        && m_timeline.canUseStaticState()
+        && !m_hasUnsupportedBlend;
     if (m_supported == next) {
         return;
     }

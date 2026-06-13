@@ -48,10 +48,23 @@ QtObject {
         NoteOrderAlgorithm.Mirror,
         NoteOrderAlgorithm.Random,
         NoteOrderAlgorithm.SRandom,
-        NoteOrderAlgorithm.RRandom,
+        null,
         null
     ]
-    readonly property var lr2ClassicRandomSupportedIndexes: [0, 1, 2, 3, 4]
+    readonly property var lr2ClassicRandomSupportedIndexes: [0, 1, 2, 3]
+    readonly property var lvfRandomLabels: ["OFF", "MIRROR", "RANDOM", "S-RANDOM", "H-RANDOM", "ALL-SCR", "R-RANDOM", "SYN-RANDOM", "SYM-RANDOM"]
+    readonly property var lvfRandomValues: [
+        NoteOrderAlgorithm.Normal,
+        NoteOrderAlgorithm.Mirror,
+        NoteOrderAlgorithm.Random,
+        NoteOrderAlgorithm.SRandom,
+        null,
+        null,
+        NoteOrderAlgorithm.RRandom,
+        null,
+        null
+    ]
+    readonly property var lvfRandomSupportedIndexes: [0, 1, 2, 3, 6]
     readonly property var lr2HiSpeedFixLabels: ["OFF", "MAX BPM", "MIN BPM", "AVERAGE", "CONSTANT"]
     readonly property var lr2HiSpeedFixValues: [
         HiSpeedFix.Off,
@@ -450,25 +463,46 @@ QtObject {
 
     function randomButtonUsesClassicFrames(sourceCount: var) : var {
         let count = Math.floor(sourceCount || 0);
-        return count > 0 && count <= root.lr2ClassicRandomValues.length;
+        return !root.randomButtonUsesLvfFrames(sourceCount)
+            && count > 0
+            && count <= root.lr2ClassicRandomValues.length;
+    }
+
+    function randomButtonUsesLvfFrames(sourceCount: var) : var {
+        let count = Math.floor(sourceCount || 0);
+        return root.host
+            && !root.host.lr2SkinUsesBeatorajaSemantics
+            && count >= root.lvfRandomValues.length;
     }
 
     function randomButtonValuesForSourceCount(sourceCount: var) : var {
-        return root.randomButtonUsesClassicFrames(sourceCount)
-            ? root.lr2ClassicRandomValues
-            : root.lr2RandomValues;
+        if (root.randomButtonUsesLvfFrames(sourceCount)) {
+            return root.lvfRandomValues;
+        }
+        if (root.randomButtonUsesClassicFrames(sourceCount)) {
+            return root.lr2ClassicRandomValues;
+        }
+        return root.lr2RandomValues;
     }
 
     function randomButtonLabelsForSourceCount(sourceCount: var) : var {
-        return root.randomButtonUsesClassicFrames(sourceCount)
-            ? root.lr2ClassicRandomLabels
-            : root.lr2RandomLabels;
+        if (root.randomButtonUsesLvfFrames(sourceCount)) {
+            return root.lvfRandomLabels;
+        }
+        if (root.randomButtonUsesClassicFrames(sourceCount)) {
+            return root.lr2ClassicRandomLabels;
+        }
+        return root.lr2RandomLabels;
     }
 
     function randomButtonSupportedIndexesForSourceCount(sourceCount: var) : var {
-        return root.randomButtonUsesClassicFrames(sourceCount)
-            ? root.lr2ClassicRandomSupportedIndexes
-            : root.lr2RandomSupportedIndexes;
+        if (root.randomButtonUsesLvfFrames(sourceCount)) {
+            return root.lvfRandomSupportedIndexes;
+        }
+        if (root.randomButtonUsesClassicFrames(sourceCount)) {
+            return root.lr2ClassicRandomSupportedIndexes;
+        }
+        return root.lr2RandomSupportedIndexes;
     }
 
     function randomButtonFrameForValue(value: var, sourceCount: var) : var {

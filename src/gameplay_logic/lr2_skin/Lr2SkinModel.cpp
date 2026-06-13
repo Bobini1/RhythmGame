@@ -457,6 +457,10 @@ bool Lr2SkinModel::hasTransColor() const {
     return m_hasTransColor;
 }
 
+QString Lr2SkinModel::laneCoverSource() const {
+    return m_laneCoverSource;
+}
+
 bool Lr2SkinModel::reloadBanner() const {
     return m_reloadBanner;
 }
@@ -639,6 +643,7 @@ void Lr2SkinModel::loadSkin() {
         m_scratchRotationSides = 0;
         m_transColor = "#000000";
         m_hasTransColor = false;
+        m_laneCoverSource.clear();
         m_reloadBanner = false;
         m_usesStageFileSource = false;
         m_usesBackBmpSource = false;
@@ -712,6 +717,7 @@ void Lr2SkinModel::loadSkin() {
                                  m_scratchRotationSides != scratchRotationSides ||
                                  m_transColor != skinData.transColor ||
                                  m_hasTransColor != skinData.hasTransColor ||
+                                 m_laneCoverSource != skinData.laneCoverSource ||
                                  m_reloadBanner != skinData.reloadBanner ||
                                  m_usesStageFileSource != chartAssetUsage.stageFile ||
                                  m_usesBackBmpSource != chartAssetUsage.backBmp ||
@@ -761,6 +767,7 @@ void Lr2SkinModel::loadSkin() {
     m_scratchRotationSides = scratchRotationSides;
     m_transColor = skinData.transColor;
     m_hasTransColor = skinData.hasTransColor;
+    m_laneCoverSource = skinData.laneCoverSource;
     m_reloadBanner = skinData.reloadBanner;
     m_usesStageFileSource = chartAssetUsage.stageFile;
     m_usesBackBmpSource = chartAssetUsage.backBmp;
