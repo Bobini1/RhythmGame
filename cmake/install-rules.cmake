@@ -26,9 +26,15 @@ else ()
     )
 endif ()
 
-install(DIRECTORY share/RhythmGame
-        DESTINATION ${CMAKE_INSTALL_DATADIR}
+install(DIRECTORY share/RhythmGame/themes/Default
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/themes
         COMPONENT RhythmGame_Runtime)
+
+foreach (asset_dir avatars bgm soundsets)
+    install(DIRECTORY share/RhythmGame/${asset_dir}
+            DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame
+            COMPONENT RhythmGame_Runtime)
+endforeach ()
 
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_DATADIR}/RhythmGame/profiles/
         COMPONENT RhythmGame_Runtime)
