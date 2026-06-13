@@ -329,8 +329,12 @@ QtObject {
         "29": () => root.lr2EqOn ? 1 : 0,
         "32": () => root.lr2PitchOn ? 1 : 0,
         "33": () => root.lr2PitchType,
-        "40": src => root.lr2GaugeButtonFrame(1, root.elementSourceFrameCount(src)),
-        "41": src => root.lr2GaugeButtonFrame(2, root.elementSourceFrameCount(src)),
+        "40": src => root.gameplayScreenActive
+            ? root.lr2ActiveGaugeButtonFrame(1, root.elementSourceFrameCount(src))
+            : root.lr2GaugeButtonFrame(1, root.elementSourceFrameCount(src)),
+        "41": src => root.gameplayScreenActive
+            ? root.lr2ActiveGaugeButtonFrame(2, root.elementSourceFrameCount(src))
+            : root.lr2GaugeButtonFrame(2, root.elementSourceFrameCount(src)),
         "42": src => root.lr2RandomButtonFrame(1, root.elementSourceFrameCount(src)),
         "43": src => root.lr2RandomButtonFrame(2, root.elementSourceFrameCount(src)),
         "46": () => controller.lr2ClassicHidSudControlPresent() ? -2 : root.lr2LaneCoverIndex,
@@ -732,11 +736,16 @@ QtObject {
     }
 
     function buttonFrame(src: var) : var {
-        if (root.effectiveScreenKey !== "select" || !src || !src.button) {
+        if (!src || !src.button) {
             return -1;
         }
 
         let buttonId = src.buttonId || 0;
+        let gameplayGaugeButton =
+            root.gameplayScreenActive && (buttonId === 40 || buttonId === 41);
+        if (root.effectiveScreenKey !== "select" && !gameplayGaugeButton) {
+            return -1;
+        }
         let frameGetter = controller.buttonFrameGetters[String(buttonId)];
         if (frameGetter) {
             return frameGetter(src);

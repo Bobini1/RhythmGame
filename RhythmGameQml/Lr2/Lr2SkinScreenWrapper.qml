@@ -1013,6 +1013,13 @@ Item {
         let count = root.selectOptionSourceCount(root.lr2GaugeButtonId(side), sourceCount);
         return optionState.lr2GaugeButtonFrame(side, count);
     }
+    function lr2ActiveGaugeButtonFrame(side: var, sourceCount: var) : var {
+        let count = root.selectOptionSourceCount(root.lr2GaugeButtonId(side), sourceCount);
+        let activeName = root.resolveActiveGaugeNameForSide(side);
+        return activeName.length > 0
+            ? optionState.gaugeButtonFrameForValue(activeName, count)
+            : optionState.lr2GaugeButtonFrame(side, count);
+    }
     function setGaugeButtonIndex(side: var, index: var, sourceCount: var) : void {
         let count = root.selectOptionSourceCount(root.lr2GaugeButtonId(side), sourceCount);
         optionState.setGaugeButtonIndex(side, index, count);

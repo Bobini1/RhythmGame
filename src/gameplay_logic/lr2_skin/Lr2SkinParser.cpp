@@ -178,6 +178,14 @@ tokenizeLine(QString raw) -> QStringList
     auto tokens = raw.split(',');
     for (auto& token : tokens) {
         token = token.trimmed();
+        while (token.startsWith(QLatin1Char('"'))) {
+            token.remove(0, 1);
+            token = token.trimmed();
+        }
+        while (token.endsWith(QLatin1Char('"'))) {
+            token.chop(1);
+            token = token.trimmed();
+        }
     }
     return tokens;
 }
@@ -238,6 +246,55 @@ decodeSkinText(const QByteArray& data) -> QString
 }
 
 auto
+parseLr2IntegerPrefix(QString token, bool* ok = nullptr) -> int
+{
+    token = token.trimmed();
+    if (token.isEmpty()) {
+        if (ok != nullptr) {
+            *ok = false;
+        }
+        return 0;
+    }
+
+    qsizetype index = 0;
+    int sign = 1;
+    if (token[index] == QLatin1Char('+')) {
+        ++index;
+    } else if (token[index] == QLatin1Char('-')) {
+        sign = -1;
+        ++index;
+    }
+
+    qint64 value = 0;
+    bool hasDigit = false;
+    while (index < token.size()) {
+        const auto ch = token[index];
+        if (!ch.isDigit()) {
+            break;
+        }
+        hasDigit = true;
+        value = value * 10 + ch.digitValue();
+        if (value > 2147483647) {
+            value = 2147483647;
+            break;
+        }
+        ++index;
+    }
+
+    if (!hasDigit) {
+        if (ok != nullptr) {
+            *ok = false;
+        }
+        return 0;
+    }
+
+    if (ok != nullptr) {
+        *ok = true;
+    }
+    return static_cast<int>(sign * value);
+}
+
+auto
 parseDstOptionToken(QString token) -> int
 {
     token = token.trimmed();
@@ -251,7 +308,7 @@ parseDstOptionToken(QString token) -> int
     }
 
     bool ok = false;
-    const int option = token.toInt(&ok);
+    const int option = parseLr2IntegerPrefix(token, &ok);
     if (!ok || option == 0) {
         return 0;
     }
@@ -286,7 +343,7 @@ auto
 parseDstInteger(const QString& token) -> int
 {
     bool ok = false;
-    const int integerValue = token.toInt(&ok);
+    const int integerValue = parseLr2IntegerPrefix(token, &ok);
     if (ok) {
         return integerValue;
     }
@@ -819,7 +876,7 @@ evaluateCondition(const QStringList& tokens, const ParseState& state) -> bool
             optionToken.remove(0, 1);
         }
         bool ok = false;
-        const int option = optionToken.toInt(&ok);
+        const int option = parseLr2IntegerPrefix(optionToken, &ok);
         if (!ok) {
             return false;
         }
@@ -1708,11 +1765,12 @@ processCommand(const QStringList& tokens,
         }
     } else if (command == "#RELOADBANNER") {
         state.reloadBanner = true;
-    } else if (command == "#TRANSCOLOR") {
+    } else if (command == "#TRANSCOLOR" || command == "#TRANSCLOLR" ||
+               command == "#TRANSCLOLOR") {
         if (tokens.size() > 3) {
-            state.transColor = colorKeyString(tokens[1].trimmed().toInt(),
-                                              tokens[2].trimmed().toInt(),
-                                              tokens[3].trimmed().toInt());
+            state.transColor = colorKeyString(parseLr2IntegerPrefix(tokens[1]),
+                                              parseLr2IntegerPrefix(tokens[2]),
+                                              parseLr2IntegerPrefix(tokens[3]));
             state.hasTransColor = true;
         }
     } else if (command == "#IMAGE") {

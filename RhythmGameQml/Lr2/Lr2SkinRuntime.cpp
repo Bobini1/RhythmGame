@@ -723,7 +723,11 @@ Lr2SkinRuntime::ElementDescriptor Lr2SkinRuntime::buildDescriptor(
         descriptor.source);
     descriptor.usesSpriteStateOverride = descriptor.spriteStateOverrideKind != rt::NoSpriteStateOverride;
     descriptor.usesSpriteForceHidden = descriptor.source.onMouse;
-    descriptor.usesButtonFrameOverride = selectScreen && descriptor.source.button;
+    const bool gameplayGaugeButton =
+      m_gameplayScreen &&
+      (descriptor.source.buttonId == 40 || descriptor.source.buttonId == 41);
+    descriptor.usesButtonFrameOverride =
+      descriptor.source.button && (selectScreen || gameplayGaugeButton);
     descriptor.sourceMouseCursor = descriptor.source.mouseCursor;
     descriptor.dstOffsetsEnabled = m_gameplayScreen
         && !descriptor.dsts.isEmpty()
