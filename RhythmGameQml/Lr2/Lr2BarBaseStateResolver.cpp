@@ -270,11 +270,10 @@ void Lr2BarBaseStateResolver::rebuildBaseStates() {
         const bool useOn = rowIndex == m_selectedRow && !row.onDsts.isEmpty();
         const QVector<Dst>& primary = useOn ? row.onDsts : row.offDsts;
         const QVector<Dst>& dsts = primary.isEmpty() ? row.onDsts : primary;
-        const Dst* first = dsts.isEmpty() ? nullptr : &dsts.front();
         next.append(rt::currentState(
             dsts,
             m_effectiveSkinTime,
-            first ? timerFire(first->timer) : -1.0,
+            timerFire(0),
             m_activeOptionSet));
     }
 

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 include(cmake/prelude.cmake)
 project(
         RhythmGame
-        VERSION 1.3.8
+        VERSION 1.3.9
         DESCRIPTION "A customizable BMS player for Windows and Linux. "
         HOMEPAGE_URL "https://github.com/Bobini1/RhythmGame"
         LANGUAGES C CXX
@@ -312,6 +312,12 @@ target_compile_definitions(RhythmGame_lib PUBLIC
 
 find_package(Threads REQUIRED)
 
+if (TARGET spdlog::spdlog_header_only AND TARGET fmt::fmt-header-only)
+    # OpenImageIO's static libraries are built with fmt in header-only mode.
+    # Keep our logging path consistent so MSVC does not also link fmt.lib.
+    set_property(TARGET spdlog::spdlog_header_only PROPERTY INTERFACE_LINK_LIBRARIES "Threads::Threads;fmt::fmt-header-only")
+endif ()
+
 if (RhythmGame_USE_MIMALLOC)
     target_compile_definitions(RhythmGame_lib PUBLIC RHYTHMGAME_USE_MIMALLOC)
     target_link_libraries(RhythmGame_lib PUBLIC $<IF:$<TARGET_EXISTS:mimalloc-static>,mimalloc-static,mimalloc>)
@@ -337,7 +343,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
@@ -424,8 +430,9 @@ target_compile_features(RhythmGame_exe PRIVATE cxx_std_20)
 
 add_subdirectory(src/tgaplugin)
 add_subdirectory(src/cimplugin)
+add_subdirectory(src/ddsplugin)
 
-target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin RhythmGame_lr2_qmlplugin tga cim)
+target_link_libraries(RhythmGame_exe PRIVATE RhythmGame_lib RhythmGame_qmlplugin RhythmGame_lr2_qmlplugin tga cim dds)
 
 if (NOT APPLE)
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")

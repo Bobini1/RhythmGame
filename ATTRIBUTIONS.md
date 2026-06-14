@@ -208,7 +208,103 @@ Copyright © 2019 - 2024 Daniil Goncharov
 
 https://github.com/Neargye/magic_enum?tab=MIT-1-ov-file#readme
 
+### OpenImageIO
+
+Apache License 2.0 (Apache-2.0)
+
+Copyright © Contributors to the OpenImageIO project
+
+https://github.com/AcademySoftwareFoundation/OpenImageIO/blob/main/LICENSE.md
+
 ## Transitive dependencies
+
+### OpenColorIO
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright © Contributors to the OpenColorIO project
+
+https://github.com/AcademySoftwareFoundation/OpenColorIO/blob/main/LICENSE
+
+### OpenEXR
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright © Contributors to the OpenEXR project
+
+https://github.com/AcademySoftwareFoundation/openexr/blob/main/LICENSE.md
+
+### Imath
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright © Contributors to the Imath project
+
+https://github.com/AcademySoftwareFoundation/Imath/blob/main/LICENSE.md
+
+### robin-map
+
+MIT License (MIT)
+
+Copyright © Tessil
+
+https://github.com/Tessil/robin-map/blob/master/LICENSE
+
+### Expat
+
+MIT License (MIT)
+
+Copyright © Expat maintainers
+
+https://github.com/libexpat/libexpat/blob/master/expat/COPYING
+
+### minizip-ng
+
+zlib License (Zlib)
+
+Copyright © minizip-ng contributors
+
+https://github.com/zlib-ng/minizip-ng/blob/develop/LICENSE
+
+### pystring
+
+BSD 3-Clause License (BSD-3-Clause)
+
+Copyright © 2008-2010 Sony Pictures Imageworks Inc.
+
+https://github.com/imageworks/pystring/blob/master/LICENSE
+
+### sse2neon
+
+MIT License (MIT)
+
+Copyright © sse2neon contributors
+
+https://github.com/DLTcollab/sse2neon/blob/master/LICENSE
+
+### yaml-cpp
+
+MIT License (MIT)
+
+Copyright © Jesse Beder
+
+https://github.com/jbeder/yaml-cpp/blob/master/LICENSE
+
+### libdeflate
+
+MIT License (MIT)
+
+Copyright © Eric Biggers
+
+https://github.com/ebiggers/libdeflate/blob/master/COPYING
+
+### OpenJPH
+
+BSD 2-Clause License (BSD-2-Clause)
+
+Copyright © OpenJPH contributors
+
+https://github.com/aous72/OpenJPH/blob/master/LICENSE
 
 ### FFmpeg
 

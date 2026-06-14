@@ -44,8 +44,9 @@ Item {
     readonly property var barStateInterpolationNeeded: barBaseStateResolver
         ? barBaseStateResolver.interpolationNeededByRow
         : []
-    readonly property bool selectedBodySource: !!srcData
+    readonly property bool bodySourceKind: !!srcData
         && srcData.kind === 0
+    readonly property bool selectedBodySource: bodySourceKind
         && srcData.row === selectedRow
     readonly property bool applyFastBarScroll: fastBarScrollActive
         && !selectedBodySource
@@ -80,7 +81,7 @@ Item {
         activeOptions: root.activeOptions
     }
     readonly property int bodyRowIndex: {
-        if (!srcData || !selectContext || srcData.kind !== 0) {
+        if (!bodySourceKind || !selectContext) {
             return -1;
         }
         let total = barRows ? barRows.length : 0;
@@ -219,12 +220,19 @@ Item {
                     op4: effectiveBodyState.op4
                 };
             }
-            readonly property var bodyDsts: bodyRowData
-                ? (bodyRowData.offDsts && bodyRowData.offDsts.length > 0
-                   ? bodyRowData.offDsts
-                   : (bodyRowData.onDsts || []))
+            readonly property bool bodySelectedRow: bodyRow === root.selectedRow
+            readonly property var preferredBodyDsts: bodyRowData
+                ? (bodySelectedRow ? (bodyRowData.onDsts || []) : (bodyRowData.offDsts || []))
                 : []
-            readonly property bool bodyDrawable: bodyCellValid
+            readonly property var fallbackBodyDsts: bodyRowData
+                ? (bodySelectedRow ? (bodyRowData.offDsts || []) : (bodyRowData.onDsts || []))
+                : []
+            readonly property var bodyDsts: preferredBodyDsts && preferredBodyDsts.length > 0
+                ? preferredBodyDsts
+                : fallbackBodyDsts
+            readonly property bool bodyHasDsts: bodyDsts && bodyDsts.length > 0
+            readonly property bool bodyDrawable: bodyHasDsts
+                && bodyCellValid
                 && !!effectiveBodyState
                 && !!previousBodyBaseState
                 && rowVisible

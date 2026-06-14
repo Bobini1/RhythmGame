@@ -108,6 +108,10 @@
       "platform": "windows"
     },
     "miniaudio",
+    {
+      "name": "openimageio",
+      "default-features": false
+    },
     "stb"
   ],
   "default-features": [],

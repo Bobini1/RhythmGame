@@ -1611,6 +1611,16 @@ fallbackBarBodySource(const ParseState& state) -> QVariant
 }
 
 auto
+parseOpenLr2BarImageDstValue(const QStringList& tokens, const int sortId)
+{
+    auto barTokens = tokens;
+    for (int i = 18; i < barTokens.size() && i <= 20; ++i) {
+        barTokens[i].clear();
+    }
+    return parseDstValue(barTokens, sortId);
+}
+
+auto
 currentBarImageMatches(const ParseState& state,
                        const int kind,
                        const int row,
@@ -1646,7 +1656,7 @@ appendBarImageDst(ParseState& state,
         state.hasCurrentElement = true;
     }
 
-    const auto dst = parseDstValue(tokens, state.sortId);
+    const auto dst = parseOpenLr2BarImageDstValue(tokens, state.sortId);
     state.currentElement.dsts.append(QVariant::fromValue(dst));
     if (kind == Lr2SrcBarImage::BodyOff) {
         state.barBodyOffDsts[row].append(QVariant::fromValue(dst));

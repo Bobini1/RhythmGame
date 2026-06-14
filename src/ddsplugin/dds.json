@@ -1,0 +1,10 @@
+{
+  "Keys": [
+    "dds"
+  ],
+  "MimeTypes": [
+    "image/vnd-ms.dds",
+    "image/x-dds"
+  ],
+  "Priority": 1000000
+}
