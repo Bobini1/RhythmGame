@@ -100,6 +100,10 @@ struct Lr2SrcImage
     Q_PROPERTY(bool imageSet MEMBER imageSet)
     Q_PROPERTY(int imageSetRef MEMBER imageSetRef)
     Q_PROPERTY(QVariantList imageSetSources MEMBER imageSetSources)
+    Q_PROPERTY(bool hiddenCover MEMBER hiddenCover)
+    Q_PROPERTY(bool liftCover MEMBER liftCover)
+    Q_PROPERTY(int hiddenDisappearLine MEMBER hiddenDisappearLine)
+    Q_PROPERTY(bool hiddenDisappearLineLinkLift MEMBER hiddenDisappearLineLinkLift)
     Q_PROPERTY(bool grooveGaugeEx MEMBER grooveGaugeEx)
     Q_PROPERTY(int specialType MEMBER specialType)
     Q_PROPERTY(int side MEMBER side)
@@ -154,6 +158,10 @@ struct Lr2SrcImage
     bool imageSet = false;
     int imageSetRef = 0;
     QVariantList imageSetSources;
+    bool hiddenCover = false;
+    bool liftCover = false;
+    int hiddenDisappearLine = -1;
+    bool hiddenDisappearLineLinkLift = true;
     bool grooveGaugeEx = false;
     int specialType = None;
     int side = 0;

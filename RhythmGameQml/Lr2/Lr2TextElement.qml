@@ -36,16 +36,22 @@ Item {
         && searchInputLoader.item
         && searchInputLoader.item.activeFocus
     readonly property string searchEditingText: searchInputLoader.item
-        ? searchInputLoader.item.text
+        ? searchInputDisplayText(searchInputLoader.item)
         : (selectReady ? selectContext.searchText : "")
     readonly property int searchCursorPosition: searchInputLoader.item
-        ? searchInputLoader.item.cursorPosition
+        ? searchInputDisplayPosition(searchInputLoader.item, searchInputLoader.item.cursorPosition, true)
         : 0
     readonly property int searchSelectionStart: searchInputLoader.item
-        ? Math.min(searchInputLoader.item.selectionStart, searchInputLoader.item.selectionEnd)
+        ? searchInputDisplayPosition(
+            searchInputLoader.item,
+            Math.min(searchInputLoader.item.selectionStart, searchInputLoader.item.selectionEnd),
+            false)
         : 0
     readonly property int searchSelectionEnd: searchInputLoader.item
-        ? Math.max(searchInputLoader.item.selectionStart, searchInputLoader.item.selectionEnd)
+        ? searchInputDisplayPosition(
+            searchInputLoader.item,
+            Math.max(searchInputLoader.item.selectionStart, searchInputLoader.item.selectionEnd),
+            false)
         : 0
     readonly property bool searchHasSelection: searchTextEditing
         && searchSelectionStart !== searchSelectionEnd
@@ -59,6 +65,72 @@ Item {
         return searchStateReady
             ? selectSearchState.textPrefix(text, position)
             : "";
+    }
+
+    function searchInputText(input: var) : var {
+        return input && input.text !== undefined && input.text !== null
+            ? String(input.text)
+            : "";
+    }
+
+    function searchInputPreeditText(input: var) : var {
+        if (!input || !input.activeFocus) {
+            return "";
+        }
+        const preedit = input.preeditText;
+        return preedit !== undefined && preedit !== null ? String(preedit) : "";
+    }
+
+    function clampSearchTextPosition(position: var, length: var) : var {
+        let numericPosition = Number(position);
+        if (!isFinite(numericPosition)) {
+            numericPosition = 0;
+        }
+        return Math.max(0, Math.min(Math.round(numericPosition), Math.max(0, length)));
+    }
+
+    function searchInputDisplayText(input: var) : var {
+        const text = searchInputText(input);
+        const preedit = searchInputPreeditText(input);
+        if (preedit.length <= 0) {
+            return text;
+        }
+
+        const cursorPosition = clampSearchTextPosition(input.cursorPosition, text.length);
+        return text.slice(0, cursorPosition) + preedit + text.slice(cursorPosition);
+    }
+
+    function searchInputDisplayPosition(input: var, position: var, afterPreeditAtCursor: var) : var {
+        const text = searchInputText(input);
+        const rawPosition = clampSearchTextPosition(position, text.length);
+        const preedit = searchInputPreeditText(input);
+        if (preedit.length <= 0) {
+            return rawPosition;
+        }
+
+        const cursorPosition = clampSearchTextPosition(input.cursorPosition, text.length);
+        if (rawPosition > cursorPosition || (afterPreeditAtCursor && rawPosition === cursorPosition)) {
+            return rawPosition + preedit.length;
+        }
+        return rawPosition;
+    }
+
+    function searchInputCommittedPosition(input: var, displayPosition: var) : var {
+        const text = searchInputText(input);
+        const preedit = searchInputPreeditText(input);
+        if (preedit.length <= 0) {
+            return clampSearchTextPosition(displayPosition, text.length);
+        }
+
+        const cursorPosition = clampSearchTextPosition(input.cursorPosition, text.length);
+        const visualPosition = clampSearchTextPosition(displayPosition, text.length + preedit.length);
+        if (visualPosition <= cursorPosition) {
+            return visualPosition;
+        }
+        if (visualPosition <= cursorPosition + preedit.length) {
+            return cursorPosition;
+        }
+        return visualPosition - preedit.length;
     }
 
     function restartSearchCursorBlink() : void {
@@ -89,7 +161,9 @@ Item {
         if (!searchInputLoader.item || !searchEditorActive) {
             return;
         }
-        const position = searchCursorPositionAt(parentX);
+        const position = searchInputCommittedPosition(
+            searchInputLoader.item,
+            searchCursorPositionAt(parentX));
         searchInputLoader.item.syncFromContext();
         searchInputLoader.item.forceActiveFocus();
         if (selecting) {

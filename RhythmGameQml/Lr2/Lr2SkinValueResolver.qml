@@ -742,7 +742,9 @@ QtObject {
         case 14:
             return root.laneCoverNumber(1);
         case 15:
-            return root.laneCoverNumber(2);
+            return root.lr2SkinUsesBeatorajaSemantics
+                ? root.adjustedLaneCoverNumber(1)
+                : root.laneCoverNumber(2);
         case 160: {
             let p1 = root.gameplayPlayer(1);
             if (p1 && (p1.bpm || 0) > 0) {
@@ -1814,10 +1816,12 @@ QtObject {
             }
             case 13:
                 return root.lr2TargetPercent;
-            case 14:
-                return root.laneCoverNumber(1);
-            case 15:
-                return root.laneCoverNumber(2);
+        case 14:
+            return root.laneCoverNumber(1);
+        case 15:
+                return root.lr2SkinUsesBeatorajaSemantics
+                    ? root.adjustedLaneCoverNumber(1)
+                    : root.laneCoverNumber(2);
             case 20:
             case 21:
             case 22:

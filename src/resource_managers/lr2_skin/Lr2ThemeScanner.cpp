@@ -87,6 +87,31 @@ makeSafeId(QString text, const QString& fallback) -> QString
     return text.isEmpty() ? fallback : text;
 }
 
+auto
+normalizeLr2CsvToken(QString token) -> QString
+{
+    token = token.trimmed();
+    while (token.startsWith(QLatin1Char('"'))) {
+        token.remove(0, 1);
+        token = token.trimmed();
+    }
+    while (token.endsWith(QLatin1Char('"'))) {
+        token.chop(1);
+        token = token.trimmed();
+    }
+    return token;
+}
+
+auto
+tokenizeLr2HeaderLine(const QString& line) -> QStringList
+{
+    auto tokens = line.split(',');
+    for (auto& token : tokens) {
+        token = normalizeLr2CsvToken(token);
+    }
+    return tokens;
+}
+
 struct SettingsIdState
 {
     QHash<QString, int> usedIds;
@@ -348,7 +373,7 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
             continue;
         }
 
-        const auto parts = line.split(',');
+        const auto parts = tokenizeLr2HeaderLine(line);
         if (parts.isEmpty()) {
             continue;
         }

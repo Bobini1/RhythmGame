@@ -1708,21 +1708,29 @@ Item {
         return Math.round(Math.max(0, Math.min(1, vars.laneCoverRatio || 0)) * 1000);
     }
 
+    function adjustedLaneCoverNumber(side: var) : var {
+        let vars = root.generalVarsForSide(side);
+        if (!vars) {
+            return 0;
+        }
+        let laneCover = root.lr2Clamp01(vars.laneCoverRatio);
+        return Math.round((1 - root.gameplayLiftRatioForSkin(side)) * laneCover * 1000);
+    }
+
     function gameplayLaneCoverSliderPosition(side: var) : var {
         let vars = root.generalVarsForSide(side);
         if (!vars || !vars.laneCoverOn) {
             return 0;
         }
         let lane = vars.laneCoverRatio || 0;
-        if (vars.liftOn) {
-            lane *= 1 - (vars.liftRatio || 0);
-        }
         return lane;
     }
 
     function liftNumber(side: var) : var {
         let vars = root.generalVarsForSide(side);
-        return vars && vars.liftOn ? Math.round((vars.liftRatio || 0) * 1000) : 0;
+        return root.lr2SkinUsesBeatorajaSemantics && vars && vars.liftOn
+            ? Math.round((vars.liftRatio || 0) * 1000)
+            : 0;
     }
 
     function hiddenNumber(side: var) : var {
@@ -1766,13 +1774,18 @@ Item {
         if (!vars) {
             return 0;
         }
-        if (vars.liftOn) {
+        if (root.lr2SkinUsesBeatorajaSemantics && vars.liftOn) {
             return Math.round(root.lr2Clamp01(vars.liftRatio) * 1000);
         }
         return vars.hiddenOn ? Math.round(root.lr2Clamp01(vars.hiddenRatio) * 1000) : 0;
     }
 
     function gameplayGreenNumberVisibleRatio(side: var) : var {
+        if (root.lr2SkinUsesBeatorajaSemantics) {
+            let vars = root.generalVarsForSide(side);
+            let laneCover = vars && vars.laneCoverOn ? root.lr2Clamp01(vars.laneCoverRatio) : 0;
+            return Math.max(0, 1 - laneCover);
+        }
         return Math.max(0, 1000 - root.laneEffectTopNumber(side) - root.laneEffectBottomNumber(side)) / 1000;
     }
 
@@ -1856,14 +1869,19 @@ Item {
         return Math.max(0, Math.min(value || 0, 1));
     }
 
+    function gameplayLiftRatioForSkin(side: var) : var {
+        if (!root.lr2SkinUsesBeatorajaSemantics) {
+            return 0;
+        }
+        let vars = root.generalVarsForSide(side);
+        return vars && vars.liftOn ? root.lr2Clamp01(vars.liftRatio) : 0;
+    }
+
     function computeGameplayDstOffsetLiftY(side: var) : var {
         if (!root.gameplayScreenActive) {
             return 0;
         }
-        let vars = root.generalVarsForSide(side);
-        return vars && vars.liftOn
-            ? -root.cachedGameplayLaneOffsetHeight(side) * root.lr2Clamp01(vars.liftRatio)
-            : 0;
+        return -root.cachedGameplayLaneOffsetHeight(side) * root.gameplayLiftRatioForSkin(side);
     }
 
     function computeGameplayDstOffsetLaneCoverY(side: var) : var {
@@ -1875,7 +1893,7 @@ Item {
             return 0;
         }
         let height = root.cachedGameplayLaneOffsetHeight(side);
-        let liftRatio = vars.liftOn ? root.lr2Clamp01(vars.liftRatio) : 0;
+        let liftRatio = root.gameplayLiftRatioForSkin(side);
         let visibleHeight = height * Math.max(0, 1 - liftRatio);
         return visibleHeight * root.lr2Clamp01(vars.laneCoverRatio);
     }
@@ -1889,7 +1907,7 @@ Item {
             return 0;
         }
         let height = root.cachedGameplayLaneOffsetHeight(side);
-        let liftRatio = vars.liftOn ? root.lr2Clamp01(vars.liftRatio) : 0;
+        let liftRatio = root.gameplayLiftRatioForSkin(side);
         let visibleHeight = height * Math.max(0, 1 - liftRatio);
         return visibleHeight * root.lr2Clamp01(vars.hiddenRatio);
     }
@@ -2540,6 +2558,7 @@ Item {
     function gameplayOptionActive(option: var) : var {
         return root.activeOptionPresent(option, root.builtGameplayRuntimeActiveOptions)
             || root.activeOptionPresent(option, root.gameplayRuntimeActiveOptions)
+            || root.activeOptionPresent(option, skinModel ? skinModel.effectiveActiveOptions : null)
             || root.activeOptionPresent(option, root.parseActiveOptions);
     }
 
@@ -4501,6 +4520,7 @@ Item {
             root.effectiveScreenKey
         ];
         root.appendActiveOptionsState(parts, root.baseActiveOptions);
+        root.appendActiveOptionsState(parts, skinModel ? skinModel.effectiveActiveOptions : root.emptyActiveOptions);
         parts.push(
             vars ? vars.bgaSize || 0 : 0,
             vars ? Math.max(0, Math.min(3, vars.ghostPosition || 0)) : 0,

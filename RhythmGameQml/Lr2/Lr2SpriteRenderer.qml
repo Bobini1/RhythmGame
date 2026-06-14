@@ -186,6 +186,56 @@ Item {
         }
     }
     readonly property bool isSolidFill: !!root.srcData && root.srcData.specialType === 2
+    readonly property bool isHiddenCover: !!root.srcData && !!root.srcData.hiddenCover
+    readonly property bool hiddenLineLinksLift: !root.srcData
+        || root.srcData.hiddenDisappearLineLinkLift === undefined
+        || root.srcData.hiddenDisappearLineLinkLift
+    readonly property real hiddenDisappearLine: root.isHiddenCover
+        && root.srcData.hiddenDisappearLine !== undefined
+        && root.srcData.hiddenDisappearLine >= 0
+        ? root.srcData.hiddenDisappearLine + (root.hiddenLineLinksLift ? root.dstOffsetLiftY : 0)
+        : -1
+    readonly property real spriteStateX: drawState.hasState
+        ? drawState.x + (drawState.w < 0 ? drawState.w : 0) + root.offsetX
+        : 0
+    readonly property real spriteStateY: drawState.hasState
+        ? drawState.y + (drawState.h < 0 ? drawState.h : 0) + root.offsetY
+        : 0
+    readonly property real spriteStateW: drawState.hasState
+        ? (drawState.w < 0 ? -drawState.w : drawState.w)
+        : 0
+    readonly property real spriteStateH: drawState.hasState
+        ? (drawState.h < 0 ? -drawState.h : drawState.h)
+        : 0
+    readonly property real hiddenVisibleStateH: {
+        if (!root.isHiddenCover || root.hiddenDisappearLine < 0) {
+            return root.spriteStateH;
+        }
+        if (root.spriteStateY >= root.hiddenDisappearLine) {
+            return 0;
+        }
+        if (root.spriteStateY + root.spriteStateH > root.hiddenDisappearLine) {
+            return Math.max(0, root.hiddenDisappearLine - root.spriteStateY);
+        }
+        return root.spriteStateH;
+    }
+    readonly property real hiddenVisibleRatio: root.spriteStateH > 0
+        ? Math.max(0, Math.min(1, root.hiddenVisibleStateH / root.spriteStateH))
+        : 0
+    readonly property rect effectiveSourceClipRect: {
+        let rect = root.animationFrameState.sourceClipRect;
+        if (!root.isHiddenCover || root.hiddenVisibleRatio >= 0.999999) {
+            return rect;
+        }
+        return Qt.rect(rect.x, rect.y, rect.width, rect.height * root.hiddenVisibleRatio);
+    }
+    readonly property vector4d effectiveSourceRect: {
+        let rect = root.animationFrameState.sourceRect;
+        if (!root.isHiddenCover || root.hiddenVisibleRatio >= 0.999999) {
+            return rect;
+        }
+        return Qt.vector4d(rect.x, rect.y, rect.z, rect.w * root.hiddenVisibleRatio);
+    }
     readonly property bool sourceIsChartAsset: Lr2SkinUtils.isChartAssetSource(root.srcData)
     readonly property bool hasWholeTextureSource: !!root.srcData && !root.isSolidFill
         && (root.srcData.x < 0 || root.srcData.y < 0 || root.srcData.w < 0 || root.srcData.h < 0)
@@ -307,19 +357,11 @@ Item {
 
     Item {
         id: sprite
-        x: drawState.hasState
-            ? (drawState.x + (drawState.w < 0 ? drawState.w : 0) + root.offsetX) * root.scaleOverride
-            : 0
-        y: drawState.hasState
-            ? (drawState.y + (drawState.h < 0 ? drawState.h : 0) + root.offsetY) * root.scaleOverride
-            : 0
-        width: drawState.hasState
-            ? (drawState.w < 0 ? -drawState.w : drawState.w) * root.scaleOverride
-            : 0
-        height: drawState.hasState
-            ? (drawState.h < 0 ? -drawState.h : drawState.h) * root.scaleOverride
-            : 0
-        visible: root.hasRenderableState
+        x: root.spriteStateX * root.scaleOverride
+        y: root.spriteStateY * root.scaleOverride
+        width: root.spriteStateW * root.scaleOverride
+        height: root.hiddenVisibleStateH * root.scaleOverride
+        visible: root.hasRenderableState && (!root.isHiddenCover || root.hiddenVisibleStateH > 0)
         opacity: drawState.hasState ? (drawState.blend === 0 ? 1.0 : drawState.a / 255.0) : 0
 
         transform: Rotation {
@@ -459,7 +501,7 @@ Item {
             anchors.fill: parent
             source: root.hasDrawableTexture && root.useFastImagePath ? root.resolvedSource : ""
             sourceClipRect: root.useFastImagePath
-                ? root.animationFrameState.sourceClipRect
+                ? root.effectiveSourceClipRect
                 : Qt.rect(0, 0, 0, 0)
             fillMode: Image.Stretch
             cache: true
@@ -506,7 +548,7 @@ Item {
             property vector2d sourceSize: Qt.vector2d(
                 Math.max(1, atlasImage.implicitWidth),
                 Math.max(1, atlasImage.implicitHeight))
-            property vector4d sourceRect: root.animationFrameState.sourceRect
+            property vector4d sourceRect: root.effectiveSourceRect
             fragmentShader: "qrc:/Lr2/Lr2SpriteAtlas.frag.qsb"
         }
 

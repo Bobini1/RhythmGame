@@ -5,6 +5,7 @@
 #include "support/QStringToPath.h"
 
 #include <QFile>
+#include <QHash>
 #include <QRegularExpression>
 #include <QSet>
 #include <QStringDecoder>
@@ -27,6 +28,13 @@ struct CustomFile
     std::filesystem::path directory;
     QString wildcard;
     QString defaultSelection;
+};
+
+struct SettingsIdState
+{
+    QHash<QString, int> usedIds;
+    QHash<int, QString> duplicateFallbacks;
+    QHash<int, QString> itemTypes;
 };
 
 struct FontDefinition
@@ -105,6 +113,8 @@ struct ParseState
     bool hasSkinResolution = false;
     int sortId = 0;
     QString laneCoverSource;
+    SettingsIdState settingsIdState;
+    int settingsItemIndex = 0;
 };
 
 auto
@@ -113,6 +123,62 @@ makeSafeId(QString text, const QString& fallback) -> QString
     text = text.toLower().replace(QRegularExpression("[^a-z0-9]+"), "_");
     text = text.replace(QRegularExpression("^_|_$"), "");
     return text.isEmpty() ? fallback : text;
+}
+
+auto
+availableSettingsId(QString id, const QHash<QString, int>& usedIds) -> QString
+{
+    if (id.isEmpty()) {
+        id = QStringLiteral("setting");
+    }
+    if (!usedIds.contains(id)) {
+        return id;
+    }
+
+    const auto base = id;
+    int suffix = 2;
+    do {
+        id = QStringLiteral("%1_%2").arg(base).arg(suffix++);
+    } while (usedIds.contains(id));
+    return id;
+}
+
+auto
+assignSettingsItemId(const QString& text,
+                     const QString& fallback,
+                     const QString& type,
+                     const int itemIndex,
+                     SettingsIdState& state) -> QString
+{
+    const auto baseId = makeSafeId(text, fallback);
+    const auto fallbackId = makeSafeId(fallback,
+                                       QStringLiteral("setting_%1")
+                                         .arg(itemIndex));
+
+    // Keep runtime setting IDs in lockstep with Lr2ThemeScanner. LR2 stores
+    // CUSTOMOPTION/CUSTOMFILE values by shared header-entry order; our public
+    // settings use stable IDs, so the parser must derive the same fallback IDs
+    // as the scanner, especially for non-ASCII option names.
+    if (type == QStringLiteral("file") && state.usedIds.contains(baseId)) {
+        const auto previousIndex = state.usedIds.value(baseId);
+        if (state.itemTypes.value(previousIndex) == QStringLiteral("choice")) {
+            const auto previousFallback =
+              state.duplicateFallbacks.value(previousIndex,
+                                             QStringLiteral("setting_%1")
+                                               .arg(previousIndex));
+            const auto previousId =
+              availableSettingsId(previousFallback, state.usedIds);
+            state.usedIds.remove(baseId);
+            state.usedIds.insert(previousId, previousIndex);
+        }
+    }
+
+    const auto id = availableSettingsId(
+      state.usedIds.contains(baseId) ? fallbackId : baseId, state.usedIds);
+    state.usedIds.insert(id, itemIndex);
+    state.duplicateFallbacks.insert(itemIndex, fallbackId);
+    state.itemTypes.insert(itemIndex, type);
+    return id;
 }
 
 auto
@@ -338,6 +404,17 @@ parseDstOffsets(const QStringList& tokens, const int startIndex) -> QVariantList
         }
     }
     return offsets;
+}
+
+void
+ensureDstOffset(Lr2Dst& dst, const int offset)
+{
+    for (const auto& value : dst.offsets) {
+        if (value.toInt() == offset) {
+            return;
+        }
+    }
+    dst.offsets.append(offset);
 }
 
 auto
@@ -1136,6 +1213,23 @@ parseImageSource(const QStringList& tokens,
 }
 
 auto
+parseHiddenSource(const QStringList& tokens,
+                  const ParseState& state,
+                  const bool liftCover) -> Lr2SrcImage
+{
+    auto src = parseImageSource(tokens, state);
+    src.hiddenCover = true;
+    src.liftCover = liftCover;
+    src.hiddenDisappearLine = src.op1 > 0 ? src.op1 : -1;
+    src.hiddenDisappearLineLinkLift =
+      tokens.size() <= 12 || tokens[12].trimmed().isEmpty() ||
+      parseDstInteger(tokens[12]) != 0;
+    src.debugLabel =
+      liftCover ? QStringLiteral("SRC_LIFT") : QStringLiteral("SRC_HIDDEN");
+    return src;
+}
+
+auto
 parseBgaSource(const QStringList& tokens) -> Lr2SrcBga
 {
     Lr2SrcBga src;
@@ -1154,6 +1248,7 @@ parseImageSetSource(const QStringList& tokens,
 {
     Lr2SrcImage src;
     src.imageSet = true;
+    // LR2/beatoraja #SRC_IMAGESET order is cycle, timer, ref, count, ...
     if (tokens.size() > 1 && !tokens[1].isEmpty()) {
         src.cycle = tokens[1].toInt();
     }
@@ -1663,10 +1758,23 @@ processCommand(const QStringList& tokens,
         if (tokens.size() < 4) {
             return;
         }
+        const auto settingName = tokens[1].trimmed();
+        const auto optionId = tokens[2].trimmed();
+        const int settingItemIndex = state.settingsItemIndex++;
         const auto settingId =
-          makeSafeId(tokens[1].trimmed(), "opt_" + tokens[2].trimmed());
+          assignSettingsItemId(settingName,
+                               "opt_" + optionId,
+                               QStringLiteral("choice"),
+                               settingItemIndex,
+                               state.settingsIdState);
+        const auto fallbackSettingId = makeSafeId(
+          "opt_" + optionId,
+          QStringLiteral("setting_%1").arg(settingItemIndex));
         const int baseOption = tokens[2].trimmed().toInt();
         auto selected = state.settingValues.value(settingId).toString();
+        if (selected.isEmpty() && fallbackSettingId != settingId) {
+            selected = state.settingValues.value(fallbackSettingId).toString();
+        }
         if (selected.isEmpty()) {
             selected = tokens[3].trimmed();
         }
@@ -1709,9 +1817,15 @@ processCommand(const QStringList& tokens,
         if (tokens.size() < 3) {
             return;
         }
+        const int settingItemIndex = state.settingsItemIndex++;
         const auto patternPath = resolveRawPath(currentDir, tokens[2].trimmed());
         state.customFiles.append(CustomFile{
-          .settingId = makeSafeId(tokens[1].trimmed(), "file"),
+          .settingId = assignSettingsItemId(tokens[1].trimmed(),
+                                            "file_" +
+                                              QString::number(settingItemIndex),
+                                            QStringLiteral("file"),
+                                            settingItemIndex,
+                                            state.settingsIdState),
           .directory = std::filesystem::absolute(patternPath.parent_path())
                          .lexically_normal(),
           .wildcard = support::pathToQString(patternPath.filename()),
@@ -1794,13 +1908,16 @@ processCommand(const QStringList& tokens,
                       tokens.size() > 1 ? tokens[1].trimmed() : QString{},
                       state);
         state.imageFonts.append(font);
-    } else if (command == "#SRC_IMAGE" || command == "#SRC_JUDGELINE") {
+    } else if (command == "#SRC_IMAGE" || command == "#SRC_JUDGELINE" ||
+               command == "#SRC_HIDDEN" || command == "#SRC_LIFT") {
         flushCurrentElement(state);
         state.currentElement = Lr2Element{};
         state.currentElement.type = 0;
         state.hasCurrentElement = true;
 
-        auto src = parseImageSource(tokens, state);
+        auto src = command == "#SRC_HIDDEN" || command == "#SRC_LIFT"
+          ? parseHiddenSource(tokens, state, command == "#SRC_LIFT")
+          : parseImageSource(tokens, state);
         if (command == "#SRC_JUDGELINE") {
             src.debugLabel = QStringLiteral("SRC_JUDGELINE");
         }
@@ -1813,12 +1930,22 @@ processCommand(const QStringList& tokens,
 
         state.currentElement.src =
           QVariant::fromValue(parseImageSetSource(tokens, state));
-    } else if (command == "#DST_IMAGE" || command == "#DST_JUDGELINE") {
+    } else if (command == "#DST_IMAGE" || command == "#DST_JUDGELINE" ||
+               command == "#DST_HIDDEN" || command == "#DST_LIFT") {
         if (state.hasCurrentElement && state.currentElement.type == 0) {
-            if (command == "#DST_JUDGELINE") {
+            if (command == "#DST_JUDGELINE" || command == "#DST_HIDDEN" ||
+                command == "#DST_LIFT") {
                 const auto dst = parseDstValue(tokens, state.sortId);
-                recordDstOptions(state, dst, true);
-                state.currentElement.dsts.append(QVariant::fromValue(dst));
+                auto adjustedDst = dst;
+                if (command == "#DST_JUDGELINE" || command == "#DST_HIDDEN" ||
+                    command == "#DST_LIFT") {
+                    ensureDstOffset(adjustedDst, 3);
+                }
+                if (command == "#DST_HIDDEN") {
+                    ensureDstOffset(adjustedDst, 5);
+                }
+                recordDstOptions(state, adjustedDst, true);
+                state.currentElement.dsts.append(QVariant::fromValue(adjustedDst));
             } else {
                 parseDst(tokens, state, state.currentElement);
             }
@@ -1830,8 +1957,9 @@ processCommand(const QStringList& tokens,
         }
     } else if (command == "#DST_LINE") {
         if (tokens.size() > 1 && !tokens[1].isEmpty()) {
-            state.lineDsts[tokens[1].toInt()].append(
-              QVariant::fromValue(parseDstValue(tokens, state.sortId)));
+            auto dst = parseDstValue(tokens, state.sortId);
+            ensureDstOffset(dst, 3);
+            state.lineDsts[tokens[1].toInt()].append(QVariant::fromValue(dst));
         }
     } else if (command == "#SRC_BGA") {
         flushCurrentElement(state);
@@ -1986,8 +2114,9 @@ processCommand(const QStringList& tokens,
                   judgeDsts.at((std::min)(dstIndex,
                                           static_cast<int>(judgeDsts.size() - 1)));
                 dst.x += judgeDst.x;
-                dst.y += judgeDst.y;
+                dst.y = judgeDst.y - dst.y;
             }
+            ensureDstOffset(dst, 3);
             dst.timer = lr2NowDisplayTimer(command);
             addDstOptionGate(dst, lr2NowJudgementOption(command, index));
             recordDstOptions(state, dst, true);

@@ -253,16 +253,22 @@ Item {
         return vars ? Math.max(0, Math.min(1, vars.hiddenRatio || 0)) : 0;
     }
 
-    function laneBottom(dst: var) : var {
-        return dst && dst.y !== undefined ? dst.y : 480;
+    function beatorajaLiftRatio(side: var) : var {
+        let vars = generalVarsForSide(side);
+        return screenRoot && screenRoot.lr2SkinUsesBeatorajaSemantics && vars && vars.liftOn
+            ? Math.max(0, Math.min(1, vars.liftRatio || 0))
+            : 0;
+    }
+
+    function laneBottom(side: var, dst: var) : var {
+        let bottom = dst && dst.y !== undefined ? dst.y : 480;
+        return bottom - dstTravelHeight(dst) * beatorajaLiftRatio(side);
     }
 
     function laneVisibleTravelHeight(side: var, dst: var, includeLaneCover: var) : var {
         let vars = generalVarsForSide(side);
         let visibleHeight = dstTravelHeight(dst);
-        if (vars && vars.liftOn) {
-            visibleHeight *= Math.max(0, Math.min(1 - (vars.liftRatio || 0), 1));
-        }
+        visibleHeight *= Math.max(0, Math.min(1 - beatorajaLiftRatio(side), 1));
         if (includeLaneCover && vars && vars.laneCoverOn) {
             visibleHeight *= Math.max(0, Math.min(1 - (vars.laneCoverRatio || 0), 1));
         }
@@ -274,7 +280,7 @@ Item {
         if (!vars || !vars.laneCoverOn) {
             return 0;
         }
-        return Math.max(0, laneBottom(dst) - laneVisibleTravelHeight(side, dst, true));
+        return Math.max(0, laneBottom(side, dst) - laneVisibleTravelHeight(side, dst, true));
     }
 
     function hiddenClipBottom(side: var, dst: var) : var {
@@ -283,7 +289,7 @@ Item {
         if (!vars || !vars.hiddenOn) {
             return fullHeight;
         }
-        let bottom = laneBottom(dst);
+        let bottom = laneBottom(side, dst);
         let visibleHeight = laneVisibleTravelHeight(side, dst, false);
         return Math.max(0, bottom - visibleHeight * hiddenRatio(side));
     }
@@ -319,8 +325,8 @@ Item {
             }
             let x1 = state.x || 0;
             let x2 = x1 + (state.w || 0);
-            let bottom = laneBottom(state);
-            let top = bottom - dstTravelHeight(state);
+            let bottom = laneBottom(side, state);
+            let top = bottom - laneVisibleTravelHeight(side, state, false);
             minX = Math.min(minX, x1, x2);
             maxX = Math.max(maxX, x1, x2);
             minY = Math.min(minY, top, bottom);
@@ -346,9 +352,8 @@ Item {
         if (!vars || !vars.laneCoverOn) {
             return 0;
         }
-        let liftRatio = vars.liftOn ? Math.max(0, Math.min(1, vars.liftRatio || 0)) : 0;
         let coverRatio = Math.max(0, Math.min(1, vars.laneCoverRatio || 0));
-        let visibleRatio = Math.max(0, 1 - liftRatio) * Math.max(0, 1 - coverRatio);
+        let visibleRatio = Math.max(0, 1 - coverRatio);
         return Math.max(0, Math.min(bounds.h, bounds.h * (1 - visibleRatio)));
     }
 
@@ -358,10 +363,10 @@ Item {
         for (let i = start; i < end; ++i) {
             let state = noteDstState(i);
             if (state) {
-                return dstTravelHeight(state);
+                return laneVisibleTravelHeight(side, state, false);
             }
         }
-        return dstTravelHeight(fallbackDst);
+        return laneVisibleTravelHeight(side, fallbackDst, false);
     }
 
     function heightMultiplier(player: var, visibleHeight: var) : var {
@@ -374,9 +379,11 @@ Item {
         let bpm = Math.max(1, bpmFor(player));
         let baseSpeed = ((1 / (vars.noteScreenTimeMillis || 1)) || 0)
             * 60000 * visibleHeight / bpm;
+        if (screenRoot && screenRoot.lr2SkinUsesBeatorajaSemantics) {
+            return Math.max(0.0001, baseSpeed);
+        }
         let laneCoverMod = (vars.laneCoverOn ? 1 : 0) * (vars.laneCoverRatio || 0);
-        let liftMod = (vars.liftOn ? 1 : 0) * (vars.liftRatio || 0);
-        return Math.max(0.0001, baseSpeed * Math.max(0, Math.min(1 - laneCoverMod - liftMod, 1)));
+        return Math.max(0.0001, baseSpeed * Math.max(0, Math.min(1 - laneCoverMod, 1)));
     }
 
     function notePosition(display: var) : var {
@@ -440,12 +447,12 @@ Item {
                 ? player.state.barLinesState
                 : null
             property var lineSource: root.lineSourceFor(lineIndex)
-            property real travelHeight: root.dstTravelHeight(dstState)
+            property real travelHeight: root.laneVisibleTravelHeight(side, dstState, false)
             property real multiplier: root.heightMultiplier(
                 player,
                 root.sideSpeedHeight(side, dstState))
             property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
-            property real layerSkinY: (dstState ? dstState.y || 0 : 0) + playerPosition * multiplier
+            property real layerSkinY: root.laneBottom(side, dstState) + playerPosition * multiplier
             property bool clipActive: root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
@@ -558,12 +565,12 @@ Item {
                 || root.sourceAt(skinModel ? skinModel.autoLnBodySources : [], lr2Index)
             property var lnBodyActiveSource: root.sourceAt(skinModel ? skinModel.lnBodyActiveSources : [], lr2Index)
                 || root.sourceAt(skinModel ? skinModel.autoLnBodyActiveSources : [], lr2Index)
-            property real travelHeight: root.dstTravelHeight(dstState)
+            property real travelHeight: root.laneVisibleTravelHeight(side, dstState, false)
             property real multiplier: root.heightMultiplier(
                 player,
                 root.sideSpeedHeight(side, dstState))
             property real playerPosition: side === 2 ? root.sampledPosition2 : root.sampledPosition1
-            property real layerSkinY: (dstState ? dstState.y || 0 : 0) + playerPosition * multiplier
+            property real layerSkinY: root.laneBottom(side, dstState) + playerPosition * multiplier
             property bool clipActive: root.hidSudClipActive(side)
             property real clipTopSkin: root.hidSudClipTop(side, dstState)
             property real clipBottomSkin: root.hidSudClipBottom(side, dstState)
