@@ -5374,7 +5374,6 @@ Item {
 
     function stopScreenEntrySounds() : void {
         decideSound.stop();
-        decideBgmSound.stop();
         resultClearSound.stop();
         resultFailSound.stop();
         resultCourseClearSound.stop();
@@ -5412,11 +5411,7 @@ Item {
         }
         if (root.effectiveScreenKey === "decide") {
             root.screenEntrySoundPlayed = true;
-            if (decideSound.length > 0) {
-                root.playOneShot(decideSound);
-            } else {
-                root.playOneShot(decideBgmSound);
-            }
+            root.playOneShot(decideSound);
             return;
         }
         let player = root.resultEntrySoundPlayer();
@@ -5959,11 +5954,6 @@ Item {
 
     AudioPlayer {
         id: decideSound
-        source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.soundsetPath + "decide" : ""
-    }
-
-    AudioPlayer {
-        id: decideBgmSound
         source: root.mainGeneralVarsRef ? root.mainGeneralVarsRef.bgmPath + "decide" : ""
     }
 
