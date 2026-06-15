@@ -100,6 +100,7 @@ ApplicationWindow {
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
+        property var activeSettingsItem: null
         property bool fpsOverlayVisible: false
         property int fpsOverlayValue: -1
         property int fpsOverlayFrameCount: 0
@@ -243,7 +244,11 @@ ApplicationWindow {
         }
 
         function openSettings(initialTabIndex: var) : void {
-            let item = sceneStack.pushItem(settingsComponent);
+            let item = activeSettingsItem === sceneStack.currentItem ? activeSettingsItem : null;
+            if (!item) {
+                item = sceneStack.pushItem(settingsComponent);
+                activeSettingsItem = item;
+            }
             if (item && initialTabIndex !== undefined && "initialTabIndex" in item) {
                 item.initialTabIndex = initialTabIndex;
             }
