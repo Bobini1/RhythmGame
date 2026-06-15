@@ -1758,12 +1758,39 @@ Item {
         return Math.round(duration * (green ? 0.6 : 1.0));
     }
 
-    function durationNumberForBpm(side: var, bpm: var, green: var, cover: var) : var {
-        let safeBpm = Math.max(1, bpm || 0);
-        let hiSpeed = Math.max(0.01, (side === 2 ? root.lr2HiSpeedP2 : root.lr2HiSpeedP1) / 100);
+    function durationNumberBaseBpm(side: var, chartData: var) : var {
         let vars = root.generalVarsForSide(side);
-        let visible = cover && vars ? 1 - (vars.laneCoverRatio || 0) : 1;
-        return Math.round((240000 / safeBpm / hiSpeed) * visible * (green ? 0.6 : 1.0));
+        if (!vars) {
+            return chartData ? (chartData.mainBpm || chartData.initialBpm || 120) : 120;
+        }
+        switch (vars.hiSpeedFix) {
+        case HiSpeedFix.Main:
+            return chartData ? (chartData.mainBpm || chartData.initialBpm || 120) : 120;
+        case HiSpeedFix.Start:
+            return chartData ? (chartData.initialBpm || chartData.mainBpm || 120) : 120;
+        case HiSpeedFix.Min:
+            return chartData ? (chartData.minBpm || chartData.mainBpm || 120) : 120;
+        case HiSpeedFix.Max:
+            return chartData ? (chartData.maxBpm || chartData.mainBpm || 120) : 120;
+        case HiSpeedFix.Avg:
+            return chartData ? (chartData.avgBpm || chartData.mainBpm || 120) : 120;
+        default:
+            return 240;
+        }
+    }
+
+    function durationNumberForBpm(side: var, bpm: var, green: var, cover: var, chartData: var) : var {
+        let safeBpm = Math.max(1, bpm || 0);
+        let vars = root.generalVarsForSide(side);
+        let duration = vars && vars.noteScreenTimeMillis > 0 ? vars.noteScreenTimeMillis : 1000;
+        let baseBpm = Math.max(1, root.durationNumberBaseBpm(side, chartData));
+        let laneCover = vars && vars.laneCoverOn ? root.lr2Clamp01(vars.laneCoverRatio) : 0;
+        let visible = Math.max(0.0001, 1 - laneCover);
+        let value = duration * baseBpm / safeBpm;
+        if (!cover) {
+            value /= visible;
+        }
+        return Math.round(value * (green ? 1.0 : 0.6));
     }
 
     function laneEffectTopNumber(side: var) : var {
@@ -1950,7 +1977,7 @@ Item {
                 ? player.bpm
                 : (chartData ? (chartData.mainBpm || chartData.initialBpm || 0) : 0);
         }
-        return root.durationNumberForBpm(1, bpm, green, cover);
+        return root.durationNumberForBpm(1, bpm, green, cover, chartData);
     }
 
     function chartLengthSeconds(chartData: var) : var {
