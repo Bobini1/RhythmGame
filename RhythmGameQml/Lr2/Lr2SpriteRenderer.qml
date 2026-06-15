@@ -29,6 +29,11 @@ Item {
     property real offsetY: 0
     property bool colorKeyEnabled: false
     property color transColor: "black"
+    readonly property string sourcePathLower: srcData && srcData.source
+        ? String(srcData.source).toLowerCase()
+        : ""
+    readonly property bool effectiveColorKeyEnabled: root.colorKeyEnabled
+        && root.sourcePathLower.slice(-4) !== ".dds"
     property int frameOverride: -1
     property var stateOverride: null
     property Lr2TimelineState stateOverrideSource: null
@@ -85,7 +90,7 @@ Item {
         dstOffsetLaneCoverY: root.dstOffsetLaneCoverY
         dstOffsetHiddenY: root.dstOffsetHiddenY
         dstOffsetHiddenA: root.dstOffsetHiddenA
-        colorKeyEnabled: root.colorKeyEnabled
+        colorKeyEnabled: root.effectiveColorKeyEnabled
         supportsInvertedBlend: true
     }
 
@@ -141,7 +146,7 @@ Item {
             && root.hasCroppedTextureSource
             && !root.shouldSampleInAtlasShader
             && root.blendMode === 1
-            && !root.colorKeyEnabled
+            && !root.effectiveColorKeyEnabled
             && !root.hasColorTint;
         if (root.useFastImagePath !== next) {
             root.useFastImagePath = next;
@@ -542,7 +547,7 @@ Item {
             property color tint: root.tintColor
             property color transColor: root.transColor
             property real blendMode: root.blendMode
-            property real colorKeyEnabled: root.colorKeyEnabled ? 1.0 : 0.0
+            property real colorKeyEnabled: root.effectiveColorKeyEnabled ? 1.0 : 0.0
             property real tolerance: 0.001
             property real nearestMode: drawState.hasState && drawState.filter === 0 ? 1.0 : 0.0
             property vector2d sourceSize: Qt.vector2d(

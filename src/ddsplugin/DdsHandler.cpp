@@ -21,7 +21,7 @@ constexpr qint64 MaxImageBytes = 512 * 1024 * 1024;
 auto
 qStringToOiioPath(const QString& path) -> std::string
 {
-    return QFile::encodeName(QDir::toNativeSeparators(path)).toStdString();
+    return QDir::toNativeSeparators(path).toUtf8().toStdString();
 }
 
 auto
@@ -121,6 +121,9 @@ readDeviceWithTemporaryFile(QIODevice* device, QImage* image) -> bool
     if (!device) {
         return false;
     }
+    if (!device->isSequential() && !device->seek(0)) {
+        return false;
+    }
 
     QTemporaryFile temporaryFile(QDir::tempPath() +
                                  QStringLiteral("/RhythmGameDdsXXXXXX.dds"));
@@ -160,7 +163,9 @@ DdsHandler::read(QImage* image)
 
     const auto fileName = deviceFileName(device());
     if (!fileName.isEmpty()) {
-        return readOiioImage(fileName, image);
+        if (readOiioImage(fileName, image)) {
+            return true;
+        }
     }
 
     return readDeviceWithTemporaryFile(device(), image);

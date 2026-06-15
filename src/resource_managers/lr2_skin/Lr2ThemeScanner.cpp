@@ -12,17 +12,57 @@
 #include <QRegularExpression>
 #include <QStringDecoder>
 #include <QUrl>
+#ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 #include <iconv.h>
 #include <spdlog/spdlog.h>
 
 #include <cstdint>
 #include <exception>
+#include <optional>
+#include <string>
 #include <system_error>
 #include <utility>
 #include <vector>
 
 namespace resource_managers::lr2_skin {
 namespace {
+#ifdef _WIN32
+auto
+decodeCp932WithWindows(const QByteArray& data) -> std::optional<QString>
+{
+    const auto size = static_cast<int>(data.size());
+    if (size == 0) {
+        return QString{};
+    }
+
+    const int wideSize = MultiByteToWideChar(
+      932, MB_ERR_INVALID_CHARS, data.constData(), size, nullptr, 0);
+    if (wideSize <= 0) {
+        return std::nullopt;
+    }
+
+    std::wstring wide(static_cast<std::size_t>(wideSize), L'\0');
+    const int converted = MultiByteToWideChar(932,
+                                             MB_ERR_INVALID_CHARS,
+                                             data.constData(),
+                                             size,
+                                             wide.data(),
+                                             wideSize);
+    if (converted <= 0) {
+        return std::nullopt;
+    }
+
+    return QString::fromWCharArray(wide.data(), converted);
+}
+#endif
 
 auto
 decodeSkinText(const QByteArray& data) -> QString
@@ -31,8 +71,17 @@ decodeSkinText(const QByteArray& data) -> QString
         return QString::fromUtf8(data.sliced(3));
     }
 
-    // LR2-era skin headers commonly omit a BOM and use Japanese Windows
-    // CP932. ASCII survives unchanged, so prefer CP932 before UTF-8.
+    QStringDecoder utf8Decoder(QStringConverter::Utf8);
+    const QString utf8 = utf8Decoder.decode(data);
+    if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
+        return utf8;
+    }
+
+#ifdef _WIN32
+    if (const auto decoded = decodeCp932WithWindows(data)) {
+        return *decoded;
+    }
+#endif
     for (const auto* encoding :
          { "CP932", "windows-31j", "Shift-JIS", "Shift_JIS", "SJIS",
            "MS_Kanji" }) {
@@ -68,12 +117,6 @@ decodeSkinText(const QByteArray& data) -> QString
             return QString::fromUtf8(
               dstBuf.data(), static_cast<qsizetype>(dstSize - dstLeft));
         }
-    }
-
-    QStringDecoder utf8Decoder(QStringConverter::Utf8);
-    const QString utf8 = utf8Decoder.decode(data);
-    if (!utf8Decoder.hasError() && !utf8.contains(QChar(0xFFFD))) {
-        return utf8;
     }
 
     return QString::fromLatin1(data);

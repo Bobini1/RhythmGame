@@ -799,6 +799,10 @@ Item {
 
     function appendGameplayParseOptions(options: var) : void {
         let chartData = root.gameplayChartData();
+        // Keep the neutral legacy #IMAGE slot present for LR2 play skins.
+        // Without this, conditional image tables can shift all following
+        // source IDs before rendering starts.
+        root.appendParseOption(options, 4);
         root.appendParseOption(options, root.configuredGaugeColorOption(1));
         root.appendParseOption(options, root.configuredGaugeColorOption(2));
         root.appendParseOption(options, root.clearStatusOption());
