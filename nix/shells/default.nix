@@ -37,6 +37,7 @@
   gdb,
   catch2_3,
   stdenv,
+  openimageio,
 }:
 mkShell {
   buildInputs = [
@@ -70,6 +71,7 @@ mkShell {
     libvorbis
     libopus
     libmpg123
+    openimageio
   ];
 
   nativeBuildInputs = [

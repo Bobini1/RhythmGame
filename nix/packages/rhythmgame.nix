@@ -33,6 +33,7 @@
   libvorbis,
   libopus,
   libmpg123,
+  openimageio,
 }:
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
@@ -75,6 +76,7 @@ stdenv.mkDerivation rec {
     libvorbis
     libopus
     libmpg123
+    openimageio
   ];
 
   cmakeFlags = [
