@@ -20,6 +20,11 @@ if (WIN32 OR NOT USE_SYSTEM_LIBRARIES)
                 TARGET RhythmGame_exe
                 OUTPUT_SCRIPT deploy_script
                 NO_UNSUPPORTED_PLATFORM_ERROR
+                POST_EXCLUDE_REGEXES
+                    "^/lib/"
+                    "^/lib64/"
+                    "^/usr/lib/"
+                    "^/usr/lib64/"
                 DEPLOY_TOOL_OPTIONS "--qmldir \"${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default\""
                 MACOS_BUNDLE_POST_BUILD
         )
