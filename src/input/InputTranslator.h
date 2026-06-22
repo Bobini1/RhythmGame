@@ -254,6 +254,10 @@ class InputTranslator final : public QObject
                           int64_t time,
                           bool analog,
                           int analogTickCount = 1);
+    void emitAnalogScratchTicks(Gamepad gamepad,
+                                Uint8 axis,
+                                Key::Direction direction,
+                                int tickCount);
     void checkAnalogAxisStatus();
     void autoReleaseScratch(const std::pair<Gamepad, uint8_t>& scratchKey,
                             int64_t time);
@@ -308,6 +312,8 @@ class InputTranslator final : public QObject
     auto getAnalogAxisConfig2() -> AnalogAxisConfig*;
     void eventFilter(std::chrono::milliseconds timePoint, QEvent* event);
     Q_INVOKABLE static QString scancodeToString(int virtualKey);
+    static auto computeAnalogScratchTicks(double oldValue, double newValue)
+      -> int;
     auto getDebounceMs() const -> double;
     void setDebounceMs(double value);
     void resetDebounceMs();

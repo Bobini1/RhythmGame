@@ -90,8 +90,9 @@ PathView {
     readonly property bool movingManually: visualMoveActive || pendingWheelSteps !== 0
     property bool scrollingText: false
     readonly property int lr2SpeedFirst: 300
-    readonly property int lr2SpeedNext: 70
-    readonly property int lr2WheelDuration: 200
+    readonly property int lr2SpeedNext: 50
+    readonly property int lr2WheelBaseDuration: 120
+    readonly property int lr2AnalogTicksPerScroll: 3
     readonly property int lr2ScrollUp: 1
     readonly property int lr2ScrollDown: 2
     property int listTopbarFixed: 0
@@ -103,6 +104,9 @@ PathView {
     property double barMoveStartMs: 0
     property double barMoveEndMs: 0
     property real wheelRemainder: 0
+    property int analogScrollBuffer: 0
+    property int selectScratchRepeatDirection: 0
+    property double selectScratchRepeatNextMs: 0
     property int suppressedCurrentItemSoundChanges: 0
     readonly property bool visualMoveActive: listTopbarFixed !== nowBarFixed
 
@@ -196,6 +200,9 @@ PathView {
         oldBarFixed = fixed;
         nowBarFixed = fixed;
         pendingWheelSteps = 0;
+        analogScrollBuffer = 0;
+        selectScratchRepeatDirection = 0;
+        selectScratchRepeatNextMs = 0;
         scrollDirection = 0;
         barMoveStartMs = 0;
         barMoveEndMs = 0;
@@ -206,13 +213,38 @@ PathView {
 
     function updateVisualIndex(now) {
         if (pendingWheelSteps !== 0) {
-            let steps = pendingWheelSteps;
-            pendingWheelSteps = 0;
-            applyLr2ScrollDelta(-steps, lr2WheelDuration, now);
+            let steps = pathViewSafeWheelSteps(pendingWheelSteps);
+            pendingWheelSteps -= steps;
+            let entries = -steps;
+            applyLr2ScrollDelta(entries, beatorajaWheelDurationForEntries(entries, now), now);
+            if (pendingWheelSteps !== 0) {
+                pendingWheelStepTimer.restart();
+            }
             return;
         }
         listTopbarFixed = animatedTopbarFixed(now);
         publishBarState(false);
+    }
+
+    function pathViewSafeWheelSteps(steps) {
+        if (count <= 2) {
+            return steps > 0 ? 1 : -1;
+        }
+        let maxSameDirectionSteps = Math.max(1, Math.floor((count - 1) / 2));
+        return Math.max(-maxSameDirectionSteps, Math.min(maxSameDirectionSteps, steps));
+    }
+
+    function beatorajaWheelDurationForEntries(entries, now) {
+        if (entries === 0) {
+            return 0;
+        }
+        let currentFixed = animatedTopbarFixed(now);
+        let remainingScroll = Math.trunc((nowBarFixed - currentFixed) / 1000);
+        remainingScroll = Math.max(-2, Math.min(2, remainingScroll + entries));
+        if (remainingScroll === 0) {
+            return 0;
+        }
+        return Math.max(1, Math.trunc(lr2WheelBaseDuration / (remainingScroll * remainingScroll)));
     }
 
     function applyLr2ScrollDelta(entries, durationMs, now) {
@@ -256,6 +288,15 @@ PathView {
         pendingWheelStepTimer.restart();
     }
 
+    function queueAnalogScratchTick(up) {
+        analogScrollBuffer += up ? 1 : -1;
+        let steps = Math.trunc(analogScrollBuffer / lr2AnalogTicksPerScroll);
+        analogScrollBuffer = analogScrollBuffer % lr2AnalogTicksPerScroll;
+        if (steps !== 0) {
+            queueWheelSteps(steps);
+        }
+    }
+
     function handleWheel(wheel) {
         let delta = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.pixelDelta.y;
         if (delta === 0) {
@@ -281,6 +322,34 @@ PathView {
     function scrollByKey(entries, repeated) {
         if (count === 0 || entries === 0) return;
         scrollBy(entries, repeated ? lr2SpeedNext : lr2SpeedFirst);
+    }
+
+    function resetScratchRepeat() {
+        selectScratchRepeatDirection = 0;
+        selectScratchRepeatNextMs = 0;
+    }
+
+    function releaseScratchRepeat(up) {
+        let sameDirectionStillHeld = up
+            ? (Input.col1sUp || Input.col2sUp)
+            : (Input.col1sDown || Input.col2sDown);
+        if (!sameDirectionStillHeld
+                && selectScratchRepeatDirection === (up ? 1 : -1)) {
+            resetScratchRepeat();
+        }
+    }
+
+    function handleScratchRepeat(up, number) {
+        let direction = up ? 1 : -1;
+        let now = Date.now();
+        let firstTick = number === 0 || selectScratchRepeatDirection !== direction;
+        if (!firstTick && now < selectScratchRepeatNextMs) {
+            return;
+        }
+        selectScratchRepeatDirection = direction;
+        selectScratchRepeatNextMs = now + (firstTick ? lr2SpeedFirst : lr2SpeedNext);
+        let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
+        func(!firstTick);
     }
 
     function decrementViewIndex(repeated) {
@@ -625,23 +694,20 @@ PathView {
     // Additionally, when both P1 and P2 are holding up or down, the song wheel should not be accelerated to 2x speed.
     property var lastKey: []
     function navigate(number, type, up, key) {
+        if (type === InputTranslator.AnalogScratchTick) {
+            queueAnalogScratchTick(up);
+            return;
+        }
         if (lastKey[lastKey.length - 1] !== key) {
             return;
         }
-        if (type === InputTranslator.AnalogScratchTick) {
-            queueWheelSteps(up ? 1 : -1);
+        if (type === InputTranslator.ButtonTick
+                || type === InputTranslator.ClassicScratchTick) {
+            handleScratchRepeat(up, number);
             return;
         }
         let func = up ? pathView.decrementViewIndex : pathView.incrementViewIndex;
-        if (type === InputTranslator.ButtonTick) {
-            if (number === 0 || number >= 10) {
-                func(number > 0);
-            }
-        } else if (type === InputTranslator.ClassicScratchTick) {
-            func(false);
-        } else {
-            func(!!number);
-        }
+        func(!!number);
     }
     Input.onCol1sDownTicked: (number, type) => navigate(number, type, false, BmsKey.Col1sDown)
     Input.onCol1sUpTicked: (number, type) => navigate(number, type, true, BmsKey.Col1sUp)
@@ -651,10 +717,22 @@ PathView {
     Input.onCol1sUpPressed: lastKey.push(BmsKey.Col1sUp);
     Input.onCol2sDownPressed: lastKey.push(BmsKey.Col2sDown);
     Input.onCol2sUpPressed: lastKey.push(BmsKey.Col2sUp);
-    Input.onCol1sDownReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col1sDown)
-    Input.onCol1sUpReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col1sUp)
-    Input.onCol2sDownReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col2sDown)
-    Input.onCol2sUpReleased: lastKey = lastKey.filter(k => k !== BmsKey.Col2sUp)
+    Input.onCol1sDownReleased: {
+        lastKey = lastKey.filter(k => k !== BmsKey.Col1sDown);
+        releaseScratchRepeat(false);
+    }
+    Input.onCol1sUpReleased: {
+        lastKey = lastKey.filter(k => k !== BmsKey.Col1sUp);
+        releaseScratchRepeat(true);
+    }
+    Input.onCol2sDownReleased: {
+        lastKey = lastKey.filter(k => k !== BmsKey.Col2sDown);
+        releaseScratchRepeat(false);
+    }
+    Input.onCol2sUpReleased: {
+        lastKey = lastKey.filter(k => k !== BmsKey.Col2sUp);
+        releaseScratchRepeat(true);
+    }
     Keys.onUpPressed: (event) => {
         event.accepted = true;
         if (!event.isAutoRepeat) lastKey.push(Qt.Key_Up);

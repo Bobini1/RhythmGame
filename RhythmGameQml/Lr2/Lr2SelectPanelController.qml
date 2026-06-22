@@ -37,6 +37,8 @@ QtObject {
     readonly property int selectTargetScratchRepeatMillis: 50
     property int selectTargetScratchDirection: 0
     property real selectTargetScratchNextMs: 0
+    readonly property int selectTargetAnalogTicksPerScroll: 3
+    property int selectTargetAnalogScrollBuffer: 0
     readonly property int selectPanelButtonInitialRepeatMillis: 300
     readonly property int selectPanelButtonRepeatMillis: 50
     property int selectPanelRepeatKey: -1

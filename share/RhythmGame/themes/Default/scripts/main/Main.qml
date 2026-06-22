@@ -144,7 +144,7 @@ Image {
                     text: qsTr("Settings")
                     font.pixelSize: 30
                     onClicked: {
-                        sceneStack.pushItem(globalRoot.settingsComponent);
+                        globalRoot.openSettings();
                     }
                 }
 

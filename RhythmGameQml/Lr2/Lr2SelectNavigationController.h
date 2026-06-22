@@ -165,7 +165,7 @@ private:
     bool m_rankingMode = false;
     int m_logicalCount = 0;
     int m_lr2SpeedFirst = 300;
-    int m_lr2SpeedNext = 70;
+    int m_lr2SpeedNext = 50;
     int m_lr2ScrollUp = 1;
     int m_lr2ScrollDown = 2;
     bool m_focusedStateRefreshResult = false;

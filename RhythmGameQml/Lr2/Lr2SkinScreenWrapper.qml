@@ -5775,28 +5775,61 @@ Item {
     }
 
     property var lastNavigateKey: []
+    property int selectWheelScratchDirection: 0
+    property real selectWheelScratchNextMs: 0
 
     function navigate(number: var, type: var, up: var, key: var) : var {
+        if (type === InputTranslator.AnalogScratchTick) {
+            if (root.selectScrollReady()) {
+                selectContext.queueAnalogScratchTick(up);
+            }
+            return;
+        }
         if (!root.selectScrollReady() || root.lastNavigateKey[root.lastNavigateKey.length - 1] !== key) {
             return;
         }
-        if (type === InputTranslator.AnalogScratchTick) {
-            selectContext.queueWheelSteps(up ? 1 : -1);
+        if (type === InputTranslator.ButtonTick
+                || type === InputTranslator.ClassicScratchTick) {
+            root.handleLr2SelectWheelScratchRepeat(up, number);
             return;
         }
         let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
-        if (type === InputTranslator.ButtonTick) {
-            if (number === 0 || number >= 10) {
-                func(true);
-            }
-        } else {
-            func(false);
+        func(false);
+    }
+
+    function resetLr2SelectWheelScratchRepeat() : void {
+        root.selectWheelScratchDirection = 0;
+        root.selectWheelScratchNextMs = 0;
+    }
+
+    function releaseLr2SelectWheelScratchRepeat(up: var) : void {
+        let sameDirectionStillHeld = up
+            ? (Input.col1sUp || Input.col2sUp)
+            : (Input.col1sDown || Input.col2sDown);
+        if (!sameDirectionStillHeld
+                && root.selectWheelScratchDirection === (up ? 1 : -1)) {
+            root.resetLr2SelectWheelScratchRepeat();
         }
+    }
+
+    function handleLr2SelectWheelScratchRepeat(up: var, number: var) : void {
+        let direction = up ? 1 : -1;
+        let now = Date.now();
+        let firstTick = number === 0 || root.selectWheelScratchDirection !== direction;
+        if (!firstTick && now < root.selectWheelScratchNextMs) {
+            return;
+        }
+        root.selectWheelScratchDirection = direction;
+        root.selectWheelScratchNextMs = now
+            + (firstTick ? selectContext.lr2SpeedFirst : selectContext.lr2SpeedNext);
+        let func = up ? selectContext.decrementViewIndex : selectContext.incrementViewIndex;
+        func(!firstTick);
     }
 
     function resetLr2SelectScratchRepeat() : void {
         root.selectTargetScratchDirection = 0;
         root.selectTargetScratchNextMs = 0;
+        selectPanelController.selectTargetAnalogScrollBuffer = 0;
     }
 
     function releaseLr2SelectScratchRepeat(up: var) : void {
@@ -5813,6 +5846,9 @@ Item {
         if (!root.selectInputReady() || root.selectPanel !== 1) {
             return false;
         }
+        if (type === InputTranslator.AnalogScratchTick) {
+            return root.handleLr2SelectAnalogScratchTick(up);
+        }
         let direction = up ? 1 : -1;
         let now = Date.now();
         let firstTick = number === 0 || root.selectTargetScratchDirection !== direction;
@@ -5825,6 +5861,23 @@ Item {
                 ? root.selectTargetScratchInitialRepeatMillis
                 : root.selectTargetScratchRepeatMillis);
         root.handleLr2Button(77, up ? 1 : -1, root.selectPanel, selectSideEffects.scratchSoundPlayer);
+        return true;
+    }
+
+    function handleLr2SelectAnalogScratchTick(up: var) : var {
+        selectPanelController.selectTargetAnalogScrollBuffer += up ? 1 : -1;
+        let steps = Math.trunc(selectPanelController.selectTargetAnalogScrollBuffer
+            / selectPanelController.selectTargetAnalogTicksPerScroll);
+        selectPanelController.selectTargetAnalogScrollBuffer =
+            selectPanelController.selectTargetAnalogScrollBuffer
+                % selectPanelController.selectTargetAnalogTicksPerScroll;
+        if (steps === 0) {
+            return true;
+        }
+        let delta = steps > 0 ? 1 : -1;
+        for (let i = 0; i < Math.abs(steps); ++i) {
+            root.handleLr2Button(77, delta, root.selectPanel, selectSideEffects.scratchSoundPlayer);
+        }
         return true;
     }
 
@@ -5880,21 +5933,25 @@ Item {
         root.releaseLr2GameplayScratchDirection(1, false);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sDown);
         root.releaseLr2SelectScratchRepeat(false);
+        root.releaseLr2SelectWheelScratchRepeat(false);
     }
     Input.onCol1sUpReleased: {
         root.releaseLr2GameplayScratchDirection(1, true);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col1sUp);
         root.releaseLr2SelectScratchRepeat(true);
+        root.releaseLr2SelectWheelScratchRepeat(true);
     }
     Input.onCol2sDownReleased: {
         root.releaseLr2GameplayScratchDirection(2, false);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sDown);
         root.releaseLr2SelectScratchRepeat(false);
+        root.releaseLr2SelectWheelScratchRepeat(false);
     }
     Input.onCol2sUpReleased: {
         root.releaseLr2GameplayScratchDirection(2, true);
         root.lastNavigateKey = root.lastNavigateKey.filter(k => k !== BmsKey.Col2sUp);
         root.releaseLr2SelectScratchRepeat(true);
+        root.releaseLr2SelectWheelScratchRepeat(true);
     }
     Input.onCol11Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()
     Input.onCol13Pressed: if (root.selectNavigationReady() && root.selectPanel <= 0) root.selectGoForward()

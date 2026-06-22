@@ -43,6 +43,7 @@ Item {
     property alias oldBarFixed: nativeNavigation.oldBarFixed
     property alias nowBarFixed: nativeNavigation.nowBarFixed
     property int pendingWheelSteps: 0
+    property int analogScrollBuffer: 0
     property alias selectedOffset: nativeNavigation.selectedOffset
     property alias barMoveStartMs: nativeNavigation.barMoveStartMs
     property alias barMoveEndMs: nativeNavigation.barMoveEndMs
@@ -254,8 +255,9 @@ Item {
     }
 
     readonly property int lr2SpeedFirst: 300
-    readonly property int lr2SpeedNext: 70
-    readonly property int lr2WheelDuration: 200
+    readonly property int lr2SpeedNext: 50
+    readonly property int lr2WheelBaseDuration: 120
+    readonly property int lr2AnalogTicksPerScroll: 3
     readonly property int lr2ClickDuration: 200
     readonly property int lr2ScrollUp: 1
     readonly property int lr2ScrollDown: 2
@@ -362,6 +364,7 @@ Item {
         }
         if (!updatesActive) {
             pendingWheelSteps = 0;
+            analogScrollBuffer = 0;
             pendingWheelStepTimer.stop();
         } else {
             publishPendingFolderLamps();
@@ -509,8 +512,25 @@ Item {
         if (pendingWheelSteps !== 0) {
             let steps = pendingWheelSteps;
             pendingWheelSteps = 0;
-            nativeNavigation.applyLr2ScrollDelta(-steps, lr2WheelDuration, now, visualState.rawFixed);
+            let entries = -steps;
+            nativeNavigation.applyLr2ScrollDelta(
+                entries,
+                beatorajaWheelDurationForEntries(entries, now),
+                now,
+                visualState.rawFixed);
         }
+    }
+
+    function beatorajaWheelDurationForEntries(entries: var, now: var) : var {
+        if (entries === 0) {
+            return 0;
+        }
+        let remainingScroll = Math.trunc((nativeNavigation.nowBarFixed - visualState.rawFixed) / 1000);
+        remainingScroll = Math.max(-2, Math.min(2, remainingScroll + entries));
+        if (remainingScroll === 0) {
+            return 0;
+        }
+        return Math.max(1, Math.trunc(lr2WheelBaseDuration / (remainingScroll * remainingScroll)));
     }
 
     function queueWheelSteps(steps: var) : var {
@@ -519,6 +539,18 @@ Item {
         }
         pendingWheelSteps += steps;
         pendingWheelStepTimer.restart();
+    }
+
+    function queueAnalogScratchTick(up: var) : var {
+        if (!updatesActive) {
+            return;
+        }
+        analogScrollBuffer += up ? 1 : -1;
+        let steps = Math.trunc(analogScrollBuffer / lr2AnalogTicksPerScroll);
+        analogScrollBuffer = analogScrollBuffer % lr2AnalogTicksPerScroll;
+        if (steps !== 0) {
+            queueWheelSteps(steps);
+        }
     }
 
     Timer {
