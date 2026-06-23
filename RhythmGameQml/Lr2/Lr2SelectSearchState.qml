@@ -75,6 +75,7 @@ QtObject {
     }
 
     function reset() : void {
+        selectContext.searchTextIsResultMessage = false;
         if (selectContext.searchText.length > 0) {
             selectContext.searchText = "";
         }
@@ -84,10 +85,22 @@ QtObject {
         searchState.clearFocus();
     }
 
+    function searchResultText(count: var) : var {
+        return qsTr("%n chart(s) found", "", count);
+    }
+
+    function setSearchResultText(count: var) : void {
+        selectContext.searchTextIsResultMessage = true;
+        selectContext.searchText = searchState.searchResultText(count);
+    }
+
     function submit() : void {
+        if (selectContext.searchTextIsResultMessage) {
+            return;
+        }
         let query = selectContext.searchText.trim();
         if (query.length > 0) {
-            selectContext.search(query);
+            searchState.setSearchResultText(selectContext.search(query));
         }
     }
 }

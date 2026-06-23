@@ -376,6 +376,12 @@ Item {
             onActiveFocusChanged: {
                 if (activeFocus) {
                     syncFromContext();
+                    const context = textElement.selectReady ? textElement.selectContext : null;
+                    if (context && context.searchTextIsResultMessage) {
+                        context.searchTextIsResultMessage = false;
+                        context.searchText = "";
+                        syncFromContext();
+                    }
                     cursorPosition = text.length;
                 }
                 textElement.restartSearchCursorBlink();
@@ -390,6 +396,7 @@ Item {
                 if (!syncing
                         && context
                         && context.searchText !== text) {
+                    context.searchTextIsResultMessage = false;
                     context.searchText = text;
                 }
             }

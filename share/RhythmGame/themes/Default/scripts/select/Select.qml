@@ -567,6 +567,8 @@ FocusScope {
                 TextEdit {
                     id: searchEdit
 
+                    property bool showingSearchResultText: false
+
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 20
                     anchors.left: parent.left
@@ -577,15 +579,27 @@ FocusScope {
                     width: 540
                     wrapMode: TextEdit.NoWrap
 
+                    function searchResultText(count) {
+                        return qsTr("%n chart(s) found", "", count);
+                    }
+
                     function submitOrOpenCurrent() {
                         let query = searchEdit.text.trim();
                         if (query.length > 0) {
-                            songList.search(query);
-                            searchEdit.text = "";
+                            let count = songList.search(query);
+                            searchEdit.text = searchResultText(count);
+                            showingSearchResultText = true;
                         } else {
                             songList.goForward(songList.current);
                         }
                         root.focusSongList();
+                    }
+
+                    onActiveFocusChanged: {
+                        if (activeFocus && showingSearchResultText) {
+                            searchEdit.text = "";
+                            showingSearchResultText = false;
+                        }
                     }
 
                     Keys.onReturnPressed: event => {

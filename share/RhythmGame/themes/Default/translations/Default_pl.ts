@@ -726,14 +726,26 @@
     </message>
 </context>
 <context>
+    <name>Lr2SelectSearchState</name>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectSearchState.qml" line="89"/>
+        <source>%n chart(s) found</source>
+        <translation>
+            <numerusform>Znaleziono %n chart</numerusform>
+            <numerusform>Znaleziono %n charty</numerusform>
+            <numerusform>Znaleziono %n chartów</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2339"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2684"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2341"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2686"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
@@ -1138,12 +1150,12 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="129"/>
+        <location filename="../scripts/result/Result.qml" line="141"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="131"/>
+        <location filename="../scripts/result/Result.qml" line="143"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>
@@ -1275,6 +1287,15 @@ pominięto: %3, łącznie: %4</translation>
         <location filename="../scripts/select/Select.qml" line="544"/>
         <source>Score Details</source>
         <translation>Szczegóły wyniku</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../scripts/select/Select.qml" line="583"/>
+        <source>%n chart(s) found</source>
+        <translation>
+            <numerusform>Znaleziono %n chart</numerusform>
+            <numerusform>Znaleziono %n charty</numerusform>
+            <numerusform>Znaleziono %n chartów</numerusform>
+        </translation>
     </message>
 </context>
 <context>

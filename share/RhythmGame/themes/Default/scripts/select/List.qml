@@ -551,9 +551,10 @@ PathView {
 
     function search(query) {
         let results = Rg.songFolderFactory.search(query);
+        let resultCount = results.length;
         if (!results.length) {
             console.info("Search returned no results");
-            return;
+            return resultCount;
         }
         let newFolderContents = [];
         for (let item of results) {
@@ -570,6 +571,7 @@ PathView {
         pathView.positionViewAtIndex(0, PathView.Center);
         resetNavigation();
         openedFolder();
+        return resultCount;
     }
 
     function isChartItem(item) {

@@ -57,6 +57,7 @@ Item {
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
+    property bool searchTextIsResultMessage: false
     property int difficultyFilter: 0
     property var generalVars: null
     property int localSelectKeymodeFilter: SelectKeymodeFilter.All
@@ -1405,9 +1406,10 @@ Item {
 
     function search(query: var) : var {
         let results = Rg.songFolderFactory.search(query || "");
+        let resultCount = results.length;
         if (!results.length) {
             console.info("Search returned no results");
-            return;
+            return resultCount;
         }
         folderContents = [...results];
         rebuildFolderIndexes(folderContents);
@@ -1420,6 +1422,7 @@ Item {
         openedFolder();
         markListContentsChanged();
         nativeNavigation.touchSelection();
+        return resultCount;
     }
 
     function openRoot() : void {
