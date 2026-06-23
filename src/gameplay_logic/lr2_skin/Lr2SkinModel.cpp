@@ -389,6 +389,10 @@ int Lr2SkinModel::fadeOut() const {
     return m_fadeOut;
 }
 
+int Lr2SkinModel::finishMargin() const {
+    return m_finishMargin;
+}
+
 int Lr2SkinModel::skip() const {
     return m_skip;
 }
@@ -596,6 +600,7 @@ void Lr2SkinModel::loadSkin() {
                                      m_loadEnd != 0 ||
                                      m_playStart != 2000 ||
                                      m_fadeOut != 0 ||
+                                     m_finishMargin != 0 ||
                                      m_skip != 0 ||
                                      m_skinWidth != 640 ||
                                      m_skinHeight != 480 ||
@@ -656,6 +661,7 @@ void Lr2SkinModel::loadSkin() {
         m_loadEnd = 0;
         m_playStart = 2000;
         m_fadeOut = 0;
+        m_finishMargin = 0;
         m_skip = 0;
         m_skinWidth = 640;
         m_skinHeight = 480;
@@ -700,6 +706,7 @@ void Lr2SkinModel::loadSkin() {
                                  m_loadEnd != skinData.loadEnd ||
                                  m_playStart != skinData.playStart ||
                                  m_fadeOut != skinData.fadeOut ||
+                                 m_finishMargin != skinData.finishMargin ||
                                  m_skip != skinData.skip ||
                                  m_skinWidth != skinData.skinWidth ||
                                  m_skinHeight != skinData.skinHeight ||
@@ -750,6 +757,7 @@ void Lr2SkinModel::loadSkin() {
     m_loadEnd = skinData.loadEnd;
     m_playStart = skinData.playStart;
     m_fadeOut = skinData.fadeOut;
+    m_finishMargin = skinData.finishMargin;
     m_skip = skinData.skip;
     m_skinWidth = skinData.skinWidth;
     m_skinHeight = skinData.skinHeight;

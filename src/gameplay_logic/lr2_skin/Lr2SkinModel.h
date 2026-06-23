@@ -17,6 +17,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(int loadEnd READ loadEnd NOTIFY skinMetadataChanged)
     Q_PROPERTY(int playStart READ playStart NOTIFY skinMetadataChanged)
     Q_PROPERTY(int fadeOut READ fadeOut NOTIFY skinMetadataChanged)
+    Q_PROPERTY(int finishMargin READ finishMargin NOTIFY skinMetadataChanged)
     Q_PROPERTY(int skip READ skip NOTIFY skinMetadataChanged)
     Q_PROPERTY(int skinWidth READ skinWidth NOTIFY skinMetadataChanged)
     Q_PROPERTY(int skinHeight READ skinHeight NOTIFY skinMetadataChanged)
@@ -85,6 +86,7 @@ public:
     int loadEnd() const;
     int playStart() const;
     int fadeOut() const;
+    int finishMargin() const;
     int skip() const;
     int skinWidth() const;
     int skinHeight() const;
@@ -168,6 +170,7 @@ private:
     int m_loadEnd = 0;
     int m_playStart = 2000;
     int m_fadeOut = 0;
+    int m_finishMargin = 0;
     int m_skip = 0;
     int m_skinWidth = 640;
     int m_skinHeight = 480;

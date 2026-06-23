@@ -526,6 +526,7 @@ struct Lr2SkinData
     int loadEnd = 0;
     int playStart = 2000;
     int fadeOut = 0;
+    int finishMargin = 0;
     int skip = 0;
     int barCenter = 0;
     int barAvailableStart = 0;

@@ -21,6 +21,7 @@ Item {
     property bool componentReady: false
     property bool decideTransitionRequested: false
     property bool screenEntrySoundPlayed: false
+    property bool selectScoreRefreshQueued: false
     readonly property var chartAssetData: {
         if (root.effectiveScreenKey === "select") {
             return selectContext.visualChartWrapper;
@@ -192,12 +193,16 @@ Item {
     property var gameplayHitTimerStarts: ({})
     property var gameplayLongNoteTimerStarts: ({})
     property bool gameplayResultOpened: false
+    property bool gameplayFinishTransitionPending: false
+    property int gameplayFadeoutSkinTime: -1
     property bool gameplayCourseResultPending: false
     property bool gameplayCourseResultOpening: false
     property bool gameplayShowedCourseResult: false
     property bool gameplayPlayStopped: false
     property bool gameplayNothingWasHit: true
     property bool gameplayStartArmed: false
+    readonly property int gameplayFinishMarginMillis: Math.max(0, skinModel.finishMargin || 0)
+    readonly property int gameplayFadeOutMillis: Math.max(0, skinModel.fadeOut || 0)
     property alias gameplayFrameStateRef: gameplayFrameState
     readonly property var gameplayPlayer1: root.chart ? root.chart.player1 : null
     readonly property var gameplayPlayer2: root.chart ? root.chart.player2 : null
@@ -345,7 +350,9 @@ Item {
             Qt.callLater(() => sceneStack.pop());
         }
         if (enabled) {
+            let selectWasOpen = root.selectListAlreadyOpen();
             root.openSelectIfNeeded();
+            root.queueOpenSelectScoreRefresh(selectWasOpen);
             root.activateGameplayIfNeeded();
             Qt.callLater(root.playScreenEntrySound);
         } else {
@@ -360,8 +367,10 @@ Item {
             return;
         }
         if (screenUpdatesActive) {
+            let selectWasOpen = root.selectListAlreadyOpen();
             root.updateLr2DateTimeNumbers();
             root.openSelectIfNeeded();
+            root.queueOpenSelectScoreRefresh(selectWasOpen);
             root.activateGameplayIfNeeded();
             skinTiming.syncSceneEndTimer();
             root.refreshSelectRuntimeActiveOptions();
@@ -442,6 +451,31 @@ Item {
         root.forceActiveFocus();
     }
 
+    function selectListAlreadyOpen() : var {
+        return root.effectiveScreenKey === "select"
+            && selectContext.historyStack.length > 0;
+    }
+
+    function queueOpenSelectScoreRefresh(selectWasOpen: var) : void {
+        if (!selectWasOpen
+                || root.selectScoreRefreshQueued
+                || root.effectiveScreenKey !== "select"
+                || !root.screenUpdatesActive) {
+            return;
+        }
+        root.selectScoreRefreshQueued = true;
+        Qt.callLater(() => {
+            root.selectScoreRefreshQueued = false;
+            if (root.effectiveScreenKey !== "select"
+                    || !root.screenUpdatesActive
+                    || selectContext.historyStack.length === 0) {
+                return;
+            }
+            selectContext.refreshScores();
+            selectContext.refreshPlayerStats();
+        });
+    }
+
     function handleSelectDigitShortcut(digit: var) : var {
         if (!root.screenUpdatesActive
                 || root.effectiveScreenKey !== "select"
@@ -498,8 +532,28 @@ Item {
                 root.cancelDecideScreen();
                 return;
             }
+            if (root.resultScreenActive) {
+                root.closeResultScreen();
+                return;
+            }
             sceneStack.pop();
         }
+    }
+
+    Timer {
+        id: gameplayFinishMarginTimer
+
+        interval: Math.max(1, root.gameplayFinishMarginMillis)
+        repeat: false
+        onTriggered: root.startGameplayFadeoutTransition()
+    }
+
+    Timer {
+        id: gameplayFadeoutTransitionTimer
+
+        interval: Math.max(1, root.gameplayFadeOutMillis)
+        repeat: false
+        onTriggered: root.completeGameplayFinishedTransition()
     }
 
     Shortcut {
@@ -583,6 +637,11 @@ Item {
     }
 
     StackView.onActivated: {
+        if (root.effectiveScreenKey === "select") {
+            let selectWasOpen = root.selectListAlreadyOpen();
+            root.openSelectIfNeeded();
+            root.queueOpenSelectScoreRefresh(selectWasOpen);
+        }
         root.activateGameplayIfNeeded();
     }
     
@@ -2158,6 +2217,7 @@ Item {
     function stopGameplayLifecycle() : void {
         root.gameplayStartArmed = false;
         skinTiming.gameplayStartTimer.stop();
+        root.cancelGameplayFinishedTransition();
         gameplayReadySound.stop();
         gameplayStopSound.stop();
     }
@@ -2213,12 +2273,8 @@ Item {
                         globalRoot.openCourseResult(root.chart.finish(), profiles, chartDatas, course);
                     }
                 });
-            } else if (root.isCourseGameplay() && !root.gameplayResultOpened) {
-                Qt.callLater(() => {
-                    if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-                        root.openGameplayStageResult();
-                    }
-                });
+            } else if (!root.gameplayResultOpened) {
+                root.scheduleGameplayFinishedTransition();
             } else {
                 Qt.callLater(() => {
                     if (root.enabled && root.gameplayScreenActive && root.chart && root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
@@ -2230,6 +2286,7 @@ Item {
         }
 
         root.gameplayResultOpened = false;
+        root.cancelGameplayFinishedTransition();
         root.gameplayPlayStopped = false;
         if (!root.chartStatusIs(root.chart.status, ChartRunner.Running)) {
             root.gameplayNothingWasHit = true;
@@ -2241,6 +2298,71 @@ Item {
         root.startGameplayWhenReady();
     }
 
+    function scheduleGameplayFinishedTransition() : var {
+        if (!root.enabled
+                || !root.gameplayScreenActive
+                || !root.chart
+                || root.gameplayResultOpened
+                || root.gameplayFinishTransitionPending
+                || !root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+            return;
+        }
+
+        root.gameplayFinishTransitionPending = true;
+        root.gameplayStartArmed = false;
+        skinTiming.gameplayStartTimer.stop();
+
+        if (root.gameplayFinishMarginMillis <= 0) {
+            Qt.callLater(root.startGameplayFadeoutTransition);
+        } else {
+            gameplayFinishMarginTimer.restart();
+        }
+    }
+
+    function cancelGameplayFinishedTransition() : void {
+        root.gameplayFinishTransitionPending = false;
+        gameplayFinishMarginTimer.stop();
+        gameplayFadeoutTransitionTimer.stop();
+    }
+
+    function startGameplayFadeoutTransition() : void {
+        if (!root.gameplayFinishTransitionPending) {
+            return;
+        }
+        if (!root.enabled
+                || !root.gameplayScreenActive
+                || !root.chart
+                || root.gameplayResultOpened
+                || !root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+            root.gameplayFinishTransitionPending = false;
+            return;
+        }
+        if (root.gameplayFadeoutSkinTime < 0) {
+            root.gameplayFadeoutSkinTime = root.renderSkinTime;
+            root.setGameplayTimerValue(2, root.gameplayFadeoutSkinTime);
+        }
+        if (root.gameplayFadeOutMillis <= 0) {
+            Qt.callLater(root.completeGameplayFinishedTransition);
+        } else {
+            gameplayFadeoutTransitionTimer.restart();
+        }
+    }
+
+    function completeGameplayFinishedTransition() : void {
+        if (!root.gameplayFinishTransitionPending) {
+            return;
+        }
+        root.gameplayFinishTransitionPending = false;
+        if (!root.enabled
+                || !root.gameplayScreenActive
+                || !root.chart
+                || root.gameplayResultOpened
+                || !root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+            return;
+        }
+        root.openGameplayStageResult();
+    }
+
     function openGameplayStageResult() : var {
         if (!root.enabled
                 || !root.gameplayScreenActive
@@ -2250,6 +2372,7 @@ Item {
         }
 
         root.gameplayResultOpened = true;
+        root.cancelGameplayFinishedTransition();
         root.gameplayStartArmed = false;
         skinTiming.gameplayStartTimer.stop();
 
@@ -2273,10 +2396,11 @@ Item {
         if (root.chartStatusIs(root.chart.status, ChartRunner.Ready)) {
             root.startGameplayWhenReady();
         } else if (root.chartStatusIs(root.chart.status, ChartRunner.Running)) {
+            root.cancelGameplayFinishedTransition();
             root.gameplayStartArmed = false;
             skinTiming.gameplayStartTimer.stop();
         } else if (root.chartStatusIs(root.chart.status, ChartRunner.Finished) && !root.gameplayPlayStopped) {
-            root.openGameplayStageResult();
+            root.scheduleGameplayFinishedTransition();
         }
     }
 
@@ -2301,6 +2425,7 @@ Item {
         }
 
         root.gameplayPlayStopped = true;
+        root.cancelGameplayFinishedTransition();
         gameplayStopSound.play();
         root.openGameplayStageResult();
         return true;
@@ -3549,6 +3674,7 @@ Item {
         root.gameplayLastMissSkinTime2 = -1;
         root.gameplayFullComboSkinTime1 = -1;
         root.gameplayFullComboSkinTime2 = -1;
+        root.gameplayFadeoutSkinTime = -1;
         root.resetGameplayTimerValues();
         root.resetGameplayGaugeTimerBaseline(1);
         root.resetGameplayGaugeTimerBaseline(2);
@@ -3909,6 +4035,7 @@ Item {
         }
         root.addGameplayTimer(result, 48, root.gameplayFullComboSkinTime1);
         root.addGameplayTimer(result, 49, root.gameplayFullComboSkinTime2);
+        root.addGameplayTimer(result, 2, root.gameplayFadeoutSkinTime);
         root.addGameplayTimer(result, 140, root.gameplayRhythmTimerSkinTime);
         root.addGameplayKeyTimers(result);
         root.addGameplayEffectTimers(result);
@@ -5974,6 +6101,9 @@ Item {
             return;
         }
         if (root.handleLr2GameplayOptionKey(key)) {
+            return;
+        }
+        if (root.resultScreenActive && !root.resultInputReady()) {
             return;
         }
         if (root.handleResultGaugeSelectKey(key)) {

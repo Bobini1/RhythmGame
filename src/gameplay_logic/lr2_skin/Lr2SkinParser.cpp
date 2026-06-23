@@ -147,6 +147,7 @@ struct ParseState
     int loadEnd = 0;
     int playStart = 2000;
     int fadeOut = 0;
+    int finishMargin = 0;
     int skip = 0;
     int skinWidth = 640;
     int skinHeight = 480;
@@ -1801,6 +1802,10 @@ processCommand(const QStringList& tokens,
         if (tokens.size() > 1) {
             state.fadeOut = tokens[1].trimmed().toInt();
         }
+    } else if (command == "#FINISHMARGIN") {
+        if (tokens.size() > 1) {
+            state.finishMargin = tokens[1].trimmed().toInt();
+        }
     } else if (command == "#SKIP") {
         if (tokens.size() > 1) {
             state.skip = tokens[1].trimmed().toInt();
@@ -2860,6 +2865,7 @@ parseFile(const std::filesystem::path& filePath,
       .loadEnd = state.loadEnd,
       .playStart = state.playStart,
       .fadeOut = state.fadeOut,
+      .finishMargin = state.finishMargin,
       .skip = state.skip,
       .barCenter = state.barCenter,
       .barAvailableStart = state.barAvailableStart,

@@ -27,6 +27,8 @@ Item {
     readonly property Profile profile2: profiles[1] || null
     readonly property bool isBattle: score1 && score2
     readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
+    readonly property int startInputMillis: 500
+    property bool acceptsInput: startInputMillis <= 0
 
     function cycleGaugeForKey(key) {
         if (key === BmsKey.Col16) {
@@ -41,7 +43,17 @@ Item {
         return false;
     }
 
+    Timer {
+        interval: Math.max(1, root.startInputMillis)
+        running: root.startInputMillis > 0
+        repeat: false
+        onTriggered: root.acceptsInput = true
+    }
+
     Input.onButtonPressed: (key) => {
+        if (!root.acceptsInput) {
+            return;
+        }
         if (cycleGaugeForKey(key)) {
             return;
         }
@@ -75,7 +87,7 @@ Item {
         }
 
         Shortcut {
-            enabled: root.enabled
+            enabled: root.enabled && root.acceptsInput
             sequence: "Esc"
 
             onActivated: {
@@ -83,7 +95,7 @@ Item {
             }
         }
         Shortcut {
-            enabled: root.enabled
+            enabled: root.enabled && root.acceptsInput
             sequence: "Return"
 
             onActivated: {
@@ -134,10 +146,14 @@ Item {
             }
         }
         Input.onStart1Pressed: () => {
-            sceneStack.pop();
+            if (root.acceptsInput) {
+                sceneStack.pop();
+            }
         }
         Input.onStart2Pressed: () => {
-            sceneStack.pop();
+            if (root.acceptsInput) {
+                sceneStack.pop();
+            }
         }
         Item {
             id: scaledRoot
