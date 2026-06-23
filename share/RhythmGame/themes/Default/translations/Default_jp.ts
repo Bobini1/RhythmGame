@@ -687,6 +687,14 @@
     </message>
 </context>
 <context>
+    <name>Lr2OptionState</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2OptionState.qml" line="162"/>
+        <source>Search...</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>Lr2SelectPointerController</name>
     <message>
         <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectPointerController.qml" line="262"/>
@@ -1590,11 +1598,16 @@ skipped: %3, total: %4</source>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="52"/>
-        <source>Result</source>
+        <source>Decide</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
+        <source>Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="54"/>
         <source>Course Result</source>
         <translation type="unfinished"></translation>
     </message>

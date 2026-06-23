@@ -703,6 +703,18 @@
     </message>
 </context>
 <context>
+    <name>Lr2OptionState</name>
+    <message>
+        <source>Enter search text</source>
+        <translation type="vanished">Szukaj</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2OptionState.qml" line="162"/>
+        <source>Search...</source>
+        <translation>Szukaj...</translation>
+    </message>
+</context>
+<context>
     <name>Lr2SelectPointerController</name>
     <message>
         <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectPointerController.qml" line="262"/>
@@ -1627,11 +1639,16 @@ pominięto: %3, łącznie: %4</translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="52"/>
+        <source>Decide</source>
+        <translation>Decyzja</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
         <source>Result</source>
         <translation>Ekran wyników</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="54"/>
         <source>Course Result</source>
         <translation>Ekran wyników serii</translation>
     </message>

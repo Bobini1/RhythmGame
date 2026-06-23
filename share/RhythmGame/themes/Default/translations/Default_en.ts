@@ -4,7 +4,7 @@
 <context>
     <name>Lr2SelectSearchState</name>
     <message numerus="yes">
-        <location filename="../../../RhythmGameQml/Lr2/Lr2SelectSearchState.qml" line="89"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectSearchState.qml" line="89"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>
@@ -15,7 +15,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../../../share/RhythmGame/themes/Default/scripts/select/Select.qml" line="583"/>
+        <location filename="../scripts/select/Select.qml" line="583"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>

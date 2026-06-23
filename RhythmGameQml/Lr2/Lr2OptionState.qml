@@ -159,7 +159,7 @@ QtObject {
     readonly property var lr2GhostLabels: ["OFF", "TYPE A", "TYPE B", "TYPE C"]
     readonly property var lr2HidSudLabels: ["OFF", "HIDDEN", "SUDDEN", "HID+SUD"]
     readonly property var lr2ReplayLabels: ["NEWEST", "BEST SCORE", "BEST CLEAR", "BEST COMBO"]
-    readonly property string lr2SearchPlaceholderText: "検索語を入力"
+    readonly property string lr2SearchPlaceholderText: qsTr("Search...")
     readonly property int lr2ReplayType: root.replayTypeIndex(root.mainGeneralVarsValue ? root.mainGeneralVarsValue.replayType : 0)
     property var lr2SliderValues: ({
         "8": 0,

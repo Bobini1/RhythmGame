@@ -49,6 +49,7 @@ RowLayout {
                 "main": QT_TR_NOOP("Main Menu"),
                 "settings": QT_TR_NOOP("Settings"),
                 "select": QT_TR_NOOP("Select"),
+                "decide": QT_TR_NOOP("Decide"),
                 "result": QT_TR_NOOP("Result"),
                 "courseResult": QT_TR_NOOP("Course Result")
             };
