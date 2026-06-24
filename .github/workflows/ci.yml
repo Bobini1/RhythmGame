@@ -15,8 +15,14 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
-  VCPKG_BINARY_SOURCES: 'clear;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
+  VCPKG_BINARY_CACHE: ${{ github.workspace }}/.vcpkg-cache/binary
+  VCPKG_DOWNLOADS: ${{ github.workspace }}/.vcpkg-cache/downloads
+  VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
   VCPKG_USE_NUGET_CACHE: 'true'
   VCPKG_MAX_CONCURRENCY: '2'
 
@@ -43,6 +49,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install LCov
         run: sudo apt-get update -q
@@ -79,6 +102,18 @@ jobs:
       - name: Configure
         run: cmake --preset=ci-coverage
 
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
       - name: Build
         run: cmake --build build/coverage -j 2
 
@@ -106,6 +141,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install system dependencies
         run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
@@ -141,6 +193,18 @@ jobs:
       - name: Configure
         run: cmake --preset=ci-sanitize
 
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
       - name: Build
         run: cmake --build build/sanitize -j 2
 
@@ -168,6 +232,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-latest'
@@ -263,6 +344,18 @@ jobs:
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
 
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
       - name: Build
         run: cmake --build build --config Release -j 2
 
@@ -292,6 +385,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install static analyzers
         if: matrix.os == 'ubuntu-latest'
@@ -380,6 +490,18 @@ jobs:
       - name: Configure
         shell: pwsh
         run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build --config Release -j 2
