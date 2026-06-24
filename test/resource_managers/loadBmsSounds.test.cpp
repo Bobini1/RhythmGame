@@ -14,6 +14,8 @@
 #include "sounds/NormalSound.h"
 #include "sounds/NormalSoundBuffer.h"
 
+#include <QByteArray>
+
 #include <support/UtfStringToPath.h>
 
 namespace {
@@ -25,6 +27,7 @@ auto randomGenerator = [](charts::ParsedBmsChart::RandomRange range) {
 TEST_CASE("Sounds are loaded from a folder according to the bms file",
           "[loadBmsSounds]")
 {
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
     auto folder = findTestAssetsFolder() / "supportedSoundFormats";
     auto path =
       std::string("8BIT_audiocheck.net_sin_1000Hz_-3dBFS_0.2s_8.0k.wav");
@@ -48,6 +51,7 @@ TEST_CASE("Sounds are loaded from a folder according to the bms file",
 TEST_CASE("Even when the extension says wav, allow loading other extensions",
           "[loadBmsSounds]")
 {
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
     auto folder = findTestAssetsFolder() / "bmsFallbackExtensions";
     auto pathIterator = std::filesystem::directory_iterator(folder);
     auto paths = std::vector<std::string>();
