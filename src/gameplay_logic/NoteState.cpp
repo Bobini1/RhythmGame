@@ -93,7 +93,8 @@ ColumnState::onHitEvent(HitEvent hit)
     const auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex());
     emit dataChanged(index(changedIndex), index(changedIndex));
     if (note.note.type == Note::Type::LongNoteBegin) {
-        if (hit.getAction() == HitEvent::Action::Press && hit.getNoteRemoved()) {
+        if (hit.getAction() == HitEvent::Action::Press &&
+            hit.getNoteRemoved()) {
             setHoldingLongNote(true);
         }
         auto changedIndex = mapTimeIndexToPositionIndex(hit.getNoteIndex() + 1);

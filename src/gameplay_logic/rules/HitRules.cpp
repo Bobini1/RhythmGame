@@ -299,8 +299,7 @@ gameplay_logic::rules::HitRules::processMisses(
             // Without this, the LN end sits unjudged for up to 200ms,
             // during which lnBeginPoints[column] can be overwritten by a
             // subsequent LN press in the same column.
-            if (iter->type == NoteType::LnEnd &&
-                offsetFromStart > noteTime) {
+            if (iter->type == NoteType::LnEnd && offsetFromStart > noteTime) {
                 // fall through to process this LnEnd
             } else {
                 break;

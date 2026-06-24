@@ -13,8 +13,8 @@
 #include <filesystem>
 
 using gameplay_logic::lr2_skin::Lr2Dst;
-using gameplay_logic::lr2_skin::Lr2SrcImage;
 using gameplay_logic::lr2_skin::Lr2SkinParser;
+using gameplay_logic::lr2_skin::Lr2SrcImage;
 
 namespace {
 
@@ -50,10 +50,8 @@ TEST_CASE("LR2 skin parser infers repeated square canvases", "[lr2][skin]")
     const auto path = tempSkinPath(tempDir);
 
     writeSkinFile(path,
-                  QStringLiteral("#IMAGE,full.png\n") +
-                    fullScreenSprite(0) +
-                    fullScreenSprite(100) +
-                    fullScreenSprite(200));
+                  QStringLiteral("#IMAGE,full.png\n") + fullScreenSprite(0) +
+                    fullScreenSprite(100) + fullScreenSprite(200));
 
     const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
 
@@ -67,7 +65,8 @@ TEST_CASE("LR2 skin parser keeps fallback for isolated small destinations",
     QTemporaryDir tempDir;
     const auto path = tempSkinPath(tempDir);
 
-    writeSkinFile(path, QStringLiteral("#IMAGE,full.png\n") + fullScreenSprite());
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,full.png\n") + fullScreenSprite());
 
     const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
 
@@ -83,8 +82,7 @@ TEST_CASE("LR2 skin parser honors explicit resolution over inferred canvas",
 
     writeSkinFile(path,
                   QStringLiteral("#RESOLUTION,1\n#IMAGE,full.png\n") +
-                    fullScreenSprite(0) +
-                    fullScreenSprite(100) +
+                    fullScreenSprite(0) + fullScreenSprite(100) +
                     fullScreenSprite(200));
 
     const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
@@ -99,10 +97,12 @@ TEST_CASE("LR2 skin parser accepts fractional destination coordinates",
     QTemporaryDir tempDir;
     const auto path = tempSkinPath(tempDir);
 
-    writeSkinFile(path,
-                  QStringLiteral("#IMAGE,full.png\n"
-                                 "#SRC_NUMBER,0,0,0,120,730,120,10,1,0,0,46,2,2\n"
-                                 "#DST_NUMBER,0,260,248.5,340.9,73.5,120.2,0,255,255,255,255,1,0,0,0\n"));
+    writeSkinFile(
+      path,
+      QStringLiteral("#IMAGE,full.png\n"
+                     "#SRC_NUMBER,0,0,0,120,730,120,10,1,0,0,46,2,2\n"
+                     "#DST_NUMBER,0,260,248.5,340.9,73.5,120.2,0,255,255,255,"
+                     "255,1,0,0,0\n"));
 
     const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
 
@@ -140,20 +140,22 @@ TEST_CASE("LR2 skin parser ignores image slots in skipped branches",
     CHECK(source.source.contains(QStringLiteral("notes.png")));
 }
 
-TEST_CASE("LR2 skin parser records select detail option gates",
-          "[lr2][skin]")
+TEST_CASE("LR2 skin parser records select detail option gates", "[lr2][skin]")
 {
     QTemporaryDir tempDir;
     const auto path = tempSkinPath(tempDir);
 
-    writeSkinFile(path,
-                  QStringLiteral("#IMAGE,full.png\n"
-                                 "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0,0,0,0\n"
-                                 "#DST_IMAGE,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,2,160,0\n"
-                                 "#SRC_IMAGE,1,0,0,0,10,10,1,1,0,0,0,0,0\n"
-                                 "#DST_IMAGE,1,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,2,180,0\n"
-                                 "#SRC_BARGRAPH,0,0,0,0,10,10,1,1,0,0,5,0,0\n"
-                                 "#DST_BARGRAPH,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,70,505,620\n"));
+    writeSkinFile(
+      path,
+      QStringLiteral(
+        "#IMAGE,full.png\n"
+        "#SRC_IMAGE,0,0,0,0,10,10,1,1,0,0,0,0,0\n"
+        "#DST_IMAGE,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,2,160,0\n"
+        "#SRC_IMAGE,1,0,0,0,10,10,1,1,0,0,0,0,0\n"
+        "#DST_IMAGE,1,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,2,180,0\n"
+        "#SRC_BARGRAPH,0,0,0,0,10,10,1,1,0,0,5,0,0\n"
+        "#DST_BARGRAPH,0,0,0,0,10,10,0,255,255,255,255,1,0,0,0,0,0,70,505,"
+        "620\n"));
 
     const auto skin = Lr2SkinParser::parseData(support::pathToQString(path));
     const auto hasUsedOption = [&skin](int option) {

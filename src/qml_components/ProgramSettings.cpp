@@ -37,4 +37,3 @@ ProgramSettings::copyImageToClipboard(const QString& path) -> void
     }
 }
 } // namespace qml_components
-

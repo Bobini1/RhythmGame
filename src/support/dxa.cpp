@@ -755,7 +755,8 @@ normalizeDxaPath(const std::filesystem::path& path) -> std::string
 {
     auto normalized = support::pathToUtfString(path);
     std::replace(normalized.begin(), normalized.end(), '\\', '/');
-    normalized = std::filesystem::path(normalized).lexically_normal().generic_string();
+    normalized =
+      std::filesystem::path(normalized).lexically_normal().generic_string();
 
     while (normalized.starts_with("./")) {
         normalized.erase(0, 2);

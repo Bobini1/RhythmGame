@@ -75,8 +75,7 @@ setJudgementCountsFromJson(RankingEntry& entry, const QJsonObject& obj)
     }
     if (entry.bestEmptyPoor == 0 && entry.bestComboBreaks > 0) {
         entry.bestEmptyPoor =
-          std::max(0,
-                   entry.bestComboBreaks - entry.bestBad - entry.bestPoor);
+          std::max(0, entry.bestComboBreaks - entry.bestBad - entry.bestPoor);
     }
 }
 }
@@ -99,8 +98,7 @@ rhythmGameRankingEntryFromJson(const QJsonObject& obj) -> RankingEntry
     entry.bestComboBreaks = obj.value("bestComboBreaks").toInt();
     setJudgementCountsFromArray(
       entry, obj.value("bestPointsJudgementCounts").toArray());
-    entry.bestComboBreaksGuid =
-      obj.value("bestComboBreaksGuid").toString();
+    entry.bestComboBreaksGuid = obj.value("bestComboBreaksGuid").toString();
     entry.latestDate = obj.value("latestDate").toInteger();
     entry.latestDateGuid = obj.value("latestDateGuid").toString();
     entry.scoreCount = obj.value("scoreCount").toInt();

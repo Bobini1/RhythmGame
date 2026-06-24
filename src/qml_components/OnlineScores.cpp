@@ -32,7 +32,8 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 {
     auto* handle = new TachiResolveHandle();
 
-    struct TachiGame {
+    struct TachiGame
+    {
         const char* game;
     };
     static constexpr std::array<TachiGame, 2> games = { {

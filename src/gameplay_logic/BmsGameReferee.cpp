@@ -189,8 +189,8 @@ gameplay_logic::BmsGameReferee::passPressed(
     }
     pressedKeys[keyIndex] = true;
     pressedState[columnIndex]++;
-    for (const auto& hit :
-         hitRules.press(notes[columnIndex], columnIndex, offsetFromStart, key)) {
+    for (const auto& hit : hitRules.press(
+           notes[columnIndex], columnIndex, offsetFromStart, key)) {
         score->addHit(hit);
     }
 }

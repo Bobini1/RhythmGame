@@ -54,90 +54,133 @@ struct ScoreSummaryChart
     double bestMaxPoints = 0.0;
 };
 
-int summaryClearTypePriority(const QString& clearType) {
-    if (clearType == QStringLiteral("FAILED")) return 1;
-    if (clearType == QStringLiteral("AEASY")) return 2;
-    if (clearType == QStringLiteral("LIGHTASSIST")
-        || clearType == QStringLiteral("LIGHT_ASSIST")) return 3;
-    if (clearType == QStringLiteral("EASY")) return 4;
-    if (clearType == QStringLiteral("NORMAL")) return 5;
-    if (clearType == QStringLiteral("HARD")) return 6;
-    if (clearType == QStringLiteral("EXHARD")) return 7;
-    if (clearType == QStringLiteral("FC")) return 8;
-    if (clearType == QStringLiteral("PERFECT")) return 9;
-    if (clearType == QStringLiteral("MAX")) return 10;
+int
+summaryClearTypePriority(const QString& clearType)
+{
+    if (clearType == QStringLiteral("FAILED"))
+        return 1;
+    if (clearType == QStringLiteral("AEASY"))
+        return 2;
+    if (clearType == QStringLiteral("LIGHTASSIST") ||
+        clearType == QStringLiteral("LIGHT_ASSIST"))
+        return 3;
+    if (clearType == QStringLiteral("EASY"))
+        return 4;
+    if (clearType == QStringLiteral("NORMAL"))
+        return 5;
+    if (clearType == QStringLiteral("HARD"))
+        return 6;
+    if (clearType == QStringLiteral("EXHARD"))
+        return 7;
+    if (clearType == QStringLiteral("FC"))
+        return 8;
+    if (clearType == QStringLiteral("PERFECT"))
+        return 9;
+    if (clearType == QStringLiteral("MAX"))
+        return 10;
     return 0;
 }
 
-int summaryClearTypeLamp(const QString& clearType) {
-    if (clearType == QStringLiteral("FAILED")) return 1;
-    if (clearType == QStringLiteral("AEASY")
-        || clearType == QStringLiteral("LIGHTASSIST")
-        || clearType == QStringLiteral("LIGHT_ASSIST")
-        || clearType == QStringLiteral("EASY")) return 2;
-    if (clearType == QStringLiteral("NORMAL")) return 3;
-    if (clearType == QStringLiteral("HARD") || clearType == QStringLiteral("EXHARD")) return 4;
-    if (clearType == QStringLiteral("FC")
-        || clearType == QStringLiteral("PERFECT")
-        || clearType == QStringLiteral("MAX")) {
+int
+summaryClearTypeLamp(const QString& clearType)
+{
+    if (clearType == QStringLiteral("FAILED"))
+        return 1;
+    if (clearType == QStringLiteral("AEASY") ||
+        clearType == QStringLiteral("LIGHTASSIST") ||
+        clearType == QStringLiteral("LIGHT_ASSIST") ||
+        clearType == QStringLiteral("EASY"))
+        return 2;
+    if (clearType == QStringLiteral("NORMAL"))
+        return 3;
+    if (clearType == QStringLiteral("HARD") ||
+        clearType == QStringLiteral("EXHARD"))
+        return 4;
+    if (clearType == QStringLiteral("FC") ||
+        clearType == QStringLiteral("PERFECT") ||
+        clearType == QStringLiteral("MAX")) {
         return 5;
     }
     return 0;
 }
 
-QString canonicalSummaryClearType(const QString& clearType) {
-    if (clearType == QStringLiteral("FAILED")) return QStringLiteral("FAILED");
-    if (clearType == QStringLiteral("AEASY")) return QStringLiteral("AEASY");
-    if (clearType == QStringLiteral("LIGHTASSIST")
-        || clearType == QStringLiteral("LIGHT_ASSIST")) return QStringLiteral("LIGHTASSIST");
-    if (clearType == QStringLiteral("EASY")) return QStringLiteral("EASY");
-    if (clearType == QStringLiteral("NORMAL")) return QStringLiteral("NORMAL");
-    if (clearType == QStringLiteral("HARD")) return QStringLiteral("HARD");
-    if (clearType == QStringLiteral("EXHARD")) return QStringLiteral("EXHARD");
-    if (clearType == QStringLiteral("FC")) return QStringLiteral("FC");
-    if (clearType == QStringLiteral("PERFECT")) return QStringLiteral("PERFECT");
-    if (clearType == QStringLiteral("MAX")) return QStringLiteral("MAX");
+QString
+canonicalSummaryClearType(const QString& clearType)
+{
+    if (clearType == QStringLiteral("FAILED"))
+        return QStringLiteral("FAILED");
+    if (clearType == QStringLiteral("AEASY"))
+        return QStringLiteral("AEASY");
+    if (clearType == QStringLiteral("LIGHTASSIST") ||
+        clearType == QStringLiteral("LIGHT_ASSIST"))
+        return QStringLiteral("LIGHTASSIST");
+    if (clearType == QStringLiteral("EASY"))
+        return QStringLiteral("EASY");
+    if (clearType == QStringLiteral("NORMAL"))
+        return QStringLiteral("NORMAL");
+    if (clearType == QStringLiteral("HARD"))
+        return QStringLiteral("HARD");
+    if (clearType == QStringLiteral("EXHARD"))
+        return QStringLiteral("EXHARD");
+    if (clearType == QStringLiteral("FC"))
+        return QStringLiteral("FC");
+    if (clearType == QStringLiteral("PERFECT"))
+        return QStringLiteral("PERFECT");
+    if (clearType == QStringLiteral("MAX"))
+        return QStringLiteral("MAX");
     return QStringLiteral("NOPLAY");
 }
 
-int summaryClearTypeDistributionIndex(const QString& clearType) {
-    if (clearType == QStringLiteral("FAILED")) return 1;
-    if (clearType == QStringLiteral("AEASY")) return 2;
-    if (clearType == QStringLiteral("LIGHTASSIST")
-        || clearType == QStringLiteral("LIGHT_ASSIST")) {
+int
+summaryClearTypeDistributionIndex(const QString& clearType)
+{
+    if (clearType == QStringLiteral("FAILED"))
+        return 1;
+    if (clearType == QStringLiteral("AEASY"))
+        return 2;
+    if (clearType == QStringLiteral("LIGHTASSIST") ||
+        clearType == QStringLiteral("LIGHT_ASSIST")) {
         return 3;
     }
-    if (clearType == QStringLiteral("EASY")) return 4;
-    if (clearType == QStringLiteral("NORMAL")) return 5;
-    if (clearType == QStringLiteral("HARD")) return 6;
-    if (clearType == QStringLiteral("EXHARD")) return 7;
-    if (clearType == QStringLiteral("FC")) return 8;
-    if (clearType == QStringLiteral("PERFECT")) return 9;
-    if (clearType == QStringLiteral("MAX")) return 10;
+    if (clearType == QStringLiteral("EASY"))
+        return 4;
+    if (clearType == QStringLiteral("NORMAL"))
+        return 5;
+    if (clearType == QStringLiteral("HARD"))
+        return 6;
+    if (clearType == QStringLiteral("EXHARD"))
+        return 7;
+    if (clearType == QStringLiteral("FC"))
+        return 8;
+    if (clearType == QStringLiteral("PERFECT"))
+        return 9;
+    if (clearType == QStringLiteral("MAX"))
+        return 10;
     return 0;
 }
 
-void incrementSummaryCount(QVariantMap& counts, const QString& key) {
+void
+incrementSummaryCount(QVariantMap& counts, const QString& key)
+{
     counts.insert(key, counts.value(key).toInt() + 1);
 }
 
-QVariantMap emptySummaryCounts() {
+QVariantMap
+emptySummaryCounts()
+{
     return {
-        {QStringLiteral("NOPLAY"), 0},
-        {QStringLiteral("FAILED"), 0},
-        {QStringLiteral("AEASY"), 0},
-        {QStringLiteral("LIGHTASSIST"), 0},
-        {QStringLiteral("EASY"), 0},
-        {QStringLiteral("NORMAL"), 0},
-        {QStringLiteral("HARD"), 0},
-        {QStringLiteral("EXHARD"), 0},
-        {QStringLiteral("FC"), 0},
-        {QStringLiteral("PERFECT"), 0},
-        {QStringLiteral("MAX"), 0},
+        { QStringLiteral("NOPLAY"), 0 }, { QStringLiteral("FAILED"), 0 },
+        { QStringLiteral("AEASY"), 0 },  { QStringLiteral("LIGHTASSIST"), 0 },
+        { QStringLiteral("EASY"), 0 },   { QStringLiteral("NORMAL"), 0 },
+        { QStringLiteral("HARD"), 0 },   { QStringLiteral("EXHARD"), 0 },
+        { QStringLiteral("FC"), 0 },     { QStringLiteral("PERFECT"), 0 },
+        { QStringLiteral("MAX"), 0 },
     };
 }
 
-QVariantList zeroList(int size) {
+QVariantList
+zeroList(int size)
+{
     QVariantList result;
     result.reserve(size);
     for (int i = 0; i < size; ++i) {
@@ -149,7 +192,8 @@ QVariantList zeroList(int size) {
 class ScoreSummaryAccumulator
 {
   public:
-    void addChart(const QString& md5) {
+    void addChart(const QString& md5)
+    {
         const QString key = md5.trimmed().toUpper();
         if (key.isEmpty()) {
             return;
@@ -162,7 +206,8 @@ class ScoreSummaryAccumulator
     void addScore(const QString& md5,
                   const QString& clearType,
                   double points,
-                  double maxPoints) {
+                  double maxPoints)
+    {
         const QString key = md5.trimmed().toUpper();
         if (key.isEmpty() || clearType.isEmpty()) {
             addChart(key);
@@ -187,7 +232,8 @@ class ScoreSummaryAccumulator
         }
     }
 
-    QVariantMap toVariantMap() const {
+    QVariantMap toVariantMap() const
+    {
         QVariantMap counts = emptySummaryCounts();
         QVariantList lamps = zeroList(11);
         QVariantList ranks = zeroList(28);
@@ -205,11 +251,13 @@ class ScoreSummaryAccumulator
             }
 
             seenScore = true;
-            const QString clearType = canonicalSummaryClearType(chart.bestClearType);
+            const QString clearType =
+              canonicalSummaryClearType(chart.bestClearType);
             incrementSummaryCount(counts, clearType);
 
             folderLamp = std::min(folderLamp, summaryClearTypeLamp(clearType));
-            const int lampIndex = std::clamp(summaryClearTypeDistributionIndex(clearType), 0, 10);
+            const int lampIndex =
+              std::clamp(summaryClearTypeDistributionIndex(clearType), 0, 10);
             lamps[lampIndex] = lamps.at(lampIndex).toInt() + 1;
 
             if (chart.bestMaxPoints <= 0.0) {
@@ -217,20 +265,23 @@ class ScoreSummaryAccumulator
                 continue;
             }
 
-            const int rank = std::clamp(
-              static_cast<int>(std::floor(chart.bestPoints * 27.0 / chart.bestMaxPoints)),
-              0,
-              27);
+            const int rank =
+              std::clamp(static_cast<int>(std::floor(chart.bestPoints * 27.0 /
+                                                     chart.bestMaxPoints)),
+                         0,
+                         27);
             ranks[rank] = ranks.at(rank).toInt() + 1;
         }
 
         return {
-            {QStringLiteral("lamp"), unplayed > 0 ? 0 : (seenScore ? folderLamp : 0)},
-            {QStringLiteral("counts"), counts},
-            {QStringLiteral("distribution"), QVariantMap {
-                {QStringLiteral("lamps"), lamps},
-                {QStringLiteral("ranks"), ranks},
-            }},
+            { QStringLiteral("lamp"),
+              unplayed > 0 ? 0 : (seenScore ? folderLamp : 0) },
+            { QStringLiteral("counts"), counts },
+            { QStringLiteral("distribution"),
+              QVariantMap{
+                { QStringLiteral("lamps"), lamps },
+                { QStringLiteral("ranks"), ranks },
+              } },
         };
     }
 
@@ -441,8 +492,7 @@ ScoreDb::getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
           "SELECT score.md5, score.clear_type, score.points, score.max_points "
           "FROM score "
           "WHERE score.md5 IN (" +
-          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() +
-          ")");
+          QString("?, ").repeated(chunk.size()).chopped(2).toStdString() + ")");
 
         for (int j = 0; j < chunk.size(); ++j) {
             statement.bind(j + 1, chunk[j].toStdString());
@@ -595,7 +645,8 @@ ScoreDb::getScores(const QString& folder) const
               "score.guid, score.sha256, score.md5, score.unix_timestamp, "
               "score.length, score.random_sequence, score.random_seed, "
               "score.note_order_algorithm, score.note_order_algorithm_p2, "
-              "score.dp_options, score.keymode, score.game_version, score.owner, "
+              "score.dp_options, score.keymode, score.game_version, "
+              "score.owner, "
               "replay_data.*, gauge_history.* "
               "FROM score "
               "JOIN replay_data ON score.guid = replay_data.score_guid "
@@ -779,7 +830,8 @@ ScoreDb::getScoreSummary(const resource_managers::Table& table) const
             QMetaObject::invokeMethod(
               QCoreApplication::instance(),
               [reply, e]() mutable {
-                  spdlog::error("Error in getScoreSummary(table): {}", e.what());
+                  spdlog::error("Error in getScoreSummary(table): {}",
+                                e.what());
                   reply.setFailed();
               },
               Qt::QueuedConnection);
@@ -816,7 +868,8 @@ ScoreDb::getScoreSummary(const resource_managers::Level& level) const
             QMetaObject::invokeMethod(
               QCoreApplication::instance(),
               [reply, e]() mutable {
-                  spdlog::error("Error in getScoreSummary(level): {}", e.what());
+                  spdlog::error("Error in getScoreSummary(level): {}",
+                                e.what());
                   reply.setFailed();
               },
               Qt::QueuedConnection);

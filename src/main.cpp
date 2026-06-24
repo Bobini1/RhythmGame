@@ -70,9 +70,9 @@ shouldSuppressQtLog(QtMsgType type,
         return false;
     }
 
-    return msg == QStringLiteral(
-                 "QFFmpeg::Demuxer received AVPacket with pts == "
-                    "AV_NOPTS_VALUE");
+    return msg ==
+           QStringLiteral("QFFmpeg::Demuxer received AVPacket with pts == "
+                          "AV_NOPTS_VALUE");
 }
 
 void
@@ -571,8 +571,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
           "RhythmGameQml", 1, 0, "lr2SrcNoteChart", "Q_GADGET");
         qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcBpmChart>(
           "RhythmGameQml", 1, 0, "lr2SrcBpmChart", "Q_GADGET");
-        qmlRegisterUncreatableType<
-          gameplay_logic::lr2_skin::Lr2SrcTimingChart>(
+        qmlRegisterUncreatableType<gameplay_logic::lr2_skin::Lr2SrcTimingChart>(
           "RhythmGameQml", 1, 0, "lr2SrcTimingChart", "Q_GADGET");
         qmlRegisterUncreatableType<
           gameplay_logic::lr2_skin::Lr2SrcTimingVisualizer>(

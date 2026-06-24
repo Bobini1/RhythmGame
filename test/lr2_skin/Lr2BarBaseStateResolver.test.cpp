@@ -7,24 +7,24 @@
 
 namespace {
 
-QVariantMap dstMap(int time, int x, int y) {
-    return QVariantMap {
-        {QStringLiteral("time"), time},
-        {QStringLiteral("x"), x},
-        {QStringLiteral("y"), y},
-        {QStringLiteral("w"), 100},
-        {QStringLiteral("h"), 20},
-        {QStringLiteral("a"), 255},
-        {QStringLiteral("r"), 255},
-        {QStringLiteral("g"), 255},
-        {QStringLiteral("b"), 255},
+QVariantMap
+dstMap(int time, int x, int y)
+{
+    return QVariantMap{
+        { QStringLiteral("time"), time }, { QStringLiteral("x"), x },
+        { QStringLiteral("y"), y },       { QStringLiteral("w"), 100 },
+        { QStringLiteral("h"), 20 },      { QStringLiteral("a"), 255 },
+        { QStringLiteral("r"), 255 },     { QStringLiteral("g"), 255 },
+        { QStringLiteral("b"), 255 },
     };
 }
 
-QVariantMap rowWithDst(const QVariantMap& dst) {
-    return QVariantMap {
-        {QStringLiteral("offDsts"), QVariantList {dst}},
-        {QStringLiteral("onDsts"), QVariantList {dst}},
+QVariantMap
+rowWithDst(const QVariantMap& dst)
+{
+    return QVariantMap{
+        { QStringLiteral("offDsts"), QVariantList{ dst } },
+        { QStringLiteral("onDsts"), QVariantList{ dst } },
     };
 }
 
@@ -42,7 +42,7 @@ TEST_CASE("LR2 bar base state resolver clamps non-looping single dst rows",
                      &Lr2BarBaseStateResolver::baseStatesChanged,
                      [&baseStateChanges]() { ++baseStateChanges; });
 
-    resolver.setBarRows(QVariantList {rowWithDst(dst)});
+    resolver.setBarRows(QVariantList{ rowWithDst(dst) });
 
     REQUIRE(resolver.animationLimit() == 1);
     REQUIRE(baseStateChanges == 1);
@@ -59,8 +59,9 @@ TEST_CASE("LR2 bar base state resolver clamps non-looping single dst rows",
     REQUIRE(baseStateChanges == 2);
 }
 
-TEST_CASE("LR2 bar base state resolver keeps static single dst rows from ticking",
-          "[lr2][runtime][select]")
+TEST_CASE(
+  "LR2 bar base state resolver keeps static single dst rows from ticking",
+  "[lr2][runtime][select]")
 {
     Lr2BarBaseStateResolver resolver;
 
@@ -69,7 +70,7 @@ TEST_CASE("LR2 bar base state resolver keeps static single dst rows from ticking
                      &Lr2BarBaseStateResolver::baseStatesChanged,
                      [&baseStateChanges]() { ++baseStateChanges; });
 
-    resolver.setBarRows(QVariantList {rowWithDst(dstMap(0, 30, 40))});
+    resolver.setBarRows(QVariantList{ rowWithDst(dstMap(0, 30, 40)) });
 
     REQUIRE(resolver.animationLimit() == 0);
     REQUIRE(baseStateChanges == 1);
@@ -85,9 +86,9 @@ TEST_CASE("LR2 bar position map reads resolver coordinates on attach",
           "[lr2][runtime][select]")
 {
     Lr2BarBaseStateResolver resolver;
-    resolver.setBarRows(QVariantList {
-        rowWithDst(dstMap(0, 10, 20)),
-        rowWithDst(dstMap(0, 30, 40)),
+    resolver.setBarRows(QVariantList{
+      rowWithDst(dstMap(0, 10, 20)),
+      rowWithDst(dstMap(0, 30, 40)),
     });
 
     Lr2BarPositionMap positionMap;

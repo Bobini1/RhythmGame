@@ -421,8 +421,7 @@ Player::update(std::chrono::nanoseconds offsetFromStart, bool lastUpdate)
             std::chrono::duration<double, std::milli>(
               profile ? profile->getVars()->getGeneralVars()->getOffset()
                       : 0.0));
-        const auto bpmChange =
-          referee->getBpm(offsetFromStart + visualOffset);
+        const auto bpmChange = referee->getBpm(offsetFromStart + visualOffset);
         setBpm(bpmChange.bpm);
         setScroll(bpmChange.scroll);
         auto position =
@@ -522,8 +521,7 @@ Player::positionInfoAt(const std::chrono::nanoseconds offsetFromStart) const
     const auto visualOffset =
       std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::duration<double, std::milli>(
-          profile ? profile->getVars()->getGeneralVars()->getOffset()
-                  : 0.0));
+          profile ? profile->getVars()->getGeneralVars()->getOffset() : 0.0));
     const auto visualOffsetFromStart = offsetFromStart + visualOffset;
     const auto bpmChange = referee->getBpm(visualOffsetFromStart);
     return BmsGameReferee::getPosition(bpmChange, visualOffsetFromStart);

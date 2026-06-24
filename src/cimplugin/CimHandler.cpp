@@ -29,8 +29,8 @@ looksLikeZlib(const QByteArray& header) -> bool
 auto
 decompressZlib(const QByteArray& compressed) -> QByteArray
 {
-    if (compressed.isEmpty()
-        || compressed.size() > std::numeric_limits<uint32_t>::max()) {
+    if (compressed.isEmpty() ||
+        compressed.size() > std::numeric_limits<uint32_t>::max()) {
         return {};
     }
 
@@ -169,9 +169,9 @@ CimHandler::read(QImage* image)
     const auto width = qFromBigEndian<quint32>(header);
     const auto height = qFromBigEndian<quint32>(header + 4);
     const auto format = qFromBigEndian<quint32>(header + 8);
-    if (width == 0 || height == 0
-        || width > static_cast<quint32>(std::numeric_limits<int>::max())
-        || height > static_cast<quint32>(std::numeric_limits<int>::max())) {
+    if (width == 0 || height == 0 ||
+        width > static_cast<quint32>(std::numeric_limits<int>::max()) ||
+        height > static_cast<quint32>(std::numeric_limits<int>::max())) {
         return false;
     }
 

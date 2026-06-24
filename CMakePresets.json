@@ -31,6 +31,7 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_INSTALL_OPTIONS": "--clean-after-build",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkgTriplets",
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkgOverlayPorts"
       }
@@ -179,10 +180,7 @@
     {
       "name": "ci-build",
       "binaryDir": "${sourceDir}/build",
-      "hidden": true,
-      "cacheVariables": {
-        "VCPKG_INSTALL_OPTIONS": "--clean-after-build"
-      }
+      "hidden": true
     },
     {
       "name": "ci-macos",

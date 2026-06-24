@@ -466,8 +466,8 @@ getComponentsForPlayer(const ChartFactory::PlayerSpecificData& player,
                        const bool usePre130) -> RandomizedData
 {
     auto visibleNotes = notesData.notes;
-    const auto isDpFlip = dpOptions == DpOptions::Flip ||
-                          dpOptions == DpOptions::Lr2Flip;
+    const auto isDpFlip =
+      dpOptions == DpOptions::Flip || dpOptions == DpOptions::Lr2Flip;
     if ((dpOptions == DpOptions::Battle && isDp(chartData.getKeymode())) ||
         (isDpFlip && !isDp(chartData.getKeymode()))) {
         dpOptions = DpOptions::Off;
