@@ -2803,6 +2803,10 @@ Item {
             break;
         case NoteOrderAlgorithm.Random:
         case NoteOrderAlgorithm.RandomPlus:
+        case NoteOrderAlgorithm.BeatorajaRandom:
+        case NoteOrderAlgorithm.BeatorajaRandomEx:
+        case NoteOrderAlgorithm.Lr2Random:
+        case NoteOrderAlgorithm.Lr2RandomEx:
             ids.push(128);
             break;
         case NoteOrderAlgorithm.SRandom:

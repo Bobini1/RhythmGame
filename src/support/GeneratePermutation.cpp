@@ -15,6 +15,83 @@ using namespace std::chrono_literals;
 
 namespace support {
 
+Lr2Random::Lr2Random(uint32_t seed)
+  : initialSeed(seed)
+{
+    auto workingSeed = seed;
+    for (auto& value : state) {
+        value = workingSeed & 0xffff0000u;
+        workingSeed = workingSeed * 69069u + 1u;
+        value |= (workingSeed & 0xffff0000u) >> 16u;
+        workingSeed = workingSeed * 69069u + 1u;
+    }
+}
+
+auto
+Lr2Random::getRand(int maxInclusive) -> int
+{
+    const auto range = static_cast<int64_t>(maxInclusive) + 1;
+    return static_cast<int>(
+      (static_cast<int64_t>(getNextLong()) * range) >> 32);
+}
+
+auto
+Lr2Random::discard(std::size_t draws) -> void
+{
+    while (draws-- > 0) {
+        (void)getNextLong();
+    }
+}
+
+auto
+Lr2Random::getInitialSeed() const -> uint32_t
+{
+    return initialSeed;
+}
+
+auto
+Lr2Random::getNextLong() -> uint32_t
+{
+    if (index >= stateSize) {
+        generateNextSet();
+    }
+
+    auto value = state[index++];
+    value ^= value >> 11u;
+    value ^= (value << 7u) & 0x9d2c5680u;
+    value ^= (value << 15u) & 0xefc60000u;
+    value ^= value >> 18u;
+    return value;
+}
+
+auto
+Lr2Random::generateNextSet() -> void
+{
+    static constexpr auto table = std::array<uint32_t, 2>{
+        0u,
+        2567483615u,
+    };
+
+    auto i = std::size_t{ 0 };
+    for (; i < stateSize - 397; ++i) {
+        const auto value =
+          (state[i] & 0x80000000u) | (state[i + 1] & 0x7fffffffu);
+        state[i] = state[i + 397] ^ (value >> 1u) ^ table[value & 1u];
+    }
+    for (; i < stateSize - 1; ++i) {
+        const auto value =
+          (state[i] & 0x80000000u) | (state[i + 1] & 0x7fffffffu);
+        state[i] = state[i - (stateSize - 397)] ^ (value >> 1u) ^
+                   table[value & 1u];
+    }
+
+    const auto value =
+      (state[stateSize - 1] & 0x80000000u) | (state[0] & 0x7fffffffu);
+    state[stateSize - 1] =
+      state[396] ^ (value >> 1u) ^ table[value & 1u];
+    index = 0;
+}
+
 template<typename T, typename Random>
 void
 fisherYatesShuffle(std::span<T> arr, Random& randomGenerator, bool usePre130)
@@ -284,6 +361,18 @@ generatePermutation(std::span<std::vector<charts::BmsNotesData::Note>>& notes,
                 convertNotesToK7(originalSpan);
             }
             return { randomSeed, columns };
+        }
+        case resource_managers::NoteOrderAlgorithm::Lr2Random:
+        case resource_managers::NoteOrderAlgorithm::Lr2RandomEx: {
+            auto randomGenerator =
+              Lr2Random{ static_cast<uint32_t>(randomSeed) };
+            auto result =
+              generateLr2LanePermutation(notes, algorithm, randomGenerator);
+            convertColumnsToK7(result.columns);
+            if (k5) {
+                convertNotesToK7(originalSpan);
+            }
+            return { randomSeed, result.columns };
         }
     }
     spdlog::error("Unknown note order algorithm");
@@ -649,6 +738,58 @@ applyLanePermutation(std::span<std::vector<Note>> notes,
 }
 
 auto
+lr2LaneToColumn(const int lane, const int keyCount) -> int
+{
+    return lane == 0 ? keyCount : lane - 1;
+}
+
+auto
+generateLr2LanePermutation(std::span<std::vector<Note>> notes,
+                           resource_managers::NoteOrderAlgorithm algorithm,
+                           Lr2Random& rng) -> ShuffleResult
+{
+    const auto seed = rng.getInitialSeed();
+    const auto columnCount = static_cast<int>(notes.size());
+    const auto keyCount = columnCount - 1;
+    if (keyCount != 5 && keyCount != 7) {
+        throw std::runtime_error(
+          "LR2 random is only supported for 5K and 7K sides");
+    }
+
+    auto lr2SourceToDest = std::vector<int>{};
+    lr2SourceToDest.reserve(columnCount);
+    for (int i = 0; i < columnCount; ++i) {
+        lr2SourceToDest.push_back(i);
+    }
+
+    const auto includeScratch =
+      algorithm == resource_managers::NoteOrderAlgorithm::Lr2RandomEx;
+    switch (algorithm) {
+        case resource_managers::NoteOrderAlgorithm::Lr2Random:
+        case resource_managers::NoteOrderAlgorithm::Lr2RandomEx: {
+            const auto firstLane = includeScratch ? 0 : 1;
+            for (int lane = firstLane; lane < keyCount; ++lane) {
+                const auto picked = lane + rng.getRand(keyCount - lane);
+                std::swap(lr2SourceToDest[lane], lr2SourceToDest[picked]);
+            }
+            break;
+        }
+        default:
+            return makeIdentityResult(seed, columnCount);
+    }
+
+    auto columns = makeLaneIdentity(columnCount);
+    for (int sourceLane = 0; sourceLane < columnCount; ++sourceLane) {
+        const auto destLane = lr2SourceToDest[sourceLane];
+        columns[lr2LaneToColumn(destLane, keyCount)] =
+          lr2LaneToColumn(sourceLane, keyCount);
+    }
+
+    applyLanePermutation(notes, columns);
+    return { seed, columns };
+}
+
+auto
 generateBeatorajaLanePermutation(
   std::span<std::vector<Note>> notes,
   resource_managers::NoteOrderAlgorithm algorithm,
@@ -715,6 +856,41 @@ isBeatorajaNoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algorithm)
             return true;
         default:
             return false;
+    }
+}
+
+auto
+isLr2NoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algorithm) -> bool
+{
+    switch (algorithm) {
+        case resource_managers::NoteOrderAlgorithm::Lr2Random:
+        case resource_managers::NoteOrderAlgorithm::Lr2RandomEx:
+            return true;
+        default:
+            return false;
+    }
+}
+
+auto
+flipBeatorajaDpPlayfields(
+  std::array<std::vector<charts::BmsNotesData::Note>,
+             charts::BmsNotesData::columnNumber>& notes) -> void
+{
+    for (auto column = std::size_t{ 0 }; column < 7; ++column) {
+        std::swap(notes[14 - column], notes[column]);
+    }
+    std::swap(notes[15], notes[7]);
+}
+
+auto
+flipLr2DpPlayfields(std::array<std::vector<charts::BmsNotesData::Note>,
+                               charts::BmsNotesData::columnNumber>& notes)
+  -> void
+{
+    static constexpr auto sideColumnCount =
+      charts::BmsNotesData::columnNumber / 2;
+    for (auto column = std::size_t{ 0 }; column < sideColumnCount; ++column) {
+        std::swap(notes[column], notes[column + sideColumnCount]);
     }
 }
 

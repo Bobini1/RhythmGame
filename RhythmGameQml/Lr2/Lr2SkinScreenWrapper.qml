@@ -3402,6 +3402,10 @@ Item {
             return 127;
         case NoteOrderAlgorithm.Random:
         case NoteOrderAlgorithm.RandomPlus:
+        case NoteOrderAlgorithm.BeatorajaRandom:
+        case NoteOrderAlgorithm.BeatorajaRandomEx:
+        case NoteOrderAlgorithm.Lr2Random:
+        case NoteOrderAlgorithm.Lr2RandomEx:
             return 128;
         case NoteOrderAlgorithm.SRandom:
         case NoteOrderAlgorithm.SRandomPlus:

@@ -985,7 +985,7 @@
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="48"/>
-        <source>Select beatoraja replay folder</source>
+        <source>Select replay folder</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1050,12 +1050,12 @@
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="384"/>
-        <source>Import beatoraja replays</source>
+        <source>Import replays</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="395"/>
-        <source>e.g. beatoraja/player/player1/replay</source>
+        <source>e.g. beatoraja/player/player1/replay or LR2files/Replay/player1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

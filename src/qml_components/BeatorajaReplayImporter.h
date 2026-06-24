@@ -16,9 +16,9 @@ class Profile;
 namespace qml_components {
 
 /**
- * @brief Start an asynchronous beatoraja replay import.
- * @details The returned operation is parented to @p parent and tracks
- * progress. The caller is responsible for exposing it to QML.
+ * @brief Start an asynchronous beatoraja/LR2 replay import.
+ * @details The returned operation is parented to @p parent and tracks progress.
+ * The caller is responsible for exposing it to QML.
  */
 ReplayImportOperation* startBeatorajaReplayImport(
   resource_managers::Profile* profile,

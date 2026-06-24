@@ -45,7 +45,7 @@ Item {
             }
             FolderDialog {
                 id: replayFolderDialog
-                title: qsTr("Select beatoraja replay folder")
+                title: qsTr("Select replay folder")
                 currentFolder: replayFolderSettings.folder
 
                 onAccepted: {
@@ -381,7 +381,7 @@ Item {
                     }
 
                     Label {
-                        text: qsTr("Import beatoraja replays")
+                        text: qsTr("Import replays")
                         wrapMode: Text.Wrap
                         font.pixelSize: 18
                         Layout.fillWidth: true
@@ -392,7 +392,7 @@ Item {
                         wrapMode: Text.Wrap
                         visible: replayFolderSettings.folder === ""
                         color: palette.placeholderText
-                        text: qsTr("e.g. beatoraja/player/player1/replay")
+                        text: qsTr("e.g. beatoraja/player/player1/replay or LR2files/Replay/player1")
                     }
 
                     Label {

@@ -35,6 +35,8 @@ enum class NoteOrderAlgorithm
     SRandomPlus,
     BeatorajaRandom,
     BeatorajaRandomEx,
+    Lr2Random,
+    Lr2RandomEx,
 };
 Q_ENUM_NS(NoteOrderAlgorithm)
 } // namespace note_order_algorithm
@@ -61,7 +63,8 @@ enum class DpOptions
 {
     Off,
     Flip,
-    Battle
+    Battle,
+    Lr2Flip
 };
 Q_ENUM_NS(DpOptions)
 } // namespace dp_options

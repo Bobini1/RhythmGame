@@ -10,17 +10,16 @@
 namespace qml_components {
 
 /**
- * @brief Tracks the progress of an asynchronous beatoraja replay import.
- * @details Instances are created by BeatorajaReplayImporter::importFolder().
- * Each processed file (whether imported, skipped, or failed) increments done
- * toward total. The error() signal fires for each failure without halting the
- * operation.
+ * @brief Tracks the progress of an asynchronous replay import.
+ * @details Each processed file (whether imported, skipped, or failed)
+ * increments done toward total. The error() signal fires for each failure
+ * without halting the operation.
  */
 class ReplayImportOperation final : public QAbstractListModel
 {
     Q_OBJECT
     QML_ELEMENT
-    QML_UNCREATABLE("Created by BeatorajaReplayImporter")
+    QML_UNCREATABLE("Created by the replay importer")
 
     Q_PROPERTY(int done READ getDone NOTIFY progressChanged)
     Q_PROPERTY(int total READ getTotal NOTIFY progressChanged)

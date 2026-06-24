@@ -1019,8 +1019,8 @@
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="48"/>
-        <source>Select beatoraja replay folder</source>
-        <translation>Wybierz folder Beatoraja z powtórkami</translation>
+        <source>Select replay folder</source>
+        <translation>Wybierz folder z powtórkami</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="67"/>
@@ -1084,13 +1084,13 @@
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="384"/>
-        <source>Import beatoraja replays</source>
-        <translation>Zaimportuj powtórki z Beatoraja</translation>
+        <source>Import replays</source>
+        <translation>Zaimportuj powtórki</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="395"/>
-        <source>e.g. beatoraja/player/player1/replay</source>
-        <translation>np. beatoraja/player/player1/replay</translation>
+        <source>e.g. beatoraja/player/player1/replay or LR2files/Replay/player1</source>
+        <translation>np. beatoraja/player/player1/replay lub LR2files/Replay/player1</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="415"/>

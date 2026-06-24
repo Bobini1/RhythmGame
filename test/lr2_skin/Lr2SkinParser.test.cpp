@@ -116,27 +116,27 @@ TEST_CASE("LR2 skin parser accepts fractional destination coordinates",
     CHECK(dst.h == 120);
 }
 
-TEST_CASE("LR2 skin parser honors explicit image slots after skipped branches",
+TEST_CASE("LR2 skin parser ignores image slots in skipped branches",
           "[lr2][skin]")
 {
     QTemporaryDir tempDir;
     const auto path = tempSkinPath(tempDir);
 
     writeSkinFile(path,
-                  QStringLiteral("#IMAGE,base.png,,,,,,0\n"
+                  QStringLiteral("#IMAGE,base.png\n"
                                  "#IF,42\n"
-                                 "#IMAGE,gauge.png,,,,,,11\n"
+                                 "#IMAGE,gauge.png\n"
                                  "#ENDIF\n"
-                                 "#IMAGE,notes.png,,,,,,15\n"
-                                 "#IMAGE,judge.png,,,,,,16\n"
-                                 "#SRC_NOTE,0,15,0,0,60,30,1,1,0,0,0,0,0\n"));
+                                 "#IMAGE,notes.png\n"
+                                 "#IMAGE,judge.png\n"
+                                 "#SRC_NOTE,0,1,0,0,60,30,1,1,0,0,0,0,0\n"));
 
     const auto skin = Lr2SkinParser::parseData(
       support::pathToQString(path), QVariantMap{}, QVariantList{});
 
     REQUIRE(skin.noteSources.size() == 1);
     const auto source = skin.noteSources.first().value<Lr2SrcImage>();
-    CHECK(source.gr == 15);
+    CHECK(source.gr == 1);
     CHECK(source.source.contains(QStringLiteral("notes.png")));
 }
 

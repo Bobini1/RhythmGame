@@ -165,7 +165,7 @@ class Profile final : public QObject
     Q_INVOKABLE qml_components::ScoreSyncOperation* downloadScores();
 
     /**
-     * @brief Start importing beatoraja replay files from a folder.
+     * @brief Start importing replay files from a folder.
      * @details Runs in the background. Progress is tracked via the
      * replayImportOperation property.
      */

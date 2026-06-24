@@ -478,6 +478,10 @@ void appendScoreOptionIdsForValues(int noteOrderAlgorithm, int dpOptions, int ke
 		break;
 	case 2:
 	case 3:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
 		ids.insert(128);
 		break;
 	case 4:
