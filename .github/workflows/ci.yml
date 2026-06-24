@@ -22,7 +22,7 @@ concurrency:
 env:
   VCPKG_BINARY_CACHE: ${{ github.workspace }}/.vcpkg-cache/binary
   VCPKG_DOWNLOADS: ${{ github.workspace }}/.vcpkg-cache/downloads
-  VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
+  VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,read'
   VCPKG_USE_NUGET_CACHE: 'true'
   VCPKG_MAX_CONCURRENCY: '2'
   ANDROID_HOME: ''
@@ -60,7 +60,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path `
             "${{ github.workspace }}/.vcpkg-cache/binary", `
-            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
 
       - name: Restore vcpkg cache
         id: vcpkg-cache
@@ -152,7 +154,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path `
             "${{ github.workspace }}/.vcpkg-cache/binary", `
-            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
 
       - name: Restore vcpkg cache
         id: vcpkg-cache
@@ -243,7 +247,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path `
             "${{ github.workspace }}/.vcpkg-cache/binary", `
-            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
 
       - name: Restore vcpkg cache
         id: vcpkg-cache
@@ -396,7 +402,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path `
             "${{ github.workspace }}/.vcpkg-cache/binary", `
-            "${{ github.workspace }}/.vcpkg-cache/downloads" | Out-Null
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
 
       - name: Restore vcpkg cache
         id: vcpkg-cache

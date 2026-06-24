@@ -48,16 +48,25 @@ foreach ($path in $manifestLogs) {
   }
 }
 
-if ($env:VCPKG_ROOT) {
-  $buildtrees = Join-Path $env:VCPKG_ROOT 'buildtrees'
-  if (Test-Path -LiteralPath $buildtrees) {
-    $recentBuildtrees = Get-ChildItem -LiteralPath $buildtrees -Directory -ErrorAction SilentlyContinue |
-      Sort-Object LastWriteTime -Descending |
-      Select-Object -First 8
+$buildtreeRoots = @(
+  (Join-Path $PWD.Path '.vcpkg-buildtrees')
+)
 
-    foreach ($directory in $recentBuildtrees) {
-      $candidateLogs += Get-ChildItem -LiteralPath $directory.FullName -File -Include *.log,*.err,*.out -ErrorAction SilentlyContinue
-    }
+if ($env:VCPKG_ROOT) {
+  $buildtreeRoots += Join-Path $env:VCPKG_ROOT 'buildtrees'
+}
+
+foreach ($buildtrees in $buildtreeRoots) {
+  if (-not (Test-Path -LiteralPath $buildtrees)) {
+    continue
+  }
+
+  $recentBuildtrees = Get-ChildItem -LiteralPath $buildtrees -Directory -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 8
+
+  foreach ($directory in $recentBuildtrees) {
+    $candidateLogs += Get-ChildItem -LiteralPath $directory.FullName -File -Include *.log,*.err,*.out -ErrorAction SilentlyContinue
   }
 }
 
