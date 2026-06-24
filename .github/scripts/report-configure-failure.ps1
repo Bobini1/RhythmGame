@@ -34,6 +34,45 @@ function Write-LogAnnotation {
   Write-Output "::error title=$escapedTitle::$escapedMessage"
 }
 
+function Write-PatternAnnotation {
+  param(
+    [string]$Title,
+    [string]$Path
+  )
+
+  if (-not (Test-Path -LiteralPath $Path)) {
+    return
+  }
+
+  $matches = Select-String `
+    -LiteralPath $Path `
+    -Pattern 'CMake Error', 'Configuring incomplete', 'Could NOT', 'could not find', 'not found', 'FAILED', 'error:' `
+    -Context 6, 12 `
+    -ErrorAction SilentlyContinue |
+    Select-Object -First 8
+
+  if (-not $matches) {
+    return
+  }
+
+  $blocks = foreach ($match in $matches) {
+    @(
+      $match.Context.PreContext
+      $match.Line
+      $match.Context.PostContext
+    ) -join "`n"
+  }
+
+  $message = $blocks -join "`n---`n"
+  if ($message.Length -gt 12000) {
+    $message = $message.Substring(0, 12000)
+  }
+
+  $escapedTitle = Escape-WorkflowCommandData "Important configure lines: $Title"
+  $escapedMessage = Escape-WorkflowCommandData $message
+  Write-Output "::error title=$escapedTitle::$escapedMessage"
+}
+
 $highPriorityLogs = @()
 $vcpkgLogs = @()
 
@@ -105,5 +144,6 @@ if (-not $candidateLogs) {
 }
 
 foreach ($log in $candidateLogs) {
+  Write-PatternAnnotation -Title $log.Name -Path $log.FullName
   Write-LogAnnotation -Title "Configure log: $($log.Name)" -Path $log.FullName
 }
