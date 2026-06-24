@@ -107,7 +107,12 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
-        run: cmake --preset=ci-coverage
+        shell: pwsh
+        run: |
+          cmake --preset=ci-coverage 2>&1 | Tee-Object -FilePath configure.log
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
 
       - name: Report configure failure
         if: failure()
@@ -200,7 +205,12 @@ jobs:
         run: sudo apt-get install clang libc++-dev -y
 
       - name: Configure
-        run: cmake --preset=ci-sanitize
+        shell: pwsh
+        run: |
+          cmake --preset=ci-sanitize 2>&1 | Tee-Object -FilePath configure.log
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
 
       - name: Report configure failure
         if: failure()
@@ -353,7 +363,11 @@ jobs:
 
       - name: Configure
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+        run: |
+          cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])" 2>&1 | Tee-Object -FilePath configure.log
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
 
       - name: Report configure failure
         if: failure()
@@ -502,7 +516,11 @@ jobs:
 
       - name: Configure
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+        run: |
+          cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])" 2>&1 | Tee-Object -FilePath configure.log
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
 
       - name: Report configure failure
         if: failure()

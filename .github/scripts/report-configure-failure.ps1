@@ -34,7 +34,27 @@ function Write-LogAnnotation {
   Write-Output "::error title=$escapedTitle::$escapedMessage"
 }
 
-$candidateLogs = @()
+$highPriorityLogs = @()
+$vcpkgLogs = @()
+
+$cmakeLogs = @(
+  'configure.log',
+  'build/CMakeFiles/CMakeConfigureLog.yaml',
+  'build/CMakeFiles/CMakeError.log',
+  'build/CMakeFiles/CMakeOutput.log',
+  'build/coverage/CMakeFiles/CMakeConfigureLog.yaml',
+  'build/coverage/CMakeFiles/CMakeError.log',
+  'build/coverage/CMakeFiles/CMakeOutput.log',
+  'build/sanitize/CMakeFiles/CMakeConfigureLog.yaml',
+  'build/sanitize/CMakeFiles/CMakeError.log',
+  'build/sanitize/CMakeFiles/CMakeOutput.log'
+)
+
+foreach ($path in $cmakeLogs) {
+  if (Test-Path -LiteralPath $path) {
+    $highPriorityLogs += Get-Item -LiteralPath $path
+  }
+}
 
 $manifestLogs = @(
   'build/vcpkg-manifest-install.log',
@@ -44,7 +64,7 @@ $manifestLogs = @(
 
 foreach ($path in $manifestLogs) {
   if (Test-Path -LiteralPath $path) {
-    $candidateLogs += Get-Item -LiteralPath $path
+    $vcpkgLogs += Get-Item -LiteralPath $path
   }
 }
 
@@ -66,13 +86,18 @@ foreach ($buildtrees in $buildtreeRoots) {
     Select-Object -First 8
 
   foreach ($directory in $recentBuildtrees) {
-    $candidateLogs += Get-ChildItem -LiteralPath $directory.FullName -File -Include *.log,*.err,*.out -ErrorAction SilentlyContinue
+    $vcpkgLogs += Get-ChildItem -LiteralPath $directory.FullName -File -Include *.log,*.err,*.out -ErrorAction SilentlyContinue
   }
 }
 
-$candidateLogs = $candidateLogs |
-  Sort-Object LastWriteTime -Descending |
-  Select-Object -First 8
+$candidateLogs = @(
+  $highPriorityLogs |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 8
+  $vcpkgLogs |
+    Sort-Object LastWriteTime -Descending |
+    Select-Object -First 4
+) | Select-Object -Unique
 
 if (-not $candidateLogs) {
   Write-Output '::error title=Configure failed::No vcpkg or CMake configure logs were found.'
