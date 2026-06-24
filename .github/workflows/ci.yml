@@ -25,6 +25,11 @@ env:
   VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
   VCPKG_USE_NUGET_CACHE: 'true'
   VCPKG_MAX_CONCURRENCY: '2'
+  ANDROID_HOME: ''
+  ANDROID_NDK_HOME: ''
+  ANDROID_NDK_LATEST_HOME: ''
+  ANDROID_NDK_ROOT: ''
+  ANDROID_SDK_ROOT: ''
 
 jobs:
   lint:
@@ -72,7 +77,7 @@ jobs:
           && sudo apt-get install lcov -q -y
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+        run: sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
 
       - name: Free disk space
         run: bash .github/scripts/free-disk-space-ubuntu.sh
@@ -160,7 +165,7 @@ jobs:
             vcpkg-${{ runner.os }}-
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+        run: sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
 
       - name: Free disk space
         run: bash .github/scripts/free-disk-space-ubuntu.sh
@@ -280,7 +285,7 @@ jobs:
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
           else
             brew install autoconf automake autoconf-archive libtool nuget
           fi
@@ -427,7 +432,7 @@ jobs:
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
           else
             brew install autoconf automake autoconf-archive libtool nuget
           fi
