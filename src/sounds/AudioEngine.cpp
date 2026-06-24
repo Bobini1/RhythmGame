@@ -8,6 +8,8 @@
 #include <qsettings.h>
 #include <ranges>
 #include <spdlog/spdlog.h>
+
+#include <cstdlib>
 #include <stdexcept>
 
 //
@@ -228,7 +230,11 @@ AudioEngine::AudioEngine()
     for (const auto backend : backends) {
         backendNames.append(ma_get_backend_name(backend));
     }
-    currentBackend = settings.value("audio/backend", "").toString();
+    if (const auto* backend = std::getenv("RHYTHMGAME_AUDIO_BACKEND")) {
+        currentBackend = QString::fromUtf8(backend);
+    } else {
+        currentBackend = settings.value("audio/backend", "").toString();
+    }
     if (!backendNames.contains(currentBackend)) {
         currentBackend = "";
     }

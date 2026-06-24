@@ -21,9 +21,8 @@ ensureCoreApplication()
     static int argc = 1;
     static char appName[] = "RhythmGame_test";
     static char* argv[] = { appName, nullptr };
-    static std::unique_ptr<QCoreApplication> app;
     if (!QCoreApplication::instance()) {
-        app = std::make_unique<QCoreApplication>(argc, argv);
+        [[maybe_unused]] static auto* app = new QCoreApplication(argc, argv);
     }
 }
 

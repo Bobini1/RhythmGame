@@ -141,6 +141,8 @@ jobs:
 
       - name: Test
         working-directory: build/coverage
+        env:
+          RHYTHMGAME_AUDIO_BACKEND: Null
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
@@ -250,6 +252,7 @@ jobs:
       - name: Test
         working-directory: build/sanitize
         env:
+          RHYTHMGAME_AUDIO_BACKEND: Null
           ASAN_OPTIONS: "strict_string_checks=1:\
           detect_stack_use_after_return=1:\
           check_initialization_order=1:\
@@ -423,6 +426,8 @@ jobs:
       - name: Test
         working-directory: build
         shell: bash
+        env:
+          RHYTHMGAME_AUDIO_BACKEND: Null
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             export DISPLAY=:99
