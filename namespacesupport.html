@@ -94,6 +94,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsupport_1_1JavaRandom.html">JavaRandom</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsupport_1_1Lr2Random.html">Lr2Random</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classsupport_1_1QtSink.html">QtSink</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
@@ -185,14 +187,26 @@ Functions</h2></td></tr>
 <tr class="separator:ac12260d8b39426c14e8292f7cbdfd3e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5ed53fd735966e4e9ba0e316c3e4455" id="r_ac5ed53fd735966e4e9ba0e316c3e4455"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#ac5ed53fd735966e4e9ba0e316c3e4455">applyLanePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="namespacesupport.html#aaeaf39fc221d8cf253e6b02cecf439fb">Note</a> &gt; &gt; notes, const QList&lt; int &gt; &amp;columns) -&gt; void</td></tr>
 <tr class="separator:ac5ed53fd735966e4e9ba0e316c3e4455"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a48fb4eb9566724c91178b6eb8bef90a8" id="r_a48fb4eb9566724c91178b6eb8bef90a8"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a48fb4eb9566724c91178b6eb8bef90a8">lr2LaneToColumn</a> (const int lane, const int keyCount) -&gt; int</td></tr>
+<tr class="separator:a48fb4eb9566724c91178b6eb8bef90a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5660389da61224b7825f138adc8f2f9b" id="r_a5660389da61224b7825f138adc8f2f9b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a5660389da61224b7825f138adc8f2f9b">generateLr2LanePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="namespacesupport.html#aaeaf39fc221d8cf253e6b02cecf439fb">Note</a> &gt; &gt; notes, <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm, <a class="el" href="classsupport_1_1Lr2Random.html">Lr2Random</a> &amp;rng) -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
+<tr class="separator:a5660389da61224b7825f138adc8f2f9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc09726282da3c0382224ed3c962f5b3" id="r_afc09726282da3c0382224ed3c962f5b3"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#afc09726282da3c0382224ed3c962f5b3">generateBeatorajaLanePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="namespacesupport.html#aaeaf39fc221d8cf253e6b02cecf439fb">Note</a> &gt; &gt; notes, <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm, int64_t seed) -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
 <tr class="separator:afc09726282da3c0382224ed3c962f5b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba1e2d51f841535e0e51a7d5352f4e1e" id="r_aba1e2d51f841535e0e51a7d5352f4e1e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#aba1e2d51f841535e0e51a7d5352f4e1e">mergePermutationMap</a> (const std::unordered_map&lt; int, int &gt; &amp;randomMap, const std::unordered_map&lt; int, int &gt; &amp;lnActive) -&gt; std::unordered_map&lt; int, int &gt;</td></tr>
 <tr class="separator:aba1e2d51f841535e0e51a7d5352f4e1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae148bdb86b64bab81ea11b49e657f990" id="r_ae148bdb86b64bab81ea11b49e657f990"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#ae148bdb86b64bab81ea11b49e657f990">isBeatorajaNoteOrderAlgorithm</a> (<a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm) -&gt; bool</td></tr>
 <tr class="separator:ae148bdb86b64bab81ea11b49e657f990"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a675945095e8ded56f58e166f7932c308" id="r_a675945095e8ded56f58e166f7932c308"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a675945095e8ded56f58e166f7932c308">isLr2NoteOrderAlgorithm</a> (<a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm) -&gt; bool</td></tr>
+<tr class="separator:a675945095e8ded56f58e166f7932c308"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46027d2e09a0e8f7d5fb376105839294" id="r_a46027d2e09a0e8f7d5fb376105839294"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a46027d2e09a0e8f7d5fb376105839294">flipBeatorajaDpPlayfields</a> (std::array&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt;, <a class="el" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a> &gt; &amp;notes) -&gt; void</td></tr>
+<tr class="separator:a46027d2e09a0e8f7d5fb376105839294"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a72196df1cc0f982269169f95b4017d" id="r_a8a72196df1cc0f982269169f95b4017d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a8a72196df1cc0f982269169f95b4017d">flipLr2DpPlayfields</a> (std::array&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt;, <a class="el" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a> &gt; &amp;notes) -&gt; void</td></tr>
+<tr class="separator:a8a72196df1cc0f982269169f95b4017d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94a05a257c773d5fcd8e6369f236d9b2" id="r_a94a05a257c773d5fcd8e6369f236d9b2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a94a05a257c773d5fcd8e6369f236d9b2">generateBeatorajaLanePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; notes, <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm, int64_t seed) -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
 <tr class="separator:a94a05a257c773d5fcd8e6369f236d9b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9e08489023e1ba8dcc4e2edc803f7fe" id="r_ad9e08489023e1ba8dcc4e2edc803f7fe"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacesupport.html#ad9e08489023e1ba8dcc4e2edc803f7fe">generateLr2LanePermutation</a> (std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt; notes, <a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a> algorithm, <a class="el" href="classsupport_1_1Lr2Random.html">Lr2Random</a> &amp;rng) -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td></tr>
+<tr class="separator:ad9e08489023e1ba8dcc4e2edc803f7fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d284947c7b3924dd880a510eddcf00b" id="r_a8d284947c7b3924dd880a510eddcf00b"><td class="memTemplParams" colspan="2">template&lt;std::size_t N, typename T &gt; <br />
 requires requires { std::get&lt;N&gt;(std::declval&lt;T&gt;()); }</td></tr>
 <tr class="memitem:a8d284947c7b3924dd880a510eddcf00b"><td class="memTemplItemLeft" align="right" valign="top">constexpr auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacesupport.html#a8d284947c7b3924dd880a510eddcf00b">get</a> (T &amp;&amp;t) -&gt; auto &amp;</td></tr>
@@ -650,6 +664,42 @@ template&lt;typename T , typename Random &gt; </div>
 
 </div>
 </div>
+<a id="a46027d2e09a0e8f7d5fb376105839294" name="a46027d2e09a0e8f7d5fb376105839294"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46027d2e09a0e8f7d5fb376105839294">&#9670;&#160;</a></span>flipBeatorajaDpPlayfields()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::flipBeatorajaDpPlayfields </td>
+          <td>(</td>
+          <td class="paramtype">std::array&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt;, <a class="el" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>notes</em></td><td>)</td>
+          <td> -&gt;  void</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8a72196df1cc0f982269169f95b4017d" name="a8a72196df1cc0f982269169f95b4017d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a72196df1cc0f982269169f95b4017d">&#9670;&#160;</a></span>flipLr2DpPlayfields()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::flipLr2DpPlayfields </td>
+          <td>(</td>
+          <td class="paramtype">std::array&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt;, <a class="el" href="structcharts_1_1BmsNotesData.html#ae769bf1c0278f6b6e658f112e5f0e522">charts::BmsNotesData::columnNumber</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>notes</em></td><td>)</td>
+          <td> -&gt;  void</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a94a05a257c773d5fcd8e6369f236d9b2" name="a94a05a257c773d5fcd8e6369f236d9b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a94a05a257c773d5fcd8e6369f236d9b2">&#9670;&#160;</a></span>generateBeatorajaLanePermutation() <span class="overload">[1/2]</span></h2>
 
@@ -707,6 +757,75 @@ template&lt;typename T , typename Random &gt; </div>
           <td></td>
           <td class="paramtype">int64_t&#160;</td>
           <td class="paramname"><em>seed</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a>
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad9e08489023e1ba8dcc4e2edc803f7fe" name="ad9e08489023e1ba8dcc4e2edc803f7fe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9e08489023e1ba8dcc4e2edc803f7fe">&#9670;&#160;</a></span>generateLr2LanePermutation() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::generateLr2LanePermutation </td>
+          <td>(</td>
+          <td class="paramtype">std::span&lt; std::vector&lt; <a class="el" href="structcharts_1_1BmsNotesData_1_1Note.html">charts::BmsNotesData::Note</a> &gt; &gt;&#160;</td>
+          <td class="paramname"><em>notes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a>&#160;</td>
+          <td class="paramname"><em>algorithm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classsupport_1_1Lr2Random.html">Lr2Random</a> &amp;&#160;</td>
+          <td class="paramname"><em>rng</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt;  <a class="el" href="structsupport_1_1ShuffleResult.html">ShuffleResult</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5660389da61224b7825f138adc8f2f9b" name="a5660389da61224b7825f138adc8f2f9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5660389da61224b7825f138adc8f2f9b">&#9670;&#160;</a></span>generateLr2LanePermutation() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::generateLr2LanePermutation </td>
+          <td>(</td>
+          <td class="paramtype">std::span&lt; std::vector&lt; <a class="el" href="namespacesupport.html#aaeaf39fc221d8cf253e6b02cecf439fb">Note</a> &gt; &gt;&#160;</td>
+          <td class="paramname"><em>notes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a>&#160;</td>
+          <td class="paramname"><em>algorithm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classsupport_1_1Lr2Random.html">Lr2Random</a> &amp;&#160;</td>
+          <td class="paramname"><em>rng</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -937,6 +1056,24 @@ requires requires { std::get&lt;N&gt;(std::declval&lt;T&gt;()); }</div>
 
 </div>
 </div>
+<a id="a675945095e8ded56f58e166f7932c308" name="a675945095e8ded56f58e166f7932c308"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a675945095e8ded56f58e166f7932c308">&#9670;&#160;</a></span>isLr2NoteOrderAlgorithm()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::isLr2NoteOrderAlgorithm </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691">resource_managers::NoteOrderAlgorithm</a>&#160;</td>
+          <td class="paramname"><em>algorithm</em></td><td>)</td>
+          <td> -&gt;  bool</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aa0bd02af21d884bbc7ade16cf9c6dee7" name="aa0bd02af21d884bbc7ade16cf9c6dee7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa0bd02af21d884bbc7ade16cf9c6dee7">&#9670;&#160;</a></span>isPlayableTimelineNote()</h2>
 
@@ -949,6 +1086,35 @@ requires requires { std::get&lt;N&gt;(std::declval&lt;T&gt;()); }</div>
           <td class="paramtype">const <a class="el" href="namespacesupport.html#aaeaf39fc221d8cf253e6b02cecf439fb">Note</a> &amp;&#160;</td>
           <td class="paramname"><em>note</em></td><td>)</td>
           <td> -&gt; bool
+</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a48fb4eb9566724c91178b6eb8bef90a8" name="a48fb4eb9566724c91178b6eb8bef90a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a48fb4eb9566724c91178b6eb8bef90a8">&#9670;&#160;</a></span>lr2LaneToColumn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto support::lr2LaneToColumn </td>
+          <td>(</td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>lane</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>keyCount</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; int
 </td>
         </tr>
       </table>

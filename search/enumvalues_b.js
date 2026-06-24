@@ -23,5 +23,8 @@ var searchData=
   ['longnote_20',['LongNote',['../classgameplay__logic_1_1ChartData.html#a795d2eb4ed70a64a020ae8e5fb7a23d4a4d9db48ea203df7c297899371d418b2c',1,'gameplay_logic::ChartData']]],
   ['longnotebegin_21',['longnotebegin',['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997a35f30bd96c0a237685724582e0be3f3c',1,'charts::BmsNotesData::LongNoteBegin'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90a35f30bd96c0a237685724582e0be3f3c',1,'gameplay_logic::Note::LongNoteBegin']]],
   ['longnoteend_22',['longnoteend',['../structcharts_1_1BmsNotesData.html#a5a4d3df918dce2039d2c1fbc22c77997ab4263ba4bbeedbb6239740dfa72106d9',1,'charts::BmsNotesData::LongNoteEnd'],['../classgameplay__logic_1_1Note.html#a8e22f28b2754a4af52eb701ff01def90ab4263ba4bbeedbb6239740dfa72106d9',1,'gameplay_logic::Note::LongNoteEnd']]],
-  ['lr2ir_23',['LR2IR',['../classqml__components_1_1OnlineRankingModel.html#a3cb485c0fd73499916e3e6db1a964aaca0ea6e9aa53680a9ca311d802dcec5c36',1,'qml_components::OnlineRankingModel']]]
+  ['lr2flip_23',['Lr2Flip',['../namespaceresource__managers_1_1dp__options.html#ac768ef700200401f8d3fbcebf69c877faf1b1b684cd6e1df6639525fd5c80e44d',1,'resource_managers::dp_options']]],
+  ['lr2ir_24',['LR2IR',['../classqml__components_1_1OnlineRankingModel.html#a3cb485c0fd73499916e3e6db1a964aaca0ea6e9aa53680a9ca311d802dcec5c36',1,'qml_components::OnlineRankingModel']]],
+  ['lr2random_25',['Lr2Random',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691aeebde12a1f028653c0426846f804552e',1,'resource_managers::note_order_algorithm']]],
+  ['lr2randomex_26',['Lr2RandomEx',['../namespaceresource__managers_1_1note__order__algorithm.html#ac185a2ae792679199f885982df647691af7c692853b608fb99265217474f2bb99',1,'resource_managers::note_order_algorithm']]]
 ];
