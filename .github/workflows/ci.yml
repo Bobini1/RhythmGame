@@ -27,6 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Install clang-format
+        run: |
+          python3 -m venv "$RUNNER_TEMP/clang-format"
+          "$RUNNER_TEMP/clang-format/bin/python" -m pip install clang-format==20.1.8
+          echo "$RUNNER_TEMP/clang-format/bin" >> "$GITHUB_PATH"
+
       - name: Lint
         run: cmake -P cmake/lint.cmake
 
