@@ -159,6 +159,10 @@
         "vcpkg",
         "vcpkg-linux-sharedqt"
       ],
+      "warnings": {
+        "dev": false,
+        "uninitialized": false
+      },
       "cacheVariables": {
         "COVERAGE_HTML_COMMAND": ""
       }
@@ -172,6 +176,10 @@
         "vcpkg",
         "vcpkg-linux-sharedqt"
       ],
+      "warnings": {
+        "dev": false,
+        "uninitialized": false
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_FLAGS": "-U_FORTIFY_SOURCE -O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common"
@@ -190,7 +198,11 @@
         "dev-mode",
         "vcpkg",
         "vcpkg-osx-sharedqt"
-      ]
+      ],
+      "warnings": {
+        "dev": false,
+        "uninitialized": false
+      }
     },
     {
       "name": "ci-ubuntu",
@@ -201,7 +213,11 @@
         "vcpkg",
         "dev-mode",
         "vcpkg-linux-sharedqt"
-      ]
+      ],
+      "warnings": {
+        "dev": false,
+        "uninitialized": false
+      }
     },
     {
       "name": "ci-windows",
@@ -211,7 +227,11 @@
         "dev-mode",
         "vcpkg",
         "vcpkg-win64-sharedqt"
-      ]
+      ],
+      "warnings": {
+        "dev": false,
+        "uninitialized": false
+      }
     }
   ]
 }

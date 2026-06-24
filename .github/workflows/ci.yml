@@ -107,12 +107,9 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
-        shell: pwsh
         run: |
-          cmake --preset=ci-coverage 2>&1 | Tee-Object -FilePath configure.log
-          if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE
-          }
+          set -o pipefail
+          cmake --preset=ci-coverage 2>&1 | tee configure.log
 
       - name: Report configure failure
         if: failure()
@@ -205,12 +202,9 @@ jobs:
         run: sudo apt-get install clang libc++-dev -y
 
       - name: Configure
-        shell: pwsh
         run: |
-          cmake --preset=ci-sanitize 2>&1 | Tee-Object -FilePath configure.log
-          if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE
-          }
+          set -o pipefail
+          cmake --preset=ci-sanitize 2>&1 | tee configure.log
 
       - name: Report configure failure
         if: failure()
@@ -362,9 +356,17 @@ jobs:
           -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --preset=ci-ubuntu 2>&1 | tee configure.log
+
+      - name: Configure
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])" 2>&1 | Tee-Object -FilePath configure.log
+          cmake --preset=ci-windows 2>&1 | Tee-Object -FilePath configure.log
           if ($LASTEXITCODE -ne 0) {
             exit $LASTEXITCODE
           }
@@ -515,9 +517,17 @@ jobs:
           -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --preset=ci-ubuntu 2>&1 | tee configure.log
+
+      - name: Configure
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])" 2>&1 | Tee-Object -FilePath configure.log
+          cmake --preset=ci-windows 2>&1 | Tee-Object -FilePath configure.log
           if ($LASTEXITCODE -ne 0) {
             exit $LASTEXITCODE
           }
