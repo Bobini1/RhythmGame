@@ -209,7 +209,6 @@
       "inherits": [
         "ci-build",
         "ci-linux",
-        "clang-tidy",
         "vcpkg",
         "dev-mode",
         "vcpkg-linux-sharedqt"

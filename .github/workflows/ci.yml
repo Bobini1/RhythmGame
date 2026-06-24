@@ -291,15 +291,6 @@ jobs:
             vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
             vcpkg-${{ runner.os }}-
 
-      - name: Install static analyzers
-        if: matrix.os == 'ubuntu-latest'
-        run: >-
-          sudo apt-get install clang-tidy-19 cppcheck -y -q
-          
-          sudo update-alternatives --install
-          /usr/bin/clang-tidy clang-tidy
-          /usr/bin/clang-tidy-19 190
-
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-latest'
         run: |
@@ -470,15 +461,6 @@ jobs:
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
             vcpkg-${{ runner.os }}-
-
-      - name: Install static analyzers
-        if: matrix.os == 'ubuntu-latest'
-        run: >-
-          sudo apt-get install clang-tidy-19 cppcheck -y -q
-          
-          sudo update-alternatives --install
-          /usr/bin/clang-tidy clang-tidy
-          /usr/bin/clang-tidy-19 190
 
       - name: Install WMF
         if: matrix.os == 'windows-latest'
