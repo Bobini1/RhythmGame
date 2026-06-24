@@ -332,7 +332,7 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
           std::tuple<gameplay_logic::BmsResult::DTO,
                      gameplay_logic::BmsReplayData::DTO,
                      gameplay_logic::BmsGaugeHistory::DTO>>();
-        allResults.append_range(result);
+        allResults.insert(allResults.end(), result.begin(), result.end());
     }
 
     QMap<QString, QVariantList> groupedScores;
@@ -384,7 +384,8 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
 
         const auto result =
           statement.executeAndGetAll<gameplay_logic::BmsResultCourse::DTO>();
-        allCourseResults.append_range(result);
+        allCourseResults.insert(
+          allCourseResults.end(), result.begin(), result.end());
     }
 
     auto scoreGuids = QList<QString>{};
@@ -429,7 +430,7 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
           std::tuple<gameplay_logic::BmsResult::DTO,
                      gameplay_logic::BmsReplayData::DTO,
                      gameplay_logic::BmsGaugeHistory::DTO>>();
-        allResults.append_range(result);
+        allResults.insert(allResults.end(), result.begin(), result.end());
     }
     QHash<QString, gameplay_logic::BmsScore*> groupedScores;
     auto* mainThread = QCoreApplication::instance()->thread();

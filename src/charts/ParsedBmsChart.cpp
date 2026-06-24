@@ -3,6 +3,9 @@
 //
 
 #include "ParsedBmsChart.h"
+
+#include <iterator>
+
 auto
 charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
 {
@@ -54,12 +57,17 @@ charts::ParsedBmsChart::mergeTags(Tags& first, Tags second) -> void
     if (second.base.has_value()) {
         first.base = second.base;
     }
-    first.exBpms.append_range(second.exBpms);
-    first.stops.append_range(second.stops);
-    first.scrolls.append_range(second.scrolls);
-    first.speeds.append_range(second.speeds);
-    first.wavs.append_range(second.wavs);
-    first.bmps.append_range(second.bmps);
+    auto appendMoved = [](auto& destination, auto& source) {
+        destination.insert(destination.end(),
+                           std::make_move_iterator(source.begin()),
+                           std::make_move_iterator(source.end()));
+    };
+    appendMoved(first.exBpms, second.exBpms);
+    appendMoved(first.stops, second.stops);
+    appendMoved(first.scrolls, second.scrolls);
+    appendMoved(first.speeds, second.speeds);
+    appendMoved(first.wavs, second.wavs);
+    appendMoved(first.bmps, second.bmps);
     for (auto& [key, measure] : second.measures) {
         auto& firstMeasure = first.measures[key];
         for (auto column = 0; column < measure.p1VisibleNotes.size();
