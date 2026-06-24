@@ -22,7 +22,7 @@ concurrency:
 env:
   VCPKG_BINARY_CACHE: ${{ github.workspace }}/.vcpkg-cache/binary
   VCPKG_DOWNLOADS: ${{ github.workspace }}/.vcpkg-cache/downloads
-  VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,read'
+  VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
   VCPKG_USE_NUGET_CACHE: 'true'
   VCPKG_MAX_CONCURRENCY: '2'
   ANDROID_HOME: ''
@@ -157,6 +157,9 @@ jobs:
           files: build/coverage/coverage.info
 
   sanitize:
+    needs: coverage
+    if: ${{ always() && (needs.coverage.result == 'success' || needs.coverage.result == 'skipped') }}
+
     env:
       CXX: clang++
       CC: clang
@@ -438,6 +441,8 @@ jobs:
           fi
 
   deploy:
+    needs: test
+
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
