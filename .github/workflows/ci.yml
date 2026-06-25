@@ -641,6 +641,9 @@ jobs:
   docs:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: write
+
     if: github.ref == 'refs/heads/master'
       && github.event_name == 'push'
       && github.repository_owner == 'Bobini1'
