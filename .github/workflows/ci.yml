@@ -48,9 +48,10 @@ jobs:
         run: cmake -P cmake/lint.cmake
 
   coverage:
+    needs: test
     runs-on: ubuntu-latest
 
-    if: github.repository_owner == 'Bobini1'
+    if: ${{ github.repository_owner == 'Bobini1' && needs.test.result == 'success' }}
 
     steps:
       - uses: actions/checkout@v7
@@ -157,8 +158,8 @@ jobs:
           files: build/coverage/coverage.info
 
   sanitize:
-    needs: coverage
-    if: ${{ always() && (needs.coverage.result == 'success' || needs.coverage.result == 'skipped') }}
+    needs: [ coverage, test ]
+    if: ${{ always() && needs.test.result == 'success' && (needs.coverage.result == 'success' || needs.coverage.result == 'skipped') }}
 
     runs-on: ubuntu-latest
 
