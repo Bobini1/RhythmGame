@@ -153,7 +153,7 @@ jobs:
         run: cmake --build build/coverage -t coverage
 
       - name: Submit to codecov.io
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v7
         with:
           files: build/coverage/coverage.info
 
@@ -316,7 +316,7 @@ jobs:
           else
             brew install autoconf automake autoconf-archive libtool nuget
           fi
-          
+
       - name: Free disk space
         if: matrix.os == 'ubuntu-latest'
         run: bash .github/scripts/free-disk-space-ubuntu.sh
@@ -358,7 +358,7 @@ jobs:
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
-          
+
       - name: Add NuGet sources
         shell: pwsh
         if: matrix.os == 'windows-latest'
