@@ -327,6 +327,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: bash .github/scripts/free-disk-space-ubuntu.sh
 
+      - name: Set up Python for vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
       - name: Export environment variables for vcpkg binary caching
         uses: actions/github-script@v9
         with:
@@ -495,6 +501,12 @@ jobs:
       - name: Free disk space
         if: matrix.os == 'ubuntu-latest'
         run: bash .github/scripts/free-disk-space-ubuntu.sh
+
+      - name: Set up Python for vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
 
       - name: Export environment variables for vcpkg binary caching
         uses: actions/github-script@v9
