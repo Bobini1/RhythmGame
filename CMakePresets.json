@@ -145,10 +145,7 @@
       "hidden": true,
       "cacheVariables": {
         "ENABLE_COVERAGE": "ON",
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "-Og -g --coverage -fkeep-static-functions",
-        "CMAKE_EXE_LINKER_FLAGS": "--coverage",
-        "CMAKE_SHARED_LINKER_FLAGS": "--coverage"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
@@ -182,7 +179,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "-U_FORTIFY_SOURCE -O2 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-common"
+        "DISABLE_WINDOW_TESTS": "ON",
+        "ENABLE_SANITIZERS": "ON"
       }
     },
     {

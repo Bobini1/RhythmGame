@@ -1,0 +1,17 @@
+set(RHYTHMGAME_INSTRUMENTED_TARGETS
+        RhythmGame_lib
+        RhythmGame_qml
+        RhythmGame_lr2_qml
+        RhythmGame_qmlplugin
+        RhythmGame_qmlplugin_init
+        RhythmGame_lr2_qmlplugin
+        RhythmGame_lr2_qmlplugin_init
+        RhythmGame_exe
+        RhythmGame_test
+        tga
+        tga_init
+        cim
+        cim_init
+        dds
+        dds_init
+)

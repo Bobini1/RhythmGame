@@ -161,10 +161,6 @@ jobs:
     needs: coverage
     if: ${{ always() && (needs.coverage.result == 'success' || needs.coverage.result == 'skipped') }}
 
-    env:
-      CXX: clang++
-      CC: clang
-
     runs-on: ubuntu-latest
 
     steps:
@@ -217,9 +213,6 @@ jobs:
           mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
-
-      - name: Install Clang 13
-        run: sudo apt-get install clang libc++-dev -y
 
       - name: Configure
         run: |
