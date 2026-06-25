@@ -615,6 +615,13 @@ jobs:
       - name: Build
         run: cmake --build build --config Release -j 2
 
+      - name: Install NSIS
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          Add-Content "$env:GITHUB_PATH" "C:\Program Files (x86)\NSIS"
+
       - name: Package
         working-directory: build
         run: cpack -B artifacts --config CPackConfig.cmake
