@@ -72,6 +72,7 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-
             vcpkg-${{ runner.os }}-
 
       - name: Install LCov
@@ -186,6 +187,7 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-
             vcpkg-${{ runner.os }}-
 
       - name: Install system dependencies
@@ -295,6 +297,7 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-
             vcpkg-${{ runner.os }}-
 
       - name: Setup MultiToolTask
@@ -485,6 +488,7 @@ jobs:
           key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
             vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-
             vcpkg-${{ runner.os }}-
 
       - name: Install WMF
