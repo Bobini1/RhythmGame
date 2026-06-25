@@ -335,7 +335,11 @@ jobs:
 
       - name: Install Python virtualenv for vcpkg
         if: matrix.os == 'windows-latest'
-        run: python -m pip install --disable-pip-version-check virtualenv
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check virtualenv
+          $python = python -c "import sys; print(sys.executable)"
+          Add-Content "$env:GITHUB_ENV" "VCPKG_PYTHON3=$python"
 
       - name: Export environment variables for vcpkg binary caching
         uses: actions/github-script@v9
@@ -514,7 +518,11 @@ jobs:
 
       - name: Install Python virtualenv for vcpkg
         if: matrix.os == 'windows-latest'
-        run: python -m pip install --disable-pip-version-check virtualenv
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check virtualenv
+          $python = python -c "import sys; print(sys.executable)"
+          Add-Content "$env:GITHUB_ENV" "VCPKG_PYTHON3=$python"
 
       - name: Export environment variables for vcpkg binary caching
         uses: actions/github-script@v9
