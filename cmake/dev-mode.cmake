@@ -22,6 +22,11 @@ if (ENABLE_COVERAGE)
     include(cmake/coverage.cmake)
 endif ()
 
+option(ENABLE_SANITIZERS "Enable sanitizer instrumentation for project targets" OFF)
+if (ENABLE_SANITIZERS)
+    include(cmake/sanitizers.cmake)
+endif ()
+
 option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable include-what-you-use" OFF)
 if (ENABLE_INCLUDE_WHAT_YOU_USE)
     include(cmake/include-what-you-use.cmake)

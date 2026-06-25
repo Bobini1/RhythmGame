@@ -118,20 +118,20 @@ auto
 timingBucketForJudgement(Judgement judgement) -> int
 {
     switch (judgement) {
-    case Judgement::Perfect:
-        return 0;
-    case Judgement::Great:
-        return 1;
-    case Judgement::Good:
-        return 2;
-    case Judgement::Bad:
-        return 3;
-    case Judgement::Poor:
-        return 4;
-    case Judgement::EmptyPoor:
-        return 5;
-    default:
-        return -1;
+        case Judgement::Perfect:
+            return 0;
+        case Judgement::Great:
+            return 1;
+        case Judgement::Good:
+            return 2;
+        case Judgement::Bad:
+            return 3;
+        case Judgement::Poor:
+            return 4;
+        case Judgement::EmptyPoor:
+            return 5;
+        default:
+            return -1;
     }
 }
 
@@ -249,8 +249,8 @@ auto
 BmsReplayData::load(const DTO& dto) -> std::unique_ptr<BmsReplayData>
 {
     auto data = QByteArray::fromStdString(dto.hitEvents);
-    return std::make_unique<BmsReplayData>(
-      deserializeReplayData(data), QString::fromStdString(dto.guid));
+    return std::make_unique<BmsReplayData>(deserializeReplayData(data),
+                                           QString::fromStdString(dto.guid));
 }
 
 void

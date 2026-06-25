@@ -850,18 +850,18 @@ createScoreFromReplay(resource_managers::Profile& profile,
           replay.source == ReplaySource::Lr2 && lr2RandomGenerator
             ? &*lr2RandomGenerator
             : nullptr;
-        shuffle = applyImportedOrder(
-          notes1,
-          *algorithm,
-          static_cast<uint64_t>(replay.randomOptionSeed),
-          is5k,
-          laneRandomGenerator);
-        shuffleP2 = applyImportedOrder(
-          notes2,
-          *algorithmP2,
-          static_cast<uint64_t>(replay.randomOptionSeedP2),
-          is5k,
-          laneRandomGenerator);
+        shuffle =
+          applyImportedOrder(notes1,
+                             *algorithm,
+                             static_cast<uint64_t>(replay.randomOptionSeed),
+                             is5k,
+                             laneRandomGenerator);
+        shuffleP2 =
+          applyImportedOrder(notes2,
+                             *algorithmP2,
+                             static_cast<uint64_t>(replay.randomOptionSeedP2),
+                             is5k,
+                             laneRandomGenerator);
     } else {
         auto notesSpan =
           std::span{ visibleNotes.data(), visibleNotes.size() / 2 };
@@ -870,12 +870,12 @@ createScoreFromReplay(resource_managers::Profile& profile,
           replay.source == ReplaySource::Lr2 && lr2RandomGenerator
             ? &*lr2RandomGenerator
             : nullptr;
-        shuffle = applyImportedOrder(
-          notesSpan,
-          *algorithm,
-          static_cast<uint64_t>(replay.randomOptionSeed),
-          is5k,
-          laneRandomGenerator);
+        shuffle =
+          applyImportedOrder(notesSpan,
+                             *algorithm,
+                             static_cast<uint64_t>(replay.randomOptionSeed),
+                             is5k,
+                             laneRandomGenerator);
     }
 
     auto gaugesRaw = gameplay_logic::rules::Lr2Gauge::getGauges(

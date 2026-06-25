@@ -75,7 +75,8 @@ struct FolderIndexEntry
     bool valid = false;
 };
 
-gameplay_logic::ChartData* chartDataObject(const QVariant& value)
+gameplay_logic::ChartData*
+chartDataObject(const QVariant& value)
 {
     if (auto* chartData = value.value<gameplay_logic::ChartData*>()) {
         return chartData;
@@ -86,7 +87,8 @@ gameplay_logic::ChartData* chartDataObject(const QVariant& value)
     return nullptr;
 }
 
-QVariantMap mapFromVariant(const QVariant& value)
+QVariantMap
+mapFromVariant(const QVariant& value)
 {
     if (value.canConvert<QVariantMap>()) {
         return value.toMap();
@@ -94,7 +96,8 @@ QVariantMap mapFromVariant(const QVariant& value)
     return {};
 }
 
-QVariantList listFromVariant(const QVariant& value)
+QVariantList
+listFromVariant(const QVariant& value)
 {
     if (value.canConvert<QVariantList>()) {
         return value.toList();
@@ -102,7 +105,8 @@ QVariantList listFromVariant(const QVariant& value)
     return {};
 }
 
-QVariant mapFieldValue(const QVariantMap& map, const QString& key)
+QVariant
+mapFieldValue(const QVariantMap& map, const QString& key)
 {
     const auto it = map.constFind(key);
     if (it != map.constEnd()) {
@@ -123,7 +127,8 @@ QVariant mapFieldValue(const QVariantMap& map, const QString& key)
     return {};
 }
 
-QObject* objectFromVariant(const QVariant& value)
+QObject*
+objectFromVariant(const QVariant& value)
 {
     if (auto* object = value.value<QObject*>()) {
         return object;
@@ -131,7 +136,8 @@ QObject* objectFromVariant(const QVariant& value)
     return chartDataObject(value);
 }
 
-QVariant objectFieldValue(const QVariant& value, const QString& key)
+QVariant
+objectFieldValue(const QVariant& value, const QString& key)
 {
     QObject* object = objectFromVariant(value);
     if (!object) {
@@ -147,7 +153,8 @@ QVariant objectFieldValue(const QVariant& value, const QString& key)
     return field.isValid() ? field : QVariant{};
 }
 
-QVariant gadgetFieldValue(const QVariant& value, const QString& key)
+QVariant
+gadgetFieldValue(const QVariant& value, const QString& key)
 {
     if (!value.isValid() || value.isNull() || objectFromVariant(value)) {
         return {};
@@ -159,10 +166,12 @@ QVariant gadgetFieldValue(const QVariant& value, const QString& key)
     }
 
     QByteArray propertyNameBytes = key.toLatin1();
-    int propertyIndex = metaObject->indexOfProperty(propertyNameBytes.constData());
+    int propertyIndex =
+      metaObject->indexOfProperty(propertyNameBytes.constData());
     if (propertyIndex < 0 && key == QStringLiteral("playLevel")) {
         propertyNameBytes = QByteArrayLiteral("level");
-        propertyIndex = metaObject->indexOfProperty(propertyNameBytes.constData());
+        propertyIndex =
+          metaObject->indexOfProperty(propertyNameBytes.constData());
     }
     if (propertyIndex < 0) {
         return {};
@@ -181,7 +190,8 @@ QVariant gadgetFieldValue(const QVariant& value, const QString& key)
     return field.isValid() ? field : QVariant{};
 }
 
-QVariant variantFieldValue(const QVariant& value, const QString& key)
+QVariant
+variantFieldValue(const QVariant& value, const QString& key)
 {
     if (!value.isValid() || value.isNull()) {
         return {};
@@ -202,7 +212,8 @@ QVariant variantFieldValue(const QVariant& value, const QString& key)
     return gadgetFieldValue(value, key);
 }
 
-QVariant fieldValue(const QVariant& value, const QVariantMap& map, const QString& key)
+QVariant
+fieldValue(const QVariant& value, const QVariantMap& map, const QString& key)
 {
     const QVariant mapField = mapFieldValue(map, key);
     if (mapField.isValid()) {
@@ -218,13 +229,18 @@ QVariant fieldValue(const QVariant& value, const QVariantMap& map, const QString
     return variantFieldValue(value, key);
 }
 
-QString stringField(const QVariant& value, const QVariantMap& map, const QString& key)
+QString
+stringField(const QVariant& value, const QVariantMap& map, const QString& key)
 {
     const QVariant field = fieldValue(value, map, key);
     return field.isValid() && !field.isNull() ? field.toString() : QString();
 }
 
-int intField(const QVariant& value, const QVariantMap& map, const QString& key, int fallback = 0)
+int
+intField(const QVariant& value,
+         const QVariantMap& map,
+         const QString& key,
+         int fallback = 0)
 {
     const QVariant field = fieldValue(value, map, key);
     bool ok = false;
@@ -232,7 +248,11 @@ int intField(const QVariant& value, const QVariantMap& map, const QString& key, 
     return ok ? result : fallback;
 }
 
-double doubleField(const QVariant& value, const QVariantMap& map, const QString& key, double fallback = 0.0)
+double
+doubleField(const QVariant& value,
+            const QVariantMap& map,
+            const QString& key,
+            double fallback = 0.0)
 {
     const QVariant field = fieldValue(value, map, key);
     bool ok = false;
@@ -241,43 +261,55 @@ double doubleField(const QVariant& value, const QVariantMap& map, const QString&
 }
 
 template<typename T>
-bool variantHasType(const QVariant& value)
+bool
+variantHasType(const QVariant& value)
 {
     const QMetaType expectedType = QMetaType::fromType<T>();
-    return value.isValid()
-        && !value.isNull()
-        && (value.metaType().id() == expectedType.id()
-            || value.metaType().metaObject() == expectedType.metaObject());
+    return value.isValid() && !value.isNull() &&
+           (value.metaType().id() == expectedType.id() ||
+            value.metaType().metaObject() == expectedType.metaObject());
 }
 
-ItemKind resourceItemKind(const QVariant& value)
+ItemKind
+resourceItemKind(const QVariant& value)
 {
-    if (variantHasType<resource_managers::Entry>(value)) return EntryKind;
-    if (variantHasType<resource_managers::Course>(value)) return CourseKind;
-    if (variantHasType<resource_managers::Table>(value)) return TableKind;
-    if (variantHasType<resource_managers::Level>(value)) return LevelKind;
+    if (variantHasType<resource_managers::Entry>(value))
+        return EntryKind;
+    if (variantHasType<resource_managers::Course>(value))
+        return CourseKind;
+    if (variantHasType<resource_managers::Table>(value))
+        return TableKind;
+    if (variantHasType<resource_managers::Level>(value))
+        return LevelKind;
     return UnknownKind;
 }
 
-ItemKind kindFromFolderKey(const QString& key)
+ItemKind
+kindFromFolderKey(const QString& key)
 {
-    if (key.startsWith(QStringLiteral("table:"))) return TableKind;
-    if (key.startsWith(QStringLiteral("level:"))) return LevelKind;
-    if (key.startsWith(QStringLiteral("folder:"))) return FolderKind;
+    if (key.startsWith(QStringLiteral("table:")))
+        return TableKind;
+    if (key.startsWith(QStringLiteral("level:")))
+        return LevelKind;
+    if (key.startsWith(QStringLiteral("folder:")))
+        return FolderKind;
     return UnknownKind;
 }
 
-ItemKind kindFor(const QVariant& value, const QVariantMap& map)
+ItemKind
+kindFor(const QVariant& value, const QVariantMap& map)
 {
     if (!value.isValid() || value.isNull()) {
         return EmptyKind;
     }
 
     const QVariant rawItem = map.value(QStringLiteral("rawItem"));
-    if (map.contains(QStringLiteral("rawItem")) && (!rawItem.isValid() || rawItem.isNull())) {
+    if (map.contains(QStringLiteral("rawItem")) &&
+        (!rawItem.isValid() || rawItem.isNull())) {
         return EmptyKind;
     }
-    if (value.typeId() == QMetaType::QString || rawItem.typeId() == QMetaType::QString) {
+    if (value.typeId() == QMetaType::QString ||
+        rawItem.typeId() == QMetaType::QString) {
         return FolderKind;
     }
     if (chartDataObject(value) || chartDataObject(rawItem)) {
@@ -292,22 +324,31 @@ ItemKind kindFor(const QVariant& value, const QVariantMap& map)
     if (resourceKind != UnknownKind) {
         return resourceKind;
     }
-    const ItemKind folderKeyKind = kindFromFolderKey(stringField(value, map, QStringLiteral("folderKey")));
+    const ItemKind folderKeyKind =
+      kindFromFolderKey(stringField(value, map, QStringLiteral("folderKey")));
     if (folderKeyKind != UnknownKind) {
         return folderKeyKind;
     }
 
-    const QString type = stringField(value, map, QStringLiteral("type")).toLower();
-    if (type == QStringLiteral("chart")) return ChartKind;
-    if (type == QStringLiteral("entry")) return EntryKind;
-    if (type == QStringLiteral("course")) return CourseKind;
-    if (type == QStringLiteral("table")) return TableKind;
-    if (type == QStringLiteral("level")) return LevelKind;
-    if (type == QStringLiteral("folder")) return FolderKind;
+    const QString type =
+      stringField(value, map, QStringLiteral("type")).toLower();
+    if (type == QStringLiteral("chart"))
+        return ChartKind;
+    if (type == QStringLiteral("entry"))
+        return EntryKind;
+    if (type == QStringLiteral("course"))
+        return CourseKind;
+    if (type == QStringLiteral("table"))
+        return TableKind;
+    if (type == QStringLiteral("level"))
+        return LevelKind;
+    if (type == QStringLiteral("folder"))
+        return FolderKind;
     return UnknownKind;
 }
 
-QString normalizedFolderName(QString path)
+QString
+normalizedFolderName(QString path)
 {
     path.replace(QLatin1Char('\\'), QLatin1Char('/'));
     if (path.endsWith(QLatin1Char('/'))) {
@@ -317,17 +358,19 @@ QString normalizedFolderName(QString path)
     return slash >= 0 ? path.mid(slash + 1) : path;
 }
 
-QString normalizedClearType(const QString& clear)
+QString
+normalizedClearType(const QString& clear)
 {
-    const QString value = clear.isEmpty() ? QStringLiteral("NOPLAY") : clear.toUpper();
-    if (value == QStringLiteral("ASSIST")
-        || value == QStringLiteral("ASSISTEASY")
-        || value == QStringLiteral("ASSIST_EASY")) {
+    const QString value =
+      clear.isEmpty() ? QStringLiteral("NOPLAY") : clear.toUpper();
+    if (value == QStringLiteral("ASSIST") ||
+        value == QStringLiteral("ASSISTEASY") ||
+        value == QStringLiteral("ASSIST_EASY")) {
         return QStringLiteral("AEASY");
     }
-    if (value == QStringLiteral("LIGHT_ASSIST")
-        || value == QStringLiteral("LIGHTASSISTEASY")
-        || value == QStringLiteral("LIGHT_ASSIST_EASY")) {
+    if (value == QStringLiteral("LIGHT_ASSIST") ||
+        value == QStringLiteral("LIGHTASSISTEASY") ||
+        value == QStringLiteral("LIGHT_ASSIST_EASY")) {
         return QStringLiteral("LIGHTASSIST");
     }
     if (value == QStringLiteral("CLEAR") || value == QStringLiteral("DAN")) {
@@ -336,44 +379,57 @@ QString normalizedClearType(const QString& clear)
     if (value == QStringLiteral("EX_HARD")) {
         return QStringLiteral("EXHARD");
     }
-    if (value == QStringLiteral("EXDAN")
-        || value == QStringLiteral("HARD_DAN")
-        || value == QStringLiteral("HARD DAN")) {
+    if (value == QStringLiteral("EXDAN") ||
+        value == QStringLiteral("HARD_DAN") ||
+        value == QStringLiteral("HARD DAN")) {
         return QStringLiteral("HARD");
     }
-    if (value == QStringLiteral("EXHARDDAN")
-        || value == QStringLiteral("EXHARD_DAN")
-        || value == QStringLiteral("EX_HARD_DAN")) {
+    if (value == QStringLiteral("EXHARDDAN") ||
+        value == QStringLiteral("EXHARD_DAN") ||
+        value == QStringLiteral("EX_HARD_DAN")) {
         return QStringLiteral("EXHARD");
     }
-    if (value == QStringLiteral("FULLCOMBO")
-        || value == QStringLiteral("FULL_COMBO")
-        || value == QStringLiteral("FULL COMBO")) {
+    if (value == QStringLiteral("FULLCOMBO") ||
+        value == QStringLiteral("FULL_COMBO") ||
+        value == QStringLiteral("FULL COMBO")) {
         return QStringLiteral("FC");
     }
-    if (value == QStringLiteral("NO_PLAY") || value == QStringLiteral("NO PLAY")) {
+    if (value == QStringLiteral("NO_PLAY") ||
+        value == QStringLiteral("NO PLAY")) {
         return QStringLiteral("NOPLAY");
     }
     return value;
 }
 
-int clearTypePriority(const QString& clear)
+int
+clearTypePriority(const QString& clear)
 {
     const QString value = normalizedClearType(clear);
-    if (value == QStringLiteral("FAILED")) return 1;
-    if (value == QStringLiteral("AEASY")) return 2;
-    if (value == QStringLiteral("LIGHTASSIST")) return 3;
-    if (value == QStringLiteral("EASY")) return 4;
-    if (value == QStringLiteral("NORMAL")) return 5;
-    if (value == QStringLiteral("HARD")) return 6;
-    if (value == QStringLiteral("EXHARD")) return 7;
-    if (value == QStringLiteral("FC")) return 8;
-    if (value == QStringLiteral("PERFECT")) return 9;
-    if (value == QStringLiteral("MAX")) return 10;
+    if (value == QStringLiteral("FAILED"))
+        return 1;
+    if (value == QStringLiteral("AEASY"))
+        return 2;
+    if (value == QStringLiteral("LIGHTASSIST"))
+        return 3;
+    if (value == QStringLiteral("EASY"))
+        return 4;
+    if (value == QStringLiteral("NORMAL"))
+        return 5;
+    if (value == QStringLiteral("HARD"))
+        return 6;
+    if (value == QStringLiteral("EXHARD"))
+        return 7;
+    if (value == QStringLiteral("FC"))
+        return 8;
+    if (value == QStringLiteral("PERFECT"))
+        return 9;
+    if (value == QStringLiteral("MAX"))
+        return 10;
     return 0;
 }
 
-gameplay_logic::BmsScore* scoreObject(const QVariant& value)
+gameplay_logic::BmsScore*
+scoreObject(const QVariant& value)
 {
     if (auto* score = value.value<gameplay_logic::BmsScore*>()) {
         return score;
@@ -384,13 +440,15 @@ gameplay_logic::BmsScore* scoreObject(const QVariant& value)
     return nullptr;
 }
 
-int judgementCount(const QList<int>& counts, gameplay_logic::Judgement judgement)
+int
+judgementCount(const QList<int>& counts, gameplay_logic::Judgement judgement)
 {
     const int index = static_cast<int>(judgement);
     return index >= 0 && index < counts.size() ? counts.at(index) : 0;
 }
 
-QVariantList scoreListForIdentifier(const QVariantMap& scores, const QString& identifier)
+QVariantList
+scoreListForIdentifier(const QVariantMap& scores, const QString& identifier)
 {
     if (identifier.isEmpty()) {
         return {};
@@ -405,7 +463,8 @@ QVariantList scoreListForIdentifier(const QVariantMap& scores, const QString& id
     return listFromVariant(value);
 }
 
-QString scoreIdentifierFor(const SortEntry& entry)
+QString
+scoreIdentifierFor(const SortEntry& entry)
 {
     if (entry.kind == ChartKind || entry.kind == EntryKind) {
         return entry.md5;
@@ -416,9 +475,11 @@ QString scoreIdentifierFor(const SortEntry& entry)
     return {};
 }
 
-void fillScoreFields(SortEntry& entry, const QVariantMap& scores)
+void
+fillScoreFields(SortEntry& entry, const QVariantMap& scores)
 {
-    const QVariantList scoreList = scoreListForIdentifier(scores, scoreIdentifierFor(entry));
+    const QVariantList scoreList =
+      scoreListForIdentifier(scores, scoreIdentifierFor(entry));
     if (scoreList.isEmpty()) {
         return;
     }
@@ -435,18 +496,22 @@ void fillScoreFields(SortEntry& entry, const QVariantMap& scores)
         }
 
         entry.hasScore = true;
-        bestClearPriority = std::max(bestClearPriority, clearTypePriority(result->getClearType()));
+        bestClearPriority = std::max(bestClearPriority,
+                                     clearTypePriority(result->getClearType()));
 
         const QList<int> counts = result->getJudgementCounts();
-        const int badPoor = judgementCount(counts, gameplay_logic::Judgement::Bad)
-            + judgementCount(counts, gameplay_logic::Judgement::Poor)
-            + judgementCount(counts, gameplay_logic::Judgement::EmptyPoor);
+        const int badPoor =
+          judgementCount(counts, gameplay_logic::Judgement::Bad) +
+          judgementCount(counts, gameplay_logic::Judgement::Poor) +
+          judgementCount(counts, gameplay_logic::Judgement::EmptyPoor);
         minBadPoor = minBadPoor < 0 ? badPoor : std::min(minBadPoor, badPoor);
 
         const double maxPoints = result->getMaxPoints();
         const bool hasMaxPoints = maxPoints > 0.0;
-        const double rate = hasMaxPoints ? result->getPoints() / maxPoints : 0.0;
-        if (rate > bestRate || (rate == bestRate && hasMaxPoints && !bestHasMaxPoints)) {
+        const double rate =
+          hasMaxPoints ? result->getPoints() / maxPoints : 0.0;
+        if (rate > bestRate ||
+            (rate == bestRate && hasMaxPoints && !bestHasMaxPoints)) {
             bestRate = rate;
             bestHasMaxPoints = hasMaxPoints;
         }
@@ -460,14 +525,16 @@ void fillScoreFields(SortEntry& entry, const QVariantMap& scores)
     entry.minBadPoor = std::max(0, minBadPoor);
 }
 
-QString displayNameFor(const SortEntry& entry)
+QString
+displayNameFor(const SortEntry& entry)
 {
     if (entry.kind == ChartKind || entry.kind == EntryKind) {
         return entry.subtitle.isEmpty()
-            ? entry.title
-            : entry.title + QLatin1Char(' ') + entry.subtitle;
+                 ? entry.title
+                 : entry.title + QLatin1Char(' ') + entry.subtitle;
     }
-    if (entry.kind == CourseKind || entry.kind == TableKind || entry.kind == LevelKind) {
+    if (entry.kind == CourseKind || entry.kind == TableKind ||
+        entry.kind == LevelKind) {
         return entry.name;
     }
     if (entry.kind == FolderKind) {
@@ -476,16 +543,18 @@ QString displayNameFor(const SortEntry& entry)
     return {};
 }
 
-SortEntry makeEntry(const QVariant& value,
-                    int sourceIndex,
-                    const QHash<QString, int>& chartDifficultyByPath,
-                    const QVariantMap& scores)
+SortEntry
+makeEntry(const QVariant& value,
+          int sourceIndex,
+          const QHash<QString, int>& chartDifficultyByPath,
+          const QVariantMap& scores)
 {
     SortEntry entry;
     entry.value = value;
     entry.map = mapFromVariant(value);
     const QVariant rawItem = entry.map.value(QStringLiteral("rawItem"));
-    const QVariant raw = rawItem.isValid() && !rawItem.isNull() ? rawItem : value;
+    const QVariant raw =
+      rawItem.isValid() && !rawItem.isNull() ? rawItem : value;
     entry.kind = kindFor(value, entry.map);
     entry.sourceIndex = sourceIndex;
     entry.rawString = raw.toString();
@@ -510,13 +579,12 @@ SortEntry makeEntry(const QVariant& value,
             entry.mainBpm = chart->getMainBpm();
             entry.length = static_cast<double>(chart->getLength());
             entry.totalNotes = chart->getTotal();
-            entry.noteCount = chart->getNormalNoteCount()
-                + chart->getScratchCount()
-                + chart->getLnCount()
-                + chart->getBssCount()
-                + chart->getMineCount();
+            entry.noteCount = chart->getNormalNoteCount() +
+                              chart->getScratchCount() + chart->getLnCount() +
+                              chart->getBssCount() + chart->getMineCount();
             if (!entry.path.isEmpty()) {
-                const auto overrideDifficulty = chartDifficultyByPath.constFind(entry.path);
+                const auto overrideDifficulty =
+                  chartDifficultyByPath.constFind(entry.path);
                 if (overrideDifficulty != chartDifficultyByPath.constEnd()) {
                     entry.difficulty = overrideDifficulty.value();
                 }
@@ -530,15 +598,19 @@ SortEntry makeEntry(const QVariant& value,
     entry.title = stringField(value, entry.map, QStringLiteral("title"));
     entry.subtitle = stringField(value, entry.map, QStringLiteral("subtitle"));
     entry.artist = stringField(value, entry.map, QStringLiteral("artist"));
-    entry.subartist = stringField(value, entry.map, QStringLiteral("subartist"));
+    entry.subartist =
+      stringField(value, entry.map, QStringLiteral("subartist"));
     entry.path = stringField(value, entry.map, QStringLiteral("path"));
-    entry.directory = stringField(value, entry.map, QStringLiteral("chartDirectory"));
+    entry.directory =
+      stringField(value, entry.map, QStringLiteral("chartDirectory"));
     if (entry.directory.isEmpty()) {
-        entry.directory = stringField(value, entry.map, QStringLiteral("directory"));
+        entry.directory =
+          stringField(value, entry.map, QStringLiteral("directory"));
     }
     entry.name = stringField(value, entry.map, QStringLiteral("name"));
     entry.md5 = stringField(value, entry.map, QStringLiteral("md5"));
-    entry.identifier = stringField(value, entry.map, QStringLiteral("identifier"));
+    entry.identifier =
+      stringField(value, entry.map, QStringLiteral("identifier"));
     entry.playLevel = intField(value, entry.map, QStringLiteral("playLevel"));
     entry.difficulty = intField(value, entry.map, QStringLiteral("difficulty"));
     entry.keymode = intField(value, entry.map, QStringLiteral("keymode"));
@@ -547,16 +619,19 @@ SortEntry makeEntry(const QVariant& value,
     entry.mainBpm = doubleField(value, entry.map, QStringLiteral("mainBpm"));
     entry.length = doubleField(value, entry.map, QStringLiteral("length"));
     if (entry.length <= 0.0) {
-        entry.length = doubleField(value, entry.map, QStringLiteral("duration"));
+        entry.length =
+          doubleField(value, entry.map, QStringLiteral("duration"));
     }
     entry.totalNotes = doubleField(value, entry.map, QStringLiteral("total"));
-    entry.noteCount = intField(value, entry.map, QStringLiteral("normalNoteCount"))
-        + intField(value, entry.map, QStringLiteral("scratchCount"))
-        + intField(value, entry.map, QStringLiteral("lnCount"))
-        + intField(value, entry.map, QStringLiteral("bssCount"))
-        + intField(value, entry.map, QStringLiteral("mineCount"));
+    entry.noteCount =
+      intField(value, entry.map, QStringLiteral("normalNoteCount")) +
+      intField(value, entry.map, QStringLiteral("scratchCount")) +
+      intField(value, entry.map, QStringLiteral("lnCount")) +
+      intField(value, entry.map, QStringLiteral("bssCount")) +
+      intField(value, entry.map, QStringLiteral("mineCount"));
     if (entry.kind == ChartKind && !entry.path.isEmpty()) {
-        const auto overrideDifficulty = chartDifficultyByPath.constFind(entry.path);
+        const auto overrideDifficulty =
+          chartDifficultyByPath.constFind(entry.path);
         if (overrideDifficulty != chartDifficultyByPath.constEnd()) {
             entry.difficulty = overrideDifficulty.value();
         }
@@ -566,48 +641,61 @@ SortEntry makeEntry(const QVariant& value,
     return entry;
 }
 
-bool isSortableChartLike(const SortEntry& entry)
+bool
+isSortableChartLike(const SortEntry& entry)
 {
     return entry.kind == ChartKind || entry.kind == EntryKind;
 }
 
-int compareStrings(const QString& a, const QString& b)
+int
+compareStrings(const QString& a, const QString& b)
 {
     return QString::localeAwareCompare(a, b);
 }
 
-int compareByNameOnly(const SortEntry& a, const SortEntry& b)
+int
+compareByNameOnly(const SortEntry& a, const SortEntry& b)
 {
     return compareStrings(a.displayName, b.displayName);
 }
 
-int compareNumberWithMissing(double aValue, bool aMissing, double bValue, bool bMissing, bool missingLast = true)
+int
+compareNumberWithMissing(double aValue,
+                         bool aMissing,
+                         double bValue,
+                         bool bMissing,
+                         bool missingLast = true)
 {
-    if (aMissing && bMissing) return 0;
-    if (aMissing) return missingLast ? 1 : -1;
-    if (bMissing) return missingLast ? -1 : 1;
-    if (aValue < bValue) return -1;
-    if (aValue > bValue) return 1;
+    if (aMissing && bMissing)
+        return 0;
+    if (aMissing)
+        return missingLast ? 1 : -1;
+    if (bMissing)
+        return missingLast ? -1 : 1;
+    if (aValue < bValue)
+        return -1;
+    if (aValue > bValue)
+        return 1;
     return 0;
 }
 
-int compareByLevel(const SortEntry& a, const SortEntry& b)
+int
+compareByLevel(const SortEntry& a, const SortEntry& b)
 {
     const int diff = compareNumberWithMissing(
-        a.playLevel,
-        a.playLevel <= 0,
-        b.playLevel,
-        b.playLevel <= 0);
+      a.playLevel, a.playLevel <= 0, b.playLevel, b.playLevel <= 0);
     return diff != 0 ? diff : compareByNameOnly(a, b);
 }
 
-int compareByTitle(const SortEntry& a, const SortEntry& b)
+int
+compareByTitle(const SortEntry& a, const SortEntry& b)
 {
     const int titleDiff = compareByNameOnly(a, b);
     return titleDiff != 0 ? titleDiff : compareByLevel(a, b);
 }
 
-int compareByArtist(const SortEntry& a, const SortEntry& b)
+int
+compareByArtist(const SortEntry& a, const SortEntry& b)
 {
     int artistDiff = compareStrings(a.artist, b.artist);
     if (artistDiff != 0) {
@@ -617,44 +705,50 @@ int compareByArtist(const SortEntry& a, const SortEntry& b)
     return artistDiff != 0 ? artistDiff : compareByTitle(a, b);
 }
 
-double bpmForSort(const SortEntry& entry)
+double
+bpmForSort(const SortEntry& entry)
 {
-    if (entry.mainBpm > 0.0) return entry.mainBpm;
-    if (entry.maxBpm > 0.0) return entry.maxBpm;
-    if (entry.minBpm > 0.0) return entry.minBpm;
+    if (entry.mainBpm > 0.0)
+        return entry.mainBpm;
+    if (entry.maxBpm > 0.0)
+        return entry.maxBpm;
+    if (entry.minBpm > 0.0)
+        return entry.minBpm;
     return 0.0;
 }
 
-int compareByBpm(const SortEntry& a, const SortEntry& b)
+int
+compareByBpm(const SortEntry& a, const SortEntry& b)
 {
     const double aBpm = bpmForSort(a);
     const double bBpm = bpmForSort(b);
-    const int diff = compareNumberWithMissing(aBpm, aBpm <= 0.0, bBpm, bBpm <= 0.0);
+    const int diff =
+      compareNumberWithMissing(aBpm, aBpm <= 0.0, bBpm, bBpm <= 0.0);
     return diff != 0 ? diff : compareByTitle(a, b);
 }
 
-int compareByLength(const SortEntry& a, const SortEntry& b)
-{
-    const int diff = compareNumberWithMissing(a.length, a.length <= 0.0, b.length, b.length <= 0.0);
-    return diff != 0 ? diff : compareByTitle(a, b);
-}
-
-int compareByTotalNotes(const SortEntry& a, const SortEntry& b)
+int
+compareByLength(const SortEntry& a, const SortEntry& b)
 {
     const int diff = compareNumberWithMissing(
-        a.totalNotes,
-        a.totalNotes <= 0.0,
-        b.totalNotes,
-        b.totalNotes <= 0.0);
+      a.length, a.length <= 0.0, b.length, b.length <= 0.0);
     return diff != 0 ? diff : compareByTitle(a, b);
 }
 
-int compareByClear(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
+int
+compareByTotalNotes(const SortEntry& a, const SortEntry& b)
+{
+    const int diff = compareNumberWithMissing(
+      a.totalNotes, a.totalNotes <= 0.0, b.totalNotes, b.totalNotes <= 0.0);
+    return diff != 0 ? diff : compareByTitle(a, b);
+}
+
+int
+compareByClear(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
 {
     if (a.hasScore != b.hasScore) {
-        return a.hasScore
-            ? (unscoredItemsLast ? -1 : 1)
-            : (unscoredItemsLast ? 1 : -1);
+        return a.hasScore ? (unscoredItemsLast ? -1 : 1)
+                          : (unscoredItemsLast ? 1 : -1);
     }
     if (a.clearPriority != b.clearPriority) {
         return a.clearPriority < b.clearPriority ? -1 : 1;
@@ -662,66 +756,86 @@ int compareByClear(const SortEntry& a, const SortEntry& b, bool unscoredItemsLas
     return compareByLevel(a, b);
 }
 
-int compareByScore(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
+int
+compareByScore(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
 {
     const int diff = compareNumberWithMissing(
-        a.scoreRate,
-        !a.hasScore,
-        b.scoreRate,
-        !b.hasScore,
-        unscoredItemsLast);
+      a.scoreRate, !a.hasScore, b.scoreRate, !b.hasScore, unscoredItemsLast);
     return diff != 0 ? diff : compareByLevel(a, b);
 }
 
-int compareByMissCount(const SortEntry& a, const SortEntry& b, bool unscoredItemsLast)
+int
+compareByMissCount(const SortEntry& a,
+                   const SortEntry& b,
+                   bool unscoredItemsLast)
 {
     const int diff = compareNumberWithMissing(
-        a.minBadPoor,
-        !a.hasScore,
-        b.minBadPoor,
-        !b.hasScore,
-        unscoredItemsLast);
+      a.minBadPoor, !a.hasScore, b.minBadPoor, !b.hasScore, unscoredItemsLast);
     return diff != 0 ? diff : compareByLevel(a, b);
 }
 
-int compareEntries(const SortEntry& a, const SortEntry& b, int sortMode, bool unscoredItemsLast)
+int
+compareEntries(const SortEntry& a,
+               const SortEntry& b,
+               int sortMode,
+               bool unscoredItemsLast)
 {
     switch (sortMode) {
-    case 1: return compareByTitle(a, b);
-    case 2: return compareByArtist(a, b);
-    case 3: return compareByBpm(a, b);
-    case 4: return compareByLength(a, b);
-    case 5: return compareByLevel(a, b);
-    case 6: return compareByClear(a, b, unscoredItemsLast);
-    case 7: return compareByScore(a, b, unscoredItemsLast);
-    case 8: return compareByMissCount(a, b, unscoredItemsLast);
-    case 9: return compareByTotalNotes(a, b);
-    default: return 0;
+        case 1:
+            return compareByTitle(a, b);
+        case 2:
+            return compareByArtist(a, b);
+        case 3:
+            return compareByBpm(a, b);
+        case 4:
+            return compareByLength(a, b);
+        case 5:
+            return compareByLevel(a, b);
+        case 6:
+            return compareByClear(a, b, unscoredItemsLast);
+        case 7:
+            return compareByScore(a, b, unscoredItemsLast);
+        case 8:
+            return compareByMissCount(a, b, unscoredItemsLast);
+        case 9:
+            return compareByTotalNotes(a, b);
+        default:
+            return 0;
     }
 }
 
-bool keyFilterMatches(const SortEntry& entry, int keymodeFilter)
+bool
+keyFilterMatches(const SortEntry& entry, int keymodeFilter)
 {
     if (entry.kind != ChartKind || keymodeFilter == 0) {
         return true;
     }
     switch (keymodeFilter) {
-    case 1: return entry.keymode == 5 || entry.keymode == 7;
-    case 2: return entry.keymode == 10 || entry.keymode == 14;
-    case 3: return entry.keymode == 5;
-    case 4: return entry.keymode == 7;
-    case 5: return entry.keymode == 10;
-    case 6: return entry.keymode == 14;
-    default: return true;
+        case 1:
+            return entry.keymode == 5 || entry.keymode == 7;
+        case 2:
+            return entry.keymode == 10 || entry.keymode == 14;
+        case 3:
+            return entry.keymode == 5;
+        case 4:
+            return entry.keymode == 7;
+        case 5:
+            return entry.keymode == 10;
+        case 6:
+            return entry.keymode == 14;
+        default:
+            return true;
     }
 }
 
-QString difficultyGroupKey(const SortEntry& entry)
+QString
+difficultyGroupKey(const SortEntry& entry)
 {
     return entry.directory + QChar(0x1f) + QString::number(entry.keymode);
 }
 
-QVector<SortEntry> difficultyFilteredCharts(const QVector<SortEntry>& input, int difficultyFilter)
+QVector<SortEntry>
+difficultyFilteredCharts(const QVector<SortEntry>& input, int difficultyFilter)
 {
     if (difficultyFilter == 0) {
         return input;
@@ -758,14 +872,14 @@ QVector<SortEntry> difficultyFilteredCharts(const QVector<SortEntry>& input, int
                 exact.append(chart);
             } else if (difficulty > 0 && difficulty < difficultyFilter) {
                 if (difficulty > lowerDifficulty) {
-                    lower = {chart};
+                    lower = { chart };
                     lowerDifficulty = difficulty;
                 } else if (difficulty == lowerDifficulty) {
                     lower.append(chart);
                 }
             } else if (difficulty > difficultyFilter) {
                 if (higherDifficulty == 0 || difficulty < higherDifficulty) {
-                    higher = {chart};
+                    higher = { chart };
                     higherDifficulty = difficulty;
                 } else if (difficulty == higherDifficulty) {
                     higher.append(chart);
@@ -787,7 +901,8 @@ QVector<SortEntry> difficultyFilteredCharts(const QVector<SortEntry>& input, int
     return result;
 }
 
-bool sameEntry(const SortEntry& a, const SortEntry& b)
+bool
+sameEntry(const SortEntry& a, const SortEntry& b)
 {
     if (a.kind == ChartKind && b.kind == ChartKind) {
         return a.path == b.path;
@@ -818,7 +933,8 @@ bool sameEntry(const SortEntry& a, const SortEntry& b)
     return false;
 }
 
-bool isWordBoundary(const QString& text, int index)
+bool
+isWordBoundary(const QString& text, int index)
 {
     if (index < 0 || index >= text.size()) {
         return true;
@@ -826,12 +942,13 @@ bool isWordBoundary(const QString& text, int index)
     return !text.at(index).isLetterOrNumber();
 }
 
-bool containsWord(const QString& text, const QString& word)
+bool
+containsWord(const QString& text, const QString& word)
 {
     int index = 0;
     while ((index = text.indexOf(word, index)) >= 0) {
-        if (isWordBoundary(text, index - 1)
-            && isWordBoundary(text, index + word.size())) {
+        if (isWordBoundary(text, index - 1) &&
+            isWordBoundary(text, index + word.size())) {
             return true;
         }
         index += word.size();
@@ -839,31 +956,40 @@ bool containsWord(const QString& text, const QString& word)
     return false;
 }
 
-int difficultyHint(const FolderIndexEntry& chart)
+int
+difficultyHint(const FolderIndexEntry& chart)
 {
-    const QString text = chart.title.isEmpty() && chart.subtitle.isEmpty()
+    const QString text =
+      chart.title.isEmpty() && chart.subtitle.isEmpty()
         ? QString()
         : (chart.title + QLatin1Char(' ') + chart.subtitle).toLower();
-    if (containsWord(text, QStringLiteral("insane"))) return 5;
-    if (containsWord(text, QStringLiteral("another"))) return 4;
-    if (containsWord(text, QStringLiteral("hyper"))) return 3;
-    if (containsWord(text, QStringLiteral("normal"))) return 2;
-    if (containsWord(text, QStringLiteral("beginner"))
-        || containsWord(text, QStringLiteral("bgn"))) {
+    if (containsWord(text, QStringLiteral("insane")))
+        return 5;
+    if (containsWord(text, QStringLiteral("another")))
+        return 4;
+    if (containsWord(text, QStringLiteral("hyper")))
+        return 3;
+    if (containsWord(text, QStringLiteral("normal")))
+        return 2;
+    if (containsWord(text, QStringLiteral("beginner")) ||
+        containsWord(text, QStringLiteral("bgn"))) {
         return 1;
     }
-    if (chart.playLevel <= 1) return 1;
+    if (chart.playLevel <= 1)
+        return 1;
     return 0;
 }
 
-FolderIndexEntry makeFolderIndexEntry(const QVariant& value)
+FolderIndexEntry
+makeFolderIndexEntry(const QVariant& value)
 {
     FolderIndexEntry entry;
     entry.value = value;
 
     const QVariantMap map = mapFromVariant(value);
     const QVariant rawItem = map.value(QStringLiteral("rawItem"));
-    const QVariant raw = rawItem.isValid() && !rawItem.isNull() ? rawItem : value;
+    const QVariant raw =
+      rawItem.isValid() && !rawItem.isNull() ? rawItem : value;
     if (auto* chart = chartDataObject(raw)) {
         entry.valid = true;
         entry.folderKey = chart->getChartDirectory();
@@ -877,11 +1003,9 @@ FolderIndexEntry makeFolderIndexEntry(const QVariant& value)
         entry.keymodeKey = QString::number(entry.keymode);
         entry.difficulty = chart->getDifficulty();
         entry.playLevel = chart->getPlayLevel();
-        entry.noteCount = chart->getNormalNoteCount()
-            + chart->getScratchCount()
-            + chart->getLnCount()
-            + chart->getBssCount()
-            + chart->getMineCount();
+        entry.noteCount = chart->getNormalNoteCount() +
+                          chart->getScratchCount() + chart->getLnCount() +
+                          chart->getBssCount() + chart->getMineCount();
         return entry;
     }
 
@@ -901,15 +1025,16 @@ FolderIndexEntry makeFolderIndexEntry(const QVariant& value)
     entry.keymodeKey = QString::number(entry.keymode);
     entry.difficulty = intField(value, map, QStringLiteral("difficulty"));
     entry.playLevel = intField(value, map, QStringLiteral("playLevel"));
-    entry.noteCount = intField(value, map, QStringLiteral("normalNoteCount"))
-        + intField(value, map, QStringLiteral("scratchCount"))
-        + intField(value, map, QStringLiteral("lnCount"))
-        + intField(value, map, QStringLiteral("bssCount"))
-        + intField(value, map, QStringLiteral("mineCount"));
+    entry.noteCount = intField(value, map, QStringLiteral("normalNoteCount")) +
+                      intField(value, map, QStringLiteral("scratchCount")) +
+                      intField(value, map, QStringLiteral("lnCount")) +
+                      intField(value, map, QStringLiteral("bssCount")) +
+                      intField(value, map, QStringLiteral("mineCount"));
     return entry;
 }
 
-QHash<QString, int> inferGroupDifficulties(QVector<FolderIndexEntry> group)
+QHash<QString, int>
+inferGroupDifficulties(QVector<FolderIndexEntry> group)
 {
     QHash<QString, int> result;
     bool hasInvalid = false;
@@ -931,12 +1056,14 @@ QHash<QString, int> inferGroupDifficulties(QVector<FolderIndexEntry> group)
         return result;
     }
 
-    std::stable_sort(group.begin(), group.end(), [](const FolderIndexEntry& a, const FolderIndexEntry& b) {
-        if (a.noteCount != b.noteCount) {
-            return a.noteCount < b.noteCount;
-        }
-        return a.path < b.path;
-    });
+    std::stable_sort(group.begin(),
+                     group.end(),
+                     [](const FolderIndexEntry& a, const FolderIndexEntry& b) {
+                         if (a.noteCount != b.noteCount) {
+                             return a.noteCount < b.noteCount;
+                         }
+                         return a.path < b.path;
+                     });
 
     int inferred = 1;
     for (const FolderIndexEntry& chart : group) {
@@ -966,16 +1093,18 @@ QHash<QString, int> inferGroupDifficulties(QVector<FolderIndexEntry> group)
 } // namespace
 
 resource_managers::ChartFolderModel::ChartFolderModel(QObject* parent)
-    : QObject(parent)
+  : QObject(parent)
 {
 }
 
-int resource_managers::ChartFolderModel::sortMode() const
+int
+resource_managers::ChartFolderModel::sortMode() const
 {
     return m_sortMode;
 }
 
-void resource_managers::ChartFolderModel::setSortMode(int value)
+void
+resource_managers::ChartFolderModel::setSortMode(int value)
 {
     if (m_sortMode == value) {
         return;
@@ -984,12 +1113,14 @@ void resource_managers::ChartFolderModel::setSortMode(int value)
     emit sortModeChanged();
 }
 
-int resource_managers::ChartFolderModel::keymodeFilter() const
+int
+resource_managers::ChartFolderModel::keymodeFilter() const
 {
     return m_keymodeFilter;
 }
 
-void resource_managers::ChartFolderModel::setKeymodeFilter(int value)
+void
+resource_managers::ChartFolderModel::setKeymodeFilter(int value)
 {
     if (m_keymodeFilter == value) {
         return;
@@ -998,12 +1129,14 @@ void resource_managers::ChartFolderModel::setKeymodeFilter(int value)
     emit keymodeFilterChanged();
 }
 
-int resource_managers::ChartFolderModel::difficultyFilter() const
+int
+resource_managers::ChartFolderModel::difficultyFilter() const
 {
     return m_difficultyFilter;
 }
 
-void resource_managers::ChartFolderModel::setDifficultyFilter(int value)
+void
+resource_managers::ChartFolderModel::setDifficultyFilter(int value)
 {
     if (m_difficultyFilter == value) {
         return;
@@ -1012,12 +1145,14 @@ void resource_managers::ChartFolderModel::setDifficultyFilter(int value)
     emit difficultyFilterChanged();
 }
 
-bool resource_managers::ChartFolderModel::unscoredItemsLast() const
+bool
+resource_managers::ChartFolderModel::unscoredItemsLast() const
 {
     return m_unscoredItemsLast;
 }
 
-void resource_managers::ChartFolderModel::setUnscoredItemsLast(bool value)
+void
+resource_managers::ChartFolderModel::setUnscoredItemsLast(bool value)
 {
     if (m_unscoredItemsLast == value) {
         return;
@@ -1026,12 +1161,14 @@ void resource_managers::ChartFolderModel::setUnscoredItemsLast(bool value)
     emit unscoredItemsLastChanged();
 }
 
-QVariantMap resource_managers::ChartFolderModel::scores() const
+QVariantMap
+resource_managers::ChartFolderModel::scores() const
 {
     return m_scores;
 }
 
-void resource_managers::ChartFolderModel::setScores(const QVariantMap& value)
+void
+resource_managers::ChartFolderModel::setScores(const QVariantMap& value)
 {
     if (m_scores == value) {
         return;
@@ -1040,14 +1177,20 @@ void resource_managers::ChartFolderModel::setScores(const QVariantMap& value)
     emit scoresChanged();
 }
 
-QVariantList resource_managers::ChartFolderModel::filterAndSort(const QVariantList& input) const
+QVariantList
+resource_managers::ChartFolderModel::filterAndSort(
+  const QVariantList& input) const
 {
     QVector<SortEntry> fixedEntries;
     QVector<SortEntry> chartEntries;
     const QVariantMap emptyScores;
-    const QVariantMap& scoresForSort = sortModeUsesScores() ? m_scores : emptyScores;
+    const QVariantMap& scoresForSort =
+      sortModeUsesScores() ? m_scores : emptyScores;
     for (qsizetype i = 0; i < input.size(); ++i) {
-        SortEntry entry = makeEntry(input.at(i), static_cast<int>(i), m_chartDifficultyByPath, scoresForSort);
+        SortEntry entry = makeEntry(input.at(i),
+                                    static_cast<int>(i),
+                                    m_chartDifficultyByPath,
+                                    scoresForSort);
         if (isSortableChartLike(entry)) {
             if (keyFilterMatches(entry, m_keymodeFilter)) {
                 chartEntries.append(std::move(entry));
@@ -1059,20 +1202,21 @@ QVariantList resource_managers::ChartFolderModel::filterAndSort(const QVariantLi
 
     chartEntries = difficultyFilteredCharts(chartEntries, m_difficultyFilter);
     if (m_sortMode != 0 && chartEntries.size() > 1) {
-        std::stable_sort(
-            chartEntries.begin(),
-            chartEntries.end(),
-            [this](const SortEntry& a, const SortEntry& b) {
-                const int result = compareEntries(a, b, m_sortMode, m_unscoredItemsLast);
-                if (result != 0) {
-                    return result < 0;
-                }
-                return a.sourceIndex < b.sourceIndex;
-            });
+        std::stable_sort(chartEntries.begin(),
+                         chartEntries.end(),
+                         [this](const SortEntry& a, const SortEntry& b) {
+                             const int result = compareEntries(
+                               a, b, m_sortMode, m_unscoredItemsLast);
+                             if (result != 0) {
+                                 return result < 0;
+                             }
+                             return a.sourceIndex < b.sourceIndex;
+                         });
     }
 
     QVariantList resultItems;
-    resultItems.reserve(std::max<qsizetype>(1, fixedEntries.size() + chartEntries.size()));
+    resultItems.reserve(
+      std::max<qsizetype>(1, fixedEntries.size() + chartEntries.size()));
     for (const SortEntry& entry : fixedEntries) {
         resultItems.append(entry.value);
     }
@@ -1085,15 +1229,21 @@ QVariantList resource_managers::ChartFolderModel::filterAndSort(const QVariantLi
     return resultItems;
 }
 
-int resource_managers::ChartFolderModel::indexOfItem(const QVariantList& items, const QVariant& item) const
+int
+resource_managers::ChartFolderModel::indexOfItem(const QVariantList& items,
+                                                 const QVariant& item) const
 {
     if (!item.isValid() || item.isNull()) {
         return -1;
     }
     const QVariantMap emptyScores;
-    const SortEntry needle = makeEntry(item, -1, m_chartDifficultyByPath, emptyScores);
+    const SortEntry needle =
+      makeEntry(item, -1, m_chartDifficultyByPath, emptyScores);
     for (qsizetype i = 0; i < items.size(); ++i) {
-        const SortEntry entry = makeEntry(items.at(i), static_cast<int>(i), m_chartDifficultyByPath, emptyScores);
+        const SortEntry entry = makeEntry(items.at(i),
+                                          static_cast<int>(i),
+                                          m_chartDifficultyByPath,
+                                          emptyScores);
         if (sameEntry(entry, needle)) {
             return static_cast<int>(i);
         }
@@ -1101,13 +1251,16 @@ int resource_managers::ChartFolderModel::indexOfItem(const QVariantList& items, 
     return -1;
 }
 
-bool resource_managers::ChartFolderModel::sortModeUsesScores(int mode) const
+bool
+resource_managers::ChartFolderModel::sortModeUsesScores(int mode) const
 {
     const int effectiveMode = mode < 0 ? m_sortMode : mode;
     return effectiveMode == 6 || effectiveMode == 7 || effectiveMode == 8;
 }
 
-void resource_managers::ChartFolderModel::rebuildFolderIndexes(const QVariantList& input)
+void
+resource_managers::ChartFolderModel::rebuildFolderIndexes(
+  const QVariantList& input)
 {
     m_chartGroupsByFolderKeymode.clear();
     m_chartDifficultyByPath.clear();
@@ -1121,9 +1274,11 @@ void resource_managers::ChartFolderModel::rebuildFolderIndexes(const QVariantLis
             continue;
         }
 
-        m_chartGroupsByFolderKeymode[entry.folderKey][entry.keymodeKey].append(entry.value);
+        m_chartGroupsByFolderKeymode[entry.folderKey][entry.keymodeKey].append(
+          entry.value);
 
-        const QString groupKey = entry.folderKey + QChar(0x1f) + entry.keymodeKey;
+        const QString groupKey =
+          entry.folderKey + QChar(0x1f) + entry.keymodeKey;
         if (!difficultyGroups.contains(groupKey)) {
             difficultyGroupOrder.append(groupKey);
         }
@@ -1131,22 +1286,27 @@ void resource_managers::ChartFolderModel::rebuildFolderIndexes(const QVariantLis
     }
 
     for (const QString& groupKey : difficultyGroupOrder) {
-        const QHash<QString, int> groupDifficulties = inferGroupDifficulties(difficultyGroups.value(groupKey));
-        for (auto it = groupDifficulties.cbegin(); it != groupDifficulties.cend(); ++it) {
+        const QHash<QString, int> groupDifficulties =
+          inferGroupDifficulties(difficultyGroups.value(groupKey));
+        for (auto it = groupDifficulties.cbegin();
+             it != groupDifficulties.cend();
+             ++it) {
             m_chartDifficultyByPath.insert(it.key(), it.value());
         }
     }
-
 }
 
-QVariantList resource_managers::ChartFolderModel::chartsForSameFolderAndKeymode(const QVariant& chart) const
+QVariantList
+resource_managers::ChartFolderModel::chartsForSameFolderAndKeymode(
+  const QVariant& chart) const
 {
     const FolderIndexEntry entry = makeFolderIndexEntry(chart);
     if (!entry.valid) {
         return {};
     }
 
-    const auto folderIt = m_chartGroupsByFolderKeymode.constFind(entry.folderKey);
+    const auto folderIt =
+      m_chartGroupsByFolderKeymode.constFind(entry.folderKey);
     if (folderIt == m_chartGroupsByFolderKeymode.constEnd()) {
         return {};
     }
@@ -1158,7 +1318,9 @@ QVariantList resource_managers::ChartFolderModel::chartsForSameFolderAndKeymode(
     return keymodeIt.value();
 }
 
-int resource_managers::ChartFolderModel::difficultyForChart(const QVariant& chart) const
+int
+resource_managers::ChartFolderModel::difficultyForChart(
+  const QVariant& chart) const
 {
     const FolderIndexEntry entry = makeFolderIndexEntry(chart);
     if (!entry.valid) {

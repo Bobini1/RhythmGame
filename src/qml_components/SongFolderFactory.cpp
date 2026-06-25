@@ -51,7 +51,8 @@ SongFolderFactory::openChartDirectory(const QString& path)
     getChartsInChartDirectory.reset();
     getChartsInChartDirectory.bind(1, directory.toStdString());
     const auto chartResult =
-      getChartsInChartDirectory.executeAndGetAll<gameplay_logic::ChartData::DTO>();
+      getChartsInChartDirectory
+        .executeAndGetAll<gameplay_logic::ChartData::DTO>();
     for (const auto& row : chartResult) {
         auto loadedChart = gameplay_logic::ChartData::load(row);
         QQmlEngine::setObjectOwnership(loadedChart.get(),

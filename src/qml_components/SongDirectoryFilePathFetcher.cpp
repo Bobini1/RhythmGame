@@ -40,9 +40,9 @@ SongDirectoryFilePathFetcher::getFilePaths(QList<QString> directories,
         auto chunk = directories.mid(i, maxVariables);
         auto placeholders = QString("?, ").repeated(chunk.size()).chopped(2);
 
-        auto statement = db->createStatement(
-          "SELECT directory, path FROM " + table + " WHERE directory IN (" +
-          placeholders.toStdString() + ")");
+        auto statement = db->createStatement("SELECT directory, path FROM " +
+                                             table + " WHERE directory IN (" +
+                                             placeholders.toStdString() + ")");
 
         for (int j = 0; j < chunk.size(); ++j) {
             statement.bind(j + 1, chunk[j].toStdString());
@@ -58,24 +58,21 @@ SongDirectoryFilePathFetcher::getFilePaths(QList<QString> directories,
         }
     }
 
-    spdlog::debug(
-      "Fetched {} {} file paths in {}s", result.size(), table, sw);
+    spdlog::debug("Fetched {} {} file paths in {}s", result.size(), table, sw);
 
     return result;
 }
 
 auto
 SongDirectoryFilePathFetcher::getPreviewFilePaths(
-  QList<QString> directories) const
-  -> QVariantHash
+  QList<QString> directories) const -> QVariantHash
 {
     return getFilePaths(std::move(directories), "preview_files");
 }
 
 auto
 SongDirectoryFilePathFetcher::getReadmeFilePaths(
-  QList<QString> directories) const
-  -> QVariantHash
+  QList<QString> directories) const -> QVariantHash
 {
     return getFilePaths(std::move(directories), "readme_files");
 }

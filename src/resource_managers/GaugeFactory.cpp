@@ -25,12 +25,13 @@ selectGauges(
     });
     auto bottomIt = gauges.end();
     if (gaugeMode == GaugeMode::SelectToUnder) {
-    const auto bottomGauge = vars->getBottomShiftableGauge();
-        bottomIt = std::ranges::find_if(
-        gauges, [&](const auto& elem) { return elem->getName() == bottomGauge ||
-             equivalents[elem->getName()] == selectedGauge; });
-        if (bottomIt != std::ranges::end(gauges) && selectedIt != std::ranges::end(gauges) &&
-            bottomIt != selectedIt) {
+        const auto bottomGauge = vars->getBottomShiftableGauge();
+        bottomIt = std::ranges::find_if(gauges, [&](const auto& elem) {
+            return elem->getName() == bottomGauge ||
+                   equivalents[elem->getName()] == selectedGauge;
+        });
+        if (bottomIt != std::ranges::end(gauges) &&
+            selectedIt != std::ranges::end(gauges) && bottomIt != selectedIt) {
             if (std::distance(bottomIt, selectedIt) > 0) {
                 bottomIt = selectedIt;
             }

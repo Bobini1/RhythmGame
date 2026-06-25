@@ -643,7 +643,7 @@ ChartLoader::loadChartDataFromDb(QList<QString> md5s) const -> QVariantMap
 
         const auto result =
           statement.executeAndGetAll<gameplay_logic::ChartData::DTO>();
-        allResults.append_range(result);
+        allResults.insert(allResults.end(), result.begin(), result.end());
     }
     auto ret = QVariantMap{};
     for (const auto& result : allResults) {

@@ -58,19 +58,15 @@ TEST_CASE("LR2 skin scanner skips unsupported beatoraja keymodes",
     const auto skinRoot = themesRoot / "MixedSkin";
 
     writeLr2Skin(skinRoot / "play7.lr2skin", 0, QStringLiteral("Seven"));
-    writeLr2Skin(skinRoot / "play7battle.lr2skin",
-                 12,
-                 QStringLiteral("Seven Battle"));
+    writeLr2Skin(
+      skinRoot / "play7battle.lr2skin", 12, QStringLiteral("Seven Battle"));
     writeLr2Skin(skinRoot / "play9.lr2skin", 4, QStringLiteral("Nine"));
-    writeLr2Skin(skinRoot / "play9battle.lr2skin",
-                 14,
-                 QStringLiteral("Nine Battle"));
-    writeLr2Skin(skinRoot / "play24.lr2skin",
-                 16,
-                 QStringLiteral("Twenty Four"));
-    writeLr2Skin(skinRoot / "play48.lr2skin",
-                 17,
-                 QStringLiteral("Forty Eight"));
+    writeLr2Skin(
+      skinRoot / "play9battle.lr2skin", 14, QStringLiteral("Nine Battle"));
+    writeLr2Skin(
+      skinRoot / "play24.lr2skin", 16, QStringLiteral("Twenty Four"));
+    writeLr2Skin(
+      skinRoot / "play48.lr2skin", 17, QStringLiteral("Forty Eight"));
     writeLr2Skin(skinRoot / "play24battle.lr2skin",
                  18,
                  QStringLiteral("Twenty Four Battle"));
@@ -78,12 +74,10 @@ TEST_CASE("LR2 skin scanner skips unsupported beatoraja keymodes",
     const auto themes = resource_managers::scanThemes(themesRoot);
 
     REQUIRE(themes.contains(QStringLiteral("Seven (play7.lr2skin)")));
-    CHECK(themes[QStringLiteral("Seven (play7.lr2skin)")]
-            .getScreens()
-            .contains(QStringLiteral("k7")));
-    CHECK(themes[QStringLiteral("Seven (play7.lr2skin)")]
-            .getScreens()
-            .contains(QStringLiteral("k5")));
+    CHECK(themes[QStringLiteral("Seven (play7.lr2skin)")].getScreens().contains(
+      QStringLiteral("k7")));
+    CHECK(themes[QStringLiteral("Seven (play7.lr2skin)")].getScreens().contains(
+      QStringLiteral("k5")));
 
     REQUIRE(
       themes.contains(QStringLiteral("Seven Battle (play7battle.lr2skin)")));
@@ -121,8 +115,8 @@ TEST_CASE("LR2 skin scanner reads no-BOM headers as CP932",
 
     const auto themes = resource_managers::scanThemes(themesRoot);
 
-    const auto familyName = QString(QChar(0x2460)) +
-                            QStringLiteral(" (play7.lr2skin)");
+    const auto familyName =
+      QString(QChar(0x2460)) + QStringLiteral(" (play7.lr2skin)");
     REQUIRE(themes.contains(familyName));
 
     const auto screens = themes[familyName].getScreens();
@@ -144,14 +138,16 @@ TEST_CASE("LR2 skin scanner reads no-BOM headers as CP932",
     CHECK(choices[0]
             .toObject()[QStringLiteral("name")]
             .toObject()[QStringLiteral("en")]
-            .toString() == QString(QChar(0x3042)) + QStringLiteral("(Default)"));
+            .toString() ==
+          QString(QChar(0x3042)) + QStringLiteral("(Default)"));
     CHECK(choices[1]
             .toObject()[QStringLiteral("name")]
             .toObject()[QStringLiteral("en")]
             .toString() == QString(QChar(0x3044)) + QStringLiteral("(Alt)"));
 }
 
-TEST_CASE("LR2 skin scanner falls back to first custom file when default stem is missing",
+TEST_CASE("LR2 skin scanner falls back to first custom file when default stem "
+          "is missing",
           "[themes][lr2][settings]")
 {
     QTemporaryDir tempDir;
@@ -160,11 +156,10 @@ TEST_CASE("LR2 skin scanner falls back to first custom file when default stem is
 
     writeLr2SkinBytes(skinRoot / "cover" / "Default.png",
                       QByteArray("image", 5));
-    writeLr2SkinBytes(
-      skinRoot / "play7.lr2skin",
-      QByteArray("#INFORMATION,0,Missing Default,Tester\n"
-                 "#CUSTOMFILE,Cover,cover/*.png,Random\n"
-                 "#ENDOFHEADER\n"));
+    writeLr2SkinBytes(skinRoot / "play7.lr2skin",
+                      QByteArray("#INFORMATION,0,Missing Default,Tester\n"
+                                 "#CUSTOMFILE,Cover,cover/*.png,Random\n"
+                                 "#ENDOFHEADER\n"));
 
     const auto themes = resource_managers::scanThemes(themesRoot);
 
@@ -191,8 +186,7 @@ TEST_CASE("LR2 skin scanner keeps custom option and file ids distinct",
     const auto themesRoot = makeThemesRoot(tempDir);
     const auto skinRoot = themesRoot / "CollidingIdsSkin";
 
-    writeLr2SkinBytes(skinRoot / "cover" / "LR2.png",
-                      QByteArray("image", 5));
+    writeLr2SkinBytes(skinRoot / "cover" / "LR2.png", QByteArray("image", 5));
     writeLr2SkinBytes(
       skinRoot / "play7.lr2skin",
       QByteArray("#INFORMATION,0,Colliding IDs,Tester\n"

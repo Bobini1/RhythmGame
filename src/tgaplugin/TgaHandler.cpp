@@ -98,9 +98,8 @@ TgaHandler::read(QImage* image)
     for (int y = 0; y < converted->h; ++y) {
         const auto bytesToCopy = static_cast<std::size_t>(std::min<qsizetype>(
           result.bytesPerLine(), static_cast<qsizetype>(converted->pitch)));
-        std::memcpy(result.scanLine(y),
-                    sourcePixels + y * converted->pitch,
-                    bytesToCopy);
+        std::memcpy(
+          result.scanLine(y), sourcePixels + y * converted->pitch, bytesToCopy);
     }
 
     *image = result;

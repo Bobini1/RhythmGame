@@ -60,8 +60,9 @@ auto
 providerQueryValue(const QUrlQuery& query, const QString& key) -> QString
 {
     // QML constructs the provider URL with encodeURIComponent(), and Qt Quick
-    // preserves that escaped query through the image-provider request id. Decode
-    // the query item explicitly so visible text does not leak "%5B"/"%5D".
+    // preserves that escaped query through the image-provider request id.
+    // Decode the query item explicitly so visible text does not leak
+    // "%5B"/"%5D".
     return QUrl::fromPercentEncoding(
       query.queryItemValue(key, QUrl::FullyDecoded).toUtf8());
 }
@@ -97,9 +98,8 @@ composeTextImage(const QString& fontPath, const QString& text)
         const qreal advance = glyphAdvance(*dict, glyph);
 
         if (validGlyph(*dict, glyph)) {
-            glyphs.append({ &dict->textures[glyph.imgIdx],
-                            glyph.rect,
-                            sourceTotalWidth });
+            glyphs.append(
+              { &dict->textures[glyph.imgIdx], glyph.rect, sourceTotalWidth });
             textureHeight = std::max(textureHeight, glyph.rect.height());
         }
 
@@ -166,9 +166,8 @@ composeScaledTextImage(const QString& fontPath,
         const qreal advance = glyphAdvance(*dict, glyph);
 
         if (validGlyph(*dict, glyph)) {
-            glyphs.append({ &dict->textures[glyph.imgIdx],
-                            glyph.rect,
-                            sourceTotalWidth });
+            glyphs.append(
+              { &dict->textures[glyph.imgIdx], glyph.rect, sourceTotalWidth });
             textureHeight = std::max(textureHeight, glyph.rect.height());
         }
 
@@ -182,8 +181,10 @@ composeScaledTextImage(const QString& fontPath,
     QImage image(targetSize, QImage::Format_ARGB32);
     image.fill(Qt::transparent);
 
-    const qreal scaleX = static_cast<qreal>(targetSize.width()) / sourceTotalWidth;
-    const qreal scaleY = static_cast<qreal>(targetSize.height()) / textureHeight;
+    const qreal scaleX =
+      static_cast<qreal>(targetSize.width()) / sourceTotalWidth;
+    const qreal scaleY =
+      static_cast<qreal>(targetSize.height()) / textureHeight;
 
     QPainter painter(&image);
     painter.setRenderHint(QPainter::Antialiasing, false);

@@ -50,12 +50,8 @@ decodeCp932WithWindows(const QByteArray& data) -> std::optional<QString>
     }
 
     std::wstring wide(static_cast<std::size_t>(wideSize), L'\0');
-    const int converted = MultiByteToWideChar(932,
-                                             MB_ERR_INVALID_CHARS,
-                                             data.constData(),
-                                             size,
-                                             wide.data(),
-                                             wideSize);
+    const int converted = MultiByteToWideChar(
+      932, MB_ERR_INVALID_CHARS, data.constData(), size, wide.data(), wideSize);
     if (converted <= 0) {
         return std::nullopt;
     }
@@ -82,9 +78,12 @@ decodeSkinText(const QByteArray& data) -> QString
         return *decoded;
     }
 #endif
-    for (const auto* encoding :
-         { "CP932", "windows-31j", "Shift-JIS", "Shift_JIS", "SJIS",
-           "MS_Kanji" }) {
+    for (const auto* encoding : { "CP932",
+                                  "windows-31j",
+                                  "Shift-JIS",
+                                  "Shift_JIS",
+                                  "SJIS",
+                                  "MS_Kanji" }) {
         QStringDecoder decoder(encoding);
         if (!decoder.isValid()) {
             continue;
@@ -114,8 +113,8 @@ decodeSkinText(const QByteArray& data) -> QString
         const auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
         iconv_close(cd);
         if (result != static_cast<size_t>(-1)) {
-            return QString::fromUtf8(
-              dstBuf.data(), static_cast<qsizetype>(dstSize - dstLeft));
+            return QString::fromUtf8(dstBuf.data(),
+                                     static_cast<qsizetype>(dstSize - dstLeft));
         }
     }
 
@@ -189,9 +188,8 @@ assignSettingsItemId(const QString& text,
                      SettingsIdState& state) -> QString
 {
     const auto baseId = makeSafeId(text, fallback);
-    const auto fallbackId = makeSafeId(fallback,
-                                       QStringLiteral("setting_%1")
-                                         .arg(itemIndex));
+    const auto fallbackId =
+      makeSafeId(fallback, QStringLiteral("setting_%1").arg(itemIndex));
 
     // LR2 skins often have an option and its backing file picker named almost
     // the same, for example SUDDEN+ Lanecover and SUDDEN Lanecover. Preserve
@@ -201,10 +199,8 @@ assignSettingsItemId(const QString& text,
         const auto previousIndex = state.usedIds.value(baseId);
         if (state.itemTypes.value(previousIndex) == QStringLiteral("choice")) {
             auto previousItem = itemsArray[previousIndex].toObject();
-            const auto previousFallback =
-              state.duplicateFallbacks.value(previousIndex,
-                                             QStringLiteral("setting_%1")
-                                               .arg(previousIndex));
+            const auto previousFallback = state.duplicateFallbacks.value(
+              previousIndex, QStringLiteral("setting_%1").arg(previousIndex));
             const auto previousId =
               availableSettingsId(previousFallback, state.usedIds);
             previousItem[QStringLiteral("id")] = previousId;
@@ -300,8 +296,8 @@ customFileDefault(const std::filesystem::path& directory,
             continue;
         }
 
-        const auto filename = support::pathToQString(
-          fileEntry.path().filename());
+        const auto filename =
+          support::pathToQString(fileEntry.path().filename());
         if (filename.startsWith('.') || filename.endsWith(".ini")) {
             continue;
         }
@@ -324,9 +320,8 @@ fallbackToCurrentTheme(const std::filesystem::path& currentDir,
   -> std::filesystem::path
 {
     auto it = lr2filesRelative.begin();
-    if (it == lr2filesRelative.end() ||
-        support::pathToQString(*it)
-            .compare("themes", Qt::CaseInsensitive) != 0) {
+    if (it == lr2filesRelative.end() || support::pathToQString(*it).compare(
+                                          "themes", Qt::CaseInsensitive) != 0) {
         return {};
     }
     ++it;
@@ -461,13 +456,13 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
 
             QJsonObject item;
             item["type"] = "choice";
-            item["id"] = assignSettingsItemId(
-              name,
-              "opt_" + optionId,
-              QStringLiteral("choice"),
-              static_cast<int>(itemsArray.size()),
-              itemsArray,
-              idState);
+            item["id"] =
+              assignSettingsItemId(name,
+                                   "opt_" + optionId,
+                                   QStringLiteral("choice"),
+                                   static_cast<int>(itemsArray.size()),
+                                   itemsArray,
+                                   idState);
             QJsonObject nameObj;
             nameObj["en"] = name;
             item["name"] = nameObj;
@@ -491,13 +486,13 @@ buildLr2SettingsData(const std::filesystem::path& lr2SkinPath,
 
             QJsonObject item;
             item["type"] = "file";
-            item["id"] = assignSettingsItemId(
-              name,
-              "file_" + QString::number(itemsArray.size()),
-              QStringLiteral("file"),
-              static_cast<int>(itemsArray.size()),
-              itemsArray,
-              idState);
+            item["id"] =
+              assignSettingsItemId(name,
+                                   "file_" + QString::number(itemsArray.size()),
+                                   QStringLiteral("file"),
+                                   static_cast<int>(itemsArray.size()),
+                                   itemsArray,
+                                   idState);
             QJsonObject nameObj;
             nameObj["en"] = name;
             item["name"] = nameObj;

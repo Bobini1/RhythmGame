@@ -155,10 +155,9 @@ loadBmsSounds(sounds::AudioEngine* engine,
                          std::make_shared<const sounds::NormalSoundBuffer>(
                            engine, path) } };
           } catch (const std::exception& e) {
-              spdlog::warn(
-                "Failed to load sound {}: {}",
-                support::pathToUtfString(path),
-                e.what());
+              spdlog::warn("Failed to load sound {}: {}",
+                           support::pathToUtfString(path),
+                           e.what());
               return std::nullopt;
           }
       },
@@ -242,10 +241,9 @@ loadBmsonSounds(
                                                                     path)
               };
           } catch (const std::exception& e) {
-              spdlog::warn(
-                "Failed to load bmson sound {}: {}",
-                support::pathToUtfString(path),
-                e.what());
+              spdlog::warn("Failed to load bmson sound {}: {}",
+                           support::pathToUtfString(path),
+                           e.what());
               return std::nullopt;
           }
       },

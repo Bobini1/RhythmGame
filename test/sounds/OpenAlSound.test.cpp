@@ -8,8 +8,11 @@
 #include "sounds/NormalSoundBuffer.h"
 #include "sounds/SoundBuffer.h"
 
+#include <QByteArray>
+
 TEST_CASE("OpenAlSound supports formats", "[sounds][FFmpegOpenAlSound]")
 {
+    qputenv("RHYTHMGAME_AUDIO_BACKEND", QByteArrayLiteral("Null"));
     auto engine = sounds::AudioEngine{};
     for (const auto soundFolder =
            findTestAssetsFolder() / "supportedSoundFormats";

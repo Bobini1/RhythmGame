@@ -26,17 +26,16 @@ cursorKey(const QString& source, const QRect& sourceRect, const QSize& target)
 
 } // namespace
 
-Lr2NativeCursor::Lr2NativeCursor(QQuickItem* parent) : QQuickItem(parent)
+Lr2NativeCursor::Lr2NativeCursor(QQuickItem* parent)
+  : QQuickItem(parent)
 {
     setFlag(ItemHasContents, false);
-    connect(this,
-            &QQuickItem::windowChanged,
-            this,
-            [this](QQuickWindow* window) {
-                clearCursor();
-                m_window = window;
-                updateCursor();
-            });
+    connect(
+      this, &QQuickItem::windowChanged, this, [this](QQuickWindow* window) {
+          clearCursor();
+          m_window = window;
+          updateCursor();
+      });
 }
 
 Lr2NativeCursor::~Lr2NativeCursor()
@@ -130,13 +129,11 @@ Lr2NativeCursor::updateCursor()
         return;
     }
 
-    const auto target =
-      QSize{ qMax(1, qRound(m_targetSize.width())),
-             qMax(1, qRound(m_targetSize.height())) };
+    const auto target = QSize{ qMax(1, qRound(m_targetSize.width())),
+                               qMax(1, qRound(m_targetSize.height())) };
     if (image.size() != target) {
-        image = image.scaled(target,
-                             Qt::IgnoreAspectRatio,
-                             Qt::FastTransformation);
+        image =
+          image.scaled(target, Qt::IgnoreAspectRatio, Qt::FastTransformation);
     }
 
     const auto rect = m_sourceRect.toAlignedRect();

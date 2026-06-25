@@ -5,9 +5,11 @@
 #include "AudioEngine.h"
 #include "Sound.h"
 
+#include <QByteArray>
 #include <qsettings.h>
 #include <ranges>
 #include <spdlog/spdlog.h>
+
 #include <stdexcept>
 
 //
@@ -228,7 +230,12 @@ AudioEngine::AudioEngine()
     for (const auto backend : backends) {
         backendNames.append(ma_get_backend_name(backend));
     }
-    currentBackend = settings.value("audio/backend", "").toString();
+    const auto backend = qgetenv("RHYTHMGAME_AUDIO_BACKEND");
+    if (!backend.isEmpty()) {
+        currentBackend = QString::fromUtf8(backend);
+    } else {
+        currentBackend = settings.value("audio/backend", "").toString();
+    }
     if (!backendNames.contains(currentBackend)) {
         currentBackend = "";
     }

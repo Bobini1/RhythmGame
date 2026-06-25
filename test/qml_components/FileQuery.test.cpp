@@ -23,8 +23,7 @@ textWith(QChar ch) -> QString
 
 } // namespace
 
-TEST_CASE("FileQuery reads no-BOM text files as CP932",
-          "[FileQuery][encoding]")
+TEST_CASE("FileQuery reads no-BOM text files as CP932", "[FileQuery][encoding]")
 {
     QTemporaryDir tempDir;
     REQUIRE(tempDir.isValid());
@@ -36,8 +35,7 @@ TEST_CASE("FileQuery reads no-BOM text files as CP932",
     CHECK(text == textWith(QChar(0x2460)));
 }
 
-TEST_CASE("FileQuery honors UTF-8 BOM for text files",
-          "[FileQuery][encoding]")
+TEST_CASE("FileQuery honors UTF-8 BOM for text files", "[FileQuery][encoding]")
 {
     QTemporaryDir tempDir;
     REQUIRE(tempDir.isValid());
@@ -49,8 +47,7 @@ TEST_CASE("FileQuery honors UTF-8 BOM for text files",
     CHECK(text == textWith(QChar(0x3042)));
 }
 
-TEST_CASE("FileQuery honors UTF-16 BOM for text files",
-          "[FileQuery][encoding]")
+TEST_CASE("FileQuery honors UTF-16 BOM for text files", "[FileQuery][encoding]")
 {
     QTemporaryDir tempDir;
     REQUIRE(tempDir.isValid());

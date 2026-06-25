@@ -91,9 +91,12 @@ decodeTextFile(const QByteArray& data) -> QString
 
     // LR2-era text files commonly omit a BOM and use Japanese Windows CP932.
     // Do not auto-detect UTF-8 for these files; ASCII survives unchanged.
-    for (const auto* encoding :
-         { "CP932", "windows-31j", "Shift-JIS", "Shift_JIS", "SJIS",
-           "MS_Kanji" }) {
+    for (const auto* encoding : { "CP932",
+                                  "windows-31j",
+                                  "Shift-JIS",
+                                  "Shift_JIS",
+                                  "SJIS",
+                                  "MS_Kanji" }) {
         QStringDecoder decoder(encoding);
         if (!decoder.isValid()) {
             continue;
@@ -123,8 +126,8 @@ decodeTextFile(const QByteArray& data) -> QString
         const auto result = iconv(cd, &srcPtr, &srcLeft, &dstPtr, &dstLeft);
         iconv_close(cd);
         if (result != static_cast<size_t>(-1)) {
-            return QString::fromUtf8(
-              dstBuf.data(), static_cast<qsizetype>(dstSize - dstLeft));
+            return QString::fromUtf8(dstBuf.data(),
+                                     static_cast<qsizetype>(dstSize - dstLeft));
         }
     }
 

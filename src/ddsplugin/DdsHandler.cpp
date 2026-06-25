@@ -68,15 +68,10 @@ readOiioImage(const QString& path, QImage* image) -> bool
         return false;
     }
 
-    std::vector<unsigned char> pixels(
-      static_cast<std::size_t>(pixelCount) * static_cast<std::size_t>(channels));
-    const bool readOk =
-      input->read_image(0,
-                        0,
-                        0,
-                        channels,
-                        OIIO::TypeDesc::UINT8,
-                        pixels.data());
+    std::vector<unsigned char> pixels(static_cast<std::size_t>(pixelCount) *
+                                      static_cast<std::size_t>(channels));
+    const bool readOk = input->read_image(
+      0, 0, 0, channels, OIIO::TypeDesc::UINT8, pixels.data());
     closeInput();
     if (!readOk) {
         return false;
@@ -91,17 +86,18 @@ readOiioImage(const QString& path, QImage* image) -> bool
         auto* destination = result.scanLine(y);
         for (int x = 0; x < width; ++x) {
             const auto sourceIndex =
-              (static_cast<std::size_t>(y) * static_cast<std::size_t>(width)
-               + static_cast<std::size_t>(x))
-              * static_cast<std::size_t>(channels);
+              (static_cast<std::size_t>(y) * static_cast<std::size_t>(width) +
+               static_cast<std::size_t>(x)) *
+              static_cast<std::size_t>(channels);
             const auto* source = pixels.data() + sourceIndex;
 
             const auto r = source[0];
             const auto g = channels >= 3 ? source[1] : r;
             const auto b = channels >= 3 ? source[2] : r;
-            const auto a = channels >= 4
-              ? source[3]
-              : (channels == 2 ? source[1] : static_cast<unsigned char>(255));
+            const auto a =
+              channels >= 4
+                ? source[3]
+                : (channels == 2 ? source[1] : static_cast<unsigned char>(255));
 
             const auto destinationIndex = x * 4;
             destination[destinationIndex + 0] = r;

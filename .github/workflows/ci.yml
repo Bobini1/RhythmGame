@@ -1,6 +1,8 @@
 name: Continuous Integration
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - master
@@ -9,33 +11,82 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VCPKG_BINARY_CACHE: ${{ github.workspace }}/.vcpkg-cache/binary
+  VCPKG_DOWNLOADS: ${{ github.workspace }}/.vcpkg-cache/downloads
+  VCPKG_BINARY_SOURCES: 'clear;files,${{ github.workspace }}/.vcpkg-cache/binary,readwrite;nugettimeout,300;nuget,https://nuget.pkg.github.com/Bobini1/index.json,readwrite'
+  VCPKG_USE_NUGET_CACHE: 'true'
+  VCPKG_MAX_CONCURRENCY: '2'
+  ANDROID_HOME: ''
+  ANDROID_NDK_HOME: ''
+  ANDROID_NDK_LATEST_HOME: ''
+  ANDROID_NDK_ROOT: ''
+  ANDROID_SDK_ROOT: ''
+
 jobs:
   lint:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      - name: Install clang-format
+        run: |
+          python3 -m venv "$RUNNER_TEMP/clang-format"
+          "$RUNNER_TEMP/clang-format/bin/python" -m pip install clang-format==20.1.8
+          echo "$RUNNER_TEMP/clang-format/bin" >> "$GITHUB_PATH"
 
       - name: Lint
         run: cmake -P cmake/lint.cmake
 
   coverage:
+    needs: test
     runs-on: ubuntu-latest
 
-    if: github.repository_owner == 'Bobini1'
+    if: ${{ github.repository_owner == 'Bobini1' && needs.test.result == 'success' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install LCov
         run: sudo apt-get update -q
           && sudo apt-get install lcov -q -y
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+        run: sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libwayland-dev wayland-protocols libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+
+      - name: Free disk space
+        run: bash .github/scripts/free-disk-space-ubuntu.sh
 
       - name: Export environment variables for vcpkg binary caching
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
@@ -57,13 +108,42 @@ jobs:
             -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
-        run: cmake --preset=ci-coverage
+        run: |
+          set -o pipefail
+          cmake --preset=ci-coverage 2>&1 | tee configure.log
+
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Upload configure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: configure-logs-${{ github.job }}-${{ runner.os }}
+          path: |
+            configure.log
+            build/**/CMakeFiles/CMakeConfigureLog.yaml
+            build/**/CMakeFiles/CMakeError.log
+            build/**/CMakeFiles/CMakeOutput.log
+            build/**/vcpkg-manifest-install.log
+          if-no-files-found: ignore
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build/coverage -j 2
 
       - name: Test
         working-directory: build/coverage
+        env:
+          RHYTHMGAME_AUDIO_BACKEND: Null
         run: |
           export DISPLAY=:99
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 -noreset > /dev/null 2>&1 &
@@ -78,20 +158,41 @@ jobs:
           files: build/coverage/coverage.info
 
   sanitize:
-    env:
-      CXX: clang++
-      CC: clang
+    needs: [ coverage, test ]
+    if: ${{ always() && needs.test.result == 'success' && (needs.coverage.result == 'success' || needs.coverage.result == 'skipped') }}
 
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install system dependencies
-        run: sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+        run: sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libwayland-dev wayland-protocols libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+
+      - name: Free disk space
+        run: bash .github/scripts/free-disk-space-ubuntu.sh
 
       - name: Export environment variables for vcpkg binary caching
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
@@ -112,11 +213,35 @@ jobs:
             setapikey "${{ secrets.GITHUB_TOKEN }}" \
             -Source "${{ env.NUGET_FEED_URL }}"
 
-      - name: Install Clang 13
-        run: sudo apt-get install clang libc++-dev -y
-
       - name: Configure
-        run: cmake --preset=ci-sanitize
+        run: |
+          set -o pipefail
+          cmake --preset=ci-sanitize 2>&1 | tee configure.log
+
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Upload configure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: configure-logs-${{ github.job }}-${{ runner.os }}
+          path: |
+            configure.log
+            build/**/CMakeFiles/CMakeConfigureLog.yaml
+            build/**/CMakeFiles/CMakeError.log
+            build/**/CMakeFiles/CMakeOutput.log
+            build/**/vcpkg-manifest-install.log
+          if-no-files-found: ignore
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build/sanitize -j 2
@@ -124,6 +249,7 @@ jobs:
       - name: Test
         working-directory: build/sanitize
         env:
+          RHYTHMGAME_AUDIO_BACKEND: Null
           ASAN_OPTIONS: "strict_string_checks=1:\
           detect_stack_use_after_return=1:\
           check_initialization_order=1:\
@@ -138,22 +264,32 @@ jobs:
   test:
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Install static analyzers
-        if: matrix.os == 'ubuntu-latest'
-        run: >-
-          sudo apt-get install clang-tidy-19 cppcheck -y -q
-          
-          sudo update-alternatives --install
-          /usr/bin/clang-tidy clang-tidy
-          /usr/bin/clang-tidy-19 190
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Setup MultiToolTask
         if: matrix.os == 'windows-latest'
@@ -166,48 +302,42 @@ jobs:
         shell: pwsh
         run: Install-WindowsFeature Server-Media-Foundation
 
+      - name: Free disk space
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: .github/scripts/free-disk-space-windows.ps1
+
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libwayland-dev wayland-protocols libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
           else
             brew install autoconf automake autoconf-archive libtool nuget
           fi
           
       - name: Free disk space
         if: matrix.os == 'ubuntu-latest'
+        run: bash .github/scripts/free-disk-space-ubuntu.sh
+
+      - name: Set up Python for vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Python virtualenv for vcpkg
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          sudo docker rmi $(docker image ls -aq) >/dev/null 2>&1 || true
-          sudo rm -rf \
-            /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-            /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
-            /usr/lib/jvm || true
-          echo "some directories deleted"
-          sudo apt install aptitude -y >/dev/null 2>&1
-          sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-            esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-            google-cloud-sdk imagemagick \
-            libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-            mercurial apt-transport-https libmysqlclient \
-            unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-            libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-            snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-            sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-            -y -f >/dev/null 2>&1
-          sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-          sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-          sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-          sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
-          sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
-          sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
-          sudo apt-get autoremove -y >/dev/null 2>&1
-          sudo apt-get autoclean -y >/dev/null 2>&1
-          echo "some packages purged"
+          python -m pip install --disable-pip-version-check virtualenv
+          $python = python -c "import sys; print(sys.executable)"
+          Set-Content -Path .vcpkg-ci-python3 -Value $python -NoNewline
+          Add-Content "$env:GITHUB_ENV" "VCPKG_PYTHON3=$python"
 
       - name: Export environment variables for vcpkg binary caching
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
@@ -258,8 +388,45 @@ jobs:
           -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --preset=ci-ubuntu 2>&1 | tee configure.log
+
+      - name: Configure
+        if: matrix.os == 'windows-latest'
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+        run: |
+          cmake --preset=ci-windows 2>&1 | Tee-Object -FilePath configure.log
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Upload configure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: configure-logs-${{ github.job }}-${{ runner.os }}
+          path: |
+            configure.log
+            build/**/CMakeFiles/CMakeConfigureLog.yaml
+            build/**/CMakeFiles/CMakeError.log
+            build/**/CMakeFiles/CMakeOutput.log
+            build/**/vcpkg-manifest-install.log
+          if-no-files-found: ignore
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build --config Release -j 2
@@ -271,6 +438,8 @@ jobs:
       - name: Test
         working-directory: build
         shell: bash
+        env:
+          RHYTHMGAME_AUDIO_BACKEND: Null
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
             export DISPLAY=:99
@@ -281,72 +450,78 @@ jobs:
           fi
 
   deploy:
+    needs: test
+
     strategy:
       matrix:
-        os: [ macos-latest, ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest, windows-latest ]
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Install static analyzers
-        if: matrix.os == 'ubuntu-latest'
-        run: >-
-          sudo apt-get install clang-tidy-19 cppcheck -y -q
-          
-          sudo update-alternatives --install
-          /usr/bin/clang-tidy clang-tidy
-          /usr/bin/clang-tidy-19 190
+      - name: Prepare vcpkg cache folders
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path `
+            "${{ github.workspace }}/.vcpkg-cache/binary", `
+            "${{ github.workspace }}/.vcpkg-cache/downloads", `
+            "${{ github.workspace }}/.vcpkg-buildtrees", `
+            "${{ github.workspace }}/.vcpkg-packages" | Out-Null
+
+      - name: Restore vcpkg cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: .vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.job }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
+            vcpkg-${{ runner.os }}-
 
       - name: Install WMF
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: Install-WindowsFeature Server-Media-Foundation
 
+      - name: Free disk space
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: .github/scripts/free-disk-space-windows.ps1
+
       - name: Install system dependencies
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         shell: bash
         run: |
           if [ ${{ matrix.os }} = ubuntu-latest ]; then
-            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
+            sudo apt-get update && sudo apt-get install libtbb-dev libgl-dev libegl1-mesa-dev libdrm-dev libgles2-mesa-dev libudev-dev nasm autoconf automake autoconf-archive gperf pkg-config python3-jinja2 '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libwayland-dev wayland-protocols libxkbcommon-dev libxkbcommon-x11-dev libltdl-dev libxrandr-dev mono-complete -y
           else
             brew install autoconf automake autoconf-archive libtool nuget
           fi
 
       - name: Free disk space
         if: matrix.os == 'ubuntu-latest'
+        run: bash .github/scripts/free-disk-space-ubuntu.sh
+
+      - name: Set up Python for vcpkg
+        if: matrix.os == 'windows-latest'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Install Python virtualenv for vcpkg
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          sudo docker rmi $(docker image ls -aq) >/dev/null 2>&1 || true
-          sudo rm -rf \
-            /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-            /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
-            /usr/lib/jvm || true
-          echo "some directories deleted"
-          sudo apt install aptitude -y >/dev/null 2>&1
-          sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-            esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-            google-cloud-sdk imagemagick \
-            libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-            mercurial apt-transport-https libmysqlclient \
-            unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-            libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-            snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-            sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-            -y -f >/dev/null 2>&1
-          sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-          sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-          sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-          sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
-          sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
-          sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
-          sudo apt-get autoremove -y >/dev/null 2>&1
-          sudo apt-get autoclean -y >/dev/null 2>&1
-          echo "some packages purged"
+          python -m pip install --disable-pip-version-check virtualenv
+          $python = python -c "import sys; print(sys.executable)"
+          Set-Content -Path .vcpkg-ci-python3 -Value $python -NoNewline
+          Add-Content "$env:GITHUB_ENV" "VCPKG_PYTHON3=$python"
 
       - name: Export environment variables for vcpkg binary caching
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.exportVariable('VCPKG_ROOT', process.env.VCPKG_INSTALLATION_ROOT || '');
@@ -397,11 +572,55 @@ jobs:
           -Source "${{ env.NUGET_FEED_URL }}"
 
       - name: Configure
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --preset=ci-ubuntu 2>&1 | tee configure.log
+
+      - name: Configure
+        if: matrix.os == 'windows-latest'
         shell: pwsh
-        run: cmake "--preset=ci-$("${{ matrix.os }}".split("-")[0])"
+        run: |
+          cmake --preset=ci-windows 2>&1 | Tee-Object -FilePath configure.log
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Report configure failure
+        if: failure()
+        shell: pwsh
+        run: .github/scripts/report-configure-failure.ps1
+
+      - name: Upload configure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: configure-logs-${{ github.job }}-${{ runner.os }}
+          path: |
+            configure.log
+            build/**/CMakeFiles/CMakeConfigureLog.yaml
+            build/**/CMakeFiles/CMakeError.log
+            build/**/CMakeFiles/CMakeOutput.log
+            build/**/vcpkg-manifest-install.log
+          if-no-files-found: ignore
+
+      - name: Save vcpkg cache
+        if: always()
+        uses: actions/cache/save@v6
+        with:
+          path: .vcpkg-cache
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
 
       - name: Build
         run: cmake --build build --config Release -j 2
+
+      - name: Install NSIS
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          choco install nsis -y --no-progress
+          Add-Content "$env:GITHUB_PATH" "C:\Program Files (x86)\NSIS"
 
       - name: Package
         working-directory: build
@@ -427,7 +646,7 @@ jobs:
       && github.repository_owner == 'Bobini1'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Doxygen and graphviz
         run: sudo apt-get update -q

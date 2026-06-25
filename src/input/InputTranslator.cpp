@@ -313,16 +313,15 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
     emit buttonPressed(button, time);
     if (isScratch(button)) {
         for (const auto& [key, value] : config.asKeyValueRange()) {
-            if (value == button &&
-                key.device == Key::Device::Axis) {
-                auto it = axisConfig.find(
-                  { key.gamepad.value<Gamepad>(), key.code });
+            if (value == button && key.device == Key::Device::Axis) {
+                auto it =
+                  axisConfig.find({ key.gamepad.value<Gamepad>(), key.code });
                 if (it != axisConfig.end()) {
                     if (const auto& conf = *it->second;
                         conf.getScratchAlgorithm() ==
                         AnalogAxisConfig::ScratchAlgorithmAnalog) {
                         return;
-                        }
+                    }
                     break;
                 }
             }
@@ -788,8 +787,8 @@ InputTranslator::handleAxis(Gamepad gamepad,
                                      : analogConfig->getReleaseThreshold();
     if (requiredThreshold > 0.0) {
         if (curDelta > 0 && scratch.delta >= requiredThreshold) {
-            setScratchDirection(
-              Key::Direction::Up, std::fmod(scratch.delta, requiredThreshold));
+            setScratchDirection(Key::Direction::Up,
+                                std::fmod(scratch.delta, requiredThreshold));
             handleAxisChange(gamepad, axis, time, false);
         } else if (curDelta < 0 && -scratch.delta >= requiredThreshold) {
             setScratchDirection(Key::Direction::Down,
@@ -799,11 +798,11 @@ InputTranslator::handleAxis(Gamepad gamepad,
     }
 
     if (analogTicks != 0) {
-        emitAnalogScratchTicks(
-          gamepad,
-          axis,
-          analogTicks > 0 ? Key::Direction::Up : Key::Direction::Down,
-          std::abs(analogTicks));
+        emitAnalogScratchTicks(gamepad,
+                               axis,
+                               analogTicks > 0 ? Key::Direction::Up
+                                               : Key::Direction::Down,
+                               std::abs(analogTicks));
     }
 }
 void
@@ -1216,8 +1215,8 @@ InputTranslator::getAnalogAxisConfig2() -> AnalogAxisConfig*
 
 void
 InputTranslator::handleKeyEvent(quint32 nativeScanCode,
-                                 bool isPress,
-                                 int64_t time)
+                                bool isPress,
+                                int64_t time)
 {
     const auto keyLookup = Key{ QVariant::fromValue(nullptr),
                                 Key::Device::Keyboard,

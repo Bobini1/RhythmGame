@@ -31,8 +31,8 @@ auto
 Lr2Random::getRand(int maxInclusive) -> int
 {
     const auto range = static_cast<int64_t>(maxInclusive) + 1;
-    return static_cast<int>(
-      (static_cast<int64_t>(getNextLong()) * range) >> 32);
+    return static_cast<int>((static_cast<int64_t>(getNextLong()) * range) >>
+                            32);
 }
 
 auto
@@ -81,14 +81,13 @@ Lr2Random::generateNextSet() -> void
     for (; i < stateSize - 1; ++i) {
         const auto value =
           (state[i] & 0x80000000u) | (state[i + 1] & 0x7fffffffu);
-        state[i] = state[i - (stateSize - 397)] ^ (value >> 1u) ^
-                   table[value & 1u];
+        state[i] =
+          state[i - (stateSize - 397)] ^ (value >> 1u) ^ table[value & 1u];
     }
 
     const auto value =
       (state[stateSize - 1] & 0x80000000u) | (state[0] & 0x7fffffffu);
-    state[stateSize - 1] =
-      state[396] ^ (value >> 1u) ^ table[value & 1u];
+    state[stateSize - 1] = state[396] ^ (value >> 1u) ^ table[value & 1u];
     index = 0;
 }
 
@@ -872,9 +871,9 @@ isLr2NoteOrderAlgorithm(resource_managers::NoteOrderAlgorithm algorithm) -> bool
 }
 
 auto
-flipBeatorajaDpPlayfields(
-  std::array<std::vector<charts::BmsNotesData::Note>,
-             charts::BmsNotesData::columnNumber>& notes) -> void
+flipBeatorajaDpPlayfields(std::array<std::vector<charts::BmsNotesData::Note>,
+                                     charts::BmsNotesData::columnNumber>& notes)
+  -> void
 {
     for (auto column = std::size_t{ 0 }; column < 7; ++column) {
         std::swap(notes[14 - column], notes[column]);

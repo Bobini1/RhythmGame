@@ -132,9 +132,9 @@ addSongDirectoryFileToDb(db::SqliteCppDb& db,
     try {
         auto filePath = support::pathToUtfString((path));
         auto directoryPath = support::pathToUtfString((directory / ""));
-        auto statement = db.createStatement(std::string("INSERT OR REPLACE INTO ") +
-                                            table +
-                                            " (path, directory) VALUES (?, ?)");
+        auto statement =
+          db.createStatement(std::string("INSERT OR REPLACE INTO ") + table +
+                             " (path, directory) VALUES (?, ?)");
         statement.reset();
         statement.bind(1, filePath);
         statement.bind(2, directoryPath);
@@ -316,7 +316,7 @@ scanFolder(std::filesystem::path directory,
                        (extension.compare(".mp3") == 0 ||
                         extension.compare(".ogg") == 0 ||
                         extension.compare(".wav") == 0 ||
-                       extension.compare(".flac") == 0)) {
+                        extension.compare(".flac") == 0)) {
                 previewPath = directory / path;
             } else if (readmePath.empty() &&
                        isReadmeCandidate(std::filesystem::path(path))) {

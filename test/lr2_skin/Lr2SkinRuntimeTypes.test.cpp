@@ -15,82 +15,93 @@ using Catch::Matchers::WithinAbs;
 
 namespace {
 
-QVariantMap dstMap(int time, int x, int y, int w, int h) {
-    return QVariantMap {
-        {QStringLiteral("time"), time},
-        {QStringLiteral("x"), x},
-        {QStringLiteral("y"), y},
-        {QStringLiteral("w"), w},
-        {QStringLiteral("h"), h},
-        {QStringLiteral("a"), 255},
-        {QStringLiteral("r"), 255},
-        {QStringLiteral("g"), 255},
-        {QStringLiteral("b"), 255},
+QVariantMap
+dstMap(int time, int x, int y, int w, int h)
+{
+    return QVariantMap{
+        { QStringLiteral("time"), time }, { QStringLiteral("x"), x },
+        { QStringLiteral("y"), y },       { QStringLiteral("w"), w },
+        { QStringLiteral("h"), h },       { QStringLiteral("a"), 255 },
+        { QStringLiteral("r"), 255 },     { QStringLiteral("g"), 255 },
+        { QStringLiteral("b"), 255 },
     };
 }
 
 } // namespace
 
-TEST_CASE("LR2 runtime dst interpolation respects active options", "[lr2][runtime]") {
+TEST_CASE("LR2 runtime dst interpolation respects active options",
+          "[lr2][runtime]")
+{
     QVariantMap first = dstMap(0, 0, 0, 10, 10);
     first.insert(QStringLiteral("op1"), 7);
     QVariantMap second = dstMap(1000, 100, 40, 10, 10);
 
-    const QVector<Dst> dsts = readDsts(QVariantList {first, second});
+    const QVector<Dst> dsts = readDsts(QVariantList{ first, second });
 
     REQUIRE(analyzeDsts(dsts).usesActiveOptions);
-    REQUIRE_FALSE(currentState(dsts, 500, 0, activeOptionSet(QVariantList {})).valid);
+    REQUIRE_FALSE(
+      currentState(dsts, 500, 0, activeOptionSet(QVariantList{})).valid);
 
-    const State state = currentState(dsts, 500, 0, activeOptionSet(QVariantList {7}));
+    const State state =
+      currentState(dsts, 500, 0, activeOptionSet(QVariantList{ 7 }));
     REQUIRE(state.valid);
     REQUIRE_THAT(state.x, WithinAbs(50.0, 0.0001));
     REQUIRE_THAT(state.y, WithinAbs(20.0, 0.0001));
 }
 
-TEST_CASE("LR2 runtime dst active options require every positive gate", "[lr2][runtime]") {
+TEST_CASE("LR2 runtime dst active options require every positive gate",
+          "[lr2][runtime]")
+{
     Dst dst;
     dst.op1 = 2;
     dst.op2 = 160;
 
-    REQUIRE(activeOptionsForDsts(dst, QVariantList {2}).isEmpty());
-    REQUIRE(activeOptionsForDsts(dst, QVariantList {160}).isEmpty());
+    REQUIRE(activeOptionsForDsts(dst, QVariantList{ 2 }).isEmpty());
+    REQUIRE(activeOptionsForDsts(dst, QVariantList{ 160 }).isEmpty());
 
-    const QVariantList active = activeOptionsForDsts(dst, QVariantList {2, 160});
+    const QVariantList active =
+      activeOptionsForDsts(dst, QVariantList{ 2, 160 });
     REQUIRE(active.size() == 2);
     REQUIRE(active.at(0).toInt() == 2);
     REQUIRE(active.at(1).toInt() == 160);
 }
 
-TEST_CASE("LR2 runtime dst active options respect negative gates", "[lr2][runtime]") {
+TEST_CASE("LR2 runtime dst active options respect negative gates",
+          "[lr2][runtime]")
+{
     Dst dst;
     dst.op1 = 2;
     dst.op2 = -160;
 
-    const QVariantList active = activeOptionsForDsts(dst, QVariantList {2});
+    const QVariantList active = activeOptionsForDsts(dst, QVariantList{ 2 });
     REQUIRE(active.size() == 1);
     REQUIRE(active.at(0).toInt() == 2);
-    REQUIRE(activeOptionsForDsts(dst, QVariantList {2, 160}).isEmpty());
+    REQUIRE(activeOptionsForDsts(dst, QVariantList{ 2, 160 }).isEmpty());
 }
 
-TEST_CASE("LR2 timeline state keeps inactive negative-only gates hidden", "[lr2][runtime]") {
+TEST_CASE("LR2 timeline state keeps inactive negative-only gates hidden",
+          "[lr2][runtime]")
+{
     QVariantMap first = dstMap(0, 0, 0, 10, 10);
     first.insert(QStringLiteral("op1"), -5);
 
     Lr2SkinElementActiveOptionsState activeOptionsState;
     Lr2TimelineState timelineState;
-    timelineState.setDsts(QVariantList {first});
+    timelineState.setDsts(QVariantList{ first });
     timelineState.setActiveOptionsState(&activeOptionsState);
 
-    activeOptionsState.setActiveOptions(QVariantList {}, false);
+    activeOptionsState.setActiveOptions(QVariantList{}, false);
     REQUIRE_FALSE(timelineState.hasState());
 
-    activeOptionsState.setActiveOptions(QVariantList {}, true);
+    activeOptionsState.setActiveOptions(QVariantList{}, true);
     REQUIRE(timelineState.hasState());
 }
 
-TEST_CASE("LR2 timeline frame ignores invalid override states", "[lr2][runtime]") {
+TEST_CASE("LR2 timeline frame ignores invalid override states",
+          "[lr2][runtime]")
+{
     Lr2TimelineFrameState frame;
-    frame.setDsts(QVariantList {dstMap(0, 12, 34, 56, 78)});
+    frame.setDsts(QVariantList{ dstMap(0, 12, 34, 56, 78) });
     frame.setTimerFire(0);
 
     REQUIRE(frame.hasState());
@@ -117,13 +128,14 @@ TEST_CASE("LR2 timeline frame ignores invalid override states", "[lr2][runtime]"
     REQUIRE(frame.y() == 12);
 }
 
-TEST_CASE("LR2 bar positioned item notifies usePositionMap changes", "[lr2][runtime]") {
+TEST_CASE("LR2 bar positioned item notifies usePositionMap changes",
+          "[lr2][runtime]")
+{
     Lr2BarPositionedItem item;
     int changed = 0;
-    QObject::connect(
-        &item,
-        &Lr2BarPositionedItem::usePositionMapChanged,
-        [&changed]() { ++changed; });
+    QObject::connect(&item,
+                     &Lr2BarPositionedItem::usePositionMapChanged,
+                     [&changed]() { ++changed; });
 
     item.setUsePositionMap(false);
 
@@ -131,13 +143,15 @@ TEST_CASE("LR2 bar positioned item notifies usePositionMap changes", "[lr2][runt
     REQUIRE(changed == 1);
 }
 
-TEST_CASE("LR2 runtime dst loops wrap inside the loop segment", "[lr2][runtime]") {
+TEST_CASE("LR2 runtime dst loops wrap inside the loop segment",
+          "[lr2][runtime]")
+{
     QVariantMap first = dstMap(0, 0, 0, 10, 10);
     first.insert(QStringLiteral("loop"), 100);
     const QVariantMap middle = dstMap(100, 100, 0, 10, 10);
     const QVariantMap last = dstMap(300, 300, 0, 10, 10);
 
-    const QVector<Dst> dsts = readDsts(QVariantList {first, middle, last});
+    const QVector<Dst> dsts = readDsts(QVariantList{ first, middle, last });
 
     REQUIRE(analyzeDsts(dsts).loopsContinuously);
     const State state = currentState(dsts, 450, 0, {});
@@ -145,7 +159,9 @@ TEST_CASE("LR2 runtime dst loops wrap inside the loop segment", "[lr2][runtime]"
     REQUIRE_THAT(state.x, WithinAbs(250.0, 0.0001));
 }
 
-TEST_CASE("LR2 runtime classifies slider sources and track geometry", "[lr2][runtime]") {
+TEST_CASE("LR2 runtime classifies slider sources and track geometry",
+          "[lr2][runtime]")
+{
     Source source;
     source.valid = true;
     source.slider = true;
@@ -154,8 +170,8 @@ TEST_CASE("LR2 runtime classifies slider sources and track geometry", "[lr2][run
     source.sliderDirection = 3;
     source.sliderDisabled = 0;
 
-    REQUIRE(spriteStateOverrideKind(QStringLiteral("select"), false, source)
-            == SelectScrollSpriteStateOverride);
+    REQUIRE(spriteStateOverrideKind(QStringLiteral("select"), false, source) ==
+            SelectScrollSpriteStateOverride);
 
     State base;
     base.valid = true;
@@ -168,18 +184,23 @@ TEST_CASE("LR2 runtime classifies slider sources and track geometry", "[lr2][run
     REQUIRE(track.valid);
     REQUIRE(track.x == 100.0);
     REQUIRE(track.w == 120.0);
-    REQUIRE_THAT(sliderPositionFromPointer(source, track, 100, 20), WithinAbs(1.0, 0.0001));
-    REQUIRE_THAT(sliderPositionFromPointer(source, track, 210, 20), WithinAbs(0.0, 0.0001));
+    REQUIRE_THAT(sliderPositionFromPointer(source, track, 100, 20),
+                 WithinAbs(1.0, 0.0001));
+    REQUIRE_THAT(sliderPositionFromPointer(source, track, 210, 20),
+                 WithinAbs(0.0, 0.0001));
 }
 
-TEST_CASE("LR2 runtime sprite override ids match the QML contract", "[lr2][runtime]") {
+TEST_CASE("LR2 runtime sprite override ids match the QML contract",
+          "[lr2][runtime]")
+{
     Source source;
     source.valid = true;
     source.slider = true;
     source.sliderRange = 100;
 
     source.sliderType = 1;
-    REQUIRE(spriteStateOverrideKind(QStringLiteral("select"), false, source) == 1);
+    REQUIRE(spriteStateOverrideKind(QStringLiteral("select"), false, source) ==
+            1);
 
     source.sliderType = 6;
     REQUIRE(spriteStateOverrideKind(QStringLiteral("play"), true, source) == 2);
@@ -189,18 +210,22 @@ TEST_CASE("LR2 runtime sprite override ids match the QML contract", "[lr2][runti
 
     source.sliderType = 8;
     source.sliderRefNumber = true;
-    REQUIRE(spriteStateOverrideKind(QStringLiteral("play"), false, source) == 4);
+    REQUIRE(spriteStateOverrideKind(QStringLiteral("play"), false, source) ==
+            4);
 
     source.sliderRefNumber = false;
-    REQUIRE(spriteStateOverrideKind(QStringLiteral("select"), false, source) == 5);
+    REQUIRE(spriteStateOverrideKind(QStringLiteral("select"), false, source) ==
+            5);
 }
 
-TEST_CASE("LR2 runtime hit testing accepts negative dst sizes", "[lr2][runtime]") {
-    const QVariantMap rect {
-        {QStringLiteral("x"), 100},
-        {QStringLiteral("y"), 80},
-        {QStringLiteral("w"), -40},
-        {QStringLiteral("h"), -30},
+TEST_CASE("LR2 runtime hit testing accepts negative dst sizes",
+          "[lr2][runtime]")
+{
+    const QVariantMap rect{
+        { QStringLiteral("x"), 100 },
+        { QStringLiteral("y"), 80 },
+        { QStringLiteral("w"), -40 },
+        { QStringLiteral("h"), -30 },
     };
 
     REQUIRE(rectContains(rect, 75, 65));
@@ -209,8 +234,8 @@ TEST_CASE("LR2 runtime hit testing accepts negative dst sizes", "[lr2][runtime]"
     REQUIRE_FALSE(rectContains(rect, 75, 49));
 }
 
-TEST_CASE("LR2 timer state exposes decide start-input timer",
-          "[lr2][runtime]") {
+TEST_CASE("LR2 timer state exposes decide start-input timer", "[lr2][runtime]")
+{
     Lr2SkinTimerState timerState;
     timerState.setScreenKey(QStringLiteral("decide"));
     timerState.setStartInput(300);
@@ -228,7 +253,8 @@ TEST_CASE("LR2 timer state exposes decide start-input timer",
 }
 
 TEST_CASE("LR2 runtime note sort ignores sparse empty note lanes",
-          "[lr2][runtime]") {
+          "[lr2][runtime]")
+{
     QVariantMap lane0 = dstMap(0, 0, 0, 10, 10);
     lane0.insert(QStringLiteral("sortId"), 120);
     QVariantMap lane10 = dstMap(0, 0, 0, 10, 10);
@@ -241,9 +267,7 @@ TEST_CASE("LR2 runtime note sort ignores sparse empty note lanes",
     noteDsts.append(QVariant::fromValue(QVariantList{ lane10 }));
 
     CHECK(staticNoteElementSortId(noteDsts) == 120);
-    CHECK(staticNoteElementSortId(QVariantList {
-              QVariant::fromValue(QVariantList {}),
-              QVariant::fromValue(QVariantList {})
-          })
-          == 0);
+    CHECK(staticNoteElementSortId(
+            QVariantList{ QVariant::fromValue(QVariantList{}),
+                          QVariant::fromValue(QVariantList{}) }) == 0);
 }

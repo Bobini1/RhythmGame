@@ -141,7 +141,7 @@ defineDb(db::SqliteCppDb& db)
                "histogram_data BLOB NOT NULL"
                ");");
 
-    if (version < std::tuple{ 1, 3, 6 }) {
+    if (!version || *version < std::tuple{ 1, 3, 6 }) {
         db.execute("UPDATE charts SET rank = CASE rank "
                    "WHEN 0 THEN 25 "
                    "WHEN 1 THEN 50 "
