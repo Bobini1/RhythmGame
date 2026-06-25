@@ -69,9 +69,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .vcpkg-cache
-          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
             vcpkg-${{ runner.os }}-
 
       - name: Install LCov
@@ -183,9 +183,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .vcpkg-cache
-          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
             vcpkg-${{ runner.os }}-
 
       - name: Install system dependencies
@@ -292,9 +292,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .vcpkg-cache
-          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
             vcpkg-${{ runner.os }}-
 
       - name: Setup MultiToolTask
@@ -482,9 +482,9 @@ jobs:
         uses: actions/cache/restore@v6
         with:
           path: .vcpkg-cache
-          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
+          key: vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
-            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts/**') }}-
+            vcpkg-${{ runner.os }}-${{ github.job }}-${{ hashFiles('vcpkg.json', 'CMakePresets.json', 'vcpkgTriplets/**', 'vcpkgOverlayPorts*/**') }}-
             vcpkg-${{ runner.os }}-
 
       - name: Install WMF

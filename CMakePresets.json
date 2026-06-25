@@ -57,6 +57,7 @@
       "name": "vcpkg-win64-sharedqt",
       "hidden": true,
       "cacheVariables": {
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkgOverlayPorts;${sourceDir}/vcpkgOverlayPortsWindows",
         "VCPKG_TARGET_TRIPLET": "w-sqt",
         "VCPKG_HOST_TRIPLET": "w-sqt"
       }
