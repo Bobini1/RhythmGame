@@ -254,7 +254,7 @@ ChartLoader::loadChart(const QString& filename,
 {
     if (!validateParams(player1,
                         player1AutoPlay,
-                        player2Replay,
+                        player1Replay,
                         score1,
                         player2,
                         player2AutoPlay,
@@ -299,10 +299,10 @@ ChartLoader::loadChart(const QString& filename,
             return nullptr;
         }
         auto chartComponents = [&] {
-            if (fileAbsolute.extension() == ".bmson") {
+            if (file->extension() == ".bmson") {
                 return chartDataFactory->loadBmsonChartData(*file);
             }
-            return chartDataFactory->loadChartData(fileAbsolute,
+            return chartDataFactory->loadChartData(*file,
                                                    std::move(randomGenerator));
         }();
         return createChart(player1,
