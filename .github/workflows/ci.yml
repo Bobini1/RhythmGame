@@ -154,6 +154,7 @@ jobs:
 
       - name: Submit to codecov.io
         uses: codecov/codecov-action@v7
+        continue-on-error: true
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: build/coverage/coverage.info
