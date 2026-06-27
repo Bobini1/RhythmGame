@@ -75,13 +75,15 @@ loadChart(QThreadPool& threadPool,
           db::SqliteCppDb& db,
           int64_t directory,
           const std::filesystem::path& path,
+          std::function<void(QString)> updateCurrentScannedFolder,
           std::atomic_bool* stop)
 {
-    threadPool.start([&db, path, directory, stop] {
+    threadPool.start([&db, path, directory, updateCurrentScannedFolder, stop] {
         if (*stop) {
             return;
         }
         try {
+            updateCurrentScannedFolder(support::pathToQString(path));
             auto randomGenerator =
               [](charts::ParsedBmsChart::RandomRange randomRange) {
                   thread_local auto randomEngine =
@@ -246,8 +248,6 @@ scanFolder(std::filesystem::path directory,
                                     FILE_FLAG_BACKUP_SEMANTICS,
                                     NULL);
 
-    updateCurrentScannedFolder(
-      support::pathToQString(directory.lexically_normal()));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     auto parentDirQString = support::pathToQString(parentDirectory);
@@ -304,13 +304,19 @@ scanFolder(std::filesystem::path directory,
                        extension.compare(".bml") == 0 ||
                        extension.compare(".pms") == 0 ||
                        extension.compare(".bmson") == 0) {
+                const auto chartPath = (directory / path).lexically_normal();
                 if (!isSongDirectory) {
                     dirId = addDirToParentDirs(db, root, parentDirQString);
                     isSongDirectory = true;
                 }
                 directoriesToScan.clear();
                 if (extension.compare(".pms") != 0) {
-                    loadChart(threadPool, db, dirId, directory / path, stop);
+                    loadChart(threadPool,
+                              db,
+                              dirId,
+                              chartPath,
+                              updateCurrentScannedFolder,
+                              stop);
                 }
             } else if (path.starts_with(L"preview") &&
                        (extension.compare(".mp3") == 0 ||
@@ -364,7 +370,6 @@ scanFolder(const std::filesystem::path& directory,
            std::vector<llfio::directory_handle::buffer_type>& buffer,
            std::atomic_bool* stop)
 {
-    updateCurrentScannedFolder(support::pathToQString(directory));
     auto directoriesToScan = std::vector<std::filesystem::path>{};
     auto isSongDirectory = false;
     auto previewPath = std::filesystem::path{};
@@ -414,13 +419,19 @@ scanFolder(const std::filesystem::path& directory,
         } else if (const auto extension = path.extension();
                    extension == ".bms" || extension == ".bme" ||
                    extension == ".bml" || extension == ".pms") {
+            const auto chartPath = directory / path;
             if (!isSongDirectory) {
                 dirId = addDirToParentDirs(db, root, parentDirQString);
                 isSongDirectory = true;
             }
             directoriesToScan.clear();
             if (extension.compare(".pms") != 0) {
-                loadChart(threadPool, db, dirId, directory / path, stop);
+                loadChart(threadPool,
+                          db,
+                          dirId,
+                          chartPath,
+                          updateCurrentScannedFolder,
+                          stop);
             }
         } else if (path.string().starts_with("preview") &&
                    (extension == ".mp3" || extension == ".ogg" ||
