@@ -50,7 +50,7 @@ var searchData=
   ['loadbmsonchartdata_47',['loadBmsonChartData',['../classresource__managers_1_1ChartDataFactory.html#a434b19e107ecbef2a36ae47756361a68',1,'resource_managers::ChartDataFactory']]],
   ['loadbmsonsounds_48',['loadBmsonSounds',['../namespacecharts.html#a2b91ab975ce7eac5a9b3d5c27907b537',1,'charts']]],
   ['loadbmssounds_49',['loadBmsSounds',['../namespacecharts.html#ad7c2fd536d5a265c9585904f13b491e2',1,'charts']]],
-  ['loadchart_50',['loadchart',['../classqml__components_1_1ChartLoader.html#a4f8cf7104e29ac0e2753795b5a8a52e1',1,'qml_components::ChartLoader::loadChart()'],['../namespaceresource__managers.html#af2770a1633f6f3213bd5878feea9545b',1,'resource_managers::loadChart()']]],
+  ['loadchart_50',['loadchart',['../classqml__components_1_1ChartLoader.html#a4f8cf7104e29ac0e2753795b5a8a52e1',1,'qml_components::ChartLoader::loadChart()'],['../namespaceresource__managers.html#aae5ba69f92e6a19ac3f8389170181945',1,'resource_managers::loadChart()']]],
   ['loadchartdata_51',['loadchartdata',['../classqml__components_1_1ChartLoader.html#ad4d3ef6519b27062eeb235b27d65bdd0',1,'qml_components::ChartLoader::loadChartData()'],['../classresource__managers_1_1ChartDataFactory.html#a21f2b81fbf3e95557308eeee9d151bb8',1,'resource_managers::ChartDataFactory::loadChartData()']]],
   ['loadchartdatafromdb_52',['loadChartDataFromDb',['../classqml__components_1_1ChartLoader.html#a9edc092f71f192655c7aeda375b2f3bb',1,'qml_components::ChartLoader']]],
   ['loadcharts_53',['loadcharts',['../structresource__managers_1_1Course.html#ac9425d2abac2444a756e5ecb77861f1e',1,'resource_managers::Course::loadCharts()'],['../structresource__managers_1_1Level.html#a0bac7b0e48accc6249f09854c4e95338',1,'resource_managers::Level::loadCharts()']]],
