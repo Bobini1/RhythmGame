@@ -14,6 +14,7 @@ Loader {
         } else {
             let items = screenSettingsLoader.screenSettings.filter((item) => item.type !== "hidden");
             if (items.length === 0) {
+                screenSettingsLoader.source = "";
                 return;
             }
             let props = {
