@@ -48,6 +48,49 @@ QtObject {
         return !root.lr2SkinUsesBeatorajaSemantics && !root.lr2SkinUsesLunaticVibesSemantics;
     }
 
+    function lr2RandomLayoutKeyCount(score: var) : var {
+        const keymode = Number(score && score.keymode !== undefined ? score.keymode : root.gameplayKeymode());
+        return keymode === 5 || keymode === 10 ? 5 : 7;
+    }
+
+    function lr2RandomLayoutLaneForColumn(column: var, sideOffset: var, keyCount: var) : var {
+        const localColumn = Number(column) - sideOffset;
+        if (localColumn === 7) {
+            return 0;
+        }
+        if (localColumn >= 0 && localColumn < keyCount) {
+            return localColumn + 1;
+        }
+        return -1;
+    }
+
+    function lr2RandomLayoutNumber(score: var, side: var) : var {
+        const permutation = score && score.permutation ? score.permutation : [];
+        const sideOffset = side === 2 ? 8 : 0;
+        if (!permutation || permutation.length < sideOffset + 8) {
+            return 0;
+        }
+
+        const keyCount = resolver.lr2RandomLayoutKeyCount(score);
+        let value = 0;
+        for (let destLocalColumn = 0; destLocalColumn < 8; ++destLocalColumn) {
+            const destLane = resolver.lr2RandomLayoutLaneForColumn(destLocalColumn, 0, keyCount);
+            const sourceLane = resolver.lr2RandomLayoutLaneForColumn(permutation[sideOffset + destLocalColumn], 0, keyCount);
+            if (destLane >= 0 && destLane <= keyCount && sourceLane >= 1 && sourceLane <= keyCount) {
+                value += Math.pow(10, keyCount - destLane) * sourceLane;
+            }
+        }
+        return value;
+    }
+
+    function gameplayLr2RandomLayoutNumber(side: var) : var {
+        const primary = resolver.lr2RandomLayoutNumber(root.gameplayScore(1), side);
+        if (primary !== 0 || side !== 2) {
+            return primary;
+        }
+        return resolver.lr2RandomLayoutNumber(root.gameplayScore(2), 1);
+    }
+
     function ratioWhole(numerator: var, denominator: var) : var {
         const left = Number(numerator || 0);
         const right = Number(denominator || 0);
@@ -650,11 +693,12 @@ QtObject {
         case 169:
             return resolver.chartSubtitle(resolver.courseStage(st - 160));
         case 1000:
-            return root.effectiveScreenKey === "select"
-                ? (root.lr2SkinUsesBeatorajaSemantics
+            if (root.effectiveScreenKey === "select") {
+                return root.lr2SkinUsesBeatorajaSemantics
                     ? selectContext.currentDirectoryBreadcrumb()
-                    : selectContext.currentFolderDisplayName())
-                : "";
+                    : selectContext.currentFolderDisplayName();
+            }
+            return resolver.displayTableFullText();
         case 1001:
             return resolver.displayTableName();
         case 1002:
@@ -807,7 +851,7 @@ QtObject {
         case 218:
             return root.gameplayCurrentNotes(s1);
         case 295:
-            return root.lr2RandomIndexP1;
+            return resolver.gameplayLr2RandomLayoutNumber(1);
         case 296: {
             let stats = root.gameplayJudgeTimingStats(1);
             return resolver.integerPart(root.timingStatsMean(stats));
@@ -961,7 +1005,7 @@ QtObject {
             return root.gameplayJudgeTimingNumber(num, 1);
         case 418:
             if (resolver.useLr2OolNumberSemantics()) {
-                return root.lr2RandomIndexP2;
+                return resolver.gameplayLr2RandomLayoutNumber(2);
             }
             return root.gameplayJudgeTimingNumber(num, 1);
         case 419:
@@ -1510,6 +1554,12 @@ QtObject {
         case 96: {
             return chartData ? (chartData.playLevel || 0) : 0;
         }
+        case 45:
+        case 46:
+        case 47:
+        case 48:
+        case 49:
+            return resolver.gameplayDifficultyPlayLevel(num, chartData);
         case 90:
         case 290: {
             return chartData && (chartData.maxBpm || chartData.mainBpm)
@@ -1524,6 +1574,14 @@ QtObject {
         }
         case 92:
             return chartData && chartData.mainBpm ? Math.round(chartData.mainBpm) : -1;
+        case 70:
+            return root.resultScorePrint(old);
+        case 72:
+            return root.resultTotalNotes(old) * 2;
+        case 73:
+            return root.resultRateInteger(old);
+        case 74:
+            return root.resultTotalNotes(old);
         case 350:
             return current ? (current.normalNoteCount || 0) : (chartData ? (chartData.normalNoteCount || 0) : -1);
         case 351:
@@ -1620,10 +1678,20 @@ QtObject {
             return root.resultPoorCount(current);
         case 427:
             return root.resultJudgementCount(current, Judgement.Bad) + root.resultPoorCount(current);
+        case 212:
+            return root.resultJudgeTimingNumber(423, 1);
+        case 214:
+            return root.resultJudgeTimingNumber(424, 1);
+        case 216:
+            return root.resultBadPoor(current);
+        case 218:
+            return root.resultTotalNotes(current);
+        case 163:
         case 1163: {
             let seconds = root.chartLengthSeconds(chartData || current);
             return seconds >= 0 ? Math.floor(seconds / 60) % 60 : -1;
         }
+        case 164:
         case 1164: {
             let seconds = root.chartLengthSeconds(chartData || current);
             return seconds >= 0 ? seconds % 60 : -1;

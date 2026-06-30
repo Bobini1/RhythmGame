@@ -398,9 +398,15 @@ QtObject {
         }
 
         let counts = root.emptyJudgeTimingCounts();
-        let events = score && score.replayData && score.replayData.hitEvents
-            ? score.replayData.hitEvents
-            : [];
+        let replay = score && score.replayData ? score.replayData : null;
+        if (replay && replay.earlyTimingCounts && replay.lateTimingCounts) {
+            counts.early = replay.earlyTimingCounts;
+            counts.late = replay.lateTimingCounts;
+            cache[key] = counts;
+            return counts;
+        }
+
+        let events = replay && replay.hitEvents ? replay.hitEvents : [];
         for (let hit of events || []) {
             let judgement = root.host.gameplayJudgementFromHit(hit);
             let bucket = root.judgementTimingBucket(judgement);

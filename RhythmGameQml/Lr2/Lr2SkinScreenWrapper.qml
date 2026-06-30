@@ -731,9 +731,13 @@ Item {
     }
 
     function appendResultParseOptions(options: var) : void {
+        let chartData = root.resultChartData();
         let current1 = root.resultData(1);
         let current2 = root.resultData(2);
 
+        root.appendResultItemTypeParseOptions(options, chartData);
+        root.appendChartParseOptions(options, chartData);
+        root.appendResultCourseParseOptions(options);
         root.appendParseOption(options, root.resultClearOption());
         root.appendParseOption(options, 350);
         root.appendParseOption(options, root.resultRankOptionForResult(current1, 300));
@@ -830,15 +834,131 @@ Item {
         }
     }
 
-    function appendGameplayChartParseOptions(options: var, chartData: var) : void {
+    function parseBattleModeActive() : var {
+        return root.battleModeActive()
+            || (root.resultScreenActive && !!root.resultScore(2));
+    }
+
+    function effectiveChartParseKeymode(keymode: var) : var {
+        keymode = Number(keymode || 0);
+        if (!root.spToDpActive() && !root.parseBattleModeActive()) {
+            return keymode;
+        }
+        if (keymode === 7) {
+            return 14;
+        }
+        if (keymode === 5) {
+            return 10;
+        }
+        return keymode;
+    }
+
+    function appendChartModeParseOptions(options: var, keymode: var) : void {
+        let effectiveKeymode = root.effectiveChartParseKeymode(keymode);
+        root.appendParseOption(options, root.gameplayParseKeymodeOption(effectiveKeymode, 160));
+        root.appendParseOption(options, root.gameplayParseKeymodeOption(effectiveKeymode, 165));
+
+        let doubleMode = effectiveKeymode === 10 || effectiveKeymode === 14;
+        let battleMode = root.parseBattleModeActive();
+        if (doubleMode) {
+            root.appendParseOption(options, 10);
+        }
+        if (battleMode) {
+            root.appendParseOption(options, 11);
+        }
+        if (doubleMode || battleMode) {
+            root.appendParseOption(options, 12);
+        }
+        if (battleMode) {
+            root.appendParseOption(options, 13);
+        }
+    }
+
+    function appendPlayableItemTypeParseOptions(options: var) : void {
+        root.appendParseOption(options, 2);
+        root.appendParseOption(options, 5);
+    }
+
+    function courseConstraints(item: var) : var {
+        if (item && item.constraints) {
+            return item.constraints;
+        }
+        if (root.effectiveScreenKey === "courseResult" && root.course && root.course.constraints) {
+            return root.course.constraints;
+        }
+        return root.chart && root.chart.course && root.chart.course.constraints
+            ? root.chart.course.constraints
+            : [];
+    }
+
+    function courseConstraintContains(item: var, constraint: string) : var {
+        let constraints = root.courseConstraints(item);
+        let count = constraints ? constraints.length || 0 : 0;
+        for (let i = 0; i < count; ++i) {
+            if (String(constraints[i]) === constraint) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function appendCourseConstraintParseOption(options: var, item: var, constraint: string, option: var) : void {
+        if (root.courseConstraintContains(item, constraint)) {
+            root.appendParseOption(options, option);
+        }
+    }
+
+    function appendBeatorajaCourseConstraintParseOptions(options: var, item: var) : void {
+        if (!root.lr2SkinUsesBeatorajaSemantics) {
+            return;
+        }
+        root.appendCourseConstraintParseOption(options, item, "grade", 1002);
+        root.appendCourseConstraintParseOption(options, item, "grade_mirror", 1003);
+        root.appendCourseConstraintParseOption(options, item, "grade_random", 1004);
+        root.appendCourseConstraintParseOption(options, item, "no_speed", 1005);
+        root.appendCourseConstraintParseOption(options, item, "no_good", 1006);
+        root.appendCourseConstraintParseOption(options, item, "no_great", 1007);
+        root.appendCourseConstraintParseOption(options, item, "gauge_lr2", 1010);
+        root.appendCourseConstraintParseOption(options, item, "gauge_5k", 1011);
+        root.appendCourseConstraintParseOption(options, item, "gauge_7k", 1012);
+        root.appendCourseConstraintParseOption(options, item, "gauge_9k", 1013);
+        root.appendCourseConstraintParseOption(options, item, "gauge_24k", 1014);
+        root.appendCourseConstraintParseOption(options, item, "ln", 1015);
+        root.appendCourseConstraintParseOption(options, item, "cn", 1016);
+        root.appendCourseConstraintParseOption(options, item, "hcn", 1017);
+    }
+
+    function appendCourseItemTypeParseOptions(options: var, item: var) : void {
+        root.appendParseOption(options, 3);
+        root.appendParseOption(options, 5);
+        root.appendParseOption(options, 290);
+        root.appendParseOption(options, 293);
+        root.appendBeatorajaCourseConstraintParseOptions(options, item);
+    }
+
+    function appendResultItemTypeParseOptions(options: var, chartData: var) : void {
+        if (root.effectiveScreenKey === "courseResult" || root.course) {
+            root.appendCourseItemTypeParseOptions(options, root.course);
+        } else if (chartData) {
+            root.appendPlayableItemTypeParseOptions(options);
+        }
+    }
+
+    function appendGameplayItemTypeParseOptions(options: var, chartData: var) : void {
+        if (root.isCourseGameplay()) {
+            root.appendCourseItemTypeParseOptions(options, root.chart ? root.chart.course : null);
+        } else if (chartData) {
+            root.appendPlayableItemTypeParseOptions(options);
+        }
+    }
+
+    function appendChartParseOptions(options: var, chartData: var, keymode: var) : void {
         if (!chartData) {
             return;
         }
 
-        let keymode = root.gameplayKeymode();
-        root.appendParseOption(options, root.gameplayParseKeymodeOption(keymode, 160));
-        root.appendParseOption(options, root.gameplayParseKeymodeOption(keymode, 165));
-
+        let chartKeymode = keymode !== undefined ? keymode : chartData.keymode;
+        root.appendChartModeParseOptions(options, chartKeymode);
         root.appendParseOption(options, chartData.stageFile ? 191 : 190);
         root.appendParseOption(options, chartData.banner ? 193 : 192);
         root.appendParseOption(options, chartData.backBmp ? 195 : 194);
@@ -847,7 +967,9 @@ Item {
         root.appendParseOption(options, selectContext.hasAttachedText(chartData) ? 175 : 174);
         root.appendParseOption(options, (chartData.maxBpm || 0) !== (chartData.minBpm || 0) ? 177 : 176);
         root.appendParseOption(options, chartData.isRandom ? 179 : 178);
+        root.appendParseOption(options, selectContext.judgeOption(chartData, chartData));
         root.appendParseOption(options, selectContext.highLevelOption(chartData));
+        root.appendParseOption(options, selectContext.hasReplay(chartData) ? 197 : 196);
         if (root.chartHasBpmStop(chartData)) {
             root.appendParseOption(options, 1177);
         }
@@ -856,16 +978,54 @@ Item {
         root.appendParseOption(options, difficulty >= 1 && difficulty <= 5 ? 150 + difficulty : 150);
     }
 
+    function appendGameplayChartParseOptions(options: var, chartData: var) : void {
+        root.appendChartParseOptions(options, chartData, root.gameplayKeymode());
+    }
+
+    function appendCourseStageParseOptions(options: var, stages: var) : void {
+        stages = stages || [];
+        for (let i = 0; i < Math.min(10, stages.length); ++i) {
+            root.appendParseOption(options, 580 + i);
+        }
+        for (let stage = 0; stage < Math.min(5, stages.length); ++stage) {
+            let difficulty = selectContext.entryDifficulty(stages[stage]);
+            root.appendParseOption(options, 700 + stage * 10 + Math.max(0, Math.min(5, difficulty)));
+        }
+    }
+
+    function appendGameplayCourseStageParseOptions(options: var) : void {
+        if (!root.isCourseGameplay() || !root.chart.chartDatas) {
+            return;
+        }
+        let stages = root.chart.chartDatas || [];
+        let stage = Math.max(0, root.chart.currentChartIndex || 0);
+        if (stages.length > 0 && stage >= stages.length - 1) {
+            root.appendParseOption(options, 289);
+        } else if (stages.length > 0) {
+            root.appendParseOption(options, 280 + Math.min(stage, 8));
+        }
+        root.appendCourseStageParseOptions(options, stages);
+    }
+
+    function appendResultCourseParseOptions(options: var) : void {
+        if (root.effectiveScreenKey !== "courseResult" && !root.course) {
+            return;
+        }
+        root.appendCourseStageParseOptions(options, root.selectedCourseStages);
+    }
+
     function appendGameplayParseOptions(options: var) : void {
         let chartData = root.gameplayChartData();
         // Keep the neutral legacy #IMAGE slot present for LR2 play skins.
         // Without this, conditional image tables can shift all following
         // source IDs before rendering starts.
         root.appendParseOption(options, 4);
+        root.appendGameplayItemTypeParseOptions(options, chartData);
         root.appendParseOption(options, root.configuredGaugeColorOption(1));
         root.appendParseOption(options, root.configuredGaugeColorOption(2));
         root.appendParseOption(options, root.clearStatusOption());
         root.appendGameplayChartParseOptions(options, chartData);
+        root.appendGameplayCourseStageParseOptions(options);
     }
 
     readonly property var skinParserActiveOptions: {

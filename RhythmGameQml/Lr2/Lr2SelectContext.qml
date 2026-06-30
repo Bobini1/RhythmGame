@@ -3643,6 +3643,38 @@ Item {
         return rank;
     }
 
+    function beatorajaJudgeOption(rank: var) : var {
+        let exact = Math.floor(rank);
+        if (exact === rank && exact >= 0 && exact <= 4) {
+            return 180 + exact;
+        }
+        if (rank >= 110) {
+            return 184;
+        }
+        if (rank >= 85) {
+            return 183;
+        }
+        if (rank >= 60) {
+            return 182;
+        }
+        if (rank >= 35) {
+            return 181;
+        }
+        return 180;
+    }
+
+    function lr2JudgeOption(rank: var) : var {
+        let option = 183;
+        if (rank <= 25) {
+            option = 180;
+        } else if (rank <= 50) {
+            option = 181;
+        } else if (rank <= 75) {
+            option = 182;
+        }
+        return option;
+    }
+
     function judgeOption(chart: var, fallbackItem: var) : var {
         if (isMissingTableEntry(chart) || isMissingTableEntry(fallbackItem)) {
             return 180;
@@ -3654,15 +3686,9 @@ Item {
         if (!isFinite(rank)) {
             return 0;
         }
-        let option = 183;
-        if (rank <= 25) {
-            option = 180;
-        } else if (rank <= 50) {
-            option = 181;
-        } else if (rank <= 75) {
-            option = 182;
-        }
-        return option;
+        return root.useBeatorajaSelectOptions
+            ? root.beatorajaJudgeOption(rank)
+            : root.lr2JudgeOption(rank);
     }
 
     function highLevelOption(chart: var) : var {

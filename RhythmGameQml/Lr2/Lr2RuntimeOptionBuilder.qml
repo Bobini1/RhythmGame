@@ -569,9 +569,14 @@ QtObject {
         }
     }
 
+    function battleModeActiveForOptions() : var {
+        return host.battleModeActive()
+            || (root.hostResultScreen && !!host.resultScore(2));
+    }
+
     function effectiveChartDetailKeymode(keymode: var) : var {
         keymode = root.normalizedKeymode(keymode);
-        if (!host.spToDpActive() && !host.battleModeActive()) {
+        if (!host.spToDpActive() && !root.battleModeActiveForOptions()) {
             return keymode;
         }
         if (keymode === 7) {
@@ -699,12 +704,63 @@ QtObject {
         }
     }
 
+    function courseConstraints(item: var) : var {
+        if (item && item.constraints) {
+            return item.constraints;
+        }
+        if (host.effectiveScreenKey === "courseResult" && host.course && host.course.constraints) {
+            return host.course.constraints;
+        }
+        return host.chart && host.chart.course && host.chart.course.constraints
+            ? host.chart.course.constraints
+            : [];
+    }
+
+    function courseConstraintContains(item: var, constraint: string) : var {
+        let constraints = root.courseConstraints(item);
+        let count = constraints ? constraints.length || 0 : 0;
+        for (let i = 0; i < count; ++i) {
+            if (String(constraints[i]) === constraint) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function addCourseConstraintOption(options: var, item: var, constraint: string, option: var) : void {
+        if (root.courseConstraintContains(item, constraint)) {
+            root.addOption(options, option);
+        }
+    }
+
+    function appendBeatorajaCourseConstraintOptions(options: var, item: var) : void {
+        if (!host.lr2SkinUsesBeatorajaSemantics
+                || !root.runtimeOptionRangeUsed(root.runtimeUsedOptions, 1002, 1017)) {
+            return;
+        }
+        root.addCourseConstraintOption(options, item, "grade", 1002);
+        root.addCourseConstraintOption(options, item, "grade_mirror", 1003);
+        root.addCourseConstraintOption(options, item, "grade_random", 1004);
+        root.addCourseConstraintOption(options, item, "no_speed", 1005);
+        root.addCourseConstraintOption(options, item, "no_good", 1006);
+        root.addCourseConstraintOption(options, item, "no_great", 1007);
+        root.addCourseConstraintOption(options, item, "gauge_lr2", 1010);
+        root.addCourseConstraintOption(options, item, "gauge_5k", 1011);
+        root.addCourseConstraintOption(options, item, "gauge_7k", 1012);
+        root.addCourseConstraintOption(options, item, "gauge_9k", 1013);
+        root.addCourseConstraintOption(options, item, "gauge_24k", 1014);
+        root.addCourseConstraintOption(options, item, "ln", 1015);
+        root.addCourseConstraintOption(options, item, "cn", 1016);
+        root.addCourseConstraintOption(options, item, "hcn", 1017);
+    }
+
     function appendCourseOptions(options: var, item: var) : var {
         if (!selectContext.isCourse(item) || !root.selectCourseDetailOptionsUsed()) {
             return;
         }
         root.addOption(options, 290);
         root.addOption(options, 293); // rank certification / class
+        root.appendBeatorajaCourseConstraintOptions(options, item);
         if (!item.loadCharts) {
             return;
         }
@@ -786,6 +842,56 @@ QtObject {
         }
     }
 
+    function appendPlayableItemTypeOptions(options: var) : void {
+        root.addOption(options, 2);
+        root.addOption(options, 5);
+    }
+
+    function appendCourseItemTypeOptions(options: var, item: var) : void {
+        root.addOption(options, 3);
+        root.addOption(options, 5);
+        root.addOption(options, 290);
+        root.addOption(options, 293);
+        root.appendBeatorajaCourseConstraintOptions(options, item);
+    }
+
+    function appendGameplayItemTypeOptions(options: var, chartData: var) : void {
+        if (host.isCourseGameplay && host.isCourseGameplay()) {
+            root.appendCourseItemTypeOptions(options, host.chart ? host.chart.course : null);
+        } else if (chartData) {
+            root.appendPlayableItemTypeOptions(options);
+        }
+    }
+
+    function appendResultItemTypeOptions(options: var, chartData: var) : void {
+        if (host.effectiveScreenKey === "courseResult" || host.course) {
+            root.appendCourseItemTypeOptions(options, host.course);
+        } else if (chartData) {
+            root.appendPlayableItemTypeOptions(options);
+        }
+    }
+
+    function appendCourseStageOptions(options: var, stages: var) : void {
+        if (!root.selectCourseDetailOptionsUsed()) {
+            return;
+        }
+        stages = stages || [];
+        for (let i = 0; i < Math.min(10, stages.length); ++i) {
+            root.addOption(options, 580 + i);
+        }
+        for (let stage = 0; stage < Math.min(5, stages.length); ++stage) {
+            let difficulty = selectContext.entryDifficulty(stages[stage]);
+            root.addOption(options, 700 + stage * 10 + Math.max(0, Math.min(5, difficulty)));
+        }
+    }
+
+    function appendResultCourseOptions(options: var) : void {
+        if (host.effectiveScreenKey !== "courseResult" && !host.course) {
+            return;
+        }
+        root.appendCourseStageOptions(options, host.selectedCourseStages || []);
+    }
+
     function appendSelectedChartModeOptions(options: var, chartData: var, fallbackItem: var, includeSelectDetailOptions: var, chartKeymode: var) : void {
         includeSelectDetailOptions = includeSelectDetailOptions === undefined ? true : !!includeSelectDetailOptions;
         let usedOptions = root.runtimeUsedOptions;
@@ -799,7 +905,7 @@ QtObject {
         }
         let doubleMode = keymode === 10 || keymode === 14
             || ((keymode === 5 || keymode === 7) && host.spToDpActive());
-        let battleMode = host.battleModeActive();
+        let battleMode = root.battleModeActiveForOptions();
         if (doubleMode) {
             root.addOption(options, 10);
         }
@@ -933,6 +1039,7 @@ QtObject {
     function appendGameplayRuntimeOptions(options: var) : void {
         host.gameplayRevision;
         let chartData = host.gameplayChartData();
+        root.appendGameplayItemTypeOptions(options, chartData);
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendChartOptions(options, chartData);
         root.appendGameplaySideOptions(options, 1);
@@ -961,6 +1068,7 @@ QtObject {
             } else if (count > 0) {
                 root.addOption(options, 280 + Math.min(stage, 8));
             }
+            root.appendCourseStageOptions(options, host.chart.chartDatas);
         }
     }
 
@@ -994,8 +1102,10 @@ QtObject {
 
     function appendResultRuntimeOptions(options: var) : void {
         let chartData = host.resultChartData();
+        root.appendResultItemTypeOptions(options, chartData);
         root.appendSelectedChartModeOptions(options, chartData);
         root.appendChartOptions(options, chartData);
+        root.appendResultCourseOptions(options);
         root.addOption(options, host.resultClearOption());
         if (options.indexOf(351) === -1) {
             root.addOption(options, 350);
@@ -1134,10 +1244,17 @@ QtObject {
         if (!root.selectRankingStatusOptionsUsed()) {
             return;
         }
-        root.addOption(result, rankingState.currentStatusOption);
+        let statusOption = rankingState.currentStatusOption;
+        root.addOption(result, statusOption);
+        if (statusOption === 600) {
+            root.addOption(result, 606);
+        }
         let rankingCount = rankingState.currentPlayerCount;
         if (rankingCount === 0) {
             root.addOption(result, 610);
+            if (statusOption === 602) {
+                root.addOption(result, 603);
+            }
         }
         for (let threshold = 1; threshold <= 6; ++threshold) {
             if (rankingCount > threshold - 1) {

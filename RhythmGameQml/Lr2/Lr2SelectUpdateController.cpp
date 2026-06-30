@@ -596,6 +596,7 @@ void Lr2SelectUpdateController::refreshSkinOptionUsage() {
     const bool nextDifficultyStateUsed = nextDifficultyBarOptionsUsed
         || m_skinUsesSelectDifficultySource;
     const bool nextCourseDetailOptionsUsed = skinUsesAnySelectElementOption({ 290, 293 })
+        || skinUsesSelectElementOptionRange(1002, 1017)
         || skinUsesSelectElementOptionRange(580, 589)
         || skinUsesSelectElementOptionRange(700, 755);
     const bool nextRankingStatusOptionsUsed = skinUsesSelectElementOptionRange(600, 616);
