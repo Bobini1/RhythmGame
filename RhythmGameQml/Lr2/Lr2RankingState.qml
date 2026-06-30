@@ -55,11 +55,13 @@ QtObject {
         if (!targetChart || !targetChart.md5) {
             return 600;
         }
-        if (!root.requestMatchesCurrentChart) {
-            return 600;
-        }
-        if (root.rankingModel.loading || !root.currentRequestCompleted) {
+        if (!root.requestMatchesCurrentChart
+                || root.rankingModel.loading
+                || !root.currentRequestCompleted) {
             return 601;
+        }
+        if (root.currentPlayerCount <= 0) {
+            return 603;
         }
         return 602;
     }

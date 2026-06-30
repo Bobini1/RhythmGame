@@ -1246,15 +1246,9 @@ QtObject {
         }
         let statusOption = rankingState.currentStatusOption;
         root.addOption(result, statusOption);
-        if (statusOption === 600) {
-            root.addOption(result, 606);
-        }
         let rankingCount = rankingState.currentPlayerCount;
         if (rankingCount === 0) {
             root.addOption(result, 610);
-            if (statusOption === 602) {
-                root.addOption(result, 603);
-            }
         }
         for (let threshold = 1; threshold <= 6; ++threshold) {
             if (rankingCount > threshold - 1) {
