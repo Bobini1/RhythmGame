@@ -106,32 +106,32 @@
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="29"/>
         <source>Notes Opacity</source>
-        <translation>Nieprzezroczystość notek</translation>
+        <translation>Widoczność notek</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="36"/>
         <source>BPM Opacity</source>
-        <translation>Nieprzezroczystość BPM</translation>
+        <translation>Widoczność BPM</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="43"/>
         <source>BPM Connector Opacity</source>
-        <translation>Nieprzezroczystość łącznika BPM</translation>
+        <translation>Widoczność łącznika BPM</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="50"/>
         <source>Background Opacity</source>
-        <translation>Nieprzezroczystość tła</translation>
+        <translation>Widoczność tła</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="57"/>
         <source>Frame Opacity</source>
-        <translation>NIeprzezroczystość ramki</translation>
+        <translation>Widoczność ramki</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="64"/>
         <source>Position Line Opacity</source>
-        <translation>Nieprzezroczystość wskaźnika pozycji</translation>
+        <translation>Widoczność wskaźnika pozycji</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="71"/>
@@ -483,7 +483,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/HitDistributionPopup.qml" line="64"/>
         <source>Background Opacity</source>
-        <translation>Nieprzezroczystość tła</translation>
+        <translation>Widoczność tła</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/HitDistributionPopup.qml" line="71"/>
