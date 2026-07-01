@@ -11,6 +11,7 @@ RowLayout {
         width: 200
         implicitWidth: 200
         Layout.maximumWidth: 200
+        palette.buttonText: palette.windowText
 
         property var orderedScreens: {
             let configKeys = Rg.profileList.mainProfile.themeConfig.keys();

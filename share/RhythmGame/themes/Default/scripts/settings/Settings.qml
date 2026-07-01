@@ -61,6 +61,7 @@ Page {
             font.family: settingsHeaderFont.fontFamily
             font.weight: settingsHeaderFont.fontWeight
             font.italic: settingsHeaderFont.italic
+            palette.buttonText: palette.windowText
 
             TabButton {
                 id: tabButton
