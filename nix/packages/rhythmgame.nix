@@ -9,6 +9,7 @@
   zstd,
   magic-enum,
   SDL2,
+  SDL2_image,
   boost,
   sqlitecpp,
   fmt,
@@ -54,6 +55,7 @@ stdenv.mkDerivation rec {
     zstd
     magic-enum
     SDL2
+    SDL2_image
     boost
     sqlitecpp
     fmt
