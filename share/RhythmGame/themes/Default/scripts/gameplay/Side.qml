@@ -192,14 +192,18 @@ Item {
             visible: side.start || side.select
             Text {
                 width: Math.max(100, implicitWidth)
-                font.pixelSize: 24
+                font.pixelSize: 32
                 color: "green"
+                style: Text.Outline
+                styleColor: "black"
                 text: ((side.profile.vars.generalVars.noteScreenTimeMillis) * 3 / 5).toFixed(0)
             }
             Text {
                 width: Math.max(100, implicitWidth)
-                font.pixelSize: 24
+                font.pixelSize: 32
                 color: "white"
+                style: Text.Outline
+                styleColor: "black"
                 visible: side.profile.vars.generalVars.laneCoverOn || side.profile.vars.generalVars.liftOn
                 property real wn: {
                     let laneCoverMod = profile.vars.generalVars.laneCoverOn * profile.vars.generalVars.laneCoverRatio;

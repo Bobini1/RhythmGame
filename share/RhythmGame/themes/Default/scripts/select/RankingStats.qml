@@ -18,12 +18,26 @@ RowLayout {
         fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
     }
 
+    readonly property real percentLaneWidth: 56
+    readonly property real reservedPercentWidth: Math.min(percentLaneWidth, percentWidthMetrics.width)
+
+    TextMetrics {
+        id: percentWidthMetrics
+        font.family: rankingStatsFont.fontFamily
+        font.weight: rankingStatsFont.fontWeight
+        font.italic: rankingStatsFont.italic
+        font.pixelSize: 12
+        text: "100.0%"
+    }
+
     component StatLineItem: Item {
         id: statLineItem
         property alias labelSource: label.source
         property alias text1: textOne.text
         property alias text2: textTwo.text
-        readonly property real percentLaneWidth: 56
+        readonly property real percentLaneWidth: statsDelegate.percentLaneWidth
+        readonly property real countPercentGap: 5
+        readonly property real reservedPercentWidth: statsDelegate.reservedPercentWidth
         height: label.height
         width: parent ? parent.width : 188
         Image {
@@ -34,8 +48,8 @@ RowLayout {
             id: textOne
             anchors.left: label.right
             anchors.leftMargin: 5
-            anchors.right: textTwo.left
-            anchors.rightMargin: 5
+            anchors.right: parent.right
+            anchors.rightMargin: statLineItem.reservedPercentWidth + statLineItem.countPercentGap
             anchors.verticalCenter: parent.verticalCenter
             height: parent.height
             font.family: rankingStatsFont.fontFamily
