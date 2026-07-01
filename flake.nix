@@ -41,6 +41,7 @@
         default = self.packages.${system}.rhythmgame;
         rhythmgame = pkgs.kdePackages.callPackage ./nix/packages/rhythmgame.nix {
           inherit qtinterfaceframework ned14-llfio;
+          inherit (nur-foolnotion) lexy;
           inherit stdenv;
         };
         inherit qtinterfaceframework ned14-llfio;
