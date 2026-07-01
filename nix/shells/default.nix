@@ -39,6 +39,9 @@
   catch2_3,
   stdenv,
   openimageio,
+  libwebp,
+  libtiff,
+  zlib-ng,
 }:
 mkShell {
   buildInputs = [
@@ -74,6 +77,9 @@ mkShell {
     libopus
     libmpg123
     openimageio
+    libwebp
+    libtiff
+    zlib-ng
   ];
 
   nativeBuildInputs = [

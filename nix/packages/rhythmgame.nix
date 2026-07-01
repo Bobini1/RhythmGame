@@ -35,6 +35,9 @@
   libopus,
   libmpg123,
   openimageio,
+  libwebp,
+  libtiff,
+  zlib-ng,
 }:
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
@@ -79,6 +82,9 @@ stdenv.mkDerivation rec {
     libopus
     libmpg123
     openimageio
+    libwebp
+    libtiff
+    zlib-ng
   ];
 
   cmakeFlags = [
