@@ -4,6 +4,8 @@ import RhythmGameQml
 import QtQuick.Layouts
 
 RowLayout {
+    required property color tabTextColor
+
     TabBar {
         id: themeTabView
 
@@ -11,7 +13,7 @@ RowLayout {
         width: 200
         implicitWidth: 200
         Layout.maximumWidth: 200
-        palette.buttonText: palette.windowText
+        palette.buttonText: tabTextColor
 
         property var orderedScreens: {
             let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
