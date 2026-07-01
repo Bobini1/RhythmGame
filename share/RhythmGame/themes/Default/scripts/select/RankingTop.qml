@@ -69,6 +69,7 @@ Column {
                     font.pixelSize: 24
                     font.family: rankingTopFont.fontFamily
                     font.weight: rankingTopFont.fontWeight
+                    font.variableAxes: rankingTopFont.variableAxes
                     font.italic: rankingTopFont.italic
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
@@ -152,6 +153,7 @@ Column {
                     font.pixelSize: 24
                     font.family: rankingTopFont.fontFamily
                     font.weight: rankingTopFont.fontWeight
+                    font.variableAxes: rankingTopFont.variableAxes
                     font.italic: rankingTopFont.italic
                     color: "#ff0066"
                     horizontalAlignment: Text.AlignRight
@@ -201,6 +203,7 @@ Column {
                     verticalAlignment: Text.AlignVCenter
                     font.family: rankingTopFont.fontFamily
                     font.weight: rankingTopFont.boldFontWeight
+                    font.variableAxes: rankingTopFont.boldVariableAxes
                     font.italic: rankingTopFont.italic
                     fontSizeMode: Text.HorizontalFit
                     minimumPixelSize: 7

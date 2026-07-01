@@ -142,6 +142,7 @@ Image {
         verticalAlignment: Text.AlignVCenter
         font.family: rankingFont.fontFamily
         font.weight: rankingFont.fontWeight
+        font.variableAxes: rankingFont.variableAxes
         font.italic: rankingFont.italic
         font.pixelSize: 16
         maximumLineCount: 1
@@ -163,6 +164,7 @@ Image {
         verticalAlignment: Text.AlignVCenter
         font.family: rankingFont.fontFamily
         font.weight: rankingFont.fontWeight
+        font.variableAxes: rankingFont.variableAxes
         font.italic: rankingFont.italic
         font.pixelSize: 16
         maximumLineCount: 1

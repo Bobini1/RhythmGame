@@ -173,6 +173,7 @@ RowLayout {
                             font.italic: previewFont.italic
                             font.pixelSize: 18
                             font.weight: previewFont.fontWeight
+                            font.variableAxes: previewFont.variableAxes
                             text: fontSetting.displayNameForLoadedFont(fontChoice.modelData.value, previewFont.fontFamily)
                             textFormat: Text.PlainText
                         }

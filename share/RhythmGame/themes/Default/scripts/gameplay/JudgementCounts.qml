@@ -52,6 +52,7 @@ Item {
             minimumPixelSize: 3
             font.family: judgementCountsFont.fontFamily
             font.weight: judgementCountsFont.fontWeight
+            font.variableAxes: judgementCountsFont.variableAxes
             font.italic: judgementCountsFont.italic
             font.pixelSize: 60
             text: Helpers.getGrade(judgementCountsContainer.score.points, judgementCountsContainer.score.maxPointsNow)
@@ -67,6 +68,7 @@ Item {
             minimumPixelSize: 3
             font.family: judgementCountsFont.fontFamily
             font.weight: judgementCountsFont.fontWeight
+            font.variableAxes: judgementCountsFont.variableAxes
             font.italic: judgementCountsFont.italic
             font.pixelSize: 60
             text: {
@@ -109,6 +111,7 @@ Item {
                     minimumPixelSize: 3
                     font.family: judgementCountsFont.fontFamily
                     font.weight: judgementCountsFont.fontWeight
+                    font.variableAxes: judgementCountsFont.variableAxes
                     font.italic: judgementCountsFont.italic
                     font.pixelSize: 60
                     Layout.fillWidth: true
@@ -130,6 +133,7 @@ Item {
                     minimumPixelSize: 3
                     font.family: judgementCountsFont.fontFamily
                     font.weight: judgementCountsFont.fontWeight
+                    font.variableAxes: judgementCountsFont.variableAxes
                     font.italic: judgementCountsFont.italic
                     font.pixelSize: 60
                     Layout.fillWidth: true

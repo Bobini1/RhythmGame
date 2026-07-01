@@ -130,6 +130,7 @@ Row {
                 font.italic: selectedFont.italic
                 font.pixelSize: 20
                 font.weight: selectedFont.fontWeight
+                font.variableAxes: selectedFont.variableAxes
                 fontSizeMode: Text.HorizontalFit
                 horizontalAlignment: Text.AlignHCenter
                 minimumPixelSize: 8
@@ -202,6 +203,7 @@ Row {
                             font.italic: previewFont.italic
                             font.pixelSize: 18
                             font.weight: previewFont.fontWeight
+                            font.variableAxes: previewFont.variableAxes
                             text: fontSelection.displayNameForLoadedFont(fontChoice.modelData.value, previewFont.fontFamily)
                             textFormat: Text.PlainText
                         }

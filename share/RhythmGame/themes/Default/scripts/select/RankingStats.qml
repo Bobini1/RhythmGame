@@ -25,6 +25,7 @@ RowLayout {
         id: percentWidthMetrics
         font.family: rankingStatsFont.fontFamily
         font.weight: rankingStatsFont.fontWeight
+        font.variableAxes: rankingStatsFont.variableAxes
         font.italic: rankingStatsFont.italic
         font.pixelSize: 12
         text: "100.0%"
@@ -54,6 +55,7 @@ RowLayout {
             height: parent.height
             font.family: rankingStatsFont.fontFamily
             font.weight: rankingStatsFont.boldFontWeight
+            font.variableAxes: rankingStatsFont.boldVariableAxes
             font.italic: rankingStatsFont.italic
             font.pixelSize: 21
             fontSizeMode: Text.HorizontalFit
@@ -72,6 +74,7 @@ RowLayout {
             height: parent.height
             font.family: rankingStatsFont.fontFamily
             font.weight: rankingStatsFont.fontWeight
+            font.variableAxes: rankingStatsFont.variableAxes
             font.italic: rankingStatsFont.italic
             fontSizeMode: Text.HorizontalFit
             minimumPixelSize: 7

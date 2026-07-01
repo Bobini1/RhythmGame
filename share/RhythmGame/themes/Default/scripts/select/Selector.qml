@@ -73,6 +73,7 @@ Image {
                             font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
+                            font.variableAxes: selectorFont.variableAxes
                             font.italic: selectorFont.italic
                             fontSizeMode: Text.Fit
                             height: parent.height
@@ -93,6 +94,7 @@ Image {
                             font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
+                            font.variableAxes: selectorFont.variableAxes
                             font.italic: selectorFont.italic
                             fontSizeMode: Text.Fit
                             height: parent.height
@@ -120,6 +122,7 @@ Image {
                             font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
+                            font.variableAxes: selectorFont.variableAxes
                             font.italic: selectorFont.italic
                             fontSizeMode: Text.Fit
                             height: parent.height
@@ -140,6 +143,7 @@ Image {
                             font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
+                            font.variableAxes: selectorFont.variableAxes
                             font.italic: selectorFont.italic
                             fontSizeMode: Text.Fit
                             height: parent.height

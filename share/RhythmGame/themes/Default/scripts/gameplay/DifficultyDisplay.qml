@@ -31,6 +31,7 @@ Item {
         font.pixelSize: 100
         font.family: difficultyDisplayFont.fontFamily
         font.weight: difficultyDisplayFont.boldFontWeight
+        font.variableAxes: difficultyDisplayFont.boldVariableAxes
         font.italic: difficultyDisplayFont.italic
     }
 
@@ -68,6 +69,7 @@ Item {
             font.pixelSize: Math.max(1, difficultyDisplay.badgeFontSize)
             font.family: difficultyDisplayFont.fontFamily
             font.weight: difficultyDisplayFont.boldFontWeight
+            font.variableAxes: difficultyDisplayFont.boldVariableAxes
             font.italic: difficultyDisplayFont.italic
             color: "white"
             textFormat: Text.PlainText
@@ -87,6 +89,7 @@ Item {
         font.pixelSize: Math.max(1, difficultyDisplay.badgeFontSize * 1.3)
         font.family: difficultyDisplayFont.fontFamily
         font.weight: difficultyDisplayFont.boldFontWeight
+        font.variableAxes: difficultyDisplayFont.boldVariableAxes
         font.italic: difficultyDisplayFont.italic
         color: "white"
         textFormat: Text.PlainText

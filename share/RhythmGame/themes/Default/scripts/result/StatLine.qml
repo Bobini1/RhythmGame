@@ -33,6 +33,7 @@ Item {
         color: "lightgray"
         font.family: statLineFont.fontFamily
         font.weight: statLineFont.fontWeight
+        font.variableAxes: statLineFont.variableAxes
         font.italic: statLineFont.italic
         font.pixelSize: 25
         horizontalAlignment: Text.AlignRight
@@ -55,6 +56,7 @@ Item {
         color: "lightgray"
         font.family: statLineFont.fontFamily
         font.weight: statLineFont.fontWeight
+        font.variableAxes: statLineFont.variableAxes
         font.italic: statLineFont.italic
         font.pixelSize: 34
         horizontalAlignment: Text.AlignLeft
@@ -69,6 +71,7 @@ Item {
         color: (statLine.newVal > statLine.oldVal) ^ !invertDeltaColor ? "FireBrick" : "darkgreen"
         font.family: statLineFont.fontFamily
         font.weight: statLineFont.fontWeight
+        font.variableAxes: statLineFont.variableAxes
         font.italic: statLineFont.italic
         font.pixelSize: 25
         text: {

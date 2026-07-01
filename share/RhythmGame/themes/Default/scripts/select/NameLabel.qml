@@ -27,6 +27,7 @@ Item {
         elide: (label.longText && !wrapper.scrolling) ? Text.ElideRight : Text.ElideNone
         font.family: nameLabelFont.fontFamily
         font.weight: nameLabelFont.fontWeight
+        font.variableAxes: nameLabelFont.variableAxes
         font.italic: nameLabelFont.italic
         font.pixelSize: 20
         // align right if there is enough space

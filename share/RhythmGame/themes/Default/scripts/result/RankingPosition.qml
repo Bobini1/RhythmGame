@@ -92,6 +92,7 @@ WindowBg {
                     visible: false
                     font.family: resultRankingFont.fontFamily
                     font.weight: resultRankingFont.fontWeight
+                    font.variableAxes: resultRankingFont.variableAxes
                     font.italic: resultRankingFont.italic
                     font.pixelSize: 24
                     text: loadedRanking.oldRankingLabel
@@ -103,6 +104,7 @@ WindowBg {
                     visible: false
                     font.family: resultRankingFont.fontFamily
                     font.weight: resultRankingFont.fontWeight
+                    font.variableAxes: resultRankingFont.variableAxes
                     font.italic: resultRankingFont.italic
                     font.pixelSize: 30
                     text: loadedRanking.newRankingLabel
@@ -114,6 +116,7 @@ WindowBg {
                     visible: false
                     font.family: resultRankingFont.fontFamily
                     font.weight: resultRankingFont.fontWeight
+                    font.variableAxes: resultRankingFont.variableAxes
                     font.italic: resultRankingFont.italic
                     font.pixelSize: 24
                     text: loadedRanking.totalEntriesLabel
@@ -130,6 +133,7 @@ WindowBg {
                     color: "black"
                     font.family: resultRankingFont.fontFamily
                     font.weight: resultRankingFont.fontWeight
+                    font.variableAxes: resultRankingFont.variableAxes
                     font.italic: resultRankingFont.italic
                     font.pixelSize: 24 * parent.textScale
                     horizontalAlignment: Text.AlignRight
@@ -156,6 +160,7 @@ WindowBg {
                     color: "black"
                     font.family: resultRankingFont.fontFamily
                     font.weight: resultRankingFont.fontWeight
+                    font.variableAxes: resultRankingFont.variableAxes
                     font.italic: resultRankingFont.italic
                     font.pixelSize: 30 * parent.textScale
                     horizontalAlignment: Text.AlignRight
@@ -171,6 +176,7 @@ WindowBg {
                     color: "black"
                     font.family: resultRankingFont.fontFamily
                     font.weight: resultRankingFont.fontWeight
+                    font.variableAxes: resultRankingFont.variableAxes
                     font.italic: resultRankingFont.italic
                     font.pixelSize: 24 * parent.textScale
                     horizontalAlignment: Text.AlignLeft

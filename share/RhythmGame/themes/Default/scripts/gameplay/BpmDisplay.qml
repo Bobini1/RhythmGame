@@ -33,6 +33,7 @@ Item {
                 font.pixelSize: 100
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.boldFontWeight
+                font.variableAxes: bpmDisplayFont.boldVariableAxes
                 font.italic: bpmDisplayFont.italic
             }
             // Height-limited: 65 % of row height
@@ -47,6 +48,7 @@ Item {
                 font.pixelSize: labelRow.fs
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.fontWeight
+                font.variableAxes: bpmDisplayFont.variableAxes
                 font.italic: bpmDisplayFont.italic
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
@@ -59,6 +61,7 @@ Item {
                 font.pixelSize: labelRow.fs
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.boldFontWeight
+                font.variableAxes: bpmDisplayFont.boldVariableAxes
                 font.italic: bpmDisplayFont.italic
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
@@ -71,6 +74,7 @@ Item {
                 font.pixelSize: labelRow.fs
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.fontWeight
+                font.variableAxes: bpmDisplayFont.variableAxes
                 font.italic: bpmDisplayFont.italic
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
@@ -93,6 +97,7 @@ Item {
                 font.pixelSize: numberRow.smallFs
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.fontWeight
+                font.variableAxes: bpmDisplayFont.variableAxes
                 font.italic: bpmDisplayFont.italic
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
                 color: "white"
@@ -106,6 +111,7 @@ Item {
                 font.pixelSize: numberRow.bigFs
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.boldFontWeight
+                font.variableAxes: bpmDisplayFont.boldVariableAxes
                 font.italic: bpmDisplayFont.italic
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
                 color: "white"
@@ -119,6 +125,7 @@ Item {
                 font.pixelSize: numberRow.smallFs
                 font.family: bpmDisplayFont.fontFamily
                 font.weight: bpmDisplayFont.fontWeight
+                font.variableAxes: bpmDisplayFont.variableAxes
                 font.italic: bpmDisplayFont.italic
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
                 color: "white"

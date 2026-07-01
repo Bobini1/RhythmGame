@@ -32,6 +32,7 @@ WindowBg {
                     text: qsTr("MEAN")
                     font.family: meanSdFont.fontFamily
                     font.weight: meanSdFont.boldFontWeight
+                    font.variableAxes: meanSdFont.boldVariableAxes
                     font.italic: meanSdFont.italic
                     color: "white"
                     font.pixelSize: 16
@@ -46,6 +47,7 @@ WindowBg {
                 }
                 font.family: meanSdFont.fontFamily
                 font.weight: meanSdFont.fontWeight
+                font.variableAxes: meanSdFont.variableAxes
                 font.italic: meanSdFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true
@@ -66,6 +68,7 @@ WindowBg {
                     text: qsTr("SD")
                     font.family: meanSdFont.fontFamily
                     font.weight: meanSdFont.boldFontWeight
+                    font.variableAxes: meanSdFont.boldVariableAxes
                     font.italic: meanSdFont.italic
                     color: "white"
                     font.pixelSize: 16
@@ -76,6 +79,7 @@ WindowBg {
                 text: (meanSd.stddev / 1000000).toFixed(1) + " ms"
                 font.family: meanSdFont.fontFamily
                 font.weight: meanSdFont.fontWeight
+                font.variableAxes: meanSdFont.variableAxes
                 font.italic: meanSdFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true

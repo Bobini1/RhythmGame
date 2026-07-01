@@ -36,6 +36,7 @@ Item {
         height: parent.height + 10
         font.family: scoreInfoLineFont.fontFamily
         font.weight: scoreInfoLineFont.fontWeight
+        font.variableAxes: scoreInfoLineFont.variableAxes
         font.italic: scoreInfoLineFont.italic
         font.pixelSize: 25
         fontSizeMode: Text.HorizontalFit

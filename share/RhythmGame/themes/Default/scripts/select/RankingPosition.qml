@@ -173,6 +173,7 @@ Item {
             font.italic: rankingPositionFont.italic
             font.pixelSize: 28
             font.weight: rankingPositionFont.fontWeight
+            font.variableAxes: rankingPositionFont.variableAxes
             text: ir.rankingPosition + "/"
         }
 
@@ -184,6 +185,7 @@ Item {
             font.italic: rankingPositionFont.italic
             font.pixelSize: 22
             font.weight: rankingPositionFont.fontWeight
+            font.variableAxes: rankingPositionFont.variableAxes
             text: ir.rankingTotalEntries
         }
 
@@ -195,6 +197,7 @@ Item {
             font.italic: rankingPositionFont.italic
             font.pixelSize: 28
             font.weight: rankingPositionFont.fontWeight
+            font.variableAxes: rankingPositionFont.variableAxes
             text: "88888/"
         }
 
@@ -206,6 +209,7 @@ Item {
             font.italic: rankingPositionFont.italic
             font.pixelSize: 22
             font.weight: rankingPositionFont.fontWeight
+            font.variableAxes: rankingPositionFont.variableAxes
             text: "88888"
         }
 
@@ -230,6 +234,7 @@ Item {
             anchors.leftMargin: rankingNumbers.contentLeft
             font.family: rankingPositionFont.fontFamily
             font.weight: rankingPositionFont.fontWeight
+            font.variableAxes: rankingPositionFont.variableAxes
             font.italic: rankingPositionFont.italic
             font.pixelSize: 28 * rankingNumbers.scaleFactor
             horizontalAlignment: Text.AlignRight
@@ -245,6 +250,7 @@ Item {
             anchors.leftMargin: rankingNumbers.slotGap
             font.family: rankingPositionFont.fontFamily
             font.weight: rankingPositionFont.fontWeight
+            font.variableAxes: rankingPositionFont.variableAxes
             font.italic: rankingPositionFont.italic
             font.pixelSize: 22 * rankingNumbers.scaleFactor
             horizontalAlignment: Text.AlignRight

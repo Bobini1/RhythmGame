@@ -24,6 +24,7 @@ Text {
     font.pixelSize: 1000
     font.family: ghostScoreFont.fontFamily
     font.weight: ghostScoreFont.fontWeight
+    font.variableAxes: ghostScoreFont.variableAxes
     font.italic: ghostScoreFont.italic
     minimumPixelSize: 6
     horizontalAlignment: Text.AlignHCenter

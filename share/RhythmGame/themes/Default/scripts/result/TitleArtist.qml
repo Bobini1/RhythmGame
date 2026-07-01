@@ -27,6 +27,7 @@ WindowBg {
         elide: Text.ElideRight
         font.family: resultTitleFont.fontFamily
         font.weight: resultTitleFont.fontWeight
+        font.variableAxes: resultTitleFont.variableAxes
         font.italic: resultTitleFont.italic
         font.pixelSize: 40
         text: (title.title + (title.subtitle ? (" " + title.subtitle) : "")).replace(/\r\n|\n|\r/g, " ")
@@ -44,6 +45,7 @@ WindowBg {
         elide: Text.ElideRight
         font.family: resultTitleFont.fontFamily
         font.weight: resultTitleFont.fontWeight
+        font.variableAxes: resultTitleFont.variableAxes
         font.italic: resultTitleFont.italic
         font.pixelSize: 30
         text: title.artist + (title.subartist ? (" " + title.subartist) : "")

@@ -13,11 +13,18 @@ FontLoader {
     readonly property bool fileFont: selectedFont.indexOf("file:") === 0
     readonly property string selectedFileName: fileFont ? selectedFont.slice(5) : ""
     readonly property string fallbackSelectedFileName: fallbackFileName.indexOf("file:") === 0 ? fallbackFileName.slice(5) : ""
+    readonly property string loaderFileName: selectedFileName.length > 0
+        ? selectedFileName
+        : (fallbackSelectedFileName.length > 0
+            ? fallbackSelectedFileName
+            : "NotoSansJP-VariableFont_wght.ttf")
     readonly property string styleFileName: systemFont ? fallbackSelectedFileName : selectedFileName
     readonly property string fontFamily: systemFont ? systemFontFamily : (status === FontLoader.Ready && name.length > 0 ? name : fallbackFamily)
     readonly property string normalizedFileName: styleFileName.toLowerCase()
     readonly property bool italic: normalizedFileName.indexOf("italic") !== -1
     readonly property int boldFontWeight: Math.max(fontWeight, Font.Bold)
+    readonly property var variableAxes: ({ "wght": fontWeight })
+    readonly property var boldVariableAxes: ({ "wght": boldFontWeight })
     readonly property int fontWeight: {
         if (normalizedFileName.indexOf("thin") !== -1) {
             return Font.Thin;
@@ -34,5 +41,5 @@ FontLoader {
         return Font.Normal;
     }
 
-    source: selectedFileName.length > 0 ? Qt.resolvedUrl("fonts/" + selectedFileName) : ""
+    source: Qt.resolvedUrl("fonts/" + loaderFileName)
 }

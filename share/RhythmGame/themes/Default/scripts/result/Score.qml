@@ -45,6 +45,7 @@ WindowBg {
                     color: "lightgray"
                     font.family: scoreFont.fontFamily
                     font.weight: scoreFont.fontWeight
+                    font.variableAxes: scoreFont.variableAxes
                     font.italic: scoreFont.italic
                     font.pixelSize: 41
                     horizontalAlignment: Text.AlignRight
@@ -60,6 +61,7 @@ WindowBg {
                     anchors.right: parent.right
                     font.family: scoreFont.fontFamily
                     font.weight: scoreFont.fontWeight
+                    font.variableAxes: scoreFont.variableAxes
                     font.italic: scoreFont.italic
                     font.pixelSize: 25
                     horizontalAlignment: Text.AlignRight
@@ -86,6 +88,7 @@ WindowBg {
                     color: "lightgray"
                     font.family: scoreFont.fontFamily
                     font.weight: scoreFont.fontWeight
+                    font.variableAxes: scoreFont.variableAxes
                     font.italic: scoreFont.italic
                     font.pixelSize: 34
                     horizontalAlignment: Text.AlignRight
@@ -106,6 +109,7 @@ WindowBg {
                     }
                     font.family: scoreFont.fontFamily
                     font.weight: scoreFont.fontWeight
+                    font.variableAxes: scoreFont.variableAxes
                     font.italic: scoreFont.italic
                     font.pixelSize: 25
                     horizontalAlignment: Text.AlignLeft

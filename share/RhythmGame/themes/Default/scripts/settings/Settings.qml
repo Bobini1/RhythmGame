@@ -23,6 +23,7 @@ Page {
 
     font.family: settingsUiFont.fontFamily
     font.weight: settingsUiFont.fontWeight
+    font.variableAxes: settingsUiFont.variableAxes
     font.italic: settingsUiFont.italic
 
     function applyInitialTabIndex() {
@@ -42,6 +43,7 @@ Page {
             text: "⏎"
             font.family: settingsHeaderFont.fontFamily
             font.weight: settingsHeaderFont.boldFontWeight
+            font.variableAxes: settingsHeaderFont.boldVariableAxes
             font.italic: settingsHeaderFont.italic
             palette {
                 button: settings.palette.accent
@@ -60,6 +62,7 @@ Page {
             Layout.fillWidth: true
             font.family: settingsHeaderFont.fontFamily
             font.weight: settingsHeaderFont.fontWeight
+            font.variableAxes: settingsHeaderFont.variableAxes
             font.italic: settingsHeaderFont.italic
             palette.buttonText: settings.palette.windowText
 

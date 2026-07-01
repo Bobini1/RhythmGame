@@ -94,6 +94,7 @@ Item {
                 color: modelData.color
                 font.family: scoreGraphFont.fontFamily
                 font.weight: scoreGraphFont.boldFontWeight
+                font.variableAxes: scoreGraphFont.boldVariableAxes
                 font.italic: scoreGraphFont.italic
                 font.pixelSize: scoreGraph.fontSize
                 style: Text.Outline
@@ -195,6 +196,7 @@ Item {
             font.pixelSize: scoreGraph.fontSize
             font.family: scoreGraphFont.fontFamily
             font.weight: scoreGraphFont.boldFontWeight
+            font.variableAxes: scoreGraphFont.boldVariableAxes
             font.italic: scoreGraphFont.italic
             text: "TARGET: +0000"
         }
@@ -204,6 +206,7 @@ Item {
             font.pixelSize: scoreGraph.fontSize
             font.family: scoreGraphFont.fontFamily
             font.weight: scoreGraphFont.boldFontWeight
+            font.variableAxes: scoreGraphFont.boldVariableAxes
             font.italic: scoreGraphFont.italic
             text: "T: +0000"
         }
@@ -227,6 +230,7 @@ Item {
                 color: "white"; font.pixelSize: scoreGraph.fontSize
                 font.family: scoreGraphFont.fontFamily
                 font.weight: scoreGraphFont.boldFontWeight
+                font.variableAxes: scoreGraphFont.boldVariableAxes
                 font.italic: scoreGraphFont.italic
                 style: Text.Outline; styleColor: "black"
             }
@@ -239,6 +243,7 @@ Item {
                 color: "white"; font.pixelSize: scoreGraph.fontSize
                 font.family: scoreGraphFont.fontFamily
                 font.weight: scoreGraphFont.boldFontWeight
+                font.variableAxes: scoreGraphFont.boldVariableAxes
                 font.italic: scoreGraphFont.italic
                 style: Text.Outline; styleColor: "black"
             }

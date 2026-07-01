@@ -54,6 +54,7 @@ WindowBg {
                     text: qsTr("NOTES")
                     font.family: chartInfoFont.fontFamily
                     font.weight: chartInfoFont.boldFontWeight
+                    font.variableAxes: chartInfoFont.boldVariableAxes
                     font.italic: chartInfoFont.italic
                     color: "white"
                     font.pixelSize: 16
@@ -64,6 +65,7 @@ WindowBg {
                 text: chartInfo.noteCount
                 font.family: chartInfoFont.fontFamily
                 font.weight: chartInfoFont.fontWeight
+                font.variableAxes: chartInfoFont.variableAxes
                 font.italic: chartInfoFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true
@@ -84,6 +86,7 @@ WindowBg {
                     text: qsTr("TOTAL")
                     font.family: chartInfoFont.fontFamily
                     font.weight: chartInfoFont.boldFontWeight
+                    font.variableAxes: chartInfoFont.boldVariableAxes
                     font.italic: chartInfoFont.italic
                     color: "white"
                     font.pixelSize: 16
@@ -94,6 +97,7 @@ WindowBg {
                 text: chartInfo.total || "-"
                 font.family: chartInfoFont.fontFamily
                 font.weight: chartInfoFont.fontWeight
+                font.variableAxes: chartInfoFont.variableAxes
                 font.italic: chartInfoFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true

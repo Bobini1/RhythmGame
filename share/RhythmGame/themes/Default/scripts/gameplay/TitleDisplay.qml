@@ -27,6 +27,7 @@ Item {
             font.pixelSize: height * 0.85
             font.family: titleDisplayFont.fontFamily
             font.weight: titleDisplayFont.boldFontWeight
+            font.variableAxes: titleDisplayFont.boldVariableAxes
             font.italic: titleDisplayFont.italic
             fontSizeMode: Text.Fit
             minimumPixelSize: 6
@@ -45,6 +46,7 @@ Item {
             font.pixelSize: height * 0.8
             font.family: titleDisplayFont.fontFamily
             font.weight: titleDisplayFont.fontWeight
+            font.variableAxes: titleDisplayFont.variableAxes
             font.italic: titleDisplayFont.italic
             fontSizeMode: Text.Fit
             minimumPixelSize: 6

@@ -411,6 +411,7 @@ Item {
             font.italic: ghostScore.font.italic
             font.pixelSize: ghostScore.fontInfo.pixelSize
             font.weight: ghostScore.font.weight
+            font.variableAxes: ghostScore.font.variableAxes
             text: ghostScore.text
         }
 

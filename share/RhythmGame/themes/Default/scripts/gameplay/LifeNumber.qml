@@ -31,6 +31,7 @@ Text {
     color: "white"
     font.family: lifeNumberFont.fontFamily
     font.weight: lifeNumberFont.fontWeight
+    font.variableAxes: lifeNumberFont.variableAxes
     font.italic: lifeNumberFont.italic
     font.pixelSize: 32
     fontSizeMode: Text.Fit

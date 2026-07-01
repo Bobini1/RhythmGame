@@ -92,6 +92,7 @@ Image {
                     color: palette.text
                     font.family: mainDialogFont.fontFamily
                     font.weight: mainDialogFont.fontWeight
+                    font.variableAxes: mainDialogFont.variableAxes
                     font.italic: mainDialogFont.italic
                 }
 
@@ -106,6 +107,7 @@ Image {
                     color: palette.text
                     font.family: mainDialogFont.fontFamily
                     font.weight: mainDialogFont.fontWeight
+                    font.variableAxes: mainDialogFont.variableAxes
                     font.italic: mainDialogFont.italic
                 }
             }
@@ -130,6 +132,7 @@ Image {
             anchors.horizontalCenterOffset: 280
             font.family: mainTitleFont.fontFamily
             font.weight: mainTitleFont.fontWeight
+            font.variableAxes: mainTitleFont.variableAxes
             font.italic: mainTitleFont.italic
             font.pixelSize: 200
             text: "RhythmGame"
@@ -142,6 +145,7 @@ Image {
             elide: Text.ElideRight
             font.family: mainMenuFont.fontFamily
             font.weight: mainMenuFont.fontWeight
+            font.variableAxes: mainMenuFont.variableAxes
             font.italic: mainMenuFont.italic
             font.pixelSize: 28
             fontSizeMode: Text.HorizontalFit
@@ -177,6 +181,7 @@ Image {
                     height: 100
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
+                    font.variableAxes: mainMenuFont.variableAxes
                     font.italic: mainMenuFont.italic
                     font.pixelSize: 30
 
@@ -192,6 +197,7 @@ Image {
                     text: qsTr("Settings")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
+                    font.variableAxes: mainMenuFont.variableAxes
                     font.italic: mainMenuFont.italic
                     font.pixelSize: 30
                     onClicked: {
@@ -205,6 +211,7 @@ Image {
                     text: qsTr("Attributions")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
+                    font.variableAxes: mainMenuFont.variableAxes
                     font.italic: mainMenuFont.italic
                     font.pixelSize: 30
                     onClicked: {
@@ -218,6 +225,7 @@ Image {
                     text: qsTr("Quit")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
+                    font.variableAxes: mainMenuFont.variableAxes
                     font.italic: mainMenuFont.italic
                     font.pixelSize: 30
                     onClicked: {

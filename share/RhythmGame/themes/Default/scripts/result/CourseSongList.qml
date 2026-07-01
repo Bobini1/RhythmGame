@@ -34,6 +34,7 @@ Column {
             text: modelData
             font.family: courseSongListFont.fontFamily
             font.weight: courseSongListFont.fontWeight
+            font.variableAxes: courseSongListFont.variableAxes
             font.italic: courseSongListFont.italic
             font.pixelSize: 30
             style: Text.Outline

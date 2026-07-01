@@ -34,6 +34,7 @@ Item {
         color: "lightgray"
         font.family: hitStatLineFont.fontFamily
         font.weight: hitStatLineFont.fontWeight
+        font.variableAxes: hitStatLineFont.variableAxes
         font.italic: hitStatLineFont.italic
         font.pixelSize: 34
         horizontalAlignment: Text.AlignRight
@@ -48,6 +49,7 @@ Item {
         color: "lightgray"
         font.family: hitStatLineFont.fontFamily
         font.weight: hitStatLineFont.fontWeight
+        font.variableAxes: hitStatLineFont.variableAxes
         font.italic: hitStatLineFont.italic
         font.pixelSize: 25
         horizontalAlignment: Text.AlignHCenter

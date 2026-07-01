@@ -183,6 +183,7 @@ Item {
                 color: "white"
                 font.family: resultStatsFont.fontFamily
                 font.weight: resultStatsFont.boldFontWeight
+                font.variableAxes: resultStatsFont.boldVariableAxes
                 font.italic: resultStatsFont.italic
                 font.pixelSize: 28
                 fontSizeMode: Text.HorizontalFit

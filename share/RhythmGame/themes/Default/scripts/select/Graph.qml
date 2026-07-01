@@ -56,6 +56,7 @@ Image {
     component CountText: Text {
         font.family: graphFont.fontFamily
         font.weight: graphFont.fontWeight
+        font.variableAxes: graphFont.variableAxes
         font.italic: graphFont.italic
         font.pixelSize: 26
         fontSizeMode: Text.HorizontalFit

@@ -553,6 +553,7 @@ FocusScope {
                 anchors.horizontalCenter: scoreInfo.horizontalCenter
                 font.family: scoreInfoFont.fontFamily
                 font.weight: scoreInfoFont.fontWeight
+                font.variableAxes: scoreInfoFont.variableAxes
                 font.italic: scoreInfoFont.italic
                 font.pixelSize: 19
                 clip: true
@@ -603,6 +604,7 @@ FocusScope {
                     color: "white"
                     font.family: songInfoFont.fontFamily
                     font.weight: songInfoFont.fontWeight
+                    font.variableAxes: songInfoFont.variableAxes
                     font.italic: songInfoFont.italic
                     font.pixelSize: 20
                     height: 25

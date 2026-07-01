@@ -162,6 +162,7 @@ Image {
                     text: root.genreString
                     font.family: decideInfoFont.fontFamily
                     font.weight: decideInfoFont.fontWeight
+                    font.variableAxes: decideInfoFont.variableAxes
                     font.italic: decideInfoFont.italic
                     font.pixelSize: 200
                     color: "white"
@@ -206,6 +207,7 @@ Image {
                     text: root.titleString
                     font.family: decideTitleFont.fontFamily
                     font.weight: decideTitleFont.fontWeight
+                    font.variableAxes: decideTitleFont.variableAxes
                     font.italic: decideTitleFont.italic
                     font.pixelSize: 200
                     color: "white"
@@ -255,6 +257,7 @@ Image {
                     text: root.subartistString
                     font.family: decideInfoFont.fontFamily
                     font.weight: decideInfoFont.fontWeight
+                    font.variableAxes: decideInfoFont.variableAxes
                     font.italic: decideInfoFont.italic
                     font.pixelSize: 200
                     color: "white"
@@ -270,6 +273,7 @@ Image {
                     text: root.artistString
                     font.family: decideInfoFont.fontFamily
                     font.weight: decideInfoFont.fontWeight
+                    font.variableAxes: decideInfoFont.variableAxes
                     font.italic: decideInfoFont.italic
                     font.pixelSize: 200
                     color: "white"
