@@ -23,8 +23,9 @@ Image {
 
         sourceComponent: Component {
             Item {
-                readonly property int infoRowHeight: 22
-                readonly property int infoValueWidth: 52
+                readonly property int infoRowHeight: 36
+                readonly property int infoFontSize: 34
+                readonly property int infoValueWidth: 96
                 readonly property int artistWidth: 280
 
                 anchors.bottomMargin: 10
@@ -34,10 +35,11 @@ Image {
                 Item {
                     id: infoRows
 
-                    anchors.bottom: parent.bottom
                     anchors.left: parent.left
                     anchors.right: rankImage.left
                     anchors.rightMargin: 20
+                    anchors.top: artistInfo.top
+                    anchors.topMargin: (artist.height - parent.infoRowHeight) / 2
                     height: parent.infoRowHeight * 2
 
                     readonly property real valueWidth: Math.max(28, Math.min(parent.infoValueWidth, Math.max(bpmValueMetrics.width, keysValueMetrics.width) + 4))
@@ -68,7 +70,7 @@ Image {
                             id: bpmText
 
                             clip: true
-                            font.pixelSize: 20
+                            font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
                             font.italic: selectorFont.italic
@@ -88,7 +90,7 @@ Image {
                             anchors.left: bpmText.right
                             anchors.leftMargin: 4
                             clip: true
-                            font.pixelSize: 20
+                            font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
                             font.italic: selectorFont.italic
@@ -108,14 +110,14 @@ Image {
 
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        anchors.top: bpmRow.bottom
                         height: infoRows.parent.infoRowHeight
+                        y: rankImage.y + rankImage.height / 2 - infoRows.y - height / 2
 
                         Text {
                             id: keysText
 
                             clip: true
-                            font.pixelSize: 20
+                            font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
                             font.italic: selectorFont.italic
@@ -135,7 +137,7 @@ Image {
                             anchors.left: keysText.right
                             anchors.leftMargin: 4
                             clip: true
-                            font.pixelSize: 20
+                            font.pixelSize: infoRows.parent.infoFontSize
                             font.family: selectorFont.fontFamily
                             font.weight: selectorFont.fontWeight
                             font.italic: selectorFont.italic
