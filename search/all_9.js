@@ -39,7 +39,7 @@ var searchData=
   ['inputmapping_36',['inputmapping',['../classgameplay__logic_1_1CourseRunner.html#adfd6a11a19c83d5410b1868993c38145',1,'gameplay_logic::CourseRunner::inputMapping'],['../classgameplay__logic_1_1ChartRunner.html#a465f0b6500e36211e13e501af46bfb09',1,'gameplay_logic::ChartRunner::inputMapping']]],
   ['inputmappingchanged_37',['inputmappingchanged',['../classgameplay__logic_1_1CourseRunner.html#abdd5f919cb79cd198619a07275491459',1,'gameplay_logic::CourseRunner::inputMappingChanged()'],['../classgameplay__logic_1_1ChartRunner.html#a3090a7bb3b4d0961aee54a30994e98b8',1,'gameplay_logic::ChartRunner::inputMappingChanged()']]],
   ['inputsignalprovider_38',['inputSignalProvider',['../classqml__components_1_1InputAttached.html#a1248f714f7342843966037a7b3843e75',1,'qml_components::InputAttached']]],
-  ['inputtranslator_39',['inputtranslator',['../classinput_1_1InputTranslator.html#a720926d3c45b298ad64570f032dae1f3',1,'input::InputTranslator::InputTranslator()'],['../classRg.html#abd0e62c36a72c1bcf5fb00e59c9dc5bd',1,'Rg::inputTranslator'],['../classinput_1_1InputTranslator.html',1,'input::InputTranslator']]],
+  ['inputtranslator_39',['inputtranslator',['../classRg.html#abd0e62c36a72c1bcf5fb00e59c9dc5bd',1,'Rg::inputTranslator'],['../classinput_1_1InputTranslator.html#a720926d3c45b298ad64570f032dae1f3',1,'input::InputTranslator::InputTranslator()'],['../classinput_1_1InputTranslator.html',1,'input::InputTranslator']]],
   ['inputtranslator_2ecpp_40',['InputTranslator.cpp',['../InputTranslator_8cpp.html',1,'']]],
   ['inputtranslator_2eh_41',['InputTranslator.h',['../InputTranslator_8h.html',1,'']]],
   ['inputtranslatorforeign_42',['InputTranslatorForeign',['../structrhythm__game__qml_1_1InputTranslatorForeign.html',1,'rhythm_game_qml']]],

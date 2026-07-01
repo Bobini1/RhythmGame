@@ -109,8 +109,42 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a7c2d3c68d24848e4ae27e37159013e61" id="r_a7c2d3c68d24848e4ae27e37159013e61"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QList&lt; QString &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a7c2d3c68d24848e4ae27e37159013e61">getSelectableFilesForDirectory</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>) const</td></tr>
 <tr class="memdesc:a7c2d3c68d24848e4ae27e37159013e61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a list of all files in a directory EXCLUDING ini files.  <br /></td></tr>
 <tr class="separator:a7c2d3c68d24848e4ae27e37159013e61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a435122bfbb7e38cda3071737fe5a0a1a" id="r_a435122bfbb7e38cda3071737fe5a0a1a"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QList&lt; QString &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a435122bfbb7e38cda3071737fe5a0a1a">getSelectableFontFilesForDirectory</a> (const QString &amp;<a class="el" href="Lr2SkinParser_8cpp.html#ae62b61b88ecdd32256d335fa853edc41">directory</a>, bool fixedPitchOnly, bool tabularDigitsOnly) const</td></tr>
+<tr class="separator:a435122bfbb7e38cda3071737fe5a0a1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88c9b121c5cb7d9daff5a572b3371e1f" id="r_a88c9b121c5cb7d9daff5a572b3371e1f"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QList&lt; QString &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a88c9b121c5cb7d9daff5a572b3371e1f">getSystemFontFamilies</a> (bool fixedPitchOnly, bool tabularDigitsOnly) const</td></tr>
+<tr class="separator:a88c9b121c5cb7d9daff5a572b3371e1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a051818fa7a801370d83e04e86abe26d9" id="r_a051818fa7a801370d83e04e86abe26d9"><td class="memItemLeft" align="right" valign="top">Q_INVOKABLE QString&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classqml__components_1_1FileQuery.html#a051818fa7a801370d83e04e86abe26d9">getDefaultSystemFontFamily</a> (bool fixedPitchOnly, bool tabularDigitsOnly) const</td></tr>
+<tr class="separator:a051818fa7a801370d83e04e86abe26d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="a051818fa7a801370d83e04e86abe26d9" name="a051818fa7a801370d83e04e86abe26d9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a051818fa7a801370d83e04e86abe26d9">&#9670;&#160;</a></span>getDefaultSystemFontFamily()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::FileQuery::getDefaultSystemFontFamily </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>fixedPitchOnly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>tabularDigitsOnly</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7c2d3c68d24848e4ae27e37159013e61" name="a7c2d3c68d24848e4ae27e37159013e61"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7c2d3c68d24848e4ae27e37159013e61">&#9670;&#160;</a></span>getSelectableFilesForDirectory()</h2>
 
@@ -135,6 +169,68 @@ Public Member Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>A list of all files in the directory EXCLUDING ini files. </dd></dl>
+
+</div>
+</div>
+<a id="a435122bfbb7e38cda3071737fe5a0a1a" name="a435122bfbb7e38cda3071737fe5a0a1a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a435122bfbb7e38cda3071737fe5a0a1a">&#9670;&#160;</a></span>getSelectableFontFilesForDirectory()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::FileQuery::getSelectableFontFilesForDirectory </td>
+          <td>(</td>
+          <td class="paramtype">const QString &amp;&#160;</td>
+          <td class="paramname"><em>directory</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>fixedPitchOnly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>tabularDigitsOnly</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a88c9b121c5cb7d9daff5a572b3371e1f" name="a88c9b121c5cb7d9daff5a572b3371e1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a88c9b121c5cb7d9daff5a572b3371e1f">&#9670;&#160;</a></span>getSystemFontFamilies()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto qml_components::FileQuery::getSystemFontFamilies </td>
+          <td>(</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>fixedPitchOnly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>tabularDigitsOnly</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
