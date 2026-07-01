@@ -7,6 +7,34 @@ import QtCore
 
 
 Item {
+    id: playerSettings
+
+    function localFileUrl(path) {
+        let value = String(path || "").trim();
+        if (value.length === 0) {
+            return "";
+        }
+        if (/^file:\/\//i.test(value) || /^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) {
+            return value;
+        }
+        value = value.replace(/\\/g, "/");
+        return value[0] === "/" ? "file://" + encodeURI(value) : "file:///" + encodeURI(value);
+    }
+
+    function parentFolder(path) {
+        let value = String(path || "").trim().replace(/\\/g, "/");
+        while (value.length > 3 && value.endsWith("/")) {
+            value = value.slice(0, -1);
+        }
+        const separator = value.lastIndexOf("/");
+        return separator > 0 ? value.slice(0, separator) : value;
+    }
+
+    function openProfileFolder(profile) {
+        const url = localFileUrl(parentFolder(profile.path));
+        return url.length > 0 && Qt.openUrlExternally(url);
+    }
+
     ScrollView {
         id: rootScrollView
         anchors {
@@ -199,6 +227,15 @@ Item {
                         onTextChanged: {
                             Rg.profileList.mainProfile.vars.generalVars.name = text;
                         }
+                    }
+                    Button {
+                        text: qsTr("Open profile folder")
+                        Layout.preferredWidth: profileColumnLayout.width / 2
+                        Layout.maximumWidth: profileColumnLayout.width / 2
+                        Layout.alignment: Qt.AlignHCenter
+                        Layout.topMargin: 8
+
+                        onClicked: playerSettings.openProfileFolder(Rg.profileList.mainProfile)
                     }
                     ColumnLayout {
                         id: loginSection

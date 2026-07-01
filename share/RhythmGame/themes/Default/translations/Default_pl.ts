@@ -1040,102 +1040,107 @@
 <context>
     <name>PlayerSettings</name>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="33"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="61"/>
         <source>Delete %1?</source>
         <translation>Usunąć %1?</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="48"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="76"/>
         <source>Select replay folder</source>
         <translation>Wybierz folder z powtórkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="67"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="95"/>
         <source>Select Profile</source>
         <translation>Wybierz profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="117"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="145"/>
         <source>Scores: %1</source>
         <translation>Wyniki: %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="122"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="150"/>
         <source>Remove</source>
         <translation>Usuń</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="141"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="169"/>
         <source>Add profile</source>
         <translation>Dodaj profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="165"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="193"/>
         <source>Edit Profile</source>
         <translation>Edytuj profil</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="242"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="232"/>
+        <source>Open profile folder</source>
+        <translation>Otwórz folder profilu</translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="279"/>
         <source>Online Login</source>
         <translation>Logowanie online</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="283"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="320"/>
         <source>Logged in as %1</source>
         <translation>Zalogowano jako %1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="288"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="325"/>
         <source>Logout</source>
         <translation>Wyloguj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="300"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="337"/>
         <source>Sync scores</source>
         <translation>Synchronizuj wyniki</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="325"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="362"/>
         <source>Email</source>
         <translation>Email</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="334"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="371"/>
         <source>Password</source>
         <translation>Hasło</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="343"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="380"/>
         <source>Login</source>
         <translation>Zaloguj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="384"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="421"/>
         <source>Import replays</source>
         <translation>Zaimportuj powtórki</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="395"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="432"/>
         <source>e.g. beatoraja/player/player1/replay or LR2files/Replay/player1</source>
         <translation>np. beatoraja/player/player1/replay lub LR2files/Replay/player1</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="415"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="452"/>
         <source>Import</source>
         <translation>Zaimportuj</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="423"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="460"/>
         <source>Select…</source>
         <translation>Wybierz...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="423"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="460"/>
         <source>Change…</source>
         <translation>Zmień...</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/PlayerSettings.qml" line="451"/>
+        <location filename="../scripts/settings/PlayerSettings.qml" line="488"/>
         <source>Imported: %1, errors: %2,
 skipped: %3, total: %4</source>
         <translation>Zamportowano: %1, błędy: %2
@@ -1363,32 +1368,32 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>Settings</name>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="67"/>
+        <location filename="../scripts/settings/Settings.qml" line="68"/>
         <source>Player settings</source>
         <translation>Ustawienia gracza</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="70"/>
+        <location filename="../scripts/settings/Settings.qml" line="71"/>
         <source>Song directories</source>
         <translation>Foldery z piosenkami</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="73"/>
+        <location filename="../scripts/settings/Settings.qml" line="74"/>
         <source>Tables</source>
         <translation>Tabele</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="76"/>
+        <location filename="../scripts/settings/Settings.qml" line="77"/>
         <source>Themes</source>
         <translation>Motywy</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="79"/>
+        <location filename="../scripts/settings/Settings.qml" line="80"/>
         <source>General Settings</source>
         <translation>Ustawienia Ogólne</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="82"/>
+        <location filename="../scripts/settings/Settings.qml" line="83"/>
         <source>Key config</source>
         <translation>Konfiguracja klawiszy</translation>
     </message>
@@ -1635,62 +1640,62 @@ pominięto: %3, łącznie: %4</translation>
 <context>
     <name>ThemeSettings</name>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="43"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
         <source>5k</source>
         <translation>5k</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="44"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
         <source>5k Battle</source>
         <translation>5k bitwa</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="45"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
         <source>10k</source>
         <translation>10k</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="46"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
         <source>7k</source>
         <translation>7k</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="47"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
         <source>7k Battle</source>
         <translation>7k bitwa</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="48"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
         <source>14k</source>
         <translation>14k</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="49"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
         <source>Main Menu</source>
         <translation>Menu główne</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="50"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="51"/>
         <source>Settings</source>
         <translation>Ustawienia</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="51"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="52"/>
         <source>Select</source>
         <translation>Wybór piosenek</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="52"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
         <source>Decide</source>
         <translation>Decyzja</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="53"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="54"/>
         <source>Result</source>
         <translation>Ekran wyników</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="54"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="55"/>
         <source>Course Result</source>
         <translation>Ekran wyników serii</translation>
     </message>
