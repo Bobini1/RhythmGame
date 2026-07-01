@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
+  "items": [
+    {
+      "name": {
+        "en": "Fonts",
+        "pl": "Czcionki"
+      },
+      "type": "group",
+      "description": {
+        "en": "Fonts used by the decide screen.",
+        "pl": "Czcionki używane na ekranie decyzji."
+      },
+      "items": [
+        {
+          "id": "decideTitleFont",
+          "name": {
+            "en": "Title Font",
+            "pl": "Czcionka tytułu"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "decideInfoFont",
+          "name": {
+            "en": "Info Font",
+            "pl": "Czcionka informacji"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        }
+      ]
+    }
+  ]
+}

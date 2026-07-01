@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
+  "items": [
+    {
+      "name": {
+        "en": "Fonts",
+        "pl": "Czcionki"
+      },
+      "type": "group",
+      "description": {
+        "en": "Fonts used by the settings screen.",
+        "pl": "Czcionki używane na ekranie ustawień."
+      },
+      "items": [
+        {
+          "id": "settingsUiFont",
+          "name": {
+            "en": "UI Font",
+            "pl": "Czcionka interfejsu"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "settingsHeaderFont",
+          "name": {
+            "en": "Header Font",
+            "pl": "Czcionka nagłówka"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
+  "items": [
+    {
+      "name": {
+        "en": "Fonts",
+        "pl": "Czcionki"
+      },
+      "type": "group",
+      "description": {
+        "en": "Fonts used by the main menu.",
+        "pl": "Czcionki używane w menu głównym."
+      },
+      "items": [
+        {
+          "id": "mainTitleFont",
+          "name": {
+            "en": "Title Font",
+            "pl": "Czcionka tytułu"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "mainMenuFont",
+          "name": {
+            "en": "Menu Font",
+            "pl": "Czcionka menu"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "mainDialogFont",
+          "name": {
+            "en": "Dialog Font",
+            "pl": "Czcionka okien dialogowych"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        }
+      ]
+    }
+  ]
+}
