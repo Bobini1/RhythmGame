@@ -202,6 +202,11 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
     QGuiApplication::setOrganizationDomain("rhythmgame.eu");
     QGuiApplication::setApplicationName("RhythmGame");
+    QGuiApplication::setApplicationVersion(
+      QStringLiteral("%1.%2.%3")
+        .arg(RHYTHMGAME_VERSION_MAJOR)
+        .arg(RHYTHMGAME_VERSION_MINOR)
+        .arg(RHYTHMGAME_VERSION_PATCH));
 
     try {
         if (!isPortable) {

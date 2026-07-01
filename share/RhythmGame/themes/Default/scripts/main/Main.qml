@@ -135,6 +135,23 @@ Image {
             text: "RhythmGame"
         }
 
+        Text {
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            color: "#202020"
+            elide: Text.ElideRight
+            font.family: mainMenuFont.fontFamily
+            font.weight: mainMenuFont.fontWeight
+            font.italic: mainMenuFont.italic
+            font.pixelSize: 28
+            fontSizeMode: Text.HorizontalFit
+            horizontalAlignment: Text.AlignRight
+            maximumLineCount: 1
+            minimumPixelSize: 12
+            text: qsTr("%1 %2").arg(Qt.application.name).arg(Qt.application.version)
+            width: 500
+        }
+
         Pane {
             anchors.top: parent.top
             anchors.topMargin: parent.height * 0.5
