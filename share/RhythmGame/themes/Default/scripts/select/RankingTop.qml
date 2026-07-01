@@ -1,6 +1,7 @@
 pragma ValueTypeBehavior: Addressable
 import QtQuick
 import RhythmGameQml
+import "../common"
 
 Column {
     id: ranking
@@ -15,16 +16,27 @@ Column {
     property var bestClearTypeScore
     property string tachiGameId
 
+    ThemeFont {
+        id: rankingTopFont
+        fileName: root.themeVars.rankingFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
     Repeater {
         id: rankingRepeater
         model: ranking.entries
         delegate: Row {
             id: userEntry
-            spacing: 10
+            spacing: 8
             anchors.left: parent.left
             anchors.right: parent.right
             height: rankImage.height
-
+            readonly property real percentLaneWidth: 58
+            readonly property real nameLaneWidth: Math.min(132, Math.max(72, width * 0.34))
+            readonly property real pointsLaneWidth: Math.max(
+                36,
+                width - rankImage.width - nameLaneWidth - clearTypeImage.width
+                    - percentLaneWidth - spacing * 4)
             readonly property bool isCurrentUser: {
                 switch (ranking.provider) {
                     case OnlineRankingModel.RhythmGame:
@@ -40,24 +52,32 @@ Column {
                 id: rankImage
                 source: root.iniImagesUrl + "ir.png/rank_" + (index + 1)
             }
-            Text {
-                id: userNameText
-                text: modelData.userName
-                color: {
-                    if (userEntry.isCurrentUser) {
-                        return "#ff0066";
+            Item {
+                width: userEntry.nameLaneWidth
+                height: userEntry.height
+                Text {
+                    id: userNameText
+                    width: parent.width
+                    height: parent.height
+                    text: modelData.userName
+                    color: {
+                        if (userEntry.isCurrentUser) {
+                            return "#ff0066";
+                        }
+                        return "black";
                     }
-                    return "black";
+                    font.pixelSize: 24
+                    font.family: rankingTopFont.fontFamily
+                    font.weight: rankingTopFont.fontWeight
+                    font.italic: rankingTopFont.italic
+                    elide: Text.ElideRight
+                    verticalAlignment: Text.AlignVCenter
+                    fontSizeMode: Text.HorizontalFit
+                    minimumPixelSize: 8
                 }
-                font.pixelSize: 24
-                elide: Text.ElideRight
-                anchors.baseline: parent.bottom
-                anchors.baselineOffset: -1
-                fontSizeMode: Text.VerticalFit
-                width: 132
                 MouseArea {
                     anchors.fill: parent
-                    anchors.rightMargin: userNameText.width - userNameText.implicitWidth
+                    anchors.rightMargin: Math.max(0, userNameText.width - userNameText.implicitWidth)
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     enabled: !(userEntry.isCurrentUser && !profile.onlineUserData)
                     onClicked: {
@@ -84,55 +104,66 @@ Column {
                 }
                 globalRoot.openChart(ranking.path, Rg.profileList.mainProfile, false, replay, score, null, false, false, null);
             }
-            Image {
-                id: clearTypeImage
-                source: root.iniImagesUrl + "parts.png/ranking_" + modelData.bestClearType
-                property bool loading: false
-                anchors.bottom: rankImage.bottom
-                anchors.bottomMargin: -1
-                MouseArea {
-                    anchors.fill: parent
-                    cursorShape: enabled ? Qt.PointingHandCursor : undefined
-                    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
-                    enabled: (userEntry.isCurrentUser && ranking.provider === OnlineRankingModel.LR2IR)
-                        || ranking.provider === OnlineRankingModel.RhythmGame
-                    onClicked: (event) => {
-                        if (ranking.provider === OnlineRankingModel.LR2IR) {
-                            if (ranking.bestPointsScore) {
-                                onScoreLoaded(event, ranking.bestPointsScore);
+            Item {
+                width: clearTypeImage.implicitWidth
+                height: userEntry.height
+                Image {
+                    id: clearTypeImage
+                    source: root.iniImagesUrl + "parts.png/ranking_" + modelData.bestClearType
+                    property bool loading: false
+                    anchors.verticalCenter: parent.verticalCenter
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: enabled ? Qt.PointingHandCursor : undefined
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                        enabled: (userEntry.isCurrentUser && ranking.provider === OnlineRankingModel.LR2IR)
+                            || ranking.provider === OnlineRankingModel.RhythmGame
+                        onClicked: (event) => {
+                            if (ranking.provider === OnlineRankingModel.LR2IR) {
+                                if (ranking.bestPointsScore) {
+                                    onScoreLoaded(event, ranking.bestPointsScore);
+                                }
+                                return;
                             }
-                            return;
+                            clearTypeImage.loading = true;
+                            Rg.onlineScores.getScoreByGuid(
+                                ranking.profile.vars.generalVars.webApiUrl,
+                                modelData.bestClearTypeGuid).then(
+                                    (score) => {
+                                    clearTypeImage.loading = false;
+                                    onScoreLoaded(event, score);
+                                },
+                                    () => {
+                                    clearTypeImage.loading = false;
+                                });
                         }
-                        clearTypeImage.loading = true;
-                        Rg.onlineScores.getScoreByGuid(
-                            ranking.profile.vars.generalVars.webApiUrl,
-                            modelData.bestClearTypeGuid).then(
-                                (score) => {
-                                clearTypeImage.loading = false;
-                                onScoreLoaded(event, score);
-                            },
-                                () => {
-                                clearTypeImage.loading = false;
-                            });
                     }
                 }
             }
 
-            Text {
-                id: pointsText
-                text: modelData.bestPoints
-                font.pixelSize: 24
-                color: "#ff0066"
-                verticalAlignment: Text.AlignBottom
-                horizontalAlignment: Text.AlignRight
-                anchors.baseline: rankImage.bottom
-                anchors.baselineOffset: -1
-                width: 160 - clearTypeImage.width - 10
-                property bool loading: false
-                opacity: loading ? 0.5 : 1
+            Item {
+                width: userEntry.pointsLaneWidth
+                height: userEntry.height
+                Text {
+                    id: pointsText
+                    width: parent.width
+                    height: parent.height
+                    text: modelData.bestPoints
+                    font.pixelSize: 24
+                    font.family: rankingTopFont.fontFamily
+                    font.weight: rankingTopFont.fontWeight
+                    font.italic: rankingTopFont.italic
+                    color: "#ff0066"
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
+                    fontSizeMode: Text.HorizontalFit
+                    minimumPixelSize: 8
+                    property bool loading: false
+                    opacity: loading ? 0.5 : 1
+                }
                 MouseArea {
                     anchors.fill: parent
-                    anchors.leftMargin: pointsText.width - pointsText.implicitWidth
+                    anchors.leftMargin: Math.max(0, pointsText.width - pointsText.implicitWidth)
                     cursorShape: enabled ? Qt.PointingHandCursor : undefined
                     acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
                     enabled: (userEntry.isCurrentUser && ranking.provider === OnlineRankingModel.LR2IR)
@@ -158,16 +189,22 @@ Column {
                     }
                 }
             }
-            Text {
-                id: percentageText
-                text: (Math.floor(modelData.bestPoints / modelData.maxPoints * 1000) / 10).toFixed(1) + "%"
-                font.pixelSize: 12
-                horizontalAlignment: Text.AlignRight
-                verticalAlignment: Text.AlignBottom
-                anchors.baseline: rankImage.bottom
-                anchors.baselineOffset: -1
-                width: 41
-                font.bold: true
+            Item {
+                width: userEntry.percentLaneWidth
+                height: userEntry.height
+                Text {
+                    id: percentageText
+                    anchors.fill: parent
+                    text: (Math.floor(modelData.bestPoints / modelData.maxPoints * 1000) / 10).toFixed(1) + "%"
+                    font.pixelSize: 12
+                    horizontalAlignment: Text.AlignRight
+                    verticalAlignment: Text.AlignVCenter
+                    font.family: rankingTopFont.fontFamily
+                    font.weight: rankingTopFont.boldFontWeight
+                    font.italic: rankingTopFont.italic
+                    fontSizeMode: Text.HorizontalFit
+                    minimumPixelSize: 7
+                }
             }
         }
     }

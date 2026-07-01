@@ -389,6 +389,7 @@ Item {
     }
     GhostScore {
         id: ghostScore
+        fontFile: playArea.vars.ghostScoreFont
 
         color: {
             if (!playArea.vars.ghostScoreEnabled || !judgements.visible) {
@@ -406,8 +407,10 @@ Item {
 
         TextMetrics {
             id: fontInfo
-            font.pixelSize: ghostScore.fontInfo.pixelSize
             font.family: ghostScore.fontInfo.family
+            font.italic: ghostScore.font.italic
+            font.pixelSize: ghostScore.fontInfo.pixelSize
+            font.weight: ghostScore.font.weight
             text: ghostScore.text
         }
 

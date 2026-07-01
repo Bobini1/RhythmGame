@@ -1,4 +1,39 @@
 {
   "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
-  "items": []
+  "items": [
+    {
+      "name": {
+        "en": "Fonts",
+        "pl": "Czcionki"
+      },
+      "type": "group",
+      "description": {
+        "en": "Fonts used by the result screen.",
+        "pl": "Czcionki używane na ekranie wyniku."
+      },
+      "items": [
+        {
+          "id": "resultTitleFont",
+          "name": {
+            "en": "Result Title Font",
+            "pl": "Czcionka tytułu wyniku"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "resultStatsFont",
+          "name": {
+            "en": "Result Stats Font",
+            "pl": "Czcionka statystyk wyniku"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf",
+          "tabularDigitsOnly": true
+        }
+      ]
+    }
+  ]
 }

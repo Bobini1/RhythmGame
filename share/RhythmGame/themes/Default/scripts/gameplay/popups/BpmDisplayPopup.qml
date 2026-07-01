@@ -19,5 +19,10 @@ GameplayPopup {
             text: qsTr("Z-index")
             src: popup.themeVars
         }
+        FontSelection {
+            src: popup.themeVars
+            propertyId: "bpmDisplayFont"
+            label: qsTr("Font")
+        }
     }
 }

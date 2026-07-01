@@ -216,6 +216,7 @@ Item {
         verticalGauge: side.profileVars.verticalGauge
         gaugeImage: side.profileVars.gauge
         score: side.score
+        fontFile: side.profileVars.lifeNumberFont
         contentVisible: side.profileVars.lifeBarEnabled
         transform: Scale {
             xScale: side.mirrored ? -1 : 1; origin.x: lifeBar.width / 2
@@ -286,6 +287,7 @@ Item {
         contentVisible: side.profile.vars.generalVars.scoreGraphEnabled
         graphBackground: side.profileVars.scoregraph || ""
         barWidthRatio: side.profileVars.scoreGraphBarWidth
+        fontFile: side.profileVars.scoreGraphFont
 
         maxPoints: side.score.maxPoints
         currentPoints: side.score.points
@@ -336,6 +338,7 @@ Item {
             xScale: side.mirrored ? -1 : 1; origin.x: judgementCountsContainer.width / 2
         }
         score: side.score
+        fontFile: side.profileVars.judgementCountsFont
 
         onHeightChanged: {
             side.profileVars.judgementCountsHeight = height;

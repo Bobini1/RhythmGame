@@ -1,9 +1,17 @@
 import QtQuick
 import RhythmGameQml
+import "../common"
 
 Column {
     id: courseSongList
     required property var chartDatas
+
+    ThemeFont {
+        id: courseSongListFont
+        fileName: root.themeVars.resultTitleFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
     Repeater {
         model: {
             let ret = [];
@@ -24,6 +32,9 @@ Column {
         }
         delegate: Text {
             text: modelData
+            font.family: courseSongListFont.fontFamily
+            font.weight: courseSongListFont.fontWeight
+            font.italic: courseSongListFont.italic
             font.pixelSize: 30
             style: Text.Outline
             color: "white"

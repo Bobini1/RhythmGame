@@ -83,6 +83,7 @@ Image {
         color: "black"
         height: parent.height
         scrolling: folder.isCurrentItem && folder.scrollingText
+        fontFile: root.themeVars.songListFont
         text: {
             if (folder.isLevel) {
                 return pathView.historyStack[pathView.historyStack.length-1].symbol + modelData.name

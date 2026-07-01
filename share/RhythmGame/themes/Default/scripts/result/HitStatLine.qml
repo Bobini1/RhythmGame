@@ -1,5 +1,6 @@
 import QtQuick
 import RhythmGameQml
+import "../common"
 
 Item {
     id: hitStatLine
@@ -8,6 +9,12 @@ Item {
     property alias img: judgementImage.source
     property int judgementCount: 0
     property int lateCount: 0
+
+    ThemeFont {
+        id: hitStatLineFont
+        fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
 
     height: judgementImage.sourceSize.height
     width: parent.width
@@ -18,24 +25,30 @@ Item {
         anchors.left: parent.left
         anchors.leftMargin: 36
     }
-    Text {
+    ResultNumberText {
         id: count
 
         anchors.baseline: parent.bottom
         anchors.right: judgementImage.right
         anchors.rightMargin: -120
         color: "lightgray"
+        font.family: hitStatLineFont.fontFamily
+        font.weight: hitStatLineFont.fontWeight
+        font.italic: hitStatLineFont.italic
         font.pixelSize: 34
         horizontalAlignment: Text.AlignRight
         text: "0000".slice(0, Math.max(0, 4 - hitStatLine.judgementCount.toString().length)) + "<font color='black'>" + hitStatLine.judgementCount + "</font>"
     }
-    Text {
+    ResultNumberText {
         id: earlyLate
 
         anchors.baseline: parent.bottom
         anchors.horizontalCenter: judgementImage.right
         anchors.horizontalCenterOffset: 250
         color: "lightgray"
+        font.family: hitStatLineFont.fontFamily
+        font.weight: hitStatLineFont.fontWeight
+        font.italic: hitStatLineFont.italic
         font.pixelSize: 25
         horizontalAlignment: Text.AlignHCenter
         text: {

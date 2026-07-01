@@ -27,6 +27,11 @@ GameplayPopup {
             src: popup.themeVars
             description: qsTr("Vertical Gauge")
         }
+        FontSelection {
+            src: popup.themeVars
+            propertyId: "lifeNumberFont"
+            label: qsTr("Life Number Font")
+        }
         ImageSelection {
             id: gauge
 

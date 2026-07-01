@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
 import "../common/helpers.js" as Helpers
+import "../common"
 
 Item {
     id: judgementCountsContainer
@@ -20,6 +21,12 @@ Item {
     }
 
     property var score
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+
+    ThemeFont {
+        id: judgementCountsFont
+        fileName: judgementCountsContainer.fontFile
+    }
 
     Repeater {
         id: judgementCountsModel
@@ -43,6 +50,9 @@ Item {
             fontSizeMode: Text.VerticalFit
             textFormat: Text.PlainText
             minimumPixelSize: 3
+            font.family: judgementCountsFont.fontFamily
+            font.weight: judgementCountsFont.fontWeight
+            font.italic: judgementCountsFont.italic
             font.pixelSize: 60
             text: Helpers.getGrade(judgementCountsContainer.score.points, judgementCountsContainer.score.maxPointsNow)
             font.capitalization: Font.AllUppercase
@@ -55,6 +65,9 @@ Item {
             fontSizeMode: Text.VerticalFit
             textFormat: Text.PlainText
             minimumPixelSize: 3
+            font.family: judgementCountsFont.fontFamily
+            font.weight: judgementCountsFont.fontWeight
+            font.italic: judgementCountsFont.italic
             font.pixelSize: 60
             text: {
                 let points = judgementCountsContainer.score.points;
@@ -94,6 +107,9 @@ Item {
                     fontSizeMode: Text.VerticalFit
                     textFormat: Text.PlainText
                     minimumPixelSize: 3
+                    font.family: judgementCountsFont.fontFamily
+                    font.weight: judgementCountsFont.fontWeight
+                    font.italic: judgementCountsFont.italic
                     font.pixelSize: 60
                     Layout.fillWidth: true
                     Layout.fillHeight: true
@@ -112,6 +128,9 @@ Item {
                     fontSizeMode: Text.VerticalFit
                     textFormat: Text.PlainText
                     minimumPixelSize: 3
+                    font.family: judgementCountsFont.fontFamily
+                    font.weight: judgementCountsFont.fontWeight
+                    font.italic: judgementCountsFont.italic
                     font.pixelSize: 60
                     Layout.fillWidth: true
                     Layout.fillHeight: true

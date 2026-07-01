@@ -27,6 +27,11 @@ GameplayPopup {
             text: qsTr("Bar Width")
             src: popup.themeVars
         }
+        FontSelection {
+            src: popup.themeVars
+            propertyId: "scoreGraphFont"
+            label: qsTr("Font")
+        }
         ImageSelection {
             propertyId: "scoregraph"
             src: popup.themeVars

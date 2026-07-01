@@ -4,6 +4,7 @@ import QtQuick.Shapes
 import QtQml
 import QtQuick.Controls.Basic
 import "../common/helpers.js" as Helpers
+import "../common"
 
 Item {
     id: root
@@ -26,9 +27,16 @@ Item {
     readonly property Profile profile1: profiles[0]
     readonly property Profile profile2: profiles[1] || null
     readonly property bool isBattle: score1 && score2
+    readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.result || {})[QmlUtils.themeName] || ({})
     readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
     readonly property int startInputMillis: 500
     property bool acceptsInput: startInputMillis <= 0
+
+    ThemeFont {
+        id: resultStatsFont
+        fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
 
     function cycleGaugeForKey(key) {
         if (key === BmsKey.Col16) {
@@ -173,8 +181,10 @@ Item {
                 z: 10
                 opacity: 0
                 color: "white"
+                font.family: resultStatsFont.fontFamily
+                font.weight: resultStatsFont.boldFontWeight
+                font.italic: resultStatsFont.italic
                 font.pixelSize: 28
-                font.bold: true
                 fontSizeMode: Text.HorizontalFit
                 minimumPixelSize: 10
                 horizontalAlignment: Text.AlignHCenter

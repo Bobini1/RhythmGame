@@ -1,14 +1,21 @@
 import QtQuick
+import "../common"
 
 Item {
     id: wrapper
 
     property alias color: label.color
     property alias font: label.font
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
     property bool scrolling: false
     property alias text: label.text
 
     clip: true
+
+    ThemeFont {
+        id: nameLabelFont
+        fileName: wrapper.fontFile
+    }
 
     Text {
         id: label
@@ -18,6 +25,9 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         elide: (label.longText && !wrapper.scrolling) ? Text.ElideRight : Text.ElideNone
+        font.family: nameLabelFont.fontFamily
+        font.weight: nameLabelFont.fontWeight
+        font.italic: nameLabelFont.italic
         font.pixelSize: 20
         // align right if there is enough space
         horizontalAlignment: longText ? Text.AlignLeft : Text.AlignRight
@@ -29,7 +39,7 @@ Item {
 
             Text {
                 color: label.color
-                font.pixelSize: label.font.pixelSize
+                font: label.font
                 horizontalAlignment: Text.AlignLeft
                 leftPadding: 5
                 text: label.text

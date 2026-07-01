@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
+import "../common"
 
 RowLayout {
     id: statsDelegate
@@ -11,38 +12,61 @@ RowLayout {
     property var clearCounts
     property int playerCount
 
+    ThemeFont {
+        id: rankingStatsFont
+        fileName: root.themeVars.rankingFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
     component StatLineItem: Item {
         id: statLineItem
         property alias labelSource: label.source
         property alias text1: textOne.text
         property alias text2: textTwo.text
+        readonly property real percentLaneWidth: 56
         height: label.height
-        width: 188
+        width: parent ? parent.width : 188
         Image {
             id: label
+            anchors.verticalCenter: parent.verticalCenter
         }
         Text {
             id: textOne
+            anchors.left: label.right
+            anchors.leftMargin: 5
             anchors.right: textTwo.left
             anchors.rightMargin: 5
-            anchors.baseline: label.bottom
+            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
+            font.family: rankingStatsFont.fontFamily
+            font.weight: rankingStatsFont.boldFontWeight
+            font.italic: rankingStatsFont.italic
             font.pixelSize: 21
-            anchors.baselineOffset: -1
+            fontSizeMode: Text.HorizontalFit
+            horizontalAlignment: Text.AlignRight
+            minimumPixelSize: 8
+            verticalAlignment: Text.AlignVCenter
         }
         Text {
             id: textTwo
             font.pixelSize: 12
-            width: 37
+            width: statLineItem.percentLaneWidth
             horizontalAlignment: Text.AlignRight
-            verticalAlignment: Text.AlignBottom
+            verticalAlignment: Text.AlignVCenter
             anchors.right: parent.right
-            anchors.baseline: label.bottom
-            font.bold: true
-            anchors.baselineOffset: -1
+            anchors.verticalCenter: parent.verticalCenter
+            height: parent.height
+            font.family: rankingStatsFont.fontFamily
+            font.weight: rankingStatsFont.fontWeight
+            font.italic: rankingStatsFont.italic
+            fontSizeMode: Text.HorizontalFit
+            minimumPixelSize: 7
         }
     }
     Column {
         spacing: 7
+        Layout.fillWidth: true
+        Layout.preferredWidth: 1
 
         Repeater {
             model: ["MAX", "PERFECT", "FC", "EXHARD", "HARD", "NORMAL", "EASY"]
@@ -55,6 +79,8 @@ RowLayout {
     }
     Column {
         spacing: 7
+        Layout.fillWidth: true
+        Layout.preferredWidth: 1
 
         StatLineItem {
             id: playerCountItem

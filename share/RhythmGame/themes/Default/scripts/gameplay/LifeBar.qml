@@ -8,6 +8,7 @@ Item {
     required property string gaugeImage
     required property var score
     required property bool verticalGauge
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
     property bool contentVisible: true
 
     Component {
@@ -29,6 +30,7 @@ Item {
                 Layout.horizontalStretchFactor: 1
                 Layout.preferredWidth: hundredPercentWidth
                 score: lifeBar.score
+                fontFile: lifeBar.fontFile
             }
         }
     }
@@ -58,6 +60,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.verticalStretchFactor: 1
                 score: lifeBar.score
+                fontFile: lifeBar.fontFile
             }
         }
     }

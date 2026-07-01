@@ -7,10 +7,17 @@
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
 #include <QFile>
+#include <QFont>
+#include <QFontDatabase>
+#include <QFontMetricsF>
+#include <QStringList>
 #include <QUrl>
 #include <QStringDecoder>
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <iconv.h>
+#include <limits>
 #include <spdlog/spdlog.h>
 #include <vector>
 namespace {
@@ -58,6 +65,120 @@ getSelectableFilesForDirectory(const std::filesystem::path& path)
         files.push_back(support::pathToQString(file.path().filename()));
     }
     return files;
+}
+
+auto
+fontFamilyHasTabularDigits(const QString& family) -> bool
+{
+    auto font = QFont(family);
+    font.setPixelSize(32);
+    font.setFeature(QFont::Tag("tnum"), 1);
+    const auto metrics = QFontMetricsF(font);
+
+    auto minAdvance = std::numeric_limits<qreal>::max();
+    auto maxAdvance = qreal{ 0 };
+    for (auto digit = QChar{ u'0' }; digit <= QChar{ u'9' };
+         digit = QChar(digit.unicode() + 1)) {
+        const auto advance = metrics.horizontalAdvance(QString(digit));
+        minAdvance = std::min(minAdvance, advance);
+        maxAdvance = std::max(maxAdvance, advance);
+    }
+    return std::abs(maxAdvance - minAdvance) < 0.01;
+}
+
+auto
+fontFamilyMatchesConstraints(const QString& family,
+                             const bool fixedPitchOnly,
+                             const bool tabularDigitsOnly) -> bool
+{
+    if (fixedPitchOnly && !QFontDatabase::isFixedPitch(family)) {
+        return false;
+    }
+    return !tabularDigitsOnly || fontFamilyHasTabularDigits(family);
+}
+
+auto
+fontFileMatchesConstraints(const std::filesystem::path& path,
+                           const bool fixedPitchOnly,
+                           const bool tabularDigitsOnly) -> bool
+{
+    const auto fontId =
+      QFontDatabase::addApplicationFont(support::pathToQString(path));
+    if (fontId < 0) {
+        return false;
+    }
+    const auto families = QFontDatabase::applicationFontFamilies(fontId);
+    const auto matches =
+      std::any_of(families.begin(),
+                  families.end(),
+                  [fixedPitchOnly, tabularDigitsOnly](const QString& family) {
+                      return fontFamilyMatchesConstraints(
+                        family, fixedPitchOnly, tabularDigitsOnly);
+                  });
+    QFontDatabase::removeApplicationFont(fontId);
+    return matches;
+}
+
+auto
+getSelectableFontFilesForDirectory(const std::filesystem::path& path,
+                                   const bool fixedPitchOnly,
+                                   const bool tabularDigitsOnly)
+  -> QList<QString>
+{
+    auto files = getSelectableFilesForDirectory(path);
+    if (!fixedPitchOnly && !tabularDigitsOnly) {
+        return files;
+    }
+
+    auto matchingFiles = QList<QString>{};
+    for (const auto& file : files) {
+        if (fontFileMatchesConstraints(path / support::qStringToPath(file),
+                                       fixedPitchOnly,
+                                       tabularDigitsOnly)) {
+            matchingFiles.push_back(file);
+        }
+    }
+    return matchingFiles;
+}
+
+auto
+getSystemFontFamilies(const bool fixedPitchOnly, const bool tabularDigitsOnly)
+  -> QList<QString>
+{
+    auto families = QFontDatabase::families();
+    families.erase(
+      std::remove_if(
+        families.begin(),
+        families.end(),
+        [fixedPitchOnly, tabularDigitsOnly](const QString& family) {
+            if (QFontDatabase::isPrivateFamily(family)) {
+                return true;
+            }
+            return !fontFamilyMatchesConstraints(
+              family, fixedPitchOnly, tabularDigitsOnly);
+        }),
+      families.end());
+    return families;
+}
+
+auto
+getDefaultSystemFontFamily(const bool fixedPitchOnly,
+                           const bool tabularDigitsOnly) -> QString
+{
+    const auto defaultFamily =
+      QFontDatabase::systemFont(QFontDatabase::GeneralFont).family();
+    if (!defaultFamily.isEmpty() &&
+        fontFamilyMatchesConstraints(
+          defaultFamily, fixedPitchOnly, tabularDigitsOnly)) {
+        return defaultFamily;
+    }
+
+    const auto families =
+      getSystemFontFamilies(fixedPitchOnly, tabularDigitsOnly);
+    if (!families.empty()) {
+        return families.first();
+    }
+    return {};
 }
 
 auto
@@ -170,5 +291,39 @@ FileQuery::getSelectableFilesForDirectory(const QString& directory) const
                       e.what());
         return {};
     }
+}
+
+auto
+FileQuery::getSelectableFontFilesForDirectory(
+  const QString& directory,
+  const bool fixedPitchOnly,
+  const bool tabularDigitsOnly) const -> QList<QString>
+{
+    try {
+        return ::getSelectableFontFilesForDirectory(
+          support::qStringToPath(directory), fixedPitchOnly, tabularDigitsOnly);
+    } catch (const std::exception& e) {
+        spdlog::error("Error getting selectable font files for directory {}: "
+                      "{}",
+                      directory.toStdString(),
+                      e.what());
+        return {};
+    }
+}
+
+auto
+FileQuery::getSystemFontFamilies(const bool fixedPitchOnly,
+                                 const bool tabularDigitsOnly) const
+  -> QList<QString>
+{
+    return ::getSystemFontFamilies(fixedPitchOnly, tabularDigitsOnly);
+}
+
+auto
+FileQuery::getDefaultSystemFontFamily(const bool fixedPitchOnly,
+                                      const bool tabularDigitsOnly) const
+  -> QString
+{
+    return ::getDefaultSystemFontFamily(fixedPitchOnly, tabularDigitsOnly);
 }
 } // namespace qml_components

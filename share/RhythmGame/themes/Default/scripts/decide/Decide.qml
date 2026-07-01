@@ -1,12 +1,27 @@
 import QtQuick
 import RhythmGameQml
 import QtQuick.Layouts
+import "../common"
 
 Image {
     id: root
     focus: true
     required property var chart
     property bool transitionRequested: false
+    readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.decide || {})[QmlUtils.themeName] || ({})
+
+    ThemeFont {
+        id: decideTitleFont
+        fileName: root.themeVars.decideTitleFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
+    ThemeFont {
+        id: decideInfoFont
+        fileName: root.themeVars.decideInfoFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
     readonly property int difficulty: {
         let diff = chart.chartData?.difficulty;
         if (diff === undefined) {
@@ -145,6 +160,9 @@ Image {
                 }
                 Text {
                     text: root.genreString
+                    font.family: decideInfoFont.fontFamily
+                    font.weight: decideInfoFont.fontWeight
+                    font.italic: decideInfoFont.italic
                     font.pixelSize: 200
                     color: "white"
                     fontSizeMode: Text.VerticalFit
@@ -186,6 +204,9 @@ Image {
                 }
                 Text {
                     text: root.titleString
+                    font.family: decideTitleFont.fontFamily
+                    font.weight: decideTitleFont.fontWeight
+                    font.italic: decideTitleFont.italic
                     font.pixelSize: 200
                     color: "white"
                     fontSizeMode: Text.VerticalFit
@@ -232,6 +253,9 @@ Image {
 
                 Text {
                     text: root.subartistString
+                    font.family: decideInfoFont.fontFamily
+                    font.weight: decideInfoFont.fontWeight
+                    font.italic: decideInfoFont.italic
                     font.pixelSize: 200
                     color: "white"
                     fontSizeMode: Text.VerticalFit
@@ -244,6 +268,9 @@ Image {
                 }
                 Text {
                     text: root.artistString
+                    font.family: decideInfoFont.fontFamily
+                    font.weight: decideInfoFont.fontWeight
+                    font.italic: decideInfoFont.italic
                     font.pixelSize: 200
                     color: "white"
                     fontSizeMode: Text.VerticalFit

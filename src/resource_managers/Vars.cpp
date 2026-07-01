@@ -1120,6 +1120,166 @@ createFileProperty(QHash<QString, QVariant>& screenVars,
     }
 }
 
+auto
+fontFileName(const QString& fontValue) -> QString
+{
+    if (fontValue.startsWith(QStringLiteral("file:"))) {
+        return fontValue.sliced(5);
+    }
+    return {};
+}
+
+auto
+fontValueIsSystemFont(const QString& fontValue) -> bool
+{
+    return fontValue.startsWith(QStringLiteral("system:")) &&
+           fontValue.size() > 7;
+}
+
+auto
+fontValueFileExists(const QString& fontValue,
+                    const std::filesystem::path& themePath,
+                    const std::filesystem::path& fontDirectory) -> bool
+{
+    if (fontDirectory.empty()) {
+        return false;
+    }
+    const auto fileName = fontFileName(fontValue);
+    if (fileName.isEmpty()) {
+        return false;
+    }
+    const auto stdFileName = support::qStringToPath(fileName);
+    return stdFileName.is_relative() &&
+           exists(themePath / fontDirectory / stdFileName);
+}
+
+auto
+fontValueIsValid(const QVariant& value,
+                 const std::filesystem::path& themePath,
+                 const QString& fontPath,
+                 const bool monospaceOnly,
+                 const bool tabularDigitsOnly) -> bool
+{
+    if (value.typeId() != QMetaType::QString) {
+        return false;
+    }
+    const auto fontValue = value.toString();
+    if (fontValueIsSystemFont(fontValue)) {
+        if (!monospaceOnly && !tabularDigitsOnly) {
+            return true;
+        }
+        return qml_components::FileQuery()
+          .getSystemFontFamilies(monospaceOnly, tabularDigitsOnly)
+          .contains(fontValue.sliced(7));
+    }
+    if (!fontValueFileExists(
+          fontValue, themePath, support::qStringToPath(fontPath))) {
+        return false;
+    }
+    return (!monospaceOnly && !tabularDigitsOnly) ||
+           qml_components::FileQuery()
+             .getSelectableFontFilesForDirectory(
+               support::pathToQString(themePath /
+                                      support::qStringToPath(fontPath)),
+               monospaceOnly,
+               tabularDigitsOnly)
+             .contains(fontFileName(fontValue));
+}
+
+auto
+defaultSystemFontValue(const bool monospaceOnly, const bool tabularDigitsOnly)
+  -> QVariant
+{
+    const auto family = qml_components::FileQuery().getDefaultSystemFontFamily(
+      monospaceOnly, tabularDigitsOnly);
+    if (family.isEmpty()) {
+        return {};
+    }
+    return QStringLiteral("system:") + family;
+}
+
+void
+createFontProperty(QHash<QString, QVariant>& screenVars,
+                   const QJsonObject& object,
+                   const std::filesystem::path& themePath)
+{
+    if (object.contains("path") && !object["path"].isString()) {
+        throw support::Exception(
+          std::format("path field of property of type font is not a string: {}",
+                      jsonValueToString(object)));
+    }
+    const auto fontPath = object["path"].toString();
+    const auto stdPath = support::qStringToPath(fontPath);
+    if (!fontPath.isEmpty() && !stdPath.is_relative()) {
+        throw support::Exception(
+          std::format("path field of property of type font is not a relative "
+                      "path: {}",
+                      jsonValueToString(object)));
+    }
+    if (object.contains("default") && !object["default"].isString()) {
+        throw support::Exception(std::format(
+          "default field of property of type font is not a string: {}",
+          jsonValueToString(object)));
+    }
+    if (object.contains("monospaceOnly") && !object["monospaceOnly"].isBool()) {
+        throw support::Exception(std::format(
+          "monospaceOnly field of property of type font is not a boolean: {}",
+          jsonValueToString(object)));
+    }
+    if (object.contains("tabularDigitsOnly") &&
+        !object["tabularDigitsOnly"].isBool()) {
+        throw support::Exception(std::format(
+          "tabularDigitsOnly field of property of type font is not a boolean: "
+          "{}",
+          jsonValueToString(object)));
+    }
+    const auto monospaceOnly = object["monospaceOnly"].toBool(false);
+    const auto tabularDigitsOnly = object["tabularDigitsOnly"].toBool(false);
+    if (!object.contains("default")) {
+        screenVars[object["id"].toString()] =
+          defaultSystemFontValue(monospaceOnly, tabularDigitsOnly);
+        return;
+    }
+    if (object["default"].isString()) {
+        const auto defaultValue = object["default"].toString();
+        if (fontValueIsValid(defaultValue,
+                             themePath,
+                             fontPath,
+                             monospaceOnly,
+                             tabularDigitsOnly)) {
+            screenVars[object["id"].toString()] = QVariant(defaultValue);
+            return;
+        }
+        spdlog::debug(
+          "default value of property of type font is not a known bundled font "
+          "or system font, will pick the first theme font available instead: "
+          "{}",
+          jsonValueToString(object));
+    }
+    if (!fontPath.isEmpty()) {
+        if (const auto files =
+              qml_components::FileQuery().getSelectableFontFilesForDirectory(
+                support::pathToQString(themePath / stdPath),
+                monospaceOnly,
+                tabularDigitsOnly);
+            !files.empty()) {
+            screenVars[object["id"].toString()] =
+              QVariant(QStringLiteral("file:") + files.first());
+            return;
+        }
+    }
+    if (const auto fallback =
+          defaultSystemFontValue(monospaceOnly, tabularDigitsOnly);
+        fallback.isValid()) {
+        screenVars[object["id"].toString()] = fallback;
+    } else {
+        spdlog::debug("No matching fonts found for property of type "
+                      "font with constraints: {}",
+                      jsonValueToString(object));
+        screenVars[object["id"].toString()] = QVariant();
+    }
+}
+
 void
 createColorProperty(QHash<QString, QVariant>& screenVars,
                     const QJsonObject& object)
@@ -1287,6 +1447,13 @@ struct ScreenVarsPopulationResult
 {
     QHash<QString, QVariant> screenVars;
     QHash<QString, QString> fileTypeProperties;
+    struct FontTypeProperty
+    {
+        QString path;
+        bool monospaceOnly = false;
+        bool tabularDigitsOnly = false;
+    };
+    QHash<QString, FontTypeProperty> fontTypeProperties;
     QHash<QString, QSet<QString>> choiceTypeProperties;
 };
 
@@ -1331,6 +1498,13 @@ createProperty(ScreenVarsPopulationResult& result,
         createFileProperty(result.screenVars, object, themePath);
         result.fileTypeProperties.insert(object["id"].toString(),
                                          object["path"].toString());
+    } else if (object["type"] == "font") {
+        createFontProperty(result.screenVars, object, themePath);
+        result.fontTypeProperties.insert(
+          object["id"].toString(),
+          { object["path"].toString(),
+            object["monospaceOnly"].toBool(false),
+            object["tabularDigitsOnly"].toBool(false) });
     } else if (object["type"] == "color") {
         createColorProperty(result.screenVars, object);
     } else if (object["type"] == "choice") {
@@ -1556,6 +1730,24 @@ readThemeVarsForTheme(const std::filesystem::path& themeVarsPath,
                     spdlog::debug(
                       "The saved choice property {} of screen {} of theme {} "
                       "is not one of the available choices, will use the "
+                      "default instead ({}).",
+                      key.toStdString(),
+                      screen.toStdString(),
+                      themePath.string(),
+                      result[screen][key].toString().toStdString());
+                }
+            } else if (vars[screen].fontTypeProperties.contains(key)) {
+                const auto& property = vars[screen].fontTypeProperties[key];
+                if (fontValueIsValid(value,
+                                     themePath,
+                                     property.path,
+                                     property.monospaceOnly,
+                                     property.tabularDigitsOnly)) {
+                    result[screen][key] = value;
+                } else {
+                    spdlog::debug(
+                      "The saved font property {} of screen {} of theme {} "
+                      "is not a valid theme font or system font, will use the "
                       "default instead ({}).",
                       key.toStdString(),
                       screen.toStdString(),

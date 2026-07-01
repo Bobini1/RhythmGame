@@ -33,6 +33,7 @@ Loader {
             "main": QT_TR_NOOP("Main Menu Settings"),
             "settings": QT_TR_NOOP("Settings Settings"),
             "select": QT_TR_NOOP("Select Settings"),
+            "decide": QT_TR_NOOP("Decide Settings"),
             "result": QT_TR_NOOP("Result Settings"),
             "courseResult": QT_TR_NOOP("Course Result Settings")
         };

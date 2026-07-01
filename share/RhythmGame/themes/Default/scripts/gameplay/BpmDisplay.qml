@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import "../common"
 
 Item {
     id: bpmDisplay
@@ -7,7 +8,13 @@ Item {
     property real currentBpm: 0
     property real minBpm: 0
     property real maxBpm: 0
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
     property bool contentVisible: true
+
+    ThemeFont {
+        id: bpmDisplayFont
+        fileName: bpmDisplay.fontFile
+    }
 
     Column {
         anchors.fill: parent
@@ -24,7 +31,9 @@ Item {
             FontMetrics {
                 id: labelFm
                 font.pixelSize: 100
-                font.bold: true
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.boldFontWeight
+                font.italic: bpmDisplayFont.italic
             }
             // Height-limited: 65 % of row height
             readonly property real heightFs: height * 0.65
@@ -36,6 +45,9 @@ Item {
                 width: labelRow.width / 3; height: labelRow.height
                 text: qsTr("MIN")
                 font.pixelSize: labelRow.fs
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.fontWeight
+                font.italic: bpmDisplayFont.italic
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -45,7 +57,10 @@ Item {
                 width: labelRow.width / 3; height: labelRow.height
                 text: qsTr("BPM")
                 font.pixelSize: labelRow.fs
-                color: "white"; font.bold: true
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.boldFontWeight
+                font.italic: bpmDisplayFont.italic
+                color: "white"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 textFormat: Text.PlainText
@@ -54,6 +69,9 @@ Item {
                 width: labelRow.width / 3; height: labelRow.height
                 text: qsTr("MAX")
                 font.pixelSize: labelRow.fs
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.fontWeight
+                font.italic: bpmDisplayFont.italic
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -73,6 +91,9 @@ Item {
                 width: numberRow.width / 3; height: numberRow.height
                 text: Math.round(bpmDisplay.minBpm)
                 font.pixelSize: numberRow.smallFs
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.fontWeight
+                font.italic: bpmDisplayFont.italic
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter
@@ -83,8 +104,11 @@ Item {
                 width: numberRow.width / 3; height: numberRow.height
                 text: Math.round(bpmDisplay.currentBpm)
                 font.pixelSize: numberRow.bigFs
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.boldFontWeight
+                font.italic: bpmDisplayFont.italic
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
-                color: "white"; font.bold: true
+                color: "white"
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
                 textFormat: Text.PlainText
@@ -93,6 +117,9 @@ Item {
                 width: numberRow.width / 3; height: numberRow.height
                 text: Math.round(bpmDisplay.maxBpm)
                 font.pixelSize: numberRow.smallFs
+                font.family: bpmDisplayFont.fontFamily
+                font.weight: bpmDisplayFont.fontWeight
+                font.italic: bpmDisplayFont.italic
                 fontSizeMode: Text.Fit; minimumPixelSize: 6
                 color: "white"
                 horizontalAlignment: Text.AlignHCenter

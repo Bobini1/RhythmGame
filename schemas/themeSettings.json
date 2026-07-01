@@ -26,6 +26,9 @@
             "$ref": "#/$defs/fileItem"
           },
           {
+            "$ref": "#/$defs/fontItem"
+          },
+          {
             "$ref": "#/$defs/stringItem"
           },
           {
@@ -74,6 +77,7 @@
             "boolean",
             "color",
             "file",
+            "font",
             "string",
             "choice",
             "hidden"
@@ -209,6 +213,37 @@
         }
       ]
     },
+    "fontItem": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/baseItem"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "font"
+            },
+            "path": {
+              "type": "string",
+              "description": "Optional directory containing bundled theme font files. Stored font values must be file:<filename> for bundled files or system:<family> for installed system fonts."
+            },
+            "default": {
+              "type": "string",
+              "pattern": "^(file:.+|system:.+)$",
+              "description": "Optional default font value. If omitted, a matching system font is selected."
+            },
+            "monospaceOnly": {
+              "type": "boolean",
+              "description": "If true, the picker and saved-value validation only allow fixed-pitch fonts."
+            },
+            "tabularDigitsOnly": {
+              "type": "boolean",
+              "description": "If true, the picker and saved-value validation only allow fonts whose digits align with tabular numeric layout."
+            }
+          }
+        }
+      ]
+    },
     "choiceItem": {
       "type": "object",
       "properties": {
@@ -274,6 +309,9 @@
               },
               {
                 "$ref": "#/$defs/fileItem"
+              },
+              {
+                "$ref": "#/$defs/fontItem"
               },
               {
                 "$ref": "#/$defs/stringItem"

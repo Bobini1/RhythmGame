@@ -3,12 +3,32 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
 import RhythmGameQml
+import "../common"
 
 Image {
     id: screen
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     property string rootUrl: QmlUtils.fileName.slice(0, QmlUtils.fileName.lastIndexOf("/") + 1)
+    readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.main || {})[QmlUtils.themeName] || ({})
+
+    ThemeFont {
+        id: mainTitleFont
+        fileName: screen.themeVars.mainTitleFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
+    ThemeFont {
+        id: mainMenuFont
+        fileName: screen.themeVars.mainMenuFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
+    ThemeFont {
+        id: mainDialogFont
+        fileName: screen.themeVars.mainDialogFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
 
     source: imagesUrl + "RGBArtboard_2"
 
@@ -70,6 +90,9 @@ Image {
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
                     color: palette.text
+                    font.family: mainDialogFont.fontFamily
+                    font.weight: mainDialogFont.fontWeight
+                    font.italic: mainDialogFont.italic
                 }
 
                 Label {
@@ -81,6 +104,9 @@ Image {
                     width: scrollView.width
                     onLinkActivated: Qt.openUrlExternally(link)
                     color: palette.text
+                    font.family: mainDialogFont.fontFamily
+                    font.weight: mainDialogFont.fontWeight
+                    font.italic: mainDialogFont.italic
                 }
             }
         }
@@ -102,7 +128,9 @@ Image {
             anchors.topMargin: 160
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.horizontalCenterOffset: 280
-            font.family: "Serif"
+            font.family: mainTitleFont.fontFamily
+            font.weight: mainTitleFont.fontWeight
+            font.italic: mainTitleFont.italic
             font.pixelSize: 200
             text: "RhythmGame"
         }
@@ -130,6 +158,9 @@ Image {
                 Button {
                     width: parent.width
                     height: 100
+                    font.family: mainMenuFont.fontFamily
+                    font.weight: mainMenuFont.fontWeight
+                    font.italic: mainMenuFont.italic
                     font.pixelSize: 30
 
                     text: qsTr("Song Selection")
@@ -142,6 +173,9 @@ Image {
                     width: parent.width
                     height: 100
                     text: qsTr("Settings")
+                    font.family: mainMenuFont.fontFamily
+                    font.weight: mainMenuFont.fontWeight
+                    font.italic: mainMenuFont.italic
                     font.pixelSize: 30
                     onClicked: {
                         globalRoot.openSettings();
@@ -152,6 +186,9 @@ Image {
                     width: parent.width
                     height: 100
                     text: qsTr("Attributions")
+                    font.family: mainMenuFont.fontFamily
+                    font.weight: mainMenuFont.fontWeight
+                    font.italic: mainMenuFont.italic
                     font.pixelSize: 30
                     onClicked: {
                         dlg.open();
@@ -162,6 +199,9 @@ Image {
                     width: parent.width
                     height: 100
                     text: qsTr("Quit")
+                    font.family: mainMenuFont.fontFamily
+                    font.weight: mainMenuFont.fontWeight
+                    font.italic: mainMenuFont.italic
                     font.pixelSize: 30
                     onClicked: {
                         Qt.quit();

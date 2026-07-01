@@ -4,6 +4,7 @@ import RhythmGameQml
 import QtQuick.Controls
 import QtQml
 import "../common/helpers.js" as Helpers
+import "../common"
 import "./options"
 
 FocusScope {
@@ -31,7 +32,19 @@ FocusScope {
         readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible
         readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
         readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+        readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.select || {})[QmlUtils.themeName] || ({})
         readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
+
+        ThemeFont {
+            id: scoreInfoFont
+            fileName: root.themeVars.scoreInfoFont
+            fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        }
+
+        ThemeFont {
+            id: songInfoFont
+            fileName: root.themeVars.songInfoFont
+        }
 
         function getScore(type) {
             let scoreList = songList.currentItem?.scores || [];
@@ -538,10 +551,23 @@ FocusScope {
             Text {
                 anchors.bottom: scoreInfo.top
                 anchors.horizontalCenter: scoreInfo.horizontalCenter
+                font.family: scoreInfoFont.fontFamily
+                font.weight: scoreInfoFont.fontWeight
+                font.italic: scoreInfoFont.italic
                 font.pixelSize: 19
-                anchors.horizontalCenterOffset: 154
+                clip: true
+                elide: Text.ElideRight
+                fontSizeMode: Text.Fit
+                height: 24
+                horizontalAlignment: Text.AlignHCenter
+                maximumLineCount: 1
+                minimumPixelSize: 5
+                verticalAlignment: Text.AlignVCenter
+                wrapMode: Text.NoWrap
+                anchors.horizontalCenterOffset: scoreInfo.lineWidth / 2 + scoreInfo.spacing / 2
                 anchors.bottomMargin: 18
                 text: qsTr("Score Details")
+                width: scoreInfo.lineWidth - 48
             }
             ScoreInfo {
                 id: scoreInfo
@@ -549,11 +575,12 @@ FocusScope {
                 anchors.bottomMargin: 80
                 anchors.left: parent.left
                 anchors.leftMargin: 80
-                spacing: 40
+                spacing: 12
 
                 current: songList.current
                 scoreWithBestPoints: songList.currentItem?.scoreWithBestPoints || null
                 bestStats: songList.currentItem?.bestStats || null
+                fontFile: root.themeVars.scoreInfoFont
             }
             Image {
                 id: search
@@ -574,6 +601,9 @@ FocusScope {
                     anchors.left: parent.left
                     anchors.leftMargin: 51
                     color: "white"
+                    font.family: songInfoFont.fontFamily
+                    font.weight: songInfoFont.fontWeight
+                    font.italic: songInfoFont.italic
                     font.pixelSize: 20
                     height: 25
                     width: 540

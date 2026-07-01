@@ -1,12 +1,19 @@
 import QtQuick
 import QtQuick.Layouts
 import "../common/helpers.js" as Helpers
+import "../common"
 
 WindowBg {
     id: meanSd
 
     required property real stddev
     required property real mean
+
+    ThemeFont {
+        id: meanSdFont
+        fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -23,18 +30,23 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("MEAN")
-                    font.bold: true
+                    font.family: meanSdFont.fontFamily
+                    font.weight: meanSdFont.boldFontWeight
+                    font.italic: meanSdFont.italic
                     color: "white"
                     font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
-            Text {
+            ResultNumberText {
                 text: {
                     let num = (meanSd.mean / 1000000).toFixed(1) + " ms"
                     let sign = meanSd.mean > 0 ? "+" : "";
                     return sign + num;
                 }
+                font.family: meanSdFont.fontFamily
+                font.weight: meanSdFont.fontWeight
+                font.italic: meanSdFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -52,14 +64,19 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("SD")
-                    font.bold: true
+                    font.family: meanSdFont.fontFamily
+                    font.weight: meanSdFont.boldFontWeight
+                    font.italic: meanSdFont.italic
                     color: "white"
                     font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
-            Text {
+            ResultNumberText {
                 text: (meanSd.stddev / 1000000).toFixed(1) + " ms"
+                font.family: meanSdFont.fontFamily
+                font.weight: meanSdFont.fontWeight
+                font.italic: meanSdFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true

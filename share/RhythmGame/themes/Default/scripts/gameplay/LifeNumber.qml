@@ -1,9 +1,16 @@
 import QtQuick
+import "../common"
 
 Text {
     id: lifeText
 
     required property var score
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+
+    ThemeFont {
+        id: lifeNumberFont
+        fileName: lifeText.fontFile
+    }
 
     function getLifeText() {
         let gauges = lifeText.score.gauges;
@@ -22,6 +29,9 @@ Text {
     }
     readonly property real hundredPercentWidth: textMetrics.width
     color: "white"
+    font.family: lifeNumberFont.fontFamily
+    font.weight: lifeNumberFont.fontWeight
+    font.italic: lifeNumberFont.italic
     font.pixelSize: 32
     fontSizeMode: Text.Fit
     text: lifeText.getLifeText()

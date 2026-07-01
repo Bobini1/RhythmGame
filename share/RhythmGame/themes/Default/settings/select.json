@@ -2,6 +2,59 @@
   "$schema": "https://raw.githubusercontent.com/Bobini1/RhythmGame/refs/heads/master/schemas/themeSettings.json",
   "items": [
     {
+      "name": {
+        "en": "Fonts",
+        "pl": "Czcionki"
+      },
+      "type": "group",
+      "description": {
+        "en": "Fonts used by the song select screen.",
+        "pl": "Czcionki używane na ekranie wyboru utworu."
+      },
+      "items": [
+        {
+          "id": "songListFont",
+          "name": {
+            "en": "Song List Font",
+            "pl": "Czcionka listy utworów"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "songInfoFont",
+          "name": {
+            "en": "Song Info Font",
+            "pl": "Czcionka informacji o utworze"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "scoreInfoFont",
+          "name": {
+            "en": "Score Info Font",
+            "pl": "Czcionka informacji o wyniku"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "rankingFont",
+          "name": {
+            "en": "Ranking Font",
+            "pl": "Czcionka rankingu"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        }
+      ]
+    },
+    {
       "id": "densityGraphGapsEnabled",
       "name": {
         "en": "Gaps between bars in density graph",

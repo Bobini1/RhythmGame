@@ -1,11 +1,17 @@
 import RhythmGameQml
 import QtQuick
+import "../common"
 
 Image {
     id: selector
 
     property var currentItem: null
     property bool scrollingText: false
+
+    ThemeFont {
+        id: selectorFont
+        fileName: root.themeVars.songInfoFont
+    }
 
     source: root.iniImagesUrl + "folders.png/frame"
 
@@ -17,59 +23,141 @@ Image {
 
         sourceComponent: Component {
             Item {
+                readonly property int infoRowHeight: 22
+                readonly property int infoValueWidth: 52
+                readonly property int artistWidth: 280
+
                 anchors.bottomMargin: 10
                 anchors.fill: parent
                 anchors.leftMargin: 50
 
-                Column {
-                    id: labels
+                Item {
+                    id: infoRows
 
                     anchors.bottom: parent.bottom
                     anchors.left: parent.left
-                    spacing: 0
+                    anchors.right: rankImage.left
+                    anchors.rightMargin: 20
+                    height: parent.infoRowHeight * 2
 
-                    Text {
-                        id: bpmText
+                    readonly property real valueWidth: Math.max(28, Math.min(parent.infoValueWidth, Math.max(bpmValueMetrics.width, keysValueMetrics.width) + 4))
+                    readonly property real labelWidth: Math.max(0, width - valueWidth - 4)
 
-                        font.pixelSize: 20
-                        text: "BPM"
+                    TextMetrics {
+                        id: bpmValueMetrics
+
+                        font: bpmValue.font
+                        text: bpmValue.text
                     }
-                    Text {
-                        id: keysText
+                    TextMetrics {
+                        id: keysValueMetrics
 
-                        font.pixelSize: 20
-                        text: qsTr("KEYS")
+                        font: keysValue.font
+                        text: keysValue.text
                     }
-                }
-                Column {
-                    id: valuesColumn
 
-                    anchors.bottom: parent.bottom
-                    anchors.left: labels.right
-                    anchors.leftMargin: 10
-                    spacing: 0
-                    width: 50
+                    Item {
+                        id: bpmRow
 
-                    Text {
-                        id: bpmValue
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        height: infoRows.parent.infoRowHeight
 
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        font.pixelSize: 20
-                        text: currentItem.initialBpm
+                        Text {
+                            id: bpmText
+
+                            clip: true
+                            font.pixelSize: 20
+                            font.family: selectorFont.fontFamily
+                            font.weight: selectorFont.fontWeight
+                            font.italic: selectorFont.italic
+                            fontSizeMode: Text.Fit
+                            height: parent.height
+                            horizontalAlignment: Text.AlignLeft
+                            maximumLineCount: 1
+                            minimumPixelSize: 5
+                            text: qsTr("BPM")
+                            verticalAlignment: Text.AlignVCenter
+                            width: infoRows.labelWidth
+                            wrapMode: Text.NoWrap
+                        }
+                        Text {
+                            id: bpmValue
+
+                            anchors.left: bpmText.right
+                            anchors.leftMargin: 4
+                            clip: true
+                            font.pixelSize: 20
+                            font.family: selectorFont.fontFamily
+                            font.weight: selectorFont.fontWeight
+                            font.italic: selectorFont.italic
+                            fontSizeMode: Text.Fit
+                            height: parent.height
+                            horizontalAlignment: Text.AlignHCenter
+                            maximumLineCount: 1
+                            minimumPixelSize: 5
+                            text: currentItem.initialBpm
+                            verticalAlignment: Text.AlignVCenter
+                            width: infoRows.valueWidth
+                            wrapMode: Text.NoWrap
+                        }
                     }
-                    Text {
-                        id: keysValue
+                    Item {
+                        id: keysRow
 
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        font.pixelSize: 20
-                        text: currentItem.keymode
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: bpmRow.bottom
+                        height: infoRows.parent.infoRowHeight
+
+                        Text {
+                            id: keysText
+
+                            clip: true
+                            font.pixelSize: 20
+                            font.family: selectorFont.fontFamily
+                            font.weight: selectorFont.fontWeight
+                            font.italic: selectorFont.italic
+                            fontSizeMode: Text.Fit
+                            height: parent.height
+                            horizontalAlignment: Text.AlignLeft
+                            maximumLineCount: 1
+                            minimumPixelSize: 5
+                            text: qsTr("KEYS")
+                            verticalAlignment: Text.AlignVCenter
+                            width: infoRows.labelWidth
+                            wrapMode: Text.NoWrap
+                        }
+                        Text {
+                            id: keysValue
+
+                            anchors.left: keysText.right
+                            anchors.leftMargin: 4
+                            clip: true
+                            font.pixelSize: 20
+                            font.family: selectorFont.fontFamily
+                            font.weight: selectorFont.fontWeight
+                            font.italic: selectorFont.italic
+                            fontSizeMode: Text.Fit
+                            height: parent.height
+                            horizontalAlignment: Text.AlignHCenter
+                            maximumLineCount: 1
+                            minimumPixelSize: 5
+                            text: currentItem.keymode
+                            verticalAlignment: Text.AlignVCenter
+                            width: infoRows.valueWidth
+                            wrapMode: Text.NoWrap
+                        }
                     }
                 }
                 Image {
+                    id: rankImage
+
                     anchors.bottom: parent.bottom
                     anchors.bottomMargin: 3
-                    anchors.left: valuesColumn.right
-                    anchors.leftMargin: 20
+                    anchors.right: artistInfo.left
+                    anchors.rightMargin: 8
                     source: {
                         let rank = currentItem.rank;
                         if (rank < 25) {
@@ -106,21 +194,23 @@ Image {
                         id: artist
 
                         anchors.right: parent.right
+                        fontFile: root.themeVars.songInfoFont
                         font.pixelSize: 20
                         height: metrics.height
                         scrolling: selector.scrollingText
                         text: currentItem.artist
-                        width: 330
+                        width: artistInfo.parent.artistWidth
                     }
                     NameLabel {
                         id: subartist
 
                         anchors.right: parent.right
+                        fontFile: root.themeVars.songInfoFont
                         font.pixelSize: 15
                         height: metricsSmall.height
                         scrolling: selector.scrollingText
                         text: currentItem.subartist
-                        width: 330
+                        width: artistInfo.parent.artistWidth
                     }
                     TextMetrics {
                         id: metrics

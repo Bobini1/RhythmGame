@@ -1,10 +1,29 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
+import RhythmGameQml
+import "../common"
 
 Page {
     id: settings
     property int initialTabIndex: 0
+    readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.settings || {})[QmlUtils.themeName] || ({})
+
+    ThemeFont {
+        id: settingsUiFont
+        fileName: settings.themeVars.settingsUiFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
+    ThemeFont {
+        id: settingsHeaderFont
+        fileName: settings.themeVars.settingsHeaderFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
+    font.family: settingsUiFont.fontFamily
+    font.weight: settingsUiFont.fontWeight
+    font.italic: settingsUiFont.italic
 
     function applyInitialTabIndex() {
         tabView.currentIndex = Math.max(0, Math.min(tabView.count - 1, initialTabIndex));
@@ -21,7 +40,9 @@ Page {
         Button {
             id: backButton
             text: "⏎"
-            font.bold: true
+            font.family: settingsHeaderFont.fontFamily
+            font.weight: settingsHeaderFont.boldFontWeight
+            font.italic: settingsHeaderFont.italic
             palette {
                 button: settings.palette.accent
                 buttonText: settings.palette.brightText
@@ -37,6 +58,9 @@ Page {
         TabBar {
             id: tabView
             Layout.fillWidth: true
+            font.family: settingsHeaderFont.fontFamily
+            font.weight: settingsHeaderFont.fontWeight
+            font.italic: settingsHeaderFont.italic
 
             TabButton {
                 id: tabButton

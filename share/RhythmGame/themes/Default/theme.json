@@ -15,7 +15,11 @@
     "k7": "settings/k7.json",
     "k7battle": "settings/k7battle.json",
     "k14": "settings/k14.json",
-    "select": "settings/select.json"
+    "main": "settings/main.json",
+    "settings": "settings/settings.json",
+    "select": "settings/select.json",
+    "decide": "settings/decide.json",
+    "result": "settings/result.json"
   },
   "translations": {
     "en": "translations/Default_en.qm",

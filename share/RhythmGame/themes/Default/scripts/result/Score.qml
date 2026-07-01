@@ -1,6 +1,7 @@
 
 import QtQuick
 import "../common/helpers.js" as Helpers
+import "../common"
 
 WindowBg {
     id: score
@@ -8,6 +9,12 @@ WindowBg {
     required property real points
     required property real maxPoints
     required property real oldBestPoints
+
+    ThemeFont {
+        id: scoreFont
+        fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
 
     Row {
         anchors.left: parent.left
@@ -29,25 +36,31 @@ WindowBg {
                     anchors.left: parent.left
                     source: root.iniImagesUrl + "parts.png/ex_score"
                 }
-                Text {
+                ResultNumberText {
                     id: exScoreText
 
                     anchors.baseline: parent.bottom
                     anchors.right: parent.right
                     anchors.rightMargin: 120
                     color: "lightgray"
+                    font.family: scoreFont.fontFamily
+                    font.weight: scoreFont.fontWeight
+                    font.italic: scoreFont.italic
                     font.pixelSize: 41
                     horizontalAlignment: Text.AlignRight
                     text: {
                         return "00000".slice(0, Math.max(0, 5 - score.points.toString().length)) + "<font color='DeepPink'>" + points + "</font>";
                     }
                 }
-                Text {
+                ResultNumberText {
                     id: scoreRate
 
                     anchors.baseline: parent.bottom
                     anchors.leftMargin: 30
                     anchors.right: parent.right
+                    font.family: scoreFont.fontFamily
+                    font.weight: scoreFont.fontWeight
+                    font.italic: scoreFont.italic
                     font.pixelSize: 25
                     horizontalAlignment: Text.AlignRight
                     text: (score.maxPoints ? (score.points / score.maxPoints * 100).toFixed(2) : "0.00") + "%"
@@ -64,13 +77,16 @@ WindowBg {
                     anchors.left: parent.left
                     source: root.iniImagesUrl + "parts.png/hi_score"
                 }
-                Text {
+                ResultNumberText {
                     id: hiScoreText
 
                     anchors.baseline: parent.bottom
                     anchors.right: parent.right
                     anchors.rightMargin: 120
                     color: "lightgray"
+                    font.family: scoreFont.fontFamily
+                    font.weight: scoreFont.fontWeight
+                    font.italic: scoreFont.italic
                     font.pixelSize: 34
                     horizontalAlignment: Text.AlignRight
                     text: {
@@ -78,7 +94,7 @@ WindowBg {
                         return "00000".slice(0, Math.max(0, 5 - points.toString().length)) + "<font color='DeepPink'>" + points + "</font>";
                     }
                 }
-                Text {
+                ResultNumberText {
                     id: hiScoreDelta
 
                     anchors.baseline: parent.bottom
@@ -88,6 +104,9 @@ WindowBg {
                         let delta = score.points - score.oldBestPoints;
                         return delta > 0 ? "darkgreen" : (delta < 0 ? "FireBrick" : "black");
                     }
+                    font.family: scoreFont.fontFamily
+                    font.weight: scoreFont.fontWeight
+                    font.italic: scoreFont.italic
                     font.pixelSize: 25
                     horizontalAlignment: Text.AlignLeft
                     text: {

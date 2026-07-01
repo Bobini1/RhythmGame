@@ -487,6 +487,7 @@ Rectangle {
             contentVisible: root.mainProfileVars.titleDisplayEnabled
             title: root.chartData.title
             subtitle: root.chartData.subtitle
+            fontFile: root.mainProfileVars.titleDisplayFont
             onXChanged: root.mainProfileVars.titleDisplayX = x
             onYChanged: root.mainProfileVars.titleDisplayY = y
             onWidthChanged: root.mainProfileVars.titleDisplayWidth = width
@@ -522,6 +523,7 @@ Rectangle {
             contentVisible: root.mainProfileVars.difficultyDisplayEnabled
             difficulty: root.chartData.difficulty
             playLevel: root.chartData.playLevel
+            fontFile: root.mainProfileVars.difficultyDisplayFont
             onXChanged: root.mainProfileVars.difficultyDisplayX = x
             onYChanged: root.mainProfileVars.difficultyDisplayY = y
             onWidthChanged: root.mainProfileVars.difficultyDisplayWidth = width
@@ -558,6 +560,7 @@ Rectangle {
             currentBpm: chart.player1.bpm
             minBpm: root.chartData.minBpm
             maxBpm: root.chartData.maxBpm
+            fontFile: root.mainProfileVars.bpmDisplayFont
             onXChanged: root.mainProfileVars.bpmDisplayX = x
             onYChanged: root.mainProfileVars.bpmDisplayY = y
             onWidthChanged: root.mainProfileVars.bpmDisplayWidth = width

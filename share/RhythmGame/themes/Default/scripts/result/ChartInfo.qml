@@ -1,12 +1,20 @@
 import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
+import "../common"
 
 WindowBg {
     id: chartInfo
     required property var difficulty
     required property var total
     required property int noteCount
+
+    ThemeFont {
+        id: chartInfoFont
+        fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
     Image {
         anchors.left: parent.left
         anchors.top: parent.top
@@ -44,14 +52,19 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("NOTES")
-                    font.bold: true
+                    font.family: chartInfoFont.fontFamily
+                    font.weight: chartInfoFont.boldFontWeight
+                    font.italic: chartInfoFont.italic
                     color: "white"
                     font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
-            Text {
+            ResultNumberText {
                 text: chartInfo.noteCount
+                font.family: chartInfoFont.fontFamily
+                font.weight: chartInfoFont.fontWeight
+                font.italic: chartInfoFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true
@@ -69,14 +82,19 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("TOTAL")
-                    font.bold: true
+                    font.family: chartInfoFont.fontFamily
+                    font.weight: chartInfoFont.boldFontWeight
+                    font.italic: chartInfoFont.italic
                     color: "white"
                     font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
-            Text {
+            ResultNumberText {
                 text: chartInfo.total || "-"
+                font.family: chartInfoFont.fontFamily
+                font.weight: chartInfoFont.fontWeight
+                font.italic: chartInfoFont.italic
                 font.pixelSize: 24
                 Layout.fillHeight: true
                 Layout.fillWidth: true

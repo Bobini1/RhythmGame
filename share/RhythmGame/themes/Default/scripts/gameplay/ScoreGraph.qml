@@ -1,4 +1,5 @@
 import QtQuick
+import "../common"
 
 Item {
     id: scoreGraph
@@ -17,6 +18,12 @@ Item {
     property real bestPoints: 0
     property real bestFinalPoints: 0
     property real bestMaxPoints: 0
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+
+    ThemeFont {
+        id: scoreGraphFont
+        fileName: scoreGraph.fontFile
+    }
 
     // Reactive fractions — drive Rectangle sizes directly
     readonly property real mp: maxPoints > 0 ? maxPoints : 1
@@ -85,7 +92,9 @@ Item {
                 required property var modelData
                 text: modelData.label
                 color: modelData.color
-                font.bold: true
+                font.family: scoreGraphFont.fontFamily
+                font.weight: scoreGraphFont.boldFontWeight
+                font.italic: scoreGraphFont.italic
                 font.pixelSize: scoreGraph.fontSize
                 style: Text.Outline
                 renderType: Text.QtRendering
@@ -184,17 +193,19 @@ Item {
             id: mFull
             visible: false
             font.pixelSize: scoreGraph.fontSize
-            font.bold: true
+            font.family: scoreGraphFont.fontFamily
+            font.weight: scoreGraphFont.boldFontWeight
+            font.italic: scoreGraphFont.italic
             text: "TARGET: +0000"
-            font.family: "monospace"
         }
         Text {
             id: mShort
             visible: false
             font.pixelSize: scoreGraph.fontSize
-            font.bold: true
+            font.family: scoreGraphFont.fontFamily
+            font.weight: scoreGraphFont.boldFontWeight
+            font.italic: scoreGraphFont.italic
             text: "T: +0000"
-            font.family: "monospace"
         }
 
         readonly property bool showFull:  mFull.implicitWidth  <= deltaDisplay.width
@@ -213,9 +224,11 @@ Item {
                 readonly property real delta: scoreGraph.currentPoints - scoreGraph.targetPoints
                 readonly property string num: String(Math.abs(Math.round(delta))).padStart(4, "0")
                 text: (deltaDisplay.showFull ? "TARGET: " : "T: ") + (delta >= 0 ? "+" : "-") + num
-                color: "white"; font.pixelSize: scoreGraph.fontSize; font.bold: true
+                color: "white"; font.pixelSize: scoreGraph.fontSize
+                font.family: scoreGraphFont.fontFamily
+                font.weight: scoreGraphFont.boldFontWeight
+                font.italic: scoreGraphFont.italic
                 style: Text.Outline; styleColor: "black"
-                font.family: "monospace"
             }
             Text {
                 anchors.right: parent.right
@@ -223,9 +236,11 @@ Item {
                 readonly property real delta: scoreGraph.currentPoints - scoreGraph.bestPoints
                 readonly property string num: String(Math.abs(Math.round(delta))).padStart(4, "0")
                 text: (deltaDisplay.showFull ? "MYBEST: " : "B: ") + (delta >= 0 ? "+" : "-") + num
-                color: "white"; font.pixelSize: scoreGraph.fontSize; font.bold: true
+                color: "white"; font.pixelSize: scoreGraph.fontSize
+                font.family: scoreGraphFont.fontFamily
+                font.weight: scoreGraphFont.boldFontWeight
+                font.italic: scoreGraphFont.italic
                 style: Text.Outline; styleColor: "black"
-                font.family: "monospace"
             }
         }
     }

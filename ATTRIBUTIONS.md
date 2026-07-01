@@ -62,6 +62,15 @@ https://github.com/souki202/my_beatoraja_skin
 * Some icons (icon at the bottom left of the song bar, statistics button icon): ICOOON MONO
 * Some images: Marble Vectors by Vecteezy
 
+### Default theme dependencies:
+
+#### Fonts
+
+- Noto Sans JP (https://fonts.google.com/noto/specimen/Noto+Sans+JP)
+    * Licensed under SIL Open Font License 1.1 (https://openfontlicense.org)
+    * Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'
+    * License text: share/RhythmGame/themes/Default/scripts/common/OFL.txt
+
 ## Audio:
 
 ### Brook soundset

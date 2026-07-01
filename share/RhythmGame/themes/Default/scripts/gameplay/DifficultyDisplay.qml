@@ -1,11 +1,18 @@
 import QtQuick
+import "../common"
 
 Item {
     id: difficultyDisplay
 
     property int difficulty: 0
     property int playLevel: 0
+    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
     property bool contentVisible: true
+
+    ThemeFont {
+        id: difficultyDisplayFont
+        fileName: difficultyDisplay.fontFile
+    }
 
     readonly property var difficultyNames: ["INSANE", "BEGINNER", "NORMAL", "HYPER", "ANOTHER", "INSANE"]
     readonly property string difficultyName: difficulty >= 1 && difficulty <= 5
@@ -22,7 +29,9 @@ Item {
         visible: false
         text: difficultyDisplay.difficultyName
         font.pixelSize: 100
-        font.bold: true
+        font.family: difficultyDisplayFont.fontFamily
+        font.weight: difficultyDisplayFont.boldFontWeight
+        font.italic: difficultyDisplayFont.italic
     }
 
     // Natural badge dimensions at the 100 px reference font.
@@ -57,7 +66,9 @@ Item {
             anchors.fill: parent
             text: difficultyDisplay.difficultyName
             font.pixelSize: Math.max(1, difficultyDisplay.badgeFontSize)
-            font.bold: true
+            font.family: difficultyDisplayFont.fontFamily
+            font.weight: difficultyDisplayFont.boldFontWeight
+            font.italic: difficultyDisplayFont.italic
             color: "white"
             textFormat: Text.PlainText
             verticalAlignment: Text.AlignVCenter
@@ -74,7 +85,9 @@ Item {
         height: difficultyDisplay.badgeActualHeight * 1.5
         text: "Lv." + difficultyDisplay.playLevel
         font.pixelSize: Math.max(1, difficultyDisplay.badgeFontSize * 1.3)
-        font.bold: true
+        font.family: difficultyDisplayFont.fontFamily
+        font.weight: difficultyDisplayFont.boldFontWeight
+        font.italic: difficultyDisplayFont.italic
         color: "white"
         textFormat: Text.PlainText
         verticalAlignment: Text.AlignVCenter

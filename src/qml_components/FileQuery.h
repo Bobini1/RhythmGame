@@ -22,6 +22,16 @@ class FileQuery : public QObject
      */
     Q_INVOKABLE QList<QString> getSelectableFilesForDirectory(
       const QString& directory) const;
+    Q_INVOKABLE QList<QString> getSelectableFontFilesForDirectory(
+      const QString& directory,
+      bool fixedPitchOnly,
+      bool tabularDigitsOnly) const;
+    Q_INVOKABLE QList<QString> getSystemFontFamilies(
+      bool fixedPitchOnly,
+      bool tabularDigitsOnly) const;
+    Q_INVOKABLE QString
+    getDefaultSystemFontFamily(bool fixedPitchOnly,
+                               bool tabularDigitsOnly) const;
 };
 } // namespace qml_components
 

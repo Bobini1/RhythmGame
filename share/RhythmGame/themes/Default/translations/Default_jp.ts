@@ -45,17 +45,17 @@
 <context>
     <name>BpmDisplay</name>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="37"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="46"/>
         <source>MIN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="46"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="58"/>
         <source>BPM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="55"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="70"/>
         <source>MAX</source>
         <translation type="unfinished"></translation>
     </message>
@@ -72,16 +72,21 @@
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/BpmDisplayPopup.qml" line="25"/>
+        <source>Font</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="71"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="84"/>
         <source>TOTAL</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="46"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="54"/>
         <source>NOTES</source>
         <translation type="unfinished"></translation>
     </message>
@@ -151,6 +156,11 @@
         <source>Z-index</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/DifficultyDisplayPopup.qml" line="25"/>
+        <source>Font</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>FastslowPopup</name>
@@ -183,7 +193,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="35"/>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="33"/>
+        <source>Life Number Font</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="40"/>
         <source>Gauge</source>
         <translation type="unfinished"></translation>
     </message>
@@ -420,6 +435,11 @@
         <source>Enabled</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/GhostScorePopup.qml" line="21"/>
+        <source>Font</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>HitDistributionPopup</name>
@@ -484,6 +504,11 @@
     <message>
         <location filename="../scripts/gameplay/popups/JudgementCountsPopup.qml" line="14"/>
         <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/JudgementCountsPopup.qml" line="20"/>
+        <source>Font</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -568,49 +593,51 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="195"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="199"/>
         <source> axis</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="198"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="202"/>
         <source> down</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="200"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="204"/>
         <source> up</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="206"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="210"/>
         <source>Keyboard</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="212"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="216"/>
         <source>Not Configured</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="217"/>
-        <location filename="../scripts/settings/KeySettings.qml" line="228"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="222"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="245"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="257"/>
         <source>DOWN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="217"/>
-        <location filename="../scripts/settings/KeySettings.qml" line="224"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="222"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="239"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="252"/>
         <source>UP</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="232"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="261"/>
         <source>Configure</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/KeySettings.qml" line="244"/>
+        <location filename="../scripts/settings/KeySettings.qml" line="273"/>
         <source>Reset</source>
         <translation type="unfinished"></translation>
     </message>
@@ -730,12 +757,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2684"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2844"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2686"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2846"/>
         <source>Failed to save screenshot.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -743,22 +770,22 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="135"/>
+        <location filename="../scripts/main/Main.qml" line="166"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="144"/>
+        <location filename="../scripts/main/Main.qml" line="175"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="154"/>
+        <location filename="../scripts/main/Main.qml" line="188"/>
         <source>Attributions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="164"/>
+        <location filename="../scripts/main/Main.qml" line="201"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -766,12 +793,12 @@
 <context>
     <name>MeanSd</name>
     <message>
-        <location filename="../scripts/result/MeanSd.qml" line="25"/>
+        <location filename="../scripts/result/MeanSd.qml" line="32"/>
         <source>MEAN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/MeanSd.qml" line="54"/>
+        <location filename="../scripts/result/MeanSd.qml" line="66"/>
         <source>SD</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1083,12 +1110,12 @@ skipped: %3, total: %4</source>
 <context>
     <name>Ranking</name>
     <message>
-        <location filename="../scripts/select/Ranking.qml" line="128"/>
+        <location filename="../scripts/select/Ranking.qml" line="137"/>
         <source>Ranking</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Ranking.qml" line="140"/>
+        <location filename="../scripts/select/Ranking.qml" line="158"/>
         <source>Stats</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1127,12 +1154,12 @@ skipped: %3, total: %4</source>
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="141"/>
+        <location filename="../scripts/result/Result.qml" line="149"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="143"/>
+        <location filename="../scripts/result/Result.qml" line="151"/>
         <source>Failed to save screenshot.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1156,6 +1183,11 @@ skipped: %3, total: %4</source>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="33"/>
+        <source>Font</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="38"/>
         <source>Background</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1209,47 +1241,52 @@ skipped: %3, total: %4</source>
 <context>
     <name>ScreenSettings</name>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="29"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="30"/>
         <source>7k Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="30"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="31"/>
         <source>7k Battle Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="31"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="32"/>
         <source>14k Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="32"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="33"/>
         <source>Main Menu Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="33"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="34"/>
         <source>Settings Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="34"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="35"/>
         <source>Select Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="35"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
+        <source>Decide Settings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="37"/>
         <source>Result Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="36"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="38"/>
         <source>Course Result Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ScreenSettings.qml" line="39"/>
+        <location filename="../scripts/settings/ScreenSettings.qml" line="41"/>
         <source>%1 Settings</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1257,12 +1294,12 @@ skipped: %3, total: %4</source>
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="544"/>
+        <location filename="../scripts/select/Select.qml" line="569"/>
         <source>Score Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="583"/>
+        <location filename="../scripts/select/Select.qml" line="613"/>
         <source>%n chart(s) found</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -1272,7 +1309,12 @@ skipped: %3, total: %4</source>
 <context>
     <name>Selector</name>
     <message>
-        <location filename="../scripts/select/Selector.qml" line="41"/>
+        <location filename="../scripts/select/Selector.qml" line="80"/>
+        <source>BPM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/select/Selector.qml" line="127"/>
         <source>KEYS</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1280,32 +1322,32 @@ skipped: %3, total: %4</source>
 <context>
     <name>Settings</name>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="43"/>
+        <location filename="../scripts/settings/Settings.qml" line="67"/>
         <source>Player settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="46"/>
+        <location filename="../scripts/settings/Settings.qml" line="70"/>
         <source>Song directories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="49"/>
+        <location filename="../scripts/settings/Settings.qml" line="73"/>
         <source>Tables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="52"/>
+        <location filename="../scripts/settings/Settings.qml" line="76"/>
         <source>Themes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="55"/>
+        <location filename="../scripts/settings/Settings.qml" line="79"/>
         <source>General Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="58"/>
+        <location filename="../scripts/settings/Settings.qml" line="82"/>
         <source>Key config</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1622,6 +1664,11 @@ skipped: %3, total: %4</source>
     <message>
         <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="19"/>
         <source>Z-index</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="25"/>
+        <source>Font</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

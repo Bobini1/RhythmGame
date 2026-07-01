@@ -480,6 +480,89 @@
     },
     {
       "name": {
+        "en": "Fonts",
+        "pl": "Czcionki"
+      },
+      "type": "group",
+      "description": {
+        "en": "Fonts used by gameplay text elements.",
+        "pl": "Czcionki używane przez elementy tekstowe podczas gry."
+      },
+      "items": [
+        {
+          "id": "judgementCountsFont",
+          "name": {
+            "en": "Judgement Counts Font",
+            "pl": "Czcionka licznika trafień"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "ghostScoreFont",
+          "name": {
+            "en": "Ghost Score Font",
+            "pl": "Czcionka celu punktowego"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "scoreGraphFont",
+          "name": {
+            "en": "Score Graph Font",
+            "pl": "Czcionka wykresu wyników"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "titleDisplayFont",
+          "name": {
+            "en": "Title Display Font",
+            "pl": "Czcionka wyświetlacza tytułu"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "difficultyDisplayFont",
+          "name": {
+            "en": "Difficulty Display Font",
+            "pl": "Czcionka wyświetlacza trudności"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "bpmDisplayFont",
+          "name": {
+            "en": "BPM Display Font",
+            "pl": "Czcionka wyświetlacza BPM"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        },
+        {
+          "id": "lifeNumberFont",
+          "name": {
+            "en": "Life Number Font",
+            "pl": "Czcionka procentu życia"
+          },
+          "type": "font",
+          "path": "scripts/common/fonts",
+          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+        }
+      ]
+    },
+    {
+      "name": {
         "en": "Textures",
         "pl": "Tekstury"
       },

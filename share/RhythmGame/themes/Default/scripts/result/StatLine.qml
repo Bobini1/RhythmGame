@@ -1,5 +1,6 @@
 import QtQuick
 import RhythmGameQml
+import "../common"
 
 Item {
     id: statLine
@@ -9,6 +10,12 @@ Item {
     property int newVal: 0
     property int oldVal: 0
 
+    ThemeFont {
+        id: statLineFont
+        fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
     height: comboImg.sourceSize.height
 
     Image {
@@ -17,13 +24,16 @@ Item {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
     }
-    Text {
+    ResultNumberText {
         id: oldText
 
         anchors.baseline: parent.bottom
         anchors.right: parent.right
         anchors.rightMargin: 120
         color: "lightgray"
+        font.family: statLineFont.fontFamily
+        font.weight: statLineFont.fontWeight
+        font.italic: statLineFont.italic
         font.pixelSize: 25
         horizontalAlignment: Text.AlignRight
         text: "0000".slice(0, Math.max(0, 4 - statLine.oldVal.toString().length)) + "<font color='black'>" + statLine.oldVal + "</font>"
@@ -36,24 +46,30 @@ Item {
         anchors.verticalCenter: oldText.verticalCenter
         source: root.iniImagesUrl + "parts.png/arrow"
     }
-    Text {
+    ResultNumberText {
         id: newText
 
         anchors.baseline: parent.bottom
         anchors.left: arrow.right
         anchors.leftMargin: 30
         color: "lightgray"
+        font.family: statLineFont.fontFamily
+        font.weight: statLineFont.fontWeight
+        font.italic: statLineFont.italic
         font.pixelSize: 34
         horizontalAlignment: Text.AlignLeft
         text: "0000".slice(0, Math.max(0, 4 - statLine.newVal.toString().length)) + "<font color='black'>" + statLine.newVal + "</font>"
     }
-    Text {
+    ResultNumberText {
         id: deltaText
 
         anchors.baseline: parent.bottom
         anchors.left: newText.right
         anchors.leftMargin: statLine.newVal.toString().length <= 4 ? 20 : 2
         color: (statLine.newVal > statLine.oldVal) ^ !invertDeltaColor ? "FireBrick" : "darkgreen"
+        font.family: statLineFont.fontFamily
+        font.weight: statLineFont.fontWeight
+        font.italic: statLineFont.italic
         font.pixelSize: 25
         text: {
             var delta = statLine.newVal - statLine.oldVal;

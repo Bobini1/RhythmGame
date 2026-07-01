@@ -15,10 +15,20 @@ Popup {
     padding: 2
     property alias model: column.model
 
+    function closeTransientPopups() {
+        for (let child of column.contentItem.children) {
+            if (child.closeTransientPopups) {
+                child.closeTransientPopups();
+            }
+        }
+    }
+
     function setPosition(globalPos) {
         x = Math.min(globalPos.x, contentContainer.width - width * scale);
         y = Math.min(globalPos.y, contentContainer.height - height * scale);
     }
+
+    onAboutToHide: closeTransientPopups()
 
     background: Rectangle {
         border.color: "white"

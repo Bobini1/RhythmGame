@@ -179,8 +179,12 @@ Item {
 
                         Label {
                             Layout.fillWidth: true
+                            Layout.minimumWidth: 0
                             horizontalAlignment: Text.AlignRight
                             color: palette.text
+                            elide: Text.ElideMiddle
+                            maximumLineCount: 1
+                            clip: true
                             text: {
                                 for (let i = 0; i < keyLayout.keyConfig.length; i++) {
                                     if (keyLayout.keyConfig[i].button === buttonRow.button) {
@@ -214,17 +218,42 @@ Item {
                         }
 
                         Label {
+                            id: stateLabel
                             text: Rg.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
                             horizontalAlignment: Text.AlignRight
                             color: palette.text
-                            Layout.preferredWidth: Math.max(up.boundingRect.width, down.boundingRect.width)
+                            readonly property real measuredWidth: Math.max(
+                                upStateProbe.implicitWidth,
+                                downStateProbe.implicitWidth,
+                                up.width,
+                                down.width,
+                                up.boundingRect.width,
+                                down.boundingRect.width)
+                            Layout.leftMargin: 8
+                            Layout.minimumWidth: Layout.preferredWidth
+                            Layout.preferredWidth: Math.ceil(measuredWidth)
+
+                            Label {
+                                id: upStateProbe
+                                visible: false
+                                text: qsTr("UP")
+                                font: stateLabel.font
+                            }
+                            Label {
+                                id: downStateProbe
+                                visible: false
+                                text: qsTr("DOWN")
+                                font: stateLabel.font
+                            }
                         }
                         TextMetrics {
                             id: up
+                            font: stateLabel.font
                             text: qsTr("UP")
                         }
                         TextMetrics {
                             id: down
+                            font: stateLabel.font
                             text: qsTr("DOWN")
                         }
 

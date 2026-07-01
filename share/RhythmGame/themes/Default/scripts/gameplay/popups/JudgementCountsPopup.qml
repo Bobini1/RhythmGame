@@ -14,5 +14,10 @@ GameplayPopup {
             text: qsTr("Z-index")
             to: 10
         }
+        FontSelection {
+            src: popup.themeVars
+            propertyId: "judgementCountsFont"
+            label: qsTr("Font")
+        }
     }
 }

@@ -15,5 +15,10 @@ GameplayPopup {
             prop: "ghostScoreEnabled"
             description: qsTr("Enabled")
         }
+        FontSelection {
+            src: popup.themeVars
+            propertyId: "ghostScoreFont"
+            label: qsTr("Font")
+        }
     }
 }

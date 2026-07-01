@@ -15,7 +15,7 @@ RowLayout {
         property var orderedScreens: {
             let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
             // We don't want screens to be alphabetically sorted, that's not friendly
-            let order = ["k7", "k7battle", "k5", "k5battle", "k10", "k14", "main", "settings", "select", "result", "courseResult"];
+            let order = ["k7", "k7battle", "k5", "k5battle", "k10", "k14", "main", "settings", "select", "decide", "result", "courseResult"];
             return configKeys.sort((a, b) => {
                 let indexA = order.indexOf(a);
                 let indexB = order.indexOf(b);

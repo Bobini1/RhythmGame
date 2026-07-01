@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick.Controls
+import "../common"
 
 Image {
     id: ranking
@@ -18,6 +19,8 @@ Image {
     property var bestClearTypeScore
     readonly property var entries: onlineRankingModel.entries
     readonly property var playerCount: entries.length
+    readonly property int tabTitleInset: 32
+    readonly property int tabTitleWidth: rankingBack.width - tabTitleInset * 2
     readonly property var clearCounts: {
         let counts = {};
         for (let i = 0; i < entries.length; i++) {
@@ -38,6 +41,12 @@ Image {
         return "";
     }
     readonly property string chartId: onlineRankingModel.chartId
+
+    ThemeFont {
+        id: rankingFont
+        fileName: root.themeVars.rankingFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
 
     component RankingModel: OnlineRankingModel {
         md5: ranking.enabled ? ranking.md5 : "" // disable loading when in gameplay
@@ -126,11 +135,20 @@ Image {
 
     Text {
         text: qsTr("Ranking")
-        fontSizeMode: Text.VerticalFit
+        clip: true
+        elide: Text.ElideRight
+        fontSizeMode: Text.Fit
         horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        font.family: rankingFont.fontFamily
+        font.weight: rankingFont.fontWeight
+        font.italic: rankingFont.italic
         font.pixelSize: 16
-        width: rankingBack.width
-        x: 42
+        maximumLineCount: 1
+        minimumPixelSize: 5
+        wrapMode: Text.NoWrap
+        width: ranking.tabTitleWidth
+        x: 42 + ranking.tabTitleInset
         anchors.top: rankingBack.top
         anchors.topMargin: 15
         anchors.bottom: rankingBack.bottom
@@ -138,11 +156,20 @@ Image {
 
     Text {
         text: qsTr("Stats")
-        fontSizeMode: Text.VerticalFit
+        clip: true
+        elide: Text.ElideRight
+        fontSizeMode: Text.Fit
         horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
+        font.family: rankingFont.fontFamily
+        font.weight: rankingFont.fontWeight
+        font.italic: rankingFont.italic
         font.pixelSize: 16
-        width: rankingBack.width
-        x: parent.width - rankingBack.width - 42
+        maximumLineCount: 1
+        minimumPixelSize: 5
+        wrapMode: Text.NoWrap
+        width: ranking.tabTitleWidth
+        x: parent.width - rankingBack.width - 42 + ranking.tabTitleInset
         anchors.top: rankingBack.top
         anchors.topMargin: 15
         anchors.bottom: rankingBack.bottom
