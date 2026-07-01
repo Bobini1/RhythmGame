@@ -556,15 +556,25 @@ Loader {
                 && !valueResolverNumberUsesSelectSnapshot
                 ? elemLoader.valueResolver.gameplayNumberDependencyMask(numberSrc)
                 : 0
-            readonly property int valueResolverNumber: valueResolverNumberDependencyMask !== 0
-                ? gameplayValueResolverNumber
-                : (valueResolverNumberNeeded
-                    ? (valueResolverNumberUsesSelectSnapshot
-                        ? selectContext.focusedSelectNumberValueForId(
+            readonly property int valueResolverNumberSnapshotRevision: valueResolverNumberUsesSelectSnapshot
+                ? selectContext.focusedSelectNumberRevisionForId(numberId)
+                : 0
+            property int valueResolverNumber: 0
+            function refreshValueResolverNumber() {
+                let nextValue = 0;
+                if (valueResolverNumberDependencyMask !== 0) {
+                    nextValue = gameplayValueResolverNumber;
+                } else if (valueResolverNumberNeeded) {
+                    nextValue = valueResolverNumberUsesSelectSnapshot
+                        ? selectContext.focusedSelectNumberSnapshotValueForId(
                             numberId,
-                            selectContext.focusedSelectNumberRevisionForId(numberId))
-                        : elemLoader.valueResolver.numberValue(numberSrc))
-                    : 0)
+                            valueResolverNumberSnapshotRevision)
+                        : elemLoader.valueResolver.numberValue(numberSrc);
+                }
+                if (valueResolverNumber !== nextValue) {
+                    valueResolverNumber = nextValue;
+                }
+            }
             function valueResolverNumberHasDependency(mask: int) : bool {
                 return (valueResolverNumberDependencyMask & mask) !== 0;
             }
@@ -580,8 +590,21 @@ Loader {
                     gameplayValueResolverNumber = nextValue;
                 }
             }
-            onValueResolverNumberDependencyMaskChanged: refreshGameplayValueResolverNumber()
-            onNumberSrcChanged: refreshGameplayValueResolverNumber()
+            onValueResolverNumberNeededChanged: refreshValueResolverNumber()
+            onValueResolverNumberUsesSelectSnapshotChanged: {
+                syncFocusedSelectNumberRegistration();
+                refreshValueResolverNumber();
+            }
+            onValueResolverNumberDependencyMaskChanged: {
+                refreshGameplayValueResolverNumber();
+                refreshValueResolverNumber();
+            }
+            onValueResolverNumberSnapshotRevisionChanged: refreshValueResolverNumber()
+            onGameplayValueResolverNumberChanged: refreshValueResolverNumber()
+            onNumberSrcChanged: {
+                refreshGameplayValueResolverNumber();
+                refreshValueResolverNumber();
+            }
             Connections {
                 target: elemLoader.screenRoot
                 enabled: numberRenderer.valueResolverNumberDependencyMask !== 0
@@ -622,6 +645,63 @@ Loader {
                     }
                 }
             }
+            Connections {
+                target: elemLoader.screenRoot
+                enabled: numberRenderer.valueResolverNumberNeeded
+                    && numberRenderer.valueResolverNumberDependencyMask === 0
+                    && !numberRenderer.valueResolverNumberUsesSelectSnapshot
+
+                function onResultScreenActiveChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onGameplayScreenActiveChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onTableInfoRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onGameplayScoresRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onResultOldScores1Changed() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onResultOldScores2Changed() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+            }
+            Connections {
+                target: selectContext
+                enabled: numberRenderer.valueResolverNumberNeeded
+                    && numberRenderer.valueResolverNumberDependencyMask === 0
+                    && !numberRenderer.valueResolverNumberUsesSelectSnapshot
+                    && numberRenderer.selectNumberScreen
+
+                function onNumberValuePlayerStatsRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueFolderCountsRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueRankingStatsRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueSelectedItemRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueSelectedChartRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueSelectedScoreRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueSelectedDifficultyRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+                function onNumberValueStaticRevisionChanged() {
+                    numberRenderer.refreshValueResolverNumber();
+                }
+            }
             property int focusedSelectNumberRegisteredId: -1
             function syncFocusedSelectNumberRegistration() {
                 const nextRegisteredId = usesFocusedSelectNumber || valueResolverNumberUsesSelectSnapshot
@@ -639,9 +719,15 @@ Loader {
                 }
             }
             onUsesFocusedSelectNumberChanged: syncFocusedSelectNumberRegistration()
-            onValueResolverNumberUsesSelectSnapshotChanged: syncFocusedSelectNumberRegistration()
-            onNumberIdChanged: syncFocusedSelectNumberRegistration()
-            Component.onCompleted: syncFocusedSelectNumberRegistration()
+            onNumberIdChanged: {
+                syncFocusedSelectNumberRegistration();
+                refreshValueResolverNumber();
+            }
+            Component.onCompleted: {
+                syncFocusedSelectNumberRegistration();
+                refreshGameplayValueResolverNumber();
+                refreshValueResolverNumber();
+            }
             Component.onDestruction: {
                 if (focusedSelectNumberRegisteredId >= 0) {
                     selectContext.unregisterFocusedSelectNumber(focusedSelectNumberRegisteredId);

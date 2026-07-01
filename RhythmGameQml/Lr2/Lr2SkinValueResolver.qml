@@ -48,14 +48,26 @@ QtObject {
         return !root.lr2SkinUsesBeatorajaSemantics && !root.lr2SkinUsesLunaticVibesSemantics;
     }
 
+    function lr2RandomLayoutData(score: var) : var {
+        return score && score.result ? score.result : score;
+    }
+
     function lr2RandomLayoutKeyCount(score: var) : var {
-        const keymode = Number(score && score.keymode !== undefined ? score.keymode : root.gameplayKeymode());
+        const data = resolver.lr2RandomLayoutData(score);
+        const keymode = Number(data && data.keymode !== undefined ? data.keymode : root.gameplayKeymode());
         return keymode === 5 || keymode === 10 ? 5 : 7;
     }
 
-    function lr2RandomLayoutLaneForColumn(column: var, sideOffset: var, keyCount: var) : var {
+    function lr2RandomLayoutSideColumnCount(permutation: var, keyCount: var) : var {
+        const length = permutation && permutation.length !== undefined
+            ? Number(permutation.length)
+            : 0;
+        return keyCount === 5 && (length === 6 || length === 12) ? 6 : 8;
+    }
+
+    function lr2RandomLayoutLaneForColumn(column: var, sideOffset: var, keyCount: var, sideColumnCount: var) : var {
         const localColumn = Number(column) - sideOffset;
-        if (localColumn === 7) {
+        if (localColumn === sideColumnCount - 1) {
             return 0;
         }
         if (localColumn >= 0 && localColumn < keyCount) {
@@ -65,17 +77,19 @@ QtObject {
     }
 
     function lr2RandomLayoutNumber(score: var, side: var) : var {
-        const permutation = score && score.permutation ? score.permutation : [];
-        const sideOffset = side === 2 ? 8 : 0;
-        if (!permutation || permutation.length < sideOffset + 8) {
+        const data = resolver.lr2RandomLayoutData(score);
+        const permutation = data && data.permutation ? data.permutation : [];
+        const keyCount = resolver.lr2RandomLayoutKeyCount(data);
+        const sideColumnCount = resolver.lr2RandomLayoutSideColumnCount(permutation, keyCount);
+        const sideOffset = side === 2 ? sideColumnCount : 0;
+        if (!permutation || permutation.length < sideOffset + sideColumnCount) {
             return 0;
         }
 
-        const keyCount = resolver.lr2RandomLayoutKeyCount(score);
         let value = 0;
-        for (let destLocalColumn = 0; destLocalColumn < 8; ++destLocalColumn) {
-            const destLane = resolver.lr2RandomLayoutLaneForColumn(destLocalColumn, 0, keyCount);
-            const sourceLane = resolver.lr2RandomLayoutLaneForColumn(permutation[sideOffset + destLocalColumn], 0, keyCount);
+        for (let destLocalColumn = 0; destLocalColumn < sideColumnCount; ++destLocalColumn) {
+            const destLane = resolver.lr2RandomLayoutLaneForColumn(destLocalColumn, 0, keyCount, sideColumnCount);
+            const sourceLane = resolver.lr2RandomLayoutLaneForColumn(permutation[sideOffset + destLocalColumn], 0, keyCount, sideColumnCount);
             if (destLane >= 0 && destLane <= keyCount && sourceLane >= 1 && sourceLane <= keyCount) {
                 value += Math.pow(10, keyCount - destLane) * sourceLane;
             }
@@ -89,6 +103,14 @@ QtObject {
             return primary;
         }
         return resolver.lr2RandomLayoutNumber(root.gameplayScore(2), 1);
+    }
+
+    function resultLr2RandomLayoutNumber(side: var) : var {
+        const primary = resolver.lr2RandomLayoutNumber(root.resultScore(1), side);
+        if (primary !== 0 || side !== 2) {
+            return primary;
+        }
+        return resolver.lr2RandomLayoutNumber(root.resultScore(2), 1);
     }
 
     function ratioWhole(numerator: var, denominator: var) : var {
@@ -246,6 +268,12 @@ QtObject {
         return String(text || "").replace(/\r\n|\n|\r/g, " ");
     }
 
+    function pathLeafName(path: var) : var {
+        let normalized = String(path || "").replace(/\\/g, "/").replace(/\/$/, "");
+        let slash = normalized.lastIndexOf("/");
+        return slash >= 0 ? normalized.slice(slash + 1) : normalized;
+    }
+
     function tableEntryTitleForHash(hash: var) : var {
         let matches = Rg.tables.search(String(hash || ""));
         if (!matches || matches.length <= 0) {
@@ -393,7 +421,9 @@ QtObject {
         case 164:
             return resolver.chartSubtitle(resolver.courseStage(st - 160));
         case 170:
-            return root.effectiveScreenKey === "select" ? selectContext.entryDisplayName(selectContext.selectedStateItem, true) : "";
+            return root.effectiveScreenKey === "select"
+                ? selectContext.entryDisplayName(selectContext.selectedStateItem, true)
+                : resolver.courseDisplayName();
         case 171:
             return "TITLE";
         case 172:
@@ -482,6 +512,28 @@ QtObject {
         return chartText.length > 0
             ? chartText
             : (root.effectiveScreenKey === "select" ? resolver.selectTableFullText() : "");
+    }
+
+    function displayChartFolderText() : var {
+        let chart = root.displayChartData();
+        if (!chart || typeof chart === "string") {
+            return "";
+        }
+        let folder = resolver.pathLeafName(chart.chartDirectory || "");
+        return folder.length > 0 ? folder : resolver.pathLeafName(chart.directory || "");
+    }
+
+    function lr2FolderDisplayText() : var {
+        if (root.effectiveScreenKey === "select") {
+            if (selectContext.searchText.length > 0) {
+                return selectContext.searchText;
+            }
+            let folderName = selectContext.currentFolderDisplayName();
+            return folderName.length > 0 ? folderName : root.lr2SearchPlaceholderText;
+        }
+
+        let tableText = resolver.displayTableFullText();
+        return tableText.length > 0 ? tableText : resolver.displayChartFolderText();
     }
 
     function chartHashText(chartData: var, field: var) : var {
@@ -641,14 +693,7 @@ QtObject {
         case 29:
             return resolver.resolveChartText(st, root.displayChartData(), resolver.selectedTextEntry());
         case 30:
-            if (root.effectiveScreenKey !== "select") {
-                return "";
-            }
-            if (selectContext.searchText.length > 0) {
-                return selectContext.searchText;
-            }
-            let folderName = selectContext.currentFolderDisplayName();
-            return folderName.length > 0 ? folderName : root.lr2SearchPlaceholderText;
+            return resolver.lr2FolderDisplayText();
         case 60:
             return root.effectiveScreenKey === "select" ? selectContext.keyFilterLabel() : "ALL";
         case 61:
@@ -1326,6 +1371,91 @@ QtObject {
         return combo;
     }
 
+    function resultUpdatedBestScoreResult(side: var) : var {
+        let current = root.resultData(side);
+        let old = root.resultOldBestResult(side);
+        if (!current) {
+            return old;
+        }
+        if (!old) {
+            return current;
+        }
+        return root.resultExScore(current) > root.resultExScore(old) ? current : old;
+    }
+
+    function resultUpdatedBestMaxCombo(side: var) : var {
+        let best = 0;
+        let current = root.resultData(side);
+        if (current) {
+            best = Math.max(best, current.maxCombo || 0);
+        }
+        for (let score of root.resultOldScores(side) || []) {
+            let result = score && score.result ? score.result : null;
+            if (result) {
+                best = Math.max(best, result.maxCombo || 0);
+            }
+        }
+        return best;
+    }
+
+    function resultUpdatedBestBadPoor(side: var) : var {
+        let best = -1;
+        let current = root.resultData(side);
+        if (current) {
+            best = root.resultBadPoor(current);
+        }
+        for (let score of root.resultOldScores(side) || []) {
+            let result = score && score.result ? score.result : null;
+            if (!result) {
+                continue;
+            }
+            let badPoor = root.resultBadPoor(result);
+            best = best < 0 ? badPoor : Math.min(best, badPoor);
+        }
+        return best < 0 ? 0 : best;
+    }
+
+    function resultJudgementPercent(result: var, judgement: var) : var {
+        let totalNotes = root.resultTotalNotes(result);
+        return totalNotes > 0
+            ? Math.floor(root.resultJudgementCount(result, judgement) * 100 / totalNotes)
+            : 0;
+    }
+
+    function resultIsPlayed(result: var) : var {
+        return !!result && String(result.clearType || "FAILED").toUpperCase() !== "NOPLAY";
+    }
+
+    function resultIsClear(result: var) : var {
+        let clearType = String(result ? (result.clearType || "FAILED") : "FAILED").toUpperCase();
+        return clearType !== "FAILED" && clearType !== "NOPLAY";
+    }
+
+    function resultUpdatedBestPlayCount(side: var) : var {
+        let count = resolver.resultIsPlayed(root.resultData(side)) ? 1 : 0;
+        for (let score of root.resultOldScores(side) || []) {
+            if (resolver.resultIsPlayed(score && score.result ? score.result : null)) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    function resultUpdatedBestClearCount(side: var) : var {
+        let count = resolver.resultIsClear(root.resultData(side)) ? 1 : 0;
+        for (let score of root.resultOldScores(side) || []) {
+            if (resolver.resultIsClear(score && score.result ? score.result : null)) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
+    function resultUpdatedBestFailCount(side: var) : var {
+        return resolver.resultUpdatedBestPlayCount(side)
+            - resolver.resultUpdatedBestClearCount(side);
+    }
+
     function targetTotalNotes(side: var) : var {
         return Math.floor(root.resultTargetMaxPoints(side) / 2);
     }
@@ -1476,6 +1606,7 @@ QtObject {
     function resolveResultNumber(num: var) : var {
         let current = root.resultData(1);
         let old = root.resultOldBestResult(1);
+        let updatedBest = resolver.resultUpdatedBestScoreResult(1);
         let chartData = root.resultChartData();
 
         if (num >= 271 && num <= 289) {
@@ -1515,12 +1646,6 @@ QtObject {
         case 28:
         case 29:
             return root.dateTimeNumber(num);
-        case 71:
-            return root.resultExScore(current);
-        case 75:
-            return current ? (current.maxCombo || 0) : 0;
-        case 76:
-            return root.resultBadPoor(current);
         case 310:
             return root.hiSpeedInteger(1);
         case 311:
@@ -1574,14 +1699,48 @@ QtObject {
         }
         case 92:
             return chartData && chartData.mainBpm ? Math.round(chartData.mainBpm) : -1;
+        case 295:
+            return resolver.resultLr2RandomLayoutNumber(1);
         case 70:
-            return root.resultScorePrint(old);
+            return root.resultScorePrint(updatedBest);
+        case 71:
+            return root.resultExScore(updatedBest);
         case 72:
-            return root.resultTotalNotes(old) * 2;
+            return root.resultTotalNotes(updatedBest) * 2;
         case 73:
-            return root.resultRateInteger(old);
+            return root.resultRateInteger(updatedBest);
         case 74:
-            return root.resultTotalNotes(old);
+            return root.resultTotalNotes(updatedBest);
+        case 75:
+            return resolver.resultUpdatedBestMaxCombo(1);
+        case 76:
+            return resolver.resultUpdatedBestBadPoor(1);
+        case 77:
+            return resolver.resultUpdatedBestPlayCount(1);
+        case 78:
+            return resolver.resultUpdatedBestClearCount(1);
+        case 79:
+            return resolver.resultUpdatedBestFailCount(1);
+        case 80:
+            return root.resultJudgementCount(updatedBest, Judgement.Perfect);
+        case 81:
+            return root.resultJudgementCount(updatedBest, Judgement.Great);
+        case 82:
+            return root.resultJudgementCount(updatedBest, Judgement.Good);
+        case 83:
+            return root.resultJudgementCount(updatedBest, Judgement.Bad);
+        case 84:
+            return root.resultPoorCount(updatedBest);
+        case 85:
+            return resolver.resultJudgementPercent(updatedBest, Judgement.Perfect);
+        case 86:
+            return resolver.resultJudgementPercent(updatedBest, Judgement.Great);
+        case 87:
+            return resolver.resultJudgementPercent(updatedBest, Judgement.Good);
+        case 88:
+            return resolver.resultJudgementPercent(updatedBest, Judgement.Bad);
+        case 89:
+            return resolver.resultJudgementPercent(updatedBest, Judgement.Poor);
         case 350:
             return current ? (current.normalNoteCount || 0) : (chartData ? (chartData.normalNoteCount || 0) : -1);
         case 351:
@@ -1661,6 +1820,10 @@ QtObject {
         case 416:
         case 417:
         case 418:
+            if (num === 418 && resolver.useLr2OolNumberSemantics()) {
+                return resolver.resultLr2RandomLayoutNumber(2);
+            }
+            return root.resultJudgeTimingNumber(num, 1);
         case 419:
             return root.resultJudgeTimingNumber(num, 1);
         case 420:

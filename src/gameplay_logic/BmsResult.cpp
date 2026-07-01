@@ -4,6 +4,7 @@
 
 #include "BmsResult.h"
 
+#include "support/GeneratePermutation.h"
 #include "support/Version.h"
 
 #include <QIODevice>
@@ -13,6 +14,145 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QString>
+#include <optional>
+#include <span>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+namespace {
+using Note = charts::BmsNotesData::Note;
+using gameplay_logic::ChartData;
+using resource_managers::NoteOrderAlgorithm;
+
+constexpr auto sideColumnCount = 8;
+
+auto
+scoreUsesPre130Random(const uint64_t gameVersion) -> bool
+{
+    return support::unpackVersion(gameVersion) < std::tuple{ 1u, 3u, 0u };
+}
+
+auto
+isFiveKeyMode(const ChartData::Keymode keymode) -> bool
+{
+    return keymode == ChartData::Keymode::K5 ||
+           keymode == ChartData::Keymode::K10;
+}
+
+auto
+makeSideNotes() -> std::vector<std::vector<Note>>
+{
+    return std::vector<std::vector<Note>>(sideColumnCount);
+}
+
+auto
+generateLr2SidePermutation(NoteOrderAlgorithm algorithm,
+                           support::Lr2Random& rng,
+                           const bool k5) -> support::ShuffleResult
+{
+    auto notes = makeSideNotes();
+    auto noteSpan =
+      std::span<std::vector<Note>>{ notes.data(), notes.size() };
+    if (k5) {
+        using std::swap;
+        swap(notes[5], notes[7]);
+        noteSpan = std::span<std::vector<Note>>{ notes.data(), 6 };
+    }
+    return support::generateLr2LanePermutation(noteSpan, algorithm, rng);
+}
+
+auto
+generateBeatorajaSidePermutation(NoteOrderAlgorithm algorithm,
+                                 const uint64_t seed,
+                                 const bool k5) -> support::ShuffleResult
+{
+    auto notes = makeSideNotes();
+    auto noteSpan =
+      std::span<std::vector<Note>>{ notes.data(), notes.size() };
+    if (k5) {
+        using std::swap;
+        swap(notes[5], notes[7]);
+        noteSpan = std::span<std::vector<Note>>{ notes.data(), 6 };
+    }
+    return support::generateBeatorajaLanePermutation(
+      noteSpan, algorithm, static_cast<int64_t>(seed));
+}
+
+auto
+generateGenericSidePermutation(NoteOrderAlgorithm algorithm,
+                               const uint64_t seed,
+                               const bool k5,
+                               const bool usePre130)
+  -> support::ShuffleResult
+{
+    auto notes = makeSideNotes();
+    auto noteSpan =
+      std::span<std::vector<Note>>{ notes.data(), notes.size() };
+    return support::generatePermutation(
+      noteSpan, algorithm, seed, k5, usePre130);
+}
+
+auto
+generateSidePermutation(NoteOrderAlgorithm algorithm,
+                        const uint64_t seed,
+                        const bool k5,
+                        const bool usePre130,
+                        support::Lr2Random* lr2RandomGenerator)
+  -> support::ShuffleResult
+{
+    if (support::isBeatorajaNoteOrderAlgorithm(algorithm)) {
+        return generateBeatorajaSidePermutation(algorithm, seed, k5);
+    }
+    if (support::isLr2NoteOrderAlgorithm(algorithm) &&
+        lr2RandomGenerator != nullptr) {
+        return generateLr2SidePermutation(algorithm, *lr2RandomGenerator, k5);
+    }
+    return generateGenericSidePermutation(algorithm, seed, k5, usePre130);
+}
+
+auto
+generateResultPermutation(ChartData::Keymode keymode,
+                          NoteOrderAlgorithm noteOrderAlgorithm,
+                          NoteOrderAlgorithm noteOrderAlgorithmP2,
+                          const QList<qint64>& randomSequence,
+                          const uint64_t randomSeed,
+                          const uint64_t gameVersion) -> QList<int>
+{
+    const auto usePre130 = scoreUsesPre130Random(gameVersion);
+    const auto k5 = !usePre130 && isFiveKeyMode(keymode);
+
+    auto lr2RandomGenerator =
+      support::isLr2NoteOrderAlgorithm(noteOrderAlgorithm) ||
+          support::isLr2NoteOrderAlgorithm(noteOrderAlgorithmP2)
+        ? std::optional<support::Lr2Random>{
+            static_cast<uint32_t>(randomSeed)
+          }
+        : std::nullopt;
+    if (lr2RandomGenerator) {
+        lr2RandomGenerator->discard(
+          static_cast<std::size_t>(randomSequence.size()));
+    }
+    auto* lr2RandomGeneratorPtr =
+      lr2RandomGenerator ? &*lr2RandomGenerator : nullptr;
+
+    auto result1 = generateSidePermutation(noteOrderAlgorithm,
+                                           randomSeed,
+                                           k5,
+                                           usePre130,
+                                           lr2RandomGeneratorPtr);
+    if (!gameplay_logic::isDp(keymode)) {
+        return result1.columns;
+    }
+
+    auto result2 = generateSidePermutation(noteOrderAlgorithmP2,
+                                           result1.seed + 1,
+                                           k5,
+                                           usePre130,
+                                           lr2RandomGeneratorPtr);
+    return result1.columns + result2.columns;
+}
+} // namespace
 
 auto
 gameplay_logic::BmsResult::getMaxPoints() const -> double
@@ -102,6 +242,12 @@ gameplay_logic::BmsResult::BmsResult(
   , keymode(keymode)
   , gameVersion(gameVersion)
   , owner(std::move(owner))
+  , permutation(generateResultPermutation(this->keymode,
+                                          this->noteOrderAlgorithm,
+                                          this->noteOrderAlgorithmP2,
+                                          this->randomSequence,
+                                          this->randomSeed,
+                                          this->gameVersion))
 {
 }
 void
@@ -273,6 +419,11 @@ auto
 gameplay_logic::BmsResult::getKeymode() const -> ChartData::Keymode
 {
     return keymode;
+}
+auto
+gameplay_logic::BmsResult::getPermutation() const -> const QList<int>&
+{
+    return permutation;
 }
 auto
 gameplay_logic::BmsResult::getGameVersion() const -> uint64_t

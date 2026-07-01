@@ -1001,7 +1001,9 @@ Item {
             previousY = y;
         }
 
-        if (fullPaint && lastGauge >= 0 && !(root.gameplayChartActive && !root.gameplayMyBestGaugeChart)) {
+        let chartComplete = columnCount >= values.length;
+        if (fullPaint && chartComplete && lastGauge >= 0
+                && !(root.gameplayChartActive && !root.gameplayMyBestGaugeChart)) {
             ctx.fillStyle = lastGauge < borderPercent ? colors.graphLine : colors.borderLine;
             root.logicalFillRect(ctx, lastX, lastY, Math.max(lineWidth, fieldW - lastX), lineWidth);
         }

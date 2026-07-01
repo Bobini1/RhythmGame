@@ -367,6 +367,9 @@ void Lr2SkinTimerState::setResultGraphEndSkinTime(int value) {
 }
 
 int Lr2SkinTimerState::gameplayTimerFireTime(int timer) const {
+    if (timer == 1) {
+        return startInputTimerFireTime();
+    }
     if (timer == 140) {
         return m_gameplayRhythmTimerSkinTime;
     }

@@ -3974,6 +3974,12 @@ Item {
         return value !== undefined ? value : root.numberValueForId(Number(key));
     }
 
+    function focusedSelectNumberSnapshotValueForId(id: int, revision: int) : var {
+        const key = String(normalizedFocusedSelectNumberId(id));
+        const value = root.focusedSelectNumberSnapshotValues[key];
+        return value !== undefined ? value : 0;
+    }
+
     Connections {
         target: selectedDetailState
 

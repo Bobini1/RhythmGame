@@ -5003,16 +5003,19 @@ Item {
         ignoreUnknownSignals: true
         function onDataChanged() : void {
             ++root.tableInfoRevision;
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onRowsInserted() : void {
             ++root.tableInfoRevision;
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }
         function onModelReset() : void {
             ++root.tableInfoRevision;
+            root.queueResolvedTextRefresh();
             root.queueSelectRuntimeActiveOptionsRefresh();
             root.refreshGameplayRuntimeActiveOptions();
         }

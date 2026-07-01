@@ -183,15 +183,10 @@ Item {
     readonly property bool isNegativeValue: root.value < 0
     readonly property int zeroPaddingMode: {
         if (!root.srcData || root.srcData.zeropadding === undefined || root.srcData.zeropadding < 0) {
-            return root.hasSignedFrames ? 2 : 0;
+            return 0;
         }
         return root.srcData.zeropadding;
     }
-    readonly property bool usesFixedPadding: root.zeroPaddingMode > 0
-    readonly property bool usesSignedFixedSlots: root.hasSignedFrames
-        && root.usesFixedPadding
-        && root.srcData
-        && root.srcData.keta > 0
     readonly property int displayKeta: root.srcData ? root.srcData.keta || 0 : 0
     readonly property string absoluteRoundedText: Math.abs(Math.round(root.value)).toString()
     readonly property string displaySignText: root.hasSignedFrames
@@ -217,42 +212,12 @@ Item {
         if (root.displayKeta <= 0) {
             return root.absoluteRoundedText;
         }
-        if (root.usesSignedFixedSlots) {
-            let fixedSlots = root.fixedSlotPadding + root.absoluteRoundedText;
-            return fixedSlots.slice(fixedSlots.length - root.displayKeta);
-        }
         if (root.srcData && root.srcData.align === 0) {
-            let leftAligned = root.displaySpacePadding + root.absoluteRoundedText;
-            return leftAligned.slice(leftAligned.length - root.displayKeta);
+            let rightAligned = root.fixedSlotPadding + root.absoluteRoundedText;
+            return rightAligned.slice(rightAligned.length - root.displayKeta);
         }
-        let rightAligned = root.absoluteRoundedText + root.displaySpacePadding;
-        return rightAligned.slice(0, root.displayKeta);
-    }
-
-    function signedFixedFrameIndex(slot: var) : var {
-        let keta = root.srcData ? root.srcData.keta || 0 : 0;
-        let totalSlots = keta + 1;
-        if (slot < 0 || slot >= totalSlots) {
-            return -1;
-        }
-        if (slot === 0) {
-            return root.isNegativeValue ? 23 : 11;
-        }
-
-        let value = Math.abs(Math.round(root.value));
-        let digitSlot = totalSlots - 1;
-        while (digitSlot > slot) {
-            value = Math.floor(value / 10);
-            --digitSlot;
-        }
-
-        if (value > 0 || slot === totalSlots - 1) {
-            return (value % 10) + (root.isNegativeValue ? 12 : 0);
-        }
-        if (root.zeroPaddingMode === 2) {
-            return root.isNegativeValue ? 22 : 10;
-        }
-        return root.isNegativeValue ? 12 : 0;
+        let leftAligned = root.absoluteRoundedText + root.displaySpacePadding;
+        return leftAligned.slice(0, root.displayKeta);
     }
 
     readonly property string displayText: root.displaySignText + root.paddedDisplayValue
@@ -263,7 +228,6 @@ Item {
     readonly property real textW: displayText.length * digitW
     readonly property color tintColor: drawState.tintColor
     readonly property int centeredMissingDigits: srcData && srcData.align === 2 && srcData.keta > 0
-        && !(root.hasSignedFrames && root.usesFixedPadding)
         ? Math.max(0, srcData.keta - root.absoluteRoundedText.length)
         : 0
     readonly property real alignOffset: centeredMissingDigits * digitW * 0.5
@@ -307,9 +271,6 @@ Item {
 
                 readonly property string ch: root.displayText.charAt(index)
                 readonly property int frameIndex: {
-                    if (root.usesSignedFixedSlots) {
-                        return root.signedFixedFrameIndex(index);
-                    }
                     if (ch.length <= 0) {
                         return -1;
                     }
@@ -327,7 +288,6 @@ Item {
                 }
                 readonly property int signedFrameOffset: root.frameGroupSize === 24
                     && root.isNegativeValue
-                    && !root.usesSignedFixedSlots
                     && digitRoot.ch >= "0"
                     && digitRoot.ch <= "9"
                     ? 12
