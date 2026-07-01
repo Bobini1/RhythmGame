@@ -163,6 +163,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a997923a2a8408d2c36f729cf4c344f74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ce7c1426608b6ca6f21f1e1260682d1" id="r_a0ce7c1426608b6ca6f21f1e1260682d1"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#a0ce7c1426608b6ca6f21f1e1260682d1">getKeymode</a> () const -&gt; <a class="el" href="classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04">ChartData::Keymode</a></td></tr>
 <tr class="separator:a0ce7c1426608b6ca6f21f1e1260682d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa71c892c9dee231065d8ee4bc2f011fb" id="r_aa71c892c9dee231065d8ee4bc2f011fb"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#aa71c892c9dee231065d8ee4bc2f011fb">getPermutation</a> () const -&gt; const QList&lt; int &gt; &amp;</td></tr>
+<tr class="separator:aa71c892c9dee231065d8ee4bc2f011fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4621193cd81bc018d3a1a387e3c7096a" id="r_a4621193cd81bc018d3a1a387e3c7096a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#a4621193cd81bc018d3a1a387e3c7096a">getGameVersion</a> () const -&gt; uint64_t</td></tr>
 <tr class="separator:a4621193cd81bc018d3a1a387e3c7096a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae0dc2a79ac4fe5d396f6f48d3964885d" id="r_ae0dc2a79ac4fe5d396f6f48d3964885d"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#ae0dc2a79ac4fe5d396f6f48d3964885d">getOwner</a> () const -&gt; const QString &amp;</td></tr>
@@ -244,6 +246,9 @@ Properties</h2></td></tr>
 <tr class="memitem:a90fdcf14a9ff47d27eddfd26acaca4f1" id="r_a90fdcf14a9ff47d27eddfd26acaca4f1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classgameplay__logic_1_1ChartData.html#a292daeb8d3a0ee906e350eece3adae04">gameplay_logic::ChartData::Keymode</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#a90fdcf14a9ff47d27eddfd26acaca4f1">keymode</a></td></tr>
 <tr class="memdesc:a90fdcf14a9ff47d27eddfd26acaca4f1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The keymode of the chart.  <br /></td></tr>
 <tr class="separator:a90fdcf14a9ff47d27eddfd26acaca4f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af256e2d7595cc6fce34b18ed790e479c" id="r_af256e2d7595cc6fce34b18ed790e479c"><td class="memItemLeft" align="right" valign="top">QList&lt; int &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#af256e2d7595cc6fce34b18ed790e479c">permutation</a></td></tr>
+<tr class="memdesc:af256e2d7595cc6fce34b18ed790e479c"><td class="mdescLeft">&#160;</td><td class="mdescRight">The permutation of columns that resulted from NoteOrderAlgorithm.  <br /></td></tr>
+<tr class="separator:af256e2d7595cc6fce34b18ed790e479c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adce7c312c7e6a1ca6b4dbb0028c689bd" id="r_adce7c312c7e6a1ca6b4dbb0028c689bd"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgameplay__logic_1_1BmsResult.html#adce7c312c7e6a1ca6b4dbb0028c689bd">gameVersion</a></td></tr>
 <tr class="memdesc:adce7c312c7e6a1ca6b4dbb0028c689bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">The game version where the score was achieved.  <br /></td></tr>
 <tr class="separator:adce7c312c7e6a1ca6b4dbb0028c689bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -778,6 +783,23 @@ Properties</h2></td></tr>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const -&gt; const QString&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa71c892c9dee231065d8ee4bc2f011fb" name="aa71c892c9dee231065d8ee4bc2f011fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa71c892c9dee231065d8ee4bc2f011fb">&#9670;&#160;</a></span>getPermutation()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto gameplay_logic::BmsResult::getPermutation </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const -&gt; const QList&lt;int&gt;&amp;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1367,6 +1389,31 @@ Properties</h2></td></tr>
 
 <p>The owner of the score. </p>
 <p>Local scores have an empty string as the source. For online scores, this is a link to the profile this score belongs to. </p>
+
+</div>
+</div>
+<a id="af256e2d7595cc6fce34b18ed790e479c" name="af256e2d7595cc6fce34b18ed790e479c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af256e2d7595cc6fce34b18ed790e479c">&#9670;&#160;</a></span>permutation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">QList&lt; int &gt; gameplay_logic::BmsResult::permutation</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">read</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>The permutation of columns that resulted from NoteOrderAlgorithm. </p>
+<p>This is reconstructed from the saved note-order settings and random seed, so stored scores expose the same lane layout that was known during gameplay. </p>
 
 </div>
 </div>
