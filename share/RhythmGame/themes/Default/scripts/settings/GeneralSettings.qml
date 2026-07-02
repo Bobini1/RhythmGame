@@ -10,115 +10,112 @@ Item {
 
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
 
-    ScrollView {
-        id: scrollView
+    SettingsPageScaffold {
+        id: pageScaffold
 
         anchors.fill: parent
-        contentWidth: Math.max(list.implicitWidth, availableWidth)
+        SettingsPageHeader {
+            title: qsTr("General Settings")
+            subtitle: qsTr("System, gameplay, display, audio, replay, and gauge defaults.")
+        }
 
-        ColumnLayout {
-            id: list
+        GridLayout {
+            Layout.fillWidth: true
+            columns: pageScaffold.availableWidth >= 1120 ? 2 : 1
+            columnSpacing: 14
+            rowSpacing: 14
 
-            x: Math.max(0, (scrollView.availableWidth - width) / 2)
-            width: Math.min(1220, scrollView.contentWidth)
-            spacing: 16
-
-            SettingsPageHeader {
-                title: qsTr("General Settings")
-                subtitle: qsTr("System, gameplay, display, audio, replay, and gauge defaults.")
-            }
-
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
+                Layout.preferredWidth: 1
                 spacing: 14
 
                 WorkbenchPanel {
-                    title: qsTr("System Settings")
+                    title: qsTr("System and audio")
+                    Layout.fillWidth: true
                     Layout.alignment: Qt.AlignTop
-                    Layout.minimumWidth: 560
-                    Layout.preferredWidth: 560
 
-                    Choice {
-                        destination: root.generalVars
-                        id_: "language"
-                        choices: Rg.languages.languages
-                        displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
-                        name: qsTr("Language")
-                        default_: Qt.locale().name
-                        Layout.fillWidth: true
-                    }
-
-                    Choice {
-                        destination: Window.window || {}
-                        id_: "visibility"
-                        choices: [Window.Windowed, Window.FullScreen]
-                        displayStrings: qsTr("Windowed;Fullscreen").split(";")
-                        name: qsTr("Display Mode")
-                        default_: Window.Windowed
-                        Layout.fillWidth: true
-                    }
-
-                    Choice {
-                        destination: root.generalVars
-                        id_: "rankingProvider"
-                        choices: [OnlineRankingModel.RhythmGame, OnlineRankingModel.LR2IR, OnlineRankingModel.Tachi]
-                        displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
-                        name: qsTr("Ranking Provider")
-                        default_: OnlineRankingModel.RhythmGame
-                        Layout.fillWidth: true
-                    }
-
-                    Choice {
-                        destination: root.generalVars
-                        id_: "bgm"
-                        name: qsTr("BGM")
-                        choices: root.generalVars.getAvailableBgms()
-                        default_: "Trance"
-                        Layout.fillWidth: true
-                    }
-
-                    Choice {
-                        destination: root.generalVars
-                        id_: "soundset"
-                        name: qsTr("Soundset")
-                        choices: root.generalVars.getAvailableSoundsets()
-                        default_: "Brook"
-                        Layout.fillWidth: true
-                    }
-
-                    Choice {
-                        destination: Rg.audioEngine
-                        id_: "backend"
-                        name: qsTr("Audio Backend")
-                        choices: Rg.audioEngine.backendNames
-                        default_: Rg.audioEngine.backendNames[0]
-                        Layout.fillWidth: true
-                    }
-
-                    Choice {
-                        destination: Rg.audioEngine
-                        id_: "device"
-                        name: qsTr("Audio Device")
-                        choices: {
-                            let choices = Rg.audioEngine.deviceNames.slice();
-                            choices.unshift("");
-                            return choices;
-                        }
-                        property string defaultDeviceName: qsTr("Default")
-                        displayStrings: {
-                            let choices = Rg.audioEngine.deviceNames.slice();
-                            choices.unshift(defaultDeviceName);
-                            return choices;
-                        }
-                        default_: ""
-                        Layout.fillWidth: true
-                    }
+                Choice {
+                    destination: root.generalVars
+                    id_: "language"
+                    choices: Rg.languages.languages
+                    displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
+                    name: qsTr("Language")
+                    default_: Qt.locale().name
+                    Layout.fillWidth: true
                 }
 
-                WorkbenchPanel {
-                    title: qsTr("Gameplay Settings")
+                Choice {
+                    destination: Window.window || {}
+                    id_: "visibility"
+                    choices: [Window.Windowed, Window.FullScreen]
+                    displayStrings: qsTr("Windowed;Fullscreen").split(";")
+                    name: qsTr("Display Mode")
+                    default_: Window.Windowed
                     Layout.fillWidth: true
-                    Layout.minimumWidth: 620
+                }
+
+                Choice {
+                    destination: root.generalVars
+                    id_: "rankingProvider"
+                    choices: [OnlineRankingModel.RhythmGame, OnlineRankingModel.LR2IR, OnlineRankingModel.Tachi]
+                    displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
+                    name: qsTr("Ranking Provider")
+                    default_: OnlineRankingModel.RhythmGame
+                    Layout.fillWidth: true
+                }
+
+                Choice {
+                    destination: root.generalVars
+                    id_: "bgm"
+                    name: qsTr("BGM")
+                    choices: root.generalVars.getAvailableBgms()
+                    default_: "Trance"
+                    Layout.fillWidth: true
+                }
+
+                Choice {
+                    destination: root.generalVars
+                    id_: "soundset"
+                    name: qsTr("Soundset")
+                    choices: root.generalVars.getAvailableSoundsets()
+                    default_: "Brook"
+                    Layout.fillWidth: true
+                }
+
+                Choice {
+                    destination: Rg.audioEngine
+                    id_: "backend"
+                    name: qsTr("Audio Backend")
+                    choices: Rg.audioEngine.backendNames
+                    default_: Rg.audioEngine.backendNames[0]
+                    Layout.fillWidth: true
+                }
+
+                Choice {
+                    destination: Rg.audioEngine
+                    id_: "device"
+                    name: qsTr("Audio Device")
+                    choices: {
+                        let choices = Rg.audioEngine.deviceNames.slice();
+                        choices.unshift("");
+                        return choices;
+                    }
+                    property string defaultDeviceName: qsTr("Default")
+                    displayStrings: {
+                        let choices = Rg.audioEngine.deviceNames.slice();
+                        choices.unshift(defaultDeviceName);
+                        return choices;
+                    }
+                    default_: ""
+                    Layout.fillWidth: true
+                }
+            }
+
+                WorkbenchPanel {
+                    title: qsTr("Timing and modifiers")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
 
                 Range {
                     destination: root.generalVars
@@ -204,6 +201,19 @@ Item {
                     max: 1
                     Layout.fillWidth: true
                 }
+            }
+
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                spacing: 14
+
+                WorkbenchPanel {
+                    title: qsTr("Display and score")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
 
                 Boolean {
                     destination: root.generalVars
@@ -243,16 +253,6 @@ Item {
 
                 Choice {
                     destination: root.generalVars
-                    id_: "replayType"
-                    choices: [0, 1, 2, 3]
-                    displayStrings: qsTr("Newest;Best Score;Best Clear;Best Combo").split(";")
-                    name: qsTr("Replay Type")
-                    default_: 0
-                    Layout.fillWidth: true
-                }
-
-                Choice {
-                    destination: root.generalVars
                     id_: "scoreTarget"
                     choices: [ScoreTarget.Fraction, ScoreTarget.BestScore, ScoreTarget.LastScore, ScoreTarget.NextRank]
                     displayStrings: qsTr("Percentage;Best Score;Last Score;Next Rank").split(";")
@@ -271,6 +271,22 @@ Item {
                     increment: 1
                     decimals: 6
                     displayMultiplier: 100
+                    Layout.fillWidth: true
+                }
+            }
+
+                WorkbenchPanel {
+                    title: qsTr("Play defaults")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+
+                Choice {
+                    destination: root.generalVars
+                    id_: "replayType"
+                    choices: [0, 1, 2, 3]
+                    displayStrings: qsTr("Newest;Best Score;Best Clear;Best Combo").split(";")
+                    name: qsTr("Replay Type")
+                    default_: 0
                     Layout.fillWidth: true
                 }
 
@@ -348,8 +364,8 @@ Item {
                     default_: "AEASY"
                     Layout.fillWidth: true
                 }
+                }
             }
         }
     }
-}
 }

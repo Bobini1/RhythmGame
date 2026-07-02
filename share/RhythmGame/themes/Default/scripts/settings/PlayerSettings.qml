@@ -7,9 +7,10 @@ import QtCore
 
 import "SettingsColors.js" as SettingsColors
 
-
 Item {
     id: playerSettings
+
+    property int updateScoreCounts: 0
 
     function localFileUrl(path) {
         let value = String(path || "").trim();
@@ -37,152 +38,142 @@ Item {
         return url.length > 0 && Qt.openUrlExternally(url);
     }
 
-    ScrollView {
-        id: rootScrollView
+    Dialog {
+        id: confirmDeletion
+
+        anchors.centerIn: parent
+        property Profile profile: null
+        title: qsTr("Delete %1?").arg(profile ? profile.vars.generalVars.name : "")
+        standardButtons: Dialog.Ok | Dialog.Cancel
+        modal: true
+
+        onAccepted: Rg.profileList.removeProfile(profile)
+    }
+
+    FileDialog {
+        id: fileDialog
+
+        currentFolder: Rg.programSettings.avatarFolder
+        onAccepted: {
+            Rg.profileList.mainProfile.vars.generalVars.avatar = selectedFile;
+        }
+    }
+
+    FolderDialog {
+        id: replayFolderDialog
+
+        title: qsTr("Select replay folder")
+        currentFolder: replayFolderSettings.folder
+
+        onAccepted: {
+            replayFolderSettings.folder = selectedFolder.toString()
+        }
+    }
+
+    SettingsWorkspaceScaffold {
+        id: pageScaffold
+
         anchors.fill: parent
-        contentWidth: Math.max(rootColumnLayout.implicitWidth, availableWidth)
+        SettingsPageHeader {
+            id: pageHeader
 
-        property int updateScoreCounts: 0
+            title: qsTr("Player settings")
+            subtitle: qsTr("Choose a profile, manage online login, sync scores, and import replays.")
+        }
 
-        ColumnLayout {
-            id: rootColumnLayout
-
-            x: Math.max(0, (rootScrollView.availableWidth - width) / 2)
-            width: Math.min(1220, rootScrollView.contentWidth)
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
             spacing: 14
 
-            Dialog {
-                id: confirmDeletion
-                anchors.centerIn: parent
-                property Profile profile: null
-                title: qsTr("Delete %1?").arg(profile ? profile.vars.generalVars.name : "")
-                standardButtons: Dialog.Ok | Dialog.Cancel
-                modal: true
+            WorkbenchPanel {
+                id: profileListFrame
 
-                onAccepted: Rg.profileList.removeProfile(profile)
-            }
+                title: qsTr("Profiles")
+                subtitle: qsTr("%1 profiles").arg(Rg.profileList.profiles.length)
+                Layout.alignment: Qt.AlignTop
+                Layout.minimumWidth: 320
+                Layout.preferredWidth: 360
+                Layout.maximumWidth: 420
 
-            FileDialog {
-                id: fileDialog
-                currentFolder: Rg.programSettings.avatarFolder
-                onAccepted: {
-                    Rg.profileList.mainProfile.vars.generalVars.avatar = selectedFile;
-                }
-            }
-
-            FolderDialog {
-                id: replayFolderDialog
-                title: qsTr("Select replay folder")
-                currentFolder: replayFolderSettings.folder
-
-                onAccepted: {
-                    replayFolderSettings.folder = selectedFolder.toString()
-                }
-            }
-
-            SettingsPageHeader {
-                id: pageHeader
-                title: qsTr("Player settings")
-                subtitle: qsTr("Choose a profile, manage online login, sync scores, and import replays.")
-            }
-
-            RowLayout {
-                id: rootRowLayout
-
-                Layout.fillWidth: true
-                Layout.minimumHeight: Math.max(0, rootScrollView.availableHeight - pageHeader.implicitHeight - rootColumnLayout.spacing)
-                spacing: 14
-
-                WorkbenchPanel {
-                    id: profileListFrame
-
-                    title: qsTr("Profiles")
-                    subtitle: qsTr("%1 profiles").arg(Rg.profileList.profiles.length)
-                    Layout.fillHeight: true
+                ActionButton {
                     Layout.fillWidth: true
-                    Layout.preferredWidth: 1
+                    text: qsTr("Add profile")
+                    tone: ActionButton.Primary
 
-                    ScrollView {
-                        Layout.fillHeight: true
-                        Layout.fillWidth: true
-                        Layout.minimumHeight: 180
+                    onClicked: {
+                        Rg.profileList.mainProfile = Rg.profileList.createProfile();
+                    }
+                }
 
-                        ListView {
-                            id: profileList
+                ListView {
+                    id: profileList
 
-                            clip: true
-                            model: Rg.profileList.profiles.slice().sort((a, b) => {
-                                return a.vars.generalVars.name.localeCompare(b.vars.generalVars.name);
-                            });
-                            spacing: 5
+                    Layout.fillWidth: true
+                    Layout.minimumHeight: 220
+                    Layout.preferredHeight: Math.min(
+                        Math.max(220, contentHeight),
+                        Math.max(220, pageScaffold.availableHeight - pageHeader.implicitHeight - 160))
+                    clip: true
+                    model: Rg.profileList.profiles.slice().sort((a, b) => {
+                        return a.vars.generalVars.name.localeCompare(b.vars.generalVars.name);
+                    })
+                    spacing: 5
+                    ScrollBar.vertical: ScrollBar {}
 
-                            delegate: WorkbenchListRow {
-                                id: folderRow
+                    delegate: WorkbenchListRow {
+                        id: profileRow
 
-                                property var profile: modelData
-                                property var scoreCount: (rootScrollView.updateScoreCounts, folderRow.profile.scoreDb.getTotalScoreCount())
+                        property var profile: modelData
+                        property var scoreCount: (playerSettings.updateScoreCounts, profileRow.profile.scoreDb.getTotalScoreCount())
 
-                                width: ListView.view ? ListView.view.width : 0
-                                selected: Rg.profileList.mainProfile === profile
-                                primaryText: folderRow.profile.vars.generalVars.name
-                                secondaryText: qsTr("Scores: %1").arg(scoreCount)
+                        width: ListView.view ? ListView.view.width : 0
+                        selected: Rg.profileList.mainProfile === profile
+                        primaryText: profileRow.profile.vars.generalVars.name
+                        secondaryText: qsTr("Scores: %1").arg(scoreCount)
 
-                                onClicked: {
-                                    Rg.profileList.mainProfile = folderRow.profile;
-                                }
+                        onClicked: {
+                            Rg.profileList.mainProfile = profileRow.profile;
+                        }
 
-                                ActionButton {
-                                    text: qsTr("Remove")
-                                    tone: ActionButton.Danger
+                        ActionButton {
+                            text: qsTr("Remove")
+                            tone: ActionButton.Danger
 
-                                    onClicked: {
-                                        confirmDeletion.profile = folderRow.profile;
-                                        confirmDeletion.open();
-                                    }
-                                }
+                            onClicked: {
+                                confirmDeletion.profile = profileRow.profile;
+                                confirmDeletion.open();
                             }
                         }
                     }
-
-                    ActionButton {
-                        Layout.fillWidth: true
-                        text: qsTr("Add profile")
-                        tone: ActionButton.Primary
-
-                        onClicked: {
-                            Rg.profileList.mainProfile = Rg.profileList.createProfile();
-                        }
-                    }
                 }
+            }
+
+            ColumnLayout {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Layout.minimumWidth: 420
+                spacing: 14
 
                 WorkbenchPanel {
-                    id: profileFrame
-
-                    title: qsTr("Edit profile")
+                    title: qsTr("Profile")
                     subtitle: Rg.profileList.mainProfile.vars.generalVars.name
-                    Layout.fillHeight: true
                     Layout.fillWidth: true
-                    Layout.preferredWidth: 1
 
-                    ColumnLayout {
-                        id: profileColumnLayout
-
-                        readonly property int formWidth: 440
-                        readonly property int avatarSize: 220
-
-                        Layout.fillHeight: true
+                    RowLayout {
                         Layout.fillWidth: true
-                        spacing: 0
+                        spacing: 16
 
                         Frame {
-                            id: avatarFrame
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: profileColumnLayout.avatarSize
-                            Layout.maximumWidth: profileColumnLayout.avatarSize
-                            Layout.preferredHeight: profileColumnLayout.avatarSize
+                            Layout.alignment: Qt.AlignTop
+                            Layout.preferredWidth: 148
+                            Layout.preferredHeight: 148
+
                             Image {
                                 anchors.fill: parent
                                 source: Rg.profileList.mainProfile.vars.generalVars.avatar
+                                sourceSize.width: 256
+                                sourceSize.height: 256
                                 asynchronous: true
                                 fillMode: Image.PreserveAspectFit
 
@@ -194,313 +185,285 @@ Item {
                             }
                         }
 
-                        TextField {
-                            id: nameField
-                            text: Rg.profileList.mainProfile.vars.generalVars.name
-                            font.pixelSize: 24
-                            color: palette.text
-                            Layout.preferredWidth: profileColumnLayout.formWidth
-                            Layout.maximumWidth: profileColumnLayout.formWidth
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.topMargin: 16
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-
-                            onTextChanged: {
-                                Rg.profileList.mainProfile.vars.generalVars.name = text;
-                            }
-                        }
-
-                        ActionButton {
-                            text: qsTr("Open profile folder")
-                            tone: ActionButton.Secondary
-                            Layout.preferredWidth: profileColumnLayout.formWidth
-                            Layout.maximumWidth: profileColumnLayout.formWidth
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.topMargin: 8
-
-                            onClicked: playerSettings.openProfileFolder(Rg.profileList.mainProfile)
-                        }
-
                         ColumnLayout {
-                            id: loginSection
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: profileColumnLayout.formWidth
-                            Layout.maximumWidth: profileColumnLayout.formWidth
-                            Layout.topMargin: 16
+                            Layout.fillWidth: true
                             spacing: 8
 
-                            property var profile: Rg.profileList.mainProfile
-                            property bool syncing: false
-                            property int pendingOps: 0
-                            property bool syncError: false
-                            property bool loginError: false
-
-                            function runSync() {
-                                loginSection.syncing = true;
-                                loginSection.syncError = false;
-                                loginSection.pendingOps = 2;
-
-                                function attachOp(op) {
-                                    op.error.connect(function(msg) {
-                                        console.warn("Sync error:", msg);
-                                        loginSection.syncError = true;
-                                    });
-                                    op.finishedChanged.connect(function() {
-                                        loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
-                                        if (loginSection.pendingOps === 0) {
-                                            loginSection.syncing = false;
-                                            if (!loginSection.syncError)
-                                                rootScrollView.updateScoreCounts++;
-                                        }
-                                    });
-                                }
-
-                                attachOp(loginSection.profile.downloadScores());
-                                attachOp(loginSection.profile.uploadScores());
-                            }
-
-                            Label {
-                                text: qsTr("Online Login")
-                                font.pixelSize: 18
+                            TextField {
+                                text: Rg.profileList.mainProfile.vars.generalVars.name
+                                font.pixelSize: 22
+                                color: palette.text
                                 Layout.fillWidth: true
-                            }
+                                horizontalAlignment: Text.AlignLeft
+                                verticalAlignment: Text.AlignVCenter
 
-                            Loader {
-                                id: authLoader
-                                sourceComponent: {
-                                    switch (loginSection.profile.loginState) {
-                                    case Profile.NotLoggedIn:
-                                    case Profile.LoginFailed:
-                                        return loggedOutComponent;
-                                    case Profile.LoggingIn:
-                                        return loggingInComponent;
-                                    case Profile.LoggedIn:
-                                        return loggedInComponent;
-                                    }
-                                }
-                                Layout.preferredHeight: authLoader.item ? authLoader.item.implicitHeight : 0
-                                Layout.fillWidth: true
-                            }
-
-                            Component {
-                                id: loggingInComponent
-                                ColumnLayout {
-                                    spacing: 8
-                                    BusyIndicator {
-                                        running: true
-                                        visible: true
-                                        Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
-                                        width: 32
-                                        height: 32
-                                    }
+                                onTextChanged: {
+                                    Rg.profileList.mainProfile.vars.generalVars.name = text;
                                 }
                             }
 
-                            Component {
-                                id: loggedInComponent
-                                ColumnLayout {
-                                    spacing: 8
-                                    Label {
-                                        text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUserData.username)
-                                        font.pixelSize: 16
-                                        Layout.fillWidth: true
-                                    }
-                                    ActionButton {
-                                        text: qsTr("Logout")
-                                        tone: ActionButton.Tertiary
-                                        Layout.fillWidth: true
-                                        onClicked: {
-                                            loginSection.profile.logout();
-                                        }
-                                    }
-                                    RowLayout {
-                                        Layout.fillWidth: true
-                                        spacing: 8
-                                        ActionButton {
-                                            id: syncButton
-                                            enabled: !loginSection.syncing
-                                            text: qsTr("Sync scores")
-                                            tone: loginSection.syncError ? ActionButton.Danger : ActionButton.Primary
-                                            Layout.fillWidth: true
-                                            onClicked: {
-                                                loginSection.runSync();
-                                            }
-                                        }
-                                        BusyIndicator {
-                                            running: loginSection.syncing
-                                            visible: loginSection.syncing
-                                            Layout.alignment: Qt.AlignVCenter
-                                            width: 24
-                                            height: 24
-                                        }
-                                    }
-                                }
-                            }
+                            ActionButton {
+                                text: qsTr("Open profile folder")
+                                tone: ActionButton.Secondary
+                                Layout.alignment: Qt.AlignLeft
 
-                            Component {
-                                id: loggedOutComponent
-                                ColumnLayout {
-                                    spacing: 8
-                                    TextField {
-                                        id: emailField
-                                        placeholderText: qsTr("Email")
-                                        Layout.fillWidth: true
-                                        height: 32
-                                        onAccepted: {
-                                            passwordField.forceActiveFocus();
-                                        }
-                                    }
-                                    TextField {
-                                        id: passwordField
-                                        placeholderText: qsTr("Password")
-                                        echoMode: TextInput.Password
-                                        Layout.fillWidth: true
-                                        height: 32
-                                        onAccepted: {
-                                            loginSection.profile.login(emailField.text, passwordField.text);
-                                        }
-                                    }
-                                    ActionButton {
-                                        text: qsTr("Login")
-                                        Layout.fillWidth: true
-                                        tone: loginSection.profile.loginState === Profile.LoginFailed ? ActionButton.Danger : ActionButton.Primary
-                                        onClicked: loginSection.profile.login(emailField.text, passwordField.text)
-                                    }
-                                }
-                            }
-                        }
-
-                        ColumnLayout {
-                            id: replayImportSection
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: profileColumnLayout.formWidth
-                            Layout.maximumWidth: profileColumnLayout.formWidth
-                            Layout.topMargin: 24
-                            Layout.fillHeight: true
-                            Layout.bottomMargin: 16
-                            spacing: 8
-
-                            property string selectedFolder: replayFolderSettings.folder
-                            readonly property var op: loginSection.profile.replayImportOperation
-                            readonly property bool importing: op !== null && !op.finished
-
-                            Settings {
-                                id: replayFolderSettings
-                                category: "replayImportFolder/" + loginSection.profile.guid
-                                property string folder: ""
-                                onCategoryChanged: folder = value("folder", "")
-                            }
-
-                            Connections {
-                                target: replayImportSection.op
-                                function onFinishedChanged() {
-                                    rootScrollView.updateScoreCounts++
-                                }
-                            }
-
-                            Label {
-                                text: qsTr("Import replays")
-                                wrapMode: Text.Wrap
-                                font.pixelSize: 18
-                                Layout.fillWidth: true
-                            }
-
-                            Label {
-                                Layout.fillWidth: true
-                                wrapMode: Text.Wrap
-                                visible: replayFolderSettings.folder === ""
-                                color: palette.placeholderText
-                                text: qsTr("e.g. beatoraja/player/player1/replay or LR2files/Replay/player1")
-                            }
-
-                            Label {
-                                Layout.fillWidth: true
-                                wrapMode: Text.Wrap
-                                visible: replayFolderSettings.folder !== ""
-                                text: {
-                                    var f = replayFolderSettings.folder
-                                    return f.startsWith("file:///")
-                                        ? f.slice(Qt.platform.os === "windows" ? 8 : 7)
-                                        : f
-                                }
-                            }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 8
-
-                                ActionButton {
-                                    text: qsTr("Import")
-                                    tone: ActionButton.Primary
-                                    Layout.fillWidth: true
-                                    Layout.preferredWidth: 2
-                                    enabled: replayFolderSettings.folder !== "" && !replayImportSection.importing
-                                    onClicked: loginSection.profile.importReplays(replayFolderSettings.folder)
-                                }
-
-                                ActionButton {
-                                    text: replayFolderSettings.folder === "" ? qsTr("Select…") : qsTr("Change…")
-                                    tone: ActionButton.Secondary
-                                    Layout.fillWidth: true
-                                    Layout.preferredWidth: 1
-                                    enabled: !replayImportSection.importing
-                                    onClicked: replayFolderDialog.open()
-                                }
-
-                                BusyIndicator {
-                                    running: replayImportSection.importing
-                                    visible: replayImportSection.importing
-                                    Layout.alignment: Qt.AlignVCenter
-                                    width: 24
-                                    height: 24
-                                }
-                            }
-
-                            ProgressBar {
-                                Layout.fillWidth: true
-                                visible: replayImportSection.op !== null
-                                value: replayImportSection.op !== null
-                                       ? replayImportSection.op.done / Math.max(replayImportSection.op.total, 1)
-                                       : 0
-                            }
-
-                            Label {
-                                Layout.fillWidth: true
-                                wrapMode: Text.Wrap
-                                visible: replayImportSection.op !== null
-                                text: qsTr("Imported: %1, errors: %2,\nskipped: %3, total: %4")
-                                    .arg(replayImportSection.op ? replayImportSection.op.imported : 0)
-                                    .arg(replayImportSection.op ? replayImportSection.op.errored : 0)
-                                    .arg(replayImportSection.op ? replayImportSection.op.skipped : 0)
-                                    .arg(replayImportSection.op ? replayImportSection.op.total : 0)
-                            }
-
-                            ListView {
-                                Layout.fillWidth: true
-                                Layout.fillHeight: true
-                                Layout.minimumHeight: 100
-                                visible: replayImportSection.op !== null && replayImportSection.op.count > 0
-                                model: replayImportSection.op
-                                spacing: 2
-                                clip: true
-                                ScrollBar.vertical: ScrollBar {}
-
-                                delegate: Label {
-                                    required property string message
-                                    width: ListView.view.width
-                                    wrapMode: Text.Wrap
-                                    color: SettingsColors.dangerText(palette)
-                                    text: message
-                                }
-                            }
-
-                            Item {
-                                Layout.fillHeight: true
-                                visible: !replayImportSection.op || replayImportSection.op.count === 0
+                                onClicked: playerSettings.openProfileFolder(Rg.profileList.mainProfile)
                             }
                         }
                     }
+                }
+
+                WorkbenchPanel {
+                    id: loginSection
+
+                    title: qsTr("Online account")
+                    subtitle: qsTr("Download and upload scores for the selected profile.")
+                    Layout.fillWidth: true
+
+                    property var profile: Rg.profileList.mainProfile
+                    property bool syncing: false
+                    property int pendingOps: 0
+                    property bool syncError: false
+
+                    function runSync() {
+                        loginSection.syncing = true;
+                        loginSection.syncError = false;
+                        loginSection.pendingOps = 2;
+
+                        function attachOp(op) {
+                            op.error.connect(function(msg) {
+                                console.warn("Sync error:", msg);
+                                loginSection.syncError = true;
+                            });
+                            op.finishedChanged.connect(function() {
+                                loginSection.pendingOps = Math.max(0, loginSection.pendingOps - 1);
+                                if (loginSection.pendingOps === 0) {
+                                    loginSection.syncing = false;
+                                    if (!loginSection.syncError)
+                                        playerSettings.updateScoreCounts++;
+                                }
+                            });
+                        }
+
+                        attachOp(loginSection.profile.downloadScores());
+                        attachOp(loginSection.profile.uploadScores());
+                    }
+
+                    Loader {
+                        id: authLoader
+
+                        sourceComponent: {
+                            switch (loginSection.profile.loginState) {
+                            case Profile.NotLoggedIn:
+                            case Profile.LoginFailed:
+                                return loggedOutComponent;
+                            case Profile.LoggingIn:
+                                return loggingInComponent;
+                            case Profile.LoggedIn:
+                                return loggedInComponent;
+                            }
+                        }
+                        Layout.preferredHeight: authLoader.status === Loader.Ready && authLoader.item ? authLoader.item.implicitHeight : 0
+                        Layout.fillWidth: true
+                    }
+
+                    Component {
+                        id: loggingInComponent
+
+                        RowLayout {
+                            spacing: 8
+
+                            BusyIndicator {
+                                running: true
+                                visible: true
+                                Layout.preferredWidth: 32
+                                Layout.preferredHeight: 32
+                            }
+
+                            Label {
+                                text: qsTr("Logging in...")
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+
+                    Component {
+                        id: loggedInComponent
+
+                        RowLayout {
+                            spacing: 10
+
+                            Label {
+                                text: qsTr("Logged in as %1").arg(loginSection.profile.onlineUserData.username)
+                                Layout.fillWidth: true
+                            }
+
+                            ActionButton {
+                                text: qsTr("Logout")
+                                tone: ActionButton.Tertiary
+
+                                onClicked: {
+                                    loginSection.profile.logout();
+                                }
+                            }
+
+                            ActionButton {
+                                enabled: !loginSection.syncing
+                                text: qsTr("Sync scores")
+                                tone: loginSection.syncError ? ActionButton.Danger : ActionButton.Primary
+
+                                onClicked: {
+                                    loginSection.runSync();
+                                }
+                            }
+
+                            BusyIndicator {
+                                running: loginSection.syncing
+                                visible: loginSection.syncing
+                                Layout.preferredWidth: 24
+                                Layout.preferredHeight: 24
+                            }
+                        }
+                    }
+
+                    Component {
+                        id: loggedOutComponent
+
+                        RowLayout {
+                            spacing: 8
+
+                            TextField {
+                                id: emailField
+
+                                placeholderText: qsTr("Email")
+                                Layout.fillWidth: true
+
+                                onAccepted: {
+                                    passwordField.forceActiveFocus();
+                                }
+                            }
+
+                            TextField {
+                                id: passwordField
+
+                                placeholderText: qsTr("Password")
+                                echoMode: TextInput.Password
+                                Layout.fillWidth: true
+
+                                onAccepted: {
+                                    loginSection.profile.login(emailField.text, passwordField.text);
+                                }
+                            }
+
+                            ActionButton {
+                                text: qsTr("Login")
+                                tone: loginSection.profile.loginState === Profile.LoginFailed ? ActionButton.Danger : ActionButton.Primary
+
+                                onClicked: loginSection.profile.login(emailField.text, passwordField.text)
+                            }
+                        }
+                    }
+                }
+
+                WorkbenchPanel {
+                    id: replayImportSection
+
+                    title: qsTr("Import replays")
+                    subtitle: replayFolderSettings.folder === ""
+                        ? qsTr("e.g. beatoraja/player/player1/replay or LR2files/Replay/player1")
+                        : replayFolderSettings.folder
+                    Layout.fillWidth: true
+
+                    readonly property var op: Rg.profileList.mainProfile.replayImportOperation
+                    readonly property bool importing: op !== null && !op.finished
+
+                    Settings {
+                        id: replayFolderSettings
+
+                        category: "replayImportFolder/" + Rg.profileList.mainProfile.guid
+                        property string folder: ""
+                        onCategoryChanged: folder = value("folder", "")
+                    }
+
+                    Connections {
+                        target: replayImportSection.op
+
+                        function onFinishedChanged() {
+                            playerSettings.updateScoreCounts++;
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
+
+                        ActionButton {
+                            text: qsTr("Import")
+                            tone: ActionButton.Primary
+                            Layout.preferredWidth: 160
+                            enabled: replayFolderSettings.folder !== "" && !replayImportSection.importing
+
+                            onClicked: Rg.profileList.mainProfile.importReplays(replayFolderSettings.folder)
+                        }
+
+                        ActionButton {
+                            text: replayFolderSettings.folder === "" ? qsTr("Select...") : qsTr("Change...")
+                            tone: ActionButton.Secondary
+                            enabled: !replayImportSection.importing
+
+                            onClicked: replayFolderDialog.open()
+                        }
+
+                        BusyIndicator {
+                            running: replayImportSection.importing
+                            visible: replayImportSection.importing
+                            Layout.preferredWidth: 24
+                            Layout.preferredHeight: 24
+                        }
+                    }
+
+                    ProgressBar {
+                        Layout.fillWidth: true
+                        visible: replayImportSection.op !== null
+                        value: replayImportSection.op !== null
+                               ? replayImportSection.op.done / Math.max(replayImportSection.op.total, 1)
+                               : 0
+                    }
+
+                    Label {
+                        Layout.fillWidth: true
+                        wrapMode: Text.Wrap
+                        visible: replayImportSection.op !== null
+                        text: qsTr("Imported: %1, errors: %2, skipped: %3, total: %4")
+                            .arg(replayImportSection.op ? replayImportSection.op.imported : 0)
+                            .arg(replayImportSection.op ? replayImportSection.op.errored : 0)
+                            .arg(replayImportSection.op ? replayImportSection.op.skipped : 0)
+                            .arg(replayImportSection.op ? replayImportSection.op.total : 0)
+                    }
+
+                    ListView {
+                        Layout.fillWidth: true
+                        Layout.minimumHeight: 100
+                        Layout.preferredHeight: Math.min(180, contentHeight)
+                        visible: replayImportSection.op !== null && replayImportSection.op.count > 0
+                        model: replayImportSection.op
+                        spacing: 2
+                        clip: true
+                        ScrollBar.vertical: ScrollBar {}
+
+                        delegate: Label {
+                            required property string message
+
+                            width: ListView.view ? ListView.view.width : 0
+                            wrapMode: Text.Wrap
+                            color: SettingsColors.dangerText(palette)
+                            text: message
+                        }
+                    }
+                }
+
+                Item {
+                    Layout.fillHeight: true
                 }
             }
         }

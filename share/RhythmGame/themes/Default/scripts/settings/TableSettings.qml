@@ -487,9 +487,11 @@ Item {
 
     // ── Main layout: side-by-side split ───────────────────────────────────
 
-    ColumnLayout {
+    SettingsWorkspaceScaffold {
+        id: pageScaffold
+
         anchors.fill: parent
-        spacing: 12
+        contentSpacing: 12
 
         SettingsPageHeader {
             title: qsTr("Tables")
@@ -507,6 +509,7 @@ Item {
             Item {
                 SplitView.minimumWidth: tableSettings.installedPaneMinimumWidth
                 SplitView.fillWidth: true
+                SplitView.preferredWidth: 760
 
                 Flickable {
                     id: installedPaneFlickable
@@ -532,6 +535,28 @@ Item {
                         ColumnLayout {
                             Layout.fillHeight: true
                             Layout.fillWidth: true
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.leftMargin: 8
+                                Layout.rightMargin: 8
+                                spacing: 8
+
+                                Label {
+                                    text: qsTr("Source")
+                                    color: palette.placeholderText
+                                    font.pixelSize: 12
+                                    Layout.fillWidth: true
+                                }
+
+                                Label {
+                                    text: qsTr("Actions")
+                                    color: palette.placeholderText
+                                    font.pixelSize: 12
+                                    horizontalAlignment: Text.AlignRight
+                                    Layout.preferredWidth: 172
+                                }
+                            }
 
                             ListView {
                                 id: songList
@@ -577,8 +602,8 @@ Item {
                 title: qsTr("Browse tables")
                 subtitle: qsTr("Filter the remote table list, then add sources to your installed tables.")
                 SplitView.minimumWidth: 420
-                SplitView.fillWidth: true
-                SplitView.preferredWidth: 800
+                SplitView.fillWidth: false
+                SplitView.preferredWidth: 560
 
                 ColumnLayout {
                     Layout.fillHeight: true

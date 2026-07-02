@@ -97,13 +97,17 @@ Page {
     Component.onCompleted: applyInitialTabIndex()
     onInitialTabIndexChanged: applyInitialTabIndex()
     
-    header: RowLayout {
-        Layout.fillWidth: true
-        Layout.preferredHeight: backButton.height
-        spacing: 1
+    header: Item {
+        implicitHeight: backButton.height
 
         ToolButton {
             id: backButton
+
+            readonly property color buttonFill: settings.tabFillColor(false, hovered, down)
+            readonly property color buttonTextColor: hovered || down
+                ? SettingsColors.contrastText(buttonFill)
+                : settings.palette.windowText
+
             text: "‹"
             font.family: settingsHeaderFont.fontFamily
             font.weight: settingsHeaderFont.boldFontWeight
@@ -113,23 +117,40 @@ Page {
             ToolTip.text: qsTr("Back")
             ToolTip.visible: hovered
             ToolTip.delay: 500
-            Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-            Layout.preferredWidth: 40
-            Layout.preferredHeight: 40
-            palette.buttonText: hovered ? settings.palette.brightText : settings.palette.windowText
+            anchors.left: parent.left
+            anchors.top: parent.top
+            width: 40
+            height: 40
+            palette.buttonText: buttonTextColor
+            contentItem: Label {
+                text: backButton.text
+                font: backButton.font
+                color: backButton.buttonTextColor
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+            }
             background: Rectangle {
                 radius: 4
-                color: backButton.hovered ? settings.palette.accent : settings.palette.window
-                border.color: settings.palette.mid
-                border.width: 1
+                color: backButton.buttonFill
+                border.color: backButton.visualFocus
+                    ? settings.palette.highlight
+                    : SettingsColors.alpha(settings.palette.mid, 0.55)
+                border.width: backButton.visualFocus ? 2 : (backButton.hovered || backButton.down ? 1 : 0)
             }
             onClicked: {
                 sceneStack.pop();
             }
         }
+
         TabBar {
             id: tabView
-            Layout.fillWidth: true
+
+            readonly property real visibleTabWidth: playerSettingsTab.width + songDirectoriesTab.width
+                + tablesTab.width + themesTab.width + generalSettingsTab.width + keyConfigTab.width
+
+            x: Math.max(backButton.width + 1, (parent.width - width) / 2)
+            width: Math.min(visibleTabWidth, parent.width - backButton.width - 1)
+            height: parent.height
             font.family: settingsHeaderFont.fontFamily
             font.weight: settingsHeaderFont.fontWeight
             font.variableAxes: settingsHeaderFont.variableAxes
@@ -137,32 +158,37 @@ Page {
             palette.buttonText: settings.palette.windowText
 
             SettingsTabButton {
-                id: tabButton
+                id: playerSettingsTab
                 settingsPage: settings
                 headerFont: settingsHeaderFont
                 text: qsTr("Player settings")
             }
             SettingsTabButton {
+                id: songDirectoriesTab
                 settingsPage: settings
                 headerFont: settingsHeaderFont
                 text: qsTr("Song directories")
             }
             SettingsTabButton {
+                id: tablesTab
                 settingsPage: settings
                 headerFont: settingsHeaderFont
                 text: qsTr("Tables")
             }
             SettingsTabButton {
+                id: themesTab
                 settingsPage: settings
                 headerFont: settingsHeaderFont
                 text: qsTr("Themes")
             }
             SettingsTabButton {
+                id: generalSettingsTab
                 settingsPage: settings
                 headerFont: settingsHeaderFont
                 text: qsTr("General Settings")
             }
             SettingsTabButton {
+                id: keyConfigTab
                 settingsPage: settings
                 headerFont: settingsHeaderFont
                 text: qsTr("Key config")

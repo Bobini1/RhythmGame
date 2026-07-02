@@ -67,20 +67,22 @@ WorkbenchPanel {
             id_: "triggerThreshold"
             destination: Rg.inputTranslator[`analogAxisConfig${player}`]
             name: qsTr("Trigger Threshold")
-            sliderMax: 0.1
+            sliderMax: 0.05
             sliderMin: 0
             min: 0
             max: 1
+            decimals: 3
             default_: 0.008
         }
         Range {
             id_: "releaseThreshold"
             destination: Rg.inputTranslator[`analogAxisConfig${player}`]
             name: qsTr("Release Threshold")
-            sliderMax: 0.1
+            sliderMax: 0.05
             sliderMin: 0
             min: 0
             max: 1
+            decimals: 3
             default_: 0.004
         }
 
