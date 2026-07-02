@@ -5,6 +5,8 @@ import QtQuick.Layouts
 import QtQuick.Dialogs
 import QtCore
 
+import "SettingsColors.js" as SettingsColors
+
 
 Item {
     id: playerSettings
@@ -485,7 +487,7 @@ Item {
                                     required property string message
                                     width: ListView.view.width
                                     wrapMode: Text.Wrap
-                                    color: "tomato"
+                                    color: SettingsColors.dangerText(palette)
                                     text: message
                                 }
                             }
