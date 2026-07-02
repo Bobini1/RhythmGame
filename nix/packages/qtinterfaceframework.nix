@@ -25,7 +25,7 @@ in
       owner = "qt";
       repo = "qtinterfaceframework";
       rev = "v6.11.1";
-      hash = "sha256-4baRx05ilLq62ZlIWcnCmwuD8QRZNileR3bjTUibC1s=";
+      hash = "sha256-uenOlKvIfJHsZon+5uUU9ifMPW5J85wr1/5KsYfeNXM=";
       fetchSubmodules = true;
     };
     propagatedBuildInputs = [qtbase qtremoteobjects pythonWithQface];
