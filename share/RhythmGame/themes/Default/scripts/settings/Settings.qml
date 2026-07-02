@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls
 import RhythmGameQml
 import "../common"
+import "SettingsColors.js" as SettingsColors
 
 Page {
     id: settings
@@ -28,6 +29,69 @@ Page {
 
     function applyInitialTabIndex() {
         tabView.currentIndex = Math.max(0, Math.min(tabView.count - 1, initialTabIndex));
+    }
+
+    function tabTextColor(checked, enabled) {
+        if (!enabled) {
+            return SettingsColors.alpha(settings.palette.windowText, 0.35);
+        }
+        return checked ? SettingsColors.contrastText(settings.palette.highlight) : settings.palette.windowText;
+    }
+
+    function tabFillColor(checked, hovered, down) {
+        if (checked) {
+            if (down) {
+                return SettingsColors.blend(settings.palette.shadow, settings.palette.highlight, 0.18);
+            }
+            if (hovered) {
+                return SettingsColors.blend(settings.palette.light, settings.palette.highlight, 0.12);
+            }
+            return settings.palette.highlight;
+        }
+        if (down) {
+            return SettingsColors.blend(settings.palette.mid, settings.palette.window, SettingsColors.isLight(settings.palette.window) ? 0.22 : 0.32);
+        }
+        if (hovered) {
+            return SettingsColors.blend(settings.palette.button, settings.palette.window, SettingsColors.isLight(settings.palette.window) ? 0.62 : 0.42);
+        }
+        return SettingsColors.alpha(settings.palette.window, 0);
+    }
+
+    component SettingsTabButton: TabButton {
+        id: settingsTabButton
+
+        required property var settingsPage
+        required property var headerFont
+
+        implicitHeight: 40
+        width: Math.max(136, contentItem.implicitWidth + leftPadding + rightPadding)
+        leftPadding: 18
+        rightPadding: 18
+        topPadding: 8
+        bottomPadding: 8
+        font.family: headerFont.fontFamily
+        font.weight: checked ? headerFont.boldFontWeight : headerFont.fontWeight
+        font.variableAxes: checked ? headerFont.boldVariableAxes : headerFont.variableAxes
+        font.italic: headerFont.italic
+
+        contentItem: Label {
+            text: settingsTabButton.text
+            font: settingsTabButton.font
+            color: settingsPage.tabTextColor(settingsTabButton.checked, settingsTabButton.enabled)
+            horizontalAlignment: Text.AlignHCenter
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+            maximumLineCount: 1
+        }
+
+        background: Rectangle {
+            radius: 6
+            color: settingsPage.tabFillColor(settingsTabButton.checked, settingsTabButton.hovered, settingsTabButton.down)
+            border.width: settingsTabButton.visualFocus ? 2 : (settingsTabButton.checked || settingsTabButton.hovered ? 1 : 0)
+            border.color: settingsTabButton.visualFocus
+                ? settingsPage.palette.highlight
+                : (settingsTabButton.checked ? settingsPage.palette.highlight : SettingsColors.alpha(settingsPage.palette.mid, 0.55))
+        }
     }
 
     Component.onCompleted: applyInitialTabIndex()
@@ -72,71 +136,36 @@ Page {
             font.italic: settingsHeaderFont.italic
             palette.buttonText: settings.palette.windowText
 
-            TabButton {
+            SettingsTabButton {
                 id: tabButton
+                settingsPage: settings
+                headerFont: settingsHeaderFont
                 text: qsTr("Player settings")
-                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
-                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
-                background: Rectangle {
-                    color: tabButton.checked ? settings.palette.accent : (tabButton.hovered ? settings.palette.midlight : settings.palette.window)
-                    border.color: tabButton.checked ? settings.palette.accent : settings.palette.mid
-                    border.width: 1
-                }
             }
-            TabButton {
-                id: songDirectoriesTabButton
+            SettingsTabButton {
+                settingsPage: settings
+                headerFont: settingsHeaderFont
                 text: qsTr("Song directories")
-                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
-                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
-                background: Rectangle {
-                    color: songDirectoriesTabButton.checked ? settings.palette.accent : (songDirectoriesTabButton.hovered ? settings.palette.midlight : settings.palette.window)
-                    border.color: songDirectoriesTabButton.checked ? settings.palette.accent : settings.palette.mid
-                    border.width: 1
-                }
             }
-            TabButton {
-                id: tablesTabButton
+            SettingsTabButton {
+                settingsPage: settings
+                headerFont: settingsHeaderFont
                 text: qsTr("Tables")
-                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
-                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
-                background: Rectangle {
-                    color: tablesTabButton.checked ? settings.palette.accent : (tablesTabButton.hovered ? settings.palette.midlight : settings.palette.window)
-                    border.color: tablesTabButton.checked ? settings.palette.accent : settings.palette.mid
-                    border.width: 1
-                }
             }
-            TabButton {
-                id: themesTabButton
+            SettingsTabButton {
+                settingsPage: settings
+                headerFont: settingsHeaderFont
                 text: qsTr("Themes")
-                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
-                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
-                background: Rectangle {
-                    color: themesTabButton.checked ? settings.palette.accent : (themesTabButton.hovered ? settings.palette.midlight : settings.palette.window)
-                    border.color: themesTabButton.checked ? settings.palette.accent : settings.palette.mid
-                    border.width: 1
-                }
             }
-            TabButton {
-                id: generalSettingsTabButton
+            SettingsTabButton {
+                settingsPage: settings
+                headerFont: settingsHeaderFont
                 text: qsTr("General Settings")
-                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
-                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
-                background: Rectangle {
-                    color: generalSettingsTabButton.checked ? settings.palette.accent : (generalSettingsTabButton.hovered ? settings.palette.midlight : settings.palette.window)
-                    border.color: generalSettingsTabButton.checked ? settings.palette.accent : settings.palette.mid
-                    border.width: 1
-                }
             }
-            TabButton {
-                id: keyConfigTabButton
+            SettingsTabButton {
+                settingsPage: settings
+                headerFont: settingsHeaderFont
                 text: qsTr("Key config")
-                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
-                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
-                background: Rectangle {
-                    color: keyConfigTabButton.checked ? settings.palette.accent : (keyConfigTabButton.hovered ? settings.palette.midlight : settings.palette.window)
-                    border.color: keyConfigTabButton.checked ? settings.palette.accent : settings.palette.mid
-                    border.width: 1
-                }
             }
         }
     }

@@ -14,13 +14,13 @@ Item {
         id: scrollView
 
         anchors.fill: parent
-        contentWidth: availableWidth
+        contentWidth: Math.max(list.implicitWidth, availableWidth)
 
         ColumnLayout {
             id: list
 
             x: Math.max(0, (scrollView.availableWidth - width) / 2)
-            width: Math.min(980, scrollView.availableWidth)
+            width: Math.min(1220, scrollView.contentWidth)
             spacing: 16
 
             SettingsPageHeader {
@@ -28,90 +28,97 @@ Item {
                 subtitle: qsTr("System, gameplay, display, audio, replay, and gauge defaults.")
             }
 
-            WorkbenchPanel {
-                title: qsTr("System Settings")
+            RowLayout {
                 Layout.fillWidth: true
+                spacing: 14
 
-                Choice {
-                    destination: root.generalVars
-                    id_: "language"
-                    choices: Rg.languages.languages
-                    displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
-                    name: qsTr("Language")
-                    default_: Qt.locale().name
-                    Layout.fillWidth: true
-                }
+                WorkbenchPanel {
+                    title: qsTr("System Settings")
+                    Layout.alignment: Qt.AlignTop
+                    Layout.minimumWidth: 560
+                    Layout.preferredWidth: 560
 
-                Choice {
-                    destination: Window.window || {}
-                    id_: "visibility"
-                    choices: [Window.Windowed, Window.FullScreen]
-                    displayStrings: qsTr("Windowed;Fullscreen").split(";")
-                    name: qsTr("Display Mode")
-                    default_: Window.Windowed
-                    Layout.fillWidth: true
-                }
-
-                Choice {
-                    destination: root.generalVars
-                    id_: "rankingProvider"
-                    choices: [OnlineRankingModel.RhythmGame, OnlineRankingModel.LR2IR, OnlineRankingModel.Tachi]
-                    displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
-                    name: qsTr("Ranking Provider")
-                    default_: OnlineRankingModel.RhythmGame
-                    Layout.fillWidth: true
-                }
-
-                Choice {
-                    destination: root.generalVars
-                    id_: "bgm"
-                    name: qsTr("BGM")
-                    choices: root.generalVars.getAvailableBgms()
-                    default_: "Trance"
-                    Layout.fillWidth: true
-                }
-
-                Choice {
-                    destination: root.generalVars
-                    id_: "soundset"
-                    name: qsTr("Soundset")
-                    choices: root.generalVars.getAvailableSoundsets()
-                    default_: "Brook"
-                    Layout.fillWidth: true
-                }
-
-                Choice {
-                    destination: Rg.audioEngine
-                    id_: "backend"
-                    name: qsTr("Audio Backend")
-                    choices: Rg.audioEngine.backendNames
-                    default_: Rg.audioEngine.backendNames[0]
-                    Layout.fillWidth: true
-                }
-
-                Choice {
-                    destination: Rg.audioEngine
-                    id_: "device"
-                    name: qsTr("Audio Device")
-                    choices: {
-                        let choices = Rg.audioEngine.deviceNames.slice();
-                        choices.unshift("");
-                        return choices;
+                    Choice {
+                        destination: root.generalVars
+                        id_: "language"
+                        choices: Rg.languages.languages
+                        displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
+                        name: qsTr("Language")
+                        default_: Qt.locale().name
+                        Layout.fillWidth: true
                     }
-                    property string defaultDeviceName: qsTr("Default")
-                    displayStrings: {
-                        let choices = Rg.audioEngine.deviceNames.slice();
-                        choices.unshift(defaultDeviceName);
-                        return choices;
-                    }
-                    default_: ""
-                    Layout.fillWidth: true
-                }
-            }
 
-            WorkbenchPanel {
-                title: qsTr("Gameplay Settings")
-                Layout.fillWidth: true
+                    Choice {
+                        destination: Window.window || {}
+                        id_: "visibility"
+                        choices: [Window.Windowed, Window.FullScreen]
+                        displayStrings: qsTr("Windowed;Fullscreen").split(";")
+                        name: qsTr("Display Mode")
+                        default_: Window.Windowed
+                        Layout.fillWidth: true
+                    }
+
+                    Choice {
+                        destination: root.generalVars
+                        id_: "rankingProvider"
+                        choices: [OnlineRankingModel.RhythmGame, OnlineRankingModel.LR2IR, OnlineRankingModel.Tachi]
+                        displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
+                        name: qsTr("Ranking Provider")
+                        default_: OnlineRankingModel.RhythmGame
+                        Layout.fillWidth: true
+                    }
+
+                    Choice {
+                        destination: root.generalVars
+                        id_: "bgm"
+                        name: qsTr("BGM")
+                        choices: root.generalVars.getAvailableBgms()
+                        default_: "Trance"
+                        Layout.fillWidth: true
+                    }
+
+                    Choice {
+                        destination: root.generalVars
+                        id_: "soundset"
+                        name: qsTr("Soundset")
+                        choices: root.generalVars.getAvailableSoundsets()
+                        default_: "Brook"
+                        Layout.fillWidth: true
+                    }
+
+                    Choice {
+                        destination: Rg.audioEngine
+                        id_: "backend"
+                        name: qsTr("Audio Backend")
+                        choices: Rg.audioEngine.backendNames
+                        default_: Rg.audioEngine.backendNames[0]
+                        Layout.fillWidth: true
+                    }
+
+                    Choice {
+                        destination: Rg.audioEngine
+                        id_: "device"
+                        name: qsTr("Audio Device")
+                        choices: {
+                            let choices = Rg.audioEngine.deviceNames.slice();
+                            choices.unshift("");
+                            return choices;
+                        }
+                        property string defaultDeviceName: qsTr("Default")
+                        displayStrings: {
+                            let choices = Rg.audioEngine.deviceNames.slice();
+                            choices.unshift(defaultDeviceName);
+                            return choices;
+                        }
+                        default_: ""
+                        Layout.fillWidth: true
+                    }
+                }
+
+                WorkbenchPanel {
+                    title: qsTr("Gameplay Settings")
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 620
 
                 Range {
                     destination: root.generalVars
@@ -344,4 +351,5 @@ Item {
             }
         }
     }
+}
 }

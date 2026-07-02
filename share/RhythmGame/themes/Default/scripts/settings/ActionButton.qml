@@ -39,7 +39,7 @@ Button {
 
     readonly property color foregroundColor: {
         if (!control.enabled) {
-            return SettingsColors.alpha(control.palette.buttonText, 0.45);
+            return SettingsColors.alpha(control.palette.windowText, 0.34);
         }
         if (control.tone === ActionButton.Primary) {
             return control.palette.highlightedText;
@@ -49,6 +49,10 @@ Button {
         }
         return control.palette.buttonText;
     }
+
+    readonly property color disabledFillColor: control.tone === ActionButton.Tertiary
+        ? SettingsColors.alpha(control.palette.button, 0)
+        : SettingsColors.alpha(control.palette.button, SettingsColors.isLight(control.palette.window) ? 0.2 : 0.24)
 
     contentItem: Label {
         text: control.text
@@ -63,8 +67,10 @@ Button {
     background: Rectangle {
         implicitHeight: 32
         radius: 6
-        color: control.enabled ? control.fillColor : SettingsColors.alpha(control.palette.button, 0.35)
-        border.width: control.visualFocus ? 2 : (control.tone === ActionButton.Tertiary ? 0 : 1)
-        border.color: control.visualFocus ? control.palette.highlight : SettingsColors.panelBorder(control.palette)
+        color: control.enabled ? control.fillColor : control.disabledFillColor
+        border.width: control.visualFocus ? 2 : (control.tone === ActionButton.Tertiary || !control.enabled ? 0 : 1)
+        border.color: control.visualFocus
+            ? control.palette.highlight
+            : SettingsColors.alpha(SettingsColors.panelBorder(control.palette), control.enabled ? 1 : 0.45)
     }
 }

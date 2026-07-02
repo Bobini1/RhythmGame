@@ -16,6 +16,10 @@ function isLight(color) {
     return luminance(color) > 0.5;
 }
 
+function contrastText(color) {
+    return isLight(color) ? Qt.rgba(0.06, 0.06, 0.06, 1) : Qt.rgba(1, 1, 1, 1);
+}
+
 function alpha(color, opacity) {
     return Qt.rgba(color.r, color.g, color.b, clamp(opacity, 0, 1));
 }

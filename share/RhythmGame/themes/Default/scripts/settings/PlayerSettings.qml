@@ -167,6 +167,9 @@ Item {
                     ColumnLayout {
                         id: profileColumnLayout
 
+                        readonly property int formWidth: 440
+                        readonly property int avatarSize: 220
+
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         spacing: 0
@@ -174,9 +177,9 @@ Item {
                         Frame {
                             id: avatarFrame
                             Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: profileColumnLayout.width / 2
-                            Layout.maximumWidth: profileColumnLayout.width / 2
-                            Layout.preferredHeight: profileColumnLayout.width / 2
+                            Layout.preferredWidth: profileColumnLayout.avatarSize
+                            Layout.maximumWidth: profileColumnLayout.avatarSize
+                            Layout.preferredHeight: profileColumnLayout.avatarSize
                             Image {
                                 anchors.fill: parent
                                 source: Rg.profileList.mainProfile.vars.generalVars.avatar
@@ -196,8 +199,8 @@ Item {
                             text: Rg.profileList.mainProfile.vars.generalVars.name
                             font.pixelSize: 24
                             color: palette.text
-                            Layout.preferredWidth: profileColumnLayout.width / 2
-                            Layout.maximumWidth: profileColumnLayout.width / 2
+                            Layout.preferredWidth: profileColumnLayout.formWidth
+                            Layout.maximumWidth: profileColumnLayout.formWidth
                             Layout.alignment: Qt.AlignHCenter
                             Layout.topMargin: 16
                             horizontalAlignment: Text.AlignHCenter
@@ -211,8 +214,8 @@ Item {
                         ActionButton {
                             text: qsTr("Open profile folder")
                             tone: ActionButton.Secondary
-                            Layout.preferredWidth: profileColumnLayout.width / 2
-                            Layout.maximumWidth: profileColumnLayout.width / 2
+                            Layout.preferredWidth: profileColumnLayout.formWidth
+                            Layout.maximumWidth: profileColumnLayout.formWidth
                             Layout.alignment: Qt.AlignHCenter
                             Layout.topMargin: 8
 
@@ -222,8 +225,8 @@ Item {
                         ColumnLayout {
                             id: loginSection
                             Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: profileColumnLayout.width / 2
-                            Layout.maximumWidth: profileColumnLayout.width / 2
+                            Layout.preferredWidth: profileColumnLayout.formWidth
+                            Layout.maximumWidth: profileColumnLayout.formWidth
                             Layout.topMargin: 16
                             spacing: 8
 
@@ -371,8 +374,8 @@ Item {
                         ColumnLayout {
                             id: replayImportSection
                             Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: profileColumnLayout.width / 2
-                            Layout.maximumWidth: profileColumnLayout.width / 2
+                            Layout.preferredWidth: profileColumnLayout.formWidth
+                            Layout.maximumWidth: profileColumnLayout.formWidth
                             Layout.topMargin: 24
                             Layout.fillHeight: true
                             Layout.bottomMargin: 16
