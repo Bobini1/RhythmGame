@@ -22,6 +22,9 @@ Item {
     property bool   showUrlEditor:   false   // toggled by the ⚙ button
     property var    fetchRequest:     null
 
+    readonly property int installedPaneMinimumWidth: 360
+    readonly property int installedPaneRowMinimumWidth: 560
+
     Component.onCompleted: fetchTables()
     Component.onDestruction: cancelFetch()
 
@@ -502,12 +505,17 @@ Item {
             // ── Left pane: My Tables ──────────────────────────────────────
 
             Item {
-                SplitView.minimumWidth: 300
+                SplitView.minimumWidth: tableSettings.installedPaneMinimumWidth
                 SplitView.fillWidth: true
 
                 Flickable {
+                    id: installedPaneFlickable
+
                     anchors.fill: parent
-                    contentWidth: Math.max(300, width)
+                    contentWidth: Math.max(
+                        tableSettings.installedPaneRowMinimumWidth,
+                        myTabFrame.implicitWidth,
+                        width)
                     contentHeight: Math.max(myTabFrame.implicitHeight, parent.height)
                     flickableDirection: Flickable.HorizontalFlick
                     boundsBehavior: Flickable.StopAtBounds
@@ -516,7 +524,8 @@ Item {
                     WorkbenchPanel {
                         id: myTabFrame
 
-                        anchors.fill: parent
+                        width: installedPaneFlickable.contentWidth
+                        height: installedPaneFlickable.height
                         title: qsTr("Installed tables")
                         subtitle: qsTr("Drag to reorder; reload or remove individual sources.")
 
