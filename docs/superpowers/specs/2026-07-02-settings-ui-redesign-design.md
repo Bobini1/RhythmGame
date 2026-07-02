@@ -50,8 +50,8 @@ The redesign should cooperate with Qt Quick Controls and FluentWinUI3 rather tha
 - Create small reusable QML components for app-specific structure: page shell, panel, list row, setting row, action buttons, tag chips, empty/error states.
 - Override control `background`, `contentItem`, `indicator`, `handle`, or delegates only where FluentWinUI3 does not provide enough hierarchy or density.
 - Do not create a full custom Qt Quick Controls style unless repeated one-off customizations become harder to maintain than a local component set.
-- When customizing controls, use a style-specific import for those custom controls if needed, following Qt Quick Controls guidance. Prefer `QtQuick.Controls.Basic` as the stable customization base for custom component internals when a control template is being restyled.
-- Avoid mixing compile-time style imports with the existing runtime style path in ordinary settings pages.
+- Avoid switching settings pages or shared settings components to `QtQuick.Controls.Basic`; keep the runtime FluentWinUI3 style path through ordinary `QtQuick.Controls` imports.
+- Avoid mixing compile-time style imports with the existing runtime style path in settings UI code.
 - Preserve built-in accessibility from Qt Quick Controls where possible. Custom interactive items must define focus behavior and accessibility names.
 - Derive custom colors from the active Qt palette where practical (`palette.window`, `palette.base`, `palette.alternateBase`, `palette.mid`, `palette.button`, `palette.highlight`, `palette.text`, `palette.placeholderText`) instead of hard-coding a dark theme.
 - Treat light mode and dark mode as first-class. Any custom panel, row, chip, button variant, or focus ring must be checked in both modes.
