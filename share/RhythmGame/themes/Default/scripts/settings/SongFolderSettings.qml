@@ -7,19 +7,15 @@ import QtQuick.Dialogs
 Item {
     ScrollView {
         id: rootScrollView
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
-        }
-        width: Math.min(1200, parent.width)
-        contentWidth: Math.max(800, width)
-        contentHeight: Math.max(rootRowLayout.implicitHeight, parent.height)
+        anchors.fill: parent
+        contentWidth: availableWidth
 
-        RowLayout {
-            id: rootRowLayout
-            anchors.fill: parent
-            anchors.margins: 5
+        ColumnLayout {
+            id: rootColumnLayout
+
+            x: Math.max(0, (rootScrollView.availableWidth - width) / 2)
+            width: Math.min(1220, rootScrollView.availableWidth)
+            spacing: 14
 
             FolderDialog {
                 id: folderDialog
@@ -30,22 +26,29 @@ Item {
                     Rg.rootSongFoldersConfig.folders.add(folderDialog.selectedFolder.toString());
                 }
             }
-            Frame {
-                id: songListFrame
 
-                Layout.fillHeight: true
+            SettingsPageHeader {
+                id: pageHeader
+                title: qsTr("Song directories")
+                subtitle: qsTr("Manage root song folders and background scanning.")
+            }
+
+            RowLayout {
+                id: rootRowLayout
+
                 Layout.fillWidth: true
-                Layout.preferredWidth: 1
+                Layout.minimumHeight: Math.max(0, rootScrollView.availableHeight - pageHeader.implicitHeight - rootColumnLayout.spacing)
+                spacing: 14
 
-                ColumnLayout {
-                    anchors.fill: parent
+                WorkbenchPanel {
+                    id: songListFrame
 
-                    Label {
-                        font.pixelSize: 20
-                        text: qsTr("Song directories")
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
-                    }
+                    title: qsTr("Song directories")
+                    subtitle: qsTr("Folders scanned for BMS charts.")
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+
                     ScrollView {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
@@ -55,50 +58,54 @@ Item {
 
                             clip: true
                             model: Rg.rootSongFoldersConfig.folders
+                            spacing: 5
 
-                            delegate: RowLayout {
+                            delegate: WorkbenchListRow {
                                 id: folderRow
 
                                 property var rootFolder: display
 
-                                width: parent ? parent.width : 0
+                                width: ListView.view ? ListView.view.width : 0
+                                primaryText: folderRow.rootFolder ? folderRow.rootFolder.name : ""
 
-                                Label {
-                                    Layout.fillWidth: true
-                                    wrapMode: Text.Wrap
-                                    text: folderRow.rootFolder ? folderRow.rootFolder.name : ""
-                                }
-                                Button {
-                                    text: qsTr("Remove")
-
-                                    onClicked: {
-                                        Rg.rootSongFoldersConfig.folders.remove(index);
-                                    }
-                                }
-                                Button {
+                                ActionButton {
                                     text: qsTr("Scan")
+                                    tone: ActionButton.Secondary
 
                                     onClicked: {
                                         Rg.rootSongFoldersConfig.scanningQueue.scan(folderRow.rootFolder);
                                     }
                                 }
+
+                                ActionButton {
+                                    text: qsTr("Remove")
+                                    tone: ActionButton.Danger
+
+                                    onClicked: {
+                                        Rg.rootSongFoldersConfig.folders.remove(index);
+                                    }
+                                }
                             }
                         }
                     }
+
                     RowLayout {
                         Layout.fillWidth: true
 
-                        Button {
+                        ActionButton {
                             Layout.fillWidth: true
                             text: qsTr("Add song folder")
+                            tone: ActionButton.Primary
 
                             onClicked: {
                                 folderDialog.open();
                             }
                         }
-                        Button {
+
+                        ActionButton {
                             Layout.fillWidth: true
                             text: qsTr("Scan all")
+                            tone: ActionButton.Secondary
 
                             onClicked: {
                                 for (let i = 0; i < Rg.rootSongFoldersConfig.folders.rowCount(); i++) {
@@ -108,23 +115,16 @@ Item {
                         }
                     }
                 }
-            }
-            Frame {
-                id: scanningQueueFrame
 
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Layout.preferredWidth: 1
+                WorkbenchPanel {
+                    id: scanningQueueFrame
 
-                ColumnLayout {
-                    anchors.fill: parent
+                    title: qsTr("Scanning queue")
+                    subtitle: qsTr("Folders waiting for or currently undergoing scan.")
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
 
-                    Label {
-                        font.pixelSize: 20
-                        text: qsTr("Scanning queue")
-                        elide: Text.ElideRight
-                        Layout.fillWidth: true
-                    }
                     ScrollView {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
@@ -134,28 +134,30 @@ Item {
 
                             clip: true
                             model: Rg.rootSongFoldersConfig.scanningQueue
+                            spacing: 5
 
-                            delegate: RowLayout {
+                            delegate: WorkbenchListRow {
                                 id: scanItemRow
 
                                 property string name: display.name
 
-                                Layout.fillWidth: true
-                                width: parent ? parent.width : 0
+                                width: ListView.view ? ListView.view.width : 0
+                                primaryText: scanItemRow.name
+                                metaText: index === 0 ? qsTr("Scanning") : qsTr("Queued")
 
-                                Label {
-                                    Layout.fillWidth: true
-                                    text: scanItemRow.name
-                                }
                                 BusyIndicator {
-                                    Layout.alignment: Qt.AlignRight
                                     running: index === 0
+                                    visible: index === 0
+                                    Layout.alignment: Qt.AlignVCenter
+                                    width: 24
+                                    height: 24
                                 }
-                                Button {
+
+                                ActionButton {
                                     id: removeScanItemButton
 
-                                    Layout.alignment: Qt.AlignRight
                                     text: qsTr("Cancel")
+                                    tone: ActionButton.Tertiary
 
                                     onClicked: {
                                         Rg.rootSongFoldersConfig.scanningQueue.remove(index);
@@ -164,6 +166,7 @@ Item {
                             }
                         }
                     }
+
                     Label {
                         id: logText
 
