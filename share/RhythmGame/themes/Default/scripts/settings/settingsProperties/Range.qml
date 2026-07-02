@@ -8,6 +8,10 @@ import ".."
 
 RowLayout {
     id: range
+    spacing: 12
+    Layout.fillWidth: true
+    Layout.minimumHeight: 34
+
     property real min: -Infinity
     property real max: Infinity
     property real sliderMax: max
@@ -28,8 +32,8 @@ RowLayout {
     RowLayout {
         id: rangeRow
         Layout.fillWidth: true
-        Layout.preferredWidth: 400
-        Layout.minimumWidth: 200
+        Layout.preferredWidth: 460
+        Layout.minimumWidth: 220
 
         Loader {
             active: range.sliderMin !== -Infinity && range.sliderMax !== Infinity
@@ -53,7 +57,7 @@ RowLayout {
             value: range.destination[range.id_] * range.displayMultiplier * 10 ** range.decimals
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.maximumWidth: 200
+            Layout.maximumWidth: 180
             Layout.minimumWidth: 120
             Layout.preferredWidth: 120
             Layout.alignment: Qt.AlignRight
@@ -92,6 +96,8 @@ RowLayout {
         destination: range.destination
         id_: range.id_
         default_: range.default_
+        Layout.preferredWidth: 84
+        Layout.minimumWidth: 76
 
         onClicked: {
             range.destination[range.id_] = range.default_

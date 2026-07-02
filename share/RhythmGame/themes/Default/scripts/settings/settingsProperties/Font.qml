@@ -7,6 +7,9 @@ import ".."
 
 RowLayout {
     id: fontSetting
+    spacing: 12
+    Layout.fillWidth: true
+    Layout.minimumHeight: 34
 
     property var destination
     property string id_
@@ -100,16 +103,6 @@ RowLayout {
         onClicked: fontDialog.open()
     }
 
-    ResetButton {
-        destination: fontSetting.destination
-        id_: fontSetting.id_
-        default_: fontSetting.effectiveDefault
-
-        onClicked: {
-            fontSetting.destination[fontSetting.id_] = fontSetting.effectiveDefault
-        }
-    }
-
     Dialog {
         id: fontDialog
 
@@ -193,6 +186,18 @@ RowLayout {
         onOpened: {
             searchField.forceActiveFocus();
             searchField.selectAll();
+        }
+    }
+
+    ResetButton {
+        destination: fontSetting.destination
+        id_: fontSetting.id_
+        default_: fontSetting.effectiveDefault
+        Layout.preferredWidth: 84
+        Layout.minimumWidth: 76
+
+        onClicked: {
+            fontSetting.destination[fontSetting.id_] = fontSetting.effectiveDefault
         }
     }
 }

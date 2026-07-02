@@ -4,8 +4,9 @@ import QtQuick.Layouts
 import RhythmGameQml
 import QtQuick
 import "../../common/helpers.js" as Helpers
+import ".."
 
-GroupBox {
+WorkbenchPanel {
     id: groupFrame
 
     property string name
@@ -14,32 +15,20 @@ GroupBox {
     property var destination
 
     title: name
+    subtitle: description
+    Layout.fillWidth: true
 
-    Column {
-        width: parent.width
-        spacing: 5
-        Label {
-            wrapMode: Text.Wrap
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
-            text: groupFrame.description
-        }
-        // empty space separator
-        Rectangle {
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
-            Layout.preferredHeight: 10
-            color: "transparent"
-        }
+    ColumnLayout {
+        spacing: 10
+        Layout.fillWidth: true
+
         Repeater {
             model: groupFrame.items
+
             Loader {
                 id: loader
                 asynchronous: true
+                Layout.fillWidth: true
 
                 Component.onCompleted: {
                     let props = {};
@@ -80,10 +69,6 @@ GroupBox {
                         loader.item.displayStrings = displayStrings;
                     }
                 }
-                Layout.fillWidth: true
-                Layout.maximumWidth: modelData.type === "group" ? -1 : 600
-                Layout.minimumWidth: modelData.type === "group" ? -1 : 150
-                width: parent.width
             }
         }
     }

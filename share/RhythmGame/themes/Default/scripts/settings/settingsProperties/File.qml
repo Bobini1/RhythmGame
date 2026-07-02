@@ -8,6 +8,10 @@ import ".."
 
 RowLayout {
     id: file
+    spacing: 12
+    Layout.fillWidth: true
+    Layout.minimumHeight: 34
+
     property var destination
     property string id_
     property alias name: strLabel.text
@@ -25,8 +29,8 @@ RowLayout {
         property var files: Rg.fileQuery.getSelectableFilesForDirectory(Rg.themes.availableThemeFamilies[Rg.profileList.mainProfile.themeConfig[screen]].path + "/" + path)
         model: files
         Layout.fillWidth: true
-        Layout.preferredWidth: 400
-        Layout.minimumWidth: 200
+        Layout.preferredWidth: 460
+        Layout.minimumWidth: 220
 
         Binding {
             delayed: true
@@ -43,6 +47,8 @@ RowLayout {
         destination: file.destination
         id_: file.id_
         default_: file.default_
+        Layout.preferredWidth: 84
+        Layout.minimumWidth: 76
 
         onClicked: {
             file.destination[file.id_] = file.default_

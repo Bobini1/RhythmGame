@@ -7,6 +7,10 @@ import ".."
 
 RowLayout {
     id: str
+    spacing: 12
+    Layout.fillWidth: true
+    Layout.minimumHeight: 34
+
     property var destination
     property string id_
     property alias name: strLabel.text
@@ -21,8 +25,8 @@ RowLayout {
         id: textEdit
         text: destination[id_]
         Layout.fillWidth: true
-        Layout.preferredWidth: 400
-        Layout.minimumWidth: 200
+        Layout.preferredWidth: 460
+        Layout.minimumWidth: 220
 
         onTextChanged: {
             str.destination[str.id_] = text;
@@ -34,6 +38,8 @@ RowLayout {
         destination: str.destination
         id_: str.id_
         default_: str.default_
+        Layout.preferredWidth: 84
+        Layout.minimumWidth: 76
 
         onClicked: {
             str.destination[str.id_] = str.default_
