@@ -19,6 +19,7 @@ The current settings UI is functional but hard to read at a glance. It is implem
 - Awkward empty space: large displays leave huge unused regions while important controls remain narrow.
 - Hard-to-scan rows: repeated lists need clearer columns, row states, and stable value areas.
 - Weak navigation orientation: the top tabs work, but the active state and current page context are too subtle.
+- Theme-dependent contrast: FluentWinUI3 follows the system light/dark mode, so custom surfaces must work in both modes.
 
 ## Chosen direction
 
@@ -52,6 +53,8 @@ The redesign should cooperate with Qt Quick Controls and FluentWinUI3 rather tha
 - When customizing controls, use a style-specific import for those custom controls if needed, following Qt Quick Controls guidance. Prefer `QtQuick.Controls.Basic` as the stable customization base for custom component internals when a control template is being restyled.
 - Avoid mixing compile-time style imports with the existing runtime style path in ordinary settings pages.
 - Preserve built-in accessibility from Qt Quick Controls where possible. Custom interactive items must define focus behavior and accessibility names.
+- Derive custom colors from the active Qt palette where practical (`palette.window`, `palette.base`, `palette.alternateBase`, `palette.mid`, `palette.button`, `palette.highlight`, `palette.text`, `palette.placeholderText`) instead of hard-coding a dark theme.
+- Treat light mode and dark mode as first-class. Any custom panel, row, chip, button variant, or focus ring must be checked in both modes.
 - Use Qt layouts idiomatically: no mixing `anchors` and `Layout.*` on the same layout-managed item, no hard-coded width math where layouts can express the relationship, and stable preferred/minimum sizes for repeated rows.
 - Keep user-visible strings translatable with `qsTr()`.
 
@@ -69,15 +72,16 @@ The redesign should cooperate with Qt Quick Controls and FluentWinUI3 rather tha
 
 ### Surfaces
 
-Use a dark neutral palette tuned for Fluent controls:
+Use an adaptive palette tuned for Fluent controls in both system light and dark modes:
 
-- App background: off-black charcoal.
-- Panel background: slightly lifted charcoal.
-- Row hover/selected: subtle accent-tinted fills.
-- Borders: low-contrast but visible separators.
-- Accent: restrained teal/green or the existing palette accent, not saturated red except for errors/destructive feedback.
-- Destructive actions: text/outline or quiet button treatment until confirmation.
-- Disabled controls: reduce contrast but keep labels legible.
+- App background should come from the active window/background palette, with enough contrast from panels in light and dark mode.
+- Panel backgrounds should be one step above or below the app background, using palette roles or helper functions instead of fixed charcoal/white values.
+- Row hover/selected fills should be subtle accent-tinted fills that remain visible in light mode and do not glow too strongly in dark mode.
+- Borders should be visible separators in light mode and low-glare separators in dark mode.
+- Accent should use `palette.highlight` or a restrained derived accent, not saturated red except for errors/destructive feedback.
+- Destructive actions should use a danger treatment that is legible on both light and dark backgrounds.
+- Disabled controls should reduce emphasis but keep labels legible in both modes.
+- Custom chips, status badges, and selection strips should define both foreground and background contrast, not rely on a single fill color.
 
 Do not make everything a card. Use panels for primary work areas, rows for repeated records, and simple section blocks for generated settings.
 
@@ -215,7 +219,8 @@ Before considering the redesign complete:
 - Run the relevant build/QML validation target available in the repo.
 - Launch the app and manually inspect all six settings tabs.
 - Verify at desktop-wide, medium, and narrow window widths.
-- Check light/dark behavior if the current Fluent style or palette can vary by platform.
+- Check both system light mode and system dark mode with FluentWinUI3.
+- Specifically verify that custom panels, selected rows, hover states, reset/destructive buttons, tag chips, key state chips, and focus rings remain readable in both modes.
 - Verify all listed functional requirements still work.
 - Confirm no text clipping in Polish or English labels where practical.
 - Confirm keyboard focus remains visible for controls and custom row actions.
