@@ -67,6 +67,14 @@
       ],
       "platform": "linux"
     },
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "windeployqt"
+      ],
+      "platform": "windows"
+    },
     "qtdeclarative",
     "qtshadertools",
     "qtsvg",
