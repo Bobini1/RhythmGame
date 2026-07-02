@@ -52,8 +52,7 @@ generateLr2SidePermutation(NoteOrderAlgorithm algorithm,
                            const bool k5) -> support::ShuffleResult
 {
     auto notes = makeSideNotes();
-    auto noteSpan =
-      std::span<std::vector<Note>>{ notes.data(), notes.size() };
+    auto noteSpan = std::span<std::vector<Note>>{ notes.data(), notes.size() };
     if (k5) {
         using std::swap;
         swap(notes[5], notes[7]);
@@ -68,8 +67,7 @@ generateBeatorajaSidePermutation(NoteOrderAlgorithm algorithm,
                                  const bool k5) -> support::ShuffleResult
 {
     auto notes = makeSideNotes();
-    auto noteSpan =
-      std::span<std::vector<Note>>{ notes.data(), notes.size() };
+    auto noteSpan = std::span<std::vector<Note>>{ notes.data(), notes.size() };
     if (k5) {
         using std::swap;
         swap(notes[5], notes[7]);
@@ -83,12 +81,10 @@ auto
 generateGenericSidePermutation(NoteOrderAlgorithm algorithm,
                                const uint64_t seed,
                                const bool k5,
-                               const bool usePre130)
-  -> support::ShuffleResult
+                               const bool usePre130) -> support::ShuffleResult
 {
     auto notes = makeSideNotes();
-    auto noteSpan =
-      std::span<std::vector<Note>>{ notes.data(), notes.size() };
+    auto noteSpan = std::span<std::vector<Note>>{ notes.data(), notes.size() };
     return support::generatePermutation(
       noteSpan, algorithm, seed, k5, usePre130);
 }
@@ -125,9 +121,7 @@ generateResultPermutation(ChartData::Keymode keymode,
     auto lr2RandomGenerator =
       support::isLr2NoteOrderAlgorithm(noteOrderAlgorithm) ||
           support::isLr2NoteOrderAlgorithm(noteOrderAlgorithmP2)
-        ? std::optional<support::Lr2Random>{
-            static_cast<uint32_t>(randomSeed)
-          }
+        ? std::optional<support::Lr2Random>{ static_cast<uint32_t>(randomSeed) }
         : std::nullopt;
     if (lr2RandomGenerator) {
         lr2RandomGenerator->discard(
@@ -136,11 +130,8 @@ generateResultPermutation(ChartData::Keymode keymode,
     auto* lr2RandomGeneratorPtr =
       lr2RandomGenerator ? &*lr2RandomGenerator : nullptr;
 
-    auto result1 = generateSidePermutation(noteOrderAlgorithm,
-                                           randomSeed,
-                                           k5,
-                                           usePre130,
-                                           lr2RandomGeneratorPtr);
+    auto result1 = generateSidePermutation(
+      noteOrderAlgorithm, randomSeed, k5, usePre130, lr2RandomGeneratorPtr);
     if (!gameplay_logic::isDp(keymode)) {
         return result1.columns;
     }
