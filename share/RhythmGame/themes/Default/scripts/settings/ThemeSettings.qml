@@ -6,7 +6,8 @@ import QtQuick.Layouts
 ColumnLayout {
     required property color tabTextColor
 
-    anchors.fill: parent
+    Layout.fillHeight: true
+    Layout.fillWidth: true
     spacing: 12
 
     SettingsPageHeader {

@@ -43,7 +43,7 @@ Loader {
     }
     readonly property string name: displayNames[screenSettingsLoader.screen] ? qsTr(displayNames[screenSettingsLoader.screen]) : qsTr("%1 Settings").arg(Helpers.capitalizeFirstLetter(screenSettingsLoader.screen))
     onNameChanged: {
-        if (screenSettingsLoader.item) {
+        if (screenSettingsLoader.item && "name" in screenSettingsLoader.item) {
             screenSettingsLoader.item.name = screenSettingsLoader.name;
         }
     }
