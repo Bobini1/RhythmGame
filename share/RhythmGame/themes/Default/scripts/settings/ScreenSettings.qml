@@ -14,7 +14,10 @@ Loader {
         } else {
             let items = screenSettingsLoader.screenSettings.filter((item) => item.type !== "hidden");
             if (items.length === 0) {
-                screenSettingsLoader.source = "";
+                setSource("EmptyState.qml", {
+                    title: qsTr("No settings for this screen"),
+                    subtitle: qsTr("The selected theme does not expose configurable settings here.")
+                });
                 return;
             }
             let props = {
