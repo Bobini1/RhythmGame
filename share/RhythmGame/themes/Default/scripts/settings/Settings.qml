@@ -1,6 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import RhythmGameQml
 import "../common"
 
@@ -38,21 +38,27 @@ Page {
         Layout.preferredHeight: backButton.height
         spacing: 1
 
-        Button {
+        ToolButton {
             id: backButton
-            text: "⏎"
+            text: "‹"
             font.family: settingsHeaderFont.fontFamily
             font.weight: settingsHeaderFont.boldFontWeight
             font.variableAxes: settingsHeaderFont.boldVariableAxes
             font.italic: settingsHeaderFont.italic
-            palette {
-                button: settings.palette.accent
-                buttonText: settings.palette.brightText
-            }
-            font.pixelSize: 20
+            font.pixelSize: 28
+            ToolTip.text: qsTr("Back")
+            ToolTip.visible: hovered
+            ToolTip.delay: 500
             Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-            Layout.preferredWidth: tabButton.height
-            Layout.preferredHeight: tabButton.height
+            Layout.preferredWidth: 40
+            Layout.preferredHeight: 40
+            palette.buttonText: hovered ? settings.palette.brightText : settings.palette.windowText
+            background: Rectangle {
+                radius: 4
+                color: backButton.hovered ? settings.palette.accent : settings.palette.window
+                border.color: settings.palette.mid
+                border.width: 1
+            }
             onClicked: {
                 sceneStack.pop();
             }
@@ -69,42 +75,94 @@ Page {
             TabButton {
                 id: tabButton
                 text: qsTr("Player settings")
+                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
+                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
+                background: Rectangle {
+                    color: tabButton.checked ? settings.palette.accent : (tabButton.hovered ? settings.palette.midlight : settings.palette.window)
+                    border.color: tabButton.checked ? settings.palette.accent : settings.palette.mid
+                    border.width: 1
+                }
             }
             TabButton {
+                id: songDirectoriesTabButton
                 text: qsTr("Song directories")
+                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
+                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
+                background: Rectangle {
+                    color: songDirectoriesTabButton.checked ? settings.palette.accent : (songDirectoriesTabButton.hovered ? settings.palette.midlight : settings.palette.window)
+                    border.color: songDirectoriesTabButton.checked ? settings.palette.accent : settings.palette.mid
+                    border.width: 1
+                }
             }
             TabButton {
+                id: tablesTabButton
                 text: qsTr("Tables")
+                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
+                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
+                background: Rectangle {
+                    color: tablesTabButton.checked ? settings.palette.accent : (tablesTabButton.hovered ? settings.palette.midlight : settings.palette.window)
+                    border.color: tablesTabButton.checked ? settings.palette.accent : settings.palette.mid
+                    border.width: 1
+                }
             }
             TabButton {
+                id: themesTabButton
                 text: qsTr("Themes")
+                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
+                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
+                background: Rectangle {
+                    color: themesTabButton.checked ? settings.palette.accent : (themesTabButton.hovered ? settings.palette.midlight : settings.palette.window)
+                    border.color: themesTabButton.checked ? settings.palette.accent : settings.palette.mid
+                    border.width: 1
+                }
             }
             TabButton {
+                id: generalSettingsTabButton
                 text: qsTr("General Settings")
+                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
+                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
+                background: Rectangle {
+                    color: generalSettingsTabButton.checked ? settings.palette.accent : (generalSettingsTabButton.hovered ? settings.palette.midlight : settings.palette.window)
+                    border.color: generalSettingsTabButton.checked ? settings.palette.accent : settings.palette.mid
+                    border.width: 1
+                }
             }
             TabButton {
+                id: keyConfigTabButton
                 text: qsTr("Key config")
+                palette.buttonText: checked ? settings.palette.brightText : settings.palette.windowText
+                font.weight: checked ? settingsHeaderFont.boldFontWeight : settingsHeaderFont.fontWeight
+                background: Rectangle {
+                    color: keyConfigTabButton.checked ? settings.palette.accent : (keyConfigTabButton.hovered ? settings.palette.midlight : settings.palette.window)
+                    border.color: keyConfigTabButton.checked ? settings.palette.accent : settings.palette.mid
+                    border.width: 1
+                }
             }
         }
     }
-    StackLayout {
-        id: stackView
+    Item {
         anchors.fill: parent
+        anchors.margins: 16
 
-        currentIndex: tabView.currentIndex
+        StackLayout {
+            id: stackView
+            anchors.fill: parent
 
-        PlayerSettings {
-        }
-        SongFolderSettings {
-        }
-        TableSettings {
-        }
-        ThemeSettings {
-            tabTextColor: settings.palette.windowText
-        }
-        GeneralSettings {
-        }
-        KeySettings {
+            currentIndex: tabView.currentIndex
+
+            PlayerSettings {
+            }
+            SongFolderSettings {
+            }
+            TableSettings {
+            }
+            ThemeSettings {
+                tabTextColor: settings.palette.windowText
+            }
+            GeneralSettings {
+            }
+            KeySettings {
+            }
         }
     }
     Shortcut {
