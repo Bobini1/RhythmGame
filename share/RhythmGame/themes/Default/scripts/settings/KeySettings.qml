@@ -59,16 +59,8 @@ Item {
         id: scrollArea
 
         anchors.fill: parent
-        contentWidth: Math.max(600, width)
-        contentHeight: {
-            if (wideRow.visible) {
-                return wideRow.implicitHeight;
-            } else if (narrowRow.visible) {
-                return narrowRow.implicitHeight;
-            } else if (veryNarrowColumn.visible) {
-                return veryNarrowColumn.implicitHeight;
-            }
-        }
+        contentWidth: Math.max(600, availableWidth)
+        contentHeight: scrollContent.implicitHeight
         clip: true
 
         states: [
@@ -81,61 +73,91 @@ Item {
                 when: scrollArea.width <= 800 + 405
             }
         ]
-        RowLayout {
-            id: wideRow
-            anchors.fill: parent
-            anchors.margins: 5
-            visible: scrollArea.state === ""
-            LayoutItemProxy {
-                visible: analogAxisSettings1.active || analogAxisSettings2.active
-                target: analogAxisSettings1
-            }
-            LayoutItemProxy {
-                target: contentLayout
-            }
-            LayoutItemProxy {
-                visible: analogAxisSettings1.active || analogAxisSettings2.active
-                target: analogAxisSettings2
-            }
-        }
-        RowLayout {
-            id: narrowRow
-            anchors.fill: parent
-            anchors.margins: 5
-            visible: scrollArea.state === "narrow"
-            spacing: analogAxisSettings1.active || analogAxisSettings2.active ? 5 : 0
-            LayoutItemProxy {
-                target: contentLayout
-            }
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.preferredWidth: analogAxisSettings1.active || analogAxisSettings2.active ? -1 : 0
-                Layout.alignment: Qt.AlignTop
-                LayoutItemProxy {
-                    visible: analogAxisSettings1.active
-                    target: analogAxisSettings1
-                }
-                LayoutItemProxy {
-                    visible: analogAxisSettings2.active
-                    target: analogAxisSettings2
-                }
-            }
-        }
         ColumnLayout {
-            id: veryNarrowColumn
-            anchors.fill: parent
-            anchors.margins: 5
-            visible: scrollArea.state === "veryNarrow"
-            LayoutItemProxy {
-                target: contentLayout
+            id: scrollContent
+
+            width: scrollArea.contentWidth
+            spacing: 16
+
+            SettingsPageHeader {
+                title: qsTr("Key config")
+                subtitle: qsTr("Configure keyboard and controller bindings for each player.")
+                Layout.fillWidth: true
+                Layout.margins: 5
             }
-            LayoutItemProxy {
-                visible: analogAxisSettings1.active
-                target: analogAxisSettings1
-            }
-            LayoutItemProxy {
-                visible: analogAxisSettings2.active
-                target: analogAxisSettings2
+
+            Item {
+                id: responsiveContent
+
+                Layout.fillWidth: true
+                Layout.preferredHeight: {
+                    if (wideRow.visible) {
+                        return wideRow.implicitHeight;
+                    } else if (narrowRow.visible) {
+                        return narrowRow.implicitHeight;
+                    } else if (veryNarrowColumn.visible) {
+                        return veryNarrowColumn.implicitHeight;
+                    }
+                    return 0;
+                }
+
+                RowLayout {
+                    id: wideRow
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    visible: scrollArea.state === ""
+                    LayoutItemProxy {
+                        visible: analogAxisSettings1.active || analogAxisSettings2.active
+                        target: analogAxisSettings1
+                    }
+                    LayoutItemProxy {
+                        target: contentLayout
+                    }
+                    LayoutItemProxy {
+                        visible: analogAxisSettings1.active || analogAxisSettings2.active
+                        target: analogAxisSettings2
+                    }
+                }
+                RowLayout {
+                    id: narrowRow
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    visible: scrollArea.state === "narrow"
+                    spacing: analogAxisSettings1.active || analogAxisSettings2.active ? 5 : 0
+                    LayoutItemProxy {
+                        target: contentLayout
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: analogAxisSettings1.active || analogAxisSettings2.active ? -1 : 0
+                        Layout.alignment: Qt.AlignTop
+                        LayoutItemProxy {
+                            visible: analogAxisSettings1.active
+                            target: analogAxisSettings1
+                        }
+                        LayoutItemProxy {
+                            visible: analogAxisSettings2.active
+                            target: analogAxisSettings2
+                        }
+                    }
+                }
+                ColumnLayout {
+                    id: veryNarrowColumn
+                    anchors.fill: parent
+                    anchors.margins: 5
+                    visible: scrollArea.state === "veryNarrow"
+                    LayoutItemProxy {
+                        target: contentLayout
+                    }
+                    LayoutItemProxy {
+                        visible: analogAxisSettings1.active
+                        target: analogAxisSettings1
+                    }
+                    LayoutItemProxy {
+                        visible: analogAxisSettings2.active
+                        target: analogAxisSettings2
+                    }
+                }
             }
         }
 
@@ -149,7 +171,7 @@ Item {
             target: Rg.inputTranslator
         }
 
-        component ButtonGroup: GroupBox {
+        component ButtonGroup: WorkbenchPanel {
             id: buttonGroup
             property alias model: keyRepeater.model
             readonly property var names: [QT_TR_NOOP("Key 1"), QT_TR_NOOP("Key 2"), QT_TR_NOOP("Key 3"),
@@ -161,7 +183,7 @@ Item {
 
                 property var keyConfig: Rg.inputTranslator.keyConfig
 
-                anchors.fill: parent
+                Layout.fillWidth: true
 
                 Repeater {
                     id: keyRepeater
@@ -179,7 +201,7 @@ Item {
 
                         Label {
                             Layout.fillWidth: true
-                            Layout.minimumWidth: 0
+                            Layout.minimumWidth: 120
                             horizontalAlignment: Text.AlignRight
                             color: palette.text
                             elide: Text.ElideMiddle
@@ -217,48 +239,19 @@ Item {
                             }
                         }
 
-                        Label {
-                            id: stateLabel
+                        StatusChip {
+                            property bool active: Rg.inputTranslator[modelData]
+
                             text: Rg.inputTranslator[modelData] ? qsTr("DOWN") : qsTr("UP")
-                            horizontalAlignment: Text.AlignRight
-                            color: palette.text
-                            readonly property real measuredWidth: Math.max(
-                                upStateProbe.implicitWidth,
-                                downStateProbe.implicitWidth,
-                                up.width,
-                                down.width,
-                                up.boundingRect.width,
-                                down.boundingRect.width)
+                            tone: active ? StatusChip.Accent : StatusChip.Neutral
                             Layout.leftMargin: 8
-                            Layout.minimumWidth: Layout.preferredWidth
-                            Layout.preferredWidth: Math.ceil(measuredWidth)
-
-                            Label {
-                                id: upStateProbe
-                                visible: false
-                                text: qsTr("UP")
-                                font: stateLabel.font
-                            }
-                            Label {
-                                id: downStateProbe
-                                visible: false
-                                text: qsTr("DOWN")
-                                font: stateLabel.font
-                            }
-                        }
-                        TextMetrics {
-                            id: up
-                            font: stateLabel.font
-                            text: qsTr("UP")
-                        }
-                        TextMetrics {
-                            id: down
-                            font: stateLabel.font
-                            text: qsTr("DOWN")
+                            Layout.minimumWidth: 58
+                            Layout.preferredWidth: 58
                         }
 
-                        Button {
-                            text: qsTr("Configure")
+                        ActionButton {
+                            text: checked ? qsTr("Listening") : qsTr("Configure")
+                            tone: checked ? ActionButton.Primary : ActionButton.Secondary
                             checkable: true
                             enabled: !checked
                             onCheckedChanged: {
@@ -269,8 +262,9 @@ Item {
                             }
                         }
 
-                        Button {
+                        ActionButton {
                             text: qsTr("Reset")
+                            tone: ActionButton.Tertiary
                             onClicked: {
                                 Rg.inputTranslator.resetButton(buttonRow.button);
                             }

@@ -6,10 +6,11 @@ import "../common/helpers.js" as Helpers
 import "settingsProperties"
 
 
-GroupBox {
+WorkbenchPanel {
     id: axisSettings
     property int player: 1
-    title: qsTr(`Player %1 Turntable`).arg(player)
+    title: qsTr("Analog axis P%1").arg(player)
+    subtitle: qsTr("Controller axis thresholds and scratch behavior.")
     property var axisConfig: Rg.inputTranslator[`analogAxisConfig${player}`]
 
     component NumberField: TextField {
@@ -50,7 +51,7 @@ GroupBox {
     }
 
     ColumnLayout {
-        anchors.fill: parent
+        Layout.fillWidth: true
 
         Choice {
             destination: Rg.inputTranslator[`analogAxisConfig${player}`]
