@@ -50,7 +50,19 @@ Frame {
 
         ColumnLayout {
             id: contentLayout
+
+            readonly property bool hasGrowableContent: {
+                for (let i = 0; i < contentLayout.children.length; ++i) {
+                    const child = contentLayout.children[i];
+                    if (child.visible && child.Layout && child.Layout.fillHeight) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
             spacing: 10
+            Layout.fillHeight: hasGrowableContent
             Layout.fillWidth: true
         }
     }

@@ -38,7 +38,7 @@ Item {
     ScrollView {
         id: rootScrollView
         anchors.fill: parent
-        contentWidth: availableWidth
+        contentWidth: Math.max(rootColumnLayout.implicitWidth, availableWidth)
 
         property int updateScoreCounts: 0
 
@@ -46,7 +46,7 @@ Item {
             id: rootColumnLayout
 
             x: Math.max(0, (rootScrollView.availableWidth - width) / 2)
-            width: Math.min(1220, rootScrollView.availableWidth)
+            width: Math.min(1220, rootScrollView.contentWidth)
             spacing: 14
 
             Dialog {
@@ -103,6 +103,7 @@ Item {
                     ScrollView {
                         Layout.fillHeight: true
                         Layout.fillWidth: true
+                        Layout.minimumHeight: 180
 
                         ListView {
                             id: profileList
