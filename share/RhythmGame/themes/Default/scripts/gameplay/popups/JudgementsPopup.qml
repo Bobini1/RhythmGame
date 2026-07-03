@@ -8,6 +8,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Judgements")
+    panelSubtitle: qsTr("Judgement text visibility and image.")
 
     model: ObjectModel {
         BooleanOption {

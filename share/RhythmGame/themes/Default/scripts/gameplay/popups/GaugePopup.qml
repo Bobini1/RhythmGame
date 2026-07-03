@@ -8,6 +8,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Gauge")
+    panelSubtitle: qsTr("Life gauge visibility, layering, font, and image.")
 
     model: ObjectModel {
         BooleanOption {

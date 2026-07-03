@@ -11,8 +11,15 @@ GameplayPopup {
     required property var themeVars
     property bool dp: false
     property bool fiveKeys: false
+    panelTitle: qsTr("Play area")
+    panelSubtitle: qsTr("Lane layout, covers, and note images.")
 
     model: ObjectModel {
+        PopupSectionHeader {
+            showTopLine: false
+            text: qsTr("Position and lanes")
+            description: qsTr("Placement, layering, and note lane appearance.")
+        }
         NumberWithSlider {
             from: -15
             src: popup.generalVars
@@ -59,6 +66,10 @@ GameplayPopup {
             src: popup.themeVars
             description: qsTr("Judge Line Color")
             prop: "judgeLineColor"
+        }
+        PopupSectionHeader {
+            text: qsTr("Covers and modifiers")
+            description: qsTr("Lane cover, lift, hidden, and scratch behavior.")
         }
         Loader {
             active: !popup.dp
@@ -115,6 +126,10 @@ GameplayPopup {
             prop: "hiddenRatio"
             text: qsTr("Hidden Ratio")
             to: 1
+        }
+        PopupSectionHeader {
+            text: qsTr("Images")
+            description: qsTr("Theme assets used by notes, covers, and effects.")
         }
         Loader {
             active: popup.fiveKeys

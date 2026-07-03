@@ -8,6 +8,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Fast/Slow indicator")
+    panelSubtitle: qsTr("Timing indicator visibility and images.")
 
     model: ObjectModel {
         BooleanOption {

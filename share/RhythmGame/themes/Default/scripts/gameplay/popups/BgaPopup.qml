@@ -6,6 +6,8 @@ GameplayPopup {
 
     required property var generalVars
     required property var themeVars
+    panelTitle: qsTr("BGA")
+    panelSubtitle: qsTr("Background animation visibility and layering.")
 
     model: ObjectModel {
         BooleanOption {

@@ -5,6 +5,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Judgement counts")
+    panelSubtitle: qsTr("Judgement count layering and font.")
 
     model: ObjectModel {
         NumberWithSlider {

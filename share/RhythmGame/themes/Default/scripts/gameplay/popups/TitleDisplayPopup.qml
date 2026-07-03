@@ -5,6 +5,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Title display")
+    panelSubtitle: qsTr("Song title visibility, layering, and font.")
 
     model: ObjectModel {
         BooleanOption {

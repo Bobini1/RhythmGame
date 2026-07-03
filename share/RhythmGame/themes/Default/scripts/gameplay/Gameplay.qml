@@ -28,6 +28,12 @@ Rectangle {
     readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
+    function closeActivePopup() {
+        if (root.popup !== null) {
+            root.popup.close();
+            root.popup = null;
+        }
+    }
     function isPlayerScratchRightSide(player) {
         return player?.profile?.vars?.themeVars[root.screen][root.themeName]?.scratchOnRightSide;
     }
@@ -137,6 +143,8 @@ Rectangle {
             });
         }
     }
+    StackView.onDeactivating: closeActivePopup()
+    Component.onDestruction: closeActivePopup()
     Timer {
         id: startTimer
         interval: 1000
@@ -180,10 +188,7 @@ Rectangle {
                 chart.bga.layers[3].videoSink = bga.poorSink;
             } else if (root.chart.status === ChartRunner.Finished) {
                 bga.clearOutput();
-                if (root.popup !== null) {
-                    root.popup.close();
-                    root.popup = null;
-                }
+                root.closeActivePopup();
                 if (escapeShortcut.used) {
                     return;
                 }
@@ -777,10 +782,12 @@ Rectangle {
 
         onActivated: {
             if (nothingWasHit) {
+                root.closeActivePopup();
                 sceneStack.pop();
             } else {
                 playstopSound.play();
                 used = true;
+                root.closeActivePopup();
                 let chartData = root.chartData;
                 let profile1 = chart.player1.profile;
                 let profile2 = chart.player2 ? chart.player2.profile : null;
@@ -795,10 +802,7 @@ Rectangle {
 
         onActivated: {
             root.customizeMode = !root.customizeMode;
-            if (root.popup !== null) {
-                root.popup.close();
-                root.popup = null;
-            }
+            root.closeActivePopup();
         }
     }
 }

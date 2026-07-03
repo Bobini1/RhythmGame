@@ -5,6 +5,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("BPM display")
+    panelSubtitle: qsTr("BPM text visibility, layering, and font.")
 
     model: ObjectModel {
         BooleanOption {

@@ -1,9 +1,11 @@
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Layouts
 import RhythmGameQml
 
-Row {
+Item {
     id: numberWithSlider
+
     required property string prop
     property alias text: label.text
     property alias to: slider.to
@@ -11,55 +13,85 @@ Row {
     required property var src
     property real decimals: to <= 1 ? 1 : 0
     property bool enforceRange: true
-    height: 40
-    spacing: 10
+    readonly property real spinBoxWidth: 116
+    height: Math.max(48, row.implicitHeight + 10)
+    width: ListView.view ? ListView.view.width : 414
 
-    Text {
-        id: label
-        anchors.verticalCenter: slider.verticalCenter
-        font.bold: true
-        horizontalAlignment: Text.AlignHCenter
-        verticalAlignment: Text.AlignVCenter
-        color: "white"
-        width: 160
-        fontSizeMode: Text.Fit
+    PopupEditorColors {
+        id: popupColors
     }
-    Slider {
-        id: slider
 
-        value: src[numberWithSlider.prop]
-        width: 180
+    RowLayout {
+        id: row
 
-        onMoved: {
-            src[numberWithSlider.prop] = value;
-        }
-    }
-    SpinBox {
-        id: txt
+        anchors.fill: parent
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+        spacing: 10
 
-        value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
-        font.pixelSize: 18
-        width: 140
-        height: parent.height
-        anchors.verticalCenter: slider.verticalCenter
+        Text {
+            id: label
 
-        validator: DoubleValidator {
+            Layout.fillWidth: true
+            color: popupColors.text
+            elide: Text.ElideRight
+            font.bold: true
+            font.pixelSize: 14
+            textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
+            wrapMode: Text.NoWrap
         }
 
-        IntValidator {
-            id: intRange
+        Slider {
+            id: slider
+
+            Layout.preferredWidth: 112
+            Layout.minimumWidth: 78
+            palette.button: popupColors.control
+            palette.highlight: popupColors.accent
+            palette.mid: popupColors.controlBorder
+            value: src[numberWithSlider.prop]
+
+            onMoved: {
+                src[numberWithSlider.prop] = value;
+            }
         }
-        from: (numberWithSlider.bottom === -Infinity || !numberWithSlider.enforceRange) ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
-        to: (numberWithSlider.to === Infinity || !numberWithSlider.enforceRange) ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
-        stepSize: 1
-        onValueModified: {
-            src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
-        }
-        valueFromText: function(text, locale) {
-            return Number.fromLocaleString(locale, text) * 10 ** numberWithSlider.decimals;
-        }
-        textFromValue: function(value, locale) {
-            return Qt.locale().toString(value * 10 ** -numberWithSlider.decimals, "f", numberWithSlider.decimals)
+
+        SpinBox {
+            id: txt
+
+            Layout.preferredHeight: 34
+            Layout.preferredWidth: numberWithSlider.spinBoxWidth
+            font.pixelSize: 14
+            palette.base: popupColors.control
+            palette.button: popupColors.control
+            palette.buttonText: popupColors.text
+            palette.highlight: popupColors.accent
+            palette.highlightedText: popupColors.highlightedText
+            palette.placeholderText: popupColors.mutedText
+            palette.text: popupColors.text
+            palette.window: popupColors.control
+            palette.windowText: popupColors.text
+            value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
+
+            validator: DoubleValidator {
+            }
+
+            IntValidator {
+                id: intRange
+            }
+            from: (numberWithSlider.bottom === -Infinity || !numberWithSlider.enforceRange) ? intRange.bottom : numberWithSlider.from * 10 ** numberWithSlider.decimals
+            to: (numberWithSlider.to === Infinity || !numberWithSlider.enforceRange) ? intRange.top : numberWithSlider.to * 10 ** numberWithSlider.decimals
+            stepSize: 1
+            onValueModified: {
+                src[numberWithSlider.prop] = value * 10 ** -numberWithSlider.decimals;
+            }
+            valueFromText: function(text, locale) {
+                return Number.fromLocaleString(locale, text) * 10 ** numberWithSlider.decimals;
+            }
+            textFromValue: function(value, locale) {
+                return Qt.locale().toString(value * 10 ** -numberWithSlider.decimals, "f", numberWithSlider.decimals)
+            }
         }
     }
 }

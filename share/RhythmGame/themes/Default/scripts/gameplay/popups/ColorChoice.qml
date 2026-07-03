@@ -1,65 +1,79 @@
 import QtQuick
 import RhythmGameQml
 import QtQuick.Dialogs
+import QtQuick.Layouts
 
-Row {
+Item {
+    id: colorChoice
+
     required property string prop
     property string description: prop
     required property var src
-    height: 40
-    spacing: 10
+    height: Math.max(48, row.implicitHeight + 10)
+    width: ListView.view ? ListView.view.width : 414
 
-    Text {
-        id: text
-        anchors.verticalCenter: rect.verticalCenter
-        color: "white"
-        font.bold: true
-        horizontalAlignment: Text.AlignHCenter
-        text: parent.description
-        verticalAlignment: Text.AlignVCenter
-        width: 160
-        fontSizeMode: Text.Fit
+    PopupEditorColors {
+        id: popupColors
     }
 
-    Rectangle {
-        id: rect
+    RowLayout {
+        id: row
 
-        height: 30
-        border {
-            color: "white"
-            width: 2
+        anchors.fill: parent
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+        spacing: 10
+
+        Text {
+            id: text
+
+            Layout.fillWidth: true
+            color: popupColors.text
+            elide: Text.ElideRight
+            font.bold: true
+            font.pixelSize: 14
+            text: colorChoice.description
+            textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
         }
 
-        width: 320
+        Rectangle {
+            id: rect
 
-        color: src[prop]
+            Layout.preferredHeight: 30
+            Layout.preferredWidth: 172
+            border {
+                color: popupColors.controlBorder
+                width: 1
+            }
+            color: colorChoice.src[colorChoice.prop]
+            radius: 4
 
-        MouseArea {
-            anchors.fill: parent
-            onClicked:
-            {
-                rect.oldColor = src[prop]
-                colorDialog.open()
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
+                    rect.oldColor = colorChoice.src[colorChoice.prop]
+                    colorDialog.open()
+                }
+            }
+
+            property color oldColor
+
+            ColorDialog {
+                id: colorDialog
+
+                selectedColor: colorChoice.src[colorChoice.prop]
+
+                Binding {
+                    target: colorChoice.src
+                    property: colorChoice.prop
+                    value: colorDialog.selectedColor
+                }
+
+                onRejected: {
+                    colorChoice.src[colorChoice.prop] = rect.oldColor
+                }
             }
         }
-
-        property color oldColor
-
-        ColorDialog {
-            id: colorDialog
-
-            selectedColor: src[prop]
-
-            Binding {
-                target: src
-                property: prop
-                value: colorDialog.selectedColor
-            }
-
-            onRejected: {
-                src[prop] = rect.oldColor
-            }
-        }
-
     }
 }
