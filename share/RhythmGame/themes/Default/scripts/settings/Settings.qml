@@ -57,27 +57,58 @@ Page {
         return SettingsColors.alpha(settings.palette.window, 0);
     }
 
-    component SettingsTabButton: TabButton {
+    component SettingsTabButton: Button {
         id: settingsTabButton
 
         required property var settingsPage
         required property var headerFont
+        required property bool selected
 
+        readonly property real minimumTabWidth: 72
+        readonly property real reservedTextWidth: Math.ceil(Math.max(regularTextSizer.implicitWidth, checkedTextSizer.implicitWidth))
+
+        signal selectedRequested()
+
+        implicitWidth: Math.max(minimumTabWidth, reservedTextWidth + leftPadding + rightPadding)
         implicitHeight: 40
-        width: Math.max(136, contentItem.implicitWidth + leftPadding + rightPadding)
-        leftPadding: 18
-        rightPadding: 18
+        width: implicitWidth
+        leftPadding: 14
+        rightPadding: 14
         topPadding: 8
         bottomPadding: 8
         font.family: headerFont.fontFamily
-        font.weight: checked ? headerFont.boldFontWeight : headerFont.fontWeight
-        font.variableAxes: checked ? headerFont.boldVariableAxes : headerFont.variableAxes
+        font.weight: selected ? headerFont.boldFontWeight : headerFont.fontWeight
+        font.variableAxes: selected ? headerFont.boldVariableAxes : headerFont.variableAxes
         font.italic: headerFont.italic
+
+        onClicked: selectedRequested()
+
+        Label {
+            id: regularTextSizer
+
+            visible: false
+            text: settingsTabButton.text
+            font.family: settingsTabButton.headerFont.fontFamily
+            font.weight: settingsTabButton.headerFont.fontWeight
+            font.variableAxes: settingsTabButton.headerFont.variableAxes
+            font.italic: settingsTabButton.headerFont.italic
+        }
+
+        Label {
+            id: checkedTextSizer
+
+            visible: false
+            text: settingsTabButton.text
+            font.family: settingsTabButton.headerFont.fontFamily
+            font.weight: settingsTabButton.headerFont.boldFontWeight
+            font.variableAxes: settingsTabButton.headerFont.boldVariableAxes
+            font.italic: settingsTabButton.headerFont.italic
+        }
 
         contentItem: Label {
             text: settingsTabButton.text
             font: settingsTabButton.font
-            color: settingsPage.tabTextColor(settingsTabButton.checked, settingsTabButton.enabled)
+            color: settingsPage.tabTextColor(settingsTabButton.selected, settingsTabButton.enabled)
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
@@ -86,11 +117,11 @@ Page {
 
         background: Rectangle {
             radius: 6
-            color: settingsPage.tabFillColor(settingsTabButton.checked, settingsTabButton.hovered, settingsTabButton.down)
-            border.width: settingsTabButton.visualFocus ? 2 : (settingsTabButton.checked || settingsTabButton.hovered ? 1 : 0)
+            color: settingsPage.tabFillColor(settingsTabButton.selected, settingsTabButton.hovered, settingsTabButton.down)
+            border.width: settingsTabButton.visualFocus ? 2 : (settingsTabButton.selected || settingsTabButton.hovered ? 1 : 0)
             border.color: settingsTabButton.visualFocus
                 ? settingsPage.palette.highlight
-                : (settingsTabButton.checked ? settingsPage.palette.highlight : SettingsColors.alpha(settingsPage.palette.mid, 0.55))
+                : (settingsTabButton.selected ? settingsPage.palette.highlight : SettingsColors.alpha(settingsPage.palette.mid, 0.55))
         }
     }
 
@@ -142,56 +173,128 @@ Page {
             }
         }
 
-        TabBar {
-            id: tabView
+        Flickable {
+            id: tabViewport
 
-            readonly property real visibleTabWidth: playerSettingsTab.width + songDirectoriesTab.width
-                + tablesTab.width + themesTab.width + generalSettingsTab.width + keyConfigTab.width
+            readonly property real edgeGap: 1
+            readonly property real availableWidth: Math.max(0, parent.width - backButton.width - edgeGap)
+            readonly property real tabStripWidth: tabView.implicitWidth
+            readonly property bool overflowing: tabStripWidth > availableWidth
 
-            x: Math.max(backButton.width + 1, (parent.width - width) / 2)
-            width: Math.min(visibleTabWidth, parent.width - backButton.width - 1)
+            x: overflowing ? backButton.width + edgeGap : Math.max(backButton.width + edgeGap, (parent.width - width) / 2)
+            width: Math.min(tabStripWidth, availableWidth)
             height: parent.height
-            font.family: settingsHeaderFont.fontFamily
-            font.weight: settingsHeaderFont.fontWeight
-            font.variableAxes: settingsHeaderFont.variableAxes
-            font.italic: settingsHeaderFont.italic
-            palette.buttonText: settings.palette.windowText
+            contentWidth: tabStripWidth
+            contentHeight: height
+            clip: overflowing
+            interactive: overflowing
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.HorizontalFlick
 
-            SettingsTabButton {
-                id: playerSettingsTab
-                settingsPage: settings
-                headerFont: settingsHeaderFont
-                text: qsTr("Player settings")
+            function ensureCurrentTabVisible() {
+                if (!overflowing || width <= 0) {
+                    contentX = 0;
+                    return;
+                }
+
+                const currentTab = tabView.itemAt(tabView.currentIndex);
+                if (!currentTab) {
+                    return;
+                }
+
+                const margin = 12;
+                const leftEdge = currentTab.x;
+                const rightEdge = currentTab.x + currentTab.width;
+                const maxContentX = Math.max(0, contentWidth - width);
+
+                if (leftEdge < contentX + margin) {
+                    contentX = Math.max(0, leftEdge - margin);
+                } else if (rightEdge > contentX + width - margin) {
+                    contentX = Math.min(maxContentX, rightEdge - width + margin);
+                }
             }
-            SettingsTabButton {
-                id: songDirectoriesTab
-                settingsPage: settings
-                headerFont: settingsHeaderFont
-                text: qsTr("Song directories")
-            }
-            SettingsTabButton {
-                id: tablesTab
-                settingsPage: settings
-                headerFont: settingsHeaderFont
-                text: qsTr("Tables")
-            }
-            SettingsTabButton {
-                id: themesTab
-                settingsPage: settings
-                headerFont: settingsHeaderFont
-                text: qsTr("Themes")
-            }
-            SettingsTabButton {
-                id: generalSettingsTab
-                settingsPage: settings
-                headerFont: settingsHeaderFont
-                text: qsTr("General Settings")
-            }
-            SettingsTabButton {
-                id: keyConfigTab
-                settingsPage: settings
-                headerFont: settingsHeaderFont
-                text: qsTr("Key config")
+
+            onWidthChanged: Qt.callLater(ensureCurrentTabVisible)
+            onContentWidthChanged: Qt.callLater(ensureCurrentTabVisible)
+
+            Row {
+                id: tabView
+
+                property int currentIndex: 0
+                readonly property int count: 6
+
+                function itemAt(index) {
+                    switch (index) {
+                    case 0:
+                        return playerSettingsTab;
+                    case 1:
+                        return songDirectoriesTab;
+                    case 2:
+                        return tablesTab;
+                    case 3:
+                        return themesTab;
+                    case 4:
+                        return generalSettingsTab;
+                    case 5:
+                        return keyConfigTab;
+                    default:
+                        return null;
+                    }
+                }
+
+                width: implicitWidth
+                height: tabViewport.height
+
+                onCurrentIndexChanged: Qt.callLater(tabViewport.ensureCurrentTabVisible)
+
+                SettingsTabButton {
+                    id: playerSettingsTab
+                    settingsPage: settings
+                    headerFont: settingsHeaderFont
+                    selected: tabView.currentIndex === 0
+                    text: qsTr("Player settings")
+                    onSelectedRequested: tabView.currentIndex = 0
+                }
+                SettingsTabButton {
+                    id: songDirectoriesTab
+                    settingsPage: settings
+                    headerFont: settingsHeaderFont
+                    selected: tabView.currentIndex === 1
+                    text: qsTr("Song directories")
+                    onSelectedRequested: tabView.currentIndex = 1
+                }
+                SettingsTabButton {
+                    id: tablesTab
+                    settingsPage: settings
+                    headerFont: settingsHeaderFont
+                    selected: tabView.currentIndex === 2
+                    text: qsTr("Tables")
+                    onSelectedRequested: tabView.currentIndex = 2
+                }
+                SettingsTabButton {
+                    id: themesTab
+                    settingsPage: settings
+                    headerFont: settingsHeaderFont
+                    selected: tabView.currentIndex === 3
+                    text: qsTr("Themes")
+                    onSelectedRequested: tabView.currentIndex = 3
+                }
+                SettingsTabButton {
+                    id: generalSettingsTab
+                    settingsPage: settings
+                    headerFont: settingsHeaderFont
+                    selected: tabView.currentIndex === 4
+                    text: qsTr("General Settings")
+                    onSelectedRequested: tabView.currentIndex = 4
+                }
+                SettingsTabButton {
+                    id: keyConfigTab
+                    settingsPage: settings
+                    headerFont: settingsHeaderFont
+                    selected: tabView.currentIndex === 5
+                    text: qsTr("Key config")
+                    onSelectedRequested: tabView.currentIndex = 5
+                }
             }
         }
     }

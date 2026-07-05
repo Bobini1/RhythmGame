@@ -47,9 +47,6 @@ Item {
 
             Layout.preferredWidth: 112
             Layout.minimumWidth: 78
-            palette.button: popupColors.control
-            palette.highlight: popupColors.accent
-            palette.mid: popupColors.controlBorder
             value: src[numberWithSlider.prop]
 
             onMoved: {
@@ -63,15 +60,6 @@ Item {
             Layout.preferredHeight: 34
             Layout.preferredWidth: numberWithSlider.spinBoxWidth
             font.pixelSize: 14
-            palette.base: popupColors.control
-            palette.button: popupColors.control
-            palette.buttonText: popupColors.text
-            palette.highlight: popupColors.accent
-            palette.highlightedText: popupColors.highlightedText
-            palette.placeholderText: popupColors.mutedText
-            palette.text: popupColors.text
-            palette.window: popupColors.control
-            palette.windowText: popupColors.text
             value: src[numberWithSlider.prop] * 10 ** numberWithSlider.decimals
 
             validator: DoubleValidator {

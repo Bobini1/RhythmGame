@@ -96,9 +96,33 @@ Item {
 
         property alias model: keyRepeater.model
         readonly property int stateColumnWidth: 86
+        readonly property int configureColumnWidth: Math.max(112, Math.ceil(Math.max(configureTextMetrics.advanceWidth, listeningTextMetrics.advanceWidth) + 28))
+        readonly property int resetColumnWidth: Math.max(84, Math.ceil(resetTextMetrics.advanceWidth + 28))
+        readonly property int rowSpacing: 8
         readonly property var names: [QT_TR_NOOP("Key 1"), QT_TR_NOOP("Key 2"), QT_TR_NOOP("Key 3"),
             QT_TR_NOOP("Key 4"), QT_TR_NOOP("Key 5"), QT_TR_NOOP("Key 6"), QT_TR_NOOP("Key 7"),
             QT_TR_NOOP("Scratch Up"), QT_TR_NOOP("Scratch Down"), QT_TR_NOOP("Start"), QT_TR_NOOP("Select")]
+
+        TextMetrics {
+            id: configureTextMetrics
+
+            font: buttonGroup.font
+            text: qsTr("Configure")
+        }
+
+        TextMetrics {
+            id: listeningTextMetrics
+
+            font: buttonGroup.font
+            text: qsTr("Listening")
+        }
+
+        TextMetrics {
+            id: resetTextMetrics
+
+            font: buttonGroup.font
+            text: qsTr("Reset")
+        }
 
         ColumnLayout {
             id: keyLayout
@@ -112,7 +136,7 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: 4
                 Layout.rightMargin: 4
-                spacing: 8
+                spacing: buttonGroup.rowSpacing
 
                 Label {
                     text: qsTr("Action")
@@ -139,7 +163,7 @@ Item {
                 }
 
                 Item {
-                    Layout.preferredWidth: 202
+                    Layout.preferredWidth: buttonGroup.configureColumnWidth + buttonGroup.rowSpacing + buttonGroup.resetColumnWidth
                 }
             }
 
@@ -151,7 +175,7 @@ Item {
 
                     Layout.fillWidth: true
                     Layout.minimumHeight: 36
-                    spacing: 8
+                    spacing: buttonGroup.rowSpacing
                     readonly property var button: BmsKey[Helpers.capitalizeFirstLetter(modelData)]
 
                     Label {
@@ -215,7 +239,8 @@ Item {
                         tone: checked ? ActionButton.Primary : ActionButton.Secondary
                         checkable: true
                         enabled: !checked
-                        Layout.preferredWidth: 96
+                        Layout.minimumWidth: buttonGroup.configureColumnWidth
+                        Layout.preferredWidth: buttonGroup.configureColumnWidth
 
                         onCheckedChanged: {
                             if (checked) {
@@ -228,7 +253,8 @@ Item {
                     ActionButton {
                         text: qsTr("Reset")
                         tone: ActionButton.Tertiary
-                        Layout.preferredWidth: 84
+                        Layout.minimumWidth: buttonGroup.resetColumnWidth
+                        Layout.preferredWidth: buttonGroup.resetColumnWidth
 
                         onClicked: {
                             Rg.inputTranslator.resetButton(buttonRow.button);

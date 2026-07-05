@@ -16,7 +16,6 @@ Popup {
     property string panelTitle: ""
     property string panelSubtitle: ""
     property alias model: column.model
-    readonly property color editorControlColor: popupColors.control
     readonly property real visualMargin: 18
     readonly property real nearGap: 14
     readonly property real contentBottomPadding: 28
@@ -27,21 +26,6 @@ Popup {
     PopupEditorColors {
         id: popupColors
     }
-
-    palette.window: popupColors.panel
-    palette.windowText: popupColors.text
-    palette.base: popupColors.control
-    palette.alternateBase: popupColors.preview
-    palette.text: popupColors.text
-    palette.button: popupColors.control
-    palette.buttonText: popupColors.text
-    palette.brightText: popupColors.text
-    palette.mid: popupColors.controlBorder
-    palette.dark: popupColors.controlDisabled
-    palette.shadow: "#000000"
-    palette.highlight: popupColors.accent
-    palette.highlightedText: popupColors.highlightedText
-    palette.placeholderText: popupColors.mutedText
 
     function closeTransientPopups() {
         for (let child of column.contentItem.children) {

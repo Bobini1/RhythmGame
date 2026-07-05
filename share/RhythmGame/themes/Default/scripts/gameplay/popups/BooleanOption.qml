@@ -41,15 +41,6 @@ Item {
             Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
             Layout.preferredWidth: 34
             checked: booleanOption.src[booleanOption.prop]
-            palette.base: popupColors.control
-            palette.button: popupColors.control
-            palette.buttonText: popupColors.text
-            palette.dark: popupColors.controlDisabled
-            palette.highlight: popupColors.accent
-            palette.highlightedText: popupColors.highlightedText
-            palette.mid: popupColors.controlBorder
-            palette.text: popupColors.text
-            palette.windowText: popupColors.text
 
             onCheckedChanged: {
                 booleanOption.src[booleanOption.prop] = checked;

@@ -114,12 +114,6 @@ Item {
 
         Button {
             activeFocusOnTab: true
-            palette.button: popupColors.control
-            palette.buttonText: popupColors.text
-            palette.highlight: popupColors.accent
-            palette.highlightedText: popupColors.highlightedText
-            palette.text: popupColors.text
-            palette.windowText: popupColors.text
             text: fontSelection.displayNameForLoadedFont(fontSelection.currentValue, selectedFont.fontFamily)
             width: parent.width
             onClicked: fontDialog.open()
@@ -160,15 +154,6 @@ Item {
         anchors.centerIn: Overlay.overlay
         height: Math.min(620, Overlay.overlay ? Overlay.overlay.height - 80 : 620)
         modal: true
-        palette.base: popupColors.preview
-        palette.button: popupColors.control
-        palette.buttonText: popupColors.text
-        palette.highlight: popupColors.accent
-        palette.highlightedText: popupColors.highlightedText
-        palette.placeholderText: popupColors.mutedText
-        palette.text: popupColors.text
-        palette.window: popupColors.panel
-        palette.windowText: popupColors.text
         standardButtons: Dialog.Close
         title: fontSelection.label
         width: Math.min(700, Overlay.overlay ? Overlay.overlay.width - 80 : 700)
@@ -181,14 +166,6 @@ Item {
                 id: searchField
 
                 Layout.fillWidth: true
-                palette.base: popupColors.control
-                palette.button: popupColors.control
-                palette.buttonText: popupColors.text
-                palette.highlight: popupColors.accent
-                palette.highlightedText: popupColors.highlightedText
-                palette.placeholderText: popupColors.mutedText
-                palette.text: popupColors.text
-                palette.windowText: popupColors.text
                 placeholderText: qsTr("Search fonts")
                 selectByMouse: true
             }
@@ -211,13 +188,6 @@ Item {
                     required property var modelData
 
                     highlighted: fontSelection.currentValue === modelData.value
-                    palette.base: popupColors.preview
-                    palette.button: popupColors.control
-                    palette.highlight: popupColors.accent
-                    palette.highlightedText: popupColors.highlightedText
-                    palette.placeholderText: popupColors.mutedText
-                    palette.text: popupColors.text
-                    palette.windowText: popupColors.text
                     width: fontList.width
                     onClicked: {
                         fontSelection.src[fontSelection.propertyId] = modelData.value;
