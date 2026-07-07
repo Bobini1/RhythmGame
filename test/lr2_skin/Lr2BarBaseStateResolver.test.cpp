@@ -20,6 +20,14 @@ dstMap(int time, int x, int y)
 }
 
 QVariantMap
+dstMapWithAlpha(int time, int x, int y, int alpha)
+{
+    QVariantMap dst = dstMap(time, x, y);
+    dst[QStringLiteral("a")] = alpha;
+    return dst;
+}
+
+QVariantMap
 rowWithDst(const QVariantMap& dst)
 {
     return QVariantMap{
@@ -99,4 +107,34 @@ TEST_CASE("LR2 bar position map reads resolver coordinates on attach",
     REQUIRE(positionMap.yAt(0) == 20.0);
     REQUIRE(positionMap.xAt(1) == 30.0);
     REQUIRE(positionMap.yAt(1) == 40.0);
+}
+
+TEST_CASE("LR2 bar base state resolver uses fast scroll for uniform rows",
+          "[lr2][runtime][select]")
+{
+    Lr2BarBaseStateResolver resolver;
+    resolver.setSelectedRow(1);
+    resolver.setBarRows(QVariantList{
+      rowWithDst(dstMap(0, 10, 20)),
+      rowWithDst(dstMap(0, 10, 40)),
+      rowWithDst(dstMap(0, 10, 60)),
+    });
+
+    REQUIRE(resolver.fastScrollActive());
+    REQUIRE(resolver.fastScrollDx() == 0.0);
+    REQUIRE(resolver.fastScrollDy() == 20.0);
+}
+
+TEST_CASE("LR2 bar base state resolver disables fast scroll when selected row state differs",
+          "[lr2][runtime][select]")
+{
+    Lr2BarBaseStateResolver resolver;
+    resolver.setSelectedRow(1);
+    resolver.setBarRows(QVariantList{
+      rowWithDst(dstMapWithAlpha(0, 10, 20, 128)),
+      rowWithDst(dstMapWithAlpha(0, 10, 40, 255)),
+      rowWithDst(dstMapWithAlpha(0, 10, 60, 128)),
+    });
+
+    REQUIRE_FALSE(resolver.fastScrollActive());
 }

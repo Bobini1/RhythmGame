@@ -46,10 +46,7 @@ Item {
         : []
     readonly property bool bodySourceKind: !!srcData
         && srcData.kind === 0
-    readonly property bool selectedBodySource: bodySourceKind
-        && srcData.row === selectedRow
     readonly property bool applyFastBarScroll: fastBarScrollActive
-        && !selectedBodySource
         && (!srcData || srcData.kind !== 2)
     readonly property bool useDirectSourceSkinClock: !!skinClock && sourceSkinClockMode !== 0
     x: applyFastBarScroll ? fastBarScrollX * scaleOverride : 0
