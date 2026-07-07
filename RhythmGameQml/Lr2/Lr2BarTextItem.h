@@ -81,7 +81,10 @@ private:
     void updateSupported();
     void requestSceneUpdate();
     TextImage textImageFor(const QString& text, const QColor& color, qreal boxHeight, bool hasEdge);
-    QImage scaledLr2TextImageFor(const QString& text, const QColor& color, const QSize& targetSize);
+    QImage scaledLr2TextImageFor(const QString& text,
+                                 const QColor& color,
+                                 const QSize& targetSize,
+                                 bool smooth);
 
     QVariantList m_dsts;
     QVariantList m_timelineDsts;

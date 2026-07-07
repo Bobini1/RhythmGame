@@ -475,7 +475,8 @@ Lr2BarTextItem::TextImage Lr2BarTextItem::textImageFor(const QString& text,
 
 QImage Lr2BarTextItem::scaledLr2TextImageFor(const QString& text,
                                              const QColor& color,
-                                             const QSize& targetSize)
+                                             const QSize& targetSize,
+                                             bool smooth)
 {
     if (!m_source.isLr2Font || text.isEmpty() || targetSize.isEmpty()) {
         return {};
@@ -485,17 +486,18 @@ QImage Lr2BarTextItem::scaledLr2TextImageFor(const QString& text,
         + u'\x1f' + QString::number(targetSize.width())
         + u'x' + QString::number(targetSize.height())
         + u'\x1f' + colorKey(color)
+        + u'\x1f' + QString::number(smooth ? 1 : 0)
         + u'\x1f' + text;
     if (const auto it = m_scaledTextImageCache.constFind(key); it != m_scaledTextImageCache.constEnd()) {
         return *it;
     }
 
     QImage image =
-      resource_managers::Lr2FontImageProvider::scaledTextImage(
+        resource_managers::Lr2FontImageProvider::scaledTextImage(
           m_source.fontPath,
           text,
           targetSize,
-          true);
+          smooth);
     image = tintedImage(std::move(image), color);
 
     if (m_scaledTextImageCache.size() > 512) {
@@ -525,6 +527,9 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
     const QColor textColor = colorFromState(state);
     const qreal opacity = std::clamp(state.a / 255.0, 0.0, 1.0);
     const bool hasEdge = (m_source.fontType & 1) != 0;
+    const auto filtering = m_source.isLr2Font && state.filter == 0
+        ? QSGTexture::Nearest
+        : QSGTexture::Linear;
     const qreal anchorOffsetX = m_source.align == 1
         ? -boxW * 0.5
         : (m_source.align == 2 ? -boxW : 0.0);
@@ -579,7 +584,8 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
             const QSize targetSize(
                 std::max(1, static_cast<int>(std::lround(drawnW * sceneScale.width()))),
                 std::max(1, static_cast<int>(std::lround(drawnH * sceneScale.height()))));
-            const QImage scaledImage = scaledLr2TextImageFor(text, textColor, targetSize);
+            const QImage scaledImage =
+                scaledLr2TextImageFor(text, textColor, targetSize, filtering == QSGTexture::Linear);
             if (!scaledImage.isNull()) {
                 textureImage = scaledImage;
             }
@@ -589,7 +595,6 @@ QSGNode* Lr2BarTextItem::updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*)
         if (!texture) {
             continue;
         }
-        const auto filtering = QSGTexture::Linear;
         texture->setFiltering(filtering);
         texture->setHorizontalWrapMode(QSGTexture::ClampToEdge);
         texture->setVerticalWrapMode(QSGTexture::ClampToEdge);

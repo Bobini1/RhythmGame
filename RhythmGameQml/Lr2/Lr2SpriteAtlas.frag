@@ -43,9 +43,7 @@ void main(void) {
             samplePx = sourceStartPx + destIndex * sourceSpan / destSpan;
             samplePx = floor(samplePx + vec2(0.5));
         } else {
-            vec2 destTexel = fwidth(localCoord);
-            samplePx = sourceStartPx
-                + max(vec2(0.0), localCoord - destTexel * 0.5) * sourceSizePx;
+            samplePx = sourceStartPx + localCoord * sourceSizePx;
             samplePx = floor(samplePx);
         }
         samplePx = clamp(samplePx, minPx, maxPx) + vec2(0.5);
