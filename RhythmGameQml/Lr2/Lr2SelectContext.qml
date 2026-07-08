@@ -108,7 +108,6 @@ Item {
         fail: 0,
         noplay: 0,
         assist: 0,
-        lightAssist: 0,
         easy: 0,
         normal: 0,
         hard: 0,
@@ -125,7 +124,6 @@ Item {
         fail: 0,
         noplay: 0,
         assist: 0,
-        lightAssist: 0,
         easy: 0,
         normal: 0,
         hard: 0,
@@ -266,7 +264,7 @@ Item {
     readonly property var beatorajaSortOrder: [2, 5, 6, 7, 1, 3, 4, 8]
     readonly property var lr2KeyFilterOrder: [0, 1, 2, 3, 4, 5, 6]
     readonly property var beatorajaKeyFilterOrder: [0, 1, 2, 3, 4]
-    readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "LIGHTASSIST", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
+    readonly property var clearTypePriorities: ["NOPLAY", "FAILED", "AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]
 
     readonly property int count: selectItemModel.count
     readonly property int logicalCount: realItemCount > 0 ? realItemCount : count
@@ -761,16 +759,13 @@ Item {
         }
         if (counts.NOPLAY === undefined
                 && counts.FAILED === undefined
-                && counts.AEASY === undefined
-                && counts.LIGHTASSIST === undefined
-                && counts.LIGHT_ASSIST === undefined) {
+                && counts.AEASY === undefined) {
             return counts;
         }
 
         let noplay = counts.NOPLAY || 0;
         let fail = counts.FAILED || 0;
         let assist = counts.AEASY || 0;
-        let lightAssist = counts.LIGHTASSIST || counts.LIGHT_ASSIST || 0;
         let easy = counts.EASY || 0;
         let normal = counts.NORMAL || 0;
         let hard = counts.HARD || 0;
@@ -779,14 +774,13 @@ Item {
         let perfect = counts.PERFECT || 0;
         let max = counts.MAX || 0;
         if (!root.useBeatorajaSelectOptions) {
-            fail += assist + lightAssist;
+            fail += assist;
             assist = 0;
-            lightAssist = 0;
             hard += exhard;
             exhard = 0;
         }
-        let play = fail + assist + lightAssist + easy + normal + hard + exhard + fc + perfect + max;
-        let clear = assist + lightAssist + easy + normal + hard + exhard + fc + perfect + max;
+        let play = fail + assist + easy + normal + hard + exhard + fc + perfect + max;
+        let clear = assist + easy + normal + hard + exhard + fc + perfect + max;
         return {
             total: noplay + play,
             play: play,
@@ -794,7 +788,6 @@ Item {
             fail: fail,
             noplay: noplay,
             assist: assist,
-            lightAssist: lightAssist,
             easy: easy,
             normal: normal,
             hard: hard,
@@ -810,9 +803,7 @@ Item {
         if (value === 0 || !counts) {
             return value;
         }
-        let assist = (counts.AEASY || 0)
-            + (counts.LIGHTASSIST || 0)
-            + (counts.LIGHT_ASSIST || 0);
+        let assist = counts.AEASY || 0;
         return assist > 0 ? 1 : value;
     }
 
@@ -837,26 +828,26 @@ Item {
             return -1;
         }
         let order = [
-            ["NOPLAY", "noplay"],
-            ["FAILED", "fail"],
-            ["AEASY", "assist"],
-            ["LIGHTASSIST", "lightAssist", "LIGHT_ASSIST"],
-            ["EASY", "easy"],
-            ["NORMAL", "normal"],
-            ["HARD", "hard"],
-            ["EXHARD", "exhard"],
-            ["FC", "fc"],
-            ["PERFECT", "perfect"],
-            ["MAX", "max"]
+            [0, "NOPLAY", "noplay"],
+            [1, "FAILED", "fail"],
+            [2, "AEASY", "assist"],
+            [4, "EASY", "easy"],
+            [5, "NORMAL", "normal"],
+            [6, "HARD", "hard"],
+            [7, "EXHARD", "exhard"],
+            [8, "FC", "fc"],
+            [9, "PERFECT", "perfect"],
+            [10, "MAX", "max"]
         ];
         for (let i = 0; i < order.length; ++i) {
             let keys = order[i];
             let value = 0;
-            for (let key of keys) {
+            for (let j = 1; j < keys.length; ++j) {
+                let key = keys[j];
                 value += Number(counts[key] || 0);
             }
             if (value > 0) {
-                return i;
+                return keys[0];
             }
         }
         return 0;
@@ -868,8 +859,6 @@ Item {
             return "FAILED";
         case 2:
             return "AEASY";
-        case 3:
-            return "LIGHTASSIST";
         case 4:
             return "EASY";
         case 5:
@@ -2121,68 +2110,35 @@ Item {
         return entryScoresForIdentifier(entryIdentifier(item));
     }
 
-    function normalizedClearType(clear: var) : var {
-        let value = String(clear || "NOPLAY").toUpperCase();
+    function clearTypeOrNoplay(clear: var) : var {
+        return clear === undefined || clear === null || clear === ""
+            ? "NOPLAY"
+            : String(clear);
+    }
+
+    function courseCompatibleClearType(clear: var) : var {
+        let value = clearTypeOrNoplay(clear);
         switch (value) {
-        case "":
-            return "NOPLAY";
-        case "ASSIST":
-        case "ASSISTEASY":
-        case "ASSIST_EASY":
-            return "AEASY";
-        case "LIGHT_ASSIST":
-        case "LIGHTASSISTEASY":
-        case "LIGHT_ASSIST_EASY":
-            return "LIGHTASSIST";
-        case "CLEAR":
-            return "NORMAL";
-        case "EX_HARD":
-            return "EXHARD";
         case "DAN":
             return "NORMAL";
         case "EXDAN":
-        case "HARD_DAN":
-        case "HARD DAN":
             return "HARD";
         case "EXHARDDAN":
-        case "EXHARD_DAN":
-        case "EX_HARD_DAN":
             return "EXHARD";
-        case "FULLCOMBO":
-        case "FULL_COMBO":
-        case "FULL COMBO":
-            return "FC";
-        case "NO_PLAY":
-        case "NO PLAY":
-            return "NOPLAY";
-        case "FAILED":
-        case "AEASY":
-        case "LIGHTASSIST":
-        case "EASY":
-        case "NORMAL":
-        case "HARD":
-        case "EXHARD":
-        case "FC":
-        case "PERFECT":
-        case "MAX":
-        case "NOPLAY":
-            return value;
         default:
             return value;
         }
     }
 
     function skinCompatibleClearType(clear: var) : var {
-        let value = normalizedClearType(clear);
+        let value = courseCompatibleClearType(clear);
         if (root.useExpandedClearSemantics) {
             return value;
         }
         switch (value) {
         case "AEASY":
-        case "LIGHTASSIST":
             return "FAILED";
         case "EXHARD":
-        case "EXHARDDAN":
             return "HARD";
         default:
             return value;
@@ -2195,8 +2151,6 @@ Item {
             return 1;
         case "AEASY":
             return 2;
-        case "LIGHTASSIST":
-            return 3;
         case "EASY":
             return 4;
         case "NORMAL":
@@ -2256,7 +2210,6 @@ Item {
             fail: 0,
             noplay: 0,
             assist: 0,
-            lightAssist: 0,
             easy: 0,
             normal: 0,
             hard: 0,
@@ -2295,9 +2248,6 @@ Item {
                 break;
             case "AEASY":
                 ++counts.assist;
-                break;
-            case "LIGHTASSIST":
-                ++counts.lightAssist;
                 break;
             case "EASY":
                 ++counts.easy;
@@ -2387,11 +2337,10 @@ Item {
     }
 
     function collapsedClearTypeLamp(clear: var) : var {
-        switch (normalizedClearType(clear)) {
+        switch (courseCompatibleClearType(clear)) {
         case "FAILED":
             return 1;
         case "AEASY":
-        case "LIGHTASSIST":
         case "EASY":
             return 2;
         case "NORMAL":
@@ -2438,8 +2387,6 @@ Item {
             return 1;
         case "AEASY":
             return hasBarLampVariant(variants, 9) ? 9 : 2;
-        case "LIGHTASSIST":
-            return hasBarLampVariant(variants, 10) ? 10 : 2;
         case "EASY":
             return 2;
         case "NORMAL":
@@ -2774,7 +2721,6 @@ Item {
         // selected-bar clear options are added from the current summary only.
         switch (skinCompatibleClearType(clearType)) {
         case "AEASY":
-        case "LIGHTASSIST":
             ids.push(124);
             break;
         case "EASY":
@@ -2882,8 +2828,6 @@ Item {
             return 101;
         case "AEASY":
             return 1100;
-        case "LIGHTASSIST":
-            return 1101;
         case "EASY":
             return 102;
         case "NORMAL":
@@ -3018,13 +2962,19 @@ Item {
         return changed;
     }
 
-    function rankingClearCountValue() : var {
+    function clearTypeList(clearTypes: var) : var {
+        if (clearTypes === undefined || clearTypes === null) {
+            return [];
+        }
+        return Array.isArray(clearTypes) ? clearTypes : [clearTypes];
+    }
+
+    function rankingClearCountValue(clearTypes: var) : var {
         if (!rankingStatsAvailable()) {
             return 0;
         }
         let total = 0;
-        for (let i = 0; i < arguments.length; ++i) {
-            let clearType = arguments[i];
+        for (let clearType of clearTypeList(clearTypes)) {
             total += rankingClearCounts && rankingClearCounts[clearType]
                 ? rankingClearCounts[clearType]
                 : 0;
@@ -3032,13 +2982,12 @@ Item {
         return total;
     }
 
-    function rankingClearPercent() : var {
+    function rankingClearPercent(clearTypes: var) : var {
         if (!rankingStatsAvailable() || rankingPlayerCount <= 0) {
             return 0;
         }
         let total = 0;
-        for (let i = 0; i < arguments.length; ++i) {
-            let clearType = arguments[i];
+        for (let clearType of clearTypeList(clearTypes)) {
             total += rankingClearCounts && rankingClearCounts[clearType]
                 ? rankingClearCounts[clearType]
                 : 0;
@@ -3046,13 +2995,12 @@ Item {
         return Math.floor(total * 100 / rankingPlayerCount);
     }
 
-    function rankingClearPercentAfterDot() : var {
+    function rankingClearPercentAfterDot(clearTypes: var) : var {
         if (!rankingStatsAvailable() || rankingPlayerCount <= 0) {
             return 0;
         }
         let total = 0;
-        for (let i = 0; i < arguments.length; ++i) {
-            let clearType = arguments[i];
+        for (let clearType of clearTypeList(clearTypes)) {
             total += rankingClearCounts && rankingClearCounts[clearType]
                 ? rankingClearCounts[clearType]
                 : 0;
@@ -3082,7 +3030,7 @@ Item {
     }
 
     function rankingStatsAvailable() : var {
-        let chart = selectedStateChartData;
+        let chart = selectedChartDataForValues();
         let currentMd5 = chart ? normalizedMd5(chart.md5) : "";
         return currentMd5.length > 0
             && currentMd5 === normalizedMd5(rankingStatsMd5)
@@ -3210,7 +3158,7 @@ Item {
     }
 
     function showRanking(entries: var, clearCounts: var, playerCount: var, totalPlayCount: var, playerRank: var, provider: var) : var {
-        let chart = selectedStateChartData;
+        let chart = selectedChartDataForValues();
         if (!chart || !entries || entries.length <= 0) {
             return false;
         }
@@ -4607,9 +4555,8 @@ Item {
         case 205:
             return hasRankingStats() ? rankingClearPercent("AEASY") : percentInteger(counts().assist, counts().play);
         case 206:
-            return hasRankingStats() ? rankingClearCountValue("LIGHTASSIST") : counts().lightAssist;
         case 207:
-            return hasRankingStats() ? rankingClearPercent("LIGHTASSIST") : percentInteger(counts().lightAssist, counts().play);
+            return 0;
         case 208:
             return hasRankingStats() ? rankingClearCountValue("EXHARD") : counts().exhard;
         case 209:
@@ -4643,19 +4590,19 @@ Item {
         case 225:
             return hasRankingStats() ? rankingClearPercent("MAX") : percentInteger(counts().max, counts().play);
         case 226:
-            return hasRankingStats() ? rankingClearCountValue("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : counts().clear;
+            return hasRankingStats() ? rankingClearCountValue(["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]) : counts().clear;
         case 227:
-            return hasRankingStats() ? rankingClearPercent("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentInteger(counts().clear, counts().play);
+            return hasRankingStats() ? rankingClearPercent(["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]) : percentInteger(counts().clear, counts().play);
         case 228:
-            return hasRankingStats() ? rankingClearCountValue("FC", "PERFECT", "MAX") : counts().fc + counts().perfect + counts().max;
+            return hasRankingStats() ? rankingClearCountValue(["FC", "PERFECT", "MAX"]) : counts().fc + counts().perfect + counts().max;
         case 229:
-            return hasRankingStats() ? rankingClearPercent("FC", "PERFECT", "MAX") : percentInteger(counts().fc + counts().perfect + counts().max, counts().play);
+            return hasRankingStats() ? rankingClearPercent(["FC", "PERFECT", "MAX"]) : percentInteger(counts().fc + counts().perfect + counts().max, counts().play);
         case 230:
             return hasRankingStats() ? rankingClearPercentAfterDot("NOPLAY") : percentAfterDot(counts().noplay, counts().play + counts().noplay);
         case 231:
             return hasRankingStats() ? rankingClearPercentAfterDot("AEASY") : percentAfterDot(counts().assist, counts().play);
         case 232:
-            return hasRankingStats() ? rankingClearPercentAfterDot("LIGHTASSIST") : percentAfterDot(counts().lightAssist, counts().play);
+            return 0;
         case 233:
             return hasRankingStats() ? rankingClearPercentAfterDot("EXHARD") : percentAfterDot(counts().exhard, counts().play);
         case 234:
@@ -4673,9 +4620,9 @@ Item {
         case 240:
             return hasRankingStats() ? rankingClearPercentAfterDot("MAX") : percentAfterDot(counts().max, counts().play);
         case 241:
-            return hasRankingStats() ? rankingClearPercentAfterDot("AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX") : percentAfterDot(counts().clear, counts().play);
+            return hasRankingStats() ? rankingClearPercentAfterDot(["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC", "PERFECT", "MAX"]) : percentAfterDot(counts().clear, counts().play);
         case 242:
-            return hasRankingStats() ? rankingClearPercentAfterDot("FC", "PERFECT", "MAX") : percentAfterDot(counts().fc + counts().perfect + counts().max, counts().play);
+            return hasRankingStats() ? rankingClearPercentAfterDot(["FC", "PERFECT", "MAX"]) : percentAfterDot(counts().fc + counts().perfect + counts().max, counts().play);
         case 90:
         case 290:
             if (isMissingTableEntry(chart())) {
@@ -4706,7 +4653,7 @@ Item {
         case 322:
             return currentFolderCounts() ? folderCounts().assist : -1;
         case 323:
-            return currentFolderCounts() ? folderCounts().lightAssist : -1;
+            return currentFolderCounts() ? 0 : -1;
         case 324:
             return currentFolderCounts() ? folderCounts().easy : -1;
         case 325:

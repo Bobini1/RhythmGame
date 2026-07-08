@@ -42,67 +42,44 @@ enum class ClearKind {
 	Noplay,
 	Failed,
 	AssistEasy,
-	LightAssist,
 	Easy,
 	Normal,
 	Hard,
 	ExHard,
-	ExHardDan,
 	FullCombo,
 	Perfect,
 	Max,
 };
 
-ClearKind normalizedClearKindValue(QStringView value) {
+ClearKind clearKindValue(QStringView value) {
 	if (value.isEmpty() || value == QStringLiteral("NOPLAY")) return ClearKind::Noplay;
 	if (value == QStringLiteral("FAILED")) return ClearKind::Failed;
-	if (value == QStringLiteral("AEASY")
-		|| value == QStringLiteral("ASSIST")
-		|| value == QStringLiteral("ASSISTEASY")
-		|| value == QStringLiteral("ASSIST_EASY")) {
-		return ClearKind::AssistEasy;
-	}
-	if (value == QStringLiteral("LIGHTASSIST")
-		|| value == QStringLiteral("LIGHT_ASSIST")
-		|| value == QStringLiteral("LIGHTASSISTEASY")
-		|| value == QStringLiteral("LIGHT_ASSIST_EASY")) {
-		return ClearKind::LightAssist;
-	}
+	if (value == QStringLiteral("AEASY")) return ClearKind::AssistEasy;
 	if (value == QStringLiteral("EASY")) return ClearKind::Easy;
 	if (value == QStringLiteral("DAN")) return ClearKind::Normal;
 	if (value == QStringLiteral("NORMAL")) return ClearKind::Normal;
-	if (value == QStringLiteral("EXDAN")
-			|| value == QStringLiteral("HARD_DAN")
-			|| value == QStringLiteral("HARD DAN")) return ClearKind::Hard;
+	if (value == QStringLiteral("EXDAN")) return ClearKind::Hard;
 	if (value == QStringLiteral("HARD")) return ClearKind::Hard;
-	if (value == QStringLiteral("EX_HARD") || value == QStringLiteral("EXHARD")) return ClearKind::ExHard;
-	if (value == QStringLiteral("EX_HARD_DAN")
-			|| value == QStringLiteral("EXHARD_DAN")
-			|| value == QStringLiteral("EXHARDDAN")) return ClearKind::ExHard;
+	if (value == QStringLiteral("EXHARD") || value == QStringLiteral("EXHARDDAN")) return ClearKind::ExHard;
 	if (value == QStringLiteral("FC")) return ClearKind::FullCombo;
 	if (value == QStringLiteral("PERFECT")) return ClearKind::Perfect;
 	if (value == QStringLiteral("MAX")) return ClearKind::Max;
 	return ClearKind::Noplay;
 }
 
-ClearKind normalizedClearKind(const QString& clearType) {
-	const QStringView trimmed = QStringView(clearType).trimmed();
-	ClearKind value = normalizedClearKindValue(trimmed);
-	if (value != ClearKind::Noplay || trimmed.isEmpty() || trimmed == QStringLiteral("NOPLAY")) {
-		return value;
-	}
-	return normalizedClearKindValue(trimmed.toString().toUpper());
+ClearKind clearKind(const QString& clearType) {
+	return clearKindValue(QStringView(clearType));
 }
 
 ClearKind compatibleClearKind(const QString& clearType, bool useBeatorajaSemantics) {
-	const ClearKind value = normalizedClearKind(clearType);
+	const ClearKind value = clearKind(clearType);
 	if (useBeatorajaSemantics) {
 		return value;
 	}
-	if (value == ClearKind::AssistEasy || value == ClearKind::LightAssist) {
+	if (value == ClearKind::AssistEasy) {
 		return ClearKind::Failed;
 	}
-	if (value == ClearKind::ExHard || value == ClearKind::ExHardDan) {
+	if (value == ClearKind::ExHard) {
 		return ClearKind::Hard;
 	}
 	return value;
@@ -112,12 +89,10 @@ QString clearKindString(ClearKind kind) {
 	switch (kind) {
 	case ClearKind::Failed: return QStringLiteral("FAILED");
 	case ClearKind::AssistEasy: return QStringLiteral("AEASY");
-	case ClearKind::LightAssist: return QStringLiteral("LIGHTASSIST");
 	case ClearKind::Easy: return QStringLiteral("EASY");
 	case ClearKind::Normal: return QStringLiteral("NORMAL");
 	case ClearKind::Hard: return QStringLiteral("HARD");
 	case ClearKind::ExHard: return QStringLiteral("EXHARD");
-	case ClearKind::ExHardDan: return QStringLiteral("EXHARDDAN");
 	case ClearKind::FullCombo: return QStringLiteral("FC");
 	case ClearKind::Perfect: return QStringLiteral("PERFECT");
 	case ClearKind::Max: return QStringLiteral("MAX");
@@ -163,12 +138,10 @@ int clearKindPriority(ClearKind kind) {
 	switch (kind) {
 	case ClearKind::Failed: return 1;
 	case ClearKind::AssistEasy: return 2;
-	case ClearKind::LightAssist: return 3;
 	case ClearKind::Easy: return 4;
 	case ClearKind::Normal: return 5;
 	case ClearKind::Hard: return 6;
-	case ClearKind::ExHard:
-	case ClearKind::ExHardDan: return 7;
+	case ClearKind::ExHard: return 7;
 	case ClearKind::FullCombo: return 8;
 	case ClearKind::Perfect: return 9;
 	case ClearKind::Max: return 10;
@@ -181,12 +154,10 @@ int clearKindLamp(ClearKind kind, bool useBeatorajaSemantics) {
 		switch (kind) {
 		case ClearKind::Failed: return 1;
 		case ClearKind::AssistEasy: return 2;
-		case ClearKind::LightAssist: return 3;
 		case ClearKind::Easy: return 4;
 		case ClearKind::Normal: return 5;
 		case ClearKind::Hard: return 6;
-		case ClearKind::ExHard:
-		case ClearKind::ExHardDan: return 7;
+		case ClearKind::ExHard: return 7;
 		case ClearKind::FullCombo: return 8;
 		case ClearKind::Perfect: return 9;
 		case ClearKind::Max: return 10;
@@ -197,12 +168,10 @@ int clearKindLamp(ClearKind kind, bool useBeatorajaSemantics) {
 	switch (kind) {
 	case ClearKind::Failed: return 1;
 	case ClearKind::AssistEasy:
-	case ClearKind::LightAssist:
 	case ClearKind::Easy: return 2;
 	case ClearKind::Normal: return 3;
 	case ClearKind::Hard:
-	case ClearKind::ExHard:
-	case ClearKind::ExHardDan: return 4;
+	case ClearKind::ExHard: return 4;
 	case ClearKind::FullCombo:
 	case ClearKind::Perfect:
 	case ClearKind::Max: return 5;
@@ -458,7 +427,7 @@ private:
 void appendScoreClearOptionIds(ClearKind kind, ScoreOptionIds& ids) {
 	// Historical score flags are beatoraja trophy options. The exact
 	// selected-bar clear options are added from the current summary only.
-	if (kind == ClearKind::AssistEasy || kind == ClearKind::LightAssist) {
+	if (kind == ClearKind::AssistEasy) {
 		ids.insert(124);
 	} else if (kind == ClearKind::Easy) {
 		ids.insert(121);
@@ -466,7 +435,7 @@ void appendScoreClearOptionIds(ClearKind kind, ScoreOptionIds& ids) {
 		ids.insert(118);
 	} else if (kind == ClearKind::Hard) {
 		ids.insert(119);
-	} else if (kind == ClearKind::ExHard || kind == ClearKind::ExHardDan) {
+	} else if (kind == ClearKind::ExHard) {
 		ids.insert(125);
 	}
 }
@@ -521,7 +490,6 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 	int fail = 0;
 	int noplay = 0;
 	int assist = 0;
-	int lightAssist = 0;
 	int easy = 0;
 	int normal = 0;
 	int hard = 0;
@@ -559,12 +527,10 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 		switch (clearKind) {
 		case ClearKind::Failed: ++fail; break;
 		case ClearKind::AssistEasy: ++assist; break;
-		case ClearKind::LightAssist: ++lightAssist; break;
 		case ClearKind::Easy: ++easy; break;
 		case ClearKind::Normal: ++normal; break;
 		case ClearKind::Hard: ++hard; break;
-		case ClearKind::ExHard:
-		case ClearKind::ExHardDan: ++exhard; break;
+		case ClearKind::ExHard: ++exhard; break;
 		case ClearKind::FullCombo: ++fc; break;
 		case ClearKind::Perfect: ++perfect; break;
 		case ClearKind::Max: ++max; break;
@@ -598,7 +564,6 @@ Lr2SelectScoreSummaryData buildScoreSummaryDataForEach(bool useBeatorajaSemantic
 		.fail = fail,
 		.noplay = noplay,
 		.assist = assist,
-		.lightAssist = lightAssist,
 		.easy = easy,
 		.normal = normal,
 		.hard = hard,
@@ -700,7 +665,6 @@ int Lr2SelectScoreCounts::clear() const { return m_clear; }
 int Lr2SelectScoreCounts::fail() const { return m_fail; }
 int Lr2SelectScoreCounts::noplay() const { return m_noplay; }
 int Lr2SelectScoreCounts::assist() const { return m_assist; }
-int Lr2SelectScoreCounts::lightAssist() const { return m_lightAssist; }
 int Lr2SelectScoreCounts::easy() const { return m_easy; }
 int Lr2SelectScoreCounts::normal() const { return m_normal; }
 int Lr2SelectScoreCounts::hard() const { return m_hard; }
@@ -716,7 +680,6 @@ bool Lr2SelectScoreCounts::hasValues() const {
 		|| m_fail != 0
 		|| m_noplay != 0
 		|| m_assist != 0
-		|| m_lightAssist != 0
 		|| m_easy != 0
 		|| m_normal != 0
 		|| m_hard != 0
@@ -733,7 +696,6 @@ bool Lr2SelectScoreCounts::setValues(const Lr2SelectScoreCountsData& values) {
 			&& m_fail == values.fail
 			&& m_noplay == values.noplay
 			&& m_assist == values.assist
-			&& m_lightAssist == values.lightAssist
 			&& m_easy == values.easy
 			&& m_normal == values.normal
 			&& m_hard == values.hard
@@ -750,7 +712,6 @@ bool Lr2SelectScoreCounts::setValues(const Lr2SelectScoreCountsData& values) {
 	m_fail = values.fail;
 	m_noplay = values.noplay;
 	m_assist = values.assist;
-	m_lightAssist = values.lightAssist;
 	m_easy = values.easy;
 	m_normal = values.normal;
 	m_hard = values.hard;

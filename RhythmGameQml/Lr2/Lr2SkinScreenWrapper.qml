@@ -277,68 +277,35 @@ Item {
         }
     }
 
-    function normalizedClearType(clearType: var) : var {
-        let value = String(clearType || "NOPLAY").toUpperCase();
+    function clearTypeOrNoplay(clearType: var) : var {
+        return clearType === undefined || clearType === null || clearType === ""
+            ? "NOPLAY"
+            : String(clearType);
+    }
+
+    function courseCompatibleClearType(clearType: var) : var {
+        let value = root.clearTypeOrNoplay(clearType);
         switch (value) {
-        case "":
-            return "NOPLAY";
-        case "ASSIST":
-        case "ASSISTEASY":
-        case "ASSIST_EASY":
-            return "AEASY";
-        case "LIGHT_ASSIST":
-        case "LIGHTASSISTEASY":
-        case "LIGHT_ASSIST_EASY":
-            return "LIGHTASSIST";
-        case "CLEAR":
-            return "NORMAL";
-        case "EX_HARD":
-            return "EXHARD";
         case "DAN":
             return "NORMAL";
         case "EXDAN":
-        case "HARD_DAN":
-        case "HARD DAN":
             return "HARD";
         case "EXHARDDAN":
-        case "EXHARD_DAN":
-        case "EX_HARD_DAN":
             return "EXHARD";
-        case "FULLCOMBO":
-        case "FULL_COMBO":
-        case "FULL COMBO":
-            return "FC";
-        case "NO_PLAY":
-        case "NO PLAY":
-            return "NOPLAY";
-        case "FAILED":
-        case "AEASY":
-        case "LIGHTASSIST":
-        case "EASY":
-        case "NORMAL":
-        case "HARD":
-        case "EXHARD":
-        case "FC":
-        case "PERFECT":
-        case "MAX":
-        case "NOPLAY":
-            return value;
         default:
             return value;
         }
     }
 
     function skinClearTypeForStatus(clearType: var) : var {
-        let value = root.normalizedClearType(clearType);
+        let value = root.courseCompatibleClearType(clearType);
         if (root.lr2SkinUsesExpandedClearSemantics) {
             return value;
         }
         switch (value) {
         case "AEASY":
-        case "LIGHTASSIST":
             return "FAILED";
         case "EXHARD":
-        case "EXHARDDAN":
             return "HARD";
         default:
             return value;
@@ -1898,7 +1865,7 @@ Item {
         if (gauge === "EXHARD" || gauge === "EXDAN" || gauge === "EXHARDDAN") {
             return 125;
         }
-        if (gauge === "HARD" || gauge === "DAN" || gauge === "HARD_DAN") {
+        if (gauge === "HARD" || gauge === "DAN") {
             return 119;
         }
         return 118;
@@ -2237,8 +2204,6 @@ Item {
             return 1;
         case "AEASY":
             return 2;
-        case "LIGHTASSIST":
-            return 3;
         case "EASY":
             return 4;
         case "NORMAL":
@@ -3547,7 +3512,7 @@ Item {
         if (gauge === "EXHARD" || gauge === "EXDAN" || gauge === "EXHARDDAN") {
             return 122;
         }
-        if (gauge === "AEASY" || gauge === "LIGHTASSIST") {
+        if (gauge === "AEASY") {
             return 123;
         }
         return 118;

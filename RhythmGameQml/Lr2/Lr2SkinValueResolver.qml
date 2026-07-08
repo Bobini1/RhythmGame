@@ -1938,9 +1938,8 @@ QtObject {
                 case 205:
                     return rankingState.clearPercentValue(false, "AEASY");
                 case 206:
-                    return rankingState.clearCount("LIGHTASSIST");
                 case 207:
-                    return rankingState.clearPercentValue(false, "LIGHTASSIST");
+                    return 0;
                 case 208:
                     return rankingState.clearCount("EXHARD");
                 case 209:
@@ -1986,7 +1985,7 @@ QtObject {
                 case 231:
                     return rankingState.clearPercentValue(true, "AEASY");
                 case 232:
-                    return rankingState.clearPercentValue(true, "LIGHTASSIST");
+                    return 0;
                 case 233:
                     return rankingState.clearPercentValue(true, "EXHARD");
                 case 234:

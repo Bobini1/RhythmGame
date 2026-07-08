@@ -14,7 +14,6 @@ struct Lr2SelectScoreCountsData {
 	int fail = 0;
 	int noplay = 0;
 	int assist = 0;
-	int lightAssist = 0;
 	int easy = 0;
 	int normal = 0;
 	int hard = 0;
@@ -32,7 +31,6 @@ class Lr2SelectScoreCounts : public QObject {
 	Q_PROPERTY(int fail READ fail NOTIFY changed)
 	Q_PROPERTY(int noplay READ noplay NOTIFY changed)
 	Q_PROPERTY(int assist READ assist NOTIFY changed)
-	Q_PROPERTY(int lightAssist READ lightAssist NOTIFY changed)
 	Q_PROPERTY(int easy READ easy NOTIFY changed)
 	Q_PROPERTY(int normal READ normal NOTIFY changed)
 	Q_PROPERTY(int hard READ hard NOTIFY changed)
@@ -50,7 +48,6 @@ public:
 	int fail() const;
 	int noplay() const;
 	int assist() const;
-	int lightAssist() const;
 	int easy() const;
 	int normal() const;
 	int hard() const;
@@ -73,7 +70,6 @@ private:
 	int m_fail = 0;
 	int m_noplay = 0;
 	int m_assist = 0;
-	int m_lightAssist = 0;
 	int m_easy = 0;
 	int m_normal = 0;
 	int m_hard = 0;
