@@ -307,8 +307,7 @@ Item {
     }
 
     readonly property bool searchEditorActive: isSearchText
-        && textRenderer.hasCurrentState
-        && textRenderer.stateA > 0
+        && textRenderer.hasRenderableState
         && Math.abs(textRenderer.stateW) > 0
         && Math.abs(textRenderer.stateH) > 0
     readonly property real searchEditorX: searchEditorActive

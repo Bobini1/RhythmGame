@@ -51,6 +51,8 @@ Item {
     readonly property real stateG: drawState.g
     readonly property real stateB: drawState.b
     readonly property int stateBlend: drawState.blend
+    readonly property bool hasRenderableState: drawState.renderable
+    readonly property real effectiveOpacity: drawState.opacity
     readonly property bool isLr2Font: srcData
         && (srcData.bitmapFont || (srcData.fontPath && srcData.fontPath.toLowerCase().endsWith(".lr2font")))
     readonly property int blendMode: drawState.blendMode
@@ -100,8 +102,8 @@ Item {
         y: root.hasCurrentState ? (root.stateY + root.offsetY) * root.scaleOverride : 0
         width: root.renderWidth
         height: root.renderHeight
-        visible: root.hasCurrentState && root.stateA > 0 && width > 0 && height > 0
-        opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
+        visible: root.hasRenderableState && width > 0 && height > 0
+        opacity: root.effectiveOpacity
 
         Lr2BitmapFontTexture {
             visible: root.normalBitmapTextActive

@@ -128,6 +128,36 @@ TEST_CASE("LR2 timeline frame ignores invalid override states",
     REQUIRE(frame.y() == 12);
 }
 
+TEST_CASE("LR2 timeline frame treats blend 0 alpha 0 as opaque no-blend",
+          "[lr2][runtime]")
+{
+    QVariantMap noBlend = dstMap(0, 12, 34, 56, 78);
+    noBlend.insert(QStringLiteral("a"), 0);
+    noBlend.insert(QStringLiteral("blend"), 0);
+
+    Lr2TimelineFrameState noBlendFrame;
+    noBlendFrame.setDsts(QVariantList{ noBlend });
+    noBlendFrame.setTimerFire(0);
+
+    REQUIRE(noBlendFrame.hasState());
+    REQUIRE(noBlendFrame.isRenderable());
+    REQUIRE(noBlendFrame.a() == 0);
+    REQUIRE_THAT(noBlendFrame.opacity(), WithinAbs(1.0, 0.0001));
+
+    QVariantMap alphaBlend = dstMap(0, 12, 34, 56, 78);
+    alphaBlend.insert(QStringLiteral("a"), 0);
+    alphaBlend.insert(QStringLiteral("blend"), 1);
+
+    Lr2TimelineFrameState alphaBlendFrame;
+    alphaBlendFrame.setDsts(QVariantList{ alphaBlend });
+    alphaBlendFrame.setTimerFire(0);
+
+    REQUIRE(alphaBlendFrame.hasState());
+    REQUIRE_FALSE(alphaBlendFrame.isRenderable());
+    REQUIRE(alphaBlendFrame.a() == 0);
+    REQUIRE_THAT(alphaBlendFrame.opacity(), WithinAbs(0.0, 0.0001));
+}
+
 TEST_CASE("LR2 bar positioned item notifies usePositionMap changes",
           "[lr2][runtime]")
 {

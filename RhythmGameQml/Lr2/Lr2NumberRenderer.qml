@@ -86,6 +86,8 @@ Item {
     readonly property real stateG: drawState.g
     readonly property real stateB: drawState.b
     readonly property int stateBlend: drawState.blend
+    readonly property bool hasRenderableState: drawState.renderable
+    readonly property real effectiveOpacity: drawState.opacity
     readonly property int stateFilter: drawState.filter
     readonly property int blendMode: drawState.blendMode
 
@@ -243,13 +245,12 @@ Item {
         y: root.hasCurrentState ? (root.stateY + root.offsetY) * root.scaleOverride : 0
         width: root.textW
         height: root.digitH
-        visible: root.hasCurrentState
+        visible: root.hasRenderableState
             && root.frameGroupSize > 0
-            && root.stateA > 0
             && root.digitW > 0
             && root.digitH > 0
             && root.resolvedSource !== ""
-        opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
+        opacity: root.effectiveOpacity
 
         Image {
             id: digitAtlas
