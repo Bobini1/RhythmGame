@@ -132,41 +132,6 @@ Item {
             Layout.fillWidth: true
             spacing: 4
 
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.leftMargin: 4
-                Layout.rightMargin: 4
-                spacing: buttonGroup.rowSpacing
-
-                Label {
-                    text: qsTr("Action")
-                    color: palette.placeholderText
-                    font.pixelSize: 12
-                    Layout.preferredWidth: 120
-                }
-
-                Label {
-                    text: qsTr("Binding")
-                    color: palette.placeholderText
-                    font.pixelSize: 12
-                    horizontalAlignment: Text.AlignRight
-                    Layout.fillWidth: true
-                }
-
-                Label {
-                    text: qsTr("State")
-                    color: palette.placeholderText
-                    font.pixelSize: 12
-                    horizontalAlignment: Text.AlignHCenter
-                    Layout.minimumWidth: buttonGroup.stateColumnWidth
-                    Layout.preferredWidth: buttonGroup.stateColumnWidth
-                }
-
-                Item {
-                    Layout.preferredWidth: buttonGroup.configureColumnWidth + buttonGroup.rowSpacing + buttonGroup.resetColumnWidth
-                }
-            }
-
             Repeater {
                 id: keyRepeater
 

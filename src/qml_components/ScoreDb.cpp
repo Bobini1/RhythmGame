@@ -61,9 +61,6 @@ summaryClearTypePriority(const QString& clearType)
         return 1;
     if (clearType == QStringLiteral("AEASY"))
         return 2;
-    if (clearType == QStringLiteral("LIGHTASSIST") ||
-        clearType == QStringLiteral("LIGHT_ASSIST"))
-        return 3;
     if (clearType == QStringLiteral("EASY"))
         return 4;
     if (clearType == QStringLiteral("NORMAL"))
@@ -87,8 +84,6 @@ summaryClearTypeLamp(const QString& clearType)
     if (clearType == QStringLiteral("FAILED"))
         return 1;
     if (clearType == QStringLiteral("AEASY") ||
-        clearType == QStringLiteral("LIGHTASSIST") ||
-        clearType == QStringLiteral("LIGHT_ASSIST") ||
         clearType == QStringLiteral("EASY"))
         return 2;
     if (clearType == QStringLiteral("NORMAL"))
@@ -111,9 +106,6 @@ canonicalSummaryClearType(const QString& clearType)
         return QStringLiteral("FAILED");
     if (clearType == QStringLiteral("AEASY"))
         return QStringLiteral("AEASY");
-    if (clearType == QStringLiteral("LIGHTASSIST") ||
-        clearType == QStringLiteral("LIGHT_ASSIST"))
-        return QStringLiteral("LIGHTASSIST");
     if (clearType == QStringLiteral("EASY"))
         return QStringLiteral("EASY");
     if (clearType == QStringLiteral("NORMAL"))
@@ -138,10 +130,6 @@ summaryClearTypeDistributionIndex(const QString& clearType)
         return 1;
     if (clearType == QStringLiteral("AEASY"))
         return 2;
-    if (clearType == QStringLiteral("LIGHTASSIST") ||
-        clearType == QStringLiteral("LIGHT_ASSIST")) {
-        return 3;
-    }
     if (clearType == QStringLiteral("EASY"))
         return 4;
     if (clearType == QStringLiteral("NORMAL"))
@@ -170,8 +158,8 @@ emptySummaryCounts()
 {
     return {
         { QStringLiteral("NOPLAY"), 0 }, { QStringLiteral("FAILED"), 0 },
-        { QStringLiteral("AEASY"), 0 },  { QStringLiteral("LIGHTASSIST"), 0 },
-        { QStringLiteral("EASY"), 0 },   { QStringLiteral("NORMAL"), 0 },
+        { QStringLiteral("AEASY"), 0 },  { QStringLiteral("EASY"), 0 },
+        { QStringLiteral("NORMAL"), 0 },
         { QStringLiteral("HARD"), 0 },   { QStringLiteral("EXHARD"), 0 },
         { QStringLiteral("FC"), 0 },     { QStringLiteral("PERFECT"), 0 },
         { QStringLiteral("MAX"), 0 },

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
+import "SettingsColors.js" as SettingsColors
 
 ColumnLayout {
     required property color tabTextColor
@@ -32,12 +33,13 @@ ColumnLayout {
                 Layout.preferredWidth: 220
                 Layout.maximumWidth: 260
 
-                TabBar {
+                Item {
                     id: themeTabView
 
                     Layout.fillHeight: true
                     Layout.fillWidth: true
-                    palette.buttonText: tabTextColor
+
+                    property int currentIndex: 0
 
                     property var orderedScreens: {
                         let configKeys = Rg.profileList.mainProfile.themeConfig.keys();
@@ -68,25 +70,61 @@ ColumnLayout {
                         };
                     }
 
-                    contentItem: ListView {
+                    function screenLabel(screen) {
+                        return qsTr(displayNames[screen] || screen);
+                    }
+
+                    ListView {
+                        id: screenList
+
+                        anchors.fill: parent
                         boundsBehavior: Flickable.StopAtBounds
                         currentIndex: themeTabView.currentIndex
                         flickableDirection: Flickable.AutoFlickIfNeeded
                         highlightMoveDuration: 0
                         highlightRangeMode: ListView.ApplyRange
-                        model: themeTabView.contentModel
                         preferredHighlightBegin: 40
                         preferredHighlightEnd: height - 40
                         snapMode: ListView.SnapToItem
-                        spacing: themeTabView.spacing
-                    }
+                        spacing: 4
+                        model: themeTabView.orderedScreens
 
-                    Repeater {
-                        model: themeTabView.orderedScreens.map((str) => qsTr(themeTabView.displayNames[str] || str))
+                        delegate: ItemDelegate {
+                            id: screenButton
 
-                        TabButton {
-                            text: modelData
-                            width: themeTabView.width
+                            width: ListView.view.width
+                            implicitHeight: 36
+                            leftPadding: 12
+                            rightPadding: 12
+                            topPadding: 8
+                            bottomPadding: 8
+                            onClicked: themeTabView.currentIndex = index
+
+                            contentItem: Label {
+                                text: themeTabView.screenLabel(modelData)
+                                color: tabTextColor
+                                font.bold: screenButton.ListView.isCurrentItem
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                                maximumLineCount: 1
+                            }
+
+                            background: Rectangle {
+                                radius: 6
+                                color: SettingsColors.rowFill(screenButton.palette, screenButton.ListView.isCurrentItem, screenButton.hovered)
+
+                                Rectangle {
+                                    width: 18
+                                    height: 2
+                                    radius: 1
+                                    visible: screenButton.ListView.isCurrentItem
+                                    color: screenButton.palette.highlight
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    anchors.bottom: parent.bottom
+                                    anchors.bottomMargin: 4
+                                }
+                            }
                         }
                     }
                 }

@@ -359,44 +359,17 @@ normalizedFolderName(QString path)
 }
 
 QString
-normalizedClearType(const QString& clear)
+courseCompatibleClearType(const QString& clear)
 {
-    const QString value =
-      clear.isEmpty() ? QStringLiteral("NOPLAY") : clear.toUpper();
-    if (value == QStringLiteral("ASSIST") ||
-        value == QStringLiteral("ASSISTEASY") ||
-        value == QStringLiteral("ASSIST_EASY")) {
-        return QStringLiteral("AEASY");
-    }
-    if (value == QStringLiteral("LIGHT_ASSIST") ||
-        value == QStringLiteral("LIGHTASSISTEASY") ||
-        value == QStringLiteral("LIGHT_ASSIST_EASY")) {
-        return QStringLiteral("LIGHTASSIST");
-    }
-    if (value == QStringLiteral("CLEAR") || value == QStringLiteral("DAN")) {
+    const QString value = clear.isEmpty() ? QStringLiteral("NOPLAY") : clear;
+    if (value == QStringLiteral("DAN")) {
         return QStringLiteral("NORMAL");
     }
-    if (value == QStringLiteral("EX_HARD")) {
-        return QStringLiteral("EXHARD");
-    }
-    if (value == QStringLiteral("EXDAN") ||
-        value == QStringLiteral("HARD_DAN") ||
-        value == QStringLiteral("HARD DAN")) {
+    if (value == QStringLiteral("EXDAN")) {
         return QStringLiteral("HARD");
     }
-    if (value == QStringLiteral("EXHARDDAN") ||
-        value == QStringLiteral("EXHARD_DAN") ||
-        value == QStringLiteral("EX_HARD_DAN")) {
+    if (value == QStringLiteral("EXHARDDAN")) {
         return QStringLiteral("EXHARD");
-    }
-    if (value == QStringLiteral("FULLCOMBO") ||
-        value == QStringLiteral("FULL_COMBO") ||
-        value == QStringLiteral("FULL COMBO")) {
-        return QStringLiteral("FC");
-    }
-    if (value == QStringLiteral("NO_PLAY") ||
-        value == QStringLiteral("NO PLAY")) {
-        return QStringLiteral("NOPLAY");
     }
     return value;
 }
@@ -404,13 +377,11 @@ normalizedClearType(const QString& clear)
 int
 clearTypePriority(const QString& clear)
 {
-    const QString value = normalizedClearType(clear);
+    const QString value = courseCompatibleClearType(clear);
     if (value == QStringLiteral("FAILED"))
         return 1;
     if (value == QStringLiteral("AEASY"))
         return 2;
-    if (value == QStringLiteral("LIGHTASSIST"))
-        return 3;
     if (value == QStringLiteral("EASY"))
         return 4;
     if (value == QStringLiteral("NORMAL"))

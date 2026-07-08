@@ -19,6 +19,20 @@
 namespace qml_components {
 namespace {
 auto
+clearCountsForEntries(const QList<RankingEntry>& entries) -> QVariantMap
+{
+    auto map = QHash<QString, int>{};
+    for (const auto& entry : entries) {
+        map[entry.bestClearType]++;
+    }
+    auto variantMap = QVariantMap{};
+    for (const auto& key : map.keys()) {
+        variantMap[key] = map[key];
+    }
+    return variantMap;
+}
+
+auto
 judgementCount(const QJsonArray& counts, gameplay_logic::Judgement judgement)
   -> int
 {
@@ -1053,14 +1067,8 @@ OnlineRankingModel::setEntries(QList<RankingEntry> entries)
     this->entries = std::move(entries);
     emit rankingEntriesChanged();
     endResetModel();
-    auto map = QHash<QString, int>{};
-    for (const auto& entry : entries) {
-        map[entry.bestClearType]++;
-    }
-    auto variantMap = QVariantMap{};
-    for (const auto& key : map.keys()) {
-        variantMap[key] = map[key];
-    }
+
+    auto variantMap = clearCountsForEntries(this->entries);
     setClearCounts(std::move(variantMap));
 }
 void
@@ -1069,19 +1077,16 @@ OnlineRankingModel::appendEntries(QList<RankingEntry> entries)
     if (entries.isEmpty()) {
         return;
     }
+    auto newClearCounts = clearCountsForEntries(entries);
     const int oldSize = this->entries.size();
     beginInsertRows(QModelIndex(), oldSize, oldSize + entries.size() - 1);
     this->entries.append(std::move(entries));
     emit rankingEntriesChanged();
     endInsertRows();
     auto clearCounts = getClearCounts();
-    auto newClearCounts = QHash<QString, int>{};
-    for (const auto& entry : entries) {
-        newClearCounts[entry.bestClearType]++;
-    }
     for (const auto& key : newClearCounts.keys()) {
         clearCounts[key] =
-          clearCounts.value(key, 0).toInt() + newClearCounts[key];
+          clearCounts.value(key, 0).toInt() + newClearCounts.value(key).toInt();
     }
     setClearCounts(std::move(clearCounts));
 }

@@ -7,9 +7,10 @@ ScrollView {
 
     property int maximumContentWidth: 1360
     property int contentSpacing: 16
+    readonly property real targetContentWidth: Math.max(contentLayout.implicitWidth, availableWidth)
     default property alias content: contentLayout.data
 
-    contentWidth: Math.max(contentLayout.implicitWidth, availableWidth)
+    contentWidth: targetContentWidth
     contentHeight: contentLayout.implicitHeight
     clip: true
 
@@ -17,7 +18,7 @@ ScrollView {
         id: contentLayout
 
         x: Math.max(0, (root.availableWidth - width) / 2)
-        width: Math.min(root.maximumContentWidth, root.contentWidth)
+        width: Math.min(root.maximumContentWidth, root.targetContentWidth)
         spacing: root.contentSpacing
     }
 }

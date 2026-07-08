@@ -536,28 +536,6 @@ Item {
                             Layout.fillHeight: true
                             Layout.fillWidth: true
 
-                            RowLayout {
-                                Layout.fillWidth: true
-                                Layout.leftMargin: 8
-                                Layout.rightMargin: 8
-                                spacing: 8
-
-                                Label {
-                                    text: qsTr("Source")
-                                    color: palette.placeholderText
-                                    font.pixelSize: 12
-                                    Layout.fillWidth: true
-                                }
-
-                                Label {
-                                    text: qsTr("Actions")
-                                    color: palette.placeholderText
-                                    font.pixelSize: 12
-                                    horizontalAlignment: Text.AlignRight
-                                    Layout.preferredWidth: 172
-                                }
-                            }
-
                             ListView {
                                 id: songList
 
