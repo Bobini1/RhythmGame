@@ -339,7 +339,7 @@ QtObject {
             : root.lr2GaugeButtonFrame(2, root.elementSourceFrameCount(src)),
         "42": src => root.lr2RandomButtonFrame(1, root.elementSourceFrameCount(src)),
         "43": src => root.lr2RandomButtonFrame(2, root.elementSourceFrameCount(src)),
-        "46": () => controller.lr2ClassicHidSudControlPresent() ? -2 : root.lr2LaneCoverIndex,
+        "46": () => root.lr2LaneCoverIndex,
         "50": () => root.lr2HidSudIndexP1,
         "51": () => root.lr2HidSudIndexP2,
         "54": () => root.lr2DpOptionIndex,

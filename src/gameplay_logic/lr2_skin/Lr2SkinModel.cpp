@@ -1,6 +1,8 @@
 #include "Lr2SkinModel.h"
 
+#include <QSet>
 #include <algorithm>
+#include <cstdlib>
 
 namespace gameplay_logic::lr2_skin {
 
@@ -233,6 +235,39 @@ hasSelectDifficultySourceElement(const QList<Lr2Element>& elements)
       elements.cbegin(), elements.cend(), [](const Lr2Element& element) {
           return sourceUsesSelectDifficultyState(element.src);
       });
+}
+
+QSet<int>
+optionIdSet(const QVariantList& options)
+{
+    QSet<int> result;
+    for (const QVariant& option : options) {
+        bool ok = false;
+        const int optionId = option.toInt(&ok);
+        if (ok && optionId != 0) {
+            result.insert(std::abs(optionId));
+        }
+    }
+    return result;
+}
+
+bool
+activeOptionChangeAffectsStructure(const QVariantList& before,
+                                   const QVariantList& after,
+                                   const QVariantList& conditionOptions)
+{
+    if (conditionOptions.isEmpty()) {
+        return false;
+    }
+
+    const QSet<int> beforeIds = optionIdSet(before);
+    const QSet<int> afterIds = optionIdSet(after);
+    for (const int optionId : optionIdSet(conditionOptions)) {
+        if (beforeIds.contains(optionId) != afterIds.contains(optionId)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 int
@@ -526,6 +561,12 @@ Lr2SkinModel::usedElementOptions() const
 }
 
 QVariantList
+Lr2SkinModel::conditionOptions() const
+{
+    return m_conditionOptions;
+}
+
+QVariantList
 Lr2SkinModel::barLampVariants() const
 {
     return m_barLampVariants;
@@ -766,9 +807,15 @@ Lr2SkinModel::setActiveOptions(const QVariantList& options)
 {
     if (m_activeOptions == options)
         return;
+    const bool needsReload =
+      !m_hasLoadedSkin ||
+      activeOptionChangeAffectsStructure(
+        m_activeOptions, options, m_conditionOptions);
     m_activeOptions = options;
     emit activeOptionsChanged();
-    loadSkin();
+    if (needsReload) {
+        loadSkin();
+    }
 }
 
 void
@@ -777,9 +824,11 @@ Lr2SkinModel::loadSkin()
     if (m_csvPath.isEmpty()) {
         beginResetModel();
         m_elements.clear();
+        m_hasLoadedSkin = false;
         const bool metadataChanged =
           !m_effectiveActiveOptions.isEmpty() || !m_usedOptions.isEmpty() ||
-          !m_usedElementOptions.isEmpty() || !m_barLampVariants.isEmpty() ||
+          !m_usedElementOptions.isEmpty() || !m_conditionOptions.isEmpty() ||
+          !m_barLampVariants.isEmpty() ||
           !m_barLevelVariants.isEmpty() || !m_barRows.isEmpty() ||
           !m_barBodyTypes.isEmpty() || !m_barTitleTypes.isEmpty() ||
           m_startInput != 0 || m_sceneTime != 0 || m_loadStart != 0 ||
@@ -803,6 +852,7 @@ Lr2SkinModel::loadSkin()
         m_effectiveActiveOptions.clear();
         m_usedOptions.clear();
         m_usedElementOptions.clear();
+        m_conditionOptions.clear();
         m_barLampVariants.clear();
         m_barLevelVariants.clear();
         m_barRows.clear();
@@ -882,6 +932,7 @@ Lr2SkinModel::loadSkin()
       m_effectiveActiveOptions != skinData.activeOptions ||
       m_usedOptions != skinData.usedOptions ||
       m_usedElementOptions != skinData.usedElementOptions ||
+      m_conditionOptions != skinData.conditionOptions ||
       m_barLampVariants != skinData.barLampVariants ||
       m_barLevelVariants != skinData.barLevelVariants ||
       m_barRows != skinData.barRows ||
@@ -929,6 +980,7 @@ Lr2SkinModel::loadSkin()
     m_effectiveActiveOptions = skinData.activeOptions;
     m_usedOptions = skinData.usedOptions;
     m_usedElementOptions = skinData.usedElementOptions;
+    m_conditionOptions = skinData.conditionOptions;
     m_barLampVariants = skinData.barLampVariants;
     m_barLevelVariants = skinData.barLevelVariants;
     m_barRows = skinData.barRows;
@@ -969,6 +1021,7 @@ Lr2SkinModel::loadSkin()
     if (metadataChanged) {
         emit skinMetadataChanged();
     }
+    m_hasLoadedSkin = true;
     emit skinLoaded();
 }
 
