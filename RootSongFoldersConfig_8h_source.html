@@ -21,7 +21,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.12</span>
+   <div id="projectname">RhythmGame<span id="projectnumber">&#160;1.3.13</span>
    </div>
   </td>
  </tr>
@@ -180,50 +180,51 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                          <span class="stringliteral">&quot;:dir&quot;</span>);</div>
 <div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
 <div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>    <span class="keywordtype">void</span> scanImpl(<span class="keyword">const</span> QString&amp; which);</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span> </div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keyword">public</span>:</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>    <span class="keywordtype">void</span> clear(<span class="keyword">const</span> QString&amp; which);</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">~ScanningQueue</a>() <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <span class="keyword">auto</span> rowCount(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) const</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>      -&gt; <span class="keywordtype">int</span> override;</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>    auto <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>(const QModelIndex&amp; index = QModelIndex(),</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>              <span class="keywordtype">int</span> role = Qt::DisplayRole) const -&gt; QVariant override;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>    explicit <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>(<a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb* <a class="code hl_namespace" href="namespacedb.html">db</a>,</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                           <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::SongDbScanner scanner,</div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>                           QObject* parent = <span class="keywordtype">nullptr</span>);</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>    Q_INVOKABLE <span class="keywordtype">void</span> performTask();</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    Q_INVOKABLE <span class="keywordtype">void</span> remove(<span class="keywordtype">int</span> index);</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    Q_INVOKABLE QVariant at(<span class="keywordtype">int</span> index) const;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    Q_INVOKABLE <span class="keywordtype">bool</span> scan(<a class="code hl_class" href="classqml__components_1_1RootSongFolder.html">RootSongFolder</a>* which);</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    auto getCurrentScannedFolder() const -&gt; QString;</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>  signals:</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classqml__components_1_1ScanningQueue.html#a3d6788961aab27324bc1e2675126660b">  111</a></span>    <span class="keywordtype">void</span> currentScannedFolderChanged();</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>};</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>    <span class="keywordtype">void</span> setCurrentScannedFolder(QString folder);</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>    <span class="keywordtype">void</span> clear(<span class="keyword">const</span> QString&amp; which);</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>    <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">~ScanningQueue</a>() <span class="keyword">override</span>;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>    <span class="keyword">auto</span> rowCount(<span class="keyword">const</span> QModelIndex&amp; parent = QModelIndex()) const</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>      -&gt; <span class="keywordtype">int</span> override;</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>    auto <a class="code hl_variable" href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a>(const QModelIndex&amp; index = QModelIndex(),</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>              <span class="keywordtype">int</span> role = Qt::DisplayRole) const -&gt; QVariant override;</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>    explicit <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>(<a class="code hl_namespace" href="namespacedb.html">db</a>::SqliteCppDb* <a class="code hl_namespace" href="namespacedb.html">db</a>,</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>                           <a class="code hl_namespace" href="namespaceresource__managers.html">resource_managers</a>::SongDbScanner scanner,</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>                           QObject* parent = <span class="keywordtype">nullptr</span>);</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>    Q_INVOKABLE <span class="keywordtype">void</span> performTask();</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    Q_INVOKABLE <span class="keywordtype">void</span> remove(<span class="keywordtype">int</span> index);</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>    Q_INVOKABLE QVariant at(<span class="keywordtype">int</span> index) const;</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>    Q_INVOKABLE <span class="keywordtype">bool</span> scan(<a class="code hl_class" href="classqml__components_1_1RootSongFolder.html">RootSongFolder</a>* which);</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>    auto getCurrentScannedFolder() const -&gt; QString;</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>  signals:</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno"><a class="line" href="classqml__components_1_1ScanningQueue.html#a3d6788961aab27324bc1e2675126660b">  112</a></span>    <span class="keywordtype">void</span> currentScannedFolderChanged();</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>};</div>
 </div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span> </div>
-<div class="foldopen" id="foldopen00114" data-start="{" data-end="};">
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno"><a class="line" href="classqml__components_1_1RootSongFoldersConfig.html">  114</a></span>class <a class="code hl_class" href="classqml__components_1_1RootSongFoldersConfig.html">RootSongFoldersConfig</a> final : public QObject</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>{</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>    Q_OBJECT</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno"><a class="line" href="classqml__components_1_1RootSongFoldersConfig.html#a01f232788ed7d088ab348203098860ff">  118</a></span>    Q_PROPERTY(<a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>* folders READ getFolders CONSTANT)</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="classqml__components_1_1RootSongFoldersConfig.html#a353356246701e04199acfccb9f27db9c">  119</a></span>    Q_PROPERTY(<a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue READ getScanningQueue CONSTANT)</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>    <a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>* folders;</div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue;</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span> </div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  public:</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>    explicit <a class="code hl_class" href="classqml__components_1_1RootSongFoldersConfig.html">RootSongFoldersConfig</a>(<a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>* folders,</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>                                   <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue,</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>                                   QObject* parent = <span class="keywordtype">nullptr</span>);</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    auto getFolders() const -&gt; <a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>*;</div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    auto getScanningQueue() const -&gt; <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>*;</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>};</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="foldopen" id="foldopen00115" data-start="{" data-end="};">
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno"><a class="line" href="classqml__components_1_1RootSongFoldersConfig.html">  115</a></span>class <a class="code hl_class" href="classqml__components_1_1RootSongFoldersConfig.html">RootSongFoldersConfig</a> final : public QObject</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>{</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>    Q_OBJECT</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="classqml__components_1_1RootSongFoldersConfig.html#a01f232788ed7d088ab348203098860ff">  119</a></span>    Q_PROPERTY(<a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>* folders READ getFolders CONSTANT)</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="classqml__components_1_1RootSongFoldersConfig.html#a353356246701e04199acfccb9f27db9c">  120</a></span>    Q_PROPERTY(<a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue READ getScanningQueue CONSTANT)</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>    <a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>* folders;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  public:</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    explicit <a class="code hl_class" href="classqml__components_1_1RootSongFoldersConfig.html">RootSongFoldersConfig</a>(<a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>* folders,</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>                                   <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>* scanningQueue,</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>                                   QObject* parent = <span class="keywordtype">nullptr</span>);</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>    auto getFolders() const -&gt; <a class="code hl_class" href="classqml__components_1_1RootSongFolders.html">RootSongFolders</a>*;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span>    auto getScanningQueue() const -&gt; <a class="code hl_class" href="classqml__components_1_1ScanningQueue.html">ScanningQueue</a>*;</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>};</div>
 </div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span> </div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>} <span class="comment">// namespace qml_components</span></div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_ROOTSONGFOLDERSCONFIG_H</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span> </div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>} <span class="comment">// namespace qml_components</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span><span class="preprocessor">#endif </span><span class="comment">// RHYTHMGAME_ROOTSONGFOLDERSCONFIG_H</span></div>
 <div class="ttc" id="aLr2FontCache_8cpp_html_ad44c6ce322034044d573e6d4678d630b"><div class="ttname"><a href="Lr2FontCache_8cpp.html#ad44c6ce322034044d573e6d4678d630b">data</a></div><div class="ttdeci">QByteArray data</div><div class="ttdef"><b>Definition</b> Lr2FontCache.cpp:25</div></div>
 <div class="ttc" id="aSongDbScanner_8h_html"><div class="ttname"><a href="SongDbScanner_8h.html">SongDbScanner.h</a></div></div>
 <div class="ttc" id="aSqliteCppDb_8h_html"><div class="ttname"><a href="SqliteCppDb_8h.html">SqliteCppDb.h</a></div></div>
@@ -240,7 +241,7 @@ $(document).ready(function() { init_codefold(0); });
 <div class="ttc" id="aclassqml__components_1_1RootSongFolder_html_aa306e6e24a9241fa0bde43e6acf89d55"><div class="ttname"><a href="classqml__components_1_1RootSongFolder.html#aa306e6e24a9241fa0bde43e6acf89d55">qml_components::RootSongFolder::name</a></div><div class="ttdeci">QString name</div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.h:31</div></div>
 <div class="ttc" id="aclassqml__components_1_1RootSongFolder_html_abfb55773f925636e1a39ff8e21ed9a0c"><div class="ttname"><a href="classqml__components_1_1RootSongFolder.html#abfb55773f925636e1a39ff8e21ed9a0c">qml_components::RootSongFolder::getName</a></div><div class="ttdeci">auto getName() const -&gt; QString</div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.cpp:113</div></div>
 <div class="ttc" id="aclassqml__components_1_1RootSongFolder_html_aef3eaa8df8df7979f8dcc5ef55dc71e6"><div class="ttname"><a href="classqml__components_1_1RootSongFolder.html#aef3eaa8df8df7979f8dcc5ef55dc71e6">qml_components::RootSongFolder::getStatus</a></div><div class="ttdeci">auto getStatus() const -&gt; Status</div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.cpp:118</div></div>
-<div class="ttc" id="aclassqml__components_1_1RootSongFoldersConfig_html"><div class="ttname"><a href="classqml__components_1_1RootSongFoldersConfig.html">qml_components::RootSongFoldersConfig</a></div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.h:115</div></div>
+<div class="ttc" id="aclassqml__components_1_1RootSongFoldersConfig_html"><div class="ttname"><a href="classqml__components_1_1RootSongFoldersConfig.html">qml_components::RootSongFoldersConfig</a></div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.h:116</div></div>
 <div class="ttc" id="aclassqml__components_1_1RootSongFolders_html"><div class="ttname"><a href="classqml__components_1_1RootSongFolders.html">qml_components::RootSongFolders</a></div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.h:48</div></div>
 <div class="ttc" id="aclassqml__components_1_1ScanningQueue_html"><div class="ttname"><a href="classqml__components_1_1ScanningQueue.html">qml_components::ScanningQueue</a></div><div class="ttdef"><b>Definition</b> RootSongFoldersConfig.h:74</div></div>
 <div class="ttc" id="aclassresource__managers_1_1SongDbScanner_html"><div class="ttname"><a href="classresource__managers_1_1SongDbScanner.html">resource_managers::SongDbScanner</a></div><div class="ttdef"><b>Definition</b> SongDbScanner.h:13</div></div>

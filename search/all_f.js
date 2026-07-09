@@ -18,7 +18,7 @@ var searchData=
   ['onlinerankingmodel_15',['onlinerankingmodel',['../classqml__components_1_1OnlineRankingModel.html#ab75c13f7c75b8f2f9e917e3848c06e6a',1,'qml_components::OnlineRankingModel::OnlineRankingModel()'],['../classqml__components_1_1OnlineRankingModel.html',1,'qml_components::OnlineRankingModel']]],
   ['onlinerankingmodel_2ecpp_16',['OnlineRankingModel.cpp',['../OnlineRankingModel_8cpp.html',1,'']]],
   ['onlinerankingmodel_2eh_17',['OnlineRankingModel.h',['../OnlineRankingModel_8h.html',1,'']]],
-  ['onlinescores_18',['onlinescores',['../classqml__components_1_1OnlineScores.html#a693ce787b9ab0d5578039c2b5e88073c',1,'qml_components::OnlineScores::OnlineScores()'],['../classqml__components_1_1OnlineScores.html',1,'qml_components::OnlineScores'],['../classqml__components_1_1OnlineRankingModel.html#a9aac28b6263fe9513106b2dab5b6e9a7',1,'qml_components::OnlineRankingModel::onlineScores'],['../classRg.html#af14bd2802a41a2483804e9d3cd1282d3',1,'Rg::onlineScores']]],
+  ['onlinescores_18',['onlinescores',['../classqml__components_1_1OnlineRankingModel.html#a9aac28b6263fe9513106b2dab5b6e9a7',1,'qml_components::OnlineRankingModel::onlineScores'],['../classqml__components_1_1OnlineScores.html',1,'qml_components::OnlineScores'],['../classRg.html#af14bd2802a41a2483804e9d3cd1282d3',1,'Rg::onlineScores'],['../classqml__components_1_1OnlineScores.html#a693ce787b9ab0d5578039c2b5e88073c',1,'qml_components::OnlineScores::OnlineScores()']]],
   ['onlinescores_2ecpp_19',['OnlineScores.cpp',['../OnlineScores_8cpp.html',1,'']]],
   ['onlinescores_2eh_20',['OnlineScores.h',['../OnlineScores_8h.html',1,'']]],
   ['onlinescoresforeign_21',['OnlineScoresForeign',['../structrhythm__game__qml_1_1OnlineScoresForeign.html',1,'rhythm_game_qml']]],

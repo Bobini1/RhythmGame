@@ -1,9 +1,13 @@
 <map id="src/gameplay_logic/lr2_skin/Lr2SkinModel.cpp" name="src/gameplay_logic/lr2_skin/Lr2SkinModel.cpp">
-<area shape="rect" id="Node000001" title=" " alt="" coords="158,5,354,45"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="253,5,449,45"/>
 <area shape="rect" id="Node000002" href="$Lr2SkinModel_8h.html" title=" " alt="" coords="131,93,253,119"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="243,47,212,84,208,81,238,44"/>
-<area shape="rect" id="Node000011" title=" " alt="" coords="277,93,363,119"/>
-<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="274,44,304,81,300,84,269,47"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="314,48,229,90,226,85,311,43"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="277,93,331,119"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="342,47,320,83,316,80,337,44"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="355,93,440,119"/>
+<area shape="poly" id="edge12_Node000001_Node000012" title=" " alt="" coords="364,44,386,80,381,83,360,47"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="465,93,530,119"/>
+<area shape="poly" id="edge13_Node000001_Node000013" title=" " alt="" coords="387,43,465,84,462,89,385,48"/>
 <area shape="rect" id="Node000003" title=" " alt="" coords="5,167,155,192"/>
 <area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="175,121,112,161,109,157,173,116"/>
 <area shape="rect" id="Node000004" title=" " alt="" coords="122,240,177,265"/>
