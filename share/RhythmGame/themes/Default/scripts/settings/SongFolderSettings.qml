@@ -4,6 +4,8 @@ import RhythmGameQml
 import QtQuick.Layouts
 import QtQuick.Dialogs
 
+import "SettingsColors.js" as SettingsColors
+
 Item {
     id: songFolderSettings
 
@@ -182,13 +184,43 @@ Item {
 
                             width: ListView.view ? ListView.view.width : 0
                             primaryText: scanItemRow.name
-                            metaText: index === 0 ? qsTr("Scanning") : qsTr("Queued")
 
-                            BusyIndicator {
-                                running: index === 0
-                                visible: index === 0
-                                Layout.preferredWidth: 24
-                                Layout.preferredHeight: 24
+                            Rectangle {
+                                color: SettingsColors.chipFill(palette)
+                                radius: 6
+                                border.width: 1
+                                border.color: SettingsColors.alpha(SettingsColors.panelBorder(palette), 0.7)
+                                Layout.preferredWidth: 112
+                                Layout.maximumWidth: 112
+                                Layout.preferredHeight: 28
+                                Layout.alignment: Qt.AlignVCenter
+
+                                RowLayout {
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 8
+                                    anchors.rightMargin: 8
+                                    spacing: 6
+
+                                    Item {
+                                        Layout.preferredWidth: 16
+                                        Layout.preferredHeight: 16
+
+                                        BusyIndicator {
+                                            anchors.fill: parent
+                                            running: index === 0
+                                            visible: running
+                                        }
+                                    }
+
+                                    Label {
+                                        text: index === 0 ? qsTr("Scanning") : qsTr("Queued")
+                                        color: SettingsColors.alpha(palette.windowText, 0.82)
+                                        elide: Text.ElideRight
+                                        maximumLineCount: 1
+                                        horizontalAlignment: Text.AlignLeft
+                                        Layout.fillWidth: true
+                                    }
+                                }
                             }
 
                             ActionButton {
