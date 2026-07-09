@@ -15,7 +15,7 @@
     <message>
         <location filename="../scripts/settings/AnalogAxisSettings.qml" line="13"/>
         <source>Controller axis thresholds and scratch behavior.</source>
-        <translation>Progi osi kontrolera i zachowanie scratcha.</translation>
+        <translation>Progi osi kontrolera i ustawienia scratcha.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/AnalogAxisSettings.qml" line="59"/>
@@ -48,7 +48,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="10"/>
         <source>Background animation visibility and layering.</source>
-        <translation>Widoczność i warstwowanie animacji tła.</translation>
+        <translation>Animacja tła: widoczność i warstwa.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="14"/>
@@ -89,7 +89,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/BpmDisplayPopup.qml" line="9"/>
         <source>BPM text visibility, layering, and font.</source>
-        <translation>Widoczność, warstwowanie i czcionka tekstu BPM.</translation>
+        <translation>Tekst BPM: widoczność, warstwa i czcionka.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/BpmDisplayPopup.qml" line="13"/>
@@ -130,7 +130,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="9"/>
         <source>Note density graph visibility and opacity.</source>
-        <translation>Widoczność i przezroczystość grafu gęstości notek.</translation>
+        <translation>Graf gęstości notek: widoczność i przezroczystość.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DensityGraphPopup.qml" line="13"/>
@@ -193,7 +193,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/DifficultyDisplayPopup.qml" line="9"/>
         <source>Difficulty label visibility, layering, and font.</source>
-        <translation>Widoczność, warstwowanie i czcionka etykiety trudności.</translation>
+        <translation>Etykieta trudności: widoczność, warstwa i czcionka.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/DifficultyDisplayPopup.qml" line="13"/>
@@ -221,7 +221,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/FastslowPopup.qml" line="12"/>
         <source>Timing indicator visibility and images.</source>
-        <translation>Widoczność i grafiki wskaźnika timingu.</translation>
+        <translation>Wskaźnik timingu: widoczność i grafiki.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/FastslowPopup.qml" line="18"/>
@@ -325,7 +325,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="12"/>
         <source>Life gauge visibility, layering, font, and image.</source>
-        <translation>Widoczność, warstwowanie, czcionka i grafika gajgi życia.</translation>
+        <translation>Gajga życia: widoczność, warstwa, czcionka i grafika.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/GaugePopup.qml" line="18"/>
@@ -433,7 +433,7 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="214"/>
         <source>Display and score</source>
-        <translation>Wyświetlanie i wynik</translation>
+        <translation>Obraz i wynik</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="221"/>
@@ -468,7 +468,7 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="279"/>
         <source>Play defaults</source>
-        <translation>Domyślne ustawienia rozgrywki</translation>
+        <translation>Domyślne dla gry</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="287"/>
@@ -478,7 +478,7 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="288"/>
         <source>Replay Type</source>
-        <translation>Rodzaj replaya</translation>
+        <translation>Rodzaj powtórki</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="258"/>
@@ -584,7 +584,7 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="19"/>
         <source>System, gameplay, display, audio, replay, and gauge defaults.</source>
-        <translation>Domyślne ustawienia systemu, gry, wyświetlania, audio, replaya i gajgi.</translation>
+        <translation>Domyślne ustawienia systemu, rozgrywki, obrazu, audio, powtórek i gajgi.</translation>
     </message>
     <message>
         <source>System Settings</source>
@@ -629,7 +629,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/GhostScorePopup.qml" line="12"/>
         <source>Target score display and font.</source>
-        <translation>Wyświetlanie i czcionka celu punktowego.</translation>
+        <translation>Cel punktowy: wyświetlanie i czcionka.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/GhostScorePopup.qml" line="18"/>
@@ -652,7 +652,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/HitDistributionPopup.qml" line="9"/>
         <source>Timing distribution graph and markers.</source>
-        <translation>Graf rozkładu timingu i znaczniki.</translation>
+        <translation>Graf rozkładu timingu ze znacznikami.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/HitDistributionPopup.qml" line="13"/>
@@ -720,7 +720,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/JudgementCountsPopup.qml" line="9"/>
         <source>Judgement count layering and font.</source>
-        <translation>Warstwowanie i czcionka liczników ocen.</translation>
+        <translation>Liczniki ocen: warstwa i czcionka.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/JudgementCountsPopup.qml" line="16"/>
@@ -743,7 +743,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/JudgementsPopup.qml" line="12"/>
         <source>Judgement text visibility and image.</source>
-        <translation>Widoczność tekstu ocen i grafika.</translation>
+        <translation>Oceny: widoczność tekstu i grafika.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/JudgementsPopup.qml" line="16"/>
@@ -1150,7 +1150,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="15"/>
         <source>Lane layout, covers, and note images.</source>
-        <translation>Układ linii, zasłony i grafiki notek.</translation>
+        <translation>Układ linii, zasłony i wygląd notek.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="20"/>
@@ -1160,7 +1160,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="21"/>
         <source>Placement, layering, and note lane appearance.</source>
-        <translation>Położenie, warstwowanie i wygląd linii notek.</translation>
+        <translation>Położenie, warstwa i wygląd linii notek.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="71"/>
@@ -1170,7 +1170,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="72"/>
         <source>Lane cover, lift, hidden, and scratch behavior.</source>
-        <translation>Zasłona od góry, podniesienie, ukrycie od dołu i zachowanie scratcha.</translation>
+        <translation>Zasłona od góry, podniesienie, ukrycie od dołu i scratch.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="89"/>
@@ -1200,7 +1200,7 @@
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="132"/>
         <source>Theme assets used by notes, covers, and effects.</source>
-        <translation>Zasoby motywu używane przez notki, zasłony i efekty.</translation>
+        <translation>Grafiki motywu dla notek, zasłon i efektów.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/PlayAreaPopup.qml" line="141"/>
@@ -1358,7 +1358,7 @@
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="81"/>
         <source>Choose a profile, manage online login, sync scores, and import replays.</source>
-        <translation>Wybierz profil, zarządzaj logowaniem online, synchronizuj wyniki i importuj replaye.</translation>
+        <translation>Wybierz profil, skonfiguruj konto online, synchronizuj wyniki i importuj powtórki.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/PlayerSettings.qml" line="92"/>
@@ -1545,7 +1545,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="10"/>
         <source>Score graph layering, font, and image.</source>
-        <translation>Warstwowanie, czcionka i grafika grafu punktów.</translation>
+        <translation>Graf punktów: warstwa, czcionka i grafika.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/ScoreGraphPopup.qml" line="14"/>
@@ -1639,7 +1639,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/ScreenSettings.qml" line="19"/>
         <source>The selected theme does not expose configurable settings here.</source>
-        <translation>Wybrany motyw nie udostępnia tutaj konfigurowalnych ustawień.</translation>
+        <translation>Ten motyw nie ma tutaj ustawień do zmiany.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/ScreenSettings.qml" line="34"/>
@@ -1770,12 +1770,12 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="98"/>
         <source>Add a folder that contains your BMS charts.</source>
-        <translation>Dodaj folder zawierający twoje charty BMS.</translation>
+        <translation>Dodaj folder z chartami BMS.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="116"/>
         <source>Root song source</source>
-        <translation>Główne źródło piosenek</translation>
+        <translation>Źródło piosenek</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="128"/>
@@ -1795,7 +1795,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="43"/>
         <source>Manage root song folders and background scanning.</source>
-        <translation>Zarządzaj głównymi folderami piosenek i skanowaniem w tle.</translation>
+        <translation>Zarządzaj folderami z piosenkami i skanowaniem w tle.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="54"/>
@@ -1805,7 +1805,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="55"/>
         <source>Folders scanned for BMS charts.</source>
-        <translation>Foldery skanowane pod kątem chartów BMS.</translation>
+        <translation>Foldery z plikami BMS.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="65"/>
@@ -1824,17 +1824,17 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="144"/>
         <source>Folders waiting for or currently undergoing scan.</source>
-        <translation>Foldery oczekujące na skanowanie lub aktualnie skanowane.</translation>
+        <translation>Foldery w kolejce lub właśnie skanowane.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="158"/>
         <source>Scanner idle</source>
-        <translation>Skaner bezczynny</translation>
+        <translation>Skaner czeka</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="159"/>
         <source>Scan one folder or all folders to see progress here.</source>
-        <translation>Skanuj jeden folder lub wszystkie foldery, aby zobaczyć tutaj postęp.</translation>
+        <translation>Uruchom skanowanie folderu, aby zobaczyć tutaj postęp.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/SongFolderSettings.qml" line="177"/>
@@ -2007,7 +2007,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="498"/>
         <source>Manage installed tables and browse recommended table sources.</source>
-        <translation>Zarządzaj zainstalowanymi tabelami i przeglądaj rekomendowane źródła tabel.</translation>
+        <translation>Zarządzaj zainstalowanymi tabelami i przeglądaj polecane źródła.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="532"/>
@@ -2017,7 +2017,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="533"/>
         <source>Drag to reorder; reload or remove individual sources.</source>
-        <translation>Przeciągnij, aby zmienić kolejność; przeładuj lub usuń poszczególne źródła.</translation>
+        <translation>Przeciągnij, aby zmienić kolejność; odśwież lub usuń wybrane źródła.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="560"/>
@@ -2032,7 +2032,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="581"/>
         <source>Filter the remote table list, then add sources to your installed tables.</source>
-        <translation>Filtruj zdalną listę tabel, a potem dodaj źródła do zainstalowanych tabel.</translation>
+        <translation>Przefiltruj zdalną listę i dodaj wybrane źródła do swoich tabel.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/TableSettings.qml" line="615"/>
@@ -2116,7 +2116,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="21"/>
         <source>Choose screens, theme families, and per-screen theme options.</source>
-        <translation>Wybierz ekrany, rodziny motywów i opcje motywu dla każdego ekranu.</translation>
+        <translation>Wybierz ekrany, rodziny motywów i opcje osobno dla każdego ekranu.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="30"/>
@@ -2126,7 +2126,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="31"/>
         <source>Configure each theme screen.</source>
-        <translation>Skonfiguruj każdy ekran motywu.</translation>
+        <translation>Skonfiguruj ekrany motywu.</translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="58"/>
@@ -2204,7 +2204,7 @@ pominięto: %3, łącznie: %4</translation>
     <message>
         <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="9"/>
         <source>Song title visibility, layering, and font.</source>
-        <translation>Widoczność, warstwowanie i czcionka tytułu piosenki.</translation>
+        <translation>Tytuł piosenki: widoczność, warstwa i czcionka.</translation>
     </message>
     <message>
         <location filename="../scripts/gameplay/popups/TitleDisplayPopup.qml" line="13"/>

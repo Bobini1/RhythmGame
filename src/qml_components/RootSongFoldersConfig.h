@@ -90,6 +90,7 @@ class ScanningQueue final : public QAbstractListModel
                           ":dir");
 
     void scanImpl(const QString& which);
+    void setCurrentScannedFolder(QString folder);
 
   public:
     void clear(const QString& which);

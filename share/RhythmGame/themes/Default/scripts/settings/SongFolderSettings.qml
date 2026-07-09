@@ -75,7 +75,7 @@ Item {
                         text: qsTr("Scan all")
                         tone: ActionButton.Secondary
                         Layout.fillWidth: true
-                        enabled: Rg.rootSongFoldersConfig.folders.rowCount() > 0
+                        enabled: folderList.count > 0
 
                         onClicked: {
                             for (let i = 0; i < Rg.rootSongFoldersConfig.folders.rowCount(); i++) {
@@ -92,15 +92,17 @@ Item {
 
                     EmptyState {
                         anchors.centerIn: parent
-                        visible: Rg.rootSongFoldersConfig.folders.rowCount() === 0
+                        visible: folderList.count === 0
                         width: Math.min(360, parent.width - 32)
                         title: qsTr("No song folders")
                         subtitle: qsTr("Add a folder that contains your BMS charts.")
                     }
 
                     ListView {
+                        id: folderList
+
                         anchors.fill: parent
-                        visible: Rg.rootSongFoldersConfig.folders.rowCount() > 0
+                        visible: count > 0
                         clip: true
                         model: Rg.rootSongFoldersConfig.folders
                         spacing: 5
@@ -147,21 +149,27 @@ Item {
                 Layout.preferredWidth: 1
 
                 Item {
+                    id: scanActivityArea
+
+                    readonly property bool hasCurrentScan: Rg.rootSongFoldersConfig.scanningQueue.currentScannedFolder.length > 0
+
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     Layout.minimumHeight: 220
 
                     EmptyState {
                         anchors.centerIn: parent
-                        visible: Rg.rootSongFoldersConfig.scanningQueue.rowCount() === 0
+                        visible: scanQueueList.count === 0 && !scanActivityArea.hasCurrentScan
                         width: Math.min(360, parent.width - 32)
                         title: qsTr("Scanner idle")
                         subtitle: qsTr("Scan one folder or all folders to see progress here.")
                     }
 
                     ListView {
+                        id: scanQueueList
+
                         anchors.fill: parent
-                        visible: Rg.rootSongFoldersConfig.scanningQueue.rowCount() > 0
+                        visible: count > 0
                         clip: true
                         model: Rg.rootSongFoldersConfig.scanningQueue
                         spacing: 5

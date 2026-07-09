@@ -238,6 +238,7 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
         beginRemoveRows(QModelIndex(), 0, 0);
         scanItems.pop_front();
         endRemoveRows();
+        setCurrentScannedFolder({});
         if (!scanItems.empty()) {
             performTask();
         }
@@ -280,8 +281,7 @@ ScanningQueue::scanImpl(const QString& which)
                 this,
                 [this,
                  newCurrentScannedFolder = std::move(newCurrentScannedFolder)] {
-                    currentScannedFolder = newCurrentScannedFolder;
-                    emit currentScannedFolderChanged();
+                    setCurrentScannedFolder(newCurrentScannedFolder);
                 },
                 Qt::QueuedConnection);
           },
@@ -291,6 +291,15 @@ ScanningQueue::scanImpl(const QString& which)
         }
     });
     scanFutureWatcher.setFuture(scanFuture);
+}
+void
+ScanningQueue::setCurrentScannedFolder(QString folder)
+{
+    if (currentScannedFolder == folder) {
+        return;
+    }
+    currentScannedFolder = std::move(folder);
+    emit currentScannedFolderChanged();
 }
 void
 ScanningQueue::clear(const QString& which)
