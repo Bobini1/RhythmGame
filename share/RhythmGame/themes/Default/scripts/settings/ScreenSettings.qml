@@ -14,7 +14,10 @@ Loader {
         } else {
             let items = screenSettingsLoader.screenSettings.filter((item) => item.type !== "hidden");
             if (items.length === 0) {
-                screenSettingsLoader.source = "";
+                setSource("EmptyState.qml", {
+                    title: qsTr("No settings for this screen"),
+                    subtitle: qsTr("The selected theme does not expose configurable settings here.")
+                });
                 return;
             }
             let props = {
@@ -40,7 +43,7 @@ Loader {
     }
     readonly property string name: displayNames[screenSettingsLoader.screen] ? qsTr(displayNames[screenSettingsLoader.screen]) : qsTr("%1 Settings").arg(Helpers.capitalizeFirstLetter(screenSettingsLoader.screen))
     onNameChanged: {
-        if (screenSettingsLoader.item) {
+        if (screenSettingsLoader.item && "name" in screenSettingsLoader.item) {
             screenSettingsLoader.item.name = screenSettingsLoader.name;
         }
     }

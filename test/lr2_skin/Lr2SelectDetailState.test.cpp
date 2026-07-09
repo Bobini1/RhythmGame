@@ -134,9 +134,10 @@ TEST_CASE("LR2 select detail state uses exact Beatoraja clear lamp ids",
     CHECK(summaryLampFor(QStringLiteral("NOPLAY"), true) == 0);
     CHECK(summaryLampFor(QStringLiteral("FAILED"), true) == 1);
     CHECK(summaryLampFor(QStringLiteral("AEASY"), true) == 2);
-    CHECK(summaryLampFor(QStringLiteral("LIGHTASSIST"), true) == 3);
     CHECK(summaryLampFor(QStringLiteral("EASY"), true) == 4);
+    CHECK(summaryLampFor(QStringLiteral("DAN"), true) == 5);
     CHECK(summaryLampFor(QStringLiteral("NORMAL"), true) == 5);
+    CHECK(summaryLampFor(QStringLiteral("EXDAN"), true) == 6);
     CHECK(summaryLampFor(QStringLiteral("HARD"), true) == 6);
     CHECK(summaryLampFor(QStringLiteral("EXHARD"), true) == 7);
     CHECK(summaryLampFor(QStringLiteral("EXHARDDAN"), true) == 7);
@@ -149,11 +150,13 @@ TEST_CASE("LR2 select detail state keeps LR2 clear lamp buckets",
           "[lr2][runtime][select]")
 {
     CHECK(summaryLampFor(QStringLiteral("AEASY"), false) == 1);
-    CHECK(summaryLampFor(QStringLiteral("LIGHTASSIST"), false) == 1);
     CHECK(summaryLampFor(QStringLiteral("EASY"), false) == 2);
+    CHECK(summaryLampFor(QStringLiteral("DAN"), false) == 3);
     CHECK(summaryLampFor(QStringLiteral("NORMAL"), false) == 3);
+    CHECK(summaryLampFor(QStringLiteral("EXDAN"), false) == 4);
     CHECK(summaryLampFor(QStringLiteral("HARD"), false) == 4);
     CHECK(summaryLampFor(QStringLiteral("EXHARD"), false) == 4);
+    CHECK(summaryLampFor(QStringLiteral("EXHARDDAN"), false) == 4);
     CHECK(summaryLampFor(QStringLiteral("FC"), false) == 5);
     CHECK(summaryLampFor(QStringLiteral("PERFECT"), false) == 5);
     CHECK(summaryLampFor(QStringLiteral("MAX"), false) == 5);

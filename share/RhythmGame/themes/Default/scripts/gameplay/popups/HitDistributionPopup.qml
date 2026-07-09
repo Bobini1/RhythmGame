@@ -5,6 +5,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Hit distribution")
+    panelSubtitle: qsTr("Timing distribution graph and markers.")
 
     model: ObjectModel {
         BooleanOption {

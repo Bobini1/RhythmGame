@@ -134,6 +134,7 @@ struct ParseState
     std::set<int> activeOptions;
     std::set<int> usedOptions;
     std::set<int> usedElementOptions;
+    std::set<int> conditionOptions;
     Lr2Element currentElement;
     bool hasCurrentElement = false;
     QVariantMap settingValues;
@@ -960,7 +961,7 @@ resolvePath(const std::filesystem::path& currentDir,
 }
 
 auto
-evaluateCondition(const QStringList& tokens, const ParseState& state) -> bool
+evaluateCondition(const QStringList& tokens, ParseState& state) -> bool
 {
     for (int i = 1; i < tokens.size(); ++i) {
         const auto token = tokens[i].trimmed();
@@ -979,6 +980,7 @@ evaluateCondition(const QStringList& tokens, const ParseState& state) -> bool
         if (!ok) {
             return false;
         }
+        state.conditionOptions.insert(std::abs(option));
 
         const bool contains = state.activeOptions.contains(option);
         if ((!negate && !contains) || (negate && contains)) {
@@ -2755,6 +2757,10 @@ parseFile(const std::filesystem::path& filePath,
     for (const int option : state.usedElementOptions) {
         usedElementOptions.append(option);
     }
+    QVariantList conditionOptions;
+    for (const int option : state.conditionOptions) {
+        conditionOptions.append(option);
+    }
 
     QVariantList barLampVariants;
     for (auto it = state.barLampSources.cbegin();
@@ -2815,6 +2821,7 @@ parseFile(const std::filesystem::path& filePath,
         .activeOptions = activeOptions,
         .usedOptions = usedOptions,
         .usedElementOptions = usedElementOptions,
+        .conditionOptions = conditionOptions,
         .barLampVariants = barLampVariants,
         .barLevelVariants = barLevelVariants,
         .barRows = barRows,

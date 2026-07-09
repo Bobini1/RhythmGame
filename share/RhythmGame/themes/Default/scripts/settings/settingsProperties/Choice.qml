@@ -8,6 +8,10 @@ import ".."
 
 RowLayout {
     id: choice
+    spacing: 12
+    Layout.fillWidth: true
+    Layout.minimumHeight: 34
+
     // for global vars only
     property bool assignIndex: false
     property var destination
@@ -25,8 +29,8 @@ RowLayout {
         id: choiceComboBox
         model: displayStrings
         Layout.fillWidth: true
-        Layout.preferredWidth: 400
-        Layout.minimumWidth: 200
+        Layout.preferredWidth: 460
+        Layout.minimumWidth: 220
 
         Binding {
             delayed: true
@@ -58,5 +62,7 @@ RowLayout {
         destination: choice.destination
         id_: choice.id_
         default_: choice.default_
+        Layout.preferredWidth: 84
+        Layout.minimumWidth: 76
     }
 }

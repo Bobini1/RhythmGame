@@ -510,6 +510,7 @@ struct Lr2SkinData
     QVariantList activeOptions;
     QVariantList usedOptions;
     QVariantList usedElementOptions;
+    QVariantList conditionOptions;
     QVariantList barLampVariants;
     QVariantList barLevelVariants;
     QVariantList barRows;

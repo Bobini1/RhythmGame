@@ -324,19 +324,17 @@ void Lr2BarBaseStateResolver::rebuildFastScrollStep() {
             return;
         }
 
-        if (row != m_selectedRow
-                && row - 1 != m_selectedRow
-                && (!sameStateNumber(previous.w, current.w)
-                    || !sameStateNumber(previous.h, current.h)
-                    || !sameStateNumber(previous.a, current.a)
-                    || !sameStateNumber(previous.r, current.r)
-                    || !sameStateNumber(previous.g, current.g)
-                    || !sameStateNumber(previous.b, current.b)
-                    || !sameStateNumber(previous.angle, current.angle)
-                    || !sameStateNumber(previous.center, current.center)
-                    || previous.blend != current.blend
-                    || previous.filter != current.filter
-                    || previous.op4 != current.op4)) {
+        if (!sameStateNumber(previous.w, current.w)
+                || !sameStateNumber(previous.h, current.h)
+                || !sameStateNumber(previous.a, current.a)
+                || !sameStateNumber(previous.r, current.r)
+                || !sameStateNumber(previous.g, current.g)
+                || !sameStateNumber(previous.b, current.b)
+                || !sameStateNumber(previous.angle, current.angle)
+                || !sameStateNumber(previous.center, current.center)
+                || previous.blend != current.blend
+                || previous.filter != current.filter
+                || previous.op4 != current.op4) {
             return;
         }
     }

@@ -6,6 +6,8 @@ GameplayPopup {
 
     required property var generalVars
     required property var themeVars
+    panelTitle: qsTr("Score graph")
+    panelSubtitle: qsTr("Score graph layering, font, and image.")
 
     model: ObjectModel {
         BooleanOption {

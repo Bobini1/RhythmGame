@@ -5,7 +5,7 @@ import RhythmGameQml
 import "../../common"
 import "../../common/helpers.js" as Helpers
 
-Row {
+Item {
     id: fontSelection
 
     required property string propertyId
@@ -78,33 +78,39 @@ Row {
 
     Component.onDestruction: closeTransientPopups()
 
-    height: Math.max(fontControls.implicitHeight, propertyLabel.height)
-    spacing: 10
+    height: fontControls.implicitHeight + 16
+    width: ListView.view ? ListView.view.width : 414
+
+    PopupEditorColors {
+        id: popupColors
+    }
 
     ThemeFont {
         id: selectedFont
         fileName: fontSelection.currentValue
     }
 
-    Text {
-        id: propertyLabel
-
-        anchors.verticalCenter: parent.verticalCenter
-        color: "white"
-        font.bold: true
-        fontSizeMode: Text.Fit
-        horizontalAlignment: Text.AlignHCenter
-        text: fontSelection.label
-        verticalAlignment: Text.AlignVCenter
-        width: 160
-    }
-
     Column {
         id: fontControls
 
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 4
-        width: 320
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 8
+        spacing: 8
+
+        Text {
+            id: propertyLabel
+
+            color: popupColors.text
+            elide: Text.ElideRight
+            font.bold: true
+            font.pixelSize: 14
+            text: fontSelection.label
+            textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
+            width: parent.width
+        }
 
         Button {
             activeFocusOnTab: true
@@ -114,17 +120,18 @@ Row {
         }
 
         Rectangle {
-            border.color: "#80ffffff"
+            border.color: popupColors.controlBorder
             border.width: 1
-            color: "#202020"
-            height: 28
+            color: popupColors.preview
+            height: 32
+            radius: 4
             width: parent.width
 
             Text {
                 anchors.fill: parent
                 anchors.leftMargin: 8
                 anchors.rightMargin: 8
-                color: "white"
+                color: popupColors.text
                 elide: Text.ElideRight
                 font.family: selectedFont.fontFamily
                 font.italic: selectedFont.italic

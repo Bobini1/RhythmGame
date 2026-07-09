@@ -5,6 +5,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Density graph")
+    panelSubtitle: qsTr("Note density graph visibility and opacity.")
 
     model: ObjectModel {
         BooleanOption {

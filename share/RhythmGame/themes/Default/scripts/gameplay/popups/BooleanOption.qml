@@ -1,34 +1,50 @@
 import QtQuick
 import RhythmGameQml
 import QtQuick.Controls
+import QtQuick.Layouts
 
-Row {
+Item {
     id: booleanOption
 
     required property string prop
     property string description: prop
     required property var src
-    height: Math.max(40, checkBox.implicitHeight)
-    spacing: 10
+    height: Math.max(44, row.implicitHeight + 8)
+    width: ListView.view ? ListView.view.width : 414
 
-    Text {
-        anchors.verticalCenter: checkBox.verticalCenter
-        color: "white"
-        font.bold: true
-        horizontalAlignment: Text.AlignHCenter
-        text: parent.description
-        verticalAlignment: Text.AlignVCenter
-        width: 160
-        fontSizeMode: Text.Fit
+    PopupEditorColors {
+        id: popupColors
     }
-    CheckBox {
-        id: checkBox
 
-        checked: booleanOption.src[booleanOption.prop]
-        width: 310
+    RowLayout {
+        id: row
 
-        onCheckedChanged: {
-            booleanOption.src[booleanOption.prop] = checked;
+        anchors.fill: parent
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+        spacing: 10
+
+        Text {
+            Layout.fillWidth: true
+            color: popupColors.text
+            elide: Text.ElideRight
+            font.bold: true
+            font.pixelSize: 14
+            text: booleanOption.description
+            textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
+        }
+
+        CheckBox {
+            id: checkBox
+
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+            Layout.preferredWidth: 34
+            checked: booleanOption.src[booleanOption.prop]
+
+            onCheckedChanged: {
+                booleanOption.src[booleanOption.prop] = checked;
+            }
         }
     }
 }

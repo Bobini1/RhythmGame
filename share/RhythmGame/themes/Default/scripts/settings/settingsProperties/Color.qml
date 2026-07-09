@@ -7,6 +7,10 @@ import ".."
 
 RowLayout {
     id: colorPicker
+    spacing: 12
+    Layout.fillWidth: true
+    Layout.minimumHeight: 34
+
     property var destination
     property string id_
     property var colorPickers
@@ -21,7 +25,7 @@ RowLayout {
     Rectangle {
         id: colorPickerRectangle
 
-        height: 30
+        Layout.preferredHeight: 30
         border {
             color: palette.shadow
             width: 1
@@ -54,6 +58,8 @@ RowLayout {
         destination: colorPicker.destination
         id_: colorPicker.id_
         default_: colorPicker.default_
+        Layout.preferredWidth: 84
+        Layout.minimumWidth: 76
 
         onClicked: {
             colorPicker.destination[colorPicker.id_] = colorPicker.default_

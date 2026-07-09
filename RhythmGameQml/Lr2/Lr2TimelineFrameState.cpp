@@ -677,7 +677,7 @@ void Lr2TimelineFrameState::updateFrame() {
         || std::abs(m_tintG - 1.0) > 0.001
         || std::abs(m_tintB - 1.0) > 0.001;
     m_tintColor = QColor::fromRgbF(m_tintR, m_tintG, m_tintB, 1.0);
-    m_opacity = m_hasState ? m_fields.a / 255.0 : 0.0;
+    m_opacity = m_hasState ? (m_fields.blend == 0 ? 1.0 : m_fields.a / 255.0) : 0.0;
 
     if (previousCanUseStaticState != m_canUseStaticState
             || previousStaticStateValid != m_staticStateValid

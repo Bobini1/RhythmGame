@@ -3,7 +3,8 @@ import QtQuick
 import QtQuick.Controls
 import RhythmGameQml
 import QtQuick.Layouts
-import QtQuick.Shapes
+
+import "SettingsColors.js" as SettingsColors
 
 Item {
     id: tableSettings
@@ -20,6 +21,9 @@ Item {
     property string browserSearch:   ""
     property bool   showUrlEditor:   false   // toggled by the ⚙ button
     property var    fetchRequest:     null
+
+    readonly property int installedPaneMinimumWidth: 360
+    readonly property int installedPaneRowMinimumWidth: 560
 
     Component.onCompleted: fetchTables()
     Component.onDestruction: cancelFetch()
@@ -231,11 +235,14 @@ Item {
                     verticalCenter: parent.verticalCenter
                 }
                 width: dragArea.width
-                height: Math.max(64, row.implicitHeight + 8)
+                height: Math.max(72, row.implicitHeight + 14)
 
                 property bool highlighted: dragArea.held
 
-                color: highlighted ? palette.highlight : palette.base
+                radius: 7
+                color: SettingsColors.rowFill(palette, highlighted, rowHover.hovered)
+                border.width: highlighted ? 1 : 0
+                border.color: SettingsColors.panelBorder(palette)
 
                 Drag.active: dragArea.held
                 Drag.source: dragArea
@@ -257,54 +264,55 @@ Item {
                     }
                 }
 
+                HoverHandler {
+                    id: rowHover
+                }
+
                 RowLayout {
                     id: row
 
                     anchors.fill: parent
-                    spacing: 10
-                    anchors.margins: 5
+                    spacing: 12
+                    anchors.margins: 8
 
-                    // ── Drag handle: 2 × 3 dot grid ──────────────────────
-                    Column {
-                        spacing: 3
+                    TagChip {
+                        text: qsTr("Drag")
                         Layout.alignment: Qt.AlignVCenter
-                        opacity: 0.5
-                        Repeater {
-                            model: 3
-                            delegate: Row {
-                                spacing: 3
-                                Repeater {
-                                    model: 2
-                                    delegate: Rectangle {
-                                        width: 4; height: 4; radius: 2
-                                        color: content.highlighted
-                                               ? palette.highlightedText
-                                               : palette.text
-                                    }
-                                }
-                            }
-                        }
                         ToolTip.text: qsTr("Drag to reorder")
                         ToolTip.visible: dragHandleHover.hovered
-                        HoverHandler { id: dragHandleHover }
+                        ToolTip.delay: 500
+
+                        HoverHandler {
+                            id: dragHandleHover
+                        }
                     }
 
-                    Label {
-                        id: tableUrl
+                    ColumnLayout {
                         Layout.fillWidth: true
-                        Layout.preferredWidth: 100
-                        elide: Text.ElideRight
-                        text: dragArea.display.url
-                        color: content.highlighted ? palette.highlightedText : palette.text
-                    }
-                    Label {
-                        id: tableName
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 75
-                        Layout.minimumWidth: 75
-                        elide: Text.ElideRight
-                        text: dragArea.display.name
-                        color: content.highlighted ? palette.highlightedText : palette.text
+                        Layout.minimumWidth: 0
+                        spacing: 2
+
+                        Label {
+                            id: tableName
+
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            elide: Text.ElideRight
+                            font.bold: true
+                            text: dragArea.display.name
+                            color: palette.text
+                        }
+
+                        Label {
+                            id: tableUrl
+
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            elide: Text.ElideRight
+                            text: dragArea.display.url
+                            color: SettingsColors.alpha(palette.text, 0.7)
+                            font.pixelSize: 11
+                        }
                     }
                     Component {
                         id: defaultItem
@@ -312,31 +320,18 @@ Item {
                         }
                     }
                     Loader {
+                        Layout.preferredHeight: 32
+                        Layout.preferredWidth: 48
+
                         Component {
                             id: errorItem
-                            Shape {
-                                id: errorIcon
+                            Label {
                                 visible: dragArea.display.status === table.Error
-                                ShapePath {
-                                    strokeColor: palette.accent
-                                    strokeWidth: 4
-                                    fillColor: "transparent"
-                                    startX: 0
-                                    startY: 0
-                                    PathLine {
-                                        x: 32; y: 32
-                                    }
-                                }
-                                ShapePath {
-                                    strokeColor: palette.accent
-                                    strokeWidth: 4
-                                    fillColor: "transparent"
-                                    startX: 32
-                                    startY: 0
-                                    PathLine {
-                                        x: 0; y: 32
-                                    }
-                                }
+                                text: qsTr("Error")
+                                color: SettingsColors.dangerText(palette)
+                                font.pixelSize: 12
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
                             }
                         }
                         Component {
@@ -349,9 +344,6 @@ Item {
                                 }
                             }
                         }
-                        width: 32
-                        height: 32
-
                         sourceComponent: {
                             if (dragArea.display.status === table.Error) {
                                 return errorItem;
@@ -361,15 +353,17 @@ Item {
                             return defaultItem;
                         }
                     }
-                    Button {
+                    ActionButton {
                         text: qsTr("Reload")
+                        tone: ActionButton.Secondary
 
                         onClicked: {
                             Rg.tables.reload(dragArea.index);
                         }
                     }
-                    Button {
+                    ActionButton {
                         text: qsTr("Remove")
+                        tone: ActionButton.Danger
 
                         onClicked: {
                             Rg.tables.removeAt(dragArea.index);
@@ -460,46 +454,31 @@ Item {
                     }
                 }
 
-                // tag1 chip — click to filter by this tag1 value
-                Label {
+                TagChip {
                     visible: !!modelData.tag1
                     text: tableSettings.translateTag(modelData.tag1)
-                    leftPadding: 6; rightPadding: 6
-                    topPadding: 2; bottomPadding: 2
-                    background: Rectangle {
-                        color: tag1Hover.hovered ? palette.button : palette.midlight
-                        radius: 4
-                    }
-                    HoverHandler { id: tag1Hover }
                     TapHandler {
                         cursorShape: Qt.PointingHandCursor
                         onTapped: tableSettings.tag1Filter = modelData.tag1
                     }
                 }
 
-                // tag2 chip — click to filter by this tag2 value
-                Label {
+                TagChip {
                     visible: !!modelData.tag2
                     text: tableSettings.translateTag(modelData.tag2)
-                    leftPadding: 6; rightPadding: 6
-                    topPadding: 2; bottomPadding: 2
-                    background: Rectangle {
-                        color: tag2Hover.hovered ? palette.button : palette.midlight
-                        radius: 4
-                    }
-                    HoverHandler { id: tag2Hover }
                     TapHandler {
                         cursorShape: Qt.PointingHandCursor
                         onTapped: tableSettings.tag2Filter = modelData.tag2
                     }
                 }
 
-                Button {
+                ActionButton {
                     text: qsTr("Add")
+                    tone: ActionButton.Primary
                     onClicked: Rg.tables.add(modelData.url)
                 }
                 Rectangle {
-                    width: 5
+                    Layout.preferredWidth: 5
                     color: "transparent"
                 }
             }
@@ -508,263 +487,321 @@ Item {
 
     // ── Main layout: side-by-side split ───────────────────────────────────
 
-    SplitView {
+    SettingsWorkspaceScaffold {
+        id: pageScaffold
+
         anchors.fill: parent
-        orientation: Qt.Horizontal
+        contentSpacing: 12
 
-        // ── Left pane: My Tables ──────────────────────────────────────────
-
-        Item {
-            SplitView.minimumWidth: 300
-            SplitView.fillWidth: true
-
-            Flickable {
-                anchors.fill: parent
-                contentWidth: Math.max(300, width)
-                contentHeight: Math.max(myTabFrame.implicitHeight, parent.height)
-                flickableDirection: Flickable.HorizontalFlick
-                boundsBehavior: Flickable.StopAtBounds
-                ScrollBar.horizontal: ScrollBar {}
-
-                Frame {
-                    id: myTabFrame
-                    anchors.fill: parent
-
-                    ColumnLayout {
-                        anchors.fill: parent
-
-                        ListView {
-                            id: songList
-                            Layout.fillHeight: true
-                            Layout.fillWidth: true
-                            flickableDirection: Flickable.VerticalFlick
-                            ScrollBar.vertical: ScrollBar {}
-                            clip: true
-                            spacing: 5
-                            model: Rg.tables
-                            delegate: dragDelegate
-                        }
-
-                        RowLayout {
-                            Layout.fillWidth: true
-                            TextField {
-                                id: textField
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 3
-                                placeholderText: qsTr("Add table")
-                                onAccepted: { Rg.tables.add(text); text = "" }
-                            }
-                            Button {
-                                Layout.fillWidth: true
-                                Layout.preferredWidth: 1
-                                text: qsTr("Add")
-                                onClicked: { Rg.tables.add(textField.text); textField.text = "" }
-                            }
-                        }
-                    }
-                }
-            }
+        SettingsPageHeader {
+            title: qsTr("Tables")
+            subtitle: qsTr("Manage installed tables and browse recommended table sources.")
+            Layout.fillWidth: true
         }
 
-        // ── Right pane: Browse ────────────────────────────────────────────
+        SplitView {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            orientation: Qt.Horizontal
 
-        ColumnLayout {
-            SplitView.minimumWidth: 420
-            SplitView.fillWidth: true
-            SplitView.preferredWidth: 800
-            spacing: 0
+            // ── Left pane: My Tables ──────────────────────────────────────
 
-            // Filter bar — single row when wide enough, two rows when narrow
             Item {
-                id: filterBar
-                Layout.fillWidth: true
-                Layout.leftMargin: 8
-                Layout.rightMargin: 8
-                Layout.topMargin: 8
-                Layout.bottomMargin: 4
+                SplitView.minimumWidth: tableSettings.installedPaneMinimumWidth
+                SplitView.fillWidth: true
+                SplitView.preferredWidth: 760
 
-                readonly property bool twoRows: width < 800
-                implicitHeight: twoRows
-                    ? filterCombos.implicitHeight + 4 + filterSearch.implicitHeight
-                    : filterSearch.implicitHeight
+                Flickable {
+                    id: installedPaneFlickable
 
-                // ── Row 1 (two-row mode only): Recommended + Type + Category ─
-                RowLayout {
-                    id: filterCombos
-                    visible: filterBar.twoRows
-                    anchors { top: parent.top; left: parent.left; right: parent.right }
-                    spacing: 8
-
-                    CheckBox {
-                        text: qsTr("Recommended")
-                        checked: tableSettings.recommendedOnly
-                        onToggled: tableSettings.recommendedOnly = checked
-                        Layout.fillWidth: true
-                    }
-                    Label { text: qsTr("Type:") }
-                    ComboBox {
-                        model: [qsTr("Any")].concat(
-                            tableSettings.tag1Options.map(t => tableSettings.translateTag(t)))
-                        currentIndex: {
-                            if (!tableSettings.tag1Filter) return 0
-                            const i = tableSettings.tag1Options.indexOf(tableSettings.tag1Filter)
-                            return i >= 0 ? i + 1 : 0
-                        }
-                        onActivated: tableSettings.tag1Filter =
-                            currentIndex > 0 ? tableSettings.tag1Options[currentIndex - 1] : ""
-                    }
-                    Label { text: qsTr("Category:") }
-                    ComboBox {
-                        model: [qsTr("Any")].concat(
-                            tableSettings.tag2Options.map(t => tableSettings.translateTag(t)))
-                        currentIndex: {
-                            if (!tableSettings.tag2Filter) return 0
-                            const i = tableSettings.tag2Options.indexOf(tableSettings.tag2Filter)
-                            return i >= 0 ? i + 1 : 0
-                        }
-                        onActivated: tableSettings.tag2Filter =
-                            currentIndex > 0 ? tableSettings.tag2Options[currentIndex - 1] : ""
-                    }
-                }
-
-                // ── Row 2 (always shown): in single-row mode also carries
-                //    Recommended / Type / Category before the search field. ──
-                RowLayout {
-                    id: filterSearch
-                    anchors {
-                        top: filterBar.twoRows ? filterCombos.bottom : parent.top
-                        topMargin: filterBar.twoRows ? 4 : 0
-                        left: parent.left
-                        right: parent.right
-                    }
-                    spacing: 8
-
-                    // Shown only in single-row mode
-                    CheckBox {
-                        visible: !filterBar.twoRows
-                        text: qsTr("Recommended")
-                        checked: tableSettings.recommendedOnly
-                        onToggled: tableSettings.recommendedOnly = checked
-                    }
-                    Label { visible: !filterBar.twoRows; text: qsTr("Type:") }
-                    ComboBox {
-                        visible: !filterBar.twoRows
-                        model: [qsTr("Any")].concat(
-                            tableSettings.tag1Options.map(t => tableSettings.translateTag(t)))
-                        currentIndex: {
-                            if (!tableSettings.tag1Filter) return 0
-                            const i = tableSettings.tag1Options.indexOf(tableSettings.tag1Filter)
-                            return i >= 0 ? i + 1 : 0
-                        }
-                        onActivated: tableSettings.tag1Filter =
-                            currentIndex > 0 ? tableSettings.tag1Options[currentIndex - 1] : ""
-                    }
-                    Label { visible: !filterBar.twoRows; text: qsTr("Category:") }
-                    ComboBox {
-                        visible: !filterBar.twoRows
-                        model: [qsTr("Any")].concat(
-                            tableSettings.tag2Options.map(t => tableSettings.translateTag(t)))
-                        currentIndex: {
-                            if (!tableSettings.tag2Filter) return 0
-                            const i = tableSettings.tag2Options.indexOf(tableSettings.tag2Filter)
-                            return i >= 0 ? i + 1 : 0
-                        }
-                        onActivated: tableSettings.tag2Filter =
-                            currentIndex > 0 ? tableSettings.tag2Options[currentIndex - 1] : ""
-                    }
-
-                    // Always visible
-                    TextField {
-                        Layout.fillWidth: true
-                        placeholderText: qsTr("Search…")
-                        onTextChanged: tableSettings.browserSearch = text
-                    }
-                    Button {
-                        text: qsTr("Reload")
-                        enabled: tableSettings.fetchState !== "loading"
-                        onClicked: tableSettings.fetchTables()
-                    }
-                    ToolButton {
-                        text: "⚙"
-                        checkable: true
-                        checked: tableSettings.showUrlEditor
-                        onToggled: tableSettings.showUrlEditor = checked
-                        ToolTip.text: qsTr("Configure source URL")
-                        ToolTip.visible: hovered
-                        ToolTip.delay: 500
-                    }
-                }
-            }
-
-            // Collapsible URL editor — hidden by default
-            RowLayout {
-                visible: tableSettings.showUrlEditor
-                Layout.fillWidth: true
-                Layout.leftMargin: 8
-                Layout.rightMargin: 8
-                Layout.bottomMargin: 4
-                spacing: 8
-
-                Label { text: qsTr("Source URL:") }
-
-                TextField {
-                    id: urlField
-                    Layout.fillWidth: true
-                    Component.onCompleted: {
-                        text = Rg.profileList.mainProfile.vars.generalVars.tableListUrl
-                    }
-                    onEditingFinished: {
-                        const gv = Rg.profileList.mainProfile.vars.generalVars
-                        if (text !== gv.tableListUrl) {
-                            gv.tableListUrl = text
-                            tableSettings.fetchState = "idle"
-                            tableSettings.allTables = []
-                        }
-                    }
-                }
-
-                Button {
-                    text: qsTr("Reset")
-                    onClicked: {
-                        const gv = Rg.profileList.mainProfile.vars.generalVars
-                        gv.resetTableListUrl()
-                        urlField.text = gv.tableListUrl
-                        tableSettings.fetchState = "idle"
-                        tableSettings.allTables = []
-                    }
-                }
-            }
-
-            // Status overlay + list
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-
-                BusyIndicator {
-                    anchors.centerIn: parent
-                    running: tableSettings.fetchState === "loading"
-                    visible: running
-                }
-
-                Label {
-                    anchors.centerIn: parent
-                    visible: tableSettings.fetchState === "error"
-                    text: qsTr("Failed to load table list: %1")
-                        .arg(tableSettings.fetchError)
-                    wrapMode: Text.Wrap
-                    width: Math.min(400, parent.width - 32)
-                    horizontalAlignment: Text.AlignHCenter
-                }
-
-                ListView {
                     anchors.fill: parent
-                    visible: tableSettings.fetchState === "done"
-                    clip: true
+                    contentWidth: Math.max(
+                        tableSettings.installedPaneRowMinimumWidth,
+                        myTabFrame.implicitWidth,
+                        width)
+                    contentHeight: Math.max(myTabFrame.implicitHeight, parent.height)
+                    flickableDirection: Flickable.HorizontalFlick
+                    boundsBehavior: Flickable.StopAtBounds
+                    ScrollBar.horizontal: ScrollBar {}
+
+                    WorkbenchPanel {
+                        id: myTabFrame
+
+                        width: installedPaneFlickable.contentWidth
+                        height: installedPaneFlickable.height
+                        title: qsTr("Installed tables")
+                        subtitle: qsTr("Drag to reorder; reload or remove individual sources.")
+
+                        ColumnLayout {
+                            Layout.fillHeight: true
+                            Layout.fillWidth: true
+
+                            ListView {
+                                id: songList
+
+                                Layout.fillHeight: true
+                                Layout.fillWidth: true
+                                flickableDirection: Flickable.VerticalFlick
+                                ScrollBar.vertical: ScrollBar {}
+                                clip: true
+                                spacing: 5
+                                model: Rg.tables
+                                delegate: dragDelegate
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+
+                                TextField {
+                                    id: textField
+
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 3
+                                    placeholderText: qsTr("Add table")
+                                    onAccepted: { Rg.tables.add(text); text = "" }
+                                }
+
+                                ActionButton {
+                                    Layout.fillWidth: true
+                                    Layout.preferredWidth: 1
+                                    text: qsTr("Add")
+                                    tone: ActionButton.Primary
+                                    onClicked: { Rg.tables.add(textField.text); textField.text = "" }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Right pane: Browse ────────────────────────────────────────
+
+            WorkbenchPanel {
+                title: qsTr("Browse tables")
+                subtitle: qsTr("Filter the remote table list, then add sources to your installed tables.")
+                SplitView.minimumWidth: 420
+                SplitView.fillWidth: false
+                SplitView.preferredWidth: 560
+
+                ColumnLayout {
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                     spacing: 0
-                    model: tableSettings.filteredTables
-                    delegate: browseDelegate
-                    ScrollBar.vertical: ScrollBar {}
+
+                    // Filter bar — single row when wide enough, two rows when narrow
+                    Item {
+                        id: filterBar
+
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 8
+                        Layout.rightMargin: 8
+                        Layout.topMargin: 8
+                        Layout.bottomMargin: 4
+
+                        readonly property bool twoRows: width < 800
+                        implicitHeight: twoRows
+                            ? filterCombos.implicitHeight + 4 + filterSearch.implicitHeight
+                            : filterSearch.implicitHeight
+
+                        // ── Row 1 (two-row mode only): Recommended + Type + Category ─
+                        RowLayout {
+                            id: filterCombos
+
+                            visible: filterBar.twoRows
+                            anchors { top: parent.top; left: parent.left; right: parent.right }
+                            spacing: 8
+
+                            CheckBox {
+                                text: qsTr("Recommended")
+                                checked: tableSettings.recommendedOnly
+                                onToggled: tableSettings.recommendedOnly = checked
+                                Layout.fillWidth: true
+                            }
+
+                            Label { text: qsTr("Type:") }
+
+                            ComboBox {
+                                model: [qsTr("Any")].concat(
+                                    tableSettings.tag1Options.map(t => tableSettings.translateTag(t)))
+                                currentIndex: {
+                                    if (!tableSettings.tag1Filter) return 0
+                                    const i = tableSettings.tag1Options.indexOf(tableSettings.tag1Filter)
+                                    return i >= 0 ? i + 1 : 0
+                                }
+                                onActivated: tableSettings.tag1Filter =
+                                    currentIndex > 0 ? tableSettings.tag1Options[currentIndex - 1] : ""
+                            }
+
+                            Label { text: qsTr("Category:") }
+
+                            ComboBox {
+                                model: [qsTr("Any")].concat(
+                                    tableSettings.tag2Options.map(t => tableSettings.translateTag(t)))
+                                currentIndex: {
+                                    if (!tableSettings.tag2Filter) return 0
+                                    const i = tableSettings.tag2Options.indexOf(tableSettings.tag2Filter)
+                                    return i >= 0 ? i + 1 : 0
+                                }
+                                onActivated: tableSettings.tag2Filter =
+                                    currentIndex > 0 ? tableSettings.tag2Options[currentIndex - 1] : ""
+                            }
+                        }
+
+                        // ── Row 2 (always shown): in single-row mode also carries
+                        //    Recommended / Type / Category before the search field. ──
+                        RowLayout {
+                            id: filterSearch
+
+                            anchors {
+                                top: filterBar.twoRows ? filterCombos.bottom : parent.top
+                                topMargin: filterBar.twoRows ? 4 : 0
+                                left: parent.left
+                                right: parent.right
+                            }
+                            spacing: 8
+
+                            CheckBox {
+                                visible: !filterBar.twoRows
+                                text: qsTr("Recommended")
+                                checked: tableSettings.recommendedOnly
+                                onToggled: tableSettings.recommendedOnly = checked
+                            }
+
+                            Label { visible: !filterBar.twoRows; text: qsTr("Type:") }
+
+                            ComboBox {
+                                visible: !filterBar.twoRows
+                                model: [qsTr("Any")].concat(
+                                    tableSettings.tag1Options.map(t => tableSettings.translateTag(t)))
+                                currentIndex: {
+                                    if (!tableSettings.tag1Filter) return 0
+                                    const i = tableSettings.tag1Options.indexOf(tableSettings.tag1Filter)
+                                    return i >= 0 ? i + 1 : 0
+                                }
+                                onActivated: tableSettings.tag1Filter =
+                                    currentIndex > 0 ? tableSettings.tag1Options[currentIndex - 1] : ""
+                            }
+
+                            Label { visible: !filterBar.twoRows; text: qsTr("Category:") }
+
+                            ComboBox {
+                                visible: !filterBar.twoRows
+                                model: [qsTr("Any")].concat(
+                                    tableSettings.tag2Options.map(t => tableSettings.translateTag(t)))
+                                currentIndex: {
+                                    if (!tableSettings.tag2Filter) return 0
+                                    const i = tableSettings.tag2Options.indexOf(tableSettings.tag2Filter)
+                                    return i >= 0 ? i + 1 : 0
+                                }
+                                onActivated: tableSettings.tag2Filter =
+                                    currentIndex > 0 ? tableSettings.tag2Options[currentIndex - 1] : ""
+                            }
+
+                            TextField {
+                                Layout.fillWidth: true
+                                placeholderText: qsTr("Search…")
+                                onTextChanged: tableSettings.browserSearch = text
+                            }
+
+                            ActionButton {
+                                text: qsTr("Reload")
+                                tone: ActionButton.Secondary
+                                enabled: tableSettings.fetchState !== "loading"
+                                onClicked: tableSettings.fetchTables()
+                            }
+
+                            ToolButton {
+                                text: "⚙"
+                                checkable: true
+                                checked: tableSettings.showUrlEditor
+                                onToggled: tableSettings.showUrlEditor = checked
+                                ToolTip.text: qsTr("Configure source URL")
+                                ToolTip.visible: hovered
+                                ToolTip.delay: 500
+                            }
+                        }
+                    }
+
+                    // Collapsible URL editor — hidden by default
+                    RowLayout {
+                        visible: tableSettings.showUrlEditor
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 8
+                        Layout.rightMargin: 8
+                        Layout.bottomMargin: 4
+                        spacing: 8
+
+                        Label { text: qsTr("Source URL:") }
+
+                        TextField {
+                            id: urlField
+
+                            Layout.fillWidth: true
+                            Component.onCompleted: {
+                                text = Rg.profileList.mainProfile.vars.generalVars.tableListUrl
+                            }
+                            onEditingFinished: {
+                                const gv = Rg.profileList.mainProfile.vars.generalVars
+                                if (text !== gv.tableListUrl) {
+                                    gv.tableListUrl = text
+                                    tableSettings.fetchState = "idle"
+                                    tableSettings.allTables = []
+                                }
+                            }
+                        }
+
+                        ActionButton {
+                            text: qsTr("Reset")
+                            tone: ActionButton.Secondary
+                            onClicked: {
+                                const gv = Rg.profileList.mainProfile.vars.generalVars
+                                gv.resetTableListUrl()
+                                urlField.text = gv.tableListUrl
+                                tableSettings.fetchState = "idle"
+                                tableSettings.allTables = []
+                            }
+                        }
+                    }
+
+                    // Status overlay + list
+                    Item {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+
+                        BusyIndicator {
+                            anchors.centerIn: parent
+                            running: tableSettings.fetchState === "loading"
+                            visible: running
+                        }
+
+                        EmptyState {
+                            anchors.centerIn: parent
+                            visible: tableSettings.fetchState === "error"
+                            title: qsTr("Failed to load table list")
+                            subtitle: tableSettings.fetchError
+                            width: Math.min(400, parent.width - 32)
+                        }
+
+                        EmptyState {
+                            anchors.centerIn: parent
+                            visible: tableSettings.fetchState === "done"
+                                && tableSettings.filteredTables.length === 0
+                            title: qsTr("No tables match")
+                            subtitle: qsTr("Change the filters or search text.")
+                            width: Math.min(400, parent.width - 32)
+                        }
+
+                        ListView {
+                            anchors.fill: parent
+                            visible: tableSettings.fetchState === "done"
+                                && tableSettings.filteredTables.length > 0
+                            clip: true
+                            spacing: 0
+                            model: tableSettings.filteredTables
+                            delegate: browseDelegate
+                            ScrollBar.vertical: ScrollBar {}
+                        }
+                    }
                 }
             }
         }

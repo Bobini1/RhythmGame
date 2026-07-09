@@ -136,6 +136,7 @@ Item {
         hoverEnabled: true
 
         property var pressedTarget: ({ kind: "none" })
+        property bool rightClickClosePanelArmed: false
 
         onContainsMouseChanged: {
             if (containsMouse) {
@@ -147,7 +148,16 @@ Item {
 
         onPressed: (mouse) => {
             pointerSurface.clearReplayTooltip();
+            rightClickClosePanelArmed = false;
             pressedTarget = pointerSurface.pointerController.targetAt(mouse.x, mouse.y, mouse.button);
+            if (mouse.button === Qt.RightButton
+                    && pressedTarget.kind !== "bar"
+                    && pointerSurface.screenRoot.selectPanel > 0) {
+                pointerSurface.screenRoot.clearSelectSearchFocus();
+                rightClickClosePanelArmed = true;
+                mouse.accepted = true;
+                return;
+            }
             if (pressedTarget.kind === "slider") {
                 pointerSurface.screenRoot.clearSelectSearchFocus();
                 if (pointerSurface.sliderState) {
@@ -198,6 +208,11 @@ Item {
 
             pressedTarget = { kind: "none" };
             pointerSurface.requestReplayTooltipRefresh(true);
+            if (mouse.button === Qt.RightButton && rightClickClosePanelArmed) {
+                pointerSurface.screenRoot.closeSelectPanel();
+                mouse.accepted = true;
+                return;
+            }
             if (target.kind === "button") {
                 if (!pointerSurface.pointerController.sameTarget(target, releasedTarget)) {
                     mouse.accepted = false;
@@ -227,7 +242,9 @@ Item {
 
         onClicked: (mouse) => {
             const releasedTarget = pointerSurface.pointerController.targetAt(mouse.x, mouse.y, mouse.button);
-            mouse.accepted = releasedTarget.kind !== "blank";
+            mouse.accepted = releasedTarget.kind !== "blank"
+                || rightClickClosePanelArmed;
+            rightClickClosePanelArmed = false;
         }
 
         onDoubleClicked: (mouse) => {
@@ -246,6 +263,7 @@ Item {
         onCanceled: {
             pointerSurface.pointerController.finishSlider(pressedTarget);
             pressedTarget = { kind: "none" };
+            rightClickClosePanelArmed = false;
             pointerSurface.requestReplayTooltipRefresh(true);
         }
 

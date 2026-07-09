@@ -51,6 +51,8 @@ Item {
     readonly property real stateG: drawState.g
     readonly property real stateB: drawState.b
     readonly property int stateBlend: drawState.blend
+    readonly property bool hasRenderableState: drawState.renderable
+    readonly property real effectiveOpacity: drawState.opacity
     readonly property int stateFilter: drawState.filter
     readonly property real clampedValue: Math.max(0, Math.min(1, value))
     property real displayedValue: clampedValue
@@ -129,8 +131,8 @@ Item {
             : 0
         width: drawnW
         height: drawnH
-        visible: root.hasCurrentState && root.stateA > 0 && width > 0 && height > 0 && root.resolvedSource !== ""
-        opacity: root.hasCurrentState ? root.stateA / 255.0 : 0
+        visible: root.hasRenderableState && width > 0 && height > 0 && root.resolvedSource !== ""
+        opacity: root.effectiveOpacity
 
         Image {
             id: graphAtlas

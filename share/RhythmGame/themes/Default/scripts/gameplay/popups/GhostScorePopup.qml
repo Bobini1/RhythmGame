@@ -8,6 +8,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Ghost score")
+    panelSubtitle: qsTr("Target score display and font.")
 
     model: ObjectModel {
         BooleanOption {

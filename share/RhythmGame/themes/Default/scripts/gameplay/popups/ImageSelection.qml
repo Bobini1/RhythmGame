@@ -2,67 +2,102 @@ import RhythmGameQml
 import QtQuick
 import "../../common/helpers.js" as Helpers
 
-Row {
+Item {
     id: imageSelection
-    height: Math.max(selection.height, propertyLabel.height)
-    spacing: 10
-    property real itemHeight: 140
-    property real itemWidth: 100
+
+    height: content.implicitHeight + 16
+    width: ListView.view ? ListView.view.width : 414
+    property real itemHeight: 72
+    property real itemWidth: 82
     required property string propertyId
     required property var src
     property string dirName: propertyId
     property string label: Helpers.capitalizeFirstLetter(propertyId)
-    
-    Text {
-        id: propertyLabel
+    readonly property int columnCount: Math.max(1, Math.floor((selection.width + selection.columnSpacing) / (itemWidth + selection.columnSpacing)))
+    readonly property int rowCount: Math.ceil(selection.files.length / columnCount)
+    readonly property int visibleRows: Math.min(2, rowCount)
 
-        anchors.verticalCenter: parent.verticalCenter
-        color: "white"
-        width: 160
-        font.bold: true
-        text: imageSelection.label
-        verticalAlignment: Text.AlignVCenter
-        horizontalAlignment: Text.AlignHCenter
-        fontSizeMode: Text.Fit
+    PopupEditorColors {
+        id: popupColors
     }
-    GridView {
-        id: selection
 
-        readonly property var files: Rg.fileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.dirName + "/")
+    Column {
+        id: content
 
-        activeFocusOnTab: true
-        cellHeight: imageSelection.itemHeight + imageSelection.spacing
-        cellWidth: imageSelection.itemWidth + imageSelection.spacing
-        height: cellHeight * (Math.floor((files.length - 1) / 3) + 1)
-        model: files
-        width: cellWidth * 3
-        interactive: false
-        keyNavigationEnabled: true
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 8
+        spacing: 8
 
-        delegate: Image {
-            fillMode: Image.PreserveAspectFit
-            height: selection.cellHeight - imageSelection.spacing
-            source: "../images/" + imageSelection.dirName + "/" + modelData
-            width: selection.cellWidth - imageSelection.spacing
+        Text {
+            id: propertyLabel
 
-            MouseArea {
-                anchors.fill: parent
+            color: popupColors.text
+            elide: Text.ElideRight
+            font.bold: true
+            font.pixelSize: 14
+            text: imageSelection.label
+            textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
+            width: parent.width
+        }
 
-                onClicked: {
-                    selection.currentIndex = index;
+        GridView {
+            id: selection
+
+            readonly property var files: Rg.fileQuery.getSelectableFilesForDirectory(root.rootUrl + "images/" + imageSelection.dirName + "/")
+            readonly property int columnSpacing: 8
+
+            activeFocusOnTab: true
+            boundsBehavior: Flickable.StopAtBounds
+            cellHeight: imageSelection.itemHeight + columnSpacing
+            cellWidth: Math.max(imageSelection.itemWidth, Math.floor((width + columnSpacing) / imageSelection.columnCount) - columnSpacing)
+            clip: true
+            height: visibleRows * cellHeight
+            interactive: rowCount > visibleRows
+            keyNavigationEnabled: true
+            model: files
+            width: parent.width
+
+            delegate: Rectangle {
+                id: imageChoice
+
+                required property int index
+                required property string modelData
+
+                border.color: selection.currentIndex === index ? popupColors.accent : popupColors.divider
+                border.width: selection.currentIndex === index ? 2 : 1
+                color: selection.currentIndex === index ? popupColors.accentFill : popupColors.preview
+                height: selection.cellHeight - selection.columnSpacing
+                radius: 6
+                width: selection.cellWidth - selection.columnSpacing
+
+                Image {
+                    anchors.fill: parent
+                    anchors.margins: 6
+                    asynchronous: true
+                    fillMode: Image.PreserveAspectFit
+                    source: "../images/" + imageSelection.dirName + "/" + imageChoice.modelData
+                    sourceSize.height: height
+                    sourceSize.width: width
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+
+                    onClicked: {
+                        selection.currentIndex = imageChoice.index;
+                    }
                 }
             }
-        }
-        highlight: Rectangle {
-            border.color: "red"
-            border.width: selection.activeFocus ? 2 : 0
-            color: "lightsteelblue"
-            radius: 5
-        }
 
-        currentIndex: files.indexOf(imageSelection.src[imageSelection.propertyId])
-        onCurrentIndexChanged: {
-            imageSelection.src[imageSelection.propertyId] = files[currentIndex];
+            currentIndex: files.indexOf(imageSelection.src[imageSelection.propertyId])
+            onCurrentIndexChanged: {
+                if (currentIndex >= 0) {
+                    imageSelection.src[imageSelection.propertyId] = files[currentIndex];
+                }
+            }
         }
     }
 }

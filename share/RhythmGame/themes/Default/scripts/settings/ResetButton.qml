@@ -1,10 +1,10 @@
-import QtQuick.Controls
 import QtQuick.Layouts
 
-Button {
+ActionButton {
     id: resetButton
 
     text: qsTr("Reset")
+    tone: ActionButton.Tertiary
 
     property var destination
     property string id_

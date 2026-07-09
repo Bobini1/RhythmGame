@@ -274,6 +274,15 @@ QtObject {
         return slash >= 0 ? normalized.slice(slash + 1) : normalized;
     }
 
+    function pathParentLeafName(path: var) : var {
+        let normalized = String(path || "").replace(/\\/g, "/").replace(/\/$/, "");
+        let slash = normalized.lastIndexOf("/");
+        if (slash < 0) {
+            return "";
+        }
+        return resolver.pathLeafName(normalized.slice(0, slash));
+    }
+
     function tableEntryTitleForHash(hash: var) : var {
         let matches = Rg.tables.search(String(hash || ""));
         if (!matches || matches.length <= 0) {
@@ -519,8 +528,8 @@ QtObject {
         if (!chart || typeof chart === "string") {
             return "";
         }
-        let folder = resolver.pathLeafName(chart.chartDirectory || "");
-        return folder.length > 0 ? folder : resolver.pathLeafName(chart.directory || "");
+        let folder = resolver.pathLeafName(chart.directory || "");
+        return folder.length > 0 ? folder : resolver.pathParentLeafName(chart.chartDirectory || "");
     }
 
     function lr2FolderDisplayText() : var {
@@ -528,12 +537,16 @@ QtObject {
             if (selectContext.searchText.length > 0) {
                 return selectContext.searchText;
             }
+            let tableLevelText = root.chartTableLevelName(resolver.displayTableChart());
+            if (tableLevelText.length > 0) {
+                return tableLevelText;
+            }
             let folderName = selectContext.currentFolderDisplayName();
             return folderName.length > 0 ? folderName : root.lr2SearchPlaceholderText;
         }
 
-        let tableText = resolver.displayTableFullText();
-        return tableText.length > 0 ? tableText : resolver.displayChartFolderText();
+        let tableLevelText = resolver.displayTableLevelText();
+        return tableLevelText.length > 0 ? tableLevelText : resolver.displayChartFolderText();
     }
 
     function chartHashText(chartData: var, field: var) : var {
@@ -1925,9 +1938,8 @@ QtObject {
                 case 205:
                     return rankingState.clearPercentValue(false, "AEASY");
                 case 206:
-                    return rankingState.clearCount("LIGHTASSIST");
                 case 207:
-                    return rankingState.clearPercentValue(false, "LIGHTASSIST");
+                    return 0;
                 case 208:
                     return rankingState.clearCount("EXHARD");
                 case 209:
@@ -1973,7 +1985,7 @@ QtObject {
                 case 231:
                     return rankingState.clearPercentValue(true, "AEASY");
                 case 232:
-                    return rankingState.clearPercentValue(true, "LIGHTASSIST");
+                    return 0;
                 case 233:
                     return rankingState.clearPercentValue(true, "EXHARD");
                 case 234:

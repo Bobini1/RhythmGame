@@ -1,4 +1,5 @@
 #include "gameplay_logic/lr2_skin/Lr2SkinParser.h"
+#include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
 
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
@@ -13,6 +14,7 @@
 #include <filesystem>
 
 using gameplay_logic::lr2_skin::Lr2Dst;
+using gameplay_logic::lr2_skin::Lr2SkinModel;
 using gameplay_logic::lr2_skin::Lr2SkinParser;
 using gameplay_logic::lr2_skin::Lr2SrcImage;
 
@@ -40,6 +42,15 @@ fullScreenSprite(const int time = 0) -> QString
              "#SRC_IMAGE,0,0,0,0,640,480,1,1,0,0,0,0,0\n"
              "#DST_IMAGE,%1,0,0,0,320,320,0,255,255,255,255,1,0,0,0\n")
       .arg(time);
+}
+
+auto
+runtimeGatedSprite(const int option) -> QString
+{
+    return QStringLiteral(
+             "#SRC_IMAGE,0,0,0,0,640,480,1,1,0,0,0,0,0\n"
+             "#DST_IMAGE,0,0,0,0,320,320,0,255,255,255,255,1,0,0,0,0,0,%1,0,0\n")
+      .arg(option);
 }
 
 } // namespace
@@ -174,4 +185,74 @@ TEST_CASE("LR2 skin parser records select detail option gates", "[lr2][skin]")
     CHECK(hasElementOption(160));
     CHECK(hasElementOption(180));
     CHECK(hasElementOption(505));
+}
+
+TEST_CASE("LR2 skin parser records conditional option dependencies",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,full.png\n"
+                                 "#IF,38,!987\n") +
+                    fullScreenSprite() + QStringLiteral("#ENDIF\n"));
+
+    const auto skin = Lr2SkinParser::parseData(
+      support::pathToQString(path), QVariantMap{}, QVariantList{ 38 });
+
+    CHECK(skin.conditionOptions.contains(QVariant(38)));
+    CHECK(skin.conditionOptions.contains(QVariant(987)));
+}
+
+TEST_CASE("LR2 skin model keeps DST-only runtime option changes hot",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,full.png\n") +
+                    runtimeGatedSprite(39));
+
+    Lr2SkinModel model;
+    int loadCount = 0;
+    QObject::connect(
+      &model, &Lr2SkinModel::skinLoaded, [&loadCount]() { ++loadCount; });
+
+    model.setActiveOptions(QVariantList{ 34, 39 });
+    model.setCsvPath(support::pathToQString(path));
+    REQUIRE(loadCount == 1);
+
+    model.setActiveOptions(QVariantList{ 35, 39 });
+
+    CHECK(loadCount == 1);
+    CHECK(model.activeOptions() == QVariantList{ 35, 39 });
+}
+
+TEST_CASE("LR2 skin model reloads when conditional options change",
+          "[lr2][skin]")
+{
+    QTemporaryDir tempDir;
+    const auto path = tempSkinPath(tempDir);
+
+    writeSkinFile(path,
+                  QStringLiteral("#IMAGE,full.png\n"
+                                 "#IF,34\n") +
+                    fullScreenSprite() + QStringLiteral("#ELSE\n") +
+                    fullScreenSprite(100) + QStringLiteral("#ENDIF\n"));
+
+    Lr2SkinModel model;
+    int loadCount = 0;
+    QObject::connect(
+      &model, &Lr2SkinModel::skinLoaded, [&loadCount]() { ++loadCount; });
+
+    model.setActiveOptions(QVariantList{ 34, 39 });
+    model.setCsvPath(support::pathToQString(path));
+    REQUIRE(loadCount == 1);
+    REQUIRE(model.conditionOptions().contains(QVariant(34)));
+
+    model.setActiveOptions(QVariantList{ 35, 39 });
+
+    CHECK(loadCount == 2);
 }

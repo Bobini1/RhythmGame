@@ -169,6 +169,7 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
     }
 
     auto* node = static_cast<QSGSimpleTextureNode*>(oldNode);
+    const auto filtering = m_textureFilter == 0 ? QSGTexture::Nearest : QSGTexture::Linear;
     if (!node || m_textureDirty) {
         delete node;
         node = new QSGSimpleTextureNode;
@@ -178,11 +179,13 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
               m_fontPath,
               m_renderedText,
               targetSize,
-              true);
+              filtering == QSGTexture::Linear);
         if (textureImage.isNull()) {
             textureImage = m_image.scaled(targetSize,
                                           Qt::IgnoreAspectRatio,
-                                          Qt::SmoothTransformation);
+                                          filtering == QSGTexture::Linear
+                                              ? Qt::SmoothTransformation
+                                              : Qt::FastTransformation);
         } else if (colorNeedsTint(m_textColor)) {
             textureImage = tintedImage(textureImage, m_textColor);
         }
@@ -196,7 +199,6 @@ QSGNode* Lr2BitmapFontTexture::updatePaintNode(QSGNode* oldNode, UpdatePaintNode
         m_textureDirty = false;
     }
 
-    const auto filtering = QSGTexture::Linear;
     if (auto* texture = node->texture()) {
         texture->setFiltering(filtering);
     }

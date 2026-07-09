@@ -5,6 +5,8 @@ GameplayPopup {
     id: popup
 
     required property var themeVars
+    panelTitle: qsTr("Difficulty display")
+    panelSubtitle: qsTr("Difficulty label visibility, layering, and font.")
 
     model: ObjectModel {
         BooleanOption {

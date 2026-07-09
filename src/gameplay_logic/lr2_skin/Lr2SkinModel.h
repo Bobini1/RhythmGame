@@ -24,6 +24,7 @@ class Lr2SkinModel : public QAbstractListModel {
     Q_PROPERTY(QVariantList effectiveActiveOptions READ effectiveActiveOptions NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList usedOptions READ usedOptions NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList usedElementOptions READ usedElementOptions NOTIFY skinMetadataChanged)
+    Q_PROPERTY(QVariantList conditionOptions READ conditionOptions NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barLampVariants READ barLampVariants NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barLevelVariants READ barLevelVariants NOTIFY skinMetadataChanged)
     Q_PROPERTY(QVariantList barRows READ barRows NOTIFY skinMetadataChanged)
@@ -93,6 +94,7 @@ public:
     QVariantList effectiveActiveOptions() const;
     QVariantList usedOptions() const;
     QVariantList usedElementOptions() const;
+    QVariantList conditionOptions() const;
     QVariantList barLampVariants() const;
     QVariantList barLevelVariants() const;
     QVariantList barRows() const;
@@ -146,6 +148,7 @@ private:
     QVariantList m_effectiveActiveOptions;
     QVariantList m_usedOptions;
     QVariantList m_usedElementOptions;
+    QVariantList m_conditionOptions;
     QVariantList m_barLampVariants;
     QVariantList m_barLevelVariants;
     QVariantList m_barRows;
@@ -192,6 +195,7 @@ private:
     QVariantList m_noteDsts;
     QVariantList m_lineSources;
     QVariantList m_lineDsts;
+    bool m_hasLoadedSkin = false;
 };
 
 } // namespace gameplay_logic::lr2_skin

@@ -10,33 +10,31 @@ Item {
 
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
 
-    ScrollView {
-        id: scrollView
-        anchors {
-            top: parent.top
-            bottom: parent.bottom
-            horizontalCenter: parent.horizontalCenter
+    SettingsPageScaffold {
+        id: pageScaffold
+
+        anchors.fill: parent
+        SettingsPageHeader {
+            title: qsTr("General Settings")
+            subtitle: qsTr("System, gameplay, display, audio, replay, and gauge defaults.")
         }
-        width: Math.min(800, parent.width)
 
-        Frame {
-            width: 800
-            Column {
-                id: list
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                spacing: 5
+        GridLayout {
+            Layout.fillWidth: true
+            columns: pageScaffold.availableWidth >= 1120 ? 2 : 1
+            columnSpacing: 14
+            rowSpacing: 14
 
-                Label {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: implicitHeight + 12
-                    verticalAlignment: Text.AlignBottom
-                    text: qsTr("System Settings")
-                    font.pixelSize: 20
-                    font.bold: true
-                }
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                spacing: 14
+
+                WorkbenchPanel {
+                    title: qsTr("System and audio")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+
                 Choice {
                     destination: root.generalVars
                     id_: "language"
@@ -44,12 +42,9 @@ Item {
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
                     name: qsTr("Language")
                     default_: Qt.locale().name
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: Window.window || {}
                     id_: "visibility"
@@ -57,12 +52,9 @@ Item {
                     displayStrings: qsTr("Windowed;Fullscreen").split(";")
                     name: qsTr("Display Mode")
                     default_: Window.Windowed
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "rankingProvider"
@@ -70,48 +62,36 @@ Item {
                     displayStrings: qsTr("RhythmGame;LR2IR;Bokutachi").split(";")
                     name: qsTr("Ranking Provider")
                     default_: OnlineRankingModel.RhythmGame
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "bgm"
                     name: qsTr("BGM")
                     choices: root.generalVars.getAvailableBgms()
                     default_: "Trance"
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "soundset"
                     name: qsTr("Soundset")
                     choices: root.generalVars.getAvailableSoundsets()
                     default_: "Brook"
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: Rg.audioEngine
                     id_: "backend"
                     name: qsTr("Audio Backend")
                     choices: Rg.audioEngine.backendNames
                     default_: Rg.audioEngine.backendNames[0]
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: Rg.audioEngine
                     id_: "device"
@@ -128,24 +108,15 @@ Item {
                         return choices;
                     }
                     default_: ""
+                    Layout.fillWidth: true
+                }
+            }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
+                WorkbenchPanel {
+                    title: qsTr("Timing and modifiers")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
 
-                Separator {
-                }
-                Label {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    height: implicitHeight + 12
-                    verticalAlignment: Text.AlignBottom
-                    text: qsTr("Gameplay Settings")
-                    font.pixelSize: 20
-                    font.bold: true
-                }
                 Range {
                     destination: root.generalVars
                     id_: "noteScreenTimeMillis"
@@ -153,12 +124,9 @@ Item {
                     min: 0
                     default_: 1000
                     sliderMax: 1500
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Range {
                     destination: root.generalVars
                     id_: "offset"
@@ -166,12 +134,9 @@ Item {
                     default_: 0
                     sliderMin: -15
                     sliderMax: 15
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Range {
                     destination: Rg.inputTranslator
                     id_: "debounceMs"
@@ -180,25 +145,17 @@ Item {
                     min: 0
                     sliderMax: 150
                     decimals: 0
+                    Layout.fillWidth: true
+                }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Boolean {
                     destination: root.generalVars
                     id_: "laneCoverOn"
                     name: qsTr("Lane Cover")
                     default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Range {
                     destination: root.generalVars
                     id_: "laneCoverRatio"
@@ -206,25 +163,17 @@ Item {
                     default_: 0.1
                     min: 0
                     max: 1
+                    Layout.fillWidth: true
+                }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Boolean {
                     destination: root.generalVars
                     id_: "liftOn"
                     name: qsTr("Lift")
                     default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Range {
                     destination: root.generalVars
                     id_: "liftRatio"
@@ -232,25 +181,17 @@ Item {
                     default_: 0.1
                     min: 0
                     max: 1
+                    Layout.fillWidth: true
+                }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Boolean {
                     destination: root.generalVars
                     id_: "hiddenOn"
                     name: qsTr("Hidden")
                     default_: false
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Range {
                     destination: root.generalVars
                     id_: "hiddenRatio"
@@ -258,25 +199,30 @@ Item {
                     default_: 0.1
                     min: 0
                     max: 1
+                    Layout.fillWidth: true
+                }
+            }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 1
+                spacing: 14
+
+                WorkbenchPanel {
+                    title: qsTr("Display and score")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+
                 Boolean {
                     destination: root.generalVars
                     id_: "bgaOn"
                     name: qsTr("BGA On")
                     default_: true
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "bgaSize"
@@ -284,23 +230,17 @@ Item {
                     displayStrings: qsTr("Normal;Extend").split(";")
                     name: qsTr("LR2 BGA Size")
                     default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Boolean {
                     destination: root.generalVars
                     id_: "scoreGraphEnabled"
                     name: qsTr("Score Graph")
                     default_: true
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "ghostPosition"
@@ -308,27 +248,9 @@ Item {
                     displayStrings: qsTr("Off;Type A;Type B;Type C").split(";")
                     name: qsTr("Ghost Position")
                     default_: 0
+                    Layout.fillWidth: true
+                }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Choice {
-                    destination: root.generalVars
-                    id_: "replayType"
-                    choices: [0, 1, 2, 3]
-                    displayStrings: qsTr("Newest;Best Score;Best Clear;Best Combo").split(";")
-                    name: qsTr("Replay Type")
-                    default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Choice {
                     destination: root.generalVars
                     id_: "scoreTarget"
@@ -336,11 +258,9 @@ Item {
                     displayStrings: qsTr("Percentage;Best Score;Last Score;Next Rank").split(";")
                     name: qsTr("Score Target Type")
                     default_: ScoreTarget.BestScore
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Range {
                     destination: root.generalVars
                     id_: "targetScoreFraction"
@@ -351,14 +271,25 @@ Item {
                     increment: 1
                     decimals: 6
                     displayMultiplier: 100
+                    Layout.fillWidth: true
+                }
+            }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                WorkbenchPanel {
+                    title: qsTr("Play defaults")
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignTop
+
+                Choice {
+                    destination: root.generalVars
+                    id_: "replayType"
+                    choices: [0, 1, 2, 3]
+                    displayStrings: qsTr("Newest;Best Score;Best Clear;Best Combo").split(";")
+                    name: qsTr("Replay Type")
+                    default_: 0
+                    Layout.fillWidth: true
                 }
-                Separator {
-                }
+
                 Choice {
                     destination: root.generalVars
                     id_: "noteOrderAlgorithm"
@@ -367,12 +298,9 @@ Item {
                     name: qsTr("Note Order Algorithm")
                     assignIndex: true
                     default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "noteOrderAlgorithmP2"
@@ -381,12 +309,9 @@ Item {
                     name: qsTr("Note Order Algorithm P2")
                     assignIndex: true
                     default_: 0
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "hiSpeedFix"
@@ -395,14 +320,9 @@ Item {
                     name: qsTr("Hi-Speed Fix")
                     assignIndex: true
                     default_: 1
+                    Layout.fillWidth: true
+                }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Choice {
                     destination: root.generalVars
                     id_: "dpOptions"
@@ -411,14 +331,9 @@ Item {
                     name: qsTr("DP Options")
                     assignIndex: true
                     default_: 0
+                    Layout.fillWidth: true
+                }
 
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
-                }
-                Separator {
-                }
                 Choice {
                     destination: root.generalVars
                     id_: "gaugeType"
@@ -426,12 +341,9 @@ Item {
                     displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     name: qsTr("Gauge Type")
                     default_: "FC"
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "gaugeMode"
@@ -440,12 +352,9 @@ Item {
                     name: qsTr("Gauge Mode")
                     assignIndex: true
                     default_: 2
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
                 }
+
                 Choice {
                     destination: root.generalVars
                     id_: "bottomShiftableGauge"
@@ -453,11 +362,8 @@ Item {
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     displayStrings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
                     default_: "AEASY"
-
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                    }
+                    Layout.fillWidth: true
+                }
                 }
             }
         }
