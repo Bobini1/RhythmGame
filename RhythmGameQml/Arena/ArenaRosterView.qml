@@ -81,19 +81,32 @@ FocusScope {
         return states.join(" · ");
     }
 
-    Accessible.name: qsTr("Arena players")
-    Accessible.role: Accessible.List
-
     ListView {
         id: memberList
 
+        objectName: "arenaRosterList"
+        Accessible.name: qsTr("Arena players")
+        Accessible.role: Accessible.List
         anchors.fill: parent
         activeFocusOnTab: true
         boundsBehavior: Flickable.StopAtBounds
         clip: true
         model: root.session ? root.session.members : null
         reuseItems: true
+        keyNavigationEnabled: true
         spacing: root.compact ? 2 : 4
+
+        function ensureCurrentItem(): void {
+            if (memberList.count === 0) {
+                memberList.currentIndex = -1;
+            } else if (memberList.currentIndex < 0
+                       || memberList.currentIndex >= memberList.count) {
+                memberList.currentIndex = 0;
+            }
+        }
+
+        Component.onCompleted: memberList.ensureCurrentItem()
+        onCountChanged: memberList.ensureCurrentItem()
 
         ScrollBar.vertical: ScrollBar {
             policy: ScrollBar.AsNeeded
@@ -115,17 +128,27 @@ FocusScope {
             required property var availabilityAppliedRevision
             required property string roundState
 
-            Accessible.name: qsTr("%1, %2").arg(memberDelegate.displayName).arg(statusLabel.text)
+            objectName: "arenaRosterMember-" + memberDelegate.memberId
+            Accessible.description: markerLabel.text.length > 0
+                ? qsTr("%1. %2. %3").arg(markerLabel.text).arg(statusLabel.text).arg(winsLabel.text)
+                : qsTr("%1. %2").arg(statusLabel.text).arg(winsLabel.text)
+            Accessible.name: memberDelegate.displayName
             Accessible.role: Accessible.ListItem
+            border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#8ec5ff" : "transparent"
+            border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
             color: memberDelegate.self ? "#263b5070" : (memberDelegate.index % 2 === 0 ? "#161b2230" : "#0d1b2230")
-            height: root.compact ? 48 : 62
+            height: Math.max(root.compact ? 48 : 62, memberContent.implicitHeight + 8)
             radius: 3
             width: ListView.view.width
 
             ColumnLayout {
+                id: memberContent
+
                 anchors.fill: parent
                 anchors.leftMargin: 8
                 anchors.rightMargin: 6
+                anchors.bottomMargin: 4
+                anchors.topMargin: 4
                 spacing: 0
 
                 RowLayout {
@@ -136,6 +159,7 @@ FocusScope {
                         id: nameLabel
 
                         objectName: "arenaRosterName-" + memberDelegate.memberId
+                        Accessible.ignored: true
                         Layout.fillWidth: true
                         color: "white"
                         elide: Text.ElideRight
@@ -145,7 +169,10 @@ FocusScope {
                     }
 
                     Text {
+                        id: winsLabel
+
                         objectName: "arenaRosterWins-" + memberDelegate.memberId
+                        Accessible.ignored: true
                         color: "#d6deea"
                         text: qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins)
                         textFormat: Text.PlainText
@@ -153,7 +180,11 @@ FocusScope {
 
                     Button {
                         objectName: "arenaRosterKick-" + memberDelegate.memberId
+                        Accessible.description: root.session && root.session.reconnecting === true
+                            ? qsTr("Unavailable while reconnecting to Arena.")
+                            : ""
                         Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
+                        enabled: !root.session || root.session.reconnecting !== true
                         Layout.minimumHeight: 32
                         Layout.minimumWidth: 48
                         text: qsTr("Kick")
@@ -163,7 +194,10 @@ FocusScope {
                 }
 
                 Text {
+                    id: markerLabel
+
                     objectName: "arenaRosterMarkers-" + memberDelegate.memberId
+                    Accessible.ignored: true
                     Layout.fillWidth: true
                     color: "#ffe39b"
                     elide: Text.ElideRight
@@ -176,6 +210,7 @@ FocusScope {
                     id: statusLabel
 
                     objectName: "arenaRosterStatus-" + memberDelegate.memberId
+                    Accessible.ignored: true
                     Layout.fillWidth: true
                     color: memberDelegate.connected ? "#c9d2df" : "#ffb2a8"
                     elide: Text.ElideRight

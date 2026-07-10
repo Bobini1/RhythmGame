@@ -269,3 +269,67 @@ TEST_CASE("ArenaOverlayPolicy: ContentFrame hosts Arena above the active gamepla
     CHECK(source.indexOf(QStringLiteral("id: sceneStack")) <
           source.indexOf(QStringLiteral("ArenaOverlayHost {")));
 }
+
+TEST_CASE("ArenaOverlayPolicy: browser and room lists expose keyboard and assistive semantics",
+          "[arena][ArenaOverlayPolicy][accessibility]")
+{
+    const auto browser = qmlSource("RhythmGameQml/Arena/ArenaBrowser.qml");
+    requireContains(browser,
+                    { "objectName: \"arenaRoomList\"",
+                      "Accessible.name: qsTr(\"Arena rooms\")",
+                      "Accessible.role: Accessible.List",
+                      "objectName: \"arenaRoom-\" + roomDelegate.roomId",
+                      "Accessible.role: Accessible.ListItem",
+                      "keyNavigationEnabled: true",
+                      "roomList.currentItem.activate()",
+                      "activeFocusOnTab: true",
+                      "border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0" });
+
+    const auto room = qmlSource("RhythmGameQml/Arena/ArenaRoom.qml");
+    requireContains(room,
+                    { "objectName: \"arenaRoomMemberList\"",
+                      "Accessible.name: qsTr(\"Arena players\")",
+                      "Accessible.role: Accessible.List",
+                      "objectName: \"arenaRoomMember-\" + memberDelegate.memberId",
+                      "Accessible.role: Accessible.ListItem",
+                      "activeFocusOnTab: true",
+                      "Accessible.description: root.moderationDisabledReason",
+                      "objectName: \"arenaRoomChatList\"",
+                      "Accessible.name: qsTr(\"Arena chat\")",
+                      "objectName: \"arenaRoomChat-\" + chatDelegate.messageId",
+                      "border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0" });
+
+    const auto login = qmlSource("RhythmGameQml/Arena/ArenaLoginPanel.qml");
+    requireContains(login,
+                    { "Accessible.name: qsTr(\"Arena login\")",
+                      "Accessible.role: Accessible.Grouping",
+                      "Accessible.role: Accessible.AlertMessage" });
+}
+
+TEST_CASE("ArenaOverlayPolicy: room surfaces announce only bounded competition status",
+          "[arena][ArenaOverlayPolicy][accessibility]")
+{
+    for (const auto* path : {
+           "RhythmGameQml/Arena/ArenaBrowser.qml",
+           "RhythmGameQml/Arena/ArenaRoom.qml",
+           "RhythmGameQml/Arena/ArenaSelectStrip.qml",
+           "share/RhythmGame/themes/Default/scripts/select/ArenaSelectPanel.qml" }) {
+        const auto source = qmlSource(path);
+        requireContains(source,
+                        { "readonly property alias lastAnnouncementKey",
+                          "readonly property alias lastAnnouncementText",
+                          "readonly property alias announcementCount",
+                          "ArenaStatusAnnouncer {" });
+    }
+
+    const auto announcer =
+      qmlSource("RhythmGameQml/Arena/ArenaStatusAnnouncer.qml");
+    requireContains(announcer,
+                    { "property string lastAnnouncementKey",
+                      "property string lastAnnouncementText",
+                      "property int announcementCount",
+                      "arena.status.reconnecting",
+                      "arena.status.selectionInvalidated",
+                      "arena.status.roundLoadingCancelled",
+                      "root.target.Accessible.announce(text)" });
+}

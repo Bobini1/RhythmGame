@@ -133,6 +133,7 @@ set(RHYTHM_GAME_QML_FILES
         Log.qml
         ColorChanger.qml
         Arena/ArenaBrowser.qml
+        Arena/ArenaStatusAnnouncer.qml
         Arena/ArenaLoginPanel.qml
         Arena/ArenaRoom.qml
         Arena/ArenaSelectStrip.qml

@@ -9,6 +9,7 @@ Item {
     property bool isOwner: true
     property bool roundsAvailable: true
     property bool availabilitySyncing: false
+    property bool reconnecting: false
     property bool canReady: true
     property bool ready: false
     property string selectedTitle: ""

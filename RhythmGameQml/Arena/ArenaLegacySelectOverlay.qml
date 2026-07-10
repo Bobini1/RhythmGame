@@ -148,6 +148,7 @@ FocusScope {
 
                 Button {
                     objectName: "arenaLegacyReady"
+                    Accessible.description: compactHeader.readyDisabledReason
                     Accessible.name: text
                     enabled: root.session && root.session.roundsAvailable !== false && String(root.session.currentRoundId || "").length === 0 && (root.session.ready === true || root.session.canReady === true)
                     text: root.session && root.session.ready === true ? qsTr("Unready") : qsTr("Ready")

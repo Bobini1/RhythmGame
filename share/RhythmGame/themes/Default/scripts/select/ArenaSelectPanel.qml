@@ -9,7 +9,31 @@ FocusScope {
 
     required property var session
     readonly property bool arenaNativeSelectPresentation: true
+    readonly property alias announcementCount: statusAnnouncer.announcementCount
+    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
+    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
+    readonly property string readyDisabledReason: {
+        if (!root.session) {
+            return "";
+        }
+        if (root.session.roundsAvailable === false) {
+            return qsTr("Update required to play in this room.");
+        }
+        if (root.session.availabilitySyncing === true) {
+            return qsTr("Song libraries are still being compared.");
+        }
+        if (String(root.session.currentRoundId || "").length > 0) {
+            return qsTr("The synchronized round is already being prepared.");
+        }
+        if (root.session.ready !== true && root.session.canReady !== true) {
+            return qsTr("Choose a chart available to everyone before becoming ready.");
+        }
+        return "";
+    }
     property string detailMode: "details"
+
+    Accessible.name: root.session.roomName || qsTr("Arena room")
+    Accessible.role: Accessible.Grouping
 
     Rectangle {
         anchors.fill: parent
@@ -101,7 +125,7 @@ FocusScope {
                 id: readyButton
 
                 objectName: "arenaDefaultReady"
-                Accessible.description: root.summaryLoaderItem ? root.summaryLoaderItem.readyDisabledReason : ""
+                Accessible.description: root.readyDisabledReason
                 Accessible.name: text
                 enabled: root.session.roundsAvailable !== false && String(root.session.currentRoundId || "").length === 0 && (root.session.ready === true || root.session.canReady === true)
                 text: root.session.ready === true ? qsTr("Unready") : qsTr("Ready")
@@ -117,7 +141,14 @@ FocusScope {
         }
     }
 
-    readonly property var summaryLoaderItem: detailsLoader.status === Loader.Ready && root.detailMode === "details" ? detailsLoader.item : null
+    ArenaStatusAnnouncer {
+        id: statusAnnouncer
+
+        active: root.visible
+        errorMessageKey: root.session ? String(root.session.errorMessageKey || "") : ""
+        reconnecting: root.session ? root.session.reconnecting === true : false
+        target: root
+    }
 
     Component {
         id: summaryComponent

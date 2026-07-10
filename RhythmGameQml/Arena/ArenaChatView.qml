@@ -69,6 +69,7 @@ FocusScope {
         ListView {
             id: chatList
 
+            objectName: "arenaChatList"
             Accessible.name: qsTr("Arena chat history")
             Accessible.role: Accessible.List
             Layout.fillHeight: true
@@ -79,17 +80,31 @@ FocusScope {
             clip: true
             model: root.chatModel
             reuseItems: true
+            keyNavigationEnabled: true
             spacing: 5
+
+            function ensureCurrentItem(): void {
+                if (chatList.count === 0) {
+                    chatList.currentIndex = -1;
+                } else if (chatList.currentIndex < 0
+                           || chatList.currentIndex >= chatList.count) {
+                    chatList.currentIndex = 0;
+                }
+            }
 
             ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
             }
 
-            Component.onCompleted: root.scrollToTail()
+            Component.onCompleted: {
+                chatList.ensureCurrentItem();
+                root.scrollToTail();
+            }
+            onCountChanged: chatList.ensureCurrentItem()
             onMovementStarted: root.followTail = chatList.atYEnd
             onMovementEnded: root.followTail = chatList.atYEnd
 
-            delegate: Column {
+            delegate: Rectangle {
                 id: messageDelegate
 
                 required property string messageId
@@ -97,26 +112,43 @@ FocusScope {
                 required property string text
                 required property bool self
 
-                spacing: 1
+                objectName: "arenaChatMessage-" + messageDelegate.messageId
+                Accessible.name: qsTr("%1: %2").arg(messageDelegate.displayName).arg(messageDelegate.text)
+                Accessible.role: Accessible.ListItem
+                border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#8ec5ff" : "transparent"
+                border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
+                color: "transparent"
+                height: messageContent.implicitHeight + 4
+                radius: 3
                 width: ListView.view.width
 
-                Text {
-                    objectName: "arenaChatName-" + messageDelegate.messageId
-                    color: messageDelegate.self ? "#ffe39b" : "#d6deea"
-                    elide: Text.ElideRight
-                    font.bold: true
-                    text: messageDelegate.displayName
-                    textFormat: Text.PlainText
-                    width: parent.width
-                }
+                Column {
+                    id: messageContent
 
-                Text {
-                    objectName: "arenaChatBody-" + messageDelegate.messageId
-                    color: "white"
-                    text: messageDelegate.text
-                    textFormat: Text.PlainText
-                    width: parent.width
-                    wrapMode: Text.Wrap
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    spacing: 1
+
+                    Text {
+                        objectName: "arenaChatName-" + messageDelegate.messageId
+                        Accessible.ignored: true
+                        color: messageDelegate.self ? "#ffe39b" : "#d6deea"
+                        elide: Text.ElideRight
+                        font.bold: true
+                        text: messageDelegate.displayName
+                        textFormat: Text.PlainText
+                        width: parent.width
+                    }
+
+                    Text {
+                        objectName: "arenaChatBody-" + messageDelegate.messageId
+                        Accessible.ignored: true
+                        color: "white"
+                        text: messageDelegate.text
+                        textFormat: Text.PlainText
+                        width: parent.width
+                        wrapMode: Text.Wrap
+                    }
                 }
             }
 

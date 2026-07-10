@@ -18,6 +18,9 @@ FocusScope {
     property string selectedRoomId: ""
     property string selectedRoomName: ""
     property Item dialogOrigin: null
+    readonly property alias announcementCount: statusAnnouncer.announcementCount
+    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
+    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property bool admissionInFlight: session.admissionPending
         && !session.loginRequired
     readonly property bool updateRequired: session.directoryReady
@@ -25,6 +28,9 @@ FocusScope {
     readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing
         && !admissionInFlight
         && !updateRequired
+
+    Accessible.name: qsTr("Online Arena")
+    Accessible.role: Accessible.Grouping
 
     function errorText(key) : string {
         switch (key) {
@@ -246,12 +252,40 @@ FocusScope {
             ListView {
                 id: roomList
 
+                objectName: "arenaRoomList"
+                Accessible.name: qsTr("Arena rooms")
+                Accessible.role: Accessible.List
+                activeFocusOnTab: true
                 anchors.fill: parent
                 clip: true
                 enabled: root.session.state === ArenaSession.Browsing
                 model: root.session.rooms
                 reuseItems: true
+                keyNavigationEnabled: true
                 spacing: 8
+
+                function ensureCurrentItem(): void {
+                    if (roomList.count === 0) {
+                        roomList.currentIndex = -1;
+                    } else if (roomList.currentIndex < 0
+                               || roomList.currentIndex >= roomList.count) {
+                        roomList.currentIndex = 0;
+                    }
+                }
+
+                Component.onCompleted: roomList.ensureCurrentItem()
+                Keys.onPressed: event => {
+                    if (event.key !== Qt.Key_Return
+                            && event.key !== Qt.Key_Enter
+                            && event.key !== Qt.Key_Space) {
+                        return;
+                    }
+                    if (roomList.currentItem) {
+                        roomList.currentItem.activate();
+                        event.accepted = true;
+                    }
+                }
+                onCountChanged: roomList.ensureCurrentItem()
                 visible: root.session.rooms.count > 0
 
                 ScrollBar.vertical: ScrollBar {}
@@ -267,8 +301,32 @@ FocusScope {
                     required property int reservedCount
                     required property int maximumCount
 
+                    objectName: "arenaRoom-" + roomDelegate.roomId
+                    Accessible.description: qsTr("%1, %2. %3 connected, %4 reserved, %5 maximum.")
+                        .arg(root.phaseText(roomDelegate.phase))
+                        .arg(roomDelegate.passwordProtected ? qsTr("Password required") : qsTr("Public"))
+                        .arg(roomDelegate.connectedCount)
+                        .arg(roomDelegate.reservedCount)
+                        .arg(roomDelegate.maximumCount)
+                    Accessible.name: roomDelegate.name
+                    Accessible.role: Accessible.ListItem
                     height: row.implicitHeight + topPadding + bottomPadding
                     width: ListView.view.width
+
+                    function activate(): void {
+                        if (!joinButton.enabled) {
+                            return;
+                        }
+                        if (roomDelegate.passwordProtected) {
+                            root.openJoinDialog(roomDelegate.roomId,
+                                                roomDelegate.name,
+                                                roomDelegate);
+                        } else {
+                            root.joinRequested(roomDelegate.roomId, "");
+                        }
+                    }
+
+                    Accessible.onPressAction: roomDelegate.activate()
 
                     RowLayout {
                         id: row
@@ -281,6 +339,7 @@ FocusScope {
                             spacing: 2
 
                             Label {
+                                Accessible.ignored: true
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
                                 font.bold: true
@@ -289,6 +348,7 @@ FocusScope {
                             }
 
                             Label {
+                                Accessible.ignored: true
                                 Layout.fillWidth: true
                                 text: qsTr("%1 · %2").arg(root.phaseText(roomDelegate.phase)).arg(
                                     roomDelegate.passwordProtected
@@ -297,6 +357,7 @@ FocusScope {
                             }
 
                             Label {
+                                Accessible.ignored: true
                                 Layout.fillWidth: true
                                 text: qsTr("%1 connected, %2 reserved / %3")
                                     .arg(roomDelegate.connectedCount)
@@ -314,16 +375,17 @@ FocusScope {
                                     < roomDelegate.maximumCount
                             text: roomDelegate.connectedCount + roomDelegate.reservedCount
                                 >= roomDelegate.maximumCount ? qsTr("Full") : qsTr("Join")
-                            onClicked: {
-                                if (roomDelegate.passwordProtected) {
-                                    root.openJoinDialog(roomDelegate.roomId,
-                                                        roomDelegate.name,
-                                                        joinButton);
-                                } else {
-                                    root.joinRequested(roomDelegate.roomId, "");
-                                }
-                            }
+                            onClicked: roomDelegate.activate()
                         }
+                    }
+
+                    Rectangle {
+                        Accessible.ignored: true
+                        anchors.fill: parent
+                        border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#2387d9" : "transparent"
+                        border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
+                        color: "transparent"
+                        radius: 3
                     }
                 }
             }
@@ -458,5 +520,14 @@ FocusScope {
                 }
             }
         }
+    }
+
+    ArenaStatusAnnouncer {
+        id: statusAnnouncer
+
+        active: root.visible
+        errorMessageKey: String(root.session.errorMessageKey || "")
+        reconnecting: root.session.reconnecting === true
+        target: root
     }
 }

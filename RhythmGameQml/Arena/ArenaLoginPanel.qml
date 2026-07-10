@@ -14,6 +14,11 @@ FocusScope {
 
     implicitHeight: panel.implicitHeight
     implicitWidth: panel.implicitWidth
+    Accessible.description: root.actionRequired
+        ? qsTr("Login is required before joining the selected Arena room.")
+        : qsTr("Login is required before creating or joining Arena rooms.")
+    Accessible.name: qsTr("Arena login")
+    Accessible.role: Accessible.Grouping
     enabled: root.admissionAllowed
 
     function clearCredentials() : void {
@@ -117,6 +122,9 @@ FocusScope {
                 }
 
                 Label {
+                    objectName: "arenaLoginStatus"
+                    Accessible.name: text
+                    Accessible.role: Accessible.AlertMessage
                     Layout.fillWidth: true
                     color: root.profile.loginState === Profile.LoginFailed
                         ? palette.accent

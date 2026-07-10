@@ -194,6 +194,26 @@ TestCase {
         compare(state.session.leaveCount, 1);
     }
 
+    function test_ready_disabled_reason_stays_accessible_on_chat_tab() {
+        const state = createHarness();
+        const overlay = state.harness.overlay;
+        state.session.canReady = false;
+        overlay.expanded = true;
+        wait(1);
+
+        const ready = findChild(overlay, "arenaLegacyReady");
+        const strip = findChild(overlay, "arenaLegacyCompactHeader");
+        verify(ready !== null);
+        verify(strip !== null);
+        compare(ready.enabled, false);
+        verify(strip.readyDisabledReason.length > 0);
+        compare(ready.Accessible.description, strip.readyDisabledReason);
+
+        const chatTab = findChild(overlay, "arenaLegacyChatTab");
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
+        compare(ready.Accessible.description, strip.readyDisabledReason);
+    }
+
     function test_outside_the_panel_remains_pointer_transparent() {
         const state = createHarness();
         const overlay = state.harness.overlay;

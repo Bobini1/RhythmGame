@@ -48,6 +48,12 @@ TestCase {
         DefaultSelect.ArenaSelectPanel {}
     }
 
+    Component {
+        id: stripComponent
+
+        ArenaSelectStrip {}
+    }
+
     function addMembers(session, count = 16) {
         for (let index = 0; index < count; ++index) {
             const number = index + 1;
@@ -145,6 +151,45 @@ TestCase {
         compare(kick.visible, false);
     }
 
+    function test_roster_rows_fit_content_and_pause_moderation_during_reconnect() {
+        const session = createSession();
+        const roster = createTemporaryObject(rosterComponent, testCase, {
+            "compact": true,
+            "height": 520,
+            "moderationEnabled": true,
+            "session": session,
+            "width": 520
+        });
+        verify(roster !== null);
+
+        const member = findChild(roster, "arenaRosterMember-member-2");
+        const nextMember = findChild(roster, "arenaRosterMember-member-3");
+        const rosterList = findChild(roster, "arenaRosterList");
+        verify(member !== null);
+        verify(nextMember !== null);
+        verify(rosterList !== null);
+        verify(member.height > 48);
+        compare(member.activeFocusOnTab, false);
+        rosterList.currentIndex = 1;
+        roster.forceActiveFocus();
+        keyClick(Qt.Key_Tab);
+        tryCompare(rosterList, "activeFocus", true);
+        compare(member.border.width, 2);
+        keyClick(Qt.Key_Down);
+        compare(member.border.width, 0);
+        compare(nextMember.border.width, 2);
+
+        const kick = findChild(roster, "arenaRosterKick-member-2");
+        verify(kick !== null);
+        compare(kick.visible, true);
+        compare(kick.enabled, true);
+
+        session.reconnecting = true;
+        compare(kick.visible, true);
+        compare(kick.enabled, false);
+        verify(kick.Accessible.description.indexOf("reconnect") >= 0);
+    }
+
     function test_selection_summary_formats_existing_session_state() {
         const session = createSession();
         const summary = createTemporaryObject(summaryComponent, testCase, {
@@ -193,6 +238,21 @@ TestCase {
         wait(1);
         const firstName = findChild(chat, "arenaChatName-message-0");
         const firstBody = findChild(chat, "arenaChatBody-message-0");
+        const firstMessage = findChild(chat, "arenaChatMessage-message-0");
+        const secondMessage = findChild(chat, "arenaChatMessage-message-1");
+        const chatList = findChild(chat, "arenaChatList");
+        verify(firstMessage !== null);
+        verify(secondMessage !== null);
+        verify(chatList !== null);
+        compare(firstMessage.activeFocusOnTab, false);
+        chatList.currentIndex = 0;
+        chat.forceActiveFocus();
+        keyClick(Qt.Key_Tab);
+        tryCompare(chatList, "activeFocus", true);
+        compare(firstMessage.border.width, 2);
+        keyClick(Qt.Key_Down);
+        compare(firstMessage.border.width, 0);
+        compare(secondMessage.border.width, 2);
         compare(firstName.textFormat, Text.PlainText);
         compare(firstBody.textFormat, Text.PlainText);
         compare(firstBody.text, "<img src='bad'> plain");
@@ -243,5 +303,63 @@ TestCase {
         const leave = findChild(panel, "arenaDefaultLeave");
         mouseClick(leave, leave.width / 2, leave.height / 2, Qt.LeftButton);
         compare(session.leaveCount, 1);
+    }
+
+    function test_ready_reason_survives_chat_and_announcements_are_deduplicated() {
+        const session = createSession();
+        session.canReady = false;
+        const panel = createTemporaryObject(panelComponent, testCase, {
+            "height": 480,
+            "session": session,
+            "width": 640
+        });
+        verify(panel !== null);
+        verify(panel.readyDisabledReason.length > 0);
+
+        const ready = findChild(panel, "arenaDefaultReady");
+        const chatTab = findChild(panel, "arenaDefaultChatTab");
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
+        compare(panel.detailMode, "chat");
+        verify(panel.readyDisabledReason.length > 0);
+        compare(ready.Accessible.description, panel.readyDisabledReason);
+
+        session.reconnecting = true;
+        tryCompare(panel, "lastAnnouncementKey", "arena.status.reconnecting");
+        compare(panel.announcementCount, 1);
+
+        session.errorMessageKey = "arena.error.selectionStale";
+        compare(panel.announcementCount, 1);
+        session.reconnecting = false;
+        tryCompare(panel, "lastAnnouncementKey", "arena.status.selectionInvalidated");
+        compare(panel.announcementCount, 2);
+
+        session.errorMessageKey = "arena.error.availabilityStale";
+        compare(panel.announcementCount, 2);
+        session.errorMessageKey = "arena.error.parseFailed";
+        tryCompare(panel, "lastAnnouncementKey", "arena.status.roundLoadingCancelled");
+        compare(panel.announcementCount, 3);
+        verify(panel.lastAnnouncementText.length > 0);
+        const lastText = panel.lastAnnouncementText;
+        session.errorMessageKey = "";
+        compare(panel.lastAnnouncementKey, "arena.status.roundLoadingCancelled");
+        compare(panel.lastAnnouncementText, lastText);
+        compare(panel.announcementCount, 3);
+    }
+
+    function test_select_strip_exposes_ready_reason_and_announces_selection_failure() {
+        const session = createSession();
+        session.canReady = false;
+        const strip = createTemporaryObject(stripComponent, testCase, {
+            "session": session,
+            "width": 800
+        });
+        verify(strip !== null);
+        verify(strip.readyDisabledReason.length > 0);
+
+        session.errorMessageKey = "arena.error.resourceFailed";
+        tryCompare(strip, "lastAnnouncementKey", "arena.status.roundLoadingCancelled");
+        compare(strip.announcementCount, 1);
+        session.errorMessageKey = "arena.error.hashMismatch";
+        compare(strip.announcementCount, 1);
     }
 }

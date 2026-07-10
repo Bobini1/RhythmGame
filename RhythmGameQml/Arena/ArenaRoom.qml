@@ -17,7 +17,16 @@ FocusScope {
     property string kickMemberId: ""
     property string kickDisplayName: ""
     property Item kickOrigin: null
+    readonly property alias announcementCount: statusAnnouncer.announcementCount
+    readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
+    readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
+    readonly property string moderationDisabledReason: session.state === ArenaSession.Reconnecting
+        ? qsTr("Unavailable while reconnecting to Arena.")
+        : ""
     readonly property bool mutableRoom: session.state === ArenaSession.InRoom
+
+    Accessible.name: root.session.roomName || qsTr("Arena room")
+    Accessible.role: Accessible.Grouping
 
     function errorText(key) : string {
         switch (key) {
@@ -182,16 +191,33 @@ FocusScope {
                     ListView {
                         id: memberList
 
+                        objectName: "arenaRoomMemberList"
+                        Accessible.name: qsTr("Arena players")
+                        Accessible.role: Accessible.List
+                        activeFocusOnTab: true
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         clip: true
                         model: root.session.members
                         reuseItems: true
+                        keyNavigationEnabled: true
                         spacing: 6
+
+                        function ensureCurrentItem(): void {
+                            if (memberList.count === 0) {
+                                memberList.currentIndex = -1;
+                            } else if (memberList.currentIndex < 0
+                                       || memberList.currentIndex >= memberList.count) {
+                                memberList.currentIndex = 0;
+                            }
+                        }
+
+                        Component.onCompleted: memberList.ensureCurrentItem()
+                        onCountChanged: memberList.ensureCurrentItem()
 
                         ScrollBar.vertical: ScrollBar {}
 
-                        delegate: Item {
+                        delegate: Rectangle {
                             id: memberDelegate
 
                             required property string memberId
@@ -202,7 +228,17 @@ FocusScope {
                             required property bool self
                             required property int lobbyWins
 
+                            objectName: "arenaRoomMember-" + memberDelegate.memberId
+                            Accessible.description: qsTr("%1. %2")
+                                .arg(memberStatus.text)
+                                .arg(qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins))
+                            Accessible.name: memberName.text
+                            Accessible.role: Accessible.ListItem
+                            border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#2387d9" : "transparent"
+                            border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
+                            color: "transparent"
                             height: memberRow.implicitHeight + 8
+                            radius: 3
                             width: ListView.view.width
 
                             RowLayout {
@@ -228,6 +264,7 @@ FocusScope {
                                     }
 
                                     Label {
+                                        Accessible.ignored: true
                                         anchors.centerIn: parent
                                         font.bold: true
                                         text: "?"
@@ -241,6 +278,9 @@ FocusScope {
                                     spacing: 0
 
                                     Label {
+                                        id: memberName
+
+                                        Accessible.ignored: true
                                         Layout.fillWidth: true
                                         elide: Text.ElideRight
                                         text: memberDelegate.self
@@ -250,6 +290,9 @@ FocusScope {
                                     }
 
                                     Label {
+                                        id: memberStatus
+
+                                        Accessible.ignored: true
                                         Layout.fillWidth: true
                                         text: {
                                             const state = memberDelegate.connected
@@ -265,6 +308,8 @@ FocusScope {
                                 Button {
                                     id: kickButton
 
+                                    objectName: "arenaRoomKick-" + memberDelegate.memberId
+                                    Accessible.description: root.moderationDisabledReason
                                     Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
                                     enabled: root.mutableRoom
                                     text: qsTr("Kick")
@@ -309,20 +354,38 @@ FocusScope {
                             });
                         }
 
+                        objectName: "arenaRoomChatList"
+                        Accessible.name: qsTr("Arena chat")
+                        Accessible.role: Accessible.List
+                        activeFocusOnTab: true
                         Layout.fillHeight: true
                         Layout.fillWidth: true
                         clip: true
                         model: root.session.chat
                         reuseItems: true
+                        keyNavigationEnabled: true
                         spacing: 6
+
+                        function ensureCurrentItem(): void {
+                            if (chatView.count === 0) {
+                                chatView.currentIndex = -1;
+                            } else if (chatView.currentIndex < 0
+                                       || chatView.currentIndex >= chatView.count) {
+                                chatView.currentIndex = 0;
+                            }
+                        }
 
                         ScrollBar.vertical: ScrollBar {}
 
-                        Component.onCompleted: scrollToTailIfFollowing()
+                        Component.onCompleted: {
+                            chatView.ensureCurrentItem();
+                            scrollToTailIfFollowing();
+                        }
+                        onCountChanged: chatView.ensureCurrentItem()
                         onMovementStarted: followTail = false
                         onMovementEnded: followTail = atYEnd
 
-                        delegate: Column {
+                        delegate: Rectangle {
                             id: chatDelegate
 
                             required property string messageId
@@ -332,19 +395,36 @@ FocusScope {
                             required property double timestamp
                             required property bool self
 
-                            spacing: 1
+                            objectName: "arenaRoomChat-" + chatDelegate.messageId
+                            Accessible.name: qsTr("%1: %2").arg(chatDelegate.displayName).arg(chatDelegate.text)
+                            Accessible.role: Accessible.ListItem
+                            border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#2387d9" : "transparent"
+                            border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
+                            color: "transparent"
+                            height: chatContent.implicitHeight + 4
+                            radius: 3
                             width: ListView.view.width
 
-                            Label {
-                                font.bold: true
-                                text: chatDelegate.displayName
-                                textFormat: Text.PlainText
-                            }
-                            Label {
-                                text: chatDelegate.text
-                                textFormat: Text.PlainText
-                                width: parent.width
-                                wrapMode: Text.Wrap
+                            Column {
+                                id: chatContent
+
+                                anchors.fill: parent
+                                anchors.margins: 2
+                                spacing: 1
+
+                                Label {
+                                    Accessible.ignored: true
+                                    font.bold: true
+                                    text: chatDelegate.displayName
+                                    textFormat: Text.PlainText
+                                }
+                                Label {
+                                    Accessible.ignored: true
+                                    text: chatDelegate.text
+                                    textFormat: Text.PlainText
+                                    width: parent.width
+                                    wrapMode: Text.Wrap
+                                }
                             }
                         }
 
@@ -424,5 +504,14 @@ FocusScope {
                 wrapMode: Text.Wrap
             }
         }
+    }
+
+    ArenaStatusAnnouncer {
+        id: statusAnnouncer
+
+        active: root.visible
+        errorMessageKey: root.session.errorMessageKey
+        reconnecting: root.session.state === ArenaSession.Reconnecting
+        target: root
     }
 }
