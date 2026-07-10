@@ -1,0 +1,956 @@
+{
+	"fixtureSchema": 1,
+	"protocolMajor": 1,
+	"protocolMinor": 0,
+	"clientMessages": [
+		{
+			"name": "client anonymous hello",
+			"message": {
+				"type": "client_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"clientVersion": "2026.7.10",
+					"capabilities": ["rooms-v1"]
+				}
+			}
+		},
+		{
+			"name": "client ticket hello",
+			"message": {
+				"type": "client_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"clientVersion": "2026.7.10",
+					"capabilities": ["rooms-v1"],
+					"ticket": "fixture.ticket.header.payload.signature"
+				}
+			}
+		},
+		{
+			"name": "client resume hello",
+			"message": {
+				"type": "client_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"clientVersion": "2026.7.10",
+					"capabilities": ["rooms-v1", "fixture-extension"],
+					"ticket": "fixture.ticket.resume.payload.signature",
+					"resume": {
+						"roomId": "room-1",
+						"seatToken": "fixture-seat-token-1"
+					}
+				}
+			}
+		},
+		{
+			"name": "client directory subscribe",
+			"message": { "type": "directory_subscribe", "data": {} }
+		},
+		{
+			"name": "client public room create",
+			"message": {
+				"type": "room_create",
+				"requestId": "fixture-create-public",
+				"data": { "name": "Fixture public room" }
+			}
+		},
+		{
+			"name": "client password room create",
+			"message": {
+				"type": "room_create",
+				"requestId": "fixture-create-password",
+				"data": { "name": "Fixture password room", "password": "fixture-password-1" }
+			}
+		},
+		{
+			"name": "client public room join",
+			"message": {
+				"type": "room_join",
+				"requestId": "fixture-join-public",
+				"data": { "roomId": "room-1" }
+			}
+		},
+		{
+			"name": "client password room join",
+			"message": {
+				"type": "room_join",
+				"requestId": "fixture-join-password",
+				"data": { "roomId": "room-1", "password": "fixture-password-1" }
+			}
+		},
+		{
+			"name": "client room leave",
+			"message": {
+				"type": "room_leave",
+				"requestId": "fixture-leave",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"connectionGeneration": 2
+				}
+			}
+		},
+		{
+			"name": "client room kick",
+			"message": {
+				"type": "room_kick",
+				"requestId": "fixture-kick",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"connectionGeneration": 2,
+					"targetMemberId": "member-bob"
+				}
+			}
+		},
+		{
+			"name": "client chat send",
+			"message": {
+				"type": "chat_send",
+				"requestId": "fixture-chat",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"connectionGeneration": 2,
+					"text": "Fixture chat text"
+				}
+			}
+		},
+		{
+			"name": "client heartbeat reply",
+			"message": {
+				"type": "heartbeat_reply",
+				"data": { "nonce": "fixture-heartbeat-1" }
+			}
+		}
+	],
+	"serverMessages": [
+		{
+			"name": "server anonymous hello",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"capabilities": ["rooms-v1"],
+					"resume": { "status": "not_requested" }
+				}
+			}
+		},
+		{
+			"name": "server authenticated hello",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"capabilities": ["rooms-v1"],
+					"identity": {
+						"userId": "user-alice",
+						"displayName": "Alice",
+						"avatarUrl": null
+					},
+					"resume": { "status": "not_requested" }
+				}
+			}
+		},
+		{
+			"name": "server successful resume hello",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"capabilities": ["rooms-v1"],
+					"identity": {
+						"userId": "user-alice",
+						"displayName": "Alice",
+						"avatarUrl": null
+					},
+					"resume": {
+						"status": "succeeded",
+						"room": {
+							"roomId": "room-1",
+							"roomGeneration": 3,
+							"name": "Fixture room",
+							"phase": "selecting",
+							"hasPassword": true,
+							"maxCount": 16,
+							"ownerMemberId": "member-alice",
+							"self": {
+								"memberId": "member-alice",
+								"connectionGeneration": 2,
+								"resumeToken": "fixture-resume-token-2"
+							},
+							"members": [
+								{
+									"memberId": "member-alice",
+									"identity": {
+										"userId": "user-alice",
+										"displayName": "Alice",
+										"avatarUrl": null
+									},
+									"status": "connected",
+									"lobbyWins": 2
+								},
+								{
+									"memberId": "member-bob",
+									"identity": {
+										"userId": "user-bob",
+										"displayName": "Bob",
+										"avatarUrl": "https://example.invalid/bob.png"
+									},
+									"status": "reserved",
+									"lobbyWins": 0
+								}
+							],
+							"chat": [
+								{
+									"messageId": "message-1",
+									"authorMemberId": "member-alice",
+									"authorDisplayName": "Alice",
+									"sentAtMs": 1752172800000,
+									"text": "Hello"
+								},
+								{
+									"messageId": "message-2",
+									"authorMemberId": "member-bob",
+									"authorDisplayName": "Bob",
+									"sentAtMs": 1752172801000,
+									"text": "Hi"
+								}
+							]
+						}
+					}
+				}
+			}
+		},
+		{
+			"name": "server failed resume hello",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"capabilities": ["rooms-v1"],
+					"identity": {
+						"userId": "user-alice",
+						"displayName": "Alice",
+						"avatarUrl": null
+					},
+					"resume": {
+						"status": "failed",
+						"code": "room_resume_failed",
+						"displayMessageKey": "arena.error.resumeFailed"
+					}
+				}
+			}
+		},
+		{
+			"name": "server directory snapshot",
+			"message": {
+				"type": "directory_snapshot",
+				"data": {
+					"revision": 4,
+					"rooms": [
+						{
+							"roomId": "room-1",
+							"name": "Fixture room",
+							"phase": "selecting",
+							"hasPassword": true,
+							"connectedCount": 1,
+							"reservedCount": 1,
+							"maxCount": 16
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "server directory delta",
+			"message": {
+				"type": "room_directory_updated",
+				"data": {
+					"revision": 5,
+					"upserts": [
+						{
+							"roomId": "room-2",
+							"name": "Second fixture room",
+							"phase": "selecting",
+							"hasPassword": false,
+							"connectedCount": 1,
+							"reservedCount": 0,
+							"maxCount": 16
+						}
+					],
+					"removedRoomIds": ["room-old"]
+				}
+			}
+		},
+		{
+			"name": "server correlated room snapshot",
+			"message": {
+				"type": "room_snapshot",
+				"requestId": "fixture-join-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"name": "Fixture room",
+					"phase": "selecting",
+					"hasPassword": true,
+					"maxCount": 16,
+					"ownerMemberId": "member-alice",
+					"self": {
+						"memberId": "member-alice",
+						"connectionGeneration": 2,
+						"resumeToken": "fixture-resume-token-2"
+					},
+					"members": [
+						{
+							"memberId": "member-alice",
+							"identity": {
+								"userId": "user-alice",
+								"displayName": "Alice",
+								"avatarUrl": null
+							},
+							"status": "connected",
+							"lobbyWins": 2
+						},
+						{
+							"memberId": "member-bob",
+							"identity": {
+								"userId": "user-bob",
+								"displayName": "Bob",
+								"avatarUrl": "https://example.invalid/bob.png"
+							},
+							"status": "reserved",
+							"lobbyWins": 0
+						}
+					],
+					"chat": [
+						{
+							"messageId": "message-1",
+							"authorMemberId": "member-alice",
+							"authorDisplayName": "Alice",
+							"sentAtMs": 1752172800000,
+							"text": "Hello"
+						},
+						{
+							"messageId": "message-2",
+							"authorMemberId": "member-bob",
+							"authorDisplayName": "Bob",
+							"sentAtMs": 1752172801000,
+							"text": "Hi"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "server member joined",
+			"message": {
+				"type": "room_member_joined",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"member": {
+						"memberId": "member-bob",
+						"identity": {
+							"userId": "user-bob",
+							"displayName": "Bob",
+							"avatarUrl": "https://example.invalid/bob.png"
+						},
+						"status": "connected",
+						"lobbyWins": 0
+					}
+				}
+			}
+		},
+		{
+			"name": "server member updated connected",
+			"message": {
+				"type": "room_member_updated",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"member": {
+						"memberId": "member-bob",
+						"identity": {
+							"userId": "user-bob",
+							"displayName": "Bob",
+							"avatarUrl": "https://example.invalid/bob.png"
+						},
+						"status": "connected",
+						"lobbyWins": 1
+					}
+				}
+			}
+		},
+		{
+			"name": "server member updated reserved",
+			"message": {
+				"type": "room_member_updated",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"member": {
+						"memberId": "member-bob",
+						"identity": {
+							"userId": "user-bob",
+							"displayName": "Bob",
+							"avatarUrl": "https://example.invalid/bob.png"
+						},
+						"status": "reserved",
+						"lobbyWins": 1
+					}
+				}
+			}
+		},
+		{
+			"name": "server member left voluntarily",
+			"message": {
+				"type": "room_member_left",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"memberId": "member-bob",
+					"reason": "left"
+				}
+			}
+		},
+		{
+			"name": "server member left kicked",
+			"message": {
+				"type": "room_member_left",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"memberId": "member-bob",
+					"reason": "kicked"
+				}
+			}
+		},
+		{
+			"name": "server member left grace expired",
+			"message": {
+				"type": "room_member_left",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"memberId": "member-bob",
+					"reason": "grace_expired"
+				}
+			}
+		},
+		{
+			"name": "server owner changed member",
+			"message": {
+				"type": "room_owner_changed",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"ownerMemberId": "member-bob"
+				}
+			}
+		},
+		{
+			"name": "server owner changed null",
+			"message": {
+				"type": "room_owner_changed",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"ownerMemberId": null
+				}
+			}
+		},
+		{
+			"name": "server chat message",
+			"message": {
+				"type": "chat_message",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"message": {
+						"messageId": "message-3",
+						"authorMemberId": "member-bob",
+						"authorDisplayName": "Bob",
+						"sentAtMs": 1752172802000,
+						"text": "Fixture live chat"
+					}
+				}
+			}
+		},
+		{
+			"name": "server heartbeat",
+			"message": {
+				"type": "server_heartbeat",
+				"data": { "nonce": "fixture-heartbeat-1", "sentAtMs": 1752172803000 }
+			}
+		},
+		{
+			"name": "server going away",
+			"message": {
+				"type": "server_going_away",
+				"data": { "displayMessageKey": "arena.serverGoingAway" }
+			}
+		},
+		{
+			"name": "server going away with retry",
+			"message": {
+				"type": "server_going_away",
+				"data": { "displayMessageKey": "arena.serverGoingAway", "retryAfterMs": 1000 }
+			}
+		},
+		{
+			"name": "server command error auth required",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-1",
+				"data": { "code": "auth_required", "displayMessageKey": "arena.error.authRequired" }
+			}
+		},
+		{
+			"name": "server command error already in room",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-2",
+				"data": { "code": "already_in_room", "displayMessageKey": "arena.error.alreadyInRoom" }
+			}
+		},
+		{
+			"name": "server command error not in room",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-3",
+				"data": { "code": "not_in_room", "displayMessageKey": "arena.error.notInRoom" }
+			}
+		},
+		{
+			"name": "server command error room not found",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-4",
+				"data": { "code": "room_not_found", "displayMessageKey": "arena.error.roomNotFound" }
+			}
+		},
+		{
+			"name": "server command error password invalid",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-5",
+				"data": {
+					"code": "room_password_invalid",
+					"displayMessageKey": "arena.error.roomPasswordInvalid"
+				}
+			}
+		},
+		{
+			"name": "server command error room full",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-6",
+				"data": { "code": "room_full", "displayMessageKey": "arena.error.roomFull" }
+			}
+		},
+		{
+			"name": "server command error room banned",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-7",
+				"data": { "code": "room_banned", "displayMessageKey": "arena.error.roomBanned" }
+			}
+		},
+		{
+			"name": "server command error duplicate identity",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-8",
+				"data": {
+					"code": "room_duplicate_identity",
+					"displayMessageKey": "arena.error.roomDuplicateIdentity"
+				}
+			}
+		},
+		{
+			"name": "server command error room generation stale",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-9",
+				"data": {
+					"code": "room_generation_stale",
+					"displayMessageKey": "arena.error.roomGenerationStale"
+				}
+			}
+		},
+		{
+			"name": "server command error connection generation stale",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-10",
+				"data": {
+					"code": "connection_generation_stale",
+					"displayMessageKey": "arena.error.connectionGenerationStale"
+				}
+			}
+		},
+		{
+			"name": "server command error permission denied",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-11",
+				"data": { "code": "permission_denied", "displayMessageKey": "arena.error.permissionDenied" }
+			}
+		},
+		{
+			"name": "server command error target not found",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-12",
+				"data": { "code": "target_not_found", "displayMessageKey": "arena.error.targetNotFound" }
+			}
+		},
+		{
+			"name": "server command error cannot kick self",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-13",
+				"data": { "code": "cannot_kick_self", "displayMessageKey": "arena.error.cannotKickSelf" }
+			}
+		},
+		{
+			"name": "server command error chat empty",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-14",
+				"data": { "code": "chat_empty", "displayMessageKey": "arena.error.chatEmpty" }
+			}
+		},
+		{
+			"name": "server command error chat too long",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-15",
+				"data": { "code": "chat_too_long", "displayMessageKey": "arena.error.chatTooLong" }
+			}
+		},
+		{
+			"name": "server command error rate limited",
+			"message": {
+				"type": "command_error",
+				"requestId": "fixture-error-16",
+				"data": { "code": "rate_limited", "displayMessageKey": "arena.error.rateLimited" }
+			}
+		},
+		{
+			"name": "server fatal malformed message",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "malformed_message", "displayMessageKey": "arena.error.malformedMessage" }
+			}
+		},
+		{
+			"name": "server fatal frame too large",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "frame_too_large", "displayMessageKey": "arena.error.frameTooLarge" }
+			}
+		},
+		{
+			"name": "server fatal unexpected binary",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "unexpected_binary", "displayMessageKey": "arena.error.unexpectedBinary" }
+			}
+		},
+		{
+			"name": "server fatal hello required",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "hello_required", "displayMessageKey": "arena.error.helloRequired" }
+			}
+		},
+		{
+			"name": "server fatal hello repeated",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "hello_repeated", "displayMessageKey": "arena.error.helloRepeated" }
+			}
+		},
+		{
+			"name": "server fatal protocol incompatible",
+			"message": {
+				"type": "fatal_error",
+				"data": {
+					"code": "protocol_incompatible",
+					"displayMessageKey": "arena.error.protocolIncompatible"
+				}
+			}
+		},
+		{
+			"name": "server fatal capability required",
+			"message": {
+				"type": "fatal_error",
+				"data": {
+					"code": "capability_required",
+					"displayMessageKey": "arena.error.capabilityRequired"
+				}
+			}
+		},
+		{
+			"name": "server fatal invalid ticket",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "invalid_ticket", "displayMessageKey": "arena.error.invalidTicket" }
+			}
+		},
+		{
+			"name": "server fatal ticket replayed",
+			"message": {
+				"type": "fatal_error",
+				"data": { "code": "ticket_replayed", "displayMessageKey": "arena.error.invalidTicket" }
+			}
+		},
+		{
+			"name": "server fatal shutting down",
+			"message": {
+				"type": "fatal_error",
+				"data": {
+					"code": "server_shutting_down",
+					"displayMessageKey": "arena.error.serverShuttingDown"
+				}
+			}
+		}
+	],
+	"invalidServerMessages": [
+		{
+			"name": "invalid server protocol major",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "protocol_incompatible",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 2,
+					"protocolMinor": 0,
+					"capabilities": ["rooms-v1"],
+					"resume": { "status": "not_requested" }
+				}
+			}
+		},
+		{
+			"name": "invalid server protocol minor",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "protocol_incompatible",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 1,
+					"capabilities": ["rooms-v1"],
+					"resume": { "status": "not_requested" }
+				}
+			}
+		},
+		{
+			"name": "invalid server required capability",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "capability_required",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 0,
+					"capabilities": ["fixture-extension"],
+					"resume": { "status": "not_requested" }
+				}
+			}
+		},
+		{
+			"name": "invalid duplicate directory room id",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "malformed_message",
+			"message": {
+				"type": "directory_snapshot",
+				"data": {
+					"revision": 1,
+					"rooms": [
+						{
+							"roomId": "room-duplicate",
+							"name": "Room",
+							"phase": "selecting",
+							"hasPassword": false,
+							"connectedCount": 1,
+							"reservedCount": 0,
+							"maxCount": 16
+						},
+						{
+							"roomId": "room-duplicate",
+							"name": "Room copy",
+							"phase": "selecting",
+							"hasPassword": false,
+							"connectedCount": 1,
+							"reservedCount": 0,
+							"maxCount": 16
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "invalid duplicate delta upsert id",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "malformed_message",
+			"message": {
+				"type": "room_directory_updated",
+				"data": {
+					"revision": 2,
+					"upserts": [
+						{
+							"roomId": "room-duplicate",
+							"name": "Room",
+							"phase": "selecting",
+							"hasPassword": false,
+							"connectedCount": 1,
+							"reservedCount": 0,
+							"maxCount": 16
+						},
+						{
+							"roomId": "room-duplicate",
+							"name": "Room copy",
+							"phase": "selecting",
+							"hasPassword": false,
+							"connectedCount": 1,
+							"reservedCount": 0,
+							"maxCount": 16
+						}
+					],
+					"removedRoomIds": []
+				}
+			}
+		},
+		{
+			"name": "invalid duplicate delta removal id",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "malformed_message",
+			"message": {
+				"type": "room_directory_updated",
+				"data": {
+					"revision": 2,
+					"upserts": [],
+					"removedRoomIds": ["room-duplicate", "room-duplicate"]
+				}
+			}
+		},
+		{
+			"name": "invalid overlapping delta id",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "malformed_message",
+			"message": {
+				"type": "room_directory_updated",
+				"data": {
+					"revision": 2,
+					"upserts": [
+						{
+							"roomId": "room-overlap",
+							"name": "Room",
+							"phase": "selecting",
+							"hasPassword": false,
+							"connectedCount": 1,
+							"reservedCount": 0,
+							"maxCount": 16
+						}
+					],
+					"removedRoomIds": ["room-overlap"]
+				}
+			}
+		},
+		{
+			"name": "invalid duplicate snapshot member id",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "malformed_message",
+			"message": {
+				"type": "room_snapshot",
+				"requestId": "fixture-invalid-member",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"name": "Fixture room",
+					"phase": "selecting",
+					"hasPassword": false,
+					"maxCount": 16,
+					"ownerMemberId": "member-duplicate",
+					"self": {
+						"memberId": "member-duplicate",
+						"connectionGeneration": 1,
+						"resumeToken": "fixture-token"
+					},
+					"members": [
+						{
+							"memberId": "member-duplicate",
+							"identity": { "userId": "user-1", "displayName": "One", "avatarUrl": null },
+							"status": "connected",
+							"lobbyWins": 0
+						},
+						{
+							"memberId": "member-duplicate",
+							"identity": { "userId": "user-2", "displayName": "Two", "avatarUrl": null },
+							"status": "reserved",
+							"lobbyWins": 0
+						}
+					],
+					"chat": []
+				}
+			}
+		},
+		{
+			"name": "invalid duplicate snapshot chat id",
+			"typescriptFailure": "malformed_message",
+			"cppFailure": "malformed_message",
+			"message": {
+				"type": "room_snapshot",
+				"requestId": "fixture-invalid-chat",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 3,
+					"name": "Fixture room",
+					"phase": "selecting",
+					"hasPassword": false,
+					"maxCount": 16,
+					"ownerMemberId": "member-1",
+					"self": {
+						"memberId": "member-1",
+						"connectionGeneration": 1,
+						"resumeToken": "fixture-token"
+					},
+					"members": [
+						{
+							"memberId": "member-1",
+							"identity": { "userId": "user-1", "displayName": "One", "avatarUrl": null },
+							"status": "connected",
+							"lobbyWins": 0
+						}
+					],
+					"chat": [
+						{
+							"messageId": "message-duplicate",
+							"authorMemberId": "member-1",
+							"authorDisplayName": "One",
+							"sentAtMs": 1,
+							"text": "First"
+						},
+						{
+							"messageId": "message-duplicate",
+							"authorMemberId": "member-1",
+							"authorDisplayName": "One",
+							"sentAtMs": 2,
+							"text": "Second"
+						}
+					]
+				}
+			}
+		}
+	]
+}

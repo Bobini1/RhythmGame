@@ -45,6 +45,10 @@ target_link_libraries(
         Catch2::Catch2WithMain
 )
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
+target_compile_definitions(
+        RhythmGame_test PRIVATE
+        ARENA_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/protocol-v1.json"
+)
 set_target_properties(
         RhythmGame_test PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"

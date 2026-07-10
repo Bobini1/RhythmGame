@@ -6,7 +6,11 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QFile>
+#include <QSet>
 
+#include <concepts>
+#include <type_traits>
 #include <variant>
 
 namespace {
@@ -136,7 +140,261 @@ envelope(QString type,
     return compact(object);
 }
 
+auto
+keysOf(const QJsonObject& object) -> QSet<QString>
+{
+    QSet<QString> keys;
+    for (const auto& key : object.keys()) {
+        keys.insert(key);
+    }
+    return keys;
+}
+
+auto
+loadProtocolFixture() -> QJsonObject
+{
+    QFile file(QString::fromUtf8(ARENA_PROTOCOL_FIXTURE_PATH));
+    REQUIRE(file.open(QIODevice::ReadOnly));
+    QJsonParseError parseError;
+    const auto document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    REQUIRE(parseError.error == QJsonParseError::NoError);
+    REQUIRE(document.isObject());
+    return document.object();
+}
+
+auto
+clientMessageFromFixture(const QJsonObject& object)
+  -> std::optional<arena::ClientMessage>
+{
+    using namespace arena;
+    const auto type = object.value(QStringLiteral("type")).toString();
+    const auto data = object.value(QStringLiteral("data")).toObject();
+    const auto requestId = object.value(QStringLiteral("requestId")).toString();
+    if (type == QStringLiteral("client_hello")) {
+        ClientHello hello{
+            .clientVersion =
+              data.value(QStringLiteral("clientVersion")).toString(),
+        };
+        hello.capabilities.clear();
+        for (const auto& value :
+             data.value(QStringLiteral("capabilities")).toArray()) {
+            hello.capabilities.push_back(value.toString());
+        }
+        if (data.contains(QStringLiteral("ticket"))) {
+            hello.ticket = data.value(QStringLiteral("ticket")).toString();
+        }
+        if (data.contains(QStringLiteral("resume"))) {
+            const auto resume = data.value(QStringLiteral("resume")).toObject();
+            hello.resume = ResumeRequest{
+                .roomId = resume.value(QStringLiteral("roomId")).toString(),
+                .seatToken =
+                  resume.value(QStringLiteral("seatToken")).toString(),
+            };
+        }
+        return ClientMessage{ std::move(hello) };
+    }
+    if (type == QStringLiteral("directory_subscribe")) {
+        return ClientMessage{ DirectorySubscribe{} };
+    }
+    if (type == QStringLiteral("room_create")) {
+        auto message = RoomCreate{
+            .requestId = requestId,
+            .name = data.value(QStringLiteral("name")).toString(),
+        };
+        if (data.contains(QStringLiteral("password"))) {
+            message.password =
+              data.value(QStringLiteral("password")).toString();
+        }
+        return ClientMessage{ std::move(message) };
+    }
+    if (type == QStringLiteral("room_join")) {
+        auto message = RoomJoin{
+            .requestId = requestId,
+            .roomId = data.value(QStringLiteral("roomId")).toString(),
+        };
+        if (data.contains(QStringLiteral("password"))) {
+            message.password =
+              data.value(QStringLiteral("password")).toString();
+        }
+        return ClientMessage{ std::move(message) };
+    }
+    if (type == QStringLiteral("room_leave")) {
+        return ClientMessage{ RoomLeave{
+          .requestId = requestId,
+          .roomId = data.value(QStringLiteral("roomId")).toString(),
+          .roomGeneration =
+            data.value(QStringLiteral("roomGeneration")).toInteger(),
+          .connectionGeneration =
+            data.value(QStringLiteral("connectionGeneration")).toInteger(),
+        } };
+    }
+    if (type == QStringLiteral("room_kick")) {
+        return ClientMessage{ RoomKick{
+          .requestId = requestId,
+          .roomId = data.value(QStringLiteral("roomId")).toString(),
+          .roomGeneration =
+            data.value(QStringLiteral("roomGeneration")).toInteger(),
+          .connectionGeneration =
+            data.value(QStringLiteral("connectionGeneration")).toInteger(),
+          .targetMemberId =
+            data.value(QStringLiteral("targetMemberId")).toString(),
+        } };
+    }
+    if (type == QStringLiteral("chat_send")) {
+        return ClientMessage{ ChatSend{
+          .requestId = requestId,
+          .roomId = data.value(QStringLiteral("roomId")).toString(),
+          .roomGeneration =
+            data.value(QStringLiteral("roomGeneration")).toInteger(),
+          .connectionGeneration =
+            data.value(QStringLiteral("connectionGeneration")).toInteger(),
+          .text = data.value(QStringLiteral("text")).toString(),
+        } };
+    }
+    if (type == QStringLiteral("heartbeat_reply")) {
+        return ClientMessage{ HeartbeatReply{
+          .nonce = data.value(QStringLiteral("nonce")).toString(),
+        } };
+    }
+    return std::nullopt;
+}
+
+auto
+serverMessageType(const arena::ServerMessage& message) -> QString
+{
+    return std::visit(
+      []<typename T>(const T&) -> QString {
+          if constexpr (std::same_as<T, arena::ServerHello>) {
+              return QStringLiteral("server_hello");
+          } else if constexpr (std::same_as<T, arena::FatalError>) {
+              return QStringLiteral("fatal_error");
+          } else if constexpr (std::same_as<T, arena::DirectorySnapshot>) {
+              return QStringLiteral("directory_snapshot");
+          } else if constexpr (std::same_as<T, arena::RoomDirectoryUpdated>) {
+              return QStringLiteral("room_directory_updated");
+          } else if constexpr (std::same_as<T, arena::RoomSnapshotEvent>) {
+              return QStringLiteral("room_snapshot");
+          } else if constexpr (std::same_as<T, arena::RoomMemberJoined>) {
+              return QStringLiteral("room_member_joined");
+          } else if constexpr (std::same_as<T, arena::RoomMemberUpdated>) {
+              return QStringLiteral("room_member_updated");
+          } else if constexpr (std::same_as<T, arena::RoomMemberLeft>) {
+              return QStringLiteral("room_member_left");
+          } else if constexpr (std::same_as<T, arena::RoomOwnerChanged>) {
+              return QStringLiteral("room_owner_changed");
+          } else if constexpr (std::same_as<T, arena::ChatMessageEvent>) {
+              return QStringLiteral("chat_message");
+          } else if constexpr (std::same_as<T, arena::ServerHeartbeat>) {
+              return QStringLiteral("server_heartbeat");
+          } else if constexpr (std::same_as<T, arena::ServerGoingAway>) {
+              return QStringLiteral("server_going_away");
+          } else if constexpr (std::same_as<T, arena::CommandError>) {
+              return QStringLiteral("command_error");
+          }
+      },
+      message);
+}
+
+auto
+fixtureFailureCode(const QString& code)
+  -> std::optional<arena::ProtocolFailureCode>
+{
+    if (code == QStringLiteral("malformed_message")) {
+        return arena::ProtocolFailureCode::MalformedMessage;
+    }
+    if (code == QStringLiteral("protocol_incompatible")) {
+        return arena::ProtocolFailureCode::ProtocolIncompatible;
+    }
+    if (code == QStringLiteral("capability_required")) {
+        return arena::ProtocolFailureCode::CapabilityRequired;
+    }
+    return std::nullopt;
+}
+
 } // namespace
+
+TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
+          "[arena][protocol][fixture]")
+{
+    using namespace arena;
+    const auto fixture = loadProtocolFixture();
+    CHECK(keysOf(fixture) ==
+          QSet<QString>{ QStringLiteral("fixtureSchema"),
+                         QStringLiteral("protocolMajor"),
+                         QStringLiteral("protocolMinor"),
+                         QStringLiteral("clientMessages"),
+                         QStringLiteral("serverMessages"),
+                         QStringLiteral("invalidServerMessages") });
+    CHECK(fixture.value(QStringLiteral("fixtureSchema")).toInt() == 1);
+    CHECK(fixture.value(QStringLiteral("protocolMajor")).toInt() ==
+          ProtocolMajor);
+    CHECK(fixture.value(QStringLiteral("protocolMinor")).toInt() ==
+          ProtocolMinor);
+
+    QSet<QString> caseNames;
+    for (const auto& value :
+         fixture.value(QStringLiteral("clientMessages")).toArray()) {
+        const auto fixtureCase = value.toObject();
+        REQUIRE(
+          keysOf(fixtureCase) ==
+          QSet<QString>{ QStringLiteral("name"), QStringLiteral("message") });
+        const auto name = fixtureCase.value(QStringLiteral("name")).toString();
+        CAPTURE(name);
+        REQUIRE_FALSE(name.isEmpty());
+        REQUIRE_FALSE(caseNames.contains(name));
+        caseNames.insert(name);
+        const auto expected =
+          fixtureCase.value(QStringLiteral("message")).toObject();
+        const auto message = clientMessageFromFixture(expected);
+        REQUIRE(message.has_value());
+        const auto encoded = encodeClientMessage(*message);
+        REQUIRE(std::holds_alternative<QString>(encoded));
+        CHECK(objectFrom(std::get<QString>(encoded)) == expected);
+    }
+
+    for (const auto& value :
+         fixture.value(QStringLiteral("serverMessages")).toArray()) {
+        const auto fixtureCase = value.toObject();
+        REQUIRE(
+          keysOf(fixtureCase) ==
+          QSet<QString>{ QStringLiteral("name"), QStringLiteral("message") });
+        const auto name = fixtureCase.value(QStringLiteral("name")).toString();
+        CAPTURE(name);
+        REQUIRE_FALSE(name.isEmpty());
+        REQUIRE_FALSE(caseNames.contains(name));
+        caseNames.insert(name);
+        const auto expected =
+          fixtureCase.value(QStringLiteral("message")).toObject();
+        const auto decoded = decodeServerMessage(compact(expected));
+        REQUIRE(decodedMessage(decoded) != nullptr);
+        CHECK(serverMessageType(*decodedMessage(decoded)) ==
+              expected.value(QStringLiteral("type")).toString());
+    }
+
+    for (const auto& value :
+         fixture.value(QStringLiteral("invalidServerMessages")).toArray()) {
+        const auto fixtureCase = value.toObject();
+        REQUIRE(keysOf(fixtureCase) ==
+                QSet<QString>{ QStringLiteral("name"),
+                               QStringLiteral("typescriptFailure"),
+                               QStringLiteral("cppFailure"),
+                               QStringLiteral("message") });
+        const auto name = fixtureCase.value(QStringLiteral("name")).toString();
+        CAPTURE(name);
+        REQUIRE_FALSE(name.isEmpty());
+        REQUIRE_FALSE(caseNames.contains(name));
+        caseNames.insert(name);
+        CHECK(
+          fixtureCase.value(QStringLiteral("typescriptFailure")).toString() ==
+          QStringLiteral("malformed_message"));
+        const auto expectedFailure = fixtureFailureCode(
+          fixtureCase.value(QStringLiteral("cppFailure")).toString());
+        REQUIRE(expectedFailure.has_value());
+        const auto decoded = decodeServerMessage(
+          compact(fixtureCase.value(QStringLiteral("message")).toObject()));
+        CHECK(failureCode(decoded) == expectedFailure);
+    }
+}
 
 TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
           "[arena][protocol]")
