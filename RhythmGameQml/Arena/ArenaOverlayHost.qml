@@ -9,23 +9,49 @@ Item {
     required property var themeVars
     required property var generalVars
     required property string layoutVariant
+    property string resultResolvedSkinId: ""
+    property var resultThemeVars: null
     property bool expanded: false
     property bool customizeMode: false
     property var coordinatedScreen: null
     property bool customizationTransitionActive: false
     property int unreadCount: 0
+    property bool resultExpanded: false
+    property bool resultCustomizeMode: false
+    property bool resultInputGuardActive: false
+
+    function updateResultInputGuardTarget() {
+        const item = root.currentItem;
+        const method = "setArenaResultCustomizationActive";
+        if (item && typeof item[method] === "function") {
+            item[method](root.resultInputGuardActive);
+        }
+    }
 
     readonly property bool ownsArenaRunner: root.currentItem !== null
         && root.currentItem.chart !== undefined
         && root.session.arenaGameplayActive === true
         && root.session.arenaRunner !== null
         && root.currentItem.chart === root.session.arenaRunner
-    readonly property bool ownsArenaResult: root.currentItem !== null
+    readonly property string currentArenaRoundId: root.currentItem
+        && root.currentItem.arenaRoundId !== undefined
+        ? String(root.currentItem.arenaRoundId || "") : ""
+    readonly property bool ownsArenaResult:
+        root.currentArenaRoundId.length > 0
         && root.session.resultPresentationActive === true
-        && (root.currentItem.chart === undefined
-            || root.currentItem.chart === null)
+        && root.session.presentedResult !== null
+        && root.session.presentedResult.valid === true
+        && root.currentArenaRoundId
+            === String(root.session.presentedResult.roundId || "")
+    readonly property bool arenaNativeResultPresentation:
+        root.currentItem !== null
+        && root.currentItem.arenaNativeResultPresentation === true
+    readonly property bool legacyArenaResult:
+        root.ownsArenaResult && !root.arenaNativeResultPresentation
     readonly property bool arenaShortcutEnabled: root.ownsArenaRunner
         || root.ownsArenaResult
+    readonly property bool coordinatedShortcutEnabled: root.ownsArenaRunner
+        || (root.ownsArenaResult && root.arenaNativeResultPresentation)
     readonly property bool screenCoordinatesCustomization: root.currentItem !== null
         && typeof root.currentItem.setArenaCustomizeMode === "function"
     readonly property string activeRoundId: root.ownsArenaRunner
@@ -46,7 +72,7 @@ Item {
     }
 
     function setCustomizeMode(active) {
-        const accepted = !!active && root.arenaShortcutEnabled;
+        const accepted = !!active && root.coordinatedShortcutEnabled;
         if (root.customizationTransitionActive
                 || (root.customizeMode === accepted
                     && (!accepted
@@ -104,6 +130,7 @@ Item {
         if (root.customizeMode) {
             root.setCustomizeMode(false);
         }
+        root.updateResultInputGuardTarget();
     }
 
     Component.onCompleted: {
@@ -113,7 +140,11 @@ Item {
             placementHintTimer.start();
         }
     }
-    Component.onDestruction: root.setCustomizeMode(false)
+    Component.onDestruction: {
+        root.setCustomizeMode(false);
+        root.resultInputGuardActive = false;
+        root.updateResultInputGuardTarget();
+    }
 
     Connections {
         target: root.session
@@ -163,11 +194,35 @@ Item {
     Shortcut {
         autoRepeat: false
         context: Qt.ApplicationShortcut
-        enabled: root.arenaShortcutEnabled
+        enabled: root.coordinatedShortcutEnabled
         sequence: "F2"
 
         onActivated: root.setCustomizeMode(!root.customizeMode)
     }
+
+    onLegacyArenaResultChanged: {
+        if (!root.legacyArenaResult) {
+            root.resultExpanded = false;
+            root.resultCustomizeMode = false;
+            root.resultInputGuardActive = false;
+        } else {
+            root.updateResultInputGuardTarget();
+        }
+    }
+
+    onResultCustomizeModeChanged: {
+        if (root.resultCustomizeMode) {
+            root.resultInputGuardActive = true;
+            return;
+        }
+        Qt.callLater(function() {
+            if (!root.resultCustomizeMode) {
+                root.resultInputGuardActive = false;
+            }
+        });
+    }
+
+    onResultInputGuardActiveChanged: root.updateResultInputGuardTarget()
 
     Shortcut {
         autoRepeat: false
@@ -204,6 +259,15 @@ Item {
         z: 0
 
         onWheel: wheel => wheel.accepted = true
+    }
+
+    Shortcut {
+        autoRepeat: false
+        context: Qt.ApplicationShortcut
+        enabled: root.legacyArenaResult
+        sequence: "F2"
+
+        onActivated: root.resultCustomizeMode = !root.resultCustomizeMode
     }
 
     Loader {
@@ -315,6 +379,40 @@ Item {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: root.acknowledgePlacementHint()
+        }
+    }
+
+    Loader {
+        id: resultOverlayLoader
+
+        active: root.legacyArenaResult
+        sourceComponent: resultOverlayComponent
+    }
+
+    Component {
+        id: resultOverlayComponent
+
+        ArenaOverlayPlacementFrame {
+            objectName: "arenaResultPlacementFrame"
+            themeVars: root.resultThemeVars
+            viewport: root
+            placementKind: "resultStandings"
+            layoutVariant: "result"
+            customizeMode: root.resultCustomizeMode
+
+            onRequestExitCustomization: root.resultCustomizeMode = false
+
+            ArenaResultOverlay {
+                anchors.fill: parent
+                layoutVariant: "result"
+                placementKind: "resultStandings"
+                resolvedSkinId: root.resultResolvedSkinId
+                session: root.session
+                expanded: root.resultExpanded
+
+                onExpandedChanged:
+                    root.resultExpanded = expanded
+            }
         }
     }
 }

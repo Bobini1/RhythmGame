@@ -17,7 +17,14 @@ Item {
 
     required property var scores
     required property list<Profile> profiles
+    property string arenaRoundId: ""
 
+    readonly property bool arenaNativeResultPresentation: true
+    readonly property var arenaResult: Rg.arenaSession.presentedResult
+    readonly property bool arenaResultMatches: root.arenaRoundId.length > 0
+        && Rg.arenaSession.resultPresentationActive === true
+        && root.arenaResult && root.arenaResult.valid === true
+        && root.arenaRoundId === String(root.arenaResult.roundId || "")
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
@@ -31,6 +38,17 @@ Item {
     readonly property var chartKeymode: chartData ? chartData.keymode : chartDatas[0].keymode
     readonly property int startInputMillis: 500
     property bool acceptsInput: startInputMillis <= 0
+
+    function presentArenaResult(roundId: string) : bool {
+        root.arenaRoundId = roundId;
+        return root.arenaRoundId.length > 0;
+    }
+
+    Component.onDestruction: {
+        if (root.arenaRoundId.length > 0) {
+            Rg.arenaSession.endResultPresentation(root.arenaRoundId);
+        }
+    }
 
     ThemeFont {
         id: resultStatsFont
@@ -248,6 +266,8 @@ Item {
                 width: parent.width
                 anchors.top: chartInfoRow.bottom
                 chartKeymode: root.chartKeymode
+                arenaRoundId: root.arenaRoundId
+                arenaResultActive: root.arenaResultMatches
             }
 
             Loader {
@@ -262,6 +282,33 @@ Item {
                     profile: root.profile2
                     mirrored: true
                     chartKeymode: root.chartKeymode
+                    arenaRoundId: root.arenaRoundId
+                    arenaResultActive: root.arenaResultMatches
+                }
+            }
+
+            Loader {
+                anchors {
+                    bottom: parent.bottom
+                    bottomMargin: 36
+                    right: parent.right
+                    rightMargin: 44
+                    top: chartInfoRow.bottom
+                    topMargin: 20
+                }
+                active: root.arenaResultMatches && !root.isBattle
+                sourceComponent: arenaResultPanelComponent
+                width: 600
+            }
+
+            Component {
+                id: arenaResultPanelComponent
+
+                ArenaResultPanel {
+                    fontFamily: resultStatsFont.fontFamily
+                    localMemberId: String(
+                        Rg.arenaSession.selfMemberId || "")
+                    result: root.arenaResult
                 }
             }
 

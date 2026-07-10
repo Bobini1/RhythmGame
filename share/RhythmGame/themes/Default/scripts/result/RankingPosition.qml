@@ -1,5 +1,5 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Basic
 import "../common"
 
 WindowBg {
@@ -10,6 +10,11 @@ WindowBg {
     required property int totalEntries
     required property bool loading
     required property bool scoreSubmissionFailed
+    required property bool arenaSelected
+    required property bool arenaFinalized
+    required property bool arenaLocalDnf
+    required property int arenaLocalRank
+    required property int arenaParticipantCount
 
     ThemeFont {
         id: resultRankingFont
@@ -48,7 +53,8 @@ WindowBg {
         id: loaded
         Item {
             id: loadedRanking
-            opacity: scoreSubmissionFailed ? 0.25 : 1
+            opacity: rankingPosition.arenaSelected
+                ? 1 : (scoreSubmissionFailed ? 0.25 : 1)
             function paddedRanking(prefix, value) {
                 let len = Math.max(value.toString().length, 4);
                 let zeroes = "";
@@ -62,6 +68,7 @@ WindowBg {
             readonly property string totalEntriesLabel: paddedRanking("/", rankingPosition.totalEntries)
 
             Item {
+                visible: !rankingPosition.arenaSelected
                 anchors.left: parent.left
                 anchors.leftMargin: 20
                 anchors.right: parent.right
@@ -184,6 +191,26 @@ WindowBg {
                     textFormat: Text.RichText
                     width: parent.totalTextWidth
                 }
+            }
+
+            Text {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 21
+                anchors.horizontalCenter: parent.horizontalCenter
+                color: "#20242c"
+                font.bold: true
+                font.family: resultRankingFont.fontFamily
+                font.pixelSize: 30
+                text: rankingPosition.arenaLocalDnf
+                    || !rankingPosition.arenaFinalized
+                    || rankingPosition.arenaLocalRank <= 0
+                    ? qsTr("— / %1").arg(
+                          rankingPosition.arenaParticipantCount)
+                    : qsTr("#%1 / %2")
+                          .arg(rankingPosition.arenaLocalRank)
+                          .arg(rankingPosition.arenaParticipantCount)
+                textFormat: Text.PlainText
+                visible: rankingPosition.arenaSelected
             }
         }
     }

@@ -9,6 +9,8 @@ Item {
     focus: true
     property string csvPath
     property string screenKey: ""
+    property string arenaRoundId: ""
+    property bool arenaResultCustomizationActive: false
     property var chart
     property var scores: []
     property var profiles: []
@@ -491,6 +493,7 @@ Item {
         enabled: root.screenUpdatesActive
             && !selectSearchState.focused
             && !root.arenaSession.overlayCustomizationActive
+            && !root.arenaResultCustomizationActive
         sequence: "Esc"
 
         onActivated: {
@@ -629,6 +632,22 @@ Item {
     readonly property string effectiveScreenKey: screenState.effectiveKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
+    readonly property bool arenaResultMatches: root.resultScreenActive
+        && root.arenaRoundId.length > 0
+        && root.arenaSession.resultPresentationActive === true
+        && root.arenaSession.presentedResult !== null
+        && root.arenaSession.presentedResult.valid === true
+        && root.arenaRoundId
+            === String(root.arenaSession.presentedResult.roundId || "")
+
+    function presentArenaResult(roundId: string) : bool {
+        root.arenaRoundId = roundId;
+        return root.arenaRoundId.length > 0;
+    }
+
+    function setArenaResultCustomizationActive(active: bool) : void {
+        root.arenaResultCustomizationActive = active;
+    }
     readonly property bool decideScreenActive: root.enabled
         && root.visible
         && root.effectiveScreenKey === "decide"
@@ -5674,6 +5693,9 @@ Item {
         if (root.arenaGameplayOwned) {
             root.arenaSession.setOverlayCustomizationActive(false);
         }
+        if (root.arenaRoundId.length > 0) {
+            root.arenaSession.endResultPresentation(root.arenaRoundId);
+        }
         root.destroyOwnedChartRunner();
     }
 
@@ -5875,7 +5897,8 @@ Item {
     }
 
     function resultInputReady() : var {
-        return root.enabled && root.resultScreenActive && root.acceptsInput;
+        return root.enabled && root.resultScreenActive && root.acceptsInput
+            && !root.arenaResultCustomizationActive;
     }
 
     function decideInputBlockReason(requireChart: var) : var {

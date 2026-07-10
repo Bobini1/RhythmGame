@@ -143,6 +143,7 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaOverlayHost.qml
         Arena/ArenaGameplayOverlay.qml
         Arena/ArenaGameplayChat.qml
+        Arena/ArenaResultOverlay.qml
         Arena/ArenaOverlayPlacementFrame.qml
         Arena/ArenaOverlayResizeHandle.qml
 )

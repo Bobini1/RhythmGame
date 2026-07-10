@@ -321,6 +321,13 @@ ApplicationWindow {
             return undefined;
         }
 
+        function resolvedThemeVars(screenKey: string) : var {
+            const themeName = mainProfile.themeConfig[screenKey];
+            const screenVars = mainProfile.vars.themeVars[screenKey];
+            return screenVars && screenVars[themeName]
+                ? screenVars[themeName] : null;
+        }
+
         function openSelect() : void {
             sceneStack.pushItem(selectComponent, selectScreenProperties());
         }
@@ -409,6 +416,12 @@ ApplicationWindow {
 
         function openResult(scores: var, profiles: var, chartData: var) : void {
             let resultScreen = configuredScreen("result");
+            let arenaRoundId = "";
+            if (scores && scores.length > 0 && scores[0]
+                    && Rg.arenaSession.submitLocalResult(scores[0])) {
+                arenaRoundId = String(
+                    Rg.arenaSession.presentedResult.roundId || "");
+            }
             let props = {
                 "scores": scores,
                 "profiles": profiles,
@@ -420,7 +433,14 @@ ApplicationWindow {
                 props["skinSettingsData"] = resultScreen.settingsData || "";
                 props["screenKey"] = "result";
             }
-            sceneStack.pushItem(resultComponent, props);
+            const item = sceneStack.pushItem(resultComponent, props);
+            if (arenaRoundId.length === 0) {
+                return;
+            }
+            if (!item || !globalRoot.callCurrentScreen(
+                    "presentArenaResult", [arenaRoundId])) {
+                Rg.arenaSession.endResultPresentation(arenaRoundId);
+            }
         }
 
         function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var) : void {
@@ -665,6 +685,9 @@ ApplicationWindow {
             currentItem: sceneStack.currentItem
             generalVars: globalRoot.mainProfile.vars.generalVars
             layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)
+            resultResolvedSkinId: String(
+                globalRoot.mainProfile.themeConfig.result || "")
+            resultThemeVars: globalRoot.resolvedThemeVars("result")
             session: globalRoot.arenaSession
             themeVars: globalRoot.gameplayThemeVars(layoutVariant)
             z: 2000000
