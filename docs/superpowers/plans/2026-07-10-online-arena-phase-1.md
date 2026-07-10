@@ -332,7 +332,7 @@ git commit -m "feat: manage ephemeral Arena rooms"
 - Create: `T:/RhythmGame-IR/arena-server/README.md`
 
 **Interfaces:**
-- Produces: anonymous/public WSS `/ws`, `GET /healthz`, and `GET /rooms`.
+- Produces: anonymous/public WSS `/ws` and `GET /healthz`.
 - Consumed by: client and integration tests.
 
 - [ ] **Step 1: Write application orchestration tests**
@@ -381,11 +381,13 @@ git commit -m "feat: serve Arena lobbies over WebSocket"
 - Create: `T:/RG/src/arena/ArenaProtocol.cpp`
 - Create: `T:/RG/src/arena/ArenaTransport.h`
 - Create: `T:/RG/src/arena/ArenaIdentityProvider.h`
+- Create: `T:/RG/src/arena/ArenaScheduler.h`
 - Create: `T:/RG/src/arena/ArenaRoomListModel.h/.cpp`
 - Create: `T:/RG/src/arena/ArenaMemberListModel.h/.cpp`
 - Create: `T:/RG/src/arena/ArenaChatModel.h/.cpp`
 - Create: `T:/RG/test/arena/FakeArenaTransport.h`
 - Create: `T:/RG/test/arena/FakeArenaIdentityProvider.h`
+- Create: `T:/RG/test/arena/FakeArenaScheduler.h`
 - Create: `T:/RG/test/arena/ArenaProtocol.test.cpp`
 - Create: `T:/RG/test/arena/ArenaModels.test.cpp`
 - Modify: `T:/RG/CMakeLists.txt`
@@ -429,6 +431,7 @@ git commit -m "feat: add Arena protocol models"
 - Modify: `T:/RG/src/resource_managers/Profile.cpp`
 - Create: `T:/RG/src/arena/QtWebSocketArenaTransport.h/.cpp`
 - Create: `T:/RG/src/arena/ProfileArenaIdentityProvider.h/.cpp`
+- Create: `T:/RG/src/arena/QtArenaScheduler.h/.cpp`
 - Create: `T:/RG/src/arena/ArenaSession.h/.cpp`
 - Create: `T:/RG/test/arena/ArenaSession.test.cpp`
 - Modify: `T:/RG/CMakeLists.txt`
@@ -441,7 +444,7 @@ git commit -m "feat: add Arena protocol models"
 
 - [ ] **Step 1: Write failing ArenaSession tests**
 
-Cover anonymous hello/directory, logged-out create/join gating, pending action after ticket, ticket-bearing reconnect, room snapshot replacement, password error preservation, chat/member events, leave/kick, disconnect/resume/token rotation, logout/profile change cleanup, and grace failure.
+Cover anonymous hello/directory, logged-out create/join gating, pending action after ticket, ticket-bearing reconnect, room snapshot replacement, password error preservation, chat/member events, leave/kick, disconnect/resume/token rotation, logout/profile change cleanup, grace failure, and explicit `exitArena()` cleanup through fake scheduling.
 
 - [ ] **Step 2: Confirm focused failure**
 
@@ -456,7 +459,7 @@ Issue authenticated `GET api/auth/token` through the existing private request fa
 
 - [ ] **Step 4: Implement ArenaSession against fakes**
 
-Implement the approved state enum, commands, pending create/join action, snapshot replacement, request correlation, reconnect backoff through injected scheduling, seat token memory, and identity-change cleanup.
+Implement the approved state enum with `Browsing` plus a separate `authenticated` property, commands including `exitArena()`, pending create/join action, snapshot replacement, request correlation, reconnect backoff through injected cancellable scheduling, seat token memory, and identity-change cleanup.
 
 - [ ] **Step 5: Add QWebSocket adapter and build dependencies**
 

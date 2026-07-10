@@ -216,7 +216,7 @@ Owns JSON encoding/decoding, typed enums, protocol constants, limits, and reject
 Public state:
 
 - Disconnected.
-- Browsing anonymously.
+- Browsing.
 - Connecting authenticated.
 - In room.
 - Reconnecting.
@@ -225,6 +225,7 @@ Public state:
 Public commands:
 
 - connectForBrowsing()
+- exitArena()
 - createRoom(name, password)
 - joinRoom(roomId, password)
 - leaveRoom()
@@ -239,6 +240,8 @@ Read-only models:
 - ArenaChatModel.
 
 The session requests an IR ticket only for create/join/resume, reconnects with ClientHello, stores seat tokens only in memory, and replaces all room state from room_snapshot. It never controls StackView directly.
+
+`authenticated` is exposed independently from the screen state because a user can remain on the Browser after leaving a room. `exitArena()` leaves any room when possible, clears pending actions and transient credentials, disconnects, and releases Arena-only application policy gates.
 
 ### Application integration
 
