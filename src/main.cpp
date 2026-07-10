@@ -59,6 +59,7 @@
 #include "arena/ProfileArenaIdentityProvider.h"
 #include "arena/QtArenaScheduler.h"
 #include "arena/QtWebSocketArenaTransport.h"
+#include "arena/SqliteArenaInventorySource.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
@@ -314,12 +315,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto arenaIdentityProvider =
           arena::ProfileArenaIdentityProvider{ &profileList };
         auto arenaScheduler = arena::QtArenaScheduler{};
+        auto arenaInventorySource = arena::SqliteArenaInventorySource{
+            dataFolder / "song_db.sqlite"
+        };
         auto arenaSession =
           arena::ArenaSession{ &arenaTransport,
                                &arenaIdentityProvider,
                                &arenaScheduler,
                                arenaEndpointFromEnvironment(),
-                               QCoreApplication::applicationVersion() };
+                               QCoreApplication::applicationVersion(),
+                               &arenaInventorySource };
         const auto applyArenaBattlePolicy = [&] {
             profileList.setBattleAllowed(!arenaSession.getActive());
         };
@@ -402,6 +407,16 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
 
         auto rootSongFoldersConfig =
           qml_components::RootSongFoldersConfig{ &folders, &scanningQueue };
+        QObject::connect(
+          &scanningQueue,
+          &qml_components::ScanningQueue::queueDrained,
+          &arenaInventorySource,
+          &arena::SqliteArenaInventorySource::commitLibraryMutation);
+        QObject::connect(
+          &folders,
+          &qml_components::RootSongFolders::chartSetMutationCommitted,
+          &arenaInventorySource,
+          &arena::SqliteArenaInventorySource::commitLibraryMutation);
 
         auto songFolderFactory = qml_components::SongFolderFactory{ &db };
         auto songDirectoryFilePathFetcher =

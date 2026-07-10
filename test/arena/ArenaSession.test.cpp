@@ -1,11 +1,14 @@
 #include "FakeArenaIdentityProvider.h"
+#include "FakeArenaInventorySource.h"
 #include "FakeArenaScheduler.h"
 #include "FakeArenaTransport.h"
+#include "arena/ArenaBinaryProtocol.h"
 #include "arena/ArenaSession.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -42,9 +45,10 @@ serverHello(bool authenticated) -> QString
 {
     auto data = QJsonObject{
         { QStringLiteral("protocolMajor"), 1 },
-        { QStringLiteral("protocolMinor"), 0 },
+        { QStringLiteral("protocolMinor"), 1 },
         { QStringLiteral("capabilities"),
-          QJsonArray{ QStringLiteral("rooms-v1") } },
+          QJsonArray{ QStringLiteral("rooms-v1"),
+                      QStringLiteral("rounds-v1") } },
         { QStringLiteral("resume"),
           QJsonObject{
             { QStringLiteral("status"), QStringLiteral("not_requested") } } },
@@ -64,6 +68,41 @@ serverHello(bool authenticated) -> QString
                                              { QStringLiteral("data"), data },
                                            })
                                .toJson(QJsonDocument::Compact));
+}
+
+auto
+legacyServerHello(bool authenticated) -> QString
+{
+    auto data = messageObject(serverHello(authenticated))
+                  .value(QStringLiteral("data"))
+                  .toObject();
+    data.insert(QStringLiteral("protocolMinor"), 0);
+    data.insert(QStringLiteral("capabilities"),
+                QJsonArray{ QStringLiteral("rooms-v1") });
+    return QString::fromUtf8(
+      QJsonDocument(QJsonObject{
+                      { QStringLiteral("type"),
+                        QStringLiteral("server_hello") },
+                      { QStringLiteral("data"), data } })
+        .toJson(QJsonDocument::Compact));
+}
+
+auto
+phase2ServerHello(bool authenticated) -> QString
+{
+    auto data = messageObject(serverHello(authenticated))
+                  .value(QStringLiteral("data"))
+                  .toObject();
+    data.insert(QStringLiteral("protocolMinor"), 1);
+    data.insert(QStringLiteral("capabilities"),
+                QJsonArray{ QStringLiteral("rooms-v1"),
+                            QStringLiteral("rounds-v1") });
+    return QString::fromUtf8(
+      QJsonDocument(QJsonObject{
+                      { QStringLiteral("type"),
+                        QStringLiteral("server_hello") },
+                      { QStringLiteral("data"), data } })
+        .toJson(QJsonDocument::Compact));
 }
 
 auto
@@ -145,6 +184,43 @@ member(QString memberId,
 }
 
 auto
+phase2Member(QString memberId,
+             QString displayName,
+             QString inventoryState = QStringLiteral("missing"),
+             qint64 inventoryRevision = 0,
+             qint64 availabilityAppliedRevision = 0) -> QJsonObject
+{
+    auto result = member(std::move(memberId), std::move(displayName));
+    result.insert(QStringLiteral("ready"), false);
+    result.insert(QStringLiteral("inventoryState"),
+                  std::move(inventoryState));
+    result.insert(QStringLiteral("inventoryRevision"), inventoryRevision);
+    result.insert(QStringLiteral("availabilityAppliedRevision"),
+                  availabilityAppliedRevision);
+    result.insert(QStringLiteral("roundState"), QStringLiteral("eligible"));
+    return result;
+}
+
+auto
+phase2Selection(QString sha256) -> QJsonObject
+{
+    return {
+        { QStringLiteral("sha256"), std::move(sha256) },
+        { QStringLiteral("title"), QStringLiteral("Arena chart") },
+        { QStringLiteral("subtitle"), QString{} },
+        { QStringLiteral("artist"), QStringLiteral("Composer") },
+        { QStringLiteral("keyMode"), 7 },
+        { QStringLiteral("randomSequence"), QJsonArray{} },
+        { QStringLiteral("noteOrderP1"), QStringLiteral("normal") },
+        { QStringLiteral("noteOrderP2"), QStringLiteral("mirror") },
+        { QStringLiteral("dpMode"), QStringLiteral("off") },
+        { QStringLiteral("laneSeed"),
+          QStringLiteral("0123456789abcdef") },
+        { QStringLiteral("randomizationVersion"), 1 },
+    };
+}
+
+auto
 chatMessage(QString messageId,
             QString authorMemberId,
             QString displayName,
@@ -187,6 +263,21 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
 }
 
 auto
+phase2RoomSnapshotData() -> QJsonObject
+{
+    auto result = roomSnapshotData(
+      QStringLiteral("seat-token-1"),
+      3,
+      2,
+      QJsonArray{ phase2Member(QStringLiteral("member-1"),
+                               QStringLiteral("Alice")) });
+    result.insert(QStringLiteral("selection"), QJsonValue::Null);
+    result.insert(QStringLiteral("selectionRevision"), 0);
+    result.insert(QStringLiteral("availabilityRevision"), 0);
+    return result;
+}
+
+auto
 roomSnapshot(QString requestId, QJsonObject data) -> QString
 {
     return compact(
@@ -203,9 +294,10 @@ resumeHello(QJsonObject room) -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 0 },
+          { QStringLiteral("protocolMinor"), 1 },
           { QStringLiteral("capabilities"),
-            QJsonArray{ QStringLiteral("rooms-v1") } },
+            QJsonArray{ QStringLiteral("rooms-v1"),
+                        QStringLiteral("rounds-v1") } },
           { QStringLiteral("identity"),
             QJsonObject{
               { QStringLiteral("userId"), QStringLiteral("user-1") },
@@ -228,9 +320,10 @@ failedResumeHello() -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 0 },
+          { QStringLiteral("protocolMinor"), 1 },
           { QStringLiteral("capabilities"),
-            QJsonArray{ QStringLiteral("rooms-v1") } },
+            QJsonArray{ QStringLiteral("rooms-v1"),
+                        QStringLiteral("rounds-v1") } },
           { QStringLiteral("identity"),
             QJsonObject{
               { QStringLiteral("userId"), QStringLiteral("user-1") },
@@ -253,11 +346,13 @@ struct Fixture
     arena::test::FakeArenaTransport transport;
     arena::test::FakeArenaIdentityProvider identity;
     arena::test::FakeArenaScheduler scheduler;
+    arena::test::FakeArenaInventorySource inventory;
     arena::ArenaSession session{ &transport,
                                  &identity,
                                  &scheduler,
                                  QUrl(QStringLiteral("ws://127.0.0.1:3001/ws")),
-                                 QStringLiteral("2026.7.10") };
+                                 QStringLiteral("2026.7.10"),
+                                 &inventory };
 
     void browse()
     {
@@ -291,6 +386,155 @@ struct Fixture
         transport.injectText(transport.connectCalls.back().generation,
                              roomSnapshot(requestId, roomSnapshotData()));
         REQUIRE(session.getState() == arena::ArenaSession::State::InRoom);
+    }
+
+    void enterPhase2Room()
+    {
+        session.connectForBrowsing();
+        transport.injectConnected(1);
+        transport.injectText(1, phase2ServerHello(false));
+        identity.setLoggedIn(true);
+        session.createRoom(QStringLiteral("Arena room"), QString{});
+        REQUIRE_FALSE(identity.ticketRequests.isEmpty());
+        identity.succeedTicket(identity.ticketRequests.back(),
+                               QStringLiteral("short-lived-ticket"));
+        const auto generation = transport.connectCalls.back().generation;
+        transport.injectConnected(generation);
+        transport.injectText(generation, phase2ServerHello(true));
+        const auto command = messageObject(transport.textCalls.back().message);
+        REQUIRE(command.value(QStringLiteral("type")).toString() ==
+                QStringLiteral("room_create"));
+        const auto requestId =
+          command.value(QStringLiteral("requestId")).toString();
+        transport.injectText(generation,
+                             roomSnapshot(requestId,
+                                          phase2RoomSnapshotData()));
+        REQUIRE(session.getState() == arena::ArenaSession::State::InRoom);
+    }
+
+    void applyAvailabilityReset(qint64 revision,
+                                const QByteArray& packed,
+                                const QString& transferId)
+    {
+        const auto generation = transport.connectCalls.back().generation;
+        const auto digest = QString::fromLatin1(
+          QCryptographicHash::hash(packed, QCryptographicHash::Sha256)
+            .toHex());
+        transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"),
+              QStringLiteral("availability_transfer_begin") },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("transferId"), transferId },
+                { QStringLiteral("mode"), QStringLiteral("reset") },
+                { QStringLiteral("targetRevision"), revision },
+                { QStringLiteral("basis"),
+                  QJsonArray{ QJsonObject{
+                    { QStringLiteral("memberId"),
+                      QStringLiteral("member-1") },
+                    { QStringLiteral("inventoryRevision"), 6 },
+                  } } },
+                { QStringLiteral("resetCount"),
+                  packed.size() / arena::ArenaSha256Bytes },
+                { QStringLiteral("resetChunkCount"),
+                  packed.isEmpty() ? 0 : 1 },
+                { QStringLiteral("resetDigest"), digest },
+              } },
+          }));
+        if (!packed.isEmpty()) {
+            const auto rawTransferId = QByteArray::fromBase64(
+              transferId.toLatin1(), QByteArray::Base64UrlEncoding);
+            const auto encoded = arena::encodeArenaBinaryChunk({
+              .kind = arena::ArenaBinaryKind::AvailabilityReset,
+              .transferId = rawTransferId,
+              .chunkIndex = 0,
+              .packedHashes = packed,
+            });
+            REQUIRE(std::holds_alternative<QByteArray>(encoded));
+            transport.injectBinary(generation, std::get<QByteArray>(encoded));
+        }
+        transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"),
+              QStringLiteral("availability_transfer_commit") },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("transferId"), transferId },
+                { QStringLiteral("targetRevision"), revision },
+              } },
+          }));
+    }
+
+    auto sendInventoryCommit(bool acknowledge) -> QString
+    {
+        REQUIRE_FALSE(inventory.requests.isEmpty());
+        const auto packed = QByteArray(32, '\x55');
+        const auto digest = QString::fromLatin1(
+          QCryptographicHash::hash(packed, QCryptographicHash::Sha256)
+            .toHex());
+        inventory.succeed(inventory.requests.back(), packed);
+        const auto begin = messageObject(transport.textCalls.back().message);
+        REQUIRE(begin.value(QStringLiteral("type")).toString() ==
+                QStringLiteral("inventory_upload_begin"));
+        const auto beginRequestId =
+          begin.value(QStringLiteral("requestId")).toString();
+        const auto generation = transport.connectCalls.back().generation;
+        transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"),
+              QStringLiteral("inventory_upload_ready") },
+            { QStringLiteral("requestId"), beginRequestId },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("connectionGeneration"), 2 },
+                { QStringLiteral("uploadId"),
+                  QStringLiteral("AAAAAAAAAAAAAAAAAAAAAA") },
+                { QStringLiteral("libraryGeneration"),
+                  inventory.currentGeneration },
+                { QStringLiteral("hashCount"), 1 },
+                { QStringLiteral("byteCount"), 32 },
+                { QStringLiteral("chunkCount"), 1 },
+                { QStringLiteral("vectorDigest"), digest },
+                { QStringLiteral("deadlineMs"), 60'000 },
+              } },
+          }));
+        const auto commit = messageObject(transport.textCalls.back().message);
+        REQUIRE(commit.value(QStringLiteral("type")).toString() ==
+                QStringLiteral("inventory_upload_commit"));
+        const auto commitRequestId =
+          commit.value(QStringLiteral("requestId")).toString();
+        if (acknowledge) {
+            transport.injectText(
+              generation,
+              compact({
+                { QStringLiteral("type"),
+                  QStringLiteral("inventory_committed") },
+                { QStringLiteral("requestId"), commitRequestId },
+                { QStringLiteral("data"),
+                  QJsonObject{
+                    { QStringLiteral("roomId"),
+                      QStringLiteral("room-1") },
+                    { QStringLiteral("roomGeneration"), 3 },
+                    { QStringLiteral("connectionGeneration"), 2 },
+                    { QStringLiteral("libraryGeneration"),
+                      inventory.currentGeneration },
+                    { QStringLiteral("inventoryRevision"), 1 },
+                    { QStringLiteral("inventoryState"),
+                      QStringLiteral("ready") },
+                  } },
+              }));
+        }
+        return commitRequestId;
     }
 };
 
@@ -341,6 +585,652 @@ TEST_CASE("ArenaSession publishes browsing only after anonymous hello",
             ->data(fixture.session.getRooms()->index(0, 0),
                    arena::ArenaRoomListModel::NameRole)
             .toString() == QStringLiteral("First room"));
+}
+
+TEST_CASE("ArenaSession uploads one packed inventory after Phase 2 admission",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+
+    CHECK(fixture.session.getRoundsAvailable());
+    REQUIRE(fixture.inventory.requests.size() == 1);
+    const auto snapshotRequest = fixture.inventory.requests.front();
+    const auto packed = QByteArray(32, '\x11');
+    const auto digest = QString::fromLatin1(
+      QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
+    fixture.inventory.succeed(snapshotRequest, packed);
+
+    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    REQUIRE(begin.value(QStringLiteral("type")).toString() ==
+            QStringLiteral("inventory_upload_begin"));
+    const auto beginRequestId =
+      begin.value(QStringLiteral("requestId")).toString();
+    const auto declaration = begin.value(QStringLiteral("data")).toObject();
+    CHECK(declaration.value(QStringLiteral("libraryGeneration")).toInteger() ==
+          fixture.inventory.currentGeneration);
+    CHECK(declaration.value(QStringLiteral("hashCount")).toInteger() == 1);
+    CHECK(declaration.value(QStringLiteral("byteCount")).toInteger() == 32);
+    CHECK(declaration.value(QStringLiteral("chunkCount")).toInteger() == 1);
+    CHECK(declaration.value(QStringLiteral("vectorDigest")).toString() ==
+          digest);
+
+    const auto uploadId = QStringLiteral("AAAAAAAAAAAAAAAAAAAAAA");
+    const auto uploadReady = compact({
+      { QStringLiteral("type"), QStringLiteral("inventory_upload_ready") },
+      { QStringLiteral("requestId"), beginRequestId },
+      { QStringLiteral("data"),
+        QJsonObject{
+          { QStringLiteral("roomId"), QStringLiteral("room-1") },
+          { QStringLiteral("roomGeneration"), 3 },
+          { QStringLiteral("connectionGeneration"), 2 },
+          { QStringLiteral("uploadId"), uploadId },
+          { QStringLiteral("libraryGeneration"),
+            fixture.inventory.currentGeneration },
+          { QStringLiteral("hashCount"), 1 },
+          { QStringLiteral("byteCount"), 32 },
+          { QStringLiteral("chunkCount"), 1 },
+          { QStringLiteral("vectorDigest"), digest },
+          { QStringLiteral("deadlineMs"), 60'000 },
+        } },
+    });
+    fixture.transport.injectText(
+      fixture.transport.connectCalls.back().generation,
+      uploadReady);
+
+    REQUIRE(fixture.transport.binaryCalls.size() == 1);
+    const auto decoded = arena::decodeArenaBinaryChunk(
+      fixture.transport.binaryCalls.front().bytes);
+    REQUIRE(std::holds_alternative<arena::ArenaBinaryChunk>(decoded));
+    const auto& chunk = std::get<arena::ArenaBinaryChunk>(decoded);
+    CHECK(chunk.kind == arena::ArenaBinaryKind::InventoryUpload);
+    CHECK(chunk.chunkIndex == 0);
+    CHECK(chunk.packedHashes == packed);
+
+    const auto commit =
+      messageObject(fixture.transport.textCalls.back().message);
+    CHECK(commit.value(QStringLiteral("type")).toString() ==
+          QStringLiteral("inventory_upload_commit"));
+    CHECK(commit.value(QStringLiteral("data"))
+            .toObject()
+            .value(QStringLiteral("uploadId"))
+            .toString() == uploadId);
+    const auto writesAfterCommit = fixture.transport.textCalls.size();
+    fixture.transport.injectText(
+      fixture.transport.connectCalls.back().generation, uploadReady);
+    CHECK(fixture.transport.binaryCalls.size() == 1);
+    CHECK(fixture.transport.textCalls.size() == writesAfterCommit);
+}
+
+TEST_CASE("ArenaSession falls back once to anonymous legacy browse only",
+          "[arena][session][protocol]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.session.connectForBrowsing();
+    fixture.transport.injectConnected(1);
+    auto hello = messageObject(fixture.transport.textCalls.back().message);
+    CHECK(hello.value(QStringLiteral("data"))
+            .toObject()
+            .value(QStringLiteral("protocolMinor"))
+            .toInt() == 1);
+
+    const auto incompatible = compact({
+      { QStringLiteral("type"), QStringLiteral("fatal_error") },
+      { QStringLiteral("data"),
+        QJsonObject{
+          { QStringLiteral("code"),
+            QStringLiteral("protocol_incompatible") },
+          { QStringLiteral("displayMessageKey"),
+            QStringLiteral("arena.error.protocolIncompatible") },
+        } },
+    });
+    fixture.transport.injectText(1, incompatible);
+    REQUIRE(fixture.transport.connectCalls.size() == 2);
+    const auto fallbackGeneration =
+      fixture.transport.connectCalls.back().generation;
+    fixture.transport.injectConnected(fallbackGeneration);
+    hello = messageObject(fixture.transport.textCalls.back().message);
+    const auto fallbackData = hello.value(QStringLiteral("data")).toObject();
+    CHECK(fallbackData.value(QStringLiteral("protocolMinor")).toInt() == 0);
+    CHECK(fallbackData.value(QStringLiteral("capabilities")).toArray() ==
+          QJsonArray{ QStringLiteral("rooms-v1") });
+
+    fixture.transport.injectText(fallbackGeneration,
+                                 legacyServerHello(false));
+    CHECK(fixture.session.getState() == arena::ArenaSession::State::Browsing);
+    CHECK_FALSE(fixture.session.getRoundsAvailable());
+    fixture.identity.setLoggedIn(true);
+    fixture.session.createRoom(QStringLiteral("Blocked"), QString{});
+    CHECK(fixture.identity.ticketRequests.isEmpty());
+    CHECK(fixture.session.getErrorCode() ==
+          QStringLiteral("rounds_capability_required"));
+
+    const auto connections = fixture.transport.connectCalls.size();
+    fixture.transport.injectText(fallbackGeneration, incompatible);
+    CHECK(fixture.transport.connectCalls.size() == connections);
+    CHECK(fixture.session.getState() == arena::ArenaSession::State::Error);
+}
+
+TEST_CASE("ArenaSession never admits a seat without rounds-v1 negotiation",
+          "[arena][session][protocol]")
+{
+    ensureCoreApplication();
+
+    SECTION("rooms-only anonymous browse")
+    {
+        Fixture fixture;
+        fixture.session.connectForBrowsing();
+        fixture.transport.injectConnected(1);
+        fixture.transport.injectText(1, legacyServerHello(false));
+        REQUIRE(fixture.session.getState() ==
+                arena::ArenaSession::State::Browsing);
+        fixture.identity.setLoggedIn(true);
+        fixture.session.joinRoom(QStringLiteral("room-1"), QString{});
+        CHECK(fixture.identity.ticketRequests.isEmpty());
+        CHECK(fixture.session.getErrorCode() ==
+              QStringLiteral("rounds_capability_required"));
+    }
+
+    SECTION("authenticated connection downgrades capability")
+    {
+        Fixture fixture;
+        fixture.browse();
+        fixture.identity.setLoggedIn(true);
+        fixture.session.createRoom(QStringLiteral("Arena room"), QString{});
+        REQUIRE(fixture.identity.ticketRequests.size() == 1);
+        fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
+                                       QStringLiteral("ticket"));
+        const auto generation = fixture.transport.connectCalls.back().generation;
+        fixture.transport.injectConnected(generation);
+        const auto writesBeforeHello = fixture.transport.textCalls.size();
+        fixture.transport.injectText(generation, legacyServerHello(true));
+        REQUIRE(fixture.transport.textCalls.size() == writesBeforeHello + 1);
+        CHECK(messageObject(fixture.transport.textCalls.back().message)
+                .value(QStringLiteral("type"))
+                .toString() == QStringLiteral("directory_subscribe"));
+        CHECK_FALSE(fixture.session.getAdmissionPending());
+        CHECK(fixture.session.getErrorCode() ==
+              QStringLiteral("rounds_capability_required"));
+    }
+}
+
+TEST_CASE("ArenaSession applies common availability atomically and resyncs gaps",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x22');
+    const auto digest = QString::fromLatin1(
+      QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
+    const auto transferId = QStringLiteral("BBBBBBBBBBBBBBBBBBBBBB");
+
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"),
+          QStringLiteral("availability_transfer_begin") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("transferId"), transferId },
+            { QStringLiteral("mode"), QStringLiteral("reset") },
+            { QStringLiteral("targetRevision"), 1 },
+            { QStringLiteral("basis"),
+              QJsonArray{ QJsonObject{
+                { QStringLiteral("memberId"),
+                  QStringLiteral("member-1") },
+                { QStringLiteral("inventoryRevision"), 1 },
+              } } },
+            { QStringLiteral("resetCount"), 1 },
+            { QStringLiteral("resetChunkCount"), 1 },
+            { QStringLiteral("resetDigest"), digest },
+          } },
+      }));
+    CHECK(fixture.session.getAvailabilitySyncing());
+
+    const auto rawTransferId = QByteArray::fromBase64(
+      transferId.toLatin1(), QByteArray::Base64UrlEncoding);
+    const auto encoded = arena::encodeArenaBinaryChunk({
+      .kind = arena::ArenaBinaryKind::AvailabilityReset,
+      .transferId = rawTransferId,
+      .chunkIndex = 0,
+      .packedHashes = packed,
+    });
+    REQUIRE(std::holds_alternative<QByteArray>(encoded));
+    fixture.transport.injectBinary(generation, std::get<QByteArray>(encoded));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"),
+          QStringLiteral("availability_transfer_commit") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("transferId"),
+              QStringLiteral("DDDDDDDDDDDDDDDDDDDDDD") },
+            { QStringLiteral("targetRevision"), 1 },
+          } },
+      }));
+    CHECK(fixture.session.getAvailabilitySyncing());
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"),
+          QStringLiteral("availability_transfer_commit") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("transferId"), transferId },
+            { QStringLiteral("targetRevision"), 1 },
+          } },
+      }));
+
+    CHECK_FALSE(fixture.session.getAvailabilitySyncing());
+    REQUIRE(fixture.session.getAvailability()->revision() == 1);
+    CHECK(fixture.session.getAvailability()->availability(
+            QString::fromLatin1(packed.toHex())) ==
+          arena::ArenaAvailabilityIndex::Availability::AvailableToAll);
+    CHECK(messageObject(fixture.transport.textCalls.back().message)
+            .value(QStringLiteral("type"))
+            .toString() == QStringLiteral("availability_applied"));
+
+    const auto emptyDigest = QString::fromLatin1(
+      QCryptographicHash::hash(QByteArray{}, QCryptographicHash::Sha256)
+        .toHex());
+    const auto deltaTransferId = QStringLiteral("CCCCCCCCCCCCCCCCCCCCCC");
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"),
+          QStringLiteral("availability_transfer_begin") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("transferId"), deltaTransferId },
+            { QStringLiteral("mode"), QStringLiteral("delta") },
+            { QStringLiteral("targetRevision"), 2 },
+            { QStringLiteral("basis"),
+              QJsonArray{ QJsonObject{
+                { QStringLiteral("memberId"),
+                  QStringLiteral("member-1") },
+                { QStringLiteral("inventoryRevision"), 1 },
+              } } },
+            { QStringLiteral("baseRevision"), 1 },
+            { QStringLiteral("addedCount"), 1 },
+            { QStringLiteral("addedChunkCount"), 1 },
+            { QStringLiteral("addedDigest"), digest },
+            { QStringLiteral("removedCount"), 0 },
+            { QStringLiteral("removedChunkCount"), 0 },
+            { QStringLiteral("removedDigest"), emptyDigest },
+          } },
+      }));
+    const auto rawDeltaId = QByteArray::fromBase64(
+      deltaTransferId.toLatin1(), QByteArray::Base64UrlEncoding);
+    const auto outOfOrder = arena::encodeArenaBinaryChunk({
+      .kind = arena::ArenaBinaryKind::AvailabilityAdd,
+      .transferId = rawDeltaId,
+      .chunkIndex = 1,
+      .packedHashes = packed,
+    });
+    REQUIRE(std::holds_alternative<QByteArray>(outOfOrder));
+    fixture.transport.injectBinary(generation,
+                                   std::get<QByteArray>(outOfOrder));
+
+    CHECK(fixture.session.getAvailabilitySyncing());
+    CHECK(fixture.session.getAvailability()->revision() == 1);
+    const auto resync =
+      messageObject(fixture.transport.textCalls.back().message);
+    CHECK(resync.value(QStringLiteral("type")).toString() ==
+          QStringLiteral("availability_resync"));
+    CHECK(resync.value(QStringLiteral("data"))
+            .toObject()
+            .value(QStringLiteral("currentRevision"))
+            .toInteger() == 1);
+}
+
+TEST_CASE("ArenaSession readies only against the exact common selection basis",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x33');
+    const auto sha256 = QString::fromLatin1(packed.toHex());
+    REQUIRE(fixture.session.getAvailability()->applyReset(1, packed));
+
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           1) },
+          } },
+      }));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("selection_changed") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("selectionRevision"), 4 },
+            { QStringLiteral("availabilityRevision"), 1 },
+            { QStringLiteral("selection"), phase2Selection(sha256) },
+            { QStringLiteral("selectedByMemberId"),
+              QStringLiteral("member-1") },
+          } },
+      }));
+
+    CHECK(fixture.session.getCanSelect());
+    CHECK(fixture.session.getCanReady());
+    CHECK_FALSE(fixture.session.getReady());
+    CHECK(fixture.session.getSelectedTitle() ==
+          QStringLiteral("Arena chart"));
+    fixture.session.setReady(true);
+    const auto ready = messageObject(fixture.transport.textCalls.back().message);
+    REQUIRE(ready.value(QStringLiteral("type")).toString() ==
+            QStringLiteral("ready_set"));
+    const auto data = ready.value(QStringLiteral("data")).toObject();
+    CHECK(data.value(QStringLiteral("ready")).toBool());
+    CHECK(data.value(QStringLiteral("selectionRevision")).toInteger() == 4);
+    CHECK(data.value(QStringLiteral("availabilityRevision")).toInteger() == 1);
+    CHECK(data.value(QStringLiteral("inventoryRevision")).toInteger() == 6);
+
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("syncing"),
+                           6,
+                           1) },
+          } },
+      }));
+    CHECK_FALSE(fixture.session.getCanSelect());
+    CHECK_FALSE(fixture.session.getCanReady());
+}
+
+TEST_CASE("ArenaSession publishes only the newest queued library generation",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    REQUIRE(fixture.inventory.requests.size() == 1);
+    const auto staleRequest = fixture.inventory.requests.front();
+    const auto writesBeforeMutation = fixture.transport.textCalls.size();
+
+    fixture.inventory.advanceGeneration();
+    REQUIRE(fixture.inventory.cancellations ==
+            QVector<quint64>{ staleRequest });
+    REQUIRE(fixture.inventory.requests.size() == 2);
+    const auto currentRequest = fixture.inventory.requests.back();
+    CHECK(currentRequest != staleRequest);
+
+    fixture.inventory.succeed(staleRequest, QByteArray(32, '\x10'));
+    CHECK(fixture.transport.textCalls.size() == writesBeforeMutation);
+    fixture.inventory.succeed(currentRequest, QByteArray(32, '\x20'));
+    REQUIRE(fixture.transport.textCalls.size() == writesBeforeMutation + 1);
+    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    CHECK(begin.value(QStringLiteral("type")).toString() ==
+          QStringLiteral("inventory_upload_begin"));
+    CHECK(begin.value(QStringLiteral("data"))
+            .toObject()
+            .value(QStringLiteral("libraryGeneration"))
+            .toInteger() == 2);
+}
+
+TEST_CASE("ArenaSession advances readiness when availability retains selection",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x44');
+    const auto sha256 = QString::fromLatin1(packed.toHex());
+    fixture.applyAvailabilityReset(
+      1, packed, QStringLiteral("EEEEEEEEEEEEEEEEEEEEEE"));
+    auto selectionNotifications = 0;
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::selectionChanged,
+                     [&] { ++selectionNotifications; });
+    CHECK_FALSE(fixture.session.getCanSelect());
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           1) },
+          } },
+      }));
+    CHECK(selectionNotifications > 0);
+    CHECK(fixture.session.getCanSelect());
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("selection_changed") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("selectionRevision"), 4 },
+            { QStringLiteral("availabilityRevision"), 1 },
+            { QStringLiteral("selection"), phase2Selection(sha256) },
+            { QStringLiteral("selectedByMemberId"),
+              QStringLiteral("member-1") },
+          } },
+      }));
+    REQUIRE(fixture.session.getCanReady());
+
+    fixture.applyAvailabilityReset(
+      2, packed, QStringLiteral("FFFFFFFFFFFFFFFFFFFFFF"));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           2) },
+          } },
+      }));
+    REQUIRE(fixture.session.getCanReady());
+    fixture.session.setReady(true);
+    const auto ready = messageObject(fixture.transport.textCalls.back().message)
+                         .value(QStringLiteral("data"))
+                         .toObject();
+    CHECK(ready.value(QStringLiteral("selectionRevision")).toInteger() == 4);
+    CHECK(ready.value(QStringLiteral("availabilityRevision")).toInteger() == 2);
+    CHECK(ready.value(QStringLiteral("inventoryRevision")).toInteger() == 6);
+}
+
+TEST_CASE("ArenaSession reconciles inventory generation across resume",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+
+    const auto resumeWithRevision = [](Fixture& fixture,
+                                       qint64 inventoryRevision) {
+        const auto oldGeneration =
+          fixture.transport.connectCalls.back().generation;
+        fixture.transport.injectDisconnected(oldGeneration);
+        REQUIRE(fixture.session.getState() ==
+                arena::ArenaSession::State::Reconnecting);
+        REQUIRE_FALSE(fixture.identity.ticketRequests.isEmpty());
+        fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
+                                       QStringLiteral("resume-ticket"));
+        const auto generation = fixture.transport.connectCalls.back().generation;
+        fixture.transport.injectConnected(generation);
+        auto room = phase2RoomSnapshotData();
+        room.insert(
+          QStringLiteral("members"),
+          QJsonArray{ phase2Member(
+            QStringLiteral("member-1"),
+            QStringLiteral("Alice"),
+            inventoryRevision > 0 ? QStringLiteral("ready")
+                                  : QStringLiteral("missing"),
+            inventoryRevision,
+            0) });
+        fixture.transport.injectText(generation, resumeHello(std::move(room)));
+        REQUIRE(fixture.session.getState() ==
+                arena::ArenaSession::State::InRoom);
+    };
+
+    SECTION("acknowledged commit")
+    {
+        Fixture fixture;
+        fixture.enterPhase2Room();
+        fixture.sendInventoryCommit(true);
+        REQUIRE(fixture.inventory.requests.size() == 1);
+        resumeWithRevision(fixture, 1);
+        CHECK(fixture.inventory.requests.size() == 1);
+    }
+
+    SECTION("commit acknowledgement lost")
+    {
+        Fixture fixture;
+        fixture.enterPhase2Room();
+        fixture.sendInventoryCommit(false);
+        REQUIRE(fixture.inventory.requests.size() == 1);
+        resumeWithRevision(fixture, 1);
+        CHECK(fixture.inventory.requests.size() == 1);
+    }
+
+    SECTION("commit did not land")
+    {
+        Fixture fixture;
+        fixture.enterPhase2Room();
+        fixture.sendInventoryCommit(false);
+        REQUIRE(fixture.inventory.requests.size() == 1);
+        resumeWithRevision(fixture, 0);
+        CHECK(fixture.inventory.requests.size() == 2);
+    }
+}
+
+TEST_CASE("ArenaSession recovers from higher-generation inventory responses",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    REQUIRE(fixture.inventory.requests.size() == 1);
+    const auto packed = QByteArray(32, '\x66');
+    const auto digest = QString::fromLatin1(
+      QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
+    fixture.inventory.succeed(fixture.inventory.requests.back(), packed);
+    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("inventory_upload_ready") },
+        { QStringLiteral("requestId"),
+          begin.value(QStringLiteral("requestId")).toString() },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 4 },
+            { QStringLiteral("connectionGeneration"), 2 },
+            { QStringLiteral("uploadId"),
+              QStringLiteral("AAAAAAAAAAAAAAAAAAAAAA") },
+            { QStringLiteral("libraryGeneration"), 1 },
+            { QStringLiteral("hashCount"), 1 },
+            { QStringLiteral("byteCount"), 32 },
+            { QStringLiteral("chunkCount"), 1 },
+            { QStringLiteral("vectorDigest"), digest },
+            { QStringLiteral("deadlineMs"), 60'000 },
+          } },
+      }));
+    CHECK(fixture.session.getState() ==
+          arena::ArenaSession::State::Reconnecting);
+    CHECK(fixture.session.getErrorCode().isEmpty());
+}
+
+TEST_CASE("ArenaSession resumes newest generation after upload rejection",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    REQUIRE(fixture.inventory.requests.size() == 1);
+    fixture.inventory.succeed(fixture.inventory.requests.back(),
+                              QByteArray(32, '\x77'));
+    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    const auto beginRequestId =
+      begin.value(QStringLiteral("requestId")).toString();
+    fixture.inventory.advanceGeneration();
+    CHECK(fixture.inventory.requests.size() == 1);
+
+    fixture.transport.injectText(
+      fixture.transport.connectCalls.back().generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("command_error") },
+        { QStringLiteral("requestId"), beginRequestId },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("code"), QStringLiteral("inventory_busy") },
+            { QStringLiteral("displayMessageKey"),
+              QStringLiteral("arena.error.inventoryBusy") },
+          } },
+      }));
+    REQUIRE(fixture.inventory.requests.size() == 2);
+    CHECK(fixture.inventory.currentGeneration == 2);
+}
+
+TEST_CASE("ArenaSession retries a failed current library generation",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    REQUIRE(fixture.inventory.requests.size() == 1);
+    fixture.inventory.fail(fixture.inventory.requests.back(),
+                           arena::ArenaInventoryFailure::DatabaseError);
+    CHECK(fixture.session.getErrorCode() ==
+          QStringLiteral("inventory_build_failed"));
+    fixture.session.retry();
+    REQUIRE(fixture.inventory.requests.size() == 2);
+    CHECK(fixture.inventory.currentGeneration == 1);
+    CHECK(fixture.session.getErrorCode().isEmpty());
 }
 
 TEST_CASE("ArenaSession gates create on inline login and authenticates first",

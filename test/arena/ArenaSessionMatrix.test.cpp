@@ -57,9 +57,10 @@ serverHello(bool authenticated) -> QString
 {
     auto data = QJsonObject{
         { QStringLiteral("protocolMajor"), 1 },
-        { QStringLiteral("protocolMinor"), 0 },
+        { QStringLiteral("protocolMinor"), 1 },
         { QStringLiteral("capabilities"),
-          QJsonArray{ QStringLiteral("rooms-v1") } },
+          QJsonArray{ QStringLiteral("rooms-v1"),
+                      QStringLiteral("rounds-v1") } },
         { QStringLiteral("resume"),
           QJsonObject{
             { QStringLiteral("status"), QStringLiteral("not_requested") } } },
@@ -151,9 +152,10 @@ resumeHello(QJsonObject room) -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 0 },
+          { QStringLiteral("protocolMinor"), 1 },
           { QStringLiteral("capabilities"),
-            QJsonArray{ QStringLiteral("rooms-v1") } },
+            QJsonArray{ QStringLiteral("rooms-v1"),
+                        QStringLiteral("rounds-v1") } },
           { QStringLiteral("identity"),
             QJsonObject{
               { QStringLiteral("userId"), QStringLiteral("user-1") },

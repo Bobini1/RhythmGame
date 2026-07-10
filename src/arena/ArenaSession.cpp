@@ -1,8 +1,10 @@
 #include "ArenaSession.h"
 
+#include "ArenaBinaryProtocol.h"
 #include "ArenaProtocol.h"
 
 #include <QByteArray>
+#include <QCryptographicHash>
 
 #include <algorithm>
 #include <limits>
@@ -56,6 +58,28 @@ commandCode(CommandErrorCode code) -> QString
             return QStringLiteral("chat_too_long");
         case CommandErrorCode::RateLimited:
             return QStringLiteral("rate_limited");
+        case CommandErrorCode::RoundsCapabilityRequired:
+            return QStringLiteral("rounds_capability_required");
+        case CommandErrorCode::InventoryBusy:
+            return QStringLiteral("inventory_busy");
+        case CommandErrorCode::InventoryInvalid:
+            return QStringLiteral("inventory_invalid");
+        case CommandErrorCode::InventoryStale:
+            return QStringLiteral("inventory_stale");
+        case CommandErrorCode::InventoryCapacityExceeded:
+            return QStringLiteral("inventory_capacity_exceeded");
+        case CommandErrorCode::AvailabilityStale:
+            return QStringLiteral("availability_stale");
+        case CommandErrorCode::SelectionNotCommon:
+            return QStringLiteral("selection_not_common");
+        case CommandErrorCode::SelectionStale:
+            return QStringLiteral("selection_stale");
+        case CommandErrorCode::ReadyNotAllowed:
+            return QStringLiteral("ready_not_allowed");
+        case CommandErrorCode::RoundStale:
+            return QStringLiteral("round_stale");
+        case CommandErrorCode::LaunchStageStale:
+            return QStringLiteral("launch_stage_stale");
     }
     return {};
 }
@@ -84,6 +108,8 @@ fatalCode(FatalErrorCode code) -> QString
             return QStringLiteral("ticket_replayed");
         case FatalErrorCode::ServerShuttingDown:
             return QStringLiteral("server_shutting_down");
+        case FatalErrorCode::MalformedInventory:
+            return QStringLiteral("malformed_inventory");
     }
     return {};
 }
@@ -145,6 +171,22 @@ transportFailureCode(ArenaTransport::Error error) -> std::pair<QString, QString>
     return {};
 }
 
+auto
+packedDigest(const QByteArray& packed) -> QString
+{
+    return QString::fromLatin1(
+      QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
+}
+
+auto
+decodeTransferId(QStringView encoded) -> QByteArray
+{
+    const auto result = QByteArray::fromBase64(
+      encoded.toLatin1(),
+      QByteArray::Base64UrlEncoding | QByteArray::AbortOnBase64DecodingErrors);
+    return result.size() == ArenaTransferIdBytes ? result : QByteArray{};
+}
+
 } // namespace
 
 ArenaSession::ArenaSession(ArenaTransport* transport,
@@ -152,16 +194,19 @@ ArenaSession::ArenaSession(ArenaTransport* transport,
                            ArenaScheduler* scheduler,
                            QUrl endpoint,
                            QString clientVersion,
+                           ArenaInventorySource* inventorySource,
                            QObject* parent)
   : QObject(parent)
   , m_transport(transport)
   , m_identityProvider(identityProvider)
   , m_scheduler(scheduler)
+  , m_inventorySource(inventorySource)
   , m_endpoint(std::move(endpoint))
   , m_clientVersion(std::move(clientVersion))
   , m_rooms(this)
   , m_members(this)
   , m_chat(this)
+  , m_availability(this)
   , m_lastLoggedIn(identityProvider != nullptr && identityProvider->loggedIn())
 {
     Q_ASSERT(m_transport != nullptr);
@@ -207,6 +252,28 @@ ArenaSession::ArenaSession(ArenaTransport* transport,
             &ArenaIdentityProvider::loginStateChanged,
             this,
             &ArenaSession::handleLoginStateChanged);
+    connect(&m_availability,
+            &ArenaAvailabilityIndex::changed,
+            this,
+            [this] {
+                emit availabilityChanged();
+                emit selectionChanged();
+                emit readyChanged();
+            });
+    if (m_inventorySource != nullptr) {
+        connect(m_inventorySource,
+                &ArenaInventorySource::generationChanged,
+                this,
+                &ArenaSession::handleInventoryGenerationChanged);
+        connect(m_inventorySource,
+                &ArenaInventorySource::snapshotReady,
+                this,
+                &ArenaSession::handleInventorySnapshotReady);
+        connect(m_inventorySource,
+                &ArenaInventorySource::snapshotFailed,
+                this,
+                &ArenaSession::handleInventorySnapshotFailed);
+    }
 }
 
 ArenaSession::~ArenaSession()
@@ -214,6 +281,7 @@ ArenaSession::~ArenaSession()
     ++m_lifecycleGeneration;
     cancelReconnectTasks();
     m_currentTicketRequestId = 0;
+    clearRoundTransfers();
     invalidateTransport();
 }
 
@@ -294,6 +362,72 @@ ArenaSession::getIsOwner() const -> bool
            m_selfMemberId == *m_ownerMemberId;
 }
 auto
+ArenaSession::getRoundsAvailable() const -> bool
+{
+    return m_roundsAvailable;
+}
+auto
+ArenaSession::getAvailabilitySyncing() const -> bool
+{
+    return m_availability.state() == ArenaAvailabilityIndex::State::Syncing;
+}
+auto
+ArenaSession::getAvailability() -> ArenaAvailabilityIndex*
+{
+    return &m_availability;
+}
+auto
+ArenaSession::getRoomPhase() const -> RoomPhase
+{
+    return m_roomPhase;
+}
+auto
+ArenaSession::getCanSelect() const -> bool
+{
+    return m_state == State::InRoom && m_roundsAvailable &&
+           m_roomPhase == RoomPhase::Selecting && !m_round &&
+           !m_pendingInventoryUpload &&
+           m_selfInventoryState == InventoryState::Ready &&
+           m_selfInventoryRevision > 0 && m_roomAvailabilityRevision > 0 &&
+           m_availability.state() == ArenaAvailabilityIndex::State::Ready &&
+           m_availability.revision() == m_roomAvailabilityRevision &&
+           m_selfAvailabilityAppliedRevision == m_roomAvailabilityRevision;
+}
+auto
+ArenaSession::getCanReady() const -> bool
+{
+    return getCanSelect() && m_selection.has_value() && !m_selfReady &&
+           m_selfInventoryState == InventoryState::Ready &&
+           m_selfInventoryRevision > 0 && m_roomAvailabilityRevision > 0 &&
+           m_availability.revision() == m_roomAvailabilityRevision &&
+           m_selfAvailabilityAppliedRevision == m_roomAvailabilityRevision;
+}
+auto
+ArenaSession::getReady() const -> bool
+{
+    return m_selfReady;
+}
+auto
+ArenaSession::getSelectedTitle() const -> QString
+{
+    return m_selection ? m_selection->title : QString{};
+}
+auto
+ArenaSession::getSelectedByMemberId() const -> QString
+{
+    return m_selectedByMemberId;
+}
+auto
+ArenaSession::getSelectionRevision() const -> qint64
+{
+    return m_selectionRevision;
+}
+auto
+ArenaSession::getCurrentRoundId() const -> QString
+{
+    return m_round ? m_round->roundId : QString{};
+}
+auto
 ArenaSession::getRooms() -> ArenaRoomListModel*
 {
     return &m_rooms;
@@ -360,6 +494,18 @@ ArenaSession::setDirectoryReady(bool ready)
 }
 
 void
+ArenaSession::setRoundsAvailable(bool available)
+{
+    if (m_roundsAvailable == available) {
+        return;
+    }
+    m_roundsAvailable = available;
+    emit capabilitiesChanged();
+    emit selectionChanged();
+    emit readyChanged();
+}
+
+void
 ArenaSession::clearError()
 {
     if (m_errorCode.isEmpty() && m_errorMessageKey.isEmpty()) {
@@ -419,6 +565,8 @@ ArenaSession::connectForBrowsing()
         return;
     }
     setActive(true);
+    m_legacyFallbackAvailable = true;
+    m_legacyBrowseOnly = false;
     clearError();
     openAnonymousBrowsing();
 }
@@ -427,6 +575,7 @@ void
 ArenaSession::startTransport(HandshakeKind kind)
 {
     invalidateTransport();
+    setRoundsAvailable(false);
     m_protocolReady = false;
     m_handshakeKind = kind;
     m_directoryRevision.reset();
@@ -447,6 +596,7 @@ ArenaSession::invalidateTransport()
                                           ArenaTransport::InvalidGeneration);
     m_protocolReady = false;
     m_handshakeKind = HandshakeKind::None;
+    setRoundsAvailable(false);
     if (generation != ArenaTransport::InvalidGeneration) {
         m_transport->close(generation);
     }
@@ -504,6 +654,11 @@ ArenaSession::handleConnected(ArenaTransport::Generation generation)
         return;
     }
     ClientHello hello{ .clientVersion = m_clientVersion };
+    if (m_legacyBrowseOnly &&
+        m_handshakeKind == HandshakeKind::AnonymousBrowse) {
+        hello.protocolMinor = LegacyProtocolMinor;
+        hello.capabilities = { QString::fromLatin1(RoomsCapability) };
+    }
     if (m_handshakeKind == HandshakeKind::AuthenticatedAdmission ||
         m_handshakeKind == HandshakeKind::Resume) {
         if (m_pendingTicket.isEmpty()) {
@@ -543,13 +698,67 @@ ArenaSession::handleText(ArenaTransport::Generation generation,
 
 void
 ArenaSession::handleBinary(ArenaTransport::Generation generation,
-                           const QByteArray&)
+                           const QByteArray& bytes)
 {
     if (!m_active || generation != m_currentTransportGeneration) {
         return;
     }
-    failProtocol(QStringLiteral("unexpected_binary"),
-                 QStringLiteral("arena.error.unexpectedBinary"));
+    if (!m_pendingAvailabilityTransfer) {
+        if (!m_availabilityResyncRequestId.isEmpty()) {
+            return;
+        }
+        failProtocol(QStringLiteral("unexpected_binary"),
+                     QStringLiteral("arena.error.unexpectedBinary"));
+        return;
+    }
+    const auto decoded = decodeArenaBinaryChunk(bytes);
+    const auto* chunk = std::get_if<ArenaBinaryChunk>(&decoded);
+    if (chunk == nullptr) {
+        requestAvailabilityResync();
+        return;
+    }
+    auto& transfer = *m_pendingAvailabilityTransfer;
+    if (chunk->transferId != transfer.transferId) {
+        return;
+    }
+    auto append = [&](QByteArray& destination,
+                      quint32& receivedChunks,
+                      qint64 declaredCount) {
+        if (chunk->chunkIndex != receivedChunks ||
+            destination.size() + chunk->packedHashes.size() >
+              declaredCount * ArenaSha256Bytes) {
+            return false;
+        }
+        destination.append(chunk->packedHashes);
+        ++receivedChunks;
+        return true;
+    };
+    const auto& declaration = transfer.declaration;
+    const auto accepted = [&] {
+        switch (chunk->kind) {
+            case ArenaBinaryKind::InventoryUpload:
+                return false;
+            case ArenaBinaryKind::AvailabilityReset:
+                return declaration.mode == AvailabilityTransferMode::Reset &&
+                       append(transfer.reset,
+                              transfer.resetChunks,
+                              declaration.resetCount);
+            case ArenaBinaryKind::AvailabilityAdd:
+                return declaration.mode == AvailabilityTransferMode::Delta &&
+                       append(transfer.added,
+                              transfer.addedChunks,
+                              declaration.addedCount);
+            case ArenaBinaryKind::AvailabilityRemove:
+                return declaration.mode == AvailabilityTransferMode::Delta &&
+                       append(transfer.removed,
+                              transfer.removedChunks,
+                              declaration.removedCount);
+        }
+        return false;
+    }();
+    if (!accepted) {
+        requestAvailabilityResync();
+    }
 }
 
 void
@@ -561,6 +770,9 @@ ArenaSession::handleServerHello(const ServerHello& hello)
         return;
     }
     const auto kind = m_handshakeKind;
+    setRoundsAvailable(
+      hello.protocolMinor >= ProtocolMinor &&
+      hello.capabilities.contains(QString::fromLatin1(RoundsCapability)));
     if (kind == HandshakeKind::Resume && resumeDeadlineReached()) {
         failResumeAtDeadline();
         return;
@@ -573,6 +785,7 @@ ArenaSession::handleServerHello(const ServerHello& hello)
             return;
         }
         m_protocolReady = true;
+        m_legacyFallbackAvailable = false;
         m_handshakeKind = HandshakeKind::None;
         setAuthenticated(false);
         setState(State::Browsing);
@@ -591,6 +804,12 @@ ArenaSession::handleServerHello(const ServerHello& hello)
         setLoginRequired(false);
         setState(State::Browsing);
         sendDirectorySubscribe();
+        if (!m_roundsAvailable) {
+            clearPendingAdmission();
+            setError(QStringLiteral("rounds_capability_required"),
+                     QStringLiteral("arena.error.updateRequired"));
+            return;
+        }
         sendPendingAdmission();
         return;
     }
@@ -601,6 +820,15 @@ ArenaSession::handleServerHello(const ServerHello& hello)
     m_protocolReady = true;
     m_handshakeKind = HandshakeKind::None;
     setAuthenticated(true);
+    if (!m_roundsAvailable) {
+        cancelReconnectTasks();
+        clearRoom();
+        setError(QStringLiteral("rounds_capability_required"),
+                 QStringLiteral("arena.error.updateRequired"));
+        setState(State::Browsing);
+        sendDirectorySubscribe();
+        return;
+    }
     if (const auto* succeeded = std::get_if<ResumeSucceeded>(&hello.resume)) {
         applyRoomSnapshot(succeeded->room);
         sendDirectorySubscribe();
@@ -659,6 +887,11 @@ ArenaSession::createRoom(const QString& name, const QString& password)
     if (!m_active || m_state != State::Browsing) {
         return;
     }
+    if (!m_roundsAvailable) {
+        setError(QStringLiteral("rounds_capability_required"),
+                 QStringLiteral("arena.error.updateRequired"));
+        return;
+    }
     clearError();
     if (getAdmissionPending() && !m_pendingAdmissionRequestId.isEmpty()) {
         setError(QStringLiteral("busy"), QStringLiteral("arena.error.busy"));
@@ -685,6 +918,11 @@ void
 ArenaSession::joinRoom(const QString& roomId, const QString& password)
 {
     if (!m_active || m_state != State::Browsing) {
+        return;
+    }
+    if (!m_roundsAvailable) {
+        setError(QStringLiteral("rounds_capability_required"),
+                 QStringLiteral("arena.error.updateRequired"));
         return;
     }
     clearError();
@@ -783,7 +1021,7 @@ void
 ArenaSession::sendPendingAdmission()
 {
     if (!m_protocolReady || !m_authenticated || !getAdmissionPending() ||
-        !m_pendingAdmissionRequestId.isEmpty()) {
+        !m_pendingAdmissionRequestId.isEmpty() || !m_roundsAvailable) {
         return;
     }
     const auto requestId = nextRequestId();
@@ -822,6 +1060,15 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
         return;
     }
     if (const auto* fatal = std::get_if<FatalError>(&message)) {
+        if (!m_protocolReady &&
+            m_handshakeKind == HandshakeKind::AnonymousBrowse &&
+            m_legacyFallbackAvailable && !m_legacyBrowseOnly &&
+            fatal->code == FatalErrorCode::ProtocolIncompatible) {
+            m_legacyFallbackAvailable = false;
+            m_legacyBrowseOnly = true;
+            startTransport(HandshakeKind::AnonymousBrowse);
+            return;
+        }
         failProtocol(fatalCode(fatal->code), fatal->displayMessageKey);
         return;
     }
@@ -859,6 +1106,9 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
         [this](const RoomMemberUpdated& event) {
             if (acceptsRoomEvent(event.roomId, event.roomGeneration)) {
                 m_members.upsert(event.member);
+                if (event.member.memberId == m_selfMemberId) {
+                    applySelfMember(event.member);
+                }
             }
         },
         [this](const RoomMemberLeft& event) {
@@ -922,6 +1172,73 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             setState(State::Error);
         },
         [this](const CommandError& error) { handleCommandError(error); },
+        [this](const InventoryUploadReady& ready) {
+            handleInventoryUploadReady(ready);
+        },
+        [this](const InventoryCommitted& committed) {
+            handleInventoryCommitted(committed);
+        },
+        [this](const AvailabilityTransferBegin& begin) {
+            handleAvailabilityTransferBegin(begin);
+        },
+        [this](const AvailabilityTransferCommit& commit) {
+            handleAvailabilityTransferCommit(commit);
+        },
+        [this](const SelectionChanged& changed) {
+            if (!acceptsRoomEvent(changed.roomId,
+                                  changed.roomGeneration) ||
+                changed.selectionRevision < m_selectionRevision) {
+                return;
+            }
+            applySelection(changed.selection,
+                           changed.selectionRevision,
+                           changed.availabilityRevision,
+                           changed.selectedByMemberId);
+        },
+        [this](const SelectionRejected& rejected) {
+            setError(rejected.reason == SelectionRejectionReason::NotCommon
+                       ? QStringLiteral("selection_not_common")
+                       : QStringLiteral("selection_stale"),
+                     rejected.reason == SelectionRejectionReason::NotCommon
+                       ? QStringLiteral("arena.error.notCommon")
+                       : QStringLiteral("arena.error.selectionStale"));
+        },
+        [this](const RoundLoadingStarted& started) {
+            if (!acceptsRoomEvent(started.roomId, started.roomGeneration)) {
+                return;
+            }
+            m_roomPhase = RoomPhase::Loading;
+            m_round = started.round;
+            emit roundChanged();
+            emit selectionChanged();
+            emit readyChanged();
+        },
+        [this](const RoundStarted& started) {
+            if (!acceptsRoomEvent(started.roomId, started.roomGeneration) ||
+                !m_round || m_round->roundId != started.roundId ||
+                m_round->launchAttemptId != started.launchAttemptId) {
+                return;
+            }
+            m_roomPhase = RoomPhase::Playing;
+            m_round->stage = FrozenRoundStage::Playing;
+            emit roundChanged();
+        },
+        [this](const RoundLaunchCancelled& cancelled) {
+            if (!acceptsRoomEvent(cancelled.roomId,
+                                  cancelled.roomGeneration) ||
+                !m_round || m_round->roundId != cancelled.roundId ||
+                m_round->launchAttemptId != cancelled.launchAttemptId) {
+                return;
+            }
+            m_roomPhase = RoomPhase::Selecting;
+            m_round.reset();
+            applySelection(cancelled.selection,
+                           cancelled.selectionRevision,
+                           cancelled.availabilityRevision,
+                           std::nullopt);
+            emit roundChanged();
+            emit readyChanged();
+        },
         // Phase 2 messages are decoded here before the round-state handlers
         // are connected in the ArenaSession integration task.
         [](const auto&) {},
@@ -945,16 +1262,51 @@ ArenaSession::handleCommandError(const CommandError& error)
         clearPendingAdmission();
         setState(State::Browsing);
     }
+    std::optional<qint64> failedInventoryGeneration;
+    if ((kind == PendingCommandKind::InventoryBegin ||
+         kind == PendingCommandKind::InventoryCommit) &&
+        m_pendingInventoryUpload) {
+        failedInventoryGeneration =
+          m_pendingInventoryUpload->snapshot.libraryGeneration;
+        if (m_uncertainCommittedGeneration == *failedInventoryGeneration) {
+            m_uncertainCommittedGeneration = 0;
+            m_uncertainBaseInventoryRevision = 0;
+        }
+        m_pendingInventoryUpload.reset();
+        emit selectionChanged();
+        emit readyChanged();
+    }
+    if (kind == PendingCommandKind::AvailabilityResync) {
+        m_availabilityResyncRequestId.clear();
+    }
+    if (kind == PendingCommandKind::AvailabilityApplied &&
+        error.code == CommandErrorCode::AvailabilityStale) {
+        m_availabilityAppliedRequestId.clear();
+        requestAvailabilityResync();
+    }
+    if (kind == PendingCommandKind::Ready) {
+        m_readyRequestId.clear();
+        m_requestedReady.reset();
+    }
     if ((error.code == CommandErrorCode::RoomGenerationStale ||
          error.code == CommandErrorCode::ConnectionGenerationStale) &&
         !m_roomId.isEmpty()) {
         beginReconnect();
+        return;
+    }
+    if (failedInventoryGeneration && m_inventorySource != nullptr &&
+        m_inventorySource->generation() > *failedInventoryGeneration) {
+        requestInventorySnapshot();
     }
 }
 
 void
 ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
 {
+    const auto resumesSameSeat = !m_roomId.isEmpty() &&
+                                 m_roomId == snapshot.roomId &&
+                                 m_selfMemberId == snapshot.self.memberId;
+    clearRoundTransfers(!resumesSameSeat);
     if (!m_members.replace(
           snapshot.members, snapshot.ownerMemberId, snapshot.self.memberId) ||
         !m_chat.replace(snapshot.chat, snapshot.self.memberId)) {
@@ -975,18 +1327,45 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     m_selfMemberId = snapshot.self.memberId;
     m_ownerMemberId = snapshot.ownerMemberId;
     m_resumeToken = snapshot.self.resumeToken;
+    m_roomPhase = snapshot.phase;
+    m_round = snapshot.round;
+    applySelection(snapshot.selection,
+                   snapshot.selectionRevision,
+                   snapshot.availabilityRevision,
+                   std::nullopt);
+    const auto self = std::find_if(
+      snapshot.members.begin(), snapshot.members.end(), [&](const Member& row) {
+          return row.memberId == snapshot.self.memberId;
+      });
+    if (self == snapshot.members.end()) {
+        failProtocol(ProtocolFailureCode::MalformedMessage);
+        return;
+    }
+    applySelfMember(*self);
+    if (m_uncertainCommittedGeneration > 0) {
+        if (m_selfInventoryRevision > m_uncertainBaseInventoryRevision) {
+            m_lastPublishedLibraryGeneration =
+              (std::max)(m_lastPublishedLibraryGeneration,
+                         m_uncertainCommittedGeneration);
+        }
+        m_uncertainCommittedGeneration = 0;
+        m_uncertainBaseInventoryRevision = 0;
+    }
     emit roomChanged();
+    emit roundChanged();
     if (oldOwner != m_ownerMemberId || oldIsOwner != getIsOwner()) {
         emit ownerChanged();
     }
     setAuthenticated(true);
     clearError();
     setState(State::InRoom);
+    requestInventorySnapshot();
 }
 
 void
 ArenaSession::clearRoom()
 {
+    clearRoundTransfers();
     const auto hadRoom = !m_roomId.isEmpty() || !m_roomName.isEmpty() ||
                          m_roomGeneration != 0 || !m_selfMemberId.isEmpty();
     const auto hadOwner = m_ownerMemberId.has_value();
@@ -998,12 +1377,27 @@ ArenaSession::clearRoom()
     m_ownerMemberId.reset();
     m_resumeToken.clear();
     m_resumeToken.squeeze();
+    m_roomPhase = RoomPhase::Selecting;
+    m_round.reset();
+    m_selection.reset();
+    m_selectedByMemberId.clear();
+    m_selectionRevision = 0;
+    m_roomAvailabilityRevision = 0;
+    m_selfReady = false;
+    m_selfInventoryState = InventoryState::Missing;
+    m_selfInventoryRevision = 0;
+    m_selfAvailabilityAppliedRevision = 0;
+    m_readyRequestId.clear();
+    m_requestedReady.reset();
     m_members.clear();
     m_chat.clear();
     m_pendingCommands.clear();
     m_pendingChatCommandIds.clear();
     if (hadRoom) {
         emit roomChanged();
+        emit selectionChanged();
+        emit readyChanged();
+        emit roundChanged();
     }
     if (hadOwner) {
         emit ownerChanged();
@@ -1032,6 +1426,433 @@ ArenaSession::returnToAuthenticatedBrowser()
     clearPendingAdmission();
     clearError();
     setState(State::Browsing);
+}
+
+void
+ArenaSession::applySelfMember(const Member& member)
+{
+    if (member.memberId != m_selfMemberId) {
+        return;
+    }
+    const auto changed = m_selfReady != member.ready ||
+                         m_selfInventoryState != member.inventoryState ||
+                         m_selfInventoryRevision != member.inventoryRevision ||
+                         m_selfAvailabilityAppliedRevision !=
+                           member.availabilityAppliedRevision;
+    m_selfReady = member.ready;
+    m_selfInventoryState = member.inventoryState;
+    m_selfInventoryRevision = member.inventoryRevision;
+    m_selfAvailabilityAppliedRevision = member.availabilityAppliedRevision;
+    if (!m_readyRequestId.isEmpty() && m_requestedReady &&
+        member.ready == *m_requestedReady) {
+        m_pendingCommands.remove(m_readyRequestId);
+        m_readyRequestId.clear();
+        m_requestedReady.reset();
+    }
+    if (!m_availabilityAppliedRequestId.isEmpty() &&
+        member.availabilityAppliedRevision >= m_roomAvailabilityRevision) {
+        m_pendingCommands.remove(m_availabilityAppliedRequestId);
+        m_availabilityAppliedRequestId.clear();
+    }
+    if (changed) {
+        emit selectionChanged();
+        emit readyChanged();
+    }
+}
+
+void
+ArenaSession::applySelection(
+  std::optional<SelectionSnapshot> selection,
+  qint64 selectionRevision,
+  qint64 availabilityRevision,
+  std::optional<QString> selectedByMemberId)
+{
+    const auto changed = m_selection != selection ||
+                         m_selectionRevision != selectionRevision ||
+                         m_roomAvailabilityRevision != availabilityRevision ||
+                         m_selectedByMemberId !=
+                           selectedByMemberId.value_or(QString{});
+    m_selection = std::move(selection);
+    m_selectionRevision = selectionRevision;
+    m_roomAvailabilityRevision = availabilityRevision;
+    m_selectedByMemberId = selectedByMemberId.value_or(QString{});
+    if (changed) {
+        emit selectionChanged();
+        emit readyChanged();
+    }
+}
+
+void
+ArenaSession::requestInventorySnapshot()
+{
+    if (!m_roundsAvailable || m_inventorySource == nullptr ||
+        m_roomId.isEmpty() || m_inventorySourceRequestId != 0 ||
+        m_pendingInventoryUpload.has_value()) {
+        return;
+    }
+    const auto generation = m_inventorySource->generation();
+    if (generation <= m_lastPublishedLibraryGeneration) {
+        return;
+    }
+    m_inventorySourceRequestId = m_nextInventorySourceRequestId++;
+    m_inventorySourceRequestGeneration = generation;
+    m_inventorySource->requestSnapshot(m_inventorySourceRequestId);
+}
+
+void
+ArenaSession::cancelInventorySnapshot()
+{
+    if (m_inventorySource == nullptr || m_inventorySourceRequestId == 0) {
+        return;
+    }
+    m_inventorySource->cancel(m_inventorySourceRequestId);
+    m_inventorySourceRequestId = 0;
+    m_inventorySourceRequestGeneration = 0;
+}
+
+void
+ArenaSession::handleInventoryGenerationChanged(qint64 generation)
+{
+    if (generation <= m_lastPublishedLibraryGeneration || m_roomId.isEmpty() ||
+        !m_roundsAvailable) {
+        return;
+    }
+    if (m_inventorySourceRequestId != 0) {
+        cancelInventorySnapshot();
+    }
+    requestInventorySnapshot();
+}
+
+void
+ArenaSession::handleInventorySnapshotReady(
+  quint64 requestId,
+  ArenaInventorySnapshot snapshot)
+{
+    if (requestId == 0 || requestId != m_inventorySourceRequestId ||
+        m_roomId.isEmpty() || !m_roundsAvailable) {
+        return;
+    }
+    const auto requestedGeneration = m_inventorySourceRequestGeneration;
+    m_inventorySourceRequestId = 0;
+    m_inventorySourceRequestGeneration = 0;
+    if (snapshot.libraryGeneration != requestedGeneration ||
+        snapshot.libraryGeneration <= m_lastPublishedLibraryGeneration ||
+        snapshot.packedSha256.size() % ArenaSha256Bytes != 0 ||
+        snapshot.packedSha256.size() > ArenaMaxInventoryBytes) {
+        setError(QStringLiteral("inventory_invalid"),
+                 QStringLiteral("arena.error.inventoryInvalid"));
+        requestInventorySnapshot();
+        return;
+    }
+
+    const auto hashCount = snapshot.packedSha256.size() / ArenaSha256Bytes;
+    const auto chunkCount =
+      (hashCount + ArenaMaxHashesPerChunk - 1) / ArenaMaxHashesPerChunk;
+    auto upload = PendingInventoryUpload{
+        .snapshot = std::move(snapshot),
+        .beginRequestId = nextRequestId(),
+    };
+    upload.digest = packedDigest(upload.snapshot.packedSha256);
+    const auto command = InventoryUploadBegin{
+        .requestId = upload.beginRequestId,
+        .roomId = m_roomId,
+        .roomGeneration = m_roomGeneration,
+        .connectionGeneration = m_connectionGeneration,
+        .libraryGeneration = upload.snapshot.libraryGeneration,
+        .hashCount = hashCount,
+        .byteCount = upload.snapshot.packedSha256.size(),
+        .chunkCount = chunkCount,
+        .vectorDigest = upload.digest,
+    };
+    if (!sendMessage(command)) {
+        return;
+    }
+    m_pendingCommands.insert(
+      upload.beginRequestId,
+      PendingCommand{ .kind = PendingCommandKind::InventoryBegin,
+                      .lifecycleGeneration = m_lifecycleGeneration });
+    m_pendingInventoryUpload = std::move(upload);
+    emit selectionChanged();
+    emit readyChanged();
+}
+
+void
+ArenaSession::handleInventorySnapshotFailed(quint64 requestId,
+                                            ArenaInventoryFailure failure)
+{
+    if (requestId == 0 || requestId != m_inventorySourceRequestId) {
+        return;
+    }
+    m_inventorySourceRequestId = 0;
+    m_inventorySourceRequestGeneration = 0;
+    if (failure != ArenaInventoryFailure::Cancelled) {
+        setError(QStringLiteral("inventory_build_failed"),
+                 QStringLiteral("arena.error.inventoryBuildFailed"));
+    }
+}
+
+void
+ArenaSession::handleInventoryUploadReady(const InventoryUploadReady& ready)
+{
+    if (!m_pendingInventoryUpload ||
+        ready.requestId != m_pendingInventoryUpload->beginRequestId ||
+        !m_pendingInventoryUpload->commitRequestId.isEmpty()) {
+        return;
+    }
+    auto& upload = *m_pendingInventoryUpload;
+    const auto hashCount =
+      upload.snapshot.packedSha256.size() / ArenaSha256Bytes;
+    const auto chunkCount =
+      (hashCount + ArenaMaxHashesPerChunk - 1) / ArenaMaxHashesPerChunk;
+    if (!acceptsRoomEvent(ready.roomId, ready.roomGeneration)) {
+        return;
+    }
+    if (ready.connectionGeneration != m_connectionGeneration ||
+        ready.libraryGeneration != upload.snapshot.libraryGeneration ||
+        ready.hashCount != hashCount ||
+        ready.byteCount != upload.snapshot.packedSha256.size() ||
+        ready.chunkCount != chunkCount || ready.vectorDigest != upload.digest) {
+        failProtocol(ProtocolFailureCode::MalformedMessage);
+        return;
+    }
+    const auto transferId = decodeTransferId(ready.uploadId);
+    if (transferId.isEmpty()) {
+        failProtocol(ProtocolFailureCode::MalformedMessage);
+        return;
+    }
+    m_pendingCommands.remove(upload.beginRequestId);
+    upload.uploadId = ready.uploadId;
+    for (qint64 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
+        const auto firstHash = chunkIndex * ArenaMaxHashesPerChunk;
+        const auto hashesInChunk =
+          std::min<qint64>(ArenaMaxHashesPerChunk, hashCount - firstHash);
+        const auto encoded = encodeArenaBinaryChunk(ArenaBinaryChunk{
+          .kind = ArenaBinaryKind::InventoryUpload,
+          .transferId = transferId,
+          .chunkIndex = static_cast<quint32>(chunkIndex),
+          .packedHashes = upload.snapshot.packedSha256.mid(
+            firstHash * ArenaSha256Bytes,
+            hashesInChunk * ArenaSha256Bytes),
+        });
+        const auto* bytes = std::get_if<QByteArray>(&encoded);
+        if (bytes == nullptr) {
+            failProtocol(ProtocolFailureCode::MalformedMessage);
+            return;
+        }
+        m_transport->sendBinary(m_currentTransportGeneration, *bytes);
+    }
+    upload.commitRequestId = nextRequestId();
+    const auto command = InventoryUploadCommit{
+        .requestId = upload.commitRequestId,
+        .roomId = m_roomId,
+        .roomGeneration = m_roomGeneration,
+        .connectionGeneration = m_connectionGeneration,
+        .uploadId = upload.uploadId,
+        .libraryGeneration = upload.snapshot.libraryGeneration,
+        .hashCount = hashCount,
+        .byteCount = upload.snapshot.packedSha256.size(),
+        .chunkCount = chunkCount,
+        .vectorDigest = upload.digest,
+    };
+    if (!sendMessage(command)) {
+        return;
+    }
+    m_pendingCommands.insert(
+      upload.commitRequestId,
+      PendingCommand{ .kind = PendingCommandKind::InventoryCommit,
+                      .lifecycleGeneration = m_lifecycleGeneration });
+    m_uncertainCommittedGeneration = upload.snapshot.libraryGeneration;
+    m_uncertainBaseInventoryRevision = m_selfInventoryRevision;
+}
+
+void
+ArenaSession::handleInventoryCommitted(const InventoryCommitted& committed)
+{
+    if (!m_pendingInventoryUpload ||
+        committed.requestId != m_pendingInventoryUpload->commitRequestId) {
+        return;
+    }
+    const auto& upload = *m_pendingInventoryUpload;
+    if (!acceptsRoomEvent(committed.roomId, committed.roomGeneration)) {
+        return;
+    }
+    if (committed.connectionGeneration != m_connectionGeneration ||
+        committed.libraryGeneration != upload.snapshot.libraryGeneration ||
+        committed.inventoryRevision <= 0 ||
+        committed.inventoryState != InventoryState::Ready) {
+        failProtocol(ProtocolFailureCode::MalformedMessage);
+        return;
+    }
+    m_pendingCommands.remove(upload.commitRequestId);
+    m_lastPublishedLibraryGeneration = committed.libraryGeneration;
+    m_uncertainCommittedGeneration = 0;
+    m_uncertainBaseInventoryRevision = 0;
+    m_pendingInventoryUpload.reset();
+    emit selectionChanged();
+    emit readyChanged();
+    clearError();
+    requestInventorySnapshot();
+}
+
+void
+ArenaSession::handleAvailabilityTransferBegin(
+  const AvailabilityTransferBegin& begin)
+{
+    if (!acceptsRoomEvent(begin.roomId, begin.roomGeneration)) {
+        return;
+    }
+    const auto transferId = decodeTransferId(begin.transferId);
+    if (transferId.isEmpty()) {
+        failProtocol(ProtocolFailureCode::MalformedMessage);
+        return;
+    }
+    if (begin.targetRevision < m_availability.revision() ||
+        (m_pendingAvailabilityTransfer &&
+         begin.targetRevision <=
+           m_pendingAvailabilityTransfer->declaration.targetRevision &&
+         begin.transferId !=
+           m_pendingAvailabilityTransfer->declaration.transferId)) {
+        return;
+    }
+    if (m_pendingAvailabilityTransfer &&
+        begin.transferId ==
+          m_pendingAvailabilityTransfer->declaration.transferId) {
+        return;
+    }
+    if (!m_availabilityResyncRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_availabilityResyncRequestId);
+        m_availabilityResyncRequestId.clear();
+    }
+    m_pendingAvailabilityTransfer = PendingAvailabilityTransfer{
+        .declaration = begin,
+        .transferId = transferId,
+    };
+    m_availability.setSyncing();
+}
+
+void
+ArenaSession::handleAvailabilityTransferCommit(
+  const AvailabilityTransferCommit& commit)
+{
+    if (!m_pendingAvailabilityTransfer ||
+        !acceptsRoomEvent(commit.roomId, commit.roomGeneration)) {
+        return;
+    }
+    if (commit.transferId !=
+        m_pendingAvailabilityTransfer->declaration.transferId) {
+        return;
+    }
+    auto transfer = std::move(*m_pendingAvailabilityTransfer);
+    m_pendingAvailabilityTransfer.reset();
+    const auto& declaration = transfer.declaration;
+    if (commit.targetRevision != declaration.targetRevision) {
+        requestAvailabilityResync();
+        return;
+    }
+    const auto validVector = [](const QByteArray& packed,
+                                qint64 count,
+                                quint32 chunks,
+                                qint64 declaredChunks,
+                                QStringView digest) {
+        return packed.size() == count * ArenaSha256Bytes &&
+               chunks == declaredChunks && packedDigest(packed) == digest;
+    };
+    bool applied = false;
+    if (declaration.mode == AvailabilityTransferMode::Reset) {
+        applied = validVector(transfer.reset,
+                              declaration.resetCount,
+                              transfer.resetChunks,
+                              declaration.resetChunkCount,
+                              declaration.resetDigest) &&
+                  m_availability.applyReset(declaration.targetRevision,
+                                            std::move(transfer.reset));
+    } else {
+        applied = validVector(transfer.added,
+                              declaration.addedCount,
+                              transfer.addedChunks,
+                              declaration.addedChunkCount,
+                              declaration.addedDigest) &&
+                  validVector(transfer.removed,
+                              declaration.removedCount,
+                              transfer.removedChunks,
+                              declaration.removedChunkCount,
+                              declaration.removedDigest) &&
+                  m_availability.applyDelta(declaration.baseRevision,
+                                            declaration.targetRevision,
+                                            std::move(transfer.added),
+                                            std::move(transfer.removed));
+    }
+    if (!applied) {
+        requestAvailabilityResync();
+        return;
+    }
+    if (m_roomAvailabilityRevision != declaration.targetRevision) {
+        m_roomAvailabilityRevision = declaration.targetRevision;
+        emit selectionChanged();
+        emit readyChanged();
+    }
+    const auto requestId = nextRequestId();
+    if (!m_availabilityAppliedRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_availabilityAppliedRequestId);
+    }
+    if (sendMessage(AvailabilityApplied{
+          .requestId = requestId,
+          .roomId = m_roomId,
+          .roomGeneration = m_roomGeneration,
+          .connectionGeneration = m_connectionGeneration,
+          .availabilityRevision = declaration.targetRevision,
+        })) {
+        m_pendingCommands.insert(
+          requestId,
+          PendingCommand{ .kind = PendingCommandKind::AvailabilityApplied,
+                          .lifecycleGeneration = m_lifecycleGeneration });
+        m_availabilityAppliedRequestId = requestId;
+    }
+}
+
+void
+ArenaSession::requestAvailabilityResync()
+{
+    m_pendingAvailabilityTransfer.reset();
+    m_availability.setSyncing();
+    if (m_roomId.isEmpty() || !m_roundsAvailable ||
+        !m_availabilityResyncRequestId.isEmpty()) {
+        return;
+    }
+    m_availabilityResyncRequestId = nextRequestId();
+    if (sendMessage(AvailabilityResync{
+          .requestId = m_availabilityResyncRequestId,
+          .roomId = m_roomId,
+          .roomGeneration = m_roomGeneration,
+          .connectionGeneration = m_connectionGeneration,
+          .currentRevision = m_availability.revision(),
+        })) {
+        m_pendingCommands.insert(
+          m_availabilityResyncRequestId,
+          PendingCommand{ .kind = PendingCommandKind::AvailabilityResync,
+                          .lifecycleGeneration = m_lifecycleGeneration });
+    }
+}
+
+void
+ArenaSession::clearRoundTransfers(bool abandonSeat)
+{
+    const auto hadPendingUpload = m_pendingInventoryUpload.has_value();
+    cancelInventorySnapshot();
+    m_pendingInventoryUpload.reset();
+    m_pendingAvailabilityTransfer.reset();
+    m_availabilityResyncRequestId.clear();
+    m_availabilityAppliedRequestId.clear();
+    if (abandonSeat) {
+        m_lastPublishedLibraryGeneration = 0;
+        m_uncertainCommittedGeneration = 0;
+        m_uncertainBaseInventoryRevision = 0;
+    }
+    m_availability.clear();
+    if (hadPendingUpload) {
+        emit selectionChanged();
+        emit readyChanged();
+    }
 }
 
 void
@@ -1106,6 +1927,35 @@ ArenaSession::sendChat(const QString& text)
 }
 
 void
+ArenaSession::setReady(bool ready)
+{
+    clearError();
+    if (!m_readyRequestId.isEmpty() || (ready && !getCanReady()) ||
+        (!ready && (!m_selfReady || m_state != State::InRoom ||
+                    m_roomPhase != RoomPhase::Selecting))) {
+        return;
+    }
+    const auto requestId = nextRequestId();
+    if (sendMessage(ReadySet{
+          .requestId = requestId,
+          .roomId = m_roomId,
+          .roomGeneration = m_roomGeneration,
+          .connectionGeneration = m_connectionGeneration,
+          .ready = ready,
+          .selectionRevision = m_selectionRevision,
+          .availabilityRevision = m_roomAvailabilityRevision,
+          .inventoryRevision = m_selfInventoryRevision,
+        })) {
+        m_pendingCommands.insert(
+          requestId,
+          PendingCommand{ .kind = PendingCommandKind::Ready,
+                          .lifecycleGeneration = m_lifecycleGeneration });
+        m_readyRequestId = requestId;
+        m_requestedReady = ready;
+    }
+}
+
+void
 ArenaSession::handleDisconnected(ArenaTransport::Generation generation)
 {
     if (!m_active || generation != m_currentTransportGeneration) {
@@ -1174,6 +2024,7 @@ ArenaSession::beginReconnect()
     m_pendingTicket.clear();
     m_pendingCommands.clear();
     m_pendingChatCommandIds.clear();
+    clearRoundTransfers(false);
     clearPendingAdmission();
     invalidateTransport();
     setAuthenticated(false);
@@ -1307,6 +2158,15 @@ ArenaSession::retry()
     if (!m_active) {
         return;
     }
+    if (m_state == State::InRoom) {
+        clearError();
+        requestInventorySnapshot();
+        if (m_availability.state() ==
+            ArenaAvailabilityIndex::State::Syncing) {
+            requestAvailabilityResync();
+        }
+        return;
+    }
     if (m_state == State::Reconnecting) {
         clearError();
         cancelTask(m_retryTask);
@@ -1408,6 +2268,8 @@ ArenaSession::exitArena()
     m_rooms.clear();
     m_directoryRevision.reset();
     m_directoryResyncPending = false;
+    m_legacyFallbackAvailable = false;
+    m_legacyBrowseOnly = false;
     setDirectoryReady(false);
     setAuthenticated(false);
     setLoginRequired(false);
