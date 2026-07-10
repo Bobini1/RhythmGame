@@ -2,6 +2,14 @@ import QtQml
 
 QtObject {
     function stateText(connected, state): string {
+        switch (String(state || "")) {
+        case "finished":
+            return qsTr("Finished");
+        case "dnf":
+            return qsTr("DNF");
+        default:
+            break;
+        }
         if (!connected) {
             return qsTr("Disconnected");
         }
@@ -10,10 +18,6 @@ QtObject {
             return qsTr("Loading");
         case "playing":
             return qsTr("Playing");
-        case "finished":
-            return qsTr("Finished");
-        case "dnf":
-            return qsTr("DNF");
         default:
             return qsTr("Waiting");
         }

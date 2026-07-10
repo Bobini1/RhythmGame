@@ -107,6 +107,10 @@ TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete
                       "root.session.selfMemberId",
                       "root.session.opponentTarget.memberId",
                       "root.session.arenaOptionsSummary",
+                      "ArenaCompetitionText",
+                      "return competitionText.stateText",
+                      "return competitionText.gaugeText",
+                      "return competitionText.outcomeText",
                       "clip: true",
                       "ScrollBar.vertical",
                       "textFormat: Text.PlainText" });
@@ -118,6 +122,8 @@ TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete
     CHECK_FALSE(source.contains(
       QStringLiteral("required property string layoutVariant")));
     CHECK_FALSE(source.contains(QStringLiteral("text: standingDelegate.memberId")));
+    CHECK_FALSE(source.contains(QStringLiteral("case \"result_unavailable\"")));
+    CHECK_FALSE(source.contains(QStringLiteral("case \"aeasy\"")));
 
     CHECK_FALSE(source.contains(QStringLiteral("MouseArea")));
     CHECK_FALSE(source.contains(QStringLiteral("DragHandler")));

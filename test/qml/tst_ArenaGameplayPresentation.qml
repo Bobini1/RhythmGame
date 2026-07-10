@@ -522,6 +522,9 @@ TestCase {
         wait(1);
         compare(overlay.announcementCount, 0);
         compare(overlay.lastAnnouncementText, "");
+        compare(overlay.stateText(false, "finished"), "Finished");
+        compare(overlay.stateText(false, "dnf"), "DNF");
+        compare(overlay.stateText(false, "playing"), "Disconnected");
 
         session.liveStandings.setProperty(0, "connected", false);
         tryCompare(overlay, "announcementCount", 1);
