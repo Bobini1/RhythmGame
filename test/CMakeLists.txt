@@ -24,6 +24,7 @@ add_executable(RhythmGame_test
         arena/ArenaSelectIntegration.test.cpp
         arena/ArenaOverlayPolicy.test.cpp
         arena/ArenaResultPresentation.test.cpp
+        arena/ArenaTranslationContract.test.cpp
         arena/ArenaCompetitionModels.test.cpp
         arena/ArenaPacemakerIntegration.test.cpp
         arena/ArenaModels.test.cpp

@@ -1,5 +1,7 @@
-file(GLOB_RECURSE DEFAULT_QML_FILES "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default/**/*.qml")
-file(GLOB ARENA_QML_FILES "${CMAKE_SOURCE_DIR}/RhythmGameQml/Arena/*.qml")
+file(GLOB_RECURSE DEFAULT_QML_FILES CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/share/RhythmGame/themes/Default/**/*.qml")
+file(GLOB ARENA_QML_FILES CONFIGURE_DEPENDS
+        "${CMAKE_SOURCE_DIR}/RhythmGameQml/Arena/*.qml")
 qt_add_translations(
         RhythmGame_exe
         TS_FILE_BASE
