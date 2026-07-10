@@ -64,6 +64,14 @@ Item {
         : Qt.rect(0, 0, 1, 1)
 
     function acknowledgePlacementHint() {
+        if (placementHint.activeFocus) {
+            if (root.currentItem !== null
+                    && typeof root.currentItem.forceActiveFocus === "function") {
+                root.currentItem.forceActiveFocus();
+            } else {
+                root.forceActiveFocus();
+            }
+        }
         if (root.generalVars !== null && root.generalVars !== undefined
                 && root.generalVars.arenaOverlayHintVersion < 1) {
             root.generalVars.arenaOverlayHintVersion = 1;
@@ -345,11 +353,12 @@ Item {
         id: placementHint
 
         objectName: "arenaOverlayPlacementHint"
+        activeFocusOnTab: visible
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.top: parent.top
         anchors.topMargin: 24
-        border.color: "#70ffffff"
-        border.width: 1
+        border.color: activeFocus ? "#8fdcff" : "#70ffffff"
+        border.width: activeFocus ? 2 : 1
         color: "#e6101218"
         height: placementHintText.implicitHeight + 20
         radius: 5
@@ -363,6 +372,22 @@ Item {
                         placementHintText.implicitWidth + 32)
         z: 3
 
+        Accessible.role: Accessible.Button
+        Accessible.name: placementHintText.text
+        Accessible.description: qsTr("Press F2 to customize the Arena standings. Press Enter or Space to dismiss this hint.")
+        Accessible.focusable: visible
+        Accessible.onPressAction: root.acknowledgePlacementHint()
+
+        Keys.priority: Keys.BeforeItem
+        Keys.onPressed: event => {
+            if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter
+                    && event.key !== Qt.Key_Space) {
+                return;
+            }
+            root.acknowledgePlacementHint();
+            event.accepted = true;
+        }
+
         Text {
             id: placementHintText
 
@@ -373,6 +398,8 @@ Item {
             textFormat: Text.PlainText
             width: Math.max(1, parent.width - 24)
             wrapMode: Text.Wrap
+
+            Accessible.ignored: true
         }
 
         MouseArea {

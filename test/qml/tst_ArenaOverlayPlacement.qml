@@ -219,6 +219,13 @@ TestCase {
             verify(handle.width >= 32);
             verify(handle.height >= 32);
             verify(handle.Accessible.name.length > 0, objectName);
+            verify(handle.Accessible.description.length > 0, objectName);
+            compare(handle.Accessible.role, Accessible.Grip, objectName);
+            compare(handle.Accessible.focusable, true, objectName);
+            compare(handle.activeFocusOnTab, true, objectName);
+            handle.forceActiveFocus();
+            tryCompare(handle, "activeFocus", true);
+            compare(handle.focusIndicatorVisible, true, objectName);
             const oldLeft = harness.frame.x;
             const oldTop = harness.frame.y;
             const oldRight = harness.frame.x + harness.frame.width;
@@ -292,6 +299,8 @@ TestCase {
         const handle = findChild(harness.frame, "arenaResizeBottomRight");
         compare(handle.visible, false);
         compare(handle.enabled, false);
+        compare(handle.activeFocusOnTab, false);
+        compare(handle.Accessible.focusable, false);
         mousePress(harness.frame, harness.frame.width / 2,
                    harness.frame.height / 2, Qt.LeftButton);
         mouseMove(harness.frame, harness.frame.width / 2 - 80,
@@ -387,6 +396,68 @@ TestCase {
                    Qt.LeftButton);
         compare(harness.themeVars.commitCount, 6);
         compare(harness.themeVars.writeCount, 11);
+    }
+
+    function test_resize_handles_support_keyboard_and_accessibility_actions() {
+        const harness = createHarness(1280, 720, "gameplayLeaderboard", {
+            "stored": true,
+            "x": 0.25,
+            "y": 0.20,
+            "width": 0.40,
+            "height": 0.45
+        });
+        const right = findChild(harness.frame, "arenaResizeRight");
+        verify(right !== null);
+        right.forceActiveFocus();
+        tryCompare(right, "activeFocus", true);
+
+        const originalX = harness.frame.x;
+        const originalWidth = harness.frame.width;
+        const originalRight = originalX + originalWidth;
+        const originalTop = harness.frame.y;
+        keyClick(Qt.Key_Right);
+        closeEnough(harness.frame.x, originalX);
+        closeEnough(harness.frame.width, originalWidth + 4);
+        closeEnough(harness.frame.x + harness.frame.width,
+                    originalRight + 4);
+        closeEnough(harness.frame.y, originalTop);
+        compare(harness.themeVars.commitCount, 1);
+
+        keyClick(Qt.Key_Up);
+        closeEnough(harness.frame.y, originalTop);
+        closeEnough(harness.frame.x + harness.frame.width,
+                    originalRight + 4);
+        compare(harness.themeVars.commitCount, 1);
+
+        keyClick(Qt.Key_Left, Qt.ShiftModifier);
+        closeEnough(harness.frame.x + harness.frame.width,
+                    originalRight - 12);
+        compare(harness.themeVars.commitCount, 2);
+
+        const widthBeforeAction = harness.frame.width;
+        right.Accessible.increaseAction();
+        closeEnough(harness.frame.width, widthBeforeAction + 4);
+        compare(harness.themeVars.commitCount, 3);
+        right.Accessible.decreaseAction();
+        closeEnough(harness.frame.width, widthBeforeAction);
+        compare(harness.themeVars.commitCount, 4);
+
+        const bottomLeft = findChild(harness.frame,
+                                     "arenaResizeBottomLeft");
+        verify(bottomLeft !== null);
+        bottomLeft.forceActiveFocus();
+        const oldLeft = harness.frame.x;
+        const oldRight = harness.frame.x + harness.frame.width;
+        const oldBottom = harness.frame.y + harness.frame.height;
+        keyClick(Qt.Key_Left, Qt.ShiftModifier);
+        closeEnough(harness.frame.x, oldLeft - 16);
+        closeEnough(harness.frame.x + harness.frame.width, oldRight);
+        compare(harness.themeVars.commitCount, 5);
+        keyClick(Qt.Key_Down);
+        closeEnough(harness.frame.y + harness.frame.height,
+                    oldBottom + 4);
+        compare(harness.themeVars.commitCount, 6);
+        verifyInsideSafeRect(harness.frame, harness.viewport);
     }
 
     function test_malformed_theme_values_use_default_geometry() {

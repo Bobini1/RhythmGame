@@ -156,11 +156,11 @@ TestCase {
         }
     }
 
-    function appendStanding(model, index) {
+    function standingRecord(index) {
         const local = index === 0;
         const target = index === 1;
         const dnf = index === 2;
-        model.append({
+        return {
             "memberId": local ? "member-local"
                               : (target ? "member-target" : "member-" + index),
             "displayName": local ? "Local"
@@ -184,7 +184,11 @@ TestCase {
             "clearType": target ? "hard" : "",
             "lobbyWinsAfter": target ? 3 : -1,
             "dnfReason": dnf ? "aborted" : ""
-        });
+        };
+    }
+
+    function appendStanding(model, index) {
+        model.append(standingRecord(index));
     }
 
     function populateStandings(session) {
@@ -312,6 +316,10 @@ TestCase {
         verify(standings !== null);
         compare(standings.count, 16);
         compare(standings.clip, true);
+        compare(standings.Accessible.role, Accessible.List);
+        compare(standings.Accessible.focusable, true);
+        compare(standings.activeFocusOnTab, true);
+        verify(standings.Accessible.name.length > 0);
         verify(standings.contentHeight > standings.height);
         tryVerify(function() {
             return findChild(overlay, "arenaStandingRow2") !== null;
@@ -323,6 +331,12 @@ TestCase {
         verify(localRow !== null);
         verify(targetRow !== null);
         verify(dnfRow !== null);
+        compare(localRow.Accessible.role, Accessible.ListItem);
+        compare(localRow.Accessible.focusable, true);
+        compare(localRow.activeFocusOnTab, false);
+        verify(localRow.Accessible.name.indexOf("Local") >= 0);
+        verify(localRow.Accessible.description.indexOf("EX 200") >= 0);
+        verify(localRow.Accessible.description.indexOf("50%") >= 0);
         compare(findChild(localRow, "arenaStandingRank").text, "1");
         compare(findChild(dnfRow, "arenaStandingRank").text, "—");
         compare(findChild(localRow, "arenaStandingName").text, "Local");
@@ -334,6 +348,17 @@ TestCase {
         verify(findChild(targetRow, "arenaStandingOutcome").text.indexOf("Hard clear") >= 0);
         verify(findChild(targetRow, "arenaStandingOutcome").text.indexOf("3 win") >= 0);
         verify(findChild(dnfRow, "arenaStandingOutcome").text.indexOf("Aborted") >= 0);
+        compare(findChild(localRow, "arenaStandingName").Accessible.ignored,
+                true);
+
+        standings.currentIndex = 0;
+        standings.forceActiveFocus();
+        tryCompare(standings, "activeFocus", true);
+        compare(localRow.focusIndicatorVisible, true);
+        keyClick(Qt.Key_Down);
+        tryCompare(standings, "currentIndex", 1);
+        compare(standings.activeFocus, true);
+        compare(targetRow.focusIndicatorVisible, true);
 
         const expand = findChild(overlay, "arenaGameplayExpand");
         verify(expand !== null);
@@ -394,10 +419,40 @@ TestCase {
 
     function test_chat_keyboard_focus_and_escape_priority_leave_controller_live() {
         const harness = createHost(1);
+        harness.session.chat.append({
+            "displayName": "Alice <Admin>",
+            "text": "<b>hello</b>"
+        });
         keyClick(Qt.Key_F8);
         tryCompare(harness.session, "gameplayChatOpen", true);
+        const chatList = findChild(harness.host, "arenaGameplayChatList");
+        verify(chatList !== null);
+        compare(chatList.Accessible.role, Accessible.List);
+        compare(chatList.Accessible.focusable, true);
+        compare(chatList.activeFocusOnTab, true);
+        verify(chatList.Accessible.name.length > 0);
+        tryVerify(function() {
+            return findChild(harness.host, "arenaGameplayChatRow0") !== null;
+        });
+        const chatRow = findChild(harness.host, "arenaGameplayChatRow0");
+        verify(chatRow !== null);
+        compare(chatRow.Accessible.role, Accessible.ListItem);
+        compare(chatRow.Accessible.focusable, true);
+        compare(chatRow.activeFocusOnTab, false);
+        compare(chatRow.Accessible.name, "Alice <Admin>");
+        compare(chatRow.Accessible.description, "<b>hello</b>");
+        chatList.currentIndex = 0;
+        chatList.forceActiveFocus();
+        tryCompare(chatList, "activeFocus", true);
+        compare(chatRow.focusIndicatorVisible, true);
+        const chatText = findChild(chatRow, "arenaGameplayChatText0");
+        verify(chatText !== null);
+        compare(chatText.text, "<b>hello</b>");
+        compare(chatText.textFormat, Text.PlainText);
+
         const message = findChild(harness.host, "arenaGameplayMessage");
         verify(message !== null);
+        message.forceActiveFocus();
         tryCompare(message, "activeFocus", true);
         compare(harness.screen.enabled, true);
         harness.screen.controllerPulse();
@@ -407,10 +462,13 @@ TestCase {
         keyClick(Qt.Key_Return);
         compare(harness.session.sentMessages, ["hello"]);
         compare(message.text, "");
+        compare(message.activeFocus, true);
 
         message.text = "line one";
+        compare(message.activeFocus, true);
         keyClick(Qt.Key_Return, Qt.ShiftModifier);
         compare(harness.session.sentMessages, ["hello"]);
+        compare(message.activeFocus, true);
         verify(message.text.indexOf("\n") >= 0);
 
         keyClick(Qt.Key_Escape);
@@ -432,13 +490,131 @@ TestCase {
         verify(hint !== null);
         compare(hint.visible, true);
         compare(hint.activeFocus, false);
-        mouseClick(hint, hint.width / 2, hint.height / 2);
+        compare(hint.activeFocusOnTab, true);
+        compare(hint.Accessible.role, Accessible.Button);
+        verify(hint.Accessible.name.length > 0);
+        verify(hint.Accessible.description.indexOf("F2") >= 0);
+        hint.forceActiveFocus();
+        compare(hint.border.width, 2);
+        keyClick(Qt.Key_Space);
         tryCompare(harness.generalVars, "arenaOverlayHintVersion", 1);
         compare(hint.visible, false);
+        compare(hint.activeFocus, false);
+        compare(hint.activeFocusOnTab, false);
+        compare(harness.screen.activeFocus, true);
 
         const next = createHost(1);
         const nextHint = findChild(next.host, "arenaOverlayPlacementHint");
         verify(nextHint !== null);
         compare(nextHint.visible, false);
+    }
+
+    function test_gameplay_announcements_are_transition_only_and_round_scoped() {
+        const session = createTemporaryObject(sessionComponent, testCase);
+        verify(session !== null);
+        appendStanding(session.liveStandings, 0);
+        const overlay = createTemporaryObject(overlayComponent, testCase, {
+            "session": session,
+            "width": 420,
+            "height": 360
+        });
+        verify(overlay !== null);
+        wait(1);
+        compare(overlay.announcementCount, 0);
+        compare(overlay.lastAnnouncementText, "");
+
+        session.liveStandings.setProperty(0, "connected", false);
+        tryCompare(overlay, "announcementCount", 1);
+        verify(overlay.lastAnnouncementText.indexOf("Local") >= 0);
+        verify(overlay.lastAnnouncementText.indexOf("disconnected") >= 0);
+
+        session.liveStandings.setProperty(0, "exScore", 250);
+        wait(1);
+        compare(overlay.announcementCount, 1);
+        session.liveStandings.setProperty(0, "connected", true);
+        tryCompare(overlay, "announcementCount", 2);
+        verify(overlay.lastAnnouncementText.indexOf("reconnected") >= 0);
+
+        session.liveStandings.setProperty(0, "dnfReason", "aborted");
+        session.liveStandings.setProperty(0, "competitionState", "dnf");
+        tryCompare(overlay, "announcementCount", 3);
+        verify(overlay.lastAnnouncementText.indexOf("Local") >= 0);
+        verify(overlay.lastAnnouncementText.indexOf("Aborted") >= 0);
+
+        session.liveStandings.setProperty(0, "rank", 1);
+        session.liveStandings.setProperty(0, "dnfReason", "");
+        session.liveStandings.setProperty(0, "competitionState", "finished");
+        tryCompare(overlay, "announcementCount", 4);
+        verify(overlay.lastAnnouncementText.indexOf("Local") >= 0);
+        verify(overlay.lastAnnouncementText.indexOf("first") >= 0);
+
+        session.liveStandings.setProperty(0, "competitionState", "finished");
+        wait(1);
+        compare(overlay.announcementCount, 4);
+
+        session.liveStandings.roundId = "round-2";
+        session.liveStandings.clear();
+        appendStanding(session.liveStandings, 0);
+        appendStanding(session.liveStandings, 1);
+        appendStanding(session.liveStandings, 3);
+        wait(1);
+        compare(overlay.announcementCount, 4);
+
+        const winner = standingRecord(0);
+        winner.connected = false;
+        winner.competitionState = "finished";
+        winner.clearType = "hard";
+        const finisher = standingRecord(1);
+        finisher.connected = false;
+        finisher.competitionState = "finished";
+        const finalDnf = standingRecord(3);
+        finalDnf.connected = false;
+        finalDnf.competitionState = "dnf";
+        finalDnf.rank = 0;
+        finalDnf.dnfReason = "left";
+        session.liveStandings.clear();
+        session.liveStandings.append(winner);
+        session.liveStandings.append(finisher);
+        session.liveStandings.append(finalDnf);
+        tryCompare(overlay, "announcementCount", 6);
+        verify(overlay.lastAnnouncementText.indexOf("Left the room") >= 0);
+        verify(overlay.lastAnnouncementText.indexOf("disconnected") < 0);
+    }
+
+    function test_standings_focus_survives_reset_and_member_reorder() {
+        const session = createTemporaryObject(sessionComponent, testCase);
+        verify(session !== null);
+        appendStanding(session.liveStandings, 0);
+        appendStanding(session.liveStandings, 1);
+        appendStanding(session.liveStandings, 3);
+        const overlay = createTemporaryObject(overlayComponent, testCase, {
+            "session": session,
+            "width": 420,
+            "height": 360
+        });
+        verify(overlay !== null);
+        const standings = findChild(overlay, "arenaGameplayStandings");
+        verify(standings !== null);
+        standings.forceActiveFocus();
+        tryCompare(standings, "activeFocus", true);
+        keyClick(Qt.Key_Down);
+        tryCompare(standings, "currentIndex", 1);
+        compare(standings.currentItem.memberId, "member-target");
+
+        const local = standingRecord(0);
+        const target = standingRecord(1);
+        const third = standingRecord(3);
+        session.liveStandings.clear();
+        session.liveStandings.append(third);
+        session.liveStandings.append(local);
+        session.liveStandings.append(target);
+        tryCompare(standings, "count", 3);
+        tryCompare(standings, "currentIndex", 2);
+        tryVerify(function() {
+            return standings.currentItem !== null
+                && standings.currentItem.memberId === "member-target";
+        });
+        compare(standings.activeFocus, true);
+        compare(standings.currentItem.focusIndicatorVisible, true);
     }
 }

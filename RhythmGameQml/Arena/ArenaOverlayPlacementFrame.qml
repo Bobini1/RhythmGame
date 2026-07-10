@@ -314,6 +314,12 @@ Item {
         commitResolvedPlacement();
     }
 
+    function resizeByHandle(x, y, horizontalEdge, verticalEdge) {
+        const start = resolvedPixelRect;
+        resizeFrom(start, x, y, horizontalEdge, verticalEdge);
+        commitResolvedPlacement();
+    }
+
     function resetPlacement() {
         if (!canLoadPlacement())
             return;
@@ -467,6 +473,10 @@ Item {
             root.updateResize(x, y, horizontalEdge, verticalEdge);
         }
         onInteractionEnded: root.endResize()
+        onKeyboardResizeRequested: function(x, y, horizontalEdge,
+                                            verticalEdge) {
+            root.resizeByHandle(x, y, horizontalEdge, verticalEdge);
+        }
     }
 
     ResizeHandle {
