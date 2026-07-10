@@ -19,6 +19,8 @@ Item {
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
     property bool decideTransitionRequested: false
     property bool screenEntrySoundPlayed: false
     property bool selectScoreRefreshQueued: false
@@ -468,7 +470,9 @@ Item {
         case 5:
             return root.toggleSelectPanel(3);
         case 6:
-            globalRoot.openSettings(5);
+            if (!root.arenaSeated) {
+                globalRoot.openSettings(5);
+            }
             return true;
         case 8:
             return selectContext.showAllChartsForCurrentSong();
@@ -490,6 +494,10 @@ Item {
             }
             if (root.effectiveScreenKey === "select" && root.selectPanel > 0) {
                 root.closeSelectPanel();
+                return;
+            }
+            if (root.effectiveScreenKey === "select" && root.arenaSeated) {
+                Rg.arenaSession.leaveRoom();
                 return;
             }
             if (root.gameplayScreenActive && root.handleGameplayEscape()) {
@@ -1497,9 +1505,15 @@ Item {
     }
     function closeLr2Ranking() : var { return lr2Ranking.closeRanking(); }
     function launchLr2RankingReplayType(replayType: var, mouseButton: var) : var {
+        if (root.arenaSeated) {
+            return false;
+        }
         return lr2Ranking.launchReplayType(replayType, mouseButton);
     }
     function launchLr2RankingScoreAction(mouseButton: var) : var {
+        if (root.arenaSeated) {
+            return false;
+        }
         return lr2Ranking.launchSelectedScoreAction(mouseButton);
     }
     function isLr2RankingKey(key: var) : var { return key === BmsKey.Col14 || key === BmsKey.Col24; }
@@ -5773,7 +5787,7 @@ Item {
 
     function selectGoForward(item: var, autoplay: var, replay: var, replayScore: var) : void {
         let targetItem = item === undefined ? selectContext.activationItem() : item;
-        if (!autoplay && !replay && !replayScore
+        if (!root.arenaSeated && !autoplay && !replay && !replayScore
                 && lr2Ranking.launchEntryReplay(targetItem, 1, Qt.LeftButton)) {
             return;
         }
@@ -5785,6 +5799,9 @@ Item {
     }
 
     function launchSelectedReplayShortcut(mouseButton: var) : var {
+        if (root.arenaSeated) {
+            return true;
+        }
         if (!root.selectNavigationReady() || root.selectPanel > 0) {
             return false;
         }

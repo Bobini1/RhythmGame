@@ -1,5 +1,6 @@
 #include "Lr2SelectItemModel.h"
 #include "Lr2SelectBarModel.h"
+#include "Lr2SelectBarCell.h"
 #include "arena/ArenaAvailabilityIndex.h"
 
 #include <catch2/catch_test_macros.hpp>
@@ -101,8 +102,12 @@ TEST_CASE("LR2 select availability follows the atomic Arena index",
 
     REQUIRE(changes.size() >= 5);
     for (const auto& roles : changes) {
-        CHECK(roles == QVector<int>{
-                 Lr2SelectItemModel::ArenaAvailabilityRole });
+        CHECK(roles ==
+              QVector<int>{ Lr2SelectItemModel::DisplayTextRole,
+                            Lr2SelectItemModel::TitleTypeRole,
+                            Lr2SelectItemModel::BodyTypeRole,
+                            Lr2SelectItemModel::TitleRole,
+                            Lr2SelectItemModel::ArenaAvailabilityRole });
     }
 }
 
@@ -161,4 +166,68 @@ TEST_CASE("LR2 select bars expose Arena availability to skin delegates",
             .toInt() ==
           static_cast<int>(
             arena::ArenaAvailabilityIndex::Availability::AvailableToAll));
+}
+
+TEST_CASE("LR2 and Beatoraja decorate only locally present uncommon charts",
+          "[arena][ArenaSelect][lr2]")
+{
+    const auto commonHash = QByteArray(64, 'a');
+    const auto uncommonHash = QByteArray(64, 'b');
+    auto availability = arena::ArenaAvailabilityIndex{};
+    REQUIRE(availability.applyReset(1, packedHash(commonHash)));
+
+    SECTION("LR2 prefixes uncommon charts and preserves missing table entries")
+    {
+        auto missingEntry = QVariantMap{
+            { QStringLiteral("key"), QStringLiteral("missing") },
+            { QStringLiteral("type"), QStringLiteral("entry") },
+            { QStringLiteral("title"), QStringLiteral("Missing chart") },
+        };
+        auto model = Lr2SelectItemModel{};
+        model.setArenaUnavailablePrefix(
+          QStringLiteral("(arena unavailable) "));
+        model.setItems({ chart(uncommonHash), missingEntry });
+        model.setArenaAvailability(&availability);
+
+        CHECK(model.data(model.index(0, 0),
+                         Lr2SelectItemModel::DisplayTextRole)
+                .toString() == QStringLiteral("(arena unavailable) Chart"));
+        CHECK(model.data(model.index(0, 0), Lr2SelectItemModel::TitleRole)
+                .toString() == QStringLiteral("(arena unavailable) Chart"));
+        CHECK(model.data(model.index(1, 0),
+                         Lr2SelectItemModel::DisplayTextRole)
+                .toString() == QStringLiteral("(missing) Missing chart"));
+
+        auto cell = Lr2SelectBarCell{};
+        REQUIRE(model.populateBarCell(0, 0, &cell));
+        CHECK(cell.text() == QStringLiteral("(arena unavailable) Chart"));
+    }
+
+    SECTION("Beatoraja uses unavailable body and title types without a prefix")
+    {
+        auto model = Lr2SelectItemModel{};
+        model.setUseBeatorajaBarTextTypes(true);
+        model.setBarTitleTypes({ 2, 8 });
+        model.setBarBodyTypes({ 0, 4 });
+        model.setArenaUnavailablePrefix(
+          QStringLiteral("(arena unavailable) "));
+        model.setItems({ chart(uncommonHash) });
+        model.setArenaAvailability(&availability);
+
+        CHECK(model.data(model.index(0, 0),
+                         Lr2SelectItemModel::DisplayTextRole)
+                .toString() == QStringLiteral("Chart"));
+        CHECK(model.data(model.index(0, 0),
+                         Lr2SelectItemModel::TitleTypeRole)
+                .toInt() == 8);
+        CHECK(model.data(model.index(0, 0),
+                         Lr2SelectItemModel::BodyTypeRole)
+                .toInt() == 4);
+
+        auto cell = Lr2SelectBarCell{};
+        REQUIRE(model.populateBarCell(0, 0, &cell));
+        CHECK(cell.text() == QStringLiteral("Chart"));
+        CHECK(cell.titleType() == 8);
+        CHECK(cell.bodyType() == 4);
+    }
 }

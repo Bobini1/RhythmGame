@@ -31,6 +31,8 @@ FocusScope {
         readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
         readonly property bool selectShortcutEnabled: root.enabled && !searchEdit.activeFocus && !options.visible
         readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
+        readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+            || Rg.arenaSession.state === ArenaSession.Reconnecting
         readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
         readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.select || {})[QmlUtils.themeName] || ({})
         readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
@@ -80,6 +82,9 @@ FocusScope {
         }
 
         function openReplay(type, button) {
+            if (arenaSeated) {
+                return false;
+            }
             let score = getScore(type);
             if (!score) {
                 return false;
@@ -135,10 +140,16 @@ FocusScope {
         }
 
         function openSelectedAutoplay() {
+            if (arenaSeated) {
+                return true;
+            }
             return songList.openPlayable(songList.current, true, false, null);
         }
 
         function openSelectedReplay(button) {
+            if (arenaSeated) {
+                return true;
+            }
             let target = songList.current;
             if (!(target instanceof ChartData || target instanceof course)) {
                 return false;
@@ -408,6 +419,10 @@ FocusScope {
                 enabled: root.enabled
 
                 onActivated: {
+                    if (root.arenaSeated) {
+                        Rg.arenaSession.leaveRoom();
+                        return;
+                    }
                     sceneStack.pop();
                 }
             }

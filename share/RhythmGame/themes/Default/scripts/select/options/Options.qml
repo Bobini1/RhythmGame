@@ -4,6 +4,9 @@ import RhythmGameQml
 Rectangle {
     id: optionOverlay
 
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
+
     color: {
         let c = Qt.color("black");
         c.a = 0.5;
@@ -17,6 +20,12 @@ Rectangle {
         forcePlayOptions = false;
         forceTargetOptions = false;
         login.enabled = false;
+    }
+
+    onArenaSeatedChanged: {
+        if (arenaSeated) {
+            login.enabled = false;
+        }
     }
 
     function togglePlayOptions() {
@@ -121,11 +130,13 @@ Rectangle {
             source: Rg.profileList.battleActive ? "ScoreTargetSettingsBattle.qml" : "ScoreTargetSettingsSingle.qml"
         }
 
-        Login {
+        Loader {
             id: login
 
             anchors.centerIn: parent
+            active: !optionOverlay.arenaSeated
             enabled: false
+            sourceComponent: Login {}
         }
         Timer {
             id: p1StartTimer
@@ -133,6 +144,9 @@ Rectangle {
         }
         property bool start1Pressed: Input.start1
         onStart1PressedChanged: {
+            if (optionOverlay.arenaSeated) {
+                return;
+            }
             if (start1Pressed) {
                 if (p1StartTimer.running && !login.enabled || login.enabled) {
                     login.enabled = !login.enabled;
@@ -147,6 +161,9 @@ Rectangle {
         }
         property bool start2Pressed: Input.start2
         onStart2PressedChanged: {
+            if (optionOverlay.arenaSeated) {
+                return;
+            }
             if (start2Pressed) {
                 if (p2StartTimer.running && !login.enabled || login.enabled) {
                     login.enabled = !login.enabled;

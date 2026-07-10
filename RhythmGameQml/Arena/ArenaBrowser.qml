@@ -20,8 +20,11 @@ FocusScope {
     property Item dialogOrigin: null
     readonly property bool admissionInFlight: session.admissionPending
         && !session.loginRequired
+    readonly property bool updateRequired: session.directoryReady
+        && !session.roundsAvailable
     readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing
         && !admissionInFlight
+        && !updateRequired
 
     function errorText(key) : string {
         switch (key) {
@@ -153,6 +156,7 @@ FocusScope {
             Layout.fillWidth: true
             implicitHeight: bannerRow.implicitHeight + topPadding + bottomPadding
             visible: root.session.errorMessageKey.length > 0
+                || root.updateRequired
                 || root.session.state === ArenaSession.Disconnected
                 || root.session.state === ArenaSession.ConnectingAuthenticated
                 || root.admissionInFlight
@@ -168,6 +172,7 @@ FocusScope {
                     Layout.preferredWidth: 28
                     running: visible && root.visible
                     visible: root.session.errorMessageKey.length === 0
+                        && !root.updateRequired
                         && (root.session.state === ArenaSession.Disconnected
                             || root.session.state === ArenaSession.ConnectingAuthenticated
                             || root.admissionInFlight)
@@ -176,6 +181,9 @@ FocusScope {
                 Label {
                     Layout.fillWidth: true
                     text: {
+                        if (root.updateRequired) {
+                            return qsTr("Update RhythmGame to create or join Arena rooms.");
+                        }
                         if (root.session.errorMessageKey.length > 0) {
                             return root.errorText(root.session.errorMessageKey);
                         }
@@ -200,7 +208,8 @@ FocusScope {
 
         Loader {
             Layout.fillWidth: true
-            active: root.activeProfile.loginState !== Profile.LoggedIn
+            active: !root.updateRequired
+                && root.activeProfile.loginState !== Profile.LoggedIn
             sourceComponent: loginPanelComponent
         }
 

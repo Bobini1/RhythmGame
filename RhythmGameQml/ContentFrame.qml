@@ -63,6 +63,8 @@ ApplicationWindow {
     }
     Shortcut {
         autoRepeat: false
+        enabled: Rg.arenaSession.state !== ArenaSession.InRoom
+            && Rg.arenaSession.state !== ArenaSession.Reconnecting
         sequence: "F12"
         onActivated: globalRoot.openSettings()
     }
@@ -284,6 +286,10 @@ ApplicationWindow {
         }
 
         function openSelect() : void {
+            sceneStack.pushItem(selectComponent, selectScreenProperties());
+        }
+
+        function selectScreenProperties() : var {
             let selectScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select;
             let props = {};
             if (selectScreen && selectScreen.csvPath) {
@@ -292,7 +298,7 @@ ApplicationWindow {
                 props["skinSettingsData"] = selectScreen.settingsData || "";
                 props["screenKey"] = "select";
             }
-            sceneStack.pushItem(selectComponent, props);
+            return props;
         }
 
         function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var) : var {
@@ -390,7 +396,7 @@ ApplicationWindow {
 
                 required property ArenaSession session
                 property bool closing: false
-                readonly property bool showRoom: session.state === ArenaSession.InRoom
+                readonly property bool showSelect: session.state === ArenaSession.InRoom
                     || session.state === ArenaSession.Reconnecting
 
                 function requestCloseArena() : void {
@@ -433,25 +439,67 @@ ApplicationWindow {
                     }
                 }
 
+                Loader {
+                    id: arenaBrowserLoader
+
+                    anchors.fill: parent
+                    active: true
+                    enabled: !arenaShell.showSelect
+                    sourceComponent: arenaBrowserComponent
+                    visible: !arenaShell.showSelect
+
+                    onLoaded: {
+                        if (!arenaShell.showSelect && status === Loader.Ready && item) {
+                            item.forceActiveFocus();
+                        }
+                    }
+                    onVisibleChanged: {
+                        if (visible && status === Loader.Ready && item) {
+                            item.forceActiveFocus();
+                        }
+                    }
+                }
+
                 Component {
-                    id: arenaRoomComponent
+                    id: arenaSelectComponent
 
-                    ArenaRoom {
-                        session: arenaShell.session
+                    FocusScope {
+                        id: arenaSelectHost
 
-                        onChatRequested: text => arenaShell.session.sendChat(text)
-                        onExitRequested: arenaShell.requestCloseArena()
-                        onKickRequested: memberId => arenaShell.session.kickMember(memberId)
-                        onLeaveRequested: arenaShell.requestLeaveRoom()
-                        onRetryRequested: arenaShell.session.retry()
+                        Component.onCompleted: {
+                            const item = selectStack.pushItem(
+                                globalRoot.selectComponent,
+                                globalRoot.selectScreenProperties());
+                            if (item) {
+                                item.forceActiveFocus();
+                            }
+                        }
+
+                        StackView {
+                            id: selectStack
+
+                            anchors.fill: parent
+                        }
+
+                        ArenaSelectStrip {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.top
+                            anchors.topMargin: 16
+                            session: arenaShell.session
+                            width: Math.min(960, parent.width - 32)
+                            z: 1000000
+
+                            onLeaveRequested: arenaShell.requestLeaveRoom()
+                        }
                     }
                 }
 
                 Loader {
-                    id: arenaScreenLoader
+                    id: arenaSelectLoader
 
                     anchors.fill: parent
-                    sourceComponent: arenaShell.showRoom ? arenaRoomComponent : arenaBrowserComponent
+                    active: arenaShell.showSelect
+                    sourceComponent: arenaSelectComponent
 
                     onLoaded: {
                         if (status === Loader.Ready && item) {

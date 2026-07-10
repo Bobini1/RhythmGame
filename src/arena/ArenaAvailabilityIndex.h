@@ -9,7 +9,7 @@
 
 namespace arena {
 
-class ArenaAvailabilityIndex final : public QObject
+class ArenaAvailabilityIndex : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(State state READ state NOTIFY changed FINAL)
@@ -39,6 +39,8 @@ class ArenaAvailabilityIndex final : public QObject
     [[nodiscard]] auto revision() const -> qint64;
     [[nodiscard]] auto availability(QStringView sha256Hex) const
       -> Availability;
+    Q_INVOKABLE [[nodiscard]] auto availabilityFor(
+      const QString& sha256Hex) const -> Availability;
     [[nodiscard]] auto applyReset(qint64 targetRevision, QByteArray packed)
       -> bool;
     [[nodiscard]] auto applyDelta(qint64 baseRevision,

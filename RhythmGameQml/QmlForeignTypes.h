@@ -22,6 +22,7 @@
 #include "resource_managers/Tables.h"
 #include "sounds/AudioEngine.h"
 #include "arena/ArenaChatModel.h"
+#include "arena/ArenaAvailabilityIndex.h"
 #include "arena/ArenaMemberListModel.h"
 #include "arena/ArenaRoomListModel.h"
 #include "arena/ArenaSession.h"
@@ -79,6 +80,14 @@ struct ArenaSessionForeign
     QML_FOREIGN(arena::ArenaSession)
     QML_NAMED_ELEMENT(ArenaSession)
     QML_UNCREATABLE("ArenaSession is provided by Rg.arenaSession")
+};
+
+struct ArenaAvailabilityIndexForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaAvailabilityIndex)
+    QML_NAMED_ELEMENT(ArenaAvailabilityIndex)
+    QML_UNCREATABLE("Arena availability is provided by ArenaSession")
 };
 
 struct ChartFolderModelForeign

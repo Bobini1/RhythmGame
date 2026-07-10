@@ -221,6 +221,13 @@ ArenaAvailabilityIndex::availability(QStringView sha256Hex) const
 }
 
 auto
+ArenaAvailabilityIndex::availabilityFor(const QString& sha256Hex) const
+  -> Availability
+{
+    return availability(sha256Hex);
+}
+
+auto
 ArenaAvailabilityIndex::applyReset(qint64 targetRevision, QByteArray packed)
   -> bool
 {

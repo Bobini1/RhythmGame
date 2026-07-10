@@ -9,6 +9,8 @@ PathView {
     property var current: model[currentIndex]
     property var folderContents: []
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
     onOpenedFolder: refresh()
     function refresh() {
         refreshScores();
@@ -414,6 +416,12 @@ PathView {
     }
     function openPlayable(item, autoplay = false, replay = false, replayScore = null) {
         if (item instanceof ChartData) {
+            if (arenaSeated) {
+                if (!autoplay && !replay && !replayScore) {
+                    Rg.arenaSession.selectChart(item);
+                }
+                return true;
+            }
             console.info("Opening chart " + item.path);
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
@@ -424,6 +432,9 @@ PathView {
             return true;
         }
         if (item instanceof course) {
+            if (arenaSeated) {
+                return true;
+            }
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
                 globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);

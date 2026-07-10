@@ -582,7 +582,24 @@ void Lr2SelectItemModel::refreshArenaAvailability() {
 	}
 	emit dataChanged(index(0, 0),
 		index(m_items.size() - 1, 0),
-		{ ArenaAvailabilityRole });
+		{ DisplayTextRole,
+		  TitleTypeRole,
+		  BodyTypeRole,
+		  TitleRole,
+		  ArenaAvailabilityRole });
+}
+
+QString Lr2SelectItemModel::arenaUnavailablePrefix() const {
+	return m_arenaUnavailablePrefix;
+}
+
+void Lr2SelectItemModel::setArenaUnavailablePrefix(const QString& prefix) {
+	if (m_arenaUnavailablePrefix == prefix) {
+		return;
+	}
+	m_arenaUnavailablePrefix = prefix;
+	emit arenaUnavailablePrefixChanged();
+	refreshArenaAvailability();
 }
 
 QVariant Lr2SelectItemModel::rawItemAt(int row) const {
@@ -1076,9 +1093,9 @@ bool Lr2SelectItemModel::populateBarCell(int sourceRow, int visualRow, Lr2Select
 	cell->setEntry(item.raw);
 	cell->setCore(visualRow,
 				  true,
-				  item.displayText,
-				  item.titleType,
-				  item.bodyType,
+				  effectiveDisplayText(item),
+				  effectiveTitleType(item),
+				  effectiveBodyType(item),
 				  item.playLevel,
 				  item.difficulty,
 				  item.keymode,
@@ -1607,12 +1624,12 @@ QString Lr2SelectItemModel::keyFor(const QVariant& value, const QVariantMap& map
 QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	switch (role) {
 	case Qt::DisplayRole:
-	case DisplayTextRole: return item.displayText;
+	case DisplayTextRole: return effectiveDisplayText(item);
 	case KeyRole: return item.key;
 	case KindRole: return item.kind;
-	case TitleTypeRole: return item.titleType;
-	case BodyTypeRole: return item.bodyType;
-	case TitleRole: return item.title;
+	case TitleTypeRole: return effectiveTitleType(item);
+	case BodyTypeRole: return effectiveBodyType(item);
+	case TitleRole: return effectiveTitle(item);
 	case SubtitleRole: return item.subtitle;
 	case ArtistRole: return item.artist;
 	case SubartistRole: return item.subartist;
@@ -1650,10 +1667,48 @@ QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	case ActivationObjectRole: return item.raw;
 	case ChartDataRole: return item.kind == ChartKind ? item.raw : QVariant();
 	case ArenaAvailabilityRole:
-		if (item.kind != ChartKind || item.sha256.isEmpty() || !m_arenaAvailability) {
-			return static_cast<int>(arena::ArenaAvailabilityIndex::Availability::NotApplicable);
-		}
-		return static_cast<int>(m_arenaAvailability->availability(item.sha256));
+		return static_cast<int>(arenaAvailabilityForItem(item));
 	default: return {};
 	}
+}
+
+arena::ArenaAvailabilityIndex::Availability Lr2SelectItemModel::arenaAvailabilityForItem(const Item& item) const {
+	if (item.kind != ChartKind || item.sha256.isEmpty() || !m_arenaAvailability) {
+		return arena::ArenaAvailabilityIndex::Availability::NotApplicable;
+	}
+	return m_arenaAvailability->availability(item.sha256);
+}
+
+QString Lr2SelectItemModel::effectiveDisplayText(const Item& item) const {
+	if (!m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome) {
+		return m_arenaUnavailablePrefix + item.displayText;
+	}
+	return item.displayText;
+}
+
+QString Lr2SelectItemModel::effectiveTitle(const Item& item) const {
+	if (!m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome) {
+		return m_arenaUnavailablePrefix + item.title;
+	}
+	return item.title;
+}
+
+int Lr2SelectItemModel::effectiveTitleType(const Item& item) const {
+	if (m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome
+		&& variantListContainsInt(m_barTitleTypes, 8)) {
+		return 8;
+	}
+	return item.titleType;
+}
+
+int Lr2SelectItemModel::effectiveBodyType(const Item& item) const {
+	if (m_useBeatorajaBarTextTypes
+		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome
+		&& variantListContainsInt(m_barBodyTypes, 4)) {
+		return 4;
+	}
+	return item.bodyType;
 }

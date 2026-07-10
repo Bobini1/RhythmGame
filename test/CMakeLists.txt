@@ -17,6 +17,7 @@ add_executable(RhythmGame_test
         arena/ArenaInventorySource.test.cpp
         arena/ArenaProtocol.test.cpp
         arena/ArenaRoundLoader.test.cpp
+        arena/ArenaSelectIntegration.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
         arena/ArenaSessionMatrix.test.cpp

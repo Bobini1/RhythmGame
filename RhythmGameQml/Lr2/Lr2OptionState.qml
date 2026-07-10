@@ -661,6 +661,11 @@ QtObject {
         if (!vars) {
             return;
         }
+        let arenaSeated = Rg.arenaSession.state === ArenaSession.InRoom
+            || Rg.arenaSession.state === ArenaSession.Reconnecting;
+        if (arenaSeated && normalized === 1) {
+            normalized = index < root.lr2BattleIndex ? 0 : 2;
+        }
         if (normalized === 1) {
             vars.dpOptions = DpOptions.Off;
             if (root.ensureBattleProfiles()) {

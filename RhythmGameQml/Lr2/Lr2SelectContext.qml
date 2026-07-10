@@ -48,6 +48,9 @@ Item {
     property alias barMoveStartMs: nativeNavigation.barMoveStartMs
     property alias barMoveEndMs: nativeNavigation.barMoveEndMs
     property bool componentReady: false
+    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
+        || Rg.arenaSession.state === ArenaSession.Reconnecting
+    readonly property string arenaUnavailablePrefix: qsTr("(arena unavailable) ")
     property bool updatesActive: true
     property alias suppressVisualIndexPublish: nativeNavigation.suppressVisualIndexPublish
     property alias scrollDirection: nativeNavigation.scrollDirection
@@ -309,6 +312,8 @@ Item {
 
     Lr2SelectItemModel {
         id: selectItemModel
+        arenaAvailability: root.arenaSeated ? Rg.arenaSession.availability : null
+        arenaUnavailablePrefix: root.arenaUnavailablePrefix
         useBeatorajaBarTextTypes: root.useBeatorajaBarTextTypes
         useBeatorajaSelectOptions: root.useBeatorajaSelectOptions
         barBodyTypes: root.barBodyTypes
@@ -1635,11 +1640,20 @@ Item {
 
     function goForward(item: var, autoplay: var, replay: var, replayScore: var) : var {
         if (isRankingEntry(item)) {
+            if (root.arenaSeated) {
+                return;
+            }
             let baseItem = rankingBaseItem;
             hideRanking();
             item = baseItem;
         }
         if (isChart(item)) {
+            if (root.arenaSeated) {
+                if (!autoplay && !replay && !replayScore) {
+                    Rg.arenaSession.selectChart(item);
+                }
+                return;
+            }
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
                 globalRoot.openChart(item.path, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
@@ -1649,6 +1663,9 @@ Item {
             return;
         }
         if (isCourse(item)) {
+            if (root.arenaSeated) {
+                return;
+            }
             let useReplay = !!replay && !!replayScore;
             if (Rg.profileList.battleActive) {
                 globalRoot.openCourse(item, Rg.profileList.battleProfiles.player1Profile, !!autoplay, useReplay, replayScore || null, Rg.profileList.battleProfiles.player2Profile, !!autoplay, false, null);
@@ -1722,7 +1739,7 @@ Item {
         if (isChart(item) || isEntry(item)) {
             let title = item.title || "";
             let subtitle = item.subtitle || "";
-            let prefix = isMissingTableEntry(item) && !root.useBeatorajaBarTextTypes ? "(missing) " : "";
+            let prefix = root.entryTitlePrefix(item);
             return prefix + (includeSubtitle && subtitle ? title + " " + subtitle : title);
         }
         if (isLevel(item)) {
@@ -1746,10 +1763,29 @@ Item {
             return item.title || "";
         }
         if (isChart(item) || isEntry(item)) {
-            let prefix = isMissingTableEntry(item) && !root.useBeatorajaBarTextTypes ? "(missing) " : "";
+            let prefix = root.entryTitlePrefix(item);
             return prefix + (item.title || "");
         }
         return entryDisplayName(item, false);
+    }
+
+    function entryTitlePrefix(item: var) : string {
+        if (root.useBeatorajaBarTextTypes) {
+            return "";
+        }
+        if (isMissingTableEntry(item)) {
+            return qsTr("(missing) ");
+        }
+        if (!root.arenaSeated || !isChart(item)) {
+            return "";
+        }
+        const availability = Rg.arenaSession.availability;
+        const revision = availability.revision;
+        return revision >= 0
+                && availability.availabilityFor(item.sha256 || "")
+                    === ArenaAvailabilityIndex.UnavailableToSome
+            ? root.arenaUnavailablePrefix
+            : "";
     }
 
     function currentFolderDisplayName() : var {
