@@ -9,6 +9,40 @@ namespace arena {
 namespace {
 
 auto
+inventoryStateName(InventoryState state) -> QString
+{
+    switch (state) {
+        case InventoryState::Missing:
+            return QStringLiteral("missing");
+        case InventoryState::Syncing:
+            return QStringLiteral("syncing");
+        case InventoryState::Ready:
+            return QStringLiteral("ready");
+    }
+    return {};
+}
+
+auto
+roundStateName(MemberRoundState state) -> QString
+{
+    switch (state) {
+        case MemberRoundState::Eligible:
+            return QStringLiteral("eligible");
+        case MemberRoundState::Waiting:
+            return QStringLiteral("waiting");
+        case MemberRoundState::Probing:
+            return QStringLiteral("probing");
+        case MemberRoundState::Loading:
+            return QStringLiteral("loading");
+        case MemberRoundState::Loaded:
+            return QStringLiteral("loaded");
+        case MemberRoundState::Playing:
+            return QStringLiteral("playing");
+    }
+    return {};
+}
+
+auto
 uniqueMemberIds(const QVector<Member>& members) -> bool
 {
     QSet<QString> ids;
@@ -57,6 +91,16 @@ ArenaMemberListModel::data(const QModelIndex& index, int role) const -> QVariant
             return member.memberId == m_selfMemberId;
         case LobbyWinsRole:
             return member.lobbyWins;
+        case ReadyRole:
+            return member.ready;
+        case InventoryStateRole:
+            return inventoryStateName(member.inventoryState);
+        case InventoryRevisionRole:
+            return member.inventoryRevision;
+        case AvailabilityAppliedRevisionRole:
+            return member.availabilityAppliedRevision;
+        case RoundStateRole:
+            return roundStateName(member.roundState);
     }
     return {};
 }
@@ -64,10 +108,20 @@ ArenaMemberListModel::data(const QModelIndex& index, int role) const -> QVariant
 auto
 ArenaMemberListModel::roleNames() const -> QHash<int, QByteArray>
 {
-    return { { MemberIdRole, "memberId" },   { DisplayNameRole, "displayName" },
-             { AvatarUrlRole, "avatarUrl" }, { ConnectedRole, "connected" },
-             { OwnerRole, "owner" },         { SelfRole, "self" },
-             { LobbyWinsRole, "lobbyWins" } };
+    return {
+        { MemberIdRole, "memberId" },
+        { DisplayNameRole, "displayName" },
+        { AvatarUrlRole, "avatarUrl" },
+        { ConnectedRole, "connected" },
+        { OwnerRole, "owner" },
+        { SelfRole, "self" },
+        { LobbyWinsRole, "lobbyWins" },
+        { ReadyRole, "ready" },
+        { InventoryStateRole, "inventoryState" },
+        { InventoryRevisionRole, "inventoryRevision" },
+        { AvailabilityAppliedRevisionRole, "availabilityAppliedRevision" },
+        { RoundStateRole, "roundState" },
+    };
 }
 
 auto
@@ -118,6 +172,22 @@ ArenaMemberListModel::upsert(Member member)
     }
     if (found->lobbyWins != member.lobbyWins) {
         changedRoles.push_back(LobbyWinsRole);
+    }
+    if (found->ready != member.ready) {
+        changedRoles.push_back(ReadyRole);
+    }
+    if (found->inventoryState != member.inventoryState) {
+        changedRoles.push_back(InventoryStateRole);
+    }
+    if (found->inventoryRevision != member.inventoryRevision) {
+        changedRoles.push_back(InventoryRevisionRole);
+    }
+    if (found->availabilityAppliedRevision !=
+        member.availabilityAppliedRevision) {
+        changedRoles.push_back(AvailabilityAppliedRevisionRole);
+    }
+    if (found->roundState != member.roundState) {
+        changedRoles.push_back(RoundStateRole);
     }
     if (changedRoles.isEmpty()) {
         // userId is intentionally not a visible role, but retain the latest

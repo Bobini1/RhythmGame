@@ -21,6 +21,11 @@ class ArenaMemberListModel : public QAbstractListModel
         OwnerRole,
         SelfRole,
         LobbyWinsRole,
+        ReadyRole,
+        InventoryStateRole,
+        InventoryRevisionRole,
+        AvailabilityAppliedRevisionRole,
+        RoundStateRole,
     };
     Q_ENUM(Roles)
 

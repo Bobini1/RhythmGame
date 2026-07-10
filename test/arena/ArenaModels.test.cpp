@@ -71,16 +71,23 @@ TEST_CASE("ArenaModels expose exact role contracts", "[arena][models]")
             { ArenaRoomListModel::ReservedCountRole, "reservedCount" },
             { ArenaRoomListModel::MaximumCountRole, "maximumCount" },
           });
-    CHECK(members.roleNames() ==
-          QHash<int, QByteArray>{
-            { ArenaMemberListModel::MemberIdRole, "memberId" },
-            { ArenaMemberListModel::DisplayNameRole, "displayName" },
-            { ArenaMemberListModel::AvatarUrlRole, "avatarUrl" },
-            { ArenaMemberListModel::ConnectedRole, "connected" },
-            { ArenaMemberListModel::OwnerRole, "owner" },
-            { ArenaMemberListModel::SelfRole, "self" },
-            { ArenaMemberListModel::LobbyWinsRole, "lobbyWins" },
-          });
+    CHECK(
+      members.roleNames() ==
+      QHash<int, QByteArray>{
+        { ArenaMemberListModel::MemberIdRole, "memberId" },
+        { ArenaMemberListModel::DisplayNameRole, "displayName" },
+        { ArenaMemberListModel::AvatarUrlRole, "avatarUrl" },
+        { ArenaMemberListModel::ConnectedRole, "connected" },
+        { ArenaMemberListModel::OwnerRole, "owner" },
+        { ArenaMemberListModel::SelfRole, "self" },
+        { ArenaMemberListModel::LobbyWinsRole, "lobbyWins" },
+        { ArenaMemberListModel::ReadyRole, "ready" },
+        { ArenaMemberListModel::InventoryStateRole, "inventoryState" },
+        { ArenaMemberListModel::InventoryRevisionRole, "inventoryRevision" },
+        { ArenaMemberListModel::AvailabilityAppliedRevisionRole,
+          "availabilityAppliedRevision" },
+        { ArenaMemberListModel::RoundStateRole, "roundState" },
+      });
     CHECK(chats.roleNames() ==
           QHash<int, QByteArray>{
             { ArenaChatModel::MessageIdRole, "messageId" },
@@ -256,6 +263,75 @@ TEST_CASE("ArenaModels update member owner self and connectivity roles tightly",
     CHECK(model.remove(QStringLiteral("one")));
     model.clear();
     CHECK(model.rowCount() == 0);
+}
+
+TEST_CASE("ArenaModels expose Phase 2 room and member state as exact roles",
+          "[arena][models]")
+{
+    using namespace arena;
+    ArenaRoomListModel rooms;
+    ArenaMemberListModel members;
+
+    auto loadingRoom = room(QStringLiteral("room"));
+    loadingRoom.phase = RoomPhase::Loading;
+    REQUIRE(rooms.replace({ loadingRoom }));
+    CHECK(
+      rooms.data(rooms.index(0, 0), ArenaRoomListModel::PhaseRole).toString() ==
+      QStringLiteral("loading"));
+
+    auto row = member(QStringLiteral("member"));
+    REQUIRE(members.replace({ row }, std::nullopt, QString{}));
+    CHECK_FALSE(
+      members.data(members.index(0, 0), ArenaMemberListModel::ReadyRole)
+        .toBool());
+    CHECK(members
+            .data(members.index(0, 0), ArenaMemberListModel::InventoryStateRole)
+            .toString() == QStringLiteral("missing"));
+    CHECK(
+      members
+        .data(members.index(0, 0), ArenaMemberListModel::InventoryRevisionRole)
+        .toLongLong() == 0);
+    CHECK(members
+            .data(members.index(0, 0),
+                  ArenaMemberListModel::AvailabilityAppliedRevisionRole)
+            .toLongLong() == 0);
+    CHECK(
+      members.data(members.index(0, 0), ArenaMemberListModel::RoundStateRole)
+        .toString() == QStringLiteral("eligible"));
+
+    QVector<QList<int>> memberChanges;
+    QObject::connect(
+      &members,
+      &QAbstractItemModel::dataChanged,
+      [&](const QModelIndex&, const QModelIndex&, const QList<int>& roles) {
+          memberChanges.push_back(roles);
+      });
+    row.ready = true;
+    row.inventoryState = InventoryState::Ready;
+    row.inventoryRevision = 7;
+    row.availabilityAppliedRevision = 9;
+    row.roundState = MemberRoundState::Loading;
+    members.upsert(row);
+    REQUIRE(memberChanges.size() == 1);
+    CHECK(memberChanges.front() ==
+          QList<int>{ ArenaMemberListModel::ReadyRole,
+                      ArenaMemberListModel::InventoryStateRole,
+                      ArenaMemberListModel::InventoryRevisionRole,
+                      ArenaMemberListModel::AvailabilityAppliedRevisionRole,
+                      ArenaMemberListModel::RoundStateRole });
+
+    QList<int> roomChanges;
+    QObject::connect(&rooms,
+                     &QAbstractItemModel::dataChanged,
+                     [&](const QModelIndex&,
+                         const QModelIndex&,
+                         const QList<int>& roles) { roomChanges = roles; });
+    loadingRoom.phase = RoomPhase::Playing;
+    rooms.upsert(loadingRoom);
+    CHECK(roomChanges == QList<int>{ ArenaRoomListModel::PhaseRole });
+    CHECK(
+      rooms.data(rooms.index(0, 0), ArenaRoomListModel::PhaseRole).toString() ==
+      QStringLiteral("playing"));
 }
 
 TEST_CASE("ArenaModels keep chat ordered bounded and self-aware",

@@ -207,6 +207,7 @@ RootSongFolders::remove(const int index)
     beginRemoveRows(QModelIndex(), index, index);
     folders.erase(folders.begin() + index);
     endRemoveRows();
+    emit chartSetMutationCommitted();
 }
 auto
 RootSongFolders::at(const int index) const -> QVariant
@@ -241,6 +242,8 @@ ScanningQueue::ScanningQueue(db::SqliteCppDb* db,
         setCurrentScannedFolder({});
         if (!scanItems.empty()) {
             performTask();
+        } else {
+            emit queueDrained();
         }
     });
 }

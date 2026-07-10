@@ -68,6 +68,9 @@ class RootSongFolders final : public QAbstractListModel
     Q_INVOKABLE bool add(const QString& folder);
     Q_INVOKABLE void remove(int index);
     Q_INVOKABLE QVariant at(int index) const;
+
+  signals:
+    void chartSetMutationCommitted();
 };
 
 class ScanningQueue final : public QAbstractListModel
@@ -79,7 +82,7 @@ class ScanningQueue final : public QAbstractListModel
     std::deque<QSharedPointer<RootSongFolder>> scanItems;
     QFuture<void> scanFuture;
     QFutureWatcher<void> scanFutureWatcher;
-    std::atomic_bool stop;
+    std::atomic_bool stop{ false };
 
     db::SqliteCppDb* db;
     resource_managers::SongDbScanner scanner;
@@ -110,6 +113,7 @@ class ScanningQueue final : public QAbstractListModel
 
   signals:
     void currentScannedFolderChanged();
+    void queueDrained();
 };
 
 class RootSongFoldersConfig final : public QObject

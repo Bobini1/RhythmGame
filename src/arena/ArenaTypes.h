@@ -34,7 +34,9 @@ inline constexpr qint64 MaxJsonSafeInteger = 9'007'199'254'740'991LL;
 
 enum class RoomPhase
 {
-    Selecting
+    Selecting,
+    Loading,
+    Playing,
 };
 enum class MemberStatus
 {
@@ -46,6 +48,23 @@ enum class MemberLeftReason
     Left,
     Kicked,
     GraceExpired
+};
+
+enum class InventoryState
+{
+    Missing,
+    Syncing,
+    Ready,
+};
+
+enum class MemberRoundState
+{
+    Eligible,
+    Waiting,
+    Probing,
+    Loading,
+    Loaded,
+    Playing,
 };
 
 enum class CommandErrorCode
@@ -96,6 +115,11 @@ struct Member
     PublicIdentity identity;
     MemberStatus status;
     qint64 lobbyWins{};
+    bool ready{};
+    InventoryState inventoryState{ InventoryState::Missing };
+    qint64 inventoryRevision{};
+    qint64 availabilityAppliedRevision{};
+    MemberRoundState roundState{ MemberRoundState::Eligible };
     bool operator==(const Member&) const = default;
 };
 

@@ -94,6 +94,13 @@ find_package(zlib-ng CONFIG REQUIRED)
 
 qt_add_library(RhythmGame_lib OBJECT
         src/arena/ArenaTypes.h
+        src/arena/ArenaBinaryProtocol.h
+        src/arena/ArenaBinaryProtocol.cpp
+        src/arena/ArenaAvailabilityIndex.h
+        src/arena/ArenaAvailabilityIndex.cpp
+        src/arena/ArenaInventorySource.h
+        src/arena/SqliteArenaInventorySource.h
+        src/arena/SqliteArenaInventorySource.cpp
         src/arena/ArenaProtocol.h
         src/arena/ArenaProtocol.cpp
         src/arena/ArenaTransport.h

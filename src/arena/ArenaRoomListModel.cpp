@@ -9,6 +9,20 @@ namespace arena {
 namespace {
 
 auto
+phaseName(RoomPhase phase) -> QString
+{
+    switch (phase) {
+        case RoomPhase::Selecting:
+            return QStringLiteral("selecting");
+        case RoomPhase::Loading:
+            return QStringLiteral("loading");
+        case RoomPhase::Playing:
+            return QStringLiteral("playing");
+    }
+    return {};
+}
+
+auto
 uniqueRoomIds(const QVector<RoomSummary>& rooms) -> bool
 {
     QSet<QString> ids;
@@ -48,7 +62,7 @@ ArenaRoomListModel::data(const QModelIndex& index, int role) const -> QVariant
         case NameRole:
             return room.name;
         case PhaseRole:
-            return QStringLiteral("selecting");
+            return phaseName(room.phase);
         case PasswordProtectedRole:
             return room.hasPassword;
         case ConnectedCountRole:

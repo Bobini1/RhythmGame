@@ -12,6 +12,9 @@ find_package(Catch2 3 REQUIRED)
 # ---- Tests ----
 
 add_executable(RhythmGame_test
+        arena/ArenaBinaryProtocol.test.cpp
+        arena/ArenaAvailabilityIndex.test.cpp
+        arena/ArenaInventorySource.test.cpp
         arena/ArenaProtocol.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
@@ -20,6 +23,7 @@ add_executable(RhythmGame_test
         arena/FakeArenaTransport.h
         arena/FakeArenaIdentityProvider.h
         arena/FakeArenaScheduler.h
+        arena/FakeArenaInventorySource.h
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
@@ -48,6 +52,7 @@ target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 target_compile_definitions(
         RhythmGame_test PRIVATE
         ARENA_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/protocol-v1.json"
+        ARENA_BINARY_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-binary-goldens.json"
 )
 set_target_properties(
         RhythmGame_test PROPERTIES
