@@ -21,10 +21,7 @@ Item {
 
     readonly property bool arenaNativeResultPresentation: true
     readonly property var arenaResult: Rg.arenaSession.presentedResult
-    readonly property bool arenaResultMatches: root.arenaRoundId.length > 0
-        && Rg.arenaSession.resultPresentationActive === true
-        && root.arenaResult && root.arenaResult.valid === true
-        && root.arenaRoundId === String(root.arenaResult.roundId || "")
+    readonly property bool arenaResultMatches: root.arenaRoundId.length > 0 && Rg.arenaSession.resultPresentationActive === true && root.arenaResult && root.arenaResult.valid === true && root.arenaRoundId === String(root.arenaResult.roundId || "")
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
@@ -39,7 +36,7 @@ Item {
     readonly property int startInputMillis: 500
     property bool acceptsInput: startInputMillis <= 0
 
-    function presentArenaResult(roundId: string) : bool {
+    function presentArenaResult(roundId: string): bool {
         root.arenaRoundId = roundId;
         return root.arenaRoundId.length > 0;
     }
@@ -53,6 +50,12 @@ Item {
     ThemeFont {
         id: resultStatsFont
         fileName: root.themeVars.resultStatsFont
+        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+    }
+
+    ThemeFont {
+        id: resultTitleFont
+        fileName: root.themeVars.resultTitleFont
         fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
     }
 
@@ -76,20 +79,21 @@ Item {
         onTriggered: root.acceptsInput = true
     }
 
-    Input.onButtonPressed: (key) => {
+    Input.onButtonPressed: key => {
         if (!root.acceptsInput) {
             return;
         }
         if (cycleGaugeForKey(key)) {
             return;
         }
-        if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17,
-            BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
+        if ([BmsKey.Col11, BmsKey.Col12, BmsKey.Col13, BmsKey.Col14, BmsKey.Col15, BmsKey.Col16, BmsKey.Col17, BmsKey.Col21, BmsKey.Col22, BmsKey.Col23, BmsKey.Col24, BmsKey.Col25, BmsKey.Col26, BmsKey.Col27].includes(key)) {
             sceneStack.pop();
         }
     }
 
     Image {
+        id: resultBackground
+
         fillMode: Image.PreserveAspectCrop
         height: parent.height
         source: root.imagesUrl + (root.score1.result.clearType === "FAILED" ? "failed.png" : "clear.png")
@@ -136,8 +140,7 @@ Item {
                 let date = new Date();
                 let timestamp = Qt.formatDateTime(date, "yyyyMMdd_HHmmss");
 
-                let g = Helpers.getGrade(root.score1.result.points,
-                                         root.score1.result.maxPoints).toUpperCase();
+                let g = Helpers.getGrade(root.score1.result.points, root.score1.result.maxPoints).toUpperCase();
                 let clearType = root.score1.result.clearType;
 
                 let prefix = "";
@@ -152,14 +155,11 @@ Item {
                     }
                 }
 
-                let rawTitle = root.chartData
-                    ? root.chartData.title + (root.chartData.subtitle ? " " + root.chartData.subtitle : "")
-                    : root.course?.name ?? "";
+                let rawTitle = root.chartData ? root.chartData.title + (root.chartData.subtitle ? " " + root.chartData.subtitle : "") : root.course?.name ?? "";
 
                 let title = Helpers.sanitizeFilename(rawTitle);
 
-                let filename = timestamp + "_" + prefix + title
-                               + " " + clearType + " " + g + ".png";
+                let filename = timestamp + "_" + prefix + title + " " + clearType + " " + g + ".png";
                 root.grabToImage(function (grabResult) {
                     let filepath = Rg.programSettings.screenshotsFolder + "/" + filename;
                     if (grabResult.saveToFile(filepath)) {
@@ -217,9 +217,21 @@ Item {
 
                 SequentialAnimation {
                     id: fadeAnim
-                    NumberAnimation { target: screenshotMessage; property: "opacity"; to: 1.0; duration: 150 }
-                    PauseAnimation { duration: 3000 }
-                    NumberAnimation { target: screenshotMessage; property: "opacity"; to: 0.0; duration: 600 }
+                    NumberAnimation {
+                        target: screenshotMessage
+                        property: "opacity"
+                        to: 1.0
+                        duration: 150
+                    }
+                    PauseAnimation {
+                        duration: 3000
+                    }
+                    NumberAnimation {
+                        target: screenshotMessage
+                        property: "opacity"
+                        to: 0.0
+                        duration: 600
+                    }
                 }
             }
 
@@ -287,39 +299,43 @@ Item {
                 }
             }
 
-            Loader {
-                anchors {
-                    bottom: parent.bottom
-                    bottomMargin: 36
-                    right: parent.right
-                    rightMargin: 44
-                    top: chartInfoRow.bottom
-                    topMargin: 20
-                }
-                active: root.arenaResultMatches && !root.isBattle
-                sourceComponent: arenaResultPanelComponent
-                width: 600
+            CourseSongList {
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 20
+                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 10
+                width: parent.width
+                chartDatas: root.chartDatas
             }
+        }
 
-            Component {
-                id: arenaResultPanelComponent
+        Loader {
+            id: arenaResultPanelLoader
 
-                ArenaResultPanel {
-                    fontFamily: resultStatsFont.fontFamily
-                    localMemberId: String(
-                        Rg.arenaSession.selfMemberId || "")
-                    result: root.arenaResult
-                }
+            parent: resultBackground
+            anchors {
+                bottom: parent.bottom
+                bottomMargin: 24
+                right: parent.right
+                rightMargin: 24
+                top: parent.top
+                topMargin: Math.max(72, parent.height * 0.12)
             }
+            active: root.arenaResultMatches && !root.isBattle
+            sourceComponent: arenaResultPanelComponent
+            width: Math.min(600, Math.max(360, parent.width * 0.46))
+            z: 20
+        }
 
-        CourseSongList {
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 20
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 10
-            width: parent.width
-            chartDatas: root.chartDatas
+        Component {
+            id: arenaResultPanelComponent
+
+            ArenaResultPanel {
+                localMemberId: String(Rg.arenaSession.selfMemberId || "")
+                result: root.arenaResult
+                statsFontFamily: resultStatsFont.fontFamily
+                textFontFamily: resultTitleFont.fontFamily
+            }
         }
     }
-}
 }

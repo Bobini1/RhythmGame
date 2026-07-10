@@ -1,5 +1,6 @@
 pragma ComponentBehavior: Bound
 
+import RhythmGameQml
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
@@ -9,42 +10,66 @@ Rectangle {
 
     required property var result
     required property string localMemberId
-    required property string fontFamily
+    required property string statsFontFamily
+    required property string textFontFamily
     property bool expanded: true
+    property string lastAnnouncementKey: ""
+    property string lastAnnouncementText: ""
 
     readonly property string winnerSummary: {
         if (!panel.result || !panel.result.valid || !panel.result.finalized) {
             return qsTr("Waiting for final standings");
         }
         const names = panel.result.winnerNames || [];
-        return names.length > 0
-            ? qsTr("Winners: %1").arg(names.join(", "))
-            : qsTr("No winner");
+        return names.length > 0 ? qsTr("Winners: %1").arg(names.join(", ")) : qsTr("No winner");
     }
     readonly property string localStanding: {
-        const count = panel.result && panel.result.valid
-            ? Number(panel.result.participantCount || 0) : 0;
+        const count = panel.result && panel.result.valid ? Number(panel.result.participantCount || 0) : 0;
         if (panel.result && panel.result.localDnf) {
             return qsTr("DNF / %1").arg(count);
         }
-        const rank = panel.result && panel.result.finalized
-            ? Number(panel.result.localRank || 0) : 0;
-        return rank > 0
-            ? qsTr("#%1 / %2").arg(rank).arg(count)
-            : qsTr("— / %1").arg(count);
+        const rank = panel.result && panel.result.finalized ? Number(panel.result.localRank || 0) : 0;
+        return rank > 0 ? qsTr("#%1 / %2").arg(rank).arg(count) : qsTr("— / %1").arg(count);
+    }
+    readonly property string finalAnnouncementText: panel.result && panel.result.valid && panel.result.finalized ? qsTr("Arena result. %1. Your standing: %2").arg(panel.winnerSummary).arg(panel.localStanding) : ""
+
+    function announceFinalResult() {
+        if (panel.finalAnnouncementText.length === 0) {
+            return;
+        }
+        const roundId = String(panel.result.roundId || "");
+        const key = roundId + "\n" + panel.finalAnnouncementText;
+        if (key === panel.lastAnnouncementKey) {
+            return;
+        }
+        panel.lastAnnouncementKey = key;
+        panel.lastAnnouncementText = panel.finalAnnouncementText;
+        Accessible.announce(panel.lastAnnouncementText);
     }
 
-    function rankText(rank, state) : string {
+    function rankText(rank, state): string {
         if (state === "dnf") {
             return qsTr("DNF");
         }
         return rank > 0 ? qsTr("#%1").arg(rank) : "—";
     }
 
+    onFinalAnnouncementTextChanged: Qt.callLater(panel.announceFinalResult)
+
+    Component.onCompleted: Qt.callLater(panel.announceFinalResult)
+
+    Accessible.role: Accessible.Pane
+    Accessible.name: qsTr("Arena result")
+    Accessible.description: panel.finalAnnouncementText.length > 0 ? panel.finalAnnouncementText : qsTr("Waiting for final standings")
+
     color: "#e8202430"
     border.color: "#80ffffff"
     border.width: 2
     radius: 10
+
+    ArenaCompetitionText {
+        id: competitionText
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -59,25 +84,29 @@ Rectangle {
                 Layout.fillWidth: true
                 color: "white"
                 font.bold: true
-                font.family: panel.fontFamily
+                font.contextFontMerging: true
+                font.family: panel.textFontFamily
                 font.pixelSize: 28
                 text: qsTr("Arena result")
                 textFormat: Text.PlainText
             }
 
             Text {
-                color: panel.result && panel.result.finalized
-                    ? "#a9f5bb" : "#ffe38a"
+                color: panel.result && panel.result.finalized ? "#a9f5bb" : "#ffe38a"
                 font.bold: true
-                font.family: panel.fontFamily
+                font.contextFontMerging: true
+                font.family: panel.textFontFamily
                 font.pixelSize: 20
-                text: panel.result && panel.result.finalized
-                    ? qsTr("Final") : qsTr("Waiting for players…")
+                text: panel.result && panel.result.finalized ? qsTr("Final") : qsTr("Waiting for players…")
                 textFormat: Text.PlainText
             }
 
             Button {
+                objectName: "arenaNativeResultExpand"
                 text: panel.expanded ? qsTr("Compact") : qsTr("Details")
+
+                Accessible.name: text
+                Accessible.description: panel.expanded ? qsTr("Hide detailed Arena standings") : qsTr("Show detailed Arena standings")
                 onClicked: panel.expanded = !panel.expanded
             }
         }
@@ -86,7 +115,8 @@ Rectangle {
             Layout.fillWidth: true
             color: "white"
             font.bold: true
-            font.family: panel.fontFamily
+            font.contextFontMerging: true
+            font.family: panel.textFontFamily
             font.pixelSize: 24
             text: panel.winnerSummary
             textFormat: Text.PlainText
@@ -97,7 +127,8 @@ Rectangle {
             Layout.fillWidth: true
             color: "#ffe38a"
             font.bold: true
-            font.family: panel.fontFamily
+            font.contextFontMerging: true
+            font.family: panel.statsFontFamily
             font.pixelSize: 30
             text: panel.localStanding
             textFormat: Text.PlainText
@@ -106,10 +137,10 @@ Rectangle {
         Text {
             Layout.fillWidth: true
             color: "#d8ffffff"
-            font.family: panel.fontFamily
+            font.contextFontMerging: true
+            font.family: panel.textFontFamily
             font.pixelSize: 18
-            text: panel.result ? String(panel.result.selectionOptionsSummary
-                                        || "") : ""
+            text: panel.result ? String(panel.result.selectionOptionsSummary || "") : ""
             textFormat: Text.PlainText
             visible: panel.expanded && text.length > 0
             wrapMode: Text.Wrap
@@ -118,16 +149,19 @@ Rectangle {
         ListView {
             id: standingsView
 
+            objectName: "arenaNativeResultStandings"
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.minimumHeight: panel.expanded ? 120 : 0
             boundsBehavior: Flickable.StopAtBounds
             clip: true
-            model: panel.result && panel.result.valid
-                ? panel.result.standings : null
+            model: panel.result && panel.result.valid ? panel.result.standings : null
             reuseItems: true
             spacing: 5
             visible: panel.expanded
+
+            Accessible.role: Accessible.List
+            Accessible.name: qsTr("Arena final standings")
 
             ScrollBar.vertical: ScrollBar {}
 
@@ -156,11 +190,27 @@ Rectangle {
                 required property string dnfReason
 
                 readonly property bool local: memberId === panel.localMemberId
+                readonly property string rankLabel: panel.rankText(rank, competitionState)
+                readonly property string winsLabel: competitionText.winsText(lobbyWinsAfter)
+                readonly property string detailsLabel: competitionText.nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeType, gaugeValueMilli)
+                readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(local ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
 
+                objectName: "arenaNativeResultRow-" + memberId
+                activeFocusOnTab: true
                 color: index % 2 === 0 ? "#262a38" : "#1c202c"
                 height: rowContent.implicitHeight + 14
                 radius: 5
                 width: ListView.view.width
+
+                Accessible.role: Accessible.ListItem
+                Accessible.name: accessibleSummary
+                Accessible.description: winsLabel
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+                Accessible.selected: activeFocus
+
+                border.color: activeFocus ? "#ffe38a" : "transparent"
+                border.width: activeFocus ? 2 : 0
 
                 ColumnLayout {
                     id: rowContent
@@ -178,14 +228,13 @@ Rectangle {
 
                         Text {
                             Layout.preferredWidth: 52
-                            color: row.competitionState === "dnf"
-                                ? "#ff9b9b" : "#d8ffffff"
+                            color: row.competitionState === "dnf" ? "#ff9b9b" : "#d8ffffff"
                             font.bold: true
-                            font.family: panel.fontFamily
+                            font.contextFontMerging: true
+                            font.family: panel.statsFontFamily
                             font.pixelSize: 17
                             horizontalAlignment: Text.AlignRight
-                            text: panel.rankText(row.rank,
-                                                 row.competitionState)
+                            text: row.rankLabel
                             textFormat: Text.PlainText
                         }
 
@@ -194,33 +243,31 @@ Rectangle {
                             color: "white"
                             elide: Text.ElideRight
                             font.bold: true
-                            font.family: panel.fontFamily
+                            font.contextFontMerging: true
+                            font.family: panel.textFontFamily
                             font.pixelSize: 18
-                            text: row.local
-                                ? qsTr("You · %1").arg(row.displayName)
-                                : row.displayName
+                            text: row.local ? qsTr("You · %1").arg(row.displayName) : row.displayName
                             textFormat: Text.PlainText
                         }
 
                         Text {
                             color: "#ffe38a"
                             font.bold: true
-                            font.family: panel.fontFamily
+                            font.contextFontMerging: true
+                            font.family: panel.statsFontFamily
                             font.pixelSize: 17
-                            text: row.hasScore
-                                ? qsTr("EX %1").arg(row.exScore) : "—"
+                            text: row.hasScore ? qsTr("EX %1").arg(row.exScore) : "—"
                             textFormat: Text.PlainText
                         }
 
                         Text {
                             Layout.preferredWidth: 82
                             color: "#c9ffffff"
-                            font.family: panel.fontFamily
+                            font.contextFontMerging: true
+                            font.family: panel.textFontFamily
                             font.pixelSize: 16
                             horizontalAlignment: Text.AlignRight
-                            text: row.lobbyWinsAfter >= 0
-                                ? qsTr("Wins %1").arg(row.lobbyWinsAfter)
-                                : qsTr("Wins —")
+                            text: row.winsLabel
                             textFormat: Text.PlainText
                         }
                     }
@@ -229,16 +276,10 @@ Rectangle {
                         Layout.fillWidth: true
                         color: "#c0ffffff"
                         elide: Text.ElideRight
-                        font.family: panel.fontFamily
+                        font.contextFontMerging: true
+                        font.family: panel.textFontFamily
                         font.pixelSize: 15
-                        text: row.competitionState === "dnf"
-                            ? qsTr("Did not finish · %1").arg(row.dnfReason)
-                            : qsTr("BP %1 · Combo %2 · %3 · %4 %5%")
-                                  .arg(row.badPoorCount)
-                                  .arg(row.maxCombo)
-                                  .arg(row.clearType)
-                                  .arg(row.gaugeType)
-                                  .arg((row.gaugeValueMilli / 1000).toFixed(1))
+                        text: row.detailsLabel
                         textFormat: Text.PlainText
                     }
 
@@ -246,15 +287,10 @@ Rectangle {
                         Layout.fillWidth: true
                         color: "#a9ffffff"
                         elide: Text.ElideRight
-                        font.family: panel.fontFamily
+                        font.contextFontMerging: true
+                        font.family: panel.statsFontFamily
                         font.pixelSize: 14
-                        text: qsTr("PG %1 · GR %2 · GD %3 · BD %4 · PR %5 · EP %6")
-                            .arg(row.perfect)
-                            .arg(row.great)
-                            .arg(row.good)
-                            .arg(row.bad)
-                            .arg(row.poor)
-                            .arg(row.emptyPoor)
+                        text: qsTr("PG %1 · GR %2 · GD %3 · BD %4 · PR %5 · EP %6").arg(row.perfect).arg(row.great).arg(row.good).arg(row.bad).arg(row.poor).arg(row.emptyPoor)
                         textFormat: Text.PlainText
                         visible: row.hasScore
                     }

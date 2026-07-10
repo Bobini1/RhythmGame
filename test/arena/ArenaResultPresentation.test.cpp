@@ -171,3 +171,59 @@ TEST_CASE("ArenaResultPresentation: legacy fallback uses result theme vars and "
                       "presentedResult.participantCount",
                       "rankingState.currentPlayerCount" });
 }
+
+TEST_CASE("ArenaResultPresentation: final standings are localized and accessible",
+          "[arena][ArenaResultPresentation]")
+{
+    const auto competitionText =
+      qmlSource("RhythmGameQml/Arena/ArenaCompetitionText.qml");
+    requireContains(competitionText,
+                    { "function gaugeTypeText",
+                      "function clearTypeText",
+                      "function dnfReasonText",
+                      "function winsText",
+                      "case \"result_unavailable\"",
+                      "case \"grace_expired\"",
+                      "qsTr(\"%n win(s)\"" });
+
+    const auto legacy =
+      qmlSource("RhythmGameQml/Arena/ArenaResultOverlay.qml");
+    requireContains(legacy,
+                    { "ArenaCompetitionText",
+                      "Accessible.role: Accessible.Pane",
+                      "Accessible.announce",
+                      "Accessible.role: Accessible.List",
+                      "Accessible.role: Accessible.ListItem",
+                      "activeFocusOnTab: true",
+                      "lastAnnouncementText" });
+    CHECK_FALSE(legacy.contains(
+      QStringLiteral(".arg(standingDelegate.dnfReason)")));
+    CHECK_FALSE(legacy.contains(
+      QStringLiteral(".arg(standingDelegate.clearType)")));
+    CHECK_FALSE(legacy.contains(
+      QStringLiteral(".arg(standingDelegate.gaugeType)")));
+
+    const auto native = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/result/ArenaResultPanel.qml");
+    requireContains(native,
+                    { "ArenaCompetitionText",
+                      "Accessible.role: Accessible.Pane",
+                      "Accessible.announce",
+                      "Accessible.role: Accessible.List",
+                      "Accessible.role: Accessible.ListItem",
+                      "activeFocusOnTab: true",
+                      "font.contextFontMerging: true",
+                      "lastAnnouncementText" });
+    CHECK_FALSE(native.contains(QStringLiteral(".arg(row.dnfReason)")));
+    CHECK_FALSE(native.contains(QStringLiteral(".arg(row.clearType)")));
+    CHECK_FALSE(native.contains(QStringLiteral(".arg(row.gaugeType)")));
+
+    const auto defaultResult =
+      qmlSource("share/RhythmGame/themes/Default/scripts/result/Result.qml");
+    requireContains(defaultResult,
+                    { "id: resultBackground",
+                      "id: resultTitleFont",
+                      "parent: resultBackground",
+                      "statsFontFamily: resultStatsFont.fontFamily",
+                      "textFontFamily: resultTitleFont.fontFamily" });
+}

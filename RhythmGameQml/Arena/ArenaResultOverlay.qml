@@ -12,50 +12,66 @@ Rectangle {
     required property string resolvedSkinId
     required property string layoutVariant
     property bool expanded: false
+    property string lastAnnouncementKey: ""
+    property string lastAnnouncementText: ""
 
-    readonly property var result: root.session
-        ? root.session.presentedResult : null
-    readonly property bool resultAvailable: root.result
-        && root.result.valid === true
+    readonly property var result: root.session ? root.session.presentedResult : null
+    readonly property bool resultAvailable: root.result && root.result.valid === true
     readonly property string statusText: {
         if (!root.resultAvailable) {
             return qsTr("Arena result unavailable");
         }
-        return root.result.finalized
-            ? qsTr("Final") : qsTr("Waiting for players…");
+        return root.result.finalized ? qsTr("Final") : qsTr("Waiting for players…");
     }
     readonly property string winnerSummaryText: {
         if (!root.resultAvailable || !root.result.finalized) {
             return qsTr("Waiting for final standings");
         }
         const names = root.result.winnerNames || [];
-        return names.length > 0
-            ? qsTr("Winners: %1").arg(names.join(", "))
-            : qsTr("No winner");
+        return names.length > 0 ? qsTr("Winners: %1").arg(names.join(", ")) : qsTr("No winner");
     }
     readonly property string localStandingText: {
-        const count = root.resultAvailable
-            ? Number(root.result.participantCount || 0) : 0;
+        const count = root.resultAvailable ? Number(root.result.participantCount || 0) : 0;
         if (root.resultAvailable && root.result.localDnf) {
             return qsTr("DNF / %1").arg(count);
         }
-        const rank = root.resultAvailable && root.result.finalized
-            ? Number(root.result.localRank || 0) : 0;
-        return rank > 0
-            ? qsTr("#%1 / %2").arg(rank).arg(count)
-            : qsTr("— / %1").arg(count);
+        const rank = root.resultAvailable && root.result.finalized ? Number(root.result.localRank || 0) : 0;
+        return rank > 0 ? qsTr("#%1 / %2").arg(rank).arg(count) : qsTr("— / %1").arg(count);
+    }
+    readonly property string finalAnnouncementText: root.resultAvailable && root.result.finalized ? qsTr("Arena result. %1. Your standing: %2").arg(root.winnerSummaryText).arg(root.localStandingText) : ""
+
+    function announceFinalResult() {
+        if (root.finalAnnouncementText.length === 0) {
+            return;
+        }
+        const roundId = String(root.result.roundId || "");
+        const key = roundId + "\n" + root.finalAnnouncementText;
+        if (key === root.lastAnnouncementKey) {
+            return;
+        }
+        root.lastAnnouncementKey = key;
+        root.lastAnnouncementText = root.finalAnnouncementText;
+        Accessible.announce(root.lastAnnouncementText);
     }
 
-    function rankLabel(rank, state) : string {
+    function rankLabel(rank, state): string {
         if (state === "dnf") {
             return qsTr("DNF");
         }
         return rank > 0 ? qsTr("#%1").arg(rank) : "—";
     }
 
-    function winsLabel(wins) : string {
-        return wins >= 0 ? qsTr("Wins %1").arg(wins) : qsTr("Wins —");
+    function winsLabel(wins): string {
+        return competitionText.winsText(wins);
     }
+
+    onFinalAnnouncementTextChanged: Qt.callLater(root.announceFinalResult)
+
+    Component.onCompleted: Qt.callLater(root.announceFinalResult)
+
+    Accessible.role: Accessible.Pane
+    Accessible.name: qsTr("Arena result")
+    Accessible.description: root.finalAnnouncementText.length > 0 ? root.finalAnnouncementText : root.statusText
 
     border.color: "#70ffffff"
     border.width: 1
@@ -63,6 +79,10 @@ Rectangle {
     implicitHeight: 460
     implicitWidth: 520
     radius: 6
+
+    ArenaCompetitionText {
+        id: competitionText
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -83,8 +103,7 @@ Rectangle {
 
             Label {
                 objectName: "arenaResultStatus"
-                color: root.resultAvailable && root.result.finalized
-                    ? "#a9f5bb" : "#ffe38a"
+                color: root.resultAvailable && root.result.finalized ? "#a9f5bb" : "#ffe38a"
                 font.bold: true
                 text: root.statusText
             }
@@ -92,6 +111,9 @@ Rectangle {
             Button {
                 objectName: "arenaResultExpand"
                 text: root.expanded ? qsTr("Compact") : qsTr("Details")
+
+                Accessible.name: text
+                Accessible.description: root.expanded ? qsTr("Hide detailed Arena standings") : qsTr("Show detailed Arena standings")
                 onClicked: root.expanded = !root.expanded
             }
         }
@@ -120,8 +142,7 @@ Rectangle {
         Text {
             Layout.fillWidth: true
             color: "#c9ffffff"
-            text: root.resultAvailable
-                ? String(root.result.selectionTitle || "") : ""
+            text: root.resultAvailable ? String(root.result.selectionTitle || "") : ""
             textFormat: Text.PlainText
             elide: Text.ElideRight
         }
@@ -129,8 +150,7 @@ Rectangle {
         Text {
             Layout.fillWidth: true
             color: "#b9ffffff"
-            text: root.resultAvailable
-                ? String(root.result.selectionOptionsSummary || "") : ""
+            text: root.resultAvailable ? String(root.result.selectionOptionsSummary || "") : ""
             textFormat: Text.PlainText
             visible: root.expanded && text.length > 0
             wrapMode: Text.Wrap
@@ -149,6 +169,9 @@ Rectangle {
             reuseItems: true
             spacing: 4
             visible: root.expanded
+
+            Accessible.role: Accessible.List
+            Accessible.name: qsTr("Arena final standings")
 
             ScrollBar.vertical: ScrollBar {}
 
@@ -176,18 +199,29 @@ Rectangle {
                 required property int lobbyWinsAfter
                 required property string dnfReason
 
-                readonly property bool localMarkerVisible:
-                    memberId === String(root.session.selfMemberId || "")
-                readonly property string rankLabel:
-                    root.rankLabel(rank, competitionState)
-                readonly property string winsLabel:
-                    root.winsLabel(lobbyWinsAfter)
+                readonly property bool localMarkerVisible: memberId === String(root.session.selfMemberId || "")
+                readonly property string rankLabel: root.rankLabel(rank, competitionState)
+                readonly property string winsLabel: root.winsLabel(lobbyWinsAfter)
+                readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType)
+                readonly property string gaugeLabel: competitionText.gaugeText(gaugeType, gaugeValueMilli)
+                readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(localMarkerVisible ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
 
                 objectName: "arenaResultRow-" + memberId
+                activeFocusOnTab: true
                 color: index % 2 === 0 ? "#2a1b2230" : "#181b2230"
                 height: standingContent.implicitHeight + 12
                 radius: 3
                 width: ListView.view.width
+
+                Accessible.role: Accessible.ListItem
+                Accessible.name: accessibleSummary
+                Accessible.description: hasScore ? gaugeLabel + qsTr(" · ") + winsLabel : winsLabel
+                Accessible.focusable: true
+                Accessible.focused: activeFocus
+                Accessible.selected: activeFocus
+
+                border.color: activeFocus ? "#ffe38a" : "transparent"
+                border.width: activeFocus ? 2 : 0
 
                 ColumnLayout {
                     id: standingContent
@@ -205,8 +239,7 @@ Rectangle {
 
                         Text {
                             Layout.preferredWidth: 42
-                            color: standingDelegate.competitionState === "dnf"
-                                ? "#ff9b9b" : "#b9ffffff"
+                            color: standingDelegate.competitionState === "dnf" ? "#ff9b9b" : "#b9ffffff"
                             font.bold: true
                             horizontalAlignment: Text.AlignRight
                             text: standingDelegate.rankLabel
@@ -218,19 +251,14 @@ Rectangle {
                             color: "white"
                             elide: Text.ElideRight
                             font.bold: true
-                            text: standingDelegate.localMarkerVisible
-                                ? qsTr("You · %1").arg(
-                                      standingDelegate.displayName)
-                                : standingDelegate.displayName
+                            text: standingDelegate.localMarkerVisible ? qsTr("You · %1").arg(standingDelegate.displayName) : standingDelegate.displayName
                             textFormat: Text.PlainText
                         }
 
                         Text {
                             color: "#ffe38a"
                             font.bold: true
-                            text: standingDelegate.hasScore
-                                ? qsTr("EX %1").arg(standingDelegate.exScore)
-                                : "—"
+                            text: standingDelegate.hasScore ? qsTr("EX %1").arg(standingDelegate.exScore) : "—"
                             textFormat: Text.PlainText
                         }
 
@@ -246,13 +274,7 @@ Rectangle {
                     Text {
                         Layout.fillWidth: true
                         color: "#b9ffffff"
-                        text: standingDelegate.competitionState === "dnf"
-                            ? qsTr("Did not finish · %1").arg(
-                                  standingDelegate.dnfReason)
-                            : qsTr("BP %1 · Combo %2 · %3")
-                                  .arg(standingDelegate.badPoorCount)
-                                  .arg(standingDelegate.maxCombo)
-                                  .arg(standingDelegate.clearType)
+                        text: standingDelegate.detailsLabel
                         textFormat: Text.PlainText
                         elide: Text.ElideRight
                     }
@@ -260,13 +282,7 @@ Rectangle {
                     Text {
                         Layout.fillWidth: true
                         color: "#a9ffffff"
-                        text: qsTr("PG %1 · GR %2 · GD %3 · BD %4 · PR %5 · EP %6")
-                            .arg(standingDelegate.perfect)
-                            .arg(standingDelegate.great)
-                            .arg(standingDelegate.good)
-                            .arg(standingDelegate.bad)
-                            .arg(standingDelegate.poor)
-                            .arg(standingDelegate.emptyPoor)
+                        text: qsTr("PG %1 · GR %2 · GD %3 · BD %4 · PR %5 · EP %6").arg(standingDelegate.perfect).arg(standingDelegate.great).arg(standingDelegate.good).arg(standingDelegate.bad).arg(standingDelegate.poor).arg(standingDelegate.emptyPoor)
                         textFormat: Text.PlainText
                         elide: Text.ElideRight
                         visible: standingDelegate.hasScore
@@ -275,10 +291,7 @@ Rectangle {
                     Text {
                         Layout.fillWidth: true
                         color: "#a9ffffff"
-                        text: qsTr("%1 · %2%")
-                            .arg(standingDelegate.gaugeType)
-                            .arg((standingDelegate.gaugeValueMilli / 1000)
-                                 .toFixed(1))
+                        text: standingDelegate.gaugeLabel
                         textFormat: Text.PlainText
                         visible: standingDelegate.hasScore
                     }

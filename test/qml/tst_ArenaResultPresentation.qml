@@ -174,15 +174,19 @@ TestCase {
     Component {
         id: overlayComponent
 
-        ArenaResultOverlay {
-        }
+        ArenaResultOverlay {}
     }
 
     Component {
         id: themeVarsComponent
 
-        FakeArenaThemeVars {
-        }
+        FakeArenaThemeVars {}
+    }
+
+    Component {
+        id: competitionTextComponent
+
+        ArenaCompetitionText {}
     }
 
     Component {
@@ -196,15 +200,13 @@ TestCase {
     Component {
         id: placementFrameComponent
 
-        ArenaOverlayPlacementFrame {
-        }
+        ArenaOverlayPlacementFrame {}
     }
 
     Component {
         id: overlayHostComponent
 
-        ArenaOverlayHost {
-        }
+        ArenaOverlayHost {}
     }
 
     Component {
@@ -224,8 +226,7 @@ TestCase {
     Component {
         id: viewportComponent
 
-        Item {
-        }
+        Item {}
     }
 
     function createOverlay() {
@@ -241,7 +242,10 @@ TestCase {
         });
         verify(overlay !== null);
         wait(1);
-        return { "session": session, "overlay": overlay };
+        return {
+            "session": session,
+            "overlay": overlay
+        };
     }
 
     function test_pending_and_all_dnf_summaries_stay_visible() {
@@ -272,7 +276,7 @@ TestCase {
         verify(standings !== null);
         compare(standings.visible, true);
         compare(standings.count, 4);
-        tryVerify(function() {
+        tryVerify(function () {
             return standings.width > 0 && standings.height > 0;
         }, 1000);
         standings.forceLayout();
@@ -282,10 +286,7 @@ TestCase {
         const winnerB = standings.itemAtIndex(1);
         const local = standings.itemAtIndex(2);
         const dnf = standings.itemAtIndex(3);
-        verify(winnerA !== null,
-               "Expected delegate 0; size=" + standings.width + "x"
-               + standings.height + ", contentHeight="
-               + standings.contentHeight);
+        verify(winnerA !== null, "Expected delegate 0; size=" + standings.width + "x" + standings.height + ", contentHeight=" + standings.contentHeight);
         verify(winnerB !== null);
         verify(local !== null);
         verify(dnf !== null);
@@ -293,9 +294,51 @@ TestCase {
         compare(winnerB.rankLabel, "#1");
         compare(local.rankLabel, "#3");
         compare(local.localMarkerVisible, true);
-        compare(local.winsLabel, "Wins 1");
+        compare(local.winsLabel, "1 win(s)");
         compare(dnf.rankLabel, "DNF");
         compare(dnf.winsLabel, "Wins —");
+        compare(dnf.detailsLabel, "Did not finish · Left the room");
+        compare(winnerB.gaugeLabel, "Normal · 76.0%");
+        compare(local.activeFocusOnTab, true);
+        tryCompare(harness.overlay, "lastAnnouncementText", "Arena result. Winners: Alice, Bob. Your standing: #3 / 4");
+    }
+
+    function test_competition_text_never_exposes_protocol_tokens() {
+        const labels = createTemporaryObject(competitionTextComponent, testCase);
+        verify(labels !== null);
+        compare(labels.gaugeTypeText("aeasy"), "Assist Easy");
+        compare(labels.clearTypeText("exhard"), "EX Hard");
+        compare(labels.dnfReasonText("result_unavailable"), "Result unavailable");
+        compare(labels.dnfReasonText("grace_expired"), "Reconnect grace expired");
+        compare(labels.dnfReasonText("not-a-protocol-value"), "Unknown");
+    }
+
+    function test_native_result_controls_keep_screen_space_targets() {
+        const session = createTemporaryObject(sessionComponent, testCase);
+        verify(session !== null);
+        session.installFinalRows();
+        const component = Qt.createComponent(Qt.resolvedUrl("../../share/RhythmGame/themes/Default/scripts/result/ArenaResultPanel.qml"));
+        tryCompare(component, "status", Component.Ready, 3000);
+        const panel = createTemporaryObject(component, testCase, {
+            "width": 480,
+            "height": 624,
+            "result": session.presentedResult,
+            "localMemberId": "member-local",
+            "statsFontFamily": "",
+            "textFontFamily": ""
+        });
+        verify(panel !== null);
+        wait(1);
+        const expand = findChild(panel, "arenaNativeResultExpand");
+        verify(expand !== null);
+        verify(expand.width >= 32);
+        verify(expand.height >= 32);
+        const standings = findChild(panel, "arenaNativeResultStandings");
+        verify(standings !== null);
+        tryVerify(function () {
+            return standings.count === 4 && standings.itemAtIndex(0) !== null;
+        }, 1000);
+        compare(standings.itemAtIndex(0).activeFocusOnTab, true);
     }
 
     function test_result_placement_uses_independent_theme_fields() {
@@ -331,11 +374,9 @@ TestCase {
 
     function test_result_customization_guard_releases_after_escape_event() {
         const session = createTemporaryObject(sessionComponent, testCase);
-        const resultItem = createTemporaryObject(legacyResultItemComponent,
-                                                 testCase);
+        const resultItem = createTemporaryObject(legacyResultItemComponent, testCase);
         const themeVars = createTemporaryObject(themeVarsComponent, testCase);
-        const generalVars = createTemporaryObject(generalVarsComponent,
-                                                  testCase);
+        const generalVars = createTemporaryObject(generalVarsComponent, testCase);
         verify(session !== null);
         verify(resultItem !== null);
         verify(themeVars !== null);
