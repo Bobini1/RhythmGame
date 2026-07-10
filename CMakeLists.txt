@@ -163,12 +163,14 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsGameReferee.h
         src/gameplay_logic/ChartData.cpp
         src/gameplay_logic/ChartData.h
+        src/gameplay_logic/ChartStartGate.h
         src/gameplay_logic/ChartRunner.cpp
         src/gameplay_logic/ChartRunner.h
         src/gameplay_logic/HitEvent.cpp
         src/gameplay_logic/HitEvent.h
         src/resource_managers/ChartDataFactory.cpp
         src/resource_managers/ChartDataFactory.h
+        src/resource_managers/ChartPlayConfig.h
         src/resource_managers/ChartFolderModel.cpp
         src/resource_managers/ChartFolderModel.h
         src/gameplay_logic/BmsNotes.cpp

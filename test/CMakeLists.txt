@@ -24,12 +24,14 @@ add_executable(RhythmGame_test
         arena/FakeArenaIdentityProvider.h
         arena/FakeArenaScheduler.h
         arena/FakeArenaInventorySource.h
+        gameplay_logic/ChartStartGate.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
         findTestAssetsFolder.h
         charts/BmsChart.test.cpp
         resource_managers/loadBmsSounds.test.cpp
+        resource_managers/ChartPlayConfig.test.cpp
         resource_managers/Lr2FontCache.test.cpp
         resource_managers/ScanThemes.test.cpp
         qml_components/FileQuery.test.cpp

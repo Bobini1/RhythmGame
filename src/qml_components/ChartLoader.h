@@ -13,6 +13,7 @@
 #include "gameplay_logic/ChartData.h"
 #include "gameplay_logic/ChartRunner.h"
 #include "resource_managers/ChartFactory.h"
+#include "resource_managers/ChartPlayConfig.h"
 #include "gameplay_logic/rules/TimingWindows.h"
 #include "gameplay_logic/rules/BmsRanks.h"
 #include "resource_managers/Tables.h"
@@ -66,7 +67,9 @@ class ChartLoader : public QObject
                      bool player2Replay,
                      gameplay_logic::BmsScore* replayedScore2,
                      resource_managers::ChartDataFactory::ChartComponents
-                       chartComponents) const
+                       chartComponents,
+                     const resource_managers::ChartPlayConfig* playConfig =
+                       nullptr) const
       -> std::unique_ptr<gameplay_logic::ChartRunner>;
 
     auto loadCourseChart(
@@ -126,6 +129,16 @@ class ChartLoader : public QObject
       bool player2AutoPlay,
       bool player2Replay,
       gameplay_logic::BmsScore* score2) const;
+
+    /**
+     * Loads a single-player chart with an explicit immutable transformation.
+     * This path never reads or writes the profile's note-order/DP options.
+     */
+    auto loadChartWithConfig(
+      const QString& filename,
+      resource_managers::Profile* player,
+      const resource_managers::ChartPlayConfig& playConfig) const
+      -> gameplay_logic::ChartRunner*;
 
     /**
      * @brief Loads a course with the given parameters.

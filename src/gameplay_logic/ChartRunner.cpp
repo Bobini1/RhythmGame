@@ -103,12 +103,34 @@ ChartRunner::ChartRunner(
 void
 ChartRunner::start()
 {
-    if (player1->getStatus() == Loading ||
-        (player2 != nullptr && player2->getStatus() == Loading) ||
-        bgaFuture.isRunning()) {
-        startRequested = true;
+    if (status == Running || status == Finished) {
         return;
     }
+    if (!startGate.requestStart(status == Ready)) {
+        return;
+    }
+    startNow();
+}
+
+void
+ChartRunner::holdStart()
+{
+    if (status == Loading || status == Ready) {
+        startGate.hold();
+    }
+}
+
+void
+ChartRunner::releaseStart()
+{
+    if (startGate.release(status == Ready)) {
+        startNow();
+    }
+}
+
+void
+ChartRunner::startNow()
+{
     startTimepoint = std::chrono::steady_clock::now();
     setStatus(Running);
     propertyUpdateTimer.setTimerType(Qt::PreciseTimer);
@@ -240,14 +262,14 @@ ChartRunner::setup()
     bga->setParent(this);
     emit bgaLoaded();
     setStatus(Ready);
-    if (startRequested) {
-        start();
+    if (startGate.onReady()) {
+        startNow();
     }
 }
 auto
 ChartRunner::finish() -> QList<BmsScore*>
 {
-    startRequested = false;
+    startGate.reset();
     propertyUpdateTimer.stop();
 
     // if we didn't get bga yet, cancel

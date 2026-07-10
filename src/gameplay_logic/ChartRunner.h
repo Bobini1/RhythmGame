@@ -7,6 +7,7 @@
 
 #include "BmsGameReferee.h"
 #include "ChartData.h"
+#include "ChartStartGate.h"
 #include "BmsScore.h"
 #include "BmsLiveScore.h"
 #include "resource_managers/Profile.h"
@@ -95,11 +96,12 @@ class ChartRunner final : public QObject
     QFutureWatcher<std::unique_ptr<qml_components::BgaContainer>>
       bgaFutureWatcher;
     Status status{ Loading };
-    bool startRequested = false;
+    ChartStartGate startGate;
     ChartData::Keymode keymode;
     QList<int> inputMapping;
 
     void updateElapsed();
+    void startNow();
     int numberOfSetupCalls = 0;
     void setStatus(Status ready);
     void setup();
@@ -114,6 +116,8 @@ class ChartRunner final : public QObject
       QObject* parent = nullptr);
 
     Q_INVOKABLE void start();
+    void holdStart();
+    void releaseStart();
 
     void passKey(input::BmsKey key, EventType eventType, int64_t time);
 
