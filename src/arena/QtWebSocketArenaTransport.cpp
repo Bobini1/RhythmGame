@@ -12,6 +12,8 @@
 namespace arena {
 namespace {
 
+static_assert(MaxFinalizationMessageBytes <= MaxServerMessageBytes);
+
 auto
 mapSocketError(QAbstractSocket::SocketError error) -> ArenaTransport::Error
 {

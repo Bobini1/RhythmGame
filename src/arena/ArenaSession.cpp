@@ -1423,6 +1423,11 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             m_round->stage = FrozenRoundStage::Playing;
             emit roundChanged();
         },
+        // Phase 3 Task 7 replaces these compile-seam no-ops with competition
+        // model, terminal, and result orchestration.
+        [](const LiveStandingsSnapshot&) {},
+        [](const RoundTerminalAccepted&) {},
+        [](const RoundFinalized&) {},
         [this](const RoundLaunchCancelled& cancelled) {
             if (!acceptsRoomEvent(cancelled.roomId, cancelled.roomGeneration) ||
                 m_roomPhase != RoomPhase::Loading || !m_round ||

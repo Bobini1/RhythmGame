@@ -1,0 +1,404 @@
+{
+	"fixtureSchema": 1,
+	"protocolMajor": 1,
+	"protocolMinor": 2,
+	"clientMessages": [
+		{
+			"name": "competition hello",
+			"message": {
+				"type": "client_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 2,
+					"clientVersion": "phase3-golden",
+					"capabilities": ["rooms-v1", "rounds-v1", "competition-v1"]
+				}
+			}
+		},
+		{
+			"name": "load result with chart length",
+			"message": {
+				"type": "round_load_result",
+				"requestId": "load-phase3",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"selectionRevision": 4,
+					"availabilityRevision": 5,
+					"inventoryRevision": 6,
+					"ok": true,
+					"chartLengthMs": 180000
+				}
+			}
+		},
+		{
+			"name": "round telemetry",
+			"message": {
+				"type": "round_telemetry",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"telemetry": {
+						"sequence": 7,
+						"exScore": 100,
+						"progressPermille": 500,
+						"maxCombo": 64,
+						"badPoorCount": 6,
+						"judgements": {
+							"perfect": 40,
+							"great": 20,
+							"good": 4,
+							"bad": 1,
+							"poor": 2,
+							"emptyPoor": 3
+						},
+						"gauge": { "type": "normal", "valueMilli": 55000 },
+						"playStatus": "playing"
+					}
+				}
+			}
+		},
+		{
+			"name": "round final result",
+			"message": {
+				"type": "round_result_submit",
+				"requestId": "result-phase3",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"result": {
+						"exScore": 100,
+						"maxCombo": 64,
+						"badPoorCount": 6,
+						"judgements": {
+							"perfect": 40,
+							"great": 20,
+							"good": 4,
+							"bad": 1,
+							"poor": 2,
+							"emptyPoor": 3
+						},
+						"clearType": "normal",
+						"finalGauge": { "type": "normal", "valueMilli": 75000 }
+					}
+				}
+			}
+		},
+		{
+			"name": "round abandon",
+			"message": {
+				"type": "round_abandon",
+				"requestId": "abandon-phase3",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"reason": "aborted"
+				}
+			}
+		}
+	],
+	"serverMessages": [
+		{
+			"name": "competition server hello",
+			"message": {
+				"type": "server_hello",
+				"data": {
+					"protocolMajor": 1,
+					"protocolMinor": 2,
+					"capabilities": ["rooms-v1", "rounds-v1", "competition-v1"],
+					"resume": { "status": "not_requested" }
+				}
+			}
+		},
+		{
+			"name": "competition room snapshot",
+			"message": {
+				"type": "room_snapshot",
+				"requestId": "room-phase3",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"name": "Competition room",
+					"phase": "selecting",
+					"hasPassword": false,
+					"maxCount": 16,
+					"ownerMemberId": "member-phase3",
+					"self": {
+						"memberId": "member-phase3",
+						"connectionGeneration": 3,
+						"resumeToken": "resume-phase3"
+					},
+					"members": [
+						{
+							"memberId": "member-phase3",
+							"identity": {
+								"userId": "user-phase3",
+								"displayName": "Phase 3 Player",
+								"avatarUrl": null
+							},
+							"status": "connected",
+							"lobbyWins": 0,
+							"ready": false,
+							"inventoryState": "missing",
+							"inventoryRevision": 0,
+							"availabilityAppliedRevision": 0,
+							"roundState": "eligible"
+						}
+					],
+					"chat": [],
+					"selection": null,
+					"selectionRevision": 0,
+					"availabilityRevision": 0,
+					"liveStandings": null,
+					"lastRoundResult": null
+				}
+			}
+		},
+		{
+			"name": "loading with frozen identity",
+			"message": {
+				"type": "round_loading_started",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"round": {
+						"roundId": "round-phase3",
+						"launchAttemptId": "attempt-phase3",
+						"selectionRevision": 4,
+						"availabilityRevision": 5,
+						"selection": {
+							"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+							"title": "Competition chart",
+							"subtitle": "",
+							"artist": "Composer",
+							"keyMode": 7,
+							"randomSequence": [1, 2, 3],
+							"noteOrderP1": "random",
+							"noteOrderP2": "mirror",
+							"dpMode": "off",
+							"laneSeed": "0123456789abcdef",
+							"randomizationVersion": 1
+						},
+						"participants": [
+							{
+								"memberId": "member-phase3",
+								"inventoryRevision": 6,
+								"identity": {
+									"userId": "user-phase3",
+									"displayName": "Phase 3 Player",
+									"avatarUrl": null
+								}
+							}
+						],
+						"stage": "probing"
+					}
+				}
+			}
+		},
+		{
+			"name": "scheduled start with play deadline",
+			"message": {
+				"type": "round_start_scheduled",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"startAtServerMs": 100000,
+					"startAfterMs": 2000,
+					"playDeadlineAtServerMs": 400000
+				}
+			}
+		},
+		{
+			"name": "round started with play deadline",
+			"message": {
+				"type": "round_started",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"playDeadlineAtServerMs": 400000
+				}
+			}
+		},
+		{
+			"name": "live standings",
+			"message": {
+				"type": "round_standings",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"standingsRevision": 1,
+					"entries": [
+						{
+							"memberId": "member-phase3",
+							"connectionStatus": "connected",
+							"competitionState": "playing",
+							"rank": 1,
+							"telemetry": {
+								"sequence": 7,
+								"exScore": 100,
+								"progressPermille": 500,
+								"maxCombo": 64,
+								"badPoorCount": 6,
+								"judgements": {
+									"perfect": 40,
+									"great": 20,
+									"good": 4,
+									"bad": 1,
+									"poor": 2,
+									"emptyPoor": 3
+								},
+								"gauge": { "type": "normal", "valueMilli": 55000 },
+								"playStatus": "playing"
+							}
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "terminal accepted",
+			"message": {
+				"type": "round_terminal_accepted",
+				"requestId": "result-phase3",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"terminal": "finished"
+				}
+			}
+		},
+		{
+			"name": "round finalized",
+			"message": {
+				"type": "round_finalized",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"result": {
+						"resultRevision": 1,
+						"roundId": "round-phase3",
+						"selectionRevision": 4,
+						"finalizedAtServerMs": 500000,
+						"participantCount": 1,
+						"selection": {
+							"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+							"title": "Competition chart",
+							"subtitle": "",
+							"artist": "Composer",
+							"keyMode": 7,
+							"randomSequence": [1, 2, 3],
+							"noteOrderP1": "random",
+							"noteOrderP2": "mirror",
+							"dpMode": "off",
+							"laneSeed": "0123456789abcdef",
+							"randomizationVersion": 1
+						},
+						"winnerMemberIds": ["member-phase3"],
+						"entries": [
+							{
+								"memberId": "member-phase3",
+								"identity": {
+									"userId": "user-phase3",
+									"displayName": "Phase 3 Player",
+									"avatarUrl": null
+								},
+								"lobbyWinsAfter": 0,
+								"competitionState": "finished",
+								"rank": 1,
+								"result": {
+									"exScore": 100,
+									"maxCombo": 64,
+									"badPoorCount": 6,
+									"judgements": {
+										"perfect": 40,
+										"great": 20,
+										"good": 4,
+										"bad": 1,
+										"poor": 2,
+										"emptyPoor": 3
+									},
+									"clearType": "normal",
+									"finalGauge": { "type": "normal", "valueMilli": 75000 }
+								}
+							}
+						]
+					},
+					"members": [
+						{
+							"memberId": "member-phase3",
+							"identity": {
+								"userId": "user-phase3",
+								"displayName": "Phase 3 Player",
+								"avatarUrl": null
+							},
+							"status": "connected",
+							"lobbyWins": 0,
+							"ready": false,
+							"inventoryState": "ready",
+							"inventoryRevision": 6,
+							"availabilityAppliedRevision": 5,
+							"roundState": "eligible"
+						}
+					]
+				}
+			}
+		},
+		{
+			"name": "chart length mismatch cancellation",
+			"message": {
+				"type": "round_launch_cancelled",
+				"data": {
+					"roomId": "room-phase3",
+					"roomGeneration": 2,
+					"roundId": "round-phase3",
+					"launchAttemptId": "attempt-phase3",
+					"reason": "chart_length_mismatch",
+					"selection": null,
+					"selectionRevision": 5,
+					"availabilityRevision": 5
+				}
+			}
+		}
+	],
+	"strictInvalidClientTypes": [
+		"client_hello",
+		"round_load_result",
+		"round_telemetry",
+		"round_result_submit",
+		"round_abandon"
+	],
+	"strictInvalidServerTypes": [
+		"server_hello",
+		"room_snapshot",
+		"round_loading_started",
+		"round_start_scheduled",
+		"round_started",
+		"round_standings",
+		"round_terminal_accepted",
+		"round_finalized",
+		"round_launch_cancelled"
+	]
+}

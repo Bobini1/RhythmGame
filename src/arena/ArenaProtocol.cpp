@@ -292,16 +292,31 @@ parseCapabilities(const QJsonArray& array, bool server, int protocolMinor)
     if (!result.contains(QString::fromLatin1(RoomsCapability))) {
         fail(ProtocolFailureCode::CapabilityRequired);
     }
+    const auto hasRounds =
+      result.contains(QString::fromLatin1(RoundsCapability));
+    const auto hasCompetition =
+      result.contains(QString::fromLatin1(CompetitionCapability));
+    if (hasCompetition && !hasRounds) {
+        fail();
+    }
     if (server) {
         const auto roomsOnly =
           QStringList{ QString::fromLatin1(RoomsCapability) };
         const auto roomsAndRounds =
           QStringList{ QString::fromLatin1(RoomsCapability),
                        QString::fromLatin1(RoundsCapability) };
-        if (result != roomsOnly && result != roomsAndRounds) {
+        const auto allCapabilities =
+          QStringList{ QString::fromLatin1(RoomsCapability),
+                       QString::fromLatin1(RoundsCapability),
+                       QString::fromLatin1(CompetitionCapability) };
+        if (result != roomsOnly && result != roomsAndRounds &&
+            result != allCapabilities) {
             fail();
         }
         if (protocolMinor == LegacyProtocolMinor && result != roomsOnly) {
+            fail();
+        }
+        if (protocolMinor == RoundsProtocolMinor && hasCompetition) {
             fail();
         }
     }
@@ -394,6 +409,300 @@ dpModeString(DpMode value) -> QString
             return QStringLiteral("battle");
     }
     fail();
+}
+
+auto
+parseGaugeType(QStringView value) -> GaugeType
+{
+    static const std::pair<QStringView, GaugeType> entries[]{
+        { u"fc", GaugeType::Fc },     { u"exhard", GaugeType::ExHard },
+        { u"hard", GaugeType::Hard }, { u"normal", GaugeType::Normal },
+        { u"easy", GaugeType::Easy }, { u"aeasy", GaugeType::AssistEasy },
+    };
+    for (const auto& [spelling, type] : entries) {
+        if (value == spelling) {
+            return type;
+        }
+    }
+    fail();
+}
+
+auto
+gaugeTypeString(GaugeType value) -> QString
+{
+    switch (value) {
+        case GaugeType::Fc:
+            return QStringLiteral("fc");
+        case GaugeType::ExHard:
+            return QStringLiteral("exhard");
+        case GaugeType::Hard:
+            return QStringLiteral("hard");
+        case GaugeType::Normal:
+            return QStringLiteral("normal");
+        case GaugeType::Easy:
+            return QStringLiteral("easy");
+        case GaugeType::AssistEasy:
+            return QStringLiteral("aeasy");
+    }
+    fail();
+}
+
+auto
+parseClearType(QStringView value) -> ClearType
+{
+    static const std::pair<QStringView, ClearType> entries[]{
+        { u"max", ClearType::Max },       { u"perfect", ClearType::Perfect },
+        { u"fc", ClearType::FullCombo },  { u"exhard", ClearType::ExHard },
+        { u"hard", ClearType::Hard },     { u"normal", ClearType::Normal },
+        { u"easy", ClearType::Easy },     { u"aeasy", ClearType::AssistEasy },
+        { u"failed", ClearType::Failed },
+    };
+    for (const auto& [spelling, type] : entries) {
+        if (value == spelling) {
+            return type;
+        }
+    }
+    fail();
+}
+
+auto
+clearTypeString(ClearType value) -> QString
+{
+    switch (value) {
+        case ClearType::Max:
+            return QStringLiteral("max");
+        case ClearType::Perfect:
+            return QStringLiteral("perfect");
+        case ClearType::FullCombo:
+            return QStringLiteral("fc");
+        case ClearType::ExHard:
+            return QStringLiteral("exhard");
+        case ClearType::Hard:
+            return QStringLiteral("hard");
+        case ClearType::Normal:
+            return QStringLiteral("normal");
+        case ClearType::Easy:
+            return QStringLiteral("easy");
+        case ClearType::AssistEasy:
+            return QStringLiteral("aeasy");
+        case ClearType::Failed:
+            return QStringLiteral("failed");
+    }
+    fail();
+}
+
+auto
+parseDnfReason(QStringView value) -> DnfReason
+{
+    static const std::pair<QStringView, DnfReason> entries[]{
+        { u"aborted", DnfReason::Aborted },
+        { u"result_unavailable", DnfReason::ResultUnavailable },
+        { u"left", DnfReason::Left },
+        { u"kicked", DnfReason::Kicked },
+        { u"grace_expired", DnfReason::GraceExpired },
+        { u"play_deadline", DnfReason::PlayDeadline },
+    };
+    for (const auto& [spelling, reason] : entries) {
+        if (value == spelling) {
+            return reason;
+        }
+    }
+    fail();
+}
+
+auto
+dnfReasonString(DnfReason value) -> QString
+{
+    switch (value) {
+        case DnfReason::Aborted:
+            return QStringLiteral("aborted");
+        case DnfReason::ResultUnavailable:
+            return QStringLiteral("result_unavailable");
+        case DnfReason::Left:
+            return QStringLiteral("left");
+        case DnfReason::Kicked:
+            return QStringLiteral("kicked");
+        case DnfReason::GraceExpired:
+            return QStringLiteral("grace_expired");
+        case DnfReason::PlayDeadline:
+            return QStringLiteral("play_deadline");
+    }
+    fail();
+}
+
+auto
+scoreCounter(const QJsonObject& object, const char* key) -> qint64
+{
+    const auto value = requiredSafeInteger(object, key);
+    if (value > MaxScoreCounter) {
+        fail();
+    }
+    return value;
+}
+
+void
+validateScoreCounter(qint64 value)
+{
+    if (value < 0 || value > MaxScoreCounter) {
+        fail();
+    }
+}
+
+auto
+parseJudgements(const QJsonObject& object) -> ArenaJudgements
+{
+    requireExactKeys(
+      object, { "perfect", "great", "good", "bad", "poor", "emptyPoor" });
+    return { .perfect = scoreCounter(object, "perfect"),
+             .great = scoreCounter(object, "great"),
+             .good = scoreCounter(object, "good"),
+             .bad = scoreCounter(object, "bad"),
+             .poor = scoreCounter(object, "poor"),
+             .emptyPoor = scoreCounter(object, "emptyPoor") };
+}
+
+auto
+encodeJudgements(const ArenaJudgements& value) -> QJsonObject
+{
+    validateScoreCounter(value.perfect);
+    validateScoreCounter(value.great);
+    validateScoreCounter(value.good);
+    validateScoreCounter(value.bad);
+    validateScoreCounter(value.poor);
+    validateScoreCounter(value.emptyPoor);
+    return { { QStringLiteral("perfect"), value.perfect },
+             { QStringLiteral("great"), value.great },
+             { QStringLiteral("good"), value.good },
+             { QStringLiteral("bad"), value.bad },
+             { QStringLiteral("poor"), value.poor },
+             { QStringLiteral("emptyPoor"), value.emptyPoor } };
+}
+
+auto
+parseGauge(const QJsonObject& object) -> GaugeSnapshot
+{
+    requireExactKeys(object, { "type", "valueMilli" });
+    const auto valueMilli = requiredSafeInteger(object, "valueMilli");
+    if (valueMilli > 100'000) {
+        fail();
+    }
+    return { .type = parseGaugeType(requiredString(object, "type")),
+             .valueMilli = valueMilli };
+}
+
+auto
+encodeGauge(const GaugeSnapshot& value) -> QJsonObject
+{
+    if (value.valueMilli < 0 || value.valueMilli > 100'000) {
+        fail();
+    }
+    return { { QStringLiteral("type"), gaugeTypeString(value.type) },
+             { QStringLiteral("valueMilli"), value.valueMilli } };
+}
+
+void
+validateCompetitionScore(qint64 exScore,
+                         qint64 badPoorCount,
+                         const ArenaJudgements& judgements)
+{
+    validateScoreCounter(exScore);
+    validateScoreCounter(badPoorCount);
+    if (exScore != 2 * judgements.perfect + judgements.great ||
+        badPoorCount !=
+          judgements.bad + judgements.poor + judgements.emptyPoor) {
+        fail();
+    }
+}
+
+auto
+parseTelemetry(const QJsonObject& object) -> TelemetrySnapshot
+{
+    requireExactKeys(object,
+                     { "sequence",
+                       "exScore",
+                       "progressPermille",
+                       "maxCombo",
+                       "badPoorCount",
+                       "judgements",
+                       "gauge",
+                       "playStatus" });
+    const auto sequence = requiredSafeInteger(object, "sequence", true);
+    const auto progress = requiredSafeInteger(object, "progressPermille");
+    if (sequence > MaxUInt32 || progress > 1'000 ||
+        requiredString(object, "playStatus") != QStringLiteral("playing")) {
+        fail();
+    }
+    TelemetrySnapshot result{
+        .sequence = sequence,
+        .exScore = scoreCounter(object, "exScore"),
+        .progressPermille = progress,
+        .maxCombo = scoreCounter(object, "maxCombo"),
+        .badPoorCount = scoreCounter(object, "badPoorCount"),
+        .judgements = parseJudgements(requiredObject(object, "judgements")),
+        .gauge = parseGauge(requiredObject(object, "gauge")),
+    };
+    validateCompetitionScore(
+      result.exScore, result.badPoorCount, result.judgements);
+    return result;
+}
+
+auto
+encodeTelemetry(const TelemetrySnapshot& value) -> QJsonObject
+{
+    if (value.sequence < 1 || value.sequence > MaxUInt32 ||
+        value.progressPermille < 0 || value.progressPermille > 1'000) {
+        fail();
+    }
+    validateScoreCounter(value.maxCombo);
+    const auto judgements = encodeJudgements(value.judgements);
+    validateCompetitionScore(
+      value.exScore, value.badPoorCount, value.judgements);
+    return { { QStringLiteral("sequence"), value.sequence },
+             { QStringLiteral("exScore"), value.exScore },
+             { QStringLiteral("progressPermille"), value.progressPermille },
+             { QStringLiteral("maxCombo"), value.maxCombo },
+             { QStringLiteral("badPoorCount"), value.badPoorCount },
+             { QStringLiteral("judgements"), judgements },
+             { QStringLiteral("gauge"), encodeGauge(value.gauge) },
+             { QStringLiteral("playStatus"), QStringLiteral("playing") } };
+}
+
+auto
+parseFinalResult(const QJsonObject& object) -> FinalResult
+{
+    requireExactKeys(object,
+                     { "exScore",
+                       "maxCombo",
+                       "badPoorCount",
+                       "judgements",
+                       "clearType",
+                       "finalGauge" });
+    FinalResult result{
+        .exScore = scoreCounter(object, "exScore"),
+        .maxCombo = scoreCounter(object, "maxCombo"),
+        .badPoorCount = scoreCounter(object, "badPoorCount"),
+        .judgements = parseJudgements(requiredObject(object, "judgements")),
+        .clearType = parseClearType(requiredString(object, "clearType")),
+        .finalGauge = parseGauge(requiredObject(object, "finalGauge")),
+    };
+    validateCompetitionScore(
+      result.exScore, result.badPoorCount, result.judgements);
+    return result;
+}
+
+auto
+encodeFinalResult(const FinalResult& value) -> QJsonObject
+{
+    validateScoreCounter(value.maxCombo);
+    const auto judgements = encodeJudgements(value.judgements);
+    validateCompetitionScore(
+      value.exScore, value.badPoorCount, value.judgements);
+    return { { QStringLiteral("exScore"), value.exScore },
+             { QStringLiteral("maxCombo"), value.maxCombo },
+             { QStringLiteral("badPoorCount"), value.badPoorCount },
+             { QStringLiteral("judgements"), judgements },
+             { QStringLiteral("clearType"), clearTypeString(value.clearType) },
+             { QStringLiteral("finalGauge"), encodeGauge(value.finalGauge) } };
 }
 
 auto
@@ -639,6 +948,9 @@ parseMember(const QJsonObject& object) -> Member
     result.identity = parsePublicIdentity(requiredObject(object, "identity"));
     result.status = parseMemberStatus(requiredString(object, "status"));
     result.lobbyWins = requiredSafeInteger(object, "lobbyWins");
+    if (result.lobbyWins > MaxUInt32) {
+        fail();
+    }
     if (current) {
         result.ready = requiredBool(object, "ready");
         result.inventoryState =
@@ -714,12 +1026,25 @@ parseRoomSummary(const QJsonObject& object) -> RoomSummary
 auto
 parseFrozenParticipant(const QJsonObject& object) -> FrozenParticipant
 {
-    requireExactKeys(object, { "memberId", "inventoryRevision" });
+    const auto legacy =
+      hasExactKeys(object, { "memberId", "inventoryRevision" });
+    const auto competition =
+      hasExactKeys(object, { "memberId", "inventoryRevision", "identity" });
+    if (!legacy && !competition) {
+        fail();
+    }
     auto memberId = requiredString(object, "memberId");
     validateOpaqueId(memberId);
-    return { .memberId = std::move(memberId),
-             .inventoryRevision =
-               requiredSafeInteger(object, "inventoryRevision", true) };
+    FrozenParticipant result{
+        .memberId = std::move(memberId),
+        .inventoryRevision =
+          requiredSafeInteger(object, "inventoryRevision", true),
+    };
+    if (competition) {
+        result.identity =
+          parsePublicIdentity(requiredObject(object, "identity"));
+    }
+    return result;
 }
 
 auto
@@ -747,14 +1072,28 @@ parseFrozenParticipants(const QJsonArray& array) -> QVector<FrozenParticipant>
 auto
 parseFrozenRound(const QJsonObject& object) -> FrozenRound
 {
-    requireExactKeys(object,
-                     { "roundId",
-                       "launchAttemptId",
-                       "selectionRevision",
-                       "availabilityRevision",
-                       "selection",
-                       "participants",
-                       "stage" });
+    const auto baseKeys = keySet({ "roundId",
+                                   "launchAttemptId",
+                                   "selectionRevision",
+                                   "availabilityRevision",
+                                   "selection",
+                                   "participants",
+                                   "stage" });
+    const auto keysWithDeadline = keySet({ "roundId",
+                                           "launchAttemptId",
+                                           "selectionRevision",
+                                           "availabilityRevision",
+                                           "selection",
+                                           "participants",
+                                           "stage",
+                                           "playDeadlineAtServerMs" });
+    QSet<QString> actualKeys;
+    for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
+        actualKeys.insert(it.key());
+    }
+    if (actualKeys != baseKeys && actualKeys != keysWithDeadline) {
+        fail();
+    }
     FrozenRound result;
     result.roundId = requiredString(object, "roundId");
     result.launchAttemptId = requiredString(object, "launchAttemptId");
@@ -768,6 +1107,292 @@ parseFrozenRound(const QJsonObject& object) -> FrozenRound
     result.participants =
       parseFrozenParticipants(requiredArray(object, "participants"));
     result.stage = parseFrozenRoundStage(requiredString(object, "stage"));
+    const auto identityCount =
+      std::count_if(result.participants.cbegin(),
+                    result.participants.cend(),
+                    [](const FrozenParticipant& participant) {
+                        return participant.identity.has_value();
+                    });
+    if (identityCount != 0 && identityCount != result.participants.size()) {
+        fail();
+    }
+    const auto competition = identityCount == result.participants.size();
+    const auto requiresDeadline = result.stage == FrozenRoundStage::Scheduled ||
+                                  result.stage == FrozenRoundStage::Playing;
+    const auto hasDeadline =
+      object.contains(QStringLiteral("playDeadlineAtServerMs"));
+    if ((competition && requiresDeadline) != hasDeadline ||
+        (!competition && hasDeadline)) {
+        fail();
+    }
+    if (hasDeadline) {
+        result.playDeadlineAtServerMs =
+          requiredSafeInteger(object, "playDeadlineAtServerMs");
+    }
+    return result;
+}
+
+auto
+nullableCompetitionRank(const QJsonObject& object, const char* key)
+  -> std::optional<int>
+{
+    const auto value = object.value(QString::fromLatin1(key));
+    if (value.isNull()) {
+        return std::nullopt;
+    }
+    const auto rank = safeInteger(value, true);
+    if (rank > RoomCapacity) {
+        fail();
+    }
+    return static_cast<int>(rank);
+}
+
+auto
+parseLiveStandingEntry(const QJsonObject& object) -> LiveStandingEntry
+{
+    auto memberId = requiredString(object, "memberId");
+    validateOpaqueId(memberId);
+    LiveStandingEntry entry{
+        .memberId = std::move(memberId),
+        .connectionStatus =
+          parseMemberStatus(requiredString(object, "connectionStatus")),
+    };
+    const auto competitionState = requiredString(object, "competitionState");
+    if (competitionState == QStringLiteral("loading") ||
+        competitionState == QStringLiteral("playing")) {
+        requireExactKeys(object,
+                         { "memberId",
+                           "connectionStatus",
+                           "competitionState",
+                           "rank",
+                           "telemetry" });
+        LiveActiveStanding active{
+            .competitionState = competitionState == QStringLiteral("loading")
+                                  ? ActiveCompetitionState::Loading
+                                  : ActiveCompetitionState::Playing,
+            .rank = nullableCompetitionRank(object, "rank"),
+        };
+        const auto telemetry = object.value(QStringLiteral("telemetry"));
+        if (telemetry.isObject()) {
+            active.telemetry = parseTelemetry(telemetry.toObject());
+        } else if (!telemetry.isNull()) {
+            fail();
+        }
+        if (active.rank.has_value() != active.telemetry.has_value()) {
+            fail();
+        }
+        entry.state = std::move(active);
+        return entry;
+    }
+    if (competitionState == QStringLiteral("finished")) {
+        requireExactKeys(object,
+                         { "memberId",
+                           "connectionStatus",
+                           "competitionState",
+                           "rank",
+                           "result" });
+        const auto rank = nullableCompetitionRank(object, "rank");
+        if (!rank) {
+            fail();
+        }
+        entry.state = LiveFinishedStanding{
+            .rank = *rank,
+            .result = parseFinalResult(requiredObject(object, "result")),
+        };
+        return entry;
+    }
+    if (competitionState == QStringLiteral("dnf")) {
+        requireExactKeys(object,
+                         { "memberId",
+                           "connectionStatus",
+                           "competitionState",
+                           "rank",
+                           "dnfReason" });
+        if (!object.value(QStringLiteral("rank")).isNull()) {
+            fail();
+        }
+        entry.state = LiveDnfStanding{
+            .reason = parseDnfReason(requiredString(object, "dnfReason")),
+        };
+        return entry;
+    }
+    fail();
+}
+
+auto
+parseLiveStandings(const QJsonObject& object) -> LiveStandingsSnapshot
+{
+    requireExactKeys(object,
+                     { "roomId",
+                       "roomGeneration",
+                       "roundId",
+                       "launchAttemptId",
+                       "standingsRevision",
+                       "entries" });
+    LiveStandingsSnapshot result{
+        .roomId = requiredString(object, "roomId"),
+        .roomGeneration = requiredSafeInteger(object, "roomGeneration", true),
+        .roundId = requiredString(object, "roundId"),
+        .launchAttemptId = requiredString(object, "launchAttemptId"),
+        .standingsRevision =
+          requiredSafeInteger(object, "standingsRevision", true),
+    };
+    validateOpaqueId(result.roomId);
+    validateOpaqueId(result.roundId);
+    validateOpaqueId(result.launchAttemptId);
+    const auto entries = requiredArray(object, "entries");
+    if (entries.isEmpty() || entries.size() > RoomCapacity) {
+        fail();
+    }
+    QSet<QString> ids;
+    for (const auto& value : entries) {
+        if (!value.isObject()) {
+            fail();
+        }
+        auto entry = parseLiveStandingEntry(value.toObject());
+        if (ids.contains(entry.memberId)) {
+            fail();
+        }
+        ids.insert(entry.memberId);
+        result.entries.push_back(std::move(entry));
+    }
+    return result;
+}
+
+auto
+parseFinalStandingEntry(const QJsonObject& object) -> FinalStandingEntry
+{
+    auto memberId = requiredString(object, "memberId");
+    validateOpaqueId(memberId);
+    FinalStandingEntry entry{
+        .memberId = std::move(memberId),
+        .identity = parsePublicIdentity(requiredObject(object, "identity")),
+    };
+    const auto wins = object.value(QStringLiteral("lobbyWinsAfter"));
+    if (wins.isNull()) {
+        entry.lobbyWinsAfter = std::nullopt;
+    } else {
+        const auto value = safeInteger(wins, false);
+        if (value > MaxUInt32) {
+            fail();
+        }
+        entry.lobbyWinsAfter = value;
+    }
+    const auto competitionState = requiredString(object, "competitionState");
+    if (competitionState == QStringLiteral("finished")) {
+        requireExactKeys(object,
+                         { "memberId",
+                           "identity",
+                           "lobbyWinsAfter",
+                           "competitionState",
+                           "rank",
+                           "result" });
+        const auto rank = nullableCompetitionRank(object, "rank");
+        if (!rank) {
+            fail();
+        }
+        entry.state = FinalFinishedStanding{
+            .rank = *rank,
+            .result = parseFinalResult(requiredObject(object, "result")),
+        };
+        return entry;
+    }
+    if (competitionState == QStringLiteral("dnf")) {
+        requireExactKeys(object,
+                         { "memberId",
+                           "identity",
+                           "lobbyWinsAfter",
+                           "competitionState",
+                           "rank",
+                           "dnfReason" });
+        if (!object.value(QStringLiteral("rank")).isNull()) {
+            fail();
+        }
+        entry.state = FinalDnfStanding{
+            .reason = parseDnfReason(requiredString(object, "dnfReason")),
+        };
+        return entry;
+    }
+    fail();
+}
+
+auto
+parseRoundResultSnapshot(const QJsonObject& object) -> RoundResultSnapshot
+{
+    if (QJsonDocument(object).toJson(QJsonDocument::Compact).size() >
+        MaxResultSnapshotBytes) {
+        fail(ProtocolFailureCode::FrameTooLarge);
+    }
+    requireExactKeys(object,
+                     { "resultRevision",
+                       "roundId",
+                       "selectionRevision",
+                       "finalizedAtServerMs",
+                       "participantCount",
+                       "selection",
+                       "winnerMemberIds",
+                       "entries" });
+    RoundResultSnapshot result{
+        .resultRevision = requiredSafeInteger(object, "resultRevision", true),
+        .roundId = requiredString(object, "roundId"),
+        .selectionRevision =
+          requiredSafeInteger(object, "selectionRevision", true),
+        .finalizedAtServerMs =
+          requiredSafeInteger(object, "finalizedAtServerMs"),
+        .selection = parseSelection(requiredObject(object, "selection")),
+    };
+    validateOpaqueId(result.roundId);
+    const auto participantCount =
+      requiredSafeInteger(object, "participantCount", true);
+    if (participantCount > RoomCapacity) {
+        fail();
+    }
+    result.participantCount = static_cast<int>(participantCount);
+
+    const auto winners = requiredArray(object, "winnerMemberIds");
+    if (winners.size() > RoomCapacity) {
+        fail();
+    }
+    QSet<QString> winnerIds;
+    for (const auto& value : winners) {
+        if (!value.isString()) {
+            fail();
+        }
+        auto id = value.toString();
+        validateOpaqueId(id);
+        if (winnerIds.contains(id)) {
+            fail();
+        }
+        winnerIds.insert(id);
+        result.winnerMemberIds.push_back(std::move(id));
+    }
+
+    const auto entries = requiredArray(object, "entries");
+    if (entries.isEmpty() || entries.size() > RoomCapacity ||
+        entries.size() != result.participantCount) {
+        fail();
+    }
+    QSet<QString> entryIds;
+    QVector<QString> expectedWinners;
+    for (const auto& value : entries) {
+        if (!value.isObject()) {
+            fail();
+        }
+        auto entry = parseFinalStandingEntry(value.toObject());
+        if (entryIds.contains(entry.memberId)) {
+            fail();
+        }
+        entryIds.insert(entry.memberId);
+        if (const auto* finished =
+              std::get_if<FinalFinishedStanding>(&entry.state);
+            finished != nullptr && finished->rank == 1) {
+            expectedWinners.push_back(entry.memberId);
+        }
+        result.entries.push_back(std::move(entry));
+    }
+    if (result.winnerMemberIds != expectedWinners) {
+        fail();
+    }
     return result;
 }
 
@@ -814,8 +1439,42 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
                                                  "selectionRevision",
                                                  "availabilityRevision",
                                                  "round" });
+    const auto competitionWithoutRound = hasExactKeys(object,
+                                                      { "roomId",
+                                                        "roomGeneration",
+                                                        "name",
+                                                        "phase",
+                                                        "hasPassword",
+                                                        "maxCount",
+                                                        "ownerMemberId",
+                                                        "self",
+                                                        "members",
+                                                        "chat",
+                                                        "selection",
+                                                        "selectionRevision",
+                                                        "availabilityRevision",
+                                                        "liveStandings",
+                                                        "lastRoundResult" });
+    const auto competitionWithRound = hasExactKeys(object,
+                                                   { "roomId",
+                                                     "roomGeneration",
+                                                     "name",
+                                                     "phase",
+                                                     "hasPassword",
+                                                     "maxCount",
+                                                     "ownerMemberId",
+                                                     "self",
+                                                     "members",
+                                                     "chat",
+                                                     "selection",
+                                                     "selectionRevision",
+                                                     "availabilityRevision",
+                                                     "round",
+                                                     "liveStandings",
+                                                     "lastRoundResult" });
     const auto current = currentWithoutRound || currentWithRound;
-    if (!legacy && !current) {
+    const auto competition = competitionWithoutRound || competitionWithRound;
+    if (!legacy && !current && !competition) {
         fail();
     }
     RoomSnapshot result;
@@ -863,7 +1522,7 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
         const auto memberObject = value.toObject();
         const auto memberIsCurrent =
           memberObject.contains(QStringLiteral("ready"));
-        if (memberIsCurrent != current) {
+        if (memberIsCurrent != (current || competition)) {
             fail();
         }
         auto member = parseMember(memberObject);
@@ -890,7 +1549,7 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
         messageIds.insert(message.messageId);
         result.chat.push_back(std::move(message));
     }
-    if (current) {
+    if (current || competition) {
         const auto selection = object.value(QStringLiteral("selection"));
         if (selection.isNull()) {
             result.selection = std::nullopt;
@@ -903,8 +1562,37 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
           requiredSafeInteger(object, "selectionRevision");
         result.availabilityRevision =
           requiredSafeInteger(object, "availabilityRevision");
-        if (currentWithRound) {
+        if (currentWithRound || competitionWithRound) {
             result.round = parseFrozenRound(requiredObject(object, "round"));
+        }
+    }
+    if (competition) {
+        if (result.round &&
+            std::any_of(result.round->participants.cbegin(),
+                        result.round->participants.cend(),
+                        [](const FrozenParticipant& participant) {
+                            return !participant.identity.has_value();
+                        })) {
+            fail();
+        }
+        const auto live = object.value(QStringLiteral("liveStandings"));
+        if (live.isObject()) {
+            result.liveStandings = parseLiveStandings(live.toObject());
+        } else if (!live.isNull()) {
+            fail();
+        }
+        const auto last = object.value(QStringLiteral("lastRoundResult"));
+        if (last.isObject()) {
+            result.lastRoundResult = parseRoundResultSnapshot(last.toObject());
+        } else if (!last.isNull()) {
+            fail();
+        }
+        const auto hasRound = result.round.has_value();
+        const auto hasLive = result.liveStandings.has_value();
+        if ((result.phase == RoomPhase::Selecting && (hasRound || hasLive)) ||
+            (result.phase == RoomPhase::Loading && (!hasRound || hasLive)) ||
+            (result.phase == RoomPhase::Playing && (!hasRound || !hasLive))) {
+            fail();
         }
     }
     return result;
@@ -948,6 +1636,8 @@ parseCommandErrorCode(QStringView value) -> CommandErrorCode
         { u"rate_limited", CommandErrorCode::RateLimited },
         { u"rounds_capability_required",
           CommandErrorCode::RoundsCapabilityRequired },
+        { u"competition_capability_required",
+          CommandErrorCode::CompetitionCapabilityRequired },
         { u"inventory_busy", CommandErrorCode::InventoryBusy },
         { u"inventory_invalid", CommandErrorCode::InventoryInvalid },
         { u"inventory_stale", CommandErrorCode::InventoryStale },
@@ -959,6 +1649,9 @@ parseCommandErrorCode(QStringView value) -> CommandErrorCode
         { u"ready_not_allowed", CommandErrorCode::ReadyNotAllowed },
         { u"round_stale", CommandErrorCode::RoundStale },
         { u"launch_stage_stale", CommandErrorCode::LaunchStageStale },
+        { u"result_invalid", CommandErrorCode::ResultInvalid },
+        { u"round_already_terminal", CommandErrorCode::RoundAlreadyTerminal },
+        { u"server_capacity", CommandErrorCode::ServerCapacity },
     };
     for (const auto& [spelling, code] : entries) {
         if (value == spelling) {
@@ -1033,6 +1726,16 @@ encodeHello(const ClientHello& hello) -> QJsonObject
     }
     if (!hello.capabilities.contains(QString::fromLatin1(RoomsCapability))) {
         fail(ProtocolFailureCode::CapabilityRequired);
+    }
+    const auto hasRounds =
+      hello.capabilities.contains(QString::fromLatin1(RoundsCapability));
+    const auto hasCompetition =
+      hello.capabilities.contains(QString::fromLatin1(CompetitionCapability));
+    if ((hasCompetition && !hasRounds) ||
+        (hello.protocolMinor == LegacyProtocolMinor &&
+         (hasRounds || hasCompetition)) ||
+        (hello.protocolMinor == RoundsProtocolMinor && hasCompetition)) {
+        fail();
     }
     if (hello.ticket && (hello.ticket->isEmpty() ||
                          hello.ticket->size() > MaxTicketCharacters)) {
@@ -1461,8 +2164,16 @@ encodeRoundLoadResult(const RoundLoadResult& command) -> QJsonObject
         if (command.failureReason) {
             fail();
         }
+        if (command.chartLengthMs) {
+            if (*command.chartLengthMs < 0 ||
+                *command.chartLengthMs > MaxChartLengthMs) {
+                fail();
+            }
+            data.insert(QStringLiteral("chartLengthMs"),
+                        *command.chartLengthMs);
+        }
     } else {
-        if (!command.failureReason) {
+        if (!command.failureReason || command.chartLengthMs) {
             fail();
         }
         data.insert(QStringLiteral("reason"),
@@ -1470,6 +2181,67 @@ encodeRoundLoadResult(const RoundLoadResult& command) -> QJsonObject
     }
     return requestEnvelope(
       QStringLiteral("round_load_result"), command.requestId, std::move(data));
+}
+
+auto
+competitionData(QString roomId,
+                qint64 roomGeneration,
+                qint64 connectionGeneration,
+                QString roundId,
+                QString launchAttemptId) -> QJsonObject
+{
+    auto data =
+      generationData(std::move(roomId), roomGeneration, connectionGeneration);
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    data.insert(QStringLiteral("roundId"), std::move(roundId));
+    data.insert(QStringLiteral("launchAttemptId"), std::move(launchAttemptId));
+    return data;
+}
+
+auto
+encodeRoundTelemetry(const RoundTelemetry& command) -> QJsonObject
+{
+    auto data = competitionData(command.roomId,
+                                command.roomGeneration,
+                                command.connectionGeneration,
+                                command.roundId,
+                                command.launchAttemptId);
+    data.insert(QStringLiteral("telemetry"),
+                encodeTelemetry(command.telemetry));
+    return { { QStringLiteral("type"), QStringLiteral("round_telemetry") },
+             { QStringLiteral("data"), std::move(data) } };
+}
+
+auto
+encodeRoundResultSubmit(const RoundResultSubmit& command) -> QJsonObject
+{
+    auto data = competitionData(command.roomId,
+                                command.roomGeneration,
+                                command.connectionGeneration,
+                                command.roundId,
+                                command.launchAttemptId);
+    data.insert(QStringLiteral("result"), encodeFinalResult(command.result));
+    return requestEnvelope(QStringLiteral("round_result_submit"),
+                           command.requestId,
+                           std::move(data));
+}
+
+auto
+encodeRoundAbandon(const RoundAbandon& command) -> QJsonObject
+{
+    if (command.reason != DnfReason::Aborted &&
+        command.reason != DnfReason::ResultUnavailable) {
+        fail();
+    }
+    auto data = competitionData(command.roomId,
+                                command.roomGeneration,
+                                command.connectionGeneration,
+                                command.roundId,
+                                command.launchAttemptId);
+    data.insert(QStringLiteral("reason"), dnfReasonString(command.reason));
+    return requestEnvelope(
+      QStringLiteral("round_abandon"), command.requestId, std::move(data));
 }
 
 auto
@@ -1504,13 +2276,24 @@ parseServerHello(const QJsonObject& data) -> ServerHello
           ResumeSucceeded{ parseRoomSnapshot(requiredObject(resume, "room")) };
     } else if (status == QStringLiteral("failed")) {
         requireExactKeys(resume, { "status", "code", "displayMessageKey" });
-        if (requiredString(resume, "code") !=
-              QStringLiteral("room_resume_failed") ||
-            requiredString(resume, "displayMessageKey") !=
-              QStringLiteral("arena.error.resumeFailed")) {
+        const auto code = requiredString(resume, "code");
+        const auto displayMessageKey =
+          requiredString(resume, "displayMessageKey");
+        if (code == QStringLiteral("room_resume_failed") &&
+            displayMessageKey == QStringLiteral("arena.error.resumeFailed")) {
+            result.resume = ResumeFailed{
+                .code = ResumeFailureCode::RoomResumeFailed,
+            };
+        } else if (code == QStringLiteral("competition_capability_required") &&
+                   displayMessageKey ==
+                     QStringLiteral(
+                       "arena.error.competitionCapabilityRequired")) {
+            result.resume = ResumeFailed{
+                .code = ResumeFailureCode::CompetitionCapabilityRequired,
+            };
+        } else {
             fail();
         }
-        result.resume = ResumeFailed{};
     } else {
         fail();
     }
@@ -2068,14 +2851,26 @@ parseRoundLoadRequested(const QJsonObject& data) -> RoundLoadRequested
 auto
 parseRoundStartScheduled(const QJsonObject& data) -> RoundStartScheduled
 {
-    requireExactKeys(data,
-                     { "roomId",
-                       "roomGeneration",
-                       "connectionGeneration",
-                       "roundId",
-                       "launchAttemptId",
-                       "startAtServerMs",
-                       "startAfterMs" });
+    const auto legacy = hasExactKeys(data,
+                                     { "roomId",
+                                       "roomGeneration",
+                                       "connectionGeneration",
+                                       "roundId",
+                                       "launchAttemptId",
+                                       "startAtServerMs",
+                                       "startAfterMs" });
+    const auto competition = hasExactKeys(data,
+                                          { "roomId",
+                                            "roomGeneration",
+                                            "connectionGeneration",
+                                            "roundId",
+                                            "launchAttemptId",
+                                            "startAtServerMs",
+                                            "startAfterMs",
+                                            "playDeadlineAtServerMs" });
+    if (!legacy && !competition) {
+        fail();
+    }
     auto binding = parseRoomBinding(data);
     auto roundId = requiredString(data, "roundId");
     auto launchAttemptId = requiredString(data, "launchAttemptId");
@@ -2086,7 +2881,7 @@ parseRoundStartScheduled(const QJsonObject& data) -> RoundStartScheduled
         startAfterMs > MaxRoundStartAfterMs) {
         fail();
     }
-    return {
+    RoundStartScheduled result{
         .roomId = std::move(binding.roomId),
         .roomGeneration = binding.roomGeneration,
         .connectionGeneration = binding.connectionGeneration,
@@ -2095,22 +2890,121 @@ parseRoundStartScheduled(const QJsonObject& data) -> RoundStartScheduled
         .startAtServerMs = requiredSafeInteger(data, "startAtServerMs"),
         .startAfterMs = startAfterMs,
     };
+    if (competition) {
+        const auto deadline =
+          requiredSafeInteger(data, "playDeadlineAtServerMs");
+        if (deadline < result.startAtServerMs) {
+            fail();
+        }
+        result.playDeadlineAtServerMs = deadline;
+    }
+    return result;
 }
 
 auto
 parseRoundStarted(const QJsonObject& data) -> RoundStarted
 {
-    requireExactKeys(
+    const auto legacy = hasExactKeys(
       data, { "roomId", "roomGeneration", "roundId", "launchAttemptId" });
+    const auto competition = hasExactKeys(data,
+                                          { "roomId",
+                                            "roomGeneration",
+                                            "roundId",
+                                            "launchAttemptId",
+                                            "playDeadlineAtServerMs" });
+    if (!legacy && !competition) {
+        fail();
+    }
     auto header = parseRoomEventHeader(data);
     auto roundId = requiredString(data, "roundId");
     auto launchAttemptId = requiredString(data, "launchAttemptId");
     validateOpaqueId(roundId);
     validateOpaqueId(launchAttemptId);
-    return { .roomId = std::move(header.roomId),
+    RoundStarted result{ .roomId = std::move(header.roomId),
+                         .roomGeneration = header.roomGeneration,
+                         .roundId = std::move(roundId),
+                         .launchAttemptId = std::move(launchAttemptId) };
+    if (competition) {
+        result.playDeadlineAtServerMs =
+          requiredSafeInteger(data, "playDeadlineAtServerMs");
+    }
+    return result;
+}
+
+auto
+parseRoundTerminalAccepted(QString requestId, const QJsonObject& data)
+  -> RoundTerminalAccepted
+{
+    validateRequestId(requestId);
+    requireExactKeys(
+      data,
+      { "roomId", "roomGeneration", "roundId", "launchAttemptId", "terminal" });
+    auto header = parseRoomEventHeader(data);
+    auto roundId = requiredString(data, "roundId");
+    auto launchAttemptId = requiredString(data, "launchAttemptId");
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    const auto terminal = requiredString(data, "terminal");
+    TerminalKind terminalKind;
+    if (terminal == QStringLiteral("finished")) {
+        terminalKind = TerminalKind::Finished;
+    } else if (terminal == QStringLiteral("dnf")) {
+        terminalKind = TerminalKind::Dnf;
+    } else {
+        fail();
+    }
+    return { .requestId = std::move(requestId),
+             .roomId = std::move(header.roomId),
              .roomGeneration = header.roomGeneration,
              .roundId = std::move(roundId),
-             .launchAttemptId = std::move(launchAttemptId) };
+             .launchAttemptId = std::move(launchAttemptId),
+             .terminal = terminalKind };
+}
+
+auto
+parseRoundFinalized(const QJsonObject& data) -> RoundFinalized
+{
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "roundId",
+                       "launchAttemptId",
+                       "result",
+                       "members" });
+    auto header = parseRoomEventHeader(data);
+    RoundFinalized finalized{
+        .roomId = std::move(header.roomId),
+        .roomGeneration = header.roomGeneration,
+        .roundId = requiredString(data, "roundId"),
+        .launchAttemptId = requiredString(data, "launchAttemptId"),
+        .result = parseRoundResultSnapshot(requiredObject(data, "result")),
+    };
+    validateOpaqueId(finalized.roundId);
+    validateOpaqueId(finalized.launchAttemptId);
+    if (finalized.result.roundId != finalized.roundId) {
+        fail();
+    }
+    const auto members = requiredArray(data, "members");
+    if (members.size() > RoomCapacity) {
+        fail();
+    }
+    QSet<QString> ids;
+    for (const auto& value : members) {
+        if (!value.isObject()) {
+            fail();
+        }
+        const auto object = value.toObject();
+        if (!object.contains(QStringLiteral("ready"))) {
+            fail();
+        }
+        auto member = parseMember(object);
+        if (ids.contains(member.memberId)) {
+            fail();
+        }
+        ids.insert(member.memberId);
+        finalized.members.push_back(std::move(member));
+    }
+    return finalized;
 }
 
 auto
@@ -2132,6 +3026,8 @@ parseRoundLaunchCancellationReason(QStringView value)
             RoundLaunchCancellationReason::ParticipantLeft },
           { u"participant_kicked",
             RoundLaunchCancellationReason::ParticipantKicked },
+          { u"chart_length_mismatch",
+            RoundLaunchCancellationReason::ChartLengthMismatch },
           { u"server_shutdown", RoundLaunchCancellationReason::ServerShutdown },
           { u"cancelled", RoundLaunchCancellationReason::Cancelled },
       };
@@ -2220,6 +3116,12 @@ encodeClientMessage(const ClientMessage& message) -> EncodeClientResult
                   return encodeRoundProbeResult(value);
               } else if constexpr (std::is_same_v<Value, RoundLoadResult>) {
                   return encodeRoundLoadResult(value);
+              } else if constexpr (std::is_same_v<Value, RoundTelemetry>) {
+                  return encodeRoundTelemetry(value);
+              } else if constexpr (std::is_same_v<Value, RoundResultSubmit>) {
+                  return encodeRoundResultSubmit(value);
+              } else if constexpr (std::is_same_v<Value, RoundAbandon>) {
+                  return encodeRoundAbandon(value);
               } else {
                   fail();
               }
@@ -2261,6 +3163,12 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
             fail();
         }
         const auto type = typeValue.toString();
+        if ((type == QStringLiteral("round_standings") &&
+             bytes.size() > MaxStandingsMessageBytes) ||
+            (type == QStringLiteral("round_finalized") &&
+             bytes.size() > MaxFinalizationMessageBytes)) {
+            fail(ProtocolFailureCode::FrameTooLarge);
+        }
         if (type == QStringLiteral("server_hello")) {
             // Version/capability negotiation failures take precedence over
             // unrelated schema errors in a recognizable hello.
@@ -2320,6 +3228,11 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
             return ServerMessage{ parseSelectionRejected(
               requiredString(envelope, "requestId"), data) };
         }
+        if (type == QStringLiteral("round_terminal_accepted")) {
+            requireExactKeys(envelope, { "type", "requestId", "data" });
+            return ServerMessage{ parseRoundTerminalAccepted(
+              requiredString(envelope, "requestId"), data) };
+        }
 
         requireExactKeys(envelope, { "type", "data" });
         if (type == QStringLiteral("fatal_error")) {
@@ -2375,6 +3288,12 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
         }
         if (type == QStringLiteral("round_started")) {
             return ServerMessage{ parseRoundStarted(data) };
+        }
+        if (type == QStringLiteral("round_standings")) {
+            return ServerMessage{ parseLiveStandings(data) };
+        }
+        if (type == QStringLiteral("round_finalized")) {
+            return ServerMessage{ parseRoundFinalized(data) };
         }
         if (type == QStringLiteral("round_launch_cancelled")) {
             return ServerMessage{ parseRoundLaunchCancelled(data) };

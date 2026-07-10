@@ -12,13 +12,18 @@ namespace arena {
 
 inline constexpr int ProtocolMajor = 1;
 inline constexpr int LegacyProtocolMinor = 0;
-inline constexpr int ProtocolMinor = 1;
+inline constexpr int RoundsProtocolMinor = 1;
+inline constexpr int ProtocolMinor = 2;
 inline constexpr auto RoomsCapability = "rooms-v1";
 inline constexpr auto RoundsCapability = "rounds-v1";
+inline constexpr auto CompetitionCapability = "competition-v1";
 inline constexpr auto RequiredCapability = RoomsCapability;
 
 inline constexpr qsizetype MaxClientMessageBytes = 64 * 1024;
 inline constexpr qsizetype MaxServerMessageBytes = 4 * 1024 * 1024;
+inline constexpr qsizetype MaxStandingsMessageBytes = 64 * 1024;
+inline constexpr qsizetype MaxResultSnapshotBytes = 256 * 1024;
+inline constexpr qsizetype MaxFinalizationMessageBytes = 512 * 1024;
 inline constexpr int MaxCapabilities = 16;
 inline constexpr int MaxCapabilityCharacters = 64;
 inline constexpr int MaxClientVersionCodePoints = 64;
@@ -45,6 +50,9 @@ inline constexpr int Md5Characters = 32;
 inline constexpr int LaneSeedCharacters = 16;
 inline constexpr int MinRoundStartAfterMs = 250;
 inline constexpr int MaxRoundStartAfterMs = 5000;
+inline constexpr qint64 MaxUInt32 = 0xffff'ffffLL;
+inline constexpr qint64 MaxScoreCounter = 100'000'000;
+inline constexpr qint64 MaxChartLengthMs = 21'600'000;
 inline constexpr qint64 MaxJsonSafeInteger = 9'007'199'254'740'991LL;
 
 enum class RoomPhase
@@ -75,6 +83,57 @@ enum class DpMode
     Flip,
     Lr2Flip,
     Battle,
+};
+
+enum class GaugeType
+{
+    Fc,
+    ExHard,
+    Hard,
+    Normal,
+    Easy,
+    AssistEasy,
+};
+
+enum class ClearType
+{
+    Max,
+    Perfect,
+    FullCombo,
+    ExHard,
+    Hard,
+    Normal,
+    Easy,
+    AssistEasy,
+    Failed,
+};
+
+enum class DnfReason
+{
+    Aborted,
+    ResultUnavailable,
+    Left,
+    Kicked,
+    GraceExpired,
+    PlayDeadline,
+};
+
+enum class ActiveCompetitionState
+{
+    Loading,
+    Playing,
+};
+
+enum class TerminalKind
+{
+    Finished,
+    Dnf,
+};
+
+enum class ResumeFailureCode
+{
+    RoomResumeFailed,
+    CompetitionCapabilityRequired,
 };
 
 enum class FrozenRoundStage
@@ -128,6 +187,7 @@ enum class RoundLaunchCancellationReason
     LoadTimeout,
     ParticipantLeft,
     ParticipantKicked,
+    ChartLengthMismatch,
     ServerShutdown,
     Cancelled,
 };
@@ -179,6 +239,7 @@ enum class CommandErrorCode
     ChatTooLong,
     RateLimited,
     RoundsCapabilityRequired,
+    CompetitionCapabilityRequired,
     InventoryBusy,
     InventoryInvalid,
     InventoryStale,
@@ -189,6 +250,9 @@ enum class CommandErrorCode
     ReadyNotAllowed,
     RoundStale,
     LaunchStageStale,
+    ResultInvalid,
+    RoundAlreadyTerminal,
+    ServerCapacity,
 };
 
 enum class FatalErrorCode
@@ -223,10 +287,19 @@ struct SelectionSnapshot
     bool operator==(const SelectionSnapshot&) const = default;
 };
 
+struct PublicIdentity
+{
+    QString userId;
+    QString displayName;
+    std::optional<QString> avatarUrl{ std::nullopt };
+    bool operator==(const PublicIdentity&) const = default;
+};
+
 struct FrozenParticipant
 {
     QString memberId;
     qint64 inventoryRevision{};
+    std::optional<PublicIdentity> identity{ std::nullopt };
     bool operator==(const FrozenParticipant&) const = default;
 };
 
@@ -239,15 +312,130 @@ struct FrozenRound
     SelectionSnapshot selection;
     QVector<FrozenParticipant> participants;
     FrozenRoundStage stage{ FrozenRoundStage::Probing };
+    std::optional<qint64> playDeadlineAtServerMs{ std::nullopt };
     bool operator==(const FrozenRound&) const = default;
 };
 
-struct PublicIdentity
+struct ArenaJudgements
 {
-    QString userId;
-    QString displayName;
-    std::optional<QString> avatarUrl{ std::nullopt };
-    bool operator==(const PublicIdentity&) const = default;
+    qint64 perfect{};
+    qint64 great{};
+    qint64 good{};
+    qint64 bad{};
+    qint64 poor{};
+    qint64 emptyPoor{};
+    bool operator==(const ArenaJudgements&) const = default;
+};
+
+struct GaugeSnapshot
+{
+    GaugeType type{ GaugeType::Normal };
+    qint64 valueMilli{};
+    bool operator==(const GaugeSnapshot&) const = default;
+};
+
+struct TelemetrySnapshot
+{
+    qint64 sequence{};
+    qint64 exScore{};
+    qint64 progressPermille{};
+    qint64 maxCombo{};
+    qint64 badPoorCount{};
+    ArenaJudgements judgements;
+    GaugeSnapshot gauge;
+    bool operator==(const TelemetrySnapshot&) const = default;
+};
+
+struct FinalResult
+{
+    qint64 exScore{};
+    qint64 maxCombo{};
+    qint64 badPoorCount{};
+    ArenaJudgements judgements;
+    ClearType clearType{ ClearType::Failed };
+    GaugeSnapshot finalGauge;
+    bool operator==(const FinalResult&) const = default;
+};
+
+struct LiveActiveStanding
+{
+    ActiveCompetitionState competitionState{ ActiveCompetitionState::Loading };
+    std::optional<int> rank{ std::nullopt };
+    std::optional<TelemetrySnapshot> telemetry{ std::nullopt };
+    bool operator==(const LiveActiveStanding&) const = default;
+};
+
+struct LiveFinishedStanding
+{
+    int rank{};
+    FinalResult result;
+    bool operator==(const LiveFinishedStanding&) const = default;
+};
+
+struct LiveDnfStanding
+{
+    DnfReason reason{ DnfReason::Aborted };
+    bool operator==(const LiveDnfStanding&) const = default;
+};
+
+using LiveStandingState =
+  std::variant<LiveActiveStanding, LiveFinishedStanding, LiveDnfStanding>;
+
+struct LiveStandingEntry
+{
+    QString memberId;
+    MemberStatus connectionStatus{ MemberStatus::Connected };
+    LiveStandingState state;
+    bool operator==(const LiveStandingEntry&) const = default;
+};
+
+struct LiveStandingsSnapshot
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    qint64 standingsRevision{};
+    QVector<LiveStandingEntry> entries;
+    bool operator==(const LiveStandingsSnapshot&) const = default;
+};
+
+struct FinalFinishedStanding
+{
+    int rank{};
+    FinalResult result;
+    bool operator==(const FinalFinishedStanding&) const = default;
+};
+
+struct FinalDnfStanding
+{
+    DnfReason reason{ DnfReason::Aborted };
+    bool operator==(const FinalDnfStanding&) const = default;
+};
+
+using FinalStandingState =
+  std::variant<FinalFinishedStanding, FinalDnfStanding>;
+
+struct FinalStandingEntry
+{
+    QString memberId;
+    PublicIdentity identity;
+    std::optional<qint64> lobbyWinsAfter{ std::nullopt };
+    FinalStandingState state;
+    bool operator==(const FinalStandingEntry&) const = default;
+};
+
+struct RoundResultSnapshot
+{
+    qint64 resultRevision{};
+    QString roundId;
+    qint64 selectionRevision{};
+    qint64 finalizedAtServerMs{};
+    int participantCount{};
+    SelectionSnapshot selection;
+    QVector<QString> winnerMemberIds;
+    QVector<FinalStandingEntry> entries;
+    bool operator==(const RoundResultSnapshot&) const = default;
 };
 
 struct Member
@@ -310,6 +498,8 @@ struct RoomSnapshot
     qint64 selectionRevision{};
     qint64 availabilityRevision{};
     std::optional<FrozenRound> round{ std::nullopt };
+    std::optional<LiveStandingsSnapshot> liveStandings{ std::nullopt };
+    std::optional<RoundResultSnapshot> lastRoundResult{ std::nullopt };
     bool operator==(const RoomSnapshot&) const = default;
 };
 
@@ -326,7 +516,8 @@ struct ClientHello
     int protocolMinor{ ProtocolMinor };
     QString clientVersion;
     QStringList capabilities{ QString::fromLatin1(RoomsCapability),
-                              QString::fromLatin1(RoundsCapability) };
+                              QString::fromLatin1(RoundsCapability),
+                              QString::fromLatin1(CompetitionCapability) };
     std::optional<QString> ticket{ std::nullopt };
     std::optional<ResumeRequest> resume{ std::nullopt };
     bool operator==(const ClientHello&) const = default;
@@ -504,7 +695,43 @@ struct RoundLoadResult
     qint64 inventoryRevision{};
     bool ok{};
     std::optional<RoundLoadFailureReason> failureReason{ std::nullopt };
+    std::optional<qint64> chartLengthMs{ std::nullopt };
     bool operator==(const RoundLoadResult&) const = default;
+};
+
+struct RoundTelemetry
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    TelemetrySnapshot telemetry;
+    bool operator==(const RoundTelemetry&) const = default;
+};
+
+struct RoundResultSubmit
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    FinalResult result;
+    bool operator==(const RoundResultSubmit&) const = default;
+};
+
+struct RoundAbandon
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    DnfReason reason{ DnfReason::Aborted };
+    bool operator==(const RoundAbandon&) const = default;
 };
 
 using ClientMessage = std::variant<ClientHello,
@@ -523,7 +750,10 @@ using ClientMessage = std::variant<ClientHello,
                                    SelectionSet,
                                    ReadySet,
                                    RoundProbeResult,
-                                   RoundLoadResult>;
+                                   RoundLoadResult,
+                                   RoundTelemetry,
+                                   RoundResultSubmit,
+                                   RoundAbandon>;
 
 struct ResumeNotRequested
 {
@@ -538,6 +768,7 @@ struct ResumeSucceeded
 
 struct ResumeFailed
 {
+    ResumeFailureCode code{ ResumeFailureCode::RoomResumeFailed };
     bool operator==(const ResumeFailed&) const = default;
 };
 
@@ -766,6 +997,7 @@ struct RoundStartScheduled
     QString launchAttemptId;
     qint64 startAtServerMs{};
     qint64 startAfterMs{};
+    std::optional<qint64> playDeadlineAtServerMs{ std::nullopt };
     bool operator==(const RoundStartScheduled&) const = default;
 };
 
@@ -775,7 +1007,30 @@ struct RoundStarted
     qint64 roomGeneration{};
     QString roundId;
     QString launchAttemptId;
+    std::optional<qint64> playDeadlineAtServerMs{ std::nullopt };
     bool operator==(const RoundStarted&) const = default;
+};
+
+struct RoundTerminalAccepted
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    TerminalKind terminal{ TerminalKind::Finished };
+    bool operator==(const RoundTerminalAccepted&) const = default;
+};
+
+struct RoundFinalized
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    RoundResultSnapshot result;
+    QVector<Member> members;
+    bool operator==(const RoundFinalized&) const = default;
 };
 
 struct RoundLaunchCancelled
@@ -817,6 +1072,9 @@ using ServerMessage = std::variant<ServerHello,
                                    RoundLoadRequested,
                                    RoundStartScheduled,
                                    RoundStarted,
+                                   LiveStandingsSnapshot,
+                                   RoundTerminalAccepted,
+                                   RoundFinalized,
                                    RoundLaunchCancelled>;
 
 } // namespace arena

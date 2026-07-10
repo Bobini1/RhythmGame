@@ -58,6 +58,7 @@ target_compile_definitions(
         RhythmGame_test PRIVATE
         ARENA_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/protocol-v1.json"
         ARENA_PHASE2_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-text-goldens.json"
+        ARENA_PHASE3_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase3-text-goldens.json"
         ARENA_BINARY_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-binary-goldens.json"
 )
 set_target_properties(
