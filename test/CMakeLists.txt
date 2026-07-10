@@ -38,6 +38,7 @@ add_executable(RhythmGame_test
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
+        lr2_skin/Lr2ArenaAvailability.test.cpp
         lr2_skin/Lr2ResolvedTextRegistry.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp
         lr2_skin/Lr2SelectDetailState.test.cpp

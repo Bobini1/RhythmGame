@@ -382,6 +382,7 @@ QHash<int, QByteArray> Lr2SelectItemModel::roleNames() const {
 		{RawItemRole, "rawItem"},
 		{ChartDataRole, "chartData"},
 		{ActivationObjectRole, "activationObject"},
+		{ArenaAvailabilityRole, "arenaAvailability"},
 	};
 }
 
@@ -546,6 +547,42 @@ void Lr2SelectItemModel::setLevelFolderParentSymbol(const QString& symbol) {
 	m_levelFolderParentSymbol = symbol;
 	emit levelFolderParentChanged();
 	refreshDerivedItems();
+}
+
+arena::ArenaAvailabilityIndex* Lr2SelectItemModel::arenaAvailability() const {
+	return m_arenaAvailability;
+}
+
+void Lr2SelectItemModel::setArenaAvailability(arena::ArenaAvailabilityIndex* availability) {
+	if (m_arenaAvailability == availability) {
+		return;
+	}
+	if (m_arenaAvailability) {
+		disconnect(m_arenaAvailability, nullptr, this, nullptr);
+	}
+	m_arenaAvailability = availability;
+	if (m_arenaAvailability) {
+		connect(m_arenaAvailability,
+			&arena::ArenaAvailabilityIndex::changed,
+			this,
+			&Lr2SelectItemModel::refreshArenaAvailability);
+		connect(m_arenaAvailability, &QObject::destroyed, this, [this] {
+			m_arenaAvailability = nullptr;
+			emit arenaAvailabilityChanged();
+			refreshArenaAvailability();
+		});
+	}
+	emit arenaAvailabilityChanged();
+	refreshArenaAvailability();
+}
+
+void Lr2SelectItemModel::refreshArenaAvailability() {
+	if (m_items.isEmpty()) {
+		return;
+	}
+	emit dataChanged(index(0, 0),
+		index(m_items.size() - 1, 0),
+		{ ArenaAvailabilityRole });
 }
 
 QVariant Lr2SelectItemModel::rawItemAt(int row) const {
@@ -1612,6 +1649,11 @@ QVariant Lr2SelectItemModel::roleData(const Item& item, int role) const {
 	case RawItemRole:
 	case ActivationObjectRole: return item.raw;
 	case ChartDataRole: return item.kind == ChartKind ? item.raw : QVariant();
+	case ArenaAvailabilityRole:
+		if (item.kind != ChartKind || item.sha256.isEmpty() || !m_arenaAvailability) {
+			return static_cast<int>(arena::ArenaAvailabilityIndex::Availability::NotApplicable);
+		}
+		return static_cast<int>(m_arenaAvailability->availability(item.sha256));
 	default: return {};
 	}
 }

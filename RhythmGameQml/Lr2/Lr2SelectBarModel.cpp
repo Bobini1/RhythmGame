@@ -54,6 +54,7 @@ QHash<int, QByteArray> Lr2SelectBarModel::roleNames() const {
 		{GraphLampsRole, "graphLamps"},
 		{GraphRanksRole, "graphRanks"},
 		{RawItemRole, "rawItem"},
+		{ArenaAvailabilityRole, "arenaAvailability"},
 	};
 }
 
@@ -251,6 +252,7 @@ QVariant Lr2SelectBarModel::roleData(const BarRow& row, int role) const {
 	case GraphLampsRole: return sourceData(row, Lr2SelectItemModel::FolderGraphLampsRole);
 	case GraphRanksRole: return sourceData(row, Lr2SelectItemModel::FolderGraphRanksRole);
 	case RawItemRole: return sourceData(row, Lr2SelectItemModel::RawItemRole);
+	case ArenaAvailabilityRole: return sourceData(row, Lr2SelectItemModel::ArenaAvailabilityRole);
 	default: return {};
 	}
 }
@@ -291,8 +293,17 @@ void Lr2SelectBarModel::connectSourceModel() {
 		m_sourceModel,
 		&QAbstractItemModel::dataChanged,
 		this,
-		[this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>&) {
+		[this](const QModelIndex& topLeft, const QModelIndex& bottomRight, const QList<int>& roles) {
 			updateCellsForSourceRows(topLeft.row(), bottomRight.row());
+			if (!roles.isEmpty() && !roles.contains(Lr2SelectItemModel::ArenaAvailabilityRole)) {
+				return;
+			}
+			for (int row = 0; row < m_rows.size(); ++row) {
+				const int sourceRow = m_rows.at(row).sourceRow;
+				if (sourceRow >= topLeft.row() && sourceRow <= bottomRight.row()) {
+					emit dataChanged(index(row, 0), index(row, 0), { ArenaAvailabilityRole });
+				}
+			}
 		}));
 }
 
