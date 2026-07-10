@@ -143,12 +143,9 @@ ArenaTicketOperation::cancel()
         return;
     }
     terminal = true;
-    if (reply) {
-        disconnect(reply, nullptr, this, nullptr);
-        reply->abort();
-        reply->deleteLater();
-        reply.clear();
-    }
+    releaseReply(true);
+    responseBody.clear();
+    responseBody.squeeze();
     deleteLater();
 }
 
@@ -165,9 +162,19 @@ ArenaTicketOperation::attachReply(QNetworkReply* networkReply)
         return;
     }
     networkReply->setParent(this);
+    networkReply->setReadBufferSize(MaxResponseBytes + 1);
     reply = networkReply;
+    connect(
+      networkReply, &QNetworkReply::readyRead, this, [this, networkReply] {
+          if (!terminal && reply == networkReply) {
+              (void)consumeReplyData();
+          }
+      });
     connect(networkReply, &QNetworkReply::finished, this, [this, networkReply] {
         if (terminal || reply != networkReply) {
+            return;
+        }
+        if (!consumeReplyData()) {
             return;
         }
         const auto redirect =
@@ -184,18 +191,9 @@ ArenaTicketOperation::attachReply(QNetworkReply* networkReply)
             fail(Error::Network);
             return;
         }
-        constexpr qint64 MaxResponseBytes = 64 * 1024;
-        if (networkReply->size() > MaxResponseBytes) {
-            fail(Error::MalformedResponse);
-            return;
-        }
-        const auto body = networkReply->read(MaxResponseBytes + 1);
-        if (body.size() > MaxResponseBytes) {
-            fail(Error::MalformedResponse);
-            return;
-        }
         QJsonParseError parseError;
-        const auto document = QJsonDocument::fromJson(body, &parseError);
+        const auto document =
+          QJsonDocument::fromJson(responseBody, &parseError);
         if (parseError.error != QJsonParseError::NoError ||
             !document.isObject()) {
             fail(Error::MalformedResponse);
@@ -216,6 +214,41 @@ ArenaTicketOperation::attachReply(QNetworkReply* networkReply)
     });
 }
 
+auto
+ArenaTicketOperation::consumeReplyData() -> bool
+{
+    if (terminal || !reply) {
+        return false;
+    }
+    const auto remaining =
+      MaxResponseBytes + 1 - static_cast<qint64>(responseBody.size());
+    if (remaining <= 0) {
+        fail(Error::MalformedResponse);
+        return false;
+    }
+    responseBody.append(reply->read(remaining));
+    if (responseBody.size() > MaxResponseBytes || reply->bytesAvailable() > 0) {
+        fail(Error::MalformedResponse);
+        return false;
+    }
+    return true;
+}
+
+void
+ArenaTicketOperation::releaseReply(bool abort)
+{
+    const QPointer<QNetworkReply> networkReply = reply;
+    reply.clear();
+    if (!networkReply) {
+        return;
+    }
+    disconnect(networkReply, nullptr, this, nullptr);
+    if (abort && !networkReply->isFinished()) {
+        networkReply->abort();
+    }
+    networkReply->deleteLater();
+}
+
 void
 ArenaTicketOperation::succeed(QString ticket)
 {
@@ -223,13 +256,12 @@ ArenaTicketOperation::succeed(QString ticket)
         return;
     }
     terminal = true;
-    if (reply) {
-        reply->deleteLater();
-        reply.clear();
-    }
+    releaseReply(false);
     emit succeeded(ticket);
     ticket.clear();
     ticket.squeeze();
+    responseBody.clear();
+    responseBody.squeeze();
     deleteLater();
 }
 
@@ -240,10 +272,9 @@ ArenaTicketOperation::fail(Error error)
         return;
     }
     terminal = true;
-    if (reply) {
-        reply->deleteLater();
-        reply.clear();
-    }
+    releaseReply(true);
+    responseBody.clear();
+    responseBody.squeeze();
     emit failed(error);
     deleteLater();
 }

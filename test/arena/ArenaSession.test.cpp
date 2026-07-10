@@ -711,6 +711,28 @@ TEST_CASE("ArenaSession resumes immediately with a fresh ticket and rotates "
             .toString() == QStringLiteral("seat-token-2"));
 }
 
+TEST_CASE("ArenaSession rejects a resume hello at the exact grace deadline",
+          "[arena][session]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterRoom();
+    fixture.transport.injectDisconnected(2);
+    fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
+                                   QStringLiteral("resume-ticket"));
+    fixture.transport.injectConnected(3);
+
+    fixture.scheduler.setNowWithoutRunningTasks(60'000);
+    fixture.transport.injectText(
+      3, resumeHello(roomSnapshotData(QStringLiteral("too-late"), 3, 3)));
+
+    CHECK(fixture.session.getState() != arena::ArenaSession::State::InRoom);
+    CHECK(fixture.session.getRoomId().isEmpty());
+    CHECK(fixture.session.getMembers()->rowCount() == 0);
+    CHECK(fixture.session.getErrorCode() == QStringLiteral("resume_failed"));
+    CHECK(fixture.transport.connectCalls.back().generation == 4);
+}
+
 TEST_CASE(
   "ArenaSession reconnect backoff is monotonic bounded and expires at grace",
   "[arena][session]")
@@ -852,6 +874,66 @@ TEST_CASE("ArenaSession ignores stale ticket completions after exit",
     fixture.identity.succeedTicket(requestId, QStringLiteral("stale-ticket"));
     CHECK(fixture.transport.connectCalls.size() == connectCount);
     CHECK_FALSE(fixture.session.getActive());
+}
+
+TEST_CASE("ArenaSession restores anonymous browsing after admission transport "
+          "failure",
+          "[arena][session]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.browse();
+    fixture.identity.setLoggedIn(true);
+    fixture.session.createRoom(QStringLiteral("Room"),
+                               QStringLiteral("private-secret"));
+    fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
+                                   QStringLiteral("short-lived-ticket"));
+    REQUIRE(fixture.transport.connectCalls.back().generation == 2);
+
+    fixture.transport.injectError(
+      2, arena::ArenaTransport::Error::ConnectionFailed);
+
+    CHECK(fixture.session.getActive());
+    CHECK_FALSE(fixture.session.getAuthenticated());
+    CHECK_FALSE(fixture.session.getAdmissionPending());
+    CHECK_FALSE(fixture.session.getLoginRequired());
+    CHECK(fixture.session.getState() ==
+          arena::ArenaSession::State::Disconnected);
+    CHECK(fixture.session.getErrorCode() ==
+          QStringLiteral("transport_connection_failed"));
+    REQUIRE(fixture.transport.connectCalls.back().generation == 3);
+    fixture.transport.injectConnected(3);
+    fixture.transport.injectText(3, serverHello(false));
+    CHECK(fixture.session.getState() == arena::ArenaSession::State::Browsing);
+    CHECK_FALSE(fixture.session.getAuthenticated());
+}
+
+TEST_CASE("ArenaSession retry is inert outside reconnecting and retryable "
+          "error states",
+          "[arena][session]")
+{
+    ensureCoreApplication();
+    Fixture inRoom;
+    inRoom.enterRoom();
+    const auto roomConnects = inRoom.transport.connectCalls.size();
+    const auto roomCloses = inRoom.transport.closeCalls.size();
+    inRoom.session.retry();
+    CHECK(inRoom.session.getState() == arena::ArenaSession::State::InRoom);
+    CHECK(inRoom.session.getRoomId() == QStringLiteral("room-1"));
+    CHECK(inRoom.transport.connectCalls.size() == roomConnects);
+    CHECK(inRoom.transport.closeCalls.size() == roomCloses);
+
+    Fixture admission;
+    admission.browse();
+    admission.identity.setLoggedIn(true);
+    admission.session.joinRoom(QStringLiteral("room-1"),
+                               QStringLiteral("secret"));
+    const auto admissionConnects = admission.transport.connectCalls.size();
+    admission.session.retry();
+    CHECK(admission.session.getState() ==
+          arena::ArenaSession::State::ConnectingAuthenticated);
+    CHECK(admission.session.getAdmissionPending());
+    CHECK(admission.transport.connectCalls.size() == admissionConnects);
 }
 
 TEST_CASE("ArenaSession leave while reconnecting abandons the seat locally",

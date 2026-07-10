@@ -217,6 +217,8 @@ class ArenaSession final : public QObject
     void setError(QString code, QString messageKey);
     void setPendingAdmission(PendingAdmission admission);
     void clearPendingAdmission();
+    void restoreAnonymousAfterAdmissionFailure(QString code,
+                                               QString messageKey);
 
     void startTransport(HandshakeKind kind);
     void invalidateTransport();
@@ -254,6 +256,7 @@ class ArenaSession final : public QObject
     void beginReconnect();
     void startResumeAttempt();
     void scheduleReconnect();
+    [[nodiscard]] auto resumeDeadlineReached() const -> bool;
     void failResumeAtDeadline();
     void cancelReconnectTasks();
     void cancelTask(ArenaScheduler::TaskId& taskId);

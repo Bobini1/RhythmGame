@@ -400,6 +400,19 @@ ArenaSession::clearPendingAdmission()
 }
 
 void
+ArenaSession::restoreAnonymousAfterAdmissionFailure(QString code,
+                                                    QString messageKey)
+{
+    invalidateAsyncWork();
+    clearPendingAdmission();
+    invalidateTransport();
+    clearRoom();
+    setAuthenticated(false);
+    setError(std::move(code), std::move(messageKey));
+    openAnonymousBrowsing();
+}
+
+void
 ArenaSession::connectForBrowsing()
 {
     if (m_active) {
@@ -486,6 +499,10 @@ ArenaSession::handleConnected(ArenaTransport::Generation generation)
     if (!m_active || generation != m_currentTransportGeneration) {
         return;
     }
+    if (m_handshakeKind == HandshakeKind::Resume && resumeDeadlineReached()) {
+        failResumeAtDeadline();
+        return;
+    }
     ClientHello hello{ .clientVersion = m_clientVersion };
     if (m_handshakeKind == HandshakeKind::AuthenticatedAdmission ||
         m_handshakeKind == HandshakeKind::Resume) {
@@ -543,8 +560,12 @@ ArenaSession::handleServerHello(const ServerHello& hello)
                      QStringLiteral("arena.error.helloRepeated"));
         return;
     }
-    cancelTask(m_attemptTimeoutTask);
     const auto kind = m_handshakeKind;
+    if (kind == HandshakeKind::Resume && resumeDeadlineReached()) {
+        failResumeAtDeadline();
+        return;
+    }
+    cancelTask(m_attemptTimeoutTask);
     if (kind == HandshakeKind::AnonymousBrowse) {
         if (hello.identity ||
             !std::holds_alternative<ResumeNotRequested>(hello.resume)) {
@@ -716,6 +737,10 @@ ArenaSession::handleTicketReady(quint64 requestId, const QString& ticket)
         return;
     }
     m_currentTicketRequestId = 0;
+    if (m_state == State::Reconnecting && resumeDeadlineReached()) {
+        failResumeAtDeadline();
+        return;
+    }
     m_pendingTicket = ticket;
     if (m_state == State::ConnectingAuthenticated) {
         startTransport(HandshakeKind::AuthenticatedAdmission);
@@ -735,6 +760,10 @@ ArenaSession::handleTicketFailure(quint64 requestId,
     }
     m_currentTicketRequestId = 0;
     m_pendingTicket.clear();
+    if (m_state == State::Reconnecting && resumeDeadlineReached()) {
+        failResumeAtDeadline();
+        return;
+    }
     const auto [code, key] = ticketFailureCode(failure);
     if (m_state == State::Reconnecting &&
         failure == ArenaIdentityProvider::TicketFailure::Network) {
@@ -1090,6 +1119,12 @@ ArenaSession::handleDisconnected(ArenaTransport::Generation generation)
         scheduleReconnect();
         return;
     }
+    if (m_state == State::ConnectingAuthenticated || getAdmissionPending()) {
+        restoreAnonymousAfterAdmissionFailure(
+          QStringLiteral("transport_remote_closed"),
+          QStringLiteral("arena.error.remoteClosed"));
+        return;
+    }
     setAuthenticated(false);
     clearPendingAdmission();
     setError(QStringLiteral("transport_remote_closed"),
@@ -1113,6 +1148,10 @@ ArenaSession::handleTransportError(ArenaTransport::Generation generation,
         return;
     }
     const auto [code, key] = transportFailureCode(error);
+    if (m_state == State::ConnectingAuthenticated || getAdmissionPending()) {
+        restoreAnonymousAfterAdmissionFailure(code, key);
+        return;
+    }
     invalidateTransport();
     setAuthenticated(false);
     clearPendingAdmission();
@@ -1195,8 +1234,11 @@ ArenaSession::scheduleReconnect()
         return;
     }
     const auto now = m_scheduler->monotonicNowMs();
-    if (now >= m_reconnectDeadlineMs ||
-        m_nextBackoffMs >= m_reconnectDeadlineMs - now) {
+    if (now >= m_reconnectDeadlineMs) {
+        failResumeAtDeadline();
+        return;
+    }
+    if (m_nextBackoffMs >= m_reconnectDeadlineMs - now) {
         return;
     }
     const auto delay = m_nextBackoffMs;
@@ -1209,6 +1251,13 @@ ArenaSession::scheduleReconnect()
             startResumeAttempt();
         }
     });
+}
+
+auto
+ArenaSession::resumeDeadlineReached() const -> bool
+{
+    return m_state == State::Reconnecting && m_reconnectDeadlineMs > 0 &&
+           m_scheduler->monotonicNowMs() >= m_reconnectDeadlineMs;
 }
 
 void
@@ -1255,14 +1304,17 @@ ArenaSession::retry()
     if (!m_active) {
         return;
     }
-    clearError();
     if (m_state == State::Reconnecting) {
+        clearError();
         cancelTask(m_retryTask);
         startResumeAttempt();
         return;
     }
-    invalidateTransport();
-    openAnonymousBrowsing();
+    if (m_state == State::Error) {
+        clearError();
+        invalidateTransport();
+        openAnonymousBrowsing();
+    }
 }
 
 void

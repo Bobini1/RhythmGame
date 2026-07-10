@@ -17,6 +17,7 @@
 
 #include <QNetworkRequestFactory>
 #include <QPointer>
+#include <QByteArray>
 #include <qt6keychain/keychain.h>
 class QNetworkReply;
 namespace gameplay_logic {
@@ -47,10 +48,15 @@ class ArenaTicketOperation final : public QObject
 
   private:
     friend class Profile;
+    friend struct ArenaTicketOperationTestAccess;
+    static constexpr qint64 MaxResponseBytes = 64 * 1024;
     QPointer<QNetworkReply> reply;
+    QByteArray responseBody;
     bool terminal{};
 
     void attachReply(QNetworkReply* networkReply);
+    [[nodiscard]] auto consumeReplyData() -> bool;
+    void releaseReply(bool abort);
     void succeed(QString ticket);
     void fail(Error error);
 };

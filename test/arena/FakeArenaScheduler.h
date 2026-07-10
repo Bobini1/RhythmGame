@@ -82,6 +82,13 @@ class FakeArenaScheduler final : public ArenaScheduler
         m_nowMs = targetMs;
     }
 
+    void setNowWithoutRunningTasks(qint64 targetMs)
+    {
+        if (targetMs >= m_nowMs) {
+            m_nowMs = targetMs;
+        }
+    }
+
     [[nodiscard]] auto pendingCount() const -> qsizetype
     {
         return m_tasks.size();

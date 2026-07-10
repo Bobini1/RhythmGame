@@ -6,13 +6,83 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <QCoreApplication>
+#include <QNetworkReply>
 #include <QNetworkAccessManager>
 #include <QTemporaryDir>
 
+#include <algorithm>
+#include <cstring>
 #include <memory>
 #include <optional>
 
+namespace resource_managers {
+
+struct ArenaTicketOperationTestAccess
+{
+    static void attach(ArenaTicketOperation* operation, QNetworkReply* reply)
+    {
+        operation->attachReply(reply);
+    }
+};
+
+} // namespace resource_managers
+
 namespace {
+
+class StreamingNetworkReply final : public QNetworkReply
+{
+  public:
+    StreamingNetworkReply()
+    {
+        setAttribute(QNetworkRequest::HttpStatusCodeAttribute, 200);
+        open(QIODevice::ReadOnly);
+    }
+
+    void abort() override
+    {
+        aborted = true;
+        setFinished(true);
+        setError(QNetworkReply::OperationCanceledError,
+                 QStringLiteral("cancelled"));
+        emit finished();
+    }
+
+    void append(QByteArray bytes)
+    {
+        payload.append(std::move(bytes));
+        emit readyRead();
+    }
+
+    void finish()
+    {
+        setFinished(true);
+        emit finished();
+    }
+
+    [[nodiscard]] auto bytesAvailable() const -> qint64 override
+    {
+        return payload.size() - position + QNetworkReply::bytesAvailable();
+    }
+
+    bool aborted{};
+
+  protected:
+    auto readData(char* data, qint64 maximumSize) -> qint64 override
+    {
+        const auto available = payload.size() - position;
+        const auto count = (std::min)(available, maximumSize);
+        if (count <= 0) {
+            return -1;
+        }
+        std::memcpy(data, payload.constData() + position, count);
+        position += count;
+        return count;
+    }
+
+  private:
+    QByteArray payload;
+    qint64 position{};
+};
 
 void
 ensureCoreApplication()
@@ -54,7 +124,16 @@ TEST_CASE("ArenaSession ProfileList silently enforces the generic battle gate",
     QObject::connect(&profiles,
                      &qml_components::ProfileList::battleAllowedChanged,
                      [&] { ++allowedChanges; });
+    bool reentryAttempted = false;
+    QObject::connect(
+      &profiles, &qml_components::ProfileList::battleActiveChanged, [&] {
+          if (!profiles.getBattleActive()) {
+              reentryAttempted = true;
+              profiles.setBattleActive(true);
+          }
+      });
     profiles.setBattleAllowed(false);
+    CHECK(reentryAttempted);
     CHECK_FALSE(profiles.getBattleAllowed());
     CHECK_FALSE(profiles.getBattleActive());
     CHECK(allowedChanges == 1);
@@ -108,4 +187,27 @@ TEST_CASE("ArenaSession Profile queues enum-only ticket failure and "
     cancelled->cancel();
     QCoreApplication::processEvents();
     CHECK(terminalSignals == 0);
+}
+
+TEST_CASE("ArenaSession ticket responses are rejected while streaming past "
+          "the bounded body limit",
+          "[arena][session]")
+{
+    ensureCoreApplication();
+    auto* operation = new resource_managers::ArenaTicketOperation;
+    auto* reply = new StreamingNetworkReply;
+    std::optional<resource_managers::ArenaTicketOperation::Error> failure;
+    QObject::connect(operation,
+                     &resource_managers::ArenaTicketOperation::failed,
+                     [&](auto error) { failure = error; });
+    resource_managers::ArenaTicketOperationTestAccess::attach(operation, reply);
+
+    reply->append(QByteArray(64 * 1024, 'x'));
+    CHECK_FALSE(failure.has_value());
+    reply->append(QByteArrayLiteral("x"));
+
+    REQUIRE(failure.has_value());
+    CHECK(*failure ==
+          resource_managers::ArenaTicketOperation::Error::MalformedResponse);
+    CHECK(reply->aborted);
 }

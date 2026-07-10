@@ -286,10 +286,10 @@ qml_components::ProfileList::setBattleAllowed(bool allowed)
     if (battleAllowed == allowed) {
         return;
     }
+    battleAllowed = allowed;
     if (!allowed) {
         setBattleActive(false);
     }
-    battleAllowed = allowed;
     emit battleAllowedChanged();
 }
 
