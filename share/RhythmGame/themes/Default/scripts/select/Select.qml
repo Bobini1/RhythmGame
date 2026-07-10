@@ -10,6 +10,8 @@ import "./options"
 FocusScope {
     id: selectScreen
 
+    readonly property bool arenaNativeSelectPresentation: true
+
     function reloadCurrentFolderOrTable() {
         return root.reloadCurrentFolderOrTable();
     }
@@ -289,8 +291,25 @@ FocusScope {
                     leftMargin: 80
                     topMargin: 120
                 }
-                height: 480
+                fillMode: root.arenaSeated ? Image.PreserveAspectCrop : Image.Stretch
+                height: root.arenaSeated ? 120 : 480
                 width: 640
+            }
+            Loader {
+                id: arenaPanelLoader
+
+                active: root.arenaSeated
+                anchors {
+                    left: stageFile.left
+                    right: stageFile.right
+                    top: stageFile.bottom
+                    topMargin: 8
+                }
+                height: 480 - stageFile.height - 8
+                sourceComponent: ArenaSelectPanel {
+                    session: Rg.arenaSession
+                }
+                z: 3
             }
             Banner {
                 id: banner
@@ -380,6 +399,7 @@ FocusScope {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -22
                 source: root.imagesUrl + "stageFileFrame.png"
+                visible: !root.arenaSeated
             }
             List {
                 id: songList

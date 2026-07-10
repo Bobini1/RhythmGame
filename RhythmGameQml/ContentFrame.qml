@@ -530,6 +530,12 @@ ApplicationWindow {
                     FocusScope {
                         id: arenaSelectHost
 
+                        readonly property var currentScreen: selectStack.currentItem
+                        readonly property bool nativeArenaPresentation:
+                            currentScreen !== null
+                            && currentScreen.arenaNativeSelectPresentation !== undefined
+                            && currentScreen.arenaNativeSelectPresentation === true
+
                         Component.onCompleted: {
                             const item = selectStack.pushItem(
                                 globalRoot.selectComponent,
@@ -550,6 +556,7 @@ ApplicationWindow {
                             anchors.top: parent.top
                             anchors.topMargin: 16
                             session: arenaShell.session
+                            visible: !arenaSelectHost.nativeArenaPresentation
                             width: Math.min(960, parent.width - 32)
                             z: 1000000
 

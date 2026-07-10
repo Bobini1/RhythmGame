@@ -1,0 +1,221 @@
+pragma ComponentBehavior: Bound
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQml.Models
+
+FocusScope {
+    id: root
+
+    required property var session
+    required property bool moderationEnabled
+    property bool compact: false
+    readonly property int memberCount: memberList.count
+    readonly property int connectedCount: connectionCounter.connectedCount
+    readonly property int reservedCount: Math.max(0, memberCount - connectedCount)
+    readonly property real contentHeight: memberList.contentHeight
+
+    signal kickRequested(string memberId)
+
+    function isWinner(memberId): bool {
+        if (!root.session) {
+            return false;
+        }
+        const result = root.session.lastResult;
+        if (!result || result.valid !== true || !result.winnerMemberIds) {
+            return false;
+        }
+        return result.winnerMemberIds.indexOf(memberId) >= 0;
+    }
+
+    function markerText(owner, self, memberId): string {
+        let markers = [];
+        if (self) {
+            markers.push(qsTr("you"));
+        }
+        if (owner) {
+            markers.push(qsTr("owner"));
+        }
+        if (root.isWinner(memberId)) {
+            markers.push(qsTr("last winner"));
+        }
+        if (root.session && String(root.session.selectedByMemberId || "") === memberId) {
+            markers.push(qsTr("selected"));
+        }
+        return markers.join(" · ");
+    }
+
+    function roundStateText(roundState): string {
+        switch (roundState) {
+        case "waiting":
+            return qsTr("Waiting");
+        case "probing":
+            return qsTr("Checking chart");
+        case "loading":
+            return qsTr("Loading");
+        case "loaded":
+            return qsTr("Loaded");
+        case "playing":
+            return qsTr("Playing");
+        default:
+            return "";
+        }
+    }
+
+    function statusText(connected, ready, inventoryState, inventoryRevision, availabilityAppliedRevision, roundState): string {
+        let states = [];
+        states.push(connected ? qsTr("Connected") : qsTr("Reserved"));
+        if (inventoryState === "missing") {
+            states.push(qsTr("Library unavailable"));
+        } else if (inventoryState === "syncing") {
+            states.push(qsTr("Syncing library"));
+        } else if (availabilityAppliedRevision < inventoryRevision) {
+            states.push(qsTr("Updating availability"));
+        }
+        const roundText = root.roundStateText(roundState);
+        if (roundText.length > 0) {
+            states.push(roundText);
+        } else {
+            states.push(ready ? qsTr("Ready") : qsTr("Not ready"));
+        }
+        return states.join(" · ");
+    }
+
+    Accessible.name: qsTr("Arena players")
+    Accessible.role: Accessible.List
+
+    ListView {
+        id: memberList
+
+        anchors.fill: parent
+        activeFocusOnTab: true
+        boundsBehavior: Flickable.StopAtBounds
+        clip: true
+        model: root.session ? root.session.members : null
+        reuseItems: true
+        spacing: root.compact ? 2 : 4
+
+        ScrollBar.vertical: ScrollBar {
+            policy: ScrollBar.AsNeeded
+        }
+
+        delegate: Rectangle {
+            id: memberDelegate
+
+            required property int index
+            required property string memberId
+            required property string displayName
+            required property bool connected
+            required property bool owner
+            required property bool self
+            required property int lobbyWins
+            required property bool ready
+            required property string inventoryState
+            required property var inventoryRevision
+            required property var availabilityAppliedRevision
+            required property string roundState
+
+            Accessible.name: qsTr("%1, %2").arg(memberDelegate.displayName).arg(statusLabel.text)
+            Accessible.role: Accessible.ListItem
+            color: memberDelegate.self ? "#263b5070" : (memberDelegate.index % 2 === 0 ? "#161b2230" : "#0d1b2230")
+            height: root.compact ? 48 : 62
+            radius: 3
+            width: ListView.view.width
+
+            ColumnLayout {
+                anchors.fill: parent
+                anchors.leftMargin: 8
+                anchors.rightMargin: 6
+                spacing: 0
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+
+                    Text {
+                        id: nameLabel
+
+                        objectName: "arenaRosterName-" + memberDelegate.memberId
+                        Layout.fillWidth: true
+                        color: "white"
+                        elide: Text.ElideRight
+                        font.bold: memberDelegate.self || memberDelegate.owner
+                        text: memberDelegate.displayName
+                        textFormat: Text.PlainText
+                    }
+
+                    Text {
+                        objectName: "arenaRosterWins-" + memberDelegate.memberId
+                        color: "#d6deea"
+                        text: qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins)
+                        textFormat: Text.PlainText
+                    }
+
+                    Button {
+                        objectName: "arenaRosterKick-" + memberDelegate.memberId
+                        Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
+                        Layout.minimumHeight: 32
+                        Layout.minimumWidth: 48
+                        text: qsTr("Kick")
+                        visible: root.session && root.moderationEnabled && root.session.isOwner === true && !memberDelegate.self
+                        onClicked: root.kickRequested(memberDelegate.memberId)
+                    }
+                }
+
+                Text {
+                    objectName: "arenaRosterMarkers-" + memberDelegate.memberId
+                    Layout.fillWidth: true
+                    color: "#ffe39b"
+                    elide: Text.ElideRight
+                    text: root.markerText(memberDelegate.owner, memberDelegate.self, memberDelegate.memberId)
+                    textFormat: Text.PlainText
+                    visible: text.length > 0
+                }
+
+                Text {
+                    id: statusLabel
+
+                    objectName: "arenaRosterStatus-" + memberDelegate.memberId
+                    Layout.fillWidth: true
+                    color: memberDelegate.connected ? "#c9d2df" : "#ffb2a8"
+                    elide: Text.ElideRight
+                    text: root.statusText(memberDelegate.connected, memberDelegate.ready, memberDelegate.inventoryState, Number(memberDelegate.inventoryRevision), Number(memberDelegate.availabilityAppliedRevision), memberDelegate.roundState)
+                    textFormat: Text.PlainText
+                }
+            }
+        }
+    }
+
+    Instantiator {
+        id: connectionCounter
+
+        property int connectedCount: 0
+
+        model: root.session ? root.session.members : null
+
+        delegate: QtObject {
+            id: connectionDelegate
+
+            required property bool connected
+            property bool countedConnected: connected
+
+            Component.onCompleted: {
+                if (connectionDelegate.countedConnected) {
+                    connectionCounter.connectedCount += 1;
+                }
+            }
+            Component.onDestruction: {
+                if (connectionDelegate.countedConnected) {
+                    connectionCounter.connectedCount -= 1;
+                }
+            }
+            onConnectedChanged: {
+                if (connectionDelegate.connected === connectionDelegate.countedConnected) {
+                    return;
+                }
+                connectionCounter.connectedCount += connectionDelegate.connected ? 1 : -1;
+                connectionDelegate.countedConnected = connectionDelegate.connected;
+            }
+        }
+    }
+}
