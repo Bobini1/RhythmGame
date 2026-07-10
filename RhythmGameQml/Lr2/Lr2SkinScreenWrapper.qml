@@ -3197,7 +3197,19 @@ Item {
         return root.gameplaySavedScorePoints(root.gameplayBestSavedScore());
     }
 
+    function arenaOpponentTargetAvailable() : bool {
+        return root.arenaGameplayOwned
+            && root.arenaSession.opponentTarget !== undefined
+            && root.arenaSession.opponentTarget !== null
+            && root.arenaSession.opponentTarget.available === true;
+    }
+
     function gameplayTargetScorePoints(side: var) : var {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable()
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         root.gameplayScoresRevision;
         side = side === 2 ? 2 : 1;
         if (root.battleModeActive()) {
@@ -3218,6 +3230,11 @@ Item {
     }
 
     function gameplayTargetFinalPoints(side: var) : var {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable()
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         if (root.battleModeActive()) {
             side = side === 2 ? 2 : 1;
             let opponent = root.gameplayScore(side === 2 ? 1 : 2);

@@ -31,6 +31,10 @@ Rectangle {
     readonly property var arenaSession: Rg.arenaSession
     readonly property bool arenaGameplayOwned: arenaSession.arenaGameplayActive === true
         && arenaSession.arenaRunner === chart
+    readonly property bool arenaOpponentTargetAvailable: root.arenaGameplayOwned
+        && root.arenaSession.opponentTarget !== undefined
+        && root.arenaSession.opponentTarget !== null
+        && root.arenaSession.opponentTarget.available === true
     function closeActivePopup() {
         if (root.popup !== null) {
             root.popup.close();
@@ -81,6 +85,11 @@ Rectangle {
     }
     property real p1MaxPointsNow: chart.player1.score.maxPointsNow
     property real targetPoints1: {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         if (isBattle) {
             return chart.player2.score.points;
         }
@@ -91,6 +100,11 @@ Rectangle {
     }
     property real targetPoints2: chart.player1.score.points
     readonly property real targetFinalPoints1: {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable
+                ? Number(root.arenaSession.opponentTarget.exScore || 0)
+                : 0;
+        }
         if (isBattle) return 0;
         if (targetScore1) return targetScore1.result.points;
         if (chart.player1.profile.vars.generalVars.scoreTarget === ScoreTarget.NextRank) {
