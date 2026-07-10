@@ -528,6 +528,7 @@ FocusScope {
         active: root.visible
         errorMessageKey: String(root.session.errorMessageKey || "")
         reconnecting: root.session.reconnecting === true
+        roundLaunchCancellationStatusKey: String(root.session.roundLaunchCancellationStatusKey || "")
         target: root
     }
 }

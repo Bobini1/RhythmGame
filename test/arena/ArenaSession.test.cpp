@@ -31,6 +31,17 @@
 #include <unordered_map>
 #include <vector>
 
+class ArenaSessionSignalCounter final : public QObject
+{
+    Q_OBJECT
+
+  public:
+    int count{};
+
+  public slots:
+    void increment() { ++count; }
+};
+
 namespace {
 
 void
@@ -1725,6 +1736,206 @@ TEST_CASE("ArenaSession publishes authoritative cancellation state atomically",
     CHECK(selectionChanges >= 1);
 }
 
+TEST_CASE("ArenaSession publishes each accepted round cancellation reason once",
+          "[arena][session][rounds][accessibility]")
+{
+    ensureCoreApplication();
+    const auto cases = std::array{
+        std::pair{
+          QStringLiteral("missing_file"),
+          QStringLiteral("arena.status.roundLaunchCancelled.missingFile") },
+        std::pair{
+          QStringLiteral("hash_mismatch"),
+          QStringLiteral("arena.status.roundLaunchCancelled.hashMismatch") },
+        std::pair{
+          QStringLiteral("read_failed"),
+          QStringLiteral("arena.status.roundLaunchCancelled.readFailed") },
+        std::pair{
+          QStringLiteral("parse_failed"),
+          QStringLiteral("arena.status.roundLaunchCancelled.parseFailed") },
+        std::pair{ QStringLiteral("unsupported_config"),
+                   QStringLiteral(
+                     "arena.status.roundLaunchCancelled.unsupportedConfig") },
+        std::pair{
+          QStringLiteral("resource_failed"),
+          QStringLiteral("arena.status.roundLaunchCancelled.resourceFailed") },
+        std::pair{
+          QStringLiteral("probe_timeout"),
+          QStringLiteral("arena.status.roundLaunchCancelled.probeTimeout") },
+        std::pair{
+          QStringLiteral("load_timeout"),
+          QStringLiteral("arena.status.roundLaunchCancelled.loadTimeout") },
+        std::pair{
+          QStringLiteral("participant_left"),
+          QStringLiteral("arena.status.roundLaunchCancelled.participantLeft") },
+        std::pair{ QStringLiteral("participant_kicked"),
+                   QStringLiteral(
+                     "arena.status.roundLaunchCancelled.participantKicked") },
+        std::pair{ QStringLiteral("chart_length_mismatch"),
+                   QStringLiteral(
+                     "arena.status.roundLaunchCancelled.chartLengthMismatch") },
+        std::pair{
+          QStringLiteral("server_shutdown"),
+          QStringLiteral("arena.status.roundLaunchCancelled.serverShutdown") },
+        std::pair{
+          QStringLiteral("cancelled"),
+          QStringLiteral("arena.status.roundLaunchCancelled.cancelled") },
+    };
+
+    for (const auto& [wireReason, expectedStatusKey] : cases) {
+        INFO("wireReason = " << wireReason.toStdString());
+        Fixture fixture;
+        fixture.enterPhase2Room();
+        const auto generation =
+          fixture.transport.connectCalls.back().generation;
+        const auto sha256 = QString::fromLatin1(QByteArray(32, '\x3d').toHex());
+        const auto round = phase2FrozenRound(sha256);
+        fixture.transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("round"), round },
+              } },
+          }));
+        REQUIRE(fixture.session.getCurrentRoundId() ==
+                QStringLiteral("round-1"));
+        ArenaSessionSignalCounter statusCounter;
+        const auto statusConnection =
+          QObject::connect(&fixture.session,
+                           SIGNAL(roundLaunchCancellationStatusKeyChanged()),
+                           &statusCounter,
+                           SLOT(increment()));
+        REQUIRE(statusConnection);
+        const auto cancellation = compact({
+          { QStringLiteral("type"), QStringLiteral("round_launch_cancelled") },
+          { QStringLiteral("data"),
+            QJsonObject{
+              { QStringLiteral("roomId"), QStringLiteral("room-1") },
+              { QStringLiteral("roomGeneration"), 3 },
+              { QStringLiteral("roundId"), QStringLiteral("round-1") },
+              { QStringLiteral("launchAttemptId"),
+                QStringLiteral("attempt-1") },
+              { QStringLiteral("reason"), wireReason },
+              { QStringLiteral("selection"),
+                round.value(QStringLiteral("selection")) },
+              { QStringLiteral("selectionRevision"), 4 },
+              { QStringLiteral("availabilityRevision"), 1 },
+            } },
+        });
+
+        fixture.transport.injectText(generation, cancellation);
+        CHECK(fixture.session.property("roundLaunchCancellationStatusKey")
+                .toString() == expectedStatusKey);
+        CHECK(statusCounter.count == 1);
+
+        fixture.transport.injectText(generation, cancellation);
+        CHECK(statusCounter.count == 1);
+
+        fixture.session.exitArena();
+        CHECK(fixture.session.property("roundLaunchCancellationStatusKey")
+                .toString()
+                .isEmpty());
+        CHECK(statusCounter.count == 2);
+    }
+}
+
+TEST_CASE("ArenaSession clears cancellation status for the next launch attempt",
+          "[arena][session][rounds][accessibility]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto sha256 = QString::fromLatin1(QByteArray(32, '\x3e').toHex());
+    const auto firstRound = phase2FrozenRound(sha256);
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), firstRound },
+          } },
+      }));
+    ArenaSessionSignalCounter statusCounter;
+    const auto statusConnection =
+      QObject::connect(&fixture.session,
+                       SIGNAL(roundLaunchCancellationStatusKeyChanged()),
+                       &statusCounter,
+                       SLOT(increment()));
+    REQUIRE(statusConnection);
+    const auto cancel = [&](const QString& roundId,
+                            const QString& launchAttemptId) {
+        fixture.transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"),
+              QStringLiteral("round_launch_cancelled") },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("roundId"), roundId },
+                { QStringLiteral("launchAttemptId"), launchAttemptId },
+                { QStringLiteral("reason"), QStringLiteral("parse_failed") },
+                { QStringLiteral("selection"),
+                  firstRound.value(QStringLiteral("selection")) },
+                { QStringLiteral("selectionRevision"), 4 },
+                { QStringLiteral("availabilityRevision"), 1 },
+              } },
+          }));
+    };
+
+    cancel(QStringLiteral("round-1"), QStringLiteral("stale-attempt"));
+    CHECK(fixture.session.property("roundLaunchCancellationStatusKey")
+            .toString()
+            .isEmpty());
+    CHECK(statusCounter.count == 0);
+
+    cancel(QStringLiteral("round-1"), QStringLiteral("attempt-1"));
+    REQUIRE(statusCounter.count == 1);
+
+    auto secondRound = firstRound;
+    secondRound.insert(QStringLiteral("roundId"), QStringLiteral("round-2"));
+    secondRound.insert(QStringLiteral("launchAttemptId"),
+                       QStringLiteral("attempt-2"));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), secondRound },
+          } },
+      }));
+    CHECK(fixture.session.property("roundLaunchCancellationStatusKey")
+            .toString()
+            .isEmpty());
+    REQUIRE(statusCounter.count == 2);
+
+    cancel(QStringLiteral("round-2"), QStringLiteral("attempt-2"));
+    CHECK(
+      fixture.session.property("roundLaunchCancellationStatusKey").toString() ==
+      QStringLiteral("arena.status.roundLaunchCancelled.parseFailed"));
+    CHECK(statusCounter.count == 3);
+
+    fixture.transport.injectDisconnected(generation);
+    CHECK(fixture.session.getState() ==
+          arena::ArenaSession::State::Reconnecting);
+    CHECK(fixture.session.property("roundLaunchCancellationStatusKey")
+            .toString()
+            .isEmpty());
+    CHECK(statusCounter.count == 4);
+}
+
 TEST_CASE("ArenaSession advances waiting spectators on room-wide round start",
           "[arena][session][rounds]")
 {
@@ -2648,3 +2859,5 @@ TEST_CASE("ArenaSession leave while reconnecting abandons the seat locally",
           arena::ArenaSession::State::Disconnected);
     CHECK(fixture.transport.connectCalls.back().generation == 3);
 }
+
+#include "ArenaSession.test.moc"

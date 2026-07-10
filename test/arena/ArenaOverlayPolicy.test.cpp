@@ -352,7 +352,8 @@ TEST_CASE("ArenaOverlayPolicy: room surfaces announce only bounded competition s
                         { "readonly property alias lastAnnouncementKey",
                           "readonly property alias lastAnnouncementText",
                           "readonly property alias announcementCount",
-                          "ArenaStatusAnnouncer {" });
+                          "ArenaStatusAnnouncer {",
+                          "roundLaunchCancellationStatusKey:" });
     }
 
     const auto announcer =
@@ -361,8 +362,21 @@ TEST_CASE("ArenaOverlayPolicy: room surfaces announce only bounded competition s
                     { "property string lastAnnouncementKey",
                       "property string lastAnnouncementText",
                       "property int announcementCount",
+                      "required property string roundLaunchCancellationStatusKey",
                       "arena.status.reconnecting",
                       "arena.status.selectionInvalidated",
-                      "arena.status.roundLoadingCancelled",
+                      "arena.status.roundLaunchCancelled.missingFile",
+                      "arena.status.roundLaunchCancelled.hashMismatch",
+                      "arena.status.roundLaunchCancelled.readFailed",
+                      "arena.status.roundLaunchCancelled.parseFailed",
+                      "arena.status.roundLaunchCancelled.unsupportedConfig",
+                      "arena.status.roundLaunchCancelled.resourceFailed",
+                      "arena.status.roundLaunchCancelled.probeTimeout",
+                      "arena.status.roundLaunchCancelled.loadTimeout",
+                      "arena.status.roundLaunchCancelled.participantLeft",
+                      "arena.status.roundLaunchCancelled.participantKicked",
+                      "arena.status.roundLaunchCancelled.chartLengthMismatch",
+                      "arena.status.roundLaunchCancelled.serverShutdown",
+                      "arena.status.roundLaunchCancelled.cancelled",
                       "root.target.Accessible.announce(text)" });
 }

@@ -17,6 +17,7 @@ Item {
     property string currentRoundId: ""
     property int roomPhase: 0
     property string errorMessageKey: ""
+    property string roundLaunchCancellationStatusKey: ""
     property string arenaOptionsSummary: "MIRROR · FLIP"
     property bool arenaGameplayActive: false
     property var arenaRunner: null

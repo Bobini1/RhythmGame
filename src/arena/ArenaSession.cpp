@@ -286,6 +286,54 @@ loadFailureReason(ArenaLoadFailure failure) -> RoundLoadFailureReason
 }
 
 auto
+roundLaunchCancellationStatusKey(RoundLaunchCancellationReason reason)
+  -> QString
+{
+    switch (reason) {
+        case RoundLaunchCancellationReason::MissingFile:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.missingFile");
+        case RoundLaunchCancellationReason::HashMismatch:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.hashMismatch");
+        case RoundLaunchCancellationReason::ReadFailed:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.readFailed");
+        case RoundLaunchCancellationReason::ParseFailed:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.parseFailed");
+        case RoundLaunchCancellationReason::UnsupportedConfig:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.unsupportedConfig");
+        case RoundLaunchCancellationReason::ResourceFailed:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.resourceFailed");
+        case RoundLaunchCancellationReason::ProbeTimeout:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.probeTimeout");
+        case RoundLaunchCancellationReason::LoadTimeout:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.loadTimeout");
+        case RoundLaunchCancellationReason::ParticipantLeft:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.participantLeft");
+        case RoundLaunchCancellationReason::ParticipantKicked:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.participantKicked");
+        case RoundLaunchCancellationReason::ChartLengthMismatch:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.chartLengthMismatch");
+        case RoundLaunchCancellationReason::ServerShutdown:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.serverShutdown");
+        case RoundLaunchCancellationReason::Cancelled:
+            return QStringLiteral(
+              "arena.status.roundLaunchCancelled.cancelled");
+    }
+    return {};
+}
+
+auto
 sameFrozenRound(const FrozenRound& left, const FrozenRound& right) -> bool
 {
     return left.roundId == right.roundId &&
@@ -561,6 +609,11 @@ ArenaSession::getErrorMessageKey() const -> QString
     return m_errorMessageKey;
 }
 auto
+ArenaSession::getRoundLaunchCancellationStatusKey() const -> QString
+{
+    return m_roundLaunchCancellationStatusKey;
+}
+auto
 ArenaSession::getRoomId() const -> QString
 {
     return m_roomId;
@@ -823,6 +876,16 @@ ArenaSession::setError(QString code, QString messageKey)
     m_errorCode = std::move(code);
     m_errorMessageKey = std::move(messageKey);
     emit errorChanged();
+}
+
+void
+ArenaSession::setRoundLaunchCancellationStatusKey(QString statusKey)
+{
+    if (m_roundLaunchCancellationStatusKey == statusKey) {
+        return;
+    }
+    m_roundLaunchCancellationStatusKey = std::move(statusKey);
+    emit roundLaunchCancellationStatusKeyChanged();
 }
 
 void
@@ -1558,6 +1621,12 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                 m_requestedReady.reset();
             }
             m_round = started.round;
+            setRoundLaunchCancellationStatusKey({});
+            if (lifecycle != m_lifecycleGeneration || !m_round ||
+                m_round->roundId != started.round.roundId ||
+                m_round->launchAttemptId != started.round.launchAttemptId) {
+                return;
+            }
             beginCompetitionRound(started.round);
             // Any impossible stale local operation is discarded only after
             // the authoritative new state is visible to synchronous UI code.
@@ -1639,6 +1708,11 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                            cancelled.selectionRevision,
                            cancelled.availabilityRevision,
                            std::nullopt);
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
+            setRoundLaunchCancellationStatusKey(
+              roundLaunchCancellationStatusKey(cancelled.reason));
             if (lifecycle != m_lifecycleGeneration) {
                 return;
             }
@@ -1990,6 +2064,7 @@ ArenaSession::clearRoom()
     m_chat.clear();
     m_pendingCommands.clear();
     m_pendingChatCommandIds.clear();
+    setRoundLaunchCancellationStatusKey({});
     if (hadRoom) {
         emit roomChanged();
         emit selectionChanged();
@@ -3840,6 +3915,7 @@ ArenaSession::beginReconnect()
         return;
     }
     ++m_lifecycleGeneration;
+    setRoundLaunchCancellationStatusKey({});
     cancelReconnectTasks();
     m_currentTicketRequestId = 0;
     m_pendingTicket.clear();

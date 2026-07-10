@@ -512,6 +512,7 @@ FocusScope {
         active: root.visible
         errorMessageKey: root.session.errorMessageKey
         reconnecting: root.session.state === ArenaSession.Reconnecting
+        roundLaunchCancellationStatusKey: root.session.roundLaunchCancellationStatusKey
         target: root
     }
 }

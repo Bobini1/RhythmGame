@@ -461,14 +461,18 @@ TestCase {
         session.errorMessageKey = "arena.error.availabilityStale";
         compare(panel.announcementCount, 2);
         session.errorMessageKey = "arena.error.parseFailed";
-        tryCompare(panel, "lastAnnouncementKey", "arena.status.roundLoadingCancelled");
+        compare(panel.announcementCount, 2);
+        session.roundLaunchCancellationStatusKey = "arena.status.roundLaunchCancelled.parseFailed";
+        tryCompare(panel, "lastAnnouncementKey", "arena.status.roundLaunchCancelled.parseFailed");
         compare(panel.announcementCount, 3);
         verify(panel.lastAnnouncementText.length > 0);
         const lastText = panel.lastAnnouncementText;
-        session.errorMessageKey = "";
-        compare(panel.lastAnnouncementKey, "arena.status.roundLoadingCancelled");
+        session.roundLaunchCancellationStatusKey = "";
+        compare(panel.lastAnnouncementKey, "arena.status.roundLaunchCancelled.parseFailed");
         compare(panel.lastAnnouncementText, lastText);
         compare(panel.announcementCount, 3);
+        session.roundLaunchCancellationStatusKey = "arena.status.roundLaunchCancelled.parseFailed";
+        tryCompare(panel, "announcementCount", 4);
     }
 
     function test_select_strip_exposes_ready_reason_and_announces_selection_failure() {
@@ -482,9 +486,15 @@ TestCase {
         verify(strip.readyDisabledReason.length > 0);
 
         session.errorMessageKey = "arena.error.resourceFailed";
-        tryCompare(strip, "lastAnnouncementKey", "arena.status.roundLoadingCancelled");
+        compare(strip.announcementCount, 0);
+        session.roundLaunchCancellationStatusKey = "arena.status.roundLaunchCancelled.resourceFailed";
+        tryCompare(strip, "lastAnnouncementKey", "arena.status.roundLaunchCancelled.resourceFailed");
         compare(strip.announcementCount, 1);
         session.errorMessageKey = "arena.error.hashMismatch";
         compare(strip.announcementCount, 1);
+        session.roundLaunchCancellationStatusKey = "";
+        compare(strip.announcementCount, 1);
+        session.roundLaunchCancellationStatusKey = "arena.status.roundLaunchCancelled.resourceFailed";
+        tryCompare(strip, "announcementCount", 2);
     }
 }

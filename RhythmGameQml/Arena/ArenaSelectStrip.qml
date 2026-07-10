@@ -201,6 +201,7 @@ Frame {
         active: root.visible
         errorMessageKey: root.session ? String(root.session.errorMessageKey || "") : ""
         reconnecting: root.session ? root.session.reconnecting === true : false
+        roundLaunchCancellationStatusKey: root.session ? String(root.session.roundLaunchCancellationStatusKey || "") : ""
         target: root
     }
 }

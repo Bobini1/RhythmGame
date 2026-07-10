@@ -49,6 +49,9 @@ class ArenaSession final : public QObject
     Q_PROPERTY(QString errorCode READ getErrorCode NOTIFY errorChanged FINAL)
     Q_PROPERTY(
       QString errorMessageKey READ getErrorMessageKey NOTIFY errorChanged FINAL)
+    Q_PROPERTY(QString roundLaunchCancellationStatusKey READ
+                 getRoundLaunchCancellationStatusKey NOTIFY
+                 roundLaunchCancellationStatusKeyChanged FINAL)
 
     Q_PROPERTY(QString roomId READ getRoomId NOTIFY roomChanged FINAL)
     Q_PROPERTY(QString roomName READ getRoomName NOTIFY roomChanged FINAL)
@@ -138,6 +141,7 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto getAdmissionPending() const -> bool;
     [[nodiscard]] auto getErrorCode() const -> QString;
     [[nodiscard]] auto getErrorMessageKey() const -> QString;
+    [[nodiscard]] auto getRoundLaunchCancellationStatusKey() const -> QString;
 
     [[nodiscard]] auto getRoomId() const -> QString;
     [[nodiscard]] auto getRoomName() const -> QString;
@@ -197,6 +201,7 @@ class ArenaSession final : public QObject
     void directoryReadyChanged();
     void admissionPendingChanged();
     void errorChanged();
+    void roundLaunchCancellationStatusKeyChanged();
     void roomChanged();
     void ownerChanged();
     void capabilitiesChanged();
@@ -288,6 +293,7 @@ class ArenaSession final : public QObject
     bool m_competitionAvailable{};
     QString m_errorCode;
     QString m_errorMessageKey;
+    QString m_roundLaunchCancellationStatusKey;
 
     QString m_roomId;
     QString m_roomName;
@@ -421,6 +427,7 @@ class ArenaSession final : public QObject
     void setCompetitionAvailable(bool available);
     void clearError();
     void setError(QString code, QString messageKey);
+    void setRoundLaunchCancellationStatusKey(QString statusKey);
     void setPendingAdmission(PendingAdmission admission);
     void clearPendingAdmission();
     void restoreAnonymousAfterAdmissionFailure(QString code,
