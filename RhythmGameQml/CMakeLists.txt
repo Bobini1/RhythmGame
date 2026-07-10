@@ -132,6 +132,9 @@ set(RHYTHM_GAME_QML_FILES
         ContentFrame.qml
         Log.qml
         ColorChanger.qml
+        Arena/ArenaBrowser.qml
+        Arena/ArenaLoginPanel.qml
+        Arena/ArenaRoom.qml
 )
 
 set(RHYTHM_GAME_QML_SHADERS

@@ -6,7 +6,7 @@
 
 namespace arena {
 
-class ArenaChatModel final : public QAbstractListModel
+class ArenaChatModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged FINAL)

@@ -2,7 +2,6 @@ import QtQuick
 import QtQml
 import RhythmGameQml
 import QtQuick.Controls
-import QtQuick.Window
 import QtCore
 
 ApplicationWindow {
@@ -101,6 +100,7 @@ ApplicationWindow {
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
         property var activeSettingsItem: null
+        property Item activeArenaItem: null
         property bool fpsOverlayVisible: false
         property int fpsOverlayValue: -1
         property int fpsOverlayFrameCount: 0
@@ -254,6 +254,20 @@ ApplicationWindow {
             }
         }
 
+        function openArenaBrowser() : void {
+            if (activeArenaItem) {
+                return;
+            }
+            Rg.arenaSession.connectForBrowsing();
+            let item = sceneStack.pushItem(arenaShellComponent, {
+                "session": Rg.arenaSession
+            });
+            activeArenaItem = item;
+            if (!item) {
+                Rg.arenaSession.exitArena();
+            }
+        }
+
         function currentLr2Settings(screenKey: var) : var {
             let themeName = mainProfile.themeConfig[screenKey];
             let screenVars = mainProfile.vars.themeVars[screenKey];
@@ -367,6 +381,86 @@ ApplicationWindow {
         }
 
         anchors.fill: parent
+
+        Component {
+            id: arenaShellComponent
+
+            FocusScope {
+                id: arenaShell
+
+                required property ArenaSession session
+                property bool closing: false
+                readonly property bool showRoom: session.state === ArenaSession.InRoom
+                    || session.state === ArenaSession.Reconnecting
+
+                function requestCloseArena() : void {
+                    if (closing) {
+                        return;
+                    }
+                    closing = true;
+                    Qt.callLater(function() {
+                        session.exitArena();
+                        if (arenaShell.StackView.view) {
+                            arenaShell.StackView.view.popCurrentItem();
+                        }
+                    });
+                }
+
+                function requestLeaveRoom() : void {
+                    Qt.callLater(function() {
+                        session.leaveRoom();
+                    });
+                }
+
+                StackView.onRemoved: {
+                    globalRoot.activeArenaItem = null;
+                    if (session.active) {
+                        session.exitArena();
+                    }
+                }
+
+                Component {
+                    id: arenaBrowserComponent
+
+                    ArenaBrowser {
+                        session: arenaShell.session
+                        activeProfile: globalRoot.mainProfile
+
+                        onCreateRequested: (name, password) => arenaShell.session.createRoom(name, password)
+                        onExitRequested: arenaShell.requestCloseArena()
+                        onJoinRequested: (roomId, password) => arenaShell.session.joinRoom(roomId, password)
+                        onRetryRequested: arenaShell.session.retry()
+                    }
+                }
+
+                Component {
+                    id: arenaRoomComponent
+
+                    ArenaRoom {
+                        session: arenaShell.session
+
+                        onChatRequested: text => arenaShell.session.sendChat(text)
+                        onExitRequested: arenaShell.requestCloseArena()
+                        onKickRequested: memberId => arenaShell.session.kickMember(memberId)
+                        onLeaveRequested: arenaShell.requestLeaveRoom()
+                        onRetryRequested: arenaShell.session.retry()
+                    }
+                }
+
+                Loader {
+                    id: arenaScreenLoader
+
+                    anchors.fill: parent
+                    sourceComponent: arenaShell.showRoom ? arenaRoomComponent : arenaBrowserComponent
+
+                    onLoaded: {
+                        if (status === Loader.Ready && item) {
+                            item.forceActiveFocus();
+                        }
+                    }
+                }
+            }
+        }
 
         StackView {
             id: sceneStack

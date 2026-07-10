@@ -55,11 +55,49 @@
 #include "support/QStringToPath.h"
 #include "qml_components/OnlineScores.h"
 #include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
+#include "arena/ArenaSession.h"
+#include "arena/ProfileArenaIdentityProvider.h"
+#include "arena/QtArenaScheduler.h"
+#include "arena/QtWebSocketArenaTransport.h"
 
 Q_IMPORT_QML_PLUGIN(RhythmGameQmlPlugin)
 Q_IMPORT_PLUGIN(TgaPlugin)
 Q_IMPORT_PLUGIN(CimPlugin)
 Q_IMPORT_PLUGIN(DdsPlugin)
+
+namespace {
+
+auto
+arenaEndpointFromEnvironment() -> QUrl
+{
+    const auto defaultEndpoint =
+      QUrl(QStringLiteral("wss://arena.rhythmgame.eu/ws"));
+    if (!qEnvironmentVariableIsSet("RHYTHMGAME_ARENA_ENDPOINT")) {
+        return defaultEndpoint;
+    }
+
+    const auto value = qEnvironmentVariable("RHYTHMGAME_ARENA_ENDPOINT");
+    const QUrl endpoint(value, QUrl::StrictMode);
+    const auto scheme = endpoint.scheme().toLower();
+    const auto host = endpoint.host().toLower();
+    const auto localHost = host == QStringLiteral("localhost") ||
+                           host == QStringLiteral("127.0.0.1") ||
+                           host == QStringLiteral("::1");
+    const auto port = endpoint.port(-1);
+    const auto validPort = port == -1 || (port >= 1 && port <= 65'535);
+    if (!endpoint.isValid() || endpoint.isRelative() ||
+        (scheme != QStringLiteral("ws") && scheme != QStringLiteral("wss")) ||
+        !localHost ||
+        endpoint.path(QUrl::FullyDecoded) != QStringLiteral("/ws") ||
+        !endpoint.userName().isEmpty() || !endpoint.password().isEmpty() ||
+        endpoint.hasQuery() || endpoint.hasFragment() || !validPort) {
+        throw std::runtime_error(
+          "RHYTHMGAME_ARENA_ENDPOINT must be a local ws/wss /ws endpoint");
+    }
+    return endpoint;
+}
+
+} // namespace
 
 bool
 shouldSuppressQtLog(QtMsgType type,
@@ -272,6 +310,24 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             dataFolder / "song_db.sqlite", &db,           availableThemes,
             dataFolder / "profiles",       assetsFolders, &networkManager
         };
+        auto arenaTransport = arena::QtWebSocketArenaTransport{};
+        auto arenaIdentityProvider =
+          arena::ProfileArenaIdentityProvider{ &profileList };
+        auto arenaScheduler = arena::QtArenaScheduler{};
+        auto arenaSession =
+          arena::ArenaSession{ &arenaTransport,
+                               &arenaIdentityProvider,
+                               &arenaScheduler,
+                               arenaEndpointFromEnvironment(),
+                               QCoreApplication::applicationVersion() };
+        const auto applyArenaBattlePolicy = [&] {
+            profileList.setBattleAllowed(!arenaSession.getActive());
+        };
+        QObject::connect(&arenaSession,
+                         &arena::ArenaSession::activeChanged,
+                         &profileList,
+                         applyArenaBattlePolicy);
+        applyArenaBattlePolicy();
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -397,6 +453,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                       &themes,
                       &gamepadManager,
                       &profileList,
+                      &arenaSession,
                       &tables,
                       &languages,
                       &audioEngine,

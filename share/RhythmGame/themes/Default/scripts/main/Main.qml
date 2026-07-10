@@ -194,6 +194,20 @@ Image {
                 Button {
                     width: parent.width
                     height: 100
+                    text: qsTr("Online Arena")
+                    font.family: mainMenuFont.fontFamily
+                    font.weight: mainMenuFont.fontWeight
+                    font.variableAxes: mainMenuFont.variableAxes
+                    font.italic: mainMenuFont.italic
+                    font.pixelSize: 30
+                    onClicked: {
+                        globalRoot.openArenaBrowser();
+                    }
+                }
+
+                Button {
+                    width: parent.width
+                    height: 100
                     text: qsTr("Settings")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
