@@ -4,7 +4,7 @@
 
 **Goal:** Ship movable forced Arena overlays, native Default and complete LR2/Beatoraja presentation, accessible chat/result polish, and a production-hardened single-replica Coolify service.
 
-**Architecture:** Keep `ArenaSession` and the Phase 3 value models authoritative, add one independent profile-local `ArenaOverlayPlacementStore`, and wrap shared application-owned overlay content in a normalized placement frame. Default opts into native select/result panels while screens without those capabilities receive legacy overlays. The Bun wire protocol remains 1.2; Phase 4 adds only HTTP/gateway operations, bounded metrics, proxy-aware admission, and release verification.
+**Architecture:** Keep `ArenaSession` and the Phase 3 value models authoritative, seed hidden normalized geometry in the existing profile theme-vars maps, and wrap shared application-owned overlay content in a normalized placement frame. Default opts into native select/result panels while screens without those capabilities receive legacy overlays. The Bun wire protocol remains 1.2; Phase 4 adds only HTTP/gateway operations, bounded metrics, proxy-aware admission, and release verification.
 
 **Tech Stack:** Qt 6.12/C++23/QML/Qt Quick Test/Catch2/CMake/CTest, Bun 1.3.14/TypeScript 5.9/Zod 4/Bun test, JSON profile settings, Prometheus text exposition, Docker/Coolify/Traefik WSS.
 
@@ -13,13 +13,17 @@
 - The controlling specification is `docs/superpowers/specs/2026-07-10-online-arena-phase-4-design.md`; the umbrella and Phase 1-3 specifications retain authority over earlier behavior.
 - Protocol major/minor remain `1.2`; canonical capabilities remain `rooms-v1`, `rounds-v1`, `competition-v1`; Phase 1-3 fixture bytes must not drift.
 - `placementKind` is exactly `gameplayLeaderboard` or `resultStandings`; `layoutVariant` is `k5`, `k7`, `k10`, `k14`, or `result`.
-- Placement is normalized and persisted only in `<profile-directory>/arena-overlays.json`, keyed by profile file, resolved theme-family key, layout variant, and placement kind.
+- Placement is normalized and persisted through existing per-profile,
+  per-screen, per-theme-family vars files. Hidden K5/K7/K10/K14/result fields
+  preserve layout-specific geometry without adding an Arena settings file.
 - The compact Arena gameplay leaderboard is forced on. No file, UI control, or QML property may persist or expose hidden visibility.
 - F2 owns one Arena customization mode; Default participates in existing gameplay customization; LR2/Beatoraja customize only the application overlay.
 - Arena customization suppresses chart input but never pauses chart time, telemetry, sound, BGA, or networking.
 - Chat is closed on gameplay entry, opens deliberately, never pauses, and closes before customization or abort.
 - Default receives native select/result surfaces; a screen without explicit native capability receives application-owned fallback UI.
-- No Arena state is added to `ChartData`, `GeneralVars`, `OnlineRankingModel`, saved play options, or room persistence.
+- No transient Arena state is added to `ChartData`, `GeneralVars`,
+  `OnlineRankingModel`, saved play options, or room persistence. The only
+  profile vars are hidden theme geometry and the profile-wide F2 hint version.
 - All remote strings use `Text.PlainText`; all Phase 4 actions are keyboard/focus accessible and status is never color-only.
 - Supported Arena copy is English source plus complete Polish; no new advertised locale is added.
 - Official deployment remains one database-free, in-memory replica. Restart/deploy destroys rooms and must not receive IR DB/auth/score secrets.
@@ -35,7 +39,8 @@
 
 ### RhythmGame client
 
-- `src/arena/ArenaOverlayPlacementStore.h/.cpp`: active-profile JSON placement/hint persistence.
+- Existing `src/resource_managers/Vars.cpp`: hidden Arena geometry fields in
+  each relevant profile theme-vars map.
 - Existing `src/arena/ArenaSession.*`: presentation customization gate for the current Arena runner.
 - Existing `src/gameplay_logic/ChartRunner.*`: generic pressed-lane tracking and input suppression.
 - `RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml`: normalized geometry, handles, nudge, reset, clamp.
@@ -47,7 +52,7 @@
 - `share/RhythmGame/themes/Default/scripts/result/ArenaResultPanel.qml`: native Default winner/standings panel.
 - Existing Default Select/Gameplay/Result and ContentFrame: capability/wiring integration.
 - `test/qml/*`: Qt Quick Test component/focus/layout coverage.
-- `test/arena/*`: placement store, runner/session gate, and policy contracts.
+- `test/arena/*`: theme-vars persistence, runner/session gate, and policy contracts.
 
 ### RhythmGame-IR / Arena server
 
@@ -61,139 +66,51 @@
 
 ---
 
-### Task 1: Persist normalized overlay placement per profile, skin, layout, and kind
+### Task 1: Seed normalized placement in existing profile theme vars
 
 **Files:**
-- Create: `T:/RG/.worktrees/online-arena/src/arena/ArenaOverlayPlacementStore.h`
-- Create: `T:/RG/.worktrees/online-arena/src/arena/ArenaOverlayPlacementStore.cpp`
-- Create: `T:/RG/.worktrees/online-arena/test/arena/ArenaOverlayPlacementStore.test.cpp`
-- Modify: `T:/RG/.worktrees/online-arena/src/main.cpp`
-- Modify: `T:/RG/.worktrees/online-arena/RhythmGameQml/Rg.h`
-- Modify: `T:/RG/.worktrees/online-arena/RhythmGameQml/Rg.cpp`
-- Modify: `T:/RG/.worktrees/online-arena/RhythmGameQml/QmlForeignTypes.h`
-- Modify: `T:/RG/.worktrees/online-arena/CMakeLists.txt`
+- Modify: `T:/RG/.worktrees/online-arena/src/resource_managers/Vars.h`
+- Modify: `T:/RG/.worktrees/online-arena/src/resource_managers/Vars.cpp`
+- Create: `T:/RG/.worktrees/online-arena/test/arena/ArenaThemeVars.test.cpp`
 - Modify: `T:/RG/.worktrees/online-arena/test/CMakeLists.txt`
 
 **Interfaces:**
-- Consumes: `ProfileList::mainProfileChanged`, `Profile::getPath()`, and the canonical Phase 3 placement descriptors.
-- Produces:
+- Consumes: existing `Vars::loadedThemeVars`, theme families/screens, and
+  existing `<theme-family>-vars.json` persistence.
+- Produces hidden `arenaOverlay{K5,K7,K10,K14,Result}{X,Y,Width,Height}Normalized`
+  properties on relevant nested `QQmlPropertyMap`s. `-1` means unset.
+- Produces profile-wide `GeneralVars::arenaOverlayHintVersion` for the F2 hint.
 
-```cpp
-namespace arena {
-class ArenaOverlayPlacementStore final : public QObject {
-    Q_OBJECT
-    Q_PROPERTY(QString profileGuid READ profileGuid NOTIFY profileChanged FINAL)
-    Q_PROPERTY(int currentHintVersion READ currentHintVersion CONSTANT FINAL)
+- [ ] **Step 1: Write failing theme-vars tests**
 
-  public:
-    static constexpr int CurrentFileVersion = 1;
-    static constexpr int CurrentHintVersion = 1;
-
-    explicit ArenaOverlayPlacementStore(
-      qml_components::ProfileList* profiles,
-      QObject* parent = nullptr);
-
-    [[nodiscard]] auto profileGuid() const -> QString;
-    [[nodiscard]] auto currentHintVersion() const -> int;
-    Q_INVOKABLE QVariantMap placement(const QString& placementKind,
-                                      const QString& resolvedSkinId,
-                                      const QString& layoutVariant) const;
-    Q_INVOKABLE bool setPlacement(const QString& placementKind,
-                                  const QString& resolvedSkinId,
-                                  const QString& layoutVariant,
-                                  qreal x, qreal y,
-                                  qreal width, qreal height);
-    Q_INVOKABLE bool resetPlacement(const QString& placementKind,
-                                    const QString& resolvedSkinId,
-                                    const QString& layoutVariant);
-    Q_INVOKABLE bool shouldShowHint(int version) const;
-    Q_INVOKABLE void markHintShown(int version);
-
-  signals:
-    void profileChanged();
-    void placementChanged(const QString& placementKind,
-                          const QString& resolvedSkinId,
-                          const QString& layoutVariant);
-};
-}
-```
-
-- Produces: constant `Rg.arenaOverlayPlacements` pointing at the production store.
-
-- [ ] **Step 1: Write failing validation/profile/file tests**
-
-Create Catch2 cases for both closed kinds, all five layouts, 128/129-code-point
-keys, NaN/Inf, each coordinate/size bound, duplicate replacement, reset,
-deterministic sort, malformed one-entry skip, malformed root, future version,
-atomic-write failure, profile A/B isolation, hint version, and file contents
-containing no sentinel room/member/chat/token values.
-
-The canonical expected JSON shape is:
-
-```json
-{"version":1,"hintVersion":1,"placements":[{"kind":"gameplayLeaderboard","skinId":"Default","layoutVariant":"k7","x":0.65,"y":0.03,"width":0.32,"height":0.5}]}
-```
+Create Catch2 coverage for K5/K7 aliasing with distinct keys, result fields,
+unsupported screens, profile A/B isolation, existing-value retention, normal
+theme-vars file persistence, and no sentinel room/member/chat/token values.
 
 - [ ] **Step 2: Run RED**
 
 ```powershell
 cmake --build --preset dev-rel --target RhythmGame_test -j 2
-ctest --preset dev-rel -R ArenaOverlayPlacementStore --output-on-failure
+ctest --preset dev-rel -R ArenaThemeVars --output-on-failure
 ```
 
-Expected: the store/header/test source is absent.
+Expected: the hidden fields are absent from otherwise-empty theme maps.
 
-- [ ] **Step 3: Implement strict load and validation**
+- [ ] **Step 3: Seed application-owned hidden fields before map freeze**
 
-Use a private value key and rectangle:
+After reading existing values and before `writeThemeVars`/
+`populateThemePropertyMap`, insert only missing keys. Seed K5 and K7 separately
+inside a shared aliased map, likewise K10/K14, and seed Result only on result
+screens. Do not expose the fields in imported skin settings UI and do not add
+an Arena-specific QObject/file.
 
-```cpp
-struct PlacementKey {
-    QString kind;
-    QString skinId;
-    QString layoutVariant;
-    auto operator<=>(const PlacementKey&) const = default;
-};
-struct NormalizedPlacement {
-    qreal x{};
-    qreal y{};
-    qreal width{};
-    qreal height{};
-};
-```
-
-Accept only the exact kinds/layouts, finite values, key lengths, and normalized
-bounds from the Phase 4 spec. Load
-`profile->getPath().parent_path() / "arena-overlays.json"` on construction and
-main-profile change. Unknown root versions enter read-only-default state until
-the first valid explicit write/reset; do not rewrite on load.
-
-- [ ] **Step 4: Implement deterministic atomic writes**
-
-Serialize sorted entries through `QJsonDocument` and `QSaveFile`; update the
-in-memory map only when the file commit succeeds. `resetPlacement` removes only
-the exact key. `markHintShown` monotonically raises the stored hint version and
-does not alter placement entries.
-
-- [ ] **Step 5: Wire the production object graph**
-
-Construct the store after `ProfileList` and before `Rg`, register the anonymous
-foreign type, and expose:
-
-```cpp
-Q_PROPERTY(arena::ArenaOverlayPlacementStore* arenaOverlayPlacements
-           MEMBER arenaOverlayPlacements CONSTANT FINAL)
-```
-
-Do not add it to `ArenaSession` and do not let it own Profile/ProfileList.
-
-- [ ] **Step 6: Run GREEN and commit**
+- [ ] **Step 4: Verify existing persistence/profile behavior**
 
 ```powershell
 cmake --build --preset dev-rel --target RhythmGame_test RhythmGame_exe -j 2
-ctest --preset dev-rel -R ArenaOverlayPlacementStore --output-on-failure
-git -C T:/RG/.worktrees/online-arena add src/arena/ArenaOverlayPlacementStore.* src/main.cpp RhythmGameQml/Rg.* RhythmGameQml/QmlForeignTypes.h CMakeLists.txt test/CMakeLists.txt test/arena/ArenaOverlayPlacementStore.test.cpp
-git -C T:/RG/.worktrees/online-arena commit -m "feat: persist Arena overlay placement"
+ctest --preset dev-rel -R ArenaThemeVars --output-on-failure
+git -C T:/RG/.worktrees/online-arena add src/resource_managers/Vars.* test/arena/ArenaThemeVars.test.cpp test/CMakeLists.txt
+git -C T:/RG/.worktrees/online-arena commit -m "feat: persist Arena placement in theme vars"
 ```
 
 ---
@@ -207,21 +124,21 @@ git -C T:/RG/.worktrees/online-arena commit -m "feat: persist Arena overlay plac
 - Create: `T:/RG/.worktrees/online-arena/RhythmGameQml/Arena/ArenaOverlayResizeHandle.qml`
 - Create: `T:/RG/.worktrees/online-arena/test/qml/ArenaQmlTestMain.cpp`
 - Create: `T:/RG/.worktrees/online-arena/test/qml/tst_ArenaOverlayPlacement.qml`
-- Create: `T:/RG/.worktrees/online-arena/test/qml/FakeArenaPlacementStore.qml`
+- Create: `T:/RG/.worktrees/online-arena/test/qml/FakeArenaThemeVars.qml`
 - Modify: `T:/RG/.worktrees/online-arena/RhythmGameQml/CMakeLists.txt`
 - Modify: `T:/RG/.worktrees/online-arena/test/CMakeLists.txt`
 
 **Interfaces:**
-- Consumes: Task 1 store API and canonical descriptor strings.
+- Consumes: Task 1's resolved theme-vars map and canonical placement/layout
+  strings.
 - Produces:
 
 ```qml
 Item {
     id: root
-    required property var placementStore
+    required property var themeVars
     required property Item viewport
     required property string placementKind
-    required property string resolvedSkinId
     required property string layoutVariant
     required property bool customizeMode
     readonly property bool forcedVisible: true
@@ -232,6 +149,7 @@ Item {
 
     signal requestExitCustomization()
     signal interactionStateChanged(bool active)
+    signal placementCommitted()
 }
 ```
 
@@ -243,8 +161,8 @@ Item {
 Test exact default dimensions, stored conversion, 24 px safe clamp, 280x160
 minimum, safe shrink on a smaller viewport, no persistence on passive clamp,
 one commit at drag/resize end, all eight handles, Arrow/Shift movement,
-Alt/Alt+Shift resize, R reset, Enter/Escape request, profile/store signal
-reload, and the forced-visible property remaining read-only while active.
+Alt/Alt+Shift resize, R reset, Enter/Escape request, profile/theme-map
+replacement, and the forced-visible property remaining read-only while active.
 
 Use these viewports and assert every resolved edge remains inside the safe
 rectangle: `1024x768`, `1280x720`, `1920x1080`, `2560x1080`, and `3840x2160`.
@@ -292,10 +210,10 @@ the original normalized record separate from the transient resolved rectangle.
 
 Use `DragHandler` for movement and eight small
 `ArenaOverlayResizeHandle` instances with cursor shapes. Update pixels during
-the interaction and call `placementStore.setPlacement(...)` only when active
-changes to false. Keyboard operations commit one normalized record after the
-accepted key event. Reset calls the exact-key store reset and recomputes the
-default. Make every handle/control at least 32 logical px and assign
+the interaction and assign the four layout-specific hidden theme vars only
+when active changes to false. Keyboard operations commit after the accepted
+key event. Reset assigns `-1` to the exact layout's four fields and recomputes
+the default. Make every handle/control at least 32 logical px and assign
 `Accessible.name`.
 
 - [ ] **Step 5: Enforce forced visibility and input transparency**
@@ -631,10 +549,10 @@ ctest --preset dev-rel -R "ArenaOverlayPolicy|ArenaQml" --output-on-failure
 
 - [ ] **Step 4: Wrap Phase 3 gameplay content in the placement frame**
 
-Resolve `resolvedSkinId` and `layoutVariant` from the Phase 3 descriptor, pass
-`Rg.arenaOverlayPlacements`, and bind host lifetime to the current Arena runner.
-Keep compact content independent of `expanded`; only detail delegates change.
-The frame z is above the skin and below application dialogs.
+Resolve the current screen/theme property map and `layoutVariant`, pass that
+existing theme-vars map to the frame, and bind host lifetime to the current
+Arena runner. Keep compact content independent of `expanded`; only detail
+delegates change. The frame z is above the skin and below application dialogs.
 
 - [ ] **Step 5: Implement deterministic drawer geometry and unread state**
 
@@ -648,8 +566,9 @@ drawer geometry or unread count to Profile/session/server.
 - [ ] **Step 6: Add and persist the first-use hint**
 
 Show translated `Press F2 to move Arena standings` for six seconds only when
-`shouldShowHint(1)`. Dismiss/F2 calls `markHintShown(1)`. The hint has no focus
-steal and cannot cover the active placement handles.
+`generalVars.arenaOverlayHintVersion < 1`. Dismiss/F2 raises that profile-wide
+version to `1`. The hint has no focus steal and cannot cover the active
+placement handles.
 
 - [ ] **Step 7: Verify and commit**
 

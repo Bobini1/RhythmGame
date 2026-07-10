@@ -7,6 +7,7 @@ project(RhythmGameTests LANGUAGES CXX)
 # ---- Dependencies ----
 
 find_package(Catch2 3 REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS QuickTest)
 
 
 # ---- Tests ----
@@ -18,6 +19,7 @@ add_executable(RhythmGame_test
         arena/ArenaProtocol.test.cpp
         arena/ArenaRoundLoader.test.cpp
         arena/ArenaGameplaySource.test.cpp
+        arena/ArenaThemeVars.test.cpp
         arena/ArenaSelectIntegration.test.cpp
         arena/ArenaOverlayPolicy.test.cpp
         arena/ArenaCompetitionModels.test.cpp
@@ -92,6 +94,52 @@ if (WIN32)
 endif ()
 
 catch_discover_tests(RhythmGame_test)
+
+qt_add_executable(RhythmGame_arena_qml_test
+        qml/ArenaQmlTestMain.cpp
+)
+target_link_libraries(
+        RhythmGame_arena_qml_test PRIVATE
+        Qt6::QuickTest
+        RhythmGame_qmlplugin
+)
+target_compile_definitions(
+        RhythmGame_arena_qml_test PRIVATE
+        QUICK_TEST_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/qml"
+)
+target_compile_features(RhythmGame_arena_qml_test PRIVATE cxx_std_20)
+set_target_properties(
+        RhythmGame_arena_qml_test PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin/$<0:>"
+)
+qt_import_qml_plugins(RhythmGame_arena_qml_test)
+if (WIN32)
+    add_custom_command(TARGET RhythmGame_arena_qml_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    $<TARGET_RUNTIME_DLLS:RhythmGame_arena_qml_test>
+                    $<TARGET_FILE_DIR:RhythmGame_arena_qml_test>
+            COMMAND_EXPAND_LISTS
+    )
+endif ()
+add_custom_command(TARGET RhythmGame_arena_qml_test POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+                "$<TARGET_FILE_DIR:RhythmGame_arena_qml_test>/platforms"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "$<TARGET_FILE:Qt6::QMinimalIntegrationPlugin>"
+                "$<TARGET_FILE_DIR:RhythmGame_arena_qml_test>/platforms/"
+)
+add_test(
+        NAME ArenaQml
+        COMMAND RhythmGame_arena_qml_test
+                -input "${CMAKE_CURRENT_SOURCE_DIR}/qml"
+                -import "${CMAKE_BINARY_DIR}"
+                -import "$<TARGET_FILE_DIR:Qt6::Core>/../qml"
+)
+set_tests_properties(ArenaQml PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=minimal;QT_QUICK_CONTROLS_STYLE=Basic"
+        ENVIRONMENT_MODIFICATION
+                "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>"
+)
 # ---- End-of-file commands ----
 
 add_folders(Test)

@@ -50,7 +50,8 @@ official WSS deployment can be checked without a player credential.
 
 Included:
 
-- A versioned, profile-local Arena overlay placement store.
+- Hidden normalized Arena overlay fields in the existing profile theme-vars
+  system.
 - Application-owned drag, resize, reset, keyboard nudge, viewport clamping,
   first-use hint, and coordinated F2 mode.
 - Forced compact leaderboard visibility and session-only detail expansion.
@@ -98,9 +99,10 @@ Excluded:
    `resultStandings` record available if native integration is unavailable.
 4. Select UI is not given free-form geometry in the first release. Default owns
    a native panel; LR2/Beatoraja use a bounded collapsible application overlay.
-5. The overlay rectangle is stored in
-   `<profile-directory>/arena-overlays.json`; it is deliberately separate from
-   theme settings because imported skins have frozen/foreign settings schemas.
+5. Overlay rectangles use the existing per-profile, per-screen,
+   per-theme-family vars files. `Vars` seeds hidden application fields before
+   freezing each property map, so imported LR2/Beatoraja schemas do not need
+   to declare or display Arena settings.
 6. Stored rectangles are normalized to the application viewport. Clamping for
    a temporary viewport/aspect change does not rewrite the saved value until
    the player moves, resizes, nudges, or resets the overlay.
@@ -182,86 +184,40 @@ changes room phase, invents a winner, or writes a profile play option. The
 server remains authoritative and Phase 3's normal score-save/IR-upload path is
 unchanged.
 
-### `ArenaOverlayPlacementStore`
+### Theme-vars placement persistence
 
-A focused C++ QObject owns profile-local placement persistence. It observes
-`ProfileList::mainProfileChanged`, loads only the active profile's file, and is
-exposed as `Rg.arenaOverlayPlacements`. It neither depends on Arena transport
-nor survives outside the profile directory.
+Arena placement reuses `Profile::vars.themeVars`, which already owns
+per-profile persistence and switches naturally with the active profile. Before
+the nested `QQmlPropertyMap`s are frozen, `Vars` seeds hidden normalized fields
+for every relevant screen and theme family:
 
-Its QML-facing contract is:
-
-```cpp
-class ArenaOverlayPlacementStore final : public QObject {
-    Q_OBJECT
-    Q_PROPERTY(QString profileGuid READ profileGuid NOTIFY profileChanged FINAL)
-    Q_PROPERTY(int currentHintVersion READ currentHintVersion CONSTANT FINAL)
-
-  public:
-    static constexpr int CurrentFileVersion = 1;
-    static constexpr int CurrentHintVersion = 1;
-
-    Q_INVOKABLE QVariantMap placement(const QString& placementKind,
-                                      const QString& resolvedSkinId,
-                                      const QString& layoutVariant) const;
-    Q_INVOKABLE bool setPlacement(const QString& placementKind,
-                                  const QString& resolvedSkinId,
-                                  const QString& layoutVariant,
-                                  qreal x, qreal y,
-                                  qreal width, qreal height);
-    Q_INVOKABLE bool resetPlacement(const QString& placementKind,
-                                    const QString& resolvedSkinId,
-                                    const QString& layoutVariant);
-    [[nodiscard]] auto currentHintVersion() const -> int;
-    Q_INVOKABLE bool shouldShowHint(int version) const;
-    Q_INVOKABLE void markHintShown(int version);
-
-  signals:
-    void profileChanged();
-    void placementChanged(const QString& placementKind,
-                          const QString& resolvedSkinId,
-                          const QString& layoutVariant);
-};
+```text
+arenaOverlayK5{X,Y,Width,Height}Normalized
+arenaOverlayK7{X,Y,Width,Height}Normalized
+arenaOverlayK10{X,Y,Width,Height}Normalized
+arenaOverlayK14{X,Y,Width,Height}Normalized
+arenaOverlayResult{X,Y,Width,Height}Normalized
 ```
 
-`placement()` returns `{ stored, x, y, width, height }`; an absent/invalid
-entry returns `{ stored: false }`. `setPlacement()` accepts only finite values,
-closed placement kinds, nonempty skin/layout keys of at most 128 Unicode code
-points, `0 <= x,y < 1`, `0.05 <= width,height <= 1`, and
-`x + width <= 1`, `y + height <= 1`, allowing only a `1e-6` numeric tolerance.
-Rejected writes do not mutate memory or disk.
+Only variants reachable through that family are seeded. Aliased K5/K7 and
+K10/K14 screens retain separate field names in their shared property map, so
+each layout keeps independent geometry while preserving the existing aliasing
+model. A value of `-1` means no saved rectangle. Valid stored rectangles use
+finite values with `0 <= x,y < 1`, positive width/height, and edges no greater
+than `1` with `1e-6` tolerance. Invalid or partial values resolve to defaults
+without being rewritten.
 
-The on-disk format is deterministic and versioned:
-
-```json
-{
-  "version": 1,
-  "hintVersion": 1,
-  "placements": [
-    {
-      "kind": "gameplayLeaderboard",
-      "skinId": "Default",
-      "layoutVariant": "k7",
-      "x": 0.653125,
-      "y": 0.033333,
-      "width": 0.328125,
-      "height": 0.5
-    }
-  ]
-}
-```
-
-Entries are sorted by kind, skin ID, and layout variant before an atomic
-`QSaveFile` commit. A malformed entry is skipped independently. A malformed
-root or unknown future version yields defaults and is retained untouched until
-the player performs a successful placement write/reset. Paths, room IDs,
-member IDs, and remote text never appear in this file.
+The fields are written by the existing `<theme-family>-vars.json` path under
+the active profile. They are hidden from screen settings, contain only
+geometry, and never include paths, room/member IDs, chat, tokens, expansion,
+or visibility. One completed drag/resize updates the four existing theme-vars
+properties; no Arena-specific persistence QObject or file format exists.
 
 ### Application-owned placement frame
 
 `ArenaOverlayPlacementFrame.qml` wraps the existing Phase 3 gameplay/result
-content. It receives the three canonical descriptor strings, the placement
-store, the viewport, and `customizeMode`.
+content. It receives the resolved screen/theme property map, placement kind,
+layout variant, viewport, and `customizeMode`.
 
 Resolution rules:
 
@@ -335,7 +291,7 @@ idempotently. Non-Arena runners never enter it.
 
 For an active Arena runner, the compact leaderboard is always instantiated,
 visible, at least 280 x 160 px when the viewport permits, and clamped on screen.
-There is no visibility property in the placement file and no Hide action.
+There is no visibility field in theme vars and no Hide action.
 Expand/collapse affects only detail rows; the compact view always retains:
 
 - Competition rank or dash.
@@ -350,11 +306,12 @@ even when detailed standings are collapsed.
 
 ### First-use hint
 
-On the first active Arena gameplay for a profile whose `hintVersion < 1`, the
-host shows `Press F2 to move Arena standings` for six seconds. Activating F2 or
-dismissing the hint marks version 1 immediately. The hint is plain text,
-localized, nonmodal, and never reappears for that profile unless a later build
-increments `CurrentHintVersion`.
+On the first active Arena gameplay for a profile whose
+`generalVars.arenaOverlayHintVersion < 1`, the host shows `Press F2 to move
+Arena standings` for six seconds. Activating F2 or dismissing the hint raises
+that profile-wide version to 1 immediately. The hint is plain text, localized,
+nonmodal, and never reappears for that profile unless a later build increments
+the expected hint version.
 
 ## Screen presentation
 
@@ -651,13 +608,14 @@ to migrate rooms to a new process.
 
 ## Error and recovery behavior
 
-- Missing/corrupt placement file: use defaults; do not block Arena or overwrite
-  the file until a user placement action succeeds.
-- Invalid stored rectangle: skip only that entry and use the descriptor default.
+- Missing/corrupt theme-vars geometry: use defaults; do not block Arena or
+  rewrite geometry until a user placement action succeeds.
+- Invalid/partial stored rectangle: ignore those four fields and use the
+  descriptor default.
 - Viewport too small: shrink to the safe minimum that fits, keep the compact
   content scrollable, and retain the original normalized record.
-- Active profile change: Phase 1 leaves the room; placement store switches to
-  the new profile and the old profile's file remains untouched.
+- Active profile change: Phase 1 leaves the room; the screen resolves the new
+  profile's theme-vars map and the old profile's vars file remains untouched.
 - Skin/layout change between rounds: resolve a different descriptor key and use
   its stored/default rectangle.
 - Screen/round destroyed during customization: restore runner input before

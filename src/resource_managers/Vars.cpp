@@ -299,6 +299,27 @@ resource_managers::GeneralVars::resetReplayType()
 }
 
 auto
+resource_managers::GeneralVars::getArenaOverlayHintVersion() const -> int
+{
+    return arenaOverlayHintVersion;
+}
+void
+resource_managers::GeneralVars::setArenaOverlayHintVersion(int value)
+{
+    value = std::max(0, value);
+    if (arenaOverlayHintVersion == value) {
+        return;
+    }
+    arenaOverlayHintVersion = value;
+    emit arenaOverlayHintVersionChanged();
+}
+void
+resource_managers::GeneralVars::resetArenaOverlayHintVersion()
+{
+    setArenaOverlayHintVersion(0);
+}
+
+auto
 resource_managers::GeneralVars::getNoteOrderAlgorithm() const
   -> NoteOrderAlgorithm
 {
@@ -1782,6 +1803,66 @@ readThemeVars(const std::filesystem::path& profileFolder,
     return vars;
 }
 
+void
+ensureArenaOverlayThemeVars(
+  QHash<QString, QHash<QString, QHash<QString, QVariant>>>& vars,
+  const QMap<QString, qml_components::ThemeFamily>& themeFamilies)
+{
+    const auto addPlacement = [](QHash<QString, QVariant>& screenVars,
+                                 const QString& variant) {
+        const auto prefix = QStringLiteral("arenaOverlay") + variant;
+        for (const auto& suffix : { QStringLiteral("XNormalized"),
+                                    QStringLiteral("YNormalized"),
+                                    QStringLiteral("WidthNormalized"),
+                                    QStringLiteral("HeightNormalized") }) {
+            const auto key = prefix + suffix;
+            if (!screenVars.contains(key)) {
+                screenVars.insert(key, -1.0);
+            }
+        }
+    };
+
+    for (const auto& [themeName, themeFamily] :
+         themeFamilies.asKeyValueRange()) {
+        for (const auto& [screenName, screen] :
+             themeFamily.getScreens().asKeyValueRange()) {
+            if (screen.isAliased()) {
+                continue;
+            }
+            if (screenName != QStringLiteral("k5") &&
+                screenName != QStringLiteral("k7") &&
+                screenName != QStringLiteral("k10") &&
+                screenName != QStringLiteral("k14") &&
+                screenName != QStringLiteral("result")) {
+                continue;
+            }
+            auto& screenVars = vars[screenName][themeName];
+            if (screenName == QStringLiteral("k7")) {
+                addPlacement(screenVars, QStringLiteral("K7"));
+                const auto k5 =
+                  themeFamily.getScreens().constFind(QStringLiteral("k5"));
+                if (k5 != themeFamily.getScreens().cend() && k5->isAliased()) {
+                    addPlacement(screenVars, QStringLiteral("K5"));
+                }
+            } else if (screenName == QStringLiteral("k14")) {
+                addPlacement(screenVars, QStringLiteral("K14"));
+                const auto k10 =
+                  themeFamily.getScreens().constFind(QStringLiteral("k10"));
+                if (k10 != themeFamily.getScreens().cend() &&
+                    k10->isAliased()) {
+                    addPlacement(screenVars, QStringLiteral("K10"));
+                }
+            } else if (screenName == QStringLiteral("k5")) {
+                addPlacement(screenVars, QStringLiteral("K5"));
+            } else if (screenName == QStringLiteral("k10")) {
+                addPlacement(screenVars, QStringLiteral("K10"));
+            } else if (screenName == QStringLiteral("result")) {
+                addPlacement(screenVars, QStringLiteral("Result"));
+            }
+        }
+    }
+}
+
 // I got this from cppreference
 template<class T>
 std::enable_if_t<not std::numeric_limits<T>::is_integer, bool>
@@ -1934,6 +2015,7 @@ resource_managers::Vars::Vars(
 {
     generalVars.setParent(this);
     writePool.setMaxThreadCount(1);
+    ensureArenaOverlayThemeVars(loadedThemeVars, this->availableThemeFamilies);
     writeThemeVars(loadedThemeVars, profile->getPath().parent_path());
     populateThemePropertyMap(
       *themeVars, loadedThemeVars, profile->getPath().parent_path());
