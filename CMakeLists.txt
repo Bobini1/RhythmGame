@@ -101,6 +101,9 @@ qt_add_library(RhythmGame_lib OBJECT
         src/arena/ArenaInventorySource.h
         src/arena/SqliteArenaInventorySource.h
         src/arena/SqliteArenaInventorySource.cpp
+        src/arena/ArenaRoundLoader.h
+        src/arena/QtArenaRoundLoader.h
+        src/arena/QtArenaRoundLoader.cpp
         src/arena/ArenaProtocol.h
         src/arena/ArenaProtocol.cpp
         src/arena/ArenaTransport.h

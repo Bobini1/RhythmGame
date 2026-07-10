@@ -27,6 +27,8 @@ struct ChartPlayConfig
     {
         return randomizationVersion == chartRandomizationVersion;
     }
+
+    bool operator==(const ChartPlayConfig&) const = default;
 };
 
 /**
