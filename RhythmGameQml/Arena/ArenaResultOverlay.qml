@@ -12,8 +12,10 @@ Rectangle {
     required property string resolvedSkinId
     required property string layoutVariant
     property bool expanded: false
-    property string lastAnnouncementKey: ""
-    property string lastAnnouncementText: ""
+    readonly property alias announcementCount: resultAnnouncer.announcementCount
+    readonly property alias lastAnnouncementKey: resultAnnouncer.lastAnnouncementKey
+    readonly property alias lastAnnouncementText: resultAnnouncer.lastAnnouncementText
+    readonly property alias finalAnnouncementText: resultAnnouncer.finalAnnouncementText
 
     readonly property var result: root.session ? root.session.presentedResult : null
     readonly property bool resultAvailable: root.result && root.result.valid === true
@@ -38,22 +40,6 @@ Rectangle {
         const rank = root.resultAvailable && root.result.finalized ? Number(root.result.localRank || 0) : 0;
         return rank > 0 ? qsTr("#%1 / %2").arg(rank).arg(count) : qsTr("— / %1").arg(count);
     }
-    readonly property string finalAnnouncementText: root.resultAvailable && root.result.finalized ? qsTr("Arena result. %1. Your standing: %2").arg(root.winnerSummaryText).arg(root.localStandingText) : ""
-
-    function announceFinalResult() {
-        if (root.finalAnnouncementText.length === 0) {
-            return;
-        }
-        const roundId = String(root.result.roundId || "");
-        const key = roundId + "\n" + root.finalAnnouncementText;
-        if (key === root.lastAnnouncementKey) {
-            return;
-        }
-        root.lastAnnouncementKey = key;
-        root.lastAnnouncementText = root.finalAnnouncementText;
-        Accessible.announce(root.lastAnnouncementText);
-    }
-
     function rankLabel(rank, state): string {
         if (state === "dnf") {
             return qsTr("DNF");
@@ -64,10 +50,6 @@ Rectangle {
     function winsLabel(wins): string {
         return competitionText.winsText(wins);
     }
-
-    onFinalAnnouncementTextChanged: Qt.callLater(root.announceFinalResult)
-
-    Component.onCompleted: Qt.callLater(root.announceFinalResult)
 
     Accessible.role: Accessible.Pane
     Accessible.name: qsTr("Arena result")
@@ -82,6 +64,16 @@ Rectangle {
 
     ArenaCompetitionText {
         id: competitionText
+    }
+
+    ArenaResultAnnouncer {
+        id: resultAnnouncer
+
+        active: root.resultAvailable && root.result.finalized
+        localStanding: root.localStandingText
+        result: root.result
+        target: root
+        winnerSummary: root.winnerSummaryText
     }
 
     ColumnLayout {
@@ -163,8 +155,10 @@ Rectangle {
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.minimumHeight: root.expanded ? 96 : 0
+            activeFocusOnTab: visible && count > 0
             boundsBehavior: Flickable.StopAtBounds
             clip: true
+            keyNavigationEnabled: true
             model: root.resultAvailable ? root.result.standings : null
             reuseItems: true
             spacing: 4
@@ -172,6 +166,25 @@ Rectangle {
 
             Accessible.role: Accessible.List
             Accessible.name: qsTr("Arena final standings")
+
+            function ensureCurrentItem() {
+                if (count === 0) {
+                    currentIndex = -1;
+                } else if (currentIndex < 0 || currentIndex >= count) {
+                    currentIndex = 0;
+                }
+            }
+
+            Component.onCompleted: ensureCurrentItem()
+            Keys.onPressed: event => {
+                if (event.key !== Qt.Key_Home && event.key !== Qt.Key_End) {
+                    return;
+                }
+                currentIndex = event.key === Qt.Key_Home ? 0 : count - 1;
+                positionViewAtIndex(currentIndex, ListView.Contain);
+                event.accepted = true;
+            }
+            onCountChanged: ensureCurrentItem()
 
             ScrollBar.vertical: ScrollBar {}
 
@@ -205,9 +218,11 @@ Rectangle {
                 readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType)
                 readonly property string gaugeLabel: competitionText.gaugeText(gaugeType, gaugeValueMilli)
                 readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(localMarkerVisible ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
+                readonly property bool focusIndicatorVisible:
+                    ListView.isCurrentItem && standingsView.activeFocus
 
                 objectName: "arenaResultRow-" + memberId
-                activeFocusOnTab: true
+                activeFocusOnTab: false
                 color: index % 2 === 0 ? "#2a1b2230" : "#181b2230"
                 height: standingContent.implicitHeight + 12
                 radius: 3
@@ -217,11 +232,11 @@ Rectangle {
                 Accessible.name: accessibleSummary
                 Accessible.description: hasScore ? gaugeLabel + qsTr(" · ") + winsLabel : winsLabel
                 Accessible.focusable: true
-                Accessible.focused: activeFocus
-                Accessible.selected: activeFocus
+                Accessible.focused: focusIndicatorVisible
+                Accessible.selected: ListView.isCurrentItem
 
-                border.color: activeFocus ? "#ffe38a" : "transparent"
-                border.width: activeFocus ? 2 : 0
+                border.color: focusIndicatorVisible ? "#ffe38a" : "transparent"
+                border.width: focusIndicatorVisible ? 2 : 0
 
                 ColumnLayout {
                     id: standingContent

@@ -186,15 +186,31 @@ TEST_CASE("ArenaResultPresentation: final standings are localized and accessible
                       "case \"grace_expired\"",
                       "qsTr(\"%n win(s)\"" });
 
+    const auto announcer =
+      qmlSource("RhythmGameQml/Arena/ArenaResultAnnouncer.qml");
+    requireContains(announcer,
+                    { "Instantiator",
+                      "required property var result",
+                      "Did not finish: %3",
+                      "dnfReasonText",
+                      "Accessible.announce",
+                      "lastAnnouncementText",
+                      "announcementCount" });
+
     const auto legacy =
       qmlSource("RhythmGameQml/Arena/ArenaResultOverlay.qml");
     requireContains(legacy,
                     { "ArenaCompetitionText",
+                      "ArenaResultAnnouncer",
                       "Accessible.role: Accessible.Pane",
-                      "Accessible.announce",
                       "Accessible.role: Accessible.List",
                       "Accessible.role: Accessible.ListItem",
-                      "activeFocusOnTab: true",
+                      "activeFocusOnTab: visible && count > 0",
+                      "activeFocusOnTab: false",
+                      "keyNavigationEnabled: true",
+                      "Qt.Key_End",
+                      "focusIndicatorVisible",
+                      "readonly property alias announcementCount",
                       "lastAnnouncementText" });
     CHECK_FALSE(legacy.contains(
       QStringLiteral(".arg(standingDelegate.dnfReason)")));
@@ -207,12 +223,17 @@ TEST_CASE("ArenaResultPresentation: final standings are localized and accessible
       "share/RhythmGame/themes/Default/scripts/result/ArenaResultPanel.qml");
     requireContains(native,
                     { "ArenaCompetitionText",
+                      "ArenaResultAnnouncer",
                       "Accessible.role: Accessible.Pane",
-                      "Accessible.announce",
                       "Accessible.role: Accessible.List",
                       "Accessible.role: Accessible.ListItem",
-                      "activeFocusOnTab: true",
+                      "activeFocusOnTab: visible && count > 0",
+                      "activeFocusOnTab: false",
+                      "keyNavigationEnabled: true",
+                      "Qt.Key_End",
+                      "focusIndicatorVisible",
                       "font.contextFontMerging: true",
+                      "readonly property alias announcementCount",
                       "lastAnnouncementText" });
     CHECK_FALSE(native.contains(QStringLiteral(".arg(row.dnfReason)")));
     CHECK_FALSE(native.contains(QStringLiteral(".arg(row.clearType)")));
@@ -226,4 +247,8 @@ TEST_CASE("ArenaResultPresentation: final standings are localized and accessible
                       "parent: resultBackground",
                       "statsFontFamily: resultStatsFont.fontFamily",
                       "textFontFamily: resultTitleFont.fontFamily" });
+
+    const auto qmlModule = qmlSource("RhythmGameQml/CMakeLists.txt");
+    CHECK(qmlModule.contains(
+      QStringLiteral("Arena/ArenaResultAnnouncer.qml")));
 }

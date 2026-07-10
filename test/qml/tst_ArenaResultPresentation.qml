@@ -168,6 +168,36 @@ TestCase {
                 resultState.localDnf = false;
                 resultState.finalized = true;
             }
+
+            function appendExtraFinalRows(totalCount) {
+                for (let index = standingsModel.count;
+                     index < totalCount; ++index) {
+                    standingsModel.append({
+                        "memberId": "member-extra-" + index,
+                        "displayName": "Extra player " + index,
+                        "connected": false,
+                        "competitionState": "finished",
+                        "rank": index + 1,
+                        "hasScore": true,
+                        "exScore": 800 - index,
+                        "progressPermille": 1000,
+                        "maxCombo": 300,
+                        "badPoorCount": 10,
+                        "perfect": 350,
+                        "great": 100,
+                        "good": 10,
+                        "bad": 4,
+                        "poor": 4,
+                        "emptyPoor": 2,
+                        "gaugeType": "normal",
+                        "gaugeValueMilli": 65000,
+                        "clearType": "normal",
+                        "lobbyWinsAfter": 0,
+                        "dnfReason": ""
+                    });
+                }
+                resultState.participantCount = totalCount;
+            }
         }
     }
 
@@ -299,8 +329,36 @@ TestCase {
         compare(dnf.winsLabel, "Wins —");
         compare(dnf.detailsLabel, "Did not finish · Left the room");
         compare(winnerB.gaugeLabel, "Normal · 76.0%");
-        compare(local.activeFocusOnTab, true);
-        tryCompare(harness.overlay, "lastAnnouncementText", "Arena result. Winners: Alice, Bob. Your standing: #3 / 4");
+        compare(standings.activeFocusOnTab, true);
+        compare(local.activeFocusOnTab, false);
+        tryCompare(harness.overlay, "lastAnnouncementText",
+                   "Arena result. Winners: Alice, Bob. Your standing: #3 / 4. Did not finish: Disconnected player: Left the room");
+        compare(harness.overlay.announcementCount, 1);
+    }
+
+    function test_legacy_result_uses_one_roving_list_focus_stop() {
+        const harness = createOverlay();
+        harness.session.installFinalRows();
+        harness.session.appendExtraFinalRows(16);
+        harness.overlay.expanded = true;
+        const standings = findChild(harness.overlay, "arenaResultStandings");
+        verify(standings !== null);
+        tryCompare(standings, "count", 16);
+        standings.forceActiveFocus();
+        tryCompare(standings, "activeFocus", true);
+        keyClick(Qt.Key_End);
+        tryCompare(standings, "currentIndex", 15);
+        tryVerify(function() {
+            return standings.currentItem !== null
+                && standings.currentItem.memberId === "member-extra-15";
+        });
+        compare(standings.currentItem.focusIndicatorVisible, true);
+        tryCompare(harness.overlay, "lastAnnouncementText",
+                   "Arena result. Winners: Alice, Bob. Your standing: #3 / 16. Did not finish: Disconnected player: Left the room");
+        compare(harness.overlay.announcementCount, 1);
+        compare(standings.currentItem.activeFocusOnTab, false);
+        keyClick(Qt.Key_Home);
+        tryCompare(standings, "currentIndex", 0);
     }
 
     function test_competition_text_never_exposes_protocol_tokens() {
@@ -317,6 +375,7 @@ TestCase {
         const session = createTemporaryObject(sessionComponent, testCase);
         verify(session !== null);
         session.installFinalRows();
+        session.appendExtraFinalRows(16);
         const component = Qt.createComponent(Qt.resolvedUrl("../../share/RhythmGame/themes/Default/scripts/result/ArenaResultPanel.qml"));
         tryCompare(component, "status", Component.Ready, 3000);
         const panel = createTemporaryObject(component, testCase, {
@@ -336,9 +395,21 @@ TestCase {
         const standings = findChild(panel, "arenaNativeResultStandings");
         verify(standings !== null);
         tryVerify(function () {
-            return standings.count === 4 && standings.itemAtIndex(0) !== null;
+            return standings.count === 16 && standings.itemAtIndex(0) !== null;
         }, 1000);
-        compare(standings.itemAtIndex(0).activeFocusOnTab, true);
+        compare(standings.activeFocusOnTab, true);
+        compare(standings.itemAtIndex(0).activeFocusOnTab, false);
+        standings.forceActiveFocus();
+        keyClick(Qt.Key_End);
+        tryCompare(standings, "currentIndex", 15);
+        tryVerify(function() {
+            return standings.currentItem !== null
+                && standings.currentItem.memberId === "member-extra-15";
+        });
+        compare(standings.currentItem.focusIndicatorVisible, true);
+        tryCompare(panel, "lastAnnouncementText",
+                   "Arena result. Winners: Alice, Bob. Your standing: #3 / 16. Did not finish: Disconnected player: Left the room");
+        compare(panel.announcementCount, 1);
     }
 
     function test_result_placement_uses_independent_theme_fields() {
