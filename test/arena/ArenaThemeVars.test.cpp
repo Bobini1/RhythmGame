@@ -18,7 +18,6 @@
 
 #include <filesystem>
 #include <memory>
-#include <optional>
 
 namespace {
 
@@ -80,21 +79,26 @@ screenThemeVars(resource_managers::Profile* profile,
 }
 
 auto
-persistedX(const QString& path) -> std::optional<double>
+persistedPlacementMatches(const QString& path) -> bool
 {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
-        return std::nullopt;
+        return false;
     }
     const auto document = QJsonDocument::fromJson(file.readAll());
     if (!document.isObject()) {
-        return std::nullopt;
+        return false;
     }
-    const auto value = document.object()
-                         .value(QStringLiteral("k7"))
-                         .toObject()
-                         .value(QStringLiteral("arenaOverlayK7XNormalized"));
-    return value.isDouble() ? std::optional{ value.toDouble() } : std::nullopt;
+    const auto screen =
+      document.object().value(QStringLiteral("k7")).toObject();
+    const auto matches = [&screen](const QString& key, double expected) {
+        const auto value = screen.value(key);
+        return value.isDouble() && value.toDouble() == expected;
+    };
+    return matches(QStringLiteral("arenaOverlayK7XNormalized"), 0.25) &&
+           matches(QStringLiteral("arenaOverlayK7YNormalized"), 0.05) &&
+           matches(QStringLiteral("arenaOverlayK7WidthNormalized"), 0.40) &&
+           matches(QStringLiteral("arenaOverlayK7HeightNormalized"), 0.50);
 }
 
 } // namespace
@@ -195,12 +199,11 @@ TEST_CASE("Arena overlay geometry uses profile theme vars",
       profileA->getPath().parent_path() / "Arena Test-vars.json");
     QElapsedTimer timeout;
     timeout.start();
-    while (persistedX(varsPath) != std::optional{ 0.25 } &&
-           timeout.elapsed() < 2'000) {
+    while (!persistedPlacementMatches(varsPath) && timeout.elapsed() < 2'000) {
         QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
         QThread::msleep(1);
     }
-    REQUIRE(persistedX(varsPath) == std::optional{ 0.25 });
+    REQUIRE(persistedPlacementMatches(varsPath));
 
     QFile file(varsPath);
     REQUIRE(file.open(QIODevice::ReadOnly));
