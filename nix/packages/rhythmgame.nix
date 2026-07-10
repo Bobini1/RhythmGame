@@ -15,6 +15,7 @@
   fmt,
   libxml2,
   qtdeclarative,
+  qtwebsockets,
   qtmultimedia,
   qtsvg,
   qtkeychain,
@@ -64,6 +65,7 @@ stdenv.mkDerivation rec {
     fmt
     libxml2
     qtdeclarative
+    qtwebsockets
     qtmultimedia
     qtsvg
     qtkeychain

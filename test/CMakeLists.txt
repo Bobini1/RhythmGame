@@ -14,6 +14,8 @@ find_package(Catch2 3 REQUIRED)
 add_executable(RhythmGame_test
         arena/ArenaProtocol.test.cpp
         arena/ArenaModels.test.cpp
+        arena/ArenaSession.test.cpp
+        arena/ProfileListArenaPolicy.test.cpp
         arena/FakeArenaTransport.h
         arena/FakeArenaIdentityProvider.h
         arena/FakeArenaScheduler.h

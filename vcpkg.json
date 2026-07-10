@@ -76,6 +76,7 @@
       "platform": "windows"
     },
     "qtdeclarative",
+    "qtwebsockets",
     "qtshadertools",
     "qtsvg",
     "qtinterfaceframework",

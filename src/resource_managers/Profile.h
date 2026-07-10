@@ -16,11 +16,45 @@
 #include "qml_components/ThemeFamily.h"
 
 #include <QNetworkRequestFactory>
+#include <QPointer>
 #include <qt6keychain/keychain.h>
+class QNetworkReply;
 namespace gameplay_logic {
 class ChartData;
 }
 namespace resource_managers {
+class Profile;
+
+class ArenaTicketOperation final : public QObject
+{
+    Q_OBJECT
+  public:
+    enum class Error
+    {
+        NotLoggedIn,
+        Network,
+        Rejected,
+        MalformedResponse
+    };
+    Q_ENUM(Error)
+
+    explicit ArenaTicketOperation(QObject* parent = nullptr);
+    void cancel();
+
+  signals:
+    void succeeded(const QString& ticket);
+    void failed(resource_managers::ArenaTicketOperation::Error error);
+
+  private:
+    friend class Profile;
+    QPointer<QNetworkReply> reply;
+    bool terminal{};
+
+    void attachReply(QNetworkReply* networkReply);
+    void succeed(QString ticket);
+    void fail(Error error);
+};
+
 class TachiData
 {
     Q_GADGET
@@ -72,14 +106,15 @@ class Profile final : public QObject
     Q_PROPERTY(QString guid READ getGuid CONSTANT FINAL)
     Q_PROPERTY(QVariant onlineUserData READ getOnlineUserData NOTIFY
                  onlineUserDataChanged FINAL)
-    Q_PROPERTY(QVariant tachiData READ getTachiData NOTIFY tachiDataChanged FINAL)
+    Q_PROPERTY(
+      QVariant tachiData READ getTachiData NOTIFY tachiDataChanged FINAL)
     Q_PROPERTY(resource_managers::Profile::LoginState loginState READ
                  getLoginState NOTIFY loginStateChanged FINAL)
     Q_PROPERTY(resource_managers::Profile::LoginState tachiLoginState READ
                  getTachiLoginState NOTIFY tachiLoginStateChanged FINAL)
-    Q_PROPERTY(qml_components::ReplayImportOperation* replayImportOperation
-                 READ getReplayImportOperation
-                 NOTIFY replayImportOperationChanged FINAL)
+    Q_PROPERTY(
+      qml_components::ReplayImportOperation* replayImportOperation READ
+        getReplayImportOperation NOTIFY replayImportOperationChanged FINAL)
     db::SqliteCppDb db;
     std::filesystem::path dbPath;
     QQmlPropertyMap* themeConfig;
@@ -148,7 +183,10 @@ class Profile final : public QObject
     auto getLoginState() const -> LoginState;
     auto getTachiLoginState() const -> LoginState;
     auto getOnlineUserData() const -> QVariant;
+    [[nodiscard]] auto getOnlineUserDataValue() const
+      -> std::optional<OnlineUserData>;
     auto getTachiData() const -> QVariant;
+    [[nodiscard]] auto requestArenaTicket() -> ArenaTicketOperation*;
     /**
      * @brief Upload local scores to the server.
      * @details Compares local GUIDs to the server and uploads each missing

@@ -50,7 +50,7 @@
       devShells.default = pkgs.kdePackages.callPackage ./nix/shells/default.nix {
         inherit qtinterfaceframework ned14-llfio;
         lexy = nur-foolnotion.foonathan-lexy;
-        inherit (pkgs.kdePackages) qtdeclarative qtsvg qtshadertools qtwayland qtmultimedia qttools qtkeychain;
+        inherit (pkgs.kdePackages) qtdeclarative qtwebsockets qtsvg qtshadertools qtwayland qtmultimedia qttools qtkeychain;
         mkShell = pkgs.mkShell.override {inherit stdenv;};
       };
 

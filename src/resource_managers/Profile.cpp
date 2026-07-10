@@ -6,6 +6,7 @@
 
 #include "ScanThemes.h"
 #include "SerializeConfig.h"
+#include "arena/ArenaTypes.h"
 #include "gameplay_logic/ChartData.h"
 #include "support/Compress.h"
 #include "support/CreateQmlPropertyMap.h"
@@ -17,6 +18,8 @@
 #include <qt6keychain/keychain.h>
 
 #include <QNetworkCookie>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <spdlog/spdlog.h>
@@ -127,6 +130,123 @@ fetchServerGuids(QNetworkAccessManager* networkManager,
       });
 }
 } // namespace
+
+ArenaTicketOperation::ArenaTicketOperation(QObject* parent)
+  : QObject(parent)
+{
+}
+
+void
+ArenaTicketOperation::cancel()
+{
+    if (terminal) {
+        return;
+    }
+    terminal = true;
+    if (reply) {
+        disconnect(reply, nullptr, this, nullptr);
+        reply->abort();
+        reply->deleteLater();
+        reply.clear();
+    }
+    deleteLater();
+}
+
+void
+ArenaTicketOperation::attachReply(QNetworkReply* networkReply)
+{
+    if (networkReply == nullptr) {
+        fail(Error::Network);
+        return;
+    }
+    if (terminal) {
+        networkReply->abort();
+        networkReply->deleteLater();
+        return;
+    }
+    networkReply->setParent(this);
+    reply = networkReply;
+    connect(networkReply, &QNetworkReply::finished, this, [this, networkReply] {
+        if (terminal || reply != networkReply) {
+            return;
+        }
+        const auto redirect =
+          networkReply->attribute(QNetworkRequest::RedirectionTargetAttribute);
+        const auto status =
+          networkReply->attribute(QNetworkRequest::HttpStatusCodeAttribute)
+            .toInt();
+        if (redirect.isValid() || status == 401 || status == 403) {
+            fail(Error::Rejected);
+            return;
+        }
+        if (networkReply->error() != QNetworkReply::NoError || status < 200 ||
+            status >= 300) {
+            fail(Error::Network);
+            return;
+        }
+        constexpr qint64 MaxResponseBytes = 64 * 1024;
+        if (networkReply->size() > MaxResponseBytes) {
+            fail(Error::MalformedResponse);
+            return;
+        }
+        const auto body = networkReply->read(MaxResponseBytes + 1);
+        if (body.size() > MaxResponseBytes) {
+            fail(Error::MalformedResponse);
+            return;
+        }
+        QJsonParseError parseError;
+        const auto document = QJsonDocument::fromJson(body, &parseError);
+        if (parseError.error != QJsonParseError::NoError ||
+            !document.isObject()) {
+            fail(Error::MalformedResponse);
+            return;
+        }
+        const auto object = document.object();
+        const auto tokenValue = object.value(QStringLiteral("token"));
+        if (object.size() != 1 || !tokenValue.isString()) {
+            fail(Error::MalformedResponse);
+            return;
+        }
+        auto ticket = tokenValue.toString();
+        if (ticket.isEmpty() || ticket.size() > arena::MaxTicketCharacters) {
+            fail(Error::MalformedResponse);
+            return;
+        }
+        succeed(std::move(ticket));
+    });
+}
+
+void
+ArenaTicketOperation::succeed(QString ticket)
+{
+    if (terminal) {
+        return;
+    }
+    terminal = true;
+    if (reply) {
+        reply->deleteLater();
+        reply.clear();
+    }
+    emit succeeded(ticket);
+    ticket.clear();
+    ticket.squeeze();
+    deleteLater();
+}
+
+void
+ArenaTicketOperation::fail(Error error)
+{
+    if (terminal) {
+        return;
+    }
+    terminal = true;
+    if (reply) {
+        reply->deleteLater();
+        reply.clear();
+    }
+    emit failed(error);
+    deleteLater();
+}
 
 void
 Profile::loadBearerToken()
@@ -557,6 +677,37 @@ Profile::getOnlineUserData() const -> QVariant
 {
     return userData ? QVariant::fromValue(*userData)
                     : QVariant::fromValue(nullptr);
+}
+auto
+Profile::getOnlineUserDataValue() const -> std::optional<OnlineUserData>
+{
+    return userData;
+}
+auto
+Profile::requestArenaTicket() -> ArenaTicketOperation*
+{
+    auto* operation = new ArenaTicketOperation(this);
+    if (loginState != LoginState::LoggedIn) {
+        const QPointer<ArenaTicketOperation> guarded(operation);
+        QMetaObject::invokeMethod(
+          operation,
+          [guarded] {
+              if (guarded) {
+                  guarded->fail(ArenaTicketOperation::Error::NotLoggedIn);
+              }
+          },
+          Qt::QueuedConnection);
+        return operation;
+    }
+
+    auto request = networkRequestFactory.createRequest("auth/token");
+    request.setAttribute(QNetworkRequest::CacheLoadControlAttribute,
+                         QNetworkRequest::AlwaysNetwork);
+    request.setAttribute(QNetworkRequest::CacheSaveControlAttribute, false);
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::ManualRedirectPolicy);
+    operation->attachReply(networkManager->get(request));
+    return operation;
 }
 auto
 Profile::getTachiData() const -> QVariant

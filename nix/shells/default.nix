@@ -12,6 +12,7 @@
   fmt,
   libxml2,
   qtdeclarative,
+  qtwebsockets,
   qtmultimedia,
   qtsvg,
   qtkeychain,
@@ -59,6 +60,7 @@ mkShell {
     fmt
     libxml2
     qtdeclarative
+    qtwebsockets
     qtmultimedia
     qtsvg
     qtkeychain
