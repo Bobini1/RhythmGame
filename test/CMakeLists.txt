@@ -15,6 +15,7 @@ add_executable(RhythmGame_test
         arena/ArenaProtocol.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
+        arena/ArenaSessionMatrix.test.cpp
         arena/ProfileListArenaPolicy.test.cpp
         arena/FakeArenaTransport.h
         arena/FakeArenaIdentityProvider.h
