@@ -69,7 +69,10 @@ TEST_CASE("ArenaOverlayPolicy: overlay host follows only the current session run
     CHECK_FALSE(source.contains(QStringLiteral("Settings {")));
     CHECK_FALSE(source.contains(QStringLiteral("property bool hidden")));
     CHECK_FALSE(source.contains(QStringLiteral("hideOverlay")));
-    CHECK_FALSE(source.contains(QStringLiteral("resolvedSkinId")));
+    CHECK_FALSE(source.contains(
+      QStringLiteral("required property string resolvedSkinId")));
+    CHECK_FALSE(source.contains(
+      QStringLiteral("resolvedSkinId: root.resolvedSkinId")));
 }
 
 TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete",

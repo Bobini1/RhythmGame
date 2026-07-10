@@ -332,7 +332,10 @@ TEST_CASE("ArenaOverlayCustomization: QML routes one Arena F2 owner and keeps "
           "[arena][ArenaOverlayCustomization]")
 {
     const auto host = qmlSource("RhythmGameQml/Arena/ArenaOverlayHost.qml");
-    CHECK(host.count(QStringLiteral("sequence: \"F2\"")) == 1);
+    CHECK(host.count(QStringLiteral("sequence: \"F2\"")) == 2);
+    CHECK(host.contains(
+      QStringLiteral("enabled: root.coordinatedShortcutEnabled")));
+    CHECK(host.contains(QStringLiteral("enabled: root.legacyArenaResult")));
     CHECK(host.contains(QStringLiteral("setOverlayCustomizationActive")));
     CHECK(host.contains(QStringLiteral("arenaLegacyCustomizationShield")));
 
@@ -352,4 +355,6 @@ TEST_CASE("ArenaOverlayCustomization: QML routes one Arena F2 owner and keeps "
       QStringLiteral("function setArenaCustomizeMode(active)")));
     CHECK(legacy.contains(
       QStringLiteral("!root.arenaSession.overlayCustomizationActive")));
+    CHECK(legacy.contains(
+      QStringLiteral("!root.arenaResultCustomizationActive")));
 }
