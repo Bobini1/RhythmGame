@@ -6,12 +6,14 @@ Item {
 
     required property var session
     required property var currentItem
-    required property string resolvedSkinId
+    required property var themeVars
+    required property var generalVars
     required property string layoutVariant
     property bool expanded: false
     property bool customizeMode: false
     property var coordinatedScreen: null
     property bool customizationTransitionActive: false
+    property int unreadCount: 0
 
     readonly property bool ownsArenaRunner: root.currentItem !== null
         && root.currentItem.chart !== undefined
@@ -26,6 +28,22 @@ Item {
         || root.ownsArenaResult
     readonly property bool screenCoordinatesCustomization: root.currentItem !== null
         && typeof root.currentItem.setArenaCustomizeMode === "function"
+    readonly property string activeRoundId: root.ownsArenaRunner
+        && root.session.liveStandings !== null
+        && root.session.liveStandings !== undefined
+        ? String(root.session.liveStandings.roundId || "") : ""
+    readonly property var placementFrame: gameplayOverlayLoader.item
+    readonly property rect chatDrawerRect: root.placementFrame !== null
+        ? root.placementFrame.adjacentChatRect()
+        : Qt.rect(0, 0, 1, 1)
+
+    function acknowledgePlacementHint() {
+        if (root.generalVars !== null && root.generalVars !== undefined
+                && root.generalVars.arenaOverlayHintVersion < 1) {
+            root.generalVars.arenaOverlayHintVersion = 1;
+        }
+        placementHintTimer.stop();
+    }
 
     function setCustomizeMode(active) {
         const accepted = !!active && root.arenaShortcutEnabled;
@@ -41,6 +59,9 @@ Item {
             ? root.currentItem : null;
         if (accepted && root.session.gameplayChatOpen === true) {
             root.session.setGameplayChatOpen(false);
+        }
+        if (accepted) {
+            root.acknowledgePlacementHint();
         }
         root.session.setOverlayCustomizationActive(
                     accepted && root.session.arenaGameplayActive === true);
@@ -60,6 +81,18 @@ Item {
     onOwnsArenaRunnerChanged: {
         if (!root.ownsArenaRunner) {
             root.expanded = false;
+            root.unreadCount = 0;
+            placementHintTimer.stop();
+        } else if (root.generalVars !== null
+                   && root.generalVars !== undefined
+                   && root.generalVars.arenaOverlayHintVersion < 1) {
+            placementHintTimer.restart();
+        }
+    }
+    onActiveRoundIdChanged: {
+        root.unreadCount = 0;
+        if (root.session.gameplayChatOpen === true) {
+            root.session.setGameplayChatOpen(false);
         }
     }
     onArenaShortcutEnabledChanged: {
@@ -73,12 +106,22 @@ Item {
         }
     }
 
+    Component.onCompleted: {
+        if (root.ownsArenaRunner && root.generalVars !== null
+                && root.generalVars !== undefined
+                && root.generalVars.arenaOverlayHintVersion < 1) {
+            placementHintTimer.start();
+        }
+    }
     Component.onDestruction: root.setCustomizeMode(false)
 
     Connections {
         target: root.session
 
         function onGameplayChatOpenChanged() {
+            if (root.session.gameplayChatOpen === true) {
+                root.unreadCount = 0;
+            }
             if (root.session.gameplayChatOpen === true && root.customizeMode) {
                 root.setCustomizeMode(false);
             }
@@ -91,6 +134,30 @@ Item {
                 root.setCustomizeMode(false);
             }
         }
+    }
+
+    Connections {
+        target: root.session.chat
+        enabled: root.ownsArenaRunner && root.session.chat !== null
+
+        function onRowsInserted(parent, first, last) {
+            if (root.session.gameplayChatOpen !== true
+                    && root.activeRoundId.length > 0) {
+                root.unreadCount += last - first + 1;
+            }
+        }
+
+        function onModelReset() {
+            root.unreadCount = 0;
+        }
+    }
+
+    Timer {
+        id: placementHintTimer
+
+        interval: 6000
+        repeat: false
+        onTriggered: root.acknowledgePlacementHint()
     }
 
     Shortcut {
@@ -143,31 +210,111 @@ Item {
         id: gameplayOverlayLoader
 
         active: root.ownsArenaRunner
-        height: Math.min(Math.max(0, root.height - 48),
-                         root.expanded || root.session.gameplayChatOpen === true ? 640 : 360)
         sourceComponent: gameplayOverlayComponent
-        width: Math.min(420, Math.max(0, root.width - 48))
         z: 1
-        anchors {
-            right: parent.right
-            rightMargin: 24
-            top: parent.top
-            topMargin: 24
-        }
     }
 
     Component {
         id: gameplayOverlayComponent
 
-        ArenaGameplayOverlay {
-            id: gameplayOverlay
+        ArenaOverlayPlacementFrame {
+            id: placementFrame
 
+            objectName: "arenaGameplayPlacementFrame"
             layoutVariant: root.layoutVariant
             placementKind: "gameplayLeaderboard"
-            resolvedSkinId: root.resolvedSkinId
-            session: root.session
+            themeVars: root.themeVars
+            viewport: root
+            customizeMode: root.customizeMode
+            minimumPixelSize: Qt.size(320, 240)
 
-            onExpandedChanged: root.expanded = gameplayOverlay.expanded
+            onRequestExitCustomization: root.setCustomizeMode(false)
+
+            ArenaGameplayOverlay {
+                id: gameplayOverlay
+
+                anchors.fill: parent
+                session: root.session
+                expanded: root.expanded
+                unreadCount: root.unreadCount
+
+                onExpandedChanged: root.expanded = gameplayOverlay.expanded
+            }
+        }
+    }
+
+    Loader {
+        id: gameplayChatDrawer
+
+        objectName: "arenaGameplayChatDrawer"
+        active: root.ownsArenaRunner
+        focus: visible
+        visible: root.session.gameplayChatOpen === true
+        x: root.chatDrawerRect.x
+        y: root.chatDrawerRect.y
+        width: root.chatDrawerRect.width
+        height: root.chatDrawerRect.height
+        sourceComponent: gameplayChatComponent
+        z: 2
+
+        onVisibleChanged: {
+            if (visible) {
+                gameplayChatDrawer.forceActiveFocus();
+            }
+        }
+        onLoaded: {
+            if (visible) {
+                gameplayChatDrawer.forceActiveFocus();
+            }
+        }
+    }
+
+    Component {
+        id: gameplayChatComponent
+
+        ArenaGameplayChat {
+            session: root.session
+        }
+    }
+
+    Rectangle {
+        id: placementHint
+
+        objectName: "arenaOverlayPlacementHint"
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top
+        anchors.topMargin: 24
+        border.color: "#70ffffff"
+        border.width: 1
+        color: "#e6101218"
+        height: placementHintText.implicitHeight + 20
+        radius: 5
+        visible: root.ownsArenaRunner
+            && !root.customizeMode
+            && root.generalVars !== null
+            && root.generalVars !== undefined
+            && root.generalVars.arenaOverlayHintVersion < 1
+            && placementHintTimer.running
+        width: Math.min(parent.width - 48,
+                        placementHintText.implicitWidth + 32)
+        z: 3
+
+        Text {
+            id: placementHintText
+
+            anchors.centerIn: parent
+            color: "white"
+            horizontalAlignment: Text.AlignHCenter
+            text: qsTr("Press F2 to move Arena standings")
+            textFormat: Text.PlainText
+            width: Math.max(1, parent.width - 24)
+            wrapMode: Text.Wrap
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.acknowledgePlacementHint()
         }
     }
 }

@@ -19,6 +19,21 @@ TestCase {
     }
 
     Component {
+        id: themeVarsComponent
+
+        FakeArenaThemeVars {
+        }
+    }
+
+    Component {
+        id: generalVarsComponent
+
+        QtObject {
+            property int arenaOverlayHintVersion: 1
+        }
+    }
+
+    Component {
         id: sessionComponent
 
         QtObject {
@@ -108,11 +123,17 @@ TestCase {
             nativeScreen ? { "chart": runner, "session": session }
                          : { "chart": runner, "session": session });
         verify(screen !== null);
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        verify(themeVars !== null);
+        const generalVars = createTemporaryObject(generalVarsComponent,
+                                                  testCase);
+        verify(generalVars !== null);
         const host = createTemporaryObject(hostComponent, testCase, {
             "currentItem": screen,
+            "generalVars": generalVars,
             "layoutVariant": "k7",
-            "resolvedSkinId": nativeScreen ? "Default" : "Legacy",
             "session": session,
+            "themeVars": themeVars,
             "width": testCase.width,
             "height": testCase.height
         });
@@ -122,6 +143,8 @@ TestCase {
             "runner": runner,
             "session": session,
             "screen": screen,
+            "themeVars": themeVars,
+            "generalVars": generalVars,
             "host": host
         };
     }

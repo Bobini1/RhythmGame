@@ -59,6 +59,81 @@ Item {
                        Math.max(1, viewportHeight - 2 * marginY));
     }
 
+    function largestAdjacentRect(leaderboard, safe, gap) {
+        const candidates = [
+            Qt.rect(leaderboard.x + leaderboard.width + gap,
+                    safe.y,
+                    Math.max(0, safe.x + safe.width
+                             - leaderboard.x - leaderboard.width - gap),
+                    safe.height),
+            Qt.rect(safe.x,
+                    safe.y,
+                    Math.max(0, leaderboard.x - gap - safe.x),
+                    safe.height),
+            Qt.rect(safe.x,
+                    leaderboard.y + leaderboard.height + gap,
+                    safe.width,
+                    Math.max(0, safe.y + safe.height
+                             - leaderboard.y - leaderboard.height - gap)),
+            Qt.rect(safe.x,
+                    safe.y,
+                    safe.width,
+                    Math.max(0, leaderboard.y - gap - safe.y))
+        ];
+        let largest = Qt.rect(safe.x, safe.y, 1, 1);
+        let largestArea = 0;
+        for (const candidate of candidates) {
+            const area = candidate.width * candidate.height;
+            if (candidate.width > 0 && candidate.height > 0
+                    && area > largestArea) {
+                largest = candidate;
+                largestArea = area;
+            }
+        }
+        return largest;
+    }
+
+    function adjacentChatRect() {
+        const safe = safePixelRect();
+        const leaderboard = resolvedPixelRect;
+        const gap = 12;
+        const targetWidth = Math.min(420, Math.max(320,
+                                                   leaderboard.width));
+        const targetHeight = Math.min(360, safe.height);
+        const clampedY = bounded(leaderboard.y,
+                                 safe.y,
+                                 safe.y + safe.height - targetHeight);
+        const rightWidth = safe.x + safe.width
+                         - leaderboard.x - leaderboard.width - gap;
+        if (rightWidth >= targetWidth) {
+            return Qt.rect(leaderboard.x + leaderboard.width + gap,
+                           clampedY, targetWidth, targetHeight);
+        }
+        const leftWidth = leaderboard.x - gap - safe.x;
+        if (leftWidth >= targetWidth) {
+            return Qt.rect(leaderboard.x - gap - targetWidth,
+                           clampedY, targetWidth, targetHeight);
+        }
+        const horizontalWidth = Math.min(targetWidth, safe.width);
+        const clampedX = bounded(leaderboard.x,
+                                 safe.x,
+                                 safe.x + safe.width - horizontalWidth);
+        const belowHeight = safe.y + safe.height
+                          - leaderboard.y - leaderboard.height - gap;
+        if (belowHeight >= targetHeight) {
+            return Qt.rect(clampedX,
+                           leaderboard.y + leaderboard.height + gap,
+                           horizontalWidth, targetHeight);
+        }
+        const aboveHeight = leaderboard.y - gap - safe.y;
+        if (aboveHeight >= targetHeight) {
+            return Qt.rect(clampedX,
+                           leaderboard.y - gap - targetHeight,
+                           horizontalWidth, targetHeight);
+        }
+        return largestAdjacentRect(leaderboard, safe, gap);
+    }
+
     function defaultPixelRect() {
         const viewportWidth = viewport ? viewport.width : 0;
         const viewportHeight = viewport ? viewport.height : 0;

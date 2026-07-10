@@ -7,10 +7,8 @@ Rectangle {
     id: root
 
     required property var session
-    required property string placementKind
-    required property string resolvedSkinId
-    required property string layoutVariant
     property bool expanded: false
+    property int unreadCount: 0
 
     function stateText(connected, state) : string {
         if (!connected) {
@@ -41,7 +39,61 @@ Rectangle {
     }
 
     function gaugeText(gaugeType, gaugeValueMilli) : string {
-        return qsTr("%1 · %2%").arg(gaugeType).arg((gaugeValueMilli / 10).toFixed(1));
+        return qsTr("%1 · %2%").arg(gaugeTypeText(gaugeType))
+            .arg((gaugeValueMilli / 1000).toFixed(1));
+    }
+
+    function gaugeTypeText(value) : string {
+        switch (String(value || "")) {
+        case "fc": return qsTr("Full combo");
+        case "exhard": return qsTr("EX Hard");
+        case "hard": return qsTr("Hard");
+        case "normal": return qsTr("Normal");
+        case "easy": return qsTr("Easy");
+        case "aeasy": return qsTr("Assist Easy");
+        default: return qsTr("Unknown");
+        }
+    }
+
+    function clearTypeText(value) : string {
+        switch (String(value || "")) {
+        case "max": return qsTr("MAX");
+        case "perfect": return qsTr("Perfect");
+        case "fc": return qsTr("Full combo");
+        case "exhard": return qsTr("EX Hard");
+        case "hard": return qsTr("Hard");
+        case "normal": return qsTr("Normal");
+        case "easy": return qsTr("Easy");
+        case "aeasy": return qsTr("Assist Easy");
+        case "failed": return qsTr("Failed");
+        default: return qsTr("Unknown");
+        }
+    }
+
+    function dnfReasonText(value) : string {
+        switch (String(value || "")) {
+        case "aborted": return qsTr("Aborted");
+        case "result_unavailable": return qsTr("Result unavailable");
+        case "left": return qsTr("Left the room");
+        case "kicked": return qsTr("Kicked");
+        case "grace_expired": return qsTr("Reconnect grace expired");
+        case "play_deadline": return qsTr("Play deadline expired");
+        default: return qsTr("Unknown");
+        }
+    }
+
+    function outcomeText(clearType, lobbyWinsAfter, dnfReason) : string {
+        const parts = [];
+        if (String(dnfReason || "").length > 0) {
+            parts.push(dnfReasonText(dnfReason));
+        } else if (String(clearType || "").length > 0) {
+            parts.push(qsTr("%1 clear").arg(clearTypeText(clearType)));
+        }
+        if (Number(lobbyWinsAfter) >= 0) {
+            parts.push(qsTr("%n win(s)", "Arena lobby wins",
+                            Number(lobbyWinsAfter)));
+        }
+        return parts.join(qsTr(" · "));
     }
 
     border.color: "#70ffffff"
@@ -69,6 +121,7 @@ Rectangle {
             }
 
             Button {
+                objectName: "arenaGameplayExpand"
                 text: root.expanded ? qsTr("Compact") : qsTr("Expand")
                 onClicked: root.expanded = !root.expanded
             }
@@ -76,12 +129,15 @@ Rectangle {
             Button {
                 text: root.session.gameplayChatOpen === true
                     ? qsTr("Close chat")
-                    : qsTr("Chat")
+                    : (root.unreadCount > 0
+                       ? qsTr("Chat (%1)").arg(root.unreadCount)
+                       : qsTr("Chat"))
                 onClicked: root.session.toggleGameplayChat()
             }
         }
 
         Text {
+            objectName: "arenaGameplayOptions"
             Layout.fillWidth: true
             color: "#d8ffffff"
             text: qsTr("Options: %1").arg(root.session.arenaOptionsSummary || "")
@@ -93,6 +149,8 @@ Rectangle {
 
         ListView {
             id: standingsView
+
+            objectName: "arenaGameplayStandings"
 
             Layout.fillHeight: true
             Layout.fillWidth: true
@@ -109,6 +167,7 @@ Rectangle {
                 id: standingDelegate
 
                 required property int index
+                required property string memberId
                 required property string displayName
                 required property bool connected
                 required property string competitionState
@@ -126,7 +185,19 @@ Rectangle {
                 required property int emptyPoor
                 required property string gaugeType
                 required property int gaugeValueMilli
+                required property string clearType
+                required property int lobbyWinsAfter
+                required property string dnfReason
 
+                readonly property bool localMember:
+                    memberId === String(root.session.selfMemberId || "")
+                readonly property bool opponentTarget:
+                    root.session.opponentTarget !== null
+                    && root.session.opponentTarget !== undefined
+                    && memberId === String(
+                        root.session.opponentTarget.memberId || "")
+
+                objectName: "arenaStandingRow" + index
                 color: index % 2 === 0 ? "#241b2230" : "#141b2230"
                 height: standingContent.implicitHeight + 10
                 radius: 3
@@ -147,6 +218,7 @@ Rectangle {
                         spacing: 6
 
                         Text {
+                            objectName: "arenaStandingRank"
                             Layout.preferredWidth: 22
                             color: "#b9ffffff"
                             font.bold: true
@@ -155,6 +227,25 @@ Rectangle {
                         }
 
                         Text {
+                            objectName: "arenaStandingLocalMark"
+                            color: "#9ee6ff"
+                            font.bold: true
+                            text: qsTr("YOU")
+                            textFormat: Text.PlainText
+                            visible: standingDelegate.localMember
+                        }
+
+                        Text {
+                            objectName: "arenaStandingTargetMark"
+                            color: "#cbb8ff"
+                            font.bold: true
+                            text: qsTr("RIVAL")
+                            textFormat: Text.PlainText
+                            visible: standingDelegate.opponentTarget
+                        }
+
+                        Text {
+                            objectName: "arenaStandingName"
                             Layout.fillWidth: true
                             color: "white"
                             elide: Text.ElideRight
@@ -164,6 +255,7 @@ Rectangle {
                         }
 
                         Text {
+                            objectName: "arenaStandingScore"
                             color: "#ffe38a"
                             font.bold: true
                             text: qsTr("EX %1").arg(root.scoreText(
@@ -172,6 +264,7 @@ Rectangle {
                         }
 
                         Text {
+                            objectName: "arenaStandingProgress"
                             Layout.preferredWidth: 42
                             color: "#d8ffffff"
                             horizontalAlignment: Text.AlignRight
@@ -179,6 +272,7 @@ Rectangle {
                         }
 
                         Text {
+                            objectName: "arenaStandingState"
                             Layout.preferredWidth: 82
                             color: standingDelegate.connected ? "#b9ffffff" : "#ff9b9b"
                             elide: Text.ElideRight
@@ -189,6 +283,7 @@ Rectangle {
                     }
 
                     ColumnLayout {
+                        objectName: "arenaStandingDetails"
                         Layout.fillWidth: true
                         spacing: 1
                         visible: root.expanded
@@ -220,6 +315,7 @@ Rectangle {
                         }
 
                         Text {
+                            objectName: "arenaStandingGauge"
                             Layout.fillWidth: true
                             color: "#d8ffffff"
                             text: root.gaugeText(standingDelegate.gaugeType,
@@ -227,28 +323,21 @@ Rectangle {
                             textFormat: Text.PlainText
                         }
                     }
+
+                    Text {
+                        objectName: "arenaStandingOutcome"
+                        Layout.fillWidth: true
+                        color: standingDelegate.dnfReason.length > 0
+                            ? "#ffb0b0" : "#b9ffffff"
+                        elide: Text.ElideRight
+                        text: root.outcomeText(standingDelegate.clearType,
+                                               standingDelegate.lobbyWinsAfter,
+                                               standingDelegate.dnfReason)
+                        textFormat: Text.PlainText
+                        visible: text.length > 0
+                    }
                 }
             }
-        }
-
-        Loader {
-            id: chatLoader
-
-            Layout.fillWidth: true
-            Layout.preferredHeight: active
-                ? Math.min(250, Math.max(120, root.height * 0.42))
-                : 0
-            active: root.session.gameplayChatOpen === true
-            focus: active
-            sourceComponent: gameplayChatComponent
-        }
-    }
-
-    Component {
-        id: gameplayChatComponent
-
-        ArenaGameplayChat {
-            session: root.session
         }
     }
 }

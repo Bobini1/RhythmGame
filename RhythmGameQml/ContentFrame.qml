@@ -246,11 +246,14 @@ ApplicationWindow {
             }
         }
 
-        function gameplaySkinId(layoutVariant: string) : string {
+        function gameplayThemeVars(layoutVariant: string) : var {
             if (layoutVariant.length === 0) {
-                return "";
+                return null;
             }
-            return String(mainProfile.themeConfig[layoutVariant] || "");
+            const themeName = mainProfile.themeConfig[layoutVariant];
+            const screenVars = mainProfile.vars.themeVars[layoutVariant];
+            return screenVars && screenVars[themeName]
+                ? screenVars[themeName] : null;
         }
 
         function callCurrentScreen(method: var, args: var) : var {
@@ -660,9 +663,10 @@ ApplicationWindow {
 
             anchors.fill: parent
             currentItem: sceneStack.currentItem
+            generalVars: globalRoot.mainProfile.vars.generalVars
             layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)
-            resolvedSkinId: globalRoot.gameplaySkinId(layoutVariant)
             session: globalRoot.arenaSession
+            themeVars: globalRoot.gameplayThemeVars(layoutVariant)
             z: 2000000
         }
         Loader {

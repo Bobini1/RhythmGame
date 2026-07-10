@@ -48,17 +48,28 @@ TEST_CASE("ArenaOverlayPolicy: overlay host follows only the current session run
     requireContains(source,
                     { "required property var session",
                       "required property var currentItem",
+                      "required property var themeVars",
+                      "required property var generalVars",
                       "readonly property bool ownsArenaRunner",
                       "session.arenaGameplayActive === true",
                       "root.currentItem.chart === root.session.arenaRunner",
-                      "active: root.ownsArenaRunner",
+                      "ArenaOverlayPlacementFrame {",
+                      "objectName: \"arenaGameplayPlacementFrame\"",
+                      "themeVars: root.themeVars",
+                      "viewport: root",
+                      "customizeMode: root.customizeMode",
                       "sequence: \"F8\"",
                       "session.toggleGameplayChat()",
                       "placementKind: \"gameplayLeaderboard\"",
-                      "topMargin: 24",
-                      "rightMargin: 24",
-                      "Math.min(420",
-                      "root.height - 48" });
+                      "property int unreadCount: 0",
+                      "session.liveStandings.roundId",
+                      "function onRowsInserted",
+                      "root.unreadCount += last - first + 1" });
+
+    CHECK_FALSE(source.contains(QStringLiteral("Settings {")));
+    CHECK_FALSE(source.contains(QStringLiteral("property bool hidden")));
+    CHECK_FALSE(source.contains(QStringLiteral("hideOverlay")));
+    CHECK_FALSE(source.contains(QStringLiteral("resolvedSkinId")));
 }
 
 TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete",
@@ -68,11 +79,9 @@ TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete
       qmlSource("RhythmGameQml/Arena/ArenaGameplayOverlay.qml");
     requireContains(source,
                     { "required property var session",
-                      "required property string placementKind",
-                      "required property string resolvedSkinId",
-                      "required property string layoutVariant",
                       "property bool expanded: false",
                       "model: root.session.liveStandings",
+                      "required property string memberId",
                       "required property string displayName",
                       "required property string competitionState",
                       "required property int rank",
@@ -89,16 +98,66 @@ TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete
                       "required property int emptyPoor",
                       "required property string gaugeType",
                       "required property int gaugeValueMilli",
+                      "required property string clearType",
+                      "required property int lobbyWinsAfter",
+                      "required property string dnfReason",
+                      "root.session.selfMemberId",
+                      "root.session.opponentTarget.memberId",
                       "root.session.arenaOptionsSummary",
                       "clip: true",
                       "ScrollBar.vertical",
-                      "textFormat: Text.PlainText",
-                      "active: root.session.gameplayChatOpen === true" });
+                      "textFormat: Text.PlainText" });
+
+    CHECK_FALSE(source.contains(
+      QStringLiteral("required property string placementKind")));
+    CHECK_FALSE(source.contains(
+      QStringLiteral("required property string resolvedSkinId")));
+    CHECK_FALSE(source.contains(
+      QStringLiteral("required property string layoutVariant")));
+    CHECK_FALSE(source.contains(QStringLiteral("text: standingDelegate.memberId")));
 
     CHECK_FALSE(source.contains(QStringLiteral("MouseArea")));
     CHECK_FALSE(source.contains(QStringLiteral("DragHandler")));
     CHECK_FALSE(source.contains(QStringLiteral("TapHandler")));
     CHECK_FALSE(source.contains(QStringLiteral("Settings {")));
+}
+
+TEST_CASE("ArenaOverlayPolicy: chat drawer geometry is adjacent, clipped, and transient",
+          "[arena][ArenaOverlayPolicy]")
+{
+    const auto frame =
+      qmlSource("RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml");
+    requireContains(frame,
+                    { "function adjacentChatRect",
+                      "function largestAdjacentRect",
+                      "const targetWidth = Math.min(420, Math.max(320",
+                      "const targetHeight = Math.min(360",
+                      "safePixelRect()" });
+
+    const auto host = qmlSource("RhythmGameQml/Arena/ArenaOverlayHost.qml");
+    requireContains(host,
+                    { "objectName: \"arenaGameplayChatDrawer\"",
+                      "active: root.ownsArenaRunner",
+                      "visible: root.session.gameplayChatOpen === true",
+                      "placementFrame.adjacentChatRect()",
+                      "root.unreadCount = 0" });
+    CHECK_FALSE(host.contains(QStringLiteral("Settings {")));
+    CHECK_FALSE(host.contains(QStringLiteral("chatDrawerXNormalized")));
+    CHECK_FALSE(host.contains(QStringLiteral("generalVars.unread"),
+                              Qt::CaseInsensitive));
+}
+
+TEST_CASE("ArenaOverlayPolicy: first gameplay hint uses only the profile-wide version",
+          "[arena][ArenaOverlayPolicy]")
+{
+    const auto source = qmlSource("RhythmGameQml/Arena/ArenaOverlayHost.qml");
+    requireContains(source,
+                    { "generalVars.arenaOverlayHintVersion < 1",
+                      "generalVars.arenaOverlayHintVersion = 1",
+                      "Press F2 to move Arena standings",
+                      "interval: 6000",
+                      "objectName: \"arenaOverlayPlacementHint\"" });
+    CHECK_FALSE(source.contains(QStringLiteral("hintVersion.json")));
 }
 
 TEST_CASE("ArenaOverlayPolicy: gameplay chat stays plain text and owns keyboard submission",
@@ -196,11 +255,13 @@ TEST_CASE("ArenaOverlayPolicy: ContentFrame hosts Arena above the active gamepla
     requireContains(source,
                     { "readonly property var arenaSession: Rg.arenaSession",
                       "function gameplayLayoutVariant",
+                      "function gameplayThemeVars",
                       "mainProfile.themeConfig[layoutVariant]",
                       "ArenaOverlayHost {",
                       "session: globalRoot.arenaSession",
                       "currentItem: sceneStack.currentItem",
-                      "resolvedSkinId:",
+                      "themeVars: globalRoot.gameplayThemeVars(layoutVariant)",
+                      "generalVars: globalRoot.mainProfile.vars.generalVars",
                       "layoutVariant:" });
     CHECK(source.indexOf(QStringLiteral("id: sceneStack")) <
           source.indexOf(QStringLiteral("ArenaOverlayHost {")));

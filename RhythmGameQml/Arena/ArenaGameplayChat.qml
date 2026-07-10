@@ -7,6 +7,7 @@ FocusScope {
     id: root
 
     required property var session
+    clip: true
     focus: true
 
     function submit() : void {
@@ -18,8 +19,17 @@ FocusScope {
         messageField.clear();
     }
 
+    Rectangle {
+        anchors.fill: parent
+        border.color: "#70ffffff"
+        border.width: 1
+        color: "#f0101218"
+        radius: 6
+    }
+
     ColumnLayout {
         anchors.fill: parent
+        anchors.margins: 12
         spacing: 6
 
         Rectangle {
@@ -104,6 +114,7 @@ FocusScope {
             TextArea {
                 id: messageField
 
+                objectName: "arenaGameplayMessage"
                 Accessible.name: qsTr("Arena gameplay chat message")
                 KeyNavigation.tab: sendButton
                 Keys.priority: Keys.BeforeItem
@@ -137,6 +148,7 @@ FocusScope {
                 id: sendButton
 
                 enabled: messageField.text.trim().length > 0
+                KeyNavigation.backtab: messageField
                 text: qsTr("Send")
                 onClicked: root.submit()
             }

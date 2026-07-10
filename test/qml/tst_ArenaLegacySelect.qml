@@ -170,6 +170,9 @@ TestCase {
         mouseClick(ready, ready.width / 2, ready.height / 2, Qt.LeftButton);
         compare(state.session.readyRequests, [true]);
 
+        tryVerify(function() {
+            return findChild(overlay, "arenaRosterKick-member-2") !== null;
+        });
         const kick = findChild(overlay, "arenaRosterKick-member-2");
         mouseClick(kick, kick.width / 2, kick.height / 2, Qt.LeftButton);
         compare(state.session.kickedMemberIds, ["member-2"]);
