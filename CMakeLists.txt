@@ -126,6 +126,12 @@ qt_add_library(RhythmGame_lib OBJECT
         src/arena/ArenaMemberListModel.cpp
         src/arena/ArenaChatModel.h
         src/arena/ArenaChatModel.cpp
+        src/arena/ArenaStandingsModel.h
+        src/arena/ArenaStandingsModel.cpp
+        src/arena/ArenaResultModel.h
+        src/arena/ArenaResultModel.cpp
+        src/arena/ArenaOpponentTarget.h
+        src/arena/ArenaOpponentTarget.cpp
         src/db/SqliteCppDb.cpp
         src/db/SqliteCppDb.h
         src/charts/ReadBmsFile.cpp

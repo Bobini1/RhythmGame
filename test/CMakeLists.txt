@@ -20,6 +20,7 @@ add_executable(RhythmGame_test
         arena/ArenaGameplaySource.test.cpp
         arena/ArenaSelectIntegration.test.cpp
         arena/ArenaOverlayPolicy.test.cpp
+        arena/ArenaCompetitionModels.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
         arena/ArenaSessionMatrix.test.cpp
