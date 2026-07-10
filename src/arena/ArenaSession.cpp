@@ -2,6 +2,7 @@
 
 #include "ArenaBinaryProtocol.h"
 #include "ArenaProtocol.h"
+#include "gameplay_logic/ChartRunner.h"
 
 #include <QByteArray>
 #include <QCryptographicHash>
@@ -187,6 +188,117 @@ decodeTransferId(QStringView encoded) -> QByteArray
     return result.size() == ArenaTransferIdBytes ? result : QByteArray{};
 }
 
+auto
+playNoteOrder(NoteOrder order) -> resource_managers::NoteOrderAlgorithm
+{
+    using Target = resource_managers::NoteOrderAlgorithm;
+    switch (order) {
+        case NoteOrder::Normal:
+            return Target::Normal;
+        case NoteOrder::Mirror:
+            return Target::Mirror;
+        case NoteOrder::Random:
+            return Target::Random;
+        case NoteOrder::SRandom:
+            return Target::SRandom;
+        case NoteOrder::RRandom:
+            return Target::RRandom;
+        case NoteOrder::RandomPlus:
+            return Target::RandomPlus;
+        case NoteOrder::SRandomPlus:
+            return Target::SRandomPlus;
+        case NoteOrder::BeatorajaRandom:
+            return Target::BeatorajaRandom;
+        case NoteOrder::BeatorajaRandomEx:
+            return Target::BeatorajaRandomEx;
+        case NoteOrder::Lr2Random:
+            return Target::Lr2Random;
+        case NoteOrder::Lr2RandomEx:
+            return Target::Lr2RandomEx;
+    }
+    return Target::Normal;
+}
+
+auto
+playDpMode(DpMode mode) -> resource_managers::DpOptions
+{
+    using Target = resource_managers::DpOptions;
+    switch (mode) {
+        case DpMode::Off:
+            return Target::Off;
+        case DpMode::Flip:
+            return Target::Flip;
+        case DpMode::Lr2Flip:
+            return Target::Lr2Flip;
+        case DpMode::Battle:
+            return Target::Battle;
+    }
+    return Target::Off;
+}
+
+auto
+probeFailureReason(ArenaProbeFailure failure)
+  -> std::optional<RoundProbeFailureReason>
+{
+    switch (failure) {
+        case ArenaProbeFailure::None:
+            return std::nullopt;
+        case ArenaProbeFailure::MissingFile:
+            return RoundProbeFailureReason::MissingFile;
+        case ArenaProbeFailure::HashMismatch:
+            return RoundProbeFailureReason::HashMismatch;
+        case ArenaProbeFailure::ReadFailed:
+            return RoundProbeFailureReason::ReadFailed;
+        case ArenaProbeFailure::Cancelled:
+            return RoundProbeFailureReason::Cancelled;
+    }
+    return RoundProbeFailureReason::Cancelled;
+}
+
+auto
+loadFailureReason(ArenaLoadFailure failure) -> RoundLoadFailureReason
+{
+    switch (failure) {
+        case ArenaLoadFailure::MissingFile:
+            return RoundLoadFailureReason::MissingFile;
+        case ArenaLoadFailure::HashMismatch:
+            return RoundLoadFailureReason::HashMismatch;
+        case ArenaLoadFailure::ParseFailed:
+            return RoundLoadFailureReason::ParseFailed;
+        case ArenaLoadFailure::UnsupportedConfig:
+            return RoundLoadFailureReason::UnsupportedConfig;
+        case ArenaLoadFailure::ResourceFailed:
+            return RoundLoadFailureReason::ResourceFailed;
+        case ArenaLoadFailure::Cancelled:
+            return RoundLoadFailureReason::Cancelled;
+    }
+    return RoundLoadFailureReason::Cancelled;
+}
+
+auto
+sameFrozenRound(const FrozenRound& left, const FrozenRound& right) -> bool
+{
+    return left.roundId == right.roundId &&
+           left.launchAttemptId == right.launchAttemptId &&
+           left.selectionRevision == right.selectionRevision &&
+           left.availabilityRevision == right.availabilityRevision &&
+           left.selection == right.selection &&
+           left.participants == right.participants;
+}
+
+auto
+frozenInventoryRevision(const FrozenRound& round, QStringView memberId)
+  -> std::optional<qint64>
+{
+    const auto participant = std::ranges::find_if(
+      round.participants, [memberId](const FrozenParticipant& candidate) {
+          return candidate.memberId == memberId;
+      });
+    return participant == round.participants.cend()
+             ? std::nullopt
+             : std::optional<qint64>{ participant->inventoryRevision };
+}
+
 } // namespace
 
 ArenaSession::ArenaSession(ArenaTransport* transport,
@@ -195,12 +307,14 @@ ArenaSession::ArenaSession(ArenaTransport* transport,
                            QUrl endpoint,
                            QString clientVersion,
                            ArenaInventorySource* inventorySource,
+                           ArenaRoundLoader* roundLoader,
                            QObject* parent)
   : QObject(parent)
   , m_transport(transport)
   , m_identityProvider(identityProvider)
   , m_scheduler(scheduler)
   , m_inventorySource(inventorySource)
+  , m_roundLoader(roundLoader)
   , m_endpoint(std::move(endpoint))
   , m_clientVersion(std::move(clientVersion))
   , m_rooms(this)
@@ -252,14 +366,11 @@ ArenaSession::ArenaSession(ArenaTransport* transport,
             &ArenaIdentityProvider::loginStateChanged,
             this,
             &ArenaSession::handleLoginStateChanged);
-    connect(&m_availability,
-            &ArenaAvailabilityIndex::changed,
-            this,
-            [this] {
-                emit availabilityChanged();
-                emit selectionChanged();
-                emit readyChanged();
-            });
+    connect(&m_availability, &ArenaAvailabilityIndex::changed, this, [this] {
+        emit availabilityChanged();
+        emit selectionChanged();
+        emit readyChanged();
+    });
     if (m_inventorySource != nullptr) {
         connect(m_inventorySource,
                 &ArenaInventorySource::generationChanged,
@@ -273,6 +384,20 @@ ArenaSession::ArenaSession(ArenaTransport* transport,
                 &ArenaInventorySource::snapshotFailed,
                 this,
                 &ArenaSession::handleInventorySnapshotFailed);
+    }
+    if (m_roundLoader != nullptr) {
+        connect(m_roundLoader,
+                &ArenaRoundLoader::probeFinished,
+                this,
+                &ArenaSession::handleProbeFinished);
+        connect(m_roundLoader,
+                &ArenaRoundLoader::loadFinished,
+                this,
+                &ArenaSession::handleLoadFinished);
+        connect(m_roundLoader,
+                &ArenaRoundLoader::loadFailed,
+                this,
+                &ArenaSession::handleLoadFailed);
     }
 }
 
@@ -1185,8 +1310,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             handleAvailabilityTransferCommit(commit);
         },
         [this](const SelectionChanged& changed) {
-            if (!acceptsRoomEvent(changed.roomId,
-                                  changed.roomGeneration) ||
+            if (!acceptsRoomEvent(changed.roomId, changed.roomGeneration) ||
                 changed.selectionRevision < m_selectionRevision) {
                 return;
             }
@@ -1194,8 +1318,20 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                            changed.selectionRevision,
                            changed.availabilityRevision,
                            changed.selectedByMemberId);
+            if (!m_selectionRequestId.isEmpty() && m_requestedSelection &&
+                changed.selection == m_requestedSelection) {
+                m_pendingCommands.remove(m_selectionRequestId);
+                m_selectionRequestId.clear();
+                m_requestedSelection.reset();
+            }
         },
         [this](const SelectionRejected& rejected) {
+            if (rejected.requestId != m_selectionRequestId) {
+                return;
+            }
+            m_pendingCommands.remove(m_selectionRequestId);
+            m_selectionRequestId.clear();
+            m_requestedSelection.reset();
             setError(rejected.reason == SelectionRejectionReason::NotCommon
                        ? QStringLiteral("selection_not_common")
                        : QStringLiteral("selection_stale"),
@@ -1207,16 +1343,80 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             if (!acceptsRoomEvent(started.roomId, started.roomGeneration)) {
                 return;
             }
+            if (started.round.stage != FrozenRoundStage::Probing) {
+                return;
+            }
+            if (m_round && m_round->roundId == started.round.roundId &&
+                m_round->launchAttemptId == started.round.launchAttemptId) {
+                return;
+            }
+            if (m_roomPhase != RoomPhase::Selecting || m_round ||
+                started.round.selectionRevision < m_selectionRevision ||
+                started.round.availabilityRevision <
+                  m_roomAvailabilityRevision ||
+                (started.round.selectionRevision == m_selectionRevision &&
+                 (!m_selection ||
+                  started.round.selection != *m_selection))) {
+                return;
+            }
+            const auto lifecycle = m_lifecycleGeneration;
             m_roomPhase = RoomPhase::Loading;
+            m_selection = started.round.selection;
+            m_selectionRevision = started.round.selectionRevision;
+            m_roomAvailabilityRevision =
+              started.round.availabilityRevision;
+            m_selectedByMemberId.clear();
+            if (!m_selectionRequestId.isEmpty()) {
+                m_pendingCommands.remove(m_selectionRequestId);
+                m_selectionRequestId.clear();
+                m_requestedSelection.reset();
+            }
+            if (!m_readyRequestId.isEmpty()) {
+                m_pendingCommands.remove(m_readyRequestId);
+                m_readyRequestId.clear();
+                m_requestedReady.reset();
+            }
             m_round = started.round;
+            // Any impossible stale local operation is discarded only after
+            // the authoritative new state is visible to synchronous UI code.
+            cancelPreparedRound(false);
+            if (lifecycle != m_lifecycleGeneration || !m_round ||
+                m_round->roundId != started.round.roundId ||
+                m_round->launchAttemptId != started.round.launchAttemptId) {
+                return;
+            }
             emit roundChanged();
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
             emit selectionChanged();
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
             emit readyChanged();
+        },
+        [this](const RoundProbeRequested& requested) {
+            handleProbeRequested(requested);
+        },
+        [this](const RoundLoadRequested& requested) {
+            handleLoadRequested(requested);
+        },
+        [this](const RoundStartScheduled& scheduled) {
+            handleRoundStartScheduled(scheduled);
         },
         [this](const RoundStarted& started) {
             if (!acceptsRoomEvent(started.roomId, started.roomGeneration) ||
-                !m_round || m_round->roundId != started.roundId ||
+                m_roomPhase != RoomPhase::Loading || !m_round ||
+                m_round->roundId != started.roundId ||
                 m_round->launchAttemptId != started.launchAttemptId) {
+                return;
+            }
+            const auto isFrozenParticipant =
+              frozenInventoryRevision(*m_round, m_selfMemberId).has_value();
+            if ((isFrozenParticipant &&
+                 m_round->stage != FrozenRoundStage::Scheduled) ||
+                (!isFrozenParticipant &&
+                 m_round->stage == FrozenRoundStage::Playing)) {
                 return;
             }
             m_roomPhase = RoomPhase::Playing;
@@ -1224,24 +1424,37 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             emit roundChanged();
         },
         [this](const RoundLaunchCancelled& cancelled) {
-            if (!acceptsRoomEvent(cancelled.roomId,
-                                  cancelled.roomGeneration) ||
-                !m_round || m_round->roundId != cancelled.roundId ||
+            if (!acceptsRoomEvent(cancelled.roomId, cancelled.roomGeneration) ||
+                m_roomPhase != RoomPhase::Loading || !m_round ||
+                m_round->stage == FrozenRoundStage::Playing ||
+                m_round->roundId != cancelled.roundId ||
                 m_round->launchAttemptId != cancelled.launchAttemptId) {
                 return;
             }
+            const auto lifecycle = m_lifecycleGeneration;
             m_roomPhase = RoomPhase::Selecting;
             m_round.reset();
             applySelection(cancelled.selection,
                            cancelled.selectionRevision,
                            cancelled.availabilityRevision,
                            std::nullopt);
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
             emit roundChanged();
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
+            emit selectionChanged();
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
             emit readyChanged();
+            if (lifecycle != m_lifecycleGeneration) {
+                return;
+            }
+            cancelPreparedRound(true);
         },
-        // Phase 2 messages are decoded here before the round-state handlers
-        // are connected in the ArenaSession integration task.
-        [](const auto&) {},
       },
       message);
 }
@@ -1288,6 +1501,16 @@ ArenaSession::handleCommandError(const CommandError& error)
         m_readyRequestId.clear();
         m_requestedReady.reset();
     }
+    if (kind == PendingCommandKind::Selection) {
+        m_selectionRequestId.clear();
+        m_requestedSelection.reset();
+    }
+    if (kind == PendingCommandKind::ProbeResult) {
+        m_probeResultRequestId.clear();
+    }
+    if (kind == PendingCommandKind::LoadResult) {
+        m_loadResultRequestId.clear();
+    }
     if ((error.code == CommandErrorCode::RoomGenerationStale ||
          error.code == CommandErrorCode::ConnectionGenerationStale) &&
         !m_roomId.isEmpty()) {
@@ -1306,7 +1529,10 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     const auto resumesSameSeat = !m_roomId.isEmpty() &&
                                  m_roomId == snapshot.roomId &&
                                  m_selfMemberId == snapshot.self.memberId;
-    clearRoundTransfers(!resumesSameSeat);
+    const auto resumesSamePreparedRound =
+      resumesSameSeat && m_preparedRunner != nullptr && m_round &&
+      snapshot.round && sameFrozenRound(*m_round, *snapshot.round);
+    clearRoundTransfers(!resumesSameSeat, resumesSamePreparedRound);
     if (!m_members.replace(
           snapshot.members, snapshot.ownerMemberId, snapshot.self.memberId) ||
         !m_chat.replace(snapshot.chat, snapshot.self.memberId)) {
@@ -1360,6 +1586,43 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     clearError();
     setState(State::InRoom);
     requestInventorySnapshot();
+
+    if (!resumesSamePreparedRound || !m_round ||
+        m_round->stage != FrozenRoundStage::Playing ||
+        m_preparedRunner == nullptr) {
+        return;
+    }
+    const auto lifecycle = m_lifecycleGeneration;
+    const auto roundId = m_round->roundId;
+    const auto launchAttemptId = m_round->launchAttemptId;
+    const auto guardedRunner = m_preparedRunner;
+    if (!m_preparedGameplayExposed) {
+        m_preparedGameplayExposed = true;
+        emit preparedGameplayChanged(guardedRunner);
+        if (lifecycle != m_lifecycleGeneration ||
+            m_state != State::InRoom || !m_round ||
+            m_round->roundId != roundId ||
+            m_round->launchAttemptId != launchAttemptId ||
+            guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
+            return;
+        }
+    }
+    if (guardedRunner->getStatus() == gameplay_logic::ChartRunner::Ready) {
+        guardedRunner->start();
+        guardedRunner->releaseStart();
+    }
+    if (lifecycle != m_lifecycleGeneration ||
+        m_state != State::InRoom || !m_round ||
+        m_round->roundId != roundId ||
+        m_round->launchAttemptId != launchAttemptId ||
+        guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
+        return;
+    }
+    if (!m_roundRunnerStartedEmitted &&
+        guardedRunner->getStatus() == gameplay_logic::ChartRunner::Running) {
+        m_roundRunnerStartedEmitted = true;
+        emit roundRunnerStarted(roundId, guardedRunner);
+    }
 }
 
 void
@@ -1389,6 +1652,8 @@ ArenaSession::clearRoom()
     m_selfAvailabilityAppliedRevision = 0;
     m_readyRequestId.clear();
     m_requestedReady.reset();
+    m_selectionRequestId.clear();
+    m_requestedSelection.reset();
     m_members.clear();
     m_chat.clear();
     m_pendingCommands.clear();
@@ -1434,11 +1699,11 @@ ArenaSession::applySelfMember(const Member& member)
     if (member.memberId != m_selfMemberId) {
         return;
     }
-    const auto changed = m_selfReady != member.ready ||
-                         m_selfInventoryState != member.inventoryState ||
-                         m_selfInventoryRevision != member.inventoryRevision ||
-                         m_selfAvailabilityAppliedRevision !=
-                           member.availabilityAppliedRevision;
+    const auto changed =
+      m_selfReady != member.ready ||
+      m_selfInventoryState != member.inventoryState ||
+      m_selfInventoryRevision != member.inventoryRevision ||
+      m_selfAvailabilityAppliedRevision != member.availabilityAppliedRevision;
     m_selfReady = member.ready;
     m_selfInventoryState = member.inventoryState;
     m_selfInventoryRevision = member.inventoryRevision;
@@ -1461,17 +1726,15 @@ ArenaSession::applySelfMember(const Member& member)
 }
 
 void
-ArenaSession::applySelection(
-  std::optional<SelectionSnapshot> selection,
-  qint64 selectionRevision,
-  qint64 availabilityRevision,
-  std::optional<QString> selectedByMemberId)
+ArenaSession::applySelection(std::optional<SelectionSnapshot> selection,
+                             qint64 selectionRevision,
+                             qint64 availabilityRevision,
+                             std::optional<QString> selectedByMemberId)
 {
-    const auto changed = m_selection != selection ||
-                         m_selectionRevision != selectionRevision ||
-                         m_roomAvailabilityRevision != availabilityRevision ||
-                         m_selectedByMemberId !=
-                           selectedByMemberId.value_or(QString{});
+    const auto changed =
+      m_selection != selection || m_selectionRevision != selectionRevision ||
+      m_roomAvailabilityRevision != availabilityRevision ||
+      m_selectedByMemberId != selectedByMemberId.value_or(QString{});
     m_selection = std::move(selection);
     m_selectionRevision = selectionRevision;
     m_roomAvailabilityRevision = availabilityRevision;
@@ -1524,9 +1787,8 @@ ArenaSession::handleInventoryGenerationChanged(qint64 generation)
 }
 
 void
-ArenaSession::handleInventorySnapshotReady(
-  quint64 requestId,
-  ArenaInventorySnapshot snapshot)
+ArenaSession::handleInventorySnapshotReady(quint64 requestId,
+                                           ArenaInventorySnapshot snapshot)
 {
     if (requestId == 0 || requestId != m_inventorySourceRequestId ||
         m_roomId.isEmpty() || !m_roundsAvailable) {
@@ -1631,8 +1893,7 @@ ArenaSession::handleInventoryUploadReady(const InventoryUploadReady& ready)
           .transferId = transferId,
           .chunkIndex = static_cast<quint32>(chunkIndex),
           .packedHashes = upload.snapshot.packedSha256.mid(
-            firstHash * ArenaSha256Bytes,
-            hashesInChunk * ArenaSha256Bytes),
+            firstHash * ArenaSha256Bytes, hashesInChunk * ArenaSha256Bytes),
         });
         const auto* bytes = std::get_if<QByteArray>(&encoded);
         if (bytes == nullptr) {
@@ -1835,14 +2096,377 @@ ArenaSession::requestAvailabilityResync()
 }
 
 void
-ArenaSession::clearRoundTransfers(bool abandonSeat)
+ArenaSession::cancelRoundLoader()
 {
+    const auto requestId = std::exchange(m_roundLoaderRequestId, quint64{});
+    m_roundLoaderOperation = RoundLoaderOperation::None;
+    m_probeRequest.reset();
+    m_loadRequestRound.reset();
+    if (requestId != 0 && m_roundLoader != nullptr) {
+        m_roundLoader->cancel(requestId);
+    }
+}
+
+void
+ArenaSession::handleProbeRequested(const RoundProbeRequested& requested)
+{
+    if (!acceptsRoomEvent(requested.roomId, requested.roomGeneration) ||
+        requested.connectionGeneration != m_connectionGeneration ||
+        m_roomPhase != RoomPhase::Loading || m_roundLoader == nullptr ||
+        !m_round || m_round->stage != FrozenRoundStage::Probing ||
+        requested.roundId != m_round->roundId ||
+        requested.launchAttemptId != m_round->launchAttemptId ||
+        requested.selectionRevision != m_round->selectionRevision ||
+        requested.availabilityRevision != m_round->availabilityRevision ||
+        requested.sha256 != m_round->selection.sha256) {
+        return;
+    }
+    const auto frozenRevision =
+      frozenInventoryRevision(*m_round, m_selfMemberId);
+    if (!frozenRevision || requested.inventoryRevision != *frozenRevision) {
+        return;
+    }
+    cancelRoundLoader();
+    auto requestId = m_nextRoundLoaderRequestId++;
+    if (requestId == 0) {
+        requestId = m_nextRoundLoaderRequestId++;
+    }
+    m_roundLoaderRequestId = requestId;
+    m_roundLoaderOperation = RoundLoaderOperation::Probe;
+    m_probeRequest = requested;
+    m_round->stage = FrozenRoundStage::Probing;
+    emit roundChanged();
+    m_roundLoader->probe(requestId,
+                         QByteArray::fromHex(requested.sha256.toLatin1()));
+}
+
+void
+ArenaSession::handleLoadRequested(const RoundLoadRequested& requested)
+{
+    if (!acceptsRoomEvent(requested.roomId, requested.roomGeneration) ||
+        requested.connectionGeneration != m_connectionGeneration ||
+        m_roomPhase != RoomPhase::Loading || m_roundLoader == nullptr ||
+        !m_round || requested.round.stage != FrozenRoundStage::Loading ||
+        (m_round->stage != FrozenRoundStage::Probing &&
+         m_round->stage != FrozenRoundStage::Loading) ||
+        !sameFrozenRound(requested.round, *m_round)) {
+        return;
+    }
+    if (!frozenInventoryRevision(requested.round, m_selfMemberId)) {
+        return;
+    }
+    if (!m_probeResultRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_probeResultRequestId);
+        m_probeResultRequestId.clear();
+    }
+    cancelPreparedRound(false);
+    const auto& selection = requested.round.selection;
+    bool seedOk = false;
+    const auto laneSeed = selection.laneSeed.toULongLong(&seedOk, 16);
+    const auto sha256 = QByteArray::fromHex(selection.sha256.toLatin1());
+    if (!seedOk || sha256.size() != ArenaSha256Bytes) {
+        failProtocol(ProtocolFailureCode::MalformedMessage);
+        return;
+    }
+    auto requestId = m_nextRoundLoaderRequestId++;
+    if (requestId == 0) {
+        requestId = m_nextRoundLoaderRequestId++;
+    }
+    auto randomSequence = QList<qint64>{};
+    randomSequence.reserve(selection.randomSequence.size());
+    for (const auto value : selection.randomSequence) {
+        randomSequence.push_back(value);
+    }
+    const auto request = ArenaRoundLoadRequest{
+        .sha256 = sha256,
+        .playConfig =
+          resource_managers::ChartPlayConfig{
+            .randomSequence = std::move(randomSequence),
+            .noteOrderP1 = playNoteOrder(selection.noteOrderP1),
+            .noteOrderP2 = playNoteOrder(selection.noteOrderP2),
+            .dpMode = playDpMode(selection.dpMode),
+            .laneSeed = laneSeed,
+            .randomizationVersion = selection.randomizationVersion,
+          },
+    };
+    m_roundLoaderRequestId = requestId;
+    m_roundLoaderOperation = RoundLoaderOperation::Load;
+    m_loadRequestRound = requested.round;
+    m_round = requested.round;
+    m_round->stage = FrozenRoundStage::Loading;
+    emit roundChanged();
+    m_roundLoader->load(requestId, request);
+}
+
+void
+ArenaSession::handleProbeFinished(quint64 requestId, ArenaProbeResult result)
+{
+    if (requestId == 0 || requestId != m_roundLoaderRequestId ||
+        m_roundLoaderOperation != RoundLoaderOperation::Probe ||
+        !m_probeRequest) {
+        return;
+    }
+    auto requested = std::move(*m_probeRequest);
+    m_probeRequest.reset();
+    m_roundLoaderRequestId = 0;
+    m_roundLoaderOperation = RoundLoaderOperation::None;
+    auto failure = probeFailureReason(result.failure);
+    const auto expectedSha256 =
+      QByteArray::fromHex(requested.sha256.toLatin1());
+    if (!failure && result.observedSha256 != expectedSha256) {
+        failure = result.observedSha256.size() == ArenaSha256Bytes
+                    ? RoundProbeFailureReason::HashMismatch
+                    : RoundProbeFailureReason::ReadFailed;
+    }
+    const auto ok = !failure;
+    const auto protocolRequestId = nextRequestId();
+    if (sendMessage(RoundProbeResult{
+          .requestId = protocolRequestId,
+          .roomId = requested.roomId,
+          .roomGeneration = requested.roomGeneration,
+          .connectionGeneration = requested.connectionGeneration,
+          .roundId = requested.roundId,
+          .launchAttemptId = requested.launchAttemptId,
+          .selectionRevision = requested.selectionRevision,
+          .availabilityRevision = requested.availabilityRevision,
+          .inventoryRevision = requested.inventoryRevision,
+          .nonce = requested.nonce,
+          .ok = ok,
+          .sha256 = ok ? std::optional<QString>{ QString::fromLatin1(
+                           result.observedSha256.toHex()) }
+                       : std::nullopt,
+          .failureReason = failure,
+        })) {
+        if (!m_probeResultRequestId.isEmpty()) {
+            m_pendingCommands.remove(m_probeResultRequestId);
+        }
+        m_probeResultRequestId = protocolRequestId;
+        m_pendingCommands.insert(
+          protocolRequestId,
+          PendingCommand{ .kind = PendingCommandKind::ProbeResult,
+                          .lifecycleGeneration = m_lifecycleGeneration });
+    }
+}
+
+void
+ArenaSession::handleLoadFinished(quint64 requestId,
+                                 gameplay_logic::ChartRunner* runner)
+{
+    if (requestId == 0 || requestId != m_roundLoaderRequestId ||
+        m_roundLoaderOperation != RoundLoaderOperation::Load ||
+        !m_loadRequestRound || m_preparedRunner != nullptr ||
+        runner == nullptr ||
+        runner->getStatus() != gameplay_logic::ChartRunner::Ready) {
+        return;
+    }
+    m_preparedRunner = runner;
+    const auto& round = *m_loadRequestRound;
+    const auto inventoryRevision =
+      frozenInventoryRevision(round, m_selfMemberId);
+    if (!inventoryRevision) {
+        cancelPreparedRound(false);
+        return;
+    }
+    const auto protocolRequestId = nextRequestId();
+    if (sendMessage(RoundLoadResult{
+          .requestId = protocolRequestId,
+          .roomId = m_roomId,
+          .roomGeneration = m_roomGeneration,
+          .connectionGeneration = m_connectionGeneration,
+          .roundId = round.roundId,
+          .launchAttemptId = round.launchAttemptId,
+          .selectionRevision = round.selectionRevision,
+          .availabilityRevision = round.availabilityRevision,
+          .inventoryRevision = *inventoryRevision,
+          .ok = true,
+        })) {
+        if (!m_loadResultRequestId.isEmpty()) {
+            m_pendingCommands.remove(m_loadResultRequestId);
+        }
+        m_loadResultRequestId = protocolRequestId;
+        m_pendingCommands.insert(
+          protocolRequestId,
+          PendingCommand{ .kind = PendingCommandKind::LoadResult,
+                          .lifecycleGeneration = m_lifecycleGeneration });
+    }
+}
+
+void
+ArenaSession::handleLoadFailed(quint64 requestId, ArenaLoadFailure failure)
+{
+    if (requestId == 0 || requestId != m_roundLoaderRequestId ||
+        m_roundLoaderOperation != RoundLoaderOperation::Load ||
+        !m_loadRequestRound) {
+        return;
+    }
+    auto round = std::move(*m_loadRequestRound);
+    m_loadRequestRound.reset();
+    m_roundLoaderRequestId = 0;
+    m_roundLoaderOperation = RoundLoaderOperation::None;
+    m_preparedRunner = nullptr;
+    const auto inventoryRevision =
+      frozenInventoryRevision(round, m_selfMemberId);
+    if (!inventoryRevision) {
+        return;
+    }
+    const auto reason = loadFailureReason(failure);
+    const auto protocolRequestId = nextRequestId();
+    if (sendMessage(RoundLoadResult{
+          .requestId = protocolRequestId,
+          .roomId = m_roomId,
+          .roomGeneration = m_roomGeneration,
+          .connectionGeneration = m_connectionGeneration,
+          .roundId = round.roundId,
+          .launchAttemptId = round.launchAttemptId,
+          .selectionRevision = round.selectionRevision,
+          .availabilityRevision = round.availabilityRevision,
+          .inventoryRevision = *inventoryRevision,
+          .ok = false,
+          .failureReason = reason,
+        })) {
+        if (!m_loadResultRequestId.isEmpty()) {
+            m_pendingCommands.remove(m_loadResultRequestId);
+        }
+        m_loadResultRequestId = protocolRequestId;
+        m_pendingCommands.insert(
+          protocolRequestId,
+          PendingCommand{ .kind = PendingCommandKind::LoadResult,
+                          .lifecycleGeneration = m_lifecycleGeneration });
+    }
+}
+
+void
+ArenaSession::handleRoundStartScheduled(const RoundStartScheduled& scheduled)
+{
+    const auto receivedAtMs = m_scheduler->monotonicNowMs();
+    if (!acceptsRoomEvent(scheduled.roomId, scheduled.roomGeneration) ||
+        scheduled.connectionGeneration != m_connectionGeneration ||
+        m_roomPhase != RoomPhase::Loading || !m_round ||
+        (m_round->stage != FrozenRoundStage::Loading &&
+         m_round->stage != FrozenRoundStage::Scheduled) ||
+        !m_loadRequestRound || m_preparedRunner == nullptr ||
+        scheduled.roundId != m_round->roundId ||
+        scheduled.launchAttemptId != m_round->launchAttemptId ||
+        m_preparedRunner->getStatus() != gameplay_logic::ChartRunner::Ready) {
+        return;
+    }
+    const auto lifecycle = m_lifecycleGeneration;
+    if (!m_loadResultRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_loadResultRequestId);
+        m_loadResultRequestId.clear();
+    }
+    cancelTask(m_roundStartTask);
+    m_round->stage = FrozenRoundStage::Scheduled;
+    emit roundChanged();
+    if (lifecycle != m_lifecycleGeneration ||
+        m_state != State::InRoom || !m_round ||
+        m_round->roundId != scheduled.roundId ||
+        m_round->launchAttemptId != scheduled.launchAttemptId ||
+        m_preparedRunner == nullptr) {
+        return;
+    }
+    const auto guardedRunner = m_preparedRunner;
+    if (!m_preparedGameplayExposed) {
+        m_preparedGameplayExposed = true;
+        emit preparedGameplayChanged(guardedRunner);
+    }
+    if (lifecycle != m_lifecycleGeneration || guardedRunner == nullptr ||
+        guardedRunner != m_preparedRunner || !m_round ||
+        m_round->roundId != scheduled.roundId ||
+        m_round->launchAttemptId != scheduled.launchAttemptId) {
+        return;
+    }
+    guardedRunner->start();
+    const auto roundId = scheduled.roundId;
+    const auto launchAttemptId = scheduled.launchAttemptId;
+    const auto releaseAtMs =
+      scheduled.startAfterMs <=
+          (std::numeric_limits<qint64>::max)() - receivedAtMs
+        ? receivedAtMs + scheduled.startAfterMs
+        : (std::numeric_limits<qint64>::max)();
+    const auto nowMs = m_scheduler->monotonicNowMs();
+    const auto remainingMs = nowMs >= releaseAtMs ? 0 : releaseAtMs - nowMs;
+    m_roundStartTask = m_scheduler->scheduleOnce(
+      remainingMs,
+      this,
+      [this, lifecycle, roundId, launchAttemptId, guardedRunner] {
+          m_roundStartTask = ArenaScheduler::InvalidTaskId;
+          if (lifecycle != m_lifecycleGeneration || !m_round ||
+              m_round->roundId != roundId ||
+              m_round->launchAttemptId != launchAttemptId ||
+              guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
+              return;
+          }
+          guardedRunner->releaseStart();
+          if (lifecycle != m_lifecycleGeneration || !m_round ||
+              m_round->roundId != roundId ||
+              m_round->launchAttemptId != launchAttemptId ||
+              guardedRunner == nullptr || guardedRunner != m_preparedRunner) {
+              return;
+          }
+          m_roundRunnerStartedEmitted = true;
+          emit roundRunnerStarted(roundId, guardedRunner);
+      });
+}
+
+void
+ArenaSession::cancelPreparedRound(bool notify)
+{
+    const auto lifecycle = m_lifecycleGeneration;
+    const auto hadExposedGameplay = m_preparedGameplayExposed;
+    cancelTask(m_roundStartTask);
+    m_preparedRunner = nullptr;
+    m_preparedGameplayExposed = false;
+    m_roundRunnerStartedEmitted = false;
+    if (hadExposedGameplay) {
+        emit preparedGameplayChanged(nullptr);
+        if (lifecycle != m_lifecycleGeneration) {
+            return;
+        }
+    }
+    if (notify && hadExposedGameplay) {
+        emit roundLaunchCancelled();
+    }
+    // The UI observes the synchronous signals above before the loader is
+    // allowed to destroy its owned runner.
+    cancelRoundLoader();
+    if (!m_probeResultRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_probeResultRequestId);
+        m_probeResultRequestId.clear();
+    }
+    if (!m_loadResultRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_loadResultRequestId);
+        m_loadResultRequestId.clear();
+    }
+}
+
+void
+ArenaSession::clearRoundTransfers(bool abandonSeat,
+                                  bool preservePreparedRound)
+{
+    if (preservePreparedRound) {
+        cancelTask(m_roundStartTask);
+        if (!m_probeResultRequestId.isEmpty()) {
+            m_pendingCommands.remove(m_probeResultRequestId);
+            m_probeResultRequestId.clear();
+        }
+        if (!m_loadResultRequestId.isEmpty()) {
+            m_pendingCommands.remove(m_loadResultRequestId);
+            m_loadResultRequestId.clear();
+        }
+    } else {
+        cancelPreparedRound(false);
+    }
     const auto hadPendingUpload = m_pendingInventoryUpload.has_value();
     cancelInventorySnapshot();
     m_pendingInventoryUpload.reset();
     m_pendingAvailabilityTransfer.reset();
     m_availabilityResyncRequestId.clear();
     m_availabilityAppliedRequestId.clear();
+    m_readyRequestId.clear();
+    m_requestedReady.reset();
+    m_selectionRequestId.clear();
+    m_requestedSelection.reset();
     if (abandonSeat) {
         m_lastPublishedLibraryGeneration = 0;
         m_uncertainCommittedGeneration = 0;
@@ -1923,6 +2547,50 @@ ArenaSession::sendChat(const QString& text)
           PendingCommand{ .kind = PendingCommandKind::Chat,
                           .lifecycleGeneration = m_lifecycleGeneration });
         m_pendingChatCommandIds.push_back(requestId);
+    }
+}
+
+void
+ArenaSession::selectChart(gameplay_logic::ChartData* chart)
+{
+    clearError();
+    if (!getCanSelect() || m_roundLoader == nullptr || chart == nullptr ||
+        !m_selectionRequestId.isEmpty()) {
+        return;
+    }
+    auto built = m_roundLoader->buildSelection(chart);
+    if (!built) {
+        const auto unsupported =
+          built.error() == ArenaSelectionBuildFailure::UnsupportedConfig;
+        setError(unsupported ? QStringLiteral("unsupported_config")
+                             : QStringLiteral("selection_invalid"),
+                 unsupported ? QStringLiteral("arena.error.unsupportedConfig")
+                             : QStringLiteral("arena.error.selectionInvalid"));
+        return;
+    }
+    auto selection = std::move(*built);
+    if (m_availability.availability(selection.sha256) !=
+        ArenaAvailabilityIndex::Availability::AvailableToAll) {
+        setError(QStringLiteral("selection_not_common"),
+                 QStringLiteral("arena.error.notCommon"));
+        return;
+    }
+    const auto requestId = nextRequestId();
+    if (sendMessage(SelectionSet{
+          .requestId = requestId,
+          .roomId = m_roomId,
+          .roomGeneration = m_roomGeneration,
+          .connectionGeneration = m_connectionGeneration,
+          .availabilityRevision = m_roomAvailabilityRevision,
+          .inventoryRevision = m_selfInventoryRevision,
+          .selection = selection,
+        })) {
+        m_selectionRequestId = requestId;
+        m_requestedSelection = std::move(selection);
+        m_pendingCommands.insert(
+          requestId,
+          PendingCommand{ .kind = PendingCommandKind::Selection,
+                          .lifecycleGeneration = m_lifecycleGeneration });
     }
 }
 
@@ -2024,7 +2692,10 @@ ArenaSession::beginReconnect()
     m_pendingTicket.clear();
     m_pendingCommands.clear();
     m_pendingChatCommandIds.clear();
-    clearRoundTransfers(false);
+    const auto preservePreparedRound =
+      m_preparedRunner != nullptr && m_round && m_loadRequestRound &&
+      sameFrozenRound(*m_round, *m_loadRequestRound);
+    clearRoundTransfers(false, preservePreparedRound);
     clearPendingAdmission();
     invalidateTransport();
     setAuthenticated(false);
@@ -2161,8 +2832,7 @@ ArenaSession::retry()
     if (m_state == State::InRoom) {
         clearError();
         requestInventorySnapshot();
-        if (m_availability.state() ==
-            ArenaAvailabilityIndex::State::Syncing) {
+        if (m_availability.state() == ArenaAvailabilityIndex::State::Syncing) {
             requestAvailabilityResync();
         }
         return;

@@ -7,12 +7,14 @@
 #include "ArenaMemberListModel.h"
 #include "ArenaProtocol.h"
 #include "ArenaRoomListModel.h"
+#include "ArenaRoundLoader.h"
 #include "ArenaScheduler.h"
 #include "ArenaTransport.h"
 #include "ArenaTypes.h"
 
 #include <QHash>
 #include <QObject>
+#include <QPointer>
 #include <QString>
 #include <QUrl>
 #include <QVector>
@@ -58,19 +60,19 @@ class ArenaSession final : public QObject
                  availabilityChanged FINAL)
     Q_PROPERTY(arena::ArenaAvailabilityIndex* availability READ getAvailability
                  CONSTANT FINAL)
-    Q_PROPERTY(arena::RoomPhase roomPhase READ getRoomPhase NOTIFY roundChanged
-                 FINAL)
+    Q_PROPERTY(
+      arena::RoomPhase roomPhase READ getRoomPhase NOTIFY roundChanged FINAL)
     Q_PROPERTY(bool canSelect READ getCanSelect NOTIFY selectionChanged FINAL)
     Q_PROPERTY(bool canReady READ getCanReady NOTIFY readyChanged FINAL)
     Q_PROPERTY(bool ready READ getReady NOTIFY readyChanged FINAL)
-    Q_PROPERTY(QString selectedTitle READ getSelectedTitle NOTIFY
-                 selectionChanged FINAL)
+    Q_PROPERTY(
+      QString selectedTitle READ getSelectedTitle NOTIFY selectionChanged FINAL)
     Q_PROPERTY(QString selectedByMemberId READ getSelectedByMemberId NOTIFY
                  selectionChanged FINAL)
     Q_PROPERTY(qint64 selectionRevision READ getSelectionRevision NOTIFY
                  selectionChanged FINAL)
-    Q_PROPERTY(QString currentRoundId READ getCurrentRoundId NOTIFY roundChanged
-                 FINAL)
+    Q_PROPERTY(
+      QString currentRoundId READ getCurrentRoundId NOTIFY roundChanged FINAL)
 
     Q_PROPERTY(arena::ArenaRoomListModel* rooms READ getRooms CONSTANT FINAL)
     Q_PROPERTY(
@@ -95,6 +97,7 @@ class ArenaSession final : public QObject
                           QUrl endpoint,
                           QString clientVersion,
                           ArenaInventorySource* inventorySource = nullptr,
+                          ArenaRoundLoader* roundLoader = nullptr,
                           QObject* parent = nullptr);
     ~ArenaSession() override;
 
@@ -138,6 +141,7 @@ class ArenaSession final : public QObject
     Q_INVOKABLE void kickMember(const QString& memberId);
     Q_INVOKABLE void sendChat(const QString& text);
     Q_INVOKABLE void retry();
+    Q_INVOKABLE void selectChart(gameplay_logic::ChartData* chart);
     Q_INVOKABLE void setReady(bool ready);
 
   signals:
@@ -155,6 +159,10 @@ class ArenaSession final : public QObject
     void selectionChanged();
     void readyChanged();
     void roundChanged();
+    void preparedGameplayChanged(gameplay_logic::ChartRunner* runner);
+    void roundRunnerStarted(const QString& roundId,
+                            gameplay_logic::ChartRunner* runner);
+    void roundLaunchCancelled();
 
   private:
     enum class HandshakeKind
@@ -174,7 +182,10 @@ class ArenaSession final : public QObject
         InventoryCommit,
         AvailabilityApplied,
         AvailabilityResync,
+        Selection,
         Ready,
+        ProbeResult,
+        LoadResult,
     };
 
     struct PendingCreate
@@ -206,6 +217,7 @@ class ArenaSession final : public QObject
     ArenaIdentityProvider* m_identityProvider;
     ArenaScheduler* m_scheduler;
     ArenaInventorySource* m_inventorySource;
+    ArenaRoundLoader* m_roundLoader;
     QUrl m_endpoint;
     QString m_clientVersion;
 
@@ -298,6 +310,26 @@ class ArenaSession final : public QObject
     QString m_availabilityAppliedRequestId;
     QString m_readyRequestId;
     std::optional<bool> m_requestedReady;
+    QString m_selectionRequestId;
+    std::optional<SelectionSnapshot> m_requestedSelection;
+
+    enum class RoundLoaderOperation
+    {
+        None,
+        Probe,
+        Load,
+    };
+    quint64 m_nextRoundLoaderRequestId{ 1 };
+    quint64 m_roundLoaderRequestId{};
+    RoundLoaderOperation m_roundLoaderOperation{ RoundLoaderOperation::None };
+    std::optional<RoundProbeRequested> m_probeRequest;
+    std::optional<FrozenRound> m_loadRequestRound;
+    QPointer<gameplay_logic::ChartRunner> m_preparedRunner;
+    bool m_preparedGameplayExposed{};
+    bool m_roundRunnerStartedEmitted{};
+    ArenaScheduler::TaskId m_roundStartTask{};
+    QString m_probeResultRequestId;
+    QString m_loadResultRequestId;
     std::optional<PendingInventoryUpload> m_pendingInventoryUpload;
     std::optional<PendingAvailabilityTransfer> m_pendingAvailabilityTransfer;
 
@@ -379,7 +411,17 @@ class ArenaSession final : public QObject
                         qint64 availabilityRevision,
                         std::optional<QString> selectedByMemberId);
     void requestAvailabilityResync();
-    void clearRoundTransfers(bool abandonSeat = true);
+    void clearRoundTransfers(bool abandonSeat = true,
+                             bool preservePreparedRound = false);
+    void cancelRoundLoader();
+    void handleProbeRequested(const RoundProbeRequested& requested);
+    void handleLoadRequested(const RoundLoadRequested& requested);
+    void handleProbeFinished(quint64 requestId, ArenaProbeResult result);
+    void handleLoadFinished(quint64 requestId,
+                            gameplay_logic::ChartRunner* runner);
+    void handleLoadFailed(quint64 requestId, ArenaLoadFailure failure);
+    void handleRoundStartScheduled(const RoundStartScheduled& scheduled);
+    void cancelPreparedRound(bool notify);
     void failProtocol(ProtocolFailureCode code);
     void failProtocol(QString code, QString messageKey);
 };

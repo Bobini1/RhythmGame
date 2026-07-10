@@ -57,6 +57,7 @@
 #include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
 #include "arena/ArenaSession.h"
 #include "arena/ProfileArenaIdentityProvider.h"
+#include "arena/QtArenaRoundLoader.h"
 #include "arena/QtArenaScheduler.h"
 #include "arena/QtWebSocketArenaTransport.h"
 #include "arena/SqliteArenaInventorySource.h"
@@ -318,21 +319,6 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto arenaInventorySource = arena::SqliteArenaInventorySource{
             dataFolder / "song_db.sqlite"
         };
-        auto arenaSession =
-          arena::ArenaSession{ &arenaTransport,
-                               &arenaIdentityProvider,
-                               &arenaScheduler,
-                               arenaEndpointFromEnvironment(),
-                               QCoreApplication::applicationVersion(),
-                               &arenaInventorySource };
-        const auto applyArenaBattlePolicy = [&] {
-            profileList.setBattleAllowed(!arenaSession.getActive());
-        };
-        QObject::connect(&arenaSession,
-                         &arena::ArenaSession::activeChanged,
-                         &profileList,
-                         applyArenaBattlePolicy);
-        applyArenaBattlePolicy();
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -399,6 +385,24 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
             &chartFactory,
             &db
         };
+        auto arenaRoundLoader =
+          arena::QtArenaRoundLoader{ &profileList, &db, &chartLoader };
+        auto arenaSession =
+          arena::ArenaSession{ &arenaTransport,
+                               &arenaIdentityProvider,
+                               &arenaScheduler,
+                               arenaEndpointFromEnvironment(),
+                               QCoreApplication::applicationVersion(),
+                               &arenaInventorySource,
+                               &arenaRoundLoader };
+        const auto applyArenaBattlePolicy = [&] {
+            profileList.setBattleAllowed(!arenaSession.getActive());
+        };
+        QObject::connect(&arenaSession,
+                         &arena::ArenaSession::activeChanged,
+                         &profileList,
+                         applyArenaBattlePolicy);
+        applyArenaBattlePolicy();
 
         auto scanningQueue =
           qml_components::ScanningQueue{ &db, songDbScanner };

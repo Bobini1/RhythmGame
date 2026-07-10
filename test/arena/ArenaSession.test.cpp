@@ -1,9 +1,18 @@
 #include "FakeArenaIdentityProvider.h"
 #include "FakeArenaInventorySource.h"
+#include "FakeArenaRoundLoader.h"
 #include "FakeArenaScheduler.h"
 #include "FakeArenaTransport.h"
 #include "arena/ArenaBinaryProtocol.h"
 #include "arena/ArenaSession.h"
+#include "gameplay_logic/BmsGameReferee.h"
+#include "gameplay_logic/BmsLiveScore.h"
+#include "gameplay_logic/BmsNotes.h"
+#include "gameplay_logic/ChartData.h"
+#include "gameplay_logic/ChartRunner.h"
+#include "gameplay_logic/NoteState.h"
+#include "gameplay_logic/rules/HitRules.h"
+#include "qml_components/Bga.h"
 
 #include <catch2/catch_test_macros.hpp>
 
@@ -12,8 +21,14 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QElapsedTimer>
+#include <QPromise>
+#include <QThread>
 
+#include <array>
 #include <memory>
+#include <unordered_map>
+#include <vector>
 
 namespace {
 
@@ -28,6 +43,135 @@ ensureCoreApplication()
     static char* argv[]{ applicationName, nullptr };
     static const auto application =
       std::make_unique<QCoreApplication>(argc, argv);
+}
+
+template<typename T>
+auto
+readyFuture(T value) -> QFuture<T>
+{
+    QPromise<T> promise;
+    promise.start();
+    auto future = promise.future();
+    promise.addResult(std::move(value));
+    promise.finish();
+    return future;
+}
+
+auto
+makeRunnerChart() -> std::unique_ptr<gameplay_logic::ChartData>
+{
+    return std::make_unique<gameplay_logic::ChartData>(
+      QStringLiteral("Arena runner"),
+      QStringLiteral("Composer"),
+      QString{},
+      QString{},
+      QString{},
+      QString{},
+      QString{},
+      QString{},
+      75.0,
+      100.0,
+      1,
+      1,
+      false,
+      QList<qint64>{},
+      0,
+      0,
+      0,
+      0,
+      0,
+      1'000,
+      120.0,
+      120.0,
+      120.0,
+      120.0,
+      120.0,
+      0.0,
+      0.0,
+      0.0,
+      QStringLiteral("arena-runner.bms"),
+      0,
+      QString(64, QChar(u'a')),
+      QString(32, QChar(u'b')),
+      gameplay_logic::ChartData::Keymode::K7,
+      QList<QList<qint64>>{},
+      QList<gameplay_logic::BpmChange>{},
+      0);
+}
+
+auto
+makeReadyChartRunner() -> std::unique_ptr<gameplay_logic::ChartRunner>
+{
+    using namespace std::chrono_literals;
+    auto* score = new gameplay_logic::BmsLiveScore{
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0.0,
+        {},
+        {},
+        resource_managers::NoteOrderAlgorithm::Normal,
+        resource_managers::NoteOrderAlgorithm::Normal,
+        resource_managers::DpOptions::Off,
+        {},
+        0,
+        1'000,
+        QString(64, QChar(u'a')),
+        QString(32, QChar(u'b')),
+        gameplay_logic::ChartData::Keymode::K7,
+        0,
+    };
+    std::array<std::vector<charts::BmsNotesData::Note>,
+               charts::BmsNotesData::columnNumber>
+      rawNotes{};
+    auto referee = gameplay_logic::BmsGameReferee{
+        std::move(rawNotes),
+        {},
+        { charts::BmsNotesData::BpmChangeValues{
+          .bpm = 120.0,
+          .scroll = 1.0,
+          .timestamp = {},
+        } },
+        {},
+        score,
+        std::unordered_map<uint64_t, std::shared_ptr<sounds::Sound>>{},
+        gameplay_logic::rules::HitRules{
+          {},
+          [](std::chrono::nanoseconds, gameplay_logic::Judgement) {
+              return 0.0;
+          } },
+    };
+    auto* player = new gameplay_logic::Player{
+        new gameplay_logic::BmsNotes{},
+        score,
+        new gameplay_logic::GameplayState{
+          {}, new gameplay_logic::BarLinesState{ {} } },
+        nullptr,
+        readyFuture(std::move(referee)),
+        1s,
+        120.0,
+    };
+    auto runner = std::make_unique<gameplay_logic::ChartRunner>(
+      makeRunnerChart().release(),
+      readyFuture(std::make_unique<qml_components::BgaContainer>(
+        QList<qml_components::Bga*>{},
+        std::vector<QMediaPlayer*>{},
+        std::vector<std::unique_ptr<QVideoFrame>>{})),
+      gameplay_logic::ChartData::Keymode::K7,
+      player,
+      nullptr);
+    QElapsedTimer timeout;
+    timeout.start();
+    while (runner->getStatus() != gameplay_logic::ChartRunner::Ready &&
+           timeout.elapsed() < 2'000) {
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+        QThread::msleep(1);
+    }
+    REQUIRE(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+    return runner;
 }
 
 auto
@@ -80,10 +224,9 @@ legacyServerHello(bool authenticated) -> QString
     data.insert(QStringLiteral("capabilities"),
                 QJsonArray{ QStringLiteral("rooms-v1") });
     return QString::fromUtf8(
-      QJsonDocument(QJsonObject{
-                      { QStringLiteral("type"),
-                        QStringLiteral("server_hello") },
-                      { QStringLiteral("data"), data } })
+      QJsonDocument(
+        QJsonObject{ { QStringLiteral("type"), QStringLiteral("server_hello") },
+                     { QStringLiteral("data"), data } })
         .toJson(QJsonDocument::Compact));
 }
 
@@ -94,14 +237,13 @@ phase2ServerHello(bool authenticated) -> QString
                   .value(QStringLiteral("data"))
                   .toObject();
     data.insert(QStringLiteral("protocolMinor"), 1);
-    data.insert(QStringLiteral("capabilities"),
-                QJsonArray{ QStringLiteral("rooms-v1"),
-                            QStringLiteral("rounds-v1") });
+    data.insert(
+      QStringLiteral("capabilities"),
+      QJsonArray{ QStringLiteral("rooms-v1"), QStringLiteral("rounds-v1") });
     return QString::fromUtf8(
-      QJsonDocument(QJsonObject{
-                      { QStringLiteral("type"),
-                        QStringLiteral("server_hello") },
-                      { QStringLiteral("data"), data } })
+      QJsonDocument(
+        QJsonObject{ { QStringLiteral("type"), QStringLiteral("server_hello") },
+                     { QStringLiteral("data"), data } })
         .toJson(QJsonDocument::Compact));
 }
 
@@ -192,8 +334,7 @@ phase2Member(QString memberId,
 {
     auto result = member(std::move(memberId), std::move(displayName));
     result.insert(QStringLiteral("ready"), false);
-    result.insert(QStringLiteral("inventoryState"),
-                  std::move(inventoryState));
+    result.insert(QStringLiteral("inventoryState"), std::move(inventoryState));
     result.insert(QStringLiteral("inventoryRevision"), inventoryRevision);
     result.insert(QStringLiteral("availabilityAppliedRevision"),
                   availabilityAppliedRevision);
@@ -214,9 +355,34 @@ phase2Selection(QString sha256) -> QJsonObject
         { QStringLiteral("noteOrderP1"), QStringLiteral("normal") },
         { QStringLiteral("noteOrderP2"), QStringLiteral("mirror") },
         { QStringLiteral("dpMode"), QStringLiteral("off") },
-        { QStringLiteral("laneSeed"),
-          QStringLiteral("0123456789abcdef") },
+        { QStringLiteral("laneSeed"), QStringLiteral("0123456789abcdef") },
         { QStringLiteral("randomizationVersion"), 1 },
+    };
+}
+
+auto
+phase2FrozenRound(QString sha256, QString stage = QStringLiteral("probing"))
+  -> QJsonObject
+{
+    auto selection = phase2Selection(std::move(sha256));
+    selection.insert(QStringLiteral("randomSequence"), QJsonArray{ 3, 1, 4 });
+    selection.insert(QStringLiteral("noteOrderP1"),
+                     QStringLiteral("s_random_plus"));
+    selection.insert(QStringLiteral("noteOrderP2"),
+                     QStringLiteral("lr2_random_ex"));
+    selection.insert(QStringLiteral("dpMode"), QStringLiteral("lr2_flip"));
+    return {
+        { QStringLiteral("roundId"), QStringLiteral("round-1") },
+        { QStringLiteral("launchAttemptId"), QStringLiteral("attempt-1") },
+        { QStringLiteral("selectionRevision"), 4 },
+        { QStringLiteral("availabilityRevision"), 1 },
+        { QStringLiteral("selection"), std::move(selection) },
+        { QStringLiteral("participants"),
+          QJsonArray{ QJsonObject{
+            { QStringLiteral("memberId"), QStringLiteral("member-1") },
+            { QStringLiteral("inventoryRevision"), 6 },
+          } } },
+        { QStringLiteral("stage"), std::move(stage) },
     };
 }
 
@@ -265,12 +431,12 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
 auto
 phase2RoomSnapshotData() -> QJsonObject
 {
-    auto result = roomSnapshotData(
-      QStringLiteral("seat-token-1"),
-      3,
-      2,
-      QJsonArray{ phase2Member(QStringLiteral("member-1"),
-                               QStringLiteral("Alice")) });
+    auto result =
+      roomSnapshotData(QStringLiteral("seat-token-1"),
+                       3,
+                       2,
+                       QJsonArray{ phase2Member(QStringLiteral("member-1"),
+                                                QStringLiteral("Alice")) });
     result.insert(QStringLiteral("selection"), QJsonValue::Null);
     result.insert(QStringLiteral("selectionRevision"), 0);
     result.insert(QStringLiteral("availabilityRevision"), 0);
@@ -347,12 +513,14 @@ struct Fixture
     arena::test::FakeArenaIdentityProvider identity;
     arena::test::FakeArenaScheduler scheduler;
     arena::test::FakeArenaInventorySource inventory;
+    arena::test::FakeArenaRoundLoader roundLoader;
     arena::ArenaSession session{ &transport,
                                  &identity,
                                  &scheduler,
                                  QUrl(QStringLiteral("ws://127.0.0.1:3001/ws")),
                                  QStringLiteral("2026.7.10"),
-                                 &inventory };
+                                 &inventory,
+                                 &roundLoader };
 
     void browse()
     {
@@ -407,8 +575,7 @@ struct Fixture
         const auto requestId =
           command.value(QStringLiteral("requestId")).toString();
         transport.injectText(generation,
-                             roomSnapshot(requestId,
-                                          phase2RoomSnapshotData()));
+                             roomSnapshot(requestId, phase2RoomSnapshotData()));
         REQUIRE(session.getState() == arena::ArenaSession::State::InRoom);
     }
 
@@ -418,8 +585,7 @@ struct Fixture
     {
         const auto generation = transport.connectCalls.back().generation;
         const auto digest = QString::fromLatin1(
-          QCryptographicHash::hash(packed, QCryptographicHash::Sha256)
-            .toHex());
+          QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
         transport.injectText(
           generation,
           compact({
@@ -434,14 +600,12 @@ struct Fixture
                 { QStringLiteral("targetRevision"), revision },
                 { QStringLiteral("basis"),
                   QJsonArray{ QJsonObject{
-                    { QStringLiteral("memberId"),
-                      QStringLiteral("member-1") },
+                    { QStringLiteral("memberId"), QStringLiteral("member-1") },
                     { QStringLiteral("inventoryRevision"), 6 },
                   } } },
                 { QStringLiteral("resetCount"),
                   packed.size() / arena::ArenaSha256Bytes },
-                { QStringLiteral("resetChunkCount"),
-                  packed.isEmpty() ? 0 : 1 },
+                { QStringLiteral("resetChunkCount"), packed.isEmpty() ? 0 : 1 },
                 { QStringLiteral("resetDigest"), digest },
               } },
           }));
@@ -477,8 +641,7 @@ struct Fixture
         REQUIRE_FALSE(inventory.requests.isEmpty());
         const auto packed = QByteArray(32, '\x55');
         const auto digest = QString::fromLatin1(
-          QCryptographicHash::hash(packed, QCryptographicHash::Sha256)
-            .toHex());
+          QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
         inventory.succeed(inventory.requests.back(), packed);
         const auto begin = messageObject(transport.textCalls.back().message);
         REQUIRE(begin.value(QStringLiteral("type")).toString() ==
@@ -522,8 +685,7 @@ struct Fixture
                 { QStringLiteral("requestId"), commitRequestId },
                 { QStringLiteral("data"),
                   QJsonObject{
-                    { QStringLiteral("roomId"),
-                      QStringLiteral("room-1") },
+                    { QStringLiteral("roomId"), QStringLiteral("room-1") },
                     { QStringLiteral("roomGeneration"), 3 },
                     { QStringLiteral("connectionGeneration"), 2 },
                     { QStringLiteral("libraryGeneration"),
@@ -602,7 +764,8 @@ TEST_CASE("ArenaSession uploads one packed inventory after Phase 2 admission",
       QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
     fixture.inventory.succeed(snapshotRequest, packed);
 
-    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    const auto begin =
+      messageObject(fixture.transport.textCalls.back().message);
     REQUIRE(begin.value(QStringLiteral("type")).toString() ==
             QStringLiteral("inventory_upload_begin"));
     const auto beginRequestId =
@@ -636,8 +799,7 @@ TEST_CASE("ArenaSession uploads one packed inventory after Phase 2 admission",
         } },
     });
     fixture.transport.injectText(
-      fixture.transport.connectCalls.back().generation,
-      uploadReady);
+      fixture.transport.connectCalls.back().generation, uploadReady);
 
     REQUIRE(fixture.transport.binaryCalls.size() == 1);
     const auto decoded = arena::decodeArenaBinaryChunk(
@@ -680,8 +842,7 @@ TEST_CASE("ArenaSession falls back once to anonymous legacy browse only",
       { QStringLiteral("type"), QStringLiteral("fatal_error") },
       { QStringLiteral("data"),
         QJsonObject{
-          { QStringLiteral("code"),
-            QStringLiteral("protocol_incompatible") },
+          { QStringLiteral("code"), QStringLiteral("protocol_incompatible") },
           { QStringLiteral("displayMessageKey"),
             QStringLiteral("arena.error.protocolIncompatible") },
         } },
@@ -697,8 +858,7 @@ TEST_CASE("ArenaSession falls back once to anonymous legacy browse only",
     CHECK(fallbackData.value(QStringLiteral("capabilities")).toArray() ==
           QJsonArray{ QStringLiteral("rooms-v1") });
 
-    fixture.transport.injectText(fallbackGeneration,
-                                 legacyServerHello(false));
+    fixture.transport.injectText(fallbackGeneration, legacyServerHello(false));
     CHECK(fixture.session.getState() == arena::ArenaSession::State::Browsing);
     CHECK_FALSE(fixture.session.getRoundsAvailable());
     fixture.identity.setLoggedIn(true);
@@ -742,7 +902,8 @@ TEST_CASE("ArenaSession never admits a seat without rounds-v1 negotiation",
         REQUIRE(fixture.identity.ticketRequests.size() == 1);
         fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
                                        QStringLiteral("ticket"));
-        const auto generation = fixture.transport.connectCalls.back().generation;
+        const auto generation =
+          fixture.transport.connectCalls.back().generation;
         fixture.transport.injectConnected(generation);
         const auto writesBeforeHello = fixture.transport.textCalls.size();
         fixture.transport.injectText(generation, legacyServerHello(true));
@@ -756,8 +917,9 @@ TEST_CASE("ArenaSession never admits a seat without rounds-v1 negotiation",
     }
 }
 
-TEST_CASE("ArenaSession applies common availability atomically and resyncs gaps",
-          "[arena][session][rounds]")
+TEST_CASE(
+  "ArenaSession applies common availability atomically and resyncs gaps",
+  "[arena][session][rounds]")
 {
     ensureCoreApplication();
     Fixture fixture;
@@ -782,8 +944,7 @@ TEST_CASE("ArenaSession applies common availability atomically and resyncs gaps"
             { QStringLiteral("targetRevision"), 1 },
             { QStringLiteral("basis"),
               QJsonArray{ QJsonObject{
-                { QStringLiteral("memberId"),
-                  QStringLiteral("member-1") },
+                { QStringLiteral("memberId"), QStringLiteral("member-1") },
                 { QStringLiteral("inventoryRevision"), 1 },
               } } },
             { QStringLiteral("resetCount"), 1 },
@@ -859,8 +1020,7 @@ TEST_CASE("ArenaSession applies common availability atomically and resyncs gaps"
             { QStringLiteral("targetRevision"), 2 },
             { QStringLiteral("basis"),
               QJsonArray{ QJsonObject{
-                { QStringLiteral("memberId"),
-                  QStringLiteral("member-1") },
+                { QStringLiteral("memberId"), QStringLiteral("member-1") },
                 { QStringLiteral("inventoryRevision"), 1 },
               } } },
             { QStringLiteral("baseRevision"), 1 },
@@ -942,10 +1102,10 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
     CHECK(fixture.session.getCanSelect());
     CHECK(fixture.session.getCanReady());
     CHECK_FALSE(fixture.session.getReady());
-    CHECK(fixture.session.getSelectedTitle() ==
-          QStringLiteral("Arena chart"));
+    CHECK(fixture.session.getSelectedTitle() == QStringLiteral("Arena chart"));
     fixture.session.setReady(true);
-    const auto ready = messageObject(fixture.transport.textCalls.back().message);
+    const auto ready =
+      messageObject(fixture.transport.textCalls.back().message);
     REQUIRE(ready.value(QStringLiteral("type")).toString() ==
             QStringLiteral("ready_set"));
     const auto data = ready.value(QStringLiteral("data")).toObject();
@@ -974,6 +1134,601 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
     CHECK_FALSE(fixture.session.getCanReady());
 }
 
+TEST_CASE("ArenaSession selects only a locally common immutable snapshot",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x38');
+    const auto sha256 = QString::fromLatin1(packed.toHex());
+    fixture.applyAvailabilityReset(
+      1, packed, QStringLiteral("GGGGGGGGGGGGGGGGGGGGGG"));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           1) },
+          } },
+      }));
+    REQUIRE(fixture.session.getCanSelect());
+
+    fixture.roundLoader.nextSelection = arena::SelectionSnapshot{
+        .sha256 = sha256,
+        .title = QStringLiteral("Immutable chart"),
+        .subtitle = QString{},
+        .artist = QStringLiteral("Composer"),
+        .keyMode = 7,
+        .randomSequence = { 2, 1 },
+        .noteOrderP1 = arena::NoteOrder::SRandom,
+        .noteOrderP2 = arena::NoteOrder::Mirror,
+        .dpMode = arena::DpMode::Off,
+        .laneSeed = QStringLiteral("0123456789abcdef"),
+        .randomizationVersion = 1,
+    };
+    fixture.session.selectChart(
+      reinterpret_cast<gameplay_logic::ChartData*>(quintptr{ 1 }));
+    const auto selection =
+      messageObject(fixture.transport.textCalls.back().message);
+    REQUIRE(selection.value(QStringLiteral("type")).toString() ==
+            QStringLiteral("selection_set"));
+    const auto data = selection.value(QStringLiteral("data")).toObject();
+    CHECK(data.value(QStringLiteral("availabilityRevision")).toInteger() == 1);
+    CHECK(data.value(QStringLiteral("inventoryRevision")).toInteger() == 6);
+    CHECK(data.value(QStringLiteral("selection"))
+            .toObject()
+            .value(QStringLiteral("sha256"))
+            .toString() == sha256);
+}
+
+TEST_CASE("ArenaSession probes and loads the exact frozen round",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x39');
+    const auto sha256 = QString::fromLatin1(packed.toHex());
+    fixture.applyAvailabilityReset(
+      1, packed, QStringLiteral("HHHHHHHHHHHHHHHHHHHHHH"));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           1) },
+          } },
+      }));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), phase2FrozenRound(sha256) },
+          } },
+      }));
+    REQUIRE(fixture.session.getRoomPhase() == arena::RoomPhase::Loading);
+    REQUIRE(fixture.session.getCurrentRoundId() == QStringLiteral("round-1"));
+    auto unexpectedRound = phase2FrozenRound(sha256);
+    unexpectedRound.insert(QStringLiteral("roundId"),
+                           QStringLiteral("round-2"));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), std::move(unexpectedRound) },
+          } },
+      }));
+    CHECK(fixture.session.getCurrentRoundId() == QStringLiteral("round-1"));
+    // A library rescan may publish a newer next-round inventory while this
+    // round remains bound to its frozen revision.
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           7,
+                           1) },
+          } },
+      }));
+
+    const auto probeRequest = [&](qint64 inventoryRevision) {
+        return compact({
+          { QStringLiteral("type"), QStringLiteral("round_probe_requested") },
+          { QStringLiteral("data"),
+            QJsonObject{
+              { QStringLiteral("roomId"), QStringLiteral("room-1") },
+              { QStringLiteral("roomGeneration"), 3 },
+              { QStringLiteral("connectionGeneration"), 2 },
+              { QStringLiteral("roundId"), QStringLiteral("round-1") },
+              { QStringLiteral("launchAttemptId"),
+                QStringLiteral("attempt-1") },
+              { QStringLiteral("selectionRevision"), 4 },
+              { QStringLiteral("availabilityRevision"), 1 },
+              { QStringLiteral("inventoryRevision"), inventoryRevision },
+              { QStringLiteral("nonce"), QStringLiteral("probe-nonce-1") },
+              { QStringLiteral("sha256"), sha256 },
+              { QStringLiteral("deadlineMs"), 15'000 },
+            } },
+        });
+    };
+    fixture.transport.injectText(generation, probeRequest(5));
+    CHECK(fixture.roundLoader.probes.isEmpty());
+    fixture.transport.injectText(generation, probeRequest(6));
+    REQUIRE(fixture.roundLoader.probes.size() == 1);
+    const auto probeId = fixture.roundLoader.probes.front().first;
+    CHECK(fixture.roundLoader.probes.front().second == packed);
+
+    emit fixture.roundLoader.probeFinished(
+      probeId,
+      arena::ArenaProbeResult{ .failure = arena::ArenaProbeFailure::None,
+                               .observedSha256 = packed });
+    auto response = messageObject(fixture.transport.textCalls.back().message);
+    REQUIRE(response.value(QStringLiteral("type")).toString() ==
+            QStringLiteral("round_probe_result"));
+    auto responseData = response.value(QStringLiteral("data")).toObject();
+    CHECK(responseData.value(QStringLiteral("roundId")).toString() ==
+          QStringLiteral("round-1"));
+    CHECK(responseData.value(QStringLiteral("launchAttemptId")).toString() ==
+          QStringLiteral("attempt-1"));
+    CHECK(responseData.value(QStringLiteral("nonce")).toString() ==
+          QStringLiteral("probe-nonce-1"));
+    CHECK(responseData.value(QStringLiteral("ok")).toBool());
+    CHECK(responseData.value(QStringLiteral("sha256")).toString() == sha256);
+    CHECK_FALSE(responseData.contains(QStringLiteral("path")));
+
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_load_requested") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("connectionGeneration"), 2 },
+            { QStringLiteral("round"),
+              phase2FrozenRound(sha256, QStringLiteral("loading")) },
+          } },
+      }));
+    REQUIRE(fixture.roundLoader.loads.size() == 1);
+    const auto& [loadId, request] = fixture.roundLoader.loads.front();
+    CHECK(request.sha256 == packed);
+    CHECK(request.playConfig.randomSequence == QList<qint64>{ 3, 1, 4 });
+    CHECK(request.playConfig.noteOrderP1 ==
+          resource_managers::NoteOrderAlgorithm::SRandomPlus);
+    CHECK(request.playConfig.noteOrderP2 ==
+          resource_managers::NoteOrderAlgorithm::Lr2RandomEx);
+    CHECK(request.playConfig.dpMode == resource_managers::DpOptions::Lr2Flip);
+    CHECK(request.playConfig.laneSeed == 0x0123456789abcdefULL);
+    CHECK(request.playConfig.randomizationVersion == 1);
+
+    const auto cancellationsBeforeStaleProbe =
+      fixture.roundLoader.cancellations.size();
+    fixture.transport.injectText(generation, probeRequest(6));
+    CHECK(fixture.roundLoader.probes.size() == 1);
+    CHECK(fixture.roundLoader.loads.size() == 1);
+    CHECK(fixture.roundLoader.cancellations.size() ==
+          cancellationsBeforeStaleProbe);
+
+    emit fixture.roundLoader.loadFailed(loadId,
+                                        arena::ArenaLoadFailure::ParseFailed);
+    response = messageObject(fixture.transport.textCalls.back().message);
+    REQUIRE(response.value(QStringLiteral("type")).toString() ==
+            QStringLiteral("round_load_result"));
+    responseData = response.value(QStringLiteral("data")).toObject();
+    CHECK_FALSE(responseData.value(QStringLiteral("ok")).toBool());
+    CHECK(responseData.value(QStringLiteral("reason")).toString() ==
+          QStringLiteral("parse_failed"));
+    CHECK(responseData.value(QStringLiteral("inventoryRevision")).toInteger() ==
+          6);
+    CHECK_FALSE(responseData.contains(QStringLiteral("path")));
+}
+
+TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    auto runner = makeReadyChartRunner();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x3d');
+    const auto sha256 = QString::fromLatin1(packed.toHex());
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           1) },
+          } },
+      }));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), phase2FrozenRound(sha256) },
+          } },
+      }));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_load_requested") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("connectionGeneration"), 2 },
+            { QStringLiteral("round"),
+              phase2FrozenRound(sha256, QStringLiteral("loading")) },
+          } },
+    }));
+    REQUIRE(fixture.roundLoader.loads.size() == 1);
+    const auto loadId = fixture.roundLoader.loads.front().first;
+    runner->holdStart();
+    emit fixture.roundLoader.loadFinished(loadId, runner.get());
+    REQUIRE(messageObject(fixture.transport.textCalls.back().message)
+              .value(QStringLiteral("type"))
+              .toString() == QStringLiteral("round_load_result"));
+
+    QVector<gameplay_logic::ChartRunner*> prepared;
+    int runnerStarted = 0;
+    int launchCancelled = 0;
+    QObject::connect(
+      &fixture.session,
+      &arena::ArenaSession::preparedGameplayChanged,
+      [&](gameplay_logic::ChartRunner* value) {
+          prepared.push_back(value);
+          if (value != nullptr) {
+              // Simulate expensive synchronous QML creation. The release
+              // deadline must remain anchored to message receipt.
+              fixture.scheduler.advanceBy(750);
+          }
+      });
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::roundRunnerStarted,
+                     [&](const QString& roundId,
+                         gameplay_logic::ChartRunner* value) {
+                         CHECK(roundId == QStringLiteral("round-1"));
+                         CHECK(value == runner.get());
+                         ++runnerStarted;
+                     });
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::roundLaunchCancelled,
+                     [&] {
+                         CHECK(fixture.session.getRoomPhase() ==
+                               arena::RoomPhase::Selecting);
+                         CHECK(fixture.session.getCurrentRoundId().isEmpty());
+                         ++launchCancelled;
+                     });
+    const auto schedule = [&](qint64 connectionGeneration,
+                              qint64 startAfterMs) {
+        fixture.transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"),
+              QStringLiteral("round_start_scheduled") },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("connectionGeneration"),
+                  connectionGeneration },
+                { QStringLiteral("roundId"), QStringLiteral("round-1") },
+                { QStringLiteral("launchAttemptId"),
+                  QStringLiteral("attempt-1") },
+                { QStringLiteral("startAtServerMs"), 10'000 },
+                { QStringLiteral("startAfterMs"), startAfterMs },
+              } },
+          }));
+    };
+    schedule(2, 1'000);
+    REQUIRE(prepared == QVector<gameplay_logic::ChartRunner*>{ runner.get() });
+    CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+
+    SECTION("release stays anchored across prepared UI work")
+    {
+        fixture.scheduler.advanceBy(249);
+        CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+        fixture.scheduler.advanceBy(1);
+        CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Running);
+        CHECK(runnerStarted == 1);
+    }
+
+    SECTION("scheduled resume retains and rearms the same runner")
+    {
+        const auto cancellations = fixture.roundLoader.cancellations.size();
+        fixture.transport.injectDisconnected(generation);
+        REQUIRE(fixture.session.getState() ==
+                arena::ArenaSession::State::Reconnecting);
+        CHECK(fixture.roundLoader.cancellations.size() == cancellations);
+        REQUIRE_FALSE(fixture.identity.ticketRequests.isEmpty());
+        fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
+                                       QStringLiteral("resume-ticket"));
+        generation = fixture.transport.connectCalls.back().generation;
+        fixture.transport.injectConnected(generation);
+
+        auto resumedRound =
+          phase2FrozenRound(sha256, QStringLiteral("scheduled"));
+        auto resumed = phase2RoomSnapshotData();
+        resumed.insert(QStringLiteral("phase"), QStringLiteral("loading"));
+        resumed.insert(QStringLiteral("selection"),
+                       resumedRound.value(QStringLiteral("selection")));
+        resumed.insert(QStringLiteral("selectionRevision"), 4);
+        resumed.insert(QStringLiteral("availabilityRevision"), 1);
+        resumed.insert(QStringLiteral("round"), resumedRound);
+        resumed.insert(
+          QStringLiteral("members"),
+          QJsonArray{ phase2Member(QStringLiteral("member-1"),
+                                   QStringLiteral("Alice"),
+                                   QStringLiteral("ready"),
+                                   6,
+                                   1) });
+        auto self = resumed.value(QStringLiteral("self")).toObject();
+        self.insert(QStringLiteral("connectionGeneration"), 3);
+        self.insert(QStringLiteral("resumeToken"),
+                    QStringLiteral("rotated-seat-token"));
+        resumed.insert(QStringLiteral("self"), self);
+        fixture.transport.injectText(generation,
+                                     resumeHello(std::move(resumed)));
+        REQUIRE(fixture.session.getState() ==
+                arena::ArenaSession::State::InRoom);
+        CHECK(prepared.size() == 1);
+        schedule(3, 500);
+        CHECK(prepared.size() == 1);
+        fixture.scheduler.advanceBy(499);
+        CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+        fixture.scheduler.advanceBy(1);
+        CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Running);
+        CHECK(runnerStarted == 1);
+        CHECK(fixture.roundLoader.cancellations.size() == cancellations);
+    }
+
+    SECTION("pre-start cancellation pops before destroying the runner")
+    {
+        fixture.transport.injectText(
+          generation,
+          compact({
+            { QStringLiteral("type"),
+              QStringLiteral("round_launch_cancelled") },
+            { QStringLiteral("data"),
+              QJsonObject{
+                { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                { QStringLiteral("roomGeneration"), 3 },
+                { QStringLiteral("roundId"), QStringLiteral("round-1") },
+                { QStringLiteral("launchAttemptId"),
+                  QStringLiteral("attempt-1") },
+                { QStringLiteral("reason"), QStringLiteral("cancelled") },
+                { QStringLiteral("selection"), QJsonValue::Null },
+                { QStringLiteral("selectionRevision"), 5 },
+                { QStringLiteral("availabilityRevision"), 1 },
+              } },
+          }));
+        REQUIRE(prepared.size() == 2);
+        CHECK(prepared.back() == nullptr);
+        CHECK(launchCancelled == 1);
+        CHECK(fixture.roundLoader.cancellations ==
+              QVector<quint64>{ loadId });
+        fixture.scheduler.advanceBy(1'000);
+        CHECK(runner->getStatus() == gameplay_logic::ChartRunner::Ready);
+        CHECK(runnerStarted == 0);
+    }
+}
+
+TEST_CASE("ArenaSession invalidates frozen callbacks before reconnect",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto packed = QByteArray(32, '\x3a');
+    const auto sha256 = QString::fromLatin1(packed.toHex());
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("room_member_updated") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("member"),
+              phase2Member(QStringLiteral("member-1"),
+                           QStringLiteral("Alice"),
+                           QStringLiteral("ready"),
+                           6,
+                           1) },
+          } },
+      }));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), phase2FrozenRound(sha256) },
+          } },
+      }));
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_probe_requested") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("connectionGeneration"), 2 },
+            { QStringLiteral("roundId"), QStringLiteral("round-1") },
+            { QStringLiteral("launchAttemptId"), QStringLiteral("attempt-1") },
+            { QStringLiteral("selectionRevision"), 4 },
+            { QStringLiteral("availabilityRevision"), 1 },
+            { QStringLiteral("inventoryRevision"), 6 },
+            { QStringLiteral("nonce"), QStringLiteral("probe-nonce-2") },
+            { QStringLiteral("sha256"), sha256 },
+            { QStringLiteral("deadlineMs"), 15'000 },
+          } },
+      }));
+    REQUIRE(fixture.roundLoader.probes.size() == 1);
+    const auto oldProbeId = fixture.roundLoader.probes.front().first;
+
+    fixture.transport.injectDisconnected(generation);
+    REQUIRE(fixture.session.getState() ==
+            arena::ArenaSession::State::Reconnecting);
+    CHECK(fixture.roundLoader.cancellations == QVector<quint64>{ oldProbeId });
+    const auto writesAfterDisconnect = fixture.transport.textCalls.size();
+    emit fixture.roundLoader.probeFinished(
+      oldProbeId,
+      arena::ArenaProbeResult{ .failure = arena::ArenaProbeFailure::None,
+                               .observedSha256 = packed });
+    CHECK(fixture.transport.textCalls.size() == writesAfterDisconnect);
+}
+
+TEST_CASE("ArenaSession publishes authoritative cancellation state atomically",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto sha256 = QString::fromLatin1(QByteArray(32, '\x3b').toHex());
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), phase2FrozenRound(sha256) },
+          } },
+      }));
+    int selectionChanges = 0;
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::selectionChanged,
+                     [&] { ++selectionChanges; });
+    bool observedSelectingState = false;
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::roundChanged,
+                     [&] {
+                         if (fixture.session.getRoomPhase() ==
+                             arena::RoomPhase::Selecting) {
+                             observedSelectingState = true;
+                             CHECK(fixture.session.getCurrentRoundId().isEmpty());
+                         }
+                     });
+
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_launch_cancelled") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("roundId"), QStringLiteral("round-1") },
+            { QStringLiteral("launchAttemptId"),
+              QStringLiteral("attempt-1") },
+            { QStringLiteral("reason"), QStringLiteral("cancelled") },
+            { QStringLiteral("selection"), QJsonValue::Null },
+            { QStringLiteral("selectionRevision"), 0 },
+            { QStringLiteral("availabilityRevision"), 0 },
+          } },
+      }));
+
+    CHECK(observedSelectingState);
+    CHECK(selectionChanges >= 1);
+}
+
+TEST_CASE("ArenaSession advances waiting spectators on room-wide round start",
+          "[arena][session][rounds]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.enterPhase2Room();
+    const auto generation = fixture.transport.connectCalls.back().generation;
+    const auto sha256 = QString::fromLatin1(QByteArray(32, '\x3c').toHex());
+    auto round = phase2FrozenRound(sha256);
+    round.insert(
+      QStringLiteral("participants"),
+      QJsonArray{ QJsonObject{
+        { QStringLiteral("memberId"), QStringLiteral("member-2") },
+        { QStringLiteral("inventoryRevision"), 4 },
+      } });
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_loading_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("round"), std::move(round) },
+          } },
+      }));
+    REQUIRE(fixture.session.getRoomPhase() == arena::RoomPhase::Loading);
+
+    fixture.transport.injectText(
+      generation,
+      compact({
+        { QStringLiteral("type"), QStringLiteral("round_started") },
+        { QStringLiteral("data"),
+          QJsonObject{
+            { QStringLiteral("roomId"), QStringLiteral("room-1") },
+            { QStringLiteral("roomGeneration"), 3 },
+            { QStringLiteral("roundId"), QStringLiteral("round-1") },
+            { QStringLiteral("launchAttemptId"),
+              QStringLiteral("attempt-1") },
+          } },
+      }));
+    CHECK(fixture.session.getRoomPhase() == arena::RoomPhase::Playing);
+}
+
 TEST_CASE("ArenaSession publishes only the newest queued library generation",
           "[arena][session][rounds]")
 {
@@ -995,7 +1750,8 @@ TEST_CASE("ArenaSession publishes only the newest queued library generation",
     CHECK(fixture.transport.textCalls.size() == writesBeforeMutation);
     fixture.inventory.succeed(currentRequest, QByteArray(32, '\x20'));
     REQUIRE(fixture.transport.textCalls.size() == writesBeforeMutation + 1);
-    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    const auto begin =
+      messageObject(fixture.transport.textCalls.back().message);
     CHECK(begin.value(QStringLiteral("type")).toString() ==
           QStringLiteral("inventory_upload_begin"));
     CHECK(begin.value(QStringLiteral("data"))
@@ -1098,18 +1854,18 @@ TEST_CASE("ArenaSession reconciles inventory generation across resume",
         REQUIRE_FALSE(fixture.identity.ticketRequests.isEmpty());
         fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
                                        QStringLiteral("resume-ticket"));
-        const auto generation = fixture.transport.connectCalls.back().generation;
+        const auto generation =
+          fixture.transport.connectCalls.back().generation;
         fixture.transport.injectConnected(generation);
         auto room = phase2RoomSnapshotData();
-        room.insert(
-          QStringLiteral("members"),
-          QJsonArray{ phase2Member(
-            QStringLiteral("member-1"),
-            QStringLiteral("Alice"),
-            inventoryRevision > 0 ? QStringLiteral("ready")
-                                  : QStringLiteral("missing"),
-            inventoryRevision,
-            0) });
+        room.insert(QStringLiteral("members"),
+                    QJsonArray{ phase2Member(QStringLiteral("member-1"),
+                                             QStringLiteral("Alice"),
+                                             inventoryRevision > 0
+                                               ? QStringLiteral("ready")
+                                               : QStringLiteral("missing"),
+                                             inventoryRevision,
+                                             0) });
         fixture.transport.injectText(generation, resumeHello(std::move(room)));
         REQUIRE(fixture.session.getState() ==
                 arena::ArenaSession::State::InRoom);
@@ -1157,7 +1913,8 @@ TEST_CASE("ArenaSession recovers from higher-generation inventory responses",
     const auto digest = QString::fromLatin1(
       QCryptographicHash::hash(packed, QCryptographicHash::Sha256).toHex());
     fixture.inventory.succeed(fixture.inventory.requests.back(), packed);
-    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    const auto begin =
+      messageObject(fixture.transport.textCalls.back().message);
     const auto generation = fixture.transport.connectCalls.back().generation;
     fixture.transport.injectText(
       generation,
@@ -1194,7 +1951,8 @@ TEST_CASE("ArenaSession resumes newest generation after upload rejection",
     REQUIRE(fixture.inventory.requests.size() == 1);
     fixture.inventory.succeed(fixture.inventory.requests.back(),
                               QByteArray(32, '\x77'));
-    const auto begin = messageObject(fixture.transport.textCalls.back().message);
+    const auto begin =
+      messageObject(fixture.transport.textCalls.back().message);
     const auto beginRequestId =
       begin.value(QStringLiteral("requestId")).toString();
     fixture.inventory.advanceGeneration();
