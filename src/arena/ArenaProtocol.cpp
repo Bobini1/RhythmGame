@@ -59,6 +59,17 @@ requireExactKeys(const QJsonObject& object,
 }
 
 auto
+hasExactKeys(const QJsonObject& object, std::initializer_list<const char*> keys)
+  -> bool
+{
+    QSet<QString> actual;
+    for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
+        actual.insert(it.key());
+    }
+    return actual == keySet(keys);
+}
+
+auto
 requiredString(const QJsonObject& object, const char* key) -> QString
 {
     const auto value = object.value(QString::fromLatin1(key));
@@ -162,6 +173,34 @@ validCodePointString(QStringView value, int maximum) -> bool
 }
 
 auto
+validPossiblyEmptyCodePointString(QStringView value, int maximum) -> bool
+{
+    const auto count = unicodeCodePointCount(value);
+    return count && *count <= maximum;
+}
+
+auto
+isLowerHex(QStringView value, qsizetype expectedSize) -> bool
+{
+    return value.size() == expectedSize &&
+           std::all_of(value.begin(), value.end(), [](QChar ch) {
+               const auto c = ch.unicode();
+               return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+           });
+}
+
+auto
+isTransferId(QStringView value) -> bool
+{
+    return value.size() == TransferIdCharacters &&
+           std::all_of(value.begin(), value.end(), [](QChar ch) {
+               const auto c = ch.unicode();
+               return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
+                      (c >= '0' && c <= '9') || c == '_' || c == '-';
+           });
+}
+
+auto
 isEcmaWhitespace(QChar ch) -> bool
 {
     const auto c = ch.unicode();
@@ -227,9 +266,12 @@ isCapability(QStringView value) -> bool
 
 void
 validateOpaqueId(QStringView id);
+void
+validatePositiveGeneration(qint64 value);
 
 auto
-parseCapabilities(const QJsonArray& array, bool server) -> QStringList
+parseCapabilities(const QJsonArray& array, bool server, int protocolMinor)
+  -> QStringList
 {
     if (array.isEmpty() || (!server && array.size() > MaxCapabilities)) {
         fail();
@@ -247,14 +289,290 @@ parseCapabilities(const QJsonArray& array, bool server) -> QStringList
         seen.insert(capability);
         result.push_back(capability);
     }
-    if (!result.contains(QString::fromLatin1(RequiredCapability))) {
+    if (!result.contains(QString::fromLatin1(RoomsCapability))) {
         fail(ProtocolFailureCode::CapabilityRequired);
     }
-    if (server &&
-        result != QStringList{ QString::fromLatin1(RequiredCapability) }) {
-        fail();
+    if (server) {
+        const auto roomsOnly =
+          QStringList{ QString::fromLatin1(RoomsCapability) };
+        const auto roomsAndRounds =
+          QStringList{ QString::fromLatin1(RoomsCapability),
+                       QString::fromLatin1(RoundsCapability) };
+        if (result != roomsOnly && result != roomsAndRounds) {
+            fail();
+        }
+        if (protocolMinor == LegacyProtocolMinor && result != roomsOnly) {
+            fail();
+        }
     }
     return result;
+}
+
+auto
+parseNoteOrder(QStringView value) -> NoteOrder
+{
+    static const std::pair<QStringView, NoteOrder> entries[]{
+        { u"normal", NoteOrder::Normal },
+        { u"mirror", NoteOrder::Mirror },
+        { u"random", NoteOrder::Random },
+        { u"s_random", NoteOrder::SRandom },
+        { u"r_random", NoteOrder::RRandom },
+        { u"random_plus", NoteOrder::RandomPlus },
+        { u"s_random_plus", NoteOrder::SRandomPlus },
+        { u"beatoraja_random", NoteOrder::BeatorajaRandom },
+        { u"beatoraja_random_ex", NoteOrder::BeatorajaRandomEx },
+        { u"lr2_random", NoteOrder::Lr2Random },
+        { u"lr2_random_ex", NoteOrder::Lr2RandomEx },
+    };
+    for (const auto& [spelling, order] : entries) {
+        if (value == spelling) {
+            return order;
+        }
+    }
+    fail();
+}
+
+auto
+noteOrderString(NoteOrder value) -> QString
+{
+    switch (value) {
+        case NoteOrder::Normal:
+            return QStringLiteral("normal");
+        case NoteOrder::Mirror:
+            return QStringLiteral("mirror");
+        case NoteOrder::Random:
+            return QStringLiteral("random");
+        case NoteOrder::SRandom:
+            return QStringLiteral("s_random");
+        case NoteOrder::RRandom:
+            return QStringLiteral("r_random");
+        case NoteOrder::RandomPlus:
+            return QStringLiteral("random_plus");
+        case NoteOrder::SRandomPlus:
+            return QStringLiteral("s_random_plus");
+        case NoteOrder::BeatorajaRandom:
+            return QStringLiteral("beatoraja_random");
+        case NoteOrder::BeatorajaRandomEx:
+            return QStringLiteral("beatoraja_random_ex");
+        case NoteOrder::Lr2Random:
+            return QStringLiteral("lr2_random");
+        case NoteOrder::Lr2RandomEx:
+            return QStringLiteral("lr2_random_ex");
+    }
+    fail();
+}
+
+auto
+parseDpMode(QStringView value) -> DpMode
+{
+    if (value == QStringLiteral("off")) {
+        return DpMode::Off;
+    }
+    if (value == QStringLiteral("flip")) {
+        return DpMode::Flip;
+    }
+    if (value == QStringLiteral("lr2_flip")) {
+        return DpMode::Lr2Flip;
+    }
+    if (value == QStringLiteral("battle")) {
+        return DpMode::Battle;
+    }
+    fail();
+}
+
+auto
+dpModeString(DpMode value) -> QString
+{
+    switch (value) {
+        case DpMode::Off:
+            return QStringLiteral("off");
+        case DpMode::Flip:
+            return QStringLiteral("flip");
+        case DpMode::Lr2Flip:
+            return QStringLiteral("lr2_flip");
+        case DpMode::Battle:
+            return QStringLiteral("battle");
+    }
+    fail();
+}
+
+auto
+parseRoomPhase(QStringView value) -> RoomPhase
+{
+    if (value == QStringLiteral("selecting")) {
+        return RoomPhase::Selecting;
+    }
+    if (value == QStringLiteral("loading")) {
+        return RoomPhase::Loading;
+    }
+    if (value == QStringLiteral("playing")) {
+        return RoomPhase::Playing;
+    }
+    fail();
+}
+
+auto
+parseInventoryState(QStringView value) -> InventoryState
+{
+    if (value == QStringLiteral("missing")) {
+        return InventoryState::Missing;
+    }
+    if (value == QStringLiteral("syncing")) {
+        return InventoryState::Syncing;
+    }
+    if (value == QStringLiteral("ready")) {
+        return InventoryState::Ready;
+    }
+    fail();
+}
+
+auto
+parseMemberRoundState(QStringView value) -> MemberRoundState
+{
+    if (value == QStringLiteral("eligible")) {
+        return MemberRoundState::Eligible;
+    }
+    if (value == QStringLiteral("waiting")) {
+        return MemberRoundState::Waiting;
+    }
+    if (value == QStringLiteral("probing")) {
+        return MemberRoundState::Probing;
+    }
+    if (value == QStringLiteral("loading")) {
+        return MemberRoundState::Loading;
+    }
+    if (value == QStringLiteral("loaded")) {
+        return MemberRoundState::Loaded;
+    }
+    if (value == QStringLiteral("playing")) {
+        return MemberRoundState::Playing;
+    }
+    fail();
+}
+
+auto
+parseFrozenRoundStage(QStringView value) -> FrozenRoundStage
+{
+    if (value == QStringLiteral("probing")) {
+        return FrozenRoundStage::Probing;
+    }
+    if (value == QStringLiteral("loading")) {
+        return FrozenRoundStage::Loading;
+    }
+    if (value == QStringLiteral("scheduled")) {
+        return FrozenRoundStage::Scheduled;
+    }
+    if (value == QStringLiteral("playing")) {
+        return FrozenRoundStage::Playing;
+    }
+    fail();
+}
+
+auto
+parseSelection(const QJsonObject& object) -> SelectionSnapshot
+{
+    requireExactKeys(object,
+                     { "sha256",
+                       "title",
+                       "subtitle",
+                       "artist",
+                       "keyMode",
+                       "randomSequence",
+                       "noteOrderP1",
+                       "noteOrderP2",
+                       "dpMode",
+                       "laneSeed",
+                       "randomizationVersion" },
+                     { "md5" });
+    SelectionSnapshot result;
+    result.sha256 = requiredString(object, "sha256");
+    if (!isLowerHex(result.sha256, Sha256Characters)) {
+        fail();
+    }
+    if (object.contains(QStringLiteral("md5"))) {
+        const auto md5 = requiredString(object, "md5");
+        if (!isLowerHex(md5, Md5Characters)) {
+            fail();
+        }
+        result.md5 = md5;
+    }
+    result.title = requiredString(object, "title");
+    result.subtitle = requiredString(object, "subtitle");
+    result.artist = requiredString(object, "artist");
+    if (!validPossiblyEmptyCodePointString(result.title,
+                                           MaxSelectionMetadataCodePoints) ||
+        !validPossiblyEmptyCodePointString(result.subtitle,
+                                           MaxSelectionMetadataCodePoints) ||
+        !validPossiblyEmptyCodePointString(result.artist,
+                                           MaxSelectionMetadataCodePoints)) {
+        fail();
+    }
+    const auto keyMode = requiredSafeInteger(object, "keyMode", true);
+    if (keyMode != 5 && keyMode != 7 && keyMode != 10 && keyMode != 14) {
+        fail();
+    }
+    result.keyMode = static_cast<int>(keyMode);
+    const auto sequence = requiredArray(object, "randomSequence");
+    if (sequence.size() > MaxRandomSequenceEntries) {
+        fail();
+    }
+    for (const auto& value : sequence) {
+        result.randomSequence.push_back(safeInteger(value, true));
+    }
+    result.noteOrderP1 = parseNoteOrder(requiredString(object, "noteOrderP1"));
+    result.noteOrderP2 = parseNoteOrder(requiredString(object, "noteOrderP2"));
+    result.dpMode = parseDpMode(requiredString(object, "dpMode"));
+    result.laneSeed = requiredString(object, "laneSeed");
+    if (!isLowerHex(result.laneSeed, LaneSeedCharacters) ||
+        requiredSafeInteger(object, "randomizationVersion", true) != 1) {
+        fail();
+    }
+    result.randomizationVersion = 1;
+    return result;
+}
+
+auto
+encodeSelection(const SelectionSnapshot& selection) -> QJsonObject
+{
+    if (!isLowerHex(selection.sha256, Sha256Characters) ||
+        (selection.md5 && !isLowerHex(*selection.md5, Md5Characters)) ||
+        !validPossiblyEmptyCodePointString(selection.title,
+                                           MaxSelectionMetadataCodePoints) ||
+        !validPossiblyEmptyCodePointString(selection.subtitle,
+                                           MaxSelectionMetadataCodePoints) ||
+        !validPossiblyEmptyCodePointString(selection.artist,
+                                           MaxSelectionMetadataCodePoints) ||
+        (selection.keyMode != 5 && selection.keyMode != 7 &&
+         selection.keyMode != 10 && selection.keyMode != 14) ||
+        selection.randomSequence.size() > MaxRandomSequenceEntries ||
+        !isLowerHex(selection.laneSeed, LaneSeedCharacters) ||
+        selection.randomizationVersion != 1) {
+        fail();
+    }
+    QJsonArray sequence;
+    for (const auto value : selection.randomSequence) {
+        validatePositiveGeneration(value);
+        sequence.append(value);
+    }
+    QJsonObject object{
+        { QStringLiteral("sha256"), selection.sha256 },
+        { QStringLiteral("title"), selection.title },
+        { QStringLiteral("subtitle"), selection.subtitle },
+        { QStringLiteral("artist"), selection.artist },
+        { QStringLiteral("keyMode"), selection.keyMode },
+        { QStringLiteral("randomSequence"), sequence },
+        { QStringLiteral("noteOrderP1"),
+          noteOrderString(selection.noteOrderP1) },
+        { QStringLiteral("noteOrderP2"),
+          noteOrderString(selection.noteOrderP2) },
+        { QStringLiteral("dpMode"), dpModeString(selection.dpMode) },
+        { QStringLiteral("laneSeed"), selection.laneSeed },
+        { QStringLiteral("randomizationVersion"), 1 },
+    };
+    if (selection.md5) {
+        object.insert(QStringLiteral("md5"), *selection.md5);
+    }
+    return object;
 }
 
 auto
@@ -300,13 +618,38 @@ parseMemberStatus(QStringView value) -> MemberStatus
 auto
 parseMember(const QJsonObject& object) -> Member
 {
-    requireExactKeys(object, { "memberId", "identity", "status", "lobbyWins" });
+    const auto legacy =
+      hasExactKeys(object, { "memberId", "identity", "status", "lobbyWins" });
+    const auto current = hasExactKeys(object,
+                                      { "memberId",
+                                        "identity",
+                                        "status",
+                                        "lobbyWins",
+                                        "ready",
+                                        "inventoryState",
+                                        "inventoryRevision",
+                                        "availabilityAppliedRevision",
+                                        "roundState" });
+    if (!legacy && !current) {
+        fail();
+    }
     Member result;
     result.memberId = requiredString(object, "memberId");
     validateOpaqueId(result.memberId);
     result.identity = parsePublicIdentity(requiredObject(object, "identity"));
     result.status = parseMemberStatus(requiredString(object, "status"));
     result.lobbyWins = requiredSafeInteger(object, "lobbyWins");
+    if (current) {
+        result.ready = requiredBool(object, "ready");
+        result.inventoryState =
+          parseInventoryState(requiredString(object, "inventoryState"));
+        result.inventoryRevision =
+          requiredSafeInteger(object, "inventoryRevision");
+        result.availabilityAppliedRevision =
+          requiredSafeInteger(object, "availabilityAppliedRevision");
+        result.roundState =
+          parseMemberRoundState(requiredString(object, "roundState"));
+    }
     return result;
 }
 
@@ -350,10 +693,10 @@ parseRoomSummary(const QJsonObject& object) -> RoomSummary
     result.roomId = requiredString(object, "roomId");
     result.name = ecmaTrim(requiredString(object, "name"));
     if (!isSafeIdentifier(result.roomId, MaxOpaqueIdCharacters) ||
-        !validCodePointString(result.name, MaxRoomNameCodePoints) ||
-        requiredString(object, "phase") != QStringLiteral("selecting")) {
+        !validCodePointString(result.name, MaxRoomNameCodePoints)) {
         fail();
     }
+    result.phase = parseRoomPhase(requiredString(object, "phase"));
     result.hasPassword = requiredBool(object, "hasPassword");
     const auto connected = requiredSafeInteger(object, "connectedCount");
     const auto reserved = requiredSafeInteger(object, "reservedCount");
@@ -369,26 +712,122 @@ parseRoomSummary(const QJsonObject& object) -> RoomSummary
 }
 
 auto
-parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
+parseFrozenParticipant(const QJsonObject& object) -> FrozenParticipant
+{
+    requireExactKeys(object, { "memberId", "inventoryRevision" });
+    auto memberId = requiredString(object, "memberId");
+    validateOpaqueId(memberId);
+    return { .memberId = std::move(memberId),
+             .inventoryRevision =
+               requiredSafeInteger(object, "inventoryRevision", true) };
+}
+
+auto
+parseFrozenParticipants(const QJsonArray& array) -> QVector<FrozenParticipant>
+{
+    if (array.isEmpty() || array.size() > RoomCapacity) {
+        fail();
+    }
+    QVector<FrozenParticipant> result;
+    QSet<QString> ids;
+    for (const auto& value : array) {
+        if (!value.isObject()) {
+            fail();
+        }
+        auto participant = parseFrozenParticipant(value.toObject());
+        if (ids.contains(participant.memberId)) {
+            fail();
+        }
+        ids.insert(participant.memberId);
+        result.push_back(std::move(participant));
+    }
+    return result;
+}
+
+auto
+parseFrozenRound(const QJsonObject& object) -> FrozenRound
 {
     requireExactKeys(object,
-                     { "roomId",
-                       "roomGeneration",
-                       "name",
-                       "phase",
-                       "hasPassword",
-                       "maxCount",
-                       "ownerMemberId",
-                       "self",
-                       "members",
-                       "chat" });
+                     { "roundId",
+                       "launchAttemptId",
+                       "selectionRevision",
+                       "availabilityRevision",
+                       "selection",
+                       "participants",
+                       "stage" });
+    FrozenRound result;
+    result.roundId = requiredString(object, "roundId");
+    result.launchAttemptId = requiredString(object, "launchAttemptId");
+    validateOpaqueId(result.roundId);
+    validateOpaqueId(result.launchAttemptId);
+    result.selectionRevision =
+      requiredSafeInteger(object, "selectionRevision", true);
+    result.availabilityRevision =
+      requiredSafeInteger(object, "availabilityRevision", true);
+    result.selection = parseSelection(requiredObject(object, "selection"));
+    result.participants =
+      parseFrozenParticipants(requiredArray(object, "participants"));
+    result.stage = parseFrozenRoundStage(requiredString(object, "stage"));
+    return result;
+}
+
+auto
+parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
+{
+    const auto legacy = hasExactKeys(object,
+                                     { "roomId",
+                                       "roomGeneration",
+                                       "name",
+                                       "phase",
+                                       "hasPassword",
+                                       "maxCount",
+                                       "ownerMemberId",
+                                       "self",
+                                       "members",
+                                       "chat" });
+    const auto currentWithoutRound = hasExactKeys(object,
+                                                  { "roomId",
+                                                    "roomGeneration",
+                                                    "name",
+                                                    "phase",
+                                                    "hasPassword",
+                                                    "maxCount",
+                                                    "ownerMemberId",
+                                                    "self",
+                                                    "members",
+                                                    "chat",
+                                                    "selection",
+                                                    "selectionRevision",
+                                                    "availabilityRevision" });
+    const auto currentWithRound = hasExactKeys(object,
+                                               { "roomId",
+                                                 "roomGeneration",
+                                                 "name",
+                                                 "phase",
+                                                 "hasPassword",
+                                                 "maxCount",
+                                                 "ownerMemberId",
+                                                 "self",
+                                                 "members",
+                                                 "chat",
+                                                 "selection",
+                                                 "selectionRevision",
+                                                 "availabilityRevision",
+                                                 "round" });
+    const auto current = currentWithoutRound || currentWithRound;
+    if (!legacy && !current) {
+        fail();
+    }
     RoomSnapshot result;
     result.roomId = requiredString(object, "roomId");
     validateOpaqueId(result.roomId);
     result.roomGeneration = requiredSafeInteger(object, "roomGeneration", true);
     result.name = ecmaTrim(requiredString(object, "name"));
-    if (!validCodePointString(result.name, MaxRoomNameCodePoints) ||
-        requiredString(object, "phase") != QStringLiteral("selecting")) {
+    if (!validCodePointString(result.name, MaxRoomNameCodePoints)) {
+        fail();
+    }
+    result.phase = parseRoomPhase(requiredString(object, "phase"));
+    if (legacy && result.phase != RoomPhase::Selecting) {
         fail();
     }
     result.hasPassword = requiredBool(object, "hasPassword");
@@ -421,7 +860,13 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
         if (!value.isObject()) {
             fail();
         }
-        auto member = parseMember(value.toObject());
+        const auto memberObject = value.toObject();
+        const auto memberIsCurrent =
+          memberObject.contains(QStringLiteral("ready"));
+        if (memberIsCurrent != current) {
+            fail();
+        }
+        auto member = parseMember(memberObject);
         if (memberIds.contains(member.memberId)) {
             fail();
         }
@@ -444,6 +889,23 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
         }
         messageIds.insert(message.messageId);
         result.chat.push_back(std::move(message));
+    }
+    if (current) {
+        const auto selection = object.value(QStringLiteral("selection"));
+        if (selection.isNull()) {
+            result.selection = std::nullopt;
+        } else if (selection.isObject()) {
+            result.selection = parseSelection(selection.toObject());
+        } else {
+            fail();
+        }
+        result.selectionRevision =
+          requiredSafeInteger(object, "selectionRevision");
+        result.availabilityRevision =
+          requiredSafeInteger(object, "availabilityRevision");
+        if (currentWithRound) {
+            result.round = parseFrozenRound(requiredObject(object, "round"));
+        }
     }
     return result;
 }
@@ -484,6 +946,19 @@ parseCommandErrorCode(QStringView value) -> CommandErrorCode
         { u"chat_empty", CommandErrorCode::ChatEmpty },
         { u"chat_too_long", CommandErrorCode::ChatTooLong },
         { u"rate_limited", CommandErrorCode::RateLimited },
+        { u"rounds_capability_required",
+          CommandErrorCode::RoundsCapabilityRequired },
+        { u"inventory_busy", CommandErrorCode::InventoryBusy },
+        { u"inventory_invalid", CommandErrorCode::InventoryInvalid },
+        { u"inventory_stale", CommandErrorCode::InventoryStale },
+        { u"inventory_capacity_exceeded",
+          CommandErrorCode::InventoryCapacityExceeded },
+        { u"availability_stale", CommandErrorCode::AvailabilityStale },
+        { u"selection_not_common", CommandErrorCode::SelectionNotCommon },
+        { u"selection_stale", CommandErrorCode::SelectionStale },
+        { u"ready_not_allowed", CommandErrorCode::ReadyNotAllowed },
+        { u"round_stale", CommandErrorCode::RoundStale },
+        { u"launch_stage_stale", CommandErrorCode::LaunchStageStale },
     };
     for (const auto& [spelling, code] : entries) {
         if (value == spelling) {
@@ -507,6 +982,7 @@ parseFatalErrorCode(QStringView value) -> FatalErrorCode
         { u"invalid_ticket", FatalErrorCode::InvalidTicket },
         { u"ticket_replayed", FatalErrorCode::TicketReplayed },
         { u"server_shutting_down", FatalErrorCode::ServerShuttingDown },
+        { u"malformed_inventory", FatalErrorCode::MalformedInventory },
     };
     for (const auto& [spelling, code] : entries) {
         if (value == spelling) {
@@ -534,7 +1010,8 @@ auto
 encodeHello(const ClientHello& hello) -> QJsonObject
 {
     if (hello.protocolMajor != ProtocolMajor ||
-        hello.protocolMinor != ProtocolMinor) {
+        hello.protocolMinor < LegacyProtocolMinor ||
+        hello.protocolMinor > ProtocolMinor) {
         fail(ProtocolFailureCode::ProtocolIncompatible);
     }
     if (!validCodePointString(hello.clientVersion,
@@ -554,7 +1031,7 @@ encodeHello(const ClientHello& hello) -> QJsonObject
         hello.capabilities.size() > MaxCapabilities) {
         fail();
     }
-    if (!hello.capabilities.contains(QString::fromLatin1(RequiredCapability))) {
+    if (!hello.capabilities.contains(QString::fromLatin1(RoomsCapability))) {
         fail(ProtocolFailureCode::CapabilityRequired);
     }
     if (hello.ticket && (hello.ticket->isEmpty() ||
@@ -730,6 +1207,271 @@ encodeHeartbeatReply(const HeartbeatReply& command) -> QJsonObject
                QJsonObject{ { QStringLiteral("nonce"), command.nonce } } } };
 }
 
+void
+validateNonNegativeSafe(qint64 value)
+{
+    if (value < 0 || value > MaxJsonSafeInteger) {
+        fail();
+    }
+}
+
+void
+validateTransferId(QStringView value)
+{
+    if (!isTransferId(value)) {
+        fail();
+    }
+}
+
+void
+insertInventoryDeclaration(QJsonObject& data,
+                           qint64 libraryGeneration,
+                           qint64 hashCount,
+                           qint64 byteCount,
+                           qint64 chunkCount,
+                           QStringView vectorDigest)
+{
+    validatePositiveGeneration(libraryGeneration);
+    if (hashCount < 0 || hashCount > MaxInventoryHashes || byteCount < 0 ||
+        byteCount > MaxInventoryBytes || chunkCount < 0 ||
+        chunkCount > MaxInventoryChunks || byteCount != hashCount * 32 ||
+        chunkCount !=
+          (hashCount + InventoryHashesPerChunk - 1) / InventoryHashesPerChunk ||
+        !isLowerHex(vectorDigest, Sha256Characters)) {
+        fail();
+    }
+    data.insert(QStringLiteral("libraryGeneration"), libraryGeneration);
+    data.insert(QStringLiteral("hashCount"), hashCount);
+    data.insert(QStringLiteral("byteCount"), byteCount);
+    data.insert(QStringLiteral("chunkCount"), chunkCount);
+    data.insert(QStringLiteral("vectorDigest"), vectorDigest.toString());
+}
+
+auto
+encodeInventoryUploadBegin(const InventoryUploadBegin& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    insertInventoryDeclaration(data,
+                               command.libraryGeneration,
+                               command.hashCount,
+                               command.byteCount,
+                               command.chunkCount,
+                               command.vectorDigest);
+    return requestEnvelope(QStringLiteral("inventory_upload_begin"),
+                           command.requestId,
+                           std::move(data));
+}
+
+auto
+encodeInventoryUploadCommit(const InventoryUploadCommit& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    validateTransferId(command.uploadId);
+    data.insert(QStringLiteral("uploadId"), command.uploadId);
+    insertInventoryDeclaration(data,
+                               command.libraryGeneration,
+                               command.hashCount,
+                               command.byteCount,
+                               command.chunkCount,
+                               command.vectorDigest);
+    return requestEnvelope(QStringLiteral("inventory_upload_commit"),
+                           command.requestId,
+                           std::move(data));
+}
+
+auto
+encodeInventoryUploadAbort(const InventoryUploadAbort& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    validateTransferId(command.uploadId);
+    validatePositiveGeneration(command.libraryGeneration);
+    data.insert(QStringLiteral("uploadId"), command.uploadId);
+    data.insert(QStringLiteral("libraryGeneration"), command.libraryGeneration);
+    return requestEnvelope(QStringLiteral("inventory_upload_abort"),
+                           command.requestId,
+                           std::move(data));
+}
+
+auto
+encodeAvailabilityApplied(const AvailabilityApplied& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    validatePositiveGeneration(command.availabilityRevision);
+    data.insert(QStringLiteral("availabilityRevision"),
+                command.availabilityRevision);
+    return requestEnvelope(QStringLiteral("availability_applied"),
+                           command.requestId,
+                           std::move(data));
+}
+
+auto
+encodeAvailabilityResync(const AvailabilityResync& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    validateNonNegativeSafe(command.currentRevision);
+    data.insert(QStringLiteral("currentRevision"), command.currentRevision);
+    return requestEnvelope(QStringLiteral("availability_resync"),
+                           command.requestId,
+                           std::move(data));
+}
+
+auto
+encodeSelectionSet(const SelectionSet& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    validatePositiveGeneration(command.availabilityRevision);
+    validatePositiveGeneration(command.inventoryRevision);
+    data.insert(QStringLiteral("availabilityRevision"),
+                command.availabilityRevision);
+    data.insert(QStringLiteral("inventoryRevision"), command.inventoryRevision);
+    data.insert(QStringLiteral("selection"),
+                encodeSelection(command.selection));
+    return requestEnvelope(
+      QStringLiteral("selection_set"), command.requestId, std::move(data));
+}
+
+auto
+encodeReadySet(const ReadySet& command) -> QJsonObject
+{
+    auto data = generationData(
+      command.roomId, command.roomGeneration, command.connectionGeneration);
+    validatePositiveGeneration(command.selectionRevision);
+    validatePositiveGeneration(command.availabilityRevision);
+    validatePositiveGeneration(command.inventoryRevision);
+    data.insert(QStringLiteral("ready"), command.ready);
+    data.insert(QStringLiteral("selectionRevision"), command.selectionRevision);
+    data.insert(QStringLiteral("availabilityRevision"),
+                command.availabilityRevision);
+    data.insert(QStringLiteral("inventoryRevision"), command.inventoryRevision);
+    return requestEnvelope(
+      QStringLiteral("ready_set"), command.requestId, std::move(data));
+}
+
+auto
+probeFailureString(RoundProbeFailureReason value) -> QString
+{
+    switch (value) {
+        case RoundProbeFailureReason::MissingFile:
+            return QStringLiteral("missing_file");
+        case RoundProbeFailureReason::HashMismatch:
+            return QStringLiteral("hash_mismatch");
+        case RoundProbeFailureReason::ReadFailed:
+            return QStringLiteral("read_failed");
+        case RoundProbeFailureReason::Cancelled:
+            return QStringLiteral("cancelled");
+    }
+    fail();
+}
+
+auto
+loadFailureString(RoundLoadFailureReason value) -> QString
+{
+    switch (value) {
+        case RoundLoadFailureReason::MissingFile:
+            return QStringLiteral("missing_file");
+        case RoundLoadFailureReason::HashMismatch:
+            return QStringLiteral("hash_mismatch");
+        case RoundLoadFailureReason::ParseFailed:
+            return QStringLiteral("parse_failed");
+        case RoundLoadFailureReason::UnsupportedConfig:
+            return QStringLiteral("unsupported_config");
+        case RoundLoadFailureReason::ResourceFailed:
+            return QStringLiteral("resource_failed");
+        case RoundLoadFailureReason::Cancelled:
+            return QStringLiteral("cancelled");
+    }
+    fail();
+}
+
+auto
+roundResultData(QString roomId,
+                qint64 roomGeneration,
+                qint64 connectionGeneration,
+                QString roundId,
+                QString launchAttemptId,
+                qint64 selectionRevision,
+                qint64 availabilityRevision,
+                qint64 inventoryRevision) -> QJsonObject
+{
+    auto data =
+      generationData(std::move(roomId), roomGeneration, connectionGeneration);
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    validatePositiveGeneration(selectionRevision);
+    validatePositiveGeneration(availabilityRevision);
+    validatePositiveGeneration(inventoryRevision);
+    data.insert(QStringLiteral("roundId"), std::move(roundId));
+    data.insert(QStringLiteral("launchAttemptId"), std::move(launchAttemptId));
+    data.insert(QStringLiteral("selectionRevision"), selectionRevision);
+    data.insert(QStringLiteral("availabilityRevision"), availabilityRevision);
+    data.insert(QStringLiteral("inventoryRevision"), inventoryRevision);
+    return data;
+}
+
+auto
+encodeRoundProbeResult(const RoundProbeResult& command) -> QJsonObject
+{
+    auto data = roundResultData(command.roomId,
+                                command.roomGeneration,
+                                command.connectionGeneration,
+                                command.roundId,
+                                command.launchAttemptId,
+                                command.selectionRevision,
+                                command.availabilityRevision,
+                                command.inventoryRevision);
+    validateOpaqueId(command.nonce);
+    data.insert(QStringLiteral("nonce"), command.nonce);
+    data.insert(QStringLiteral("ok"), command.ok);
+    if (command.ok) {
+        if (!command.sha256 || command.failureReason ||
+            !isLowerHex(*command.sha256, Sha256Characters)) {
+            fail();
+        }
+        data.insert(QStringLiteral("sha256"), *command.sha256);
+    } else {
+        if (command.sha256 || !command.failureReason) {
+            fail();
+        }
+        data.insert(QStringLiteral("reason"),
+                    probeFailureString(*command.failureReason));
+    }
+    return requestEnvelope(
+      QStringLiteral("round_probe_result"), command.requestId, std::move(data));
+}
+
+auto
+encodeRoundLoadResult(const RoundLoadResult& command) -> QJsonObject
+{
+    auto data = roundResultData(command.roomId,
+                                command.roomGeneration,
+                                command.connectionGeneration,
+                                command.roundId,
+                                command.launchAttemptId,
+                                command.selectionRevision,
+                                command.availabilityRevision,
+                                command.inventoryRevision);
+    data.insert(QStringLiteral("ok"), command.ok);
+    if (command.ok) {
+        if (command.failureReason) {
+            fail();
+        }
+    } else {
+        if (!command.failureReason) {
+            fail();
+        }
+        data.insert(QStringLiteral("reason"),
+                    loadFailureString(*command.failureReason));
+    }
+    return requestEnvelope(
+      QStringLiteral("round_load_result"), command.requestId, std::move(data));
+}
+
 auto
 parseServerHello(const QJsonObject& data) -> ServerHello
 {
@@ -739,14 +1481,15 @@ parseServerHello(const QJsonObject& data) -> ServerHello
       { "identity" });
     const auto major = requiredSafeInteger(data, "protocolMajor");
     const auto minor = requiredSafeInteger(data, "protocolMinor");
-    if (major != ProtocolMajor || minor != ProtocolMinor) {
+    if (major != ProtocolMajor || minor < LegacyProtocolMinor ||
+        minor > ProtocolMinor) {
         fail(ProtocolFailureCode::ProtocolIncompatible);
     }
     ServerHello result;
     result.protocolMajor = static_cast<int>(major);
     result.protocolMinor = static_cast<int>(minor);
-    result.capabilities =
-      parseCapabilities(requiredArray(data, "capabilities"), true);
+    result.capabilities = parseCapabilities(
+      requiredArray(data, "capabilities"), true, result.protocolMinor);
     if (data.contains(QStringLiteral("identity"))) {
         result.identity = parsePublicIdentity(requiredObject(data, "identity"));
     }
@@ -955,6 +1698,482 @@ parseCommandError(QString requestId, const QJsonObject& data) -> CommandError
              .displayMessageKey = displayKey };
 }
 
+struct ParsedRoomBinding
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+};
+
+auto
+parseRoomBinding(const QJsonObject& data) -> ParsedRoomBinding
+{
+    auto roomId = requiredString(data, "roomId");
+    validateOpaqueId(roomId);
+    return { .roomId = std::move(roomId),
+             .roomGeneration =
+               requiredSafeInteger(data, "roomGeneration", true),
+             .connectionGeneration =
+               requiredSafeInteger(data, "connectionGeneration", true) };
+}
+
+struct ParsedInventoryDeclaration
+{
+    qint64 libraryGeneration{};
+    qint64 hashCount{};
+    qint64 byteCount{};
+    qint64 chunkCount{};
+    QString vectorDigest;
+};
+
+auto
+parseInventoryDeclaration(const QJsonObject& data) -> ParsedInventoryDeclaration
+{
+    ParsedInventoryDeclaration result{
+        .libraryGeneration =
+          requiredSafeInteger(data, "libraryGeneration", true),
+        .hashCount = requiredSafeInteger(data, "hashCount"),
+        .byteCount = requiredSafeInteger(data, "byteCount"),
+        .chunkCount = requiredSafeInteger(data, "chunkCount"),
+        .vectorDigest = requiredString(data, "vectorDigest"),
+    };
+    if (result.hashCount > MaxInventoryHashes ||
+        result.byteCount > MaxInventoryBytes ||
+        result.chunkCount > MaxInventoryChunks ||
+        result.byteCount != result.hashCount * 32 ||
+        result.chunkCount != (result.hashCount + InventoryHashesPerChunk - 1) /
+                               InventoryHashesPerChunk ||
+        !isLowerHex(result.vectorDigest, Sha256Characters)) {
+        fail();
+    }
+    return result;
+}
+
+auto
+parseInventoryUploadReady(QString requestId, const QJsonObject& data)
+  -> InventoryUploadReady
+{
+    validateRequestId(requestId);
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "connectionGeneration",
+                       "uploadId",
+                       "libraryGeneration",
+                       "hashCount",
+                       "byteCount",
+                       "chunkCount",
+                       "vectorDigest",
+                       "deadlineMs" });
+    auto binding = parseRoomBinding(data);
+    auto uploadId = requiredString(data, "uploadId");
+    validateTransferId(uploadId);
+    auto declaration = parseInventoryDeclaration(data);
+    return {
+        .requestId = std::move(requestId),
+        .roomId = std::move(binding.roomId),
+        .roomGeneration = binding.roomGeneration,
+        .connectionGeneration = binding.connectionGeneration,
+        .uploadId = std::move(uploadId),
+        .libraryGeneration = declaration.libraryGeneration,
+        .hashCount = declaration.hashCount,
+        .byteCount = declaration.byteCount,
+        .chunkCount = declaration.chunkCount,
+        .vectorDigest = std::move(declaration.vectorDigest),
+        .deadlineMs = requiredSafeInteger(data, "deadlineMs"),
+    };
+}
+
+auto
+parseInventoryCommitted(QString requestId, const QJsonObject& data)
+  -> InventoryCommitted
+{
+    validateRequestId(requestId);
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "connectionGeneration",
+                       "libraryGeneration",
+                       "inventoryRevision",
+                       "inventoryState" });
+    auto binding = parseRoomBinding(data);
+    if (requiredString(data, "inventoryState") != QStringLiteral("ready")) {
+        fail();
+    }
+    return {
+        .requestId = std::move(requestId),
+        .roomId = std::move(binding.roomId),
+        .roomGeneration = binding.roomGeneration,
+        .connectionGeneration = binding.connectionGeneration,
+        .libraryGeneration =
+          requiredSafeInteger(data, "libraryGeneration", true),
+        .inventoryRevision =
+          requiredSafeInteger(data, "inventoryRevision", true),
+        .inventoryState = InventoryState::Ready,
+    };
+}
+
+void
+validateAvailabilityDeclaration(qint64 count,
+                                qint64 chunkCount,
+                                QStringView digest)
+{
+    if (count < 0 || count > MaxInventoryHashes || chunkCount < 0 ||
+        chunkCount > MaxInventoryChunks ||
+        chunkCount !=
+          (count + InventoryHashesPerChunk - 1) / InventoryHashesPerChunk ||
+        !isLowerHex(digest, Sha256Characters)) {
+        fail();
+    }
+}
+
+auto
+parseAvailabilityTransferBegin(const QJsonObject& data)
+  -> AvailabilityTransferBegin
+{
+    const auto mode = requiredString(data, "mode");
+    const auto reset = mode == QStringLiteral("reset");
+    const auto delta = mode == QStringLiteral("delta");
+    if (!reset && !delta) {
+        fail();
+    }
+    if (reset) {
+        requireExactKeys(data,
+                         { "roomId",
+                           "roomGeneration",
+                           "transferId",
+                           "mode",
+                           "targetRevision",
+                           "basis",
+                           "resetCount",
+                           "resetChunkCount",
+                           "resetDigest" });
+    } else {
+        requireExactKeys(data,
+                         { "roomId",
+                           "roomGeneration",
+                           "transferId",
+                           "mode",
+                           "baseRevision",
+                           "targetRevision",
+                           "basis",
+                           "addedCount",
+                           "addedChunkCount",
+                           "addedDigest",
+                           "removedCount",
+                           "removedChunkCount",
+                           "removedDigest" });
+    }
+    auto header = parseRoomEventHeader(data);
+    auto transferId = requiredString(data, "transferId");
+    validateTransferId(transferId);
+    AvailabilityTransferBegin result{
+        .roomId = std::move(header.roomId),
+        .roomGeneration = header.roomGeneration,
+        .transferId = std::move(transferId),
+        .mode = reset ? AvailabilityTransferMode::Reset
+                      : AvailabilityTransferMode::Delta,
+        .targetRevision = requiredSafeInteger(data, "targetRevision", true),
+        .basis = parseFrozenParticipants(requiredArray(data, "basis")),
+    };
+    if (reset) {
+        result.resetCount = requiredSafeInteger(data, "resetCount");
+        result.resetChunkCount = requiredSafeInteger(data, "resetChunkCount");
+        result.resetDigest = requiredString(data, "resetDigest");
+        validateAvailabilityDeclaration(
+          result.resetCount, result.resetChunkCount, result.resetDigest);
+    } else {
+        result.baseRevision = requiredSafeInteger(data, "baseRevision", true);
+        result.addedCount = requiredSafeInteger(data, "addedCount");
+        result.addedChunkCount = requiredSafeInteger(data, "addedChunkCount");
+        result.addedDigest = requiredString(data, "addedDigest");
+        result.removedCount = requiredSafeInteger(data, "removedCount");
+        result.removedChunkCount =
+          requiredSafeInteger(data, "removedChunkCount");
+        result.removedDigest = requiredString(data, "removedDigest");
+        validateAvailabilityDeclaration(
+          result.addedCount, result.addedChunkCount, result.addedDigest);
+        validateAvailabilityDeclaration(
+          result.removedCount, result.removedChunkCount, result.removedDigest);
+        if (result.targetRevision <= result.baseRevision ||
+            result.addedCount + result.removedCount > MaxInventoryHashes) {
+            fail();
+        }
+    }
+    return result;
+}
+
+auto
+parseAvailabilityTransferCommit(const QJsonObject& data)
+  -> AvailabilityTransferCommit
+{
+    requireExactKeys(
+      data, { "roomId", "roomGeneration", "transferId", "targetRevision" });
+    auto header = parseRoomEventHeader(data);
+    auto transferId = requiredString(data, "transferId");
+    validateTransferId(transferId);
+    return { .roomId = std::move(header.roomId),
+             .roomGeneration = header.roomGeneration,
+             .transferId = std::move(transferId),
+             .targetRevision =
+               requiredSafeInteger(data, "targetRevision", true) };
+}
+
+auto
+nullableSelection(const QJsonObject& data, const char* key)
+  -> std::optional<SelectionSnapshot>
+{
+    const auto value = data.value(QString::fromLatin1(key));
+    if (value.isNull()) {
+        return std::nullopt;
+    }
+    if (!value.isObject()) {
+        fail();
+    }
+    return parseSelection(value.toObject());
+}
+
+auto
+parseSelectionChanged(const QJsonObject& data) -> SelectionChanged
+{
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "selectionRevision",
+                       "availabilityRevision",
+                       "selection",
+                       "selectedByMemberId" });
+    auto header = parseRoomEventHeader(data);
+    auto selectedBy = nullableString(data, "selectedByMemberId");
+    if (selectedBy) {
+        validateOpaqueId(*selectedBy);
+    }
+    return {
+        .roomId = std::move(header.roomId),
+        .roomGeneration = header.roomGeneration,
+        .selectionRevision =
+          requiredSafeInteger(data, "selectionRevision", true),
+        .availabilityRevision =
+          requiredSafeInteger(data, "availabilityRevision", true),
+        .selection = nullableSelection(data, "selection"),
+        .selectedByMemberId = std::move(selectedBy),
+    };
+}
+
+auto
+parseSelectionRejected(QString requestId, const QJsonObject& data)
+  -> SelectionRejected
+{
+    validateRequestId(requestId);
+    const auto reason = requiredString(data, "reason");
+    SelectionRejected result{ .requestId = std::move(requestId) };
+    if (reason == QStringLiteral("not_common")) {
+        requireExactKeys(data, { "reason", "missingMemberIds" });
+        result.reason = SelectionRejectionReason::NotCommon;
+        const auto ids = requiredArray(data, "missingMemberIds");
+        if (ids.size() > RoomCapacity) {
+            fail();
+        }
+        QSet<QString> seen;
+        for (const auto& value : ids) {
+            if (!value.isString()) {
+                fail();
+            }
+            auto id = value.toString();
+            validateOpaqueId(id);
+            if (seen.contains(id)) {
+                fail();
+            }
+            seen.insert(id);
+            result.missingMemberIds.push_back(std::move(id));
+        }
+    } else if (reason == QStringLiteral("stale")) {
+        requireExactKeys(data, { "reason" });
+        result.reason = SelectionRejectionReason::Stale;
+    } else if (reason == QStringLiteral("not_allowed")) {
+        requireExactKeys(data, { "reason" });
+        result.reason = SelectionRejectionReason::NotAllowed;
+    } else {
+        fail();
+    }
+    return result;
+}
+
+auto
+parseRoundLoadingStarted(const QJsonObject& data) -> RoundLoadingStarted
+{
+    requireExactKeys(data, { "roomId", "roomGeneration", "round" });
+    auto header = parseRoomEventHeader(data);
+    return { .roomId = std::move(header.roomId),
+             .roomGeneration = header.roomGeneration,
+             .round = parseFrozenRound(requiredObject(data, "round")) };
+}
+
+auto
+parseRoundProbeRequested(const QJsonObject& data) -> RoundProbeRequested
+{
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "connectionGeneration",
+                       "roundId",
+                       "launchAttemptId",
+                       "selectionRevision",
+                       "availabilityRevision",
+                       "inventoryRevision",
+                       "nonce",
+                       "sha256",
+                       "deadlineMs" });
+    auto binding = parseRoomBinding(data);
+    auto roundId = requiredString(data, "roundId");
+    auto launchAttemptId = requiredString(data, "launchAttemptId");
+    auto nonce = requiredString(data, "nonce");
+    auto sha256 = requiredString(data, "sha256");
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    validateOpaqueId(nonce);
+    if (!isLowerHex(sha256, Sha256Characters)) {
+        fail();
+    }
+    return {
+        .roomId = std::move(binding.roomId),
+        .roomGeneration = binding.roomGeneration,
+        .connectionGeneration = binding.connectionGeneration,
+        .roundId = std::move(roundId),
+        .launchAttemptId = std::move(launchAttemptId),
+        .selectionRevision =
+          requiredSafeInteger(data, "selectionRevision", true),
+        .availabilityRevision =
+          requiredSafeInteger(data, "availabilityRevision", true),
+        .inventoryRevision =
+          requiredSafeInteger(data, "inventoryRevision", true),
+        .nonce = std::move(nonce),
+        .sha256 = std::move(sha256),
+        .deadlineMs = requiredSafeInteger(data, "deadlineMs"),
+    };
+}
+
+auto
+parseRoundLoadRequested(const QJsonObject& data) -> RoundLoadRequested
+{
+    requireExactKeys(
+      data, { "roomId", "roomGeneration", "connectionGeneration", "round" });
+    auto binding = parseRoomBinding(data);
+    return { .roomId = std::move(binding.roomId),
+             .roomGeneration = binding.roomGeneration,
+             .connectionGeneration = binding.connectionGeneration,
+             .round = parseFrozenRound(requiredObject(data, "round")) };
+}
+
+auto
+parseRoundStartScheduled(const QJsonObject& data) -> RoundStartScheduled
+{
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "connectionGeneration",
+                       "roundId",
+                       "launchAttemptId",
+                       "startAtServerMs",
+                       "startAfterMs" });
+    auto binding = parseRoomBinding(data);
+    auto roundId = requiredString(data, "roundId");
+    auto launchAttemptId = requiredString(data, "launchAttemptId");
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    const auto startAfterMs = requiredSafeInteger(data, "startAfterMs", true);
+    if (startAfterMs < MinRoundStartAfterMs ||
+        startAfterMs > MaxRoundStartAfterMs) {
+        fail();
+    }
+    return {
+        .roomId = std::move(binding.roomId),
+        .roomGeneration = binding.roomGeneration,
+        .connectionGeneration = binding.connectionGeneration,
+        .roundId = std::move(roundId),
+        .launchAttemptId = std::move(launchAttemptId),
+        .startAtServerMs = requiredSafeInteger(data, "startAtServerMs"),
+        .startAfterMs = startAfterMs,
+    };
+}
+
+auto
+parseRoundStarted(const QJsonObject& data) -> RoundStarted
+{
+    requireExactKeys(
+      data, { "roomId", "roomGeneration", "roundId", "launchAttemptId" });
+    auto header = parseRoomEventHeader(data);
+    auto roundId = requiredString(data, "roundId");
+    auto launchAttemptId = requiredString(data, "launchAttemptId");
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    return { .roomId = std::move(header.roomId),
+             .roomGeneration = header.roomGeneration,
+             .roundId = std::move(roundId),
+             .launchAttemptId = std::move(launchAttemptId) };
+}
+
+auto
+parseRoundLaunchCancellationReason(QStringView value)
+  -> RoundLaunchCancellationReason
+{
+    static const std::pair<QStringView, RoundLaunchCancellationReason>
+      entries[]{
+          { u"missing_file", RoundLaunchCancellationReason::MissingFile },
+          { u"hash_mismatch", RoundLaunchCancellationReason::HashMismatch },
+          { u"read_failed", RoundLaunchCancellationReason::ReadFailed },
+          { u"parse_failed", RoundLaunchCancellationReason::ParseFailed },
+          { u"unsupported_config",
+            RoundLaunchCancellationReason::UnsupportedConfig },
+          { u"resource_failed", RoundLaunchCancellationReason::ResourceFailed },
+          { u"probe_timeout", RoundLaunchCancellationReason::ProbeTimeout },
+          { u"load_timeout", RoundLaunchCancellationReason::LoadTimeout },
+          { u"participant_left",
+            RoundLaunchCancellationReason::ParticipantLeft },
+          { u"participant_kicked",
+            RoundLaunchCancellationReason::ParticipantKicked },
+          { u"server_shutdown", RoundLaunchCancellationReason::ServerShutdown },
+          { u"cancelled", RoundLaunchCancellationReason::Cancelled },
+      };
+    for (const auto& [spelling, reason] : entries) {
+        if (value == spelling) {
+            return reason;
+        }
+    }
+    fail();
+}
+
+auto
+parseRoundLaunchCancelled(const QJsonObject& data) -> RoundLaunchCancelled
+{
+    requireExactKeys(data,
+                     { "roomId",
+                       "roomGeneration",
+                       "roundId",
+                       "launchAttemptId",
+                       "reason",
+                       "selection",
+                       "selectionRevision",
+                       "availabilityRevision" });
+    auto header = parseRoomEventHeader(data);
+    auto roundId = requiredString(data, "roundId");
+    auto launchAttemptId = requiredString(data, "launchAttemptId");
+    validateOpaqueId(roundId);
+    validateOpaqueId(launchAttemptId);
+    return {
+        .roomId = std::move(header.roomId),
+        .roomGeneration = header.roomGeneration,
+        .roundId = std::move(roundId),
+        .launchAttemptId = std::move(launchAttemptId),
+        .reason =
+          parseRoundLaunchCancellationReason(requiredString(data, "reason")),
+        .selection = nullableSelection(data, "selection"),
+        .selectionRevision = requiredSafeInteger(data, "selectionRevision"),
+        .availabilityRevision =
+          requiredSafeInteger(data, "availabilityRevision"),
+    };
+}
+
 } // namespace
 
 auto
@@ -980,6 +2199,27 @@ encodeClientMessage(const ClientMessage& message) -> EncodeClientResult
                   return encodeChatSend(value);
               } else if constexpr (std::is_same_v<Value, HeartbeatReply>) {
                   return encodeHeartbeatReply(value);
+              } else if constexpr (std::is_same_v<Value,
+                                                  InventoryUploadBegin>) {
+                  return encodeInventoryUploadBegin(value);
+              } else if constexpr (std::is_same_v<Value,
+                                                  InventoryUploadCommit>) {
+                  return encodeInventoryUploadCommit(value);
+              } else if constexpr (std::is_same_v<Value,
+                                                  InventoryUploadAbort>) {
+                  return encodeInventoryUploadAbort(value);
+              } else if constexpr (std::is_same_v<Value, AvailabilityApplied>) {
+                  return encodeAvailabilityApplied(value);
+              } else if constexpr (std::is_same_v<Value, AvailabilityResync>) {
+                  return encodeAvailabilityResync(value);
+              } else if constexpr (std::is_same_v<Value, SelectionSet>) {
+                  return encodeSelectionSet(value);
+              } else if constexpr (std::is_same_v<Value, ReadySet>) {
+                  return encodeReadySet(value);
+              } else if constexpr (std::is_same_v<Value, RoundProbeResult>) {
+                  return encodeRoundProbeResult(value);
+              } else if constexpr (std::is_same_v<Value, RoundLoadResult>) {
+                  return encodeRoundLoadResult(value);
               } else {
                   fail();
               }
@@ -1028,7 +2268,8 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
             const auto major = data.value(QStringLiteral("protocolMajor"));
             const auto minor = data.value(QStringLiteral("protocolMinor"));
             if ((major.isDouble() && major.toDouble() != ProtocolMajor) ||
-                (minor.isDouble() && minor.toDouble() != ProtocolMinor)) {
+                (minor.isDouble() && (minor.toDouble() < LegacyProtocolMinor ||
+                                      minor.toDouble() > ProtocolMinor))) {
                 fail(ProtocolFailureCode::ProtocolIncompatible);
             }
             const auto capabilities =
@@ -1038,9 +2279,9 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
                 bool foundRequired = false;
                 for (const auto& value : capabilities.toArray()) {
                     allStrings = allStrings && value.isString();
-                    foundRequired = foundRequired ||
-                                    value.toString() ==
-                                      QString::fromLatin1(RequiredCapability);
+                    foundRequired =
+                      foundRequired ||
+                      value.toString() == QString::fromLatin1(RoomsCapability);
                 }
                 if (allStrings && !foundRequired) {
                     fail(ProtocolFailureCode::CapabilityRequired);
@@ -1062,6 +2303,21 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
         if (type == QStringLiteral("command_error")) {
             requireExactKeys(envelope, { "type", "requestId", "data" });
             return ServerMessage{ parseCommandError(
+              requiredString(envelope, "requestId"), data) };
+        }
+        if (type == QStringLiteral("inventory_upload_ready")) {
+            requireExactKeys(envelope, { "type", "requestId", "data" });
+            return ServerMessage{ parseInventoryUploadReady(
+              requiredString(envelope, "requestId"), data) };
+        }
+        if (type == QStringLiteral("inventory_committed")) {
+            requireExactKeys(envelope, { "type", "requestId", "data" });
+            return ServerMessage{ parseInventoryCommitted(
+              requiredString(envelope, "requestId"), data) };
+        }
+        if (type == QStringLiteral("selection_rejected")) {
+            requireExactKeys(envelope, { "type", "requestId", "data" });
+            return ServerMessage{ parseSelectionRejected(
               requiredString(envelope, "requestId"), data) };
         }
 
@@ -1095,6 +2351,33 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
         }
         if (type == QStringLiteral("server_going_away")) {
             return ServerMessage{ parseServerGoingAway(data) };
+        }
+        if (type == QStringLiteral("availability_transfer_begin")) {
+            return ServerMessage{ parseAvailabilityTransferBegin(data) };
+        }
+        if (type == QStringLiteral("availability_transfer_commit")) {
+            return ServerMessage{ parseAvailabilityTransferCommit(data) };
+        }
+        if (type == QStringLiteral("selection_changed")) {
+            return ServerMessage{ parseSelectionChanged(data) };
+        }
+        if (type == QStringLiteral("round_loading_started")) {
+            return ServerMessage{ parseRoundLoadingStarted(data) };
+        }
+        if (type == QStringLiteral("round_probe_requested")) {
+            return ServerMessage{ parseRoundProbeRequested(data) };
+        }
+        if (type == QStringLiteral("round_load_requested")) {
+            return ServerMessage{ parseRoundLoadRequested(data) };
+        }
+        if (type == QStringLiteral("round_start_scheduled")) {
+            return ServerMessage{ parseRoundStartScheduled(data) };
+        }
+        if (type == QStringLiteral("round_started")) {
+            return ServerMessage{ parseRoundStarted(data) };
+        }
+        if (type == QStringLiteral("round_launch_cancelled")) {
+            return ServerMessage{ parseRoundLaunchCancelled(data) };
         }
         fail();
     } catch (const DecodeFailure& failure) {

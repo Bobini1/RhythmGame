@@ -1,0 +1,417 @@
+{
+	"fixtureSchema": 1,
+	"protocolMajor": 1,
+	"protocolMinor": 1,
+	"clientMessages": [
+		{
+			"name": "inventory upload begin",
+			"message": {
+				"type": "inventory_upload_begin",
+				"requestId": "inventory-begin-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"libraryGeneration": 7,
+					"hashCount": 2,
+					"byteCount": 64,
+					"chunkCount": 1,
+					"vectorDigest": "3333333333333333333333333333333333333333333333333333333333333333"
+				}
+			}
+		},
+		{
+			"name": "inventory upload commit",
+			"message": {
+				"type": "inventory_upload_commit",
+				"requestId": "inventory-commit-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"uploadId": "AAAAAAAAAAAAAAAAAAAAAA",
+					"libraryGeneration": 7,
+					"hashCount": 2,
+					"byteCount": 64,
+					"chunkCount": 1,
+					"vectorDigest": "3333333333333333333333333333333333333333333333333333333333333333"
+				}
+			}
+		},
+		{
+			"name": "inventory upload abort",
+			"message": {
+				"type": "inventory_upload_abort",
+				"requestId": "inventory-abort-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"uploadId": "AAAAAAAAAAAAAAAAAAAAAA",
+					"libraryGeneration": 7
+				}
+			}
+		},
+		{
+			"name": "availability applied",
+			"message": {
+				"type": "availability_applied",
+				"requestId": "availability-applied-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"availabilityRevision": 5
+				}
+			}
+		},
+		{
+			"name": "availability resync",
+			"message": {
+				"type": "availability_resync",
+				"requestId": "availability-resync-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"currentRevision": 4
+				}
+			}
+		},
+		{
+			"name": "selection set",
+			"message": {
+				"type": "selection_set",
+				"requestId": "selection-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"availabilityRevision": 5,
+					"inventoryRevision": 6,
+					"selection": {
+						"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+						"md5": "22222222222222222222222222222222",
+						"title": "Phase 2 chart",
+						"subtitle": "Another",
+						"artist": "Composer",
+						"keyMode": 14,
+						"randomSequence": [1, 2, 3],
+						"noteOrderP1": "s_random_plus",
+						"noteOrderP2": "lr2_random_ex",
+						"dpMode": "lr2_flip",
+						"laneSeed": "0123456789abcdef",
+						"randomizationVersion": 1
+					}
+				}
+			}
+		},
+		{
+			"name": "ready set",
+			"message": {
+				"type": "ready_set",
+				"requestId": "ready-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"ready": true,
+					"selectionRevision": 4,
+					"availabilityRevision": 5,
+					"inventoryRevision": 6
+				}
+			}
+		},
+		{
+			"name": "round probe result",
+			"message": {
+				"type": "round_probe_result",
+				"requestId": "probe-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-1",
+					"launchAttemptId": "attempt-1",
+					"selectionRevision": 4,
+					"availabilityRevision": 5,
+					"inventoryRevision": 6,
+					"nonce": "probe-nonce-1",
+					"ok": true,
+					"sha256": "1111111111111111111111111111111111111111111111111111111111111111"
+				}
+			}
+		},
+		{
+			"name": "round load result",
+			"message": {
+				"type": "round_load_result",
+				"requestId": "load-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-1",
+					"launchAttemptId": "attempt-1",
+					"selectionRevision": 4,
+					"availabilityRevision": 5,
+					"inventoryRevision": 6,
+					"ok": false,
+					"reason": "resource_failed"
+				}
+			}
+		}
+	],
+	"serverMessages": [
+		{
+			"name": "inventory upload ready",
+			"message": {
+				"type": "inventory_upload_ready",
+				"requestId": "inventory-begin-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"uploadId": "AAAAAAAAAAAAAAAAAAAAAA",
+					"libraryGeneration": 7,
+					"hashCount": 2,
+					"byteCount": 64,
+					"chunkCount": 1,
+					"vectorDigest": "3333333333333333333333333333333333333333333333333333333333333333",
+					"deadlineMs": 60000
+				}
+			}
+		},
+		{
+			"name": "inventory committed",
+			"message": {
+				"type": "inventory_committed",
+				"requestId": "inventory-commit-1",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"libraryGeneration": 7,
+					"inventoryRevision": 6,
+					"inventoryState": "ready"
+				}
+			}
+		},
+		{
+			"name": "availability transfer begin reset",
+			"message": {
+				"type": "availability_transfer_begin",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"transferId": "BBBBBBBBBBBBBBBBBBBBBB",
+					"mode": "reset",
+					"targetRevision": 5,
+					"basis": [{ "memberId": "member-1", "inventoryRevision": 6 }],
+					"resetCount": 2,
+					"resetChunkCount": 1,
+					"resetDigest": "4444444444444444444444444444444444444444444444444444444444444444"
+				}
+			}
+		},
+		{
+			"name": "availability transfer commit",
+			"message": {
+				"type": "availability_transfer_commit",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"transferId": "BBBBBBBBBBBBBBBBBBBBBB",
+					"targetRevision": 5
+				}
+			}
+		},
+		{
+			"name": "selection changed",
+			"message": {
+				"type": "selection_changed",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"selectionRevision": 4,
+					"availabilityRevision": 5,
+					"selection": {
+						"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+						"md5": "22222222222222222222222222222222",
+						"title": "Phase 2 chart",
+						"subtitle": "Another",
+						"artist": "Composer",
+						"keyMode": 14,
+						"randomSequence": [1, 2, 3],
+						"noteOrderP1": "s_random_plus",
+						"noteOrderP2": "lr2_random_ex",
+						"dpMode": "lr2_flip",
+						"laneSeed": "0123456789abcdef",
+						"randomizationVersion": 1
+					},
+					"selectedByMemberId": "member-1"
+				}
+			}
+		},
+		{
+			"name": "selection rejected",
+			"message": {
+				"type": "selection_rejected",
+				"requestId": "selection-1",
+				"data": { "reason": "not_common", "missingMemberIds": ["member-2"] }
+			}
+		},
+		{
+			"name": "round loading started",
+			"message": {
+				"type": "round_loading_started",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"round": {
+						"roundId": "round-1",
+						"launchAttemptId": "attempt-1",
+						"selectionRevision": 4,
+						"availabilityRevision": 5,
+						"selection": {
+							"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+							"md5": "22222222222222222222222222222222",
+							"title": "Phase 2 chart",
+							"subtitle": "Another",
+							"artist": "Composer",
+							"keyMode": 14,
+							"randomSequence": [1, 2, 3],
+							"noteOrderP1": "s_random_plus",
+							"noteOrderP2": "lr2_random_ex",
+							"dpMode": "lr2_flip",
+							"laneSeed": "0123456789abcdef",
+							"randomizationVersion": 1
+						},
+						"participants": [{ "memberId": "member-1", "inventoryRevision": 6 }],
+						"stage": "probing"
+					}
+				}
+			}
+		},
+		{
+			"name": "round probe requested",
+			"message": {
+				"type": "round_probe_requested",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-1",
+					"launchAttemptId": "attempt-1",
+					"selectionRevision": 4,
+					"availabilityRevision": 5,
+					"inventoryRevision": 6,
+					"nonce": "probe-nonce-1",
+					"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+					"deadlineMs": 15000
+				}
+			}
+		},
+		{
+			"name": "round load requested",
+			"message": {
+				"type": "round_load_requested",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"round": {
+						"roundId": "round-1",
+						"launchAttemptId": "attempt-1",
+						"selectionRevision": 4,
+						"availabilityRevision": 5,
+						"selection": {
+							"sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+							"md5": "22222222222222222222222222222222",
+							"title": "Phase 2 chart",
+							"subtitle": "Another",
+							"artist": "Composer",
+							"keyMode": 14,
+							"randomSequence": [1, 2, 3],
+							"noteOrderP1": "s_random_plus",
+							"noteOrderP2": "lr2_random_ex",
+							"dpMode": "lr2_flip",
+							"laneSeed": "0123456789abcdef",
+							"randomizationVersion": 1
+						},
+						"participants": [{ "memberId": "member-1", "inventoryRevision": 6 }],
+						"stage": "loading"
+					}
+				}
+			}
+		},
+		{
+			"name": "round start scheduled",
+			"message": {
+				"type": "round_start_scheduled",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"connectionGeneration": 3,
+					"roundId": "round-1",
+					"launchAttemptId": "attempt-1",
+					"startAtServerMs": 100000,
+					"startAfterMs": 2000
+				}
+			}
+		},
+		{
+			"name": "round started",
+			"message": {
+				"type": "round_started",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"roundId": "round-1",
+					"launchAttemptId": "attempt-1"
+				}
+			}
+		},
+		{
+			"name": "round launch cancelled",
+			"message": {
+				"type": "round_launch_cancelled",
+				"data": {
+					"roomId": "room-1",
+					"roomGeneration": 2,
+					"roundId": "round-1",
+					"launchAttemptId": "attempt-1",
+					"reason": "hash_mismatch",
+					"selection": null,
+					"selectionRevision": 5,
+					"availabilityRevision": 5
+				}
+			}
+		}
+	],
+	"strictInvalidClientTypes": [
+		"inventory_upload_begin",
+		"inventory_upload_commit",
+		"inventory_upload_abort",
+		"availability_applied",
+		"availability_resync",
+		"selection_set",
+		"ready_set",
+		"round_probe_result",
+		"round_load_result"
+	],
+	"strictInvalidServerTypes": [
+		"inventory_upload_ready",
+		"inventory_committed",
+		"availability_transfer_begin",
+		"availability_transfer_commit",
+		"selection_changed",
+		"selection_rejected",
+		"round_loading_started",
+		"round_probe_requested",
+		"round_load_requested",
+		"round_start_scheduled",
+		"round_started",
+		"round_launch_cancelled"
+	]
+}

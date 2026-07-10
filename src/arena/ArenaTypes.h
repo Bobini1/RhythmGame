@@ -11,8 +11,11 @@
 namespace arena {
 
 inline constexpr int ProtocolMajor = 1;
-inline constexpr int ProtocolMinor = 0;
-inline constexpr auto RequiredCapability = "rooms-v1";
+inline constexpr int LegacyProtocolMinor = 0;
+inline constexpr int ProtocolMinor = 1;
+inline constexpr auto RoomsCapability = "rooms-v1";
+inline constexpr auto RoundsCapability = "rounds-v1";
+inline constexpr auto RequiredCapability = RoomsCapability;
 
 inline constexpr qsizetype MaxClientMessageBytes = 64 * 1024;
 inline constexpr qsizetype MaxServerMessageBytes = 4 * 1024 * 1024;
@@ -30,6 +33,18 @@ inline constexpr int MaxAvatarUrlCharacters = 2048;
 inline constexpr int RoomCapacity = 16;
 inline constexpr int MaxWireChatBacklog = 1000;
 inline constexpr int MaxDisplayMessageKeyCharacters = 128;
+inline constexpr int MaxSelectionMetadataCodePoints = 200;
+inline constexpr int MaxRandomSequenceEntries = 4096;
+inline constexpr int MaxInventoryHashes = 250'000;
+inline constexpr int MaxInventoryBytes = MaxInventoryHashes * 32;
+inline constexpr int InventoryHashesPerChunk = 2047;
+inline constexpr int MaxInventoryChunks = 123;
+inline constexpr int TransferIdCharacters = 22;
+inline constexpr int Sha256Characters = 64;
+inline constexpr int Md5Characters = 32;
+inline constexpr int LaneSeedCharacters = 16;
+inline constexpr int MinRoundStartAfterMs = 250;
+inline constexpr int MaxRoundStartAfterMs = 5000;
 inline constexpr qint64 MaxJsonSafeInteger = 9'007'199'254'740'991LL;
 
 enum class RoomPhase
@@ -37,6 +52,84 @@ enum class RoomPhase
     Selecting,
     Loading,
     Playing,
+};
+
+enum class NoteOrder
+{
+    Normal,
+    Mirror,
+    Random,
+    SRandom,
+    RRandom,
+    RandomPlus,
+    SRandomPlus,
+    BeatorajaRandom,
+    BeatorajaRandomEx,
+    Lr2Random,
+    Lr2RandomEx,
+};
+
+enum class DpMode
+{
+    Off,
+    Flip,
+    Lr2Flip,
+    Battle,
+};
+
+enum class FrozenRoundStage
+{
+    Probing,
+    Loading,
+    Scheduled,
+    Playing,
+};
+
+enum class AvailabilityTransferMode
+{
+    Reset,
+    Delta,
+};
+
+enum class SelectionRejectionReason
+{
+    NotCommon,
+    Stale,
+    NotAllowed,
+};
+
+enum class RoundProbeFailureReason
+{
+    MissingFile,
+    HashMismatch,
+    ReadFailed,
+    Cancelled,
+};
+
+enum class RoundLoadFailureReason
+{
+    MissingFile,
+    HashMismatch,
+    ParseFailed,
+    UnsupportedConfig,
+    ResourceFailed,
+    Cancelled,
+};
+
+enum class RoundLaunchCancellationReason
+{
+    MissingFile,
+    HashMismatch,
+    ReadFailed,
+    ParseFailed,
+    UnsupportedConfig,
+    ResourceFailed,
+    ProbeTimeout,
+    LoadTimeout,
+    ParticipantLeft,
+    ParticipantKicked,
+    ServerShutdown,
+    Cancelled,
 };
 enum class MemberStatus
 {
@@ -85,6 +178,17 @@ enum class CommandErrorCode
     ChatEmpty,
     ChatTooLong,
     RateLimited,
+    RoundsCapabilityRequired,
+    InventoryBusy,
+    InventoryInvalid,
+    InventoryStale,
+    InventoryCapacityExceeded,
+    AvailabilityStale,
+    SelectionNotCommon,
+    SelectionStale,
+    ReadyNotAllowed,
+    RoundStale,
+    LaunchStageStale,
 };
 
 enum class FatalErrorCode
@@ -99,6 +203,43 @@ enum class FatalErrorCode
     InvalidTicket,
     TicketReplayed,
     ServerShuttingDown,
+    MalformedInventory,
+};
+
+struct SelectionSnapshot
+{
+    QString sha256;
+    std::optional<QString> md5{ std::nullopt };
+    QString title;
+    QString subtitle;
+    QString artist;
+    int keyMode{};
+    QVector<qint64> randomSequence;
+    NoteOrder noteOrderP1{ NoteOrder::Normal };
+    NoteOrder noteOrderP2{ NoteOrder::Normal };
+    DpMode dpMode{ DpMode::Off };
+    QString laneSeed;
+    int randomizationVersion{ 1 };
+    bool operator==(const SelectionSnapshot&) const = default;
+};
+
+struct FrozenParticipant
+{
+    QString memberId;
+    qint64 inventoryRevision{};
+    bool operator==(const FrozenParticipant&) const = default;
+};
+
+struct FrozenRound
+{
+    QString roundId;
+    QString launchAttemptId;
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    SelectionSnapshot selection;
+    QVector<FrozenParticipant> participants;
+    FrozenRoundStage stage{ FrozenRoundStage::Probing };
+    bool operator==(const FrozenRound&) const = default;
 };
 
 struct PublicIdentity
@@ -165,6 +306,10 @@ struct RoomSnapshot
     SelfSeat self;
     QVector<Member> members;
     QVector<ChatMessage> chat;
+    std::optional<SelectionSnapshot> selection{ std::nullopt };
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    std::optional<FrozenRound> round{ std::nullopt };
     bool operator==(const RoomSnapshot&) const = default;
 };
 
@@ -180,7 +325,8 @@ struct ClientHello
     int protocolMajor{ ProtocolMajor };
     int protocolMinor{ ProtocolMinor };
     QString clientVersion;
-    QStringList capabilities{ QString::fromLatin1(RequiredCapability) };
+    QStringList capabilities{ QString::fromLatin1(RoomsCapability),
+                              QString::fromLatin1(RoundsCapability) };
     std::optional<QString> ticket{ std::nullopt };
     std::optional<ResumeRequest> resume{ std::nullopt };
     bool operator==(const ClientHello&) const = default;
@@ -242,6 +388,125 @@ struct HeartbeatReply
     bool operator==(const HeartbeatReply&) const = default;
 };
 
+struct InventoryUploadBegin
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    qint64 libraryGeneration{};
+    qint64 hashCount{};
+    qint64 byteCount{};
+    qint64 chunkCount{};
+    QString vectorDigest;
+    bool operator==(const InventoryUploadBegin&) const = default;
+};
+
+struct InventoryUploadCommit
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString uploadId;
+    qint64 libraryGeneration{};
+    qint64 hashCount{};
+    qint64 byteCount{};
+    qint64 chunkCount{};
+    QString vectorDigest;
+    bool operator==(const InventoryUploadCommit&) const = default;
+};
+
+struct InventoryUploadAbort
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString uploadId;
+    qint64 libraryGeneration{};
+    bool operator==(const InventoryUploadAbort&) const = default;
+};
+
+struct AvailabilityApplied
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    qint64 availabilityRevision{};
+    bool operator==(const AvailabilityApplied&) const = default;
+};
+
+struct AvailabilityResync
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    qint64 currentRevision{};
+    bool operator==(const AvailabilityResync&) const = default;
+};
+
+struct SelectionSet
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    qint64 availabilityRevision{};
+    qint64 inventoryRevision{};
+    SelectionSnapshot selection;
+    bool operator==(const SelectionSet&) const = default;
+};
+
+struct ReadySet
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    bool ready{};
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    qint64 inventoryRevision{};
+    bool operator==(const ReadySet&) const = default;
+};
+
+struct RoundProbeResult
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    qint64 inventoryRevision{};
+    QString nonce;
+    bool ok{};
+    std::optional<QString> sha256{ std::nullopt };
+    std::optional<RoundProbeFailureReason> failureReason{ std::nullopt };
+    bool operator==(const RoundProbeResult&) const = default;
+};
+
+struct RoundLoadResult
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    qint64 inventoryRevision{};
+    bool ok{};
+    std::optional<RoundLoadFailureReason> failureReason{ std::nullopt };
+    bool operator==(const RoundLoadResult&) const = default;
+};
+
 using ClientMessage = std::variant<ClientHello,
                                    DirectorySubscribe,
                                    RoomCreate,
@@ -249,7 +514,16 @@ using ClientMessage = std::variant<ClientHello,
                                    RoomLeave,
                                    RoomKick,
                                    ChatSend,
-                                   HeartbeatReply>;
+                                   HeartbeatReply,
+                                   InventoryUploadBegin,
+                                   InventoryUploadCommit,
+                                   InventoryUploadAbort,
+                                   AvailabilityApplied,
+                                   AvailabilityResync,
+                                   SelectionSet,
+                                   ReadySet,
+                                   RoundProbeResult,
+                                   RoundLoadResult>;
 
 struct ResumeNotRequested
 {
@@ -371,6 +645,154 @@ struct CommandError
     bool operator==(const CommandError&) const = default;
 };
 
+struct InventoryUploadReady
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString uploadId;
+    qint64 libraryGeneration{};
+    qint64 hashCount{};
+    qint64 byteCount{};
+    qint64 chunkCount{};
+    QString vectorDigest;
+    qint64 deadlineMs{};
+    bool operator==(const InventoryUploadReady&) const = default;
+};
+
+struct InventoryCommitted
+{
+    QString requestId;
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    qint64 libraryGeneration{};
+    qint64 inventoryRevision{};
+    InventoryState inventoryState{ InventoryState::Ready };
+    bool operator==(const InventoryCommitted&) const = default;
+};
+
+struct AvailabilityTransferBegin
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    QString transferId;
+    AvailabilityTransferMode mode{ AvailabilityTransferMode::Reset };
+    qint64 targetRevision{};
+    QVector<FrozenParticipant> basis;
+
+    qint64 resetCount{};
+    qint64 resetChunkCount{};
+    QString resetDigest;
+
+    qint64 baseRevision{};
+    qint64 addedCount{};
+    qint64 addedChunkCount{};
+    QString addedDigest;
+    qint64 removedCount{};
+    qint64 removedChunkCount{};
+    QString removedDigest;
+    bool operator==(const AvailabilityTransferBegin&) const = default;
+};
+
+struct AvailabilityTransferCommit
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    QString transferId;
+    qint64 targetRevision{};
+    bool operator==(const AvailabilityTransferCommit&) const = default;
+};
+
+struct SelectionChanged
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    std::optional<SelectionSnapshot> selection{ std::nullopt };
+    std::optional<QString> selectedByMemberId{ std::nullopt };
+    bool operator==(const SelectionChanged&) const = default;
+};
+
+struct SelectionRejected
+{
+    QString requestId;
+    SelectionRejectionReason reason{ SelectionRejectionReason::Stale };
+    QVector<QString> missingMemberIds;
+    bool operator==(const SelectionRejected&) const = default;
+};
+
+struct RoundLoadingStarted
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    FrozenRound round;
+    bool operator==(const RoundLoadingStarted&) const = default;
+};
+
+struct RoundProbeRequested
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    qint64 inventoryRevision{};
+    QString nonce;
+    QString sha256;
+    qint64 deadlineMs{};
+    bool operator==(const RoundProbeRequested&) const = default;
+};
+
+struct RoundLoadRequested
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    FrozenRound round;
+    bool operator==(const RoundLoadRequested&) const = default;
+};
+
+struct RoundStartScheduled
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    qint64 connectionGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    qint64 startAtServerMs{};
+    qint64 startAfterMs{};
+    bool operator==(const RoundStartScheduled&) const = default;
+};
+
+struct RoundStarted
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    bool operator==(const RoundStarted&) const = default;
+};
+
+struct RoundLaunchCancelled
+{
+    QString roomId;
+    qint64 roomGeneration{};
+    QString roundId;
+    QString launchAttemptId;
+    RoundLaunchCancellationReason reason{
+        RoundLaunchCancellationReason::Cancelled
+    };
+    std::optional<SelectionSnapshot> selection{ std::nullopt };
+    qint64 selectionRevision{};
+    qint64 availabilityRevision{};
+    bool operator==(const RoundLaunchCancelled&) const = default;
+};
+
 using ServerMessage = std::variant<ServerHello,
                                    FatalError,
                                    DirectorySnapshot,
@@ -383,6 +805,18 @@ using ServerMessage = std::variant<ServerHello,
                                    ChatMessageEvent,
                                    ServerHeartbeat,
                                    ServerGoingAway,
-                                   CommandError>;
+                                   CommandError,
+                                   InventoryUploadReady,
+                                   InventoryCommitted,
+                                   AvailabilityTransferBegin,
+                                   AvailabilityTransferCommit,
+                                   SelectionChanged,
+                                   SelectionRejected,
+                                   RoundLoadingStarted,
+                                   RoundProbeRequested,
+                                   RoundLoadRequested,
+                                   RoundStartScheduled,
+                                   RoundStarted,
+                                   RoundLaunchCancelled>;
 
 } // namespace arena

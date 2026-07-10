@@ -922,6 +922,9 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             setState(State::Error);
         },
         [this](const CommandError& error) { handleCommandError(error); },
+        // Phase 2 messages are decoded here before the round-state handlers
+        // are connected in the ArenaSession integration task.
+        [](const auto&) {},
       },
       message);
 }

@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QFile>
+#include <QHash>
 #include <QSet>
 
 #include <concepts>
@@ -163,6 +164,18 @@ loadProtocolFixture() -> QJsonObject
 }
 
 auto
+loadPhase2ProtocolFixture() -> QJsonObject
+{
+    QFile file(QString::fromUtf8(ARENA_PHASE2_PROTOCOL_FIXTURE_PATH));
+    REQUIRE(file.open(QIODevice::ReadOnly));
+    QJsonParseError parseError;
+    const auto document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    REQUIRE(parseError.error == QJsonParseError::NoError);
+    REQUIRE(document.isObject());
+    return document.object();
+}
+
+auto
 clientMessageFromFixture(const QJsonObject& object)
   -> std::optional<arena::ClientMessage>
 {
@@ -172,6 +185,10 @@ clientMessageFromFixture(const QJsonObject& object)
     const auto requestId = object.value(QStringLiteral("requestId")).toString();
     if (type == QStringLiteral("client_hello")) {
         ClientHello hello{
+            .protocolMajor =
+              data.value(QStringLiteral("protocolMajor")).toInt(),
+            .protocolMinor =
+              data.value(QStringLiteral("protocolMinor")).toInt(),
             .clientVersion =
               data.value(QStringLiteral("clientVersion")).toString(),
         };
@@ -260,6 +277,210 @@ clientMessageFromFixture(const QJsonObject& object)
 }
 
 auto
+selectionFromPhase2Fixture(const QJsonObject& object)
+  -> arena::SelectionSnapshot
+{
+    using namespace arena;
+    REQUIRE(object.value(QStringLiteral("noteOrderP1")).toString() ==
+            QStringLiteral("s_random_plus"));
+    REQUIRE(object.value(QStringLiteral("noteOrderP2")).toString() ==
+            QStringLiteral("lr2_random_ex"));
+    REQUIRE(object.value(QStringLiteral("dpMode")).toString() ==
+            QStringLiteral("lr2_flip"));
+
+    QVector<qint64> sequence;
+    for (const auto& value :
+         object.value(QStringLiteral("randomSequence")).toArray()) {
+        sequence.push_back(value.toInteger());
+    }
+    SelectionSnapshot selection{
+        .sha256 = object.value(QStringLiteral("sha256")).toString(),
+        .title = object.value(QStringLiteral("title")).toString(),
+        .subtitle = object.value(QStringLiteral("subtitle")).toString(),
+        .artist = object.value(QStringLiteral("artist")).toString(),
+        .keyMode = object.value(QStringLiteral("keyMode")).toInt(),
+        .randomSequence = std::move(sequence),
+        .noteOrderP1 = NoteOrder::SRandomPlus,
+        .noteOrderP2 = NoteOrder::Lr2RandomEx,
+        .dpMode = DpMode::Lr2Flip,
+        .laneSeed = object.value(QStringLiteral("laneSeed")).toString(),
+        .randomizationVersion =
+          object.value(QStringLiteral("randomizationVersion")).toInt(),
+    };
+    if (object.contains(QStringLiteral("md5"))) {
+        selection.md5 = object.value(QStringLiteral("md5")).toString();
+    }
+    return selection;
+}
+
+auto
+validSelection() -> arena::SelectionSnapshot
+{
+    return {
+        .sha256 = QString(64, QChar(u'a')),
+        .md5 = QString(32, QChar(u'b')),
+        .title = QStringLiteral("Chart"),
+        .subtitle = {},
+        .artist = QStringLiteral("Artist"),
+        .keyMode = 7,
+        .randomSequence = { 1, 2, 3 },
+        .noteOrderP1 = arena::NoteOrder::Random,
+        .noteOrderP2 = arena::NoteOrder::Mirror,
+        .dpMode = arena::DpMode::Off,
+        .laneSeed = QStringLiteral("0123456789abcdef"),
+        .randomizationVersion = 1,
+    };
+}
+
+auto
+phase2ClientMessageFromFixture(const QJsonObject& object)
+  -> std::optional<arena::ClientMessage>
+{
+    using namespace arena;
+    const auto type = object.value(QStringLiteral("type")).toString();
+    const auto requestId = object.value(QStringLiteral("requestId")).toString();
+    const auto data = object.value(QStringLiteral("data")).toObject();
+    const auto roomId = data.value(QStringLiteral("roomId")).toString();
+    const auto roomGeneration =
+      data.value(QStringLiteral("roomGeneration")).toInteger();
+    const auto connectionGeneration =
+      data.value(QStringLiteral("connectionGeneration")).toInteger();
+
+    if (type == QStringLiteral("inventory_upload_begin")) {
+        return ClientMessage{ InventoryUploadBegin{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .libraryGeneration =
+            data.value(QStringLiteral("libraryGeneration")).toInteger(),
+          .hashCount = data.value(QStringLiteral("hashCount")).toInteger(),
+          .byteCount = data.value(QStringLiteral("byteCount")).toInteger(),
+          .chunkCount = data.value(QStringLiteral("chunkCount")).toInteger(),
+          .vectorDigest = data.value(QStringLiteral("vectorDigest")).toString(),
+        } };
+    }
+    if (type == QStringLiteral("inventory_upload_commit")) {
+        return ClientMessage{ InventoryUploadCommit{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .uploadId = data.value(QStringLiteral("uploadId")).toString(),
+          .libraryGeneration =
+            data.value(QStringLiteral("libraryGeneration")).toInteger(),
+          .hashCount = data.value(QStringLiteral("hashCount")).toInteger(),
+          .byteCount = data.value(QStringLiteral("byteCount")).toInteger(),
+          .chunkCount = data.value(QStringLiteral("chunkCount")).toInteger(),
+          .vectorDigest = data.value(QStringLiteral("vectorDigest")).toString(),
+        } };
+    }
+    if (type == QStringLiteral("inventory_upload_abort")) {
+        return ClientMessage{ InventoryUploadAbort{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .uploadId = data.value(QStringLiteral("uploadId")).toString(),
+          .libraryGeneration =
+            data.value(QStringLiteral("libraryGeneration")).toInteger(),
+        } };
+    }
+    if (type == QStringLiteral("availability_applied")) {
+        return ClientMessage{ AvailabilityApplied{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .availabilityRevision =
+            data.value(QStringLiteral("availabilityRevision")).toInteger(),
+        } };
+    }
+    if (type == QStringLiteral("availability_resync")) {
+        return ClientMessage{ AvailabilityResync{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .currentRevision =
+            data.value(QStringLiteral("currentRevision")).toInteger(),
+        } };
+    }
+    if (type == QStringLiteral("selection_set")) {
+        return ClientMessage{ SelectionSet{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .availabilityRevision =
+            data.value(QStringLiteral("availabilityRevision")).toInteger(),
+          .inventoryRevision =
+            data.value(QStringLiteral("inventoryRevision")).toInteger(),
+          .selection = selectionFromPhase2Fixture(
+            data.value(QStringLiteral("selection")).toObject()),
+        } };
+    }
+    if (type == QStringLiteral("ready_set")) {
+        return ClientMessage{ ReadySet{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .ready = data.value(QStringLiteral("ready")).toBool(),
+          .selectionRevision =
+            data.value(QStringLiteral("selectionRevision")).toInteger(),
+          .availabilityRevision =
+            data.value(QStringLiteral("availabilityRevision")).toInteger(),
+          .inventoryRevision =
+            data.value(QStringLiteral("inventoryRevision")).toInteger(),
+        } };
+    }
+    if (type == QStringLiteral("round_probe_result")) {
+        RoundProbeResult result{
+            .requestId = requestId,
+            .roomId = roomId,
+            .roomGeneration = roomGeneration,
+            .connectionGeneration = connectionGeneration,
+            .roundId = data.value(QStringLiteral("roundId")).toString(),
+            .launchAttemptId =
+              data.value(QStringLiteral("launchAttemptId")).toString(),
+            .selectionRevision =
+              data.value(QStringLiteral("selectionRevision")).toInteger(),
+            .availabilityRevision =
+              data.value(QStringLiteral("availabilityRevision")).toInteger(),
+            .inventoryRevision =
+              data.value(QStringLiteral("inventoryRevision")).toInteger(),
+            .nonce = data.value(QStringLiteral("nonce")).toString(),
+            .ok = data.value(QStringLiteral("ok")).toBool(),
+        };
+        if (result.ok) {
+            result.sha256 = data.value(QStringLiteral("sha256")).toString();
+        }
+        return ClientMessage{ std::move(result) };
+    }
+    if (type == QStringLiteral("round_load_result")) {
+        return ClientMessage{ RoundLoadResult{
+          .requestId = requestId,
+          .roomId = roomId,
+          .roomGeneration = roomGeneration,
+          .connectionGeneration = connectionGeneration,
+          .roundId = data.value(QStringLiteral("roundId")).toString(),
+          .launchAttemptId =
+            data.value(QStringLiteral("launchAttemptId")).toString(),
+          .selectionRevision =
+            data.value(QStringLiteral("selectionRevision")).toInteger(),
+          .availabilityRevision =
+            data.value(QStringLiteral("availabilityRevision")).toInteger(),
+          .inventoryRevision =
+            data.value(QStringLiteral("inventoryRevision")).toInteger(),
+          .ok = data.value(QStringLiteral("ok")).toBool(),
+          .failureReason = RoundLoadFailureReason::ResourceFailed,
+        } };
+    }
+    return std::nullopt;
+}
+
+auto
 serverMessageType(const arena::ServerMessage& message) -> QString
 {
     return std::visit(
@@ -290,6 +511,33 @@ serverMessageType(const arena::ServerMessage& message) -> QString
               return QStringLiteral("server_going_away");
           } else if constexpr (std::same_as<T, arena::CommandError>) {
               return QStringLiteral("command_error");
+          } else if constexpr (std::same_as<T, arena::InventoryUploadReady>) {
+              return QStringLiteral("inventory_upload_ready");
+          } else if constexpr (std::same_as<T, arena::InventoryCommitted>) {
+              return QStringLiteral("inventory_committed");
+          } else if constexpr (std::same_as<T,
+                                            arena::AvailabilityTransferBegin>) {
+              return QStringLiteral("availability_transfer_begin");
+          } else if constexpr (std::same_as<
+                                 T,
+                                 arena::AvailabilityTransferCommit>) {
+              return QStringLiteral("availability_transfer_commit");
+          } else if constexpr (std::same_as<T, arena::SelectionChanged>) {
+              return QStringLiteral("selection_changed");
+          } else if constexpr (std::same_as<T, arena::SelectionRejected>) {
+              return QStringLiteral("selection_rejected");
+          } else if constexpr (std::same_as<T, arena::RoundLoadingStarted>) {
+              return QStringLiteral("round_loading_started");
+          } else if constexpr (std::same_as<T, arena::RoundProbeRequested>) {
+              return QStringLiteral("round_probe_requested");
+          } else if constexpr (std::same_as<T, arena::RoundLoadRequested>) {
+              return QStringLiteral("round_load_requested");
+          } else if constexpr (std::same_as<T, arena::RoundStartScheduled>) {
+              return QStringLiteral("round_start_scheduled");
+          } else if constexpr (std::same_as<T, arena::RoundStarted>) {
+              return QStringLiteral("round_started");
+          } else if constexpr (std::same_as<T, arena::RoundLaunchCancelled>) {
+              return QStringLiteral("round_launch_cancelled");
           }
       },
       message);
@@ -329,7 +577,7 @@ TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
     CHECK(fixture.value(QStringLiteral("protocolMajor")).toInt() ==
           ProtocolMajor);
     CHECK(fixture.value(QStringLiteral("protocolMinor")).toInt() ==
-          ProtocolMinor);
+          LegacyProtocolMinor);
 
     QSet<QString> caseNames;
     for (const auto& value :
@@ -387,6 +635,17 @@ TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
         CHECK(
           fixtureCase.value(QStringLiteral("typescriptFailure")).toString() ==
           QStringLiteral("malformed_message"));
+        if (name == QStringLiteral("invalid server protocol minor")) {
+            // Protocol 1.1 deliberately promotes this historical Phase 1
+            // negative golden to a valid rooms-only negotiated hello. Keep
+            // the immutable Phase 1 fixture bytes while testing the new
+            // interpretation here.
+            CHECK(
+              messageAs<ServerHello>(decodeServerMessage(compact(
+                fixtureCase.value(QStringLiteral("message")).toObject()))) !=
+              nullptr);
+            continue;
+        }
         const auto expectedFailure = fixtureFailureCode(
           fixtureCase.value(QStringLiteral("cppFailure")).toString());
         REQUIRE(expectedFailure.has_value());
@@ -394,6 +653,213 @@ TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
           compact(fixtureCase.value(QStringLiteral("message")).toObject()));
         CHECK(failureCode(decoded) == expectedFailure);
     }
+}
+
+TEST_CASE("ArenaProtocol consumes every canonical Phase 2 text golden",
+          "[arena][protocol][fixture][phase2]")
+{
+    using namespace arena;
+    const auto fixture = loadPhase2ProtocolFixture();
+    CHECK(keysOf(fixture) ==
+          QSet<QString>{ QStringLiteral("fixtureSchema"),
+                         QStringLiteral("protocolMajor"),
+                         QStringLiteral("protocolMinor"),
+                         QStringLiteral("clientMessages"),
+                         QStringLiteral("serverMessages"),
+                         QStringLiteral("strictInvalidClientTypes"),
+                         QStringLiteral("strictInvalidServerTypes") });
+    CHECK(fixture.value(QStringLiteral("fixtureSchema")).toInt() == 1);
+    CHECK(fixture.value(QStringLiteral("protocolMajor")).toInt() ==
+          ProtocolMajor);
+    CHECK(fixture.value(QStringLiteral("protocolMinor")).toInt() ==
+          ProtocolMinor);
+
+    QSet<QString> clientTypes;
+    for (const auto& value :
+         fixture.value(QStringLiteral("clientMessages")).toArray()) {
+        const auto fixtureCase = value.toObject();
+        REQUIRE(
+          keysOf(fixtureCase) ==
+          QSet<QString>{ QStringLiteral("name"), QStringLiteral("message") });
+        const auto expected =
+          fixtureCase.value(QStringLiteral("message")).toObject();
+        const auto type = expected.value(QStringLiteral("type")).toString();
+        CAPTURE(type);
+        REQUIRE_FALSE(clientTypes.contains(type));
+        clientTypes.insert(type);
+        const auto message = phase2ClientMessageFromFixture(expected);
+        REQUIRE(message.has_value());
+        const auto encoded = encodeClientMessage(*message);
+        REQUIRE(std::holds_alternative<QString>(encoded));
+        CHECK(objectFrom(std::get<QString>(encoded)) == expected);
+    }
+
+    QSet<QString> serverTypes;
+    QHash<QString, QJsonObject> serverGoldens;
+    for (const auto& value :
+         fixture.value(QStringLiteral("serverMessages")).toArray()) {
+        const auto fixtureCase = value.toObject();
+        REQUIRE(
+          keysOf(fixtureCase) ==
+          QSet<QString>{ QStringLiteral("name"), QStringLiteral("message") });
+        const auto expected =
+          fixtureCase.value(QStringLiteral("message")).toObject();
+        const auto type = expected.value(QStringLiteral("type")).toString();
+        CAPTURE(type);
+        REQUIRE_FALSE(serverTypes.contains(type));
+        serverTypes.insert(type);
+        serverGoldens.insert(type, expected);
+        const auto decoded = decodeServerMessage(compact(expected));
+        REQUIRE(decodedMessage(decoded) != nullptr);
+        CHECK(serverMessageType(*decodedMessage(decoded)) == type);
+    }
+
+    QSet<QString> strictClientTypes;
+    for (const auto& value :
+         fixture.value(QStringLiteral("strictInvalidClientTypes")).toArray()) {
+        REQUIRE(value.isString());
+        strictClientTypes.insert(value.toString());
+    }
+    CHECK(strictClientTypes == clientTypes);
+
+    QSet<QString> strictServerTypes;
+    for (const auto& value :
+         fixture.value(QStringLiteral("strictInvalidServerTypes")).toArray()) {
+        REQUIRE(value.isString());
+        const auto type = value.toString();
+        strictServerTypes.insert(type);
+        REQUIRE(serverGoldens.contains(type));
+        auto invalid = serverGoldens.value(type);
+        auto data = invalid.value(QStringLiteral("data")).toObject();
+        data.insert(QStringLiteral("unexpected"), true);
+        invalid.insert(QStringLiteral("data"), data);
+        CAPTURE(type);
+        CHECK(failureCode(decodeServerMessage(compact(invalid))) ==
+              ProtocolFailureCode::MalformedMessage);
+    }
+    CHECK(strictServerTypes == serverTypes);
+}
+
+TEST_CASE("ArenaProtocol validates Phase 2 inventory declarations exactly",
+          "[arena][protocol][phase2]")
+{
+    using namespace arena;
+    auto begin = InventoryUploadBegin{
+        .requestId = QStringLiteral("inventory-1"),
+        .roomId = QStringLiteral("room-1"),
+        .roomGeneration = 1,
+        .connectionGeneration = 1,
+        .libraryGeneration = 1,
+        .hashCount = 2,
+        .byteCount = 64,
+        .chunkCount = 1,
+        .vectorDigest = QString(64, QChar(u'a')),
+    };
+    CHECK(std::holds_alternative<QString>(encodeClientMessage(begin)));
+
+    begin.byteCount = 63;
+    CHECK(encodeFailureCode(encodeClientMessage(begin)) ==
+          ProtocolFailureCode::MalformedMessage);
+    begin.byteCount = 64;
+    begin.chunkCount = 0;
+    CHECK(encodeFailureCode(encodeClientMessage(begin)) ==
+          ProtocolFailureCode::MalformedMessage);
+    begin.chunkCount = 1;
+    begin.hashCount = 250'001;
+    begin.byteCount = 8'000'032;
+    CHECK(encodeFailureCode(encodeClientMessage(begin)) ==
+          ProtocolFailureCode::MalformedMessage);
+
+    auto commit = InventoryUploadCommit{
+        .requestId = QStringLiteral("inventory-2"),
+        .roomId = QStringLiteral("room-1"),
+        .roomGeneration = 1,
+        .connectionGeneration = 1,
+        .uploadId = QStringLiteral("AAAAAAAAAAAAAAAAAAAAAA"),
+        .libraryGeneration = 1,
+        .hashCount = 0,
+        .byteCount = 0,
+        .chunkCount = 0,
+        .vectorDigest = QString(64, QChar(u'b')),
+    };
+    CHECK(std::holds_alternative<QString>(encodeClientMessage(commit)));
+    commit.uploadId.chop(1);
+    CHECK(encodeFailureCode(encodeClientMessage(commit)) ==
+          ProtocolFailureCode::MalformedMessage);
+}
+
+TEST_CASE("ArenaProtocol validates deterministic selection and result unions",
+          "[arena][protocol][phase2]")
+{
+    using namespace arena;
+    auto command = SelectionSet{
+        .requestId = QStringLiteral("selection-1"),
+        .roomId = QStringLiteral("room-1"),
+        .roomGeneration = 1,
+        .connectionGeneration = 1,
+        .availabilityRevision = 1,
+        .inventoryRevision = 1,
+        .selection = validSelection(),
+    };
+    CHECK(std::holds_alternative<QString>(encodeClientMessage(command)));
+
+    command.selection.randomSequence.fill(1, MaxRandomSequenceEntries + 1);
+    CHECK(encodeFailureCode(encodeClientMessage(command)) ==
+          ProtocolFailureCode::MalformedMessage);
+    command.selection = validSelection();
+    command.selection.randomSequence = { 0 };
+    CHECK(encodeFailureCode(encodeClientMessage(command)) ==
+          ProtocolFailureCode::MalformedMessage);
+    command.selection = validSelection();
+    command.selection.title = QString(201, QChar(u'x'));
+    CHECK(encodeFailureCode(encodeClientMessage(command)) ==
+          ProtocolFailureCode::MalformedMessage);
+    command.selection = validSelection();
+    command.selection.laneSeed = QStringLiteral("0123456789abcdeF");
+    CHECK(encodeFailureCode(encodeClientMessage(command)) ==
+          ProtocolFailureCode::MalformedMessage);
+
+    auto probe = RoundProbeResult{
+        .requestId = QStringLiteral("probe-1"),
+        .roomId = QStringLiteral("room-1"),
+        .roomGeneration = 1,
+        .connectionGeneration = 1,
+        .roundId = QStringLiteral("round-1"),
+        .launchAttemptId = QStringLiteral("attempt-1"),
+        .selectionRevision = 1,
+        .availabilityRevision = 1,
+        .inventoryRevision = 1,
+        .nonce = QStringLiteral("nonce-1"),
+        .ok = true,
+        .sha256 = QString(64, QChar(u'a')),
+    };
+    CHECK(std::holds_alternative<QString>(encodeClientMessage(probe)));
+    probe.failureReason = RoundProbeFailureReason::Cancelled;
+    CHECK(encodeFailureCode(encodeClientMessage(probe)) ==
+          ProtocolFailureCode::MalformedMessage);
+    probe.ok = false;
+    probe.sha256.reset();
+    CHECK(std::holds_alternative<QString>(encodeClientMessage(probe)));
+    probe.failureReason.reset();
+    CHECK(encodeFailureCode(encodeClientMessage(probe)) ==
+          ProtocolFailureCode::MalformedMessage);
+
+    auto loaded = RoundLoadResult{
+        .requestId = QStringLiteral("load-1"),
+        .roomId = QStringLiteral("room-1"),
+        .roomGeneration = 1,
+        .connectionGeneration = 1,
+        .roundId = QStringLiteral("round-1"),
+        .launchAttemptId = QStringLiteral("attempt-1"),
+        .selectionRevision = 1,
+        .availabilityRevision = 1,
+        .inventoryRevision = 1,
+        .ok = true,
+    };
+    CHECK(std::holds_alternative<QString>(encodeClientMessage(loaded)));
+    loaded.failureReason = RoundLoadFailureReason::Cancelled;
+    CHECK(encodeFailureCode(encodeClientMessage(loaded)) ==
+          ProtocolFailureCode::MalformedMessage);
 }
 
 TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
@@ -408,7 +874,7 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
     CHECK(
       objectFrom(std::get<QString>(anonymous)) ==
       objectFrom(QStringLiteral(
-        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1"]}})")));
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":1,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1"]}})")));
 
     const auto ticket = encodeClientMessage(ClientHello{
       .clientVersion = QStringLiteral("2026.7.10"),
@@ -418,11 +884,12 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
     CHECK(
       objectFrom(std::get<QString>(ticket)) ==
       objectFrom(QStringLiteral(
-        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1"],"ticket":"header.payload.signature"}})")));
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":1,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1"],"ticket":"header.payload.signature"}})")));
 
     const auto resume = encodeClientMessage(ClientHello{
       .clientVersion = QStringLiteral("2026.7.10"),
       .capabilities = { QStringLiteral("rooms-v1"),
+                        QStringLiteral("rounds-v1"),
                         QStringLiteral("future-extension") },
       .ticket = QStringLiteral("header.payload.signature"),
       .resume =
@@ -433,7 +900,18 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
     CHECK(
       objectFrom(std::get<QString>(resume)) ==
       objectFrom(QStringLiteral(
-        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1","future-extension"],"ticket":"header.payload.signature","resume":{"roomId":"room-123","seatToken":"resume_token-123"}}})")));
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":1,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","future-extension"],"ticket":"header.payload.signature","resume":{"roomId":"room-123","seatToken":"resume_token-123"}}})")));
+
+    const auto legacy = encodeClientMessage(ClientHello{
+      .protocolMinor = LegacyProtocolMinor,
+      .clientVersion = QStringLiteral("2026.7.10"),
+      .capabilities = { QStringLiteral("rooms-v1") },
+    });
+    REQUIRE(std::holds_alternative<QString>(legacy));
+    CHECK(
+      objectFrom(std::get<QString>(legacy)) ==
+      objectFrom(QStringLiteral(
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1"]}})")));
 }
 
 TEST_CASE("ArenaProtocol decodes server hello and directory snapshot",
@@ -451,6 +929,14 @@ TEST_CASE("ArenaProtocol decodes server hello and directory snapshot",
     CHECK(serverHello->capabilities ==
           QStringList{ QStringLiteral("rooms-v1") });
     CHECK_FALSE(serverHello->identity.has_value());
+
+    const auto currentHello = decodeServerMessage(QStringLiteral(
+      R"({"type":"server_hello","data":{"protocolMajor":1,"protocolMinor":1,"capabilities":["rooms-v1","rounds-v1"],"resume":{"status":"not_requested"}}})"));
+    const auto* current = messageAs<ServerHello>(currentHello);
+    REQUIRE(current != nullptr);
+    CHECK(current->protocolMinor == ProtocolMinor);
+    CHECK(current->capabilities == QStringList{ QStringLiteral("rooms-v1"),
+                                                QStringLiteral("rounds-v1") });
 
     const auto directory = decodeServerMessage(QStringLiteral(
       R"({"type":"directory_snapshot","data":{"revision":4,"rooms":[{"roomId":"room-123","name":"Arena room","phase":"selecting","hasPassword":true,"connectedCount":1,"reservedCount":0,"maxCount":16}]}})"));
@@ -485,7 +971,7 @@ TEST_CASE(
       ProtocolFailureCode::ProtocolIncompatible);
     CHECK(
       failureCode(decodeServerMessage(QStringLiteral(
-        R"({"type":"server_hello","data":{"protocolMajor":1,"protocolMinor":1,"capabilities":["rooms-v1"],"resume":{"status":"not_requested"}}})"))) ==
+        R"({"type":"server_hello","data":{"protocolMajor":1,"protocolMinor":2,"capabilities":["rooms-v1"],"resume":{"status":"not_requested"}}})"))) ==
       ProtocolFailureCode::ProtocolIncompatible);
     CHECK(
       failureCode(decodeServerMessage(QStringLiteral(
@@ -829,7 +1315,7 @@ TEST_CASE("ArenaProtocol reports version and capability failures precisely",
         };
     };
 
-    for (const auto [major, minor] : { std::pair{ 2, 0 }, std::pair{ 1, 1 } }) {
+    for (const auto [major, minor] : { std::pair{ 2, 0 }, std::pair{ 1, 2 } }) {
         auto data = helloData();
         data.insert(QStringLiteral("protocolMajor"), major);
         data.insert(QStringLiteral("protocolMinor"), minor);
@@ -851,6 +1337,8 @@ TEST_CASE("ArenaProtocol reports version and capability failures precisely",
     for (const auto capabilities : {
            QJsonArray{ QStringLiteral("rooms-v1"), QStringLiteral("rooms-v1") },
            QJsonArray{ QStringLiteral("rooms-v1"), QStringLiteral("future") },
+           QJsonArray{ QStringLiteral("rounds-v1"),
+                       QStringLiteral("rooms-v1") },
            QJsonArray{ QStringLiteral("rooms-v1"), 1 },
          }) {
         auto data = helloData();
@@ -859,6 +1347,19 @@ TEST_CASE("ArenaProtocol reports version and capability failures precisely",
                 envelope(QStringLiteral("server_hello"), data))) ==
               ProtocolFailureCode::MalformedMessage);
     }
+
+    auto legacyWithRounds = helloData();
+    legacyWithRounds.insert(
+      QStringLiteral("capabilities"),
+      QJsonArray{ QStringLiteral("rooms-v1"), QStringLiteral("rounds-v1") });
+    CHECK(failureCode(decodeServerMessage(
+            envelope(QStringLiteral("server_hello"), legacyWithRounds))) ==
+          ProtocolFailureCode::MalformedMessage);
+
+    auto currentRoomsOnly = helloData();
+    currentRoomsOnly.insert(QStringLiteral("protocolMinor"), ProtocolMinor);
+    CHECK(messageAs<ServerHello>(decodeServerMessage(envelope(
+            QStringLiteral("server_hello"), currentRoomsOnly))) != nullptr);
 
     auto tooMany = ClientHello{ .clientVersion = QStringLiteral("1.0") };
     tooMany.capabilities.clear();
