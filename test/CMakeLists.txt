@@ -17,6 +17,7 @@ add_executable(RhythmGame_test
         arena/ArenaInventorySource.test.cpp
         arena/ArenaProtocol.test.cpp
         arena/ArenaRoundLoader.test.cpp
+        arena/ArenaGameplaySource.test.cpp
         arena/ArenaSelectIntegration.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
@@ -26,6 +27,7 @@ add_executable(RhythmGame_test
         arena/FakeArenaIdentityProvider.h
         arena/FakeArenaScheduler.h
         arena/FakeArenaInventorySource.h
+        arena/FakeArenaGameplaySource.h
         gameplay_logic/ChartStartGate.test.cpp
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
