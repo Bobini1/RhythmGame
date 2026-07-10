@@ -16,7 +16,7 @@
 <context>
     <name>ArenaCompetitionText</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="87"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="91"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
@@ -28,7 +28,18 @@
 <context>
     <name>ArenaGameplayOverlay</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="93"/>
+        <source>%n win(s)</source>
+        <comment>Arena lobby wins</comment>
+        <translation type="vanished">
+            <numerusform>%n win</numerusform>
+            <numerusform>%n wins</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>ArenaRoom</name>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="234"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
@@ -40,7 +51,7 @@
 <context>
     <name>ArenaRosterView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="150"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="177"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
