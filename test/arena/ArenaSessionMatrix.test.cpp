@@ -1,4 +1,5 @@
 #include "FakeArenaIdentityProvider.h"
+#include "FakeArenaGameplaySource.h"
 #include "FakeArenaScheduler.h"
 #include "FakeArenaTransport.h"
 #include "arena/ArenaSession.h"
@@ -57,10 +58,11 @@ serverHello(bool authenticated) -> QString
 {
     auto data = QJsonObject{
         { QStringLiteral("protocolMajor"), 1 },
-        { QStringLiteral("protocolMinor"), 1 },
+        { QStringLiteral("protocolMinor"), 2 },
         { QStringLiteral("capabilities"),
           QJsonArray{ QStringLiteral("rooms-v1"),
-                      QStringLiteral("rounds-v1") } },
+                      QStringLiteral("rounds-v1"),
+                      QStringLiteral("competition-v1") } },
         { QStringLiteral("resume"),
           QJsonObject{
             { QStringLiteral("status"), QStringLiteral("not_requested") } } },
@@ -91,6 +93,11 @@ member(QString memberId, QString displayName) -> QJsonObject
             { QStringLiteral("avatarUrl"), QJsonValue::Null } } },
         { QStringLiteral("status"), QStringLiteral("connected") },
         { QStringLiteral("lobbyWins"), 0 },
+        { QStringLiteral("ready"), false },
+        { QStringLiteral("inventoryState"), QStringLiteral("missing") },
+        { QStringLiteral("inventoryRevision"), 0 },
+        { QStringLiteral("availabilityAppliedRevision"), 0 },
+        { QStringLiteral("roundState"), QStringLiteral("eligible") },
     };
 }
 
@@ -132,6 +139,11 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
             { QStringLiteral("resumeToken"), std::move(token) } } },
         { QStringLiteral("members"), std::move(members) },
         { QStringLiteral("chat"), QJsonArray{} },
+        { QStringLiteral("selection"), QJsonValue::Null },
+        { QStringLiteral("selectionRevision"), 0 },
+        { QStringLiteral("availabilityRevision"), 0 },
+        { QStringLiteral("liveStandings"), QJsonValue::Null },
+        { QStringLiteral("lastRoundResult"), QJsonValue::Null },
     };
 }
 
@@ -152,10 +164,11 @@ resumeHello(QJsonObject room) -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 1 },
+          { QStringLiteral("protocolMinor"), 2 },
           { QStringLiteral("capabilities"),
             QJsonArray{ QStringLiteral("rooms-v1"),
-                        QStringLiteral("rounds-v1") } },
+                        QStringLiteral("rounds-v1"),
+                        QStringLiteral("competition-v1") } },
           { QStringLiteral("identity"),
             QJsonObject{
               { QStringLiteral("userId"), QStringLiteral("user-1") },
@@ -310,11 +323,15 @@ struct Fixture
     arena::test::FakeArenaTransport transport;
     arena::test::FakeArenaIdentityProvider identity;
     Scheduler scheduler;
+    arena::test::FakeArenaGameplaySource gameplaySource;
     arena::ArenaSession session{ &transport,
                                  &identity,
                                  &scheduler,
                                  QUrl(QStringLiteral("ws://127.0.0.1:3001/ws")),
-                                 QStringLiteral("2026.7.10") };
+                                 QStringLiteral("2026.7.10"),
+                                 nullptr,
+                                 nullptr,
+                                 &gameplaySource };
 
     void browse()
     {

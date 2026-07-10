@@ -1,4 +1,5 @@
 #include "FakeArenaIdentityProvider.h"
+#include "FakeArenaGameplaySource.h"
 #include "FakeArenaInventorySource.h"
 #include "FakeArenaRoundLoader.h"
 #include "FakeArenaScheduler.h"
@@ -189,10 +190,11 @@ serverHello(bool authenticated) -> QString
 {
     auto data = QJsonObject{
         { QStringLiteral("protocolMajor"), 1 },
-        { QStringLiteral("protocolMinor"), 1 },
+        { QStringLiteral("protocolMinor"), 2 },
         { QStringLiteral("capabilities"),
           QJsonArray{ QStringLiteral("rooms-v1"),
-                      QStringLiteral("rounds-v1") } },
+                      QStringLiteral("rounds-v1"),
+                      QStringLiteral("competition-v1") } },
         { QStringLiteral("resume"),
           QJsonObject{
             { QStringLiteral("status"), QStringLiteral("not_requested") } } },
@@ -326,13 +328,12 @@ member(QString memberId,
 }
 
 auto
-phase2Member(QString memberId,
-             QString displayName,
-             QString inventoryState = QStringLiteral("missing"),
-             qint64 inventoryRevision = 0,
-             qint64 availabilityAppliedRevision = 0) -> QJsonObject
+withRoundMemberFields(
+  QJsonObject result,
+  QString inventoryState = QStringLiteral("missing"),
+  qint64 inventoryRevision = 0,
+  qint64 availabilityAppliedRevision = 0) -> QJsonObject
 {
-    auto result = member(std::move(memberId), std::move(displayName));
     result.insert(QStringLiteral("ready"), false);
     result.insert(QStringLiteral("inventoryState"), std::move(inventoryState));
     result.insert(QStringLiteral("inventoryRevision"), inventoryRevision);
@@ -340,6 +341,20 @@ phase2Member(QString memberId,
                   availabilityAppliedRevision);
     result.insert(QStringLiteral("roundState"), QStringLiteral("eligible"));
     return result;
+}
+
+auto
+phase2Member(QString memberId,
+             QString displayName,
+             QString inventoryState = QStringLiteral("missing"),
+             qint64 inventoryRevision = 0,
+             qint64 availabilityAppliedRevision = 0) -> QJsonObject
+{
+    return withRoundMemberFields(member(std::move(memberId),
+                                        std::move(displayName)),
+                                 std::move(inventoryState),
+                                 inventoryRevision,
+                                 availabilityAppliedRevision);
 }
 
 auto
@@ -371,7 +386,7 @@ phase2FrozenRound(QString sha256, QString stage = QStringLiteral("probing"))
     selection.insert(QStringLiteral("noteOrderP2"),
                      QStringLiteral("lr2_random_ex"));
     selection.insert(QStringLiteral("dpMode"), QStringLiteral("lr2_flip"));
-    return {
+    auto result = QJsonObject{
         { QStringLiteral("roundId"), QStringLiteral("round-1") },
         { QStringLiteral("launchAttemptId"), QStringLiteral("attempt-1") },
         { QStringLiteral("selectionRevision"), 4 },
@@ -381,9 +396,20 @@ phase2FrozenRound(QString sha256, QString stage = QStringLiteral("probing"))
           QJsonArray{ QJsonObject{
             { QStringLiteral("memberId"), QStringLiteral("member-1") },
             { QStringLiteral("inventoryRevision"), 6 },
+            { QStringLiteral("identity"),
+              QJsonObject{
+                { QStringLiteral("userId"), QStringLiteral("user-1") },
+                { QStringLiteral("displayName"), QStringLiteral("Alice") },
+                { QStringLiteral("avatarUrl"), QJsonValue::Null },
+              } },
           } } },
-        { QStringLiteral("stage"), std::move(stage) },
+        { QStringLiteral("stage"), stage },
     };
+    if (stage == QStringLiteral("scheduled") ||
+        stage == QStringLiteral("playing")) {
+        result.insert(QStringLiteral("playDeadlineAtServerMs"), 400'000);
+    }
+    return result;
 }
 
 auto
@@ -407,8 +433,12 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
                  QJsonArray chat = {}) -> QJsonObject
 {
     if (members.isEmpty()) {
-        members.append(
-          member(QStringLiteral("member-1"), QStringLiteral("Alice")));
+        members.append(phase2Member(QStringLiteral("member-1"),
+                                    QStringLiteral("Alice")));
+    } else {
+        for (auto index = 0; index < members.size(); ++index) {
+            members[index] = withRoundMemberFields(members[index].toObject());
+        }
     }
     return {
         { QStringLiteral("roomId"), QStringLiteral("room-1") },
@@ -425,6 +455,11 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
             { QStringLiteral("resumeToken"), std::move(token) } } },
         { QStringLiteral("members"), std::move(members) },
         { QStringLiteral("chat"), std::move(chat) },
+        { QStringLiteral("selection"), QJsonValue::Null },
+        { QStringLiteral("selectionRevision"), 0 },
+        { QStringLiteral("availabilityRevision"), 0 },
+        { QStringLiteral("liveStandings"), QJsonValue::Null },
+        { QStringLiteral("lastRoundResult"), QJsonValue::Null },
     };
 }
 
@@ -460,10 +495,11 @@ resumeHello(QJsonObject room) -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 1 },
+          { QStringLiteral("protocolMinor"), 2 },
           { QStringLiteral("capabilities"),
             QJsonArray{ QStringLiteral("rooms-v1"),
-                        QStringLiteral("rounds-v1") } },
+                        QStringLiteral("rounds-v1"),
+                        QStringLiteral("competition-v1") } },
           { QStringLiteral("identity"),
             QJsonObject{
               { QStringLiteral("userId"), QStringLiteral("user-1") },
@@ -486,10 +522,11 @@ failedResumeHello() -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 1 },
+          { QStringLiteral("protocolMinor"), 2 },
           { QStringLiteral("capabilities"),
             QJsonArray{ QStringLiteral("rooms-v1"),
-                        QStringLiteral("rounds-v1") } },
+                        QStringLiteral("rounds-v1"),
+                        QStringLiteral("competition-v1") } },
           { QStringLiteral("identity"),
             QJsonObject{
               { QStringLiteral("userId"), QStringLiteral("user-1") },
@@ -514,13 +551,15 @@ struct Fixture
     arena::test::FakeArenaScheduler scheduler;
     arena::test::FakeArenaInventorySource inventory;
     arena::test::FakeArenaRoundLoader roundLoader;
+    arena::test::FakeArenaGameplaySource gameplaySource;
     arena::ArenaSession session{ &transport,
                                  &identity,
                                  &scheduler,
                                  QUrl(QStringLiteral("ws://127.0.0.1:3001/ws")),
                                  QStringLiteral("2026.7.10"),
                                  &inventory,
-                                 &roundLoader };
+                                 &roundLoader,
+                                 &gameplaySource };
 
     void browse()
     {
@@ -560,7 +599,7 @@ struct Fixture
     {
         session.connectForBrowsing();
         transport.injectConnected(1);
-        transport.injectText(1, phase2ServerHello(false));
+        transport.injectText(1, serverHello(false));
         identity.setLoggedIn(true);
         session.createRoom(QStringLiteral("Arena room"), QString{});
         REQUIRE_FALSE(identity.ticketRequests.isEmpty());
@@ -568,7 +607,7 @@ struct Fixture
                                QStringLiteral("short-lived-ticket"));
         const auto generation = transport.connectCalls.back().generation;
         transport.injectConnected(generation);
-        transport.injectText(generation, phase2ServerHello(true));
+        transport.injectText(generation, serverHello(true));
         const auto command = messageObject(transport.textCalls.back().message);
         REQUIRE(command.value(QStringLiteral("type")).toString() ==
                 QStringLiteral("room_create"));
@@ -836,7 +875,7 @@ TEST_CASE("ArenaSession falls back once to anonymous legacy browse only",
     CHECK(hello.value(QStringLiteral("data"))
             .toObject()
             .value(QStringLiteral("protocolMinor"))
-            .toInt() == 1);
+            .toInt() == 2);
 
     const auto incompatible = compact({
       { QStringLiteral("type"), QStringLiteral("fatal_error") },
@@ -865,7 +904,7 @@ TEST_CASE("ArenaSession falls back once to anonymous legacy browse only",
     fixture.session.createRoom(QStringLiteral("Blocked"), QString{});
     CHECK(fixture.identity.ticketRequests.isEmpty());
     CHECK(fixture.session.getErrorCode() ==
-          QStringLiteral("rounds_capability_required"));
+          QStringLiteral("competition_capability_required"));
 
     const auto connections = fixture.transport.connectCalls.size();
     fixture.transport.injectText(fallbackGeneration, incompatible);
@@ -873,7 +912,7 @@ TEST_CASE("ArenaSession falls back once to anonymous legacy browse only",
     CHECK(fixture.session.getState() == arena::ArenaSession::State::Error);
 }
 
-TEST_CASE("ArenaSession never admits a seat without rounds-v1 negotiation",
+TEST_CASE("ArenaSession never admits a seat without competition-v1 negotiation",
           "[arena][session][protocol]")
 {
     ensureCoreApplication();
@@ -890,7 +929,7 @@ TEST_CASE("ArenaSession never admits a seat without rounds-v1 negotiation",
         fixture.session.joinRoom(QStringLiteral("room-1"), QString{});
         CHECK(fixture.identity.ticketRequests.isEmpty());
         CHECK(fixture.session.getErrorCode() ==
-              QStringLiteral("rounds_capability_required"));
+              QStringLiteral("competition_capability_required"));
     }
 
     SECTION("authenticated connection downgrades capability")
@@ -906,14 +945,14 @@ TEST_CASE("ArenaSession never admits a seat without rounds-v1 negotiation",
           fixture.transport.connectCalls.back().generation;
         fixture.transport.injectConnected(generation);
         const auto writesBeforeHello = fixture.transport.textCalls.size();
-        fixture.transport.injectText(generation, legacyServerHello(true));
+        fixture.transport.injectText(generation, phase2ServerHello(true));
         REQUIRE(fixture.transport.textCalls.size() == writesBeforeHello + 1);
         CHECK(messageObject(fixture.transport.textCalls.back().message)
                 .value(QStringLiteral("type"))
                 .toString() == QStringLiteral("directory_subscribe"));
         CHECK_FALSE(fixture.session.getAdmissionPending());
         CHECK(fixture.session.getErrorCode() ==
-              QStringLiteral("rounds_capability_required"));
+              QStringLiteral("competition_capability_required"));
     }
 }
 
@@ -1463,6 +1502,7 @@ TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
                   QStringLiteral("attempt-1") },
                 { QStringLiteral("startAtServerMs"), 10'000 },
                 { QStringLiteral("startAfterMs"), startAfterMs },
+                { QStringLiteral("playDeadlineAtServerMs"), 400'000 },
               } },
           }));
     };
@@ -1699,6 +1739,12 @@ TEST_CASE("ArenaSession advances waiting spectators on room-wide round start",
       QJsonArray{ QJsonObject{
         { QStringLiteral("memberId"), QStringLiteral("member-2") },
         { QStringLiteral("inventoryRevision"), 4 },
+        { QStringLiteral("identity"),
+          QJsonObject{
+            { QStringLiteral("userId"), QStringLiteral("user-2") },
+            { QStringLiteral("displayName"), QStringLiteral("Bob") },
+            { QStringLiteral("avatarUrl"), QJsonValue::Null },
+          } },
       } });
     fixture.transport.injectText(
       generation,
@@ -1724,6 +1770,7 @@ TEST_CASE("ArenaSession advances waiting spectators on room-wide round start",
             { QStringLiteral("roundId"), QStringLiteral("round-1") },
             { QStringLiteral("launchAttemptId"),
               QStringLiteral("attempt-1") },
+            { QStringLiteral("playDeadlineAtServerMs"), 400'000 },
           } },
       }));
     CHECK(fixture.session.getRoomPhase() == arena::RoomPhase::Playing);

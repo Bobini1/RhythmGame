@@ -1735,6 +1735,7 @@ TEST_CASE(
     const auto* room =
       messageAs<RoomSnapshotEvent>(decodeServerMessage(compact(roomGolden)));
     REQUIRE(room != nullptr);
+    CHECK(room->room.competitionShape);
     CHECK_FALSE(room->room.liveStandings.has_value());
     CHECK_FALSE(room->room.lastRoundResult.has_value());
 

@@ -16,7 +16,7 @@ struct PublicIdentity;
 struct RoundResultSnapshot;
 struct TelemetrySnapshot;
 
-class ArenaStandingsModel final : public QAbstractListModel
+class ArenaStandingsModel : public QAbstractListModel
 {
     Q_OBJECT
     Q_PROPERTY(QString roundId READ roundId NOTIFY snapshotChanged FINAL)

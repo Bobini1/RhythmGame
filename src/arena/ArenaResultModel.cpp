@@ -112,7 +112,7 @@ ArenaResultModel::setPending(QString roundId,
         return false;
     }
 
-    m_standings.clear();
+    const auto generation = ++m_mutationGeneration;
     m_valid = true;
     m_finalized = false;
     m_roundId = std::move(roundId);
@@ -125,6 +125,10 @@ ArenaResultModel::setPending(QString roundId,
     m_localWinner = false;
     m_selectionTitle = std::move(selectionTitle);
     m_selectionOptionsSummary = std::move(selectionOptionsSummary);
+    m_standings.clear();
+    if (generation != m_mutationGeneration) {
+        return true;
+    }
     emit changed();
     return true;
 }
@@ -176,9 +180,19 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
         winnerNamesValue.push_back(*name);
     }
 
-    if (!m_standings.replaceFinal(snapshot)) {
-        return false;
-    }
+    const auto oldValid = m_valid;
+    const auto oldFinalized = m_finalized;
+    const auto oldRoundId = m_roundId;
+    const auto oldResultRevision = m_resultRevision;
+    const auto oldParticipantCount = m_participantCount;
+    const auto oldWinnerMemberIds = m_winnerMemberIds;
+    const auto oldWinnerNames = m_winnerNames;
+    const auto oldLocalRank = m_localRank;
+    const auto oldLocalDnf = m_localDnf;
+    const auto oldLocalWinner = m_localWinner;
+    const auto oldSelectionTitle = m_selectionTitle;
+    const auto oldSelectionOptionsSummary = m_selectionOptionsSummary;
+    const auto generation = ++m_mutationGeneration;
     m_valid = true;
     m_finalized = true;
     m_roundId = snapshot.roundId;
@@ -194,6 +208,24 @@ ArenaResultModel::replaceFinal(const RoundResultSnapshot& snapshot,
       [&](const QString& winnerId) { return winnerId == localMemberId; });
     m_selectionTitle = snapshot.selection.title;
     m_selectionOptionsSummary = std::move(selectionOptionsSummary);
+    if (!m_standings.replaceFinal(snapshot)) {
+        m_valid = oldValid;
+        m_finalized = oldFinalized;
+        m_roundId = oldRoundId;
+        m_resultRevision = oldResultRevision;
+        m_participantCount = oldParticipantCount;
+        m_winnerMemberIds = oldWinnerMemberIds;
+        m_winnerNames = oldWinnerNames;
+        m_localRank = oldLocalRank;
+        m_localDnf = oldLocalDnf;
+        m_localWinner = oldLocalWinner;
+        m_selectionTitle = oldSelectionTitle;
+        m_selectionOptionsSummary = oldSelectionOptionsSummary;
+        return false;
+    }
+    if (generation != m_mutationGeneration) {
+        return true;
+    }
     emit changed();
     return true;
 }
@@ -210,7 +242,7 @@ ArenaResultModel::clear()
         return;
     }
 
-    m_standings.clear();
+    const auto generation = ++m_mutationGeneration;
     m_valid = false;
     m_finalized = false;
     m_roundId.clear();
@@ -223,6 +255,10 @@ ArenaResultModel::clear()
     m_localWinner = false;
     m_selectionTitle.clear();
     m_selectionOptionsSummary.clear();
+    m_standings.clear();
+    if (generation != m_mutationGeneration) {
+        return;
+    }
     emit changed();
 }
 

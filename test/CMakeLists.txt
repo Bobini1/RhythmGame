@@ -26,6 +26,7 @@ add_executable(RhythmGame_test
         arena/ArenaPacemakerIntegration.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
+        arena/ArenaSessionCompetition.test.cpp
         arena/ArenaSessionMatrix.test.cpp
         arena/ProfileListArenaPolicy.test.cpp
         arena/FakeArenaTransport.h

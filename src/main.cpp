@@ -57,6 +57,7 @@
 #include "gameplay_logic/lr2_skin/Lr2SkinModel.h"
 #include "arena/ArenaSession.h"
 #include "arena/ProfileArenaIdentityProvider.h"
+#include "arena/QtArenaGameplaySource.h"
 #include "arena/QtArenaRoundLoader.h"
 #include "arena/QtArenaScheduler.h"
 #include "arena/QtWebSocketArenaTransport.h"
@@ -387,6 +388,7 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         };
         auto arenaRoundLoader =
           arena::QtArenaRoundLoader{ &profileList, &db, &chartLoader };
+        auto arenaGameplaySource = arena::QtArenaGameplaySource{};
         auto arenaSession =
           arena::ArenaSession{ &arenaTransport,
                                &arenaIdentityProvider,
@@ -394,7 +396,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                                arenaEndpointFromEnvironment(),
                                QCoreApplication::applicationVersion(),
                                &arenaInventorySource,
-                               &arenaRoundLoader };
+                               &arenaRoundLoader,
+                               &arenaGameplaySource };
         const auto applyArenaBattlePolicy = [&] {
             profileList.setBattleAllowed(!arenaSession.getActive());
         };

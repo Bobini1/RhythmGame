@@ -2,15 +2,20 @@
 
 #include "ArenaChatModel.h"
 #include "ArenaAvailabilityIndex.h"
+#include "ArenaGameplaySource.h"
 #include "ArenaIdentityProvider.h"
 #include "ArenaInventorySource.h"
 #include "ArenaMemberListModel.h"
+#include "ArenaOpponentTarget.h"
 #include "ArenaProtocol.h"
+#include "ArenaResultModel.h"
 #include "ArenaRoomListModel.h"
 #include "ArenaRoundLoader.h"
 #include "ArenaScheduler.h"
+#include "ArenaStandingsModel.h"
 #include "ArenaTransport.h"
 #include "ArenaTypes.h"
+#include "gameplay_logic/ChartRunner.h"
 
 #include <QHash>
 #include <QObject>
@@ -56,6 +61,8 @@ class ArenaSession final : public QObject
     Q_PROPERTY(bool isOwner READ getIsOwner NOTIFY ownerChanged FINAL)
     Q_PROPERTY(bool roundsAvailable READ getRoundsAvailable NOTIFY
                  capabilitiesChanged FINAL)
+    Q_PROPERTY(bool competitionAvailable READ competitionAvailable NOTIFY
+                 capabilitiesChanged FINAL)
     Q_PROPERTY(bool availabilitySyncing READ getAvailabilitySyncing NOTIFY
                  availabilityChanged FINAL)
     Q_PROPERTY(arena::ArenaAvailabilityIndex* availability READ getAvailability
@@ -78,6 +85,24 @@ class ArenaSession final : public QObject
     Q_PROPERTY(
       arena::ArenaMemberListModel* members READ getMembers CONSTANT FINAL)
     Q_PROPERTY(arena::ArenaChatModel* chat READ getChat CONSTANT FINAL)
+    Q_PROPERTY(arena::ArenaStandingsModel* liveStandings READ liveStandings
+                 CONSTANT FINAL)
+    Q_PROPERTY(
+      arena::ArenaResultModel* lastResult READ lastResult CONSTANT FINAL)
+    Q_PROPERTY(arena::ArenaResultModel* presentedResult READ presentedResult
+                 CONSTANT FINAL)
+    Q_PROPERTY(arena::ArenaOpponentTarget* opponentTarget READ opponentTarget
+                 CONSTANT FINAL)
+    Q_PROPERTY(gameplay_logic::ChartRunner* arenaRunner READ arenaRunner NOTIFY
+                 competitionChanged FINAL)
+    Q_PROPERTY(bool arenaGameplayActive READ arenaGameplayActive NOTIFY
+                 competitionChanged FINAL)
+    Q_PROPERTY(bool resultPresentationActive READ resultPresentationActive
+                 NOTIFY competitionChanged FINAL)
+    Q_PROPERTY(bool gameplayChatOpen READ gameplayChatOpen WRITE
+                 setGameplayChatOpen NOTIFY gameplayChatOpenChanged FINAL)
+    Q_PROPERTY(QString arenaOptionsSummary READ arenaOptionsSummary NOTIFY
+                 competitionChanged FINAL)
 
   public:
     enum class State
@@ -98,6 +123,7 @@ class ArenaSession final : public QObject
                           QString clientVersion,
                           ArenaInventorySource* inventorySource = nullptr,
                           ArenaRoundLoader* roundLoader = nullptr,
+                          ArenaGameplaySource* gameplaySource = nullptr,
                           QObject* parent = nullptr);
     ~ArenaSession() override;
 
@@ -118,6 +144,7 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto getOwnerMemberId() const -> QString;
     [[nodiscard]] auto getIsOwner() const -> bool;
     [[nodiscard]] auto getRoundsAvailable() const -> bool;
+    [[nodiscard]] auto competitionAvailable() const -> bool;
     [[nodiscard]] auto getAvailabilitySyncing() const -> bool;
     [[nodiscard]] auto getAvailability() -> ArenaAvailabilityIndex*;
     [[nodiscard]] auto getRoomPhase() const -> RoomPhase;
@@ -132,6 +159,15 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto getRooms() -> ArenaRoomListModel*;
     [[nodiscard]] auto getMembers() -> ArenaMemberListModel*;
     [[nodiscard]] auto getChat() -> ArenaChatModel*;
+    [[nodiscard]] auto liveStandings() -> ArenaStandingsModel*;
+    [[nodiscard]] auto lastResult() -> ArenaResultModel*;
+    [[nodiscard]] auto presentedResult() -> ArenaResultModel*;
+    [[nodiscard]] auto opponentTarget() -> ArenaOpponentTarget*;
+    [[nodiscard]] auto arenaRunner() const -> gameplay_logic::ChartRunner*;
+    [[nodiscard]] auto arenaGameplayActive() const -> bool;
+    [[nodiscard]] auto resultPresentationActive() const -> bool;
+    [[nodiscard]] auto gameplayChatOpen() const -> bool;
+    [[nodiscard]] auto arenaOptionsSummary() const -> QString;
 
     Q_INVOKABLE void connectForBrowsing();
     Q_INVOKABLE void exitArena();
@@ -143,6 +179,11 @@ class ArenaSession final : public QObject
     Q_INVOKABLE void retry();
     Q_INVOKABLE void selectChart(gameplay_logic::ChartData* chart);
     Q_INVOKABLE void setReady(bool ready);
+    Q_INVOKABLE bool submitLocalResult(gameplay_logic::BmsScore* score);
+    Q_INVOKABLE void abandonCurrentRound();
+    Q_INVOKABLE void setGameplayChatOpen(bool open);
+    Q_INVOKABLE void toggleGameplayChat();
+    Q_INVOKABLE void endResultPresentation(const QString& roundId);
 
   signals:
     void stateChanged();
@@ -163,6 +204,8 @@ class ArenaSession final : public QObject
     void roundRunnerStarted(const QString& roundId,
                             gameplay_logic::ChartRunner* runner);
     void roundLaunchCancelled();
+    void competitionChanged();
+    void gameplayChatOpenChanged();
 
   private:
     enum class HandshakeKind
@@ -218,6 +261,7 @@ class ArenaSession final : public QObject
     ArenaScheduler* m_scheduler;
     ArenaInventorySource* m_inventorySource;
     ArenaRoundLoader* m_roundLoader;
+    ArenaGameplaySource* m_gameplaySource;
     QUrl m_endpoint;
     QString m_clientVersion;
 
@@ -225,6 +269,10 @@ class ArenaSession final : public QObject
     ArenaMemberListModel m_members;
     ArenaChatModel m_chat;
     ArenaAvailabilityIndex m_availability;
+    ArenaStandingsModel m_liveStandings;
+    ArenaResultModel m_lastResult;
+    ArenaResultModel m_presentedResult;
+    ArenaOpponentTarget m_opponentTarget;
 
     State m_state{ State::Disconnected };
     bool m_active{};
@@ -232,6 +280,7 @@ class ArenaSession final : public QObject
     bool m_loginRequired{};
     bool m_directoryReady{};
     bool m_roundsAvailable{};
+    bool m_competitionAvailable{};
     QString m_errorCode;
     QString m_errorMessageKey;
 
@@ -333,12 +382,35 @@ class ArenaSession final : public QObject
     std::optional<PendingInventoryUpload> m_pendingInventoryUpload;
     std::optional<PendingAvailabilityTransfer> m_pendingAvailabilityTransfer;
 
+    struct PendingTerminal
+    {
+        std::variant<RoundResultSubmit, RoundAbandon> message;
+    };
+
+    QHash<QString, PublicIdentity> m_competitionIdentities;
+    QPointer<gameplay_logic::ChartRunner> m_arenaRunner;
+    QMetaObject::Connection m_arenaRunnerStatusConnection;
+    bool m_gameplaySourceAttached{};
+    bool m_arenaGameplayActive{};
+    bool m_resultPresentationActive{};
+    bool m_gameplayChatOpen{};
+    bool m_localRoundAbandoned{};
+    bool m_localTerminalSubmitted{};
+    QString m_arenaOptionsSummary;
+    QString m_expectedScoreGuid;
+    ArenaScheduler::TaskId m_telemetryTask{};
+    qint64 m_nextTelemetryDueMs{};
+    quint32 m_nextTelemetrySequence{ 1 };
+    std::optional<RoundTelemetry> m_pendingTelemetry;
+    std::optional<PendingTerminal> m_pendingTerminal;
+
     void setState(State state);
     void setActive(bool active);
     void setAuthenticated(bool authenticated);
     void setLoginRequired(bool required);
     void setDirectoryReady(bool ready);
     void setRoundsAvailable(bool available);
+    void setCompetitionAvailable(bool available);
     void clearError();
     void setError(QString code, QString messageKey);
     void setPendingAdmission(PendingAdmission admission);
@@ -412,7 +484,8 @@ class ArenaSession final : public QObject
                         std::optional<QString> selectedByMemberId);
     void requestAvailabilityResync();
     void clearRoundTransfers(bool abandonSeat = true,
-                             bool preservePreparedRound = false);
+                             bool preservePreparedRound = false,
+                             bool preserveCompetitionScore = false);
     void cancelRoundLoader();
     void handleProbeRequested(const RoundProbeRequested& requested);
     void handleLoadRequested(const RoundLoadRequested& requested);
@@ -421,7 +494,30 @@ class ArenaSession final : public QObject
                             gameplay_logic::ChartRunner* runner);
     void handleLoadFailed(quint64 requestId, ArenaLoadFailure failure);
     void handleRoundStartScheduled(const RoundStartScheduled& scheduled);
-    void cancelPreparedRound(bool notify);
+    void cancelPreparedRound(bool notify, bool preserveScoreGuid = false);
+    void cacheCompetitionIdentities(const FrozenRound& round);
+    void beginCompetitionRound(const FrozenRound& round);
+    void clearCompetitionState(bool clearLastResult = true);
+    void clearActiveCompetitionRound(bool preservePresentedResult = false);
+    [[nodiscard]] auto attachGameplaySource(gameplay_logic::ChartRunner* runner)
+      -> bool;
+    void detachGameplaySource(bool preserveScoreGuid = false);
+    void handleArenaRunnerStatusChanged();
+    void startTelemetrySampling();
+    void scheduleTelemetryTick();
+    void stopTelemetrySampling();
+    void sampleTelemetry();
+    void sendOrQueueTelemetry(TelemetrySnapshot telemetry);
+    void flushCompetitionMessages();
+    void sendTerminal(std::variant<RoundResultSubmit, RoundAbandon> message);
+    void sendAbandon(DnfReason reason);
+    void showPendingResult(bool localDnf);
+    void handleStandings(const LiveStandingsSnapshot& snapshot);
+    void handleTerminalAccepted(const RoundTerminalAccepted& accepted);
+    void handleRoundFinalized(const RoundFinalized& finalized);
+    [[nodiscard]] auto currentCompetitionRound(
+      QStringView roundId,
+      QStringView launchAttemptId) const -> bool;
     void failProtocol(ProtocolFailureCode code);
     void failProtocol(QString code, QString messageKey);
 };

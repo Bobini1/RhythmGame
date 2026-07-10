@@ -1478,6 +1478,7 @@ parseRoomSnapshot(const QJsonObject& object) -> RoomSnapshot
         fail();
     }
     RoomSnapshot result;
+    result.competitionShape = competition;
     result.roomId = requiredString(object, "roomId");
     validateOpaqueId(result.roomId);
     result.roomGeneration = requiredSafeInteger(object, "roomGeneration", true);

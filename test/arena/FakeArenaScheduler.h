@@ -89,6 +89,24 @@ class FakeArenaScheduler final : public ArenaScheduler
         }
     }
 
+    auto runNextAtCurrentTime() -> bool
+    {
+        const auto next = std::min_element(
+          m_tasks.begin(), m_tasks.end(), [](const Task& lhs, const Task& rhs) {
+              return std::pair{ lhs.dueMs, lhs.id } <
+                     std::pair{ rhs.dueMs, rhs.id };
+          });
+        if (next == m_tasks.end() || next->dueMs > m_nowMs) {
+            return false;
+        }
+        auto task = std::move(*next);
+        m_tasks.erase(next);
+        if (task.context) {
+            task.callback();
+        }
+        return true;
+    }
+
     [[nodiscard]] auto pendingCount() const -> qsizetype
     {
         return m_tasks.size();

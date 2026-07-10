@@ -500,6 +500,7 @@ struct RoomSnapshot
     std::optional<FrozenRound> round{ std::nullopt };
     std::optional<LiveStandingsSnapshot> liveStandings{ std::nullopt };
     std::optional<RoundResultSnapshot> lastRoundResult{ std::nullopt };
+    bool competitionShape{};
     bool operator==(const RoomSnapshot&) const = default;
 };
 

@@ -9,7 +9,7 @@ namespace arena {
 
 struct RoundResultSnapshot;
 
-class ArenaResultModel final : public QObject
+class ArenaResultModel : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool valid READ valid NOTIFY changed FINAL)
@@ -73,6 +73,7 @@ class ArenaResultModel final : public QObject
     QString m_selectionTitle{};
     QString m_selectionOptionsSummary{};
     ArenaStandingsModel m_standings;
+    quint64 m_mutationGeneration{};
 };
 
 } // namespace arena

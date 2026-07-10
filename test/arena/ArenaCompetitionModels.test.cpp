@@ -517,6 +517,30 @@ TEST_CASE(
     CHECK_FALSE(model.localWinner());
 }
 
+TEST_CASE("ArenaCompetitionModels: reentrant cleanup wins over final result "
+          "installation",
+          "[arena][competition-models]")
+{
+    using namespace arena;
+    ArenaResultModel model;
+    auto cleaned = false;
+    QObject::connect(
+      model.standings(), &QAbstractItemModel::modelReset, &model, [&] {
+          if (!cleaned) {
+              cleaned = true;
+              model.clear();
+          }
+      });
+
+    REQUIRE(model.replaceFinal(
+      finalSnapshot(), QStringLiteral("member-a"), QStringLiteral("options")));
+    REQUIRE(cleaned);
+    CHECK_FALSE(model.valid());
+    CHECK_FALSE(model.finalized());
+    CHECK(model.roundId().isEmpty());
+    CHECK(model.standings()->rowCount() == 0);
+}
+
 TEST_CASE(
   "ArenaCompetitionModels: target derives a stable strongest other score",
   "[arena][competition-models]")

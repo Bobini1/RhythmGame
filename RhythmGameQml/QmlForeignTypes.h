@@ -24,8 +24,11 @@
 #include "arena/ArenaChatModel.h"
 #include "arena/ArenaAvailabilityIndex.h"
 #include "arena/ArenaMemberListModel.h"
+#include "arena/ArenaOpponentTarget.h"
+#include "arena/ArenaResultModel.h"
 #include "arena/ArenaRoomListModel.h"
 #include "arena/ArenaSession.h"
+#include "arena/ArenaStandingsModel.h"
 
 #include <QQmlEngine>
 #include <QtCore/qassert.h>
@@ -88,6 +91,30 @@ struct ArenaAvailabilityIndexForeign
     QML_FOREIGN(arena::ArenaAvailabilityIndex)
     QML_NAMED_ELEMENT(ArenaAvailabilityIndex)
     QML_UNCREATABLE("Arena availability is provided by ArenaSession")
+};
+
+struct ArenaStandingsModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaStandingsModel)
+    QML_NAMED_ELEMENT(ArenaStandingsModel)
+    QML_UNCREATABLE("ArenaStandingsModel is provided by ArenaSession")
+};
+
+struct ArenaResultModelForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaResultModel)
+    QML_NAMED_ELEMENT(ArenaResultModel)
+    QML_UNCREATABLE("ArenaResultModel is provided by ArenaSession")
+};
+
+struct ArenaOpponentTargetForeign
+{
+    Q_GADGET
+    QML_FOREIGN(arena::ArenaOpponentTarget)
+    QML_NAMED_ELEMENT(ArenaOpponentTarget)
+    QML_UNCREATABLE("ArenaOpponentTarget is provided by ArenaSession")
 };
 
 struct ChartFolderModelForeign

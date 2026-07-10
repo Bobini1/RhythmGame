@@ -10,7 +10,7 @@ namespace arena {
 struct LiveStandingsSnapshot;
 struct PublicIdentity;
 
-class ArenaOpponentTarget final : public QObject
+class ArenaOpponentTarget : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool available READ available NOTIFY changed FINAL)
