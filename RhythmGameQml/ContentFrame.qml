@@ -103,6 +103,7 @@ ApplicationWindow {
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
         property var activeSettingsItem: null
         property Item activeArenaItem: null
+        property Item activeArenaGameplayItem: null
         property bool fpsOverlayVisible: false
         property int fpsOverlayValue: -1
         property int fpsOverlayFrameCount: 0
@@ -335,7 +336,7 @@ ApplicationWindow {
             sceneStack.pushItem(decideComponent, props);
         }
 
-        function openGameplay(runner: var) : void {
+        function openGameplay(runner: var) : var {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screenKey = "k" + keys + (battle ? "battle" : "");
@@ -348,7 +349,27 @@ ApplicationWindow {
                 props["skinSettingsData"] = screenObj.settingsData || "";
                 props["screenKey"] = screenKey;
             }
-            sceneStack.pushItem(component, props);
+            return sceneStack.pushItem(component, props);
+        }
+
+        function openPreparedArenaGameplay(runner: var) : void {
+            if (!runner) {
+                closePreparedArenaGameplay();
+                return;
+            }
+            if (activeArenaGameplayItem
+                    && activeArenaGameplayItem.StackView.view === sceneStack) {
+                return;
+            }
+            activeArenaGameplayItem = openGameplay(runner);
+        }
+
+        function closePreparedArenaGameplay() : void {
+            let item = activeArenaGameplayItem;
+            activeArenaGameplayItem = null;
+            if (item && sceneStack.currentItem === item) {
+                sceneStack.popCurrentItem();
+            }
         }
 
         function openResult(scores: var, profiles: var, chartData: var) : void {
@@ -387,6 +408,18 @@ ApplicationWindow {
         }
 
         anchors.fill: parent
+
+        Connections {
+            target: Rg.arenaSession
+
+            function onPreparedGameplayChanged(runner) {
+                globalRoot.openPreparedArenaGameplay(runner);
+            }
+
+            function onRoundLaunchCancelled() {
+                globalRoot.closePreparedArenaGameplay();
+            }
+        }
 
         Component {
             id: arenaShellComponent
