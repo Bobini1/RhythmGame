@@ -1843,6 +1843,17 @@ TEST_CASE("ArenaOverlayCustomization: Session restores input on runner and "
         });
     }
 
+    SECTION("server round finalization")
+    {
+        exercise([](Fixture& fixture, RunnerFixture&) {
+            fixture.transport.injectText(
+              fixture.transport.connectCalls.back().generation,
+              finalizedEvent());
+            CHECK(fixture.session.getRoomPhase() ==
+                  arena::RoomPhase::Selecting);
+        });
+    }
+
     SECTION("Arena exit")
     {
         exercise([](Fixture& fixture, RunnerFixture&) {
