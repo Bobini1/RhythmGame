@@ -68,6 +68,7 @@ FocusScope {
                 }
                 Qt.callLater(function() {
                     if (chatView.followTail && chatView.count > 0) {
+                        chatView.currentIndex = chatView.count - 1;
                         chatView.positionViewAtEnd();
                     }
                 });
@@ -91,7 +92,10 @@ FocusScope {
 
             onCountChanged: scrollToTailIfFollowing()
             onMovementStarted: followTail = false
-            onMovementEnded: followTail = atYEnd
+            onMovementEnded: {
+                followTail = atYEnd;
+                scrollToTailIfFollowing();
+            }
             onActiveFocusChanged: {
                 if (activeFocus) {
                     root.focusChatRow(Math.max(0, currentIndex));
@@ -100,13 +104,17 @@ FocusScope {
             Keys.priority: Keys.BeforeItem
             Keys.onPressed: event => {
                 if (event.key === Qt.Key_Up) {
+                    followTail = false;
                     root.focusChatRow(currentIndex - 1);
                 } else if (event.key === Qt.Key_Down) {
+                    followTail = false;
                     root.focusChatRow(currentIndex + 1);
                 } else if (event.key === Qt.Key_Home) {
+                    followTail = false;
                     root.focusChatRow(0);
                 } else if (event.key === Qt.Key_End) {
-                    root.focusChatRow(count - 1);
+                    followTail = true;
+                    scrollToTailIfFollowing();
                 } else if (event.key === Qt.Key_Escape) {
                     root.session.setGameplayChatOpen(false);
                 } else {

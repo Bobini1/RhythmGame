@@ -23,9 +23,20 @@ FocusScope {
         }
         Qt.callLater(function () {
             if (root.followTail && chatList.count > 0) {
+                chatList.currentIndex = chatList.count - 1;
                 chatList.positionViewAtEnd();
             }
         });
+    }
+
+    function reviewChatRow(index: int): void {
+        if (chatList.count <= 0) {
+            return;
+        }
+        root.followTail = false;
+        const targetIndex = Math.max(0, Math.min(chatList.count - 1, index));
+        chatList.currentIndex = targetIndex;
+        chatList.positionViewAtIndex(targetIndex, ListView.Contain);
     }
 
     function scrollToBeginning(): void {
@@ -83,6 +94,23 @@ FocusScope {
             keyNavigationEnabled: true
             spacing: 5
 
+            Keys.priority: Keys.BeforeItem
+            Keys.onPressed: event => {
+                if (event.key === Qt.Key_Up) {
+                    root.reviewChatRow(chatList.currentIndex - 1);
+                } else if (event.key === Qt.Key_Down) {
+                    root.reviewChatRow(chatList.currentIndex + 1);
+                } else if (event.key === Qt.Key_Home) {
+                    root.reviewChatRow(0);
+                } else if (event.key === Qt.Key_End) {
+                    root.followTail = true;
+                    root.scrollToTail();
+                } else {
+                    return;
+                }
+                event.accepted = true;
+            }
+
             function ensureCurrentItem(): void {
                 if (chatList.count === 0) {
                     chatList.currentIndex = -1;
@@ -101,8 +129,11 @@ FocusScope {
                 root.scrollToTail();
             }
             onCountChanged: chatList.ensureCurrentItem()
-            onMovementStarted: root.followTail = chatList.atYEnd
-            onMovementEnded: root.followTail = chatList.atYEnd
+            onMovementStarted: root.followTail = false
+            onMovementEnded: {
+                root.followTail = chatList.atYEnd;
+                root.scrollToTail();
+            }
 
             delegate: Rectangle {
                 id: messageDelegate
