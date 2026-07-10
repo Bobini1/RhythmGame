@@ -439,6 +439,105 @@
     </message>
 </context>
 <context>
+    <name>ArenaSelectStrip</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="19"/>
+        <source>That chart is not available to every player.</source>
+        <translation>Nie wszyscy gracze mają ten wykres.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="23"/>
+        <source>The room library changed. Please try again.</source>
+        <translation>Biblioteka utworów w pokoju uległa zmianie. Spróbuj ponownie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="25"/>
+        <source>The next round is already being prepared.</source>
+        <translation>Trwa już przygotowywanie następnej rundy.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="27"/>
+        <source>This chart configuration is not supported by Arena.</source>
+        <translation>Arena nie obsługuje tej konfiguracji wykresu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="29"/>
+        <source>The selected chart is no longer available locally.</source>
+        <translation>Wybrany wykres nie jest już dostępny lokalnie.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="31"/>
+        <source>The local chart file no longer matches the room selection.</source>
+        <translation>Lokalny plik wykresu nie odpowiada już wyborowi w pokoju.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="34"/>
+        <source>The selected chart could not be prepared.</source>
+        <translation>Nie udało się przygotować wybranego wykresu.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="40"/>
+        <source>Arena room controls</source>
+        <translation>Sterowanie pokojem Areny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="59"/>
+        <source>Arena room</source>
+        <translation>Pokój Areny</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="69"/>
+        <source>Choose any chart available to everyone.</source>
+        <translation>Wybierz dowolny wykres dostępny u wszystkich.</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="71"/>
+        <source>Selected: %1</source>
+        <translation>Wybrano: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="83"/>
+        <source>Selected by %1</source>
+        <translation>Wybrane przez: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="109"/>
+        <source>Update required to play in this room</source>
+        <translation>Aby zagrać w tym pokoju, zaktualizuj grę</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="112"/>
+        <source>Comparing song libraries…</source>
+        <translation>Porównywanie bibliotek utworów…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="115"/>
+        <source>Preparing the synchronized start…</source>
+        <translation>Przygotowywanie zsynchronizowanego startu…</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="118"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="132"/>
+        <source>Ready</source>
+        <translation>Gotowy</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="120"/>
+        <source>Not ready</source>
+        <translation>Niegotowy</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="132"/>
+        <source>Unready</source>
+        <translation>Odwołaj gotowość</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="138"/>
+        <source>Leave room</source>
+        <translation>Opuść pokój</translation>
+    </message>
+</context>
+<context>
     <name>BgaPopup</name>
     <message>
         <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="9"/>

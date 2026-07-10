@@ -435,6 +435,105 @@
     </message>
 </context>
 <context>
+    <name>ArenaSelectStrip</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="19"/>
+        <source>That chart is not available to every player.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="23"/>
+        <source>The room library changed. Please try again.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="25"/>
+        <source>The next round is already being prepared.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="27"/>
+        <source>This chart configuration is not supported by Arena.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="29"/>
+        <source>The selected chart is no longer available locally.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="31"/>
+        <source>The local chart file no longer matches the room selection.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="34"/>
+        <source>The selected chart could not be prepared.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="40"/>
+        <source>Arena room controls</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="59"/>
+        <source>Arena room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="69"/>
+        <source>Choose any chart available to everyone.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="71"/>
+        <source>Selected: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="83"/>
+        <source>Selected by %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="109"/>
+        <source>Update required to play in this room</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="112"/>
+        <source>Comparing song libraries…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="115"/>
+        <source>Preparing the synchronized start…</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="118"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="132"/>
+        <source>Ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="120"/>
+        <source>Not ready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="132"/>
+        <source>Unready</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="138"/>
+        <source>Leave room</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>BgaPopup</name>
     <message>
         <location filename="../scripts/gameplay/popups/BgaPopup.qml" line="9"/>
