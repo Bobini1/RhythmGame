@@ -103,8 +103,12 @@ SqliteArenaInventorySource::commitLibraryMutation()
     ++m_generation;
     if (m_active && !m_active->cancelled) {
         m_active->superseded = true;
-        setPending(BuildRequest{ .requestId = m_active->requestId,
-                                 .generation = m_generation });
+        if (m_pending) {
+            m_pending->generation = m_generation;
+        } else {
+            setPending(BuildRequest{ .requestId = m_active->requestId,
+                                     .generation = m_generation });
+        }
     }
     emit generationChanged(m_generation);
 }

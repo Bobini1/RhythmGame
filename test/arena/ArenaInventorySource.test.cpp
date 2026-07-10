@@ -227,6 +227,38 @@ TEST_CASE(
     CHECK(generations == QVector<qint64>{ 2, 3, 3 });
 }
 
+TEST_CASE(
+  "SqliteArenaInventorySource preserves newest pending request on mutation",
+  "[arena][ArenaInventorySource]")
+{
+    ensureApplication();
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto path = databasePath(directory);
+    db::SqliteCppDb db(path);
+    createInventoryTable(db);
+    db.execute("INSERT INTO charts(sha256) VALUES (printf('%064x', 1))");
+
+    arena::SqliteArenaInventorySource source(path);
+    QVector<quint64> responseIds;
+    std::optional<arena::ArenaInventorySnapshot> snapshot;
+    QObject::connect(
+      &source,
+      &arena::ArenaInventorySource::snapshotReady,
+      [&](quint64 requestId, arena::ArenaInventorySnapshot value) {
+          responseIds.push_back(requestId);
+          snapshot = std::move(value);
+      });
+
+    source.requestSnapshot(10);
+    source.requestSnapshot(11);
+    source.commitLibraryMutation();
+
+    REQUIRE(spinUntil([&] { return snapshot.has_value(); }));
+    CHECK(responseIds == QVector<quint64>{ 11 });
+    CHECK(snapshot->libraryGeneration == 2);
+}
+
 TEST_CASE("SqliteArenaInventorySource cancellation suppresses stale completion",
           "[arena][ArenaInventorySource]")
 {
@@ -370,6 +402,59 @@ TEST_CASE("ArenaInventorySource root removal commits after database cleanup",
     folders.remove(0);
     CHECK(cleanedBeforeGenerationSignal);
     CHECK(source.generation() == 2);
+}
+
+TEST_CASE("ArenaInventorySource active root removal defers until queue drain",
+          "[arena][ArenaInventorySource][SongDbScanner]")
+{
+    ensureApplication();
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto path = databasePath(directory);
+    const auto root = rootPath(directory, QStringLiteral("active-removed"));
+    db::SqliteCppDb db(path);
+    resource_managers::defineDb(db);
+    auto insertRoot =
+      db.createStatement("INSERT INTO root_dir(path, status) VALUES (?, 0)");
+    insertRoot.bind(1, root.toStdString());
+    insertRoot.execute();
+
+    resource_managers::SongDbScanner scanner(&db);
+    qml_components::ScanningQueue queue(&db, scanner);
+    arena::SqliteArenaInventorySource source(path);
+    QObject::connect(&queue,
+                     &qml_components::ScanningQueue::queueDrained,
+                     &source,
+                     &arena::SqliteArenaInventorySource::commitLibraryMutation);
+    int drains = 0;
+    QObject::connect(
+      &queue, &qml_components::ScanningQueue::queueDrained, [&] { ++drains; });
+
+    qml_components::RootSongFolders folders(&db, &queue);
+    int rootCommits = 0;
+    QObject::connect(
+      &folders,
+      &qml_components::RootSongFolders::chartSetMutationCommitted,
+      &source,
+      &arena::SqliteArenaInventorySource::commitLibraryMutation);
+    QObject::connect(
+      &folders,
+      &qml_components::RootSongFolders::chartSetMutationCommitted,
+      [&] { ++rootCommits; });
+    REQUIRE(queue.rowCount() == 1);
+
+    folders.remove(0);
+    CHECK(rootCommits == 0);
+    CHECK(source.generation() == 1);
+
+    REQUIRE(spinUntil([&] { return queue.rowCount() == 0; }, 60'000));
+    CHECK(rootCommits == 0);
+    CHECK(drains == 1);
+    CHECK(source.generation() == 2);
+    auto chartCount =
+      db.createStatement("SELECT count(*) FROM charts").executeAndGet<int>();
+    REQUIRE(chartCount);
+    CHECK(*chartCount == 0);
 }
 
 TEST_CASE("FakeArenaInventorySource preserves request correlation",

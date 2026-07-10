@@ -207,7 +207,9 @@ RootSongFolders::remove(const int index)
     beginRemoveRows(QModelIndex(), index, index);
     folders.erase(folders.begin() + index);
     endRemoveRows();
-    emit chartSetMutationCommitted();
+    if (scanningQueue->rowCount() == 0) {
+        emit chartSetMutationCommitted();
+    }
 }
 auto
 RootSongFolders::at(const int index) const -> QVariant
