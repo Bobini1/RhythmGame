@@ -1727,6 +1727,140 @@ TEST_CASE("ArenaSessionCompetition: cleanup paths synchronously clear "
     }
 }
 
+TEST_CASE("ArenaOverlayCustomization: Session gates only its active Arena "
+          "runner and chat exits the gate",
+          "[arena][ArenaOverlayCustomization]")
+{
+    ensureCoreApplication();
+
+    auto ordinaryRunner = makeReadyRunner();
+    ordinaryRunner.runner->start();
+    REQUIRE(ordinaryRunner.runner->getStatus() ==
+            gameplay_logic::ChartRunner::Running);
+
+    auto arenaRunner = makeReadyRunner();
+    arenaRunner.runner->holdStart();
+    Fixture fixture;
+    fixture.enterRoom();
+
+    fixture.session.setOverlayCustomizationActive(true);
+    CHECK_FALSE(fixture.session.overlayCustomizationActive());
+    CHECK_FALSE(ordinaryRunner.runner->inputSuppressed());
+
+    fixture.loadRound(arenaRunner.runner.get());
+    fixture.startRound();
+    REQUIRE(fixture.session.arenaRunner() == arenaRunner.runner.get());
+    REQUIRE(arenaRunner.runner->getStatus() ==
+            gameplay_logic::ChartRunner::Running);
+
+    auto changes = 0;
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::overlayCustomizationActiveChanged,
+                     [&changes] { ++changes; });
+
+    fixture.session.setOverlayCustomizationActive(true);
+    CHECK(fixture.session.overlayCustomizationActive());
+    CHECK(arenaRunner.runner->inputSuppressed());
+    CHECK_FALSE(ordinaryRunner.runner->inputSuppressed());
+    CHECK(changes == 1);
+
+    fixture.session.setOverlayCustomizationActive(true);
+    CHECK(changes == 1);
+
+    fixture.session.setGameplayChatOpen(true);
+    CHECK(fixture.session.gameplayChatOpen());
+    CHECK_FALSE(fixture.session.overlayCustomizationActive());
+    CHECK_FALSE(arenaRunner.runner->inputSuppressed());
+    CHECK(changes == 2);
+
+    fixture.session.setOverlayCustomizationActive(false);
+    CHECK(changes == 2);
+}
+
+TEST_CASE("ArenaOverlayCustomization: Session restores input on runner and "
+          "lifecycle cleanup",
+          "[arena][ArenaOverlayCustomization]")
+{
+    ensureCoreApplication();
+
+    auto exercise = [](auto trigger) {
+        auto runner = makeReadyRunner();
+        runner.runner->holdStart();
+        Fixture fixture;
+        fixture.enterRoom();
+        fixture.loadRound(runner.runner.get());
+        fixture.startRound();
+        fixture.session.setOverlayCustomizationActive(true);
+        REQUIRE(fixture.session.overlayCustomizationActive());
+        REQUIRE(runner.runner->inputSuppressed());
+
+        trigger(fixture, runner);
+
+        CHECK_FALSE(fixture.session.overlayCustomizationActive());
+        if (runner.runner) {
+            CHECK_FALSE(runner.runner->inputSuppressed());
+        }
+    };
+
+    SECTION("round finish")
+    {
+        exercise([](Fixture&, RunnerFixture& runner) {
+            const auto scores = runner.runner->finish();
+            for (auto* score : scores) {
+                delete score;
+            }
+        });
+    }
+
+    SECTION("active profile change")
+    {
+        exercise([](Fixture& fixture, RunnerFixture&) {
+            fixture.identityProvider.replaceActiveProfile(
+              true,
+              arena::PublicIdentity{
+                .userId = QStringLiteral("replacement-user"),
+                .displayName = QStringLiteral("Replacement"),
+              });
+        });
+    }
+
+    SECTION("room leave acknowledged")
+    {
+        exercise([](Fixture& fixture, RunnerFixture&) {
+            fixture.session.leaveRoom();
+            fixture.transport.injectText(
+              fixture.transport.connectCalls.back().generation,
+              compact({
+                { QStringLiteral("type"), QStringLiteral("room_member_left") },
+                { QStringLiteral("data"),
+                  QJsonObject{
+                    { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                    { QStringLiteral("roomGeneration"), 2 },
+                    { QStringLiteral("memberId"), QStringLiteral("member-1") },
+                    { QStringLiteral("reason"), QStringLiteral("left") },
+                  } },
+              }));
+        });
+    }
+
+    SECTION("Arena exit")
+    {
+        exercise([](Fixture& fixture, RunnerFixture&) {
+            fixture.session.exitArena();
+        });
+    }
+
+    SECTION("runner destruction")
+    {
+        exercise([](Fixture& fixture, RunnerFixture& runner) {
+            runner.runner.reset();
+            QCoreApplication::processEvents();
+            CHECK_FALSE(fixture.session.arenaGameplayActive());
+            CHECK(fixture.gameplaySource.attachedRunner == nullptr);
+        });
+    }
+}
+
 TEST_CASE("ArenaSessionCompetition: capability downgrade rejects admission and "
           "resume locally",
           "[arena][ArenaSessionCompetition]")

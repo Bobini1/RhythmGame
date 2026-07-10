@@ -170,6 +170,9 @@ ChartRunner::passKey(input::BmsKey key,
         key == input::BmsKey::Start2 || key == input::BmsKey::Select2) {
         return;
     }
+    if (m_inputSuppressed) {
+        return;
+    }
     const auto keyIndex = static_cast<int>(mappingKeyFor(key));
     if (keyIndex < 0 || keyIndex >= inputMapping.size()) {
         spdlog::error("Input key {} is outside input mapping bounds {}",
@@ -194,6 +197,13 @@ ChartRunner::passKey(input::BmsKey key,
     auto* player = doublePlay || index == 0 ? player1 : player2;
     if (!doublePlay) {
         mapped = convertToP1Key(mapped);
+    }
+    const auto physicalKeyIndex = static_cast<std::size_t>(key);
+    if (physicalKeyIndex >= pressedInputKeys.size()) {
+        return;
+    }
+    if (status != Finished) {
+        pressedInputKeys[physicalKeyIndex] = eventType == EventType::KeyPress;
     }
     if (status != Running) {
         constexpr auto visualOffset = std::chrono::nanoseconds{ 0 };
@@ -223,6 +233,43 @@ ChartRunner::passKey(input::BmsKey key,
     player->passKey(mapped, eventType, offset);
 }
 
+void
+ChartRunner::clearPressedInputKeys()
+{
+    pressedInputKeys.fill(false);
+}
+
+auto
+ChartRunner::inputSuppressed() const -> bool
+{
+    return m_inputSuppressed;
+}
+
+void
+ChartRunner::setInputSuppressed(bool suppressed)
+{
+    if (m_inputSuppressed == suppressed) {
+        return;
+    }
+    if (suppressed) {
+        auto pressedKeys = QList<input::BmsKey>{};
+        pressedKeys.reserve(static_cast<qsizetype>(pressedInputKeys.size()));
+        for (std::size_t index = 0; index < pressedInputKeys.size(); ++index) {
+            if (pressedInputKeys[index]) {
+                pressedKeys.push_back(static_cast<input::BmsKey>(index));
+            }
+        }
+        const auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
+                           std::chrono::steady_clock::now().time_since_epoch())
+                           .count();
+        for (const auto key : pressedKeys) {
+            passKey(key, EventType::KeyRelease, now);
+        }
+        clearPressedInputKeys();
+    }
+    m_inputSuppressed = suppressed;
+}
+
 auto
 ChartRunner::getChartData() const -> ChartData*
 {
@@ -244,6 +291,9 @@ ChartRunner::setStatus(const Status status)
 {
     if (this->status != status) {
         this->status = status;
+        if (status == Finished) {
+            clearPressedInputKeys();
+        }
         player1->setStatus(status);
         if (player2 != nullptr) {
             player2->setStatus(status);
@@ -271,6 +321,7 @@ ChartRunner::finish() -> QList<BmsScore*>
 {
     startGate.reset();
     propertyUpdateTimer.stop();
+    clearPressedInputKeys();
 
     // if we didn't get bga yet, cancel
     if (bga == nullptr) {

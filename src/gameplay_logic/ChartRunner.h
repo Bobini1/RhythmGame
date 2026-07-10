@@ -14,7 +14,9 @@
 #include "qml_components/Bga.h"
 #include "NoteState.h"
 
+#include <array>
 #include <chrono>
+#include <cstddef>
 
 #include <QTimer>
 #include <QFutureWatcher>
@@ -99,9 +101,14 @@ class ChartRunner final : public QObject
     ChartStartGate startGate;
     ChartData::Keymode keymode;
     QList<int> inputMapping;
+    static constexpr auto physicalKeyCount =
+      static_cast<std::size_t>(input::BmsKey::Col2sDown) + 1;
+    std::array<bool, physicalKeyCount> pressedInputKeys{};
+    bool m_inputSuppressed{};
 
     void updateElapsed();
     void startNow();
+    void clearPressedInputKeys();
     int numberOfSetupCalls = 0;
     void setStatus(Status ready);
     void setup();
@@ -134,6 +141,8 @@ class ChartRunner final : public QObject
     auto getPlayer2() const -> Player*;
     auto getInputMapping() const -> QList<int>;
     void setInputMapping(QList<int> inputMapping);
+    [[nodiscard]] auto inputSuppressed() const -> bool;
+    void setInputSuppressed(bool suppressed);
     auto currentOffsetFromStart() const -> std::chrono::nanoseconds;
 
   signals:

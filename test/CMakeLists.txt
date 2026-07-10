@@ -19,6 +19,7 @@ add_executable(RhythmGame_test
         arena/ArenaProtocol.test.cpp
         arena/ArenaRoundLoader.test.cpp
         arena/ArenaGameplaySource.test.cpp
+        arena/ArenaOverlayCustomization.test.cpp
         arena/ArenaThemeVars.test.cpp
         arena/ArenaSelectIntegration.test.cpp
         arena/ArenaOverlayPolicy.test.cpp

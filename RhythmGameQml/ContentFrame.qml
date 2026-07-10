@@ -40,7 +40,8 @@ ApplicationWindow {
     }
     Shortcut {
         autoRepeat: false
-        enabled: globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
+        enabled: !arenaOverlayHost.arenaShortcutEnabled
+            && globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
         sequence: "F2"
         onActivated: globalRoot.reloadCurrentFolderOrTable()
     }
@@ -655,6 +656,8 @@ ApplicationWindow {
             }
         }
         ArenaOverlayHost {
+            id: arenaOverlayHost
+
             anchors.fill: parent
             currentItem: sceneStack.currentItem
             layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)

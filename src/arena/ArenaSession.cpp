@@ -717,6 +717,12 @@ ArenaSession::gameplayChatOpen() const -> bool
 {
     return m_gameplayChatOpen;
 }
+
+auto
+ArenaSession::overlayCustomizationActive() const -> bool
+{
+    return m_overlayCustomizationActive;
+}
 auto
 ArenaSession::arenaOptionsSummary() const -> QString
 {
@@ -2868,6 +2874,7 @@ void
 ArenaSession::beginCompetitionRound(const FrozenRound& round)
 {
     const auto lifecycle = m_lifecycleGeneration;
+    setOverlayCustomizationActive(false);
     stopTelemetrySampling();
     m_pendingTelemetry.reset();
     m_pendingTerminal.reset();
@@ -2946,15 +2953,24 @@ ArenaSession::attachGameplaySource(gameplay_logic::ChartRunner* runner) -> bool
     if (m_arenaRunner == runner) {
         return true;
     }
+    const auto preserveCustomization = m_overlayCustomizationActive;
     const auto lifecycle = m_lifecycleGeneration;
-    detachGameplaySource();
+    detachGameplaySource(false, preserveCustomization);
     if (lifecycle != m_lifecycleGeneration) {
+        setOverlayCustomizationActive(false);
+        if (preserveCustomization) {
+            emit competitionChanged();
+        }
         return false;
     }
     const auto attached = m_gameplaySource->attach(runner);
     if (lifecycle != m_lifecycleGeneration || !attached ||
         attached->isEmpty()) {
         m_gameplaySource->detach();
+        setOverlayCustomizationActive(false);
+        if (preserveCustomization) {
+            emit competitionChanged();
+        }
         return false;
     }
     m_expectedScoreGuid = *attached;
@@ -2967,13 +2983,24 @@ ArenaSession::attachGameplaySource(gameplay_logic::ChartRunner* runner) -> bool
               &gameplay_logic::ChartRunner::statusChanged,
               this,
               &ArenaSession::handleArenaRunnerStatusChanged);
+    if (preserveCustomization && m_arenaGameplayActive) {
+        synchronizeCustomizationRunner();
+    } else if (preserveCustomization) {
+        setOverlayCustomizationActive(false);
+    }
     emit competitionChanged();
     return true;
 }
 
 void
-ArenaSession::detachGameplaySource(bool preserveScoreGuid)
+ArenaSession::detachGameplaySource(bool preserveScoreGuid,
+                                   bool preserveCustomization)
 {
+    if (preserveCustomization) {
+        releaseCustomizationRunner();
+    } else {
+        setOverlayCustomizationActive(false);
+    }
     const auto visibleChanged =
       m_arenaRunner != nullptr || m_arenaGameplayActive;
     QObject::disconnect(m_arenaRunnerStatusConnection);
@@ -2987,7 +3014,7 @@ ArenaSession::detachGameplaySource(bool preserveScoreGuid)
     if (!preserveScoreGuid) {
         m_expectedScoreGuid.clear();
     }
-    if (visibleChanged) {
+    if (visibleChanged && !preserveCustomization) {
         emit competitionChanged();
     }
 }
@@ -2999,6 +3026,7 @@ ArenaSession::handleArenaRunnerStatusChanged()
         m_arenaRunner->getStatus() != gameplay_logic::ChartRunner::Finished) {
         return;
     }
+    setOverlayCustomizationActive(false);
     stopTelemetrySampling();
     setGameplayChatOpen(false);
     if (m_arenaGameplayActive) {
@@ -3639,6 +3667,7 @@ ArenaSession::abandonCurrentRound()
         m_localTerminalSubmitted) {
         return;
     }
+    setOverlayCustomizationActive(false);
     m_localRoundAbandoned = true;
     stopTelemetrySampling();
     setGameplayChatOpen(false);
@@ -3649,6 +3678,9 @@ ArenaSession::abandonCurrentRound()
 void
 ArenaSession::setGameplayChatOpen(bool open)
 {
+    if (open) {
+        setOverlayCustomizationActive(false);
+    }
     const auto accepted = open && m_arenaGameplayActive && m_round;
     if (m_gameplayChatOpen == accepted) {
         return;
@@ -3661,6 +3693,75 @@ void
 ArenaSession::toggleGameplayChat()
 {
     setGameplayChatOpen(!m_gameplayChatOpen);
+}
+
+void
+ArenaSession::releaseCustomizationRunner()
+{
+    QObject::disconnect(m_customizationRunnerDestroyedConnection);
+    m_customizationRunnerDestroyedConnection = {};
+    if (m_customizationRunner != nullptr) {
+        m_customizationRunner->setInputSuppressed(false);
+    }
+    m_customizationRunner = nullptr;
+}
+
+void
+ArenaSession::synchronizeCustomizationRunner()
+{
+    auto* desired =
+      m_overlayCustomizationActive ? m_arenaRunner.data() : nullptr;
+    if (m_customizationRunner == desired) {
+        return;
+    }
+    releaseCustomizationRunner();
+    if (desired == nullptr) {
+        return;
+    }
+    m_customizationRunner = desired;
+    desired->setInputSuppressed(true);
+    m_customizationRunnerDestroyedConnection =
+      connect(desired, &QObject::destroyed, this, [this] {
+          m_customizationRunner = nullptr;
+          m_customizationRunnerDestroyedConnection = {};
+          if (!m_overlayCustomizationActive) {
+              return;
+          }
+          m_overlayCustomizationActive = false;
+          stopTelemetrySampling();
+          setGameplayChatOpen(false);
+          if (m_gameplaySourceAttached && m_gameplaySource != nullptr) {
+              m_gameplaySource->detach();
+          }
+          m_gameplaySourceAttached = false;
+          m_arenaRunnerStatusConnection = {};
+          m_arenaGameplayActive = false;
+          m_expectedScoreGuid.clear();
+          emit overlayCustomizationActiveChanged();
+          emit competitionChanged();
+      });
+}
+
+void
+ArenaSession::setOverlayCustomizationActive(bool active)
+{
+    const auto accepted =
+      active && m_arenaGameplayActive && m_arenaRunner != nullptr;
+    if (active && !accepted) {
+        return;
+    }
+    if (m_overlayCustomizationActive == accepted) {
+        synchronizeCustomizationRunner();
+        return;
+    }
+    if (!accepted) {
+        releaseCustomizationRunner();
+    }
+    m_overlayCustomizationActive = accepted;
+    if (accepted) {
+        synchronizeCustomizationRunner();
+    }
+    emit overlayCustomizationActiveChanged();
 }
 
 void

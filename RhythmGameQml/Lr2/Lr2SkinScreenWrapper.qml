@@ -488,7 +488,9 @@ Item {
     }
 
     Shortcut {
-        enabled: root.screenUpdatesActive && !selectSearchState.focused
+        enabled: root.screenUpdatesActive
+            && !selectSearchState.focused
+            && !root.arenaSession.overlayCustomizationActive
         sequence: "Esc"
 
         onActivated: {
@@ -5669,6 +5671,9 @@ Item {
     }
 
     Component.onDestruction: {
+        if (root.arenaGameplayOwned) {
+            root.arenaSession.setOverlayCustomizationActive(false);
+        }
         root.destroyOwnedChartRunner();
     }
 

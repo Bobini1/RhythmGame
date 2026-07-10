@@ -41,6 +41,10 @@ Rectangle {
             root.popup = null;
         }
     }
+    function setArenaCustomizeMode(active) {
+        root.customizeMode = !!active;
+        root.closeActivePopup();
+    }
     function isPlayerScratchRightSide(player) {
         return player?.profile?.vars?.themeVars[root.screen][root.themeName]?.scratchOnRightSide;
     }
@@ -161,7 +165,12 @@ Rectangle {
         }
     }
     StackView.onDeactivating: closeActivePopup()
-    Component.onDestruction: closeActivePopup()
+    Component.onDestruction: {
+        closeActivePopup();
+        if (root.arenaGameplayOwned) {
+            root.arenaSession.setOverlayCustomizationActive(false);
+        }
+    }
     Timer {
         id: startTimer
         interval: 1000
@@ -793,6 +802,7 @@ Rectangle {
     Shortcut {
         id: escapeShortcut
         enabled: root.enabled
+            && !root.arenaSession.overlayCustomizationActive
         sequence: "Esc"
         property bool nothingWasHit: true
         property bool used: false
@@ -822,7 +832,7 @@ Rectangle {
     }
     Shortcut {
         sequence: "F2"
-        enabled: root.enabled
+        enabled: root.enabled && !root.arenaGameplayOwned
 
         onActivated: {
             root.customizeMode = !root.customizeMode;
