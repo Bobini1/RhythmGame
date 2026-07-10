@@ -12,6 +12,11 @@ find_package(Catch2 3 REQUIRED)
 # ---- Tests ----
 
 add_executable(RhythmGame_test
+        arena/ArenaProtocol.test.cpp
+        arena/ArenaModels.test.cpp
+        arena/FakeArenaTransport.h
+        arena/FakeArenaIdentityProvider.h
+        arena/FakeArenaScheduler.h
         charts/BmsChartReader.test.cpp
         db/SqliteCppDb.test.cpp
         sounds/OpenAlSound.test.cpp
