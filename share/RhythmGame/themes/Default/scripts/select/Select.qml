@@ -35,6 +35,12 @@ FocusScope {
         readonly property bool selectOverlayShortcutEnabled: root.enabled && !searchEdit.activeFocus
         readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
             || Rg.arenaSession.state === ArenaSession.Reconnecting
+        readonly property real contentScale: Math.min(width / 1920,
+                                                       height / 1080)
+        readonly property real contentLeft:
+            (width - 1920 * contentScale) / 2
+        readonly property real contentTop:
+            (height - 1080 * contentScale) / 2
         readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
         readonly property var themeVars: (Rg.profileList.mainProfile.vars.themeVars.select || {})[QmlUtils.themeName] || ({})
         readonly property int replayType: replayTypeIndex(generalVars ? generalVars.replayType : 0)
@@ -258,7 +264,7 @@ FocusScope {
         Item {
             anchors.centerIn: parent
             height: 1080
-            scale: Math.min(parent.width / 1920, parent.height / 1080)
+            scale: root.contentScale
             width: 1920
             clip: true
 
@@ -298,18 +304,19 @@ FocusScope {
             Loader {
                 id: arenaPanelLoader
 
+                objectName: "arenaNativeSelectPanelLoader"
                 active: root.arenaSeated
-                anchors {
-                    left: stageFile.left
-                    right: stageFile.right
-                    top: stageFile.bottom
-                    topMargin: 8
-                }
-                height: 480 - stageFile.height - 8
+                enabled: !options.visible
+                parent: root
+                x: Math.max(24, root.contentLeft + 80 * root.contentScale)
+                y: Math.max(24, root.contentTop + 248 * root.contentScale)
+                width: Math.min(640, Math.max(520, root.width * 0.5),
+                                Math.max(0, root.width - x - 24))
+                height: Math.min(352, Math.max(0, root.height - y - 24))
                 sourceComponent: ArenaSelectPanel {
                     session: Rg.arenaSession
                 }
-                z: 3
+                z: options.visible ? 0 : 3
             }
             Banner {
                 id: banner

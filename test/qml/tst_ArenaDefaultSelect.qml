@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtTest
 import RhythmGameQml
@@ -46,6 +48,48 @@ TestCase {
         id: panelComponent
 
         DefaultSelect.ArenaSelectPanel {}
+    }
+
+    Component {
+        id: scenePanelMountComponent
+
+        Item {
+            id: viewport
+
+            required property var session
+            property alias panelLoader: panelLoader
+            readonly property real contentScale: Math.min(width / 1920,
+                                                           height / 1080)
+            readonly property real contentLeft:
+                (width - 1920 * contentScale) / 2
+            readonly property real contentTop:
+                (height - 1080 * contentScale) / 2
+
+            Item {
+                anchors.centerIn: parent
+                height: 1080
+                scale: viewport.contentScale
+                width: 1920
+
+                Loader {
+                    id: panelLoader
+
+                    parent: viewport
+                    x: Math.max(24, viewport.contentLeft
+                                + 80 * viewport.contentScale)
+                    y: Math.max(24, viewport.contentTop
+                                + 248 * viewport.contentScale)
+                    width: Math.min(640,
+                                    Math.max(520, viewport.width * 0.5),
+                                    Math.max(0, viewport.width - x - 24))
+                    height: Math.min(352,
+                                     Math.max(0, viewport.height - y - 24))
+                    sourceComponent: DefaultSelect.ArenaSelectPanel {
+                        session: viewport.session
+                    }
+                }
+            }
+        }
     }
 
     Component {
@@ -101,6 +145,15 @@ TestCase {
         session.lastResult.winnerNames = ["<u>Winner one</u>", "Winner two"];
         session.lastResult.selectionTitle = "Previous chart";
         return session;
+    }
+
+    function verifyMinimumSceneTarget(target, viewport, label) {
+        verify(target !== null, label);
+        const topLeft = target.mapToItem(viewport, 0, 0);
+        const bottomRight = target.mapToItem(viewport, target.width,
+                                             target.height);
+        verify(Math.abs(bottomRight.x - topLeft.x) >= 32, label + " width");
+        verify(Math.abs(bottomRight.y - topLeft.y) >= 32, label + " height");
     }
 
     function test_roster_exposes_all_room_states_and_owner_moderation() {
@@ -303,6 +356,78 @@ TestCase {
         const leave = findChild(panel, "arenaDefaultLeave");
         mouseClick(leave, leave.width / 2, leave.height / 2, Qt.LeftButton);
         compare(session.leaveCount, 1);
+    }
+
+    function test_ready_disabled_reason_stays_visible_on_chat_tab() {
+        const session = createSession();
+        session.canReady = false;
+        const panel = createTemporaryObject(panelComponent, testCase, {
+            "height": 480,
+            "session": session,
+            "width": 640
+        });
+        verify(panel !== null);
+
+        const reason = findChild(panel, "arenaDefaultReadyDisabledReason");
+        verify(reason !== null);
+        compare(reason.text, panel.readyDisabledReason);
+        compare(reason.visible, true);
+        compare(reason.Accessible.name, panel.readyDisabledReason);
+
+        const chatTab = findChild(panel, "arenaDefaultChatTab");
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2,
+                   Qt.LeftButton);
+        compare(panel.detailMode, "chat");
+        compare(reason.text, panel.readyDisabledReason);
+        compare(reason.visible, true);
+        compare(reason.Accessible.name, panel.readyDisabledReason);
+    }
+
+    function test_native_panel_targets_keep_scene_space_size_data() {
+        return [
+            {
+                "tag": "1024x768",
+                "viewportWidth": 1024,
+                "viewportHeight": 768
+            },
+            {
+                "tag": "1280x720",
+                "viewportWidth": 1280,
+                "viewportHeight": 720
+            }
+        ];
+    }
+
+    function test_native_panel_targets_keep_scene_space_size(data) {
+        const session = createSession();
+        const viewport = createTemporaryObject(scenePanelMountComponent,
+                                               testCase, {
+            "height": data.viewportHeight,
+            "session": session,
+            "width": data.viewportWidth
+        });
+        verify(viewport !== null);
+        session.parent = viewport;
+        tryCompare(viewport.panelLoader, "status", Loader.Ready);
+        compare(viewport.panelLoader.parent, viewport);
+        tryVerify(function() {
+            return findChild(viewport, "arenaRosterKick-member-2") !== null;
+        });
+
+        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultDetailsTab"),
+                                 viewport, "Details tab");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultChatTab"),
+                                 viewport, "Chat tab");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultReady"),
+                                 viewport, "Ready button");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultLeave"),
+                                 viewport, "Leave button");
+        verifyMinimumSceneTarget(findChild(viewport,
+                                           "arenaRosterKick-member-2"),
+                                 viewport, "Kick button");
+
+        viewport.panelLoader.active = false;
+        tryCompare(viewport.panelLoader, "status", Loader.Null);
     }
 
     function test_ready_reason_survives_chat_and_announcements_are_deduplicated() {

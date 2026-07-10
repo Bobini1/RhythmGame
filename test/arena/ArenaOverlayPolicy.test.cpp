@@ -276,6 +276,33 @@ TEST_CASE("ArenaOverlayPolicy: ContentFrame hosts Arena above the active gamepla
           source.indexOf(QStringLiteral("ArenaOverlayHost {")));
 }
 
+TEST_CASE("ArenaOverlayPolicy: Default select keeps the native Arena panel out "
+          "of design scaling",
+          "[arena][ArenaOverlayPolicy][accessibility]")
+{
+    const auto source =
+      qmlSource("share/RhythmGame/themes/Default/scripts/select/Select.qml");
+    const auto loaderStart =
+      source.indexOf(QStringLiteral("id: arenaPanelLoader"));
+    const auto loaderEnd =
+      source.indexOf(QStringLiteral("Banner {"), loaderStart);
+    REQUIRE(loaderStart >= 0);
+    REQUIRE(loaderEnd > loaderStart);
+    const auto loader = source.mid(loaderStart, loaderEnd - loaderStart);
+    requireContains(loader,
+                    { "objectName: \"arenaNativeSelectPanelLoader\"",
+                      "parent: root",
+                      "root.contentLeft",
+                      "root.contentTop",
+                      "root.contentScale",
+                      "enabled: !options.visible",
+                      "width: Math.min(640",
+                      "height: Math.min(352",
+                      "z: options.visible ? 0 : 3" });
+    CHECK_FALSE(loader.contains(QStringLiteral("stageFile.left")));
+    CHECK_FALSE(loader.contains(QStringLiteral("stageFile.right")));
+}
+
 TEST_CASE("ArenaOverlayPolicy: browser and room lists expose keyboard and assistive semantics",
           "[arena][ArenaOverlayPolicy][accessibility]")
 {

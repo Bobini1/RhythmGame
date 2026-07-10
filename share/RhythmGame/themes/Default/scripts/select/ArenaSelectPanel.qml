@@ -111,6 +111,18 @@ FocusScope {
             }
         }
 
+        Text {
+            objectName: "arenaDefaultReadyDisabledReason"
+            Accessible.name: text
+            Accessible.role: Accessible.StaticText
+            Layout.fillWidth: true
+            color: "#ffb2a8"
+            text: root.readyDisabledReason
+            textFormat: Text.PlainText
+            visible: text.length > 0
+            wrapMode: Text.Wrap
+        }
+
         RowLayout {
             Layout.fillWidth: true
             spacing: 8
@@ -155,6 +167,7 @@ FocusScope {
 
         ArenaSelectionSummary {
             objectName: "arenaDefaultSelection"
+            compact: true
             session: root.session
         }
     }
