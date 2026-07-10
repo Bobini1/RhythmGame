@@ -4,7 +4,7 @@
 <context>
     <name>ArenaChatView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="56"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="67"/>
         <source>%n unread message(s)</source>
         <comment>Arena chat unread count</comment>
         <translation>
@@ -74,7 +74,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="650"/>
+        <location filename="../scripts/select/Select.qml" line="657"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>
