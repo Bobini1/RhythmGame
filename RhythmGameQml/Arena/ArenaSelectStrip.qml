@@ -6,14 +6,18 @@ Frame {
     id: root
 
     required property var session
+    property bool actionsVisible: true
+    property bool compact: false
+    readonly property int connectedCount: rosterCounter.connectedCount
+    readonly property int reservedCount: rosterCounter.reservedCount
+    readonly property bool preparingRound: session ? String(session.currentRoundId || "").length > 0 : false
+    readonly property bool updateRequired: session ? session.roundsAvailable === false : false
+    readonly property bool busy: session ? session.availabilitySyncing === true || preparingRound : false
+    readonly property bool ready: session ? session.ready === true : false
 
-    signal leaveRequested()
+    signal leaveRequested
 
-    readonly property bool preparingRound: String(session.currentRoundId || "").length > 0
-    readonly property bool updateRequired: session.roundsAvailable === false
-    readonly property bool busy: !!session.availabilitySyncing || preparingRound
-
-    function errorText(key) : string {
+    function errorText(key): string {
         switch (key) {
         case "arena.error.notCommon":
             return qsTr("That chart is not available to every player.");
@@ -37,6 +41,22 @@ Frame {
         }
     }
 
+    function phaseText(): string {
+        if (!root.session) {
+            return "";
+        }
+        if (root.updateRequired) {
+            return qsTr("Update required");
+        }
+        if (root.session.availabilitySyncing === true) {
+            return qsTr("Comparing libraries…");
+        }
+        if (root.preparingRound) {
+            return qsTr("Preparing synchronized start…");
+        }
+        return root.ready ? qsTr("Ready") : qsTr("Not ready");
+    }
+
     Accessible.name: qsTr("Arena room controls")
     implicitHeight: content.implicitHeight + topPadding + bottomPadding
 
@@ -44,110 +64,108 @@ Frame {
         id: content
 
         anchors.fill: parent
-        columns: root.width >= 860 ? 2 : 1
-        columnSpacing: 16
-        rowSpacing: 8
+        columns: root.actionsVisible && root.width >= 760 ? 2 : 1
+        columnSpacing: 12
+        rowSpacing: root.compact ? 2 : 5
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 2
+            spacing: 1
 
-            Label {
+            RowLayout {
                 Layout.fillWidth: true
+                spacing: 6
+
+                Text {
+                    objectName: "arenaStripRoom"
+                    Layout.fillWidth: true
+                    color: "white"
+                    elide: Text.ElideRight
+                    font.bold: true
+                    text: root.session ? root.session.roomName || qsTr("Arena room") : ""
+                    textFormat: Text.PlainText
+                }
+
+                Text {
+                    color: "#d6deea"
+                    text: qsTr("%1 connected · %2 reserved").arg(root.connectedCount).arg(root.reservedCount)
+                }
+            }
+
+            Text {
+                objectName: "arenaStripSelection"
+                Layout.fillWidth: true
+                color: "#d6deea"
                 elide: Text.ElideRight
-                font.bold: true
-                text: root.session.roomName || qsTr("Arena room")
+                text: root.session ? (String(root.session.selectedTitle || "").length > 0 ? qsTr("Selected: %1").arg(root.session.selectedTitle) : qsTr("Choose any chart available to everyone.")) : ""
                 textFormat: Text.PlainText
             }
 
-            Label {
+            RowLayout {
                 Layout.fillWidth: true
-                elide: Text.ElideRight
-                text: {
-                    const title = String(root.session.selectedTitle || "");
-                    if (title.length === 0) {
-                        return qsTr("Choose any chart available to everyone.");
-                    }
-                    return qsTr("Selected: %1").arg(title);
-                }
-                textFormat: Text.PlainText
-            }
+                spacing: 6
 
-            Label {
-                Layout.fillWidth: true
-                color: palette.mid
-                elide: Text.ElideRight
-                text: {
-                    const memberId = String(root.session.selectedByMemberId || "");
-                    return memberId.length > 0
-                        ? qsTr("Selected by %1").arg(memberId)
-                        : "";
+                BusyIndicator {
+                    Accessible.ignored: true
+                    Layout.preferredHeight: 24
+                    Layout.preferredWidth: 24
+                    running: visible && root.visible
+                    visible: root.busy
                 }
-                textFormat: Text.PlainText
-                visible: text.length > 0
+
+                Text {
+                    objectName: "arenaStripReadyState"
+                    Layout.fillWidth: true
+                    color: root.ready ? "#b8f0c5" : "#ffd38a"
+                    elide: Text.ElideRight
+                    text: root.phaseText()
+                    textFormat: Text.PlainText
+                }
             }
         }
 
         RowLayout {
             Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
-            Layout.fillWidth: root.width < 860
-            spacing: 8
+            Layout.fillWidth: content.columns === 1
+            spacing: 6
+            visible: root.actionsVisible
 
-            BusyIndicator {
-                Accessible.ignored: true
-                Layout.preferredHeight: 32
-                Layout.preferredWidth: 32
-                running: visible && root.visible
-                visible: root.busy
-            }
-
-            Label {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignRight
-                text: {
-                    if (root.updateRequired) {
-                        return qsTr("Update required to play in this room");
+            Button {
+                Accessible.name: text
+                enabled: root.session && !root.updateRequired && !root.preparingRound && (root.ready || root.session.canReady === true)
+                text: root.ready ? qsTr("Unready") : qsTr("Ready")
+                onClicked: {
+                    if (root.session) {
+                        root.session.setReady(!root.ready);
                     }
-                    if (root.session.availabilitySyncing) {
-                        return qsTr("Comparing song libraries…");
-                    }
-                    if (root.preparingRound) {
-                        return qsTr("Preparing the synchronized start…");
-                    }
-                    if (root.session.ready) {
-                        return qsTr("Ready");
-                    }
-                    return qsTr("Not ready");
                 }
-                wrapMode: Text.Wrap
             }
 
             Button {
-                id: readyButton
-
-                Accessible.name: text
-                enabled: !root.updateRequired
-                    && !root.preparingRound
-                    && (!!root.session.ready || !!root.session.canReady)
-                text: root.session.ready ? qsTr("Unready") : qsTr("Ready")
-                onClicked: root.session.setReady(!root.session.ready)
-            }
-
-            Button {
-                Accessible.name: text
-                text: qsTr("Leave room")
+                Accessible.name: qsTr("Leave Arena room")
+                text: qsTr("Leave")
                 onClicked: root.leaveRequested()
             }
         }
 
-        Label {
+        Text {
             Layout.columnSpan: content.columns
             Layout.fillWidth: true
-            color: palette.accent
-            text: root.errorText(root.session.errorMessageKey)
+            color: "#ffb2a8"
+            text: root.session ? root.errorText(root.session.errorMessageKey) : ""
             textFormat: Text.PlainText
             visible: text.length > 0
             wrapMode: Text.Wrap
         }
+    }
+
+    ArenaRosterView {
+        id: rosterCounter
+
+        height: 0
+        moderationEnabled: false
+        session: root.session
+        visible: false
+        width: 0
     }
 }

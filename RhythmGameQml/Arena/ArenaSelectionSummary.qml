@@ -7,6 +7,9 @@ ColumnLayout {
     required property var session
     property bool compact: false
     readonly property string readyDisabledReason: {
+        if (!root.session) {
+            return "";
+        }
         if (root.session.roundsAvailable === false) {
             return qsTr("Update required to play in this room.");
         }
@@ -22,6 +25,9 @@ ColumnLayout {
         return "";
     }
     readonly property string syncText: {
+        if (!root.session) {
+            return "";
+        }
         if (root.session.availabilitySyncing === true) {
             return qsTr("Comparing song libraries…");
         }
@@ -42,7 +48,7 @@ ColumnLayout {
             return "";
         }
     }
-    readonly property var result: root.session.lastResult
+    readonly property var result: root.session ? root.session.lastResult : null
     readonly property string winnerText: {
         const value = root.result;
         if (!value || value.valid !== true || !value.winnerNames || value.winnerNames.length === 0) {
@@ -59,7 +65,7 @@ ColumnLayout {
         color: "white"
         elide: Text.ElideRight
         font.bold: true
-        text: String(root.session.selectedTitle || "").length > 0 ? String(root.session.selectedTitle) : qsTr("No chart selected")
+        text: root.session ? (String(root.session.selectedTitle || "").length > 0 ? String(root.session.selectedTitle) : qsTr("No chart selected")) : ""
         textFormat: Text.PlainText
     }
 
@@ -68,7 +74,7 @@ ColumnLayout {
         Layout.fillWidth: true
         color: "#c9d2df"
         elide: Text.ElideRight
-        text: String(root.session.selectedByMemberId || "").length > 0 ? qsTr("Selected by %1").arg(root.session.selectedByMemberId) : qsTr("Choose any chart available to everyone.")
+        text: root.session ? (String(root.session.selectedByMemberId || "").length > 0 ? qsTr("Selected by %1").arg(root.session.selectedByMemberId) : qsTr("Choose any chart available to everyone.")) : ""
         textFormat: Text.PlainText
     }
 
@@ -76,7 +82,7 @@ ColumnLayout {
         objectName: "arenaSelectionOptions"
         Layout.fillWidth: true
         color: "#d6deea"
-        text: String(root.session.arenaOptionsSummary || "")
+        text: root.session ? String(root.session.arenaOptionsSummary || "") : ""
         textFormat: Text.PlainText
         visible: text.length > 0
         wrapMode: Text.Wrap

@@ -551,16 +551,22 @@ ApplicationWindow {
                             anchors.fill: parent
                         }
 
-                        ArenaSelectStrip {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.top: parent.top
-                            anchors.topMargin: 16
-                            session: arenaShell.session
-                            visible: !arenaSelectHost.nativeArenaPresentation
-                            width: Math.min(960, parent.width - 32)
+                        Loader {
+                            anchors.fill: parent
+                            active: arenaSelectHost.currentScreen !== null
+                                && !arenaSelectHost.nativeArenaPresentation
+                            sourceComponent: legacySelectOverlayComponent
                             z: 1000000
+                        }
 
-                            onLeaveRequested: arenaShell.requestLeaveRoom()
+                        Component {
+                            id: legacySelectOverlayComponent
+
+                            ArenaLegacySelectOverlay {
+                                presentationItem: arenaSelectHost.currentScreen
+                                session: arenaShell.session
+                                viewport: arenaSelectHost
+                            }
                         }
                     }
                 }

@@ -139,6 +139,7 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaRosterView.qml
         Arena/ArenaChatView.qml
         Arena/ArenaSelectionSummary.qml
+        Arena/ArenaLegacySelectOverlay.qml
         Arena/ArenaOverlayHost.qml
         Arena/ArenaGameplayOverlay.qml
         Arena/ArenaGameplayChat.qml
