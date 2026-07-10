@@ -136,6 +136,9 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaLoginPanel.qml
         Arena/ArenaRoom.qml
         Arena/ArenaSelectStrip.qml
+        Arena/ArenaOverlayHost.qml
+        Arena/ArenaGameplayOverlay.qml
+        Arena/ArenaGameplayChat.qml
 )
 
 set(RHYTHM_GAME_QML_SHADERS

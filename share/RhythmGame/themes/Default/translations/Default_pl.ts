@@ -176,126 +176,232 @@
         <translation>Spróbuj ponownie</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="240"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="241"/>
         <source>No Arena rooms are open.</source>
         <translation>Brak otwartych pokojów Areny.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="292"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="293"/>
         <source>%1 · %2</source>
         <translation>%1 · %2</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="294"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="295"/>
         <source>Password required</source>
         <translation>Wymagane hasło</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="295"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="296"/>
         <source>Public</source>
         <translation>Publiczny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="300"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="301"/>
         <source>%1 connected, %2 reserved / %3</source>
         <translation>Połączonych: %1, zarezerwowanych: %2 / %3</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="310"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="311"/>
         <source>Join %1</source>
         <translation>Dołącz do: %1</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="315"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="316"/>
         <source>Full</source>
         <translation>Pełny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="315"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="316"/>
         <source>Join</source>
         <translation>Dołącz</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="358"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="359"/>
         <source>Create Arena room</source>
         <translation>Utwórz pokój Areny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="381"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="382"/>
         <source>Room name</source>
         <translation>Nazwa pokoju</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="386"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="387"/>
         <source>Arena room name</source>
         <translation>Nazwa pokoju Areny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="399"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="400"/>
         <source>Password (optional)</source>
         <translation>Hasło (opcjonalne)</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="404"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="452"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="405"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="453"/>
         <source>Arena room password</source>
         <translation>Hasło do pokoju Areny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="424"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="425"/>
         <source>Join password-protected room</source>
         <translation>Dołącz do pokoju chronionego hasłem</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="447"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="448"/>
         <source>Password</source>
         <translation>Hasło</translation>
     </message>
 </context>
 <context>
+    <name>ArenaGameplayChat</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayChat.qml" line="107"/>
+        <source>Arena gameplay chat message</source>
+        <translation>Wiadomość na czacie Areny podczas gry</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayChat.qml" line="112"/>
+        <source>Message</source>
+        <translation>Wiadomość</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayChat.qml" line="139"/>
+        <source>Send</source>
+        <translation>Wyślij</translation>
+    </message>
+</context>
+<context>
+    <name>ArenaGameplayOverlay</name>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="17"/>
+        <source>Disconnected</source>
+        <translation>Rozłączono</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="21"/>
+        <source>Playing</source>
+        <translation>Gra</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="23"/>
+        <source>Finished</source>
+        <translation>Ukończono</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="25"/>
+        <source>DNF</source>
+        <translation>DNF</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="27"/>
+        <source>Waiting</source>
+        <translation>Czeka</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="40"/>
+        <source>%1%</source>
+        <translation>%1%</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="44"/>
+        <source>%1 · %2%</source>
+        <translation>%1 · %2%</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="68"/>
+        <source>Arena</source>
+        <translation>Arena</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="72"/>
+        <source>Compact</source>
+        <translation>Zwiń</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="72"/>
+        <source>Expand</source>
+        <translation>Rozwiń</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="78"/>
+        <source>Close chat</source>
+        <translation>Zamknij czat</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="79"/>
+        <source>Chat</source>
+        <translation>Czat</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="87"/>
+        <source>Options: %1</source>
+        <translation>Opcje: %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="167"/>
+        <source>EX %1</source>
+        <translation>EX %1</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="197"/>
+        <source>BP %1 · Combo %2</source>
+        <translation>BP %1 · Combo %2</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="205"/>
+        <source>PG %1 · GR %2 · GD %3</source>
+        <translation>PG %1 · GR %2 · GD %3</translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaGameplayOverlay.qml" line="214"/>
+        <source>BD %1 · PR %2 · EP %3</source>
+        <translation>BD %1 · PR %2 · EP %3</translation>
+    </message>
+</context>
+<context>
     <name>ArenaLoginPanel</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="52"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="60"/>
         <source>Log in to continue with the selected room.</source>
         <translation>Zaloguj się, aby przejść do wybranego pokoju.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="53"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="61"/>
         <source>Log in to create or join rooms.</source>
         <translation>Zaloguj się, aby tworzyć pokoje i do nich dołączać.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="64"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="72"/>
         <source>Arena account email</source>
         <translation>Adres e-mail konta Areny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="67"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="75"/>
         <source>Email</source>
         <translation>E-mail</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="76"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="84"/>
         <source>Arena account password</source>
         <translation>Hasło do konta Areny</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="81"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="89"/>
         <source>Password</source>
         <translation>Hasło</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="93"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="101"/>
         <source>Login</source>
         <translation>Zaloguj się</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="117"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="125"/>
         <source>Login failed. Check your email and password.</source>
         <translation>Logowanie nie powiodło się. Sprawdź adres e-mail i hasło.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="118"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="126"/>
         <source>Logging in...</source>
         <translation>Logowanie...</translation>
     </message>
@@ -1529,12 +1635,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2823"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2834"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation>Zapisano zrzut ekranu do %1 i schowka.</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2825"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2836"/>
         <source>Failed to save screenshot.</source>
         <translation>Nie udało się zapisać zrzutu ekranu.</translation>
     </message>

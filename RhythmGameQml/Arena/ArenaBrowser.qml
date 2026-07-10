@@ -6,7 +6,7 @@ import RhythmGameQml
 FocusScope {
     id: root
 
-    required property ArenaSession session
+    required property var session
     required property Profile activeProfile
 
     signal createRequested(string name, string password)
@@ -21,7 +21,7 @@ FocusScope {
     readonly property bool admissionInFlight: session.admissionPending
         && !session.loginRequired
     readonly property bool updateRequired: session.directoryReady
-        && !session.roundsAvailable
+        && !session.competitionAvailable
     readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing
         && !admissionInFlight
         && !updateRequired
@@ -219,6 +219,7 @@ FocusScope {
             ArenaLoginPanel {
                 profile: root.activeProfile
                 actionRequired: root.session.loginRequired
+                admissionAllowed: !root.updateRequired
 
                 onLoginSubmitted: (email, password) => root.activeProfile.login(email, password)
             }

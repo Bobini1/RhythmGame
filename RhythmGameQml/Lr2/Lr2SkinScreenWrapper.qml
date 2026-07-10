@@ -19,8 +19,12 @@ Item {
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
-    readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
-        || Rg.arenaSession.state === ArenaSession.Reconnecting
+    readonly property var arenaSession: Rg.arenaSession
+    readonly property bool arenaSeated: arenaSession.state === ArenaSession.InRoom
+        || arenaSession.state === ArenaSession.Reconnecting
+    readonly property bool arenaGameplayOwned: root.gameplayScreenActive
+        && arenaSession.arenaGameplayActive === true
+        && arenaSession.arenaRunner === root.chart
     property bool decideTransitionRequested: false
     property bool screenEntrySoundPlayed: false
     property bool selectScoreRefreshQueued: false
@@ -2555,8 +2559,15 @@ Item {
     }
 
     function handleGameplayEscape() : var {
+        if (root.arenaGameplayOwned && root.arenaSession.gameplayChatOpen === true) {
+            root.arenaSession.setGameplayChatOpen(false);
+            return true;
+        }
         if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
             return false;
+        }
+        if (root.arenaGameplayOwned) {
+            root.arenaSession.abandonCurrentRound();
         }
         if (root.gameplayNothingWasHit) {
             sceneStack.pop();

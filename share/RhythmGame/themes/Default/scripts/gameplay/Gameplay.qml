@@ -28,6 +28,9 @@ Rectangle {
     readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
+    readonly property var arenaSession: Rg.arenaSession
+    readonly property bool arenaGameplayOwned: arenaSession.arenaGameplayActive === true
+        && arenaSession.arenaRunner === chart
     function closeActivePopup() {
         if (root.popup !== null) {
             root.popup.close();
@@ -781,6 +784,13 @@ Rectangle {
         property bool used: false
 
         onActivated: {
+            if (root.arenaGameplayOwned && root.arenaSession.gameplayChatOpen === true) {
+                root.arenaSession.setGameplayChatOpen(false);
+                return;
+            }
+            if (root.arenaGameplayOwned) {
+                root.arenaSession.abandonCurrentRound();
+            }
             if (nothingWasHit) {
                 root.closeActivePopup();
                 sceneStack.pop();

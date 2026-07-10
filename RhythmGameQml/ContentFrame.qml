@@ -73,6 +73,7 @@ ApplicationWindow {
         id: globalRoot
 
         readonly property Profile mainProfile: Rg.profileList.mainProfile
+        readonly property var arenaSession: Rg.arenaSession
         function configuredScreen(screenKey: var, fallbackKey: var) : var {
             let themeName = mainProfile.themeConfig[screenKey];
             let family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
@@ -219,6 +220,36 @@ ApplicationWindow {
 
         function currentScreen() : var {
             return sceneStack.currentItem || null;
+        }
+
+        function gameplayLayoutVariant(screenItem: var) : string {
+            if (!screenItem || !screenItem.chart) {
+                return "";
+            }
+            const declared = String(screenItem.screen || screenItem.screenKey || "");
+            const supported = ["k5", "k7", "k10", "k14"];
+            if (supported.indexOf(declared) >= 0) {
+                return declared;
+            }
+            switch (Number(screenItem.chart.keymode)) {
+            case 5:
+                return "k5";
+            case 7:
+                return "k7";
+            case 10:
+                return "k10";
+            case 14:
+                return "k14";
+            default:
+                return "";
+            }
+        }
+
+        function gameplaySkinId(layoutVariant: string) : string {
+            if (layoutVariant.length === 0) {
+                return "";
+            }
+            return String(mainProfile.themeConfig[layoutVariant] || "");
         }
 
         function callCurrentScreen(method: var, args: var) : var {
@@ -609,6 +640,14 @@ ApplicationWindow {
                     properties: "opacity"
                 }
             }
+        }
+        ArenaOverlayHost {
+            anchors.fill: parent
+            currentItem: sceneStack.currentItem
+            layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)
+            resolvedSkinId: globalRoot.gameplaySkinId(layoutVariant)
+            session: globalRoot.arenaSession
+            z: 2000000
         }
         Loader {
             id: debugLogLoader

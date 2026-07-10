@@ -19,6 +19,7 @@ add_executable(RhythmGame_test
         arena/ArenaRoundLoader.test.cpp
         arena/ArenaGameplaySource.test.cpp
         arena/ArenaSelectIntegration.test.cpp
+        arena/ArenaOverlayPolicy.test.cpp
         arena/ArenaModels.test.cpp
         arena/ArenaSession.test.cpp
         arena/ArenaSessionMatrix.test.cpp
@@ -62,6 +63,7 @@ target_compile_definitions(
         ARENA_PHASE2_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-text-goldens.json"
         ARENA_PHASE3_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase3-text-goldens.json"
         ARENA_BINARY_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-binary-goldens.json"
+        ARENA_QML_SOURCE_ROOT="${CMAKE_SOURCE_DIR}"
 )
 set_target_properties(
         RhythmGame_test PROPERTIES

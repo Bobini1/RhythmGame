@@ -7,12 +7,14 @@ FocusScope {
     id: root
 
     required property Profile profile
+    required property bool admissionAllowed
     property bool actionRequired: false
 
     signal loginSubmitted(string email, string password)
 
     implicitHeight: panel.implicitHeight
     implicitWidth: panel.implicitWidth
+    enabled: root.admissionAllowed
 
     function clearCredentials() : void {
         emailField.clear();
@@ -20,7 +22,8 @@ FocusScope {
     }
 
     function submit() : void {
-        if (profile.loginState === Profile.LoggingIn
+        if (!root.admissionAllowed
+                || profile.loginState === Profile.LoggingIn
                 || emailField.text.length === 0
                 || passwordField.text.length === 0) {
             return;
@@ -32,6 +35,11 @@ FocusScope {
     }
 
     onProfileChanged: clearCredentials()
+    onAdmissionAllowedChanged: {
+        if (!admissionAllowed) {
+            clearCredentials();
+        }
+    }
 
     Frame {
         id: panel
