@@ -18,7 +18,10 @@ Arena song selection must preserve each skin's useful song-select layout while p
 - The panel is always expanded. There is no `+`, collapse button, or hidden second layer of room controls.
 - Details and Chat are exclusive tabs backed by one authoritative selection state. Exactly one tab is always selected, including after clicking or keyboard-activating the active tab again.
 - Details shows the roster and synchronized selection summary. Chat shows the same roster beside chat.
-- Ready, readiness reason, moderation, and Leave remain available in either tab.
+- Details and Chat share the same body origin at a given panel rectangle. The roster and summary/chat content start immediately below the header; Details leaves unused vertical space below its summary instead of centering the body row.
+- Ready, readiness reason, and moderation remain available in either tab.
+- The panel has no Leave button. Escape leaves the room and returns to the Arena browser through the select screen's existing room-exit path.
+- Return and keypad Enter perform the same select-screen activation. In Arena, either key selects the focused chart just like clicking it.
 
 ## Placement and direct manipulation
 
@@ -28,8 +31,9 @@ Arena song selection must preserve each skin's useful song-select layout while p
   - `arenaOverlaySelectWidthNormalized`
   - `arenaOverlaySelectHeightNormalized`
 - No standalone placement class, file, or lobby-state persistence is introduced.
-- The room-title region is a drag handle during ordinary Arena selection. Buttons, roster actions, and chat keep their normal pointer behavior.
-- Eight edge/corner resize hit areas are active during ordinary Arena selection. Their visual handle chrome is always hidden; resize cursors provide hover feedback.
+- A compact, full-width header is the only drag handle during ordinary Arena selection. It exposes a move cursor and a subtle grip cue so the draggable area is apparent; buttons, roster actions, and chat keep their normal pointer behavior.
+- The room title keeps priority in the header. Details and Chat use compact, adjacent tab widths instead of allowing the tab bar to expand and ellipsize the title while unused header space remains.
+- Eight edge/corner resize hit areas are active during ordinary Arena selection. Corner targets remain compact, while each side target spans the usable edge between the corners. Their visual handle chrome is always hidden; resize cursors provide hover feedback across the full target.
 - Moving and resizing clamp the panel to a 24-pixel safe viewport margin and persist normalized geometry when the gesture ends.
 - Select placement does not require or consume F2. Existing gameplay/result F2 customization remains unchanged.
 - The panel minimum is `520 x 320` where the viewport permits it; smaller viewports clamp safely rather than placing controls off-screen.
@@ -41,7 +45,9 @@ Arena song selection must preserve each skin's useful song-select layout while p
 
 ## Regression coverage
 
-- Theme-var seeding, per-theme independence, persistence, invalid placement fallback, safe clamping, direct header drag, and invisible direct resize are tested.
+- Theme-var seeding, per-theme independence, persistence, invalid placement fallback, safe clamping, full-header drag, and invisible direct resize from every side and corner are tested.
 - Default and legacy tests cover initial exclusivity, reactivating each selected tab by mouse and Space, switching tabs, and common action routing.
+- Shared-panel tests compare Details and Chat at identical dimensions and require the roster and loaded body content to keep the same top origin. Header tests require a usable title width and adjacent compact tabs at the minimum panel width.
+- Select-input tests require Return and keypad Enter to activate the same chart-selection path, while Escape leaves the room without an in-panel Leave control.
 - Legacy tests mount the real fullscreen-Loader shape and assert that the visual panel remains bounded.
 - Default composition tests assert the full StageFile, restored song-wheel backing, scene-space placement host, and gap-based default rectangle.
