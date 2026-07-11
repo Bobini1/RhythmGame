@@ -45,4 +45,3 @@ Arena song selection must preserve each skin's useful song-select layout while p
 - Default and legacy tests cover initial exclusivity, reactivating each selected tab by mouse and Space, switching tabs, and common action routing.
 - Legacy tests mount the real fullscreen-Loader shape and assert that the visual panel remains bounded.
 - Default composition tests assert the full StageFile, restored song-wheel backing, scene-space placement host, and gap-based default rectangle.
-
