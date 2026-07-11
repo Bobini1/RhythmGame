@@ -17,6 +17,7 @@ Arena song selection must preserve each skin's useful song-select layout while p
 - Both native Default and legacy fallback surfaces use the same room panel component.
 - The panel is always expanded. There is no `+`, collapse button, or hidden second layer of room controls.
 - Details and Chat are exclusive tabs backed by one authoritative selection state. Exactly one tab is always selected, including after clicking or keyboard-activating the active tab again.
+- The full-width header has a fixed compact height and remains pinned to the panel's top inset. Switching between Details and Chat must not change the header height or the scene-space vertical position of either tab.
 - Details shows the roster and synchronized selection summary. Chat shows the same roster beside chat.
 - Details and Chat share the same body origin at a given panel rectangle. The roster and summary/chat content start immediately below the header; Details leaves unused vertical space below its summary instead of centering the body row.
 - Ready, readiness reason, and moderation remain available in either tab.
@@ -47,7 +48,7 @@ Arena song selection must preserve each skin's useful song-select layout while p
 
 - Theme-var seeding, per-theme independence, persistence, invalid placement fallback, safe clamping, full-header drag, and invisible direct resize from every side and corner are tested.
 - Default and legacy tests cover initial exclusivity, reactivating each selected tab by mouse and Space, switching tabs, and common action routing.
-- Shared-panel tests compare Details and Chat at identical dimensions and require the roster and loaded body content to keep the same top origin. Header tests require a usable title width and adjacent compact tabs at the minimum panel width.
+- Shared-panel tests compare Details and Chat at identical dimensions and require the fixed-height header, both tabs, the roster, and the loaded body content to keep the same scene-space top positions. Header tests also require a usable title width and adjacent compact tabs at the minimum panel width.
 - Select-input tests require Return and keypad Enter to activate the same chart-selection path, while Escape leaves the room without an in-panel Leave control.
 - Legacy tests mount the real fullscreen-Loader shape and assert that the visual panel remains bounded.
 - Default composition tests assert the full StageFile, restored song-wheel backing, scene-space placement host, and gap-based default rectangle.
