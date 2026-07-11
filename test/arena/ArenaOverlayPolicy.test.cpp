@@ -423,3 +423,30 @@ TEST_CASE("ArenaOverlayPolicy: room surfaces announce only bounded competition s
                       "arena.status.roundLaunchCancelled.cancelled",
                       "root.target.Accessible.announce(text)" });
 }
+
+TEST_CASE("ArenaOverlayPolicy: select confirm keys share chart activation and Escape owns room exit",
+          "[arena][ArenaOverlayPolicy][select-input]")
+{
+    const auto defaultList = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/select/List.qml");
+    requireContains(defaultList,
+                    { "Keys.onReturnPressed", "Keys.onEnterPressed",
+                      "goForward(current)" });
+
+    const auto legacy =
+      qmlSource("RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
+    requireContains(legacy,
+                    { "function handleConfirmKey", "Keys.onReturnPressed",
+                      "Keys.onEnterPressed", "root.handleConfirmKey(event)",
+                      "root.selectGoForward()",
+                      "sequence: \"Esc\"", "Rg.arenaSession.leaveRoom()" });
+
+    const auto defaultSelect = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/select/Select.qml");
+    requireContains(defaultSelect,
+                    { "sequence: \"Esc\"", "Rg.arenaSession.leaveRoom()" });
+
+    const auto panel =
+      qmlSource("RhythmGameQml/Arena/ArenaSelectPanel.qml");
+    CHECK_FALSE(panel.contains(QStringLiteral("arenaSelectLeave")));
+}

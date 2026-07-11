@@ -698,6 +698,9 @@ PathView {
     Keys.onReturnPressed: {
         goForward(current);
     }
+    Keys.onEnterPressed: {
+        goForward(current);
+    }
     Keys.onRightPressed: {
         goForward(current);
     }

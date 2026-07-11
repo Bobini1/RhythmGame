@@ -6026,6 +6026,27 @@ Item {
 
     function submitSelectSearch() : void { selectSearchState.submit(); }
 
+    function handleConfirmKey(event: var) : void {
+        if (root.lr2ReadmeMode > 0) {
+            event.accepted = true;
+            root.closeReadme();
+            return;
+        }
+        if (root.effectiveScreenKey === "decide") {
+            event.accepted = true;
+            root.skipDecideScreen();
+            return;
+        }
+        if (root.closeResultScreen()) {
+            event.accepted = true;
+            return;
+        }
+        if (!root.selectNavigationReady())
+            return;
+        event.accepted = true;
+        root.selectGoForward();
+    }
+
     Keys.onUpPressed: (event) => {
         if (root.lr2ReadmeMode === 1) {
             event.accepted = true;
@@ -6080,31 +6101,8 @@ Item {
         event.accepted = true;
         root.selectGoForward();
     }
-    Keys.onReturnPressed: (event) => {
-        if (root.lr2ReadmeMode > 0) {
-            event.accepted = true;
-            root.closeReadme();
-            return;
-        }
-        if (root.effectiveScreenKey === "decide") {
-            event.accepted = true;
-            root.skipDecideScreen();
-            return;
-        }
-        if (root.closeResultScreen()) {
-            event.accepted = true;
-            return;
-        }
-        if (!root.selectNavigationReady()) return;
-        event.accepted = true;
-        root.selectGoForward();
-    }
-    Keys.onEnterPressed: (event) => {
-        if (root.effectiveScreenKey === "decide") {
-            event.accepted = true;
-            root.skipDecideScreen();
-        }
-    }
+    Keys.onReturnPressed: event => root.handleConfirmKey(event)
+    Keys.onEnterPressed: event => root.handleConfirmKey(event)
 
     property var lastNavigateKey: []
     property int selectWheelScratchDirection: 0
