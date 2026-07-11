@@ -8,6 +8,7 @@ Item {
     required property var session
     required property var themeVars
     required property Item viewport
+    property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)
     readonly property alias placementFrame: placementFrame
     readonly property alias panel: panel
 
@@ -18,6 +19,7 @@ Item {
 
         objectName: "arenaSelectPlacementFrame"
         customizeMode: false
+        defaultPixelRectHint: root.defaultPixelRectHint
         directMoveEnabled: true
         directResizeEnabled: true
         layoutVariant: "select"

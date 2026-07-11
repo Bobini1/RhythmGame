@@ -50,42 +50,41 @@ TestCase {
     }
 
     Component {
+        id: themeVarsComponent
+
+        FakeArenaThemeVars {}
+    }
+
+    Component {
         id: scenePanelMountComponent
 
         Item {
-            id: viewport
+            id: sceneViewport
 
             required property var session
-            property alias panelLoader: panelLoader
+            required property var themeVars
+            property alias panelLoader: overlayLoader
             readonly property real contentScale: Math.min(width / 1920,
                                                            height / 1080)
             readonly property real contentLeft:
                 (width - 1920 * contentScale) / 2
             readonly property real contentTop:
                 (height - 1080 * contentScale) / 2
+            readonly property rect scaledGapHint:
+                Qt.rect(contentLeft + 728 * contentScale,
+                        contentTop + 120 * contentScale,
+                        520 * contentScale,
+                        480 * contentScale)
 
-            Item {
-                anchors.centerIn: parent
-                height: 1080
-                scale: viewport.contentScale
-                width: 1920
+            Loader {
+                id: overlayLoader
 
-                Loader {
-                    id: panelLoader
-
-                    parent: viewport
-                    x: Math.max(24, viewport.contentLeft
-                                + 80 * viewport.contentScale)
-                    y: Math.max(24, viewport.contentTop
-                                + 248 * viewport.contentScale)
-                    width: Math.min(640,
-                                    Math.max(520, viewport.width * 0.5),
-                                    Math.max(0, viewport.width - x - 24))
-                    height: Math.min(352,
-                                     Math.max(0, viewport.height - y - 24))
-                    sourceComponent: ArenaSelectPanel {
-                        session: viewport.session
-                    }
+                anchors.fill: parent
+                sourceComponent: ArenaSelectOverlay {
+                    defaultPixelRectHint: sceneViewport.scaledGapHint
+                    session: sceneViewport.session
+                    themeVars: sceneViewport.themeVars
+                    viewport: sceneViewport
                 }
             }
         }
@@ -153,6 +152,19 @@ TestCase {
                                              target.height);
         verify(Math.abs(bottomRight.x - topLeft.x) >= 32, label + " width");
         verify(Math.abs(bottomRight.y - topLeft.y) >= 32, label + " height");
+    }
+
+    function closeEnough(actual, expected, label, epsilon = 0.01) {
+        verify(Math.abs(actual - expected) <= epsilon,
+               label + ": expected " + actual + " to be within "
+               + epsilon + " of " + expected);
+    }
+
+    function compareRect(actual, expected, label) {
+        closeEnough(actual.x, expected.x, label + " x");
+        closeEnough(actual.y, expected.y, label + " y");
+        closeEnough(actual.width, expected.width, label + " width");
+        closeEnough(actual.height, expected.height, label + " height");
     }
 
     function test_roster_exposes_all_room_states_and_owner_moderation() {
@@ -416,33 +428,61 @@ TestCase {
         compare(reason.Accessible.name, panel.readyDisabledReason);
     }
 
-    function test_native_panel_targets_keep_scene_space_size_data() {
+    function test_unstored_panel_uses_scaled_gap_hint_data() {
         return [
             {
-                "tag": "1024x768",
-                "viewportWidth": 1024,
-                "viewportHeight": 768
+                "tag": "1920x1080",
+                "expectedRect": Qt.rect(728, 120, 520, 480),
+                "viewportWidth": 1920,
+                "viewportHeight": 1080
             },
             {
-                "tag": "1280x720",
-                "viewportWidth": 1280,
-                "viewportHeight": 720
+                "tag": "2560x1440",
+                "expectedRect": Qt.rect(970.6666666667, 160,
+                                        693.3333333333, 640),
+                "viewportWidth": 2560,
+                "viewportHeight": 1440
+            },
+            {
+                "tag": "1024x768",
+                "expectedRect": Qt.rect(388.2666666667, 160, 520, 320),
+                "viewportWidth": 1024,
+                "viewportHeight": 768
             }
         ];
     }
 
-    function test_native_panel_targets_keep_scene_space_size(data) {
+    function test_unstored_panel_uses_scaled_gap_hint(data) {
         const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        verify(themeVars !== null);
+        themeVars.beginTracking();
         const viewport = createTemporaryObject(scenePanelMountComponent,
                                                testCase, {
             "height": data.viewportHeight,
             "session": session,
+            "themeVars": themeVars,
             "width": data.viewportWidth
         });
         verify(viewport !== null);
         session.parent = viewport;
         tryCompare(viewport.panelLoader, "status", Loader.Ready);
         compare(viewport.panelLoader.parent, viewport);
+        compare(viewport.panelLoader.x, 0);
+        compare(viewport.panelLoader.y, 0);
+        compare(viewport.panelLoader.width, viewport.width);
+        compare(viewport.panelLoader.height, viewport.height);
+        const overlay = viewport.panelLoader.item;
+        verify(overlay !== null);
+        compare(overlay.defaultPixelRectHint, viewport.scaledGapHint);
+
+        const frame = findChild(overlay, "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        compare(frame.sourcePlacement.stored, false);
+        tryCompare(frame, "width", data.expectedRect.width);
+        compareRect(frame.resolvedPixelRect, data.expectedRect,
+                    data.tag + " placement");
+        compare(themeVars.writeCount, 0);
         tryVerify(function() {
             return findChild(viewport, "arenaRosterKick-member-2") !== null;
         });

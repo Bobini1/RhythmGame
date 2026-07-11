@@ -297,8 +297,8 @@ FocusScope {
                     leftMargin: 80
                     topMargin: 120
                 }
-                fillMode: root.arenaSeated ? Image.PreserveAspectCrop : Image.Stretch
-                height: root.arenaSeated ? 120 : 480
+                fillMode: Image.Stretch
+                height: 480
                 width: 640
             }
             Loader {
@@ -306,15 +306,17 @@ FocusScope {
 
                 objectName: "arenaNativeSelectPanelLoader"
                 active: root.arenaSeated
+                anchors.fill: parent
                 enabled: !options.visible
                 parent: root
-                x: Math.max(24, root.contentLeft + 80 * root.contentScale)
-                y: Math.max(24, root.contentTop + 248 * root.contentScale)
-                width: Math.min(640, Math.max(520, root.width * 0.5),
-                                Math.max(0, root.width - x - 24))
-                height: Math.min(352, Math.max(0, root.height - y - 24))
-                sourceComponent: ArenaSelectPanel {
+                sourceComponent: ArenaSelectOverlay {
+                    defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,
+                                                  root.contentTop + 120 * root.contentScale,
+                                                  520 * root.contentScale,
+                                                  480 * root.contentScale)
                     session: Rg.arenaSession
+                    themeVars: root.themeVars
+                    viewport: root
                 }
                 z: options.visible ? 0 : 3
             }
@@ -406,7 +408,6 @@ FocusScope {
                 anchors.centerIn: parent
                 anchors.horizontalCenterOffset: -22
                 source: root.imagesUrl + "stageFileFrame.png"
-                visible: !root.arenaSeated
             }
             List {
                 id: songList

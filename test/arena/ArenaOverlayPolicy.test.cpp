@@ -276,12 +276,29 @@ TEST_CASE("ArenaOverlayPolicy: ContentFrame hosts Arena above the active gamepla
           source.indexOf(QStringLiteral("ArenaOverlayHost {")));
 }
 
-TEST_CASE("ArenaOverlayPolicy: Default select keeps the native Arena panel out "
-          "of design scaling",
+TEST_CASE("ArenaOverlayPolicy: Default select preserves its composition and "
+          "uses the authored Arena gap",
           "[arena][ArenaOverlayPolicy][accessibility]")
 {
     const auto source =
       qmlSource("share/RhythmGame/themes/Default/scripts/select/Select.qml");
+
+    const auto stageFileStart =
+      source.indexOf(QStringLiteral("StageFile {"));
+    const auto stageFileEnd =
+      source.indexOf(QStringLiteral("Loader {"), stageFileStart);
+    REQUIRE(stageFileStart >= 0);
+    REQUIRE(stageFileEnd > stageFileStart);
+    const auto stageFile =
+      source.mid(stageFileStart, stageFileEnd - stageFileStart);
+    requireContains(stageFile,
+                    { "fillMode: Image.Stretch",
+                      "height: 480",
+                      "width: 640" });
+    CHECK_FALSE(stageFile.contains(QStringLiteral("arenaSeated")));
+    CHECK_FALSE(
+      stageFile.contains(QStringLiteral("Image.PreserveAspectCrop")));
+
     const auto loaderStart =
       source.indexOf(QStringLiteral("id: arenaPanelLoader"));
     const auto loaderEnd =
@@ -291,16 +308,42 @@ TEST_CASE("ArenaOverlayPolicy: Default select keeps the native Arena panel out "
     const auto loader = source.mid(loaderStart, loaderEnd - loaderStart);
     requireContains(loader,
                     { "objectName: \"arenaNativeSelectPanelLoader\"",
+                      "active: root.arenaSeated",
                       "parent: root",
-                      "root.contentLeft",
-                      "root.contentTop",
-                      "root.contentScale",
+                      "anchors.fill: parent",
                       "enabled: !options.visible",
-                      "width: Math.min(640",
-                      "height: Math.min(352",
+                      "sourceComponent: ArenaSelectOverlay {",
+                      "session: Rg.arenaSession",
+                      "themeVars: root.themeVars",
+                      "viewport: root",
+                      "defaultPixelRectHint: Qt.rect(root.contentLeft + 728 * root.contentScale,",
+                      "root.contentTop + 120 * root.contentScale,",
+                      "520 * root.contentScale,",
+                      "480 * root.contentScale)",
                       "z: options.visible ? 0 : 3" });
-    CHECK_FALSE(loader.contains(QStringLiteral("stageFile.left")));
-    CHECK_FALSE(loader.contains(QStringLiteral("stageFile.right")));
+    CHECK_FALSE(loader.contains(QStringLiteral("x: Math.max")));
+    CHECK_FALSE(loader.contains(QStringLiteral("y: Math.max")));
+    CHECK_FALSE(loader.contains(QStringLiteral("width: Math.min")));
+    CHECK_FALSE(loader.contains(QStringLiteral("height: Math.min")));
+
+    const auto frameStart =
+      source.indexOf(QStringLiteral("id: stageFileFrame"));
+    const auto frameEnd =
+      source.indexOf(QStringLiteral("List {"), frameStart);
+    REQUIRE(frameStart >= 0);
+    REQUIRE(frameEnd > frameStart);
+    const auto stageFileFrame =
+      source.mid(frameStart, frameEnd - frameStart);
+    requireContains(stageFileFrame,
+                    { "source: root.imagesUrl + \"stageFileFrame.png\"" });
+    CHECK_FALSE(stageFileFrame.contains(QStringLiteral("arenaSeated")));
+    CHECK_FALSE(stageFileFrame.contains(QStringLiteral("visible:")));
+
+    const auto overlay =
+      qmlSource("RhythmGameQml/Arena/ArenaSelectOverlay.qml");
+    requireContains(overlay,
+                    { "property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)",
+                      "defaultPixelRectHint: root.defaultPixelRectHint" });
 }
 
 TEST_CASE("ArenaOverlayPolicy: browser and room lists expose keyboard and assistive semantics",
