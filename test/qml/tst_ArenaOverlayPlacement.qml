@@ -164,16 +164,24 @@ TestCase {
         compare(frame.resolvedPixelRect, Qt.rect(728, 120, 520, 480));
         verify(frame.directMoveEnabled);
         verify(frame.directResizeEnabled);
+        const top = findChild(frame, "arenaResizeTop");
         const right = findChild(frame, "arenaResizeRight");
+        const bottom = findChild(frame, "arenaResizeBottom");
         const rightChrome = findChild(frame, "arenaResizeRightChrome");
+        verify(top !== null);
         verify(right !== null);
+        verify(bottom !== null);
         verify(rightChrome !== null);
         compare(right.visible, true);
         compare(right.enabled, true);
         compare(right.activeFocusOnTab, false);
         compare(rightChrome.visible, false);
+        compare(top.height, 16);
+        verify(top.width >= frame.width - 32);
         compare(right.width, 16);
-        compare(right.height, 16);
+        verify(right.height >= frame.height - 32);
+        compare(bottom.height, 16);
+        verify(bottom.width >= frame.width - 32);
 
         const initialRect = Qt.rect(frame.x, frame.y,
                                     frame.width, frame.height);
@@ -214,17 +222,27 @@ TestCase {
         verify(themeVars.arenaOverlaySelectHeightNormalized > 0);
 
         const widthAfterMove = frame.resolvedPixelRect.width;
-        mousePress(right, right.width / 2, right.height / 2,
+        mousePress(right, right.width / 2, 24,
                    Qt.LeftButton);
         mouseMove(right, right.width / 2 + 20,
-                  right.height / 2, 10);
+                   24, 10);
         mouseMove(right, right.width / 2 + 60,
-                  right.height / 2, 10);
+                   24, 10);
         mouseRelease(right, right.width / 2 + 60,
-                     right.height / 2, Qt.LeftButton);
+                     24, Qt.LeftButton);
         wait(1);
         verify(frame.resolvedPixelRect.width > widthAfterMove);
         compare(themeVars.commitCount, 2);
+
+        const heightAfterRightResize = frame.resolvedPixelRect.height;
+        mousePress(bottom, 24, bottom.height / 2, Qt.LeftButton);
+        mouseMove(bottom, 24, bottom.height / 2 + 20, 10);
+        mouseMove(bottom, 24, bottom.height / 2 + 60, 10);
+        mouseRelease(bottom, 24, bottom.height / 2 + 60,
+                     Qt.LeftButton);
+        wait(1);
+        verify(frame.resolvedPixelRect.height > heightAfterRightResize);
+        compare(themeVars.commitCount, 3);
         compare(themeVars.arenaOverlayK7XNormalized, -1);
         compare(themeVars.arenaOverlayK7YNormalized, -1);
         compare(themeVars.arenaOverlayK7WidthNormalized, -1);
@@ -344,8 +362,21 @@ TestCase {
             });
             const handle = findChild(harness.frame, objectName);
             verify(handle !== null, objectName);
-            compare(handle.width, 32, objectName);
-            compare(handle.height, 32, objectName);
+            const horizontalSide = objectName === "arenaResizeTop"
+                || objectName === "arenaResizeBottom";
+            const verticalSide = objectName === "arenaResizeLeft"
+                || objectName === "arenaResizeRight";
+            if (horizontalSide) {
+                verify(handle.width >= harness.frame.width - 32, objectName);
+                compare(handle.height, 32, objectName);
+            } else if (verticalSide) {
+                compare(handle.width, 32, objectName);
+                verify(handle.height >= harness.frame.height - 32,
+                       objectName);
+            } else {
+                compare(handle.width, 32, objectName);
+                compare(handle.height, 32, objectName);
+            }
             verify(handle.Accessible.name.length > 0, objectName);
             verify(handle.Accessible.description.length > 0, objectName);
             compare(handle.Accessible.role, Accessible.Grip, objectName);

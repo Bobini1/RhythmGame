@@ -30,6 +30,7 @@ Item {
     property rect moveStartRect: Qt.rect(0, 0, 1, 1)
     property rect resizeStartRect: Qt.rect(0, 0, 1, 1)
     property int resizeInteractionCount: 0
+    readonly property real resizeEdgeInset: customizeMode ? 16 : 8
 
     x: resolvedPixelRect.x
     y: resolvedPixelRect.y
@@ -514,7 +515,8 @@ Item {
         handleObjectName: "arenaResizeTop"
         accessibleName: qsTr("Resize Arena overlay from top")
         verticalEdge: -1
-        x: (root.width - width) / 2
+        width: Math.max(16, root.width - 2 * root.resizeEdgeInset)
+        x: root.resizeEdgeInset
         y: -height / 2
     }
 
@@ -531,8 +533,9 @@ Item {
         handleObjectName: "arenaResizeRight"
         accessibleName: qsTr("Resize Arena overlay from right")
         horizontalEdge: 1
+        height: Math.max(16, root.height - 2 * root.resizeEdgeInset)
         x: root.width - width / 2
-        y: (root.height - height) / 2
+        y: root.resizeEdgeInset
     }
 
     ResizeHandle {
@@ -548,7 +551,8 @@ Item {
         handleObjectName: "arenaResizeBottom"
         accessibleName: qsTr("Resize Arena overlay from bottom")
         verticalEdge: 1
-        x: (root.width - width) / 2
+        width: Math.max(16, root.width - 2 * root.resizeEdgeInset)
+        x: root.resizeEdgeInset
         y: root.height - height / 2
     }
 
@@ -565,7 +569,8 @@ Item {
         handleObjectName: "arenaResizeLeft"
         accessibleName: qsTr("Resize Arena overlay from left")
         horizontalEdge: -1
+        height: Math.max(16, root.height - 2 * root.resizeEdgeInset)
         x: -width / 2
-        y: (root.height - height) / 2
+        y: root.resizeEdgeInset
     }
 }

@@ -87,8 +87,9 @@ Item {
 
     Rectangle {
         objectName: root.objectName + "FocusIndicator"
-        anchors.fill: parent
-        anchors.margins: 2
+        anchors.centerIn: parent
+        height: Math.min(28, root.height - 4)
+        width: Math.min(28, root.width - 4)
         border.color: "#8fdcff"
         border.width: 2
         color: "transparent"
