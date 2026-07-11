@@ -7,6 +7,10 @@ QtObject {
     property var arenaOverlayK7YNormalized: -1
     property var arenaOverlayK7WidthNormalized: -1
     property var arenaOverlayK7HeightNormalized: -1
+    property var arenaOverlaySelectXNormalized: -1
+    property var arenaOverlaySelectYNormalized: -1
+    property var arenaOverlaySelectWidthNormalized: -1
+    property var arenaOverlaySelectHeightNormalized: -1
     property var arenaOverlayResultXNormalized: -1
     property var arenaOverlayResultYNormalized: -1
     property var arenaOverlayResultWidthNormalized: -1
@@ -28,6 +32,22 @@ QtObject {
             writeCount += 1;
     }
     onArenaOverlayK7HeightNormalizedChanged: {
+        if (trackWrites)
+            writeCount += 1;
+    }
+    onArenaOverlaySelectXNormalizedChanged: {
+        if (trackWrites)
+            writeCount += 1;
+    }
+    onArenaOverlaySelectYNormalizedChanged: {
+        if (trackWrites)
+            writeCount += 1;
+    }
+    onArenaOverlaySelectWidthNormalizedChanged: {
+        if (trackWrites)
+            writeCount += 1;
+    }
+    onArenaOverlaySelectHeightNormalizedChanged: {
         if (trackWrites)
             writeCount += 1;
     }

@@ -1833,7 +1833,8 @@ ensureArenaOverlayThemeVars(
                 screenName != QStringLiteral("k7") &&
                 screenName != QStringLiteral("k10") &&
                 screenName != QStringLiteral("k14") &&
-                screenName != QStringLiteral("result")) {
+                screenName != QStringLiteral("result") &&
+                screenName != QStringLiteral("select")) {
                 continue;
             }
             auto& screenVars = vars[screenName][themeName];
@@ -1858,6 +1859,8 @@ ensureArenaOverlayThemeVars(
                 addPlacement(screenVars, QStringLiteral("K10"));
             } else if (screenName == QStringLiteral("result")) {
                 addPlacement(screenVars, QStringLiteral("Result"));
+            } else if (screenName == QStringLiteral("select")) {
+                addPlacement(screenVars, QStringLiteral("Select"));
             }
         }
     }

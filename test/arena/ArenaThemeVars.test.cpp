@@ -89,16 +89,39 @@ persistedPlacementMatches(const QString& path) -> bool
     if (!document.isObject()) {
         return false;
     }
-    const auto screen =
-      document.object().value(QStringLiteral("k7")).toObject();
-    const auto matches = [&screen](const QString& key, double expected) {
+    const auto screens = document.object();
+    const auto gameplay = screens.value(QStringLiteral("k7")).toObject();
+    const auto select = screens.value(QStringLiteral("select")).toObject();
+    const auto matches = [](const QJsonObject& screen,
+                            const QString& key,
+                            double expected) {
         const auto value = screen.value(key);
         return value.isDouble() && value.toDouble() == expected;
     };
-    return matches(QStringLiteral("arenaOverlayK7XNormalized"), 0.25) &&
-           matches(QStringLiteral("arenaOverlayK7YNormalized"), 0.05) &&
-           matches(QStringLiteral("arenaOverlayK7WidthNormalized"), 0.40) &&
-           matches(QStringLiteral("arenaOverlayK7HeightNormalized"), 0.50);
+    return matches(gameplay,
+                   QStringLiteral("arenaOverlayK7XNormalized"),
+                   0.25) &&
+           matches(gameplay,
+                   QStringLiteral("arenaOverlayK7YNormalized"),
+                   0.05) &&
+           matches(gameplay,
+                   QStringLiteral("arenaOverlayK7WidthNormalized"),
+                   0.40) &&
+           matches(gameplay,
+                   QStringLiteral("arenaOverlayK7HeightNormalized"),
+                   0.50) &&
+           matches(select,
+                   QStringLiteral("arenaOverlaySelectXNormalized"),
+                   0.10) &&
+           matches(select,
+                   QStringLiteral("arenaOverlaySelectYNormalized"),
+                   0.15) &&
+           matches(select,
+                   QStringLiteral("arenaOverlaySelectWidthNormalized"),
+                   0.50) &&
+           matches(select,
+                   QStringLiteral("arenaOverlaySelectHeightNormalized"),
+                   0.60);
 }
 
 } // namespace
@@ -137,14 +160,27 @@ TEST_CASE("Arena overlay geometry uses profile theme vars",
     auto* doublePlay = screenThemeVars(profileA, QStringLiteral("k14"));
     auto* doublePlayAlias = screenThemeVars(profileA, QStringLiteral("k10"));
     auto* result = screenThemeVars(profileA, QStringLiteral("result"));
+    auto* select = screenThemeVars(profileA, QStringLiteral("select"));
     REQUIRE(gameplay != nullptr);
     REQUIRE(gameplayAlias != nullptr);
     REQUIRE(doublePlay != nullptr);
     REQUIRE(doublePlayAlias != nullptr);
     REQUIRE(result != nullptr);
+    REQUIRE(select != nullptr);
     CHECK(gameplayAlias == gameplay);
     CHECK(doublePlayAlias == doublePlay);
-    CHECK(screenThemeVars(profileA, QStringLiteral("select")) == nullptr);
+    CHECK(select != gameplay);
+    CHECK(select != result);
+
+    for (const auto& suffix : { QStringLiteral("XNormalized"),
+                                QStringLiteral("YNormalized"),
+                                QStringLiteral("WidthNormalized"),
+                                QStringLiteral("HeightNormalized") }) {
+        const auto selectKey = QStringLiteral("arenaOverlaySelect") + suffix;
+        CHECK(select->value(selectKey) == -1.0);
+        CHECK_FALSE(gameplay->contains(selectKey));
+        CHECK_FALSE(result->contains(selectKey));
+    }
 
     for (const auto& variant : { QStringLiteral("K5"), QStringLiteral("K7") }) {
         CHECK(gameplay->value(QStringLiteral("arenaOverlay") + variant +
@@ -194,6 +230,10 @@ TEST_CASE("Arena overlay geometry uses profile theme vars",
     REQUIRE(gameplay->setProperty("arenaOverlayK7YNormalized", 0.05));
     REQUIRE(gameplay->setProperty("arenaOverlayK7WidthNormalized", 0.40));
     REQUIRE(gameplay->setProperty("arenaOverlayK7HeightNormalized", 0.50));
+    REQUIRE(select->setProperty("arenaOverlaySelectXNormalized", 0.10));
+    REQUIRE(select->setProperty("arenaOverlaySelectYNormalized", 0.15));
+    REQUIRE(select->setProperty("arenaOverlaySelectWidthNormalized", 0.50));
+    REQUIRE(select->setProperty("arenaOverlaySelectHeightNormalized", 0.60));
 
     const auto varsPath = support::pathToQString(
       profileA->getPath().parent_path() / "Arena Test-vars.json");
@@ -220,15 +260,21 @@ TEST_CASE("Arena overlay geometry uses profile theme vars",
     CHECK(profileB->getVars()->getGeneralVars()->getArenaOverlayHintVersion() ==
           0);
     auto* profileBGameplay = screenThemeVars(profileB, QStringLiteral("k7"));
+    auto* profileBSelect = screenThemeVars(profileB, QStringLiteral("select"));
     REQUIRE(profileBGameplay != nullptr);
+    REQUIRE(profileBSelect != nullptr);
     CHECK(profileBGameplay->value(
             QStringLiteral("arenaOverlayK7XNormalized")) == -1.0);
+    CHECK(profileBSelect->value(
+            QStringLiteral("arenaOverlaySelectXNormalized")) == -1.0);
 
     profiles->setMainProfile(profileA);
     CHECK(profileA->getVars()->getGeneralVars()->getArenaOverlayHintVersion() ==
           1);
     CHECK(screenThemeVars(profileA, QStringLiteral("k7"))
             ->value(QStringLiteral("arenaOverlayK7XNormalized")) == 0.25);
+    CHECK(screenThemeVars(profileA, QStringLiteral("select"))
+            ->value(QStringLiteral("arenaOverlaySelectXNormalized")) == 0.10);
 
     const auto profileAPath = profileA->getPath();
     profiles.reset();
@@ -237,6 +283,17 @@ TEST_CASE("Arena overlay geometry uses profile theme vars",
     };
     CHECK(screenThemeVars(&reloaded, QStringLiteral("k7"))
             ->value(QStringLiteral("arenaOverlayK7XNormalized")) == 0.25);
+    auto* reloadedSelect =
+      screenThemeVars(&reloaded, QStringLiteral("select"));
+    REQUIRE(reloadedSelect != nullptr);
+    CHECK(reloadedSelect->value(
+            QStringLiteral("arenaOverlaySelectXNormalized")) == 0.10);
+    CHECK(reloadedSelect->value(
+            QStringLiteral("arenaOverlaySelectYNormalized")) == 0.15);
+    CHECK(reloadedSelect->value(
+            QStringLiteral("arenaOverlaySelectWidthNormalized")) == 0.50);
+    CHECK(reloadedSelect->value(
+            QStringLiteral("arenaOverlaySelectHeightNormalized")) == 0.60);
     CHECK(reloaded.getVars()->getGeneralVars()->getArenaOverlayHintVersion() ==
           1);
 }

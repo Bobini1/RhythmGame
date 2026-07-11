@@ -3,12 +3,14 @@ import QtQuick
 Item {
     id: root
 
-    required property bool customizeMode
+    required property bool interactionEnabled
+    required property bool chromeVisible
     required property string accessibleName
     property int horizontalEdge: 0
     property int verticalEdge: 0
     readonly property bool interactionActive: resizeHandler.active
-    readonly property bool focusIndicatorVisible: activeFocus && enabled
+    readonly property bool focusIndicatorVisible: chromeVisible
+                                                   && activeFocus && enabled
 
     signal interactionStarted(int horizontalEdge, int verticalEdge)
     signal interactionDelta(real x, real y, int horizontalEdge, int verticalEdge)
@@ -18,15 +20,15 @@ Item {
 
     width: 32
     height: 32
-    visible: customizeMode
-    enabled: customizeMode
-    activeFocusOnTab: enabled
+    visible: interactionEnabled
+    enabled: interactionEnabled
+    activeFocusOnTab: chromeVisible && enabled
     z: 1001
 
     Accessible.role: Accessible.Grip
     Accessible.name: accessibleName
     Accessible.description: qsTr("Use arrow keys to resize. Hold Shift for larger steps.")
-    Accessible.focusable: enabled
+    Accessible.focusable: chromeVisible && enabled
 
     Accessible.onIncreaseAction: resizeOutward(1)
     Accessible.onDecreaseAction: resizeOutward(-1)
@@ -68,6 +70,7 @@ Item {
     }
 
     Rectangle {
+        objectName: root.objectName + "Chrome"
         anchors.centerIn: parent
         width: root.horizontalEdge !== 0 && root.verticalEdge !== 0 ? 12 :
                root.horizontalEdge !== 0 ? 8 : 18
@@ -77,6 +80,7 @@ Item {
         color: "#f5f7ff"
         border.width: 2
         border.color: "#181b24"
+        visible: root.chromeVisible
 
         Accessible.ignored: true
     }
@@ -89,7 +93,7 @@ Item {
         border.width: 2
         color: "transparent"
         radius: 3
-        visible: root.focusIndicatorVisible
+        visible: root.chromeVisible && root.focusIndicatorVisible
 
         Accessible.ignored: true
     }

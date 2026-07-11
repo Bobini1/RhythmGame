@@ -13,6 +13,10 @@ Item {
     required property bool customizeMode
     readonly property bool forcedVisible: true
     property size minimumPixelSize: Qt.size(280, 160)
+    property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)
+    property bool directMoveEnabled: false
+    property bool directResizeEnabled: false
+    property Item moveHandle: null
     default property alias contentData: contentHost.data
     readonly property bool interactionActive: moveHandler.active
                                               || resizeInteractionCount > 0
@@ -135,6 +139,8 @@ Item {
     }
 
     function defaultPixelRect() {
+        if (validDefaultPixelRectHint())
+            return clampPixelRect(defaultPixelRectHint);
         const viewportWidth = viewport ? viewport.width : 0;
         const viewportHeight = viewport ? viewport.height : 0;
         const safe = safePixelRect();
@@ -149,6 +155,15 @@ Item {
         const requestedX = Math.max(0, viewportWidth - 24 - width);
         const requestedY = Math.min(24, Math.max(0, viewportHeight - height));
         return clampPixelRect(Qt.rect(requestedX, requestedY, width, height));
+    }
+
+    function validDefaultPixelRectHint() {
+        return Number.isFinite(defaultPixelRectHint.x)
+                && Number.isFinite(defaultPixelRectHint.y)
+                && Number.isFinite(defaultPixelRectHint.width)
+                && Number.isFinite(defaultPixelRectHint.height)
+                && defaultPixelRectHint.width > 0
+                && defaultPixelRectHint.height > 0;
     }
 
     function clampPixelRect(candidate) {
@@ -194,9 +209,12 @@ Item {
     function canLoadPlacement() {
         const result = placementKind === "resultStandings";
         const gameplay = placementKind === "gameplayLeaderboard";
+        const select = placementKind === "selectRoom";
         return themeVars && viewport && propertyPrefix().length > 0
                 && ((result && layoutVariant === "result")
-                    || (gameplay && layoutVariant !== "result"));
+                    || (gameplay && layoutVariant !== "result"
+                        && layoutVariant !== "select")
+                    || (select && layoutVariant === "select"));
     }
 
     function propertyPrefix() {
@@ -206,6 +224,7 @@ Item {
         case "k10": return "arenaOverlayK10";
         case "k14": return "arenaOverlayK14";
         case "result": return "arenaOverlayResult";
+        case "select": return "arenaOverlaySelect";
         default: return "";
         }
     }
@@ -337,6 +356,7 @@ Item {
     onPlacementKindChanged: reloadPlacement()
     onLayoutVariantChanged: reloadPlacement()
     onMinimumPixelSizeChanged: reloadPlacement()
+    onDefaultPixelRectHintChanged: reloadPlacement()
 
     Component.onCompleted: reloadPlacement()
 
@@ -438,8 +458,9 @@ Item {
     DragHandler {
         id: moveHandler
 
+        parent: root.moveHandle || root
         target: null
-        enabled: root.customizeMode
+        enabled: root.customizeMode || root.directMoveEnabled
         acceptedButtons: Qt.LeftButton
 
         onActiveChanged: {
@@ -464,7 +485,8 @@ Item {
         required property string handleObjectName
 
         objectName: handleObjectName
-        customizeMode: root.customizeMode
+        interactionEnabled: root.customizeMode || root.directResizeEnabled
+        chromeVisible: root.customizeMode
 
         onInteractionStarted: function(horizontalEdge, verticalEdge) {
             root.beginResize(horizontalEdge, verticalEdge);

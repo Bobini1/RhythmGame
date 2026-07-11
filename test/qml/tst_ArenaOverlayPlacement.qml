@@ -44,6 +44,32 @@ TestCase {
         }
     }
 
+    Component {
+        id: selectFrameComponent
+
+        ArenaOverlayPlacementFrame {
+            property alias suppliedTitleHandle: titleHandle
+
+            placementKind: "selectRoom"
+            layoutVariant: "select"
+            customizeMode: false
+            defaultPixelRectHint: Qt.rect(728, 120, 520, 480)
+            directMoveEnabled: true
+            directResizeEnabled: true
+            moveHandle: titleHandle
+
+            Item {
+                id: titleHandle
+
+                objectName: "arenaSelectMoveHandle"
+                x: 24
+                y: 16
+                width: parent.width - 48
+                height: 48
+            }
+        }
+    }
+
     function closeEnough(actual, expected, epsilon = 0.01) {
         verify(Math.abs(actual - expected) <= epsilon,
                "Expected " + actual + " to be within " + epsilon + " of " + expected);
@@ -114,6 +140,97 @@ TestCase {
         closeEnough(result.frame.y, 24);
         closeEnough(result.frame.width, 409.6);
         closeEnough(result.frame.height, 460.8);
+    }
+
+    function test_select_direct_move_and_invisible_resize() {
+        const viewport = createTemporaryObject(viewportComponent, testCase, {
+            "width": 1600,
+            "height": 900
+        });
+        verify(viewport !== null);
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        verify(themeVars !== null);
+        const frame = createTemporaryObject(selectFrameComponent, viewport, {
+            "themeVars": themeVars,
+            "viewport": viewport
+        });
+        verify(frame !== null);
+        frame.placementCommitted.connect(function() {
+            themeVars.commitCount += 1;
+        });
+        wait(1);
+        themeVars.beginTracking();
+
+        compare(frame.resolvedPixelRect, Qt.rect(728, 120, 520, 480));
+        verify(frame.directMoveEnabled);
+        verify(frame.directResizeEnabled);
+        const right = findChild(frame, "arenaResizeRight");
+        const rightChrome = findChild(frame, "arenaResizeRightChrome");
+        verify(right !== null);
+        verify(rightChrome !== null);
+        compare(right.visible, true);
+        compare(right.enabled, true);
+        compare(right.activeFocusOnTab, false);
+        compare(rightChrome.visible, false);
+
+        const initialRect = Qt.rect(frame.x, frame.y,
+                                    frame.width, frame.height);
+        let interactionStates = [];
+        frame.interactionStateChanged.connect(function(active) {
+            interactionStates.push(active);
+        });
+        mousePress(frame, frame.width / 2, frame.height / 2,
+                   Qt.LeftButton);
+        mouseMove(frame, frame.width / 2 - 60,
+                  frame.height / 2 + 30, 10);
+        mouseRelease(frame, frame.width / 2 - 60,
+                     frame.height / 2 + 30, Qt.LeftButton);
+        wait(1);
+        compare(frame.resolvedPixelRect, initialRect);
+        compare(themeVars.commitCount, 0);
+        compare(interactionStates.length, 0);
+
+        const titleHandle = frame.suppliedTitleHandle;
+        mousePress(titleHandle, titleHandle.width / 2,
+                   titleHandle.height / 2, Qt.LeftButton);
+        mouseMove(titleHandle, titleHandle.width / 2 - 20,
+                  titleHandle.height / 2 + 10, 10);
+        mouseMove(titleHandle, titleHandle.width / 2 - 80,
+                  titleHandle.height / 2 + 40, 10);
+        mouseRelease(titleHandle, titleHandle.width / 2 - 80,
+                     titleHandle.height / 2 + 40, Qt.LeftButton);
+        wait(1);
+        verify(frame.resolvedPixelRect.x < initialRect.x,
+               "Expected title drag to move x from " + initialRect.x
+               + ", got " + frame.resolvedPixelRect.x
+               + "; interaction states: " + interactionStates.join(","));
+        verify(frame.resolvedPixelRect.y > initialRect.y);
+        compare(themeVars.commitCount, 1);
+        verify(themeVars.arenaOverlaySelectXNormalized >= 0);
+        verify(themeVars.arenaOverlaySelectYNormalized >= 0);
+        verify(themeVars.arenaOverlaySelectWidthNormalized > 0);
+        verify(themeVars.arenaOverlaySelectHeightNormalized > 0);
+
+        const widthAfterMove = frame.resolvedPixelRect.width;
+        mousePress(right, right.width / 2, right.height / 2,
+                   Qt.LeftButton);
+        mouseMove(right, right.width / 2 + 20,
+                  right.height / 2, 10);
+        mouseMove(right, right.width / 2 + 60,
+                  right.height / 2, 10);
+        mouseRelease(right, right.width / 2 + 60,
+                     right.height / 2, Qt.LeftButton);
+        wait(1);
+        verify(frame.resolvedPixelRect.width > widthAfterMove);
+        compare(themeVars.commitCount, 2);
+        compare(themeVars.arenaOverlayK7XNormalized, -1);
+        compare(themeVars.arenaOverlayK7YNormalized, -1);
+        compare(themeVars.arenaOverlayK7WidthNormalized, -1);
+        compare(themeVars.arenaOverlayK7HeightNormalized, -1);
+        compare(themeVars.arenaOverlayResultXNormalized, -1);
+        compare(themeVars.arenaOverlayResultYNormalized, -1);
+        compare(themeVars.arenaOverlayResultWidthNormalized, -1);
+        compare(themeVars.arenaOverlayResultHeightNormalized, -1);
     }
 
     function test_stored_conversion_safe_clamp_and_passive_resize() {
