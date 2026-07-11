@@ -393,13 +393,12 @@ TestCase {
         const roster = findChild(panel, "arenaSelectRoster");
         const selection = findChild(panel, "arenaSelectSelection");
         const ready = findChild(panel, "arenaSelectReady");
-        const leave = findChild(panel, "arenaSelectLeave");
         verify(details !== null);
         verify(chat !== null);
         verify(roster !== null);
         verify(selection !== null);
         verify(ready !== null);
-        verify(leave !== null);
+        compare(findChild(panel, "arenaSelectLeave"), null);
         compare(findChild(panel, "arenaLegacyExpand"), null);
 
         compare(details.checked, true);
@@ -463,8 +462,46 @@ TestCase {
         keyClick(Qt.Key_Return);
         compare(session.sentMessages, ["default hello"]);
 
-        mouseClick(leave, leave.width / 2, leave.height / 2, Qt.LeftButton);
-        compare(session.leaveCount, 1);
+    }
+
+    function test_panel_header_and_body_stay_at_top_across_modes() {
+        const session = createSession();
+        const panel = createTemporaryObject(panelComponent, testCase, {
+            "height": 480,
+            "session": session,
+            "width": 640
+        });
+        verify(panel !== null);
+        const header = findChild(panel, "arenaSelectHeader");
+        const title = findChild(panel, "arenaSelectRoomTitle");
+        const details = findChild(panel, "arenaSelectDetailsTab");
+        const chat = findChild(panel, "arenaSelectChatTab");
+        const roster = findChild(panel, "arenaSelectRoster");
+        const summary = findChild(panel, "arenaSelectSelection");
+        verify(header !== null);
+        verify(title !== null);
+        verify(details !== null);
+        verify(chat !== null);
+        verify(roster !== null);
+        verify(summary !== null);
+        const headerY = header.mapToItem(panel, 0, 0).y;
+        const detailsY = details.mapToItem(panel, 0, 0).y;
+        const chatY = chat.mapToItem(panel, 0, 0).y;
+        const rosterY = roster.mapToItem(panel, 0, 0).y;
+        const summaryY = summary.mapToItem(panel, 0, 0).y;
+        compare(headerY, 10);
+        verify(title.width >= 80);
+        closeEnough(chat.x, details.x + details.width,
+                    "tabs remain adjacent", 1);
+
+        mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
+        const chatView = findChild(panel, "arenaSelectChat");
+        verify(chatView !== null);
+        compare(header.mapToItem(panel, 0, 0).y, headerY);
+        compare(details.mapToItem(panel, 0, 0).y, detailsY);
+        compare(chat.mapToItem(panel, 0, 0).y, chatY);
+        compare(roster.mapToItem(panel, 0, 0).y, rosterY);
+        compare(chatView.mapToItem(panel, 0, 0).y, summaryY);
     }
 
     function test_ready_disabled_reason_stays_visible_on_chat_tab() {
@@ -557,8 +594,7 @@ TestCase {
                                  viewport, "Chat tab");
         verifyMinimumSceneTarget(findChild(viewport, "arenaSelectReady"),
                                  viewport, "Ready button");
-        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectLeave"),
-                                 viewport, "Leave button");
+        compare(findChild(viewport, "arenaSelectLeave"), null);
         verifyMinimumSceneTarget(findChild(viewport,
                                            "arenaRosterKick-member-2"),
                                  viewport, "Kick button");
@@ -597,7 +633,6 @@ TestCase {
         const details = findChild(frame, "arenaSelectDetailsTab");
         const chat = findChild(frame, "arenaSelectChatTab");
         const ready = findChild(frame, "arenaSelectReady");
-        const leave = findChild(frame, "arenaSelectLeave");
         const roster = findChild(frame, "arenaSelectRoster");
         const selection = findChild(frame, "arenaSelectSelection");
         tryVerify(function() {
@@ -615,9 +650,9 @@ TestCase {
         verify(frameBottomRight.y <= viewport.height + 0.01,
                "frame ends inside viewport y");
 
-        const detailsItems = [details, chat, ready, leave, roster, selection];
+        const detailsItems = [details, chat, ready, roster, selection];
         const detailsLabels = ["Details tab", "Chat tab", "Ready button",
-                               "Leave button", "Roster", "Summary"];
+                               "Roster", "Summary"];
         for (let index = 0; index < detailsItems.length; ++index) {
             verifyItemInside(detailsItems[index], frame, viewport,
                              data.tag + " " + detailsLabels[index]);
@@ -638,9 +673,9 @@ TestCase {
             return item !== null && item.height > 0;
         });
         const chatView = findChild(frame, "arenaSelectChat");
-        const chatItems = [details, chat, ready, leave, roster, chatView];
+        const chatItems = [details, chat, ready, roster, chatView];
         const chatLabels = ["Details tab", "Chat tab", "Ready button",
-                            "Leave button", "Roster", "Chat surface"];
+                            "Roster", "Chat surface"];
         for (let index = 0; index < chatItems.length; ++index) {
             verifyItemInside(chatItems[index], frame, viewport,
                              data.tag + " " + chatLabels[index]);
@@ -718,13 +753,13 @@ TestCase {
         verify(frame !== null);
         const title = overlay.panel.dragHandle;
         const chat = findChild(frame, "arenaSelectChatTab");
-        const leave = findChild(frame, "arenaSelectLeave");
+        const ready = findChild(frame, "arenaSelectReady");
         const topLeft = findChild(frame, "arenaResizeTopLeft");
         const topRight = findChild(frame, "arenaResizeTopRight");
         const bottomRight = findChild(frame, "arenaResizeBottomRight");
         verify(title !== null);
         verify(chat !== null);
-        verify(leave !== null);
+        verify(ready !== null);
         verify(topLeft !== null);
         verify(topRight !== null);
         verify(bottomRight !== null);
@@ -735,18 +770,18 @@ TestCase {
         compare(bottomRight.height, 16);
         const titleTopLeft = title.mapToItem(frame, 0, 0);
         const chatBottomRight = chat.mapToItem(frame, chat.width, chat.height);
-        const leaveBottomRight = leave.mapToItem(frame, leave.width,
-                                                 leave.height);
+        const readyBottomRight = ready.mapToItem(frame, ready.width,
+                                                 ready.height);
         verify(titleTopLeft.x >= topLeft.x + topLeft.width,
                "title starts outside left resize zone");
         verify(titleTopLeft.y >= topLeft.y + topLeft.height,
                "title starts outside top resize zone");
         verify(chatBottomRight.x <= topRight.x,
                "tab ends outside right resize zone");
-        verify(leaveBottomRight.x <= bottomRight.x,
-               "Leave ends outside right resize zone");
-        verify(leaveBottomRight.y <= bottomRight.y,
-               "Leave ends outside bottom resize zone");
+        verify(readyBottomRight.x <= bottomRight.x,
+               "Ready ends outside right resize zone");
+        verify(readyBottomRight.y <= bottomRight.y,
+               "Ready ends outside bottom resize zone");
 
         frame.placementCommitted.connect(function() {
             themeVars.commitCount += 1;
@@ -765,9 +800,9 @@ TestCase {
         mouseClick(chat, chat.width - 1, 1, Qt.LeftButton);
         compare(chat.checked, true);
         compare(overlay.panel.detailMode, "chat");
-        mouseClick(leave, leave.width - 1, leave.height - 1,
+        mouseClick(ready, ready.width - 1, ready.height - 1,
                    Qt.LeftButton);
-        compare(session.leaveCount, 1);
+        compare(session.readyRequests, [true]);
     }
 
     function test_ready_reason_survives_chat_and_announcements_are_deduplicated() {

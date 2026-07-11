@@ -245,13 +245,12 @@ TestCase {
         const roster = findChild(overlay, "arenaSelectRoster");
         const selection = findChild(overlay, "arenaSelectSelection");
         const ready = findChild(overlay, "arenaSelectReady");
-        const leave = findChild(overlay, "arenaSelectLeave");
         verify(details !== null);
         verify(chat !== null);
         verify(roster !== null);
         verify(selection !== null);
         verify(ready !== null);
-        verify(leave !== null);
+        compare(findChild(overlay, "arenaSelectLeave"), null);
         const panel = selectPanelFor(details);
         verify(panel !== null);
         compare(findChild(overlay, "arenaLegacyExpand"), null);
@@ -330,9 +329,7 @@ TestCase {
         keyClick(Qt.Key_Return);
         compare(state.session.sentMessages, ["legacy hello"]);
 
-        const leave = findChild(overlay, "arenaSelectLeave");
-        mouseClick(leave, leave.width / 2, leave.height / 2, Qt.LeftButton);
-        compare(state.session.leaveCount, 1);
+        compare(findChild(overlay, "arenaSelectLeave"), null);
     }
 
     function test_ready_disabled_reason_stays_accessible_on_chat_tab() {

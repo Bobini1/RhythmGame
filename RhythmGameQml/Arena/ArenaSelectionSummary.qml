@@ -119,4 +119,9 @@ ColumnLayout {
         visible: text.length > 0
         wrapMode: Text.Wrap
     }
+
+    Item {
+        Layout.fillHeight: true
+        Layout.minimumHeight: 0
+    }
 }

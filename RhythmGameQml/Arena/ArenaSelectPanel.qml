@@ -12,7 +12,7 @@ FocusScope {
     readonly property alias announcementCount: statusAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
-    readonly property alias dragHandle: titleDragHandle
+    readonly property alias dragHandle: selectHeader
     readonly property string detailMode: tabs.currentIndex === 1 ? "chat" : "details"
     readonly property real normalBodyMinimumWidth: 270 + 8 + 220
     readonly property string readyDisabledReason: {
@@ -52,50 +52,103 @@ FocusScope {
         spacing: 8
 
         RowLayout {
+            id: selectHeader
+
+            objectName: "arenaSelectHeader"
             Layout.fillWidth: true
-            spacing: 8
+            Layout.fillHeight: false
+            Layout.maximumHeight: 40
+            Layout.minimumHeight: 40
+            Layout.preferredHeight: 40
+            spacing: 4
 
             Item {
-                id: titleDragHandle
+                Layout.fillHeight: true
+                Layout.preferredWidth: 12
+
+                Accessible.ignored: true
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 3
+
+                    Repeater {
+                        model: 3
+
+                        Rectangle {
+                            color: "#8b96a6"
+                            height: 1
+                            width: 10
+                        }
+                    }
+                }
+            }
+
+            Text {
+                id: roomTitle
 
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.minimumHeight: roomTitle.implicitHeight
                 Layout.minimumWidth: 0
-
-                Text {
-                    id: roomTitle
-
-                    anchors.fill: parent
-                    color: "white"
-                    elide: Text.ElideRight
-                    font.bold: true
-                    font.pixelSize: 18
-                    text: root.session
-                        ? (root.session.roomName || qsTr("Arena room"))
-                        : qsTr("Arena room")
-                    textFormat: Text.PlainText
-                    verticalAlignment: Text.AlignVCenter
-                }
+                objectName: "arenaSelectRoomTitle"
+                color: "white"
+                elide: Text.ElideRight
+                font.bold: true
+                font.pixelSize: 18
+                text: root.session
+                    ? (root.session.roomName || qsTr("Arena room"))
+                    : qsTr("Arena room")
+                textFormat: Text.PlainText
+                verticalAlignment: Text.AlignVCenter
             }
 
             TabBar {
                 id: tabs
 
                 Layout.alignment: Qt.AlignVCenter
-                Layout.minimumWidth: 0
+                Layout.fillWidth: false
+                Layout.maximumWidth: detailsTab.width + chatTab.width
+                Layout.minimumWidth: detailsTab.width + chatTab.width
+                Layout.preferredHeight: 40
+                Layout.preferredWidth: detailsTab.width + chatTab.width
+                hoverEnabled: true
 
                 TabButton {
+                    id: detailsTab
+
                     objectName: "arenaSelectDetailsTab"
                     Accessible.name: qsTr("Show Arena room details")
+                    horizontalPadding: 10
+                    implicitHeight: Math.max(32,
+                                             implicitContentHeight
+                                             + topPadding + bottomPadding)
+                    implicitWidth: Math.max(64,
+                                            implicitContentWidth
+                                            + leftPadding + rightPadding)
                     text: qsTr("Details")
+                    width: implicitWidth
                 }
 
                 TabButton {
+                    id: chatTab
+
                     objectName: "arenaSelectChatTab"
                     Accessible.name: qsTr("Show Arena chat")
+                    horizontalPadding: 10
+                    implicitHeight: Math.max(32,
+                                             implicitContentHeight
+                                             + topPadding + bottomPadding)
+                    implicitWidth: Math.max(64,
+                                            implicitContentWidth
+                                            + leftPadding + rightPadding)
                     text: qsTr("Chat")
+                    width: implicitWidth
                 }
+            }
+
+            HoverHandler {
+                enabled: !tabs.hovered
+                cursorShape: Qt.SizeAllCursor
             }
         }
 
@@ -186,15 +239,6 @@ FocusScope {
                 }
             }
 
-            Button {
-                objectName: "arenaSelectLeave"
-                Accessible.name: qsTr("Leave Arena room")
-                text: qsTr("Leave")
-                onClicked: {
-                    if (root.session)
-                        root.session.leaveRoom();
-                }
-            }
         }
     }
 
