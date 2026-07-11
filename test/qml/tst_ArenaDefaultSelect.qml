@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
 import RhythmGameQml
-import "../../share/RhythmGame/themes/Default/scripts/select" as DefaultSelect
 
 TestCase {
     id: testCase
@@ -47,7 +46,7 @@ TestCase {
     Component {
         id: panelComponent
 
-        DefaultSelect.ArenaSelectPanel {}
+        ArenaSelectPanel {}
     }
 
     Component {
@@ -84,7 +83,7 @@ TestCase {
                                     Math.max(0, viewport.width - x - 24))
                     height: Math.min(352,
                                      Math.max(0, viewport.height - y - 24))
-                    sourceComponent: DefaultSelect.ArenaSelectPanel {
+                    sourceComponent: ArenaSelectPanel {
                         session: viewport.session
                     }
                 }
@@ -332,7 +331,7 @@ TestCase {
         compare(chat.scrollPosition, oldPosition);
     }
 
-    function test_default_panel_keeps_roster_and_routes_actions() {
+    function test_default_panel_uses_shared_exclusive_tabs_and_routes_actions() {
         const session = createSession();
         const panel = createTemporaryObject(panelComponent, testCase, {
             "height": 480,
@@ -341,19 +340,53 @@ TestCase {
         });
         verify(panel !== null);
         compare(panel.arenaNativeSelectPresentation, true);
-        verify(findChild(panel, "arenaDefaultRoster") !== null);
-        verify(findChild(panel, "arenaDefaultSelection") !== null);
+        const details = findChild(panel, "arenaSelectDetailsTab");
+        const chat = findChild(panel, "arenaSelectChatTab");
+        const roster = findChild(panel, "arenaSelectRoster");
+        const selection = findChild(panel, "arenaSelectSelection");
+        const ready = findChild(panel, "arenaSelectReady");
+        const leave = findChild(panel, "arenaSelectLeave");
+        verify(details !== null);
+        verify(chat !== null);
+        verify(roster !== null);
+        verify(selection !== null);
+        verify(ready !== null);
+        verify(leave !== null);
+        compare(findChild(panel, "arenaLegacyExpand"), null);
 
-        const ready = findChild(panel, "arenaDefaultReady");
+        compare(details.checked, true);
+        compare(chat.checked, false);
+        mouseClick(details, details.width / 2, details.height / 2,
+                   Qt.LeftButton);
+        compare(details.checked, true);
+        compare(chat.checked, false);
+
         mouseClick(ready, ready.width / 2, ready.height / 2, Qt.LeftButton);
         compare(session.readyRequests, [true]);
 
-        const chatTab = findChild(panel, "arenaDefaultChatTab");
-        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
-        compare(panel.detailMode, "chat");
-        verify(findChild(panel, "arenaDefaultChat") !== null);
+        tryVerify(function() {
+            return findChild(panel, "arenaRosterKick-member-2") !== null;
+        });
+        const kick = findChild(panel, "arenaRosterKick-member-2");
+        mouseClick(kick, kick.width / 2, kick.height / 2, Qt.LeftButton);
+        compare(session.kickedMemberIds, ["member-2"]);
 
-        const leave = findChild(panel, "arenaDefaultLeave");
+        mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
+        compare(details.checked, false);
+        compare(chat.checked, true);
+        compare(panel.detailMode, "chat");
+        chat.forceActiveFocus();
+        keyClick(Qt.Key_Space);
+        compare(chat.checked, true);
+        const chatView = findChild(panel, "arenaSelectChat");
+        verify(chatView !== null);
+        const chatInput = findChild(chatView, "arenaChatInput");
+        verify(chatInput !== null);
+        chatInput.forceActiveFocus();
+        chatInput.text = "default hello";
+        keyClick(Qt.Key_Return);
+        compare(session.sentMessages, ["default hello"]);
+
         mouseClick(leave, leave.width / 2, leave.height / 2, Qt.LeftButton);
         compare(session.leaveCount, 1);
     }
@@ -368,13 +401,13 @@ TestCase {
         });
         verify(panel !== null);
 
-        const reason = findChild(panel, "arenaDefaultReadyDisabledReason");
+        const reason = findChild(panel, "arenaSelectReadyDisabledReason");
         verify(reason !== null);
         compare(reason.text, panel.readyDisabledReason);
         compare(reason.visible, true);
         compare(reason.Accessible.name, panel.readyDisabledReason);
 
-        const chatTab = findChild(panel, "arenaDefaultChatTab");
+        const chatTab = findChild(panel, "arenaSelectChatTab");
         mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2,
                    Qt.LeftButton);
         compare(panel.detailMode, "chat");
@@ -414,13 +447,13 @@ TestCase {
             return findChild(viewport, "arenaRosterKick-member-2") !== null;
         });
 
-        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultDetailsTab"),
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectDetailsTab"),
                                  viewport, "Details tab");
-        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultChatTab"),
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectChatTab"),
                                  viewport, "Chat tab");
-        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultReady"),
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectReady"),
                                  viewport, "Ready button");
-        verifyMinimumSceneTarget(findChild(viewport, "arenaDefaultLeave"),
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectLeave"),
                                  viewport, "Leave button");
         verifyMinimumSceneTarget(findChild(viewport,
                                            "arenaRosterKick-member-2"),
@@ -441,8 +474,8 @@ TestCase {
         verify(panel !== null);
         verify(panel.readyDisabledReason.length > 0);
 
-        const ready = findChild(panel, "arenaDefaultReady");
-        const chatTab = findChild(panel, "arenaDefaultChatTab");
+        const ready = findChild(panel, "arenaSelectReady");
+        const chatTab = findChild(panel, "arenaSelectChatTab");
         mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
         compare(panel.detailMode, "chat");
         verify(panel.readyDisabledReason.length > 0);

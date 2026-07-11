@@ -18,6 +18,12 @@ TestCase {
     }
 
     Component {
+        id: themeVarsComponent
+
+        FakeArenaThemeVars {}
+    }
+
+    Component {
         id: hostComponent
 
         Item {
@@ -29,6 +35,7 @@ TestCase {
             property alias shell: shell
             property alias unknownScreen: unknownScreen
             property var session
+            property var themeVars
 
             Item {
                 anchors.fill: parent
@@ -60,7 +67,47 @@ TestCase {
 
                 presentationItem: shell.arenaSelectPresentationItem
                 session: harness.session
+                themeVars: harness.themeVars
                 viewport: harness
+            }
+        }
+    }
+
+    Component {
+        id: loaderHostComponent
+
+        Item {
+            id: loaderHarness
+
+            property int backgroundTaps: 0
+            property alias overlayLoader: overlayLoader
+            property var session
+            property var themeVars
+
+            Item {
+                anchors.fill: parent
+
+                TapHandler {
+                    onTapped: loaderHarness.backgroundTaps += 1
+                }
+            }
+
+            Item {
+                id: loaderPresentedScreen
+
+                property bool arenaNativeSelectPresentation: false
+            }
+
+            Loader {
+                id: overlayLoader
+
+                anchors.fill: parent
+                sourceComponent: ArenaLegacySelectOverlay {
+                    presentationItem: loaderPresentedScreen
+                    session: loaderHarness.session
+                    themeVars: loaderHarness.themeVars
+                    viewport: loaderHarness
+                }
             }
         }
     }
@@ -94,17 +141,65 @@ TestCase {
 
     function createHarness(width = 1200, height = 800) {
         const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        verify(themeVars !== null);
         const harness = createTemporaryObject(hostComponent, testCase, {
             "height": height,
             "session": session,
+            "themeVars": themeVars,
             "width": width
         });
         verify(harness !== null);
+        session.parent = harness;
         wait(1);
         return {
             "harness": harness,
-            "session": session
+            "session": session,
+            "themeVars": themeVars
         };
+    }
+
+    function createLoaderHarness(width = 1280, height = 720) {
+        const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        verify(themeVars !== null);
+        const harness = createTemporaryObject(loaderHostComponent, testCase, {
+            "height": height,
+            "session": session,
+            "themeVars": themeVars,
+            "width": width
+        });
+        verify(harness !== null);
+        session.parent = harness;
+        tryCompare(harness.overlayLoader, "status", Loader.Ready);
+        verify(harness.overlayLoader.item !== null);
+        return {
+            "harness": harness,
+            "overlay": harness.overlayLoader.item,
+            "session": session,
+            "themeVars": themeVars
+        };
+    }
+
+    function isDescendantOf(item, ancestor) {
+        let current = item;
+        while (current !== null) {
+            if (current === ancestor)
+                return true;
+            current = current.parent;
+        }
+        return false;
+    }
+
+    function hasFullscreenPaintedDirectChild(item) {
+        for (const child of item.children) {
+            if ("color" in child && child.visible
+                    && child.width >= item.width - 0.01
+                    && child.height >= item.height - 0.01) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function test_capability_alone_routes_the_fallback() {
@@ -127,46 +222,45 @@ TestCase {
         compare(overlay.visible, true);
     }
 
-    function test_compact_header_is_bounded_and_expandable() {
+    function test_shared_panel_is_always_expanded_and_exclusive() {
         const state = createHarness(1280, 720);
         const overlay = state.harness.overlay;
         verify(overlay !== null);
-        compare(overlay.expanded, false);
-        compare(overlay.width, 420);
-        compare(overlay.x, 1280 - 24 - 420);
-        compare(overlay.y, 24);
-        verify(overlay.height <= 720 - 48);
-
-        const strip = findChild(overlay, "arenaLegacyCompactHeader");
-        verify(strip !== null);
-        compare(strip.connectedCount, 12);
-        compare(strip.reservedCount, 4);
-        const room = findChild(strip, "arenaStripRoom");
-        const selection = findChild(strip, "arenaStripSelection");
-        const stateLabel = findChild(strip, "arenaStripReadyState");
-        compare(room.text, "Test room");
-        compare(room.textFormat, Text.PlainText);
-        verify(selection.text.indexOf("Selected chart") >= 0);
-        verify(stateLabel.text.indexOf("Not ready") >= 0);
-        const expand = findChild(overlay, "arenaLegacyExpand");
-        mouseClick(expand, expand.width / 2, expand.height / 2, Qt.LeftButton);
-        compare(overlay.expanded, true);
-        verify(overlay.height <= 720 - 48);
-        const roster = findChild(overlay, "arenaLegacyRoster");
+        const details = findChild(overlay, "arenaSelectDetailsTab");
+        const chat = findChild(overlay, "arenaSelectChatTab");
+        const roster = findChild(overlay, "arenaSelectRoster");
+        const selection = findChild(overlay, "arenaSelectSelection");
+        const ready = findChild(overlay, "arenaSelectReady");
+        const leave = findChild(overlay, "arenaSelectLeave");
+        verify(details !== null);
+        verify(chat !== null);
+        verify(roster !== null);
+        verify(selection !== null);
+        verify(ready !== null);
+        verify(leave !== null);
+        compare(findChild(overlay, "arenaLegacyExpand"), null);
         tryCompare(roster, "memberCount", 16);
         verify(roster.contentHeight > roster.height);
 
-        mouseClick(expand, expand.width / 2, expand.height / 2, Qt.LeftButton);
-        compare(overlay.expanded, false);
+        compare(details.checked, true);
+        compare(chat.checked, false);
+        mouseClick(details, details.width / 2, details.height / 2,
+                   Qt.LeftButton);
+        compare(details.checked, true);
+        compare(chat.checked, false);
+        mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
+        compare(details.checked, false);
+        compare(chat.checked, true);
+        chat.forceActiveFocus();
+        keyClick(Qt.Key_Space);
+        compare(chat.checked, true);
     }
 
-    function test_expanded_actions_route_to_the_existing_session() {
+    function test_shared_actions_route_to_the_existing_session() {
         const state = createHarness();
         const overlay = state.harness.overlay;
-        overlay.expanded = true;
-        wait(1);
 
-        const ready = findChild(overlay, "arenaLegacyReady");
+        const ready = findChild(overlay, "arenaSelectReady");
         mouseClick(ready, ready.width / 2, ready.height / 2, Qt.LeftButton);
         compare(state.session.readyRequests, [true]);
 
@@ -177,19 +271,18 @@ TestCase {
         mouseClick(kick, kick.width / 2, kick.height / 2, Qt.LeftButton);
         compare(state.session.kickedMemberIds, ["member-2"]);
 
-        const chatTab = findChild(overlay, "arenaLegacyChatTab");
+        const chatTab = findChild(overlay, "arenaSelectChatTab");
         mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
-        wait(1);
-        const chatInput = findChild(overlay, "arenaChatInput");
+        const chatView = findChild(overlay, "arenaSelectChat");
+        verify(chatView !== null);
+        const chatInput = findChild(chatView, "arenaChatInput");
+        verify(chatInput !== null);
         chatInput.forceActiveFocus();
         chatInput.text = "legacy hello";
         keyClick(Qt.Key_Return);
         compare(state.session.sentMessages, ["legacy hello"]);
 
-        const winners = findChild(overlay, "arenaLastWinners");
-        verify(winners.text.indexOf("Player 2") >= 0);
-
-        const leave = findChild(overlay, "arenaLegacyLeave");
+        const leave = findChild(overlay, "arenaSelectLeave");
         mouseClick(leave, leave.width / 2, leave.height / 2, Qt.LeftButton);
         compare(state.session.leaveCount, 1);
     }
@@ -198,27 +291,50 @@ TestCase {
         const state = createHarness();
         const overlay = state.harness.overlay;
         state.session.canReady = false;
-        overlay.expanded = true;
-        wait(1);
 
-        const ready = findChild(overlay, "arenaLegacyReady");
-        const strip = findChild(overlay, "arenaLegacyCompactHeader");
+        const ready = findChild(overlay, "arenaSelectReady");
+        const reason = findChild(overlay, "arenaSelectReadyDisabledReason");
         verify(ready !== null);
-        verify(strip !== null);
+        verify(reason !== null);
         compare(ready.enabled, false);
-        verify(strip.readyDisabledReason.length > 0);
-        compare(ready.Accessible.description, strip.readyDisabledReason);
+        verify(reason.text.length > 0);
+        compare(ready.Accessible.description, reason.text);
 
-        const chatTab = findChild(overlay, "arenaLegacyChatTab");
+        const chatTab = findChild(overlay, "arenaSelectChatTab");
         mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
-        compare(ready.Accessible.description, strip.readyDisabledReason);
+        compare(ready.Accessible.description, reason.text);
+    }
+
+    function test_fullscreen_loader_keeps_transparent_root_and_bounded_panel() {
+        const state = createLoaderHarness(1280, 720);
+        const overlay = state.overlay;
+        compare(overlay.x, 0);
+        compare(overlay.y, 0);
+        compare(overlay.width, 1280);
+        compare(overlay.height, 720);
+        compare(hasFullscreenPaintedDirectChild(overlay), false);
+
+        const frame = findChild(overlay, "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        verify(frame.width < overlay.width);
+        verify(frame.height < overlay.height);
+        verify(frame.x >= 24);
+        verify(frame.y >= 24);
+        verify(frame.x + frame.width <= overlay.width - 24);
+        verify(frame.y + frame.height <= overlay.height - 24);
+        const details = findChild(overlay, "arenaSelectDetailsTab");
+        verify(details !== null);
+        verify(isDescendantOf(details, frame));
+        compare(findChild(overlay, "arenaLegacyExpand"), null);
     }
 
     function test_outside_the_panel_remains_pointer_transparent() {
         const state = createHarness();
         const overlay = state.harness.overlay;
-        verify(overlay.x > 24);
-        mouseClick(state.harness, 12, 12, Qt.LeftButton);
+        const frame = findChild(overlay, "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        verify(frame.x >= 24);
+        mouseClick(state.harness, 4, 4, Qt.LeftButton);
         compare(state.harness.backgroundTaps, 1);
     }
 }

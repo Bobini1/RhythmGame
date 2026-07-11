@@ -1,8 +1,8 @@
 pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import RhythmGameQml
 
 FocusScope {
     id: root
@@ -12,6 +12,8 @@ FocusScope {
     readonly property alias announcementCount: statusAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
+    readonly property alias dragHandle: titleDragHandle
+    readonly property string detailMode: tabs.currentIndex === 1 ? "chat" : "details"
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -30,9 +32,9 @@ FocusScope {
         }
         return "";
     }
-    property string detailMode: "details"
 
-    Accessible.name: root.session.roomName || qsTr("Arena room")
+    Accessible.name: root.session
+        ? (root.session.roomName || qsTr("Arena room")) : qsTr("Arena room")
     Accessible.role: Accessible.Grouping
 
     Rectangle {
@@ -52,36 +54,45 @@ FocusScope {
             Layout.fillWidth: true
             spacing: 8
 
-            Text {
+            Item {
+                id: titleDragHandle
+
+                Layout.fillHeight: true
                 Layout.fillWidth: true
-                color: "white"
-                elide: Text.ElideRight
-                font.bold: true
-                font.pixelSize: 18
-                text: root.session.roomName || qsTr("Arena room")
-                textFormat: Text.PlainText
+                Layout.minimumHeight: roomTitle.implicitHeight
+
+                Text {
+                    id: roomTitle
+
+                    anchors.fill: parent
+                    color: "white"
+                    elide: Text.ElideRight
+                    font.bold: true
+                    font.pixelSize: 18
+                    text: root.session
+                        ? (root.session.roomName || qsTr("Arena room"))
+                        : qsTr("Arena room")
+                    textFormat: Text.PlainText
+                    verticalAlignment: Text.AlignVCenter
+                }
             }
 
-            Button {
-                id: detailsTab
+            TabBar {
+                id: tabs
 
-                objectName: "arenaDefaultDetailsTab"
-                Accessible.name: qsTr("Show Arena room details")
-                checked: root.detailMode === "details"
-                checkable: true
-                text: qsTr("Details")
-                onClicked: root.detailMode = "details"
-            }
+                Layout.alignment: Qt.AlignVCenter
 
-            Button {
-                id: chatTab
+                TabButton {
+                    objectName: "arenaSelectDetailsTab"
+                    Accessible.name: qsTr("Show Arena room details")
+                    text: qsTr("Details")
+                }
 
-                objectName: "arenaDefaultChatTab"
-                Accessible.name: qsTr("Show Arena chat")
-                checked: root.detailMode === "chat"
-                checkable: true
-                text: qsTr("Chat")
-                onClicked: root.detailMode = "chat"
+                TabButton {
+                    objectName: "arenaSelectChatTab"
+                    Accessible.name: qsTr("Show Arena chat")
+                    text: qsTr("Chat")
+                }
             }
         }
 
@@ -91,14 +102,17 @@ FocusScope {
             spacing: 8
 
             ArenaRosterView {
-                objectName: "arenaDefaultRoster"
+                objectName: "arenaSelectRoster"
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.minimumWidth: 270
                 compact: true
                 moderationEnabled: true
                 session: root.session
-                onKickRequested: memberId => root.session.kickMember(memberId)
+                onKickRequested: memberId => {
+                    if (root.session)
+                        root.session.kickMember(memberId);
+                }
             }
 
             Loader {
@@ -107,12 +121,13 @@ FocusScope {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.minimumWidth: 220
-                sourceComponent: root.detailMode === "chat" ? chatComponent : summaryComponent
+                sourceComponent: tabs.currentIndex === 1
+                    ? chatComponent : summaryComponent
             }
         }
 
         Text {
-            objectName: "arenaDefaultReadyDisabledReason"
+            objectName: "arenaSelectReadyDisabledReason"
             Accessible.name: text
             Accessible.role: Accessible.StaticText
             Layout.fillWidth: true
@@ -129,26 +144,37 @@ FocusScope {
 
             Text {
                 Layout.fillWidth: true
-                color: root.session.ready === true ? "#b8f0c5" : "#d6deea"
-                text: root.session.ready === true ? qsTr("Ready") : qsTr("Not ready")
+                color: root.session && root.session.ready === true
+                    ? "#b8f0c5" : "#d6deea"
+                text: root.session
+                    ? (root.session.ready === true ? qsTr("Ready")
+                                                   : qsTr("Not ready")) : ""
             }
 
             Button {
-                id: readyButton
-
-                objectName: "arenaDefaultReady"
+                objectName: "arenaSelectReady"
                 Accessible.description: root.readyDisabledReason
                 Accessible.name: text
-                enabled: root.session.roundsAvailable !== false && String(root.session.currentRoundId || "").length === 0 && (root.session.ready === true || root.session.canReady === true)
-                text: root.session.ready === true ? qsTr("Unready") : qsTr("Ready")
-                onClicked: root.session.setReady(root.session.ready !== true)
+                enabled: root.session
+                    && root.session.roundsAvailable !== false
+                    && String(root.session.currentRoundId || "").length === 0
+                    && (root.session.ready === true || root.session.canReady === true)
+                text: root.session && root.session.ready === true
+                    ? qsTr("Unready") : qsTr("Ready")
+                onClicked: {
+                    if (root.session)
+                        root.session.setReady(root.session.ready !== true);
+                }
             }
 
             Button {
-                objectName: "arenaDefaultLeave"
+                objectName: "arenaSelectLeave"
                 Accessible.name: qsTr("Leave Arena room")
                 text: qsTr("Leave")
-                onClicked: root.session.leaveRoom()
+                onClicked: {
+                    if (root.session)
+                        root.session.leaveRoom();
+                }
             }
         }
     }
@@ -159,7 +185,8 @@ FocusScope {
         active: root.visible
         errorMessageKey: root.session ? String(root.session.errorMessageKey || "") : ""
         reconnecting: root.session ? root.session.reconnecting === true : false
-        roundLaunchCancellationStatusKey: root.session ? String(root.session.roundLaunchCancellationStatusKey || "") : ""
+        roundLaunchCancellationStatusKey: root.session
+            ? String(root.session.roundLaunchCancellationStatusKey || "") : ""
         target: root
     }
 
@@ -167,7 +194,7 @@ FocusScope {
         id: summaryComponent
 
         ArenaSelectionSummary {
-            objectName: "arenaDefaultSelection"
+            objectName: "arenaSelectSelection"
             compact: true
             session: root.session
         }
@@ -177,8 +204,8 @@ FocusScope {
         id: chatComponent
 
         ArenaChatView {
-            objectName: "arenaDefaultChat"
-            chatModel: root.session.chat
+            objectName: "arenaSelectChat"
+            chatModel: root.session ? root.session.chat : null
             inputEnabled: true
             session: root.session
         }

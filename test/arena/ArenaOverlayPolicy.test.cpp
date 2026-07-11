@@ -346,7 +346,7 @@ TEST_CASE("ArenaOverlayPolicy: room surfaces announce only bounded competition s
            "RhythmGameQml/Arena/ArenaBrowser.qml",
            "RhythmGameQml/Arena/ArenaRoom.qml",
            "RhythmGameQml/Arena/ArenaSelectStrip.qml",
-           "share/RhythmGame/themes/Default/scripts/select/ArenaSelectPanel.qml" }) {
+           "RhythmGameQml/Arena/ArenaSelectPanel.qml" }) {
         const auto source = qmlSource(path);
         requireContains(source,
                         { "readonly property alias lastAnnouncementKey",

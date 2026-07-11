@@ -589,6 +589,7 @@ ApplicationWindow {
                             ArenaLegacySelectOverlay {
                                 presentationItem: arenaSelectHost.currentScreen
                                 session: arenaShell.session
+                                themeVars: globalRoot.resolvedThemeVars("select")
                                 viewport: arenaSelectHost
                             }
                         }
