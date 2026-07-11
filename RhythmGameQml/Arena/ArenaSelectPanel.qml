@@ -14,6 +14,7 @@ FocusScope {
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property alias dragHandle: titleDragHandle
     readonly property string detailMode: tabs.currentIndex === 1 ? "chat" : "details"
+    readonly property real normalBodyMinimumWidth: 270 + 8 + 220
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -60,6 +61,7 @@ FocusScope {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.minimumHeight: roomTitle.implicitHeight
+                Layout.minimumWidth: 0
 
                 Text {
                     id: roomTitle
@@ -81,6 +83,7 @@ FocusScope {
                 id: tabs
 
                 Layout.alignment: Qt.AlignVCenter
+                Layout.minimumWidth: 0
 
                 TabButton {
                     objectName: "arenaSelectDetailsTab"
@@ -96,16 +99,25 @@ FocusScope {
             }
         }
 
-        RowLayout {
+        GridLayout {
+            id: bodyLayout
+
             Layout.fillHeight: true
             Layout.fillWidth: true
-            spacing: 8
+            Layout.minimumHeight: 0
+            columnSpacing: 8
+            columns: root.width - 20 >= root.normalBodyMinimumWidth ? 2 : 1
+            rowSpacing: 8
 
             ArenaRosterView {
                 objectName: "arenaSelectRoster"
+                Layout.column: 0
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.minimumWidth: 270
+                Layout.minimumHeight: 0
+                Layout.minimumWidth: bodyLayout.columns === 1 ? 0 : 270
+                Layout.preferredHeight: bodyLayout.columns === 1 ? 1 : -1
+                Layout.row: 0
                 compact: true
                 moderationEnabled: true
                 session: root.session
@@ -118,9 +130,13 @@ FocusScope {
             Loader {
                 id: detailsLoader
 
+                Layout.column: bodyLayout.columns === 1 ? 0 : 1
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                Layout.minimumWidth: 220
+                Layout.minimumHeight: 0
+                Layout.minimumWidth: bodyLayout.columns === 1 ? 0 : 220
+                Layout.preferredHeight: bodyLayout.columns === 1 ? 1 : -1
+                Layout.row: bodyLayout.columns === 1 ? 1 : 0
                 sourceComponent: tabs.currentIndex === 1
                     ? chatComponent : summaryComponent
             }
@@ -131,6 +147,7 @@ FocusScope {
             Accessible.name: text
             Accessible.role: Accessible.StaticText
             Layout.fillWidth: true
+            Layout.minimumWidth: 0
             color: "#ffb2a8"
             text: root.readyDisabledReason
             textFormat: Text.PlainText
@@ -144,8 +161,10 @@ FocusScope {
 
             Text {
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 color: root.session && root.session.ready === true
                     ? "#b8f0c5" : "#d6deea"
+                elide: Text.ElideRight
                 text: root.session
                     ? (root.session.ready === true ? qsTr("Ready")
                                                    : qsTr("Not ready")) : ""

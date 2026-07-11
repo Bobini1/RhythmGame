@@ -172,6 +172,8 @@ TestCase {
         compare(right.enabled, true);
         compare(right.activeFocusOnTab, false);
         compare(rightChrome.visible, false);
+        compare(right.width, 16);
+        compare(right.height, 16);
 
         const initialRect = Qt.rect(frame.x, frame.y,
                                     frame.width, frame.height);
@@ -231,6 +233,15 @@ TestCase {
         compare(themeVars.arenaOverlayResultYNormalized, -1);
         compare(themeVars.arenaOverlayResultWidthNormalized, -1);
         compare(themeVars.arenaOverlayResultHeightNormalized, -1);
+
+        const persistedRect = frame.resolvedPixelRect;
+        const reloadedFrame = createTemporaryObject(selectFrameComponent,
+                                                    viewport, {
+            "themeVars": themeVars,
+            "viewport": viewport
+        });
+        verify(reloadedFrame !== null);
+        tryCompare(reloadedFrame, "resolvedPixelRect", persistedRect);
     }
 
     function test_stored_conversion_safe_clamp_and_passive_resize() {
@@ -333,8 +344,8 @@ TestCase {
             });
             const handle = findChild(harness.frame, objectName);
             verify(handle !== null, objectName);
-            verify(handle.width >= 32);
-            verify(handle.height >= 32);
+            compare(handle.width, 32, objectName);
+            compare(handle.height, 32, objectName);
             verify(handle.Accessible.name.length > 0, objectName);
             verify(handle.Accessible.description.length > 0, objectName);
             compare(handle.Accessible.role, Accessible.Grip, objectName);

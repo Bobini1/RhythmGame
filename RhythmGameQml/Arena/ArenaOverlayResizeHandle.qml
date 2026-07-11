@@ -18,8 +18,8 @@ Item {
     signal keyboardResizeRequested(real x, real y, int horizontalEdge,
                                    int verticalEdge)
 
-    width: 32
-    height: 32
+    width: chromeVisible ? 32 : 16
+    height: chromeVisible ? 32 : 16
     visible: interactionEnabled
     enabled: interactionEnabled
     activeFocusOnTab: chromeVisible && enabled

@@ -167,6 +167,42 @@ TestCase {
         closeEnough(actual.height, expected.height, label + " height");
     }
 
+    function verifyItemInside(item, frame, viewport, label) {
+        verify(item !== null, label + " exists");
+        verify(item.visible, label + " is visible");
+        verify(item.width > 0,
+               label + " has positive width: " + item.width);
+        verify(item.height > 0,
+               label + " has positive height: " + item.height);
+
+        const frameTopLeft = item.mapToItem(frame, 0, 0);
+        const frameBottomRight = item.mapToItem(frame, item.width, item.height);
+        verify(frameTopLeft.x >= -0.01,
+               label + " starts inside frame x: " + frameTopLeft.x);
+        verify(frameTopLeft.y >= -0.01,
+               label + " starts inside frame y: " + frameTopLeft.y);
+        verify(frameBottomRight.x <= frame.width + 0.01,
+               label + " ends inside frame x: " + frameBottomRight.x
+               + " <= " + frame.width);
+        verify(frameBottomRight.y <= frame.height + 0.01,
+               label + " ends inside frame y: " + frameBottomRight.y
+               + " <= " + frame.height);
+
+        const viewportTopLeft = item.mapToItem(viewport, 0, 0);
+        const viewportBottomRight = item.mapToItem(viewport, item.width,
+                                                   item.height);
+        verify(viewportTopLeft.x >= -0.01,
+               label + " starts inside viewport x");
+        verify(viewportTopLeft.y >= -0.01,
+               label + " starts inside viewport y");
+        verify(viewportBottomRight.x <= viewport.width + 0.01,
+               label + " ends inside viewport x: " + viewportBottomRight.x
+               + " <= " + viewport.width);
+        verify(viewportBottomRight.y <= viewport.height + 0.01,
+               label + " ends inside viewport y: " + viewportBottomRight.y
+               + " <= " + viewport.height);
+    }
+
     function test_roster_exposes_all_room_states_and_owner_moderation() {
         const session = createSession();
         const roster = createTemporaryObject(rosterComponent, testCase, {
@@ -368,10 +404,24 @@ TestCase {
 
         compare(details.checked, true);
         compare(chat.checked, false);
+        compare(panel.detailMode, "details");
+        verify(findChild(panel, "arenaSelectSelection") !== null);
+        compare(findChild(panel, "arenaSelectChat"), null);
         mouseClick(details, details.width / 2, details.height / 2,
                    Qt.LeftButton);
         compare(details.checked, true);
         compare(chat.checked, false);
+        compare(panel.detailMode, "details");
+        verify(findChild(panel, "arenaSelectSelection") !== null);
+        compare(findChild(panel, "arenaSelectChat"), null);
+
+        details.forceActiveFocus();
+        keyClick(Qt.Key_Space);
+        compare(details.checked, true);
+        compare(chat.checked, false);
+        compare(panel.detailMode, "details");
+        verify(findChild(panel, "arenaSelectSelection") !== null);
+        compare(findChild(panel, "arenaSelectChat"), null);
 
         mouseClick(ready, ready.width / 2, ready.height / 2, Qt.LeftButton);
         compare(session.readyRequests, [true]);
@@ -387,9 +437,23 @@ TestCase {
         compare(details.checked, false);
         compare(chat.checked, true);
         compare(panel.detailMode, "chat");
+        tryVerify(function() {
+            return findChild(panel, "arenaSelectChat") !== null
+                    && findChild(panel, "arenaSelectSelection") === null;
+        });
+        mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
+        compare(details.checked, false);
+        compare(chat.checked, true);
+        compare(panel.detailMode, "chat");
+        verify(findChild(panel, "arenaSelectChat") !== null);
+        compare(findChild(panel, "arenaSelectSelection"), null);
         chat.forceActiveFocus();
         keyClick(Qt.Key_Space);
+        compare(details.checked, false);
         compare(chat.checked, true);
+        compare(panel.detailMode, "chat");
+        verify(findChild(panel, "arenaSelectChat") !== null);
+        compare(findChild(panel, "arenaSelectSelection"), null);
         const chatView = findChild(panel, "arenaSelectChat");
         verify(chatView !== null);
         const chatInput = findChild(chatView, "arenaChatInput");
@@ -501,6 +565,209 @@ TestCase {
 
         viewport.panelLoader.active = false;
         tryCompare(viewport.panelLoader, "status", Loader.Null);
+    }
+
+    function test_overlay_keeps_content_inside_narrow_viewports_data() {
+        return [
+            { "tag": "500x400", "viewportWidth": 500,
+              "viewportHeight": 400 },
+            { "tag": "320x240", "viewportWidth": 320,
+              "viewportHeight": 240 }
+        ];
+    }
+
+    function test_overlay_keeps_content_inside_narrow_viewports(data) {
+        const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        verify(themeVars !== null);
+        const viewport = createTemporaryObject(scenePanelMountComponent,
+                                               testCase, {
+            "height": data.viewportHeight,
+            "session": session,
+            "themeVars": themeVars,
+            "width": data.viewportWidth
+        });
+        verify(viewport !== null);
+        session.parent = viewport;
+        tryCompare(viewport.panelLoader, "status", Loader.Ready);
+
+        const overlay = viewport.panelLoader.item;
+        const frame = findChild(overlay, "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        const details = findChild(frame, "arenaSelectDetailsTab");
+        const chat = findChild(frame, "arenaSelectChatTab");
+        const ready = findChild(frame, "arenaSelectReady");
+        const leave = findChild(frame, "arenaSelectLeave");
+        const roster = findChild(frame, "arenaSelectRoster");
+        const selection = findChild(frame, "arenaSelectSelection");
+        tryVerify(function() {
+            return roster !== null && selection !== null
+                    && roster.height > 0 && selection.height > 0;
+        });
+
+        const frameTopLeft = frame.mapToItem(viewport, 0, 0);
+        const frameBottomRight = frame.mapToItem(viewport, frame.width,
+                                                 frame.height);
+        verify(frameTopLeft.x >= -0.01, "frame starts inside viewport x");
+        verify(frameTopLeft.y >= -0.01, "frame starts inside viewport y");
+        verify(frameBottomRight.x <= viewport.width + 0.01,
+               "frame ends inside viewport x");
+        verify(frameBottomRight.y <= viewport.height + 0.01,
+               "frame ends inside viewport y");
+
+        const detailsItems = [details, chat, ready, leave, roster, selection];
+        const detailsLabels = ["Details tab", "Chat tab", "Ready button",
+                               "Leave button", "Roster", "Summary"];
+        for (let index = 0; index < detailsItems.length; ++index) {
+            verifyItemInside(detailsItems[index], frame, viewport,
+                             data.tag + " " + detailsLabels[index]);
+        }
+
+        const rosterTopLeft = roster.mapToItem(frame, 0, 0);
+        const summaryTopLeft = selection.mapToItem(frame, 0, 0);
+        verify(summaryTopLeft.y >= rosterTopLeft.y + roster.height - 0.01,
+               data.tag + " summary stacks below roster");
+        closeEnough(summaryTopLeft.x, rosterTopLeft.x,
+                    data.tag + " summary aligns with roster x");
+        closeEnough(selection.width, roster.width,
+                    data.tag + " summary matches roster width");
+
+        mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
+        tryVerify(function() {
+            const item = findChild(frame, "arenaSelectChat");
+            return item !== null && item.height > 0;
+        });
+        const chatView = findChild(frame, "arenaSelectChat");
+        const chatItems = [details, chat, ready, leave, roster, chatView];
+        const chatLabels = ["Details tab", "Chat tab", "Ready button",
+                            "Leave button", "Roster", "Chat surface"];
+        for (let index = 0; index < chatItems.length; ++index) {
+            verifyItemInside(chatItems[index], frame, viewport,
+                             data.tag + " " + chatLabels[index]);
+        }
+
+        const chatTopLeft = chatView.mapToItem(frame, 0, 0);
+        verify(chatTopLeft.y >= rosterTopLeft.y + roster.height - 0.01,
+               data.tag + " chat stacks below roster");
+        closeEnough(chatTopLeft.x, rosterTopLeft.x,
+                    data.tag + " chat aligns with roster x");
+        closeEnough(chatView.width, roster.width,
+                    data.tag + " chat matches roster width");
+    }
+
+    function test_overlay_keeps_wide_body_side_by_side() {
+        const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        const viewport = createTemporaryObject(scenePanelMountComponent,
+                                               testCase, {
+            "height": 1080,
+            "session": session,
+            "themeVars": themeVars,
+            "width": 1920
+        });
+        verify(viewport !== null);
+        session.parent = viewport;
+        tryCompare(viewport.panelLoader, "status", Loader.Ready);
+
+        const frame = findChild(viewport.panelLoader.item,
+                                "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        const roster = findChild(frame, "arenaSelectRoster");
+        const selection = findChild(frame, "arenaSelectSelection");
+        verify(roster !== null);
+        verify(selection !== null);
+
+        tryVerify(function() {
+            const rosterPosition = roster.mapToItem(frame, 0, 0);
+            const selectionPosition = selection.mapToItem(frame, 0, 0);
+            return selectionPosition.x
+                    >= rosterPosition.x + roster.width - 0.01;
+        });
+
+        const rosterTopLeft = roster.mapToItem(frame, 0, 0);
+        const selectionTopLeft = selection.mapToItem(frame, 0, 0);
+        verify(selectionTopLeft.x >= rosterTopLeft.x + roster.width - 0.01,
+               "wide summary remains beside roster: summary x "
+               + selectionTopLeft.x + ", roster right "
+               + (rosterTopLeft.x + roster.width) + ", columns "
+               + roster.parent.columns);
+        verify(selectionTopLeft.y < rosterTopLeft.y + roster.height,
+               "wide summary overlaps roster vertically");
+        closeEnough(selectionTopLeft.y, rosterTopLeft.y,
+                    "wide summary aligns with roster y");
+        closeEnough(selection.height, roster.height,
+                    "wide summary matches roster height");
+    }
+
+    function test_hidden_resize_does_not_steal_edge_content_input() {
+        const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        const viewport = createTemporaryObject(scenePanelMountComponent,
+                                               testCase, {
+            "height": 1080,
+            "session": session,
+            "themeVars": themeVars,
+            "width": 1920
+        });
+        verify(viewport !== null);
+        session.parent = viewport;
+        tryCompare(viewport.panelLoader, "status", Loader.Ready);
+
+        const overlay = viewport.panelLoader.item;
+        const frame = findChild(overlay, "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        const title = overlay.panel.dragHandle;
+        const chat = findChild(frame, "arenaSelectChatTab");
+        const leave = findChild(frame, "arenaSelectLeave");
+        const topLeft = findChild(frame, "arenaResizeTopLeft");
+        const topRight = findChild(frame, "arenaResizeTopRight");
+        const bottomRight = findChild(frame, "arenaResizeBottomRight");
+        verify(title !== null);
+        verify(chat !== null);
+        verify(leave !== null);
+        verify(topLeft !== null);
+        verify(topRight !== null);
+        verify(bottomRight !== null);
+
+        compare(topLeft.width, 16);
+        compare(topLeft.height, 16);
+        compare(topRight.width, 16);
+        compare(bottomRight.height, 16);
+        const titleTopLeft = title.mapToItem(frame, 0, 0);
+        const chatBottomRight = chat.mapToItem(frame, chat.width, chat.height);
+        const leaveBottomRight = leave.mapToItem(frame, leave.width,
+                                                 leave.height);
+        verify(titleTopLeft.x >= topLeft.x + topLeft.width,
+               "title starts outside left resize zone");
+        verify(titleTopLeft.y >= topLeft.y + topLeft.height,
+               "title starts outside top resize zone");
+        verify(chatBottomRight.x <= topRight.x,
+               "tab ends outside right resize zone");
+        verify(leaveBottomRight.x <= bottomRight.x,
+               "Leave ends outside right resize zone");
+        verify(leaveBottomRight.y <= bottomRight.y,
+               "Leave ends outside bottom resize zone");
+
+        frame.placementCommitted.connect(function() {
+            themeVars.commitCount += 1;
+        });
+        themeVars.beginTracking();
+        const initialRect = Qt.rect(frame.x, frame.y, frame.width, frame.height);
+        mousePress(title, 1, 1, Qt.LeftButton);
+        mouseMove(title, 21, 11, 10);
+        mouseMove(title, 61, 31, 10);
+        mouseRelease(title, 61, 31, Qt.LeftButton);
+        wait(1);
+        verify(frame.x > initialRect.x, "edge title drag moves panel x");
+        verify(frame.y > initialRect.y, "edge title drag moves panel y");
+        compare(themeVars.commitCount, 1);
+
+        mouseClick(chat, chat.width - 1, 1, Qt.LeftButton);
+        compare(chat.checked, true);
+        compare(overlay.panel.detailMode, "chat");
+        mouseClick(leave, leave.width - 1, leave.height - 1,
+                   Qt.LeftButton);
+        compare(session.leaveCount, 1);
     }
 
     function test_ready_reason_survives_chat_and_announcements_are_deduplicated() {

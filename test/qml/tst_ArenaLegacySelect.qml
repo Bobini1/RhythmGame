@@ -1,3 +1,5 @@
+pragma ComponentBehavior: Bound
+
 import QtQuick
 import QtTest
 import RhythmGameQml
@@ -202,6 +204,18 @@ TestCase {
         return false;
     }
 
+    function selectPanelFor(item) {
+        let current = item;
+        while (current !== null) {
+            if (current.arenaNativeSelectPresentation !== undefined
+                    && current.arenaNativeSelectPresentation === true) {
+                return current;
+            }
+            current = current.parent;
+        }
+        return null;
+    }
+
     function test_capability_alone_routes_the_fallback() {
         const state = createHarness();
         let overlay = state.harness.overlay;
@@ -238,22 +252,56 @@ TestCase {
         verify(selection !== null);
         verify(ready !== null);
         verify(leave !== null);
+        const panel = selectPanelFor(details);
+        verify(panel !== null);
         compare(findChild(overlay, "arenaLegacyExpand"), null);
         tryCompare(roster, "memberCount", 16);
         verify(roster.contentHeight > roster.height);
 
         compare(details.checked, true);
         compare(chat.checked, false);
+        compare(panel.detailMode, "details");
+        verify(findChild(overlay, "arenaSelectSelection") !== null);
+        compare(findChild(overlay, "arenaSelectChat"), null);
         mouseClick(details, details.width / 2, details.height / 2,
                    Qt.LeftButton);
         compare(details.checked, true);
         compare(chat.checked, false);
+        compare(panel.detailMode, "details");
+        verify(findChild(overlay, "arenaSelectSelection") !== null);
+        compare(findChild(overlay, "arenaSelectChat"), null);
+
+        details.forceActiveFocus();
+        keyClick(Qt.Key_Space);
+        compare(details.checked, true);
+        compare(chat.checked, false);
+        compare(panel.detailMode, "details");
+        verify(findChild(overlay, "arenaSelectSelection") !== null);
+        compare(findChild(overlay, "arenaSelectChat"), null);
+
         mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
         compare(details.checked, false);
         compare(chat.checked, true);
+        compare(panel.detailMode, "chat");
+        tryVerify(function() {
+            return findChild(overlay, "arenaSelectChat") !== null
+                    && findChild(overlay, "arenaSelectSelection") === null;
+        });
+
+        mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
+        compare(details.checked, false);
+        compare(chat.checked, true);
+        compare(panel.detailMode, "chat");
+        verify(findChild(overlay, "arenaSelectChat") !== null);
+        compare(findChild(overlay, "arenaSelectSelection"), null);
+
         chat.forceActiveFocus();
         keyClick(Qt.Key_Space);
+        compare(details.checked, false);
         compare(chat.checked, true);
+        compare(panel.detailMode, "chat");
+        verify(findChild(overlay, "arenaSelectChat") !== null);
+        compare(findChild(overlay, "arenaSelectSelection"), null);
     }
 
     function test_shared_actions_route_to_the_existing_session() {
