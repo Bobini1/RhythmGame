@@ -14,6 +14,7 @@ Item {
     property bool ready: false
     property string selectedTitle: ""
     property string selectedByMemberId: ""
+    property string selectedByDisplayName: ""
     property string currentRoundId: ""
     property int roomPhase: 0
     property string errorMessageKey: ""

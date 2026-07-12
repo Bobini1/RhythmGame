@@ -74,7 +74,18 @@ ColumnLayout {
         Layout.fillWidth: true
         color: "#c9d2df"
         elide: Text.ElideRight
-        text: root.session ? (String(root.session.selectedByMemberId || "").length > 0 ? qsTr("Selected by %1").arg(root.session.selectedByMemberId) : qsTr("Choose any chart available to everyone.")) : ""
+        text: {
+            if (!root.session) {
+                return "";
+            }
+            if (String(root.session.selectedByMemberId || "").length === 0) {
+                return qsTr("Choose any chart available to everyone.");
+            }
+            const displayName = String(root.session.selectedByDisplayName || "");
+            return displayName.length > 0
+                ? qsTr("Selected by %1").arg(displayName)
+                : qsTr("Selected by another player");
+        }
         textFormat: Text.PlainText
     }
 

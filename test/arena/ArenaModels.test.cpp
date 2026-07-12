@@ -301,6 +301,24 @@ TEST_CASE("ArenaModels update member owner self and connectivity roles tightly",
     CHECK(model.rowCount() == 0);
 }
 
+TEST_CASE("ArenaMemberListModel resolves current display names by member id",
+          "[arena][models][identity]")
+{
+    using namespace arena;
+    ArenaMemberListModel model;
+    REQUIRE(model.replace(
+      { member(QStringLiteral("member-1"), QStringLiteral("Alice")),
+        member(QStringLiteral("member-2"), QStringLiteral("Bob")) },
+      std::nullopt,
+      QStringLiteral("member-1")));
+
+    CHECK(model.displayNameForMemberId(u"member-2") == QStringLiteral("Bob"));
+    CHECK(model.displayNameForMemberId(u"missing").isEmpty());
+    model.upsert(member(QStringLiteral("member-2"), QStringLiteral("Bobini")));
+    CHECK(model.displayNameForMemberId(u"member-2") ==
+          QStringLiteral("Bobini"));
+}
+
 TEST_CASE("ArenaModels expose Phase 2 room and member state as exact roles",
           "[arena][models]")
 {

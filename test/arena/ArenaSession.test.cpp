@@ -2069,6 +2069,8 @@ TEST_CASE("ArenaSession advances readiness when availability retains selection",
           } },
       }));
     REQUIRE(fixture.session.getCanReady());
+    CHECK(fixture.session.getSelectedByDisplayName() ==
+          QStringLiteral("Alice"));
 
     fixture.applyAvailabilityReset(
       2, packed, QStringLiteral("FFFFFFFFFFFFFFFFFFFFFF"));
@@ -2082,12 +2084,14 @@ TEST_CASE("ArenaSession advances readiness when availability retains selection",
             { QStringLiteral("roomGeneration"), 3 },
             { QStringLiteral("member"),
               phase2Member(QStringLiteral("member-1"),
-                           QStringLiteral("Alice"),
+                           QStringLiteral("Bobini"),
                            QStringLiteral("ready"),
                            6,
                            2) },
           } },
       }));
+    CHECK(fixture.session.getSelectedByDisplayName() ==
+          QStringLiteral("Bobini"));
     REQUIRE(fixture.session.getCanReady());
     fixture.session.setReady(true);
     const auto ready = messageObject(fixture.transport.textCalls.back().message)

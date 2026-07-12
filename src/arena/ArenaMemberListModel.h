@@ -33,6 +33,8 @@ class ArenaMemberListModel : public QAbstractListModel
     auto rowCount(const QModelIndex& parent = {}) const -> int override;
     auto data(const QModelIndex& index, int role) const -> QVariant override;
     auto roleNames() const -> QHash<int, QByteArray> override;
+    [[nodiscard]] auto displayNameForMemberId(QStringView memberId) const
+      -> QString;
 
     [[nodiscard]] auto replace(QVector<Member> members,
                                std::optional<QString> ownerMemberId,

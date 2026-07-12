@@ -51,7 +51,7 @@ class ArenaSession final : public QObject
       QString errorMessageKey READ getErrorMessageKey NOTIFY errorChanged FINAL)
     Q_PROPERTY(QString roundLaunchCancellationStatusKey READ
                  getRoundLaunchCancellationStatusKey NOTIFY
-                 roundLaunchCancellationStatusKeyChanged FINAL)
+                   roundLaunchCancellationStatusKeyChanged FINAL)
 
     Q_PROPERTY(QString roomId READ getRoomId NOTIFY roomChanged FINAL)
     Q_PROPERTY(QString roomName READ getRoomName NOTIFY roomChanged FINAL)
@@ -79,6 +79,8 @@ class ArenaSession final : public QObject
       QString selectedTitle READ getSelectedTitle NOTIFY selectionChanged FINAL)
     Q_PROPERTY(QString selectedByMemberId READ getSelectedByMemberId NOTIFY
                  selectionChanged FINAL)
+    Q_PROPERTY(QString selectedByDisplayName READ getSelectedByDisplayName
+                 NOTIFY selectedByDisplayNameChanged FINAL)
     Q_PROPERTY(qint64 selectionRevision READ getSelectionRevision NOTIFY
                  selectionChanged FINAL)
     Q_PROPERTY(
@@ -159,6 +161,7 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto getReady() const -> bool;
     [[nodiscard]] auto getSelectedTitle() const -> QString;
     [[nodiscard]] auto getSelectedByMemberId() const -> QString;
+    [[nodiscard]] auto getSelectedByDisplayName() const -> QString;
     [[nodiscard]] auto getSelectionRevision() const -> qint64;
     [[nodiscard]] auto getCurrentRoundId() const -> QString;
 
@@ -207,6 +210,7 @@ class ArenaSession final : public QObject
     void capabilitiesChanged();
     void availabilityChanged();
     void selectionChanged();
+    void selectedByDisplayNameChanged();
     void readyChanged();
     void roundChanged();
     void preparedGameplayChanged(gameplay_logic::ChartRunner* runner);

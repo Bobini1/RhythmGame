@@ -125,6 +125,17 @@ ArenaMemberListModel::roleNames() const -> QHash<int, QByteArray>
 }
 
 auto
+ArenaMemberListModel::displayNameForMemberId(QStringView memberId) const
+  -> QString
+{
+    const auto found = std::find_if(
+      m_members.cbegin(), m_members.cend(), [&](const Member& member) {
+          return member.memberId == memberId;
+      });
+    return found == m_members.cend() ? QString{} : found->identity.displayName;
+}
+
+auto
 ArenaMemberListModel::replace(QVector<Member> members,
                               std::optional<QString> ownerMemberId,
                               QString selfMemberId) -> bool

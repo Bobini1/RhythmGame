@@ -136,6 +136,7 @@ TestCase {
         addChat(session);
         session.selectedTitle = "<b>Selected chart</b>";
         session.selectedByMemberId = "member-2";
+        session.selectedByDisplayName = "Bobini";
         session.lastResult.valid = true;
         session.lastResult.finalized = true;
         session.lastResult.participantCount = 16;
@@ -302,7 +303,10 @@ TestCase {
         compare(title.text, "<b>Selected chart</b>");
         compare(title.textFormat, Text.PlainText);
         const selector = findChild(summary, "arenaSelectionSelector");
-        verify(selector.text.indexOf("member-2") >= 0);
+        compare(selector.text, "Selected by Bobini");
+        verify(selector.text.indexOf("member-2") < 0);
+        session.selectedByDisplayName = "";
+        compare(selector.text, "Selected by another player");
         const options = findChild(summary, "arenaSelectionOptions");
         compare(options.text, "MIRROR · FLIP");
         const winners = findChild(summary, "arenaLastWinners");

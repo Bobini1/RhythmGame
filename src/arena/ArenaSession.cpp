@@ -523,6 +523,38 @@ ArenaSession::ArenaSession(ArenaTransport* transport,
         emit selectionChanged();
         emit readyChanged();
     });
+    connect(this,
+            &ArenaSession::selectionChanged,
+            this,
+            &ArenaSession::selectedByDisplayNameChanged);
+    const auto notifySelectedByDisplayName = [this] {
+        if (!m_selectedByMemberId.isEmpty()) {
+            emit selectedByDisplayNameChanged();
+        }
+    };
+    connect(&m_members,
+            &QAbstractItemModel::modelReset,
+            this,
+            notifySelectedByDisplayName);
+    connect(&m_members,
+            &QAbstractItemModel::rowsInserted,
+            this,
+            notifySelectedByDisplayName);
+    connect(&m_members,
+            &QAbstractItemModel::rowsRemoved,
+            this,
+            notifySelectedByDisplayName);
+    connect(
+      &m_members,
+      &QAbstractItemModel::dataChanged,
+      this,
+      [this](const QModelIndex&, const QModelIndex&, const QList<int>& roles) {
+          if (!m_selectedByMemberId.isEmpty() &&
+              (roles.isEmpty() ||
+               roles.contains(ArenaMemberListModel::DisplayNameRole))) {
+              emit selectedByDisplayNameChanged();
+          }
+      });
     if (m_inventorySource != nullptr) {
         connect(m_inventorySource,
                 &ArenaInventorySource::generationChanged,
@@ -704,6 +736,11 @@ auto
 ArenaSession::getSelectedByMemberId() const -> QString
 {
     return m_selectedByMemberId;
+}
+auto
+ArenaSession::getSelectedByDisplayName() const -> QString
+{
+    return m_members.displayNameForMemberId(m_selectedByMemberId);
 }
 auto
 ArenaSession::getSelectionRevision() const -> qint64
