@@ -335,15 +335,15 @@ TestCase {
         compare(localRow.activeFocusOnTab, false);
         verify(localRow.Accessible.name.indexOf("Local") >= 0);
         verify(localRow.Accessible.description.indexOf("EX 200") >= 0);
-        verify(localRow.Accessible.description.indexOf("76.5%") >= 0);
+        verify(localRow.Accessible.description.indexOf("Hard clear") >= 0);
         compare(findChild(localRow, "arenaStandingRank").text, "1");
         compare(findChild(dnfRow, "arenaStandingRank").text, "—");
         compare(findChild(localRow, "arenaStandingName").text, "Local");
         compare(findChild(localRow, "arenaStandingScore").text, "EX 200");
-        const life = findChild(localRow, "arenaStandingLife");
-        verify(life !== null);
-        compare(life.text, "76.5%");
-        compare(life.visible, true);
+        const currentClear = findChild(localRow, "arenaStandingCurrentClear");
+        verify(currentClear !== null);
+        compare(currentClear.text, "Hard clear");
+        compare(currentClear.visible, true);
         compare(findChild(localRow, "arenaStandingState").text, "Playing");
         compare(findChild(localRow, "arenaStandingLocalMark").visible, true);
         compare(findChild(targetRow, "arenaStandingTargetMark").visible, true);
@@ -367,6 +367,47 @@ TestCase {
         compare(overlay.expanded, true);
         compare(findChild(localRow, "arenaStandingDetails").visible, true);
         verify(findChild(overlay, "arenaGameplayOptions") === null);
+    }
+
+    function test_compact_row_reports_the_clear_if_play_ended_now() {
+        const session = createTemporaryObject(sessionComponent, testCase);
+        verify(session !== null);
+        const record = standingRecord(0);
+        record.perfect = 0;
+        record.great = 0;
+        record.good = 0;
+        record.bad = 0;
+        record.poor = 0;
+        record.emptyPoor = 0;
+        record.badPoorCount = 0;
+        record.gaugeType = "fc";
+        record.gaugeValueMilli = 100000;
+        session.liveStandings.append(record);
+        const overlay = createTemporaryObject(overlayComponent, testCase, {
+            "session": session,
+            "width": 420,
+            "height": 180
+        });
+        verify(overlay !== null);
+
+        const currentClear = findChild(overlay, "arenaStandingCurrentClear");
+        verify(currentClear !== null);
+        compare(currentClear.text, "MAX");
+
+        session.liveStandings.setProperty(0, "perfect", 10);
+        session.liveStandings.setProperty(0, "great", 1);
+        tryCompare(currentClear, "text", "Perfect");
+
+        session.liveStandings.setProperty(0, "good", 1);
+        tryCompare(currentClear, "text", "FC");
+
+        session.liveStandings.setProperty(0, "gaugeType", "aeasy");
+        session.liveStandings.setProperty(0, "bad", 1);
+        session.liveStandings.setProperty(0, "gaugeValueMilli", 60000);
+        tryCompare(currentClear, "text", "Failed");
+
+        session.liveStandings.setProperty(0, "gaugeValueMilli", 60001);
+        tryCompare(currentClear, "text", "Assist Easy clear");
     }
 
     function test_host_is_current_runner_only_and_resets_round_local_unread() {

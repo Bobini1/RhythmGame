@@ -83,7 +83,7 @@ Rectangle {
         parts.push(qsTr("BP %1").arg(standing.badPoorCount));
         parts.push(qsTr("Combo %1").arg(standing.maxCombo));
         if (standing.hasScore) {
-            parts.push(competitionText.gaugeValueText(standing.gaugeValueMilli));
+            parts.push(standing.currentClear);
         }
         const outcome = outcomeText(standing.clearType, standing.lobbyWinsAfter, standing.dnfReason);
         if (outcome.length > 0) {
@@ -301,6 +301,7 @@ Rectangle {
                 required property int bad
                 required property int poor
                 required property int emptyPoor
+                required property string gaugeType
                 required property int gaugeValueMilli
                 required property string clearType
                 required property int lobbyWinsAfter
@@ -309,6 +310,7 @@ Rectangle {
                 readonly property bool localMember: memberId === String(root.session.selfMemberId || "")
                 readonly property bool opponentTarget: root.session.opponentTarget !== null && root.session.opponentTarget !== undefined && memberId === String(root.session.opponentTarget.memberId || "")
                 readonly property bool focusIndicatorVisible: activeFocus || (ListView.isCurrentItem && standingsView.activeFocus)
+                readonly property string currentClear: competitionText.currentClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
 
                 objectName: "arenaStandingRow" + index
                 color: index % 2 === 0 ? "#241b2230" : "#141b2230"
@@ -402,11 +404,11 @@ Rectangle {
                         }
 
                         Text {
-                            objectName: "arenaStandingLife"
-                            Layout.preferredWidth: 42
+                            objectName: "arenaStandingCurrentClear"
+                            Layout.preferredWidth: 104
                             color: "#d8ffffff"
                             horizontalAlignment: Text.AlignRight
-                            text: competitionText.gaugeValueText(standingDelegate.gaugeValueMilli)
+                            text: standingDelegate.currentClear
                             textFormat: Text.PlainText
 
                             Accessible.ignored: true

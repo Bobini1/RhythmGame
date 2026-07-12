@@ -415,10 +415,22 @@ dpModeName(DpMode value) -> QString
 auto
 optionsSummary(const SelectionSnapshot& selection) -> QString
 {
-    return QStringLiteral("P1 %1 | P2 %2 | DP %3")
-      .arg(noteOrderName(selection.noteOrderP1),
-           noteOrderName(selection.noteOrderP2),
-           dpModeName(selection.dpMode));
+    auto parts = QStringList{ QStringLiteral("P1 %1").arg(
+      noteOrderName(selection.noteOrderP1)) };
+    const auto nativeDouble =
+      selection.keyMode == 10 || selection.keyMode == 14;
+    const auto battle = selection.dpMode == DpMode::Battle && !nativeDouble &&
+                        (selection.keyMode == 5 || selection.keyMode == 7);
+    if (nativeDouble || battle) {
+        parts.append(
+          QStringLiteral("P2 %1").arg(noteOrderName(selection.noteOrderP2)));
+    }
+    if ((nativeDouble && (selection.dpMode == DpMode::Flip ||
+                          selection.dpMode == DpMode::Lr2Flip)) ||
+        battle) {
+        parts.append(QStringLiteral("DP %1").arg(dpModeName(selection.dpMode)));
+    }
+    return parts.join(QStringLiteral(" | "));
 }
 
 auto

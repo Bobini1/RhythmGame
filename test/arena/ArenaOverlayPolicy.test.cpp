@@ -18,7 +18,6 @@ qmlSource(const char* relativePath) -> QString
     REQUIRE(file.open(QIODevice::ReadOnly | QIODevice::Text));
     return QString::fromUtf8(file.readAll());
 }
-
 void
 requireContains(const QString& source,
                 std::initializer_list<const char*> fragments)
@@ -98,6 +97,7 @@ TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete
                       "required property int bad",
                       "required property int poor",
                       "required property int emptyPoor",
+                      "required property string gaugeType",
                       "required property int gaugeValueMilli",
                       "required property string clearType",
                       "required property int lobbyWinsAfter",
@@ -106,7 +106,7 @@ TEST_CASE("ArenaOverlayPolicy: gameplay overlay is forced, bounded, and complete
                       "root.session.opponentTarget.memberId",
                       "ArenaCompetitionText",
                       "return competitionText.stateText",
-                      "competitionText.gaugeValueText",
+                      "competitionText.currentClearText",
                       "return competitionText.outcomeText",
                       "clip: true",
                       "ScrollBar.vertical",

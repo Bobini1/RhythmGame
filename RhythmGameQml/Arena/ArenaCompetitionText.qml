@@ -99,6 +99,51 @@ QtObject {
         return (Number(gaugeValueMilli) / 1000).toFixed(1) + "%";
     }
 
+    function gaugePasses(gaugeType, gaugeValueMilli): bool {
+        const value = Number(gaugeValueMilli);
+        switch (String(gaugeType || "")) {
+        case "fc":
+            return value > 2000;
+        case "exhard":
+            return value > 0;
+        case "hard":
+            return value > 2000;
+        case "normal":
+        case "easy":
+            return value > 80000;
+        case "aeasy":
+            return value > 60000;
+        default:
+            return false;
+        }
+    }
+
+    function currentClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
+        const pg = Math.max(0, Number(perfect));
+        const gr = Math.max(0, Number(great));
+        const gd = Math.max(0, Number(good));
+        const bd = Math.max(0, Number(bad));
+        const pr = Math.max(0, Number(poor));
+        const ep = Math.max(0, Number(emptyPoor));
+        if (gr + gd + bd + pr + ep === 0) {
+            return qsTr("MAX");
+        }
+        if (gd + bd + pr + ep === 0) {
+            return qsTr("Perfect");
+        }
+        if (String(gaugeType || "") === "fc" && gaugePasses(gaugeType, gaugeValueMilli)) {
+            return qsTr("FC");
+        }
+        const judgedNotes = pg + gr + gd + bd + pr + ep;
+        if (Number(maxCombo) === judgedNotes) {
+            return qsTr("FC");
+        }
+        if (!gaugePasses(gaugeType, gaugeValueMilli)) {
+            return qsTr("Failed");
+        }
+        return qsTr("%1 clear").arg(gaugeTypeText(gaugeType));
+    }
+
     function outcomeText(clearType, lobbyWinsAfter, dnfReason): string {
         const parts = [];
         if (String(dnfReason || "").length > 0) {
