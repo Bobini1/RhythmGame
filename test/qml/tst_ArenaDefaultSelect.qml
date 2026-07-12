@@ -66,6 +66,35 @@ TestCase {
     }
 
     Component {
+        id: wheelPanelMountComponent
+
+        Item {
+            id: wheelPanelMount
+
+            required property var session
+            property int leakedWheelCount: 0
+            property alias panel: panel
+
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton
+
+                onWheel: wheel => {
+                    ++wheelPanelMount.leakedWheelCount;
+                    wheel.accepted = true;
+                }
+            }
+
+            ArenaSelectPanel {
+                id: panel
+
+                anchors.fill: parent
+                session: wheelPanelMount.session
+            }
+        }
+    }
+
+    Component {
         id: themeVarsComponent
 
         FakeArenaThemeVars {}
@@ -529,6 +558,62 @@ TestCase {
         compare(chat.mapToItem(panel, 0, 0).y, chatY);
         compare(roster.mapToItem(panel, 0, 0).y, rosterY);
         compare(chatView.mapToItem(panel, 0, 0).y, summaryY);
+    }
+
+    function test_wide_panel_keeps_roster_width_and_wraps_long_metadata() {
+        const session = createSession();
+        session.selectedTitle = "A deliberately long selected chart title that must wrap instead of changing the Arena column widths";
+        session.selectedSubtitle = "A similarly long subtitle that belongs on the next available line";
+        const panel = createTemporaryObject(panelComponent, testCase, {
+            "height": 480,
+            "session": session,
+            "width": 740
+        });
+        verify(panel !== null);
+
+        const roster = findChild(panel, "arenaSelectRoster");
+        const title = findChild(panel, "arenaSelectionTitle");
+        const chatTab = findChild(panel, "arenaSelectChatTab");
+        verify(roster !== null);
+        verify(title !== null);
+        verify(chatTab !== null);
+        closeEnough(roster.width, 270, "details roster width");
+        compare(title.wrapMode, Text.Wrap);
+        tryVerify(() => title.lineCount > 1);
+
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
+        const chatView = findChild(panel, "arenaSelectChat");
+        verify(chatView !== null);
+        closeEnough(roster.width, 270, "chat roster width");
+    }
+
+    function test_panel_contains_roster_and_chat_wheel_events() {
+        const session = createSession();
+        const mount = createTemporaryObject(wheelPanelMountComponent, testCase, {
+            "height": 480,
+            "session": session,
+            "width": 740
+        });
+        verify(mount !== null);
+
+        const rosterList = findChild(mount.panel, "arenaRosterList");
+        const chatTab = findChild(mount.panel, "arenaSelectChatTab");
+        verify(rosterList !== null);
+        verify(chatTab !== null);
+        rosterList.positionViewAtBeginning();
+        mouseWheel(rosterList, rosterList.width / 2, rosterList.height / 2,
+                   0, 120);
+        compare(mount.leakedWheelCount, 0);
+
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
+        const chat = findChild(mount.panel, "arenaSelectChat");
+        const chatList = findChild(mount.panel, "arenaChatList");
+        verify(chat !== null);
+        verify(chatList !== null);
+        chat.scrollToBeginning();
+        mouseWheel(chatList, chatList.width / 2, chatList.height / 2,
+                   0, 120);
+        compare(mount.leakedWheelCount, 0);
     }
 
     function test_ready_disabled_reason_stays_visible_on_chat_tab() {

@@ -98,11 +98,12 @@ ColumnLayout {
     Text {
         objectName: "arenaSelectionTitle"
         Layout.fillWidth: true
+        Layout.minimumWidth: 0
         color: "white"
-        elide: Text.ElideRight
         font.bold: true
         text: root.session ? (root.selectedChartText.length > 0 ? root.selectedChartText : qsTr("No chart selected")) : ""
         textFormat: Text.PlainText
+        wrapMode: Text.Wrap
     }
 
     Connections {

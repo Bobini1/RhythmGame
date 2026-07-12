@@ -14,7 +14,8 @@ FocusScope {
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property alias dragHandle: selectHeader
     readonly property string detailMode: tabs.currentIndex === 1 ? "chat" : "details"
-    readonly property real normalBodyMinimumWidth: 270 + 8 + 220
+    readonly property real rosterColumnWidth: 270
+    readonly property real normalBodyMinimumWidth: rosterColumnWidth + 8 + 220
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -44,6 +45,14 @@ FocusScope {
         border.width: 1
         color: "#ed111821"
         radius: 5
+    }
+
+    MouseArea {
+        objectName: "arenaSelectWheelSink"
+        anchors.fill: parent
+        acceptedButtons: Qt.NoButton
+
+        onWheel: wheel => wheel.accepted = true
     }
 
     ColumnLayout {
@@ -166,10 +175,15 @@ FocusScope {
                 objectName: "arenaSelectRoster"
                 Layout.column: 0
                 Layout.fillHeight: true
-                Layout.fillWidth: true
+                Layout.fillWidth: bodyLayout.columns === 1
+                Layout.maximumWidth: bodyLayout.columns === 1
+                    ? Number.POSITIVE_INFINITY : root.rosterColumnWidth
                 Layout.minimumHeight: 0
-                Layout.minimumWidth: bodyLayout.columns === 1 ? 0 : 270
+                Layout.minimumWidth: bodyLayout.columns === 1
+                    ? 0 : root.rosterColumnWidth
                 Layout.preferredHeight: bodyLayout.columns === 1 ? 1 : -1
+                Layout.preferredWidth: bodyLayout.columns === 1
+                    ? -1 : root.rosterColumnWidth
                 Layout.row: 0
                 compact: true
                 moderationEnabled: true
