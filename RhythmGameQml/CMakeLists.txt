@@ -136,6 +136,8 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaStatusAnnouncer.qml
         Arena/ArenaLoginPanel.qml
         Arena/ArenaRoom.qml
+        Arena/ArenaAvatar.qml
+        Arena/ArenaRoomMemberStack.qml
         Arena/ArenaSelectStrip.qml
         Arena/ArenaRosterView.qml
         Arena/ArenaChatView.qml

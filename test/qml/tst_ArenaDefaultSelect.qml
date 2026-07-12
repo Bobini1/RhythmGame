@@ -64,17 +64,10 @@ TestCase {
             required property var session
             required property var themeVars
             property alias panelLoader: overlayLoader
-            readonly property real contentScale: Math.min(width / 1920,
-                                                           height / 1080)
-            readonly property real contentLeft:
-                (width - 1920 * contentScale) / 2
-            readonly property real contentTop:
-                (height - 1080 * contentScale) / 2
-            readonly property rect scaledGapHint:
-                Qt.rect(contentLeft + 728 * contentScale,
-                        contentTop + 120 * contentScale,
-                        520 * contentScale,
-                        480 * contentScale)
+            readonly property real contentScale: Math.min(width / 1920, height / 1080)
+            readonly property real contentLeft: (width - 1920 * contentScale) / 2
+            readonly property real contentTop: (height - 1080 * contentScale) / 2
+            readonly property rect scaledGapHint: Qt.rect(contentLeft + 728 * contentScale, contentTop + 120 * contentScale, 520 * contentScale, 480 * contentScale)
 
             Loader {
                 id: overlayLoader
@@ -149,16 +142,13 @@ TestCase {
     function verifyMinimumSceneTarget(target, viewport, label) {
         verify(target !== null, label);
         const topLeft = target.mapToItem(viewport, 0, 0);
-        const bottomRight = target.mapToItem(viewport, target.width,
-                                             target.height);
+        const bottomRight = target.mapToItem(viewport, target.width, target.height);
         verify(Math.abs(bottomRight.x - topLeft.x) >= 32, label + " width");
         verify(Math.abs(bottomRight.y - topLeft.y) >= 32, label + " height");
     }
 
     function closeEnough(actual, expected, label, epsilon = 0.01) {
-        verify(Math.abs(actual - expected) <= epsilon,
-               label + ": expected " + actual + " to be within "
-               + epsilon + " of " + expected);
+        verify(Math.abs(actual - expected) <= epsilon, label + ": expected " + actual + " to be within " + epsilon + " of " + expected);
     }
 
     function compareRect(actual, expected, label) {
@@ -171,37 +161,22 @@ TestCase {
     function verifyItemInside(item, frame, viewport, label) {
         verify(item !== null, label + " exists");
         verify(item.visible, label + " is visible");
-        verify(item.width > 0,
-               label + " has positive width: " + item.width);
-        verify(item.height > 0,
-               label + " has positive height: " + item.height);
+        verify(item.width > 0, label + " has positive width: " + item.width);
+        verify(item.height > 0, label + " has positive height: " + item.height);
 
         const frameTopLeft = item.mapToItem(frame, 0, 0);
         const frameBottomRight = item.mapToItem(frame, item.width, item.height);
-        verify(frameTopLeft.x >= -0.01,
-               label + " starts inside frame x: " + frameTopLeft.x);
-        verify(frameTopLeft.y >= -0.01,
-               label + " starts inside frame y: " + frameTopLeft.y);
-        verify(frameBottomRight.x <= frame.width + 0.01,
-               label + " ends inside frame x: " + frameBottomRight.x
-               + " <= " + frame.width);
-        verify(frameBottomRight.y <= frame.height + 0.01,
-               label + " ends inside frame y: " + frameBottomRight.y
-               + " <= " + frame.height);
+        verify(frameTopLeft.x >= -0.01, label + " starts inside frame x: " + frameTopLeft.x);
+        verify(frameTopLeft.y >= -0.01, label + " starts inside frame y: " + frameTopLeft.y);
+        verify(frameBottomRight.x <= frame.width + 0.01, label + " ends inside frame x: " + frameBottomRight.x + " <= " + frame.width);
+        verify(frameBottomRight.y <= frame.height + 0.01, label + " ends inside frame y: " + frameBottomRight.y + " <= " + frame.height);
 
         const viewportTopLeft = item.mapToItem(viewport, 0, 0);
-        const viewportBottomRight = item.mapToItem(viewport, item.width,
-                                                   item.height);
-        verify(viewportTopLeft.x >= -0.01,
-               label + " starts inside viewport x");
-        verify(viewportTopLeft.y >= -0.01,
-               label + " starts inside viewport y");
-        verify(viewportBottomRight.x <= viewport.width + 0.01,
-               label + " ends inside viewport x: " + viewportBottomRight.x
-               + " <= " + viewport.width);
-        verify(viewportBottomRight.y <= viewport.height + 0.01,
-               label + " ends inside viewport y: " + viewportBottomRight.y
-               + " <= " + viewport.height);
+        const viewportBottomRight = item.mapToItem(viewport, item.width, item.height);
+        verify(viewportTopLeft.x >= -0.01, label + " starts inside viewport x");
+        verify(viewportTopLeft.y >= -0.01, label + " starts inside viewport y");
+        verify(viewportBottomRight.x <= viewport.width + 0.01, label + " ends inside viewport x: " + viewportBottomRight.x + " <= " + viewport.width);
+        verify(viewportBottomRight.y <= viewport.height + 0.01, label + " ends inside viewport y: " + viewportBottomRight.y + " <= " + viewport.height);
     }
 
     function test_roster_exposes_all_room_states_and_owner_moderation() {
@@ -221,6 +196,13 @@ TestCase {
         verify(localName !== null);
         compare(localName.textFormat, Text.PlainText);
         compare(localName.text, "<b>Remote & local</b>");
+        const avatar = findChild(roster, "arenaRosterAvatar-member-2");
+        verify(avatar !== null);
+        compare(avatar.width, 32);
+        compare(avatar.height, 32);
+        const fallback = findChild(avatar, "arenaAvatarFallback");
+        verify(fallback !== null);
+        compare(fallback.text, "P");
         const localMarkers = findChild(roster, "arenaRosterMarkers-member-1");
         verify(localMarkers !== null);
         verify(localMarkers.text.indexOf("you") >= 0);
@@ -410,8 +392,7 @@ TestCase {
         compare(panel.detailMode, "details");
         verify(findChild(panel, "arenaSelectSelection") !== null);
         compare(findChild(panel, "arenaSelectChat"), null);
-        mouseClick(details, details.width / 2, details.height / 2,
-                   Qt.LeftButton);
+        mouseClick(details, details.width / 2, details.height / 2, Qt.LeftButton);
         compare(details.checked, true);
         compare(chat.checked, false);
         compare(panel.detailMode, "details");
@@ -429,7 +410,7 @@ TestCase {
         mouseClick(ready, ready.width / 2, ready.height / 2, Qt.LeftButton);
         compare(session.readyRequests, [true]);
 
-        tryVerify(function() {
+        tryVerify(function () {
             return findChild(panel, "arenaRosterKick-member-2") !== null;
         });
         const kick = findChild(panel, "arenaRosterKick-member-2");
@@ -440,9 +421,8 @@ TestCase {
         compare(details.checked, false);
         compare(chat.checked, true);
         compare(panel.detailMode, "chat");
-        tryVerify(function() {
-            return findChild(panel, "arenaSelectChat") !== null
-                    && findChild(panel, "arenaSelectSelection") === null;
+        tryVerify(function () {
+            return findChild(panel, "arenaSelectChat") !== null && findChild(panel, "arenaSelectSelection") === null;
         });
         mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
         compare(details.checked, false);
@@ -465,7 +445,6 @@ TestCase {
         chatInput.text = "default hello";
         keyClick(Qt.Key_Return);
         compare(session.sentMessages, ["default hello"]);
-
     }
 
     function test_panel_header_and_body_stay_at_top_across_modes() {
@@ -495,8 +474,7 @@ TestCase {
         const summaryY = summary.mapToItem(panel, 0, 0).y;
         compare(headerY, 10);
         verify(title.width >= 80);
-        closeEnough(chat.x, details.x + details.width,
-                    "tabs remain adjacent", 1);
+        closeEnough(chat.x, details.x + details.width, "tabs remain adjacent", 1);
 
         mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
         const chatView = findChild(panel, "arenaSelectChat");
@@ -525,8 +503,7 @@ TestCase {
         compare(reason.Accessible.name, panel.readyDisabledReason);
 
         const chatTab = findChild(panel, "arenaSelectChatTab");
-        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2,
-                   Qt.LeftButton);
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2, Qt.LeftButton);
         compare(panel.detailMode, "chat");
         compare(reason.text, panel.readyDisabledReason);
         compare(reason.visible, true);
@@ -543,8 +520,7 @@ TestCase {
             },
             {
                 "tag": "2560x1440",
-                "expectedRect": Qt.rect(970.6666666667, 160,
-                                        693.3333333333, 640),
+                "expectedRect": Qt.rect(970.6666666667, 160, 693.3333333333, 640),
                 "viewportWidth": 2560,
                 "viewportHeight": 1440
             },
@@ -562,8 +538,7 @@ TestCase {
         const themeVars = createTemporaryObject(themeVarsComponent, testCase);
         verify(themeVars !== null);
         themeVars.beginTracking();
-        const viewport = createTemporaryObject(scenePanelMountComponent,
-                                               testCase, {
+        const viewport = createTemporaryObject(scenePanelMountComponent, testCase, {
             "height": data.viewportHeight,
             "session": session,
             "themeVars": themeVars,
@@ -585,23 +560,17 @@ TestCase {
         verify(frame !== null);
         compare(frame.sourcePlacement.stored, false);
         tryCompare(frame, "width", data.expectedRect.width);
-        compareRect(frame.resolvedPixelRect, data.expectedRect,
-                    data.tag + " placement");
+        compareRect(frame.resolvedPixelRect, data.expectedRect, data.tag + " placement");
         compare(themeVars.writeCount, 0);
-        tryVerify(function() {
+        tryVerify(function () {
             return findChild(viewport, "arenaRosterKick-member-2") !== null;
         });
 
-        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectDetailsTab"),
-                                 viewport, "Details tab");
-        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectChatTab"),
-                                 viewport, "Chat tab");
-        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectReady"),
-                                 viewport, "Ready button");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectDetailsTab"), viewport, "Details tab");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectChatTab"), viewport, "Chat tab");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaSelectReady"), viewport, "Ready button");
         compare(findChild(viewport, "arenaSelectLeave"), null);
-        verifyMinimumSceneTarget(findChild(viewport,
-                                           "arenaRosterKick-member-2"),
-                                 viewport, "Kick button");
+        verifyMinimumSceneTarget(findChild(viewport, "arenaRosterKick-member-2"), viewport, "Kick button");
 
         viewport.panelLoader.active = false;
         tryCompare(viewport.panelLoader, "status", Loader.Null);
@@ -609,10 +578,16 @@ TestCase {
 
     function test_overlay_keeps_content_inside_narrow_viewports_data() {
         return [
-            { "tag": "500x400", "viewportWidth": 500,
-              "viewportHeight": 400 },
-            { "tag": "320x240", "viewportWidth": 320,
-              "viewportHeight": 240 }
+            {
+                "tag": "500x400",
+                "viewportWidth": 500,
+                "viewportHeight": 400
+            },
+            {
+                "tag": "320x240",
+                "viewportWidth": 320,
+                "viewportHeight": 240
+            }
         ];
     }
 
@@ -620,8 +595,7 @@ TestCase {
         const session = createSession();
         const themeVars = createTemporaryObject(themeVarsComponent, testCase);
         verify(themeVars !== null);
-        const viewport = createTemporaryObject(scenePanelMountComponent,
-                                               testCase, {
+        const viewport = createTemporaryObject(scenePanelMountComponent, testCase, {
             "height": data.viewportHeight,
             "session": session,
             "themeVars": themeVars,
@@ -639,66 +613,51 @@ TestCase {
         const ready = findChild(frame, "arenaSelectReady");
         const roster = findChild(frame, "arenaSelectRoster");
         const selection = findChild(frame, "arenaSelectSelection");
-        tryVerify(function() {
-            return roster !== null && selection !== null
-                    && roster.height > 0 && selection.height > 0;
+        tryVerify(function () {
+            return roster !== null && selection !== null && roster.height > 0 && selection.height > 0;
         });
 
         const frameTopLeft = frame.mapToItem(viewport, 0, 0);
-        const frameBottomRight = frame.mapToItem(viewport, frame.width,
-                                                 frame.height);
+        const frameBottomRight = frame.mapToItem(viewport, frame.width, frame.height);
         verify(frameTopLeft.x >= -0.01, "frame starts inside viewport x");
         verify(frameTopLeft.y >= -0.01, "frame starts inside viewport y");
-        verify(frameBottomRight.x <= viewport.width + 0.01,
-               "frame ends inside viewport x");
-        verify(frameBottomRight.y <= viewport.height + 0.01,
-               "frame ends inside viewport y");
+        verify(frameBottomRight.x <= viewport.width + 0.01, "frame ends inside viewport x");
+        verify(frameBottomRight.y <= viewport.height + 0.01, "frame ends inside viewport y");
 
         const detailsItems = [details, chat, ready, roster, selection];
-        const detailsLabels = ["Details tab", "Chat tab", "Ready button",
-                               "Roster", "Summary"];
+        const detailsLabels = ["Details tab", "Chat tab", "Ready button", "Roster", "Summary"];
         for (let index = 0; index < detailsItems.length; ++index) {
-            verifyItemInside(detailsItems[index], frame, viewport,
-                             data.tag + " " + detailsLabels[index]);
+            verifyItemInside(detailsItems[index], frame, viewport, data.tag + " " + detailsLabels[index]);
         }
 
         const rosterTopLeft = roster.mapToItem(frame, 0, 0);
         const summaryTopLeft = selection.mapToItem(frame, 0, 0);
-        verify(summaryTopLeft.y >= rosterTopLeft.y + roster.height - 0.01,
-               data.tag + " summary stacks below roster");
-        closeEnough(summaryTopLeft.x, rosterTopLeft.x,
-                    data.tag + " summary aligns with roster x");
-        closeEnough(selection.width, roster.width,
-                    data.tag + " summary matches roster width");
+        verify(summaryTopLeft.y >= rosterTopLeft.y + roster.height - 0.01, data.tag + " summary stacks below roster");
+        closeEnough(summaryTopLeft.x, rosterTopLeft.x, data.tag + " summary aligns with roster x");
+        closeEnough(selection.width, roster.width, data.tag + " summary matches roster width");
 
         mouseClick(chat, chat.width / 2, chat.height / 2, Qt.LeftButton);
-        tryVerify(function() {
+        tryVerify(function () {
             const item = findChild(frame, "arenaSelectChat");
             return item !== null && item.height > 0;
         });
         const chatView = findChild(frame, "arenaSelectChat");
         const chatItems = [details, chat, ready, roster, chatView];
-        const chatLabels = ["Details tab", "Chat tab", "Ready button",
-                            "Roster", "Chat surface"];
+        const chatLabels = ["Details tab", "Chat tab", "Ready button", "Roster", "Chat surface"];
         for (let index = 0; index < chatItems.length; ++index) {
-            verifyItemInside(chatItems[index], frame, viewport,
-                             data.tag + " " + chatLabels[index]);
+            verifyItemInside(chatItems[index], frame, viewport, data.tag + " " + chatLabels[index]);
         }
 
         const chatTopLeft = chatView.mapToItem(frame, 0, 0);
-        verify(chatTopLeft.y >= rosterTopLeft.y + roster.height - 0.01,
-               data.tag + " chat stacks below roster");
-        closeEnough(chatTopLeft.x, rosterTopLeft.x,
-                    data.tag + " chat aligns with roster x");
-        closeEnough(chatView.width, roster.width,
-                    data.tag + " chat matches roster width");
+        verify(chatTopLeft.y >= rosterTopLeft.y + roster.height - 0.01, data.tag + " chat stacks below roster");
+        closeEnough(chatTopLeft.x, rosterTopLeft.x, data.tag + " chat aligns with roster x");
+        closeEnough(chatView.width, roster.width, data.tag + " chat matches roster width");
     }
 
     function test_overlay_keeps_wide_body_side_by_side() {
         const session = createSession();
         const themeVars = createTemporaryObject(themeVarsComponent, testCase);
-        const viewport = createTemporaryObject(scenePanelMountComponent,
-                                               testCase, {
+        const viewport = createTemporaryObject(scenePanelMountComponent, testCase, {
             "height": 1080,
             "session": session,
             "themeVars": themeVars,
@@ -708,41 +667,31 @@ TestCase {
         session.parent = viewport;
         tryCompare(viewport.panelLoader, "status", Loader.Ready);
 
-        const frame = findChild(viewport.panelLoader.item,
-                                "arenaSelectPlacementFrame");
+        const frame = findChild(viewport.panelLoader.item, "arenaSelectPlacementFrame");
         verify(frame !== null);
         const roster = findChild(frame, "arenaSelectRoster");
         const selection = findChild(frame, "arenaSelectSelection");
         verify(roster !== null);
         verify(selection !== null);
 
-        tryVerify(function() {
+        tryVerify(function () {
             const rosterPosition = roster.mapToItem(frame, 0, 0);
             const selectionPosition = selection.mapToItem(frame, 0, 0);
-            return selectionPosition.x
-                    >= rosterPosition.x + roster.width - 0.01;
+            return selectionPosition.x >= rosterPosition.x + roster.width - 0.01;
         });
 
         const rosterTopLeft = roster.mapToItem(frame, 0, 0);
         const selectionTopLeft = selection.mapToItem(frame, 0, 0);
-        verify(selectionTopLeft.x >= rosterTopLeft.x + roster.width - 0.01,
-               "wide summary remains beside roster: summary x "
-               + selectionTopLeft.x + ", roster right "
-               + (rosterTopLeft.x + roster.width) + ", columns "
-               + roster.parent.columns);
-        verify(selectionTopLeft.y < rosterTopLeft.y + roster.height,
-               "wide summary overlaps roster vertically");
-        closeEnough(selectionTopLeft.y, rosterTopLeft.y,
-                    "wide summary aligns with roster y");
-        closeEnough(selection.height, roster.height,
-                    "wide summary matches roster height");
+        verify(selectionTopLeft.x >= rosterTopLeft.x + roster.width - 0.01, "wide summary remains beside roster: summary x " + selectionTopLeft.x + ", roster right " + (rosterTopLeft.x + roster.width) + ", columns " + roster.parent.columns);
+        verify(selectionTopLeft.y < rosterTopLeft.y + roster.height, "wide summary overlaps roster vertically");
+        closeEnough(selectionTopLeft.y, rosterTopLeft.y, "wide summary aligns with roster y");
+        closeEnough(selection.height, roster.height, "wide summary matches roster height");
     }
 
     function test_hidden_resize_does_not_steal_edge_content_input() {
         const session = createSession();
         const themeVars = createTemporaryObject(themeVarsComponent, testCase);
-        const viewport = createTemporaryObject(scenePanelMountComponent,
-                                               testCase, {
+        const viewport = createTemporaryObject(scenePanelMountComponent, testCase, {
             "height": 1080,
             "session": session,
             "themeVars": themeVars,
@@ -774,20 +723,14 @@ TestCase {
         compare(bottomRight.height, 16);
         const titleTopLeft = title.mapToItem(frame, 0, 0);
         const chatBottomRight = chat.mapToItem(frame, chat.width, chat.height);
-        const readyBottomRight = ready.mapToItem(frame, ready.width,
-                                                 ready.height);
-        verify(titleTopLeft.x >= topLeft.x + topLeft.width,
-               "title starts outside left resize zone");
-        verify(titleTopLeft.y >= topLeft.y + topLeft.height,
-               "title starts outside top resize zone");
-        verify(chatBottomRight.x <= topRight.x,
-               "tab ends outside right resize zone");
-        verify(readyBottomRight.x <= bottomRight.x,
-               "Ready ends outside right resize zone");
-        verify(readyBottomRight.y <= bottomRight.y,
-               "Ready ends outside bottom resize zone");
+        const readyBottomRight = ready.mapToItem(frame, ready.width, ready.height);
+        verify(titleTopLeft.x >= topLeft.x + topLeft.width, "title starts outside left resize zone");
+        verify(titleTopLeft.y >= topLeft.y + topLeft.height, "title starts outside top resize zone");
+        verify(chatBottomRight.x <= topRight.x, "tab ends outside right resize zone");
+        verify(readyBottomRight.x <= bottomRight.x, "Ready ends outside right resize zone");
+        verify(readyBottomRight.y <= bottomRight.y, "Ready ends outside bottom resize zone");
 
-        frame.placementCommitted.connect(function() {
+        frame.placementCommitted.connect(function () {
             themeVars.commitCount += 1;
         });
         themeVars.beginTracking();
@@ -804,8 +747,7 @@ TestCase {
         mouseClick(chat, chat.width - 1, 1, Qt.LeftButton);
         compare(chat.checked, true);
         compare(overlay.panel.detailMode, "chat");
-        mouseClick(ready, ready.width - 1, ready.height - 1,
-                   Qt.LeftButton);
+        mouseClick(ready, ready.width - 1, ready.height - 1, Qt.LeftButton);
         compare(session.readyRequests, [true]);
     }
 

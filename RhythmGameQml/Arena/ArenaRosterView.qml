@@ -99,8 +99,7 @@ FocusScope {
         function ensureCurrentItem(): void {
             if (memberList.count === 0) {
                 memberList.currentIndex = -1;
-            } else if (memberList.currentIndex < 0
-                       || memberList.currentIndex >= memberList.count) {
+            } else if (memberList.currentIndex < 0 || memberList.currentIndex >= memberList.count) {
                 memberList.currentIndex = 0;
             }
         }
@@ -118,6 +117,7 @@ FocusScope {
             required property int index
             required property string memberId
             required property string displayName
+            required property string avatarUrl
             required property bool connected
             required property bool owner
             required property bool self
@@ -129,9 +129,7 @@ FocusScope {
             required property string roundState
 
             objectName: "arenaRosterMember-" + memberDelegate.memberId
-            Accessible.description: markerLabel.text.length > 0
-                ? qsTr("%1. %2. %3").arg(markerLabel.text).arg(statusLabel.text).arg(winsLabel.text)
-                : qsTr("%1. %2").arg(statusLabel.text).arg(winsLabel.text)
+            Accessible.description: markerLabel.text.length > 0 ? qsTr("%1. %2. %3").arg(markerLabel.text).arg(statusLabel.text).arg(winsLabel.text) : qsTr("%1. %2").arg(statusLabel.text).arg(winsLabel.text)
             Accessible.name: memberDelegate.displayName
             Accessible.role: Accessible.ListItem
             border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#8ec5ff" : "transparent"
@@ -141,7 +139,7 @@ FocusScope {
             radius: 3
             width: ListView.view.width
 
-            ColumnLayout {
+            RowLayout {
                 id: memberContent
 
                 anchors.fill: parent
@@ -149,73 +147,85 @@ FocusScope {
                 anchors.rightMargin: 6
                 anchors.bottomMargin: 4
                 anchors.topMargin: 4
-                spacing: 0
+                spacing: 6
 
-                RowLayout {
+                ArenaAvatar {
+                    objectName: "arenaRosterAvatar-" + memberDelegate.memberId
+                    Layout.preferredHeight: 32
+                    Layout.preferredWidth: 32
+                    avatarUrl: memberDelegate.avatarUrl
+                    connected: memberDelegate.connected
+                    displayName: memberDelegate.displayName
+                }
+
+                ColumnLayout {
                     Layout.fillWidth: true
-                    spacing: 6
+                    spacing: 0
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 6
+
+                        Text {
+                            id: nameLabel
+
+                            objectName: "arenaRosterName-" + memberDelegate.memberId
+                            Accessible.ignored: true
+                            Layout.fillWidth: true
+                            color: "white"
+                            elide: Text.ElideRight
+                            font.bold: memberDelegate.self || memberDelegate.owner
+                            text: memberDelegate.displayName
+                            textFormat: Text.PlainText
+                        }
+
+                        Text {
+                            id: winsLabel
+
+                            objectName: "arenaRosterWins-" + memberDelegate.memberId
+                            Accessible.ignored: true
+                            color: "#d6deea"
+                            text: qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins)
+                            textFormat: Text.PlainText
+                        }
+
+                        Button {
+                            objectName: "arenaRosterKick-" + memberDelegate.memberId
+                            Accessible.description: root.session && root.session.reconnecting === true ? qsTr("Unavailable while reconnecting to Arena.") : ""
+                            Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
+                            enabled: !root.session || root.session.reconnecting !== true
+                            Layout.minimumHeight: 32
+                            Layout.minimumWidth: 48
+                            text: qsTr("Kick")
+                            visible: root.session && root.moderationEnabled && root.session.isOwner === true && !memberDelegate.self
+                            onClicked: root.kickRequested(memberDelegate.memberId)
+                        }
+                    }
 
                     Text {
-                        id: nameLabel
+                        id: markerLabel
 
-                        objectName: "arenaRosterName-" + memberDelegate.memberId
+                        objectName: "arenaRosterMarkers-" + memberDelegate.memberId
                         Accessible.ignored: true
                         Layout.fillWidth: true
-                        color: "white"
+                        color: "#ffe39b"
                         elide: Text.ElideRight
-                        font.bold: memberDelegate.self || memberDelegate.owner
-                        text: memberDelegate.displayName
+                        text: root.markerText(memberDelegate.owner, memberDelegate.self, memberDelegate.memberId)
                         textFormat: Text.PlainText
+                        visible: text.length > 0
                     }
 
                     Text {
-                        id: winsLabel
+                        id: statusLabel
 
-                        objectName: "arenaRosterWins-" + memberDelegate.memberId
+                        objectName: "arenaRosterStatus-" + memberDelegate.memberId
                         Accessible.ignored: true
-                        color: "#d6deea"
-                        text: qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins)
+                        Layout.fillWidth: true
+                        color: memberDelegate.connected ? "#c9d2df" : "#ffb2a8"
+                        elide: Text.ElideRight
+                        text: root.statusText(memberDelegate.connected, memberDelegate.ready, memberDelegate.inventoryState, Number(memberDelegate.inventoryRevision), Number(memberDelegate.availabilityAppliedRevision), memberDelegate.roundState)
                         textFormat: Text.PlainText
                     }
-
-                    Button {
-                        objectName: "arenaRosterKick-" + memberDelegate.memberId
-                        Accessible.description: root.session && root.session.reconnecting === true
-                            ? qsTr("Unavailable while reconnecting to Arena.")
-                            : ""
-                        Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
-                        enabled: !root.session || root.session.reconnecting !== true
-                        Layout.minimumHeight: 32
-                        Layout.minimumWidth: 48
-                        text: qsTr("Kick")
-                        visible: root.session && root.moderationEnabled && root.session.isOwner === true && !memberDelegate.self
-                        onClicked: root.kickRequested(memberDelegate.memberId)
-                    }
-                }
-
-                Text {
-                    id: markerLabel
-
-                    objectName: "arenaRosterMarkers-" + memberDelegate.memberId
-                    Accessible.ignored: true
-                    Layout.fillWidth: true
-                    color: "#ffe39b"
-                    elide: Text.ElideRight
-                    text: root.markerText(memberDelegate.owner, memberDelegate.self, memberDelegate.memberId)
-                    textFormat: Text.PlainText
-                    visible: text.length > 0
-                }
-
-                Text {
-                    id: statusLabel
-
-                    objectName: "arenaRosterStatus-" + memberDelegate.memberId
-                    Accessible.ignored: true
-                    Layout.fillWidth: true
-                    color: memberDelegate.connected ? "#c9d2df" : "#ffb2a8"
-                    elide: Text.ElideRight
-                    text: root.statusText(memberDelegate.connected, memberDelegate.ready, memberDelegate.inventoryState, Number(memberDelegate.inventoryRevision), Number(memberDelegate.availabilityAppliedRevision), memberDelegate.roundState)
-                    textFormat: Text.PlainText
                 }
             }
         }

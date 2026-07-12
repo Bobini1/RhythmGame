@@ -11,8 +11,8 @@ FocusScope {
 
     signal createRequested(string name, string password)
     signal joinRequested(string roomId, string password)
-    signal retryRequested()
-    signal exitRequested()
+    signal retryRequested
+    signal exitRequested
 
     property string dialogMode: "none"
     property string selectedRoomId: ""
@@ -21,18 +21,14 @@ FocusScope {
     readonly property alias announcementCount: statusAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
-    readonly property bool admissionInFlight: session.admissionPending
-        && !session.loginRequired
-    readonly property bool updateRequired: session.directoryReady
-        && !session.competitionAvailable
-    readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing
-        && !admissionInFlight
-        && !updateRequired
+    readonly property bool admissionInFlight: session.admissionPending && !session.loginRequired
+    readonly property bool updateRequired: session.directoryReady && !session.competitionAvailable
+    readonly property bool roomActionsEnabled: session.state === ArenaSession.Browsing && !admissionInFlight && !updateRequired
 
     Accessible.name: qsTr("Online Arena")
     Accessible.role: Accessible.Grouping
 
-    function errorText(key) : string {
+    function errorText(key): string {
         switch (key) {
         case "arena.error.authRequired":
             return qsTr("Log in to create or join a room.");
@@ -76,7 +72,7 @@ FocusScope {
         }
     }
 
-    function phaseText(phase) : string {
+    function phaseText(phase): string {
         switch (phase) {
         case "selecting":
             return qsTr("Selecting");
@@ -85,23 +81,28 @@ FocusScope {
         }
     }
 
-    function openCreateDialog(origin) : void {
+    function roomDescription(phase, passwordProtected, connectedCount, reservedCount, maximumCount, memberNames): string {
+        const summary = qsTr("%1, %2. %3 connected, %4 reserved, %5 maximum.").arg(root.phaseText(phase)).arg(passwordProtected ? qsTr("Password required") : qsTr("Public")).arg(connectedCount).arg(reservedCount).arg(maximumCount);
+        return memberNames.length > 0 ? qsTr("%1 Members: %2.").arg(summary).arg(memberNames) : summary;
+    }
+
+    function openCreateDialog(origin): void {
         dialogOrigin = origin;
         selectedRoomId = "";
         selectedRoomName = "";
         dialogMode = "create";
     }
 
-    function openJoinDialog(roomId, roomName, origin) : void {
+    function openJoinDialog(roomId, roomName, origin): void {
         dialogOrigin = origin;
         selectedRoomId = roomId;
         selectedRoomName = roomName;
         dialogMode = "join";
     }
 
-    function finishDialog() : void {
+    function finishDialog(): void {
         const origin = dialogOrigin;
-        Qt.callLater(function() {
+        Qt.callLater(function () {
             dialogMode = "none";
             selectedRoomId = "";
             selectedRoomName = "";
@@ -161,11 +162,7 @@ FocusScope {
 
             Layout.fillWidth: true
             implicitHeight: bannerRow.implicitHeight + topPadding + bottomPadding
-            visible: root.session.errorMessageKey.length > 0
-                || root.updateRequired
-                || root.session.state === ArenaSession.Disconnected
-                || root.session.state === ArenaSession.ConnectingAuthenticated
-                || root.admissionInFlight
+            visible: root.session.errorMessageKey.length > 0 || root.updateRequired || root.session.state === ArenaSession.Disconnected || root.session.state === ArenaSession.ConnectingAuthenticated || root.admissionInFlight
 
             RowLayout {
                 id: bannerRow
@@ -177,11 +174,7 @@ FocusScope {
                     Layout.preferredHeight: 28
                     Layout.preferredWidth: 28
                     running: visible && root.visible
-                    visible: root.session.errorMessageKey.length === 0
-                        && !root.updateRequired
-                        && (root.session.state === ArenaSession.Disconnected
-                            || root.session.state === ArenaSession.ConnectingAuthenticated
-                            || root.admissionInFlight)
+                    visible: root.session.errorMessageKey.length === 0 && !root.updateRequired && (root.session.state === ArenaSession.Disconnected || root.session.state === ArenaSession.ConnectingAuthenticated || root.admissionInFlight)
                 }
 
                 Label {
@@ -214,8 +207,7 @@ FocusScope {
 
         Loader {
             Layout.fillWidth: true
-            active: !root.updateRequired
-                && root.activeProfile.loginState !== Profile.LoggedIn
+            active: !root.updateRequired && root.activeProfile.loginState !== Profile.LoggedIn
             sourceComponent: loginPanelComponent
         }
 
@@ -238,15 +230,13 @@ FocusScope {
             BusyIndicator {
                 anchors.centerIn: parent
                 running: visible && root.visible
-                visible: !root.session.directoryReady
-                    && root.session.rooms.count === 0
+                visible: !root.session.directoryReady && root.session.rooms.count === 0
             }
 
             Label {
                 anchors.centerIn: parent
                 text: qsTr("No Arena rooms are open.")
-                visible: root.session.directoryReady
-                    && root.session.rooms.count === 0
+                visible: root.session.directoryReady && root.session.rooms.count === 0
             }
 
             ListView {
@@ -267,17 +257,14 @@ FocusScope {
                 function ensureCurrentItem(): void {
                     if (roomList.count === 0) {
                         roomList.currentIndex = -1;
-                    } else if (roomList.currentIndex < 0
-                               || roomList.currentIndex >= roomList.count) {
+                    } else if (roomList.currentIndex < 0 || roomList.currentIndex >= roomList.count) {
                         roomList.currentIndex = 0;
                     }
                 }
 
                 Component.onCompleted: roomList.ensureCurrentItem()
                 Keys.onPressed: event => {
-                    if (event.key !== Qt.Key_Return
-                            && event.key !== Qt.Key_Enter
-                            && event.key !== Qt.Key_Space) {
+                    if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter && event.key !== Qt.Key_Space) {
                         return;
                     }
                     if (roomList.currentItem) {
@@ -300,14 +287,10 @@ FocusScope {
                     required property int connectedCount
                     required property int reservedCount
                     required property int maximumCount
+                    required property var members
 
                     objectName: "arenaRoom-" + roomDelegate.roomId
-                    Accessible.description: qsTr("%1, %2. %3 connected, %4 reserved, %5 maximum.")
-                        .arg(root.phaseText(roomDelegate.phase))
-                        .arg(roomDelegate.passwordProtected ? qsTr("Password required") : qsTr("Public"))
-                        .arg(roomDelegate.connectedCount)
-                        .arg(roomDelegate.reservedCount)
-                        .arg(roomDelegate.maximumCount)
+                    Accessible.description: root.roomDescription(roomDelegate.phase, roomDelegate.passwordProtected, roomDelegate.connectedCount, roomDelegate.reservedCount, roomDelegate.maximumCount, memberStack.memberNames)
                     Accessible.name: roomDelegate.name
                     Accessible.role: Accessible.ListItem
                     height: row.implicitHeight + topPadding + bottomPadding
@@ -318,9 +301,7 @@ FocusScope {
                             return;
                         }
                         if (roomDelegate.passwordProtected) {
-                            root.openJoinDialog(roomDelegate.roomId,
-                                                roomDelegate.name,
-                                                roomDelegate);
+                            root.openJoinDialog(roomDelegate.roomId, roomDelegate.name, roomDelegate);
                         } else {
                             root.joinRequested(roomDelegate.roomId, "");
                         }
@@ -350,31 +331,32 @@ FocusScope {
                             Label {
                                 Accessible.ignored: true
                                 Layout.fillWidth: true
-                                text: qsTr("%1 · %2").arg(root.phaseText(roomDelegate.phase)).arg(
-                                    roomDelegate.passwordProtected
-                                        ? qsTr("Password required")
-                                        : qsTr("Public"))
+                                text: qsTr("%1 · %2").arg(root.phaseText(roomDelegate.phase)).arg(roomDelegate.passwordProtected ? qsTr("Password required") : qsTr("Public"))
                             }
 
                             Label {
                                 Accessible.ignored: true
                                 Layout.fillWidth: true
-                                text: qsTr("%1 connected, %2 reserved / %3")
-                                    .arg(roomDelegate.connectedCount)
-                                    .arg(roomDelegate.reservedCount)
-                                    .arg(roomDelegate.maximumCount)
+                                text: qsTr("%1 connected, %2 reserved / %3").arg(roomDelegate.connectedCount).arg(roomDelegate.reservedCount).arg(roomDelegate.maximumCount)
                             }
+                        }
+
+                        ArenaRoomMemberStack {
+                            id: memberStack
+
+                            Layout.alignment: Qt.AlignVCenter
+                            Layout.preferredHeight: implicitHeight
+                            Layout.preferredWidth: implicitWidth
+                            members: roomDelegate.members
+                            objectNamePrefix: "arenaRoomAvatar-" + roomDelegate.roomId + "-"
                         }
 
                         Button {
                             id: joinButton
 
                             Accessible.name: qsTr("Join %1").arg(roomDelegate.name)
-                            enabled: root.roomActionsEnabled
-                                && roomDelegate.connectedCount + roomDelegate.reservedCount
-                                    < roomDelegate.maximumCount
-                            text: roomDelegate.connectedCount + roomDelegate.reservedCount
-                                >= roomDelegate.maximumCount ? qsTr("Full") : qsTr("Join")
+                            enabled: root.roomActionsEnabled && roomDelegate.connectedCount + roomDelegate.reservedCount < roomDelegate.maximumCount
+                            text: roomDelegate.connectedCount + roomDelegate.reservedCount >= roomDelegate.maximumCount ? qsTr("Full") : qsTr("Join")
                             onClicked: roomDelegate.activate()
                         }
                     }
@@ -397,9 +379,7 @@ FocusScope {
 
         anchors.fill: parent
         active: root.dialogMode !== "none"
-        sourceComponent: root.dialogMode === "create"
-            ? createDialogComponent
-            : root.dialogMode === "join" ? joinDialogComponent : null
+        sourceComponent: root.dialogMode === "create" ? createDialogComponent : root.dialogMode === "join" ? joinDialogComponent : null
 
         onLoaded: {
             if (status === Loader.Ready && item) {
@@ -421,8 +401,7 @@ FocusScope {
             title: qsTr("Create Arena room")
             width: Math.min(480, root.width - 48)
 
-            onAccepted: root.createRequested(roomNameField.text.trim(),
-                                              createPasswordField.text)
+            onAccepted: root.createRequested(roomNameField.text.trim(), createPasswordField.text)
             onClosed: root.finishDialog()
             onOpened: {
                 roomNameField.clear();
