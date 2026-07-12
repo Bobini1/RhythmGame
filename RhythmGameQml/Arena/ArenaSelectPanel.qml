@@ -114,12 +114,15 @@ FocusScope {
             TabBar {
                 id: tabs
 
+                readonly property real stableWidth: detailsTab.width
+                    + chatTab.width + spacing + leftPadding + rightPadding
+
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: false
-                Layout.maximumWidth: detailsTab.width + chatTab.width
-                Layout.minimumWidth: detailsTab.width + chatTab.width
+                Layout.maximumWidth: stableWidth
+                Layout.minimumWidth: stableWidth
                 Layout.preferredHeight: 40
-                Layout.preferredWidth: detailsTab.width + chatTab.width
+                Layout.preferredWidth: stableWidth
                 hoverEnabled: true
 
                 TabButton {

@@ -542,8 +542,12 @@ TestCase {
         verify(roster !== null);
         verify(summary !== null);
         const headerY = header.mapToItem(panel, 0, 0).y;
+        const detailsX = details.mapToItem(panel, 0, 0).x;
         const detailsY = details.mapToItem(panel, 0, 0).y;
+        const detailsWidth = details.width;
+        const chatX = chat.mapToItem(panel, 0, 0).x;
         const chatY = chat.mapToItem(panel, 0, 0).y;
+        const chatWidth = chat.width;
         const rosterY = roster.mapToItem(panel, 0, 0).y;
         const summaryY = summary.mapToItem(panel, 0, 0).y;
         compare(headerY, 10);
@@ -554,7 +558,11 @@ TestCase {
         const chatView = findChild(panel, "arenaSelectChat");
         verify(chatView !== null);
         compare(header.mapToItem(panel, 0, 0).y, headerY);
+        compare(details.width, detailsWidth);
+        compare(chat.width, chatWidth);
+        compare(details.mapToItem(panel, 0, 0).x, detailsX);
         compare(details.mapToItem(panel, 0, 0).y, detailsY);
+        compare(chat.mapToItem(panel, 0, 0).x, chatX);
         compare(chat.mapToItem(panel, 0, 0).y, chatY);
         compare(roster.mapToItem(panel, 0, 0).y, rosterY);
         compare(chatView.mapToItem(panel, 0, 0).y, summaryY);
