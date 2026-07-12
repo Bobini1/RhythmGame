@@ -56,6 +56,8 @@ TestCase {
             defaultPixelRectHint: Qt.rect(728, 120, 520, 480)
             directMoveEnabled: true
             directResizeEnabled: true
+            minimumPixelSize: Qt.size(520, 320)
+            minimumScreenPixelSize: Qt.size(280, 192)
             moveHandle: titleHandle
 
             Item {
@@ -125,9 +127,9 @@ TestCase {
 
     function test_default_geometry_and_forced_visibility() {
         let gameplay = createHarness(1024, 768);
-        closeEnough(gameplay.frame.x, 680);
+        closeEnough(gameplay.frame.x, 692.8);
         closeEnough(gameplay.frame.y, 24);
-        closeEnough(gameplay.frame.width, 320);
+        closeEnough(gameplay.frame.width, 307.2);
         closeEnough(gameplay.frame.height, 337.92);
         compare(gameplay.frame.forcedVisible, true);
         compare(gameplay.frame.visible, true);
@@ -293,6 +295,54 @@ TestCase {
         closeEnough(harness.frame.height, 384);
         compare(harness.themeVars.commitCount, 0);
         compare(harness.themeVars.writeCount, 0);
+    }
+
+    function test_select_stored_placement_shrinks_with_short_viewport() {
+        const viewport = createTemporaryObject(viewportComponent, testCase, {
+            "width": 1920,
+            "height": 1080
+        });
+        verify(viewport !== null);
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase, {
+            "arenaOverlaySelectXNormalized": 0.1,
+            "arenaOverlaySelectYNormalized": 0.1,
+            "arenaOverlaySelectWidthNormalized": 520 / 1920,
+            "arenaOverlaySelectHeightNormalized": 480 / 1080
+        });
+        verify(themeVars !== null);
+        const frame = createTemporaryObject(selectFrameComponent, viewport, {
+            "themeVars": themeVars,
+            "viewport": viewport
+        });
+        verify(frame !== null);
+        wait(1);
+        themeVars.beginTracking();
+
+        closeEnough(frame.width, 520);
+        closeEnough(frame.height, 480);
+
+        viewport.width = 1098;
+        viewport.height = 416;
+        wait(1);
+
+        closeEnough(frame.x, 109.8);
+        closeEnough(frame.y, 41.6);
+        closeEnough(frame.width, 297.375);
+        closeEnough(frame.height, 192);
+        verifyInsideSafeRect(frame, viewport);
+        compare(themeVars.commitCount, 0);
+        compare(themeVars.writeCount, 0);
+
+        viewport.width = 1920;
+        viewport.height = 1080;
+        wait(1);
+
+        closeEnough(frame.x, 192);
+        closeEnough(frame.y, 108);
+        closeEnough(frame.width, 520);
+        closeEnough(frame.height, 480);
+        compare(themeVars.commitCount, 0);
+        compare(themeVars.writeCount, 0);
     }
 
     function test_minimum_and_all_supported_viewports() {

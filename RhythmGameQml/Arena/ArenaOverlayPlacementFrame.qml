@@ -18,6 +18,15 @@ Item {
     property bool directResizeEnabled: false
     property Item moveHandle: null
     default property alias contentData: contentHost.data
+    property size minimumScreenPixelSize: Qt.size(280, 160)
+    readonly property real viewportScale: viewport
+        ? Math.max(0, Math.min(1, viewport.width / 1920,
+                               viewport.height / 1080)) : 1
+    readonly property size effectiveMinimumPixelSize: Qt.size(
+        Math.max(1, minimumScreenPixelSize.width,
+                 minimumPixelSize.width * viewportScale),
+        Math.max(1, minimumScreenPixelSize.height,
+                 minimumPixelSize.height * viewportScale))
     readonly property bool interactionActive: moveHandler.active
                                               || resizeInteractionCount > 0
 
@@ -146,10 +155,12 @@ Item {
         const viewportHeight = viewport ? viewport.height : 0;
         const safe = safePixelRect();
         const result = placementKind === "resultStandings";
-        const requestedWidth = Math.max(result ? 360 : 320,
+        const requestedWidth = Math.max((result ? 360 : 320)
+                                        * viewportScale,
                                         Math.min(result ? 560 : 420,
                                                  viewportWidth * (result ? 0.40 : 0.30)));
-        const requestedHeight = Math.max(result ? 260 : 240,
+        const requestedHeight = Math.max((result ? 260 : 240)
+                                         * viewportScale,
                                          viewportHeight * (result ? 0.60 : 0.44));
         const width = Math.min(safe.width, requestedWidth);
         const height = Math.min(safe.height, requestedHeight);
@@ -170,9 +181,9 @@ Item {
     function clampPixelRect(candidate) {
         const safe = safePixelRect();
         const minimumWidth = Math.min(safe.width,
-                                      Math.max(1, minimumPixelSize.width));
+                                      effectiveMinimumPixelSize.width);
         const minimumHeight = Math.min(safe.height,
-                                       Math.max(1, minimumPixelSize.height));
+                                       effectiveMinimumPixelSize.height);
         const width = Math.min(safe.width,
                                Math.max(minimumWidth, candidate.width));
         const height = Math.min(safe.height,
@@ -292,9 +303,9 @@ Item {
     function resizeFrom(start, x, y, horizontalEdge, verticalEdge) {
         const safe = safePixelRect();
         const minimumWidth = Math.min(safe.width,
-                                      Math.max(1, minimumPixelSize.width));
+                                      effectiveMinimumPixelSize.width);
         const minimumHeight = Math.min(safe.height,
-                                       Math.max(1, minimumPixelSize.height));
+                                       effectiveMinimumPixelSize.height);
         let left = start.x;
         let top = start.y;
         let right = start.x + start.width;

@@ -664,7 +664,8 @@ TestCase {
             },
             {
                 "tag": "1024x768",
-                "expectedRect": Qt.rect(388.2666666667, 160, 520, 320),
+                "expectedRect": Qt.rect(388.2666666667, 160,
+                                         280, 256),
                 "viewportWidth": 1024,
                 "viewportHeight": 768
             }
@@ -769,8 +770,12 @@ TestCase {
         }
 
         const rosterTopLeft = roster.mapToItem(frame, 0, 0);
+        const rosterBottomRight = roster.mapToItem(frame,
+                                                   roster.width,
+                                                   roster.height);
         const summaryTopLeft = selection.mapToItem(frame, 0, 0);
-        verify(summaryTopLeft.y >= rosterTopLeft.y + roster.height - 0.01, data.tag + " summary stacks below roster");
+        verify(summaryTopLeft.y >= rosterBottomRight.y - 0.01,
+               data.tag + " summary stacks below roster");
         closeEnough(summaryTopLeft.x, rosterTopLeft.x, data.tag + " summary aligns with roster x");
         closeEnough(selection.width, roster.width, data.tag + " summary matches roster width");
 
@@ -787,7 +792,8 @@ TestCase {
         }
 
         const chatTopLeft = chatView.mapToItem(frame, 0, 0);
-        verify(chatTopLeft.y >= rosterTopLeft.y + roster.height - 0.01, data.tag + " chat stacks below roster");
+        verify(chatTopLeft.y >= rosterBottomRight.y - 0.01,
+               data.tag + " chat stacks below roster");
         closeEnough(chatTopLeft.x, rosterTopLeft.x, data.tag + " chat aligns with roster x");
         closeEnough(chatView.width, roster.width, data.tag + " chat matches roster width");
     }
