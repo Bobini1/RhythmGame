@@ -9,10 +9,12 @@ Rectangle {
     id: panel
 
     required property var result
+    required property var session
     required property string localMemberId
     required property string statsFontFamily
     required property string textFontFamily
     property bool expanded: true
+    readonly property alias dragHandle: resultHeader
     readonly property alias announcementCount: resultAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: resultAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: resultAnnouncer.lastAnnouncementText
@@ -69,6 +71,8 @@ Rectangle {
         spacing: 10
 
         RowLayout {
+            id: resultHeader
+
             Layout.fillWidth: true
             spacing: 10
 
@@ -89,8 +93,15 @@ Rectangle {
                 font.contextFontMerging: true
                 font.family: panel.textFontFamily
                 font.pixelSize: 20
-                text: panel.result && panel.result.finalized ? qsTr("Final") : qsTr("Waiting for players…")
+                text: qsTr("Waiting for players…")
                 textFormat: Text.PlainText
+                visible: !panel.result || !panel.result.finalized
+            }
+
+            Button {
+                objectName: "arenaNativeResultChat"
+                text: panel.session.gameplayChatOpen === true ? qsTr("Close chat") : qsTr("Chat")
+                onClicked: panel.session.toggleGameplayChat()
             }
 
             Button {
@@ -124,18 +135,6 @@ Rectangle {
             font.pixelSize: 30
             text: panel.localStanding
             textFormat: Text.PlainText
-        }
-
-        Text {
-            Layout.fillWidth: true
-            color: "#d8ffffff"
-            font.contextFontMerging: true
-            font.family: panel.textFontFamily
-            font.pixelSize: 18
-            text: panel.result ? String(panel.result.selectionOptionsSummary || "") : ""
-            textFormat: Text.PlainText
-            visible: panel.expanded && text.length > 0
-            wrapMode: Text.Wrap
         }
 
         ListView {
@@ -196,7 +195,6 @@ Rectangle {
                 required property int bad
                 required property int poor
                 required property int emptyPoor
-                required property string gaugeType
                 required property int gaugeValueMilli
                 required property string clearType
                 required property int lobbyWinsAfter
@@ -205,10 +203,9 @@ Rectangle {
                 readonly property bool local: memberId === panel.localMemberId
                 readonly property string rankLabel: panel.rankText(rank, competitionState)
                 readonly property string winsLabel: competitionText.winsText(lobbyWinsAfter)
-                readonly property string detailsLabel: competitionText.nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeType, gaugeValueMilli)
+                readonly property string detailsLabel: competitionText.nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeValueMilli)
                 readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(local ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
-                readonly property bool focusIndicatorVisible:
-                    ListView.isCurrentItem && standingsView.activeFocus
+                readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus
 
                 objectName: "arenaNativeResultRow-" + memberId
                 activeFocusOnTab: false

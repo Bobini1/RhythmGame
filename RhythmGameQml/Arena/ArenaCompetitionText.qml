@@ -95,6 +95,10 @@ QtObject {
         return qsTr("%1 · %2%").arg(gaugeTypeText(gaugeType)).arg((Number(gaugeValueMilli) / 1000).toFixed(1));
     }
 
+    function gaugeValueText(gaugeValueMilli): string {
+        return (Number(gaugeValueMilli) / 1000).toFixed(1) + "%";
+    }
+
     function outcomeText(clearType, lobbyWinsAfter, dnfReason): string {
         const parts = [];
         if (String(dnfReason || "").length > 0) {
@@ -115,10 +119,10 @@ QtObject {
         return qsTr("BP %1 · Combo %2 · %3").arg(badPoorCount).arg(maxCombo).arg(clearTypeText(clearType));
     }
 
-    function nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeType, gaugeValueMilli): string {
+    function nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeValueMilli): string {
         if (competitionState === "dnf") {
             return qsTr("Did not finish · %1").arg(dnfReasonText(dnfReason));
         }
-        return qsTr("BP %1 · Combo %2 · %3 · %4").arg(badPoorCount).arg(maxCombo).arg(clearTypeText(clearType)).arg(gaugeText(gaugeType, gaugeValueMilli));
+        return qsTr("BP %1 · Combo %2 · %3 · %4").arg(badPoorCount).arg(maxCombo).arg(clearTypeText(clearType)).arg(gaugeValueText(gaugeValueMilli));
     }
 }

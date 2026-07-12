@@ -3790,7 +3790,9 @@ ArenaSession::setGameplayChatOpen(bool open)
     if (open) {
         setOverlayCustomizationActive(false);
     }
-    const auto accepted = open && m_arenaGameplayActive && m_round;
+    const auto accepted =
+      open && ((m_arenaGameplayActive && m_round) ||
+               (m_resultPresentationActive && m_presentedResult.valid()));
     if (m_gameplayChatOpen == accepted) {
         return;
     }
@@ -3880,6 +3882,7 @@ ArenaSession::endResultPresentation(const QString& roundId)
         m_presentedResult.roundId() != roundId) {
         return;
     }
+    setGameplayChatOpen(false);
     m_resultPresentationActive = false;
     m_presentedResult.clear();
     emit competitionChanged();

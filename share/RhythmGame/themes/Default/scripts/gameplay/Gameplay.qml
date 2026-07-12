@@ -28,6 +28,7 @@ Rectangle {
     readonly property bool isBattle: screen === "k7battle" || screen === "k5battle"
     readonly property bool isCourse: chart instanceof CourseRunner
     property var chart
+    property bool arenaPendingAutoClose: false
     readonly property var arenaSession: Rg.arenaSession
     readonly property bool arenaGameplayOwned: arenaSession.arenaGameplayActive === true
         && arenaSession.arenaRunner === chart
@@ -146,6 +147,9 @@ Rectangle {
         escapeShortcut.nothingWasHit = true;
         escapeShortcut.used = false;
         if (chart.status === ChartRunner.Finished) {
+            if (root.arenaPendingAutoClose) {
+                return;
+            }
             if (isCourse && !showedCourseResult) {
                 showedCourseResult = true;
                 let profiles = [chart.player1.profile, chart.player2 ? chart.player2.profile : null];

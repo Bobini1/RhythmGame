@@ -12,6 +12,7 @@ Rectangle {
     required property string resolvedSkinId
     required property string layoutVariant
     property bool expanded: false
+    readonly property alias dragHandle: resultHeader
     readonly property alias announcementCount: resultAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: resultAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: resultAnnouncer.lastAnnouncementText
@@ -23,7 +24,7 @@ Rectangle {
         if (!root.resultAvailable) {
             return qsTr("Arena result unavailable");
         }
-        return root.result.finalized ? qsTr("Final") : qsTr("Waiting for players…");
+        return root.result.finalized ? "" : qsTr("Waiting for players…");
     }
     readonly property string winnerSummaryText: {
         if (!root.resultAvailable || !root.result.finalized) {
@@ -82,6 +83,8 @@ Rectangle {
         spacing: 8
 
         RowLayout {
+            id: resultHeader
+
             Layout.fillWidth: true
             spacing: 8
 
@@ -98,6 +101,13 @@ Rectangle {
                 color: root.resultAvailable && root.result.finalized ? "#a9f5bb" : "#ffe38a"
                 font.bold: true
                 text: root.statusText
+                visible: text.length > 0
+            }
+
+            Button {
+                objectName: "arenaResultChat"
+                text: root.session.gameplayChatOpen === true ? qsTr("Close chat") : qsTr("Chat")
+                onClicked: root.session.toggleGameplayChat()
             }
 
             Button {
@@ -137,15 +147,6 @@ Rectangle {
             text: root.resultAvailable ? String(root.result.selectionTitle || "") : ""
             textFormat: Text.PlainText
             elide: Text.ElideRight
-        }
-
-        Text {
-            Layout.fillWidth: true
-            color: "#b9ffffff"
-            text: root.resultAvailable ? String(root.result.selectionOptionsSummary || "") : ""
-            textFormat: Text.PlainText
-            visible: root.expanded && text.length > 0
-            wrapMode: Text.Wrap
         }
 
         ListView {
@@ -206,7 +207,6 @@ Rectangle {
                 required property int bad
                 required property int poor
                 required property int emptyPoor
-                required property string gaugeType
                 required property int gaugeValueMilli
                 required property string clearType
                 required property int lobbyWinsAfter
@@ -216,10 +216,9 @@ Rectangle {
                 readonly property string rankLabel: root.rankLabel(rank, competitionState)
                 readonly property string winsLabel: root.winsLabel(lobbyWinsAfter)
                 readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType)
-                readonly property string gaugeLabel: competitionText.gaugeText(gaugeType, gaugeValueMilli)
+                readonly property string gaugeLabel: competitionText.gaugeValueText(gaugeValueMilli)
                 readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(localMarkerVisible ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
-                readonly property bool focusIndicatorVisible:
-                    ListView.isCurrentItem && standingsView.activeFocus
+                readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus
 
                 objectName: "arenaResultRow-" + memberId
                 activeFocusOnTab: false

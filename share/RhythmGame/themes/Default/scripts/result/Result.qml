@@ -22,6 +22,7 @@ Item {
     readonly property bool arenaNativeResultPresentation: true
     readonly property var arenaResult: Rg.arenaSession.presentedResult
     readonly property bool arenaResultMatches: root.arenaRoundId.length > 0 && Rg.arenaSession.resultPresentationActive === true && root.arenaResult && root.arenaResult.valid === true && root.arenaRoundId === String(root.arenaResult.roundId || "")
+    readonly property var arenaOverlayPlacementFrame: arenaResultPlacementFrame
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property string commonImagesUrl: Qt.resolvedUrl("../common/") + "images/"
@@ -309,30 +310,29 @@ Item {
             }
         }
 
-        Loader {
-            id: arenaResultPanelLoader
+        ArenaOverlayPlacementFrame {
+            id: arenaResultPlacementFrame
 
             parent: resultBackground
-            anchors {
-                bottom: parent.bottom
-                bottomMargin: 24
-                right: parent.right
-                rightMargin: 24
-                top: parent.top
-                topMargin: Math.max(72, parent.height * 0.12)
-            }
-            active: root.arenaResultMatches && !root.isBattle
-            sourceComponent: arenaResultPanelComponent
-            width: Math.min(600, Math.max(360, parent.width * 0.46))
+            directMoveEnabled: true
+            directResizeEnabled: true
+            enabled: visible
+            layoutVariant: "result"
+            minimumPixelSize: Qt.size(360, 240)
+            moveHandle: arenaResultPanel.dragHandle
+            placementKind: "resultStandings"
+            themeVars: root.themeVars
+            viewport: resultBackground
+            visible: root.arenaResultMatches && !root.isBattle
             z: 20
-        }
-
-        Component {
-            id: arenaResultPanelComponent
 
             ArenaResultPanel {
+                id: arenaResultPanel
+
+                anchors.fill: parent
                 localMemberId: String(Rg.arenaSession.selfMemberId || "")
                 result: root.arenaResult
+                session: Rg.arenaSession
                 statsFontFamily: resultStatsFont.fontFamily
                 textFontFamily: resultTitleFont.fontFamily
             }

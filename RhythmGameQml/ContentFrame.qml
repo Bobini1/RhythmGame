@@ -40,8 +40,7 @@ ApplicationWindow {
     }
     Shortcut {
         autoRepeat: false
-        enabled: !arenaOverlayHost.arenaShortcutEnabled
-            && globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
+        enabled: !arenaOverlayHost.arenaShortcutEnabled && globalRoot.currentScreenSupports("reloadCurrentFolderOrTable")
         sequence: "F2"
         onActivated: globalRoot.reloadCurrentFolderOrTable()
     }
@@ -64,8 +63,7 @@ ApplicationWindow {
     }
     Shortcut {
         autoRepeat: false
-        enabled: Rg.arenaSession.state !== ArenaSession.InRoom
-            && Rg.arenaSession.state !== ArenaSession.Reconnecting
+        enabled: Rg.arenaSession.state !== ArenaSession.InRoom && Rg.arenaSession.state !== ArenaSession.Reconnecting
         sequence: "F12"
         onActivated: globalRoot.openSettings()
     }
@@ -75,7 +73,7 @@ ApplicationWindow {
 
         readonly property Profile mainProfile: Rg.profileList.mainProfile
         readonly property var arenaSession: Rg.arenaSession
-        function configuredScreen(screenKey: var, fallbackKey: var) : var {
+        function configuredScreen(screenKey: var, fallbackKey: var): var {
             let themeName = mainProfile.themeConfig[screenKey];
             let family = themeName ? Rg.themes.availableThemeFamilies[themeName] : null;
             if (family && family.screens && family.screens[screenKey]) {
@@ -106,31 +104,32 @@ ApplicationWindow {
         property var activeSettingsItem: null
         property Item activeArenaItem: null
         property Item activeArenaGameplayItem: null
+        property Item pendingArenaGameplayCloseItem: null
         property bool fpsOverlayVisible: false
         property int fpsOverlayValue: -1
         property int fpsOverlayFrameCount: 0
         property double fpsOverlayLastSampleMs: 0
 
-        function isFullScreen() : var {
+        function isFullScreen(): var {
             return contentContainer.visibility === Window.FullScreen;
         }
 
-        function setFullScreen(enabled: var) : void {
+        function setFullScreen(enabled: var): void {
             contentContainer.visibility = enabled ? Window.FullScreen : Window.Windowed;
         }
 
-        function toggleFullScreen() : void {
+        function toggleFullScreen(): void {
             setFullScreen(!isFullScreen());
         }
 
-        function toggleFpsOverlay() : void {
+        function toggleFpsOverlay(): void {
             fpsOverlayVisible = !fpsOverlayVisible;
             fpsOverlayValue = -1;
             fpsOverlayFrameCount = 0;
             fpsOverlayLastSampleMs = 0;
         }
 
-        function normalizeLocalPath(path: var) : var {
+        function normalizeLocalPath(path: var): var {
             let value = String(path || "").trim();
             if (value.length === 0) {
                 return "";
@@ -151,7 +150,7 @@ ApplicationWindow {
             return value;
         }
 
-        function localFileUrl(path: var) : var {
+        function localFileUrl(path: var): var {
             let value = String(path || "").trim();
             if (value.length === 0) {
                 return "";
@@ -163,12 +162,12 @@ ApplicationWindow {
             return value[0] === "/" ? "file://" + encodeURI(value) : "file:///" + encodeURI(value);
         }
 
-        function openLocalFolder(path: var) : var {
+        function openLocalFolder(path: var): var {
             let url = localFileUrl(path);
             return url.length > 0 && Qt.openUrlExternally(url);
         }
 
-        function rootSongFolderForPath(path: var) : var {
+        function rootSongFolderForPath(path: var): var {
             let target = normalizeLocalPath(path);
             if (target.length === 0 || !Rg.rootSongFoldersConfig || !Rg.rootSongFoldersConfig.folders) {
                 return null;
@@ -193,15 +192,12 @@ ApplicationWindow {
             return best;
         }
 
-        function scanRootSongFolderForPath(path: var) : var {
+        function scanRootSongFolderForPath(path: var): var {
             let folder = rootSongFolderForPath(path);
-            return !!folder
-                && !!Rg.rootSongFoldersConfig
-                && !!Rg.rootSongFoldersConfig.scanningQueue
-                && Rg.rootSongFoldersConfig.scanningQueue.scan(folder);
+            return !!folder && !!Rg.rootSongFoldersConfig && !!Rg.rootSongFoldersConfig.scanningQueue && Rg.rootSongFoldersConfig.scanningQueue.scan(folder);
         }
 
-        function reloadTableForItem(item: var) : var {
+        function reloadTableForItem(item: var): var {
             if (!item || item.url === undefined) {
                 return false;
             }
@@ -219,11 +215,11 @@ ApplicationWindow {
             return false;
         }
 
-        function currentScreen() : var {
+        function currentScreen(): var {
             return sceneStack.currentItem || null;
         }
 
-        function gameplayLayoutVariant(screenItem: var) : string {
+        function gameplayLayoutVariant(screenItem: var): string {
             if (!screenItem || !screenItem.chart) {
                 return "";
             }
@@ -246,17 +242,16 @@ ApplicationWindow {
             }
         }
 
-        function gameplayThemeVars(layoutVariant: string) : var {
+        function gameplayThemeVars(layoutVariant: string): var {
             if (layoutVariant.length === 0) {
                 return null;
             }
             const themeName = mainProfile.themeConfig[layoutVariant];
             const screenVars = mainProfile.vars.themeVars[layoutVariant];
-            return screenVars && screenVars[themeName]
-                ? screenVars[themeName] : null;
+            return screenVars && screenVars[themeName] ? screenVars[themeName] : null;
         }
 
-        function callCurrentScreen(method: var, args: var) : var {
+        function callCurrentScreen(method: var, args: var): var {
             let screen = currentScreen();
             if (screen && typeof screen[method] === "function") {
                 return screen[method].apply(screen, args || []);
@@ -264,24 +259,24 @@ ApplicationWindow {
             return false;
         }
 
-        function currentScreenSupports(method: var) : var {
+        function currentScreenSupports(method: var): var {
             let screen = currentScreen();
             return !!screen && typeof screen[method] === "function";
         }
 
-        function reloadCurrentFolderOrTable() : var {
+        function reloadCurrentFolderOrTable(): var {
             return callCurrentScreen("reloadCurrentFolderOrTable");
         }
 
-        function openCurrentSelectionFolder() : var {
+        function openCurrentSelectionFolder(): var {
             return callCurrentScreen("openSelectedFolder");
         }
 
-        function openCurrentInternetRanking() : var {
+        function openCurrentInternetRanking(): var {
             return callCurrentScreen("openSelectedInternetRanking");
         }
 
-        function openSettings(initialTabIndex: var) : void {
+        function openSettings(initialTabIndex: var): void {
             let item = activeSettingsItem === sceneStack.currentItem ? activeSettingsItem : null;
             if (!item) {
                 item = sceneStack.pushItem(settingsComponent);
@@ -292,7 +287,7 @@ ApplicationWindow {
             }
         }
 
-        function openArenaBrowser() : void {
+        function openArenaBrowser(): void {
             if (activeArenaItem) {
                 return;
             }
@@ -306,7 +301,7 @@ ApplicationWindow {
             }
         }
 
-        function currentLr2Settings(screenKey: var) : var {
+        function currentLr2Settings(screenKey: var): var {
             let themeName = mainProfile.themeConfig[screenKey];
             let screenVars = mainProfile.vars.themeVars[screenKey];
             if (screenVars && screenVars[themeName]) {
@@ -321,18 +316,17 @@ ApplicationWindow {
             return undefined;
         }
 
-        function resolvedThemeVars(screenKey: string) : var {
+        function resolvedThemeVars(screenKey: string): var {
             const themeName = mainProfile.themeConfig[screenKey];
             const screenVars = mainProfile.vars.themeVars[screenKey];
-            return screenVars && screenVars[themeName]
-                ? screenVars[themeName] : null;
+            return screenVars && screenVars[themeName] ? screenVars[themeName] : null;
         }
 
-        function openSelect() : void {
+        function openSelect(): void {
             sceneStack.pushItem(selectComponent, selectScreenProperties());
         }
 
-        function selectScreenProperties() : var {
+        function selectScreenProperties(): var {
             let selectScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select;
             let props = {};
             if (selectScreen && selectScreen.csvPath) {
@@ -344,14 +338,16 @@ ApplicationWindow {
             return props;
         }
 
-        function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var) : var {
+        function openChart(path: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
             let chart = Rg.chartLoader.loadChart(path, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!chart) {
                 console.error("Failed to load chart");
                 return;
             }
             let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
-            let props = { "chart": chart };
+            let props = {
+                "chart": chart
+            };
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("decide");
@@ -361,14 +357,16 @@ ApplicationWindow {
             sceneStack.pushItem(decideComponent, props);
         }
 
-        function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var) : var {
+        function openCourse(course: var, profile1: var, autoplay1: var, replay1: var, score1: var, profile2: var, autoplay2: var, replay2: var, score2: var): var {
             let runner = Rg.chartLoader.loadCourse(course, profile1, autoplay1, replay1, score1, profile2, autoplay2, replay2, score2);
             if (!runner) {
                 console.error("Failed to load course");
                 return;
             }
             let decideScreen = Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide;
-            let props = { "chart": runner };
+            let props = {
+                "chart": runner
+            };
             if (decideScreen.csvPath) {
                 props["csvPath"] = decideScreen.csvPath;
                 props["skinSettings"] = currentLr2Settings("decide");
@@ -378,13 +376,15 @@ ApplicationWindow {
             sceneStack.pushItem(decideComponent, props);
         }
 
-        function openGameplay(runner: var) : var {
+        function openGameplay(runner: var): var {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screenKey = "k" + keys + (battle ? "battle" : "");
             let component = globalRoot[screenKey + "Component"];
             let screenObj = Rg.themes.availableThemeFamilies[mainProfile.themeConfig[screenKey]].screens[screenKey];
-            let props = { "chart": runner };
+            let props = {
+                "chart": runner
+            };
             if (screenObj && screenObj.csvPath) {
                 props["csvPath"] = screenObj.csvPath;
                 props["skinSettings"] = currentLr2Settings(screenKey);
@@ -394,33 +394,39 @@ ApplicationWindow {
             return sceneStack.pushItem(component, props);
         }
 
-        function openPreparedArenaGameplay(runner: var) : void {
+        function openPreparedArenaGameplay(runner: var): void {
             if (!runner) {
                 closePreparedArenaGameplay();
                 return;
             }
-            if (activeArenaGameplayItem
-                    && activeArenaGameplayItem.StackView.view === sceneStack) {
+            if (activeArenaGameplayItem && activeArenaGameplayItem.StackView.view === sceneStack) {
                 return;
             }
+            pendingArenaGameplayCloseItem = null;
             activeArenaGameplayItem = openGameplay(runner);
         }
 
-        function closePreparedArenaGameplay() : void {
+        function closePreparedArenaGameplay(): void {
             let item = activeArenaGameplayItem;
             activeArenaGameplayItem = null;
-            if (item && sceneStack.currentItem === item) {
-                sceneStack.popCurrentItem();
+            if (!item || item.StackView.view !== sceneStack) {
+                return;
             }
+            if (sceneStack.currentItem === item) {
+                sceneStack.popCurrentItem();
+                return;
+            }
+            if (item.arenaPendingAutoClose !== undefined) {
+                item.arenaPendingAutoClose = true;
+            }
+            pendingArenaGameplayCloseItem = item;
         }
 
-        function openResult(scores: var, profiles: var, chartData: var) : void {
+        function openResult(scores: var, profiles: var, chartData: var): void {
             let resultScreen = configuredScreen("result");
             let arenaRoundId = "";
-            if (scores && scores.length > 0 && scores[0]
-                    && Rg.arenaSession.submitLocalResult(scores[0])) {
-                arenaRoundId = String(
-                    Rg.arenaSession.presentedResult.roundId || "");
+            if (scores && scores.length > 0 && scores[0] && Rg.arenaSession.submitLocalResult(scores[0])) {
+                arenaRoundId = String(Rg.arenaSession.presentedResult.roundId || "");
             }
             let props = {
                 "scores": scores,
@@ -437,13 +443,12 @@ ApplicationWindow {
             if (arenaRoundId.length === 0) {
                 return;
             }
-            if (!item || !globalRoot.callCurrentScreen(
-                    "presentArenaResult", [arenaRoundId])) {
+            if (!item || !globalRoot.callCurrentScreen("presentArenaResult", [arenaRoundId])) {
                 Rg.arenaSession.endResultPresentation(arenaRoundId);
             }
         }
 
-        function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var) : void {
+        function openCourseResult(scores: var, profiles: var, chartDatas: var, course: var): void {
             let hasCourseResultScreen = configuredScreen("courseResult") !== null;
             let courseResultScreen = configuredScreen("courseResult", "result");
             let props = {
@@ -484,15 +489,14 @@ ApplicationWindow {
 
                 required property ArenaSession session
                 property bool closing: false
-                readonly property bool showSelect: session.state === ArenaSession.InRoom
-                    || session.state === ArenaSession.Reconnecting
+                readonly property bool showSelect: session.state === ArenaSession.InRoom || session.state === ArenaSession.Reconnecting
 
-                function requestCloseArena() : void {
+                function requestCloseArena(): void {
                     if (closing) {
                         return;
                     }
                     closing = true;
-                    Qt.callLater(function() {
+                    Qt.callLater(function () {
                         session.exitArena();
                         if (arenaShell.StackView.view) {
                             arenaShell.StackView.view.popCurrentItem();
@@ -500,8 +504,8 @@ ApplicationWindow {
                     });
                 }
 
-                function requestLeaveRoom() : void {
-                    Qt.callLater(function() {
+                function requestLeaveRoom(): void {
+                    Qt.callLater(function () {
                         session.leaveRoom();
                     });
                 }
@@ -555,15 +559,10 @@ ApplicationWindow {
                         id: arenaSelectHost
 
                         readonly property var currentScreen: selectStack.currentItem
-                        readonly property bool nativeArenaPresentation:
-                            currentScreen !== null
-                            && currentScreen.arenaNativeSelectPresentation !== undefined
-                            && currentScreen.arenaNativeSelectPresentation === true
+                        readonly property bool nativeArenaPresentation: currentScreen !== null && currentScreen.arenaNativeSelectPresentation !== undefined && currentScreen.arenaNativeSelectPresentation === true
 
                         Component.onCompleted: {
-                            const item = selectStack.pushItem(
-                                globalRoot.selectComponent,
-                                globalRoot.selectScreenProperties());
+                            const item = selectStack.pushItem(globalRoot.selectComponent, globalRoot.selectScreenProperties());
                             if (item) {
                                 item.forceActiveFocus();
                             }
@@ -577,8 +576,7 @@ ApplicationWindow {
 
                         Loader {
                             anchors.fill: parent
-                            active: arenaSelectHost.currentScreen !== null
-                                && !arenaSelectHost.nativeArenaPresentation
+                            active: arenaSelectHost.currentScreen !== null && !arenaSelectHost.nativeArenaPresentation
                             sourceComponent: legacySelectOverlayComponent
                             z: 1000000
                         }
@@ -617,6 +615,15 @@ ApplicationWindow {
 
             onCurrentItemChanged: {
                 Qt.callLater(updateEnabledStates);
+                if (currentItem === pendingArenaGameplayCloseItem) {
+                    const item = pendingArenaGameplayCloseItem;
+                    pendingArenaGameplayCloseItem = null;
+                    Qt.callLater(function () {
+                        if (sceneStack.currentItem === item) {
+                            sceneStack.popCurrentItem();
+                        }
+                    });
+                }
             }
 
             onDepthChanged: {
@@ -627,7 +634,7 @@ ApplicationWindow {
                 Qt.callLater(updateEnabledStates);
             }
 
-            function updateEnabledStates() : void {
+            function updateEnabledStates(): void {
                 let topIndex = depth - 1;
                 for (let i = 0; i < depth; ++i) {
                     let item = get(i, StackView.ForceLoad);
@@ -686,8 +693,7 @@ ApplicationWindow {
             currentItem: sceneStack.currentItem
             generalVars: globalRoot.mainProfile.vars.generalVars
             layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)
-            resultResolvedSkinId: String(
-                globalRoot.mainProfile.themeConfig.result || "")
+            resultResolvedSkinId: String(globalRoot.mainProfile.themeConfig.result || "")
             resultThemeVars: globalRoot.resolvedThemeVars("result")
             session: globalRoot.arenaSession
             themeVars: globalRoot.gameplayThemeVars(layoutVariant)

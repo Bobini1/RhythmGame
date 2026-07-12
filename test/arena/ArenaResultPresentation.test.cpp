@@ -63,6 +63,10 @@ TEST_CASE(
       defaultResult,
       { "property string arenaRoundId",
         "readonly property bool arenaNativeResultPresentation: true",
+        "readonly property var arenaOverlayPlacementFrame",
+        "ArenaOverlayPlacementFrame",
+        "directMoveEnabled: true",
+        "directResizeEnabled: true",
         "ArenaResultPanel",
         "endResultPresentation(root.arenaRoundId)" });
 
@@ -74,6 +78,29 @@ TEST_CASE(
                       "function setArenaResultCustomizationActive",
                       "&& !root.arenaResultCustomizationActive",
                       "endResultPresentation(root.arenaRoundId)" });
+}
+
+TEST_CASE("ArenaResultPresentation: covered Arena gameplay is removed after result",
+          "[arena][ArenaResultPresentation]")
+{
+    const auto contentFrame = qmlSource("RhythmGameQml/ContentFrame.qml");
+    requireContains(contentFrame,
+                    { "property Item pendingArenaGameplayCloseItem",
+                      "pendingArenaGameplayCloseItem = item",
+                      "item.arenaPendingAutoClose = true",
+                      "currentItem === pendingArenaGameplayCloseItem",
+                      "sceneStack.popCurrentItem()" });
+
+    const auto defaultGameplay = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/gameplay/Gameplay.qml");
+    const auto legacyGameplay =
+      qmlSource("RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
+    requireContains(defaultGameplay,
+                    { "property bool arenaPendingAutoClose: false",
+                      "if (root.arenaPendingAutoClose)" });
+    requireContains(legacyGameplay,
+                    { "property bool arenaPendingAutoClose: false",
+                      "if (root.arenaPendingAutoClose)" });
 }
 
 TEST_CASE("ArenaResultPresentation: Default ranking source stays screen-local",

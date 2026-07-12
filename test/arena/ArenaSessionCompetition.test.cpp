@@ -1290,10 +1290,14 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
     CHECK(fixture.session.arenaRunner() == nullptr);
     CHECK(fixture.gameplaySource.detachCount == 1);
 
+    fixture.session.setGameplayChatOpen(true);
+    CHECK(fixture.session.gameplayChatOpen());
+
     fixture.session.endResultPresentation(QStringLiteral("wrong"));
     CHECK(fixture.session.resultPresentationActive());
     fixture.session.endResultPresentation(QStringLiteral("round-1"));
     CHECK_FALSE(fixture.session.resultPresentationActive());
+    CHECK_FALSE(fixture.session.gameplayChatOpen());
     CHECK_FALSE(fixture.session.presentedResult()->valid());
     CHECK(fixture.session.lastResult()->valid());
 }

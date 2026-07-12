@@ -28,7 +28,7 @@ TestCase {
             property alias chat: chatModel
 
             function setGameplayChatOpen(open) {
-                gameplayChatOpen = !!open && arenaGameplayActive;
+                gameplayChatOpen = !!open && (arenaGameplayActive || resultPresentationActive);
             }
 
             function toggleGameplayChat() {
@@ -170,8 +170,7 @@ TestCase {
             }
 
             function appendExtraFinalRows(totalCount) {
-                for (let index = standingsModel.count;
-                     index < totalCount; ++index) {
+                for (let index = standingsModel.count; index < totalCount; ++index) {
                     standingsModel.append({
                         "memberId": "member-extra-" + index,
                         "displayName": "Extra player " + index,
@@ -288,7 +287,8 @@ TestCase {
         harness.session.presentedResult.finalized = true;
         harness.session.presentedResult.localDnf = true;
         wait(1);
-        compare(harness.overlay.statusText, "Final");
+        compare(harness.overlay.statusText, "");
+        compare(findChild(harness.overlay, "arenaResultStatus").visible, false);
         compare(harness.overlay.winnerSummaryText, "No winner");
         compare(harness.overlay.localStandingText, "DNF / 4");
     }
@@ -328,11 +328,10 @@ TestCase {
         compare(dnf.rankLabel, "DNF");
         compare(dnf.winsLabel, "Wins —");
         compare(dnf.detailsLabel, "Did not finish · Left the room");
-        compare(winnerB.gaugeLabel, "Normal · 76.0%");
+        compare(winnerB.gaugeLabel, "76.0%");
         compare(standings.activeFocusOnTab, true);
         compare(local.activeFocusOnTab, false);
-        tryCompare(harness.overlay, "lastAnnouncementText",
-                   "Arena result. Winners: Alice, Bob. Your standing: #3 / 4. Did not finish: Disconnected player: Left the room");
+        tryCompare(harness.overlay, "lastAnnouncementText", "Arena result. Winners: Alice, Bob. Your standing: #3 / 4. Did not finish: Disconnected player: Left the room");
         compare(harness.overlay.announcementCount, 1);
     }
 
@@ -348,13 +347,11 @@ TestCase {
         tryCompare(standings, "activeFocus", true);
         keyClick(Qt.Key_End);
         tryCompare(standings, "currentIndex", 15);
-        tryVerify(function() {
-            return standings.currentItem !== null
-                && standings.currentItem.memberId === "member-extra-15";
+        tryVerify(function () {
+            return standings.currentItem !== null && standings.currentItem.memberId === "member-extra-15";
         });
         compare(standings.currentItem.focusIndicatorVisible, true);
-        tryCompare(harness.overlay, "lastAnnouncementText",
-                   "Arena result. Winners: Alice, Bob. Your standing: #3 / 16. Did not finish: Disconnected player: Left the room");
+        tryCompare(harness.overlay, "lastAnnouncementText", "Arena result. Winners: Alice, Bob. Your standing: #3 / 16. Did not finish: Disconnected player: Left the room");
         compare(harness.overlay.announcementCount, 1);
         compare(standings.currentItem.activeFocusOnTab, false);
         keyClick(Qt.Key_Home);
@@ -382,6 +379,7 @@ TestCase {
             "width": 480,
             "height": 624,
             "result": session.presentedResult,
+            "session": session,
             "localMemberId": "member-local",
             "statsFontFamily": "",
             "textFontFamily": ""
@@ -392,6 +390,10 @@ TestCase {
         verify(expand !== null);
         verify(expand.width >= 32);
         verify(expand.height >= 32);
+        const chat = findChild(panel, "arenaNativeResultChat");
+        verify(chat !== null);
+        mouseClick(chat, chat.width / 2, chat.height / 2);
+        compare(session.gameplayChatOpen, true);
         const standings = findChild(panel, "arenaNativeResultStandings");
         verify(standings !== null);
         tryVerify(function () {
@@ -402,13 +404,11 @@ TestCase {
         standings.forceActiveFocus();
         keyClick(Qt.Key_End);
         tryCompare(standings, "currentIndex", 15);
-        tryVerify(function() {
-            return standings.currentItem !== null
-                && standings.currentItem.memberId === "member-extra-15";
+        tryVerify(function () {
+            return standings.currentItem !== null && standings.currentItem.memberId === "member-extra-15";
         });
         compare(standings.currentItem.focusIndicatorVisible, true);
-        tryCompare(panel, "lastAnnouncementText",
-                   "Arena result. Winners: Alice, Bob. Your standing: #3 / 16. Did not finish: Disconnected player: Left the room");
+        tryCompare(panel, "lastAnnouncementText", "Arena result. Winners: Alice, Bob. Your standing: #3 / 16. Did not finish: Disconnected player: Left the room");
         compare(panel.announcementCount, 1);
     }
 
@@ -472,6 +472,17 @@ TestCase {
         verify(mountedFrame.width < host.width);
         verify(mountedFrame.height < host.height);
         verify(mountedFrame.x > 0);
+        compare(mountedFrame.directMoveEnabled, true);
+        compare(mountedFrame.directResizeEnabled, true);
+        verify(mountedFrame.moveHandle !== null);
+
+        const resultChat = findChild(host, "arenaResultChat");
+        verify(resultChat !== null);
+        mouseClick(resultChat, resultChat.width / 2, resultChat.height / 2);
+        compare(session.gameplayChatOpen, true);
+        const chatDrawer = findChild(host, "arenaGameplayChatDrawer");
+        verify(chatDrawer !== null);
+        compare(chatDrawer.visible, true);
 
         host.resultCustomizeMode = true;
         compare(resultItem.resultCustomizationActive, true);

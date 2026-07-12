@@ -14,8 +14,7 @@ TestCase {
     Component {
         id: runnerComponent
 
-        QtObject {
-        }
+        QtObject {}
     }
 
     Component {
@@ -29,15 +28,13 @@ TestCase {
     Component {
         id: themeVarsComponent
 
-        FakeArenaThemeVars {
-        }
+        FakeArenaThemeVars {}
     }
 
     Component {
         id: viewportComponent
 
-        Item {
-        }
+        Item {}
     }
 
     Component {
@@ -73,8 +70,7 @@ TestCase {
             }
 
             function setOverlayCustomizationActive(active) {
-                overlayCustomizationActive = !!active && arenaGameplayActive
-                    && arenaRunner !== null;
+                overlayCustomizationActive = !!active && arenaGameplayActive && arenaRunner !== null;
             }
 
             ListModel {
@@ -138,22 +134,19 @@ TestCase {
     Component {
         id: hostComponent
 
-        ArenaOverlayHost {
-        }
+        ArenaOverlayHost {}
     }
 
     Component {
         id: overlayComponent
 
-        ArenaGameplayOverlay {
-        }
+        ArenaGameplayOverlay {}
     }
 
     Component {
         id: frameComponent
 
-        ArenaOverlayPlacementFrame {
-        }
+        ArenaOverlayPlacementFrame {}
     }
 
     function standingRecord(index) {
@@ -161,10 +154,8 @@ TestCase {
         const target = index === 1;
         const dnf = index === 2;
         return {
-            "memberId": local ? "member-local"
-                              : (target ? "member-target" : "member-" + index),
-            "displayName": local ? "Local"
-                                 : (target ? "Target" : "Player " + index),
+            "memberId": local ? "member-local" : (target ? "member-target" : "member-" + index),
+            "displayName": local ? "Local" : (target ? "Target" : "Player " + index),
             "connected": !dnf,
             "competitionState": target ? "finished" : (dnf ? "dnf" : "playing"),
             "rank": dnf ? 0 : index + 1,
@@ -213,8 +204,7 @@ TestCase {
         verify(screen !== null);
         const themeVars = createTemporaryObject(themeVarsComponent, testCase);
         verify(themeVars !== null);
-        const generalVars = createTemporaryObject(generalVarsComponent,
-                                                  testCase, {
+        const generalVars = createTemporaryObject(generalVarsComponent, testCase, {
             "arenaOverlayHintVersion": hintVersion
         });
         verify(generalVars !== null);
@@ -240,10 +230,7 @@ TestCase {
     }
 
     function rectanglesOverlap(left, right) {
-        return left.x < right.x + right.width
-            && left.x + left.width > right.x
-            && left.y < right.y + right.height
-            && left.y + left.height > right.y;
+        return left.x < right.x + right.width && left.x + left.width > right.x && left.y < right.y + right.height && left.y + left.height > right.y;
     }
 
     function verifySafe(rect, viewport) {
@@ -273,10 +260,22 @@ TestCase {
         verify(frame !== null);
 
         const cases = [
-            { "leaderboard": Qt.rect(100, 100, 320, 240), "side": "right" },
-            { "leaderboard": Qt.rect(860, 100, 320, 240), "side": "left" },
-            { "leaderboard": Qt.rect(300, 80, 680, 200), "side": "below" },
-            { "leaderboard": Qt.rect(300, 420, 680, 200), "side": "above" }
+            {
+                "leaderboard": Qt.rect(100, 100, 320, 240),
+                "side": "right"
+            },
+            {
+                "leaderboard": Qt.rect(860, 100, 320, 240),
+                "side": "left"
+            },
+            {
+                "leaderboard": Qt.rect(300, 80, 680, 200),
+                "side": "below"
+            },
+            {
+                "leaderboard": Qt.rect(300, 420, 680, 200),
+                "side": "above"
+            }
         ];
         for (const entry of cases) {
             frame.resolvedPixelRect = entry.leaderboard;
@@ -321,7 +320,7 @@ TestCase {
         compare(standings.activeFocusOnTab, true);
         verify(standings.Accessible.name.length > 0);
         verify(standings.contentHeight > standings.height);
-        tryVerify(function() {
+        tryVerify(function () {
             return findChild(overlay, "arenaStandingRow2") !== null;
         });
 
@@ -336,20 +335,22 @@ TestCase {
         compare(localRow.activeFocusOnTab, false);
         verify(localRow.Accessible.name.indexOf("Local") >= 0);
         verify(localRow.Accessible.description.indexOf("EX 200") >= 0);
-        verify(localRow.Accessible.description.indexOf("50%") >= 0);
+        verify(localRow.Accessible.description.indexOf("76.5%") >= 0);
         compare(findChild(localRow, "arenaStandingRank").text, "1");
         compare(findChild(dnfRow, "arenaStandingRank").text, "—");
         compare(findChild(localRow, "arenaStandingName").text, "Local");
         compare(findChild(localRow, "arenaStandingScore").text, "EX 200");
-        compare(findChild(localRow, "arenaStandingProgress").text, "50%");
+        const life = findChild(localRow, "arenaStandingLife");
+        verify(life !== null);
+        compare(life.text, "76.5%");
+        compare(life.visible, true);
         compare(findChild(localRow, "arenaStandingState").text, "Playing");
         compare(findChild(localRow, "arenaStandingLocalMark").visible, true);
         compare(findChild(targetRow, "arenaStandingTargetMark").visible, true);
         verify(findChild(targetRow, "arenaStandingOutcome").text.indexOf("Hard clear") >= 0);
         verify(findChild(targetRow, "arenaStandingOutcome").text.indexOf("3 win") >= 0);
         verify(findChild(dnfRow, "arenaStandingOutcome").text.indexOf("Aborted") >= 0);
-        compare(findChild(localRow, "arenaStandingName").Accessible.ignored,
-                true);
+        compare(findChild(localRow, "arenaStandingName").Accessible.ignored, true);
 
         standings.currentIndex = 0;
         standings.forceActiveFocus();
@@ -365,20 +366,20 @@ TestCase {
         mouseClick(expand, expand.width / 2, expand.height / 2);
         compare(overlay.expanded, true);
         compare(findChild(localRow, "arenaStandingDetails").visible, true);
-        verify(findChild(localRow, "arenaStandingGauge").text
-               .indexOf("76.5%") >= 0);
-        compare(findChild(overlay, "arenaGameplayOptions").visible, true);
+        verify(findChild(overlay, "arenaGameplayOptions") === null);
     }
 
     function test_host_is_current_runner_only_and_resets_round_local_unread() {
         const harness = createHost(1);
-        const frame = findChild(harness.host,
-                                "arenaGameplayPlacementFrame");
+        const frame = findChild(harness.host, "arenaGameplayPlacementFrame");
         verify(frame !== null);
         verify(frame.width < harness.host.width);
         verify(frame.height < harness.host.height);
         verify(frame.x > 0);
         verify(frame.y >= 0);
+        compare(frame.directMoveEnabled, true);
+        compare(frame.directResizeEnabled, true);
+        verify(frame.moveHandle !== null);
         compare(harness.host.unreadCount, 0);
 
         harness.session.chat.append({
@@ -410,11 +411,9 @@ TestCase {
         tryCompare(harness.host, "unreadCount", 0);
         compare(harness.session.gameplayChatOpen, false);
 
-        harness.host.currentItem = createTemporaryObject(runnerComponent,
-                                                         testCase);
+        harness.host.currentItem = createTemporaryObject(runnerComponent, testCase);
         wait(1);
-        verify(findChild(harness.host,
-                         "arenaGameplayPlacementFrame") === null);
+        verify(findChild(harness.host, "arenaGameplayPlacementFrame") === null);
     }
 
     function test_chat_keyboard_focus_and_escape_priority_leave_controller_live() {
@@ -431,7 +430,7 @@ TestCase {
         compare(chatList.Accessible.focusable, true);
         compare(chatList.activeFocusOnTab, true);
         verify(chatList.Accessible.name.length > 0);
-        tryVerify(function() {
+        tryVerify(function () {
             return findChild(harness.host, "arenaGameplayChatRow0") !== null;
         });
         const chatRow = findChild(harness.host, "arenaGameplayChatRow0");
@@ -613,9 +612,8 @@ TestCase {
         session.liveStandings.append(target);
         tryCompare(standings, "count", 3);
         tryCompare(standings, "currentIndex", 2);
-        tryVerify(function() {
-            return standings.currentItem !== null
-                && standings.currentItem.memberId === "member-target";
+        tryVerify(function () {
+            return standings.currentItem !== null && standings.currentItem.memberId === "member-target";
         });
         compare(standings.activeFocus, true);
         compare(standings.currentItem.focusIndicatorVisible, true);

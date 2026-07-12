@@ -10,6 +10,7 @@ Item {
     property string csvPath
     property string screenKey: ""
     property string arenaRoundId: ""
+    property bool arenaPendingAutoClose: false
     property bool arenaResultCustomizationActive: false
     property var chart
     property var scores: []
@@ -2417,6 +2418,9 @@ Item {
 
         root.forceActiveFocus();
         if (root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
+            if (root.arenaPendingAutoClose) {
+                return;
+            }
             if (root.isCourseGameplay() && root.gameplayCourseResultOpening) {
                 return;
             }

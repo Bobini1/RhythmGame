@@ -28,52 +28,27 @@ Item {
         }
     }
 
-    readonly property bool ownsArenaRunner: root.currentItem !== null
-        && root.currentItem.chart !== undefined
-        && root.session.arenaGameplayActive === true
-        && root.session.arenaRunner !== null
-        && root.currentItem.chart === root.session.arenaRunner
-    readonly property string currentArenaRoundId: root.currentItem
-        && root.currentItem.arenaRoundId !== undefined
-        ? String(root.currentItem.arenaRoundId || "") : ""
-    readonly property bool ownsArenaResult:
-        root.currentArenaRoundId.length > 0
-        && root.session.resultPresentationActive === true
-        && root.session.presentedResult !== null
-        && root.session.presentedResult.valid === true
-        && root.currentArenaRoundId
-            === String(root.session.presentedResult.roundId || "")
-    readonly property bool arenaNativeResultPresentation:
-        root.currentItem !== null
-        && root.currentItem.arenaNativeResultPresentation === true
-    readonly property bool legacyArenaResult:
-        root.ownsArenaResult && !root.arenaNativeResultPresentation
-    readonly property bool arenaShortcutEnabled: root.ownsArenaRunner
-        || root.ownsArenaResult
-    readonly property bool coordinatedShortcutEnabled: root.ownsArenaRunner
-        || (root.ownsArenaResult && root.arenaNativeResultPresentation)
-    readonly property bool screenCoordinatesCustomization: root.currentItem !== null
-        && typeof root.currentItem.setArenaCustomizeMode === "function"
-    readonly property string activeRoundId: root.ownsArenaRunner
-        && root.session.liveStandings !== null
-        && root.session.liveStandings !== undefined
-        ? String(root.session.liveStandings.roundId || "") : ""
-    readonly property var placementFrame: gameplayOverlayLoader.item
-    readonly property rect chatDrawerRect: root.placementFrame !== null
-        ? root.placementFrame.adjacentChatRect()
-        : Qt.rect(0, 0, 1, 1)
+    readonly property bool ownsArenaRunner: root.currentItem !== null && root.currentItem.chart !== undefined && root.session.arenaGameplayActive === true && root.session.arenaRunner !== null && root.currentItem.chart === root.session.arenaRunner
+    readonly property string currentArenaRoundId: root.currentItem && root.currentItem.arenaRoundId !== undefined ? String(root.currentItem.arenaRoundId || "") : ""
+    readonly property bool ownsArenaResult: root.currentArenaRoundId.length > 0 && root.session.resultPresentationActive === true && root.session.presentedResult !== null && root.session.presentedResult.valid === true && root.currentArenaRoundId === String(root.session.presentedResult.roundId || "")
+    readonly property bool arenaNativeResultPresentation: root.currentItem !== null && root.currentItem.arenaNativeResultPresentation === true
+    readonly property bool legacyArenaResult: root.ownsArenaResult && !root.arenaNativeResultPresentation
+    readonly property bool arenaShortcutEnabled: root.ownsArenaRunner || root.ownsArenaResult
+    readonly property bool coordinatedShortcutEnabled: root.ownsArenaRunner || (root.ownsArenaResult && root.arenaNativeResultPresentation)
+    readonly property bool screenCoordinatesCustomization: root.currentItem !== null && typeof root.currentItem.setArenaCustomizeMode === "function"
+    readonly property string activeRoundId: root.ownsArenaRunner && root.session.liveStandings !== null && root.session.liveStandings !== undefined ? String(root.session.liveStandings.roundId || "") : (root.ownsArenaResult ? root.currentArenaRoundId : "")
+    readonly property var placementFrame: gameplayOverlayLoader.item || resultOverlayLoader.item || (root.currentItem && root.currentItem.arenaOverlayPlacementFrame !== undefined ? root.currentItem.arenaOverlayPlacementFrame : null)
+    readonly property rect chatDrawerRect: root.placementFrame !== null ? root.placementFrame.adjacentChatRect() : Qt.rect(0, 0, 1, 1)
 
     function acknowledgePlacementHint() {
         if (placementHint.activeFocus) {
-            if (root.currentItem !== null
-                    && typeof root.currentItem.forceActiveFocus === "function") {
+            if (root.currentItem !== null && typeof root.currentItem.forceActiveFocus === "function") {
                 root.currentItem.forceActiveFocus();
             } else {
                 root.forceActiveFocus();
             }
         }
-        if (root.generalVars !== null && root.generalVars !== undefined
-                && root.generalVars.arenaOverlayHintVersion < 1) {
+        if (root.generalVars !== null && root.generalVars !== undefined && root.generalVars.arenaOverlayHintVersion < 1) {
             root.generalVars.arenaOverlayHintVersion = 1;
         }
         placementHintTimer.stop();
@@ -81,31 +56,24 @@ Item {
 
     function setCustomizeMode(active) {
         const accepted = !!active && root.coordinatedShortcutEnabled;
-        if (root.customizationTransitionActive
-                || (root.customizeMode === accepted
-                    && (!accepted
-                        || root.coordinatedScreen === root.currentItem))) {
+        if (root.customizationTransitionActive || (root.customizeMode === accepted && (!accepted || root.coordinatedScreen === root.currentItem))) {
             return;
         }
         root.customizationTransitionActive = true;
         const previousScreen = root.coordinatedScreen;
-        const nextScreen = accepted && root.screenCoordinatesCustomization
-            ? root.currentItem : null;
+        const nextScreen = accepted && root.screenCoordinatesCustomization ? root.currentItem : null;
         if (accepted && root.session.gameplayChatOpen === true) {
             root.session.setGameplayChatOpen(false);
         }
         if (accepted) {
             root.acknowledgePlacementHint();
         }
-        root.session.setOverlayCustomizationActive(
-                    accepted && root.session.arenaGameplayActive === true);
+        root.session.setOverlayCustomizationActive(accepted && root.session.arenaGameplayActive === true);
         root.customizeMode = accepted;
-        if (previousScreen !== null && previousScreen !== nextScreen
-                && typeof previousScreen.setArenaCustomizeMode === "function") {
+        if (previousScreen !== null && previousScreen !== nextScreen && typeof previousScreen.setArenaCustomizeMode === "function") {
             previousScreen.setArenaCustomizeMode(false);
         }
-        if (nextScreen !== null
-                && typeof nextScreen.setArenaCustomizeMode === "function") {
+        if (nextScreen !== null && typeof nextScreen.setArenaCustomizeMode === "function") {
             nextScreen.setArenaCustomizeMode(accepted);
         }
         root.coordinatedScreen = nextScreen;
@@ -117,9 +85,7 @@ Item {
             root.expanded = false;
             root.unreadCount = 0;
             placementHintTimer.stop();
-        } else if (root.generalVars !== null
-                   && root.generalVars !== undefined
-                   && root.generalVars.arenaOverlayHintVersion < 1) {
+        } else if (root.generalVars !== null && root.generalVars !== undefined && root.generalVars.arenaOverlayHintVersion < 1) {
             placementHintTimer.restart();
         }
     }
@@ -142,9 +108,7 @@ Item {
     }
 
     Component.onCompleted: {
-        if (root.ownsArenaRunner && root.generalVars !== null
-                && root.generalVars !== undefined
-                && root.generalVars.arenaOverlayHintVersion < 1) {
+        if (root.ownsArenaRunner && root.generalVars !== null && root.generalVars !== undefined && root.generalVars.arenaOverlayHintVersion < 1) {
             placementHintTimer.start();
         }
     }
@@ -167,9 +131,7 @@ Item {
         }
 
         function onOverlayCustomizationActiveChanged() {
-            if (!root.customizationTransitionActive && root.customizeMode
-                    && root.ownsArenaRunner
-                    && root.session.overlayCustomizationActive !== true) {
+            if (!root.customizationTransitionActive && root.customizeMode && root.ownsArenaRunner && root.session.overlayCustomizationActive !== true) {
                 root.setCustomizeMode(false);
             }
         }
@@ -180,8 +142,7 @@ Item {
         enabled: root.ownsArenaRunner && root.session.chat !== null
 
         function onRowsInserted(parent, first, last) {
-            if (root.session.gameplayChatOpen !== true
-                    && root.activeRoundId.length > 0) {
+            if (root.session.gameplayChatOpen !== true && root.activeRoundId.length > 0) {
                 root.unreadCount += last - first + 1;
             }
         }
@@ -223,7 +184,7 @@ Item {
             root.resultInputGuardActive = true;
             return;
         }
-        Qt.callLater(function() {
+        Qt.callLater(function () {
             if (!root.resultCustomizeMode) {
                 root.resultInputGuardActive = false;
             }
@@ -235,7 +196,7 @@ Item {
     Shortcut {
         autoRepeat: false
         context: Qt.ApplicationShortcut
-        enabled: root.ownsArenaRunner
+        enabled: root.arenaShortcutEnabled
         sequence: "F8"
 
         onActivated: {
@@ -262,8 +223,7 @@ Item {
         enabled: visible
         hoverEnabled: true
         preventStealing: true
-        visible: root.customizeMode
-            && !root.screenCoordinatesCustomization
+        visible: root.customizeMode && !root.screenCoordinatesCustomization
         z: 0
 
         onWheel: wheel => wheel.accepted = true
@@ -298,7 +258,10 @@ Item {
             themeVars: root.themeVars
             viewport: root
             customizeMode: root.customizeMode
+            directMoveEnabled: true
+            directResizeEnabled: true
             minimumPixelSize: Qt.size(320, 240)
+            moveHandle: gameplayOverlay.dragHandle
 
             onRequestExitCustomization: root.setCustomizeMode(false)
 
@@ -319,7 +282,7 @@ Item {
         id: gameplayChatDrawer
 
         objectName: "arenaGameplayChatDrawer"
-        active: root.ownsArenaRunner
+        active: root.arenaShortcutEnabled
         focus: visible
         visible: root.session.gameplayChatOpen === true
         x: root.chatDrawerRect.x
@@ -362,14 +325,8 @@ Item {
         color: "#e6101218"
         height: placementHintText.implicitHeight + 20
         radius: 5
-        visible: root.ownsArenaRunner
-            && !root.customizeMode
-            && root.generalVars !== null
-            && root.generalVars !== undefined
-            && root.generalVars.arenaOverlayHintVersion < 1
-            && placementHintTimer.running
-        width: Math.min(parent.width - 48,
-                        placementHintText.implicitWidth + 32)
+        visible: root.ownsArenaRunner && !root.customizeMode && root.generalVars !== null && root.generalVars !== undefined && root.generalVars.arenaOverlayHintVersion < 1 && placementHintTimer.running
+        width: Math.min(parent.width - 48, placementHintText.implicitWidth + 32)
         z: 3
 
         Accessible.role: Accessible.Button
@@ -380,8 +337,7 @@ Item {
 
         Keys.priority: Keys.BeforeItem
         Keys.onPressed: event => {
-            if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter
-                    && event.key !== Qt.Key_Space) {
+            if (event.key !== Qt.Key_Return && event.key !== Qt.Key_Enter && event.key !== Qt.Key_Space) {
                 return;
             }
             root.acknowledgePlacementHint();
@@ -420,16 +376,23 @@ Item {
         id: resultOverlayComponent
 
         ArenaOverlayPlacementFrame {
+            id: resultPlacementFrame
+
             objectName: "arenaResultPlacementFrame"
             themeVars: root.resultThemeVars
             viewport: root
             placementKind: "resultStandings"
             layoutVariant: "result"
             customizeMode: root.resultCustomizeMode
+            directMoveEnabled: true
+            directResizeEnabled: true
+            moveHandle: resultOverlay.dragHandle
 
             onRequestExitCustomization: root.resultCustomizeMode = false
 
             ArenaResultOverlay {
+                id: resultOverlay
+
                 anchors.fill: parent
                 layoutVariant: "result"
                 placementKind: "resultStandings"
@@ -437,8 +400,7 @@ Item {
                 session: root.session
                 expanded: root.resultExpanded
 
-                onExpandedChanged:
-                    root.resultExpanded = expanded
+                onExpandedChanged: root.resultExpanded = expanded
             }
         }
     }
