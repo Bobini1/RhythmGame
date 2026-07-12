@@ -1127,8 +1127,12 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
     const auto generation = fixture.transport.connectCalls.back().generation;
     const auto packed = QByteArray(32, '\x33');
     const auto sha256 = QString::fromLatin1(packed.toHex());
+    const auto selectedMd5 = QString(32, QChar(u'2'));
     REQUIRE(fixture.session.getAvailability()->applyReset(1, packed));
 
+    auto selection = phase2Selection(sha256);
+    selection.insert(QStringLiteral("md5"), selectedMd5);
+    selection.insert(QStringLiteral("subtitle"), QStringLiteral("Subtitle"));
     fixture.transport.injectText(
       generation,
       compact({
@@ -1155,7 +1159,7 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
             { QStringLiteral("roomGeneration"), 3 },
             { QStringLiteral("selectionRevision"), 4 },
             { QStringLiteral("availabilityRevision"), 1 },
-            { QStringLiteral("selection"), phase2Selection(sha256) },
+            { QStringLiteral("selection"), std::move(selection) },
             { QStringLiteral("selectedByMemberId"),
               QStringLiteral("member-1") },
           } },
@@ -1165,6 +1169,9 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
     CHECK(fixture.session.getCanReady());
     CHECK_FALSE(fixture.session.getReady());
     CHECK(fixture.session.getSelectedTitle() == QStringLiteral("Arena chart"));
+    CHECK(fixture.session.property("selectedMd5").toString() == selectedMd5);
+    CHECK(fixture.session.property("selectedSubtitle").toString() ==
+          QStringLiteral("Subtitle"));
     CHECK(fixture.session.arenaOptionsSummary() == QStringLiteral("Normal"));
     fixture.session.setReady(true);
     const auto ready =

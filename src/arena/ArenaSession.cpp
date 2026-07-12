@@ -752,6 +752,16 @@ ArenaSession::getSelectedTitle() const -> QString
     return m_selection ? m_selection->title : QString{};
 }
 auto
+ArenaSession::getSelectedSubtitle() const -> QString
+{
+    return m_selection ? m_selection->subtitle : QString{};
+}
+auto
+ArenaSession::getSelectedMd5() const -> QString
+{
+    return m_selection && m_selection->md5 ? *m_selection->md5 : QString{};
+}
+auto
 ArenaSession::getSelectedByMemberId() const -> QString
 {
     return m_selectedByMemberId;

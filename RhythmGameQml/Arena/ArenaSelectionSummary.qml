@@ -1,11 +1,35 @@
 import QtQuick
 import QtQuick.Layouts
+import RhythmGameQml
 
 ColumnLayout {
     id: root
 
     required property var session
+    property var tables: Rg.tables
+    property int tableRevision: 0
     property bool compact: false
+    readonly property string selectedChartText: {
+        if (!root.session) {
+            return "";
+        }
+        const title = root.singleLine(root.session.selectedTitle);
+        if (title.length === 0) {
+            return "";
+        }
+        const subtitle = root.singleLine(root.session.selectedSubtitle);
+        const metadata = subtitle.length > 0 ? title + " " + subtitle : title;
+        const md5 = String(root.session.selectedMd5 || "");
+        if (md5.length === 0) {
+            return metadata;
+        }
+        const matches = root.searchLocalTables(md5, root.tableRevision);
+        if (!matches || matches.length === 0) {
+            return metadata;
+        }
+        const prefix = String(matches[0].symbol || "") + String(matches[0].levelName || "");
+        return prefix !== "" ? prefix + " " + metadata : metadata;
+    }
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -57,6 +81,18 @@ ColumnLayout {
         return value.winnerNames.join(", ");
     }
 
+    function singleLine(value): string {
+        return String(value || "").replace(/\r\n|\n|\r/g, " ").trim();
+    }
+
+    function searchLocalTables(md5, revision): var {
+        // revision is the cache key that re-runs the lookup after table reloads.
+        if (revision < 0 || !root.tables || !root.tables.search) {
+            return [];
+        }
+        return root.tables.search(md5);
+    }
+
     spacing: root.compact ? 2 : 6
 
     Text {
@@ -65,8 +101,33 @@ ColumnLayout {
         color: "white"
         elide: Text.ElideRight
         font.bold: true
-        text: root.session ? (String(root.session.selectedTitle || "").length > 0 ? String(root.session.selectedTitle) : qsTr("No chart selected")) : ""
+        text: root.session ? (root.selectedChartText.length > 0 ? root.selectedChartText : qsTr("No chart selected")) : ""
         textFormat: Text.PlainText
+    }
+
+    Connections {
+        target: root.tables
+        ignoreUnknownSignals: true
+
+        function onDataChanged(): void {
+            ++root.tableRevision;
+        }
+
+        function onModelReset(): void {
+            ++root.tableRevision;
+        }
+
+        function onRowsInserted(): void {
+            ++root.tableRevision;
+        }
+
+        function onRowsMoved(): void {
+            ++root.tableRevision;
+        }
+
+        function onRowsRemoved(): void {
+            ++root.tableRevision;
+        }
     }
 
     Text {

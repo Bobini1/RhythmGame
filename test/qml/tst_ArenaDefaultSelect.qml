@@ -44,6 +44,22 @@ TestCase {
     }
 
     Component {
+        id: tablesComponent
+
+        QtObject {
+            property var matches: []
+            property string searchedHash: ""
+
+            signal dataChanged
+
+            function search(hash) {
+                searchedHash = String(hash || "");
+                return matches;
+            }
+        }
+    }
+
+    Component {
         id: panelComponent
 
         ArenaSelectPanel {}
@@ -306,6 +322,35 @@ TestCase {
         session.currentRoundId = "";
         session.errorMessageKey = "arena.error.resourceFailed";
         verify(summary.syncText.indexOf("cancelled") >= 0);
+    }
+
+    function test_selection_summary_uses_local_table_level_and_falls_back_to_metadata() {
+        const session = createSession();
+        session.selectedMd5 = "0123456789abcdef0123456789abcdef";
+        session.selectedSubtitle = "<i>Subtitle</i>";
+        const tables = createTemporaryObject(tablesComponent, testCase, {
+            "matches": [{
+                "levelName": "12",
+                "symbol": "★"
+            }]
+        });
+        verify(tables !== null);
+        const summary = createTemporaryObject(summaryComponent, testCase, {
+            "session": session,
+            "tables": tables,
+            "width": 500
+        });
+        verify(summary !== null);
+
+        const title = findChild(summary, "arenaSelectionTitle");
+        verify(title !== null);
+        compare(tables.searchedHash, session.selectedMd5);
+        compare(title.text, "★12 <b>Selected chart</b> <i>Subtitle</i>");
+        compare(title.textFormat, Text.PlainText);
+
+        tables.matches = [];
+        tables.dataChanged();
+        tryCompare(title, "text", "<b>Selected chart</b> <i>Subtitle</i>");
     }
 
     function test_chat_tail_follow_plain_text_and_send() {

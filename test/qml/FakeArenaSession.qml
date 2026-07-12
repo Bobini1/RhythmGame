@@ -12,6 +12,8 @@ Item {
     property bool reconnecting: false
     property bool canReady: true
     property bool ready: false
+    property string selectedMd5: ""
+    property string selectedSubtitle: ""
     property string selectedTitle: ""
     property string selectedByMemberId: ""
     property string selectedByDisplayName: ""

@@ -350,6 +350,16 @@ TEST_CASE("ArenaOverlayPolicy: Default select preserves its composition and "
                       "defaultPixelRectHint: root.defaultPixelRectHint" });
 }
 
+TEST_CASE("ArenaOverlayPolicy: selection summary accepts the local Tables model",
+          "[arena][ArenaOverlayPolicy]")
+{
+    const auto source =
+      qmlSource("RhythmGameQml/Arena/ArenaSelectionSummary.qml");
+    requireContains(source,
+                    { "import RhythmGameQml",
+                      "property var tables: Rg.tables" });
+}
+
 TEST_CASE("ArenaOverlayPolicy: browser and room lists expose keyboard and assistive semantics",
           "[arena][ArenaOverlayPolicy][accessibility]")
 {

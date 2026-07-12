@@ -77,6 +77,10 @@ class ArenaSession final : public QObject
     Q_PROPERTY(bool ready READ getReady NOTIFY readyChanged FINAL)
     Q_PROPERTY(
       QString selectedTitle READ getSelectedTitle NOTIFY selectionChanged FINAL)
+    Q_PROPERTY(QString selectedSubtitle READ getSelectedSubtitle NOTIFY
+                 selectionChanged FINAL)
+    Q_PROPERTY(
+      QString selectedMd5 READ getSelectedMd5 NOTIFY selectionChanged FINAL)
     Q_PROPERTY(QString selectedByMemberId READ getSelectedByMemberId NOTIFY
                  selectionChanged FINAL)
     Q_PROPERTY(QString selectedByDisplayName READ getSelectedByDisplayName
@@ -160,6 +164,8 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto getCanReady() const -> bool;
     [[nodiscard]] auto getReady() const -> bool;
     [[nodiscard]] auto getSelectedTitle() const -> QString;
+    [[nodiscard]] auto getSelectedSubtitle() const -> QString;
+    [[nodiscard]] auto getSelectedMd5() const -> QString;
     [[nodiscard]] auto getSelectedByMemberId() const -> QString;
     [[nodiscard]] auto getSelectedByDisplayName() const -> QString;
     [[nodiscard]] auto getSelectionRevision() const -> qint64;
