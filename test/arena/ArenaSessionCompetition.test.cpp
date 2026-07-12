@@ -1042,7 +1042,7 @@ TEST_CASE("ArenaSessionCompetition: reports exact length and attaches before "
     CHECK(startedSignals == 1);
     CHECK(fixture.gameplaySource.attachedRunner == runner.runner.get());
     CHECK(fixture.session.arenaRunner() == runner.runner.get());
-    CHECK(fixture.session.arenaOptionsSummary() == QStringLiteral("P1 Random"));
+    CHECK(fixture.session.arenaOptionsSummary() == QStringLiteral("Random"));
     CHECK_FALSE(fixture.session.arenaOptionsSummary().contains(
       QStringLiteral("0123456789abcdef")));
 }

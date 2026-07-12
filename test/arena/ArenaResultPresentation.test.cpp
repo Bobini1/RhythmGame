@@ -88,7 +88,7 @@ TEST_CASE("ArenaResultPresentation: covered Arena gameplay is removed after resu
                     { "property Item pendingArenaGameplayCloseItem",
                       "pendingArenaGameplayCloseItem = item",
                       "item.arenaPendingAutoClose = true",
-                      "currentItem === pendingArenaGameplayCloseItem",
+                      "currentItem === globalRoot.pendingArenaGameplayCloseItem",
                       "sceneStack.popCurrentItem()" });
 
     const auto defaultGameplay = qmlSource(

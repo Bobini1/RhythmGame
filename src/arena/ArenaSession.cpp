@@ -415,19 +415,26 @@ dpModeName(DpMode value) -> QString
 auto
 optionsSummary(const SelectionSnapshot& selection) -> QString
 {
-    auto parts = QStringList{ QStringLiteral("P1 %1").arg(
-      noteOrderName(selection.noteOrderP1)) };
     const auto nativeDouble =
       selection.keyMode == 10 || selection.keyMode == 14;
     const auto battle = selection.dpMode == DpMode::Battle && !nativeDouble &&
                         (selection.keyMode == 5 || selection.keyMode == 7);
-    if (nativeDouble || battle) {
+    const auto showP2 = nativeDouble || battle;
+    const auto showDp =
+      (nativeDouble && (selection.dpMode == DpMode::Flip ||
+                        selection.dpMode == DpMode::Lr2Flip)) ||
+      battle;
+    if (!showP2 && !showDp) {
+        return noteOrderName(selection.noteOrderP1);
+    }
+
+    auto parts = QStringList{ QStringLiteral("P1 %1").arg(
+      noteOrderName(selection.noteOrderP1)) };
+    if (showP2) {
         parts.append(
           QStringLiteral("P2 %1").arg(noteOrderName(selection.noteOrderP2)));
     }
-    if ((nativeDouble && (selection.dpMode == DpMode::Flip ||
-                          selection.dpMode == DpMode::Lr2Flip)) ||
-        battle) {
+    if (showDp) {
         parts.append(QStringLiteral("DP %1").arg(dpModeName(selection.dpMode)));
     }
     return parts.join(QStringLiteral(" | "));
@@ -2184,6 +2191,8 @@ ArenaSession::applySelection(std::optional<SelectionSnapshot> selection,
                              qint64 availabilityRevision,
                              std::optional<QString> selectedByMemberId)
 {
+    const auto summary = selection ? optionsSummary(*selection) : QString{};
+    const auto summaryChanged = summary != m_arenaOptionsSummary;
     const auto changed =
       m_selection != selection || m_selectionRevision != selectionRevision ||
       m_roomAvailabilityRevision != availabilityRevision ||
@@ -2192,9 +2201,13 @@ ArenaSession::applySelection(std::optional<SelectionSnapshot> selection,
     m_selectionRevision = selectionRevision;
     m_roomAvailabilityRevision = availabilityRevision;
     m_selectedByMemberId = selectedByMemberId.value_or(QString{});
+    m_arenaOptionsSummary = summary;
     if (changed) {
         emit selectionChanged();
         emit readyChanged();
+    }
+    if (summaryChanged) {
+        emit competitionChanged();
     }
 }
 

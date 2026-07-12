@@ -1165,6 +1165,7 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
     CHECK(fixture.session.getCanReady());
     CHECK_FALSE(fixture.session.getReady());
     CHECK(fixture.session.getSelectedTitle() == QStringLiteral("Arena chart"));
+    CHECK(fixture.session.arenaOptionsSummary() == QStringLiteral("Normal"));
     fixture.session.setReady(true);
     const auto ready =
       messageObject(fixture.transport.textCalls.back().message);

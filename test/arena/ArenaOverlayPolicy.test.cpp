@@ -271,6 +271,13 @@ TEST_CASE("ArenaOverlayPolicy: ContentFrame hosts Arena above the active gamepla
                       "layoutVariant:" });
     CHECK(source.indexOf(QStringLiteral("id: sceneStack")) <
           source.indexOf(QStringLiteral("ArenaOverlayHost {")));
+
+    const auto currentItemHandler = sectionFrom(
+      source, QStringLiteral("onCurrentItemChanged:"), 700);
+    requireContains(currentItemHandler,
+                    { "globalRoot.pendingArenaGameplayCloseItem" });
+    CHECK_FALSE(currentItemHandler.contains(
+      QStringLiteral("=== pendingArenaGameplayCloseItem")));
 }
 
 TEST_CASE("ArenaOverlayPolicy: Default select preserves its composition and "

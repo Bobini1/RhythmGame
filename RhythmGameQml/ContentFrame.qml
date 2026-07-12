@@ -615,9 +615,9 @@ ApplicationWindow {
 
             onCurrentItemChanged: {
                 Qt.callLater(updateEnabledStates);
-                if (currentItem === pendingArenaGameplayCloseItem) {
-                    const item = pendingArenaGameplayCloseItem;
-                    pendingArenaGameplayCloseItem = null;
+                if (currentItem === globalRoot.pendingArenaGameplayCloseItem) {
+                    const item = globalRoot.pendingArenaGameplayCloseItem;
+                    globalRoot.pendingArenaGameplayCloseItem = null;
                     Qt.callLater(function () {
                         if (sceneStack.currentItem === item) {
                             sceneStack.popCurrentItem();
