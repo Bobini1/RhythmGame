@@ -21,6 +21,7 @@ class ArenaRoomListModel : public QAbstractListModel
         ConnectedCountRole,
         ReservedCountRole,
         MaximumCountRole,
+        MembersRole,
     };
     Q_ENUM(Roles)
 

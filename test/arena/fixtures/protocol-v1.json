@@ -178,7 +178,7 @@
 							"name": "Fixture room",
 							"phase": "selecting",
 							"hasPassword": true,
-							"maxCount": 16,
+							"maxCount": 32,
 							"ownerMemberId": "member-alice",
 							"self": {
 								"memberId": "member-alice",
@@ -263,7 +263,15 @@
 							"hasPassword": true,
 							"connectedCount": 1,
 							"reservedCount": 1,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [
+								{ "displayName": "Alice", "avatarUrl": null, "connected": true },
+								{
+									"displayName": "Bob",
+									"avatarUrl": "https://example.invalid/bob.png",
+									"connected": false
+								}
+							]
 						}
 					]
 				}
@@ -283,7 +291,8 @@
 							"hasPassword": false,
 							"connectedCount": 1,
 							"reservedCount": 0,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [{ "displayName": "Alice", "avatarUrl": null, "connected": true }]
 						}
 					],
 					"removedRoomIds": ["room-old"]
@@ -301,7 +310,7 @@
 					"name": "Fixture room",
 					"phase": "selecting",
 					"hasPassword": true,
-					"maxCount": 16,
+					"maxCount": 32,
 					"ownerMemberId": "member-alice",
 					"self": {
 						"memberId": "member-alice",
@@ -784,7 +793,8 @@
 							"hasPassword": false,
 							"connectedCount": 1,
 							"reservedCount": 0,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [{ "displayName": "Alice", "avatarUrl": null, "connected": true }]
 						},
 						{
 							"roomId": "room-duplicate",
@@ -793,7 +803,8 @@
 							"hasPassword": false,
 							"connectedCount": 1,
 							"reservedCount": 0,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [{ "displayName": "Alice", "avatarUrl": null, "connected": true }]
 						}
 					]
 				}
@@ -815,7 +826,8 @@
 							"hasPassword": false,
 							"connectedCount": 1,
 							"reservedCount": 0,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [{ "displayName": "Alice", "avatarUrl": null, "connected": true }]
 						},
 						{
 							"roomId": "room-duplicate",
@@ -824,7 +836,8 @@
 							"hasPassword": false,
 							"connectedCount": 1,
 							"reservedCount": 0,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [{ "displayName": "Alice", "avatarUrl": null, "connected": true }]
 						}
 					],
 					"removedRoomIds": []
@@ -860,7 +873,8 @@
 							"hasPassword": false,
 							"connectedCount": 1,
 							"reservedCount": 0,
-							"maxCount": 16
+							"maxCount": 32,
+							"members": [{ "displayName": "Alice", "avatarUrl": null, "connected": true }]
 						}
 					],
 					"removedRoomIds": ["room-overlap"]
@@ -880,7 +894,7 @@
 					"name": "Fixture room",
 					"phase": "selecting",
 					"hasPassword": false,
-					"maxCount": 16,
+					"maxCount": 32,
 					"ownerMemberId": "member-duplicate",
 					"self": {
 						"memberId": "member-duplicate",
@@ -918,7 +932,7 @@
 					"name": "Fixture room",
 					"phase": "selecting",
 					"hasPassword": false,
-					"maxCount": 16,
+					"maxCount": 32,
 					"ownerMemberId": "member-1",
 					"self": {
 						"memberId": "member-1",

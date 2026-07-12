@@ -1,7 +1,7 @@
 {
 	"fixtureSchema": 1,
 	"protocolMajor": 1,
-	"protocolMinor": 2,
+	"protocolMinor": 0,
 	"clientMessages": [
 		{
 			"name": "competition hello",
@@ -9,7 +9,7 @@
 				"type": "client_hello",
 				"data": {
 					"protocolMajor": 1,
-					"protocolMinor": 2,
+					"protocolMinor": 0,
 					"clientVersion": "phase3-golden",
 					"capabilities": ["rooms-v1", "rounds-v1", "competition-v1"]
 				}
@@ -116,7 +116,7 @@
 				"type": "server_hello",
 				"data": {
 					"protocolMajor": 1,
-					"protocolMinor": 2,
+					"protocolMinor": 0,
 					"capabilities": ["rooms-v1", "rounds-v1", "competition-v1"],
 					"resume": { "status": "not_requested" }
 				}
@@ -133,7 +133,7 @@
 					"name": "Competition room",
 					"phase": "selecting",
 					"hasPassword": false,
-					"maxCount": 16,
+					"maxCount": 32,
 					"ownerMemberId": "member-phase3",
 					"self": {
 						"memberId": "member-phase3",

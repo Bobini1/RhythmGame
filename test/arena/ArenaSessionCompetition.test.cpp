@@ -348,7 +348,7 @@ competitionHello(bool authenticated,
 {
     auto data = QJsonObject{
         { QStringLiteral("protocolMajor"), 1 },
-        { QStringLiteral("protocolMinor"), 2 },
+        { QStringLiteral("protocolMinor"), 0 },
         { QStringLiteral("capabilities"),
           QJsonArray{ QStringLiteral("rooms-v1"),
                       QStringLiteral("rounds-v1"),
@@ -409,7 +409,7 @@ roomData(QString phase = QStringLiteral("selecting"),
         { QStringLiteral("name"), QStringLiteral("Competition room") },
         { QStringLiteral("phase"), std::move(phase) },
         { QStringLiteral("hasPassword"), false },
-        { QStringLiteral("maxCount"), 16 },
+        { QStringLiteral("maxCount"), 32 },
         { QStringLiteral("ownerMemberId"), QStringLiteral("member-1") },
         { QStringLiteral("self"),
           QJsonObject{
@@ -895,7 +895,7 @@ TEST_CASE("ArenaSessionCompetition: negotiates competition and permits one "
         const auto hello =
           messagesOfType(fixture.transport, u"client_hello").front();
         const auto data = hello.value(QStringLiteral("data")).toObject();
-        CHECK(data.value(QStringLiteral("protocolMinor")).toInt() == 2);
+        CHECK(data.value(QStringLiteral("protocolMinor")).toInt() == 0);
         CHECK(data.value(QStringLiteral("capabilities")).toArray() ==
               QJsonArray{ QStringLiteral("rooms-v1"),
                           QStringLiteral("rounds-v1"),
@@ -1878,14 +1878,14 @@ TEST_CASE("ArenaSessionCompetition: capability downgrade rejects admission and "
 {
     ensureCoreApplication();
 
-    SECTION("minor one remains browse only")
+    SECTION("rounds-only capability remains browse only")
     {
         Fixture fixture;
         fixture.session.connectForBrowsing();
         fixture.transport.injectConnected(1);
         auto hello = messageObject(competitionHello(false));
         auto data = hello.value(QStringLiteral("data")).toObject();
-        data.insert(QStringLiteral("protocolMinor"), 1);
+        data.insert(QStringLiteral("protocolMinor"), 0);
         data.insert(QStringLiteral("capabilities"),
                     QJsonArray{ QStringLiteral("rooms-v1"),
                                 QStringLiteral("rounds-v1") });
@@ -1920,7 +1920,7 @@ TEST_CASE("ArenaSessionCompetition: capability downgrade rejects admission and "
         auto hello = messageObject(
           competitionHello(true, roomData(QStringLiteral("selecting"))));
         auto data = hello.value(QStringLiteral("data")).toObject();
-        data.insert(QStringLiteral("protocolMinor"), 1);
+        data.insert(QStringLiteral("protocolMinor"), 0);
         data.insert(QStringLiteral("capabilities"),
                     QJsonArray{ QStringLiteral("rooms-v1"),
                                 QStringLiteral("rounds-v1") });

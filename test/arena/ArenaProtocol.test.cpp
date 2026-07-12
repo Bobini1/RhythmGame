@@ -104,7 +104,13 @@ roomSummaryObject(QString id = QStringLiteral("room-123")) -> QJsonObject
              { QStringLiteral("hasPassword"), true },
              { QStringLiteral("connectedCount"), 1 },
              { QStringLiteral("reservedCount"), 0 },
-             { QStringLiteral("maxCount"), arena::RoomCapacity } };
+             { QStringLiteral("maxCount"), arena::RoomCapacity },
+             { QStringLiteral("members"),
+               QJsonArray{ QJsonObject{
+                 { QStringLiteral("displayName"), QStringLiteral("Alice") },
+                 { QStringLiteral("avatarUrl"), QJsonValue::Null },
+                 { QStringLiteral("connected"), true },
+               } } } };
 }
 
 auto
@@ -706,6 +712,55 @@ fixtureFailureCode(const QString& code)
 
 } // namespace
 
+TEST_CASE("ArenaProtocol uses exact 1.0 with 32 public member previews",
+          "[arena][protocol][directory-members]")
+{
+    using namespace arena;
+    STATIC_REQUIRE(ProtocolMajor == 1);
+    STATIC_REQUIRE(ProtocolMinor == 0);
+    STATIC_REQUIRE(RoomCapacity == 32);
+
+    QJsonArray members;
+    for (int index = 0; index < RoomCapacity; ++index) {
+        members.push_back(QJsonObject{
+          { QStringLiteral("displayName"),
+            QStringLiteral("Player %1").arg(index + 1) },
+          { QStringLiteral("avatarUrl"),
+            index == 1 ? QJsonValue{ QStringLiteral(
+                           "https://example.test/player-2.png") }
+                       : QJsonValue{ QJsonValue::Null } },
+          { QStringLiteral("connected"), index != 2 },
+        });
+    }
+    auto summary = roomSummaryObject();
+    summary.insert(QStringLiteral("connectedCount"), RoomCapacity - 1);
+    summary.insert(QStringLiteral("reservedCount"), 1);
+    summary.insert(QStringLiteral("members"), members);
+    const auto decoded = decodeServerMessage(
+      envelope(QStringLiteral("directory_snapshot"),
+               { { QStringLiteral("revision"), 1 },
+                 { QStringLiteral("rooms"), QJsonArray{ summary } } }));
+    const auto* snapshot = messageAs<DirectorySnapshot>(decoded);
+    REQUIRE(snapshot != nullptr);
+    REQUIRE(snapshot->rooms.front().members.size() == RoomCapacity);
+    CHECK(snapshot->rooms.front().members[1].displayName ==
+          QStringLiteral("Player 2"));
+    CHECK(snapshot->rooms.front().members[1].avatarUrl ==
+          QStringLiteral("https://example.test/player-2.png"));
+    CHECK_FALSE(snapshot->rooms.front().members[2].connected);
+
+    members.push_back(QJsonObject{
+      { QStringLiteral("displayName"), QStringLiteral("Player 33") },
+      { QStringLiteral("avatarUrl"), QJsonValue::Null },
+      { QStringLiteral("connected"), true } });
+    summary.insert(QStringLiteral("members"), members);
+    CHECK(failureCode(decodeServerMessage(envelope(
+            QStringLiteral("directory_snapshot"),
+            { { QStringLiteral("revision"), 1 },
+              { QStringLiteral("rooms"), QJsonArray{ summary } } }))) ==
+          ProtocolFailureCode::MalformedMessage);
+}
+
 TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
           "[arena][protocol][fixture]")
 {
@@ -722,7 +777,7 @@ TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
     CHECK(fixture.value(QStringLiteral("protocolMajor")).toInt() ==
           ProtocolMajor);
     CHECK(fixture.value(QStringLiteral("protocolMinor")).toInt() ==
-          LegacyProtocolMinor);
+          ProtocolMinor);
 
     QSet<QString> caseNames;
     for (const auto& value :
@@ -780,17 +835,6 @@ TEST_CASE("ArenaProtocol consumes the canonical cross-language fixture",
         CHECK(
           fixtureCase.value(QStringLiteral("typescriptFailure")).toString() ==
           QStringLiteral("malformed_message"));
-        if (name == QStringLiteral("invalid server protocol minor")) {
-            // Protocol 1.1 deliberately promotes this historical Phase 1
-            // negative golden to a valid rooms-only negotiated hello. Keep
-            // the immutable Phase 1 fixture bytes while testing the new
-            // interpretation here.
-            CHECK(
-              messageAs<ServerHello>(decodeServerMessage(compact(
-                fixtureCase.value(QStringLiteral("message")).toObject()))) !=
-              nullptr);
-            continue;
-        }
         const auto expectedFailure = fixtureFailureCode(
           fixtureCase.value(QStringLiteral("cppFailure")).toString());
         REQUIRE(expectedFailure.has_value());
@@ -817,7 +861,7 @@ TEST_CASE("ArenaProtocol consumes every canonical Phase 2 text golden",
     CHECK(fixture.value(QStringLiteral("protocolMajor")).toInt() ==
           ProtocolMajor);
     CHECK(fixture.value(QStringLiteral("protocolMinor")).toInt() ==
-          RoundsProtocolMinor);
+          ProtocolMinor);
 
     QSet<QString> clientTypes;
     for (const auto& value :
@@ -1317,7 +1361,7 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
     CHECK(
       objectFrom(std::get<QString>(anonymous)) ==
       objectFrom(QStringLiteral(
-        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":2,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","competition-v1"]}})")));
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","competition-v1"]}})")));
 
     const auto ticket = encodeClientMessage(ClientHello{
       .clientVersion = QStringLiteral("2026.7.10"),
@@ -1327,7 +1371,7 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
     CHECK(
       objectFrom(std::get<QString>(ticket)) ==
       objectFrom(QStringLiteral(
-        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":2,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","competition-v1"],"ticket":"header.payload.signature"}})")));
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","competition-v1"],"ticket":"header.payload.signature"}})")));
 
     const auto resume = encodeClientMessage(ClientHello{
       .clientVersion = QStringLiteral("2026.7.10"),
@@ -1344,10 +1388,10 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
     CHECK(
       objectFrom(std::get<QString>(resume)) ==
       objectFrom(QStringLiteral(
-        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":2,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","competition-v1","future-extension"],"ticket":"header.payload.signature","resume":{"roomId":"room-123","seatToken":"resume_token-123"}}})")));
+        R"({"type":"client_hello","data":{"protocolMajor":1,"protocolMinor":0,"clientVersion":"2026.7.10","capabilities":["rooms-v1","rounds-v1","competition-v1","future-extension"],"ticket":"header.payload.signature","resume":{"roomId":"room-123","seatToken":"resume_token-123"}}})")));
 
     const auto legacy = encodeClientMessage(ClientHello{
-      .protocolMinor = LegacyProtocolMinor,
+      .protocolMinor = ProtocolMinor,
       .clientVersion = QStringLiteral("2026.7.10"),
       .capabilities = { QStringLiteral("rooms-v1") },
     });
@@ -1359,20 +1403,19 @@ TEST_CASE("ArenaProtocol encodes anonymous, ticket, and resume hellos",
 }
 
 TEST_CASE(
-  "ArenaProtocol enforces protocol 1.2 capability dependencies and ceilings",
+  "ArenaProtocol enforces protocol 1.0 capability dependencies and ceilings",
   "[arena][protocol][phase3]")
 {
     using namespace arena;
 
     STATIC_REQUIRE(ProtocolMajor == 1);
-    STATIC_REQUIRE(LegacyProtocolMinor == 0);
-    STATIC_REQUIRE(RoundsProtocolMinor == 1);
-    STATIC_REQUIRE(ProtocolMinor == 2);
+    STATIC_REQUIRE(ProtocolMinor == 0);
+    STATIC_REQUIRE(RoomCapacity == 32);
     CHECK(QString::fromLatin1(CompetitionCapability) ==
           QStringLiteral("competition-v1"));
 
     const auto roundsHello = encodeClientMessage(ClientHello{
-      .protocolMinor = RoundsProtocolMinor,
+      .protocolMinor = ProtocolMinor,
       .clientVersion = QStringLiteral("2026.7.10"),
       .capabilities = { QStringLiteral("rooms-v1"),
                         QStringLiteral("rounds-v1") },
@@ -1382,7 +1425,7 @@ TEST_CASE(
             .value(QStringLiteral("data"))
             .toObject()
             .value(QStringLiteral("protocolMinor"))
-            .toInt() == RoundsProtocolMinor);
+            .toInt() == ProtocolMinor);
 
     const auto invalidHello = [](int minor, QStringList capabilities) {
         return encodeFailureCode(encodeClientMessage(ClientHello{
@@ -1391,19 +1434,18 @@ TEST_CASE(
           .capabilities = std::move(capabilities),
         }));
     };
-    CHECK(invalidHello(
-            0, { QStringLiteral("rooms-v1"), QStringLiteral("rounds-v1") }) ==
-          ProtocolFailureCode::MalformedMessage);
+    CHECK_FALSE(invalidHello(
+      0, { QStringLiteral("rooms-v1"), QStringLiteral("rounds-v1") }));
     CHECK(invalidHello(1,
                        { QStringLiteral("rooms-v1"),
                          QStringLiteral("rounds-v1"),
                          QStringLiteral("competition-v1") }) ==
-          ProtocolFailureCode::MalformedMessage);
+          ProtocolFailureCode::ProtocolIncompatible);
     CHECK(
       invalidHello(
-        2, { QStringLiteral("rooms-v1"), QStringLiteral("competition-v1") }) ==
+        0, { QStringLiteral("rooms-v1"), QStringLiteral("competition-v1") }) ==
       ProtocolFailureCode::MalformedMessage);
-    CHECK(invalidHello(2, { QStringLiteral("rounds-v1") }) ==
+    CHECK(invalidHello(0, { QStringLiteral("rounds-v1") }) ==
           ProtocolFailureCode::CapabilityRequired);
 
     const auto serverHello = [](int minor, QJsonArray capabilities) {
@@ -1419,29 +1461,28 @@ TEST_CASE(
     CHECK(messageAs<ServerHello>(serverHello(
             0, QJsonArray{ QStringLiteral("rooms-v1") })) != nullptr);
     CHECK(messageAs<ServerHello>(
-            serverHello(1,
+            serverHello(0,
                         QJsonArray{ QStringLiteral("rooms-v1"),
                                     QStringLiteral("rounds-v1") })) != nullptr);
     CHECK(messageAs<ServerHello>(serverHello(
-            2,
+            0,
             QJsonArray{ QStringLiteral("rooms-v1"),
                         QStringLiteral("rounds-v1"),
                         QStringLiteral("competition-v1") })) != nullptr);
     CHECK(messageAs<ServerHello>(serverHello(
-            2, QJsonArray{ QStringLiteral("rooms-v1") })) != nullptr);
+            0, QJsonArray{ QStringLiteral("rooms-v1") })) != nullptr);
 
+    CHECK(failureCode(
+            serverHello(1,
+                        QJsonArray{ QStringLiteral("rooms-v1"),
+                                    QStringLiteral("rounds-v1"),
+                                    QStringLiteral("competition-v1") })) ==
+          ProtocolFailureCode::ProtocolIncompatible);
     for (auto result : {
            serverHello(0,
                        QJsonArray{ QStringLiteral("rooms-v1"),
-                                   QStringLiteral("rounds-v1") }),
-           serverHello(1,
-                       QJsonArray{ QStringLiteral("rooms-v1"),
-                                   QStringLiteral("rounds-v1"),
                                    QStringLiteral("competition-v1") }),
-           serverHello(2,
-                       QJsonArray{ QStringLiteral("rooms-v1"),
-                                   QStringLiteral("competition-v1") }),
-           serverHello(2,
+           serverHello(0,
                        QJsonArray{ QStringLiteral("rounds-v1"),
                                    QStringLiteral("rooms-v1") }),
          }) {
@@ -1451,7 +1492,7 @@ TEST_CASE(
     const auto failedResume = decodeServerMessage(
       envelope(QStringLiteral("server_hello"),
                { { QStringLiteral("protocolMajor"), 1 },
-                 { QStringLiteral("protocolMinor"), 1 },
+                 { QStringLiteral("protocolMinor"), 0 },
                  { QStringLiteral("capabilities"),
                    QJsonArray{ QStringLiteral("rooms-v1"),
                                QStringLiteral("rounds-v1") } },
@@ -1786,15 +1827,15 @@ TEST_CASE("ArenaProtocol decodes server hello and directory snapshot",
     CHECK_FALSE(serverHello->identity.has_value());
 
     const auto currentHello = decodeServerMessage(QStringLiteral(
-      R"({"type":"server_hello","data":{"protocolMajor":1,"protocolMinor":1,"capabilities":["rooms-v1","rounds-v1"],"resume":{"status":"not_requested"}}})"));
+      R"({"type":"server_hello","data":{"protocolMajor":1,"protocolMinor":0,"capabilities":["rooms-v1","rounds-v1"],"resume":{"status":"not_requested"}}})"));
     const auto* current = messageAs<ServerHello>(currentHello);
     REQUIRE(current != nullptr);
-    CHECK(current->protocolMinor == RoundsProtocolMinor);
+    CHECK(current->protocolMinor == ProtocolMinor);
     CHECK(current->capabilities == QStringList{ QStringLiteral("rooms-v1"),
                                                 QStringLiteral("rounds-v1") });
 
     const auto directory = decodeServerMessage(QStringLiteral(
-      R"({"type":"directory_snapshot","data":{"revision":4,"rooms":[{"roomId":"room-123","name":"Arena room","phase":"selecting","hasPassword":true,"connectedCount":1,"reservedCount":0,"maxCount":16}]}})"));
+      R"({"type":"directory_snapshot","data":{"revision":4,"rooms":[{"roomId":"room-123","name":"Arena room","phase":"selecting","hasPassword":true,"connectedCount":1,"reservedCount":0,"maxCount":32,"members":[{"displayName":"Alice","avatarUrl":null,"connected":true}]}]}})"));
     REQUIRE(decodedMessage(directory) != nullptr);
     const auto* snapshot =
       std::get_if<DirectorySnapshot>(decodedMessage(directory));
@@ -2218,13 +2259,12 @@ TEST_CASE("ArenaProtocol reports version and capability failures precisely",
               ProtocolFailureCode::MalformedMessage);
     }
 
-    auto legacyWithRounds = helloData();
-    legacyWithRounds.insert(
+    auto roomsWithRounds = helloData();
+    roomsWithRounds.insert(
       QStringLiteral("capabilities"),
       QJsonArray{ QStringLiteral("rooms-v1"), QStringLiteral("rounds-v1") });
-    CHECK(failureCode(decodeServerMessage(
-            envelope(QStringLiteral("server_hello"), legacyWithRounds))) ==
-          ProtocolFailureCode::MalformedMessage);
+    CHECK(messageAs<ServerHello>(decodeServerMessage(envelope(
+            QStringLiteral("server_hello"), roomsWithRounds))) != nullptr);
 
     auto currentRoomsOnly = helloData();
     currentRoomsOnly.insert(QStringLiteral("protocolMinor"), ProtocolMinor);

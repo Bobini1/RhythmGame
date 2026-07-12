@@ -71,6 +71,20 @@ ArenaRoomListModel::data(const QModelIndex& index, int role) const -> QVariant
             return room.reservedCount;
         case MaximumCountRole:
             return room.maxCount;
+        case MembersRole: {
+            QVariantList members;
+            members.reserve(room.members.size());
+            for (const auto& member : room.members) {
+                members.push_back(QVariantMap{
+                  { QStringLiteral("displayName"), member.displayName },
+                  { QStringLiteral("avatarUrl"),
+                    member.avatarUrl ? member.avatarUrl->toString()
+                                     : QString{} },
+                  { QStringLiteral("connected"), member.connected },
+                });
+            }
+            return members;
+        }
     }
     return {};
 }
@@ -84,7 +98,8 @@ ArenaRoomListModel::roleNames() const -> QHash<int, QByteArray>
              { PasswordProtectedRole, "passwordProtected" },
              { ConnectedCountRole, "connectedCount" },
              { ReservedCountRole, "reservedCount" },
-             { MaximumCountRole, "maximumCount" } };
+             { MaximumCountRole, "maximumCount" },
+             { MembersRole, "members" } };
 }
 
 auto
@@ -175,6 +190,9 @@ ArenaRoomListModel::upsert(RoomSummary room)
     }
     if (found->maxCount != room.maxCount) {
         changedRoles.push_back(MaximumCountRole);
+    }
+    if (found->members != room.members) {
+        changedRoles.push_back(MembersRole);
     }
     if (changedRoles.isEmpty()) {
         return;

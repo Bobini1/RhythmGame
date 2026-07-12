@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <QStringList>
+#include <QUrl>
 #include <QVector>
 #include <QtTypes>
 
@@ -11,9 +12,7 @@
 namespace arena {
 
 inline constexpr int ProtocolMajor = 1;
-inline constexpr int LegacyProtocolMinor = 0;
-inline constexpr int RoundsProtocolMinor = 1;
-inline constexpr int ProtocolMinor = 2;
+inline constexpr int ProtocolMinor = 0;
 inline constexpr auto RoomsCapability = "rooms-v1";
 inline constexpr auto RoundsCapability = "rounds-v1";
 inline constexpr auto CompetitionCapability = "competition-v1";
@@ -35,7 +34,7 @@ inline constexpr int MaxRequestIdCharacters = 64;
 inline constexpr int MaxTicketCharacters = 16 * 1024;
 inline constexpr int MaxDisplayNameCodePoints = 80;
 inline constexpr int MaxAvatarUrlCharacters = 2048;
-inline constexpr int RoomCapacity = 16;
+inline constexpr int RoomCapacity = 32;
 inline constexpr int MaxWireChatBacklog = 1000;
 inline constexpr int MaxDisplayMessageKeyCharacters = 128;
 inline constexpr int MaxSelectionMetadataCodePoints = 200;
@@ -462,6 +461,14 @@ struct ChatMessage
     bool operator==(const ChatMessage&) const = default;
 };
 
+struct RoomMemberPreview
+{
+    QString displayName;
+    std::optional<QUrl> avatarUrl{ std::nullopt };
+    bool connected{};
+    bool operator==(const RoomMemberPreview&) const = default;
+};
+
 struct RoomSummary
 {
     QString roomId;
@@ -471,6 +478,7 @@ struct RoomSummary
     int connectedCount{};
     int reservedCount{};
     int maxCount{ RoomCapacity };
+    QVector<RoomMemberPreview> members;
     bool operator==(const RoomSummary&) const = default;
 };
 

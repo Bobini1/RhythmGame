@@ -1019,7 +1019,6 @@ ArenaSession::handleConnected(ArenaTransport::Generation generation)
     ClientHello hello{ .clientVersion = m_clientVersion };
     if (m_legacyBrowseOnly &&
         m_handshakeKind == HandshakeKind::AnonymousBrowse) {
-        hello.protocolMinor = LegacyProtocolMinor;
         hello.capabilities = { QString::fromLatin1(RoomsCapability) };
     }
     if (m_handshakeKind == HandshakeKind::AuthenticatedAdmission ||
@@ -1134,10 +1133,8 @@ ArenaSession::handleServerHello(const ServerHello& hello)
     }
     const auto kind = m_handshakeKind;
     setRoundsAvailable(
-      hello.protocolMinor >= RoundsProtocolMinor &&
       hello.capabilities.contains(QString::fromLatin1(RoundsCapability)));
     setCompetitionAvailable(
-      hello.protocolMinor >= ProtocolMinor &&
       hello.capabilities.contains(QString::fromLatin1(CompetitionCapability)));
     if (kind == HandshakeKind::Resume && resumeDeadlineReached()) {
         failResumeAtDeadline();

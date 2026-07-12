@@ -1,7 +1,7 @@
 {
 	"fixtureSchema": 1,
 	"protocolMajor": 1,
-	"protocolMinor": 1,
+	"protocolMinor": 0,
 	"clientMessages": [
 		{
 			"name": "inventory upload begin",

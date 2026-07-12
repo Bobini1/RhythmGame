@@ -70,6 +70,7 @@ TEST_CASE("ArenaModels expose exact role contracts", "[arena][models]")
             { ArenaRoomListModel::ConnectedCountRole, "connectedCount" },
             { ArenaRoomListModel::ReservedCountRole, "reservedCount" },
             { ArenaRoomListModel::MaximumCountRole, "maximumCount" },
+            { ArenaRoomListModel::MembersRole, "members" },
           });
     CHECK(
       members.roleNames() ==
@@ -103,6 +104,41 @@ TEST_CASE("ArenaModels expose exact role contracts", "[arena][models]")
     CHECK_FALSE(
       members.data({}, ArenaMemberListModel::DisplayNameRole).isValid());
     CHECK_FALSE(chats.data({}, ArenaChatModel::TextRole).isValid());
+}
+
+TEST_CASE("ArenaRoomListModel exposes public member previews",
+          "[arena][models][directory-members]")
+{
+    using namespace arena;
+    ArenaRoomListModel rooms;
+    auto row = room(QStringLiteral("room-1"));
+    row.members = {
+        RoomMemberPreview{ .displayName = QStringLiteral("Alice"),
+                           .avatarUrl = std::nullopt,
+                           .connected = true },
+        RoomMemberPreview{ .displayName = QStringLiteral("Bobini"),
+                           .avatarUrl = QUrl{ QStringLiteral(
+                             "https://example.test/bobini.png") },
+                           .connected = false },
+    };
+    REQUIRE(rooms.replace({ row }));
+
+    const auto members =
+      rooms.data(rooms.index(0, 0), ArenaRoomListModel::MembersRole).toList();
+    REQUIRE(members.size() == 2);
+    CHECK(members[0].toMap().value(QStringLiteral("displayName")).toString() ==
+          QStringLiteral("Alice"));
+    CHECK(members[0]
+            .toMap()
+            .value(QStringLiteral("avatarUrl"))
+            .toString()
+            .isEmpty());
+    CHECK(members[0].toMap().value(QStringLiteral("connected")).toBool());
+    CHECK(members[1].toMap().value(QStringLiteral("displayName")).toString() ==
+          QStringLiteral("Bobini"));
+    CHECK(members[1].toMap().value(QStringLiteral("avatarUrl")).toString() ==
+          QStringLiteral("https://example.test/bobini.png"));
+    CHECK_FALSE(members[1].toMap().value(QStringLiteral("connected")).toBool());
 }
 
 TEST_CASE("ArenaModels replace snapshots by value and preserve order",

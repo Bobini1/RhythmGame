@@ -58,7 +58,7 @@ serverHello(bool authenticated) -> QString
 {
     auto data = QJsonObject{
         { QStringLiteral("protocolMajor"), 1 },
-        { QStringLiteral("protocolMinor"), 2 },
+        { QStringLiteral("protocolMinor"), 0 },
         { QStringLiteral("capabilities"),
           QJsonArray{ QStringLiteral("rooms-v1"),
                       QStringLiteral("rounds-v1"),
@@ -130,7 +130,7 @@ roomSnapshotData(QString token = QStringLiteral("seat-token-1"),
         { QStringLiteral("name"), QStringLiteral("Arena room") },
         { QStringLiteral("phase"), QStringLiteral("selecting") },
         { QStringLiteral("hasPassword"), false },
-        { QStringLiteral("maxCount"), 16 },
+        { QStringLiteral("maxCount"), 32 },
         { QStringLiteral("ownerMemberId"), QStringLiteral("member-1") },
         { QStringLiteral("self"),
           QJsonObject{
@@ -164,7 +164,7 @@ resumeHello(QJsonObject room) -> QString
       { QStringLiteral("data"),
         QJsonObject{
           { QStringLiteral("protocolMajor"), 1 },
-          { QStringLiteral("protocolMinor"), 2 },
+          { QStringLiteral("protocolMinor"), 0 },
           { QStringLiteral("capabilities"),
             QJsonArray{ QStringLiteral("rooms-v1"),
                         QStringLiteral("rounds-v1"),

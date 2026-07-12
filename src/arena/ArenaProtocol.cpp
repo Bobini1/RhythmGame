@@ -270,8 +270,7 @@ void
 validatePositiveGeneration(qint64 value);
 
 auto
-parseCapabilities(const QJsonArray& array, bool server, int protocolMinor)
-  -> QStringList
+parseCapabilities(const QJsonArray& array, bool server) -> QStringList
 {
     if (array.isEmpty() || (!server && array.size() > MaxCapabilities)) {
         fail();
@@ -311,12 +310,6 @@ parseCapabilities(const QJsonArray& array, bool server, int protocolMinor)
                        QString::fromLatin1(CompetitionCapability) };
         if (result != roomsOnly && result != roomsAndRounds &&
             result != allCapabilities) {
-            fail();
-        }
-        if (protocolMinor == LegacyProtocolMinor && result != roomsOnly) {
-            fail();
-        }
-        if (protocolMinor == RoundsProtocolMinor && hasCompetition) {
             fail();
         }
     }
@@ -991,6 +984,33 @@ parseChatMessage(const QJsonObject& object) -> ChatMessage
 }
 
 auto
+parseRoomMemberPreview(const QJsonObject& object) -> RoomMemberPreview
+{
+    requireExactKeys(object, { "displayName", "avatarUrl", "connected" });
+    RoomMemberPreview result;
+    result.displayName = requiredString(object, "displayName");
+    if (!validCodePointString(result.displayName, MaxDisplayNameCodePoints)) {
+        fail();
+    }
+    const auto avatar = object.value(QStringLiteral("avatarUrl"));
+    if (avatar.isNull()) {
+        result.avatarUrl = std::nullopt;
+    } else if (avatar.isString()) {
+        const auto value = avatar.toString();
+        const QUrl url(value);
+        if (value.isEmpty() || value.size() > MaxAvatarUrlCharacters ||
+            !url.isValid() || url.isRelative() || url.scheme().isEmpty()) {
+            fail();
+        }
+        result.avatarUrl = url;
+    } else {
+        fail();
+    }
+    result.connected = requiredBool(object, "connected");
+    return result;
+}
+
+auto
 parseRoomSummary(const QJsonObject& object) -> RoomSummary
 {
     requireExactKeys(object,
@@ -1000,7 +1020,8 @@ parseRoomSummary(const QJsonObject& object) -> RoomSummary
                        "hasPassword",
                        "connectedCount",
                        "reservedCount",
-                       "maxCount" });
+                       "maxCount",
+                       "members" });
     RoomSummary result;
     result.roomId = requiredString(object, "roomId");
     result.name = ecmaTrim(requiredString(object, "name"));
@@ -1020,6 +1041,26 @@ parseRoomSummary(const QJsonObject& object) -> RoomSummary
     result.connectedCount = static_cast<int>(connected);
     result.reservedCount = static_cast<int>(reserved);
     result.maxCount = static_cast<int>(maximum);
+    const auto members = requiredArray(object, "members");
+    if (members.size() != connected + reserved ||
+        members.size() > RoomCapacity) {
+        fail();
+    }
+    int connectedMembers = 0;
+    result.members.reserve(members.size());
+    for (const auto& value : members) {
+        if (!value.isObject()) {
+            fail();
+        }
+        auto member = parseRoomMemberPreview(value.toObject());
+        if (member.connected) {
+            ++connectedMembers;
+        }
+        result.members.push_back(std::move(member));
+    }
+    if (connectedMembers != connected) {
+        fail();
+    }
     return result;
 }
 
@@ -1704,8 +1745,7 @@ auto
 encodeHello(const ClientHello& hello) -> QJsonObject
 {
     if (hello.protocolMajor != ProtocolMajor ||
-        hello.protocolMinor < LegacyProtocolMinor ||
-        hello.protocolMinor > ProtocolMinor) {
+        hello.protocolMinor != ProtocolMinor) {
         fail(ProtocolFailureCode::ProtocolIncompatible);
     }
     if (!validCodePointString(hello.clientVersion,
@@ -1732,10 +1772,7 @@ encodeHello(const ClientHello& hello) -> QJsonObject
       hello.capabilities.contains(QString::fromLatin1(RoundsCapability));
     const auto hasCompetition =
       hello.capabilities.contains(QString::fromLatin1(CompetitionCapability));
-    if ((hasCompetition && !hasRounds) ||
-        (hello.protocolMinor == LegacyProtocolMinor &&
-         (hasRounds || hasCompetition)) ||
-        (hello.protocolMinor == RoundsProtocolMinor && hasCompetition)) {
+    if (hasCompetition && !hasRounds) {
         fail();
     }
     if (hello.ticket && (hello.ticket->isEmpty() ||
@@ -2254,15 +2291,14 @@ parseServerHello(const QJsonObject& data) -> ServerHello
       { "identity" });
     const auto major = requiredSafeInteger(data, "protocolMajor");
     const auto minor = requiredSafeInteger(data, "protocolMinor");
-    if (major != ProtocolMajor || minor < LegacyProtocolMinor ||
-        minor > ProtocolMinor) {
+    if (major != ProtocolMajor || minor != ProtocolMinor) {
         fail(ProtocolFailureCode::ProtocolIncompatible);
     }
     ServerHello result;
     result.protocolMajor = static_cast<int>(major);
     result.protocolMinor = static_cast<int>(minor);
-    result.capabilities = parseCapabilities(
-      requiredArray(data, "capabilities"), true, result.protocolMinor);
+    result.capabilities =
+      parseCapabilities(requiredArray(data, "capabilities"), true);
     if (data.contains(QStringLiteral("identity"))) {
         result.identity = parsePublicIdentity(requiredObject(data, "identity"));
     }
@@ -3177,8 +3213,7 @@ decodeServerMessage(QStringView text) -> DecodeServerResult
             const auto major = data.value(QStringLiteral("protocolMajor"));
             const auto minor = data.value(QStringLiteral("protocolMinor"));
             if ((major.isDouble() && major.toDouble() != ProtocolMajor) ||
-                (minor.isDouble() && (minor.toDouble() < LegacyProtocolMinor ||
-                                      minor.toDouble() > ProtocolMinor))) {
+                (minor.isDouble() && minor.toDouble() != ProtocolMinor)) {
                 fail(ProtocolFailureCode::ProtocolIncompatible);
             }
             const auto capabilities =
