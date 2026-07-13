@@ -18,6 +18,7 @@ Item {
     required property var scores
     required property list<Profile> profiles
     property string arenaRoundId: ""
+    property bool arenaCustomizeMode: false
 
     readonly property bool arenaNativeResultPresentation: true
     readonly property var arenaResult: Rg.arenaSession.presentedResult
@@ -40,6 +41,10 @@ Item {
     function presentArenaResult(roundId: string): bool {
         root.arenaRoundId = roundId;
         return root.arenaRoundId.length > 0;
+    }
+
+    function setArenaCustomizeMode(active) {
+        root.arenaCustomizeMode = !!active;
     }
 
     Component.onDestruction: {
@@ -316,6 +321,7 @@ Item {
             parent: resultBackground
             directMoveEnabled: true
             directResizeEnabled: true
+            customizeMode: root.arenaCustomizeMode
             enabled: visible
             layoutVariant: "result"
             minimumPixelSize: Qt.size(360, 240)
@@ -325,6 +331,8 @@ Item {
             viewport: resultBackground
             visible: root.arenaResultMatches && !root.isBattle
             z: 20
+
+            onRequestExitCustomization: root.setArenaCustomizeMode(false)
 
             ArenaResultPanel {
                 id: arenaResultPanel

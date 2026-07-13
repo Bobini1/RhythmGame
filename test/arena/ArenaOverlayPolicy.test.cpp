@@ -234,6 +234,19 @@ TEST_CASE("ArenaOverlayPolicy: gameplay Escape closes chat before one abandon co
     CHECK(legacyEscape.count(QStringLiteral("abandonCurrentRound()")) == 1);
 }
 
+TEST_CASE("ArenaOverlayPolicy: default result supplies Arena placement customization",
+          "[arena][ArenaOverlayPolicy]")
+{
+    const auto source = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/result/Result.qml");
+    requireContains(source,
+                    { "property bool arenaCustomizeMode: false",
+                      "function setArenaCustomizeMode(active)",
+                      "root.arenaCustomizeMode = !!active",
+                      "id: arenaResultPlacementFrame",
+                      "customizeMode: root.arenaCustomizeMode" });
+}
+
 TEST_CASE("ArenaOverlayPolicy: browser makes pre-competition connections browse-only",
           "[arena][ArenaOverlayPolicy]")
 {
