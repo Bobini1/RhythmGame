@@ -624,6 +624,52 @@ TestCase {
         compare(mount.leakedWheelCount, 0);
     }
 
+    function test_short_details_are_scrollable_and_end_before_readiness() {
+        const session = createSession();
+        session.canReady = false;
+        session.selectedTitle = "A deliberately long selected chart title that needs several wrapped lines in a narrow Arena panel";
+        session.selectedSubtitle = "A long subtitle keeps the selection summary taller than its viewport";
+        session.arenaOptionsSummary = "RANDOM · BATTLE · FLIP · ASSIST OPTION";
+        const mount = createTemporaryObject(wheelPanelMountComponent, testCase, {
+            "height": 260,
+            "session": session,
+            "width": 280
+        });
+        verify(mount !== null);
+
+        const detailsScroll = findChild(mount.panel,
+                                        "arenaSelectSelection");
+        const selectionTitle = findChild(mount.panel,
+                                         "arenaSelectionTitle");
+        const reason = findChild(mount.panel,
+                                 "arenaSelectReadyDisabledReason");
+        verify(detailsScroll !== null);
+        verify(selectionTitle !== null);
+        verify(reason !== null);
+        tryVerify(function () {
+            return detailsScroll.height > 0
+                    && detailsScroll.contentHeight > detailsScroll.height;
+        });
+        compare(detailsScroll.clip, true);
+
+        const detailsBottom = detailsScroll.mapToItem(mount.panel,
+                                                       detailsScroll.width,
+                                                       detailsScroll.height).y;
+        const reasonTop = reason.mapToItem(mount.panel, 0, 0).y;
+        verify(detailsBottom <= reasonTop + 0.01,
+               "details viewport ends at " + detailsBottom
+               + " before readiness begins at " + reasonTop);
+
+        const oldContentY = detailsScroll.contentItem.contentY;
+        mouseWheel(selectionTitle, selectionTitle.width / 2,
+                   selectionTitle.height / 2, 0, -120);
+        compare(mount.leakedWheelCount, 0);
+        tryVerify(function () {
+            return detailsScroll.contentItem.contentY > oldContentY;
+        }, 5000, "details content y "
+           + detailsScroll.contentItem.contentY + " > " + oldContentY);
+    }
+
     function test_ready_disabled_reason_stays_visible_on_chat_tab() {
         const session = createSession();
         session.canReady = false;
@@ -924,6 +970,30 @@ TestCase {
         verify(selectionTopLeft.y < rosterTopLeft.y + roster.height, "wide summary overlaps roster vertically");
         closeEnough(selectionTopLeft.y, rosterTopLeft.y, "wide summary aligns with roster y");
         closeEnough(selection.height, roster.height, "wide summary matches roster height");
+    }
+
+    function test_full_scale_select_can_resize_narrower() {
+        const session = createSession();
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        const viewport = createTemporaryObject(scenePanelMountComponent,
+                                                testCase, {
+            "height": 1080,
+            "session": session,
+            "themeVars": themeVars,
+            "width": 1920
+        });
+        verify(viewport !== null);
+        session.parent = viewport;
+        tryCompare(viewport.panelLoader, "status", Loader.Ready);
+
+        const frame = findChild(viewport.panelLoader.item,
+                                "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        closeEnough(frame.effectiveMinimumPixelSize.width, 420,
+                    "full-scale select minimum width");
+        frame.resizeByHandle(-1000, 0, 1, 0);
+        closeEnough(frame.width, 420,
+                    "full-scale select resized width");
     }
 
     function test_hidden_resize_does_not_steal_edge_content_input() {

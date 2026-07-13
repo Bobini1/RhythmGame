@@ -279,10 +279,45 @@ FocusScope {
     Component {
         id: summaryComponent
 
-        ArenaSelectionSummary {
+        ScrollView {
+            id: detailsScroll
+
             objectName: "arenaSelectSelection"
-            compact: true
-            session: root.session
+            clip: true
+            contentWidth: availableWidth
+            readonly property Flickable scrollFlickable: contentItem as Flickable
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+            ScrollBar.vertical.policy: ScrollBar.AsNeeded
+
+            function scrollByWheel(wheel): void {
+                const flickable = detailsScroll.scrollFlickable;
+                let delta = wheel.pixelDelta.y;
+                if (delta === 0) {
+                    delta = wheel.angleDelta.y / 3;
+                }
+                if (wheel.inverted) {
+                    delta = -delta;
+                }
+                const minimumY = flickable.originY;
+                const maximumY = Math.max(minimumY,
+                    minimumY + flickable.contentHeight - flickable.height);
+                flickable.contentY = Math.max(minimumY,
+                    Math.min(maximumY, flickable.contentY - delta));
+            }
+
+            WheelHandler {
+                acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+                target: null
+                onWheel: wheel => detailsScroll.scrollByWheel(wheel)
+            }
+
+            ArenaSelectionSummary {
+                id: selectionSummary
+
+                compact: true
+                session: root.session
+                width: detailsScroll.availableWidth
+            }
         }
     }
 

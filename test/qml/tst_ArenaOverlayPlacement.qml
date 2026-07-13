@@ -56,7 +56,7 @@ TestCase {
             defaultPixelRectHint: Qt.rect(728, 120, 520, 480)
             directMoveEnabled: true
             directResizeEnabled: true
-            minimumPixelSize: Qt.size(520, 320)
+            minimumPixelSize: Qt.size(420, 320)
             minimumScreenPixelSize: Qt.size(280, 312)
             moveHandle: titleHandle
 
