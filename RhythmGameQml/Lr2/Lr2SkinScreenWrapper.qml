@@ -2591,10 +2591,7 @@ Item {
         if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
             return false;
         }
-        if (root.arenaGameplayOwned) {
-            root.arenaSession.abandonCurrentRound();
-        }
-        if (root.gameplayNothingWasHit) {
+        if (root.gameplayNothingWasHit && !root.arenaGameplayOwned) {
             sceneStack.pop();
             return true;
         }

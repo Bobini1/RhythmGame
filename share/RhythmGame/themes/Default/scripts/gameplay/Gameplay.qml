@@ -816,10 +816,7 @@ Rectangle {
                 root.arenaSession.setGameplayChatOpen(false);
                 return;
             }
-            if (root.arenaGameplayOwned) {
-                root.arenaSession.abandonCurrentRound();
-            }
-            if (nothingWasHit) {
+            if (nothingWasHit && !root.arenaGameplayOwned) {
                 root.closeActivePopup();
                 sceneStack.pop();
             } else {

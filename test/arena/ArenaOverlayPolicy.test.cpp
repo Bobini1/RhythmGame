@@ -184,7 +184,7 @@ TEST_CASE("ArenaOverlayPolicy: gameplay chat stays plain text and owns keyboard 
     CHECK_FALSE(source.contains(QStringLiteral("pause("), Qt::CaseInsensitive));
 }
 
-TEST_CASE("ArenaOverlayPolicy: gameplay Escape closes chat before one abandon command",
+TEST_CASE("ArenaOverlayPolicy: gameplay Escape finalizes Arena scores even before points",
           "[arena][ArenaOverlayPolicy]")
 {
     const auto defaultSource = qmlSource(
@@ -193,22 +193,21 @@ TEST_CASE("ArenaOverlayPolicy: gameplay Escape closes chat before one abandon co
                     { "readonly property var arenaSession: Rg.arenaSession",
                       "readonly property bool arenaGameplayOwned",
                       "root.arenaSession.gameplayChatOpen",
-                      "root.arenaSession.setGameplayChatOpen(false)",
-                      "root.arenaSession.abandonCurrentRound()" });
+                      "root.arenaSession.setGameplayChatOpen(false)" });
     const auto defaultEscape = sectionFrom(
       defaultSource, QStringLiteral("id: escapeShortcut"), 1800);
     const auto defaultClose =
       defaultEscape.indexOf(QStringLiteral("setGameplayChatOpen(false)"));
-    const auto defaultAbandon =
-      defaultEscape.indexOf(QStringLiteral("abandonCurrentRound()"));
-    const auto defaultExisting =
-      defaultEscape.indexOf(QStringLiteral("if (nothingWasHit)"));
+    const auto defaultExisting = defaultEscape.indexOf(
+      QStringLiteral("if (nothingWasHit && !root.arenaGameplayOwned)"));
+    const auto defaultFinish =
+      defaultEscape.indexOf(QStringLiteral("chart.finish()"));
     REQUIRE(defaultClose >= 0);
-    REQUIRE(defaultAbandon >= 0);
     REQUIRE(defaultExisting >= 0);
-    CHECK(defaultClose < defaultAbandon);
-    CHECK(defaultAbandon < defaultExisting);
-    CHECK(defaultEscape.count(QStringLiteral("abandonCurrentRound()")) == 1);
+    REQUIRE(defaultFinish >= 0);
+    CHECK(defaultClose < defaultExisting);
+    CHECK(defaultExisting < defaultFinish);
+    CHECK_FALSE(defaultEscape.contains(QStringLiteral("abandonCurrentRound()")));
 
     const auto legacySource =
       qmlSource("RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
@@ -216,22 +215,21 @@ TEST_CASE("ArenaOverlayPolicy: gameplay Escape closes chat before one abandon co
                     { "readonly property var arenaSession: Rg.arenaSession",
                       "readonly property bool arenaGameplayOwned",
                       "root.arenaSession.gameplayChatOpen",
-                      "root.arenaSession.setGameplayChatOpen(false)",
-                      "root.arenaSession.abandonCurrentRound()" });
+                      "root.arenaSession.setGameplayChatOpen(false)" });
     const auto legacyEscape = sectionFrom(
       legacySource, QStringLiteral("function handleGameplayEscape()"), 1800);
     const auto legacyClose =
       legacyEscape.indexOf(QStringLiteral("setGameplayChatOpen(false)"));
-    const auto legacyAbandon =
-      legacyEscape.indexOf(QStringLiteral("abandonCurrentRound()"));
-    const auto legacyExisting =
-      legacyEscape.indexOf(QStringLiteral("if (root.gameplayNothingWasHit)"));
+    const auto legacyExisting = legacyEscape.indexOf(QStringLiteral(
+      "if (root.gameplayNothingWasHit && !root.arenaGameplayOwned)"));
+    const auto legacyFinish =
+      legacyEscape.indexOf(QStringLiteral("root.openGameplayStageResult()"));
     REQUIRE(legacyClose >= 0);
-    REQUIRE(legacyAbandon >= 0);
     REQUIRE(legacyExisting >= 0);
-    CHECK(legacyClose < legacyAbandon);
-    CHECK(legacyAbandon < legacyExisting);
-    CHECK(legacyEscape.count(QStringLiteral("abandonCurrentRound()")) == 1);
+    REQUIRE(legacyFinish >= 0);
+    CHECK(legacyClose < legacyExisting);
+    CHECK(legacyExisting < legacyFinish);
+    CHECK_FALSE(legacyEscape.contains(QStringLiteral("abandonCurrentRound()")));
 }
 
 TEST_CASE("ArenaOverlayPolicy: default result supplies Arena placement customization",
