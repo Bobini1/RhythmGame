@@ -665,7 +665,7 @@ TestCase {
             {
                 "tag": "1024x768",
                 "expectedRect": Qt.rect(388.2666666667, 160,
-                                         280, 256),
+                                         280, 312),
                 "viewportWidth": 1024,
                 "viewportHeight": 768
             }
@@ -747,6 +747,9 @@ TestCase {
         const overlay = viewport.panelLoader.item;
         const frame = findChild(overlay, "arenaSelectPlacementFrame");
         verify(frame !== null);
+        const body = findChild(frame, "arenaSelectBody");
+        verify(body !== null);
+        compare(body.clip, true);
         const details = findChild(frame, "arenaSelectDetailsTab");
         const chat = findChild(frame, "arenaSelectChatTab");
         const ready = findChild(frame, "arenaSelectReady");
@@ -785,17 +788,108 @@ TestCase {
             return item !== null && item.height > 0;
         });
         const chatView = findChild(frame, "arenaSelectChat");
-        const chatItems = [details, chat, ready, roster, chatView];
-        const chatLabels = ["Details tab", "Chat tab", "Ready button", "Roster", "Chat surface"];
+        tryVerify(function () {
+            return Math.abs(chatView.height
+                            - chatView.parent.parent.height) <= 0.01;
+        });
+        const chatItems = [details, chat, ready, chatView];
+        const chatLabels = ["Details tab", "Chat tab", "Ready button",
+                            "Chat surface"];
         for (let index = 0; index < chatItems.length; ++index) {
             verifyItemInside(chatItems[index], frame, viewport, data.tag + " " + chatLabels[index]);
         }
 
         const chatTopLeft = chatView.mapToItem(frame, 0, 0);
-        verify(chatTopLeft.y >= rosterBottomRight.y - 0.01,
-               data.tag + " chat stacks below roster");
+        compare(roster.visible, false);
+        closeEnough(chatTopLeft.y, rosterTopLeft.y,
+                    data.tag + " narrow chat replaces roster row");
         closeEnough(chatTopLeft.x, rosterTopLeft.x, data.tag + " chat aligns with roster x");
         closeEnough(chatView.width, roster.width, data.tag + " chat matches roster width");
+    }
+
+    function test_short_window_keeps_panel_regions_separated() {
+        const session = createSession();
+        session.members.clear();
+        addMembers(session, 1);
+        session.selectedTitle = "";
+        session.selectedSubtitle = "";
+        session.selectedByMemberId = "";
+        session.selectedByDisplayName = "";
+        session.lastResult.valid = false;
+        session.canReady = false;
+        const themeVars = createTemporaryObject(themeVarsComponent, testCase);
+        const viewport = createTemporaryObject(scenePanelMountComponent, testCase, {
+            "height": 442,
+            "session": session,
+            "themeVars": themeVars,
+            "width": 720
+        });
+        verify(viewport !== null);
+        session.parent = viewport;
+        tryCompare(viewport.panelLoader, "status", Loader.Ready);
+
+        const frame = findChild(viewport.panelLoader.item,
+                                "arenaSelectPlacementFrame");
+        verify(frame !== null);
+        const selector = findChild(frame, "arenaSelectionSelector");
+        const reason = findChild(frame, "arenaSelectReadyDisabledReason");
+        const ready = findChild(frame, "arenaSelectReady");
+        verify(selector !== null);
+        verify(reason !== null);
+        verify(ready !== null);
+        tryVerify(function () {
+            return selector.height > 0 && reason.height > 0;
+        });
+        wait(1);
+
+        const selectorBottom = selector.mapToItem(frame,
+                                                  selector.width,
+                                                  selector.height).y;
+        const reasonTop = reason.mapToItem(frame, 0, 0).y;
+        const reasonBottom = reason.mapToItem(frame,
+                                              reason.width,
+                                              reason.height).y;
+        const readyTop = ready.mapToItem(frame, 0, 0).y;
+        verify(selectorBottom <= reasonTop + 0.01,
+               "selection details end at " + selectorBottom
+               + " before ready reason begins at " + reasonTop);
+        verify(reasonBottom <= readyTop + 0.01,
+               "ready reason ends before action row begins");
+        verifyItemInside(selector, frame, viewport, "short-window selector");
+        verifyItemInside(reason, frame, viewport, "short-window ready reason");
+
+        const chatTab = findChild(frame, "arenaSelectChatTab");
+        const roster = findChild(frame, "arenaSelectRoster");
+        mouseClick(chatTab, chatTab.width / 2, chatTab.height / 2,
+                   Qt.LeftButton);
+        tryVerify(function () {
+            return findChild(frame, "arenaSelectChat") !== null;
+        });
+        const chatView = findChild(frame, "arenaSelectChat");
+        tryVerify(function () {
+            return Math.abs(chatView.height
+                            - chatView.parent.parent.height) <= 0.01;
+        });
+        const chatList = findChild(chatView, "arenaChatList");
+        const chatInput = findChild(chatView, "arenaChatInput");
+        compare(roster.visible, false);
+        verify(chatView.height >= chatList.height + chatInput.height + 6,
+               "frame " + frame.height + ", body "
+               + chatView.parent.parent.height + ", chat "
+               + chatView.height + ", list " + chatList.height
+               + ", input " + chatInput.height + ", reason "
+               + reason.height + ", loader y "
+               + chatView.parent.y);
+        verifyItemInside(chatList, chatView, viewport,
+                         "short-window chat history");
+        verifyItemInside(chatInput, chatView, viewport,
+                         "short-window chat input");
+        const chatListBottom = chatList.mapToItem(chatView,
+                                                  chatList.width,
+                                                  chatList.height).y;
+        const chatInputTop = chatInput.mapToItem(chatView, 0, 0).y;
+        verify(chatListBottom <= chatInputTop + 0.01,
+               "chat history ends before input begins");
     }
 
     function test_overlay_keeps_wide_body_side_by_side() {

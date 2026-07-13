@@ -16,6 +16,8 @@ FocusScope {
     readonly property string detailMode: tabs.currentIndex === 1 ? "chat" : "details"
     readonly property real rosterColumnWidth: 270
     readonly property real normalBodyMinimumWidth: rosterColumnWidth + 8 + 220
+    readonly property bool narrowChatMode: detailMode === "chat"
+        && width - 20 < normalBodyMinimumWidth
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -167,9 +169,11 @@ FocusScope {
         GridLayout {
             id: bodyLayout
 
+            objectName: "arenaSelectBody"
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.minimumHeight: 0
+            clip: true
             columnSpacing: 8
             columns: root.width - 20 >= root.normalBodyMinimumWidth ? 2 : 1
             rowSpacing: 8
@@ -191,6 +195,7 @@ FocusScope {
                 compact: true
                 moderationEnabled: true
                 session: root.session
+                visible: !root.narrowChatMode
                 onKickRequested: memberId => {
                     if (root.session)
                         root.session.kickMember(memberId);
@@ -206,7 +211,8 @@ FocusScope {
                 Layout.minimumHeight: 0
                 Layout.minimumWidth: bodyLayout.columns === 1 ? 0 : 220
                 Layout.preferredHeight: bodyLayout.columns === 1 ? 1 : -1
-                Layout.row: bodyLayout.columns === 1 ? 1 : 0
+                Layout.row: bodyLayout.columns === 1
+                    && !root.narrowChatMode ? 1 : 0
                 sourceComponent: tabs.currentIndex === 1
                     ? chatComponent : summaryComponent
             }

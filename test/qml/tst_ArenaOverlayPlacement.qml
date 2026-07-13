@@ -57,7 +57,7 @@ TestCase {
             directMoveEnabled: true
             directResizeEnabled: true
             minimumPixelSize: Qt.size(520, 320)
-            minimumScreenPixelSize: Qt.size(280, 192)
+            minimumScreenPixelSize: Qt.size(280, 312)
             moveHandle: titleHandle
 
             Item {
@@ -328,7 +328,7 @@ TestCase {
         closeEnough(frame.x, 109.8);
         closeEnough(frame.y, 41.6);
         closeEnough(frame.width, 297.375);
-        closeEnough(frame.height, 192);
+        closeEnough(frame.height, 312);
         verifyInsideSafeRect(frame, viewport);
         compare(themeVars.commitCount, 0);
         compare(themeVars.writeCount, 0);

@@ -24,7 +24,7 @@ Item {
         directResizeEnabled: true
         layoutVariant: "select"
         minimumPixelSize: Qt.size(520, 320)
-        minimumScreenPixelSize: Qt.size(280, 192)
+        minimumScreenPixelSize: Qt.size(280, 312)
         moveHandle: panel.dragHandle
         placementKind: "selectRoom"
         themeVars: root.themeVars
