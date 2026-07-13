@@ -232,6 +232,51 @@ TEST_CASE("ArenaOverlayPolicy: gameplay Escape finalizes Arena scores even befor
     CHECK_FALSE(legacyEscape.contains(QStringLiteral("abandonCurrentRound()")));
 }
 
+TEST_CASE("ArenaOverlayPolicy: Default gameplay frame callbacks tolerate runner teardown",
+          "[arena][ArenaOverlayPolicy]")
+{
+    const auto source = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/gameplay/PlayArea.qml");
+    const auto positionFrame =
+      sectionFrom(source, QStringLiteral("FrameAnimation {"), 500);
+    requireContains(positionFrame,
+                    { "running: playArea.player !== null",
+                      "const currentPlayer = playArea.player",
+                      "if (!currentPlayer)",
+                      "currentPlayer.position",
+                      "currentPlayer.beatPosition" });
+
+    const auto ghostScore =
+      sectionFrom(source, QStringLiteral("GhostScore {"), 1100);
+    requireContains(ghostScore,
+                    { "const currentScore = playArea.score",
+                      "if (!currentScore",
+                      "running: playArea.score !== null",
+                      "currentScore.points" });
+}
+
+TEST_CASE("ArenaOverlayPolicy: Arena gameplay cleanup tolerates session teardown",
+          "[arena][ArenaOverlayPolicy]")
+{
+    const auto defaultSource = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/gameplay/Gameplay.qml");
+    const auto defaultCleanup = sectionFrom(
+      defaultSource, QStringLiteral("Component.onDestruction:"), 500);
+    requireContains(defaultCleanup,
+                    { "const arenaSession = root.arenaSession",
+                      "if (arenaSession && root.arenaGameplayOwned)",
+                      "arenaSession.setOverlayCustomizationActive(false)" });
+
+    const auto legacySource =
+      qmlSource("RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
+    const auto legacyCleanup = sectionFrom(
+      legacySource, QStringLiteral("Component.onDestruction:"), 700);
+    requireContains(legacyCleanup,
+                    { "const arenaSession = root.arenaSession",
+                      "if (arenaSession && root.arenaGameplayOwned)",
+                      "arenaSession.setOverlayCustomizationActive(false)" });
+}
+
 TEST_CASE("ArenaOverlayPolicy: default result supplies Arena placement customization",
           "[arena][ArenaOverlayPolicy]")
 {

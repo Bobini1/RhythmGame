@@ -68,7 +68,9 @@ TEST_CASE(
         "directMoveEnabled: true",
         "directResizeEnabled: true",
         "ArenaResultPanel",
-        "endResultPresentation(root.arenaRoundId)" });
+        "const arenaSession = Rg.arenaSession",
+        "if (root.arenaRoundId.length > 0 && arenaSession)",
+        "arenaSession.endResultPresentation(root.arenaRoundId)" });
 
     const auto legacyResult =
       qmlSource("RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
@@ -77,7 +79,9 @@ TEST_CASE(
                       "property bool arenaResultCustomizationActive",
                       "function setArenaResultCustomizationActive",
                       "&& !root.arenaResultCustomizationActive",
-                      "endResultPresentation(root.arenaRoundId)" });
+                      "const arenaSession = root.arenaSession",
+                      "if (root.arenaRoundId.length > 0 && arenaSession)",
+                      "arenaSession.endResultPresentation(root.arenaRoundId)" });
 }
 
 TEST_CASE("ArenaResultPresentation: covered Arena gameplay is removed after result",

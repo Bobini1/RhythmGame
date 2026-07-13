@@ -48,8 +48,9 @@ Item {
     }
 
     Component.onDestruction: {
-        if (root.arenaRoundId.length > 0) {
-            Rg.arenaSession.endResultPresentation(root.arenaRoundId);
+        const arenaSession = Rg.arenaSession;
+        if (root.arenaRoundId.length > 0 && arenaSession) {
+            arenaSession.endResultPresentation(root.arenaRoundId);
         }
     }
 

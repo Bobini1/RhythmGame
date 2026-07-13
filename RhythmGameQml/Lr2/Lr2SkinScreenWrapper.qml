@@ -5691,11 +5691,12 @@ Item {
     }
 
     Component.onDestruction: {
-        if (root.arenaGameplayOwned) {
-            root.arenaSession.setOverlayCustomizationActive(false);
+        const arenaSession = root.arenaSession;
+        if (arenaSession && root.arenaGameplayOwned) {
+            arenaSession.setOverlayCustomizationActive(false);
         }
-        if (root.arenaRoundId.length > 0) {
-            root.arenaSession.endResultPresentation(root.arenaRoundId);
+        if (root.arenaRoundId.length > 0 && arenaSession) {
+            arenaSession.endResultPresentation(root.arenaRoundId);
         }
         root.destroyOwnedChartRunner();
     }

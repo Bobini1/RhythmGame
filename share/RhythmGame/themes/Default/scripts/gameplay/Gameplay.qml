@@ -171,8 +171,9 @@ Rectangle {
     StackView.onDeactivating: closeActivePopup()
     Component.onDestruction: {
         closeActivePopup();
-        if (root.arenaGameplayOwned) {
-            root.arenaSession.setOverlayCustomizationActive(false);
+        const arenaSession = root.arenaSession;
+        if (arenaSession && root.arenaGameplayOwned) {
+            arenaSession.setOverlayCustomizationActive(false);
         }
     }
     Timer {
