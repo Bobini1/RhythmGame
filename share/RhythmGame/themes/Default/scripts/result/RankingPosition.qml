@@ -194,8 +194,10 @@ WindowBg {
             }
 
             Text {
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 21
+                id: arenaRankingText
+
+                anchors.baseline: parent.top
+                anchors.baselineOffset: parent.height - 25
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: "#20242c"
                 font.bold: true

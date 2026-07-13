@@ -162,6 +162,20 @@ TEST_CASE("ArenaResultPresentation: Default ranking source stays screen-local",
                       "textFormat: Text.PlainText" });
 }
 
+TEST_CASE("ArenaResultPresentation: Default Arena ranking shares the normal "
+          "number baseline",
+          "[arena][ArenaResultPresentation]")
+{
+    const auto rankingPosition = qmlSource(
+      "share/RhythmGame/themes/Default/scripts/result/RankingPosition.qml");
+    const auto arenaRanking = sectionFrom(
+      rankingPosition, QStringLiteral("id: arenaRankingText"), 1000);
+    requireContains(arenaRanking,
+                    { "anchors.baseline: parent.top",
+                      "anchors.baselineOffset: parent.height - 25" });
+    CHECK_FALSE(arenaRanking.contains(QStringLiteral("anchors.bottom:")));
+}
+
 TEST_CASE("ArenaResultPresentation: legacy fallback uses result theme vars and "
           "narrow values",
           "[arena][ArenaResultPresentation]")
