@@ -194,8 +194,6 @@ WindowBg {
             }
 
             Text {
-                id: arenaRankingText
-
                 anchors.baseline: parent.top
                 anchors.baselineOffset: parent.height - 25
                 anchors.horizontalCenter: parent.horizontalCenter
