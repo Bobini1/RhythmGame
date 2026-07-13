@@ -62,14 +62,10 @@ Item {
     property real beatPosition
     property var pointTarget
     FrameAnimation {
-        running: playArea.player !== null && playArea.player !== undefined
+        running: true
         onTriggered: {
-            const currentPlayer = playArea.player;
-            if (!currentPlayer) {
-                return;
-            }
-            playArea.position = currentPlayer.position;
-            playArea.beatPosition = currentPlayer.beatPosition;
+            playArea.position = playArea.player.position;
+            playArea.beatPosition = playArea.player.beatPosition;
         }
     }
 
@@ -109,8 +105,7 @@ Item {
             readonly property bool coverAtEnd: playArea.columns.length >= 8 &&
                                                (playArea.columns[0] === 7 || playArea.columns[0] === 15)
 
-            visible: playArea.score !== null && playArea.score !== undefined &&
-                     playArea.vars.fiveKeysCoverEnabled &&
+            visible: playArea.vars.fiveKeysCoverEnabled &&
                      (playArea.score.keymode === 5 || playArea.score.keymode === 10)
             source: root.imagesUrl + "5keyscover/" + playArea.vars.fiveKeysCover
             height: parent.height
@@ -397,21 +392,16 @@ Item {
         fontFile: playArea.vars.ghostScoreFont
 
         color: {
-            const currentScore = playArea.score;
-            if (!currentScore || !playArea.vars.ghostScoreEnabled || !judgements.visible) {
+            if (!playArea.vars.ghostScoreEnabled || !judgements.visible) {
                 return "transparent";
             }
-            return currentScore.points >= playArea.pointTarget ? "white" : "red";
+            return playArea.score.points >= playArea.pointTarget ? "white" : "red";
         }
 
         FrameAnimation {
-            running: playArea.score !== null && playArea.score !== undefined
+            running: true
             onTriggered: {
-                const currentScore = playArea.score;
-                if (!currentScore) {
-                    return;
-                }
-                ghostScore.points = currentScore.points - playArea.pointTarget;
+                ghostScore.points = playArea.score.points - playArea.pointTarget;
             }
         }
 

@@ -196,6 +196,8 @@ class ArenaSession final : public QObject
     Q_INVOKABLE void selectChart(gameplay_logic::ChartData* chart);
     Q_INVOKABLE void setReady(bool ready);
     Q_INVOKABLE bool submitLocalResult(gameplay_logic::BmsScore* score);
+    Q_INVOKABLE void releasePreparedGameplay(
+      gameplay_logic::ChartRunner* runner);
     Q_INVOKABLE void abandonCurrentRound();
     Q_INVOKABLE void setGameplayChatOpen(bool open);
     Q_INVOKABLE void toggleGameplayChat();
@@ -395,6 +397,8 @@ class ArenaSession final : public QObject
     std::optional<RoundProbeRequested> m_probeRequest;
     std::optional<FrozenRound> m_loadRequestRound;
     QPointer<gameplay_logic::ChartRunner> m_preparedRunner;
+    QPointer<gameplay_logic::ChartRunner> m_retainedGameplayRunner;
+    quint64 m_retainedGameplayLoadRequestId{};
     bool m_preparedGameplayExposed{};
     bool m_roundRunnerStartedEmitted{};
     ArenaScheduler::TaskId m_roundStartTask{};
@@ -520,6 +524,7 @@ class ArenaSession final : public QObject
     void handleLoadFailed(quint64 requestId, ArenaLoadFailure failure);
     void handleRoundStartScheduled(const RoundStartScheduled& scheduled);
     void cancelPreparedRound(bool notify, bool preserveScoreGuid = false);
+    void retainPreparedGameplayUntilReleased();
     void cacheCompetitionIdentities(const FrozenRound& round);
     void beginCompetitionRound(const FrozenRound& round);
     void clearCompetitionState(bool clearLastResult = true);

@@ -10,7 +10,7 @@ Item {
     property string csvPath
     property string screenKey: ""
     property string arenaRoundId: ""
-    property bool arenaPendingAutoClose: false
+    property bool arenaManagedRunner: false
     property bool arenaResultCustomizationActive: false
     property var chart
     property var scores: []
@@ -2418,9 +2418,6 @@ Item {
 
         root.forceActiveFocus();
         if (root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {
-            if (root.arenaPendingAutoClose) {
-                return;
-            }
             if (root.isCourseGameplay() && root.gameplayCourseResultOpening) {
                 return;
             }
@@ -5694,6 +5691,9 @@ Item {
         const arenaSession = root.arenaSession;
         if (arenaSession && root.arenaGameplayOwned) {
             arenaSession.setOverlayCustomizationActive(false);
+        }
+        if (arenaSession && root.arenaManagedRunner && root.chart) {
+            arenaSession.releasePreparedGameplay(root.chart);
         }
         if (root.arenaRoundId.length > 0 && arenaSession) {
             arenaSession.endResultPresentation(root.arenaRoundId);

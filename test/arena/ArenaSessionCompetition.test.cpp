@@ -1223,6 +1223,8 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
           100) };
     };
     fixture.loadRound(runner.runner.get());
+    REQUIRE(fixture.roundLoader.loads.size() == 1);
+    const auto gameplayLoadRequestId = fixture.roundLoader.loads.front().first;
     fixture.startRound();
     fixture.scheduler.advanceBy(200);
     const auto samplesAtFinish = fixture.gameplaySource.sampledSequences.size();
@@ -1288,6 +1290,7 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
     CHECK(fixture.session.liveStandings()->rowCount() == 1);
     CHECK(fixture.session.arenaRunner() == nullptr);
     CHECK(fixture.gameplaySource.detachCount == 1);
+    CHECK(fixture.roundLoader.cancellations.isEmpty());
 
     fixture.session.setGameplayChatOpen(true);
     CHECK(fixture.session.gameplayChatOpen());
@@ -1299,6 +1302,11 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
     CHECK_FALSE(fixture.session.gameplayChatOpen());
     CHECK_FALSE(fixture.session.presentedResult()->valid());
     CHECK(fixture.session.lastResult()->valid());
+    CHECK(fixture.roundLoader.cancellations.isEmpty());
+
+    fixture.session.releasePreparedGameplay(runner.runner.get());
+    CHECK(fixture.roundLoader.cancellations ==
+          QVector<quint64>{ gameplayLoadRequestId });
 }
 
 TEST_CASE("ArenaSessionCompetition: resume preserves a result presentation "

@@ -104,7 +104,7 @@ ApplicationWindow {
         property var activeSettingsItem: null
         property Item activeArenaItem: null
         property Item activeArenaGameplayItem: null
-        property Item pendingArenaGameplayCloseItem: null
+        property var activeArenaGameplayRunner: null
         property bool fpsOverlayVisible: false
         property int fpsOverlayValue: -1
         property int fpsOverlayFrameCount: 0
@@ -376,14 +376,15 @@ ApplicationWindow {
             sceneStack.pushItem(decideComponent, props);
         }
 
-        function openGameplay(runner: var): var {
+        function openGameplay(runner: var, arenaManagedRunner: var): var {
             let keys = runner.keymode;
             let battle = runner.player1 && runner.player2;
             let screenKey = "k" + keys + (battle ? "battle" : "");
             let component = globalRoot[screenKey + "Component"];
             let screenObj = Rg.themes.availableThemeFamilies[mainProfile.themeConfig[screenKey]].screens[screenKey];
             let props = {
-                "chart": runner
+                "chart": runner,
+                "arenaManagedRunner": arenaManagedRunner === true
             };
             if (screenObj && screenObj.csvPath) {
                 props["csvPath"] = screenObj.csvPath;
@@ -402,24 +403,19 @@ ApplicationWindow {
             if (activeArenaGameplayItem && activeArenaGameplayItem.StackView.view === sceneStack) {
                 return;
             }
-            pendingArenaGameplayCloseItem = null;
-            activeArenaGameplayItem = openGameplay(runner);
+            activeArenaGameplayRunner = runner;
+            activeArenaGameplayItem = openGameplay(runner, true);
         }
 
         function closePreparedArenaGameplay(): void {
             let item = activeArenaGameplayItem;
+            const runner = activeArenaGameplayRunner;
             activeArenaGameplayItem = null;
-            if (!item || item.StackView.view !== sceneStack) {
-                return;
-            }
-            if (sceneStack.currentItem === item) {
+            activeArenaGameplayRunner = null;
+            if (item && sceneStack.currentItem === item &&
+                    (!runner || runner.status !== ChartRunner.Finished)) {
                 sceneStack.popCurrentItem();
-                return;
             }
-            if (item.arenaPendingAutoClose !== undefined) {
-                item.arenaPendingAutoClose = true;
-            }
-            pendingArenaGameplayCloseItem = item;
         }
 
         function openResult(scores: var, profiles: var, chartData: var): void {
@@ -615,15 +611,6 @@ ApplicationWindow {
 
             onCurrentItemChanged: {
                 Qt.callLater(updateEnabledStates);
-                if (currentItem === globalRoot.pendingArenaGameplayCloseItem) {
-                    const item = globalRoot.pendingArenaGameplayCloseItem;
-                    globalRoot.pendingArenaGameplayCloseItem = null;
-                    Qt.callLater(function () {
-                        if (sceneStack.currentItem === item) {
-                            sceneStack.popCurrentItem();
-                        }
-                    });
-                }
             }
 
             onDepthChanged: {

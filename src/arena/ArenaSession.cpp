@@ -2964,6 +2964,39 @@ ArenaSession::cancelPreparedRound(bool notify, bool preserveScoreGuid)
 }
 
 void
+ArenaSession::retainPreparedGameplayUntilReleased()
+{
+    const auto hadExposedGameplay = m_preparedGameplayExposed;
+    cancelTask(m_roundStartTask);
+    stopTelemetrySampling();
+    detachGameplaySource();
+    setGameplayChatOpen(false);
+
+    Q_ASSERT(m_retainedGameplayRunner == nullptr ||
+             m_retainedGameplayRunner == m_preparedRunner);
+    m_retainedGameplayRunner = m_preparedRunner;
+    m_retainedGameplayLoadRequestId =
+      std::exchange(m_roundLoaderRequestId, quint64{});
+    m_roundLoaderOperation = RoundLoaderOperation::None;
+    m_probeRequest.reset();
+    m_loadRequestRound.reset();
+    m_preparedRunner = nullptr;
+    m_preparedGameplayExposed = false;
+    m_roundRunnerStartedEmitted = false;
+    if (!m_probeResultRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_probeResultRequestId);
+        m_probeResultRequestId.clear();
+    }
+    if (!m_loadResultRequestId.isEmpty()) {
+        m_pendingCommands.remove(m_loadResultRequestId);
+        m_loadResultRequestId.clear();
+    }
+    if (hadExposedGameplay) {
+        emit preparedGameplayChanged(nullptr);
+    }
+}
+
+void
 ArenaSession::clearRoundTransfers(bool abandonSeat,
                                   bool preservePreparedRound,
                                   bool preserveCompetitionScore)
@@ -3559,7 +3592,7 @@ ArenaSession::handleRoundFinalized(const RoundFinalized& finalized)
     m_round.reset();
     m_localRoundAbandoned = false;
     m_localTerminalSubmitted = false;
-    cancelPreparedRound(false);
+    retainPreparedGameplayUntilReleased();
     if (lifecycle != m_lifecycleGeneration) {
         return;
     }
@@ -3801,6 +3834,32 @@ ArenaSession::submitLocalResult(gameplay_logic::BmsScore* score) -> bool
         return true;
     }
     return true;
+}
+
+void
+ArenaSession::releasePreparedGameplay(gameplay_logic::ChartRunner* runner)
+{
+    if (runner == nullptr) {
+        return;
+    }
+    if (m_retainedGameplayRunner == runner) {
+        m_retainedGameplayRunner = nullptr;
+        const auto requestId =
+          std::exchange(m_retainedGameplayLoadRequestId, quint64{});
+        if (requestId != 0 && m_roundLoader != nullptr) {
+            m_roundLoader->cancel(requestId);
+        }
+        return;
+    }
+    if (m_preparedRunner != runner) {
+        return;
+    }
+
+    // The gameplay item is already being removed, so no close notification is
+    // necessary. The loader uses deleteLater(), keeping the runner valid for
+    // the remainder of QML component destruction.
+    m_preparedGameplayExposed = false;
+    cancelPreparedRound(false);
 }
 
 void

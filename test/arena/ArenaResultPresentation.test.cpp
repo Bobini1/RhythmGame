@@ -84,27 +84,33 @@ TEST_CASE(
                       "arenaSession.endResultPresentation(root.arenaRoundId)" });
 }
 
-TEST_CASE("ArenaResultPresentation: covered Arena gameplay is removed after result",
+TEST_CASE("ArenaResultPresentation: result exit restores the normal gameplay pop",
           "[arena][ArenaResultPresentation]")
 {
     const auto contentFrame = qmlSource("RhythmGameQml/ContentFrame.qml");
     requireContains(contentFrame,
-                    { "property Item pendingArenaGameplayCloseItem",
-                      "pendingArenaGameplayCloseItem = item",
-                      "item.arenaPendingAutoClose = true",
-                      "currentItem === globalRoot.pendingArenaGameplayCloseItem",
+                    { "\"arenaManagedRunner\": arenaManagedRunner === true",
+                      "openGameplay(runner, true)",
+                      "item && sceneStack.currentItem === item",
+                      "runner.status !== ChartRunner.Finished",
                       "sceneStack.popCurrentItem()" });
+    CHECK_FALSE(contentFrame.contains(
+      QStringLiteral("pendingArenaGameplayCloseItem")));
 
     const auto defaultGameplay = qmlSource(
       "share/RhythmGame/themes/Default/scripts/gameplay/Gameplay.qml");
     const auto legacyGameplay =
       qmlSource("RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml");
     requireContains(defaultGameplay,
-                    { "property bool arenaPendingAutoClose: false",
-                      "if (root.arenaPendingAutoClose)" });
+                    { "property bool arenaManagedRunner: false",
+                      "arenaSession.releasePreparedGameplay(root.chart)" });
     requireContains(legacyGameplay,
-                    { "property bool arenaPendingAutoClose: false",
-                      "if (root.arenaPendingAutoClose)" });
+                    { "property bool arenaManagedRunner: false",
+                      "arenaSession.releasePreparedGameplay(root.chart)" });
+    CHECK_FALSE(defaultGameplay.contains(
+      QStringLiteral("arenaPendingAutoClose")));
+    CHECK_FALSE(legacyGameplay.contains(
+      QStringLiteral("arenaPendingAutoClose")));
 }
 
 TEST_CASE("ArenaResultPresentation: Default ranking source stays screen-local",
