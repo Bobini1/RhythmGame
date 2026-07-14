@@ -108,8 +108,14 @@ class ArenaSession final : public QObject
                  competitionChanged FINAL)
     Q_PROPERTY(bool resultPresentationActive READ resultPresentationActive
                  NOTIFY competitionChanged FINAL)
-    Q_PROPERTY(bool gameplayChatOpen READ gameplayChatOpen WRITE
-                 setGameplayChatOpen NOTIFY gameplayChatOpenChanged FINAL)
+    Q_PROPERTY(bool chatOpen READ chatOpen WRITE setChatOpen NOTIFY
+                 chatOpenChanged FINAL)
+    Q_PROPERTY(int unreadChatCount READ unreadChatCount NOTIFY
+                 chatActivityChanged FINAL)
+    Q_PROPERTY(QString latestUnreadChatDisplayName READ
+                 latestUnreadChatDisplayName NOTIFY chatActivityChanged FINAL)
+    Q_PROPERTY(QString latestUnreadChatText READ latestUnreadChatText NOTIFY
+                 chatActivityChanged FINAL)
     Q_PROPERTY(bool overlayCustomizationActive READ overlayCustomizationActive
                  NOTIFY overlayCustomizationActiveChanged FINAL)
     Q_PROPERTY(QString arenaOptionsSummary READ arenaOptionsSummary NOTIFY
@@ -181,7 +187,10 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto arenaRunner() const -> gameplay_logic::ChartRunner*;
     [[nodiscard]] auto arenaGameplayActive() const -> bool;
     [[nodiscard]] auto resultPresentationActive() const -> bool;
-    [[nodiscard]] auto gameplayChatOpen() const -> bool;
+    [[nodiscard]] auto chatOpen() const -> bool;
+    [[nodiscard]] auto unreadChatCount() const -> int;
+    [[nodiscard]] auto latestUnreadChatDisplayName() const -> QString;
+    [[nodiscard]] auto latestUnreadChatText() const -> QString;
     [[nodiscard]] auto overlayCustomizationActive() const -> bool;
     [[nodiscard]] auto arenaOptionsSummary() const -> QString;
 
@@ -199,8 +208,8 @@ class ArenaSession final : public QObject
     Q_INVOKABLE void releasePreparedGameplay(
       gameplay_logic::ChartRunner* runner);
     Q_INVOKABLE void abandonCurrentRound();
-    Q_INVOKABLE void setGameplayChatOpen(bool open);
-    Q_INVOKABLE void toggleGameplayChat();
+    Q_INVOKABLE void setChatOpen(bool open);
+    Q_INVOKABLE void toggleChat();
     Q_INVOKABLE void setOverlayCustomizationActive(bool active);
     Q_INVOKABLE void endResultPresentation(const QString& roundId);
 
@@ -226,7 +235,8 @@ class ArenaSession final : public QObject
                             gameplay_logic::ChartRunner* runner);
     void roundLaunchCancelled();
     void competitionChanged();
-    void gameplayChatOpenChanged();
+    void chatOpenChanged();
+    void chatActivityChanged();
     void overlayCustomizationActiveChanged();
 
   private:
@@ -420,7 +430,10 @@ class ArenaSession final : public QObject
     bool m_gameplaySourceAttached{};
     bool m_arenaGameplayActive{};
     bool m_resultPresentationActive{};
-    bool m_gameplayChatOpen{};
+    bool m_chatOpen{};
+    int m_unreadChatCount{};
+    QString m_latestUnreadChatDisplayName;
+    QString m_latestUnreadChatText;
     bool m_overlayCustomizationActive{};
     bool m_localRoundAbandoned{};
     bool m_localTerminalSubmitted{};
@@ -528,6 +541,7 @@ class ArenaSession final : public QObject
     void cacheCompetitionIdentities(const FrozenRound& round);
     void beginCompetitionRound(const FrozenRound& round);
     void clearCompetitionState(bool clearLastResult = true);
+    void clearChatActivity();
     void clearActiveCompetitionRound(bool preservePresentedResult = false);
     [[nodiscard]] auto attachGameplaySource(gameplay_logic::ChartRunner* runner)
       -> bool;

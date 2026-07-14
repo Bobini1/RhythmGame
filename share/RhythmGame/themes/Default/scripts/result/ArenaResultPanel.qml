@@ -19,13 +19,16 @@ Rectangle {
     readonly property alias lastAnnouncementKey: resultAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: resultAnnouncer.lastAnnouncementText
     readonly property alias finalAnnouncementText: resultAnnouncer.finalAnnouncementText
+    readonly property bool chatOpen: panel.session && panel.session.chatOpen === true
+    readonly property string roomName: panel.session
+        ? String(panel.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
     readonly property string winnerSummary: {
         if (!panel.result || !panel.result.valid || !panel.result.finalized) {
             return qsTr("Waiting for final standings");
         }
         const names = panel.result.winnerNames || [];
-        return names.length > 0 ? qsTr("Winners: %1").arg(names.join(", ")) : qsTr("No winner");
+        return competitionText.winnersText(names);
     }
     readonly property string localStanding: {
         const count = panel.result && panel.result.valid ? Number(panel.result.participantCount || 0) : 0;
@@ -46,13 +49,18 @@ Rectangle {
     Accessible.name: qsTr("Arena result")
     Accessible.description: panel.finalAnnouncementText.length > 0 ? panel.finalAnnouncementText : qsTr("Waiting for final standings")
 
-    color: "#e8202430"
-    border.color: "#80ffffff"
-    border.width: 2
-    radius: 10
+    color: "#ed111821"
+    border.color: "#74859a"
+    border.width: 1
+    clip: true
+    radius: 5
 
     ArenaCompetitionText {
         id: competitionText
+    }
+
+    ArenaTypography {
+        id: typography
     }
 
     ArenaResultAnnouncer {
@@ -67,51 +75,113 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 18
-        spacing: 10
+        anchors.margins: 10
+        spacing: 8
 
         RowLayout {
             id: resultHeader
 
+            readonly property real contentHeight: Math.max(
+                40, resultTitle.implicitHeight + 12,
+                resultStatus.implicitHeight + 12,
+                resultExpand.implicitHeight, resultTabs.implicitHeight)
+
             Layout.fillWidth: true
-            spacing: 10
+            Layout.fillHeight: false
+            Layout.minimumHeight: contentHeight
+            Layout.preferredHeight: contentHeight
+            spacing: 4
+
+            Item {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 24
+
+                Accessible.ignored: true
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    Repeater {
+                        model: 3
+
+                        Rectangle {
+                            color: "#8b96a6"
+                            height: 2
+                            width: 18
+                        }
+                    }
+                }
+            }
 
             Text {
+                id: resultTitle
+
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
                 color: "white"
+                elide: Text.ElideRight
                 font.bold: true
                 font.contextFontMerging: true
                 font.family: panel.textFontFamily
-                font.pixelSize: 28
-                text: qsTr("Arena result")
+                font.pixelSize: typography.scaled(18)
+                text: panel.roomName
                 textFormat: Text.PlainText
             }
 
             Text {
+                id: resultStatus
+
                 color: panel.result && panel.result.finalized ? "#a9f5bb" : "#ffe38a"
                 font.bold: true
                 font.contextFontMerging: true
                 font.family: panel.textFontFamily
-                font.pixelSize: 20
+                font.pixelSize: typography.scaled(14)
                 text: qsTr("Waiting for players…")
                 textFormat: Text.PlainText
                 visible: !panel.result || !panel.result.finalized
             }
 
             Button {
-                objectName: "arenaNativeResultChat"
-                text: panel.session.gameplayChatOpen === true ? qsTr("Close chat") : qsTr("Chat")
-                onClicked: panel.session.toggleGameplayChat()
-            }
+                id: resultExpand
 
-            Button {
                 objectName: "arenaNativeResultExpand"
-                text: panel.expanded ? qsTr("Compact") : qsTr("Details")
+                enabled: !panel.chatOpen
+                font.pixelSize: typography.bodyPixelSize
+                text: panel.expanded ? qsTr("Compact") : qsTr("Expand")
+                visible: !panel.chatOpen
 
                 Accessible.name: text
                 Accessible.description: panel.expanded ? qsTr("Hide detailed Arena standings") : qsTr("Show detailed Arena standings")
                 onClicked: panel.expanded = !panel.expanded
             }
+
+            ArenaPanelTabs {
+                id: resultTabs
+
+                Layout.alignment: Qt.AlignVCenter
+                Layout.fillWidth: false
+                Layout.preferredHeight: implicitHeight
+                chatAccessibleName: qsTr("Show Arena chat")
+                detailsAccessibleName: qsTr("Show Arena result")
+                session: panel.session
+            }
+
+            HoverHandler {
+                enabled: !resultTabs.hovered
+                cursorShape: Qt.SizeAllCursor
+            }
+        }
+
+        ArenaChatView {
+            objectName: "arenaNativeResultChat"
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.minimumHeight: 0
+            chatModel: panel.session ? panel.session.chat : null
+            inputEnabled: true
+            session: panel.session
+            visible: panel.chatOpen
         }
 
         Text {
@@ -120,9 +190,10 @@ Rectangle {
             font.bold: true
             font.contextFontMerging: true
             font.family: panel.textFontFamily
-            font.pixelSize: 24
+            font.pixelSize: typography.scaled(24)
             text: panel.winnerSummary
             textFormat: Text.PlainText
+            visible: !panel.chatOpen
             wrapMode: Text.Wrap
         }
 
@@ -132,9 +203,10 @@ Rectangle {
             font.bold: true
             font.contextFontMerging: true
             font.family: panel.statsFontFamily
-            font.pixelSize: 30
+            font.pixelSize: typography.scaled(30)
             text: panel.localStanding
             textFormat: Text.PlainText
+            visible: !panel.chatOpen
         }
 
         ListView {
@@ -143,7 +215,7 @@ Rectangle {
             objectName: "arenaNativeResultStandings"
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.minimumHeight: panel.expanded ? 120 : 0
+            Layout.minimumHeight: 0
             activeFocusOnTab: visible && count > 0
             boundsBehavior: Flickable.StopAtBounds
             clip: true
@@ -151,7 +223,7 @@ Rectangle {
             model: panel.result && panel.result.valid ? panel.result.standings : null
             reuseItems: true
             spacing: 5
-            visible: panel.expanded
+            visible: !panel.chatOpen
 
             Accessible.role: Accessible.List
             Accessible.name: qsTr("Arena final standings")
@@ -188,7 +260,6 @@ Rectangle {
                 required property bool hasScore
                 required property var exScore
                 required property int maxCombo
-                required property int badPoorCount
                 required property int perfect
                 required property int great
                 required property int good
@@ -203,7 +274,10 @@ Rectangle {
                 readonly property bool local: memberId === panel.localMemberId
                 readonly property string rankLabel: panel.rankText(rank, competitionState)
                 readonly property string winsLabel: competitionText.winsText(lobbyWinsAfter)
-                readonly property string detailsLabel: competitionText.nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeValueMilli)
+                readonly property string detailsLabel: competitionText.nativeResultDetailsText(competitionState, dnfReason, maxCombo, clearType)
+                readonly property string finalClearLabel: competitionText.clearTypeText(clearType)
+                readonly property int totalNotes: Math.max(0, perfect) + Math.max(0, great)
+                    + Math.max(0, good) + Math.max(0, bad) + Math.max(0, poor)
                 readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(local ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
                 readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus
 
@@ -239,12 +313,12 @@ Rectangle {
                         spacing: 8
 
                         Text {
-                            Layout.preferredWidth: 52
+                            Layout.preferredWidth: Math.max(52, implicitWidth)
                             color: row.competitionState === "dnf" ? "#ff9b9b" : "#d8ffffff"
                             font.bold: true
                             font.contextFontMerging: true
                             font.family: panel.statsFontFamily
-                            font.pixelSize: 17
+                            font.pixelSize: typography.scaled(17)
                             horizontalAlignment: Text.AlignRight
                             text: row.rankLabel
                             textFormat: Text.PlainText
@@ -257,62 +331,132 @@ Rectangle {
                             font.bold: true
                             font.contextFontMerging: true
                             font.family: panel.textFontFamily
-                            font.pixelSize: 18
+                            font.pixelSize: typography.scaled(18)
                             text: row.local ? qsTr("You · %1").arg(row.displayName) : row.displayName
                             textFormat: Text.PlainText
                         }
 
                         Text {
-                            color: "#ffe38a"
-                            font.bold: true
-                            font.contextFontMerging: true
-                            font.family: panel.statsFontFamily
-                            font.pixelSize: 17
-                            text: row.hasScore ? qsTr("EX %1").arg(row.exScore) : "—"
-                            textFormat: Text.PlainText
-                        }
-
-                        Text {
-                            Layout.preferredWidth: 82
+                            Layout.preferredWidth: Math.max(82, implicitWidth)
                             color: "#c9ffffff"
                             font.contextFontMerging: true
                             font.family: panel.textFontFamily
-                            font.pixelSize: 16
+                            font.pixelSize: typography.scaled(16)
                             horizontalAlignment: Text.AlignRight
                             text: row.winsLabel
                             textFormat: Text.PlainText
                         }
                     }
 
-                    Text {
+                    RowLayout {
                         Layout.fillWidth: true
-                        color: "#c0ffffff"
-                        elide: Text.ElideRight
-                        font.contextFontMerging: true
-                        font.family: panel.textFontFamily
-                        font.pixelSize: 15
-                        text: row.detailsLabel
-                        textFormat: Text.PlainText
+                        Layout.minimumWidth: 0
+                        spacing: 8
+                        visible: row.hasScore
+
+                        RowLayout {
+                            spacing: 5
+
+                            Text {
+                                color: "#d9bf72"
+                                font.contextFontMerging: true
+                                font.family: panel.textFontFamily
+                                font.pixelSize: typography.supportingPixelSize
+                                text: qsTr("EX")
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                color: "#ffe38a"
+                                font.bold: true
+                                font.contextFontMerging: true
+                                font.family: panel.statsFontFamily
+                                font.pixelSize: typography.bodyPixelSize
+                                text: String(row.exScore)
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+                        }
+
+                        RowLayout {
+                            spacing: 5
+                            visible: panel.expanded
+
+                            Text {
+                                color: "#9da9b8"
+                                font.contextFontMerging: true
+                                font.family: panel.textFontFamily
+                                font.pixelSize: typography.supportingPixelSize
+                                text: qsTr("Combo")
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                color: "white"
+                                font.bold: true
+                                font.contextFontMerging: true
+                                font.family: panel.statsFontFamily
+                                font.pixelSize: typography.bodyPixelSize
+                                text: String(row.maxCombo)
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            color: "#d8ffffff"
+                            elide: Text.ElideRight
+                            font.contextFontMerging: true
+                            font.family: panel.textFontFamily
+                            font.pixelSize: typography.bodyPixelSize
+                            horizontalAlignment: Text.AlignRight
+                            text: row.finalClearLabel
+                            textFormat: Text.PlainText
+
+                            Accessible.ignored: true
+                        }
+                    }
+
+                    ArenaJudgementBreakdown {
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        bad: row.bad
+                        emptyPoor: row.emptyPoor
+                        expanded: panel.expanded
+                        good: row.good
+                        great: row.great
+                        perfect: row.perfect
+                        poor: row.poor
+                        totalNotes: row.totalNotes
+                        visible: row.hasScore
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        color: "#a9ffffff"
+                        color: "#ffb0b0"
                         elide: Text.ElideRight
                         font.contextFontMerging: true
-                        font.family: panel.statsFontFamily
-                        font.pixelSize: 14
-                        text: qsTr("PG %1 · GR %2 · GD %3 · BD %4 · PR %5 · EP %6").arg(row.perfect).arg(row.great).arg(row.good).arg(row.bad).arg(row.poor).arg(row.emptyPoor)
+                        font.family: panel.textFontFamily
+                        font.pixelSize: typography.bodyPixelSize
+                        text: row.detailsLabel
                         textFormat: Text.PlainText
-                        visible: row.hasScore
+                        visible: panel.expanded && !row.hasScore
                     }
                 }
             }
         }
 
-        Item {
-            Layout.fillHeight: !panel.expanded
-            Layout.minimumHeight: panel.expanded ? 0 : 1
+        ArenaChatActivityRail {
+            Layout.fillWidth: true
+            session: panel.session
         }
     }
 }

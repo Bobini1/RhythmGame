@@ -141,13 +141,16 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaSelectStrip.qml
         Arena/ArenaRosterView.qml
         Arena/ArenaChatView.qml
+        Arena/ArenaChatActivityRail.qml
+        Arena/ArenaPanelTabs.qml
+        Arena/ArenaTypography.qml
         Arena/ArenaSelectionSummary.qml
         Arena/ArenaSelectPanel.qml
         Arena/ArenaSelectOverlay.qml
         Arena/ArenaLegacySelectOverlay.qml
         Arena/ArenaOverlayHost.qml
         Arena/ArenaGameplayOverlay.qml
-        Arena/ArenaGameplayChat.qml
+        Arena/ArenaJudgementBreakdown.qml
         Arena/ArenaCompetitionText.qml
         Arena/ArenaResultAnnouncer.qml
         Arena/ArenaResultOverlay.qml

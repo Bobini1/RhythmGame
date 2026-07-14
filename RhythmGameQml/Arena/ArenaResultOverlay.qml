@@ -11,12 +11,15 @@ Rectangle {
     required property string placementKind
     required property string resolvedSkinId
     required property string layoutVariant
-    property bool expanded: false
+    property bool expanded: true
     readonly property alias dragHandle: resultHeader
     readonly property alias announcementCount: resultAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: resultAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: resultAnnouncer.lastAnnouncementText
     readonly property alias finalAnnouncementText: resultAnnouncer.finalAnnouncementText
+    readonly property bool chatOpen: root.session && root.session.chatOpen === true
+    readonly property string roomName: root.session
+        ? String(root.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
     readonly property var result: root.session ? root.session.presentedResult : null
     readonly property bool resultAvailable: root.result && root.result.valid === true
@@ -31,7 +34,7 @@ Rectangle {
             return qsTr("Waiting for final standings");
         }
         const names = root.result.winnerNames || [];
-        return names.length > 0 ? qsTr("Winners: %1").arg(names.join(", ")) : qsTr("No winner");
+        return competitionText.winnersText(names);
     }
     readonly property string localStandingText: {
         const count = root.resultAvailable ? Number(root.result.participantCount || 0) : 0;
@@ -56,15 +59,20 @@ Rectangle {
     Accessible.name: qsTr("Arena result")
     Accessible.description: root.finalAnnouncementText.length > 0 ? root.finalAnnouncementText : root.statusText
 
-    border.color: "#70ffffff"
+    border.color: "#74859a"
     border.width: 1
-    color: "#ee101218"
+    color: "#ed111821"
+    clip: true
     implicitHeight: 460
     implicitWidth: 520
-    radius: 6
+    radius: 5
 
     ArenaCompetitionText {
         id: competitionText
+    }
+
+    ArenaTypography {
+        id: typography
     }
 
     ArenaResultAnnouncer {
@@ -85,39 +93,102 @@ Rectangle {
         RowLayout {
             id: resultHeader
 
-            Layout.fillWidth: true
-            spacing: 8
+            readonly property real contentHeight: Math.max(
+                40, resultTitle.implicitHeight + 12,
+                resultStatus.implicitHeight + 12,
+                resultExpand.implicitHeight, resultTabs.implicitHeight)
 
-            Label {
-                Layout.fillWidth: true
-                color: "white"
-                font.bold: true
-                font.pixelSize: 18
-                text: qsTr("Arena result")
+            Layout.fillWidth: true
+            Layout.fillHeight: false
+            Layout.minimumHeight: contentHeight
+            Layout.preferredHeight: contentHeight
+            spacing: 4
+
+            Item {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 24
+
+                Accessible.ignored: true
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    Repeater {
+                        model: 3
+
+                        Rectangle {
+                            color: "#8b96a6"
+                            height: 2
+                            width: 18
+                        }
+                    }
+                }
             }
 
             Label {
+                id: resultTitle
+
+                Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                color: "white"
+                elide: Text.ElideRight
+                font.bold: true
+                font.pixelSize: typography.scaled(18)
+                text: root.roomName
+            }
+
+            Label {
+                id: resultStatus
+
                 objectName: "arenaResultStatus"
                 color: root.resultAvailable && root.result.finalized ? "#a9f5bb" : "#ffe38a"
                 font.bold: true
+                font.pixelSize: typography.bodyPixelSize
                 text: root.statusText
                 visible: text.length > 0
             }
 
             Button {
-                objectName: "arenaResultChat"
-                text: root.session.gameplayChatOpen === true ? qsTr("Close chat") : qsTr("Chat")
-                onClicked: root.session.toggleGameplayChat()
-            }
+                id: resultExpand
 
-            Button {
                 objectName: "arenaResultExpand"
-                text: root.expanded ? qsTr("Compact") : qsTr("Details")
+                enabled: !root.chatOpen
+                font.pixelSize: typography.bodyPixelSize
+                text: root.expanded ? qsTr("Compact") : qsTr("Expand")
+                visible: !root.chatOpen
 
                 Accessible.name: text
                 Accessible.description: root.expanded ? qsTr("Hide detailed Arena standings") : qsTr("Show detailed Arena standings")
                 onClicked: root.expanded = !root.expanded
             }
+
+            ArenaPanelTabs {
+                id: resultTabs
+
+                Layout.alignment: Qt.AlignVCenter
+                Layout.fillWidth: false
+                Layout.preferredHeight: implicitHeight
+                chatAccessibleName: qsTr("Show Arena chat")
+                detailsAccessibleName: qsTr("Show Arena result")
+                session: root.session
+            }
+
+            HoverHandler {
+                enabled: !resultTabs.hovered
+                cursorShape: Qt.SizeAllCursor
+            }
+        }
+
+        ArenaChatView {
+            objectName: "arenaResultChat"
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.minimumHeight: 0
+            chatModel: root.session ? root.session.chat : null
+            inputEnabled: true
+            session: root.session
+            visible: root.chatOpen
         }
 
         Text {
@@ -125,9 +196,10 @@ Rectangle {
             Layout.fillWidth: true
             color: "white"
             font.bold: true
-            font.pixelSize: 17
+            font.pixelSize: typography.scaled(17)
             text: root.winnerSummaryText
             textFormat: Text.PlainText
+            visible: !root.chatOpen
             wrapMode: Text.Wrap
         }
 
@@ -136,17 +208,20 @@ Rectangle {
             Layout.fillWidth: true
             color: "#ffe38a"
             font.bold: true
-            font.pixelSize: 22
+            font.pixelSize: typography.scaled(22)
             text: root.localStandingText
             textFormat: Text.PlainText
+            visible: !root.chatOpen
         }
 
         Text {
             Layout.fillWidth: true
             color: "#c9ffffff"
+            font.pixelSize: typography.bodyPixelSize
             text: root.resultAvailable ? String(root.result.selectionTitle || "") : ""
             textFormat: Text.PlainText
             elide: Text.ElideRight
+            visible: !root.chatOpen
         }
 
         ListView {
@@ -155,7 +230,7 @@ Rectangle {
             objectName: "arenaResultStandings"
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.minimumHeight: root.expanded ? 96 : 0
+            Layout.minimumHeight: 0
             activeFocusOnTab: visible && count > 0
             boundsBehavior: Flickable.StopAtBounds
             clip: true
@@ -163,7 +238,7 @@ Rectangle {
             model: root.resultAvailable ? root.result.standings : null
             reuseItems: true
             spacing: 4
-            visible: root.expanded
+            visible: !root.chatOpen
 
             Accessible.role: Accessible.List
             Accessible.name: qsTr("Arena final standings")
@@ -200,7 +275,6 @@ Rectangle {
                 required property bool hasScore
                 required property var exScore
                 required property int maxCombo
-                required property int badPoorCount
                 required property int perfect
                 required property int great
                 required property int good
@@ -215,8 +289,11 @@ Rectangle {
                 readonly property bool localMarkerVisible: memberId === String(root.session.selfMemberId || "")
                 readonly property string rankLabel: root.rankLabel(rank, competitionState)
                 readonly property string winsLabel: root.winsLabel(lobbyWinsAfter)
-                readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType)
+                readonly property string detailsLabel: competitionText.resultDetailsText(competitionState, dnfReason, maxCombo, clearType)
+                readonly property string finalClearLabel: competitionText.clearTypeText(clearType)
                 readonly property string gaugeLabel: competitionText.gaugeValueText(gaugeValueMilli)
+                readonly property int totalNotes: Math.max(0, perfect) + Math.max(0, great)
+                    + Math.max(0, good) + Math.max(0, bad) + Math.max(0, poor)
                 readonly property string accessibleSummary: qsTr("%1, rank %2, score %3, %4").arg(localMarkerVisible ? qsTr("You · %1").arg(displayName) : displayName).arg(rankLabel).arg(hasScore ? String(exScore) : qsTr("No score")).arg(detailsLabel)
                 readonly property bool focusIndicatorVisible: ListView.isCurrentItem && standingsView.activeFocus
 
@@ -252,9 +329,10 @@ Rectangle {
                         spacing: 6
 
                         Text {
-                            Layout.preferredWidth: 42
+                            Layout.preferredWidth: Math.max(42, implicitWidth)
                             color: standingDelegate.competitionState === "dnf" ? "#ff9b9b" : "#b9ffffff"
                             font.bold: true
+                            font.pixelSize: typography.bodyPixelSize
                             horizontalAlignment: Text.AlignRight
                             text: standingDelegate.rankLabel
                             textFormat: Text.PlainText
@@ -265,57 +343,118 @@ Rectangle {
                             color: "white"
                             elide: Text.ElideRight
                             font.bold: true
+                            font.pixelSize: typography.bodyPixelSize
                             text: standingDelegate.localMarkerVisible ? qsTr("You · %1").arg(standingDelegate.displayName) : standingDelegate.displayName
                             textFormat: Text.PlainText
                         }
 
                         Text {
-                            color: "#ffe38a"
-                            font.bold: true
-                            text: standingDelegate.hasScore ? qsTr("EX %1").arg(standingDelegate.exScore) : "—"
-                            textFormat: Text.PlainText
-                        }
-
-                        Text {
-                            Layout.preferredWidth: 72
+                            Layout.preferredWidth: Math.max(72, implicitWidth)
                             color: "#c9ffffff"
+                            font.pixelSize: typography.bodyPixelSize
                             horizontalAlignment: Text.AlignRight
                             text: standingDelegate.winsLabel
                             textFormat: Text.PlainText
                         }
                     }
 
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        spacing: 8
+                        visible: standingDelegate.hasScore
+
+                        RowLayout {
+                            spacing: 5
+
+                            Text {
+                                color: "#d9bf72"
+                                font.pixelSize: typography.supportingPixelSize
+                                text: qsTr("EX")
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                color: "#ffe38a"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: String(standingDelegate.exScore)
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+                        }
+
+                        RowLayout {
+                            spacing: 5
+                            visible: root.expanded
+
+                            Text {
+                                color: "#9da9b8"
+                                font.pixelSize: typography.supportingPixelSize
+                                text: qsTr("Combo")
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                color: "white"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: String(standingDelegate.maxCombo)
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+                        }
+
+                        Text {
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: 0
+                            color: "#d8ffffff"
+                            elide: Text.ElideRight
+                            font.pixelSize: typography.bodyPixelSize
+                            horizontalAlignment: Text.AlignRight
+                            text: standingDelegate.finalClearLabel
+                            textFormat: Text.PlainText
+
+                            Accessible.ignored: true
+                        }
+                    }
+
+                    ArenaJudgementBreakdown {
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        bad: standingDelegate.bad
+                        emptyPoor: standingDelegate.emptyPoor
+                        expanded: root.expanded
+                        good: standingDelegate.good
+                        great: standingDelegate.great
+                        perfect: standingDelegate.perfect
+                        poor: standingDelegate.poor
+                        totalNotes: standingDelegate.totalNotes
+                        visible: standingDelegate.hasScore
+                    }
+
                     Text {
                         Layout.fillWidth: true
-                        color: "#b9ffffff"
+                        color: "#ffb0b0"
+                        elide: Text.ElideRight
+                        font.pixelSize: typography.bodyPixelSize
                         text: standingDelegate.detailsLabel
                         textFormat: Text.PlainText
-                        elide: Text.ElideRight
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        color: "#a9ffffff"
-                        text: qsTr("PG %1 · GR %2 · GD %3 · BD %4 · PR %5 · EP %6").arg(standingDelegate.perfect).arg(standingDelegate.great).arg(standingDelegate.good).arg(standingDelegate.bad).arg(standingDelegate.poor).arg(standingDelegate.emptyPoor)
-                        textFormat: Text.PlainText
-                        elide: Text.ElideRight
-                        visible: standingDelegate.hasScore
-                    }
-
-                    Text {
-                        Layout.fillWidth: true
-                        color: "#a9ffffff"
-                        text: standingDelegate.gaugeLabel
-                        textFormat: Text.PlainText
-                        visible: standingDelegate.hasScore
+                        visible: root.expanded && !standingDelegate.hasScore
                     }
                 }
             }
         }
 
-        Item {
-            Layout.fillHeight: !root.expanded
-            Layout.minimumHeight: root.expanded ? 0 : 1
+        ArenaChatActivityRail {
+            Layout.fillWidth: true
+            session: root.session
         }
     }
 }

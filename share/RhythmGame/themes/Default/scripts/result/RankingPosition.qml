@@ -198,8 +198,10 @@ WindowBg {
                 anchors.baselineOffset: parent.height - 25
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: "#20242c"
-                font.bold: true
                 font.family: resultRankingFont.fontFamily
+                font.weight: resultRankingFont.fontWeight
+                font.variableAxes: resultRankingFont.variableAxes
+                font.italic: resultRankingFont.italic
                 font.pixelSize: 30
                 text: rankingPosition.arenaLocalDnf
                     || !rankingPosition.arenaFinalized

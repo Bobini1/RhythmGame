@@ -1292,14 +1292,14 @@ TEST_CASE("ArenaSessionCompetition: retries one immutable terminal and "
     CHECK(fixture.gameplaySource.detachCount == 1);
     CHECK(fixture.roundLoader.cancellations.isEmpty());
 
-    fixture.session.setGameplayChatOpen(true);
-    CHECK(fixture.session.gameplayChatOpen());
+    fixture.session.setChatOpen(true);
+    CHECK(fixture.session.chatOpen());
 
     fixture.session.endResultPresentation(QStringLiteral("wrong"));
     CHECK(fixture.session.resultPresentationActive());
     fixture.session.endResultPresentation(QStringLiteral("round-1"));
     CHECK_FALSE(fixture.session.resultPresentationActive());
-    CHECK_FALSE(fixture.session.gameplayChatOpen());
+    CHECK_FALSE(fixture.session.chatOpen());
     CHECK_FALSE(fixture.session.presentedResult()->valid());
     CHECK(fixture.session.lastResult()->valid());
     CHECK(fixture.roundLoader.cancellations.isEmpty());
@@ -1459,13 +1459,13 @@ TEST_CASE(
         fixture.enterRoom();
         fixture.loadRound(runner.runner.get());
         fixture.startRound();
-        fixture.session.setGameplayChatOpen(true);
-        REQUIRE(fixture.session.gameplayChatOpen());
+        fixture.session.setChatOpen(true);
+        REQUIRE(fixture.session.chatOpen());
         fixture.session.abandonCurrentRound();
         fixture.session.abandonCurrentRound();
         CHECK(fixture.gameplaySource.detachCount == 1);
         CHECK_FALSE(fixture.session.arenaGameplayActive());
-        CHECK_FALSE(fixture.session.gameplayChatOpen());
+        CHECK_FALSE(fixture.session.chatOpen());
         const auto abandons =
           messagesOfType(fixture.transport, u"round_abandon");
         REQUIRE(abandons.size() == 1);
@@ -1655,14 +1655,14 @@ TEST_CASE("ArenaSessionCompetition: cleanup paths synchronously clear "
         const auto generation =
           fixture.transport.connectCalls.back().generation;
         fixture.transport.injectText(generation, standingsEvent(1));
-        fixture.session.setGameplayChatOpen(true);
+        fixture.session.setChatOpen(true);
         const auto samples = fixture.gameplaySource.sampledSequences.size();
 
         trigger(fixture, generation);
 
         CHECK(fixture.session.arenaRunner() == nullptr);
         CHECK_FALSE(fixture.session.arenaGameplayActive());
-        CHECK_FALSE(fixture.session.gameplayChatOpen());
+        CHECK_FALSE(fixture.session.chatOpen());
         CHECK_FALSE(fixture.session.resultPresentationActive());
         CHECK_FALSE(fixture.session.presentedResult()->valid());
         CHECK(fixture.session.liveStandings()->rowCount() == 0);

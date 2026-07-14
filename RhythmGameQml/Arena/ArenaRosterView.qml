@@ -17,6 +17,10 @@ FocusScope {
 
     signal kickRequested(string memberId)
 
+    ArenaTypography {
+        id: typography
+    }
+
     function isWinner(memberId): bool {
         if (!root.session) {
             return false;
@@ -81,6 +85,21 @@ FocusScope {
         return states.join(" · ");
     }
 
+    function statusColor(connected, ready, inventoryState, inventoryRevision, availabilityAppliedRevision, roundState): color {
+        if (!connected || inventoryState === "missing") {
+            return "#ef6a62";
+        }
+        if (inventoryState === "syncing"
+                || availabilityAppliedRevision < inventoryRevision
+                || roundState === "probing" || roundState === "loading") {
+            return "#f0c75e";
+        }
+        if (ready || roundState === "loaded" || roundState === "playing") {
+            return "#63d47b";
+        }
+        return "#f0c75e";
+    }
+
     ListView {
         id: memberList
 
@@ -135,7 +154,7 @@ FocusScope {
             border.color: ListView.isCurrentItem && ListView.view.activeFocus ? "#8ec5ff" : "transparent"
             border.width: ListView.isCurrentItem && ListView.view.activeFocus ? 2 : 0
             color: memberDelegate.self ? "#263b5070" : (memberDelegate.index % 2 === 0 ? "#161b2230" : "#0d1b2230")
-            height: Math.max(root.compact ? 48 : 62, memberContent.implicitHeight + 8)
+            height: Math.max(root.compact ? 56 : 68, memberContent.implicitHeight + 8)
             radius: 3
             width: ListView.view.width
 
@@ -151,8 +170,8 @@ FocusScope {
 
                 ArenaAvatar {
                     objectName: "arenaRosterAvatar-" + memberDelegate.memberId
-                    Layout.preferredHeight: 32
-                    Layout.preferredWidth: 32
+                    Layout.preferredHeight: root.compact ? 48 : 56
+                    Layout.preferredWidth: root.compact ? 48 : 56
                     avatarUrl: memberDelegate.avatarUrl
                     connected: memberDelegate.connected
                     displayName: memberDelegate.displayName
@@ -166,6 +185,29 @@ FocusScope {
                         Layout.fillWidth: true
                         spacing: 6
 
+                        Rectangle {
+                            Layout.preferredHeight: 14
+                            Layout.preferredWidth: 14
+                            Accessible.ignored: true
+                            border.color: "#99ffffff"
+                            border.width: 1
+                            color: root.statusColor(
+                                memberDelegate.connected,
+                                memberDelegate.ready,
+                                memberDelegate.inventoryState,
+                                Number(memberDelegate.inventoryRevision),
+                                Number(memberDelegate.availabilityAppliedRevision),
+                                memberDelegate.roundState)
+                            radius: 7
+
+                            ToolTip.text: statusLabel.text
+                            ToolTip.visible: statusHover.hovered
+
+                            HoverHandler {
+                                id: statusHover
+                            }
+                        }
+
                         Text {
                             id: nameLabel
 
@@ -175,6 +217,7 @@ FocusScope {
                             color: "white"
                             elide: Text.ElideRight
                             font.bold: memberDelegate.self || memberDelegate.owner
+                            font.pixelSize: typography.bodyPixelSize
                             text: memberDelegate.displayName
                             textFormat: Text.PlainText
                         }
@@ -185,6 +228,7 @@ FocusScope {
                             objectName: "arenaRosterWins-" + memberDelegate.memberId
                             Accessible.ignored: true
                             color: "#d6deea"
+                            font.pixelSize: typography.supportingPixelSize
                             text: qsTr("%n win(s)", "Arena lobby wins", memberDelegate.lobbyWins)
                             textFormat: Text.PlainText
                         }
@@ -194,6 +238,7 @@ FocusScope {
                             Accessible.description: root.session && root.session.reconnecting === true ? qsTr("Unavailable while reconnecting to Arena.") : ""
                             Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
                             enabled: !root.session || root.session.reconnecting !== true
+                            font.pixelSize: typography.supportingPixelSize
                             Layout.minimumHeight: 32
                             Layout.minimumWidth: 48
                             text: qsTr("Kick")
@@ -210,6 +255,7 @@ FocusScope {
                         Layout.fillWidth: true
                         color: "#ffe39b"
                         elide: Text.ElideRight
+                        font.pixelSize: typography.supportingPixelSize
                         text: root.markerText(memberDelegate.owner, memberDelegate.self, memberDelegate.memberId)
                         textFormat: Text.PlainText
                         visible: text.length > 0
@@ -223,8 +269,10 @@ FocusScope {
                         Layout.fillWidth: true
                         color: memberDelegate.connected ? "#c9d2df" : "#ffb2a8"
                         elide: Text.ElideRight
+                        font.pixelSize: typography.supportingPixelSize
                         text: root.statusText(memberDelegate.connected, memberDelegate.ready, memberDelegate.inventoryState, Number(memberDelegate.inventoryRevision), Number(memberDelegate.availabilityAppliedRevision), memberDelegate.roundState)
                         textFormat: Text.PlainText
+                        visible: !root.compact
                     }
                 }
             }

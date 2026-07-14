@@ -18,15 +18,14 @@ Item {
     property bool directResizeEnabled: false
     property Item moveHandle: null
     default property alias contentData: contentHost.data
-    property size minimumScreenPixelSize: Qt.size(280, 160)
     readonly property real viewportScale: viewport
-        ? Math.max(0, Math.min(1, viewport.width / 1920,
-                               viewport.height / 1080)) : 1
+        ? Math.min(viewport.width / 1920,
+                   viewport.height / 1080) : 1
+    readonly property real effectiveContentScale: viewportScale > 0
+        ? viewportScale : 1
     readonly property size effectiveMinimumPixelSize: Qt.size(
-        Math.max(1, minimumScreenPixelSize.width,
-                 minimumPixelSize.width * viewportScale),
-        Math.max(1, minimumScreenPixelSize.height,
-                 minimumPixelSize.height * viewportScale))
+        minimumPixelSize.width * viewportScale,
+        minimumPixelSize.height * viewportScale)
     readonly property bool interactionActive: moveHandler.active
                                               || resizeInteractionCount > 0
 
@@ -39,7 +38,8 @@ Item {
     property rect moveStartRect: Qt.rect(0, 0, 1, 1)
     property rect resizeStartRect: Qt.rect(0, 0, 1, 1)
     property int resizeInteractionCount: 0
-    readonly property real resizeEdgeInset: customizeMode ? 16 : 8
+    readonly property real resizeEdgeInset: (customizeMode ? 16 : 8)
+                                               * viewportScale
 
     x: resolvedPixelRect.x
     y: resolvedPixelRect.y
@@ -60,7 +60,8 @@ Item {
     }
 
     function safeMargin(length) {
-        return Math.min(24, Math.max(0, (length - 1) / 2));
+        return Math.min(24 * viewportScale,
+                        Math.max(0, (length - 1) / 2));
     }
 
     function safePixelRect() {
@@ -69,83 +70,8 @@ Item {
         const viewportWidth = viewport ? viewport.width : 0;
         const viewportHeight = viewport ? viewport.height : 0;
         return Qt.rect(marginX, marginY,
-                       Math.max(1, viewportWidth - 2 * marginX),
-                       Math.max(1, viewportHeight - 2 * marginY));
-    }
-
-    function largestAdjacentRect(leaderboard, safe, gap) {
-        const candidates = [
-            Qt.rect(leaderboard.x + leaderboard.width + gap,
-                    safe.y,
-                    Math.max(0, safe.x + safe.width
-                             - leaderboard.x - leaderboard.width - gap),
-                    safe.height),
-            Qt.rect(safe.x,
-                    safe.y,
-                    Math.max(0, leaderboard.x - gap - safe.x),
-                    safe.height),
-            Qt.rect(safe.x,
-                    leaderboard.y + leaderboard.height + gap,
-                    safe.width,
-                    Math.max(0, safe.y + safe.height
-                             - leaderboard.y - leaderboard.height - gap)),
-            Qt.rect(safe.x,
-                    safe.y,
-                    safe.width,
-                    Math.max(0, leaderboard.y - gap - safe.y))
-        ];
-        let largest = Qt.rect(safe.x, safe.y, 1, 1);
-        let largestArea = 0;
-        for (const candidate of candidates) {
-            const area = candidate.width * candidate.height;
-            if (candidate.width > 0 && candidate.height > 0
-                    && area > largestArea) {
-                largest = candidate;
-                largestArea = area;
-            }
-        }
-        return largest;
-    }
-
-    function adjacentChatRect() {
-        const safe = safePixelRect();
-        const leaderboard = resolvedPixelRect;
-        const gap = 12;
-        const targetWidth = Math.min(420, Math.max(320,
-                                                   leaderboard.width));
-        const targetHeight = Math.min(360, safe.height);
-        const clampedY = bounded(leaderboard.y,
-                                 safe.y,
-                                 safe.y + safe.height - targetHeight);
-        const rightWidth = safe.x + safe.width
-                         - leaderboard.x - leaderboard.width - gap;
-        if (rightWidth >= targetWidth) {
-            return Qt.rect(leaderboard.x + leaderboard.width + gap,
-                           clampedY, targetWidth, targetHeight);
-        }
-        const leftWidth = leaderboard.x - gap - safe.x;
-        if (leftWidth >= targetWidth) {
-            return Qt.rect(leaderboard.x - gap - targetWidth,
-                           clampedY, targetWidth, targetHeight);
-        }
-        const horizontalWidth = Math.min(targetWidth, safe.width);
-        const clampedX = bounded(leaderboard.x,
-                                 safe.x,
-                                 safe.x + safe.width - horizontalWidth);
-        const belowHeight = safe.y + safe.height
-                          - leaderboard.y - leaderboard.height - gap;
-        if (belowHeight >= targetHeight) {
-            return Qt.rect(clampedX,
-                           leaderboard.y + leaderboard.height + gap,
-                           horizontalWidth, targetHeight);
-        }
-        const aboveHeight = leaderboard.y - gap - safe.y;
-        if (aboveHeight >= targetHeight) {
-            return Qt.rect(clampedX,
-                           leaderboard.y - gap - targetHeight,
-                           horizontalWidth, targetHeight);
-        }
-        return largestAdjacentRect(leaderboard, safe, gap);
+                       Math.max(0, viewportWidth - 2 * marginX),
+                       Math.max(0, viewportHeight - 2 * marginY));
     }
 
     function defaultPixelRect() {
@@ -157,15 +83,18 @@ Item {
         const result = placementKind === "resultStandings";
         const requestedWidth = Math.max((result ? 360 : 320)
                                         * viewportScale,
-                                        Math.min(result ? 560 : 420,
+                                        Math.min((result ? 560 : 420)
+                                                 * viewportScale,
                                                  viewportWidth * (result ? 0.40 : 0.30)));
         const requestedHeight = Math.max((result ? 260 : 240)
                                          * viewportScale,
                                          viewportHeight * (result ? 0.60 : 0.44));
         const width = Math.min(safe.width, requestedWidth);
         const height = Math.min(safe.height, requestedHeight);
-        const requestedX = Math.max(0, viewportWidth - 24 - width);
-        const requestedY = Math.min(24, Math.max(0, viewportHeight - height));
+        const requestedX = Math.max(0, viewportWidth
+                                    - 24 * viewportScale - width);
+        const requestedY = Math.min(24 * viewportScale,
+                                    Math.max(0, viewportHeight - height));
         return clampPixelRect(Qt.rect(requestedX, requestedY, width, height));
     }
 
@@ -388,7 +317,8 @@ Item {
     Keys.onPressed: event => {
         if (!customizeMode)
             return;
-        const step = (event.modifiers & Qt.ShiftModifier) !== 0 ? 16 : 4;
+        const step = ((event.modifiers & Qt.ShiftModifier) !== 0 ? 16 : 4)
+                   * viewportScale;
         const resize = (event.modifiers & Qt.AltModifier) !== 0;
         let x = 0;
         let y = 0;
@@ -422,14 +352,17 @@ Item {
     Item {
         id: contentHost
 
-        anchors.fill: parent
+        width: root.width / root.effectiveContentScale
+        height: root.height / root.effectiveContentScale
+        scale: root.effectiveContentScale
+        transformOrigin: Item.TopLeft
     }
 
     Rectangle {
         anchors.fill: parent
         visible: root.customizeMode
         color: "transparent"
-        border.width: 2
+        border.width: 2 * root.viewportScale
         border.color: "#f5f7ff"
         z: 1000
     }
@@ -438,10 +371,10 @@ Item {
         id: resetButton
 
         objectName: "arenaOverlayReset"
-        width: 96
-        height: 36
-        x: 8
-        y: 8
+        width: 96 * root.viewportScale
+        height: 36 * root.viewportScale
+        x: 8 * root.viewportScale
+        y: 8 * root.viewportScale
         visible: root.customizeMode
         enabled: root.customizeMode
         z: 1002
@@ -453,15 +386,16 @@ Item {
         onClicked: root.resetPlacement()
 
         background: Rectangle {
-            radius: 3
+            radius: 3 * root.viewportScale
             color: resetButton.down ? "#d8dce8" : "#f5f7ff"
-            border.width: 2
+            border.width: 2 * root.viewportScale
             border.color: "#181b24"
         }
 
         contentItem: Text {
             text: resetButton.text
             color: "#181b24"
+            font.pixelSize: 13 * root.viewportScale
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
         }
@@ -485,8 +419,10 @@ Item {
         onTranslationChanged: {
             if (active) {
                 root.resolvedPixelRect = root.clampPixelRect(
-                            Qt.rect(root.moveStartRect.x + translation.x,
-                                    root.moveStartRect.y + translation.y,
+                                    Qt.rect(root.moveStartRect.x
+                                            + translation.x * root.effectiveContentScale,
+                                            root.moveStartRect.y
+                                            + translation.y * root.effectiveContentScale,
                                     root.moveStartRect.width,
                                     root.moveStartRect.height));
             }
@@ -499,6 +435,7 @@ Item {
         objectName: handleObjectName
         interactionEnabled: root.customizeMode || root.directResizeEnabled
         chromeVisible: root.customizeMode
+        metricScale: root.viewportScale
 
         onInteractionStarted: function(horizontalEdge, verticalEdge) {
             root.beginResize(horizontalEdge, verticalEdge);
@@ -526,7 +463,8 @@ Item {
         handleObjectName: "arenaResizeTop"
         accessibleName: qsTr("Resize Arena overlay from top")
         verticalEdge: -1
-        width: Math.max(16, root.width - 2 * root.resizeEdgeInset)
+        width: Math.max(16 * root.viewportScale,
+                        root.width - 2 * root.resizeEdgeInset)
         x: root.resizeEdgeInset
         y: -height / 2
     }
@@ -544,7 +482,8 @@ Item {
         handleObjectName: "arenaResizeRight"
         accessibleName: qsTr("Resize Arena overlay from right")
         horizontalEdge: 1
-        height: Math.max(16, root.height - 2 * root.resizeEdgeInset)
+        height: Math.max(16 * root.viewportScale,
+                         root.height - 2 * root.resizeEdgeInset)
         x: root.width - width / 2
         y: root.resizeEdgeInset
     }
@@ -562,7 +501,8 @@ Item {
         handleObjectName: "arenaResizeBottom"
         accessibleName: qsTr("Resize Arena overlay from bottom")
         verticalEdge: 1
-        width: Math.max(16, root.width - 2 * root.resizeEdgeInset)
+        width: Math.max(16 * root.viewportScale,
+                        root.width - 2 * root.resizeEdgeInset)
         x: root.resizeEdgeInset
         y: root.height - height / 2
     }
@@ -580,7 +520,8 @@ Item {
         handleObjectName: "arenaResizeLeft"
         accessibleName: qsTr("Resize Arena overlay from left")
         horizontalEdge: -1
-        height: Math.max(16, root.height - 2 * root.resizeEdgeInset)
+        height: Math.max(16 * root.viewportScale,
+                         root.height - 2 * root.resizeEdgeInset)
         x: -width / 2
         y: root.resizeEdgeInset
     }

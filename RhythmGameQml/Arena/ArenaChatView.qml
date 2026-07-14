@@ -17,6 +17,10 @@ FocusScope {
 
     signal sent
 
+    ArenaTypography {
+        id: typography
+    }
+
     function scrollToTail(): void {
         if (!root.followTail) {
             return;
@@ -64,11 +68,13 @@ FocusScope {
 
             Label {
                 Layout.fillWidth: true
+                font.pixelSize: typography.bodyPixelSize
                 text: qsTr("%n unread message(s)", "Arena chat unread count", root.unreadCount)
             }
 
             Button {
                 Accessible.name: qsTr("Jump to newest Arena message")
+                font.pixelSize: typography.bodyPixelSize
                 text: qsTr("Newest")
                 onClicked: {
                     root.followTail = true;
@@ -166,6 +172,7 @@ FocusScope {
                         color: messageDelegate.self ? "#ffe39b" : "#d6deea"
                         elide: Text.ElideRight
                         font.bold: true
+                        font.pixelSize: typography.bodyPixelSize
                         text: messageDelegate.displayName
                         textFormat: Text.PlainText
                         width: parent.width
@@ -175,6 +182,7 @@ FocusScope {
                         objectName: "arenaChatBody-" + messageDelegate.messageId
                         Accessible.ignored: true
                         color: "white"
+                        font.pixelSize: typography.bodyPixelSize
                         text: messageDelegate.text
                         textFormat: Text.PlainText
                         width: parent.width
@@ -206,6 +214,7 @@ FocusScope {
                 Accessible.name: qsTr("Arena chat message")
                 Layout.fillWidth: true
                 enabled: root.inputEnabled
+                font.pixelSize: typography.bodyPixelSize
                 maximumLength: 500
                 placeholderText: qsTr("Message")
                 selectByMouse: true
@@ -217,6 +226,7 @@ FocusScope {
 
                 Accessible.name: qsTr("Send Arena chat message")
                 enabled: root.inputEnabled && input.text.trim().length > 0
+                font.pixelSize: typography.bodyPixelSize
                 text: qsTr("Send")
                 onClicked: root.submit()
             }

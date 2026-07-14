@@ -399,8 +399,8 @@ TEST_CASE("ArenaModels keep chat ordered bounded and self-aware",
         initial.push_back(chat(QStringLiteral("message-%1").arg(i)));
     }
     REQUIRE(model.replace(initial, QStringLiteral("member-1")));
-    model.upsert(
-      chat(QStringLiteral("new-message"), QStringLiteral("member-2")));
+    CHECK(model.upsert(
+      chat(QStringLiteral("new-message"), QStringLiteral("member-2"))));
     CHECK(model.rowCount() == MaxWireChatBacklog);
     CHECK(
       model.data(model.index(0, 0), ArenaChatModel::MessageIdRole).toString() ==
@@ -413,7 +413,7 @@ TEST_CASE("ArenaModels keep chat ordered bounded and self-aware",
     auto changed = chat(QStringLiteral("new-message"),
                         QStringLiteral("member-1"),
                         QStringLiteral("Changed"));
-    model.upsert(changed);
+    CHECK_FALSE(model.upsert(changed));
     CHECK(
       model
         .data(model.index(MaxWireChatBacklog - 1, 0), ArenaChatModel::TextRole)

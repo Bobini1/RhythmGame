@@ -91,6 +91,15 @@ QtObject {
         return count >= 0 ? qsTr("%n win(s)", "Arena lobby wins", count) : qsTr("Wins —");
     }
 
+    function winnersText(winnerNames): string {
+        const names = winnerNames || [];
+        if (names.length === 0) {
+            return qsTr("No winner");
+        }
+        return qsTr("Winner: %1", "Arena result winner count", names.length)
+            .arg(names.join(", "));
+    }
+
     function gaugeText(gaugeType, gaugeValueMilli): string {
         return qsTr("%1 · %2%").arg(gaugeTypeText(gaugeType)).arg((Number(gaugeValueMilli) / 1000).toFixed(1));
     }
@@ -118,7 +127,7 @@ QtObject {
         }
     }
 
-    function currentClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
+    function liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
         const pg = Math.max(0, Number(perfect));
         const gr = Math.max(0, Number(great));
         const gd = Math.max(0, Number(good));
@@ -138,10 +147,24 @@ QtObject {
         if (Number(maxCombo) === judgedNotes) {
             return qsTr("FC");
         }
-        if (!gaugePasses(gaugeType, gaugeValueMilli)) {
-            return qsTr("Failed");
+        return "";
+    }
+
+    function liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
+        const achievement = liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli);
+        return achievement.length > 0 ? achievement : gaugeTypeText(gaugeType);
+    }
+
+    function liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): bool {
+        return liveAchievementText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli).length === 0;
+    }
+
+    function liveClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli): string {
+        const label = liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli);
+        if (!liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)) {
+            return label;
         }
-        return qsTr("%1 clear").arg(gaugeTypeText(gaugeType));
+        return qsTr("%1 %2").arg(label).arg(gaugeValueText(gaugeValueMilli));
     }
 
     function outcomeText(clearType, lobbyWinsAfter, dnfReason): string {
@@ -157,17 +180,14 @@ QtObject {
         return parts.join(qsTr(" · "));
     }
 
-    function resultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType): string {
+    function resultDetailsText(competitionState, dnfReason, maxCombo, clearType): string {
         if (competitionState === "dnf") {
             return qsTr("Did not finish · %1").arg(dnfReasonText(dnfReason));
         }
-        return qsTr("BP %1 · Combo %2 · %3").arg(badPoorCount).arg(maxCombo).arg(clearTypeText(clearType));
+        return qsTr("Combo %1 · %2").arg(maxCombo).arg(clearTypeText(clearType));
     }
 
-    function nativeResultDetailsText(competitionState, dnfReason, badPoorCount, maxCombo, clearType, gaugeValueMilli): string {
-        if (competitionState === "dnf") {
-            return qsTr("Did not finish · %1").arg(dnfReasonText(dnfReason));
-        }
-        return qsTr("BP %1 · Combo %2 · %3 · %4").arg(badPoorCount).arg(maxCombo).arg(clearTypeText(clearType)).arg(gaugeValueText(gaugeValueMilli));
+    function nativeResultDetailsText(competitionState, dnfReason, maxCombo, clearType): string {
+        return resultDetailsText(competitionState, dnfReason, maxCombo, clearType);
     }
 }

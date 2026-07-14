@@ -2581,8 +2581,8 @@ Item {
     }
 
     function handleGameplayEscape() : var {
-        if (root.arenaGameplayOwned && root.arenaSession.gameplayChatOpen === true) {
-            root.arenaSession.setGameplayChatOpen(false);
+        if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
+            root.arenaSession.setChatOpen(false);
             return true;
         }
         if (!root.chart || root.chartStatusIs(root.chart.status, ChartRunner.Finished)) {

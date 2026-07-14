@@ -9,38 +9,56 @@ Rectangle {
 
     required property var session
     property bool expanded: false
-    property int unreadCount: 0
     property int announcementCount: 0
     property string lastAnnouncementKey: ""
     property string lastAnnouncementText: ""
     property string observedRoundId: ""
     property string keyboardStandingMemberId: ""
+    property var activeStandingsView: null
     property var standingSnapshots: ({})
     readonly property alias dragHandle: gameplayHeader
+    readonly property bool chatOpen: root.session && root.session.chatOpen === true
+    readonly property bool narrowHeader: root.width < 620
+    readonly property string roomName: root.session
+        ? String(root.session.roomName || qsTr("Arena")) : qsTr("Arena")
+    readonly property int totalNotes: {
+        const runner = root.session ? root.session.arenaRunner : null;
+        const player = runner ? runner.player1 : null;
+        const score = player ? player.score : null;
+        return score ? Math.max(0, Number(score.maxHits || 0)) : 0;
+    }
 
     Accessible.role: Accessible.Grouping
-    Accessible.name: qsTr("Arena live standings")
-    Accessible.description: qsTr("Arena live standings")
+    Accessible.name: root.roomName
+    Accessible.description: root.chatOpen ? qsTr("Arena chat") : qsTr("Arena live standings")
 
     ArenaCompetitionText {
         id: competitionText
     }
 
+    ArenaTypography {
+        id: typography
+    }
+
     function focusStanding(index): void {
-        if (standingsView.count <= 0) {
+        const view = root.activeStandingsView;
+        if (!view || view.count <= 0) {
             return;
         }
-        const targetIndex = Math.max(0, Math.min(standingsView.count - 1, index));
-        standingsView.currentIndex = targetIndex;
-        standingsView.positionViewAtIndex(targetIndex, ListView.Contain);
-        const currentTarget = standingsView.itemAtIndex(targetIndex);
+        const targetIndex = Math.max(0, Math.min(view.count - 1, index));
+        view.currentIndex = targetIndex;
+        view.positionViewAtIndex(targetIndex, ListView.Contain);
+        const currentTarget = view.itemAtIndex(targetIndex);
         if (currentTarget !== null && currentTarget !== undefined) {
             keyboardStandingMemberId = String(currentTarget.memberId || "");
             return;
         }
         Qt.callLater(function () {
-            const target = standingsView.itemAtIndex(targetIndex);
-            if (standingsView.currentIndex === targetIndex && target !== null && target !== undefined) {
+            if (root.activeStandingsView !== view) {
+                return;
+            }
+            const target = view.itemAtIndex(targetIndex);
+            if (view.currentIndex === targetIndex && target !== null && target !== undefined) {
                 root.keyboardStandingMemberId = String(target.memberId || "");
             }
         });
@@ -53,11 +71,13 @@ Rectangle {
         const targetMemberId = String(memberId);
         const targetIndex = Number(index);
         Qt.callLater(function () {
-            if (root.keyboardStandingMemberId !== targetMemberId || targetIndex < 0 || targetIndex >= standingsView.count) {
+            const view = root.activeStandingsView;
+            if (!view || root.keyboardStandingMemberId !== targetMemberId
+                    || targetIndex < 0 || targetIndex >= view.count) {
                 return;
             }
-            standingsView.currentIndex = targetIndex;
-            standingsView.positionViewAtIndex(targetIndex, ListView.Contain);
+            view.currentIndex = targetIndex;
+            view.positionViewAtIndex(targetIndex, ListView.Contain);
         });
     }
 
@@ -80,8 +100,10 @@ Rectangle {
         parts.push(standing.rank > 0 ? qsTr("Rank %1").arg(standing.rank) : qsTr("Not ranked"));
         parts.push(qsTr("EX %1").arg(scoreText(standing.hasScore, standing.exScore)));
         parts.push(stateText(standing.connected, standing.competitionState));
-        parts.push(qsTr("BP %1").arg(standing.badPoorCount));
         parts.push(qsTr("Combo %1").arg(standing.maxCombo));
+        parts.push(qsTr("PG %1, GR %2, GD %3, BD %4, PR %5, EP %6")
+            .arg(standing.perfect).arg(standing.great).arg(standing.good)
+            .arg(standing.bad).arg(standing.poor).arg(standing.emptyPoor));
         if (standing.hasScore) {
             parts.push(standing.currentClear);
         }
@@ -144,6 +166,13 @@ Rectangle {
         return competitionText.stateText(connected, state);
     }
 
+    function visibleStateText(connected, state): string {
+        if (connected && state === "playing") {
+            return "";
+        }
+        return stateText(connected, state);
+    }
+
     function rankText(rank): string {
         return rank > 0 ? String(rank) : "—";
     }
@@ -160,12 +189,13 @@ Rectangle {
         return competitionText.outcomeText(clearType, lobbyWinsAfter, dnfReason);
     }
 
-    border.color: "#70ffffff"
+    border.color: "#74859a"
     border.width: 1
-    color: "#e6101218"
+    clip: true
+    color: "#ed111821"
     implicitHeight: 360
     implicitWidth: 420
-    radius: 6
+    radius: 5
 
     Instantiator {
         id: standingInstantiator
@@ -210,47 +240,142 @@ Rectangle {
 
     ColumnLayout {
         anchors.fill: parent
-        anchors.margins: 12
+        anchors.margins: 10
         spacing: 8
 
-        RowLayout {
+        GridLayout {
             id: gameplayHeader
 
+            columns: 3
+            columnSpacing: 4
             Layout.fillWidth: true
-            spacing: 8
+            Layout.fillHeight: false
+            Layout.minimumHeight: implicitHeight
+            Layout.preferredHeight: implicitHeight
+            rowSpacing: root.narrowHeader ? 4 : 0
+
+            Item {
+                Layout.column: 0
+                Layout.alignment: Qt.AlignVCenter
+                Layout.preferredHeight: Math.max(24, gameplayTitle.implicitHeight)
+                Layout.preferredWidth: 24
+                Layout.row: 0
+
+                Accessible.ignored: true
+
+                Column {
+                    anchors.centerIn: parent
+                    spacing: 4
+
+                    Repeater {
+                        model: 3
+
+                        Rectangle {
+                            color: "#8b96a6"
+                            height: 2
+                            width: 18
+                        }
+                    }
+                }
+            }
 
             Label {
+                id: gameplayTitle
+
+                Layout.column: 1
+                Layout.columnSpan: root.narrowHeader ? 2 : 1
                 Layout.fillWidth: true
+                Layout.minimumWidth: 0
+                Layout.row: 0
+                Layout.alignment: Qt.AlignVCenter
                 color: "white"
+                elide: Text.ElideRight
                 font.bold: true
-                font.pixelSize: 18
-                text: qsTr("Arena")
+                font.pixelSize: typography.scaled(18)
+                text: root.roomName
+                verticalAlignment: Text.AlignVCenter
             }
 
-            Button {
-                objectName: "arenaGameplayExpand"
-                text: root.expanded ? qsTr("Compact") : qsTr("Expand")
-                onClicked: root.expanded = !root.expanded
+            RowLayout {
+                Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
+                Layout.column: root.narrowHeader ? 0 : 2
+                Layout.columnSpan: root.narrowHeader ? 3 : 1
+                Layout.fillWidth: root.narrowHeader
+                Layout.minimumWidth: 0
+                Layout.row: root.narrowHeader ? 1 : 0
+                spacing: 0
+
+                Item {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    visible: root.narrowHeader
+                }
+
+                Button {
+                    id: expandButton
+
+                    objectName: "arenaGameplayExpand"
+                    enabled: !root.chatOpen
+                    font.pixelSize: typography.bodyPixelSize
+                    Layout.preferredHeight: implicitHeight
+                    text: root.expanded ? qsTr("Compact") : qsTr("Expand")
+                    visible: !root.chatOpen
+                    onClicked: root.expanded = !root.expanded
+                }
+
+                ArenaPanelTabs {
+                    id: gameplayTabs
+
+                    Layout.preferredHeight: implicitHeight
+                    chatAccessibleName: qsTr("Show Arena chat")
+                    detailsAccessibleName: qsTr("Show Arena standings")
+                    session: root.session
+                }
             }
 
-            Button {
-                text: root.session.gameplayChatOpen === true ? qsTr("Close chat") : (root.unreadCount > 0 ? qsTr("Chat (%1)").arg(root.unreadCount) : qsTr("Chat"))
-                onClicked: root.session.toggleGameplayChat()
+            HoverHandler {
+                enabled: !expandButton.hovered && !gameplayTabs.hovered
+                cursorShape: Qt.SizeAllCursor
             }
         }
+
+        Loader {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            Layout.minimumHeight: 0
+            Layout.minimumWidth: 0
+            sourceComponent: root.chatOpen ? chatComponent : standingsComponent
+        }
+
+        ArenaChatActivityRail {
+            Layout.fillWidth: true
+            session: root.session
+        }
+    }
+
+    Component {
+        id: chatComponent
+
+        ArenaChatView {
+            objectName: "arenaGameplayChat"
+            chatModel: root.session ? root.session.chat : null
+            inputEnabled: true
+            session: root.session
+            unreadCount: root.session ? Number(root.session.unreadChatCount || 0) : 0
+        }
+    }
+
+    Component {
+        id: standingsComponent
 
         ListView {
             id: standingsView
 
             objectName: "arenaGameplayStandings"
-
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.minimumHeight: 80
             activeFocusOnTab: true
             boundsBehavior: Flickable.StopAtBounds
             clip: true
-            model: root.session.liveStandings
+            model: root.session ? root.session.liveStandings : null
             reuseItems: true
             spacing: 4
 
@@ -260,6 +385,13 @@ Rectangle {
             Accessible.focusable: true
 
             ScrollBar.vertical: ScrollBar {}
+
+            Component.onCompleted: root.activeStandingsView = standingsView
+            Component.onDestruction: {
+                if (root.activeStandingsView === standingsView) {
+                    root.activeStandingsView = null;
+                }
+            }
 
             onActiveFocusChanged: {
                 if (activeFocus) {
@@ -294,7 +426,6 @@ Rectangle {
                 required property bool hasScore
                 required property var exScore
                 required property int maxCombo
-                required property int badPoorCount
                 required property int perfect
                 required property int great
                 required property int good
@@ -310,8 +441,9 @@ Rectangle {
                 readonly property bool localMember: memberId === String(root.session.selfMemberId || "")
                 readonly property bool opponentTarget: root.session.opponentTarget !== null && root.session.opponentTarget !== undefined && memberId === String(root.session.opponentTarget.memberId || "")
                 readonly property bool focusIndicatorVisible: activeFocus || (ListView.isCurrentItem && standingsView.activeFocus)
-                readonly property string currentClear: competitionText.currentClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
-
+                readonly property string currentClearLabel: competitionText.liveClearLabel(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
+                readonly property bool currentClearShowsGaugeValue: competitionText.liveClearShowsGaugeValue(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
+                readonly property string currentClear: competitionText.liveClearText(maxCombo, perfect, great, good, bad, poor, emptyPoor, gaugeType, gaugeValueMilli)
                 objectName: "arenaStandingRow" + index
                 color: index % 2 === 0 ? "#241b2230" : "#141b2230"
                 activeFocusOnTab: false
@@ -345,127 +477,209 @@ Rectangle {
 
                     RowLayout {
                         Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         spacing: 6
 
-                        Text {
-                            objectName: "arenaStandingRank"
-                            Layout.preferredWidth: 22
-                            color: "#b9ffffff"
-                            font.bold: true
-                            horizontalAlignment: Text.AlignRight
-                            text: root.rankText(standingDelegate.rank)
-                            textFormat: Text.PlainText
-
-                            Accessible.ignored: true
-                        }
-
-                        Text {
-                            objectName: "arenaStandingLocalMark"
-                            color: "#9ee6ff"
-                            font.bold: true
-                            text: qsTr("YOU")
-                            textFormat: Text.PlainText
-                            visible: standingDelegate.localMember
-
-                            Accessible.ignored: true
-                        }
-
-                        Text {
-                            objectName: "arenaStandingTargetMark"
-                            color: "#cbb8ff"
-                            font.bold: true
-                            text: qsTr("RIVAL")
-                            textFormat: Text.PlainText
-                            visible: standingDelegate.opponentTarget
-
-                            Accessible.ignored: true
-                        }
-
-                        Text {
-                            objectName: "arenaStandingName"
+                        RowLayout {
                             Layout.fillWidth: true
-                            color: "white"
-                            elide: Text.ElideRight
-                            font.bold: true
-                            text: standingDelegate.displayName
-                            textFormat: Text.PlainText
+                            Layout.minimumWidth: 0
+                            spacing: 5
 
-                            Accessible.ignored: true
-                        }
+                            Text {
+                                objectName: "arenaStandingRank"
+                                Layout.preferredWidth: 22
+                                color: "#b9ffffff"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                horizontalAlignment: Text.AlignRight
+                                text: root.rankText(standingDelegate.rank)
+                                textFormat: Text.PlainText
 
-                        Text {
-                            objectName: "arenaStandingScore"
-                            color: "#ffe38a"
-                            font.bold: true
-                            text: qsTr("EX %1").arg(root.scoreText(standingDelegate.hasScore, standingDelegate.exScore))
-                            textFormat: Text.PlainText
+                                Accessible.ignored: true
+                            }
 
-                            Accessible.ignored: true
-                        }
+                            Text {
+                                objectName: "arenaStandingLocalMark"
+                                color: "#9ee6ff"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: qsTr("YOU")
+                                textFormat: Text.PlainText
+                                visible: standingDelegate.localMember
 
-                        Text {
-                            objectName: "arenaStandingCurrentClear"
-                            Layout.preferredWidth: 104
-                            color: "#d8ffffff"
-                            horizontalAlignment: Text.AlignRight
-                            text: standingDelegate.currentClear
-                            textFormat: Text.PlainText
+                                Accessible.ignored: true
+                            }
 
-                            Accessible.ignored: true
+                            Text {
+                                objectName: "arenaStandingTargetMark"
+                                color: "#cbb8ff"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: qsTr("RIVAL")
+                                textFormat: Text.PlainText
+                                visible: standingDelegate.opponentTarget
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                objectName: "arenaStandingName"
+                                Layout.fillWidth: true
+                                Layout.minimumWidth: 0
+                                color: "white"
+                                elide: Text.ElideRight
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: standingDelegate.displayName
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
                         }
 
                         Text {
                             objectName: "arenaStandingState"
-                            Layout.preferredWidth: 82
+                            Layout.maximumWidth: standingContent.width * 0.4
+                            Layout.minimumWidth: 0
                             color: standingDelegate.connected ? "#b9ffffff" : "#ff9b9b"
                             elide: Text.ElideRight
+                            font.pixelSize: typography.bodyPixelSize
                             horizontalAlignment: Text.AlignRight
-                            text: root.stateText(standingDelegate.connected, standingDelegate.competitionState)
+                            text: root.visibleStateText(standingDelegate.connected, standingDelegate.competitionState)
                             textFormat: Text.PlainText
+                            visible: text.length > 0
 
                             Accessible.ignored: true
                         }
                     }
 
-                    ColumnLayout {
-                        objectName: "arenaStandingDetails"
+                    GridLayout {
+                        id: scoreMetrics
+
+                        readonly property bool wide: standingContent.width
+                            >= typography.scaled(250)
+
                         Layout.fillWidth: true
-                        spacing: 1
-                        visible: root.expanded
+                        Layout.minimumWidth: 0
+                        columnSpacing: typography.scaled(12)
+                        columns: wide ? 3 : 2
+                        rowSpacing: 2
 
-                        Text {
-                            Layout.fillWidth: true
-                            color: "#d8ffffff"
-                            text: qsTr("BP %1 · Combo %2").arg(standingDelegate.badPoorCount).arg(standingDelegate.maxCombo)
-                            textFormat: Text.PlainText
+                        RowLayout {
+                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                            Layout.column: 0
+                            Layout.minimumWidth: 0
+                            Layout.row: 0
+                            spacing: 5
 
-                            Accessible.ignored: true
+                            Text {
+                                color: "#d9bf72"
+                                font.pixelSize: typography.supportingPixelSize
+                                text: qsTr("EX")
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                objectName: "arenaStandingScore"
+                                color: "#ffe38a"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: root.scoreText(standingDelegate.hasScore,
+                                                     standingDelegate.exScore)
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
                         }
 
-                        Text {
-                            Layout.fillWidth: true
-                            color: "#d8ffffff"
-                            text: qsTr("PG %1 · GR %2 · GD %3").arg(standingDelegate.perfect).arg(standingDelegate.great).arg(standingDelegate.good)
-                            textFormat: Text.PlainText
+                        RowLayout {
+                            Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
+                            Layout.column: scoreMetrics.wide ? 1 : 0
+                            Layout.columnSpan: scoreMetrics.wide ? 1 : 2
+                            Layout.minimumWidth: 0
+                            Layout.row: scoreMetrics.wide ? 0 : 1
+                            spacing: 5
+                            visible: root.expanded
 
-                            Accessible.ignored: true
+                            Text {
+                                color: "#9da9b8"
+                                font.pixelSize: typography.supportingPixelSize
+                                text: qsTr("Combo")
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                color: "white"
+                                font.bold: true
+                                font.pixelSize: typography.bodyPixelSize
+                                text: String(standingDelegate.maxCombo)
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
                         }
 
-                        Text {
+                        RowLayout {
+                            Layout.column: scoreMetrics.wide ? 2 : 1
                             Layout.fillWidth: true
-                            color: "#d8ffffff"
-                            text: qsTr("BD %1 · PR %2 · EP %3").arg(standingDelegate.bad).arg(standingDelegate.poor).arg(standingDelegate.emptyPoor)
-                            textFormat: Text.PlainText
+                            Layout.minimumWidth: 0
+                            Layout.row: 0
+                            spacing: 5
 
-                            Accessible.ignored: true
+                            Text {
+                                objectName: "arenaStandingCurrentClear"
+                                Layout.fillWidth: true
+                                Layout.minimumWidth: 0
+                                color: "#d8ffffff"
+                                elide: Text.ElideRight
+                                font.pixelSize: typography.bodyPixelSize
+                                horizontalAlignment: Text.AlignRight
+                                text: standingDelegate.currentClearLabel
+                                textFormat: Text.PlainText
+
+                                Accessible.ignored: true
+                            }
+
+                            Text {
+                                objectName: "arenaStandingGaugeValue"
+                                Layout.preferredWidth: typography.scaled(48)
+                                color: "#d8ffffff"
+                                font.pixelSize: typography.bodyPixelSize
+                                horizontalAlignment: Text.AlignRight
+                                text: competitionText.gaugeValueText(standingDelegate.gaugeValueMilli)
+                                textFormat: Text.PlainText
+                                visible: standingDelegate.currentClearShowsGaugeValue
+
+                                Accessible.ignored: true
+                            }
                         }
+                    }
+
+                    ArenaJudgementBreakdown {
+                        objectName: "arenaStandingJudgements"
+                        Layout.fillWidth: true
+                        Layout.minimumWidth: 0
+                        bad: standingDelegate.bad
+                        emptyPoor: standingDelegate.emptyPoor
+                        expanded: root.expanded
+                        good: standingDelegate.good
+                        great: standingDelegate.great
+                        perfect: standingDelegate.perfect
+                        poor: standingDelegate.poor
+                        totalNotes: root.totalNotes
                     }
 
                     Text {
                         objectName: "arenaStandingOutcome"
                         Layout.fillWidth: true
+                        Layout.minimumWidth: 0
                         color: standingDelegate.dnfReason.length > 0 ? "#ffb0b0" : "#b9ffffff"
                         elide: Text.ElideRight
+                        font.pixelSize: typography.bodyPixelSize
                         text: root.outcomeText(standingDelegate.clearType, standingDelegate.lobbyWinsAfter, standingDelegate.dnfReason)
                         textFormat: Text.PlainText
                         visible: text.length > 0

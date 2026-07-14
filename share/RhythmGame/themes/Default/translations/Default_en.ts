@@ -4,7 +4,7 @@
 <context>
     <name>ArenaChatView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="67"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="72"/>
         <source>%n unread message(s)</source>
         <comment>Arena chat unread count</comment>
         <translation>
@@ -22,6 +22,15 @@
         <translation>
             <numerusform>%n win</numerusform>
             <numerusform>%n wins</numerusform>
+        </translation>
+    </message>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="99"/>
+        <source>Winner: %1</source>
+        <comment>Arena result winner count</comment>
+        <translation>
+            <numerusform>Winner: %1</numerusform>
+            <numerusform>Winners: %1</numerusform>
         </translation>
     </message>
 </context>
@@ -51,12 +60,24 @@
 <context>
     <name>ArenaRosterView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="177"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="232"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
             <numerusform>%n win</numerusform>
             <numerusform>%n wins</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
+    <name>ArenaSelectionSummary</name>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="184"/>
+        <source>Last winner: %1</source>
+        <comment>Arena last round winner count</comment>
+        <translation>
+            <numerusform>Last winner: %1</numerusform>
+            <numerusform>Last winners: %1</numerusform>
         </translation>
     </message>
 </context>
@@ -74,7 +95,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="657"/>
+        <location filename="../scripts/select/Select.qml" line="658"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>

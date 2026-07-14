@@ -187,6 +187,42 @@ Loader {
             : elemLoader.screenRoot.renderSkinTime;
     }
 
+    function resolvedImageSetSource(src: var) : var {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.imageSetSourceFor(src)
+            : src;
+    }
+
+    function resolvedNumberValue(src: var) : int {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.numberValue(src)
+            : 0;
+    }
+
+    function resolvedGameplayNumberDependencyMask(src: var) : int {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.gameplayNumberDependencyMask(src)
+            : 0;
+    }
+
+    function resolvedOptionOnlyRankId(id: var) : bool {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.optionOnlyRankId(id)
+            : false;
+    }
+
+    function resolvedNumberSourceFrameGroupSize(src: var) : int {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.numberSourceFrameGroupSize(src)
+            : 0;
+    }
+
+    function resolvedBarGraph(type: var) : real {
+        return elemLoader.valueResolver
+            ? elemLoader.valueResolver.resolveBarGraph(type)
+            : 0;
+    }
+
     function componentForElement() : var {
         switch (elemLoader.elementData.type) {
         case elemLoader.elementTypeImage:
@@ -337,7 +373,7 @@ Loader {
             Lr2SpriteRenderer {
                 anchors.fill: parent
                 dsts: elemLoader.elementData.dsts
-                srcData: elemLoader.valueResolver.imageSetSourceFor(elemLoader.elementData.src)
+                srcData: elemLoader.resolvedImageSetSource(elemLoader.elementData.src)
                 sourceHasFrameAnimation: imageComponentRoot.sourceAnimates
                 skinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSkinClock
                 sourceSkinTime: imageComponentRoot.useDirectSkinClock ? 0 : imageComponentRoot.spriteSourceSkinClock
@@ -554,7 +590,7 @@ Loader {
             readonly property int valueResolverNumberDependencyMask: valueResolverNumberNeeded
                 && elemLoader.screenRoot.gameplayScreenActive
                 && !valueResolverNumberUsesSelectSnapshot
-                ? elemLoader.valueResolver.gameplayNumberDependencyMask(numberSrc)
+                ? elemLoader.resolvedGameplayNumberDependencyMask(numberSrc)
                 : 0
             readonly property int valueResolverNumberSnapshotRevision: valueResolverNumberUsesSelectSnapshot
                 ? selectContext.focusedSelectNumberRevisionForId(numberId)
@@ -569,7 +605,7 @@ Loader {
                         ? selectContext.focusedSelectNumberSnapshotValueForId(
                             numberId,
                             valueResolverNumberSnapshotRevision)
-                        : elemLoader.valueResolver.numberValue(numberSrc);
+                        : elemLoader.resolvedNumberValue(numberSrc);
                 }
                 if (valueResolverNumber !== nextValue) {
                     valueResolverNumber = nextValue;
@@ -585,7 +621,7 @@ Loader {
                     }
                     return;
                 }
-                const nextValue = elemLoader.valueResolver.numberValue(numberSrc);
+                const nextValue = elemLoader.resolvedNumberValue(numberSrc);
                 if (gameplayValueResolverNumber !== nextValue) {
                     gameplayValueResolverNumber = nextValue;
                 }
@@ -743,9 +779,9 @@ Loader {
             readonly property int currentNumberValue: usesFpsNumber
                 ? elemLoader.screenRoot.lr2CurrentFps
                 : (usesFocusedSelectNumber ? focusedSelectNumber : valueResolverNumber)
-            readonly property bool hiddenByOptionOnlyRank: elemLoader.valueResolver.optionOnlyRankId(numberId)
+            readonly property bool hiddenByOptionOnlyRank: elemLoader.resolvedOptionOnlyRankId(numberId)
             readonly property bool numberUsesNegativeSelectHide: selectNumberScreen
-                && elemLoader.valueResolver.numberSourceFrameGroupSize(numberSrc) !== 24
+                && elemLoader.resolvedNumberSourceFrameGroupSize(numberSrc) !== 24
             readonly property bool hiddenByNegativeSelectValue: numberUsesNegativeSelectHide
                 && currentNumberValue < 0
             readonly property bool numberUsesNowCombo: !!numberSrc
@@ -941,7 +977,7 @@ Loader {
                 let graphType = elemLoader.elementData.src ? elemLoader.elementData.src.graphType || 0 : 0;
                 return elemLoader.screenRoot.effectiveScreenKey === "select"
                     ? selectContext.barGraphValue(graphType)
-                    : elemLoader.valueResolver.resolveBarGraph(graphType);
+                    : elemLoader.resolvedBarGraph(graphType);
             }
             animateValue: elemLoader.screenRoot.effectiveScreenKey === "select"
                 && elemLoader.elementData.src

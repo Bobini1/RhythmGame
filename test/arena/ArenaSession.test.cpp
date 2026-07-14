@@ -2469,6 +2469,7 @@ TEST_CASE(
     CHECK(fixture.session.getIsOwner());
     CHECK(fixture.session.getMembers()->rowCount() == 2);
     CHECK(fixture.session.getChat()->rowCount() == 1);
+    CHECK(fixture.session.unreadChatCount() == 0);
 
     fixture.transport.injectText(
       2,
@@ -2528,11 +2529,50 @@ TEST_CASE(
                     { QStringLiteral("roomGeneration"), 3 },
                     { QStringLiteral("message"),
                       chatMessage(QStringLiteral("message-2"),
-                                  QStringLiteral("member-1"),
-                                  QStringLiteral("Alice"),
+                                  QStringLiteral("member-2"),
+                                  QStringLiteral("Bobby"),
                                   QStringLiteral("Ready")) },
                   } } }));
     CHECK(fixture.session.getChat()->rowCount() == 2);
+    CHECK(fixture.session.unreadChatCount() == 1);
+    CHECK(fixture.session.latestUnreadChatDisplayName() ==
+          QStringLiteral("Bobby"));
+    CHECK(fixture.session.latestUnreadChatText() == QStringLiteral("Ready"));
+
+    fixture.session.setChatOpen(true);
+    CHECK(fixture.session.chatOpen());
+    CHECK(fixture.session.unreadChatCount() == 0);
+    CHECK(fixture.session.latestUnreadChatDisplayName().isEmpty());
+    CHECK(fixture.session.latestUnreadChatText().isEmpty());
+
+    fixture.session.setChatOpen(false);
+    fixture.transport.injectText(
+      2,
+      compact({ { QStringLiteral("type"), QStringLiteral("chat_message") },
+                { QStringLiteral("data"),
+                  QJsonObject{
+                    { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                    { QStringLiteral("roomGeneration"), 3 },
+                    { QStringLiteral("message"),
+                      chatMessage(QStringLiteral("message-2"),
+                                  QStringLiteral("member-2"),
+                                  QStringLiteral("Bobby"),
+                                  QStringLiteral("Ready")) },
+                  } } }));
+    fixture.transport.injectText(
+      2,
+      compact({ { QStringLiteral("type"), QStringLiteral("chat_message") },
+                { QStringLiteral("data"),
+                  QJsonObject{
+                    { QStringLiteral("roomId"), QStringLiteral("room-1") },
+                    { QStringLiteral("roomGeneration"), 3 },
+                    { QStringLiteral("message"),
+                      chatMessage(QStringLiteral("message-3"),
+                                  QStringLiteral("member-1"),
+                                  QStringLiteral("Alice"),
+                                  QStringLiteral("Me too")) },
+                  } } }));
+    CHECK(fixture.session.unreadChatCount() == 0);
 }
 
 TEST_CASE(

@@ -9,6 +9,9 @@ ColumnLayout {
     property var tables: Rg.tables
     property int tableRevision: 0
     property bool compact: false
+    property bool fillRemainder: true
+    property bool showTitle: true
+    property bool titleOnly: false
     readonly property string selectedChartText: {
         if (!root.session) {
             return "";
@@ -29,24 +32,6 @@ ColumnLayout {
         }
         const prefix = String(matches[0].symbol || "") + String(matches[0].levelName || "");
         return prefix !== "" ? prefix + " " + metadata : metadata;
-    }
-    readonly property string readyDisabledReason: {
-        if (!root.session) {
-            return "";
-        }
-        if (root.session.roundsAvailable === false) {
-            return qsTr("Update required to play in this room.");
-        }
-        if (root.session.availabilitySyncing === true) {
-            return qsTr("Song libraries are still being compared.");
-        }
-        if (String(root.session.currentRoundId || "").length > 0) {
-            return qsTr("The synchronized round is already being prepared.");
-        }
-        if (root.session.ready !== true && root.session.canReady !== true) {
-            return qsTr("Choose a chart available to everyone before becoming ready.");
-        }
-        return "";
     }
     readonly property string syncText: {
         if (!root.session) {
@@ -73,12 +58,21 @@ ColumnLayout {
         }
     }
     readonly property var result: root.session ? root.session.lastResult : null
+    readonly property int winnerCount: {
+        const value = root.result;
+        return value && value.valid === true && value.winnerNames
+            ? value.winnerNames.length : 0;
+    }
     readonly property string winnerText: {
         const value = root.result;
         if (!value || value.valid !== true || !value.winnerNames || value.winnerNames.length === 0) {
             return "";
         }
         return value.winnerNames.join(", ");
+    }
+
+    ArenaTypography {
+        id: typography
     }
 
     function singleLine(value): string {
@@ -100,9 +94,13 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.minimumWidth: 0
         color: "white"
+        elide: root.titleOnly ? Text.ElideRight : Text.ElideNone
         font.bold: true
+        font.pixelSize: typography.bodyPixelSize
+        maximumLineCount: root.titleOnly ? 2 : 2147483647
         text: root.session ? (root.selectedChartText.length > 0 ? root.selectedChartText : qsTr("No chart selected")) : ""
         textFormat: Text.PlainText
+        visible: root.showTitle
         wrapMode: Text.Wrap
     }
 
@@ -135,7 +133,7 @@ ColumnLayout {
         objectName: "arenaSelectionSelector"
         Layout.fillWidth: true
         color: "#c9d2df"
-        elide: Text.ElideRight
+        font.pixelSize: typography.bodyPixelSize
         text: {
             if (!root.session) {
                 return "";
@@ -149,15 +147,18 @@ ColumnLayout {
                 : qsTr("Selected by another player");
         }
         textFormat: Text.PlainText
+        visible: !root.titleOnly
+        wrapMode: Text.Wrap
     }
 
     Text {
         objectName: "arenaSelectionOptions"
         Layout.fillWidth: true
         color: "#d6deea"
+        font.pixelSize: typography.bodyPixelSize
         text: root.session ? String(root.session.arenaOptionsSummary || "") : ""
         textFormat: Text.PlainText
-        visible: text.length > 0
+        visible: !root.titleOnly && text.length > 0
         wrapMode: Text.Wrap
     }
 
@@ -167,19 +168,10 @@ ColumnLayout {
         Accessible.role: Accessible.StaticText
         Layout.fillWidth: true
         color: "#ffd38a"
+        font.pixelSize: typography.bodyPixelSize
         text: root.syncText
         textFormat: Text.PlainText
-        visible: text.length > 0
-        wrapMode: Text.Wrap
-    }
-
-    Text {
-        objectName: "arenaReadyDisabledReason"
-        Layout.fillWidth: true
-        color: "#ffb2a8"
-        text: root.readyDisabledReason
-        textFormat: Text.PlainText
-        visible: !root.compact && text.length > 0
+        visible: !root.titleOnly && text.length > 0
         wrapMode: Text.Wrap
     }
 
@@ -187,14 +179,18 @@ ColumnLayout {
         objectName: "arenaLastWinners"
         Layout.fillWidth: true
         color: "#ffe39b"
-        text: root.winnerText.length > 0 ? qsTr("Last winner(s): %1").arg(root.winnerText) : ""
+        font.pixelSize: typography.bodyPixelSize
+        text: root.winnerCount > 0
+            ? qsTr("Last winner: %1", "Arena last round winner count", root.winnerCount).arg(root.winnerText)
+            : ""
         textFormat: Text.PlainText
-        visible: text.length > 0
+        visible: !root.titleOnly && text.length > 0
         wrapMode: Text.Wrap
     }
 
     Item {
-        Layout.fillHeight: true
+        Layout.fillHeight: root.fillRemainder
         Layout.minimumHeight: 0
+        visible: root.fillRemainder
     }
 }

@@ -15,8 +15,7 @@ Item {
     property bool customizeMode: false
     property var coordinatedScreen: null
     property bool customizationTransitionActive: false
-    property int unreadCount: 0
-    property bool resultExpanded: false
+    property bool resultExpanded: true
     property bool resultCustomizeMode: false
     property bool resultInputGuardActive: false
 
@@ -38,8 +37,6 @@ Item {
     readonly property bool screenCoordinatesCustomization: root.currentItem !== null && typeof root.currentItem.setArenaCustomizeMode === "function"
     readonly property string activeRoundId: root.ownsArenaRunner && root.session.liveStandings !== null && root.session.liveStandings !== undefined ? String(root.session.liveStandings.roundId || "") : (root.ownsArenaResult ? root.currentArenaRoundId : "")
     readonly property var placementFrame: gameplayOverlayLoader.item || resultOverlayLoader.item || (root.currentItem && root.currentItem.arenaOverlayPlacementFrame !== undefined ? root.currentItem.arenaOverlayPlacementFrame : null)
-    readonly property rect chatDrawerRect: root.placementFrame !== null ? root.placementFrame.adjacentChatRect() : Qt.rect(0, 0, 1, 1)
-
     function acknowledgePlacementHint() {
         if (placementHint.activeFocus) {
             if (root.currentItem !== null && typeof root.currentItem.forceActiveFocus === "function") {
@@ -62,8 +59,8 @@ Item {
         root.customizationTransitionActive = true;
         const previousScreen = root.coordinatedScreen;
         const nextScreen = accepted && root.screenCoordinatesCustomization ? root.currentItem : null;
-        if (accepted && root.session.gameplayChatOpen === true) {
-            root.session.setGameplayChatOpen(false);
+        if (accepted && root.session.chatOpen === true) {
+            root.session.setChatOpen(false);
         }
         if (accepted) {
             root.acknowledgePlacementHint();
@@ -83,16 +80,14 @@ Item {
     onOwnsArenaRunnerChanged: {
         if (!root.ownsArenaRunner) {
             root.expanded = false;
-            root.unreadCount = 0;
             placementHintTimer.stop();
         } else if (root.generalVars !== null && root.generalVars !== undefined && root.generalVars.arenaOverlayHintVersion < 1) {
             placementHintTimer.restart();
         }
     }
     onActiveRoundIdChanged: {
-        root.unreadCount = 0;
-        if (root.session.gameplayChatOpen === true) {
-            root.session.setGameplayChatOpen(false);
+        if (root.session.chatOpen === true) {
+            root.session.setChatOpen(false);
         }
     }
     onArenaShortcutEnabledChanged: {
@@ -121,11 +116,8 @@ Item {
     Connections {
         target: root.session
 
-        function onGameplayChatOpenChanged() {
-            if (root.session.gameplayChatOpen === true) {
-                root.unreadCount = 0;
-            }
-            if (root.session.gameplayChatOpen === true && root.customizeMode) {
+        function onChatOpenChanged() {
+            if (root.session.chatOpen === true && root.customizeMode) {
                 root.setCustomizeMode(false);
             }
         }
@@ -134,21 +126,6 @@ Item {
             if (!root.customizationTransitionActive && root.customizeMode && root.ownsArenaRunner && root.session.overlayCustomizationActive !== true) {
                 root.setCustomizeMode(false);
             }
-        }
-    }
-
-    Connections {
-        target: root.session.chat
-        enabled: root.ownsArenaRunner && root.session.chat !== null
-
-        function onRowsInserted(parent, first, last) {
-            if (root.session.gameplayChatOpen !== true && root.activeRoundId.length > 0) {
-                root.unreadCount += last - first + 1;
-            }
-        }
-
-        function onModelReset() {
-            root.unreadCount = 0;
         }
     }
 
@@ -171,7 +148,7 @@ Item {
 
     onLegacyArenaResultChanged: {
         if (!root.legacyArenaResult) {
-            root.resultExpanded = false;
+            root.resultExpanded = true;
             root.resultCustomizeMode = false;
             root.resultInputGuardActive = false;
         } else {
@@ -203,7 +180,7 @@ Item {
             if (root.customizeMode) {
                 root.setCustomizeMode(false);
             }
-            root.session.toggleGameplayChat();
+            root.session.toggleChat();
         }
     }
 
@@ -271,44 +248,9 @@ Item {
                 anchors.fill: parent
                 session: root.session
                 expanded: root.expanded
-                unreadCount: root.unreadCount
 
                 onExpandedChanged: root.expanded = gameplayOverlay.expanded
             }
-        }
-    }
-
-    Loader {
-        id: gameplayChatDrawer
-
-        objectName: "arenaGameplayChatDrawer"
-        active: root.arenaShortcutEnabled
-        focus: visible
-        visible: root.session.gameplayChatOpen === true
-        x: root.chatDrawerRect.x
-        y: root.chatDrawerRect.y
-        width: root.chatDrawerRect.width
-        height: root.chatDrawerRect.height
-        sourceComponent: gameplayChatComponent
-        z: 2
-
-        onVisibleChanged: {
-            if (visible) {
-                gameplayChatDrawer.forceActiveFocus();
-            }
-        }
-        onLoaded: {
-            if (visible) {
-                gameplayChatDrawer.forceActiveFocus();
-            }
-        }
-    }
-
-    Component {
-        id: gameplayChatComponent
-
-        ArenaGameplayChat {
-            session: root.session
         }
     }
 

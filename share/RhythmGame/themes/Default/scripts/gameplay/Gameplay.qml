@@ -813,8 +813,8 @@ Rectangle {
         property bool used: false
 
         onActivated: {
-            if (root.arenaGameplayOwned && root.arenaSession.gameplayChatOpen === true) {
-                root.arenaSession.setGameplayChatOpen(false);
+            if (root.arenaGameplayOwned && root.arenaSession.chatOpen === true) {
+                root.arenaSession.setChatOpen(false);
                 return;
             }
             if (nothingWasHit && !root.arenaGameplayOwned) {

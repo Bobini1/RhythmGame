@@ -13,10 +13,10 @@ FocusScope {
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property alias dragHandle: selectHeader
-    readonly property string detailMode: tabs.currentIndex === 1 ? "chat" : "details"
-    readonly property real rosterColumnWidth: 270
+    readonly property bool chatOpen: root.session && root.session.chatOpen === true
+    readonly property real rosterColumnWidth: 360
     readonly property real normalBodyMinimumWidth: rosterColumnWidth + 8 + 220
-    readonly property bool narrowChatMode: detailMode === "chat"
+    readonly property bool thinDetailsMode: !chatOpen
         && width - 20 < normalBodyMinimumWidth
     readonly property string readyDisabledReason: {
         if (!root.session) {
@@ -40,6 +40,10 @@ FocusScope {
     Accessible.name: root.session
         ? (root.session.roomName || qsTr("Arena room")) : qsTr("Arena room")
     Accessible.role: Accessible.Grouping
+
+    ArenaTypography {
+        id: typography
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -65,31 +69,33 @@ FocusScope {
         RowLayout {
             id: selectHeader
 
+            readonly property real contentHeight: Math.max(
+                40, roomTitle.implicitHeight + 12, tabs.implicitHeight)
+
             objectName: "arenaSelectHeader"
             Layout.fillWidth: true
             Layout.fillHeight: false
-            Layout.maximumHeight: 40
-            Layout.minimumHeight: 40
-            Layout.preferredHeight: 40
+            Layout.minimumHeight: contentHeight
+            Layout.preferredHeight: contentHeight
             spacing: 4
 
             Item {
                 Layout.fillHeight: true
-                Layout.preferredWidth: 12
+                Layout.preferredWidth: 24
 
                 Accessible.ignored: true
 
                 Column {
                     anchors.centerIn: parent
-                    spacing: 3
+                    spacing: 4
 
                     Repeater {
                         model: 3
 
                         Rectangle {
                             color: "#8b96a6"
-                            height: 1
-                            width: 10
+                            height: 2
+                            width: 18
                         }
                     }
                 }
@@ -105,7 +111,7 @@ FocusScope {
                 color: "white"
                 elide: Text.ElideRight
                 font.bold: true
-                font.pixelSize: 18
+                font.pixelSize: typography.scaled(18)
                 text: root.session
                     ? (root.session.roomName || qsTr("Arena room"))
                     : qsTr("Arena room")
@@ -113,57 +119,86 @@ FocusScope {
                 verticalAlignment: Text.AlignVCenter
             }
 
-            TabBar {
+            ArenaPanelTabs {
                 id: tabs
-
-                readonly property real stableWidth: detailsTab.width
-                    + chatTab.width + spacing + leftPadding + rightPadding
 
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: false
-                Layout.maximumWidth: stableWidth
-                Layout.minimumWidth: stableWidth
-                Layout.preferredHeight: 40
-                Layout.preferredWidth: stableWidth
-                hoverEnabled: true
-
-                TabButton {
-                    id: detailsTab
-
-                    objectName: "arenaSelectDetailsTab"
-                    Accessible.name: qsTr("Show Arena room details")
-                    horizontalPadding: 10
-                    implicitHeight: Math.max(32,
-                                             implicitContentHeight
-                                             + topPadding + bottomPadding)
-                    implicitWidth: Math.max(64,
-                                            implicitContentWidth
-                                            + leftPadding + rightPadding)
-                    text: qsTr("Details")
-                    width: implicitWidth
-                }
-
-                TabButton {
-                    id: chatTab
-
-                    objectName: "arenaSelectChatTab"
-                    Accessible.name: qsTr("Show Arena chat")
-                    horizontalPadding: 10
-                    implicitHeight: Math.max(32,
-                                             implicitContentHeight
-                                             + topPadding + bottomPadding)
-                    implicitWidth: Math.max(64,
-                                            implicitContentWidth
-                                            + leftPadding + rightPadding)
-                    text: qsTr("Chat")
-                    width: implicitWidth
-                }
+                Layout.preferredHeight: implicitHeight
+                chatAccessibleName: qsTr("Show Arena chat")
+                detailsAccessibleName: qsTr("Show Arena room details")
+                session: root.session
             }
 
             HoverHandler {
                 enabled: !tabs.hovered
                 cursorShape: Qt.SizeAllCursor
             }
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.minimumHeight: actionStripContent.implicitHeight + 14
+            Layout.preferredHeight: actionStripContent.implicitHeight + 14
+            color: "#241b2230"
+            radius: 3
+
+            RowLayout {
+                id: actionStripContent
+
+                anchors.fill: parent
+                anchors.margins: 7
+                spacing: 8
+
+                ArenaSelectionSummary {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    compact: true
+                    fillRemainder: false
+                    session: root.session
+                    titleOnly: true
+                }
+
+                CheckBox {
+                    id: readyButton
+
+                    readonly property bool ready: root.session
+                        && root.session.ready === true
+
+                    objectName: "arenaSelectReady"
+                    Accessible.description: root.readyDisabledReason
+                    Accessible.name: text
+                    checkState: ready ? Qt.Checked : Qt.Unchecked
+                    enabled: root.session
+                        && root.session.roundsAvailable !== false
+                        && String(root.session.currentRoundId || "").length === 0
+                        && (ready || root.session.canReady === true)
+                    font.pixelSize: typography.bodyPixelSize
+                    nextCheckState: function() {
+                        return checkState;
+                    }
+                    text: qsTr("Ready")
+
+                    ToolTip.text: root.readyDisabledReason
+                    ToolTip.visible: hovered && !enabled
+                        && root.readyDisabledReason.length > 0
+
+                    onClicked: {
+                        if (root.session)
+                            root.session.setReady(!ready);
+                    }
+                }
+            }
+        }
+
+        ArenaSelectionSummary {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            compact: true
+            fillRemainder: false
+            session: root.session
+            showTitle: false
+            visible: root.thinDetailsMode
         }
 
         GridLayout {
@@ -175,27 +210,26 @@ FocusScope {
             Layout.minimumHeight: 0
             clip: true
             columnSpacing: 8
-            columns: root.width - 20 >= root.normalBodyMinimumWidth ? 2 : 1
+            columns: root.chatOpen || root.thinDetailsMode ? 1 : 2
             rowSpacing: 8
 
             ArenaRosterView {
                 objectName: "arenaSelectRoster"
                 Layout.column: 0
                 Layout.fillHeight: true
-                Layout.fillWidth: bodyLayout.columns === 1
-                Layout.maximumWidth: bodyLayout.columns === 1
+                Layout.fillWidth: root.thinDetailsMode
+                Layout.maximumWidth: root.thinDetailsMode
                     ? Number.POSITIVE_INFINITY : root.rosterColumnWidth
                 Layout.minimumHeight: 0
-                Layout.minimumWidth: bodyLayout.columns === 1
+                Layout.minimumWidth: root.thinDetailsMode
                     ? 0 : root.rosterColumnWidth
-                Layout.preferredHeight: bodyLayout.columns === 1 ? 1 : -1
-                Layout.preferredWidth: bodyLayout.columns === 1
+                Layout.preferredWidth: root.thinDetailsMode
                     ? -1 : root.rosterColumnWidth
                 Layout.row: 0
                 compact: true
                 moderationEnabled: true
                 session: root.session
-                visible: !root.narrowChatMode
+                visible: !root.chatOpen
                 onKickRequested: memberId => {
                     if (root.session)
                         root.session.kickMember(memberId);
@@ -205,64 +239,23 @@ FocusScope {
             Loader {
                 id: detailsLoader
 
-                Layout.column: bodyLayout.columns === 1 ? 0 : 1
+                Layout.column: root.chatOpen ? 0 : 1
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 Layout.minimumHeight: 0
-                Layout.minimumWidth: bodyLayout.columns === 1 ? 0 : 220
-                Layout.preferredHeight: bodyLayout.columns === 1 ? 1 : -1
-                Layout.row: bodyLayout.columns === 1
-                    && !root.narrowChatMode ? 1 : 0
-                sourceComponent: tabs.currentIndex === 1
+                Layout.minimumWidth: root.chatOpen ? 0 : 220
+                Layout.row: 0
+                sourceComponent: root.chatOpen
                     ? chatComponent : summaryComponent
+                visible: root.chatOpen || !root.thinDetailsMode
             }
         }
 
-        Text {
-            objectName: "arenaSelectReadyDisabledReason"
-            Accessible.name: text
-            Accessible.role: Accessible.StaticText
+        ArenaChatActivityRail {
             Layout.fillWidth: true
-            Layout.minimumWidth: 0
-            color: "#ffb2a8"
-            text: root.readyDisabledReason
-            textFormat: Text.PlainText
-            visible: text.length > 0
-            wrapMode: Text.Wrap
+            session: root.session
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: 8
-
-            Text {
-                Layout.fillWidth: true
-                Layout.minimumWidth: 0
-                color: root.session && root.session.ready === true
-                    ? "#b8f0c5" : "#d6deea"
-                elide: Text.ElideRight
-                text: root.session
-                    ? (root.session.ready === true ? qsTr("Ready")
-                                                   : qsTr("Not ready")) : ""
-            }
-
-            Button {
-                objectName: "arenaSelectReady"
-                Accessible.description: root.readyDisabledReason
-                Accessible.name: text
-                enabled: root.session
-                    && root.session.roundsAvailable !== false
-                    && String(root.session.currentRoundId || "").length === 0
-                    && (root.session.ready === true || root.session.canReady === true)
-                text: root.session && root.session.ready === true
-                    ? qsTr("Unready") : qsTr("Ready")
-                onClicked: {
-                    if (root.session)
-                        root.session.setReady(root.session.ready !== true);
-                }
-            }
-
-        }
     }
 
     ArenaStatusAnnouncer {
@@ -315,6 +308,7 @@ FocusScope {
                 id: selectionSummary
 
                 compact: true
+                showTitle: false
                 session: root.session
                 width: detailsScroll.availableWidth
             }

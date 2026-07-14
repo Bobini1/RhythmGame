@@ -88,8 +88,9 @@ ArenaChatModel::replace(QVector<ChatMessage> messages, QString selfMemberId)
     return true;
 }
 
-void
+auto
 ArenaChatModel::upsert(ChatMessage message)
+  -> bool
 {
     const auto found = std::find_if(
       m_messages.begin(), m_messages.end(), [&](const ChatMessage& row) {
@@ -115,13 +116,13 @@ ArenaChatModel::upsert(ChatMessage message)
             changedRoles.push_back(TimestampRole);
         }
         if (changedRoles.isEmpty()) {
-            return;
+            return false;
         }
         const auto row =
           static_cast<int>(std::distance(m_messages.begin(), found));
         *found = std::move(message);
         emit dataChanged(index(row, 0), index(row, 0), changedRoles);
-        return;
+        return false;
     }
 
     const auto wasFull = m_messages.size() == MaxWireChatBacklog;
@@ -137,6 +138,7 @@ ArenaChatModel::upsert(ChatMessage message)
     if (!wasFull) {
         emit countChanged();
     }
+    return true;
 }
 
 auto

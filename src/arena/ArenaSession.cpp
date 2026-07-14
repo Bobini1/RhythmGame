@@ -832,9 +832,27 @@ ArenaSession::resultPresentationActive() const -> bool
     return m_resultPresentationActive;
 }
 auto
-ArenaSession::gameplayChatOpen() const -> bool
+ArenaSession::chatOpen() const -> bool
 {
-    return m_gameplayChatOpen;
+    return m_chatOpen;
+}
+
+auto
+ArenaSession::unreadChatCount() const -> int
+{
+    return m_unreadChatCount;
+}
+
+auto
+ArenaSession::latestUnreadChatDisplayName() const -> QString
+{
+    return m_latestUnreadChatDisplayName;
+}
+
+auto
+ArenaSession::latestUnreadChatText() const -> QString
+{
+    return m_latestUnreadChatText;
 }
 
 auto
@@ -1580,7 +1598,16 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             if (!acceptsRoomEvent(event.roomId, event.roomGeneration)) {
                 return;
             }
-            m_chat.upsert(event.message);
+            const auto inserted = m_chat.upsert(event.message);
+            if (inserted && !m_chatOpen &&
+                event.message.authorMemberId != m_selfMemberId) {
+                m_unreadChatCount =
+                  std::min(m_unreadChatCount + 1, MaxWireChatBacklog);
+                m_latestUnreadChatDisplayName =
+                  event.message.authorDisplayName;
+                m_latestUnreadChatText = event.message.text;
+                emit chatActivityChanged();
+            }
             if (event.message.authorMemberId == m_selfMemberId &&
                 !m_pendingChatCommandIds.isEmpty()) {
                 const auto requestId = m_pendingChatCommandIds.takeFirst();
@@ -2125,6 +2152,7 @@ ArenaSession::clearRoom()
     m_requestedSelection.reset();
     m_members.clear();
     m_chat.clear();
+    clearChatActivity();
     m_pendingCommands.clear();
     m_pendingChatCommandIds.clear();
     setRoundLaunchCancellationStatusKey({});
@@ -2934,7 +2962,7 @@ ArenaSession::cancelPreparedRound(bool notify, bool preserveScoreGuid)
     cancelTask(m_roundStartTask);
     stopTelemetrySampling();
     detachGameplaySource(preserveScoreGuid);
-    setGameplayChatOpen(false);
+    setChatOpen(false);
     if (lifecycle != m_lifecycleGeneration) {
         return;
     }
@@ -2970,7 +2998,7 @@ ArenaSession::retainPreparedGameplayUntilReleased()
     cancelTask(m_roundStartTask);
     stopTelemetrySampling();
     detachGameplaySource();
-    setGameplayChatOpen(false);
+    setChatOpen(false);
 
     Q_ASSERT(m_retainedGameplayRunner == nullptr ||
              m_retainedGameplayRunner == m_preparedRunner);
@@ -3093,7 +3121,7 @@ ArenaSession::clearActiveCompetitionRound(bool preservePresentedResult)
     m_localRoundAbandoned = false;
     m_localTerminalSubmitted = false;
     detachGameplaySource();
-    setGameplayChatOpen(false);
+    setChatOpen(false);
     m_liveStandings.clear();
     m_opponentTarget.clear();
     m_competitionIdentities.clear();
@@ -3205,7 +3233,7 @@ ArenaSession::handleArenaRunnerStatusChanged()
     }
     setOverlayCustomizationActive(false);
     stopTelemetrySampling();
-    setGameplayChatOpen(false);
+    setChatOpen(false);
     if (m_arenaGameplayActive) {
         m_arenaGameplayActive = false;
         emit competitionChanged();
@@ -3790,7 +3818,7 @@ ArenaSession::submitLocalResult(gameplay_logic::BmsScore* score) -> bool
     const auto roundId = m_round->roundId;
     const auto launchAttemptId = m_round->launchAttemptId;
     stopTelemetrySampling();
-    setGameplayChatOpen(false);
+    setChatOpen(false);
     if (lifecycle != m_lifecycleGeneration ||
         !currentCompetitionRound(roundId, launchAttemptId)) {
         return true;
@@ -3873,31 +3901,46 @@ ArenaSession::abandonCurrentRound()
     setOverlayCustomizationActive(false);
     m_localRoundAbandoned = true;
     stopTelemetrySampling();
-    setGameplayChatOpen(false);
+    setChatOpen(false);
     sendAbandon(DnfReason::Aborted);
     cancelPreparedRound(false, true);
 }
 
 void
-ArenaSession::setGameplayChatOpen(bool open)
+ArenaSession::setChatOpen(bool open)
 {
     if (open) {
         setOverlayCustomizationActive(false);
     }
-    const auto accepted =
-      open && ((m_arenaGameplayActive && m_round) ||
-               (m_resultPresentationActive && m_presentedResult.valid()));
-    if (m_gameplayChatOpen == accepted) {
-        return;
+    const auto accepted = open && !m_roomId.isEmpty() &&
+                          (m_state == State::InRoom ||
+                           m_state == State::Reconnecting);
+    if (m_chatOpen != accepted) {
+        m_chatOpen = accepted;
+        emit chatOpenChanged();
     }
-    m_gameplayChatOpen = accepted;
-    emit gameplayChatOpenChanged();
+    if (accepted) {
+        clearChatActivity();
+    }
 }
 
 void
-ArenaSession::toggleGameplayChat()
+ArenaSession::toggleChat()
 {
-    setGameplayChatOpen(!m_gameplayChatOpen);
+    setChatOpen(!m_chatOpen);
+}
+
+void
+ArenaSession::clearChatActivity()
+{
+    if (m_unreadChatCount == 0 && m_latestUnreadChatDisplayName.isEmpty() &&
+        m_latestUnreadChatText.isEmpty()) {
+        return;
+    }
+    m_unreadChatCount = 0;
+    m_latestUnreadChatDisplayName.clear();
+    m_latestUnreadChatText.clear();
+    emit chatActivityChanged();
 }
 
 void
@@ -3934,7 +3977,7 @@ ArenaSession::synchronizeCustomizationRunner()
           }
           m_overlayCustomizationActive = false;
           stopTelemetrySampling();
-          setGameplayChatOpen(false);
+          setChatOpen(false);
           if (m_gameplaySourceAttached && m_gameplaySource != nullptr) {
               m_gameplaySource->detach();
           }
@@ -3976,7 +4019,7 @@ ArenaSession::endResultPresentation(const QString& roundId)
         m_presentedResult.roundId() != roundId) {
         return;
     }
-    setGameplayChatOpen(false);
+    setChatOpen(false);
     m_resultPresentationActive = false;
     m_presentedResult.clear();
     emit competitionChanged();
