@@ -120,7 +120,7 @@ Item {
             anchors.leftMargin: 20
             down: BmsKey[`Col${bg.player}3`]
             model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-            strings: qsTr("ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+            strings: qsTr("ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
             prop: "gaugeType"
             profile: bg.profile
         }

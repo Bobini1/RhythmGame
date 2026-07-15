@@ -26,17 +26,17 @@ QtObject {
     function gaugeTypeText(value): string {
         switch (String(value || "")) {
         case "fc":
-            return qsTr("Full combo");
+            return qsTr("FC");
         case "exhard":
-            return qsTr("EX Hard");
+            return qsTr("EXHARD");
         case "hard":
-            return qsTr("Hard");
+            return qsTr("HARD");
         case "normal":
-            return qsTr("Normal");
+            return qsTr("NORMAL");
         case "easy":
-            return qsTr("Easy");
+            return qsTr("EASY");
         case "aeasy":
-            return qsTr("Assist Easy");
+            return qsTr("ASSIST EASY");
         default:
             return qsTr("Unknown");
         }
@@ -47,21 +47,21 @@ QtObject {
         case "max":
             return qsTr("MAX");
         case "perfect":
-            return qsTr("Perfect");
+            return qsTr("PERFECT");
         case "fc":
-            return qsTr("Full combo");
+            return qsTr("FC");
         case "exhard":
-            return qsTr("EX Hard");
+            return qsTr("EXHARD");
         case "hard":
-            return qsTr("Hard");
+            return qsTr("HARD");
         case "normal":
-            return qsTr("Normal");
+            return qsTr("NORMAL");
         case "easy":
-            return qsTr("Easy");
+            return qsTr("EASY");
         case "aeasy":
-            return qsTr("Assist Easy");
+            return qsTr("ASSIST EASY");
         case "failed":
-            return qsTr("Failed");
+            return qsTr("FAILED");
         default:
             return qsTr("Unknown");
         }
@@ -138,7 +138,7 @@ QtObject {
             return qsTr("MAX");
         }
         if (gd + bd + pr + ep === 0) {
-            return qsTr("Perfect");
+            return qsTr("PERFECT");
         }
         if (String(gaugeType || "") === "fc" && gaugePasses(gaugeType, gaugeValueMilli)) {
             return qsTr("FC");

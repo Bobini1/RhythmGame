@@ -373,39 +373,15 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="29"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="52"/>
-        <source>Full combo</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="31"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="54"/>
-        <source>EX Hard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="33"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="56"/>
-        <source>Hard</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="35"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="58"/>
-        <source>Normal</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="37"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="60"/>
-        <source>Easy</source>
+        <source>EXHARD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="39"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="62"/>
-        <source>Assist Easy</source>
+        <source>ASSIST EASY</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -419,17 +395,6 @@
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="48"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="138"/>
         <source>MAX</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="50"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="141"/>
-        <source>Perfect</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="64"/>
-        <source>Failed</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -494,9 +459,40 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="29"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="52"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="144"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="148"/>
         <source>FC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="33"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="56"/>
+        <source>HARD</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="35"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="58"/>
+        <source>NORMAL</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="37"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="60"/>
+        <source>EASY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="50"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="141"/>
+        <source>PERFECT</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="64"/>
+        <source>FAILED</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -663,32 +659,38 @@
 <context>
     <name>ArenaJudgementBreakdown</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="157"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="20"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="173"/>
         <source>PG</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="163"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="21"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="179"/>
         <source>GR</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="169"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="22"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="185"/>
         <source>GD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="175"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="23"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="191"/>
         <source>BD</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="181"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="24"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="197"/>
         <source>PR</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="187"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="25"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaJudgementBreakdown.qml" line="203"/>
         <source>EP</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2166,6 +2168,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
+        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
+        <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="258"/>
         <source>Percentage;Best Score;Last Score;Next Rank</source>
         <translation type="unfinished"></translation>
@@ -2224,12 +2232,6 @@
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="331"/>
         <source>DP Options</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
-        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2684,12 +2686,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2853"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2857"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2855"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2859"/>
         <source>Failed to save screenshot.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2922,7 +2924,7 @@
     </message>
     <message>
         <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="123"/>
-        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
+        <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2966,7 +2968,7 @@
     </message>
     <message>
         <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="128"/>
-        <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
+        <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -3173,12 +3175,12 @@
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="174"/>
+        <location filename="../scripts/result/Result.qml" line="175"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="176"/>
+        <location filename="../scripts/result/Result.qml" line="177"/>
         <source>Failed to save screenshot.</source>
         <translation type="unfinished"></translation>
     </message>

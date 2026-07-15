@@ -24,7 +24,7 @@ QtObject {
         return host.wrapValue(value, count);
     }
 
-    readonly property var lr2GaugeLabels: ["ASSISTED EASY", "EASY", "NORMAL", "HARD", "EX HARD", "HAZARD"]
+    readonly property var lr2GaugeLabels: ["ASSIST EASY", "EASY", "NORMAL", "HARD", "EXHARD", "HAZARD"]
     readonly property var lr2GaugeValues: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
     readonly property var lr2ClassicGaugeLabels: ["OFF", "HARD", "HAZARD", "EASY", "P-ATTACK", "G-ATTACK"]
     readonly property var lr2ClassicGaugeValues: ["NORMAL", "HARD", "FC", "EASY", "EXHARD", "AEASY"]
