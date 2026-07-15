@@ -14,6 +14,8 @@ FocusScope {
     readonly property alias lastAnnouncementText: statusAnnouncer.lastAnnouncementText
     readonly property alias dragHandle: selectHeader
     readonly property bool chatOpen: root.session && root.session.chatOpen === true
+    readonly property bool preparingRound: root.session
+        ? String(root.session.currentRoundId || "").length > 0 : false
     readonly property real rosterColumnWidth: 360
     readonly property real normalBodyMinimumWidth: rosterColumnWidth + 8 + 220
     readonly property bool thinDetailsMode: !chatOpen
@@ -28,7 +30,7 @@ FocusScope {
         if (root.session.availabilitySyncing === true) {
             return qsTr("Song libraries are still being compared.");
         }
-        if (String(root.session.currentRoundId || "").length > 0) {
+        if (root.preparingRound) {
             return qsTr("The synchronized round is already being prepared.");
         }
         if (root.session.ready !== true && root.session.canReady !== true) {
@@ -163,7 +165,7 @@ FocusScope {
                     id: readyButton
 
                     readonly property bool ready: root.session
-                        && root.session.ready === true
+                        && (root.session.ready === true || root.preparingRound)
 
                     objectName: "arenaSelectReady"
                     Accessible.description: root.readyDisabledReason
@@ -171,7 +173,7 @@ FocusScope {
                     checkState: ready ? Qt.Checked : Qt.Unchecked
                     enabled: root.session
                         && root.session.roundsAvailable !== false
-                        && String(root.session.currentRoundId || "").length === 0
+                        && !root.preparingRound
                         && (ready || root.session.canReady === true)
                     font.pixelSize: typography.bodyPixelSize
                     nextCheckState: function() {

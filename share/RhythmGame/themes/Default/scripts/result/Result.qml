@@ -133,6 +133,7 @@ Item {
         }
         Shortcut {
             enabled: root.enabled && root.acceptsInput
+                && !(root.arenaResultMatches && Rg.arenaSession.chatOpen)
             sequence: "Return"
 
             onActivated: {

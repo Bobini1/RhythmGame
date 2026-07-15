@@ -23,6 +23,11 @@ ApplicationWindow {
             contentContainer.visibility = settings.visibility;
         }
     }
+    onClosing: function(close) {
+        if (Rg.arenaSession.active) {
+            Rg.arenaSession.exitArena();
+        }
+    }
     onActiveChanged: {
         if (active && !settingsRestored) {
             settingsRestored = true;
@@ -485,7 +490,31 @@ ApplicationWindow {
 
                 required property ArenaSession session
                 property bool closing: false
+                property bool selectHostLoaded: false
                 readonly property bool showSelect: session.state === ArenaSession.InRoom || session.state === ArenaSession.Reconnecting
+
+                function prepareSelectHostForRemoval(): void {
+                    const host = arenaSelectLoader.item;
+                    if (host && typeof host.prepareForRemoval === "function") {
+                        host.prepareForRemoval();
+                    }
+                }
+
+                onShowSelectChanged: {
+                    if (showSelect) {
+                        selectHostLoaded = true;
+                        return;
+                    }
+
+                    prepareSelectHostForRemoval();
+                    Qt.callLater(function () {
+                        if (!arenaShell.showSelect) {
+                            arenaShell.selectHostLoaded = false;
+                        }
+                    });
+                }
+
+                Component.onCompleted: selectHostLoaded = showSelect
 
                 function requestCloseArena(): void {
                     if (closing) {
@@ -557,6 +586,13 @@ ApplicationWindow {
                         readonly property var currentScreen: selectStack.currentItem
                         readonly property bool nativeArenaPresentation: currentScreen !== null && currentScreen.arenaNativeSelectPresentation !== undefined && currentScreen.arenaNativeSelectPresentation === true
 
+                        function prepareForRemoval(): void {
+                            const screen = currentScreen;
+                            if (screen && typeof screen.shutdownSkinScene === "function") {
+                                screen.shutdownSkinScene();
+                            }
+                        }
+
                         Component.onCompleted: {
                             const item = selectStack.pushItem(globalRoot.selectComponent, globalRoot.selectScreenProperties());
                             if (item) {
@@ -594,8 +630,10 @@ ApplicationWindow {
                     id: arenaSelectLoader
 
                     anchors.fill: parent
-                    active: arenaShell.showSelect
+                    active: arenaShell.selectHostLoaded
+                    enabled: arenaShell.showSelect
                     sourceComponent: arenaSelectComponent
+                    visible: arenaShell.showSelect
 
                     onLoaded: {
                         if (status === Loader.Ready && item) {

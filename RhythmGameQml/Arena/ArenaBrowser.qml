@@ -401,16 +401,27 @@ FocusScope {
             title: qsTr("Create Arena room")
             width: Math.min(480, root.width - 48)
 
+            function submit(): void {
+                if (roomNameField.text.trim().length > 0) {
+                    accept();
+                }
+            }
+
+            function defaultRoomName(): string {
+                const onlineUserData = root.activeProfile.onlineUserData;
+                const playerName = onlineUserData && onlineUserData.username
+                    ? String(onlineUserData.username).trim()
+                    : String(root.activeProfile.vars.generalVars.name || "").trim();
+                return qsTr("%1's room").arg(playerName);
+            }
+
             onAccepted: root.createRequested(roomNameField.text.trim(), createPasswordField.text)
             onClosed: root.finishDialog()
             onOpened: {
-                roomNameField.clear();
+                roomNameField.text = defaultRoomName();
                 createPasswordField.clear();
-                const ok = standardButton(Dialog.Ok);
-                if (ok) {
-                    ok.enabled = false;
-                }
                 roomNameField.forceActiveFocus();
+                roomNameField.selectAll();
             }
 
             ColumnLayout {
@@ -430,6 +441,7 @@ FocusScope {
                     maximumLength: 80
                     selectByMouse: true
 
+                    onAccepted: createDialog.submit()
                     onTextChanged: {
                         const ok = createDialog.standardButton(Dialog.Ok);
                         if (ok) {
@@ -448,6 +460,8 @@ FocusScope {
                     echoMode: TextInput.Password
                     inputMethodHints: Qt.ImhHiddenText | Qt.ImhSensitiveData | Qt.ImhNoPredictiveText
                     selectByMouse: true
+
+                    onAccepted: createDialog.submit()
                 }
             }
         }

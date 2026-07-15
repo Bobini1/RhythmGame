@@ -60,12 +60,14 @@ ColumnLayout {
     readonly property var result: root.session ? root.session.lastResult : null
     readonly property int winnerCount: {
         const value = root.result;
-        return value && value.valid === true && value.winnerNames
+        return value && value.valid === true && Number(value.participantCount) >= 2
+            && value.winnerNames
             ? value.winnerNames.length : 0;
     }
     readonly property string winnerText: {
         const value = root.result;
-        if (!value || value.valid !== true || !value.winnerNames || value.winnerNames.length === 0) {
+        if (!value || value.valid !== true || Number(value.participantCount) < 2
+                || !value.winnerNames || value.winnerNames.length === 0) {
             return "";
         }
         return value.winnerNames.join(", ");

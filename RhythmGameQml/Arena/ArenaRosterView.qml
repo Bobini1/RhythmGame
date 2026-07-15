@@ -21,17 +21,6 @@ FocusScope {
         id: typography
     }
 
-    function isWinner(memberId): bool {
-        if (!root.session) {
-            return false;
-        }
-        const result = root.session.lastResult;
-        if (!result || result.valid !== true || !result.winnerMemberIds) {
-            return false;
-        }
-        return result.winnerMemberIds.indexOf(memberId) >= 0;
-    }
-
     function markerText(owner, self, memberId): string {
         let markers = [];
         if (self) {
@@ -39,9 +28,6 @@ FocusScope {
         }
         if (owner) {
             markers.push(qsTr("owner"));
-        }
-        if (root.isWinner(memberId)) {
-            markers.push(qsTr("last winner"));
         }
         if (root.session && String(root.session.selectedByMemberId || "") === memberId) {
             markers.push(qsTr("selected"));
@@ -89,12 +75,15 @@ FocusScope {
         if (!connected || inventoryState === "missing") {
             return "#ef6a62";
         }
+        if (roundState === "probing" || roundState === "loading"
+                || roundState === "loaded" || roundState === "playing") {
+            return "#63d47b";
+        }
         if (inventoryState === "syncing"
-                || availabilityAppliedRevision < inventoryRevision
-                || roundState === "probing" || roundState === "loading") {
+                || availabilityAppliedRevision < inventoryRevision) {
             return "#f0c75e";
         }
-        if (ready || roundState === "loaded" || roundState === "playing") {
+        if (ready) {
             return "#63d47b";
         }
         return "#f0c75e";

@@ -17,6 +17,7 @@ Frame {
     readonly property bool updateRequired: session ? session.roundsAvailable === false : false
     readonly property bool busy: session ? session.availabilitySyncing === true || preparingRound : false
     readonly property bool ready: session ? session.ready === true : false
+    readonly property bool readyForCurrentRound: ready || preparingRound
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -138,7 +139,7 @@ Frame {
                 Text {
                     objectName: "arenaStripReadyState"
                     Layout.fillWidth: true
-                    color: root.ready ? "#b8f0c5" : "#ffd38a"
+                    color: root.readyForCurrentRound ? "#b8f0c5" : "#ffd38a"
                     elide: Text.ElideRight
                     text: root.phaseText()
                     textFormat: Text.PlainText
@@ -157,7 +158,9 @@ Frame {
                 Accessible.description: root.readyDisabledReason
                 Accessible.name: text
                 enabled: root.session && !root.updateRequired && !root.preparingRound && (root.ready || root.session.canReady === true)
-                text: root.ready ? qsTr("Unready") : qsTr("Ready")
+                text: root.preparingRound
+                    ? qsTr("Ready")
+                    : (root.ready ? qsTr("Unready") : qsTr("Ready"))
                 onClicked: {
                     if (root.session) {
                         root.session.setReady(!root.ready);

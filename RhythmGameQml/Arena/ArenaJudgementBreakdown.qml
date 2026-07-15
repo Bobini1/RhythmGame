@@ -16,11 +16,25 @@ ColumnLayout {
     property bool expanded: false
     readonly property int safeTotalNotes: Math.max(0, totalNotes)
     readonly property real wideGridThreshold: typography.scaled(210)
+    readonly property real metricLabelWidth: Math.ceil(Math.max(
+        metricLabelFontMetrics.advanceWidth(qsTr("PG")),
+        metricLabelFontMetrics.advanceWidth(qsTr("GR")),
+        metricLabelFontMetrics.advanceWidth(qsTr("GD")),
+        metricLabelFontMetrics.advanceWidth(qsTr("BD")),
+        metricLabelFontMetrics.advanceWidth(qsTr("PR")),
+        metricLabelFontMetrics.advanceWidth(qsTr("EP"))))
 
     spacing: root.expanded ? 6 : 0
 
     ArenaTypography {
         id: typography
+    }
+
+    FontMetrics {
+        id: metricLabelFontMetrics
+
+        font.bold: true
+        font.pixelSize: typography.supportingPixelSize
     }
 
     component MetricCell: Rectangle {
@@ -45,6 +59,8 @@ ColumnLayout {
             spacing: 4
 
             Text {
+                Layout.minimumWidth: root.metricLabelWidth
+                Layout.preferredWidth: root.metricLabelWidth
                 color: metricCell.accentColor
                 font.bold: true
                 font.pixelSize: typography.supportingPixelSize

@@ -629,6 +629,10 @@ Item {
         }
         root.activateGameplayIfNeeded();
     }
+
+    function shutdownSkinScene(): void {
+        skinScene.shutdown();
+    }
     
     readonly property string effectiveScreenKey: screenState.effectiveKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
@@ -5688,6 +5692,7 @@ Item {
     }
 
     Component.onDestruction: {
+        root.shutdownSkinScene();
         const arenaSession = root.arenaSession;
         if (arenaSession && root.arenaGameplayOwned) {
             arenaSession.setOverlayCustomizationActive(false);

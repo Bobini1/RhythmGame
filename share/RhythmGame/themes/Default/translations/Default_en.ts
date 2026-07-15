@@ -60,7 +60,7 @@
 <context>
     <name>ArenaRosterView</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="232"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="221"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
@@ -72,7 +72,7 @@
 <context>
     <name>ArenaSelectionSummary</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="184"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="186"/>
         <source>Last winner: %1</source>
         <comment>Arena last round winner count</comment>
         <translation>
