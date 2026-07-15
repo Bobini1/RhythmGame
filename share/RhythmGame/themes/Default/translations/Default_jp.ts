@@ -373,28 +373,10 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="31"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="54"/>
-        <source>EXHARD</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="39"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="62"/>
-        <source>ASSIST EASY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="41"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="66"/>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="85"/>
         <source>Unknown</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="48"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="138"/>
-        <source>MAX</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -456,43 +438,6 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="104"/>
         <source>%1 · %2%</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="29"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="52"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="144"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="148"/>
-        <source>FC</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="33"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="56"/>
-        <source>HARD</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="35"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="58"/>
-        <source>NORMAL</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="37"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="60"/>
-        <source>EASY</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="50"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="141"/>
-        <source>PERFECT</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="64"/>
-        <source>FAILED</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -2168,12 +2113,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
-        <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="258"/>
         <source>Percentage;Best Score;Last Score;Next Rank</source>
         <translation type="unfinished"></translation>
@@ -2923,11 +2862,6 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="123"/>
-        <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="136"/>
         <source>MAIN BPM;START BPM;MAX BPM;MIN BPM;AVG BPM;OFF</source>
         <translation type="unfinished"></translation>
@@ -2964,11 +2898,6 @@
     <message>
         <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="114"/>
         <source>Hi-Speed Fix</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="128"/>
-        <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

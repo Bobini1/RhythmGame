@@ -125,7 +125,7 @@ Rectangle {
         anchors.leftMargin: 20 + (gaugeLabel.width - width) / 2
         down: BmsKey.Col13
         model: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-        strings: qsTr("ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+        strings: ["ASSIST EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
         prop: "gaugeType"
         profile: Rg.profileList.mainProfile
     }

@@ -178,7 +178,7 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
                     font.variableAxes: mainMenuFont.variableAxes
@@ -193,7 +193,7 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     text: qsTr("Online Arena")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
@@ -207,7 +207,7 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     text: qsTr("Settings")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
@@ -221,7 +221,7 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     text: qsTr("Attributions")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight
@@ -235,7 +235,7 @@ Image {
 
                 Button {
                     width: parent.width
-                    height: 100
+                    height: 84
                     text: qsTr("Quit")
                     font.family: mainMenuFont.fontFamily
                     font.weight: mainMenuFont.fontWeight

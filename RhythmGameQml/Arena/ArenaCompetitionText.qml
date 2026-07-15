@@ -26,17 +26,17 @@ QtObject {
     function gaugeTypeText(value): string {
         switch (String(value || "")) {
         case "fc":
-            return qsTr("FC");
+            return "FC";
         case "exhard":
-            return qsTr("EXHARD");
+            return "EXHARD";
         case "hard":
-            return qsTr("HARD");
+            return "HARD";
         case "normal":
-            return qsTr("NORMAL");
+            return "NORMAL";
         case "easy":
-            return qsTr("EASY");
+            return "EASY";
         case "aeasy":
-            return qsTr("ASSIST EASY");
+            return "ASSIST EASY";
         default:
             return qsTr("Unknown");
         }
@@ -45,23 +45,23 @@ QtObject {
     function clearTypeText(value): string {
         switch (String(value || "")) {
         case "max":
-            return qsTr("MAX");
+            return "MAX";
         case "perfect":
-            return qsTr("PERFECT");
+            return "PERFECT";
         case "fc":
-            return qsTr("FC");
+            return "FC";
         case "exhard":
-            return qsTr("EXHARD");
+            return "EXHARD";
         case "hard":
-            return qsTr("HARD");
+            return "HARD";
         case "normal":
-            return qsTr("NORMAL");
+            return "NORMAL";
         case "easy":
-            return qsTr("EASY");
+            return "EASY";
         case "aeasy":
-            return qsTr("ASSIST EASY");
+            return "ASSIST EASY";
         case "failed":
-            return qsTr("FAILED");
+            return "FAILED";
         default:
             return qsTr("Unknown");
         }
@@ -135,17 +135,17 @@ QtObject {
         const pr = Math.max(0, Number(poor));
         const ep = Math.max(0, Number(emptyPoor));
         if (gr + gd + bd + pr + ep === 0) {
-            return qsTr("MAX");
+            return "MAX";
         }
         if (gd + bd + pr + ep === 0) {
-            return qsTr("PERFECT");
+            return "PERFECT";
         }
         if (String(gaugeType || "") === "fc" && gaugePasses(gaugeType, gaugeValueMilli)) {
-            return qsTr("FC");
+            return "FC";
         }
         const judgedNotes = pg + gr + gd + bd + pr + ep;
         if (Number(maxCombo) === judgedNotes) {
-            return qsTr("FC");
+            return "FC";
         }
         return "";
     }

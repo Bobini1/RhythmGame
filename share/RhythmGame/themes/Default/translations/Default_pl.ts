@@ -403,16 +403,12 @@
         <translation type="vanished">Assist Easy</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="31"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="54"/>
         <source>EXHARD</source>
-        <translation>EXHARD</translation>
+        <translation type="vanished">EXHARD</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="39"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="62"/>
         <source>ASSIST EASY</source>
-        <translation>ASSIST EASY</translation>
+        <translation type="vanished">ASSIST EASY</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="41"/>
@@ -422,10 +418,8 @@
         <translation>Nieznany</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="48"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="138"/>
         <source>MAX</source>
-        <translation>MAX</translation>
+        <translation type="vanished">MAX</translation>
     </message>
     <message>
         <source>Perfect</source>
@@ -501,41 +495,28 @@
         <translation>%1 · %2%</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="29"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="52"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="144"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="148"/>
         <source>FC</source>
-        <translation>FC</translation>
+        <translation type="vanished">FC</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="33"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="56"/>
         <source>HARD</source>
-        <translation>HARD</translation>
+        <translation type="vanished">HARD</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="35"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="58"/>
         <source>NORMAL</source>
-        <translation>NORMAL</translation>
+        <translation type="vanished">NORMAL</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="37"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="60"/>
         <source>EASY</source>
-        <translation>EASY</translation>
+        <translation type="vanished">EASY</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="50"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="141"/>
         <source>PERFECT</source>
-        <translation>PERFECT</translation>
+        <translation type="vanished">PERFECT</translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="64"/>
         <source>FAILED</source>
-        <translation>NIE ZALICZONO</translation>
+        <translation type="vanished">FAILED</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="167"/>
@@ -2580,10 +2561,8 @@
         <translation>Rodzaj powtórki</translation>
     </message>
     <message>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="341"/>
-        <location filename="../scripts/settings/GeneralSettings.qml" line="363"/>
         <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
+        <translation type="vanished">ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
     </message>
     <message>
         <location filename="../scripts/settings/GeneralSettings.qml" line="258"/>
@@ -3377,9 +3356,8 @@
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/PlayOptionsBattle.qml" line="123"/>
         <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
+        <translation type="vanished">ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
     </message>
     <message>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
@@ -3425,9 +3403,8 @@
         <translation>Tryb ustawień prędkości</translation>
     </message>
     <message>
-        <location filename="../scripts/select/options/PlayOptionsSingle.qml" line="128"/>
         <source>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</source>
-        <translation>ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
+        <translation type="vanished">ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC</translation>
     </message>
     <message>
         <source>ASSISTED EASY;EASY;NORMAL;HARD;EXHARD;FC</source>

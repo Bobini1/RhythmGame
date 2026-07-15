@@ -338,7 +338,7 @@ Item {
                     destination: root.generalVars
                     id_: "gaugeType"
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    displayStrings: qsTr("ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+                    displayStrings: ["ASSIST EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     name: qsTr("Gauge Type")
                     default_: "FC"
                     Layout.fillWidth: true
@@ -360,7 +360,7 @@ Item {
                     id_: "bottomShiftableGauge"
                     name: qsTr("Bottom Shiftable Gauge")
                     choices: ["AEASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
-                    displayStrings: qsTr("ASSIST EASY;EASY;NORMAL;HARD;EXHARD;FC").split(";")
+                    displayStrings: ["ASSIST EASY", "EASY", "NORMAL", "HARD", "EXHARD", "FC"]
                     default_: "AEASY"
                     Layout.fillWidth: true
                 }
