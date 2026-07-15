@@ -116,8 +116,6 @@ class ArenaSession final : public QObject
                  latestUnreadChatDisplayName NOTIFY chatActivityChanged FINAL)
     Q_PROPERTY(QString latestUnreadChatText READ latestUnreadChatText NOTIFY
                  chatActivityChanged FINAL)
-    Q_PROPERTY(bool overlayCustomizationActive READ overlayCustomizationActive
-                 NOTIFY overlayCustomizationActiveChanged FINAL)
     Q_PROPERTY(QString arenaOptionsSummary READ arenaOptionsSummary NOTIFY
                  competitionChanged FINAL)
 
@@ -191,7 +189,6 @@ class ArenaSession final : public QObject
     [[nodiscard]] auto unreadChatCount() const -> int;
     [[nodiscard]] auto latestUnreadChatDisplayName() const -> QString;
     [[nodiscard]] auto latestUnreadChatText() const -> QString;
-    [[nodiscard]] auto overlayCustomizationActive() const -> bool;
     [[nodiscard]] auto arenaOptionsSummary() const -> QString;
 
     Q_INVOKABLE void connectForBrowsing();
@@ -210,7 +207,6 @@ class ArenaSession final : public QObject
     Q_INVOKABLE void abandonCurrentRound();
     Q_INVOKABLE void setChatOpen(bool open);
     Q_INVOKABLE void toggleChat();
-    Q_INVOKABLE void setOverlayCustomizationActive(bool active);
     Q_INVOKABLE void endResultPresentation(const QString& roundId);
 
   signals:
@@ -237,7 +233,6 @@ class ArenaSession final : public QObject
     void competitionChanged();
     void chatOpenChanged();
     void chatActivityChanged();
-    void overlayCustomizationActiveChanged();
 
   private:
     enum class HandshakeKind
@@ -425,8 +420,6 @@ class ArenaSession final : public QObject
     QHash<QString, PublicIdentity> m_competitionIdentities;
     QPointer<gameplay_logic::ChartRunner> m_arenaRunner;
     QMetaObject::Connection m_arenaRunnerStatusConnection;
-    QPointer<gameplay_logic::ChartRunner> m_customizationRunner;
-    QMetaObject::Connection m_customizationRunnerDestroyedConnection;
     bool m_gameplaySourceAttached{};
     bool m_arenaGameplayActive{};
     bool m_resultPresentationActive{};
@@ -434,7 +427,6 @@ class ArenaSession final : public QObject
     int m_unreadChatCount{};
     QString m_latestUnreadChatDisplayName;
     QString m_latestUnreadChatText;
-    bool m_overlayCustomizationActive{};
     bool m_localRoundAbandoned{};
     bool m_localTerminalSubmitted{};
     QString m_arenaOptionsSummary;
@@ -545,10 +537,7 @@ class ArenaSession final : public QObject
     void clearActiveCompetitionRound(bool preservePresentedResult = false);
     [[nodiscard]] auto attachGameplaySource(gameplay_logic::ChartRunner* runner)
       -> bool;
-    void detachGameplaySource(bool preserveScoreGuid = false,
-                              bool preserveCustomization = false);
-    void synchronizeCustomizationRunner();
-    void releaseCustomizationRunner();
+    void detachGameplaySource(bool preserveScoreGuid = false);
     void handleArenaRunnerStatusChanged();
     void startTelemetrySampling();
     void scheduleTelemetryTick();

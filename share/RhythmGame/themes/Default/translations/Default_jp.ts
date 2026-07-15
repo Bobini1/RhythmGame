@@ -712,82 +712,54 @@
     </message>
 </context>
 <context>
-    <name>ArenaOverlayHost</name>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayHost.qml" line="276"/>
-        <source>Press F2 to customize the Arena standings. Press Enter or Space to dismiss this hint.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayHost.qml" line="295"/>
-        <source>Press F2 to move Arena standings</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>ArenaOverlayPlacementFrame</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="53"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="45"/>
         <source>Arena overlay placement</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="54"/>
-        <source>Drag to move. Use arrow keys to move, Alt plus arrow keys to resize, and R to reset.</source>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="46"/>
+        <source>Drag to move. Drag an edge or corner to resize.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="381"/>
-        <source>Reset</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="384"/>
-        <source>Reset Arena overlay position</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="385"/>
-        <source>Restore the default Arena overlay size and position</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="455"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="340"/>
         <source>Resize Arena overlay from top left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="464"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="349"/>
         <source>Resize Arena overlay from top</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="474"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="359"/>
         <source>Resize Arena overlay from top right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="483"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="368"/>
         <source>Resize Arena overlay from right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="493"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="378"/>
         <source>Resize Arena overlay from bottom right</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="502"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="387"/>
         <source>Resize Arena overlay from bottom</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="512"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="397"/>
         <source>Resize Arena overlay from bottom left</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="521"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayPlacementFrame.qml" line="406"/>
         <source>Resize Arena overlay from left</source>
         <translation type="unfinished"></translation>
     </message>
@@ -795,7 +767,7 @@
 <context>
     <name>ArenaOverlayResizeHandle</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayResizeHandle.qml" line="31"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaOverlayResizeHandle.qml" line="27"/>
         <source>Use arrow keys to resize. Hold Shift for larger steps.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2625,12 +2597,12 @@
 <context>
     <name>Lr2SkinScreenWrapper</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2857"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2851"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2859"/>
+        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml" line="2853"/>
         <source>Failed to save screenshot.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3104,12 +3076,12 @@
 <context>
     <name>Result</name>
     <message>
-        <location filename="../scripts/result/Result.qml" line="175"/>
+        <location filename="../scripts/result/Result.qml" line="169"/>
         <source>Screenshot saved to %1 and clipboard.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/Result.qml" line="177"/>
+        <location filename="../scripts/result/Result.qml" line="171"/>
         <source>Failed to save screenshot.</source>
         <translation type="unfinished"></translation>
     </message>

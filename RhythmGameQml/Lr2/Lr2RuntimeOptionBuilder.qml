@@ -1122,19 +1122,32 @@ QtObject {
         root.addOption(options, host.resultRankOptionForResult(host.resultOldBestResult(1), 320));
         root.addOption(options, host.resultRankOptionForResult(current1, 340));
 
-        if (host.resultScoreImproved(1)) {
+        let oldBest = host.resultOldBestResult(1);
+        let scoreDifference = host.resultExScore(current1) - host.resultExScore(oldBest);
+        if (scoreDifference > 0) {
             root.addOption(options, 330);
-            if (host.resultRawRank(current1) > host.resultRawRank(host.resultOldBestResult(1))) {
-                root.addOption(options, 335);
-            }
-        } else {
+            root.addOption(options, 335);
+        } else if (scoreDifference === 0) {
             root.addOption(options, 1330);
-            if (host.resultRawRank(current1) === host.resultRawRank(host.resultOldBestResult(1))) {
-                root.addOption(options, 1335);
-            }
+            root.addOption(options, 1335);
         }
-        root.addOption(options, host.resultComboImproved(1) ? 331 : 1331);
-        root.addOption(options, host.resultBadPoorImproved(1) ? 332 : 1332);
+
+        let comboDifference = (current1 ? (current1.maxCombo || 0) : 0)
+            - (oldBest ? (oldBest.maxCombo || 0) : 0);
+        if (comboDifference > 0) {
+            root.addOption(options, 331);
+        } else if (comboDifference === 0) {
+            root.addOption(options, 1331);
+        }
+
+        let badPoorDifference = oldBest
+            ? host.resultBadPoor(oldBest) - host.resultBadPoor(current1)
+            : (current1 ? 1 : 0);
+        if (badPoorDifference > 0) {
+            root.addOption(options, 332);
+        } else if (badPoorDifference === 0) {
+            root.addOption(options, 1332);
+        }
 
         let targetDiff = host.resultExScore(current1) - host.resultTargetPoints(1);
         if (targetDiff > 0) {

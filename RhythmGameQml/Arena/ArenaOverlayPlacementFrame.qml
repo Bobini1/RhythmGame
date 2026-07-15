@@ -1,7 +1,6 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
-import QtQuick.Controls
 
 Item {
     id: root
@@ -10,12 +9,9 @@ Item {
     required property Item viewport
     required property string placementKind
     required property string layoutVariant
-    required property bool customizeMode
     readonly property bool forcedVisible: true
     property size minimumPixelSize: Qt.size(280, 160)
     property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)
-    property bool directMoveEnabled: false
-    property bool directResizeEnabled: false
     property Item moveHandle: null
     default property alias contentData: contentHost.data
     readonly property real viewportScale: viewport
@@ -29,7 +25,6 @@ Item {
     readonly property bool interactionActive: moveHandler.active
                                               || resizeInteractionCount > 0
 
-    signal requestExitCustomization()
     signal interactionStateChanged(bool active)
     signal placementCommitted()
 
@@ -38,20 +33,17 @@ Item {
     property rect moveStartRect: Qt.rect(0, 0, 1, 1)
     property rect resizeStartRect: Qt.rect(0, 0, 1, 1)
     property int resizeInteractionCount: 0
-    readonly property real resizeEdgeInset: (customizeMode ? 16 : 8)
-                                               * viewportScale
+    readonly property real resizeEdgeInset: 8 * viewportScale
 
     x: resolvedPixelRect.x
     y: resolvedPixelRect.y
     width: resolvedPixelRect.width
     height: resolvedPixelRect.height
     visible: forcedVisible
-    focus: customizeMode
-    activeFocusOnTab: customizeMode
 
     Accessible.role: Accessible.Grouping
     Accessible.name: qsTr("Arena overlay placement")
-    Accessible.description: qsTr("Drag to move. Use arrow keys to move, Alt plus arrow keys to resize, and R to reset.")
+    Accessible.description: qsTr("Drag to move. Drag an edge or corner to resize.")
 
     onInteractionActiveChanged: interactionStateChanged(interactionActive)
 
@@ -219,16 +211,6 @@ Item {
         placementCommitted();
     }
 
-    function moveBy(x, y, commit) {
-        resolvedPixelRect = clampPixelRect(
-                    Qt.rect(resolvedPixelRect.x + x,
-                            resolvedPixelRect.y + y,
-                            resolvedPixelRect.width,
-                            resolvedPixelRect.height));
-        if (commit)
-            commitResolvedPlacement();
-    }
-
     function resizeFrom(start, x, y, horizontalEdge, verticalEdge) {
         const safe = safePixelRect();
         const minimumWidth = Math.min(safe.width,
@@ -268,28 +250,10 @@ Item {
             commitResolvedPlacement();
     }
 
-    function keyboardResize(x, y) {
-        const start = resolvedPixelRect;
-        resizeFrom(start, x, y, x === 0 ? 0 : 1, y === 0 ? 0 : 1);
-        commitResolvedPlacement();
-    }
-
     function resizeByHandle(x, y, horizontalEdge, verticalEdge) {
         const start = resolvedPixelRect;
         resizeFrom(start, x, y, horizontalEdge, verticalEdge);
         commitResolvedPlacement();
-    }
-
-    function resetPlacement() {
-        if (!canLoadPlacement())
-            return;
-        themeVars[propertyKey("XNormalized")] = -1;
-        themeVars[propertyKey("YNormalized")] = -1;
-        themeVars[propertyKey("WidthNormalized")] = -1;
-        themeVars[propertyKey("HeightNormalized")] = -1;
-        sourcePlacement = ({ "stored": false });
-        resolvedPixelRect = defaultPixelRect();
-        placementCommitted();
     }
 
     onThemeVarsChanged: reloadPlacement()
@@ -314,41 +278,6 @@ Item {
         }
     }
 
-    Keys.onPressed: event => {
-        if (!customizeMode)
-            return;
-        const step = ((event.modifiers & Qt.ShiftModifier) !== 0 ? 16 : 4)
-                   * viewportScale;
-        const resize = (event.modifiers & Qt.AltModifier) !== 0;
-        let x = 0;
-        let y = 0;
-        if (event.key === Qt.Key_Left)
-            x = -step;
-        else if (event.key === Qt.Key_Right)
-            x = step;
-        else if (event.key === Qt.Key_Up)
-            y = -step;
-        else if (event.key === Qt.Key_Down)
-            y = step;
-        else if (event.key === Qt.Key_R) {
-            resetPlacement();
-            event.accepted = true;
-            return;
-        } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter
-                   || event.key === Qt.Key_Escape) {
-            requestExitCustomization();
-            event.accepted = true;
-            return;
-        } else {
-            return;
-        }
-        if (resize)
-            keyboardResize(x, y);
-        else
-            moveBy(x, y, true);
-        event.accepted = true;
-    }
-
     Item {
         id: contentHost
 
@@ -358,55 +287,12 @@ Item {
         transformOrigin: Item.TopLeft
     }
 
-    Rectangle {
-        anchors.fill: parent
-        visible: root.customizeMode
-        color: "transparent"
-        border.width: 2 * root.viewportScale
-        border.color: "#f5f7ff"
-        z: 1000
-    }
-
-    Button {
-        id: resetButton
-
-        objectName: "arenaOverlayReset"
-        width: 96 * root.viewportScale
-        height: 36 * root.viewportScale
-        x: 8 * root.viewportScale
-        y: 8 * root.viewportScale
-        visible: root.customizeMode
-        enabled: root.customizeMode
-        z: 1002
-        text: qsTr("Reset")
-        activeFocusOnTab: true
-
-        Accessible.name: qsTr("Reset Arena overlay position")
-        Accessible.description: qsTr("Restore the default Arena overlay size and position")
-        onClicked: root.resetPlacement()
-
-        background: Rectangle {
-            radius: 3 * root.viewportScale
-            color: resetButton.down ? "#d8dce8" : "#f5f7ff"
-            border.width: 2 * root.viewportScale
-            border.color: "#181b24"
-        }
-
-        contentItem: Text {
-            text: resetButton.text
-            color: "#181b24"
-            font.pixelSize: 13 * root.viewportScale
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-        }
-    }
-
     DragHandler {
         id: moveHandler
 
         parent: root.moveHandle || root
         target: null
-        enabled: root.customizeMode || root.directMoveEnabled
+        enabled: true
         acceptedButtons: Qt.LeftButton
 
         onActiveChanged: {
@@ -433,8 +319,7 @@ Item {
         required property string handleObjectName
 
         objectName: handleObjectName
-        interactionEnabled: root.customizeMode || root.directResizeEnabled
-        chromeVisible: root.customizeMode
+        interactionEnabled: true
         metricScale: root.viewportScale
 
         onInteractionStarted: function(horizontalEdge, verticalEdge) {

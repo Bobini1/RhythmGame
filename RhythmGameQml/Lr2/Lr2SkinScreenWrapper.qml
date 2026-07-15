@@ -11,7 +11,6 @@ Item {
     property string screenKey: ""
     property string arenaRoundId: ""
     property bool arenaManagedRunner: false
-    property bool arenaResultCustomizationActive: false
     property var chart
     property var scores: []
     property var profiles: []
@@ -493,8 +492,6 @@ Item {
     Shortcut {
         enabled: root.screenUpdatesActive
             && !selectSearchState.focused
-            && !root.arenaSession.overlayCustomizationActive
-            && !root.arenaResultCustomizationActive
         sequence: "Esc"
 
         onActivated: {
@@ -630,10 +627,6 @@ Item {
         root.activateGameplayIfNeeded();
     }
 
-    function shutdownSkinScene(): void {
-        skinScene.shutdown();
-    }
-    
     readonly property string effectiveScreenKey: screenState.effectiveKey
     readonly property bool gameplayScreenActive: screenState.gameplayScreen
     readonly property bool resultScreenActive: screenState.resultScreen
@@ -650,9 +643,6 @@ Item {
         return root.arenaRoundId.length > 0;
     }
 
-    function setArenaResultCustomizationActive(active: bool) : void {
-        root.arenaResultCustomizationActive = active;
-    }
     readonly property bool decideScreenActive: root.enabled
         && root.visible
         && root.effectiveScreenKey === "decide"
@@ -752,19 +742,32 @@ Item {
         root.appendParseOption(options, root.resultRankOptionForResult(root.resultOldBestResult(1), 320));
         root.appendParseOption(options, root.resultRankOptionForResult(current1, 340));
 
-        if (root.resultScoreImproved(1)) {
+        let oldBest = root.resultOldBestResult(1);
+        let scoreDifference = root.resultExScore(current1) - root.resultExScore(oldBest);
+        if (scoreDifference > 0) {
             root.appendParseOption(options, 330);
-            if (root.resultRawRank(current1) > root.resultRawRank(root.resultOldBestResult(1))) {
-                root.appendParseOption(options, 335);
-            }
-        } else {
+            root.appendParseOption(options, 335);
+        } else if (scoreDifference === 0) {
             root.appendParseOption(options, 1330);
-            if (root.resultRawRank(current1) === root.resultRawRank(root.resultOldBestResult(1))) {
-                root.appendParseOption(options, 1335);
-            }
+            root.appendParseOption(options, 1335);
         }
-        root.appendParseOption(options, root.resultComboImproved(1) ? 331 : 1331);
-        root.appendParseOption(options, root.resultBadPoorImproved(1) ? 332 : 1332);
+
+        let comboDifference = (current1 ? (current1.maxCombo || 0) : 0)
+            - (oldBest ? (oldBest.maxCombo || 0) : 0);
+        if (comboDifference > 0) {
+            root.appendParseOption(options, 331);
+        } else if (comboDifference === 0) {
+            root.appendParseOption(options, 1331);
+        }
+
+        let badPoorDifference = oldBest
+            ? root.resultBadPoor(oldBest) - root.resultBadPoor(current1)
+            : (current1 ? 1 : 0);
+        if (badPoorDifference > 0) {
+            root.appendParseOption(options, 332);
+        } else if (badPoorDifference === 0) {
+            root.appendParseOption(options, 1332);
+        }
 
         let targetDiff = root.resultExScore(current1) - root.resultTargetPoints(1);
         if (targetDiff > 0) {
@@ -5692,11 +5695,7 @@ Item {
     }
 
     Component.onDestruction: {
-        root.shutdownSkinScene();
         const arenaSession = root.arenaSession;
-        if (arenaSession && root.arenaGameplayOwned) {
-            arenaSession.setOverlayCustomizationActive(false);
-        }
         if (arenaSession && root.arenaManagedRunner && root.chart) {
             arenaSession.releasePreparedGameplay(root.chart);
         }
@@ -5904,8 +5903,7 @@ Item {
     }
 
     function resultInputReady() : var {
-        return root.enabled && root.resultScreenActive && root.acceptsInput
-            && !root.arenaResultCustomizationActive;
+        return root.enabled && root.resultScreenActive && root.acceptsInput;
     }
 
     function decideInputBlockReason(requireChart: var) : var {

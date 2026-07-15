@@ -42,10 +42,6 @@ Rectangle {
             root.popup = null;
         }
     }
-    function setArenaCustomizeMode(active) {
-        root.customizeMode = !!active;
-        root.closeActivePopup();
-    }
     function isPlayerScratchRightSide(player) {
         return player?.profile?.vars?.themeVars[root.screen][root.themeName]?.scratchOnRightSide;
     }
@@ -169,9 +165,6 @@ Rectangle {
     Component.onDestruction: {
         closeActivePopup();
         const arenaSession = root.arenaSession;
-        if (arenaSession && root.arenaGameplayOwned) {
-            arenaSession.setOverlayCustomizationActive(false);
-        }
         if (arenaSession && root.arenaManagedRunner && root.chart) {
             arenaSession.releasePreparedGameplay(root.chart);
         }
@@ -807,7 +800,6 @@ Rectangle {
     Shortcut {
         id: escapeShortcut
         enabled: root.enabled
-            && !root.arenaSession.overlayCustomizationActive
         sequence: "Esc"
         property bool nothingWasHit: true
         property bool used: false

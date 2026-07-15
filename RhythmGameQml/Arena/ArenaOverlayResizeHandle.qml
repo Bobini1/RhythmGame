@@ -4,14 +4,11 @@ Item {
     id: root
 
     required property bool interactionEnabled
-    required property bool chromeVisible
     required property string accessibleName
     property real metricScale: 1
     property int horizontalEdge: 0
     property int verticalEdge: 0
     readonly property bool interactionActive: resizeHandler.active
-    readonly property bool focusIndicatorVisible: chromeVisible
-                                                   && activeFocus && enabled
 
     signal interactionStarted(int horizontalEdge, int verticalEdge)
     signal interactionDelta(real x, real y, int horizontalEdge, int verticalEdge)
@@ -19,17 +16,16 @@ Item {
     signal keyboardResizeRequested(real x, real y, int horizontalEdge,
                                    int verticalEdge)
 
-    width: (chromeVisible ? 32 : 16) * metricScale
-    height: (chromeVisible ? 32 : 16) * metricScale
+    width: 16 * metricScale
+    height: 16 * metricScale
     visible: interactionEnabled
     enabled: interactionEnabled
-    activeFocusOnTab: chromeVisible && enabled
     z: 1001
 
     Accessible.role: Accessible.Grip
     Accessible.name: accessibleName
     Accessible.description: qsTr("Use arrow keys to resize. Hold Shift for larger steps.")
-    Accessible.focusable: chromeVisible && enabled
+    Accessible.focusable: false
 
     Accessible.onIncreaseAction: resizeOutward(1)
     Accessible.onDecreaseAction: resizeOutward(-1)
@@ -69,38 +65,6 @@ Item {
             return;
         }
         event.accepted = true;
-    }
-
-    Rectangle {
-        objectName: root.objectName + "Chrome"
-        anchors.centerIn: parent
-        width: (root.horizontalEdge !== 0 && root.verticalEdge !== 0 ? 12 :
-                root.horizontalEdge !== 0 ? 8 : 18) * root.metricScale
-        height: (root.horizontalEdge !== 0 && root.verticalEdge !== 0 ? 12 :
-                 root.verticalEdge !== 0 ? 8 : 18) * root.metricScale
-        radius: 2 * root.metricScale
-        color: "#f5f7ff"
-        border.width: 2 * root.metricScale
-        border.color: "#181b24"
-        visible: root.chromeVisible
-
-        Accessible.ignored: true
-    }
-
-    Rectangle {
-        objectName: root.objectName + "FocusIndicator"
-        anchors.centerIn: parent
-        height: Math.min(28 * root.metricScale,
-                         root.height - 4 * root.metricScale)
-        width: Math.min(28 * root.metricScale,
-                        root.width - 4 * root.metricScale)
-        border.color: "#8fdcff"
-        border.width: 2 * root.metricScale
-        color: "transparent"
-        radius: 3 * root.metricScale
-        visible: root.chromeVisible && root.focusIndicatorVisible
-
-        Accessible.ignored: true
     }
 
     HoverHandler {

@@ -308,9 +308,13 @@ Item {
     }
 
     function appendReplayDataHit(data: var, bucketSize: var, type: var, hit: var) : void {
-        let offset = root.replayEventOffset(hit, 0);
-        if (offset < 0) {
+        let eventOffset = root.replayEventOffset(hit, 0);
+        if (eventOffset < 0) {
             return;
+        }
+        let offset = eventOffset - root.hitDeviationNanos(hit);
+        if (!isFinite(offset) || offset < 0) {
+            offset = eventOffset;
         }
         let second = Math.max(0, Math.floor(offset / 1000000000));
         while (second >= data.length) {

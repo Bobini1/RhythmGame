@@ -18,10 +18,7 @@ Item {
         id: placementFrame
 
         objectName: "arenaSelectPlacementFrame"
-        customizeMode: false
         defaultPixelRectHint: root.defaultPixelRectHint
-        directMoveEnabled: true
-        directResizeEnabled: true
         layoutVariant: "select"
         minimumPixelSize: Qt.size(420, 320)
         moveHandle: panel.dragHandle

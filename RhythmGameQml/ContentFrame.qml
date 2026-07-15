@@ -490,31 +490,22 @@ ApplicationWindow {
 
                 required property ArenaSession session
                 property bool closing: false
-                property bool selectHostLoaded: false
                 readonly property bool showSelect: session.state === ArenaSession.InRoom || session.state === ArenaSession.Reconnecting
 
-                function prepareSelectHostForRemoval(): void {
+                function syncSelectHost(): void {
                     const host = arenaSelectLoader.item;
-                    if (host && typeof host.prepareForRemoval === "function") {
-                        host.prepareForRemoval();
-                    }
-                }
-
-                onShowSelectChanged: {
-                    if (showSelect) {
-                        selectHostLoaded = true;
+                    if (!host) {
                         return;
                     }
-
-                    prepareSelectHostForRemoval();
-                    Qt.callLater(function () {
-                        if (!arenaShell.showSelect) {
-                            arenaShell.selectHostLoaded = false;
-                        }
-                    });
+                    if (showSelect) {
+                        host.openSelectScreen();
+                        host.forceActiveFocus();
+                    } else {
+                        host.closeSelectScreen();
+                    }
                 }
 
-                Component.onCompleted: selectHostLoaded = showSelect
+                onShowSelectChanged: syncSelectHost()
 
                 function requestCloseArena(): void {
                     if (closing) {
@@ -586,18 +577,18 @@ ApplicationWindow {
                         readonly property var currentScreen: selectStack.currentItem
                         readonly property bool nativeArenaPresentation: currentScreen !== null && currentScreen.arenaNativeSelectPresentation !== undefined && currentScreen.arenaNativeSelectPresentation === true
 
-                        function prepareForRemoval(): void {
-                            const screen = currentScreen;
-                            if (screen && typeof screen.shutdownSkinScene === "function") {
-                                screen.shutdownSkinScene();
+                        function openSelectScreen(): void {
+                            if (currentScreen) {
+                                return;
                             }
-                        }
-
-                        Component.onCompleted: {
                             const item = selectStack.pushItem(globalRoot.selectComponent, globalRoot.selectScreenProperties());
                             if (item) {
                                 item.forceActiveFocus();
                             }
+                        }
+
+                        function closeSelectScreen(): void {
+                            selectStack.clear(StackView.Immediate);
                         }
 
                         StackView {
@@ -630,15 +621,13 @@ ApplicationWindow {
                     id: arenaSelectLoader
 
                     anchors.fill: parent
-                    active: arenaShell.selectHostLoaded
+                    active: true
                     enabled: arenaShell.showSelect
                     sourceComponent: arenaSelectComponent
                     visible: arenaShell.showSelect
 
                     onLoaded: {
-                        if (status === Loader.Ready && item) {
-                            item.forceActiveFocus();
-                        }
+                        arenaShell.syncSelectHost();
                     }
                 }
             }
@@ -716,7 +705,6 @@ ApplicationWindow {
 
             anchors.fill: parent
             currentItem: sceneStack.currentItem
-            generalVars: globalRoot.mainProfile.vars.generalVars
             layoutVariant: globalRoot.gameplayLayoutVariant(sceneStack.currentItem)
             resultResolvedSkinId: String(globalRoot.mainProfile.themeConfig.result || "")
             resultThemeVars: globalRoot.resolvedThemeVars("result")

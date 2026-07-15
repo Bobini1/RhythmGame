@@ -31,12 +31,6 @@ Item {
     readonly property bool selectScreen: rootReady && root.effectiveScreenKey === "select"
     readonly property bool selectScreenActive: screenUpdatesActive && selectScreen
     readonly property var gameplayFrameState: rootReady ? root.gameplayFrameStateRef : null
-    property bool shuttingDown: false
-
-    function shutdown() : void {
-        shuttingDown = true;
-    }
-
     Lr2SelectPointerController {
         id: selectPointer
         screenRoot: sceneRoot.root
@@ -80,7 +74,7 @@ Item {
 
             Repeater {
                 id: skinRepeater
-                model: sceneRoot.shuttingDown ? null : sceneRoot.skinModel
+                model: sceneRoot.skinModel
 
                 delegate: Lr2SkinElementDelegate {
                     readonly property int sceneDescriptorRevision: sceneRoot.runtimeDescriptorRevision
