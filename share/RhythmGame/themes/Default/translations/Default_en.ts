@@ -2,6 +2,17 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US" sourcelanguage="en_US">
 <context>
+    <name>ArenaBrowser</name>
+    <message numerus="yes">
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="380"/>
+        <source>%n player reconnecting</source>
+        <translation>
+            <numerusform>%n player reconnecting</numerusform>
+            <numerusform>%n players reconnecting</numerusform>
+        </translation>
+    </message>
+</context>
+<context>
     <name>ArenaChatView</name>
     <message numerus="yes">
         <location filename="../../../../../RhythmGameQml/Arena/ArenaChatView.qml" line="72"/>

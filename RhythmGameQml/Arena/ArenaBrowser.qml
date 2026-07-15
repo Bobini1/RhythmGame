@@ -233,10 +233,35 @@ FocusScope {
                 visible: !root.session.directoryReady && root.session.rooms.count === 0
             }
 
-            Label {
+            Frame {
                 anchors.centerIn: parent
-                text: qsTr("No Arena rooms are open.")
+                height: emptyStateContent.implicitHeight + topPadding + bottomPadding
                 visible: root.session.directoryReady && root.session.rooms.count === 0
+                width: Math.min(420, parent.width)
+
+                ColumnLayout {
+                    id: emptyStateContent
+
+                    anchors.fill: parent
+                    spacing: 12
+
+                    Label {
+                        Layout.fillWidth: true
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        text: qsTr("No Arena rooms are open.")
+                        wrapMode: Text.Wrap
+                    }
+
+                    Button {
+                        id: emptyStateCreateButton
+
+                        Layout.alignment: Qt.AlignHCenter
+                        enabled: root.roomActionsEnabled
+                        text: qsTr("Create room")
+                        onClicked: root.openCreateDialog(emptyStateCreateButton)
+                    }
+                }
             }
 
             ListView {
@@ -246,13 +271,16 @@ FocusScope {
                 Accessible.name: qsTr("Arena rooms")
                 Accessible.role: Accessible.List
                 activeFocusOnTab: true
-                anchors.fill: parent
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.top
                 clip: true
                 enabled: root.session.state === ArenaSession.Browsing
                 model: root.session.rooms
                 reuseItems: true
                 keyNavigationEnabled: true
                 spacing: 8
+                width: Math.min(parent.width, 1200)
 
                 function ensureCurrentItem(): void {
                     if (roomList.count === 0) {
@@ -288,6 +316,7 @@ FocusScope {
                     required property int reservedCount
                     required property int maximumCount
                     required property var members
+                    readonly property int occupiedCount: roomDelegate.connectedCount + roomDelegate.reservedCount
 
                     objectName: "arenaRoom-" + roomDelegate.roomId
                     Accessible.description: root.roomDescription(roomDelegate.phase, roomDelegate.passwordProtected, roomDelegate.connectedCount, roomDelegate.reservedCount, roomDelegate.maximumCount, memberStack.memberNames)
@@ -319,13 +348,23 @@ FocusScope {
                             Layout.fillWidth: true
                             spacing: 2
 
-                            Label {
-                                Accessible.ignored: true
+                            RowLayout {
                                 Layout.fillWidth: true
-                                elide: Text.ElideRight
-                                font.bold: true
-                                text: roomDelegate.name
-                                textFormat: Text.PlainText
+
+                                Label {
+                                    Accessible.ignored: true
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                    font.bold: true
+                                    text: roomDelegate.name
+                                    textFormat: Text.PlainText
+                                }
+
+                                Label {
+                                    Accessible.ignored: true
+                                    font.bold: true
+                                    text: qsTr("%1 / %2 players").arg(roomDelegate.occupiedCount).arg(roomDelegate.maximumCount)
+                                }
                             }
 
                             Label {
@@ -337,7 +376,9 @@ FocusScope {
                             Label {
                                 Accessible.ignored: true
                                 Layout.fillWidth: true
-                                text: qsTr("%1 connected, %2 reserved / %3").arg(roomDelegate.connectedCount).arg(roomDelegate.reservedCount).arg(roomDelegate.maximumCount)
+                                opacity: 0.7
+                                text: qsTr("%n player reconnecting", "", roomDelegate.reservedCount)
+                                visible: roomDelegate.reservedCount > 0
                             }
                         }
 
@@ -355,8 +396,8 @@ FocusScope {
                             id: joinButton
 
                             Accessible.name: qsTr("Join %1").arg(roomDelegate.name)
-                            enabled: root.roomActionsEnabled && roomDelegate.connectedCount + roomDelegate.reservedCount < roomDelegate.maximumCount
-                            text: roomDelegate.connectedCount + roomDelegate.reservedCount >= roomDelegate.maximumCount ? qsTr("Full") : qsTr("Join")
+                            enabled: root.roomActionsEnabled && roomDelegate.occupiedCount < roomDelegate.maximumCount
+                            text: roomDelegate.occupiedCount >= roomDelegate.maximumCount ? qsTr("Full") : qsTr("Join")
                             onClicked: roomDelegate.activate()
                         }
                     }
