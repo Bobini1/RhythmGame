@@ -206,7 +206,11 @@ FocusScope {
         }
 
         Loader {
+            id: loginPanelLoader
+
+            Layout.alignment: Qt.AlignHCenter
             Layout.fillWidth: true
+            Layout.maximumWidth: 720
             active: !root.updateRequired && root.activeProfile.loginState !== Profile.LoggedIn
             sourceComponent: loginPanelComponent
         }

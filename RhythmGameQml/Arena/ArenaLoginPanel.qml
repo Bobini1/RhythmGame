@@ -61,15 +61,20 @@ FocusScope {
 
             Label {
                 Layout.fillWidth: true
+                font.bold: true
                 text: root.actionRequired
                     ? qsTr("Log in to continue with the selected room.")
                     : qsTr("Log in to create or join rooms.")
                 wrapMode: Text.Wrap
             }
 
-            RowLayout {
+            GridLayout {
+                id: loginFields
+
                 Layout.fillWidth: true
-                spacing: 8
+                columnSpacing: 8
+                columns: width < 560 ? 1 : 3
+                rowSpacing: 8
 
                 TextField {
                     id: emailField
@@ -103,6 +108,7 @@ FocusScope {
                     enabled: root.profile.loginState !== Profile.LoggingIn
                         && emailField.text.length > 0
                         && passwordField.text.length > 0
+                    Layout.fillWidth: loginFields.columns === 1
                     text: qsTr("Login")
 
                     onClicked: root.submit()
