@@ -8,7 +8,7 @@ Item {
     required property string gaugeImage
     required property var score
     required property bool verticalGauge
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
     property bool contentVisible: true
 
     Component {

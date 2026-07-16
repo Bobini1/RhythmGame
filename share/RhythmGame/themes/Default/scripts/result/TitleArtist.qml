@@ -12,7 +12,7 @@ WindowBg {
     ThemeFont {
         id: resultTitleFont
         fileName: root.themeVars.resultTitleFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     Text {
@@ -25,11 +25,12 @@ WindowBg {
         anchors.leftMargin: 10
         anchors.rightMargin: 10
         elide: Text.ElideRight
-        font.family: resultTitleFont.fontFamily
-        font.weight: resultTitleFont.fontWeight
-        font.variableAxes: resultTitleFont.variableAxes
-        font.italic: resultTitleFont.italic
-        font.pixelSize: 40
+        font: resultTitleFont.songMetadataFont({
+            weight: resultTitleFont.fontWeight,
+            variableAxes: resultTitleFont.variableAxes,
+            italic: resultTitleFont.italic,
+            pixelSize: 40
+        }, titleText.text)
         text: (title.title + (title.subtitle ? (" " + title.subtitle) : "")).replace(/\r\n|\n|\r/g, " ")
     }
     Text {
@@ -43,11 +44,12 @@ WindowBg {
         anchors.leftMargin: 10
         anchors.rightMargin: 10
         elide: Text.ElideRight
-        font.family: resultTitleFont.fontFamily
-        font.weight: resultTitleFont.fontWeight
-        font.variableAxes: resultTitleFont.variableAxes
-        font.italic: resultTitleFont.italic
-        font.pixelSize: 30
+        font: resultTitleFont.songMetadataFont({
+            weight: resultTitleFont.fontWeight,
+            variableAxes: resultTitleFont.variableAxes,
+            italic: resultTitleFont.italic,
+            pixelSize: 30
+        }, artistText.text)
         text: title.artist + (title.subartist ? (" " + title.subartist) : "")
     }
 }

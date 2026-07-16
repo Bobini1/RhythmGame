@@ -51,13 +51,13 @@ Item {
     ThemeFont {
         id: resultStatsFont
         fileName: root.themeVars.resultStatsFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     ThemeFont {
         id: resultTitleFont
         fileName: root.themeVars.resultTitleFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     function cycleGaugeForKey(key) {
@@ -201,11 +201,12 @@ Item {
                 z: 10
                 opacity: 0
                 color: "white"
-                font.family: resultStatsFont.fontFamily
-                font.weight: resultStatsFont.boldFontWeight
-                font.variableAxes: resultStatsFont.boldVariableAxes
-                font.italic: resultStatsFont.italic
-                font.pixelSize: 28
+                font: resultStatsFont.uiFont({
+                    weight: resultStatsFont.boldFontWeight,
+                    variableAxes: resultStatsFont.boldVariableAxes,
+                    italic: resultStatsFont.italic,
+                    pixelSize: 28
+                })
                 fontSizeMode: Text.HorizontalFit
                 minimumPixelSize: 10
                 horizontalAlignment: Text.AlignHCenter

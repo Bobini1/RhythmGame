@@ -14,6 +14,10 @@
     },
     "translations": {
       "type": "object",
+      "description": "Map of locale tags to compiled Qt translation files. Tags use language, optional script, and optional territory subtags (for example en, zh-Hans, or zh-Hant-HK). Hyphens are preferred; underscores are accepted for compatibility.",
+      "propertyNames": {
+        "pattern": "^[A-Za-z]{2,3}(?:[-_][A-Za-z]{4})?(?:[-_](?:[A-Za-z]{2}|[0-9]{3}))?$"
+      },
       "additionalProperties": { "type": "string" }
     },
     "settingsScripts": {

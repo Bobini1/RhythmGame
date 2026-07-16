@@ -13,19 +13,20 @@ Page {
     ThemeFont {
         id: settingsUiFont
         fileName: settings.themeVars.settingsUiFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     ThemeFont {
         id: settingsHeaderFont
         fileName: settings.themeVars.settingsHeaderFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
-    font.family: settingsUiFont.fontFamily
-    font.weight: settingsUiFont.fontWeight
-    font.variableAxes: settingsUiFont.variableAxes
-    font.italic: settingsUiFont.italic
+    font: settingsUiFont.uiFont({
+        weight: settingsUiFont.fontWeight,
+        variableAxes: settingsUiFont.variableAxes,
+        italic: settingsUiFont.italic
+    })
 
     function applyInitialTabIndex() {
         tabView.currentIndex = Math.max(0, Math.min(tabView.count - 1, initialTabIndex));
@@ -76,10 +77,11 @@ Page {
         rightPadding: 14
         topPadding: 8
         bottomPadding: 8
-        font.family: headerFont.fontFamily
-        font.weight: selected ? headerFont.boldFontWeight : headerFont.fontWeight
-        font.variableAxes: selected ? headerFont.boldVariableAxes : headerFont.variableAxes
-        font.italic: headerFont.italic
+        font: headerFont.uiFont({
+            weight: selected ? headerFont.boldFontWeight : headerFont.fontWeight,
+            variableAxes: selected ? headerFont.boldVariableAxes : headerFont.variableAxes,
+            italic: headerFont.italic
+        })
 
         onClicked: selectedRequested()
 
@@ -88,10 +90,11 @@ Page {
 
             visible: false
             text: settingsTabButton.text
-            font.family: settingsTabButton.headerFont.fontFamily
-            font.weight: settingsTabButton.headerFont.fontWeight
-            font.variableAxes: settingsTabButton.headerFont.variableAxes
-            font.italic: settingsTabButton.headerFont.italic
+            font: settingsTabButton.headerFont.uiFont({
+                weight: settingsTabButton.headerFont.fontWeight,
+                variableAxes: settingsTabButton.headerFont.variableAxes,
+                italic: settingsTabButton.headerFont.italic
+            })
         }
 
         Label {
@@ -99,10 +102,11 @@ Page {
 
             visible: false
             text: settingsTabButton.text
-            font.family: settingsTabButton.headerFont.fontFamily
-            font.weight: settingsTabButton.headerFont.boldFontWeight
-            font.variableAxes: settingsTabButton.headerFont.boldVariableAxes
-            font.italic: settingsTabButton.headerFont.italic
+            font: settingsTabButton.headerFont.uiFont({
+                weight: settingsTabButton.headerFont.boldFontWeight,
+                variableAxes: settingsTabButton.headerFont.boldVariableAxes,
+                italic: settingsTabButton.headerFont.italic
+            })
         }
 
         contentItem: Label {
@@ -140,11 +144,12 @@ Page {
                 : settings.palette.windowText
 
             text: "‹"
-            font.family: settingsHeaderFont.fontFamily
-            font.weight: settingsHeaderFont.boldFontWeight
-            font.variableAxes: settingsHeaderFont.boldVariableAxes
-            font.italic: settingsHeaderFont.italic
-            font.pixelSize: 28
+            font: settingsHeaderFont.uiFont({
+                weight: settingsHeaderFont.boldFontWeight,
+                variableAxes: settingsHeaderFont.boldVariableAxes,
+                italic: settingsHeaderFont.italic,
+                pixelSize: 28
+            })
             ToolTip.text: qsTr("Back")
             ToolTip.visible: hovered
             ToolTip.delay: 500

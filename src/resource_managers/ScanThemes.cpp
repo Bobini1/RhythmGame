@@ -4,6 +4,8 @@
 
 #include "ScanThemes.h"
 
+#include "Languages.h"
+
 #include "resource_managers/lr2_skin/Lr2ThemeScanner.h"
 #include "support/PathToQString.h"
 #include "support/QStringToPath.h"
@@ -105,8 +107,25 @@ resource_managers::scanThemes(std::filesystem::path themesFolder)
                     auto translationPath =
                       path / support::qStringToPath(translation.toString());
                     if (exists(translationPath)) {
+                        const auto canonicalLanguage =
+                          Languages::canonicalLanguageTag(language);
+                        if (canonicalLanguage.isEmpty()) {
+                            spdlog::warn(
+                              "Ignoring invalid translation locale {} in "
+                              "theme {}",
+                              language.toStdString(),
+                              path.string());
+                            continue;
+                        }
+                        if (translations.contains(canonicalLanguage)) {
+                            spdlog::warn(
+                              "Translation locale {} is declared more than "
+                              "once in theme {} after normalization",
+                              canonicalLanguage.toStdString(),
+                              path.string());
+                        }
                         translations.insert(
-                          language,
+                          canonicalLanguage,
                           QUrl::fromLocalFile(
                             support::pathToQString(translationPath)));
                     } else {

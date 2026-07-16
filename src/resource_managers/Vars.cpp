@@ -567,7 +567,7 @@ resource_managers::GeneralVars::setLanguage(QString value)
 void
 resource_managers::GeneralVars::resetLanguage()
 {
-    setLanguage(QLocale::system().name());
+    setLanguage(QLocale::system().bcp47Name());
 }
 auto
 resource_managers::GeneralVars::getOffset() const -> double

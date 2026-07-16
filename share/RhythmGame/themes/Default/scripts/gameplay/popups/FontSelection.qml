@@ -13,7 +13,7 @@ Item {
     property string label: Helpers.capitalizeFirstLetter(propertyId)
     property bool monospaceOnly: false
     property bool tabularDigitsOnly: false
-    readonly property string currentValue: src[propertyId] || "file:NotoSansJP-VariableFont_wght.ttf"
+    readonly property string currentValue: src[propertyId] || "file:NotoSans-VariableFont_wdth,wght.ttf"
     readonly property var bundledFonts: Rg.fileQuery.getSelectableFontFilesForDirectory(root.rootUrl + "../common/fonts/", monospaceOnly, tabularDigitsOnly)
     readonly property var systemFonts: Rg.fileQuery.getSystemFontFamilies(monospaceOnly, tabularDigitsOnly)
     readonly property var fontChoices: {
@@ -133,11 +133,12 @@ Item {
                 anchors.rightMargin: 8
                 color: popupColors.text
                 elide: Text.ElideRight
-                font.family: selectedFont.fontFamily
-                font.italic: selectedFont.italic
-                font.pixelSize: 20
-                font.weight: selectedFont.fontWeight
-                font.variableAxes: selectedFont.variableAxes
+                font: selectedFont.uiFont({
+                    italic: selectedFont.italic,
+                    pixelSize: 20,
+                    weight: selectedFont.fontWeight,
+                    variableAxes: selectedFont.variableAxes
+                })
                 fontSizeMode: Text.HorizontalFit
                 horizontalAlignment: Text.AlignHCenter
                 minimumPixelSize: 8
@@ -206,11 +207,12 @@ Item {
                         Text {
                             color: fontChoice.highlighted ? fontChoice.palette.highlightedText : fontChoice.palette.text
                             elide: Text.ElideRight
-                            font.family: previewFont.fontFamily
-                            font.italic: previewFont.italic
-                            font.pixelSize: 18
-                            font.weight: previewFont.fontWeight
-                            font.variableAxes: previewFont.variableAxes
+                            font: previewFont.uiFont({
+                                italic: previewFont.italic,
+                                pixelSize: 18,
+                                weight: previewFont.fontWeight,
+                                variableAxes: previewFont.variableAxes
+                            })
                             text: fontSelection.displayNameForLoadedFont(fontChoice.modelData.value, previewFont.fontFamily)
                             textFormat: Text.PlainText
                         }

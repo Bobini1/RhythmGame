@@ -12,7 +12,7 @@ WindowBg {
     ThemeFont {
         id: meanSdFont
         fileName: root.themeVars.resultStatsFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     ColumnLayout {
@@ -30,12 +30,13 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("MEAN")
-                    font.family: meanSdFont.fontFamily
-                    font.weight: meanSdFont.boldFontWeight
-                    font.variableAxes: meanSdFont.boldVariableAxes
-                    font.italic: meanSdFont.italic
+                    font: meanSdFont.uiFont({
+                        weight: meanSdFont.boldFontWeight,
+                        variableAxes: meanSdFont.boldVariableAxes,
+                        italic: meanSdFont.italic,
+                        pixelSize: 16
+                    })
                     color: "white"
-                    font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
@@ -45,11 +46,12 @@ WindowBg {
                     let sign = meanSd.mean > 0 ? "+" : "";
                     return sign + num;
                 }
-                font.family: meanSdFont.fontFamily
-                font.weight: meanSdFont.fontWeight
-                font.variableAxes: meanSdFont.variableAxes
-                font.italic: meanSdFont.italic
-                font.pixelSize: 24
+                font: meanSdFont.uiFont({
+                    weight: meanSdFont.fontWeight,
+                    variableAxes: meanSdFont.variableAxes,
+                    italic: meanSdFont.italic,
+                    pixelSize: 24
+                })
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
@@ -66,22 +68,24 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("SD")
-                    font.family: meanSdFont.fontFamily
-                    font.weight: meanSdFont.boldFontWeight
-                    font.variableAxes: meanSdFont.boldVariableAxes
-                    font.italic: meanSdFont.italic
+                    font: meanSdFont.uiFont({
+                        weight: meanSdFont.boldFontWeight,
+                        variableAxes: meanSdFont.boldVariableAxes,
+                        italic: meanSdFont.italic,
+                        pixelSize: 16
+                    })
                     color: "white"
-                    font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
             ResultNumberText {
                 text: (meanSd.stddev / 1000000).toFixed(1) + " ms"
-                font.family: meanSdFont.fontFamily
-                font.weight: meanSdFont.fontWeight
-                font.variableAxes: meanSdFont.variableAxes
-                font.italic: meanSdFont.italic
-                font.pixelSize: 24
+                font: meanSdFont.uiFont({
+                    weight: meanSdFont.fontWeight,
+                    variableAxes: meanSdFont.variableAxes,
+                    italic: meanSdFont.italic,
+                    pixelSize: 24
+                })
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight

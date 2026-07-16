@@ -45,7 +45,7 @@ Image {
     ThemeFont {
         id: rankingFont
         fileName: root.themeVars.rankingFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     component RankingModel: OnlineRankingModel {
@@ -140,11 +140,12 @@ Image {
         fontSizeMode: Text.Fit
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.family: rankingFont.fontFamily
-        font.weight: rankingFont.fontWeight
-        font.variableAxes: rankingFont.variableAxes
-        font.italic: rankingFont.italic
-        font.pixelSize: 16
+        font: rankingFont.uiFont({
+            weight: rankingFont.fontWeight,
+            variableAxes: rankingFont.variableAxes,
+            italic: rankingFont.italic,
+            pixelSize: 16
+        })
         maximumLineCount: 1
         minimumPixelSize: 5
         wrapMode: Text.NoWrap
@@ -162,11 +163,12 @@ Image {
         fontSizeMode: Text.Fit
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
-        font.family: rankingFont.fontFamily
-        font.weight: rankingFont.fontWeight
-        font.variableAxes: rankingFont.variableAxes
-        font.italic: rankingFont.italic
-        font.pixelSize: 16
+        font: rankingFont.uiFont({
+            weight: rankingFont.fontWeight,
+            variableAxes: rankingFont.variableAxes,
+            italic: rankingFont.italic,
+            pixelSize: 16
+        })
         maximumLineCount: 1
         minimumPixelSize: 5
         wrapMode: Text.NoWrap

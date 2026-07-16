@@ -123,6 +123,8 @@ set(LR2_SKIN_SHADERS
 )
 
 set(RHYTHM_GAME_QML_SOURCES
+        FontResolver.h
+        FontResolver.cpp
         Rg.h
         Rg.cpp
         QmlForeignTypes.h

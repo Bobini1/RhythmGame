@@ -20,7 +20,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "mainMenuFont",
@@ -30,7 +30,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "mainDialogFont",
@@ -40,7 +40,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         }
       ]
     }

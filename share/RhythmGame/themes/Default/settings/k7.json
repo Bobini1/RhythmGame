@@ -510,7 +510,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "ghostScoreFont",
@@ -520,7 +520,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "scoreGraphFont",
@@ -530,7 +530,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "titleDisplayFont",
@@ -540,7 +540,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "difficultyDisplayFont",
@@ -550,7 +550,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "bpmDisplayFont",
@@ -560,7 +560,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "lifeNumberFont",
@@ -570,7 +570,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         }
       ]
     },

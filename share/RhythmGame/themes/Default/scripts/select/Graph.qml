@@ -54,11 +54,12 @@ Image {
 
     // ── Note-count row (select-only; uses assets from the select images folder) ──
     component CountText: Text {
-        font.family: graphFont.fontFamily
-        font.weight: graphFont.fontWeight
-        font.variableAxes: graphFont.variableAxes
-        font.italic: graphFont.italic
-        font.pixelSize: 26
+        font: graphFont.uiFont({
+            weight: graphFont.fontWeight,
+            variableAxes: graphFont.variableAxes,
+            italic: graphFont.italic,
+            pixelSize: 26
+        })
         fontSizeMode: Text.HorizontalFit
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

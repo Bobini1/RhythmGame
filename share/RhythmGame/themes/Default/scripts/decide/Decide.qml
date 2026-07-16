@@ -13,13 +13,13 @@ Image {
     ThemeFont {
         id: decideTitleFont
         fileName: root.themeVars.decideTitleFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     ThemeFont {
         id: decideInfoFont
         fileName: root.themeVars.decideInfoFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     readonly property int difficulty: {
@@ -160,11 +160,12 @@ Image {
                 }
                 Text {
                     text: root.genreString
-                    font.family: decideInfoFont.fontFamily
-                    font.weight: decideInfoFont.fontWeight
-                    font.variableAxes: decideInfoFont.variableAxes
-                    font.italic: decideInfoFont.italic
-                    font.pixelSize: 200
+                    font: decideInfoFont.songMetadataFont({
+                        weight: decideInfoFont.fontWeight,
+                        variableAxes: decideInfoFont.variableAxes,
+                        italic: decideInfoFont.italic,
+                        pixelSize: 200
+                    }, root.genreString)
                     color: "white"
                     fontSizeMode: Text.VerticalFit
                     horizontalAlignment: Text.AlignHCenter
@@ -205,11 +206,12 @@ Image {
                 }
                 Text {
                     text: root.titleString
-                    font.family: decideTitleFont.fontFamily
-                    font.weight: decideTitleFont.fontWeight
-                    font.variableAxes: decideTitleFont.variableAxes
-                    font.italic: decideTitleFont.italic
-                    font.pixelSize: 200
+                    font: decideTitleFont.songMetadataFont({
+                        weight: decideTitleFont.fontWeight,
+                        variableAxes: decideTitleFont.variableAxes,
+                        italic: decideTitleFont.italic,
+                        pixelSize: 200
+                    }, root.titleString)
                     color: "white"
                     fontSizeMode: Text.VerticalFit
                     horizontalAlignment: Text.AlignHCenter
@@ -255,11 +257,12 @@ Image {
 
                 Text {
                     text: root.subartistString
-                    font.family: decideInfoFont.fontFamily
-                    font.weight: decideInfoFont.fontWeight
-                    font.variableAxes: decideInfoFont.variableAxes
-                    font.italic: decideInfoFont.italic
-                    font.pixelSize: 200
+                    font: decideInfoFont.songMetadataFont({
+                        weight: decideInfoFont.fontWeight,
+                        variableAxes: decideInfoFont.variableAxes,
+                        italic: decideInfoFont.italic,
+                        pixelSize: 200
+                    }, root.subartistString)
                     color: "white"
                     fontSizeMode: Text.VerticalFit
                     horizontalAlignment: Text.AlignHCenter
@@ -271,11 +274,12 @@ Image {
                 }
                 Text {
                     text: root.artistString
-                    font.family: decideInfoFont.fontFamily
-                    font.weight: decideInfoFont.fontWeight
-                    font.variableAxes: decideInfoFont.variableAxes
-                    font.italic: decideInfoFont.italic
-                    font.pixelSize: 200
+                    font: decideInfoFont.songMetadataFont({
+                        weight: decideInfoFont.fontWeight,
+                        variableAxes: decideInfoFont.variableAxes,
+                        italic: decideInfoFont.italic,
+                        pixelSize: 200
+                    }, root.artistString)
                     color: "white"
                     fontSizeMode: Text.VerticalFit
                     horizontalAlignment: Text.AlignHCenter

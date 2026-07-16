@@ -9,7 +9,7 @@ Text {
         return number;
     }
     property real points
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
 
     ThemeFont {
         id: ghostScoreFont
@@ -21,11 +21,12 @@ Text {
     text: (points >= 0 ? "+" : "-") + padToFour(Math.abs(Math.round(points)))
     fontSizeMode: Text.VerticalFit
     textFormat: Text.PlainText
-    font.pixelSize: 1000
-    font.family: ghostScoreFont.fontFamily
-    font.weight: ghostScoreFont.fontWeight
-    font.variableAxes: ghostScoreFont.variableAxes
-    font.italic: ghostScoreFont.italic
+    font: ghostScoreFont.uiFont({
+        pixelSize: 1000,
+        weight: ghostScoreFont.fontWeight,
+        variableAxes: ghostScoreFont.variableAxes,
+        italic: ghostScoreFont.italic
+    })
     minimumPixelSize: 6
     horizontalAlignment: Text.AlignHCenter
     width: fontInfo.width

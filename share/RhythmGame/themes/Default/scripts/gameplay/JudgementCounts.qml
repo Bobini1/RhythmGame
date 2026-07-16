@@ -21,7 +21,7 @@ Item {
     }
 
     property var score
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
 
     ThemeFont {
         id: judgementCountsFont
@@ -50,13 +50,14 @@ Item {
             fontSizeMode: Text.VerticalFit
             textFormat: Text.PlainText
             minimumPixelSize: 3
-            font.family: judgementCountsFont.fontFamily
-            font.weight: judgementCountsFont.fontWeight
-            font.variableAxes: judgementCountsFont.variableAxes
-            font.italic: judgementCountsFont.italic
-            font.pixelSize: 60
+            font: judgementCountsFont.uiFont({
+                weight: judgementCountsFont.fontWeight,
+                variableAxes: judgementCountsFont.variableAxes,
+                italic: judgementCountsFont.italic,
+                pixelSize: 60,
+                capitalization: Font.AllUppercase
+            })
             text: Helpers.getGrade(judgementCountsContainer.score.points, judgementCountsContainer.score.maxPointsNow)
-            font.capitalization: Font.AllUppercase
         }
         Text {
             Layout.fillWidth: true
@@ -66,11 +67,13 @@ Item {
             fontSizeMode: Text.VerticalFit
             textFormat: Text.PlainText
             minimumPixelSize: 3
-            font.family: judgementCountsFont.fontFamily
-            font.weight: judgementCountsFont.fontWeight
-            font.variableAxes: judgementCountsFont.variableAxes
-            font.italic: judgementCountsFont.italic
-            font.pixelSize: 60
+            font: judgementCountsFont.uiFont({
+                weight: judgementCountsFont.fontWeight,
+                variableAxes: judgementCountsFont.variableAxes,
+                italic: judgementCountsFont.italic,
+                pixelSize: 60,
+                capitalization: Font.AllUppercase
+            })
             text: {
                 let points = judgementCountsContainer.score.points;
                 let maxPoints = judgementCountsContainer.score.maxPointsNow;
@@ -88,7 +91,6 @@ Item {
                     return (100).toFixed(digits) + "%";
                 }
             }
-            font.capitalization: Font.AllUppercase
         }
         Repeater {
             id: judgementCounts
@@ -109,11 +111,12 @@ Item {
                     fontSizeMode: Text.VerticalFit
                     textFormat: Text.PlainText
                     minimumPixelSize: 3
-                    font.family: judgementCountsFont.fontFamily
-                    font.weight: judgementCountsFont.fontWeight
-                    font.variableAxes: judgementCountsFont.variableAxes
-                    font.italic: judgementCountsFont.italic
-                    font.pixelSize: 60
+                    font: judgementCountsFont.uiFont({
+                        weight: judgementCountsFont.fontWeight,
+                        variableAxes: judgementCountsFont.variableAxes,
+                        italic: judgementCountsFont.italic,
+                        pixelSize: 60
+                    })
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.preferredWidth: 2
@@ -131,11 +134,12 @@ Item {
                     fontSizeMode: Text.VerticalFit
                     textFormat: Text.PlainText
                     minimumPixelSize: 3
-                    font.family: judgementCountsFont.fontFamily
-                    font.weight: judgementCountsFont.fontWeight
-                    font.variableAxes: judgementCountsFont.variableAxes
-                    font.italic: judgementCountsFont.italic
-                    font.pixelSize: 60
+                    font: judgementCountsFont.uiFont({
+                        weight: judgementCountsFont.fontWeight,
+                        variableAxes: judgementCountsFont.variableAxes,
+                        italic: judgementCountsFont.italic,
+                        pixelSize: 60
+                    })
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     horizontalAlignment: Text.AlignRight

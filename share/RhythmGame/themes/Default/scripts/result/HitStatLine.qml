@@ -13,7 +13,7 @@ Item {
     ThemeFont {
         id: hitStatLineFont
         fileName: root.themeVars.resultStatsFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     height: judgementImage.sourceSize.height
@@ -32,11 +32,12 @@ Item {
         anchors.right: judgementImage.right
         anchors.rightMargin: -120
         color: "lightgray"
-        font.family: hitStatLineFont.fontFamily
-        font.weight: hitStatLineFont.fontWeight
-        font.variableAxes: hitStatLineFont.variableAxes
-        font.italic: hitStatLineFont.italic
-        font.pixelSize: 34
+        font: hitStatLineFont.uiFont({
+            weight: hitStatLineFont.fontWeight,
+            variableAxes: hitStatLineFont.variableAxes,
+            italic: hitStatLineFont.italic,
+            pixelSize: 34
+        })
         horizontalAlignment: Text.AlignRight
         text: "0000".slice(0, Math.max(0, 4 - hitStatLine.judgementCount.toString().length)) + "<font color='black'>" + hitStatLine.judgementCount + "</font>"
     }
@@ -47,11 +48,12 @@ Item {
         anchors.horizontalCenter: judgementImage.right
         anchors.horizontalCenterOffset: 250
         color: "lightgray"
-        font.family: hitStatLineFont.fontFamily
-        font.weight: hitStatLineFont.fontWeight
-        font.variableAxes: hitStatLineFont.variableAxes
-        font.italic: hitStatLineFont.italic
-        font.pixelSize: 25
+        font: hitStatLineFont.uiFont({
+            weight: hitStatLineFont.fontWeight,
+            variableAxes: hitStatLineFont.variableAxes,
+            italic: hitStatLineFont.italic,
+            pixelSize: 25
+        })
         horizontalAlignment: Text.AlignHCenter
         text: {
             let len = Math.max(hitStatLine.earlyCount.toString().length, hitStatLine.lateCount.toString().length, 4);

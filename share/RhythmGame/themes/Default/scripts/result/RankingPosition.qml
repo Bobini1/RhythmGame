@@ -19,7 +19,7 @@ WindowBg {
     ThemeFont {
         id: resultRankingFont
         fileName: root.themeVars.resultStatsFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     Image {
@@ -97,11 +97,12 @@ WindowBg {
                     id: oldRankingSizer
 
                     visible: false
-                    font.family: resultRankingFont.fontFamily
-                    font.weight: resultRankingFont.fontWeight
-                    font.variableAxes: resultRankingFont.variableAxes
-                    font.italic: resultRankingFont.italic
-                    font.pixelSize: 24
+                    font: resultRankingFont.uiFont({
+                        weight: resultRankingFont.fontWeight,
+                        variableAxes: resultRankingFont.variableAxes,
+                        italic: resultRankingFont.italic,
+                        pixelSize: 24
+                    })
                     text: loadedRanking.oldRankingLabel
                     textFormat: Text.RichText
                 }
@@ -109,11 +110,12 @@ WindowBg {
                     id: newRankingSizer
 
                     visible: false
-                    font.family: resultRankingFont.fontFamily
-                    font.weight: resultRankingFont.fontWeight
-                    font.variableAxes: resultRankingFont.variableAxes
-                    font.italic: resultRankingFont.italic
-                    font.pixelSize: 30
+                    font: resultRankingFont.uiFont({
+                        weight: resultRankingFont.fontWeight,
+                        variableAxes: resultRankingFont.variableAxes,
+                        italic: resultRankingFont.italic,
+                        pixelSize: 30
+                    })
                     text: loadedRanking.newRankingLabel
                     textFormat: Text.RichText
                 }
@@ -121,11 +123,12 @@ WindowBg {
                     id: totalEntriesSizer
 
                     visible: false
-                    font.family: resultRankingFont.fontFamily
-                    font.weight: resultRankingFont.fontWeight
-                    font.variableAxes: resultRankingFont.variableAxes
-                    font.italic: resultRankingFont.italic
-                    font.pixelSize: 24
+                    font: resultRankingFont.uiFont({
+                        weight: resultRankingFont.fontWeight,
+                        variableAxes: resultRankingFont.variableAxes,
+                        italic: resultRankingFont.italic,
+                        pixelSize: 24
+                    })
                     text: loadedRanking.totalEntriesLabel
                     textFormat: Text.RichText
                 }
@@ -138,11 +141,12 @@ WindowBg {
                     anchors.left: parent.left
                     anchors.leftMargin: parent.contentLeft
                     color: "black"
-                    font.family: resultRankingFont.fontFamily
-                    font.weight: resultRankingFont.fontWeight
-                    font.variableAxes: resultRankingFont.variableAxes
-                    font.italic: resultRankingFont.italic
-                    font.pixelSize: 24 * parent.textScale
+                    font: resultRankingFont.uiFont({
+                        weight: resultRankingFont.fontWeight,
+                        variableAxes: resultRankingFont.variableAxes,
+                        italic: resultRankingFont.italic,
+                        pixelSize: 24 * parent.textScale
+                    })
                     horizontalAlignment: Text.AlignRight
                     text: loadedRanking.oldRankingLabel
                     textFormat: Text.RichText
@@ -165,11 +169,12 @@ WindowBg {
                     anchors.left: resultRankingArrow.right
                     anchors.leftMargin: parent.arrowGap
                     color: "black"
-                    font.family: resultRankingFont.fontFamily
-                    font.weight: resultRankingFont.fontWeight
-                    font.variableAxes: resultRankingFont.variableAxes
-                    font.italic: resultRankingFont.italic
-                    font.pixelSize: 30 * parent.textScale
+                    font: resultRankingFont.uiFont({
+                        weight: resultRankingFont.fontWeight,
+                        variableAxes: resultRankingFont.variableAxes,
+                        italic: resultRankingFont.italic,
+                        pixelSize: 30 * parent.textScale
+                    })
                     horizontalAlignment: Text.AlignRight
                     text: loadedRanking.newRankingLabel
                     textFormat: Text.RichText
@@ -181,11 +186,12 @@ WindowBg {
                     anchors.left: newRankingText.right
                     anchors.leftMargin: parent.totalGap
                     color: "black"
-                    font.family: resultRankingFont.fontFamily
-                    font.weight: resultRankingFont.fontWeight
-                    font.variableAxes: resultRankingFont.variableAxes
-                    font.italic: resultRankingFont.italic
-                    font.pixelSize: 24 * parent.textScale
+                    font: resultRankingFont.uiFont({
+                        weight: resultRankingFont.fontWeight,
+                        variableAxes: resultRankingFont.variableAxes,
+                        italic: resultRankingFont.italic,
+                        pixelSize: 24 * parent.textScale
+                    })
                     horizontalAlignment: Text.AlignLeft
                     text: loadedRanking.totalEntriesLabel
                     textFormat: Text.RichText
@@ -198,11 +204,12 @@ WindowBg {
                 anchors.baselineOffset: parent.height - 25
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: "#20242c"
-                font.family: resultRankingFont.fontFamily
-                font.weight: resultRankingFont.fontWeight
-                font.variableAxes: resultRankingFont.variableAxes
-                font.italic: resultRankingFont.italic
-                font.pixelSize: 30
+                font: resultRankingFont.uiFont({
+                    weight: resultRankingFont.fontWeight,
+                    variableAxes: resultRankingFont.variableAxes,
+                    italic: resultRankingFont.italic,
+                    pixelSize: 30
+                })
                 text: rankingPosition.arenaLocalDnf
                     || !rankingPosition.arenaFinalized
                     || rankingPosition.arenaLocalRank <= 0

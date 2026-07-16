@@ -6,7 +6,8 @@ Item {
 
     property alias color: label.color
     property alias font: label.font
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
+    property real fontPixelSize: 20
     property bool scrolling: false
     property alias text: label.text
 
@@ -25,11 +26,12 @@ Item {
 
         anchors.verticalCenter: parent.verticalCenter
         elide: (label.longText && !wrapper.scrolling) ? Text.ElideRight : Text.ElideNone
-        font.family: nameLabelFont.fontFamily
-        font.weight: nameLabelFont.fontWeight
-        font.variableAxes: nameLabelFont.variableAxes
-        font.italic: nameLabelFont.italic
-        font.pixelSize: 20
+        font: nameLabelFont.songMetadataFont({
+            weight: nameLabelFont.fontWeight,
+            variableAxes: nameLabelFont.variableAxes,
+            italic: nameLabelFont.italic,
+            pixelSize: wrapper.fontPixelSize
+        }, label.text)
         // align right if there is enough space
         horizontalAlignment: longText ? Text.AlignLeft : Text.AlignRight
         leftPadding: 5

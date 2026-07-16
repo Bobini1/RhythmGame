@@ -12,7 +12,7 @@ WindowBg {
     ThemeFont {
         id: chartInfoFont
         fileName: root.themeVars.resultStatsFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     Image {
@@ -52,22 +52,24 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("NOTES")
-                    font.family: chartInfoFont.fontFamily
-                    font.weight: chartInfoFont.boldFontWeight
-                    font.variableAxes: chartInfoFont.boldVariableAxes
-                    font.italic: chartInfoFont.italic
+                    font: chartInfoFont.uiFont({
+                        weight: chartInfoFont.boldFontWeight,
+                        variableAxes: chartInfoFont.boldVariableAxes,
+                        italic: chartInfoFont.italic,
+                        pixelSize: 16
+                    })
                     color: "white"
-                    font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
             ResultNumberText {
                 text: chartInfo.noteCount
-                font.family: chartInfoFont.fontFamily
-                font.weight: chartInfoFont.fontWeight
-                font.variableAxes: chartInfoFont.variableAxes
-                font.italic: chartInfoFont.italic
-                font.pixelSize: 24
+                font: chartInfoFont.uiFont({
+                    weight: chartInfoFont.fontWeight,
+                    variableAxes: chartInfoFont.variableAxes,
+                    italic: chartInfoFont.italic,
+                    pixelSize: 24
+                })
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight
@@ -84,22 +86,24 @@ WindowBg {
                 Text {
                     anchors.centerIn: parent
                     text: qsTr("TOTAL")
-                    font.family: chartInfoFont.fontFamily
-                    font.weight: chartInfoFont.boldFontWeight
-                    font.variableAxes: chartInfoFont.boldVariableAxes
-                    font.italic: chartInfoFont.italic
+                    font: chartInfoFont.uiFont({
+                        weight: chartInfoFont.boldFontWeight,
+                        variableAxes: chartInfoFont.boldVariableAxes,
+                        italic: chartInfoFont.italic,
+                        pixelSize: 16
+                    })
                     color: "white"
-                    font.pixelSize: 16
                 }
                 Layout.alignment: Qt.AlignVCenter
             }
             ResultNumberText {
                 text: chartInfo.total || "-"
-                font.family: chartInfoFont.fontFamily
-                font.weight: chartInfoFont.fontWeight
-                font.variableAxes: chartInfoFont.variableAxes
-                font.italic: chartInfoFont.italic
-                font.pixelSize: 24
+                font: chartInfoFont.uiFont({
+                    weight: chartInfoFont.fontWeight,
+                    variableAxes: chartInfoFont.variableAxes,
+                    italic: chartInfoFont.italic,
+                    pixelSize: 24
+                })
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 horizontalAlignment: Text.AlignRight

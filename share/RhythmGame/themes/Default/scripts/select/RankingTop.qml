@@ -19,7 +19,7 @@ Column {
     ThemeFont {
         id: rankingTopFont
         fileName: root.themeVars.rankingFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     Repeater {
@@ -66,11 +66,12 @@ Column {
                         }
                         return "black";
                     }
-                    font.pixelSize: 24
-                    font.family: rankingTopFont.fontFamily
-                    font.weight: rankingTopFont.fontWeight
-                    font.variableAxes: rankingTopFont.variableAxes
-                    font.italic: rankingTopFont.italic
+                    font: rankingTopFont.uiFont({
+                        pixelSize: 24,
+                        weight: rankingTopFont.fontWeight,
+                        variableAxes: rankingTopFont.variableAxes,
+                        italic: rankingTopFont.italic
+                    })
                     elide: Text.ElideRight
                     verticalAlignment: Text.AlignVCenter
                     fontSizeMode: Text.HorizontalFit
@@ -150,11 +151,12 @@ Column {
                     width: parent.width
                     height: parent.height
                     text: modelData.bestPoints
-                    font.pixelSize: 24
-                    font.family: rankingTopFont.fontFamily
-                    font.weight: rankingTopFont.fontWeight
-                    font.variableAxes: rankingTopFont.variableAxes
-                    font.italic: rankingTopFont.italic
+                    font: rankingTopFont.uiFont({
+                        pixelSize: 24,
+                        weight: rankingTopFont.fontWeight,
+                        variableAxes: rankingTopFont.variableAxes,
+                        italic: rankingTopFont.italic
+                    })
                     color: "#ff0066"
                     horizontalAlignment: Text.AlignRight
                     verticalAlignment: Text.AlignVCenter
@@ -198,13 +200,14 @@ Column {
                     id: percentageText
                     anchors.fill: parent
                     text: (Math.floor(modelData.bestPoints / modelData.maxPoints * 1000) / 10).toFixed(1) + "%"
-                    font.pixelSize: 12
+                    font: rankingTopFont.uiFont({
+                        pixelSize: 12,
+                        weight: rankingTopFont.boldFontWeight,
+                        variableAxes: rankingTopFont.boldVariableAxes,
+                        italic: rankingTopFont.italic
+                    })
                     horizontalAlignment: Text.AlignRight
                     verticalAlignment: Text.AlignVCenter
-                    font.family: rankingTopFont.fontFamily
-                    font.weight: rankingTopFont.boldFontWeight
-                    font.variableAxes: rankingTopFont.boldVariableAxes
-                    font.italic: rankingTopFont.italic
                     fontSizeMode: Text.HorizontalFit
                     minimumPixelSize: 7
                 }

@@ -45,7 +45,7 @@ Column {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 10
                 color: modelData.red ? "red" : "black"
-                font.pixelSize: 25
+                fontPixelSize: 25
                 text: modelData.text
                 scrolling: songList.scrollingText
             }

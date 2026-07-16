@@ -18,7 +18,7 @@ Item {
     ThemeFont {
         id: rankingPositionFont
         fileName: root.themeVars.rankingFont
-        fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
     }
 
     function syncProviderFromGeneralVars() {
@@ -169,11 +169,12 @@ Item {
             id: positionSizer
 
             visible: false
-            font.family: rankingPositionFont.fontFamily
-            font.italic: rankingPositionFont.italic
-            font.pixelSize: 28
-            font.weight: rankingPositionFont.fontWeight
-            font.variableAxes: rankingPositionFont.variableAxes
+            font: rankingPositionFont.uiFont({
+                italic: rankingPositionFont.italic,
+                pixelSize: 28,
+                weight: rankingPositionFont.fontWeight,
+                variableAxes: rankingPositionFont.variableAxes
+            })
             text: ir.rankingPosition + "/"
         }
 
@@ -181,11 +182,12 @@ Item {
             id: totalSizer
 
             visible: false
-            font.family: rankingPositionFont.fontFamily
-            font.italic: rankingPositionFont.italic
-            font.pixelSize: 22
-            font.weight: rankingPositionFont.fontWeight
-            font.variableAxes: rankingPositionFont.variableAxes
+            font: rankingPositionFont.uiFont({
+                italic: rankingPositionFont.italic,
+                pixelSize: 22,
+                weight: rankingPositionFont.fontWeight,
+                variableAxes: rankingPositionFont.variableAxes
+            })
             text: ir.rankingTotalEntries
         }
 
@@ -193,11 +195,12 @@ Item {
             id: positionReserveSizer
 
             visible: false
-            font.family: rankingPositionFont.fontFamily
-            font.italic: rankingPositionFont.italic
-            font.pixelSize: 28
-            font.weight: rankingPositionFont.fontWeight
-            font.variableAxes: rankingPositionFont.variableAxes
+            font: rankingPositionFont.uiFont({
+                italic: rankingPositionFont.italic,
+                pixelSize: 28,
+                weight: rankingPositionFont.fontWeight,
+                variableAxes: rankingPositionFont.variableAxes
+            })
             text: "88888/"
         }
 
@@ -205,11 +208,12 @@ Item {
             id: totalReserveSizer
 
             visible: false
-            font.family: rankingPositionFont.fontFamily
-            font.italic: rankingPositionFont.italic
-            font.pixelSize: 22
-            font.weight: rankingPositionFont.fontWeight
-            font.variableAxes: rankingPositionFont.variableAxes
+            font: rankingPositionFont.uiFont({
+                italic: rankingPositionFont.italic,
+                pixelSize: 22,
+                weight: rankingPositionFont.fontWeight,
+                variableAxes: rankingPositionFont.variableAxes
+            })
             text: "88888"
         }
 
@@ -232,11 +236,12 @@ Item {
             anchors.baselineOffset: rankingNumbers.textBaseline
             anchors.left: parent.left
             anchors.leftMargin: rankingNumbers.contentLeft
-            font.family: rankingPositionFont.fontFamily
-            font.weight: rankingPositionFont.fontWeight
-            font.variableAxes: rankingPositionFont.variableAxes
-            font.italic: rankingPositionFont.italic
-            font.pixelSize: 28 * rankingNumbers.scaleFactor
+            font: rankingPositionFont.uiFont({
+                weight: rankingPositionFont.fontWeight,
+                variableAxes: rankingPositionFont.variableAxes,
+                italic: rankingPositionFont.italic,
+                pixelSize: 28 * rankingNumbers.scaleFactor
+            })
             horizontalAlignment: Text.AlignRight
             text: ir.rankingPosition + "/"
             width: rankingNumbers.positionWidth
@@ -248,11 +253,12 @@ Item {
             anchors.baselineOffset: rankingNumbers.textBaseline
             anchors.left: rankingPositionNumber.right
             anchors.leftMargin: rankingNumbers.slotGap
-            font.family: rankingPositionFont.fontFamily
-            font.weight: rankingPositionFont.fontWeight
-            font.variableAxes: rankingPositionFont.variableAxes
-            font.italic: rankingPositionFont.italic
-            font.pixelSize: 22 * rankingNumbers.scaleFactor
+            font: rankingPositionFont.uiFont({
+                weight: rankingPositionFont.fontWeight,
+                variableAxes: rankingPositionFont.variableAxes,
+                italic: rankingPositionFont.italic,
+                pixelSize: 22 * rankingNumbers.scaleFactor
+            })
             horizontalAlignment: Text.AlignRight
             text: ir.rankingTotalEntries
             width: rankingNumbers.totalWidth

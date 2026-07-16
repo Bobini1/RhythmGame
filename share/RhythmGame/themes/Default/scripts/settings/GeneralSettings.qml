@@ -41,7 +41,7 @@ Item {
                     choices: Rg.languages.languages
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
                     name: qsTr("Language")
-                    default_: Qt.locale().name
+                    default_: Rg.languages.getClosestLanguage(Rg.languages.systemLanguage, choices)
                     Layout.fillWidth: true
                 }
 

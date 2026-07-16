@@ -460,7 +460,7 @@ class GeneralVars final : public QObject
     QString bottomShiftableGauge = "AEASY";
     QString avatar = "image://avatar/mascot.png";
     QString name = "Default";
-    QString language = QLocale::system().name();
+    QString language = QLocale::system().bcp47Name();
     double offset = 0.0; // Offset in milliseconds
     ScoreTarget scoreTarget = ScoreTarget::BestScore;
     double targetScoreFraction = 8.0 / 9.0; // 0.888...

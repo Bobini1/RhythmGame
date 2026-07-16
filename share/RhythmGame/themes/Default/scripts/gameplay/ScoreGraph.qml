@@ -18,7 +18,7 @@ Item {
     property real bestPoints: 0
     property real bestFinalPoints: 0
     property real bestMaxPoints: 0
-    property string fontFile: "file:NotoSansJP-VariableFont_wght.ttf"
+    property string fontFile: "file:NotoSans-VariableFont_wdth,wght.ttf"
 
     ThemeFont {
         id: scoreGraphFont
@@ -92,11 +92,12 @@ Item {
                 required property var modelData
                 text: modelData.label
                 color: modelData.color
-                font.family: scoreGraphFont.fontFamily
-                font.weight: scoreGraphFont.boldFontWeight
-                font.variableAxes: scoreGraphFont.boldVariableAxes
-                font.italic: scoreGraphFont.italic
-                font.pixelSize: scoreGraph.fontSize
+                font: scoreGraphFont.uiFont({
+                    weight: scoreGraphFont.boldFontWeight,
+                    variableAxes: scoreGraphFont.boldVariableAxes,
+                    italic: scoreGraphFont.italic,
+                    pixelSize: scoreGraph.fontSize
+                })
                 style: Text.Outline
                 renderType: Text.QtRendering
                 styleColor: "black"
@@ -193,21 +194,23 @@ Item {
         Text {
             id: mFull
             visible: false
-            font.pixelSize: scoreGraph.fontSize
-            font.family: scoreGraphFont.fontFamily
-            font.weight: scoreGraphFont.boldFontWeight
-            font.variableAxes: scoreGraphFont.boldVariableAxes
-            font.italic: scoreGraphFont.italic
+            font: scoreGraphFont.uiFont({
+                pixelSize: scoreGraph.fontSize,
+                weight: scoreGraphFont.boldFontWeight,
+                variableAxes: scoreGraphFont.boldVariableAxes,
+                italic: scoreGraphFont.italic
+            })
             text: "TARGET: +0000"
         }
         Text {
             id: mShort
             visible: false
-            font.pixelSize: scoreGraph.fontSize
-            font.family: scoreGraphFont.fontFamily
-            font.weight: scoreGraphFont.boldFontWeight
-            font.variableAxes: scoreGraphFont.boldVariableAxes
-            font.italic: scoreGraphFont.italic
+            font: scoreGraphFont.uiFont({
+                pixelSize: scoreGraph.fontSize,
+                weight: scoreGraphFont.boldFontWeight,
+                variableAxes: scoreGraphFont.boldVariableAxes,
+                italic: scoreGraphFont.italic
+            })
             text: "T: +0000"
         }
 
@@ -227,11 +230,13 @@ Item {
                 readonly property real delta: scoreGraph.currentPoints - scoreGraph.targetPoints
                 readonly property string num: String(Math.abs(Math.round(delta))).padStart(4, "0")
                 text: (deltaDisplay.showFull ? "TARGET: " : "T: ") + (delta >= 0 ? "+" : "-") + num
-                color: "white"; font.pixelSize: scoreGraph.fontSize
-                font.family: scoreGraphFont.fontFamily
-                font.weight: scoreGraphFont.boldFontWeight
-                font.variableAxes: scoreGraphFont.boldVariableAxes
-                font.italic: scoreGraphFont.italic
+                color: "white"
+                font: scoreGraphFont.uiFont({
+                    pixelSize: scoreGraph.fontSize,
+                    weight: scoreGraphFont.boldFontWeight,
+                    variableAxes: scoreGraphFont.boldVariableAxes,
+                    italic: scoreGraphFont.italic
+                })
                 style: Text.Outline; styleColor: "black"
             }
             Text {
@@ -240,11 +245,13 @@ Item {
                 readonly property real delta: scoreGraph.currentPoints - scoreGraph.bestPoints
                 readonly property string num: String(Math.abs(Math.round(delta))).padStart(4, "0")
                 text: (deltaDisplay.showFull ? "MYBEST: " : "B: ") + (delta >= 0 ? "+" : "-") + num
-                color: "white"; font.pixelSize: scoreGraph.fontSize
-                font.family: scoreGraphFont.fontFamily
-                font.weight: scoreGraphFont.boldFontWeight
-                font.variableAxes: scoreGraphFont.boldVariableAxes
-                font.italic: scoreGraphFont.italic
+                color: "white"
+                font: scoreGraphFont.uiFont({
+                    pixelSize: scoreGraph.fontSize,
+                    weight: scoreGraphFont.boldFontWeight,
+                    variableAxes: scoreGraphFont.boldVariableAxes,
+                    italic: scoreGraphFont.italic
+                })
                 style: Text.Outline; styleColor: "black"
             }
         }

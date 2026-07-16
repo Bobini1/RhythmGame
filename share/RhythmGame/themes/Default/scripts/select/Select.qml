@@ -48,7 +48,7 @@ FocusScope {
         ThemeFont {
             id: scoreInfoFont
             fileName: root.themeVars.scoreInfoFont
-            fallbackFileName: "file:NotoSansJP-VariableFont_wght.ttf"
+            fallbackFileName: "file:NotoSans-VariableFont_wdth,wght.ttf"
         }
 
         ThemeFont {
@@ -594,11 +594,12 @@ FocusScope {
             Text {
                 anchors.bottom: scoreInfo.top
                 anchors.horizontalCenter: scoreInfo.horizontalCenter
-                font.family: scoreInfoFont.fontFamily
-                font.weight: scoreInfoFont.fontWeight
-                font.variableAxes: scoreInfoFont.variableAxes
-                font.italic: scoreInfoFont.italic
-                font.pixelSize: 19
+                font: scoreInfoFont.uiFont({
+                    weight: scoreInfoFont.fontWeight,
+                    variableAxes: scoreInfoFont.variableAxes,
+                    italic: scoreInfoFont.italic,
+                    pixelSize: 19
+                })
                 clip: true
                 elide: Text.ElideRight
                 fontSizeMode: Text.Fit
@@ -645,11 +646,12 @@ FocusScope {
                     anchors.left: parent.left
                     anchors.leftMargin: 51
                     color: "white"
-                    font.family: songInfoFont.fontFamily
-                    font.weight: songInfoFont.fontWeight
-                    font.variableAxes: songInfoFont.variableAxes
-                    font.italic: songInfoFont.italic
-                    font.pixelSize: 20
+                    font: songInfoFont.uiFont({
+                        weight: songInfoFont.fontWeight,
+                        variableAxes: songInfoFont.variableAxes,
+                        italic: songInfoFont.italic,
+                        pixelSize: 20
+                    })
                     height: 25
                     width: 540
                     wrapMode: TextEdit.NoWrap

@@ -20,7 +20,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         },
         {
           "id": "settingsHeaderFont",
@@ -30,7 +30,7 @@
           },
           "type": "font",
           "path": "scripts/common/fonts",
-          "default": "file:NotoSansJP-VariableFont_wght.ttf"
+          "default": "file:NotoSans-VariableFont_wdth,wght.ttf"
         }
       ]
     }

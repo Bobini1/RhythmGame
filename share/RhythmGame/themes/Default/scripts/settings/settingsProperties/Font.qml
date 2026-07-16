@@ -85,7 +85,7 @@ RowLayout {
     ThemeFont {
         id: selectedFont
 
-        fallbackFileName: fontSetting.effectiveDefault || "file:NotoSansJP-VariableFont_wght.ttf"
+        fallbackFileName: fontSetting.effectiveDefault || "file:NotoSans-VariableFont_wdth,wght.ttf"
         fileName: fontSetting.currentValue
     }
 
@@ -152,7 +152,7 @@ RowLayout {
                     ThemeFont {
                         id: previewFont
 
-                        fallbackFileName: fontSetting.effectiveDefault || "file:NotoSansJP-VariableFont_wght.ttf"
+                        fallbackFileName: fontSetting.effectiveDefault || "file:NotoSans-VariableFont_wdth,wght.ttf"
                         fileName: fontChoice.modelData.value
                     }
 
@@ -162,11 +162,12 @@ RowLayout {
                         Text {
                             color: fontChoice.highlighted ? fontChoice.palette.highlightedText : fontChoice.palette.text
                             elide: Text.ElideRight
-                            font.family: previewFont.fontFamily
-                            font.italic: previewFont.italic
-                            font.pixelSize: 18
-                            font.weight: previewFont.fontWeight
-                            font.variableAxes: previewFont.variableAxes
+                            font: previewFont.uiFont({
+                                italic: previewFont.italic,
+                                pixelSize: 18,
+                                weight: previewFont.fontWeight,
+                                variableAxes: previewFont.variableAxes
+                            })
                             text: fontSetting.displayNameForLoadedFont(fontChoice.modelData.value, previewFont.fontFamily)
                             textFormat: Text.PlainText
                         }

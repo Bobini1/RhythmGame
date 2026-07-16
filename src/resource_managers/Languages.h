@@ -7,6 +7,7 @@
 #include "qml_components/ThemeFamily.h"
 
 #include <QHash>
+#include <QLocale>
 #include <QObject>
 #include <qtranslator.h>
 
@@ -35,6 +36,11 @@ class Languages final : public QObject
      */
     Q_PROPERTY(QString selectedLanguage READ getSelectedLanguage NOTIFY
                  selectedLanguageChanged)
+    Q_PROPERTY(QString selectedScript READ getSelectedScript NOTIFY
+                 selectedLanguageChanged)
+    Q_PROPERTY(QString selectedTerritory READ getSelectedTerritory NOTIFY
+                 selectedLanguageChanged)
+    Q_PROPERTY(QString systemLanguage READ getSystemLanguage CONSTANT)
     QTranslator qtTranslator;
     std::unordered_map<QString, std::unique_ptr<QTranslator>> themeTranslators;
     QMap<QString, qml_components::ThemeFamily> availableThemes;
@@ -47,7 +53,16 @@ class Languages final : public QObject
       QObject* parent = nullptr);
     auto getLanguages() const -> const QStringList&;
     auto getSelectedLanguage() const -> QString;
+    auto getSelectedScript() const -> QString;
+    auto getSelectedTerritory() const -> QString;
+    static auto getSystemLanguage() -> QString;
     void setSelectedLanguage(const QString& language);
+    /**
+     * Converts a supported locale identifier to a BCP 47 language tag.
+
+     * * Both underscore and hyphen separators are accepted.
+     */
+    Q_INVOKABLE static QString canonicalLanguageTag(const QString& language);
     /**
      * Returns the native, user-friendly name of the given language code.
      */
@@ -64,7 +79,6 @@ class Languages final : public QObject
 
   private:
     QStringList languages;
-    QList<QLocale> locales;
     QString selectedLanguage;
 };
 
