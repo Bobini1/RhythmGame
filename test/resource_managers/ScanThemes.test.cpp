@@ -50,6 +50,29 @@ makeThemesRoot(QTemporaryDir& tempDir) -> std::filesystem::path
 
 } // namespace
 
+TEST_CASE("Theme scanner canonicalizes translation locale tags",
+          "[themes][translations]")
+{
+    QTemporaryDir tempDir;
+    const auto themesRoot = makeThemesRoot(tempDir);
+    const auto themeRoot = themesRoot / "ScriptLocaleTheme";
+
+    writeLr2SkinBytes(themeRoot / "main.qml", QByteArray("import QtQuick\n"));
+    writeLr2SkinBytes(themeRoot / "zh_Hant_TW.qm", QByteArray("translation"));
+    writeLr2SkinBytes(themeRoot / "theme.json", QByteArray(R"({
+        "scripts": { "main": "main.qml" },
+        "translations": { "zh_Hant_TW": "zh_Hant_TW.qm" }
+      })"));
+
+    const auto themes = resource_managers::scanThemes(themesRoot);
+
+    REQUIRE(themes.contains(QStringLiteral("ScriptLocaleTheme")));
+    const auto translations =
+      themes[QStringLiteral("ScriptLocaleTheme")].getTranslations();
+    CHECK(translations.contains(QStringLiteral("zh-Hant-TW")));
+    CHECK_FALSE(translations.contains(QStringLiteral("zh_Hant_TW")));
+}
+
 TEST_CASE("LR2 skin scanner skips unsupported beatoraja keymodes",
           "[themes][lr2]")
 {

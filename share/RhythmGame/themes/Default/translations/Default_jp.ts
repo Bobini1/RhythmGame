@@ -37,244 +37,244 @@
 <context>
     <name>ArenaBrowser</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="34"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="36"/>
         <source>Log in to create or join a room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="36"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="38"/>
         <source>You are already in a room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="38"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="40"/>
         <source>That room no longer exists.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="40"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="42"/>
         <source>The room password was rejected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="42"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="44"/>
         <source>That room is full.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="44"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="46"/>
         <source>You cannot rejoin that room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="46"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="48"/>
         <source>This account already has a seat in that room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="48"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="50"/>
         <source>Your login expired. Please try the room request again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="51"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="53"/>
         <source>This Arena server requires a newer game version.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="53"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="55"/>
         <source>Your reserved seat could not be restored.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="56"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="58"/>
         <source>Arena is restarting. Please try again shortly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="58"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="60"/>
         <source>A secure connection to Arena could not be established.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="61"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="63"/>
         <source>The ranking service could not authorize Arena right now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="65"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="67"/>
         <source>Arena is unavailable right now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="67"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="69"/>
         <source>You were removed from the room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="69"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="71"/>
         <source>Please wait for the current room request to finish.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="71"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="73"/>
         <source>Arena request failed. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="78"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="80"/>
         <source>Selecting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="80"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="82"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="86"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="88"/>
         <source>%1 Members: %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="140"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="142"/>
         <source>Exit Arena</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="380"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="386"/>
         <source>%n player reconnecting</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="28"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="148"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="30"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="150"/>
         <source>Online Arena</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="155"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="261"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="157"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="267"/>
         <source>Create room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="184"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="186"/>
         <source>Update RhythmGame to create or join Arena rooms.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="190"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="192"/>
         <source>Connecting with your online account...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="193"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="195"/>
         <source>Completing room request...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="195"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="197"/>
         <source>Connecting to Arena...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="202"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="204"/>
         <source>Retry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="252"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="258"/>
         <source>No Arena rooms are open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="366"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="372"/>
         <source>%1 / %2 players</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="373"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="379"/>
         <source>%1 · %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="85"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="373"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="379"/>
         <source>Password required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="271"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="277"/>
         <source>Arena rooms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="85"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
         <source>%1, %2. %3 connected, %4 reserved, %5 maximum.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="85"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="373"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="379"/>
         <source>Public</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="398"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="404"/>
         <source>Join %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="400"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="406"/>
         <source>Full</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="400"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="406"/>
         <source>Join</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="442"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="448"/>
         <source>Create Arena room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="456"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="462"/>
         <source>%1&apos;s room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="475"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="481"/>
         <source>Room name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="480"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="486"/>
         <source>Arena room name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="494"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="500"/>
         <source>Password (optional)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="499"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="549"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="505"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="555"/>
         <source>Arena room password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="521"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="527"/>
         <source>Join password-protected room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="544"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="550"/>
         <source>Password</source>
         <translation type="unfinished"></translation>
     </message>
@@ -659,62 +659,62 @@
 <context>
     <name>ArenaLoginPanel</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="18"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="18"/>
         <source>Login is required before joining the selected Arena room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="19"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="19"/>
         <source>Login is required before creating or joining Arena rooms.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="20"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="20"/>
         <source>Arena login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="65"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="66"/>
         <source>Log in to continue with the selected room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="66"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="67"/>
         <source>Log in to create or join rooms.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="77"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="82"/>
         <source>Arena account email</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="80"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="85"/>
         <source>Email</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="89"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="94"/>
         <source>Arena account password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="94"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="99"/>
         <source>Password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="106"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="112"/>
         <source>Login</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="133"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="139"/>
         <source>Login failed. Check your email and password.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaLoginPanel.qml" line="134"/>
+        <location filename="../scripts/multiplayer/ArenaLoginPanel.qml" line="140"/>
         <source>Logging in...</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1680,17 +1680,17 @@
 <context>
     <name>BpmDisplay</name>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="47"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="48"/>
         <source>MIN</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="60"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="62"/>
         <source>BPM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/BpmDisplay.qml" line="73"/>
+        <location filename="../scripts/gameplay/BpmDisplay.qml" line="76"/>
         <source>MAX</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1726,7 +1726,7 @@
 <context>
     <name>ChartInfo</name>
     <message>
-        <location filename="../scripts/result/ChartInfo.qml" line="86"/>
+        <location filename="../scripts/result/ChartInfo.qml" line="88"/>
         <source>TOTAL</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1931,7 +1931,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/gameplay/popups/FontSelection.qml" line="169"/>
+        <location filename="../scripts/gameplay/popups/FontSelection.qml" line="170"/>
         <source>Search fonts</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2618,32 +2618,32 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="../scripts/main/Main.qml" line="155"/>
+        <location filename="../scripts/main/Main.qml" line="159"/>
         <source>%1 %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="188"/>
+        <location filename="../scripts/main/Main.qml" line="193"/>
         <source>Song Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="197"/>
+        <location filename="../scripts/main/Main.qml" line="202"/>
         <source>Online Arena</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="211"/>
+        <location filename="../scripts/main/Main.qml" line="217"/>
         <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="225"/>
+        <location filename="../scripts/main/Main.qml" line="232"/>
         <source>Attributions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/main/Main.qml" line="239"/>
+        <location filename="../scripts/main/Main.qml" line="247"/>
         <source>Quit</source>
         <translation type="unfinished"></translation>
     </message>
@@ -2656,7 +2656,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/MeanSd.qml" line="68"/>
+        <location filename="../scripts/result/MeanSd.qml" line="70"/>
         <source>SD</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3032,7 +3032,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Ranking.qml" line="159"/>
+        <location filename="../scripts/select/Ranking.qml" line="160"/>
         <source>Stats</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3040,12 +3040,12 @@
 <context>
     <name>RankingPosition</name>
     <message>
-        <location filename="../scripts/result/RankingPosition.qml" line="209"/>
+        <location filename="../scripts/result/RankingPosition.qml" line="216"/>
         <source>— / %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/result/RankingPosition.qml" line="211"/>
+        <location filename="../scripts/result/RankingPosition.qml" line="218"/>
         <source>#%1 / %2</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3252,12 +3252,12 @@
 <context>
     <name>Select</name>
     <message>
-        <location filename="../scripts/select/Select.qml" line="613"/>
+        <location filename="../scripts/select/Select.qml" line="614"/>
         <source>Score Details</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="658"/>
+        <location filename="../scripts/select/Select.qml" line="660"/>
         <source>%n chart(s) found</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -3267,12 +3267,12 @@
 <context>
     <name>Selector</name>
     <message>
-        <location filename="../scripts/select/Selector.qml" line="83"/>
+        <location filename="../scripts/select/Selector.qml" line="84"/>
         <source>BPM</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/select/Selector.qml" line="132"/>
+        <location filename="../scripts/select/Selector.qml" line="135"/>
         <source>KEYS</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3280,37 +3280,37 @@
 <context>
     <name>Settings</name>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="148"/>
+        <location filename="../scripts/settings/Settings.qml" line="153"/>
         <source>Back</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="255"/>
+        <location filename="../scripts/settings/Settings.qml" line="260"/>
         <source>Player settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="263"/>
+        <location filename="../scripts/settings/Settings.qml" line="268"/>
         <source>Song directories</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="271"/>
+        <location filename="../scripts/settings/Settings.qml" line="276"/>
         <source>Tables</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="279"/>
+        <location filename="../scripts/settings/Settings.qml" line="284"/>
         <source>Themes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="287"/>
+        <location filename="../scripts/settings/Settings.qml" line="292"/>
         <source>General Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/Settings.qml" line="295"/>
+        <location filename="../scripts/settings/Settings.qml" line="300"/>
         <source>Key config</source>
         <translation type="unfinished"></translation>
     </message>
@@ -3722,31 +3722,36 @@
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="65"/>
-        <source>Settings</source>
+        <source>Multiplayer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="66"/>
-        <source>Select</source>
+        <source>Settings</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="67"/>
-        <source>Decide</source>
+        <source>Select</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="68"/>
-        <source>Result</source>
+        <source>Decide</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../scripts/settings/ThemeSettings.qml" line="69"/>
+        <source>Result</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="70"/>
         <source>Course Result</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/settings/ThemeSettings.qml" line="149"/>
+        <location filename="../scripts/settings/ThemeSettings.qml" line="150"/>
         <source>Theme family for this screen.</source>
         <translation type="unfinished"></translation>
     </message>

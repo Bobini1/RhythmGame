@@ -103,6 +103,7 @@ ApplicationWindow {
         readonly property Component mainComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.main].screens.main.script)
         readonly property Component resultComponent: Qt.createComponent(configuredScreen("result").script)
         readonly property Component courseResultComponent: Qt.createComponent(configuredScreen("courseResult", "result").script)
+        readonly property var multiplayerScreen: configuredScreen("multiplayer")
         readonly property Component settingsComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.settings].screens.settings.script)
         readonly property Component selectComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.select].screens.select.script)
         readonly property Component decideComponent: Qt.createComponent(Rg.themes.availableThemeFamilies[mainProfile.themeConfig.decide].screens.decide.script)
@@ -533,38 +534,73 @@ ApplicationWindow {
                     }
                 }
 
-                Component {
-                    id: arenaBrowserComponent
-
-                    ArenaBrowser {
-                        session: arenaShell.session
-                        activeProfile: globalRoot.mainProfile
-
-                        onCreateRequested: (name, password) => arenaShell.session.createRoom(name, password)
-                        onExitRequested: arenaShell.requestCloseArena()
-                        onJoinRequested: (roomId, password) => arenaShell.session.joinRoom(roomId, password)
-                        onRetryRequested: arenaShell.session.retry()
-                    }
-                }
-
                 Loader {
                     id: arenaBrowserLoader
+
+                    property bool readyToLoad: false
+                    readonly property url configuredSource: globalRoot.multiplayerScreen
+                        ? globalRoot.multiplayerScreen.script
+                        : ""
 
                     anchors.fill: parent
                     active: true
                     enabled: !arenaShell.showSelect
-                    sourceComponent: arenaBrowserComponent
                     visible: !arenaShell.showSelect
 
+                    function loadConfiguredScreen(): void {
+                        if (configuredSource.toString().length === 0) {
+                            arenaShell.requestCloseArena();
+                            return;
+                        }
+                        setSource(configuredSource, {
+                            "session": arenaShell.session,
+                            "activeProfile": globalRoot.mainProfile
+                        });
+                    }
+
+                    Component.onCompleted: {
+                        readyToLoad = true;
+                        loadConfiguredScreen();
+                    }
+                    onConfiguredSourceChanged: {
+                        if (readyToLoad) {
+                            loadConfiguredScreen();
+                        }
+                    }
                     onLoaded: {
                         if (!arenaShell.showSelect && status === Loader.Ready && item) {
                             item.forceActiveFocus();
+                        }
+                    }
+                    onStatusChanged: {
+                        if (status === Loader.Error) {
+                            console.warn("Failed to load configured multiplayer screen:", configuredSource);
+                            arenaShell.requestCloseArena();
                         }
                     }
                     onVisibleChanged: {
                         if (visible && status === Loader.Ready && item) {
                             item.forceActiveFocus();
                         }
+                    }
+                }
+
+                Connections {
+                    target: arenaBrowserLoader.status === Loader.Ready
+                        ? arenaBrowserLoader.item
+                        : null
+
+                    function onCreateRequested(name, password): void {
+                        arenaShell.session.createRoom(name, password);
+                    }
+                    function onExitRequested(): void {
+                        arenaShell.requestCloseArena();
+                    }
+                    function onJoinRequested(roomId, password): void {
+                        arenaShell.session.joinRoom(roomId, password);
+                    }
+                    function onRetryRequested(): void {
+                        arenaShell.session.retry();
                     }
                 }
 

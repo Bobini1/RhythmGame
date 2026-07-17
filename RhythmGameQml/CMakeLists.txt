@@ -134,12 +134,9 @@ set(RHYTHM_GAME_QML_FILES
         ContentFrame.qml
         Log.qml
         ColorChanger.qml
-        Arena/ArenaBrowser.qml
         Arena/ArenaStatusAnnouncer.qml
-        Arena/ArenaLoginPanel.qml
         Arena/ArenaRoom.qml
         Arena/ArenaAvatar.qml
-        Arena/ArenaRoomMemberStack.qml
         Arena/ArenaSelectStrip.qml
         Arena/ArenaRosterView.qml
         Arena/ArenaChatView.qml

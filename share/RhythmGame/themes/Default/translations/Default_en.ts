@@ -4,7 +4,7 @@
 <context>
     <name>ArenaBrowser</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaBrowser.qml" line="380"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="386"/>
         <source>%n player reconnecting</source>
         <translation>
             <numerusform>%n player reconnecting</numerusform>
@@ -106,7 +106,7 @@
 <context>
     <name>Select</name>
     <message numerus="yes">
-        <location filename="../scripts/select/Select.qml" line="658"/>
+        <location filename="../scripts/select/Select.qml" line="660"/>
         <source>%n chart(s) found</source>
         <translation>
             <numerusform>Found %n chart</numerusform>

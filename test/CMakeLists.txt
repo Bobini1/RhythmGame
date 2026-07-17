@@ -36,8 +36,10 @@ add_executable(RhythmGame_test
         resource_managers/loadBmsSounds.test.cpp
         resource_managers/ChartPlayConfig.test.cpp
         resource_managers/Lr2FontCache.test.cpp
+        resource_managers/Languages.test.cpp
         resource_managers/ScanThemes.test.cpp
         qml_components/FileQuery.test.cpp
+        qml_components/FontResolver.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
@@ -50,6 +52,7 @@ add_executable(RhythmGame_test
 target_link_libraries(
         RhythmGame_test PRIVATE
         RhythmGame_lib
+        RhythmGame_qml
         RhythmGame_lr2_qml
         Catch2::Catch2WithMain
 )
