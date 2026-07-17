@@ -67,6 +67,8 @@ class Languages final : public QObject
      * Returns the native, user-friendly name of the given language code.
      */
     Q_INVOKABLE static QString getLanguageName(const QString& language);
+    Q_INVOKABLE static QString getLanguageScript(const QString& language);
+    Q_INVOKABLE static QString getLanguageTerritory(const QString& language);
     /**
      * Returns the closest matching language from the given list of languages.
      * Will default to "en" if no match is found.

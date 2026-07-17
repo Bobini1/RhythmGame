@@ -8,6 +8,7 @@ import RhythmGameQml
 Item {
     id: root
 
+    required property var uiFont
     readonly property var generalVars: Rg.profileList.mainProfile.vars.generalVars
 
     SettingsPageScaffold {
@@ -42,6 +43,13 @@ Item {
                     displayStrings: Rg.languages.languages.map(lang => Rg.languages.getLanguageName(lang))
                     name: qsTr("Language")
                     default_: Rg.languages.getClosestLanguage(Rg.languages.systemLanguage, choices)
+                    fontForIndex: function(index) {
+                        return root.uiFont.fontForLocale({
+                            weight: root.uiFont.fontWeight,
+                            variableAxes: root.uiFont.variableAxes,
+                            italic: root.uiFont.italic
+                        }, choices[index] || "");
+                    }
                     Layout.fillWidth: true
                 }
 

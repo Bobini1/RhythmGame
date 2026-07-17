@@ -226,13 +226,13 @@ Languages::getSelectedLanguage() const -> QString
 auto
 Languages::getSelectedScript() const -> QString
 {
-    return QLocale::scriptToCode(QLocale(selectedLanguage).script());
+    return getLanguageScript(selectedLanguage);
 }
 
 auto
 Languages::getSelectedTerritory() const -> QString
 {
-    return QLocale::territoryToCode(QLocale(selectedLanguage).territory());
+    return getLanguageTerritory(selectedLanguage);
 }
 
 auto
@@ -345,6 +345,23 @@ Languages::getLanguageName(const QString& language) -> QString
     }
     return name;
 }
+
+QString
+Languages::getLanguageScript(const QString& language)
+{
+    const auto parsed = parseLocaleTag(language);
+    return parsed ? QLocale::scriptToCode(parsed->locale.script()) : QString{};
+}
+
+QString
+Languages::getLanguageTerritory(const QString& language)
+{
+    const auto parsed = parseLocaleTag(language);
+    return parsed
+             ? QLocale::territoryToCode(parsed->locale.territory())
+             : QString{};
+}
+
 QString
 Languages::getClosestLanguage(QString language, const QStringList& languages)
 {

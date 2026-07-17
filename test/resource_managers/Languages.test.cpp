@@ -21,6 +21,23 @@ TEST_CASE("Language tags preserve scripts while normalizing separators",
             .isEmpty());
 }
 
+TEST_CASE("Language locale metadata resolves script and territory",
+          "[languages][locale]")
+{
+    CHECK(Languages::getLanguageScript(QStringLiteral("en")) ==
+          QStringLiteral("Latn"));
+    CHECK(Languages::getLanguageScript(QStringLiteral("zh")) ==
+          QStringLiteral("Hans"));
+    CHECK(Languages::getLanguageScript(QStringLiteral("zh-Hant-HK")) ==
+          QStringLiteral("Hant"));
+    CHECK(Languages::getLanguageScript(QStringLiteral("ja")) ==
+          QStringLiteral("Jpan"));
+    CHECK(Languages::getLanguageScript(QStringLiteral("ko")) ==
+          QStringLiteral("Kore"));
+    CHECK(Languages::getLanguageTerritory(QStringLiteral("zh-Hant-HK")) ==
+          QStringLiteral("HK"));
+}
+
 TEST_CASE("Language matching distinguishes simplified and traditional Han",
           "[languages][locale]")
 {

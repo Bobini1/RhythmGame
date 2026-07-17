@@ -323,6 +323,7 @@ Page {
                 tabTextColor: settings.palette.windowText
             }
             GeneralSettings {
+                uiFont: settingsUiFont
             }
             KeySettings {
             }

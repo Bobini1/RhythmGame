@@ -46,15 +46,24 @@ QtObject {
         return Font.Normal;
     }
 
-    readonly property string uiFallbackFamily: {
+    readonly property string uiFallbackFamily: fallbackFamilyForScript(
+        Rg.languages.selectedScript,
+        Rg.languages.selectedTerritory,
+        "")
+
+    readonly property string songMetadataFallbackFamily: cjkFontLoader.status === FontLoader.Ready
+        ? "Noto Sans CJK JP"
+        : ""
+
+    function fallbackFamilyForScript(script, territory, defaultFamily) {
         if (cjkFontLoader.status !== FontLoader.Ready) {
             return "";
         }
-        switch (Rg.languages.selectedScript) {
+        switch (script) {
         case "Hans":
             return "Noto Sans CJK SC";
         case "Hant":
-            return Rg.languages.selectedTerritory === "HK" || Rg.languages.selectedTerritory === "MO"
+            return territory === "HK" || territory === "MO"
                 ? "Noto Sans CJK HK"
                 : "Noto Sans CJK TC";
         case "Jpan":
@@ -62,12 +71,9 @@ QtObject {
         case "Kore":
             return "Noto Sans CJK KR";
         default:
-            return "";
+            return defaultFamily;
         }
     }
-    readonly property string songMetadataFallbackFamily: cjkFontLoader.status === FontLoader.Ready
-        ? "Noto Sans CJK JP"
-        : ""
 
     property FontLoader selectedFontLoader: FontLoader {
         source: Qt.resolvedUrl("fonts/" + themeFont.loaderFileName)
@@ -108,6 +114,14 @@ QtObject {
 
     function uiFont(properties) {
         return fontWithFallback(requestedFont(properties), uiFallbackFamily, false);
+    }
+
+    function fontForLocale(properties, locale) {
+        const fallbackFamily = fallbackFamilyForScript(
+            Rg.languages.getLanguageScript(locale),
+            Rg.languages.getLanguageTerritory(locale),
+            "Noto Sans CJK JP");
+        return fontWithFallback(requestedFont(properties), fallbackFamily, false);
     }
 
     function songMetadataFont(properties, text) {
