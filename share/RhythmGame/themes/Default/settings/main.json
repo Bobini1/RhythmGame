@@ -4,19 +4,22 @@
     {
       "name": {
         "en": "Fonts",
-        "pl": "Czcionki"
+        "pl": "Czcionki",
+        "zh_CN": "字体"
       },
       "type": "group",
       "description": {
         "en": "Fonts used by the main menu.",
-        "pl": "Czcionki używane w menu głównym."
+        "pl": "Czcionki używane w menu głównym.",
+        "zh_CN": "主菜单所使用的字体"
       },
       "items": [
         {
           "id": "mainTitleFont",
           "name": {
             "en": "Title Font",
-            "pl": "Czcionka tytułu"
+            "pl": "Czcionka tytułu",
+            "zh_CN": "标题字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -26,7 +29,8 @@
           "id": "mainMenuFont",
           "name": {
             "en": "Menu Font",
-            "pl": "Czcionka menu"
+            "pl": "Czcionka menu",
+            "zh_CN": "菜单字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -36,7 +40,8 @@
           "id": "mainDialogFont",
           "name": {
             "en": "Dialog Font",
-            "pl": "Czcionka okien dialogowych"
+            "pl": "Czcionka okien dialogowych",
+            "zh_CN": "对话框字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",

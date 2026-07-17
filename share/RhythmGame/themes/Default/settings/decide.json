@@ -4,19 +4,22 @@
     {
       "name": {
         "en": "Fonts",
-        "pl": "Czcionki"
+        "pl": "Czcionki",
+        "zh_CN": "字体"
       },
       "type": "group",
       "description": {
         "en": "Fonts used by the decide screen.",
-        "pl": "Czcionki używane na ekranie decyzji."
+        "pl": "Czcionki używane na ekranie decyzji.",
+        "zh_CN": "确认界面所使用的字体"
       },
       "items": [
         {
           "id": "decideTitleFont",
           "name": {
             "en": "Title Font",
-            "pl": "Czcionka tytułu"
+            "pl": "Czcionka tytułu",
+            "zh_CN": "标题字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -26,7 +29,8 @@
           "id": "decideInfoFont",
           "name": {
             "en": "Info Font",
-            "pl": "Czcionka informacji"
+            "pl": "Czcionka informacji",
+            "zh_CN": "信息字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",

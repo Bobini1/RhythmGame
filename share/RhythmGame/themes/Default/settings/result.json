@@ -4,19 +4,22 @@
     {
       "name": {
         "en": "Fonts",
-        "pl": "Czcionki"
+        "pl": "Czcionki",
+        "zh_CN": "字体"
       },
       "type": "group",
       "description": {
         "en": "Fonts used by the result screen.",
-        "pl": "Czcionki używane na ekranie wyniku."
+        "pl": "Czcionki używane na ekranie wyniku.",
+        "zh_CN": "结算界面所使用的字体"
       },
       "items": [
         {
           "id": "resultTitleFont",
           "name": {
             "en": "Result Title Font",
-            "pl": "Czcionka tytułu wyniku"
+            "pl": "Czcionka tytułu wyniku",
+            "zh_CN": "结算标题字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -26,7 +29,8 @@
           "id": "resultStatsFont",
           "name": {
             "en": "Result Stats Font",
-            "pl": "Czcionka statystyk wyniku"
+            "pl": "Czcionka statystyk wyniku",
+            "zh_CN": "结算统计字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
