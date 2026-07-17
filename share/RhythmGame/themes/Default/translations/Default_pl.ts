@@ -1668,7 +1668,7 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="43"/>
         <source>Checking chart</source>
-        <translation>Sprawdzanie wykresu</translation>
+        <translation>Sprawdzanie chartu</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaRosterView.qml" line="45"/>
@@ -1785,7 +1785,7 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="37"/>
         <source>Choose a chart available to everyone before becoming ready.</source>
-        <translation>Przed zgłoszeniem gotowości wybierz wykres dostępny u wszystkich.</translation>
+        <translation>Przed zgłoszeniem gotowości wybierz chart dostępny dla wszystkich.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectPanel.qml" line="43"/>
@@ -1855,12 +1855,12 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="35"/>
         <source>Choose a chart available to everyone before becoming ready.</source>
-        <translation>Przed zgłoszeniem gotowości wybierz wykres dostępny u wszystkich.</translation>
+        <translation>Przed zgłoszeniem gotowości wybierz chart dostępny dla wszystkich.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="45"/>
         <source>That chart is not available to every player.</source>
-        <translation>Nie wszyscy gracze mają ten wykres.</translation>
+        <translation>Nie wszyscy gracze mają ten chart.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="49"/>
@@ -1875,22 +1875,22 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="53"/>
         <source>This chart configuration is not supported by Arena.</source>
-        <translation>Arena nie obsługuje tej konfiguracji wykresu.</translation>
+        <translation>Arena nie obsługuje konfiguracji tego chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="55"/>
         <source>The selected chart is no longer available locally.</source>
-        <translation>Wybrany wykres nie jest już dostępny lokalnie.</translation>
+        <translation>Wybrany chart nie jest już dostępny lokalnie.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="57"/>
         <source>The local chart file no longer matches the room selection.</source>
-        <translation>Lokalny plik wykresu nie odpowiada już wyborowi w pokoju.</translation>
+        <translation>Lokalny plik chartu nie odpowiada już wyborowi w pokoju.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="60"/>
         <source>The selected chart could not be prepared.</source>
-        <translation>Nie udało się przygotować wybranego wykresu.</translation>
+        <translation>Nie udało się przygotować wybranego chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="71"/>
@@ -1925,7 +1925,7 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="123"/>
         <source>Choose any chart available to everyone.</source>
-        <translation>Wybierz dowolny wykres dostępny u wszystkich.</translation>
+        <translation>Wybierz dowolny chart dostępny dla wszystkich.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="123"/>
@@ -1996,7 +1996,7 @@
     </message>
     <message>
         <source>Choose a chart available to everyone before becoming ready.</source>
-        <translation type="vanished">Przed zgłoszeniem gotowości wybierz wykres dostępny u wszystkich.</translation>
+        <translation type="vanished">Przed zgłoszeniem gotowości wybierz chart dostępny dla wszystkich.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="41"/>
@@ -2011,17 +2011,17 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="50"/>
         <source>The room library changed. Select the chart again.</source>
-        <translation>Biblioteka pokoju uległa zmianie. Wybierz wykres ponownie.</translation>
+        <translation>Biblioteka pokoju uległa zmianie. Wybierz chart ponownie.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="55"/>
         <source>Round preparation was cancelled because the chart could not be loaded.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się wczytać wykresu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się wczytać chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="103"/>
         <source>No chart selected</source>
-        <translation>Nie wybrano wykresu</translation>
+        <translation>Nie wybrano chartu</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="148"/>
@@ -2031,7 +2031,7 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="144"/>
         <source>Choose any chart available to everyone.</source>
-        <translation>Wybierz dowolny wykres dostępny u wszystkich.</translation>
+        <translation>Wybierz dowolny chart dostępny dla wszystkich.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="149"/>
@@ -2059,27 +2059,27 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="44"/>
         <source>The room library changed. Select the chart again.</source>
-        <translation>Biblioteka pokoju uległa zmianie. Wybierz wykres ponownie.</translation>
+        <translation>Biblioteka pokoju uległa zmianie. Wybierz chart ponownie.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="46"/>
         <source>Round preparation was cancelled because the chart file is missing.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ brakuje pliku wykresu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ brakuje pliku chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="48"/>
         <source>Round preparation was cancelled because the chart file does not match the selected chart.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ plik wykresu nie jest zgodny z wybranym wykresem.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ plik chartu nie jest zgodny z wybranym chartem.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="50"/>
         <source>Round preparation was cancelled because the chart file could not be read.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się odczytać pliku wykresu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się odczytać pliku chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="52"/>
         <source>Round preparation was cancelled because the chart file could not be parsed.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się przetworzyć pliku wykresu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się przetworzyć pliku chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="54"/>
@@ -2089,17 +2089,17 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="56"/>
         <source>Round preparation was cancelled because required chart resources could not be loaded.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się wczytać wymaganych zasobów wykresu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ nie udało się wczytać wymaganych zasobów chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="58"/>
         <source>Round preparation was cancelled because checking players&apos; chart files timed out.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ sprawdzanie plików wykresu graczy przekroczyło limit czasu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ przekroczono limit czasu sprawdzania plików chartów graczy.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="60"/>
         <source>Round preparation was cancelled because loading the chart timed out.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ wczytywanie wykresu przekroczyło limit czasu.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ przekroczono limit czasu wczytywania chartu.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="62"/>
@@ -2114,7 +2114,7 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="66"/>
         <source>Round preparation was cancelled because players&apos; chart lengths do not match.</source>
-        <translation>Przygotowanie rundy anulowano, ponieważ długości wykresów graczy różnią się.</translation>
+        <translation>Przygotowanie rundy anulowano, ponieważ długości chartów graczy różnią się.</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="68"/>
@@ -2128,7 +2128,7 @@
     </message>
     <message>
         <source>Round preparation was cancelled because the chart could not be loaded.</source>
-        <translation type="vanished">Przygotowanie rundy anulowano, ponieważ nie udało się wczytać wykresu.</translation>
+        <translation type="vanished">Przygotowanie rundy anulowano, ponieważ nie udało się wczytać chartu.</translation>
     </message>
 </context>
 <context>
