@@ -66,7 +66,11 @@ https://github.com/souki202/my_beatoraja_skin
 
 #### Fonts
 
-- Noto Sans JP (https://fonts.google.com/noto/specimen/Noto+Sans+JP)
+- Noto Sans (https://fonts.google.com/noto/specimen/Noto+Sans)
+    * Licensed under SIL Open Font License 1.1 (https://openfontlicense.org)
+    * Copyright 2022 The Noto Project Authors (https://github.com/notofonts/latin-greek-cyrillic)
+    * License text: share/RhythmGame/themes/Default/scripts/common/OFL.txt
+- Noto Sans CJK (https://fonts.google.com/noto/specimen/Noto+Sans+JP)
     * Licensed under SIL Open Font License 1.1 (https://openfontlicense.org)
     * Copyright 2014-2021 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'
     * License text: share/RhythmGame/themes/Default/scripts/common/OFL.txt
