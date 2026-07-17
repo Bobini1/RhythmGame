@@ -4,19 +4,22 @@
     {
       "name": {
         "en": "Fonts",
-        "pl": "Czcionki"
+        "pl": "Czcionki",
+        "zh_CN": "字体"
       },
       "type": "group",
       "description": {
         "en": "Fonts used by the settings screen.",
-        "pl": "Czcionki używane na ekranie ustawień."
+        "pl": "Czcionki używane na ekranie ustawień.",
+        "zh_CN": "设置界面所使用的字体"
       },
       "items": [
         {
           "id": "settingsUiFont",
           "name": {
             "en": "UI Font",
-            "pl": "Czcionka interfejsu"
+            "pl": "Czcionka interfejsu",
+            "zh_CN": "界面字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -26,7 +29,8 @@
           "id": "settingsHeaderFont",
           "name": {
             "en": "Header Font",
-            "pl": "Czcionka nagłówka"
+            "pl": "Czcionka nagłówka",
+            "zh_CN": "标题字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",

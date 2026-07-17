@@ -24,6 +24,7 @@
   },
   "translations": {
     "en": "translations/Default_en.qm",
-    "pl": "translations/Default_pl.qm"
+    "pl": "translations/Default_pl.qm",
+    "zh": "translations/Default_zh_CN.qm"
   }
 }

@@ -4,19 +4,22 @@
     {
       "name": {
         "en": "Fonts",
-        "pl": "Czcionki"
+        "pl": "Czcionki",
+        "zh_CN": "字体"
       },
       "type": "group",
       "description": {
         "en": "Fonts used by the song select screen.",
-        "pl": "Czcionki używane na ekranie wyboru utworu."
+        "pl": "Czcionki używane na ekranie wyboru utworu.",
+        "zh_CN": "选曲界面所使用的字体"
       },
       "items": [
         {
           "id": "songListFont",
           "name": {
             "en": "Song List Font",
-            "pl": "Czcionka listy utworów"
+            "pl": "Czcionka listy utworów",
+            "zh_CN": "歌曲列表字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -26,7 +29,8 @@
           "id": "songInfoFont",
           "name": {
             "en": "Song Info Font",
-            "pl": "Czcionka informacji o utworze"
+            "pl": "Czcionka informacji o utworze",
+            "zh_CN": "歌曲信息字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -36,7 +40,8 @@
           "id": "scoreInfoFont",
           "name": {
             "en": "Score Info Font",
-            "pl": "Czcionka informacji o wyniku"
+            "pl": "Czcionka informacji o wyniku",
+            "zh_CN": "得分信息字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -46,7 +51,8 @@
           "id": "rankingFont",
           "name": {
             "en": "Ranking Font",
-            "pl": "Czcionka rankingu"
+            "pl": "Czcionka rankingu",
+            "zh_CN": "排行榜字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -58,11 +64,13 @@
       "id": "densityGraphGapsEnabled",
       "name": {
         "en": "Gaps between bars in density graph",
-        "pl": "Przerwy między słupkami na wykresie gęstości"
+        "pl": "Przerwy między słupkami na wykresie gęstości",
+        "zh_CN": "密度图条柱之间的间隙"
       },
       "description": {
         "en": "Add 1px gaps between bars in the density graph if possible.",
-        "pl": "Dodaje 1px przerwy między słupkami na wykresie gęstości, jeśli to możliwe."
+        "pl": "Dodaje 1px przerwy między słupkami na wykresie gęstości, jeśli to możliwe.",
+        "zh_CN": "在密度图条柱之间添加 1 像素的间隙（如可行）"
       },
       "type": "boolean",
       "default": false
@@ -71,11 +79,13 @@
       "id": "densityGraphBpmConnectorOpacity",
       "name": {
         "en": "Density graph BPM connector opacity",
-        "pl": "Przezroczystość łączników BPM na wykresie gęstości"
+        "pl": "Przezroczystość łączników BPM na wykresie gęstości",
+        "zh_CN": "密度图 BPM 连接线不透明度"
       },
       "description": {
         "en": "Opacity of the gray vertical lines that connect adjacent BPM level lines.",
-        "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM."
+        "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM.",
+        "zh_CN": "连接相邻 BPM 水平线的灰色垂直连线的不透明度"
       },
       "type": "range",
       "min": 0,

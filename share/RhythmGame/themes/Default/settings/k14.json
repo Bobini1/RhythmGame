@@ -4,23 +4,27 @@
     {
       "name": {
         "en": "General Settings",
-        "pl": "Ustawienia ogólne"
+        "pl": "Ustawienia ogólne",
+        "zh_CN": "通用设置"
       },
       "type": "group",
       "description": {
         "en": "Miscellaneous.",
-        "pl": "Różne."
+        "pl": "Różne.",
+        "zh_CN": "杂项"
       },
       "items": [
         {
           "id": "laneBrightness",
           "name": {
             "en": "Lane Brightness",
-            "pl": "Jasność tła"
+            "pl": "Jasność tła",
+            "zh_CN": "轨道亮度"
           },
           "description": {
             "en": "The brightness of the background behind falling notes.",
-            "pl": "Jasność tła za spadającymi notkami."
+            "pl": "Jasność tła za spadającymi notkami.",
+            "zh_CN": "音符下落区域背景的亮度"
           },
           "type": "range",
           "min": -1,
@@ -31,11 +35,13 @@
           "id": "verticalGauge",
           "name": {
             "en": "Vertical Gauge",
-            "pl": "Pionowy wskaźnik"
+            "pl": "Pionowy wskaźnik",
+            "zh_CN": "垂直血条"
           },
           "description": {
             "en": "Whether the life gauge is vertical (fills upwards).",
-            "pl": "Pionowy wskaźnić życia (wypełnia się w górę)."
+            "pl": "Pionowy wskaźnić życia (wypełnia się w górę).",
+            "zh_CN": "是否将血条设为垂直方向（向上填充）"
           },
           "type": "boolean",
           "default": false
@@ -44,11 +50,13 @@
           "id": "fiveKeysCoverEnabled",
           "name": {
             "en": "Enable 5 Keys Cover",
-            "pl": "Włącz zakrycie dla 5k"
+            "pl": "Włącz zakrycie dla 5k",
+            "zh_CN": "启用 5k 挡板"
           },
           "description": {
             "en": "Show a cover image over the unused lanes when playing a 10-key chart.",
-            "pl": "Pokaż obraz zakrycia nad nieużywanymi kolumnami podczas grania na 10 klawiszy."
+            "pl": "Pokaż obraz zakrycia nad nieużywanymi kolumnami podczas grania na 10 klawiszy.",
+            "zh_CN": "在游玩 10k 谱面时，在未使用的轨道上显示挡板图片"
           },
           "type": "boolean",
           "default": false
@@ -57,11 +65,13 @@
           "id": "hideLnEnds",
           "name": {
             "en": "Hide LN Ends",
-            "pl": "Ukryj końcówki długich notek"
+            "pl": "Ukryj końcówki długich notek",
+            "zh_CN": "隐藏面尾"
           },
           "description": {
             "en": "Don't display the note texture at the end of LNs.",
-            "pl": "Nie wyświetlaj tekstury notki na końcu długich notek."
+            "pl": "Nie wyświetlaj tekstury notki na końcu długich notek.",
+            "zh_CN": "不在长条（LN）的尾端显示音符纹理图片"
           },
           "type": "boolean",
           "default": true
@@ -70,11 +80,13 @@
           "id": "fastslowEnabled",
           "name": {
             "en": "Show Fast/Slow Indicator",
-            "pl": "Pokaż wskaźnik Fast/Slow"
+            "pl": "Pokaż wskaźnik Fast/Slow",
+            "zh_CN": "显示 Fast/Slow 指示器"
           },
           "description": {
             "en": "Show an indicator when the player hits notes too early or too late.",
-            "pl": "Pokaż wskaźnik, gdy gracz uderza notki za wcześnie lub za późno."
+            "pl": "Pokaż wskaźnik, gdy gracz uderza notki za wcześnie lub za późno.",
+            "zh_CN": "当玩家击打音符过早或过晚时显示指示器"
           },
           "type": "boolean",
           "default": true
@@ -83,11 +95,13 @@
           "id": "ghostScoreEnabled",
           "name": {
             "en": "Show Ghost Score",
-            "pl": "Pokaż cel punktowy"
+            "pl": "Pokaż cel punktowy",
+            "zh_CN": "显示Ghost Score"
           },
           "description": {
             "en": "Show the ghost score, representing a target score for the player to aim for.",
-            "pl": "Pokaż cel punktowy, reprezentujący docelowy wynik, do którego gracz powinien dążyć."
+            "pl": "Pokaż cel punktowy, reprezentujący docelowy wynik, do którego gracz powinien dążyć.",
+            "zh_CN": "显示Ghost Score，代表玩家当前分数与目标分数的差值"
           },
           "type": "boolean",
           "default": true
@@ -96,96 +110,111 @@
           "id": "lifeBarEnabled",
           "name": {
             "en": "Show Life Bar",
-            "pl": "Pokaż pasek życia"
+            "pl": "Pokaż pasek życia",
+            "zh_CN": "显示血条"
           },
           "type": "boolean",
           "default": true,
           "description": {
             "en": "Show the life bar.",
-            "pl": "Pokaż pasek życia."
+            "pl": "Pokaż pasek życia.",
+            "zh_CN": "显示血条"
           }
         },
         {
           "id": "titleDisplayEnabled",
           "name": {
             "en": "Show Title Display",
-            "pl": "Pokaż wyświetlacz tytułu"
+            "pl": "Pokaż wyświetlacz tytułu",
+            "zh_CN": "显示标题"
           },
           "type": "boolean",
           "default": true,
           "description": {
             "en": "Show the title/subtitle display.",
-            "pl": "Pokaż wyświetlacz tytułu/podtytułu."
+            "pl": "Pokaż wyświetlacz tytułu/podtytułu.",
+            "zh_CN": "显示歌曲标题/副标题"
           }
         },
         {
           "id": "difficultyDisplayEnabled",
           "name": {
             "en": "Show Difficulty Display",
-            "pl": "Pokaż wyświetlacz trudności"
+            "pl": "Pokaż wyświetlacz trudności",
+            "zh_CN": "显示难度"
           },
           "type": "boolean",
           "default": true,
           "description": {
             "en": "Show the difficulty/play level display.",
-            "pl": "Pokaż wyświetlacz trudności/poziomu gry."
+            "pl": "Pokaż wyświetlacz trudności/poziomu gry.",
+            "zh_CN": "显示难度/游玩等级"
           }
         },
         {
           "id": "bpmDisplayEnabled",
           "name": {
             "en": "Show BPM Display",
-            "pl": "Pokaż wyświetlacz BPM"
+            "pl": "Pokaż wyświetlacz BPM",
+            "zh_CN": "显示 BPM"
           },
           "type": "boolean",
           "default": true,
           "description": {
             "en": "Show the BPM display.",
-            "pl": "Pokaż wyświetlacz BPM."
+            "pl": "Pokaż wyświetlacz BPM.",
+            "zh_CN": "显示 BPM"
           }
         },
         {
           "name": {
             "en": "Density Graph",
-            "pl": "Wykres gęstości"
+            "pl": "Wykres gęstości",
+            "zh_CN": "密度图"
           },
           "type": "group",
           "description": {
             "en": "Options for the note-density graph.",
-            "pl": "Opcje wykresu gęstości notek."
+            "pl": "Opcje wykresu gęstości notek.",
+            "zh_CN": "音符密度图的选项"
           },
           "items": [
             {
               "id": "densityGraphEnabled",
               "name": {
                 "en": "Show Density Graph",
-                "pl": "Pokaż wykres gęstości"
+                "pl": "Pokaż wykres gęstości",
+                "zh_CN": "显示密度图"
               },
               "type": "boolean",
               "default": true,
               "description": {
                 "en": "Show the note-density graph.",
-                "pl": "Pokaż wykres gęstości notek."
+                "pl": "Pokaż wykres gęstości notek.",
+                "zh_CN": "显示音符密度图"
               }
             },
             {
               "id": "densityGraphGapsEnabled",
               "name": {
                 "en": "Gaps",
-                "pl": "Przerwy w wykresie gęstości"
+                "pl": "Przerwy w wykresie gęstości",
+                "zh_CN": "条柱间隙"
               },
               "type": "boolean",
               "default": false,
               "description": {
                 "en": "Add 1 px gaps between bars in the density graph if possible.",
-                "pl": "Dodaje 1 px przerwy między słupkami na wykresie gęstości, jeśli to możliwe."
+                "pl": "Dodaje 1 px przerwy między słupkami na wykresie gęstości, jeśli to możliwe.",
+                "zh_CN": "在密度图条柱之间添加 1 像素的间隙（如可行）"
               }
             },
             {
               "id": "densityGraphNotesOpacity",
               "name": {
                 "en": "Notes Opacity",
-                "pl": "przezroczystość notek"
+                "pl": "przezroczystość notek",
+                "zh_CN": "条柱不透明度"
               },
               "type": "range",
               "min": 0,
@@ -193,14 +222,16 @@
               "default": 1.0,
               "description": {
                 "en": "Opacity of the note-density histogram bars (0 = hidden).",
-                "pl": "Przezroczystość słupków histogramu gęstości notek (0 = ukryte)."
+                "pl": "Przezroczystość słupków histogramu gęstości notek (0 = ukryte).",
+                "zh_CN": "密度图条柱的不透明度（0 = 隐藏）"
               }
             },
             {
               "id": "densityGraphBpmOpacity",
               "name": {
                 "en": "BPM Opacity",
-                "pl": "przezroczystość BPM"
+                "pl": "przezroczystość BPM",
+                "zh_CN": "BPM 不透明度"
               },
               "type": "range",
               "min": 0,
@@ -208,14 +239,16 @@
               "default": 1.0,
               "description": {
                 "en": "Opacity of the BPM overlay lines (0 = hidden).",
-                "pl": "Przezroczystość linii BPM na wykresie (0 = ukryte)."
+                "pl": "Przezroczystość linii BPM na wykresie (0 = ukryte).",
+                "zh_CN": "密度图上 BPM 折线的不透明度（0 = 隐藏）"
               }
             },
             {
               "id": "densityGraphBackgroundOpacity",
               "name": {
                 "en": "Background Opacity",
-                "pl": "przezroczystość tła"
+                "pl": "przezroczystość tła",
+                "zh_CN": "背景不透明度"
               },
               "type": "range",
               "min": 0,
@@ -223,14 +256,16 @@
               "default": 0.8,
               "description": {
                 "en": "Opacity of the black background behind the density graph bars.",
-                "pl": "Przezroczystość czarnego tła za słupkami wykresu gęstości."
+                "pl": "Przezroczystość czarnego tła za słupkami wykresu gęstości.",
+                "zh_CN": "密度图条柱后方黑色背景的不透明度"
               }
             },
             {
               "id": "densityGraphBpmConnectorOpacity",
               "name": {
                 "en": "BPM Connector Opacity",
-                "pl": "przezroczystość łączników BPM"
+                "pl": "przezroczystość łączników BPM",
+                "zh_CN": "BPM 连接线不透明度"
               },
               "type": "range",
               "min": 0,
@@ -238,14 +273,16 @@
               "default": 0.75,
               "description": {
                 "en": "Opacity of the gray vertical lines that connect adjacent BPM level lines.",
-                "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM."
+                "pl": "Przezroczystość szarych pionowych linii łączących poziomy BPM.",
+                "zh_CN": "连接相邻 BPM 水平线的灰色垂直连线的不透明度"
               }
             },
             {
               "id": "densityGraphFrameOpacity",
               "name": {
                 "en": "Frame Opacity",
-                "pl": "przezroczystość ramki"
+                "pl": "przezroczystość ramki",
+                "zh_CN": "边框不透明度"
               },
               "type": "range",
               "min": 0,
@@ -253,14 +290,16 @@
               "default": 1.0,
               "description": {
                 "en": "Opacity of the 1 px white border around the density graph (0 = hidden).",
-                "pl": "Przezroczystość 1 px białej ramki wokół wykresu gęstości (0 = ukryta)."
+                "pl": "Przezroczystość 1 px białej ramki wokół wykresu gęstości (0 = ukryta).",
+                "zh_CN": "密度图周围 1 像素白色边框的不透明度（0 = 隐藏）"
               }
             },
             {
               "id": "densityGraphPositionLineOpacity",
               "name": {
                 "en": "Position Line Opacity",
-                "pl": "przezroczystość linii pozycji"
+                "pl": "przezroczystość linii pozycji",
+                "zh_CN": "位置指示线不透明度"
               },
               "type": "range",
               "min": 0,
@@ -268,20 +307,23 @@
               "default": 1.0,
               "description": {
                 "en": "Opacity of the red current-position line on the density graph (0 = hidden).",
-                "pl": "Przezroczystość czerwonej linii bieżącej pozycji na wykresie gęstości (0 = ukryta)."
+                "pl": "Przezroczystość czerwonej linii bieżącej pozycji na wykresie gęstości (0 = ukryta).",
+                "zh_CN": "密度图上红色当前位置指示线的不透明度（0 = 隐藏）"
               }
             },
             {
               "id": "densityGraphVertical",
               "name": {
                 "en": "Vertical",
-                "pl": "Pionowy wykres gęstości"
+                "pl": "Pionowy wykres gęstości",
+                "zh_CN": "垂直"
               },
               "type": "boolean",
               "default": false,
               "description": {
                 "en": "Rotate the density graph so time runs bottom → top.",
-                "pl": "Obróć wykres gęstości, by czas biegł od dołu do góry."
+                "pl": "Obróć wykres gęstości, by czas biegł od dołu do góry.",
+                "zh_CN": "旋转密度图，按时间从下往上"
               }
             }
           ]
@@ -289,24 +331,28 @@
         {
           "name": {
             "en": "Judge Line",
-            "pl": "Dolna kreska"
+            "pl": "Dolna kreska",
+            "zh_CN": "判定线"
           },
           "type": "group",
           "description": {
             "en": "Options for the judge line.",
-            "pl": "Opcje dolnej kreski, na której trafia się notki."
+            "pl": "Opcje dolnej kreski, na której trafia się notki.",
+            "zh_CN": "判定线的选项"
           },
           "items": [
             {
               "id": "judgeLineThickness",
               "name": {
                 "en": "Thickness",
-                "pl": "Grubość"
+                "pl": "Grubość",
+                "zh_CN": "厚度"
               },
               "type": "range",
               "description": {
                 "en": "The thickness of the line",
-                "pl": "Grubość linii"
+                "pl": "Grubość linii",
+                "zh_CN": "线的厚度"
               },
               "min": 0,
               "default": 8
@@ -315,12 +361,14 @@
               "id": "judgeLineColor",
               "name": {
                 "en": "Judge Line Color",
-                "pl": "Kolor dolnej kreski"
+                "pl": "Kolor dolnej kreski",
+                "zh_CN": "判定线颜色"
               },
               "type": "color",
               "description": {
                 "en": "The color of the line",
-                "pl": "Kolor linii"
+                "pl": "Kolor linii",
+                "zh_CN": "线的颜色"
               },
               "default": "red"
             }
@@ -329,45 +377,52 @@
         {
           "name": {
             "en": "Hit Distribution",
-            "pl": "Rozkład trafień"
+            "pl": "Rozkład trafień",
+            "zh_CN": "判定分布"
           },
           "type": "group",
           "description": {
             "en": "Options for the hit timing distribution graph.",
-            "pl": "Opcje wykresu rozkładu czasu trafień."
+            "pl": "Opcje wykresu rozkładu czasu trafień.",
+            "zh_CN": "判定分布图的选项"
           },
           "items": [
             {
               "id": "hitDistributionEnabled",
               "name": {
                 "en": "Show Hit Distribution",
-                "pl": "Pokaż rozkład trafień"
+                "pl": "Pokaż rozkład trafień",
+                "zh_CN": "显示判定分布"
               },
               "type": "boolean",
               "default": true,
               "description": {
                 "en": "Show the hit timing distribution graph.",
-                "pl": "Pokaż wykres rozkładu czasu trafień."
+                "pl": "Pokaż wykres rozkładu czasu trafień.",
+                "zh_CN": "显示判定分布图"
               }
             },
             {
               "id": "hitDistributionVertical",
               "name": {
                 "en": "Hit Distribution Vertical",
-                "pl": "Pionowy rozkład trafień"
+                "pl": "Pionowy rozkład trafień",
+                "zh_CN": "垂直判定分布"
               },
               "type": "boolean",
               "default": false,
               "description": {
                 "en": "Orient the hit distribution graph vertically (timing axis runs top → bottom).",
-                "pl": "Ustaw wykres rozkładu trafień pionowo (oś czasowa od góry do dołu)."
+                "pl": "Ustaw wykres rozkładu trafień pionowo (oś czasowa od góry do dołu).",
+                "zh_CN": "将判定分布设为垂直方向（时值轴从上到下）"
               }
             },
             {
               "id": "hitDistributionBackgroundOpacity",
               "name": {
                 "en": "Hit Distribution Background Opacity",
-                "pl": "Przezroczystość tła rozkładu trafień"
+                "pl": "Przezroczystość tła rozkładu trafień",
+                "zh_CN": "判定分布背景不透明度"
               },
               "type": "range",
               "min": 0,
@@ -375,27 +430,31 @@
               "default": 1.0,
               "description": {
                 "en": "Opacity of the timing window colour bands in the background.",
-                "pl": "Przezroczystość kolorowych pasm okien czasowych w tle."
+                "pl": "Przezroczystość kolorowych pasm okien czasowych w tle.",
+                "zh_CN": "背景中判定窗口色带的不透明度"
               }
             },
             {
               "id": "hitDistributionEwmaMode",
               "name": {
                 "en": "Hit Distribution EWMA Mode",
-                "pl": "Tryb EWMA rozkładu trafień"
+                "pl": "Tryb EWMA rozkładu trafień",
+                "zh_CN": "判定分布 EWMA 模式"
               },
               "type": "boolean",
               "default": false,
               "description": {
                 "en": "Show a single line tracking an exponential weighted moving average instead of a trail.",
-                "pl": "Pokaż pojedynczą linię śledzącą wykładniczą średnią ruchomą zamiast śladu."
+                "pl": "Pokaż pojedynczą linię śledzącą wykładniczą średnią ruchomą zamiast śladu.",
+                "zh_CN": "显示单条指数加权移动平均线，而非轨迹"
               }
             },
             {
               "id": "hitDistributionEwmaAlpha",
               "name": {
                 "en": "EWMA Alpha",
-                "pl": "Współczynnik alfa EWMA"
+                "pl": "Współczynnik alfa EWMA",
+                "zh_CN": "EWMA 平滑系数"
               },
               "type": "range",
               "min": 0.01,
@@ -403,75 +462,86 @@
               "default": 0.1,
               "description": {
                 "en": "EWMA smoothing factor: 0 = never moves, 1 = instant snap to latest hit.",
-                "pl": "Współczynnik wygładzania EWMA: 0 = nie rusza się, 1 = natychmiastowe dopasowanie."
+                "pl": "Współczynnik wygładzania EWMA: 0 = nie rusza się, 1 = natychmiastowe dopasowanie.",
+                "zh_CN": "EWMA 平滑系数：0 = 不移动，1 = 立即跳转到最新判定"
               }
             },
             {
               "id": "hitDistributionMaxTrail",
               "name": {
                 "en": "Hit Distribution Trail Length",
-                "pl": "Długość śladu rozkładu trafień"
+                "pl": "Długość śladu rozkładu trafień",
+                "zh_CN": "判定分布轨迹长度"
               },
               "type": "range",
               "min": 1,
               "default": 30,
               "description": {
                 "en": "Maximum number of hit lines shown in trail mode.",
-                "pl": "Maksymalna liczba linii trafień widocznych w trybie śladu."
+                "pl": "Maksymalna liczba linii trafień widocznych w trybie śladu.",
+                "zh_CN": "轨迹模式下显示的判定指示线最大数量"
               }
             },
             {
               "id": "hitDistributionLineColor",
               "name": {
                 "en": "Hit Distribution Line Color",
-                "pl": "Kolor linii rozkładu trafień"
+                "pl": "Kolor linii rozkładu trafień",
+                "zh_CN": "判定指示线颜色"
               },
               "type": "color",
               "default": "white",
               "description": {
                 "en": "Color of the hit indicator line(s).",
-                "pl": "Kolor linii wskaźnika trafień."
+                "pl": "Kolor linii wskaźnika trafień.",
+                "zh_CN": "判定指示线的颜色"
               }
             },
             {
               "id": "hitDistributionCenterLineColor",
               "name": {
                 "en": "Hit Distribution Center Line Color",
-                "pl": "Kolor linii środkowej rozkładu trafień"
+                "pl": "Kolor linii środkowej rozkładu trafień",
+                "zh_CN": "判定分布中心线颜色"
               },
               "type": "color",
               "default": "red",
               "description": {
                 "en": "Color of the central reference line (perfect timing).",
-                "pl": "Kolor środkowej linii odniesienia (idealne trafienie)."
+                "pl": "Kolor środkowej linii odniesienia (idealne trafienie).",
+                "zh_CN": "中心参考线（完美判定）的颜色"
               }
             },
             {
               "id": "hitDistributionLineWidth",
               "name": {
                 "en": "Hit Distribution Line Width",
-                "pl": "Szerokość linii rozkładu trafień"
+                "pl": "Szerokość linii rozkładu trafień",
+                "zh_CN": "判定指示线宽度"
               },
               "type": "range",
               "min": 1,
               "default": 2,
               "description": {
                 "en": "Width in pixels of each hit indicator line.",
-                "pl": "Szerokość w pikselach każdej linii wskaźnika trafień."
+                "pl": "Szerokość w pikselach każdej linii wskaźnika trafień.",
+                "zh_CN": "每条判定指示线的像素宽度"
               }
             },
             {
               "id": "hitDistributionCenterLineWidth",
               "name": {
                 "en": "Hit Distribution Center Line Width",
-                "pl": "Szerokość linii środkowej rozkładu trafień"
+                "pl": "Szerokość linii środkowej rozkładu trafień",
+                "zh_CN": "判定分布中心线宽度"
               },
               "type": "range",
               "min": 0,
               "default": 1,
               "description": {
                 "en": "Width in pixels of the central reference line.",
-                "pl": "Szerokość w pikselach środkowej linii odniesienia."
+                "pl": "Szerokość w pikselach środkowej linii odniesienia.",
+                "zh_CN": "中心参考线的像素宽度"
               }
             }
           ]
@@ -481,19 +551,22 @@
     {
       "name": {
         "en": "Fonts",
-        "pl": "Czcionki"
+        "pl": "Czcionki",
+        "zh_CN": "字体"
       },
       "type": "group",
       "description": {
         "en": "Fonts used by gameplay text elements.",
-        "pl": "Czcionki używane przez elementy tekstowe podczas gry."
+        "pl": "Czcionki używane przez elementy tekstowe podczas gry.",
+        "zh_CN": "游玩界面文本元素所使用的字体"
       },
       "items": [
         {
           "id": "judgementCountsFont",
           "name": {
             "en": "Judgement Counts Font",
-            "pl": "Czcionka licznika trafień"
+            "pl": "Czcionka licznika trafień",
+            "zh_CN": "判定统计字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -503,7 +576,8 @@
           "id": "ghostScoreFont",
           "name": {
             "en": "Ghost Score Font",
-            "pl": "Czcionka celu punktowego"
+            "pl": "Czcionka celu punktowego",
+            "zh_CN": "Ghost Score字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -513,7 +587,8 @@
           "id": "scoreGraphFont",
           "name": {
             "en": "Score Graph Font",
-            "pl": "Czcionka wykresu wyników"
+            "pl": "Czcionka wykresu wyników",
+            "zh_CN": "得分柱形图字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -523,7 +598,8 @@
           "id": "titleDisplayFont",
           "name": {
             "en": "Title Display Font",
-            "pl": "Czcionka wyświetlacza tytułu"
+            "pl": "Czcionka wyświetlacza tytułu",
+            "zh_CN": "标题显示字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -533,7 +609,8 @@
           "id": "difficultyDisplayFont",
           "name": {
             "en": "Difficulty Display Font",
-            "pl": "Czcionka wyświetlacza trudności"
+            "pl": "Czcionka wyświetlacza trudności",
+            "zh_CN": "难度显示字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -543,7 +620,8 @@
           "id": "bpmDisplayFont",
           "name": {
             "en": "BPM Display Font",
-            "pl": "Czcionka wyświetlacza BPM"
+            "pl": "Czcionka wyświetlacza BPM",
+            "zh_CN": "BPM 显示字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -553,7 +631,8 @@
           "id": "lifeNumberFont",
           "name": {
             "en": "Life Number Font",
-            "pl": "Czcionka procentu życia"
+            "pl": "Czcionka procentu życia",
+            "zh_CN": "生命值数字字体"
           },
           "type": "font",
           "path": "scripts/common/fonts",
@@ -564,180 +643,206 @@
     {
       "name": {
         "en": "Textures",
-        "pl": "Tekstury"
+        "pl": "Tekstury",
+        "zh_CN": "纹理图片"
       },
       "type": "group",
       "description": {
         "en": "The textures used in the game.",
-        "pl": "Tekstury używane w grze."
+        "pl": "Tekstury używane w grze.",
+        "zh_CN": "游戏中使用的纹理图片"
       },
       "items": [
         {
           "id": "notes",
           "name": {
             "en": "Note",
-            "pl": "Notka"
+            "pl": "Notka",
+            "zh_CN": "音符"
           },
           "type": "file",
           "path": "scripts/gameplay/images/notes",
           "default": "default.png",
           "description": {
             "en": "The texture used for notes.",
-            "pl": "Tekstura używana dla notek."
+            "pl": "Tekstura używana dla notek.",
+            "zh_CN": "音符所使用的纹理图片"
           }
         },
         {
           "id": "mine",
           "name": {
             "en": "Landmine",
-            "pl": "Mina"
+            "pl": "Mina",
+            "zh_CN": "地雷"
           },
           "type": "file",
           "path": "scripts/gameplay/images/mine",
           "default": "darkred.png",
           "description": {
             "en": "The texture used for landmines.",
-            "pl": "Tekstura używana dla min."
+            "pl": "Tekstura używana dla min.",
+            "zh_CN": "地雷所使用的纹理图片"
           }
         },
         {
           "id": "bomb",
           "name": {
             "en": "bomb",
-            "pl": "Bomba"
+            "pl": "Bomba",
+            "zh_CN": "打击特效"
           },
           "type": "file",
           "path": "scripts/gameplay/images/bomb",
           "default": "explosion.png",
           "description": {
             "en": "The texture used for the animated explosion triggered when a note is hit.",
-            "pl": "Tekstura używana dla animowanej eksplozji po trafieniu notki."
+            "pl": "Tekstura używana dla animowanej eksplozji po trafieniu notki.",
+            "zh_CN": "击打音符时触发的特效所使用的纹理图片"
           }
         },
         {
           "id": "gauge",
           "name": {
             "en": "Gauge",
-            "pl": "Pasek życia"
+            "pl": "Pasek życia",
+            "zh_CN": "血条"
           },
           "type": "file",
           "path": "scripts/gameplay/images/gauge",
           "default": "dotgradation.png",
           "description": {
             "en": "The texture used for the life gauge.",
-            "pl": "Tekstura używana dla wskaźnika życia."
+            "pl": "Tekstura używana dla wskaźnika życia.",
+            "zh_CN": "血条所使用的纹理图片"
           }
         },
         {
           "id": "glow",
           "name": {
             "en": "Glow",
-            "pl": "Poświata"
+            "pl": "Poświata",
+            "zh_CN": "光晕"
           },
           "type": "file",
           "path": "scripts/gameplay/images/glow",
           "default": "default.png",
           "description": {
             "en": "The texture used for the glow at the bottom of the play area.",
-            "pl": "Tekstura poświaty na dole pola gry."
+            "pl": "Tekstura poświaty na dole pola gry.",
+            "zh_CN": "游玩区域底部光晕所使用的纹理图片"
           }
         },
         {
           "id": "lanecover",
           "name": {
             "en": "Lane Cover",
-            "pl": "Zakrycie"
+            "pl": "Zakrycie",
+            "zh_CN": "上挡板"
           },
           "type": "file",
           "path": "scripts/gameplay/images/lanecover",
           "default": "default.png",
           "description": {
             "en": "The texture used for covering the top part of the playfield.",
-            "pl": "Tekstura zakrywająca górną część pola gry."
+            "pl": "Tekstura zakrywająca górną część pola gry.",
+            "zh_CN": "用于遮盖游玩区域顶部的纹理图片"
           }
         },
         {
           "id": "liftcover",
           "name": {
             "en": "Lift Cover",
-            "pl": "Podniesienie"
+            "pl": "Podniesienie",
+            "zh_CN": "下挡板"
           },
           "type": "file",
           "path": "scripts/gameplay/images/liftcover",
           "default": "default.png",
           "description": {
             "en": "The texture used for covering the bottom part of the playfield.",
-            "pl": "Tekstura zakrywająca dolną część pola gry."
+            "pl": "Tekstura zakrywająca dolną część pola gry.",
+            "zh_CN": "用于遮盖游玩区域底部的纹理图片"
           }
         },
         {
           "id": "fiveKeysCover",
           "name": {
             "en": "5 Keys Cover",
-            "pl": "Zakrycie 5 klawiszy"
+            "pl": "Zakrycie 5 klawiszy",
+            "zh_CN": "5k 挡板"
           },
           "type": "file",
           "path": "scripts/gameplay/images/5keyscover",
           "default": "plain.png",
           "description": {
             "en": "The texture used to cover the unused lanes when playing a 10-key chart.",
-            "pl": "Tekstura zakrywająca nieużywane kolumny podczas grania na 10 klawiszy."
+            "pl": "Tekstura zakrywająca nieużywane kolumny podczas grania na 10 klawiszy.",
+            "zh_CN": "游玩 10k 谱面时遮盖未使用轨道的纹理图片"
           }
         },
         {
           "id": "judge",
           "name": {
             "en": "Judgement",
-            "pl": "Ocena"
+            "pl": "Ocena",
+            "zh_CN": "判定文字"
           },
           "type": "file",
           "path": "scripts/gameplay/images/judge",
           "default": "SquadaOne.png",
           "description": {
             "en": "The texture used for the judgement text and combo number.",
-            "pl": "Tekstura używana dla tekstu oceny i licznika combo."
+            "pl": "Tekstura używana dla tekstu oceny i licznika combo.",
+            "zh_CN": "判定文字和连击数字所使用的纹理图片"
           }
         },
         {
           "id": "fastslow",
           "name": {
             "en": "Fast/Slow Indicator",
-            "pl": "Wskaźnik Fast/Slow"
+            "pl": "Wskaźnik Fast/Slow",
+            "zh_CN": "Fast/Slow 指示器"
           },
           "type": "file",
           "path": "scripts/gameplay/images/fastslow",
           "default": "fast_slow.png",
           "description": {
             "en": "The image used to signal whether the player hits too fast or too slow.",
-            "pl": "Obraz używany do sygnalizowania, że gracz uderza za szybko lub za wolno."
+            "pl": "Obraz używany do sygnalizowania, że gracz uderza za szybko lub za wolno.",
+            "zh_CN": "用于提示玩家击打过快或过慢的图片"
           }
         },
         {
           "id": "keybeam",
           "name": {
             "en": "Key Beam",
-            "pl": "Laser klawisza"
+            "pl": "Laser klawisza",
+            "zh_CN": "按键光束"
           },
           "type": "file",
           "path": "scripts/gameplay/images/keybeam",
           "default": "default.png",
           "description": {
             "en": "The texture used for the laser beam that appears when a key is pressed.",
-            "pl": "Tekstura używana dla lasera, który pojawia się po naciśnięciu klawisza."
+            "pl": "Tekstura używana dla lasera, który pojawia się po naciśnięciu klawisza.",
+            "zh_CN": "按键时出现的光束特效所使用的纹理图片"
           }
         },
         {
           "id": "scoregraph",
           "name": {
             "en": "Score Graph Background",
-            "pl": "Tło wykresu wyników"
+            "pl": "Tło wykresu wyników",
+            "zh_CN": "得分柱形图背景"
           },
           "type": "file",
           "path": "scripts/gameplay/images/scoregraph",
           "default": "default.png",
           "description": {
             "en": "The background image for the score graph.",
-            "pl": "Obraz tła wykresu wyników."
+            "pl": "Obraz tła wykresu wyników.",
+            "zh_CN": "得分柱形图的背景图片"
           }
         }
       ]
@@ -745,49 +850,57 @@
     {
       "name": {
         "en": "Positioning",
-        "pl": "Pozycjonowanie"
+        "pl": "Pozycjonowanie",
+        "zh_CN": "位置"
       },
       "type": "group",
       "description": {
         "en": "The positions of elements on the screen.",
-        "pl": "Pozycje elementów na ekranie."
+        "pl": "Pozycje elementów na ekranie.",
+        "zh_CN": "屏幕上各元素的位置"
       },
       "items": [
         {
           "name": {
             "en": "Play Area 1",
-            "pl": "Obszar gry 1"
+            "pl": "Obszar gry 1",
+            "zh_CN": "游玩区域 1"
           },
           "type": "group",
           "description": {
             "en": "The left side with falling notes. Its width is the sum of column widths and spacings.",
-            "pl": "Lewa strona ze spadającymi notkami. Jej szerokość to suma szerokości kolumn i odstępów."
+            "pl": "Lewa strona ze spadającymi notkami. Jej szerokość to suma szerokości kolumn i odstępów.",
+            "zh_CN": "左侧音符下落区域其宽度为各轨道宽度与间距之和"
           },
           "items": [
             {
               "id": "playAreaX1",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 0,
               "description": {
                 "en": "The X position of the left side of the play area rectangle.",
-                "pl": "Pozycja X lewej strony prostokąta obszaru gry."
+                "pl": "Pozycja X lewej strony prostokąta obszaru gry.",
+                "zh_CN": "游玩区域矩形左侧的 X 坐标"
               }
             },
             {
               "id": "playAreaY1",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 0,
               "description": {
                 "en": "The Y position of the top side of the play area rectangle.",
-                "pl": "Pozycja Y górnej strony prostokąta obszaru gry."
+                "pl": "Pozycja Y górnej strony prostokąta obszaru gry.",
+                "zh_CN": "游玩区域矩形顶部的 Y 坐标"
               }
             }
           ]
@@ -795,38 +908,44 @@
         {
           "name": {
             "en": "Play Area 2",
-            "pl": "Obszar gry 2"
+            "pl": "Obszar gry 2",
+            "zh_CN": "游玩区域 2"
           },
           "type": "group",
           "description": {
             "en": "The right side with falling notes. Its width is the sum of column widths and spacings.",
-            "pl": "Prawa strona ze spadającymi notkami. Jej szerokość to suma szerokości kolumn i odstępów."
+            "pl": "Prawa strona ze spadającymi notkami. Jej szerokość to suma szerokości kolumn i odstępów.",
+            "zh_CN": "右侧音符下落区域其宽度为各轨道宽度与间距之和"
           },
           "items": [
             {
               "id": "playAreaX2",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 1420,
               "description": {
                 "en": "The X position of the left side of the play area rectangle.",
-                "pl": "Pozycja X lewej strony prostokąta obszaru gry."
+                "pl": "Pozycja X lewej strony prostokąta obszaru gry.",
+                "zh_CN": "游玩区域矩形左侧的 X 坐标"
               }
             },
             {
               "id": "playAreaY2",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 0,
               "description": {
                 "en": "The Y position of the top side of the play area rectangle.",
-                "pl": "Pozycja Y górnej strony prostokąta obszaru gry."
+                "pl": "Pozycja Y górnej strony prostokąta obszaru gry.",
+                "zh_CN": "游玩区域矩形顶部的 Y 坐标"
               }
             }
           ]
@@ -834,26 +953,30 @@
         {
           "name": {
             "en": "Play Area Common",
-            "pl": "Obszar gry (wspólne)"
+            "pl": "Obszar gry (wspólne)",
+            "zh_CN": "游玩区域（通用）"
           },
           "type": "group",
           "description": {
             "en": "The common settings for both play areas.",
-            "pl": "Wspólne ustawienia dla obu obszarów gry."
+            "pl": "Wspólne ustawienia dla obu obszarów gry.",
+            "zh_CN": "两个游玩区域的通用设置"
           },
           "items": [
             {
               "id": "playAreaHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 800,
               "description": {
                 "en": "The height of the play area rectangle.",
-                "pl": "Wysokość prostokąta obszaru gry."
+                "pl": "Wysokość prostokąta obszaru gry.",
+                "zh_CN": "游玩区域矩形的高度"
               }
             }
           ]
@@ -861,19 +984,22 @@
         {
           "name": {
             "en": "Note Columns",
-            "pl": "Kolumny notek"
+            "pl": "Kolumny notek",
+            "zh_CN": "音符轨道"
           },
           "type": "group",
           "description": {
             "en": "The sizes of notes.",
-            "pl": "Rozmiary notek."
+            "pl": "Rozmiary notek.",
+            "zh_CN": "音符的大小"
           },
           "items": [
             {
               "id": "thickness",
               "name": {
                 "en": "Thickness",
-                "pl": "Grubość"
+                "pl": "Grubość",
+                "zh_CN": "厚度"
               },
               "type": "range",
               "min": 0,
@@ -883,56 +1009,64 @@
               "id": "whiteWidth",
               "name": {
                 "en": "White Width",
-                "pl": "Szerokość białych"
+                "pl": "Szerokość białych",
+                "zh_CN": "白键宽度"
               },
               "type": "range",
               "min": 0,
               "default": 60,
               "description": {
                 "en": "The width of white (odd) notes.",
-                "pl": "Szerokość białych (nieparzystych) notek."
+                "pl": "Szerokość białych (nieparzystych) notek.",
+                "zh_CN": "白键（奇数位置）音符的宽度"
               }
             },
             {
               "id": "blackWidth",
               "name": {
                 "en": "Black Width",
-                "pl": "Szerokość czarnych"
+                "pl": "Szerokość czarnych",
+                "zh_CN": "黑键宽度"
               },
               "type": "range",
               "min": 0,
               "default": 48,
               "description": {
                 "en": "The width of black (even) notes.",
-                "pl": "Szerokość czarnych (parzystych) notek."
+                "pl": "Szerokość czarnych (parzystych) notek.",
+                "zh_CN": "黑键（偶数位置）音符的宽度"
               }
             },
             {
               "id": "scratchWidth",
               "name": {
                 "en": "Scratch Width",
-                "pl": "Szerokość scratcha"
+                "pl": "Szerokość scratcha",
+                "zh_CN": "搓盘宽度"
               },
               "type": "range",
               "min": 0,
               "default": 108,
               "description": {
                 "en": "The width of scratch notes.",
-                "pl": "Szerokość scratch notek."
+                "pl": "Szerokość scratch notek.",
+                "zh_CN": "搓盘音符的宽度"
               }
             },
             {
               "id": "spacing",
               "name": {
                 "en": "Spacing",
-                "pl": "Odstęp"
+                "pl": "Odstęp",
+                "zh_CN": "间距"
               },
               "type": "range",
               "min": 0,
               "default": 2,
               "description": {
                 "en": "The number of pixels between columns.",
-                "pl": "Liczba pikseli między kolumnami."
+                "pl": "Liczba pikseli między kolumnami.",
+                "zh_CN": "轨道之间的像素间距"
               }
             }
           ]
@@ -941,51 +1075,59 @@
           "type": "group",
           "name": {
             "en": "Bga",
-            "pl": "Bga"
+            "pl": "Bga",
+            "zh_CN": "BGA"
           },
           "description": {
             "en": "The position of the background video/image.",
-            "pl": "Pozycja tła wideo/obrazu."
+            "pl": "Pozycja tła wideo/obrazu.",
+            "zh_CN": "背景视频/图片的位置"
           },
           "items": [
             {
               "id": "bgaX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 660,
               "description": {
                 "en": "The X position of the left side of the BGA rectangle.",
-                "pl": "Pozycja X lewej strony prostokąta BGA."
+                "pl": "Pozycja X lewej strony prostokąta BGA.",
+                "zh_CN": "BGA 矩形左侧的 X 坐标"
               }
             },
             {
               "id": "bgaY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 0,
               "description": {
                 "en": "The Y position of the top side of the BGA rectangle.",
-                "pl": "Pozycja Y górnej strony prostokąta BGA."
+                "pl": "Pozycja Y górnej strony prostokąta BGA.",
+                "zh_CN": "BGA 矩形顶部的 Y 坐标"
               }
             },
             {
               "id": "bgaSize",
               "name": {
                 "en": "Size",
-                "pl": "Rozmiar"
+                "pl": "Rozmiar",
+                "zh_CN": "大小"
               },
               "type": "range",
               "min": 0,
               "default": 600,
               "description": {
                 "en": "The size of the BGA square.",
-                "pl": "Rozmiar kwadratu BGA."
+                "pl": "Rozmiar kwadratu BGA.",
+                "zh_CN": "BGA 正方形的大小"
               }
             }
           ]
@@ -993,32 +1135,37 @@
         {
           "name": {
             "en": "Judgements",
-            "pl": "Oceny trafień"
+            "pl": "Oceny trafień",
+            "zh_CN": "判定文字"
           },
           "type": "group",
           "description": {
             "en": "The position of the judgement text.",
-            "pl": "Pozycja tekstu oceny."
+            "pl": "Pozycja tekstu oceny.",
+            "zh_CN": "判定文字的位置"
           },
           "items": [
             {
               "id": "judgementsEnabled",
               "name": {
                 "en": "Show Judgements",
-                "pl": "Pokaż oceny trafień"
+                "pl": "Pokaż oceny trafień",
+                "zh_CN": "显示判定文字"
               },
               "type": "boolean",
               "default": true,
               "description": {
                 "en": "Show the judgement display.",
-                "pl": "Pokaż wyświetlacz ocen trafień."
+                "pl": "Pokaż wyświetlacz ocen trafień.",
+                "zh_CN": "显示判定文字"
               }
             },
             {
               "id": "judgementsOffset",
               "name": {
                 "en": "Position",
-                "pl": "Pozycja"
+                "pl": "Pozycja",
+                "zh_CN": "位置"
               },
               "type": "range",
               "min": 0,
@@ -1026,14 +1173,16 @@
               "default": 0.25,
               "description": {
                 "en": "The vertical offset, expressed a ratio of the play area height.",
-                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości obszaru gry."
+                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości obszaru gry.",
+                "zh_CN": "垂直偏移量，以游玩区域高度的比例表示"
               }
             },
             {
               "id": "judgementsHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
@@ -1041,7 +1190,8 @@
               "default": 0.1,
               "description": {
                 "en": "The height of the judgement text as a ratio of playfield height.",
-                "pl": "Wysokość tekstu oceny jako stosunek do wysokości pola gry."
+                "pl": "Wysokość tekstu oceny jako stosunek do wysokości pola gry.",
+                "zh_CN": "判定文字的高度，以游玩区域高度的比例表示"
               }
             }
           ]
@@ -1049,52 +1199,60 @@
         {
           "name": {
             "en": "Ghost Score",
-            "pl": "Cel punktowy"
+            "pl": "Cel punktowy",
+            "zh_CN": "Ghost Score"
           },
           "type": "group",
           "description": {
             "en": "The position of the ghost score text.",
-            "pl": "Pozycja tekstu celu punktowego."
+            "pl": "Pozycja tekstu celu punktowego.",
+            "zh_CN": "Ghost Score文字的位置"
           },
           "items": [
             {
               "id": "ghostScoreX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 1,
               "description": {
                 "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
-                "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
+                "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień.",
+                "zh_CN": "水平偏移量，以判定文字高度的比例表示"
               }
             },
             {
               "id": "ghostScoreY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 0.0,
               "description": {
                 "en": "The vertical offset, expressed as a ratio of the judgement height.",
-                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości ocen trafień."
+                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości ocen trafień.",
+                "zh_CN": "垂直偏移量，以判定文字高度的比例表示"
               }
             },
             {
               "id": "ghostScoreHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
-              "default": 0.40,
+              "default": 0.4,
               "description": {
                 "en": "The height of the judgement text as a ratio of judgement height.",
-                "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień."
+                "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień.",
+                "zh_CN": "Ghost Score文字的高度，以判定文字高度的比例表示"
               }
             }
           ]
@@ -1102,52 +1260,60 @@
         {
           "name": {
             "en": "Fast/Slow Indicator",
-            "pl": "Wskaźnik fast/slow"
+            "pl": "Wskaźnik fast/slow",
+            "zh_CN": "Fast/Slow 指示器"
           },
           "type": "group",
           "description": {
             "en": "The position of the fast/slow text.",
-            "pl": "Pozycja tekstu fast/slow."
+            "pl": "Pozycja tekstu fast/slow.",
+            "zh_CN": "Fast/Slow 指示文字的位置"
           },
           "items": [
             {
               "id": "fastslowX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": -1,
               "description": {
                 "en": "The horizontal offset, expressed as a ratio of the judgement height (sic).",
-                "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień."
+                "pl": "Poziome przesunięcie, wyrażone jako stosunek do wysokości (sic) ocen trafień.",
+                "zh_CN": "水平偏移量，以判定文字高度的比例表示"
               }
             },
             {
               "id": "fastslowY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 0.0,
               "description": {
                 "en": "The vertical offset, expressed as a ratio of the judgement height.",
-                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości ocen trafień."
+                "pl": "Pionowe przesunięcie, wyrażone jako stosunek do wysokości ocen trafień.",
+                "zh_CN": "垂直偏移量，以判定文字高度的比例表示"
               }
             },
             {
               "id": "fastslowHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
-              "default": 0.40,
+              "default": 0.4,
               "description": {
                 "en": "The height of the judgement text as a ratio of judgement height.",
-                "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień."
+                "pl": "Wysokość tekstu oceny jako stosunek do wysokości ocen trafień.",
+                "zh_CN": "Fast/Slow 文字的高度，以判定文字高度的比例表示"
               }
             }
           ]
@@ -1156,65 +1322,75 @@
           "type": "group",
           "name": {
             "en": "LifeBar",
-            "pl": "Pasek życia"
+            "pl": "Pasek życia",
+            "zh_CN": "血条"
           },
           "description": {
             "en": "The position of the life bar.",
-            "pl": "Pozycja paska życia."
+            "pl": "Pozycja paska życia.",
+            "zh_CN": "血条的位置"
           },
           "items": [
             {
               "id": "lifeBarX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 710,
               "description": {
                 "en": "The X position of the left side of the life bar rectangle.",
-                "pl": "Pozycja X lewej strony prostokąta paska życia."
+                "pl": "Pozycja X lewej strony prostokąta paska życia.",
+                "zh_CN": "血条矩形左侧的 X 坐标"
               }
             },
             {
               "id": "lifeBarY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 920,
               "description": {
                 "en": "The Y position of the top side of the life bar rectangle.",
-                "pl": "Pozycja Y górnej strony prostokąta paska życia."
+                "pl": "Pozycja Y górnej strony prostokąta paska życia.",
+                "zh_CN": "血条矩形顶部的 Y 坐标"
               }
             },
             {
               "id": "lifeBarWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 500,
               "description": {
                 "en": "The width of the life bar rectangle.",
-                "pl": "Szerokość prostokąta paska życia."
+                "pl": "Szerokość prostokąta paska życia.",
+                "zh_CN": "血条矩形的宽度"
               }
             },
             {
               "id": "lifeBarHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 40,
               "description": {
                 "en": "The height of the life bar rectangle.",
-                "pl": "Wysokość prostokąta paska życia."
+                "pl": "Wysokość prostokąta paska życia.",
+                "zh_CN": "血条矩形的高度"
               }
             }
           ]
@@ -1223,65 +1399,75 @@
           "type": "group",
           "name": {
             "en": "Judgement Counts",
-            "pl": "Licznik trafień"
+            "pl": "Licznik trafień",
+            "zh_CN": "判定统计"
           },
           "description": {
             "en": "The position of judgement counts.",
-            "pl": "Pozycja licznika trafień."
+            "pl": "Pozycja licznika trafień.",
+            "zh_CN": "判定统计的位置"
           },
           "items": [
             {
               "id": "judgementCountsX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 810,
               "description": {
                 "en": "The X position of the left side of the judgement counts rectangle.",
-                "pl": "Pozycja X lewej strony prostokąta licznika trafień."
+                "pl": "Pozycja X lewej strony prostokąta licznika trafień.",
+                "zh_CN": "判定统计矩形左侧的 X 坐标"
               }
             },
             {
               "id": "judgementCountsY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 600,
               "description": {
                 "en": "The Y position of the top side of the judgement counts rectangle.",
-                "pl": "Pozycja Y górnej strony prostokąta licznika trafień."
+                "pl": "Pozycja Y górnej strony prostokąta licznika trafień.",
+                "zh_CN": "判定统计矩形顶部的 Y 坐标"
               }
             },
             {
               "id": "judgementCountsWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 300,
               "description": {
                 "en": "The width of the judgement counts rectangle.",
-                "pl": "Szerokość prostokąta licznika trafień."
+                "pl": "Szerokość prostokąta licznika trafień.",
+                "zh_CN": "判定统计矩形的宽度"
               }
             },
             {
               "id": "judgementCountsHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 200,
               "description": {
                 "en": "The height of the judgement counts rectangle.",
-                "pl": "Wysokość prostokąta licznika trafień."
+                "pl": "Wysokość prostokąta licznika trafień.",
+                "zh_CN": "判定统计矩形的高度"
               }
             }
           ]
@@ -1290,65 +1476,75 @@
           "type": "group",
           "name": {
             "en": "Title Display",
-            "pl": "Wyświetlacz tytułu"
+            "pl": "Wyświetlacz tytułu",
+            "zh_CN": "标题显示"
           },
           "description": {
             "en": "Position, size, and visibility of the title/subtitle display.",
-            "pl": "Pozycja, rozmiar i widoczność wyświetlacza tytułu/podtytułu."
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza tytułu/podtytułu.",
+            "zh_CN": "标题/副标题显示的位置、大小与可见性"
           },
           "items": [
             {
               "id": "titleDisplayX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 660,
               "description": {
                 "en": "X position.",
-                "pl": "Pozycja X."
+                "pl": "Pozycja X.",
+                "zh_CN": "X 坐标"
               }
             },
             {
               "id": "titleDisplayY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 800,
               "description": {
                 "en": "Y position.",
-                "pl": "Pozycja Y."
+                "pl": "Pozycja Y.",
+                "zh_CN": "Y 坐标"
               }
             },
             {
               "id": "titleDisplayWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 600,
               "description": {
                 "en": "Width.",
-                "pl": "Szerokość."
+                "pl": "Szerokość.",
+                "zh_CN": "宽度"
               }
             },
             {
               "id": "titleDisplayHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 50,
               "description": {
                 "en": "Height.",
-                "pl": "Wysokość."
+                "pl": "Wysokość.",
+                "zh_CN": "高度"
               }
             }
           ]
@@ -1357,65 +1553,75 @@
           "type": "group",
           "name": {
             "en": "Difficulty Display",
-            "pl": "Wyświetlacz trudności"
+            "pl": "Wyświetlacz trudności",
+            "zh_CN": "难度显示"
           },
           "description": {
             "en": "Position, size, and visibility of the difficulty/play level display.",
-            "pl": "Pozycja, rozmiar i widoczność wyświetlacza trudności/poziomu gry."
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza trudności/poziomu gry.",
+            "zh_CN": "难度/游玩等级显示的位置、大小与可见性"
           },
           "items": [
             {
               "id": "difficultyDisplayX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 540,
               "description": {
                 "en": "X position.",
-                "pl": "Pozycja X."
+                "pl": "Pozycja X.",
+                "zh_CN": "X 坐标"
               }
             },
             {
               "id": "difficultyDisplayY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 800,
               "description": {
                 "en": "Y position.",
-                "pl": "Pozycja Y."
+                "pl": "Pozycja Y.",
+                "zh_CN": "Y 坐标"
               }
             },
             {
               "id": "difficultyDisplayWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 120,
               "description": {
                 "en": "Width.",
-                "pl": "Szerokość."
+                "pl": "Szerokość.",
+                "zh_CN": "宽度"
               }
             },
             {
               "id": "difficultyDisplayHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 60,
               "description": {
                 "en": "Height.",
-                "pl": "Wysokość."
+                "pl": "Wysokość.",
+                "zh_CN": "高度"
               }
             }
           ]
@@ -1424,65 +1630,75 @@
           "type": "group",
           "name": {
             "en": "BPM Display",
-            "pl": "Wyświetlacz BPM"
+            "pl": "Wyświetlacz BPM",
+            "zh_CN": "BPM 显示"
           },
           "description": {
             "en": "Position, size, and visibility of the current/min/max BPM display.",
-            "pl": "Pozycja, rozmiar i widoczność wyświetlacza BPM."
+            "pl": "Pozycja, rozmiar i widoczność wyświetlacza BPM.",
+            "zh_CN": "当前/最小/最大 BPM 显示的位置、大小与可见性"
           },
           "items": [
             {
               "id": "bpmDisplayX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 835,
               "description": {
                 "en": "X position.",
-                "pl": "Pozycja X."
+                "pl": "Pozycja X.",
+                "zh_CN": "X 坐标"
               }
             },
             {
               "id": "bpmDisplayY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 860,
               "description": {
                 "en": "Y position.",
-                "pl": "Pozycja Y."
+                "pl": "Pozycja Y.",
+                "zh_CN": "Y 坐标"
               }
             },
             {
               "id": "bpmDisplayWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 250,
               "description": {
                 "en": "Width.",
-                "pl": "Szerokość."
+                "pl": "Szerokość.",
+                "zh_CN": "宽度"
               }
             },
             {
               "id": "bpmDisplayHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 55,
               "description": {
                 "en": "Height.",
-                "pl": "Wysokość."
+                "pl": "Wysokość.",
+                "zh_CN": "高度"
               }
             }
           ]
@@ -1491,18 +1707,21 @@
           "type": "group",
           "name": {
             "en": "Score Graph",
-            "pl": "Wykres wyników"
+            "pl": "Wykres wyników",
+            "zh_CN": "得分柱形图"
           },
           "description": {
             "en": "Position, size, and visibility of the score graph.",
-            "pl": "Pozycja, rozmiar i widoczność wykresu wyników."
+            "pl": "Pozycja, rozmiar i widoczność wykresu wyników.",
+            "zh_CN": "得分柱形图的位置、大小与可见性"
           },
           "items": [
             {
               "id": "scoreGraphBarWidth",
               "name": {
                 "en": "Bar Width",
-                "pl": "Szerokość słupków"
+                "pl": "Szerokość słupków",
+                "zh_CN": "条柱宽度"
               },
               "type": "range",
               "min": 0,
@@ -1510,61 +1729,70 @@
               "default": 0.7,
               "description": {
                 "en": "Total width of all score bars as a ratio of the available bar width.",
-                "pl": "Szerokość wszystkich słupków jako ułamek dostępnej szerokości."
+                "pl": "Szerokość wszystkich słupków jako ułamek dostępnej szerokości.",
+                "zh_CN": "所有得分条柱的总宽度，以可用条柱宽度的比例表示"
               }
             },
             {
               "id": "scoreGraphX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 520,
               "description": {
                 "en": "X position.",
-                "pl": "Pozycja X."
+                "pl": "Pozycja X.",
+                "zh_CN": "X 坐标"
               }
             },
             {
               "id": "scoreGraphY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 160,
               "description": {
                 "en": "Y position.",
-                "pl": "Pozycja Y."
+                "pl": "Pozycja Y.",
+                "zh_CN": "Y 坐标"
               }
             },
             {
               "id": "scoreGraphWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 122,
               "description": {
                 "en": "Width.",
-                "pl": "Szerokość."
+                "pl": "Szerokość.",
+                "zh_CN": "宽度"
               }
             },
             {
               "id": "scoreGraphHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 380,
               "description": {
                 "en": "Height.",
-                "pl": "Wysokość."
+                "pl": "Wysokość.",
+                "zh_CN": "高度"
               }
             }
           ]
@@ -1573,65 +1801,75 @@
           "type": "group",
           "name": {
             "en": "Density Graph",
-            "pl": "Wykres gęstości"
+            "pl": "Wykres gęstości",
+            "zh_CN": "密度图"
           },
           "description": {
             "en": "Position, size, and visibility of the note-density graph.",
-            "pl": "Pozycja, rozmiar i widoczność wykresu gęstości notek."
+            "pl": "Pozycja, rozmiar i widoczność wykresu gęstości notek.",
+            "zh_CN": "音符密度图的位置、大小与可见性"
           },
           "items": [
             {
               "id": "densityGraphX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 660,
               "description": {
                 "en": "X position.",
-                "pl": "Pozycja X."
+                "pl": "Pozycja X.",
+                "zh_CN": "X 坐标"
               }
             },
             {
               "id": "densityGraphY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 960,
               "description": {
                 "en": "Y position.",
-                "pl": "Pozycja Y."
+                "pl": "Pozycja Y.",
+                "zh_CN": "Y 坐标"
               }
             },
             {
               "id": "densityGraphWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 600,
               "description": {
                 "en": "Width.",
-                "pl": "Szerokość."
+                "pl": "Szerokość.",
+                "zh_CN": "宽度"
               }
             },
             {
               "id": "densityGraphHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 80,
               "description": {
                 "en": "Height.",
-                "pl": "Wysokość."
+                "pl": "Wysokość.",
+                "zh_CN": "高度"
               }
             }
           ]
@@ -1640,65 +1878,75 @@
           "type": "group",
           "name": {
             "en": "Hit Distribution",
-            "pl": "Rozkład trafień"
+            "pl": "Rozkład trafień",
+            "zh_CN": "判定分布"
           },
           "description": {
             "en": "Position and size of the hit timing distribution graph (centred for DP).",
-            "pl": "Pozycja i rozmiar wykresu rozkładu czasu trafień (na środku dla DP)."
+            "pl": "Pozycja i rozmiar wykresu rozkładu czasu trafień (na środku dla DP).",
+            "zh_CN": "判定时值分布图的位置与大小"
           },
           "items": [
             {
               "id": "hitDistributionX",
               "name": {
                 "en": "X",
-                "pl": "X"
+                "pl": "X",
+                "zh_CN": "X"
               },
               "type": "range",
               "default": 1085,
               "description": {
                 "en": "X position.",
-                "pl": "Pozycja X."
+                "pl": "Pozycja X.",
+                "zh_CN": "X 坐标"
               }
             },
             {
               "id": "hitDistributionY",
               "name": {
                 "en": "Y",
-                "pl": "Y"
+                "pl": "Y",
+                "zh_CN": "Y"
               },
               "type": "range",
               "default": 860,
               "description": {
                 "en": "Y position.",
-                "pl": "Pozycja Y."
+                "pl": "Pozycja Y.",
+                "zh_CN": "Y 坐标"
               }
             },
             {
               "id": "hitDistributionWidth",
               "name": {
                 "en": "Width",
-                "pl": "Szerokość"
+                "pl": "Szerokość",
+                "zh_CN": "宽度"
               },
               "type": "range",
               "min": 0,
               "default": 320,
               "description": {
                 "en": "Width.",
-                "pl": "Szerokość."
+                "pl": "Szerokość.",
+                "zh_CN": "宽度"
               }
             },
             {
               "id": "hitDistributionHeight",
               "name": {
                 "en": "Height",
-                "pl": "Wysokość"
+                "pl": "Wysokość",
+                "zh_CN": "高度"
               },
               "type": "range",
               "min": 0,
               "default": 55,
               "description": {
                 "en": "Height.",
-                "pl": "Wysokość."
+                "pl": "Wysokość.",
+                "zh_CN": "高度"
               }
             }
           ]
@@ -1708,142 +1956,164 @@
     {
       "name": {
         "en": "Z-order",
-        "pl": "Kolejność Z"
+        "pl": "Kolejność Z",
+        "zh_CN": "图层层级"
       },
       "type": "group",
       "description": {
         "en": "The z-index of elements on the screen.",
-        "pl": "Wartość z-index elementów na ekranie."
+        "pl": "Wartość z-index elementów na ekranie.",
+        "zh_CN": "屏幕上各元素的图层层级"
       },
       "items": [
         {
           "id": "playAreaZ",
           "name": {
             "en": "Play Area Z",
-            "pl": "Obszar gry Z"
+            "pl": "Obszar gry Z",
+            "zh_CN": "游玩区域层级"
           },
           "type": "range",
           "default": 1,
           "description": {
             "en": "The z-index of the play area.",
-            "pl": "Wartość z-index obszaru gry."
+            "pl": "Wartość z-index obszaru gry.",
+            "zh_CN": "游玩区域的图层层级"
           }
         },
         {
           "id": "bgaZ",
           "name": {
             "en": "BGA Z",
-            "pl": "BGA Z"
+            "pl": "BGA Z",
+            "zh_CN": "BGA层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the BGA.",
-            "pl": "Wartość z-index BGA."
+            "pl": "Wartość z-index BGA.",
+            "zh_CN": "BGA 的图层层级"
           }
         },
         {
           "id": "lifeBarZ",
           "name": {
             "en": "Life Bar Z",
-            "pl": "Pasek życia Z"
+            "pl": "Pasek życia Z",
+            "zh_CN": "血条层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the life bar.",
-            "pl": "Wartość z-index paska życia."
+            "pl": "Wartość z-index paska życia.",
+            "zh_CN": "血条的图层层级"
           }
         },
         {
           "id": "judgementCountsZ",
           "name": {
             "en": "Judgement Counts Z",
-            "pl": "Licznik trafień Z"
+            "pl": "Licznik trafień Z",
+            "zh_CN": "判定统计层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the judgement counts.",
-            "pl": "Wartość z-index licznika trafień."
+            "pl": "Wartość z-index licznika trafień.",
+            "zh_CN": "判定统计的图层层级"
           }
         },
         {
           "id": "scoreGraphZ",
           "name": {
             "en": "Score Graph Z",
-            "pl": "Wykres wyników Z"
+            "pl": "Wykres wyników Z",
+            "zh_CN": "得分柱形图层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the score graph.",
-            "pl": "Wartość z-index wykresu wyników."
+            "pl": "Wartość z-index wykresu wyników.",
+            "zh_CN": "得分柱形图的图层层级"
           }
         },
         {
           "id": "bpmDisplayZ",
           "name": {
             "en": "BPM Display Z",
-            "pl": "Wyświetlacz BPM Z"
+            "pl": "Wyświetlacz BPM Z",
+            "zh_CN": "BPM 显示层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the BPM display.",
-            "pl": "Wartość z-index wyświetlacza BPM."
+            "pl": "Wartość z-index wyświetlacza BPM.",
+            "zh_CN": "BPM 显示的图层层级"
           }
         },
         {
           "id": "titleDisplayZ",
           "name": {
             "en": "Title Display Z",
-            "pl": "Wyświetlacz tytułu Z"
+            "pl": "Wyświetlacz tytułu Z",
+            "zh_CN": "标题显示层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the title display.",
-            "pl": "Wartość z-index wyświetlacza tytułu."
+            "pl": "Wartość z-index wyświetlacza tytułu.",
+            "zh_CN": "标题显示的图层层级"
           }
         },
         {
           "id": "difficultyDisplayZ",
           "name": {
             "en": "Difficulty Display Z",
-            "pl": "Wyświetlacz trudności Z"
+            "pl": "Wyświetlacz trudności Z",
+            "zh_CN": "难度显示层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the difficulty display.",
-            "pl": "Wartość z-index wyświetlacza trudności."
+            "pl": "Wartość z-index wyświetlacza trudności.",
+            "zh_CN": "难度显示的图层层级"
           }
         },
         {
           "id": "densityGraphZ",
           "name": {
             "en": "Density Graph Z",
-            "pl": "Wykres gęstości Z"
+            "pl": "Wykres gęstości Z",
+            "zh_CN": "密度图层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the density graph.",
-            "pl": "Wartość z-index wykresu gęstości."
+            "pl": "Wartość z-index wykresu gęstości.",
+            "zh_CN": "密度图的图层层级"
           }
         },
         {
           "id": "hitDistributionZ",
           "name": {
             "en": "Hit Distribution Z",
-            "pl": "Rozkład trafień Z"
+            "pl": "Rozkład trafień Z",
+            "zh_CN": "判定分布层级"
           },
           "type": "range",
           "default": 0,
           "description": {
             "en": "The z-index of the hit distribution graph.",
-            "pl": "Wartość z-index wykresu rozkładu trafień."
+            "pl": "Wartość z-index wykresu rozkładu trafień.",
+            "zh_CN": "判定分布图的图层层级"
           }
         }
       ]
