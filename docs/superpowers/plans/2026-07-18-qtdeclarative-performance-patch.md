@@ -363,15 +363,19 @@ Expected: the committed implementation diff shows the documentation, line-ending
 Run:
 
 ~~~powershell
-git log -4 --oneline
-if (git diff --cached --quiet) {
+$implementationBase = '49756400297485bb2ddcc123fe482b8103fb61fd'
+git log --oneline "$implementationBase..HEAD" -- .gitattributes vcpkg.json vcpkgOverlayPorts/qtdeclarative docs/superpowers/specs/2026-07-18-qtdeclarative-performance-patch-design.md docs/superpowers/plans/2026-07-18-qtdeclarative-performance-patch.md
+git diff --cached --quiet
+if ($LASTEXITCODE -eq 0) {
     'INDEX_CLEAN=True'
-} else {
+} elseif ($LASTEXITCODE -eq 1) {
     throw 'Unexpected staged changes remain before push'
+} else {
+    throw "Unable to inspect the index; git diff exited $LASTEXITCODE"
 }
 ~~~
 
-Expected: the log shows the design, plan, manifest-restoration, and overlay-port commits, and INDEX_CLEAN=True is printed.
+Expected: the path-scoped log shows the design, plan, manifest-restoration, overlay-port, and review-fix commits, and `INDEX_CLEAN=True` is printed.
 
 - [ ] **Step 3: Push the current branch**
 
