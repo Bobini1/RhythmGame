@@ -236,10 +236,10 @@ if (-not $port.Contains('24205cd-qquickwindow-child-window-stacking.patch')) {
 if (-not $port.Contains('qt_install_submodule')) {
     throw 'Port recipe no longer uses the Qt submodule helper'
 }
-git diff --check -- vcpkg.json vcpkgOverlayPorts/qtdeclarative
+git diff --check -- vcpkg.json vcpkgOverlayPorts/qtdeclarative ':(exclude)vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch'
 ~~~
 
-Expected: formatting succeeds, both assertions pass, and git diff --check emits no output.
+Expected: formatting succeeds, both assertions pass, and git diff --check emits no output. The byte-identical unified diff is excluded from this outer whitespace scan because its required context-line prefixes are checked by the SHA-256 assertion instead.
 
 - [ ] **Step 7: Commit the overlay port**
 
@@ -247,7 +247,7 @@ Run:
 
 ~~~powershell
 git add -- vcpkgOverlayPorts/qtdeclarative
-git diff --cached --check
+git diff --cached --check -- . ':(exclude)vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch'
 git commit -m "Patch qtdeclarative vcpkg port"
 ~~~
 
