@@ -303,14 +303,16 @@ QtObject {
         if (title.length <= 0) {
             title = String(hash || "----");
         }
-        return (root.lr2SkinUsesBeatorajaSemantics ? "(no song) " : "(missing) ") + title;
+        return (root.lr2SkinUsesBeatorajaSemantics
+                ? "(no song) "
+                : selectContext.unavailableSongPrefix) + title;
     }
 
     function missingTableEntryPrefix(chart: var) : var {
         return !root.lr2SkinUsesBeatorajaSemantics
             && selectContext
             && selectContext.isMissingTableEntry(chart)
-            ? "(missing) "
+            ? selectContext.unavailableSongPrefix
             : "";
     }
 
