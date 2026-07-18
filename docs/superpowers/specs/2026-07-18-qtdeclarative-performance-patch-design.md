@@ -28,6 +28,8 @@ The supplied patch was checked against the exact Qt 6.11.1 archive and SHA-512 h
 
 Add a complete `qtdeclarative` overlay port under `vcpkgOverlayPorts/qtdeclarative`. Base its metadata and build recipe on the exact built-in 6.11.1 port selected by the repository baseline, add a port revision for the local customization, vendor the upstream patch beside the port, and list it in the port's `PATCHES` collection passed to `qt_install_submodule`.
 
+Add a path-specific `.gitattributes` rule with `-text` for the vendored patch. This keeps the supplied bytes stable on Windows checkouts even when `core.autocrlf=true`, so the recorded patch hash and vcpkg ABI input do not depend on the developer or runner's Git configuration.
+
 The overlay directory will contain:
 
 - `port.data.cmake`: the exact Qt 6.11.1 archive URLs, filename, and SHA-512 hash.
@@ -50,11 +52,12 @@ No workflow-specific patch command is needed. Coverage, sanitizer, Ubuntu test/d
 
 ## Failure Behavior
 
-Patch drift must be a hard failure. If a future vcpkg baseline changes the Qt source so the patch no longer applies, vcpkg will stop during source extraction instead of silently building unpatched Qt. Updating the baseline then requires refreshing the copied port metadata and explicitly rechecking or rebasing the patch.
+Patch drift must be a hard failure. The complete overlay intentionally pins its own Qt 6.11.1 source metadata, so changing only the vcpkg baseline does not silently switch `qtdeclarative` to a different archive. When the overlay source metadata is deliberately refreshed for a Qt update, vcpkg will stop during source extraction if the patch no longer applies instead of silently building unpatched Qt. A baseline or Qt update therefore requires refreshing the copied port metadata and explicitly rechecking, rebasing, or removing the patch.
 
 ## Verification
 
 - Confirm the vendored patch applies to the exact Qt archive named by `port.data.cmake`.
+- Confirm Git attributes preserve the vendored patch byte-for-byte when `core.autocrlf=true`.
 - Run vcpkg formatting and manifest/configuration checks against the overlay.
 - Reconfigure a Windows development preset and confirm vcpkg selects the overlay port and applies the patch.
 - Build RhythmGame with the configured preset and run the relevant test preset.

@@ -160,6 +160,7 @@ Expected: the commit contains only vcpkg.json and leaves unrelated worktree file
 - Create: vcpkgOverlayPorts/qtdeclarative/portfile.cmake
 - Create: vcpkgOverlayPorts/qtdeclarative/vcpkg.json
 - Create: vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch
+- Create: .gitattributes
 
 **Interfaces:**
 - Consumes: qtdeclarative 6.11.1 from builtin-baseline a0400024711b283056538ac19ced80b91a83c24c and source patch SHA-256 2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50
@@ -211,7 +212,13 @@ Keep the built-in qtbase, host qtdeclarative, qtlanguageserver, qtshadertools, a
 
 - [ ] **Step 5: Vendor and verify the patch**
 
-Create 24205cd-qquickwindow-child-window-stacking.patch with the exact bytes from C:/Users/PC/Downloads/24205cd.diff, then run:
+Create 24205cd-qquickwindow-child-window-stacking.patch with the exact bytes from C:/Users/PC/Downloads/24205cd.diff. Add this path-specific rule to `.gitattributes` so a Windows checkout with `core.autocrlf=true` cannot rewrite those bytes:
+
+~~~gitattributes
+vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch -text
+~~~
+
+Then run:
 
 ~~~powershell
 $expected = '2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50'
@@ -219,9 +226,13 @@ $actual = (Get-FileHash -Algorithm SHA256 vcpkgOverlayPorts/qtdeclarative/24205c
 if ($actual -ne $expected) {
     throw "Vendored patch hash mismatch: $actual"
 }
+$textAttribute = git check-attr text -- vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch
+if (-not $textAttribute.EndsWith('text: unset')) {
+    throw "Vendored patch is still subject to line-ending conversion: $textAttribute"
+}
 ~~~
 
-Expected: the assertion exits successfully.
+Expected: both assertions exit successfully, including when Git is configured with `core.autocrlf=true`.
 
 - [ ] **Step 6: Validate overlay structure and formatting**
 
@@ -246,12 +257,12 @@ Expected: formatting succeeds, both assertions pass, and git diff --check emits 
 Run:
 
 ~~~powershell
-git add -- vcpkgOverlayPorts/qtdeclarative
+git add -- .gitattributes vcpkgOverlayPorts/qtdeclarative
 git diff --cached --check -- . ':(exclude)vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch'
 git commit -m "Patch qtdeclarative vcpkg port"
 ~~~
 
-Expected: the commit contains only the four overlay-port files and leaves unrelated worktree files untouched.
+Expected: the commit contains only the root attribute rule and four overlay-port files, and leaves unrelated worktree files untouched.
 
 ### Task 3: Prove vcpkg and CI consume the patched port
 
@@ -338,12 +349,14 @@ Expected: the Release build succeeds and every test passes.
 Run:
 
 ~~~powershell
+$implementationBase = '49756400297485bb2ddcc123fe482b8103fb61fd'
+$implementationHead = git rev-parse HEAD
 git status --short
-git diff --check
-git diff -- vcpkg.json vcpkgOverlayPorts/qtdeclarative
+git diff "$implementationBase..$implementationHead" --check -- . ':(exclude)vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch'
+git diff "$implementationBase..$implementationHead" -- .gitattributes vcpkg.json vcpkgOverlayPorts/qtdeclarative docs/superpowers/specs/2026-07-18-qtdeclarative-performance-patch-design.md docs/superpowers/plans/2026-07-18-qtdeclarative-performance-patch.md
 ~~~
 
-Expected: the implementation diff contains only the qtdeclarative manifest and overlay changes; unrelated dirty files remain untouched.
+Expected: the committed implementation diff shows the documentation, line-ending guard, qtdeclarative manifest, and overlay changes; the committed-range whitespace check passes; unrelated dirty files remain untouched.
 
 - [ ] **Step 2: Confirm the implementation commits and clean index**
 
