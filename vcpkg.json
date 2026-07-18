@@ -1,18 +1,97 @@
 {
   "name": "rhythmgame",
   "version-semver": "0.1.0",
+  "builtin-baseline": "a0400024711b283056538ac19ced80b91a83c24c",
   "dependencies": [
+    "boost-headers",
+    "boost-icl",
+    "boost-pfr",
     "fmt",
-    "sqlitecpp",
+    "foonathan-lexy",
     {
-      "name": "sqlite3",
+      "name": "libsndfile",
       "features": [
-        "fts5"
+        "external-libs",
+        "mpeg"
       ]
     },
-    "boost-pfr",
-    "boost-icl",
-    "boost-headers",
+    "libxml2",
+    {
+      "name": "llfio",
+      "platform": "!windows"
+    },
+    "magic-enum",
+    {
+      "name": "mimalloc",
+      "features": [
+        "override"
+      ]
+    },
+    "miniaudio",
+    {
+      "name": "openimageio",
+      "default-features": false
+    },
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "dnslookup",
+        "harfbuzz",
+        "jpeg",
+        "opengl",
+        "openssl",
+        "vulkan"
+      ]
+    },
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "dbus",
+        "egl",
+        "xcb",
+        "xcb-xlib",
+        "xrender"
+      ],
+      "platform": "linux"
+    },
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "windeployqt"
+      ],
+      "platform": "windows"
+    },
+    "qtdeclarative",
+    "qtinterfaceframework",
+    "qtkeychain-qt6",
+    {
+      "name": "qtmultimedia",
+      "default-features": false,
+      "features": [
+        "ffmpeg",
+        "qml"
+      ]
+    },
+    "qtshadertools",
+    "qtsvg",
+    {
+      "name": "qttools",
+      "features": [
+        "linguist",
+        "qml"
+      ]
+    },
+    "qttranslations",
+    {
+      "name": "qtwayland",
+      "platform": "linux"
+    },
+    "qtwebsockets",
+    "sdl2",
+    "sdl2-image",
     "spdlog",
     {
       "name": "spdlog",
@@ -21,42 +100,30 @@
       ],
       "platform": "windows"
     },
-    "foonathan-lexy",
-    "magic-enum",
-    "zstd",
-    "zlib-ng",
     {
-      "name": "libsndfile",
+      "name": "sqlite3",
       "features": [
-        "external-libs",
-        "mpeg"
+        "fts5"
       ]
     },
-    "sdl2",
-    "sdl2-image",
+    "sqlitecpp",
+    "stb",
     {
-      "name": "mimalloc",
+      "name": "vulkan-loader",
       "features": [
-        "override"
-      ]
-    },
-    "libxml2",
-    {
-      "name": "llfio",
-      "platform": "!windows"
+        "wayland",
+        "xcb",
+        "xlib"
+      ],
+      "platform": "linux"
     },
     {
       "name": "wil",
       "platform": "windows"
     },
-    "miniaudio",
-    {
-      "name": "openimageio",
-      "default-features": false
-    },
-    "stb"
+    "zlib-ng",
+    "zstd"
   ],
-  "default-features": [],
   "features": {
     "test": {
       "description": "Dependencies for testing",
@@ -64,6 +131,5 @@
         "catch2"
       ]
     }
-  },
-  "builtin-baseline": "a0400024711b283056538ac19ced80b91a83c24c"
+  }
 }
