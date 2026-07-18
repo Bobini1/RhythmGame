@@ -50,7 +50,7 @@ Item {
     property bool componentReady: false
     readonly property bool arenaSeated: Rg.arenaSession.state === ArenaSession.InRoom
         || Rg.arenaSession.state === ArenaSession.Reconnecting
-    readonly property string arenaUnavailablePrefix: qsTr("(arena unavailable) ")
+    readonly property string unavailableSongPrefix: "\u00d7 "
     property bool updatesActive: true
     property alias suppressVisualIndexPublish: nativeNavigation.suppressVisualIndexPublish
     property alias scrollDirection: nativeNavigation.scrollDirection
@@ -313,7 +313,7 @@ Item {
     Lr2SelectItemModel {
         id: selectItemModel
         arenaAvailability: root.arenaSeated ? Rg.arenaSession.availability : null
-        arenaUnavailablePrefix: root.arenaUnavailablePrefix
+        unavailableSongPrefix: root.unavailableSongPrefix
         useBeatorajaBarTextTypes: root.useBeatorajaBarTextTypes
         useBeatorajaSelectOptions: root.useBeatorajaSelectOptions
         barBodyTypes: root.barBodyTypes
@@ -1774,7 +1774,7 @@ Item {
             return "";
         }
         if (isMissingTableEntry(item)) {
-            return qsTr("(missing) ");
+            return root.unavailableSongPrefix;
         }
         if (!root.arenaSeated || !isChart(item)) {
             return "";
@@ -1784,7 +1784,7 @@ Item {
         return revision >= 0
                 && availability.availabilityFor(item.sha256 || "")
                     === ArenaAvailabilityIndex.UnavailableToSome
-            ? root.arenaUnavailablePrefix
+            ? root.unavailableSongPrefix
             : "";
     }
 

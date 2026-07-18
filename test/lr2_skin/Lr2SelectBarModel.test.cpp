@@ -6,6 +6,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+#include <QByteArray>
 #include <QString>
 #include <QVariantList>
 #include <QVariantMap>
@@ -13,6 +14,12 @@
 #include <utility>
 
 namespace {
+
+QString
+unavailableSongPrefix()
+{
+    return QString(QChar(0x00D7)) + QLatin1Char(' ');
+}
 
 QVariantMap
 item(QString key)
@@ -338,8 +345,6 @@ TEST_CASE(
     source.setItems({
       QVariantMap{
         { QStringLiteral("rawItem"), QVariant::fromValue(entry) },
-        { QStringLiteral("displayText"), QStringLiteral("(missing) Song Sub") },
-        { QStringLiteral("title"), QStringLiteral("(missing) Song") },
         { QStringLiteral("titleType"), 0 },
         { QStringLiteral("bodyType"), 4 },
         { QStringLiteral("lamp"), 2 },
@@ -353,9 +358,9 @@ TEST_CASE(
     REQUIRE(source.data(row, Lr2SelectItemModel::KeyRole).toString() ==
             QStringLiteral("entry:md5"));
     REQUIRE(source.data(row, Lr2SelectItemModel::DisplayTextRole).toString() ==
-            QStringLiteral("(missing) Song Sub"));
+            unavailableSongPrefix() + QStringLiteral("Song Sub"));
     REQUIRE(source.data(row, Lr2SelectItemModel::TitleRole).toString() ==
-            QStringLiteral("(missing) Song"));
+            unavailableSongPrefix() + QStringLiteral("Song"));
     REQUIRE(source.data(row, Lr2SelectItemModel::SubtitleRole).toString() ==
             QStringLiteral("Sub"));
     REQUIRE(source.data(row, Lr2SelectItemModel::ArtistRole).toString() ==
@@ -367,6 +372,46 @@ TEST_CASE(
     REQUIRE(source.data(row, Lr2SelectItemModel::Sha256Role).toString() ==
             QStringLiteral("sha"));
     REQUIRE(source.data(row, Lr2SelectItemModel::PlayLevelRole).toInt() == 12);
+
+    source.setUseBeatorajaBarTextTypes(true);
+    CHECK(source.data(row, Lr2SelectItemModel::DisplayTextRole).toString() ==
+          QStringLiteral("Song Sub"));
+    CHECK(source.data(row, Lr2SelectItemModel::TitleRole).toString() ==
+          QStringLiteral("Song"));
+}
+
+TEST_CASE(
+  "LR2 select item model prefixes Arena-unavailable charts with the shared marker",
+  "[lr2][runtime][select]")
+{
+    arena::ArenaAvailabilityIndex availability;
+    REQUIRE(availability.applyReset(1, QByteArray(32, '\x01')));
+
+    Lr2SelectItemModel source;
+    source.setArenaAvailability(&availability);
+    source.setItems({
+      QVariantMap{
+        { QStringLiteral("type"), QStringLiteral("chart") },
+        { QStringLiteral("title"), QStringLiteral("Song") },
+        { QStringLiteral("subtitle"), QStringLiteral("Sub") },
+        { QStringLiteral("sha256"), QString(64, QLatin1Char('0')) },
+      },
+    });
+
+    const QModelIndex row = source.index(0, 0);
+    REQUIRE(source.data(row, Lr2SelectItemModel::ArenaAvailabilityRole).toInt() ==
+            static_cast<int>(
+              arena::ArenaAvailabilityIndex::Availability::UnavailableToSome));
+    CHECK(source.data(row, Lr2SelectItemModel::DisplayTextRole).toString() ==
+          unavailableSongPrefix() + QStringLiteral("Song Sub"));
+    CHECK(source.data(row, Lr2SelectItemModel::TitleRole).toString() ==
+          unavailableSongPrefix() + QStringLiteral("Song"));
+
+    source.setUseBeatorajaBarTextTypes(true);
+    CHECK(source.data(row, Lr2SelectItemModel::DisplayTextRole).toString() ==
+          QStringLiteral("Song Sub"));
+    CHECK(source.data(row, Lr2SelectItemModel::TitleRole).toString() ==
+          QStringLiteral("Song"));
 }
 
 TEST_CASE("LR2 select item model detects lean folder rows from raw strings",

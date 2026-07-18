@@ -589,17 +589,17 @@ void Lr2SelectItemModel::refreshArenaAvailability() {
 		  ArenaAvailabilityRole });
 }
 
-QString Lr2SelectItemModel::arenaUnavailablePrefix() const {
-	return m_arenaUnavailablePrefix;
+QString Lr2SelectItemModel::unavailableSongPrefix() const {
+	return m_unavailableSongPrefix;
 }
 
-void Lr2SelectItemModel::setArenaUnavailablePrefix(const QString& prefix) {
-	if (m_arenaUnavailablePrefix == prefix) {
+void Lr2SelectItemModel::setUnavailableSongPrefix(const QString& prefix) {
+	if (m_unavailableSongPrefix == prefix) {
 		return;
 	}
-	m_arenaUnavailablePrefix = prefix;
-	emit arenaUnavailablePrefixChanged();
-	refreshArenaAvailability();
+	m_unavailableSongPrefix = prefix;
+	emit unavailableSongPrefixChanged();
+	refreshDerivedItems();
 }
 
 QVariant Lr2SelectItemModel::rawItemAt(int row) const {
@@ -1420,7 +1420,7 @@ QString Lr2SelectItemModel::displayTextForItem(const QVariant& value, const QVar
 		const QString title = stringField(value, map, "title");
 		const QString subtitle = stringField(value, map, "subtitle");
 		const QString prefix = kind == EntryKind && !m_useBeatorajaBarTextTypes
-			? QStringLiteral("(missing) ")
+			? m_unavailableSongPrefix
 			: QString();
 		return prefix + (subtitle.isEmpty() ? title : title + QLatin1Char(' ') + subtitle);
 	}
@@ -1436,7 +1436,7 @@ QString Lr2SelectItemModel::titleForItem(const QVariant& value, const QVariantMa
 	}
 	if (kind == ChartKind || kind == EntryKind) {
 		const QString prefix = kind == EntryKind && !m_useBeatorajaBarTextTypes
-			? QStringLiteral("(missing) ")
+			? m_unavailableSongPrefix
 			: QString();
 		return prefix + stringField(value, map, "title");
 	}
@@ -1682,7 +1682,7 @@ arena::ArenaAvailabilityIndex::Availability Lr2SelectItemModel::arenaAvailabilit
 QString Lr2SelectItemModel::effectiveDisplayText(const Item& item) const {
 	if (!m_useBeatorajaBarTextTypes
 		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome) {
-		return m_arenaUnavailablePrefix + item.displayText;
+		return m_unavailableSongPrefix + item.displayText;
 	}
 	return item.displayText;
 }
@@ -1690,7 +1690,7 @@ QString Lr2SelectItemModel::effectiveDisplayText(const Item& item) const {
 QString Lr2SelectItemModel::effectiveTitle(const Item& item) const {
 	if (!m_useBeatorajaBarTextTypes
 		&& arenaAvailabilityForItem(item) == arena::ArenaAvailabilityIndex::Availability::UnavailableToSome) {
-		return m_arenaUnavailablePrefix + item.title;
+		return m_unavailableSongPrefix + item.title;
 	}
 	return item.title;
 }
