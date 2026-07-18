@@ -3070,19 +3070,6 @@
     </message>
 </context>
 <context>
-    <name>Lr2SelectContext</name>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectContext.qml" line="53"/>
-        <source>(arena unavailable) </source>
-        <translation>(niedostępny w Arenie) </translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectContext.qml" line="1778"/>
-        <source>(missing) </source>
-        <translation>(brak) </translation>
-    </message>
-</context>
-<context>
     <name>Lr2SelectPointerController</name>
     <message>
         <location filename="../../../../../RhythmGameQml/Lr2/Lr2SelectPointerController.qml" line="262"/>
