@@ -811,6 +811,89 @@ TEST_CASE("ArenaSession publishes browsing only after anonymous hello",
             .toString() == QStringLiteral("First room"));
 }
 
+TEST_CASE(
+  "ArenaSession automatically retries stalled anonymous browsing with bounded "
+  "backoff",
+  "[arena][session]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.session.connectForBrowsing();
+
+    constexpr auto Delays =
+      std::array<qint64, 6>{ 500, 1'000, 2'000, 4'000, 8'000, 8'000 };
+    for (const auto delay : Delays) {
+        const auto connectCount = fixture.transport.connectCalls.size();
+        fixture.scheduler.advanceBy(9'999);
+        CHECK(fixture.transport.connectCalls.size() == connectCount);
+        fixture.scheduler.advanceBy(1);
+        CHECK(fixture.transport.connectCalls.size() == connectCount);
+        fixture.scheduler.advanceBy(delay - 1);
+        CHECK(fixture.transport.connectCalls.size() == connectCount);
+        fixture.scheduler.advanceBy(1);
+        REQUIRE(fixture.transport.connectCalls.size() == connectCount + 1);
+        CHECK(fixture.session.getState() ==
+              arena::ArenaSession::State::Disconnected);
+        CHECK(fixture.session.getErrorCode().isEmpty());
+    }
+}
+
+TEST_CASE(
+  "ArenaSession automatically resets browsing backoff after a directory "
+  "snapshot and cancels retries on exit",
+  "[arena][session]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.session.connectForBrowsing();
+
+    fixture.transport.injectConnected(1);
+    fixture.transport.injectText(1, serverHello(false));
+    fixture.transport.injectText(1, directorySnapshot(1));
+    REQUIRE(fixture.session.getDirectoryReady());
+
+    fixture.transport.injectDisconnected(1);
+    fixture.scheduler.advanceBy(499);
+    CHECK(fixture.transport.connectCalls.size() == 1);
+    fixture.scheduler.advanceBy(1);
+    REQUIRE(fixture.transport.connectCalls.size() == 2);
+
+    fixture.transport.injectConnected(2);
+    fixture.transport.injectText(2, serverHello(false));
+    fixture.transport.injectText(2, directorySnapshot(2));
+    REQUIRE(fixture.session.getDirectoryReady());
+
+    fixture.transport.injectDisconnected(2);
+    fixture.scheduler.advanceBy(499);
+    CHECK(fixture.transport.connectCalls.size() == 2);
+    fixture.scheduler.advanceBy(1);
+    REQUIRE(fixture.transport.connectCalls.size() == 3);
+
+    fixture.transport.injectDisconnected(3);
+    fixture.session.exitArena();
+    const auto connectCount = fixture.transport.connectCalls.size();
+    fixture.scheduler.advanceBy(100'000);
+    CHECK(fixture.transport.connectCalls.size() == connectCount);
+    CHECK_FALSE(fixture.session.getActive());
+}
+
+TEST_CASE(
+  "ArenaSession automatically keeps protocol failures terminal while browsing",
+  "[arena][session][protocol]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    fixture.session.connectForBrowsing();
+    fixture.transport.injectConnected(1);
+    fixture.transport.injectText(1, serverHello(false));
+    fixture.transport.injectText(1, serverHello(false));
+
+    REQUIRE(fixture.session.getState() == arena::ArenaSession::State::Error);
+    const auto connectCount = fixture.transport.connectCalls.size();
+    fixture.scheduler.advanceBy(100'000);
+    CHECK(fixture.transport.connectCalls.size() == connectCount);
+}
+
 TEST_CASE("ArenaSession uploads one packed inventory after Phase 2 admission",
           "[arena][session][rounds]")
 {
@@ -2907,7 +2990,7 @@ TEST_CASE("ArenaSession leave while reconnecting abandons the seat locally",
     fixture.session.leaveRoom();
     CHECK(fixture.session.getRoomId().isEmpty());
     CHECK(fixture.session.getMembers()->rowCount() == 0);
-    CHECK(fixture.scheduler.pendingCount() == 0);
+    CHECK(fixture.scheduler.pendingCount() == 1);
     CHECK(fixture.session.getState() ==
           arena::ArenaSession::State::Disconnected);
     CHECK(fixture.transport.connectCalls.back().generation == 3);

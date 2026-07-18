@@ -355,6 +355,9 @@ class ArenaSession final : public QObject
     ArenaScheduler::TaskId m_retryTask{};
     qint64 m_reconnectDeadlineMs{};
     qint64 m_nextBackoffMs{ InitialBackoffMs };
+    ArenaScheduler::TaskId m_browseAttemptTimeoutTask{};
+    ArenaScheduler::TaskId m_browseRetryTask{};
+    qint64 m_nextBrowseBackoffMs{ InitialBackoffMs };
 
     struct PendingInventoryUpload
     {
@@ -455,6 +458,10 @@ class ArenaSession final : public QObject
     void startTransport(HandshakeKind kind);
     void invalidateTransport();
     void openAnonymousBrowsing();
+    void startAnonymousBrowseAttempt();
+    void scheduleAnonymousBrowseRetry();
+    void cancelAnonymousBrowseTasks();
+    [[nodiscard]] auto isAnonymousBrowsing() const -> bool;
     [[nodiscard]] auto sendMessage(const ClientMessage& message) -> bool;
     void sendDirectorySubscribe();
     [[nodiscard]] auto nextRequestId() -> QString;

@@ -608,6 +608,7 @@ ArenaSession::~ArenaSession()
 {
     ++m_lifecycleGeneration;
     cancelReconnectTasks();
+    cancelAnonymousBrowseTasks();
     m_currentTicketRequestId = 0;
     m_round.reset();
     clearRoundTransfers();
@@ -1050,9 +1051,78 @@ ArenaSession::openAnonymousBrowsing()
     if (!m_active) {
         return;
     }
+    cancelAnonymousBrowseTasks();
+    m_nextBrowseBackoffMs = InitialBackoffMs;
     setAuthenticated(false);
     setState(State::Disconnected);
+    startAnonymousBrowseAttempt();
+}
+
+void
+ArenaSession::startAnonymousBrowseAttempt()
+{
+    if (!isAnonymousBrowsing()) {
+        return;
+    }
+    cancelTask(m_browseRetryTask);
+    cancelTask(m_browseAttemptTimeoutTask);
     startTransport(HandshakeKind::AnonymousBrowse);
+    const auto lifecycle = m_lifecycleGeneration;
+    const auto generation = m_currentTransportGeneration;
+    m_browseAttemptTimeoutTask =
+      m_scheduler->scheduleOnce(AttemptTimeoutMs, this, [this,
+                                                         lifecycle,
+                                                         generation] {
+          m_browseAttemptTimeoutTask = ArenaScheduler::InvalidTaskId;
+          if (lifecycle == m_lifecycleGeneration &&
+              generation == m_currentTransportGeneration &&
+              isAnonymousBrowsing() && !m_directoryReady) {
+              scheduleAnonymousBrowseRetry();
+          }
+      });
+}
+
+void
+ArenaSession::scheduleAnonymousBrowseRetry()
+{
+    if (!isAnonymousBrowsing()) {
+        return;
+    }
+    cancelTask(m_browseAttemptTimeoutTask);
+    invalidateTransport();
+    setDirectoryReady(false);
+    setAuthenticated(false);
+    setState(State::Disconnected);
+    clearError();
+    if (m_browseRetryTask != ArenaScheduler::InvalidTaskId) {
+        return;
+    }
+    const auto delay = m_nextBrowseBackoffMs;
+    m_nextBrowseBackoffMs =
+      (std::min)(MaximumBackoffMs, m_nextBrowseBackoffMs * 2);
+    const auto lifecycle = m_lifecycleGeneration;
+    m_browseRetryTask =
+      m_scheduler->scheduleOnce(delay, this, [this, lifecycle] {
+          m_browseRetryTask = ArenaScheduler::InvalidTaskId;
+          if (lifecycle == m_lifecycleGeneration && isAnonymousBrowsing()) {
+              startAnonymousBrowseAttempt();
+          }
+      });
+}
+
+void
+ArenaSession::cancelAnonymousBrowseTasks()
+{
+    cancelTask(m_browseAttemptTimeoutTask);
+    cancelTask(m_browseRetryTask);
+}
+
+auto
+ArenaSession::isAnonymousBrowsing() const -> bool
+{
+    return m_active && !m_authenticated && !getAdmissionPending() &&
+           m_roomId.isEmpty() &&
+           (m_state == State::Disconnected || m_state == State::Browsing);
 }
 
 auto
@@ -1300,6 +1370,8 @@ ArenaSession::handleDirectorySnapshot(const DirectorySnapshot& snapshot)
     }
     m_directoryRevision = snapshot.revision;
     m_directoryResyncPending = false;
+    cancelAnonymousBrowseTasks();
+    m_nextBrowseBackoffMs = InitialBackoffMs;
     setDirectoryReady(true);
 }
 
@@ -1396,6 +1468,7 @@ ArenaSession::beginAuthenticatedAdmission()
         !m_identityProvider->loggedIn()) {
         return;
     }
+    cancelAnonymousBrowseTasks();
     setLoginRequired(false);
     setAuthenticated(false);
     setState(State::ConnectingAuthenticated);
@@ -1508,7 +1581,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             fatal->code == FatalErrorCode::ProtocolIncompatible) {
             m_legacyFallbackAvailable = false;
             m_legacyBrowseOnly = true;
-            startTransport(HandshakeKind::AnonymousBrowse);
+            startAnonymousBrowseAttempt();
             return;
         }
         failProtocol(fatalCode(fatal->code), fatal->displayMessageKey);
@@ -1614,6 +1687,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
         },
         [this](const ServerGoingAway&) {
             cancelReconnectTasks();
+            cancelAnonymousBrowseTasks();
             invalidateTransport();
             clearPendingAdmission();
             clearRoom();
@@ -3948,6 +4022,10 @@ ArenaSession::handleDisconnected(ArenaTransport::Generation generation)
           QStringLiteral("arena.error.remoteClosed"));
         return;
     }
+    if (isAnonymousBrowsing()) {
+        scheduleAnonymousBrowseRetry();
+        return;
+    }
     setAuthenticated(false);
     clearPendingAdmission();
     setError(QStringLiteral("transport_remote_closed"),
@@ -3973,6 +4051,10 @@ ArenaSession::handleTransportError(ArenaTransport::Generation generation,
     const auto [code, key] = transportFailureCode(error);
     if (m_state == State::ConnectingAuthenticated || getAdmissionPending()) {
         restoreAnonymousAfterAdmissionFailure(code, key);
+        return;
+    }
+    if (isAnonymousBrowsing()) {
+        scheduleAnonymousBrowseRetry();
         return;
     }
     invalidateTransport();
@@ -4176,6 +4258,7 @@ ArenaSession::invalidateAsyncWork()
 {
     ++m_lifecycleGeneration;
     cancelReconnectTasks();
+    cancelAnonymousBrowseTasks();
     m_currentTicketRequestId = 0;
     m_pendingTicket.clear();
     m_pendingTicket.squeeze();
@@ -4190,7 +4273,8 @@ ArenaSession::cleanupForIdentityChange()
         return;
     }
     const auto keepAnonymous = m_state == State::Browsing && !m_authenticated &&
-                               m_roomId.isEmpty() && m_protocolReady;
+                               m_roomId.isEmpty() && m_protocolReady &&
+                               m_directoryReady;
     bestEffortLeave();
     invalidateAsyncWork();
     clearPendingAdmission();
@@ -4263,6 +4347,7 @@ void
 ArenaSession::failProtocol(QString code, QString messageKey)
 {
     cancelReconnectTasks();
+    cancelAnonymousBrowseTasks();
     m_currentTicketRequestId = 0;
     m_pendingTicket.clear();
     clearPendingAdmission();
