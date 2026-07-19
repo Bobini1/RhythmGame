@@ -24,6 +24,23 @@
 namespace input {
 namespace {
 constexpr double BEATORAJA_ANALOG_SCRATCH_TICK_SIZE = 0.009;
+constexpr double MAX_DEBOUNCE_MS =
+  static_cast<double>(std::numeric_limits<int>::max());
+
+constexpr auto
+buttonIndex(BmsKey button) -> std::size_t
+{
+    return static_cast<std::size_t>(button);
+}
+
+auto
+normalizeDebounceMs(double value) -> double
+{
+    if (std::isnan(value)) {
+        return 0.0;
+    }
+    return std::clamp(value, 0.0, MAX_DEBOUNCE_MS);
+}
 
 auto
 scratchAxisDelta(double oldValue, double newValue) -> double
@@ -194,17 +211,32 @@ AnalogAxisConfig::AnalogAxisConfig(QObject* parent)
 }
 
 void
-InputTranslator::pressButton(BmsKey button, uint64_t time)
+InputTranslator::pressButton(BmsKey button, int64_t time)
 {
-    auto& state = buttons[static_cast<int>(button)];
-    if (const auto lastReleaseTime = lastRelease[static_cast<int>(button)];
-        time < lastReleaseTime + static_cast<uint64_t>(debounceMs)) {
+    const auto index = buttonIndex(button);
+    auto& state = buttons[index];
+    if (state.physicallyPressed) {
         return;
     }
-    if (state) {
+    state.physicallyPressed = true;
+    if (state.pendingRelease.has_value()) {
+        const auto pendingRelease = *state.pendingRelease;
+        const auto inputDeadlineReached =
+          pendingRelease.inputDeadline.has_value() &&
+          time >= *pendingRelease.inputDeadline;
+        const auto timerDeadlineReached =
+          state.debounceTimer.remainingTime() <= 0;
+        state.pendingRelease.reset();
+        state.debounceTimer.stop();
+        if (!inputDeadlineReached && !timerDeadlineReached) {
+            return;
+        }
+        finishRelease(button, pendingRelease.timestamp);
+    }
+    if (state.logicallyPressed) {
         return;
     }
-    state = true;
+    state.logicallyPressed = true;
     switch (button) {
         case BmsKey::Col11:
             emit col11Changed();
@@ -231,82 +263,66 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
             break;
 
         case BmsKey::Col17:
-            state = true;
             emit col17Changed();
             break;
 
         case BmsKey::Col1sUp:
-            state = true;
             emit col1sUpChanged();
             break;
 
         case BmsKey::Col1sDown:
-            state = true;
             emit col1sDownChanged();
             break;
 
         case BmsKey::Col21:
-            state = true;
             emit col21Changed();
             break;
 
         case BmsKey::Col22:
-            state = true;
             emit col22Changed();
             break;
 
         case BmsKey::Col23:
-            state = true;
             emit col23Changed();
             break;
 
         case BmsKey::Col24:
-            state = true;
             emit col24Changed();
             break;
 
         case BmsKey::Col25:
-            state = true;
             emit col25Changed();
             break;
 
         case BmsKey::Col26:
-            state = true;
             emit col26Changed();
             break;
 
         case BmsKey::Col27:
-            state = true;
             emit col27Changed();
             break;
 
         case BmsKey::Col2sUp:
-            state = true;
             emit col2sUpChanged();
             break;
 
         case BmsKey::Col2sDown:
-            state = true;
             emit col2sDownChanged();
             break;
 
         case BmsKey::Start1:
-            state = true;
             emit start1Changed();
             break;
 
         case BmsKey::Select1:
-            state = true;
             emit select1Changed();
             break;
 
         case BmsKey::Start2:
-            state = true;
             emit start2Changed();
             break;
 
         case BmsKey::Select2:
-            state = true;
             emit select2Changed();
             break;
     }
@@ -327,20 +343,59 @@ InputTranslator::pressButton(BmsKey button, uint64_t time)
             }
         }
     }
-    auto& timer = tickTimers[static_cast<int>(button)];
+    auto& timer = tickTimers[index];
     emitTick(button);
     timer.start();
 }
 void
-InputTranslator::releaseButton(BmsKey button, uint64_t time)
+InputTranslator::releaseButton(BmsKey button, int64_t time, ReleaseMode mode)
 {
-    auto& state = buttons[static_cast<int>(button)];
-    if (!state) {
+    const auto index = buttonIndex(button);
+    auto& state = buttons[index];
+    if (!state.physicallyPressed && mode == ReleaseMode::Debounced) {
         return;
     }
-    tickNumbers[static_cast<int>(button)] = 0;
-    lastRelease[static_cast<int>(button)] = time;
-    state = false;
+    state.physicallyPressed = false;
+    if (!state.logicallyPressed) {
+        return;
+    }
+    if (mode == ReleaseMode::Debounced && debounceMs > 0.0) {
+        const auto interval = debounceInterval();
+        state.pendingRelease = PendingRelease{
+            .timestamp = time,
+            .inputDeadline = time + interval.count(),
+        };
+        state.debounceTimer.start(interval);
+        return;
+    }
+    state.pendingRelease.reset();
+    state.debounceTimer.stop();
+    finishRelease(button, time);
+}
+
+void
+InputTranslator::commitPendingRelease(BmsKey button)
+{
+    auto& state = buttons[buttonIndex(button)];
+    if (!state.pendingRelease.has_value() || state.physicallyPressed) {
+        return;
+    }
+    const auto releaseTime = state.pendingRelease->timestamp;
+    state.pendingRelease.reset();
+    finishRelease(button, releaseTime);
+}
+
+void
+InputTranslator::finishRelease(BmsKey button, int64_t time)
+{
+    const auto index = buttonIndex(button);
+    auto& state = buttons[index];
+    if (!state.logicallyPressed) {
+        return;
+    }
+    state.pendingRelease.reset();
+    state.logicallyPressed = false;
+    tickNumbers[index] = 0;
     switch (button) {
         case BmsKey::Col11:
             emit col11Changed();
@@ -431,20 +486,27 @@ InputTranslator::releaseButton(BmsKey button, uint64_t time)
             break;
     }
     emit buttonReleased(button, time);
-    auto& timer = tickTimers[static_cast<int>(button)];
+    auto& timer = tickTimers[index];
     timer.stop();
 }
+
+auto
+InputTranslator::debounceInterval() const -> std::chrono::milliseconds
+{
+    return std::chrono::milliseconds{ static_cast<int64_t>(
+      std::ceil(debounceMs)) };
+}
 void
-InputTranslator::unpressAndUnbind(const Key& key, uint64_t time)
+InputTranslator::unpressAndUnbind(const Key& key, int64_t time)
 {
     if (auto found = config.find(key); found != config.end()) {
-        releaseButton(*found, time);
+        releaseButton(*found, time, ReleaseMode::Immediate);
         config.erase(found);
     }
 }
 
 void
-InputTranslator::bindKeyToButton(const Key& key, BmsKey button, uint64_t time)
+InputTranslator::bindKeyToButton(const Key& key, BmsKey button, int64_t time)
 {
     unpressAndUnbind(key, time);
     removeButtonMappings(config, button);
@@ -552,12 +614,12 @@ InputTranslator::handleAxisChange(Gamepad gamepad,
         // find the key with the opposite direction
         if (const auto oppositeButton = config.find(oppositeKeyLookup);
             oppositeButton != config.end()) {
-            releaseButton(*oppositeButton, time);
+            releaseButton(*oppositeButton, time, ReleaseMode::Immediate);
         }
         if (const auto button = config.find(keyLookup);
             button != config.end()) {
             if (unpressBoth) {
-                releaseButton(*button, time);
+                releaseButton(*button, time, ReleaseMode::Immediate);
             } else {
                 pressButton(*button, time);
                 if (analog) {
@@ -631,10 +693,10 @@ InputTranslator::autoReleaseScratch(
     oppositeKeyLookup.direction = Key::Direction::Down;
     if (const auto oppositeButton = config.find(oppositeKeyLookup);
         oppositeButton != config.end()) {
-        releaseButton(*oppositeButton, time);
+        releaseButton(*oppositeButton, time, ReleaseMode::Immediate);
     }
     if (const auto button = config.find(keyLookup); button != config.end()) {
-        releaseButton(*button, time);
+        releaseButton(*button, time, ReleaseMode::Immediate);
     }
 }
 void
@@ -953,7 +1015,7 @@ InputTranslator::loadDebounce()
     auto axisStatement = db->createStatement(
       "SELECT value FROM properties WHERE key = 'debounce'");
     if (const auto value = axisStatement.executeAndGet<double>()) {
-        debounceMs = *value;
+        debounceMs = normalizeDebounceMs(*value);
     }
 }
 void
@@ -979,6 +1041,14 @@ InputTranslator::InputTranslator(db::SqliteCppDb* db, QObject* parent)
             &InputTranslator::keyConfigModified,
             this,
             &InputTranslator::checkAnalogAxisStatus);
+    for (auto&& [index, state] : std::ranges::views::enumerate(buttons)) {
+        auto& timer = state.debounceTimer;
+        timer.setSingleShot(true);
+        timer.setTimerType(Qt::PreciseTimer);
+        connect(&timer, &QTimer::timeout, this, [this, index] {
+            commitPendingRelease(static_cast<BmsKey>(index));
+        });
+    }
     for (const auto& [index, timer] :
          std::ranges::views::enumerate(tickTimers)) {
         // default for Windows 10
@@ -1059,130 +1129,130 @@ InputTranslator::resetButton(BmsKey key)
 auto
 InputTranslator::col11() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col11)];
+    return buttons[buttonIndex(BmsKey::Col11)].logicallyPressed;
 }
 auto
 InputTranslator::col12() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col12)];
+    return buttons[buttonIndex(BmsKey::Col12)].logicallyPressed;
 }
 
 auto
 InputTranslator::col13() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col13)];
+    return buttons[buttonIndex(BmsKey::Col13)].logicallyPressed;
 }
 
 auto
 InputTranslator::col14() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col14)];
+    return buttons[buttonIndex(BmsKey::Col14)].logicallyPressed;
 }
 
 auto
 InputTranslator::col15() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col15)];
+    return buttons[buttonIndex(BmsKey::Col15)].logicallyPressed;
 }
 
 auto
 InputTranslator::col16() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col16)];
+    return buttons[buttonIndex(BmsKey::Col16)].logicallyPressed;
 }
 
 auto
 InputTranslator::col17() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col17)];
+    return buttons[buttonIndex(BmsKey::Col17)].logicallyPressed;
 }
 
 auto
 InputTranslator::col1sUp() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col1sUp)];
+    return buttons[buttonIndex(BmsKey::Col1sUp)].logicallyPressed;
 }
 auto
 InputTranslator::col1sDown() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col1sDown)];
+    return buttons[buttonIndex(BmsKey::Col1sDown)].logicallyPressed;
 }
 
 auto
 InputTranslator::col21() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col21)];
+    return buttons[buttonIndex(BmsKey::Col21)].logicallyPressed;
 }
 
 auto
 InputTranslator::col22() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col22)];
+    return buttons[buttonIndex(BmsKey::Col22)].logicallyPressed;
 }
 
 auto
 InputTranslator::col23() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col23)];
+    return buttons[buttonIndex(BmsKey::Col23)].logicallyPressed;
 }
 
 auto
 InputTranslator::col24() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col24)];
+    return buttons[buttonIndex(BmsKey::Col24)].logicallyPressed;
 }
 
 auto
 InputTranslator::col25() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col25)];
+    return buttons[buttonIndex(BmsKey::Col25)].logicallyPressed;
 }
 
 auto
 InputTranslator::col26() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col26)];
+    return buttons[buttonIndex(BmsKey::Col26)].logicallyPressed;
 }
 
 auto
 InputTranslator::col27() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col27)];
+    return buttons[buttonIndex(BmsKey::Col27)].logicallyPressed;
 }
 
 auto
 InputTranslator::col2sUp() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col2sUp)];
+    return buttons[buttonIndex(BmsKey::Col2sUp)].logicallyPressed;
 }
 
 auto
 InputTranslator::col2sDown() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Col2sDown)];
+    return buttons[buttonIndex(BmsKey::Col2sDown)].logicallyPressed;
 }
 auto
 InputTranslator::start1() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Start1)];
+    return buttons[buttonIndex(BmsKey::Start1)].logicallyPressed;
 }
 
 auto
 InputTranslator::start2() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Start2)];
+    return buttons[buttonIndex(BmsKey::Start2)].logicallyPressed;
 }
 
 auto
 InputTranslator::select1() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Select1)];
+    return buttons[buttonIndex(BmsKey::Select1)].logicallyPressed;
 }
 
 auto
 InputTranslator::select2() const -> bool
 {
-    return buttons[static_cast<int>(BmsKey::Select2)];
+    return buttons[buttonIndex(BmsKey::Select2)].logicallyPressed;
 }
 
 auto
@@ -1317,18 +1387,31 @@ InputTranslator::getDebounceMs() const -> double
 void
 InputTranslator::setDebounceMs(double value)
 {
-    value = std::max(0.0, value);
+    value = normalizeDebounceMs(value);
     if (debounceMs == value) {
         return;
     }
     debounceMs = value;
     saveDebounce();
+    for (const auto& [index, state] : std::ranges::views::enumerate(buttons)) {
+        if (!state.pendingRelease.has_value()) {
+            continue;
+        }
+        auto& timer = state.debounceTimer;
+        timer.stop();
+        if (debounceMs == 0.0) {
+            commitPendingRelease(static_cast<BmsKey>(index));
+        } else {
+            state.pendingRelease->inputDeadline.reset();
+            timer.start(debounceInterval());
+        }
+    }
     emit debounceMsChanged();
 }
 void
 InputTranslator::resetDebounceMs()
 {
-    setDebounceMs(40.0);
+    setDebounceMs(5.0);
 }
 
 auto

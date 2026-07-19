@@ -13,7 +13,11 @@
 #include <QTimer>
 #include <magic_enum/magic_enum.hpp>
 #include <array>
+#include <chrono>
+#include <cstdint>
 #include <functional>
+#include <limits>
+#include <optional>
 
 namespace db {
 class SqliteCppDb;
@@ -219,6 +223,26 @@ class InputTranslator final : public QObject
     Q_ENUM(TickType)
 
   private:
+    enum class ReleaseMode
+    {
+        Debounced,
+        Immediate
+    };
+
+    struct PendingRelease
+    {
+        int64_t timestamp;
+        std::optional<int64_t> inputDeadline;
+    };
+
+    struct ButtonState
+    {
+        bool physicallyPressed{};
+        bool logicallyPressed{};
+        std::optional<PendingRelease> pendingRelease;
+        QTimer debounceTimer;
+    };
+
     struct PairHash
     {
         template<typename T, typename U>
@@ -234,19 +258,23 @@ class InputTranslator final : public QObject
       axisConfig;
     QHash<Key, BmsKey> config;
     db::SqliteCppDb* db;
-    std::array<bool, magic_enum::enum_count<BmsKey>()> buttons{ {} };
+    std::array<ButtonState, magic_enum::enum_count<BmsKey>()> buttons;
     std::array<QTimer, magic_enum::enum_count<BmsKey>()> tickTimers;
     std::array<int, magic_enum::enum_count<BmsKey>()> tickNumbers{ {} };
     std::array<TickType, magic_enum::enum_count<BmsKey>()> tickTypes{ {} };
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis1;
     std::optional<std::pair<Gamepad, uint8_t>> scratchAxis2;
-    std::array<uint64_t, magic_enum::enum_count<BmsKey>()> lastRelease{ {} };
     double debounceMs = 5.0;
 
-    void pressButton(BmsKey button, uint64_t time);
-    void releaseButton(BmsKey button, uint64_t time);
-    void unpressAndUnbind(const Key& key, uint64_t time);
-    void bindKeyToButton(const Key& key, BmsKey button, uint64_t time);
+    void pressButton(BmsKey button, int64_t time);
+    void releaseButton(BmsKey button,
+                       int64_t time,
+                       ReleaseMode mode = ReleaseMode::Debounced);
+    void commitPendingRelease(BmsKey button);
+    void finishRelease(BmsKey button, int64_t time);
+    auto debounceInterval() const -> std::chrono::milliseconds;
+    void unpressAndUnbind(const Key& key, int64_t time);
+    void bindKeyToButton(const Key& key, BmsKey button, int64_t time);
     void saveKeyConfig() const;
     void saveAnalogAxisConfig() const;
     void handleAxisChange(Gamepad gamepad,

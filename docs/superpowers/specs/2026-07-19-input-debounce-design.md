@@ -27,8 +27,9 @@ shares a timer, pending timestamp, or transition state with another key.
 
 Changing the debounce setting to zero commits pending releases immediately.
 Changing it to another positive value restarts pending per-key deadlines using
-the new interval. The C++ property reset value is 5 ms, matching the runtime and
-Default-theme defaults.
+the new interval. Values are normalized to the non-negative interval range
+supported by `QTimer`; a non-numeric stored value becomes zero. The C++
+property reset value is 5 ms, matching the runtime and Default-theme defaults.
 
 Synthetic releases used by analog scratch direction changes, scratch timeout,
 and key unbinding remain immediate. Delaying those transitions would allow
