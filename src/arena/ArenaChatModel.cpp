@@ -89,8 +89,7 @@ ArenaChatModel::replace(QVector<ChatMessage> messages, QString selfMemberId)
 }
 
 auto
-ArenaChatModel::upsert(ChatMessage message)
-  -> bool
+ArenaChatModel::upsert(ChatMessage message) -> bool
 {
     const auto found = std::find_if(
       m_messages.begin(), m_messages.end(), [&](const ChatMessage& row) {

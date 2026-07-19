@@ -808,9 +808,8 @@ Lr2SkinModel::setActiveOptions(const QVariantList& options)
     if (m_activeOptions == options)
         return;
     const bool needsReload =
-      !m_hasLoadedSkin ||
-      activeOptionChangeAffectsStructure(
-        m_activeOptions, options, m_conditionOptions);
+      !m_hasLoadedSkin || activeOptionChangeAffectsStructure(
+                            m_activeOptions, options, m_conditionOptions);
     m_activeOptions = options;
     emit activeOptionsChanged();
     if (needsReload) {
@@ -828,13 +827,12 @@ Lr2SkinModel::loadSkin()
         const bool metadataChanged =
           !m_effectiveActiveOptions.isEmpty() || !m_usedOptions.isEmpty() ||
           !m_usedElementOptions.isEmpty() || !m_conditionOptions.isEmpty() ||
-          !m_barLampVariants.isEmpty() ||
-          !m_barLevelVariants.isEmpty() || !m_barRows.isEmpty() ||
-          !m_barBodyTypes.isEmpty() || !m_barTitleTypes.isEmpty() ||
-          m_startInput != 0 || m_sceneTime != 0 || m_loadStart != 0 ||
-          m_loadEnd != 0 || m_playStart != 2000 || m_fadeOut != 0 ||
-          m_finishMargin != 0 || m_skip != 0 || m_skinWidth != 640 ||
-          m_skinHeight != 480 || !m_helpFiles.isEmpty() ||
+          !m_barLampVariants.isEmpty() || !m_barLevelVariants.isEmpty() ||
+          !m_barRows.isEmpty() || !m_barBodyTypes.isEmpty() ||
+          !m_barTitleTypes.isEmpty() || m_startInput != 0 || m_sceneTime != 0 ||
+          m_loadStart != 0 || m_loadEnd != 0 || m_playStart != 2000 ||
+          m_fadeOut != 0 || m_finishMargin != 0 || m_skip != 0 ||
+          m_skinWidth != 640 || m_skinHeight != 480 || !m_helpFiles.isEmpty() ||
           !m_mouseCursor.isEmpty() || m_hasMouseHover ||
           m_scratchRotationSides != 0 || m_transColor != "#000000" ||
           m_hasTransColor || m_reloadBanner || m_usesStageFileSource ||

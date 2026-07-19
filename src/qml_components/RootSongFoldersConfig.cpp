@@ -311,7 +311,8 @@ ScanningQueue::clear(const QString& which)
 {
     const auto folderNameStd = which.toStdString();
 
-    removeSongsStartingWith.reset();
+    auto removeSongsStartingWith =
+      db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
     removeSongsStartingWith.bind(":dir", folderNameStd);
     removeSongsStartingWith.execute();
     db->execute("WITH RECURSIVE "

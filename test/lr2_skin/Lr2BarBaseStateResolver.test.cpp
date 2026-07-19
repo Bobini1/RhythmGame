@@ -125,7 +125,8 @@ TEST_CASE("LR2 bar base state resolver uses fast scroll for uniform rows",
     REQUIRE(resolver.fastScrollDy() == 20.0);
 }
 
-TEST_CASE("LR2 bar base state resolver disables fast scroll when selected row state differs",
+TEST_CASE("LR2 bar base state resolver disables fast scroll when selected row "
+          "state differs",
           "[lr2][runtime][select]")
 {
     Lr2BarBaseStateResolver resolver;

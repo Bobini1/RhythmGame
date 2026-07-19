@@ -1069,10 +1069,8 @@ ArenaSession::startAnonymousBrowseAttempt()
     startTransport(HandshakeKind::AnonymousBrowse);
     const auto lifecycle = m_lifecycleGeneration;
     const auto generation = m_currentTransportGeneration;
-    m_browseAttemptTimeoutTask =
-      m_scheduler->scheduleOnce(AttemptTimeoutMs, this, [this,
-                                                         lifecycle,
-                                                         generation] {
+    m_browseAttemptTimeoutTask = m_scheduler->scheduleOnce(
+      AttemptTimeoutMs, this, [this, lifecycle, generation] {
           m_browseAttemptTimeoutTask = ArenaScheduler::InvalidTaskId;
           if (lifecycle == m_lifecycleGeneration &&
               generation == m_currentTransportGeneration &&
@@ -1671,8 +1669,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                 event.message.authorMemberId != m_selfMemberId) {
                 m_unreadChatCount =
                   std::min(m_unreadChatCount + 1, MaxWireChatBacklog);
-                m_latestUnreadChatDisplayName =
-                  event.message.authorDisplayName;
+                m_latestUnreadChatDisplayName = event.message.authorDisplayName;
                 m_latestUnreadChatText = event.message.text;
                 emit chatActivityChanged();
             }
@@ -3955,9 +3952,9 @@ ArenaSession::abandonCurrentRound()
 void
 ArenaSession::setChatOpen(bool open)
 {
-    const auto accepted = open && !m_roomId.isEmpty() &&
-                          (m_state == State::InRoom ||
-                           m_state == State::Reconnecting);
+    const auto accepted =
+      open && !m_roomId.isEmpty() &&
+      (m_state == State::InRoom || m_state == State::Reconnecting);
     if (m_chatOpen != accepted) {
         m_chatOpen = accepted;
         emit chatOpenChanged();

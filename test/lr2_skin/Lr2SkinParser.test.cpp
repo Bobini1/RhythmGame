@@ -47,9 +47,9 @@ fullScreenSprite(const int time = 0) -> QString
 auto
 runtimeGatedSprite(const int option) -> QString
 {
-    return QStringLiteral(
-             "#SRC_IMAGE,0,0,0,0,640,480,1,1,0,0,0,0,0\n"
-             "#DST_IMAGE,0,0,0,0,320,320,0,255,255,255,255,1,0,0,0,0,0,%1,0,0\n")
+    return QStringLiteral("#SRC_IMAGE,0,0,0,0,640,480,1,1,0,0,0,0,0\n"
+                          "#DST_IMAGE,0,0,0,0,320,320,0,255,255,255,255,1,0,0,"
+                          "0,0,0,%1,0,0\n")
       .arg(option);
 }
 
@@ -212,8 +212,7 @@ TEST_CASE("LR2 skin model keeps DST-only runtime option changes hot",
     const auto path = tempSkinPath(tempDir);
 
     writeSkinFile(path,
-                  QStringLiteral("#IMAGE,full.png\n") +
-                    runtimeGatedSprite(39));
+                  QStringLiteral("#IMAGE,full.png\n") + runtimeGatedSprite(39));
 
     Lr2SkinModel model;
     int loadCount = 0;

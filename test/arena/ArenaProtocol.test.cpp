@@ -1697,8 +1697,8 @@ TEST_CASE(
 
     const auto loadingGolden =
       fixtureMessage(fixture, u"serverMessages", u"round_loading_started");
-    const auto* loading = messageAs<RoundLoadingStarted>(
-      decodeServerMessage(compact(loadingGolden)));
+    const auto loadingDecoded = decodeServerMessage(compact(loadingGolden));
+    const auto* loading = messageAs<RoundLoadingStarted>(loadingDecoded);
     REQUIRE(loading != nullptr);
     REQUIRE(loading->round.participants.size() == 1);
     REQUIRE(loading->round.participants.front().identity.has_value());
@@ -1717,8 +1717,10 @@ TEST_CASE(
                                400'000);
     scheduledRoundData.insert(QStringLiteral("round"), scheduledRoundValue);
     scheduledRound.insert(QStringLiteral("data"), scheduledRoundData);
-    const auto* scheduledFrozen = messageAs<RoundLoadingStarted>(
-      decodeServerMessage(compact(scheduledRound)));
+    const auto scheduledRoundDecoded =
+      decodeServerMessage(compact(scheduledRound));
+    const auto* scheduledFrozen =
+      messageAs<RoundLoadingStarted>(scheduledRoundDecoded);
     REQUIRE(scheduledFrozen != nullptr);
     CHECK(scheduledFrozen->round.playDeadlineAtServerMs == 400'000);
 
@@ -1733,8 +1735,8 @@ TEST_CASE(
 
     const auto scheduleGolden =
       fixtureMessage(fixture, u"serverMessages", u"round_start_scheduled");
-    const auto* schedule = messageAs<RoundStartScheduled>(
-      decodeServerMessage(compact(scheduleGolden)));
+    const auto scheduleDecoded = decodeServerMessage(compact(scheduleGolden));
+    const auto* schedule = messageAs<RoundStartScheduled>(scheduleDecoded);
     REQUIRE(schedule != nullptr);
     CHECK(schedule->playDeadlineAtServerMs == 400'000);
 
@@ -1748,22 +1750,26 @@ TEST_CASE(
 
     const auto startedGolden =
       fixtureMessage(fixture, u"serverMessages", u"round_started");
-    const auto* started =
-      messageAs<RoundStarted>(decodeServerMessage(compact(startedGolden)));
+    const auto startedDecoded = decodeServerMessage(compact(startedGolden));
+    const auto* started = messageAs<RoundStarted>(startedDecoded);
     REQUIRE(started != nullptr);
     CHECK(started->playDeadlineAtServerMs == 400'000);
 
     auto terminalGolden =
       fixtureMessage(fixture, u"serverMessages", u"round_terminal_accepted");
-    const auto* finishedTerminal = messageAs<RoundTerminalAccepted>(
-      decodeServerMessage(compact(terminalGolden)));
+    const auto finishedTerminalDecoded =
+      decodeServerMessage(compact(terminalGolden));
+    const auto* finishedTerminal =
+      messageAs<RoundTerminalAccepted>(finishedTerminalDecoded);
     REQUIRE(finishedTerminal != nullptr);
     CHECK(finishedTerminal->terminal == TerminalKind::Finished);
     auto terminalData = terminalGolden.value(QStringLiteral("data")).toObject();
     terminalData.insert(QStringLiteral("terminal"), QStringLiteral("dnf"));
     terminalGolden.insert(QStringLiteral("data"), terminalData);
-    const auto* dnfTerminal = messageAs<RoundTerminalAccepted>(
-      decodeServerMessage(compact(terminalGolden)));
+    const auto dnfTerminalDecoded =
+      decodeServerMessage(compact(terminalGolden));
+    const auto* dnfTerminal =
+      messageAs<RoundTerminalAccepted>(dnfTerminalDecoded);
     REQUIRE(dnfTerminal != nullptr);
     CHECK(dnfTerminal->terminal == TerminalKind::Dnf);
     terminalData.insert(QStringLiteral("terminal"), QStringLiteral("future"));
@@ -1773,8 +1779,8 @@ TEST_CASE(
 
     const auto roomGolden =
       fixtureMessage(fixture, u"serverMessages", u"room_snapshot");
-    const auto* room =
-      messageAs<RoomSnapshotEvent>(decodeServerMessage(compact(roomGolden)));
+    const auto roomDecoded = decodeServerMessage(compact(roomGolden));
+    const auto* room = messageAs<RoomSnapshotEvent>(roomDecoded);
     REQUIRE(room != nullptr);
     CHECK(room->room.competitionShape);
     CHECK_FALSE(room->room.liveStandings.has_value());

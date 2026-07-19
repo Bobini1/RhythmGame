@@ -86,8 +86,6 @@ class ScanningQueue final : public QAbstractListModel
 
     db::SqliteCppDb* db;
     resource_managers::SongDbScanner scanner;
-    db::SqliteCppDb::Statement removeSongsStartingWith =
-      db->createStatement("DELETE FROM charts WHERE path LIKE :dir || '%'");
     db::SqliteCppDb::Statement updateStatus =
       db->createStatement("UPDATE root_dir SET status = :status WHERE path = "
                           ":dir");

@@ -317,9 +317,8 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
         auto arenaIdentityProvider =
           arena::ProfileArenaIdentityProvider{ &profileList };
         auto arenaScheduler = arena::QtArenaScheduler{};
-        auto arenaInventorySource = arena::SqliteArenaInventorySource{
-            dataFolder / "song_db.sqlite"
-        };
+        auto arenaInventorySource =
+          arena::SqliteArenaInventorySource{ dataFolder / "song_db.sqlite" };
 
         QObject::connect(&gamepadManager,
                          &input::GamepadManager::axisMoved,
@@ -465,20 +464,13 @@ main(int argc, [[maybe_unused]] char* argv[]) -> int
                          setLang);
         setLang();
 
-        auto rg = Rg{ &programSettings,
-                      &inputTranslator,
-                      &chartLoader,
-                      &rootSongFoldersConfig,
-                      &songFolderFactory,
-                      &songDirectoryFilePathFetcher,
-                      &fileQuery,
-                      &themes,
-                      &gamepadManager,
-                      &profileList,
-                      &arenaSession,
-                      &tables,
-                      &languages,
-                      &audioEngine,
+        auto rg = Rg{ &programSettings,   &inputTranslator,
+                      &chartLoader,       &rootSongFoldersConfig,
+                      &songFolderFactory, &songDirectoryFilePathFetcher,
+                      &fileQuery,         &themes,
+                      &gamepadManager,    &profileList,
+                      &arenaSession,      &tables,
+                      &languages,         &audioEngine,
                       &onlineScores };
 
         Rg::instance = &rg;

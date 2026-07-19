@@ -357,9 +357,8 @@ QString
 Languages::getLanguageTerritory(const QString& language)
 {
     const auto parsed = parseLocaleTag(language);
-    return parsed
-             ? QLocale::territoryToCode(parsed->locale.territory())
-             : QString{};
+    return parsed ? QLocale::territoryToCode(parsed->locale.territory())
+                  : QString{};
 }
 
 QString

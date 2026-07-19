@@ -380,8 +380,7 @@ ChartLoader::loadChartWithConfig(
                            &playConfig)
           .release();
     } catch (const std::exception&) {
-        spdlog::error(
-          "Failed to load chart with explicit play configuration");
+        spdlog::error("Failed to load chart with explicit play configuration");
         return nullptr;
     }
 }

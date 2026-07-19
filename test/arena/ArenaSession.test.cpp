@@ -1571,8 +1571,10 @@ TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
     QVector<gameplay_logic::ChartRunner*> prepared;
     int runnerStarted = 0;
     int launchCancelled = 0;
+    QObject observerContext;
     QObject::connect(&fixture.session,
                      &arena::ArenaSession::preparedGameplayChanged,
+                     &observerContext,
                      [&](gameplay_logic::ChartRunner* value) {
                          prepared.push_back(value);
                          if (value != nullptr) {
@@ -1585,17 +1587,21 @@ TEST_CASE("ArenaSession anchors and preserves a held synchronized runner",
     QObject::connect(
       &fixture.session,
       &arena::ArenaSession::roundRunnerStarted,
+      &observerContext,
       [&](const QString& roundId, gameplay_logic::ChartRunner* value) {
           CHECK(roundId == QStringLiteral("round-1"));
           CHECK(value == runner.get());
           ++runnerStarted;
       });
-    QObject::connect(
-      &fixture.session, &arena::ArenaSession::roundLaunchCancelled, [&] {
-          CHECK(fixture.session.getRoomPhase() == arena::RoomPhase::Selecting);
-          CHECK(fixture.session.getCurrentRoundId().isEmpty());
-          ++launchCancelled;
-      });
+    QObject::connect(&fixture.session,
+                     &arena::ArenaSession::roundLaunchCancelled,
+                     &observerContext,
+                     [&] {
+                         CHECK(fixture.session.getRoomPhase() ==
+                               arena::RoomPhase::Selecting);
+                         CHECK(fixture.session.getCurrentRoundId().isEmpty());
+                         ++launchCancelled;
+                     });
     const auto schedule = [&](qint64 connectionGeneration,
                               qint64 startAfterMs) {
         fixture.transport.injectText(

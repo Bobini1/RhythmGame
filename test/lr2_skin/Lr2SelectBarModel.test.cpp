@@ -380,9 +380,9 @@ TEST_CASE(
           QStringLiteral("Song"));
 }
 
-TEST_CASE(
-  "LR2 select item model prefixes Arena-unavailable charts with the shared marker",
-  "[lr2][runtime][select]")
+TEST_CASE("LR2 select item model prefixes Arena-unavailable charts with the "
+          "shared marker",
+          "[lr2][runtime][select]")
 {
     arena::ArenaAvailabilityIndex availability;
     REQUIRE(availability.applyReset(1, QByteArray(32, '\x01')));
@@ -399,9 +399,10 @@ TEST_CASE(
     });
 
     const QModelIndex row = source.index(0, 0);
-    REQUIRE(source.data(row, Lr2SelectItemModel::ArenaAvailabilityRole).toInt() ==
-            static_cast<int>(
-              arena::ArenaAvailabilityIndex::Availability::UnavailableToSome));
+    REQUIRE(
+      source.data(row, Lr2SelectItemModel::ArenaAvailabilityRole).toInt() ==
+      static_cast<int>(
+        arena::ArenaAvailabilityIndex::Availability::UnavailableToSome));
     CHECK(source.data(row, Lr2SelectItemModel::DisplayTextRole).toString() ==
           unavailableSongPrefix() + QStringLiteral("Song Sub"));
     CHECK(source.data(row, Lr2SelectItemModel::TitleRole).toString() ==

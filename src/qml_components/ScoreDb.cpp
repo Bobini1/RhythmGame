@@ -157,12 +157,11 @@ QVariantMap
 emptySummaryCounts()
 {
     return {
-        { QStringLiteral("NOPLAY"), 0 }, { QStringLiteral("FAILED"), 0 },
-        { QStringLiteral("AEASY"), 0 },  { QStringLiteral("EASY"), 0 },
-        { QStringLiteral("NORMAL"), 0 },
-        { QStringLiteral("HARD"), 0 },   { QStringLiteral("EXHARD"), 0 },
-        { QStringLiteral("FC"), 0 },     { QStringLiteral("PERFECT"), 0 },
-        { QStringLiteral("MAX"), 0 },
+        { QStringLiteral("NOPLAY"), 0 },  { QStringLiteral("FAILED"), 0 },
+        { QStringLiteral("AEASY"), 0 },   { QStringLiteral("EASY"), 0 },
+        { QStringLiteral("NORMAL"), 0 },  { QStringLiteral("HARD"), 0 },
+        { QStringLiteral("EXHARD"), 0 },  { QStringLiteral("FC"), 0 },
+        { QStringLiteral("PERFECT"), 0 }, { QStringLiteral("MAX"), 0 },
     };
 }
 
