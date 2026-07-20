@@ -27,11 +27,11 @@
 - Consumes: `arenaSession.opponentTarget.{available,displayName,exScore}` and existing `gameplayTargetScorePoints()`, `gameplayTargetFinalPoints()`, renderer revision, text registry, and gameplay timer helpers.
 - Produces: Arena-aware `lr2TargetText()`, fresh target values after every accepted snapshot, and Beatoraja timer `352` transitions.
 
-- [ ] **Step 1:** Override `lr2TargetText()` only while `arenaGameplayOwned` is true, returning the opponent display name when available and an empty string otherwise.
-- [ ] **Step 2:** Add an `opponentTarget.changed` connection that refreshes both cached gameplay-number sides, target text IDs `1` and `3`, and gameplay bargraphs without rebuilding runtime options.
-- [ ] **Step 3:** Add a transition-based Beatoraja timer `352` updater. Gate Arena on target availability, compare local EX against `gameplayTargetFinalPoints(1)`, preserve the first activation time, and clear the timer when the condition becomes false.
-- [ ] **Step 4:** Invoke the timer updater from target changes, score changes, target-setting changes, gameplay status changes, and saved-score refreshes; reset its local timestamp with other gameplay timers.
-- [ ] **Step 5:** Run `qmllint` on `Lr2SkinScreenWrapper.qml`; expect exit code `0`.
+- [x] **Step 1:** Override `lr2TargetText()` only while `arenaGameplayOwned` is true, returning the opponent display name when available and an empty string otherwise.
+- [x] **Step 2:** Add an `opponentTarget.changed` connection that refreshes both cached gameplay-number sides, target text IDs `1` and `3`, and gameplay bargraphs without rebuilding runtime options.
+- [x] **Step 3:** Add a transition-based Beatoraja timer `352` updater. Gate Arena on target availability, compare local EX against `gameplayTargetFinalPoints(1)`, preserve the first activation time, and clear the timer when the condition becomes false.
+- [x] **Step 4:** Invoke the timer updater from target changes, score changes, target-setting changes, gameplay status changes, and saved-score refreshes; reset its local timestamp with other gameplay timers.
+- [x] **Step 5:** Run `qmllint` on `Lr2SkinScreenWrapper.qml`; expect exit code `0`.
 
 ### Task 2: Delay-safe Default ghost score
 
@@ -44,10 +44,10 @@
 - Consumes: the existing `arenaOpponentTargetAvailable`, `targetPoints1`, and `targetFinalPoints1` properties.
 - Produces: a `pointTargetAvailable` presentation property propagated from `Gameplay` through `Side` to `PlayArea`.
 
-- [ ] **Step 1:** Add `pointTargetAvailable` with a non-Arena-compatible default of `true` to `Side` and `PlayArea`, and bind it through the existing `PlayArea` instance.
-- [ ] **Step 2:** Pass `!arenaGameplayOwned || arenaOpponentTargetAvailable` to both Default gameplay sides so DP uses the same Arena target availability.
-- [ ] **Step 3:** Keep the ghost-score color transparent while `pointTargetAvailable` is false; leave ordinary, battle, and customization behavior unchanged.
-- [ ] **Step 4:** Run `qmllint` on all three Default gameplay files; expect exit code `0`.
+- [x] **Step 1:** Add `pointTargetAvailable` with a non-Arena-compatible default of `true` to `Side` and `PlayArea`, and bind it through the existing `PlayArea` instance.
+- [x] **Step 2:** Pass `!arenaGameplayOwned || arenaOpponentTargetAvailable` to both Default gameplay sides so DP uses the same Arena target availability.
+- [x] **Step 3:** Keep the ghost-score color transparent while `pointTargetAvailable` is false; leave ordinary, battle, and customization behavior unchanged.
+- [x] **Step 4:** Run `qmllint` on all three Default gameplay files; expect exit code `0`.
 
 ### Task 3: Verification and scoped commit
 
@@ -60,8 +60,8 @@
 - Consumes: the existing configured build tree and focused Arena Catch2 tests.
 - Produces: fresh lint, build, test, diff, review, and commit evidence.
 
-- [ ] **Step 1:** Build `RhythmGame_qml`, `RhythmGame_lr2_qml`, and `RhythmGame_test`; expect exit code `0`.
-- [ ] **Step 2:** Run the focused `ArenaSessionCompetition` opponent-target cases; expect all selected cases to pass.
-- [ ] **Step 3:** Run the full available CTest suite with failure output; expect zero failed tests.
-- [ ] **Step 4:** Run `git diff --check` on the scoped files and inspect their complete diff, confirming no option `623`, `625`, or `51` behavior changed.
-- [ ] **Step 5:** Run the repository code-review workflow, address any high-confidence finding, repeat affected verification, and commit only the scoped files.
+- [x] **Step 1:** Build `RhythmGame_qml`, `RhythmGame_lr2_qml`, and `RhythmGame_test`; expect exit code `0`.
+- [x] **Step 2:** Run the focused `ArenaSessionCompetition` opponent-target cases; expect all selected cases to pass.
+- [x] **Step 3:** Run the full available CTest suite with failure output; expect zero failed tests.
+- [x] **Step 4:** Run `git diff --check` on the scoped files and inspect their complete diff, confirming no option `623`, `625`, or `51` behavior changed.
+- [x] **Step 5:** Run the repository code-review workflow, address any high-confidence finding, repeat affected verification, and commit only the scoped files.

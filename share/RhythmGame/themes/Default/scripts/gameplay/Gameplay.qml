@@ -36,6 +36,8 @@ Rectangle {
         && root.arenaSession.opponentTarget !== undefined
         && root.arenaSession.opponentTarget !== null
         && root.arenaSession.opponentTarget.available === true
+    readonly property bool arenaPointTargetAvailable: !root.arenaGameplayOwned
+        || root.arenaOpponentTargetAvailable
     function closeActivePopup() {
         if (root.popup !== null) {
             root.popup.close();
@@ -671,6 +673,7 @@ Rectangle {
             dpSuffix: root.isDp ? "1" : ""
             index: 0
             pointTarget: root.targetPoints1
+            pointTargetAvailable: root.arenaPointTargetAvailable
             bestFinalPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0
             bestMaxPoints: root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0
             bestPoints: bestScoreReplayer1.points
@@ -698,6 +701,7 @@ Rectangle {
                 mirrored: !root.isDp
                 index: 1
                 pointTarget: root.isDp ? root.targetPoints1 : root.targetPoints2
+                pointTargetAvailable: root.arenaPointTargetAvailable
                 bestFinalPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.points : 0) : 0
                 bestMaxPoints: root.isDp ? (root.scoreWithBestPoints1 ? root.scoreWithBestPoints1.result.maxPoints : 0) : 0
                 bestPoints: root.isDp ? bestScoreReplayer1.points : 0

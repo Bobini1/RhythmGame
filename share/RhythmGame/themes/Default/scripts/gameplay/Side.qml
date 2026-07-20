@@ -23,6 +23,7 @@ Item {
     property bool coverChangeLift: true
     property bool startSelectHeld: false
     property var pointTarget
+    property bool pointTargetAvailable: true
     property real bestFinalPoints: 0
     property real bestMaxPoints: 0
     property real bestPoints: 0
@@ -113,6 +114,7 @@ Item {
         columns: side.columns
         chartData: root.chartData
         pointTarget: side.pointTarget
+        pointTargetAvailable: side.pointTargetAvailable
         transform: Scale {
             xScale: side.mirrored ? -1 : 1; origin.x: playArea.width / 2
         }

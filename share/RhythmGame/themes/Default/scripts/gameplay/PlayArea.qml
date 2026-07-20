@@ -61,6 +61,7 @@ Item {
     property real position
     property real beatPosition
     property var pointTarget
+    property bool pointTargetAvailable: true
     FrameAnimation {
         running: true
         onTriggered: {
@@ -392,7 +393,9 @@ Item {
         fontFile: playArea.vars.ghostScoreFont
 
         color: {
-            if (!playArea.vars.ghostScoreEnabled || !judgements.visible) {
+            if (!playArea.pointTargetAvailable
+                    || !playArea.vars.ghostScoreEnabled
+                    || !judgements.visible) {
                 return "transparent";
             }
             return playArea.score.points >= playArea.pointTarget ? "white" : "red";

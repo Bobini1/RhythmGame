@@ -117,6 +117,7 @@ Item {
     property alias selectRuntimeActiveOptions: selectUpdateController.selectRuntimeActiveOptions
     property int gameplayReadySkinTime: -1
     property int gameplayStartSkinTime: -1
+    property int gameplayTargetScoreSkinTime: -1
     property int gameplayGaugeUpSkinTime1: -1
     property int gameplayGaugeUpSkinTime2: -1
     property int gameplayGaugeMaxSkinTime1: -1
@@ -1455,6 +1456,11 @@ Item {
     }
 
     function lr2TargetText(sourceCount: var) : var {
+        if (root.arenaGameplayOwned) {
+            return root.arenaOpponentTargetAvailable()
+                ? String(root.arenaSession.opponentTarget.displayName || "")
+                : "";
+        }
         let count = root.selectOptionSourceCount(77, sourceCount);
         return optionState.lr2TargetText(count);
     }
@@ -3282,6 +3288,42 @@ Item {
         return Math.floor((score.maxPoints || 0) * root.gameplayTargetFraction());
     }
 
+    function gameplayTargetScoreTimerActive() : bool {
+        if (!root.lr2SkinUsesBeatorajaSemantics || !root.gameplayScreenActive) {
+            return false;
+        }
+        if (root.arenaGameplayOwned && !root.arenaOpponentTargetAvailable()) {
+            return false;
+        }
+        let score = root.gameplayScore(1);
+        return score !== null
+            && score !== undefined
+            && root.gameplayExScore(score) >= root.gameplayTargetFinalPoints(1);
+    }
+
+    function updateGameplayTargetScoreTimer() : void {
+        if (root.gameplayTargetScoreTimerActive()) {
+            if (root.gameplayTargetScoreSkinTime >= 0) {
+                return;
+            }
+            root.gameplayTargetScoreSkinTime = Math.max(0, root.renderSkinTime);
+            root.setGameplayTimerValue(352, root.gameplayTargetScoreSkinTime);
+            return;
+        }
+        if (root.gameplayTargetScoreSkinTime < 0) {
+            return;
+        }
+        root.gameplayTargetScoreSkinTime = -1;
+        root.clearGameplayTimerValue(352);
+    }
+
+    function refreshArenaGameplayTargetPresentation() : void {
+        root.gameplayRevision++;
+        root.requestGameplayNumberRefresh(0);
+        root.queueResolvedTextRefresh([1, 3]);
+        root.updateGameplayTargetScoreTimer();
+    }
+
     function resetGameplayScoreReplayers() : void {
         gameplayTargetScoreReplayer.resetPoints();
         gameplayBestScoreReplayer.resetPoints();
@@ -3844,6 +3886,7 @@ Item {
         root.stopLr2GameplayOptionRepeat();
         root.gameplayReadySkinTime = -1;
         root.gameplayStartSkinTime = -1;
+        root.gameplayTargetScoreSkinTime = -1;
         root.gameplayGaugeUpSkinTime1 = -1;
         root.gameplayGaugeUpSkinTime2 = -1;
         root.gameplayGaugeMaxSkinTime1 = -1;
@@ -5104,9 +5147,11 @@ Item {
         }
         function onScoreTargetChanged() : void {
             root.queueResolvedTextRefresh();
+            root.updateGameplayTargetScoreTimer();
         }
         function onTargetScoreFractionChanged() : void {
             root.queueResolvedTextRefresh();
+            root.updateGameplayTargetScoreTimer();
         }
         function onGaugeTypeChanged() : void {
             root.queueResolvedTextRefresh();
@@ -5164,6 +5209,8 @@ Item {
         root.queueResolvedTextRefresh();
         Qt.callLater(root.playScreenEntrySound);
     }
+    onArenaGameplayOwnedChanged: root.refreshArenaGameplayTargetPresentation()
+    onGameplayScoresRevisionChanged: root.updateGameplayTargetScoreTimer()
     onChartChanged: {
         root.gameplayRevision++;
         root.queueResolvedTextRefresh();
@@ -5239,7 +5286,13 @@ Item {
             root.updateGameplayStaticNumberRevision();
             root.refreshGameplayRuntimeActiveOptions();
             root.handleGameplayStatusChanged();
+            root.updateGameplayTargetScoreTimer();
         }
+    }
+    Connections {
+        target: root.arenaGameplayOwned ? root.arenaSession.opponentTarget : null
+
+        function onChanged() : void { root.refreshArenaGameplayTargetPresentation(); }
     }
     Connections {
         target: root.gameplayScreenActive ? root.gameplayScore(1) : null
@@ -5258,6 +5311,7 @@ Item {
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(1);
+            root.updateGameplayTargetScoreTimer();
             root.requestGameplayNumberRefresh(1);
         }
         function onComboChanged() : void {
@@ -5287,6 +5341,7 @@ Item {
         }
         function onPointsChanged() : void {
             root.updateGameplayScorePrintTarget(2);
+            root.updateGameplayTargetScoreTimer();
             root.requestGameplayNumberRefresh(2);
         }
         function onComboChanged() : void {
