@@ -360,7 +360,7 @@ validSelection() -> arena::SelectionSnapshot
         .keyMode = 7,
         .randomSequence = { 1, 2, 3 },
         .noteOrderP1 = arena::NoteOrder::Random,
-        .noteOrderP2 = arena::NoteOrder::Mirror,
+        .noteOrderP2 = arena::NoteOrder::NormalOrMirror,
         .dpMode = arena::DpMode::Off,
         .laneSeed = QStringLiteral("0123456789abcdef"),
         .randomizationVersion = 1,

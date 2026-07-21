@@ -294,7 +294,7 @@ selection() -> QJsonObject
         { QStringLiteral("keyMode"), 7 },
         { QStringLiteral("randomSequence"), QJsonArray{ 1, 2, 3 } },
         { QStringLiteral("noteOrderP1"), QStringLiteral("random") },
-        { QStringLiteral("noteOrderP2"), QStringLiteral("mirror") },
+        { QStringLiteral("noteOrderP2"), QStringLiteral("normal_or_mirror") },
         { QStringLiteral("dpMode"), QStringLiteral("off") },
         { QStringLiteral("laneSeed"), QStringLiteral("0123456789abcdef") },
         { QStringLiteral("randomizationVersion"), 1 },

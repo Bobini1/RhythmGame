@@ -2,11 +2,12 @@
 #define RHYTHMGAME_ARENAROUNDLOADER_H
 
 #include "ArenaTypes.h"
-#include "resource_managers/ChartPlayConfig.h"
 
 #include <QByteArray>
+#include <QList>
 #include <QObject>
 
+#include <cstdint>
 #include <expected>
 
 namespace gameplay_logic {
@@ -54,11 +55,22 @@ enum class ArenaLoadFailure
     Cancelled,
 };
 
+struct ArenaRoundPlayConfig
+{
+    QList<qint64> randomSequence;
+    NoteOrder noteOrderP1{ NoteOrder::NormalOrMirror };
+    NoteOrder noteOrderP2{ NoteOrder::NormalOrMirror };
+    DpMode dpMode{ DpMode::Off };
+    std::uint64_t laneSeed{};
+    int randomizationVersion{ 1 };
+    bool operator==(const ArenaRoundPlayConfig&) const = default;
+};
+
 struct ArenaRoundLoadRequest
 {
     /** Raw 32-byte digest or its 64-character ASCII hex representation. */
     QByteArray sha256;
-    resource_managers::ChartPlayConfig playConfig;
+    ArenaRoundPlayConfig playConfig;
     bool operator==(const ArenaRoundLoadRequest&) const = default;
 };
 

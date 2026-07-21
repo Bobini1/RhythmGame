@@ -390,8 +390,8 @@ phase2Selection(QString sha256) -> QJsonObject
         { QStringLiteral("artist"), QStringLiteral("Composer") },
         { QStringLiteral("keyMode"), 7 },
         { QStringLiteral("randomSequence"), QJsonArray{} },
-        { QStringLiteral("noteOrderP1"), QStringLiteral("normal") },
-        { QStringLiteral("noteOrderP2"), QStringLiteral("mirror") },
+        { QStringLiteral("noteOrderP1"), QStringLiteral("normal_or_mirror") },
+        { QStringLiteral("noteOrderP2"), QStringLiteral("normal_or_mirror") },
         { QStringLiteral("dpMode"), QStringLiteral("off") },
         { QStringLiteral("laneSeed"), QStringLiteral("0123456789abcdef") },
         { QStringLiteral("randomizationVersion"), 1 },
@@ -1255,7 +1255,8 @@ TEST_CASE("ArenaSession readies only against the exact common selection basis",
     CHECK(fixture.session.property("selectedMd5").toString() == selectedMd5);
     CHECK(fixture.session.property("selectedSubtitle").toString() ==
           QStringLiteral("Subtitle"));
-    CHECK(fixture.session.arenaOptionsSummary() == QStringLiteral("Normal"));
+    CHECK(fixture.session.arenaOptionsSummary() ==
+          QStringLiteral("Normal/Mirror"));
     fixture.session.setReady(true);
     const auto ready =
       messageObject(fixture.transport.textCalls.back().message);
@@ -1324,7 +1325,7 @@ TEST_CASE("ArenaSession selects only a locally common immutable snapshot",
         .keyMode = 7,
         .randomSequence = { 2, 1 },
         .noteOrderP1 = arena::NoteOrder::SRandom,
-        .noteOrderP2 = arena::NoteOrder::Mirror,
+        .noteOrderP2 = arena::NoteOrder::NormalOrMirror,
         .dpMode = arena::DpMode::Off,
         .laneSeed = QStringLiteral("0123456789abcdef"),
         .randomizationVersion = 1,
@@ -1480,11 +1481,9 @@ TEST_CASE("ArenaSession probes and loads the exact frozen round",
     const auto& [loadId, request] = fixture.roundLoader.loads.front();
     CHECK(request.sha256 == packed);
     CHECK(request.playConfig.randomSequence == QList<qint64>{ 3, 1, 4 });
-    CHECK(request.playConfig.noteOrderP1 ==
-          resource_managers::NoteOrderAlgorithm::SRandomPlus);
-    CHECK(request.playConfig.noteOrderP2 ==
-          resource_managers::NoteOrderAlgorithm::Lr2RandomEx);
-    CHECK(request.playConfig.dpMode == resource_managers::DpOptions::Lr2Flip);
+    CHECK(request.playConfig.noteOrderP1 == arena::NoteOrder::SRandomPlus);
+    CHECK(request.playConfig.noteOrderP2 == arena::NoteOrder::Lr2RandomEx);
+    CHECK(request.playConfig.dpMode == arena::DpMode::Lr2Flip);
     CHECK(request.playConfig.laneSeed == 0x0123456789abcdefULL);
     CHECK(request.playConfig.randomizationVersion == 1);
 

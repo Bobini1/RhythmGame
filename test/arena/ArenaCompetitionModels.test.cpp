@@ -128,7 +128,7 @@ selection() -> arena::SelectionSnapshot
              .keyMode = 7,
              .randomSequence = { 1, 2, 3 },
              .noteOrderP1 = arena::NoteOrder::Random,
-             .noteOrderP2 = arena::NoteOrder::Mirror,
+             .noteOrderP2 = arena::NoteOrder::NormalOrMirror,
              .dpMode = arena::DpMode::Off,
              .laneSeed = QStringLiteral("0123456789abcdef"),
              .randomizationVersion = 1 };
@@ -446,7 +446,8 @@ TEST_CASE("ArenaCompetitionModels: result transitions from pending to final "
     ArenaResultModel model;
     int changes = 0;
     QObject::connect(&model, &ArenaResultModel::changed, [&] { ++changes; });
-    const auto summary = QStringLiteral("P1 Random | P2 Mirror | DP Off");
+    const auto summary =
+      QStringLiteral("P1 Random | P2 Normal/Mirror | DP Off");
     REQUIRE(model.setPending(QStringLiteral("round-1"),
                              2,
                              QStringLiteral("Competition chart"),

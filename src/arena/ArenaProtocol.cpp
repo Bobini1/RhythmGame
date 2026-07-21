@@ -320,8 +320,7 @@ auto
 parseNoteOrder(QStringView value) -> NoteOrder
 {
     static const std::pair<QStringView, NoteOrder> entries[]{
-        { u"normal", NoteOrder::Normal },
-        { u"mirror", NoteOrder::Mirror },
+        { u"normal_or_mirror", NoteOrder::NormalOrMirror },
         { u"random", NoteOrder::Random },
         { u"s_random", NoteOrder::SRandom },
         { u"r_random", NoteOrder::RRandom },
@@ -344,10 +343,8 @@ auto
 noteOrderString(NoteOrder value) -> QString
 {
     switch (value) {
-        case NoteOrder::Normal:
-            return QStringLiteral("normal");
-        case NoteOrder::Mirror:
-            return QStringLiteral("mirror");
+        case NoteOrder::NormalOrMirror:
+            return QStringLiteral("normal_or_mirror");
         case NoteOrder::Random:
             return QStringLiteral("random");
         case NoteOrder::SRandom:

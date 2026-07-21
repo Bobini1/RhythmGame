@@ -63,8 +63,7 @@ enum class RoomPhase
 
 enum class NoteOrder
 {
-    Normal,
-    Mirror,
+    NormalOrMirror,
     Random,
     SRandom,
     RRandom,
@@ -278,8 +277,8 @@ struct SelectionSnapshot
     QString artist;
     int keyMode{};
     QVector<qint64> randomSequence;
-    NoteOrder noteOrderP1{ NoteOrder::Normal };
-    NoteOrder noteOrderP2{ NoteOrder::Normal };
+    NoteOrder noteOrderP1{ NoteOrder::NormalOrMirror };
+    NoteOrder noteOrderP2{ NoteOrder::NormalOrMirror };
     DpMode dpMode{ DpMode::Off };
     QString laneSeed;
     int randomizationVersion{ 1 };

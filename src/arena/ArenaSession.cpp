@@ -199,54 +199,6 @@ decodeTransferId(QStringView encoded) -> QByteArray
 }
 
 auto
-playNoteOrder(NoteOrder order) -> resource_managers::NoteOrderAlgorithm
-{
-    using Target = resource_managers::NoteOrderAlgorithm;
-    switch (order) {
-        case NoteOrder::Normal:
-            return Target::Normal;
-        case NoteOrder::Mirror:
-            return Target::Mirror;
-        case NoteOrder::Random:
-            return Target::Random;
-        case NoteOrder::SRandom:
-            return Target::SRandom;
-        case NoteOrder::RRandom:
-            return Target::RRandom;
-        case NoteOrder::RandomPlus:
-            return Target::RandomPlus;
-        case NoteOrder::SRandomPlus:
-            return Target::SRandomPlus;
-        case NoteOrder::BeatorajaRandom:
-            return Target::BeatorajaRandom;
-        case NoteOrder::BeatorajaRandomEx:
-            return Target::BeatorajaRandomEx;
-        case NoteOrder::Lr2Random:
-            return Target::Lr2Random;
-        case NoteOrder::Lr2RandomEx:
-            return Target::Lr2RandomEx;
-    }
-    return Target::Normal;
-}
-
-auto
-playDpMode(DpMode mode) -> resource_managers::DpOptions
-{
-    using Target = resource_managers::DpOptions;
-    switch (mode) {
-        case DpMode::Off:
-            return Target::Off;
-        case DpMode::Flip:
-            return Target::Flip;
-        case DpMode::Lr2Flip:
-            return Target::Lr2Flip;
-        case DpMode::Battle:
-            return Target::Battle;
-    }
-    return Target::Off;
-}
-
-auto
 probeFailureReason(ArenaProbeFailure failure)
   -> std::optional<RoundProbeFailureReason>
 {
@@ -370,10 +322,8 @@ auto
 noteOrderName(NoteOrder value) -> QString
 {
     switch (value) {
-        case NoteOrder::Normal:
-            return QStringLiteral("Normal");
-        case NoteOrder::Mirror:
-            return QStringLiteral("Mirror");
+        case NoteOrder::NormalOrMirror:
+            return QStringLiteral("Normal/Mirror");
         case NoteOrder::Random:
             return QStringLiteral("Random");
         case NoteOrder::SRandom:
@@ -2756,11 +2706,11 @@ ArenaSession::handleLoadRequested(const RoundLoadRequested& requested)
     const auto request = ArenaRoundLoadRequest{
         .sha256 = sha256,
         .playConfig =
-          resource_managers::ChartPlayConfig{
+          ArenaRoundPlayConfig{
             .randomSequence = std::move(randomSequence),
-            .noteOrderP1 = playNoteOrder(selection.noteOrderP1),
-            .noteOrderP2 = playNoteOrder(selection.noteOrderP2),
-            .dpMode = playDpMode(selection.dpMode),
+            .noteOrderP1 = selection.noteOrderP1,
+            .noteOrderP2 = selection.noteOrderP2,
+            .dpMode = selection.dpMode,
             .laneSeed = laneSeed,
             .randomizationVersion = selection.randomizationVersion,
           },

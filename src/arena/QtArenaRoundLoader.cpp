@@ -82,9 +82,8 @@ toArenaNoteOrder(resource_managers::NoteOrderAlgorithm value)
     using resource_managers::NoteOrderAlgorithm;
     switch (value) {
         case NoteOrderAlgorithm::Normal:
-            return NoteOrder::Normal;
         case NoteOrderAlgorithm::Mirror:
-            return NoteOrder::Mirror;
+            return NoteOrder::NormalOrMirror;
         case NoteOrderAlgorithm::Random:
             return NoteOrder::Random;
         case NoteOrderAlgorithm::SRandom:
@@ -108,6 +107,38 @@ toArenaNoteOrder(resource_managers::NoteOrderAlgorithm value)
 }
 
 auto
+toPlayNoteOrder(NoteOrder value,
+                resource_managers::NoteOrderAlgorithm localValue)
+  -> std::optional<resource_managers::NoteOrderAlgorithm>
+{
+    using Target = resource_managers::NoteOrderAlgorithm;
+    switch (value) {
+        case NoteOrder::NormalOrMirror:
+            return localValue == Target::Mirror ? Target::Mirror
+                                                : Target::Normal;
+        case NoteOrder::Random:
+            return Target::Random;
+        case NoteOrder::SRandom:
+            return Target::SRandom;
+        case NoteOrder::RRandom:
+            return Target::RRandom;
+        case NoteOrder::RandomPlus:
+            return Target::RandomPlus;
+        case NoteOrder::SRandomPlus:
+            return Target::SRandomPlus;
+        case NoteOrder::BeatorajaRandom:
+            return Target::BeatorajaRandom;
+        case NoteOrder::BeatorajaRandomEx:
+            return Target::BeatorajaRandomEx;
+        case NoteOrder::Lr2Random:
+            return Target::Lr2Random;
+        case NoteOrder::Lr2RandomEx:
+            return Target::Lr2RandomEx;
+    }
+    return std::nullopt;
+}
+
+auto
 toArenaDpMode(resource_managers::DpOptions value) -> std::optional<DpMode>
 {
     using resource_managers::DpOptions;
@@ -125,6 +156,23 @@ toArenaDpMode(resource_managers::DpOptions value) -> std::optional<DpMode>
 }
 
 auto
+toPlayDpMode(DpMode value) -> std::optional<resource_managers::DpOptions>
+{
+    using Target = resource_managers::DpOptions;
+    switch (value) {
+        case DpMode::Off:
+            return Target::Off;
+        case DpMode::Flip:
+            return Target::Flip;
+        case DpMode::Lr2Flip:
+            return Target::Lr2Flip;
+        case DpMode::Battle:
+            return Target::Battle;
+    }
+    return std::nullopt;
+}
+
+auto
 randomLaneSeed() -> quint64
 {
     thread_local auto source = std::random_device{};
@@ -133,18 +181,23 @@ randomLaneSeed() -> quint64
 }
 
 auto
-validPlayConfig(const resource_managers::ChartPlayConfig& config) -> bool
+validPlayConfig(const ArenaRoundPlayConfig& config) -> bool
 {
-    return config.isSupported() &&
+    return config.randomizationVersion ==
+             resource_managers::chartRandomizationVersion &&
            config.randomSequence.size() <= MaxRandomSequenceEntries &&
            std::ranges::none_of(config.randomSequence,
                                 [](qint64 value) {
                                     return value < 1 ||
                                            value > MaxJsonSafeInteger;
                                 }) &&
-           toArenaNoteOrder(config.noteOrderP1).has_value() &&
-           toArenaNoteOrder(config.noteOrderP2).has_value() &&
-           toArenaDpMode(config.dpMode).has_value();
+           toPlayNoteOrder(config.noteOrderP1,
+                           resource_managers::NoteOrderAlgorithm::Normal)
+             .has_value() &&
+           toPlayNoteOrder(config.noteOrderP2,
+                           resource_managers::NoteOrderAlgorithm::Normal)
+             .has_value() &&
+           toPlayDpMode(config.dpMode).has_value();
 }
 
 } // namespace
@@ -348,6 +401,34 @@ QtArenaRoundLoader::load(quint64 requestId,
         emit loadFailed(requestId, ArenaLoadFailure::UnsupportedConfig);
         return;
     }
+    std::optional<resource_managers::ChartPlayConfig> localConfig;
+    try {
+        localConfig =
+          m_playConfigProvider ? m_playConfigProvider() : std::nullopt;
+    } catch (...) {
+        localConfig = std::nullopt;
+    }
+    if (!localConfig) {
+        emit loadFailed(requestId, ArenaLoadFailure::UnsupportedConfig);
+        return;
+    }
+    const auto noteOrderP1 =
+      toPlayNoteOrder(request.playConfig.noteOrderP1, localConfig->noteOrderP1);
+    const auto noteOrderP2 =
+      toPlayNoteOrder(request.playConfig.noteOrderP2, localConfig->noteOrderP2);
+    const auto dpMode = toPlayDpMode(request.playConfig.dpMode);
+    if (!noteOrderP1 || !noteOrderP2 || !dpMode) {
+        emit loadFailed(requestId, ArenaLoadFailure::UnsupportedConfig);
+        return;
+    }
+    const auto resolvedConfig = resource_managers::ChartPlayConfig{
+        .randomSequence = request.playConfig.randomSequence,
+        .noteOrderP1 = *noteOrderP1,
+        .noteOrderP2 = *noteOrderP2,
+        .dpMode = *dpMode,
+        .laneSeed = request.playConfig.laneSeed,
+        .randomizationVersion = request.playConfig.randomizationVersion,
+    };
     const auto expected = normalizedSha256(request.sha256);
     if (!expected) {
         emit loadFailed(requestId, ArenaLoadFailure::HashMismatch);
@@ -364,7 +445,8 @@ QtArenaRoundLoader::load(quint64 requestId,
         emit loadFailed(requestId, ArenaLoadFailure::MissingFile);
         return;
     }
-    startFileCheck(requestId, OperationKind::Load, *expected, *path, request);
+    startFileCheck(
+      requestId, OperationKind::Load, *expected, *path, resolvedConfig);
 }
 
 void
@@ -413,7 +495,7 @@ QtArenaRoundLoader::startFileCheck(
   OperationKind kind,
   const QByteArray& expectedSha256,
   QString path,
-  std::optional<ArenaRoundLoadRequest> loadRequest)
+  std::optional<resource_managers::ChartPlayConfig> playConfig)
 {
     const auto serial = m_nextSerial++;
     auto cancelled = std::make_shared<std::atomic_bool>(false);
@@ -424,7 +506,7 @@ QtArenaRoundLoader::startFileCheck(
                                    .cancelled = cancelled,
                                    .watcher = watcher,
                                    .path = path,
-                                   .loadRequest = std::move(loadRequest) });
+                                   .playConfig = std::move(playConfig) });
     connect(watcher,
             &QFutureWatcher<FileCheckResult>::finished,
             this,
@@ -535,11 +617,11 @@ QtArenaRoundLoader::prepareRunner(quint64 requestId, quint64 serial)
 {
     auto found = m_operations.find(requestId);
     if (found == m_operations.end() || found->serial != serial ||
-        !found->loadRequest) {
+        !found->playConfig) {
         return;
     }
     const auto path = found->path;
-    const auto playConfig = found->loadRequest->playConfig;
+    const auto playConfig = *found->playConfig;
     gameplay_logic::ChartRunner* runner = nullptr;
     try {
         if (m_runnerLoader) {

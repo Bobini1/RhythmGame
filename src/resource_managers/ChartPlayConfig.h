@@ -12,8 +12,7 @@ namespace resource_managers {
 
 inline constexpr auto chartRandomizationVersion = 1;
 
-/** Values that must be identical for every participant in a synchronized run.
- */
+/** Complete deterministic configuration used to load a chart run. */
 struct ChartPlayConfig
 {
     QList<qint64> randomSequence;

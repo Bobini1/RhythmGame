@@ -122,8 +122,8 @@ TEST_CASE("ArenaRoundLoader maps every deterministic selection option",
     using resource_managers::NoteOrderAlgorithm;
 
     constexpr std::array noteOrders{
-        std::pair{ NoteOrderAlgorithm::Normal, NoteOrder::Normal },
-        std::pair{ NoteOrderAlgorithm::Mirror, NoteOrder::Mirror },
+        std::pair{ NoteOrderAlgorithm::Normal, NoteOrder::NormalOrMirror },
+        std::pair{ NoteOrderAlgorithm::Mirror, NoteOrder::NormalOrMirror },
         std::pair{ NoteOrderAlgorithm::Random, NoteOrder::Random },
         std::pair{ NoteOrderAlgorithm::SRandom, NoteOrder::SRandom },
         std::pair{ NoteOrderAlgorithm::RRandom, NoteOrder::RRandom },
@@ -299,7 +299,7 @@ TEST_CASE("ArenaRoundLoader reports sanitized probe and load failures",
     CHECK(probe->failure == arena::ArenaProbeFailure::HashMismatch);
     CHECK(probe->observedSha256 == observed);
 
-    auto unsupported = defaultConfig();
+    auto unsupported = arena::ArenaRoundPlayConfig{};
     unsupported.randomizationVersion = 2;
     loader->load(2,
                  arena::ArenaRoundLoadRequest{ .sha256 = expected,
@@ -308,9 +308,8 @@ TEST_CASE("ArenaRoundLoader reports sanitized probe and load failures",
     CHECK(loadFailures.takeFirst() ==
           arena::ArenaLoadFailure::UnsupportedConfig);
 
-    loader->load(3,
-                 arena::ArenaRoundLoadRequest{ .sha256 = expected,
-                                               .playConfig = defaultConfig() });
+    loader->load(
+      3, arena::ArenaRoundLoadRequest{ .sha256 = expected, .playConfig = {} });
     REQUIRE(waitUntil([&] { return !loadFailures.isEmpty(); }));
     CHECK(loadFailures.takeFirst() == arena::ArenaLoadFailure::HashMismatch);
 }
@@ -330,14 +329,21 @@ TEST_CASE(
     const auto digest =
       QCryptographicHash::hash(contents, QCryptographicHash::Sha256);
 
+    const auto requestedConfig = arena::ArenaRoundPlayConfig{
+        .randomSequence = { 2, 1, 3 },
+        .noteOrderP1 = arena::NoteOrder::SRandomPlus,
+        .noteOrderP2 = arena::NoteOrder::Lr2RandomEx,
+        .dpMode = arena::DpMode::Lr2Flip,
+        .laneSeed = 0xfedcba9876543210ULL,
+    };
     auto expectedConfig = defaultConfig();
-    expectedConfig.randomSequence = { 2, 1, 3 };
+    expectedConfig.randomSequence = requestedConfig.randomSequence;
     expectedConfig.noteOrderP1 =
       resource_managers::NoteOrderAlgorithm::SRandomPlus;
     expectedConfig.noteOrderP2 =
       resource_managers::NoteOrderAlgorithm::Lr2RandomEx;
     expectedConfig.dpMode = resource_managers::DpOptions::Lr2Flip;
-    expectedConfig.laneSeed = 0xfedcba9876543210ULL;
+    expectedConfig.laneSeed = requestedConfig.laneSeed;
     int loadCalls = 0;
     auto loader = testLoader(
       [] { return defaultConfig(); },
@@ -363,7 +369,61 @@ TEST_CASE(
 
     loader->load(9,
                  arena::ArenaRoundLoadRequest{ .sha256 = digest,
-                                               .playConfig = expectedConfig });
+                                               .playConfig = requestedConfig });
+
+    REQUIRE(waitUntil([&] { return failure.has_value(); }));
+    CHECK(*failure == arena::ArenaLoadFailure::ParseFailed);
+    CHECK(loadCalls == 1);
+}
+
+TEST_CASE("ArenaRoundLoader resolves Normal/Mirror from local options",
+          "[arena][ArenaRoundLoader]")
+{
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("chart.bms"));
+    QFile file(path);
+    REQUIRE(file.open(QIODevice::WriteOnly));
+    const auto contents = QByteArrayLiteral("normal mirror arena chart");
+    REQUIRE(file.write(contents) == contents.size());
+    file.close();
+    const auto digest =
+      QCryptographicHash::hash(contents, QCryptographicHash::Sha256);
+
+    auto localConfig = defaultConfig();
+    localConfig.noteOrderP1 = resource_managers::NoteOrderAlgorithm::Mirror;
+    localConfig.noteOrderP2 = resource_managers::NoteOrderAlgorithm::Random;
+    int loadCalls = 0;
+    auto loader = testLoader(
+      [localConfig] { return localConfig; },
+      [path](QByteArrayView) -> std::optional<QString> { return path; },
+      [&loadCalls](const QString&,
+                   const resource_managers::ChartPlayConfig& config)
+        -> gameplay_logic::ChartRunner* {
+          ++loadCalls;
+          CHECK(config.noteOrderP1 ==
+                resource_managers::NoteOrderAlgorithm::Mirror);
+          CHECK(config.noteOrderP2 ==
+                resource_managers::NoteOrderAlgorithm::Normal);
+          return nullptr;
+      });
+    std::optional<arena::ArenaLoadFailure> failure;
+    QObject::connect(
+      loader.get(),
+      &arena::ArenaRoundLoader::loadFailed,
+      [&failure](quint64 requestId, arena::ArenaLoadFailure value) {
+          if (requestId == 10) {
+              failure = value;
+          }
+      });
+
+    loader->load(10,
+                 arena::ArenaRoundLoadRequest{
+                   .sha256 = digest,
+                   .playConfig = arena::ArenaRoundPlayConfig{
+                     .noteOrderP1 = arena::NoteOrder::NormalOrMirror,
+                     .noteOrderP2 = arena::NoteOrder::NormalOrMirror,
+                   } });
 
     REQUIRE(waitUntil([&] { return failure.has_value(); }));
     CHECK(*failure == arena::ArenaLoadFailure::ParseFailed);

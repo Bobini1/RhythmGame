@@ -2,6 +2,7 @@
 #define RHYTHMGAME_QTARENAROUNDLOADER_H
 
 #include "ArenaRoundLoader.h"
+#include "resource_managers/ChartPlayConfig.h"
 
 #include <QHash>
 #include <QPointer>
@@ -86,7 +87,7 @@ class QtArenaRoundLoader final : public ArenaRoundLoader
         QPointer<QFutureWatcher<FileCheckResult>> watcher;
         QPointer<gameplay_logic::ChartRunner> runner;
         QString path;
-        std::optional<ArenaRoundLoadRequest> loadRequest;
+        std::optional<resource_managers::ChartPlayConfig> playConfig;
         bool completionReported{};
     };
 
@@ -98,11 +99,12 @@ class QtArenaRoundLoader final : public ArenaRoundLoader
     quint64 m_nextSerial{ 1 };
 
     void discard(quint64 requestId);
-    void startFileCheck(quint64 requestId,
-                        OperationKind kind,
-                        const QByteArray& expectedSha256,
-                        QString path,
-                        std::optional<ArenaRoundLoadRequest> loadRequest);
+    void startFileCheck(
+      quint64 requestId,
+      OperationKind kind,
+      const QByteArray& expectedSha256,
+      QString path,
+      std::optional<resource_managers::ChartPlayConfig> playConfig);
     void finishFileCheck(quint64 requestId, quint64 serial);
     void prepareRunner(quint64 requestId, quint64 serial);
     void observeRunner(quint64 requestId, quint64 serial);
