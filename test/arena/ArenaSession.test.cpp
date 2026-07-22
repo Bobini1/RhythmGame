@@ -2324,9 +2324,9 @@ TEST_CASE("ArenaSession resumes newest generation after upload rejection",
         { QStringLiteral("requestId"), beginRequestId },
         { QStringLiteral("data"),
           QJsonObject{
-            { QStringLiteral("code"), QStringLiteral("inventory_busy") },
+            { QStringLiteral("code"), QStringLiteral("inventory_stale") },
             { QStringLiteral("displayMessageKey"),
-              QStringLiteral("arena.error.inventoryBusy") },
+              QStringLiteral("arena.error.roomLibraryChanged") },
           } },
       }));
     REQUIRE(fixture.inventory.requests.size() == 2);

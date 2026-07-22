@@ -2017,11 +2017,11 @@ TEST_CASE("ArenaProtocol decodes every Phase 1 server event",
     using namespace arena;
 
     const QVector<std::pair<QString, std::size_t>> messages{
-        { envelope(QStringLiteral("fatal_error"),
-                   { { QStringLiteral("code"),
-                       QStringLiteral("server_shutting_down") },
-                     { QStringLiteral("displayMessageKey"),
-                       QStringLiteral("arena.error.serverShuttingDown") } }),
+        { envelope(
+            QStringLiteral("fatal_error"),
+            { { QStringLiteral("code"), QStringLiteral("frame_too_large") },
+              { QStringLiteral("displayMessageKey"),
+                QStringLiteral("arena.error.frameTooLarge") } }),
           ServerMessage{ FatalError{} }.index() },
         { envelope(
             QStringLiteral("directory_snapshot"),
@@ -2120,7 +2120,6 @@ TEST_CASE("ArenaProtocol decodes every Phase 1 server event",
         QStringLiteral("rate_limited"),
         QStringLiteral("rounds_capability_required"),
         QStringLiteral("competition_capability_required"),
-        QStringLiteral("inventory_busy"),
         QStringLiteral("inventory_invalid"),
         QStringLiteral("inventory_stale"),
         QStringLiteral("inventory_capacity_exceeded"),
@@ -2152,7 +2151,7 @@ TEST_CASE("ArenaProtocol decodes every Phase 1 server event",
                                   QStringLiteral("capability_required"),
                                   QStringLiteral("invalid_ticket"),
                                   QStringLiteral("ticket_replayed"),
-                                  QStringLiteral("server_shutting_down") };
+                                  QStringLiteral("malformed_inventory") };
     for (const auto& code : fatalCodes) {
         CHECK(messageAs<FatalError>(decodeServerMessage(envelope(
                 QStringLiteral("fatal_error"),

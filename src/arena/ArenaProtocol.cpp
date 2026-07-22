@@ -1677,7 +1677,6 @@ parseCommandErrorCode(QStringView value) -> CommandErrorCode
           CommandErrorCode::RoundsCapabilityRequired },
         { u"competition_capability_required",
           CommandErrorCode::CompetitionCapabilityRequired },
-        { u"inventory_busy", CommandErrorCode::InventoryBusy },
         { u"inventory_invalid", CommandErrorCode::InventoryInvalid },
         { u"inventory_stale", CommandErrorCode::InventoryStale },
         { u"inventory_capacity_exceeded",
@@ -1713,7 +1712,6 @@ parseFatalErrorCode(QStringView value) -> FatalErrorCode
         { u"capability_required", FatalErrorCode::CapabilityRequired },
         { u"invalid_ticket", FatalErrorCode::InvalidTicket },
         { u"ticket_replayed", FatalErrorCode::TicketReplayed },
-        { u"server_shutting_down", FatalErrorCode::ServerShuttingDown },
         { u"malformed_inventory", FatalErrorCode::MalformedInventory },
     };
     for (const auto& [spelling, code] : entries) {

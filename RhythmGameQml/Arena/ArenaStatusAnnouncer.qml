@@ -27,9 +27,7 @@ Item {
             return root.roundLaunchCancellationStatusKey;
         }
         switch (root.errorMessageKey) {
-        case "arena.error.selectionStale":
-        case "arena.error.availabilityStale":
-        case "arena.error.inventoryStale":
+        case "arena.error.roomLibraryChanged":
             return "arena.status.selectionInvalidated";
         default:
             return "";

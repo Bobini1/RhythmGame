@@ -87,62 +87,62 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="58"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="57"/>
         <source>Arena is restarting. Please try again shortly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="60"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="59"/>
         <source>A secure connection to Arena could not be established.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="63"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="62"/>
         <source>The ranking service could not authorize Arena right now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="67"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="66"/>
         <source>Arena is unavailable right now.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="69"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="68"/>
         <source>You were removed from the room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="71"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="70"/>
         <source>Please wait for the current room request to finish.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="73"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="72"/>
         <source>Arena request failed. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="80"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="79"/>
         <source>Selecting</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="82"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="81"/>
         <source>Unknown</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="88"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
         <source>%1 Members: %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="142"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="141"/>
         <source>Exit Arena</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="386"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="385"/>
         <source>%n player reconnecting</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -150,131 +150,131 @@
     </message>
     <message>
         <location filename="../scripts/multiplayer/Multiplayer.qml" line="30"/>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="150"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="149"/>
         <source>Online Arena</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="157"/>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="267"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="156"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="266"/>
         <source>Create room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="186"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="185"/>
         <source>Update RhythmGame to create or join Arena rooms.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="192"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="191"/>
         <source>Connecting with your online account...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="195"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="194"/>
         <source>Completing room request...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="197"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="196"/>
         <source>Connecting to Arena...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="204"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="203"/>
         <source>Retry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="258"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="257"/>
         <source>No Arena rooms are open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="372"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="371"/>
         <source>%1 / %2 players</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="379"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="378"/>
         <source>%1 · %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="379"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="86"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="378"/>
         <source>Password required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="277"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="276"/>
         <source>Arena rooms</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="86"/>
         <source>%1, %2. %3 connected, %4 reserved, %5 maximum.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="87"/>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="379"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="86"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="378"/>
         <source>Public</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="404"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="403"/>
         <source>Join %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="406"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="405"/>
         <source>Full</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="406"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="405"/>
         <source>Join</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="448"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="447"/>
         <source>Create Arena room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="462"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="461"/>
         <source>%1&apos;s room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="481"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="480"/>
         <source>Room name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="486"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="485"/>
         <source>Arena room name</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="500"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="499"/>
         <source>Password (optional)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="505"/>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="555"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="504"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="554"/>
         <source>Arena room password</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="527"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="526"/>
         <source>Join password-protected room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="550"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="549"/>
         <source>Password</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1071,96 +1071,81 @@
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="34"/>
-        <source>You are no longer in this room.</source>
+        <source>Room membership changed. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="36"/>
-        <source>Only the room owner can do that.</source>
+        <source>That room action is no longer available.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="38"/>
-        <source>That player is no longer in the room.</source>
+        <source>That chat message could not be sent.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="40"/>
-        <source>You cannot remove yourself with the kick action.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="42"/>
-        <source>Enter a chat message first.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="44"/>
-        <source>That chat message is too long.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="46"/>
         <source>You are sending messages too quickly.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="49"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="42"/>
         <source>Room state changed. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="51"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="44"/>
         <source>A secure connection to Arena could not be established.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="55"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="48"/>
         <source>The Arena connection was interrupted.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="57"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="50"/>
         <source>Arena request failed. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="114"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="107"/>
         <source>Leave room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="128"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="121"/>
         <source>Exit Arena</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="157"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="150"/>
         <source>Reconnecting... Your seat is reserved for up to 60 seconds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="164"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="157"/>
         <source>Retry</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="188"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="181"/>
         <source>Players</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="195"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="188"/>
         <source>Arena players</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="232"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="225"/>
         <source>%1. %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="234"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="227"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation type="unfinished">
@@ -1168,72 +1153,72 @@
         </translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="287"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="280"/>
         <source>%1 (you)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="299"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="292"/>
         <source>Connected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="300"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="293"/>
         <source>Reserved (reconnecting)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="302"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="295"/>
         <source>Owner · %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="313"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="306"/>
         <source>Kick %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="315"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="308"/>
         <source>Kick</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="338"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="331"/>
         <source>Chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="358"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="351"/>
         <source>Arena chat</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="399"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="392"/>
         <source>%1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="450"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="443"/>
         <source>Arena chat message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="454"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="447"/>
         <source>Message</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="463"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="456"/>
         <source>Send</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="494"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="487"/>
         <source>Remove player</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="501"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="494"/>
         <source>Remove %1 from this room?</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1408,89 +1393,69 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="49"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="47"/>
         <source>The room library changed. Please try again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="51"/>
-        <source>The next round is already being prepared.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="53"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="49"/>
         <source>This chart configuration is not supported by Arena.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="55"/>
-        <source>The selected chart is no longer available locally.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="57"/>
-        <source>The local chart file no longer matches the room selection.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="60"/>
-        <source>The selected chart could not be prepared.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="71"/>
         <source>Update required</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="74"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="63"/>
         <source>Comparing libraries…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="77"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="66"/>
         <source>Preparing synchronized start…</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="82"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="71"/>
         <source>Arena room controls</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="108"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="97"/>
         <source>Arena room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="114"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="103"/>
         <source>%1 connected · %2 reserved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="123"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="112"/>
         <source>Choose any chart available to everyone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="123"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="112"/>
         <source>Selected: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="172"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="161"/>
         <source>Leave Arena room</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="173"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="162"/>
         <source>Leave</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="79"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="162"/>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="163"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="68"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="151"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="152"/>
         <source>Ready</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1515,12 +1480,12 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="79"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="68"/>
         <source>Not ready</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="163"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectStrip.qml" line="152"/>
         <source>Unready</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1538,37 +1503,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="50"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="48"/>
         <source>The room library changed. Select the chart again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="55"/>
-        <source>Round preparation was cancelled because the chart could not be loaded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="103"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="96"/>
         <source>No chart selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="148"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="141"/>
         <source>Selected by %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="144"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="137"/>
         <source>Choose any chart available to everyone.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="149"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="142"/>
         <source>Selected by another player</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="186"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="179"/>
         <source>Last winner: %1</source>
         <comment>Arena last round winner count</comment>
         <translation>
@@ -1579,77 +1539,77 @@
 <context>
     <name>ArenaStatusAnnouncer</name>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="42"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="40"/>
         <source>Reconnecting to Arena. Your seat is reserved for up to 60 seconds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="44"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="42"/>
         <source>The room library changed. Select the chart again.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="46"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="44"/>
         <source>Round preparation was cancelled because the chart file is missing.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="48"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="46"/>
         <source>Round preparation was cancelled because the chart file does not match the selected chart.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="50"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="48"/>
         <source>Round preparation was cancelled because the chart file could not be read.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="52"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="50"/>
         <source>Round preparation was cancelled because the chart file could not be parsed.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="54"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="52"/>
         <source>Round preparation was cancelled because the selected play options are not supported.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="56"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="54"/>
         <source>Round preparation was cancelled because required chart resources could not be loaded.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="58"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="56"/>
         <source>Round preparation was cancelled because checking players&apos; chart files timed out.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="60"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="58"/>
         <source>Round preparation was cancelled because loading the chart timed out.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="62"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="60"/>
         <source>Round preparation was cancelled because a player left the room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="64"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="62"/>
         <source>Round preparation was cancelled because a player was removed from the room.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="66"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="64"/>
         <source>Round preparation was cancelled because players&apos; chart lengths do not match.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="68"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="66"/>
         <source>Round preparation was cancelled because the Arena server is shutting down.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="70"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaStatusAnnouncer.qml" line="68"/>
         <source>Round preparation was cancelled.</source>
         <translation type="unfinished"></translation>
     </message>

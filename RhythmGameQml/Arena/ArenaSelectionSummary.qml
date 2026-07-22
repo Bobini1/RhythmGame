@@ -44,15 +44,8 @@ ColumnLayout {
             return qsTr("Preparing the synchronized start…");
         }
         switch (String(root.session.errorMessageKey || "")) {
-        case "arena.error.selectionStale":
-        case "arena.error.availabilityStale":
-        case "arena.error.inventoryStale":
+        case "arena.error.roomLibraryChanged":
             return qsTr("The room library changed. Select the chart again.");
-        case "arena.error.parseFailed":
-        case "arena.error.resourceFailed":
-        case "arena.error.missingFile":
-        case "arena.error.hashMismatch":
-            return qsTr("Round preparation was cancelled because the chart could not be loaded.");
         default:
             return "";
         }

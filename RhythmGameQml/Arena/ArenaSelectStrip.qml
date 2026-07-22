@@ -43,21 +43,10 @@ Frame {
         switch (key) {
         case "arena.error.notCommon":
             return qsTr("That chart is not available to every player.");
-        case "arena.error.selectionStale":
-        case "arena.error.availabilityStale":
-        case "arena.error.inventoryStale":
+        case "arena.error.roomLibraryChanged":
             return qsTr("The room library changed. Please try again.");
-        case "arena.error.roundLoading":
-            return qsTr("The next round is already being prepared.");
         case "arena.error.unsupportedConfig":
             return qsTr("This chart configuration is not supported by Arena.");
-        case "arena.error.missingFile":
-            return qsTr("The selected chart is no longer available locally.");
-        case "arena.error.hashMismatch":
-            return qsTr("The local chart file no longer matches the room selection.");
-        case "arena.error.parseFailed":
-        case "arena.error.resourceFailed":
-            return qsTr("The selected chart could not be prepared.");
         default:
             return "";
         }

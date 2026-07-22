@@ -238,7 +238,6 @@ enum class CommandErrorCode
     RateLimited,
     RoundsCapabilityRequired,
     CompetitionCapabilityRequired,
-    InventoryBusy,
     InventoryInvalid,
     InventoryStale,
     InventoryCapacityExceeded,
@@ -264,7 +263,6 @@ enum class FatalErrorCode
     CapabilityRequired,
     InvalidTicket,
     TicketReplayed,
-    ServerShuttingDown,
     MalformedInventory,
 };
 

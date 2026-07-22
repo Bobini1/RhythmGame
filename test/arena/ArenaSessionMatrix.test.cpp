@@ -603,7 +603,7 @@ TEST_CASE("ArenaSession correlates chat and kick successes and errors",
       2,
       commandError(successfulChatRequest,
                    QStringLiteral("chat_too_long"),
-                   QStringLiteral("arena.error.chatTooLong")));
+                   QStringLiteral("arena.error.chatRejected")));
     CHECK(fixture.session.getErrorCode().isEmpty());
 
     fixture.session.sendChat(QStringLiteral("Too long"));
@@ -614,7 +614,7 @@ TEST_CASE("ArenaSession correlates chat and kick successes and errors",
       2,
       commandError(failedChatRequest,
                    QStringLiteral("chat_too_long"),
-                   QStringLiteral("arena.error.chatTooLong")));
+                   QStringLiteral("arena.error.chatRejected")));
     CHECK(fixture.session.getErrorCode() == QStringLiteral("chat_too_long"));
     CHECK(fixture.session.getState() == arena::ArenaSession::State::InRoom);
 
@@ -634,7 +634,7 @@ TEST_CASE("ArenaSession correlates chat and kick successes and errors",
       2,
       commandError(successfulKickRequest,
                    QStringLiteral("target_not_found"),
-                   QStringLiteral("arena.error.targetNotFound")));
+                   QStringLiteral("arena.error.roomMembershipChanged")));
     CHECK(fixture.session.getErrorCode().isEmpty());
 
     fixture.session.kickMember(QStringLiteral("missing-member"));
@@ -645,10 +645,10 @@ TEST_CASE("ArenaSession correlates chat and kick successes and errors",
       2,
       commandError(failedKickRequest,
                    QStringLiteral("target_not_found"),
-                   QStringLiteral("arena.error.targetNotFound")));
+                   QStringLiteral("arena.error.roomMembershipChanged")));
     CHECK(fixture.session.getErrorCode() == QStringLiteral("target_not_found"));
     CHECK(fixture.session.getErrorMessageKey() ==
-          QStringLiteral("arena.error.targetNotFound"));
+          QStringLiteral("arena.error.roomMembershipChanged"));
     CHECK(fixture.session.getState() == arena::ArenaSession::State::InRoom);
 }
 

@@ -53,7 +53,6 @@ FocusScope {
             return qsTr("This Arena server requires a newer game version.");
         case "arena.error.resumeFailed":
             return qsTr("Your reserved seat could not be restored.");
-        case "arena.error.serverShuttingDown":
         case "arena.serverGoingAway":
             return qsTr("Arena is restarting. Please try again shortly.");
         case "arena.error.tlsFailed":

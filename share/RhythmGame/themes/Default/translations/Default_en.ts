@@ -4,7 +4,7 @@
 <context>
     <name>ArenaBrowser</name>
     <message numerus="yes">
-        <location filename="../scripts/multiplayer/Multiplayer.qml" line="386"/>
+        <location filename="../scripts/multiplayer/Multiplayer.qml" line="385"/>
         <source>%n player reconnecting</source>
         <translation>
             <numerusform>%n player reconnecting</numerusform>
@@ -59,7 +59,7 @@
 <context>
     <name>ArenaRoom</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="234"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaRoom.qml" line="227"/>
         <source>%n win(s)</source>
         <comment>Arena lobby wins</comment>
         <translation>
@@ -83,7 +83,7 @@
 <context>
     <name>ArenaSelectionSummary</name>
     <message numerus="yes">
-        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="186"/>
+        <location filename="../../../../../RhythmGameQml/Arena/ArenaSelectionSummary.qml" line="179"/>
         <source>Last winner: %1</source>
         <comment>Arena last round winner count</comment>
         <translation>

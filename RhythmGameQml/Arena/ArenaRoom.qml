@@ -30,22 +30,15 @@ FocusScope {
 
     function errorText(key) : string {
         switch (key) {
-        case "arena.error.notInRoom":
-            return qsTr("You are no longer in this room.");
-        case "arena.error.permissionDenied":
-            return qsTr("Only the room owner can do that.");
-        case "arena.error.targetNotFound":
-            return qsTr("That player is no longer in the room.");
-        case "arena.error.cannotKickSelf":
-            return qsTr("You cannot remove yourself with the kick action.");
-        case "arena.error.chatEmpty":
-            return qsTr("Enter a chat message first.");
-        case "arena.error.chatTooLong":
-            return qsTr("That chat message is too long.");
+        case "arena.error.roomMembershipChanged":
+            return qsTr("Room membership changed. Please try again.");
+        case "arena.error.roomActionUnavailable":
+            return qsTr("That room action is no longer available.");
+        case "arena.error.chatRejected":
+            return qsTr("That chat message could not be sent.");
         case "arena.error.rateLimited":
             return qsTr("You are sending messages too quickly.");
-        case "arena.error.roomGenerationStale":
-        case "arena.error.connectionGenerationStale":
+        case "arena.error.roomStateChanged":
             return qsTr("Room state changed. Please try again.");
         case "arena.error.tlsFailed":
             return qsTr("A secure connection to Arena could not be established.");

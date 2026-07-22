@@ -65,8 +65,6 @@ commandCode(CommandErrorCode code) -> QString
             return QStringLiteral("rounds_capability_required");
         case CommandErrorCode::CompetitionCapabilityRequired:
             return QStringLiteral("competition_capability_required");
-        case CommandErrorCode::InventoryBusy:
-            return QStringLiteral("inventory_busy");
         case CommandErrorCode::InventoryInvalid:
             return QStringLiteral("inventory_invalid");
         case CommandErrorCode::InventoryStale:
@@ -117,8 +115,6 @@ fatalCode(FatalErrorCode code) -> QString
             return QStringLiteral("invalid_ticket");
         case FatalErrorCode::TicketReplayed:
             return QStringLiteral("ticket_replayed");
-        case FatalErrorCode::ServerShuttingDown:
-            return QStringLiteral("server_shutting_down");
         case FatalErrorCode::MalformedInventory:
             return QStringLiteral("malformed_inventory");
     }
@@ -1684,7 +1680,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                        : QStringLiteral("selection_stale"),
                      rejected.reason == SelectionRejectionReason::NotCommon
                        ? QStringLiteral("arena.error.notCommon")
-                       : QStringLiteral("arena.error.selectionStale"));
+                       : QStringLiteral("arena.error.roomLibraryChanged"));
         },
         [this](const RoundLoadingStarted& started) {
             if (!acceptsRoomEvent(started.roomId, started.roomGeneration)) {

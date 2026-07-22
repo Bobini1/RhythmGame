@@ -535,7 +535,7 @@
 			"message": {
 				"type": "command_error",
 				"requestId": "fixture-error-3",
-				"data": { "code": "not_in_room", "displayMessageKey": "arena.error.notInRoom" }
+				"data": { "code": "not_in_room", "displayMessageKey": "arena.error.roomMembershipChanged" }
 			}
 		},
 		{
@@ -591,7 +591,7 @@
 				"requestId": "fixture-error-9",
 				"data": {
 					"code": "room_generation_stale",
-					"displayMessageKey": "arena.error.roomGenerationStale"
+					"displayMessageKey": "arena.error.roomStateChanged"
 				}
 			}
 		},
@@ -602,7 +602,7 @@
 				"requestId": "fixture-error-10",
 				"data": {
 					"code": "connection_generation_stale",
-					"displayMessageKey": "arena.error.connectionGenerationStale"
+					"displayMessageKey": "arena.error.roomStateChanged"
 				}
 			}
 		},
@@ -611,7 +611,10 @@
 			"message": {
 				"type": "command_error",
 				"requestId": "fixture-error-11",
-				"data": { "code": "permission_denied", "displayMessageKey": "arena.error.permissionDenied" }
+				"data": {
+					"code": "permission_denied",
+					"displayMessageKey": "arena.error.roomActionUnavailable"
+				}
 			}
 		},
 		{
@@ -619,7 +622,10 @@
 			"message": {
 				"type": "command_error",
 				"requestId": "fixture-error-12",
-				"data": { "code": "target_not_found", "displayMessageKey": "arena.error.targetNotFound" }
+				"data": {
+					"code": "target_not_found",
+					"displayMessageKey": "arena.error.roomMembershipChanged"
+				}
 			}
 		},
 		{
@@ -627,7 +633,10 @@
 			"message": {
 				"type": "command_error",
 				"requestId": "fixture-error-13",
-				"data": { "code": "cannot_kick_self", "displayMessageKey": "arena.error.cannotKickSelf" }
+				"data": {
+					"code": "cannot_kick_self",
+					"displayMessageKey": "arena.error.roomActionUnavailable"
+				}
 			}
 		},
 		{
@@ -635,7 +644,7 @@
 			"message": {
 				"type": "command_error",
 				"requestId": "fixture-error-14",
-				"data": { "code": "chat_empty", "displayMessageKey": "arena.error.chatEmpty" }
+				"data": { "code": "chat_empty", "displayMessageKey": "arena.error.chatRejected" }
 			}
 		},
 		{
@@ -643,7 +652,7 @@
 			"message": {
 				"type": "command_error",
 				"requestId": "fixture-error-15",
-				"data": { "code": "chat_too_long", "displayMessageKey": "arena.error.chatTooLong" }
+				"data": { "code": "chat_too_long", "displayMessageKey": "arena.error.chatRejected" }
 			}
 		},
 		{
@@ -721,16 +730,6 @@
 			"message": {
 				"type": "fatal_error",
 				"data": { "code": "ticket_replayed", "displayMessageKey": "arena.error.invalidTicket" }
-			}
-		},
-		{
-			"name": "server fatal shutting down",
-			"message": {
-				"type": "fatal_error",
-				"data": {
-					"code": "server_shutting_down",
-					"displayMessageKey": "arena.error.serverShuttingDown"
-				}
 			}
 		}
 	],
