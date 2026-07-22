@@ -21,6 +21,7 @@ FocusScope {
     Accessible.role: Accessible.Pane
 
     ArenaSelectOverlay {
+        navigationFocusTarget: root.presentationItem
         session: root.session
         themeVars: root.themeVars
         viewport: root.viewport

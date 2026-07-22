@@ -13,6 +13,7 @@ FocusScope {
     readonly property int messageCount: chatList.count
     readonly property bool atTail: chatList.atYEnd
     readonly property real scrollPosition: chatList.contentY
+    readonly property bool inputActiveFocus: input.activeFocus
     property bool followTail: true
 
     signal sent

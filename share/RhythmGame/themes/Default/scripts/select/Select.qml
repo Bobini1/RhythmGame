@@ -314,6 +314,7 @@ FocusScope {
                                                   root.contentTop + 120 * root.contentScale,
                                                   520 * root.contentScale,
                                                   480 * root.contentScale)
+                    navigationFocusTarget: songList
                     session: Rg.arenaSession
                     themeVars: root.themeVars
                     viewport: root

@@ -8,6 +8,7 @@ FocusScope {
     id: root
 
     required property var session
+    property Item navigationFocusTarget: null
     readonly property bool arenaNativeSelectPresentation: true
     readonly property alias announcementCount: statusAnnouncer.announcementCount
     readonly property alias lastAnnouncementKey: statusAnnouncer.lastAnnouncementKey
@@ -20,6 +21,10 @@ FocusScope {
     readonly property real normalBodyMinimumWidth: rosterColumnWidth + 8 + 220
     readonly property bool thinDetailsMode: !chatOpen
         && width - 20 < normalBodyMinimumWidth
+    readonly property bool chatInputActive: root.chatOpen
+        && detailsLoader.status === Loader.Ready
+        && detailsLoader.item !== null
+        && detailsLoader.item.inputActiveFocus === true
     readonly property string readyDisabledReason: {
         if (!root.session) {
             return "";
@@ -42,6 +47,22 @@ FocusScope {
     Accessible.name: root.session
         ? (root.session.roomName || qsTr("Arena room")) : qsTr("Arena room")
     Accessible.role: Accessible.Grouping
+
+    function restoreNavigationFocus(): void {
+        Qt.callLater(function () {
+            if (!root.chatInputActive && root.navigationFocusTarget)
+                root.navigationFocusTarget.forceActiveFocus();
+        });
+    }
+
+    onActiveFocusChanged: {
+        if (activeFocus && !chatInputActive)
+            restoreNavigationFocus();
+    }
+    onChatInputActiveChanged: {
+        if (!chatInputActive && activeFocus)
+            restoreNavigationFocus();
+    }
 
     ArenaTypography {
         id: typography

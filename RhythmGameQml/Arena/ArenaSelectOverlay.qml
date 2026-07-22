@@ -8,6 +8,7 @@ Item {
     required property var session
     required property var themeVars
     required property Item viewport
+    property Item navigationFocusTarget: null
     property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)
     readonly property alias placementFrame: placementFrame
     readonly property alias panel: panel
@@ -30,6 +31,7 @@ Item {
             id: panel
 
             anchors.fill: parent
+            navigationFocusTarget: root.navigationFocusTarget
             session: root.session
         }
     }
