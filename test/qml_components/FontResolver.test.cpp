@@ -4,6 +4,7 @@
 
 #include <QFont>
 #include <QFontDatabase>
+#include <QGuiApplication>
 #include <QStringList>
 
 TEST_CASE("FontResolver creates an ordered deduplicated fallback stack",
@@ -58,6 +59,11 @@ TEST_CASE("FontResolver detects CJK scripts in metadata", "[FontResolver]")
 TEST_CASE("FontResolver registers and restores locale-specific fallbacks",
           "[FontResolver]")
 {
+    int argc = 1;
+    char applicationName[] = "FontResolverTests";
+    char* argv[]{ applicationName, nullptr };
+    QGuiApplication application(argc, argv);
+
     const auto family = QStringLiteral("RhythmGame FontResolver Test");
     const auto previousHan =
       QFontDatabase::applicationFallbackFontFamilies(QChar::Script_Han);
