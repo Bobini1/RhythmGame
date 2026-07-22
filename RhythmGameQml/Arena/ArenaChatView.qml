@@ -16,6 +16,7 @@ FocusScope {
     readonly property bool inputActiveFocus: input.activeFocus
     property bool followTail: true
 
+    signal inputFocusDismissed
     signal sent
 
     ArenaTypography {
@@ -59,6 +60,36 @@ FocusScope {
         root.sent();
     }
 
+    function dismissInputFocus(): void {
+        if (!input.activeFocus) {
+            return;
+        }
+        input.focus = false;
+        root.inputFocusDismissed();
+    }
+
+    function inputContainsPoint(sourceItem: Item, x: real, y: real): bool {
+        const inputPoint = input.mapFromItem(sourceItem, x, y);
+        return inputPoint.x >= 0 && inputPoint.x <= input.width
+            && inputPoint.y >= 0 && inputPoint.y <= input.height;
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        gesturePolicy: TapHandler.WithinBounds
+
+        onTapped: eventPoint => {
+            if (!input.activeFocus) {
+                return;
+            }
+            if (root.inputContainsPoint(
+                    root, eventPoint.position.x, eventPoint.position.y)) {
+                return;
+            }
+            root.dismissInputFocus();
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 6
@@ -75,6 +106,7 @@ FocusScope {
 
             Button {
                 Accessible.name: qsTr("Jump to newest Arena message")
+                focusPolicy: Qt.NoFocus
                 font.pixelSize: typography.bodyPixelSize
                 text: qsTr("Newest")
                 onClicked: {
@@ -220,6 +252,11 @@ FocusScope {
                 placeholderText: qsTr("Message")
                 selectByMouse: true
                 onAccepted: root.submit()
+
+                Keys.onEscapePressed: event => {
+                    root.dismissInputFocus();
+                    event.accepted = true;
+                }
             }
 
             Button {
@@ -227,6 +264,7 @@ FocusScope {
 
                 Accessible.name: qsTr("Send Arena chat message")
                 enabled: root.inputEnabled && input.text.trim().length > 0
+                focusPolicy: Qt.NoFocus
                 font.pixelSize: typography.bodyPixelSize
                 text: qsTr("Send")
                 onClicked: root.submit()

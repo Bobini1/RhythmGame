@@ -81,6 +81,26 @@ Rectangle {
         });
     }
 
+    function activeChatView(): var {
+        return root.chatOpen && contentLoader.status === Loader.Ready
+            ? contentLoader.item : null;
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+        enabled: root.chatOpen
+        gesturePolicy: TapHandler.WithinBounds
+
+        onTapped: eventPoint => {
+            const chatView = root.activeChatView();
+            if (chatView && chatView.inputActiveFocus
+                    && !chatView.inputContainsPoint(
+                        root, eventPoint.position.x, eventPoint.position.y)) {
+                chatView.dismissInputFocus();
+            }
+        }
+    }
+
     function standingAccessibleName(standing): string {
         const markers = [];
         if (standing.localMember) {
@@ -340,6 +360,8 @@ Rectangle {
         }
 
         Loader {
+            id: contentLoader
+
             Layout.fillHeight: true
             Layout.fillWidth: true
             Layout.minimumHeight: 0
@@ -362,6 +384,7 @@ Rectangle {
             inputEnabled: true
             session: root.session
             unreadCount: root.session ? Number(root.session.unreadChatCount || 0) : 0
+            onInputFocusDismissed: root.forceActiveFocus()
         }
     }
 

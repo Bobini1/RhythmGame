@@ -227,6 +227,7 @@ FocusScope {
                             Accessible.description: root.session && root.session.reconnecting === true ? qsTr("Unavailable while reconnecting to Arena.") : ""
                             Accessible.name: qsTr("Kick %1").arg(memberDelegate.displayName)
                             enabled: !root.session || root.session.reconnecting !== true
+                            focusPolicy: Qt.NoFocus
                             font.pixelSize: typography.supportingPixelSize
                             Layout.minimumHeight: 32
                             Layout.minimumWidth: 48

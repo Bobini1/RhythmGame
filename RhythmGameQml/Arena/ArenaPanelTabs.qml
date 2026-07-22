@@ -27,6 +27,7 @@ RowLayout {
         Layout.preferredHeight: implicitHeight
         implicitHeight: Math.max(40, implicitContentHeight + topPadding + bottomPadding)
         implicitWidth: Math.max(64, implicitContentWidth + 20)
+        focusPolicy: Qt.NoFocus
         horizontalPadding: 10
         verticalPadding: 6
         hoverEnabled: true
