@@ -89,6 +89,15 @@ ArenaChatModel::replace(QVector<ChatMessage> messages, QString selfMemberId)
 }
 
 auto
+ArenaChatModel::containsMessage(QStringView messageId) const -> bool
+{
+    return std::any_of(
+      m_messages.cbegin(), m_messages.cend(), [&](const ChatMessage& message) {
+          return message.messageId == messageId;
+      });
+}
+
+auto
 ArenaChatModel::upsert(ChatMessage message) -> bool
 {
     const auto found = std::find_if(

@@ -2758,6 +2758,63 @@ TEST_CASE("ArenaSession resumes immediately with a fresh ticket and rotates "
             .toString() == QStringLiteral("seat-token-2"));
 }
 
+TEST_CASE("ArenaSession surfaces remote chat restored while reconnecting",
+          "[arena][session]")
+{
+    ensureCoreApplication();
+    Fixture fixture;
+    const auto requestId = fixture.authenticateAndCreate();
+    const auto members = QJsonArray{
+        member(QStringLiteral("member-1"), QStringLiteral("Alice")),
+        member(QStringLiteral("member-2"), QStringLiteral("Bob")),
+    };
+    const auto knownChat = QJsonArray{
+        chatMessage(QStringLiteral("message-known"),
+                    QStringLiteral("member-2"),
+                    QStringLiteral("Bob"),
+                    QStringLiteral("Before disconnect")),
+    };
+    fixture.transport.injectText(
+      2,
+      roomSnapshot(
+        requestId,
+        roomSnapshotData(
+          QStringLiteral("seat-token-1"), 3, 2, members, knownChat)));
+    REQUIRE(fixture.session.getState() == arena::ArenaSession::State::InRoom);
+    CHECK(fixture.session.unreadChatCount() == 0);
+
+    fixture.transport.injectDisconnected(2);
+    fixture.identity.succeedTicket(fixture.identity.ticketRequests.back(),
+                                   QStringLiteral("resume-ticket"));
+    fixture.transport.injectConnected(3);
+    const auto restoredChat = QJsonArray{
+        knownChat.at(0),
+        chatMessage(QStringLiteral("message-self"),
+                    QStringLiteral("member-1"),
+                    QStringLiteral("Alice"),
+                    QStringLiteral("Sent elsewhere")),
+        chatMessage(QStringLiteral("message-new-1"),
+                    QStringLiteral("member-2"),
+                    QStringLiteral("Bob"),
+                    QStringLiteral("First missed message")),
+        chatMessage(QStringLiteral("message-new-2"),
+                    QStringLiteral("member-2"),
+                    QStringLiteral("Bob"),
+                    QStringLiteral("Latest missed message")),
+    };
+    fixture.transport.injectText(
+      3,
+      resumeHello(roomSnapshotData(
+        QStringLiteral("seat-token-2"), 3, 3, members, restoredChat)));
+
+    REQUIRE(fixture.session.getChat()->rowCount() == 4);
+    CHECK(fixture.session.unreadChatCount() == 2);
+    CHECK(fixture.session.latestUnreadChatDisplayName() ==
+          QStringLiteral("Bob"));
+    CHECK(fixture.session.latestUnreadChatText() ==
+          QStringLiteral("Latest missed message"));
+}
+
 TEST_CASE("ArenaSession rejects a resume hello at the exact grace deadline",
           "[arena][session]")
 {

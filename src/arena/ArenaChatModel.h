@@ -30,6 +30,7 @@ class ArenaChatModel : public QAbstractListModel
 
     [[nodiscard]] auto replace(QVector<ChatMessage> messages,
                                QString selfMemberId) -> bool;
+    [[nodiscard]] auto containsMessage(QStringView messageId) const -> bool;
     [[nodiscard]] auto upsert(ChatMessage message) -> bool;
     [[nodiscard]] auto remove(QStringView messageId) -> bool;
     void setSelfMemberId(QString memberId);

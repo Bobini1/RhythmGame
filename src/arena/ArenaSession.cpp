@@ -1954,6 +1954,17 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     if (lifecycle != m_lifecycleGeneration) {
         return;
     }
+    auto restoredUnreadCount = 0;
+    const ChatMessage* latestRestoredUnread = nullptr;
+    if (resumesSameSeat && !m_chatOpen) {
+        for (const auto& message : snapshot.chat) {
+            if (message.authorMemberId != snapshot.self.memberId &&
+                !m_chat.containsMessage(message.messageId)) {
+                ++restoredUnreadCount;
+                latestRestoredUnread = &message;
+            }
+        }
+    }
     const auto chatReplaced =
       membersReplaced && m_chat.replace(snapshot.chat, snapshot.self.memberId);
     if (lifecycle != m_lifecycleGeneration) {
@@ -1962,6 +1973,13 @@ ArenaSession::applyRoomSnapshot(const RoomSnapshot& snapshot)
     if (!membersReplaced || !chatReplaced) {
         failProtocol(ProtocolFailureCode::MalformedMessage);
         return;
+    }
+    if (latestRestoredUnread != nullptr) {
+        m_unreadChatCount =
+          std::min(m_unreadChatCount + restoredUnreadCount, MaxWireChatBacklog);
+        m_latestUnreadChatDisplayName = latestRestoredUnread->authorDisplayName;
+        m_latestUnreadChatText = latestRestoredUnread->text;
+        emit chatActivityChanged();
     }
     cancelReconnectTasks();
     m_pendingCommands.clear();
