@@ -55,15 +55,6 @@ FocusScope {
         });
     }
 
-    onActiveFocusChanged: {
-        if (activeFocus && !chatInputActive)
-            restoreNavigationFocus();
-    }
-    onChatInputActiveChanged: {
-        if (!chatInputActive && activeFocus)
-            restoreNavigationFocus();
-    }
-
     ArenaTypography {
         id: typography
     }
@@ -82,6 +73,15 @@ FocusScope {
         acceptedButtons: Qt.NoButton
 
         onWheel: wheel => wheel.accepted = true
+    }
+
+    TapHandler {
+        acceptedButtons: Qt.LeftButton
+
+        onTapped: {
+            if (!root.chatInputActive)
+                root.restoreNavigationFocus();
+        }
     }
 
     ColumnLayout {
