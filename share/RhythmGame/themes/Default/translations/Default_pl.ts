@@ -540,7 +540,7 @@
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="175"/>
         <source>%1 clear</source>
-        <translation>Zaliczenie: %1</translation>
+        <translation>%1 Clear</translation>
     </message>
     <message>
         <location filename="../../../../../RhythmGameQml/Arena/ArenaCompetitionText.qml" line="180"/>
@@ -697,7 +697,7 @@
     </message>
     <message>
         <source>%1 clear</source>
-        <translation type="vanished">Zaliczenie: %1</translation>
+        <translation type="vanished">%1 Clear</translation>
     </message>
     <message numerus="yes">
         <source>%n win(s)</source>
