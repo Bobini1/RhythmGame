@@ -52,14 +52,15 @@ class PendingReplySource;
  * restricted to the application thread. Settlement, signal emission, and
  * callback invocation also occur there.
  *
- * A non-null owner supplied to PendingReplySource is the reply's QObject
- * parent while it is pending; passing nullptr leaves it unparented. Settlement
- * removes any parent and marks the reply as JavaScript-owned. A JavaScript
- * engine can manage that lifetime only if the reply is exposed to it; a
- * C++-only caller must delete the reply on the application thread.
+ * A non-null owner with application-thread affinity supplied to
+ * PendingReplySource is the reply's QObject parent while it is pending;
+ * passing nullptr leaves it unparented. Settlement removes any parent and
+ * marks the reply as JavaScript-owned. A JavaScript engine can manage that
+ * lifetime only if the reply is exposed to it; a C++-only caller must delete
+ * the reply on the application thread.
  *
  * Destroying the reply while it is still pending, including through teardown
- * of a non-null owner, requests stop and then invokes the current cancellation
+ * of such an owner, requests stop and then invokes the current cancellation
  * handler if one is installed.
  */
 class PendingReply final : public QObject
@@ -161,13 +162,13 @@ class PendingReply final : public QObject
  * application thread. Workers may obtain and observe stopToken(), then queue
  * settlement back to the application thread.
  *
- * A non-null owner parents the reply while it is pending; nullptr leaves it
- * unparented. If a non-null owner destroys the pending reply, stop is
- * requested, the current cancellation handler runs if one is installed, and
- * reply() subsequently returns nullptr. Settlement removes any parent and
- * marks the reply as JavaScript-owned. A JavaScript engine manages that
- * lifetime only if the reply is exposed to it; a C++-only caller must delete
- * the reply on the application thread.
+ * A non-null owner with application-thread affinity parents the reply while it
+ * is pending; nullptr leaves it unparented. If that owner destroys the pending
+ * reply, stop is requested, the current cancellation handler runs if one is
+ * installed, and reply() subsequently returns nullptr. Settlement removes any
+ * parent and marks the reply as JavaScript-owned. A JavaScript engine manages
+ * that lifetime only if the reply is exposed to it; a C++-only caller must
+ * delete the reply on the application thread.
  *
  * @tparam T Type delivered on successful settlement.
  */
@@ -177,9 +178,11 @@ class PendingReplySource
   public:
     /**
      * @brief Creates a pending reply, optionally parented until settlement.
-     * @param owner QObject parent while pending, or nullptr to leave the reply
-     * unparented.
+     * @param owner QObject with application-thread affinity to use as the
+     * parent while pending, or nullptr to leave the reply unparented.
      * @pre Called on the application thread.
+     * @pre @p owner is nullptr or owner->thread() equals
+     * QThread::currentThread().
      */
     explicit PendingReplySource(QObject* owner)
       : state(std::make_shared<detail::PendingReplyState>())
