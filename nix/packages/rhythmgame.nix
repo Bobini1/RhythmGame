@@ -19,7 +19,6 @@
   qtmultimedia,
   qtsvg,
   qtkeychain,
-  qtinterfaceframework,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -69,7 +68,6 @@ stdenv.mkDerivation rec {
     qtmultimedia
     qtsvg
     qtkeychain
-    qtinterfaceframework
     ned14-llfio
     lexy
     mimalloc

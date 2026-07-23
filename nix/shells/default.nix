@@ -16,7 +16,6 @@
   qtmultimedia,
   qtsvg,
   qtkeychain,
-  qtinterfaceframework,
   ned14-llfio,
   lexy,
   mimalloc,
@@ -64,7 +63,6 @@ mkShell {
     qtmultimedia
     qtsvg
     qtkeychain
-    qtinterfaceframework
     ned14-llfio
     lexy
     mimalloc

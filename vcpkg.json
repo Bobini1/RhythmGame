@@ -65,7 +65,6 @@
       "platform": "windows"
     },
     "qtdeclarative",
-    "qtinterfaceframework",
     "qtkeychain-qt6",
     {
       "name": "qtmultimedia",
