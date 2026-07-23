@@ -42,6 +42,7 @@ add_executable(RhythmGame_test
         qml_components/FontResolver.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
+        support/PendingReply.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
         lr2_skin/Lr2ResolvedTextRegistry.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp

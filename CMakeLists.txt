@@ -299,6 +299,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsScoreCourse.h
         src/support/QtSink.cpp
         src/support/QtSink.h
+        src/support/PendingReply.cpp
+        src/support/PendingReply.h
         src/sounds/AudioEngine.cpp
         src/sounds/AudioEngine.h
         src/sounds/MiniaudioBackend.cpp

@@ -16,6 +16,7 @@
 #include "qml_components/SongDirectoryFilePathFetcher.h"
 #include "qml_components/SongFolderFactory.h"
 #include "qml_components/Themes.h"
+#include "support/PendingReply.h"
 #include "resource_managers/Languages.h"
 #include "resource_managers/Profile.h"
 #include "resource_managers/ChartFolderModel.h"
@@ -166,6 +167,8 @@ RHYTHMGAME_QML_ANONYMOUS_FOREIGN(LanguagesForeign,
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(AudioEngineForeign, sounds::AudioEngine);
 RHYTHMGAME_QML_ANONYMOUS_FOREIGN(OnlineScoresForeign,
                                  qml_components::OnlineScores);
+RHYTHMGAME_QML_ANONYMOUS_FOREIGN(PendingReplyForeign,
+                                 support::PendingReply);
 struct ArenaRoomListModelForeign
 {
     Q_GADGET
