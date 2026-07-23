@@ -1017,15 +1017,15 @@ Run:
 
 ```powershell
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    em++ --version
+    -- em++ --version
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    vcpkg version
+    -- vcpkg version
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    git -C .toolchains/vcpkg-a0400024 rev-parse HEAD
+    -- git -C .toolchains/vcpkg-a0400024 rev-parse HEAD
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    cmake --version
+    -- cmake --version
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    ninja --version
+    -- ninja --version
 ```
 
 Expected:
@@ -1080,6 +1080,15 @@ CMake's ZIP already contains the
 `cmake-4.2.3-windows-x86_64` top-level directory. Ninja's ZIP is flat and
 contains `ninja.exe`, so extract it into `ninja-1.13.2-win`.
 
+Treat every lock-derived directory as untrusted input before filesystem use.
+Reject empty, rooted, `.`/`..`, separator-containing, or otherwise non-leaf
+artifact directory fields. Compute full canonical, `.bootstrap-tmp`, download,
+and executable paths, then prove each is a strict descendant of its intended
+private root before any creation, recursive removal, extraction, resolution,
+or execution. Apply the same descendant checks to the emsdk/vcpkg canonical
+and temporary paths. `Invoke-WithToolchains.ps1` must repeat the canonical
+containment checks before accepting a directory as a provenance root.
+
 Replace both direct repository clones with one shared atomic-clone helper:
 
 1. If the canonical repository exists, check its exact `HEAD` and do not
@@ -1108,6 +1117,25 @@ using a custom `-ToolchainRoot` must not write test state into the repository.
 Keep executable/remaining-argument forwarding transparent and return the
 child's exact exit code.
 
+Do not use an advanced PowerShell `param` binder for the child command. The
+public CLI is:
+
+```text
+Invoke-WithToolchains.ps1 [-ToolchainRoot PATH] [-BinaryCache PATH] -- \
+    EXECUTABLE [ARGUMENT...]
+```
+
+Parse raw `$args` manually. Only recognize the two wrapper options before the
+first mandatory `--`; reject unknown/missing wrapper options and a missing
+executable. Everything after the executable is child data, including literal
+`--`, `-Verbose`, `-ToolchainRoot`, `-BinaryCache`, option-like strings, and
+empty arguments. All plan commands use the delimiter, for example:
+
+```powershell
+pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
+    -- cmake --version
+```
+
 - [ ] **Step 8: Add hermetic behavioral tests**
 
 Create `tools/wasm-probe/tests/_toolchain_process_double.py` and
@@ -1131,7 +1159,7 @@ The process double must:
 Every test uses a `TemporaryDirectory` whose `ToolchainRoot` contains spaces.
 Set invalid loopback HTTP/HTTPS proxies as a network backstop.
 
-Implement these three behavioral cases:
+Implement these four behavioral cases:
 
 1. `test_wrong_heads_fail_closed`: for both emsdk and vcpkg, verify bootstrap
    and wrapper entry points reject a wrong canonical `HEAD`, report expected
@@ -1146,12 +1174,21 @@ Implement these three behavioral cases:
    `install 4.0.7`, `activate 4.0.7`, and vcpkg `-disableMetrics`.
 3. `test_wrapper_is_hermetic_transparent_and_propagates_exit`: poison caller
    variables and place version-compatible global shims first on the inherited
-   `PATH`. Supply local build-tool shims beneath the private root. Invoke an
-   absolute capture child with ordinary, spaced, empty, `--`, option-like, and
-   `-DNAME=a b` arguments; make it exit `37`. Assert exact argument
-   preservation, exit `37`, local exported paths/cache, local command
-   provenance for all four tools, no poison-shim events, and an unchanged
-   parent environment.
+   `PATH`. Supply local build-tool shims beneath the private root. Invoke the
+   committed wrapper directly with `subprocess.run([pwsh, ..., "-File",
+   wrapper, ...])`; do not use `pwsh -Command` or a preconstructed PowerShell
+   array. Pass ordinary, spaced, empty, literal `--`, `-Verbose`, wrapper-option
+   names, option-like, and `-DNAME=a b` child arguments; make the absolute
+   capture child exit `37`. Assert exact argument preservation, exit `37`,
+   local exported paths/cache, local command provenance for all four tools, no
+   poison-shim events, and an unchanged parent environment.
+4. `test_lock_directories_cannot_escape_toolchain_root`: run copied scripts
+   against a copied malicious lock containing rooted and `..` artifact
+   directories. For both bootstrap and wrapper, assert failure occurs before
+   Git, download, cleanup, environment loading, version probes, or child
+   execution; an outside sentinel and similarly named paths remain byte
+   unchanged. Also cover a valid leaf name to prevent a test that rejects all
+   lock values.
 
 Remove the shallow
 `test_bootstrap_is_local_and_fails_on_pin_drift` source-substring test once
@@ -1168,9 +1205,9 @@ pwsh -File tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1
 python -m unittest tools/wasm-probe/tests/test_toolchain_scripts.py -v
 
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    cmake --version
+    -- cmake --version
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    ninja --version
+    -- ninja --version
 
 git diff --check
 git add tools/wasm-probe/toolchain-lock.json `
@@ -1645,7 +1682,7 @@ Run:
 Push-Location tools/wasm-probe
 try {
     pwsh -File scripts/Invoke-WithToolchains.ps1 `
-        cmake --preset wasm-release
+        -- cmake --preset wasm-release
 } finally {
     Pop-Location
 }
@@ -1665,7 +1702,7 @@ Run:
 
 ```powershell
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    cmake --build `
+    -- cmake --build `
     tools/wasm-probe/build/wasm-release --verbose
 ```
 
@@ -2256,7 +2293,7 @@ Run through the pinned environment:
 
 ```powershell
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    python tools/wasm-probe/tests/verify_build.py `
+    -- python tools/wasm-probe/tests/verify_build.py `
     --repo . `
     --emsdk .toolchains/emsdk-4.0.7 `
     --vcpkg .toolchains/vcpkg-a0400024 `
@@ -2298,7 +2335,7 @@ python -m unittest `
     tools/wasm-probe/tests/test_toolchain_contract.py `
     tools/wasm-probe/tests/test_probe_source_contract.py -v
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    cmake --build tools/wasm-probe/build/wasm-release --verbose
+    -- cmake --build tools/wasm-probe/build/wasm-release --verbose
 git diff --check
 ```
 
@@ -2362,14 +2399,14 @@ python -m unittest `
 Push-Location tools/wasm-probe
 try {
     pwsh -File scripts/Invoke-WithToolchains.ps1 `
-        cmake --preset wasm-release
+        -- cmake --preset wasm-release
 } finally {
     Pop-Location
 }
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    cmake --build tools/wasm-probe/build/wasm-release --verbose
+    -- cmake --build tools/wasm-probe/build/wasm-release --verbose
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
-    python tools/wasm-probe/tests/verify_build.py `
+    -- python tools/wasm-probe/tests/verify_build.py `
     --repo . `
     --emsdk .toolchains/emsdk-4.0.7 `
     --vcpkg .toolchains/vcpkg-a0400024 `
