@@ -548,7 +548,7 @@ if ($difference) {
     throw 'The qtbase overlay is not an exact baseline port copy'
 }
 foreach ($relativePath in $expectedFiles) {
-    $actualBlob = git hash-object (
+    $actualBlob = git hash-object --no-filters (
         Join-Path $overlayRoot $relativePath.Replace('/', '\')
     )
     if ($LASTEXITCODE -ne 0 -or
@@ -558,7 +558,9 @@ foreach ($relativePath in $expectedFiles) {
 }
 ```
 
-The two relative lists must match before adding the new Wasm patch.
+The two relative lists and every raw blob must match before adding the new
+Wasm patch. `--no-filters` is required because Windows Git otherwise applies
+`core.autocrlf` inconsistently when `hash-object` receives an absolute path.
 
 - [ ] **Step 8: Patch the overlay for Qt Wasm features and version checking**
 
@@ -1615,7 +1617,12 @@ def require_exact_overlay(
     for relative, expected_blob in baseline_blobs.items():
         if relative in modified:
             continue
-        actual_blob = run("git", "hash-object", overlay / relative)
+        actual_blob = run(
+            "git",
+            "hash-object",
+            "--no-filters",
+            overlay / relative,
+        )
         require(
             actual_blob == expected_blob,
             f"{port}: baseline byte drift in {relative}",
