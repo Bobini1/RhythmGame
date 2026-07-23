@@ -16,6 +16,7 @@
       ]
     },
     "libxml2",
+    "libremidi",
     {
       "name": "llfio",
       "platform": "!windows"

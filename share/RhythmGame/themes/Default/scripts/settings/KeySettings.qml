@@ -25,7 +25,7 @@ Item {
         anchors.fill: parent
         SettingsPageHeader {
             title: qsTr("Key config")
-            subtitle: qsTr("Configure keyboard and controller bindings for each player.")
+            subtitle: qsTr("Configure keyboard, controller, and MIDI bindings for each player.")
             Layout.fillWidth: true
         }
 
@@ -163,7 +163,23 @@ Item {
                                 if (keyLayout.keyConfig[i].button === buttonRow.button) {
                                     let k = keyLayout.keyConfig[i].key;
                                     let deviceName = "Keyboard";
-                                    if (k.gamepad) {
+                                    let keyName = k.code;
+                                    if (k.midi) {
+                                        deviceName = k.midi.name;
+                                        if (k.midi.index !== 0) {
+                                            deviceName += " (" + k.midi.index + ")";
+                                        }
+                                        deviceName += qsTr(" MIDI");
+                                        let channel = Math.floor(k.code / 256) + 1;
+                                        let number = k.code % 256;
+                                        if (k.device === key.MidiNote) {
+                                            keyName = qsTr("Ch %1 Note %2").arg(channel).arg(number);
+                                        } else if (k.device === key.MidiControl) {
+                                            keyName = qsTr("Ch %1 Pedal").arg(channel);
+                                        } else if (k.device === key.MidiPitchBend) {
+                                            keyName = qsTr("Ch %1 Bend %2").arg(channel).arg(k.direction === key.Down ? "-" : "+");
+                                        }
+                                    } else if (k.gamepad) {
                                         deviceName = k.gamepad.name;
                                         if (k.gamepad.index !== 0) {
                                             deviceName += " (" + k.gamepad.index + ")";
@@ -178,7 +194,6 @@ Item {
                                             }
                                         }
                                     }
-                                    let keyName = k.code;
                                     if (deviceName === "Keyboard") {
                                         deviceName = qsTr("Keyboard");
                                         keyName = Rg.inputTranslator.scancodeToString(k.code);

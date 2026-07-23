@@ -80,6 +80,17 @@ find_package(zstd REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_image REQUIRED)
 
+# <------------ libremidi (MIDI input handling) -------------->
+
+find_package(libremidi CONFIG REQUIRED)
+if (TARGET libremidi::libremidi)
+    set(RhythmGame_LIBREMIDI_TARGET libremidi::libremidi)
+elseif (TARGET libremidi)
+    set(RhythmGame_LIBREMIDI_TARGET libremidi)
+else ()
+    message(FATAL_ERROR "libremidi package did not provide a known CMake target")
+endif ()
+
 # <------------ magic_enum (enum reflection) --------------->
 
 find_package(magic_enum REQUIRED)
@@ -265,6 +276,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/resource_managers/SerializeConfig.h
         src/input/GamepadManager.cpp
         src/input/GamepadManager.h
+        src/input/MidiManager.cpp
+        src/input/MidiManager.h
         src/input/InputTranslator.cpp
         src/input/InputTranslator.h
         src/resource_managers/DefineDb.cpp
@@ -384,7 +397,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 ${RhythmGame_LIBREMIDI_TARGET} Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
