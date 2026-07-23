@@ -8,13 +8,29 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
-#include <QThread>
 
 #include <algorithm>
+#include <chrono>
 #include <concepts>
 #include <cstring>
+#include <functional>
 #include <memory>
+#include <semaphore>
 #include <utility>
+
+namespace qml_components {
+
+class OnlineScoresTestAccess
+{
+  public:
+    static void setParserDeliveryQueuedHook(OnlineScores& onlineScores,
+                                            std::function<void()> hook)
+    {
+        onlineScores.parserDeliveryQueuedHook = std::move(hook);
+    }
+};
+
+} // namespace qml_components
 
 namespace {
 
@@ -237,15 +253,19 @@ TEST_CASE("OnlineScores destruction drains queued parser delivery",
     ensureCoreApplication();
     FakeNetworkAccessManager network;
     auto operation = QPointer<support::PendingReply>{};
+    auto parserDeliveryQueued = std::make_shared<std::binary_semaphore>(0);
     {
         auto onlineScores =
           std::make_unique<qml_components::OnlineScores>(&network);
+        qml_components::OnlineScoresTestAccess::setParserDeliveryQueuedHook(
+          *onlineScores,
+          [parserDeliveryQueued] { parserDeliveryQueued->release(); });
         operation = onlineScores->getScoreByGuid(
           QStringLiteral("https://example.invalid/"),
           QStringLiteral("score-id"));
         REQUIRE(network.lastReply);
         network.lastReply->complete(QByteArray(minimalScore));
-        QThread::msleep(20);
+        REQUIRE(parserDeliveryQueued->try_acquire_for(std::chrono::seconds(5)));
     }
 
     CHECK(operation.isNull());

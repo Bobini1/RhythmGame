@@ -8,9 +8,13 @@
 #include <QObject>
 #include <QThreadPool>
 
+#include <functional>
+
 class QNetworkAccessManager;
 
 namespace qml_components {
+
+class OnlineScoresTestAccess;
 
 class TachiResolveHandle : public QObject
 {
@@ -56,8 +60,11 @@ class OnlineScores : public QObject
         OnlineRankingModel::Provider::RhythmGame);
 
   private:
+    friend class OnlineScoresTestAccess;
+
     QNetworkAccessManager* networkManager;
     QThreadPool threadPool;
+    std::function<void()> parserDeliveryQueuedHook;
     bool stopping = false;
 };
 

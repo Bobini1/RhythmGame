@@ -226,10 +226,14 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
           auto data = networkReply->readAll();
           networkReply->deleteLater();
           source.setCancellationHandler({});
+          auto parserDeliveryQueuedHook = this->parserDeliveryQueuedHook;
 
           // Parse and construct BmsScore objects on the thread pool to
           // avoid blocking the main thread.
-          threadPool.start([source, data = std::move(data)]() mutable {
+          threadPool.start([source,
+                            data = std::move(data),
+                            parserDeliveryQueuedHook =
+                              std::move(parserDeliveryQueuedHook)]() mutable {
               const auto stopToken = source.stopToken();
               if (stopToken.stop_requested())
                   return;
@@ -278,6 +282,9 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
                     QMetaObject::invokeMethod(
                       application,
                       [source, delivery]() mutable {
+                          if (source.stopToken().stop_requested())
+                              return;
+
                           auto* currentApplication =
                             QCoreApplication::instance();
                           if (!currentApplication ||
@@ -298,6 +305,8 @@ OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
                               delivery->release();
                       },
                       Qt::QueuedConnection);
+                  if (queued && parserDeliveryQueuedHook)
+                      parserDeliveryQueuedHook();
                   if (!queued && !stopToken.stop_requested()) {
                       spdlog::error("Error parsing getScoreByGuid response: "
                                     "failed to queue parsed score");
