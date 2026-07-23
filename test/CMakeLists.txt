@@ -61,6 +61,7 @@ target_link_libraries(
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 target_compile_definitions(
         RhythmGame_test PRIVATE
+        RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
         ARENA_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/protocol-v1.json"
         ARENA_PHASE2_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-text-goldens.json"
         ARENA_PHASE3_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase3-text-goldens.json"

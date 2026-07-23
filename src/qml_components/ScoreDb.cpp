@@ -10,7 +10,9 @@
 
 #include <QFutureWatcher>
 #include <QHash>
+#include <QPointer>
 #include <QSet>
+#include <QThread>
 #include <QVariantList>
 #include <qcoreapplication.h>
 #include <qtconcurrentrun.h>
@@ -19,13 +21,55 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <memory>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace qml_components {
 
 constexpr int maxVariables = 999;
+
+class ScoreObjectOwner
+{
+  public:
+    template<typename Object>
+    auto adopt(std::unique_ptr<Object> object) -> Object*
+    {
+        static_assert(std::is_base_of_v<QObject, Object>);
+        auto* pointer = object.get();
+        pointer->moveToThread(nullptr);
+        if (pointer->thread() != nullptr) {
+            throw std::runtime_error(
+              "Failed to detach score query payload from its worker thread");
+        }
+        objects.emplace_back(std::move(object));
+        return pointer;
+    }
+
+    [[nodiscard]] auto moveToThread(QThread* thread) -> bool
+    {
+        auto movedAll = true;
+        for (const auto& object : objects) {
+            object->moveToThread(thread);
+            movedAll = movedAll && object->thread() == thread;
+        }
+        return movedAll;
+    }
+
+    void release()
+    {
+        for (auto& object : objects)
+            (void)object.release();
+        objects.clear();
+    }
+
+  private:
+    std::vector<std::unique_ptr<QObject>> objects;
+};
+
 namespace {
 struct ScoreStatsRow
 {
@@ -58,37 +102,19 @@ struct ScoreSummaryChart
     double bestMaxPoints = 0.0;
 };
 
-void
-discardScoreQueryResult(qml_components::ScoreQueryResult& result)
+template<typename Result>
+struct ScoreQueryDelivery
 {
-    for (const auto& value : result.scores) {
-        for (const auto& entry : value.toList()) {
-            if (auto* score = entry.value<gameplay_logic::BmsScore*>()) {
-                score->deleteLater();
-            } else if (auto* course =
-                         entry.value<gameplay_logic::BmsScoreCourse*>()) {
-                course->deleteLater();
-            }
-        }
-    }
-}
+    Result result;
+    ScoreObjectOwner objects;
+};
 
-void
-discardTableQueryResult(qml_components::TableQueryResult& result)
-{
-    discardScoreQueryResult(result.scores);
-    discardScoreQueryResult(result.courseScores);
-}
-
-template<typename Result,
-         typename Query,
-         typename Discard = std::nullptr_t>
+template<typename Result, typename Query>
 auto
 runScoreQuery(qml_components::ScoreDb* owner,
               QThreadPool& threadPool,
               std::string operation,
-              Query query,
-              Discard discard = nullptr) -> support::PendingReply*
+              Query query) -> support::PendingReply*
 {
     auto source = support::PendingReplySource<Result>{ owner };
     auto* reply = source.reply();
@@ -98,35 +124,57 @@ runScoreQuery(qml_components::ScoreDb* owner,
       [source,
        stopToken,
        operation = std::move(operation),
-       query = std::move(query),
-       discard = std::move(discard)]() mutable {
+       query = std::move(query)]() mutable {
           if (stopToken.stop_requested())
               return;
 
           try {
-              auto result = query();
-              QMetaObject::invokeMethod(
-                QCoreApplication::instance(),
-                [source,
-                 result = std::move(result),
-                 discard = std::move(discard)]() mutable {
-                    if (source.succeed(result))
-                        return;
-                    if constexpr (!std::is_same_v<Discard, std::nullptr_t>)
-                        discard(result);
-                },
-                Qt::QueuedConnection);
+              auto delivery =
+                std::make_shared<ScoreQueryDelivery<Result>>();
+              delivery->result = query(delivery->objects);
+              if (stopToken.stop_requested())
+                  return;
+
+              auto* application = QCoreApplication::instance();
+              const auto queued =
+                application &&
+                QMetaObject::invokeMethod(
+                  application,
+                  [source, delivery, operation]() mutable {
+                      auto* currentApplication =
+                        QCoreApplication::instance();
+                      if (!currentApplication ||
+                          !delivery->objects.moveToThread(
+                            currentApplication->thread())) {
+                          if (source.fail()) {
+                              spdlog::error(
+                                "{}: failed to transfer score query payload",
+                                operation);
+                          }
+                          return;
+                      }
+                      if (source.succeed(delivery->result))
+                          delivery->objects.release();
+                  },
+                  Qt::QueuedConnection);
+              if (!queued) {
+                  spdlog::error(
+                    "{}: failed to queue score query result", operation);
+              }
           } catch (const std::exception& exception) {
               auto error = std::string(exception.what());
-              QMetaObject::invokeMethod(
-                QCoreApplication::instance(),
-                [source,
-                 operation = std::move(operation),
-                 error = std::move(error)] {
-                    if (source.fail())
-                        spdlog::error("{}: {}", operation, error);
-                },
-                Qt::QueuedConnection);
+              auto* application = QCoreApplication::instance();
+              const auto queued =
+                application &&
+                QMetaObject::invokeMethod(
+                  application,
+                  [source, operation, error] {
+                      if (source.fail())
+                          spdlog::error("{}: {}", operation, error);
+                  },
+                  Qt::QueuedConnection);
+              if (!queued)
+                  spdlog::error("{}: {}", operation, error);
           }
       });
 
@@ -357,7 +405,9 @@ class ScoreSummaryAccumulator
 }
 
 auto
-ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
+ScoreDb::getScoresForMd5Impl(QList<QString> md5s,
+                             ScoreObjectOwner& objects) const
+  -> ScoreQueryResult
 {
     auto uniqueMd5s = QSet<QString>{};
     for (const auto& md5 : md5s) {
@@ -402,16 +452,14 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
     }
 
     QMap<QString, QVariantList> groupedScores;
-    auto* mainThread = QCoreApplication::instance()->thread();
     for (const auto& row : allResults) {
         auto md5 = QString::fromStdString(std::get<0>(row).md5);
-        auto* score = new gameplay_logic::BmsScore{
+        auto score = std::make_unique<gameplay_logic::BmsScore>(
             gameplay_logic::BmsResult::load(std::get<0>(row)),
             gameplay_logic::BmsReplayData::load(std::get<1>(row)),
-            gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))
-        };
-        score->moveToThread(mainThread);
-        groupedScores[md5].append(QVariant::fromValue(score));
+            gameplay_logic::BmsGaugeHistory::load(std::get<2>(row)));
+        auto* ownedScore = objects.adopt(std::move(score));
+        groupedScores[md5].append(QVariant::fromValue(ownedScore));
     }
     // get the number of md5s that were not found
     auto totalMd5s = md5s.size();
@@ -431,7 +479,8 @@ ScoreDb::getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult
 }
 
 auto
-ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
+ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds,
+                                  ScoreObjectOwner& objects) const
   -> ScoreQueryResult
 {
     auto allCourseResults = std::vector<gameplay_logic::BmsResultCourse::DTO>{};
@@ -498,33 +547,44 @@ ScoreDb::getScoresForCourseIdImpl(const QList<QString>& courseIds) const
                      gameplay_logic::BmsGaugeHistory::DTO>>();
         allResults.insert(allResults.end(), result.begin(), result.end());
     }
-    QHash<QString, gameplay_logic::BmsScore*> groupedScores;
-    auto* mainThread = QCoreApplication::instance()->thread();
-    for (const auto& row : allResults) {
-        auto guid = QString::fromStdString(std::get<0>(row).guid);
-        auto* score = new gameplay_logic::BmsScore{
-            gameplay_logic::BmsResult::load(std::get<0>(row)),
-            gameplay_logic::BmsReplayData::load(std::get<1>(row)),
-            gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))
-        };
-        groupedScores[guid] = score;
+    auto scoreRows = QHash<QString, qsizetype>{};
+    for (auto index = std::size_t{}; index < allResults.size(); ++index) {
+        scoreRows[QString::fromStdString(std::get<0>(allResults[index]).guid)] =
+          static_cast<qsizetype>(index);
     }
+
     auto courseScores = QMap<QString, QVariantList>{};
     for (const auto& courseScore : allCourseResults) {
-        auto scoreGuids = QString::fromStdString(courseScore.scoreGuids)
-                            .split(' ', Qt::SkipEmptyParts);
+        auto courseScoreGuids =
+          QString::fromStdString(courseScore.scoreGuids)
+            .split(' ', Qt::SkipEmptyParts);
+        auto constructionOwner = QObject{};
         auto scoresForCourse = QList<gameplay_logic::BmsScore*>{};
-        for (const auto& guid : scoreGuids) {
-            if (groupedScores.contains(guid)) {
-                scoresForCourse.append(groupedScores[guid]);
-            }
+        for (const auto& guid : courseScoreGuids) {
+            const auto row = scoreRows.constFind(guid);
+            if (row == scoreRows.cend())
+                continue;
+
+            const auto& resultRow = allResults.at(
+              static_cast<std::size_t>(row.value()));
+            auto score = std::make_unique<gameplay_logic::BmsScore>(
+              gameplay_logic::BmsResult::load(std::get<0>(resultRow)),
+              gameplay_logic::BmsReplayData::load(std::get<1>(resultRow)),
+              gameplay_logic::BmsGaugeHistory::load(std::get<2>(resultRow)),
+              &constructionOwner);
+            scoresForCourse.append(score.get());
+            (void)score.release();
         }
+
+        if (scoresForCourse.isEmpty())
+            continue;
+
         auto score = gameplay_logic::BmsScoreCourse::fromScores(
           gameplay_logic::BmsResultCourse::load(courseScore, scoresForCourse),
           scoresForCourse);
-        score->moveToThread(mainThread);
+        auto* ownedCourse = objects.adopt(std::move(score));
         courseScores[QString::fromStdString(courseScore.identifier)].push_back(
-          QVariant::fromValue(score.release()));
+          QVariant::fromValue(ownedCourse));
     }
 
     auto result = ScoreQueryResult{};
@@ -609,10 +669,37 @@ ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
   : scoreDb(scoreDb)
 {
 }
+
+ScoreDb::~ScoreDb()
+{
+    stopping = true;
+    const auto replies =
+      findChildren<support::PendingReply*>(Qt::FindDirectChildrenOnly);
+    for (auto* reply : replies) {
+        auto guard = QPointer<support::PendingReply>{ reply };
+        reply->cancel();
+        if (guard)
+            guard->setParent(this);
+    }
+    threadPool.clear();
+    threadPool.waitForDone();
+}
+
+auto
+ScoreDb::makeStoppedReply() -> support::PendingReply*
+{
+    auto source = support::PendingReplySource<QVariant>{ this };
+    auto* reply = source.reply();
+    (void)source.fail();
+    return reply;
+}
+
 auto
 ScoreDb::getScoresForMd5(const QList<QString>& md5s)
   -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     if (md5s.isEmpty()) {
         auto source = support::PendingReplySource<ScoreQueryResult>{ this };
         (void)source.succeed(ScoreQueryResult{});
@@ -622,13 +709,16 @@ ScoreDb::getScoresForMd5(const QList<QString>& md5s)
       this,
       threadPool,
       "Error in getScoresForMd5",
-      [this, md5s] { return getScoresForMd5Impl(md5s); },
-      discardScoreQueryResult);
+      [this, md5s](ScoreObjectOwner& objects) {
+          return getScoresForMd5Impl(md5s, objects);
+      });
 }
 auto
 ScoreDb::getScoresForCourseId(const QList<QString>& courseIds)
   -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     if (courseIds.isEmpty()) {
         auto source = support::PendingReplySource<ScoreQueryResult>{ this };
         (void)source.succeed(ScoreQueryResult{});
@@ -638,18 +728,21 @@ ScoreDb::getScoresForCourseId(const QList<QString>& courseIds)
       this,
       threadPool,
       "Error in getScoresForCourseId",
-      [this, courseIds] { return getScoresForCourseIdImpl(courseIds); },
-      discardScoreQueryResult);
+      [this, courseIds](ScoreObjectOwner& objects) {
+          return getScoresForCourseIdImpl(courseIds, objects);
+      });
 }
 
 auto
 ScoreDb::getScores(const QString& folder) -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     return runScoreQuery<ScoreQueryResult>(
       this,
       threadPool,
       "Error in getScores",
-      [this, folder] {
+      [this, folder](ScoreObjectOwner& objects) {
           auto countQuery = scoreDb->createStatement(
             "SELECT COUNT(*) "
             "FROM song_db.charts "
@@ -685,18 +778,16 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
             std::tuple<gameplay_logic::BmsResult::DTO,
                        gameplay_logic::BmsReplayData::DTO,
                        gameplay_logic::BmsGaugeHistory::DTO>>();
-          auto* mainThread = QCoreApplication::instance()->thread();
           QMap<QString, QVariantList> groupedScores;
           for (const auto& row : rows) {
               const auto md5 =
                 QString::fromStdString(std::get<0>(row).md5);
-              auto* score = new gameplay_logic::BmsScore{
+              auto score = std::make_unique<gameplay_logic::BmsScore>(
                   gameplay_logic::BmsResult::load(std::get<0>(row)),
                   gameplay_logic::BmsReplayData::load(std::get<1>(row)),
-                  gameplay_logic::BmsGaugeHistory::load(std::get<2>(row))
-              };
-              score->moveToThread(mainThread);
-              groupedScores[md5].append(QVariant::fromValue(score));
+                  gameplay_logic::BmsGaugeHistory::load(std::get<2>(row)));
+              auto* ownedScore = objects.adopt(std::move(score));
+              groupedScores[md5].append(QVariant::fromValue(ownedScore));
           }
 
           auto groupedVariantScores = QVariantMap{};
@@ -711,19 +802,20 @@ ScoreDb::getScores(const QString& folder) -> support::PendingReply*
               .unplayed = unplayedCount,
               .scores = std::move(groupedVariantScores),
           };
-      },
-      discardScoreQueryResult);
+      });
 }
 
 auto
 ScoreDb::getScores(const resource_managers::Table& table)
   -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     return runScoreQuery<TableQueryResult>(
       this,
       threadPool,
       "Error in getScores(table)",
-      [this, table] {
+      [this, table](ScoreObjectOwner& objects) {
           auto md5s = QStringList{};
           for (const auto& level : table.levels) {
               for (const auto& entry : level.entries)
@@ -734,20 +826,22 @@ ScoreDb::getScores(const resource_managers::Table& table)
               for (const auto& course : courseList)
                   courseIds.append(course.getIdentifier());
           }
-          auto scores = getScoresForMd5Impl(md5s);
-          auto courseScores = getScoresForCourseIdImpl(courseIds);
+          auto scores = getScoresForMd5Impl(md5s, objects);
+          auto courseScores =
+            getScoresForCourseIdImpl(courseIds, objects);
           return TableQueryResult{
               .courseScores = std::move(courseScores),
               .scores = std::move(scores),
           };
-      },
-      discardTableQueryResult);
+      });
 }
 
 auto
 ScoreDb::getScores(const resource_managers::Level& level)
   -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     auto md5s = QStringList{};
     for (const auto& entry : level.entries)
         md5s.append(entry.md5);
@@ -757,17 +851,23 @@ ScoreDb::getScores(const resource_managers::Level& level)
 auto
 ScoreDb::getScoreSummary(const QString& folder) -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     return runScoreQuery<QVariantMap>(
       this,
       threadPool,
       "Error in getScoreSummary",
-      [this, folder] { return getFolderScoreSummaryImpl(folder); });
+      [this, folder](ScoreObjectOwner&) {
+          return getFolderScoreSummaryImpl(folder);
+      });
 }
 
 auto
 ScoreDb::getScoreSummary(const resource_managers::Table& table)
   -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     auto md5s = QStringList{};
     for (const auto& level : table.levels) {
         for (const auto& entry : level.entries)
@@ -777,13 +877,17 @@ ScoreDb::getScoreSummary(const resource_managers::Table& table)
       this,
       threadPool,
       "Error in getScoreSummary(table)",
-      [this, md5s] { return getScoreSummaryForMd5Impl(md5s); });
+      [this, md5s](ScoreObjectOwner&) {
+          return getScoreSummaryForMd5Impl(md5s);
+      });
 }
 
 auto
 ScoreDb::getScoreSummary(const resource_managers::Level& level)
   -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     auto md5s = QStringList{};
     for (const auto& entry : level.entries)
         md5s.append(entry.md5);
@@ -791,17 +895,21 @@ ScoreDb::getScoreSummary(const resource_managers::Level& level)
       this,
       threadPool,
       "Error in getScoreSummary(level)",
-      [this, md5s] { return getScoreSummaryForMd5Impl(md5s); });
+      [this, md5s](ScoreObjectOwner&) {
+          return getScoreSummaryForMd5Impl(md5s);
+      });
 }
 
 auto
 ScoreDb::getTotalStats() -> support::PendingReply*
 {
+    if (stopping)
+        return makeStoppedReply();
     return runScoreQuery<ScoreStatsResult>(
       this,
       threadPool,
       "Error in getTotalStats",
-      [this] {
+      [this](ScoreObjectOwner&) {
           auto statement = scoreDb->createStatement(
             "SELECT "
             "COUNT(*), "

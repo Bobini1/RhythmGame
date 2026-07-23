@@ -13,6 +13,8 @@
 #include "resource_managers/Tables.h"
 #include "support/PendingReply.h"
 namespace qml_components {
+class ScoreObjectOwner;
+
 class ScoreQueryResult
 {
     Q_GADGET
@@ -66,15 +68,21 @@ class ScoreDb final : public QObject
 
     db::SqliteCppDb* scoreDb;
     QThreadPool threadPool;
-    auto getScoresForMd5Impl(QList<QString> md5s) const -> ScoreQueryResult;
-    auto getScoresForCourseIdImpl(const QList<QString>& courseIds) const
+    bool stopping = false;
+    auto getScoresForMd5Impl(QList<QString> md5s,
+                             ScoreObjectOwner& objects) const
+      -> ScoreQueryResult;
+    auto getScoresForCourseIdImpl(const QList<QString>& courseIds,
+                                  ScoreObjectOwner& objects) const
       -> ScoreQueryResult;
     auto getScoreSummaryForMd5Impl(const QList<QString>& md5s) const
       -> QVariantMap;
     auto getFolderScoreSummaryImpl(const QString& folder) const -> QVariantMap;
+    auto makeStoppedReply() -> support::PendingReply*;
 
   public:
     explicit ScoreDb(db::SqliteCppDb* scoreDb);
+    ~ScoreDb() override;
     Q_INVOKABLE support::PendingReply* getScoresForMd5(
       const QList<QString>& md5s);
     Q_INVOKABLE support::PendingReply* getScoresForCourseId(

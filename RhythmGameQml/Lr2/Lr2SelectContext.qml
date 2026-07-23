@@ -58,6 +58,7 @@ Item {
     property int scoreGeneration: 0
     property int folderLampRequestToken: 0
     property var pendingScoreDbReplies: []
+    property var pendingFolderLampScoreDbReplies: []
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
@@ -210,6 +211,34 @@ Item {
     function cancelScoreDbReplies() {
         let replies = pendingScoreDbReplies;
         pendingScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
+
+    function trackFolderLampScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingFolderLampScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingFolderLampScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingFolderLampScoreDbReplies.splice(index, 1);
+                pendingFolderLampScoreDbReplies =
+                    pendingFolderLampScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelFolderLampScoreDbReplies() {
+        let replies = pendingFolderLampScoreDbReplies;
+        pendingFolderLampScoreDbReplies = [];
         for (let reply of replies) {
             if (reply && !reply.resultAvailable) {
                 reply.cancel();
@@ -930,6 +959,7 @@ Item {
     }
 
     function refreshFolderLamps() {
+        cancelFolderLampScoreDbReplies();
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
             clearFolderLampState();
@@ -948,7 +978,7 @@ Item {
                 continue;
             }
 
-            trackScoreDbReply(db.getScoreSummary(item)).then((result) => {
+            trackFolderLampScoreDbReply(db.getScoreSummary(item)).then((result) => {
                 if (requestToken !== folderLampRequestToken) {
                     return;
                 }
@@ -1024,6 +1054,7 @@ Item {
     }
 
     Component.onDestruction: {
+        cancelFolderLampScoreDbReplies();
         cancelScoreDbReplies();
     }
 
