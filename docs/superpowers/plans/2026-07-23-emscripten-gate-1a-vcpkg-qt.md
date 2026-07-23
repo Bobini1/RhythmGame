@@ -1108,8 +1108,8 @@ directories to `PATH`: vcpkg, CMake `bin`, Ninja, and Emscripten. Resolve
 `em++`, `vcpkg`, `cmake`, and `ninja` as application commands, and reject any
 resolved source that is not a descendant of the expected private directory.
 Run the version probes through those resolved commands. Tests may use `.cmd`
-or `.bat` application shims, while production installs resolve to the pinned
-`.exe`/`.bat` files.
+or `.bat` application shims for the fixed internal version probes, while
+production installs resolve to the pinned `.exe`/`.bat` files.
 
 Give `Invoke-WithToolchains.ps1` an optional `-BinaryCache` parameter whose
 default remains `.wasm-vcpkg/bincache`. Hermetic tests pass a temporary cache;
@@ -1136,6 +1136,28 @@ pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
     -- cmake --version
 ```
 
+Do not construct a `cmd.exe` command string for the child. Arbitrary batch
+files do not expose a lossless Windows `argv[]` boundary: a target can reparse
+`%*`, use `call`, or enable delayed expansion. Remove
+`ConvertTo-CmdArgument` and the `cmd.exe call` branch.
+
+Resolve the requested child once. Reject a generic `.cmd` or `.bat` child
+before execution with a clear error. Preserve the required Emscripten commands
+by recognizing only `em++`/`emcc` aliases or path-equivalent launchers beneath
+the pinned Emscripten root, then dispatching:
+
+```text
+<pinned EMSDK_PYTHON> -E <pinned em++.py or emcc.py> [ARGUMENT...]
+```
+
+Validate the Python executable beneath the pinned emsdk and the driver beneath
+the pinned Emscripten root before launch. Use
+`System.Diagnostics.ProcessStartInfo` with `UseShellExecute = $false` and add
+each unescaped argument through `ArgumentList`; inherit standard handles, wait,
+and propagate `ExitCode`. Use that same native launcher for all non-batch
+children. Do not use `Start-Process -ArgumentList`, a joined command string,
+`cmd.exe`, or `call`.
+
 - [ ] **Step 8: Add hermetic behavioral tests**
 
 Create `tools/wasm-probe/tests/_toolchain_process_double.py` and
@@ -1159,7 +1181,7 @@ The process double must:
 Every test uses a `TemporaryDirectory` whose `ToolchainRoot` contains spaces.
 Set invalid loopback HTTP/HTTPS proxies as a network backstop.
 
-Implement these four behavioral cases:
+Implement these five behavioral cases:
 
 1. `test_wrong_heads_fail_closed`: for both emsdk and vcpkg, verify bootstrap
    and wrapper entry points reject a wrong canonical `HEAD`, report expected
@@ -1177,11 +1199,13 @@ Implement these four behavioral cases:
    `PATH`. Supply local build-tool shims beneath the private root. Invoke the
    committed wrapper directly with `subprocess.run([pwsh, ..., "-File",
    wrapper, ...])`; do not use `pwsh -Command` or a preconstructed PowerShell
-   array. Pass ordinary, spaced, empty, literal `--`, `-Verbose`, wrapper-option
-   names, option-like, and `-DNAME=a b` child arguments; make the absolute
-   capture child exit `37`. Assert exact argument preservation, exit `37`,
-   local exported paths/cache, local command provenance for all four tools, no
-   poison-shim events, and an unchanged parent environment.
+   array. Use a native capture child, not a batch proxy. Pass ordinary, spaced,
+   empty, literal `--`, `-Verbose`, wrapper-option names, option-like,
+   `-DNAME=a b`, terminal backslashes, embedded quotes, `%PATH%`, carets,
+   `&|<>()`, Unicode, and mixed-metacharacter arguments; make the child exit
+   `37`. Assert byte-for-byte argument preservation, exit `37`, local exported
+   paths/cache, local command provenance for all four tools, no poison-shim
+   events or side-effect commands/files, and an unchanged parent environment.
 4. `test_lock_directories_cannot_escape_toolchain_root`: run copied scripts
    against a copied malicious lock containing rooted and `..` artifact
    directories. For both bootstrap and wrapper, assert failure occurs before
@@ -1189,6 +1213,13 @@ Implement these four behavioral cases:
    execution; an outside sentinel and similarly named paths remain byte
    unchanged. Also cover a valid leaf name to prevent a test that rejects all
    lock values.
+5. `test_batch_children_fail_closed_and_emscripten_uses_native_driver`: verify
+   explicit and PATH-resolved unknown `.cmd`/`.bat` children fail before their
+   first event. Verify pinned `em++` and `emcc` aliases/path-equivalents map to
+   the pinned Python drivers, preserve the same hostile argument vector, and
+   propagate the native process exit. A missing/outside Python or driver must
+   fail closed. Assert the wrapper contains no `cmd.exe`, `ComSpec`, `call`, or
+   batch command-string construction.
 
 Remove the shallow
 `test_bootstrap_is_local_and_fails_on_pin_drift` source-substring test once
@@ -1243,6 +1274,13 @@ the bootstrap rerun is successful; and the tracked diff is clean.
 - Produces: CMake target `RhythmGameWasmProbe`, QML module
   `RhythmGame.WasmProbe`, static library `WasmProbeExceptionBoundary`, and
   `build/wasm-release/compile_commands.json`.
+
+Qt/Emscripten's Windows platform module selects `emcc.bat`/`em++.bat`
+internally. The real configure and compile below are therefore the required
+end-to-end compiler-argument proof. If that boundary corrupts a real argument,
+do not add generic cmd escaping: introduce a small native launcher (or a
+reviewed compiler-list override) that invokes the pinned Python driver, then
+pin and test it.
 
 - [ ] **Step 1: Write the failing source contract test**
 
