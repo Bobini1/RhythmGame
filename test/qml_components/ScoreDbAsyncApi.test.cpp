@@ -170,3 +170,41 @@ TEST_CASE("ScoreDb teardown settles pending replies before child destruction",
     QCoreApplication::sendPostedEvents(
       QCoreApplication::instance(), QEvent::MetaCall);
 }
+
+TEST_CASE("ScoreDb teardown tolerates sibling deletion from finished handlers",
+          "[ScoreDb][PendingReply][lifetime]")
+{
+    ensureCoreApplication();
+    QTemporaryDir directory;
+    REQUIRE(directory.isValid());
+    auto database = db::SqliteCppDb{
+        std::filesystem::path{
+          directory.filePath(QStringLiteral("scores.db")).toStdString() }
+    };
+    database.execute(
+      "CREATE TABLE score("
+      "clear_type TEXT, perfect INTEGER, great INTEGER, good INTEGER, "
+      "bad INTEGER, poor INTEGER, empty_poor INTEGER, max_combo INTEGER)");
+
+    auto firstReply = QPointer<support::PendingReply>{};
+    auto secondReply = QPointer<support::PendingReply>{};
+    {
+        auto scoreDb =
+          std::make_unique<qml_components::ScoreDb>(&database);
+        firstReply = scoreDb->getTotalStats();
+        secondReply = scoreDb->getTotalStats();
+        QObject::connect(
+          firstReply,
+          &support::PendingReply::finished,
+          [&secondReply] { delete secondReply.data(); });
+        QObject::connect(
+          secondReply,
+          &support::PendingReply::finished,
+          [&firstReply] { delete firstReply.data(); });
+    }
+
+    CHECK(firstReply.isNull());
+    CHECK(secondReply.isNull());
+    QCoreApplication::sendPostedEvents(
+      QCoreApplication::instance(), QEvent::MetaCall);
+}

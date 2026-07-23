@@ -673,13 +673,19 @@ ScoreDb::ScoreDb(db::SqliteCppDb* scoreDb)
 ScoreDb::~ScoreDb()
 {
     stopping = true;
-    const auto replies =
+    const auto replyChildren =
       findChildren<support::PendingReply*>(Qt::FindDirectChildrenOnly);
-    for (auto* reply : replies) {
-        auto guard = QPointer<support::PendingReply>{ reply };
+    auto replies = QList<QPointer<support::PendingReply>>{};
+    replies.reserve(replyChildren.size());
+    for (auto* reply : replyChildren)
+        replies.append(reply);
+
+    for (const auto& reply : replies) {
+        if (!reply)
+            continue;
         reply->cancel();
-        if (guard)
-            guard->setParent(this);
+        if (reply)
+            reply->setParent(this);
     }
     threadPool.clear();
     threadPool.waitForDone();
