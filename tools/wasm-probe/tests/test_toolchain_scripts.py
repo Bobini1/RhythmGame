@@ -673,8 +673,19 @@ class ToolchainScriptTest(unittest.TestCase):
             self._seed_complete(root)
             explicit = sandbox / "explicit unknown child.bat"
             search = sandbox / "batch child search"
+            nested = (
+                root
+                / "emsdk-4.0.7"
+                / "upstream"
+                / "emscripten"
+                / "nested"
+            )
+            nested_emxx = nested / "em++.cmd"
+            nested_emcc = nested / "emcc.bat"
             write_launcher(explicit, "explicit-batch-child")
             write_launcher(search / "path-batch-child.cmd", "path-batch-child")
+            write_launcher(nested_emxx, "nested-em++")
+            write_launcher(nested_emcc, "nested-emcc")
             environment = fixture["environment"]
             assert isinstance(environment, dict)
             environment["PATH"] = (
@@ -682,7 +693,12 @@ class ToolchainScriptTest(unittest.TestCase):
             )
             fixture["environment"] = environment
 
-            for child in (str(explicit), "path-batch-child"):
+            for child in (
+                str(explicit),
+                "path-batch-child",
+                str(nested_emxx),
+                str(nested_emcc),
+            ):
                 with self.subTest(batch_child=child):
                     result = self._run_wrapper(fixture, child)
                     combined = result.stdout + result.stderr
@@ -696,6 +712,10 @@ class ToolchainScriptTest(unittest.TestCase):
                 {
                     "explicit-batch-child",
                     "path-batch-child",
+                    "nested-em++",
+                    "nested-emcc",
+                    "em++-driver",
+                    "emcc-driver",
                 }.intersection(str(event["tool"]) for event in events),
                 events,
             )

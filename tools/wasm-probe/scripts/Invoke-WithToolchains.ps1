@@ -236,21 +236,6 @@ function Resolve-ChildApplication {
     return (Resolve-Path -LiteralPath $candidate).Path
 }
 
-function Get-EmscriptenLauncherKind {
-    param(
-        [string]$Path
-    )
-
-    $leaf = [IO.Path]::GetFileName($Path)
-    if ($leaf -imatch '^em\+\+(?:\.(?:cmd|bat))?$') {
-        return 'em++'
-    }
-    if ($leaf -imatch '^emcc(?:\.(?:cmd|bat))?$') {
-        return 'emcc'
-    }
-    return $null
-}
-
 function Invoke-NativeProcess {
     param(
         [string]$FileName,
@@ -423,6 +408,13 @@ New-Item `
 $emxx = Resolve-PinnedApplication `
     -Name 'em++' `
     -ExpectedRoot $emscriptenRoot
+$emcc = Resolve-PinnedApplication `
+    -Name 'emcc' `
+    -ExpectedRoot $emscriptenRoot
+$emscriptenLaunchers = [ordered]@{
+    'em++' = $emxx
+    'emcc' = $emcc
+}
 $vcpkgCommand = Resolve-PinnedApplication `
     -Name 'vcpkg' `
     -ExpectedRoot $vcpkg
@@ -475,7 +467,17 @@ elseif ($Executable -ieq 'emcc') {
 else {
     $null
 }
-$launcherKind = Get-EmscriptenLauncherKind -Path $child
+$launcherKind = $null
+foreach ($kind in $emscriptenLaunchers.Keys) {
+    if ([string]::Equals(
+        $child,
+        [string]$emscriptenLaunchers[$kind],
+        [StringComparison]::OrdinalIgnoreCase
+    )) {
+        $launcherKind = [string]$kind
+        break
+    }
+}
 if ($requestedKind -and $launcherKind -ne $requestedKind) {
     throw (
         "Pinned $requestedKind alias resolved to an unexpected launcher: " +
