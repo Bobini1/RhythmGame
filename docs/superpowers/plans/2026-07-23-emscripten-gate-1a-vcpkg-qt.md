@@ -297,6 +297,11 @@ class ToolchainContractTest(unittest.TestCase):
         patch = (overlay / "restore-wasm-version-check.patch").read_text(
             "utf-8"
         )
+        attributes = (REPO / ".gitattributes").read_text("utf-8")
+        self.assertIn(
+            "vcpkgOverlayPortsWasm/qtbase/** -text",
+            attributes,
+        )
         self.assertIn("include(QtPublicWasmToolchainHelpers)", patch)
         self.assertEqual(
             hashlib.sha256(
@@ -345,11 +350,12 @@ Append these exact entries to `.gitignore`:
 
 Do not remove or rewrite the existing ignored paths.
 
-Append this exact line to `.gitattributes` so Windows `core.autocrlf` cannot
-rewrite the reviewed patch payload:
+Append this exact line to `.gitattributes`. The baseline port contains
+deliberate mixed line endings, so the whole copied port must bypass Windows
+`core.autocrlf`; this also protects the reviewed patch payload:
 
 ```gitattributes
-vcpkgOverlayPortsWasm/qtbase/restore-wasm-version-check.patch -text
+vcpkgOverlayPortsWasm/qtbase/** -text
 ```
 
 - [ ] **Step 4: Add the machine-readable lock**
