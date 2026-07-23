@@ -16,13 +16,28 @@ nowMs() -> int64_t
 }
 
 auto
-deviceList(libremidi::midi_in& probe) -> QList<std::pair<MidiDevice, unsigned>>
+deviceName(const libremidi::input_port& port) -> QString
 {
-    auto result = QList<std::pair<MidiDevice, unsigned>>{};
+    if (!port.display_name.empty()) {
+        return QString::fromStdString(port.display_name);
+    }
+    if (!port.port_name.empty()) {
+        return QString::fromStdString(port.port_name);
+    }
+    if (!port.device_name.empty()) {
+        return QString::fromStdString(port.device_name);
+    }
+    return QStringLiteral("MIDI Input");
+}
+
+auto
+deviceList(const std::vector<libremidi::input_port>& ports)
+  -> QList<std::pair<MidiDevice, libremidi::input_port>>
+{
+    auto result = QList<std::pair<MidiDevice, libremidi::input_port>>{};
     auto seenNames = QHash<QString, int>{};
-    const auto portCount = probe.get_port_count();
-    for (auto port = 0u; port < portCount; ++port) {
-        auto name = QString::fromStdString(probe.get_port_name(port));
+    for (const auto& port : ports) {
+        auto name = deviceName(port);
         auto index = seenNames.value(name, 0);
         seenNames[name] = index + 1;
         result.append({ MidiDevice{ name, index }, port });
@@ -49,23 +64,22 @@ MidiManager::~MidiManager()
 void
 MidiManager::refreshPorts()
 {
-    auto probe = std::unique_ptr<libremidi::midi_in>{};
+    auto observer = std::unique_ptr<libremidi::observer>{};
     try {
-        probe = std::make_unique<libremidi::midi_in>(
-          libremidi::API::UNSPECIFIED, "RhythmGame MIDI Probe");
+        observer = std::make_unique<libremidi::observer>();
     } catch (const std::exception& error) {
         spdlog::warn("Could not initialize MIDI input: {}", error.what());
         return;
     }
 
-    const auto devices = deviceList(*probe);
+    const auto devices = deviceList(observer->get_input_ports());
     auto present = QList<MidiDevice>{};
-    for (const auto& [device, portNumber] : devices) {
+    for (const auto& [device, port] : devices) {
         present.append(device);
         if (!inputs.contains(device)) {
-            addInput(device, portNumber);
+            addInput(device, port);
         } else {
-            inputs[device].portNumber = portNumber;
+            inputs[device].port = port;
         }
     }
 
@@ -81,22 +95,29 @@ MidiManager::refreshPorts()
 }
 
 void
-MidiManager::addInput(MidiDevice device, unsigned int portNumber)
+MidiManager::addInput(MidiDevice device, libremidi::input_port port)
 {
     try {
         auto input = std::make_unique<libremidi::midi_in>(
-          libremidi::API::UNSPECIFIED, "RhythmGame MIDI Input");
-        input->ignore_types(true, true, true);
-        input->set_callback(
-          [this, device](const libremidi::message& message) {
+          libremidi::input_configuration{
+            .on_message = [this, device](libremidi::message&& message) {
               processMessage(device, message);
+            },
+            .ignore_sysex = true,
+            .ignore_timing = true,
+            .ignore_sensing = true,
           });
-        input->open_port(portNumber, "RhythmGame MIDI Input");
-        inputs.emplace(std::move(device), InputPort{ std::move(input),
-                                                    portNumber });
+        const auto error = input->open_port(port, "RhythmGame MIDI Input");
+        if (error != stdx::error{}) {
+            spdlog::warn("Could not open MIDI input port {}",
+                         device.name.toStdString());
+            return;
+        }
+        inputs.emplace(std::move(device),
+                       InputPort{ std::move(input), std::move(port) });
     } catch (const std::exception& error) {
         spdlog::warn("Could not open MIDI input port {}: {}",
-                     portNumber,
+                     device.name.toStdString(),
                      error.what());
     }
 }

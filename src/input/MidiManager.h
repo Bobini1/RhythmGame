@@ -55,14 +55,14 @@ class MidiManager : public QObject
     struct InputPort
     {
         std::unique_ptr<libremidi::midi_in> input;
-        unsigned int portNumber{};
+        libremidi::input_port port;
     };
 
     QTimer refreshTimer;
     std::unordered_map<MidiDevice, InputPort> inputs;
 
     void refreshPorts();
-    void addInput(MidiDevice device, unsigned int portNumber);
+    void addInput(MidiDevice device, libremidi::input_port port);
     void processMessage(const MidiDevice& device,
                         const libremidi::message& message);
 
