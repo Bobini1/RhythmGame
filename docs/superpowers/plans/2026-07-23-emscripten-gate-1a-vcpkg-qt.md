@@ -179,7 +179,7 @@ QTBASE_SHA512 = (
 )
 QTBASE_VCPKG_TREE = "29a7f9f115d568b271a3b99fabeac886ec248f9f"
 QTBASE_WASM_PATCH_SHA256 = (
-    "2fc29b29baf1a3b318ac98a98ccdfc75058b0b2a018e444ff58fa0f51d190155"
+    "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0"
 )
 QTDECLARATIVE_PATCH_SHA256 = (
     "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
@@ -370,7 +370,7 @@ Create `tools/wasm-probe/toolchain-lock.json`:
     "qtbaseSourceSha256": "d9594a31228aa23ad6b531719a29b45f0f3989fe6c136d45767ea179f233c1ac",
     "qtbaseVcpkgSha512": "b5608b6cefd483ecdc5e4fa3536acfc31116c8dfb698257f945180a8e412ee444dc670d754d4f6145649170f7d55637a70820188337a6c6b79193fbfbcd6a3fc",
     "qtbaseVcpkgTree": "29a7f9f115d568b271a3b99fabeac886ec248f9f",
-    "qtbaseWasmPatchSha256": "2fc29b29baf1a3b318ac98a98ccdfc75058b0b2a018e444ff58fa0f51d190155",
+    "qtbaseWasmPatchSha256": "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0",
     "qtdeclarativePatchSha256": "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
   },
   "emscripten": {
@@ -571,11 +571,10 @@ Create
 diff --git a/src/corelib/Qt6WasmMacros.cmake b/src/corelib/Qt6WasmMacros.cmake
 --- a/src/corelib/Qt6WasmMacros.cmake
 +++ b/src/corelib/Qt6WasmMacros.cmake
-@@ -1,2 +1,4 @@
- # Copyright (C) 2022 The Qt Company Ltd.
- # SPDX-License-Identifier: BSD-3-Clause
-+
+@@ -4 +4,3 @@
 +include(QtPublicWasmToolchainHelpers)
++
+ # Copy in Qt HTML/JS launch files for apps.
 ```
 
 Modify the overlay `portfile.cmake` in three exact ways:
@@ -1529,7 +1528,7 @@ EXPECTED_EMSDK_COMMIT = "c69d433d8509c5c64564c2f0d054bf102a5cf67e"
 EXPECTED_VCPKG_COMMIT = "a0400024711b283056538ac19ced80b91a83c24c"
 EXPECTED_QTBASE_TREE = "29a7f9f115d568b271a3b99fabeac886ec248f9f"
 EXPECTED_QTBASE_WASM_PATCH = (
-    "2fc29b29baf1a3b318ac98a98ccdfc75058b0b2a018e444ff58fa0f51d190155"
+    "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0"
 )
 EXPECTED_QTDECLARATIVE_PATCH = (
     "2a015242af462be117a2924d4d8db2c753b29891921e714c23bf1ab4355c4c50"
