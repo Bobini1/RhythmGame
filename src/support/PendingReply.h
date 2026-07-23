@@ -69,15 +69,16 @@ class PendingReply final : public QObject
     explicit PendingReply(std::shared_ptr<detail::PendingReplyState> state,
                           QObject* parent);
     bool settle(bool success, QVariant value, bool requestCancellation);
-    void invokeCallback();
+    QJSValue takeCallback();
+    void invokeCallback(QJSValue callback);
     void releaseToQml();
 
     std::shared_ptr<detail::PendingReplyState> state;
     QVariant result;
     QJSValue successCallback;
     QJSValue failedCallback;
-    bool resultAvailable{};
-    bool successful{};
+    bool resultAvailable = {};
+    bool successful = {};
 };
 
 template<typename T>

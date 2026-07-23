@@ -326,6 +326,43 @@ TEST_CASE("PendingReply cancellation uses the latest stage handler",
     delete source.reply();
 }
 
+TEST_CASE("PendingReply detaches before cancellation destroys its producer",
+          "[PendingReply][cancel][lifetime]")
+{
+    ensureCoreApplication();
+    auto owner = std::make_unique<QObject>();
+    support::PendingReplySource<int> source(owner.get());
+    auto* reply = source.reply();
+    source.setCancellationHandler([&] { owner.reset(); });
+
+    reply->cancel();
+
+    CHECK_FALSE(owner);
+    CHECK(source.reply() == reply);
+    CHECK(reply->isResultAvailable());
+    CHECK_FALSE(reply->isSuccessful());
+    delete reply;
+}
+
+TEST_CASE("PendingReply detaches before a stop callback destroys its producer",
+          "[PendingReply][cancel][lifetime]")
+{
+    ensureCoreApplication();
+    auto owner = std::make_unique<QObject>();
+    support::PendingReplySource<int> source(owner.get());
+    auto* reply = source.reply();
+    std::stop_callback cancellation(source.stopToken(),
+                                    [&] { owner.reset(); });
+
+    reply->cancel();
+
+    CHECK_FALSE(owner);
+    CHECK(source.reply() == reply);
+    CHECK(reply->isResultAvailable());
+    CHECK_FALSE(reply->isSuccessful());
+    delete reply;
+}
+
 TEST_CASE("PendingReply producer destruction requests cancellation",
           "[PendingReply][lifetime]")
 {
@@ -342,6 +379,29 @@ TEST_CASE("PendingReply producer destruction requests cancellation",
     CHECK(source->reply() == nullptr);
     CHECK(source->stopToken().stop_requested());
     CHECK(cancellationCount == 1);
+}
+
+TEST_CASE("PendingReply preserves its terminal callback across finished reentry",
+          "[PendingReply][qml]")
+{
+    ensureCoreApplication();
+    QObject owner;
+    support::PendingReplySource<int> source(&owner);
+    auto* reply = source.reply();
+    QJSEngine engine;
+    engine.globalObject().setProperty("reply", engine.newQObject(reply));
+    engine.evaluate(
+      "var first = 0;"
+      "var second = 0;"
+      "reply.then(function() { ++first; });");
+    QObject::connect(reply, &support::PendingReply::finished, [&] {
+        engine.evaluate("reply.then(function() { ++second; });");
+    });
+
+    REQUIRE(source.succeed(1));
+
+    CHECK(engine.globalObject().property("first").toInt() == 1);
+    CHECK(engine.globalObject().property("second").toInt() == 1);
 }
 
 TEST_CASE("PendingReply lets producers clean up rejected pointer results",

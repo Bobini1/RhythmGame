@@ -2,6 +2,7 @@
 
 #include <QJSEngine>
 #include <QJSManagedValue>
+#include <QPointer>
 #include <QQmlEngine>
 #include <QQmlInfo>
 
@@ -70,7 +71,7 @@ PendingReply::then(const QJSValue& success, const QJSValue& failed)
     successCallback = success;
     failedCallback = failed;
     if (resultAvailable)
-        invokeCallback();
+        invokeCallback(takeCallback());
 }
 
 void
@@ -97,27 +98,48 @@ PendingReply::settle(bool success,
       requestCancellation ? std::move(state->cancellationHandler)
                           : std::function<void()>{};
     state->cancellationHandler = {};
+    auto callback = takeCallback();
+
+    QPointer replyGuard(this);
+    releaseToQml();
+    if (!replyGuard)
+        return true;
+
     if (requestCancellation)
         state->stopSource.request_stop();
+    if (!replyGuard)
+        return true;
+
     if (cancellationHandler)
         cancellationHandler();
+    if (!replyGuard)
+        return true;
 
     emit finished();
-    invokeCallback();
-    releaseToQml();
+    if (!replyGuard)
+        return true;
+
+    invokeCallback(std::move(callback));
     return true;
 }
 
-void
-PendingReply::invokeCallback()
+QJSValue
+PendingReply::takeCallback()
 {
     auto callback = successful ? std::move(successCallback)
                                : std::move(failedCallback);
     successCallback = {};
     failedCallback = {};
+    return callback;
+}
+
+void
+PendingReply::invokeCallback(QJSValue callback)
+{
     if (callback.isUndefined())
         return;
 
+    const auto replySuccessful = successful;
     auto* engine = qjsEngine(this);
     if (!engine) {
         qmlWarning(this) << "PendingReply has no associated QJSEngine";
@@ -125,7 +147,7 @@ PendingReply::invokeCallback()
     }
 
     QJSManagedValue managedCallback(std::move(callback), engine);
-    if (successful)
+    if (replySuccessful)
         managedCallback.call({ engine->toScriptValue(result) });
     else
         managedCallback.call();
