@@ -85,20 +85,6 @@ Rectangle {
         winnerSummary: root.winnerSummaryText
     }
 
-    TapHandler {
-        acceptedButtons: Qt.LeftButton
-        enabled: root.chatOpen
-        gesturePolicy: TapHandler.WithinBounds
-
-        onTapped: eventPoint => {
-            if (resultChat.inputActiveFocus
-                    && !resultChat.inputContainsPoint(
-                        root, eventPoint.position.x, eventPoint.position.y)) {
-                resultChat.dismissInputFocus();
-            }
-        }
-    }
-
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 12
@@ -202,10 +188,10 @@ Rectangle {
             Layout.fillWidth: true
             Layout.minimumHeight: 0
             chatModel: root.session ? root.session.chat : null
+            focusFallback: root
             inputEnabled: true
             session: root.session
             visible: root.chatOpen
-            onInputFocusDismissed: root.forceActiveFocus()
         }
 
         Text {

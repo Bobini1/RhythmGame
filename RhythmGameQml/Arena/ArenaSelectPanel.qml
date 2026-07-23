@@ -55,11 +55,6 @@ FocusScope {
         });
     }
 
-    function activeChatView(): var {
-        return root.chatOpen && detailsLoader.status === Loader.Ready
-            ? detailsLoader.item : null;
-    }
-
     ArenaTypography {
         id: typography
     }
@@ -78,22 +73,6 @@ FocusScope {
         acceptedButtons: Qt.NoButton
 
         onWheel: wheel => wheel.accepted = true
-    }
-
-    TapHandler {
-        acceptedButtons: Qt.LeftButton
-
-        onTapped: eventPoint => {
-            const chatView = root.activeChatView();
-            if (chatView && chatView.inputActiveFocus) {
-                if (!chatView.inputContainsPoint(
-                        root, eventPoint.position.x, eventPoint.position.y)) {
-                    chatView.dismissInputFocus();
-                }
-                return;
-            }
-            root.restoreNavigationFocus();
-        }
     }
 
     ColumnLayout {
@@ -357,9 +336,9 @@ FocusScope {
         ArenaChatView {
             objectName: "arenaSelectChat"
             chatModel: root.session ? root.session.chat : null
+            focusFallback: root.navigationFocusTarget
             inputEnabled: true
             session: root.session
-            onInputFocusDismissed: root.restoreNavigationFocus()
         }
     }
 }

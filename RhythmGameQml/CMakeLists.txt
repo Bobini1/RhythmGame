@@ -139,6 +139,7 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaAvatar.qml
         Arena/ArenaSelectStrip.qml
         Arena/ArenaRosterView.qml
+        TransientInputFocus.qml
         Arena/ArenaChatView.qml
         Arena/ArenaChatActivityRail.qml
         Arena/ArenaPanelTabs.qml
@@ -155,6 +156,10 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaResultOverlay.qml
         Arena/ArenaOverlayPlacementFrame.qml
         Arena/ArenaOverlayResizeHandle.qml
+)
+
+set_source_files_properties(TransientInputFocus.qml PROPERTIES
+        QT_QML_SINGLETON_TYPE TRUE
 )
 
 set(RHYTHM_GAME_QML_SHADERS

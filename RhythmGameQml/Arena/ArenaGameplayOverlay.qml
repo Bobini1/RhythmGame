@@ -81,26 +81,6 @@ Rectangle {
         });
     }
 
-    function activeChatView(): var {
-        return root.chatOpen && contentLoader.status === Loader.Ready
-            ? contentLoader.item : null;
-    }
-
-    TapHandler {
-        acceptedButtons: Qt.LeftButton
-        enabled: root.chatOpen
-        gesturePolicy: TapHandler.WithinBounds
-
-        onTapped: eventPoint => {
-            const chatView = root.activeChatView();
-            if (chatView && chatView.inputActiveFocus
-                    && !chatView.inputContainsPoint(
-                        root, eventPoint.position.x, eventPoint.position.y)) {
-                chatView.dismissInputFocus();
-            }
-        }
-    }
-
     function standingAccessibleName(standing): string {
         const markers = [];
         if (standing.localMember) {
@@ -381,10 +361,10 @@ Rectangle {
         ArenaChatView {
             objectName: "arenaGameplayChat"
             chatModel: root.session ? root.session.chat : null
+            focusFallback: root
             inputEnabled: true
             session: root.session
             unreadCount: root.session ? Number(root.session.unreadChatCount || 0) : 0
-            onInputFocusDismissed: root.forceActiveFocus()
         }
     }
 

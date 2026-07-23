@@ -12,6 +12,8 @@ Rectangle {
     id: root
 
     property bool customizeMode: false
+    property bool arenaGameplayExpanded: false
+    readonly property bool arenaNativeGameplayPresentation: true
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
     readonly property Profile mainProfile: Rg.profileList.mainProfile
@@ -795,6 +797,29 @@ Rectangle {
                 hitDistributionPopupDp.open();
                 root.popup = hitDistributionPopupDp;
             }
+        }
+    }
+    ArenaOverlayPlacementFrame {
+        id: arenaGameplayPlacementFrame
+
+        enabled: arenaGameplayPlacementFrame.visible
+        layoutVariant: root.screen
+        minimumPixelSize: Qt.size(320, 240)
+        moveHandle: arenaGameplayPanel.dragHandle
+        placementKind: "gameplayLeaderboard"
+        themeVars: root.mainProfileVars
+        viewport: root
+        visible: root.arenaGameplayOwned
+        z: 2000000
+
+        ArenaGameplayOverlay {
+            id: arenaGameplayPanel
+
+            anchors.fill: arenaGameplayPlacementFrame
+            expanded: root.arenaGameplayExpanded
+            session: root.arenaSession
+
+            onExpandedChanged: root.arenaGameplayExpanded = arenaGameplayPanel.expanded
         }
     }
     AudioPlayer {

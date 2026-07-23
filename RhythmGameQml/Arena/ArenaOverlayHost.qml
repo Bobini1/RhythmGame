@@ -18,6 +18,10 @@ Item {
         && root.session.arenaGameplayActive === true
         && root.session.arenaRunner !== null
         && root.currentItem.chart === root.session.arenaRunner
+    readonly property bool arenaNativeGameplayPresentation: root.currentItem
+        !== null && root.currentItem.arenaNativeGameplayPresentation === true
+    readonly property bool legacyArenaGameplay: root.ownsArenaRunner
+        && !root.arenaNativeGameplayPresentation
     readonly property string currentArenaRoundId: root.currentItem
         && root.currentItem.arenaRoundId !== undefined
         ? String(root.currentItem.arenaRoundId || "") : ""
@@ -67,7 +71,7 @@ Item {
     Loader {
         id: gameplayOverlayLoader
 
-        active: root.ownsArenaRunner
+        active: root.legacyArenaGameplay
         sourceComponent: gameplayOverlayComponent
         z: 1
     }

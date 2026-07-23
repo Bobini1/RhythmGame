@@ -10,13 +10,13 @@ FocusScope {
     required property var chatModel
     property bool inputEnabled: true
     property int unreadCount: 0
+    property Item focusFallback: null
     readonly property int messageCount: chatList.count
     readonly property bool atTail: chatList.atYEnd
     readonly property real scrollPosition: chatList.contentY
     readonly property bool inputActiveFocus: input.activeFocus
     property bool followTail: true
 
-    signal inputFocusDismissed
     signal sent
 
     ArenaTypography {
@@ -61,33 +61,7 @@ FocusScope {
     }
 
     function dismissInputFocus(): void {
-        if (!input.activeFocus) {
-            return;
-        }
-        input.focus = false;
-        root.inputFocusDismissed();
-    }
-
-    function inputContainsPoint(sourceItem: Item, x: real, y: real): bool {
-        const inputPoint = input.mapFromItem(sourceItem, x, y);
-        return inputPoint.x >= 0 && inputPoint.x <= input.width
-            && inputPoint.y >= 0 && inputPoint.y <= input.height;
-    }
-
-    TapHandler {
-        acceptedButtons: Qt.LeftButton
-        gesturePolicy: TapHandler.WithinBounds
-
-        onTapped: eventPoint => {
-            if (!input.activeFocus) {
-                return;
-            }
-            if (root.inputContainsPoint(
-                    root, eventPoint.position.x, eventPoint.position.y)) {
-                return;
-            }
-            root.dismissInputFocus();
-        }
+        TransientInputFocus.dismiss(input);
     }
 
     ColumnLayout {
@@ -252,6 +226,13 @@ FocusScope {
                 placeholderText: qsTr("Message")
                 selectByMouse: true
                 onAccepted: root.submit()
+                onActiveFocusChanged: {
+                    if (activeFocus) {
+                        TransientInputFocus.activate(input, root.focusFallback);
+                    } else {
+                        TransientInputFocus.release(input);
+                    }
+                }
 
                 Keys.onEscapePressed: event => {
                     root.dismissInputFocus();
