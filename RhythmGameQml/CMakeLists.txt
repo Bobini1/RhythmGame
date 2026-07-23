@@ -140,6 +140,7 @@ set(RHYTHM_GAME_QML_FILES
         Arena/ArenaSelectStrip.qml
         Arena/ArenaRosterView.qml
         TransientInputFocus.qml
+        TransientInputFocusDismissLayer.qml
         Arena/ArenaChatView.qml
         Arena/ArenaChatActivityRail.qml
         Arena/ArenaPanelTabs.qml

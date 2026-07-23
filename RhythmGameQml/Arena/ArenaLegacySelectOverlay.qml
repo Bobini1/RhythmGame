@@ -26,4 +26,6 @@ FocusScope {
         themeVars: root.themeVars
         viewport: root.viewport
     }
+
+    TransientInputFocusDismissLayer {}
 }

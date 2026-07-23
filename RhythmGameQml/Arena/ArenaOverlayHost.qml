@@ -136,4 +136,6 @@ Item {
             }
         }
     }
+
+    TransientInputFocusDismissLayer {}
 }

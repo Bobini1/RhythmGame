@@ -790,4 +790,6 @@ FocusScope {
             onActivated: root.handleSelectDigitShortcut(9)
         }
     }
+
+    TransientInputFocusDismissLayer {}
 }

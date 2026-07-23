@@ -116,41 +116,6 @@ ApplicationWindow {
         property int fpsOverlayFrameCount: 0
         property double fpsOverlayLastSampleMs: 0
 
-        PointHandler {
-            id: transientInputFocusHandler
-
-            property Item pendingEditor: null
-
-            acceptedButtons: Qt.LeftButton
-
-            onActiveChanged: {
-                if (transientInputFocusHandler.active) {
-                    const editor = TransientInputFocus.editor;
-                    if (!editor) {
-                        transientInputFocusHandler.pendingEditor = null;
-                        return;
-                    }
-                    const editorPoint = editor.mapFromItem(
-                        globalRoot,
-                        transientInputFocusHandler.point.position.x,
-                        transientInputFocusHandler.point.position.y);
-                    transientInputFocusHandler.pendingEditor = editorPoint.x < 0
-                            || editorPoint.x > editor.width
-                            || editorPoint.y < 0
-                            || editorPoint.y > editor.height
-                        ? editor : null;
-                    return;
-                }
-
-                const editor = transientInputFocusHandler.pendingEditor;
-                transientInputFocusHandler.pendingEditor = null;
-                if (editor && editor === TransientInputFocus.editor
-                        && editor.activeFocus) {
-                    TransientInputFocus.dismiss(editor);
-                }
-            }
-        }
-
         function isFullScreen(): var {
             return contentContainer.visibility === Window.FullScreen;
         }

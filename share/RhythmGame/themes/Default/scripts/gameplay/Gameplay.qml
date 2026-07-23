@@ -862,4 +862,6 @@ Rectangle {
             root.closeActivePopup();
         }
     }
+
+    TransientInputFocusDismissLayer {}
 }
