@@ -2,15 +2,16 @@
 
 ## Status
 
-This document is the proposed production architecture and verification roadmap
+This document is the approved production architecture and verification roadmap
 for a Chromium-first WebAssembly edition of RhythmGame hosted by
 `rhythmgame.eu`. It preserves the user-visible capabilities of the native
 application while replacing operating-system services with browser or
 same-origin server implementations.
 
-The proposal is ready for review. Product implementation begins only after the
-licensing gate and the architectural decision gates in this document are
-accepted.
+The architecture is approved for gated engineering. The Qt licensing decision
+remains unresolved, so implementation may proceed through the reproducibility
+and combined-capability probes only. Broader product porting begins after Gate 0
+records the commercial-Qt or GPLv3-compliant distribution route.
 
 ## Outcome
 
@@ -31,7 +32,8 @@ The production web edition will:
   libraries;
 - persist profiles, scores, replays, configuration, and a rebuildable song
   catalog;
-- provide keyboard, rhythm-controller, and general gamepad input;
+- provide keyboard, WebHID, WebMIDI, and general gamepad input according to a
+  qualified device support matrix;
 - use a low-jitter AudioWorklet path for keysounds;
 - use a same-origin server gateway for login, Internet Ranking, tables, assets,
   and Arena;
@@ -241,17 +243,24 @@ struct InputEdge {
     PhysicalControl physical;
     bool pressed;
     float value;
-    std::int64_t occurrenceUs;
+    std::int64_t browserReceiptUs;
+    std::optional<std::int64_t> deviceOccurrenceUs;
+    std::int64_t handlerUs;
+    TimestampQuality timestampQuality;
     std::uint64_t sequence;
 };
 ```
 
 Invariants:
 
-- `occurrenceUs` uses the Window performance-time-origin domain;
+- `browserReceiptUs`, `deviceOccurrenceUs` when present, and `handlerUs` are
+  normalized into the Window performance-time-origin domain;
+- the source and `timestampQuality` state whether the timestamp represents a
+  device occurrence, browser receipt, polling update, or handler observation;
 - sequence order is preserved across the shared ring;
 - repeat keyboard events do not create additional presses;
-- each physical device is assigned to exactly one adapter;
+- logical device assignment is explicit; ambiguous duplicate exposure through
+  keyboard, HID, MIDI, or Gamepad pauses or unranks rather than guessing;
 - queue overflow, disconnect, blur, hidden-page transition, and fullscreen loss
   synthesize releases and pause or unrank the session;
 - mapping, release debounce, analog scratch, and logical BMS controls remain in
@@ -338,19 +347,30 @@ the real custom-theme corpus proves equivalent behavior.
   `252acef8c5ae68074d91cadba2ee4a83465051bbb970dd26e8f0daa0f3904e03`
 - Existing qtdeclarative stacking patch SHA-256:
   `2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50`
-- vcpkg baseline: `a0400024711b283056538ac19ced80b91a83c24c`, with a
-  repository-owned static Emscripten triplet and no target Qt ports.
+- vcpkg baseline: `a0400024711b283056538ac19ced80b91a83c24c`, with
+  repository-owned target and host triplets, a pinned Emscripten chainload
+  wrapper, and repository-owned Qt Wasm port customization.
 - Browser automation: pinned Playwright Chromium plus Chrome Stable and Beta
   qualification lanes.
 
 Qt requires applications to use the matching Emscripten toolchain because
 cross-version ABI compatibility is not guaranteed.
 
-### Custom Qt target
+### Vcpkg-managed custom Qt target
 
-Build Qt statically from the official source archive with a same-version native
-host Qt for QML and shader tools. Apply the repository's qtdeclarative patch to
-the target source.
+Vcpkg owns the official Qt source fetch, host/target dependency graph, patching,
+package ABI, binary cache, installation, and exported CMake packages. A native
+host triplet builds the same-version `moc`, QML, translation, and shader tools;
+the Emscripten target triplet builds static Qt libraries. Apply the repository's
+qtdeclarative patch to the target source.
+
+The stock root manifest is not the web manifest. The target triplet and Qt
+customization enable the required Wasm features, preserve Qt's exact Emscripten
+version check, and fail closed on a different compiler. A full
+baseline-derived `qtbase` overlay owns the Qt feature configuration and restores
+the version check removed by the baseline port's Emscripten packaging
+workaround. A separately built Qt SDK is only a fallback if Gate 1 proves the
+vcpkg route unmaintainable.
 
 Required target features:
 
@@ -419,7 +439,7 @@ native root manifest during package resolution.
 
 | Dependency or module | Web route |
 |---|---|
-| Qt Core, GUI, QML, Quick, SVG, Concurrent, Network, WebSockets, ShaderTools | Custom static Qt target |
+| Qt Core, GUI, QML, Quick, SVG, Concurrent, Network, WebSockets, ShaderTools | Vcpkg-managed custom static Qt target |
 | Qt InterfaceFramework | Replace the project's `QIfPendingReply` usage with an application-owned asynchronous QML result |
 | QtKeychain | Remove from the web link graph; use `AccountSession` with an HttpOnly server session |
 | Qt Multimedia FFmpeg feature | Remove from the web manifest; qualify browser video and private local software fallback paths |
@@ -645,13 +665,23 @@ occurs from a user gesture, descriptors are recorded for diagnostics, and input
 reports enter the same normalized ring. Protected keyboard-class collections
 may be unavailable, so keyboard input remains a separate first-class path.
 
+WebMIDI is a separate first-class adapter for MIDI-only controllers and devices
+whose complete button, knob, or scratch protocol is available only through a
+MIDI port. Before claiming rhythm-controller parity, the qualification corpus
+records VID/PID where visible, HID collections, MIDI ports, Gamepad exposure,
+report rate, scratch encoding, exclusive-access behavior, and the preferred
+adapter for every reference device.
+
 The Gamepad API is the general fallback. It is polled once per animation frame
 and retains the browser-provided timestamp. Its possible one-refresh-period
 discovery delay is measured and reported separately rather than hidden in the
 keyboard/HID latency result.
 
-Device arbitration prevents one controller exposed as keyboard, HID, and
-gamepad from producing duplicate judgements.
+Device arbitration prevents one controller exposed as keyboard, HID, MIDI, and
+Gamepad from producing duplicate judgements. Browser identifiers are not
+assumed to be stable physical serial numbers. Reconnect uses logical pairing,
+capability fingerprints, and an explicit identify-control flow; ambiguous
+correlation fails closed.
 
 ### Common clock
 
@@ -836,6 +866,8 @@ X-Content-Type-Options: nosniff
 Referrer-Policy: no-referrer
 Permissions-Policy: fullscreen=(self), gamepad=(self), hid=(self)
 ```
+
+Add `midi=(self)` when the controller qualification matrix retains WebMIDI.
 
 CSP starting point:
 
@@ -1050,6 +1082,9 @@ preceding risk gate passes.
 Deliver:
 
 - recorded Qt commercial or GPLv3 distribution decision;
+- recorded ranked-client threat model and decision on client-reported trust,
+  replay validation, automation, modified Wasm, anomaly controls, and the
+  explicitly unattainable goal of browser proof of human physical input;
 - clean native configure, build, and test evidence from the isolated worktree;
 - exact Qt archive, patch, emsdk, vcpkg baseline, host Qt, CMake, Ninja, and
   container pins;
@@ -1086,7 +1121,11 @@ hard combinations:
 Inspect every compile/link command for pthread and native-exception flags.
 Playwright asserts `crossOriginIsolated`, SharedArrayBuffer, JSPI feature
 detection, WebGL2, workers, and clean console output. `ALLOW_BLOCKING_ON_MAIN_THREAD=0`
-must not fire.
+must not fire. The combined worker/audio lifecycle runs 1,000
+create/use/destroy cycles and grows shared memory at least once. A need for
+ScriptProcessor, `unsafe-eval`, legacy JavaScript exceptions,
+`ALLOW_BLOCKING_ON_MAIN_THREAD=1`, or an irreducible worker-generation mismatch
+fails the proposed combination.
 
 Pass before adapting RhythmGame startup.
 
@@ -1097,6 +1136,12 @@ alone, then link and run a probe. Exercise exceptions across library boundaries
 and representative data for fmt, spdlog, Boost headers, lexy, magic_enum,
 libxml2, zlib-ng, zstd, stb, audio decoders, SQLite variants, and SDL only where
 retained.
+
+Replace implementation-selected random engines and standard-library
+distributions in observable chart, option, replay, and Arena decisions with a
+versioned application-owned PRNG and unbiased sampler. Record fixed vectors for
+Windows, Linux, Wasm, and server implementations, plus the algorithm version,
+seed, and resolved sequence required for replay compatibility.
 
 Replace InterfaceFramework, QtKeychain, LLFIO, TBB, OpenImageIO, SDL2_image, and
 FFmpeg target dependencies according to the matrix. Record licenses and final
@@ -1137,6 +1182,12 @@ Implement semantic repositories, split user and catalog data, migration
 fixtures, exclusive Web Lock ownership, persistent-storage UX, backup, restore,
 quota handling, and idempotency.
 
+Define the acknowledged-durability fault model explicitly. Add owner epochs and
+fencing so a frozen, discarded, BFCache-restored, or restarted old owner cannot
+write after takeover. Backup and restore stream a versioned, length-delimited,
+hashed artifact with a final completion marker rather than materializing the
+whole bundle in Wasm memory.
+
 Inject termination before and after begin, every statement, commit, response
 delivery, backup phase, migration statement, and active-slot switch. Test pool
 exhaustion and alternate journal modes.
@@ -1166,6 +1217,12 @@ feed native and browser input through the common `InputEdge` model.
 Implement keyboard first, then WebHID and Gamepad with device arbitration.
 Implement the owned AudioWorklet and qualify or reject miniaudio paths. Remove
 the fixed 44.1 kHz assumption and establish audible-time mapping.
+
+Include WebMIDI when required by the reference controller inventory. Qualify
+keyboard layouts with Microsoft Japanese IME and at least one additional
+composing IME, classify each adapter's timestamp quality, and test two identical
+controllers plus one device exposed simultaneously through keyboard, HID, MIDI,
+and Gamepad.
 
 Run synthetic determinism, shared-ring saturation, missing-release, focus,
 visibility, hotplug, duplicate-device, output-change, suspension, clock-jump,
@@ -1211,6 +1268,11 @@ failure rollback, and maximum-density BGA timing stress.
 Implement session login/logout/restore, CSRF, score APIs, outbox idempotency,
 external-service gateway, table/image proxy, Arena ticket, WSS reverse proxy,
 and service error mapping.
+
+Keep proxied data incapable of becoming executable same-origin content: fixed
+allowlisted MIME types, `nosniff`, no active SVG/HTML/script/Wasm response, no
+browser-followed redirects, and no authenticated caching. Fuzz every gateway
+response as script, worker, AudioWorklet, QML, image, font, and media input.
 
 Test real contract fixtures plus offline, timeout, retry, redirect, legacy HTTP,
 oversize, decompression, DNS rebinding, private-address, cookie, CSRF,
@@ -1260,6 +1322,12 @@ database slot. Canary and limited beta never activate a contract step or any
 irreversible migration. Static rollback must be proven against already-migrated
 canary data before traffic increases. A forward fix is incident response, not a
 rollback mechanism.
+
+Keep a no-store recovery/bootstrap URL outside service-worker scope so a bad
+active worker cannot intercept its own rollback. Server HTTP, cookie, score,
+gateway, and Arena contracts remain compatible with client versions `N` and
+`N-1`; qualification includes old-client/new-server, new-client/old-server,
+rolled-back-client/new-data, and long-lived old-WebSocket cases.
 
 ## CI topology
 
@@ -1360,7 +1428,8 @@ Recommended decisions for approval:
 
 1. Proceed with a Chromium-first platform port.
 2. Use Qt 6.11.1 and Emscripten 4.0.7 exactly.
-3. Use static Qt with pthreads, native Wasm exceptions, JSPI, and WebGL2.
+3. Build static target Qt and same-version native Qt host tools through the
+   pinned vcpkg graph, with pthreads, native Wasm exceptions, JSPI, and WebGL2.
 4. Use a dedicated session worker and AudioWorklet rather than browser-main
    timers as gameplay authority.
 5. Use official SQLite Wasm in a dedicated `opfs-sahpool` worker and a
@@ -1372,9 +1441,13 @@ Recommended decisions for approval:
 8. Preserve arbitrary user QML theme behavior through an explicit
    plugin-equivalent trusted `ThemeHost`; treat an isolated untrusted renderer
    as a separately qualified security mode.
-9. Keep native and web adapters behind deep modules and retain native CI.
-10. Resolve Qt commercial versus GPLv3-compliant distribution before broad
+9. Qualify keyboard, WebHID, WebMIDI where required, and Gamepad as distinct
+   timestamp/device classes with fail-closed duplicate arbitration.
+10. Keep native and web adapters behind deep modules and retain native CI.
+11. Resolve Qt commercial versus GPLv3-compliant distribution before broad
     implementation.
+12. Record portable randomization and ranked-client trust decisions before
+    claiming cross-platform or ranked parity.
 
 ## Source ledger
 
@@ -1407,6 +1480,7 @@ Recommended decisions for approval:
 - [Clipboard API](https://w3c.github.io/clipboard-apis/)
 - [Gamepad](https://w3c.github.io/gamepad/)
 - [WebHID](https://wicg.github.io/webhid/index.html)
+- [Web MIDI](https://www.w3.org/TR/webmidi/)
 - [WebCodecs](https://w3c.github.io/webcodecs/)
 - [Local Font Access](https://wicg.github.io/local-font-access/)
 - [WebSocket](https://websockets.spec.whatwg.org/)
