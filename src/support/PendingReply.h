@@ -48,13 +48,19 @@ class PendingReplySource;
  * PendingReplySource<T>::fail(), and cancel() compete to settle the reply; the
  * first terminal result wins.
  *
- * Callback registration, cancellation, settlement, signal emission, and
- * callback invocation are application-thread operations. While pending, the
- * reply is a child of the producer QObject supplied to PendingReplySource.
- * Settlement detaches it from that producer and marks it as
- * JavaScript-owned. Destroying the reply while it is still pending, including
- * through producer teardown, requests stop and runs the current cancellation
- * handler.
+ * All access to a PendingReply, including property reads and destruction, is
+ * restricted to the application thread. Settlement, signal emission, and
+ * callback invocation also occur there.
+ *
+ * A non-null owner supplied to PendingReplySource is the reply's QObject
+ * parent while it is pending; passing nullptr leaves it unparented. Settlement
+ * removes any parent and marks the reply as JavaScript-owned. A JavaScript
+ * engine can manage that lifetime only if the reply is exposed to it; a
+ * C++-only caller must delete the reply on the application thread.
+ *
+ * Destroying the reply while it is still pending, including through teardown
+ * of a non-null owner, requests stop and then invokes the current cancellation
+ * handler if one is installed.
  */
 class PendingReply final : public QObject
 {
@@ -65,28 +71,35 @@ class PendingReply final : public QObject
     Q_PROPERTY(QVariant value READ value NOTIFY finished FINAL)
 
   public:
+    /**
+     * @pre Destroyed on the application thread.
+     */
     ~PendingReply() override;
 
     /**
      * @return Always true for a live PendingReply.
+     * @pre Called on the application thread.
      */
     [[nodiscard]] bool isValid() const;
 
     /**
      * @return Whether a success, failure, or cancellation has settled the
      * reply.
+     * @pre Called on the application thread.
      */
     [[nodiscard]] bool isResultAvailable() const;
 
     /**
      * @return Whether the terminal result is successful. This is false while
      * pending and after failure or cancellation.
+     * @pre Called on the application thread.
      */
     [[nodiscard]] bool isSuccessful() const;
 
     /**
      * @return The successful result, or an invalid QVariant while pending and
      * after failure or cancellation.
+     * @pre Called on the application thread.
      */
     [[nodiscard]] QVariant value() const;
 
@@ -99,6 +112,7 @@ class PendingReply final : public QObject
      * on the application thread.
      * @param success A callable receiving the successful value, or undefined.
      * @param failed A callable receiving no arguments, or undefined.
+     * @pre Called on the application thread.
      */
     Q_INVOKABLE void then(const QJSValue& success,
                           const QJSValue& failed = QJSValue());
@@ -106,10 +120,11 @@ class PendingReply final : public QObject
     /**
      * @brief Settles the reply as a cancelled terminal failure.
      *
-     * @details When cancellation wins, it requests stop and invokes the
-     * current cancellation handler. Calling cancel() again, or after another
-     * terminal result has won, has no effect. Call this on the application
-     * thread.
+     * @details When cancellation wins, it requests stop. The cancellation
+     * handler captured at settlement is invoked only if synchronous stop
+     * callbacks leave the reply alive. Calling cancel() again, or after
+     * another terminal result has won, has no effect.
+     * @pre Called on the application thread.
      */
     Q_INVOKABLE void cancel();
 
@@ -146,10 +161,13 @@ class PendingReply final : public QObject
  * application thread. Workers may obtain and observe stopToken(), then queue
  * settlement back to the application thread.
  *
- * The reply is parented to @p owner while pending. If that owner destroys the
- * pending reply, stop is requested, the current cancellation handler runs,
- * and reply() subsequently returns nullptr. A settled reply has already been
- * detached from the owner for JavaScript to manage.
+ * A non-null owner parents the reply while it is pending; nullptr leaves it
+ * unparented. If a non-null owner destroys the pending reply, stop is
+ * requested, the current cancellation handler runs if one is installed, and
+ * reply() subsequently returns nullptr. Settlement removes any parent and
+ * marks the reply as JavaScript-owned. A JavaScript engine manages that
+ * lifetime only if the reply is exposed to it; a C++-only caller must delete
+ * the reply on the application thread.
  *
  * @tparam T Type delivered on successful settlement.
  */
@@ -158,8 +176,9 @@ class PendingReplySource
 {
   public:
     /**
-     * @brief Creates a pending reply parented to @p owner until settlement.
-     * @param owner QObject parent for the pending reply.
+     * @brief Creates a pending reply, optionally parented until settlement.
+     * @param owner QObject parent while pending, or nullptr to leave the reply
+     * unparented.
      * @pre Called on the application thread.
      */
     explicit PendingReplySource(QObject* owner)
