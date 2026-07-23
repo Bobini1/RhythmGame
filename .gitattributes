@@ -1,1 +1,2 @@
 vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch -text
+vcpkgOverlayPortsWasm/qtbase/** -text -whitespace

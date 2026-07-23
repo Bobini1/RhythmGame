@@ -1,0 +1,46 @@
+{
+  "name": "rhythmgame-wasm-probe",
+  "version-semver": "0.1.0",
+  "builtin-baseline": "a0400024711b283056538ac19ced80b91a83c24c",
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "concurrent",
+        "future",
+        "gles2",
+        "gui",
+        "harfbuzz",
+        "jpeg",
+        "network",
+        "png",
+        "testlib",
+        "thread"
+      ]
+    },
+    "qtdeclarative",
+    {
+      "name": "qtimageformats",
+      "default-features": false
+    },
+    {
+      "name": "qtmultimedia",
+      "default-features": false,
+      "features": [
+        "qml"
+      ]
+    },
+    "qtshadertools",
+    "qtsvg",
+    {
+      "name": "qttools",
+      "host": true,
+      "default-features": false,
+      "features": [
+        "linguist"
+      ]
+    },
+    "qtwebsockets"
+  ]
+}

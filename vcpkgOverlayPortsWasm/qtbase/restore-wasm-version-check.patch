@@ -1,0 +1,7 @@
+diff --git a/src/corelib/Qt6WasmMacros.cmake b/src/corelib/Qt6WasmMacros.cmake
+--- a/src/corelib/Qt6WasmMacros.cmake
++++ b/src/corelib/Qt6WasmMacros.cmake
+@@ -4 +4,3 @@
++include(QtPublicWasmToolchainHelpers)
++
+ # Copy in Qt HTML/JS launch files for apps.

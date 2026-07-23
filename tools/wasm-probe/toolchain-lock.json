@@ -1,0 +1,23 @@
+{
+  "qt": {
+    "version": "6.11.1",
+    "fullQtSourceSha256": "252acef8c5ae68074d91cadba2ee4a83465051bbb970dd26e8f0daa0f3904e03",
+    "qtbaseSourceSha256": "d9594a31228aa23ad6b531719a29b45f0f3989fe6c136d45767ea179f233c1ac",
+    "qtbaseVcpkgSha512": "b5608b6cefd483ecdc5e4fa3536acfc31116c8dfb698257f945180a8e412ee444dc670d754d4f6145649170f7d55637a70820188337a6c6b79193fbfbcd6a3fc",
+    "qtbaseVcpkgTree": "29a7f9f115d568b271a3b99fabeac886ec248f9f",
+    "qtbaseWasmPatchSha256": "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0",
+    "qtdeclarativePatchSha256": "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
+  },
+  "emscripten": {
+    "version": "4.0.7",
+    "emsdkCommit": "c69d433d8509c5c64564c2f0d054bf102a5cf67e"
+  },
+  "vcpkg": {
+    "baseline": "a0400024711b283056538ac19ced80b91a83c24c",
+    "emscriptenWrapperSourceCommit": "5b698638c97b4610044a254347d571f823e56557"
+  },
+  "buildTools": {
+    "cmake": "4.2.3",
+    "ninja": "1.13.2"
+  }
+}
