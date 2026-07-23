@@ -4,35 +4,112 @@ param(
     [string]$Executable,
 
     [Parameter(ValueFromRemainingArguments = $true)]
-    [string[]]$Arguments,
+    [AllowEmptyCollection()]
+    [AllowEmptyString()]
+    [string[]]$Arguments = @(),
 
     [string]$ToolchainRoot = (
         Join-Path $PSScriptRoot '..\..\..\.toolchains'
+    ),
+
+    [string]$BinaryCache = (
+        Join-Path $PSScriptRoot '..\..\..\.wasm-vcpkg\bincache'
     )
 )
 
 $ErrorActionPreference = 'Stop'
-$emsdkCommit = 'c69d433d8509c5c64564c2f0d054bf102a5cf67e'
-$vcpkgCommit = 'a0400024711b283056538ac19ced80b91a83c24c'
-$emsdk = (Resolve-Path (
-    Join-Path $ToolchainRoot 'emsdk-4.0.7'
+$lockPath = Join-Path $PSScriptRoot '..\toolchain-lock.json'
+$lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json
+$ToolchainRoot = [IO.Path]::GetFullPath($ToolchainRoot)
+$BinaryCache = [IO.Path]::GetFullPath($BinaryCache)
+$emsdkVersion = [string]$lock.emscripten.version
+$emsdkCommit = [string]$lock.emscripten.emsdkCommit
+$vcpkgCommit = [string]$lock.vcpkg.baseline
+$emsdk = (Resolve-Path -LiteralPath (
+    Join-Path $ToolchainRoot "emsdk-$emsdkVersion"
 )).Path
-$vcpkg = (Resolve-Path (
-    Join-Path $ToolchainRoot 'vcpkg-a0400024'
+$vcpkg = (Resolve-Path -LiteralPath (
+    Join-Path $ToolchainRoot "vcpkg-$($vcpkgCommit.Substring(0, 8))"
+)).Path
+$cmake = (Resolve-Path -LiteralPath (
+    Join-Path $ToolchainRoot ([string]$lock.buildTools.cmake.directory)
+)).Path
+$ninja = (Resolve-Path -LiteralPath (
+    Join-Path $ToolchainRoot ([string]$lock.buildTools.ninja.directory)
 )).Path
 
 function Assert-Commit {
-    param([string]$Repository, [string]$Expected)
-    $actual = git -C $Repository rev-parse HEAD
-    if ($LASTEXITCODE -ne 0 -or $actual -ne $Expected) {
+    param(
+        [string]$Repository,
+        [string]$Expected
+    )
+
+    $actualLines = @(& git -C $Repository rev-parse HEAD)
+    $exitCode = $LASTEXITCODE
+    $actual = ($actualLines -join "`n").Trim()
+    if ($exitCode -ne 0 -or $actual -ne $Expected) {
         throw "Expected $Repository at $Expected, got $actual"
     }
+}
+
+function Test-Descendant {
+    param(
+        [string]$Path,
+        [string]$Root
+    )
+
+    $fullPath = [IO.Path]::GetFullPath($Path)
+    $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd(
+        [IO.Path]::DirectorySeparatorChar,
+        [IO.Path]::AltDirectorySeparatorChar
+    )
+    $prefix = "$fullRoot$([IO.Path]::DirectorySeparatorChar)"
+    return $fullPath.StartsWith(
+        $prefix,
+        [StringComparison]::OrdinalIgnoreCase
+    )
+}
+
+function Resolve-PinnedApplication {
+    param(
+        [string]$Name,
+        [string]$ExpectedRoot
+    )
+
+    $commands = @(Get-Command `
+        -Name $Name `
+        -CommandType Application `
+        -All `
+        -ErrorAction Stop)
+    if ($commands.Count -eq 0) {
+        throw "Expected pinned $Name beneath $ExpectedRoot"
+    }
+    $source = (Resolve-Path -LiteralPath $commands[0].Source).Path
+    if (-not (Test-Descendant -Path $source -Root $ExpectedRoot)) {
+        throw (
+            "Expected pinned $Name beneath $ExpectedRoot, " +
+            "resolved $source"
+        )
+    }
+    return $source
+}
+
+function ConvertTo-CmdArgument {
+    param(
+        [AllowEmptyString()]
+        [string]$Value
+    )
+
+    if (-not $Value) {
+        return '""'
+    }
+    return '"' + $Value.Replace('"', '""') + '"'
 }
 
 Assert-Commit -Repository $emsdk -Expected $emsdkCommit
 Assert-Commit -Repository $vcpkg -Expected $vcpkgCommit
 $activationFile = Join-Path $emsdk '.emscripten'
-if (-not (Test-Path -LiteralPath $activationFile)) {
+if (-not (Test-Path -LiteralPath $activationFile -PathType Leaf)) {
     throw 'Pinned emsdk is installed but not locally activated'
 }
 $activation = Get-Content -LiteralPath $activationFile -Raw
@@ -43,37 +120,92 @@ if (-not $activation.Contains(
 }
 
 . (Join-Path $emsdk 'emsdk_env.ps1')
-$activeEmsdk = (Resolve-Path $env:EMSDK).Path
+$activeEmsdk = (Resolve-Path -LiteralPath $env:EMSDK).Path
 if ($activeEmsdk -ne $emsdk) {
     throw "Expected EMSDK=$emsdk, got $activeEmsdk"
 }
+
+$emscriptenRoot = (
+    Resolve-Path -LiteralPath (Join-Path $emsdk 'upstream\emscripten')
+).Path
+$cmakeBin = (
+    Resolve-Path -LiteralPath (Join-Path $cmake 'bin')
+).Path
 $env:EMSDK = $emsdk
-$env:EMSCRIPTEN_ROOT = Join-Path $emsdk 'upstream\emscripten'
-$env:EMSCRIPTEN_VERSION = '4.0.7'
+$env:EMSCRIPTEN_ROOT = $emscriptenRoot
+$env:EMSCRIPTEN_VERSION = $emsdkVersion
 $env:VCPKG_ROOT = $vcpkg
-$env:Path = "$vcpkg$([IO.Path]::PathSeparator)$env:Path"
+$pathSeparator = [IO.Path]::PathSeparator
+$env:Path = (
+    $vcpkg,
+    $cmakeBin,
+    $ninja,
+    $emscriptenRoot,
+    $env:Path
+) -join $pathSeparator
 $env:VCPKG_DISABLE_METRICS = '1'
-$env:VCPKG_DEFAULT_BINARY_CACHE = (
-    Join-Path $PSScriptRoot '..\..\..\.wasm-vcpkg\bincache'
-)
-New-Item -ItemType Directory `
-    -Path $env:VCPKG_DEFAULT_BINARY_CACHE -Force | Out-Null
+$env:VCPKG_DEFAULT_BINARY_CACHE = $BinaryCache
+New-Item `
+    -ItemType Directory `
+    -Path $env:VCPKG_DEFAULT_BINARY_CACHE `
+    -Force | Out-Null
 
-$emxx = Join-Path $env:EMSCRIPTEN_ROOT 'em++.bat'
-$emxxVersion = & $emxx --version
+$emxx = Resolve-PinnedApplication `
+    -Name 'em++' `
+    -ExpectedRoot $emscriptenRoot
+$vcpkgCommand = Resolve-PinnedApplication `
+    -Name 'vcpkg' `
+    -ExpectedRoot $vcpkg
+$cmakeCommand = Resolve-PinnedApplication `
+    -Name 'cmake' `
+    -ExpectedRoot $cmakeBin
+$ninjaCommand = Resolve-PinnedApplication `
+    -Name 'ninja' `
+    -ExpectedRoot $ninja
+
+$emxxVersion = @(& $emxx --version)
 $emxxVersionText = $emxxVersion -join "`n"
-if ($LASTEXITCODE -ne 0 -or $emxxVersionText -notmatch '\b4\.0\.7\b') {
-    throw "Expected em++ 4.0.7, got: $($emxxVersion -join ' ')"
-}
-$cmakeVersion = (& cmake --version) -join "`n"
 if ($LASTEXITCODE -ne 0 -or
-    $cmakeVersion -notmatch '(?m)^cmake version 4\.2\.3$') {
-    throw "Expected CMake 4.2.3, got: $cmakeVersion"
+    $emxxVersionText -notmatch (
+        "\b$([Regex]::Escape($emsdkVersion))\b"
+    )) {
+    throw (
+        "Expected em++ $emsdkVersion, got: " +
+        ($emxxVersion -join ' ')
+    )
 }
-$ninjaVersion = (& ninja --version) -join "`n"
-if ($LASTEXITCODE -ne 0 -or $ninjaVersion.Trim() -ne '1.13.2') {
-    throw "Expected Ninja 1.13.2, got: $ninjaVersion"
+$vcpkgVersion = @(& $vcpkgCommand version)
+if ($LASTEXITCODE -ne 0) {
+    throw "Pinned vcpkg version probe failed: $($vcpkgVersion -join ' ')"
+}
+$cmakeVersion = @(& $cmakeCommand --version)
+$cmakeVersionText = $cmakeVersion -join "`n"
+$expectedCmake = [string]$lock.buildTools.cmake.version
+if ($LASTEXITCODE -ne 0 -or
+    $cmakeVersionText -notmatch (
+        "(?m)^cmake version $([Regex]::Escape($expectedCmake))$"
+    )) {
+    throw "Expected CMake $expectedCmake, got: $cmakeVersionText"
+}
+$ninjaVersion = @(& $ninjaCommand --version)
+$ninjaVersionText = $ninjaVersion -join "`n"
+$expectedNinja = [string]$lock.buildTools.ninja.version
+if ($LASTEXITCODE -ne 0 -or
+    $ninjaVersionText.Trim() -ne $expectedNinja) {
+    throw "Expected Ninja $expectedNinja, got: $ninjaVersionText"
 }
 
-& $Executable @Arguments
-exit $LASTEXITCODE
+if ([IO.Path]::GetExtension($Executable) -in '.cmd', '.bat') {
+    $commandTokens = @(
+        ConvertTo-CmdArgument -Value $Executable
+        foreach ($argument in $Arguments) {
+            ConvertTo-CmdArgument -Value $argument
+        }
+    )
+    & $env:ComSpec /d /s /c ($commandTokens -join ' ')
+}
+else {
+    & $Executable @Arguments
+}
+$childExitCode = $LASTEXITCODE
+exit $childExitCode

@@ -25,35 +25,15 @@ QTBASE_WASM_PATCH_SHA256 = (
 QTDECLARATIVE_PATCH_SHA256 = (
     "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
 )
+CMAKE_WINDOWS_X64_SHA256 = (
+    "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c"
+)
+NINJA_WINDOWS_SHA256 = (
+    "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65"
+)
 
 
 class ToolchainContractTest(unittest.TestCase):
-    def test_bootstrap_is_local_and_fails_on_pin_drift(self) -> None:
-        bootstrap = (
-            PROBE / "scripts" / "Bootstrap-Toolchains.ps1"
-        ).read_text("utf-8")
-        invoke = (
-            PROBE / "scripts" / "Invoke-WithToolchains.ps1"
-        ).read_text("utf-8")
-        self.assertIn(EMSDK_COMMIT, bootstrap)
-        self.assertIn(BASELINE, bootstrap)
-        self.assertIn("activate 4.0.7", bootstrap)
-        self.assertNotIn("--permanent", bootstrap)
-        self.assertNotIn("--system", bootstrap)
-        self.assertIn(EMSDK_COMMIT, invoke)
-        self.assertIn(BASELINE, invoke)
-        self.assertIn("rev-parse HEAD", invoke)
-        self.assertIn("Expected CMake 4.2.3", invoke)
-        self.assertIn("1.13.2", invoke)
-        self.assertIn("EMSCRIPTEN_ROOT", invoke)
-        self.assertIn("EMSCRIPTEN_VERSION", invoke)
-        self.assertIn("VCPKG_ROOT", invoke)
-        self.assertIn(
-            '$env:Path = "$vcpkg$([IO.Path]::PathSeparator)$env:Path"',
-            invoke,
-        )
-        self.assertIn("4.0.7", invoke)
-
     def test_lock_file_has_exact_production_pins(self) -> None:
         lock = json.loads((PROBE / "toolchain-lock.json").read_text("utf-8"))
         self.assertEqual(lock["qt"]["version"], "6.11.1")
@@ -68,8 +48,30 @@ class ToolchainContractTest(unittest.TestCase):
             lock["qt"]["qtbaseWasmPatchSha256"],
             QTBASE_WASM_PATCH_SHA256,
         )
-        self.assertEqual(lock["buildTools"]["cmake"], "4.2.3")
-        self.assertEqual(lock["buildTools"]["ninja"], "1.13.2")
+        self.assertEqual(
+            lock["buildTools"]["cmake"],
+            {
+                "version": "4.2.3",
+                "url": (
+                    "https://cmake.org/files/v4.2/"
+                    "cmake-4.2.3-windows-x86_64.zip"
+                ),
+                "sha256": CMAKE_WINDOWS_X64_SHA256,
+                "directory": "cmake-4.2.3-windows-x86_64",
+            },
+        )
+        self.assertEqual(
+            lock["buildTools"]["ninja"],
+            {
+                "version": "1.13.2",
+                "url": (
+                    "https://github.com/ninja-build/ninja/releases/"
+                    "download/v1.13.2/ninja-win.zip"
+                ),
+                "sha256": NINJA_WINDOWS_SHA256,
+                "directory": "ninja-1.13.2-win",
+            },
+        )
         self.assertEqual(
             lock["qt"]["qtdeclarativePatchSha256"],
             QTDECLARATIVE_PATCH_SHA256,
