@@ -6,17 +6,100 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+function Assert-SafeLeafName {
+    param(
+        [AllowEmptyString()]
+        [string]$Value,
+        [string]$Field
+    )
+
+    $invalid = [string]::IsNullOrWhiteSpace($Value) -or
+        [IO.Path]::IsPathRooted($Value) -or
+        $Value -in '.', '..' -or
+        $Value.IndexOf([IO.Path]::DirectorySeparatorChar) -ge 0 -or
+        $Value.IndexOf([IO.Path]::AltDirectorySeparatorChar) -ge 0 -or
+        $Value.IndexOfAny([IO.Path]::GetInvalidFileNameChars()) -ge 0 -or
+        $Value.EndsWith(' ') -or
+        $Value.EndsWith('.')
+    $baseName = $Value.Split('.')[0]
+    $reserved = $baseName -match (
+        '^(?i:CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])$'
+    )
+    if ($invalid -or $reserved) {
+        throw "$Field must be a safe leaf directory name, got '$Value'"
+    }
+    return $Value
+}
+
+function Get-StrictDescendantPath {
+    param(
+        [string]$Path,
+        [string]$Root,
+        [string]$Description
+    )
+
+    $fullRoot = [IO.Path]::GetFullPath($Root)
+    $fullPath = [IO.Path]::GetFullPath($Path)
+    $relative = [IO.Path]::GetRelativePath($fullRoot, $fullPath)
+    $outside = $relative -eq '.' -or
+        $relative -eq '..' -or
+        [IO.Path]::IsPathRooted($relative) -or
+        $relative.StartsWith(
+            "..$([IO.Path]::DirectorySeparatorChar)",
+            [StringComparison]::Ordinal
+        ) -or
+        $relative.StartsWith(
+            "..$([IO.Path]::AltDirectorySeparatorChar)",
+            [StringComparison]::Ordinal
+        )
+    if ($outside) {
+        throw (
+            "$Description must be a strict descendant of $fullRoot, " +
+            "got $fullPath"
+        )
+    }
+    return $fullPath
+}
+
 $lockPath = Join-Path $PSScriptRoot '..\toolchain-lock.json'
 $lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json
 $ToolchainRoot = [IO.Path]::GetFullPath($ToolchainRoot)
 $emsdkVersion = [string]$lock.emscripten.version
 $emsdkCommit = [string]$lock.emscripten.emsdkCommit
 $vcpkgCommit = [string]$lock.vcpkg.baseline
-$emsdk = Join-Path $ToolchainRoot "emsdk-$emsdkVersion"
-$vcpkg = Join-Path $ToolchainRoot (
-    "vcpkg-$($vcpkgCommit.Substring(0, 8))"
-)
-$downloads = Join-Path $ToolchainRoot 'downloads'
+if ($emsdkCommit -notmatch '^[0-9a-fA-F]{40}$') {
+    throw 'emscripten.emsdkCommit must be a 40-character hexadecimal commit'
+}
+if ($vcpkgCommit -notmatch '^[0-9a-fA-F]{40}$') {
+    throw 'vcpkg.baseline must be a 40-character hexadecimal commit'
+}
+
+$emsdkDirectory = Assert-SafeLeafName `
+    -Value "emsdk-$emsdkVersion" `
+    -Field 'emscripten directory'
+$vcpkgDirectory = Assert-SafeLeafName `
+    -Value "vcpkg-$($vcpkgCommit.Substring(0, 8))" `
+    -Field 'vcpkg directory'
+$cmakeDirectory = Assert-SafeLeafName `
+    -Value ([string]$lock.buildTools.cmake.directory) `
+    -Field 'buildTools.cmake.directory'
+$ninjaDirectory = Assert-SafeLeafName `
+    -Value ([string]$lock.buildTools.ninja.directory) `
+    -Field 'buildTools.ninja.directory'
+
+$emsdk = Get-StrictDescendantPath `
+    -Path (Join-Path $ToolchainRoot $emsdkDirectory) `
+    -Root $ToolchainRoot `
+    -Description 'emsdk canonical path'
+$vcpkg = Get-StrictDescendantPath `
+    -Path (Join-Path $ToolchainRoot $vcpkgDirectory) `
+    -Root $ToolchainRoot `
+    -Description 'vcpkg canonical path'
+$downloads = Get-StrictDescendantPath `
+    -Path (Join-Path $ToolchainRoot 'downloads') `
+    -Root $ToolchainRoot `
+    -Description 'Download directory'
 
 New-Item -ItemType Directory -Path $downloads -Force | Out-Null
 
@@ -26,11 +109,22 @@ function Assert-Commit {
         [string]$Expected
     )
 
-    $actualLines = @(& git -C $Repository rev-parse HEAD)
+    $repositoryCandidate = Get-StrictDescendantPath `
+        -Path $Repository `
+        -Root $ToolchainRoot `
+        -Description 'Repository path'
+    $repositoryPath = (
+        Resolve-Path -LiteralPath $repositoryCandidate
+    ).Path
+    $repositoryPath = Get-StrictDescendantPath `
+        -Path $repositoryPath `
+        -Root $ToolchainRoot `
+        -Description 'Resolved repository path'
+    $actualLines = @(& git -C $repositoryPath rev-parse HEAD)
     $exitCode = $LASTEXITCODE
     $actual = ($actualLines -join "`n").Trim()
     if ($exitCode -ne 0 -or $actual -ne $Expected) {
-        throw "Expected $Repository at $Expected, got $actual"
+        throw "Expected $repositoryPath at $Expected, got $actual"
     }
 }
 
@@ -42,12 +136,21 @@ function Install-Repository {
         [string]$DisplayName
     )
 
-    if (Test-Path -LiteralPath $Repository) {
-        Assert-Commit -Repository $Repository -Expected $ExpectedCommit
+    $repositoryPath = Get-StrictDescendantPath `
+        -Path $Repository `
+        -Root $ToolchainRoot `
+        -Description "$DisplayName canonical path"
+    if (Test-Path -LiteralPath $repositoryPath) {
+        Assert-Commit `
+            -Repository $repositoryPath `
+            -Expected $ExpectedCommit
         return
     }
 
-    $temporary = "$Repository.bootstrap-tmp"
+    $temporary = Get-StrictDescendantPath `
+        -Path "$repositoryPath.bootstrap-tmp" `
+        -Root $ToolchainRoot `
+        -Description "$DisplayName temporary path"
     if (Test-Path -LiteralPath $temporary) {
         Remove-Item -LiteralPath $temporary -Recurse -Force
     }
@@ -59,7 +162,14 @@ function Install-Repository {
             throw "Failed to clone $DisplayName (exit $exitCode)"
         }
 
-        & git -C $temporary checkout --detach $ExpectedCommit
+        $resolvedTemporary = (
+            Resolve-Path -LiteralPath $temporary
+        ).Path
+        $resolvedTemporary = Get-StrictDescendantPath `
+            -Path $resolvedTemporary `
+            -Root $ToolchainRoot `
+            -Description "$DisplayName resolved temporary path"
+        & git -C $resolvedTemporary checkout --detach $ExpectedCommit
         $exitCode = $LASTEXITCODE
         if ($exitCode -ne 0) {
             throw (
@@ -69,9 +179,11 @@ function Install-Repository {
         }
 
         Assert-Commit `
-            -Repository $temporary `
+            -Repository $resolvedTemporary `
             -Expected $ExpectedCommit
-        Move-Item -LiteralPath $temporary -Destination $Repository
+        Move-Item `
+            -LiteralPath $resolvedTemporary `
+            -Destination $repositoryPath
     }
     finally {
         if (Test-Path -LiteralPath $temporary) {
@@ -80,32 +192,21 @@ function Install-Repository {
     }
 }
 
-function Test-Descendant {
-    param(
-        [string]$Path,
-        [string]$Root
-    )
-
-    $fullPath = [IO.Path]::GetFullPath($Path)
-    $fullRoot = [IO.Path]::GetFullPath($Root).TrimEnd(
-        [IO.Path]::DirectorySeparatorChar,
-        [IO.Path]::AltDirectorySeparatorChar
-    )
-    $prefix = "$fullRoot$([IO.Path]::DirectorySeparatorChar)"
-    return $fullPath.StartsWith(
-        $prefix,
-        [StringComparison]::OrdinalIgnoreCase
-    )
-}
-
 function Resolve-ApplicationInDirectory {
     param(
         [string]$Name,
         [string]$Directory
     )
 
+    $commandRoot = Get-StrictDescendantPath `
+        -Path $Directory `
+        -Root $ToolchainRoot `
+        -Description "$Name command directory"
     foreach ($extension in '.exe', '.cmd', '.bat') {
-        $candidate = Join-Path $Directory "$Name$extension"
+        $candidate = Get-StrictDescendantPath `
+            -Path (Join-Path $commandRoot "$Name$extension") `
+            -Root $commandRoot `
+            -Description "$Name executable path"
         if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
             continue
         }
@@ -113,13 +214,18 @@ function Resolve-ApplicationInDirectory {
             -Name $candidate `
             -CommandType Application `
             -ErrorAction Stop
-        $source = (Resolve-Path -LiteralPath $command.Source).Path
-        if (-not (Test-Descendant -Path $source -Root $Directory)) {
-            throw "Resolved $Name outside $Directory`: $source"
-        }
+        $sourceCandidate = Get-StrictDescendantPath `
+            -Path $command.Source `
+            -Root $commandRoot `
+            -Description "$Name application"
+        $source = (Resolve-Path -LiteralPath $sourceCandidate).Path
+        $source = Get-StrictDescendantPath `
+            -Path $source `
+            -Root $commandRoot `
+            -Description "$Name resolved application"
         return $source
     }
-    throw "Expected $Name application beneath $Directory"
+    throw "Expected $Name application beneath $commandRoot"
 }
 
 function Assert-BuildTool {
@@ -129,11 +235,18 @@ function Assert-BuildTool {
         [string]$Version
     )
 
+    $toolDirectory = Get-StrictDescendantPath `
+        -Path $Directory `
+        -Root $ToolchainRoot `
+        -Description "$Name tool directory"
     $commandDirectory = if ($Name -eq 'cmake') {
-        Join-Path $Directory 'bin'
+        Get-StrictDescendantPath `
+            -Path (Join-Path $toolDirectory 'bin') `
+            -Root $toolDirectory `
+            -Description 'CMake command directory'
     }
     else {
-        $Directory
+        $toolDirectory
     }
     $command = Resolve-ApplicationInDirectory `
         -Name $Name `
@@ -164,14 +277,32 @@ function Expand-ArtifactArchive {
         [string]$StripPrefix
     )
 
+    $archiveCandidate = Get-StrictDescendantPath `
+        -Path $ArchivePath `
+        -Root $downloads `
+        -Description 'Artifact archive path'
+    $archivePathResolved = (
+        Resolve-Path -LiteralPath $archiveCandidate
+    ).Path
+    $archivePathResolved = Get-StrictDescendantPath `
+        -Path $archivePathResolved `
+        -Root $downloads `
+        -Description 'Resolved artifact archive path'
+    $destinationCandidate = Get-StrictDescendantPath `
+        -Path $Destination `
+        -Root $ToolchainRoot `
+        -Description 'Artifact extraction destination'
+    $destinationRoot = (
+        Resolve-Path -LiteralPath $destinationCandidate
+    ).Path
+    $destinationRoot = Get-StrictDescendantPath `
+        -Path $destinationRoot `
+        -Root $ToolchainRoot `
+        -Description 'Resolved artifact extraction destination'
+
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $archive = [IO.Compression.ZipFile]::OpenRead($ArchivePath)
-    $destinationRoot = [IO.Path]::GetFullPath($Destination)
-    $destinationPrefix = (
-        $destinationRoot.TrimEnd(
-            [IO.Path]::DirectorySeparatorChar,
-            [IO.Path]::AltDirectorySeparatorChar
-        ) + [IO.Path]::DirectorySeparatorChar
+    $archive = [IO.Compression.ZipFile]::OpenRead(
+        $archivePathResolved
     )
     $normalizedPrefix = $StripPrefix.Trim('/').Replace('\', '/')
     try {
@@ -198,15 +329,10 @@ function Expand-ArtifactArchive {
                 '/',
                 [IO.Path]::DirectorySeparatorChar
             )
-            $target = [IO.Path]::GetFullPath(
-                (Join-Path $destinationRoot $nativeRelative)
-            )
-            if (-not $target.StartsWith(
-                $destinationPrefix,
-                [StringComparison]::OrdinalIgnoreCase
-            )) {
-                throw "Archive entry escapes destination: $relative"
-            }
+            $target = Get-StrictDescendantPath `
+                -Path (Join-Path $destinationRoot $nativeRelative) `
+                -Root $destinationRoot `
+                -Description "Archive entry '$relative'"
 
             if (-not $entry.Name) {
                 New-Item `
@@ -216,10 +342,16 @@ function Expand-ArtifactArchive {
                 continue
             }
             $parent = Split-Path -Parent $target
-            New-Item `
-                -ItemType Directory `
-                -Path $parent `
-                -Force | Out-Null
+            if ($parent -ne $destinationRoot) {
+                $parent = Get-StrictDescendantPath `
+                    -Path $parent `
+                    -Root $destinationRoot `
+                    -Description "Archive entry parent '$relative'"
+                New-Item `
+                    -ItemType Directory `
+                    -Path $parent `
+                    -Force | Out-Null
+            }
             [IO.Compression.ZipFileExtensions]::ExtractToFile(
                 $entry,
                 $target,
@@ -236,11 +368,17 @@ function Install-BuildTool {
     param(
         [string]$Name,
         [PSCustomObject]$Artifact,
+        [string]$DirectoryName,
         [switch]$ArchiveHasTopLevelDirectory
     )
 
-    $directoryName = [string]$Artifact.directory
-    $canonical = Join-Path $ToolchainRoot $directoryName
+    $directoryName = Assert-SafeLeafName `
+        -Value $DirectoryName `
+        -Field "buildTools.$Name.directory"
+    $canonical = Get-StrictDescendantPath `
+        -Path (Join-Path $ToolchainRoot $directoryName) `
+        -Root $ToolchainRoot `
+        -Description "$Name canonical path"
     $version = [string]$Artifact.version
     if (Test-Path -LiteralPath $canonical) {
         Assert-BuildTool `
@@ -250,8 +388,14 @@ function Install-BuildTool {
         return $canonical
     }
 
-    $download = Join-Path $downloads "$directoryName.zip.download-tmp"
-    $temporary = "$canonical.bootstrap-tmp"
+    $download = Get-StrictDescendantPath `
+        -Path (Join-Path $downloads "$directoryName.zip.download-tmp") `
+        -Root $downloads `
+        -Description "$Name download path"
+    $temporary = Get-StrictDescendantPath `
+        -Path "$canonical.bootstrap-tmp" `
+        -Root $ToolchainRoot `
+        -Description "$Name temporary path"
     foreach ($ownedPath in $download, $temporary) {
         if (Test-Path -LiteralPath $ownedPath) {
             Remove-Item -LiteralPath $ownedPath -Recurse -Force
@@ -318,16 +462,25 @@ Install-Repository `
 $cmake = Install-BuildTool `
     -Name 'cmake' `
     -Artifact $lock.buildTools.cmake `
+    -DirectoryName $cmakeDirectory `
     -ArchiveHasTopLevelDirectory
 $ninja = Install-BuildTool `
     -Name 'ninja' `
-    -Artifact $lock.buildTools.ninja
+    -Artifact $lock.buildTools.ninja `
+    -DirectoryName $ninjaDirectory
 
-& (Join-Path $emsdk 'emsdk.bat') install $emsdkVersion
+$emsdkCommand = Resolve-ApplicationInDirectory `
+    -Name 'emsdk' `
+    -Directory $emsdk
+$vcpkgBootstrap = Resolve-ApplicationInDirectory `
+    -Name 'bootstrap-vcpkg' `
+    -Directory $vcpkg
+
+& $emsdkCommand install $emsdkVersion
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to install Emscripten $emsdkVersion"
 }
-& (Join-Path $emsdk 'emsdk.bat') activate $emsdkVersion
+& $emsdkCommand activate $emsdkVersion
 if ($LASTEXITCODE -ne 0) {
     throw (
         "Failed to activate Emscripten $emsdkVersion " +
@@ -335,7 +488,7 @@ if ($LASTEXITCODE -ne 0) {
     )
 }
 
-& (Join-Path $vcpkg 'bootstrap-vcpkg.bat') -disableMetrics
+& $vcpkgBootstrap -disableMetrics
 if ($LASTEXITCODE -ne 0) {
     throw 'Failed to bootstrap pinned vcpkg'
 }

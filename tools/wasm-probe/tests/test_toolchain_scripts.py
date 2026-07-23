@@ -94,52 +94,21 @@ class ToolchainScriptTest(unittest.TestCase):
         fixture: dict[str, object],
         child: Path,
         child_arguments: list[str] | None = None,
+        wrapper: Path = WRAPPER,
     ) -> subprocess.CompletedProcess[str]:
         environment = dict(fixture["environment"])
-        environment.update(
-            {
-                "TOOLCHAIN_DOUBLE_WRAPPER": str(WRAPPER),
-                "TOOLCHAIN_DOUBLE_TOOLCHAIN_ROOT": str(fixture["root"]),
-                "TOOLCHAIN_DOUBLE_BINARY_CACHE": str(fixture["cache"]),
-                "TOOLCHAIN_DOUBLE_CHILD": str(child),
-                "TOOLCHAIN_DOUBLE_FORWARD_ARGS": json.dumps(
-                    child_arguments or []
-                ),
-            }
-        )
-        command = "\n".join(
-            (
-                "$ErrorActionPreference = 'Stop'",
-                (
-                    "[string[]]$forward = ConvertFrom-Json "
-                    "-InputObject $env:TOOLCHAIN_DOUBLE_FORWARD_ARGS "
-                    "-NoEnumerate"
-                ),
-                (
-                    "& $env:TOOLCHAIN_DOUBLE_WRAPPER "
-                    "-ToolchainRoot $env:TOOLCHAIN_DOUBLE_TOOLCHAIN_ROOT "
-                    "-BinaryCache $env:TOOLCHAIN_DOUBLE_BINARY_CACHE "
-                    "-Executable $env:TOOLCHAIN_DOUBLE_CHILD "
-                    "-Arguments $forward"
-                ),
-                "exit $LASTEXITCODE",
-            )
-        )
-        return subprocess.run(
+        return self._run(
+            wrapper,
             [
-                self.pwsh,
-                "-NoLogo",
-                "-NoProfile",
-                "-NonInteractive",
-                "-Command",
-                command,
+                "-ToolchainRoot",
+                str(fixture["root"]),
+                "-BinaryCache",
+                str(fixture["cache"]),
+                "--",
+                str(child),
+                *(child_arguments or []),
             ],
-            cwd=REPO,
-            env=environment,
-            capture_output=True,
-            text=True,
-            timeout=20,
-            check=False,
+            environment,
         )
 
     @staticmethod
@@ -359,6 +328,11 @@ class ToolchainScriptTest(unittest.TestCase):
                 "spaced value",
                 "",
                 "--",
+                "-Verbose",
+                "-ToolchainRoot",
+                "child toolchain root",
+                "-BinaryCache",
+                "child binary cache",
                 "--option-like",
                 "-DNAME=a b",
             ]
@@ -378,6 +352,36 @@ class ToolchainScriptTest(unittest.TestCase):
                     "TOOLCHAIN_DOUBLE_CHILD_EXIT": "37",
                 }
             )
+            invalid_invocations = (
+                (
+                    ["-Unknown", "value", "--", str(child)],
+                    "Unknown wrapper option",
+                ),
+                (
+                    ["-ToolchainRoot"],
+                    "Missing value for wrapper option",
+                ),
+                (
+                    ["-ToolchainRoot", str(root)],
+                    "Missing mandatory -- wrapper delimiter",
+                ),
+                (
+                    ["--"],
+                    "Missing executable after -- wrapper delimiter",
+                ),
+            )
+            for invocation, expected_error in invalid_invocations:
+                with self.subTest(wrapper_error=expected_error):
+                    invalid = self._run(
+                        WRAPPER,
+                        invocation,
+                        environment,
+                    )
+                    combined = invalid.stdout + invalid.stderr
+                    self.assertNotEqual(invalid.returncode, 0, combined)
+                    self.assertIn(expected_error, combined)
+            self.assertEqual(self._events(fixture["events"]), [])
+
             parent_before = os.environ.copy()
             fixture["environment"] = environment
             result = self._run_wrapper(fixture, child, arguments)
@@ -475,6 +479,124 @@ class ToolchainScriptTest(unittest.TestCase):
                 ),
                 captured_environment["PATH"],
             )
+
+    def test_lock_directories_cannot_escape_toolchain_root(self) -> None:
+        def copy_probe(
+            destination: Path,
+            artifact: str | None = None,
+            directory: str | None = None,
+        ) -> tuple[Path, Path]:
+            copied_probe = destination / "copied probe"
+            copied_scripts = copied_probe / "scripts"
+            copied_scripts.mkdir(parents=True)
+            bootstrap = copied_scripts / BOOTSTRAP.name
+            wrapper = copied_scripts / WRAPPER.name
+            shutil.copy2(BOOTSTRAP, bootstrap)
+            shutil.copy2(WRAPPER, wrapper)
+            lock = json.loads(
+                (PROBE / "toolchain-lock.json").read_text("utf-8")
+            )
+            if artifact is not None:
+                lock["buildTools"][artifact]["directory"] = directory
+            (copied_probe / "toolchain-lock.json").write_text(
+                json.dumps(lock),
+                encoding="utf-8",
+            )
+            return bootstrap, wrapper
+
+        with tempfile.TemporaryDirectory(
+            prefix="rg valid copied lock "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = fixture["root"]
+            sandbox = fixture["sandbox"]
+            assert isinstance(root, Path)
+            assert isinstance(sandbox, Path)
+            self._seed_complete(root)
+            _, copied_wrapper = copy_probe(sandbox / "valid leaf")
+            child = sandbox / "valid capture child.cmd"
+            write_launcher(child, "capture")
+            valid = self._run_wrapper(
+                fixture,
+                child,
+                wrapper=copied_wrapper,
+            )
+            self.assertEqual(valid.returncode, 0, valid.stdout + valid.stderr)
+
+        malicious_cases = (
+            ("cmake", "rooted"),
+            ("ninja", "dotdot"),
+        )
+        for artifact, attack in malicious_cases:
+            for entrypoint in ("bootstrap", "wrapper"):
+                with self.subTest(
+                    artifact=artifact,
+                    attack=attack,
+                    entrypoint=entrypoint,
+                ):
+                    with tempfile.TemporaryDirectory(
+                        prefix="rg malicious lock "
+                    ) as temporary:
+                        fixture = self._fixture(temporary)
+                        root = fixture["root"]
+                        sandbox = fixture["sandbox"]
+                        assert isinstance(root, Path)
+                        assert isinstance(sandbox, Path)
+                        self._seed_complete(root)
+                        outside = sandbox / "outside sentinel"
+                        outside.mkdir()
+                        outside_file = outside / "keep.bin"
+                        outside_file.write_bytes(b"outside sentinel bytes")
+                        similar = (
+                            root
+                            / (
+                                "cmake-4.2.3-windows-x86_64"
+                                ".bootstrap-tmp-user"
+                            )
+                        )
+                        similar.mkdir()
+                        similar_file = similar / "keep.bin"
+                        similar_file.write_bytes(b"similar sentinel bytes")
+                        bad_directory = (
+                            str(outside.resolve())
+                            if attack == "rooted"
+                            else ".."
+                        )
+                        copied_bootstrap, copied_wrapper = copy_probe(
+                            sandbox / f"{artifact} {attack}",
+                            artifact,
+                            bad_directory,
+                        )
+                        child = sandbox / "must not run.cmd"
+                        write_launcher(child, "capture")
+                        if entrypoint == "bootstrap":
+                            result = self._run(
+                                copied_bootstrap,
+                                ["-ToolchainRoot", str(root)],
+                                fixture["environment"],
+                            )
+                        else:
+                            result = self._run_wrapper(
+                                fixture,
+                                child,
+                                wrapper=copied_wrapper,
+                            )
+                        combined = result.stdout + result.stderr
+                        self.assertNotEqual(result.returncode, 0, combined)
+                        self.assertIn("safe leaf", combined)
+                        self.assertEqual(
+                            outside_file.read_bytes(),
+                            b"outside sentinel bytes",
+                        )
+                        self.assertEqual(
+                            similar_file.read_bytes(),
+                            b"similar sentinel bytes",
+                        )
+                        self.assertFalse((root / "downloads").exists())
+                        self.assertEqual(
+                            self._events(fixture["events"]),
+                            [],
+                        )
 
 
 if __name__ == "__main__":
