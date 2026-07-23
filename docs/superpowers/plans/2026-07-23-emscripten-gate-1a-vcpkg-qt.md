@@ -92,7 +92,9 @@ tools/wasm-probe/src/ProbeState.cpp
 tools/wasm-probe/src/main.cpp
 tools/wasm-probe/qml/Main.qml
 tools/wasm-probe/qml/pulse.frag
+tools/wasm-probe/tests/_toolchain_process_double.py
 tools/wasm-probe/tests/test_toolchain_contract.py
+tools/wasm-probe/tests/test_toolchain_scripts.py
 tools/wasm-probe/tests/test_probe_source_contract.py
 tools/wasm-probe/tests/verify_build.py
 docs/superpowers/evidence/emscripten-gate-1a.json
@@ -103,6 +105,9 @@ Generated, ignored directories:
 ```text
 .toolchains/emsdk-4.0.7
 .toolchains/vcpkg-a0400024
+.toolchains/cmake-4.2.3-windows-x86_64
+.toolchains/ninja-1.13.2-win
+.toolchains/downloads
 .wasm-vcpkg/buildtrees
 .wasm-vcpkg/downloads
 .wasm-vcpkg/packages
@@ -184,6 +189,12 @@ QTBASE_WASM_PATCH_SHA256 = (
 QTDECLARATIVE_PATCH_SHA256 = (
     "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
 )
+CMAKE_WINDOWS_X64_SHA256 = (
+    "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c"
+)
+NINJA_WINDOWS_SHA256 = (
+    "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65"
+)
 
 
 class ToolchainContractTest(unittest.TestCase):
@@ -201,8 +212,30 @@ class ToolchainContractTest(unittest.TestCase):
             lock["qt"]["qtbaseWasmPatchSha256"],
             QTBASE_WASM_PATCH_SHA256,
         )
-        self.assertEqual(lock["buildTools"]["cmake"], "4.2.3")
-        self.assertEqual(lock["buildTools"]["ninja"], "1.13.2")
+        self.assertEqual(
+            lock["buildTools"]["cmake"],
+            {
+                "version": "4.2.3",
+                "url": (
+                    "https://cmake.org/files/v4.2/"
+                    "cmake-4.2.3-windows-x86_64.zip"
+                ),
+                "sha256": CMAKE_WINDOWS_X64_SHA256,
+                "directory": "cmake-4.2.3-windows-x86_64",
+            },
+        )
+        self.assertEqual(
+            lock["buildTools"]["ninja"],
+            {
+                "version": "1.13.2",
+                "url": (
+                    "https://github.com/ninja-build/ninja/releases/"
+                    "download/v1.13.2/ninja-win.zip"
+                ),
+                "sha256": NINJA_WINDOWS_SHA256,
+                "directory": "ninja-1.13.2-win",
+            },
+        )
         self.assertEqual(
             lock["qt"]["qtdeclarativePatchSha256"],
             QTDECLARATIVE_PATCH_SHA256,
@@ -384,8 +417,18 @@ Create `tools/wasm-probe/toolchain-lock.json`:
     "emscriptenWrapperSourceCommit": "5b698638c97b4610044a254347d571f823e56557"
   },
   "buildTools": {
-    "cmake": "4.2.3",
-    "ninja": "1.13.2"
+    "cmake": {
+      "version": "4.2.3",
+      "url": "https://cmake.org/files/v4.2/cmake-4.2.3-windows-x86_64.zip",
+      "sha256": "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c",
+      "directory": "cmake-4.2.3-windows-x86_64"
+    },
+    "ninja": {
+      "version": "1.13.2",
+      "url": "https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip",
+      "sha256": "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65",
+      "directory": "ninja-1.13.2-win"
+    }
   }
 }
 ```
@@ -728,17 +771,22 @@ git commit -m "build: add pinned Wasm Qt toolchain"
 
 **Files:**
 
+- Modify: `tools/wasm-probe/toolchain-lock.json`
 - Create: `tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1`
 - Create: `tools/wasm-probe/scripts/Invoke-WithToolchains.ps1`
 - Modify: `tools/wasm-probe/tests/test_toolchain_contract.py`
+- Create: `tools/wasm-probe/tests/_toolchain_process_double.py`
+- Create: `tools/wasm-probe/tests/test_toolchain_scripts.py`
 
 **Interfaces:**
 
 - Consumes: the pins in `toolchain-lock.json`.
 - Produces: `.toolchains/emsdk-4.0.7`,
-  `.toolchains/vcpkg-a0400024`, and a command wrapper that exports
-  `EMSCRIPTEN_ROOT`, `EMSCRIPTEN_VERSION`, and `VCPKG_ROOT` without changing the
-  user's globally active emsdk.
+  `.toolchains/vcpkg-a0400024`,
+  `.toolchains/cmake-4.2.3-windows-x86_64`,
+  `.toolchains/ninja-1.13.2-win`, and a command wrapper that exports
+  `EMSCRIPTEN_ROOT`, `EMSCRIPTEN_VERSION`, and `VCPKG_ROOT` without changing
+  the user's globally active emsdk.
 
 - [ ] **Step 1: Extend the failing contract test for bootstrap scripts**
 
@@ -960,8 +1008,8 @@ Run:
 pwsh -File tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1
 ```
 
-Expected: the two exact paths are printed and both installs exit zero. A long
-download/install is normal.
+Expected: the exact emsdk, vcpkg, CMake, and Ninja paths are printed and all
+installs exit zero. A long download/install is normal.
 
 - [ ] **Step 6: Verify exact versions through the wrapper**
 
@@ -988,16 +1036,151 @@ Expected:
 - CMake reports exactly `4.2.3`;
 - Ninja reports exactly `1.13.2`.
 
-- [ ] **Step 7: Commit the bootstrap scripts**
+- [ ] **Step 7: Apply the mandatory adversarial hardening**
+
+The initial scripts above are a deliberately small RED/GREEN skeleton. Do not
+accept or commit them until all of the following review findings are closed.
+
+Extend `toolchain-lock.json` with the exact CMake and Ninja artifact objects
+shown in Task 1. `Bootstrap-Toolchains.ps1` must read the version, URL,
+SHA-256, and destination directory from that lock rather than relying on
+mutable host tools.
+
+Provision build tools beneath the private toolchain root:
+
+```text
+.toolchains/
+  cmake-4.2.3-windows-x86_64/bin/cmake.exe
+  ninja-1.13.2-win/ninja.exe
+```
+
+Use these exact official archives:
+
+```text
+https://cmake.org/files/v4.2/cmake-4.2.3-windows-x86_64.zip
+SHA-256 eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c
+
+https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip
+SHA-256 07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65
+```
+
+For each archive:
+
+1. Download to a script-owned `*.download-tmp` file under
+   `.toolchains/downloads`.
+2. Verify SHA-256 before renaming or extracting.
+3. Extract into an exact script-owned sibling ending in `.bootstrap-tmp`.
+4. Verify the expected executable exists.
+5. Atomically rename the completed directory to its canonical name.
+6. On a retry, remove only the known temporary file/directory. Never replace
+   an existing canonical installation silently; validate it and fail closed
+   if its version or layout is wrong.
+
+CMake's ZIP already contains the
+`cmake-4.2.3-windows-x86_64` top-level directory. Ninja's ZIP is flat and
+contains `ninja.exe`, so extract it into `ninja-1.13.2-win`.
+
+Replace both direct repository clones with one shared atomic-clone helper:
+
+1. If the canonical repository exists, check its exact `HEAD` and do not
+   mutate it.
+2. Otherwise delete only the reserved sibling
+   `<canonical>.bootstrap-tmp`, clone into that sibling, detach at the pinned
+   commit, and verify `HEAD`.
+3. Rename the verified sibling to the canonical directory.
+4. Use `try`/`finally` to remove the reserved sibling after ordinary failure.
+   A stale sibling left by process termination must be recoverable on the next
+   invocation.
+5. Never delete similarly named user paths or repair a drifted canonical
+   checkout.
+
+After dot-sourcing `emsdk_env.ps1`, prepend all four pinned command
+directories to `PATH`: vcpkg, CMake `bin`, Ninja, and Emscripten. Resolve
+`em++`, `vcpkg`, `cmake`, and `ninja` as application commands, and reject any
+resolved source that is not a descendant of the expected private directory.
+Run the version probes through those resolved commands. Tests may use `.cmd`
+or `.bat` application shims, while production installs resolve to the pinned
+`.exe`/`.bat` files.
+
+Give `Invoke-WithToolchains.ps1` an optional `-BinaryCache` parameter whose
+default remains `.wasm-vcpkg/bincache`. Hermetic tests pass a temporary cache;
+using a custom `-ToolchainRoot` must not write test state into the repository.
+Keep executable/remaining-argument forwarding transparent and return the
+child's exact exit code.
+
+- [ ] **Step 8: Add hermetic behavioral tests**
+
+Create `tools/wasm-probe/tests/_toolchain_process_double.py` and
+`tools/wasm-probe/tests/test_toolchain_scripts.py`. The tests are Windows-only,
+use absolute `pwsh.exe`, run with `-NoLogo -NoProfile -NonInteractive`, impose
+a 20-second timeout, and never access the network or global toolchain
+directories.
+
+The process double must:
+
+- be reached through generated `.cmd`/`.bat` launchers;
+- log tool name, exact argument array, working directory, and source to an
+  `events.jsonl` file;
+- model Git clone/checkout/`rev-parse HEAD` using a `.fixture-head` file;
+- recognize only the two expected repository URLs and destinations inside the
+  temporary sandbox;
+- support a fail-once clone mode with a distinctive exit code;
+- create the tiny fake emsdk/vcpkg layouts needed by the real scripts; and
+- fail every unknown command.
+
+Every test uses a `TemporaryDirectory` whose `ToolchainRoot` contains spaces.
+Set invalid loopback HTTP/HTTPS proxies as a network backstop.
+
+Implement these three behavioral cases:
+
+1. `test_wrong_heads_fail_closed`: for both emsdk and vcpkg, verify bootstrap
+   and wrapper entry points reject a wrong canonical `HEAD`, report expected
+   and actual SHAs, do not mutate the repository, and run no later
+   activation/bootstrap/version/child process.
+2. `test_bootstrap_recovers_owned_partial_clone`: seed stale exact
+   `.bootstrap-tmp` siblings and an unrelated similarly named sentinel. Make
+   the first fake clone fail, then rerun. Verify clones target only the
+   reserved siblings, canonical directories appear only after verified
+   checkout, the second run succeeds, temporary siblings disappear, the
+   unrelated sentinel survives, and the only SDK commands are
+   `install 4.0.7`, `activate 4.0.7`, and vcpkg `-disableMetrics`.
+3. `test_wrapper_is_hermetic_transparent_and_propagates_exit`: poison caller
+   variables and place version-compatible global shims first on the inherited
+   `PATH`. Supply local build-tool shims beneath the private root. Invoke an
+   absolute capture child with ordinary, spaced, empty, `--`, option-like, and
+   `-DNAME=a b` arguments; make it exit `37`. Assert exact argument
+   preservation, exit `37`, local exported paths/cache, local command
+   provenance for all four tools, no poison-shim events, and an unchanged
+   parent environment.
+
+Remove the shallow
+`test_bootstrap_is_local_and_fails_on_pin_drift` source-substring test once
+these behavioral tests are in place. Keep the static lock assertions for every
+repository commit, artifact URL, version, and SHA-256.
+
+- [ ] **Step 9: Re-run bootstrap, behavioral verification, and commit**
 
 Run:
 
 ```powershell
+python -m unittest tools/wasm-probe/tests/test_toolchain_contract.py -v
+pwsh -File tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1
+python -m unittest tools/wasm-probe/tests/test_toolchain_scripts.py -v
+
+pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
+    cmake --version
+pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 `
+    ninja --version
+
 git diff --check
-git add tools/wasm-probe/scripts `
-    tools/wasm-probe/tests/test_toolchain_contract.py
-git commit -m "build: bootstrap pinned Wasm tools"
+git add tools/wasm-probe/toolchain-lock.json `
+    tools/wasm-probe/scripts tools/wasm-probe/tests
+git commit -m "build: harden pinned Wasm tools"
 ```
+
+Expected: all static and behavioral tests pass; CMake and Ninja resolve beneath
+`.toolchains` and report `4.2.3`/`1.13.2`; no poison/global tool is invoked;
+the bootstrap rerun is successful; and the tracked diff is clean.
 
 ---
 
