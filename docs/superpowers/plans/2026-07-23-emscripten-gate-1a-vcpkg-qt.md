@@ -765,6 +765,10 @@ Add this test method:
         self.assertIn("EMSCRIPTEN_ROOT", invoke)
         self.assertIn("EMSCRIPTEN_VERSION", invoke)
         self.assertIn("VCPKG_ROOT", invoke)
+        self.assertIn(
+            '$env:Path = "$vcpkg$([IO.Path]::PathSeparator)$env:Path"',
+            invoke,
+        )
         self.assertIn("4.0.7", invoke)
 ```
 
@@ -909,6 +913,7 @@ $env:EMSDK = $emsdk
 $env:EMSCRIPTEN_ROOT = Join-Path $emsdk 'upstream\emscripten'
 $env:EMSCRIPTEN_VERSION = '4.0.7'
 $env:VCPKG_ROOT = $vcpkg
+$env:Path = "$vcpkg$([IO.Path]::PathSeparator)$env:Path"
 $env:VCPKG_DISABLE_METRICS = '1'
 $env:VCPKG_DEFAULT_BINARY_CACHE = (
     Join-Path $PSScriptRoot '..\..\..\.wasm-vcpkg\bincache'
