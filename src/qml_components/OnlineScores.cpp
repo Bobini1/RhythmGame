@@ -4,18 +4,59 @@
 #include "support/ConvertTachiClearType.h"
 
 #include <QCoreApplication>
-#include <QIfPendingReply>
-#include <QJsonDocument>
-#include <QNetworkReply>
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QNetworkReply>
+#include <QPointer>
+#include <QQmlEngine>
+#include <QThread>
 #include <magic_enum/magic_enum.hpp>
 #include <spdlog/spdlog.h>
+
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 namespace gameplay_logic {
 class BmsScore;
 }
 namespace qml_components {
+
+namespace {
+
+class BmsScoreDelivery
+{
+  public:
+    explicit BmsScoreDelivery(std::unique_ptr<gameplay_logic::BmsScore> score)
+      : score(std::move(score))
+    {
+        this->score->moveToThread(nullptr);
+        if (this->score->thread() != nullptr) {
+            throw std::runtime_error(
+              "Failed to detach parsed score from its worker thread");
+        }
+    }
+
+    [[nodiscard]] auto moveToThread(QThread* thread) -> bool
+    {
+        score->moveToThread(thread);
+        return score->thread() == thread;
+    }
+
+    [[nodiscard]] auto get() const -> gameplay_logic::BmsScore*
+    {
+        return score.get();
+    }
+
+    void release() { (void)score.release(); }
+
+  private:
+    std::unique_ptr<gameplay_logic::BmsScore> score;
+};
+
+} // namespace
 
 TachiResolveHandle::TachiResolveHandle(QObject* parent)
   : QObject(parent)
@@ -25,6 +66,26 @@ OnlineScores::OnlineScores(QNetworkAccessManager* manager, QObject* parent)
   : QObject(parent)
   , networkManager(manager)
 {
+}
+OnlineScores::~OnlineScores()
+{
+    stopping = true;
+    const auto replyChildren =
+      findChildren<support::PendingReply*>(Qt::FindDirectChildrenOnly);
+    auto replies = QList<QPointer<support::PendingReply>>{};
+    replies.reserve(replyChildren.size());
+    for (auto* reply : replyChildren)
+        replies.append(reply);
+
+    for (const auto& reply : replies) {
+        if (!reply)
+            continue;
+        reply->cancel();
+        if (reply)
+            reply->setParent(this);
+    }
+    threadPool.clear();
+    threadPool.waitForDone();
 }
 auto
 OnlineScores::resolveTachiChartId(const QString& md5) const
@@ -122,94 +183,164 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 }
 
 auto
-OnlineScores::getScoreByGuid(const QString& webApiUrl,
-                             const QString& guid) const
-  -> QIfPendingReply<gameplay_logic::BmsScore*>
+OnlineScores::getScoreByGuid(const QString& webApiUrl, const QString& guid)
+  -> support::PendingReply*
 {
-    auto outer = QIfPendingReply<gameplay_logic::BmsScore*>{};
+    auto source =
+      support::PendingReplySource<gameplay_logic::BmsScore*>{ this };
+    auto* operation = source.reply();
+    if (stopping) {
+        (void)source.fail();
+        return operation;
+    }
 
     auto baseUrl = QUrl(webApiUrl);
     auto endpoint = baseUrl.resolved(QUrl(QString("scores/%1").arg(guid)));
     auto req = QNetworkRequest(endpoint);
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
-    QNetworkReply* reply = networkManager->get(req);
-    connect(reply, &QNetworkReply::finished, [this, reply, outer]() mutable {
-        if (reply->error() != QNetworkReply::NoError) {
-            spdlog::error("getScoreByGuid failed: {} - {}",
-                          magic_enum::enum_name(reply->error()),
-                          reply->errorString().toStdString());
-            outer.setFailed();
-            reply->deleteLater();
-            return;
-        }
-        auto data = reply->readAll();
-        reply->deleteLater();
+    QNetworkReply* networkReply = networkManager->get(req);
+    source.setCancellationHandler(
+      [reply = QPointer<QNetworkReply>(networkReply)] {
+          if (reply)
+              reply->abort();
+      });
+    connect(
+      networkReply,
+      &QNetworkReply::finished,
+      this,
+      [this, networkReply, source]() mutable {
+          if (networkReply->error() == QNetworkReply::OperationCanceledError &&
+              source.stopToken().stop_requested()) {
+              networkReply->deleteLater();
+              return;
+          }
+          if (networkReply->error() != QNetworkReply::NoError) {
+              spdlog::error("getScoreByGuid failed: {} - {}",
+                            magic_enum::enum_name(networkReply->error()),
+                            networkReply->errorString().toStdString());
+              (void)source.fail();
+              networkReply->deleteLater();
+              return;
+          }
+          auto data = networkReply->readAll();
+          networkReply->deleteLater();
+          source.setCancellationHandler({});
 
-        // Parse and construct BmsScore objects on the thread pool to
-        // avoid blocking the main thread.
-        threadPool.start([outer, data]() mutable {
-            try {
-                auto doc = QJsonDocument::fromJson(data);
-                auto* mainThread = QCoreApplication::instance()->thread();
-                if (!doc.isObject()) {
+          // Parse and construct BmsScore objects on the thread pool to
+          // avoid blocking the main thread.
+          threadPool.start([source, data = std::move(data)]() mutable {
+              const auto stopToken = source.stopToken();
+              if (stopToken.stop_requested())
+                  return;
+
+              try {
+                  auto doc = QJsonDocument::fromJson(data);
+                  if (!doc.isObject()) {
+                      auto* application = QCoreApplication::instance();
+                      (void)(application && QMetaObject::invokeMethod(
+                                              application,
+                                              [source] { (void)source.fail(); },
+                                              Qt::QueuedConnection));
+                      return;
+                  }
+                  if (stopToken.stop_requested())
+                      return;
+
+                  auto scoreObj = doc.object();
+                  auto res = gameplay_logic::BmsResult::fromJson(scoreObj);
+                  auto replayDataList =
+                    gameplay_logic::BmsReplayData::fromJsonArray(
+                      scoreObj["replayData"].toArray());
+                  auto replayData =
+                    std::make_unique<gameplay_logic::BmsReplayData>(
+                      std::move(replayDataList), res->getGuid());
+                  auto gaugeHistoryList =
+                    gameplay_logic::BmsGaugeHistory::fromJsonArray(
+                      scoreObj["gaugeHistory"].toArray());
+                  auto gaugeHistory =
+                    std::make_unique<gameplay_logic::BmsGaugeHistory>(
+                      std::move(gaugeHistoryList), res->getGuid());
+                  if (stopToken.stop_requested())
+                      return;
+
+                  auto score = std::make_unique<gameplay_logic::BmsScore>(
+                    std::move(res),
+                    std::move(replayData),
+                    std::move(gaugeHistory));
+                  score->setSubmissionState(
+                    gameplay_logic::BmsScore::SubmissionState::Submitted);
+                  auto delivery =
+                    std::make_shared<BmsScoreDelivery>(std::move(score));
+                  auto* application = QCoreApplication::instance();
+                  const auto queued =
+                    application &&
                     QMetaObject::invokeMethod(
-                      QCoreApplication::instance(),
-                      [outer]() mutable { outer.setFailed(); },
-                      Qt::QueuedConnection);
-                }
-                auto scoreObj = doc.object();
-                auto res = gameplay_logic::BmsResult::fromJson(scoreObj);
-                auto replayDataList =
-                  gameplay_logic::BmsReplayData::fromJsonArray(
-                    scoreObj["replayData"].toArray());
-                auto replayData =
-                  std::make_unique<gameplay_logic::BmsReplayData>(
-                    std::move(replayDataList), res->getGuid());
-                auto gaugeHistoryList =
-                  gameplay_logic::BmsGaugeHistory::fromJsonArray(
-                    scoreObj["gaugeHistory"].toArray());
-                auto gaugeHistory =
-                  std::make_unique<gameplay_logic::BmsGaugeHistory>(
-                    std::move(gaugeHistoryList), res->getGuid());
-                auto* score =
-                  new gameplay_logic::BmsScore(std::move(res),
-                                               std::move(replayData),
-                                               std::move(gaugeHistory));
-                score->setSubmissionState(
-                  gameplay_logic::BmsScore::SubmissionState::Submitted);
-                score->moveToThread(mainThread);
-                QQmlEngine::setObjectOwnership(score,
-                                               QQmlEngine::JavaScriptOwnership);
-                QMetaObject::invokeMethod(
-                  QCoreApplication::instance(),
-                  [outer, score]() mutable { outer.setSuccess(score); },
-                  Qt::QueuedConnection);
-            } catch (const std::exception& e) {
-                spdlog::error("Error parsing getScoresForMd5 response: {}",
-                              e.what());
-                QMetaObject::invokeMethod(
-                  QCoreApplication::instance(),
-                  [outer]() mutable { outer.setFailed(); },
-                  Qt::QueuedConnection);
-            }
-        });
-    });
-    return outer;
-}
-QIfPendingReply<QVariant>
-OnlineScores::getRankingEntryAtTimestamp(
-  QString webApiUrl,
-  qint64 userId,
-  QString md5,
-  qint64 timestamp,
-  OnlineRankingModel::Provider provider) const
-{
-    QIfPendingReply<QVariant> pendingReply;
+                      application,
+                      [source, delivery]() mutable {
+                          auto* currentApplication =
+                            QCoreApplication::instance();
+                          if (!currentApplication ||
+                              !delivery->moveToThread(
+                                currentApplication->thread())) {
+                              if (source.fail()) {
+                                  spdlog::error(
+                                    "Error parsing getScoreByGuid response: "
+                                    "failed to transfer parsed score");
+                              }
+                              return;
+                          }
 
-    if (md5.isEmpty()) {
-        pendingReply.setFailed();
-        return pendingReply;
+                          auto* score = delivery->get();
+                          QQmlEngine::setObjectOwnership(
+                            score, QQmlEngine::JavaScriptOwnership);
+                          if (source.succeed(score))
+                              delivery->release();
+                      },
+                      Qt::QueuedConnection);
+                  if (!queued && !stopToken.stop_requested()) {
+                      spdlog::error("Error parsing getScoreByGuid response: "
+                                    "failed to queue parsed score");
+                  }
+              } catch (const std::exception& e) {
+                  auto error = std::string(e.what());
+                  auto* application = QCoreApplication::instance();
+                  const auto queued =
+                    application &&
+                    QMetaObject::invokeMethod(
+                      application,
+                      [source, error = std::move(error)] {
+                          if (source.fail()) {
+                              spdlog::error(
+                                "Error parsing getScoreByGuid response: {}",
+                                error);
+                          }
+                      },
+                      Qt::QueuedConnection);
+                  if (!queued && !stopToken.stop_requested()) {
+                      spdlog::error("Error parsing getScoreByGuid response: "
+                                    "failed to queue "
+                                    "parse failure");
+                  }
+              }
+          });
+      });
+    return operation;
+}
+auto
+OnlineScores::getRankingEntryAtTimestamp(QString webApiUrl,
+                                         qint64 userId,
+                                         QString md5,
+                                         qint64 timestamp,
+                                         OnlineRankingModel::Provider provider)
+  -> support::PendingReply*
+{
+    auto source = support::PendingReplySource<QVariant>{ this };
+    auto* operation = source.reply();
+
+    if (stopping || md5.isEmpty()) {
+        (void)source.fail();
+        return operation;
     }
 
     switch (provider) {
@@ -228,34 +359,46 @@ OnlineScores::getRankingEntryAtTimestamp(
             url.setQuery(q);
 
             QNetworkRequest request(url);
-            QNetworkReply* reply = networkManager->get(request);
+            QNetworkReply* networkReply = networkManager->get(request);
+            source.setCancellationHandler(
+              [reply = QPointer<QNetworkReply>(networkReply)] {
+                  if (reply)
+                      reply->abort();
+              });
 
             connect(
-              reply,
+              networkReply,
               &QNetworkReply::finished,
               this,
-              [pendingReply, reply, userId]() mutable {
-                  reply->deleteLater();
+              [source, networkReply, userId]() mutable {
+                  networkReply->deleteLater();
 
-                  if (reply->error() == QNetworkReply::OperationCanceledError ||
-                      reply->error() == QNetworkReply::ContentNotFoundError) {
-                      pendingReply.setSuccess(QVariant{});
+                  if (networkReply->error() ==
+                        QNetworkReply::OperationCanceledError &&
+                      source.stopToken().stop_requested()) {
                       return;
                   }
-                  if (reply->error() != QNetworkReply::NoError) {
+                  if (networkReply->error() ==
+                        QNetworkReply::ContentNotFoundError ||
+                      networkReply->error() ==
+                        QNetworkReply::OperationCanceledError) {
+                      (void)source.succeed(QVariant{});
+                      return;
+                  }
+                  if (networkReply->error() != QNetworkReply::NoError) {
                       spdlog::debug(
                         "getRankingEntryAtTimestamp RhythmGame failed: {}",
-                        reply->errorString().toStdString());
-                      pendingReply.setFailed();
+                        networkReply->errorString().toStdString());
+                      (void)source.fail();
                       return;
                   }
 
                   QJsonParseError parseErr;
                   const QJsonDocument doc =
-                    QJsonDocument::fromJson(reply->readAll(), &parseErr);
+                    QJsonDocument::fromJson(networkReply->readAll(), &parseErr);
                   if (parseErr.error != QJsonParseError::NoError ||
                       !doc.isArray()) {
-                      pendingReply.setFailed();
+                      (void)source.fail();
                       return;
                   }
 
@@ -268,13 +411,13 @@ OnlineScores::getRankingEntryAtTimestamp(
                       if (entry.userId != userId)
                           continue;
 
-                      pendingReply.setSuccess(
+                      (void)source.succeed(
                         QVariant::fromValue(std::move(entry)));
                       return;
                   }
 
                   // userId not found in the result set
-                  pendingReply.setSuccess(QVariant{});
+                  (void)source.succeed(QVariant{});
               });
             break;
         }
@@ -286,15 +429,29 @@ OnlineScores::getRankingEntryAtTimestamp(
         // //
         case OnlineRankingModel::Provider::Tachi: {
             auto* handle = resolveTachiChartId(md5.toLower());
+            handle->setParent(this);
+            source.setCancellationHandler(
+              [handle = QPointer<TachiResolveHandle>(handle)] {
+                  if (!handle)
+                      return;
+                  emit handle->cancel();
+                  handle->deleteLater();
+              });
 
             connect(
               handle,
               &TachiResolveHandle::resolved,
               this,
-              [this, handle, pendingReply, userId, timestamp](
+              [this, handle, source, userId, timestamp](
                 const QString& chartID,
                 const QString& tachiGame,
                 int noteCount) mutable {
+                  if (source.stopToken().stop_requested()) {
+                      handle->deleteLater();
+                      return;
+                  }
+
+                  source.setCancellationHandler({});
                   handle->deleteLater();
 
                   const auto scoresUrlStr =
@@ -311,7 +468,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                     scoresReply,
                     &QNetworkReply::finished,
                     this,
-                    [pendingReply,
+                    [source,
                      scoresReply,
                      userId,
                      noteCount,
@@ -319,10 +476,15 @@ OnlineScores::getRankingEntryAtTimestamp(
                         scoresReply->deleteLater();
 
                         if (scoresReply->error() ==
-                              QNetworkReply::OperationCanceledError ||
+                              QNetworkReply::OperationCanceledError &&
+                            source.stopToken().stop_requested()) {
+                            return;
+                        }
+                        if (scoresReply->error() ==
+                              QNetworkReply::ContentNotFoundError ||
                             scoresReply->error() ==
-                              QNetworkReply::ContentNotFoundError) {
-                            pendingReply.setSuccess(QVariant{});
+                              QNetworkReply::OperationCanceledError) {
+                            (void)source.succeed(QVariant{});
                             return;
                         }
                         if (scoresReply->error() != QNetworkReply::NoError) {
@@ -330,7 +492,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                               "getRankingEntryAtTimestamp Tachi scores "
                               "failed: {}",
                               scoresReply->errorString().toStdString());
-                            pendingReply.setFailed();
+                            (void)source.fail();
                             return;
                         }
 
@@ -340,7 +502,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                           QJsonDocument::fromJson(replyText, &perr);
                         if (perr.error != QJsonParseError::NoError ||
                             !doc.isObject()) {
-                            pendingReply.setFailed();
+                            (void)source.fail();
                             return;
                         }
 
@@ -425,7 +587,7 @@ OnlineScores::getRankingEntryAtTimestamp(
                         }
 
                         if (!anyScore) {
-                            pendingReply.setSuccess(QVariant{});
+                            (void)source.succeed(QVariant{});
                             return;
                         }
 
@@ -485,21 +647,27 @@ OnlineScores::getRankingEntryAtTimestamp(
                         entry.maxHits = noteCount;
                         entry.scoreCount = scoreCount;
 
-                        pendingReply.setSuccess(
+                        (void)source.succeed(
                           QVariant::fromValue(std::move(entry)));
+                    });
+                  source.setCancellationHandler(
+                    [reply = QPointer<QNetworkReply>(scoresReply)] {
+                        if (reply)
+                            reply->abort();
                     });
               });
 
             connect(handle,
                     &TachiResolveHandle::failed,
                     this,
-                    [handle, pendingReply](const QString& err) mutable {
+                    [handle, source](const QString& err) mutable {
                         handle->deleteLater();
-                        spdlog::debug(
-                          "getRankingEntryAtTimestamp Tachi resolve failed: {}",
-                          err.toStdString());
-                        pendingReply.setSuccess(
-                          QVariant{}); // chart simply not on Tachi
+                        if (source.succeed(QVariant{})) {
+                            spdlog::debug(
+                              "getRankingEntryAtTimestamp Tachi resolve "
+                              "failed: {}",
+                              err.toStdString());
+                        }
                     });
             break;
         }
@@ -512,11 +680,11 @@ OnlineScores::getRankingEntryAtTimestamp(
         case OnlineRankingModel::Provider::LR2IR:
         default:
             spdlog::warn("getRankingEntryAtTimestamp: provider not supported");
-            pendingReply.setFailed();
+            (void)source.fail();
             break;
     }
 
-    return pendingReply;
+    return operation;
 }
 
 } // namespace qml_components
