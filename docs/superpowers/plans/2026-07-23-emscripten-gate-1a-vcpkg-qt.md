@@ -1142,9 +1142,11 @@ files do not expose a lossless Windows `argv[]` boundary: a target can reparse
 `ConvertTo-CmdArgument` and the `cmd.exe call` branch.
 
 Resolve the requested child once. Reject a generic `.cmd` or `.bat` child
-before execution with a clear error. Preserve the required Emscripten commands
-by recognizing only `em++`/`emcc` aliases or path-equivalent launchers beneath
-the pinned Emscripten root, then dispatching:
+before execution with a clear error. Resolve the canonical pinned `em++` and
+`emcc` launchers into an explicit allowlist. Preserve those required
+Emscripten commands only when an alias or explicit path resolves to the exact
+corresponding canonical launcher (using case-insensitive Windows path
+equality), then dispatch:
 
 ```text
 <pinned EMSDK_PYTHON> -E <pinned em++.py or emcc.py> [ARGUMENT...]
@@ -1215,11 +1217,13 @@ Implement these five behavioral cases:
    lock values.
 5. `test_batch_children_fail_closed_and_emscripten_uses_native_driver`: verify
    explicit and PATH-resolved unknown `.cmd`/`.bat` children fail before their
-   first event. Verify pinned `em++` and `emcc` aliases/path-equivalents map to
-   the pinned Python drivers, preserve the same hostile argument vector, and
-   propagate the native process exit. A missing/outside Python or driver must
-   fail closed. Assert the wrapper contains no `cmd.exe`, `ComSpec`, `call`, or
-   batch command-string construction.
+   first event. Verify same-named launchers in nested Emscripten directories
+   also fail closed. Verify only the canonical pinned `em++` and `emcc`
+   aliases/path-equivalents map to the pinned Python drivers, preserve the same
+   hostile argument vector, and propagate the native process exit. A
+   missing/outside Python or driver must fail closed. Assert the wrapper
+   contains no `cmd.exe`, `ComSpec`, `call`, or batch command-string
+   construction.
 
 Remove the shallow
 `test_bootstrap_is_local_and_fails_on_pin_drift` source-substring test once
