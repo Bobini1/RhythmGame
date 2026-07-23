@@ -28,6 +28,32 @@ QTDECLARATIVE_PATCH_SHA256 = (
 
 
 class ToolchainContractTest(unittest.TestCase):
+    def test_bootstrap_is_local_and_fails_on_pin_drift(self) -> None:
+        bootstrap = (
+            PROBE / "scripts" / "Bootstrap-Toolchains.ps1"
+        ).read_text("utf-8")
+        invoke = (
+            PROBE / "scripts" / "Invoke-WithToolchains.ps1"
+        ).read_text("utf-8")
+        self.assertIn(EMSDK_COMMIT, bootstrap)
+        self.assertIn(BASELINE, bootstrap)
+        self.assertIn("activate 4.0.7", bootstrap)
+        self.assertNotIn("--permanent", bootstrap)
+        self.assertNotIn("--system", bootstrap)
+        self.assertIn(EMSDK_COMMIT, invoke)
+        self.assertIn(BASELINE, invoke)
+        self.assertIn("rev-parse HEAD", invoke)
+        self.assertIn("Expected CMake 4.2.3", invoke)
+        self.assertIn("1.13.2", invoke)
+        self.assertIn("EMSCRIPTEN_ROOT", invoke)
+        self.assertIn("EMSCRIPTEN_VERSION", invoke)
+        self.assertIn("VCPKG_ROOT", invoke)
+        self.assertIn(
+            '$env:Path = "$vcpkg$([IO.Path]::PathSeparator)$env:Path"',
+            invoke,
+        )
+        self.assertIn("4.0.7", invoke)
+
     def test_lock_file_has_exact_production_pins(self) -> None:
         lock = json.loads((PROBE / "toolchain-lock.json").read_text("utf-8"))
         self.assertEqual(lock["qt"]["version"], "6.11.1")
