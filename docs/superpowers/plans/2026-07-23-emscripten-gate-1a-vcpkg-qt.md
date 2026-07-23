@@ -299,7 +299,7 @@ class ToolchainContractTest(unittest.TestCase):
         )
         attributes = (REPO / ".gitattributes").read_text("utf-8")
         self.assertIn(
-            "vcpkgOverlayPortsWasm/qtbase/** -text",
+            "vcpkgOverlayPortsWasm/qtbase/** -text -whitespace",
             attributes,
         )
         self.assertIn("include(QtPublicWasmToolchainHelpers)", patch)
@@ -351,11 +351,13 @@ Append these exact entries to `.gitignore`:
 Do not remove or rewrite the existing ignored paths.
 
 Append this exact line to `.gitattributes`. The baseline port contains
-deliberate mixed line endings, so the whole copied port must bypass Windows
-`core.autocrlf`; this also protects the reviewed patch payload:
+deliberate mixed line endings and upstream whitespace, so the whole copied
+port must bypass Windows `core.autocrlf` and Git whitespace diagnostics; this
+also protects the reviewed patch payload. Checks remain enabled everywhere
+outside this byte-exact upstream snapshot:
 
 ```gitattributes
-vcpkgOverlayPortsWasm/qtbase/** -text
+vcpkgOverlayPortsWasm/qtbase/** -text -whitespace
 ```
 
 - [ ] **Step 4: Add the machine-readable lock**
@@ -704,17 +706,19 @@ Run:
 
 ```powershell
 python -m unittest tools/wasm-probe/tests/test_toolchain_contract.py -v
-git diff --check
+git add .gitattributes .gitignore cmake/toolchains vcpkgTriplets `
+    vcpkgOverlayPortsWasm tools/wasm-probe/vcpkg.json `
+    tools/wasm-probe/toolchain-lock.json tools/wasm-probe/tests
+git diff --cached --check
 ```
 
-Expected: six tests pass; `git diff --check` exits zero.
+Expected: six tests pass; `git diff --cached --check` exits zero. The
+`-whitespace` attribute suppresses diagnostics only for the byte-exact
+baseline QtBase snapshot.
 
 Commit:
 
 ```powershell
-git add .gitattributes .gitignore cmake/toolchains vcpkgTriplets `
-    vcpkgOverlayPortsWasm tools/wasm-probe/vcpkg.json `
-    tools/wasm-probe/toolchain-lock.json tools/wasm-probe/tests
 git commit -m "build: add pinned Wasm Qt toolchain"
 ```
 
