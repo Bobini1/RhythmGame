@@ -167,16 +167,117 @@ function Resolve-PinnedApplication {
     return $source
 }
 
-function ConvertTo-CmdArgument {
+function Assert-ResolvedLeafContained {
     param(
-        [AllowEmptyString()]
-        [string]$Value
+        [string]$Path,
+        [string]$Root,
+        [string]$Description
     )
 
-    if (-not $Value) {
-        return '""'
+    $contained = Get-StrictDescendantPath `
+        -Path $Path `
+        -Root $Root `
+        -Description $Description
+    if (-not (Test-Path -LiteralPath $contained -PathType Leaf)) {
+        throw "$Description is missing: $contained"
     }
-    return '"' + $Value.Replace('"', '""') + '"'
+    $item = Get-Item -LiteralPath $contained
+    $target = $item.ResolveLinkTarget($true)
+    if ($null -ne $target) {
+        $contained = Get-StrictDescendantPath `
+            -Path $target.FullName `
+            -Root $Root `
+            -Description "$Description link target"
+    }
+    return $contained
+}
+
+function Resolve-ContainedLeaf {
+    param(
+        [string]$Path,
+        [string]$Root,
+        [string]$Description
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        throw "$Description is missing"
+    }
+    $candidate = Get-StrictDescendantPath `
+        -Path $Path `
+        -Root $Root `
+        -Description $Description
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+        throw "$Description is missing: $candidate"
+    }
+    $resolved = (Resolve-Path -LiteralPath $candidate).Path
+    return Assert-ResolvedLeafContained `
+        -Path $resolved `
+        -Root $Root `
+        -Description "Resolved $Description"
+}
+
+function Resolve-ChildApplication {
+    param(
+        [string]$Requested
+    )
+
+    $commands = @(Get-Command `
+        -Name $Requested `
+        -CommandType Application `
+        -All `
+        -ErrorAction Stop)
+    if ($commands.Count -eq 0) {
+        throw "Unable to resolve child application: $Requested"
+    }
+    $candidate = [string]$commands[0].Source
+    if ([string]::IsNullOrWhiteSpace($candidate)) {
+        throw "Resolved child application has no source: $Requested"
+    }
+    return (Resolve-Path -LiteralPath $candidate).Path
+}
+
+function Get-EmscriptenLauncherKind {
+    param(
+        [string]$Path
+    )
+
+    $leaf = [IO.Path]::GetFileName($Path)
+    if ($leaf -imatch '^em\+\+(?:\.(?:cmd|bat))?$') {
+        return 'em++'
+    }
+    if ($leaf -imatch '^emcc(?:\.(?:cmd|bat))?$') {
+        return 'emcc'
+    }
+    return $null
+}
+
+function Invoke-NativeProcess {
+    param(
+        [string]$FileName,
+        [AllowEmptyCollection()]
+        [AllowEmptyString()]
+        [string[]]$ChildArguments
+    )
+
+    $startInfo = [Diagnostics.ProcessStartInfo]::new()
+    $startInfo.FileName = $FileName
+    $startInfo.UseShellExecute = $false
+    foreach ($argument in $ChildArguments) {
+        $null = $startInfo.ArgumentList.Add($argument)
+    }
+
+    $process = [Diagnostics.Process]::new()
+    $process.StartInfo = $startInfo
+    try {
+        if (-not $process.Start()) {
+            throw "Failed to start native child: $FileName"
+        }
+        $process.WaitForExit()
+        return $process.ExitCode
+    }
+    finally {
+        $process.Dispose()
+    }
 }
 
 $lockPath = Join-Path $PSScriptRoot '..\toolchain-lock.json'
@@ -364,18 +465,61 @@ if ($LASTEXITCODE -ne 0 -or
     throw "Expected Ninja $expectedNinja, got: $ninjaVersionText"
 }
 
-if ([IO.Path]::GetExtension($Executable) -in '.cmd', '.bat') {
-    $commandTokens = @(
-        ConvertTo-CmdArgument -Value $Executable
-        foreach ($argument in $Arguments) {
-            ConvertTo-CmdArgument -Value $argument
-        }
-    )
-    $commandLine = 'call ' + ($commandTokens -join ' ')
-    & $env:ComSpec /d /s /c $commandLine
+$child = Resolve-ChildApplication -Requested $Executable
+$requestedKind = if ($Executable -ieq 'em++') {
+    'em++'
+}
+elseif ($Executable -ieq 'emcc') {
+    'emcc'
 }
 else {
-    & $Executable @Arguments
+    $null
 }
-$childExitCode = $LASTEXITCODE
-exit $childExitCode
+$launcherKind = Get-EmscriptenLauncherKind -Path $child
+if ($requestedKind -and $launcherKind -ne $requestedKind) {
+    throw (
+        "Pinned $requestedKind alias resolved to an unexpected launcher: " +
+        $child
+    )
+}
+$emscriptenKind = if ($requestedKind) {
+    $requestedKind
+}
+else {
+    $launcherKind
+}
+
+if ($emscriptenKind) {
+    $null = Assert-ResolvedLeafContained `
+        -Path $child `
+        -Root $emscriptenRoot `
+        -Description "Pinned $emscriptenKind launcher"
+    $python = Resolve-ContainedLeaf `
+        -Path $env:EMSDK_PYTHON `
+        -Root $emsdk `
+        -Description 'Pinned EMSDK_PYTHON'
+    if ([IO.Path]::GetExtension($python) -ine '.exe') {
+        throw "Pinned EMSDK_PYTHON must be a native .exe: $python"
+    }
+    $driver = Resolve-ContainedLeaf `
+        -Path (Join-Path $emscriptenRoot "$emscriptenKind.py") `
+        -Root $emscriptenRoot `
+        -Description "Emscripten driver $emscriptenKind.py"
+    $driverArguments = [Collections.Generic.List[string]]::new()
+    $driverArguments.Add('-E')
+    $driverArguments.Add($driver)
+    foreach ($argument in $Arguments) {
+        $driverArguments.Add($argument)
+    }
+    exit (Invoke-NativeProcess `
+        -FileName $python `
+        -ChildArguments $driverArguments.ToArray())
+}
+
+$childExtension = [IO.Path]::GetExtension($child)
+if ($childExtension -iin '.cmd', '.bat') {
+    throw "Batch child executables are not supported: $child"
+}
+exit (Invoke-NativeProcess `
+    -FileName $child `
+    -ChildArguments $Arguments)

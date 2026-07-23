@@ -25,6 +25,7 @@ REPO = Path(__file__).resolve().parents[3]
 PROBE = REPO / "tools" / "wasm-probe"
 BOOTSTRAP = PROBE / "scripts" / "Bootstrap-Toolchains.ps1"
 WRAPPER = PROBE / "scripts" / "Invoke-WithToolchains.ps1"
+PROCESS_DOUBLE = PROBE / "tests" / "_toolchain_process_double.py"
 
 
 @unittest.skipUnless(os.name == "nt", "PowerShell toolchain tests are Windows-only")
@@ -92,7 +93,7 @@ class ToolchainScriptTest(unittest.TestCase):
     def _run_wrapper(
         self,
         fixture: dict[str, object],
-        child: Path,
+        child: str | Path,
         child_arguments: list[str] | None = None,
         wrapper: Path = WRAPPER,
     ) -> subprocess.CompletedProcess[str]:
@@ -126,6 +127,48 @@ class ToolchainScriptTest(unittest.TestCase):
         seed_repository(root / "emsdk-4.0.7", "emsdk", EMSDK_COMMIT)
         seed_repository(root / "vcpkg-a0400024", "vcpkg", VCPKG_COMMIT)
         seed_build_tools(root)
+
+    @staticmethod
+    def _hostile_arguments(side_effect: Path) -> list[str]:
+        return [
+            "ordinary",
+            "spaced value",
+            "",
+            "--",
+            "-Verbose",
+            "-ToolchainRoot",
+            "child toolchain root",
+            "-BinaryCache",
+            "child binary cache",
+            "--option-like",
+            "-DNAME=a b",
+            "one terminal backslash\\",
+            "two terminal backslashes\\\\",
+            'embedded "quote"',
+            "%PATH%",
+            "carets ^ ^^ ^^^",
+            "&|<>()",
+            "Zażółć gęślą jaźń 日本語 🎵",
+            (
+                f'mixed %PATH%^&|<>() "quoted" \\\\ '
+                f'> "{side_effect}"'
+            ),
+        ]
+
+    @staticmethod
+    def _native_capture_command(
+        arguments: list[str],
+    ) -> tuple[Path, list[str]]:
+        python = Path(sys.executable).resolve()
+        return (
+            python,
+            [
+                str(PROCESS_DOUBLE),
+                "capture",
+                str(python),
+                *arguments,
+            ],
+        )
 
     def test_wrong_heads_fail_closed(self) -> None:
         wrong = "1111111111111111111111111111111111111111"
@@ -321,21 +364,9 @@ class ToolchainScriptTest(unittest.TestCase):
                 ("ninja.cmd", "poison-ninja"),
             ):
                 write_launcher(poison / name, tool)
-            child = sandbox / "capture child.cmd"
-            write_launcher(child, "capture")
-            arguments = [
-                "ordinary",
-                "spaced value",
-                "",
-                "--",
-                "-Verbose",
-                "-ToolchainRoot",
-                "child toolchain root",
-                "-BinaryCache",
-                "child binary cache",
-                "--option-like",
-                "-DNAME=a b",
-            ]
+            side_effect = sandbox / "native dispatch side effect"
+            arguments = self._hostile_arguments(side_effect)
+            child, child_arguments = self._native_capture_command(arguments)
             environment = fixture["environment"]
             assert isinstance(environment, dict)
             environment.update(
@@ -345,6 +376,7 @@ class ToolchainScriptTest(unittest.TestCase):
                         f"{environment.get('PATH', '')}"
                     ),
                     "EMSDK": "T:\\poison emsdk",
+                    "EMSDK_PYTHON": "T:\\poison python",
                     "EMSCRIPTEN_ROOT": "T:\\poison emscripten",
                     "EMSCRIPTEN_VERSION": "4.0.7",
                     "VCPKG_ROOT": "T:\\poison vcpkg",
@@ -384,9 +416,14 @@ class ToolchainScriptTest(unittest.TestCase):
 
             parent_before = os.environ.copy()
             fixture["environment"] = environment
-            result = self._run_wrapper(fixture, child, arguments)
+            result = self._run_wrapper(
+                fixture,
+                child,
+                child_arguments,
+            )
             self.assertEqual(result.returncode, 37, result.stdout + result.stderr)
             self.assertEqual(os.environ, parent_before)
+            self.assertFalse(side_effect.exists())
 
             events = self._events(fixture["events"])
             self.assertFalse(
@@ -446,6 +483,17 @@ class ToolchainScriptTest(unittest.TestCase):
             self.assertEqual(
                 captured_environment["EMSCRIPTEN_VERSION"],
                 "4.0.7",
+            )
+            self.assertEqual(
+                captured_environment["EMSDK_PYTHON"],
+                str(
+                    (
+                        root
+                        / "emsdk-4.0.7"
+                        / "python"
+                        / "python.exe"
+                    ).resolve()
+                ),
             )
             self.assertEqual(
                 captured_environment["VCPKG_ROOT"],
@@ -514,11 +562,11 @@ class ToolchainScriptTest(unittest.TestCase):
             assert isinstance(sandbox, Path)
             self._seed_complete(root)
             _, copied_wrapper = copy_probe(sandbox / "valid leaf")
-            child = sandbox / "valid capture child.cmd"
-            write_launcher(child, "capture")
+            child, child_arguments = self._native_capture_command([])
             valid = self._run_wrapper(
                 fixture,
                 child,
+                child_arguments,
                 wrapper=copied_wrapper,
             )
             self.assertEqual(valid.returncode, 0, valid.stdout + valid.stderr)
@@ -597,6 +645,185 @@ class ToolchainScriptTest(unittest.TestCase):
                             self._events(fixture["events"]),
                             [],
                         )
+
+    def test_batch_children_fail_closed_and_emscripten_uses_native_driver(
+        self,
+    ) -> None:
+        wrapper_text = WRAPPER.read_text("utf-8")
+        for forbidden in (
+            "ConvertTo-CmdArgument",
+            "ComSpec",
+            "cmd.exe",
+            "$commandLine",
+            "Start-Process",
+        ):
+            self.assertNotIn(forbidden.casefold(), wrapper_text.casefold())
+        self.assertNotRegex(wrapper_text, r"(?i)\bcall\b")
+        self.assertIn("ProcessStartInfo", wrapper_text)
+        self.assertIn("ArgumentList", wrapper_text)
+
+        with tempfile.TemporaryDirectory(
+            prefix="rg batch fail closed "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = fixture["root"]
+            sandbox = fixture["sandbox"]
+            assert isinstance(root, Path)
+            assert isinstance(sandbox, Path)
+            self._seed_complete(root)
+            explicit = sandbox / "explicit unknown child.bat"
+            search = sandbox / "batch child search"
+            write_launcher(explicit, "explicit-batch-child")
+            write_launcher(search / "path-batch-child.cmd", "path-batch-child")
+            environment = fixture["environment"]
+            assert isinstance(environment, dict)
+            environment["PATH"] = (
+                f"{search}{os.pathsep}{environment.get('PATH', '')}"
+            )
+            fixture["environment"] = environment
+
+            for child in (str(explicit), "path-batch-child"):
+                with self.subTest(batch_child=child):
+                    result = self._run_wrapper(fixture, child)
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn(
+                        "Batch child executables are not supported",
+                        combined,
+                    )
+            events = self._events(fixture["events"])
+            self.assertFalse(
+                {
+                    "explicit-batch-child",
+                    "path-batch-child",
+                }.intersection(str(event["tool"]) for event in events),
+                events,
+            )
+
+        with tempfile.TemporaryDirectory(
+            prefix="rg emscripten driver "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = fixture["root"]
+            sandbox = fixture["sandbox"]
+            assert isinstance(root, Path)
+            assert isinstance(sandbox, Path)
+            self._seed_complete(root)
+            side_effect = sandbox / "emscripten side effect"
+            arguments = self._hostile_arguments(side_effect)
+            environment = fixture["environment"]
+            assert isinstance(environment, dict)
+            environment["TOOLCHAIN_DOUBLE_CHILD_EXIT"] = "37"
+            fixture["environment"] = environment
+            emscripten = (
+                root / "emsdk-4.0.7" / "upstream" / "emscripten"
+            )
+            python = root / "emsdk-4.0.7" / "python" / "python.exe"
+            commands = (
+                ("em++", "em++-driver", emscripten / "em++.py"),
+                (
+                    str(emscripten / "em++.cmd"),
+                    "em++-driver",
+                    emscripten / "em++.py",
+                ),
+                ("emcc", "emcc-driver", emscripten / "emcc.py"),
+                (
+                    str(emscripten / "emcc.cmd"),
+                    "emcc-driver",
+                    emscripten / "emcc.py",
+                ),
+            )
+            for child, expected_tool, expected_driver in commands:
+                with self.subTest(emscripten_child=child):
+                    result = self._run_wrapper(
+                        fixture,
+                        child,
+                        arguments,
+                    )
+                    self.assertEqual(
+                        result.returncode,
+                        37,
+                        result.stdout + result.stderr,
+                    )
+                    drivers = [
+                        event
+                        for event in self._events(fixture["events"])
+                        if event["tool"] == expected_tool
+                    ]
+                    self.assertTrue(drivers)
+                    driver = drivers[-1]
+                    self.assertEqual(driver["args"], arguments)
+                    self.assertEqual(
+                        Path(str(driver["source"])).resolve(),
+                        expected_driver.resolve(),
+                    )
+                    self.assertEqual(
+                        Path(str(driver["runtime"])).resolve(),
+                        python.resolve(),
+                    )
+                    self.assertTrue(driver["ignore_environment"])
+                    self.assertFalse(side_effect.exists())
+
+        failure_cases = (
+            "missing-python",
+            "outside-python",
+            "missing-driver",
+            "outside-driver",
+        )
+        for failure_case in failure_cases:
+            with self.subTest(emscripten_failure=failure_case):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg emscripten fail closed "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = fixture["root"]
+                    sandbox = fixture["sandbox"]
+                    assert isinstance(root, Path)
+                    assert isinstance(sandbox, Path)
+                    self._seed_complete(root)
+                    emsdk = root / "emsdk-4.0.7"
+                    emscripten = emsdk / "upstream" / "emscripten"
+                    environment_script = emsdk / "emsdk_env.ps1"
+                    expected_error = "EMSDK_PYTHON"
+                    if failure_case == "missing-python":
+                        (emsdk / "python" / "python.exe").unlink()
+                    elif failure_case == "outside-python":
+                        lines = environment_script.read_text("utf-8").splitlines()
+                        lines[1] = (
+                            f"$env:EMSDK_PYTHON = '{Path(sys.executable).resolve()}'"
+                        )
+                        environment_script.write_text(
+                            "\n".join((*lines, "")),
+                            encoding="utf-8",
+                        )
+                    elif failure_case == "missing-driver":
+                        (emscripten / "em++.py").unlink()
+                        expected_error = "Emscripten driver"
+                    else:
+                        driver = emscripten / "em++.py"
+                        outside = sandbox / "outside em++.py"
+                        outside.write_text(
+                            "raise SystemExit(73)\n",
+                            encoding="utf-8",
+                        )
+                        driver.unlink()
+                        driver.symlink_to(outside)
+                        expected_error = "Emscripten driver"
+
+                    result = self._run_wrapper(
+                        fixture,
+                        "em++",
+                        ["--version"],
+                    )
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn(expected_error, combined)
+                    self.assertFalse(
+                        any(
+                            event["tool"] == "em++-driver"
+                            for event in self._events(fixture["events"])
+                        )
+                    )
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -45,11 +46,81 @@ def write_launcher(path: Path, tool: str) -> None:
     )
 
 
+def _copy_or_link(source: Path, destination: Path) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        os.link(source, destination)
+    except OSError:
+        shutil.copy2(source, destination)
+
+
+def _seed_native_python(repository: Path) -> None:
+    source = Path(sys.executable).resolve()
+    source_root = source.parent
+    python_root = repository / "python"
+    python = python_root / "python.exe"
+    _copy_or_link(source, python)
+    version = f"{sys.version_info.major}{sys.version_info.minor}"
+    for name in (
+        "python3.dll",
+        f"python{version}.dll",
+        "vcruntime140.dll",
+        "vcruntime140_1.dll",
+    ):
+        candidate = source_root / name
+        if candidate.is_file():
+            _copy_or_link(candidate, python_root / name)
+    (python_root / f"python{version}._pth").write_text(
+        "\n".join(
+            (
+                str(source_root / f"python{version}.zip"),
+                str(source_root / "DLLs"),
+                str(source_root / "Lib"),
+                "import site",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+
+
+def _write_emscripten_driver(path: Path, tool: str) -> None:
+    process_double = Path(__file__).resolve()
+    path.write_text(
+        "\n".join(
+            (
+                "from pathlib import Path",
+                "import runpy",
+                "import sys",
+                "",
+                f"process_double = Path({str(process_double)!r})",
+                (
+                    f"sys.argv = [str(process_double), {tool!r}, "
+                    "str(Path(__file__).resolve()), *sys.argv[1:]]"
+                ),
+                "runpy.run_path(str(process_double), run_name='__main__')",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+
+
 def create_repository_layout(repository: Path, kind: str) -> None:
     if kind == "emsdk":
         write_launcher(repository / "emsdk.bat", "emsdk")
         emscripten = repository / "upstream" / "emscripten"
         write_launcher(emscripten / "em++.cmd", "em++")
+        write_launcher(emscripten / "emcc.cmd", "emcc")
+        _write_emscripten_driver(
+            emscripten / "em++.py",
+            "em++-driver",
+        )
+        _write_emscripten_driver(
+            emscripten / "emcc.py",
+            "emcc-driver",
+        )
+        _seed_native_python(repository)
         (repository / ".emscripten").write_text(
             "EMSCRIPTEN_ROOT = emsdk_path + '/upstream/emscripten'\n",
             encoding="utf-8",
@@ -58,6 +129,10 @@ def create_repository_layout(repository: Path, kind: str) -> None:
             "\n".join(
                 (
                     "$env:EMSDK = $PSScriptRoot",
+                    (
+                        "$env:EMSDK_PYTHON = Join-Path "
+                        "$PSScriptRoot 'python\\python.exe'"
+                    ),
                     (
                         '$env:Path = "$PSScriptRoot'
                         "$([IO.Path]::PathSeparator)"
@@ -228,7 +303,7 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
     elif tool == "vcpkg-bootstrap":
         if arguments == ["-disableMetrics"]:
             return 0
-    elif tool in ("em++", "poison-em++"):
+    elif tool in ("em++", "emcc", "poison-em++"):
         if arguments == ["--version"]:
             print("emcc 4.0.7")
             return 0
@@ -249,6 +324,7 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
             name: os.environ.get(name)
             for name in (
                 "EMSDK",
+                "EMSDK_PYTHON",
                 "EMSCRIPTEN_ROOT",
                 "EMSCRIPTEN_VERSION",
                 "VCPKG_ROOT",
@@ -262,6 +338,15 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
             source,
             arguments,
             environment=environment,
+        )
+        return int(os.environ.get("TOOLCHAIN_DOUBLE_CHILD_EXIT", "0"))
+    elif tool in ("em++-driver", "emcc-driver"):
+        _event(
+            tool,
+            source,
+            arguments,
+            runtime=str(Path(sys.executable).resolve()),
+            ignore_environment=bool(sys.flags.ignore_environment),
         )
         return int(os.environ.get("TOOLCHAIN_DOUBLE_CHILD_EXIT", "0"))
     print(f"Unknown {tool} invocation: {arguments!r}", file=sys.stderr)
@@ -281,6 +366,9 @@ def main() -> int:
         "emsdk",
         "vcpkg-bootstrap",
         "em++",
+        "emcc",
+        "em++-driver",
+        "emcc-driver",
         "vcpkg",
         "cmake",
         "ninja",
