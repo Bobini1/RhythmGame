@@ -1,17 +1,27 @@
 {
   "applicationLink": {
     "commandSha256": "5f0f34d2fa152dfdb5b02da04646ed6ae539227a46a175b24fb9dce1621f74b8",
+    "compiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
+    "effectiveSettings": {
+      "ALLOW_BLOCKING_ON_MAIN_THREAD": "0",
+      "AUDIO_WORKLET": "1",
+      "JSPI": "1",
+      "PTHREAD_POOL_SIZE": "4",
+      "PTHREAD_POOL_SIZE_STRICT": "2",
+      "SUPPORT_LONGJMP": "wasm",
+      "WASM_WORKERS": "1"
+    },
+    "linkLibrariesSha256": "b11047d10184bbcf419035f7074e1586b37f44d539d623990b21ef63f7ed7728",
     "literalAsyncifyConfigured": false,
+    "responseFile": "CMakeFiles/RhythmGameWasmProbe.rsp",
     "settingOccurrences": {
-      "-fwasm-exceptions": 1,
-      "-pthread": 2,
-      "-sALLOW_BLOCKING_ON_MAIN_THREAD=0": 1,
-      "-sAUDIO_WORKLET=1": 1,
-      "-sJSPI": 2,
-      "-sPTHREAD_POOL_SIZE=4": 2,
-      "-sPTHREAD_POOL_SIZE_STRICT=2": 1,
-      "-sSUPPORT_LONGJMP=wasm": 1,
-      "-sWASM_WORKERS=1": 1
+      "ALLOW_BLOCKING_ON_MAIN_THREAD": 1,
+      "AUDIO_WORKLET": 1,
+      "JSPI": 2,
+      "PTHREAD_POOL_SIZE": 2,
+      "PTHREAD_POOL_SIZE_STRICT": 1,
+      "SUPPORT_LONGJMP": 1,
+      "WASM_WORKERS": 1
     },
     "settings": [
       "-pthread",
@@ -24,6 +34,7 @@
       "-sPTHREAD_POOL_SIZE_STRICT=2",
       "-sALLOW_BLOCKING_ON_MAIN_THREAD=0"
     ],
+    "staticExceptionArchive": "libWasmProbeExceptionBoundary.a",
     "staticExceptionArchiveLinked": true
   },
   "artifacts": {
@@ -55,7 +66,7 @@
       },
       "RhythmGameWasmProbe.wasm": {
         "bytes": 21150215,
-        "sha256": "461051188c4ec2833eaebb3da45234b692d5606df4f5862096d1ffbc2e3be264"
+        "sha256": "9b4f7ff49863e941bb2d967c634b5b5ebda93b40044058b0b03da8c2a62e5cc8"
       },
       "RhythmGameWasmProbe.ww.js": {
         "bytes": 1228,
@@ -86,6 +97,84 @@
     "pthreadWorkerEmbeddedInMainJavaScript": true,
     "shaderResourceAlias": ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb"
   },
+  "buildFreshness": {
+    "command": [
+      ".toolchains/ninja-1.13.2-win/ninja.exe",
+      "-C",
+      "tools/wasm-probe/build/wasm-release",
+      "-n",
+      "-v",
+      "RhythmGameWasmProbe"
+    ],
+    "output": [
+      "ninja: Entering directory `${REPO}/tools/wasm-probe/build/wasm-release'",
+      "ninja: no work to do."
+    ],
+    "outputSha256": "c668fd5696e5ffcc0e1788be72d9a4d5a2e090e9a2f0234eaa757ebca1565732",
+    "sourceInputs": {
+      "aggregateSha256": "81a813d5d44808ac8e21a0982b04cbe81ecd692393d0b36adcd8d7dbc5afe894",
+      "count": 56,
+      "paths": [
+        "cmake/toolchains/vcpkg-emscripten.cmake",
+        "tools/wasm-probe/cmake/verify_exact_toolchain.cmake",
+        "tools/wasm-probe/CMakeLists.txt",
+        "tools/wasm-probe/CMakePresets.json",
+        "tools/wasm-probe/qml/Main.qml",
+        "tools/wasm-probe/qml/pulse.frag",
+        "tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1",
+        "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1",
+        "tools/wasm-probe/src/ExceptionBoundary.cpp",
+        "tools/wasm-probe/src/ExceptionBoundary.h",
+        "tools/wasm-probe/src/main.cpp",
+        "tools/wasm-probe/src/ProbeState.cpp",
+        "tools/wasm-probe/src/ProbeState.h",
+        "tools/wasm-probe/toolchain-lock.json",
+        "tools/wasm-probe/vcpkg.json",
+        "vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch",
+        "vcpkgOverlayPorts/qtdeclarative/port.data.cmake",
+        "vcpkgOverlayPorts/qtdeclarative/portfile.cmake",
+        "vcpkgOverlayPorts/qtdeclarative/vcpkg.json",
+        "vcpkgOverlayPortsWasm/qtbase/allow_outside_prefix.patch",
+        "vcpkgOverlayPortsWasm/qtbase/clang-cl_QGADGET_fix.diff",
+        "vcpkgOverlayPortsWasm/qtbase/clang-cl_source_location.patch",
+        "vcpkgOverlayPortsWasm/qtbase/cmake/qt_install_copyright.cmake",
+        "vcpkgOverlayPortsWasm/qtbase/cmake/qt_install_submodule.cmake",
+        "vcpkgOverlayPortsWasm/qtbase/cmake/qt_port_details.cmake",
+        "vcpkgOverlayPortsWasm/qtbase/config_install.patch",
+        "vcpkgOverlayPortsWasm/qtbase/dont_force_cmakecache_latest.patch",
+        "vcpkgOverlayPortsWasm/qtbase/env.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix-host-aliasing.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix-ioring-32bit.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix-libresolv-test.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix-liburing-config-test.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix-link-lib-discovery.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix_cmake_build.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix_deploy_windows.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix_egl.patch",
+        "vcpkgOverlayPortsWasm/qtbase/fix_egl_2.patch",
+        "vcpkgOverlayPortsWasm/qtbase/GLIB2-static.patch",
+        "vcpkgOverlayPortsWasm/qtbase/harfbuzz.patch",
+        "vcpkgOverlayPortsWasm/qtbase/installed_dir.patch",
+        "vcpkgOverlayPortsWasm/qtbase/macdeployqt-symlinks.patch",
+        "vcpkgOverlayPortsWasm/qtbase/moltenvk.patch",
+        "vcpkgOverlayPortsWasm/qtbase/port.data.cmake",
+        "vcpkgOverlayPortsWasm/qtbase/portfile.cmake",
+        "vcpkgOverlayPortsWasm/qtbase/qmake.debug.bat",
+        "vcpkgOverlayPortsWasm/qtbase/qt.conf.in",
+        "vcpkgOverlayPortsWasm/qtbase/QTBUG-145703.patch",
+        "vcpkgOverlayPortsWasm/qtbase/qtpaths.debug.bat",
+        "vcpkgOverlayPortsWasm/qtbase/restore-wasm-version-check.patch",
+        "vcpkgOverlayPortsWasm/qtbase/silence-winrtbase-coroutine-warnings.diff",
+        "vcpkgOverlayPortsWasm/qtbase/use-shared-mime-info.patch",
+        "vcpkgOverlayPortsWasm/qtbase/use_inotify_on_freebsd.patch",
+        "vcpkgOverlayPortsWasm/qtbase/vcpkg.json",
+        "vcpkgOverlayPortsWasm/qtbase/windeployqt.debug.bat",
+        "vcpkgTriplets/wasm32-emscripten-rg.cmake",
+        "vcpkgTriplets/x64-windows-rg-host-release.cmake"
+      ]
+    },
+    "target": "RhythmGameWasmProbe"
+  },
   "cmakeBuild": {
     "chainloadToolchain": "cmake/toolchains/vcpkg-emscripten.cmake",
     "generator": "Ninja",
@@ -100,6 +189,9 @@
     "exceptionBoundary": {
       "ExceptionBoundary.cpp": {
         "commandSha256": "bd343b15f59b8426480de053f4a70dee5f0bca5ff491934e38fa121a9add0342",
+        "effectiveSettings": {
+          "SUPPORT_LONGJMP": "wasm"
+        },
         "settings": [
           "-pthread",
           "-fwasm-exceptions",
@@ -108,6 +200,9 @@
       },
       "ProbeState.cpp": {
         "commandSha256": "eb4a897c05eb77945c071c6d8bb12e986ce9e7569a0f79d325a999be6f2d879e",
+        "effectiveSettings": {
+          "SUPPORT_LONGJMP": "wasm"
+        },
         "settings": [
           "-pthread",
           "-fwasm-exceptions",
@@ -229,10 +324,35 @@
   "featuresAndAutogen": {
     "autogen": {
       "commandLineLengthMax": 4096,
+      "compiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
       "compilerPredefinesCommandCount": 110,
       "compilerPredefinesEnabled": true,
+      "compilerVersion": "21.0.0",
       "generatedPredefinesAggregateSha256": "b29a3d27fd06546e6d23ae4f6542981db3553c8eca80a2c7c081dda4f57e6ecc",
-      "generatedPredefinesFileCount": 110
+      "generatedPredefinesFileCount": 110,
+      "metadataCount": 110
+    },
+    "emscriptenSdkContract": {
+      "installedHelper": {
+        "buildTreeFallback": true,
+        "defaultInstalledFallback": true,
+        "layoutAwareInstalledHeaders": true,
+        "path": ".wasm-vcpkg/installed/wasm32-emscripten-rg/share/Qt6/QtPublicWasmToolchainHelpers.cmake",
+        "sha256": "eb6af811ddb6a4315ef9eb6a819e4e8c09c76bb5d202391b78a636480cdb34d1"
+      },
+      "installedQconfigHeaderVersion": "4.0.7",
+      "installedQconfigPriVersion": "4.0.7",
+      "mismatchedConsumer": {
+        "activeVersion": "9.9.9",
+        "builtVersion": "4.0.7",
+        "rejectedBeforeSentinel": true
+      },
+      "qtbaseCache": {
+        "EMCC_VERSION": "4.0.7",
+        "QT_AUTODETECT_WASM_IS_DONE": "TRUE",
+        "QT_EMCC_RECOMMENDED_VERSION": "4.0.7",
+        "QT_QMAKE_TARGET_MKSPEC": "wasm-emscripten"
+      }
     },
     "emscriptenVersionCheckRetained": true,
     "qtFeatures": {
@@ -262,7 +382,7 @@
       "addedFiles": [
         "restore-wasm-version-check.patch"
       ],
-      "aggregateSha256": "53bf49bf8eae05c2ace7788814a1ebc91f37699f9f624549e6ddd974e204f9ad",
+      "aggregateSha256": "1498410ceba89b5833431ab064f39ce16ebadc28ecb1697a669b45743cfc5f29",
       "baselineTree": "29a7f9f115d568b271a3b99fabeac886ec248f9f",
       "fileCount": 35,
       "fileSha256": {
@@ -291,15 +411,15 @@
         "macdeployqt-symlinks.patch": "793a51eb2873c566c0d90636658c97e94f1568d5015114bc21d62475d46dc7ee",
         "moltenvk.patch": "143d97a3f4f65ee1ee53c67bc18753f772fa7124376403e9b02058281666d921",
         "port.data.cmake": "d479dc314559053401bebdc8042f90c49bf74b5dd6073e27bab606312491cc75",
-        "portfile.cmake": "edfa1c77d076848b1f0044e805894fc90430099bf6c62317107a8fa671b80df8",
+        "portfile.cmake": "dde572451242adc43c23ce22e6539c111cbb538a0e0e9a18b73a1cab3d49c7a9",
         "qmake.debug.bat": "74ebdd19f1601610d37baf0477a8434454452029bbfb4677ca1f4d8ee41217e0",
         "qt.conf.in": "d53987ef586bf81c92bebaf71ebff32c9447650973259fa4e906fe64af281f7b",
         "qtpaths.debug.bat": "d90e501f2245f9a92864c42cfed0c83d7aa591f92f34d364aea6390e5906fc26",
-        "restore-wasm-version-check.patch": "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0",
+        "restore-wasm-version-check.patch": "8aa3ed93e30f16c3c9691b35dee1f27c9608bcf424fc4b0e86009ce64709c786",
         "silence-winrtbase-coroutine-warnings.diff": "ec9f9d2d2e6f19283df8e6b31cd8bd66741d49006d6ba5e119da965e5cfe04ac",
         "use-shared-mime-info.patch": "e20a269c2b69df927b916254e5b9f7c75c0eff7db800ac93866be9df133af1ea",
         "use_inotify_on_freebsd.patch": "cdd2026d5c5b51e3dbec361560886dd106f998d43a60b20a7e4921efb9b7b583",
-        "vcpkg.json": "3bbf9ff2d47f0c88f3b1680edf532f47f69fe195b8473b3f87dcbc070c57db22",
+        "vcpkg.json": "2e347149af40d74e171fa5f2f8c21d48828bc855bc3e24cf75fa1e120aafc405",
         "windeployqt.debug.bat": "35dfd4f5437d76a03ba470e831fc99e582eb9138d9073495388902610537f837"
       },
       "lineEndingOnlyBaselineFiles": [],
@@ -332,6 +452,7 @@
     "reviewedDelta": {
       "qtbase": [
         "restore Emscripten version-helper include and check",
+        "seed wasm-emscripten target mkspec before project",
         "thread ON",
         "wasm_exceptions ON",
         "wasm_jspi ON",
@@ -391,33 +512,33 @@
       },
       "requiredPorts": {
         "qtbase": {
-          "Abi": "7baceded1b8faf43e83a87d5241275801f1c7bf794b22c73fae6fbf03b7c98ba",
-          "Port-Version": "1",
+          "Abi": "f3245a25d11d815597b640b5202390cd7f7bc8512d1bba9bfc2a803cc7ffad9c",
+          "Port-Version": "2",
           "Version": "6.11.1"
         },
         "qtdeclarative": {
-          "Abi": "fb3cd5c976681ad3b3d2c52791779a01a87dc2ad151d8385c7868847540790d2",
+          "Abi": "3d209dddee7dca1a7e101ed3c41c090695a2f69ef34d8ddd1c9b574f20b5647b",
           "Port-Version": "1",
           "Version": "6.11.1"
         },
         "qtimageformats": {
-          "Abi": "a83eaab530cefe4f37858b95ed4c28eb4b90fbc9081574acda9bf48eaed67246",
+          "Abi": "de05b6342816575e26324c9d6319ce32ce5f0c12c58ea26a1b9a0b5f91b6d229",
           "Version": "6.11.1"
         },
         "qtmultimedia": {
-          "Abi": "aab2eaa06ad69ba36da290f3013448e11d94bb850a6ab5614af4d32e05d32ed7",
+          "Abi": "119f377927637e1bd3d2cc2ef150e999fed9c5aa41d8fdaeea256f2a47ad4721",
           "Version": "6.11.1"
         },
         "qtshadertools": {
-          "Abi": "b548ec3faadf855cfc48ebf31f139a40b416d4e63a9711ed3c98cef28be94995",
+          "Abi": "1181355ce2376cc0c85352dc431efa5756c105a5956a3f758cef2f793c8bae7e",
           "Version": "6.11.1"
         },
         "qtsvg": {
-          "Abi": "47bf603a78670e7018ce2a1f93ed9311b06a452c3a0d415367e96828406d9008",
+          "Abi": "f8eaf0db86c59307ab69b44ecd7f9b9ce7dde6c5061f7e3061c9b0aaa66574bd",
           "Version": "6.11.1"
         },
         "qtwebsockets": {
-          "Abi": "875b6b70d3f5144d997bdbe6c046e4e4ecdb310f901fcdee3b7f4ab43bdab628",
+          "Abi": "0cdf6d8b60bd2e1e07ef5fdd7b78de33944031f53714db96c7f7d7be7fdbc062",
           "Version": "6.11.1"
         }
       },
@@ -444,7 +565,7 @@
       "version": "4.0.7",
       "versionOutput": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.7 (8dc91db45bf96c174531006839472a3924d105aa)"
     },
-    "lockFileSha256": "f25ed6ba07e6db876c17f01703aa7f98b1b5bfcbddf631093155775e0d4ff66c",
+    "lockFileSha256": "8b7308ea94cf15504e469359f815dea8e455d73ee7f92ac00864a48cc182a8bb",
     "ninja": {
       "executable": ".toolchains/ninja-1.13.2-win/ninja.exe",
       "version": "1.13.2",
