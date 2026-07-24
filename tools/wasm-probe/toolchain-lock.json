@@ -5,7 +5,7 @@
     "qtbaseSourceSha256": "d9594a31228aa23ad6b531719a29b45f0f3989fe6c136d45767ea179f233c1ac",
     "qtbaseVcpkgSha512": "b5608b6cefd483ecdc5e4fa3536acfc31116c8dfb698257f945180a8e412ee444dc670d754d4f6145649170f7d55637a70820188337a6c6b79193fbfbcd6a3fc",
     "qtbaseVcpkgTree": "29a7f9f115d568b271a3b99fabeac886ec248f9f",
-    "qtbaseWasmPatchSha256": "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0",
+    "qtbaseWasmPatchSha256": "8aa3ed93e30f16c3c9691b35dee1f27c9608bcf424fc4b0e86009ce64709c786",
     "qtdeclarativePatchSha256": "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
   },
   "emscripten": {

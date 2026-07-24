@@ -1,5 +1,9 @@
 import hashlib
 import json
+import os
+import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -20,7 +24,7 @@ QTBASE_SHA512 = (
 )
 QTBASE_VCPKG_TREE = "29a7f9f115d568b271a3b99fabeac886ec248f9f"
 QTBASE_WASM_PATCH_SHA256 = (
-    "d9ed64da369eeb3aedc6830a2649925bcf8e8742d1c5fc86c21adf5bb168d5a0"
+    "8aa3ed93e30f16c3c9691b35dee1f27c9608bcf424fc4b0e86009ce64709c786"
 )
 QTDECLARATIVE_PATCH_SHA256 = (
     "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
@@ -148,6 +152,23 @@ class ToolchainContractTest(unittest.TestCase):
         )
         self.assertNotIn("if(PORT MATCHES", triplet)
 
+    def test_target_triplet_passes_canonical_emsdk_to_vcpkg_builds(
+        self,
+    ) -> None:
+        triplet = (
+            REPO / "vcpkgTriplets" / "wasm32-emscripten-rg.cmake"
+        ).read_text("utf-8")
+        passthrough = re.search(
+            r"set\(VCPKG_ENV_PASSTHROUGH(?P<body>.*?)\)",
+            triplet,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(passthrough)
+        variables = passthrough.group("body").split()
+        self.assertIn("EMSDK", variables)
+        self.assertIn("EMSDK_PYTHON", variables)
+        self.assertEqual(variables.count("EMSDK"), 1)
+
     def test_wasm_wrapper_forwards_all_vcpkg_flags(self) -> None:
         wrapper = (
             REPO / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
@@ -196,6 +217,8 @@ class ToolchainContractTest(unittest.TestCase):
     def test_qtbase_overlay_enables_features_and_keeps_version_check(self) -> None:
         overlay = REPO / "vcpkgOverlayPortsWasm" / "qtbase"
         portfile = (overlay / "portfile.cmake").read_text("utf-8")
+        manifest = json.loads((overlay / "vcpkg.json").read_text("utf-8"))
+        self.assertEqual(manifest["port-version"], 2)
         self.assertIn("restore-wasm-version-check.patch", portfile)
         self.assertIn("-DFEATURE_thread:BOOL=ON", portfile)
         self.assertIn("-DFEATURE_wasm_exceptions:BOOL=ON", portfile)
@@ -214,11 +237,153 @@ class ToolchainContractTest(unittest.TestCase):
             attributes,
         )
         self.assertIn("include(QtPublicWasmToolchainHelpers)", patch)
+        self.assertIn(
+            (
+                '"${QT6_INSTALL_PREFIX}/${QT6_INSTALL_HEADERS}/'
+                'QtCore/qconfig.h"'
+            ),
+            patch,
+        )
+        self.assertIn(
+            '"${WASM_BUILD_DIR}/src/corelib/global/qconfig.h"',
+            patch,
+        )
+        self.assertIn(
+            '"${WASM_BUILD_DIR}/include/QtCore/qconfig.h"',
+            patch,
+        )
         self.assertEqual(
             hashlib.sha256(
                 (overlay / "restore-wasm-version-check.patch").read_bytes()
             ).hexdigest(),
             QTBASE_WASM_PATCH_SHA256,
+        )
+
+    def test_qtbase_overlay_seeds_wasm_mkspec_before_project(self) -> None:
+        portfile = (
+            REPO / "vcpkgOverlayPortsWasm" / "qtbase" / "portfile.cmake"
+        ).read_text("utf-8")
+        option = "-DQT_QMAKE_TARGET_MKSPEC:STRING=wasm-emscripten"
+        emscripten_options = re.search(
+            (
+                r"if\(VCPKG_TARGET_IS_EMSCRIPTEN\)\s*"
+                r"list\(APPEND FEATURE_OPTIONS(?P<body>.*?)\)\s*"
+                r"endif\(\)"
+            ),
+            portfile,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(emscripten_options)
+        self.assertIn(option, emscripten_options.group("body"))
+        self.assertEqual(portfile.count(option), 1)
+
+    def test_installed_qt_rejects_mismatched_emscripten(self) -> None:
+        cmake = (
+            REPO
+            / ".toolchains"
+            / "cmake-4.2.3-windows-x86_64"
+            / "bin"
+            / "cmake.exe"
+        )
+        qt_prefix = (
+            REPO
+            / ".wasm-vcpkg"
+            / "installed"
+            / "wasm32-emscripten-rg"
+        )
+        qt_cmake = qt_prefix / "share" / "Qt6"
+        qt_core_cmake = qt_prefix / "share" / "Qt6Core"
+        required = (
+            cmake,
+            qt_cmake / "Qt6Config.cmake",
+            qt_cmake / "QtInstallPaths.cmake",
+            qt_cmake / "QtPublicWasmToolchainHelpers.cmake",
+            qt_core_cmake / "Qt6CoreConfig.cmake",
+            qt_core_cmake / "Qt6CoreConfigExtras.cmake",
+        )
+        if not all(path.is_file() for path in required):
+            self.skipTest("requires the generated wasm-release Qt install")
+
+        qt6_config = required[1].read_text("utf-8")
+        install_paths = required[2].read_text("utf-8")
+        core_config = required[4].read_text("utf-8")
+        core_extras = required[5].read_text("utf-8")
+        self.assertIn(
+            'set(QT6_INSTALL_HEADERS "include/Qt6")',
+            install_paths,
+        )
+        self.assertLess(
+            qt6_config.index("QtInstallPaths.cmake"),
+            qt6_config.index("find_package(Qt6${module}"),
+        )
+        self.assertIn("Qt6CoreConfigExtras.cmake", core_config)
+        self.assertIn("Qt6WasmMacros.cmake", core_extras)
+
+        with tempfile.TemporaryDirectory(
+            prefix="rhythm-game-wasm-mismatch-"
+        ) as temporary:
+            temporary_path = Path(temporary)
+            fake_sdk = temporary_path / "fake-emsdk"
+            fake_emcc = (
+                fake_sdk / "upstream" / "emscripten" / "emcc.bat"
+            )
+            fake_emcc.parent.mkdir(parents=True)
+            (fake_sdk / ".emscripten").write_text(
+                (
+                    "emsdk_path = r'ignored-by-qt-regex'\n"
+                    "EMSCRIPTEN_ROOT = "
+                    "emsdk_path + '/upstream/emscripten'\n"
+                ),
+                encoding="utf-8",
+            )
+            fake_emcc.write_text(
+                (
+                    "@echo off\n"
+                    "echo emcc (Emscripten compiler) 9.9.9\n"
+                    "exit /b 0\n"
+                ),
+                encoding="utf-8",
+            )
+            check = temporary_path / "check-mismatch.cmake"
+            check.write_text(
+                (
+                    f'include("{required[2].as_posix()}")\n'
+                    "if(NOT QT6_INSTALL_HEADERS "
+                    'STREQUAL "include/Qt6")\n'
+                    '    message(FATAL_ERROR "missing install headers")\n'
+                    "endif()\n"
+                    f'include("{required[3].as_posix()}")\n'
+                    "_qt_test_emscripten_version()\n"
+                    'message(FATAL_ERROR "MISMATCH_SENTINEL")\n'
+                ),
+                encoding="utf-8",
+            )
+            environment = os.environ.copy()
+            environment["EMSDK"] = str(fake_sdk)
+            result = subprocess.run(
+                [str(cmake), "-P", str(check)],
+                cwd=REPO,
+                env=environment,
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+
+        output = result.stdout + result.stderr
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("MISMATCH_SENTINEL", output)
+        self.assertIn(
+            "Qt Wasm was built with Emscripten version: 4.0.7",
+            output,
+        )
+        self.assertIn(
+            "You are using Emscripten version: 9.9.9",
+            output,
+        )
+        self.assertIn(
+            "Stopping configuration due to mismatch",
+            output,
         )
 
     def test_qtdeclarative_disables_long_path_styles_only_for_host_tools(

@@ -351,6 +351,7 @@ set(TOOL_NAMES
 
 if(VCPKG_TARGET_IS_EMSCRIPTEN)
     list(APPEND FEATURE_OPTIONS
+        -DQT_QMAKE_TARGET_MKSPEC:STRING=wasm-emscripten
         -DFEATURE_thread:BOOL=ON
         -DFEATURE_wasm_exceptions:BOOL=ON
         -DFEATURE_wasm_jspi:BOOL=ON
