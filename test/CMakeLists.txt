@@ -88,6 +88,8 @@ add_custom_command(TARGET RhythmGame_test POST_BUILD
 if (WIN32)
     add_custom_command(TARGET RhythmGame_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:RhythmGame_test> $<TARGET_FILE_DIR:RhythmGame_test>
+            COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:RhythmGame_test>/platforms
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin> $<TARGET_FILE_DIR:RhythmGame_test>/platforms
             COMMAND_EXPAND_LISTS
     )
 endif ()
