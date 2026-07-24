@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ElementTree
+import zipfile
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -29,7 +30,43 @@ EXPECTED_VCPKG_VERSION_LINE = (
     "vcpkg package management program version "
     "2026-05-27-d5b6777d666efc1a7f491babfcdab37794c1ae3e"
 )
-EXPECTED_CMAKE = "4.2.3"
+EXPECTED_OUTER_CMAKE = "4.2.3"
+EXPECTED_OUTER_CMAKE_LOCK_ENTRY = {
+    "version": EXPECTED_OUTER_CMAKE,
+    "url": (
+        "https://cmake.org/files/v4.2/"
+        "cmake-4.2.3-windows-x86_64.zip"
+    ),
+    "sha256": (
+        "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c"
+    ),
+    "directory": "cmake-4.2.3-windows-x86_64",
+}
+EXPECTED_VCPKG_PORT_CMAKE = "4.3.3"
+EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY = {
+    "name": "cmake",
+    "os": "windows",
+    "arch": "amd64",
+    "version": EXPECTED_VCPKG_PORT_CMAKE,
+    "executable": (
+        "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+    ),
+    "url": (
+        "https://github.com/Kitware/CMake/releases/download/v4.3.3/"
+        "cmake-4.3.3-windows-x86_64.zip"
+    ),
+    "sha512": (
+        "0df613db23b315d81895e672e8460f2b35f4c2dd2eb9f07e10b13389a675edcb"
+        "09836a458b90d8c0211b3a2d6da38183714410769935a580b86a6177df691f6a"
+    ),
+    "archive": "cmake-4.3.3-windows-x86_64.zip",
+}
+EXPECTED_VCPKG_TOOLS_MANIFEST_SHA256 = (
+    "7757067afc4839dd982eee8cfb68cb500c4255a64c37a7c150ee9244342595e6"
+)
+EXPECTED_VCPKG_PORT_CMAKE_EXECUTABLE_SHA256 = (
+    "70fa92ce2ac9f54b0ae395b0b3790d9147ef2ebdbd7c4e0bb20852aac581baea"
+)
 EXPECTED_NINJA = "1.13.2"
 EXPECTED_QT = "6.11.1"
 EXPECTED_HOST_CXX_COMPILER = (
@@ -228,6 +265,14 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def sha512(path: Path) -> str:
+    digest = hashlib.sha512()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
@@ -411,6 +456,79 @@ def parse_vcpkg_status(path: Path) -> list[dict[str, str]]:
                 record[key] = value.strip()
         records.append(record)
     return records
+
+
+def select_vcpkg_port_cmake_manifest_entry(
+    manifest: Mapping[str, Any],
+) -> dict[str, str]:
+    require(
+        type(manifest.get("schema-version")) is int
+        and manifest["schema-version"] == 1,
+        "vcpkg tools manifest schema is not exactly 1",
+    )
+    tools = manifest.get("tools")
+    require(
+        isinstance(tools, list)
+        and all(isinstance(entry, Mapping) for entry in tools),
+        "vcpkg tools manifest tools must be a list of mappings",
+    )
+    matching = [
+        entry
+        for entry in tools
+        if entry.get("name") == "cmake"
+        and entry.get("os") == "windows"
+        and entry.get("arch") == "amd64"
+    ]
+    require(
+        len(matching) == 1,
+        "vcpkg tools manifest must contain exactly one Windows amd64 "
+        "CMake entry",
+    )
+    entry = dict(matching[0])
+    require(
+        entry == EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY,
+        "vcpkg Windows amd64 CMake manifest entry drifted",
+    )
+    return entry
+
+
+def require_archive_member_matches_file(
+    archive: Path,
+    member: str,
+    extracted: Path,
+) -> str:
+    require(archive.is_file(), f"missing authenticated archive: {archive}")
+    require(extracted.is_file(), f"missing extracted archive file: {extracted}")
+    with zipfile.ZipFile(archive) as package:
+        matches = [
+            info
+            for info in package.infolist()
+            if info.filename == member and not info.is_dir()
+        ]
+        require(
+            len(matches) == 1,
+            f"expected one archive member {member!r}, found {len(matches)}",
+        )
+        member_digest = hashlib.sha256()
+        with package.open(matches[0]) as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+                member_digest.update(chunk)
+    extracted_digest = sha256(extracted)
+    require(
+        extracted_digest == member_digest.hexdigest(),
+        f"extracted file does not match authenticated archive member {member}",
+    )
+    return extracted_digest
+
+
+def require_cache_cmake_command(
+    cache: Mapping[str, str],
+    expected: Path,
+    label: str,
+) -> Path:
+    command = cache.get("CMAKE_COMMAND", "")
+    require_same_path(command, expected, f"{label} CMAKE_COMMAND")
+    return Path(command).resolve()
 
 
 def require_exact_cache_values(
@@ -994,6 +1112,86 @@ def require_host_tool_version(name: str, output: str) -> str:
     return reported
 
 
+def verify_vcpkg_port_build_cmake(
+    repo: Path,
+    vcpkg: Path,
+) -> dict[str, Any]:
+    manifest_path = vcpkg / "scripts" / "vcpkg-tools.json"
+    require(
+        manifest_path.is_file(),
+        f"missing pinned vcpkg tools manifest: {manifest_path}",
+    )
+    manifest_sha256 = sha256(manifest_path)
+    require(
+        manifest_sha256 == EXPECTED_VCPKG_TOOLS_MANIFEST_SHA256,
+        "pinned vcpkg tools manifest SHA-256 drifted",
+    )
+    manifest = json.loads(manifest_path.read_text("utf-8"))
+    require(
+        isinstance(manifest, Mapping),
+        "pinned vcpkg tools manifest root must be a mapping",
+    )
+    entry = select_vcpkg_port_cmake_manifest_entry(manifest)
+
+    downloads = repo / ".wasm-vcpkg" / "downloads"
+    tool_root = (
+        downloads
+        / "tools"
+        / f"cmake-{EXPECTED_VCPKG_PORT_CMAKE}-windows"
+    ).resolve()
+    executable = (tool_root / Path(entry["executable"])).resolve()
+    require(
+        executable.is_relative_to(tool_root),
+        "vcpkg port-build CMake executable escapes its fixed tool root",
+    )
+    require(
+        executable.is_file(),
+        f"missing vcpkg port-build CMake executable: {executable}",
+    )
+
+    archive = (downloads / entry["archive"]).resolve()
+    require(
+        archive.parent == downloads.resolve() and archive.is_file(),
+        "vcpkg port-build CMake archive escapes downloads or is missing",
+    )
+    archive_sha512 = sha512(archive)
+    require(
+        archive_sha512 == entry["sha512"],
+        "vcpkg port-build CMake archive SHA-512 does not match manifest",
+    )
+    executable_sha256 = require_archive_member_matches_file(
+        archive,
+        entry["executable"],
+        executable,
+    )
+    require(
+        executable_sha256
+        == EXPECTED_VCPKG_PORT_CMAKE_EXECUTABLE_SHA256,
+        "vcpkg port-build CMake executable SHA-256 drifted",
+    )
+    version_output = first_line(run_text(executable, "--version"))
+    require(
+        version_output
+        == f"cmake version {EXPECTED_VCPKG_PORT_CMAKE}",
+        f"unexpected vcpkg port-build CMake identity: {version_output}",
+    )
+    return {
+        "version": EXPECTED_VCPKG_PORT_CMAKE,
+        "versionOutput": version_output,
+        "executable": relative_path(repo, executable),
+        "executableSha256": executable_sha256,
+        "toolsManifest": {
+            "path": relative_path(repo, manifest_path),
+            "sha256": manifest_sha256,
+            "entry": entry,
+        },
+        "archive": {
+            "path": relative_path(repo, archive),
+            "sha512": archive_sha512,
+        },
+    }
+
+
 def verify_toolchains(
     repo: Path,
     emsdk: Path,
@@ -1022,8 +1220,8 @@ def verify_toolchains(
         "vcpkg lock drift",
     )
     require(
-        lock["buildTools"]["cmake"]["version"] == EXPECTED_CMAKE,
-        "CMake lock drift",
+        lock["buildTools"]["cmake"] == EXPECTED_OUTER_CMAKE_LOCK_ENTRY,
+        "outer/probe CMake lock drift",
     )
     require(
         lock["buildTools"]["ninja"]["version"] == EXPECTED_NINJA,
@@ -1034,7 +1232,7 @@ def verify_toolchains(
     expected_vcpkg = (
         repo / ".toolchains" / f"vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}"
     )
-    expected_cmake = (
+    expected_outer_cmake = (
         repo
         / ".toolchains"
         / lock["buildTools"]["cmake"]["directory"]
@@ -1062,7 +1260,7 @@ def verify_toolchains(
     require_same_path(emsdk, expected_emsdk, "emsdk argument")
     require_same_path(vcpkg, expected_vcpkg, "vcpkg argument")
     for path in (
-        expected_cmake,
+        expected_outer_cmake,
         expected_ninja,
         expected_vcpkg_exe,
         expected_emxx,
@@ -1078,7 +1276,11 @@ def verify_toolchains(
     }
     for name, value in resolved_commands.items():
         require(value is not None, f"{name} is not available in wrapper PATH")
-    require_same_path(resolved_commands["cmake"], expected_cmake, "CMake PATH")
+    require_same_path(
+        resolved_commands["cmake"],
+        expected_outer_cmake,
+        "outer/probe CMake PATH",
+    )
     require_same_path(resolved_commands["ninja"], expected_ninja, "Ninja PATH")
     require_same_path(
         resolved_commands["vcpkg"],
@@ -1118,6 +1320,7 @@ def verify_toolchains(
     require(vcpkg_head == EXPECTED_VCPKG_COMMIT, f"vcpkg HEAD {vcpkg_head}")
     require(not git(emsdk, "status", "--porcelain"), "emsdk is dirty")
     require(not git(vcpkg, "status", "--porcelain"), "vcpkg is dirty")
+    vcpkg_port_cmake = verify_vcpkg_port_build_cmake(repo, vcpkg)
 
     emxx_version = run_text(
         emsdk_python,
@@ -1126,7 +1329,7 @@ def verify_toolchains(
         "--version",
     )
     vcpkg_version = run_text(expected_vcpkg_exe, "version")
-    cmake_version = run_text(expected_cmake, "--version")
+    outer_cmake_version = run_text(expected_outer_cmake, "--version")
     ninja_version = run_text(expected_ninja, "--version")
     require(
         first_line(emxx_version) == EXPECTED_EMXX_VERSION_LINE,
@@ -1137,8 +1340,10 @@ def verify_toolchains(
         f"unexpected vcpkg identity: {first_line(vcpkg_version)}",
     )
     require(
-        first_line(cmake_version) == f"cmake version {EXPECTED_CMAKE}",
-        f"unexpected CMake identity: {first_line(cmake_version)}",
+        first_line(outer_cmake_version)
+        == f"cmake version {EXPECTED_OUTER_CMAKE}",
+        "unexpected outer/probe CMake identity: "
+        f"{first_line(outer_cmake_version)}",
     )
     require(
         first_line(ninja_version) == EXPECTED_NINJA,
@@ -1161,11 +1366,13 @@ def verify_toolchains(
             "versionOutput": first_line(vcpkg_version),
             "executable": relative_path(repo, expected_vcpkg_exe),
         },
-        "cmake": {
-            "version": EXPECTED_CMAKE,
-            "versionOutput": first_line(cmake_version),
-            "executable": relative_path(repo, expected_cmake),
+        "outerProbeCMake": {
+            "version": EXPECTED_OUTER_CMAKE,
+            "versionOutput": first_line(outer_cmake_version),
+            "executable": relative_path(repo, expected_outer_cmake),
+            "lockEntry": dict(EXPECTED_OUTER_CMAKE_LOCK_ENTRY),
         },
+        "vcpkgPortBuildCMake": vcpkg_port_cmake,
         "ninja": {
             "version": EXPECTED_NINJA,
             "versionOutput": first_line(ninja_version),
@@ -1420,6 +1627,7 @@ def verify_qtdeclarative_cache_provenance(
     repo: Path,
     installed: Path,
     buildtrees: Path,
+    vcpkg_port_cmake: Path,
 ) -> dict[str, Any]:
     source_root = buildtrees / "qtdeclarative" / "src"
     packages = installed.parent / "packages"
@@ -1468,6 +1676,11 @@ def verify_qtdeclarative_cache_provenance(
             f"QtDeclarative {label} build directory drifted",
         )
         cache = parse_cmake_cache(build / "CMakeCache.txt")
+        require_cache_cmake_command(
+            cache,
+            vcpkg_port_cmake,
+            f"QtDeclarative {label}",
+        )
         expected_install_prefix = packages / f"qtdeclarative_{triplet}"
         expected_cache = {
             "VCPKG_TARGET_TRIPLET": triplet,
@@ -1580,6 +1793,7 @@ def verify_qtdeclarative_cache_provenance(
             "sourceDirectory": relative_path(repo, source),
             "targetTriplet": triplet,
             "generator": "Ninja",
+            "cmakeCommand": relative_path(repo, vcpkg_port_cmake),
             "installPrefix": relative_path(repo, expected_install_prefix),
             "installedRoot": relative_path(repo, installed),
             "qtPackagePrefix": relative_path(
@@ -1618,6 +1832,8 @@ def verify_cmake_identity(
     repo: Path,
     build: Path,
     buildtrees: Path,
+    outer_probe_cmake: Path,
+    vcpkg_port_cmake: Path,
 ) -> dict[str, Any]:
     probe_cache = parse_cmake_cache(build / "CMakeCache.txt")
     expected_ninja = (
@@ -1630,6 +1846,11 @@ def verify_cmake_identity(
         / "upstream"
         / "emscripten"
         / "em++.bat"
+    )
+    probe_cmake_command = require_cache_cmake_command(
+        probe_cache,
+        outer_probe_cmake,
+        "outer probe",
     )
     require_same_path(
         probe_cache.get("CMAKE_MAKE_PROGRAM", ""),
@@ -1655,6 +1876,11 @@ def verify_cmake_identity(
 
     qtbase_build = buildtrees / "qtbase" / f"{TARGET_TRIPLET}-rel"
     qtbase_cache = parse_cmake_cache(qtbase_build / "CMakeCache.txt")
+    qtbase_cmake_command = require_cache_cmake_command(
+        qtbase_cache,
+        vcpkg_port_cmake,
+        "QtBase target",
+    )
     require(
         qtbase_cache.get("CMAKE_GENERATOR") == "Ninja",
         "QtBase target CMAKE_GENERATOR is not exactly Ninja",
@@ -1676,6 +1902,14 @@ def verify_cmake_identity(
         "generator": "Ninja",
         "makeProgram": relative_path(repo, expected_ninja),
         "chainloadToolchain": "cmake/toolchains/vcpkg-emscripten.cmake",
+        "outerProbeCMakeCommand": relative_path(
+            repo,
+            probe_cmake_command,
+        ),
+        "qtBaseTargetCMakeCommand": relative_path(
+            repo,
+            qtbase_cmake_command,
+        ),
         "probeCompiler": relative_path(repo, probe_compiler),
         "probeCompilerVersion": compiler_version,
         "qtTargetCCompiler": relative_path(repo, qt_c_compiler),
@@ -1989,6 +2223,7 @@ def verify_features_and_autogen(
     repo: Path,
     installed: Path,
     buildtrees: Path,
+    vcpkg_port_cmake: Path,
 ) -> dict[str, Any]:
     qtbase = buildtrees / "qtbase" / f"{TARGET_TRIPLET}-rel"
     declarative_target = (
@@ -2005,6 +2240,7 @@ def verify_features_and_autogen(
             repo,
             installed,
             buildtrees,
+            vcpkg_port_cmake,
         )
     )
     for label, cache in (
@@ -2781,12 +3017,29 @@ def build_evidence(
 
     toolchains = verify_toolchains(repo, emsdk, vcpkg)
     ninja = repo / toolchains["ninja"]["executable"]
+    outer_probe_cmake = (
+        repo / toolchains["outerProbeCMake"]["executable"]
+    ).resolve()
+    vcpkg_port_cmake = (
+        repo / toolchains["vcpkgPortBuildCMake"]["executable"]
+    ).resolve()
     build_freshness = verify_build_freshness(repo, build, ninja)
     qt = verify_qt_installation(repo, installed, build)
-    cmake_identity = verify_cmake_identity(repo, build, buildtrees)
+    cmake_identity = verify_cmake_identity(
+        repo,
+        build,
+        buildtrees,
+        outer_probe_cmake,
+        vcpkg_port_cmake,
+    )
     compile_commands = verify_compile_commands(repo, build, buildtrees)
     application_link = verify_application_link(repo, build, ninja)
-    features = verify_features_and_autogen(repo, installed, buildtrees)
+    features = verify_features_and_autogen(
+        repo,
+        installed,
+        buildtrees,
+        vcpkg_port_cmake,
+    )
     overlays = verify_overlays(repo, vcpkg)
     artifacts = verify_artifacts(repo, build)
 
@@ -2845,6 +3098,14 @@ def require_sha256_value(value: Any, label: str) -> None:
     )
 
 
+def require_sha512_value(value: Any, label: str) -> None:
+    require_exact_type(value, str, label)
+    require(
+        re.fullmatch(r"[0-9a-f]{128}", value) is not None,
+        f"{label} must be a lowercase SHA-512",
+    )
+
+
 def require_positive_int(value: Any, label: str) -> None:
     require_exact_type(value, int, label)
     require(value > 0, f"{label} must be positive")
@@ -2854,7 +3115,14 @@ def validate_toolchain_evidence(value: Any) -> None:
     toolchains = require_mapping(value, "toolchains")
     require_exact_keys(
         toolchains,
-        {"lockFileSha256", "emscripten", "vcpkg", "cmake", "ninja"},
+        {
+            "lockFileSha256",
+            "emscripten",
+            "vcpkg",
+            "outerProbeCMake",
+            "vcpkgPortBuildCMake",
+            "ninja",
+        },
         "toolchains",
     )
     require_sha256_value(
@@ -2912,22 +3180,111 @@ def validate_toolchain_evidence(value: Any) -> None:
         },
         "vcpkg evidence does not match the exact pin",
     )
-    cmake = require_mapping(toolchains["cmake"], "toolchains.cmake")
+    outer_cmake = require_mapping(
+        toolchains["outerProbeCMake"],
+        "toolchains.outerProbeCMake",
+    )
     require_exact_keys(
-        cmake,
-        {"version", "versionOutput", "executable"},
-        "toolchains.cmake",
+        outer_cmake,
+        {"version", "versionOutput", "executable", "lockEntry"},
+        "toolchains.outerProbeCMake",
     )
     require(
-        cmake
+        outer_cmake
         == {
-            "version": EXPECTED_CMAKE,
-            "versionOutput": f"cmake version {EXPECTED_CMAKE}",
+            "version": EXPECTED_OUTER_CMAKE,
+            "versionOutput": f"cmake version {EXPECTED_OUTER_CMAKE}",
             "executable": (
                 ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe"
             ),
+            "lockEntry": EXPECTED_OUTER_CMAKE_LOCK_ENTRY,
         },
-        "CMake evidence does not match the exact pin",
+        "outer/probe CMake evidence does not match the exact pin",
+    )
+
+    port_cmake = require_mapping(
+        toolchains["vcpkgPortBuildCMake"],
+        "toolchains.vcpkgPortBuildCMake",
+    )
+    require_exact_keys(
+        port_cmake,
+        {
+            "version",
+            "versionOutput",
+            "executable",
+            "executableSha256",
+            "toolsManifest",
+            "archive",
+        },
+        "toolchains.vcpkgPortBuildCMake",
+    )
+    expected_port_executable = (
+        ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/"
+        "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+    )
+    require(
+        port_cmake["version"] == EXPECTED_VCPKG_PORT_CMAKE
+        and port_cmake["versionOutput"]
+        == f"cmake version {EXPECTED_VCPKG_PORT_CMAKE}"
+        and port_cmake["executable"] == expected_port_executable
+        and port_cmake["executableSha256"]
+        == EXPECTED_VCPKG_PORT_CMAKE_EXECUTABLE_SHA256,
+        "vcpkg port-build CMake executable evidence drifted",
+    )
+    require_sha256_value(
+        port_cmake["executableSha256"],
+        "toolchains.vcpkgPortBuildCMake.executableSha256",
+    )
+    tools_manifest = require_mapping(
+        port_cmake["toolsManifest"],
+        "toolchains.vcpkgPortBuildCMake.toolsManifest",
+    )
+    require_exact_keys(
+        tools_manifest,
+        {"path", "sha256", "entry"},
+        "toolchains.vcpkgPortBuildCMake.toolsManifest",
+    )
+    require_sha256_value(
+        tools_manifest["sha256"],
+        "toolchains.vcpkgPortBuildCMake.toolsManifest.sha256",
+    )
+    require(
+        tools_manifest["path"]
+        == (
+            f".toolchains/vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}/"
+            "scripts/vcpkg-tools.json"
+        )
+        and tools_manifest["sha256"]
+        == EXPECTED_VCPKG_TOOLS_MANIFEST_SHA256
+        and tools_manifest["entry"]
+        == EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY,
+        "vcpkg port-build CMake manifest evidence drifted",
+    )
+    archive = require_mapping(
+        port_cmake["archive"],
+        "toolchains.vcpkgPortBuildCMake.archive",
+    )
+    require_exact_keys(
+        archive,
+        {"path", "sha512"},
+        "toolchains.vcpkgPortBuildCMake.archive",
+    )
+    require_sha512_value(
+        archive["sha512"],
+        "toolchains.vcpkgPortBuildCMake.archive.sha512",
+    )
+    require(
+        archive
+        == {
+            "path": (
+                ".wasm-vcpkg/downloads/"
+                "cmake-4.3.3-windows-x86_64.zip"
+            ),
+            "sha512": (
+                EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["sha512"]
+            ),
+        },
+        "vcpkg port-build CMake archive evidence drifted",
     )
     ninja = require_mapping(toolchains["ninja"], "toolchains.ninja")
     require_exact_keys(
@@ -3028,6 +3385,8 @@ def validate_cmake_evidence(value: Any) -> None:
             "generator",
             "makeProgram",
             "chainloadToolchain",
+            "outerProbeCMakeCommand",
+            "qtBaseTargetCMakeCommand",
             "probeCompiler",
             "probeCompilerVersion",
             "qtTargetCCompiler",
@@ -3044,6 +3403,13 @@ def validate_cmake_evidence(value: Any) -> None:
             "chainloadToolchain": (
                 "cmake/toolchains/vcpkg-emscripten.cmake"
             ),
+            "outerProbeCMakeCommand": (
+                ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe"
+            ),
+            "qtBaseTargetCMakeCommand": (
+                ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/"
+                "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+            ),
             "probeCompiler": (
                 ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat"
             ),
@@ -3058,6 +3424,58 @@ def validate_cmake_evidence(value: Any) -> None:
         },
         "CMake build evidence does not match the exact configuration",
     )
+
+
+def validate_cmake_role_cross_fields(
+    toolchain_value: Any,
+    cmake_build_value: Any,
+    declarative_value: Any,
+) -> None:
+    toolchains = require_mapping(toolchain_value, "toolchains")
+    outer = require_mapping(
+        toolchains["outerProbeCMake"],
+        "toolchains.outerProbeCMake",
+    )
+    port = require_mapping(
+        toolchains["vcpkgPortBuildCMake"],
+        "toolchains.vcpkgPortBuildCMake",
+    )
+    cmake_build = require_mapping(cmake_build_value, "cmakeBuild")
+    declarative = require_mapping(
+        declarative_value,
+        "qtDeclarativeCacheProvenance",
+    )
+    target = require_mapping(
+        declarative["target"],
+        "qtDeclarativeCacheProvenance.target",
+    )
+    host = require_mapping(
+        declarative["host"],
+        "qtDeclarativeCacheProvenance.host",
+    )
+
+    outer_executable = outer.get("executable")
+    port_executable = port.get("executable")
+    require(
+        outer.get("version") == EXPECTED_OUTER_CMAKE
+        and port.get("version") == EXPECTED_VCPKG_PORT_CMAKE
+        and outer_executable != port_executable,
+        "CMake role identities were flattened or drifted",
+    )
+    require(
+        cmake_build.get("outerProbeCMakeCommand") == outer_executable,
+        "outer probe CMake role does not match its cache command",
+    )
+    require(
+        cmake_build.get("qtBaseTargetCMakeCommand") == port_executable,
+        "QtBase target CMake role does not match its cache command",
+    )
+    for label, record in (("target", target), ("host", host)):
+        require(
+            record.get("cmakeCommand") == port_executable,
+            f"QtDeclarative {label} CMake role does not match its "
+            "cache command",
+        )
 
 
 def validate_qt_evidence(value: Any) -> None:
@@ -3206,6 +3624,7 @@ def validate_qtdeclarative_cache_evidence(value: Any) -> None:
         "sourceDirectory",
         "targetTriplet",
         "generator",
+        "cmakeCommand",
         "installPrefix",
         "installedRoot",
         "qtPackagePrefix",
@@ -3223,6 +3642,10 @@ def validate_qtdeclarative_cache_evidence(value: Any) -> None:
                 f".wb/qtdeclarative/{TARGET_TRIPLET}-rel"
             ),
             "targetTriplet": TARGET_TRIPLET,
+            "cmakeCommand": (
+                ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/"
+                "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+            ),
             "installPrefix": (
                 ".wasm-vcpkg/packages/"
                 f"qtdeclarative_{TARGET_TRIPLET}"
@@ -3252,6 +3675,10 @@ def validate_qtdeclarative_cache_evidence(value: Any) -> None:
                 f".wb/qtdeclarative/{HOST_TRIPLET}-rel"
             ),
             "targetTriplet": HOST_TRIPLET,
+            "cmakeCommand": (
+                ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/"
+                "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+            ),
             "installPrefix": (
                 ".wasm-vcpkg/packages/"
                 f"qtdeclarative_{HOST_TRIPLET}"
@@ -3291,6 +3718,7 @@ def validate_qtdeclarative_cache_evidence(value: Any) -> None:
         for name in (
             "buildDirectory",
             "targetTriplet",
+            "cmakeCommand",
             "installPrefix",
             "installedRoot",
             "qtPackagePrefix",
@@ -3880,6 +4308,15 @@ def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
     validate_application_link_evidence(evidence["applicationLink"])
     validate_overlay_evidence(evidence["overlays"])
     validate_artifact_evidence(evidence["artifacts"])
+    features = require_mapping(
+        evidence["featuresAndAutogen"],
+        "featuresAndAutogen",
+    )
+    validate_cmake_role_cross_fields(
+        evidence["toolchains"],
+        evidence["cmakeBuild"],
+        features["qtDeclarativeCacheProvenance"],
+    )
 
 
 def write_evidence_atomic(

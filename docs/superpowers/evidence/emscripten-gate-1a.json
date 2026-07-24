@@ -197,8 +197,10 @@
     "chainloadToolchain": "cmake/toolchains/vcpkg-emscripten.cmake",
     "generator": "Ninja",
     "makeProgram": ".toolchains/ninja-1.13.2-win/ninja.exe",
+    "outerProbeCMakeCommand": ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe",
     "probeCompiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
     "probeCompilerVersion": "21.0.0",
+    "qtBaseTargetCMakeCommand": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/cmake-4.3.3-windows-x86_64/bin/cmake.exe",
     "qtTargetCCompiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/emcc.bat",
     "qtTargetCompilerVersion": "21.0.0",
     "qtTargetCxxCompiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat"
@@ -376,6 +378,7 @@
     "qtDeclarativeCacheProvenance": {
       "host": {
         "buildDirectory": ".wb/qtdeclarative/x64-windows-rg-host-release-rel",
+        "cmakeCommand": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/cmake-4.3.3-windows-x86_64/bin/cmake.exe",
         "compiler": {
           "architecture": "x64",
           "frontendVariant": "MSVC",
@@ -396,6 +399,7 @@
       },
       "target": {
         "buildDirectory": ".wb/qtdeclarative/wasm32-emscripten-rg-rel",
+        "cmakeCommand": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/cmake-4.3.3-windows-x86_64/bin/cmake.exe",
         "compiler": {
           "architecture": "wasm32",
           "frontendVariant": "GNU",
@@ -621,11 +625,6 @@
   "scope": "Technical Qt/Emscripten build probe only; browser runtime capabilities remain Gate 1B work.",
   "technicalProbePassed": true,
   "toolchains": {
-    "cmake": {
-      "executable": ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe",
-      "version": "4.2.3",
-      "versionOutput": "cmake version 4.2.3"
-    },
     "emscripten": {
       "driver": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py",
       "emsdkCommit": "c69d433d8509c5c64564c2f0d054bf102a5cf67e",
@@ -641,10 +640,45 @@
       "version": "1.13.2",
       "versionOutput": "1.13.2"
     },
+    "outerProbeCMake": {
+      "executable": ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe",
+      "lockEntry": {
+        "directory": "cmake-4.2.3-windows-x86_64",
+        "sha256": "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c",
+        "url": "https://cmake.org/files/v4.2/cmake-4.2.3-windows-x86_64.zip",
+        "version": "4.2.3"
+      },
+      "version": "4.2.3",
+      "versionOutput": "cmake version 4.2.3"
+    },
     "vcpkg": {
       "baselineCommit": "a0400024711b283056538ac19ced80b91a83c24c",
       "executable": ".toolchains/vcpkg-a0400024/vcpkg.exe",
       "versionOutput": "vcpkg package management program version 2026-05-27-d5b6777d666efc1a7f491babfcdab37794c1ae3e"
+    },
+    "vcpkgPortBuildCMake": {
+      "archive": {
+        "path": ".wasm-vcpkg/downloads/cmake-4.3.3-windows-x86_64.zip",
+        "sha512": "0df613db23b315d81895e672e8460f2b35f4c2dd2eb9f07e10b13389a675edcb09836a458b90d8c0211b3a2d6da38183714410769935a580b86a6177df691f6a"
+      },
+      "executable": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/cmake-4.3.3-windows-x86_64/bin/cmake.exe",
+      "executableSha256": "70fa92ce2ac9f54b0ae395b0b3790d9147ef2ebdbd7c4e0bb20852aac581baea",
+      "toolsManifest": {
+        "entry": {
+          "arch": "amd64",
+          "archive": "cmake-4.3.3-windows-x86_64.zip",
+          "executable": "cmake-4.3.3-windows-x86_64/bin/cmake.exe",
+          "name": "cmake",
+          "os": "windows",
+          "sha512": "0df613db23b315d81895e672e8460f2b35f4c2dd2eb9f07e10b13389a675edcb09836a458b90d8c0211b3a2d6da38183714410769935a580b86a6177df691f6a",
+          "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-windows-x86_64.zip",
+          "version": "4.3.3"
+        },
+        "path": ".toolchains/vcpkg-a0400024/scripts/vcpkg-tools.json",
+        "sha256": "7757067afc4839dd982eee8cfb68cb500c4255a64c37a7c150ee9244342595e6"
+      },
+      "version": "4.3.3",
+      "versionOutput": "cmake version 4.3.3"
     }
   },
   "unprovenUntilGate1B": [

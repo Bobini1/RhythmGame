@@ -1,6 +1,7 @@
 import json
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 from unittest import mock
 
@@ -512,6 +513,154 @@ class VerifyBuildContractTest(unittest.TestCase):
             verify_build.require_vcpkg_env_passthrough(
                 triplet,
                 ("EMSDK", "EMSDK_PYTHON"),
+            )
+
+    def test_vcpkg_port_cmake_manifest_entry_is_exact(self) -> None:
+        expected = dict(
+            verify_build.EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY
+        )
+        manifest = {"schema-version": 1, "tools": [expected]}
+        self.assertEqual(
+            verify_build.select_vcpkg_port_cmake_manifest_entry(manifest),
+            expected,
+        )
+
+        cases = {
+            "wrong entry": ("executable", "near/cmake.exe"),
+            "wrong version": ("version", "4.3.30"),
+            "wrong hash": ("sha512", "0" * 128),
+            "wrong URL": ("url", "https://example.invalid/cmake.zip"),
+        }
+        for label, (field, value) in cases.items():
+            with self.subTest(label=label):
+                altered = dict(expected)
+                altered[field] = value
+                with self.assertRaisesRegex(
+                    AssertionError,
+                    "vcpkg.*CMake",
+                ):
+                    verify_build.select_vcpkg_port_cmake_manifest_entry(
+                        {"schema-version": 1, "tools": [altered]}
+                    )
+
+        with self.assertRaisesRegex(AssertionError, "exactly one"):
+            verify_build.select_vcpkg_port_cmake_manifest_entry(
+                {"schema-version": 1, "tools": [expected, dict(expected)]}
+            )
+
+    def test_vcpkg_port_cmake_executable_matches_manifest_archive(
+        self,
+    ) -> None:
+        member = (
+            "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            archive = root / "cmake.zip"
+            executable = root / "cmake.exe"
+            payload = b"authenticated-cmake"
+            with zipfile.ZipFile(archive, "w") as package:
+                package.writestr(member, payload)
+            executable.write_bytes(payload)
+
+            self.assertEqual(
+                verify_build.require_archive_member_matches_file(
+                    archive,
+                    member,
+                    executable,
+                ),
+                verify_build.sha256(executable),
+            )
+
+            executable.write_bytes(b"mutated-cmake")
+            with self.assertRaisesRegex(
+                AssertionError,
+                "archive member",
+            ):
+                verify_build.require_archive_member_matches_file(
+                    archive,
+                    member,
+                    executable,
+                )
+
+    def test_cmake_cache_command_rejects_wrong_or_near_path(self) -> None:
+        expected = Path(
+            r"T:\repo\.wasm-vcpkg\downloads\tools"
+            r"\cmake-4.3.3-windows"
+            r"\cmake-4.3.3-windows-x86_64\bin\cmake.exe"
+        )
+        self.assertEqual(
+            verify_build.require_cache_cmake_command(
+                {"CMAKE_COMMAND": str(expected)},
+                expected,
+                "QtBase target",
+            ),
+            expected.resolve(),
+        )
+        for wrong in (
+            r"T:\repo\.toolchains\cmake-4.2.3-windows-x86_64"
+            r"\bin\cmake.exe",
+            str(expected) + ".backup",
+        ):
+            with self.subTest(wrong=wrong):
+                with self.assertRaisesRegex(
+                    AssertionError,
+                    "CMAKE_COMMAND",
+                ):
+                    verify_build.require_cache_cmake_command(
+                        {"CMAKE_COMMAND": wrong},
+                        expected,
+                        "QtBase target",
+                    )
+
+    def test_cmake_role_cross_validation_rejects_flattening(self) -> None:
+        outer = (
+            ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe"
+        )
+        port = (
+            ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/"
+            "cmake-4.3.3-windows-x86_64/bin/cmake.exe"
+        )
+        toolchains = {
+            "outerProbeCMake": {
+                "version": "4.2.3",
+                "executable": outer,
+            },
+            "vcpkgPortBuildCMake": {
+                "version": "4.3.3",
+                "executable": port,
+            },
+        }
+        cmake_build = {
+            "outerProbeCMakeCommand": outer,
+            "qtBaseTargetCMakeCommand": port,
+        }
+        declarative = {
+            "target": {"cmakeCommand": port},
+            "host": {"cmakeCommand": port},
+        }
+        verify_build.validate_cmake_role_cross_fields(
+            toolchains,
+            cmake_build,
+            declarative,
+        )
+
+        flattened = json.loads(json.dumps(cmake_build))
+        flattened["qtBaseTargetCMakeCommand"] = outer
+        with self.assertRaisesRegex(AssertionError, "role"):
+            verify_build.validate_cmake_role_cross_fields(
+                toolchains,
+                flattened,
+                declarative,
+            )
+
+        near_miss = json.loads(json.dumps(declarative))
+        near_miss["host"]["cmakeCommand"] = port + ".backup"
+        with self.assertRaisesRegex(AssertionError, "role"):
+            verify_build.validate_cmake_role_cross_fields(
+                toolchains,
+                cmake_build,
+                near_miss,
             )
 
 
