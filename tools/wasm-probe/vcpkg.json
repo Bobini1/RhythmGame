@@ -9,11 +9,13 @@
       "features": [
         "concurrent",
         "future",
+        "freetype",
         "gles2",
         "gui",
         "harfbuzz",
         "jpeg",
         "network",
+        "opengl",
         "png",
         "testlib",
         "thread"

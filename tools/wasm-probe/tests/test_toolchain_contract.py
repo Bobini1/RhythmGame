@@ -99,6 +99,15 @@ class ToolchainContractTest(unittest.TestCase):
         self.assertIn("qtimageformats", encoded)
         self.assertIn("qtmultimedia", encoded)
         self.assertIn("qtwebsockets", encoded)
+        qtbase = next(
+            dependency
+            for dependency in manifest["dependencies"]
+            if isinstance(dependency, dict)
+            and dependency.get("name") == "qtbase"
+        )
+        self.assertIn("freetype", qtbase["features"])
+        self.assertIn("gles2", qtbase["features"])
+        self.assertIn("opengl", qtbase["features"])
         qttools = next(
             dependency
             for dependency in manifest["dependencies"]
@@ -118,13 +127,19 @@ class ToolchainContractTest(unittest.TestCase):
         self.assertIn("set(VCPKG_BUILD_TYPE release)", triplet)
         self.assertIn("set(VCPKG_CMAKE_SYSTEM_NAME Emscripten)", triplet)
         self.assertIn("EXPECTED_EMSCRIPTEN_VERSION \"4.0.7\"", triplet)
-        self.assertIn('set(VCPKG_C_FLAGS "-pthread")', triplet)
+        self.assertIn("EMSDK_PYTHON", triplet)
         self.assertIn(
-            'set(VCPKG_CXX_FLAGS "-pthread -fwasm-exceptions")',
+            'set(VCPKG_C_FLAGS "-pthread -sSUPPORT_LONGJMP=wasm")',
             triplet,
         )
         self.assertIn(
-            'set(VCPKG_LINKER_FLAGS "-pthread -fwasm-exceptions")',
+            "set(VCPKG_CXX_FLAGS "
+            '"-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm")',
+            triplet,
+        )
+        self.assertIn(
+            "set(VCPKG_LINKER_FLAGS "
+            '"-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm")',
             triplet,
         )
         self.assertNotIn(
@@ -150,6 +165,33 @@ class ToolchainContractTest(unittest.TestCase):
         ):
             self.assertIn(variable, wrapper)
         self.assertIn("Emscripten.cmake", wrapper)
+
+    def test_wasm_wrapper_forces_ninja_response_files(self) -> None:
+        chainload = (
+            REPO / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
+        ).read_text("utf-8")
+        invocation_wrapper = (
+            PROBE / "scripts" / "Invoke-WithToolchains.ps1"
+        ).read_text("utf-8")
+        triplet = (
+            REPO / "vcpkgTriplets" / "wasm32-emscripten-rg.cmake"
+        ).read_text("utf-8")
+        self.assertIn(
+            "$env:CMAKE_NINJA_FORCE_RESPONSE_FILE = '1'",
+            invocation_wrapper,
+        )
+        self.assertIn(
+            "CMAKE_NINJA_FORCE_RESPONSE_FILE",
+            triplet,
+        )
+        self.assertNotIn(
+            "set(CMAKE_C_COMPILER",
+            chainload,
+        )
+        self.assertNotIn(
+            "set(CMAKE_CXX_COMPILER",
+            chainload,
+        )
 
     def test_qtbase_overlay_enables_features_and_keeps_version_check(self) -> None:
         overlay = REPO / "vcpkgOverlayPortsWasm" / "qtbase"
@@ -177,6 +219,60 @@ class ToolchainContractTest(unittest.TestCase):
                 (overlay / "restore-wasm-version-check.patch").read_bytes()
             ).hexdigest(),
             QTBASE_WASM_PATCH_SHA256,
+        )
+
+    def test_qtdeclarative_disables_long_path_styles_only_for_host_tools(
+        self,
+    ) -> None:
+        portfile = (
+            REPO / "vcpkgOverlayPorts" / "qtdeclarative" / "portfile.cmake"
+        ).read_text("utf-8")
+        fluent_option = "-DFEATURE_quickcontrols2_fluentwinui3:BOOL=OFF"
+        universal_option = "-DFEATURE_quickcontrols2_universal:BOOL=OFF"
+        self.assertEqual(portfile.count(fluent_option), 1)
+        self.assertEqual(portfile.count(universal_option), 1)
+        self.assertNotIn("CMAKE_OBJECT_PATH_MAX", portfile)
+        self.assertRegex(
+            portfile,
+            (
+                r"(?s)if\(VCPKG_TARGET_IS_WINDOWS AND\s+"
+                r'TARGET_TRIPLET STREQUAL "'
+                r'x64-windows-rg-host-release"\).*?'
+                + fluent_option
+                + r".*?"
+                + universal_option
+                + r".*?endif\(\)"
+            ),
+        )
+        self.assertNotIn("VCPKG_TARGET_TRIPLET STREQUAL", portfile)
+
+    def test_wasm_autogen_uses_batch_safe_response_threshold(self) -> None:
+        portfile = (
+            REPO / "vcpkgOverlayPorts" / "qtdeclarative" / "portfile.cmake"
+        ).read_text("utf-8")
+        option = (
+            "-DCMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX:STRING=4096"
+        )
+        self.assertIn(option, portfile)
+        self.assertRegex(
+            portfile,
+            (
+                r"(?s)if\(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "
+                r'"Emscripten"\).*?'
+                + option
+                + r".*?endif\(\)"
+            ),
+        )
+        presets = json.loads((PROBE / "CMakePresets.json").read_text("utf-8"))
+        cache = presets["configurePresets"][0]["cacheVariables"]
+        self.assertEqual(
+            cache["CMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX"],
+            "4096",
+        )
+        self.assertNotIn("CMAKE_AUTOMOC_COMPILER_PREDEFINES", portfile)
+        self.assertNotIn(
+            "CMAKE_AUTOMOC_COMPILER_PREDEFINES",
+            json.dumps(presets),
         )
 
     def test_existing_qtdeclarative_patch_bytes_are_unchanged(self) -> None:

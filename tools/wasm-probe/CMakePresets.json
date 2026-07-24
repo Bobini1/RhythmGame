@@ -1,0 +1,39 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "wasm-release",
+      "displayName": "Wasm Gate 1A Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/wasm-release",
+      "cacheVariables": {
+        "CMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX": "4096",
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_FIND_ROOT_PATH_MODE_PACKAGE": "ONLY",
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/../../cmake/toolchains/vcpkg-emscripten.cmake",
+        "VCPKG_HOST_TRIPLET": "x64-windows-rg-host-release",
+        "VCPKG_INSTALL_OPTIONS": "--x-buildtrees-root=${sourceDir}/../../.wb;--x-packages-root=${sourceDir}/../../.wasm-vcpkg/packages;--downloads-root=${sourceDir}/../../.wasm-vcpkg/downloads",
+        "VCPKG_INSTALLED_DIR": "${sourceDir}/../../.wasm-vcpkg/installed",
+        "VCPKG_MANIFEST_DIR": "${sourceDir}",
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/../../vcpkgOverlayPorts;${sourceDir}/../../vcpkgOverlayPortsWasm",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/../../vcpkgTriplets",
+        "VCPKG_TARGET_TRIPLET": "wasm32-emscripten-rg"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "wasm-release",
+      "configurePreset": "wasm-release",
+      "configuration": "Release",
+      "verbose": true
+    }
+  ]
+}

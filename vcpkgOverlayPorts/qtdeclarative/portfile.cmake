@@ -30,10 +30,28 @@ set(${PORT}_PATCHES
         svgtoqml
     )
 
+set(QTDECLARATIVE_CONFIGURE_OPTIONS
+    -DCMAKE_DISABLE_FIND_PACKAGE_LTTngUST:BOOL=ON
+)
+if(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    list(APPEND QTDECLARATIVE_CONFIGURE_OPTIONS
+        -DCMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX:STRING=4096
+    )
+endif()
+if(VCPKG_TARGET_IS_WINDOWS AND
+   TARGET_TRIPLET STREQUAL "x64-windows-rg-host-release")
+    # This package only provides host tools for the Wasm cross-build.
+    # Keep the Wasm target's optional style features at upstream defaults.
+    list(APPEND QTDECLARATIVE_CONFIGURE_OPTIONS
+        -DFEATURE_quickcontrols2_fluentwinui3:BOOL=OFF
+        -DFEATURE_quickcontrols2_universal:BOOL=OFF
+    )
+endif()
+
 qt_install_submodule(PATCHES    ${${PORT}_PATCHES}
                      TOOL_NAMES ${TOOL_NAMES}
                      CONFIGURE_OPTIONS
-                      -DCMAKE_DISABLE_FIND_PACKAGE_LTTngUST:BOOL=ON
+                      ${QTDECLARATIVE_CONFIGURE_OPTIONS}
                      CONFIGURE_OPTIONS_RELEASE
                      CONFIGURE_OPTIONS_DEBUG
                     )

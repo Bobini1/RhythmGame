@@ -25,6 +25,7 @@ share/RhythmGame/log.txt
 .superpowers/
 .worktrees/
 .toolchains/
+.wb/
 .wasm-vcpkg/
 .vcpkg-buildtrees/
 .vcpkg-cache/

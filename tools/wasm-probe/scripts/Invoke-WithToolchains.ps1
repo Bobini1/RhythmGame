@@ -400,6 +400,7 @@ $env:Path = (
 ) -join $pathSeparator
 $env:VCPKG_DISABLE_METRICS = '1'
 $env:VCPKG_DEFAULT_BINARY_CACHE = $BinaryCache
+$env:CMAKE_NINJA_FORCE_RESPONSE_FILE = '1'
 New-Item `
     -ItemType Directory `
     -Path $env:VCPKG_DEFAULT_BINARY_CACHE `
