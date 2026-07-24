@@ -1,9 +1,15 @@
 import json
+import re
 import unittest
 from pathlib import Path
 
 
 PROBE = Path(__file__).resolve().parents[1]
+WASM_COMPILE_SETTINGS = (
+    "-pthread",
+    "-fwasm-exceptions",
+    "-sSUPPORT_LONGJMP=wasm",
+)
 
 
 class ProbeSourceContractTest(unittest.TestCase):
@@ -61,6 +67,58 @@ class ProbeSourceContractTest(unittest.TestCase):
         self.assertIn("qt_add_qml_module", cmake)
         self.assertIn("qt_add_shaders", cmake)
         self.assertIn('BASE "${CMAKE_CURRENT_SOURCE_DIR}/qml"', cmake)
+
+    def test_exception_boundary_publishes_wasm_compile_contract(self) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        compile_contract = re.search(
+            (
+                r"target_compile_options\(\s*"
+                r"WasmProbeWasmCompileOptions\s+INTERFACE"
+                r"(?P<body>.*?)\n\)"
+            ),
+            cmake,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(compile_contract)
+        for setting in WASM_COMPILE_SETTINGS:
+            self.assertIn(setting, compile_contract.group("body"))
+        self.assertRegex(
+            cmake,
+            (
+                r"target_link_libraries\(\s*"
+                r"WasmProbeExceptionBoundary\s+PUBLIC\s+"
+                r"WasmProbeWasmCompileOptions\s*\)"
+            ),
+        )
+        self.assertEqual(cmake.count("target_link_options("), 1)
+        self.assertRegex(
+            cmake,
+            r"target_link_options\(\s*RhythmGameWasmProbe\s+PRIVATE",
+        )
+
+    def test_generated_boundary_and_consumer_share_wasm_compile_contract(
+        self,
+    ) -> None:
+        compile_database = (
+            PROBE / "build" / "wasm-release" / "compile_commands.json"
+        )
+        if not compile_database.exists():
+            self.skipTest("requires a generated wasm-release build")
+        entries = json.loads(compile_database.read_text("utf-8"))
+        for source_name in ("ExceptionBoundary.cpp", "ProbeState.cpp"):
+            matching = [
+                entry
+                for entry in entries
+                if entry["file"].replace("\\", "/").endswith(
+                    f"/{source_name}"
+                )
+            ]
+            self.assertEqual(len(matching), 1)
+            command = matching[0].get("command") or " ".join(
+                matching[0]["arguments"]
+            )
+            for setting in WASM_COMPILE_SETTINGS:
+                self.assertIn(setting, command)
 
     def test_main_returns_early_only_for_emscripten(self) -> None:
         main = (PROBE / "src" / "main.cpp").read_text("utf-8")

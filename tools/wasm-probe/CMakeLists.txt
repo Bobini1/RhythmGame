@@ -16,11 +16,21 @@ find_package(Qt6 6.11.1 EXACT REQUIRED COMPONENTS
 
 qt_standard_project_setup(REQUIRES 6.11)
 
+add_library(WasmProbeWasmCompileOptions INTERFACE)
+target_compile_options(WasmProbeWasmCompileOptions INTERFACE
+    -pthread
+    -fwasm-exceptions
+    "SHELL:-sSUPPORT_LONGJMP=wasm"
+)
+
 add_library(WasmProbeExceptionBoundary STATIC
     src/ExceptionBoundary.cpp
     src/ExceptionBoundary.h
 )
 target_compile_features(WasmProbeExceptionBoundary PRIVATE cxx_std_20)
+target_link_libraries(WasmProbeExceptionBoundary PUBLIC
+    WasmProbeWasmCompileOptions
+)
 
 qt_add_executable(RhythmGameWasmProbe
     src/main.cpp
