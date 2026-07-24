@@ -21,15 +21,13 @@ template<typename T>
 concept HasCancelPending = requires(T& value) { value.cancelPending(); };
 
 static_assert(!HasCancelPending<qml_components::ScoreDb>);
-static_assert(
-  std::same_as<
-    decltype(std::declval<qml_components::ScoreDb&>().getScoresForMd5(
-      std::declval<const QList<QString>&>())),
-    support::PendingReply*>);
-static_assert(
-  std::same_as<
-    decltype(std::declval<qml_components::ScoreDb&>().getTotalStats()),
-    support::PendingReply*>);
+static_assert(std::same_as<
+              decltype(std::declval<qml_components::ScoreDb&>().getScoresForMd5(
+                std::declval<const QList<QString>&>())),
+              support::PendingReply*>);
+static_assert(std::same_as<decltype(std::declval<qml_components::ScoreDb&>()
+                                      .getTotalStats()),
+                           support::PendingReply*>);
 
 void
 ensureCoreApplication()
@@ -72,19 +70,17 @@ TEST_CASE("ScoreDb QML owners retain and cancel their replies",
     };
 
     const auto contracts = {
-        Contract{
-          "RhythmGameQml/Lr2/Lr2ResultState.qml",
-          { "property var pendingResultScoreDbReplies: []",
-            "cancelResultScoreDbReplies();",
-            "trackResultScoreDbReply(scoreDb.getScoresForCourseId",
-            "trackResultScoreDbReply(scoreDb.getScoresForMd5",
-            "Component.onDestruction" } },
-        Contract{
-          "RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml",
-          { "property var pendingGameplayScoreDbReply: null",
-            "cancelGameplayScoreDbReply();",
-            "trackGameplayScoreDbReply(scoreDb.getScoresForMd5",
-            "Component.onDestruction" } },
+        Contract{ "RhythmGameQml/Lr2/Lr2ResultState.qml",
+                  { "property var pendingResultScoreDbReplies: []",
+                    "cancelResultScoreDbReplies();",
+                    "trackResultScoreDbReply(scoreDb.getScoresForCourseId",
+                    "trackResultScoreDbReply(scoreDb.getScoresForMd5",
+                    "Component.onDestruction" } },
+        Contract{ "RhythmGameQml/Lr2/Lr2SkinScreenWrapper.qml",
+                  { "property var pendingGameplayScoreDbReply: null",
+                    "cancelGameplayScoreDbReply();",
+                    "trackGameplayScoreDbReply(scoreDb.getScoresForMd5",
+                    "Component.onDestruction" } },
         Contract{
           "share/RhythmGame/themes/Default/scripts/gameplay/Gameplay.qml",
           { "property var pendingScoreDbReply: null",
@@ -92,13 +88,12 @@ TEST_CASE("ScoreDb QML owners retain and cancel their replies",
             "trackScoreDbReply("
             "chart.player1.profile.scoreDb.getScoresForMd5",
             "Component.onDestruction" } },
-        Contract{
-          "share/RhythmGame/themes/Default/scripts/result/Side.qml",
-          { "property var pendingScoreDbReply: null",
-            "cancelScoreDbReply();",
-            "trackScoreDbReply(profile.scoreDb.getScoresForCourseId",
-            "trackScoreDbReply(profile.scoreDb.getScoresForMd5",
-            "Component.onDestruction" } },
+        Contract{ "share/RhythmGame/themes/Default/scripts/result/Side.qml",
+                  { "property var pendingScoreDbReply: null",
+                    "cancelScoreDbReply();",
+                    "trackScoreDbReply(profile.scoreDb.getScoresForCourseId",
+                    "trackScoreDbReply(profile.scoreDb.getScoresForMd5",
+                    "Component.onDestruction" } },
     };
 
     for (const auto& contract : contracts) {
@@ -115,12 +110,10 @@ TEST_CASE("ScoreDb QML owners retain and cancel their replies",
 TEST_CASE("LR2 folder lamp queries have a dedicated cancellation scope",
           "[ScoreDb][PendingReply][qml-contract]")
 {
-    const auto source =
-      readSource("RhythmGameQml/Lr2/Lr2SelectContext.qml");
-    CHECK(source.contains(
-      "property var pendingFolderLampScoreDbReplies: []"));
-    CHECK(source.contains(
-      "trackFolderLampScoreDbReply(db.getScoreSummary(item))"));
+    const auto source = readSource("RhythmGameQml/Lr2/Lr2SelectContext.qml");
+    CHECK(source.contains("property var pendingFolderLampScoreDbReplies: []"));
+    CHECK(
+      source.contains("trackFolderLampScoreDbReply(db.getScoreSummary(item))"));
 
     const auto refreshStart = source.indexOf("function refreshFolderLamps()");
     const auto refreshEnd =
@@ -139,10 +132,8 @@ TEST_CASE("ScoreDb teardown settles pending replies before child destruction",
     ensureCoreApplication();
     QTemporaryDir directory;
     REQUIRE(directory.isValid());
-    auto database = db::SqliteCppDb{
-        std::filesystem::path{
-          directory.filePath(QStringLiteral("scores.db")).toStdString() }
-    };
+    auto database = db::SqliteCppDb{ std::filesystem::path{
+      directory.filePath(QStringLiteral("scores.db")).toStdString() } };
     database.execute(
       "CREATE TABLE score("
       "clear_type TEXT, perfect INTEGER, great INTEGER, good INTEGER, "
@@ -152,23 +143,21 @@ TEST_CASE("ScoreDb teardown settles pending replies before child destruction",
     auto finishedCount = 0;
     auto replies = QList<QPointer<support::PendingReply>>{};
     {
-        auto scoreDb =
-          std::make_unique<qml_components::ScoreDb>(&database);
+        auto scoreDb = std::make_unique<qml_components::ScoreDb>(&database);
         for (auto index = 0; index < queryCount; ++index) {
             auto* reply = scoreDb->getTotalStats();
             replies.append(reply);
-            QObject::connect(
-              reply,
-              &support::PendingReply::finished,
-              [&finishedCount] { ++finishedCount; });
+            QObject::connect(reply,
+                             &support::PendingReply::finished,
+                             [&finishedCount] { ++finishedCount; });
         }
     }
 
     CHECK(finishedCount == queryCount);
     for (const auto& reply : replies)
         CHECK(reply.isNull());
-    QCoreApplication::sendPostedEvents(
-      QCoreApplication::instance(), QEvent::MetaCall);
+    QCoreApplication::sendPostedEvents(QCoreApplication::instance(),
+                                       QEvent::MetaCall);
 }
 
 TEST_CASE("ScoreDb teardown tolerates sibling deletion from finished handlers",
@@ -177,10 +166,8 @@ TEST_CASE("ScoreDb teardown tolerates sibling deletion from finished handlers",
     ensureCoreApplication();
     QTemporaryDir directory;
     REQUIRE(directory.isValid());
-    auto database = db::SqliteCppDb{
-        std::filesystem::path{
-          directory.filePath(QStringLiteral("scores.db")).toStdString() }
-    };
+    auto database = db::SqliteCppDb{ std::filesystem::path{
+      directory.filePath(QStringLiteral("scores.db")).toStdString() } };
     database.execute(
       "CREATE TABLE score("
       "clear_type TEXT, perfect INTEGER, great INTEGER, good INTEGER, "
@@ -189,22 +176,19 @@ TEST_CASE("ScoreDb teardown tolerates sibling deletion from finished handlers",
     auto firstReply = QPointer<support::PendingReply>{};
     auto secondReply = QPointer<support::PendingReply>{};
     {
-        auto scoreDb =
-          std::make_unique<qml_components::ScoreDb>(&database);
+        auto scoreDb = std::make_unique<qml_components::ScoreDb>(&database);
         firstReply = scoreDb->getTotalStats();
         secondReply = scoreDb->getTotalStats();
-        QObject::connect(
-          firstReply,
-          &support::PendingReply::finished,
-          [&secondReply] { delete secondReply.data(); });
-        QObject::connect(
-          secondReply,
-          &support::PendingReply::finished,
-          [&firstReply] { delete firstReply.data(); });
+        QObject::connect(firstReply,
+                         &support::PendingReply::finished,
+                         [&secondReply] { delete secondReply.data(); });
+        QObject::connect(secondReply,
+                         &support::PendingReply::finished,
+                         [&firstReply] { delete firstReply.data(); });
     }
 
     CHECK(firstReply.isNull());
     CHECK(secondReply.isNull());
-    QCoreApplication::sendPostedEvents(
-      QCoreApplication::instance(), QEvent::MetaCall);
+    QCoreApplication::sendPostedEvents(QCoreApplication::instance(),
+                                       QEvent::MetaCall);
 }

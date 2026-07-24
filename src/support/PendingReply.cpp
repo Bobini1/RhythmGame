@@ -82,9 +82,7 @@ PendingReply::cancel()
 }
 
 bool
-PendingReply::settle(bool success,
-                     QVariant value,
-                     bool requestCancellation)
+PendingReply::settle(bool success, QVariant value, bool requestCancellation)
 {
     detail::assertApplicationThread();
     if (resultAvailable)
@@ -94,9 +92,9 @@ PendingReply::settle(bool success,
     successful = success;
     result = success ? std::move(value) : QVariant{};
 
-    auto cancellationHandler =
-      requestCancellation ? std::move(state->cancellationHandler)
-                          : std::function<void()>{};
+    auto cancellationHandler = requestCancellation
+                                 ? std::move(state->cancellationHandler)
+                                 : std::function<void()>{};
     state->cancellationHandler = {};
     auto callback = takeCallback();
 
@@ -126,8 +124,8 @@ PendingReply::settle(bool success,
 QJSValue
 PendingReply::takeCallback()
 {
-    auto callback = successful ? std::move(successCallback)
-                               : std::move(failedCallback);
+    auto callback =
+      successful ? std::move(successCallback) : std::move(failedCallback);
     successCallback = {};
     failedCallback = {};
     return callback;

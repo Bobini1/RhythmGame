@@ -178,9 +178,8 @@ TEST_CASE("PendingReply invokes callbacks registered after completion",
 
     QJSEngine engine;
     engine.globalObject().setProperty("reply", engine.newQObject(reply));
-    engine.evaluate(
-      "var received = -1;"
-      "reply.then(function(value) { received = value; });");
+    engine.evaluate("var received = -1;"
+                    "reply.then(function(value) { received = value; });");
 
     CHECK(engine.globalObject().property("received").toInt() == 9);
 }
@@ -232,11 +231,10 @@ TEST_CASE("PendingReply replaces callbacks registered while pending",
     auto* reply = source.reply();
     QJSEngine engine;
     engine.globalObject().setProperty("reply", engine.newQObject(reply));
-    engine.evaluate(
-      "var first = 0;"
-      "var second = 0;"
-      "reply.then(function() { ++first; });"
-      "reply.then(function() { ++second; });");
+    engine.evaluate("var first = 0;"
+                    "var second = 0;"
+                    "reply.then(function() { ++first; });"
+                    "reply.then(function() { ++second; });");
 
     REQUIRE(source.succeed(1));
     CHECK(engine.globalObject().property("first").toInt() == 0);
@@ -273,11 +271,10 @@ TEST_CASE("PendingReply cancellation is terminal and uses failure callback",
 
     QJSEngine engine;
     engine.globalObject().setProperty("reply", engine.newQObject(reply));
-    engine.evaluate(
-      "var successCount = 0;"
-      "var failureCount = 0;"
-      "reply.then(function() { ++successCount; },"
-      "           function() { ++failureCount; });");
+    engine.evaluate("var successCount = 0;"
+                    "var failureCount = 0;"
+                    "reply.then(function() { ++successCount; },"
+                    "           function() { ++failureCount; });");
 
     reply->cancel();
     reply->cancel();
@@ -351,8 +348,7 @@ TEST_CASE("PendingReply detaches before a stop callback destroys its producer",
     auto owner = std::make_unique<QObject>();
     support::PendingReplySource<int> source(owner.get());
     auto* reply = source.reply();
-    std::stop_callback cancellation(source.stopToken(),
-                                    [&] { owner.reset(); });
+    std::stop_callback cancellation(source.stopToken(), [&] { owner.reset(); });
 
     reply->cancel();
 
@@ -381,8 +377,9 @@ TEST_CASE("PendingReply producer destruction requests cancellation",
     CHECK(cancellationCount == 1);
 }
 
-TEST_CASE("PendingReply preserves its terminal callback across finished reentry",
-          "[PendingReply][qml]")
+TEST_CASE(
+  "PendingReply preserves its terminal callback across finished reentry",
+  "[PendingReply][qml]")
 {
     ensureCoreApplication();
     QObject owner;
@@ -390,10 +387,9 @@ TEST_CASE("PendingReply preserves its terminal callback across finished reentry"
     auto* reply = source.reply();
     QJSEngine engine;
     engine.globalObject().setProperty("reply", engine.newQObject(reply));
-    engine.evaluate(
-      "var first = 0;"
-      "var second = 0;"
-      "reply.then(function() { ++first; });");
+    engine.evaluate("var first = 0;"
+                    "var second = 0;"
+                    "reply.then(function() { ++first; });");
     QObject::connect(reply, &support::PendingReply::finished, [&] {
         engine.evaluate("reply.then(function() { ++second; });");
     });
