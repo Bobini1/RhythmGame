@@ -2,6 +2,8 @@
   "applicationLink": {
     "commandSha256": "5f0f34d2fa152dfdb5b02da04646ed6ae539227a46a175b24fb9dce1621f74b8",
     "compiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
+    "effectiveArgumentCount": 180,
+    "effectiveArgumentsSha256": "43bf598697bc5137797ac87de0b7dcf8f7ee849dfa8ecaf853ca59f1bdc71996",
     "effectiveSettings": {
       "ALLOW_BLOCKING_ON_MAIN_THREAD": "0",
       "AUDIO_WORKLET": "1",
@@ -13,7 +15,11 @@
     },
     "linkLibrariesSha256": "b11047d10184bbcf419035f7074e1586b37f44d539d623990b21ef63f7ed7728",
     "literalAsyncifyConfigured": false,
+    "responseArgumentCount": 138,
+    "responseArgumentsSha256": "cf214108ca207761d7f261a8745e0f4b0120a12b41b65c582bbe8de653173e47",
     "responseFile": "CMakeFiles/RhythmGameWasmProbe.rsp",
+    "responseFileContentTemplate": "$in $LINK_PATH $LINK_LIBRARIES",
+    "selectedNinjaRule": "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release",
     "settingOccurrences": {
       "ALLOW_BLOCKING_ON_MAIN_THREAD": 1,
       "AUDIO_WORKLET": 1,
@@ -95,7 +101,19 @@
       "ENVIRONMENT_IS_PTHREAD"
     ],
     "pthreadWorkerEmbeddedInMainJavaScript": true,
-    "shaderResourceAlias": ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb"
+    "recognizedWebDeployables": [
+      "RhythmGameWasmProbe.html",
+      "RhythmGameWasmProbe.js",
+      "RhythmGameWasmProbe.wasm",
+      "RhythmGameWasmProbe.aw.js",
+      "RhythmGameWasmProbe.ww.js",
+      "qtloader.js",
+      "qtlogo.svg"
+    ],
+    "shaderResourceAlias": ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb",
+    "shaderResourceAliases": [
+      ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb"
+    ]
   },
   "buildFreshness": {
     "command": [
@@ -355,6 +373,48 @@
       }
     },
     "emscriptenVersionCheckRetained": true,
+    "qtDeclarativeCacheProvenance": {
+      "host": {
+        "buildDirectory": ".wb/qtdeclarative/x64-windows-rg-host-release-rel",
+        "compiler": {
+          "architecture": "x64",
+          "frontendVariant": "MSVC",
+          "id": "MSVC",
+          "path": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
+          "pathAuthenticated": true,
+          "platform": "Windows",
+          "version": "19.51.36244.0"
+        },
+        "generator": "Ninja",
+        "installPrefix": ".wasm-vcpkg/packages/qtdeclarative_x64-windows-rg-host-release",
+        "installedRoot": ".wasm-vcpkg/installed",
+        "qtHostPath": "",
+        "qtPackagePrefix": ".wasm-vcpkg/installed/x64-windows-rg-host-release/share/Qt6",
+        "sourceDirectory": ".wb/qtdeclarative/src/here-src-6-04584868cb.clean",
+        "targetTriplet": "x64-windows-rg-host-release",
+        "toolchain": ".toolchains/vcpkg-a0400024/scripts/buildsystems/vcpkg.cmake"
+      },
+      "target": {
+        "buildDirectory": ".wb/qtdeclarative/wasm32-emscripten-rg-rel",
+        "compiler": {
+          "architecture": "wasm32",
+          "frontendVariant": "GNU",
+          "id": "Clang",
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
+          "pathAuthenticated": true,
+          "platform": "",
+          "version": "21.0.0"
+        },
+        "generator": "Ninja",
+        "installPrefix": ".wasm-vcpkg/packages/qtdeclarative_wasm32-emscripten-rg",
+        "installedRoot": ".wasm-vcpkg/installed",
+        "qtHostPath": ".wasm-vcpkg/installed/x64-windows-rg-host-release",
+        "qtPackagePrefix": ".wasm-vcpkg/installed/wasm32-emscripten-rg/share/Qt6",
+        "sourceDirectory": ".wb/qtdeclarative/src/here-src-6-04584868cb.clean",
+        "targetTriplet": "wasm32-emscripten-rg",
+        "toolchain": ".toolchains/vcpkg-a0400024/scripts/buildsystems/vcpkg.cmake"
+      }
+    },
     "qtFeatures": {
       "thread": "ON",
       "wasm_exceptions": "ON",
@@ -470,6 +530,7 @@
     "host": {
       "linkage": "dynamic",
       "qtCoreDllCount": 2,
+      "qtDeclarativePortVersion": "1",
       "tools": {
         "lrelease.exe": {
           "path": ".wasm-vcpkg/installed/x64-windows-rg-host-release/tools/Qt6/bin/lrelease.exe",
@@ -547,6 +608,13 @@
       "triplet": "wasm32-emscripten-rg",
       "version": "6.11.1"
     },
+    "targetTripletEnvironmentPassthrough": [
+      "EMSCRIPTEN_ROOT",
+      "EMSCRIPTEN_VERSION",
+      "EMSDK",
+      "EMSDK_PYTHON",
+      "CMAKE_NINJA_FORCE_RESPONSE_FILE"
+    ],
     "version": "6.11.1"
   },
   "schemaVersion": 1,
@@ -561,7 +629,9 @@
     "emscripten": {
       "driver": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py",
       "emsdkCommit": "c69d433d8509c5c64564c2f0d054bf102a5cf67e",
+      "emsdkRoot": ".toolchains/emsdk-4.0.7",
       "launcher": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
+      "python": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
       "version": "4.0.7",
       "versionOutput": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.7 (8dc91db45bf96c174531006839472a3924d105aa)"
     },

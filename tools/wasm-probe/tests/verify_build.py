@@ -10,12 +10,16 @@ import re
 import shutil
 import subprocess
 import tempfile
+import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
 
 EXPECTED_EMSCRIPTEN = "4.0.7"
 EXPECTED_EMSDK_COMMIT = "c69d433d8509c5c64564c2f0d054bf102a5cf67e"
+EXPECTED_EMSDK_PYTHON = (
+    ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe"
+)
 EXPECTED_EMXX_VERSION_LINE = (
     "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) "
     "4.0.7 (8dc91db45bf96c174531006839472a3924d105aa)"
@@ -28,6 +32,11 @@ EXPECTED_VCPKG_VERSION_LINE = (
 EXPECTED_CMAKE = "4.2.3"
 EXPECTED_NINJA = "1.13.2"
 EXPECTED_QT = "6.11.1"
+EXPECTED_HOST_CXX_COMPILER = (
+    "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/"
+    "MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+)
+EXPECTED_HOST_CXX_VERSION = "19.51.36244.0"
 
 TARGET_TRIPLET = "wasm32-emscripten-rg"
 HOST_TRIPLET = "x64-windows-rg-host-release"
@@ -137,6 +146,39 @@ DEPLOYMENT_ARTIFACTS = (
     "qtloader.js",
     "qtlogo.svg",
 )
+RECOGNIZED_WEB_DEPLOYABLE_SUFFIXES = (
+    ".html",
+    ".htm",
+    ".js",
+    ".mjs",
+    ".wasm",
+    ".data",
+    ".mem",
+    ".map",
+    ".symbols",
+    ".css",
+    ".svg",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".ico",
+    ".webmanifest",
+    ".json",
+)
+NON_DEPLOYABLE_ROOT_FILES = {"compile_commands.json"}
+SHADER_RESOURCE_PREFIX = "/qt/qml/RhythmGame/WasmProbe/shaders"
+SHADER_RESOURCE_ALIAS = "pulse.frag.qsb"
+SHADER_RESOURCE_PATH = f":{SHADER_RESOURCE_PREFIX}/{SHADER_RESOURCE_ALIAS}"
+SHADER_RESOURCE_TREE = (
+    ":",
+    ":/qt",
+    ":/qt/qml",
+    ":/qt/qml/RhythmGame",
+    ":/qt/qml/RhythmGame/WasmProbe",
+    f":{SHADER_RESOURCE_PREFIX}",
+    SHADER_RESOURCE_PATH,
+)
 GATE_SCOPE = (
     "Technical Qt/Emscripten build probe only; browser runtime "
     "capabilities remain Gate 1B work."
@@ -164,6 +206,13 @@ HOST_TOOL_VERSION_LINES = {
     "lrelease.exe": f"lrelease version {EXPECTED_QT}",
     "lupdate.exe": f"lupdate version {EXPECTED_QT}",
 }
+EXPECTED_TARGET_ENV_PASSTHROUGH = (
+    "EMSCRIPTEN_ROOT",
+    "EMSCRIPTEN_VERSION",
+    "EMSDK",
+    "EMSDK_PYTHON",
+    "CMAKE_NINJA_FORCE_RESPONSE_FILE",
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -362,6 +411,54 @@ def parse_vcpkg_status(path: Path) -> list[dict[str, str]]:
                 record[key] = value.strip()
         records.append(record)
     return records
+
+
+def require_exact_cache_values(
+    cache: Mapping[str, str],
+    expected: Mapping[str, str],
+    label: str,
+) -> None:
+    for name, expected_value in expected.items():
+        require(
+            cache.get(name) == expected_value,
+            f"{label} {name} is {cache.get(name)!r}, "
+            f"expected {expected_value!r}",
+        )
+
+
+def require_port_version(
+    record: Mapping[str, str],
+    expected: str,
+    package: str,
+) -> None:
+    require(
+        record.get("Port-Version") == expected,
+        f"{package} Port-Version is {record.get('Port-Version')!r}, "
+        f"expected {expected!r}",
+    )
+
+
+def require_vcpkg_env_passthrough(
+    triplet: str,
+    required_names: Sequence[str],
+) -> list[str]:
+    matches = re.findall(
+        r"set\(VCPKG_ENV_PASSTHROUGH(?P<body>.*?)\)",
+        triplet,
+        re.DOTALL,
+    )
+    require(
+        len(matches) == 1,
+        "target triplet must define VCPKG_ENV_PASSTHROUGH exactly once",
+    )
+    names = matches[0].split()
+    for name in required_names:
+        require(
+            names.count(name) == 1,
+            f"target triplet VCPKG_ENV_PASSTHROUGH must contain "
+            f"{name} exactly once",
+        )
+    return names
 
 
 def require_status_record(
@@ -643,9 +740,47 @@ def parse_application_link_arguments(
     return arguments
 
 
-def selected_application_link_edge(build_ninja: str) -> dict[str, str]:
-    normalized = build_ninja.replace("\r\n", "\n").replace("$\n", "")
-    lines = normalized.splitlines()
+def ninja_logical_lines(value: str) -> list[str]:
+    logical: list[str] = []
+    pending = ""
+    for raw_line in value.replace("\r\n", "\n").splitlines():
+        line = pending + (raw_line.lstrip() if pending else raw_line)
+        if line.endswith("$"):
+            pending = line[:-1]
+            continue
+        logical.append(line)
+        pending = ""
+    require(not pending, "unterminated Ninja line continuation")
+    return logical
+
+
+def split_ninja_arguments(value: str) -> list[str]:
+    arguments: list[str] = []
+    current: list[str] = []
+    index = 0
+    while index < len(value):
+        character = value[index]
+        if character.isspace():
+            if current:
+                arguments.append("".join(current))
+                current = []
+            index += 1
+            continue
+        if character == "$" and index + 1 < len(value):
+            escaped = value[index + 1]
+            if escaped in {"$", " ", ":", "|"}:
+                current.append(escaped)
+                index += 2
+                continue
+        current.append(character)
+        index += 1
+    if current:
+        arguments.append("".join(current))
+    return arguments
+
+
+def selected_application_link_edge(build_ninja: str) -> dict[str, Any]:
+    lines = ninja_logical_lines(build_ninja)
     starts = [
         index
         for index, line in enumerate(lines)
@@ -655,6 +790,22 @@ def selected_application_link_edge(build_ninja: str) -> dict[str, str]:
         len(starts) == 1,
         "expected exactly one RhythmGameWasmProbe.js Ninja edge",
     )
+    header = lines[starts[0]]
+    tokens = split_ninja_arguments(header.partition(":")[2].strip())
+    require(tokens, "selected application link edge has no rule")
+    rule = tokens[0]
+    explicit_inputs: list[str] = []
+    implicit_inputs: list[str] = []
+    order_only_inputs: list[str] = []
+    destination = explicit_inputs
+    for token in tokens[1:]:
+        if token == "|":
+            destination = implicit_inputs
+        elif token == "||":
+            destination = order_only_inputs
+        else:
+            destination.append(token)
+
     bindings: dict[str, str] = {}
     for line in lines[starts[0] + 1 :]:
         if not line.startswith("  "):
@@ -671,19 +822,135 @@ def selected_application_link_edge(build_ninja: str) -> dict[str, str]:
         "LINK_LIBRARIES" in bindings,
         "selected application link edge has no LINK_LIBRARIES",
     )
+    return {
+        "rule": rule,
+        "explicitInputs": explicit_inputs,
+        "implicitInputs": implicit_inputs,
+        "orderOnlyInputs": order_only_inputs,
+        "bindings": bindings,
+    }
+
+
+def selected_ninja_rule(
+    rules_ninja: str,
+    rule_name: str,
+) -> dict[str, str]:
+    lines = ninja_logical_lines(rules_ninja)
+    starts = [
+        index
+        for index, line in enumerate(lines)
+        if line == f"rule {rule_name}"
+    ]
+    require(len(starts) == 1, f"expected exactly one Ninja rule {rule_name}")
+    bindings: dict[str, str] = {}
+    for line in lines[starts[0] + 1 :]:
+        if not line.startswith("  "):
+            break
+        key, separator, value = line.strip().partition(" = ")
+        if separator:
+            require(
+                key not in bindings,
+                f"duplicate Ninja rule binding: {rule_name}.{key}",
+            )
+            bindings[key] = value
     return bindings
 
 
-def require_final_link_archive(build_ninja: str) -> str:
-    bindings = selected_application_link_edge(build_ninja)
-    archive = "libWasmProbeExceptionBoundary.a"
-    arguments = bindings["LINK_LIBRARIES"].split()
+def application_response_arguments(
+    build_ninja: str,
+    rules_ninja: str,
+) -> tuple[list[str], dict[str, Any], dict[str, str]]:
+    edge = selected_application_link_edge(build_ninja)
+    bindings = edge["bindings"]
+    rule = selected_ninja_rule(rules_ninja, edge["rule"])
     require(
-        arguments.count(archive) == 1,
-        f"{archive} is not an actual argument on the selected "
+        rule.get("rspfile") == "$RSP_FILE",
+        "selected application link rule does not use edge RSP_FILE",
+    )
+    template = split_ninja_arguments(rule.get("rspfile_content", ""))
+    require(
+        template == ["$in", "$LINK_PATH", "$LINK_LIBRARIES"],
+        "selected application response content must be exactly "
+        "$in $LINK_PATH $LINK_LIBRARIES",
+    )
+    values = {
+        # Ninja's $in expansion contains explicit inputs; CMake places link
+        # dependencies after "|" and supplies their actual arguments through
+        # LINK_LIBRARIES to avoid duplicating them in the response file.
+        "$in": edge["explicitInputs"],
+        "$LINK_PATH": split_ninja_arguments(bindings.get("LINK_PATH", "")),
+        "$LINK_LIBRARIES": split_ninja_arguments(
+            bindings["LINK_LIBRARIES"]
+        ),
+    }
+    response: list[str] = []
+    for variable in template:
+        response.extend(values[variable])
+    require(response, "selected application response file is empty")
+    return response, edge, rule
+
+
+def require_final_link_archive(
+    build_ninja: str,
+    rules_ninja: str,
+) -> str:
+    response, _, _ = application_response_arguments(
+        build_ninja,
+        rules_ninja,
+    )
+    archive = "libWasmProbeExceptionBoundary.a"
+    require(
+        response.count(archive) == 1,
+        f"{archive} is not an actual response argument on the selected "
         "application link edge",
     )
     return archive
+
+
+def verify_application_link_argument_stream(
+    command: str,
+    expected_emxx: Path,
+    build_ninja: str,
+    rules_ninja: str,
+) -> dict[str, Any]:
+    outer = parse_application_link_arguments(command, expected_emxx)
+    response, edge, rule = application_response_arguments(
+        build_ninja,
+        rules_ninja,
+    )
+    response_token = f"@{edge['bindings']['RSP_FILE']}"
+    response_index = outer.index(response_token)
+    effective = (
+        outer[:response_index]
+        + response
+        + outer[response_index + 1 :]
+    )
+    compile_contract = require_wasm_compile_contract(
+        effective,
+        language="cxx",
+        context="application link effective argument stream",
+    )
+    setting_contract = require_effective_emscripten_settings(
+        effective,
+        APPLICATION_EMSCRIPTEN_SETTINGS,
+        "application link effective argument stream",
+    )
+    archive = "libWasmProbeExceptionBoundary.a"
+    require(
+        response.count(archive) == 1,
+        f"{archive} is not an actual response argument on the selected "
+        "application link edge",
+    )
+    return {
+        "outerArguments": outer,
+        "responseArguments": response,
+        "effectiveArguments": effective,
+        "compileContract": compile_contract,
+        "settingContract": setting_contract,
+        "archive": archive,
+        "edge": edge,
+        "rule": rule,
+    }
 
 
 def validate_autogen_predefs_paths(
@@ -790,6 +1057,7 @@ def verify_toolchains(
     expected_emxx_driver = (
         expected_emsdk / "upstream" / "emscripten" / "em++.py"
     )
+    expected_emsdk_python = repo / EXPECTED_EMSDK_PYTHON
 
     require_same_path(emsdk, expected_emsdk, "emsdk argument")
     require_same_path(vcpkg, expected_vcpkg, "vcpkg argument")
@@ -800,6 +1068,7 @@ def verify_toolchains(
         expected_emxx,
         expected_emcc,
         expected_emxx_driver,
+        expected_emsdk_python,
     ):
         require(path.is_file(), f"missing pinned tool: {path}")
 
@@ -837,10 +1106,10 @@ def verify_toolchains(
     emsdk_python_value = os.environ.get("EMSDK_PYTHON", "")
     require(bool(emsdk_python_value), "EMSDK_PYTHON is missing")
     emsdk_python = Path(emsdk_python_value).resolve()
-    require(emsdk_python.is_file(), f"missing EMSDK_PYTHON: {emsdk_python}")
-    require(
-        emsdk_python.is_relative_to(expected_emsdk.resolve()),
-        f"EMSDK_PYTHON escapes pinned emsdk: {emsdk_python}",
+    require_same_path(
+        emsdk_python,
+        expected_emsdk_python,
+        "EMSDK_PYTHON",
     )
 
     emsdk_head = git(emsdk, "rev-parse", "HEAD")
@@ -882,6 +1151,8 @@ def verify_toolchains(
             "version": EXPECTED_EMSCRIPTEN,
             "versionOutput": first_line(emxx_version),
             "emsdkCommit": emsdk_head,
+            "emsdkRoot": relative_path(repo, expected_emsdk),
+            "python": relative_path(repo, emsdk_python),
             "launcher": relative_path(repo, expected_emxx),
             "driver": relative_path(repo, expected_emxx_driver),
         },
@@ -942,6 +1213,12 @@ def verify_qt_installation(
             for key in ("Version", "Port-Version", "Abi")
             if key in record
         }
+    require_port_version(target_packages["qtbase"], "2", "qtbase")
+    require_port_version(
+        target_packages["qtdeclarative"],
+        "1",
+        "qtdeclarative",
+    )
     require_status_record(
         status_records,
         "qtmultimedia",
@@ -949,7 +1226,16 @@ def verify_qt_installation(
         feature="qml",
     )
     require_status_record(status_records, "qtbase", HOST_TRIPLET)
-    require_status_record(status_records, "qtdeclarative", HOST_TRIPLET)
+    host_qtdeclarative = require_status_record(
+        status_records,
+        "qtdeclarative",
+        HOST_TRIPLET,
+    )
+    require_port_version(
+        host_qtdeclarative,
+        "1",
+        "host qtdeclarative",
+    )
     require_status_record(status_records, "qtshadertools", HOST_TRIPLET)
     require_status_record(status_records, "qttools", HOST_TRIPLET)
     require_status_record(
@@ -996,15 +1282,14 @@ def verify_qt_installation(
         "set(VCPKG_LIBRARY_LINKAGE dynamic)" in host_triplet,
         "host triplet is not dynamic",
     )
-    passthrough = re.search(
-        r"set\(VCPKG_ENV_PASSTHROUGH(?P<body>.*?)\)",
+    passthrough = require_vcpkg_env_passthrough(
         target_triplet,
-        re.DOTALL,
+        ("EMSDK", "EMSDK_PYTHON"),
     )
     require(
-        passthrough is not None
-        and passthrough.group("body").split().count("EMSDK") == 1,
-        "target triplet does not pass the canonical EMSDK environment",
+        tuple(passthrough) == EXPECTED_TARGET_ENV_PASSTHROUGH,
+        "target triplet VCPKG_ENV_PASSTHROUGH drifted: "
+        f"{passthrough}",
     )
 
     host_tool_specs = {
@@ -1068,13 +1353,18 @@ def verify_qt_installation(
             "triplet": HOST_TRIPLET,
             "version": host_version,
             "linkage": "dynamic",
+            "qtDeclarativePortVersion": "1",
             "qtCoreDllCount": len(host_core_dlls),
             "tools": host_tools,
         },
+        "targetTripletEnvironmentPassthrough": passthrough,
     }
 
 
-def compiler_path_from_cmake(build: Path, language: str) -> tuple[Path, str]:
+def compiler_identity_from_cmake(
+    build: Path,
+    language: str,
+) -> dict[str, Any]:
     candidates = list(
         (build / "CMakeFiles").glob(
             f"*/CMake{language}Compiler.cmake"
@@ -1085,17 +1375,243 @@ def compiler_path_from_cmake(build: Path, language: str) -> tuple[Path, str]:
         f"{build}: expected one {language} compiler file",
     )
     text = candidates[0].read_text("utf-8", errors="replace")
-    compiler = re.search(
-        rf'set\(CMAKE_{language}_COMPILER "([^"]+)"\)',
-        text,
+    properties: dict[str, str] = {}
+    for suffix in (
+        "COMPILER",
+        "COMPILER_ID",
+        "COMPILER_VERSION",
+        "COMPILER_FRONTEND_VARIANT",
+        "COMPILER_ARCHITECTURE_ID",
+        "PLATFORM_ID",
+    ):
+        name = f"CMAKE_{language}_{suffix}"
+        match = re.search(
+            rf'set\({re.escape(name)} "([^"]*)"\)',
+            text,
+        )
+        require(match is not None, f"{build}: {name} missing")
+        properties[suffix] = match.group(1)
+    compiler = Path(properties["COMPILER"]).resolve()
+    require(compiler.is_file(), f"missing recorded compiler: {compiler}")
+    return {
+        "path": compiler,
+        "id": properties["COMPILER_ID"],
+        "version": properties["COMPILER_VERSION"],
+        "frontendVariant": properties["COMPILER_FRONTEND_VARIANT"],
+        "architecture": properties["COMPILER_ARCHITECTURE_ID"],
+        "platform": properties["PLATFORM_ID"],
+    }
+
+
+def compiler_path_from_cmake(build: Path, language: str) -> tuple[Path, str]:
+    identity = compiler_identity_from_cmake(build, language)
+    return identity["path"], identity["version"]
+
+
+def audited_path(repo: Path, path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(repo.resolve()).as_posix()
+    except ValueError:
+        return resolved.as_posix()
+
+
+def verify_qtdeclarative_cache_provenance(
+    repo: Path,
+    installed: Path,
+    buildtrees: Path,
+) -> dict[str, Any]:
+    source_root = buildtrees / "qtdeclarative" / "src"
+    packages = installed.parent / "packages"
+    target_build = buildtrees / "qtdeclarative" / f"{TARGET_TRIPLET}-rel"
+    host_build = buildtrees / "qtdeclarative" / f"{HOST_TRIPLET}-rel"
+    expected_toolchain = (
+        repo
+        / ".toolchains"
+        / f"vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}"
+        / "scripts"
+        / "buildsystems"
+        / "vcpkg.cmake"
     )
-    version = re.search(
-        rf'set\(CMAKE_{language}_COMPILER_VERSION "([^"]+)"\)',
-        text,
+    expected_emxx = (
+        repo
+        / ".toolchains"
+        / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+        / "upstream"
+        / "emscripten"
+        / "em++.bat"
     )
-    require(compiler is not None, f"{language} compiler path missing")
-    require(version is not None, f"{language} compiler version missing")
-    return Path(compiler.group(1)), version.group(1)
+    records: dict[str, dict[str, Any]] = {}
+    specifications = (
+        (
+            "target",
+            target_build,
+            TARGET_TRIPLET,
+            installed / TARGET_TRIPLET,
+            installed / HOST_TRIPLET,
+        ),
+        (
+            "host",
+            host_build,
+            HOST_TRIPLET,
+            installed / HOST_TRIPLET,
+            None,
+        ),
+    )
+    sources: list[Path] = []
+    for label, build, triplet, qt_prefix, qt_host_path in specifications:
+        require(
+            build.resolve()
+            == (
+                buildtrees / "qtdeclarative" / f"{triplet}-rel"
+            ).resolve(),
+            f"QtDeclarative {label} build directory drifted",
+        )
+        cache = parse_cmake_cache(build / "CMakeCache.txt")
+        expected_install_prefix = packages / f"qtdeclarative_{triplet}"
+        expected_cache = {
+            "VCPKG_TARGET_TRIPLET": triplet,
+            "CMAKE_GENERATOR": "Ninja",
+            "CMAKE_INSTALL_PREFIX": str(expected_install_prefix),
+            "VCPKG_INSTALLED_DIR": str(installed),
+            "Qt6_DIR": str(qt_prefix / "share" / "Qt6"),
+            "CMAKE_TOOLCHAIN_FILE": str(expected_toolchain),
+            "QT_HOST_PATH": (
+                str(qt_host_path) if qt_host_path is not None else ""
+            ),
+        }
+        for name, expected_value in expected_cache.items():
+            if name in {
+                "CMAKE_INSTALL_PREFIX",
+                "VCPKG_INSTALLED_DIR",
+                "Qt6_DIR",
+                "CMAKE_TOOLCHAIN_FILE",
+                "QT_HOST_PATH",
+            } and expected_value:
+                require_same_path(
+                    cache.get(name, ""),
+                    Path(expected_value),
+                    f"QtDeclarative {label} {name}",
+                )
+            else:
+                require_exact_cache_values(
+                    cache,
+                    {name: expected_value},
+                    f"QtDeclarative {label}",
+                )
+        for required_path in (
+            expected_install_prefix,
+            installed,
+            qt_prefix / "share" / "Qt6",
+            expected_toolchain,
+        ):
+            require(
+                required_path.exists(),
+                f"QtDeclarative {label} provenance path missing: "
+                f"{required_path}",
+            )
+        source = Path(cache.get("CMAKE_HOME_DIRECTORY", "")).resolve()
+        require(
+            source.is_dir()
+            and source.is_relative_to(source_root.resolve())
+            and re.fullmatch(
+                r"here-src-\d+-[0-9a-f]+\.clean",
+                source.name,
+            )
+            is not None
+            and (source / "CMakeLists.txt").is_file(),
+            f"QtDeclarative {label} source directory is stale or escapes "
+            f"the fixed source tree: {source}",
+        )
+        sources.append(source)
+
+        compiler = compiler_identity_from_cmake(build, "CXX")
+        if label == "target":
+            require_same_path(
+                compiler["path"],
+                expected_emxx,
+                "QtDeclarative target compiler",
+            )
+            require(
+                {
+                    key: compiler[key]
+                    for key in (
+                        "id",
+                        "version",
+                        "frontendVariant",
+                        "architecture",
+                        "platform",
+                    )
+                }
+                == {
+                    "id": "Clang",
+                    "version": "21.0.0",
+                    "frontendVariant": "GNU",
+                    "architecture": "wasm32",
+                    "platform": "",
+                },
+                "QtDeclarative target compiler identity drifted",
+            )
+        else:
+            require_same_path(
+                cache.get("CMAKE_CXX_COMPILER", ""),
+                compiler["path"],
+                "QtDeclarative host cached compiler",
+            )
+            require_same_path(
+                compiler["path"],
+                Path(EXPECTED_HOST_CXX_COMPILER),
+                "QtDeclarative host compiler",
+            )
+            require(
+                compiler["path"].name.casefold() == "cl.exe"
+                and compiler["id"] == "MSVC"
+                and compiler["version"] == EXPECTED_HOST_CXX_VERSION
+                and compiler["frontendVariant"] == "MSVC"
+                and compiler["architecture"] == "x64"
+                and compiler["platform"] == "Windows"
+                and "Microsoft Visual Studio"
+                in compiler["path"].as_posix(),
+                "QtDeclarative host compiler identity/path drifted",
+            )
+
+        records[label] = {
+            "buildDirectory": relative_path(repo, build),
+            "sourceDirectory": relative_path(repo, source),
+            "targetTriplet": triplet,
+            "generator": "Ninja",
+            "installPrefix": relative_path(repo, expected_install_prefix),
+            "installedRoot": relative_path(repo, installed),
+            "qtPackagePrefix": relative_path(
+                repo,
+                qt_prefix / "share" / "Qt6",
+            ),
+            "qtHostPath": (
+                relative_path(repo, qt_host_path)
+                if qt_host_path is not None
+                else ""
+            ),
+            "toolchain": relative_path(repo, expected_toolchain),
+            "compiler": {
+                "path": audited_path(repo, compiler["path"]),
+                "pathAuthenticated": True,
+                **{
+                    key: compiler[key]
+                    for key in (
+                        "id",
+                        "version",
+                        "frontendVariant",
+                        "architecture",
+                        "platform",
+                    )
+                },
+            },
+        }
+    require(
+        path_key(sources[0]) == path_key(sources[1]),
+        "QtDeclarative target and host caches use different source trees",
+    )
+    return records
 
 
 def verify_cmake_identity(
@@ -1325,27 +1841,23 @@ def verify_application_link(
         / "emscripten"
         / "em++.bat"
     )
-    arguments = parse_application_link_arguments(
-        application_link,
-        expected_emxx,
-    )
-    require_wasm_compile_contract(
-        arguments,
-        language="cxx",
-        context="application link",
-    )
-    setting_contract = require_effective_emscripten_settings(
-        arguments,
-        APPLICATION_EMSCRIPTEN_SETTINGS,
-        "application link",
-    )
-
     build_ninja = (build / "build.ninja").read_text(
         "utf-8",
         errors="replace",
     )
-    bindings = selected_application_link_edge(build_ninja)
-    archive = require_final_link_archive(build_ninja)
+    rules_ninja = (build / "CMakeFiles" / "rules.ninja").read_text(
+        "utf-8",
+        errors="replace",
+    )
+    stream = verify_application_link_argument_stream(
+        application_link,
+        expected_emxx,
+        build_ninja,
+        rules_ninja,
+    )
+    bindings = stream["edge"]["bindings"]
+    setting_contract = stream["settingContract"]
+    archive = stream["archive"]
     cmake_source = (
         repo / "tools" / "wasm-probe" / "CMakeLists.txt"
     ).read_text("utf-8")
@@ -1356,6 +1868,24 @@ def verify_application_link(
     return {
         "compiler": relative_path(repo, expected_emxx),
         "responseFile": "CMakeFiles/RhythmGameWasmProbe.rsp",
+        "responseFileContentTemplate": (
+            "$in $LINK_PATH $LINK_LIBRARIES"
+        ),
+        "responseArgumentCount": len(stream["responseArguments"]),
+        "responseArgumentsSha256": sha256_text(
+            canonical_command(
+                repo,
+                "\0".join(stream["responseArguments"]),
+            )
+        ),
+        "effectiveArgumentCount": len(stream["effectiveArguments"]),
+        "effectiveArgumentsSha256": sha256_text(
+            canonical_command(
+                repo,
+                "\0".join(stream["effectiveArguments"]),
+            )
+        ),
+        "selectedNinjaRule": stream["edge"]["rule"],
         "settings": list(APPLICATION_LINK_SETTINGS),
         "effectiveSettings": setting_contract["effectiveValues"],
         "settingOccurrences": setting_contract["occurrences"],
@@ -1470,6 +2000,13 @@ def verify_features_and_autogen(
     qtbase_cache = parse_cmake_cache(qtbase / "CMakeCache.txt")
     target_cache = parse_cmake_cache(declarative_target / "CMakeCache.txt")
     host_cache = parse_cmake_cache(declarative_host / "CMakeCache.txt")
+    declarative_cache_provenance = (
+        verify_qtdeclarative_cache_provenance(
+            repo,
+            installed,
+            buildtrees,
+        )
+    )
     for label, cache in (
         ("QtBase target", qtbase_cache),
         ("QtDeclarative target", target_cache),
@@ -1760,6 +2297,7 @@ def verify_features_and_autogen(
     return {
         "qtFeatures": expected_features,
         "emscriptenVersionCheckRetained": True,
+        "qtDeclarativeCacheProvenance": declarative_cache_provenance,
         "emscriptenSdkContract": {
             "qtbaseCache": qtbase_cache_state,
             "installedQconfigHeaderVersion": EXPECTED_EMSCRIPTEN,
@@ -2074,7 +2612,86 @@ endif()
     }
 
 
+def require_exact_deployment_set(build: Path) -> list[str]:
+    recognized = {
+        path.name
+        for path in build.iterdir()
+        if path.is_file()
+        and path.name not in NON_DEPLOYABLE_ROOT_FILES
+        and path.name.casefold().endswith(
+            RECOGNIZED_WEB_DEPLOYABLE_SUFFIXES
+        )
+    }
+    expected = set(DEPLOYMENT_ARTIFACTS)
+    require(
+        recognized == expected,
+        "recognized web deployment files must match the exact allowlist; "
+        f"unexpected={sorted(recognized - expected)}, "
+        f"missing={sorted(expected - recognized)}",
+    )
+    return list(DEPLOYMENT_ARTIFACTS)
+
+
+def verify_shader_resource_contract(build: Path) -> dict[str, Any]:
+    qrc = build / ".qt" / "rcc" / "wasm_probe_shaders.qrc"
+    generated = build / ".qt" / "rcc" / "qrc_wasm_probe_shaders.cpp"
+    require(qrc.is_file(), "generated shader resource QRC missing")
+    require(generated.is_file(), "generated shader resource C++ missing")
+    try:
+        root = ElementTree.parse(qrc).getroot()
+    except ElementTree.ParseError as error:
+        raise AssertionError(f"shader resource QRC is invalid XML: {error}") from error
+    require(
+        root.tag == "RCC"
+        and not root.attrib
+        and len(root) == 1
+        and root[0].tag == "qresource"
+        and root[0].attrib == {"prefix": SHADER_RESOURCE_PREFIX},
+        "shader resource QRC root/prefix set drifted",
+    )
+    files = list(root[0])
+    require(
+        len(files) == 1
+        and files[0].tag == "file"
+        and files[0].attrib == {"alias": SHADER_RESOURCE_ALIAS}
+        and len(files[0]) == 0,
+        "shader resource alias set must contain only pulse.frag.qsb",
+    )
+    source_value = (files[0].text or "").strip()
+    require(source_value, "shader resource source path is empty")
+    source = Path(source_value).resolve()
+    expected_source = (build / ".qsb" / SHADER_RESOURCE_ALIAS).resolve()
+    require_same_path(source, expected_source, "shader resource QSB source")
+    require(
+        source.is_relative_to(build.resolve())
+        and source.is_file()
+        and source.stat().st_size > 0,
+        f"shader resource source is missing or escapes build: {source}",
+    )
+
+    generated_text = generated.read_text("utf-8", errors="replace")
+    generated_tree = tuple(
+        match.group(1).strip()
+        for match in re.finditer(
+            r"(?m)^\s*//\s+(:[^\r\n]*)$",
+            generated_text,
+        )
+    )
+    require(
+        generated_tree == SHADER_RESOURCE_TREE,
+        "generated shader resource binding set drifted: "
+        f"{generated_tree}",
+    )
+    return {
+        "prefix": SHADER_RESOURCE_PREFIX,
+        "aliases": [SHADER_RESOURCE_ALIAS],
+        "resourcePaths": [SHADER_RESOURCE_PATH],
+        "source": source,
+    }
+
+
 def verify_artifacts(repo: Path, build: Path) -> dict[str, Any]:
+    deployment_files = require_exact_deployment_set(build)
     artifacts = [build / name for name in DEPLOYMENT_ARTIFACTS]
     exception_archive = build / "libWasmProbeExceptionBoundary.a"
     compile_database = build / "compile_commands.json"
@@ -2129,39 +2746,17 @@ def verify_artifacts(repo: Path, build: Path) -> dict[str, Any]:
             f"HTML does not load {script}",
         )
 
-    qrc = build / ".qt" / "rcc" / "wasm_probe_shaders.qrc"
-    generated_qrc = build / ".qt" / "rcc" / "qrc_wasm_probe_shaders.cpp"
-    require(qrc.is_file(), "generated shader qrc missing")
-    require(generated_qrc.is_file(), "generated shader resource C++ missing")
-    qrc_text = qrc.read_text("utf-8", errors="replace")
-    generated_text = generated_qrc.read_text("utf-8", errors="replace")
-    require(
-        '<qresource prefix="/qt/qml/RhythmGame/WasmProbe/shaders">' in qrc_text,
-        "shader resource prefix drifted",
-    )
-    require(
-        '<file alias="pulse.frag.qsb">' in qrc_text,
-        "shader QSB alias missing",
-    )
-    require(
-        ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb"
-        in generated_text,
-        "generated QSB resource path missing",
-    )
-    require(
-        "shaders/qml/pulse.frag.qsb" not in generated_text,
-        "generated QSB resource retained an unwanted qml segment",
-    )
+    shader = verify_shader_resource_contract(build)
 
     hashed = (*artifacts, exception_archive, compile_database)
     return {
-        "deploymentFiles": list(DEPLOYMENT_ARTIFACTS),
+        "deploymentFiles": deployment_files,
+        "recognizedWebDeployables": deployment_files,
         "externalWorkerArtifacts": sorted(external_workers),
         "pthreadWorkerEmbeddedInMainJavaScript": True,
         "pthreadBootstrapMarkers": list(pthread_markers),
-        "shaderResourceAlias": (
-            ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb"
-        ),
+        "shaderResourceAlias": SHADER_RESOURCE_PATH,
+        "shaderResourceAliases": shader["resourcePaths"],
         "files": {
             path.name: {
                 "bytes": path.stat().st_size,
@@ -2273,13 +2868,23 @@ def validate_toolchain_evidence(value: Any) -> None:
     )
     require_exact_keys(
         emscripten,
-        {"version", "versionOutput", "emsdkCommit", "launcher", "driver"},
+        {
+            "version",
+            "versionOutput",
+            "emsdkCommit",
+            "emsdkRoot",
+            "python",
+            "launcher",
+            "driver",
+        },
         "toolchains.emscripten",
     )
     require(
         emscripten["version"] == EXPECTED_EMSCRIPTEN
         and emscripten["versionOutput"] == EXPECTED_EMXX_VERSION_LINE
         and emscripten["emsdkCommit"] == EXPECTED_EMSDK_COMMIT
+        and emscripten["emsdkRoot"] == ".toolchains/emsdk-4.0.7"
+        and emscripten["python"] == EXPECTED_EMSDK_PYTHON
         and emscripten["launcher"]
         == (
             ".toolchains/emsdk-4.0.7/upstream/emscripten/"
@@ -2457,8 +3062,22 @@ def validate_cmake_evidence(value: Any) -> None:
 
 def validate_qt_evidence(value: Any) -> None:
     qt = require_mapping(value, "qt")
-    require_exact_keys(qt, {"version", "target", "host"}, "qt")
+    require_exact_keys(
+        qt,
+        {
+            "version",
+            "target",
+            "host",
+            "targetTripletEnvironmentPassthrough",
+        },
+        "qt",
+    )
     require(qt["version"] == EXPECTED_QT, "Qt version drift")
+    require(
+        qt["targetTripletEnvironmentPassthrough"]
+        == list(EXPECTED_TARGET_ENV_PASSTHROUGH),
+        "Qt target triplet environment passthrough drifted",
+    )
     target = require_mapping(qt["target"], "qt.target")
     require_exact_keys(
         target,
@@ -2513,6 +3132,10 @@ def validate_qt_evidence(value: Any) -> None:
         ports["qtbase"].get("Port-Version") == "2",
         "QtBase overlay port-version is not 2",
     )
+    require(
+        ports["qtdeclarative"].get("Port-Version") == "1",
+        "QtDeclarative installed Port-Version is not 1",
+    )
     modules = require_mapping(
         target["requiredModules"],
         "qt.target.requiredModules",
@@ -2534,6 +3157,7 @@ def validate_qt_evidence(value: Any) -> None:
             "triplet",
             "version",
             "linkage",
+            "qtDeclarativePortVersion",
             "qtCoreDllCount",
             "tools",
         },
@@ -2544,6 +3168,10 @@ def validate_qt_evidence(value: Any) -> None:
         and host["version"] == EXPECTED_QT
         and host["linkage"] == "dynamic",
         "Qt host identity/linkage drift",
+    )
+    require(
+        host["qtDeclarativePortVersion"] == "1",
+        "host QtDeclarative installed Port-Version is not 1",
     )
     require_positive_int(host["qtCoreDllCount"], "qt.host.qtCoreDllCount")
     tools = require_mapping(host["tools"], "qt.host.tools")
@@ -2563,6 +3191,154 @@ def validate_qt_evidence(value: Any) -> None:
         )
 
 
+def validate_qtdeclarative_cache_evidence(value: Any) -> None:
+    provenance = require_mapping(
+        value,
+        "featuresAndAutogen.qtDeclarativeCacheProvenance",
+    )
+    require_exact_keys(
+        provenance,
+        {"target", "host"},
+        "qtDeclarativeCacheProvenance",
+    )
+    common_keys = {
+        "buildDirectory",
+        "sourceDirectory",
+        "targetTriplet",
+        "generator",
+        "installPrefix",
+        "installedRoot",
+        "qtPackagePrefix",
+        "qtHostPath",
+        "toolchain",
+        "compiler",
+    }
+    expected_toolchain = (
+        f".toolchains/vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}/"
+        "scripts/buildsystems/vcpkg.cmake"
+    )
+    expected_records = {
+        "target": {
+            "buildDirectory": (
+                f".wb/qtdeclarative/{TARGET_TRIPLET}-rel"
+            ),
+            "targetTriplet": TARGET_TRIPLET,
+            "installPrefix": (
+                ".wasm-vcpkg/packages/"
+                f"qtdeclarative_{TARGET_TRIPLET}"
+            ),
+            "installedRoot": ".wasm-vcpkg/installed",
+            "qtPackagePrefix": (
+                f".wasm-vcpkg/installed/{TARGET_TRIPLET}/share/Qt6"
+            ),
+            "qtHostPath": (
+                f".wasm-vcpkg/installed/{HOST_TRIPLET}"
+            ),
+            "compiler": {
+                "path": (
+                    ".toolchains/emsdk-4.0.7/upstream/emscripten/"
+                    "em++.bat"
+                ),
+                "pathAuthenticated": True,
+                "id": "Clang",
+                "version": "21.0.0",
+                "frontendVariant": "GNU",
+                "architecture": "wasm32",
+                "platform": "",
+            },
+        },
+        "host": {
+            "buildDirectory": (
+                f".wb/qtdeclarative/{HOST_TRIPLET}-rel"
+            ),
+            "targetTriplet": HOST_TRIPLET,
+            "installPrefix": (
+                ".wasm-vcpkg/packages/"
+                f"qtdeclarative_{HOST_TRIPLET}"
+            ),
+            "installedRoot": ".wasm-vcpkg/installed",
+            "qtPackagePrefix": (
+                f".wasm-vcpkg/installed/{HOST_TRIPLET}/share/Qt6"
+            ),
+            "qtHostPath": "",
+            "compiler": {
+                "path": EXPECTED_HOST_CXX_COMPILER,
+                "pathAuthenticated": True,
+                "id": "MSVC",
+                "version": EXPECTED_HOST_CXX_VERSION,
+                "frontendVariant": "MSVC",
+                "architecture": "x64",
+                "platform": "Windows",
+            },
+        },
+    }
+    source_directories: list[str] = []
+    for label, expected in expected_records.items():
+        record = require_mapping(
+            provenance[label],
+            f"qtDeclarativeCacheProvenance.{label}",
+        )
+        require_exact_keys(
+            record,
+            common_keys,
+            f"qtDeclarativeCacheProvenance.{label}",
+        )
+        require(
+            record["generator"] == "Ninja"
+            and record["toolchain"] == expected_toolchain,
+            f"QtDeclarative {label} generator/toolchain drifted",
+        )
+        for name in (
+            "buildDirectory",
+            "targetTriplet",
+            "installPrefix",
+            "installedRoot",
+            "qtPackagePrefix",
+            "qtHostPath",
+        ):
+            require(
+                record[name] == expected[name],
+                f"QtDeclarative {label} {name} drifted",
+            )
+        source = record["sourceDirectory"]
+        require(
+            type(source) is str
+            and re.fullmatch(
+                r"\.wb/qtdeclarative/src/"
+                r"here-src-\d+-[0-9a-f]+\.clean",
+                source,
+            )
+            is not None,
+            f"QtDeclarative {label} source directory evidence drifted",
+        )
+        source_directories.append(source)
+        compiler = require_mapping(
+            record["compiler"],
+            f"qtDeclarativeCacheProvenance.{label}.compiler",
+        )
+        require_exact_keys(
+            compiler,
+            {
+                "path",
+                "pathAuthenticated",
+                "id",
+                "version",
+                "frontendVariant",
+                "architecture",
+                "platform",
+            },
+            f"QtDeclarative {label} compiler",
+        )
+        require(
+            compiler == expected["compiler"],
+            f"QtDeclarative {label} compiler evidence drifted",
+        )
+    require(
+        source_directories[0] == source_directories[1],
+        "QtDeclarative target/host source evidence differs",
+    )
+
+
 def validate_features_evidence(value: Any) -> None:
     features = require_mapping(value, "featuresAndAutogen")
     require_exact_keys(
@@ -2570,6 +3346,7 @@ def validate_features_evidence(value: Any) -> None:
         {
             "qtFeatures",
             "emscriptenVersionCheckRetained",
+            "qtDeclarativeCacheProvenance",
             "emscriptenSdkContract",
             "quickControlsStyles",
             "autogen",
@@ -2589,6 +3366,9 @@ def validate_features_evidence(value: Any) -> None:
     require(
         features["emscriptenVersionCheckRetained"] is True,
         "Qt Emscripten version check must be retained",
+    )
+    validate_qtdeclarative_cache_evidence(
+        features["qtDeclarativeCacheProvenance"]
     )
     sdk = require_mapping(
         features["emscriptenSdkContract"],
@@ -2827,6 +3607,12 @@ def validate_application_link_evidence(value: Any) -> None:
         {
             "compiler",
             "responseFile",
+            "responseFileContentTemplate",
+            "responseArgumentCount",
+            "responseArgumentsSha256",
+            "effectiveArgumentCount",
+            "effectiveArgumentsSha256",
+            "selectedNinjaRule",
             "settings",
             "effectiveSettings",
             "settingOccurrences",
@@ -2843,6 +3629,10 @@ def validate_application_link_evidence(value: Any) -> None:
         == ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat"
         and link["responseFile"]
         == "CMakeFiles/RhythmGameWasmProbe.rsp"
+        and link["responseFileContentTemplate"]
+        == "$in $LINK_PATH $LINK_LIBRARIES"
+        and link["selectedNinjaRule"]
+        == "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release"
         and link["settings"] == list(APPLICATION_LINK_SETTINGS)
         and link["effectiveSettings"] == APPLICATION_EMSCRIPTEN_SETTINGS
         and link["literalAsyncifyConfigured"] is False
@@ -2850,6 +3640,18 @@ def validate_application_link_evidence(value: Any) -> None:
         == "libWasmProbeExceptionBoundary.a"
         and link["staticExceptionArchiveLinked"] is True,
         "application link contract drifted",
+    )
+    require_positive_int(
+        link["responseArgumentCount"],
+        "applicationLink.responseArgumentCount",
+    )
+    require_positive_int(
+        link["effectiveArgumentCount"],
+        "applicationLink.effectiveArgumentCount",
+    )
+    require(
+        link["effectiveArgumentCount"] > link["responseArgumentCount"],
+        "application link effective argument count must include outer args",
     )
     occurrences = require_mapping(
         link["settingOccurrences"],
@@ -2866,6 +3668,14 @@ def validate_application_link_evidence(value: Any) -> None:
     require_sha256_value(
         link["linkLibrariesSha256"],
         "applicationLink.linkLibrariesSha256",
+    )
+    require_sha256_value(
+        link["responseArgumentsSha256"],
+        "applicationLink.responseArgumentsSha256",
+    )
+    require_sha256_value(
+        link["effectiveArgumentsSha256"],
+        "applicationLink.effectiveArgumentsSha256",
     )
 
 
@@ -2968,16 +3778,20 @@ def validate_artifact_evidence(value: Any) -> None:
         artifacts,
         {
             "deploymentFiles",
+            "recognizedWebDeployables",
             "externalWorkerArtifacts",
             "pthreadWorkerEmbeddedInMainJavaScript",
             "pthreadBootstrapMarkers",
             "shaderResourceAlias",
+            "shaderResourceAliases",
             "files",
         },
         "artifacts",
     )
     require(
         artifacts["deploymentFiles"] == list(DEPLOYMENT_ARTIFACTS)
+        and artifacts["recognizedWebDeployables"]
+        == list(DEPLOYMENT_ARTIFACTS)
         and artifacts["externalWorkerArtifacts"]
         == [
             "RhythmGameWasmProbe.aw.js",
@@ -2990,8 +3804,8 @@ def validate_artifact_evidence(value: Any) -> None:
             "new Worker(pthreadMainJs",
             "ENVIRONMENT_IS_PTHREAD",
         ]
-        and artifacts["shaderResourceAlias"]
-        == ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb",
+        and artifacts["shaderResourceAlias"] == SHADER_RESOURCE_PATH
+        and artifacts["shaderResourceAliases"] == [SHADER_RESOURCE_PATH],
         "deployment artifact contract drifted",
     )
     files = require_mapping(artifacts["files"], "artifacts.files")

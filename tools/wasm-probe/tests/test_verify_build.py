@@ -8,6 +8,43 @@ import verify_build
 
 
 class VerifyBuildContractTest(unittest.TestCase):
+    @staticmethod
+    def application_link_fixture(
+        *response_arguments: str,
+    ) -> tuple[str, Path, str, str]:
+        expected = Path(r"T:\pinned\em++.bat")
+        command = (
+            r'C:\Windows\System32\cmd.exe /C "cd . && '
+            r"T:\pinned\em++.bat -pthread -fwasm-exceptions "
+            r"-sSUPPORT_LONGJMP=wasm -sJSPI=1 "
+            r"-sAUDIO_WORKLET=1 -sWASM_WORKERS=1 "
+            r"-sPTHREAD_POOL_SIZE=4 "
+            r"-sPTHREAD_POOL_SIZE_STRICT=2 "
+            r"-sALLOW_BLOCKING_ON_MAIN_THREAD=0 "
+            r"@CMakeFiles\RhythmGameWasmProbe.rsp "
+            r'-o RhythmGameWasmProbe.js && cd ."'
+        )
+        libraries = " ".join(
+            (
+                "libWasmProbeExceptionBoundary.a",
+                *response_arguments,
+            )
+        )
+        build_ninja = (
+            "build RhythmGameWasmProbe.js: "
+            "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release "
+            "object.o\n"
+            f"  LINK_LIBRARIES = {libraries}\n"
+            "  RSP_FILE = CMakeFiles\\RhythmGameWasmProbe.rsp\n"
+        )
+        rules_ninja = (
+            "rule CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release\n"
+            "  command = em++.bat @$RSP_FILE -o $TARGET_FILE\n"
+            "  rspfile = $RSP_FILE\n"
+            "  rspfile_content = $in $LINK_PATH $LINK_LIBRARIES\n"
+        )
+        return command, expected, build_ninja, rules_ninja
+
     def test_windows_command_parser_preserves_quoted_paths_and_flags(
         self,
     ) -> None:
@@ -278,7 +315,14 @@ class VerifyBuildContractTest(unittest.TestCase):
             "build unrelated: phony libOther.a\n"
         )
         self.assertEqual(
-            verify_build.require_final_link_archive(valid),
+            verify_build.require_final_link_archive(
+                valid,
+                (
+                    "rule CXX_EXECUTABLE\n"
+                    "  rspfile = $RSP_FILE\n"
+                    "  rspfile_content = $in $LINK_PATH $LINK_LIBRARIES\n"
+                ),
+            ),
             "libWasmProbeExceptionBoundary.a",
         )
 
@@ -292,7 +336,32 @@ class VerifyBuildContractTest(unittest.TestCase):
             AssertionError,
             "selected application link edge",
         ):
-            verify_build.require_final_link_archive(misplaced)
+            verify_build.require_final_link_archive(
+                misplaced,
+                (
+                    "rule CXX_EXECUTABLE\n"
+                    "  rspfile = $RSP_FILE\n"
+                    "  rspfile_content = $in $LINK_PATH $LINK_LIBRARIES\n"
+                ),
+            )
+
+    def test_response_file_conflicting_jspi_is_rejected(self) -> None:
+        fixture = self.application_link_fixture("-sJSPI=0")
+        with self.assertRaisesRegex(AssertionError, "JSPI"):
+            verify_build.verify_application_link_argument_stream(*fixture)
+
+    def test_response_file_split_asyncify_is_rejected(self) -> None:
+        fixture = self.application_link_fixture("-s", "ASYNCIFY=1")
+        with self.assertRaisesRegex(AssertionError, "Asyncify"):
+            verify_build.verify_application_link_argument_stream(*fixture)
+
+    def test_response_file_negative_wasm_exceptions_is_rejected(self) -> None:
+        fixture = self.application_link_fixture("-fno-wasm-exceptions")
+        with self.assertRaisesRegex(
+            AssertionError,
+            "-fno-wasm-exceptions",
+        ):
+            verify_build.verify_application_link_argument_stream(*fixture)
 
     def test_autogen_predefs_must_be_unique_target_moc_predefs(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -343,6 +412,106 @@ class VerifyBuildContractTest(unittest.TestCase):
             verify_build.require_host_tool_version(
                 "moc.exe",
                 "moc 6.11.10",
+            )
+
+    def test_swapped_host_qtdeclarative_cache_is_rejected(self) -> None:
+        with self.assertRaisesRegex(
+            AssertionError,
+            "QtDeclarative host.*VCPKG_TARGET_TRIPLET",
+        ):
+            verify_build.require_exact_cache_values(
+                {"VCPKG_TARGET_TRIPLET": verify_build.TARGET_TRIPLET},
+                {"VCPKG_TARGET_TRIPLET": verify_build.HOST_TRIPLET},
+                "QtDeclarative host",
+            )
+
+    def test_exact_deployment_set_rejects_orphan_web_outputs(self) -> None:
+        for orphan in ("orphan.data", "orphan.wasm", "orphan.js"):
+            with self.subTest(orphan=orphan):
+                with tempfile.TemporaryDirectory() as directory:
+                    build = Path(directory)
+                    for name in verify_build.DEPLOYMENT_ARTIFACTS:
+                        (build / name).write_text("payload", encoding="utf-8")
+                    (build / "generated.cpp").write_text(
+                        "not deployable",
+                        encoding="utf-8",
+                    )
+                    intermediate = build / "CMakeFiles" / "generated.js"
+                    intermediate.parent.mkdir()
+                    intermediate.write_text("ignored", encoding="utf-8")
+                    (build / orphan).write_text("orphan", encoding="utf-8")
+
+                    with self.assertRaisesRegex(
+                        AssertionError,
+                        "deployment",
+                    ):
+                        verify_build.require_exact_deployment_set(build)
+
+    def test_shader_resource_contract_rejects_extra_alias(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            build = Path(directory)
+            qrc = build / ".qt" / "rcc" / "wasm_probe_shaders.qrc"
+            generated = (
+                build / ".qt" / "rcc" / "qrc_wasm_probe_shaders.cpp"
+            )
+            expected_qsb = build / ".qsb" / "pulse.frag.qsb"
+            extra_qsb = build / ".qsb" / "extra.frag.qsb"
+            qrc.parent.mkdir(parents=True)
+            expected_qsb.parent.mkdir(parents=True)
+            expected_qsb.write_bytes(b"qsb")
+            extra_qsb.write_bytes(b"extra")
+            qrc.write_text(
+                (
+                    "<RCC><qresource "
+                    'prefix="/qt/qml/RhythmGame/WasmProbe/shaders">'
+                    f'<file alias="pulse.frag.qsb">{expected_qsb}</file>'
+                    f'<file alias="extra.frag.qsb">{extra_qsb}</file>'
+                    "</qresource></RCC>"
+                ),
+                encoding="utf-8",
+            )
+            generated.write_text(
+                (
+                    "// :\n"
+                    "// :/qt\n"
+                    "// :/qt/qml\n"
+                    "// :/qt/qml/RhythmGame\n"
+                    "// :/qt/qml/RhythmGame/WasmProbe\n"
+                    "// :/qt/qml/RhythmGame/WasmProbe/shaders\n"
+                    "// :/qt/qml/RhythmGame/WasmProbe/shaders/"
+                    "pulse.frag.qsb\n"
+                    "// :/qt/qml/RhythmGame/WasmProbe/shaders/"
+                    "extra.frag.qsb\n"
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                AssertionError,
+                "shader resource",
+            ):
+                verify_build.verify_shader_resource_contract(build)
+
+    def test_qtdeclarative_installed_port_version_is_exact(self) -> None:
+        with self.assertRaisesRegex(
+            AssertionError,
+            "qtdeclarative.*Port-Version",
+        ):
+            verify_build.require_port_version(
+                {"Version": verify_build.EXPECTED_QT},
+                "1",
+                "qtdeclarative",
+            )
+
+    def test_triplet_passthrough_requires_emsdk_and_python(self) -> None:
+        triplet = "set(VCPKG_ENV_PASSTHROUGH EMSDK)\n"
+        with self.assertRaisesRegex(
+            AssertionError,
+            "EMSDK_PYTHON",
+        ):
+            verify_build.require_vcpkg_env_passthrough(
+                triplet,
+                ("EMSDK", "EMSDK_PYTHON"),
             )
 
 
