@@ -2,8 +2,8 @@
   "applicationLink": {
     "commandSha256": "5f0f34d2fa152dfdb5b02da04646ed6ae539227a46a175b24fb9dce1621f74b8",
     "compiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
-    "effectiveArgumentCount": 180,
-    "effectiveArgumentsSha256": "43bf598697bc5137797ac87de0b7dcf8f7ee849dfa8ecaf853ca59f1bdc71996",
+    "effectiveArgumentCount": 181,
+    "effectiveArgumentsSha256": "9a590704ad679cac536cfadeb93d31cc4745ed83471b76a9ff180f58eba64a62",
     "effectiveSettings": {
       "ALLOW_BLOCKING_ON_MAIN_THREAD": "0",
       "AUDIO_WORKLET": "1",
@@ -13,10 +13,17 @@
       "SUPPORT_LONGJMP": "wasm",
       "WASM_WORKERS": "1"
     },
+    "forbiddenArgumentsAbsent": [
+      "-fexceptions",
+      "-fno-wasm-exceptions",
+      "-sASYNCIFY",
+      "-sNO_WASM_EXCEPTIONS",
+      "-sWASM_EXCEPTIONS=0"
+    ],
     "linkLibrariesSha256": "b11047d10184bbcf419035f7074e1586b37f44d539d623990b21ef63f7ed7728",
     "literalAsyncifyConfigured": false,
-    "responseArgumentCount": 138,
-    "responseArgumentsSha256": "cf214108ca207761d7f261a8745e0f4b0120a12b41b65c582bbe8de653173e47",
+    "responseArgumentCount": 139,
+    "responseArgumentsSha256": "db5b62bda28ca68d123e2d7ad58b25350d13e11ef2c9f6676e1d1ab8c6e00df4",
     "responseFile": "CMakeFiles/RhythmGameWasmProbe.rsp",
     "responseFileContentTemplate": "$in $LINK_PATH $LINK_LIBRARIES",
     "selectedNinjaRule": "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release",
@@ -68,19 +75,19 @@
       },
       "RhythmGameWasmProbe.js": {
         "bytes": 344438,
-        "sha256": "f12f5a78faf5d5f9532b9279bc99866907e26bedf4d67ad364cdf67950d763df"
+        "sha256": "91b3dc7781b311a2547dc302ac6eea3f8fab43d6029b8ac9a561d5c7e3656514"
       },
       "RhythmGameWasmProbe.wasm": {
-        "bytes": 21150215,
-        "sha256": "9b4f7ff49863e941bb2d967c634b5b5ebda93b40044058b0b03da8c2a62e5cc8"
+        "bytes": 21150405,
+        "sha256": "6e255572a38bfd9b7ad966029a4d853f4b8104dba69e9109ed3eb5babbd61536"
       },
       "RhythmGameWasmProbe.ww.js": {
         "bytes": 1228,
         "sha256": "ec406773b418785df88b3ec51eeea7f89c2900a51967cb1083c3614ea611015f"
       },
       "compile_commands.json": {
-        "bytes": 26459,
-        "sha256": "a836433dc6c5db5aa063aa2f667503a7103248e10e7bb352b22f0456d55a884a"
+        "bytes": 28870,
+        "sha256": "984d72d24dff1f676eafca47792b620d851774da07f9d66af780ce2cf776d624"
       },
       "libWasmProbeExceptionBoundary.a": {
         "bytes": 1620,
@@ -116,6 +123,12 @@
     ]
   },
   "buildFreshness": {
+    "artifactBinding": {
+      "artifact": "tools/wasm-probe/build/wasm-release/RhythmGameWasmProbe.wasm",
+      "configuredAggregateSha256": "7d1343aa1090abc671ab9f883576fa6e401ed47cb2a52fb3b6d95f884ef1f4ba",
+      "generatedSource": "tools/wasm-probe/build/wasm-release/generated/ProbeInputDigest.cpp",
+      "markerSha256": "bd1f1431ab506d3a053be7ef9a8a0b11dc63566519f0523853295e9c86b18925"
+    },
     "command": [
       ".toolchains/ninja-1.13.2-win/ninja.exe",
       "-C",
@@ -130,10 +143,15 @@
     ],
     "outputSha256": "c668fd5696e5ffcc0e1788be72d9a4d5a2e090e9a2f0234eaa757ebca1565732",
     "sourceInputs": {
-      "aggregateSha256": "81a813d5d44808ac8e21a0982b04cbe81ecd692393d0b36adcd8d7dbc5afe894",
-      "count": 56,
+      "aggregateSha256": "7d1343aa1090abc671ab9f883576fa6e401ed47cb2a52fb3b6d95f884ef1f4ba",
+      "algorithm": "sha256-manifest-path-equals-digest-lf-v1",
+      "count": 59,
+      "manifest": "tools/wasm-probe/input-manifest.txt",
+      "manifestSha256": "dc2bb1b4737a21d6c3a33dce014bbb14b29a8772208301ec405bb8014d789aaf",
       "paths": [
+        ".gitattributes",
         "cmake/toolchains/vcpkg-emscripten.cmake",
+        "tools/wasm-probe/cmake/ProbeInputDigest.cpp.in",
         "tools/wasm-probe/cmake/verify_exact_toolchain.cmake",
         "tools/wasm-probe/CMakeLists.txt",
         "tools/wasm-probe/CMakePresets.json",
@@ -141,6 +159,7 @@
         "tools/wasm-probe/qml/pulse.frag",
         "tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1",
         "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1",
+        "tools/wasm-probe/scripts/Toolchain-Provenance.ps1",
         "tools/wasm-probe/src/ExceptionBoundary.cpp",
         "tools/wasm-probe/src/ExceptionBoundary.h",
         "tools/wasm-probe/src/main.cpp",
@@ -189,7 +208,8 @@
         "vcpkgOverlayPortsWasm/qtbase/windeployqt.debug.bat",
         "vcpkgTriplets/wasm32-emscripten-rg.cmake",
         "vcpkgTriplets/x64-windows-rg-host-release.cmake"
-      ]
+      ],
+      "tracking": "git-index"
     },
     "target": "RhythmGameWasmProbe"
   },
@@ -230,6 +250,13 @@
         ]
       }
     },
+    "forbiddenArgumentsAbsent": [
+      "-fexceptions",
+      "-fno-wasm-exceptions",
+      "-sASYNCIFY",
+      "-sNO_WASM_EXCEPTIONS",
+      "-sWASM_EXCEPTIONS=0"
+    ],
     "targetCommandCounts": {
       "c": 446,
       "cxx": 3167
@@ -381,11 +408,13 @@
         "cmakeCommand": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/cmake-4.3.3-windows-x86_64/bin/cmake.exe",
         "compiler": {
           "architecture": "x64",
+          "basename": "cl.exe",
+          "executableSha256": "9cf613fcbebece019712511eec4b1a32d0a9c94e65249a1aeb326305c2388d6b",
           "frontendVariant": "MSVC",
           "id": "MSVC",
-          "path": "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
           "pathAuthenticated": true,
           "platform": "Windows",
+          "toolsetRelativePath": "VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe",
           "version": "19.51.36244.0"
         },
         "generator": "Ninja",
@@ -621,7 +650,7 @@
     ],
     "version": "6.11.1"
   },
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "scope": "Technical Qt/Emscripten build probe only; browser runtime capabilities remain Gate 1B work.",
   "technicalProbePassed": true,
   "toolchains": {
@@ -629,21 +658,164 @@
       "driver": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py",
       "emsdkCommit": "c69d433d8509c5c64564c2f0d054bf102a5cf67e",
       "emsdkRoot": ".toolchains/emsdk-4.0.7",
+      "installation": {
+        "generatedBytecode": {
+          "cacheDirectory": "__pycache__",
+          "fileSuffix": ".pyc",
+          "normalization": "authenticate-non-bytecode-delete-cache-authenticate-full-v1"
+        },
+        "packageUrl": "https://storage.googleapis.com/webassembly/emscripten-releases-builds/win/ef4e9cedeac3332e4738087567552063f4f250d3/wasm-binaries.zip",
+        "payload": {
+          "aggregateSha256": "d6a1ec1d8b7582a01e6f69fe951a16c620866eb18c9738420a22393756b89d99",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "excludedPrefixes": [
+            "upstream/emscripten/cache/"
+          ],
+          "excludedSegments": [],
+          "excludedSuffixes": [],
+          "fileCount": 14842,
+          "inventorySha256": "8c87639389a8b929b4d917e2cb41c09f40746f76ac4144143cf530a6c9345fbb",
+          "roots": [
+            ".emscripten",
+            "upstream/bin",
+            "upstream/lib",
+            "upstream/emscripten",
+            "node/20.18.0_64bit",
+            "python/3.9.2-nuget_64bit"
+          ]
+        },
+        "releaseHash": "ef4e9cedeac3332e4738087567552063f4f250d3",
+        "releaseManifest": {
+          "path": "emscripten-releases-tags.json",
+          "sha256": "d833b45d63b12690ce222a6a7b9fe8e7d05be53d5883162852f2483204c5a0f5"
+        }
+      },
       "launcher": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
+      "node": ".toolchains/emsdk-4.0.7/node/20.18.0_64bit/bin/node.exe",
       "python": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
       "version": "4.0.7",
       "versionOutput": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.7 (8dc91db45bf96c174531006839472a3924d105aa)"
     },
-    "lockFileSha256": "8b7308ea94cf15504e469359f815dea8e455d73ee7f92ac00864a48cc182a8bb",
+    "hermeticEnvironment": {
+      "canonicalVariables": {
+        "CMAKE_NINJA_FORCE_RESPONSE_FILE": "1",
+        "EMSCRIPTEN_ROOT": ".toolchains/emsdk-4.0.7/upstream/emscripten",
+        "EMSCRIPTEN_VERSION": "4.0.7",
+        "EMSDK": ".toolchains/emsdk-4.0.7",
+        "EMSDK_NODE": ".toolchains/emsdk-4.0.7/node/20.18.0_64bit/bin/node.exe",
+        "EMSDK_PYTHON": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
+        "EM_CACHE": ".toolchains/emsdk-4.0.7/upstream/emscripten/cache",
+        "EM_CONFIG": ".toolchains/emsdk-4.0.7/.emscripten",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "VCPKG_DEFAULT_BINARY_CACHE": ".wasm-vcpkg/bincache",
+        "VCPKG_DISABLE_METRICS": "1",
+        "VCPKG_ROOT": ".toolchains/vcpkg-a0400024"
+      },
+      "forbiddenNamesAbsent": [
+        "AR",
+        "BINARYEN_ROOT",
+        "CC",
+        "CL",
+        "CPP",
+        "CPPFLAGS",
+        "CXX",
+        "CFLAGS",
+        "CXXFLAGS",
+        "EMCC_CFLAGS",
+        "EMCC_DEBUG",
+        "EMMAKEN_CFLAGS",
+        "EMMAKEN_COMPILER",
+        "EM_COMPILER_WRAPPER",
+        "EM_COMPILER_WRAPPER2",
+        "LD",
+        "LDFLAGS",
+        "LLVM_ROOT",
+        "NM",
+        "NODE_JS",
+        "PYTHONHOME",
+        "PYTHONPATH",
+        "RANLIB",
+        "STRIP",
+        "_CL_",
+        "_EMCC_CCACHE"
+      ]
+    },
+    "lockFileSha256": "312d4d4be42ae030da4f221d4347ec2a6ece2e428006dd000fad55f1cef63918",
     "ninja": {
       "executable": ".toolchains/ninja-1.13.2-win/ninja.exe",
+      "executableSha256": "e52a7ad9538d9618c67a0bd777964e2eec8a30f68b810a2f6adce1f2daf847b8",
+      "installation": {
+        "archive": {
+          "path": ".toolchains/downloads/ninja-win.zip",
+          "sha256": "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65"
+        },
+        "installationRoot": ".toolchains/ninja-1.13.2-win",
+        "payload": {
+          "aggregateSha256": "90779f6fe330259113900c836a8dbf973c87905e098e0ada0121b5ac135d6dac",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 0,
+          "directoryInventorySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "fileCount": 1,
+          "inventorySha256": "014cb71e5fd86a18adb79f57e26acbd58577f6f84a52491297a3454a3b38f477",
+          "stripPrefix": "",
+          "totalBytes": 603648
+        }
+      },
+      "lockEntry": {
+        "archiveFile": "ninja-win.zip",
+        "directory": "ninja-1.13.2-win",
+        "executableSha256": "e52a7ad9538d9618c67a0bd777964e2eec8a30f68b810a2f6adce1f2daf847b8",
+        "payload": {
+          "aggregateSha256": "90779f6fe330259113900c836a8dbf973c87905e098e0ada0121b5ac135d6dac",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 0,
+          "directoryInventorySha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "fileCount": 1,
+          "inventorySha256": "014cb71e5fd86a18adb79f57e26acbd58577f6f84a52491297a3454a3b38f477",
+          "stripPrefix": "",
+          "totalBytes": 603648
+        },
+        "sha256": "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65",
+        "url": "https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip",
+        "version": "1.13.2"
+      },
       "version": "1.13.2",
       "versionOutput": "1.13.2"
     },
     "outerProbeCMake": {
       "executable": ".toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe",
+      "executableSha256": "daae341e73330c9c5bf391f22d10510c0f70e5f01d2b61b0fd256cd9edd28379",
+      "installation": {
+        "archive": {
+          "path": ".toolchains/downloads/cmake-4.2.3-windows-x86_64.zip",
+          "sha256": "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c"
+        },
+        "installationRoot": ".toolchains/cmake-4.2.3-windows-x86_64",
+        "payload": {
+          "aggregateSha256": "38d0389fbb638f78ec2a624592d331efeef3c3f951eb3a3aff1eacbff16146f7",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 148,
+          "directoryInventorySha256": "649f6d95061ef02fe899c0c7062b551e401e372a098c9a9880cbbee4d72fc814",
+          "fileCount": 8525,
+          "inventorySha256": "48f746fb6ca853fd693c018eaa3220da06b4251275a15a3e41a93bc1013c3dd3",
+          "stripPrefix": "cmake-4.2.3-windows-x86_64",
+          "totalBytes": 132316585
+        }
+      },
       "lockEntry": {
+        "archiveFile": "cmake-4.2.3-windows-x86_64.zip",
         "directory": "cmake-4.2.3-windows-x86_64",
+        "executableSha256": "daae341e73330c9c5bf391f22d10510c0f70e5f01d2b61b0fd256cd9edd28379",
+        "payload": {
+          "aggregateSha256": "38d0389fbb638f78ec2a624592d331efeef3c3f951eb3a3aff1eacbff16146f7",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 148,
+          "directoryInventorySha256": "649f6d95061ef02fe899c0c7062b551e401e372a098c9a9880cbbee4d72fc814",
+          "fileCount": 8525,
+          "inventorySha256": "48f746fb6ca853fd693c018eaa3220da06b4251275a15a3e41a93bc1013c3dd3",
+          "stripPrefix": "cmake-4.2.3-windows-x86_64",
+          "totalBytes": 132316585
+        },
         "sha256": "eb4ebf5155dbb05436d675706b2a08189430df58904257ae5e91bcba4c86933c",
         "url": "https://cmake.org/files/v4.2/cmake-4.2.3-windows-x86_64.zip",
         "version": "4.2.3"

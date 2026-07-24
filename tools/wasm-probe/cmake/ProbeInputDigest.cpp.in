@@ -1,0 +1,4 @@
+extern "C" const char* rhythmGameWasmProbeInputDigest()
+{
+    return "RG_WASM_PROBE_INPUT_SHA256=@WASM_PROBE_INPUT_DIGEST@";
+}

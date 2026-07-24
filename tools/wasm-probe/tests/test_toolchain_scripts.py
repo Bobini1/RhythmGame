@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -7,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -26,6 +28,53 @@ PROBE = REPO / "tools" / "wasm-probe"
 BOOTSTRAP = PROBE / "scripts" / "Bootstrap-Toolchains.ps1"
 WRAPPER = PROBE / "scripts" / "Invoke-WithToolchains.ps1"
 PROCESS_DOUBLE = PROBE / "tests" / "_toolchain_process_double.py"
+PROVENANCE = PROBE / "scripts" / "Toolchain-Provenance.ps1"
+
+
+def _payload_identity(files: dict[str, bytes]) -> dict[str, object]:
+    paths = sorted(files)
+    directories = sorted(
+        {
+            "/".join(path.split("/")[:index])
+            for path in paths
+            for index in range(1, len(path.split("/")))
+        }
+    )
+    inventory = hashlib.sha256(
+        "".join(f"{path}\n" for path in paths).encode("utf-8")
+    ).hexdigest()
+    directory_inventory = hashlib.sha256(
+        "".join(f"{path}/\n" for path in directories).encode("utf-8")
+    ).hexdigest()
+    aggregate = hashlib.sha256(
+        "".join(
+            f"{path}\0{hashlib.sha256(files[path]).hexdigest()}\n"
+            for path in paths
+        ).encode("utf-8")
+    ).hexdigest()
+    return {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": len(paths),
+        "directoryCount": len(directories),
+        "totalBytes": sum(len(content) for content in files.values()),
+        "inventorySha256": inventory,
+        "directoryInventorySha256": directory_inventory,
+        "aggregateSha256": aggregate,
+    }
+
+
+def _write_zip(archive: Path, entries: dict[str, bytes]) -> None:
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(
+        archive,
+        "w",
+        compression=zipfile.ZIP_DEFLATED,
+    ) as bundle:
+        for name in sorted(entries):
+            info = zipfile.ZipInfo(name, date_time=(2020, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            bundle.writestr(info, entries[name])
 
 
 @unittest.skipUnless(os.name == "nt", "PowerShell toolchain tests are Windows-only")
@@ -45,6 +94,135 @@ class ToolchainScriptTest(unittest.TestCase):
         cache = sandbox / "binary cache with spaces"
         root.mkdir(parents=True)
         write_launcher(shims / "git.cmd", "git")
+        copied_probe = sandbox / "copied probe"
+        copied_scripts = copied_probe / "scripts"
+        copied_scripts.mkdir(parents=True)
+        bootstrap = copied_scripts / BOOTSTRAP.name
+        wrapper = copied_scripts / WRAPPER.name
+        shutil.copy2(BOOTSTRAP, bootstrap)
+        shutil.copy2(WRAPPER, wrapper)
+        shutil.copy2(PROVENANCE, copied_scripts / PROVENANCE.name)
+
+        exemplar = sandbox / "payload exemplar"
+        exemplar_emsdk = exemplar / "emsdk-4.0.7"
+        seed_repository(exemplar_emsdk, "emsdk", EMSDK_COMMIT)
+        seed_build_tools(exemplar)
+        cmake_directory = "cmake-4.2.3-windows-x86_64"
+        ninja_directory = "ninja-1.13.2-win"
+        cmake_files = {
+            "bin/cmake.cmd": (
+                exemplar / cmake_directory / "bin" / "cmake.cmd"
+            ).read_bytes(),
+            "share/cmake-4.2/Modules/FixtureSupport.cmake": (
+                exemplar
+                / cmake_directory
+                / "share"
+                / "cmake-4.2"
+                / "Modules"
+                / "FixtureSupport.cmake"
+            ).read_bytes(),
+        }
+        ninja_files = {
+            "ninja.cmd": (
+                exemplar / ninja_directory / "ninja.cmd"
+            ).read_bytes(),
+        }
+        cmake_archive = root / "downloads" / f"{cmake_directory}.zip"
+        ninja_archive = root / "downloads" / f"{ninja_directory}.zip"
+        _write_zip(
+            cmake_archive,
+            {
+                f"{cmake_directory}/{path}": content
+                for path, content in cmake_files.items()
+            },
+        )
+        _write_zip(ninja_archive, ninja_files)
+        lock = json.loads(
+            (PROBE / "toolchain-lock.json").read_text("utf-8")
+        )
+        release_manifest = (
+            exemplar_emsdk / "emscripten-releases-tags.json"
+        )
+        roots = [
+            ".emscripten",
+            "emscripten-releases-tags.json",
+            "upstream/bin",
+            "upstream/emscripten",
+            "node",
+            "python",
+        ]
+        files: dict[str, bytes] = {}
+        for relative_root in roots:
+            root_path = exemplar_emsdk / relative_root
+            candidates = (
+                [root_path]
+                if root_path.is_file()
+                else [path for path in root_path.rglob("*") if path.is_file()]
+            )
+            for path in candidates:
+                relative = path.relative_to(exemplar_emsdk).as_posix()
+                files[relative] = path.read_bytes()
+        emscripten_payload = _payload_identity(files)
+        lock["emscripten"].update(
+            {
+                "releaseManifest": {
+                    "path": "emscripten-releases-tags.json",
+                    "sha256": hashlib.sha256(
+                        release_manifest.read_bytes()
+                    ).hexdigest(),
+                },
+                "nodeExecutable": "node/node.exe",
+                "pythonExecutable": "python/python.exe",
+                "payload": {
+                    **emscripten_payload,
+                    "roots": roots,
+                    "excludedPrefixes": [],
+                    "excludedSegments": [],
+                    "excludedSuffixes": [],
+                },
+            }
+        )
+        for name, directory, archive, artifact_files, strip_prefix in (
+            (
+                "cmake",
+                cmake_directory,
+                cmake_archive,
+                cmake_files,
+                cmake_directory,
+            ),
+            (
+                "ninja",
+                ninja_directory,
+                ninja_archive,
+                ninja_files,
+                "",
+            ),
+        ):
+            artifact = lock["buildTools"][name]
+            executable = (
+                exemplar / directory / "bin" / "cmake.cmd"
+                if name == "cmake"
+                else exemplar / directory / "ninja.cmd"
+            )
+            artifact.update(
+                {
+                    "archiveFile": archive.name,
+                    "sha256": hashlib.sha256(
+                        archive.read_bytes()
+                    ).hexdigest(),
+                    "executableSha256": hashlib.sha256(
+                        executable.read_bytes()
+                    ).hexdigest(),
+                    "payload": {
+                        **_payload_identity(artifact_files),
+                        "stripPrefix": strip_prefix,
+                    },
+                }
+            )
+        (copied_probe / "toolchain-lock.json").write_text(
+            json.dumps(lock),
+            encoding="utf-8",
+        )
         environment = os.environ.copy()
         environment.update(
             {
@@ -64,6 +242,9 @@ class ToolchainScriptTest(unittest.TestCase):
             "events": events,
             "cache": cache,
             "environment": environment,
+            "bootstrap": bootstrap,
+            "wrapper": wrapper,
+            "lock": copied_probe / "toolchain-lock.json",
         }
 
     def _run(
@@ -95,11 +276,12 @@ class ToolchainScriptTest(unittest.TestCase):
         fixture: dict[str, object],
         child: str | Path,
         child_arguments: list[str] | None = None,
-        wrapper: Path = WRAPPER,
+        wrapper: Path | None = None,
     ) -> subprocess.CompletedProcess[str]:
         environment = dict(fixture["environment"])
+        selected_wrapper = wrapper or Path(str(fixture["wrapper"]))
         return self._run(
-            wrapper,
+            selected_wrapper,
             [
                 "-ToolchainRoot",
                 str(fixture["root"]),
@@ -121,6 +303,49 @@ class ToolchainScriptTest(unittest.TestCase):
             for line in path.read_text("utf-8").splitlines()
             if line
         ]
+
+    def _run_entrypoint(
+        self,
+        fixture: dict[str, object],
+        entrypoint: str,
+    ) -> subprocess.CompletedProcess[str]:
+        if entrypoint == "bootstrap":
+            return self._run(
+                Path(str(fixture["bootstrap"])),
+                ["-ToolchainRoot", str(fixture["root"])],
+                dict(fixture["environment"]),
+            )
+        if entrypoint == "wrapper":
+            sandbox = Path(str(fixture["sandbox"]))
+            child = sandbox / "must not execute.cmd"
+            write_launcher(child, "capture")
+            return self._run_wrapper(fixture, child)
+        raise AssertionError(f"unexpected entrypoint: {entrypoint}")
+
+    def _assert_no_tool_execution(
+        self,
+        fixture: dict[str, object],
+    ) -> None:
+        forbidden = {
+            "emsdk",
+            "vcpkg-bootstrap",
+            "em++",
+            "em++-driver",
+            "emcc",
+            "emcc-driver",
+            "vcpkg",
+            "cmake",
+            "ninja",
+            "capture",
+            "capture-environment",
+        }
+        events = self._events(Path(str(fixture["events"])))
+        self.assertFalse(
+            forbidden.intersection(
+                str(event["tool"]) for event in events
+            ),
+            events,
+        )
 
     @staticmethod
     def _seed_complete(root: Path) -> None:
@@ -190,7 +415,7 @@ class ToolchainScriptTest(unittest.TestCase):
                         head.write_text(wrong, encoding="ascii")
                         if entrypoint == "bootstrap":
                             result = self._run(
-                                BOOTSTRAP,
+                                Path(str(fixture["bootstrap"])),
                                 ["-ToolchainRoot", str(root)],
                                 fixture["environment"],
                             )
@@ -211,6 +436,7 @@ class ToolchainScriptTest(unittest.TestCase):
                             "emsdk",
                             "vcpkg-bootstrap",
                             "em++",
+                            "em++-driver",
                             "vcpkg",
                             "cmake",
                             "ninja",
@@ -229,9 +455,31 @@ class ToolchainScriptTest(unittest.TestCase):
                             if event["tool"] == "git"
                         ]
                         self.assertTrue(git_operations, events)
+                        allowed_git_operations = {
+                            ("rev-parse", "HEAD"),
+                            (
+                                "diff",
+                                "--quiet",
+                                "--no-ext-diff",
+                                "--no-textconv",
+                                "--ignore-submodules=all",
+                                "--",
+                            ),
+                            (
+                                "diff",
+                                "--cached",
+                                "--quiet",
+                                "--no-ext-diff",
+                                "--no-textconv",
+                                "--ignore-submodules=all",
+                                "HEAD",
+                                "--",
+                            ),
+                        }
                         self.assertTrue(
                             all(
-                                operation[-2:] == ["rev-parse", "HEAD"]
+                                tuple(operation[2:])
+                                in allowed_git_operations
                                 for operation in git_operations
                             ),
                             git_operations,
@@ -261,7 +509,7 @@ class ToolchainScriptTest(unittest.TestCase):
             environment["TOOLCHAIN_DOUBLE_FAIL_CLONE_ONCE"] = str(marker)
 
             first = self._run(
-                BOOTSTRAP,
+                Path(str(fixture["bootstrap"])),
                 ["-ToolchainRoot", str(root)],
                 environment,
             )
@@ -277,7 +525,7 @@ class ToolchainScriptTest(unittest.TestCase):
             self.assertTrue((sentinel / "keep").is_file())
 
             second = self._run(
-                BOOTSTRAP,
+                Path(str(fixture["bootstrap"])),
                 ["-ToolchainRoot", str(root)],
                 environment,
             )
@@ -346,6 +594,262 @@ class ToolchainScriptTest(unittest.TestCase):
                 ],
             )
 
+    def test_tracked_repository_drift_fails_before_tool_execution(self) -> None:
+        repositories = (
+            ("emsdk-4.0.7", ".fixture-worktree-dirty", "unstaged"),
+            ("emsdk-4.0.7", ".fixture-index-dirty", "staged"),
+            ("vcpkg-a0400024", ".fixture-worktree-dirty", "unstaged"),
+            ("vcpkg-a0400024", ".fixture-index-dirty", "staged"),
+        )
+        for directory, marker_name, expected in repositories:
+            for entrypoint in ("bootstrap", "wrapper"):
+                with self.subTest(
+                    repository=directory,
+                    state=expected,
+                    entrypoint=entrypoint,
+                ):
+                    with tempfile.TemporaryDirectory(
+                        prefix="rg tracked toolchain drift "
+                    ) as temporary:
+                        fixture = self._fixture(temporary)
+                        root = Path(str(fixture["root"]))
+                        self._seed_complete(root)
+                        marker = root / directory / marker_name
+                        marker.write_text("dirty", encoding="ascii")
+
+                        result = self._run_entrypoint(
+                            fixture,
+                            entrypoint,
+                        )
+                        combined = result.stdout + result.stderr
+                        self.assertNotEqual(result.returncode, 0, combined)
+                        self.assertIn(expected, combined)
+                        self._assert_no_tool_execution(fixture)
+
+    def test_build_tool_tree_or_archive_drift_fails_before_versions(
+        self,
+    ) -> None:
+        cases = (
+            ("cmake-support-bytes", "bootstrap"),
+            ("cmake-support-bytes", "wrapper"),
+            ("ninja-archive-bytes", "bootstrap"),
+            ("ninja-archive-bytes", "wrapper"),
+            ("missing-cmake-archive", "wrapper"),
+            ("extra-cmake-file", "wrapper"),
+            ("extra-ninja-directory", "wrapper"),
+        )
+        for mutation, entrypoint in cases:
+            with self.subTest(mutation=mutation, entrypoint=entrypoint):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg build tool provenance "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    self._seed_complete(root)
+                    lock = json.loads(
+                        Path(str(fixture["lock"])).read_text("utf-8")
+                    )
+                    cmake_root = (
+                        root / lock["buildTools"]["cmake"]["directory"]
+                    )
+                    ninja_root = (
+                        root / lock["buildTools"]["ninja"]["directory"]
+                    )
+                    downloads = root / "downloads"
+
+                    if mutation == "cmake-support-bytes":
+                        support = (
+                            cmake_root
+                            / "share"
+                            / "cmake-4.2"
+                            / "Modules"
+                            / "FixtureSupport.cmake"
+                        )
+                        timestamps = (
+                            support.stat().st_atime_ns,
+                            support.stat().st_mtime_ns,
+                        )
+                        original = support.read_bytes()
+                        support.write_bytes(
+                            original[:-1]
+                            + bytes((original[-1] ^ 0x01,))
+                        )
+                        os.utime(support, ns=timestamps)
+                    elif mutation == "ninja-archive-bytes":
+                        archive = (
+                            downloads
+                            / lock["buildTools"]["ninja"]["archiveFile"]
+                        )
+                        with archive.open("ab") as stream:
+                            stream.write(b"tampered")
+                    elif mutation == "missing-cmake-archive":
+                        (
+                            downloads
+                            / lock["buildTools"]["cmake"]["archiveFile"]
+                        ).unlink()
+                    elif mutation == "extra-cmake-file":
+                        (cmake_root / "unexpected-module.cmake").write_text(
+                            "unexpected",
+                            encoding="ascii",
+                        )
+                    elif mutation == "extra-ninja-directory":
+                        (ninja_root / "unexpected").mkdir()
+                    else:
+                        self.fail(f"unknown mutation: {mutation}")
+
+                    result = self._run_entrypoint(fixture, entrypoint)
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertRegex(
+                        combined,
+                        r"(?i)(archive|installed|installation)",
+                    )
+                    self._assert_no_tool_execution(fixture)
+
+    def test_bytecode_normalization_is_narrow_and_precedes_versions(
+        self,
+    ) -> None:
+        cases = (
+            ("non-bytecode-in-cache", "Non-bytecode file", True),
+            ("pyc-outside-cache", ".pyc outside exact", True),
+            ("cache-reparse", "reparse point", True),
+        )
+
+        with tempfile.TemporaryDirectory(
+            prefix="rg benign bytecode cache "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = Path(str(fixture["root"]))
+            self._seed_complete(root)
+            cache = (
+                root
+                / "emsdk-4.0.7"
+                / "python"
+                / "__pycache__"
+            )
+            cache.mkdir()
+            (cache / "fixture.cpython-39.pyc").write_bytes(
+                b"generated bytecode"
+            )
+            child, arguments = self._native_capture_command(["normalized"])
+            result = self._run_wrapper(fixture, child, arguments)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertFalse(cache.exists())
+
+        for mutation, expected, retained in cases:
+            with self.subTest(mutation=mutation):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg hostile bytecode cache "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    sandbox = Path(str(fixture["sandbox"]))
+                    self._seed_complete(root)
+                    python_root = root / "emsdk-4.0.7" / "python"
+                    cache = python_root / "__pycache__"
+                    preserved: Path
+                    if mutation == "non-bytecode-in-cache":
+                        cache.mkdir()
+                        preserved = cache / "not-bytecode.txt"
+                        preserved.write_text("must survive", encoding="ascii")
+                    elif mutation == "pyc-outside-cache":
+                        preserved = python_root / "rogue.pyc"
+                        preserved.write_bytes(b"must survive")
+                    elif mutation == "cache-reparse":
+                        target = sandbox / "outside cache target"
+                        target.mkdir()
+                        preserved = target / "must-survive.pyc"
+                        preserved.write_bytes(b"must survive")
+                        created = subprocess.run(
+                            [
+                                "cmd.exe",
+                                "/d",
+                                "/c",
+                                "mklink",
+                                "/J",
+                                str(cache),
+                                str(target),
+                            ],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        )
+                        self.assertEqual(
+                            created.returncode,
+                            0,
+                            created.stdout + created.stderr,
+                        )
+                    else:
+                        self.fail(f"unknown mutation: {mutation}")
+
+                    result = self._run_entrypoint(fixture, "wrapper")
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn(expected, combined)
+                    if retained:
+                        self.assertTrue(preserved.exists())
+                    self._assert_no_tool_execution(fixture)
+
+    def test_authenticated_archive_rejects_unsafe_layouts_before_versions(
+        self,
+    ) -> None:
+        cases = (
+            ("dotdot", "../outside.txt", 0o100644),
+            ("backslash", r"unsafe\outside.txt", 0o100644),
+            ("reserved", "AUX.txt", 0o100644),
+            (
+                "case-collision",
+                "SHARE/cmake-4.2/modules/fixturesupport.cmake",
+                0o100644,
+            ),
+            ("symlink", "unsafe-link", 0o120777),
+        )
+        for label, relative, unix_mode in cases:
+            with self.subTest(layout=label):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg unsafe build archive "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    self._seed_complete(root)
+                    lock_path = Path(str(fixture["lock"]))
+                    lock = json.loads(lock_path.read_text("utf-8"))
+                    cmake = lock["buildTools"]["cmake"]
+                    archive = (
+                        root / "downloads" / cmake["archiveFile"]
+                    )
+                    prefix = cmake["payload"]["stripPrefix"]
+                    entry = zipfile.ZipInfo(
+                        f"{prefix}/{relative}",
+                        date_time=(2020, 1, 1, 0, 0, 0),
+                    )
+                    entry.compress_type = zipfile.ZIP_DEFLATED
+                    entry.external_attr = unix_mode << 16
+                    with zipfile.ZipFile(
+                        archive,
+                        "a",
+                        compression=zipfile.ZIP_DEFLATED,
+                    ) as bundle:
+                        bundle.writestr(entry, b"unsafe")
+                    cmake["sha256"] = hashlib.sha256(
+                        archive.read_bytes()
+                    ).hexdigest()
+                    lock_path.write_text(
+                        json.dumps(lock),
+                        encoding="utf-8",
+                    )
+                    outside = Path(str(fixture["sandbox"])) / "outside.txt"
+
+                    result = self._run_entrypoint(fixture, "wrapper")
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertRegex(
+                        combined,
+                        r"(?i)(archive|relative path|collision|reparse)",
+                    )
+                    self.assertFalse(outside.exists())
+                    self._assert_no_tool_execution(fixture)
+
     def test_wrapper_is_hermetic_transparent_and_propagates_exit(self) -> None:
         with tempfile.TemporaryDirectory(
             prefix="rg toolchain wrapper "
@@ -376,9 +880,24 @@ class ToolchainScriptTest(unittest.TestCase):
                         f"{environment.get('PATH', '')}"
                     ),
                     "EMSDK": "T:\\poison emsdk",
+                    "EMSDK_NODE": "T:\\poison node",
                     "EMSDK_PYTHON": "T:\\poison python",
                     "EMSCRIPTEN_ROOT": "T:\\poison emscripten",
                     "EMSCRIPTEN_VERSION": "4.0.7",
+                    "EM_CACHE": "T:\\poison cache",
+                    "EM_CONFIG": "T:\\poison config",
+                    "EMCC_CFLAGS": "-fexceptions",
+                    "CFLAGS": "-fexceptions",
+                    "CXXFLAGS": "-fexceptions",
+                    "CPPFLAGS": "-fexceptions",
+                    "LDFLAGS": "-fexceptions",
+                    "EM_COMPILER_WRAPPER": "T:\\poison wrapper",
+                    "EMMAKEN_CFLAGS": "-fexceptions",
+                    "GIT_CONFIG_GLOBAL": "T:\\poison git config",
+                    "CMAKE_TOOLCHAIN_FILE": "T:\\poison toolchain",
+                    "VCPKG_OVERLAY_PORTS": "T:\\poison ports",
+                    "PKG_CONFIG_PATH": "T:\\poison pkgconfig",
+                    "CCACHE_PREFIX": "T:\\poison ccache",
                     "VCPKG_ROOT": "T:\\poison vcpkg",
                     "VCPKG_DEFAULT_BINARY_CACHE": "T:\\poison cache",
                     "TOOLCHAIN_DOUBLE_CHILD_EXIT": "37",
@@ -405,7 +924,7 @@ class ToolchainScriptTest(unittest.TestCase):
             for invocation, expected_error in invalid_invocations:
                 with self.subTest(wrapper_error=expected_error):
                     invalid = self._run(
-                        WRAPPER,
+                        Path(str(fixture["wrapper"])),
                         invocation,
                         environment,
                     )
@@ -436,14 +955,17 @@ class ToolchainScriptTest(unittest.TestCase):
             version_events = {
                 event["tool"]: event
                 for event in events
-                if event["tool"] in {"em++", "vcpkg", "cmake", "ninja"}
+                if event["tool"]
+                in {"em++-driver", "vcpkg", "cmake", "ninja"}
             }
             self.assertEqual(
                 set(version_events),
-                {"em++", "vcpkg", "cmake", "ninja"},
+                {"em++-driver", "vcpkg", "cmake", "ninja"},
             )
             expected_roots = {
-                "em++": root / "emsdk-4.0.7" / "upstream" / "emscripten",
+                "em++-driver": (
+                    root / "emsdk-4.0.7" / "upstream" / "emscripten"
+                ),
                 "vcpkg": root / "vcpkg-a0400024",
                 "cmake": (
                     root / "cmake-4.2.3-windows-x86_64" / "bin"
@@ -496,6 +1018,55 @@ class ToolchainScriptTest(unittest.TestCase):
                 ),
             )
             self.assertEqual(
+                captured_environment["EMSDK_NODE"],
+                str(
+                    (
+                        root
+                        / "emsdk-4.0.7"
+                        / "node"
+                        / "node.exe"
+                    ).resolve()
+                ),
+            )
+            self.assertEqual(
+                captured_environment["EM_CONFIG"],
+                str((root / "emsdk-4.0.7" / ".emscripten").resolve()),
+            )
+            self.assertEqual(
+                captured_environment["EM_CACHE"],
+                str(
+                    (
+                        root
+                        / "emsdk-4.0.7"
+                        / "upstream"
+                        / "emscripten"
+                        / "cache"
+                    ).resolve()
+                ),
+            )
+            self.assertEqual(
+                captured_environment["PYTHONDONTWRITEBYTECODE"],
+                "1",
+            )
+            for scrubbed in (
+                "EMCC_CFLAGS",
+                "CFLAGS",
+                "CXXFLAGS",
+                "CPPFLAGS",
+                "LDFLAGS",
+                "EM_COMPILER_WRAPPER",
+                "EMMAKEN_CFLAGS",
+                "GIT_CONFIG_GLOBAL",
+                "CMAKE_TOOLCHAIN_FILE",
+                "VCPKG_OVERLAY_PORTS",
+                "PKG_CONFIG_PATH",
+                "CCACHE_PREFIX",
+            ):
+                self.assertIsNone(
+                    captured_environment[scrubbed],
+                    (scrubbed, captured_environment),
+                )
+            self.assertEqual(
                 captured_environment["VCPKG_ROOT"],
                 str((root / "vcpkg-a0400024").resolve()),
             )
@@ -528,8 +1099,52 @@ class ToolchainScriptTest(unittest.TestCase):
                 captured_environment["PATH"],
             )
 
+    def test_direct_emscripten_rejects_legacy_exception_and_asyncify(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg forbidden emscripten arguments "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = Path(str(fixture["root"]))
+            sandbox = Path(str(fixture["sandbox"]))
+            self._seed_complete(root)
+            response = sandbox / "forbidden response.rsp"
+            response.write_text(
+                "object.o -fexceptions -sJSPI=1\n",
+                encoding="utf-8",
+            )
+            cases = (
+                ["-fexceptions"],
+                ["-s", "ASYNCIFY"],
+                ["-sWASM_EXCEPTIONS=0"],
+                [f"@{response}"],
+            )
+            for arguments in cases:
+                with self.subTest(arguments=arguments):
+                    result = self._run_wrapper(
+                        fixture,
+                        "em++",
+                        arguments,
+                    )
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn("Forbidden Emscripten", combined)
+
+            drivers = [
+                event
+                for event in self._events(Path(str(fixture["events"])))
+                if event["tool"] in {"em++-driver", "emcc-driver"}
+            ]
+            self.assertTrue(drivers)
+            self.assertTrue(
+                all(event["args"] == ["--version"] for event in drivers),
+                drivers,
+            )
+
     def test_lock_directories_cannot_escape_toolchain_root(self) -> None:
         def copy_probe(
+            fixture: dict[str, object],
             destination: Path,
             artifact: str | None = None,
             directory: str | None = None,
@@ -539,10 +1154,11 @@ class ToolchainScriptTest(unittest.TestCase):
             copied_scripts.mkdir(parents=True)
             bootstrap = copied_scripts / BOOTSTRAP.name
             wrapper = copied_scripts / WRAPPER.name
-            shutil.copy2(BOOTSTRAP, bootstrap)
-            shutil.copy2(WRAPPER, wrapper)
+            shutil.copy2(Path(str(fixture["bootstrap"])), bootstrap)
+            shutil.copy2(Path(str(fixture["wrapper"])), wrapper)
+            shutil.copy2(PROVENANCE, copied_scripts / PROVENANCE.name)
             lock = json.loads(
-                (PROBE / "toolchain-lock.json").read_text("utf-8")
+                Path(str(fixture["lock"])).read_text("utf-8")
             )
             if artifact is not None:
                 lock["buildTools"][artifact]["directory"] = directory
@@ -561,7 +1177,10 @@ class ToolchainScriptTest(unittest.TestCase):
             assert isinstance(root, Path)
             assert isinstance(sandbox, Path)
             self._seed_complete(root)
-            _, copied_wrapper = copy_probe(sandbox / "valid leaf")
+            _, copied_wrapper = copy_probe(
+                fixture,
+                sandbox / "valid leaf",
+            )
             child, child_arguments = self._native_capture_command([])
             valid = self._run_wrapper(
                 fixture,
@@ -591,6 +1210,11 @@ class ToolchainScriptTest(unittest.TestCase):
                         assert isinstance(root, Path)
                         assert isinstance(sandbox, Path)
                         self._seed_complete(root)
+                        retained_archives = {
+                            path.name: path.read_bytes()
+                            for path in (root / "downloads").iterdir()
+                            if path.is_file()
+                        }
                         outside = sandbox / "outside sentinel"
                         outside.mkdir()
                         outside_file = outside / "keep.bin"
@@ -611,6 +1235,7 @@ class ToolchainScriptTest(unittest.TestCase):
                             else ".."
                         )
                         copied_bootstrap, copied_wrapper = copy_probe(
+                            fixture,
                             sandbox / f"{artifact} {attack}",
                             artifact,
                             bad_directory,
@@ -640,7 +1265,14 @@ class ToolchainScriptTest(unittest.TestCase):
                             similar_file.read_bytes(),
                             b"similar sentinel bytes",
                         )
-                        self.assertFalse((root / "downloads").exists())
+                        self.assertEqual(
+                            {
+                                path.name: path.read_bytes()
+                                for path in (root / "downloads").iterdir()
+                                if path.is_file()
+                            },
+                            retained_archives,
+                        )
                         self.assertEqual(
                             self._events(fixture["events"]),
                             [],
@@ -684,8 +1316,6 @@ class ToolchainScriptTest(unittest.TestCase):
             nested_emcc = nested / "emcc.bat"
             write_launcher(explicit, "explicit-batch-child")
             write_launcher(search / "path-batch-child.cmd", "path-batch-child")
-            write_launcher(nested_emxx, "nested-em++")
-            write_launcher(nested_emcc, "nested-emcc")
             environment = fixture["environment"]
             assert isinstance(environment, dict)
             environment["PATH"] = (
@@ -696,8 +1326,6 @@ class ToolchainScriptTest(unittest.TestCase):
             for child in (
                 str(explicit),
                 "path-batch-child",
-                str(nested_emxx),
-                str(nested_emcc),
             ):
                 with self.subTest(batch_child=child):
                     result = self._run_wrapper(fixture, child)
@@ -707,6 +1335,14 @@ class ToolchainScriptTest(unittest.TestCase):
                         "Batch child executables are not supported",
                         combined,
                     )
+            write_launcher(nested_emxx, "nested-em++")
+            write_launcher(nested_emcc, "nested-emcc")
+            for child in (str(nested_emxx), str(nested_emcc)):
+                with self.subTest(tampered_sdk_batch_child=child):
+                    result = self._run_wrapper(fixture, child)
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn("Emscripten payload", combined)
             events = self._events(fixture["events"])
             self.assertFalse(
                 {
@@ -714,9 +1350,16 @@ class ToolchainScriptTest(unittest.TestCase):
                     "path-batch-child",
                     "nested-em++",
                     "nested-emcc",
-                    "em++-driver",
                     "emcc-driver",
                 }.intersection(str(event["tool"]) for event in events),
+                events,
+            )
+            self.assertTrue(
+                all(
+                    event["args"] == ["--version"]
+                    for event in events
+                    if event["tool"] == "em++-driver"
+                ),
                 events,
             )
 
@@ -786,7 +1429,7 @@ class ToolchainScriptTest(unittest.TestCase):
 
         failure_cases = (
             "missing-python",
-            "outside-python",
+            "tampered-runtime-metadata",
             "missing-driver",
             "outside-driver",
         )
@@ -803,22 +1446,19 @@ class ToolchainScriptTest(unittest.TestCase):
                     self._seed_complete(root)
                     emsdk = root / "emsdk-4.0.7"
                     emscripten = emsdk / "upstream" / "emscripten"
-                    environment_script = emsdk / "emsdk_env.ps1"
-                    expected_error = "EMSDK_PYTHON"
+                    expected_error = "Emscripten payload"
                     if failure_case == "missing-python":
                         (emsdk / "python" / "python.exe").unlink()
-                    elif failure_case == "outside-python":
-                        lines = environment_script.read_text("utf-8").splitlines()
-                        lines[1] = (
-                            f"$env:EMSDK_PYTHON = '{Path(sys.executable).resolve()}'"
+                    elif failure_case == "tampered-runtime-metadata":
+                        metadata = next(
+                            (emsdk / "python").glob("python*._pth")
                         )
-                        environment_script.write_text(
-                            "\n".join((*lines, "")),
+                        metadata.write_text(
+                            metadata.read_text("utf-8") + "# tampered\n",
                             encoding="utf-8",
                         )
                     elif failure_case == "missing-driver":
                         (emscripten / "em++.py").unlink()
-                        expected_error = "Emscripten driver"
                     else:
                         driver = emscripten / "em++.py"
                         outside = sandbox / "outside em++.py"
@@ -828,7 +1468,6 @@ class ToolchainScriptTest(unittest.TestCase):
                         )
                         driver.unlink()
                         driver.symlink_to(outside)
-                        expected_error = "Emscripten driver"
 
                     result = self._run_wrapper(
                         fixture,

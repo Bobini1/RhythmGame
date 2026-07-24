@@ -6,6 +6,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Toolchain-Provenance.ps1')
 
 function Assert-SafeLeafName {
     param(
@@ -102,31 +103,9 @@ $downloads = Get-StrictDescendantPath `
     -Description 'Download directory'
 
 New-Item -ItemType Directory -Path $downloads -Force | Out-Null
-
-function Assert-Commit {
-    param(
-        [string]$Repository,
-        [string]$Expected
-    )
-
-    $repositoryCandidate = Get-StrictDescendantPath `
-        -Path $Repository `
-        -Root $ToolchainRoot `
-        -Description 'Repository path'
-    $repositoryPath = (
-        Resolve-Path -LiteralPath $repositoryCandidate
-    ).Path
-    $repositoryPath = Get-StrictDescendantPath `
-        -Path $repositoryPath `
-        -Root $ToolchainRoot `
-        -Description 'Resolved repository path'
-    $actualLines = @(& git -C $repositoryPath rev-parse HEAD)
-    $exitCode = $LASTEXITCODE
-    $actual = ($actualLines -join "`n").Trim()
-    if ($exitCode -ne 0 -or $actual -ne $Expected) {
-        throw "Expected $repositoryPath at $Expected, got $actual"
-    }
-}
+$downloads = Assert-DirectoryNotReparse `
+    -Path $downloads `
+    -Description 'Download directory'
 
 function Install-Repository {
     param(
@@ -141,9 +120,10 @@ function Install-Repository {
         -Root $ToolchainRoot `
         -Description "$DisplayName canonical path"
     if (Test-Path -LiteralPath $repositoryPath) {
-        Assert-Commit `
+        Assert-RepositoryClean `
             -Repository $repositoryPath `
-            -Expected $ExpectedCommit
+            -ExpectedCommit $ExpectedCommit `
+            -Description $DisplayName
         return
     }
 
@@ -178,9 +158,10 @@ function Install-Repository {
             )
         }
 
-        Assert-Commit `
+        Assert-RepositoryClean `
             -Repository $resolvedTemporary `
-            -Expected $ExpectedCommit
+            -ExpectedCommit $ExpectedCommit `
+            -Description $DisplayName
         Move-Item `
             -LiteralPath $resolvedTemporary `
             -Destination $repositoryPath
@@ -232,13 +213,19 @@ function Assert-BuildTool {
     param(
         [string]$Name,
         [string]$Directory,
-        [string]$Version
+        [string]$Archive,
+        [PSCustomObject]$Artifact
     )
 
     $toolDirectory = Get-StrictDescendantPath `
         -Path $Directory `
         -Root $ToolchainRoot `
         -Description "$Name tool directory"
+    Assert-BuildToolInstallation `
+        -Name $Name `
+        -Archive $Archive `
+        -Installation $toolDirectory `
+        -Artifact $Artifact | Out-Null
     $commandDirectory = if ($Name -eq 'cmake') {
         Get-StrictDescendantPath `
             -Path (Join-Path $toolDirectory 'bin') `
@@ -251,9 +238,14 @@ function Assert-BuildTool {
     $command = Resolve-ApplicationInDirectory `
         -Name $Name `
         -Directory $commandDirectory
+    $null = Assert-FileSha256 `
+        -Path $command `
+        -Expected ([string]$Artifact.executableSha256) `
+        -Description "$Name executable"
     $versionLines = @(& $command --version)
     $exitCode = $LASTEXITCODE
     $versionText = ($versionLines -join "`n").Trim()
+    $Version = [string]$Artifact.version
     if ($Name -eq 'cmake') {
         $valid = $versionText -match (
             "(?m)^cmake version $([Regex]::Escape($Version))$"
@@ -269,107 +261,11 @@ function Assert-BuildTool {
     }
 }
 
-function Expand-ArtifactArchive {
-    param(
-        [string]$ArchivePath,
-        [string]$Destination,
-        [AllowEmptyString()]
-        [string]$StripPrefix
-    )
-
-    $archiveCandidate = Get-StrictDescendantPath `
-        -Path $ArchivePath `
-        -Root $downloads `
-        -Description 'Artifact archive path'
-    $archivePathResolved = (
-        Resolve-Path -LiteralPath $archiveCandidate
-    ).Path
-    $archivePathResolved = Get-StrictDescendantPath `
-        -Path $archivePathResolved `
-        -Root $downloads `
-        -Description 'Resolved artifact archive path'
-    $destinationCandidate = Get-StrictDescendantPath `
-        -Path $Destination `
-        -Root $ToolchainRoot `
-        -Description 'Artifact extraction destination'
-    $destinationRoot = (
-        Resolve-Path -LiteralPath $destinationCandidate
-    ).Path
-    $destinationRoot = Get-StrictDescendantPath `
-        -Path $destinationRoot `
-        -Root $ToolchainRoot `
-        -Description 'Resolved artifact extraction destination'
-
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $archive = [IO.Compression.ZipFile]::OpenRead(
-        $archivePathResolved
-    )
-    $normalizedPrefix = $StripPrefix.Trim('/').Replace('\', '/')
-    try {
-        foreach ($entry in $archive.Entries) {
-            $relative = $entry.FullName.Replace('\', '/')
-            if ($normalizedPrefix) {
-                if ($relative -eq $normalizedPrefix) {
-                    continue
-                }
-                $archivePrefix = "$normalizedPrefix/"
-                if (-not $relative.StartsWith(
-                    $archivePrefix,
-                    [StringComparison]::Ordinal
-                )) {
-                    throw "Unexpected archive entry: $relative"
-                }
-                $relative = $relative.Substring($archivePrefix.Length)
-            }
-            if (-not $relative) {
-                continue
-            }
-
-            $nativeRelative = $relative.Replace(
-                '/',
-                [IO.Path]::DirectorySeparatorChar
-            )
-            $target = Get-StrictDescendantPath `
-                -Path (Join-Path $destinationRoot $nativeRelative) `
-                -Root $destinationRoot `
-                -Description "Archive entry '$relative'"
-
-            if (-not $entry.Name) {
-                New-Item `
-                    -ItemType Directory `
-                    -Path $target `
-                    -Force | Out-Null
-                continue
-            }
-            $parent = Split-Path -Parent $target
-            if ($parent -ne $destinationRoot) {
-                $parent = Get-StrictDescendantPath `
-                    -Path $parent `
-                    -Root $destinationRoot `
-                    -Description "Archive entry parent '$relative'"
-                New-Item `
-                    -ItemType Directory `
-                    -Path $parent `
-                    -Force | Out-Null
-            }
-            [IO.Compression.ZipFileExtensions]::ExtractToFile(
-                $entry,
-                $target,
-                $true
-            )
-        }
-    }
-    finally {
-        $archive.Dispose()
-    }
-}
-
 function Install-BuildTool {
     param(
         [string]$Name,
         [PSCustomObject]$Artifact,
-        [string]$DirectoryName,
-        [switch]$ArchiveHasTopLevelDirectory
+        [string]$DirectoryName
     )
 
     $directoryName = Assert-SafeLeafName `
@@ -380,74 +276,96 @@ function Install-BuildTool {
         -Root $ToolchainRoot `
         -Description "$Name canonical path"
     $version = [string]$Artifact.version
+    $archiveName = Assert-SafeLeafName `
+        -Value ([string]$Artifact.archiveFile) `
+        -Field "buildTools.$Name.archiveFile"
+    $archive = Get-StrictDescendantPath `
+        -Path (Join-Path $downloads $archiveName) `
+        -Root $downloads `
+        -Description "$Name archive path"
+    $download = Get-StrictDescendantPath `
+        -Path "$archive.download-tmp" `
+        -Root $downloads `
+        -Description "$Name download path"
+
+    if (-not (Test-Path -LiteralPath $archive -PathType Leaf)) {
+        if (Test-Path -LiteralPath $download) {
+            Remove-Item -LiteralPath $download -Force
+        }
+        try {
+            Invoke-WebRequest `
+                -Uri ([string]$Artifact.url) `
+                -OutFile $download
+            $null = Assert-FileSha256 `
+                -Path $download `
+                -Expected ([string]$Artifact.sha256) `
+                -Description "$Name downloaded archive"
+            Move-Item -LiteralPath $download -Destination $archive
+        }
+        finally {
+            if (Test-Path -LiteralPath $download) {
+                Remove-Item -LiteralPath $download -Force
+            }
+        }
+    }
+    $null = Assert-FileSha256 `
+        -Path $archive `
+        -Expected ([string]$Artifact.sha256) `
+        -Description "$Name retained archive"
+
     if (Test-Path -LiteralPath $canonical) {
-        Assert-BuildTool `
+        Assert-BuildToolInstallation `
             -Name $Name `
-            -Directory $canonical `
-            -Version $version
+            -Archive $archive `
+            -Installation $canonical `
+            -Artifact $Artifact | Out-Null
         return $canonical
     }
 
-    $download = Get-StrictDescendantPath `
-        -Path (Join-Path $downloads "$directoryName.zip.download-tmp") `
-        -Root $downloads `
-        -Description "$Name download path"
     $temporary = Get-StrictDescendantPath `
         -Path "$canonical.bootstrap-tmp" `
         -Root $ToolchainRoot `
         -Description "$Name temporary path"
-    foreach ($ownedPath in $download, $temporary) {
+    foreach ($ownedPath in @($temporary)) {
         if (Test-Path -LiteralPath $ownedPath) {
             Remove-Item -LiteralPath $ownedPath -Recurse -Force
         }
     }
 
     try {
-        Invoke-WebRequest `
-            -Uri ([string]$Artifact.url) `
-            -OutFile $download
-        $actualHash = (
-            Get-FileHash -LiteralPath $download -Algorithm SHA256
-        ).Hash.ToLowerInvariant()
-        $expectedHash = ([string]$Artifact.sha256).ToLowerInvariant()
-        if ($actualHash -ne $expectedHash) {
-            throw (
-                "Expected $Name archive SHA-256 $expectedHash, " +
-                "got $actualHash"
-            )
-        }
-
         New-Item `
             -ItemType Directory `
             -Path $temporary `
             -Force | Out-Null
-        $stripPrefix = if ($ArchiveHasTopLevelDirectory) {
-            $directoryName
+        $archivePayload = Get-AuthenticatedZipPayload `
+            -Archive $archive `
+            -ExpectedArchiveSha256 ([string]$Artifact.sha256) `
+            -StripPrefix ([string]$Artifact.payload.stripPrefix) `
+            -ExtractTo $temporary
+        if ($archivePayload.FileCount -ne
+            [int]$Artifact.payload.fileCount -or
+            $archivePayload.InventorySha256 -cne
+            [string]$Artifact.payload.inventorySha256 -or
+            $archivePayload.AggregateSha256 -cne
+            [string]$Artifact.payload.aggregateSha256) {
+            throw "$Name authenticated archive payload drifted"
         }
-        else {
-            ''
-        }
-        Expand-ArtifactArchive `
-            -ArchivePath $download `
-            -Destination $temporary `
-            -StripPrefix $stripPrefix
-        Assert-BuildTool `
+        Assert-BuildToolInstallation `
             -Name $Name `
-            -Directory $temporary `
-            -Version $version
+            -Archive $archive `
+            -Installation $temporary `
+            -Artifact $Artifact | Out-Null
         Move-Item -LiteralPath $temporary -Destination $canonical
         return $canonical
     }
     finally {
-        if (Test-Path -LiteralPath $download) {
-            Remove-Item -LiteralPath $download -Force
-        }
         if (Test-Path -LiteralPath $temporary) {
             Remove-Item -LiteralPath $temporary -Recurse -Force
         }
     }
 }
 
+$emsdkWasPresent = Test-Path -LiteralPath $emsdk
 Install-Repository `
     -Repository $emsdk `
     -Url 'https://github.com/emscripten-core/emsdk.git' `
@@ -462,12 +380,36 @@ Install-Repository `
 $cmake = Install-BuildTool `
     -Name 'cmake' `
     -Artifact $lock.buildTools.cmake `
-    -DirectoryName $cmakeDirectory `
-    -ArchiveHasTopLevelDirectory
+    -DirectoryName $cmakeDirectory
 $ninja = Install-BuildTool `
     -Name 'ninja' `
     -Artifact $lock.buildTools.ninja `
     -DirectoryName $ninjaDirectory
+
+$cmakeArchive = Get-StrictDescendantPath `
+    -Path (
+        Join-Path $downloads ([string]$lock.buildTools.cmake.archiveFile)
+    ) `
+    -Root $downloads `
+    -Description 'CMake retained archive'
+$ninjaArchive = Get-StrictDescendantPath `
+    -Path (
+        Join-Path $downloads ([string]$lock.buildTools.ninja.archiveFile)
+    ) `
+    -Root $downloads `
+    -Description 'Ninja retained archive'
+# Both complete installations are authenticated before either executable is
+# resolved or run.
+Assert-BuildTool `
+    -Name 'cmake' `
+    -Directory $cmake `
+    -Archive $cmakeArchive `
+    -Artifact $lock.buildTools.cmake
+Assert-BuildTool `
+    -Name 'ninja' `
+    -Directory $ninja `
+    -Archive $ninjaArchive `
+    -Artifact $lock.buildTools.ninja
 
 $emsdkCommand = Resolve-ApplicationInDirectory `
     -Name 'emsdk' `
@@ -476,10 +418,32 @@ $vcpkgBootstrap = Resolve-ApplicationInDirectory `
     -Name 'bootstrap-vcpkg' `
     -Directory $vcpkg
 
+Assert-RepositoryClean `
+    -Repository $emsdk `
+    -ExpectedCommit $emsdkCommit `
+    -Description 'emsdk' | Out-Null
+if ($emsdkWasPresent) {
+    Assert-EmscriptenInstallation `
+        -Emsdk $emsdk `
+        -Version $emsdkVersion `
+        -Contract $lock.emscripten `
+        -BeforeBytecodeNormalization | Out-Null
+    Remove-EmscriptenBytecodeCaches `
+        -Emsdk $emsdk `
+        -Contract $lock.emscripten
+    Assert-EmscriptenInstallation `
+        -Emsdk $emsdk `
+        -Version $emsdkVersion `
+        -Contract $lock.emscripten | Out-Null
+}
 & $emsdkCommand install $emsdkVersion
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to install Emscripten $emsdkVersion"
 }
+Assert-RepositoryClean `
+    -Repository $emsdk `
+    -ExpectedCommit $emsdkCommit `
+    -Description 'emsdk' | Out-Null
 & $emsdkCommand activate $emsdkVersion
 if ($LASTEXITCODE -ne 0) {
     throw (
@@ -487,7 +451,27 @@ if ($LASTEXITCODE -ne 0) {
         'in the isolated emsdk tree'
     )
 }
+Assert-RepositoryClean `
+    -Repository $emsdk `
+    -ExpectedCommit $emsdkCommit `
+    -Description 'emsdk' | Out-Null
+Assert-EmscriptenInstallation `
+    -Emsdk $emsdk `
+    -Version $emsdkVersion `
+    -Contract $lock.emscripten `
+    -BeforeBytecodeNormalization | Out-Null
+Remove-EmscriptenBytecodeCaches `
+    -Emsdk $emsdk `
+    -Contract $lock.emscripten
+Assert-EmscriptenInstallation `
+    -Emsdk $emsdk `
+    -Version $emsdkVersion `
+    -Contract $lock.emscripten | Out-Null
 
+Assert-RepositoryClean `
+    -Repository $vcpkg `
+    -ExpectedCommit $vcpkgCommit `
+    -Description 'vcpkg' | Out-Null
 & $vcpkgBootstrap -disableMetrics
 if ($LASTEXITCODE -ne 0) {
     throw 'Failed to bootstrap pinned vcpkg'

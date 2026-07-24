@@ -5,6 +5,14 @@ from pathlib import Path
 
 
 PROBE = Path(__file__).resolve().parents[1]
+REPO = PROBE.parents[1]
+DESIGN = (
+    REPO
+    / "docs"
+    / "superpowers"
+    / "specs"
+    / "2026-07-23-emscripten-web-port-design.md"
+)
 WASM_COMPILE_SETTINGS = (
     "-pthread",
     "-fwasm-exceptions",
@@ -13,6 +21,39 @@ WASM_COMPILE_SETTINGS = (
 
 
 class ProbeSourceContractTest(unittest.TestCase):
+    def test_webmidi_is_a_mandatory_parity_and_gate_contract(self) -> None:
+        design = DESIGN.read_text("utf-8")
+        required_markers = (
+            "| WebMIDI controllers |",
+            "WebMIDI permission denied and granted",
+            "WebMIDI hotplug and unplug",
+            "WebMIDI timestamp-domain calibration",
+            "WebMIDI duplicate-source arbitration",
+            "explicitly approved WebMIDI exception",
+            "blocks a full-parity claim",
+            "keyboard, WebHID, WebMIDI, Gamepad",
+        )
+        for marker in required_markers:
+            with self.subTest(marker=marker):
+                self.assertIn(marker, design)
+
+    def test_probe_build_binds_the_tracked_input_manifest(self) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        manifest = PROBE / "input-manifest.txt"
+        template = PROBE / "cmake" / "ProbeInputDigest.cpp.in"
+        self.assertTrue(manifest.is_file())
+        self.assertTrue(template.is_file())
+        entries = manifest.read_text("utf-8").splitlines()
+        self.assertEqual(entries, sorted(set(entries), key=str.casefold))
+        self.assertIn(
+            "tools/wasm-probe/cmake/ProbeInputDigest.cpp.in",
+            entries,
+        )
+        self.assertIn("RG_WASM_PROBE_INPUT_SHA256", template.read_text("utf-8"))
+        self.assertIn("input-manifest.txt", cmake)
+        self.assertIn("CMAKE_CONFIGURE_DEPENDS", cmake)
+        self.assertIn("ProbeInputDigest.cpp", cmake)
+
     def test_preset_uses_only_pinned_vcpkg_target_and_host(self) -> None:
         presets = json.loads((PROBE / "CMakePresets.json").read_text("utf-8"))
         cache = presets["configurePresets"][0]["cacheVariables"]

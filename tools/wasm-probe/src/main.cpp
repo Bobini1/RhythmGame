@@ -1,11 +1,15 @@
 #include "ProbeState.h"
 
 #include <QGuiApplication>
+#include <QDebug>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+extern "C" const char* rhythmGameWasmProbeInputDigest();
+
 int main(int argc, char* argv[])
 {
+    qInfo().noquote() << rhythmGameWasmProbeInputDigest();
     auto* app = new QGuiApplication{argc, argv};
     auto* state = new ProbeState{app};
     auto* engine = new QQmlApplicationEngine{app};

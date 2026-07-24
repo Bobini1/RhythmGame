@@ -35,6 +35,15 @@ CMAKE_WINDOWS_X64_SHA256 = (
 NINJA_WINDOWS_SHA256 = (
     "07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65"
 )
+CMAKE_EXECUTABLE_SHA256 = (
+    "daae341e73330c9c5bf391f22d10510c0f70e5f01d2b61b0fd256cd9edd28379"
+)
+NINJA_EXECUTABLE_SHA256 = (
+    "e52a7ad9538d9618c67a0bd777964e2eec8a30f68b810a2f6adce1f2daf847b8"
+)
+HOST_COMPILER_SHA256 = (
+    "9cf613fcbebece019712511eec4b1a32d0a9c94e65249a1aeb326305c2388d6b"
+)
 
 
 class ToolchainContractTest(unittest.TestCase):
@@ -43,6 +52,43 @@ class ToolchainContractTest(unittest.TestCase):
         self.assertEqual(lock["qt"]["version"], "6.11.1")
         self.assertEqual(lock["emscripten"]["version"], "4.0.7")
         self.assertEqual(lock["emscripten"]["emsdkCommit"], EMSDK_COMMIT)
+        self.assertEqual(
+            lock["emscripten"]["releaseHash"],
+            "ef4e9cedeac3332e4738087567552063f4f250d3",
+        )
+        self.assertEqual(
+            lock["emscripten"]["releaseManifest"]["path"],
+            "emscripten-releases-tags.json",
+        )
+        self.assertEqual(
+            lock["emscripten"]["payload"]["algorithm"],
+            "sha256-path-null-digest-lf-v1",
+        )
+        self.assertEqual(
+            lock["emscripten"]["generatedBytecode"],
+            {
+                "cacheDirectory": "__pycache__",
+                "fileSuffix": ".pyc",
+                "normalization": (
+                    "authenticate-non-bytecode-delete-cache-"
+                    "authenticate-full-v1"
+                ),
+            },
+        )
+        self.assertEqual(
+            lock["emscripten"]["payload"]["excludedSegments"],
+            [],
+        )
+        self.assertEqual(
+            lock["emscripten"]["payload"]["excludedSuffixes"],
+            [],
+        )
+        self.assertGreater(lock["emscripten"]["payload"]["fileCount"], 10_000)
+        for name in ("inventorySha256", "aggregateSha256"):
+            self.assertRegex(
+                lock["emscripten"]["payload"][name],
+                r"^[0-9a-f]{64}$",
+            )
         self.assertEqual(lock["vcpkg"]["baseline"], BASELINE)
         self.assertEqual(lock["qt"]["fullQtSourceSha256"], FULL_QT_SHA256)
         self.assertEqual(lock["qt"]["qtbaseSourceSha256"], QTBASE_SHA256)
@@ -61,7 +107,28 @@ class ToolchainContractTest(unittest.TestCase):
                     "cmake-4.2.3-windows-x86_64.zip"
                 ),
                 "sha256": CMAKE_WINDOWS_X64_SHA256,
+                "archiveFile": "cmake-4.2.3-windows-x86_64.zip",
+                "executableSha256": CMAKE_EXECUTABLE_SHA256,
                 "directory": "cmake-4.2.3-windows-x86_64",
+                "payload": {
+                    "algorithm": "sha256-path-null-digest-lf-v1",
+                    "stripPrefix": "cmake-4.2.3-windows-x86_64",
+                    "fileCount": 8525,
+                    "directoryCount": 148,
+                    "totalBytes": 132316585,
+                    "inventorySha256": (
+                        "48f746fb6ca853fd693c018eaa3220da06b4251275a15a3e41a"
+                        "93bc1013c3dd3"
+                    ),
+                    "directoryInventorySha256": (
+                        "649f6d95061ef02fe899c0c7062b551e401e372a098c9a9880"
+                        "cbbee4d72fc814"
+                    ),
+                    "aggregateSha256": (
+                        "38d0389fbb638f78ec2a624592d331efeef3c3f951eb3a3aff1"
+                        "eacbff16146f7"
+                    ),
+                },
             },
         )
         self.assertEqual(
@@ -73,7 +140,43 @@ class ToolchainContractTest(unittest.TestCase):
                     "download/v1.13.2/ninja-win.zip"
                 ),
                 "sha256": NINJA_WINDOWS_SHA256,
+                "archiveFile": "ninja-win.zip",
+                "executableSha256": NINJA_EXECUTABLE_SHA256,
                 "directory": "ninja-1.13.2-win",
+                "payload": {
+                    "algorithm": "sha256-path-null-digest-lf-v1",
+                    "stripPrefix": "",
+                    "fileCount": 1,
+                    "directoryCount": 0,
+                    "totalBytes": 603648,
+                    "inventorySha256": (
+                        "014cb71e5fd86a18adb79f57e26acbd58577f6f84a52491297a"
+                        "3454a3b38f477"
+                    ),
+                    "directoryInventorySha256": (
+                        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495"
+                        "991b7852b855"
+                    ),
+                    "aggregateSha256": (
+                        "90779f6fe330259113900c836a8dbf973c87905e098e0ada0121"
+                        "b5ac135d6dac"
+                    ),
+                },
+            },
+        )
+        self.assertEqual(
+            lock["hostCompiler"],
+            {
+                "basename": "cl.exe",
+                "toolsetRelativePath": (
+                    "VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+                ),
+                "cmakeCompilerId": "MSVC",
+                "cmakeCompilerVersion": "19.51.36244.0",
+                "frontendVariant": "MSVC",
+                "architecture": "x64",
+                "platform": "Windows",
+                "executableSha256": HOST_COMPILER_SHA256,
             },
         )
         self.assertEqual(
@@ -209,6 +312,41 @@ class ToolchainContractTest(unittest.TestCase):
             "set(CMAKE_C_COMPILER",
             chainload,
         )
+
+    def test_wrapper_scrubs_ambient_flags_and_authenticates_before_execution(
+        self,
+    ) -> None:
+        wrapper = (
+            PROBE / "scripts" / "Invoke-WithToolchains.ps1"
+        ).read_text("utf-8")
+        bootstrap = (
+            PROBE / "scripts" / "Bootstrap-Toolchains.ps1"
+        ).read_text("utf-8")
+        chainload = (
+            REPO / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
+        ).read_text("utf-8")
+        for variable in (
+            "EMCC_CFLAGS",
+            "CFLAGS",
+            "CXXFLAGS",
+            "CPPFLAGS",
+            "LDFLAGS",
+            "EM_CONFIG",
+            "EM_CACHE",
+            "EM_PORTS",
+            "EM_COMPILER_WRAPPER",
+            "EM_COMPILER_WRAPPER2",
+            "_EMCC_CCACHE",
+        ):
+            self.assertIn(variable, wrapper)
+        for script in (wrapper, bootstrap):
+            self.assertIn("Assert-RepositoryClean", script)
+            self.assertIn("Assert-FileSha256", script)
+            self.assertIn("Assert-EmscriptenInstallation", script)
+            self.assertIn("Assert-BuildToolInstallation", script)
+        self.assertNotIn("-fexceptions", (
+            REPO / "vcpkgTriplets" / "wasm32-emscripten-rg.cmake"
+        ).read_text("utf-8"))
         self.assertNotIn(
             "set(CMAKE_CXX_COMPILER",
             chainload,

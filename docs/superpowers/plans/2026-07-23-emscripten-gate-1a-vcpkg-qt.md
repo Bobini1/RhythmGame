@@ -23,9 +23,9 @@ PowerShell 7, Python 3.12 `unittest`, Qt Quick/QML, Qt ShaderTools.
 ## Gate 1A execution result (2026-07-24)
 
 **Decision: technical Gate 1A PASS only.** The authoritative
-[Gate 1A evidence](../evidence/emscripten-gate-1a.json) is 28,723 bytes, has
+[Gate 1A evidence](../evidence/emscripten-gate-1a.json) is 36,091 bytes, has
 SHA-256
-`61EC48614806ECB8359A2154C580FD7C3DCF2AEE872BCD135830DEDE51B9457D`,
+`88B704C3FAB5D15101FFCD619096411B61AF9EFD5BD23CD37DF6DA5C01071B4B`,
 and records `gate1aPassed: true`. It also records `gate0Satisfied: false`, `formalGate1EntryAuthorized: false`, and `gate1Passed: false`.
 This result proves the isolated Qt/Emscripten build contract, not a RhythmGame
 application build and not Chromium runtime support.
@@ -47,7 +47,10 @@ The qualified build contract is frozen as follows:
   `c69d433d8509c5c64564c2f0d054bf102a5cf67e`; vcpkg is exactly baseline
   `a0400024711b283056538ac19ced80b91a83c24c`.
 - The outer/probe/bootstrap lane uses CMake exactly `4.2.3` from the isolated
-  pinned toolchain; its Ninja is exactly `1.13.2`.
+  pinned toolchain; its Ninja is exactly `1.13.2`. Their retained official
+  archives and complete installed trees are authenticated before either
+  executable's version is run: CMake has 8,525 files, 148 directories, and
+  132,316,585 bytes; Ninja has one 603,648-byte file.
 - The vcpkg Qt port-build lane uses CMake exactly `4.3.3`, selected by the
   pinned vcpkg commit's tool manifest. Evidence authenticates that manifest,
   the downloaded archive, the extracted executable, its runtime version, and
@@ -70,6 +73,16 @@ The qualified build contract is frozen as follows:
   and `wasm_simd128=OFF`. `WasmProbeWasmCompileOptions` publishes the same
   native-exception/longjmp compile contract to the static exception boundary
   and its executable consumer.
+- The emsdk checkout must be exactly clean at
+  `c69d433d8509c5c64564c2f0d054bf102a5cf67e`. The release manifest maps
+  `4.0.7` to package commit
+  `ef4e9cedeac3332e4738087567552063f4f250d3`, and the installed SDK's
+  14,842-file immutable payload must match the fixed aggregate SHA-256
+  `d6a1ec1d8b7582a01e6f69fe951a16c620866eb18c9738420a22393756b89d99`.
+- The native host compiler is recorded by the portable
+  `VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe` suffix, exact CMake
+  identity, and executable SHA-256. Evidence contains no machine-specific
+  absolute compiler path.
 
 The material as-built integration results are:
 
@@ -80,6 +93,23 @@ The material as-built integration results are:
   `EMSCRIPTEN_ROOT`, and `EMSCRIPTEN_VERSION`, plus
   `CMAKE_NINJA_FORCE_RESPONSE_FILE`. The pinned wrapper invokes Emscripten's
   Python drivers without a generic batch-child shell.
+- The wrapper removes ambient compiler, linker, CMake, vcpkg, pkg-config,
+  Git, ccache, and Emscripten overrides before reconstructing the qualified
+  environment. Direct `emcc`/`em++` calls reject legacy `-fexceptions`,
+  negative Wasm-exception settings, literal Asyncify, and the same settings in
+  response files.
+- Upstream `emcc.bat` and `em++.bat` invoke Python with `-E`, so package
+  detection and builds can create Python bytecode despite environment
+  controls. Before any SDK/tool version runs, the wrapper authenticates every
+  non-bytecode payload file while accepting only `.pyc` files directly inside
+  exact, in-root, non-reparse `__pycache__` directories; it deletes only those
+  directories and then requires the complete 14,842-file identity with no
+  bytecode exclusions.
+- `input-manifest.txt` names 59 tracked build inputs. CMake hashes the manifest
+  and every named file, compiles the aggregate marker into
+  `RhythmGameWasmProbe.wasm`, and the verifier recomputes and locates that
+  marker. A byte replacement with preserved modification time fails the
+  binding check.
 - The complete QtBase overlay is `6.11.1#2`. Its restored installed-SDK
   compatibility patch has SHA-256
   `8AA3ED93E30F16C3C9691B35DEE1F27C9608BCF424FC4B0E86009CE64709C786`;
@@ -185,9 +215,12 @@ tools/wasm-probe/CMakeLists.txt
 tools/wasm-probe/CMakePresets.json
 tools/wasm-probe/vcpkg.json
 tools/wasm-probe/toolchain-lock.json
+tools/wasm-probe/input-manifest.txt
+tools/wasm-probe/cmake/ProbeInputDigest.cpp.in
 tools/wasm-probe/cmake/verify_exact_toolchain.cmake
 tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1
 tools/wasm-probe/scripts/Invoke-WithToolchains.ps1
+tools/wasm-probe/scripts/Toolchain-Provenance.ps1
 tools/wasm-probe/src/ExceptionBoundary.h
 tools/wasm-probe/src/ExceptionBoundary.cpp
 tools/wasm-probe/src/ProbeState.h
@@ -199,6 +232,7 @@ tools/wasm-probe/tests/_toolchain_process_double.py
 tools/wasm-probe/tests/test_toolchain_contract.py
 tools/wasm-probe/tests/test_toolchain_scripts.py
 tools/wasm-probe/tests/test_probe_source_contract.py
+tools/wasm-probe/tests/test_verify_build.py
 tools/wasm-probe/tests/verify_build.py
 docs/superpowers/evidence/emscripten-gate-1a.json
 ```

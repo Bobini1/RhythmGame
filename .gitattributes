@@ -1,2 +1,4 @@
 vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch -text
 vcpkgOverlayPortsWasm/qtbase/** -text -whitespace
+docs/superpowers/evidence/emscripten-gate-1a.json text eol=lf
+tools/wasm-probe/input-manifest.txt text eol=lf

@@ -1,4 +1,6 @@
+import hashlib
 import json
+import os
 import tempfile
 import unittest
 import zipfile
@@ -284,6 +286,44 @@ class VerifyBuildContractTest(unittest.TestCase):
                 ],
                 language="cxx",
                 context="test compile",
+            )
+
+    def test_legacy_fexceptions_is_rejected_in_compile_and_link_streams(
+        self,
+    ) -> None:
+        with self.assertRaisesRegex(AssertionError, "-fexceptions"):
+            verify_build.require_wasm_compile_contract(
+                [
+                    "-pthread",
+                    "-fwasm-exceptions",
+                    "-fexceptions",
+                    "-sSUPPORT_LONGJMP=wasm",
+                ],
+                language="cxx",
+                context="test compile",
+            )
+
+        response_fixture = self.application_link_fixture("-fexceptions")
+        with self.assertRaisesRegex(AssertionError, "-fexceptions"):
+            verify_build.verify_application_link_argument_stream(
+                *response_fixture
+            )
+
+        command, expected, build_ninja, rules_ninja = (
+            self.application_link_fixture()
+        )
+        direct_fixture = (
+            command.replace(
+                "-pthread -fwasm-exceptions",
+                "-pthread -fwasm-exceptions -fexceptions",
+            ),
+            expected,
+            build_ninja,
+            rules_ninja,
+        )
+        with self.assertRaisesRegex(AssertionError, "-fexceptions"):
+            verify_build.verify_application_link_argument_stream(
+                *direct_fixture
             )
 
     def test_application_link_parser_requires_exact_compiler(self) -> None:
@@ -583,6 +623,109 @@ class VerifyBuildContractTest(unittest.TestCase):
                     executable,
                 )
 
+    def test_build_tool_archive_binds_complete_installed_tree(self) -> None:
+        files = {
+            "bin/tool.exe": b"tool executable",
+            "share/Modules/Support.cmake": b"authenticated support module",
+        }
+        directories = sorted(
+            {
+                "/".join(path.split("/")[:index])
+                for path in files
+                for index in range(1, len(path.split("/")))
+            }
+        )
+        inventory = hashlib.sha256(
+            "".join(f"{path}\n" for path in sorted(files)).encode("utf-8")
+        ).hexdigest()
+        directory_inventory = hashlib.sha256(
+            "".join(f"{path}/\n" for path in directories).encode("utf-8")
+        ).hexdigest()
+        aggregate = hashlib.sha256(
+            "".join(
+                (
+                    f"{path}\0"
+                    f"{hashlib.sha256(files[path]).hexdigest()}\n"
+                )
+                for path in sorted(files)
+            ).encode("utf-8")
+        ).hexdigest()
+
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory)
+            downloads = repo / ".toolchains" / "downloads"
+            installation = repo / ".toolchains" / "tool-1"
+            downloads.mkdir(parents=True)
+            archive = downloads / "tool.zip"
+            with zipfile.ZipFile(archive, "w") as package:
+                for relative, content in files.items():
+                    package.writestr(f"tool-1/{relative}", content)
+            for relative, content in files.items():
+                target = installation / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(content)
+            artifact = {
+                "version": "1",
+                "url": "https://example.invalid/tool.zip",
+                "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+                "archiveFile": "tool.zip",
+                "executableSha256": hashlib.sha256(
+                    files["bin/tool.exe"]
+                ).hexdigest(),
+                "directory": "tool-1",
+                "payload": {
+                    "algorithm": "sha256-path-null-digest-lf-v1",
+                    "stripPrefix": "tool-1",
+                    "fileCount": len(files),
+                    "directoryCount": len(directories),
+                    "totalBytes": sum(map(len, files.values())),
+                    "inventorySha256": inventory,
+                    "directoryInventorySha256": directory_inventory,
+                    "aggregateSha256": aggregate,
+                },
+            }
+
+            identity = verify_build.verify_authenticated_build_tool(
+                repo,
+                "Tool",
+                artifact,
+                installation,
+            )
+            self.assertEqual(identity["payload"], artifact["payload"])
+            self.assertNotIn(str(repo), json.dumps(identity))
+
+            support = installation / "share" / "Modules" / "Support.cmake"
+            timestamps = (support.stat().st_atime_ns, support.stat().st_mtime_ns)
+            original = support.read_bytes()
+            support.write_bytes(
+                original[:-1] + bytes((original[-1] ^ 0x01,))
+            )
+            os.utime(support, ns=timestamps)
+            with self.assertRaisesRegex(
+                AssertionError,
+                "installed file SHA-256",
+            ):
+                verify_build.verify_authenticated_build_tool(
+                    repo,
+                    "Tool",
+                    artifact,
+                    installation,
+                )
+            support.write_bytes(original)
+
+            with archive.open("ab") as stream:
+                stream.write(b"tampered archive")
+            with self.assertRaisesRegex(
+                AssertionError,
+                "archive SHA-256",
+            ):
+                verify_build.verify_authenticated_build_tool(
+                    repo,
+                    "Tool",
+                    artifact,
+                    installation,
+                )
+
     def test_cmake_cache_command_rejects_wrong_or_near_path(self) -> None:
         expected = Path(
             r"T:\repo\.wasm-vcpkg\downloads\tools"
@@ -662,6 +805,200 @@ class VerifyBuildContractTest(unittest.TestCase):
                 cmake_build,
                 near_miss,
             )
+
+    def test_host_compiler_identity_is_root_portable_and_byte_bound(
+        self,
+    ) -> None:
+        suffix = Path(
+            "VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe"
+        )
+        payload = b"portable compiler fixture"
+        contract = {
+            "basename": "cl.exe",
+            "toolsetRelativePath": suffix.as_posix(),
+            "cmakeCompilerId": "MSVC",
+            "cmakeCompilerVersion": "19.51.36244.0",
+            "frontendVariant": "MSVC",
+            "architecture": "x64",
+            "platform": "Windows",
+            "executableSha256": hashlib.sha256(payload).hexdigest(),
+        }
+        cmake_identity = {
+            "id": "MSVC",
+            "version": "19.51.36244.0",
+            "frontendVariant": "MSVC",
+            "architecture": "x64",
+            "platform": "Windows",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            results = []
+            for edition in ("Community", "BuildTools"):
+                compiler = root / edition / suffix
+                compiler.parent.mkdir(parents=True)
+                compiler.write_bytes(payload)
+                results.append(
+                    verify_build.verify_host_compiler_identity(
+                        {"path": compiler, **cmake_identity},
+                        contract,
+                    )
+                )
+            self.assertEqual(results[0], results[1])
+            self.assertNotIn(str(root), json.dumps(results[0]))
+
+            tampered = root / "BuildTools" / suffix
+            tampered.write_bytes(payload + b" tampered")
+            with self.assertRaisesRegex(AssertionError, "SHA-256"):
+                verify_build.verify_host_compiler_identity(
+                    {"path": tampered, **cmake_identity},
+                    contract,
+                )
+
+    def test_full_schema_rejects_absolute_external_paths(self) -> None:
+        for value in (
+            r"C:\Program Files\Microsoft Visual Studio\cl.exe",
+            "C:/developer/sdk/cl.exe",
+            r"\\server\share\tool.exe",
+        ):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(AssertionError, "absolute path"):
+                    verify_build.require_no_absolute_path_strings(
+                        {"compiler": {"identity": value}},
+                    )
+
+    def test_emscripten_payload_contract_rejects_same_version_tamper(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            emsdk = Path(directory)
+            manifest = emsdk / "emscripten-releases-tags.json"
+            manifest.write_text(
+                json.dumps(
+                    {
+                        "releases": {
+                            "4.0.7": (
+                                "ef4e9cedeac3332e4738087567552063f4f250d3"
+                            )
+                        }
+                    },
+                    sort_keys=True,
+                ),
+                encoding="utf-8",
+            )
+            files = {
+                "upstream/bin/clang.exe": b"clang fixture",
+                "upstream/emscripten/em++.py": b"driver fixture",
+            }
+            for relative, payload in files.items():
+                path = emsdk / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(payload)
+            paths = sorted(files)
+            inventory_payload = "".join(f"{path}\n" for path in paths)
+            aggregate_payload = "".join(
+                (
+                    f"{path}\0"
+                    f"{hashlib.sha256(files[path]).hexdigest()}\n"
+                )
+                for path in paths
+            )
+            contract = {
+                "releaseManifest": {
+                    "path": "emscripten-releases-tags.json",
+                    "sha256": hashlib.sha256(
+                        manifest.read_bytes()
+                    ).hexdigest(),
+                },
+                "releaseHash": (
+                    "ef4e9cedeac3332e4738087567552063f4f250d3"
+                ),
+                "packageUrl": (
+                    "https://storage.googleapis.com/webassembly/"
+                    "emscripten-releases-builds/win/"
+                    "ef4e9cedeac3332e4738087567552063f4f250d3/"
+                    "wasm-binaries.zip"
+                ),
+                "generatedBytecode": {
+                    "cacheDirectory": "__pycache__",
+                    "fileSuffix": ".pyc",
+                    "normalization": (
+                        "authenticate-non-bytecode-delete-cache-"
+                        "authenticate-full-v1"
+                    ),
+                },
+                "payload": {
+                    "algorithm": "sha256-path-null-digest-lf-v1",
+                    "roots": ["upstream/bin", "upstream/emscripten"],
+                    "excludedPrefixes": [],
+                    "excludedSegments": [],
+                    "excludedSuffixes": [],
+                    "fileCount": len(paths),
+                    "inventorySha256": hashlib.sha256(
+                        inventory_payload.encode("utf-8")
+                    ).hexdigest(),
+                    "aggregateSha256": hashlib.sha256(
+                        aggregate_payload.encode("utf-8")
+                    ).hexdigest(),
+                },
+            }
+
+            identity = verify_build.verify_emscripten_installation(
+                emsdk,
+                "4.0.7",
+                contract,
+            )
+            self.assertEqual(identity["payload"]["fileCount"], 2)
+            self.assertEqual(
+                identity["payload"]["aggregateSha256"],
+                contract["payload"]["aggregateSha256"],
+            )
+
+            (emsdk / "upstream/emscripten/em++.py").write_bytes(
+                b"same version, different payload"
+            )
+            with self.assertRaisesRegex(AssertionError, "payload"):
+                verify_build.verify_emscripten_installation(
+                    emsdk,
+                    "4.0.7",
+                    contract,
+                )
+
+    def test_backdated_source_replacement_breaks_artifact_binding(
+        self,
+    ) -> None:
+        repo = Path(__file__).resolve().parents[3]
+        build = repo / "tools" / "wasm-probe" / "build" / "wasm-release"
+        generated = build / "generated" / "ProbeInputDigest.cpp"
+        if not generated.is_file():
+            self.skipTest("requires a configured content-bound probe build")
+        source = (
+            repo
+            / "tools"
+            / "wasm-probe"
+            / "src"
+            / "ExceptionBoundary.cpp"
+        )
+        original = source.read_bytes()
+        stat = source.stat()
+        try:
+            source.write_bytes(original + b"\n// backdated mutation\n")
+            os.utime(
+                source,
+                ns=(stat.st_atime_ns, stat.st_mtime_ns),
+            )
+            self.assertLessEqual(source.stat().st_mtime_ns, stat.st_mtime_ns)
+            with self.assertRaisesRegex(
+                AssertionError,
+                "configured probe input digest",
+            ):
+                verify_build.verify_probe_input_binding(repo, build)
+        finally:
+            source.write_bytes(original)
+            os.utime(
+                source,
+                ns=(stat.st_atime_ns, stat.st_mtime_ns),
+            )
+        verify_build.verify_probe_input_binding(repo, build)
 
 
 if __name__ == "__main__":

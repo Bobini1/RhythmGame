@@ -121,6 +121,30 @@ def create_repository_layout(repository: Path, kind: str) -> None:
             "emcc-driver",
         )
         _seed_native_python(repository)
+        _copy_or_link(
+            Path(sys.executable).resolve(),
+            repository / "node" / "node.exe",
+        )
+        (repository / "upstream" / "bin").mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        (repository / "upstream" / "bin" / "clang.exe").write_bytes(
+            b"fixture clang payload\n"
+        )
+        (repository / "emscripten-releases-tags.json").write_text(
+            json.dumps(
+                {
+                    "releases": {
+                        "4.0.7": (
+                            "ef4e9cedeac3332e4738087567552063f4f250d3"
+                        )
+                    }
+                },
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
         (repository / ".emscripten").write_text(
             "EMSCRIPTEN_ROOT = emsdk_path + '/upstream/emscripten'\n",
             encoding="utf-8",
@@ -158,13 +182,17 @@ def seed_repository(repository: Path, kind: str, head: str) -> None:
 
 
 def seed_build_tools(toolchain_root: Path) -> None:
-    write_launcher(
-        toolchain_root
-        / "cmake-4.2.3-windows-x86_64"
-        / "bin"
-        / "cmake.cmd",
-        "cmake",
+    cmake_root = toolchain_root / "cmake-4.2.3-windows-x86_64"
+    write_launcher(cmake_root / "bin" / "cmake.cmd", "cmake")
+    support = (
+        cmake_root
+        / "share"
+        / "cmake-4.2"
+        / "Modules"
+        / "FixtureSupport.cmake"
     )
+    support.parent.mkdir(parents=True, exist_ok=True)
+    support.write_bytes(b"set(FIXTURE_SUPPORT authenticated)\n")
     write_launcher(
         toolchain_root / "ninja-1.13.2-win" / "ninja.cmd",
         "ninja",
@@ -289,6 +317,26 @@ def _run_git(source: str, arguments: list[str]) -> int:
                 return 97
             print(head_file.read_text(encoding="ascii").strip())
             return 0
+        if operation == [
+            "diff",
+            "--quiet",
+            "--no-ext-diff",
+            "--no-textconv",
+            "--ignore-submodules=all",
+            "--",
+        ]:
+            return 1 if (repository / ".fixture-worktree-dirty").exists() else 0
+        if operation == [
+            "diff",
+            "--cached",
+            "--quiet",
+            "--no-ext-diff",
+            "--no-textconv",
+            "--ignore-submodules=all",
+            "HEAD",
+            "--",
+        ]:
+            return 1 if (repository / ".fixture-index-dirty").exists() else 0
 
     _event("git", source, arguments, rejected=True)
     print(f"Unknown git invocation: {arguments!r}", file=sys.stderr)
@@ -330,6 +378,23 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
                 "VCPKG_ROOT",
                 "VCPKG_DISABLE_METRICS",
                 "VCPKG_DEFAULT_BINARY_CACHE",
+                "CMAKE_NINJA_FORCE_RESPONSE_FILE",
+                "EM_CACHE",
+                "EM_CONFIG",
+                "EMSDK_NODE",
+                "PYTHONDONTWRITEBYTECODE",
+                "EMCC_CFLAGS",
+                "CFLAGS",
+                "CXXFLAGS",
+                "CPPFLAGS",
+                "LDFLAGS",
+                "EM_COMPILER_WRAPPER",
+                "EMMAKEN_CFLAGS",
+                "GIT_CONFIG_GLOBAL",
+                "CMAKE_TOOLCHAIN_FILE",
+                "VCPKG_OVERLAY_PORTS",
+                "PKG_CONFIG_PATH",
+                "CCACHE_PREFIX",
                 "PATH",
             )
         }
@@ -348,6 +413,9 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
             runtime=str(Path(sys.executable).resolve()),
             ignore_environment=bool(sys.flags.ignore_environment),
         )
+        if arguments == ["--version"]:
+            print("emcc 4.0.7")
+            return 0
         return int(os.environ.get("TOOLCHAIN_DOUBLE_CHILD_EXIT", "0"))
     print(f"Unknown {tool} invocation: {arguments!r}", file=sys.stderr)
     return 99

@@ -16,9 +16,9 @@ records the commercial-Qt or GPLv3-compliant distribution route.
 ### Gate 1A result and Gate 1B handoff
 
 The isolated technical Qt/Emscripten Gate 1A probe passed on 2026-07-24. Its
-authoritative 28,723-byte
+authoritative 36,091-byte
 [build evidence](../evidence/emscripten-gate-1a.json), SHA-256
-`61EC48614806ECB8359A2154C580FD7C3DCF2AEE872BCD135830DEDE51B9457D`,
+`88B704C3FAB5D15101FFCD619096411B61AF9EFD5BD23CD37DF6DA5C01071B4B`,
 proves the pinned static Qt 6.11.1 target, dynamic same-version host tools,
 Emscripten 4.0.7 toolchain, required compile/link contracts, and exact generated
 deployment set.
@@ -30,6 +30,23 @@ the vcpkg manifest, archive, extracted executable, runtime version, and
 QtBase/QtDeclarative cache commands rather than implying that one CMake version
 configured every layer. Both roles are reproducibility inputs frozen for Gate
 1B.
+
+The qualification now authenticates the clean emsdk commit, Emscripten release
+mapping and fixed 14,842-file installed payload; the retained official CMake
+and Ninja archives and their complete extracted trees; and the native host
+compiler by portable toolset suffix, CMake identity, and executable hash.
+Ambient build overrides are scrubbed, while direct Emscripten calls reject
+legacy or negative exception settings. Because upstream Emscripten batch
+launchers can create Python bytecode even when environment controls request
+otherwise, a fail-closed prepass authenticates every non-bytecode file, accepts
+only `.pyc` files in exact non-reparse `__pycache__` directories, removes only
+those directories, and then requires the full fixed payload before executing
+version probes.
+
+The probe artifact is also content-bound to an explicit 59-file tracked input
+manifest. Its aggregate SHA-256 marker is compiled into the Wasm module and
+verified against current bytes, including when an input is replaced while its
+modification time is preserved.
 
 This is not Gate 0 or Gate 1 approval. Gate 0 remains unsatisfied, including
 the licensing decision and a clean native baseline; the prior native root build
@@ -949,6 +966,7 @@ parity and prevents a claim of complete functionality.
 | Built-in BGM and soundsets | Lazy immutable packs and user-granted folders | Selection, preview, persistence, offline tests |
 | Keyboard mapping and debounce | `KeyboardEvent.code` adapter into `InputTranslator` | Edge-order, held-key, repeat, blur, reserved-shortcut tests |
 | Gamepads and analog scratch | WebHID primary and Gamepad fallback | Device corpus, hotplug, duplicate-source, axis and scratch tests |
+| WebMIDI controllers | Separate WebMIDI adapter into the common `InputEdge` ring; never treated as WebHID or silently omitted | WebMIDI permission denied and granted, WebMIDI hotplug and unplug, WebMIDI timestamp-domain calibration, WebMIDI duplicate-source arbitration, reconnect, and MIDI-only reference-device tests |
 | Gameplay timing and scoring | Dedicated deterministic session worker | Native/Wasm outcome and sub-millisecond synthetic offset comparison |
 | Gauges, courses, battle, DP, autoplay, and replay play | Existing domain logic and repositories | Golden outcome/replay suite for every mode |
 | Profiles and configuration | Transactional `user.sqlite` repository | Migration, reload, backup/restore, multi-profile tests |
@@ -978,7 +996,9 @@ Required corpora:
 - every supported audio codec and slicing pattern;
 - static, animated, video, TGA, CIM, DDS, and archive assets;
 - Default, LR2, Beatoraja, and representative custom QML themes;
-- keyboard, WebHID, Gamepad, analog scratch, hotplug, and disconnect recordings;
+- keyboard, WebHID, WebMIDI, Gamepad, analog scratch, hotplug, unplug, and
+  disconnect recordings, including MIDI-only devices and one device exposed
+  through multiple browser adapter classes;
 - profiles and databases from every released schema;
 - native replay and scoring goldens plus Beatoraja `.brd` and LR2 `.lr2rep`
   imports for every mode, option, gauge, course, DP, battle, and Arena path;
@@ -1242,15 +1262,21 @@ whole-library copy occurs.
 Extract the gameplay clock and session worker, define immutable snapshots, and
 feed native and browser input through the common `InputEdge` model.
 
-Implement keyboard first, then WebHID and Gamepad with device arbitration.
+Implement keyboard first, then WebHID, WebMIDI, and Gamepad with device
+arbitration.
 Implement the owned AudioWorklet and qualify or reject miniaudio paths. Remove
 the fixed 44.1 kHz assumption and establish audible-time mapping.
 
-Include WebMIDI when required by the reference controller inventory. Qualify
-keyboard layouts with Microsoft Japanese IME and at least one additional
-composing IME, classify each adapter's timestamp quality, and test two identical
-controllers plus one device exposed simultaneously through keyboard, HID, MIDI,
-and Gamepad.
+WebMIDI is a mandatory, separately reported Gate 6 input class. Exercise
+WebMIDI permission denied and granted, WebMIDI hotplug and unplug, WebMIDI
+timestamp-domain calibration against the common performance-time-origin clock,
+and WebMIDI duplicate-source arbitration. Qualify keyboard layouts with
+Microsoft Japanese IME and at least one additional composing IME, classify each
+adapter's timestamp quality, and test two identical controllers plus one device
+exposed simultaneously through keyboard, HID, MIDI, and Gamepad. If Chromium,
+the operating system, or a required reference device cannot expose WebMIDI,
+record an explicitly approved WebMIDI exception; that exception is a
+release-blocking parity gap and blocks a full-parity claim.
 
 Run synthetic determinism, shared-ring saturation, missing-release, focus,
 visibility, hotplug, duplicate-device, output-change, suspension, clock-jump,
@@ -1320,8 +1346,12 @@ not regress the desktop application.
 No unimplemented adapter, disabled code path, skipped corpus, silent stub, or
 unapproved exception remains.
 
-Pass only when every ledger row has evidence and the adversarial review has no
-unresolved release-blocking finding.
+Pass only when every ledger row has evidence, keyboard, WebHID, WebMIDI,
+Gamepad, and duplicate-source arbitration have distinct results, and the
+adversarial review has no unresolved release-blocking finding. An explicitly
+approved WebMIDI exception remains visible in the ledger and blocks a
+full-parity claim; Gate 10 may record a scoped product exception, but it may not
+convert that exception into complete-functionality or full-parity PASS.
 
 ### Gate 11: production packaging and canary
 
