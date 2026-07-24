@@ -20,6 +20,98 @@ Qt's Wasm features and restores its application-side Emscripten version check.
 **Tech Stack:** CMake/Ninja, vcpkg manifest mode, Qt 6.11.1, Emscripten 4.0.7,
 PowerShell 7, Python 3.12 `unittest`, Qt Quick/QML, Qt ShaderTools.
 
+## Gate 1A execution result (2026-07-24)
+
+**Decision: technical Gate 1A PASS only.** The authoritative
+[Gate 1A evidence](../evidence/emscripten-gate-1a.json) has SHA-256
+`F2EF9B1C99D807FAD721F93E7E812F2F5CC01AFCD74DC1D5ED02D231CF0B43E1`
+and records `gate1aPassed: true`. It also records `gate0Satisfied: false`, `formalGate1EntryAuthorized: false`, and `gate1Passed: false`.
+This result proves the isolated Qt/Emscripten build contract, not a RhythmGame
+application build and not Chromium runtime support.
+
+The native Gate 0 baseline remains unsatisfied. The native root build previously
+stopped in the pre-existing `openjph:w-sqt` Visual Studio 2026 architecture
+check before application configuration. No production application source was
+changed for Gate 1A, and that native limitation is not represented as a Wasm
+success.
+
+This section, the checked-in implementation under `tools/wasm-probe`, and its
+fail-closed verifier/evidence are the as-built authority. Historical sample
+snippets and unchecked steps below remain implementation history; where they
+differ from those artifacts, they are non-authoritative.
+
+The qualified build contract is frozen as follows:
+
+- Qt is exactly `6.11.1`; Emscripten is exactly `4.0.7` from emsdk commit
+  `c69d433d8509c5c64564c2f0d054bf102a5cf67e`; vcpkg is exactly baseline
+  `a0400024711b283056538ac19ced80b91a83c24c`; CMake is exactly `4.2.3`;
+  Ninja is exactly `1.13.2`.
+- The target triplet is `wasm32-emscripten-rg`: static, release-only target
+  libraries. The host-tools triplet is `x64-windows-rg-host-release`: dynamic,
+  release-only native libraries and tools. Both Qt graphs are `6.11.1`.
+- Target Qt components are `Concurrent`, `Multimedia`, `Network`, `Qml`,
+  `Quick`, `ShaderTools`, and `WebSockets`; the isolated manifest also
+  qualifies the ImageFormats and SVG target ports plus native Linguist tools.
+- Every target C command carries `-pthread -sSUPPORT_LONGJMP=wasm`. Every
+  target C++ command and the final link carry
+  `-pthread -fwasm-exceptions -sSUPPORT_LONGJMP=wasm`.
+- The probe link additionally carries `-sJSPI`, `-sAUDIO_WORKLET=1`,
+  `-sWASM_WORKERS=1`, `-sPTHREAD_POOL_SIZE=4`,
+  `-sPTHREAD_POOL_SIZE_STRICT=2`, and
+  `-sALLOW_BLOCKING_ON_MAIN_THREAD=0`. Literal Asyncify is absent.
+- Qt target features are `thread=ON`, `wasm_exceptions=ON`, `wasm_jspi=ON`,
+  and `wasm_simd128=OFF`. `WasmProbeWasmCompileOptions` publishes the same
+  native-exception/longjmp compile contract to the static exception boundary
+  and its executable consumer.
+
+The material as-built integration results are:
+
+- Vcpkg buildtrees use the short ignored `.wb` root; downloads, packages,
+  installed state, binary cache, toolchains, and probe build outputs remain
+  ignored and untracked.
+- Target package builds receive the canonical `EMSDK`, `EMSDK_PYTHON`,
+  `EMSCRIPTEN_ROOT`, and `EMSCRIPTEN_VERSION`, plus
+  `CMAKE_NINJA_FORCE_RESPONSE_FILE`. The pinned wrapper invokes Emscripten's
+  Python drivers without a generic batch-child shell.
+- The complete QtBase overlay is `6.11.1#2`. Its restored installed-SDK
+  compatibility patch has SHA-256
+  `8AA3ED93E30F16C3C9691B35DEE1F27C9608BCF424FC4B0E86009CE64709C786`;
+  the installed Qt helper and configuration reject an active Emscripten SDK
+  that differs from the SDK used to build Qt.
+- The QtDeclarative overlay disables FluentWinUI3 and Universal only for the
+  native host-tools triplet to avoid the Windows path boundary; both styles
+  remain enabled for the Wasm target. Target AutoGen retains compiler
+  predefines and uses `CMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX=4096`.
+- `CMAKE_NINJA_FORCE_RESPONSE_FILE=1` covers compile and link edges, while the
+  AutoGen threshold covers compiler-predefines commands. Together they avoid
+  Windows batch command-line overflow without removing target features.
+- `SUPPORT_LONGJMP=wasm` is uniform across target C, C++, and link commands,
+  alongside the shared `-fwasm-exceptions` C++ compile contract.
+
+The exact deployment set produced by target `RhythmGameWasmProbe` is:
+
+```text
+RhythmGameWasmProbe.html
+RhythmGameWasmProbe.js
+RhythmGameWasmProbe.wasm
+RhythmGameWasmProbe.aw.js
+RhythmGameWasmProbe.ww.js
+qtloader.js
+qtlogo.svg
+```
+
+The pthread bootstrap is embedded in `RhythmGameWasmProbe.js`; no
+`.worker.js` artifact is generated.
+
+Gate 1B must consume these exact pins, triplets, flags, target, and deployment
+files. It must add a production-header server and Playwright Chromium checks
+for cross-origin isolation, QML/QSB rendering, static-boundary exception
+execution, QtConcurrent/pthread execution, JSPI nested-event-loop behavior,
+same-origin QNAM, main-thread WSS, served video, early-return lifetime, a real
+AudioWorklet callback and shared ring, memory growth, teardown and artifact
+version skew, OPFS, File System Access, and the 1,000-cycle adversarial
+lifecycle. None of those runtime capabilities is claimed by Gate 1A.
+
 ## Global Constraints
 
 - Keep one RhythmGame source codebase; Gate 1A is an isolated risk probe, not a

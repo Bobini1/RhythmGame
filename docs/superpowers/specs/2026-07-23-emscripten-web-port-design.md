@@ -13,6 +13,25 @@ remains unresolved, so implementation may proceed through the reproducibility
 and combined-capability probes only. Broader product porting begins after Gate 0
 records the commercial-Qt or GPLv3-compliant distribution route.
 
+### Gate 1A result and Gate 1B handoff
+
+The isolated technical Qt/Emscripten Gate 1A probe passed on 2026-07-24. Its
+authoritative [build evidence](../evidence/emscripten-gate-1a.json), SHA-256
+`F2EF9B1C99D807FAD721F93E7E812F2F5CC01AFCD74DC1D5ED02D231CF0B43E1`,
+proves the pinned static Qt 6.11.1 target, dynamic same-version host tools,
+Emscripten 4.0.7 toolchain, required compile/link contracts, and exact generated
+deployment set.
+
+This is not Gate 0 or Gate 1 approval. Gate 0 remains unsatisfied, including
+the licensing decision and a clean native baseline; the prior native root build
+stopped at the pre-existing `openjph:w-sqt` Visual Studio 2026 architecture
+check. Formal Gate 1 entry and Gate 1 remain false. The
+[implementation plan's as-built result](../plans/2026-07-23-emscripten-gate-1a-vcpkg-qt.md#gate-1a-execution-result-2026-07-24)
+freezes the inputs for a separate Gate 1B browser-runtime plan. Gate 1B must
+prove the Chromium, cross-origin-isolation, QML/QSB, exception, pthread/JSPI,
+network, media, AudioWorklet, storage, memory-growth, teardown, and lifecycle
+claims before any production application port begins.
+
 ## Outcome
 
 An Emscripten build is feasible, but it is not a compiler-preset conversion.
