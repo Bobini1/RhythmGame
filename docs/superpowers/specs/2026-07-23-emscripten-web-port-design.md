@@ -16,11 +16,20 @@ records the commercial-Qt or GPLv3-compliant distribution route.
 ### Gate 1A result and Gate 1B handoff
 
 The isolated technical Qt/Emscripten Gate 1A probe passed on 2026-07-24. Its
-authoritative [build evidence](../evidence/emscripten-gate-1a.json), SHA-256
-`F2EF9B1C99D807FAD721F93E7E812F2F5CC01AFCD74DC1D5ED02D231CF0B43E1`,
+authoritative 28,723-byte
+[build evidence](../evidence/emscripten-gate-1a.json), SHA-256
+`61EC48614806ECB8359A2154C580FD7C3DCF2AEE872BCD135830DEDE51B9457D`,
 proves the pinned static Qt 6.11.1 target, dynamic same-version host tools,
 Emscripten 4.0.7 toolchain, required compile/link contracts, and exact generated
 deployment set.
+
+The outer/probe/bootstrap lane uses CMake exactly `4.2.3` from the isolated
+pinned toolchain. The vcpkg Qt port-build lane uses CMake exactly `4.3.3`,
+selected by the pinned vcpkg commit's tool manifest. The evidence authenticates
+the vcpkg manifest, archive, extracted executable, runtime version, and
+QtBase/QtDeclarative cache commands rather than implying that one CMake version
+configured every layer. Both roles are reproducibility inputs frozen for Gate
+1B.
 
 This is not Gate 0 or Gate 1 approval. Gate 0 remains unsatisfied, including
 the licensing decision and a clean native baseline; the prior native root build

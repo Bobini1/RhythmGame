@@ -23,8 +23,9 @@ PowerShell 7, Python 3.12 `unittest`, Qt Quick/QML, Qt ShaderTools.
 ## Gate 1A execution result (2026-07-24)
 
 **Decision: technical Gate 1A PASS only.** The authoritative
-[Gate 1A evidence](../evidence/emscripten-gate-1a.json) has SHA-256
-`F2EF9B1C99D807FAD721F93E7E812F2F5CC01AFCD74DC1D5ED02D231CF0B43E1`
+[Gate 1A evidence](../evidence/emscripten-gate-1a.json) is 28,723 bytes, has
+SHA-256
+`61EC48614806ECB8359A2154C580FD7C3DCF2AEE872BCD135830DEDE51B9457D`,
 and records `gate1aPassed: true`. It also records `gate0Satisfied: false`, `formalGate1EntryAuthorized: false`, and `gate1Passed: false`.
 This result proves the isolated Qt/Emscripten build contract, not a RhythmGame
 application build and not Chromium runtime support.
@@ -44,8 +45,14 @@ The qualified build contract is frozen as follows:
 
 - Qt is exactly `6.11.1`; Emscripten is exactly `4.0.7` from emsdk commit
   `c69d433d8509c5c64564c2f0d054bf102a5cf67e`; vcpkg is exactly baseline
-  `a0400024711b283056538ac19ced80b91a83c24c`; CMake is exactly `4.2.3`;
-  Ninja is exactly `1.13.2`.
+  `a0400024711b283056538ac19ced80b91a83c24c`.
+- The outer/probe/bootstrap lane uses CMake exactly `4.2.3` from the isolated
+  pinned toolchain; its Ninja is exactly `1.13.2`.
+- The vcpkg Qt port-build lane uses CMake exactly `4.3.3`, selected by the
+  pinned vcpkg commit's tool manifest. Evidence authenticates that manifest,
+  the downloaded archive, the extracted executable, its runtime version, and
+  the CMake commands recorded by the QtBase target and QtDeclarative host and
+  target caches. The two CMake roles are distinct and jointly frozen.
 - The target triplet is `wasm32-emscripten-rg`: static, release-only target
   libraries. The host-tools triplet is `x64-windows-rg-host-release`: dynamic,
   release-only native libraries and tools. Both Qt graphs are `6.11.1`.
@@ -103,14 +110,15 @@ qtlogo.svg
 The pthread bootstrap is embedded in `RhythmGameWasmProbe.js`; no
 `.worker.js` artifact is generated.
 
-Gate 1B must consume these exact pins, triplets, flags, target, and deployment
-files. It must add a production-header server and Playwright Chromium checks
-for cross-origin isolation, QML/QSB rendering, static-boundary exception
-execution, QtConcurrent/pthread execution, JSPI nested-event-loop behavior,
-same-origin QNAM, main-thread WSS, served video, early-return lifetime, a real
-AudioWorklet callback and shared ring, memory growth, teardown and artifact
-version skew, OPFS, File System Access, and the 1,000-cycle adversarial
-lifecycle. None of those runtime capabilities is claimed by Gate 1A.
+Gate 1B must consume these exact pins, both CMake roles, triplets, flags,
+target, and deployment files. It must add a production-header server and
+Playwright Chromium checks for cross-origin isolation, QML/QSB rendering,
+static-boundary exception execution, QtConcurrent/pthread execution, JSPI
+nested-event-loop behavior, same-origin QNAM, main-thread WSS, served video,
+early-return lifetime, a real AudioWorklet callback and shared ring, memory
+growth, teardown and artifact version skew, OPFS, File System Access, and the
+1,000-cycle adversarial lifecycle. None of those runtime capabilities is
+claimed by Gate 1A.
 
 ## Global Constraints
 
@@ -124,8 +132,11 @@ lifecycle. None of those runtime capabilities is claimed by Gate 1A.
   `c69d433d8509c5c64564c2f0d054bf102a5cf67e`.
 - The vcpkg checkout and builtin baseline are exactly
   `a0400024711b283056538ac19ced80b91a83c24c`.
-- The first qualification lane fails closed unless CMake is exactly `4.2.3`
-  and Ninja is exactly `1.13.2`; both observed versions enter the evidence.
+- The outer/probe/bootstrap qualification lane fails closed unless CMake is
+  exactly `4.2.3` and Ninja is exactly `1.13.2`.
+- Vcpkg's Qt port-build subprocesses use its separately authenticated CMake
+  `4.3.3`, selected by the pinned vcpkg tool manifest. Both CMake roles enter
+  the evidence and remain fixed for reproducibility.
 - Target Qt and every target dependency are static; Qt WebAssembly dynamic
   linking is forbidden.
 - Native Qt host tools use a native host triplet and the same Qt version as the
