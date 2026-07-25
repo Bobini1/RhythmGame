@@ -40,8 +40,11 @@ add_executable(RhythmGame_test
         resource_managers/ScanThemes.test.cpp
         qml_components/FileQuery.test.cpp
         qml_components/FontResolver.test.cpp
+        qml_components/OnlineScores.test.cpp
+        qml_components/ScoreDbAsyncApi.test.cpp
         input/InputTranslator.test.cpp
         support/GeneratePermutation.test.cpp
+        support/PendingReply.test.cpp
         lr2_skin/Lr2BarBaseStateResolver.test.cpp
         lr2_skin/Lr2ResolvedTextRegistry.test.cpp
         lr2_skin/Lr2SelectBarModel.test.cpp
@@ -59,6 +62,7 @@ target_link_libraries(
 target_compile_features(RhythmGame_test PRIVATE cxx_std_20)
 target_compile_definitions(
         RhythmGame_test PRIVATE
+        RHYTHMGAME_SOURCE_DIR="${CMAKE_SOURCE_DIR}"
         ARENA_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/protocol-v1.json"
         ARENA_PHASE2_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase2-text-goldens.json"
         ARENA_PHASE3_PROTOCOL_FIXTURE_PATH="${CMAKE_CURRENT_SOURCE_DIR}/arena/fixtures/phase3-text-goldens.json"
@@ -85,6 +89,13 @@ if (WIN32)
     add_custom_command(TARGET RhythmGame_test POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:RhythmGame_test> $<TARGET_FILE_DIR:RhythmGame_test>
             COMMAND_EXPAND_LISTS
+    )
+    add_custom_command(TARGET RhythmGame_test POST_BUILD
+            COMMAND $<IF:$<CONFIG:Debug>,${TOOL_WINDEPLOYQT_DEBUG},${TOOL_WINDEPLOYQT}> $<$<CONFIG:Debug,RelWithDebInfo>:--pdb> --no-translations --no-compiler-runtime
+            $<TARGET_FILE:RhythmGame_test>
+            COMMENT "Running windeployqt for tests..."
+            COMMAND_EXPAND_LISTS
+            VERBATIM
     )
 endif ()
 

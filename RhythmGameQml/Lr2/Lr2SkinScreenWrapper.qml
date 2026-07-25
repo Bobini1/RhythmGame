@@ -196,6 +196,7 @@ Item {
     property var gameplayScores1: []
     property int gameplayScoresRevision: 0
     property int gameplayScoreRequest: 0
+    property var pendingGameplayScoreDbReply: null
     property var gameplayHeldButtonTimerStarts: ({})
     property var gameplayOffButtonTimerStarts: ({})
     property var gameplayPreviousPressedTimers: ({})
@@ -3329,7 +3330,31 @@ Item {
         gameplayBestScoreReplayer.resetPoints();
     }
 
+    function trackGameplayScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingGameplayScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingGameplayScoreDbReply === reply) {
+                pendingGameplayScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelGameplayScoreDbReply() {
+        let reply = pendingGameplayScoreDbReply;
+        pendingGameplayScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     function updateGameplaySavedScores() : var {
+        cancelGameplayScoreDbReply();
         root.gameplayScoreRequest += 1;
         let request = root.gameplayScoreRequest;
         root.gameplayScores1 = [];
@@ -3348,7 +3373,7 @@ Item {
             return;
         }
 
-        scoreDb.getScoresForMd5([md5]).then(result => {
+        trackGameplayScoreDbReply(scoreDb.getScoresForMd5([md5])).then(result => {
             if (request !== root.gameplayScoreRequest) {
                 return;
             }
@@ -5750,6 +5775,7 @@ Item {
     }
 
     Component.onDestruction: {
+        root.cancelGameplayScoreDbReply();
         const arenaSession = root.arenaSession;
         if (arenaSession && root.arenaManagedRunner && root.chart) {
             arenaSession.releasePreparedGameplay(root.chart);

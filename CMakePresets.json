@@ -230,7 +230,7 @@
         "uninitialized": false
       },
       "cacheVariables": {
-        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkgOverlayPorts;${sourceDir}/vcpkgOverlayPortsWindows"
+        "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkgOverlayPorts"
       }
     }
   ]

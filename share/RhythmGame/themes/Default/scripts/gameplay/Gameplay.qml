@@ -40,6 +40,31 @@ Rectangle {
         && root.arenaSession.opponentTarget.available === true
     readonly property bool arenaPointTargetAvailable: !root.arenaGameplayOwned
         || root.arenaOpponentTargetAvailable
+    property var pendingScoreDbReply: null
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingScoreDbReply === reply) {
+                pendingScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReply() {
+        let reply = pendingScoreDbReply;
+        pendingScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     function closeActivePopup() {
         if (root.popup !== null) {
             root.popup.close();
@@ -144,6 +169,7 @@ Rectangle {
         }
     }
     StackView.onActivated: {
+        cancelScoreDbReply();
         escapeShortcut.nothingWasHit = true;
         escapeShortcut.used = false;
         if (chart.status === ChartRunner.Finished) {
@@ -160,13 +186,17 @@ Rectangle {
             if (playReadySound.length === 0) {
                 startTimer.start();
             }
-            chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5).then(scores => {
+            trackScoreDbReply(chart.player1.profile.scoreDb.getScoresForMd5(chartData.md5)).then(scores => {
                 scores1 = scores.scores[chartData.md5] || [];
             });
         }
     }
-    StackView.onDeactivating: closeActivePopup()
+    StackView.onDeactivating: {
+        cancelScoreDbReply();
+        closeActivePopup();
+    }
     Component.onDestruction: {
+        cancelScoreDbReply();
         closeActivePopup();
         const arenaSession = root.arenaSession;
         if (arenaSession && root.arenaManagedRunner && root.chart) {

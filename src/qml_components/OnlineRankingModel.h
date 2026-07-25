@@ -1,7 +1,6 @@
 #ifndef RHYTHMGAME_ONLINERANKINGMODEL_H
 #define RHYTHMGAME_ONLINERANKINGMODEL_H
 
-#include <QIfPendingReply>
 #include <QtQml>
 
 namespace gameplay_logic {

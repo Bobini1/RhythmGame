@@ -27,16 +27,41 @@ Column {
     readonly property var oldBestPointsScore: Helpers.getScoreWithBestPoints(scores)
     readonly property var oldBestStats: Helpers.getBestStats(scores)
     property var scores: []
+    property var pendingScoreDbReply: null
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReply = reply;
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            if (pendingScoreDbReply === reply) {
+                pendingScoreDbReply = null;
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReply() {
+        let reply = pendingScoreDbReply;
+        pendingScoreDbReply = null;
+        if (reply && !reply.resultAvailable) {
+            reply.cancel();
+        }
+    }
+
     Component.onCompleted: {
         if (root.course) {
-            profile.scoreDb.getScoresForCourseId([root.course.identifier]).then((dbScores) => {
+            trackScoreDbReply(profile.scoreDb.getScoresForCourseId([root.course.identifier])).then((dbScores) => {
                 if (dbScores.scores[root.course.identifier] === undefined) {
                     return;
                 }
                 scores =  dbScores.scores[root.course.identifier].filter((oldScore) => oldScore.result.guid !== score.result.guid);
             });
         } else {
-            profile.scoreDb.getScoresForMd5([root.chartData.md5]).then((dbScores) => {
+            trackScoreDbReply(profile.scoreDb.getScoresForMd5([root.chartData.md5])).then((dbScores) => {
                 if (dbScores.scores[root.chartData.md5] === undefined) {
                     return;
                 }
@@ -44,6 +69,8 @@ Column {
             });
         }
     }
+    Component.onDestruction: cancelScoreDbReply();
+
     function cycleGauge() {
         lifeGraph.incrementIndex();
         return true;

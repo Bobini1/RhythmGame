@@ -57,6 +57,8 @@ Item {
     property int listGeneration: 0
     property int scoreGeneration: 0
     property int folderLampRequestToken: 0
+    property var pendingScoreDbReplies: []
+    property var pendingFolderLampScoreDbReplies: []
     property alias suppressNextSelectionSound: nativeNavigation.suppressNextSelectionSound
     property bool scrollFixedPointDragging: false
     property string searchText: ""
@@ -188,6 +190,61 @@ Item {
     onRankingPlayerRankChanged: advanceNumberValueRankingStatsRevision()
     onRankingPlayerCountChanged: advanceNumberValueRankingStatsRevision()
     onRankingTotalPlayCountChanged: advanceNumberValueRankingStatsRevision()
+
+    function trackScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingScoreDbReplies.splice(index, 1);
+                pendingScoreDbReplies = pendingScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelScoreDbReplies() {
+        let replies = pendingScoreDbReplies;
+        pendingScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
+
+    function trackFolderLampScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingFolderLampScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingFolderLampScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingFolderLampScoreDbReplies.splice(index, 1);
+                pendingFolderLampScoreDbReplies =
+                    pendingFolderLampScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelFolderLampScoreDbReplies() {
+        let replies = pendingFolderLampScoreDbReplies;
+        pendingFolderLampScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
 
     function advanceNumberValueRevision(value: int) : int {
         return value > root.numberValueRevisionLimit ? 1 : value + 1;
@@ -902,6 +959,7 @@ Item {
     }
 
     function refreshFolderLamps() {
+        cancelFolderLampScoreDbReplies();
         let db = Rg.profileList?.mainProfile?.scoreDb;
         if (!db) {
             clearFolderLampState();
@@ -920,7 +978,7 @@ Item {
                 continue;
             }
 
-            db.getScoreSummary(item).then((result) => {
+            trackFolderLampScoreDbReply(db.getScoreSummary(item)).then((result) => {
                 if (requestToken !== folderLampRequestToken) {
                     return;
                 }
@@ -996,7 +1054,8 @@ Item {
     }
 
     Component.onDestruction: {
-        Rg.profileList?.mainProfile?.scoreDb?.cancelPending();
+        cancelFolderLampScoreDbReplies();
+        cancelScoreDbReplies();
     }
 
     function addToMinimumCount(input: var) : var {
@@ -1299,7 +1358,7 @@ Item {
     function refreshScores() : var {
         let folder = historyStack.length > 0 ? historyStack[historyStack.length - 1] : "";
         let scoreDb = Rg.profileList.mainProfile.scoreDb;
-        scoreDb.cancelPending();
+        cancelScoreDbReplies();
         if (!folderContentsNeedFullScores()) {
             scores = ({});
             handleScoresLoaded();
@@ -1317,13 +1376,13 @@ Item {
                     courseIds.push(item.identifier);
                 }
             }
-            scoreDb.getScoresForMd5(md5s).then((result) => {
+            trackScoreDbReply(scoreDb.getScoresForMd5(md5s)).then((result) => {
                 if (courseIds.length <= 0) {
                     scores = result.scores;
                     handleScoresLoaded();
                     return;
                 }
-                scoreDb.getScoresForCourseId(courseIds).then((courseResult) => {
+                trackScoreDbReply(scoreDb.getScoresForCourseId(courseIds)).then((courseResult) => {
                     let newScores = Object.assign({}, result.scores || {});
                     for (let [key, value] of Object.entries(courseResult.scores || {})) {
                         newScores[key] = value;
@@ -1336,7 +1395,7 @@ Item {
             refreshFolderLamps();
             return;
         }
-        scoreDb.getScores(folder).then((result) => {
+        trackScoreDbReply(scoreDb.getScores(folder)).then((result) => {
             if (result && result.courseScores !== undefined) {
                 let newScores = result.scores.scores;
                 for (let [key, value] of Object.entries(result.courseScores.scores)) {
@@ -1357,7 +1416,7 @@ Item {
         if (!db) {
             return;
         }
-        db.getTotalStats().then((result) => {
+        trackScoreDbReply(db.getTotalStats()).then((result) => {
             playerStats = result || playerStats;
         });
     }

@@ -12,6 +12,7 @@ QtObject {
     property var resultOldScores1: []
     property var resultOldScores2: []
     property int resultOldScoresRequest: 0
+    property var pendingResultScoreDbReplies: []
     property int resultTimer151SkinTime: -1
     property int resultTimer152SkinTime: -1
     property int resultGraphStartSkinTime: 500
@@ -22,6 +23,34 @@ QtObject {
     property int resultGaugeSelectionIndex2: -1
     readonly property bool resultScreenActive: root.host ? root.host.resultScreenActive : false
     readonly property bool gameplayScreenActive: root.host ? root.host.gameplayScreenActive : false
+
+    function trackResultScoreDbReply(reply: var) : var {
+        if (!reply || reply.resultAvailable) {
+            return reply;
+        }
+        pendingResultScoreDbReplies.push(reply);
+        let forget = function() {
+            reply.finished.disconnect(forget);
+            let index = pendingResultScoreDbReplies.indexOf(reply);
+            if (index >= 0) {
+                pendingResultScoreDbReplies.splice(index, 1);
+                pendingResultScoreDbReplies =
+                    pendingResultScoreDbReplies.slice();
+            }
+        };
+        reply.finished.connect(forget);
+        return reply;
+    }
+
+    function cancelResultScoreDbReplies() {
+        let replies = pendingResultScoreDbReplies;
+        pendingResultScoreDbReplies = [];
+        for (let reply of replies) {
+            if (reply && !reply.resultAvailable) {
+                reply.cancel();
+            }
+        }
+    }
 
     function resultScore(side: var) : var {
         return root.host.scores && root.host.scores.length >= side
@@ -804,6 +833,7 @@ QtObject {
     }
 
     function updateResultOldScores() : var {
+        cancelResultScoreDbReplies();
         if (!root.resultScreenActive) {
             return;
         }
@@ -823,7 +853,7 @@ QtObject {
             let currentGuid = score.result.guid || "";
             if (root.host.course && root.host.course.identifier) {
                 let courseId = root.host.course.identifier;
-                scoreDb.getScoresForCourseId([courseId]).then(result => {
+                trackResultScoreDbReply(scoreDb.getScoresForCourseId([courseId])).then(result => {
                     if (request !== root.resultOldScoresRequest) {
                         return;
                     }
@@ -842,7 +872,7 @@ QtObject {
                 if (md5.length === 0) {
                     continue;
                 }
-                scoreDb.getScoresForMd5([md5]).then(result => {
+                trackResultScoreDbReply(scoreDb.getScoresForMd5([md5])).then(result => {
                     if (request !== root.resultOldScoresRequest) {
                         return;
                     }
@@ -860,4 +890,6 @@ QtObject {
             }
         }
     }
+
+    Component.onDestruction: cancelResultScoreDbReplies()
 }

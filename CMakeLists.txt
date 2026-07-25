@@ -65,7 +65,7 @@ message(STATUS "miniaudio include dirs: ${MINIAUDIO_INCLUDE_DIRS}")
 
 # <------------ Qt (gui) --------------->
 
-find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg InterfaceFramework LinguistTools QuickControls2 WebSockets REQUIRED)
+find_package(Qt6 COMPONENTS ShaderTools Quick Concurrent Multimedia Svg LinguistTools QuickControls2 WebSockets REQUIRED)
 qt_standard_project_setup(I18N_TRANSLATED_LANGUAGES pl jp zh_CN)
 
 # <------------ QtKeychain (storing login data) --------------->
@@ -312,6 +312,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/BmsScoreCourse.h
         src/support/QtSink.cpp
         src/support/QtSink.h
+        src/support/PendingReply.cpp
+        src/support/PendingReply.h
         src/sounds/AudioEngine.cpp
         src/sounds/AudioEngine.h
         src/sounds/MiniaudioBackend.cpp
@@ -397,7 +399,7 @@ if (NOT Stb_FOUND)
 else ()
     target_link_libraries(RhythmGame_lib PUBLIC ${Stb_LIBRARIES})
 endif ()
-target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 ${RhythmGame_LIBREMIDI_TARGET} Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::InterfaceFramework Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
+target_link_libraries(RhythmGame_lib PUBLIC SDL2::SDL2 ${RhythmGame_LIBREMIDI_TARGET} Qt6Keychain::Qt6Keychain Qt6::Quick Qt6::QuickControls2 Qt6::OpenGL Qt6::Concurrent Qt6::Multimedia Qt6::WebSockets Threads::Threads Boost::headers SQLiteCpp spdlog::spdlog_header_only foonathan::lexy magic_enum::magic_enum $<IF:$<TARGET_EXISTS:zstd::libzstd_static>,zstd::libzstd_static,zstd::libzstd> LibXml2::LibXml2 zlib-ng::zlib)
 target_include_directories(RhythmGame_lib PUBLIC ${MINIAUDIO_INCLUDE_DIRS})
 
 if (WIN32)
