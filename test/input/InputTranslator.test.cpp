@@ -61,6 +61,12 @@ class InputTranslatorHarness
     }
 };
 
+auto
+testMidiDevice() -> input::MidiDevice
+{
+    return input::MidiDevice{ QStringLiteral("Test MIDI"), 0 };
+}
+
 using ButtonEvent = std::pair<input::BmsKey, int64_t>;
 
 void
@@ -295,4 +301,130 @@ TEST_CASE("debounce property resets to the five millisecond default",
     translator.resetDebounceMs();
 
     CHECK(translator.getDebounceMs() == 5.0);
+}
+
+TEST_CASE("MIDI note input follows note on and note off", "[input][midi]")
+{
+    using input::BmsKey;
+    using input::Key;
+    using input::Mapping;
+
+    auto harness = InputTranslatorHarness{};
+    auto& translator = *harness.translator;
+    auto device = testMidiDevice();
+    translator.setKeyConfig(QList<Mapping>{
+      Mapping{ Key{ QVariant::fromValue(device),
+                    Key::Device::MidiNote,
+                    (0 << 8) | 60,
+                    Key::Direction::None },
+               BmsKey::Col11 },
+    });
+    auto presses = std::vector<ButtonEvent>{};
+    auto releases = std::vector<ButtonEvent>{};
+    recordButtonEvents(translator, presses, releases);
+
+    translator.handleMidiNote(device, 0, 60, 100, 6'000);
+    translator.handleMidiNote(device, 0, 60, 0, 6'010);
+
+    REQUIRE(presses.size() == 1);
+    CHECK(presses.front() == ButtonEvent{ BmsKey::Col11, 6'000 });
+    REQUIRE(releases.size() == 1);
+    CHECK(releases.front() == ButtonEvent{ BmsKey::Col11, 6'010 });
+}
+
+TEST_CASE("MIDI sustain pedal uses OpenLR2 digital threshold",
+          "[input][midi]")
+{
+    using input::BmsKey;
+    using input::Key;
+    using input::Mapping;
+
+    auto harness = InputTranslatorHarness{};
+    auto& translator = *harness.translator;
+    auto device = testMidiDevice();
+    translator.setKeyConfig(QList<Mapping>{
+      Mapping{ Key{ QVariant::fromValue(device),
+                    Key::Device::MidiControl,
+                    (0 << 8) | 64,
+                    Key::Direction::None },
+               BmsKey::Col12 },
+    });
+    auto presses = std::vector<ButtonEvent>{};
+    auto releases = std::vector<ButtonEvent>{};
+    recordButtonEvents(translator, presses, releases);
+
+    translator.handleMidiControl(device, 0, 64, 63, 7'000);
+    translator.handleMidiControl(device, 0, 64, 64, 7'010);
+    translator.handleMidiControl(device, 0, 64, 0, 7'020);
+
+    REQUIRE(presses.size() == 1);
+    CHECK(presses.front() == ButtonEvent{ BmsKey::Col12, 7'010 });
+    REQUIRE(releases.size() == 1);
+    CHECK(releases.front() == ButtonEvent{ BmsKey::Col12, 7'020 });
+}
+
+TEST_CASE("MIDI pitch bend exposes positive and negative digital directions",
+          "[input][midi]")
+{
+    using input::BmsKey;
+    using input::Key;
+    using input::Mapping;
+
+    auto harness = InputTranslatorHarness{};
+    auto& translator = *harness.translator;
+    auto device = testMidiDevice();
+    translator.setKeyConfig(QList<Mapping>{
+      Mapping{ Key{ QVariant::fromValue(device),
+                    Key::Device::MidiPitchBend,
+                    0 << 8,
+                    Key::Direction::Up },
+               BmsKey::Col1sUp },
+      Mapping{ Key{ QVariant::fromValue(device),
+                    Key::Device::MidiPitchBend,
+                    0 << 8,
+                    Key::Direction::Down },
+               BmsKey::Col1sDown },
+    });
+    auto presses = std::vector<ButtonEvent>{};
+    auto releases = std::vector<ButtonEvent>{};
+    recordButtonEvents(translator, presses, releases);
+
+    translator.handleMidiPitchBend(device, 0, 9'000, 8'000);
+    translator.handleMidiPitchBend(device, 0, 7'000, 8'010);
+    translator.handleMidiPitchBend(device, 0, 8'192, 8'020);
+
+    REQUIRE(presses.size() == 2);
+    CHECK(presses[0] == ButtonEvent{ BmsKey::Col1sUp, 8'000 });
+    CHECK(presses[1] == ButtonEvent{ BmsKey::Col1sDown, 8'010 });
+    REQUIRE(releases.size() == 2);
+    CHECK(releases[0] == ButtonEvent{ BmsKey::Col1sUp, 8'010 });
+    CHECK(releases[1] == ButtonEvent{ BmsKey::Col1sDown, 8'020 });
+}
+
+TEST_CASE("MIDI device removal releases mapped held keys", "[input][midi]")
+{
+    using input::BmsKey;
+    using input::Key;
+    using input::Mapping;
+
+    auto harness = InputTranslatorHarness{};
+    auto& translator = *harness.translator;
+    auto device = testMidiDevice();
+    translator.setKeyConfig(QList<Mapping>{
+      Mapping{ Key{ QVariant::fromValue(device),
+                    Key::Device::MidiNote,
+                    (0 << 8) | 60,
+                    Key::Direction::None },
+               BmsKey::Col11 },
+    });
+    auto presses = std::vector<ButtonEvent>{};
+    auto releases = std::vector<ButtonEvent>{};
+    recordButtonEvents(translator, presses, releases);
+
+    translator.handleMidiNote(device, 0, 60, 100, 9'000);
+    translator.handleMidiDeviceRemoved(device, 9'050);
+
+    REQUIRE(presses.size() == 1);
+    REQUIRE(releases.size() == 1);
+    CHECK(releases.front() == ButtonEvent{ BmsKey::Col11, 9'050 });
 }
