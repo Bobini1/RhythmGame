@@ -44,6 +44,10 @@ NINJA_EXECUTABLE_SHA256 = (
 HOST_COMPILER_SHA256 = (
     "9cf613fcbebece019712511eec4b1a32d0a9c94e65249a1aeb326305c2388d6b"
 )
+SOURCE_DATE_EPOCH = 1782488244
+REPRODUCIBLE_BUILD_DERIVATION = (
+    "vcpkg-baseline-source-archive-root-entry-utc"
+)
 
 
 class ToolchainContractTest(unittest.TestCase):
@@ -52,6 +56,14 @@ class ToolchainContractTest(unittest.TestCase):
         self.assertEqual(lock["qt"]["version"], "6.11.1")
         self.assertEqual(lock["emscripten"]["version"], "4.0.7")
         self.assertEqual(lock["emscripten"]["emsdkCommit"], EMSDK_COMMIT)
+        self.assertEqual(
+            lock["reproducibleBuild"],
+            {
+                "sourceDateEpoch": SOURCE_DATE_EPOCH,
+                "derivation": REPRODUCIBLE_BUILD_DERIVATION,
+                "vcpkgMaxConcurrency": 8,
+            },
+        )
         self.assertEqual(
             lock["emscripten"]["releaseHash"],
             "ef4e9cedeac3332e4738087567552063f4f250d3",
@@ -75,6 +87,75 @@ class ToolchainContractTest(unittest.TestCase):
                 ),
             },
         )
+        self.assertEqual(lock["emscripten"]["bootstrapScript"], "emsdk.py")
+        self.assertRegex(
+            lock["emscripten"]["bootstrapScriptSha256"],
+            r"^[0-9a-f]{64}$",
+        )
+        self.assertEqual(
+            lock["emscripten"]["bootstrapPython"][
+                "installationDirectory"
+            ],
+            "python/3.9.2-nuget_64bit",
+        )
+        self.assertEqual(
+            lock["emscripten"]["bootstrapPython"]["executable"],
+            "python.exe",
+        )
+        self.assertEqual(
+            lock["emscripten"]["bootstrapPython"]["payload"]["fileCount"],
+            1486,
+        )
+        self.assertEqual(
+            lock["emscripten"]["driverApi"]["pythonImportClosure"],
+            {
+                "algorithm": "sha256-path-null-digest-lf-v1",
+                "fileCount": 225,
+                "totalBytes": 3159759,
+                "inventorySha256": (
+                    "acdbf9111c4779b62764eaa595a184179f7ffe8f46de07ea"
+                    "4303f635d1308477"
+                ),
+                "aggregateSha256": (
+                    "4a378899a0a3ad36e19f7f5e0170641fdb647d61aaf464c"
+                    "721b07d729abdf6f6"
+                ),
+            },
+        )
+        self.assertRegex(
+            lock["emscripten"]["nodeExecutableSha256"],
+            r"^[0-9a-f]{64}$",
+        )
+        self.assertEqual(
+            lock["emscripten"]["sourceArchive"]["allowedRuntimePrefixes"],
+            [
+                "downloads",
+                "node/20.18.0_64bit",
+                "python/3.9.2-nuget_64bit",
+                "upstream/bin",
+                "upstream/emscripten",
+                "upstream/lib",
+            ],
+        )
+        self.assertEqual(
+            lock["vcpkg"]["sourceArchive"]["allowedRuntimePrefixes"],
+            [],
+        )
+        self.assertNotIn(".git", json.dumps(lock["emscripten"]["sourceArchive"]))
+        self.assertNotIn(".git", json.dumps(lock["vcpkg"]["sourceArchive"]))
+        gate_scripts = {
+            "adapterSha256": (
+                PROBE / "scripts" / "invoke_emscripten_driver.py"
+            ),
+            "responseAuditorSha256": (
+                PROBE / "scripts" / "audit_emscripten_response_files.py"
+            ),
+        }
+        for field, path in gate_scripts.items():
+            self.assertEqual(
+                lock["gateTools"][field],
+                hashlib.sha256(path.read_bytes()).hexdigest(),
+            )
         self.assertEqual(
             lock["emscripten"]["payload"]["excludedSegments"],
             [],
@@ -184,6 +265,55 @@ class ToolchainContractTest(unittest.TestCase):
             QTDECLARATIVE_PATCH_SHA256,
         )
 
+    def test_probe_has_real_adapter_authenticated_c_compile_and_link_edges(
+        self,
+    ) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        manifest = (PROBE / "input-manifest.txt").read_text("utf-8")
+        self.assertIn(
+            "project(RhythmGameWasmProbe VERSION 0.1.0 LANGUAGES C CXX)",
+            cmake,
+        )
+        self.assertIn("set(CMAKE_C_COMPILER_LAUNCHER", cmake)
+        self.assertIn("set(CMAKE_C_LINKER_LAUNCHER", cmake)
+        self.assertIn("add_executable(RhythmGameWasmCLauncherProbe", cmake)
+        self.assertIn("src/LauncherProbe.c", cmake)
+        self.assertRegex(
+            cmake,
+            (
+                r"set_target_properties\(\s*"
+                r"RhythmGameWasmCLauncherProbe\s+PROPERTIES"
+                r"(?s:.*?)AUTOMOC OFF"
+                r"(?s:.*?)LINKER_LANGUAGE C"
+            ),
+        )
+        self.assertIn("tools/wasm-probe/src/LauncherProbe.c\n", manifest)
+
+    def test_probe_input_checkout_byte_policy_is_bound_and_portable(
+        self,
+    ) -> None:
+        entries = (
+            PROBE / "input-manifest.txt"
+        ).read_text("utf-8").splitlines()
+        attributes = (
+            REPO / ".gitattributes"
+        ).read_text("utf-8").splitlines()
+        self.assertEqual(len(entries), 68)
+        self.assertEqual(entries.count(".gitattributes"), 1)
+        for rule in (
+            "/.gitattributes text eol=lf",
+            "cmake/toolchains/vcpkg-emscripten.cmake text eol=lf",
+            "tools/wasm-probe/** text eol=lf",
+            "vcpkgOverlayPorts/qtdeclarative/* text eol=lf",
+            "vcpkgTriplets/*.cmake text eol=lf",
+            (
+                "vcpkgOverlayPorts/qtdeclarative/"
+                "24205cd-qquickwindow-child-window-stacking.patch -text"
+            ),
+            "vcpkgOverlayPortsWasm/qtbase/** -text -whitespace",
+        ):
+            self.assertEqual(attributes.count(rule), 1)
+
     def test_manifest_is_isolated_and_has_no_native_only_features(self) -> None:
         manifest = json.loads((PROBE / "vcpkg.json").read_text("utf-8"))
         self.assertEqual(manifest["builtin-baseline"], BASELINE)
@@ -272,6 +402,24 @@ class ToolchainContractTest(unittest.TestCase):
         self.assertIn("EMSDK_PYTHON", variables)
         self.assertEqual(variables.count("EMSDK"), 1)
 
+    def test_host_triplet_passes_reproducible_environment_to_vcpkg_builds(
+        self,
+    ) -> None:
+        triplet = (
+            REPO / "vcpkgTriplets" / "x64-windows-rg-host-release.cmake"
+        ).read_text("utf-8")
+        passthrough = re.search(
+            r"set\(VCPKG_ENV_PASSTHROUGH(?P<body>.*?)\)",
+            triplet,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(passthrough)
+        variables = passthrough.group("body").split()
+        self.assertEqual(
+            variables,
+            ["PYTHONNOUSERSITE", "SOURCE_DATE_EPOCH"],
+        )
+
     def test_wasm_wrapper_forwards_all_vcpkg_flags(self) -> None:
         wrapper = (
             REPO / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
@@ -322,6 +470,9 @@ class ToolchainContractTest(unittest.TestCase):
         bootstrap = (
             PROBE / "scripts" / "Bootstrap-Toolchains.ps1"
         ).read_text("utf-8")
+        provenance = (
+            PROBE / "scripts" / "Toolchain-Provenance.ps1"
+        ).read_text("utf-8")
         chainload = (
             REPO / "cmake" / "toolchains" / "vcpkg-emscripten.cmake"
         ).read_text("utf-8")
@@ -336,11 +487,29 @@ class ToolchainContractTest(unittest.TestCase):
             "EM_PORTS",
             "EM_COMPILER_WRAPPER",
             "EM_COMPILER_WRAPPER2",
+            "BASH_ENV",
+            "ENV",
+            "QML_",
+            "QT_",
+            "SOURCE_DATE_EPOCH",
+            "QT_RCC_SOURCE_DATE_OVERRIDE",
+            "VCPKG_MAX_CONCURRENCY",
+            "RHYTHMGAME_",
             "_EMCC_CCACHE",
         ):
-            self.assertIn(variable, wrapper)
+            self.assertIn(variable, provenance)
+        self.assertIn(
+            "$env:SOURCE_DATE_EPOCH = $parsedSourceDateEpoch.ToString(",
+            wrapper,
+        )
+        self.assertIn(
+            "$env:VCPKG_MAX_CONCURRENCY = "
+            "$parsedVcpkgMaxConcurrency.ToString(",
+            wrapper,
+        )
         for script in (wrapper, bootstrap):
-            self.assertIn("Assert-RepositoryClean", script)
+            self.assertIn("Clear-WasmBuildEnvironment", script)
+            self.assertIn("Assert-SourceArchiveInstallation", script)
             self.assertIn("Assert-FileSha256", script)
             self.assertIn("Assert-EmscriptenInstallation", script)
             self.assertIn("Assert-BuildToolInstallation", script)

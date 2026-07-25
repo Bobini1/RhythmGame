@@ -6,10 +6,12 @@
 #include <QQmlContext>
 
 extern "C" const char* rhythmGameWasmProbeInputDigest();
+extern "C" const char* rhythmGameWasmProbeDependencyArchiveMarker();
 
 int main(int argc, char* argv[])
 {
     qInfo().noquote() << rhythmGameWasmProbeInputDigest();
+    qInfo().noquote() << rhythmGameWasmProbeDependencyArchiveMarker();
     auto* app = new QGuiApplication{argc, argv};
     auto* state = new ProbeState{app};
     auto* engine = new QQmlApplicationEngine{app};

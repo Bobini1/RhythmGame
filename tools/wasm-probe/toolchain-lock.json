@@ -8,16 +8,101 @@
     "qtbaseWasmPatchSha256": "8aa3ed93e30f16c3c9691b35dee1f27c9608bcf424fc4b0e86009ce64709c786",
     "qtdeclarativePatchSha256": "2A015242AF462BE117A2924D4D8DB2C753B29891921E714C23BF1AB4355C4C50"
   },
+  "gateTools": {
+    "adapterSha256": "e2e241adc9d47c9d3f2d50dd679a7b67ec587e6c0515ee1f1b0d64c57e2515b8",
+    "responseAuditorSha256": "18bbb2f3791715035dd7a0f644290173a1dc98a3e816d9621ada24079b59466b"
+  },
+  "reproducibleBuild": {
+    "sourceDateEpoch": 1782488244,
+    "derivation": "vcpkg-baseline-source-archive-root-entry-utc",
+    "vcpkgMaxConcurrency": 8
+  },
   "emscripten": {
     "version": "4.0.7",
     "emsdkCommit": "c69d433d8509c5c64564c2f0d054bf102a5cf67e",
+    "sourceArchive": {
+      "url": "https://github.com/emscripten-core/emsdk/archive/c69d433d8509c5c64564c2f0d054bf102a5cf67e.zip",
+      "archiveFile": "emsdk-c69d433d8509c5c64564c2f0d054bf102a5cf67e.zip",
+      "sha256": "e0be07abfa84ada42b6d895ff751a825878c07140798ddf5f94774a085122ce3",
+      "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": "emsdk-c69d433d8509c5c64564c2f0d054bf102a5cf67e",
+        "fileCount": 134,
+        "directoryCount": 13,
+        "totalBytes": 1011834,
+        "inventorySha256": "ac2a983596b73ff45b2c67de5b1246006671ede5e907c2118ae9a5e6bec5e237",
+        "directoryInventorySha256": "babd394224ccaac5a946ae0a291fe53132fdd1fe558dfd31a6cd5c4db0d358dd",
+        "aggregateSha256": "9a06ab588de3663c38c9b7ddb19034d3479087af8844b456f47df039665f1a94"
+      },
+      "allowedRuntimePrefixes": [
+        "downloads",
+        "node/20.18.0_64bit",
+        "python/3.9.2-nuget_64bit",
+        "upstream/bin",
+        "upstream/emscripten",
+        "upstream/lib"
+      ],
+    "allowedRuntimeFiles": [
+      ".emscripten",
+      ".emscripten.old",
+      "upstream/.emsdk_version",
+      "upstream/emscripten_config"
+    ]
+    },
+    "bootstrapPython": {
+      "url": "https://storage.googleapis.com/webassembly/emscripten-releases-builds/deps/python-3.9.2-4-amd64+pywin32.zip",
+      "archiveFile": "python-3.9.2-4-amd64+pywin32.zip",
+      "sha256": "e47e5f00c8970cee28c228f100269aaad20f7fd1405e2bd4a6c9da33076830ac",
+      "installationDirectory": "python/3.9.2-nuget_64bit",
+      "executable": "python.exe",
+      "executableSha256": "786e68ded8af18f36274d78ea00ff11289c27107dd9f8fdd2f6b4732a3b8a2da",
+      "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": "",
+        "fileCount": 1486,
+        "directoryCount": 118,
+        "totalBytes": 37105575,
+        "inventorySha256": "76f67170d0868c9de9b41da44b94e8e64952fe54f6afe9cb40113c084ca38fa8",
+        "directoryInventorySha256": "c5d479f28a943783e867b63ccad150b785cb20505be4c6f4dbe358cb8e0fc285",
+        "aggregateSha256": "97e984800db090cd44394fd54f45ebdf14bd6084a91a41d25496fb8d16ce09c1"
+      },
+      "allowedRuntimePrefixes": [],
+      "allowedRuntimeFiles": [
+        ".emsdk_version"
+      ]
+    },
     "releaseManifest": {
       "path": "emscripten-releases-tags.json",
-      "sha256": "d833b45d63b12690ce222a6a7b9fe8e7d05be53d5883162852f2483204c5a0f5"
+      "sha256": "30a7e6ee492f1e3e576a97d281d68a283e2d74c4bc65bee1d298d767d50d855e"
     },
     "releaseHash": "ef4e9cedeac3332e4738087567552063f4f250d3",
     "packageUrl": "https://storage.googleapis.com/webassembly/emscripten-releases-builds/win/ef4e9cedeac3332e4738087567552063f4f250d3/wasm-binaries.zip",
+    "bootstrapScript": "emsdk.py",
+    "bootstrapScriptSha256": "8b6da54e6c8d72605183036d412b2878d7ec9437533cd9db4dcc6b46fc687824",
+    "cLauncher": "upstream/emscripten/emcc.bat",
+    "cLauncherSha256": "b61f25a114b9b93444de62bc31bf05d1b12b3986513c75f6b23ccc1711c6a634",
+    "cxxLauncher": "upstream/emscripten/em++.bat",
+    "cxxLauncherSha256": "b61f25a114b9b93444de62bc31bf05d1b12b3986513c75f6b23ccc1711c6a634",
+    "driverApi": {
+      "emccPySha256": "2884a798ef2ad1c43f20ea1121c83ba18caec15158124b472be5494c3dc8c3f0",
+      "emxxPySha256": "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f",
+      "emarLauncherSha256": "f9b690c5abe642942e5d3dabb1f9f87603734c9f18b01dad2f3475120d2f33ef",
+      "emarPySha256": "ba2d6247890bcfa38c228562d025d4f9c96f659ea297881600adf09a66dbc202",
+      "emranlibLauncherSha256": "f9b690c5abe642942e5d3dabb1f9f87603734c9f18b01dad2f3475120d2f33ef",
+      "emranlibPySha256": "916dc7b3b80e51638977ffdabbd00ccee0fd7bc447cfcc8dc206201c75098501",
+      "sharedPySha256": "8d26ae87a03d55c99bf9a07f86c1fc56484d76a18f501962b5ec0f90cde8a8fe",
+      "responseFilePySha256": "815ec85ec4d2f0d471a648a375c2fbd39daf194ac9e557d7e14901f4cac0004f",
+      "configPySha256": "58294addc063d9ad954f767f8b28659d7c720218e40692b20e155a003192728d",
+      "pythonImportClosure": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": 225,
+        "totalBytes": 3159759,
+        "inventorySha256": "acdbf9111c4779b62764eaa595a184179f7ffe8f46de07ea4303f635d1308477",
+        "aggregateSha256": "4a378899a0a3ad36e19f7f5e0170641fdb647d61aaf464c721b07d729abdf6f6"
+      }
+    },
     "nodeExecutable": "node/20.18.0_64bit/bin/node.exe",
+    "nodeExecutableSha256": "35b7c95a379beb606f5798ed83081690df13190077630b234163c6607aa4cc94",
     "pythonExecutable": "python/3.9.2-nuget_64bit/python.exe",
     "generatedBytecode": {
       "cacheDirectory": "__pycache__",
@@ -42,11 +127,88 @@
       "fileCount": 14842,
       "inventorySha256": "8c87639389a8b929b4d917e2cb41c09f40746f76ac4144143cf530a6c9345fbb",
       "aggregateSha256": "d6a1ec1d8b7582a01e6f69fe951a16c620866eb18c9738420a22393756b89d99"
+    },
+    "cache": {
+      "directory": "emscripten-cache-4.0.7",
+      "initializer": "prewarm_emscripten_cache.py -> embuilder.py build SYSTEM",
+      "prewarmCores": 4,
+      "compilerPathPrefixMap": {
+        "injection": "tracked-python-get_base_cflags-adapter",
+        "flag": "-ffile-prefix-map",
+        "systemLibsSha256": "48c216b787a80270e6bcaac896a8e952ccc7978025fdee6c8d61f4138ce5c43d",
+        "target": "/emsdk/cache"
+      },
+      "frozenEnvironment": "EM_FROZEN_CACHE=1",
+      "volatileProducts": [
+        "sanity.txt",
+        "symbol_lists/*.json"
+      ],
+      "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": 1825,
+        "directoryCount": 89,
+        "totalBytes": 407765837,
+        "inventorySha256": "e0eb0b8e63f577bf3cb8eefa1a4f1eedd796f0127574093560a97c4938b7cb4a",
+        "directoryInventorySha256": "8e7094c96f2baf5c464d2cbef307ce059716c744be8d773a2528bbe5e1e33c07",
+        "aggregateSha256": "5eddb15053811f76fb148e45a4f0994f958a20046cbc205f7b36ed8a94330ea0"
+      }
     }
   },
   "vcpkg": {
     "baseline": "a0400024711b283056538ac19ced80b91a83c24c",
-    "emscriptenWrapperSourceCommit": "5b698638c97b4610044a254347d571f823e56557"
+    "sourceArchive": {
+      "url": "https://github.com/microsoft/vcpkg/archive/a0400024711b283056538ac19ced80b91a83c24c.zip",
+      "archiveFile": "vcpkg-a0400024711b283056538ac19ced80b91a83c24c.zip",
+      "sha256": "1a3d2abdd7ca6d479d7f1c2e437fd9765790c09613baa2631c87b1726f905c00",
+      "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": "vcpkg-a0400024711b283056538ac19ced80b91a83c24c",
+        "fileCount": 14073,
+        "directoryCount": 3215,
+        "totalBytes": 20252983,
+        "inventorySha256": "501493e641af8100034e7a74e03d506a8f2d65a8a01ba50a773265c38d22ca2b",
+        "directoryInventorySha256": "3f037e402ca926d9c233c6b5cdeb8c1c54ff0d92967b5c1bf38f88bc55fb6546",
+        "aggregateSha256": "9357531ef9ffe513b71dc4e46698cea4ab0da993c1f4780d97e920f712511d94"
+      },
+      "allowedRuntimePrefixes": [],
+      "allowedRuntimeFiles": [
+        "vcpkg.disable-metrics",
+        "vcpkg.exe"
+      ]
+    },
+    "emscriptenWrapperSourceCommit": "5b698638c97b4610044a254347d571f823e56557",
+    "bootstrapLauncher": "bootstrap-vcpkg.bat",
+    "bootstrapLauncherSha256": "8e8ec8a66db4f9fa69e51ca725a2aeec3c2a99e4ee0040f50358ffd8776f82b5",
+    "bootstrapScript": "scripts/bootstrap.ps1",
+    "bootstrapScriptSha256": "6d4020f84b6997deabea5e2ad362f1885b52f9c5a2bd4b1cf087ca4100974a9f",
+    "toolMetadata": "scripts/vcpkg-tool-metadata.txt",
+    "toolMetadataSha256": "fd4c5bdfb023c65cee97488622bb689243e92d30e830e621877ba55f90df7e15",
+    "toolReleaseTag": "2026-05-27",
+    "toolUrl": "https://github.com/microsoft/vcpkg-tool/releases/download/2026-05-27/vcpkg.exe",
+    "executable": "vcpkg.exe",
+    "executableSha256": "da75e3312ff6881c89f6171363eedb92933b0f79456cd6ee636316edef860ff7",
+    "portBuildCMake": {
+      "version": "4.3.3",
+      "toolsManifest": "scripts/vcpkg-tools.json",
+      "toolsManifestSha256": "7757067afc4839dd982eee8cfb68cb500c4255a64c37a7c150ee9244342595e6",
+      "url": "https://github.com/Kitware/CMake/releases/download/v4.3.3/cmake-4.3.3-windows-x86_64.zip",
+      "sha512": "0df613db23b315d81895e672e8460f2b35f4c2dd2eb9f07e10b13389a675edcb09836a458b90d8c0211b3a2d6da38183714410769935a580b86a6177df691f6a",
+      "archiveBytes": 52967828,
+      "archiveFile": "cmake-4.3.3-windows-x86_64.zip",
+      "installationDirectory": "cmake-4.3.3-windows",
+      "executable": "cmake-4.3.3-windows-x86_64/bin/cmake.exe",
+      "executableSha256": "70fa92ce2ac9f54b0ae395b0b3790d9147ef2ebdbd7c4e0bb20852aac581baea",
+      "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": "",
+        "fileCount": 8584,
+        "directoryCount": 153,
+        "totalBytes": 139214481,
+        "inventorySha256": "3601d4f354eccef36c5d53a9454cbc54cdd3fcea252455c866227fc220e721b9",
+        "directoryInventorySha256": "2dbf4923414ee77924e27bde4c2c612fee537fcba58689c6b9d59fd1debb449d",
+        "aggregateSha256": "6046bdae94472ac6feb362fb890079b991e7997af15ce5787954225ba7466d20"
+      }
+    }
   },
   "buildTools": {
     "cmake": {

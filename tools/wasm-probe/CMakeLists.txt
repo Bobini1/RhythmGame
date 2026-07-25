@@ -1,6 +1,60 @@
 cmake_minimum_required(VERSION 3.24)
 
-project(RhythmGameWasmProbe VERSION 0.1.0 LANGUAGES CXX)
+set(WASM_PROBE_LAUNCHER_ENVIRONMENT
+    EMSDK_PYTHON
+    RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER
+    RHYTHMGAME_WASM_TOOLCHAIN_LOCK
+    RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR
+    RHYTHMGAME_EMSCRIPTEN_ROOT
+    RHYTHMGAME_EM_CONFIG
+    RHYTHMGAME_EM_CONFIG_SHA256
+    RHYTHMGAME_EM_CACHE
+)
+foreach(WASM_PROBE_LAUNCHER_VARIABLE
+        IN LISTS WASM_PROBE_LAUNCHER_ENVIRONMENT)
+    if(NOT DEFINED ENV{${WASM_PROBE_LAUNCHER_VARIABLE}}
+            OR "$ENV{${WASM_PROBE_LAUNCHER_VARIABLE}}" STREQUAL "")
+        message(FATAL_ERROR
+            "Missing authenticated compiler-launcher environment: "
+            "${WASM_PROBE_LAUNCHER_VARIABLE}")
+    endif()
+endforeach()
+set(WASM_PROBE_COMPILER_LAUNCHER_BASE
+    "$ENV{EMSDK_PYTHON}"
+    -I
+    -B
+    "$ENV{RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER}"
+    --lock
+    "$ENV{RHYTHMGAME_WASM_TOOLCHAIN_LOCK}"
+    --auditor
+    "$ENV{RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR}"
+    --emscripten-root
+    "$ENV{RHYTHMGAME_EMSCRIPTEN_ROOT}"
+    --em-config
+    "$ENV{RHYTHMGAME_EM_CONFIG}"
+    --em-config-sha256
+    "$ENV{RHYTHMGAME_EM_CONFIG_SHA256}"
+    --cache-root
+    "$ENV{RHYTHMGAME_EM_CACHE}"
+)
+set(CMAKE_C_COMPILER_LAUNCHER
+    ${WASM_PROBE_COMPILER_LAUNCHER_BASE}
+    --driver-kind emcc --
+    CACHE STRING "Authenticated Emscripten C compiler launcher" FORCE)
+set(CMAKE_CXX_COMPILER_LAUNCHER
+    ${WASM_PROBE_COMPILER_LAUNCHER_BASE}
+    --driver-kind em++ --
+    CACHE STRING "Authenticated Emscripten C++ compiler launcher" FORCE)
+set(CMAKE_C_LINKER_LAUNCHER
+    ${WASM_PROBE_COMPILER_LAUNCHER_BASE}
+    --driver-kind emcc --
+    CACHE STRING "Authenticated Emscripten C linker launcher" FORCE)
+set(CMAKE_CXX_LINKER_LAUNCHER
+    ${WASM_PROBE_COMPILER_LAUNCHER_BASE}
+    --driver-kind em++ --
+    CACHE STRING "Authenticated Emscripten C++ linker launcher" FORCE)
+
+project(RhythmGameWasmProbe VERSION 0.1.0 LANGUAGES C CXX)
 
 include(cmake/verify_exact_toolchain.cmake)
 
@@ -74,6 +128,61 @@ find_package(Qt6 6.11.1 EXACT REQUIRED COMPONENTS
     WebSockets
 )
 
+if(NOT DEFINED ENV{EMSDK_PYTHON})
+    message(FATAL_ERROR "EMSDK_PYTHON must name the pinned SDK Python")
+endif()
+if(NOT DEFINED VCPKG_INSTALLED_DIR
+        OR NOT DEFINED VCPKG_TARGET_TRIPLET)
+    message(FATAL_ERROR
+        "The dependency digest requires the vcpkg installed root/triplet")
+endif()
+set(WASM_PROBE_DEPENDENCY_ROOT
+    "${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}")
+set(WASM_PROBE_DEPENDENCY_CONTRACT
+    "${CMAKE_CURRENT_SOURCE_DIR}/dependency-archive-contract.json")
+set(WASM_PROBE_DEPENDENCY_GENERATOR
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/generate_dependency_digest.py")
+set(WASM_PROBE_DEPENDENCY_MANIFEST
+    "${WASM_PROBE_GENERATED_DIR}/dependency-archive-digest.json")
+set(WASM_PROBE_DEPENDENCY_SOURCE
+    "${WASM_PROBE_GENERATED_DIR}/ProbeDependencyDigest.cpp")
+file(GLOB_RECURSE WASM_PROBE_DEPENDENCY_LINK_INPUTS
+    CONFIGURE_DEPENDS
+    LIST_DIRECTORIES false
+    "${WASM_PROBE_DEPENDENCY_ROOT}/*.a"
+    "${WASM_PROBE_DEPENDENCY_ROOT}/*.o")
+if(NOT WASM_PROBE_DEPENDENCY_LINK_INPUTS)
+    message(FATAL_ERROR
+        "The target vcpkg installation contains no static link inputs")
+endif()
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    ${WASM_PROBE_DEPENDENCY_LINK_INPUTS}
+    "${WASM_PROBE_DEPENDENCY_CONTRACT}"
+    "${WASM_PROBE_DEPENDENCY_GENERATOR}")
+execute_process(
+    COMMAND
+        "$ENV{EMSDK_PYTHON}" -I -B
+        "${WASM_PROBE_DEPENDENCY_GENERATOR}"
+        --contract "${WASM_PROBE_DEPENDENCY_CONTRACT}"
+        --installed-root "${WASM_PROBE_DEPENDENCY_ROOT}"
+        --output-cpp "${WASM_PROBE_DEPENDENCY_SOURCE}"
+        --output-manifest "${WASM_PROBE_DEPENDENCY_MANIFEST}"
+    RESULT_VARIABLE WASM_PROBE_DEPENDENCY_RESULT
+    OUTPUT_VARIABLE WASM_PROBE_DEPENDENCY_DIGEST
+    ERROR_VARIABLE WASM_PROBE_DEPENDENCY_ERROR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string(LENGTH "${WASM_PROBE_DEPENDENCY_DIGEST}"
+    WASM_PROBE_DEPENDENCY_DIGEST_LENGTH)
+if(NOT WASM_PROBE_DEPENDENCY_RESULT EQUAL 0
+        OR NOT WASM_PROBE_DEPENDENCY_DIGEST_LENGTH EQUAL 64
+        OR NOT WASM_PROBE_DEPENDENCY_DIGEST
+            MATCHES "^[0-9a-f]+$")
+    message(FATAL_ERROR
+        "Failed to bind target static archives: "
+        "${WASM_PROBE_DEPENDENCY_ERROR}")
+endif()
+
 qt_standard_project_setup(REQUIRES 6.11)
 
 add_library(WasmProbeWasmCompileOptions INTERFACE)
@@ -81,6 +190,24 @@ target_compile_options(WasmProbeWasmCompileOptions INTERFACE
     -pthread
     -fwasm-exceptions
     "SHELL:-sSUPPORT_LONGJMP=wasm"
+)
+
+add_executable(RhythmGameWasmCLauncherProbe
+    src/LauncherProbe.c
+)
+target_link_libraries(RhythmGameWasmCLauncherProbe PRIVATE
+    WasmProbeWasmCompileOptions
+)
+target_link_options(RhythmGameWasmCLauncherProbe PRIVATE
+    -pthread
+    -fwasm-exceptions
+    "SHELL:-sSUPPORT_LONGJMP=wasm"
+)
+set_target_properties(RhythmGameWasmCLauncherProbe PROPERTIES
+    AUTOMOC OFF
+    LINKER_LANGUAGE C
+    RUNTIME_OUTPUT_DIRECTORY
+        "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/c-launcher-probe"
 )
 
 add_library(WasmProbeExceptionBoundary STATIC
@@ -93,6 +220,7 @@ target_link_libraries(WasmProbeExceptionBoundary PUBLIC
 )
 
 qt_add_executable(RhythmGameWasmProbe
+    "${WASM_PROBE_DEPENDENCY_SOURCE}"
     "${WASM_PROBE_GENERATED_DIR}/ProbeInputDigest.cpp"
     src/main.cpp
     src/ProbeState.cpp

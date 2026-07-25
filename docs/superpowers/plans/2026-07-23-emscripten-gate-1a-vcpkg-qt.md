@@ -20,15 +20,24 @@ Qt's Wasm features and restores its application-side Emscripten version check.
 **Tech Stack:** CMake/Ninja, vcpkg manifest mode, Qt 6.11.1, Emscripten 4.0.7,
 PowerShell 7, Python 3.12 `unittest`, Qt Quick/QML, Qt ShaderTools.
 
-## Gate 1A execution result (2026-07-24)
+## Gate 1A execution result (2026-07-25)
 
 **Decision: technical Gate 1A PASS only.** The authoritative
-[Gate 1A evidence](../evidence/emscripten-gate-1a.json) is 36,091 bytes, has
+[Gate 1A evidence](../evidence/emscripten-gate-1a.json) is 88,931 bytes, has
 SHA-256
-`88B704C3FAB5D15101FFCD619096411B61AF9EFD5BD23CD37DF6DA5C01071B4B`,
+`E350F90CD0EDB83FA587012BC2C26A97821D211F4611BC3C263277AE94E49D87`,
 and records `gate1aPassed: true`. It also records `gate0Satisfied: false`, `formalGate1EntryAuthorized: false`, and `gate1Passed: false`.
 This result proves the isolated Qt/Emscripten build contract, not a RhythmGame
 application build and not Chromium runtime support.
+
+Two independent qualification passes produced byte-for-byte identical evidence.
+Each pass authenticated a 69,617-file, 3,063,780,183-byte closure. The evidence
+records qualification inventory SHA-256
+`9BD53EBC6257CB64607CC95581E819B92031FD6678559A54791FDF52018106A6`
+and qualification aggregate SHA-256
+`F238C90ABFA50FF641B0931F6A2458AB55A016845EA426A2B50777062FDB894C`.
+The complete verifier test discovery passed all 135 tests with zero skips
+between those passes.
 
 The native Gate 0 baseline remains unsatisfied. The native root build previously
 stopped in the pre-existing `openjph:w-sqt` Visual Studio 2026 architecture
@@ -53,12 +62,22 @@ The qualified build contract is frozen as follows:
   132,316,585 bytes; Ninja has one 603,648-byte file.
 - The vcpkg Qt port-build lane uses CMake exactly `4.3.3`, selected by the
   pinned vcpkg commit's tool manifest. Evidence authenticates that manifest,
-  the downloaded archive, the extracted executable, its runtime version, and
-  the CMake commands recorded by the QtBase target and QtDeclarative host and
-  target caches. The two CMake roles are distinct and jointly frozen.
+  the 52,967,828-byte downloaded archive, all 8,584 files and 153 directories
+  in its extracted installation, the extracted executable, its runtime
+  version, and the CMake commands recorded by the QtBase target and
+  QtDeclarative host and target caches. The two CMake roles are distinct and
+  jointly frozen.
 - The target triplet is `wasm32-emscripten-rg`: static, release-only target
   libraries. The host-tools triplet is `x64-windows-rg-host-release`: dynamic,
   release-only native libraries and tools. Both Qt graphs are `6.11.1`.
+- The reproducible-build lock sets `SOURCE_DATE_EPOCH=1782488244`, derived as
+  the UTC timestamp of the retained vcpkg baseline source archive's root
+  entry, and `VCPKG_MAX_CONCURRENCY=8`. The wrapper scrubs ambient values,
+  reconstructs those exact settings, and leaves
+  `QT_RCC_SOURCE_DATE_OVERRIDE` absent. Both target and host triplets forward
+  the epoch; the host triplet also forwards `PYTHONNOUSERSITE`. The verifier
+  parses the Qt RCC resource struct and requires its exact millisecond
+  timestamp, `1782488244000`, rather than accepting only byte equality.
 - Target Qt components are `Concurrent`, `Multimedia`, `Network`, `Qml`,
   `Quick`, `ShaderTools`, and `WebSockets`; the isolated manifest also
   qualifies the ImageFormats and SVG target ports plus native Linguist tools.
@@ -73,12 +92,42 @@ The qualified build contract is frozen as follows:
   and `wasm_simd128=OFF`. `WasmProbeWasmCompileOptions` publishes the same
   native-exception/longjmp compile contract to the static exception boundary
   and its executable consumer.
-- The emsdk checkout must be exactly clean at
-  `c69d433d8509c5c64564c2f0d054bf102a5cf67e`. The release manifest maps
-  `4.0.7` to package commit
+- Emsdk and vcpkg source installation does not trust or execute ambient Git.
+  Bootstrap retains and authenticates GitHub source ZIPs for emsdk commit
+  `c69d433d8509c5c64564c2f0d054bf102a5cf67e` and vcpkg commit
+  `a0400024711b283056538ac19ced80b91a83c24c`, then binds every installed
+  source member byte-for-byte and case-for-case to the corresponding archive.
+  The emsdk source payload contains 134 files and 13 directories; the vcpkg
+  source payload contains 14,073 files and 3,215 directories. Only explicitly
+  modeled runtime products may coexist with either source tree; Git metadata
+  is not an allowed runtime product.
+- Emsdk bootstrap uses the separately retained and authenticated official
+  Python `3.9.2` ZIP at the exact
+  `python/3.9.2-nuget_64bit/python.exe` path. That executable is held
+  deny-write while it runs the authenticated `emsdk.py` bytes with `-I -B`;
+  no ambient or alternate emsdk Python is eligible.
+- The in-process driver adapter authenticates and loads the complete
+  Emscripten Python import closure from 225 held file handles
+  (3,159,759 bytes; aggregate SHA-256
+  `4A378899A0A3AD36E19F7F5E0170641FDB647D61AAF464C721B07D729ABDF6F6`).
+  The wrapper holds those modules, pinned Python, Node (SHA-256
+  `35B7C95A379BEB606F5798ED83081690DF13190077630B234163C6607AA4CC94`),
+  and the authenticated vcpkg port-build CMake executable deny-write for the
+  complete wrapped-child lifetime.
+- The Emscripten release manifest maps `4.0.7` to package commit
   `ef4e9cedeac3332e4738087567552063f4f250d3`, and the installed SDK's
   14,842-file immutable payload must match the fixed aggregate SHA-256
   `d6a1ec1d8b7582a01e6f69fe951a16c620866eb18c9738420a22393756b89d99`.
+- The Emscripten system-library cache is initialized only by an explicit
+  `embuilder.py build SYSTEM` from an exact-empty canonical cache directory,
+  with four prewarm workers. Two independent four-worker qualification builds
+  and an earlier exact-empty build at another root produced the same portable
+  1,825-file, 89-directory identity. The identity authenticates every byte
+  while normalizing only the cache's own native and forward-slash root
+  spellings, pins each replacement count and its position-sensitive aggregate,
+  and derives the exact raw byte count from the active root length. Normal
+  builds use `EM_FROZEN_CACHE=1` and authenticate the cache before and after
+  each wrapped child.
 - The native host compiler is recorded by the portable
   `VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe` suffix, exact CMake
   identity, and executable SHA-256. Evidence contains no machine-specific
@@ -90,26 +139,82 @@ The material as-built integration results are:
   installed state, binary cache, toolchains, and probe build outputs remain
   ignored and untracked.
 - Target package builds receive the canonical `EMSDK`, `EMSDK_PYTHON`,
-  `EMSCRIPTEN_ROOT`, and `EMSCRIPTEN_VERSION`, plus
-  `CMAKE_NINJA_FORCE_RESPONSE_FILE`. The pinned wrapper invokes Emscripten's
-  Python drivers without a generic batch-child shell.
+  `EMSCRIPTEN_ROOT`, `EMSCRIPTEN_VERSION`, `EM_CACHE`, and
+  `EM_FROZEN_CACHE`, plus exact `SOURCE_DATE_EPOCH`,
+  `VCPKG_MAX_CONCURRENCY`, and `CMAKE_NINJA_FORCE_RESPONSE_FILE`. Before
+  `project()`, CMake installs exact
+  C/C++ compiler and linker launchers for the probe that call a
+  repository-tracked adapter
+  with pinned Python `-I -B`. The adapter expands and audits the complete
+  effective argument stream, discards response-file indirection, and invokes
+  the authenticated Emscripten Python driver in-process.
+- Dependency-port compile commands and Qt AutoGen commands are not claimed to
+  pass through that adapter. They are instead bounded by the authenticated
+  source/toolchain/environment and cache contracts, then checked through their
+  target compile databases, CMake caches, generated predefines, and selected
+  application link closure.
+- Every probe C/C++ compile edge is also read from the actual expanded
+  `ninja -t compdb -x` graph. After removing only `-MD`, `-MT`, and `-MF`
+  dependency bookkeeping and normalizing path arguments, its compiler argv
+  must exactly equal the corresponding CMake compile-database argv. The
+  verifier executes a real verbose target build and accepts only the
+  authenticated `VerifyGlobs.cmake` check followed by literal
+  `ninja: no work to do`; a dry-run regeneration shape fails.
+- Emsdk install and activation are restricted to the authenticated canonical
+  `emsdk.py`, executed directly by the separately authenticated pinned Python
+  with `-I -B` while both files are held deny-write. Vcpkg is provisioned as
+  the exact authenticated release
+  `vcpkg.exe`; its bootstrap implementation, tool metadata, release tag, URL,
+  and resulting executable hash are independently pinned. Same-named
+  untracked files are not accepted as launchers.
 - The wrapper removes ambient compiler, linker, CMake, vcpkg, pkg-config,
-  Git, ccache, and Emscripten overrides before reconstructing the qualified
-  environment. Direct `emcc`/`em++` calls reject legacy `-fexceptions`,
-  negative Wasm-exception settings, literal Asyncify, and the same settings in
-  response files.
-- Upstream `emcc.bat` and `em++.bat` invoke Python with `-E`, so package
-  detection and builds can create Python bytecode despite environment
-  controls. Before any SDK/tool version runs, the wrapper authenticates every
+  Git, ccache, Emscripten, Qt, QML, and RhythmGame overrides, plus shell startup
+  hooks, before reconstructing the qualified environment. Every trusted path
+  is checked component-by-component for reparse points before use. Bootstrap
+  applies the same scrub before SDK activation and SYSTEM-cache prewarm.
+  Effective `emcc`/`em++` argument streams reject legacy
+  `-fexceptions`, negative Wasm-exception settings, literal Asyncify, and the
+  same settings in response files or outer arguments. Response decoding
+  matches Emscripten 4.0.7's
+  suffix-selected encoding, UTF-8 BOM handling, POSIX `shlex`, and top-level
+  `@file` and `-Wl,@file` substitution. Nested response references fail closed
+  because the downstream consumer semantics are not equivalent to recursive
+  driver substitution.
+- The cache identity, response audit, and dependency-marker generators run
+  with pinned Python isolated mode (`-I -B`). Adjacent untracked `hashlib.py`,
+  `json.py`, or `shlex.py` files therefore cannot replace standard-library
+  trust primitives.
+- Some upstream batch entry points invoke Python with `-E`, so dependency
+  package detection can create Python bytecode despite environment controls.
+  Before any SDK/tool version runs, the wrapper authenticates every
   non-bytecode payload file while accepting only `.pyc` files directly inside
   exact, in-root, non-reparse `__pycache__` directories; it deletes only those
   directories and then requires the complete 14,842-file identity with no
   bytecode exclusions.
-- `input-manifest.txt` names 59 tracked build inputs. CMake hashes the manifest
+- `input-manifest.txt` names 68 explicit build inputs. CMake hashes the manifest
   and every named file, compiles the aggregate marker into
   `RhythmGameWasmProbe.wasm`, and the verifier recomputes and locates that
   marker. A byte replacement with preserved modification time fails the
   binding check.
+- CMake also hashes every target static `.a` and installed Wasm `.o` under the
+  vcpkg triplet into a generated manifest and compiles the
+  position-sensitive aggregate marker into the Wasm data section. The verifier
+  independently recomputes that full static-link-input superset, proves every
+  installed archive and object on the selected link edge belongs to it with
+  exact kind, path, size, and SHA-256, and requires exactly one marker
+  occurrence. `.a` requires normal archive magic; `.o` requires exact Wasm v1
+  magic/version. A same-size, backdated linked-input mutation therefore fails
+  verification even when Ninja correctly reports no work. Indirect linker
+  search, response, script, sysroot, alternate-linker, external positional,
+  renamed static-input, non-Wasm object, and thin-archive forms fail closed.
+- For the selected application link, the adapter additionally same-handle
+  locks each static input, hashes the canonical effective argv and ordered
+  input identities, and injects the digest through wasm-ld's `build_id`
+  custom section. Independent evidence recomputes that identity from the final
+  Ninja graph and requires exactly one ULEB-length-prefixed 32-byte digest in
+  the optimized Wasm artifact. Archive substitution therefore breaks the
+  artifact binding even when both archives belong to the authenticated
+  superset.
 - The complete QtBase overlay is `6.11.1#2`. Its restored installed-SDK
   compatibility patch has SHA-256
   `8AA3ED93E30F16C3C9691B35DEE1F27C9608BCF424FC4B0E86009CE64709C786`;
@@ -124,6 +229,16 @@ The material as-built integration results are:
   Windows batch command-line overflow without removing target features.
 - `SUPPORT_LONGJMP=wasm` is uniform across target C, C++, and link commands,
   alongside the shared `-fwasm-exceptions` C++ compile contract.
+- Before concurrency was pinned, the corrected target QtDeclarative rebuild
+  stopped silently at one compile edge under vcpkg's 33-way execution: the
+  error log was empty and stdout contained only the failed command. Replaying
+  that exact response-file edge under the same cache, source, and epoch
+  succeeded in 0.582 seconds with a 117,553-byte object (SHA-256
+  `7567E86F660F42056FF36CB587A9B88964E32DCDA55C916162C1EDD06A16CF06`);
+  Windows recorded no matching resource-exhaustion or application-error event.
+  Pinning vcpkg to eight jobs allowed the interrupted build to resume and
+  complete. This evidence excludes a reproducible compiler/input failure but
+  does not claim a specific unobserved cause such as OOM.
 
 The exact deployment set produced by target `RhythmGameWasmProbe` is:
 
@@ -158,9 +273,10 @@ claimed by Gate 1A.
   qualification operating system.
 - Qt is exactly `6.11.1`.
 - Emscripten is exactly `4.0.7`.
-- The emsdk Git commit is exactly
-  `c69d433d8509c5c64564c2f0d054bf102a5cf67e`.
-- The vcpkg checkout and builtin baseline are exactly
+- The retained emsdk source archive represents exactly commit
+  `c69d433d8509c5c64564c2f0d054bf102a5cf67e`; source installation never
+  depends on ambient Git.
+- The retained vcpkg source archive and builtin baseline are exactly
   `a0400024711b283056538ac19ced80b91a83c24c`.
 - The outer/probe/bootstrap qualification lane fails closed unless CMake is
   exactly `4.2.3` and Ninja is exactly `1.13.2`.
@@ -1142,11 +1258,15 @@ Expected: all tests pass.
 Run:
 
 ```powershell
+pwsh -File tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1 `
+    -InitializeEmscriptenCache
 pwsh -File tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1
 ```
 
 Expected: the exact emsdk, vcpkg, CMake, and Ninja paths are printed and all
-installs exit zero. A long download/install is normal.
+installs exit zero. The first command explicitly prewarms the exact-empty
+canonical Emscripten SYSTEM cache; the second proves authenticated reuse
+without an initialization switch. A long download/install/prewarm is normal.
 
 - [ ] **Step 6: Verify exact versions through the wrapper**
 

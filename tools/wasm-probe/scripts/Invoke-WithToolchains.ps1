@@ -1,9 +1,47 @@
 $ErrorActionPreference = 'Stop'
-. (Join-Path $PSScriptRoot 'Toolchain-Provenance.ps1')
+
+function Assert-EntrypointPathChain {
+    param(
+        [string]$Path,
+        [string]$Description
+    )
+
+    $full = [IO.Path]::GetFullPath($Path)
+    $root = [IO.Path]::GetPathRoot($full)
+    $current = $root
+    foreach ($part in $full.Substring($root.Length).Split(
+        @(
+            [IO.Path]::DirectorySeparatorChar,
+            [IO.Path]::AltDirectorySeparatorChar
+        ),
+        [StringSplitOptions]::RemoveEmptyEntries
+    )) {
+        $current = Join-Path $current $part
+        $item = Get-Item -LiteralPath $current -Force -ErrorAction Stop
+        if (($item.Attributes -band
+            [IO.FileAttributes]::ReparsePoint) -ne 0) {
+            throw "$Description reparse-point component is forbidden: $current"
+        }
+    }
+    return $full
+}
+
+$provenanceScript = Assert-EntrypointPathChain `
+    -Path (Join-Path $PSScriptRoot 'Toolchain-Provenance.ps1') `
+    -Description 'toolchain provenance helper'
+. $provenanceScript
+$null = Assert-PathChainNotReparse `
+    -Path $PSScriptRoot `
+    -Description 'wrapper script directory'
+$null = Assert-PathChainNotReparse `
+    -Path $provenanceScript `
+    -Description 'toolchain provenance helper'
 $ToolchainRoot = Join-Path $PSScriptRoot '..\..\..\.toolchains'
 $BinaryCache = Join-Path $PSScriptRoot '..\..\..\.wasm-vcpkg\bincache'
+$VcpkgStateRoot = Join-Path $PSScriptRoot '..\..\..\.wasm-vcpkg'
 $toolchainRootSeen = $false
 $binaryCacheSeen = $false
+$vcpkgStateRootSeen = $false
 $delimiterSeen = $false
 $argumentIndex = 0
 
@@ -49,6 +87,23 @@ while ($argumentIndex -lt $args.Count) {
         continue
     }
 
+    if ($token -ieq '-VcpkgStateRoot') {
+        if ($vcpkgStateRootSeen) {
+            throw 'Duplicate wrapper option: -VcpkgStateRoot'
+        }
+        if ($argumentIndex + 1 -ge $args.Count -or
+            [string]$args[$argumentIndex + 1] -ceq '--' -or
+            [string]::IsNullOrEmpty(
+                [string]$args[$argumentIndex + 1]
+            )) {
+            throw 'Missing value for wrapper option: -VcpkgStateRoot'
+        }
+        $VcpkgStateRoot = [string]$args[$argumentIndex + 1]
+        $vcpkgStateRootSeen = $true
+        $argumentIndex += 2
+        continue
+    }
+
     throw "Unknown wrapper option before --: $token"
 }
 
@@ -68,74 +123,20 @@ while ($argumentIndex -lt $args.Count) {
     $argumentIndex++
 }
 $Arguments = $childArguments.ToArray()
-
-function Clear-BuildEnvironment {
-    $exactNames = @(
-        'AR',
-        'BINARYEN_ROOT',
-        'CC',
-        'CL',
-        'CPP',
-        'CPPFLAGS',
-        'CXX',
-        'CFLAGS',
-        'CXXFLAGS',
-        'EMCC_CFLAGS',
-        'EM_CACHE',
-        'EM_CONFIG',
-        'EM_PORTS',
-        'EM_COMPILER_WRAPPER',
-        'EM_COMPILER_WRAPPER2',
-        'EMSDK',
-        'EMSDK_NODE',
-        'EMSDK_PYTHON',
-        'LD',
-        'LDFLAGS',
-        'LLVM_ROOT',
-        'NM',
-        'NODE_JS',
-        'PYTHONHOME',
-        'PYTHONPATH',
-        'RANLIB',
-        'STRIP',
-        '_CL_',
-        '_EMCC_CCACHE'
-    )
-    $prefixes = @(
-        'CCACHE_',
-        'CMAKE_',
-        'EMCC_',
-        'EMMAKEN_',
-        'EMSCRIPTEN_',
-        'EMSCONS_PKG_CONFIG_',
-        'EMSDK_',
-        'EM_',
-        'GIT_',
-        'PKG_CONFIG_',
-        'VCPKG_',
-        'X_VCPKG_'
-    )
-    foreach ($entry in @(Get-ChildItem Env:)) {
-        $name = $entry.Name.ToUpperInvariant()
-        $remove = $exactNames -ccontains $name
-        if (-not $remove) {
-            foreach ($prefix in $prefixes) {
-                if ($name.StartsWith(
-                    $prefix,
-                    [StringComparison]::Ordinal
-                )) {
-                    $remove = $true
-                    break
-                }
-            }
-        }
-        if ($remove) {
-            Remove-Item -LiteralPath "Env:$($entry.Name)" -ErrorAction SilentlyContinue
-        }
-    }
-}
-
-Clear-BuildEnvironment
+$requestedExecutableName = [IO.Path]::GetFileNameWithoutExtension(
+    $Executable
+)
+$qualificationRequested = (
+    $requestedExecutableName -ieq 'cmake' -and
+    $Arguments.Count -gt 0 -and
+    $Arguments[0] -ceq '--build'
+) -or (
+    $requestedExecutableName -ieq 'python' -and
+    $Arguments.Count -gt 0 -and
+    [IO.Path]::GetFileName($Arguments[0]) -ceq 'verify_build.py'
+)
+Clear-WasmBuildEnvironment
+$env:PYTHONNOUSERSITE = '1'
 
 function Assert-SafeLeafName {
     param(
@@ -169,8 +170,12 @@ function Get-StrictDescendantPath {
         [string]$Description
     )
 
-    $fullRoot = [IO.Path]::GetFullPath($Root)
-    $fullPath = [IO.Path]::GetFullPath($Path)
+    $fullRoot = Assert-PathChainNotReparse `
+        -Path $Root `
+        -Description "$Description root"
+    $fullPath = Assert-PathChainNotReparse `
+        -Path $Path `
+        -Description $Description
     $relative = [IO.Path]::GetRelativePath($fullRoot, $fullPath)
     $outside = $relative -eq '.' -or
         $relative -eq '..' -or
@@ -352,93 +357,81 @@ function Invoke-NativeProcessCapture {
     }
 }
 
-function Assert-NoForbiddenEmscriptenArguments {
-    param(
-        [string[]]$ChildArguments
-    )
-
-    for ($index = 0; $index -lt $ChildArguments.Count; $index++) {
-        $argument = [string]$ChildArguments[$index]
-        if ($argument -ceq '-fexceptions') {
-            throw 'Forbidden Emscripten argument: -fexceptions'
-        }
-        if ($argument -ceq '-fno-wasm-exceptions') {
-            throw 'Forbidden Emscripten argument: -fno-wasm-exceptions'
-        }
-        $setting = $null
-        if ($argument -ceq '-s') {
-            if ($index + 1 -ge $ChildArguments.Count) {
-                throw 'Emscripten -s option has no setting'
-            }
-            $setting = [string]$ChildArguments[$index + 1]
-            $index++
-        }
-        elseif ($argument.StartsWith(
-            '-s',
-            [StringComparison]::Ordinal
-        ) -and $argument.Length -gt 2) {
-            $setting = $argument.Substring(2)
-        }
-        if ($null -ne $setting -and
-            $setting -match (
-                '^(?:ASYNCIFY(?:=|$)|' +
-                'NO_WASM_EXCEPTIONS(?:=|$)|' +
-                'WASM_EXCEPTIONS=0$)'
-            )) {
-            throw "Forbidden Emscripten setting: $setting"
-        }
-
-        if ($argument.StartsWith(
-            '@',
-            [StringComparison]::Ordinal
-        )) {
-            $responseValue = $argument.Substring(1)
-            if ([string]::IsNullOrWhiteSpace($responseValue)) {
-                throw 'Empty Emscripten response-file argument'
-            }
-            $response = (
-                Resolve-Path -LiteralPath $responseValue -ErrorAction Stop
-            ).Path
-            $responseItem = Get-Item -LiteralPath $response -Force
-            if (($responseItem.Attributes -band
-                [IO.FileAttributes]::ReparsePoint) -ne 0 -or
-                -not (Test-Path -LiteralPath $response -PathType Leaf)) {
-                throw (
-                    'Emscripten response file is not a regular file: ' +
-                    $response
-                )
-            }
-            $responseText = Get-Content -LiteralPath $response -Raw
-            foreach ($pattern in @(
-                '(?<![A-Za-z0-9_])-fexceptions(?![A-Za-z0-9_-])',
-                '(?<![A-Za-z0-9_])-fno-wasm-exceptions(?![A-Za-z0-9_-])',
-                '(?<![A-Za-z0-9_])ASYNCIFY(?:=|\b)',
-                '(?<![A-Za-z0-9_])NO_WASM_EXCEPTIONS(?:=|\b)',
-                '(?<![A-Za-z0-9_])WASM_EXCEPTIONS=0(?![A-Za-z0-9_])'
-            )) {
-                if ($responseText -match $pattern) {
-                    throw (
-                        'Forbidden Emscripten response-file argument in ' +
-                        $response
-                    )
-                }
-            }
-        }
-    }
+$lockPath = Assert-PathChainNotReparse `
+    -Path (Join-Path $PSScriptRoot '..\toolchain-lock.json') `
+    -Description 'toolchain lock'
+$lockReadLock = Open-AuthenticatedFileReadLock `
+    -Path $lockPath `
+    -Description 'toolchain lock'
+$authenticatedInputLocks = [Collections.Generic.List[IDisposable]]::new()
+$authenticatedInputLocks.Add($lockReadLock.Stream)
+$lockReader = [IO.StreamReader]::new(
+    $lockReadLock.Stream,
+    [Text.UTF8Encoding]::new($false, $true),
+    $true,
+    4096,
+    $true
+)
+try {
+    $lockText = $lockReader.ReadToEnd()
 }
-
-$lockPath = Join-Path $PSScriptRoot '..\toolchain-lock.json'
-$lock = Get-Content -LiteralPath $lockPath -Raw | ConvertFrom-Json
+finally {
+    $lockReader.Dispose()
+    $lockReadLock.Stream.Position = 0
+}
+$lock = $lockText | ConvertFrom-Json
 $ToolchainRoot = [IO.Path]::GetFullPath($ToolchainRoot)
 $BinaryCache = [IO.Path]::GetFullPath($BinaryCache)
+$VcpkgStateRoot = [IO.Path]::GetFullPath($VcpkgStateRoot)
+$null = Assert-PathChainNotReparse `
+    -Path $ToolchainRoot `
+    -Description 'toolchain root'
+$null = Assert-PathChainNotReparse `
+    -Path $BinaryCache `
+    -Description 'vcpkg binary cache'
+$null = Assert-PathChainNotReparse `
+    -Path $VcpkgStateRoot `
+    -Description 'vcpkg state root'
 $emsdkVersion = [string]$lock.emscripten.version
 $emsdkCommit = [string]$lock.emscripten.emsdkCommit
 $vcpkgCommit = [string]$lock.vcpkg.baseline
+$sourceDateEpoch = [string]$lock.reproducibleBuild.sourceDateEpoch
+[Int64]$parsedSourceDateEpoch = 0
+$vcpkgMaxConcurrency = [string](
+    $lock.reproducibleBuild.vcpkgMaxConcurrency
+)
+[Int32]$parsedVcpkgMaxConcurrency = 0
 if ($emsdkCommit -notmatch '^[0-9a-fA-F]{40}$') {
     throw 'emscripten.emsdkCommit must be a 40-character hexadecimal commit'
 }
 if ($vcpkgCommit -notmatch '^[0-9a-fA-F]{40}$') {
     throw 'vcpkg.baseline must be a 40-character hexadecimal commit'
+}
+if ($sourceDateEpoch -notmatch '^[1-9][0-9]*$' -or
+    -not [Int64]::TryParse(
+        $sourceDateEpoch,
+        [Globalization.NumberStyles]::None,
+        [Globalization.CultureInfo]::InvariantCulture,
+        [ref]$parsedSourceDateEpoch
+    )) {
+    throw 'reproducibleBuild.sourceDateEpoch must be a positive integer'
+}
+if ([string]$lock.reproducibleBuild.derivation -cne
+    'vcpkg-baseline-source-archive-root-entry-utc') {
+    throw 'reproducibleBuild.derivation does not match the pinned contract'
+}
+if ($vcpkgMaxConcurrency -notmatch '^[1-9][0-9]*$' -or
+    -not [Int32]::TryParse(
+        $vcpkgMaxConcurrency,
+        [Globalization.NumberStyles]::None,
+        [Globalization.CultureInfo]::InvariantCulture,
+        [ref]$parsedVcpkgMaxConcurrency
+    ) -or
+    $parsedVcpkgMaxConcurrency -gt 64) {
+    throw (
+        'reproducibleBuild.vcpkgMaxConcurrency must be an integer ' +
+        'from 1 through 64'
+    )
 }
 
 $emsdkDirectory = Assert-SafeLeafName `
@@ -459,6 +452,12 @@ $cmakeArchiveName = Assert-SafeLeafName `
 $ninjaArchiveName = Assert-SafeLeafName `
     -Value ([string]$lock.buildTools.ninja.archiveFile) `
     -Field 'buildTools.ninja.archiveFile'
+$emsdkSourceArchiveName = Assert-SafeLeafName `
+    -Value ([string]$lock.emscripten.sourceArchive.archiveFile) `
+    -Field 'emscripten.sourceArchive.archiveFile'
+$vcpkgSourceArchiveName = Assert-SafeLeafName `
+    -Value ([string]$lock.vcpkg.sourceArchive.archiveFile) `
+    -Field 'vcpkg.sourceArchive.archiveFile'
 
 $emsdkCandidate = Get-StrictDescendantPath `
     -Path (Join-Path $ToolchainRoot $emsdkDirectory) `
@@ -483,6 +482,9 @@ $downloadsCandidate = Get-StrictDescendantPath `
 $null = Assert-DirectoryNotReparse `
     -Path $downloadsCandidate `
     -Description 'Build-tool archive directory'
+$null = Assert-DirectoryNotReparse `
+    -Path $VcpkgStateRoot `
+    -Description 'vcpkg state root'
 $emsdk = (Resolve-Path -LiteralPath $emsdkCandidate).Path
 $vcpkg = (Resolve-Path -LiteralPath $vcpkgCandidate).Path
 $cmake = (Resolve-Path -LiteralPath $cmakeCandidate).Path
@@ -501,14 +503,136 @@ foreach ($resolvedRoot in @(
         -Description 'Resolved canonical toolchain path'
 }
 
-Assert-RepositoryClean `
-    -Repository $emsdk `
-    -ExpectedCommit $emsdkCommit `
-    -Description 'emsdk' | Out-Null
-Assert-RepositoryClean `
-    -Repository $vcpkg `
-    -ExpectedCommit $vcpkgCommit `
-    -Description 'vcpkg' | Out-Null
+$emsdkSourceArchive = Get-StrictDescendantPath `
+    -Path (Join-Path $downloads $emsdkSourceArchiveName) `
+    -Root $downloads `
+    -Description 'emsdk retained source archive'
+$vcpkgSourceArchive = Get-StrictDescendantPath `
+    -Path (Join-Path $downloads $vcpkgSourceArchiveName) `
+    -Root $downloads `
+    -Description 'vcpkg retained source archive'
+$null = Assert-SourceArchiveInstallation `
+    -Archive $emsdkSourceArchive `
+    -Installation $emsdk `
+    -Artifact $lock.emscripten.sourceArchive `
+    -AllowedExtraPrefixes @(
+        $lock.emscripten.sourceArchive.allowedRuntimePrefixes
+    ) `
+    -AllowedExtraFiles @(
+        $lock.emscripten.sourceArchive.allowedRuntimeFiles
+    ) `
+    -Description 'emsdk'
+$null = Assert-SourceArchiveInstallation `
+    -Archive $vcpkgSourceArchive `
+    -Installation $vcpkg `
+    -Artifact $lock.vcpkg.sourceArchive `
+    -AllowedExtraPrefixes @(
+        $lock.vcpkg.sourceArchive.allowedRuntimePrefixes
+    ) `
+    -AllowedExtraFiles @(
+        $lock.vcpkg.sourceArchive.allowedRuntimeFiles
+    ) `
+    -Description 'vcpkg'
+$emsdkBootstrap = Get-ProvenanceContainedPath `
+    -Root $emsdk `
+    -Relative ([string]$lock.emscripten.bootstrapScript) `
+    -Description 'emsdk bootstrap script'
+$null = Assert-FileSha256 `
+    -Path $emsdkBootstrap `
+    -Expected ([string]$lock.emscripten.bootstrapScriptSha256) `
+    -Description 'emsdk bootstrap script'
+$vcpkgBootstrap = Get-ProvenanceContainedPath `
+    -Root $vcpkg `
+    -Relative ([string]$lock.vcpkg.bootstrapLauncher) `
+    -Description 'vcpkg bootstrap launcher'
+$null = Assert-FileSha256 `
+    -Path $vcpkgBootstrap `
+    -Expected ([string]$lock.vcpkg.bootstrapLauncherSha256) `
+    -Description 'vcpkg bootstrap launcher'
+$vcpkgBootstrapScript = Get-ProvenanceContainedPath `
+    -Root $vcpkg `
+    -Relative ([string]$lock.vcpkg.bootstrapScript) `
+    -Description 'vcpkg bootstrap implementation'
+$null = Assert-FileSha256 `
+    -Path $vcpkgBootstrapScript `
+    -Expected ([string]$lock.vcpkg.bootstrapScriptSha256) `
+    -Description 'vcpkg bootstrap implementation'
+$vcpkgToolMetadata = Get-ProvenanceContainedPath `
+    -Root $vcpkg `
+    -Relative ([string]$lock.vcpkg.toolMetadata) `
+    -Description 'vcpkg tool metadata'
+$null = Assert-FileSha256 `
+    -Path $vcpkgToolMetadata `
+    -Expected ([string]$lock.vcpkg.toolMetadataSha256) `
+    -Description 'vcpkg tool metadata'
+$emxx = Get-ProvenanceContainedPath `
+    -Root $emsdk `
+    -Relative ([string]$lock.emscripten.cxxLauncher) `
+    -Description 'pinned em++ launcher'
+$null = Assert-FileSha256 `
+    -Path $emxx `
+    -Expected ([string]$lock.emscripten.cxxLauncherSha256) `
+    -Description 'pinned em++ launcher'
+$emcc = Get-ProvenanceContainedPath `
+    -Root $emsdk `
+    -Relative ([string]$lock.emscripten.cLauncher) `
+    -Description 'pinned emcc launcher'
+$null = Assert-FileSha256 `
+    -Path $emcc `
+    -Expected ([string]$lock.emscripten.cLauncherSha256) `
+    -Description 'pinned emcc launcher'
+$portCmakeContract = $lock.vcpkg.portBuildCMake
+$null = Assert-VcpkgPortCMakeManifest `
+    -Vcpkg $vcpkg `
+    -Contract $portCmakeContract
+$portDownloads = Get-StrictDescendantPath `
+    -Path (Join-Path $VcpkgStateRoot 'downloads') `
+    -Root $VcpkgStateRoot `
+    -Description 'vcpkg downloads root'
+$portDownloads = Assert-DirectoryNotReparse `
+    -Path $portDownloads `
+    -Description 'vcpkg downloads root'
+$portArchive = Get-StrictDescendantPath `
+    -Path (
+        Join-Path $portDownloads ([string]$portCmakeContract.archiveFile)
+    ) `
+    -Root $portDownloads `
+    -Description 'vcpkg port-build CMake archive'
+$portTools = Get-StrictDescendantPath `
+    -Path (Join-Path $portDownloads 'tools') `
+    -Root $portDownloads `
+    -Description 'vcpkg downloaded tools root'
+$portTools = Assert-DirectoryNotReparse `
+    -Path $portTools `
+    -Description 'vcpkg downloaded tools root'
+$portInstallation = Get-StrictDescendantPath `
+    -Path (
+        Join-Path $portTools (
+            [string]$portCmakeContract.installationDirectory
+        )
+    ) `
+    -Root $portTools `
+    -Description 'vcpkg port-build CMake installation'
+$portArchiveItem = Get-Item -LiteralPath $portArchive -Force
+if (($portArchiveItem.Attributes -band
+    [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    [long]$portArchiveItem.Length -ne
+    [long]$portCmakeContract.archiveBytes) {
+    throw 'vcpkg port-build CMake retained archive contract drifted'
+}
+$portCmakeIdentity = Assert-BuildToolInstallation `
+    -Name 'vcpkg port-build CMake' `
+    -Archive $portArchive `
+    -Installation $portInstallation `
+    -Artifact $portCmakeContract
+$portCmakeCommand = Get-ProvenanceContainedPath `
+    -Root $portInstallation `
+    -Relative ([string]$portCmakeContract.executable) `
+    -Description 'vcpkg port-build CMake executable'
+$null = Assert-FileSha256 `
+    -Path $portCmakeCommand `
+    -Expected ([string]$portCmakeContract.executableSha256) `
+    -Description 'vcpkg port-build CMake executable'
 Assert-EmscriptenInstallation `
     -Emsdk $emsdk `
     -Version $emsdkVersion `
@@ -582,11 +706,27 @@ $cmakeBin = Get-StrictDescendantPath `
 $env:EMSDK = $emsdk
 $env:EMSCRIPTEN_ROOT = $emscriptenRoot
 $env:EMSCRIPTEN_VERSION = $emsdkVersion
+$env:SOURCE_DATE_EPOCH = $parsedSourceDateEpoch.ToString(
+    [Globalization.CultureInfo]::InvariantCulture
+)
+$env:VCPKG_MAX_CONCURRENCY = $parsedVcpkgMaxConcurrency.ToString(
+    [Globalization.CultureInfo]::InvariantCulture
+)
 $env:EM_CONFIG = $activationFile
+$cacheDirectory = Assert-SafeLeafName `
+    -Value ([string]$lock.emscripten.cache.directory) `
+    -Field 'emscripten.cache.directory'
 $env:EM_CACHE = Get-StrictDescendantPath `
-    -Path (Join-Path $emscriptenRoot 'cache') `
-    -Root $emscriptenRoot `
-    -Description 'Emscripten mutable cache'
+    -Path (Join-Path $ToolchainRoot $cacheDirectory) `
+    -Root $ToolchainRoot `
+    -Description 'Emscripten frozen cache'
+$env:EM_CACHE = (
+    Resolve-Path -LiteralPath $env:EM_CACHE -ErrorAction Stop
+).Path
+$env:EM_CACHE = Get-StrictDescendantPath `
+    -Path $env:EM_CACHE `
+    -Root $ToolchainRoot `
+    -Description 'Resolved Emscripten frozen cache'
 $env:EMSDK_PYTHON = Get-StrictDescendantPath `
     -Path (Join-Path $emsdk ([string]$lock.emscripten.pythonExecutable)) `
     -Root $emsdk `
@@ -596,6 +736,28 @@ $env:EMSDK_NODE = Get-StrictDescendantPath `
     -Root $emsdk `
     -Description 'Pinned EMSDK_NODE'
 $env:PYTHONDONTWRITEBYTECODE = '1'
+$cacheIdentityHelper = (
+    Resolve-Path -LiteralPath (
+        Join-Path $PSScriptRoot 'emscripten_cache_identity.py'
+    ) -ErrorAction Stop
+).Path
+$cacheIdentityHelper = Assert-PathChainNotReparse `
+    -Path $cacheIdentityHelper `
+    -Description 'Emscripten cache identity helper'
+$cacheIdentityHelperItem = Get-Item `
+    -LiteralPath $cacheIdentityHelper `
+    -Force
+if (($cacheIdentityHelperItem.Attributes -band
+    [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    -not (Test-Path -LiteralPath $cacheIdentityHelper -PathType Leaf)) {
+    throw 'Emscripten cache identity helper must be a regular file'
+}
+$null = Assert-EmscriptenCacheIdentity `
+    -CacheRoot $env:EM_CACHE `
+    -Contract $lock.emscripten.cache `
+    -Python $env:EMSDK_PYTHON `
+    -Helper $cacheIdentityHelper
+$env:EM_FROZEN_CACHE = '1'
 $env:VCPKG_ROOT = $vcpkg
 $pathSeparator = [IO.Path]::PathSeparator
 $env:Path = (
@@ -613,19 +775,26 @@ New-Item `
     -Path $env:VCPKG_DEFAULT_BINARY_CACHE `
     -Force | Out-Null
 
-$emxx = Resolve-PinnedApplication `
-    -Name 'em++' `
-    -ExpectedRoot $emscriptenRoot
-$emcc = Resolve-PinnedApplication `
-    -Name 'emcc' `
-    -ExpectedRoot $emscriptenRoot
+$emxx = Assert-ResolvedLeafContained `
+    -Path $emxx `
+    -Root $emscriptenRoot `
+    -Description 'pinned em++ launcher'
+$emcc = Assert-ResolvedLeafContained `
+    -Path $emcc `
+    -Root $emscriptenRoot `
+    -Description 'pinned emcc launcher'
 $emscriptenLaunchers = [ordered]@{
     'em++' = $emxx
     'emcc' = $emcc
 }
-$vcpkgCommand = Resolve-PinnedApplication `
-    -Name 'vcpkg' `
-    -ExpectedRoot $vcpkg
+$vcpkgCommand = Get-ProvenanceContainedPath `
+    -Root $vcpkg `
+    -Relative ([string]$lock.vcpkg.executable) `
+    -Description 'pinned vcpkg executable'
+$vcpkgCommand = Assert-ResolvedLeafContained `
+    -Path $vcpkgCommand `
+    -Root $vcpkg `
+    -Description 'pinned vcpkg executable'
 $cmakeCommand = Resolve-PinnedApplication `
     -Name 'cmake' `
     -ExpectedRoot $cmakeBin
@@ -645,14 +814,10 @@ if ([IO.Path]::GetExtension($python) -ine '.exe' -or
     [IO.Path]::GetExtension($node) -ine '.exe') {
     throw 'Pinned Emscripten Python and Node runtimes must be native .exe files'
 }
-$emxxDriver = Resolve-ContainedLeaf `
-    -Path (Join-Path $emscriptenRoot 'em++.py') `
-    -Root $emscriptenRoot `
-    -Description 'Emscripten driver em++.py'
-$emccDriver = Resolve-ContainedLeaf `
-    -Path (Join-Path $emscriptenRoot 'emcc.py') `
-    -Root $emscriptenRoot `
-    -Description 'Emscripten driver emcc.py'
+$null = Assert-FileSha256 `
+    -Path $vcpkgCommand `
+    -Expected ([string]$lock.vcpkg.executableSha256) `
+    -Description 'vcpkg executable'
 $null = Assert-FileSha256 `
     -Path $cmakeCommand `
     -Expected ([string]$lock.buildTools.cmake.executableSha256) `
@@ -661,103 +826,478 @@ $null = Assert-FileSha256 `
     -Path $ninjaCommand `
     -Expected ([string]$lock.buildTools.ninja.executableSha256) `
     -Description 'Ninja executable'
+$authenticatedInputLocks.Add((
+    Open-AuthenticatedFileReadLock `
+        -Path $python `
+        -ExpectedSha256 (
+            [string]$lock.emscripten.bootstrapPython.executableSha256
+        ) `
+        -Description 'Pinned Emscripten Python'
+).Stream)
+$authenticatedInputLocks.Add((
+    Open-AuthenticatedFileReadLock `
+        -Path $node `
+        -ExpectedSha256 (
+            [string]$lock.emscripten.nodeExecutableSha256
+        ) `
+        -Description 'Pinned Emscripten Node'
+).Stream)
+$authenticatedInputLocks.Add((
+    Open-AuthenticatedFileReadLock `
+        -Path $vcpkgCommand `
+        -ExpectedSha256 ([string]$lock.vcpkg.executableSha256) `
+        -Description 'Pinned vcpkg executable'
+).Stream)
+$authenticatedInputLocks.Add((
+    Open-AuthenticatedFileReadLock `
+        -Path $cmakeCommand `
+        -ExpectedSha256 (
+            [string]$lock.buildTools.cmake.executableSha256
+        ) `
+        -Description 'Pinned CMake executable'
+).Stream)
+$authenticatedInputLocks.Add((
+    Open-AuthenticatedFileReadLock `
+        -Path $ninjaCommand `
+        -ExpectedSha256 (
+            [string]$lock.buildTools.ninja.executableSha256
+        ) `
+        -Description 'Pinned Ninja executable'
+).Stream)
+$authenticatedInputLocks.Add((
+    Open-AuthenticatedFileReadLock `
+        -Path $portCmakeCommand `
+        -ExpectedSha256 (
+            [string]$portCmakeContract.executableSha256
+        ) `
+        -Description 'Pinned vcpkg port-build CMake executable'
+).Stream)
+$pythonImportClosure = Open-EmscriptenPythonImportClosure `
+    -Root $emscriptenRoot `
+    -Contract $lock.emscripten.driverApi.pythonImportClosure
+foreach ($pythonModuleLock in @($pythonImportClosure.Streams)) {
+    $authenticatedInputLocks.Add($pythonModuleLock)
+}
+$auditor = (
+    Resolve-Path -LiteralPath (
+        Join-Path $PSScriptRoot 'audit_emscripten_response_files.py'
+    ) -ErrorAction Stop
+).Path
+$auditor = Assert-PathChainNotReparse `
+    -Path $auditor `
+    -Description 'Emscripten response-file auditor'
+$auditorItem = Get-Item -LiteralPath $auditor -Force
+if (($auditorItem.Attributes -band
+    [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    -not (Test-Path -LiteralPath $auditor -PathType Leaf)) {
+    throw 'Emscripten response-file auditor must be a regular file'
+}
+$null = Assert-FileSha256 `
+    -Path $auditor `
+    -Expected ([string]$lock.gateTools.responseAuditorSha256) `
+    -Description 'Emscripten response-file auditor'
+$auditorLock = Open-AuthenticatedFileReadLock `
+    -Path $auditor `
+    -ExpectedSha256 ([string]$lock.gateTools.responseAuditorSha256) `
+    -Description 'Emscripten response-file auditor'
+$authenticatedInputLocks.Add($auditorLock.Stream)
+$driverAdapter = (
+    Resolve-Path -LiteralPath (
+        Join-Path $PSScriptRoot 'invoke_emscripten_driver.py'
+    ) -ErrorAction Stop
+).Path
+$driverAdapter = Assert-PathChainNotReparse `
+    -Path $driverAdapter `
+    -Description 'Emscripten compiler adapter'
+$driverAdapterItem = Get-Item -LiteralPath $driverAdapter -Force
+if (($driverAdapterItem.Attributes -band
+    [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    -not (Test-Path -LiteralPath $driverAdapter -PathType Leaf)) {
+    throw 'Emscripten compiler adapter must be a regular file'
+}
+$null = Assert-FileSha256 `
+    -Path $driverAdapter `
+    -Expected ([string]$lock.gateTools.adapterSha256) `
+    -Description 'Emscripten compiler adapter'
+$driverAdapterLock = Open-AuthenticatedFileReadLock `
+    -Path $driverAdapter `
+    -ExpectedSha256 ([string]$lock.gateTools.adapterSha256) `
+    -Description 'Emscripten compiler adapter'
+$authenticatedInputLocks.Add($driverAdapterLock.Stream)
+$lockPath = Assert-PathChainNotReparse `
+    -Path (Resolve-Path -LiteralPath $lockPath -ErrorAction Stop).Path `
+    -Description 'toolchain lock'
+$lockPathItem = Get-Item -LiteralPath $lockPath -Force
+if (($lockPathItem.Attributes -band
+    [IO.FileAttributes]::ReparsePoint) -ne 0 -or
+    -not (Test-Path -LiteralPath $lockPath -PathType Leaf)) {
+    throw 'Toolchain lock must be a regular file'
+}
+$activationLock = Open-AuthenticatedFileReadLock `
+    -Path $activationFile `
+    -Description 'emsdk activation file'
+$activationSha256 = $activationLock.Sha256
+$authenticatedInputLocks.Add($activationLock.Stream)
+$cacheIdentityLock = Open-AuthenticatedFileReadLock `
+    -Path $cacheIdentityHelper `
+    -Description 'Emscripten cache identity helper'
+$authenticatedInputLocks.Add($cacheIdentityLock.Stream)
 
-$emxxVersionResult = Invoke-NativeProcessCapture `
-    -FileName $python `
-    -ChildArguments @('-B', '-E', $emxxDriver, '--version')
-$emxxVersionText = $emxxVersionResult.Stdout.Trim()
-if ($emxxVersionResult.ExitCode -ne 0 -or
-    $emxxVersionText -notmatch (
-        "\b$([Regex]::Escape($emsdkVersion))\b"
-    )) {
-    throw (
-        "Expected em++ $emsdkVersion, got: " +
-        "$emxxVersionText $($emxxVersionResult.Stderr.Trim())"
+if ($qualificationRequested) {
+    $repoRoot = Assert-DirectoryNotReparse `
+        -Path (Join-Path $PSScriptRoot '..\..\..') `
+        -Description 'Qualification repository root'
+    $installedRoot = Get-StrictDescendantPath `
+        -Path (Join-Path $VcpkgStateRoot 'installed') `
+        -Root $VcpkgStateRoot `
+        -Description 'vcpkg installed root'
+    $installedRoot = Assert-DirectoryNotReparse `
+        -Path $installedRoot `
+        -Description 'vcpkg installed root'
+    $targetInstalled = Get-StrictDescendantPath `
+        -Path (Join-Path $installedRoot 'wasm32-emscripten-rg') `
+        -Root $installedRoot `
+        -Description 'qualified target installation'
+    $hostInstalled = Get-StrictDescendantPath `
+        -Path (
+            Join-Path $installedRoot 'x64-windows-rg-host-release'
+        ) `
+        -Root $installedRoot `
+        -Description 'qualified host installation'
+    $targetInstalled = Assert-DirectoryNotReparse `
+        -Path $targetInstalled `
+        -Description 'qualified target installation'
+    $hostInstalled = Assert-DirectoryNotReparse `
+        -Path $hostInstalled `
+        -Description 'qualified host installation'
+
+    $qualificationRoots = @(
+        [PSCustomObject]@{ Label = 'emsdk'; Path = $emsdk },
+        [PSCustomObject]@{
+            Label = 'emscripten-cache'
+            Path = $env:EM_CACHE
+        },
+        [PSCustomObject]@{ Label = 'outer-cmake'; Path = $cmake },
+        [PSCustomObject]@{ Label = 'ninja'; Path = $ninja },
+        [PSCustomObject]@{ Label = 'vcpkg'; Path = $vcpkg },
+        [PSCustomObject]@{
+            Label = 'vcpkg-port-cmake'
+            Path = $portInstallation
+        },
+        [PSCustomObject]@{
+            Label = 'vcpkg-target'
+            Path = $targetInstalled
+        },
+        [PSCustomObject]@{
+            # PDBs and import libraries are link/debug products, not files
+            # read when the already-built dynamic host tools execute.
+            Label = 'vcpkg-host-runtime'
+            Path = $hostInstalled
+            ExcludedSuffixes = @('.pdb', '.lib')
+        }
     )
-}
-$vcpkgVersion = @(& $vcpkgCommand version)
-if ($LASTEXITCODE -ne 0) {
-    throw "Pinned vcpkg version probe failed: $($vcpkgVersion -join ' ')"
-}
-$cmakeVersion = @(& $cmakeCommand --version)
-$cmakeVersionText = $cmakeVersion -join "`n"
-$expectedCmake = [string]$lock.buildTools.cmake.version
-if ($LASTEXITCODE -ne 0 -or
-    $cmakeVersionText -notmatch (
-        "(?m)^cmake version $([Regex]::Escape($expectedCmake))$"
+    $qualificationFiles = [Collections.Generic.List[object]]::new()
+    foreach ($retained in @(
+        [PSCustomObject]@{
+            Logical = 'retained/emsdk-source.zip'
+            Path = $emsdkSourceArchive
+        },
+        [PSCustomObject]@{
+            Logical = 'retained/vcpkg-source.zip'
+            Path = $vcpkgSourceArchive
+        },
+        [PSCustomObject]@{
+            Logical = 'retained/outer-cmake.zip'
+            Path = $cmakeArchive
+        },
+        [PSCustomObject]@{
+            Logical = 'retained/ninja.zip'
+            Path = $ninjaArchive
+        },
+        [PSCustomObject]@{
+            Logical = 'retained/vcpkg-port-cmake.zip'
+            Path = $portArchive
+        }
     )) {
-    throw "Expected CMake $expectedCmake, got: $cmakeVersionText"
-}
-$ninjaVersion = @(& $ninjaCommand --version)
-$ninjaVersionText = $ninjaVersion -join "`n"
-$expectedNinja = [string]$lock.buildTools.ninja.version
-if ($LASTEXITCODE -ne 0 -or
-    $ninjaVersionText.Trim() -ne $expectedNinja) {
-    throw "Expected Ninja $expectedNinja, got: $ninjaVersionText"
-}
-
-$child = Resolve-ChildApplication -Requested $Executable
-$requestedKind = if ($Executable -ieq 'em++') {
-    'em++'
-}
-elseif ($Executable -ieq 'emcc') {
-    'emcc'
-}
-else {
-    $null
-}
-$launcherKind = $null
-foreach ($kind in $emscriptenLaunchers.Keys) {
-    if ([string]::Equals(
-        $child,
-        [string]$emscriptenLaunchers[$kind],
-        [StringComparison]::OrdinalIgnoreCase
-    )) {
-        $launcherKind = [string]$kind
-        break
+        $qualificationFiles.Add($retained)
     }
-}
-if ($requestedKind -and $launcherKind -ne $requestedKind) {
-    throw (
-        "Pinned $requestedKind alias resolved to an unexpected launcher: " +
-        $child
+
+    $inputManifest = Get-ProvenanceContainedPath `
+        -Root $repoRoot `
+        -Relative 'tools/wasm-probe/input-manifest.txt' `
+        -Description 'qualification input manifest'
+    $qualificationFiles.Add([PSCustomObject]@{
+        Logical = 'repo/tools/wasm-probe/input-manifest.txt'
+        Path = $inputManifest
+    })
+    foreach ($line in @(Get-Content -LiteralPath $inputManifest)) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+        $relative = Assert-ProvenanceRelativePath `
+            -Value $line `
+            -Description 'qualification input-manifest path'
+        $qualificationFiles.Add([PSCustomObject]@{
+            Logical = "repo/$relative"
+            Path = Get-ProvenanceContainedPath `
+                -Root $repoRoot `
+                -Relative $relative `
+                -Description "qualification repository input '$relative'"
+        })
+    }
+
+    $buildRoot = Get-ProvenanceContainedPath `
+        -Root $repoRoot `
+        -Relative 'tools/wasm-probe/build/wasm-release' `
+        -Description 'qualification probe build root'
+    $buildRoot = Assert-DirectoryNotReparse `
+        -Path $buildRoot `
+        -Description 'qualification probe build root'
+    $buildControlManifest = Get-ProvenanceContainedPath `
+        -Root $repoRoot `
+        -Relative 'tools/wasm-probe/build-control-manifest.txt' `
+        -Description 'qualification build-control manifest'
+    $buildControlCount = 0
+    foreach ($line in @(
+        Get-Content -LiteralPath $buildControlManifest
+    )) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+        $relative = Assert-ProvenanceRelativePath `
+            -Value $line `
+            -Description 'qualification build-control path'
+        $qualificationFiles.Add([PSCustomObject]@{
+            Logical = "build-control/$relative"
+            Path = Get-ProvenanceContainedPath `
+                -Root $buildRoot `
+                -Relative $relative `
+                -Description "qualification build control '$relative'"
+        })
+        $buildControlCount++
+    }
+    if ($buildControlCount -eq 0) {
+        throw 'Qualification build-control manifest is empty'
+    }
+    $qualificationStopwatch = [Diagnostics.Stopwatch]::StartNew()
+    $qualificationClosure = Open-QualificationClosure `
+        -Roots $qualificationRoots `
+        -Files $qualificationFiles.ToArray()
+    $qualificationStopwatch.Stop()
+    Write-Host (
+        'Qualification closure: files={0} bytes={1} preflightMs={2}' -f
+        $qualificationClosure.FileCount,
+        $qualificationClosure.TotalBytes,
+        $qualificationStopwatch.ElapsedMilliseconds
+    )
+    foreach ($qualificationLock in @($qualificationClosure.Streams)) {
+        $authenticatedInputLocks.Add($qualificationLock)
+    }
+    $env:RHYTHMGAME_WASM_QUALIFICATION = '1'
+    $env:RHYTHMGAME_WASM_QUALIFICATION_ALGORITHM = (
+        $qualificationClosure.Algorithm
+    )
+    $env:RHYTHMGAME_WASM_QUALIFICATION_FILE_COUNT = [string](
+        $qualificationClosure.FileCount
+    )
+    $env:RHYTHMGAME_WASM_QUALIFICATION_TOTAL_BYTES = [string](
+        $qualificationClosure.TotalBytes
+    )
+    $env:RHYTHMGAME_WASM_QUALIFICATION_INVENTORY_SHA256 = (
+        $qualificationClosure.InventorySha256
+    )
+    $env:RHYTHMGAME_WASM_QUALIFICATION_AGGREGATE_SHA256 = (
+        $qualificationClosure.AggregateSha256
     )
 }
-$emscriptenKind = if ($requestedKind) {
-    $requestedKind
-}
-else {
-    $launcherKind
-}
+$env:RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER = $driverAdapter
+$env:RHYTHMGAME_WASM_TOOLCHAIN_LOCK = $lockPath
+$env:RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR = $auditor
+$env:RHYTHMGAME_EMSCRIPTEN_ROOT = $emscriptenRoot
+$env:RHYTHMGAME_EM_CONFIG = $activationFile
+$env:RHYTHMGAME_EM_CONFIG_SHA256 = $activationSha256
+$env:RHYTHMGAME_EM_CACHE = $env:EM_CACHE
 
-if ($emscriptenKind) {
-    $null = Assert-ResolvedLeafContained `
-        -Path $child `
-        -Root $emscriptenRoot `
-        -Description "Pinned $emscriptenKind launcher"
-    Assert-NoForbiddenEmscriptenArguments -ChildArguments $Arguments
-    $driver = if ($emscriptenKind -ceq 'em++') {
-        $emxxDriver
+$childExitCode = $null
+try {
+    $emxxVersionArguments = @(
+        '-I',
+        '-B',
+        $driverAdapter,
+        '--lock',
+        $lockPath,
+        '--auditor',
+        $auditor,
+        '--emscripten-root',
+        $emscriptenRoot,
+        '--driver-kind',
+        'em++',
+        '--em-config',
+        $activationFile,
+        '--em-config-sha256',
+        $activationSha256,
+        '--cache-root',
+        $env:EM_CACHE,
+        '--',
+        $emxx,
+        '--version'
+    )
+    $emxxVersionResult = Invoke-NativeProcessCapture `
+        -FileName $python `
+        -ChildArguments $emxxVersionArguments
+    $emxxVersionText = $emxxVersionResult.Stdout.Trim()
+    if ($emxxVersionResult.ExitCode -ne 0 -or
+        $emxxVersionText -notmatch (
+            "\b$([Regex]::Escape($emsdkVersion))\b"
+        )) {
+        throw (
+            "Expected em++ $emsdkVersion, got: " +
+            "$emxxVersionText $($emxxVersionResult.Stderr.Trim())"
+        )
+    }
+    $vcpkgVersion = @(& $vcpkgCommand version)
+    if ($LASTEXITCODE -ne 0) {
+        throw "Pinned vcpkg version probe failed: $($vcpkgVersion -join ' ')"
+    }
+    $cmakeVersion = @(& $cmakeCommand --version)
+    $cmakeVersionText = $cmakeVersion -join "`n"
+    $expectedCmake = [string]$lock.buildTools.cmake.version
+    if ($LASTEXITCODE -ne 0 -or
+        $cmakeVersionText -notmatch (
+            "(?m)^cmake version $([Regex]::Escape($expectedCmake))$"
+        )) {
+        throw "Expected CMake $expectedCmake, got: $cmakeVersionText"
+    }
+    $ninjaVersion = @(& $ninjaCommand --version)
+    $ninjaVersionText = $ninjaVersion -join "`n"
+    $expectedNinja = [string]$lock.buildTools.ninja.version
+    if ($LASTEXITCODE -ne 0 -or
+        $ninjaVersionText.Trim() -ne $expectedNinja) {
+        throw "Expected Ninja $expectedNinja, got: $ninjaVersionText"
+    }
+    $portCmakeVersion = @(& $portCmakeCommand --version)
+    $portCmakeVersionText = $portCmakeVersion -join "`n"
+    if ($LASTEXITCODE -ne 0 -or
+        $portCmakeVersionText -notmatch (
+            "(?m)^cmake version " +
+            "$([Regex]::Escape([string]$portCmakeContract.version))$"
+        )) {
+        throw (
+            'Expected vcpkg port-build CMake ' +
+            "$($portCmakeContract.version), got: $portCmakeVersionText"
+        )
+    }
+
+    $pythonRequested = $Executable -ieq 'python' -or
+        $Executable -ieq 'python.exe'
+    $child = if ($pythonRequested) {
+        $python
     }
     else {
-        $emccDriver
+        Resolve-ChildApplication -Requested $Executable
     }
-    $driverArguments = [Collections.Generic.List[string]]::new()
-    $driverArguments.Add('-B')
-    $driverArguments.Add('-E')
-    $driverArguments.Add($driver)
-    foreach ($argument in $Arguments) {
-        $driverArguments.Add($argument)
+    $requestedKind = if ($Executable -ieq 'em++') {
+        'em++'
     }
-    exit (Invoke-NativeProcess `
-        -FileName $python `
-        -ChildArguments $driverArguments.ToArray())
-}
+    elseif ($Executable -ieq 'emcc') {
+        'emcc'
+    }
+    else {
+        $null
+    }
+    $launcherKind = $null
+    foreach ($kind in $emscriptenLaunchers.Keys) {
+        if ([string]::Equals(
+            $child,
+            [string]$emscriptenLaunchers[$kind],
+            [StringComparison]::OrdinalIgnoreCase
+        )) {
+            $launcherKind = [string]$kind
+            break
+        }
+    }
+    if ($requestedKind -and $launcherKind -ne $requestedKind) {
+        throw (
+            "Pinned $requestedKind alias resolved to an unexpected launcher: " +
+            $child
+        )
+    }
+    $emscriptenKind = if ($requestedKind) {
+        $requestedKind
+    }
+    else {
+        $launcherKind
+    }
 
-$childExtension = [IO.Path]::GetExtension($child)
-if ($childExtension -iin '.cmd', '.bat') {
-    throw "Batch child executables are not supported: $child"
+    if ($emscriptenKind) {
+        $null = Assert-ResolvedLeafContained `
+            -Path $child `
+            -Root $emscriptenRoot `
+            -Description "Pinned $emscriptenKind launcher"
+        $driverArguments = [Collections.Generic.List[string]]::new()
+        $driverArguments.Add('-I')
+        $driverArguments.Add('-B')
+        $driverArguments.Add($driverAdapter)
+        foreach ($fixed in @(
+            '--lock',
+            $lockPath,
+            '--auditor',
+            $auditor,
+            '--emscripten-root',
+            $emscriptenRoot,
+            '--driver-kind',
+            $emscriptenKind,
+            '--em-config',
+            $activationFile,
+            '--em-config-sha256',
+            $activationSha256,
+            '--cache-root',
+            $env:EM_CACHE,
+            '--',
+            $child
+        )) {
+            $driverArguments.Add($fixed)
+        }
+        foreach ($argument in $Arguments) {
+            $driverArguments.Add($argument)
+        }
+        $childExitCode = Invoke-NativeProcess `
+            -FileName $python `
+            -ChildArguments $driverArguments.ToArray()
+    }
+    elseif ($pythonRequested) {
+        $pythonArguments = [Collections.Generic.List[string]]::new()
+        $pythonArguments.Add('-I')
+        $pythonArguments.Add('-B')
+        foreach ($argument in $Arguments) {
+            $pythonArguments.Add($argument)
+        }
+        $childExitCode = Invoke-NativeProcess `
+            -FileName $python `
+            -ChildArguments $pythonArguments.ToArray()
+    }
+    else {
+        $childExtension = [IO.Path]::GetExtension($child)
+        if ($childExtension -iin '.cmd', '.bat') {
+            throw "Batch child executables are not supported: $child"
+        }
+        $childExitCode = Invoke-NativeProcess `
+            -FileName $child `
+            -ChildArguments $Arguments
+    }
 }
-exit (Invoke-NativeProcess `
-    -FileName $child `
-    -ChildArguments $Arguments)
+finally {
+    $null = Assert-EmscriptenCacheIdentity `
+        -CacheRoot $env:EM_CACHE `
+        -Contract $lock.emscripten.cache `
+        -Python $python `
+        -Helper $cacheIdentityHelper
+    for (
+        $lockIndex = $authenticatedInputLocks.Count - 1;
+        $lockIndex -ge 0;
+        $lockIndex--
+    ) {
+        $authenticatedInputLocks[$lockIndex].Dispose()
+    }
+}
+exit $childExitCode

@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import sys
+import zipfile
 from pathlib import Path
 
 
@@ -14,6 +15,16 @@ VCPKG_COMMIT = "a0400024711b283056538ac19ced80b91a83c24c"
 EMSDK_URL = "https://github.com/emscripten-core/emsdk.git"
 VCPKG_URL = "https://github.com/microsoft/vcpkg.git"
 FAIL_ONCE_EXIT = 86
+PORT_CMAKE_ENTRY = {
+    "name": "cmake",
+    "os": "windows",
+    "arch": "amd64",
+    "version": "4.3.3",
+    "executable": "cmake-4.3.3-windows-x86_64/bin/cmake.cmd",
+    "url": "https://fixture.invalid/cmake-4.3.3-windows-x86_64.zip",
+    "sha512": "",
+    "archive": "cmake-4.3.3-windows-x86_64.zip",
+}
 
 
 def _resolved(path: str | Path) -> Path:
@@ -82,10 +93,60 @@ def _seed_native_python(repository: Path) -> None:
         ),
         encoding="utf-8",
     )
+    (python_root / ".emsdk_version").write_text(
+        "fixture emsdk Python metadata\n",
+        encoding="utf-8",
+    )
 
 
-def _write_emscripten_driver(path: Path, tool: str) -> None:
+def _write_emscripten_driver(
+    path: Path,
+    tool: str,
+    *,
+    importable_emcc: bool = False,
+) -> None:
     process_double = Path(__file__).resolve()
+    if importable_emcc:
+        path.write_text(
+            "\n".join(
+                (
+                    "from pathlib import Path",
+                    "import subprocess",
+                    "import sys",
+                    "",
+                    f"PROCESS_DOUBLE = Path({str(process_double)!r})",
+                    "",
+                    "def main(args):",
+                    (
+                        "    sys.path.insert("
+                        "0, str(Path(__file__).resolve().parent))"
+                    ),
+                    "    from tools import shared",
+                    "    tool = (",
+                    "        'em++-driver'",
+                    "        if shared.run_via_emxx",
+                    "        else 'emcc-driver'",
+                    "    )",
+                    "    completed = subprocess.run(",
+                    "        [",
+                    "            sys.executable,",
+                    "            str(PROCESS_DOUBLE),",
+                    "            tool,",
+                    "            str(Path(__file__).resolve()),",
+                    "            *args[1:],",
+                    "        ],",
+                    "        check=False,",
+                    "    )",
+                    "    return completed.returncode",
+                    "",
+                    "if __name__ == '__main__':",
+                    "    raise SystemExit(main(sys.argv))",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        return
     path.write_text(
         "\n".join(
             (
@@ -106,12 +167,69 @@ def _write_emscripten_driver(path: Path, tool: str) -> None:
     )
 
 
+def _write_embuilder_module(path: Path) -> None:
+    process_double = Path(__file__).resolve()
+    path.write_text(
+        "\n".join(
+            (
+                "import json",
+                "import os",
+                "from pathlib import Path",
+                "import subprocess",
+                "import sys",
+                "from tools import system_libs",
+                "",
+                f"PROCESS_DOUBLE = Path({str(process_double)!r})",
+                "",
+                "def main():",
+                "    if sys.argv[1:] != ['build', 'SYSTEM']:",
+                "        return 97",
+                "    representative = [",
+                "        system_libs.get_base_cflags('c-build'),",
+                "        system_libs.get_base_cflags(",
+                "            'cxx-build', force_object_files=True",
+                "        ),",
+                "    ]",
+                "    root = Path(__file__).resolve().parent",
+                "    for child in ('emcc.bat', 'em++.bat', 'emar.bat'):",
+                "        completed = subprocess.run(",
+                "            [str(root / child), '--fixture-child'],",
+                "            check=False,",
+                "        )",
+                "        if completed.returncode:",
+                "            return completed.returncode",
+                "    environment = os.environ.copy()",
+                "    environment['TOOLCHAIN_DOUBLE_PREWARM_FLAGS'] = (",
+                "        json.dumps(representative)",
+                "    )",
+                "    completed = subprocess.run(",
+                "        [",
+                "            sys.executable,",
+                "            str(PROCESS_DOUBLE),",
+                "            'embuilder',",
+                "            str(Path(__file__).resolve()),",
+                "            'build',",
+                "            'SYSTEM',",
+                "        ],",
+                "        env=environment,",
+                "        check=False,",
+                "    )",
+                "    return completed.returncode",
+                "",
+            )
+        ),
+        encoding="utf-8",
+    )
+
+
 def create_repository_layout(repository: Path, kind: str) -> None:
     if kind == "emsdk":
-        write_launcher(repository / "emsdk.bat", "emsdk")
+        _write_emscripten_driver(repository / "emsdk.py", "emsdk")
         emscripten = repository / "upstream" / "emscripten"
-        write_launcher(emscripten / "em++.cmd", "em++")
-        write_launcher(emscripten / "emcc.cmd", "emcc")
+        write_launcher(emscripten / "em++.bat", "em++")
+        write_launcher(emscripten / "emcc.bat", "emcc")
+        write_launcher(emscripten / "emar.bat", "emar")
+        write_launcher(emscripten / "emranlib.bat", "emranlib")
         _write_emscripten_driver(
             emscripten / "em++.py",
             "em++-driver",
@@ -119,6 +237,51 @@ def create_repository_layout(repository: Path, kind: str) -> None:
         _write_emscripten_driver(
             emscripten / "emcc.py",
             "emcc-driver",
+            importable_emcc=True,
+        )
+        _write_emscripten_driver(
+            emscripten / "emar.py",
+            "emar-driver",
+        )
+        _write_emscripten_driver(
+            emscripten / "emranlib.py",
+            "emranlib-driver",
+        )
+        _write_embuilder_module(emscripten / "embuilder.py")
+        tools = emscripten / "tools"
+        tools.mkdir(parents=True, exist_ok=True)
+        (tools / "__init__.py").write_text("", encoding="utf-8")
+        (tools / "shared.py").write_text(
+            "run_via_emxx = False\n",
+            encoding="utf-8",
+        )
+        (tools / "response_file.py").write_text(
+            "fixture = True\n",
+            encoding="utf-8",
+        )
+        (tools / "config.py").write_text(
+            "fixture = True\n",
+            encoding="utf-8",
+        )
+        (tools / "system_libs.py").write_text(
+            "\n".join(
+                (
+                    "USE_NINJA = 0",
+                    "",
+                    "def get_base_cflags(",
+                    "    build_dir,",
+                    "    force_object_files=False,",
+                    "    preprocess=True,",
+                    "):",
+                    "    return [",
+                    "        '-g',",
+                    "        '-ffile-prefix-map=/source=/emsdk/emscripten',",
+                    "        '-ffile-prefix-map=../source=/emsdk/emscripten',",
+                    "    ]",
+                    "",
+                )
+            ),
+            encoding="utf-8",
         )
         _seed_native_python(repository)
         _copy_or_link(
@@ -171,6 +334,38 @@ def create_repository_layout(repository: Path, kind: str) -> None:
     elif kind == "vcpkg":
         write_launcher(repository / "bootstrap-vcpkg.bat", "vcpkg-bootstrap")
         write_launcher(repository / "vcpkg.cmd", "vcpkg")
+        bootstrap_script = repository / "scripts" / "bootstrap.ps1"
+        bootstrap_script.parent.mkdir(parents=True, exist_ok=True)
+        bootstrap_script.write_text(
+            "# authenticated fixture bootstrap implementation\n",
+            encoding="utf-8",
+        )
+        (repository / "scripts" / "vcpkg-tool-metadata.txt").write_text(
+            "\n".join(
+                (
+                    "VCPKG_TOOL_RELEASE_TAG=fixture-release",
+                    "",
+                )
+            ),
+            encoding="utf-8",
+        )
+        tools = repository / "scripts" / "vcpkg-tools.json"
+        tools.parent.mkdir(parents=True, exist_ok=True)
+        port_entry = dict(PORT_CMAKE_ENTRY)
+        port_entry["sha512"] = os.environ.get(
+            "TOOLCHAIN_DOUBLE_PORT_CMAKE_SHA512",
+            port_entry["sha512"],
+        )
+        tools.write_text(
+            json.dumps(
+                {
+                    "schema-version": 1,
+                    "tools": [port_entry],
+                },
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
     else:
         raise ValueError(f"Unknown repository kind: {kind}")
 
@@ -197,6 +392,51 @@ def seed_build_tools(toolchain_root: Path) -> None:
         toolchain_root / "ninja-1.13.2-win" / "ninja.cmd",
         "ninja",
     )
+
+
+def seed_emscripten_cache(toolchain_root: Path) -> Path:
+    cache = toolchain_root / "emscripten-cache-4.0.7"
+    library = cache / "sysroot" / "lib" / "wasm32-emscripten" / "libc.a"
+    library.parent.mkdir(parents=True, exist_ok=True)
+    library.write_bytes(b"fixture frozen libc archive\n")
+    (cache / "sysroot_install.stamp").write_bytes(b"1")
+    return cache
+
+
+def seed_vcpkg_port_cmake(state_root: Path) -> tuple[Path, Path]:
+    downloads = state_root / "downloads"
+    installation = downloads / "tools" / "cmake-4.3.3-windows"
+    executable = (
+        installation
+        / "cmake-4.3.3-windows-x86_64"
+        / "bin"
+        / "cmake.cmd"
+    )
+    write_launcher(executable, "port-cmake")
+    support = (
+        installation
+        / "cmake-4.3.3-windows-x86_64"
+        / "share"
+        / "cmake-4.3"
+        / "Modules"
+        / "FixtureSupport.cmake"
+    )
+    support.parent.mkdir(parents=True, exist_ok=True)
+    support.write_bytes(b"set(FIXTURE_PORT_CMAKE authenticated)\n")
+    archive = downloads / PORT_CMAKE_ENTRY["archive"]
+    archive.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(
+        archive,
+        "w",
+        compression=zipfile.ZIP_DEFLATED,
+    ) as bundle:
+        for path in (executable, support):
+            relative = path.relative_to(installation).as_posix()
+            info = zipfile.ZipInfo(relative, date_time=(2020, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            bundle.writestr(info, path.read_bytes())
+    return archive, installation
 
 
 def _event_path() -> Path:
@@ -337,6 +577,22 @@ def _run_git(source: str, arguments: list[str]) -> int:
             "--",
         ]:
             return 1 if (repository / ".fixture-index-dirty").exists() else 0
+        if (
+            operation[:3] == ["ls-files", "--error-unmatch", "--"]
+            and len(operation) == 4
+        ):
+            relative = operation[3].replace("\\", "/")
+            expected = {
+                "emsdk": {"emsdk.bat"},
+                "vcpkg": {
+                    "bootstrap-vcpkg.bat",
+                    "scripts/vcpkg-tools.json",
+                },
+            }[_repository_kind(repository)]
+            if relative in expected and (repository / relative).is_file():
+                print(relative)
+                return 0
+            return 1
 
     _event("git", source, arguments, rejected=True)
     print(f"Unknown git invocation: {arguments!r}", file=sys.stderr)
@@ -344,9 +600,26 @@ def _run_git(source: str, arguments: list[str]) -> int:
 
 
 def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
-    _event(tool, source, arguments)
+    execution: dict[str, object] = {}
+    if tool == "emsdk":
+        execution = {
+            "runtime": str(Path(sys.executable).resolve()),
+            "ignore_environment": bool(sys.flags.ignore_environment),
+            "no_user_site": bool(sys.flags.no_user_site),
+            "bytecode_disabled": bool(sys.dont_write_bytecode),
+        }
+    _event(tool, source, arguments, **execution)
     if tool == "emsdk":
         if arguments in (["install", "4.0.7"], ["activate", "4.0.7"]):
+            if arguments[0] == "install":
+                (
+                    Path(source).resolve().parent
+                    / "python"
+                    / ".emsdk_version"
+                ).write_text(
+                    "fixture emsdk Python metadata\n",
+                    encoding="utf-8",
+                )
             return 0
     elif tool == "vcpkg-bootstrap":
         if arguments == ["-disableMetrics"]:
@@ -356,12 +629,38 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
             print("emcc 4.0.7")
             return 0
     elif tool in ("vcpkg", "poison-vcpkg"):
-        if arguments == ["version"]:
+        if arguments in (["version"], ["version", "--disable-metrics"]):
             print("vcpkg package management program version fixture")
+            return 0
+        if (
+            len(arguments) == 4
+            and arguments[:2] == ["fetch", "cmake"]
+            and arguments[2].startswith("--downloads-root=")
+            and arguments[3].startswith("--vcpkg-root=")
+        ):
+            downloads = _resolved(arguments[2].partition("=")[2])
+            state_value = os.environ.get("TOOLCHAIN_DOUBLE_VCPKG_STATE")
+            if not state_value:
+                raise RuntimeError("TOOLCHAIN_DOUBLE_VCPKG_STATE is required")
+            state = _resolved(state_value)
+            if not _same_path(downloads, state / "downloads"):
+                print("Rejected vcpkg downloads root", file=sys.stderr)
+                return 93
+            _, installation = seed_vcpkg_port_cmake(state)
+            print(
+                installation
+                / "cmake-4.3.3-windows-x86_64"
+                / "bin"
+                / "cmake.cmd"
+            )
             return 0
     elif tool in ("cmake", "poison-cmake"):
         if arguments == ["--version"]:
             print("cmake version 4.2.3")
+            return 0
+    elif tool == "port-cmake":
+        if arguments == ["--version"]:
+            print("cmake version 4.3.3")
             return 0
     elif tool in ("ninja", "poison-ninja"):
         if arguments == ["--version"]:
@@ -378,11 +677,18 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
                 "VCPKG_ROOT",
                 "VCPKG_DISABLE_METRICS",
                 "VCPKG_DEFAULT_BINARY_CACHE",
+                "VCPKG_MAX_CONCURRENCY",
                 "CMAKE_NINJA_FORCE_RESPONSE_FILE",
                 "EM_CACHE",
+                "EM_FROZEN_CACHE",
                 "EM_CONFIG",
                 "EMSDK_NODE",
                 "PYTHONDONTWRITEBYTECODE",
+                "PYTHONNOUSERSITE",
+                "SOURCE_DATE_EPOCH",
+                "QT_RCC_SOURCE_DATE_OVERRIDE",
+                "NODE_OPTIONS",
+                "NODE_PATH",
                 "EMCC_CFLAGS",
                 "CFLAGS",
                 "CXXFLAGS",
@@ -395,6 +701,15 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
                 "VCPKG_OVERLAY_PORTS",
                 "PKG_CONFIG_PATH",
                 "CCACHE_PREFIX",
+                "CCC_OVERRIDE_OPTIONS",
+                "CPATH",
+                "C_INCLUDE_PATH",
+                "CPLUS_INCLUDE_PATH",
+                "OBJC_INCLUDE_PATH",
+                "LIBRARY_PATH",
+                "COMPILER_PATH",
+                "GCC_EXEC_PREFIX",
+                "SDKROOT",
                 "PATH",
             )
         }
@@ -404,19 +719,166 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
             arguments,
             environment=environment,
         )
+        if os.environ.get("TOOLCHAIN_DOUBLE_MUTATE_CACHE") == "1":
+            cache = Path(str(os.environ["EM_CACHE"]))
+            library = (
+                cache
+                / "sysroot"
+                / "lib"
+                / "wasm32-emscripten"
+                / "libc.a"
+            )
+            timestamps = (
+                library.stat().st_atime_ns,
+                library.stat().st_mtime_ns,
+            )
+            content = library.read_bytes()
+            library.write_bytes(
+                bytes((content[0] ^ 0x01,))
+                + content[1:]
+            )
+            os.utime(library, ns=timestamps)
+        if os.environ.get("TOOLCHAIN_DOUBLE_MUTATE_LOCKED_PATHS") == "1":
+            outcomes: list[dict[str, object]] = []
+            for value in arguments:
+                target = Path(value)
+                original = target.read_bytes()
+                try:
+                    target.write_bytes(
+                        bytes((original[0] ^ 0x01,))
+                        + original[1:]
+                    )
+                except OSError as error:
+                    outcomes.append(
+                        {
+                            "path": str(target),
+                            "denied": True,
+                            "winerror": getattr(error, "winerror", None),
+                        }
+                    )
+                else:
+                    outcomes.append(
+                        {
+                            "path": str(target),
+                            "denied": False,
+                        }
+                    )
+                    target.write_bytes(original)
+            _event(
+                "locked-path-mutation",
+                source,
+                [],
+                outcomes=outcomes,
+            )
+            if not all(bool(outcome["denied"]) for outcome in outcomes):
+                return 89
         return int(os.environ.get("TOOLCHAIN_DOUBLE_CHILD_EXIT", "0"))
-    elif tool in ("em++-driver", "emcc-driver"):
+    elif tool in (
+        "em++-driver",
+        "emcc-driver",
+        "emar-driver",
+        "emranlib-driver",
+    ):
         _event(
             tool,
             source,
             arguments,
             runtime=str(Path(sys.executable).resolve()),
             ignore_environment=bool(sys.flags.ignore_environment),
+            no_user_site=bool(sys.flags.no_user_site),
         )
         if arguments == ["--version"]:
             print("emcc 4.0.7")
             return 0
         return int(os.environ.get("TOOLCHAIN_DOUBLE_CHILD_EXIT", "0"))
+    elif tool == "embuilder":
+        if arguments == ["build", "SYSTEM"]:
+            poisoned = [
+                name
+                for name in (
+                    "EMCC_CFLAGS",
+                    "EM_COMPILER_WRAPPER",
+                    "EM_COMPILER_WRAPPER2",
+                    "CPATH",
+                    "C_INCLUDE_PATH",
+                    "CPLUS_INCLUDE_PATH",
+                    "CFLAGS",
+                    "CXXFLAGS",
+                    "LDFLAGS",
+                    "NODE_OPTIONS",
+                    "NODE_PATH",
+                )
+                if name in os.environ
+            ]
+            if poisoned:
+                print(
+                    f"Poisoned embuilder environment: {poisoned}",
+                    file=sys.stderr,
+                )
+                return 89
+            if os.environ.get("PYTHONNOUSERSITE") != "1":
+                print(
+                    "PYTHONNOUSERSITE must be exactly 1",
+                    file=sys.stderr,
+                )
+                return 93
+            if "CCC_OVERRIDE_OPTIONS" in os.environ:
+                print(
+                    "CCC_OVERRIDE_OPTIONS must remain scrubbed",
+                    file=sys.stderr,
+                )
+                return 94
+            expected_prefix_map = (
+                "-ffile-prefix-map="
+                f"{Path(str(os.environ.get('EM_CACHE', ''))).resolve()}"
+                "=/emsdk/cache"
+            )
+            try:
+                representative = json.loads(
+                    os.environ["TOOLCHAIN_DOUBLE_PREWARM_FLAGS"]
+                )
+            except (KeyError, json.JSONDecodeError):
+                print("Missing prewarm flag audit", file=sys.stderr)
+                return 95
+            if (
+                len(representative) != 2
+                or any(
+                    flags[-1] != expected_prefix_map
+                    or flags.count(expected_prefix_map) != 1
+                    for flags in representative
+                )
+            ):
+                print("Compiler path-prefix-map argv drifted", file=sys.stderr)
+                return 96
+            if os.environ.get("EMCC_CORES") != "4":
+                print("EMCC_CORES must be exactly 4", file=sys.stderr)
+                return 92
+            cache_value = os.environ.get("EM_CACHE")
+            if not cache_value:
+                print("EM_CACHE is required", file=sys.stderr)
+                return 91
+            cache = Path(cache_value)
+            if cache.exists() and any(cache.iterdir()):
+                print("EM_CACHE must be exact-empty", file=sys.stderr)
+                return 90
+            library = (
+                cache
+                / "sysroot"
+                / "lib"
+                / "wasm32-emscripten"
+                / "libc.a"
+            )
+            library.parent.mkdir(parents=True, exist_ok=True)
+            library.write_bytes(b"fixture frozen libc archive\n")
+            (cache / "sysroot_install.stamp").write_bytes(b"1")
+            (cache / "sanity.txt").write_text(
+                f"4.0.7|{cache}\n",
+                encoding="utf-8",
+            )
+            symbols = cache / "symbol_lists"
+            symbols.mkdir()
+            (symbols / "fixture.json").write_text("{}\n", encoding="utf-8")
+            return 0
     print(f"Unknown {tool} invocation: {arguments!r}", file=sys.stderr)
     return 99
 
@@ -437,9 +899,15 @@ def main() -> int:
         "emcc",
         "em++-driver",
         "emcc-driver",
+        "emar",
+        "emar-driver",
+        "emranlib",
+        "emranlib-driver",
+        "embuilder",
         "vcpkg",
         "cmake",
         "ninja",
+        "port-cmake",
         "poison-em++",
         "poison-vcpkg",
         "poison-cmake",

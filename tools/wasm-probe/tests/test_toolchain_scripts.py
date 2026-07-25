@@ -12,13 +12,21 @@ import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(
+    0,
+    str(Path(__file__).resolve().parents[1] / "scripts"),
+)
 
+import emscripten_cache_identity
 from _toolchain_process_double import (
     EMSDK_COMMIT,
     FAIL_ONCE_EXIT,
+    PORT_CMAKE_ENTRY,
     VCPKG_COMMIT,
+    seed_emscripten_cache,
     seed_build_tools,
     seed_repository,
+    seed_vcpkg_port_cmake,
     write_launcher,
 )
 
@@ -63,6 +71,25 @@ def _payload_identity(files: dict[str, bytes]) -> dict[str, object]:
     }
 
 
+def _python_import_closure(root: Path) -> dict[str, object]:
+    files = {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file() and path.suffix.casefold() == ".py"
+    }
+    payload = _payload_identity(files)
+    return {
+        field: payload[field]
+        for field in (
+            "algorithm",
+            "fileCount",
+            "totalBytes",
+            "inventorySha256",
+            "aggregateSha256",
+        )
+    }
+
+
 def _write_zip(archive: Path, entries: dict[str, bytes]) -> None:
     archive.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(
@@ -92,6 +119,7 @@ class ToolchainScriptTest(unittest.TestCase):
         shims = sandbox / "process shims"
         events = sandbox / "events.jsonl"
         cache = sandbox / "binary cache with spaces"
+        state = sandbox / "vcpkg state with spaces"
         root.mkdir(parents=True)
         write_launcher(shims / "git.cmd", "git")
         copied_probe = sandbox / "copied probe"
@@ -102,11 +130,36 @@ class ToolchainScriptTest(unittest.TestCase):
         shutil.copy2(BOOTSTRAP, bootstrap)
         shutil.copy2(WRAPPER, wrapper)
         shutil.copy2(PROVENANCE, copied_scripts / PROVENANCE.name)
+        shutil.copy2(
+            PROBE / "scripts" / "audit_emscripten_response_files.py",
+            copied_scripts / "audit_emscripten_response_files.py",
+        )
+        shutil.copy2(
+            PROBE / "scripts" / "emscripten_cache_identity.py",
+            copied_scripts / "emscripten_cache_identity.py",
+        )
+        shutil.copy2(
+            PROBE / "scripts" / "prewarm_emscripten_cache.py",
+            copied_scripts / "prewarm_emscripten_cache.py",
+        )
+        shutil.copy2(
+            PROBE / "scripts" / "invoke_emscripten_driver.py",
+            copied_scripts / "invoke_emscripten_driver.py",
+        )
 
         exemplar = sandbox / "payload exemplar"
         exemplar_emsdk = exemplar / "emsdk-4.0.7"
         seed_repository(exemplar_emsdk, "emsdk", EMSDK_COMMIT)
         seed_build_tools(exemplar)
+        exemplar_cache = seed_emscripten_cache(exemplar)
+        port_archive, port_installation = seed_vcpkg_port_cmake(
+            exemplar / "vcpkg state"
+        )
+        PORT_CMAKE_ENTRY["sha512"] = hashlib.sha512(
+            port_archive.read_bytes()
+        ).hexdigest()
+        exemplar_vcpkg = exemplar / "vcpkg-a0400024"
+        seed_repository(exemplar_vcpkg, "vcpkg", VCPKG_COMMIT)
         cmake_directory = "cmake-4.2.3-windows-x86_64"
         ninja_directory = "ninja-1.13.2-win"
         cmake_files = {
@@ -140,6 +193,20 @@ class ToolchainScriptTest(unittest.TestCase):
         lock = json.loads(
             (PROBE / "toolchain-lock.json").read_text("utf-8")
         )
+        lock["gateTools"] = {
+            "adapterSha256": hashlib.sha256(
+                (
+                    copied_scripts
+                    / "invoke_emscripten_driver.py"
+                ).read_bytes()
+            ).hexdigest(),
+            "responseAuditorSha256": hashlib.sha256(
+                (
+                    copied_scripts
+                    / "audit_emscripten_response_files.py"
+                ).read_bytes()
+            ).hexdigest(),
+        }
         release_manifest = (
             exemplar_emsdk / "emscripten-releases-tags.json"
         )
@@ -165,6 +232,108 @@ class ToolchainScriptTest(unittest.TestCase):
         emscripten_payload = _payload_identity(files)
         lock["emscripten"].update(
             {
+                "bootstrapScript": "emsdk.py",
+                "bootstrapScriptSha256": hashlib.sha256(
+                    (exemplar_emsdk / "emsdk.py").read_bytes()
+                ).hexdigest(),
+                "cLauncher": "upstream/emscripten/emcc.bat",
+                "cLauncherSha256": hashlib.sha256(
+                    (
+                        exemplar_emsdk
+                        / "upstream"
+                        / "emscripten"
+                        / "emcc.bat"
+                    ).read_bytes()
+                ).hexdigest(),
+                "cxxLauncher": "upstream/emscripten/em++.bat",
+                "cxxLauncherSha256": hashlib.sha256(
+                    (
+                        exemplar_emsdk
+                        / "upstream"
+                        / "emscripten"
+                        / "em++.bat"
+                    ).read_bytes()
+                ).hexdigest(),
+                "driverApi": {
+                    "emccPySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "emcc.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "emxxPySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "em++.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "emarLauncherSha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "emar.bat"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "emarPySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "emar.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "emranlibLauncherSha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "emranlib.bat"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "emranlibPySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "emranlib.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "sharedPySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "tools"
+                            / "shared.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "responseFilePySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "tools"
+                            / "response_file.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "configPySha256": hashlib.sha256(
+                        (
+                            exemplar_emsdk
+                            / "upstream"
+                            / "emscripten"
+                            / "tools"
+                            / "config.py"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "pythonImportClosure": _python_import_closure(
+                        exemplar_emsdk / "upstream" / "emscripten"
+                    ),
+                },
                 "releaseManifest": {
                     "path": "emscripten-releases-tags.json",
                     "sha256": hashlib.sha256(
@@ -172,6 +341,9 @@ class ToolchainScriptTest(unittest.TestCase):
                     ).hexdigest(),
                 },
                 "nodeExecutable": "node/node.exe",
+                "nodeExecutableSha256": hashlib.sha256(
+                    (exemplar_emsdk / "node" / "node.exe").read_bytes()
+                ).hexdigest(),
                 "pythonExecutable": "python/python.exe",
                 "payload": {
                     **emscripten_payload,
@@ -180,8 +352,189 @@ class ToolchainScriptTest(unittest.TestCase):
                     "excludedSegments": [],
                     "excludedSuffixes": [],
                 },
+                "cache": {
+                    "directory": "emscripten-cache-4.0.7",
+                    "initializer": (
+                        "prewarm_emscripten_cache.py -> "
+                        "embuilder.py build SYSTEM"
+                    ),
+                    "prewarmCores": 4,
+                    "compilerPathPrefixMap": {
+                        "injection": (
+                            "tracked-python-get_base_cflags-adapter"
+                        ),
+                        "flag": "-ffile-prefix-map",
+                        "systemLibsSha256": (
+                            hashlib.sha256(
+                                (
+                                    exemplar_emsdk
+                                    / "upstream"
+                                    / "emscripten"
+                                    / "tools"
+                                    / "system_libs.py"
+                                ).read_bytes()
+                            ).hexdigest()
+                        ),
+                        "target": "/emsdk/cache",
+                    },
+                    "frozenEnvironment": "EM_FROZEN_CACHE=1",
+                    "volatileProducts": [
+                        "sanity.txt",
+                        "symbol_lists/*.json",
+                    ],
+                    "payload": emscripten_cache_identity.generate_identity(
+                        exemplar_cache
+                    ),
+                },
             }
         )
+        python_root = exemplar_emsdk / "python"
+        python_files = {
+            path.relative_to(python_root).as_posix(): path.read_bytes()
+            for path in python_root.rglob("*")
+            if path.is_file()
+            and path.name != ".emsdk_version"
+        }
+        python_archive = root / "downloads" / "python-fixture.zip"
+        _write_zip(python_archive, python_files)
+        lock["emscripten"]["bootstrapPython"] = {
+            "url": f"https://fixture.invalid/{python_archive.name}",
+            "archiveFile": python_archive.name,
+            "sha256": hashlib.sha256(
+                python_archive.read_bytes()
+            ).hexdigest(),
+            "installationDirectory": "python",
+            "executable": "python.exe",
+            "executableSha256": hashlib.sha256(
+                (python_root / "python.exe").read_bytes()
+            ).hexdigest(),
+            "payload": {
+                **_payload_identity(python_files),
+                "stripPrefix": "",
+            },
+            "allowedRuntimePrefixes": [],
+            "allowedRuntimeFiles": [".emsdk_version"],
+        }
+        port_files = {
+            path.relative_to(port_installation).as_posix(): path.read_bytes()
+            for path in port_installation.rglob("*")
+            if path.is_file()
+        }
+        lock["vcpkg"].update(
+            {
+                "bootstrapLauncher": "bootstrap-vcpkg.bat",
+                "bootstrapLauncherSha256": hashlib.sha256(
+                    (
+                        exemplar_vcpkg
+                        / "bootstrap-vcpkg.bat"
+                    ).read_bytes()
+                ).hexdigest(),
+                "bootstrapScript": "scripts/bootstrap.ps1",
+                "bootstrapScriptSha256": hashlib.sha256(
+                    (
+                        exemplar_vcpkg
+                        / "scripts"
+                        / "bootstrap.ps1"
+                    ).read_bytes()
+                ).hexdigest(),
+                "toolMetadata": "scripts/vcpkg-tool-metadata.txt",
+                "toolMetadataSha256": hashlib.sha256(
+                    (
+                        exemplar_vcpkg
+                        / "scripts"
+                        / "vcpkg-tool-metadata.txt"
+                    ).read_bytes()
+                ).hexdigest(),
+                "toolReleaseTag": "fixture-release",
+                "toolUrl": (
+                    "https://github.com/microsoft/vcpkg-tool/releases/"
+                    "download/fixture-release/vcpkg.exe"
+                ),
+                "executable": "vcpkg.cmd",
+                "executableSha256": hashlib.sha256(
+                    (exemplar_vcpkg / "vcpkg.cmd").read_bytes()
+                ).hexdigest(),
+                "portBuildCMake": {
+                    "version": "4.3.3",
+                    "toolsManifest": "scripts/vcpkg-tools.json",
+                    "toolsManifestSha256": hashlib.sha256(
+                        (
+                            exemplar_vcpkg
+                            / "scripts"
+                            / "vcpkg-tools.json"
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "url": PORT_CMAKE_ENTRY["url"],
+                    "sha512": PORT_CMAKE_ENTRY["sha512"],
+                    "archiveBytes": port_archive.stat().st_size,
+                    "archiveFile": PORT_CMAKE_ENTRY["archive"],
+                    "installationDirectory": "cmake-4.3.3-windows",
+                    "executable": PORT_CMAKE_ENTRY["executable"],
+                    "executableSha256": hashlib.sha256(
+                        (
+                            port_installation
+                            / PORT_CMAKE_ENTRY["executable"]
+                        ).read_bytes()
+                    ).hexdigest(),
+                    "payload": {
+                        **_payload_identity(port_files),
+                        "stripPrefix": "",
+                    },
+                },
+            }
+        )
+        for name, exemplar_root, prefix in (
+            (
+                "emscripten",
+                exemplar_emsdk,
+                f"emsdk-{EMSDK_COMMIT}",
+            ),
+            (
+                "vcpkg",
+                exemplar_vcpkg,
+                f"vcpkg-{VCPKG_COMMIT}",
+            ),
+        ):
+            source_files = {
+                path.relative_to(exemplar_root).as_posix(): path.read_bytes()
+                for path in exemplar_root.rglob("*")
+                if path.is_file()
+                and not (
+                    name == "emscripten"
+                    and path.relative_to(exemplar_root).parts[0] == "python"
+                )
+            }
+            archive = (
+                root
+                / "downloads"
+                / f"{name}-source-fixture.zip"
+            )
+            _write_zip(
+                archive,
+                {
+                    f"{prefix}/{relative}": content
+                    for relative, content in source_files.items()
+                },
+            )
+            source_contract = {
+                "url": f"https://fixture.invalid/{archive.name}",
+                "archiveFile": archive.name,
+                "sha256": hashlib.sha256(archive.read_bytes()).hexdigest(),
+                "payload": {
+                    **_payload_identity(source_files),
+                    "stripPrefix": prefix,
+                },
+                "allowedRuntimePrefixes": (
+                    ["python", "upstream"]
+                    if name == "emscripten"
+                    else []
+                ),
+                "allowedRuntimeFiles": [],
+            }
+            if name == "emscripten":
+                lock["emscripten"]["sourceArchive"] = source_contract
+            else:
+                lock["vcpkg"]["sourceArchive"] = source_contract
         for name, directory, archive, artifact_files, strip_prefix in (
             (
                 "cmake",
@@ -229,6 +582,10 @@ class ToolchainScriptTest(unittest.TestCase):
                 "PATH": f"{shims}{os.pathsep}{environment.get('PATH', '')}",
                 "TOOLCHAIN_DOUBLE_EVENTS": str(events),
                 "TOOLCHAIN_DOUBLE_ROOT": str(root),
+                "TOOLCHAIN_DOUBLE_VCPKG_STATE": str(state),
+                "TOOLCHAIN_DOUBLE_PORT_CMAKE_SHA512": (
+                    PORT_CMAKE_ENTRY["sha512"]
+                ),
                 "HTTP_PROXY": "http://127.0.0.1:9",
                 "HTTPS_PROXY": "http://127.0.0.1:9",
                 "ALL_PROXY": "http://127.0.0.1:9",
@@ -241,6 +598,7 @@ class ToolchainScriptTest(unittest.TestCase):
             "shims": shims,
             "events": events,
             "cache": cache,
+            "state": state,
             "environment": environment,
             "bootstrap": bootstrap,
             "wrapper": wrapper,
@@ -287,6 +645,8 @@ class ToolchainScriptTest(unittest.TestCase):
                 str(fixture["root"]),
                 "-BinaryCache",
                 str(fixture["cache"]),
+                "-VcpkgStateRoot",
+                str(fixture["state"]),
                 "--",
                 str(child),
                 *(child_arguments or []),
@@ -312,7 +672,12 @@ class ToolchainScriptTest(unittest.TestCase):
         if entrypoint == "bootstrap":
             return self._run(
                 Path(str(fixture["bootstrap"])),
-                ["-ToolchainRoot", str(fixture["root"])],
+                [
+                    "-ToolchainRoot",
+                    str(fixture["root"]),
+                    "-VcpkgStateRoot",
+                    str(fixture["state"]),
+                ],
                 dict(fixture["environment"]),
             )
         if entrypoint == "wrapper":
@@ -336,6 +701,7 @@ class ToolchainScriptTest(unittest.TestCase):
             "vcpkg",
             "cmake",
             "ninja",
+            "port-cmake",
             "capture",
             "capture-environment",
         }
@@ -352,6 +718,8 @@ class ToolchainScriptTest(unittest.TestCase):
         seed_repository(root / "emsdk-4.0.7", "emsdk", EMSDK_COMMIT)
         seed_repository(root / "vcpkg-a0400024", "vcpkg", VCPKG_COMMIT)
         seed_build_tools(root)
+        seed_emscripten_cache(root)
+        seed_vcpkg_port_cmake(root.parent / "vcpkg state with spaces")
 
     @staticmethod
     def _hostile_arguments(side_effect: Path) -> list[str]:
@@ -395,13 +763,13 @@ class ToolchainScriptTest(unittest.TestCase):
             ],
         )
 
-    def test_wrong_heads_fail_closed(self) -> None:
+    def test_authenticated_source_member_drift_fails_closed(self) -> None:
         wrong = "1111111111111111111111111111111111111111"
         repositories = (
-            ("emsdk", "emsdk-4.0.7", EMSDK_COMMIT),
-            ("vcpkg", "vcpkg-a0400024", VCPKG_COMMIT),
+            ("emsdk", "emsdk-4.0.7"),
+            ("vcpkg", "vcpkg-a0400024"),
         )
-        for kind, directory, expected in repositories:
+        for kind, directory in repositories:
             for entrypoint in ("bootstrap", "wrapper"):
                 with self.subTest(repository=kind, entrypoint=entrypoint):
                     with tempfile.TemporaryDirectory(
@@ -416,7 +784,12 @@ class ToolchainScriptTest(unittest.TestCase):
                         if entrypoint == "bootstrap":
                             result = self._run(
                                 Path(str(fixture["bootstrap"])),
-                                ["-ToolchainRoot", str(root)],
+                                [
+                                    "-ToolchainRoot",
+                                    str(root),
+                                    "-VcpkgStateRoot",
+                                    str(fixture["state"]),
+                                ],
                                 fixture["environment"],
                             )
                         else:
@@ -428,8 +801,11 @@ class ToolchainScriptTest(unittest.TestCase):
                             result = self._run_wrapper(fixture, child)
                         combined = result.stdout + result.stderr
                         self.assertNotEqual(result.returncode, 0, combined)
-                        self.assertIn(expected, combined)
-                        self.assertIn(wrong, combined)
+                        self.assertIn(
+                            f"{kind} source file '.fixture-head' "
+                            "SHA-256 drifted",
+                            combined,
+                        )
                         self.assertEqual(head.read_text("ascii"), wrong)
                         events = self._events(fixture["events"])
                         forbidden = {
@@ -454,38 +830,9 @@ class ToolchainScriptTest(unittest.TestCase):
                             for event in events
                             if event["tool"] == "git"
                         ]
-                        self.assertTrue(git_operations, events)
-                        allowed_git_operations = {
-                            ("rev-parse", "HEAD"),
-                            (
-                                "diff",
-                                "--quiet",
-                                "--no-ext-diff",
-                                "--no-textconv",
-                                "--ignore-submodules=all",
-                                "--",
-                            ),
-                            (
-                                "diff",
-                                "--cached",
-                                "--quiet",
-                                "--no-ext-diff",
-                                "--no-textconv",
-                                "--ignore-submodules=all",
-                                "HEAD",
-                                "--",
-                            ),
-                        }
-                        self.assertTrue(
-                            all(
-                                tuple(operation[2:])
-                                in allowed_git_operations
-                                for operation in git_operations
-                            ),
-                            git_operations,
-                        )
+                        self.assertEqual(git_operations, [], events)
 
-    def test_bootstrap_recovers_owned_partial_clone(self) -> None:
+    def test_bootstrap_recovers_owned_partial_source_extraction(self) -> None:
         with tempfile.TemporaryDirectory(
             prefix="rg toolchain recovery "
         ) as temporary:
@@ -502,34 +849,20 @@ class ToolchainScriptTest(unittest.TestCase):
             sentinel = root / "emsdk-4.0.7.bootstrap-tmp-user-sentinel"
             sentinel.mkdir()
             (sentinel / "keep").write_text("keep", encoding="ascii")
-            marker = fixture["sandbox"] / "clone failed once"
-            assert isinstance(marker, Path)
             environment = fixture["environment"]
             assert isinstance(environment, dict)
-            environment["TOOLCHAIN_DOUBLE_FAIL_CLONE_ONCE"] = str(marker)
-
-            first = self._run(
+            result = self._run(
                 Path(str(fixture["bootstrap"])),
-                ["-ToolchainRoot", str(root)],
+                [
+                    "-ToolchainRoot",
+                    str(root),
+                    "-VcpkgStateRoot",
+                    str(fixture["state"]),
+                    "-InitializeEmscriptenCache",
+                ],
                 environment,
             )
-            self.assertNotEqual(first.returncode, 0, first.stderr)
-            self.assertIn(
-                str(FAIL_ONCE_EXIT),
-                first.stdout + first.stderr,
-            )
-            self.assertFalse((root / "emsdk-4.0.7").exists())
-            self.assertFalse((root / "vcpkg-a0400024").exists())
-            self.assertFalse(emsdk_temporary.exists())
-            self.assertTrue(vcpkg_temporary.exists())
-            self.assertTrue((sentinel / "keep").is_file())
-
-            second = self._run(
-                Path(str(fixture["bootstrap"])),
-                ["-ToolchainRoot", str(root)],
-                environment,
-            )
-            self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertEqual(
                 (root / "emsdk-4.0.7" / ".fixture-head").read_text("ascii"),
                 EMSDK_COMMIT,
@@ -543,40 +876,12 @@ class ToolchainScriptTest(unittest.TestCase):
             self.assertTrue((sentinel / "keep").is_file())
 
             events = self._events(fixture["events"])
-            clones = [
+            git_events = [
                 event
                 for event in events
                 if event["tool"] == "git"
-                and event["args"][0:2] == ["clone", "--filter=blob:none"]
             ]
-            expected_destinations = {
-                str(emsdk_temporary.resolve()).casefold(),
-                str(vcpkg_temporary.resolve()).casefold(),
-            }
-            self.assertEqual(
-                {
-                    str(event["args"][-1]).casefold()
-                    for event in clones
-                },
-                expected_destinations,
-            )
-            self.assertTrue(
-                all(not bool(event["canonical_exists"]) for event in clones),
-                clones,
-            )
-            temporary_git_events = [
-                event
-                for event in events
-                if event["tool"] == "git"
-                and ".bootstrap-tmp" in str(event["args"])
-            ]
-            self.assertTrue(
-                all(
-                    not bool(event["canonical_exists"])
-                    for event in temporary_git_events
-                ),
-                temporary_git_events,
-            )
+            self.assertEqual(git_events, [], events)
             sdk_events = [
                 (event["tool"], event["args"])
                 for event in events
@@ -590,22 +895,344 @@ class ToolchainScriptTest(unittest.TestCase):
                 [
                     ("emsdk", ["install", "4.0.7"]),
                     ("emsdk", ["activate", "4.0.7"]),
-                    ("vcpkg-bootstrap", ["-disableMetrics"]),
                 ],
             )
+            pinned_python = (
+                root / "emsdk-4.0.7" / "python" / "python.exe"
+            ).resolve()
+            for event in events:
+                if event["tool"] != "emsdk":
+                    continue
+                self.assertEqual(
+                    Path(str(event["runtime"])).resolve(),
+                    pinned_python,
+                )
+                self.assertTrue(event["ignore_environment"])
+                self.assertTrue(event["no_user_site"])
+                self.assertTrue(event["bytecode_disabled"])
 
-    def test_tracked_repository_drift_fails_before_tool_execution(self) -> None:
-        repositories = (
-            ("emsdk-4.0.7", ".fixture-worktree-dirty", "unstaged"),
-            ("emsdk-4.0.7", ".fixture-index-dirty", "staged"),
-            ("vcpkg-a0400024", ".fixture-worktree-dirty", "unstaged"),
-            ("vcpkg-a0400024", ".fixture-index-dirty", "staged"),
+    def test_frozen_cache_requires_explicit_initialization_and_is_reused(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg explicit frozen cache "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = Path(str(fixture["root"]))
+            self._seed_complete(root)
+            cache = root / "emscripten-cache-4.0.7"
+            shutil.rmtree(cache)
+            arguments = [
+                "-ToolchainRoot",
+                str(root),
+                "-VcpkgStateRoot",
+                str(fixture["state"]),
+            ]
+            environment = dict(fixture["environment"])
+            environment.update(
+                {
+                    "CCC_OVERRIDE_OPTIONS": "+-fexceptions",
+                    "EMCC_CFLAGS": "-fexceptions",
+                    "EM_COMPILER_WRAPPER": "T:\\poison wrapper",
+                    "EM_COMPILER_WRAPPER2": "T:\\poison wrapper 2",
+                    "CPATH": "T:\\poison include",
+                    "C_INCLUDE_PATH": "T:\\poison c include",
+                    "CPLUS_INCLUDE_PATH": "T:\\poison cxx include",
+                    "CFLAGS": "-fexceptions",
+                    "CXXFLAGS": "-fexceptions",
+                    "LDFLAGS": "-fexceptions",
+                    "NODE_OPTIONS": "--require=T:\\poison.js",
+                    "NODE_PATH": "T:\\poison node modules",
+                    "PYTHONNOUSERSITE": "0",
+                }
+            )
+
+            refused = self._run(
+                Path(str(fixture["bootstrap"])),
+                arguments,
+                environment,
+            )
+            self.assertNotEqual(
+                refused.returncode,
+                0,
+                refused.stdout + refused.stderr,
+            )
+            self.assertIn(
+                "-InitializeEmscriptenCache",
+                refused.stdout + refused.stderr,
+            )
+            self.assertFalse(cache.exists())
+            self.assertFalse(
+                any(
+                    event["tool"] == "embuilder"
+                    for event in self._events(Path(str(fixture["events"])))
+                )
+            )
+
+            initialized = self._run(
+                Path(str(fixture["bootstrap"])),
+                [*arguments, "-InitializeEmscriptenCache"],
+                environment,
+            )
+            self.assertEqual(
+                initialized.returncode,
+                0,
+                initialized.stdout + initialized.stderr,
+            )
+            self.assertTrue(cache.is_dir())
+            self.assertFalse((cache / "sanity.txt").exists())
+            self.assertFalse((cache / "symbol_lists").exists())
+            self.assertFalse(
+                (root / "emscripten-cache-4.0.7.bootstrap-tmp").exists()
+            )
+            first_events = self._events(Path(str(fixture["events"])))
+            self.assertEqual(
+                sum(event["tool"] == "embuilder" for event in first_events),
+                1,
+            )
+
+            reused = self._run(
+                Path(str(fixture["bootstrap"])),
+                arguments,
+                environment,
+            )
+            self.assertEqual(
+                reused.returncode,
+                0,
+                reused.stdout + reused.stderr,
+            )
+            second_events = self._events(Path(str(fixture["events"])))
+            self.assertEqual(
+                sum(event["tool"] == "embuilder" for event in second_events),
+                1,
+            )
+
+    def test_frozen_cache_is_authenticated_before_and_after_child(
+        self,
+    ) -> None:
+        for mutation in ("before", "during"):
+            with self.subTest(mutation=mutation):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg frozen cache tamper "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    self._seed_complete(root)
+                    cache_library = (
+                        root
+                        / "emscripten-cache-4.0.7"
+                        / "sysroot"
+                        / "lib"
+                        / "wasm32-emscripten"
+                        / "libc.a"
+                    )
+                    timestamps = (
+                        cache_library.stat().st_atime_ns,
+                        cache_library.stat().st_mtime_ns,
+                    )
+                    child, arguments = self._native_capture_command(
+                        [mutation]
+                    )
+                    if mutation == "before":
+                        content = cache_library.read_bytes()
+                        cache_library.write_bytes(
+                            bytes((content[0] ^ 0x01,))
+                            + content[1:]
+                        )
+                        os.utime(cache_library, ns=timestamps)
+                    else:
+                        environment = fixture["environment"]
+                        assert isinstance(environment, dict)
+                        environment["TOOLCHAIN_DOUBLE_MUTATE_CACHE"] = "1"
+
+                    result = self._run_wrapper(
+                        fixture,
+                        child,
+                        arguments,
+                    )
+                    self.assertNotEqual(
+                        result.returncode,
+                        0,
+                        result.stdout + result.stderr,
+                    )
+                    self.assertIn(
+                        "Emscripten frozen cache",
+                        result.stdout + result.stderr,
+                    )
+                    events = self._events(Path(str(fixture["events"])))
+                    captures = [
+                        event
+                        for event in events
+                        if event["tool"] == "capture-environment"
+                    ]
+                    self.assertEqual(
+                        len(captures),
+                        0 if mutation == "before" else 1,
+                        events,
+                    )
+                    if mutation == "before":
+                        self._assert_no_tool_execution(fixture)
+
+    def test_runtime_and_port_cmake_are_locked_for_child_lifetime(
+        self,
+    ) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg executable lifetime locks "
+        ) as temporary:
+            fixture = self._fixture(temporary)
+            root = Path(str(fixture["root"]))
+            state = Path(str(fixture["state"]))
+            self._seed_complete(root)
+            lock = json.loads(
+                Path(str(fixture["lock"])).read_text("utf-8")
+            )
+            node = root / "emsdk-4.0.7" / lock["emscripten"][
+                "nodeExecutable"
+            ]
+            port_cmake_contract = lock["vcpkg"]["portBuildCMake"]
+            port_cmake = (
+                state
+                / "downloads"
+                / "tools"
+                / port_cmake_contract["installationDirectory"]
+                / port_cmake_contract["executable"]
+            )
+            originals = {
+                path: path.read_bytes()
+                for path in (node, port_cmake)
+            }
+            environment = fixture["environment"]
+            assert isinstance(environment, dict)
+            environment["TOOLCHAIN_DOUBLE_MUTATE_LOCKED_PATHS"] = "1"
+            child, arguments = self._native_capture_command(
+                [str(node), str(port_cmake)]
+            )
+
+            result = self._run_wrapper(fixture, child, arguments)
+            self.assertEqual(
+                result.returncode,
+                0,
+                result.stdout + result.stderr,
+            )
+            events = self._events(Path(str(fixture["events"])))
+            mutations = [
+                event
+                for event in events
+                if event["tool"] == "locked-path-mutation"
+            ]
+            self.assertEqual(len(mutations), 1, events)
+            outcomes = mutations[0]["outcomes"]
+            self.assertEqual(len(outcomes), 2, outcomes)
+            self.assertTrue(
+                all(bool(outcome["denied"]) for outcome in outcomes),
+                outcomes,
+            )
+            for path, content in originals.items():
+                self.assertEqual(path.read_bytes(), content)
+
+    def test_qualification_build_control_is_lifetime_locked(self) -> None:
+        with tempfile.TemporaryDirectory(
+            prefix="rg build control lifetime lock "
+        ) as directory:
+            build_control = Path(directory) / "build.ninja"
+            build_control.write_text(
+                "build selected: trusted-rule\n",
+                encoding="utf-8",
+            )
+            script = "\n".join(
+                (
+                    "$ErrorActionPreference = 'Stop'",
+                    f". {str(PROVENANCE)!r}",
+                    f"$control = {str(build_control)!r}",
+                    (
+                        "$closure = Open-QualificationClosure "
+                        "-Roots @() -Files @([PSCustomObject]@{"
+                    ),
+                    "  Logical = 'build-control/build.ninja'",
+                    "  Path = $control",
+                    "})",
+                    "try {",
+                    "  $start = [Diagnostics.ProcessStartInfo]::new()",
+                    f"  $start.FileName = {str(Path(sys.executable).resolve())!r}",
+                    "  $start.UseShellExecute = $false",
+                    "  $start.RedirectStandardError = $true",
+                    "  $start.ArgumentList.Add('-c')",
+                    (
+                        "  $start.ArgumentList.Add("
+                        + repr(
+                            "from pathlib import Path; "
+                            f"Path({str(build_control)!r}).write_text("
+                            "'forged', encoding='utf-8')"
+                        )
+                        + ")"
+                    ),
+                    "  $process = [Diagnostics.Process]::Start($start)",
+                    "  $process.WaitForExit()",
+                    "  $stderr = $process.StandardError.ReadToEnd()",
+                    "  if ($process.ExitCode -eq 0) {",
+                    "    throw 'Build-control mutation was not denied'",
+                    "  }",
+                    "} finally {",
+                    "  foreach ($stream in @($closure.Streams)) {",
+                    "    $stream.Dispose()",
+                    "  }",
+                    "}",
+                    "Write-Output 'BUILD_CONTROL_MUTATION_DENIED=1'",
+                )
+            )
+            result = subprocess.run(
+                [
+                    self.pwsh,
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-Command",
+                    script,
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(
+                result.returncode,
+                0,
+                result.stdout + result.stderr,
+            )
+            self.assertIn(
+                "BUILD_CONTROL_MUTATION_DENIED=1",
+                result.stdout,
+            )
+            self.assertEqual(
+                build_control.read_text("utf-8"),
+                "build selected: trusted-rule\n",
+            )
+            wrapper_text = WRAPPER.read_text("utf-8")
+            self.assertIn("build-control-manifest.txt", wrapper_text)
+            self.assertIn('"build-control/$relative"', wrapper_text)
+            self.assertLess(
+                wrapper_text.index("build-control-manifest.txt"),
+                wrapper_text.index("Open-QualificationClosure"),
+            )
+            self.assertLess(
+                wrapper_text.index("Open-QualificationClosure"),
+                wrapper_text.index(
+                    "$childExitCode = Invoke-NativeProcess",
+                ),
+            )
+
+    def test_source_tree_and_archive_drift_fail_before_tool_execution(
+        self,
+    ) -> None:
+        cases = (
+            ("emsdk", "emsdk-4.0.7", "extra"),
+            ("emsdk", "emsdk-4.0.7", "archive"),
+            ("vcpkg", "vcpkg-a0400024", "extra"),
+            ("vcpkg", "vcpkg-a0400024", "archive"),
         )
-        for directory, marker_name, expected in repositories:
+        for kind, directory, mutation in cases:
             for entrypoint in ("bootstrap", "wrapper"):
                 with self.subTest(
-                    repository=directory,
-                    state=expected,
+                    repository=kind,
+                    mutation=mutation,
                     entrypoint=entrypoint,
                 ):
                     with tempfile.TemporaryDirectory(
@@ -614,8 +1241,39 @@ class ToolchainScriptTest(unittest.TestCase):
                         fixture = self._fixture(temporary)
                         root = Path(str(fixture["root"]))
                         self._seed_complete(root)
-                        marker = root / directory / marker_name
-                        marker.write_text("dirty", encoding="ascii")
+                        if mutation == "extra":
+                            marker = (
+                                root / directory / "unmodeled-source-extra"
+                            )
+                            marker.write_text("dirty", encoding="ascii")
+                            expected = (
+                                f"{kind} unexpected file: "
+                                "unmodeled-source-extra"
+                            )
+                        else:
+                            lock = json.loads(
+                                Path(str(fixture["lock"])).read_text("utf-8")
+                            )
+                            contract = (
+                                lock["emscripten"]
+                                if kind == "emsdk"
+                                else lock["vcpkg"]
+                            )
+                            archive = (
+                                root
+                                / "downloads"
+                                / contract["sourceArchive"]["archiveFile"]
+                            )
+                            content = archive.read_bytes()
+                            archive.write_bytes(
+                                content[:-1]
+                                + bytes((content[-1] ^ 0x01,))
+                            )
+                            expected = (
+                                f"{kind} source archive SHA-256 drifted"
+                                if entrypoint == "bootstrap"
+                                else "Build-tool archive SHA-256 drifted"
+                            )
 
                         result = self._run_entrypoint(
                             fixture,
@@ -626,6 +1284,228 @@ class ToolchainScriptTest(unittest.TestCase):
                         self.assertIn(expected, combined)
                         self._assert_no_tool_execution(fixture)
 
+    def test_source_metadata_case_and_rogue_python_fail_before_execution(
+        self,
+    ) -> None:
+        mutations = (
+            (
+                "emsdk-git-metadata",
+                "emsdk-4.0.7",
+                "emsdk unexpected directory: .git",
+            ),
+            (
+                "vcpkg-git-metadata",
+                "vcpkg-a0400024",
+                "vcpkg unexpected directory: .git",
+            ),
+            ("emsdk-source-case", "emsdk-4.0.7", "emsdk unexpected file"),
+            (
+                "rogue-preferred-python",
+                "emsdk-4.0.7",
+                "Emscripten",
+            ),
+        )
+        for mutation, directory, expected in mutations:
+            for entrypoint in ("bootstrap", "wrapper"):
+                with self.subTest(
+                    mutation=mutation,
+                    entrypoint=entrypoint,
+                ):
+                    with tempfile.TemporaryDirectory(
+                        prefix="rg exact source membership "
+                    ) as temporary:
+                        fixture = self._fixture(temporary)
+                        root = Path(str(fixture["root"]))
+                        self._seed_complete(root)
+                        installation = root / directory
+                        if mutation.endswith("git-metadata"):
+                            metadata = installation / ".git" / "config"
+                            metadata.parent.mkdir()
+                            metadata.write_text(
+                                "[core]\nrepositoryformatversion = 0\n",
+                                encoding="utf-8",
+                            )
+                        elif mutation == "emsdk-source-case":
+                            source = installation / "emsdk.py"
+                            intermediate = installation / "emsdk-case-tmp.py"
+                            source.rename(intermediate)
+                            intermediate.rename(installation / "EMSDK.PY")
+                        elif mutation == "rogue-preferred-python":
+                            rogue = (
+                                installation
+                                / "python"
+                                / "3.9.2-1_64bit"
+                                / "python.exe"
+                            )
+                            rogue.parent.mkdir(parents=True)
+                            rogue.write_bytes(
+                                (installation / "python" / "python.exe").read_bytes()
+                            )
+                        else:
+                            self.fail(f"unknown mutation: {mutation}")
+
+                        result = self._run_entrypoint(fixture, entrypoint)
+                        combined = result.stdout + result.stderr
+                        self.assertNotEqual(result.returncode, 0, combined)
+                        self.assertIn(expected, combined)
+                        self._assert_no_tool_execution(fixture)
+
+    def test_entrypoints_reject_reparse_provenance_helper_before_sourcing(
+        self,
+    ) -> None:
+        for entrypoint in ("bootstrap", "wrapper"):
+            with self.subTest(entrypoint=entrypoint):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg reparse provenance helper "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    self._seed_complete(root)
+                    copied_helper = (
+                        Path(str(fixture["wrapper"])).parent
+                        / PROVENANCE.name
+                    )
+                    copied_helper.unlink()
+                    try:
+                        copied_helper.symlink_to(PROVENANCE)
+                    except OSError as error:
+                        self.skipTest(
+                            f"symbolic links unavailable: {error}"
+                        )
+                    result = self._run_entrypoint(fixture, entrypoint)
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn("reparse-point component", combined)
+                    self._assert_no_tool_execution(fixture)
+
+    def test_unmodeled_lookalikes_and_source_member_drift_fail_closed(
+        self,
+    ) -> None:
+        for mutation in (
+            "emsdk-bootstrap-lookalike",
+            "vcpkg-bootstrap-lookalike",
+            "emsdk-bootstrap-source-bytes",
+            "vcpkg-bootstrap-source-bytes",
+            "emcc-launcher-source-bytes",
+            "emxx-launcher-source-bytes",
+            "vcpkg-executable-bytes",
+        ):
+            with self.subTest(mutation=mutation):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg exact launcher provenance "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    self._seed_complete(root)
+                    lock_path = Path(str(fixture["lock"]))
+                    lock = json.loads(lock_path.read_text("utf-8"))
+                    if mutation == "emsdk-bootstrap-lookalike":
+                        relative = "untracked-emsdk-bootstrap.cmd"
+                        write_launcher(
+                            root / "emsdk-4.0.7" / relative,
+                            "emsdk",
+                        )
+                        lock["emscripten"]["bootstrapScript"] = relative
+                        expected = (
+                            "emsdk unexpected file: "
+                            "untracked-emsdk-bootstrap.cmd"
+                        )
+                    elif mutation == "vcpkg-bootstrap-lookalike":
+                        relative = "untracked-vcpkg-bootstrap.cmd"
+                        write_launcher(
+                            root / "vcpkg-a0400024" / relative,
+                            "vcpkg-bootstrap",
+                        )
+                        lock["vcpkg"]["bootstrapLauncher"] = relative
+                        expected = (
+                            "vcpkg unexpected file: "
+                            "untracked-vcpkg-bootstrap.cmd"
+                        )
+                    elif mutation in {
+                        "emsdk-bootstrap-source-bytes",
+                        "vcpkg-bootstrap-source-bytes",
+                        "emcc-launcher-source-bytes",
+                        "emxx-launcher-source-bytes",
+                    }:
+                        specifications = {
+                            "emsdk-bootstrap-source-bytes": (
+                                root / "emsdk-4.0.7" / "emsdk.py",
+                                "emsdk source file 'emsdk.py' SHA-256 drifted",
+                            ),
+                            "vcpkg-bootstrap-source-bytes": (
+                                root
+                                / "vcpkg-a0400024"
+                                / "bootstrap-vcpkg.bat",
+                                (
+                                    "vcpkg source file 'bootstrap-vcpkg.bat' "
+                                    "SHA-256 drifted"
+                                ),
+                            ),
+                            "emcc-launcher-source-bytes": (
+                                root
+                                / "emsdk-4.0.7"
+                                / "upstream"
+                                / "emscripten"
+                                / "emcc.bat",
+                                (
+                                    "emsdk source file "
+                                    "'upstream/emscripten/emcc.bat' "
+                                    "SHA-256 drifted"
+                                ),
+                            ),
+                            "emxx-launcher-source-bytes": (
+                                root
+                                / "emsdk-4.0.7"
+                                / "upstream"
+                                / "emscripten"
+                                / "em++.bat",
+                                (
+                                    "emsdk source file "
+                                    "'upstream/emscripten/em++.bat' "
+                                    "SHA-256 drifted"
+                                ),
+                            ),
+                        }
+                        executable, expected = specifications[mutation]
+                        timestamps = (
+                            executable.stat().st_atime_ns,
+                            executable.stat().st_mtime_ns,
+                        )
+                        content = executable.read_bytes()
+                        executable.write_bytes(
+                            bytes((content[0] ^ 0x01,)) + content[1:]
+                        )
+                        os.utime(executable, ns=timestamps)
+                    elif mutation == "vcpkg-executable-bytes":
+                        executable = (
+                            root
+                            / "vcpkg-a0400024"
+                            / lock["vcpkg"]["executable"]
+                        )
+                        timestamps = (
+                            executable.stat().st_atime_ns,
+                            executable.stat().st_mtime_ns,
+                        )
+                        content = executable.read_bytes()
+                        executable.write_bytes(
+                            bytes((content[0] ^ 0x01,))
+                            + content[1:]
+                        )
+                        os.utime(executable, ns=timestamps)
+                        expected = (
+                            "vcpkg source file 'vcpkg.cmd' SHA-256 drifted"
+                        )
+                    else:
+                        self.fail(f"unknown mutation: {mutation}")
+                    lock_path.write_text(json.dumps(lock), encoding="utf-8")
+
+                    child, arguments = self._native_capture_command([])
+                    result = self._run_wrapper(fixture, child, arguments)
+                    combined = result.stdout + result.stderr
+                    self.assertNotEqual(result.returncode, 0, combined)
+                    self.assertIn(expected, combined)
+                    self._assert_no_tool_execution(fixture)
+
     def test_build_tool_tree_or_archive_drift_fails_before_versions(
         self,
     ) -> None:
@@ -634,6 +1514,7 @@ class ToolchainScriptTest(unittest.TestCase):
             ("cmake-support-bytes", "wrapper"),
             ("ninja-archive-bytes", "bootstrap"),
             ("ninja-archive-bytes", "wrapper"),
+            ("port-cmake-support-bytes", "wrapper"),
             ("missing-cmake-archive", "wrapper"),
             ("extra-cmake-file", "wrapper"),
             ("extra-ninja-directory", "wrapper"),
@@ -656,6 +1537,14 @@ class ToolchainScriptTest(unittest.TestCase):
                         root / lock["buildTools"]["ninja"]["directory"]
                     )
                     downloads = root / "downloads"
+                    port_root = (
+                        Path(str(fixture["state"]))
+                        / "downloads"
+                        / "tools"
+                        / lock["vcpkg"]["portBuildCMake"][
+                            "installationDirectory"
+                        ]
+                    )
 
                     if mutation == "cmake-support-bytes":
                         support = (
@@ -682,6 +1571,25 @@ class ToolchainScriptTest(unittest.TestCase):
                         )
                         with archive.open("ab") as stream:
                             stream.write(b"tampered")
+                    elif mutation == "port-cmake-support-bytes":
+                        support = (
+                            port_root
+                            / "cmake-4.3.3-windows-x86_64"
+                            / "share"
+                            / "cmake-4.3"
+                            / "Modules"
+                            / "FixtureSupport.cmake"
+                        )
+                        timestamps = (
+                            support.stat().st_atime_ns,
+                            support.stat().st_mtime_ns,
+                        )
+                        original = support.read_bytes()
+                        support.write_bytes(
+                            original[:-1]
+                            + bytes((original[-1] ^ 0x01,))
+                        )
+                        os.utime(support, ns=timestamps)
                     elif mutation == "missing-cmake-archive":
                         (
                             downloads
@@ -860,6 +1768,12 @@ class ToolchainScriptTest(unittest.TestCase):
             assert isinstance(root, Path)
             assert isinstance(sandbox, Path)
             self._seed_complete(root)
+            helper_directory = Path(str(fixture["wrapper"])).parent
+            for module in ("hashlib.py", "json.py"):
+                (helper_directory / module).write_text(
+                    'raise RuntimeError("adjacent stdlib shadow imported")\n',
+                    encoding="utf-8",
+                )
             poison = sandbox / "poison matching globals"
             for name, tool in (
                 ("em++.cmd", "poison-em++"),
@@ -886,7 +1800,17 @@ class ToolchainScriptTest(unittest.TestCase):
                     "EMSCRIPTEN_VERSION": "4.0.7",
                     "EM_CACHE": "T:\\poison cache",
                     "EM_CONFIG": "T:\\poison config",
+                    "EM_FROZEN_CACHE": "0",
                     "EMCC_CFLAGS": "-fexceptions",
+                    "CCC_OVERRIDE_OPTIONS": "+-fexceptions",
+                    "CPATH": "T:\\poison include",
+                    "C_INCLUDE_PATH": "T:\\poison c include",
+                    "CPLUS_INCLUDE_PATH": "T:\\poison cxx include",
+                    "OBJC_INCLUDE_PATH": "T:\\poison objc include",
+                    "LIBRARY_PATH": "T:\\poison library",
+                    "COMPILER_PATH": "T:\\poison compiler",
+                    "GCC_EXEC_PREFIX": "T:\\poison gcc",
+                    "SDKROOT": "T:\\poison sdk",
                     "CFLAGS": "-fexceptions",
                     "CXXFLAGS": "-fexceptions",
                     "CPPFLAGS": "-fexceptions",
@@ -900,6 +1824,12 @@ class ToolchainScriptTest(unittest.TestCase):
                     "CCACHE_PREFIX": "T:\\poison ccache",
                     "VCPKG_ROOT": "T:\\poison vcpkg",
                     "VCPKG_DEFAULT_BINARY_CACHE": "T:\\poison cache",
+                    "VCPKG_MAX_CONCURRENCY": "33",
+                    "NODE_OPTIONS": "--require=T:\\poison.js",
+                    "NODE_PATH": "T:\\poison node modules",
+                    "PYTHONNOUSERSITE": "0",
+                    "SOURCE_DATE_EPOCH": "9999999999",
+                    "QT_RCC_SOURCE_DATE_OVERRIDE": "8888888888",
                     "TOOLCHAIN_DOUBLE_CHILD_EXIT": "37",
                 }
             )
@@ -956,11 +1886,23 @@ class ToolchainScriptTest(unittest.TestCase):
                 event["tool"]: event
                 for event in events
                 if event["tool"]
-                in {"em++-driver", "vcpkg", "cmake", "ninja"}
+                in {
+                    "em++-driver",
+                    "vcpkg",
+                    "cmake",
+                    "ninja",
+                    "port-cmake",
+                }
             }
             self.assertEqual(
                 set(version_events),
-                {"em++-driver", "vcpkg", "cmake", "ninja"},
+                {
+                    "em++-driver",
+                    "vcpkg",
+                    "cmake",
+                    "ninja",
+                    "port-cmake",
+                },
             )
             expected_roots = {
                 "em++-driver": (
@@ -971,6 +1913,12 @@ class ToolchainScriptTest(unittest.TestCase):
                     root / "cmake-4.2.3-windows-x86_64" / "bin"
                 ),
                 "ninja": root / "ninja-1.13.2-win",
+                "port-cmake": (
+                    Path(str(fixture["state"]))
+                    / "downloads"
+                    / "tools"
+                    / "cmake-4.3.3-windows"
+                ),
             }
             for tool, expected_root in expected_roots.items():
                 source = Path(str(version_events[tool]["source"]))
@@ -1037,16 +1985,25 @@ class ToolchainScriptTest(unittest.TestCase):
                 str(
                     (
                         root
-                        / "emsdk-4.0.7"
-                        / "upstream"
-                        / "emscripten"
-                        / "cache"
+                        / "emscripten-cache-4.0.7"
                     ).resolve()
                 ),
             )
             self.assertEqual(
                 captured_environment["PYTHONDONTWRITEBYTECODE"],
                 "1",
+            )
+            self.assertEqual(
+                captured_environment["PYTHONNOUSERSITE"],
+                "1",
+            )
+            self.assertEqual(
+                captured_environment["EM_FROZEN_CACHE"],
+                "1",
+            )
+            self.assertEqual(
+                captured_environment["SOURCE_DATE_EPOCH"],
+                "1782488244",
             )
             for scrubbed in (
                 "EMCC_CFLAGS",
@@ -1061,6 +2018,18 @@ class ToolchainScriptTest(unittest.TestCase):
                 "VCPKG_OVERLAY_PORTS",
                 "PKG_CONFIG_PATH",
                 "CCACHE_PREFIX",
+                "CCC_OVERRIDE_OPTIONS",
+                "CPATH",
+                "C_INCLUDE_PATH",
+                "CPLUS_INCLUDE_PATH",
+                "OBJC_INCLUDE_PATH",
+                "LIBRARY_PATH",
+                "COMPILER_PATH",
+                "GCC_EXEC_PREFIX",
+                "SDKROOT",
+                "NODE_OPTIONS",
+                "NODE_PATH",
+                "QT_RCC_SOURCE_DATE_OVERRIDE",
             ):
                 self.assertIsNone(
                     captured_environment[scrubbed],
@@ -1073,6 +2042,10 @@ class ToolchainScriptTest(unittest.TestCase):
             self.assertEqual(
                 captured_environment["VCPKG_DISABLE_METRICS"],
                 "1",
+            )
+            self.assertEqual(
+                captured_environment["VCPKG_MAX_CONCURRENCY"],
+                "8",
             )
             self.assertEqual(
                 captured_environment["VCPKG_DEFAULT_BINARY_CACHE"],
@@ -1109,6 +2082,10 @@ class ToolchainScriptTest(unittest.TestCase):
             root = Path(str(fixture["root"]))
             sandbox = Path(str(fixture["sandbox"]))
             self._seed_complete(root)
+            (Path(str(fixture["wrapper"])).parent / "shlex.py").write_text(
+                'raise RuntimeError("adjacent shlex shadow imported")\n',
+                encoding="utf-8",
+            )
             response = sandbox / "forbidden response.rsp"
             response.write_text(
                 "object.o -fexceptions -sJSPI=1\n",
@@ -1157,6 +2134,18 @@ class ToolchainScriptTest(unittest.TestCase):
             shutil.copy2(Path(str(fixture["bootstrap"])), bootstrap)
             shutil.copy2(Path(str(fixture["wrapper"])), wrapper)
             shutil.copy2(PROVENANCE, copied_scripts / PROVENANCE.name)
+            shutil.copy2(
+                PROBE / "scripts" / "audit_emscripten_response_files.py",
+                copied_scripts / "audit_emscripten_response_files.py",
+            )
+            shutil.copy2(
+                PROBE / "scripts" / "emscripten_cache_identity.py",
+                copied_scripts / "emscripten_cache_identity.py",
+            )
+            shutil.copy2(
+                PROBE / "scripts" / "invoke_emscripten_driver.py",
+                copied_scripts / "invoke_emscripten_driver.py",
+            )
             lock = json.loads(
                 Path(str(fixture["lock"])).read_text("utf-8")
             )
@@ -1373,7 +2362,11 @@ class ToolchainScriptTest(unittest.TestCase):
             assert isinstance(sandbox, Path)
             self._seed_complete(root)
             side_effect = sandbox / "emscripten side effect"
-            arguments = self._hostile_arguments(side_effect)
+            arguments = [
+                argument
+                for argument in self._hostile_arguments(side_effect)
+                if argument not in {"-BinaryCache", "child binary cache"}
+            ]
             environment = fixture["environment"]
             assert isinstance(environment, dict)
             environment["TOOLCHAIN_DOUBLE_CHILD_EXIT"] = "37"
@@ -1383,15 +2376,15 @@ class ToolchainScriptTest(unittest.TestCase):
             )
             python = root / "emsdk-4.0.7" / "python" / "python.exe"
             commands = (
-                ("em++", "em++-driver", emscripten / "em++.py"),
+                ("em++", "em++-driver", emscripten / "emcc.py"),
                 (
-                    str(emscripten / "em++.cmd"),
+                    str(emscripten / "em++.bat"),
                     "em++-driver",
-                    emscripten / "em++.py",
+                    emscripten / "emcc.py",
                 ),
                 ("emcc", "emcc-driver", emscripten / "emcc.py"),
                 (
-                    str(emscripten / "emcc.cmd"),
+                    str(emscripten / "emcc.bat"),
                     "emcc-driver",
                     emscripten / "emcc.py",
                 ),
@@ -1425,6 +2418,7 @@ class ToolchainScriptTest(unittest.TestCase):
                         python.resolve(),
                     )
                     self.assertTrue(driver["ignore_environment"])
+                    self.assertTrue(driver["no_user_site"])
                     self.assertFalse(side_effect.exists())
 
         failure_cases = (
@@ -1446,7 +2440,12 @@ class ToolchainScriptTest(unittest.TestCase):
                     self._seed_complete(root)
                     emsdk = root / "emsdk-4.0.7"
                     emscripten = emsdk / "upstream" / "emscripten"
-                    expected_error = "Emscripten payload"
+                    expected_error = (
+                        "Emscripten payload"
+                        if failure_case
+                        in {"missing-python", "tampered-runtime-metadata"}
+                        else "emsdk source file"
+                    )
                     if failure_case == "missing-python":
                         (emsdk / "python" / "python.exe").unlink()
                     elif failure_case == "tampered-runtime-metadata":

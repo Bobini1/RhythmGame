@@ -10,6 +10,7 @@ import re
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 import xml.etree.ElementTree as ElementTree
 import zipfile
@@ -19,19 +20,238 @@ from typing import Any, Iterable, Mapping, Sequence
 
 EXPECTED_EMSCRIPTEN = "4.0.7"
 EXPECTED_EMSDK_COMMIT = "c69d433d8509c5c64564c2f0d054bf102a5cf67e"
+EXPECTED_SOURCE_DATE_EPOCH = 1782488244
+EXPECTED_REPRODUCIBLE_BUILD_LOCK_ENTRY = {
+    "sourceDateEpoch": EXPECTED_SOURCE_DATE_EPOCH,
+    "derivation": "vcpkg-baseline-source-archive-root-entry-utc",
+    "vcpkgMaxConcurrency": 8,
+}
+QUALIFICATION_CLOSURE_ALGORITHM = (
+    "sha256-logical-null-bytes-null-digest-lf-v1"
+)
+QUALIFICATION_IDENTITY_FIELDS = (
+    "algorithm",
+    "fileCount",
+    "totalBytes",
+    "inventorySha256",
+    "aggregateSha256",
+)
+
+
+def compiler_qualification_identity(
+    qualification: Mapping[str, Any],
+) -> dict[str, Any]:
+    return {
+        field: qualification[field]
+        for field in QUALIFICATION_IDENTITY_FIELDS
+    }
+COMPILE_DEPENDENCY_ALGORITHM = (
+    "sha256-compile-dependency-files-json-v1"
+)
+SELECTED_LINK_IDENTITY_ALGORITHM = (
+    "sha256-selected-link-argv-files-compile-qualification-json-v2"
+)
+EXPECTED_BUILD_CONTROL_PATHS = (
+    ".qt/.qmlls.build.ini.part",
+    ".qt/bin/qt_setup_tool_path.bat",
+    ".qt/qml_imports/RhythmGameWasmProbe_conf.cmake",
+    ".qt/rcc/qmake_RhythmGame_WasmProbe.qrc",
+    ".qt/rcc/RhythmGameWasmProbe_raw_qml_0.qrc",
+    ".qt/rcc/RhythmGameWasmProbe_raw_qml_0_extra_qmldirs.qrc",
+    ".qt/rcc/wasm_probe_shaders.qrc",
+    ".qt/RhythmGameWasmProbe_qml.cmake",
+    ".qt/RhythmGameWasmProbe_res.cmake",
+    ".rcc/qmlcache/RhythmGameWasmProbe_qml_loader_file_list.rsp",
+    "build.ninja",
+    "CMakeCache.txt",
+    "CMakeFiles/4.2.3/CMakeCCompiler.cmake",
+    "CMakeFiles/4.2.3/CMakeCXXCompiler.cmake",
+    "CMakeFiles/4.2.3/CMakeSystem.cmake",
+    (
+        "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/"
+        "AutogenInfo.json"
+    ),
+    "CMakeFiles/RhythmGameWasmProbe_autogen.dir/AutogenInfo.json",
+    (
+        "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/"
+        "AutogenInfo.json"
+    ),
+    "CMakeFiles/rules.ninja",
+    "CMakeFiles/VerifyGlobs.cmake",
+    "compile_commands.json",
+    "generated/ProbeDependencyDigest.cpp",
+    "generated/ProbeInputDigest.cpp",
+    "qmltypes/RhythmGameWasmProbe_foreign_types.txt",
+    "RhythmGame/WasmProbe/qml/qmldir",
+    "RhythmGame/WasmProbe/qmldir",
+)
+QUALIFICATION_COMMAND_ONLY_BUILD_CONTROL_PATHS = (
+    ".qt/.qmlls.build.ini.part",
+    ".qt/bin/qt_setup_tool_path.bat",
+    ".qt/RhythmGameWasmProbe_qml.cmake",
+    ".qt/RhythmGameWasmProbe_res.cmake",
+)
+QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS = (
+    (
+        "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/"
+        "AutogenUsed.txt"
+    ),
+    (
+        "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/"
+        "ParseCache.txt"
+    ),
+    "CMakeFiles/RhythmGameWasmProbe_autogen.dir/AutogenUsed.txt",
+    "CMakeFiles/RhythmGameWasmProbe_autogen.dir/ParseCache.txt",
+    (
+        "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/"
+        "AutogenUsed.txt"
+    ),
+    (
+        "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/"
+        "ParseCache.txt"
+    ),
+)
 EXPECTED_EMSDK_PYTHON = (
     ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe"
 )
 EXPECTED_EMSDK_NODE = (
     ".toolchains/emsdk-4.0.7/node/20.18.0_64bit/bin/node.exe"
 )
+EXPECTED_GATE_TOOLS_LOCK_ENTRY = {
+    "adapterSha256": (
+        "e2e241adc9d47c9d3f2d50dd679a7b67ec587e6c0515ee1f1b0d64c57e2515b8"
+    ),
+    "responseAuditorSha256": (
+        "18bbb2f3791715035dd7a0f644290173a1dc98a3e816d9621ada24079b59466b"
+    ),
+}
+EXPECTED_EMSDK_SOURCE_ARCHIVE = {
+    "url": (
+        "https://github.com/emscripten-core/emsdk/archive/"
+        "c69d433d8509c5c64564c2f0d054bf102a5cf67e.zip"
+    ),
+    "archiveFile": (
+        "emsdk-c69d433d8509c5c64564c2f0d054bf102a5cf67e.zip"
+    ),
+    "sha256": (
+        "e0be07abfa84ada42b6d895ff751a825878c07140798ddf5f94774a085122ce3"
+    ),
+    "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": (
+            "emsdk-c69d433d8509c5c64564c2f0d054bf102a5cf67e"
+        ),
+        "fileCount": 134,
+        "directoryCount": 13,
+        "totalBytes": 1011834,
+        "inventorySha256": (
+            "ac2a983596b73ff45b2c67de5b1246006671ede5e907c2118ae9a5e6bec5e237"
+        ),
+        "directoryInventorySha256": (
+            "babd394224ccaac5a946ae0a291fe53132fdd1fe558dfd31a6cd5c4db0d358dd"
+        ),
+        "aggregateSha256": (
+            "9a06ab588de3663c38c9b7ddb19034d3479087af8844b456f47df039665f1a94"
+        ),
+    },
+    "allowedRuntimePrefixes": [
+        "downloads",
+        "node/20.18.0_64bit",
+        "python/3.9.2-nuget_64bit",
+        "upstream/bin",
+        "upstream/emscripten",
+        "upstream/lib",
+    ],
+    "allowedRuntimeFiles": [
+        ".emscripten",
+        ".emscripten.old",
+        "upstream/.emsdk_version",
+        "upstream/emscripten_config",
+    ],
+}
+EXPECTED_EMSDK_BOOTSTRAP_PYTHON = {
+    "url": (
+        "https://storage.googleapis.com/webassembly/"
+        "emscripten-releases-builds/deps/"
+        "python-3.9.2-4-amd64+pywin32.zip"
+    ),
+    "archiveFile": "python-3.9.2-4-amd64+pywin32.zip",
+    "sha256": (
+        "e47e5f00c8970cee28c228f100269aaad20f7fd1405e2bd4a6c9da33076830ac"
+    ),
+    "installationDirectory": "python/3.9.2-nuget_64bit",
+    "executable": "python.exe",
+    "executableSha256": (
+        "786e68ded8af18f36274d78ea00ff11289c27107dd9f8fdd2f6b4732a3b8a2da"
+    ),
+    "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": "",
+        "fileCount": 1486,
+        "directoryCount": 118,
+        "totalBytes": 37105575,
+        "inventorySha256": (
+            "76f67170d0868c9de9b41da44b94e8e64952fe54f6afe9cb40113c084ca38fa8"
+        ),
+        "directoryInventorySha256": (
+            "c5d479f28a943783e867b63ccad150b785cb20505be4c6f4dbe358cb8e0fc285"
+        ),
+        "aggregateSha256": (
+            "97e984800db090cd44394fd54f45ebdf14bd6084a91a41d25496fb8d16ce09c1"
+        ),
+    },
+    "allowedRuntimePrefixes": [],
+    "allowedRuntimeFiles": [".emsdk_version"],
+}
+EXPECTED_EMSCRIPTEN_DRIVER_API = {
+    "emccPySha256": (
+        "2884a798ef2ad1c43f20ea1121c83ba18caec15158124b472be5494c3dc8c3f0"
+    ),
+    "emxxPySha256": (
+        "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f"
+    ),
+    "emarLauncherSha256": (
+        "f9b690c5abe642942e5d3dabb1f9f87603734c9f18b01dad2f3475120d2f33ef"
+    ),
+    "emarPySha256": (
+        "ba2d6247890bcfa38c228562d025d4f9c96f659ea297881600adf09a66dbc202"
+    ),
+    "emranlibLauncherSha256": (
+        "f9b690c5abe642942e5d3dabb1f9f87603734c9f18b01dad2f3475120d2f33ef"
+    ),
+    "emranlibPySha256": (
+        "916dc7b3b80e51638977ffdabbd00ccee0fd7bc447cfcc8dc206201c75098501"
+    ),
+    "sharedPySha256": (
+        "8d26ae87a03d55c99bf9a07f86c1fc56484d76a18f501962b5ec0f90cde8a8fe"
+    ),
+    "responseFilePySha256": (
+        "815ec85ec4d2f0d471a648a375c2fbd39daf194ac9e557d7e14901f4cac0004f"
+    ),
+    "configPySha256": (
+        "58294addc063d9ad954f767f8b28659d7c720218e40692b20e155a003192728d"
+    ),
+    "pythonImportClosure": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": 225,
+        "totalBytes": 3159759,
+        "inventorySha256": (
+            "acdbf9111c4779b62764eaa595a184179f7ffe8f46de07ea4303f635d1308477"
+        ),
+        "aggregateSha256": (
+            "4a378899a0a3ad36e19f7f5e0170641fdb647d61aaf464c721b07d729abdf6f6"
+        ),
+    },
+}
 EXPECTED_EMSCRIPTEN_LOCK_ENTRY = {
     "version": EXPECTED_EMSCRIPTEN,
     "emsdkCommit": EXPECTED_EMSDK_COMMIT,
+    "sourceArchive": EXPECTED_EMSDK_SOURCE_ARCHIVE,
+    "bootstrapPython": EXPECTED_EMSDK_BOOTSTRAP_PYTHON,
     "releaseManifest": {
         "path": "emscripten-releases-tags.json",
         "sha256": (
-            "d833b45d63b12690ce222a6a7b9fe8e7d05be53d5883162852f2483204c5a0f5"
+            "30a7e6ee492f1e3e576a97d281d68a283e2d74c4bc65bee1d298d767d50d855e"
         ),
     },
     "releaseHash": "ef4e9cedeac3332e4738087567552063f4f250d3",
@@ -41,7 +261,23 @@ EXPECTED_EMSCRIPTEN_LOCK_ENTRY = {
         "ef4e9cedeac3332e4738087567552063f4f250d3/"
         "wasm-binaries.zip"
     ),
+    "bootstrapScript": "emsdk.py",
+    "bootstrapScriptSha256": (
+        "8b6da54e6c8d72605183036d412b2878d7ec9437533cd9db4dcc6b46fc687824"
+    ),
+    "cLauncher": "upstream/emscripten/emcc.bat",
+    "cLauncherSha256": (
+        "b61f25a114b9b93444de62bc31bf05d1b12b3986513c75f6b23ccc1711c6a634"
+    ),
+    "cxxLauncher": "upstream/emscripten/em++.bat",
+    "cxxLauncherSha256": (
+        "b61f25a114b9b93444de62bc31bf05d1b12b3986513c75f6b23ccc1711c6a634"
+    ),
+    "driverApi": EXPECTED_EMSCRIPTEN_DRIVER_API,
     "nodeExecutable": "node/20.18.0_64bit/bin/node.exe",
+    "nodeExecutableSha256": (
+        "35b7c95a379beb606f5798ed83081690df13190077630b234163c6607aa4cc94"
+    ),
     "pythonExecutable": "python/3.9.2-nuget_64bit/python.exe",
     "generatedBytecode": {
         "cacheDirectory": "__pycache__",
@@ -71,6 +307,42 @@ EXPECTED_EMSCRIPTEN_LOCK_ENTRY = {
             "d6a1ec1d8b7582a01e6f69fe951a16c620866eb18c9738420a22393756b89d99"
         ),
     },
+    "cache": {
+        "directory": "emscripten-cache-4.0.7",
+        "initializer": (
+            "prewarm_emscripten_cache.py -> embuilder.py build SYSTEM"
+        ),
+        "prewarmCores": 4,
+        "compilerPathPrefixMap": {
+            "injection": "tracked-python-get_base_cflags-adapter",
+            "flag": "-ffile-prefix-map",
+            "systemLibsSha256": (
+                "48c216b787a80270e6bcaac896a8e952"
+                "ccc7978025fdee6c8d61f4138ce5c43d"
+            ),
+            "target": "/emsdk/cache",
+        },
+        "frozenEnvironment": "EM_FROZEN_CACHE=1",
+        "volatileProducts": [
+            "sanity.txt",
+            "symbol_lists/*.json",
+        ],
+        "payload": {
+            "algorithm": "sha256-path-null-digest-lf-v1",
+            "fileCount": 1825,
+            "directoryCount": 89,
+            "totalBytes": 407765837,
+            "inventorySha256": (
+                "e0eb0b8e63f577bf3cb8eefa1a4f1eedd796f0127574093560a97c4938b7cb4a"
+            ),
+            "directoryInventorySha256": (
+                "8e7094c96f2baf5c464d2cbef307ce059716c744be8d773a2528bbe5e1e33c07"
+            ),
+            "aggregateSha256": (
+                "5eddb15053811f76fb148e45a4f0994f958a20046cbc205f7b36ed8a94330ea0"
+            ),
+        },
+    },
 }
 EXPECTED_EMXX_VERSION_LINE = (
     "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) "
@@ -80,6 +352,55 @@ EXPECTED_VCPKG_COMMIT = "a0400024711b283056538ac19ced80b91a83c24c"
 EXPECTED_VCPKG_VERSION_LINE = (
     "vcpkg package management program version "
     "2026-05-27-d5b6777d666efc1a7f491babfcdab37794c1ae3e"
+)
+EXPECTED_VCPKG_EXECUTABLE_SHA256 = (
+    "da75e3312ff6881c89f6171363eedb92933b0f79456cd6ee636316edef860ff7"
+)
+EXPECTED_VCPKG_BOOTSTRAP_LAUNCHER_SHA256 = (
+    "8e8ec8a66db4f9fa69e51ca725a2aeec3c2a99e4ee0040f50358ffd8776f82b5"
+)
+EXPECTED_VCPKG_SOURCE_ARCHIVE = {
+    "url": (
+        "https://github.com/microsoft/vcpkg/archive/"
+        "a0400024711b283056538ac19ced80b91a83c24c.zip"
+    ),
+    "archiveFile": (
+        "vcpkg-a0400024711b283056538ac19ced80b91a83c24c.zip"
+    ),
+    "sha256": (
+        "1a3d2abdd7ca6d479d7f1c2e437fd9765790c09613baa2631c87b1726f905c00"
+    ),
+    "payload": {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "stripPrefix": (
+            "vcpkg-a0400024711b283056538ac19ced80b91a83c24c"
+        ),
+        "fileCount": 14073,
+        "directoryCount": 3215,
+        "totalBytes": 20252983,
+        "inventorySha256": (
+            "501493e641af8100034e7a74e03d506a8f2d65a8a01ba50a773265c38d22ca2b"
+        ),
+        "directoryInventorySha256": (
+            "3f037e402ca926d9c233c6b5cdeb8c1c54ff0d92967b5c1bf38f88bc55fb6546"
+        ),
+        "aggregateSha256": (
+            "9357531ef9ffe513b71dc4e46698cea4ab0da993c1f4780d97e920f712511d94"
+        ),
+    },
+    "allowedRuntimePrefixes": [],
+    "allowedRuntimeFiles": ["vcpkg.disable-metrics", "vcpkg.exe"],
+}
+EXPECTED_VCPKG_BOOTSTRAP_SCRIPT_SHA256 = (
+    "6d4020f84b6997deabea5e2ad362f1885b52f9c5a2bd4b1cf087ca4100974a9f"
+)
+EXPECTED_VCPKG_TOOL_METADATA_SHA256 = (
+    "fd4c5bdfb023c65cee97488622bb689243e92d30e830e621877ba55f90df7e15"
+)
+EXPECTED_VCPKG_TOOL_RELEASE_TAG = "2026-05-27"
+EXPECTED_VCPKG_TOOL_URL = (
+    "https://github.com/microsoft/vcpkg-tool/releases/download/"
+    "2026-05-27/vcpkg.exe"
 )
 EXPECTED_OUTER_CMAKE = "4.2.3"
 EXPECTED_OUTER_CMAKE_LOCK_ENTRY = {
@@ -138,6 +459,35 @@ EXPECTED_VCPKG_TOOLS_MANIFEST_SHA256 = (
 EXPECTED_VCPKG_PORT_CMAKE_EXECUTABLE_SHA256 = (
     "70fa92ce2ac9f54b0ae395b0b3790d9147ef2ebdbd7c4e0bb20852aac581baea"
 )
+EXPECTED_VCPKG_PORT_CMAKE_PAYLOAD = {
+    "algorithm": "sha256-path-null-digest-lf-v1",
+    "stripPrefix": "",
+    "fileCount": 8584,
+    "directoryCount": 153,
+    "totalBytes": 139214481,
+    "inventorySha256": (
+        "3601d4f354eccef36c5d53a9454cbc54cdd3fcea252455c866227fc220e721b9"
+    ),
+    "directoryInventorySha256": (
+        "2dbf4923414ee77924e27bde4c2c612fee537fcba58689c6b9d59fd1debb449d"
+    ),
+    "aggregateSha256": (
+        "6046bdae94472ac6feb362fb890079b991e7997af15ce5787954225ba7466d20"
+    ),
+}
+EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY = {
+    "version": EXPECTED_VCPKG_PORT_CMAKE,
+    "toolsManifest": "scripts/vcpkg-tools.json",
+    "toolsManifestSha256": EXPECTED_VCPKG_TOOLS_MANIFEST_SHA256,
+    "url": EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["url"],
+    "sha512": EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["sha512"],
+    "archiveBytes": 52967828,
+    "archiveFile": EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["archive"],
+    "installationDirectory": "cmake-4.3.3-windows",
+    "executable": EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["executable"],
+    "executableSha256": EXPECTED_VCPKG_PORT_CMAKE_EXECUTABLE_SHA256,
+    "payload": EXPECTED_VCPKG_PORT_CMAKE_PAYLOAD,
+}
 EXPECTED_NINJA = "1.13.2"
 EXPECTED_NINJA_LOCK_ENTRY = {
     "version": EXPECTED_NINJA,
@@ -362,21 +712,36 @@ HOST_TOOL_VERSION_LINES = {
     "lupdate.exe": f"lupdate version {EXPECTED_QT}",
 }
 EXPECTED_TARGET_ENV_PASSTHROUGH = (
+    "EM_CACHE",
+    "EM_FROZEN_CACHE",
     "EMSCRIPTEN_ROOT",
     "EMSCRIPTEN_VERSION",
     "EMSDK",
     "EMSDK_PYTHON",
+    "PYTHONNOUSERSITE",
+    "SOURCE_DATE_EPOCH",
     "CMAKE_NINJA_FORCE_RESPONSE_FILE",
+)
+EXPECTED_HOST_ENV_PASSTHROUGH = (
+    "PYTHONNOUSERSITE",
+    "SOURCE_DATE_EPOCH",
 )
 FORBIDDEN_BUILD_ENVIRONMENT_NAMES = (
     "AR",
+    "AS",
+    "BASH_ENV",
     "BINARYEN_ROOT",
     "CC",
+    "CCC_OVERRIDE_OPTIONS",
     "CL",
+    "COMPILER_PATH",
+    "CPATH",
     "CPP",
     "CPPFLAGS",
+    "C_INCLUDE_PATH",
     "CXX",
     "CFLAGS",
+    "CPLUS_INCLUDE_PATH",
     "CXXFLAGS",
     "EMCC_CFLAGS",
     "EMCC_DEBUG",
@@ -384,14 +749,29 @@ FORBIDDEN_BUILD_ENVIRONMENT_NAMES = (
     "EMMAKEN_COMPILER",
     "EM_COMPILER_WRAPPER",
     "EM_COMPILER_WRAPPER2",
+    "ENV",
     "LD",
     "LDFLAGS",
+    "LIB",
+    "LIBPATH",
+    "LIBRARY_PATH",
     "LLVM_ROOT",
     "NM",
+    "NODE_OPTIONS",
+    "NODE_PATH",
     "NODE_JS",
     "PYTHONHOME",
     "PYTHONPATH",
     "RANLIB",
+    "GCC_EXEC_PREFIX",
+    "INCLUDE",
+    "IPHONEOS_DEPLOYMENT_TARGET",
+    "MACOSX_DEPLOYMENT_TARGET",
+    "OBJC_INCLUDE_PATH",
+    "OBJCPLUS_INCLUDE_PATH",
+    "RC",
+    "SDKROOT",
+    "QT_RCC_SOURCE_DATE_OVERRIDE",
     "STRIP",
     "_CL_",
     "_EMCC_CCACHE",
@@ -447,18 +827,263 @@ def _is_reparse_or_symlink(path: Path) -> bool:
     return path.is_symlink() or bool(attributes & reparse_flag)
 
 
+def require_no_reparse_chain(path: Path, label: str) -> Path:
+    lexical = Path(os.path.abspath(path))
+    missing_suffix = False
+    for ancestor in reversed((lexical, *lexical.parents)):
+        if not ancestor.exists() and not ancestor.is_symlink():
+            missing_suffix = True
+            continue
+        require(
+            not missing_suffix,
+            f"{label} path changed during chain inspection: {ancestor}",
+        )
+        require(
+            not _is_reparse_or_symlink(ancestor),
+            f"{label} reparse component is forbidden: {ancestor}",
+        )
+        if ancestor != lexical:
+            require(
+                ancestor.is_dir(),
+                f"{label} non-directory component: {ancestor}",
+            )
+    return lexical
+
+
+def qualification_environment_identity(
+    environment: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    values = environment if environment is not None else os.environ
+    require(
+        values.get("RHYTHMGAME_WASM_QUALIFICATION") == "1",
+        "qualification closure must be enabled by the toolchain wrapper",
+    )
+    prefix = "RHYTHMGAME_WASM_QUALIFICATION_"
+    algorithm = values.get(prefix + "ALGORITHM")
+    require(
+        algorithm == QUALIFICATION_CLOSURE_ALGORITHM,
+        "qualification closure algorithm drifted",
+    )
+    numeric: dict[str, int] = {}
+    for name, suffix in (
+        ("fileCount", "FILE_COUNT"),
+        ("totalBytes", "TOTAL_BYTES"),
+    ):
+        raw = values.get(prefix + suffix, "")
+        require(
+            raw.isdecimal()
+            and str(int(raw)) == raw
+            and int(raw) > 0,
+            f"qualification closure {name} is invalid: {raw!r}",
+        )
+        numeric[name] = int(raw)
+    digests: dict[str, str] = {}
+    for name, suffix in (
+        ("inventorySha256", "INVENTORY_SHA256"),
+        ("aggregateSha256", "AGGREGATE_SHA256"),
+    ):
+        raw = values.get(prefix + suffix, "")
+        require(
+            re.fullmatch(r"[0-9a-f]{64}", raw) is not None,
+            f"qualification closure {name} is invalid",
+        )
+        digests[name] = raw
+    return {
+        "algorithm": algorithm,
+        **numeric,
+        **digests,
+    }
+
+
+def _qualification_file_digest(path: Path, label: str) -> tuple[int, str]:
+    path = require_no_reparse_chain(path, label)
+    require(
+        path.is_file() and not _is_reparse_or_symlink(path),
+        f"{label} is not a regular file: {path}",
+    )
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        before = os.fstat(stream.fileno())
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+        after = os.fstat(stream.fileno())
+    require(
+        before.st_dev == after.st_dev
+        and before.st_ino == after.st_ino
+        and before.st_size == after.st_size,
+        f"{label} changed while hashing: {path}",
+    )
+    return before.st_size, digest.hexdigest()
+
+
+def qualification_closure_identity(
+    roots: Sequence[tuple[str, Path, Sequence[str]]],
+    files: Sequence[tuple[str, Path]],
+    environment: Mapping[str, str] | None = None,
+) -> dict[str, Any]:
+    """Independently reproduce the wrapper's complete qualification closure."""
+
+    def collect() -> dict[str, tuple[Path, str]]:
+        entries: dict[str, tuple[Path, str]] = {}
+        folded_logical: set[str] = set()
+        physical: set[str] = set()
+
+        def add(logical: str, path: Path, source: str) -> None:
+            parts = logical.split("/")
+            require(
+                bool(logical)
+                and not logical.startswith("/")
+                and not logical.endswith("/")
+                and "\\" not in logical
+                and all(part not in {"", ".", ".."} for part in parts),
+                f"unsafe qualification closure logical path: {logical!r}",
+            )
+            folded = logical.casefold()
+            require(
+                folded not in folded_logical,
+                "case-insensitive qualification closure logical collision: "
+                f"{logical}",
+            )
+            candidate = require_no_reparse_chain(
+                path,
+                f"qualification closure {logical!r}",
+            )
+            require(
+                candidate.is_file()
+                and not _is_reparse_or_symlink(candidate),
+                f"qualification closure file is missing: {candidate}",
+            )
+            key = path_key(candidate)
+            require(
+                key not in physical,
+                "qualification closure physical file is modeled twice: "
+                f"{candidate}",
+            )
+            folded_logical.add(folded)
+            physical.add(key)
+            entries[logical] = (candidate, source)
+
+        for label, raw_root, raw_suffixes in roots:
+            require(
+                re.fullmatch(r"[a-z0-9][a-z0-9-]*", label) is not None,
+                f"unsafe qualification closure root label: {label!r}",
+            )
+            suffixes = tuple(raw_suffixes)
+            require(
+                all(
+                    re.fullmatch(r"\.[a-z0-9-]+", suffix) is not None
+                    for suffix in suffixes
+                ),
+                f"unsafe qualification closure excluded suffixes: {suffixes}",
+            )
+            root = require_no_reparse_chain(
+                raw_root,
+                f"qualification closure root {label!r}",
+            )
+            require(
+                root.is_dir() and not _is_reparse_or_symlink(root),
+                f"qualification closure root is missing: {root}",
+            )
+            for candidate in root.rglob("*"):
+                require(
+                    not _is_reparse_or_symlink(candidate),
+                    "qualification closure root contains a reparse point: "
+                    f"{candidate}",
+                )
+                if candidate.is_dir():
+                    continue
+                require(
+                    candidate.is_file(),
+                    "qualification closure root contains a special entry: "
+                    f"{candidate}",
+                )
+                if candidate.suffix.casefold() in suffixes:
+                    continue
+                relative = candidate.relative_to(root).as_posix()
+                add(f"{label}/{relative}", candidate, label)
+
+        for logical, path in files:
+            add(logical, path, "explicit")
+        require(entries, "qualification closure is empty")
+        return entries
+
+    entries = collect()
+    logical_paths = sorted(entries)
+    inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    source_counts: dict[str, int] = {}
+    source_bytes: dict[str, int] = {}
+    for logical in logical_paths:
+        path, source = entries[logical]
+        length, digest = _qualification_file_digest(
+            path,
+            f"qualification closure {logical!r}",
+        )
+        total_bytes += length
+        source_counts[source] = source_counts.get(source, 0) + 1
+        source_bytes[source] = source_bytes.get(source, 0) + length
+        inventory.update(f"{logical}\n".encode("utf-8"))
+        aggregate.update(
+            f"{logical}\0{length}\0{digest}\n".encode("utf-8")
+        )
+
+    rechecked = collect()
+    require(
+        [
+            (logical, path_key(rechecked[logical][0]))
+            for logical in sorted(rechecked)
+        ]
+        == [
+            (logical, path_key(entries[logical][0]))
+            for logical in logical_paths
+        ],
+        "qualification closure path set changed while hashing",
+    )
+    actual = {
+        "algorithm": QUALIFICATION_CLOSURE_ALGORITHM,
+        "fileCount": len(logical_paths),
+        "totalBytes": total_bytes,
+        "inventorySha256": inventory.hexdigest(),
+        "aggregateSha256": aggregate.hexdigest(),
+    }
+    expected = qualification_environment_identity(environment)
+    require(
+        actual == expected,
+        "qualification closure environment does not match independently "
+        f"hashed bytes: expected {expected}, got {actual}",
+    )
+    return {
+        **actual,
+        "rootFileCounts": {
+            label: source_counts.get(label, 0)
+            for label, _, _ in roots
+        },
+        "rootByteCounts": {
+            label: source_bytes.get(label, 0)
+            for label, _, _ in roots
+        },
+        "explicitFileCount": source_counts.get("explicit", 0),
+        "explicitTotalBytes": source_bytes.get("explicit", 0),
+        "sameHandleLifetimeLockedByWrapper": True,
+        "independentlyRehashedByVerifier": True,
+    }
+
+
 def verify_authenticated_build_tool(
     repo: Path,
     name: str,
     artifact: Mapping[str, Any],
     installation: Path,
+    archive_root: Path | None = None,
 ) -> dict[str, Any]:
+    archive_hash_key = "sha512" if "sha512" in artifact else "sha256"
     require_exact_keys(
         artifact,
         {
             "version",
             "url",
-            "sha256",
+            archive_hash_key,
             "archiveFile",
             "executableSha256",
             "directory",
@@ -471,7 +1096,11 @@ def verify_authenticated_build_tool(
         f"buildTools.{name}.archiveFile",
     )
     require("/" not in archive_name, f"{name} archive must be a leaf name")
-    archive = repo / ".toolchains" / "downloads" / archive_name
+    archive = (
+        archive_root
+        if archive_root is not None
+        else repo / ".toolchains" / "downloads"
+    ) / archive_name
     require(
         archive.is_file() and not _is_reparse_or_symlink(archive),
         f"{name} retained archive is missing or a reparse point: {archive}",
@@ -507,15 +1136,23 @@ def verify_authenticated_build_tool(
         )
 
     # Authenticate and parse the same open file. The ZipFile constructor is
-    # reached only after the complete archive SHA-256 has matched.
+    # reached only after the complete archive hash has matched.
     with archive.open("rb") as archive_stream:
-        archive_digest = hashlib.sha256()
+        archive_digest = (
+            hashlib.sha512()
+            if archive_hash_key == "sha512"
+            else hashlib.sha256()
+        )
         for chunk in iter(lambda: archive_stream.read(1024 * 1024), b""):
             archive_digest.update(chunk)
-        archive_sha256 = archive_digest.hexdigest()
+        archive_hash = archive_digest.hexdigest()
         require(
-            archive_sha256 == artifact["sha256"],
-            f"{name} retained archive SHA-256 drifted",
+            archive_hash == artifact[archive_hash_key],
+            (
+                f"{name} retained archive "
+                f"{'SHA-512' if archive_hash_key == 'sha512' else 'SHA-256'} "
+                "drifted"
+            ),
         )
         archive_stream.seek(0)
         with zipfile.ZipFile(archive_stream) as bundle:
@@ -716,10 +1353,430 @@ def verify_authenticated_build_tool(
     return {
         "archive": {
             "path": relative_path(repo, archive),
-            "sha256": archive_sha256,
+            archive_hash_key: archive_hash,
         },
         "payload": actual_payload,
         "installationRoot": relative_path(repo, installation),
+    }
+
+
+def verify_authenticated_source_archive(
+    repo: Path,
+    name: str,
+    artifact: Mapping[str, Any],
+    installation: Path,
+) -> dict[str, Any]:
+    """Bind a retained source ZIP to every installed source member.
+
+    Runtime products may coexist with the source tree only under the explicit
+    top-level prefixes/files in the lock. Source members themselves must still
+    match the authenticated archive byte-for-byte and case-for-case.
+    """
+    require_exact_keys(
+        artifact,
+        {
+            "url",
+            "archiveFile",
+            "sha256",
+            "payload",
+            "allowedRuntimePrefixes",
+            "allowedRuntimeFiles",
+        },
+        f"{name}.sourceArchive",
+    )
+    archive_name = _safe_contract_relative_path(
+        artifact["archiveFile"],
+        f"{name}.sourceArchive.archiveFile",
+    )
+    require("/" not in archive_name, f"{name} source archive must be a leaf")
+    archive = repo / ".toolchains" / "downloads" / archive_name
+    require_no_reparse_chain(archive, f"{name} retained source archive")
+    require(
+        archive.is_file() and not _is_reparse_or_symlink(archive),
+        f"{name} retained source archive is missing/reparse: {archive}",
+    )
+    actual_archive_sha256 = sha256(archive)
+    require(
+        actual_archive_sha256 == artifact["sha256"],
+        f"{name} retained source archive SHA-256 drifted",
+    )
+
+    payload = require_mapping(
+        artifact["payload"],
+        f"{name}.sourceArchive.payload",
+    )
+    require_exact_keys(
+        payload,
+        {
+            "algorithm",
+            "stripPrefix",
+            "fileCount",
+            "directoryCount",
+            "totalBytes",
+            "inventorySha256",
+            "directoryInventorySha256",
+            "aggregateSha256",
+        },
+        f"{name}.sourceArchive.payload",
+    )
+    require(
+        payload["algorithm"] == "sha256-path-null-digest-lf-v1",
+        f"unsupported {name} source payload algorithm",
+    )
+    raw_prefix = payload["stripPrefix"]
+    require(
+        type(raw_prefix) is str,
+        f"{name}.sourceArchive.payload.stripPrefix must be a string",
+    )
+    prefix = (
+        _safe_contract_relative_path(
+            raw_prefix,
+            f"{name}.sourceArchive.payload.stripPrefix",
+        )
+        if raw_prefix
+        else ""
+    )
+
+    prefixes = artifact["allowedRuntimePrefixes"]
+    runtime_files = artifact["allowedRuntimeFiles"]
+    require(
+        isinstance(prefixes, list)
+        and isinstance(runtime_files, list),
+        f"{name} source runtime allowances must be lists",
+    )
+    normalized_prefixes = [
+        _safe_contract_relative_path(
+            value,
+            f"{name}.sourceArchive.allowedRuntimePrefixes",
+        )
+        for value in prefixes
+    ]
+    normalized_runtime_files = [
+        _safe_contract_relative_path(
+            value,
+            f"{name}.sourceArchive.allowedRuntimeFiles",
+        )
+        for value in runtime_files
+    ]
+    require(
+        len({value.casefold() for value in normalized_prefixes})
+        == len(normalized_prefixes)
+        and len({value.casefold() for value in normalized_runtime_files})
+        == len(normalized_runtime_files),
+        f"{name} source runtime allowances collide",
+    )
+
+    source_files: dict[str, tuple[str, str, int]] = {}
+    source_directories: dict[str, str] = {}
+    path_kinds: dict[str, tuple[str, str]] = {}
+    with archive.open("rb") as archive_stream:
+        # Recheck the same open handle immediately before ZIP parsing.
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: archive_stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+        require(
+            digest.hexdigest() == artifact["sha256"],
+            f"{name} source archive changed before parsing",
+        )
+        archive_stream.seek(0)
+        with zipfile.ZipFile(archive_stream) as bundle:
+            entries: list[tuple[str, zipfile.ZipInfo]] = []
+            explicit_directories: set[str] = set()
+            for info in bundle.infolist():
+                raw = info.filename
+                require(
+                    "\\" not in raw,
+                    f"{name} source archive backslash path: {raw}",
+                )
+                is_directory = info.is_dir()
+                relative = raw.rstrip("/")
+                if prefix:
+                    if relative == prefix:
+                        require(
+                            is_directory,
+                            f"{name} source archive prefix is a file",
+                        )
+                        continue
+                    require(
+                        relative.startswith(f"{prefix}/"),
+                        f"unexpected {name} source archive entry: {raw}",
+                    )
+                    relative = relative[len(prefix) + 1 :]
+                relative = _safe_contract_relative_path(
+                    relative,
+                    f"{name} source archive entry",
+                )
+                unix_type = (info.external_attr >> 16) & 0o170000
+                expected_type = stat.S_IFDIR if is_directory else stat.S_IFREG
+                require(
+                    unix_type in (0, expected_type)
+                    and not (
+                        info.external_attr
+                        & getattr(
+                            stat,
+                            "FILE_ATTRIBUTE_REPARSE_POINT",
+                            0x400,
+                        )
+                    ),
+                    f"{name} source archive link/type mismatch: {raw}",
+                )
+                key = relative.casefold()
+                if is_directory:
+                    require(
+                        info.file_size == 0
+                        and key not in explicit_directories,
+                        f"duplicate/contentful {name} source directory: {raw}",
+                    )
+                    explicit_directories.add(key)
+                    existing = path_kinds.get(key)
+                    require(
+                        existing is None
+                        or (
+                            existing[0] == relative
+                            and existing[1] == "directory"
+                        ),
+                        f"{name} source path collision: {relative}",
+                    )
+                    if existing is None:
+                        path_kinds[key] = (relative, "directory")
+                        source_directories[key] = relative
+                    continue
+                require(
+                    key not in path_kinds,
+                    f"duplicate/colliding {name} source file: {relative}",
+                )
+                parts = relative.split("/")
+                for index in range(1, len(parts)):
+                    parent = "/".join(parts[:index])
+                    parent_key = parent.casefold()
+                    existing = path_kinds.get(parent_key)
+                    require(
+                        existing is None
+                        or (
+                            existing[0] == parent
+                            and existing[1] == "directory"
+                        ),
+                        f"{name} source file/directory collision: {parent}",
+                    )
+                    if existing is None:
+                        path_kinds[parent_key] = (parent, "directory")
+                        source_directories[parent_key] = parent
+                path_kinds[key] = (relative, "file")
+                entries.append((relative, info))
+            require(entries, f"{name} source archive file inventory is empty")
+            for relative, info in entries:
+                entry_digest = hashlib.sha256()
+                with bundle.open(info) as entry_stream:
+                    for chunk in iter(
+                        lambda: entry_stream.read(1024 * 1024),
+                        b"",
+                    ):
+                        entry_digest.update(chunk)
+                source_files[relative.casefold()] = (
+                    relative,
+                    entry_digest.hexdigest(),
+                    info.file_size,
+                )
+
+    ordered_files = sorted(record[0] for record in source_files.values())
+    ordered_directories = sorted(source_directories.values())
+    inventory = hashlib.sha256()
+    directory_inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    for relative in ordered_files:
+        _, file_digest, length = source_files[relative.casefold()]
+        inventory.update(f"{relative}\n".encode("utf-8"))
+        aggregate.update(f"{relative}\0{file_digest}\n".encode("utf-8"))
+        total_bytes += length
+    for relative in ordered_directories:
+        directory_inventory.update(f"{relative}/\n".encode("utf-8"))
+    actual_payload = {
+        "algorithm": payload["algorithm"],
+        "stripPrefix": prefix,
+        "fileCount": len(ordered_files),
+        "directoryCount": len(ordered_directories),
+        "totalBytes": total_bytes,
+        "inventorySha256": inventory.hexdigest(),
+        "directoryInventorySha256": directory_inventory.hexdigest(),
+        "aggregateSha256": aggregate.hexdigest(),
+    }
+    require(
+        actual_payload == dict(payload),
+        f"{name} authenticated source archive payload drifted",
+    )
+
+    require_no_reparse_chain(installation, f"{name} source installation")
+    require(
+        installation.is_dir() and not _is_reparse_or_symlink(installation),
+        f"{name} source installation is missing/reparse: {installation}",
+    )
+    seen_sources: set[str] = set()
+    for candidate in installation.rglob("*"):
+        require(
+            not _is_reparse_or_symlink(candidate),
+            f"{name} source installation reparse point: {candidate}",
+        )
+        relative = candidate.relative_to(installation).as_posix()
+        key = relative.casefold()
+        source_file = source_files.get(key)
+        source_directory = source_directories.get(key)
+        if source_file is not None:
+            require(
+                candidate.is_file()
+                and relative == source_file[0]
+                and candidate.stat().st_size == source_file[2]
+                and sha256(candidate) == source_file[1],
+                f"{name} installed source bytes/case drifted: {relative}",
+            )
+            seen_sources.add(key)
+            continue
+        if source_directory is not None:
+            require(
+                candidate.is_dir() and relative == source_directory,
+                f"{name} installed source directory drifted: {relative}",
+            )
+            continue
+        if candidate.is_dir():
+            allowed = (
+                any(
+                    relative == runtime_prefix
+                    or relative.startswith(f"{runtime_prefix}/")
+                    or runtime_prefix.startswith(f"{relative}/")
+                    for runtime_prefix in normalized_prefixes
+                )
+                or any(
+                    runtime_file.startswith(f"{relative}/")
+                    for runtime_file in normalized_runtime_files
+                )
+            )
+        else:
+            allowed = (
+                candidate.is_file()
+                and (
+                    relative in normalized_runtime_files
+                    or any(
+                        relative.startswith(f"{runtime_prefix}/")
+                        for runtime_prefix in normalized_prefixes
+                    )
+                )
+            )
+        require(
+            allowed,
+            f"{name} unmodeled runtime/source path: {relative}",
+        )
+    require(
+        seen_sources == set(source_files),
+        f"{name} installed source member set is incomplete",
+    )
+    return {
+        "archive": {
+            "path": relative_path(repo, archive),
+            "sha256": actual_archive_sha256,
+        },
+        "payload": actual_payload,
+        "installationRoot": relative_path(repo, installation),
+        "allowedRuntimePrefixes": normalized_prefixes,
+        "allowedRuntimeFiles": normalized_runtime_files,
+    }
+
+
+def verify_emscripten_cache_payload(
+    repo: Path,
+    root: Path,
+    contract: Mapping[str, Any],
+    label: str,
+) -> dict[str, Any]:
+    algorithm = "sha256-path-null-digest-lf-v1"
+    require_exact_keys(
+        contract,
+        {
+            "algorithm",
+            "fileCount",
+            "directoryCount",
+            "totalBytes",
+            "inventorySha256",
+            "directoryInventorySha256",
+            "aggregateSha256",
+        },
+        f"{label}.payload",
+    )
+    require(
+        contract["algorithm"] == algorithm,
+        f"{label} payload algorithm drifted",
+    )
+    require(
+        root.is_dir() and not _is_reparse_or_symlink(root),
+        f"{label} root is missing or a reparse point: {root}",
+    )
+    lexical = Path(os.path.abspath(root))
+    canonical = lexical.resolve(strict=True)
+    require_same_path(
+        canonical,
+        lexical,
+        f"{label} canonical root",
+    )
+    for ancestor in (lexical, *lexical.parents):
+        if ancestor.exists():
+            require(
+                not _is_reparse_or_symlink(ancestor),
+                f"{label} root-chain reparse point is forbidden: {ancestor}",
+            )
+    files: dict[str, Path] = {}
+    directories: dict[str, str] = {}
+    for candidate in root.rglob("*"):
+        require(
+            not _is_reparse_or_symlink(candidate),
+            f"{label} reparse point is forbidden: {candidate}",
+        )
+        relative = candidate.relative_to(root).as_posix()
+        key = relative.casefold()
+        require(
+            key not in files and key not in directories,
+            f"{label} duplicate/colliding path: {relative}",
+        )
+        if candidate.is_dir():
+            directories[key] = relative
+        else:
+            require(
+                candidate.is_file(),
+                f"{label} special filesystem entry is forbidden: {candidate}",
+            )
+            files[key] = candidate
+    ordered_files = sorted(
+        (path.relative_to(root).as_posix(), path)
+        for path in files.values()
+    )
+    ordered_directories = sorted(directories.values())
+    require(ordered_files, f"{label} file inventory is empty")
+    inventory = hashlib.sha256()
+    directory_inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    for relative, path in ordered_files:
+        content = path.read_bytes()
+        total_bytes += len(content)
+        inventory.update(f"{relative}\n".encode("utf-8"))
+        aggregate.update(
+            (
+                f"{relative}\0{hashlib.sha256(content).hexdigest()}\n"
+            ).encode("utf-8")
+        )
+    for relative in ordered_directories:
+        directory_inventory.update(f"{relative}/\n".encode("utf-8"))
+    actual = {
+        "algorithm": algorithm,
+        "fileCount": len(ordered_files),
+        "directoryCount": len(ordered_directories),
+        "totalBytes": total_bytes,
+        "inventorySha256": inventory.hexdigest(),
+        "directoryInventorySha256": directory_inventory.hexdigest(),
+        "aggregateSha256": aggregate.hexdigest(),
+    }
+    require(actual == dict(contract), f"{label} payload identity drifted")
+    return {
+        "root": relative_path(repo, root),
+        "payload": actual,
     }
 
 
@@ -839,6 +1896,73 @@ def _emscripten_payload_files(
     )
     require(ordered, "Emscripten payload inventory is empty")
     return ordered
+
+
+def verify_emscripten_python_import_closure(
+    root: Path,
+    contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    require_exact_keys(
+        contract,
+        {
+            "algorithm",
+            "fileCount",
+            "totalBytes",
+            "inventorySha256",
+            "aggregateSha256",
+        },
+        "emscripten.driverApi.pythonImportClosure",
+    )
+    require(
+        contract["algorithm"] == "sha256-path-null-digest-lf-v1",
+        "Emscripten Python import closure algorithm drifted",
+    )
+    files: dict[str, Path] = {}
+    for candidate in root.rglob("*"):
+        require(
+            not _is_reparse_or_symlink(candidate),
+            f"Emscripten Python import reparse point: {candidate}",
+        )
+        if (
+            not candidate.is_file()
+            or candidate.suffix.casefold() != ".py"
+        ):
+            continue
+        relative = candidate.relative_to(root).as_posix()
+        key = relative.casefold()
+        require(
+            key not in files,
+            f"Emscripten Python import path collision: {relative}",
+        )
+        files[key] = candidate
+    ordered = sorted(
+        (
+            (path.relative_to(root).as_posix(), path)
+            for path in files.values()
+        ),
+        key=lambda item: item[0],
+    )
+    inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    for relative, path in ordered:
+        data = path.read_bytes()
+        digest = hashlib.sha256(data).hexdigest()
+        total_bytes += len(data)
+        inventory.update(f"{relative}\n".encode("utf-8"))
+        aggregate.update(f"{relative}\0{digest}\n".encode("utf-8"))
+    actual = {
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": len(ordered),
+        "totalBytes": total_bytes,
+        "inventorySha256": inventory.hexdigest(),
+        "aggregateSha256": aggregate.hexdigest(),
+    }
+    require(
+        actual == dict(contract),
+        "Emscripten Python import closure bytes/path set drifted",
+    )
+    return actual
 
 
 def verify_emscripten_installation(
@@ -1064,58 +2188,6 @@ def run_text(*command: str | Path) -> str:
     )
 
 
-def git(repository: Path, *arguments: str) -> str:
-    return run_text("git", "-C", repository, *arguments)
-
-
-def verify_pinned_repository(
-    repository: Path,
-    expected_commit: str,
-    label: str,
-) -> str:
-    head = git(repository, "rev-parse", "HEAD").strip()
-    require(head == expected_commit, f"{label} HEAD {head}")
-    checks = (
-        (
-            "tracked worktree",
-            [
-                "diff",
-                "--quiet",
-                "--no-ext-diff",
-                "--no-textconv",
-                "--ignore-submodules=all",
-                "--",
-            ],
-        ),
-        (
-            "index",
-            [
-                "diff",
-                "--cached",
-                "--quiet",
-                "--no-ext-diff",
-                "--no-textconv",
-                "--ignore-submodules=all",
-                "HEAD",
-                "--",
-            ],
-        ),
-    )
-    for description, arguments in checks:
-        process = subprocess.run(
-            ["git", "-C", str(repository), *arguments],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        require(
-            process.returncode == 0,
-            f"{label} {description} is dirty or unreadable "
-            f"(git exit {process.returncode})",
-        )
-    return head
-
-
 def first_line(value: str) -> str:
     lines = [line.strip() for line in value.splitlines() if line.strip()]
     require(bool(lines), "expected non-empty command output")
@@ -1206,6 +2278,219 @@ def compile_entry_arguments(entry: Mapping[str, Any]) -> list[str]:
     arguments = split_windows_command_line(command)
     require(bool(arguments), "compile entry command parsed to no arguments")
     return arguments
+
+
+def compile_entry_output(
+    entry: Mapping[str, Any],
+    build: Path,
+    context: str,
+) -> Path:
+    directory_value = entry.get("directory")
+    output_value = entry.get("output")
+    require(
+        isinstance(directory_value, str) and bool(directory_value),
+        f"{context}: compile entry directory is missing",
+    )
+    require(
+        isinstance(output_value, str) and bool(output_value),
+        f"{context}: compile entry output is missing",
+    )
+    directory = Path(directory_value)
+    require_same_path(directory, build, f"{context}: compile directory")
+    output = Path(output_value)
+    if not output.is_absolute():
+        output = directory / output
+    output = require_no_reparse_chain(
+        output,
+        f"{context}: compile output",
+    )
+    require(
+        output.is_relative_to(build.resolve())
+        and output.suffix.casefold() == ".o",
+        f"{context}: compile output escaped the selected build: {output}",
+    )
+    return output
+
+
+def strip_ninja_dependency_bookkeeping(
+    arguments: Sequence[str],
+    context: str,
+) -> list[str]:
+    """Remove only CMake/Ninja depfile operands absent from compile DB."""
+    result: list[str] = []
+    occurrences = {"-MD": 0, "-MT": 0, "-MF": 0}
+    index = 0
+    while index < len(arguments):
+        argument = arguments[index]
+        if argument == "-MD":
+            occurrences["-MD"] += 1
+            index += 1
+            continue
+        if argument in {"-MT", "-MF"}:
+            occurrences[argument] += 1
+            require(
+                index + 1 < len(arguments),
+                f"{context}: {argument} has no operand",
+            )
+            index += 2
+            continue
+        result.append(argument)
+        index += 1
+    require(
+        occurrences == {"-MD": 1, "-MT": 1, "-MF": 1},
+        f"{context}: Ninja dependency bookkeeping drifted: {occurrences}",
+    )
+    return result
+
+
+def canonical_compile_parity_arguments(
+    arguments: Sequence[str],
+) -> list[str]:
+    """Normalize only Windows path spelling; preserve every semantic flag."""
+    path_operand_options = {
+        "-I",
+        "-c",
+        "-idirafter",
+        "-imacros",
+        "-include",
+        "-iquote",
+        "-isystem",
+        "-o",
+    }
+    result: list[str] = []
+    path_operand = False
+    for index, argument in enumerate(arguments):
+        is_joined_path_option = (
+            argument.startswith("-I") and argument != "-I"
+        ) or (
+            argument.startswith("-isystem")
+            and argument != "-isystem"
+        )
+        normalize = index == 0 or path_operand or is_joined_path_option
+        result.append(argument.replace("\\", "/") if normalize else argument)
+        path_operand = argument in path_operand_options
+    return result
+
+
+def require_compile_argv_parity(
+    compile_database_arguments: Sequence[str],
+    expanded_ninja_arguments: Sequence[str],
+    context: str,
+) -> list[str]:
+    actual = strip_ninja_dependency_bookkeeping(
+        expanded_ninja_arguments,
+        context,
+    )
+    expected_canonical = canonical_compile_parity_arguments(
+        compile_database_arguments
+    )
+    actual_canonical = canonical_compile_parity_arguments(actual)
+    require(
+        actual_canonical == expected_canonical,
+        f"{context}: expanded Ninja compiler argv differs from "
+        "compile_commands.json; "
+        f"expected {expected_canonical}, got {actual_canonical}",
+    )
+    return actual
+
+
+def authenticated_adapter_compiler_arguments(
+    arguments: Sequence[str],
+    repo: Path,
+    driver_kind: str,
+    context: str,
+) -> list[str]:
+    """Validate the exact CMake launcher prefix and return emcc/em++ argv."""
+    require(
+        driver_kind in {"emcc", "em++"},
+        f"{context}: unsupported driver kind {driver_kind}",
+    )
+    emsdk = repo / ".toolchains" / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+    python = repo / EXPECTED_EMSDK_PYTHON
+    adapter = (
+        repo
+        / "tools"
+        / "wasm-probe"
+        / "scripts"
+        / "invoke_emscripten_driver.py"
+    )
+    lock = repo / "tools" / "wasm-probe" / "toolchain-lock.json"
+    auditor = (
+        repo
+        / "tools"
+        / "wasm-probe"
+        / "scripts"
+        / "audit_emscripten_response_files.py"
+    )
+    emscripten_root = emsdk / "upstream" / "emscripten"
+    em_config = emsdk / ".emscripten"
+    cache = (
+        repo
+        / ".toolchains"
+        / EXPECTED_EMSCRIPTEN_LOCK_ENTRY["cache"]["directory"]
+    )
+    compiler = emscripten_root / f"{driver_kind}.bat"
+    require(
+        len(arguments) >= 20,
+        f"{context}: compiler launcher argument stream is too short",
+    )
+    require_same_path(arguments[0], python, f"{context}: launcher Python")
+    require(
+        list(arguments[1:3]) == ["-I", "-B"],
+        f"{context}: launcher Python isolation flags drifted",
+    )
+    require_same_path(arguments[3], adapter, f"{context}: driver adapter")
+    expected_options = (
+        ("--lock", lock),
+        ("--auditor", auditor),
+        ("--emscripten-root", emscripten_root),
+        ("--em-config", em_config),
+    )
+    cursor = 4
+    for option, expected in expected_options:
+        require(
+            arguments[cursor] == option,
+            f"{context}: expected launcher option {option}",
+        )
+        require_same_path(
+            arguments[cursor + 1],
+            expected,
+            f"{context}: {option}",
+        )
+        cursor += 2
+        if option == "--em-config":
+            require(
+                arguments[cursor] == "--em-config-sha256"
+                and arguments[cursor + 1] == sha256(em_config),
+                f"{context}: activation-file authentication drifted",
+            )
+            cursor += 2
+    require(
+        arguments[cursor] == "--cache-root",
+        f"{context}: expected launcher option --cache-root",
+    )
+    require_same_path(
+        arguments[cursor + 1],
+        cache,
+        f"{context}: --cache-root",
+    )
+    cursor += 2
+    require(
+        arguments[cursor : cursor + 2] == ["--driver-kind", driver_kind],
+        f"{context}: driver kind drifted",
+    )
+    cursor += 2
+    require(
+        arguments[cursor] == "--",
+        f"{context}: launcher separator is missing",
+    )
+    cursor += 1
+    require_same_path(
+        arguments[cursor],
+        compiler,
+        f"{context}: pinned compiler",
+    )
+    return list(arguments[cursor:])
 
 
 def target_compile_databases(
@@ -1562,22 +2847,186 @@ def canonical_command(repo: Path, command: str) -> str:
     return result.replace("\\", "/")
 
 
-def verify_ninja_noop(ninja: Path, build: Path) -> list[str]:
+def clear_mutable_autogen_state(build: Path) -> list[str]:
+    build_root = require_no_reparse_chain(
+        build,
+        "qualification build root",
+    )
+    require(
+        build_root.is_dir() and not _is_reparse_or_symlink(build_root),
+        f"qualification build root is invalid: {build_root}",
+    )
+    removed: list[str] = []
+    for relative in QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS:
+        normalized = _safe_contract_relative_path(
+            relative,
+            "mutable Autogen state path",
+        )
+        require(
+            normalized == relative,
+            f"mutable Autogen state path is not canonical: {relative}",
+        )
+        candidate = build_root / relative
+        require_no_reparse_chain(
+            candidate.parent,
+            f"mutable Autogen state parent {relative!r}",
+        )
+        if candidate.exists() or candidate.is_symlink():
+            candidate = require_no_reparse_chain(
+                candidate,
+                f"mutable Autogen state {relative!r}",
+            )
+            require(
+                candidate.is_file()
+                and not _is_reparse_or_symlink(candidate),
+                f"mutable Autogen state is not a regular file: {candidate}",
+            )
+            candidate.unlink()
+            removed.append(relative)
+        require(
+            not candidate.exists() and not candidate.is_symlink(),
+            f"mutable Autogen state survived reset: {candidate}",
+        )
+    return removed
+
+
+def clean_rebuild_selected_targets(
+    repo: Path,
+    build: Path,
+    ninja: Path,
+) -> dict[str, Any]:
+    qualification_environment_identity()
+    targets = [
+        "RhythmGameWasmCLauncherProbe",
+        "RhythmGameWasmProbe",
+    ]
+    removed_autogen_state = clear_mutable_autogen_state(build)
+
+    def invoke(arguments: Sequence[str], label: str) -> list[str]:
+        result = subprocess.run(
+            [str(ninja), "-C", str(build), *arguments],
+            check=False,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        output = "\n".join(
+            part.strip()
+            for part in (result.stdout, result.stderr)
+            if part.strip()
+        )
+        require(
+            result.returncode == 0,
+            f"qualified {label} failed ({result.returncode}): "
+            f"{output[-8000:]}",
+        )
+        return [line.strip() for line in output.splitlines() if line.strip()]
+
+    clean_lines = invoke(["-t", "clean", *targets], "clean")
+    clean_matches = [
+        match
+        for line in clean_lines
+        if (
+            match := re.fullmatch(
+                r"Cleaning\.\.\.\s+(\d+)\s+files?\.",
+                line,
+            )
+        )
+    ]
+    require(
+        len(clean_matches) == 1,
+        f"qualified clean output shape drifted: {clean_lines}",
+    )
+    build_lines = invoke(["-v", *targets], "rebuild")
+    executed_edges = sum(
+        re.match(r"^\[\d+/\d+\]\s+", line) is not None
+        for line in build_lines
+    )
+    require(
+        executed_edges > 0
+        and not any(line == "ninja: no work to do." for line in build_lines),
+        f"qualified clean rebuild executed no build edges: {build_lines}",
+    )
+    return {
+        "targets": targets,
+        "cleanCommand": [
+            relative_path(repo, ninja),
+            "-C",
+            relative_path(repo, build),
+            "-t",
+            "clean",
+            *targets,
+        ],
+        "buildCommand": [
+            relative_path(repo, ninja),
+            "-C",
+            relative_path(repo, build),
+            "-v",
+            *targets,
+        ],
+        "cleanedOutputCount": int(clean_matches[0].group(1)),
+        "executedEdgeCount": executed_edges,
+        "mutableAutogenStatePaths": list(
+            QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS
+        ),
+        "removedMutableAutogenStateCount": len(removed_autogen_state),
+        "allMutableAutogenStateAbsentBeforeCleanRebuild": True,
+        "allCommandsRanInsideQualificationClosure": True,
+    }
+
+
+def verify_ninja_noop(
+    ninja: Path,
+    build: Path,
+    target: str = "RhythmGameWasmProbe",
+) -> list[str]:
     output = run_text(
         ninja,
         "-C",
         build,
-        "-n",
         "-v",
-        "RhythmGameWasmProbe",
+        target,
     )
     lines = [line.strip() for line in output.splitlines() if line.strip()]
-    require(
+    clean_noop = (
         len(lines) == 2
         and lines[0].startswith("ninja: Entering directory ")
-        and lines[1] == "ninja: no work to do.",
-        "RhythmGameWasmProbe target closure is not a no-op; "
-        f"dry-run output was {lines}",
+        and lines[1] == "ninja: no work to do."
+    )
+    configure_depends_noop = False
+    if (
+        len(lines) == 3
+        and lines[0].startswith("ninja: Entering directory ")
+        and lines[2] == "ninja: no work to do."
+    ):
+        cache = parse_cmake_cache(build / "CMakeCache.txt")
+        expected_cmake = cache.get("CMAKE_COMMAND", "")
+
+        def command_tokens(line: str) -> list[str]:
+            match = re.fullmatch(r"\[\d+/\d+\]\s+(.+)", line)
+            return split_windows_command_line(match.group(1)) if match else []
+
+        verify_globs = command_tokens(lines[1])
+        configure_depends_noop = (
+            len(verify_globs) == 3
+            and verify_globs[1] == "-P"
+        )
+        if configure_depends_noop:
+            require_same_path(
+                verify_globs[0],
+                Path(expected_cmake),
+                "Ninja CONFIGURE_DEPENDS CMake",
+            )
+            require_same_path(
+                verify_globs[2],
+                build / "CMakeFiles" / "VerifyGlobs.cmake",
+                "Ninja CONFIGURE_DEPENDS glob verifier",
+            )
+    require(
+        clean_noop or configure_depends_noop,
+        f"{target} target closure is not a no-op; "
+        f"actual build output was {lines}",
     )
     return lines
 
@@ -1617,47 +3066,14 @@ def probe_input_identity(repo: Path) -> dict[str, Any]:
         )
         inputs.append(path)
 
-    tracked_relatives = [
-        "tools/wasm-probe/input-manifest.txt",
-        *relative_paths,
-    ]
-    tracked = subprocess.run(
-        [
-            "git",
-            "-C",
-            str(repo),
-            "ls-files",
-            "--stage",
-            "-z",
-            "--",
-            *tracked_relatives,
-        ],
-        capture_output=True,
-        check=False,
-    )
-    require(
-        tracked.returncode == 0,
-        "unable to verify tracked probe inputs",
-    )
-    tracked_paths = {
-        record.split(b"\t", 1)[1].decode("utf-8")
-        for record in tracked.stdout.split(b"\0")
-        if record
-    }
-    require(
-        tracked_paths == set(tracked_relatives),
-        "probe input manifest and every listed input must be tracked: "
-        f"missing={sorted(set(tracked_relatives) - tracked_paths)}",
-    )
-
     manifest_sha256 = hashlib.sha256(raw).hexdigest()
     payload = f"manifest={manifest_sha256}\n"
-    for relative, path in zip(relative_paths, inputs, strict=True):
+    for relative, path in zip(relative_paths, inputs):
         payload += f"{relative}={sha256(path)}\n"
     aggregate = sha256_text(payload)
     return {
         "algorithm": "sha256-manifest-path-equals-digest-lf-v1",
-        "tracking": "git-index",
+        "tracking": "explicit-input-manifest",
         "manifest": relative_path(repo, manifest),
         "manifestSha256": manifest_sha256,
         "count": len(inputs),
@@ -1669,6 +3085,129 @@ def probe_input_identity(repo: Path) -> dict[str, Any]:
 
 def probe_source_inputs(repo: Path) -> list[Path]:
     return list(probe_input_identity(repo)["_files"])
+
+
+def probe_build_control_identity(repo: Path) -> dict[str, Any]:
+    probe = repo / "tools" / "wasm-probe"
+    manifest = probe / "build-control-manifest.txt"
+    input_identity = probe_input_identity(repo)
+    require(
+        "tools/wasm-probe/build-control-manifest.txt"
+        in input_identity["paths"],
+        "build-control manifest is absent from the probe input manifest",
+    )
+    raw = manifest.read_bytes()
+    require(raw.endswith(b"\n"), "build-control manifest must end with LF")
+    text = raw.decode("utf-8")
+    require("\r" not in text, "build-control manifest must use LF")
+    relative_paths = text.splitlines()
+    require(
+        tuple(relative_paths) == EXPECTED_BUILD_CONTROL_PATHS,
+        "build-control manifest path set/order drifted",
+    )
+    build = (probe / "build" / "wasm-release").resolve()
+    inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    files: list[Path] = []
+    for relative in relative_paths:
+        normalized = _safe_contract_relative_path(
+            relative,
+            "build-control manifest entry",
+        )
+        require(
+            normalized == relative,
+            f"build-control path is not canonical: {relative}",
+        )
+        candidate = require_no_reparse_chain(
+            build / relative,
+            f"build control {relative!r}",
+        )
+        require(
+            candidate.is_relative_to(build)
+            and candidate.is_file()
+            and not _is_reparse_or_symlink(candidate),
+            f"build control is missing or escaping: {relative}",
+        )
+        length, digest = _qualification_file_digest(
+            candidate,
+            f"build control {relative!r}",
+        )
+        inventory.update(f"{relative}\n".encode("utf-8"))
+        aggregate.update(
+            f"{relative}\0{length}\0{digest}\n".encode("utf-8")
+        )
+        total_bytes += length
+        files.append(candidate)
+    build_ninja = (build / "build.ninja").read_text(
+        "utf-8",
+        errors="replace",
+    )
+    producerless_inputs = selected_target_build_root_leaf_inputs(
+        build,
+        build_ninja,
+    )
+    locked_paths = set(relative_paths)
+    require(
+        set(producerless_inputs).issubset(locked_paths),
+        "selected target has producerless build-root inputs outside the "
+        "immutable build-control manifest: "
+        f"{sorted(set(producerless_inputs) - locked_paths)}",
+    )
+    command_only_inputs = list(
+        QUALIFICATION_COMMAND_ONLY_BUILD_CONTROL_PATHS
+    )
+    normalized_graph = build_ninja.replace("\\", "/")
+    require(
+        all(
+            path in locked_paths and path in normalized_graph
+            for path in command_only_inputs
+        ),
+        "selected command-only build control is absent from the locked graph",
+    )
+    mutable_state: set[str] = set()
+    for relative, candidate in zip(relative_paths, files):
+        if not relative.endswith("_autogen.dir/AutogenInfo.json"):
+            continue
+        payload = require_mapping(
+            json.loads(candidate.read_text("utf-8")),
+            f"Autogen build control {relative}",
+        )
+        for key in ("PARSE_CACHE_FILE", "SETTINGS_FILE"):
+            value = payload.get(key)
+            require(
+                isinstance(value, str) and value,
+                f"Autogen build control {relative} has no {key}",
+            )
+            state = Path(os.path.abspath(value))
+            require(
+                state.is_relative_to(build),
+                f"Autogen mutable state escaped build root: {state}",
+            )
+            mutable_state.add(state.relative_to(build).as_posix())
+    mutable_state_paths = sorted(mutable_state, key=lambda value: value.casefold())
+    require(
+        tuple(mutable_state_paths)
+        == QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS,
+        "Autogen mutable state classification drifted",
+    )
+    return {
+        "schemaVersion": 1,
+        "algorithm": QUALIFICATION_CLOSURE_ALGORITHM,
+        "manifest": "tools/wasm-probe/build-control-manifest.txt",
+        "fileCount": len(files),
+        "totalBytes": total_bytes,
+        "inventorySha256": inventory.hexdigest(),
+        "aggregateSha256": aggregate.hexdigest(),
+        "sameHandleLifetimeLockedByWrapper": True,
+        "configureMustBeSettledBeforeQualification": True,
+        "selectedTargetProducerlessInputs": producerless_inputs,
+        "commandOnlyImmutableInputs": command_only_inputs,
+        "mutableGeneratorStateResetPaths": mutable_state_paths,
+        "allSelectedBuildInputsClassified": True,
+        "_files": files,
+        "_paths": relative_paths,
+    }
 
 
 def verify_probe_input_binding(
@@ -1724,7 +3263,6 @@ def verify_build_freshness(
         relative_path(repo, ninja),
         "-C",
         relative_path(repo, build),
-        "-n",
         "-v",
         "RhythmGameWasmProbe",
     ]
@@ -1742,6 +3280,7 @@ def verify_build_freshness(
 
 def parse_application_link_arguments(
     command: str,
+    repo: Path,
     expected_emxx: Path,
 ) -> list[str]:
     outer = split_windows_command_line(command)
@@ -1762,12 +3301,60 @@ def parse_application_link_arguments(
         body[len(prefix) : -len(suffix)].strip()
     )
     require(arguments, "application link parsed to no arguments")
-    require_same_path(arguments[0], expected_emxx, "application link compiler")
+    compiler_arguments = authenticated_adapter_compiler_arguments(
+        arguments,
+        repo,
+        "em++",
+        "application link",
+    )
+    require_same_path(
+        compiler_arguments[0],
+        expected_emxx,
+        "application link compiler",
+    )
     require(
-        arguments.count("@CMakeFiles\\RhythmGameWasmProbe.rsp") == 1,
+        compiler_arguments.count("@CMakeFiles\\RhythmGameWasmProbe.rsp") == 1,
         "application link must use the exact generated response file",
     )
-    return arguments
+    return compiler_arguments
+
+
+def parse_adapter_link_arguments(
+    command: str,
+    repo: Path,
+    expected_compiler: Path,
+    driver_kind: str,
+    context: str,
+) -> list[str]:
+    outer = split_windows_command_line(command)
+    require(
+        len(outer) == 3
+        and Path(outer[0]).name.casefold() == "cmd.exe"
+        and outer[1].casefold() == "/c",
+        f"{context}: unexpected link wrapper: {outer[:2]}",
+    )
+    body = outer[2].strip()
+    prefix = "cd . && "
+    suffix = " && cd ."
+    require(
+        body.startswith(prefix) and body.endswith(suffix),
+        f"{context}: unexpected shell body: {body}",
+    )
+    arguments = split_windows_command_line(
+        body[len(prefix) : -len(suffix)].strip()
+    )
+    compiler_arguments = authenticated_adapter_compiler_arguments(
+        arguments,
+        repo,
+        driver_kind,
+        context,
+    )
+    require_same_path(
+        compiler_arguments[0],
+        expected_compiler,
+        f"{context} compiler",
+    )
+    return compiler_arguments
 
 
 def ninja_logical_lines(value: str) -> list[str]:
@@ -1807,6 +3394,230 @@ def split_ninja_arguments(value: str) -> list[str]:
     if current:
         arguments.append("".join(current))
     return arguments
+
+
+def ninja_build_edges(
+    build: Path,
+    build_ninja: str,
+) -> dict[str, dict[str, Any]]:
+    """Parse Ninja build edges and key every literal output by absolute path."""
+    edges: dict[str, dict[str, Any]] = {}
+    for line in ninja_logical_lines(build_ninja):
+        if not line.startswith("build "):
+            continue
+        separator = None
+        index = len("build ")
+        while index < len(line):
+            if line[index] == ":" and line[index - 1] != "$":
+                separator = index
+                break
+            index += 1
+        require(separator is not None, f"Ninja build edge has no colon: {line}")
+        output_tokens = split_ninja_arguments(
+            line[len("build ") : separator]
+        )
+        input_tokens = split_ninja_arguments(line[separator + 1 :].strip())
+        require(input_tokens, f"Ninja build edge has no rule: {line}")
+        outputs = [
+            token
+            for token in output_tokens
+            if token != "|" and "$" not in token
+        ]
+        explicit_inputs: list[str] = []
+        implicit_inputs: list[str] = []
+        order_only_inputs: list[str] = []
+        destination = explicit_inputs
+        for token in input_tokens[1:]:
+            if token == "|":
+                destination = implicit_inputs
+            elif token == "||":
+                destination = order_only_inputs
+            else:
+                destination.append(token)
+        edge = {
+            "rule": input_tokens[0],
+            "outputs": outputs,
+            "explicitInputs": explicit_inputs,
+            "implicitInputs": implicit_inputs,
+            "orderOnlyInputs": order_only_inputs,
+        }
+        for output in outputs:
+            candidate = Path(output)
+            if not candidate.is_absolute():
+                candidate = build / candidate
+            key = path_key(candidate)
+            require(
+                key not in edges,
+                f"duplicate literal Ninja output: {output}",
+            )
+            edges[key] = edge
+    return edges
+
+
+def selected_target_build_root_leaf_inputs(
+    build: Path,
+    build_ninja: str,
+) -> list[str]:
+    """Return selected-target build-root inputs with no producer edge."""
+    build_root = build.resolve()
+    edges = ninja_build_edges(build_root, build_ninja)
+    visited: set[str] = set()
+    leaves: dict[str, str] = {}
+
+    def resolve(value: str) -> Path:
+        candidate = Path(value)
+        if not candidate.is_absolute():
+            candidate = build_root / candidate
+        return Path(os.path.abspath(candidate))
+
+    def visit(candidate: Path) -> None:
+        key = path_key(candidate)
+        if key in visited:
+            return
+        visited.add(key)
+        edge = edges.get(key)
+        if edge is None:
+            if candidate.is_relative_to(build_root) and candidate.is_file():
+                relative = candidate.relative_to(build_root).as_posix()
+                leaves[relative.casefold()] = relative
+            return
+        for value in (
+            *edge["explicitInputs"],
+            *edge["implicitInputs"],
+            *edge["orderOnlyInputs"],
+        ):
+            require(
+                "$" not in value,
+                f"selected target graph has unresolved input: {value}",
+            )
+            visit(resolve(value))
+
+    for target in (
+        "RhythmGameWasmCLauncherProbe",
+        "RhythmGameWasmProbe",
+    ):
+        target_path = build_root / target
+        require(
+            path_key(target_path) in edges,
+            f"selected target graph edge is missing: {target}",
+        )
+        visit(target_path)
+    return sorted(leaves.values(), key=lambda value: value.casefold())
+
+
+def selected_application_compile_outputs(
+    build: Path,
+    build_ninja: str,
+) -> dict[str, Any]:
+    """Resolve the exact build-local object/archive closure of the app link."""
+    edges = ninja_build_edges(build, build_ninja)
+    build_root = build.resolve()
+    selected_objects: dict[str, Path] = {}
+    selected_archives: dict[str, Path] = {}
+    visiting: set[str] = set()
+
+    def local_static_path(value: str) -> Path | None:
+        candidate = Path(value)
+        if not candidate.is_absolute():
+            candidate = build / candidate
+        candidate = Path(os.path.abspath(candidate))
+        if not candidate.is_relative_to(build_root):
+            return None
+        if candidate.suffix.casefold() not in {".o", ".a"}:
+            return None
+        return candidate
+
+    def consume(candidate: Path) -> None:
+        key = path_key(candidate)
+        if candidate.suffix.casefold() == ".o":
+            require(
+                key in edges,
+                "selected build-local object has no Ninja producer edge: "
+                f"{candidate}",
+            )
+            selected_objects[key] = candidate
+            return
+        if key in selected_archives:
+            return
+        require(
+            key not in visiting,
+            f"selected build-local archive graph is cyclic: {candidate}",
+        )
+        producer = edges.get(key)
+        require(
+            producer is not None,
+            "selected build-local archive has no Ninja producer edge: "
+            f"{candidate}",
+        )
+        visiting.add(key)
+        selected_archives[key] = candidate
+        member_count = 0
+        for value in (
+            *producer["explicitInputs"],
+            *producer["implicitInputs"],
+        ):
+            member = local_static_path(value)
+            if member is None:
+                continue
+            member_count += 1
+            consume(member)
+        visiting.remove(key)
+        require(
+            member_count > 0,
+            "selected build-local archive has no modeled object/archive "
+            f"inputs: {candidate}",
+        )
+
+    application = build / "RhythmGameWasmProbe.js"
+    link = edges.get(path_key(application))
+    require(link is not None, "selected application Ninja edge is missing")
+    for value in (*link["explicitInputs"], *link["implicitInputs"]):
+        candidate = local_static_path(value)
+        if candidate is not None:
+            consume(candidate)
+    require(
+        selected_objects,
+        "selected application target graph has no build-local objects",
+    )
+    relative_objects = sorted(
+        path.relative_to(build_root).as_posix()
+        for path in selected_objects.values()
+    )
+    relative_archives = sorted(
+        path.relative_to(build_root).as_posix()
+        for path in selected_archives.values()
+    )
+    aggregate = hashlib.sha256()
+    for relative in relative_objects:
+        aggregate.update(f"{relative}\n".encode("utf-8"))
+    return {
+        "_objectPaths": {
+            key: selected_objects[key] for key in sorted(selected_objects)
+        },
+        "target": "RhythmGameWasmProbe",
+        "graphSource": "build.ninja",
+        "objectOutputCount": len(relative_objects),
+        "archiveOutputCount": len(relative_archives),
+        "objectOutputsSha256": aggregate.hexdigest(),
+        "allSelectedOutputsMatchedByExactOutput": True,
+    }
+
+
+def require_selected_compile_output_correlation(
+    selected_outputs: Iterable[str],
+    compile_database_outputs: Iterable[str],
+    expanded_ninja_outputs: Iterable[str],
+) -> None:
+    selected = set(selected_outputs)
+    database = set(compile_database_outputs)
+    expanded = set(expanded_ninja_outputs)
+    require(
+        bool(selected)
+        and selected.issubset(database)
+        and selected.issubset(expanded),
+        "selected application target/archive object closure is not exactly "
+        "correlated by compile output",
+    )
 
 
 def selected_application_link_edge(build_ninja: str) -> dict[str, Any]:
@@ -1939,11 +3750,12 @@ def require_final_link_archive(
 
 def verify_application_link_argument_stream(
     command: str,
+    repo: Path,
     expected_emxx: Path,
     build_ninja: str,
     rules_ninja: str,
 ) -> dict[str, Any]:
-    outer = parse_application_link_arguments(command, expected_emxx)
+    outer = parse_application_link_arguments(command, repo, expected_emxx)
     response, edge, rule = application_response_arguments(
         build_ninja,
         rules_ninja,
@@ -1980,6 +3792,996 @@ def verify_application_link_argument_stream(
         "archive": archive,
         "edge": edge,
         "rule": rule,
+    }
+
+
+def _static_link_input_superset(root: Path) -> dict[str, Any]:
+    require(
+        root.is_dir() and not _is_reparse_or_symlink(root),
+        f"target installed root is missing or a reparse point: {root}",
+    )
+    link_inputs: list[tuple[str, Path]] = []
+    for candidate in root.rglob("*"):
+        require(
+            not _is_reparse_or_symlink(candidate),
+            f"target installed reparse point is forbidden: {candidate}",
+        )
+        if (
+            candidate.is_file()
+            and candidate.suffix in {".a", ".o"}
+        ):
+            link_inputs.append(
+                (candidate.relative_to(root).as_posix(), candidate)
+            )
+        else:
+            require(
+                candidate.is_dir() or candidate.is_file(),
+                f"target installed special entry is forbidden: {candidate}",
+            )
+    link_inputs.sort(key=lambda item: (item[0].casefold(), item[0]))
+    require(
+        link_inputs,
+        "target installed static-link-input inventory is empty",
+    )
+    seen: set[str] = set()
+    inventory = hashlib.sha256()
+    aggregate = hashlib.sha256()
+    total_bytes = 0
+    files: list[dict[str, Any]] = []
+    for relative, link_input in link_inputs:
+        key = relative.casefold()
+        require(
+            key not in seen,
+            "duplicate target static-link-input path under case-folding: "
+            f"{relative}",
+        )
+        seen.add(key)
+        magic = link_input.read_bytes()[:8]
+        if link_input.suffix == ".a":
+            require(
+                magic != b"!<thin>\n",
+                f"thin target static archive is forbidden: {relative}",
+            )
+            require(
+                magic == b"!<arch>\n",
+                f"target static archive magic is invalid: {relative}",
+            )
+            kind = "archive"
+        else:
+            require(
+                magic == b"\x00asm\x01\x00\x00\x00",
+                f"target Wasm object magic/version is invalid: {relative}",
+            )
+            kind = "wasm-object"
+        digest = sha256(link_input)
+        length = link_input.stat().st_size
+        inventory.update(f"{relative}\n".encode("utf-8"))
+        aggregate.update(f"{relative}\0{digest}\n".encode("utf-8"))
+        total_bytes += length
+        files.append(
+            {
+                "path": relative,
+                "kind": kind,
+                "bytes": length,
+                "sha256": digest,
+            }
+        )
+    return {
+        "schemaVersion": 2,
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": len(files),
+        "totalBytes": total_bytes,
+        "inventorySha256": inventory.hexdigest(),
+        "aggregateSha256": aggregate.hexdigest(),
+        "files": files,
+    }
+
+
+def _wasm_sections(data: bytes) -> list[tuple[int, bytes]]:
+    require(
+        data.startswith(b"\x00asm\x01\x00\x00\x00"),
+        "dependency-bound artifact is not a Wasm 1 module",
+    )
+
+    def read_uleb(offset: int) -> tuple[int, int]:
+        value = 0
+        shift = 0
+        for _ in range(5):
+            require(offset < len(data), "truncated Wasm section size")
+            byte = data[offset]
+            offset += 1
+            value |= (byte & 0x7F) << shift
+            if byte & 0x80 == 0:
+                return value, offset
+            shift += 7
+        raise AssertionError("overlong Wasm section size")
+
+    sections: list[tuple[int, bytes]] = []
+    offset = 8
+    while offset < len(data):
+        section_id = data[offset]
+        offset += 1
+        length, offset = read_uleb(offset)
+        end = offset + length
+        require(end <= len(data), "truncated Wasm section payload")
+        sections.append((section_id, data[offset:end]))
+        offset = end
+    require(offset == len(data), "Wasm section parse did not consume artifact")
+    return sections
+
+
+def _wasm_custom_sections(data: bytes) -> list[tuple[str, bytes]]:
+    custom: list[tuple[str, bytes]] = []
+    for section_id, payload in _wasm_sections(data):
+        if section_id != 0:
+            continue
+        value = 0
+        shift = 0
+        offset = 0
+        for _ in range(5):
+            require(
+                offset < len(payload),
+                "truncated Wasm custom-section name length",
+            )
+            byte = payload[offset]
+            offset += 1
+            value |= (byte & 0x7F) << shift
+            if byte & 0x80 == 0:
+                break
+            shift += 7
+        else:
+            raise AssertionError("overlong Wasm custom-section name length")
+        end = offset + value
+        require(end <= len(payload), "truncated Wasm custom-section name")
+        name = payload[offset:end].decode("utf-8")
+        custom.append((name, payload[end:]))
+    return custom
+
+
+def _resolve_compile_dependency_path(
+    logical: str,
+    *,
+    repo: Path,
+    build: Path,
+    repo_inputs: set[str],
+) -> Path:
+    label, separator, raw_relative = logical.partition("/")
+    require(separator == "/" and raw_relative, f"invalid dependency: {logical}")
+    relative = _safe_contract_relative_path(
+        raw_relative,
+        f"compile dependency {logical!r}",
+    )
+    roots = {
+        "build-generated": build,
+        "repo-input": repo,
+        "vcpkg-target": (
+            repo / ".wasm-vcpkg" / "installed" / TARGET_TRIPLET
+        ),
+        "emsdk": (
+            repo
+            / ".toolchains"
+            / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+        ),
+        "emscripten-cache": (
+            repo
+            / ".toolchains"
+            / EXPECTED_EMSCRIPTEN_LOCK_ENTRY["cache"]["directory"]
+        ),
+    }
+    require(label in roots, f"unknown compile dependency root: {label}")
+    if label == "repo-input":
+        require(
+            relative in repo_inputs,
+            "compile dependency is absent from the explicit input manifest: "
+            f"{relative}",
+        )
+    root = roots[label].resolve()
+    candidate = require_no_reparse_chain(
+        root / relative,
+        f"compile dependency {logical!r}",
+    )
+    require(
+        candidate.is_relative_to(root)
+        and candidate.is_file()
+        and not _is_reparse_or_symlink(candidate),
+        f"compile dependency escaped or is not a file: {candidate}",
+    )
+    return candidate
+
+
+def verify_compile_dependency_sidecars(
+    repo: Path,
+    build: Path,
+    qualification: Mapping[str, Any],
+    selected_compile_records: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    manifest_inputs = set(probe_input_identity(repo)["paths"])
+    verified: dict[str, dict[str, Any]] = {}
+    unique_dependencies: dict[str, tuple[int, str]] = {}
+    dependency_occurrences = 0
+    aggregate = hashlib.sha256()
+    for output_key, command in sorted(
+        selected_compile_records.items(),
+        key=lambda item: str(item[1]["output"]).casefold(),
+    ):
+        output = Path(str(command["output"]))
+        require(
+            path_key(output) == output_key
+            and output.is_relative_to(build.resolve()),
+            f"selected compile record output drifted: {output}",
+        )
+        sidecar = output.with_name(
+            output.name + ".rg-compile-inputs.json"
+        )
+        sidecar = require_no_reparse_chain(
+            sidecar,
+            "selected compile-input sidecar",
+        )
+        require(
+            sidecar.is_file() and not _is_reparse_or_symlink(sidecar),
+            f"selected compile-input sidecar is missing: {sidecar}",
+        )
+        raw = sidecar.read_bytes()
+        try:
+            payload = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as error:
+            raise AssertionError(
+                f"invalid selected compile-input sidecar {sidecar}: {error}"
+            ) from error
+        require(
+            isinstance(payload, Mapping),
+            f"selected compile-input sidecar is not a mapping: {sidecar}",
+        )
+        require_exact_keys(
+            payload,
+            {
+                "schemaVersion",
+                "algorithm",
+                "qualification",
+                "driverKind",
+                "output",
+                "arguments",
+                "dependencyDiscovery",
+                "dependencies",
+                "closureSha256",
+                "outputBytes",
+                "outputSha256",
+            },
+            f"compile-input sidecar {sidecar.name}",
+        )
+        require(
+            payload["schemaVersion"] == 1
+            and payload["algorithm"] == COMPILE_DEPENDENCY_ALGORITHM
+            and payload["qualification"] == dict(qualification),
+            f"compile-input sidecar contract drifted: {sidecar}",
+        )
+        driver_kind = command["driverKind"]
+        require(
+            payload["driverKind"] == driver_kind,
+            f"compile-input driver kind drifted: {sidecar}",
+        )
+        output_relative = output.relative_to(build.resolve()).as_posix()
+        require(
+            payload["output"] == f"build-output/{output_relative}",
+            f"compile-input output identity drifted: {sidecar}",
+        )
+        expected_arguments = [
+            canonical_command(repo, argument)
+            for argument in command["arguments"]
+        ]
+        require(
+            payload["arguments"] == expected_arguments,
+            f"compile-input argument identity drifted: {sidecar}",
+        )
+        dependency_discovery = require_mapping(
+            payload["dependencyDiscovery"],
+            f"compile-input dependency discovery {sidecar.name}",
+        )
+        require_exact_keys(
+            dependency_discovery,
+            {
+                "preScanMethod",
+                "actualCompileMethod",
+                "exactPathSetMatch",
+                "dependencyCount",
+            },
+            f"compile-input dependency discovery {sidecar.name}",
+        )
+        dependencies = payload["dependencies"]
+        require(
+            isinstance(dependencies, list) and dependencies,
+            f"compile-input dependency closure is empty: {sidecar}",
+        )
+        require(
+            dependency_discovery
+            == {
+                "preScanMethod": "emscripten-M",
+                "actualCompileMethod": "MD-MF",
+                "exactPathSetMatch": True,
+                "dependencyCount": len(dependencies),
+            },
+            f"compile-input dependency discovery drifted: {sidecar}",
+        )
+        paths: list[str] = []
+        for index, raw_entry in enumerate(dependencies):
+            entry = require_mapping(
+                raw_entry,
+                f"compile-input dependency {sidecar.name}[{index}]",
+            )
+            require_exact_keys(
+                entry,
+                {"path", "bytes", "sha256"},
+                f"compile-input dependency {sidecar.name}[{index}]",
+            )
+            logical = entry["path"]
+            require(
+                isinstance(logical, str),
+                f"compile-input dependency path is not a string: {sidecar}",
+            )
+            dependency = _resolve_compile_dependency_path(
+                logical,
+                repo=repo,
+                build=build,
+                repo_inputs=manifest_inputs,
+            )
+            length, digest = _qualification_file_digest(
+                dependency,
+                f"compile dependency {logical!r}",
+            )
+            require(
+                type(entry["bytes"]) is int
+                and entry["bytes"] >= 0
+                and entry["bytes"] == length
+                and entry["sha256"] == digest,
+                f"compile dependency current bytes drifted: {logical}",
+            )
+            previous = unique_dependencies.get(logical)
+            require(
+                previous is None or previous == (length, digest),
+                f"compile dependency identity conflicts: {logical}",
+            )
+            unique_dependencies[logical] = (length, digest)
+            paths.append(logical)
+            dependency_occurrences += 1
+        require(
+            paths == sorted(set(paths)),
+            f"compile-input dependencies are not unique/sorted: {sidecar}",
+        )
+        closure_payload = {
+            "algorithm": payload["algorithm"],
+            "qualification": payload["qualification"],
+            "driverKind": payload["driverKind"],
+            "output": payload["output"],
+            "arguments": payload["arguments"],
+            "dependencyDiscovery": payload["dependencyDiscovery"],
+            "dependencies": payload["dependencies"],
+        }
+        closure_bytes = (
+            json.dumps(
+                closure_payload,
+                ensure_ascii=True,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+            + "\n"
+        ).encode("utf-8")
+        require(
+            payload["closureSha256"]
+            == hashlib.sha256(closure_bytes).hexdigest(),
+            f"compile-input closure digest drifted: {sidecar}",
+        )
+        output_length, output_digest = _qualification_file_digest(
+            output,
+            "selected compiled object",
+        )
+        require(
+            payload["outputBytes"] == output_length
+            and payload["outputSha256"] == output_digest,
+            f"compile-input object bytes drifted: {output}",
+        )
+        canonical_sidecar = (
+            json.dumps(
+                dict(payload),
+                ensure_ascii=True,
+                separators=(",", ":"),
+                sort_keys=True,
+            )
+            + "\n"
+        ).encode("utf-8")
+        require(
+            raw == canonical_sidecar,
+            f"compile-input sidecar encoding is not canonical: {sidecar}",
+        )
+        sidecar_digest = hashlib.sha256(raw).hexdigest()
+        aggregate.update(
+            (
+                f"{output_relative}\0{payload['closureSha256']}\0"
+                f"{output_digest}\0{sidecar_digest}\n"
+            ).encode("utf-8")
+        )
+        verified[output_key] = {
+            "path": sidecar,
+            "payload": dict(payload),
+            "sidecarSha256": sidecar_digest,
+        }
+    require(
+        len(verified) == len(selected_compile_records) > 0,
+        "selected compile-input sidecar coverage is incomplete",
+    )
+    return {
+        "schemaVersion": 1,
+        "algorithm": COMPILE_DEPENDENCY_ALGORITHM,
+        "selectedObjectCount": len(verified),
+        "dependencyOccurrenceCount": dependency_occurrences,
+        "uniqueDependencyCount": len(unique_dependencies),
+        "aggregateSha256": aggregate.hexdigest(),
+        "qualificationAggregateSha256": qualification["aggregateSha256"],
+        "allCurrentDependencyBytesVerified": True,
+        "allCurrentObjectBytesVerified": True,
+        "_sidecars": verified,
+    }
+
+
+def _archive_wasm_members(data: bytes) -> list[tuple[str, str]]:
+    require(data.startswith(b"!<arch>\n"), "build-local archive magic drifted")
+    members: list[tuple[str, str]] = []
+    string_table = b""
+    offset = 8
+    while offset < len(data):
+        require(offset + 60 <= len(data), "archive member header truncated")
+        header = data[offset : offset + 60]
+        require(header[58:60] == b"`\n", "archive header trailer drifted")
+        try:
+            size = int(header[48:58].decode("ascii").strip())
+            raw_name = header[:16].decode("ascii").strip()
+        except (UnicodeDecodeError, ValueError) as error:
+            raise AssertionError("archive member header is invalid") from error
+        offset += 60
+        end = offset + size
+        require(end <= len(data), "archive member body is truncated")
+        body = data[offset:end]
+        name = raw_name.rstrip("/")
+        if raw_name == "//":
+            string_table = body
+        elif raw_name not in {"/", "/SYM64/"}:
+            if raw_name.startswith("#1/"):
+                try:
+                    name_length = int(raw_name[3:])
+                except ValueError as error:
+                    raise AssertionError(
+                        "BSD archive member name length is invalid"
+                    ) from error
+                require(
+                    name_length <= len(body),
+                    "BSD archive member name is truncated",
+                )
+                name = body[:name_length].decode("utf-8")
+                body = body[name_length:]
+            elif raw_name.startswith("/") and raw_name[1:].isdigit():
+                table_offset = int(raw_name[1:])
+                require(
+                    table_offset < len(string_table),
+                    "GNU archive member name offset is invalid",
+                )
+                terminator = string_table.find(b"/\n", table_offset)
+                require(
+                    terminator >= 0,
+                    "GNU archive member name is unterminated",
+                )
+                name = string_table[table_offset:terminator].decode("utf-8")
+            if body.startswith(b"\0asm\1\0\0\0"):
+                members.append((Path(name).name, hashlib.sha256(body).hexdigest()))
+        offset = end + (size % 2)
+    return members
+
+
+def _selected_link_compile_inputs(
+    *,
+    build: Path,
+    static_files: Sequence[tuple[Path, str, bytes]],
+    sidecars: Mapping[str, Mapping[str, Any]],
+    qualification: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    candidates = list(sidecars.items())
+    selected: list[dict[str, Any]] = []
+    consumed: set[str] = set()
+    direct: list[tuple[str, Path, str]] = []
+    archive_members: list[tuple[str, str, str]] = []
+    for path, kind, data in static_files:
+        if not path.is_relative_to(build.resolve()):
+            continue
+        if kind == "wasm-object":
+            direct.append((path_key(path), path, hashlib.sha256(data).hexdigest()))
+        else:
+            archive = path.relative_to(build.resolve()).as_posix()
+            for member_name, digest in _archive_wasm_members(data):
+                archive_members.append((archive, member_name, digest))
+
+    for output_key, path, digest in sorted(direct):
+        matches = [
+            (key, sidecar)
+            for key, sidecar in candidates
+            if key == output_key
+            and sidecar["payload"]["outputSha256"] == digest
+        ]
+        require(
+            len(matches) == 1,
+            f"selected direct object has no unique sidecar: {path}",
+        )
+        key, sidecar = matches[0]
+        consumed.add(key)
+        payload = sidecar["payload"]
+        selected.append(
+            {
+                "output": payload["output"],
+                "closureSha256": payload["closureSha256"],
+                "outputSha256": payload["outputSha256"],
+                "sidecarSha256": sidecar["sidecarSha256"],
+            }
+        )
+    for archive, member_name, digest in sorted(archive_members):
+        matches = [
+            (key, sidecar)
+            for key, sidecar in candidates
+            if key not in consumed
+            and Path(str(sidecar["payload"]["output"])).name == member_name
+            and sidecar["payload"]["outputSha256"] == digest
+        ]
+        require(
+            len(matches) == 1,
+            "selected archive member has no unique sidecar: "
+            f"{archive}({member_name})",
+        )
+        key, sidecar = matches[0]
+        consumed.add(key)
+        payload = sidecar["payload"]
+        require(
+            payload["qualification"] == dict(qualification),
+            "selected archive-member qualification identity drifted",
+        )
+        selected.append(
+            {
+                "archive": archive,
+                "member": member_name,
+                "output": payload["output"],
+                "closureSha256": payload["closureSha256"],
+                "outputSha256": payload["outputSha256"],
+                "sidecarSha256": sidecar["sidecarSha256"],
+            }
+        )
+    selected.sort(
+        key=lambda record: (
+            str(record.get("archive", "")),
+            str(record.get("member", "")),
+            str(record["output"]),
+        )
+    )
+    require(
+        selected and len(consumed) == len(sidecars),
+        "selected link compile-input coverage differs from the selected "
+        "target/archive object closure",
+    )
+    return selected
+
+
+def selected_application_link_identity(
+    repo: Path,
+    build: Path,
+    arguments: Sequence[str],
+    qualification: Mapping[str, Any],
+    sidecars: Mapping[str, Mapping[str, Any]],
+) -> dict[str, Any]:
+    files: list[dict[str, Any]] = []
+    static_files: list[tuple[Path, str, bytes]] = []
+    for index, argument in enumerate(arguments):
+        if argument.startswith("-"):
+            continue
+        candidate = Path(argument)
+        if not candidate.is_absolute():
+            candidate = build / candidate
+        candidate = Path(os.path.abspath(candidate))
+        if (
+            not candidate.is_file()
+            or candidate.suffix.casefold() not in {".a", ".o"}
+        ):
+            continue
+        require(
+            candidate.is_relative_to(repo.resolve()),
+            "selected application static input escaped repository: "
+            f"{candidate}",
+        )
+        data = candidate.read_bytes()
+        if candidate.suffix.casefold() == ".a":
+            require(
+                data.startswith(b"!<arch>\n"),
+                f"selected application archive magic drifted: {candidate}",
+            )
+            kind = "archive"
+        else:
+            require(
+                data.startswith(b"\0asm\1\0\0\0"),
+                f"selected application Wasm object magic drifted: {candidate}",
+            )
+            kind = "wasm-object"
+        files.append(
+            {
+                "argumentIndex": index,
+                "path": candidate.relative_to(repo.resolve()).as_posix(),
+                "kind": kind,
+                "bytes": len(data),
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
+        static_files.append((candidate, kind, data))
+    require(files, "selected application link has no static inputs")
+    compile_inputs = _selected_link_compile_inputs(
+        build=build,
+        static_files=static_files,
+        sidecars=sidecars,
+        qualification=qualification,
+    )
+    payload = {
+        "algorithm": SELECTED_LINK_IDENTITY_ALGORITHM,
+        "qualification": dict(qualification),
+        "arguments": [
+            canonical_command(repo, argument)
+            for argument in arguments
+        ],
+        "files": files,
+        "compileInputs": compile_inputs,
+    }
+    encoded = (
+        json.dumps(
+            payload,
+            ensure_ascii=True,
+            separators=(",", ":"),
+            sort_keys=True,
+        )
+        + "\n"
+    ).encode("utf-8")
+    return {
+        "algorithm": payload["algorithm"],
+        "sha256": hashlib.sha256(encoded).hexdigest(),
+        "argumentCount": len(arguments),
+        "staticInputOccurrenceCount": len(files),
+        "staticInputUniqueCount": len(
+            {entry["path"].casefold() for entry in files}
+        ),
+        "compileInputCount": len(compile_inputs),
+        "qualificationAggregateSha256": qualification["aggregateSha256"],
+    }
+
+
+def verify_selected_link_artifact_binding(
+    artifact: Path,
+    identity: Mapping[str, Any],
+) -> dict[str, Any]:
+    digest = str(identity["sha256"])
+    build_ids = [
+        content
+        for name, content in _wasm_custom_sections(artifact.read_bytes())
+        if name == "build_id"
+    ]
+    require(
+        len(build_ids) == 1,
+        f"expected exactly one Wasm build_id custom section: {len(build_ids)}",
+    )
+    require(
+        build_ids[0] == bytes((32,)) + bytes.fromhex(digest),
+        "Wasm build_id does not bind the current selected link argv/inputs",
+    )
+    return {
+        **identity,
+        "customSection": "build_id",
+        "payloadEncoding": "uleb32-plus-32-byte-sha256",
+        "artifactBound": True,
+    }
+
+
+def require_no_dependency_link_indirection(
+    arguments: Sequence[str],
+) -> None:
+    forbidden_prefixes = (
+        "@",
+        "-Wl,",
+        "-Xlinker",
+        "-L",
+        "-T",
+        "--script",
+        "--sysroot",
+        "-B",
+        "-fuse-ld",
+        "--ld-path",
+        "--config",
+        "-vfsoverlay",
+        "-ivfsoverlay",
+    )
+    for argument in arguments:
+        require(
+            not argument.startswith(forbidden_prefixes),
+            "unmodeled dependency-link indirection is forbidden: "
+            f"{argument}",
+        )
+
+
+def verify_dependency_archive_binding(
+    repo: Path,
+    build: Path,
+    effective_arguments: Sequence[str],
+) -> dict[str, Any]:
+    probe = repo / "tools" / "wasm-probe"
+    contract_path = probe / "dependency-archive-contract.json"
+    generator = probe / "scripts" / "generate_dependency_digest.py"
+    generated_source = build / "generated" / "ProbeDependencyDigest.cpp"
+    generated_manifest = (
+        build / "generated" / "dependency-archive-digest.json"
+    )
+    artifact = build / "RhythmGameWasmProbe.wasm"
+    for path, label in (
+        (contract_path, "dependency archive contract"),
+        (generator, "dependency archive generator"),
+        (generated_source, "generated dependency marker source"),
+        (generated_manifest, "generated dependency archive manifest"),
+        (artifact, "dependency-bound Wasm artifact"),
+    ):
+        require(
+            path.is_file() and not _is_reparse_or_symlink(path),
+            f"{label} is missing or a reparse point: {path}",
+        )
+    expected_contract = {
+        "schemaVersion": 2,
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "archiveSuffix": ".a",
+        "wasmObjectSuffix": ".o",
+        "markerPrefix": (
+            "RHYTHMGAME_WASM_DEPENDENCY_ARCHIVE_SUPERSET_SHA256="
+        ),
+        "targetTriplet": TARGET_TRIPLET,
+    }
+    require(
+        json.loads(contract_path.read_text("utf-8")) == expected_contract,
+        "dependency archive contract drifted",
+    )
+    target_root = repo / ".wasm-vcpkg" / "installed" / TARGET_TRIPLET
+    superset = _static_link_input_superset(target_root)
+    manifest = json.loads(generated_manifest.read_text("utf-8"))
+    require(
+        manifest == superset,
+        "generated dependency archive manifest does not match current bytes",
+    )
+    by_path = {entry["path"]: entry for entry in superset["files"]}
+
+    installed_occurrences: list[dict[str, Any]] = []
+    system_libraries: list[str] = []
+    boundary_count = 0
+    build_local_object_count = 0
+    allowed_system_libraries = {
+        "-lembind",
+        "-lwebsocket.js",
+        "-lopenal",
+    }
+    require_no_dependency_link_indirection(effective_arguments)
+    operand_options = {
+        "-I",
+        "-L",
+        "-D",
+        "-U",
+        "-include",
+        "-include-pch",
+        "-imacros",
+        "-isystem",
+        "-iquote",
+        "-mllvm",
+        "-o",
+        "-s",
+        "-target",
+        "--target",
+        "-x",
+    }
+    skip_operand = False
+    build_root = build.resolve()
+    target_root_resolved = target_root.resolve()
+    boundary_archive = (build / "libWasmProbeExceptionBoundary.a").resolve()
+    for argument in effective_arguments:
+        if skip_operand:
+            skip_operand = False
+            continue
+        if argument in operand_options:
+            skip_operand = True
+            continue
+        if argument.startswith("-l"):
+            require(
+                argument in allowed_system_libraries,
+                f"unknown application-link system library: {argument}",
+            )
+            system_libraries.append(argument)
+            continue
+        if argument.startswith("-") or argument == "":
+            continue
+        parts = Path(argument).parts
+        require(
+            all(
+                component not in {"", ".", ".."}
+                and not component.endswith((" ", "."))
+                for component in parts
+            ),
+            f"unsafe application-link positional path: {argument}",
+        )
+        lexical = Path(argument)
+        if not lexical.is_absolute():
+            lexical = build / lexical
+        lexical = require_no_reparse_chain(
+            lexical,
+            "application-link positional input",
+        )
+        require(
+            lexical.exists(),
+            f"application-link positional input is missing: {argument}",
+        )
+        require(
+            lexical.is_file(),
+            f"application-link positional input is not a file: {argument}",
+        )
+        resolved = lexical.resolve(strict=True)
+        magic = resolved.read_bytes()[:8]
+        require(
+            magic != b"!<thin>\n",
+            f"thin application-link archive is forbidden: {argument}",
+        )
+        if resolved.suffix == ".a":
+            require(
+                magic == b"!<arch>\n",
+                "application-link static archive magic is invalid: "
+                f"{argument}",
+            )
+            kind = "archive"
+        elif resolved.suffix == ".o":
+            require(
+                magic == b"\x00asm\x01\x00\x00\x00",
+                "application-link Wasm object magic/version is invalid: "
+                f"{argument}",
+            )
+            kind = "wasm-object"
+        else:
+            require(
+                magic not in {
+                    b"!<arch>\n",
+                    b"\x00asm\x01\x00\x00\x00",
+                },
+                "renamed application-link static input is forbidden: "
+                f"{argument}",
+            )
+            raise AssertionError(
+                "unclassified application-link positional file: "
+                f"{resolved}"
+            )
+        if resolved == boundary_archive:
+            require(
+                kind == "archive",
+                "build-local exception boundary is not an archive",
+            )
+            boundary_count += 1
+            continue
+        if resolved.is_relative_to(build_root):
+            require(
+                kind == "wasm-object",
+                "unmodeled build-local archive is forbidden: "
+                f"{resolved}",
+            )
+            build_local_object_count += 1
+            continue
+        require(
+            resolved.is_relative_to(target_root_resolved),
+            "external application-link static input is forbidden: "
+            f"{resolved}",
+        )
+        relative = resolved.relative_to(target_root_resolved).as_posix()
+        entry = by_path.get(relative)
+        require(
+            entry is not None,
+            "linked static input is absent from authenticated superset: "
+            f"{relative}",
+        )
+        require(
+            entry["kind"] == kind
+            and resolved.suffix
+            == (".a" if entry["kind"] == "archive" else ".o")
+            and
+            resolved.stat().st_size == entry["bytes"]
+            and sha256(resolved) == entry["sha256"],
+            f"linked static input bytes/kind drifted from superset: {relative}",
+        )
+        installed_occurrences.append(dict(entry))
+    require(
+        not skip_operand,
+        "application-link option is missing its positional operand",
+    )
+    require(boundary_count == 1, "build-local exception boundary count drifted")
+    require(
+        installed_occurrences,
+        "application link contains no installed static link inputs",
+    )
+    require(
+        build_local_object_count > 0,
+        "application link contains no build-local Wasm objects",
+    )
+    ordered = hashlib.sha256()
+    for entry in installed_occurrences:
+        ordered.update(
+            f"{entry['path']}\0{entry['sha256']}\n".encode("utf-8")
+        )
+    unique_by_path = {
+        entry["path"]: entry
+        for entry in installed_occurrences
+    }
+    unique_entries = [
+        unique_by_path[path]
+        for path in sorted(unique_by_path)
+    ]
+    unique = hashlib.sha256()
+    for entry in unique_entries:
+        unique.update(
+            f"{entry['path']}\0{entry['sha256']}\n".encode("utf-8")
+        )
+
+    marker = expected_contract["markerPrefix"] + superset["aggregateSha256"]
+    source = generated_source.read_text("utf-8")
+    require(
+        source.count(marker) == 1,
+        "generated dependency marker source is missing or duplicated",
+    )
+    marker_bytes = marker.encode("ascii")
+    wasm = artifact.read_bytes()
+    sections = _wasm_sections(wasm)
+    data_occurrences = sum(
+        payload.count(marker_bytes)
+        for section_id, payload in sections
+        if section_id == 11
+    )
+    all_occurrences = wasm.count(marker_bytes)
+    require(
+        data_occurrences == 1 and all_occurrences == 1,
+        "dependency archive marker is not exactly once in the Wasm data section",
+    )
+    return {
+        "contract": {
+            "path": relative_path(repo, contract_path),
+            "sha256": sha256(contract_path),
+        },
+        "generator": {
+            "path": relative_path(repo, generator),
+            "sha256": sha256(generator),
+        },
+        "manifest": {
+            "path": relative_path(repo, generated_manifest),
+            "sha256": sha256(generated_manifest),
+        },
+        "superset": {
+            key: superset[key]
+            for key in (
+                "algorithm",
+                "fileCount",
+                "totalBytes",
+                "inventorySha256",
+                "aggregateSha256",
+            )
+        },
+        "linkedClosure": {
+            "occurrenceCount": len(installed_occurrences),
+            "uniqueFileCount": len(unique_entries),
+            "uniqueBytes": sum(entry["bytes"] for entry in unique_entries),
+            "orderedAggregateSha256": ordered.hexdigest(),
+            "uniqueAggregateSha256": unique.hexdigest(),
+            "archives": installed_occurrences,
+            "systemLibraries": system_libraries,
+            "buildLocalArchive": "libWasmProbeExceptionBoundary.a",
+            "buildLocalWasmObjectCount": build_local_object_count,
+        },
+        "marker": {
+            "value": marker,
+            "source": relative_path(repo, generated_source),
+            "wasmDataSectionOccurrences": data_occurrences,
+        },
     }
 
 
@@ -2027,15 +4829,20 @@ def require_host_tool_version(name: str, output: str) -> str:
 def verify_vcpkg_port_build_cmake(
     repo: Path,
     vcpkg: Path,
+    contract: Mapping[str, Any],
 ) -> dict[str, Any]:
-    manifest_path = vcpkg / "scripts" / "vcpkg-tools.json"
+    require(
+        dict(contract) == EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY,
+        "vcpkg port-build CMake lock entry drifted",
+    )
+    manifest_path = vcpkg / contract["toolsManifest"]
     require(
         manifest_path.is_file(),
         f"missing pinned vcpkg tools manifest: {manifest_path}",
     )
     manifest_sha256 = sha256(manifest_path)
     require(
-        manifest_sha256 == EXPECTED_VCPKG_TOOLS_MANIFEST_SHA256,
+        manifest_sha256 == contract["toolsManifestSha256"],
         "pinned vcpkg tools manifest SHA-256 drifted",
     )
     manifest = json.loads(manifest_path.read_text("utf-8"))
@@ -2049,8 +4856,30 @@ def verify_vcpkg_port_build_cmake(
     tool_root = (
         downloads
         / "tools"
-        / f"cmake-{EXPECTED_VCPKG_PORT_CMAKE}-windows"
-    ).resolve()
+        / contract["installationDirectory"]
+    )
+    archive = downloads / entry["archive"]
+    require(
+        archive.is_file()
+        and not _is_reparse_or_symlink(archive)
+        and archive.stat().st_size == contract["archiveBytes"],
+        "vcpkg port-build CMake archive bytes/path/type drifted",
+    )
+    installation = verify_authenticated_build_tool(
+        repo,
+        "vcpkgPortBuildCMake",
+        {
+            "version": contract["version"],
+            "url": contract["url"],
+            "sha512": contract["sha512"],
+            "archiveFile": contract["archiveFile"],
+            "executableSha256": contract["executableSha256"],
+            "directory": contract["installationDirectory"],
+            "payload": contract["payload"],
+        },
+        tool_root,
+        archive_root=downloads,
+    )
     executable = (tool_root / Path(entry["executable"])).resolve()
     require(
         executable.is_relative_to(tool_root),
@@ -2061,11 +4890,6 @@ def verify_vcpkg_port_build_cmake(
         f"missing vcpkg port-build CMake executable: {executable}",
     )
 
-    archive = (downloads / entry["archive"]).resolve()
-    require(
-        archive.parent == downloads.resolve() and archive.is_file(),
-        "vcpkg port-build CMake archive escapes downloads or is missing",
-    )
     archive_sha512 = sha512(archive)
     require(
         archive_sha512 == entry["sha512"],
@@ -2100,7 +4924,9 @@ def verify_vcpkg_port_build_cmake(
         "archive": {
             "path": relative_path(repo, archive),
             "sha512": archive_sha512,
+            "bytes": archive.stat().st_size,
         },
+        "installation": installation,
     }
 
 
@@ -2124,9 +4950,24 @@ def verify_hermetic_environment(
         "EMSDK_PYTHON",
         "EM_CACHE",
         "EM_CONFIG",
+        "EM_FROZEN_CACHE",
         "VCPKG_DEFAULT_BINARY_CACHE",
         "VCPKG_DISABLE_METRICS",
+        "VCPKG_MAX_CONCURRENCY",
         "VCPKG_ROOT",
+        "RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER",
+        "RHYTHMGAME_WASM_TOOLCHAIN_LOCK",
+        "RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR",
+        "RHYTHMGAME_EMSCRIPTEN_ROOT",
+        "RHYTHMGAME_EM_CONFIG",
+        "RHYTHMGAME_EM_CONFIG_SHA256",
+        "RHYTHMGAME_EM_CACHE",
+        "RHYTHMGAME_WASM_QUALIFICATION",
+        "RHYTHMGAME_WASM_QUALIFICATION_ALGORITHM",
+        "RHYTHMGAME_WASM_QUALIFICATION_FILE_COUNT",
+        "RHYTHMGAME_WASM_QUALIFICATION_TOTAL_BYTES",
+        "RHYTHMGAME_WASM_QUALIFICATION_INVENTORY_SHA256",
+        "RHYTHMGAME_WASM_QUALIFICATION_AGGREGATE_SHA256",
     }
     hostile_prefixes = (
         "CCACHE_",
@@ -2139,6 +4980,9 @@ def verify_hermetic_environment(
         "EM_",
         "GIT_",
         "PKG_CONFIG_",
+        "QML_",
+        "QT_",
+        "RHYTHMGAME_",
         "VCPKG_",
         "X_VCPKG_",
     )
@@ -2152,6 +4996,19 @@ def verify_hermetic_environment(
         not survivors,
         f"ambient build environment overrides survived: {survivors}",
     )
+    system_directory = Path(os.environ.get("SystemRoot", "")) / "System32"
+    native_cmd = system_directory / "cmd.exe"
+    require_same_path(
+        environment.get("COMSPEC", ""),
+        native_cmd,
+        "native ComSpec",
+    )
+    require(
+        system_directory.is_dir()
+        and native_cmd.is_file()
+        and not _is_reparse_or_symlink(native_cmd),
+        "native Windows command interpreter identity drifted",
+    )
 
     expected_paths = {
         "EMSDK": emsdk,
@@ -2159,10 +5016,34 @@ def verify_hermetic_environment(
         "EMSDK_PYTHON": repo / EXPECTED_EMSDK_PYTHON,
         "EMSCRIPTEN_ROOT": emsdk / "upstream" / "emscripten",
         "EM_CONFIG": emsdk / ".emscripten",
-        "EM_CACHE": emsdk / "upstream" / "emscripten" / "cache",
+        "EM_CACHE": repo / ".toolchains" / f"emscripten-cache-{EXPECTED_EMSCRIPTEN}",
         "VCPKG_ROOT": vcpkg,
         "VCPKG_DEFAULT_BINARY_CACHE": (
             repo / ".wasm-vcpkg" / "bincache"
+        ),
+        "RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER": (
+            repo
+            / "tools"
+            / "wasm-probe"
+            / "scripts"
+            / "invoke_emscripten_driver.py"
+        ),
+        "RHYTHMGAME_WASM_TOOLCHAIN_LOCK": (
+            repo / "tools" / "wasm-probe" / "toolchain-lock.json"
+        ),
+        "RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR": (
+            repo
+            / "tools"
+            / "wasm-probe"
+            / "scripts"
+            / "audit_emscripten_response_files.py"
+        ),
+        "RHYTHMGAME_EMSCRIPTEN_ROOT": emsdk / "upstream" / "emscripten",
+        "RHYTHMGAME_EM_CONFIG": emsdk / ".emscripten",
+        "RHYTHMGAME_EM_CACHE": (
+            repo
+            / ".toolchains"
+            / f"emscripten-cache-{EXPECTED_EMSCRIPTEN}"
         ),
     }
     canonical: dict[str, str] = {}
@@ -2172,8 +5053,16 @@ def verify_hermetic_environment(
     expected_values = {
         "EMSCRIPTEN_VERSION": EXPECTED_EMSCRIPTEN,
         "VCPKG_DISABLE_METRICS": "1",
+        "VCPKG_MAX_CONCURRENCY": str(
+            EXPECTED_REPRODUCIBLE_BUILD_LOCK_ENTRY[
+                "vcpkgMaxConcurrency"
+            ]
+        ),
         "CMAKE_NINJA_FORCE_RESPONSE_FILE": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "EM_FROZEN_CACHE": "1",
+        "SOURCE_DATE_EPOCH": str(EXPECTED_SOURCE_DATE_EPOCH),
     }
     for name, expected in expected_values.items():
         require(
@@ -2181,9 +5070,17 @@ def verify_hermetic_environment(
             f"canonical environment {name} drifted",
         )
     canonical.update(expected_values)
+    em_config = expected_paths["EM_CONFIG"]
+    require(
+        environment.get("RHYTHMGAME_EM_CONFIG_SHA256") == sha256(em_config),
+        "canonical RHYTHMGAME_EM_CONFIG_SHA256 drifted",
+    )
+    canonical["RHYTHMGAME_EM_CONFIG_SHA256"] = sha256(em_config)
     return {
         "forbiddenNamesAbsent": list(FORBIDDEN_BUILD_ENVIRONMENT_NAMES),
+        "scrubbedVariableFamilies": list(hostile_prefixes),
         "canonicalVariables": canonical,
+        "nativeCommandInterpreterAuthenticated": True,
     }
 
 
@@ -2194,6 +5091,15 @@ def verify_toolchains(
 ) -> dict[str, Any]:
     lock_path = repo / "tools" / "wasm-probe" / "toolchain-lock.json"
     lock = json.loads(lock_path.read_text("utf-8"))
+    require(
+        lock.get("gateTools") == EXPECTED_GATE_TOOLS_LOCK_ENTRY,
+        "Gate tool lock drift",
+    )
+    require(
+        lock.get("reproducibleBuild")
+        == EXPECTED_REPRODUCIBLE_BUILD_LOCK_ENTRY,
+        "reproducible build lock drift",
+    )
     require(lock["qt"]["version"] == EXPECTED_QT, "Qt lock drift")
     require(
         lock["qt"]["qtbaseWasmPatchSha256"].casefold()
@@ -2209,6 +5115,49 @@ def verify_toolchains(
     require(
         lock["vcpkg"]["baseline"] == EXPECTED_VCPKG_COMMIT,
         "vcpkg lock drift",
+    )
+    require_exact_keys(
+        lock["vcpkg"],
+        {
+            "baseline",
+            "sourceArchive",
+            "emscriptenWrapperSourceCommit",
+            "bootstrapLauncher",
+            "bootstrapLauncherSha256",
+            "bootstrapScript",
+            "bootstrapScriptSha256",
+            "toolMetadata",
+            "toolMetadataSha256",
+            "toolReleaseTag",
+            "toolUrl",
+            "executable",
+            "executableSha256",
+            "portBuildCMake",
+        },
+        "vcpkg",
+    )
+    require(
+        lock["vcpkg"]["bootstrapLauncher"] == "bootstrap-vcpkg.bat"
+        and lock["vcpkg"]["bootstrapLauncherSha256"]
+        == EXPECTED_VCPKG_BOOTSTRAP_LAUNCHER_SHA256
+        and lock["vcpkg"]["sourceArchive"]
+        == EXPECTED_VCPKG_SOURCE_ARCHIVE
+        and lock["vcpkg"]["bootstrapScript"] == "scripts/bootstrap.ps1"
+        and lock["vcpkg"]["bootstrapScriptSha256"]
+        == EXPECTED_VCPKG_BOOTSTRAP_SCRIPT_SHA256
+        and lock["vcpkg"]["toolMetadata"]
+        == "scripts/vcpkg-tool-metadata.txt"
+        and lock["vcpkg"]["toolMetadataSha256"]
+        == EXPECTED_VCPKG_TOOL_METADATA_SHA256
+        and lock["vcpkg"]["toolReleaseTag"]
+        == EXPECTED_VCPKG_TOOL_RELEASE_TAG
+        and lock["vcpkg"]["toolUrl"] == EXPECTED_VCPKG_TOOL_URL
+        and lock["vcpkg"]["executable"] == "vcpkg.exe"
+        and lock["vcpkg"]["executableSha256"]
+        == EXPECTED_VCPKG_EXECUTABLE_SHA256
+        and lock["vcpkg"]["portBuildCMake"]
+        == EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY,
+        "vcpkg executable/port-build CMake lock drift",
     )
     require(
         lock["buildTools"]["cmake"] == EXPECTED_OUTER_CMAKE_LOCK_ENTRY,
@@ -2250,9 +5199,35 @@ def verify_toolchains(
     expected_emxx_driver = (
         expected_emsdk / "upstream" / "emscripten" / "em++.py"
     )
+    expected_driver_adapter = (
+        repo
+        / "tools"
+        / "wasm-probe"
+        / "scripts"
+        / "invoke_emscripten_driver.py"
+    )
+    expected_response_auditor = (
+        repo
+        / "tools"
+        / "wasm-probe"
+        / "scripts"
+        / "audit_emscripten_response_files.py"
+    )
     expected_emsdk_python = repo / EXPECTED_EMSDK_PYTHON
     expected_emsdk_node = repo / EXPECTED_EMSDK_NODE
 
+    require_same_path(
+        sys.executable,
+        expected_emsdk_python,
+        "evidence verifier Python",
+    )
+    require(
+        sys.flags.isolated == 1
+        and sys.flags.ignore_environment == 1
+        and sys.flags.no_user_site == 1
+        and sys.flags.dont_write_bytecode == 1,
+        "evidence verifier Python must run with -I -B",
+    )
     require_same_path(emsdk, expected_emsdk, "emsdk argument")
     require_same_path(vcpkg, expected_vcpkg, "vcpkg argument")
     for path in (
@@ -2262,6 +5237,8 @@ def verify_toolchains(
         expected_emxx,
         expected_emcc,
         expected_emxx_driver,
+        expected_driver_adapter,
+        expected_response_auditor,
         expected_emsdk_python,
         expected_emsdk_node,
     ):
@@ -2322,21 +5299,116 @@ def verify_toolchains(
     )
     hermetic_environment = verify_hermetic_environment(repo, emsdk, vcpkg)
 
-    emsdk_head = verify_pinned_repository(
-        emsdk,
-        EXPECTED_EMSDK_COMMIT,
-        "emsdk",
+    source_archives = {
+        "emsdk": verify_authenticated_source_archive(
+            repo,
+            "emsdk",
+            lock["emscripten"]["sourceArchive"],
+            emsdk,
+        ),
+        "vcpkg": verify_authenticated_source_archive(
+            repo,
+            "vcpkg",
+            lock["vcpkg"]["sourceArchive"],
+            vcpkg,
+        ),
+    }
+    bootstrap_python_contract = lock["emscripten"]["bootstrapPython"]
+    bootstrap_python_source_contract = {
+        name: bootstrap_python_contract[name]
+        for name in (
+            "url",
+            "archiveFile",
+            "sha256",
+            "payload",
+            "allowedRuntimePrefixes",
+            "allowedRuntimeFiles",
+        )
+    }
+    bootstrap_python_root = (
+        emsdk / bootstrap_python_contract["installationDirectory"]
     )
-    vcpkg_head = verify_pinned_repository(
-        vcpkg,
-        EXPECTED_VCPKG_COMMIT,
-        "vcpkg",
+    bootstrap_python_source = verify_authenticated_source_archive(
+        repo,
+        "emsdk bootstrap Python",
+        bootstrap_python_source_contract,
+        bootstrap_python_root,
     )
+    bootstrap_python_executable = (
+        bootstrap_python_root / bootstrap_python_contract["executable"]
+    )
+    bootstrap_python_sha256 = verify_locked_executable(
+        bootstrap_python_executable,
+        bootstrap_python_contract["executableSha256"],
+        "emsdk bootstrap Python executable",
+    )
+    bootstrap_launchers = {
+        "emsdk": {
+            "path": lock["emscripten"]["bootstrapScript"],
+            "sha256": verify_locked_executable(
+                emsdk / lock["emscripten"]["bootstrapScript"],
+                lock["emscripten"]["bootstrapScriptSha256"],
+                "emsdk bootstrap script",
+            ),
+        },
+        "vcpkg": {
+            "path": lock["vcpkg"]["bootstrapLauncher"],
+            "sha256": verify_locked_executable(
+                vcpkg / lock["vcpkg"]["bootstrapLauncher"],
+                lock["vcpkg"]["bootstrapLauncherSha256"],
+                "vcpkg bootstrap launcher",
+            ),
+        },
+    }
+    vcpkg_bootstrap_inputs = {
+        "script": {
+            "path": lock["vcpkg"]["bootstrapScript"],
+            "sha256": verify_locked_executable(
+                vcpkg / lock["vcpkg"]["bootstrapScript"],
+                lock["vcpkg"]["bootstrapScriptSha256"],
+                "vcpkg bootstrap implementation",
+            ),
+        },
+        "toolMetadata": {
+            "path": lock["vcpkg"]["toolMetadata"],
+            "sha256": verify_locked_executable(
+                vcpkg / lock["vcpkg"]["toolMetadata"],
+                lock["vcpkg"]["toolMetadataSha256"],
+                "vcpkg tool metadata",
+            ),
+        },
+        "toolReleaseTag": lock["vcpkg"]["toolReleaseTag"],
+        "toolUrl": lock["vcpkg"]["toolUrl"],
+    }
     emscripten_installation = verify_emscripten_installation(
         emsdk,
         EXPECTED_EMSCRIPTEN,
         lock["emscripten"],
     )
+    cache_contract = require_mapping(
+        lock["emscripten"]["cache"],
+        "emscripten.cache",
+    )
+    expected_cache = (
+        repo / ".toolchains" / cache_contract["directory"]
+    )
+    cache_identity = verify_emscripten_cache_payload(
+        repo,
+        expected_cache,
+        require_mapping(cache_contract["payload"], "emscripten.cache.payload"),
+        "Emscripten frozen cache",
+    )
+    cache_evidence = {
+        "directory": cache_contract["directory"],
+        "initializer": cache_contract["initializer"],
+        "prewarmCores": cache_contract["prewarmCores"],
+        "compilerPathPrefixMap": dict(
+            cache_contract["compilerPathPrefixMap"]
+        ),
+        "frozenEnvironment": cache_contract["frozenEnvironment"],
+        "volatileProducts": list(cache_contract["volatileProducts"]),
+        **cache_identity,
+    }
     outer_cmake_installation = verify_authenticated_build_tool(
         repo,
         "CMake",
@@ -2349,9 +5421,101 @@ def verify_toolchains(
         lock["buildTools"]["ninja"],
         expected_ninja.parent,
     )
+    vcpkg_executable_sha256 = verify_locked_executable(
+        expected_vcpkg_exe,
+        lock["vcpkg"]["executableSha256"],
+        "vcpkg executable",
+    )
+    emcc_launcher_sha256 = verify_locked_executable(
+        expected_emcc,
+        lock["emscripten"]["cLauncherSha256"],
+        "emcc launcher",
+    )
+    emxx_launcher_sha256 = verify_locked_executable(
+        expected_emxx,
+        lock["emscripten"]["cxxLauncherSha256"],
+        "em++ launcher",
+    )
+    driver_paths = {
+        "emccPySha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "emcc.py",
+        "emxxPySha256": expected_emxx_driver,
+        "emarLauncherSha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "emar.bat",
+        "emarPySha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "emar.py",
+        "emranlibLauncherSha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "emranlib.bat",
+        "emranlibPySha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "emranlib.py",
+        "sharedPySha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "tools"
+        / "shared.py",
+        "responseFilePySha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "tools"
+        / "response_file.py",
+        "configPySha256": expected_emsdk
+        / "upstream"
+        / "emscripten"
+        / "tools"
+        / "config.py",
+    }
+    driver_api = {
+        name: {
+            "path": relative_path(repo, path),
+            "sha256": verify_locked_executable(
+                path,
+                lock["emscripten"]["driverApi"][name],
+                f"Emscripten driver API {name}",
+            ),
+        }
+        for name, path in driver_paths.items()
+    }
+    driver_api["pythonImportClosure"] = (
+        verify_emscripten_python_import_closure(
+            expected_emsdk / "upstream" / "emscripten",
+            require_mapping(
+                lock["emscripten"]["driverApi"]["pythonImportClosure"],
+                "emscripten.driverApi.pythonImportClosure",
+            ),
+        )
+    )
+    node_sha256 = verify_locked_executable(
+        expected_emsdk_node,
+        lock["emscripten"]["nodeExecutableSha256"],
+        "Emscripten Node executable",
+    )
+    response_auditor_sha256 = verify_locked_executable(
+        expected_response_auditor,
+        lock["gateTools"]["responseAuditorSha256"],
+        "response-file auditor",
+    )
+    driver_adapter_sha256 = verify_locked_executable(
+        expected_driver_adapter,
+        lock["gateTools"]["adapterSha256"],
+        "Emscripten compiler adapter",
+    )
     # No version-bearing executable is run until the full Emscripten, CMake,
     # and Ninja byte inventories have all passed.
-    vcpkg_port_cmake = verify_vcpkg_port_build_cmake(repo, vcpkg)
+    vcpkg_port_cmake = verify_vcpkg_port_build_cmake(
+        repo,
+        vcpkg,
+        lock["vcpkg"]["portBuildCMake"],
+    )
 
     outer_cmake_sha256 = verify_locked_executable(
         expected_outer_cmake,
@@ -2363,11 +5527,28 @@ def verify_toolchains(
         lock["buildTools"]["ninja"]["executableSha256"],
         "Ninja",
     )
+    em_config = expected_emsdk / ".emscripten"
     emxx_version = run_text(
         emsdk_python,
+        "-I",
         "-B",
-        "-E",
-        expected_emxx_driver,
+        expected_driver_adapter,
+        "--lock",
+        lock_path,
+        "--auditor",
+        expected_response_auditor,
+        "--emscripten-root",
+        expected_emxx.parent,
+        "--driver-kind",
+        "em++",
+        "--em-config",
+        em_config,
+        "--em-config-sha256",
+        sha256(em_config),
+        "--cache-root",
+        expected_cache,
+        "--",
+        expected_emxx,
         "--version",
     )
     vcpkg_version = run_text(expected_vcpkg_exe, "version")
@@ -2394,21 +5575,58 @@ def verify_toolchains(
 
     return {
         "lockFileSha256": sha256(lock_path),
+        "reproducibleBuild": dict(
+            EXPECTED_REPRODUCIBLE_BUILD_LOCK_ENTRY
+        ),
         "emscripten": {
             "version": EXPECTED_EMSCRIPTEN,
             "versionOutput": first_line(emxx_version),
-            "emsdkCommit": emsdk_head,
+            "emsdkCommit": EXPECTED_EMSDK_COMMIT,
             "emsdkRoot": relative_path(repo, expected_emsdk),
             "python": relative_path(repo, emsdk_python),
+            "verifierPython": {
+                "path": relative_path(repo, Path(sys.executable)),
+                "sha256": bootstrap_python_sha256,
+                "isolated": True,
+                "bytecodeDisabled": True,
+            },
             "node": relative_path(repo, expected_emsdk_node),
+            "nodeSha256": node_sha256,
             "launcher": relative_path(repo, expected_emxx),
+            "cLauncherSha256": emcc_launcher_sha256,
+            "cxxLauncherSha256": emxx_launcher_sha256,
             "driver": relative_path(repo, expected_emxx_driver),
+            "driverAdapter": {
+                "path": relative_path(repo, expected_driver_adapter),
+                "sha256": driver_adapter_sha256,
+            },
+            "driverApi": driver_api,
+            "responseAuditor": {
+                "path": relative_path(repo, expected_response_auditor),
+                "sha256": response_auditor_sha256,
+            },
+            "sourceArchive": source_archives["emsdk"],
+            "bootstrapPython": {
+                "sourceArchive": bootstrap_python_source,
+                "executable": {
+                    "path": relative_path(
+                        repo,
+                        bootstrap_python_executable,
+                    ),
+                    "sha256": bootstrap_python_sha256,
+                },
+            },
             "installation": emscripten_installation,
+            "cache": cache_evidence,
         },
         "vcpkg": {
-            "baselineCommit": vcpkg_head,
+            "baselineCommit": EXPECTED_VCPKG_COMMIT,
             "versionOutput": first_line(vcpkg_version),
             "executable": relative_path(repo, expected_vcpkg_exe),
+            "executableSha256": vcpkg_executable_sha256,
+            "bootstrapLauncher": bootstrap_launchers["vcpkg"],
+            "bootstrapInputs": vcpkg_bootstrap_inputs,
+            "sourceArchive": source_archives["vcpkg"],
         },
         "outerProbeCMake": {
             "version": EXPECTED_OUTER_CMAKE,
@@ -2428,6 +5646,7 @@ def verify_toolchains(
             "installation": ninja_installation,
         },
         "hermeticEnvironment": hermetic_environment,
+        "bootstrapLaunchers": bootstrap_launchers,
     }
 
 
@@ -2539,14 +5758,23 @@ def verify_qt_installation(
         "set(VCPKG_LIBRARY_LINKAGE dynamic)" in host_triplet,
         "host triplet is not dynamic",
     )
-    passthrough = require_vcpkg_env_passthrough(
+    target_passthrough = require_vcpkg_env_passthrough(
         target_triplet,
         ("EMSDK", "EMSDK_PYTHON"),
     )
     require(
-        tuple(passthrough) == EXPECTED_TARGET_ENV_PASSTHROUGH,
+        tuple(target_passthrough) == EXPECTED_TARGET_ENV_PASSTHROUGH,
         "target triplet VCPKG_ENV_PASSTHROUGH drifted: "
-        f"{passthrough}",
+        f"{target_passthrough}",
+    )
+    host_passthrough = require_vcpkg_env_passthrough(
+        host_triplet,
+        EXPECTED_HOST_ENV_PASSTHROUGH,
+    )
+    require(
+        tuple(host_passthrough) == EXPECTED_HOST_ENV_PASSTHROUGH,
+        "host triplet VCPKG_ENV_PASSTHROUGH drifted: "
+        f"{host_passthrough}",
     )
 
     host_tool_specs = {
@@ -2614,7 +5842,8 @@ def verify_qt_installation(
             "qtCoreDllCount": len(host_core_dlls),
             "tools": host_tools,
         },
-        "targetTripletEnvironmentPassthrough": passthrough,
+        "targetTripletEnvironmentPassthrough": target_passthrough,
+        "hostTripletEnvironmentPassthrough": host_passthrough,
     }
 
 
@@ -2910,6 +6139,37 @@ def verify_cmake_identity(
         probe_cache.get("CMAKE_AUTOGEN_COMMAND_LINE_LENGTH_MAX") == "4096",
         "probe AutoGen response threshold is not 4096",
     )
+    authenticated_launchers: dict[str, str] = {}
+    for cache_name, driver_kind in (
+        ("CMAKE_C_COMPILER_LAUNCHER", "emcc"),
+        ("CMAKE_CXX_COMPILER_LAUNCHER", "em++"),
+        ("CMAKE_C_LINKER_LAUNCHER", "emcc"),
+        ("CMAKE_CXX_LINKER_LAUNCHER", "em++"),
+    ):
+        launcher = probe_cache.get(cache_name, "").split(";")
+        require(
+            launcher and all(launcher),
+            f"probe {cache_name} is missing/empty",
+        )
+        compiler = (
+            repo
+            / ".toolchains"
+            / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+            / "upstream"
+            / "emscripten"
+            / f"{driver_kind}.bat"
+        )
+        effective = authenticated_adapter_compiler_arguments(
+            [*launcher, str(compiler)],
+            repo,
+            driver_kind,
+            f"probe {cache_name}",
+        )
+        require(
+            len(effective) == 1,
+            f"probe {cache_name} contains post-separator arguments",
+        )
+        authenticated_launchers[cache_name] = driver_kind
     require_same_path(
         probe_cache.get("VCPKG_CHAINLOAD_TOOLCHAIN_FILE", ""),
         repo / "cmake" / "toolchains" / "vcpkg-emscripten.cmake",
@@ -2957,6 +6217,7 @@ def verify_cmake_identity(
         ),
         "probeCompiler": relative_path(repo, probe_compiler),
         "probeCompilerVersion": compiler_version,
+        "authenticatedLaunchers": authenticated_launchers,
         "qtTargetCCompiler": relative_path(repo, qt_c_compiler),
         "qtTargetCxxCompiler": relative_path(repo, qt_cxx_compiler),
         "qtTargetCompilerVersion": qt_cxx_version,
@@ -2967,6 +6228,7 @@ def verify_compile_commands(
     repo: Path,
     build: Path,
     buildtrees: Path,
+    ninja: Path,
 ) -> dict[str, Any]:
     expected_emxx = (
         repo
@@ -3048,6 +6310,176 @@ def verify_compile_commands(
     probe_database = build / "compile_commands.json"
     entries = json.loads(probe_database.read_text("utf-8"))
     require(isinstance(entries, list) and entries, "probe compile DB is empty")
+    probe_launcher_counts = {"c": 0, "cxx": 0}
+    audited_probe_commands: dict[str, dict[str, Any]] = {}
+    for entry in entries:
+        require(isinstance(entry, dict), "invalid probe compile entry")
+        compiler_arguments = compile_entry_arguments(entry)
+        raw_compiler = Path(compiler_arguments[0])
+        if path_key(raw_compiler) == path_key(expected_emxx):
+            language = "cxx"
+        elif path_key(raw_compiler) == path_key(expected_emcc):
+            language = "c"
+        else:
+            raise AssertionError(
+                "probe compile entry has a non-pinned compiler: "
+                f"{compiler_arguments[0]}"
+            )
+        contract = require_wasm_compile_contract(
+            compiler_arguments,
+            language=language,
+            context=f"probe compile: {entry.get('file')}",
+        )
+        output = compile_entry_output(
+            entry,
+            build,
+            f"probe compile: {entry.get('file')}",
+        )
+        output_key = path_key(output)
+        source_key = path_key(Path(str(entry.get("file", ""))))
+        require(
+            output_key not in audited_probe_commands,
+            f"duplicate probe compile output: {output}",
+        )
+        audited_probe_commands[output_key] = {
+            "arguments": compiler_arguments,
+            "contract": contract,
+            "language": language,
+            "output": output,
+            "sourceKey": source_key,
+        }
+
+    expanded_compdb = json.loads(
+        run_text(ninja, "-C", build, "-t", "compdb", "-x")
+    )
+    require(
+        isinstance(expanded_compdb, list) and expanded_compdb,
+        "expanded Ninja compilation database is empty",
+    )
+    launched_outputs: set[str] = set()
+    actual_probe_commands: dict[str, dict[str, Any]] = {}
+    for entry in expanded_compdb:
+        require(
+            isinstance(entry, Mapping),
+            "expanded Ninja compdb entry is not a mapping",
+        )
+        line = entry.get("command")
+        require(
+            isinstance(line, str),
+            "expanded Ninja compdb entry command is not a string",
+        )
+        # `ninja -t compdb -x` includes phony/order-only edges with an empty
+        # command.  They are not compiler invocations.  The exact source-set
+        # equality below still requires every compile_commands.json source to
+        # have one authenticated, non-empty Ninja compile edge.
+        if not line:
+            continue
+        folded = line.casefold()
+        if "emcc.bat" not in folded and "em++.bat" not in folded:
+            continue
+        launcher_arguments = split_windows_command_line(line)
+        if "-c" not in launcher_arguments:
+            continue
+        driver_positions = [
+            index
+            for index, argument in enumerate(launcher_arguments[:-1])
+            if argument == "--driver-kind"
+        ]
+        require(
+            len(driver_positions) == 1,
+            "probe Ninja compile edge bypassed the authenticated "
+            f"driver adapter: {line}",
+        )
+        driver_kind = launcher_arguments[driver_positions[0] + 1]
+        require(
+            driver_kind in {"emcc", "em++"},
+            f"probe Ninja compile edge has invalid driver: {driver_kind}",
+        )
+        compiler_arguments = authenticated_adapter_compiler_arguments(
+            launcher_arguments,
+            repo,
+            driver_kind,
+            "probe Ninja compile edge",
+        )
+        require(
+            compiler_arguments.count("-c") == 1,
+            "probe Ninja compile edge must contain one -c",
+        )
+        compile_index = compiler_arguments.index("-c")
+        require(
+            compile_index == len(compiler_arguments) - 2,
+            "probe Ninja compile source must immediately follow -c",
+        )
+        output = compile_entry_output(
+            entry,
+            build,
+            "expanded probe Ninja compile edge",
+        )
+        output_key = path_key(output)
+        source_key = path_key(Path(compiler_arguments[compile_index + 1]))
+        audited = audited_probe_commands.get(output_key)
+        require(
+            audited is not None,
+            "probe Ninja launcher output is absent from compile DB: "
+            f"{output}",
+        )
+        require(
+            source_key == audited["sourceKey"],
+            "probe Ninja launcher source does not match the compile DB "
+            f"entry for output {output}",
+        )
+        require(
+            output_key not in launched_outputs,
+            "duplicate authenticated probe Ninja compile output: "
+            f"{output}",
+        )
+        language = str(audited["language"])
+        require(
+            driver_kind == ("emcc" if language == "c" else "em++"),
+            "probe Ninja launcher language/driver mismatch: "
+            f"{compiler_arguments[compile_index + 1]}",
+        )
+        database_arguments = list(audited["arguments"])
+        parity_arguments = require_compile_argv_parity(
+            database_arguments,
+            compiler_arguments,
+            f"probe Ninja compile: {compiler_arguments[compile_index + 1]}",
+        )
+        actual_contract = require_wasm_compile_contract(
+            parity_arguments,
+            language=language,
+            context=(
+                "expanded probe Ninja compile: "
+                f"{compiler_arguments[compile_index + 1]}"
+            ),
+        )
+        actual_probe_commands[output_key] = {
+            # The adapter receives argv after the pinned emcc/em++ launcher.
+            "arguments": compiler_arguments[1:],
+            "parityArguments": parity_arguments,
+            "contract": actual_contract,
+            "driverKind": driver_kind,
+            "language": language,
+            "output": output,
+            "sourceKey": source_key,
+        }
+        launched_outputs.add(output_key)
+        probe_launcher_counts[language] += 1
+    require(
+        launched_outputs == set(audited_probe_commands),
+        "not every probe compile DB output has one exact authenticated "
+        "Ninja launcher edge",
+    )
+    selected_graph = selected_application_compile_outputs(
+        build,
+        (build / "build.ninja").read_text("utf-8", errors="replace"),
+    )
+    selected_object_paths = dict(selected_graph.pop("_objectPaths"))
+    require_selected_compile_output_correlation(
+        selected_object_paths,
+        audited_probe_commands,
+        actual_probe_commands,
+    )
     boundary: dict[str, dict[str, Any]] = {}
     for source_name in ("ExceptionBoundary.cpp", "ProbeState.cpp"):
         matching = [
@@ -3059,16 +6491,18 @@ def verify_compile_commands(
             len(matching) == 1,
             f"expected one generated {source_name} compile entry",
         )
-        arguments = compile_entry_arguments(matching[0])
+        output = compile_entry_output(
+            matching[0],
+            build,
+            f"{source_name} compile entry",
+        )
+        command = actual_probe_commands[path_key(output)]
+        arguments = list(command["parityArguments"])
+        contract = command["contract"]
         require_same_path(
             arguments[0],
             expected_emxx,
             f"{source_name} compiler",
-        )
-        contract = require_wasm_compile_contract(
-            arguments,
-            language="cxx",
-            context=source_name,
         )
         canonical = canonical_command(repo, "\0".join(arguments))
         boundary[source_name] = {
@@ -3089,7 +6523,20 @@ def verify_compile_commands(
         },
         "targetPortCommandCounts": target_counts,
         "forbiddenArgumentsAbsent": list(FORBIDDEN_TARGET_ARGUMENTS),
+        "probeAdapterCommandCounts": probe_launcher_counts,
+        "probeCompileDbNinjaParity": {
+            "expandedCommandSource": "ninja -t compdb -x",
+            "matchedCommandCount": len(launched_outputs),
+            "correlationKey": "directory-plus-output",
+            "dependencyBookkeepingRemoved": ["-MD", "-MT", "-MF"],
+            "exactAfterPathNormalization": True,
+        },
+        "selectedTargetGraph": selected_graph,
         "exceptionBoundary": boundary,
+        "_selectedCompileRecords": {
+            key: actual_probe_commands[key]
+            for key in selected_object_paths
+        },
     }
 
 
@@ -3097,6 +6544,8 @@ def verify_application_link(
     repo: Path,
     build: Path,
     ninja: Path,
+    qualification: Mapping[str, Any],
+    selected_compile_records: Mapping[str, Mapping[str, Any]],
 ) -> dict[str, Any]:
     commands = run_text(
         ninja,
@@ -3131,6 +6580,7 @@ def verify_application_link(
     )
     stream = verify_application_link_argument_stream(
         application_link,
+        repo,
         expected_emxx,
         build_ninja,
         rules_ninja,
@@ -3145,6 +6595,29 @@ def verify_application_link(
         not configured_asyncify(cmake_source),
         "literal -sASYNCIFY is configured in probe CMake",
     )
+    dependency_archives = verify_dependency_archive_binding(
+        repo,
+        build,
+        stream["effectiveArguments"][1:],
+    )
+    compile_dependencies = verify_compile_dependency_sidecars(
+        repo,
+        build,
+        qualification,
+        selected_compile_records,
+    )
+    sidecars = dict(compile_dependencies.pop("_sidecars"))
+    selected_link_binding = verify_selected_link_artifact_binding(
+        build / "RhythmGameWasmProbe.wasm",
+        selected_application_link_identity(
+            repo,
+            build,
+            stream["effectiveArguments"][1:],
+            qualification,
+            sidecars,
+        ),
+    )
+    c_launcher_probe = verify_c_launcher_link(repo, build, ninja)
     return {
         "compiler": relative_path(repo, expected_emxx),
         "responseFile": "CMakeFiles/RhythmGameWasmProbe.rsp",
@@ -3168,17 +6641,86 @@ def verify_application_link(
         "selectedNinjaRule": stream["edge"]["rule"],
         "settings": list(APPLICATION_LINK_SETTINGS),
         "forbiddenArgumentsAbsent": list(FORBIDDEN_TARGET_ARGUMENTS),
+        "dependencyArchives": dependency_archives,
+        "compileDependencyClosure": compile_dependencies,
+        "selectedLinkArtifactBinding": selected_link_binding,
         "effectiveSettings": setting_contract["effectiveValues"],
         "settingOccurrences": setting_contract["occurrences"],
         "literalAsyncifyConfigured": False,
         "staticExceptionArchive": archive,
         "staticExceptionArchiveLinked": True,
+        "adapterAuthenticated": True,
+        "cLauncherProbe": c_launcher_probe,
         "commandSha256": sha256_text(
             canonical_command(repo, application_link)
         ),
         "linkLibrariesSha256": sha256_text(
             canonical_command(repo, bindings["LINK_LIBRARIES"])
         ),
+    }
+
+
+def verify_c_launcher_link(
+    repo: Path,
+    build: Path,
+    ninja: Path,
+) -> dict[str, Any]:
+    target = "RhythmGameWasmCLauncherProbe"
+    commands = run_text(ninja, "-C", build, "-t", "commands", target)
+    links = [
+        line
+        for line in commands.splitlines()
+        if f"{target}.js" in line and "emcc.bat" in line
+    ]
+    require(len(links) == 1, f"expected one C launcher link: {links}")
+    expected_emcc = (
+        repo
+        / ".toolchains"
+        / f"emsdk-{EXPECTED_EMSCRIPTEN}"
+        / "upstream"
+        / "emscripten"
+        / "emcc.bat"
+    )
+    arguments = parse_adapter_link_arguments(
+        links[0],
+        repo,
+        expected_emcc,
+        "emcc",
+        "C launcher probe link",
+    )
+    require(
+        "-c" not in arguments,
+        "C launcher probe link was parsed as a compile command",
+    )
+    setting_contract = require_wasm_compile_contract(
+        arguments,
+        language="c",
+        context="C launcher probe link",
+    )
+    output = (
+        build
+        / "CMakeFiles"
+        / "c-launcher-probe"
+        / f"{target}.wasm"
+    )
+    require(output.is_file(), f"C launcher probe output is missing: {output}")
+    build_ninja = (build / "build.ninja").read_text("utf-8")
+    edge = re.findall(
+        rf"^build CMakeFiles/c-launcher-probe/{target}\.js: ([^\s]+)",
+        build_ninja,
+        flags=re.MULTILINE,
+    )
+    require(len(edge) == 1, f"expected one C launcher Ninja edge: {edge}")
+    verify_ninja_noop(ninja, build, target)
+    return {
+        "target": target,
+        "compiler": relative_path(repo, expected_emcc),
+        "output": relative_path(repo, output),
+        "selectedNinjaRule": edge[0],
+        "adapterAuthenticated": True,
+        "effectiveSettings": setting_contract["effectiveValues"],
+        "commandSha256": sha256_text(canonical_command(repo, links[0])),
+        "noOp": True,
     }
 
 
@@ -3615,28 +7157,99 @@ def verify_features_and_autogen(
     }
 
 
+def git_object_id(kind: str, content: bytes) -> bytes:
+    header = f"{kind} {len(content)}\0".encode("ascii")
+    return hashlib.sha1(header + content).digest()
+
+
+def git_tree_id(files: Mapping[str, bytes], prefix: str = "") -> bytes:
+    direct_files: dict[str, bytes] = {}
+    directories: set[str] = set()
+    for relative, content in files.items():
+        if not relative.startswith(prefix):
+            continue
+        remainder = relative[len(prefix) :]
+        if "/" in remainder:
+            directories.add(remainder.split("/", 1)[0])
+        else:
+            direct_files[remainder] = content
+    entries: list[tuple[bytes, bytes]] = []
+    for name, content in direct_files.items():
+        encoded = name.encode("utf-8")
+        entries.append(
+            (
+                encoded,
+                b"100644 " + encoded + b"\0" + git_object_id("blob", content),
+            )
+        )
+    for name in directories:
+        encoded = name.encode("utf-8")
+        entries.append(
+            (
+                encoded + b"/",
+                b"40000 "
+                + encoded
+                + b"\0"
+                + git_tree_id(files, f"{prefix}{name}/"),
+            )
+        )
+    content = b"".join(record for _, record in sorted(entries))
+    return git_object_id("tree", content)
+
+
 def baseline_blobs(vcpkg: Path, port: str) -> tuple[dict[str, str], str]:
-    prefix = f"ports/{port}/"
-    output = git(
-        vcpkg,
-        "ls-tree",
-        "-r",
-        EXPECTED_VCPKG_COMMIT,
-        f"ports/{port}",
+    archive = (
+        vcpkg.parent
+        / "downloads"
+        / EXPECTED_VCPKG_SOURCE_ARCHIVE["archiveFile"]
     )
-    blobs: dict[str, str] = {}
-    for entry in output.splitlines():
-        match = re.fullmatch(r"\d+ blob ([0-9a-f]{40})\s+(.+)", entry)
-        require(match is not None, f"unexpected {port} tree entry: {entry}")
-        path = match.group(2)
-        require(path.startswith(prefix), f"unexpected {port} path: {path}")
-        blobs[path[len(prefix) :]] = match.group(1)
-    tree = git(
-        vcpkg,
-        "rev-parse",
-        f"{EXPECTED_VCPKG_COMMIT}:ports/{port}",
+    require_no_reparse_chain(archive, "vcpkg retained source ZIP")
+    require(
+        archive.is_file()
+        and sha256(archive) == EXPECTED_VCPKG_SOURCE_ARCHIVE["sha256"],
+        "vcpkg retained source ZIP drifted before overlay audit",
     )
-    return blobs, tree
+    archive_prefix = EXPECTED_VCPKG_SOURCE_ARCHIVE["payload"][
+        "stripPrefix"
+    ]
+    member_prefix = f"{archive_prefix}/ports/{port}/"
+    files: dict[str, bytes] = {}
+    with archive.open("rb") as stream:
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+        require(
+            digest.hexdigest() == EXPECTED_VCPKG_SOURCE_ARCHIVE["sha256"],
+            "vcpkg retained source ZIP changed before overlay audit",
+        )
+        stream.seek(0)
+        with zipfile.ZipFile(stream) as bundle:
+            for info in bundle.infolist():
+                if (
+                    not info.is_dir()
+                    and info.filename.startswith(member_prefix)
+                ):
+                    relative = info.filename[len(member_prefix) :]
+                    require(
+                        relative
+                        and relative
+                        == _safe_contract_relative_path(
+                            relative,
+                            f"{port} archive member",
+                        ),
+                        f"unsafe {port} archive member: {info.filename}",
+                    )
+                    require(
+                        relative not in files,
+                        f"duplicate {port} archive member: {relative}",
+                    )
+                    files[relative] = bundle.read(info)
+    require(files, f"no {port} members in retained vcpkg source ZIP")
+    blobs = {
+        relative: git_object_id("blob", content).hex()
+        for relative, content in files.items()
+    }
+    return blobs, git_tree_id(files).hex()
 
 
 def normalized_text(path: Path) -> str:
@@ -3668,12 +7281,10 @@ def verify_overlay_structure(
     for relative, expected_blob in blobs.items():
         if relative in modified or relative in normalized_baseline:
             continue
-        actual_blob = run_text(
-            "git",
-            "hash-object",
-            "--no-filters",
-            overlay / relative,
-        )
+        actual_blob = git_object_id(
+            "blob",
+            (overlay / relative).read_bytes(),
+        ).hex()
         require(
             actual_blob == expected_blob,
             f"{port}: baseline byte drift in {relative}",
@@ -3915,6 +7526,43 @@ def require_exact_deployment_set(build: Path) -> list[str]:
     return list(DEPLOYMENT_ARTIFACTS)
 
 
+def qt_resource_last_modified_timestamp(generated: Path) -> int:
+    generated_text = generated.read_text("utf-8", errors="replace")
+    match = re.search(
+        (
+            r"static\s+const\s+unsigned\s+char\s+"
+            r"qt_resource_struct\[\]\s*=\s*\{"
+            r"(?P<body>.*?)"
+            r"\n\s*\};"
+        ),
+        generated_text,
+        re.DOTALL,
+    )
+    require(
+        match is not None,
+        "generated shader resource structure is missing",
+    )
+    body = re.sub(r"//[^\r\n]*", "", match.group("body"))
+    byte_values = re.findall(r"0x([0-9a-fA-F]{1,2})", body)
+    residue = re.sub(
+        r"0x[0-9a-fA-F]{1,2}|[\s,]",
+        "",
+        body,
+    )
+    require(
+        not residue,
+        "generated shader resource structure contains unexpected syntax",
+    )
+    resource_struct = bytes(int(value, 16) for value in byte_values)
+    expected_bytes = len(SHADER_RESOURCE_TREE) * 22
+    require(
+        len(resource_struct) == expected_bytes,
+        "generated shader resource structure size drifted: "
+        f"expected {expected_bytes}, got {len(resource_struct)}",
+    )
+    return int.from_bytes(resource_struct[-8:], "big")
+
+
 def verify_shader_resource_contract(build: Path) -> dict[str, Any]:
     qrc = build / ".qt" / "rcc" / "wasm_probe_shaders.qrc"
     generated = build / ".qt" / "rcc" / "qrc_wasm_probe_shaders.cpp"
@@ -3965,11 +7613,20 @@ def verify_shader_resource_contract(build: Path) -> dict[str, Any]:
         "generated shader resource binding set drifted: "
         f"{generated_tree}",
     )
+    resource_timestamp = qt_resource_last_modified_timestamp(generated)
+    expected_timestamp = EXPECTED_SOURCE_DATE_EPOCH * 1000
+    require(
+        resource_timestamp == expected_timestamp,
+        "generated shader resource timestamp drifted: "
+        f"expected {expected_timestamp}, got {resource_timestamp}",
+    )
     return {
         "prefix": SHADER_RESOURCE_PREFIX,
         "aliases": [SHADER_RESOURCE_ALIAS],
         "resourcePaths": [SHADER_RESOURCE_PATH],
         "source": source,
+        "sourceDateEpoch": EXPECTED_SOURCE_DATE_EPOCH,
+        "resourceTimestampMilliseconds": resource_timestamp,
     }
 
 
@@ -4040,6 +7697,10 @@ def verify_artifacts(repo: Path, build: Path) -> dict[str, Any]:
         "pthreadBootstrapMarkers": list(pthread_markers),
         "shaderResourceAlias": SHADER_RESOURCE_PATH,
         "shaderResourceAliases": shader["resourcePaths"],
+        "shaderResourceSourceDateEpoch": shader["sourceDateEpoch"],
+        "shaderResourceTimestampMilliseconds": (
+            shader["resourceTimestampMilliseconds"]
+        ),
         "files": {
             path.name: {
                 "bytes": path.stat().st_size,
@@ -4048,6 +7709,110 @@ def verify_artifacts(repo: Path, build: Path) -> dict[str, Any]:
             for path in hashed
         },
     }
+
+
+def verify_active_qualification_closure(
+    repo: Path,
+    emsdk: Path,
+    vcpkg: Path,
+    toolchains: Mapping[str, Any],
+) -> dict[str, Any]:
+    lock = json.loads(
+        (
+            repo / "tools" / "wasm-probe" / "toolchain-lock.json"
+        ).read_text("utf-8")
+    )
+    outer_cmake = repo / toolchains["outerProbeCMake"]["executable"]
+    ninja = repo / toolchains["ninja"]["executable"]
+    port_cmake_root = (
+        repo
+        / ".wasm-vcpkg"
+        / "downloads"
+        / "tools"
+        / lock["vcpkg"]["portBuildCMake"]["installationDirectory"]
+    )
+    installed = repo / ".wasm-vcpkg" / "installed"
+    roots: list[tuple[str, Path, Sequence[str]]] = [
+        ("emsdk", emsdk, ()),
+        (
+            "emscripten-cache",
+            repo
+            / ".toolchains"
+            / lock["emscripten"]["cache"]["directory"],
+            (),
+        ),
+        ("outer-cmake", outer_cmake.parent.parent, ()),
+        ("ninja", ninja.parent, ()),
+        ("vcpkg", vcpkg, ()),
+        ("vcpkg-port-cmake", port_cmake_root, ()),
+        ("vcpkg-target", installed / TARGET_TRIPLET, ()),
+        (
+            "vcpkg-host-runtime",
+            installed / HOST_TRIPLET,
+            (".pdb", ".lib"),
+        ),
+    ]
+    retained = repo / ".toolchains" / "downloads"
+    explicit: list[tuple[str, Path]] = [
+        (
+            "retained/emsdk-source.zip",
+            retained / lock["emscripten"]["sourceArchive"]["archiveFile"],
+        ),
+        (
+            "retained/vcpkg-source.zip",
+            retained / lock["vcpkg"]["sourceArchive"]["archiveFile"],
+        ),
+        (
+            "retained/outer-cmake.zip",
+            retained / lock["buildTools"]["cmake"]["archiveFile"],
+        ),
+        (
+            "retained/ninja.zip",
+            retained / lock["buildTools"]["ninja"]["archiveFile"],
+        ),
+        (
+            "retained/vcpkg-port-cmake.zip",
+            repo
+            / ".wasm-vcpkg"
+            / "downloads"
+            / lock["vcpkg"]["portBuildCMake"]["archiveFile"],
+        ),
+    ]
+    manifest = repo / "tools" / "wasm-probe" / "input-manifest.txt"
+    input_identity = probe_input_identity(repo)
+    explicit.append(
+        (
+            "repo/tools/wasm-probe/input-manifest.txt",
+            manifest,
+        )
+    )
+    explicit.extend(
+        (f"repo/{relative}", repo / relative)
+        for relative in input_identity["paths"]
+    )
+    build_controls = probe_build_control_identity(repo)
+    explicit.extend(
+        (f"build-control/{relative}", path)
+        for relative, path in zip(
+            build_controls["_paths"],
+            build_controls["_files"],
+        )
+    )
+    expected_verifier = (
+        repo / "tools" / "wasm-probe" / "tests" / "verify_build.py"
+    )
+    require_same_path(__file__, expected_verifier, "qualification verifier")
+    require(
+        "tools/wasm-probe/tests/verify_build.py" in input_identity["paths"],
+        "qualification verifier is absent from the explicit input manifest",
+    )
+    identity = qualification_closure_identity(roots, explicit)
+    identity["buildControls"] = {
+        key: value
+        for key, value in build_controls.items()
+        if not key.startswith("_")
+    }
+    return identity
 
 
 def build_evidence(
@@ -4063,6 +7828,13 @@ def build_evidence(
     require(buildtrees.is_dir(), f"missing vcpkg buildtrees: {buildtrees}")
 
     toolchains = verify_toolchains(repo, emsdk, vcpkg)
+    qualification = verify_active_qualification_closure(
+        repo,
+        emsdk,
+        vcpkg,
+        toolchains,
+    )
+    compiler_qualification = compiler_qualification_identity(qualification)
     ninja = repo / toolchains["ninja"]["executable"]
     outer_probe_cmake = (
         repo / toolchains["outerProbeCMake"]["executable"]
@@ -4070,6 +7842,11 @@ def build_evidence(
     vcpkg_port_cmake = (
         repo / toolchains["vcpkgPortBuildCMake"]["executable"]
     ).resolve()
+    qualification_build = clean_rebuild_selected_targets(
+        repo,
+        build,
+        ninja,
+    )
     build_freshness = verify_build_freshness(repo, build, ninja)
     qt = verify_qt_installation(repo, installed, build)
     cmake_identity = verify_cmake_identity(
@@ -4079,8 +7856,22 @@ def build_evidence(
         outer_probe_cmake,
         vcpkg_port_cmake,
     )
-    compile_commands = verify_compile_commands(repo, build, buildtrees)
-    application_link = verify_application_link(repo, build, ninja)
+    compile_commands = verify_compile_commands(
+        repo,
+        build,
+        buildtrees,
+        ninja,
+    )
+    selected_compile_records = dict(
+        compile_commands.pop("_selectedCompileRecords")
+    )
+    application_link = verify_application_link(
+        repo,
+        build,
+        ninja,
+        compiler_qualification,
+        selected_compile_records,
+    )
     features = verify_features_and_autogen(
         repo,
         installed,
@@ -4091,7 +7882,7 @@ def build_evidence(
     artifacts = verify_artifacts(repo, build)
 
     return {
-        "schemaVersion": 2,
+        "schemaVersion": 4,
         "gate": "1A",
         "scope": GATE_SCOPE,
         "technicalProbePassed": True,
@@ -4100,6 +7891,8 @@ def build_evidence(
         "formalGate1EntryAuthorized": False,
         "gate1Passed": False,
         "toolchains": toolchains,
+        "qualificationClosure": qualification,
+        "qualificationBuild": qualification_build,
         "buildFreshness": build_freshness,
         "cmakeBuild": cmake_identity,
         "qt": qt,
@@ -4158,24 +7951,67 @@ def require_positive_int(value: Any, label: str) -> None:
     require(value > 0, f"{label} must be positive")
 
 
+def validate_source_archive_evidence(
+    value: Any,
+    expected: Mapping[str, Any],
+    installation_root: str,
+    label: str,
+) -> None:
+    source = require_mapping(value, label)
+    require_exact_keys(
+        source,
+        {
+            "archive",
+            "payload",
+            "installationRoot",
+            "allowedRuntimePrefixes",
+            "allowedRuntimeFiles",
+        },
+        label,
+    )
+    archive = require_mapping(source["archive"], f"{label}.archive")
+    require_exact_keys(archive, {"path", "sha256"}, f"{label}.archive")
+    require_sha256_value(archive["sha256"], f"{label}.archive.sha256")
+    require(
+        archive
+        == {
+            "path": f".toolchains/downloads/{expected['archiveFile']}",
+            "sha256": expected["sha256"],
+        }
+        and source["payload"] == expected["payload"]
+        and source["installationRoot"] == installation_root
+        and source["allowedRuntimePrefixes"]
+        == expected["allowedRuntimePrefixes"]
+        and source["allowedRuntimeFiles"] == expected["allowedRuntimeFiles"],
+        f"{label} does not match the authenticated retained source ZIP",
+    )
+
+
 def validate_toolchain_evidence(value: Any) -> None:
     toolchains = require_mapping(value, "toolchains")
     require_exact_keys(
         toolchains,
         {
             "lockFileSha256",
+            "reproducibleBuild",
             "emscripten",
             "vcpkg",
             "outerProbeCMake",
             "vcpkgPortBuildCMake",
             "ninja",
             "hermeticEnvironment",
+            "bootstrapLaunchers",
         },
         "toolchains",
     )
     require_sha256_value(
         toolchains["lockFileSha256"],
         "toolchains.lockFileSha256",
+    )
+    require(
+        toolchains["reproducibleBuild"]
+        == EXPECTED_REPRODUCIBLE_BUILD_LOCK_ENTRY,
+        "toolchains reproducible-build evidence drifted",
     )
 
     emscripten = require_mapping(
@@ -4190,10 +8026,20 @@ def validate_toolchain_evidence(value: Any) -> None:
             "emsdkCommit",
             "emsdkRoot",
             "python",
+            "verifierPython",
             "node",
+            "nodeSha256",
             "launcher",
+            "cLauncherSha256",
+            "cxxLauncherSha256",
             "driver",
+            "driverAdapter",
+            "driverApi",
+            "responseAuditor",
+            "sourceArchive",
+            "bootstrapPython",
             "installation",
+            "cache",
         },
         "toolchains.emscripten",
     )
@@ -4204,14 +8050,212 @@ def validate_toolchain_evidence(value: Any) -> None:
         and emscripten["emsdkRoot"] == ".toolchains/emsdk-4.0.7"
         and emscripten["python"] == EXPECTED_EMSDK_PYTHON
         and emscripten["node"] == EXPECTED_EMSDK_NODE
+        and emscripten["nodeSha256"]
+        == EXPECTED_EMSCRIPTEN_LOCK_ENTRY["nodeExecutableSha256"]
         and emscripten["launcher"]
         == (
             ".toolchains/emsdk-4.0.7/upstream/emscripten/"
             "em++.bat"
         )
+        and emscripten["cLauncherSha256"]
+        == EXPECTED_EMSCRIPTEN_LOCK_ENTRY["cLauncherSha256"]
+        and emscripten["cxxLauncherSha256"]
+        == EXPECTED_EMSCRIPTEN_LOCK_ENTRY["cxxLauncherSha256"]
         and emscripten["driver"]
         == ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py",
         "Emscripten evidence does not match the exact pin",
+    )
+    verifier_python = require_mapping(
+        emscripten["verifierPython"],
+        "toolchains.emscripten.verifierPython",
+    )
+    require_exact_keys(
+        verifier_python,
+        {"path", "sha256", "isolated", "bytecodeDisabled"},
+        "toolchains.emscripten.verifierPython",
+    )
+    require(
+        verifier_python
+        == {
+            "path": EXPECTED_EMSDK_PYTHON,
+            "sha256": EXPECTED_EMSDK_BOOTSTRAP_PYTHON[
+                "executableSha256"
+            ],
+            "isolated": True,
+            "bytecodeDisabled": True,
+        },
+        "Evidence verifier Python contract drifted",
+    )
+    driver_adapter = require_mapping(
+        emscripten["driverAdapter"],
+        "toolchains.emscripten.driverAdapter",
+    )
+    require_exact_keys(
+        driver_adapter,
+        {"path", "sha256"},
+        "toolchains.emscripten.driverAdapter",
+    )
+    require(
+        driver_adapter
+        == {
+            "path": (
+                "tools/wasm-probe/scripts/"
+                "invoke_emscripten_driver.py"
+            ),
+            "sha256": EXPECTED_GATE_TOOLS_LOCK_ENTRY[
+                "adapterSha256"
+            ],
+        },
+        "Emscripten in-process driver adapter evidence drifted",
+    )
+    driver_api = require_mapping(
+        emscripten["driverApi"],
+        "toolchains.emscripten.driverApi",
+    )
+    expected_driver_paths = {
+        "emccPySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/emcc.py"
+        ),
+        "emxxPySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py"
+        ),
+        "emarLauncherSha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/emar.bat"
+        ),
+        "emarPySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/emar.py"
+        ),
+        "emranlibLauncherSha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/emranlib.bat"
+        ),
+        "emranlibPySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/emranlib.py"
+        ),
+        "sharedPySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/tools/shared.py"
+        ),
+        "responseFilePySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/"
+            "tools/response_file.py"
+        ),
+        "configPySha256": (
+            ".toolchains/emsdk-4.0.7/upstream/emscripten/tools/config.py"
+        ),
+    }
+    require_exact_keys(
+        driver_api,
+        EXPECTED_EMSCRIPTEN_DRIVER_API,
+        "toolchains.emscripten.driverApi",
+    )
+    for name, expected_path in expected_driver_paths.items():
+        driver_file = require_mapping(
+            driver_api[name],
+            f"toolchains.emscripten.driverApi.{name}",
+        )
+        require_exact_keys(
+            driver_file,
+            {"path", "sha256"},
+            f"toolchains.emscripten.driverApi.{name}",
+        )
+        require_sha256_value(
+            driver_file["sha256"],
+            f"toolchains.emscripten.driverApi.{name}.sha256",
+        )
+        require(
+            driver_file
+            == {
+                "path": expected_path,
+                "sha256": EXPECTED_EMSCRIPTEN_DRIVER_API[name],
+            },
+            f"Emscripten driver API evidence drifted: {name}",
+        )
+    python_import_closure = require_mapping(
+        driver_api["pythonImportClosure"],
+        "toolchains.emscripten.driverApi.pythonImportClosure",
+    )
+    require(
+        python_import_closure
+        == EXPECTED_EMSCRIPTEN_DRIVER_API["pythonImportClosure"],
+        "Emscripten Python import closure evidence drifted",
+    )
+    require_sha256_value(
+        emscripten["nodeSha256"],
+        "toolchains.emscripten.nodeSha256",
+    )
+    response_auditor = require_mapping(
+        emscripten["responseAuditor"],
+        "toolchains.emscripten.responseAuditor",
+    )
+    require_exact_keys(
+        response_auditor,
+        {"path", "sha256"},
+        "toolchains.emscripten.responseAuditor",
+    )
+    require(
+        response_auditor
+        == {
+            "path": (
+                "tools/wasm-probe/scripts/"
+                "audit_emscripten_response_files.py"
+            ),
+            "sha256": EXPECTED_GATE_TOOLS_LOCK_ENTRY[
+                "responseAuditorSha256"
+            ],
+        },
+        "Emscripten response auditor evidence drifted",
+    )
+    validate_source_archive_evidence(
+        emscripten["sourceArchive"],
+        EXPECTED_EMSDK_SOURCE_ARCHIVE,
+        ".toolchains/emsdk-4.0.7",
+        "toolchains.emscripten.sourceArchive",
+    )
+    bootstrap_python = require_mapping(
+        emscripten["bootstrapPython"],
+        "toolchains.emscripten.bootstrapPython",
+    )
+    require_exact_keys(
+        bootstrap_python,
+        {"sourceArchive", "executable"},
+        "toolchains.emscripten.bootstrapPython",
+    )
+    bootstrap_source_expected = {
+        name: EXPECTED_EMSDK_BOOTSTRAP_PYTHON[name]
+        for name in (
+            "archiveFile",
+            "sha256",
+            "payload",
+            "allowedRuntimePrefixes",
+            "allowedRuntimeFiles",
+        )
+    }
+    validate_source_archive_evidence(
+        bootstrap_python["sourceArchive"],
+        bootstrap_source_expected,
+        (
+            ".toolchains/emsdk-4.0.7/"
+            "python/3.9.2-nuget_64bit"
+        ),
+        "toolchains.emscripten.bootstrapPython.sourceArchive",
+    )
+    bootstrap_executable = require_mapping(
+        bootstrap_python["executable"],
+        "toolchains.emscripten.bootstrapPython.executable",
+    )
+    require_exact_keys(
+        bootstrap_executable,
+        {"path", "sha256"},
+        "toolchains.emscripten.bootstrapPython.executable",
+    )
+    require(
+        bootstrap_executable
+        == {
+            "path": EXPECTED_EMSDK_PYTHON,
+            "sha256": EXPECTED_EMSDK_BOOTSTRAP_PYTHON[
+                "executableSha256"
+            ],
+        },
+        "Emscripten bootstrap Python executable evidence drifted",
     )
     installation = require_mapping(
         emscripten["installation"],
@@ -4242,23 +8286,154 @@ def validate_toolchain_evidence(value: Any) -> None:
         },
         "Emscripten installed payload evidence drifted",
     )
+    cache = require_mapping(
+        emscripten["cache"],
+        "toolchains.emscripten.cache",
+    )
+    require_exact_keys(
+        cache,
+        {
+            "directory",
+            "initializer",
+            "prewarmCores",
+            "compilerPathPrefixMap",
+            "frozenEnvironment",
+            "volatileProducts",
+            "root",
+            "payload",
+        },
+        "toolchains.emscripten.cache",
+    )
+    expected_cache_contract = require_mapping(
+        EXPECTED_EMSCRIPTEN_LOCK_ENTRY["cache"],
+        "expected Emscripten cache contract",
+    )
+    require(
+        {
+            key: cache[key]
+            for key in (
+                "directory",
+                "initializer",
+                "prewarmCores",
+                "compilerPathPrefixMap",
+                "frozenEnvironment",
+                "volatileProducts",
+                "root",
+                "payload",
+            )
+        }
+        == {
+            "directory": expected_cache_contract["directory"],
+            "initializer": expected_cache_contract["initializer"],
+            "prewarmCores": expected_cache_contract["prewarmCores"],
+            "compilerPathPrefixMap": expected_cache_contract[
+                "compilerPathPrefixMap"
+            ],
+            "frozenEnvironment": expected_cache_contract[
+                "frozenEnvironment"
+            ],
+            "volatileProducts": expected_cache_contract[
+                "volatileProducts"
+            ],
+            "root": ".toolchains/emscripten-cache-4.0.7",
+            "payload": expected_cache_contract["payload"],
+        },
+        "Emscripten frozen-cache evidence drifted",
+    )
 
     vcpkg = require_mapping(toolchains["vcpkg"], "toolchains.vcpkg")
     require_exact_keys(
         vcpkg,
-        {"baselineCommit", "versionOutput", "executable"},
+        {
+            "baselineCommit",
+            "versionOutput",
+            "executable",
+            "executableSha256",
+            "bootstrapLauncher",
+            "bootstrapInputs",
+            "sourceArchive",
+        },
         "toolchains.vcpkg",
     )
     require(
-        vcpkg
-        == {
-            "baselineCommit": EXPECTED_VCPKG_COMMIT,
-            "versionOutput": EXPECTED_VCPKG_VERSION_LINE,
-            "executable": (
-                f".toolchains/vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}/vcpkg.exe"
-            ),
-        },
+        vcpkg["baselineCommit"] == EXPECTED_VCPKG_COMMIT
+        and vcpkg["versionOutput"] == EXPECTED_VCPKG_VERSION_LINE
+        and vcpkg["executable"]
+        == f".toolchains/vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}/vcpkg.exe"
+        and vcpkg["executableSha256"] == EXPECTED_VCPKG_EXECUTABLE_SHA256,
         "vcpkg evidence does not match the exact pin",
+    )
+    require_sha256_value(
+        vcpkg["executableSha256"],
+        "toolchains.vcpkg.executableSha256",
+    )
+    vcpkg_bootstrap = require_mapping(
+        vcpkg["bootstrapLauncher"],
+        "toolchains.vcpkg.bootstrapLauncher",
+    )
+    require_exact_keys(
+        vcpkg_bootstrap,
+        {"path", "sha256"},
+        "toolchains.vcpkg.bootstrapLauncher",
+    )
+    require(
+        vcpkg_bootstrap["path"] == "bootstrap-vcpkg.bat",
+        "vcpkg bootstrap launcher path drifted",
+    )
+    require_sha256_value(
+        vcpkg_bootstrap["sha256"],
+        "toolchains.vcpkg.bootstrapLauncher.sha256",
+    )
+    bootstrap_inputs = require_mapping(
+        vcpkg["bootstrapInputs"],
+        "toolchains.vcpkg.bootstrapInputs",
+    )
+    require_exact_keys(
+        bootstrap_inputs,
+        {"script", "toolMetadata", "toolReleaseTag", "toolUrl"},
+        "toolchains.vcpkg.bootstrapInputs",
+    )
+    expected_bootstrap_files = {
+        "script": (
+            "scripts/bootstrap.ps1",
+            EXPECTED_VCPKG_BOOTSTRAP_SCRIPT_SHA256,
+        ),
+        "toolMetadata": (
+            "scripts/vcpkg-tool-metadata.txt",
+            EXPECTED_VCPKG_TOOL_METADATA_SHA256,
+        ),
+    }
+    for name, (expected_path, expected_sha256) in (
+        expected_bootstrap_files.items()
+    ):
+        record = require_mapping(
+            bootstrap_inputs[name],
+            f"toolchains.vcpkg.bootstrapInputs.{name}",
+        )
+        require_exact_keys(
+            record,
+            {"path", "sha256"},
+            f"toolchains.vcpkg.bootstrapInputs.{name}",
+        )
+        require_sha256_value(
+            record["sha256"],
+            f"toolchains.vcpkg.bootstrapInputs.{name}.sha256",
+        )
+        require(
+            record
+            == {"path": expected_path, "sha256": expected_sha256},
+            f"vcpkg bootstrap input evidence drifted: {name}",
+        )
+    require(
+        bootstrap_inputs["toolReleaseTag"] == EXPECTED_VCPKG_TOOL_RELEASE_TAG
+        and bootstrap_inputs["toolUrl"] == EXPECTED_VCPKG_TOOL_URL,
+        "vcpkg bootstrap release identity drifted",
+    )
+    validate_source_archive_evidence(
+        vcpkg["sourceArchive"],
+        EXPECTED_VCPKG_SOURCE_ARCHIVE,
+        f".toolchains/vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}",
+        "toolchains.vcpkg.sourceArchive",
     )
     outer_cmake = require_mapping(
         toolchains["outerProbeCMake"],
@@ -4318,6 +8493,7 @@ def validate_toolchain_evidence(value: Any) -> None:
             "executableSha256",
             "toolsManifest",
             "archive",
+            "installation",
         },
         "toolchains.vcpkgPortBuildCMake",
     )
@@ -4369,7 +8545,7 @@ def validate_toolchain_evidence(value: Any) -> None:
     )
     require_exact_keys(
         archive,
-        {"path", "sha512"},
+        {"path", "sha512", "bytes"},
         "toolchains.vcpkgPortBuildCMake.archive",
     )
     require_sha512_value(
@@ -4386,8 +8562,32 @@ def validate_toolchain_evidence(value: Any) -> None:
             "sha512": (
                 EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["sha512"]
             ),
+            "bytes": EXPECTED_VCPKG_PORT_CMAKE_LOCK_ENTRY["archiveBytes"],
         },
         "vcpkg port-build CMake archive evidence drifted",
+    )
+    installation = require_mapping(
+        port_cmake["installation"],
+        "toolchains.vcpkgPortBuildCMake.installation",
+    )
+    require(
+        installation
+        == {
+            "archive": {
+                "path": (
+                    ".wasm-vcpkg/downloads/"
+                    "cmake-4.3.3-windows-x86_64.zip"
+                ),
+                "sha512": (
+                    EXPECTED_VCPKG_PORT_CMAKE_MANIFEST_ENTRY["sha512"]
+                ),
+            },
+            "payload": EXPECTED_VCPKG_PORT_CMAKE_PAYLOAD,
+            "installationRoot": (
+                ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows"
+            ),
+        },
+        "vcpkg port-build CMake installation evidence drifted",
     )
     ninja = require_mapping(toolchains["ninja"], "toolchains.ninja")
     require_exact_keys(
@@ -4432,7 +8632,12 @@ def validate_toolchain_evidence(value: Any) -> None:
     )
     require_exact_keys(
         hermetic,
-        {"forbiddenNamesAbsent", "canonicalVariables"},
+        {
+            "forbiddenNamesAbsent",
+            "scrubbedVariableFamilies",
+            "canonicalVariables",
+            "nativeCommandInterpreterAuthenticated",
+        },
         "toolchains.hermeticEnvironment",
     )
     require(
@@ -4440,12 +8645,71 @@ def validate_toolchain_evidence(value: Any) -> None:
         == list(FORBIDDEN_BUILD_ENVIRONMENT_NAMES),
         "hermetic environment forbidden-name evidence drifted",
     )
+    require(
+        hermetic["scrubbedVariableFamilies"]
+        == [
+            "CCACHE_",
+            "CMAKE_",
+            "EMCC_",
+            "EMMAKEN_",
+            "EMSCRIPTEN_",
+            "EMSCONS_PKG_CONFIG_",
+            "EMSDK_",
+            "EM_",
+            "GIT_",
+            "PKG_CONFIG_",
+            "QML_",
+            "QT_",
+            "RHYTHMGAME_",
+            "VCPKG_",
+            "X_VCPKG_",
+        ],
+        "hermetic environment scrubbed-family evidence drifted",
+    )
     canonical = require_mapping(
         hermetic["canonicalVariables"],
         "toolchains.hermeticEnvironment.canonicalVariables",
     )
+    require_exact_keys(
+        canonical,
+        {
+            "EMSDK",
+            "EMSDK_NODE",
+            "EMSDK_PYTHON",
+            "EMSCRIPTEN_ROOT",
+            "EM_CONFIG",
+            "EM_CACHE",
+            "VCPKG_ROOT",
+            "VCPKG_DEFAULT_BINARY_CACHE",
+            "RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER",
+            "RHYTHMGAME_WASM_TOOLCHAIN_LOCK",
+            "RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR",
+            "RHYTHMGAME_EMSCRIPTEN_ROOT",
+            "RHYTHMGAME_EM_CONFIG",
+            "RHYTHMGAME_EM_CACHE",
+            "RHYTHMGAME_EM_CONFIG_SHA256",
+            "EMSCRIPTEN_VERSION",
+            "VCPKG_DISABLE_METRICS",
+            "VCPKG_MAX_CONCURRENCY",
+            "CMAKE_NINJA_FORCE_RESPONSE_FILE",
+            "PYTHONDONTWRITEBYTECODE",
+            "PYTHONNOUSERSITE",
+            "EM_FROZEN_CACHE",
+            "SOURCE_DATE_EPOCH",
+        },
+        "toolchains.hermeticEnvironment.canonicalVariables",
+    )
+    require_sha256_value(
+        canonical["RHYTHMGAME_EM_CONFIG_SHA256"],
+        (
+            "toolchains.hermeticEnvironment.canonicalVariables."
+            "RHYTHMGAME_EM_CONFIG_SHA256"
+        ),
+    )
+    canonical_without_config_digest = dict(canonical)
+    del canonical_without_config_digest["RHYTHMGAME_EM_CONFIG_SHA256"]
     require(
-        canonical
+        canonical_without_config_digest
         == {
             "EMSDK": ".toolchains/emsdk-4.0.7",
             "EMSDK_NODE": EXPECTED_EMSDK_NODE,
@@ -4455,18 +8719,93 @@ def validate_toolchain_evidence(value: Any) -> None:
             ),
             "EM_CONFIG": ".toolchains/emsdk-4.0.7/.emscripten",
             "EM_CACHE": (
-                ".toolchains/emsdk-4.0.7/upstream/emscripten/cache"
+                ".toolchains/emscripten-cache-4.0.7"
             ),
             "VCPKG_ROOT": (
                 f".toolchains/vcpkg-{EXPECTED_VCPKG_COMMIT[:8]}"
             ),
             "VCPKG_DEFAULT_BINARY_CACHE": ".wasm-vcpkg/bincache",
+            "RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER": (
+                "tools/wasm-probe/scripts/invoke_emscripten_driver.py"
+            ),
+            "RHYTHMGAME_WASM_TOOLCHAIN_LOCK": (
+                "tools/wasm-probe/toolchain-lock.json"
+            ),
+            "RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR": (
+                "tools/wasm-probe/scripts/"
+                "audit_emscripten_response_files.py"
+            ),
+            "RHYTHMGAME_EMSCRIPTEN_ROOT": (
+                ".toolchains/emsdk-4.0.7/upstream/emscripten"
+            ),
+            "RHYTHMGAME_EM_CONFIG": (
+                ".toolchains/emsdk-4.0.7/.emscripten"
+            ),
+            "RHYTHMGAME_EM_CACHE": (
+                ".toolchains/emscripten-cache-4.0.7"
+            ),
             "EMSCRIPTEN_VERSION": EXPECTED_EMSCRIPTEN,
             "VCPKG_DISABLE_METRICS": "1",
+            "VCPKG_MAX_CONCURRENCY": str(
+                EXPECTED_REPRODUCIBLE_BUILD_LOCK_ENTRY[
+                    "vcpkgMaxConcurrency"
+                ]
+            ),
             "CMAKE_NINJA_FORCE_RESPONSE_FILE": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONNOUSERSITE": "1",
+            "EM_FROZEN_CACHE": "1",
+            "SOURCE_DATE_EPOCH": str(EXPECTED_SOURCE_DATE_EPOCH),
         },
         "hermetic environment canonical evidence drifted",
+    )
+    require(
+        hermetic["nativeCommandInterpreterAuthenticated"] is True,
+        "native Windows command interpreter was not authenticated",
+    )
+    launchers = require_mapping(
+        toolchains["bootstrapLaunchers"],
+        "toolchains.bootstrapLaunchers",
+    )
+    require_exact_keys(
+        launchers,
+        {"emsdk", "vcpkg"},
+        "toolchains.bootstrapLaunchers",
+    )
+    for name, (expected_path, expected_sha256) in {
+        "emsdk": (
+            "emsdk.py",
+            EXPECTED_EMSCRIPTEN_LOCK_ENTRY["bootstrapScriptSha256"],
+        ),
+        "vcpkg": (
+            "bootstrap-vcpkg.bat",
+            EXPECTED_VCPKG_BOOTSTRAP_LAUNCHER_SHA256,
+        ),
+    }.items():
+        launcher = require_mapping(
+            launchers[name],
+            f"toolchains.bootstrapLaunchers.{name}",
+        )
+        require_exact_keys(
+            launcher,
+            {"path", "sha256"},
+            f"toolchains.bootstrapLaunchers.{name}",
+        )
+        require(
+            launcher["path"] == expected_path,
+            f"{name} bootstrap launcher path drifted",
+        )
+        require_sha256_value(
+            launcher["sha256"],
+            f"toolchains.bootstrapLaunchers.{name}.sha256",
+        )
+        require(
+            launcher["sha256"] == expected_sha256,
+            f"{name} bootstrap launcher bytes drifted",
+        )
+    require(
+        launchers["vcpkg"] == vcpkg_bootstrap,
+        "vcpkg bootstrap launcher evidence disagrees across sections",
     )
 
 
@@ -4492,21 +8831,42 @@ def validate_build_freshness_evidence(value: Any) -> None:
         ".toolchains/ninja-1.13.2-win/ninja.exe",
         "-C",
         "tools/wasm-probe/build/wasm-release",
-        "-n",
         "-v",
         "RhythmGameWasmProbe",
     ]
     require(
         freshness["command"] == expected_command,
-        "buildFreshness command is not the exact pinned Ninja dry-run",
+        "buildFreshness command is not the exact pinned Ninja build",
     )
     output = freshness["output"]
-    require(
+    cmake = (
+        "${REPO}/.toolchains/"
+        f"{EXPECTED_OUTER_CMAKE_LOCK_ENTRY['directory']}/bin/cmake.exe"
+    )
+    build = "${REPO}/tools/wasm-probe/build/wasm-release"
+    configure_depends_output = [
+        (
+            f"[0/2] {cmake} -P "
+            f"{build}/CMakeFiles/VerifyGlobs.cmake"
+        ),
+        "ninja: no work to do.",
+    ]
+    exact_noop = (
         isinstance(output, list)
         and len(output) == 2
         and all(type(line) is str for line in output)
         and output[0].startswith("ninja: Entering directory ")
-        and output[1] == "ninja: no work to do.",
+        and output[1] == "ninja: no work to do."
+    )
+    exact_configure_depends_noop = (
+        isinstance(output, list)
+        and len(output) == 3
+        and all(type(line) is str for line in output)
+        and output[0].startswith("ninja: Entering directory ")
+        and output[1:] == configure_depends_output
+    )
+    require(
+        exact_noop or exact_configure_depends_noop,
         "buildFreshness output is not the exact no-op proof",
     )
     require_sha256_value(
@@ -4538,7 +8898,7 @@ def validate_build_freshness_evidence(value: Any) -> None:
     require(
         source_inputs["algorithm"]
         == "sha256-manifest-path-equals-digest-lf-v1"
-        and source_inputs["tracking"] == "git-index"
+        and source_inputs["tracking"] == "explicit-input-manifest"
         and source_inputs["manifest"]
         == "tools/wasm-probe/input-manifest.txt",
         "buildFreshness source input contract drifted",
@@ -4625,6 +8985,7 @@ def validate_cmake_evidence(value: Any) -> None:
             "qtBaseTargetCMakeCommand",
             "probeCompiler",
             "probeCompilerVersion",
+            "authenticatedLaunchers",
             "qtTargetCCompiler",
             "qtTargetCxxCompiler",
             "qtTargetCompilerVersion",
@@ -4650,6 +9011,12 @@ def validate_cmake_evidence(value: Any) -> None:
                 ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat"
             ),
             "probeCompilerVersion": "21.0.0",
+            "authenticatedLaunchers": {
+                "CMAKE_C_COMPILER_LAUNCHER": "emcc",
+                "CMAKE_CXX_COMPILER_LAUNCHER": "em++",
+                "CMAKE_C_LINKER_LAUNCHER": "emcc",
+                "CMAKE_CXX_LINKER_LAUNCHER": "em++",
+            },
             "qtTargetCCompiler": (
                 ".toolchains/emsdk-4.0.7/upstream/emscripten/emcc.bat"
             ),
@@ -4723,6 +9090,7 @@ def validate_qt_evidence(value: Any) -> None:
             "target",
             "host",
             "targetTripletEnvironmentPassthrough",
+            "hostTripletEnvironmentPassthrough",
         },
         "qt",
     )
@@ -4731,6 +9099,11 @@ def validate_qt_evidence(value: Any) -> None:
         qt["targetTripletEnvironmentPassthrough"]
         == list(EXPECTED_TARGET_ENV_PASSTHROUGH),
         "Qt target triplet environment passthrough drifted",
+    )
+    require(
+        qt["hostTripletEnvironmentPassthrough"]
+        == list(EXPECTED_HOST_ENV_PASSTHROUGH),
+        "Qt host triplet environment passthrough drifted",
     )
     target = require_mapping(qt["target"], "qt.target")
     require_exact_keys(
@@ -5170,6 +9543,9 @@ def validate_compile_evidence(value: Any) -> None:
             "targetSettingCoverage",
             "targetPortCommandCounts",
             "forbiddenArgumentsAbsent",
+            "probeAdapterCommandCounts",
+            "probeCompileDbNinjaParity",
+            "selectedTargetGraph",
             "exceptionBoundary",
         },
         "compileCommands",
@@ -5245,6 +9621,75 @@ def validate_compile_evidence(value: Any) -> None:
         == list(FORBIDDEN_TARGET_ARGUMENTS),
         "target forbidden-argument audit drifted",
     )
+    adapter_counts = require_mapping(
+        compile_commands["probeAdapterCommandCounts"],
+        "compileCommands.probeAdapterCommandCounts",
+    )
+    require_exact_keys(
+        adapter_counts,
+        {"c", "cxx"},
+        "compileCommands.probeAdapterCommandCounts",
+    )
+    for language in ("c", "cxx"):
+        require_exact_type(
+            adapter_counts[language],
+            int,
+            f"compileCommands.probeAdapterCommandCounts.{language}",
+        )
+        require(
+            adapter_counts[language] > 0,
+            f"no probe {language} compile command used the "
+            "authenticated adapter",
+        )
+    parity = require_mapping(
+        compile_commands["probeCompileDbNinjaParity"],
+        "compileCommands.probeCompileDbNinjaParity",
+    )
+    require(
+        parity
+        == {
+            "expandedCommandSource": "ninja -t compdb -x",
+            "matchedCommandCount": sum(adapter_counts.values()),
+            "correlationKey": "directory-plus-output",
+            "dependencyBookkeepingRemoved": ["-MD", "-MT", "-MF"],
+            "exactAfterPathNormalization": True,
+        },
+        "probe compile DB/expanded Ninja argv parity evidence drifted",
+    )
+    selected_graph = require_mapping(
+        compile_commands["selectedTargetGraph"],
+        "compileCommands.selectedTargetGraph",
+    )
+    require_exact_keys(
+        selected_graph,
+        {
+            "target",
+            "graphSource",
+            "objectOutputCount",
+            "archiveOutputCount",
+            "objectOutputsSha256",
+            "allSelectedOutputsMatchedByExactOutput",
+        },
+        "compileCommands.selectedTargetGraph",
+    )
+    require(
+        selected_graph["target"] == "RhythmGameWasmProbe"
+        and selected_graph["graphSource"] == "build.ninja"
+        and selected_graph["allSelectedOutputsMatchedByExactOutput"] is True,
+        "selected target graph evidence drifted",
+    )
+    require_positive_int(
+        selected_graph["objectOutputCount"],
+        "selectedTargetGraph.objectOutputCount",
+    )
+    require_positive_int(
+        selected_graph["archiveOutputCount"],
+        "selectedTargetGraph.archiveOutputCount",
+    )
+    require_sha256_value(
+        selected_graph["objectOutputsSha256"],
+        "selectedTargetGraph.objectOutputsSha256",
+    )
     boundary = require_mapping(
         compile_commands["exceptionBoundary"],
         "compileCommands.exceptionBoundary",
@@ -5291,11 +9736,16 @@ def validate_application_link_evidence(value: Any) -> None:
             "selectedNinjaRule",
             "settings",
             "forbiddenArgumentsAbsent",
+            "dependencyArchives",
+            "compileDependencyClosure",
+            "selectedLinkArtifactBinding",
             "effectiveSettings",
             "settingOccurrences",
             "literalAsyncifyConfigured",
             "staticExceptionArchive",
             "staticExceptionArchiveLinked",
+            "adapterAuthenticated",
+            "cLauncherProbe",
             "commandSha256",
             "linkLibrariesSha256",
         },
@@ -5317,8 +9767,48 @@ def validate_application_link_evidence(value: Any) -> None:
         and link["literalAsyncifyConfigured"] is False
         and link["staticExceptionArchive"]
         == "libWasmProbeExceptionBoundary.a"
-        and link["staticExceptionArchiveLinked"] is True,
+        and link["staticExceptionArchiveLinked"] is True
+        and link["adapterAuthenticated"] is True,
         "application link contract drifted",
+    )
+    c_probe = require_mapping(
+        link["cLauncherProbe"],
+        "applicationLink.cLauncherProbe",
+    )
+    require_exact_keys(
+        c_probe,
+        {
+            "target",
+            "compiler",
+            "output",
+            "selectedNinjaRule",
+            "adapterAuthenticated",
+            "effectiveSettings",
+            "commandSha256",
+            "noOp",
+        },
+        "applicationLink.cLauncherProbe",
+    )
+    require(
+        c_probe["target"] == "RhythmGameWasmCLauncherProbe"
+        and c_probe["compiler"]
+        == ".toolchains/emsdk-4.0.7/upstream/emscripten/emcc.bat"
+        and c_probe["output"]
+        == (
+            "tools/wasm-probe/build/wasm-release/CMakeFiles/"
+            "c-launcher-probe/RhythmGameWasmCLauncherProbe.wasm"
+        )
+        and c_probe["selectedNinjaRule"]
+        == "C_EXECUTABLE_LINKER__RhythmGameWasmCLauncherProbe_Release"
+        and c_probe["adapterAuthenticated"] is True
+        and c_probe["effectiveSettings"]
+        == C_COMPILE_EMSCRIPTEN_SETTINGS
+        and c_probe["noOp"] is True,
+        "C launcher probe link contract drifted",
+    )
+    require_sha256_value(
+        c_probe["commandSha256"],
+        "applicationLink.cLauncherProbe.commandSha256",
     )
     require_positive_int(
         link["responseArgumentCount"],
@@ -5355,6 +9845,313 @@ def validate_application_link_evidence(value: Any) -> None:
     require_sha256_value(
         link["effectiveArgumentsSha256"],
         "applicationLink.effectiveArgumentsSha256",
+    )
+    selected_binding = require_mapping(
+        link["selectedLinkArtifactBinding"],
+        "applicationLink.selectedLinkArtifactBinding",
+    )
+    require_exact_keys(
+        selected_binding,
+        {
+            "algorithm",
+            "sha256",
+            "argumentCount",
+            "staticInputOccurrenceCount",
+            "staticInputUniqueCount",
+            "compileInputCount",
+            "qualificationAggregateSha256",
+            "customSection",
+            "payloadEncoding",
+            "artifactBound",
+        },
+        "applicationLink.selectedLinkArtifactBinding",
+    )
+    require(
+        selected_binding["algorithm"]
+        == SELECTED_LINK_IDENTITY_ALGORITHM
+        and selected_binding["argumentCount"]
+        == link["effectiveArgumentCount"] - 1
+        and selected_binding["customSection"] == "build_id"
+        and selected_binding["payloadEncoding"]
+        == "uleb32-plus-32-byte-sha256"
+        and selected_binding["artifactBound"] is True,
+        "selected application link artifact binding drifted",
+    )
+    require_positive_int(
+        selected_binding["staticInputOccurrenceCount"],
+        "selectedLinkArtifactBinding.staticInputOccurrenceCount",
+    )
+    require_positive_int(
+        selected_binding["staticInputUniqueCount"],
+        "selectedLinkArtifactBinding.staticInputUniqueCount",
+    )
+    require(
+        selected_binding["staticInputUniqueCount"]
+        <= selected_binding["staticInputOccurrenceCount"],
+        "selected link unique inputs exceed occurrences",
+    )
+    require_sha256_value(
+        selected_binding["sha256"],
+        "selectedLinkArtifactBinding.sha256",
+    )
+    require_positive_int(
+        selected_binding["compileInputCount"],
+        "selectedLinkArtifactBinding.compileInputCount",
+    )
+    require_sha256_value(
+        selected_binding["qualificationAggregateSha256"],
+        "selectedLinkArtifactBinding.qualificationAggregateSha256",
+    )
+    compile_dependencies = require_mapping(
+        link["compileDependencyClosure"],
+        "applicationLink.compileDependencyClosure",
+    )
+    require_exact_keys(
+        compile_dependencies,
+        {
+            "schemaVersion",
+            "algorithm",
+            "selectedObjectCount",
+            "dependencyOccurrenceCount",
+            "uniqueDependencyCount",
+            "aggregateSha256",
+            "qualificationAggregateSha256",
+            "allCurrentDependencyBytesVerified",
+            "allCurrentObjectBytesVerified",
+        },
+        "applicationLink.compileDependencyClosure",
+    )
+    require(
+        compile_dependencies["schemaVersion"] == 1
+        and compile_dependencies["algorithm"]
+        == COMPILE_DEPENDENCY_ALGORITHM
+        and compile_dependencies["selectedObjectCount"]
+        == selected_binding["compileInputCount"]
+        and compile_dependencies["allCurrentDependencyBytesVerified"] is True
+        and compile_dependencies["allCurrentObjectBytesVerified"] is True
+        and compile_dependencies["qualificationAggregateSha256"]
+        == selected_binding["qualificationAggregateSha256"],
+        "compile dependency closure evidence drifted",
+    )
+    for name in (
+        "selectedObjectCount",
+        "dependencyOccurrenceCount",
+        "uniqueDependencyCount",
+    ):
+        require_positive_int(
+            compile_dependencies[name],
+            f"compileDependencyClosure.{name}",
+        )
+    require(
+        compile_dependencies["uniqueDependencyCount"]
+        <= compile_dependencies["dependencyOccurrenceCount"],
+        "compile dependency unique count exceeds occurrences",
+    )
+    require_sha256_value(
+        compile_dependencies["aggregateSha256"],
+        "compileDependencyClosure.aggregateSha256",
+    )
+    require_sha256_value(
+        compile_dependencies["qualificationAggregateSha256"],
+        "compileDependencyClosure.qualificationAggregateSha256",
+    )
+    validate_dependency_archive_evidence(link["dependencyArchives"])
+
+
+def validate_dependency_archive_evidence(value: Any) -> None:
+    dependency = require_mapping(
+        value,
+        "applicationLink.dependencyArchives",
+    )
+    require_exact_keys(
+        dependency,
+        {
+            "contract",
+            "generator",
+            "manifest",
+            "superset",
+            "linkedClosure",
+            "marker",
+        },
+        "applicationLink.dependencyArchives",
+    )
+    for name, expected_path in {
+        "contract": "tools/wasm-probe/dependency-archive-contract.json",
+        "generator": (
+            "tools/wasm-probe/scripts/generate_dependency_digest.py"
+        ),
+        "manifest": (
+            "tools/wasm-probe/build/wasm-release/generated/"
+            "dependency-archive-digest.json"
+        ),
+    }.items():
+        item = require_mapping(
+            dependency[name],
+            f"applicationLink.dependencyArchives.{name}",
+        )
+        require_exact_keys(
+            item,
+            {"path", "sha256"},
+            f"applicationLink.dependencyArchives.{name}",
+        )
+        require(
+            item["path"] == expected_path,
+            f"dependency archive {name} path drifted",
+        )
+        require_sha256_value(
+            item["sha256"],
+            f"applicationLink.dependencyArchives.{name}.sha256",
+        )
+
+    superset = require_mapping(
+        dependency["superset"],
+        "applicationLink.dependencyArchives.superset",
+    )
+    require_exact_keys(
+        superset,
+        {
+            "algorithm",
+            "fileCount",
+            "totalBytes",
+            "inventorySha256",
+            "aggregateSha256",
+        },
+        "applicationLink.dependencyArchives.superset",
+    )
+    require(
+        superset["algorithm"] == "sha256-path-null-digest-lf-v1",
+        "dependency archive superset algorithm drifted",
+    )
+    for name in ("fileCount", "totalBytes"):
+        require_positive_int(
+            superset[name],
+            f"applicationLink.dependencyArchives.superset.{name}",
+        )
+    for name in ("inventorySha256", "aggregateSha256"):
+        require_sha256_value(
+            superset[name],
+            f"applicationLink.dependencyArchives.superset.{name}",
+        )
+
+    closure = require_mapping(
+        dependency["linkedClosure"],
+        "applicationLink.dependencyArchives.linkedClosure",
+    )
+    require_exact_keys(
+        closure,
+        {
+            "occurrenceCount",
+            "uniqueFileCount",
+            "uniqueBytes",
+            "orderedAggregateSha256",
+            "uniqueAggregateSha256",
+            "archives",
+            "systemLibraries",
+            "buildLocalArchive",
+            "buildLocalWasmObjectCount",
+        },
+        "applicationLink.dependencyArchives.linkedClosure",
+    )
+    for name in ("occurrenceCount", "uniqueFileCount", "uniqueBytes"):
+        require_positive_int(
+            closure[name],
+            f"applicationLink.dependencyArchives.linkedClosure.{name}",
+        )
+    for name in ("orderedAggregateSha256", "uniqueAggregateSha256"):
+        require_sha256_value(
+            closure[name],
+            f"applicationLink.dependencyArchives.linkedClosure.{name}",
+        )
+    archives = closure["archives"]
+    require(
+        isinstance(archives, list)
+        and len(archives) == closure["occurrenceCount"],
+        "linked dependency archive occurrence evidence drifted",
+    )
+    archive_by_path: dict[str, Mapping[str, Any]] = {}
+    for index, raw_archive in enumerate(archives):
+        archive = require_mapping(
+            raw_archive,
+            (
+                "applicationLink.dependencyArchives.linkedClosure."
+                f"archives[{index}]"
+            ),
+        )
+        require_exact_keys(
+            archive,
+            {"path", "kind", "bytes", "sha256"},
+            f"linked dependency archive {index}",
+        )
+        _safe_contract_relative_path(
+            archive["path"],
+            f"linked dependency archive {index} path",
+        )
+        require_positive_int(
+            archive["bytes"],
+            f"linked dependency archive {index} bytes",
+        )
+        require_sha256_value(
+            archive["sha256"],
+            f"linked dependency archive {index} sha256",
+        )
+        require(
+            archive["kind"] in {"archive", "wasm-object"}
+            and archive["path"].endswith(
+                ".a" if archive["kind"] == "archive" else ".o"
+            ),
+            f"linked dependency archive {index} kind/suffix drifted",
+        )
+        existing = archive_by_path.get(archive["path"])
+        require(
+            existing is None or existing == archive,
+            f"linked dependency archive occurrence disagrees: {archive['path']}",
+        )
+        archive_by_path[archive["path"]] = archive
+    require(
+        len(archive_by_path) == closure["uniqueFileCount"]
+        and sum(entry["bytes"] for entry in archive_by_path.values())
+        == closure["uniqueBytes"],
+        "linked dependency archive unique closure evidence drifted",
+    )
+    require(
+        closure["buildLocalArchive"] == "libWasmProbeExceptionBoundary.a",
+        "linked build-local archive evidence drifted",
+    )
+    require_positive_int(
+        closure["buildLocalWasmObjectCount"],
+        "linked build-local Wasm object count",
+    )
+    require(
+        isinstance(closure["systemLibraries"], list)
+        and all(
+            library in {"-lembind", "-lwebsocket.js", "-lopenal"}
+            for library in closure["systemLibraries"]
+        ),
+        "linked Emscripten system-library evidence drifted",
+    )
+
+    marker = require_mapping(
+        dependency["marker"],
+        "applicationLink.dependencyArchives.marker",
+    )
+    require_exact_keys(
+        marker,
+        {"value", "source", "wasmDataSectionOccurrences"},
+        "applicationLink.dependencyArchives.marker",
+    )
+    require(
+        marker["value"]
+        == (
+            "RHYTHMGAME_WASM_DEPENDENCY_ARCHIVE_SUPERSET_SHA256="
+            + superset["aggregateSha256"]
+        )
+        and marker["source"]
+        == (
+            "tools/wasm-probe/build/wasm-release/generated/"
+            "ProbeDependencyDigest.cpp"
+        )
+        and marker["wasmDataSectionOccurrences"] == 1,
+        "dependency archive marker evidence drifted",
     )
 
 
@@ -5463,6 +10260,8 @@ def validate_artifact_evidence(value: Any) -> None:
             "pthreadBootstrapMarkers",
             "shaderResourceAlias",
             "shaderResourceAliases",
+            "shaderResourceSourceDateEpoch",
+            "shaderResourceTimestampMilliseconds",
             "files",
         },
         "artifacts",
@@ -5484,7 +10283,11 @@ def validate_artifact_evidence(value: Any) -> None:
             "ENVIRONMENT_IS_PTHREAD",
         ]
         and artifacts["shaderResourceAlias"] == SHADER_RESOURCE_PATH
-        and artifacts["shaderResourceAliases"] == [SHADER_RESOURCE_PATH],
+        and artifacts["shaderResourceAliases"] == [SHADER_RESOURCE_PATH]
+        and artifacts["shaderResourceSourceDateEpoch"]
+        == EXPECTED_SOURCE_DATE_EPOCH
+        and artifacts["shaderResourceTimestampMilliseconds"]
+        == EXPECTED_SOURCE_DATE_EPOCH * 1000,
         "deployment artifact contract drifted",
     )
     files = require_mapping(artifacts["files"], "artifacts.files")
@@ -5498,6 +10301,211 @@ def validate_artifact_evidence(value: Any) -> None:
         require_exact_keys(file, {"bytes", "sha256"}, f"artifact {name}")
         require_positive_int(file["bytes"], f"artifact {name} bytes")
         require_sha256_value(file["sha256"], f"artifact {name} sha256")
+
+
+def validate_qualification_closure_evidence(value: Any) -> None:
+    qualification = require_mapping(value, "qualificationClosure")
+    require_exact_keys(
+        qualification,
+        {
+            "algorithm",
+            "fileCount",
+            "totalBytes",
+            "inventorySha256",
+            "aggregateSha256",
+            "rootFileCounts",
+            "rootByteCounts",
+            "explicitFileCount",
+            "explicitTotalBytes",
+            "sameHandleLifetimeLockedByWrapper",
+            "independentlyRehashedByVerifier",
+            "buildControls",
+        },
+        "qualificationClosure",
+    )
+    require(
+        qualification["algorithm"] == QUALIFICATION_CLOSURE_ALGORITHM
+        and qualification["sameHandleLifetimeLockedByWrapper"] is True
+        and qualification["independentlyRehashedByVerifier"] is True,
+        "qualification closure contract drifted",
+    )
+    for name in (
+        "fileCount",
+        "totalBytes",
+        "explicitFileCount",
+        "explicitTotalBytes",
+    ):
+        require_positive_int(qualification[name], f"qualificationClosure.{name}")
+    require_sha256_value(
+        qualification["inventorySha256"],
+        "qualificationClosure.inventorySha256",
+    )
+    require_sha256_value(
+        qualification["aggregateSha256"],
+        "qualificationClosure.aggregateSha256",
+    )
+    expected_roots = {
+        "emsdk",
+        "emscripten-cache",
+        "outer-cmake",
+        "ninja",
+        "vcpkg",
+        "vcpkg-port-cmake",
+        "vcpkg-target",
+        "vcpkg-host-runtime",
+    }
+    root_counts = require_mapping(
+        qualification["rootFileCounts"],
+        "qualificationClosure.rootFileCounts",
+    )
+    root_bytes = require_mapping(
+        qualification["rootByteCounts"],
+        "qualificationClosure.rootByteCounts",
+    )
+    require_exact_keys(root_counts, expected_roots, "qualification root counts")
+    require_exact_keys(root_bytes, expected_roots, "qualification root bytes")
+    for label in expected_roots:
+        require_positive_int(
+            root_counts[label],
+            f"qualification root file count {label}",
+        )
+        require_positive_int(
+            root_bytes[label],
+            f"qualification root byte count {label}",
+        )
+    require(
+        sum(root_counts.values()) + qualification["explicitFileCount"]
+        == qualification["fileCount"]
+        and sum(root_bytes.values()) + qualification["explicitTotalBytes"]
+        == qualification["totalBytes"],
+        "qualification closure per-source totals drifted",
+    )
+    build_controls = require_mapping(
+        qualification["buildControls"],
+        "qualificationClosure.buildControls",
+    )
+    require_exact_keys(
+        build_controls,
+        {
+            "schemaVersion",
+            "algorithm",
+            "manifest",
+            "fileCount",
+            "totalBytes",
+            "inventorySha256",
+            "aggregateSha256",
+            "sameHandleLifetimeLockedByWrapper",
+            "configureMustBeSettledBeforeQualification",
+            "selectedTargetProducerlessInputs",
+            "commandOnlyImmutableInputs",
+            "mutableGeneratorStateResetPaths",
+            "allSelectedBuildInputsClassified",
+        },
+        "qualificationClosure.buildControls",
+    )
+    require(
+        build_controls["schemaVersion"] == 1
+        and build_controls["algorithm"] == QUALIFICATION_CLOSURE_ALGORITHM
+        and build_controls["manifest"]
+        == "tools/wasm-probe/build-control-manifest.txt"
+        and build_controls["fileCount"] == len(EXPECTED_BUILD_CONTROL_PATHS)
+        and build_controls["sameHandleLifetimeLockedByWrapper"] is True
+        and build_controls[
+            "configureMustBeSettledBeforeQualification"
+        ]
+        is True,
+        "qualification build-control contract drifted",
+    )
+    require(
+        isinstance(build_controls["selectedTargetProducerlessInputs"], list)
+        and build_controls["selectedTargetProducerlessInputs"]
+        and set(build_controls["selectedTargetProducerlessInputs"]).issubset(
+            set(EXPECTED_BUILD_CONTROL_PATHS)
+        )
+        and build_controls["commandOnlyImmutableInputs"]
+        == list(QUALIFICATION_COMMAND_ONLY_BUILD_CONTROL_PATHS)
+        and build_controls["mutableGeneratorStateResetPaths"]
+        == list(QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS)
+        and build_controls["allSelectedBuildInputsClassified"] is True,
+        "qualification selected build-input classification drifted",
+    )
+    require_positive_int(
+        build_controls["totalBytes"],
+        "qualificationClosure.buildControls.totalBytes",
+    )
+    require_sha256_value(
+        build_controls["inventorySha256"],
+        "qualificationClosure.buildControls.inventorySha256",
+    )
+    require_sha256_value(
+        build_controls["aggregateSha256"],
+        "qualificationClosure.buildControls.aggregateSha256",
+    )
+
+
+def validate_qualification_build_evidence(value: Any) -> None:
+    build = require_mapping(value, "qualificationBuild")
+    require_exact_keys(
+        build,
+        {
+            "targets",
+            "cleanCommand",
+            "buildCommand",
+            "cleanedOutputCount",
+            "executedEdgeCount",
+            "mutableAutogenStatePaths",
+            "removedMutableAutogenStateCount",
+            "allMutableAutogenStateAbsentBeforeCleanRebuild",
+            "allCommandsRanInsideQualificationClosure",
+        },
+        "qualificationBuild",
+    )
+    targets = [
+        "RhythmGameWasmCLauncherProbe",
+        "RhythmGameWasmProbe",
+    ]
+    prefix = [
+        ".toolchains/ninja-1.13.2-win/ninja.exe",
+        "-C",
+        "tools/wasm-probe/build/wasm-release",
+    ]
+    require(
+        build["targets"] == targets
+        and build["cleanCommand"] == [*prefix, "-t", "clean", *targets]
+        and build["buildCommand"] == [*prefix, "-v", *targets]
+        and build["mutableAutogenStatePaths"]
+        == list(QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS)
+        and build[
+            "allMutableAutogenStateAbsentBeforeCleanRebuild"
+        ]
+        is True
+        and build["allCommandsRanInsideQualificationClosure"] is True,
+        "qualification clean rebuild command contract drifted",
+    )
+    require_exact_type(
+        build["cleanedOutputCount"],
+        int,
+        "qualificationBuild.cleanedOutputCount",
+    )
+    require(
+        build["cleanedOutputCount"] >= 0,
+        "qualification clean output count is negative",
+    )
+    require_positive_int(
+        build["executedEdgeCount"],
+        "qualificationBuild.executedEdgeCount",
+    )
+    require_exact_type(
+        build["removedMutableAutogenStateCount"],
+        int,
+        "qualificationBuild.removedMutableAutogenStateCount",
+    )
+    require(
+        0
+        <= build["removedMutableAutogenStateCount"]
+        <= len(QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS),
+        "qualification removed mutable Autogen state count drifted",
+    )
 
 
 def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
@@ -5515,6 +10523,8 @@ def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
             "formalGate1EntryAuthorized",
             "gate1Passed",
             "toolchains",
+            "qualificationClosure",
+            "qualificationBuild",
             "buildFreshness",
             "cmakeBuild",
             "qt",
@@ -5529,7 +10539,7 @@ def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
     )
     require_exact_type(evidence["schemaVersion"], int, "schemaVersion")
     require(
-        evidence["schemaVersion"] == 2
+        evidence["schemaVersion"] == 4
         and evidence["gate"] == "1A"
         and evidence["scope"] == GATE_SCOPE,
         "Gate 1A schema identity drifted",
@@ -5552,12 +10562,31 @@ def validate_evidence_for_write(evidence: Mapping[str, Any]) -> None:
     )
 
     validate_toolchain_evidence(evidence["toolchains"])
+    validate_qualification_closure_evidence(evidence["qualificationClosure"])
+    validate_qualification_build_evidence(evidence["qualificationBuild"])
     validate_build_freshness_evidence(evidence["buildFreshness"])
     validate_cmake_evidence(evidence["cmakeBuild"])
     validate_qt_evidence(evidence["qt"])
     validate_features_evidence(evidence["featuresAndAutogen"])
     validate_compile_evidence(evidence["compileCommands"])
     validate_application_link_evidence(evidence["applicationLink"])
+    qualification = require_mapping(
+        evidence["qualificationClosure"],
+        "qualificationClosure",
+    )
+    application_link = require_mapping(
+        evidence["applicationLink"],
+        "applicationLink",
+    )
+    selected_binding = require_mapping(
+        application_link["selectedLinkArtifactBinding"],
+        "applicationLink.selectedLinkArtifactBinding",
+    )
+    require(
+        qualification["aggregateSha256"]
+        == selected_binding["qualificationAggregateSha256"],
+        "qualification closure and selected-link identity disagree",
+    )
     validate_overlay_evidence(evidence["overlays"])
     validate_artifact_evidence(evidence["artifacts"])
     features = require_mapping(

@@ -1,0 +1,8 @@
+{
+  "algorithm": "sha256-path-null-digest-lf-v1",
+  "archiveSuffix": ".a",
+  "markerPrefix": "RHYTHMGAME_WASM_DEPENDENCY_ARCHIVE_SUPERSET_SHA256=",
+  "schemaVersion": 2,
+  "targetTriplet": "wasm32-emscripten-rg",
+  "wasmObjectSuffix": ".o"
+}

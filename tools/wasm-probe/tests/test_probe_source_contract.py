@@ -51,6 +51,20 @@ class ProbeSourceContractTest(unittest.TestCase):
         )
         self.assertIn("RG_WASM_PROBE_INPUT_SHA256", template.read_text("utf-8"))
         self.assertIn("input-manifest.txt", cmake)
+
+    def test_dependency_digest_uses_cmake_portable_sha256_validation(
+        self,
+    ) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        self.assertIn(
+            'string(LENGTH "${WASM_PROBE_DEPENDENCY_DIGEST}"',
+            cmake,
+        )
+        self.assertIn(
+            "NOT WASM_PROBE_DEPENDENCY_DIGEST_LENGTH EQUAL 64",
+            cmake,
+        )
+        self.assertNotIn('MATCHES "^[0-9a-f]{64}$"', cmake)
         self.assertIn("CMAKE_CONFIGURE_DEPENDS", cmake)
         self.assertIn("ProbeInputDigest.cpp", cmake)
 
@@ -131,7 +145,14 @@ class ProbeSourceContractTest(unittest.TestCase):
                 r"WasmProbeWasmCompileOptions\s*\)"
             ),
         )
-        self.assertEqual(cmake.count("target_link_options("), 1)
+        self.assertEqual(cmake.count("target_link_options("), 2)
+        self.assertRegex(
+            cmake,
+            (
+                r"target_link_options\(\s*"
+                r"RhythmGameWasmCLauncherProbe\s+PRIVATE"
+            ),
+        )
         self.assertRegex(
             cmake,
             r"target_link_options\(\s*RhythmGameWasmProbe\s+PRIVATE",

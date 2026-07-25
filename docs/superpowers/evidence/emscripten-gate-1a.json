@@ -1,9 +1,814 @@
 {
   "applicationLink": {
-    "commandSha256": "5f0f34d2fa152dfdb5b02da04646ed6ae539227a46a175b24fb9dce1621f74b8",
+    "adapterAuthenticated": true,
+    "cLauncherProbe": {
+      "adapterAuthenticated": true,
+      "commandSha256": "41ae6ca0eeabeca3d50b012ee14d622a1c66403296aa75d21a175cfd02b24605",
+      "compiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/emcc.bat",
+      "effectiveSettings": {
+        "SUPPORT_LONGJMP": "wasm"
+      },
+      "noOp": true,
+      "output": "tools/wasm-probe/build/wasm-release/CMakeFiles/c-launcher-probe/RhythmGameWasmCLauncherProbe.wasm",
+      "selectedNinjaRule": "C_EXECUTABLE_LINKER__RhythmGameWasmCLauncherProbe_Release",
+      "target": "RhythmGameWasmCLauncherProbe"
+    },
+    "commandSha256": "a606af99b37dd30099653069c769ba7f9adbc42985239fa5e81e1cf7bb28d1d3",
+    "compileDependencyClosure": {
+      "aggregateSha256": "786dceda3834dd741e6bcda7987a7489e17754a71790eac6090b609f30cbd849",
+      "algorithm": "sha256-compile-dependency-files-json-v1",
+      "allCurrentDependencyBytesVerified": true,
+      "allCurrentObjectBytesVerified": true,
+      "dependencyOccurrenceCount": 6576,
+      "qualificationAggregateSha256": "f238c90abfa50ff641b0931f6a2458ab55a016845ea426a2b50777062fdb894c",
+      "schemaVersion": 1,
+      "selectedObjectCount": 14,
+      "uniqueDependencyCount": 1329
+    },
     "compiler": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
-    "effectiveArgumentCount": 181,
-    "effectiveArgumentsSha256": "9a590704ad679cac536cfadeb93d31cc4745ed83471b76a9ff180f58eba64a62",
+    "dependencyArchives": {
+      "contract": {
+        "path": "tools/wasm-probe/dependency-archive-contract.json",
+        "sha256": "86d75db5488bd60c2b84a6eb80a072800f0b05016a1d39f3d79cacdfa50cee58"
+      },
+      "generator": {
+        "path": "tools/wasm-probe/scripts/generate_dependency_digest.py",
+        "sha256": "446b1a8d80db3ed4d81cb22f31d2010180702cde79010271eb898f2fc97a1dc3"
+      },
+      "linkedClosure": {
+        "archives": [
+          {
+            "bytes": 772,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QDebugMessageServiceFactoryPlugin_init/QDebugMessageServiceFactoryPlugin_init.cpp.o",
+            "sha256": "bf1c7d2507355166e83ebf25e2cfb8d43f0f7ebde4cdedef6f75a3274752693f"
+          },
+          {
+            "bytes": 776,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QLocalClientConnectionFactoryPlugin_init/QLocalClientConnectionFactoryPlugin_init.cpp.o",
+            "sha256": "ceb3a97ca57a067082d6047cd6822ee03cfb07ceff1a8bb58a89186851cde69c"
+          },
+          {
+            "bytes": 762,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlDebugServerFactoryPlugin_init/QQmlDebugServerFactoryPlugin_init.cpp.o",
+            "sha256": "676a8cd64807732188083c8c11d0e434f1b44c97721e015d125f6bb06da507c6"
+          },
+          {
+            "bytes": 770,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlDebuggerServiceFactoryPlugin_init/QQmlDebuggerServiceFactoryPlugin_init.cpp.o",
+            "sha256": "502097721b17bf92d77478a2676b439f38365eb141023f082fe477d104df17ab"
+          },
+          {
+            "bytes": 772,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlInspectorServiceFactoryPlugin_init/QQmlInspectorServiceFactoryPlugin_init.cpp.o",
+            "sha256": "b42c4c0daa646925eed464c4bed05944d318841ba88d90a36662e0afa52a0cf6"
+          },
+          {
+            "bytes": 780,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlNativeDebugConnectorFactoryPlugin_init/QQmlNativeDebugConnectorFactoryPlugin_init.cpp.o",
+            "sha256": "007f1fb555e08fecc74277c52a162be7c213b3205648689b9675b2067b7116c6"
+          },
+          {
+            "bytes": 776,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlNativeDebugServiceFactoryPlugin_init/QQmlNativeDebugServiceFactoryPlugin_init.cpp.o",
+            "sha256": "e8aec5da193e3d5badde12a6a44a0488331c7086c838f03e6967bacafd921095"
+          },
+          {
+            "bytes": 768,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlPreviewServiceFactoryPlugin_init/QQmlPreviewServiceFactoryPlugin_init.cpp.o",
+            "sha256": "96e48296710ada6180ebf9f92d01927f216d9134fb2006ff67269703b17b4984"
+          },
+          {
+            "bytes": 770,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQmlProfilerServiceFactoryPlugin_init/QQmlProfilerServiceFactoryPlugin_init.cpp.o",
+            "sha256": "ae657e5aae79ddb96de068688161865691f9243c1d89ada43e30032e0a3b9ccc"
+          },
+          {
+            "bytes": 780,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQuickEventReplayServiceFactoryPlugin_init/QQuickEventReplayServiceFactoryPlugin_init.cpp.o",
+            "sha256": "8fb86364aba8c068f4cc702a1e2e47b354e742855048d2e6f58027125d8a0e34"
+          },
+          {
+            "bytes": 774,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QQuickProfilerAdapterFactoryPlugin_init/QQuickProfilerAdapterFactoryPlugin_init.cpp.o",
+            "sha256": "973aa212b355a658c7387acd09d066f97cfdca21f6671d2c41c4a15c0d229fa6"
+          },
+          {
+            "bytes": 772,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/qmltooling/objects-Release/QTcpServerConnectionFactoryPlugin_init/QTcpServerConnectionFactoryPlugin_init.cpp.o",
+            "sha256": "31b1529c1b8dade820123e0e076c421934a52b09cb70727e9bcae6917dc94b9b"
+          },
+          {
+            "bytes": 756,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/tls/objects-Release/QTlsBackendCertOnlyPlugin_init/QTlsBackendCertOnlyPlugin_init.cpp.o",
+            "sha256": "6b3e8d67b741921931efab1435770c969e7c7180152b46f02364fdce6124590f"
+          },
+          {
+            "bytes": 744,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/multimedia/objects-Release/QWasmMediaPlugin_init/QWasmMediaPlugin_init.cpp.o",
+            "sha256": "b0c73e47eef106ec1a96088a40038019b65c9ab03a14d1f741e080c7e7d7527e"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QGifPlugin_init/QGifPlugin_init.cpp.o",
+            "sha256": "084bffeeaf56bc17aa80058fb72d9184e58146ce110e3e56f765465098cb6302"
+          },
+          {
+            "bytes": 734,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QICNSPlugin_init/QICNSPlugin_init.cpp.o",
+            "sha256": "725eb016ad767b34181342a2e718eb9f9e193ef1584d081c63ce05d903ed0923"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QICOPlugin_init/QICOPlugin_init.cpp.o",
+            "sha256": "278fb7fd2dad626ca07382966cf6912c555262f33b7780a62f1128a7d9cf1e2d"
+          },
+          {
+            "bytes": 734,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QJpegPlugin_init/QJpegPlugin_init.cpp.o",
+            "sha256": "837f2f850bfdad92f1c494b309cf4d37ada8354b0735be2429ac15ba06ed5233"
+          },
+          {
+            "bytes": 740,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/iconengines/objects-Release/QSvgIconPlugin_init/QSvgIconPlugin_init.cpp.o",
+            "sha256": "f33eca13abb5dac245c1dd0091722be50d89046b4059c849a89b2c9e11b51b37"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QSvgPlugin_init/QSvgPlugin_init.cpp.o",
+            "sha256": "509ab7260b77b38c5d6543e47ba16c3830c71f286c1829d87ed4f20dac1abd6c"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QTgaPlugin_init/QTgaPlugin_init.cpp.o",
+            "sha256": "d9a364db6521895f9227c13b653cbfbc4167c0643a7cafb5de331d04f31f4e4d"
+          },
+          {
+            "bytes": 756,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/platforms/objects-Release/QWasmIntegrationPlugin_init/QWasmIntegrationPlugin_init.cpp.o",
+            "sha256": "607d6adeed96d927d1de8d88a73b6157197a9000037f32b10a257efa8787a8c2"
+          },
+          {
+            "bytes": 734,
+            "kind": "wasm-object",
+            "path": "Qt6/plugins/imageformats/objects-Release/QWbmpPlugin_init/QWbmpPlugin_init.cpp.o",
+            "sha256": "8118c90214f681372d7fe19f815d14e64b893c759104d4e17c11ed982f7f7d3a"
+          },
+          {
+            "bytes": 651,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QML/objects-Release/Qml_resources_1/.qt/rcc/qrc_qmake_QML_init.cpp.o",
+            "sha256": "902e286b4817022e2827d6fb1ae974b8e30fb19e07c578251bb727d88f2f334e"
+          },
+          {
+            "bytes": 684,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Multimedia_resources_1/.qt/rcc/qrc_qtmultimedia_shaders_init.cpp.o",
+            "sha256": "e8f092e7ff6c00d5e822c180bfd9a2e394708fa552459da9e3052a02c8b084b7"
+          },
+          {
+            "bytes": 705,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Multimedia_resources_2/.qt/rcc/qrc_qtmultimedia_shaders_linear_init.cpp.o",
+            "sha256": "3a78505d5c9734ef252f53950854a5938bef518bd47bc3f9cdfc2c664d1e0a55"
+          },
+          {
+            "bytes": 711,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Multimedia_resources_3/.qt/rcc/qrc_qtmultimedia_shaders_gl_macos_init.cpp.o",
+            "sha256": "fa6a20b81ed84a0bfe29ead7ef03306c4b47133cba152eb48a2a228a7c549e26"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Multimedia_resources_4/.qt/rcc/qrc_qtmultimedia_shaders_gl_macos_linear_init.cpp.o",
+            "sha256": "95669803b0fbbba7f11d698569a04bfd9cec4af846c98e558d8eb6e62efb1973"
+          },
+          {
+            "bytes": 663,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQuick/objects-Release/Quick_resources_1/.qt/rcc/qrc_qmake_QtQuick_init.cpp.o",
+            "sha256": "21541342835ec37e00314e493b0500c55aa7d4aff599bb1aff5917324852e9e4"
+          },
+          {
+            "bytes": 678,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_2/.qt/rcc/qrc_scenegraph_shaders_init.cpp.o",
+            "sha256": "ee0dd598673f001134abc4157fc850da223851dfc16e5f1316df1eb4505c4be6"
+          },
+          {
+            "bytes": 696,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_3/.qt/rcc/qrc_scenegraph_curve_shaders_init.cpp.o",
+            "sha256": "637f03b157869c3cf7683ca6e78ff6f2d3fcb9a86cb441138ee4f736f642b625"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_4/.qt/rcc/qrc_scenegraph_curve_shaders_derivatives_init.cpp.o",
+            "sha256": "bbf07f83950e0617fe81d4c456b9694ff7a1bdceffaa202880586351c136b950"
+          },
+          {
+            "bytes": 726,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_5/.qt/rcc/qrc_scenegraph_curve_shaders_expanding_init.cpp.o",
+            "sha256": "38580c71cc7806ecb04451dada97a12320025182e73baabe625347488e371b54"
+          },
+          {
+            "bytes": 705,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_6/.qt/rcc/qrc_scenegraph_curve_shaders_lg_init.cpp.o",
+            "sha256": "b2aef14b4617df888e14fa97f7e6dd1f832c611965f0ea643673c810b54dae32"
+          },
+          {
+            "bytes": 741,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_7/.qt/rcc/qrc_scenegraph_curve_shaders_lg_derivatives_init.cpp.o",
+            "sha256": "6a01fc604ee64f456c8aeb00c116decf8c593cb666b44958939a38c2ef66fcc8"
+          },
+          {
+            "bytes": 705,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_8/.qt/rcc/qrc_scenegraph_curve_shaders_rg_init.cpp.o",
+            "sha256": "01b184bcace741fad92a99f2fb6dfe86ac4de571129190b9ceaf855e34878cca"
+          },
+          {
+            "bytes": 741,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_9/.qt/rcc/qrc_scenegraph_curve_shaders_rg_derivatives_init.cpp.o",
+            "sha256": "3af45daa7bc21c9729fcfd643a58545602234010ae92061bc2e80e0155cc7c80"
+          },
+          {
+            "bytes": 705,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_10/.qt/rcc/qrc_scenegraph_curve_shaders_cg_init.cpp.o",
+            "sha256": "e9062447205f6ea3a993cc1557bcdcfc002735a627b29aedcbb38e9a0791932d"
+          },
+          {
+            "bytes": 741,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_11/.qt/rcc/qrc_scenegraph_curve_shaders_cg_derivatives_init.cpp.o",
+            "sha256": "25dc914c971f35ae2bf95da982477857eb6fb7b11502ee610a6fa008ec92f942"
+          },
+          {
+            "bytes": 705,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_12/.qt/rcc/qrc_scenegraph_curve_shaders_tf_init.cpp.o",
+            "sha256": "a4ca39464f9638863f96abdfbdea14cbe65be5fe10ba0d5e4219225c2e75a0d0"
+          },
+          {
+            "bytes": 741,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Quick_resources_13/.qt/rcc/qrc_scenegraph_curve_shaders_tf_derivatives_init.cpp.o",
+            "sha256": "d30f88959aa83ff072bc7d110c317659fb06c11f0dfefb470d0c197c20a19257"
+          },
+          {
+            "bytes": 740,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQuick/objects-Release/qtquick2plugin_init/qtquick2plugin_init.cpp.o",
+            "sha256": "0be12959c38ce56b972fc9c1a07d87703165442819a5f9a16a7ccd3c31a3e644"
+          },
+          {
+            "bytes": 732,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQml/objects-Release/qmlplugin_init/qmlplugin_init.cpp.o",
+            "sha256": "5571018f23eaeb33197c38565e9d0c60068e93c4abf1e4822c2afc1f97ff4854"
+          },
+          {
+            "bytes": 741,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQml/Models/objects-Release/modelsplugin_init/modelsplugin_init.cpp.o",
+            "sha256": "901231833ed6dceb8f20aad0f8186a561e5ce149f02597db838b01e307e0b153"
+          },
+          {
+            "bytes": 753,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQml/WorkerScript/objects-Release/workerscriptplugin_init/workerscriptplugin_init.cpp.o",
+            "sha256": "67680def86c82e98134f6346f324320991d233cd3d074c5ea8a78ae0da03a77c"
+          },
+          {
+            "bytes": 749,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtMultimedia/objects-Release/quickmultimedia_init/quickmultimedia_init.cpp.o",
+            "sha256": "e87301bfe1e072e358fc8eb51a1f70fd173e13eb898c556942870206acb71efe"
+          },
+          {
+            "bytes": 651,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/QWasmIntegrationPlugin_resources_1/.qt/rcc/qrc_wasmfonts_init.cpp.o",
+            "sha256": "b56cc1c0988e01a585477aae1f06cbd399c305491de60dcbaefc665b973c1330"
+          },
+          {
+            "bytes": 654,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/QWasmIntegrationPlugin_resources_2/.qt/rcc/qrc_wasmwindow_init.cpp.o",
+            "sha256": "fdc60e480290e8bd57f5cfb51863eafe7084205e8c483262a933ff8d6d01a798"
+          },
+          {
+            "bytes": 636,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Gui_resources_1/.qt/rcc/qrc_qpdf_init.cpp.o",
+            "sha256": "4ba1b3136b3a739617407e0051ecb0f31cdc952d6e4630439ecc87b24dac360c"
+          },
+          {
+            "bytes": 657,
+            "kind": "wasm-object",
+            "path": "lib/objects-Release/Gui_resources_2/.qt/rcc/qrc_gui_shaders_init.cpp.o",
+            "sha256": "0a469be28a3aae08bba9c54f61dcc43ba83af551eb03144213e5c1ee783b4737"
+          },
+          {
+            "bytes": 678,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQml/Models/objects-Release/QmlModels_resources_1/.qt/rcc/qrc_qmake_QtQml_Models_init.cpp.o",
+            "sha256": "d7b88ddfc481c16eba0e08b0dcf28299784a0cbb4036adbc3b5278b7c769e8de"
+          },
+          {
+            "bytes": 657,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQml/objects-Release/QmlMeta_resources_1/.qt/rcc/qrc_qmake_QtQml_init.cpp.o",
+            "sha256": "b937835e95b60bf5344515a7c113b411787a69cb07e5b28ef989b02b91793170"
+          },
+          {
+            "bytes": 696,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtQml/WorkerScript/objects-Release/QmlWorkerScript_resources_1/.qt/rcc/qrc_qmake_QtQml_WorkerScript_init.cpp.o",
+            "sha256": "1574b286b0454ee7fc98eadbb412cae3e135e6ddbbbdc8927f907a8d4f74cec6"
+          },
+          {
+            "bytes": 678,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtMultimedia/objects-Release/MultimediaQuickPrivate_resources_1/.qt/rcc/qrc_qmake_QtMultimedia_init.cpp.o",
+            "sha256": "773fb12cbf93c33546b919b913b1dbc3cdabf48e6e74fe5db9235f431cfdf096"
+          },
+          {
+            "bytes": 720,
+            "kind": "wasm-object",
+            "path": "Qt6/qml/QtMultimedia/objects-Release/MultimediaQuickPrivate_resources_2/.qt/rcc/qrc_MultimediaQuickPrivate_raw_qml_0_init.cpp.o",
+            "sha256": "a9680b5df8a32c9989f158b2beaf3e2151e73f95e33f15e41eda8716236fdab3"
+          },
+          {
+            "bytes": 10369692,
+            "kind": "archive",
+            "path": "lib/libQt6Core.a",
+            "sha256": "16b02e95daddbc6a3a1fb821b68f22bcab6c9ee63d12b236fbc02204c765ef64"
+          },
+          {
+            "bytes": 15211182,
+            "kind": "archive",
+            "path": "lib/libQt6Qml.a",
+            "sha256": "b6e06a18e658e489804167a94172db98751c52b41a1a6deebf0663816e14c282"
+          },
+          {
+            "bytes": 15211182,
+            "kind": "archive",
+            "path": "lib/libQt6Qml.a",
+            "sha256": "b6e06a18e658e489804167a94172db98751c52b41a1a6deebf0663816e14c282"
+          },
+          {
+            "bytes": 10369692,
+            "kind": "archive",
+            "path": "lib/libQt6Core.a",
+            "sha256": "16b02e95daddbc6a3a1fb821b68f22bcab6c9ee63d12b236fbc02204c765ef64"
+          },
+          {
+            "bytes": 14568,
+            "kind": "archive",
+            "path": "lib/libQt6Concurrent.a",
+            "sha256": "413971f31d09619b1ecfda94104dab068a811e484f54ce75f54eda669b2488b4"
+          },
+          {
+            "bytes": 3030076,
+            "kind": "archive",
+            "path": "lib/libQt6Multimedia.a",
+            "sha256": "e7684d05490d95fcaff1eb987b2e7e1ce7dfd91b6c4c019f2b655c9845ce67eb"
+          },
+          {
+            "bytes": 3159030,
+            "kind": "archive",
+            "path": "lib/libQt6Network.a",
+            "sha256": "6a4348a636631082c1b00fe37c9ca5bcc7a535da7b1cff6ea7ae8ace46b11bb8"
+          },
+          {
+            "bytes": 15789014,
+            "kind": "archive",
+            "path": "lib/libQt6Quick.a",
+            "sha256": "5a6611c81252703819634e48a4a58476c9bd5a3627303c49a6c15f42f3f5e9f1"
+          },
+          {
+            "bytes": 324982,
+            "kind": "archive",
+            "path": "lib/libQt6WebSockets.a",
+            "sha256": "81198ecb2d9100a94960bde6b16cc9d233469a293f8f1d4147a520f2248fa64e"
+          },
+          {
+            "bytes": 8130,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQuick/libqtquick2plugin.a",
+            "sha256": "f0b5602182ad834f60f9fa72ac2801bdefdd00f41acc9a89cf06bae3205d979e"
+          },
+          {
+            "bytes": 7932,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQml/libqmlplugin.a",
+            "sha256": "b9ffb5a585bfe369dc4b3f6a2aedf1bebb8f31c0b84c13c1f5d50ad295db7d4f"
+          },
+          {
+            "bytes": 8392,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQml/Models/libmodelsplugin.a",
+            "sha256": "043d4d2a541607718c15caba272dd3119ff28b6e0a97936ad8c889c21b621b52"
+          },
+          {
+            "bytes": 8848,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQml/WorkerScript/libworkerscriptplugin.a",
+            "sha256": "03aa315856b31835b1fd6b1aabec0be81e9ba78232f01a4afb012c727201fc62"
+          },
+          {
+            "bytes": 9468,
+            "kind": "archive",
+            "path": "Qt6/qml/QtMultimedia/libquickmultimediaplugin.a",
+            "sha256": "0e569cab7d1e2a025abdbb666e3a28050a1038f24b43fc5941b49c7ca51297f1"
+          },
+          {
+            "bytes": 19424,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_messages.a",
+            "sha256": "9ca025e54e87694f7f1ea7c4c9b87823e2adfa896172604ed22cd65ae49e6bc7"
+          },
+          {
+            "bytes": 24562,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_local.a",
+            "sha256": "43a045a8f727c88a8db0950edeb99148dfbc89074a6b6e13f483464a03bda76b"
+          },
+          {
+            "bytes": 137132,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_server.a",
+            "sha256": "f48342e9128cbcdf7079ab7efd2556d1460cbda430b03d2788d50951ccfa1265"
+          },
+          {
+            "bytes": 355830,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_debugger.a",
+            "sha256": "e3bbd8fc3b2a831097da883037a68a0b640dbcce3794a3338a8d382807cda45b"
+          },
+          {
+            "bytes": 149324,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_inspector.a",
+            "sha256": "d2b4a57bbf3c8ee720d06cb384e34d8af0339a65640699d32378aef12b792bcc"
+          },
+          {
+            "bytes": 40436,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_native.a",
+            "sha256": "b25975191ef65f966fc087d54df07326d1c66f798e5952d42dfcaeddad377608"
+          },
+          {
+            "bytes": 64244,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_nativedebugger.a",
+            "sha256": "d910fa697d30d8f3e951b5afaa4d13453c14bb1c664931f15ed958e9a03a434c"
+          },
+          {
+            "bytes": 355318,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_preview.a",
+            "sha256": "cc6c815e8f3e4e1bb02b1e3edbf88586ffa3eed9678b6adf1bc3021b551e6825"
+          },
+          {
+            "bytes": 167684,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_profiler.a",
+            "sha256": "c3cefc62af430dacb67cabfcbd7e08291df3bd6e6659a3a391e180ca33b5d899"
+          },
+          {
+            "bytes": 30756,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_quickeventreplay.a",
+            "sha256": "73ce1a40e8c8ca56d5b6ac509a67bd575c5c01f85bb9f00444bd1321a15114a3"
+          },
+          {
+            "bytes": 29018,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_quickprofiler.a",
+            "sha256": "259030b287cb082ca3c805c810ed9c86a7b3f0bd2eda14ed3f77bf4cea5d6802"
+          },
+          {
+            "bytes": 18436,
+            "kind": "archive",
+            "path": "Qt6/plugins/qmltooling/libqmldbg_tcp.a",
+            "sha256": "98413a60a0e37eb77e33debb88d77e8cdcc184339a7d8b6375b62d65d394c5bb"
+          },
+          {
+            "bytes": 127814,
+            "kind": "archive",
+            "path": "Qt6/plugins/tls/libqcertonlybackend.a",
+            "sha256": "5fb7f61bcba6bd8dc7f7372e2c1fa0cf2c1778a8e82fcc8cff7f0eea155abd65"
+          },
+          {
+            "bytes": 658538,
+            "kind": "archive",
+            "path": "Qt6/plugins/multimedia/libwasmmediaplugin.a",
+            "sha256": "b9738c782cc0ce95ae4d5ebdee6a667450d83d2b9e23bca549e282da18a92d56"
+          },
+          {
+            "bytes": 28756,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqgif.a",
+            "sha256": "30f1639f782859455df41aa84fc73a335593be55197ae2439380447d4f6bb6ee"
+          },
+          {
+            "bytes": 38972,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqicns.a",
+            "sha256": "c185295827eeb958f5700837a75915b04691113fe4094e04f479e3bba1473047"
+          },
+          {
+            "bytes": 31230,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqico.a",
+            "sha256": "d5b9216ae1def25b8d8226a99c98b64ddafa753a7786502e0c2d22caf6308fc3"
+          },
+          {
+            "bytes": 73296,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqjpeg.a",
+            "sha256": "08fd12d92b29dc045913ae0ae7a57bc9c70565c7157b771a1ff7c4f8ef2d1dac"
+          },
+          {
+            "bytes": 56878,
+            "kind": "archive",
+            "path": "Qt6/plugins/iconengines/libqsvgicon.a",
+            "sha256": "bc67cefb9a33f2a8cb815a220c6c1af32319e2c23d1d6ce371445af14bbcb012"
+          },
+          {
+            "bytes": 18506,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqsvg.a",
+            "sha256": "7ec7995b2574908c3800e649388f004f68a4a32586a2fdef481e545d1ca9138c"
+          },
+          {
+            "bytes": 20938,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqtga.a",
+            "sha256": "e3800467f6d7b26bf22fb51ebd8d48b476d59d969ae8fa3867b551d9c8cbc332"
+          },
+          {
+            "bytes": 2153236,
+            "kind": "archive",
+            "path": "Qt6/plugins/platforms/libqwasm.a",
+            "sha256": "38cad3072ffaebd054e4fd1a746828b5a499138292ee90a24fca84f88c7cf271"
+          },
+          {
+            "bytes": 15462,
+            "kind": "archive",
+            "path": "Qt6/plugins/imageformats/libqwbmp.a",
+            "sha256": "fc9b474b92c3f269da9f1b9c4ed41c4a2f356ea0a12c259ca69d31db41ab2175"
+          },
+          {
+            "bytes": 8130,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQuick/libqtquick2plugin.a",
+            "sha256": "f0b5602182ad834f60f9fa72ac2801bdefdd00f41acc9a89cf06bae3205d979e"
+          },
+          {
+            "bytes": 7932,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQml/libqmlplugin.a",
+            "sha256": "b9ffb5a585bfe369dc4b3f6a2aedf1bebb8f31c0b84c13c1f5d50ad295db7d4f"
+          },
+          {
+            "bytes": 8392,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQml/Models/libmodelsplugin.a",
+            "sha256": "043d4d2a541607718c15caba272dd3119ff28b6e0a97936ad8c889c21b621b52"
+          },
+          {
+            "bytes": 8848,
+            "kind": "archive",
+            "path": "Qt6/qml/QtQml/WorkerScript/libworkerscriptplugin.a",
+            "sha256": "03aa315856b31835b1fd6b1aabec0be81e9ba78232f01a4afb012c727201fc62"
+          },
+          {
+            "bytes": 1044878,
+            "kind": "archive",
+            "path": "lib/libQt6MultimediaQuick.a",
+            "sha256": "05c99e1de3a8dca280579d0264bba45d5662979ddb1e1b57bd326c5306488edb"
+          },
+          {
+            "bytes": 15789014,
+            "kind": "archive",
+            "path": "lib/libQt6Quick.a",
+            "sha256": "5a6611c81252703819634e48a4a58476c9bd5a3627303c49a6c15f42f3f5e9f1"
+          },
+          {
+            "bytes": 237788,
+            "kind": "archive",
+            "path": "lib/libQt6QmlMeta.a",
+            "sha256": "77b855dbe2ca1ac7910409c944e2eed12a5564667fbeec841225365e6b30a7cf"
+          },
+          {
+            "bytes": 2518326,
+            "kind": "archive",
+            "path": "lib/libQt6QmlModels.a",
+            "sha256": "b7553d3faa07905201c0354a7c36fa6a34ed128aaff426f4189673132c3ba99d"
+          },
+          {
+            "bytes": 100304,
+            "kind": "archive",
+            "path": "lib/libQt6QmlWorkerScript.a",
+            "sha256": "2f3670d66c8a370eb85b77b5a02eb0a544aff62d7e26eadb9a67ba1eb2a46304"
+          },
+          {
+            "bytes": 21446,
+            "kind": "archive",
+            "path": "lib/libQt6PacketProtocol.a",
+            "sha256": "2797ece0b59edf4732fe6e36f8f35bdbb883891cbfb53c2c36de99c0eb43303f"
+          },
+          {
+            "bytes": 15211182,
+            "kind": "archive",
+            "path": "lib/libQt6Qml.a",
+            "sha256": "b6e06a18e658e489804167a94172db98751c52b41a1a6deebf0663816e14c282"
+          },
+          {
+            "bytes": 3030076,
+            "kind": "archive",
+            "path": "lib/libQt6Multimedia.a",
+            "sha256": "e7684d05490d95fcaff1eb987b2e7e1ce7dfd91b6c4c019f2b655c9845ce67eb"
+          },
+          {
+            "bytes": 14568,
+            "kind": "archive",
+            "path": "lib/libQt6Concurrent.a",
+            "sha256": "413971f31d09619b1ecfda94104dab068a811e484f54ce75f54eda669b2488b4"
+          },
+          {
+            "bytes": 3159030,
+            "kind": "archive",
+            "path": "lib/libQt6Network.a",
+            "sha256": "6a4348a636631082c1b00fe37c9ca5bcc7a535da7b1cff6ea7ae8ace46b11bb8"
+          },
+          {
+            "bytes": 8482,
+            "kind": "archive",
+            "path": "lib/libQt6BundledTLSF.a",
+            "sha256": "27e8b2e079e5f4124a9a194fdd17bb69535791ddbad00dd53ac18bdf2121ea92"
+          },
+          {
+            "bytes": 673510,
+            "kind": "archive",
+            "path": "lib/libjpeg.a",
+            "sha256": "780078007640a880d1ec7f6772243ed9f1a316224b3238db1f4f8ba7b3158661"
+          },
+          {
+            "bytes": 931148,
+            "kind": "archive",
+            "path": "lib/libQt6Svg.a",
+            "sha256": "12769172c4c32cbff6d51df90afff8f60439687953e9630819ce095f50a42797"
+          },
+          {
+            "bytes": 732578,
+            "kind": "archive",
+            "path": "lib/libQt6OpenGL.a",
+            "sha256": "170e97966a29906e3dce33ca7aec27ca80dbd83d6df19ad259abe511d82eeb9a"
+          },
+          {
+            "bytes": 12317966,
+            "kind": "archive",
+            "path": "lib/libQt6Gui.a",
+            "sha256": "0e523ea0f3ad70359903946e8b95dec7e1066a6328217fb817b95a16d26e7574"
+          },
+          {
+            "bytes": 10369692,
+            "kind": "archive",
+            "path": "lib/libQt6Core.a",
+            "sha256": "16b02e95daddbc6a3a1fb821b68f22bcab6c9ee63d12b236fbc02204c765ef64"
+          },
+          {
+            "bytes": 68962,
+            "kind": "archive",
+            "path": "lib/libdouble-conversion.a",
+            "sha256": "b5f9837fe0912dc4768159270fab281d55f9e36d55e031ab3ce9f53bf80a7cff"
+          },
+          {
+            "bytes": 31778,
+            "kind": "archive",
+            "path": "lib/libb2.a",
+            "sha256": "547158b6a6c7ba5c9ba4cec140df5ec06ba68fd6602e78e3a77b566903cbeac5"
+          },
+          {
+            "bytes": 397156,
+            "kind": "archive",
+            "path": "lib/libpcre2-16.a",
+            "sha256": "cb68f42acde635c2026affe3713f052982926fc5caeeda6d5c8146e4b9100938"
+          },
+          {
+            "bytes": 2415114,
+            "kind": "archive",
+            "path": "lib/libharfbuzz.a",
+            "sha256": "e17d4a47d2dbd9f11c488c7096de73a03db7eb070a563cff0e267ea1565fbe31"
+          },
+          {
+            "bytes": 75072,
+            "kind": "archive",
+            "path": "lib/libmd4c.a",
+            "sha256": "c96e7c87bf986b7187694c6cbf26da3556207ab803cac9ec831ea8401303eb75"
+          },
+          {
+            "bytes": 883404,
+            "kind": "archive",
+            "path": "lib/libfreetype.a",
+            "sha256": "113c2d84ff7895b3ca18d1c96a28bc915e21f8b1305d146301791dd402fb605f"
+          },
+          {
+            "bytes": 250006,
+            "kind": "archive",
+            "path": "lib/libpng16.a",
+            "sha256": "6089667efbf9ad7957aafaa07af46de8b1b6e9c0e98e7e38840c33a95937e420"
+          },
+          {
+            "bytes": 103852,
+            "kind": "archive",
+            "path": "lib/libz.a",
+            "sha256": "4947c59a6c2f3a2de1782851343020aa58e43f378958ddd4a092206619fa8b19"
+          },
+          {
+            "bytes": 83268,
+            "kind": "archive",
+            "path": "lib/libbz2.a",
+            "sha256": "0c9b2307b2b30d147c1dda44b6d2724f6a10dccc07f2ddc9817b16578bb28559"
+          },
+          {
+            "bytes": 55964,
+            "kind": "archive",
+            "path": "lib/libbrotlidec.a",
+            "sha256": "8f9b002eb026ceb19624321527e9a4a4e80926ec9808f5ca33edacb8729f1a26"
+          },
+          {
+            "bytes": 132366,
+            "kind": "archive",
+            "path": "lib/libbrotlicommon.a",
+            "sha256": "6479cb914eac6b423b13643db094cc2cdb5a8534035d59764958ff4dc73c3129"
+          }
+        ],
+        "buildLocalArchive": "libWasmProbeExceptionBoundary.a",
+        "buildLocalWasmObjectCount": 12,
+        "occurrenceCount": 123,
+        "orderedAggregateSha256": "f0788183abe8240a7458ecc83bf8453193c09a857f961c3b48ae20a0647bd4a5",
+        "systemLibraries": [
+          "-lembind",
+          "-lwebsocket.js",
+          "-lembind",
+          "-lopenal"
+        ],
+        "uniqueAggregateSha256": "4ec4d5ccea02ca579d503effe31c16bc6b65f4ee619b975fa8d96a3da37b3a51",
+        "uniqueBytes": 75680374,
+        "uniqueFileCount": 111
+      },
+      "manifest": {
+        "path": "tools/wasm-probe/build/wasm-release/generated/dependency-archive-digest.json",
+        "sha256": "a48a7bbf51ca22ff642576e0cb1f3c51cf62ab1de1a9d5be82892b148e4b8da5"
+      },
+      "marker": {
+        "source": "tools/wasm-probe/build/wasm-release/generated/ProbeDependencyDigest.cpp",
+        "value": "RHYTHMGAME_WASM_DEPENDENCY_ARCHIVE_SUPERSET_SHA256=896b8c56abc89c4378a49a8da9031d539b8c7980682109dc8b5f6f5030aa21e5",
+        "wasmDataSectionOccurrences": 1
+      },
+      "superset": {
+        "aggregateSha256": "896b8c56abc89c4378a49a8da9031d539b8c7980682109dc8b5f6f5030aa21e5",
+        "algorithm": "sha256-path-null-digest-lf-v1",
+        "fileCount": 385,
+        "inventorySha256": "9b477434a32545379aafd3374623791afeb3f8d832a69f1a03e125eb427ab4e2",
+        "totalBytes": 192342987
+      }
+    },
+    "effectiveArgumentCount": 182,
+    "effectiveArgumentsSha256": "f96ef10ce0edf694dd405eb4afc1193e6c9b640fb726466fc172d2eb43e77cb6",
     "effectiveSettings": {
       "ALLOW_BLOCKING_ON_MAIN_THREAD": "0",
       "AUDIO_WORKLET": "1",
@@ -22,10 +827,22 @@
     ],
     "linkLibrariesSha256": "b11047d10184bbcf419035f7074e1586b37f44d539d623990b21ef63f7ed7728",
     "literalAsyncifyConfigured": false,
-    "responseArgumentCount": 139,
-    "responseArgumentsSha256": "db5b62bda28ca68d123e2d7ad58b25350d13e11ef2c9f6676e1d1ab8c6e00df4",
+    "responseArgumentCount": 140,
+    "responseArgumentsSha256": "3423b61d4bec3fd45e61d85161afef881657c7b899b1c66725daa2871c2eabc5",
     "responseFile": "CMakeFiles/RhythmGameWasmProbe.rsp",
     "responseFileContentTemplate": "$in $LINK_PATH $LINK_LIBRARIES",
+    "selectedLinkArtifactBinding": {
+      "algorithm": "sha256-selected-link-argv-files-compile-qualification-json-v2",
+      "argumentCount": 181,
+      "artifactBound": true,
+      "compileInputCount": 14,
+      "customSection": "build_id",
+      "payloadEncoding": "uleb32-plus-32-byte-sha256",
+      "qualificationAggregateSha256": "f238c90abfa50ff641b0931f6a2458ab55a016845ea426a2b50777062fdb894c",
+      "sha256": "52587a446d0fc37dd7dcba5ffd2055cd153e2da20b6f8ecd923a53e39582e3c5",
+      "staticInputOccurrenceCount": 136,
+      "staticInputUniqueCount": 124
+    },
     "selectedNinjaRule": "CXX_EXECUTABLE_LINKER__RhythmGameWasmProbe_Release",
     "settingOccurrences": {
       "ALLOW_BLOCKING_ON_MAIN_THREAD": 1,
@@ -75,19 +892,19 @@
       },
       "RhythmGameWasmProbe.js": {
         "bytes": 344438,
-        "sha256": "91b3dc7781b311a2547dc302ac6eea3f8fab43d6029b8ac9a561d5c7e3656514"
+        "sha256": "27c021d1bf69591d2ddfdd043e55700d97c7578b530c60e866dce2bc44bccc95"
       },
       "RhythmGameWasmProbe.wasm": {
-        "bytes": 21150405,
-        "sha256": "6e255572a38bfd9b7ad966029a4d853f4b8104dba69e9109ed3eb5babbd61536"
+        "bytes": 21150657,
+        "sha256": "beaa7813a1a60563556ec0205ff4d28ed1a71d27fdb0dc86fcb14fbd05474b00"
       },
       "RhythmGameWasmProbe.ww.js": {
         "bytes": 1228,
         "sha256": "ec406773b418785df88b3ec51eeea7f89c2900a51967cb1083c3614ea611015f"
       },
       "compile_commands.json": {
-        "bytes": 28870,
-        "sha256": "984d72d24dff1f676eafca47792b620d851774da07f9d66af780ce2cf776d624"
+        "bytes": 32066,
+        "sha256": "e9b6c39cfad9863f44ed21a21351d6a6a638f6194b10beb1682ae64c0b08e0d5"
       },
       "libWasmProbeExceptionBoundary.a": {
         "bytes": 1620,
@@ -120,51 +937,62 @@
     "shaderResourceAlias": ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb",
     "shaderResourceAliases": [
       ":/qt/qml/RhythmGame/WasmProbe/shaders/pulse.frag.qsb"
-    ]
+    ],
+    "shaderResourceSourceDateEpoch": 1782488244,
+    "shaderResourceTimestampMilliseconds": 1782488244000
   },
   "buildFreshness": {
     "artifactBinding": {
       "artifact": "tools/wasm-probe/build/wasm-release/RhythmGameWasmProbe.wasm",
-      "configuredAggregateSha256": "7d1343aa1090abc671ab9f883576fa6e401ed47cb2a52fb3b6d95f884ef1f4ba",
+      "configuredAggregateSha256": "529145011d090e4ffdb9a96a382bc72015686c74ce0ec3928cefafe3b8e0e63b",
       "generatedSource": "tools/wasm-probe/build/wasm-release/generated/ProbeInputDigest.cpp",
-      "markerSha256": "bd1f1431ab506d3a053be7ef9a8a0b11dc63566519f0523853295e9c86b18925"
+      "markerSha256": "cbd2b89b4680da72998c5921ea1156abcfbaf9bdceb961ac4ee1b22436f2d0ad"
     },
     "command": [
       ".toolchains/ninja-1.13.2-win/ninja.exe",
       "-C",
       "tools/wasm-probe/build/wasm-release",
-      "-n",
       "-v",
       "RhythmGameWasmProbe"
     ],
     "output": [
       "ninja: Entering directory `${REPO}/tools/wasm-probe/build/wasm-release'",
+      "[0/2] ${REPO}/.toolchains/cmake-4.2.3-windows-x86_64/bin/cmake.exe -P ${REPO}/tools/wasm-probe/build/wasm-release/CMakeFiles/VerifyGlobs.cmake",
       "ninja: no work to do."
     ],
-    "outputSha256": "c668fd5696e5ffcc0e1788be72d9a4d5a2e090e9a2f0234eaa757ebca1565732",
+    "outputSha256": "2426d2dd093847711b476cfe2a5bb9c5d9b1275188e7b5b7568b75bd73cd8c69",
     "sourceInputs": {
-      "aggregateSha256": "7d1343aa1090abc671ab9f883576fa6e401ed47cb2a52fb3b6d95f884ef1f4ba",
+      "aggregateSha256": "529145011d090e4ffdb9a96a382bc72015686c74ce0ec3928cefafe3b8e0e63b",
       "algorithm": "sha256-manifest-path-equals-digest-lf-v1",
-      "count": 59,
+      "count": 68,
       "manifest": "tools/wasm-probe/input-manifest.txt",
-      "manifestSha256": "dc2bb1b4737a21d6c3a33dce014bbb14b29a8772208301ec405bb8014d789aaf",
+      "manifestSha256": "52b5eab1ea37afc02dbe1a3b7fd29568cf262c61f28d97e6f7ccfafa5e67d868",
       "paths": [
         ".gitattributes",
         "cmake/toolchains/vcpkg-emscripten.cmake",
+        "tools/wasm-probe/build-control-manifest.txt",
         "tools/wasm-probe/cmake/ProbeInputDigest.cpp.in",
         "tools/wasm-probe/cmake/verify_exact_toolchain.cmake",
         "tools/wasm-probe/CMakeLists.txt",
         "tools/wasm-probe/CMakePresets.json",
+        "tools/wasm-probe/dependency-archive-contract.json",
         "tools/wasm-probe/qml/Main.qml",
         "tools/wasm-probe/qml/pulse.frag",
+        "tools/wasm-probe/scripts/audit_emscripten_response_files.py",
         "tools/wasm-probe/scripts/Bootstrap-Toolchains.ps1",
+        "tools/wasm-probe/scripts/emscripten_cache_identity.py",
+        "tools/wasm-probe/scripts/generate_dependency_digest.py",
         "tools/wasm-probe/scripts/Invoke-WithToolchains.ps1",
+        "tools/wasm-probe/scripts/invoke_emscripten_driver.py",
+        "tools/wasm-probe/scripts/prewarm_emscripten_cache.py",
         "tools/wasm-probe/scripts/Toolchain-Provenance.ps1",
         "tools/wasm-probe/src/ExceptionBoundary.cpp",
         "tools/wasm-probe/src/ExceptionBoundary.h",
+        "tools/wasm-probe/src/LauncherProbe.c",
         "tools/wasm-probe/src/main.cpp",
         "tools/wasm-probe/src/ProbeState.cpp",
         "tools/wasm-probe/src/ProbeState.h",
+        "tools/wasm-probe/tests/verify_build.py",
         "tools/wasm-probe/toolchain-lock.json",
         "tools/wasm-probe/vcpkg.json",
         "vcpkgOverlayPorts/qtdeclarative/24205cd-qquickwindow-child-window-stacking.patch",
@@ -209,11 +1037,17 @@
         "vcpkgTriplets/wasm32-emscripten-rg.cmake",
         "vcpkgTriplets/x64-windows-rg-host-release.cmake"
       ],
-      "tracking": "git-index"
+      "tracking": "explicit-input-manifest"
     },
     "target": "RhythmGameWasmProbe"
   },
   "cmakeBuild": {
+    "authenticatedLaunchers": {
+      "CMAKE_CXX_COMPILER_LAUNCHER": "em++",
+      "CMAKE_CXX_LINKER_LAUNCHER": "em++",
+      "CMAKE_C_COMPILER_LAUNCHER": "emcc",
+      "CMAKE_C_LINKER_LAUNCHER": "emcc"
+    },
     "chainloadToolchain": "cmake/toolchains/vcpkg-emscripten.cmake",
     "generator": "Ninja",
     "makeProgram": ".toolchains/ninja-1.13.2-win/ninja.exe",
@@ -257,6 +1091,29 @@
       "-sNO_WASM_EXCEPTIONS",
       "-sWASM_EXCEPTIONS=0"
     ],
+    "probeAdapterCommandCounts": {
+      "c": 1,
+      "cxx": 14
+    },
+    "probeCompileDbNinjaParity": {
+      "correlationKey": "directory-plus-output",
+      "dependencyBookkeepingRemoved": [
+        "-MD",
+        "-MT",
+        "-MF"
+      ],
+      "exactAfterPathNormalization": true,
+      "expandedCommandSource": "ninja -t compdb -x",
+      "matchedCommandCount": 15
+    },
+    "selectedTargetGraph": {
+      "allSelectedOutputsMatchedByExactOutput": true,
+      "archiveOutputCount": 1,
+      "graphSource": "build.ninja",
+      "objectOutputCount": 14,
+      "objectOutputsSha256": "a862784cd736f4833487c7cea5f64d39255c8ebe757c5d5b5efd2eaef2c7d7be",
+      "target": "RhythmGameWasmProbe"
+    },
     "targetCommandCounts": {
       "c": 446,
       "cxx": 3167
@@ -593,6 +1450,10 @@
       "triplet": "x64-windows-rg-host-release",
       "version": "6.11.1"
     },
+    "hostTripletEnvironmentPassthrough": [
+      "PYTHONNOUSERSITE",
+      "SOURCE_DATE_EPOCH"
+    ],
     "target": {
       "linkage": "static",
       "requiredModules": {
@@ -606,33 +1467,33 @@
       },
       "requiredPorts": {
         "qtbase": {
-          "Abi": "f3245a25d11d815597b640b5202390cd7f7bc8512d1bba9bfc2a803cc7ffad9c",
+          "Abi": "450b89d1a6f6a86b1bc4c0bf041e7e4f2fb39ff2d1f8817607372c56acef7870",
           "Port-Version": "2",
           "Version": "6.11.1"
         },
         "qtdeclarative": {
-          "Abi": "3d209dddee7dca1a7e101ed3c41c090695a2f69ef34d8ddd1c9b574f20b5647b",
+          "Abi": "b68990acb1bc63f5ace5c02ea55e08dad81923e07adb450ebd0b8c140500ff90",
           "Port-Version": "1",
           "Version": "6.11.1"
         },
         "qtimageformats": {
-          "Abi": "de05b6342816575e26324c9d6319ce32ce5f0c12c58ea26a1b9a0b5f91b6d229",
+          "Abi": "1c07ea09b937cc6fbe3a7056884a842e2a4a3c98159b8660a25c4c74c10d0ae3",
           "Version": "6.11.1"
         },
         "qtmultimedia": {
-          "Abi": "119f377927637e1bd3d2cc2ef150e999fed9c5aa41d8fdaeea256f2a47ad4721",
+          "Abi": "2db14ad2ada4766f75bba7987e08a41ce9b44942892be4b49b82d81295ab9bd7",
           "Version": "6.11.1"
         },
         "qtshadertools": {
-          "Abi": "1181355ce2376cc0c85352dc431efa5756c105a5956a3f758cef2f793c8bae7e",
+          "Abi": "8776b3ba5f23be0c05dd8f07817c70d1546d6efc5edd09f636068087e3290b8b",
           "Version": "6.11.1"
         },
         "qtsvg": {
-          "Abi": "f8eaf0db86c59307ab69b44ecd7f9b9ce7dde6c5061f7e3061c9b0aaa66574bd",
+          "Abi": "407b73d983b8d606854bb3d65a6628cfc18c74da947a2c4f43352fde87e2b28a",
           "Version": "6.11.1"
         },
         "qtwebsockets": {
-          "Abi": "0cdf6d8b60bd2e1e07ef5fdd7b78de33944031f53714db96c7f7d7be7fdbc062",
+          "Abi": "4b1be55bca7bef5c603d321badd8d166e7fc8c03e349829bb5e190927dccac3e",
           "Version": "6.11.1"
         }
       },
@@ -642,20 +1503,243 @@
       "version": "6.11.1"
     },
     "targetTripletEnvironmentPassthrough": [
+      "EM_CACHE",
+      "EM_FROZEN_CACHE",
       "EMSCRIPTEN_ROOT",
       "EMSCRIPTEN_VERSION",
       "EMSDK",
       "EMSDK_PYTHON",
+      "PYTHONNOUSERSITE",
+      "SOURCE_DATE_EPOCH",
       "CMAKE_NINJA_FORCE_RESPONSE_FILE"
     ],
     "version": "6.11.1"
   },
-  "schemaVersion": 2,
+  "qualificationBuild": {
+    "allCommandsRanInsideQualificationClosure": true,
+    "allMutableAutogenStateAbsentBeforeCleanRebuild": true,
+    "buildCommand": [
+      ".toolchains/ninja-1.13.2-win/ninja.exe",
+      "-C",
+      "tools/wasm-probe/build/wasm-release",
+      "-v",
+      "RhythmGameWasmCLauncherProbe",
+      "RhythmGameWasmProbe"
+    ],
+    "cleanCommand": [
+      ".toolchains/ninja-1.13.2-win/ninja.exe",
+      "-C",
+      "tools/wasm-probe/build/wasm-release",
+      "-t",
+      "clean",
+      "RhythmGameWasmCLauncherProbe",
+      "RhythmGameWasmProbe"
+    ],
+    "cleanedOutputCount": 40,
+    "executedEdgeCount": 35,
+    "mutableAutogenStatePaths": [
+      "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/AutogenUsed.txt",
+      "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/ParseCache.txt",
+      "CMakeFiles/RhythmGameWasmProbe_autogen.dir/AutogenUsed.txt",
+      "CMakeFiles/RhythmGameWasmProbe_autogen.dir/ParseCache.txt",
+      "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/AutogenUsed.txt",
+      "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/ParseCache.txt"
+    ],
+    "removedMutableAutogenStateCount": 5,
+    "targets": [
+      "RhythmGameWasmCLauncherProbe",
+      "RhythmGameWasmProbe"
+    ]
+  },
+  "qualificationClosure": {
+    "aggregateSha256": "f238c90abfa50ff641b0931f6a2458ab55a016845ea426a2b50777062fdb894c",
+    "algorithm": "sha256-logical-null-bytes-null-digest-lf-v1",
+    "buildControls": {
+      "aggregateSha256": "19f895f49a2a5d6abb7c76f2389e84fbf4fc82fee206c1e3ff51237cbbf2ae6f",
+      "algorithm": "sha256-logical-null-bytes-null-digest-lf-v1",
+      "allSelectedBuildInputsClassified": true,
+      "commandOnlyImmutableInputs": [
+        ".qt/.qmlls.build.ini.part",
+        ".qt/bin/qt_setup_tool_path.bat",
+        ".qt/RhythmGameWasmProbe_qml.cmake",
+        ".qt/RhythmGameWasmProbe_res.cmake"
+      ],
+      "configureMustBeSettledBeforeQualification": true,
+      "fileCount": 26,
+      "inventorySha256": "3993b3d0de689cf0f2f667095c2d0fd4491352635115b42fd4dd9b21ce4f9b92",
+      "manifest": "tools/wasm-probe/build-control-manifest.txt",
+      "mutableGeneratorStateResetPaths": [
+        "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/AutogenUsed.txt",
+        "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/ParseCache.txt",
+        "CMakeFiles/RhythmGameWasmProbe_autogen.dir/AutogenUsed.txt",
+        "CMakeFiles/RhythmGameWasmProbe_autogen.dir/ParseCache.txt",
+        "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/AutogenUsed.txt",
+        "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/ParseCache.txt"
+      ],
+      "sameHandleLifetimeLockedByWrapper": true,
+      "schemaVersion": 1,
+      "selectedTargetProducerlessInputs": [
+        ".qt/rcc/qmake_RhythmGame_WasmProbe.qrc",
+        ".qt/rcc/RhythmGameWasmProbe_raw_qml_0.qrc",
+        ".qt/rcc/RhythmGameWasmProbe_raw_qml_0_extra_qmldirs.qrc",
+        ".qt/rcc/wasm_probe_shaders.qrc",
+        ".rcc/qmlcache/RhythmGameWasmProbe_qml_loader_file_list.rsp",
+        "generated/ProbeDependencyDigest.cpp",
+        "generated/ProbeInputDigest.cpp",
+        "qmltypes/RhythmGameWasmProbe_foreign_types.txt",
+        "RhythmGame/WasmProbe/qml/qmldir",
+        "RhythmGame/WasmProbe/qmldir"
+      ],
+      "totalBytes": 1774689
+    },
+    "explicitFileCount": 100,
+    "explicitTotalBytes": 117720894,
+    "fileCount": 69617,
+    "independentlyRehashedByVerifier": true,
+    "inventorySha256": "9bd53ebc6257cb64607cc95581e819b92031fd6678559a54791fdf52018106a6",
+    "rootByteCounts": {
+      "emscripten-cache": 407765837,
+      "emsdk": 1590303696,
+      "ninja": 603648,
+      "outer-cmake": 132316585,
+      "vcpkg": 26968177,
+      "vcpkg-host-runtime": 400974683,
+      "vcpkg-port-cmake": 139214481,
+      "vcpkg-target": 247912182
+    },
+    "rootFileCounts": {
+      "emscripten-cache": 1825,
+      "emsdk": 16820,
+      "ninja": 1,
+      "outer-cmake": 8525,
+      "vcpkg": 14075,
+      "vcpkg-host-runtime": 10537,
+      "vcpkg-port-cmake": 8584,
+      "vcpkg-target": 9150
+    },
+    "sameHandleLifetimeLockedByWrapper": true,
+    "totalBytes": 3063780183
+  },
+  "schemaVersion": 4,
   "scope": "Technical Qt/Emscripten build probe only; browser runtime capabilities remain Gate 1B work.",
   "technicalProbePassed": true,
   "toolchains": {
+    "bootstrapLaunchers": {
+      "emsdk": {
+        "path": "emsdk.py",
+        "sha256": "8b6da54e6c8d72605183036d412b2878d7ec9437533cd9db4dcc6b46fc687824"
+      },
+      "vcpkg": {
+        "path": "bootstrap-vcpkg.bat",
+        "sha256": "8e8ec8a66db4f9fa69e51ca725a2aeec3c2a99e4ee0040f50358ffd8776f82b5"
+      }
+    },
     "emscripten": {
+      "bootstrapPython": {
+        "executable": {
+          "path": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
+          "sha256": "786e68ded8af18f36274d78ea00ff11289c27107dd9f8fdd2f6b4732a3b8a2da"
+        },
+        "sourceArchive": {
+          "allowedRuntimeFiles": [
+            ".emsdk_version"
+          ],
+          "allowedRuntimePrefixes": [],
+          "archive": {
+            "path": ".toolchains/downloads/python-3.9.2-4-amd64+pywin32.zip",
+            "sha256": "e47e5f00c8970cee28c228f100269aaad20f7fd1405e2bd4a6c9da33076830ac"
+          },
+          "installationRoot": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit",
+          "payload": {
+            "aggregateSha256": "97e984800db090cd44394fd54f45ebdf14bd6084a91a41d25496fb8d16ce09c1",
+            "algorithm": "sha256-path-null-digest-lf-v1",
+            "directoryCount": 118,
+            "directoryInventorySha256": "c5d479f28a943783e867b63ccad150b785cb20505be4c6f4dbe358cb8e0fc285",
+            "fileCount": 1486,
+            "inventorySha256": "76f67170d0868c9de9b41da44b94e8e64952fe54f6afe9cb40113c084ca38fa8",
+            "stripPrefix": "",
+            "totalBytes": 37105575
+          }
+        }
+      },
+      "cLauncherSha256": "b61f25a114b9b93444de62bc31bf05d1b12b3986513c75f6b23ccc1711c6a634",
+      "cache": {
+        "compilerPathPrefixMap": {
+          "flag": "-ffile-prefix-map",
+          "injection": "tracked-python-get_base_cflags-adapter",
+          "systemLibsSha256": "48c216b787a80270e6bcaac896a8e952ccc7978025fdee6c8d61f4138ce5c43d",
+          "target": "/emsdk/cache"
+        },
+        "directory": "emscripten-cache-4.0.7",
+        "frozenEnvironment": "EM_FROZEN_CACHE=1",
+        "initializer": "prewarm_emscripten_cache.py -> embuilder.py build SYSTEM",
+        "payload": {
+          "aggregateSha256": "5eddb15053811f76fb148e45a4f0994f958a20046cbc205f7b36ed8a94330ea0",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 89,
+          "directoryInventorySha256": "8e7094c96f2baf5c464d2cbef307ce059716c744be8d773a2528bbe5e1e33c07",
+          "fileCount": 1825,
+          "inventorySha256": "e0eb0b8e63f577bf3cb8eefa1a4f1eedd796f0127574093560a97c4938b7cb4a",
+          "totalBytes": 407765837
+        },
+        "prewarmCores": 4,
+        "root": ".toolchains/emscripten-cache-4.0.7",
+        "volatileProducts": [
+          "sanity.txt",
+          "symbol_lists/*.json"
+        ]
+      },
+      "cxxLauncherSha256": "b61f25a114b9b93444de62bc31bf05d1b12b3986513c75f6b23ccc1711c6a634",
       "driver": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py",
+      "driverAdapter": {
+        "path": "tools/wasm-probe/scripts/invoke_emscripten_driver.py",
+        "sha256": "e2e241adc9d47c9d3f2d50dd679a7b67ec587e6c0515ee1f1b0d64c57e2515b8"
+      },
+      "driverApi": {
+        "configPySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/tools/config.py",
+          "sha256": "58294addc063d9ad954f767f8b28659d7c720218e40692b20e155a003192728d"
+        },
+        "emarLauncherSha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/emar.bat",
+          "sha256": "f9b690c5abe642942e5d3dabb1f9f87603734c9f18b01dad2f3475120d2f33ef"
+        },
+        "emarPySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/emar.py",
+          "sha256": "ba2d6247890bcfa38c228562d025d4f9c96f659ea297881600adf09a66dbc202"
+        },
+        "emccPySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/emcc.py",
+          "sha256": "2884a798ef2ad1c43f20ea1121c83ba18caec15158124b472be5494c3dc8c3f0"
+        },
+        "emranlibLauncherSha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/emranlib.bat",
+          "sha256": "f9b690c5abe642942e5d3dabb1f9f87603734c9f18b01dad2f3475120d2f33ef"
+        },
+        "emranlibPySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/emranlib.py",
+          "sha256": "916dc7b3b80e51638977ffdabbd00ccee0fd7bc447cfcc8dc206201c75098501"
+        },
+        "emxxPySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.py",
+          "sha256": "017f735c953318fdaaa4af68c8d4bf13936a787ddbd5dad804d532b0223b6c2f"
+        },
+        "pythonImportClosure": {
+          "aggregateSha256": "4a378899a0a3ad36e19f7f5e0170641fdb647d61aaf464c721b07d729abdf6f6",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "fileCount": 225,
+          "inventorySha256": "acdbf9111c4779b62764eaa595a184179f7ffe8f46de07ea4303f635d1308477",
+          "totalBytes": 3159759
+        },
+        "responseFilePySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/tools/response_file.py",
+          "sha256": "815ec85ec4d2f0d471a648a375c2fbd39daf194ac9e557d7e14901f4cac0004f"
+        },
+        "sharedPySha256": {
+          "path": ".toolchains/emsdk-4.0.7/upstream/emscripten/tools/shared.py",
+          "sha256": "8d26ae87a03d55c99bf9a07f86c1fc56484d76a18f501962b5ec0f90cde8a8fe"
+        }
+      },
       "emsdkCommit": "c69d433d8509c5c64564c2f0d054bf102a5cf67e",
       "emsdkRoot": ".toolchains/emsdk-4.0.7",
       "installation": {
@@ -687,12 +1771,54 @@
         "releaseHash": "ef4e9cedeac3332e4738087567552063f4f250d3",
         "releaseManifest": {
           "path": "emscripten-releases-tags.json",
-          "sha256": "d833b45d63b12690ce222a6a7b9fe8e7d05be53d5883162852f2483204c5a0f5"
+          "sha256": "30a7e6ee492f1e3e576a97d281d68a283e2d74c4bc65bee1d298d767d50d855e"
         }
       },
       "launcher": ".toolchains/emsdk-4.0.7/upstream/emscripten/em++.bat",
       "node": ".toolchains/emsdk-4.0.7/node/20.18.0_64bit/bin/node.exe",
+      "nodeSha256": "35b7c95a379beb606f5798ed83081690df13190077630b234163c6607aa4cc94",
       "python": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
+      "responseAuditor": {
+        "path": "tools/wasm-probe/scripts/audit_emscripten_response_files.py",
+        "sha256": "18bbb2f3791715035dd7a0f644290173a1dc98a3e816d9621ada24079b59466b"
+      },
+      "sourceArchive": {
+        "allowedRuntimeFiles": [
+          ".emscripten",
+          ".emscripten.old",
+          "upstream/.emsdk_version",
+          "upstream/emscripten_config"
+        ],
+        "allowedRuntimePrefixes": [
+          "downloads",
+          "node/20.18.0_64bit",
+          "python/3.9.2-nuget_64bit",
+          "upstream/bin",
+          "upstream/emscripten",
+          "upstream/lib"
+        ],
+        "archive": {
+          "path": ".toolchains/downloads/emsdk-c69d433d8509c5c64564c2f0d054bf102a5cf67e.zip",
+          "sha256": "e0be07abfa84ada42b6d895ff751a825878c07140798ddf5f94774a085122ce3"
+        },
+        "installationRoot": ".toolchains/emsdk-4.0.7",
+        "payload": {
+          "aggregateSha256": "9a06ab588de3663c38c9b7ddb19034d3479087af8844b456f47df039665f1a94",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 13,
+          "directoryInventorySha256": "babd394224ccaac5a946ae0a291fe53132fdd1fe558dfd31a6cd5c4db0d358dd",
+          "fileCount": 134,
+          "inventorySha256": "ac2a983596b73ff45b2c67de5b1246006671ede5e907c2118ae9a5e6bec5e237",
+          "stripPrefix": "emsdk-c69d433d8509c5c64564c2f0d054bf102a5cf67e",
+          "totalBytes": 1011834
+        }
+      },
+      "verifierPython": {
+        "bytecodeDisabled": true,
+        "isolated": true,
+        "path": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
+        "sha256": "786e68ded8af18f36274d78ea00ff11289c27107dd9f8fdd2f6b4732a3b8a2da"
+      },
       "version": "4.0.7",
       "versionOutput": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.7 (8dc91db45bf96c174531006839472a3924d105aa)"
     },
@@ -704,22 +1830,40 @@
         "EMSDK": ".toolchains/emsdk-4.0.7",
         "EMSDK_NODE": ".toolchains/emsdk-4.0.7/node/20.18.0_64bit/bin/node.exe",
         "EMSDK_PYTHON": ".toolchains/emsdk-4.0.7/python/3.9.2-nuget_64bit/python.exe",
-        "EM_CACHE": ".toolchains/emsdk-4.0.7/upstream/emscripten/cache",
+        "EM_CACHE": ".toolchains/emscripten-cache-4.0.7",
         "EM_CONFIG": ".toolchains/emsdk-4.0.7/.emscripten",
+        "EM_FROZEN_CACHE": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "RHYTHMGAME_EMSCRIPTEN_DRIVER_ADAPTER": "tools/wasm-probe/scripts/invoke_emscripten_driver.py",
+        "RHYTHMGAME_EMSCRIPTEN_RESPONSE_AUDITOR": "tools/wasm-probe/scripts/audit_emscripten_response_files.py",
+        "RHYTHMGAME_EMSCRIPTEN_ROOT": ".toolchains/emsdk-4.0.7/upstream/emscripten",
+        "RHYTHMGAME_EM_CACHE": ".toolchains/emscripten-cache-4.0.7",
+        "RHYTHMGAME_EM_CONFIG": ".toolchains/emsdk-4.0.7/.emscripten",
+        "RHYTHMGAME_EM_CONFIG_SHA256": "4282069afd455effc5adc0181e9b3bdae275281558a0a683b14d58dbf550382c",
+        "RHYTHMGAME_WASM_TOOLCHAIN_LOCK": "tools/wasm-probe/toolchain-lock.json",
+        "SOURCE_DATE_EPOCH": "1782488244",
         "VCPKG_DEFAULT_BINARY_CACHE": ".wasm-vcpkg/bincache",
         "VCPKG_DISABLE_METRICS": "1",
+        "VCPKG_MAX_CONCURRENCY": "8",
         "VCPKG_ROOT": ".toolchains/vcpkg-a0400024"
       },
       "forbiddenNamesAbsent": [
         "AR",
+        "AS",
+        "BASH_ENV",
         "BINARYEN_ROOT",
         "CC",
+        "CCC_OVERRIDE_OPTIONS",
         "CL",
+        "COMPILER_PATH",
+        "CPATH",
         "CPP",
         "CPPFLAGS",
+        "C_INCLUDE_PATH",
         "CXX",
         "CFLAGS",
+        "CPLUS_INCLUDE_PATH",
         "CXXFLAGS",
         "EMCC_CFLAGS",
         "EMCC_DEBUG",
@@ -727,20 +1871,53 @@
         "EMMAKEN_COMPILER",
         "EM_COMPILER_WRAPPER",
         "EM_COMPILER_WRAPPER2",
+        "ENV",
         "LD",
         "LDFLAGS",
+        "LIB",
+        "LIBPATH",
+        "LIBRARY_PATH",
         "LLVM_ROOT",
         "NM",
+        "NODE_OPTIONS",
+        "NODE_PATH",
         "NODE_JS",
         "PYTHONHOME",
         "PYTHONPATH",
         "RANLIB",
+        "GCC_EXEC_PREFIX",
+        "INCLUDE",
+        "IPHONEOS_DEPLOYMENT_TARGET",
+        "MACOSX_DEPLOYMENT_TARGET",
+        "OBJC_INCLUDE_PATH",
+        "OBJCPLUS_INCLUDE_PATH",
+        "RC",
+        "SDKROOT",
+        "QT_RCC_SOURCE_DATE_OVERRIDE",
         "STRIP",
         "_CL_",
         "_EMCC_CCACHE"
+      ],
+      "nativeCommandInterpreterAuthenticated": true,
+      "scrubbedVariableFamilies": [
+        "CCACHE_",
+        "CMAKE_",
+        "EMCC_",
+        "EMMAKEN_",
+        "EMSCRIPTEN_",
+        "EMSCONS_PKG_CONFIG_",
+        "EMSDK_",
+        "EM_",
+        "GIT_",
+        "PKG_CONFIG_",
+        "QML_",
+        "QT_",
+        "RHYTHMGAME_",
+        "VCPKG_",
+        "X_VCPKG_"
       ]
     },
-    "lockFileSha256": "312d4d4be42ae030da4f221d4347ec2a6ece2e428006dd000fad55f1cef63918",
+    "lockFileSha256": "c375b4149d83b27b68b18d6e03fedbe90ef77f563c77751ad471df32b20bac4d",
     "ninja": {
       "executable": ".toolchains/ninja-1.13.2-win/ninja.exe",
       "executableSha256": "e52a7ad9538d9618c67a0bd777964e2eec8a30f68b810a2f6adce1f2daf847b8",
@@ -823,18 +2000,80 @@
       "version": "4.2.3",
       "versionOutput": "cmake version 4.2.3"
     },
+    "reproducibleBuild": {
+      "derivation": "vcpkg-baseline-source-archive-root-entry-utc",
+      "sourceDateEpoch": 1782488244,
+      "vcpkgMaxConcurrency": 8
+    },
     "vcpkg": {
       "baselineCommit": "a0400024711b283056538ac19ced80b91a83c24c",
+      "bootstrapInputs": {
+        "script": {
+          "path": "scripts/bootstrap.ps1",
+          "sha256": "6d4020f84b6997deabea5e2ad362f1885b52f9c5a2bd4b1cf087ca4100974a9f"
+        },
+        "toolMetadata": {
+          "path": "scripts/vcpkg-tool-metadata.txt",
+          "sha256": "fd4c5bdfb023c65cee97488622bb689243e92d30e830e621877ba55f90df7e15"
+        },
+        "toolReleaseTag": "2026-05-27",
+        "toolUrl": "https://github.com/microsoft/vcpkg-tool/releases/download/2026-05-27/vcpkg.exe"
+      },
+      "bootstrapLauncher": {
+        "path": "bootstrap-vcpkg.bat",
+        "sha256": "8e8ec8a66db4f9fa69e51ca725a2aeec3c2a99e4ee0040f50358ffd8776f82b5"
+      },
       "executable": ".toolchains/vcpkg-a0400024/vcpkg.exe",
+      "executableSha256": "da75e3312ff6881c89f6171363eedb92933b0f79456cd6ee636316edef860ff7",
+      "sourceArchive": {
+        "allowedRuntimeFiles": [
+          "vcpkg.disable-metrics",
+          "vcpkg.exe"
+        ],
+        "allowedRuntimePrefixes": [],
+        "archive": {
+          "path": ".toolchains/downloads/vcpkg-a0400024711b283056538ac19ced80b91a83c24c.zip",
+          "sha256": "1a3d2abdd7ca6d479d7f1c2e437fd9765790c09613baa2631c87b1726f905c00"
+        },
+        "installationRoot": ".toolchains/vcpkg-a0400024",
+        "payload": {
+          "aggregateSha256": "9357531ef9ffe513b71dc4e46698cea4ab0da993c1f4780d97e920f712511d94",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 3215,
+          "directoryInventorySha256": "3f037e402ca926d9c233c6b5cdeb8c1c54ff0d92967b5c1bf38f88bc55fb6546",
+          "fileCount": 14073,
+          "inventorySha256": "501493e641af8100034e7a74e03d506a8f2d65a8a01ba50a773265c38d22ca2b",
+          "stripPrefix": "vcpkg-a0400024711b283056538ac19ced80b91a83c24c",
+          "totalBytes": 20252983
+        }
+      },
       "versionOutput": "vcpkg package management program version 2026-05-27-d5b6777d666efc1a7f491babfcdab37794c1ae3e"
     },
     "vcpkgPortBuildCMake": {
       "archive": {
+        "bytes": 52967828,
         "path": ".wasm-vcpkg/downloads/cmake-4.3.3-windows-x86_64.zip",
         "sha512": "0df613db23b315d81895e672e8460f2b35f4c2dd2eb9f07e10b13389a675edcb09836a458b90d8c0211b3a2d6da38183714410769935a580b86a6177df691f6a"
       },
       "executable": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows/cmake-4.3.3-windows-x86_64/bin/cmake.exe",
       "executableSha256": "70fa92ce2ac9f54b0ae395b0b3790d9147ef2ebdbd7c4e0bb20852aac581baea",
+      "installation": {
+        "archive": {
+          "path": ".wasm-vcpkg/downloads/cmake-4.3.3-windows-x86_64.zip",
+          "sha512": "0df613db23b315d81895e672e8460f2b35f4c2dd2eb9f07e10b13389a675edcb09836a458b90d8c0211b3a2d6da38183714410769935a580b86a6177df691f6a"
+        },
+        "installationRoot": ".wasm-vcpkg/downloads/tools/cmake-4.3.3-windows",
+        "payload": {
+          "aggregateSha256": "6046bdae94472ac6feb362fb890079b991e7997af15ce5787954225ba7466d20",
+          "algorithm": "sha256-path-null-digest-lf-v1",
+          "directoryCount": 153,
+          "directoryInventorySha256": "2dbf4923414ee77924e27bde4c2c612fee537fcba58689c6b9d59fd1debb449d",
+          "fileCount": 8584,
+          "inventorySha256": "3601d4f354eccef36c5d53a9454cbc54cdd3fcea252455c866227fc220e721b9",
+          "stripPrefix": "",
+          "totalBytes": 139214481
+        }
+      },
       "toolsManifest": {
         "entry": {
           "arch": "amd64",
