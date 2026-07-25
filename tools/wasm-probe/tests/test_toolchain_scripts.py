@@ -2417,8 +2417,13 @@ class ToolchainScriptTest(unittest.TestCase):
                         Path(str(driver["runtime"])).resolve(),
                         python.resolve(),
                     )
-                    self.assertTrue(driver["ignore_environment"])
-                    self.assertTrue(driver["no_user_site"])
+                    self.assertEqual(
+                        Path(str(driver["adapter_runtime"])).resolve(),
+                        python.resolve(),
+                    )
+                    self.assertTrue(driver["adapter_ignore_environment"])
+                    self.assertTrue(driver["adapter_no_user_site"])
+                    self.assertTrue(driver["adapter_bytecode_disabled"])
                     self.assertFalse(side_effect.exists())
 
         failure_cases = (

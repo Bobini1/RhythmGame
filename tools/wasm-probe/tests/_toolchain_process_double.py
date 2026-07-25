@@ -111,6 +111,7 @@ def _write_emscripten_driver(
             "\n".join(
                 (
                     "from pathlib import Path",
+                    "import os",
                     "import subprocess",
                     "import sys",
                     "",
@@ -127,6 +128,29 @@ def _write_emscripten_driver(
                     "        if shared.run_via_emxx",
                     "        else 'emcc-driver'",
                     "    )",
+                    "    environment = os.environ.copy()",
+                    "    environment.update(",
+                    "        {",
+                    (
+                        "            'TOOLCHAIN_DOUBLE_ADAPTER_RUNTIME': "
+                        "str(Path(sys.executable).resolve()),"
+                    ),
+                    (
+                        "            "
+                        "'TOOLCHAIN_DOUBLE_ADAPTER_IGNORE_ENVIRONMENT': "
+                        "'1' if sys.flags.ignore_environment else '0',"
+                    ),
+                    (
+                        "            'TOOLCHAIN_DOUBLE_ADAPTER_NO_USER_SITE': "
+                        "'1' if sys.flags.no_user_site else '0',"
+                    ),
+                    (
+                        "            "
+                        "'TOOLCHAIN_DOUBLE_ADAPTER_BYTECODE_DISABLED': "
+                        "'1' if sys.dont_write_bytecode else '0',"
+                    ),
+                    "        }",
+                    "    )",
                     "    completed = subprocess.run(",
                     "        [",
                     "            sys.executable,",
@@ -135,6 +159,7 @@ def _write_emscripten_driver(
                     "            str(Path(__file__).resolve()),",
                     "            *args[1:],",
                     "        ],",
+                    "        env=environment,",
                     "        check=False,",
                     "    )",
                     "    return completed.returncode",
@@ -451,6 +476,20 @@ def _toolchain_root() -> Path:
     if not value:
         raise RuntimeError("TOOLCHAIN_DOUBLE_ROOT is required")
     return _resolved(value)
+
+
+def _required_environment_value(name: str) -> str:
+    value = os.environ.get(name)
+    if value is None:
+        raise RuntimeError(f"{name} is required")
+    return value
+
+
+def _required_environment_flag(name: str) -> bool:
+    value = _required_environment_value(name)
+    if value not in {"0", "1"}:
+        raise RuntimeError(f"{name} must be exactly 0 or 1")
+    return value == "1"
 
 
 def _event(tool: str, source: str, arguments: list[str], **extra: object) -> None:
@@ -779,6 +818,28 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
         "emar-driver",
         "emranlib-driver",
     ):
+        adapter: dict[str, object] = {}
+        adapter_marker_names = (
+            "TOOLCHAIN_DOUBLE_ADAPTER_RUNTIME",
+            "TOOLCHAIN_DOUBLE_ADAPTER_IGNORE_ENVIRONMENT",
+            "TOOLCHAIN_DOUBLE_ADAPTER_NO_USER_SITE",
+            "TOOLCHAIN_DOUBLE_ADAPTER_BYTECODE_DISABLED",
+        )
+        if any(os.environ.get(name) is not None for name in adapter_marker_names):
+            adapter = {
+                "adapter_runtime": _required_environment_value(
+                    adapter_marker_names[0]
+                ),
+                "adapter_ignore_environment": _required_environment_flag(
+                    adapter_marker_names[1]
+                ),
+                "adapter_no_user_site": _required_environment_flag(
+                    adapter_marker_names[2]
+                ),
+                "adapter_bytecode_disabled": _required_environment_flag(
+                    adapter_marker_names[3]
+                ),
+            }
         _event(
             tool,
             source,
@@ -786,6 +847,7 @@ def _run_known_tool(tool: str, source: str, arguments: list[str]) -> int:
             runtime=str(Path(sys.executable).resolve()),
             ignore_environment=bool(sys.flags.ignore_environment),
             no_user_site=bool(sys.flags.no_user_site),
+            **adapter,
         )
         if arguments == ["--version"]:
             print("emcc 4.0.7")
