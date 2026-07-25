@@ -30,3 +30,11 @@ share/RhythmGame/log.txt
 .vcpkg-buildtrees/
 .vcpkg-cache/
 .vcpkg-packages/
+tools/wasm-probe/browser/.certificates/
+tools/wasm-probe/browser/.native-chooser-runs/
+tools/wasm-probe/browser/.profiles/
+tools/wasm-probe/browser/.traces/
+tools/wasm-probe/browser/node_modules/
+tools/wasm-probe/browser/playwright-report/
+tools/wasm-probe/scripts/__pycache__/
+tools/wasm-probe/tests/__pycache__/

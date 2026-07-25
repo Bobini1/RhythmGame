@@ -1,5 +1,11 @@
 .gitattributes
 cmake/toolchains/vcpkg-emscripten.cmake
+tools/wasm-probe/browser/lib/browser-matrix.mjs
+tools/wasm-probe/browser/package-lock.json
+tools/wasm-probe/browser/package.json
+tools/wasm-probe/browser/playwright.config.mjs
+tools/wasm-probe/browser/run-browser-tool.mjs
+tools/wasm-probe/browser/tests/browser-matrix.test.mjs
 tools/wasm-probe/build-control-manifest.txt
 tools/wasm-probe/cmake/ProbeInputDigest.cpp.in
 tools/wasm-probe/cmake/verify_exact_toolchain.cmake
@@ -22,6 +28,7 @@ tools/wasm-probe/src/LauncherProbe.c
 tools/wasm-probe/src/main.cpp
 tools/wasm-probe/src/ProbeState.cpp
 tools/wasm-probe/src/ProbeState.h
+tools/wasm-probe/tests/test_gate1b_source_contract.py
 tools/wasm-probe/tests/verify_build.py
 tools/wasm-probe/toolchain-lock.json
 tools/wasm-probe/vcpkg.json

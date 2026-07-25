@@ -1,0 +1,12 @@
+{
+  "name": "rhythmgame-wasm-browser-probe",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "1.62.0",
+    "pngjs": "7.0.0",
+    "selfsigned": "5.5.0",
+    "ws": "8.21.1"
+  }
+}

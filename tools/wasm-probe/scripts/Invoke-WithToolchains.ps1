@@ -1190,8 +1190,13 @@ try {
 
     $pythonRequested = $Executable -ieq 'python' -or
         $Executable -ieq 'python.exe'
+    $nodeRequested = $Executable -ieq 'node' -or
+        $Executable -ieq 'node.exe'
     $child = if ($pythonRequested) {
         $python
+    }
+    elseif ($nodeRequested) {
+        $node
     }
     else {
         Resolve-ChildApplication -Requested $Executable

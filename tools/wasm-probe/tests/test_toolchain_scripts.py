@@ -2072,6 +2072,97 @@ class ToolchainScriptTest(unittest.TestCase):
                 captured_environment["PATH"],
             )
 
+    def test_node_aliases_use_authenticated_runtime_without_path_injection(
+        self,
+    ) -> None:
+        for requested in ("node", "node.exe"):
+            with self.subTest(requested=requested):
+                with tempfile.TemporaryDirectory(
+                    prefix="rg pinned node alias "
+                ) as temporary:
+                    fixture = self._fixture(temporary)
+                    root = Path(str(fixture["root"]))
+                    sandbox = Path(str(fixture["sandbox"]))
+                    self._seed_complete(root)
+                    pinned_node = (
+                        root
+                        / "emsdk-4.0.7"
+                        / "node"
+                        / "node.exe"
+                    ).resolve()
+                    poison = sandbox / "ambient node poison"
+                    write_launcher(poison / "node.cmd", "poison-node")
+                    environment = fixture["environment"]
+                    assert isinstance(environment, dict)
+                    environment["PATH"] = (
+                        f"{poison}{os.pathsep}"
+                        f"{environment.get('PATH', '')}"
+                    )
+                    environment["PYTHONHOME"] = sys.prefix
+                    fixture["environment"] = environment
+                    capture = sandbox / f"{requested}.json"
+                    script = sandbox / "capture-node-runtime.py"
+                    script.write_text(
+                        "\n".join(
+                            (
+                                "import json",
+                                "import os",
+                                "import sys",
+                                "from pathlib import Path",
+                                "Path(sys.argv[1]).write_text(",
+                                "    json.dumps({",
+                                "        'runtime': sys.executable,",
+                                "        'arguments': sys.argv[2:],",
+                                "        'path': os.environ['PATH'],",
+                                "    }),",
+                                "    encoding='utf-8',",
+                                ")",
+                                "",
+                            )
+                        ),
+                        encoding="utf-8",
+                    )
+                    arguments = [
+                        str(script),
+                        str(capture),
+                        "argument with spaces",
+                        "--option-like",
+                    ]
+
+                    result = self._run_wrapper(
+                        fixture,
+                        requested,
+                        arguments,
+                    )
+                    self.assertEqual(
+                        result.returncode,
+                        0,
+                        result.stdout + result.stderr,
+                    )
+                    payload = json.loads(capture.read_text("utf-8"))
+                    self.assertEqual(
+                        Path(payload["runtime"]).resolve(),
+                        pinned_node,
+                    )
+                    self.assertEqual(payload["arguments"], arguments[2:])
+                    path_entries = {
+                        os.path.normcase(str(Path(entry).resolve()))
+                        for entry in str(payload["path"]).split(os.pathsep)
+                        if entry
+                    }
+                    self.assertNotIn(
+                        os.path.normcase(str(pinned_node.parent)),
+                        path_entries,
+                    )
+                    self.assertFalse(
+                        any(
+                            event["tool"] == "poison-node"
+                            for event in self._events(
+                                Path(str(fixture["events"]))
+                            )
+                        )
+                    )
+
     def test_direct_emscripten_rejects_legacy_exception_and_asyncify(
         self,
     ) -> None:
