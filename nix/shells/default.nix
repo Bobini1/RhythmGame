@@ -42,6 +42,7 @@
   libwebp,
   libtiff,
   zlib-ng,
+  libremidi,
 }:
 mkShell {
   buildInputs = [
@@ -80,6 +81,7 @@ mkShell {
     libwebp
     libtiff
     zlib-ng
+    libremidi
   ];
 
   nativeBuildInputs = [

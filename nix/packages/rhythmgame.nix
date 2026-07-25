@@ -38,6 +38,7 @@
   libwebp,
   libtiff,
   zlib-ng,
+  libremidi,
 }:
 stdenv.mkDerivation rec {
   pname = "RhythmGame";
@@ -85,6 +86,7 @@ stdenv.mkDerivation rec {
     libwebp
     libtiff
     zlib-ng
+    libremidi
   ];
 
   cmakeFlags = [
