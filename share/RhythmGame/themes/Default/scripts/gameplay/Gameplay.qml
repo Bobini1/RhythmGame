@@ -845,7 +845,7 @@ Rectangle {
         ArenaGameplayOverlay {
             id: arenaGameplayPanel
 
-            anchors.fill: arenaGameplayPlacementFrame
+            anchors.fill: parent
             expanded: root.arenaGameplayExpanded
             session: root.arenaSession
 

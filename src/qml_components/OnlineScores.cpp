@@ -7,6 +7,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QPointer>
 #include <QQmlEngine>
@@ -105,7 +106,14 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
     auto tryNext = std::make_shared<std::function<void()>>();
     const auto weakTryNext = std::weak_ptr<std::function<void()>>{ tryNext };
 
-    *tryNext = [this, handle, md5, attemptIndex, weakTryNext]() {
+    *tryNext = [handle = QPointer(handle),
+                manager = QPointer(networkManager),
+                md5,
+                attemptIndex,
+                weakTryNext]() {
+        if (!handle || !manager)
+            return;
+
         const auto idx = *attemptIndex;
         if (idx >= games.size()) {
             emit handle->failed(
@@ -124,20 +132,25 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
         body.insert("matchType", "bmsChartHash");
         body.insert("identifier", md5.toLower());
 
-        QNetworkReply* reply = networkManager->post(
+        QNetworkReply* reply = manager->post(
           req, QJsonDocument(body).toJson(QJsonDocument::Compact));
         auto nextAttempt = weakTryNext.lock();
         Q_ASSERT(nextAttempt);
 
-        // Cancel signal aborts the current in-flight reply.
         connect(handle, &TachiResolveHandle::cancel, reply, [reply] {
-            reply->abort();
+            if (reply->isRunning())
+                reply->abort();
+        });
+        connect(handle, &QObject::destroyed, reply, [reply] {
+            if (reply->isRunning())
+                reply->abort();
+            reply->deleteLater();
         });
 
         connect(
           reply,
           &QNetworkReply::finished,
-          this,
+          handle,
           [handle = QPointer(handle),
            reply,
            attemptIndex,
@@ -146,6 +159,9 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 
               if (reply->error() == QNetworkReply::OperationCanceledError)
                   return; // handle stays alive; caller decides cleanup
+
+              if (!handle)
+                  return;
 
               if (reply->error() != QNetworkReply::NoError) {
                   ++(*attemptIndex);
@@ -156,9 +172,6 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
               QJsonParseError perr;
               const auto doc = QJsonDocument::fromJson(reply->readAll(), &perr);
               if (perr.error != QJsonParseError::NoError || !doc.isObject()) {
-                  if (!handle) {
-                      return;
-                  }
                   emit handle->failed(
                     QString("JSON parse error resolving Tachi chart: %1")
                       .arg(perr.errorString()));
@@ -176,9 +189,6 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 
               const int noteCount =
                 chartObj["data"].toObject()["notecount"].toInt();
-              if (!handle) {
-                  return;
-              }
               emit handle->resolved(
                 chartID, QString(games[*attemptIndex].game), noteCount);
           });
