@@ -14,6 +14,7 @@ CMakeFiles/4.2.3/CMakeCCompiler.cmake
 CMakeFiles/4.2.3/CMakeCXXCompiler.cmake
 CMakeFiles/4.2.3/CMakeSystem.cmake
 CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/AutogenInfo.json
+CMakeFiles/RhythmGameWasmProbe.dir/post-build.bat
 CMakeFiles/RhythmGameWasmProbe_autogen.dir/AutogenInfo.json
 CMakeFiles/rules.ninja
 CMakeFiles/VerifyGlobs.cmake

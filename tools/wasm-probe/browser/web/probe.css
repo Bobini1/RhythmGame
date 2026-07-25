@@ -1,0 +1,26 @@
+:root {
+    color-scheme: dark;
+    font-family: system-ui, sans-serif;
+}
+
+html,
+body,
+#screen {
+    block-size: 100%;
+    inline-size: 100%;
+}
+
+html,
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+body {
+    background: #111318;
+    color: #f2f4f8;
+}
+
+#screen {
+    position: relative;
+}

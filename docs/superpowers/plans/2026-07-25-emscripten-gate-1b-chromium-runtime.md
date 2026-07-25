@@ -358,7 +358,7 @@ References:
 - Modify: `tools/wasm-probe/build-control-manifest.txt`
 - Create: `.superpowers/sdd/gate1b-progress.md` (ignored execution ledger)
 
-- [ ] **Step 1: Add failing fast contract tests**
+- [x] **Step 1: Add failing fast contract tests**
 
 The tests must initially fail for missing browser files. They assert:
 
@@ -383,7 +383,7 @@ python -m unittest tools/wasm-probe/tests/test_gate1b_source_contract.py -v
 
 Expected: FAIL because the browser harness does not exist.
 
-- [ ] **Step 2: Implement the authenticated Node/npm dispatcher**
+- [x] **Step 2: Implement the authenticated Node/npm dispatcher**
 
 `run-browser-tool.mjs` accepts only these subcommands:
 
@@ -422,7 +422,7 @@ pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- node `
 `npm-lock` is the only path that may invoke `npm install --package-lock-only`;
 it refuses to run when `node_modules` exists. Normal runs use only `npm ci`.
 
-- [ ] **Step 3: Implement browser identity capture**
+- [x] **Step 3: Implement browser identity capture**
 
 `browser-matrix.mjs` exports:
 
@@ -456,7 +456,7 @@ root. The Beta command must go through the pinned Playwright CLI and then
 resolve the branded `chrome-beta` channel. Do not download or replace Stable;
 only hash/qualify the installed Stable executable. Record no browser PASS yet.
 
-- [ ] **Step 5: Make all focused tests green**
+- [x] **Step 5: Make all focused tests green**
 
 Run:
 
@@ -468,7 +468,7 @@ python -m unittest `
 
 Expected: PASS.
 
-- [ ] **Step 6: Review and commit**
+- [x] **Step 6: Review and commit**
 
 Review scope, package integrity, shell avoidance, manifest sorting, ignored
 outputs, and absence of ambient Node trust. Record the task result in
@@ -502,7 +502,7 @@ test: lock Gate 1B browser harness
 - Modify: `tools/wasm-probe/input-manifest.txt`
 - Modify: `tools/wasm-probe/build-control-manifest.txt`
 
-- [ ] **Step 1: Add failing policy/server/artifact tests**
+- [x] **Step 1: Add failing policy/server/artifact tests**
 
 Use Node's built-in test runner. Test:
 
@@ -538,7 +538,7 @@ pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- node `
 
 Expected: FAIL because the server and shell do not exist.
 
-- [ ] **Step 2: Implement the server without framework fallbacks**
+- [x] **Step 2: Implement the server without framework fallbacks**
 
 Use Node `https.createServer`, `ws.WebSocketServer({noServer: true})`, and
 `selfsigned` only for an ephemeral test certificate. Accept optional
@@ -558,7 +558,7 @@ The WebSocket 101 handshake carries the applicable security headers. A browser
 preflight opens/closes a real WSS connection before Qt is loaded; Node-only WSS
 tests are insufficient.
 
-- [ ] **Step 3: Replace the generic Qt shell**
+- [x] **Step 3: Replace the generic Qt shell**
 
 Set target property:
 
@@ -566,11 +566,22 @@ Set target property:
 NO_WASM_DEFAULT_FILES TRUE
 ```
 
+Link the application with both `-sDYNAMIC_EXECUTION=0` and
+`-sEMBIND_AOT=1`. The former is mandatory for the frozen CSP because it removes
+runtime `new Function` paths from both Embind and Emval; the latter generates
+the binding invokers at build time so the CSP-safe path does not trade away
+binding latency. Task 2 source contracts require both settings and its
+packager/verifier rejects executable dynamic-code constructors in the actual
+generated and patched main JavaScript. Do not relabel the locked Gate 1A
+response-file audit; Task 7's separate Gate 1B effective-argument audit proves
+both settings from the authenticated link record.
+
 Copy the repository shell sources and the exact target Qt
 `plugins/platforms/qtloader.js` into the runtime packaging inputs. The final
 HTML contains only:
 
 ```html
+<link rel="icon" href="data:,">
 <link rel="stylesheet"
       href="probe.<sha256>.css"
       integrity="sha256-<base64>"
@@ -604,6 +615,32 @@ HTML contains only:
 11. records `onExit`, abort, unhandled rejection, and CSP violation as terminal
     failures. Task 5 attaches `processorerror` to each concrete node.
 
+The pinned Qt 6.11.1 Wasm platform plugin synchronously appends one inline
+`<style>` element to the initial screen's open shadow root. The frozen
+`style-src 'self'` policy correctly blocks that operation, so the Gate 1B
+bootstrap installs a Chromium-first compatibility adapter immediately before
+`qtLoad()`. It shadows only `ShadowRoot.prototype.appendChild`, passes every
+non-owned call through to the exact original descriptor, and accepts only the
+single initial `#screen > #qt-shadow-container` stylesheet with all of:
+
+- 5,238 UTF-8 bytes;
+- SHA-256
+  `6b7168686da79590ea116889998716dfa624e1467411daa2bffee066a867d53e`;
+- 37 parsed rules and the `.qt-screen`/`.qt-window` selectors;
+- no `@import` or `url(` token.
+
+The adapter uses `CSSStyleSheet.replaceSync()` and
+`ShadowRoot.adoptedStyleSheets`, then awaits the cryptographic fingerprint
+before publishing the Emscripten instance. Any second owned stylesheet fails
+synchronously before construction or adoption. The hook remains owned for the
+instance lifetime, monitors its exact property descriptor, restores on
+rejection/abort/exit, and never overwrites a later third-party replacement.
+This probe deliberately supports one Qt screen container; a target-only Qt
+overlay/upstream patch is the production cleanup if multi-screen container
+support becomes required. Weakening CSP, adding a nonce/hash for the inline
+style, or patching `Node.prototype`, `Document.createElement`, or
+`HTMLElement.style` is not accepted.
+
 Neither `RhythmGameWasmProbe.js` nor `qtloader.js` may execute before Steps
 1–5. Fetching an unhashed basename and later executing a separate response is
 not accepted as verification.
@@ -626,7 +663,7 @@ Freeze the negative-mode outcomes in tests:
 AudioWorklet module policy follows the script-source mapping and is not claimed
 to be blocked by this mode.
 
-- [ ] **Step 4: Generate the runtime manifest deterministically**
+- [x] **Step 4: Generate the runtime manifest deterministically**
 
 `package_runtime_artifacts.py` is a source-shape-checked post-link packager. It:
 
@@ -640,42 +677,80 @@ to be blocked by this mode.
   input-digest `buildId`;
 - generates the final HTML from the `.in` template with only the hashed/SRI
   CSS and bootstrap references;
-- rejects missing/extra required assets, unknown generated shapes, and any
-  absolute path or timestamp.
+- rejects missing/extra required assets, unknown generated shapes, host
+  filesystem paths, and build timestamps in extended or basic ISO form,
+  date-only ISO form, C/C++ `__DATE__`/`__TIME__` form, or RFC-style form.
+  Quote-aware scanning permits only
+  the exact reviewed slash literals currently owned by the pinned inputs:
+  `/`, `//`, `/dev`, `/dev/null`, `/dev/shm`, `/dev/shm/tmp`, `/dev/stderr`,
+  `/dev/stdin`, `/dev/stdout`, `/dev/tty`, `/dev/tty1`, `/home`,
+  `/home/web_user`, `/proc`, `/proc/self`, `/proc/self/fd`, `/tmp`, the browser
+  route `/probe/ws`, and Qt loader's documentation placeholder
+  `/path/to/destination`. Every other quoted slash literal is rejected.
+  Separate scans reject drive-letter paths, raw or JavaScript-escaped UNC and
+  device paths, any case variant of a quoted `file:` URL except Emscripten's
+  exact `file://` marker, and multi-component POSIX paths in unquoted
+  comments/CSS after quoted spans are masked. Before applying those rules,
+  direct JavaScript and CSS slash/backslash escapes (`\/`, `\xNN`, `\uNNNN`,
+  `\u{...}`, and CSS hexadecimal escapes) are normalized; an encoded literal
+  cannot bypass the same path contract. This boundary covers direct packaged
+  literals, not arbitrary runtime string concatenation.
 
 The final runtime directory intentionally omits the unused `qtlogo.svg`.
 Historical Gate 1A evidence continues to describe the old default shell and
 logo; no current Gate 1B verifier may rewrite that historical artifact set.
 
-CMake models every copied/patched/manifest/HTML output as a `BYPRODUCT` of one
-post-build command, gives the runtime-package target explicit dependencies on
-the linked executable and copied Qt/shell/media inputs, and makes browser tests
-depend on that target. Ninja must not race packaging against linking or worker
-stamping. Once Task 5 adds stamping, the fixed order is: link, stamp generated
-main/worker message guards and worklet heap-view refresh, hash the workers,
-patch/hash the main runtime, then generate manifest and HTML.
+CMake models every fixed staging copy plus the fixed manifest and HTML as a
+`BYPRODUCT` of one post-build command. Content-addressed leaf names are not
+known until after linking and therefore are intentionally modeled by the
+canonical runtime manifest rather than falsely claimed as configure-time Ninja
+outputs. A separate explicit, read-only runtime-verification target validates
+the exact runtime-directory file set, filename digests, byte counts, SHA-256,
+SRI, MIME, and HTML CSS/bootstrap URL+SRI references against that manifest.
+Deleting, adding, or changing any manifest-modeled leaf must make this target
+fail even when the linked executable is otherwise up to date. The verification
+target is not `ALL`, so a normal no-op build can remain a real
+`ninja: no work to do`; browser tests depend on the explicit verification
+target. The runtime-package target has explicit dependencies on the linked
+executable and copied Qt/shell/media inputs. Ninja must not race packaging
+against linking or worker stamping. Once Task 5 adds stamping, the fixed order
+is: link, stamp generated main/worker message guards and worklet heap-view
+refresh, hash the workers, patch/hash the main runtime, then generate manifest
+and HTML.
 
 The WebM fixture is a repository-owned two-second 64x64 VP8/Opus color-motion
 clip. `fixtures/README.md` records the exact generation command, codec
 parameters, license/ownership, bytes, and SHA-256. Do not use a remote media
 URL.
 
-- [ ] **Step 5: Run tests and a current-probe smoke request**
+- [x] **Step 5: Run tests and a current-probe smoke request**
 
 ```powershell
 python -m unittest `
   tools/wasm-probe/tests/test_gate1b_source_contract.py `
   tools/wasm-probe/tests/test_probe_source_contract.py -v
 
+pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- cmake `
+  --preset wasm-release -S tools/wasm-probe
+pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- cmake `
+  --build tools/wasm-probe/build/wasm-release --target `
+  RhythmGameWasmProbeRuntimeVerify --verbose
+
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- node `
   tools/wasm-probe/browser/run-browser-tool.mjs node-test
 ```
 
-Expected: PASS. Start/stop the server around the existing Gate 1A output and
-assert all non-runtime routes and header captures; no browser PASS is claimed
-yet.
+Expected: PASS. Delete one manifest-referenced hash leaf in a disposable
+packager fixture and assert the explicit verifier fails closed. Start/stop the
+server around the existing Gate 1A output and assert all non-runtime routes and
+header captures. After the current Gate 1B package is built and explicitly
+verified, run a bounded real `chromium-cft` startup smoke against the positive
+origin: `qtLoad()` must return and be retained, no CSP/page/request
+warning/error may occur, and the request log must not contain
+`/favicon.ico`. This is a startup regression check, not a Gate 1B browser PASS;
+the full behavioral proof remains in later tasks.
 
-- [ ] **Step 6: Review and commit**
+- [x] **Step 6: Review and commit**
 
 Adversarially review CSP, traversal, WSS Origin, negative-route isolation,
 manifest TOCTOU limitations, certificate truthfulness, and private-data
@@ -705,11 +780,13 @@ feat: add isolated Gate 1B browser origin
 - Modify: `tools/wasm-probe/qml/Main.qml`
 - Modify: `tools/wasm-probe/qml/pulse.frag`
 - Modify: `tools/wasm-probe/CMakeLists.txt`
-- Create: `tools/wasm-probe/browser/gate1b.spec.mjs`
+- Modify: `tools/wasm-probe/browser/web/bootstrap.mjs`
+- Create: `tools/wasm-probe/browser/tests/gate1b.spec.mjs`
 - Modify: `tools/wasm-probe/tests/test_gate1b_source_contract.py`
 - Modify: `tools/wasm-probe/tests/test_probe_source_contract.py`
 - Modify: `tools/wasm-probe/input-manifest.txt`
-- Modify: `tools/wasm-probe/build-control-manifest.txt`
+- Modify only if configure creates a new immutable control path:
+  `tools/wasm-probe/build-control-manifest.txt`
 
 - [ ] **Step 1: Add failing source and browser contract tests**
 
@@ -805,9 +882,14 @@ audio; neither task creates a second activation path.
 - an explicit `pthread_create` task that transforms a nonce and records its
   thread identity.
 
-The browser main thread never waits. A `QTimer` polls explicit-pthread
-completion and calls `pthread_join` only after the completion atomic is
-already set. Inline/fallback execution fails.
+The browser main thread never waits. Emscripten 4.0.7 calls
+`emscripten_check_blocking_allowed()` unconditionally from `pthread_join`, even
+when the worker has already completed, so `pthread_join` is forbidden on this
+path. Compile the probe with `_GNU_SOURCE`; a `QTimer` polls explicit-pthread
+completion and then calls nonblocking `pthread_tryjoin_np`. `EBUSY` keeps
+polling, zero records the result, and every other result is a named failure.
+Inline/fallback execution fails. Static tests reject `pthread_join` and require
+the exact `pthread_tryjoin_np`/`EBUSY` contract.
 
 - [ ] **Step 4: Execute the real JSPI nested event loop**
 
@@ -883,13 +965,13 @@ window is visible.
 
 ```powershell
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- cmake `
-  --preset wasm-release
+  --preset wasm-release -S tools/wasm-probe
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- cmake `
-  --build --preset wasm-release --verbose
+  --build tools/wasm-probe/build/wasm-release --verbose
 
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- node `
   tools/wasm-probe/browser/run-browser-tool.mjs playwright-test `
-  --grep "@core"
+  --project chromium-cft --grep "@core"
 ```
 
 Expected: the positive `chromium-cft` core lane passes; all browser console
@@ -920,7 +1002,7 @@ feat: execute Gate 1B Qt runtime core
 - Modify: `tools/wasm-probe/src/ProbeState.cpp`
 - Modify: `tools/wasm-probe/qml/Main.qml`
 - Modify: `tools/wasm-probe/CMakeLists.txt`
-- Modify: `tools/wasm-probe/browser/gate1b.spec.mjs`
+- Modify: `tools/wasm-probe/browser/tests/gate1b.spec.mjs`
 - Modify: `tools/wasm-probe/tests/test_gate1b_source_contract.py`
 - Modify: `tools/wasm-probe/tests/test_probe_source_contract.py`
 - Modify: `tools/wasm-probe/input-manifest.txt`
@@ -1018,7 +1100,7 @@ feat: qualify Wasm network and media runtime
 - Modify: `tools/wasm-probe/src/ProbeState.h`
 - Modify: `tools/wasm-probe/src/ProbeState.cpp`
 - Modify: `tools/wasm-probe/CMakeLists.txt`
-- Modify: `tools/wasm-probe/browser/gate1b.spec.mjs`
+- Modify: `tools/wasm-probe/browser/tests/gate1b.spec.mjs`
 - Modify: `tools/wasm-probe/tests/test_gate1b_source_contract.py`
 - Modify: `tools/wasm-probe/tests/test_probe_source_contract.py`
 - Modify: `tools/wasm-probe/input-manifest.txt`
@@ -1266,7 +1348,7 @@ feat: stress Wasm audio and worker lifecycle
 - Modify: `tools/wasm-probe/src/ProbeState.h`
 - Modify: `tools/wasm-probe/src/ProbeState.cpp`
 - Modify: `tools/wasm-probe/qml/Main.qml`
-- Modify: `tools/wasm-probe/browser/gate1b.spec.mjs`
+- Modify: `tools/wasm-probe/browser/tests/gate1b.spec.mjs`
 - Modify: `tools/wasm-probe/tests/test_gate1b_source_contract.py`
 - Modify: `tools/wasm-probe/tests/test_probe_source_contract.py`
 - Modify: `tools/wasm-probe/input-manifest.txt`
@@ -1393,7 +1475,7 @@ feat: qualify browser storage capabilities
 **Files:**
 
 - Create: `tools/wasm-probe/browser/lib/acceptance-runner.mjs`
-- Modify: `tools/wasm-probe/browser/gate1b.spec.mjs`
+- Modify: `tools/wasm-probe/browser/tests/gate1b.spec.mjs`
 - Create: `tools/wasm-probe/browser/run-gate1b.mjs`
 - Create: `tools/wasm-probe/tests/verify_runtime_evidence.py`
 - Modify: `tools/wasm-probe/tests/verify_build.py`
@@ -1528,9 +1610,9 @@ python -m unittest discover -s tools/wasm-probe/tests `
   -p "test_*.py" -v
 
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- cmake `
-  --preset wasm-release
+  --preset wasm-release -S tools/wasm-probe
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- cmake `
-  --build --preset wasm-release --verbose
+  --build tools/wasm-probe/build/wasm-release --verbose
 
 pwsh -File tools/wasm-probe/scripts/Invoke-WithToolchains.ps1 -- node `
   tools/wasm-probe/browser/run-browser-tool.mjs qualify `

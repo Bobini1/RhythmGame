@@ -372,6 +372,26 @@ class VerifyBuildContractTest(unittest.TestCase):
                 changed["aggregateSha256"],
             )
 
+    def test_runtime_post_build_controller_is_command_only_control(self) -> None:
+        controller = "CMakeFiles/RhythmGameWasmProbe.dir/post-build.bat"
+        self.assertIn(
+            controller,
+            verify_build.EXPECTED_BUILD_CONTROL_PATHS,
+        )
+        self.assertIn(
+            controller,
+            verify_build.QUALIFICATION_COMMAND_ONLY_BUILD_CONTROL_PATHS,
+        )
+        self.assertEqual(
+            verify_build.EXPECTED_BUILD_CONTROL_PATHS,
+            tuple(
+                sorted(
+                    verify_build.EXPECTED_BUILD_CONTROL_PATHS,
+                    key=str.casefold,
+                )
+            ),
+        )
+
     def test_qualified_rebuild_clears_exact_mutable_autogen_state(
         self,
     ) -> None:

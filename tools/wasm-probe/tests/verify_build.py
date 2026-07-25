@@ -71,13 +71,14 @@ EXPECTED_BUILD_CONTROL_PATHS = (
         "CMakeFiles/RhythmGameWasmCLauncherProbe_autogen.dir/"
         "AutogenInfo.json"
     ),
+    "CMakeFiles/RhythmGameWasmProbe.dir/post-build.bat",
     "CMakeFiles/RhythmGameWasmProbe_autogen.dir/AutogenInfo.json",
+    "CMakeFiles/rules.ninja",
+    "CMakeFiles/VerifyGlobs.cmake",
     (
         "CMakeFiles/WasmProbeExceptionBoundary_autogen.dir/"
         "AutogenInfo.json"
     ),
-    "CMakeFiles/rules.ninja",
-    "CMakeFiles/VerifyGlobs.cmake",
     "compile_commands.json",
     "generated/ProbeDependencyDigest.cpp",
     "generated/ProbeInputDigest.cpp",
@@ -90,6 +91,7 @@ QUALIFICATION_COMMAND_ONLY_BUILD_CONTROL_PATHS = (
     ".qt/bin/qt_setup_tool_path.bat",
     ".qt/RhythmGameWasmProbe_qml.cmake",
     ".qt/RhythmGameWasmProbe_res.cmake",
+    "CMakeFiles/RhythmGameWasmProbe.dir/post-build.bat",
 )
 QUALIFICATION_MUTABLE_AUTOGEN_STATE_PATHS = (
     (

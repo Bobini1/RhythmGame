@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>RhythmGame WebAssembly Probe</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet"
+          href="@PROBE_CSS_URL@"
+          integrity="@PROBE_CSS_SRI@"
+          crossorigin="anonymous">
+</head>
+<body>
+    <main id="screen" aria-label="RhythmGame WebAssembly probe"></main>
+    <script type="module"
+            src="@PROBE_BOOTSTRAP_URL@"
+            integrity="@PROBE_BOOTSTRAP_SRI@"
+            crossorigin="anonymous"></script>
+</body>
+</html>

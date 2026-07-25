@@ -298,7 +298,7 @@ class ToolchainContractTest(unittest.TestCase):
         attributes = (
             REPO / ".gitattributes"
         ).read_text("utf-8").splitlines()
-        self.assertEqual(len(entries), 68)
+        self.assertEqual(len(entries), 87)
         self.assertEqual(entries.count(".gitattributes"), 1)
         for rule in (
             "/.gitattributes text eol=lf",

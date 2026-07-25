@@ -123,6 +123,101 @@ class ProbeSourceContractTest(unittest.TestCase):
         self.assertIn("qt_add_shaders", cmake)
         self.assertIn('BASE "${CMAKE_CURRENT_SOURCE_DIR}/qml"', cmake)
 
+    def test_application_link_disables_runtime_code_generation(self) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        link_options = re.search(
+            (
+                r"target_link_options\(\s*"
+                r"RhythmGameWasmProbe\s+PRIVATE"
+                r"(?P<body>.*?)\n\)"
+            ),
+            cmake,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(link_options)
+        body = link_options.group("body")
+        self.assertEqual(body.count("SHELL:-sDYNAMIC_EXECUTION=0"), 1)
+        self.assertEqual(body.count("SHELL:-sEMBIND_AOT=1"), 1)
+
+    def test_gate1b_runtime_packaging_is_ordered_and_source_bound(self) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        for marker in (
+            "NO_WASM_DEFAULT_FILES TRUE",
+            "package_runtime_artifacts.py",
+            "RhythmGameWasmProbeRuntimePackage",
+            "POST_BUILD",
+            "BYPRODUCTS",
+            "runtime-artifacts.json",
+            "RhythmGameWasmProbe.html",
+            "RhythmGameWasmProbe.aw.js",
+            "RhythmGameWasmProbe.ww.js",
+            "plugins/platforms/qtloader.js",
+            "browser/web/RhythmGameWasmProbe.html.in",
+            "browser/web/probe.css",
+            "browser/web/bootstrap.mjs",
+            "browser/web/preflight-worker.mjs",
+            "browser/fixtures/probe.webm",
+            "WASM_PROBE_INPUT_DIGEST",
+        ):
+            self.assertIn(marker, cmake)
+        self.assertRegex(
+            cmake,
+            (
+                r"add_dependencies\(\s*"
+                r"RhythmGameWasmProbeRuntimePackage\s+"
+                r"RhythmGameWasmProbe"
+            ),
+        )
+
+    def test_input_digest_invalidates_every_local_compile_sidecar(self) -> None:
+        cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
+        compile_identity = re.search(
+            (
+                r"target_compile_definitions\(\s*"
+                r"WasmProbeWasmCompileOptions\s+INTERFACE"
+                r"(?P<body>.*?)\n\)"
+            ),
+            cmake,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(
+            compile_identity,
+            "the input closure must participate in every local compile command",
+        )
+        self.assertIn(
+            "RG_WASM_PROBE_COMPILE_INPUT_SHA256",
+            compile_identity.group("body"),
+        )
+        self.assertIn(
+            "${WASM_PROBE_INPUT_DIGEST}",
+            compile_identity.group("body"),
+        )
+        self.assertRegex(
+            cmake,
+            (
+                r"target_link_libraries\(\s*"
+                r"RhythmGameWasmCLauncherProbe\s+PRIVATE\s+"
+                r"WasmProbeWasmCompileOptions"
+            ),
+        )
+        self.assertRegex(
+            cmake,
+            (
+                r"target_link_libraries\(\s*"
+                r"WasmProbeExceptionBoundary\s+PUBLIC\s+"
+                r"WasmProbeWasmCompileOptions"
+            ),
+        )
+
+    def test_runtime_post_build_controller_is_qualification_locked(self) -> None:
+        controls = (
+            PROBE / "build-control-manifest.txt"
+        ).read_text("utf-8").splitlines()
+        self.assertIn(
+            "CMakeFiles/RhythmGameWasmProbe.dir/post-build.bat",
+            controls,
+        )
+
     def test_exception_boundary_publishes_wasm_compile_contract(self) -> None:
         cmake = (PROBE / "CMakeLists.txt").read_text("utf-8")
         compile_contract = re.search(

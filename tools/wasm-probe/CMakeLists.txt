@@ -186,6 +186,9 @@ endif()
 qt_standard_project_setup(REQUIRES 6.11)
 
 add_library(WasmProbeWasmCompileOptions INTERFACE)
+target_compile_definitions(WasmProbeWasmCompileOptions INTERFACE
+    "RG_WASM_PROBE_COMPILE_INPUT_SHA256=${WASM_PROBE_INPUT_DIGEST}"
+)
 target_compile_options(WasmProbeWasmCompileOptions INTERFACE
     -pthread
     -fwasm-exceptions
@@ -227,6 +230,9 @@ qt_add_executable(RhythmGameWasmProbe
     src/ProbeState.h
 )
 target_compile_features(RhythmGameWasmProbe PRIVATE cxx_std_20)
+set_target_properties(RhythmGameWasmProbe PROPERTIES
+    NO_WASM_DEFAULT_FILES TRUE
+)
 
 qt_add_qml_module(RhythmGameWasmProbe
     URI RhythmGame.WasmProbe
@@ -261,4 +267,221 @@ target_link_options(RhythmGameWasmProbe PRIVATE
     "SHELL:-sPTHREAD_POOL_SIZE=4"
     "SHELL:-sPTHREAD_POOL_SIZE_STRICT=2"
     "SHELL:-sALLOW_BLOCKING_ON_MAIN_THREAD=0"
+    "SHELL:-sDYNAMIC_EXECUTION=0"
+    "SHELL:-sEMBIND_AOT=1"
+)
+
+set(WASM_PROBE_RUNTIME_DIRECTORY
+    "${CMAKE_CURRENT_BINARY_DIR}/runtime")
+set(WASM_PROBE_RUNTIME_STAGING_DIRECTORY
+    "${CMAKE_CURRENT_BINARY_DIR}/runtime-packaging-inputs")
+set(WASM_PROBE_RUNTIME_PACKAGER
+    "${CMAKE_CURRENT_SOURCE_DIR}/scripts/package_runtime_artifacts.py")
+set(WASM_PROBE_RUNTIME_HTML_TEMPLATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/RhythmGameWasmProbe.html.in")
+set(WASM_PROBE_RUNTIME_CSS
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/probe.css")
+set(WASM_PROBE_RUNTIME_BOOTSTRAP
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/bootstrap.mjs")
+set(WASM_PROBE_RUNTIME_PREFLIGHT_WORKER
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/web/preflight-worker.mjs")
+set(WASM_PROBE_RUNTIME_MEDIA
+    "${CMAKE_CURRENT_SOURCE_DIR}/browser/fixtures/probe.webm")
+set(WASM_PROBE_QTLOADER
+    "${WASM_PROBE_DEPENDENCY_ROOT}/plugins/platforms/qtloader.js")
+set(WASM_PROBE_GENERATED_MAIN_JS
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.js")
+set(WASM_PROBE_GENERATED_WASM
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.wasm")
+set(WASM_PROBE_GENERATED_AUDIO_WORKLET
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.aw.js")
+set(WASM_PROBE_GENERATED_WASM_WORKER
+    "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.ww.js")
+# NO_WASM_DEFAULT_FILES makes these prior Qt-generated shell files obsolete.
+# Remove only these fixed leaves so the real link-directory shape audit remains
+# exact without carrying Gate 1A leftovers into the Gate 1B package.
+foreach(WASM_PROBE_LEGACY_SHELL IN ITEMS
+        "${CMAKE_CURRENT_BINARY_DIR}/RhythmGameWasmProbe.html"
+        "${CMAKE_CURRENT_BINARY_DIR}/qtloader.js"
+        "${CMAKE_CURRENT_BINARY_DIR}/qtlogo.svg")
+    if(IS_DIRECTORY "${WASM_PROBE_LEGACY_SHELL}")
+        message(FATAL_ERROR
+            "Legacy Wasm shell leaf is unexpectedly a directory: "
+            "${WASM_PROBE_LEGACY_SHELL}")
+    endif()
+    if(EXISTS "${WASM_PROBE_LEGACY_SHELL}"
+            OR IS_SYMLINK "${WASM_PROBE_LEGACY_SHELL}")
+        file(REMOVE "${WASM_PROBE_LEGACY_SHELL}")
+    endif()
+endforeach()
+set(WASM_PROBE_RUNTIME_MANIFEST
+    "${WASM_PROBE_RUNTIME_DIRECTORY}/runtime-artifacts.json")
+set(WASM_PROBE_RUNTIME_HTML
+    "${WASM_PROBE_RUNTIME_DIRECTORY}/RhythmGameWasmProbe.html")
+set(WASM_PROBE_STAGED_MAIN_JS
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.js")
+set(WASM_PROBE_STAGED_WASM
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.wasm")
+set(WASM_PROBE_STAGED_AUDIO_WORKLET
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.aw.js")
+set(WASM_PROBE_STAGED_WASM_WORKER
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.ww.js")
+set(WASM_PROBE_STAGED_HTML_TEMPLATE
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/RhythmGameWasmProbe.html.in")
+set(WASM_PROBE_STAGED_CSS
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/probe.css")
+set(WASM_PROBE_STAGED_BOOTSTRAP
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/bootstrap.mjs")
+set(WASM_PROBE_STAGED_PREFLIGHT_WORKER
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/preflight-worker.mjs")
+set(WASM_PROBE_STAGED_QTLOADER
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/qtloader.js")
+set(WASM_PROBE_STAGED_MEDIA
+    "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}/probe.webm")
+
+foreach(WASM_PROBE_RUNTIME_INPUT IN ITEMS
+        "${WASM_PROBE_RUNTIME_PACKAGER}"
+        "${WASM_PROBE_RUNTIME_HTML_TEMPLATE}"
+        "${WASM_PROBE_RUNTIME_CSS}"
+        "${WASM_PROBE_RUNTIME_BOOTSTRAP}"
+        "${WASM_PROBE_RUNTIME_PREFLIGHT_WORKER}"
+        "${WASM_PROBE_RUNTIME_MEDIA}"
+        "${WASM_PROBE_QTLOADER}")
+    if(NOT EXISTS "${WASM_PROBE_RUNTIME_INPUT}"
+            OR IS_DIRECTORY "${WASM_PROBE_RUNTIME_INPUT}")
+        message(FATAL_ERROR
+            "Missing Gate 1B runtime packaging input: "
+            "${WASM_PROBE_RUNTIME_INPUT}")
+    endif()
+endforeach()
+
+# The generated main script does not name the emitted .aw.js/.ww.js files
+# before Task 5 stamping adds the guarded loader sites. Exact zero counts keep
+# this Task 2 packaging step source-shape checked without guessing.
+set(WASM_PROBE_AUDIO_WORKLET_LITERAL_COUNT 0)
+set(WASM_PROBE_WASM_WORKER_LITERAL_COUNT 0)
+
+set_property(TARGET RhythmGameWasmProbe APPEND PROPERTY LINK_DEPENDS
+    "${WASM_PROBE_RUNTIME_PACKAGER}"
+    "${WASM_PROBE_RUNTIME_HTML_TEMPLATE}"
+    "${WASM_PROBE_RUNTIME_CSS}"
+    "${WASM_PROBE_RUNTIME_BOOTSTRAP}"
+    "${WASM_PROBE_RUNTIME_PREFLIGHT_WORKER}"
+    "${WASM_PROBE_RUNTIME_MEDIA}"
+    "${WASM_PROBE_QTLOADER}"
+)
+
+add_custom_command(TARGET RhythmGameWasmProbe POST_BUILD
+    COMMAND
+        "${CMAKE_COMMAND}" -E make_directory
+        "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_GENERATED_MAIN_JS}"
+        "${WASM_PROBE_STAGED_MAIN_JS}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_GENERATED_WASM}"
+        "${WASM_PROBE_STAGED_WASM}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_GENERATED_AUDIO_WORKLET}"
+        "${WASM_PROBE_STAGED_AUDIO_WORKLET}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_GENERATED_WASM_WORKER}"
+        "${WASM_PROBE_STAGED_WASM_WORKER}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_RUNTIME_HTML_TEMPLATE}"
+        "${WASM_PROBE_STAGED_HTML_TEMPLATE}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_RUNTIME_CSS}"
+        "${WASM_PROBE_STAGED_CSS}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_RUNTIME_BOOTSTRAP}"
+        "${WASM_PROBE_STAGED_BOOTSTRAP}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_RUNTIME_PREFLIGHT_WORKER}"
+        "${WASM_PROBE_STAGED_PREFLIGHT_WORKER}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_QTLOADER}"
+        "${WASM_PROBE_STAGED_QTLOADER}"
+    COMMAND
+        "${CMAKE_COMMAND}" -E copy_if_different
+        "${WASM_PROBE_RUNTIME_MEDIA}"
+        "${WASM_PROBE_STAGED_MEDIA}"
+    COMMAND
+        "$ENV{EMSDK_PYTHON}" -I -B
+        "${WASM_PROBE_RUNTIME_PACKAGER}"
+        --build-id "${WASM_PROBE_INPUT_DIGEST}"
+        --generated-dir "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}"
+        --generated-shape-dir "${CMAKE_CURRENT_BINARY_DIR}"
+        --output-dir "${WASM_PROBE_RUNTIME_DIRECTORY}"
+        --html-template "${WASM_PROBE_STAGED_HTML_TEMPLATE}"
+        --css "${WASM_PROBE_STAGED_CSS}"
+        --bootstrap "${WASM_PROBE_STAGED_BOOTSTRAP}"
+        --preflight-worker "${WASM_PROBE_STAGED_PREFLIGHT_WORKER}"
+        --qtloader "${WASM_PROBE_STAGED_QTLOADER}"
+        --media "${WASM_PROBE_STAGED_MEDIA}"
+        --expected-audio-worklet-occurrences
+            "${WASM_PROBE_AUDIO_WORKLET_LITERAL_COUNT}"
+        --expected-wasm-worker-occurrences
+            "${WASM_PROBE_WASM_WORKER_LITERAL_COUNT}"
+    BYPRODUCTS
+        "${WASM_PROBE_RUNTIME_STAGING_DIRECTORY}"
+        "${WASM_PROBE_STAGED_MAIN_JS}"
+        "${WASM_PROBE_STAGED_WASM}"
+        "${WASM_PROBE_STAGED_AUDIO_WORKLET}"
+        "${WASM_PROBE_STAGED_WASM_WORKER}"
+        "${WASM_PROBE_STAGED_HTML_TEMPLATE}"
+        "${WASM_PROBE_STAGED_CSS}"
+        "${WASM_PROBE_STAGED_BOOTSTRAP}"
+        "${WASM_PROBE_STAGED_PREFLIGHT_WORKER}"
+        "${WASM_PROBE_STAGED_QTLOADER}"
+        "${WASM_PROBE_STAGED_MEDIA}"
+        "${WASM_PROBE_RUNTIME_DIRECTORY}"
+        "${WASM_PROBE_RUNTIME_MANIFEST}"
+        "${WASM_PROBE_RUNTIME_HTML}"
+    COMMENT "Packaging content-addressed Gate 1B runtime artifacts"
+    COMMAND_EXPAND_LISTS
+    VERBATIM
+)
+
+add_custom_target(RhythmGameWasmProbeRuntimePackage ALL
+    DEPENDS
+        "${WASM_PROBE_RUNTIME_PACKAGER}"
+        "${WASM_PROBE_RUNTIME_HTML_TEMPLATE}"
+        "${WASM_PROBE_RUNTIME_CSS}"
+        "${WASM_PROBE_RUNTIME_BOOTSTRAP}"
+        "${WASM_PROBE_RUNTIME_PREFLIGHT_WORKER}"
+        "${WASM_PROBE_RUNTIME_MEDIA}"
+        "${WASM_PROBE_QTLOADER}"
+)
+add_dependencies(
+    RhythmGameWasmProbeRuntimePackage
+    RhythmGameWasmProbe
+)
+
+# Stock CMake cannot declare post-link digest-derived leaf names as individual
+# BYPRODUCTS. This non-default target therefore verifies the manifest-modeled
+# exact directory inventory and every declared artifact without rewriting it.
+add_custom_target(RhythmGameWasmProbeRuntimeVerify
+    COMMAND
+        "$ENV{EMSDK_PYTHON}" -I -B
+        "${WASM_PROBE_RUNTIME_PACKAGER}"
+        --verify-output-dir "${WASM_PROBE_RUNTIME_DIRECTORY}"
+        --expected-build-id "${WASM_PROBE_INPUT_DIGEST}"
+    DEPENDS
+        "${WASM_PROBE_RUNTIME_PACKAGER}"
+    COMMENT "Verifying exact Gate 1B runtime artifact inventory"
+    VERBATIM
+)
+add_dependencies(
+    RhythmGameWasmProbeRuntimeVerify
+    RhythmGameWasmProbeRuntimePackage
 )
