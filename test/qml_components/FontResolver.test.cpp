@@ -59,9 +59,16 @@ TEST_CASE("FontResolver detects CJK scripts in metadata", "[FontResolver]")
 TEST_CASE("FontResolver registers and restores locale-specific fallbacks",
           "[FontResolver]")
 {
-    int argc = 1;
     char applicationName[] = "FontResolverTests";
+#if defined(Q_OS_LINUX)
+    int argc = 3;
+    char platformOption[] = "-platform";
+    char platformName[] = "offscreen";
+    char* argv[]{ applicationName, platformOption, platformName, nullptr };
+#else
+    int argc = 1;
     char* argv[]{ applicationName, nullptr };
+#endif
     QGuiApplication application(argc, argv);
 
     const auto family = QStringLiteral("RhythmGame FontResolver Test");

@@ -156,6 +156,7 @@ TEST_CASE("OnlineScores score reply cancellation aborts the request",
     CHECK(network.lastReply->aborted);
     CHECK(operation->isResultAvailable());
     CHECK_FALSE(operation->isSuccessful());
+    delete operation;
 }
 
 TEST_CASE("OnlineScores RhythmGame cancellation aborts the ranking request",
@@ -178,6 +179,7 @@ TEST_CASE("OnlineScores RhythmGame cancellation aborts the ranking request",
     CHECK(network.lastReply->aborted);
     CHECK(operation->isResultAvailable());
     CHECK_FALSE(operation->isSuccessful());
+    delete operation;
 }
 
 TEST_CASE("OnlineScores Tachi cancellation aborts chart resolution",
@@ -200,6 +202,7 @@ TEST_CASE("OnlineScores Tachi cancellation aborts chart resolution",
     CHECK(network.lastReply->aborted);
     CHECK(operation->isResultAvailable());
     CHECK_FALSE(operation->isSuccessful());
+    delete operation;
 }
 
 TEST_CASE("OnlineScores Tachi cancellation follows the score request",
@@ -226,6 +229,7 @@ TEST_CASE("OnlineScores Tachi cancellation follows the score request",
     CHECK(scoresReply->aborted);
     CHECK(operation->isResultAvailable());
     CHECK_FALSE(operation->isSuccessful());
+    delete operation;
 }
 
 TEST_CASE("OnlineScores destruction cancels active network replies",

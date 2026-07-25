@@ -103,8 +103,9 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
     } };
     auto attemptIndex = std::make_shared<std::size_t>(0);
     auto tryNext = std::make_shared<std::function<void()>>();
+    const auto weakTryNext = std::weak_ptr<std::function<void()>>{ tryNext };
 
-    *tryNext = [this, handle, md5, attemptIndex, tryNext]() {
+    *tryNext = [this, handle, md5, attemptIndex, weakTryNext]() {
         const auto idx = *attemptIndex;
         if (idx >= games.size()) {
             emit handle->failed(
@@ -125,6 +126,8 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
 
         QNetworkReply* reply = networkManager->post(
           req, QJsonDocument(body).toJson(QJsonDocument::Compact));
+        auto nextAttempt = weakTryNext.lock();
+        Q_ASSERT(nextAttempt);
 
         // Cancel signal aborts the current in-flight reply.
         connect(handle, &TachiResolveHandle::cancel, reply, [reply] {
@@ -135,7 +138,10 @@ OnlineScores::resolveTachiChartId(const QString& md5) const
           reply,
           &QNetworkReply::finished,
           this,
-          [handle = QPointer(handle), reply, attemptIndex, tryNext]() mutable {
+          [handle = QPointer(handle),
+           reply,
+           attemptIndex,
+           tryNext = std::move(nextAttempt)]() mutable {
               reply->deleteLater();
 
               if (reply->error() == QNetworkReply::OperationCanceledError)
