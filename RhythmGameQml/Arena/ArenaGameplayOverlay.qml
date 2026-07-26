@@ -28,6 +28,8 @@ Rectangle {
         return score ? Math.max(0, Number(score.maxHits || 0)) : 0;
     }
 
+    signal chatSelected(bool chat)
+
     Accessible.role: Accessible.Grouping
     Accessible.name: root.roomName
     Accessible.description: root.chatOpen ? qsTr("Arena chat") : qsTr("Arena live standings")
@@ -330,6 +332,8 @@ Rectangle {
                     chatAccessibleName: qsTr("Show Arena chat")
                     detailsAccessibleName: qsTr("Show Arena standings")
                     session: root.session
+
+                    onTabSelected: chat => root.chatSelected(chat)
                 }
             }
 

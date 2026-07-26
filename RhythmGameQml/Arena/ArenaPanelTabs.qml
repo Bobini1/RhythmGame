@@ -13,6 +13,8 @@ RowLayout {
     readonly property bool chatOpen: session && session.chatOpen === true
     readonly property bool hovered: detailsButton.hovered || chatButton.hovered
 
+    signal tabSelected(bool chat)
+
     spacing: 0
 
     ArenaTypography {
@@ -63,6 +65,7 @@ RowLayout {
         onClicked: {
             if (root.session)
                 root.session.setChatOpen(false);
+            root.tabSelected(false);
         }
     }
 
@@ -76,6 +79,7 @@ RowLayout {
         onClicked: {
             if (root.session)
                 root.session.setChatOpen(true);
+            root.tabSelected(true);
         }
     }
 }

@@ -1,6 +1,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls.Basic
 
 Item {
     id: root
@@ -13,6 +14,12 @@ Item {
     property size minimumPixelSize: Qt.size(280, 160)
     property rect defaultPixelRectHint: Qt.rect(0, 0, 0, 0)
     property Item moveHandle: null
+    property bool customizeMode: false
+    property string customizationLabel: qsTr("Arena panel")
+    property bool defaultExpanded: false
+    property bool overlayVisible: true
+    property bool expanded: defaultExpanded
+    property bool chatSelected: false
     default property alias contentData: contentHost.data
     readonly property real viewportScale: viewport
         ? Math.min(viewport.width / 1920,
@@ -27,12 +34,15 @@ Item {
 
     signal interactionStateChanged(bool active)
     signal placementCommitted()
+    signal presentationStateReloaded()
+    signal overlayVisibilityCommitted(bool visible)
 
     property rect resolvedPixelRect: Qt.rect(0, 0, 1, 1)
     property var sourcePlacement: ({ "stored": false })
     property rect moveStartRect: Qt.rect(0, 0, 1, 1)
     property rect resizeStartRect: Qt.rect(0, 0, 1, 1)
     property int resizeInteractionCount: 0
+    property bool presentationStateLoaded: false
     readonly property real resizeEdgeInset: 8 * viewportScale
 
     x: resolvedPixelRect.x
@@ -178,6 +188,57 @@ Item {
         };
     }
 
+    function storedBoolean(suffix, fallback) {
+        if (!canLoadPlacement())
+            return fallback;
+        const value = themeVars[propertyKey(suffix)];
+        return typeof value === "boolean" ? value : fallback;
+    }
+
+    function reloadPresentationState() {
+        overlayVisible = storedBoolean("Visible", true);
+        expanded = storedBoolean("Expanded", defaultExpanded);
+        chatSelected = storedBoolean("ChatSelected", false);
+        presentationStateLoaded = canLoadPlacement();
+        presentationStateReloaded();
+    }
+
+    function commitBoolean(suffix, value) {
+        if (!canLoadPlacement())
+            return;
+        themeVars[propertyKey(suffix)] = !!value;
+    }
+
+    function setOverlayVisible(value) {
+        const next = !!value;
+        if (overlayVisible === next)
+            return;
+        overlayVisible = next;
+        commitBoolean("Visible", next);
+        overlayVisibilityCommitted(next);
+    }
+
+    function setExpanded(value) {
+        const next = !!value;
+        if (expanded === next)
+            return;
+        expanded = next;
+        commitBoolean("Expanded", next);
+    }
+
+    function setChatSelected(value) {
+        const next = !!value;
+        if (chatSelected === next)
+            return;
+        chatSelected = next;
+        commitBoolean("ChatSelected", next);
+    }
+
+    function restoreChatSelection(session) {
+        if (session)
+            session.setChatOpen(overlayVisible && chatSelected);
+    }
+
     function reloadPlacement() {
         if (!canLoadPlacement())
             return;
@@ -256,14 +317,27 @@ Item {
         commitResolvedPlacement();
     }
 
-    onThemeVarsChanged: reloadPlacement()
-    onViewportChanged: reloadPlacement()
+    onThemeVarsChanged: {
+        reloadPlacement();
+        reloadPresentationState();
+    }
+    onViewportChanged: {
+        reloadPlacement();
+        reloadPresentationState();
+    }
     onPlacementKindChanged: reloadPlacement()
-    onLayoutVariantChanged: reloadPlacement()
+    onLayoutVariantChanged: {
+        reloadPlacement();
+        reloadPresentationState();
+    }
     onMinimumPixelSizeChanged: reloadPlacement()
     onDefaultPixelRectHintChanged: reloadPlacement()
+    onDefaultExpandedChanged: reloadPresentationState()
 
-    Component.onCompleted: reloadPlacement()
+    Component.onCompleted: {
+        reloadPlacement();
+        reloadPresentationState();
+    }
 
     Connections {
         target: root.viewport
@@ -278,6 +352,22 @@ Item {
         }
     }
 
+    Connections {
+        target: root.themeVars
+        enabled: root.themeVars !== null && root.themeVars !== undefined
+
+        function onValueChanged(key, value) {
+            if (key === root.propertyKey("Visible")) {
+                root.overlayVisible = typeof value === "boolean" ? value : true;
+            } else if (key === root.propertyKey("Expanded")) {
+                root.expanded = typeof value === "boolean"
+                    ? value : root.defaultExpanded;
+            } else if (key === root.propertyKey("ChatSelected")) {
+                root.chatSelected = typeof value === "boolean" ? value : false;
+            }
+        }
+    }
+
     Item {
         id: contentHost
 
@@ -285,6 +375,48 @@ Item {
         height: root.height / root.effectiveContentScale
         scale: root.effectiveContentScale
         transformOrigin: Item.TopLeft
+        visible: root.overlayVisible
+    }
+
+    Rectangle {
+        id: customizationChrome
+
+        anchors.fill: parent
+        border.color: root.overlayVisible ? "#b8d7f2" : "#ffe38a"
+        border.width: Math.max(1, 2 * root.viewportScale)
+        color: root.overlayVisible ? "transparent" : "#b018202a"
+        radius: Math.max(2, 5 * root.viewportScale)
+        visible: root.customizeMode
+        z: 1000
+
+        Label {
+            anchors.centerIn: parent
+            color: "#ffe38a"
+            font.bold: true
+            font.pixelSize: Math.max(12, 16 * root.viewportScale)
+            text: qsTr("%1 is hidden").arg(root.customizationLabel)
+            visible: !root.overlayVisible
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.RightButton
+            cursorShape: Qt.PointingHandCursor
+
+            onClicked: visibilityMenu.popup()
+        }
+    }
+
+    Menu {
+        id: visibilityMenu
+
+        MenuItem {
+            checkable: true
+            checked: root.overlayVisible
+            text: qsTr("Show Arena panel")
+
+            onTriggered: root.setOverlayVisible(!root.overlayVisible)
+        }
     }
 
     DragHandler {

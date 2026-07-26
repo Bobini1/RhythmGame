@@ -21,6 +21,8 @@ Rectangle {
     readonly property string roomName: root.session
         ? String(root.session.roomName || qsTr("Arena")) : qsTr("Arena")
 
+    signal chatSelected(bool chat)
+
     readonly property var result: root.session ? root.session.presentedResult : null
     readonly property bool resultAvailable: root.result && root.result.valid === true
     readonly property string statusText: {
@@ -172,6 +174,8 @@ Rectangle {
                 chatAccessibleName: qsTr("Show Arena chat")
                 detailsAccessibleName: qsTr("Show Arena result")
                 session: root.session
+
+                onTabSelected: chat => root.chatSelected(chat)
             }
 
             HoverHandler {

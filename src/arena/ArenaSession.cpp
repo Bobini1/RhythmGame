@@ -1657,15 +1657,21 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                 changed.selectionRevision < m_selectionRevision) {
                 return;
             }
+            const auto completesRequest =
+              !m_selectionRequestId.isEmpty() && m_requestedSelection &&
+              changed.selection == m_requestedSelection;
             applySelection(changed.selection,
                            changed.selectionRevision,
                            changed.availabilityRevision,
                            changed.selectedByMemberId);
-            if (!m_selectionRequestId.isEmpty() && m_requestedSelection &&
-                changed.selection == m_requestedSelection) {
+            if (completesRequest) {
                 m_pendingCommands.remove(m_selectionRequestId);
                 m_selectionRequestId.clear();
                 m_requestedSelection.reset();
+                auto queued = std::exchange(m_queuedSelection, std::nullopt);
+                if (queued && changed.selection != queued) {
+                    sendSelection(std::move(*queued));
+                }
             }
         },
         [this](const SelectionRejected& rejected) {
@@ -1675,6 +1681,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
             m_pendingCommands.remove(m_selectionRequestId);
             m_selectionRequestId.clear();
             m_requestedSelection.reset();
+            m_queuedSelection.reset();
             setError(rejected.reason == SelectionRejectionReason::NotCommon
                        ? QStringLiteral("selection_not_common")
                        : QStringLiteral("selection_stale"),
@@ -1716,6 +1723,7 @@ ArenaSession::handleServerMessage(const ServerMessage& message)
                 m_pendingCommands.remove(m_selectionRequestId);
                 m_selectionRequestId.clear();
                 m_requestedSelection.reset();
+                m_queuedSelection.reset();
             }
             if (!m_readyRequestId.isEmpty()) {
                 m_pendingCommands.remove(m_readyRequestId);
@@ -1895,6 +1903,7 @@ ArenaSession::handleCommandError(const CommandError& error)
     if (kind == PendingCommandKind::Selection) {
         m_selectionRequestId.clear();
         m_requestedSelection.reset();
+        m_queuedSelection.reset();
     }
     if (kind == PendingCommandKind::ProbeResult) {
         m_probeResultRequestId.clear();
@@ -2180,6 +2189,7 @@ ArenaSession::clearRoom()
     m_requestedReady.reset();
     m_selectionRequestId.clear();
     m_requestedSelection.reset();
+    m_queuedSelection.reset();
     m_members.clear();
     m_chat.clear();
     clearChatActivity();
@@ -3082,6 +3092,7 @@ ArenaSession::clearRoundTransfers(bool abandonSeat,
     m_requestedReady.reset();
     m_selectionRequestId.clear();
     m_requestedSelection.reset();
+    m_queuedSelection.reset();
     if (abandonSeat) {
         m_lastPublishedLibraryGeneration = 0;
         m_uncertainCommittedGeneration = 0;
@@ -3718,8 +3729,7 @@ void
 ArenaSession::selectChart(gameplay_logic::ChartData* chart)
 {
     clearError();
-    if (!getCanSelect() || m_roundLoader == nullptr || chart == nullptr ||
-        !m_selectionRequestId.isEmpty()) {
+    if (!getCanSelect() || m_roundLoader == nullptr || chart == nullptr) {
         return;
     }
     auto built = m_roundLoader->buildSelection(chart);
@@ -3733,6 +3743,25 @@ ArenaSession::selectChart(gameplay_logic::ChartData* chart)
         return;
     }
     auto selection = std::move(*built);
+    if (m_availability.availability(selection.sha256) !=
+        ArenaAvailabilityIndex::Availability::AvailableToAll) {
+        setError(QStringLiteral("selection_not_common"),
+                 QStringLiteral("arena.error.notCommon"));
+        return;
+    }
+    if (!m_selectionRequestId.isEmpty()) {
+        m_queuedSelection = std::move(selection);
+        return;
+    }
+    sendSelection(std::move(selection));
+}
+
+void
+ArenaSession::sendSelection(SelectionSnapshot selection)
+{
+    if (!getCanSelect() || !m_selectionRequestId.isEmpty()) {
+        return;
+    }
     if (m_availability.availability(selection.sha256) !=
         ArenaAvailabilityIndex::Availability::AvailableToAll) {
         setError(QStringLiteral("selection_not_common"),

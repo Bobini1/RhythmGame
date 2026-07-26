@@ -1808,8 +1808,8 @@ ensureArenaOverlayThemeVars(
   QHash<QString, QHash<QString, QHash<QString, QVariant>>>& vars,
   const QMap<QString, qml_components::ThemeFamily>& themeFamilies)
 {
-    const auto addPlacement = [](QHash<QString, QVariant>& screenVars,
-                                 const QString& variant) {
+    const auto addOverlayState = [](QHash<QString, QVariant>& screenVars,
+                                    const QString& variant) {
         const auto prefix = QStringLiteral("arenaOverlay") + variant;
         for (const auto& suffix : { QStringLiteral("XNormalized"),
                                     QStringLiteral("YNormalized"),
@@ -1820,6 +1820,17 @@ ensureArenaOverlayThemeVars(
                 screenVars.insert(key, -1.0);
             }
         }
+        const auto addDefault = [&screenVars, &prefix](const QString& suffix,
+                                                       const QVariant& value) {
+            const auto key = prefix + suffix;
+            if (!screenVars.contains(key)) {
+                screenVars.insert(key, value);
+            }
+        };
+        addDefault(QStringLiteral("Visible"), true);
+        addDefault(QStringLiteral("Expanded"),
+                   variant == QStringLiteral("Result"));
+        addDefault(QStringLiteral("ChatSelected"), false);
     };
 
     for (const auto& [themeName, themeFamily] :
@@ -1839,28 +1850,28 @@ ensureArenaOverlayThemeVars(
             }
             auto& screenVars = vars[screenName][themeName];
             if (screenName == QStringLiteral("k7")) {
-                addPlacement(screenVars, QStringLiteral("K7"));
+                addOverlayState(screenVars, QStringLiteral("K7"));
                 const auto k5 =
                   themeFamily.getScreens().constFind(QStringLiteral("k5"));
                 if (k5 != themeFamily.getScreens().cend() && k5->isAliased()) {
-                    addPlacement(screenVars, QStringLiteral("K5"));
+                    addOverlayState(screenVars, QStringLiteral("K5"));
                 }
             } else if (screenName == QStringLiteral("k14")) {
-                addPlacement(screenVars, QStringLiteral("K14"));
+                addOverlayState(screenVars, QStringLiteral("K14"));
                 const auto k10 =
                   themeFamily.getScreens().constFind(QStringLiteral("k10"));
                 if (k10 != themeFamily.getScreens().cend() &&
                     k10->isAliased()) {
-                    addPlacement(screenVars, QStringLiteral("K10"));
+                    addOverlayState(screenVars, QStringLiteral("K10"));
                 }
             } else if (screenName == QStringLiteral("k5")) {
-                addPlacement(screenVars, QStringLiteral("K5"));
+                addOverlayState(screenVars, QStringLiteral("K5"));
             } else if (screenName == QStringLiteral("k10")) {
-                addPlacement(screenVars, QStringLiteral("K10"));
+                addOverlayState(screenVars, QStringLiteral("K10"));
             } else if (screenName == QStringLiteral("result")) {
-                addPlacement(screenVars, QStringLiteral("Result"));
+                addOverlayState(screenVars, QStringLiteral("Result"));
             } else if (screenName == QStringLiteral("select")) {
-                addPlacement(screenVars, QStringLiteral("Select"));
+                addOverlayState(screenVars, QStringLiteral("Select"));
             }
         }
     }

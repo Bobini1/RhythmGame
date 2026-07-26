@@ -21,12 +21,38 @@ Item {
     property string skinSettingsData: ""
     property var selectContextRef: null
     property bool componentReady: false
+    property bool customizeMode: false
+    property var legacySkinCustomizeItems: []
+    property bool arenaPanelVisible: true
+    readonly property bool legacySkinCustomizeAvailable: true
     readonly property var arenaSession: Rg.arenaSession
     readonly property bool arenaSeated: arenaSession.state === ArenaSession.InRoom
         || arenaSession.state === ArenaSession.Reconnecting
     readonly property bool arenaGameplayOwned: root.gameplayScreenActive
         && arenaSession.arenaGameplayActive === true
         && arenaSession.arenaRunner === root.chart
+    readonly property string arenaOverlayStatePrefix: {
+        switch (root.effectiveScreenKey) {
+        case "k5": return "arenaOverlayK5";
+        case "k7": return "arenaOverlayK7";
+        case "k10": return "arenaOverlayK10";
+        case "k14": return "arenaOverlayK14";
+        case "select": return "arenaOverlaySelect";
+        case "result": return "arenaOverlayResult";
+        default: return "";
+        }
+    }
+    readonly property bool arenaPanelVisibilitySupported:
+        root.arenaOverlayStatePrefix.length > 0
+    readonly property var arenaOverlayThemeVars:
+        root.arenaPanelVisibilitySupported
+        ? root.lr2SettingDestinationForScreen(root.effectiveScreenKey) : null
+    readonly property string legacySkinCustomizeTitle:
+        String(skinSettingsState.titleForScreen(root.effectiveScreenKey)
+               || root.lr2ConfiguredThemeName(root.effectiveScreenKey)
+               || root.effectiveScreenKey)
+    readonly property string legacySkinCustomizeSubtitle:
+        root.effectiveScreenKey.toUpperCase()
     property bool decideTransitionRequested: false
     property bool screenEntrySoundPlayed: false
     property bool selectScoreRefreshQueued: false
@@ -497,6 +523,10 @@ Item {
         sequence: "Esc"
 
         onActivated: {
+            if (root.customizeMode) {
+                root.customizeMode = false;
+                return;
+            }
             if (root.effectiveScreenKey === "select" && root.lr2ReadmeMode > 0) {
                 root.closeReadme();
                 return;
@@ -522,6 +552,14 @@ Item {
             }
             sceneStack.pop();
         }
+    }
+
+    Shortcut {
+        autoRepeat: false
+        enabled: root.screenUpdatesActive
+        sequence: "F2"
+
+        onActivated: root.toggleCustomizeMode()
     }
 
     Timer {
@@ -1218,6 +1256,71 @@ Item {
     function changeLr2Soundset(delta: var) : var { return skinSettingsState.changeSoundset(delta); }
     function changeLr2SelectedTheme(delta: var) : var { return skinSettingsState.changeSelectedTheme(delta); }
     function queueSkinClockRestartAfterLoad() : void { skinSettingsState.queueSkinClockRestartAfterLoad(); }
+
+    function refreshLegacySkinCustomizeItems() : void {
+        root.legacySkinCustomizeItems =
+            skinSettingsState.buildItemsForScreen(
+                root.effectiveScreenKey, false);
+    }
+
+    function legacySkinCustomizeValue(item: var) : var {
+        return skinSettingsState.currentValueForScreen(
+                    root.effectiveScreenKey, item);
+    }
+
+    function setLegacySkinCustomizeValue(item: var, value: var) : var {
+        let changed = skinSettingsState.setSettingValueForScreen(
+                    root.effectiveScreenKey, item, value);
+        if (changed) {
+            root.legacySkinCustomizeItems =
+                root.legacySkinCustomizeItems.slice();
+            root.queueSelectRuntimeActiveOptionsRefresh(
+                        false, true, root.selectOptionResolvedTextIds);
+        }
+        return changed;
+    }
+
+    function syncArenaPanelVisible() : void {
+        let destination = root.arenaOverlayThemeVars;
+        let key = root.arenaOverlayStatePrefix + "Visible";
+        root.arenaPanelVisible = !destination
+            || typeof destination[key] !== "boolean"
+            || destination[key];
+    }
+
+    function setArenaPanelVisible(value: var) : void {
+        let next = !!value;
+        root.arenaPanelVisible = next;
+        let destination = root.arenaOverlayThemeVars;
+        if (destination && root.arenaOverlayStatePrefix.length > 0) {
+            destination[root.arenaOverlayStatePrefix + "Visible"] = next;
+        }
+        if (!next && root.arenaSession.chatOpen === true) {
+            root.arenaSession.setChatOpen(false);
+        }
+    }
+
+    function toggleCustomizeMode() : var {
+        root.customizeMode = !root.customizeMode;
+        if (root.customizeMode) {
+            root.refreshLegacySkinCustomizeItems();
+            root.syncArenaPanelVisible();
+        }
+        return true;
+    }
+
+    Connections {
+        target: root.arenaOverlayThemeVars
+        enabled: root.arenaOverlayThemeVars !== null
+            && root.arenaOverlayThemeVars !== undefined
+
+        function onValueChanged(key, value) {
+            if (key === root.arenaOverlayStatePrefix + "Visible"
+                    && typeof value === "boolean") {
+                root.arenaPanelVisible = value;
+            }
+        }
+    }
 
     function setArrayValue(array: var, index: var, value: var) : var { return optionState.setArrayValue(array, index, value); }
     function sliderInitialValue(type: var) : var { return optionState.sliderInitialValue(type); }
@@ -5232,6 +5335,8 @@ Item {
         root.updateGameplaySavedScores();
         root.handleScreenContextChanged();
         root.queueResolvedTextRefresh();
+        root.refreshLegacySkinCustomizeItems();
+        root.syncArenaPanelVisible();
         Qt.callLater(root.playScreenEntrySound);
     }
     onArenaGameplayOwnedChanged: root.refreshArenaGameplayTargetPresentation()
@@ -5737,6 +5842,8 @@ Item {
             root.openSelectIfNeeded();
             root.activateGameplayIfNeeded();
             root.refreshLr2SkinSettingItems();
+            root.refreshLegacySkinCustomizeItems();
+            root.syncArenaPanelVisible();
             selectUpdateController.refreshBaseActiveOptions();
             root.refreshSelectRuntimeActiveOptions();
             root.refreshGameplayRuntimeActiveOptions();
@@ -5746,8 +5853,10 @@ Item {
     readonly property var skinModelRef: skinModel
 
     onCsvPathChanged: root.openSelectIfNeeded()
+    onArenaOverlayThemeVarsChanged: root.syncArenaPanelVisible()
     onSkinSettingsChanged: {
         root.refreshLr2SkinSettingItems();
+        root.refreshLegacySkinCustomizeItems();
         selectUpdateController.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
     }
@@ -5755,6 +5864,8 @@ Item {
         root.openSelectIfNeeded();
         root.activateGameplayIfNeeded();
         root.refreshLr2SkinSettingItems();
+        root.refreshLegacySkinCustomizeItems();
+        root.syncArenaPanelVisible();
         selectUpdateController.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
     }
@@ -5769,6 +5880,8 @@ Item {
         Qt.callLater(root.playScreenEntrySound);
         root.updateGameplaySavedScores();
         root.refreshLr2SkinSettingItems();
+        root.refreshLegacySkinCustomizeItems();
+        root.syncArenaPanelVisible();
         selectUpdateController.refreshBaseActiveOptions();
         root.refreshSelectRuntimeActiveOptions();
         root.refreshGameplayRuntimeActiveOptions();

@@ -12,7 +12,6 @@ Rectangle {
     id: root
 
     property bool customizeMode: false
-    property bool arenaGameplayExpanded: false
     readonly property bool arenaNativeGameplayPresentation: true
     readonly property string imagesUrl: Qt.resolvedUrl(".") + "images/"
     readonly property string iniImagesUrl: "image://ini/" + rootUrl + "images/"
@@ -69,6 +68,28 @@ Rectangle {
         if (root.popup !== null) {
             root.popup.close();
             root.popup = null;
+        }
+    }
+
+    function restoreArenaPresentation() {
+        if (!root.arenaGameplayOwned) {
+            return;
+        }
+        Qt.callLater(function() {
+            if (root.arenaGameplayOwned) {
+                arenaGameplayPlacementFrame.restoreChatSelection(
+                            root.arenaSession);
+            }
+        });
+    }
+
+    function rememberArenaChatSelection(chatSelected) {
+        arenaGameplayPlacementFrame.setChatSelected(chatSelected);
+    }
+
+    onArenaGameplayOwnedChanged: {
+        if (root.arenaGameplayOwned) {
+            restoreArenaPresentation();
         }
     }
     function isPlayerScratchRightSide(player) {
@@ -833,6 +854,9 @@ Rectangle {
         id: arenaGameplayPlacementFrame
 
         enabled: arenaGameplayPlacementFrame.visible
+        customizationLabel: qsTr("Arena gameplay panel")
+        customizeMode: root.customizeMode
+        defaultExpanded: false
         layoutVariant: root.screen
         minimumPixelSize: Qt.size(320, 240)
         moveHandle: arenaGameplayPanel.dragHandle
@@ -840,16 +864,31 @@ Rectangle {
         themeVars: root.mainProfileVars
         viewport: root
         visible: root.arenaGameplayOwned
+            && (arenaGameplayPlacementFrame.overlayVisible
+                || root.customizeMode)
         z: 2000000
+
+        onOverlayVisibilityCommitted: visible => {
+            if (!visible && root.arenaSession.chatOpen === true) {
+                root.arenaSession.setChatOpen(false);
+            }
+        }
+        onPresentationStateReloaded: root.restoreArenaPresentation()
 
         ArenaGameplayOverlay {
             id: arenaGameplayPanel
 
             anchors.fill: parent
-            expanded: root.arenaGameplayExpanded
+            expanded: arenaGameplayPlacementFrame.expanded
             session: root.arenaSession
 
-            onExpandedChanged: root.arenaGameplayExpanded = arenaGameplayPanel.expanded
+            onChatSelected: chat => {
+                arenaGameplayPlacementFrame.setChatSelected(chat);
+            }
+            onExpandedChanged: {
+                arenaGameplayPlacementFrame.setExpanded(
+                            arenaGameplayPanel.expanded);
+            }
         }
     }
     AudioPlayer {
@@ -885,13 +924,15 @@ Rectangle {
     }
     Shortcut {
         sequence: "F2"
-        enabled: root.enabled && !root.arenaGameplayOwned
+        enabled: root.enabled
 
         onActivated: {
             root.customizeMode = !root.customizeMode;
             root.closeActivePopup();
         }
     }
+
+    Component.onCompleted: restoreArenaPresentation()
 
     TransientInputFocusDismissLayer {}
 }

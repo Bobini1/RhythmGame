@@ -9,14 +9,17 @@ FocusScope {
     required property Profile profile
     required property bool admissionAllowed
     property bool actionRequired: false
+    readonly property bool loggingIn: profile.loginState === Profile.LoggingIn
 
     signal loginSubmitted(string email, string password)
 
     implicitHeight: panel.implicitHeight
     implicitWidth: panel.implicitWidth
-    Accessible.description: root.actionRequired
-        ? qsTr("Login is required before joining the selected Arena room.")
-        : qsTr("Login is required before creating or joining Arena rooms.")
+    Accessible.description: root.loggingIn
+        ? qsTr("Logging in to Arena.")
+        : root.actionRequired
+            ? qsTr("Login is required before joining the selected Arena room.")
+            : qsTr("Login is required before creating or joining Arena rooms.")
     Accessible.name: qsTr("Arena login")
     Accessible.role: Accessible.Grouping
     enabled: root.admissionAllowed
@@ -65,6 +68,7 @@ FocusScope {
                 text: root.actionRequired
                     ? qsTr("Log in to continue with the selected room.")
                     : qsTr("Log in to create or join rooms.")
+                visible: !root.loggingIn
                 wrapMode: Text.Wrap
             }
 
@@ -75,6 +79,7 @@ FocusScope {
                 columnSpacing: 8
                 columns: width < 560 ? 1 : 3
                 rowSpacing: 8
+                visible: !root.loggingIn
 
                 TextField {
                     id: emailField
@@ -117,14 +122,14 @@ FocusScope {
 
             RowLayout {
                 Layout.fillWidth: true
-                visible: root.profile.loginState === Profile.LoggingIn
+                visible: root.loggingIn
                     || root.profile.loginState === Profile.LoginFailed
 
                 BusyIndicator {
                     Layout.preferredHeight: 28
                     Layout.preferredWidth: 28
                     running: visible && root.visible
-                    visible: root.profile.loginState === Profile.LoggingIn
+                    visible: root.loggingIn
                 }
 
                 Label {
