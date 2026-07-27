@@ -181,6 +181,8 @@ qt_add_library(RhythmGame_lib OBJECT
         src/gameplay_logic/ChartData.h
         src/gameplay_logic/persistence/ChartDataPersistence.cpp
         src/gameplay_logic/ChartStartGate.h
+        src/gameplay_logic/SinglePlayerChartBuilder.cpp
+        src/gameplay_logic/SinglePlayerChartBuilder.h
         src/gameplay_logic/ChartRunner.cpp
         src/gameplay_logic/ChartRunner.h
         src/gameplay_logic/HitEvent.cpp
